@@ -307,7 +307,7 @@ check("Warm Parchment 2.0 renders all chapter cards with real level names",()=>{
  assert(css.includes(".goshuin-paper-kanji.is-multi-kanji")&&css.includes(".goshuin-paper-title.is-long"),
   "Long Japanese numerals and titles must scale on small screens");
  assert(html.includes('goshuincho.js?v=6.43.0-japanese-numerals'));
- assert(html.includes('app.js?v=6.46.0-progression-rewards'));
+ assert(html.includes('app.js?v=6.47.0-director4'));
  assert(html.includes('mobile-game.css?v=6.46.0-progression-rewards'));
  const names=Array.from({length:4},(_,i)=>require("../harmony/rules.js").levelConfig(i).name);
  assert.deepEqual(names,["First Harmony","Growing Beauty","First Masterpiece","First Mist"]);
@@ -336,7 +336,7 @@ check("Menu Focus & Reward Hierarchy 1.0 makes Goshuincho the primary menu actio
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
  const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
- assert(html.includes("Progression Reward Polish 1.0"));
+ assert(html.includes("Harmony Director 4.0"));
  assert(html.indexOf('id="goshuinButton"')<html.indexOf('id="continueButton"'),
   "The album is presented before its subordinate quick-play shortcut");
  assert(html.indexOf('id="continueButton"')<html.indexOf('class="menu-rewards"'),

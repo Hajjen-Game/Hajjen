@@ -5,17 +5,17 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Progression Reward Polish 1.0 · 6.46.0</title>
+ <title>Japanese Harmony · Harmony Director 4.0 · 6.47.0</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
  <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.46.0-progression-rewards">
- <script defer src="./harmony/rules.js?v=6.41.0-chapter-identity"></script>
+ <script defer src="./harmony/rules.js?v=6.47.0-director4"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
- <script defer src="./harmony/diagnostics.js?v=6.26.1-pulse-mist"></script>
+ <script defer src="./harmony/diagnostics.js?v=6.47.0-director4"></script>
  <script defer src="./harmony/goshuincho.js?v=6.43.0-japanese-numerals"></script>
  <script defer src="./harmony/economy.js?v=6.37.0"></script>
  <script defer src="./harmony/fortune.js?v=6.38.0"></script>
- <script defer src="./harmony/app.js?v=6.46.0-progression-rewards"></script>
+ <script defer src="./harmony/app.js?v=6.47.0-director4"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -67,13 +67,15 @@
        <div class="director-picker">
         <label for="gameDirectorMode">SPELMOTOR</label>
         <select id="gameDirectorMode" aria-label="Välj Director-läge för nya spel">
-         <option value="v3" selected>Harmony Pacing Director 3.0</option>
+         <option value="auto" selected>Automatiskt · 4.0 från nivå 10</option>
+          <option value="v4">Harmony Director 4.0 (alla nivåer) · test</option>
+          <option value="v3">Harmony Pacing Director 3.0</option>
          <option value="v31">Objective Awareness Director 3.1 · experimentell</option>
          <option value="v311">Endgame Objective Awareness 3.1.1 · experimentell</option>
          <option value="v2">Opportunity Director 2.0</option>
          <option value="standard">Standard – klassisk påfyllning</option>
         </select>
-        <p id="directorModeDescription">Director 3.0 innehåller 2.0 och följer din rytm utan att ändra poängregler eller ge gratismatcher.</p>
+        <p id="directorModeDescription">3.0 på nivå 1–9 och 4.0 från nivå 10. Påbörjade nivåer påverkas inte.</p>
        </div>
       </details>
       <!-- Legacy level-list DOM is kept hidden temporarily for compatibility

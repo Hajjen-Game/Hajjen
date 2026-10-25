@@ -667,7 +667,7 @@ try{
   const demo=await directorContext.newPage();
   await demo.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await demo.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
-  assert.equal(await demo.$eval("#gameDirectorMode",n=>n.value),"v3");
+  assert.equal(await demo.$eval("#gameDirectorMode",n=>n.value),"auto");
   await clickLegacyLevel(demo,".level-tile:first-child");
   const fresh=await demo.evaluate(()=>{
    const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
@@ -735,6 +735,24 @@ try{
   });
   assert.equal(endgameMode.mode,"v311","Endgame 3.1.1 must be separately playable");
   assert(endgameMode.status.includes("ENDGAME 3.1.1"));
+   // Automatic level gate: fresh level 10 uses 4.0, first nine retain 3.0.
+   await demo.click("#pauseButton");
+   await demo.click("#modalActions button:last-child");
+   await demo.$eval("#menuAdvanced",e=>e.open=true);
+   await demo.select("#gameDirectorMode","auto");
+   await demo.evaluate(()=>{
+    const key="japanese-harmony-puzzle-v2",state=JSON.parse(localStorage.getItem(key));
+    state.unlocked=9;state.run=null;localStorage.setItem(key,JSON.stringify(state));
+   });
+   await demo.reload({waitUntil:"networkidle2"});
+   await clickLegacyLevel(demo,".level-tile:nth-child(10)");
+   const level10=await demo.evaluate(()=>{
+    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run;
+    return {mode:run.data.directorMode,level:run.level,status:document.querySelector("#paceStatus")?.textContent};
+   });
+   assert.equal(level10.level,9);
+   assert.equal(level10.mode,"v4","Level 10 must default to Harmony Director 4.0");
+   assert(level10.status.includes("OBJECTIVE 4.0"));
  }finally{await directorContext.close();}
  // Fixed family progression: 4 in stages 1–10 and 5 from stage 11.
  // Old five-family saved runs and BOTH historical score archives survive.

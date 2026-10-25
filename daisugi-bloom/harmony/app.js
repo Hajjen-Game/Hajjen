@@ -8,12 +8,12 @@ const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
 const newFamilyRows={sushi:0,maneki:1,origami:2,ryu:3};
 const stages=["","Knopp / början","På väg","Utvecklad","Nästan mästerverk","Mästerverk"];
 const KEY="japanese-harmony-puzzle-v2";
-const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false,playMode:"v3",fourFamilyScores:{},fourFamilyStars:{},fourFamilyChain:{}};
+const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false,playMode:"auto",fourFamilyScores:{},fourFamilyStars:{},fourFamilyChain:{}};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
-const PLAY_MODES={standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
+const PLAY_MODES={auto:"Automatiskt · 4.0 från nivå 10",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
 const PACE_PHASE_NAMES={build:"BYGGER",flow:"FLOW",relax:"ANDRUM",recovery:"NYA MÖJLIGHETER"};
 let decisionReadyAt=0;
 function armDecisionClock(){decisionReadyAt=performance.now();}
@@ -21,10 +21,10 @@ function disarmDecisionClock(){decisionReadyAt=0;}
 function updatePaceLabel(){
  const node=$("paceStatus");if(!node||!game)return;
  node.textContent=(game.familyCount===4?"4 FAMILJER · ":"5 FAMILJER · ")+
-  (game.directorMode==="v311"?"ENDGAME 3.1.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):game.directorMode==="v31"?"OBJECTIVE 3.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):game.directorMode==="v3"?
+  (game.directorMode==="v4"?"OBJECTIVE 4.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):game.directorMode==="v311"?"ENDGAME 3.1.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):game.directorMode==="v31"?"OBJECTIVE 3.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):game.directorMode==="v3"?
   "PACING 3.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BYGGER"):
   game.directorMode==="v2"?"OPPORTUNITY 2.0":"STANDARD");
- node.title=game.directorMode==="v311"?"Endgame 3.1.1 värderar nåbarheten för de sista 1–3 dimrutorna med samma vanliga påfyllningar som 3.1.":
+ node.title=game.directorMode==="v4"?"Director 4.0 bedömer nåbara nivåmål, delträffar på Daruma och Sealed Stones samt rättvisa påfyllningar.":game.directorMode==="v311"?"Endgame 3.1.1 värderar nåbarheten för de sista 1–3 dimrutorna med samma vanliga påfyllningar som 3.1.":
   game.directorMode==="v31"?"Objective Awareness värderar befintliga mål, fusionsposition och Pulse, men använder bara rättvisa påfyllningar.":
   game.directorMode==="v3"?"3.0 bygger på Opportunity 2.0 och väljer mellan vanliga, rättvisa påfyllningar.":"Påfyllningsläge för denna omgång";
  // Preserve diagnostics for accessibility / game testing but remove the
@@ -130,7 +130,13 @@ if(save.objectiveArchiveVersion!==2){
  }
  save.objectiveArchiveVersion=2;migratedScores=true;
 }
-if(!Object.hasOwn(PLAY_MODES,save.playMode))save.playMode="v3";
+if(!Object.hasOwn(PLAY_MODES,save.playMode))save.playMode="auto";
+// Old 3.0 was the default. Upgrade that stored default to automatic.
+// Preserve other manually selected modes and all running game snapshots.
+if(save.directorDefaultVersion!==4){
+ if(save.playMode==="v3")save.playMode="auto";
+ save.directorDefaultVersion=4;migratedScores=true;
+}
 for(const key of ["fourFamilyScores","fourFamilyStars","fourFamilyChain"]){
  if(!save[key]||typeof save[key]!=="object")save[key]={};
 }
@@ -879,7 +885,7 @@ function startLevel(i,resume=false){
  level=i;rewardStarsAtLevelStart=G.archivedStars(save,i);
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
- game=new R.Game(i,data,data?null:{directorMode:save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
+ game=new R.Game(i,data,data?null:{directorMode:save.playMode==="auto"?(i>=9?"v4":"v3"):save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1);
  $("goalLabel").textContent=game.goalText();
  $("goalLabel").title=game.config.intro||"";
@@ -2346,7 +2352,7 @@ function openEngineLab(){
  $("modalTitle").textContent="Harmony Intelligence";
  const content=$("modalContent");content.replaceChildren();
  const hint=document.createElement("p");
- hint.textContent="Jämför Standard mot experimentella Harmony Opportunity Director på samma startbräden. Fyra spelstrategier, ingen inverkan på sparfil eller vanliga spelomgångar.";
+ hint.textContent="Jämför Director 4.0 mot tidigare motorer på samma startbräden. Simulerade omgångar påverkar inte stjärnor, poäng eller sparfiler.";
  content.append(hint);
  if(!api){
   const missing=document.createElement("p");missing.textContent="Diagnostikmodulen kunde inte laddas. Öppna sidan på nytt.";
@@ -2373,19 +2379,21 @@ function openEngineLab(){
   ["compare","Jämför Standard + Director 1.0 + 2.0 + 3.0"],
   ["compare31","Jämför Director 3.0 mot Objective 3.1"],
   ["compare311","Jämför Objective 3.1 mot Endgame 3.1.1"],
+   ["compare4","Jämför Endgame 3.1.1 mot Director 4.0"],
   ["standard","Endast Standard"],
   ["director","Endast Director 1.0"],
   ["director2","Endast Director 2.0"],
   ["director3","Endast Pacing Director 3.0"],
   ["director31","Endast Objective Awareness 3.1"],
-  ["director311","Endast Endgame Objective Awareness 3.1.1"]
+  ["director311","Endast Endgame Objective Awareness 3.1.1"],
+   ["director4","Endast Harmony Director 4.0"]
  ]){
   const opt=document.createElement("option");opt.value=value;opt.textContent=label;engineMode.append(opt);
  }
- engineMode.value="compare311";field("Spelmotor",engineMode);
+ engineMode.value="compare4";field("Spelmotor",engineMode);
  const scopeNote=document.createElement("p");
  scopeNote.className="engine-lab-note";
- scopeNote.textContent="Endgame 3.1.1 är ett separat testläge ovanpå 3.1. Det värderar hur de sista 1–3 dimrutorna kan nås med direkta fusioner, Pulse och framtida utveckling, utan garanterade lösningar. Jämför 3.1 mot 3.1.1 med identiska seeds. 3.0 och 3.1 finns kvar. Botarnas tempo är syntetiskt.";
+ scopeNote.textContent="Director 4.0 är standard från nivå 10. Den förstår Daruma och Sealed Stones, räknar delträffar och föredrar mer användbara påfyllningar vid måltorka. Botarnas tempo är syntetiskt.";
 
  content.append(controls,scopeNote);
  const status=document.createElement("p");status.className="engine-lab-status";status.setAttribute("role","status");
@@ -2446,7 +2454,7 @@ function openEngineLab(){
    const title=document.createElement("strong");title.textContent="Direkt jämförelse · målframsteg, vinst och utveckling";
    comparison.append(title);
    const baselineMode=result.options.modes.includes("standard")?"standard":
-   result.options.modes.includes("director3")?"director3":"director31";
+   result.options.modes.includes("director3")?"director3":result.options.modes.includes("director311")?"director311":"director31";
    for(const classic of result.results.filter(x=>x.mode===baselineMode)){
     for(const mode of result.options.modes.filter(m=>m!==baselineMode)){
     const newer=result.results.find(x=>x.level===classic.level&&x.strategy===classic.strategy&&x.mode===mode);
@@ -2475,7 +2483,8 @@ function openEngineLab(){
   levels.disabled=true;samples.disabled=true;seedInput.disabled=true;engineMode.disabled=true;
   const modes=engineMode.value==="compare"?["standard","director","director2","director3"]:
    engineMode.value==="compare31"?["director3","director31"]:
-   engineMode.value==="compare311"?["director31","director311"]:[engineMode.value];
+   engineMode.value==="compare311"?["director31","director311"]:
+    engineMode.value==="compare4"?["director311","director4"]:[engineMode.value];
   const opts={levels:levels.value==="all"?Array.from({length:10},(_,i)=>i):[Number(levels.value)],
    trials:Number(samples.value),seed:requestedSeed,strategies:api.STRATEGIES,modes,
    yieldEvery:1,cancel:()=>job.cancelled};
@@ -2528,20 +2537,27 @@ function openGameMenu(){
  $("modal").hidden=false;
 }
 function bind(){
- $("gameDirectorMode").value=save.playMode;
- $("gameDirectorMode").addEventListener("change",event=>{
-  save.playMode=event.target.value in PLAY_MODES?event.target.value:"v3";
-  persist();
-  $("directorModeDescription").textContent=save.playMode==="v311"?
-   "Experimentell Endgame 3.1.1 värderar hur de sista dimrutorna kan nås. Den ger inte extra drag eller gratisrensningar; jämför mot 3.1 i Game Dev.":
+ const directorChoice=$("gameDirectorMode");
+ const explainDirectorMode=()=>{
+  $("directorModeDescription").textContent=save.playMode==="auto"?
+   "Automatiskt: Harmony Pacing 3.0 på nivå 1–9, Harmony Director 4.0 från nivå 10. En påbörjad nivå behåller sin motor.":
+   save.playMode==="v4"?
+   "Director 4.0 analyserar mål, delträffar mot hinder och måltorka utan gratismatchningar.":
+   save.playMode==="v311"?
+   "Experimentell Endgame 3.1.1 analyserar de sista dimrutorna, utan extra drag.":
    save.playMode==="v31"?
-   "Experimentell Director 3.1 analyserar målet, fusionens slutruta, Harmony Mist och Pulse, men väljer bara mellan vanliga påfyllningar. Testa mot 3.0 i Game Dev.":
+   "Experimentell Director 3.1 analyserar mål, fusionspositioner, Mist och Pulse.":
    save.playMode==="v3"?
-   "Director 3.0 innehåller 2.0 och följer din rytm utan att ändra poängregler eller ge gratismatcher.":
-   save.playMode==="v2"?"Director 2.0 skapar bättre utvecklingsmöjligheter med vanliga påfyllningar.":
-   "Originalsystemets slumpmässiga påfyllning. Jämför med de smartare lägena.";
+   "Director 3.0 följer spelarens rytm och använder rättvisa påfyllningar.":
+   save.playMode==="v2"?"Director 2.0 prioriterar utvecklingsmöjligheter i den vanliga objektpåsen.":
+   "Originalsystemets slumpmässiga påfyllning.";
+ };
+ directorChoice.value=save.playMode;
+ directorChoice.addEventListener("change",event=>{
+  save.playMode=Object.hasOwn(PLAY_MODES,event.target.value)?event.target.value:"auto";
+  persist();explainDirectorMode();
  });
- $("gameDirectorMode").dispatchEvent(new Event("change"));
+ explainDirectorMode();
  $("homeButton").addEventListener("click",()=>{
   if($("gameView").hidden)showGoshuincho();
   else showLevelSelection();

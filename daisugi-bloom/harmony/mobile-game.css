@@ -5083,3 +5083,48 @@ body.harmony-reduced-motion .menu-view .level-tile{
 @media(prefers-reduced-motion:reduce){
  #modal .omikuji-paper{transition:none;animation:none}
 }
+
+
+/* Sealed Stone & Awakening Pulse · Chapter 4 · v6.39.0
+   One full-resolution, transparent WebP per damage state. The stone itself
+   occupies the same tile as Daruma, never a second blocking overlay. */
+.game-view .tile.sealed-stone-tile{
+ background:radial-gradient(circle at 50% 48%,rgba(255,196,122,.22),rgba(32,61,73,.62) 85%);
+ box-shadow:inset 0 0 0 1px rgba(244,193,115,.50);
+ cursor:default;
+}
+.game-view .tile.sealed-stone-tile .sealed-stone-art{
+ position:absolute;
+ z-index:2;
+ inset:2%;
+ display:block;
+ pointer-events:none;
+ background-position:center;
+ background-size:contain;
+ background-repeat:no-repeat;
+ image-rendering:auto;
+ filter:drop-shadow(0 1px 2px rgba(17,29,41,.33));
+}
+.game-view .tile.sealed-stone-tile .sealed-stone-art.state-0{
+ background-image:url("../assets/sealed-stone-0.webp?v=6.39.0");
+}
+.game-view .tile.sealed-stone-tile .sealed-stone-art.state-1{
+ background-image:url("../assets/sealed-stone-1.webp?v=6.39.0");
+}
+.game-view .tile.sealed-stone-tile .sealed-stone-art.state-2{
+ background-image:url("../assets/sealed-stone-2.webp?v=6.39.0");
+}
+.game-view .tile.sealed-stone-tile .sealed-stone-art.state-3{
+ background-image:url("../assets/sealed-stone-3.webp?v=6.39.0");
+}
+.game-view .tile.sealed-stone-tile.sealed-hit{
+ background:radial-gradient(circle,rgba(248,196,118,.42),rgba(50,52,72,.42) 86%);
+ box-shadow:inset 0 0 0 2px rgba(255,217,141,.89),0 0 8px rgba(249,187,99,.42);
+}
+.game-view .board-praise-word.praise-awakening{
+ color:#ffe2a3;
+ text-shadow:0 1px 2px rgba(71,35,14,.8),0 0 16px rgba(255,180,83,.82);
+}
+@media(prefers-reduced-motion:reduce){
+ .game-view .tile.sealed-stone-tile .sealed-stone-art{transition:none!important}
+}

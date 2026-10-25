@@ -1729,7 +1729,7 @@ const PULSE_CHARGE_TIMINGS=Object.freeze([
  {delay:20,ramp:135}  // Third and later: snappy but still readable.
 ]);
 async function pulseAnticipation(evt){
- const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mistTargets||[]),...(evt.targets||[])];
+ const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mistTargets||[]),...(evt.visualOnlyTargets||[]),...(evt.targets||[])];
  const affected=[...new Set(visualTargets.map(t=>t.to))];
  if(!affected.length||FAST()||document.hidden||!Element.prototype.animate)return ()=>{};
  const wave=Math.max(1,Number(evt.wave)||1);
@@ -1770,12 +1770,12 @@ async function pulseAnticipation(evt){
 // Animate real from/to coordinates, cap decorative FX, update all logical
 // targets AFTER travel as in 4.1. No canvas or full-screen filters.
 function pulseBeams(evt){
- const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mistTargets||[]),...(evt.targets||[])];
+ const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mistTargets||[]),...(evt.visualOnlyTargets||[]),...(evt.targets||[])];
  if(visualTargets.length)sound("pulse",{wave:evt.wave||0});
  if(FAST()||!visualTargets.length)return Promise.resolve();
  // Prioritize mist-clearing beams when decorative paths are capped on mobile.
  // Logical target updates are NEVER capped.
- const targets=visualTargets.slice(0,MOBILE_LITE?(LITE_FX()?3:5):9);
+ const targets=visualTargets.slice(0,evt.type==="awakening"?8:MOBILE_LITE?(LITE_FX()?3:5):9);
  const travelMs=(evt.wave||1)>=3?170:(evt.wave||1)===2?195:230;
  const layer=makeFxLayer(),tasks=[];
  const sources=[...new Set(targets.map(t=>t.from))];
@@ -1902,7 +1902,7 @@ async function animateEvent(evt){
   // Use the existing travelling pulse VFX for all eight destinations.
   case "pulse":{
    const targets=evt.targets||[];
-   const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mistTargets||[]),...targets];
+   const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mistTargets||[]),...(evt.visualOnlyTargets||[]),...targets];
    // Empty mist-covered cells glow as well; their sprites stay empty.
    const releaseCharge=await pulseAnticipation(evt);
    try{

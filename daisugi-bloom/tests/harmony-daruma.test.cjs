@@ -5,8 +5,8 @@ const cell=(f,stage=1,id=1)=>({family:f,stage,id});
 const blank=()=>Array.from({length:49},(_,i)=>cell(
  ["sakura","lantern","koi","fan","bonsai"][(Math.floor(i/7)+2*(i%7))%5],1,i+1));
 const expect=(msg,fn)=>{fn();console.log("PASS "+msg);};
-expect("Only levels 21, 23 and 26 introduce fixed Daruma objectives",()=>{
- for(const [level,n] of [[20,1],[22,2],[25,2]]){
+expect("Chapter 3 alternates six curated Daruma objectives with four rest stages",()=>{
+ for(const [level,n] of [[20,1],[22,2],[23,2],[25,2],[26,2],[28,3]]){
   const g=new R.Game(level,null,{seed:20261024});
   assert.deepEqual(g.config.goal,{type:"daruma",count:n});
   assert.equal(g.darumaVersion,1);
@@ -26,8 +26,8 @@ expect("Only levels 21, 23 and 26 introduce fixed Daruma objectives",()=>{
    assert.deepEqual(g.board,before.board);
   }
  }
- assert.equal(new R.Game(21,null,{seed:1}).config.goal.type,"mist");
- assert.equal(new R.Game(23,null,{seed:1}).config.goal.type,"mist");
+ for(const [level,type] of [[21,"mist"],[24,"fusion"],[27,"mist"],[29,"mist"]])
+  assert.equal(new R.Game(level,null,{seed:1}).config.goal.type,type);
 });
 expect("First adjacent fusion paints exactly one eye, without moving Daruma",()=>{
  const g=new R.Game(20,null,{seed:234});

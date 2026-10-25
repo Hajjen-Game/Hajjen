@@ -575,6 +575,79 @@ function renderGoshuincho(){
  album.append(page);
  area.append(album);
 }
+// Harmony Economy & Omamori 1.0 — the collection stays outside the 7x7 board.
+function showOmamori(tab="shop"){
+ if(busy||!$("gameView").hidden)return;
+ const account=E.snapshot(save);
+ $("modalActions").classList.remove("pause-menu-actions","victory-actions");
+ $("modalEyebrow").textContent="JAPANESE HARMONY · DIN SAMLING";
+ $("modalTitle").textContent="Omamori";
+ const panel=$("modalContent");panel.replaceChildren();
+ const wrapper=goshuinNode("section","omamori-shop");
+ const wallet=goshuinNode("div","omamori-wallet");
+ wallet.append(goshuinNode("span","omamori-wallet-icon","✧"));
+ const walletCopy=goshuinNode("div","omamori-wallet-copy");
+ walletCopy.append(goshuinNode("span","","DIN BALANS"),
+  goshuinNode("strong","",prettify(account.coins)+" Harmony Coins"));
+ wallet.append(walletCopy,goshuinNode("span","omamori-owned-count",
+  account.ownedCount+" / "+account.totalItems+" samlade"));
+ wrapper.append(wallet);
+ wrapper.append(goshuinNode("p","omamori-explanation",
+  "Harmony Coins tjänas genom nya klarade nivåer och bättre stjärnbetyg. Omamori är fiktiva samlaramuletter utan speleffekter. Inga köp för riktiga pengar."));
+ const tabs=goshuinNode("div","omamori-tabs");
+ for(const [id,label] of [["shop","Butik"],["collection","Min samling"]]){
+  const button=goshuinNode("button","omamori-tab"+(tab===id?" is-active":""),label);
+  button.type="button";button.setAttribute("aria-pressed",String(tab===id));
+  button.addEventListener("click",()=>showOmamori(id));tabs.append(button);
+ }
+ wrapper.append(tabs);
+ const list=goshuinNode("div","omamori-catalog");
+ const shown=tab==="collection"?E.CATALOG.filter(item=>account.owned.includes(item.id)):E.CATALOG;
+ if(!shown.length)list.append(goshuinNode("p","omamori-empty",
+  "Du har ännu inga Omamori. Välj en amulett i butiken när du har samlat mynt."));
+ for(const item of shown){
+  const owned=account.owned.includes(item.id),equipped=account.equipped===item.id;
+  const card=goshuinNode("article","omamori-card");
+  card.dataset.omamoriId=item.id;
+  const charm=goshuinNode("div","omamori-charm omamori-"+item.theme);
+  charm.setAttribute("aria-hidden","true");
+  charm.append(goshuinNode("span","omamori-knot","⌁"),
+   goshuinNode("span","omamori-charm-glyph",item.symbol));
+  const copy=goshuinNode("div","omamori-card-copy");
+  copy.append(goshuinNode("strong","",item.name),
+   goshuinNode("small","",item.subtitle),
+   goshuinNode("span","omamori-card-tag",
+    equipped?"Bärs just nu":owned?"I din samling":prettify(item.price)+" Harmony Coins"));
+  const action=goshuinNode("button","omamori-action","");
+  action.type="button";
+  if(equipped)action.textContent="Ta av";
+  else if(owned)action.textContent="Bär";
+  else if(account.coins<item.price){
+   action.textContent="Saknar "+prettify(item.price-account.coins)+" mynt";action.disabled=true;
+  }else action.textContent="Samla · "+prettify(item.price)+" mynt";
+  action.addEventListener("click",()=>{
+   if(owned){
+    if(E.equip(save,equipped?null:item.id).ok){persist();showOmamori(tab);}
+   }else{
+    if(E.purchase(save,item.id).ok){persist();renderMenu();showOmamori(tab);}
+   }
+  });
+  card.append(charm,copy,action);list.append(card);
+ }
+ wrapper.append(list);
+ if(account.equipped){
+  const worn=E.CATALOG.find(item=>item.id===account.equipped);
+  wrapper.append(goshuinNode("p","omamori-equipped",
+   "✦ Din valda Omamori: "+worn.name+" · visas i samlingen och ändrar inte spelet."));
+ }
+ panel.append(wrapper);
+ const actions=$("modalActions");actions.replaceChildren();
+ modalButton(actions,"Stäng butiken","primary omamori-close",()=>{
+  $("modal").hidden=true;$("omamoriButton").focus();
+ });
+ $("modal").hidden=false;
+}
+
 function collectionSprite(family){
  const isNew=Object.hasOwn(newFamilyRows,family);
  const art=document.createElement("span");art.className="collection-art"+(isNew?" collection-new":"");

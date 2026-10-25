@@ -28,6 +28,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-daruma.test.cjs
       - name: Sealed Stone Chapter 4 · four-hit, eight-direction and saved-state QA
         run: node daisugi-bloom/tests/harmony-sealed-stone.test.cjs
+      - name: Chapter Gameplay Identity 1.0 · authored Daruma/Stone missions, layouts and saved games
+        run: node daisugi-bloom/tests/harmony-chapter-identity.test.cjs
       - name: Audit Harmony Pulse under relocated fusion survivors and chain waves
         run: node daisugi-bloom/tests/harmony-pulse-destination.test.cjs
       - name: Verify Japanese Harmony 4.1 visual-feedback contracts

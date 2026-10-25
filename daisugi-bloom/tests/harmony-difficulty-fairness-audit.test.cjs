@@ -24,8 +24,8 @@ check("Version 6.39.0 objectives / moves / stars remain read-only",()=>{
  assert.equal(audit.summary.length,1);
  assert.equal(audit.summary[0].objective,"daruma");
  assert.equal(audit.summary[0].darumaPositions.length,1);
- assert.equal(audit.allRuns.length,2);
- assert.deepEqual(audit.allRuns.map(r=>r.seed),Array(2).fill(Lab.sampleSeed(opts.seed,20,0)));
+ assert.equal(audit.allRuns.length,3);
+ assert.deepEqual(audit.allRuns.map(r=>r.seed),Array(3).fill(Lab.sampleSeed(opts.seed,20,0)));
 });
 check("Separate runs cover Stone objectives; paired seeds, goals and star contracts",()=>{
  const opts=A.options(["--levels","31-31","--trials","1"]);
@@ -35,7 +35,10 @@ check("Separate runs cover Stone objectives; paired seeds, goals and star contra
  assert.deepEqual(s.stonePositions,[24]);
  assert.equal(s.moves,R.levelConfig(30).moves);
  assert.deepEqual(s.starThresholds,R.moveStarTargets(R.levelConfig(30)));
- assert.deepEqual(audit.allRuns.map(r=>r.seed),[Lab.sampleSeed(opts.seed,30,0),Lab.sampleSeed(opts.seed,30,0)]);
+ assert.deepEqual(audit.allRuns.map(r=>r.seed),Array(3).fill(Lab.sampleSeed(opts.seed,30,0)));
+ assert.equal(s.specialistBot.samples,1);
+ assert(s.specialistBot.avgDamageUnits>=0&&s.specialistBot.avgDamageUnits<=4);
+ assert(s.specialistBot.avgLongestDamageDrought>=0);
  for(const r of audit.allRuns){
   assert(r.initialLegalMoves>=3);
   assert.equal(r.zeroLegalTurns,0);
@@ -49,6 +52,10 @@ check("Human-independent flags cannot be interpreted as actual win rates",()=>{
    avgLongestProgressDrought:14}};
  assert(A.flags(row,8).includes("LOW_GOAL_BOT_COMPLETION"));
  assert(A.flags(row,8).includes("LONG_GOAL_STAGNATION"));
+ row.specialistBot={wins:1,avgLongestDamageDrought:15};
+ assert(A.flags(row,8).includes("LOW_OBSTACLE_SPECIALIST_COMPLETION"));
+ assert(A.flags(row,8).includes("LONG_PARTIAL_DAMAGE_STAGNATION"));
+ delete row.specialistBot;
  assert(!A.flags(row,8).includes("VERY_EARLY_COMPLETION"));
  row.goalBot={...row.goalBot,wins:8,medianWinningMoves:2,stars:{three:8},avgLongestProgressDrought:0};
  assert(A.flags(row,8).includes("VERY_EARLY_COMPLETION"));

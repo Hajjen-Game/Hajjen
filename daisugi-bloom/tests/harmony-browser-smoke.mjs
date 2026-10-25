@@ -1998,8 +1998,19 @@ try{
  await page.evaluate(()=>window.__scoreFxWatcher.disconnect());
  assert(await page.evaluate(()=>!!window.HarmonyPerf&&typeof window.HarmonyPerf.create==="function"),
   "Mobile 4.3 frame profiler should load before gameplay");
+ // The score FX can finish before the turn's async cleanup has released
+ // its busy guard. Pause must be tested after the actual turn completes.
+ await page.waitForFunction(()=>document.querySelector("#board")?.getAttribute("aria-busy")==="false",{timeout:12000});
+ // A complete goal may already have opened the result overlay. Close only
+ // that overlay before checking the dedicated in-game pause menu.
+ await page.evaluate(()=>{const modal=document.querySelector("#modal");if(!modal.hidden)modal.hidden=true;});
  await page.click("#pauseButton");
- await page.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Prestanda").click());
+ await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Spelmeny",{timeout:5000});
+ await page.evaluate(()=>{
+  const button=[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Prestanda");
+  if(!button)throw new Error("Performance action missing from open game menu");
+  button.click();
+ });
  assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Prestanda");
  const report=await page.$eval("#modalContent",e=>e.textContent);
  assert(report.includes("Mätta drag")&&report.includes("95:e percentilen")&&report.includes("Startade animationer"),

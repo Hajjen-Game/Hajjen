@@ -1301,7 +1301,9 @@ class Game{
   if(this.moves<=0||this.failed)return {ok:false,reason:"Nivån är avslutad"};
   if(!Number.isInteger(a)||!Number.isInteger(b)||!neighbors(a).includes(b)||
    isFixed(this.board[a])||isFixed(this.board[b]))
-   return {ok:false,reason:"Daruma står stilla – skapa fusioner bredvid den"};
+   return {ok:false,reason:isSealed(this.board[a])||isSealed(this.board[b])?
+    "Sealed Stone står stilla – skapa fusioner bredvid stenen":
+    "Daruma står stilla – skapa fusioner bredvid den"};
   const armed=resonanceLinks(this.board);
   [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
   if(!scan(this.board).some(g=>g.includes(a)||g.includes(b))){

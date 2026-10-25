@@ -2020,7 +2020,11 @@ try{
 
 
  await page.click("#pauseButton");
- await page.evaluate(()=>document.querySelector("#modalActions button:nth-child(2)").click());
+ await page.evaluate(()=>{
+  const restart=[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Börja om nivån");
+  if(!restart)throw new Error("Restart option missing from pause menu");
+  restart.click();
+ });
  const festivalAfterRestart=await page.evaluate(()=>document.body.dataset.festival);
  assert.notEqual(festivalAfterRestart,festivalAtStart,"A restarted level must choose a different background");
  assert.equal(await page.$$eval(".tile",els=>els.length),49);

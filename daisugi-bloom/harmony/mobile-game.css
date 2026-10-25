@@ -5241,3 +5241,45 @@ body.harmony-reduced-motion .menu-view .level-tile{
   height:clamp(36px,11.2vw,43px);
  }
 }
+
+/* Goshuincho Primary Navigation 1.0 · v6.44.0
+   A single clearly discoverable level-select action replaces the old list.
+   Legacy DOM exists only for migration regression tests, never renders. */
+#levelList[hidden],#levelPager[hidden]{display:none!important}
+.menu-view .goshuin-entry{
+ min-height:71px;
+ padding:11px 13px;
+ border:1px solid rgba(255,219,158,.72);
+ background:linear-gradient(120deg,#f7dba8,#efba7d);
+ box-shadow:inset 0 1px rgba(255,248,222,.75),0 7px 19px rgba(8,23,32,.24);
+ color:#42382f;
+}
+.menu-view .goshuin-entry-icon{
+ flex-basis:42px;height:42px;
+ background:linear-gradient(140deg,#fff0d2,#f4cc92);
+ border:1px solid rgba(145,99,64,.3);
+ color:#734333;
+}
+.menu-view .goshuin-entry-copy strong{
+ font-size:clamp(14px,3.8vw,17px);
+ color:#41362f;
+}
+.menu-view .goshuin-entry-copy small{font-size:11px;color:#6b5341}
+.menu-view .goshuin-entry-progress{font-size:11px;color:#744c32}
+.menu-view .goshuin-entry-arrow{color:#815038}
+.menu-view .goshuin-entry:hover{filter:brightness(1.035)}
+.menu-view .goshuin-entry:focus-visible{outline:3px solid #fff2cd;outline-offset:3px}
+.menu-view .panel-footer #continueButton{
+ width:min(100%,380px);
+ border:1px solid rgba(234,187,128,.48);
+ background:rgba(30,62,72,.85);
+ color:#ffe2b4;
+ box-shadow:none;
+}
+@media(max-width:360px){
+ .menu-view .goshuin-entry{gap:7px;padding:10px;min-height:68px}
+ .menu-view .goshuin-entry-icon{flex-basis:37px;height:37px}
+ .menu-view .goshuin-entry-copy strong{font-size:13px}
+ .menu-view .goshuin-entry-copy small{font-size:10px}
+ .menu-view .goshuin-entry-progress{font-size:10px}
+}

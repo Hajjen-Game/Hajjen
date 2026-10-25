@@ -50,24 +50,35 @@ check("Chapter sigil only appears after all ten achievements, stars can improve"
  assert.equal(G.chapterSnapshot(s,0).stars,12);
  assert.equal(G.chapterSnapshot(s,0).earned,10);
 });
-check("Stamp Slot Polish: nine approved artworks mapped to chapter, stamp and grade slots",()=>{
- const a=G.artUrl("chapters",0),b=G.artUrl("chapters",1),c=G.artUrl("chapters",2);
- assert([a,b,c].every(v=>v.src.includes("goshuincho-nine-atlas.avif")));
- assert.deepEqual([a.column,b.column,c.column],[0,1,2]);
- assert.deepEqual([a.row,b.row,c.row],[0,0,0]);
- assert.deepEqual([G.artUrl("stamps",0).row,G.artUrl("stamps",10).row,G.artUrl("stamps",20).row],[1,1,1]);
- assert.deepEqual([G.artUrl("stamps",9).column,G.artUrl("stamps",19).column,G.artUrl("stamps",29).column],[0,1,2]);
- assert.deepEqual([1,2,3].map(i=>G.artUrl("grades",i).column),[0,1,2]);
- assert([1,2,3].every(i=>G.artUrl("grades",i).row===2));
- assert.equal(G.artUrl("stamps",30),null,"Unillustrated chapters keep placeholder");
- assert.equal(G.artUrl("covers",0),null,"Chapter completion seal is a reserved slot, not invented art");
+check("Asset Fidelity 2.0: original square chapter PNGs and star seals",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const names=["sakura","mist","daruma"];
+ const verify=(src,width)=>{
+  assert.equal(typeof src,"string","Independent PNG required, not an atlas");
+  assert(src.includes(".png?v=6.36.0"));
+  const data=fs.readFileSync(path.resolve(__dirname,"..",src.split("?")[0]));
+  assert(data.length>100000,"Tiny atlas cells are not acceptable");
+  assert.equal(data.subarray(0,8).toString("hex"),"89504e470d0a1a0a");
+  assert.equal(data.readUInt32BE(16),width);
+  assert.equal(data.readUInt32BE(20),width);
+ };
+ for(let c=0;c<3;c++){
+  const icon=G.artUrl("chapters",c);
+  assert(icon.includes("chapter-icon-"+names[c]+".png"));
+  verify(icon,724);
+  assert(G.artUrl("cards",c).includes("level-card-"+names[c]+".webp"),
+   "Full-size level cards must remain unchanged");
+ }
+ for(let n=1;n<=3;n++){
+  const grade=G.artUrl("grades",n);
+  assert(grade.includes("star-seal-"+n+".png"));
+  verify(grade,512);
+ }
+ assert.equal(G.artUrl("chapters",3),null);
+ assert.equal(G.artUrl("covers",0),null);
  G.ART.levelStamps[12]="./assets/goshuincho/level-13.webp";
- assert.equal(G.artUrl("stamps",12),"./assets/goshuincho/level-13.webp","Unique level art can replace shared motif");
+ assert.equal(G.artUrl("stamps",12),"./assets/goshuincho/level-13.webp");
  delete G.ART.levelStamps[12];
- G.ART.grades[3]="./assets/goshuincho/three-star-seal.webp";
- assert.equal(G.artUrl("grades",3),"./assets/goshuincho/three-star-seal.webp");
- G.ART.grades[3]=c&&{...G.ART.chapters[2],row:2};
- assert.equal(G.artUrl("grades",3).row,2);
 });
 check("The entire collection is pure/read-only and scales beyond the first 50 stages",()=>{
  const state={unlocked:213,bestStars:{10:1,19:2,200:3},fourFamilyStars:{1:3},bestScores:{},fourFamilyScores:{}};
@@ -176,7 +187,7 @@ check("Artwork Fidelity 1.0 keeps square atlas pixels inside non-square plaques"
  assert.match(section, /height:calc\(100% - 10px\)/, "Grade should be constrained by available plaque height");
  assert.match(section, /object-fit:contain/, "Independent hi-res PNG/WebP originals must preserve aspect ratio");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert.match(html, /mobile-game\.css\?v=6\.35\.0-level-cards/, "Cache must refresh level card CSS");
+ assert.match(html, /mobile-game\.css\?v=6\.36\.0-asset-fidelity/, "Cache must refresh level card CSS");
 });
 
 
@@ -197,7 +208,7 @@ check("Level Card Rework 1.0: three user-approved full-resolution artworks mappe
  assert.equal(G.artUrl("cards",3),null,"Unillustrated chapters must use their paper fallback");
  const app=fs.readFileSync(path.resolve(__dirname,"../harmony/app.js"),"utf8");
  assert(app.includes('goshuinArtwork(tile,"cards",info.index)'));
- assert(app.includes('goshuinArtwork(crest,"cards",info.index)'));
+ assert(app.includes('goshuinArtwork(crest,"chapters",info.index)'));
  assert(!app.includes('goshuinNode("span","goshuin-stamp-slot")'),
   "Old circle slots may not render off-center again");
  const css=fs.readFileSync(path.resolve(__dirname,"../harmony/mobile-game.css"),"utf8");
@@ -207,4 +218,17 @@ check("Level Card Rework 1.0: three user-approved full-resolution artworks mappe
  assert(section.includes(".goshuin-grade"));
 });
 
-console.log("Goshuincho Collection Pagination Rework 1.0 + Artwork Fidelity & Level Cards 1.0 tests passed.");
+check("Asset Fidelity 2.0 has independent high-density images with no distortion",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
+ const fidelity=css.slice(css.lastIndexOf("/* Goshuincho Asset Fidelity 2.0"));
+ assert(fidelity.includes("object-fit:contain"));
+ assert(fidelity.includes("aspect-ratio:1 / 1"));
+ assert(fidelity.includes(".goshuin-grade > img.goshuin-art"));
+ assert(fidelity.includes(".goshuin-cover-slot > img.goshuin-art"));
+ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+ assert(app.includes('goshuinArtwork(crest,"chapters",info.index)'));
+ assert(app.includes('goshuinArtwork(tile,"cards",info.index)'));
+ assert(app.includes('goshuinArtwork(grade,"grades",stamp.stars)'));
+});
+console.log("Goshuincho Collection + Level Cards + Asset Fidelity 2.0 tests passed.");

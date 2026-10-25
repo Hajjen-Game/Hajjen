@@ -113,7 +113,7 @@ try{
   assert.equal(empty.nextDisabled,false,"Next chapter can be previewed");
   assert(empty.scroll<=390,"The album must not overflow the phone viewport");
   // Stamp Slot Polish 1.0: load the real nine-asset transparent atlas.
-  await journal.waitForSelector(".goshuin-cover-slot.has-art .goshuin-atlas-art");
+  await journal.waitForSelector(".goshuin-cover-slot.has-art > img.goshuin-art");
   const initialArt=await journal.evaluate(async()=>{
    const image=new Image();image.src="./assets/goshuincho/goshuincho-nine-atlas.avif?v=6.34.0";
    await image.decode();
@@ -122,12 +122,12 @@ try{
    return {width:image.naturalWidth,height:image.naturalHeight,
     corner:ctx.getImageData(0,0,1,1).data[3],
     cells:Array.from({length:9},(_,i)=>ctx.getImageData((i%3)*96+48,Math.floor(i/3)*96+48,1,1).data[3]),
-    chapter:document.querySelector(".goshuin-cover-slot .goshuin-atlas-art")?.style.backgroundPosition};
+    chapter:document.querySelector(".goshuin-cover-slot > img.goshuin-art")?.getAttribute("src")};
   });
   assert.equal(initialArt.width,288);assert.equal(initialArt.height,288);
   assert.equal(initialArt.corner,0,"Approved artwork should have transparent surroundings");
   assert(initialArt.cells.every(a=>a>100),"All nine artwork cells must be nonempty");
-  assert.equal(initialArt.chapter,"0% 0%");
+  assert(initialArt.chapter?.includes("level-card-sakura.webp"),"Chapter 1 uses full-res Sakura art");
   await journal.click(".goshuin-nav-button:last-child");
   assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 2 / 3");
   assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"5");
@@ -142,8 +142,8 @@ try{
   assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Dimträdgården");
   assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 2 · Sida 1 / 3");
   assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"11");
-  await journal.waitForSelector(".goshuin-cover-slot.has-art .goshuin-atlas-art");
-  assert.equal(await journal.$eval(".goshuin-cover-slot .goshuin-atlas-art",x=>x.style.backgroundPosition),"50% 0%");
+  await journal.waitForSelector(".goshuin-cover-slot.has-art > img.goshuin-art");
+  assert((await journal.$eval(".goshuin-cover-slot > img.goshuin-art",x=>x.getAttribute("src"))).includes("level-card-mist.webp"));
   await journal.click(".goshuin-nav-button:first-child");
   assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 3 / 3");
   assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"9");
@@ -166,12 +166,15 @@ try{
   assert.equal(await journal.$eval(".goshuin-stamp.is-earned",x=>x.dataset.stars),"1");
   await journal.waitForSelector(".goshuin-stamp .goshuin-grade.has-art");
   const thirdChapter=await journal.evaluate(()=>({
-   chapter:document.querySelector(".goshuin-cover-slot .goshuin-atlas-art")?.style.backgroundPosition,
-   stamp:document.querySelector(".goshuin-stamp.is-earned .goshuin-stamp-slot .goshuin-atlas-art")?.style.backgroundPosition,
+   chapter:document.querySelector(".goshuin-cover-slot > img.goshuin-art")?.getAttribute("src"),
+   card:document.querySelector(".goshuin-stamp.is-earned > img.goshuin-art")?.getAttribute("src"),
+   legacySlotCount:document.querySelectorAll(".goshuin-stamp-slot").length,
    grade:document.querySelector(".goshuin-stamp.is-earned .goshuin-grade .goshuin-atlas-art")?.style.backgroundPosition
   }));
-  assert.deepEqual(thirdChapter,{chapter:"100% 0%",stamp:"100% 50%",grade:"0% 100%"},
-   "Daruma chapter, Daruma stamp and one-star Japanese seal must come from distinct atlas cells");
+  assert(thirdChapter.chapter?.includes("level-card-daruma.webp"));
+  assert(thirdChapter.card?.includes("level-card-daruma.webp"));
+  assert.equal(thirdChapter.legacySlotCount,0,"Repeated round stamp is removed");
+  assert.equal(thirdChapter.grade,"0% 100%","The earned one-star seal keeps its Japanese art");
   // Level Select 2.0: same book serves as a level browser without mutating
   // progress or bypassing existing stage unlocks.
   assert.equal(await journal.$eval('.goshuin-stamp[data-level="22"]',
@@ -225,18 +228,27 @@ try{
    modal:document.querySelector(".modal-inner").getBoundingClientRect().width,
    grid:document.querySelector(".goshuin-stamp-grid").getBoundingClientRect().width,
    artSlots:document.querySelectorAll(".goshuin-stamp-slot[data-art-key]").length,
+   cards:document.querySelectorAll(".goshuin-stamp > img.goshuin-art").length,
    grades:document.querySelectorAll(".goshuin-grade[data-art-key]").length,
    imgs:document.querySelectorAll(".goshuin-art").length,
    atlas:document.querySelectorAll(".goshuin-atlas-art").length,
    sampleGradeWidth:document.querySelector(".goshuin-grade").getBoundingClientRect().width,
+   cardShape:document.querySelector(".goshuin-stamp").getBoundingClientRect().height/
+      document.querySelector(".goshuin-stamp").getBoundingClientRect().width,
+   cardOffset:(()=>{const parent=document.querySelector(".goshuin-stamp").getBoundingClientRect(),
+    img=document.querySelector(".goshuin-stamp > img.goshuin-art").getBoundingClientRect();
+    return {dx:Math.abs(parent.left-img.left),dy:Math.abs(parent.top-img.top)};})(),
    className:document.querySelector(".goshuin-stamp.is-earned").className
   }));
   assert(layout.doc<=layout.width&&layout.modal<=layout.width&&layout.grid<=layout.modal);
-  assert.equal(layout.artSlots,4);
-  assert.equal(layout.grades,4);
-  assert.equal(layout.imgs,9,"One chapter motif, four stage seals and four star seals");
-  assert.equal(layout.atlas,9);
-  assert(layout.sampleGradeWidth>=55,"The old tiny brown pill becomes a real seal plaque");
+  assert.equal(layout.artSlots,0,"No old circular artwork slot remains");
+  assert.equal(layout.cards,4,"All four levels use the chapter watercolor");
+  assert.equal(layout.grades,4,"All earned grades keep their one Japanese seal");
+  assert.equal(layout.imgs,9,"One illustrated chapter cover and four large cards + four Japanese grades");
+  assert.equal(layout.atlas,4,"Only the four earned Japanese grades use the old atlas");
+  assert(layout.sampleGradeWidth>=38&&layout.sampleGradeWidth<=58,"The seal no longer needs a giant plaque");
+  assert(layout.cardShape>1.22&&layout.cardShape<1.28,"Cards preserve their portrait 4:5 proportion");
+  assert(layout.cardOffset.dx<1&&layout.cardOffset.dy<1,"Artwork stays anchored inside its level card");
   fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
   await journal.screenshot({path:"/tmp/daisugi-bloom/goshuincho-390.png"});
   await journal.click('.goshuin-stamp[data-level="3"]');

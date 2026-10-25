@@ -30,6 +30,23 @@ Both old and new versions remain stable after save/reload and in Game Dev simula
 - GitHub Actions runs all existing puzzle, obstacle, browser smoke, reward and game-engine tests.
 - `tools/harmony-difficulty-fairness-audit.cjs` remains available to reproduce 744 post-balance simulations. Compare seed 20261025 with the original 6.39.0 results.
 
+## Verified before / after (same 8 seeds per level)
+
+The full **6.40.0** GitHub Actions audit completed successfully: **744 full games**, seed `20261025`, default Pacing Director 3.0. All level-by-level rows **other than 28 and 30** were unchanged compared with the verified 6.39.0 audit. The targeted improvement therefore did not change any other level's observed bot outcomes.
+
+| Metric | Level 28 – before → after | Level 30 – before → after |
+| --- | --- | --- |
+| Goal-oriented bot wins | **8/8 → 8/8** | **6/8 → 7/8** |
+| Goal bot median winning moves | **22 → 22** | **31 → 31** |
+| Goal bot 3★ | **0/8 → 1/8** | **0/8 → 2/8** |
+| Goal bot 2★ | **7/8 → 6/8** | **2/8 → 4/8** |
+| Goal bot 1★ | **1/8 → 1/8** | **4/8 → 1/8** |
+
+These are small **algorithmic** samples, not human success rates or statistically robust difficulty estimates. They confirm the intervention had its intended mechanical effect without a wholesale change to difficulty.
+
+- [Verified before – v6.39.0 audit with complete diagnostic artifact](https://github.com/Hajjen-Game/Hajjen/actions/runs/40200411017/artifacts/12601182573)
+- [Verified after – v6.40.0 audit with complete diagnostic artifact](https://github.com/Hajjen-Game/Hajjen/actions/runs/40202017323/artifacts/12602581147)
+
 ## Next validation
 
 Replay levels **28 and 30** with real players and compare stars, attempts and remaining turns. If players still cannot reliably work toward the scattered Mist cells, investigate objective reachability or board hint clarity **before** applying more free moves.

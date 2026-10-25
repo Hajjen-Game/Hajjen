@@ -158,7 +158,9 @@ function endlessConfig(index,withDaruma=true,withSealed=true){
   goal.type==="stage3"?"Utveckla "+goal.count+" föremål till stadium 3.":
   "Träffa "+goal.count+" föremål med Harmony Pulse.";
  return {...base,name:label,subtitle:mist?"Rena trädgårdens magiska dimma":"Ett nytt harmonimål",
-  moves:earlyJourney?earlyMoves[stage]:base.moves,
+  // Fairness Rebalance 1.0: the chapter-three finale was running out of
+  // moves in otherwise promising games. Four more turns on NEW runs only.
+  moves:index===29?40:earlyJourney?earlyMoves[stage]:base.moves,
   goal,par:mist?(earlyJourney?17+Math.floor(stage/3):12+Math.min(5,chapter)):
    goal.type==="masterpiece"?(earlyJourney?16:16+chapter):
    goal.type==="fusion"?(earlyJourney?15:13+chapter):
@@ -218,10 +220,17 @@ function mistLayout(index,count,version=2){
 // subsequent human playtest validation. Historical "par" is left unchanged
 // so archived rewardVersion=1 sessions keep their old rating criteria.
 const FIRST20_STAR_PAR=[4,5,9,9,10,5,8,12,9,12,10,12,17,6,15,13,18,16,18,15];
+// Fairness Rebalance 1.0: difficult chapter-three Mist challenges should
+// reward deliberate efficient completion, rather than require a near-perfect
+// 13-turn clear. Fixed thresholds, NEVER personalized or Director-adjusted.
+const FAIRNESS_STAR_PAR={27:19,29:23}; // player levels 28 and 30 (zero-based)
+const LEGACY_FAIRNESS_STAR_PAR=13;
 function levelConfig(index){
  const base=levels[index]||endlessConfig(index);
- return index>=0&&index<FIRST20_STAR_PAR.length?
-  {...base,starPar:FIRST20_STAR_PAR[index]}:base;
+ if(index>=0&&index<FIRST20_STAR_PAR.length)
+  return {...base,starPar:FIRST20_STAR_PAR[index]};
+ return Object.prototype.hasOwnProperty.call(FAIRNESS_STAR_PAR,index)?
+  {...base,starPar:FAIRNESS_STAR_PAR[index]}:base;
 }
 // New missions: pass always awards ★; ★★/★★★ recognize efficient
 // goal completion, never score. Extra post-win moves cannot change rating.
@@ -771,6 +780,9 @@ class Game{
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
   this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.fourTurns=0;this.shapes=0;this.bestChain=0;
   this.complete=false;this.failed=false;this.rewardVersion=3;this.starsAtGoal=0;this.goalMove=null;this.legacyScoreCompletion=false;
+  // 1 = new chapter-three star / move thresholds. Old in-progress rounds
+  // remain at version 0 and keep their original contract through reloads.
+  this.fairnessBalanceVersion=1;
   if(previous){
    Object.assign(this,previous);
    // Existing runs retain their historical rating contract. New plays
@@ -785,6 +797,15 @@ class Game{
     (this.level>=20&&this.level<50&&previous.darumaVersion!==1&&
      darumaPositions(this.level).length?endlessConfig(this.level,false):
      oldSealedRun?endlessConfig(this.level,true,false):levelConfig(this.level));
+   // Preserve old star deadlines and L30's 36-turn budget for games that
+   // existed before this update. No surprise change mid-level; retry uses
+   // the updated thresholds. Saved records/stars are never edited.
+   this.fairnessBalanceVersion=previous.fairnessBalanceVersion===1?1:0;
+   if(this.fairnessBalanceVersion===0&&this.config.goal.type==="mist"){
+    if(this.level===27)this.config={...this.config,starPar:LEGACY_FAIRNESS_STAR_PAR};
+    if(this.level===29)this.config={...this.config,
+     moves:36,starPar:LEGACY_FAIRNESS_STAR_PAR};
+   }
    this.darumaVersion=previous.darumaVersion===1?1:0;
    this.daruma=Array.isArray(previous.daruma)&&previous.daruma.length===49?
     previous.daruma.map(v=>[0,1,2,3].includes(v)?v:0):Array(49).fill(0);
@@ -1283,7 +1304,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate

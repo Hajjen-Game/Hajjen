@@ -20,6 +20,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-consistency-audit.test.cjs
       - name: Goshuincho Collection 1.0 · archived stamps and chapters
         run: node daisugi-bloom/tests/harmony-goshuincho.test.cjs
+      - name: Harmony Economy & Omamori 1.0 · deterministic payouts and collection
+        run: node daisugi-bloom/tests/harmony-economy.test.cjs
       - name: Daruma Awakening fixed-blocker, eye states and saved levels
         run: node daisugi-bloom/tests/harmony-daruma.test.cjs
       - name: Audit Harmony Pulse under relocated fusion survivors and chain waves
@@ -65,6 +67,7 @@ jobs:
           node --check daisugi-bloom/tools/harmony-pacing-3-benchmark.cjs
           node --check daisugi-bloom/tools/harmony-four-families-benchmark.cjs
           node --check daisugi-bloom/tools/harmony-objective-balance.cjs
+          node --check daisugi-bloom/harmony/economy.js
           node --check daisugi-bloom/harmony/app.js
   mobile-browser:
     runs-on: ubuntu-latest

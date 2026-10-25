@@ -150,8 +150,8 @@ try{
   await journal.click(".goshuin-nav-button:last-child");
   assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 2 / 3");
   assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"5");
-  assert.equal(await journal.$eval(".goshuin-stamp",xs=>xs.length),4);
-  assert.equal(await journal.$eval(".goshuin-stamp.is-omikuji-preview",xs=>xs.length),0,
+  assert.equal(await journal.evaluate(()=>document.querySelectorAll(".goshuin-stamp").length),4);
+  assert.equal(await journal.evaluate(()=>document.querySelectorAll(".goshuin-stamp.is-omikuji-preview").length),0,
    "Level 5+ must keep the approved watercolor chapter cards");
   await journal.waitForSelector(".goshuin-stamp > img.goshuin-art");
   await journal.click(".goshuin-nav-button:last-child");

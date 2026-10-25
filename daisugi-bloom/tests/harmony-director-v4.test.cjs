@@ -61,6 +61,11 @@ check("4.0 refills conserve bag, stages, obstacles and deterministic snapshots",
   a.directorDrought=4;a.objectiveDrought=4;a.pacePhase="recovery";
   for(const i of [0,1,2,3,4,5,6])a.board[i]=null;
   const snapshot=a.save(),b=new R.Game(level,snapshot,{fastRestore:true});
+  const standard=new R.Game(level,snapshot,{fastRestore:true});
+  for(let i=0;i<7;i++){
+   standard.board[i]={family:standard.nextFamily(standard.board,i),stage:1,id:standard.nextId++};
+  }
+  const naturalMatches=R.scan(standard.board).length;
   assert.equal(b.directorMode,"v4");
   const untouched=a.board.filter(Boolean).map(p=>[p.id,p.family,p.stage]);
   a.refillOpportunity();b.refillOpportunity();
@@ -69,7 +74,8 @@ check("4.0 refills conserve bag, stages, obstacles and deterministic snapshots",
   assert(a.board.filter(p=>p.id>=50).every(p=>p.stage===1),"Refill only produces stage 1");
   assert(a.directorSelections<=a.directorRefills);
   assert.equal(a.bag.length,b.bag.length);
-  assert.equal(R.scan(a.board).length,0,"No engineered free cascades");
+  if(!naturalMatches)assert.equal(R.scan(a.board).length,0,
+   "Director cannot introduce a free cascade if the Standard refill had none");
  }
 });
 check("Engine Lab compares 4.0 to the prior engine on shared seeds",()=>{

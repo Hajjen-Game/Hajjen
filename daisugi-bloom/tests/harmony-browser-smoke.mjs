@@ -5,6 +5,15 @@ const browserPaths=["/usr/bin/google-chrome","/usr/bin/google-chrome-stable","/u
 const exe=browserPaths.find(p=>fs.existsSync(p));
 if(!exe)throw new Error("Chrome/Chromium missing");
 const browser=await puppeteer.launch({executablePath:exe,headless:true,args:["--no-sandbox","--disable-setuid-sandbox"]});
+// Transitional smoke utility: exercise legacy engine-start regression cases
+// without reintroducing a second visible level selector to production.
+async function clickLegacyLevel(page,selector){
+ await page.evaluate(selector=>{
+  const node=document.querySelector(selector);
+  if(!node)throw new Error("Legacy level regression selector missing: "+selector);
+  node.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));
+ },selector);
+}
 const page=await browser.newPage();const errors=[];
 page.on("pageerror",e=>errors.push(e.message));
 page.on("console",m=>{if(m.type()==="error"&&!/harmony-atlas|404/.test(m.text()))errors.push(m.text());});
@@ -12,20 +21,25 @@ try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
  await page.waitForFunction(()=>!!window.HarmonyRules);
- // UI Cleanup & Premium Polish 1.0: level list is the primary action,
- // the Director is hidden behind an accessible disclosure until requested.
+ // Goshuincho Primary Navigation 1.0: the old list is absent visually.
+ // The Director remains hidden behind the accessible disclosure.
  const uiMenu=await page.evaluate(()=>{
   const a=document.querySelector(".hero").getBoundingClientRect();
-  const b=document.querySelector(".level-tile").getBoundingClientRect();
+  const b=document.querySelector("#goshuinButton").getBoundingClientRect();
   const advanced=document.querySelector("#menuAdvanced");
   return {heroHeight:a.height,levelTop:b.top,advancedOpen:advanced.open,
    directorHidden:getComputedStyle(document.querySelector("#gameDirectorMode")).display,
+   legacyListHidden:getComputedStyle(document.querySelector("#levelList")).display==="none"&&
+    getComputedStyle(document.querySelector("#levelPager")).display==="none",
+   goshuinVisible:!!document.querySelector("#goshuinButton").offsetParent,
    introduction:document.querySelector(".hero p").textContent,
    familyCopy:document.querySelector(".family-progression-note").textContent,
    bodyWidth:document.body.scrollWidth};
  });
  assert(uiMenu.heroHeight<210,"Shorter hero should no longer bury level selection");
- assert(uiMenu.levelTop<780,"Level selection should appear on the initial phone view");
+ assert(uiMenu.levelTop<780,"Goshuincho must appear on the initial phone view");
+ assert(uiMenu.legacyListHidden&&uiMenu.goshuinVisible,
+  "The old level list is hidden and Goshuincho is the visible level selector");
  assert.equal(uiMenu.advancedOpen,false,"Director controls should start folded");
  assert(!uiMenu.introduction.includes("fem per nivå"),"Intro must not claim five families on every level");
  assert(uiMenu.familyCopy.includes("4 familjer")&&uiMenu.familyCopy.includes("5 familjer"));
@@ -494,7 +508,7 @@ try{
   }
   await art.waitForFunction(()=>["has-atlas","has-new-atlas","has-koi-stage1","has-maneki-stage1"]
    .every(cls=>document.documentElement.classList.contains(cls)),{timeout:18000});
-  await art.click(".level-tile:first-child");
+  await clickLegacyLevel(art,".level-tile:first-child");
   const koiTile=await art.evaluate(()=>{
    const el=document.querySelector(".piece .sprite.sprite-stage1-koi");
    const bg=el&&getComputedStyle(el);
@@ -513,7 +527,7 @@ try{
    localStorage.setItem(key,JSON.stringify(old));
   });
   await art.reload({waitUntil:"networkidle2"});
-  await art.click(".level-tile:nth-child(8)");
+  await clickLegacyLevel(art,".level-tile:nth-child(8)");
   const manekiTile=await art.evaluate(()=>{
    const el=document.querySelector(".piece.new-family .sprite.sprite-stage1-maneki");
    const bg=el&&getComputedStyle(el);
@@ -546,7 +560,7 @@ try{
   await offline.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"domcontentloaded",timeout:40000});
   await offline.waitForFunction(()=>document.documentElement.classList.contains("has-koi-stage1")&&
    document.documentElement.classList.contains("has-maneki-stage1"),{timeout:18000});
-  await offline.click(".level-tile:first-child");
+  await clickLegacyLevel(offline,".level-tile:first-child");
   const koiOffline=await offline.evaluate(()=>{
    const el=document.querySelector(".sprite-stage1-koi");
    return {sprite:el?getComputedStyle(el).display:null,
@@ -562,7 +576,7 @@ try{
   });
   await offline.reload({waitUntil:"domcontentloaded"});
   await offline.waitForFunction(()=>document.documentElement.classList.contains("has-maneki-stage1"),{timeout:18000});
-  await offline.click(".level-tile:nth-child(8)");
+  await clickLegacyLevel(offline,".level-tile:nth-child(8)");
   const pawOffline=await offline.evaluate(()=>{
    const el=document.querySelector(".sprite-stage1-maneki");
    return {sprite:el?getComputedStyle(el).display:null,
@@ -594,7 +608,7 @@ try{
     .every(cls=>document.documentElement.classList.contains(cls)),{timeout:22000});
   assert.deepEqual([...failed].sort(),["harmony-atlas.webp","harmony-new-families.avif"],
    "The first atlas fetch should really have failed in this recovery test");
-  await recover.click(".level-tile:first-child");
+  await clickLegacyLevel(recover,".level-tile:first-child");
   const recovered=await recover.evaluate(()=>{
    const el=document.querySelector(".piece .sprite:not(.sprite-new):not(.sprite-stage1-koi)");
    const style=el&&getComputedStyle(el);
@@ -614,7 +628,7 @@ try{
   await demo.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await demo.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
   assert.equal(await demo.$eval("#gameDirectorMode",n=>n.value),"v3");
-  await demo.click(".level-tile:first-child");
+  await clickLegacyLevel(demo,".level-tile:first-child");
   const fresh=await demo.evaluate(()=>{
    const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
    return {mode:saved.run?.data?.directorMode,status:document.querySelector("#paceStatus")?.textContent};
@@ -648,21 +662,21 @@ try{
   await demo.reload({waitUntil:"networkidle2"});
   assert.equal(await demo.$eval("#gameDirectorMode",el=>el.value),"v2",
    "A selected engine mode must persist across reload");
-  await demo.click(".level-tile:first-child");
+  await clickLegacyLevel(demo,".level-tile:first-child");
   const v2=await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode);
   assert.equal(v2,"v2","Director 2.0 must remain available in live gameplay");
   await demo.click("#pauseButton");
   await demo.click("#modalActions button:last-child");
   await demo.$eval("#menuAdvanced",e=>e.open=true);
   await demo.select("#gameDirectorMode","standard");
-  await demo.click(".level-tile:first-child");
+  await clickLegacyLevel(demo,".level-tile:first-child");
   const standard=await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode);
   assert.equal(standard,"standard","Standard remains selectable");
   await demo.click("#pauseButton");
   await demo.click("#modalActions button:last-child");
   await demo.$eval("#menuAdvanced",e=>e.open=true);
   await demo.select("#gameDirectorMode","v31");
-  await demo.click(".level-tile:first-child");
+  await clickLegacyLevel(demo,".level-tile:first-child");
   const objectiveMode=await demo.evaluate(()=>{
    const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
    return {mode:data.directorMode,drought:data.objectiveDrought,status:document.querySelector("#paceStatus")?.textContent};
@@ -674,7 +688,7 @@ try{
   await demo.click("#modalActions button:last-child");
   await demo.$eval("#menuAdvanced",e=>e.open=true);
   await demo.select("#gameDirectorMode","v311");
-  await demo.click(".level-tile:first-child");
+  await clickLegacyLevel(demo,".level-tile:first-child");
   const endgameMode=await demo.evaluate(()=>{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
    return {mode:run.directorMode,status:document.querySelector("#paceStatus")?.textContent};
@@ -716,7 +730,7 @@ try{
   assert.equal(records.migration,1);
   assert(records.visibleIntro.replace(/\s/g," ").includes("9 000"),"Migrated intro record should show 9 000");
   assert(records.visibleJourney.replace(/\s/g," ").includes("7 200"),"Stage 11 should show original Journey record 7 200");
-  await preview.click(".level-tile:first-child");
+  await clickLegacyLevel(preview,".level-tile:first-child");
   const four=await preview.evaluate(()=>{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
    const icons=[...document.querySelectorAll("#masterpieceCollection .collection-card")];
@@ -729,7 +743,7 @@ try{
   assert.equal(four.mode,"v3");assert(four.classified&&four.width>58);
   await preview.click("#pauseButton");
   await preview.click("#modalActions button:last-child");
-  await preview.click(".level-tile:nth-child(11)");
+  await clickLegacyLevel(preview,".level-tile:nth-child(11)");
   const five=await preview.evaluate(()=>{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
    return {count:run.familyCount,unique:new Set(run.board.map(p=>p.family)).size,
@@ -810,7 +824,7 @@ try{
    window.__bestHintCalls=0;
    window.HarmonyRules.bestHint=(...args)=>{window.__bestHintCalls++;return original(...args);};
   });
-  await hintPage.click(".level-tile:first-child");
+  await clickLegacyLevel(hintPage,".level-tile:first-child");
   assert.equal(await hintPage.evaluate(()=>document.querySelectorAll(".tile.idle-hint-source,.tile.idle-hint-target").length),0);
   await hintPage.waitForFunction(()=>
    document.querySelectorAll(".tile.idle-hint-source").length===1&&
@@ -960,7 +974,7 @@ try{
    "The level list must display personal best scores for completed stages");
   assert.equal(migrated.target,20,"Level 11 now requires twenty fusions rather than a brief cascade");
   assert.equal(migrated.oldTarget,7500,"Legacy score milestones remain preserved");
-  await legacy.click(".level-tile:nth-child(11)");
+  await clickLegacyLevel(legacy,".level-tile:nth-child(11)");
   const milestones=await legacy.evaluate(()=>({
    hidden:document.querySelector("#starTargets").hidden,
    goal:document.querySelector("#goalLabel").textContent,
@@ -1368,7 +1382,9 @@ try{
   fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
   await proof.screenshot({path:"/tmp/daisugi-bloom/japanese-harmony-resonance-live.png"});
  }finally{await isolated.close();}
- assert.equal(await page.evaluate(()=>document.querySelectorAll(".level-tile").length),20,"Paged level menu shows 20 at a time");
+ assert.equal(await page.evaluate(()=>document.querySelectorAll(".level-tile").length),20,
+  "Hidden legacy regression data temporarily retains pagination; Goshuincho is the visible selector");
+ assert.equal(await page.evaluate(()=>getComputedStyle(document.querySelector("#levelList")).display),"none");
  assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
  // Engine Lab 2.0 compares paired Standard/Director simulations on the real phone-sized menu,
  // with a computed report that is exportable and no player-save changes.
@@ -2221,7 +2237,7 @@ try{
   return {width:image.naturalWidth,height:image.naturalHeight};
  });
  assert.deepEqual(atlas,{width:960,height:768},"Twenty 192px transparent sprites must decode as 5 × 4 atlas");
- await page.click("#levelList .level-tile:nth-child(3)");
+ await clickLegacyLevel(page,"#levelList .level-tile:nth-child(3)");
  const renderedNew=await page.evaluate(()=>{
   const items=[...document.querySelectorAll(".piece.new-family")];
   const present=new Set([...document.querySelectorAll(".tile")].map(x=>x.getAttribute("aria-label")?.split(",")[0]));
@@ -2235,7 +2251,7 @@ try{
  assert(renderedNew.present.includes("Origami"));
   await page.click("#pauseButton");
   await page.click("#modalActions button:last-child");
-  await page.click("#levelList .level-tile:nth-child(5)");
+  await clickLegacyLevel(page,"#levelList .level-tile:nth-child(5)");
   const ryu=await page.evaluate(()=>({
    families:[...new Set([...document.querySelectorAll(".tile")].map(e=>e.getAttribute("aria-label")?.split(",")[0]))],
    visible:[...document.querySelectorAll(".piece.new-family")].every(e=>{

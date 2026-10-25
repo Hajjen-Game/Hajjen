@@ -4571,3 +4571,206 @@ body.harmony-reduced-motion .menu-view .level-tile{
   image-rendering:auto;
   filter:none;
 }
+
+
+/* Goshuincho Level Card Rework 1.0 · 6.35.0
+   The approved 720px+ watercolor WebPs ARE the actual 4:5 cards.
+   Level labels and 1/2/3-star Japanese seals stay dynamic DOM overlays.
+   No repeated circular art, no stretched background sprites, no overlap. */
+#modal .goshuin-stamp-grid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:clamp(9px,2.5vw,14px);
+ align-items:start;
+}
+#modal .goshuin-stamp{
+ position:relative;
+ isolation:isolate;
+ display:block;
+ width:100%;
+ min-width:0;
+ min-height:0;
+ aspect-ratio:4 / 5;
+ padding:0;
+ margin:0;
+ border:0;
+ border-radius:clamp(12px,3vw,19px);
+ background:#f7e6cb;
+ box-shadow:0 3px 10px rgba(91,61,52,.13);
+ overflow:hidden;
+ cursor:pointer;
+ transition:box-shadow .13s ease,filter .13s ease,opacity .13s ease;
+ -webkit-tap-highlight-color:transparent;
+}
+/* Painterly corners remain fully visible; the imported card is scaled
+   proportionally, never stamped outside or stretched against the viewport. */
+#modal .goshuin-stamp > img.goshuin-art{
+ position:absolute;
+ inset:0;
+ display:block;
+ width:100%;
+ height:100%;
+ max-width:100%;
+ max-height:100%;
+ object-fit:contain;
+ object-position:center center;
+ z-index:0;
+ pointer-events:none;
+ transform:none;
+ filter:none;
+ border:0;
+}
+/* A tiny wash below the level title maintains legibility without hiding art. */
+#modal .goshuin-stamp::before{
+ content:"";
+ position:absolute;
+ z-index:1;
+ inset:56% 0 0;
+ pointer-events:none;
+ background:linear-gradient(to bottom,rgba(250,231,203,0),rgba(255,243,225,.23) 45%,rgba(255,244,227,.34));
+}
+#modal .goshuin-stamp::after{
+ content:"";
+ position:absolute;
+ z-index:5;
+ inset:1px;
+ border:2px solid transparent;
+ border-radius:inherit;
+ pointer-events:none;
+}
+#modal .goshuin-stamp.is-earned,
+#modal .goshuin-stamp.is-available,
+#modal .goshuin-stamp.is-current,
+#modal .goshuin-stamp.is-in-progress{
+ background:#f7e6cb;
+ border:0;
+ opacity:1;
+ filter:none;
+ box-shadow:0 3px 10px rgba(91,61,52,.13);
+}
+#modal .goshuin-stamp.is-locked{
+ background:#e9ddcd;
+ border:0;
+ opacity:.55;
+ filter:grayscale(.25) saturate(.68);
+ box-shadow:none;
+}
+#modal .goshuin-stamp.is-current::after,
+#modal .goshuin-stamp.is-in-progress::after{
+ border-color:rgba(169,92,93,.83);
+}
+#modal .goshuin-stamp.is-selected{
+ outline:2px solid #9b5364;
+ outline-offset:1px;
+ box-shadow:0 0 0 3px rgba(249,225,195,.55),0 3px 10px rgba(91,61,52,.12);
+}
+#modal .goshuin-stamp.is-selected::after{border-color:rgba(150,78,91,.93)}
+#modal .goshuin-stamp .goshuin-level-label{
+ position:absolute;
+ z-index:3;
+ display:block;
+ left:5px;
+ right:5px;
+ bottom:32%;
+ padding:0;
+ text-align:center;
+ color:#573f39;
+ font-family:Georgia,"Times New Roman",serif;
+ font-size:clamp(14px,3.85vw,19px);
+ font-weight:800;
+ line-height:1.1;
+ white-space:nowrap;
+ text-shadow:0 1px 1px rgba(255,249,239,.93),0 0 8px rgba(255,242,219,.82);
+}
+#modal .goshuin-stamp .goshuin-grade{
+ position:absolute;
+ z-index:3;
+ display:grid;
+ place-items:center;
+ box-sizing:border-box;
+ left:50%;
+ bottom:3%;
+ transform:translateX(-50%);
+ width:clamp(42px,12vw,58px);
+ min-width:0;
+ height:clamp(42px,12vw,58px);
+ margin:0;
+ padding:0;
+ border:0;
+ border-radius:0;
+ background:transparent!important;
+ box-shadow:none;
+ overflow:hidden;
+}
+/* Stamp cells remain square even in the former rectangular rating plaque.
+   Explicitly cancel legacy atlas inset/translation and re-center the 3x3 map. */
+#modal .goshuin-stamp .goshuin-grade > .goshuin-atlas-art{
+ position:absolute;
+ inset:0;
+ top:0;
+ left:0;
+ right:0;
+ bottom:0;
+ width:100%;
+ height:100%;
+ max-width:none;
+ max-height:none;
+ aspect-ratio:1 / 1;
+ transform:none;
+ background-repeat:no-repeat;
+ background-size:300% 300%;
+ image-rendering:auto;
+ filter:none;
+}
+#modal .goshuin-stamp .goshuin-grade > img.goshuin-art{
+ inset:0;
+ width:100%;
+ height:100%;
+ object-fit:contain;
+ transform:none;
+}
+#modal .goshuin-stamp .goshuin-grade > .goshuin-slot-fallback{
+ position:relative;
+ z-index:2;
+ font-size:21px;
+ color:#a85658;
+ text-shadow:0 1px #fff8e9;
+}
+/* The chapter thumbnail also uses the approved artwork, not an off-center
+   square atlas span. The fallback glyph remains until its image has decoded. */
+#modal .goshuin-cover-slot{
+ position:relative;
+ width:clamp(53px,16vw,70px);
+ height:clamp(60px,18vw,76px);
+ border:1px solid rgba(154,109,85,.3);
+ border-radius:12px;
+ background:#f5e2c7;
+ box-shadow:0 1px 4px rgba(94,62,50,.12);
+ overflow:hidden;
+}
+#modal .goshuin-cover-slot > img.goshuin-art{
+ position:absolute;
+ inset:0;
+ width:100%;
+ height:100%;
+ object-fit:cover;
+ object-position:center 15%;
+ border-radius:inherit;
+ transform:none;
+}
+/* Final page keeps the same two artwork cards, no oversize legacy tile. */
+#modal .goshuin-page.is-last-page .goshuin-stamp{
+ min-height:0;
+}
+@media(max-width:390px){
+ #modal .goshuin-stamp-grid{gap:9px}
+ #modal .goshuin-stamp{min-height:0;padding:0;aspect-ratio:4 / 5}
+ #modal .goshuin-stamp .goshuin-grade{
+  width:clamp(38px,12vw,46px);
+  height:clamp(38px,12vw,46px);
+ }
+ #modal .goshuin-stamp .goshuin-level-label{font-size:clamp(13px,3.9vw,16px)}
+}
+@media(prefers-reduced-motion:reduce){
+ #modal .goshuin-stamp{transition:none}
+}

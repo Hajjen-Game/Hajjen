@@ -989,10 +989,10 @@ class Game{
  // at the swapped source lands there. Cascades keep the strongest-stage rule.
  resolve(preferred,armedLinks=[],alternate=-1){
   const foursBefore=this.fours;
-  const darumaHitThisMove=new Set();
-  const hitDaruma=(positions,via)=>{
+  const darumaHitThisMove=new Set(),stoneHitThisMove=new Set(),pendingAwakenings=[];
+  const hitDaruma=(positions,via,direct=false)=>{
    const hits=[];
-   const candidates=new Set(positions.flatMap(at=>neighbors(at)));
+   const candidates=direct?new Set(positions):new Set(positions.flatMap(at=>neighbors(at)));
    for(const at of candidates){
     if(!this.daruma[at]||darumaHitThisMove.has(at)||!isDaruma(this.board[at]))continue;
     darumaHitThisMove.add(at);
@@ -1006,6 +1006,55 @@ class Game{
     for(const {at} of done){this.daruma[at]=0;this.board[at]=null;this.darumaCleared++;}
     events.push(this.frame("daruma-release",{positions:done.map(h=>h.at)}));
    }
+  };
+  const hitStone=(positions,via,direct=false)=>{
+   const hits=[],candidates=direct?new Set(positions):new Set(positions.flatMap(at=>neighbors(at)));
+   for(const at of candidates){
+    if(!this.sealed[at]||stoneHitThisMove.has(at)||!isSealed(this.board[at]))continue;
+    stoneHitThisMove.add(at);
+    this.sealed[at]--;
+    hits.push({at,via,remaining:this.sealed[at]});
+   }
+   if(!hits.length)return;
+   events.push(this.frame("sealed-hit",{hits}));
+   for(const hit of hits)if(hit.remaining===0){
+    this.board[hit.at]=null;this.sealedCleared++;pendingAwakenings.push(hit.at);
+   }
+  };
+  // Eight-way pulse upgrades ordinary tiles and may release other stones.
+  // All indirect upgrades and stone hits are limited to once per move.
+  const emitAwakenings=(indirect,created)=>{
+   const newStageFive=[];
+   let guard=0;
+   while(pendingAwakenings.length&&guard++<49){
+    const source=pendingAwakenings.shift();
+    const targets=[],stoneTargets=[],darumaTargets=[],mistTargets=[];
+    for(const to of neighbors8(source)){
+     const piece=this.board[to];
+     if(isSealed(piece)){
+      if(!stoneHitThisMove.has(to))stoneTargets.push({from:source,to});
+      continue;
+     }
+     if(isDaruma(piece)){
+      if(!darumaHitThisMove.has(to))darumaTargets.push({from:source,to});
+      continue;
+     }
+     if(indirect.has(to)||!piece||piece.stage>=5){
+      if(this.config.goal.type==="mist"&&this.mist[to])mistTargets.push({from:source,to,empty:!piece});
+      continue;
+     }
+     indirect.add(to);this.grow(to,created,true);
+     targets.push({from:source,to,stage:this.board[to].stage});
+     if(this.board[to].stage===5)newStageFive.push(to);
+    }
+    const clearedMist=this.clearMist([...targets.map(t=>t.to),...mistTargets.map(t=>t.to)]);
+    const points=targets.length*75;this.pulseHits+=targets.length;this.score+=points;
+    events.push(this.frame("awakening",{sources:[source],source,targets,stoneTargets,
+     darumaTargets,mistTargets,clearedMist,scoreDelta:points,wave:1}));
+    if(darumaTargets.length)hitDaruma(darumaTargets.map(t=>t.to),"awakening",true);
+    if(stoneTargets.length)hitStone(stoneTargets.map(t=>t.to),"awakening",true);
+   }
+   return newStageFive;
   };
   let events=[],waveRound=0,echoAwarded=false;
   while(waveRound++<35){

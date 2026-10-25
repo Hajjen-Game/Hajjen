@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lykta",koi:"Koi",fan:"Solfjäder",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu-drake"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -153,6 +153,9 @@ function recordsForLevel(index){return R.levelFamilyCount(index)===4?save.fourFa
 function starsForLevel(index){return R.levelFamilyCount(index)===4?save.fourFamilyStars:save.bestStars;}
 
 if(migratedScores)persist();
+// One-time credit for already earned levels; never reward historical records again.
+const economyStart=E.initialize(save);
+if(economyStart.newlyCreated)persist();
 // Match CSS-only ambient effects to the in-game accessibility preference.
 document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
@@ -247,6 +250,8 @@ function showMenu(){
 }
 function renderMenu(){
  const journal=G.summary(save);
+ const coins=$("harmonyCoins");
+ if(coins)coins.textContent=prettify(E.snapshot(save).coins)+" mynt";
  const journalButton=$("goshuinButton");
  if(journalButton){
   $("goshuinProgress").textContent=journal.earned+" / "+(journal.visibleChapters*G.CHAPTER_SIZE)+" stämplar";
@@ -1902,6 +1907,7 @@ function showResult(){
    save.fourFamilyChain[level]=Math.max(save.fourFamilyChain[level]||0,game.bestChain);
   }
  }
+ const coinReward=won?E.claim(save,level,Math.max(1,game.stars())):{delta:0};
  const canContinue=won&&game.moves>0;
  if(!canContinue)save.run=null;
  persist();
@@ -1937,6 +1943,14 @@ function showResult(){
   const starWrap=make("div","victory-stars");
   starWrap.append(stars);
   result.append(starWrap);
+  const income=make("div","victory-harmony-income");
+  const gained=coinReward.delta;
+  income.append(make("span","victory-harmony-mark","✧"),
+   make("strong","",gained?("+"+prettify(gained)+" Harmony Coins"):"Harmony Coins redan insamlade"),
+   make("small","",gained?
+    "Belöning för nya stjärnor · sparad i din samling":
+    "Nya mynt får du när du klarar en ny nivå eller förbättrar betyget."));
+  result.append(income);
   const goal=make("section","victory-goal");
   goal.setAttribute("aria-label","Avklarat nivåmål");
   const goalCopy=make("div","victory-goal-copy");
@@ -2274,6 +2288,7 @@ function bind(){
  $("gameDirectorMode").dispatchEvent(new Event("change"));
  $("homeButton").addEventListener("click",showMenu);
  $("goshuinButton").addEventListener("click",()=>showGoshuincho());
+ $("omamoriButton").addEventListener("click",()=>showOmamori());
  $("pauseButton").addEventListener("click",openGameMenu);
  $("devButton").addEventListener("click",openEngineLab);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);});

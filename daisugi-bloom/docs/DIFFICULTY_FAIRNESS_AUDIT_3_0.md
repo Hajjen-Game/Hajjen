@@ -47,6 +47,35 @@ node daisugi-bloom/tests/harmony-difficulty-fairness-audit.test.cjs
 
 To experiment without changing production, use `--mode director31` or `--mode director311`; document both mode and seed before comparing. The modes are NOT interchangeable with normal human sessions and should not be used to claim improved fairness without real player tests.
 
+## First verified results: 25 October 2026
+
+GitHub Actions analysis, default Director 3.0, base seed 20261025, eight starts per level:
+**744 full seeded games passed**: 40 × 8 × 2 baseline random/goal plus 13 × 8 obstacle-specialist games.
+The audit raised at least one screening flag on **16 of 40** levels. These include chapter-label/position warnings, not just possible difficulty problems.
+
+Source: [successful audit job and its JSON/CSV/Markdown reports](https://github.com/Hajjen-Game/Hajjen/actions/runs/40200411017/artifacts/12601182573).
+
+### Most relevant diagnostic results
+
+| Level(s) | Standard goal bot | Obstacle-aware bot | Interpretation / next check |
+| --- | --- | --- | --- |
+| 1, 2, 4 | 8/8 wins, median 1/2/3 turns | Not applicable | Very early completions; 1–2 may be intentional introduction, but review 4's learning goal |
+| 13 | 6/8 wins, median 17 turns | Not applicable | Mist goal requires deliberate play; sample genuine first-time attempts |
+| 28 | 8/8 wins, median 22 turns, **0** 3★ | Not applicable | Check whether 3★ threshold (≤13 moves) is achievable by humans |
+| 30 | 6/8 wins, median 31 turns, **0** 3★ | Not applicable | Check 15-cell mist target with only 36 moves and 3★ at ≤13 |
+| 31–38 | 7–8/8 goal wins | 8/8 on each | Four-hit stones are feasible for this specialist; review tactical interest and 31–33 repeated position |
+| 39 | **2/8** goal wins | **8/8** | Biggest bot-strategy sensitivity, not proof of an unfair level; inspect if partial-hit feedback and positioning are understandable |
+| 40 | 6/8 goal wins | 8/8 | Test final three-stone challenge with humans before changing difficulty |
+
+All specialist successes are from an algorithm that previews exact future outcomes. Its 8/8 results should **never** be presented as the expected human success rate. Likewise the generic bot's 2/8 result on level 39 is partly its failure to value intermediate cracks. The specialist substantially reduces false "long stagnation" alarms for stone levels.
+
+### Recommended follow-up sequence
+
+1. **Human difficulty replay:** levels 4, 13, 28, 30 and 39, plus a control sample of ordinary levels. Track retries, comprehensibility, remaining moves and three-star attempts.
+2. **Obstacle identity review:** first three stone levels reuse exactly the same position; seven of ten Daruma chapter levels lack a Daruma objective.
+3. **Starring calibration:** level 28 and 30 are candidates for checking expert thresholds, not automatic threshold changes.
+4. **No gameplay changes in Audit 3.0.** Apply future balancing only as a separate, explicitly reviewed pass.
+
 ## Required validation before a balance update
 1. Test the first 40 levels on the same target phones, logging initial seed if available, attempted moves, completed goal progress, remaining turns, earned stars, retries and whether the player understood *how* to progress.
 2. Prioritize stages flagged for rapid completion, long target stagnation, or no 3★ goal-bot wins; include unflagged control stages too.

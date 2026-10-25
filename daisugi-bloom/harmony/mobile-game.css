@@ -5130,34 +5130,35 @@ body.harmony-reduced-motion .menu-view .level-tile{
 }
 
 
-/* Goshuincho Aged Paper Polish 1.1 · v6.42.1
+/* Goshuincho Warm Parchment Polish 1.2 · v6.42.2
    Only levels 1–4; original high-resolution star seals and actual stage
-   names remain dynamic, untouched. Warmer antique sand tones, not pink. */
+   names remain dynamic, untouched. Warm honey/parchment reference, not gray. */
 #modal .goshuin-stamp.is-omikuji-preview,
 #modal .goshuin-stamp.is-omikuji-preview.is-earned,
 #modal .goshuin-stamp.is-omikuji-preview.is-available,
 #modal .goshuin-stamp.is-omikuji-preview.is-current,
 #modal .goshuin-stamp.is-omikuji-preview.is-in-progress{
  background:
-  radial-gradient(ellipse at 17% 14%,rgba(255,251,228,.60),transparent 45%),
-  radial-gradient(ellipse at 84% 85%,rgba(174,129,70,.15),transparent 46%),
-  repeating-linear-gradient(23deg,rgba(118,90,55,.018) 0,rgba(118,90,55,.018) 1px,transparent 1px,transparent 6px),
-  linear-gradient(145deg,#f9eaca 0%,#f3dfbb 56%,#ebd0a5 100%);
- border:1px solid rgba(167,122,76,.62);
- box-shadow:0 4px 12px rgba(85,54,42,.12),inset 0 0 0 4px rgba(255,245,215,.60);
- color:#5a4032;
+  radial-gradient(ellipse at 18% 16%,rgba(255,248,225,.72),transparent 44%),
+  radial-gradient(ellipse at 82% 84%,rgba(214,170,103,.16),transparent 48%),
+  radial-gradient(ellipse at 50% 52%,rgba(255,239,204,.30),transparent 65%),
+  repeating-linear-gradient(25deg,rgba(145,108,63,.020) 0,rgba(145,108,63,.020) 1px,transparent 1px,transparent 7px),
+  linear-gradient(145deg,#fbedd0 0%,#f5dfb4 56%,#efd09a 100%);
+ border:1px solid rgba(179,128,70,.62);
+ box-shadow:0 4px 12px rgba(85,54,42,.12),inset 0 0 0 4px rgba(255,245,214,.64);
+ color:#5c3f31;
 }
 #modal .goshuin-stamp.is-omikuji-preview::before{
  content:"";
  inset:0;
  z-index:0;
  background:
-  radial-gradient(circle at 23% 18%,rgba(255,250,226,.18),transparent 32%),
-  radial-gradient(circle at 82% 78%,rgba(174,135,76,.08),transparent 35%);
+  radial-gradient(circle at 22% 18%,rgba(255,246,219,.22),transparent 32%),
+  radial-gradient(circle at 80% 78%,rgba(214,167,95,.10),transparent 36%);
 }
 #modal .goshuin-stamp.is-omikuji-preview::after{
  inset:7px;
- border:1px solid rgba(173,121,66,.58);
+ border:1px solid rgba(184,129,67,.58);
  border-radius:clamp(8px,2.5vw,13px);
 }
 #modal .goshuin-stamp.is-omikuji-preview.is-current::after,
@@ -5194,7 +5195,7 @@ body.harmony-reduced-motion .menu-view .level-tile{
 #modal .goshuin-stamp.is-omikuji-preview .goshuin-paper-sakura{
  position:absolute;z-index:2;right:7%;bottom:6%;
  font-size:clamp(17px,5.2vw,25px);line-height:1;
- color:rgba(154,112,65,.29);pointer-events:none;
+ color:rgba(183,137,79,.30);pointer-events:none;
 }
 #modal .goshuin-stamp.is-omikuji-preview .goshuin-grade{
  z-index:4;

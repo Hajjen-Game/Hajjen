@@ -735,6 +735,8 @@ class Game{
   this.board=options?.fastRestore&&previous?clone(previous.board):
    startBoard(this.level,()=>this.fresh(),this.families);
   this.daruma=Array(49).fill(0);this.darumaCleared=0;
+  this.sealed=Array(49).fill(0);this.sealedCleared=0;
+  this.sealedStoneVersion=this.config.goal.type==="sealedStone"?1:0;
   this.darumaVersion=this.config.goal.type==="daruma"?1:0;
   if(!previous&&this.darumaVersion){
    for(const at of darumaPositions(this.level)){
@@ -746,6 +748,18 @@ class Game{
     this.board=startBoard(this.level,()=>this.fresh(),this.families);
     for(const at of darumaPositions(this.level))
      this.board[at]={family:"daruma",stage:0,id:-(at+1)};
+   }
+  }
+  if(!previous&&this.sealedStoneVersion){
+   for(const at of sealedPositions(this.level)){
+    this.board[at]={family:"sealedStone",stage:0,id:-(at+100)};
+    this.sealed[at]=4;
+   }
+   // Ensure three opening moves while keeping all blockers fixed.
+   for(let retry=0;validSwaps(this.board).length<3&&retry<120;retry++){
+    this.board=startBoard(this.level,()=>this.fresh(),this.families);
+    for(const at of sealedPositions(this.level))
+     this.board[at]={family:"sealedStone",stage:0,id:-(at+100)};
    }
   }
   this.nextId=50;
@@ -766,14 +780,22 @@ class Game{
    // Freshly started levels receive Objectives 2.0; no existing run is
    // silently converted or has its star/completion requirements changed.
    const isLegacyJourney=this.level>=10&&previous.objectiveVersion!==2;
+   const oldSealedRun=this.level>=30&&this.level<40&&previous.sealedStoneVersion!==1;
    this.config=isLegacyJourney?endlessScoreConfig(this.level):
     (this.level>=20&&this.level<50&&previous.darumaVersion!==1&&
-     darumaPositions(this.level).length?endlessConfig(this.level,false):levelConfig(this.level));
+     darumaPositions(this.level).length?endlessConfig(this.level,false):
+     oldSealedRun?endlessConfig(this.level,true,false):levelConfig(this.level));
    this.darumaVersion=previous.darumaVersion===1?1:0;
    this.daruma=Array.isArray(previous.daruma)&&previous.daruma.length===49?
     previous.daruma.map(v=>[0,1,2,3].includes(v)?v:0):Array(49).fill(0);
    this.darumaCleared=Number.isInteger(previous.darumaCleared)?
     Math.max(0,previous.darumaCleared):0;
+   // Existing saved rounds remain their original, pre-stone objective.
+   this.sealedStoneVersion=oldSealedRun?0:previous.sealedStoneVersion===1?1:0;
+   this.sealed=this.sealedStoneVersion&&Array.isArray(previous.sealed)&&previous.sealed.length===49?
+    previous.sealed.map(v=>Number.isInteger(v)&&v>=0&&v<=4?v:0):Array(49).fill(0);
+   this.sealedCleared=this.sealedStoneVersion&&Number.isInteger(previous.sealedCleared)?
+    Math.max(0,previous.sealedCleared):0;
    // A saved round that started before Difficulty Floor retains its old
    // target, even when a player resumes after a deployment.
    const oldFloorGoal=!isLegacyJourney&&this.level<20&&
@@ -839,7 +861,7 @@ class Game{
    // player's moves, stages, score or RNG position. Each obsolete identity is
    // mapped to a family missing from the new level pool, one-to-one, which
    // avoids creating an instant match by merging two old identities.
-   const obsolete=[...new Set(this.board.filter(Boolean).map(p=>p.family).filter(f=>!this.families.includes(f)&&f!=="daruma"))];
+   const obsolete=[...new Set(this.board.filter(Boolean).map(p=>p.family).filter(f=>!this.families.includes(f)&&f!=="daruma"&&f!=="sealedStone"))];
    if(obsolete.length){
     const present=new Set(this.board.filter(Boolean).map(p=>p.family));
     const missing=this.families.filter(f=>!present.has(f));
@@ -939,11 +961,11 @@ class Game{
  }
  progress(){
   let g=this.config.goal;
-  switch(g.type){case"mist":return this.mistCleared;case"score":return this.score;case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"fourTurns":return this.fourTurns;case"daruma":return this.darumaCleared;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
+  switch(g.type){case"sealedStone":return this.sealedCleared;case"mist":return this.mistCleared;case"score":return this.score;case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"fourTurns":return this.fourTurns;case"daruma":return this.darumaCleared;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
  }
  goalText(){
   let g=this.config.goal;
-  return ({mist:"Rena dimman",score:"Poängmål",fusion:"Fusioner",stage3:"Föremål till stadium 3",stage4:"Föremål till stadium 4",masterpiece:"Mästerverk",pulseHits:"Harmony-förädlingar",familyMasterpiece:"Lyktmästerverk",four:"Fyrmatchningar",fourTurns:"Drag med fyrmatchning",daruma:"Fullbordade Daruma",shape:"T-/L-matchningar",chain:"Mästerverk i en kedja"})[g.type]||"Mål";
+  return ({mist:"Rena dimman",score:"Poängmål",fusion:"Fusioner",stage3:"Föremål till stadium 3",stage4:"Föremål till stadium 4",masterpiece:"Mästerverk",pulseHits:"Harmony-förädlingar",familyMasterpiece:"Lyktmästerverk",four:"Fyrmatchningar",fourTurns:"Drag med fyrmatchning",daruma:"Fullbordade Daruma",sealedStone:"Brutna förseglingar",shape:"T-/L-matchningar",chain:"Mästerverk i en kedja"})[g.type]||"Mål";
  }
  fulfilled(){return this.progress()>=this.target();}
  stars(){
@@ -954,7 +976,7 @@ class Game{
   }
   return this.starsAtGoal||0;
  }
- frame(type,extra={}){return {type,board:clone(this.board),daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,mist:this.mist.slice(),mistCleared:this.mistCleared,moves:this.moves,score:this.score,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,echoes:this.echoes,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
+ frame(type,extra={}){return {type,board:clone(this.board),sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,mist:this.mist.slice(),mistCleared:this.mistCleared,moves:this.moves,score:this.score,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,echoes:this.echoes,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
  markStage(p){if(p.stage===3)this.stage3++;if(p.stage===4)this.stage4++;}
  grow(i,created,indirect){
   const p=this.board[i];if(!p||isFixed(p)||p.stage>=5)return false;
@@ -1202,7 +1224,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate
@@ -1251,6 +1273,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,levels,levelConfig,endlessConfig,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,mistLayout,resonanceLinks};
+const api={Game,levels,levelConfig,endlessConfig,sealedPositions,neighbors8,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,mistLayout,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

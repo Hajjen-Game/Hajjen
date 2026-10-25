@@ -520,14 +520,28 @@ function renderGoshuincho(){
   tile.dataset.state=state;
   tile.setAttribute("aria-pressed","false");
   if(stamp.isCurrent)tile.setAttribute("aria-current","step");
-  tile.setAttribute("aria-label","Nivå "+stamp.number+": "+
+  const levelConfig=R.levelConfig(stamp.level);
+  tile.setAttribute("aria-label","Nivå "+stamp.number+" · "+levelConfig.name+": "+
    (stamp.locked?"låst":stamp.resumable?"påbörjad":stamp.isCurrent?"nästa nivå":
     stamp.earned?"klarad, "+stamp.stars+" av 3 stjärnor":"upplåst"));
-  // The chapter watercolor is the card, not an off-center circle layered on top.
-  // The level number and earned grade are real, sharp DOM overlays.
-  const levelLabel=goshuinNode("span","goshuin-level-label","Nivå "+stamp.number);
-  tile.append(levelLabel);
-  goshuinArtwork(tile,"cards",info.index);
+  // Omikuji Paper Card Preview 1.0: only the first four Goshuincho stamps.
+  // Real text + CSS paper, not an image, so the localized stage name is live.
+  // All later stages retain their approved watercolor chapter art.
+  const paperPreview=stamp.level>=0&&stamp.level<4;
+  if(paperPreview){
+   tile.classList.add("is-omikuji-preview");
+   const japanese=["一","二","三","四"][stamp.level];
+   const formal=["第一番","第二番","第三番","第四番"][stamp.level];
+   const heading=goshuinNode("span","goshuin-paper-eyebrow",formal+" · NIVÅ "+stamp.number);
+   heading.lang="ja";
+   const numeral=goshuinNode("span","goshuin-paper-kanji",japanese);
+   numeral.lang="ja";
+   tile.append(heading,numeral,goshuinNode("strong","goshuin-paper-title",levelConfig.name));
+  }else{
+   const levelLabel=goshuinNode("span","goshuin-level-label","Nivå "+stamp.number);
+   tile.append(levelLabel);
+   goshuinArtwork(tile,"cards",info.index);
+  }
   if(stamp.earned){
    const grade=goshuinNode("span","goshuin-grade grade-"+stamp.stars);
    grade.dataset.grade=String(stamp.stars);

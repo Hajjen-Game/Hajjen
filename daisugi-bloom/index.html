@@ -5,9 +5,9 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Menu Focus & Reward Hierarchy 1.0 · 6.45.0</title>
+ <title>Japanese Harmony · Progression Reward Polish 1.0 · 6.46.0</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
- <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.45.0-menu-focus">
+ <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.46.0-progression-rewards">
  <script defer src="./harmony/rules.js?v=6.41.0-chapter-identity"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
@@ -15,7 +15,7 @@
  <script defer src="./harmony/goshuincho.js?v=6.43.0-japanese-numerals"></script>
  <script defer src="./harmony/economy.js?v=6.37.0"></script>
  <script defer src="./harmony/fortune.js?v=6.38.0"></script>
- <script defer src="./harmony/app.js?v=6.45.0-menu-focus"></script>
+ <script defer src="./harmony/app.js?v=6.46.0-progression-rewards"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -51,7 +51,7 @@
        <div class="menu-rewards-heading"><h3 id="menuRewardsTitle">Samling &amp; belöningar</h3><span>En liten extra glädje</span></div>
        <button type="button" id="omamoriButton" class="omamori-entry" aria-label="Öppna Omamori-butik och samling">
        <span class="omamori-entry-mark" aria-hidden="true">✧</span>
-       <span class="omamori-entry-label"><strong>Omamori</strong><small>Din amulettsamling</small></span>
+       <span class="omamori-entry-label"><strong>Omamori</strong><small id="omamoriProgress">0 av 6 amuletter</small></span>
        <strong id="harmonyCoins" class="omamori-coin-count">0 mynt</strong>
        <span aria-hidden="true" class="omamori-entry-arrow">›</span>
       </button>

@@ -12,6 +12,7 @@ const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,soun
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
+let rewardStarsAtLevelStart=0; // transient baseline, never persisted
 const PLAY_MODES={standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
 const PACE_PHASE_NAMES={build:"BYGGER",flow:"FLOW",relax:"ANDRUM",recovery:"NYA MÖJLIGHETER"};
 let decisionReadyAt=0;
@@ -261,7 +262,10 @@ function showLevelSelection(){
 function renderMenu(){
  const journal=G.summary(save);
  const coins=$("harmonyCoins");
- if(coins)coins.textContent=prettify(E.snapshot(save).coins)+" mynt";
+ const menuWallet=E.snapshot(save);
+ if(coins)coins.textContent=prettify(menuWallet.coins)+" mynt";
+ const charmProgress=$("omamoriProgress");
+ if(charmProgress)charmProgress.textContent=menuWallet.ownedCount+" av "+menuWallet.totalItems+" amuletter";
  const daily=$("omikujiStatus");
  if(daily)daily.textContent=F.status(save).available?"Gratis idag":"Dagens lapp dragen";
  const journalButton=$("goshuinButton");
@@ -448,6 +452,23 @@ function renderGoshuincho(){
   goshuinNode("span","",info.visibleEarned+" av "+info.visible.length+" på sidan · Nivå "+info.pageFirst+"–"+info.pageLast)
  );
  page.append(chapterStatus);
+ // Real ink marks only for archived levels, never for merely unlocked levels.
+ const band=goshuinNode("div","goshuin-reward-band"+(info.completed?" is-complete":""));
+ const bandText=goshuinNode("div","goshuin-reward-copy");
+ bandText.append(goshuinNode("strong","",info.completed?"✦ Kapitelsigillet är intjänat":"Kapitlets stämplar"),
+  goshuinNode("span","",info.completed?"Alla tio nivåer är klara":
+   (G.CHAPTER_SIZE-info.earned)+" kvar till kapitelsigillet"));
+ const marks=goshuinNode("div","goshuin-reward-marks");
+ marks.setAttribute("role","progressbar");
+ marks.setAttribute("aria-label","Stämplar i kapitel "+info.number);
+ marks.setAttribute("aria-valuemin","0");
+ marks.setAttribute("aria-valuemax",String(G.CHAPTER_SIZE));
+ marks.setAttribute("aria-valuenow",String(info.earned));
+ for(const stamp of info.stamps){
+  const mark=goshuinNode("span","goshuin-reward-mark"+(stamp.earned?" is-earned":""));
+  mark.setAttribute("aria-hidden","true");marks.append(mark);
+ }
+ band.append(bandText,marks);page.append(band);
  const stamps=goshuinNode("div","goshuin-stamp-grid");
  stamps.setAttribute("aria-label","Nivåbrickor för kapitel "+info.number+", sida "+info.pageNumber);
  const detail=goshuinNode("section","goshuin-level-detail");
@@ -677,6 +698,24 @@ function showOmamori(tab="shop"){
  wallet.append(walletCopy,goshuinNode("span","omamori-owned-count",
   account.ownedCount+" / "+account.totalItems+" samlade"));
  wrapper.append(wallet);
+ // The collection shelf is only a view of the existing six cosmetic items.
+ const shelf=goshuinNode("div","omamori-shelf");
+ shelf.setAttribute("role","group");
+ shelf.setAttribute("aria-label","Omamori: "+account.ownedCount+" av "+account.totalItems+" samlade");
+ for(const item of E.CATALOG){
+  const owned=account.owned.includes(item.id),equipped=account.equipped===item.id;
+  const slot=goshuinNode("span","omamori-shelf-slot"+(owned?" is-owned":"")+(equipped?" is-equipped":""),owned?item.symbol:"◇");
+  slot.setAttribute("role","img");
+  slot.setAttribute("aria-label",item.name+": "+(equipped?"bärs":owned?"samlad":"inte samlad"));
+  slot.title=item.name+(equipped?" · bärs":owned?" · i samlingen":" · inte samlad");
+  shelf.append(slot);
+ }
+ wrapper.append(shelf);
+ const nextCharm=E.CATALOG.find(item=>!account.owned.includes(item.id));
+ wrapper.append(goshuinNode("p","omamori-next-charm",nextCharm?
+  "Nästa i samlingen: "+nextCharm.name+" · "+(account.coins>=nextCharm.price?
+   "du har tillräckligt med mynt":prettify(nextCharm.price-account.coins)+" mynt kvar"):
+  "✦ Hela Omamori-samlingen är fullbordad"));
  wrapper.append(goshuinNode("p","omamori-explanation",
   "Harmony Coins tjänas genom nya klarade nivåer och bättre stjärnbetyg. Omamori är fiktiva samlaramuletter utan speleffekter. Inga köp för riktiga pengar."));
  const tabs=goshuinNode("div","omamori-tabs");
@@ -692,7 +731,7 @@ function showOmamori(tab="shop"){
   "Du har ännu inga Omamori. Välj en amulett i butiken när du har samlat mynt."));
  for(const item of shown){
   const owned=account.owned.includes(item.id),equipped=account.equipped===item.id;
-  const card=goshuinNode("article","omamori-card");
+  const card=goshuinNode("article","omamori-card"+(owned?" is-owned":"")+(equipped?" is-equipped":""));
   card.dataset.omamoriId=item.id;
   const charm=goshuinNode("div","omamori-charm omamori-"+item.theme);
   charm.setAttribute("aria-hidden","true");
@@ -712,9 +751,9 @@ function showOmamori(tab="shop"){
   }else action.textContent="Samla · "+prettify(item.price)+" mynt";
   action.addEventListener("click",()=>{
    if(owned){
-    if(E.equip(save,equipped?null:item.id).ok){persist();showOmamori(tab);}
+    if(E.equip(save,equipped?null:item.id).ok){persist();showOmamori(tab);showOmamoriNotice(equipped?"unequip":"equip",item);}
    }else{
-    if(E.purchase(save,item.id).ok){persist();renderMenu();showOmamori(tab);}
+    if(E.purchase(save,item.id).ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
    }
   });
   card.append(charm,copy,action);list.append(card);
@@ -733,6 +772,19 @@ function showOmamori(tab="shop"){
  $("modal").hidden=false;
 }
 
+function showOmamoriNotice(action,item){
+ const shop=$("modalContent").querySelector(".omamori-shop");
+ if(!shop)return;
+ const note=goshuinNode("div","omamori-reward-notice"+(action==="purchase"?" is-new":""));
+ note.setAttribute("role","status");
+ note.append(
+  goshuinNode("span","omamori-reward-emblem",action==="purchase"?"✦":"✧"),
+  goshuinNode("strong","",action==="purchase"?"Ny Omamori i samlingen":
+   action==="equip"?"Du bär nu din Omamori":"Amuletten finns kvar i samlingen"),
+  goshuinNode("small","",item.name+(action==="purchase"?" · ett nytt minne från din resa":""))
+ );
+ shop.insertBefore(note,shop.querySelector(".omamori-tabs"));
+}
 function collectionSprite(family){
  const isNew=Object.hasOwn(newFamilyRows,family);
  const art=document.createElement("span");art.className="collection-art"+(isNew?" collection-new":"");
@@ -824,7 +876,8 @@ function startLevel(i,resume=false){
  if(busy)return;
  disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
  resetResonanceVisuals();clearPraise();
- level=i;const data=resume&&save.run&&save.run.level===i?save.run.data:null;
+ level=i;rewardStarsAtLevelStart=G.archivedStars(save,i);
+ const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
  game=new R.Game(i,data,data?null:{directorMode:save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="NIVÅ "+(i+1);
@@ -2131,6 +2184,21 @@ function showResult(){
   const starWrap=make("div","victory-stars");
   starWrap.append(stars);
   result.append(starWrap);
+  // Avoid replay celebrations even if unlockGoal() saved during playback.
+  const earnedStars=G.archivedStars(save,level);
+  const chapterReward=G.chapterSnapshot(save,Math.floor(level/G.CHAPTER_SIZE));
+  if(earnedStars>rewardStarsAtLevelStart){
+   const isNew=rewardStarsAtLevelStart===0;
+   const chapterComplete=isNew&&chapterReward.completed;
+   const ribbon=make("div","victory-archive-reward"+(chapterComplete?" is-chapter-complete":""));
+   const copyRibbon=make("div","victory-archive-copy");
+   copyRibbon.append(make("strong","",chapterComplete?"Kapitelsigillet är intjänat!":
+    isNew?"Ny stämpel i Goshuincho":"Stämpeln förbättrad"),
+    make("small","",chapterComplete?"Kapitel "+chapterReward.number+" fullbordat · 10 av 10 stämplar":
+     "Kapitel "+chapterReward.number+" · "+chapterReward.earned+" av 10 stämplar · "+earnedStars+" av 3 stjärnor"));
+   ribbon.append(make("span","victory-archive-seal","✦"),copyRibbon);result.append(ribbon);
+  }
+  rewardStarsAtLevelStart=earnedStars;
   const income=make("div","victory-harmony-income");
   const gained=coinReward.delta;
   income.append(make("span","victory-harmony-mark","✧"),

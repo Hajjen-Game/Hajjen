@@ -5482,3 +5482,38 @@ body:not(.harmony-playing) .top-actions .dev-shortcut{
  .menu-view .menu-rewards .omamori-entry,
  .menu-view .menu-rewards .omikuji-entry{gap:6px;padding:7px 8px}
 }
+
+/* Progression Reward Polish 1.0 · v6.46.0 — presentation only */
+#modal .goshuin-reward-band{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:9px;padding:9px 11px;border:1px solid rgba(172,123,93,.3);border-radius:11px;background:linear-gradient(105deg,rgba(255,249,235,.72),rgba(242,218,183,.48))}
+#modal .goshuin-reward-copy{display:grid;gap:2px;min-width:0}
+#modal .goshuin-reward-copy strong{color:#86594a;font-size:11px;line-height:1.25}
+#modal .goshuin-reward-copy span{color:#8e7561;font-size:10px;line-height:1.3}
+#modal .goshuin-reward-marks{display:grid;grid-template-columns:repeat(5,9px);gap:5px 6px}
+#modal .goshuin-reward-mark{display:block;width:9px;height:9px;transform:rotate(-10deg);border-radius:3px;border:1px solid rgba(156,101,82,.35);background:rgba(164,127,105,.1)}
+#modal .goshuin-reward-mark.is-earned{background:#b36665;border-color:#99504f}
+#modal .goshuin-reward-band.is-complete{border-color:rgba(189,130,69,.62);background:linear-gradient(110deg,#fff3d9,#f3d4a2)}
+#modal .goshuin-reward-band.is-complete .goshuin-reward-copy strong{color:#965c3a}
+#modal .goshuin-reward-band.is-complete .goshuin-reward-mark.is-earned{background:#ac6b43;border-color:#8a4b35}
+#modal .omamori-shelf{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;padding:10px;border:1px solid rgba(228,187,136,.32);border-radius:14px;background:linear-gradient(145deg,rgba(31,66,73,.8),rgba(25,51,63,.89))}
+#modal .omamori-shelf-slot{display:grid;place-items:center;min-width:0;min-height:42px;border:1px dashed rgba(207,185,159,.26);border-radius:10px;background:rgba(233,215,188,.07);color:#a3a69f;font-size:22px;font-family:Georgia,serif}
+#modal .omamori-shelf-slot.is-owned{border-style:solid;border-color:rgba(249,212,161,.66);background:linear-gradient(145deg,rgba(239,189,136,.33),rgba(161,101,98,.26));color:#ffe4b0}
+#modal .omamori-shelf-slot.is-equipped{border-color:#ffe8ba;box-shadow:0 0 0 2px rgba(255,218,162,.16),inset 0 0 0 1px rgba(255,242,210,.32)}
+#modal .omamori-next-charm{margin:-4px 0 0;color:#f3d5a9;text-align:center;font-size:11px;line-height:1.4}
+#modal .omamori-card.is-owned{border-color:rgba(179,120,86,.55)}
+#modal .omamori-card.is-equipped{border-color:#bc7b61;background:linear-gradient(130deg,#fff2d9,#f8dfbd);box-shadow:0 0 0 1px rgba(191,114,75,.22),0 4px 12px rgba(9,22,26,.14)}
+#modal .omamori-card.is-equipped .omamori-card-tag{color:#a76342;font-weight:900}
+#modal .omamori-reward-notice{display:grid;grid-template-columns:34px minmax(0,1fr);grid-template-rows:auto auto;align-items:center;column-gap:9px;row-gap:1px;padding:11px 13px;border-radius:13px;border:1px solid rgba(230,197,143,.55);background:linear-gradient(130deg,rgba(249,221,175,.20),rgba(197,138,115,.17));color:#ffe7bf}
+#modal .omamori-reward-notice.is-new{animation:omamori-reveal .32s ease-out both}
+#modal .omamori-reward-emblem{grid-row:1 / 3;display:grid;place-items:center;width:33px;height:33px;border:1px solid rgba(255,225,166,.58);border-radius:50%;color:#ffdc9c;font-size:24px}
+#modal .omamori-reward-notice strong{font-size:13px;line-height:1.25}
+#modal .omamori-reward-notice small{font-size:11px;color:#ead7c1;line-height:1.35}
+@keyframes omamori-reveal{from{opacity:.5;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+#modal .victory-archive-reward{display:flex;align-items:center;gap:11px;padding:11px 13px;margin:9px 0 3px;border:1px solid rgba(215,150,129,.55);border-radius:13px;background:linear-gradient(120deg,rgba(255,239,211,.96),rgba(246,209,168,.94));color:#754940}
+#modal .victory-archive-seal{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;border:2px solid rgba(151,82,73,.65);color:#a65b57;font-size:24px}
+#modal .victory-archive-copy{display:grid;gap:3px;min-width:0}
+#modal .victory-archive-copy strong{font-size:13px;color:#724838;line-height:1.25}
+#modal .victory-archive-copy small{font-size:11px;color:#795d49;line-height:1.3}
+#modal .victory-archive-reward.is-chapter-complete{border-color:rgba(179,120,59,.72);background:linear-gradient(115deg,#fff1c9,#eac38b)}
+@media(max-width:360px){#modal .goshuin-reward-band{padding:8px;gap:5px}#modal .goshuin-reward-copy strong{font-size:10px}#modal .goshuin-reward-marks{grid-template-columns:repeat(5,8px);gap:4px}#modal .goshuin-reward-mark{width:8px;height:8px}#modal .omamori-shelf{gap:4px;padding:7px}#modal .omamori-shelf-slot{min-height:35px;font-size:20px}}
+@media(prefers-reduced-motion:reduce){#modal .omamori-reward-notice.is-new{animation:none!important}}
+body.harmony-reduced-motion #modal .omamori-reward-notice.is-new{animation:none!important}

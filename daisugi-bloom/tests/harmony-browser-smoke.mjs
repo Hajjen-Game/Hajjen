@@ -159,6 +159,9 @@ try{
   assert.equal(empty.earned,0);
   assert(empty.text.includes("0 av 10"));
   assert.equal(empty.page,"Kapitel 1 · Sida 1 / 3");
+  assert.equal(await journal.$eval(".goshuin-reward-marks",el=>el.getAttribute("aria-valuenow")),"0");
+  assert.equal(await journal.$eval(".goshuin-reward-mark.is-earned",els=>els.length),0);
+  assert.equal(await journal.$eval(".goshuin-reward-mark",els=>els.length),10);
   assert.equal(empty.nextDisabled,false,"Next chapter can be previewed");
   assert(empty.scroll<=390,"The album must not overflow the phone viewport");
   // Warm Parchment 2.0: first chapter is the reference for all later cards.
@@ -254,6 +257,8 @@ try{
   await journal.click("#goshuinButton");
   assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Darumas önskan");
   assert.equal(await journal.$eval(".goshuin-stamp.is-earned",x=>x.dataset.level),"21");
+  assert.equal(await journal.$eval(".goshuin-reward-marks",el=>el.getAttribute("aria-valuenow")),"1");
+  assert.equal(await journal.$eval(".goshuin-reward-mark.is-earned",els=>els.length),1);
   assert.equal(await journal.$eval(".goshuin-stamp.is-earned",x=>x.dataset.stars),"1");
   await journal.waitForSelector(".goshuin-stamp .goshuin-grade.has-art");
   const thirdChapter=await journal.evaluate(()=>({

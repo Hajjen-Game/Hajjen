@@ -356,4 +356,17 @@ check("Menu Focus & Reward Hierarchy 1.0 makes Goshuincho the primary menu actio
   "The quick-play action must retain saved run support");
 });
 
+check("Reward Polish only marks legitimately earned chapter stamps",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+ const state={unlocked:30,bestStars:{20:1},fourFamilyStars:{0:1}};
+ assert.equal(G.chapterSnapshot(state,2).earned,1);
+ assert.equal(G.chapterSnapshot(state,2).completed,false);
+ for(let i=20;i<30;i++)state.bestStars[i]=1;
+ assert.equal(G.chapterSnapshot(state,2).earned,10);
+ assert.equal(G.chapterSnapshot(state,2).completed,true);
+ assert(app.includes('stamp.earned?" is-earned":""'));
+ assert(app.includes('rewardStarsAtLevelStart=G.archivedStars(save,i)'));
+ assert(app.includes('const chapterReward=G.chapterSnapshot(save,Math.floor(level/G.CHAPTER_SIZE))'));
+});
 console.log("Goshuincho Collection + Level Cards + Asset Fidelity 2.0, Optical Alignment 1.0 and Menu Focus 1.0 tests passed.");

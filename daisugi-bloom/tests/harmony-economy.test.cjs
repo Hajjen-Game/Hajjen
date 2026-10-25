@@ -91,4 +91,17 @@ check("UI and gameplay contracts: no Omamori effect applied to HarmonyRules",()=
  assert(!rules.includes("Omamori"));
  assert(!rules.includes("harmonyCoins"));
 });
+check("Reward Polish keeps six existing cosmetic charms",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+ const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
+ const state={bestStars:{},fourFamilyStars:{}};E.initialize(state);
+ const baseline=JSON.stringify(state);
+ assert.equal(E.CATALOG.length,6);
+ assert.equal(E.snapshot(state).ownedCount,0);
+ assert.equal(JSON.stringify(state),baseline);
+ assert(html.includes('id="omamoriProgress"'));
+ assert(app.includes('for(const item of E.CATALOG)'));
+ assert(app.includes('showOmamoriNotice("purchase",item)'));
+});
 console.log("Harmony Economy & Omamori 1.0 tests passed.");

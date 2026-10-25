@@ -6,6 +6,31 @@
  */
 (function(root){
 "use strict";
+// Conventional Japanese numeral characters for Goshuincho stamp numbers:
+// 1 一, 10 十, 11 十一, 20 二十, 32 三十二, 100 百, 1000 千.
+// Supports later chapters without hard-coding each individual level card.
+function japaneseNumeral(value){
+ if(!Number.isSafeInteger(value)||value<=0)return String(value);
+ const digits=["","一","二","三","四","五","六","七","八","九"];
+ const groupUnits=["","万","億","兆"];
+ const groupText=n=>{
+  let result="";
+  for(const [divisor,unit] of [[1000,"千"],[100,"百"],[10,"十"]]){
+   const count=Math.floor(n/divisor);
+   if(count)result+=(count===1?"":digits[count])+unit;
+   n%=divisor;
+  }
+  return result+digits[n];
+ };
+ let rest=value,blocks=[],i=0;
+ while(rest>0&&i<groupUnits.length){
+  const group=rest%10000;
+  if(group)blocks.unshift(groupText(group)+groupUnits[i]);
+  rest=Math.floor(rest/10000);
+  i++;
+ }
+ return rest?String(value):blocks.join("");
+}
 const CHAPTER_SIZE=10;
 const PAGE_SIZE=4;
 const PAGES_PER_CHAPTER=Math.ceil(CHAPTER_SIZE/PAGE_SIZE);
@@ -125,7 +150,7 @@ function artUrl(type,key){
  }
  return ART[type]?.[key]||null;
 }
-const api={CHAPTER_SIZE,PAGE_SIZE,PAGES_PER_CHAPTER,ART,archivedStars,levelStatus,chapter,chapterSnapshot,pageForLevel,pageSnapshot,summary,artUrl};
+const api={CHAPTER_SIZE,PAGE_SIZE,PAGES_PER_CHAPTER,ART,japaneseNumeral,archivedStars,levelStatus,chapter,chapterSnapshot,pageForLevel,pageSnapshot,summary,artUrl};
 root.HarmonyGoshuincho=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

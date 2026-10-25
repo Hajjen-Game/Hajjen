@@ -379,7 +379,7 @@ function renderGoshuincho(){
  const album=goshuinNode("div","goshuincho-book");
  album.setAttribute("aria-label","Goshuincho, kapitel "+info.number+", sida "+info.pageNumber+" av "+info.pages);
  const intro=goshuinNode("p","goshuin-intro",
-  "Din nivåresa i en samlarbok. Välj en stämpel för att se nivåmålet och spela. Dina stjärnor förädlar avtrycken.");
+  "Din nivåresa i en samlarbok. Välj en nivåbricka för att se målet och spela. Klarade nivåer får en stjärnstämpel.");
  album.append(intro);
  const totals=goshuinNode("div","goshuin-totals");
  totals.append(goshuinNode("strong","",summary.earned+" stämplar"),
@@ -429,7 +429,7 @@ function renderGoshuincho(){
  );
  page.append(chapterStatus);
  const stamps=goshuinNode("div","goshuin-stamp-grid");
- stamps.setAttribute("aria-label","Nivåstämplar för kapitel "+info.number+", sida "+info.pageNumber);
+ stamps.setAttribute("aria-label","Nivåbrickor för kapitel "+info.number+", sida "+info.pageNumber);
  const detail=goshuinNode("section","goshuin-level-detail");
  detail.setAttribute("aria-label","Vald nivå");
  detail.hidden=true;

@@ -1028,7 +1028,7 @@ class Game{
    let guard=0;
    while(pendingAwakenings.length&&guard++<49){
     const source=pendingAwakenings.shift();
-    const targets=[],stoneTargets=[],darumaTargets=[],mistTargets=[];
+    const targets=[],stoneTargets=[],darumaTargets=[],mistTargets=[],visualOnlyTargets=[];
     for(const to of neighbors8(source)){
      const piece=this.board[to];
      if(isSealed(piece)){
@@ -1041,6 +1041,7 @@ class Game{
      }
      if(indirect.has(to)||!piece||piece.stage>=5){
       if(this.config.goal.type==="mist"&&this.mist[to])mistTargets.push({from:source,to,empty:!piece});
+      else visualOnlyTargets.push({from:source,to,empty:!piece});
       continue;
      }
      indirect.add(to);this.grow(to,created,true);
@@ -1050,7 +1051,7 @@ class Game{
     const clearedMist=this.clearMist([...targets.map(t=>t.to),...mistTargets.map(t=>t.to)]);
     const points=targets.length*75;this.pulseHits+=targets.length;this.score+=points;
     events.push(this.frame("awakening",{sources:[source],source,targets,stoneTargets,
-     darumaTargets,mistTargets,clearedMist,scoreDelta:points,wave:1}));
+     darumaTargets,mistTargets,visualOnlyTargets,clearedMist,scoreDelta:points,wave:1}));
     if(darumaTargets.length)hitDaruma(darumaTargets.map(t=>t.to),"awakening",true);
     if(stoneTargets.length)hitStone(stoneTargets.map(t=>t.to),"awakening",true);
    }

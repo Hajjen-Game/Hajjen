@@ -251,6 +251,13 @@ function showMenu(){
  resetResonanceVisuals();clearScoreFx();clearPraise();
  saveRun();document.body.classList.remove("harmony-playing");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
+// Primary level selection is the book. Keep the landing menu accessible for
+// daily Omikuji, Omamori and Game Dev; leaving a run opens Goshuincho directly.
+function showLevelSelection(){
+ if(busy)return;
+ showMenu();
+ showGoshuincho();
+}
 function renderMenu(){
  const journal=G.summary(save);
  const coins=$("harmonyCoins");
@@ -264,6 +271,8 @@ function renderMenu(){
  }
  const selected=$("gameDirectorMode");
  if(selected)selected.value=save.playMode;
+ // Legacy level list remains hidden for historical regression checks only.
+ // Players now see Goshuincho as the sole visible level-selection surface.
  const list=$("levelList");list.replaceChildren();
  const first=menuPage*MENU_PAGE_SIZE,last=first+MENU_PAGE_SIZE;
  for(let i=first;i<last;i++){
@@ -302,9 +311,9 @@ function renderMenu(){
   b.append(n,d,starsNode);b.addEventListener("click",()=>startLevel(i,false));list.appendChild(b);
  }
  const intro=menuPage===0;
- $("chapterEyebrow").textContent=intro?"INTRODUKTION + JOURNEY":"ENDLESS JOURNEY";
- $("chapterTitle").textContent=intro?"First Harmony":"Harmony Journey";
- $("chapterSubtitle").textContent=intro?"Fem korta introduktionsnivåer. Från nivå 6 börjar resan på riktigt.":"Nya nivåmål med dimma, mästerverk och Harmony Pulse · 1–3 stjärnor efter antal drag";
+ $("chapterEyebrow").textContent="DIN NIVÅRESA";
+ $("chapterTitle").textContent="Goshuincho";
+ $("chapterSubtitle").textContent="Samla stämplar, välj kapitel och spela direkt från boken.";
  const stars=Object.entries(save.fourFamilyStars).reduce((n,[i,v])=>
   n+(Number(i)<10?Number(v)||0:0),0)+
   Object.entries(save.bestStars).reduce((n,[i,v])=>
@@ -322,9 +331,9 @@ function renderMenu(){
  const canResume=save.run&&save.run.level<=save.unlocked&&save.run.data&&save.run.data.moves>0;
  $("continueButton").textContent=canResume?"Fortsätt nivå "+(save.run.level+1)+" →":"Spela nivå "+(save.unlocked+1)+" →";
 }
-// Goshuincho Level Select 2.0 — the book reuses the EXISTING progression,
-// launch/resume behaviour, and save archives. The old level list stays live.
-// Individual stamp, grade and chapter art slots remain independently swappable.
+// Goshuincho Primary Level Select 1.0: sole visible level selector, sharing
+// the existing progression, launch/resume behaviour and stored star archive.
+// The former list is hidden temporarily for migration regression coverage.
 const goshuinArtCache=new Map();
 function goshuinArtReady(src){
  if(!goshuinArtCache.has(src)){
@@ -2211,9 +2220,9 @@ function showResult(){
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
  });
  modalButton(actions,won?"Spela igen":"Försök igen med nytt bräde",won?"secondary victory-tertiary":"secondary",()=>startLevel(level));
- modalButton(actions,"Nivåval",won?"secondary victory-tertiary":"secondary",()=>{
+ modalButton(actions,"Goshuincho · Nivåval",won?"secondary victory-tertiary":"secondary",()=>{
   if(won){game.finish();save.run=null;persist();}
-  showMenu();
+  showLevelSelection();
  });
  $("modal").hidden=false;
 }
@@ -2447,7 +2456,7 @@ function openGameMenu(){
  add("Inställningar","secondary","settings",()=>{$("settingsButton").click();});
  add("Prestanda","secondary","performance",showPerformanceReport);
  add("Game Dev · Motorlab","secondary","dev",openEngineLab);
- add("Till nivåval","secondary","levels",()=>{if(!busy)showMenu();});
+ add("Till Goshuincho","secondary","levels",()=>{if(!busy)showLevelSelection();});
  $("modal").hidden=false;
 }
 function bind(){
@@ -2465,7 +2474,10 @@ function bind(){
    "Originalsystemets slumpmässiga påfyllning. Jämför med de smartare lägena.";
  });
  $("gameDirectorMode").dispatchEvent(new Event("change"));
- $("homeButton").addEventListener("click",showMenu);
+ $("homeButton").addEventListener("click",()=>{
+  if($("gameView").hidden)showGoshuincho();
+  else showLevelSelection();
+ });
  $("goshuinButton").addEventListener("click",()=>showGoshuincho());
  $("omamoriButton").addEventListener("click",()=>showOmamori());
  $("omikujiButton").addEventListener("click",()=>showOmikuji());

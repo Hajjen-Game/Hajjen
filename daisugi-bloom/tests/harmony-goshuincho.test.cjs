@@ -256,7 +256,7 @@ check("Optical Alignment 1.0 aligns actual chapter silhouettes and seal ink, not
  assert(Math.max(...effective)-Math.min(...effective)<3,
   "Ink footprint should be visually consistent to under 1% across ratings");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(html.includes("mobile-game.css?v=6.36.1-optical-alignment"),
+ assert(html.includes("mobile-game.css?v=6.37.0-economy"),
   "Fresh CSS cache must be fetched by phones");
  assert(html.includes('goshuincho.js?v=6.36.0-asset-fidelity'),
   "Data mapping must stay untouched");

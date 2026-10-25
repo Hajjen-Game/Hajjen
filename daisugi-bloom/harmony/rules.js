@@ -883,6 +883,8 @@ class Game{
   this.fairnessBalanceVersion=1;
   if(previous){
    Object.assign(this,previous);
+   // Reusing a saved snapshot must not share mutable refill-bag arrays.
+   this.bag=Array.isArray(previous.bag)?previous.bag.slice():[];
    // Existing runs retain their historical rating contract. New plays
    // award one completion star; previous two-/three-star records are never revoked.
    this.rewardVersion=previous.rewardVersion===3?3:previous.rewardVersion===2?2:1;

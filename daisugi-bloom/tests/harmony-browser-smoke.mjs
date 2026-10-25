@@ -373,6 +373,62 @@ try{
   assert.equal(await journal.$eval("#levelNumber",x=>x.textContent),"NIVÅ 21");
   assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
  }finally{await journalContext.close();}
+ // Warm Parchment 2.0: all later levels must use the same paper, including
+ // the 3-character Japanese numerals on level 31–40 and locked stage 40.
+ const lateBookContext=await browser.createBrowserContext();
+ try{
+  const late=await lateBookContext.newPage();
+  await late.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await late.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
+  await late.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2";
+   const state=JSON.parse(localStorage.getItem(key));
+   state.unlocked=38;state.run=null;
+   state.bestStars={30:2,31:3};
+   localStorage.setItem(key,JSON.stringify(state));
+  });
+  await late.reload({waitUntil:"networkidle2"});
+  await late.click("#goshuinButton");
+  assert.equal(await late.$eval(".goshuin-page-count",e=>e.textContent),"Kapitel 4 · Sida 3 / 3");
+  assert.equal(await late.$eval('.goshuin-stamp[data-level="39"] .goshuin-paper-kanji',e=>e.textContent),"三十九");
+  assert.equal(await late.$eval('.goshuin-stamp[data-level="40"] .goshuin-paper-kanji',e=>e.textContent),"四十");
+  assert.equal(await late.$eval('.goshuin-stamp[data-level="40"]',e=>e.dataset.state),"is-locked");
+  await late.click(".goshuin-nav-button:first-child");
+  await late.click(".goshuin-nav-button:first-child");
+  assert.equal(await late.$eval(".goshuin-page-count",e=>e.textContent),"Kapitel 4 · Sida 1 / 3");
+  const sample=await late.evaluate(()=>[...document.querySelectorAll(".goshuin-stamp")].map(tile=>({
+   level:Number(tile.dataset.level),
+   paper:tile.classList.contains("is-omikuji-preview"),
+   label:tile.querySelector(".goshuin-paper-eyebrow")?.textContent,
+   kanji:tile.querySelector(".goshuin-paper-kanji")?.textContent,
+   fit:tile.querySelector(".goshuin-paper-kanji")?.classList.contains("is-multi-kanji"),
+   title:tile.querySelector(".goshuin-paper-title")?.textContent,
+   name:window.HarmonyRules.levelConfig(Number(tile.dataset.level)-1).name,
+   watercolor:!!tile.querySelector(":scope > img.goshuin-art"),
+   stamp:!!tile.querySelector(".goshuin-grade")
+  })));
+  assert.deepEqual(sample.map(x=>x.kanji),["三十一","三十二","三十三","三十四"]);
+  assert(sample.every(x=>x.paper&&x.fit&&x.title===x.name&&!x.watercolor),
+   "All chapter 4 stages must display dynamic names and sized kanji on paper");
+  assert(sample[0].stamp&&sample[1].stamp,"Recorded chapter 4 stars keep their real seal images");
+  await late.setViewport({width:320,height:640,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  const narrow=await late.evaluate(()=>({
+   scrollWidth:document.documentElement.scrollWidth,
+   viewport:innerWidth,
+   cards:[...document.querySelectorAll(".goshuin-stamp")].map(tile=>{
+    const kanji=tile.querySelector(".goshuin-paper-kanji"),title=tile.querySelector(".goshuin-paper-title");
+    const seal=tile.querySelector(".goshuin-grade");
+    return {kanjiFont:parseFloat(getComputedStyle(kanji).fontSize),
+     hasLongTitleClass:title.textContent.length<=20||title.classList.contains("is-long"),
+     textFits:!seal||title.getBoundingClientRect().bottom<=seal.getBoundingClientRect().top+2};
+   })
+  }));
+  assert(narrow.scrollWidth<=narrow.viewport,"Chapter 4 must not overflow on 320px phones");
+  assert(narrow.cards.every(x=>x.kanjiFont<=32&&x.hasLongTitleClass&&x.textFits),
+   "Compound kanji, long titles and star seals stay readable on narrow phones");
+  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
+  await late.screenshot({path:"/tmp/daisugi-bloom/goshuincho-chapter4-320.png"});
+ }finally{await lateBookContext.close();}
  // Resume is a separate launch path and must reuse the exact saved board,
  // moves and score. Opening/inspecting the book itself is read-only.
  const resumeJournalContext=await browser.createBrowserContext();

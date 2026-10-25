@@ -54,6 +54,10 @@ jobs:
         run: node daisugi-bloom/tests/harmony-four-families.test.cjs
       - name: Verify Harmony Resonance Echo scoring, sound isolation and saved states
         run: node daisugi-bloom/tests/harmony-resonance.test.cjs
+      - name: Protect Difficulty & Fairness Audit 3.0 diagnostic contracts
+        run: |
+          node --check daisugi-bloom/tools/harmony-difficulty-fairness-audit.cjs
+          node daisugi-bloom/tests/harmony-difficulty-fairness-audit.test.cjs
       - name: Syntax-check calibration benchmark
         run: node --check daisugi-bloom/tools/harmony-difficulty-reward-benchmark.cjs
       - name: Syntax-check all browser scripts
@@ -193,4 +197,23 @@ jobs:
         with:
           name: japanese-harmony-difficulty-reward-1-0
           path: daisugi-bloom/reports/difficulty-reward-1.0-benchmark.json
+          if-no-files-found: warn
+
+  difficulty-fairness-audit:
+    name: Difficulty & Fairness 3.0 · 40 levels / 640 seeded games
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit level 1–40 with paired random/goal bots under default Director 3.0
+        run: node daisugi-bloom/tools/harmony-difficulty-fairness-audit.cjs --trials 8 --levels 1-40 --mode director3
+      - name: Preserve per-level flags, full seeds, star distributions and Markdown report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japanese-harmony-difficulty-fairness-3-0
+          path: |
+            daisugi-bloom/reports/difficulty-fairness-3.0.json
+            daisugi-bloom/reports/difficulty-fairness-3.0.csv
+            daisugi-bloom/reports/difficulty-fairness-3.0.md
           if-no-files-found: warn

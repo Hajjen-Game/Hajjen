@@ -5008,3 +5008,78 @@ body.harmony-reduced-motion .menu-view .level-tile{
  #modal .omamori-card{grid-template-columns:51px minmax(0,1fr);column-gap:8px}
  #modal .omamori-charm{width:46px;height:62px}
 }
+
+
+/* Omikuji Fortune 1.0 · 6.38.0
+   Clean paper-slip prototype; visuals can be upgraded independently later. */
+.menu-view .omikuji-entry{
+ display:flex;align-items:center;width:100%;gap:10px;
+ min-height:48px;padding:7px 12px;margin:7px 0 0;
+ color:#f6e5cf;text-align:left;cursor:pointer;
+ border:1px solid rgba(233,199,145,.4);border-radius:13px;
+ background:linear-gradient(112deg,rgba(23,55,67,.96),rgba(48,72,76,.94));
+ box-shadow:inset 0 1px rgba(255,255,255,.12);
+}
+.omikuji-entry-mark{
+ display:grid;place-items:center;flex:0 0 30px;height:30px;
+ border-radius:9px;border:1px solid rgba(250,213,160,.53);
+ font-family:Georgia,serif;font-size:19px;color:#f1cb96;
+}
+.omikuji-entry-label{display:grid;min-width:0;gap:1px;flex:1}
+.omikuji-entry-label strong{font-size:13px;line-height:1.2;font-weight:850}
+.omikuji-entry-label small{font-size:10px;line-height:1.25;color:#d6c4b2}
+.omikuji-entry-status{font-size:11px;font-weight:800;color:#f3d49f;white-space:nowrap}
+.omikuji-entry-arrow{font-size:24px;color:#d7bd9d}
+#modal .omikuji-fortune{display:grid;justify-items:stretch;gap:13px;}
+#modal .omikuji-intro{
+ margin:0;color:#e0d8cc;line-height:1.52;font-size:13px;
+}
+#modal .omikuji-paper{
+ position:relative;isolation:isolate;
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ width:min(100%,320px);min-height:280px;max-width:100%;margin:0 auto;
+ padding:27px 24px;box-sizing:border-box;
+ color:#614337;text-align:center;
+ background:
+  radial-gradient(circle at 16% 24%,rgba(245,174,152,.19),transparent 28%),
+  radial-gradient(circle at 86% 82%,rgba(226,193,130,.21),transparent 33%),
+  linear-gradient(145deg,#fff6e6,#f7e9d2);
+ border:1px solid #bf947b;border-radius:13px 13px 19px 19px;
+ box-shadow:0 8px 24px rgba(8,21,24,.2),inset 0 0 0 5px rgba(253,237,216,.85);
+ overflow:hidden;
+}
+#modal .omikuji-paper::before{
+ content:"";position:absolute;inset:12px;pointer-events:none;
+ border:1px solid rgba(172,96,81,.39);border-radius:7px 7px 14px 14px;
+}
+#modal .omikuji-paper::after{
+ content:"✿";position:absolute;right:23px;bottom:12px;
+ font-size:26px;line-height:1;color:rgba(180,92,99,.33);
+}
+#modal .omikuji-paper-top{font-size:10px;letter-spacing:.12em;color:#a36663;font-weight:800;line-height:1.45}
+#modal .omikuji-paper-kanji{
+ font-family:Georgia,serif;font-size:clamp(58px,15vw,84px);font-weight:700;
+ line-height:1.2;margin:9px 0 5px;color:#af484d;
+}
+#modal .omikuji-paper-name{font:700 21px Georgia,serif;line-height:1.25;color:#633e3b}
+#modal .omikuji-paper-description{max-width:240px;font-size:13px;line-height:1.6;margin:13px 0 0;color:#70584d}
+#modal .omikuji-paper-symbol{font:normal 85px Georgia,serif;line-height:1.5;color:#c77980}
+#modal .omikuji-paper-fold{font:700 19px Georgia,serif;color:#785046}
+#modal .omikuji-result{
+ display:grid;gap:5px;text-align:center;justify-items:center;
+ padding:12px;border-radius:12px;
+ border:1px solid rgba(231,184,125,.39);background:rgba(252,227,195,.12);
+}
+#modal .omikuji-earned{font-size:17px;color:#ffda98;font-weight:850}
+#modal .omikuji-result-note{font-size:12px;color:#e0d9ca;line-height:1.45}
+#modal .omikuji-total{margin:0;text-align:center;font-size:11px;color:#cad4d1}
+#modal .omikuji-draw{background:linear-gradient(110deg,#f6d497,#f4b39b);color:#443832}
+@media(max-width:350px){
+ .menu-view .omikuji-entry{gap:7px;padding:6px 9px}
+ .omikuji-entry-label small{font-size:9px}
+ .omikuji-entry-status{font-size:10px}
+ #modal .omikuji-paper{min-height:255px;padding:21px}
+}
+@media(prefers-reduced-motion:reduce){
+ #modal .omikuji-paper{transition:none;animation:none}
+}

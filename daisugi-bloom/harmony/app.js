@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lykta",koi:"Koi",fan:"Solfjäder",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu-drake"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -156,6 +156,9 @@ if(migratedScores)persist();
 // One-time credit for already earned levels; never reward historical records again.
 const economyStart=E.initialize(save);
 if(economyStart.newlyCreated)persist();
+// Fortune is an independent cosmetic collection field: keep all existing
+// wallet purchases, saved stars and level archives exactly as they were.
+if(F.initialize(save).created)persist();
 // Match CSS-only ambient effects to the in-game accessibility preference.
 document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
@@ -252,6 +255,8 @@ function renderMenu(){
  const journal=G.summary(save);
  const coins=$("harmonyCoins");
  if(coins)coins.textContent=prettify(E.snapshot(save).coins)+" mynt";
+ const daily=$("omikujiStatus");
+ if(daily)daily.textContent=F.status(save).available?"Gratis idag":"Dagens lapp dragen";
  const journalButton=$("goshuinButton");
  if(journalButton){
   $("goshuinProgress").textContent=journal.earned+" / "+(journal.visibleChapters*G.CHAPTER_SIZE)+" stämplar";
@@ -575,6 +580,62 @@ function renderGoshuincho(){
  album.append(page);
  area.append(album);
 }
+// Omikuji Fortune 1.0 — one free draw per local day, never interrupts combat.
+// No streaks, paid retries, negative prizes or changes to the matching rules.
+function showOmikuji(){
+ if(busy||!$("gameView").hidden)return;
+ const info=F.status(save),todayDraw=info.last?.date===info.date?info.last:null;
+ $("modalActions").classList.remove("pause-menu-actions","victory-actions");
+ $("modalEyebrow").textContent="JAPANESE HARMONY · LITEN ÖVERRASKNING";
+ $("modalTitle").textContent="Omikuji Fortune";
+ const content=$("modalContent");content.replaceChildren();
+ const wrapper=goshuinNode("section","omikuji-fortune");
+ wrapper.append(goshuinNode("p","omikuji-intro",
+  "Dra en lyckolapp inspirerad av japanska omikuji. Du får en liten myntgåva med ett vänligt budskap. En gratis lapp per dag, utan krav på att logga in varje dag."));
+ const paper=goshuinNode("div","omikuji-paper"+(todayDraw?" is-revealed":" is-folded"));
+ if(todayDraw){
+  paper.dataset.fortune=todayDraw.id;
+  paper.append(goshuinNode("span","omikuji-paper-top","本日の運勢 · DAGENS LYCKA"),
+   goshuinNode("span","omikuji-paper-kanji",todayDraw.fortune.kanji),
+   goshuinNode("strong","omikuji-paper-name",todayDraw.fortune.label),
+   goshuinNode("span","omikuji-paper-description",todayDraw.fortune.text));
+ }else{
+  paper.append(goshuinNode("span","omikuji-paper-top","OMIKUJI · LYCKOLAPP"),
+   goshuinNode("span","omikuji-paper-symbol","✿"),
+   goshuinNode("span","omikuji-paper-fold","Din lyckolapp väntar"));
+ }
+ wrapper.append(paper);
+ const results=goshuinNode("div","omikuji-result");
+ if(todayDraw){
+  results.append(goshuinNode("strong","omikuji-earned",
+   "✧ +"+prettify(todayDraw.coins)+" Harmony Coins"),
+   goshuinNode("span","omikuji-result-note",
+    "Belöningen är redan tillagd i din Omamori-plånbok."));
+ }else{
+  results.append(goshuinNode("span","omikuji-result-note",
+   info.available?"Dagens dragning är gratis. Resultatet sparas i den här webbläsaren.":
+   "Du har redan dragit en lapp. Nästa är tillgänglig en ny kalenderdag."));
+ }
+ wrapper.append(results);
+ if(info.count>0){
+  wrapper.append(goshuinNode("p","omikuji-total",
+   "Tidigare lyckolappar: "+prettify(info.count)+" · Ingen daglig serie att hålla."));
+ }
+ const actions=$("modalActions");actions.replaceChildren();
+ if(info.available){
+  const drawButton=modalButton(actions,"Dra dagens lyckolapp","primary omikuji-draw",()=>{
+   const result=F.draw(save,new Date());
+   if(!result.ok){showOmikuji();return;}
+   persist();renderMenu();showOmikuji();
+  });
+  drawButton.setAttribute("aria-label","Dra en gratis Omikuji lyckolapp idag");
+ }
+ modalButton(actions,"Stäng lyckolappen","secondary omikuji-close",()=>{
+  $("modal").hidden=true;$("omikujiButton").focus();
+ });
+ content.append(wrapper);$("modal").hidden=false;
+}
+
 // Harmony Economy & Omamori 1.0 — the collection stays outside the 7x7 board.
 function showOmamori(tab="shop"){
  if(busy||!$("gameView").hidden)return;
@@ -2362,6 +2423,7 @@ function bind(){
  $("homeButton").addEventListener("click",showMenu);
  $("goshuinButton").addEventListener("click",()=>showGoshuincho());
  $("omamoriButton").addEventListener("click",()=>showOmamori());
+ $("omikujiButton").addEventListener("click",()=>showOmikuji());
  $("pauseButton").addEventListener("click",openGameMenu);
  $("devButton").addEventListener("click",openEngineLab);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);});

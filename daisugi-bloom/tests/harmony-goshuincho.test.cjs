@@ -336,7 +336,7 @@ check("Menu Focus & Reward Hierarchy 1.0 makes Goshuincho the primary menu actio
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
  const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
- assert(html.includes("Progression Reward Polish 1.0"));
+ assert(html.includes("Harmony Director 4.0"));
  assert(html.indexOf('id="goshuinButton"')<html.indexOf('id="continueButton"'),
   "The album is presented before its subordinate quick-play shortcut");
  assert(html.indexOf('id="continueButton"')<html.indexOf('class="menu-rewards"'),

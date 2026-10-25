@@ -176,7 +176,35 @@ check("Artwork Fidelity 1.0 keeps square atlas pixels inside non-square plaques"
  assert.match(section, /height:calc\(100% - 10px\)/, "Grade should be constrained by available plaque height");
  assert.match(section, /object-fit:contain/, "Independent hi-res PNG/WebP originals must preserve aspect ratio");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert.match(html, /mobile-game\.css\?v=6\.34\.1-artwork-fidelity/, "Cache must refresh fidelity CSS");
+ assert.match(html, /mobile-game\.css\?v=6\.35\.0-level-cards/, "Cache must refresh level card CSS");
 });
 
-console.log("Goshuincho Collection Pagination Rework 1.0 + Artwork Fidelity 1.0 tests passed.");
+
+check("Level Card Rework 1.0: three user-approved full-resolution artworks mapped by chapter",()=>{
+ const fs=require("node:fs");
+ const path=require("node:path");
+ const expected=["sakura","mist","daruma"];
+ for(let chapter=0;chapter<3;chapter++){
+  const src=G.artUrl("cards",chapter);
+  assert.equal(typeof src,"string");
+  assert(src.includes("level-card-"+expected[chapter]+".webp"));
+  const pathOnDisk=path.resolve(__dirname,"..",src.split("?")[0]);
+  const data=fs.readFileSync(pathOnDisk);
+  assert(data.length>50_000,"The chapter card must be a real high-fidelity file, not a 96px cell");
+  assert.equal(data.toString("ascii",0,4),"RIFF");
+  assert.equal(data.toString("ascii",8,12),"WEBP");
+ }
+ assert.equal(G.artUrl("cards",3),null,"Unillustrated chapters must use their paper fallback");
+ const app=fs.readFileSync(path.resolve(__dirname,"../harmony/app.js"),"utf8");
+ assert(app.includes('goshuinArtwork(tile,"cards",info.index)'));
+ assert(app.includes('goshuinArtwork(crest,"cards",info.index)'));
+ assert(!app.includes('goshuinNode("span","goshuin-stamp-slot")'),
+  "Old circle slots may not render off-center again");
+ const css=fs.readFileSync(path.resolve(__dirname,"../harmony/mobile-game.css"),"utf8");
+ const section=css.slice(css.lastIndexOf("/* Goshuincho Level Card Rework 1.0"));
+ assert(section.includes("aspect-ratio:4 / 5"));
+ assert(section.includes("object-fit:contain"));
+ assert(section.includes(".goshuin-grade"));
+});
+
+console.log("Goshuincho Collection Pagination Rework 1.0 + Artwork Fidelity & Level Cards 1.0 tests passed.");

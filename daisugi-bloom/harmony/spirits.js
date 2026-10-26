@@ -62,9 +62,12 @@ function observe(save,level,events){
  // The Daruma challenge only appears on genuine obstacle chapters.
  if(id==="daruma"&&(level<20||level>=40))return {ok:false,reason:"outside-chapter"};
  if(!qualifies(id,events))return {ok:false,reason:"not-qualified"};
+ // Snapshot the tier BEFORE taking a mutable journal reference: status()
+ // normalizes its saved arrays. Holding the old array across that read would
+ // silently discard earned progress.
+ const before=status(save,id).tier;
  const account=initialize(save),levels=account.bonds[id].levels;
  if(levels.includes(level))return {ok:false,reason:"already-earned",status:status(save,id)};
- const before=status(save,id).tier;
  levels.push(level);
  const after=status(save,id);
  return {ok:true,id,level,tierUnlocked:after.tier>before?after.tier:0,status:after};

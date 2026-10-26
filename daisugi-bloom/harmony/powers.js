@@ -18,11 +18,12 @@ function initialize(save){
   const owned=Array.isArray(save.economy?.owned)?save.economy.owned:[];
   // A one-off test blessing for existing owners; never repeated on reload.
   save.powers={version:VERSION,charges:Object.fromEntries(IDS.map(id=>[id,owned.includes(id)?1:0])),
-   claimed:Object.fromEntries(IDS.map(id=>[id,[]]))};
+   claimed:Object.fromEntries(IDS.map(id=>[id,[]])),starters:owned.filter(id=>IDS.includes(id))};
  }
  const p=save.powers;
  if(!p.charges||typeof p.charges!=="object")p.charges={};
  if(!p.claimed||typeof p.claimed!=="object")p.claimed={};
+ p.starters=[...new Set((Array.isArray(p.starters)?p.starters:[]).filter(id=>IDS.includes(id)))];
  for(const id of IDS){
   const n=p.charges[id];
   p.charges[id]=Number.isInteger(n)?Math.max(0,Math.min(MAX,n)):0;
@@ -46,6 +47,14 @@ function grantForClear(save,level,assisted=false){
  if(p.charges[id]>=MAX)return {ok:false,reason:"full",recorded:true};
  p.charges[id]++;
  return {ok:true,id,charges:p.charges[id]};
+}
+function starterForNewPurchase(save,id){
+ if(!owned(save,id)||!POWERS[id])return false;
+ const p=initialize(save);
+ if(!Array.isArray(p.starters))p.starters=[];
+ if(p.starters.includes(id))return false;
+ p.starters.push(id);p.charges[id]=Math.min(MAX,p.charges[id]+1);
+ return true;
 }
 function consume(save,id){
  if(!owned(save,id))return false;
@@ -196,7 +205,7 @@ function apply(g,id,at=-1){
  events=events.concat(g.resolve(-1));
  return {ok:true,events};
 }
-const api={VERSION,IDS,MAX,POWERS,initialize,status,grantForClear,consume,apply};
+const api={VERSION,IDS,MAX,POWERS,initialize,status,grantForClear,starterForNewPurchase,consume,apply};
 root.HarmonyPowers=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

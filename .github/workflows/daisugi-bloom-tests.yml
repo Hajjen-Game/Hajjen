@@ -22,6 +22,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-goshuincho.test.cjs
       - name: Harmony Economy & Omamori 1.0 · deterministic payouts and collection
         run: node daisugi-bloom/tests/harmony-economy.test.cjs
+      - name: Omamori Spirits 2.0 · unique-level Bond missions, persistence and cosmetic-only effects
+        run: node daisugi-bloom/tests/harmony-spirits.test.cjs
       - name: Omikuji Fortune 1.0 · daily draws and same-wallet payouts
         run: node daisugi-bloom/tests/harmony-fortune.test.cjs
       - name: Daruma Awakening fixed-blocker, eye states and saved levels
@@ -83,6 +85,7 @@ jobs:
           node --check daisugi-bloom/tools/harmony-objective-balance.cjs
           node --check daisugi-bloom/harmony/economy.js
           node --check daisugi-bloom/harmony/fortune.js
+          node --check daisugi-bloom/harmony/spirits.js
           node --check daisugi-bloom/harmony/app.js
   mobile-browser:
     runs-on: ubuntu-latest

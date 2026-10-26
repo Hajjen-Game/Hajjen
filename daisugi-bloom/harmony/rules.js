@@ -151,7 +151,7 @@ function endlessConfig(index,withDaruma=true,withSealed=true){
   const moves=[36,36,38,40,38,42,42,44,46,48][index-30];
   return {...old,name:chapter.name,subtitle:chapter.subtitle,
    goal:{type:"sealedStone",count},sealedStoneVersion:1,moves,par:Math.max(20,moves-12),
-   intro:chapter.focus+" Fusioner intill stenen och Harmony Pulse kan träffa den, högst en gång per drag. Fyra träffar bryter stenen och frigör Awakening Pulse i åtta riktningar."};
+   intro:chapter.focus+" Fusioner intill stenen och Harmony Pulse kan träffa den, högst en gång per drag. Stenen kräver fyra träffar och frigör därefter Awakening Pulse i åtta riktningar."};
  }
 
  // The first Daruma is introduced at Level 21, AFTER the first twenty.

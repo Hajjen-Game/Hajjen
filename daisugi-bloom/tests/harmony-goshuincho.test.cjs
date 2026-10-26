@@ -187,7 +187,7 @@ check("Artwork Fidelity 1.0 keeps square atlas pixels inside non-square plaques"
  assert.match(section, /height:calc\(100% - 10px\)/, "Grade should be constrained by available plaque height");
  assert.match(section, /object-fit:contain/, "Independent hi-res PNG/WebP originals must preserve aspect ratio");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert.match(html, /mobile-game\.css\?v=6\.46\.0-progression-rewards/, "Latest Goshuincho paper CSS must refresh on mobile");
+ assert.match(html, /mobile-game\.css\?v=6\.48\.0-omamori-spirits/, "Latest Goshuincho paper CSS must refresh on mobile");
 });
 
 

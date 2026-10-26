@@ -732,7 +732,7 @@ function renderPowerBar(){
  bar.replaceChildren();bar.hidden=!available.length;
  if(!available.length)return;
  const heading=document.createElement("span");heading.className="omamori-power-label";
- heading.textContent=powerSelection?"Välj en ruta · Avbryt för att återgå":"OMAMORI-KRAFTER";
+ heading.textContent=game?.assisted?"ASSISTERAD NIVÅ · OMAMORI ANVÄND":"OMAMORI-KRAFTER"+(powerSelection?" · Välj ruta":"");
  bar.append(heading);
  for(const power of available){
   const button=document.createElement("button");button.type="button";
@@ -1309,7 +1309,7 @@ function renderHUD(state){
 }
 function renderScoreOnly(){
  $("scoreCount").textContent=prettify(scoreDisplayed);
- $("scoreBest").textContent=prettify(Math.max(scoreShown,activeRecords()[level]||0));
+ $("scoreBest").textContent=prettify(game?.assisted?(activeRecords()[level]||0):Math.max(scoreShown,activeRecords()[level]||0));
 }
 // Count actual earned points only on arrival, then visibly roll the displayed
 // number forward. No gameplay scores are changed; 260ms maximum tween.
@@ -2414,7 +2414,7 @@ function showResult(){
   scoreHeader.append(make("div","victory-kicker","BONUSPOÄNG"));
   const record=make("span","victory-record");
   record.append(make("span","victory-record-mark","✦"),
-   make("span","","REKORD "+prettify(activeRecords()[level]||game.score)));
+   make("span","",game.assisted?"ASSISTERAD · EJ REKORD":"REKORD "+prettify(activeRecords()[level]||game.score)));
   scoreHeader.append(record);
   const strong=make("strong","victory-score-number",prettify(game.score));
   sum.append(scoreHeader,strong);

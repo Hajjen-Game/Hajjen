@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lykta",koi:"Koi",fan:"Solfjäder",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu-drake"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -166,6 +166,7 @@ if(economyStart.newlyCreated)persist();
 // Fortune is an independent cosmetic collection field: keep all existing
 // wallet purchases, saved stars and level archives exactly as they were.
 if(F.initialize(save).created)persist();
+if(!save.spirits||save.spirits.version!==S.VERSION){S.initialize(save);persist();}
 // Match CSS-only ambient effects to the in-game accessibility preference.
 document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
@@ -271,7 +272,10 @@ function renderMenu(){
  const menuWallet=E.snapshot(save);
  if(coins)coins.textContent=prettify(menuWallet.coins)+" mynt";
  const charmProgress=$("omamoriProgress");
- if(charmProgress)charmProgress.textContent=menuWallet.ownedCount+" av "+menuWallet.totalItems+" amuletter";
+ if(charmProgress){
+ const worn=S.status(save,menuWallet.equipped);
+ charmProgress.textContent=worn?"Bär "+worn.name+" · Bond "+worn.tier+"/3":menuWallet.ownedCount+" av "+menuWallet.totalItems+" amuletter";
+}
  const daily=$("omikujiStatus");
  if(daily)daily.textContent=F.status(save).available?"Gratis idag":"Dagens lapp dragen";
  const journalButton=$("goshuinButton");
@@ -687,6 +691,36 @@ function showOmikuji(){
  content.append(wrapper);$("modal").hidden=false;
 }
 
+// Cosmetic-only Omamori Spirits 2.0. Rules, score, moves and stars are unchanged.
+function updateSpiritBadge(){
+ const badge=$("spiritBadge");if(!badge)return;
+ const spirit=S.status(save,E.snapshot(save).equipped);
+ badge.hidden=!spirit;
+ if(!spirit)return;
+ badge.dataset.spirit=spirit.id;
+ badge.dataset.tier=String(spirit.tier);
+ badge.textContent=spirit.symbol+" "+spirit.name+" · Bond "+spirit.tier+"/3";
+ badge.title=spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" nivåer":" · fullbordad");
+ badge.setAttribute("aria-label","Buren Omamori: "+spirit.name+", Bond "+spirit.tier+" av 3. "+spirit.mission);
+}
+function spiritMoment(evt){
+ const spirit=S.status(save,E.snapshot(save).equipped);
+ if(!spirit||!spirit.owned||FAST()||document.hidden||!Element.prototype.animate)return;
+ const sakura=spirit.id==="sakura"&&evt.type==="hero";
+ const daruma=spirit.id==="daruma"&&(evt.type==="daruma"||evt.type==="sealed-hit");
+ if(!sakura&&!daruma)return;
+ const at=sakura?evt.positions?.[0]:evt.hits?.[0]?.at;
+ if(!Number.isInteger(at)||!boardTiles[at])return;
+ const rect=indexRect(at),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+ const node=fxAt("omamori-spirit-fx spirit-"+spirit.id+" tier-"+spirit.tier,x,y,
+  sakura?(spirit.tier>=2?"✿ ✦ ✿":"✿"):(spirit.tier>=2?"◉ ✦":"◉"));
+ node.setAttribute("aria-hidden","true");
+ animateNode(node,[
+  {opacity:0,transform:"translate(-50%,-40%) scale(.45)",offset:0},
+  {opacity:1,transform:"translate(-50%,-75%) scale(1.08)",offset:.4},
+  {opacity:0,transform:"translate(-50%,-130%) scale(1.22)",offset:1}
+ ],spirit.tier===3?760:550).finally(()=>node.remove());
+}
 // Harmony Economy & Omamori 1.0 — the collection stays outside the 7x7 board.
 function showOmamori(tab="shop"){
  if(busy||!$("gameView").hidden)return;
@@ -723,7 +757,7 @@ function showOmamori(tab="shop"){
    "du har tillräckligt med mynt":prettify(nextCharm.price-account.coins)+" mynt kvar"):
   "✦ Hela Omamori-samlingen är fullbordad"));
  wrapper.append(goshuinNode("p","omamori-explanation",
-  "Harmony Coins tjänas genom nya klarade nivåer och bättre stjärnbetyg. Omamori är fiktiva samlaramuletter utan speleffekter. Inga köp för riktiga pengar."));
+  "Harmony Coins tjänas genom nivåer och stjärnor. Bär Sakura eller Daruma för att låsa upp kosmetiska Bond-effekter genom sidouppdrag på olika nivåer. Ingen påverkan på drag, mål eller poäng. Inga riktiga köp."));
  const tabs=goshuinNode("div","omamori-tabs");
  for(const [id,label] of [["shop","Butik"],["collection","Min samling"]]){
   const button=goshuinNode("button","omamori-tab"+(tab===id?" is-active":""),label);
@@ -762,13 +796,35 @@ function showOmamori(tab="shop"){
     if(E.purchase(save,item.id).ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
    }
   });
-  card.append(charm,copy,action);list.append(card);
+  const bond=S.status(save,item.id);
+  let detail=null;
+  if(bond){
+   detail=goshuinNode("div","omamori-bond-detail");
+   detail.append(goshuinNode("strong","omamori-bond-title","✦ Bond "+bond.tier+"/3 · "+(bond.tier?bond.titles[bond.tier-1]:"Ett nytt band")),
+    goshuinNode("span","omamori-bond-mission","Uppdrag: "+bond.mission));
+   const progress=goshuinNode("div","omamori-bond-track");
+   progress.setAttribute("role","progressbar");
+   progress.setAttribute("aria-label",item.name+" Bond-framsteg");
+   progress.setAttribute("aria-valuemin","0");progress.setAttribute("aria-valuemax",String(bond.max));
+   progress.setAttribute("aria-valuenow",String(Math.min(bond.count,bond.max)));
+   const bar=goshuinNode("span","omamori-bond-fill");
+   bar.style.width=Math.min(100,Math.round(bond.count/bond.max*100))+"%";
+   progress.append(bar);detail.append(progress);
+   detail.append(goshuinNode("small","omamori-bond-next",bond.tier===3?
+    "Alla tre Bond-stadier upplåsta · "+bond.currentReward:
+    bond.count+"/"+bond.next+" nivåer · Nästa: "+bond.nextReward));
+   if(!owned)detail.append(goshuinNode("small","omamori-bond-locked","Samla och bär Omamori för att påbörja dess Bond."));
+   card.classList.add("has-bond");card.dataset.bondTier=String(bond.tier);
+  }
+  card.append(charm,copy,action);
+  if(detail)card.append(detail);
+  list.append(card);
  }
  wrapper.append(list);
  if(account.equipped){
   const worn=E.CATALOG.find(item=>item.id===account.equipped);
   wrapper.append(goshuinNode("p","omamori-equipped",
-   "✦ Din valda Omamori: "+worn.name+" · visas i samlingen och ändrar inte spelet."));
+   "✦ Din valda Omamori: "+worn.name+" · "+(S.status(save,worn.id)?"ger kosmetiska effekter och Bond-framsteg":"samlarfavorit utan speleffekter")+". Ingen påverkan på nivåbalans."));
  }
  panel.append(wrapper);
  const actions=$("modalActions");actions.replaceChildren();
@@ -899,7 +955,7 @@ function startLevel(i,resume=false){
    node.textContent="★".repeat(j+1)+" "+prettify(game.config.stars[j]);
   });
  }
- prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();saveRun();armDecisionClock();restartIdleHint();
+ prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();updateSpiritBadge();saveRun();armDecisionClock();restartIdleHint();
  if(i===30&&!resume&&game.config.goal.type==="sealedStone")
   toast("Sealed Stones står stilla. Fyra träffar på olika drag bryter stenen och utlöser en Awakening Pulse till alla åtta grannar.");
  if(i===20&&!resume&&game.config.goal.type==="daruma")
@@ -1235,7 +1291,9 @@ function trySwap(a,b){
  }
  selected=-1;$("selectedInfo").textContent="Välj två grannar eller svep.";
  sound("swap");
- void playEvents(result.events);
+ const bondGain=S.observe(save,level,result.events);
+ if(bondGain.ok)persist();
+ void playEvents(result.events,bondGain);
 }
 // Fusions move for real rather than swapping artwork separated by arbitrary timers.
 // This uses the compositor's Web Animations to minimize main-thread mobile jank.
@@ -2086,17 +2144,21 @@ async function animateEvent(evt){
    renderBoard(evt.board);
  }
 }
-async function playEvents(events){
+async function playEvents(events,bondGain=null){
  clearIdleHint();
  busy=true;$("board").setAttribute("aria-busy","true");
  $("resonanceLinks")?.classList.add("resonance-paused");
  rectCache=new Array(49);boardLayerRect=null;
  perf?.begin();
  clearPraise();
- let finished=false,goalReached=false;
+ let finished=false,goalReached=false,spiritCuePlayed=false;
  try{
   for(const evt of events){
    await animateEvent(evt);
+   if(!spiritCuePlayed&&((evt.type==="hero"&&save.economy?.equipped==="sakura")||
+    ((evt.type==="daruma"||evt.type==="sealed-hit")&&save.economy?.equipped==="daruma"))){
+    spiritMoment(evt);spiritCuePlayed=true;
+   }
    if(evt.scoreDelta>0){
     if(evt.type==="collection"){
      scoreShown+=evt.scoreDelta;animateScoreCount();scoreArrival(evt.scoreDelta);
@@ -2122,6 +2184,11 @@ async function playEvents(events){
   busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();updatePaceLabel();saveRun();
   if(!finished)armDecisionClock();
   if(!finished)restartIdleHint();
+ }
+ if(bondGain?.ok){
+  updateSpiritBadge();
+  toast(bondGain.tierUnlocked?"✦ Omamori Bond "+bondGain.tierUnlocked+" upplåst!":
+   "✦ "+bondGain.status.name+" · Bond "+bondGain.status.count+"/"+bondGain.status.max);
  }
  if(goalReached)unlockGoal();
  if(finished||goalReached)showResult();

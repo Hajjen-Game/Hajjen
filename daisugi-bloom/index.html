@@ -5,17 +5,18 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Harmony Director 4.0 · 6.47.1</title>
+ <title>Japanese Harmony · Harmony Director 4.0 · 6.48.0</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
- <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.46.0-progression-rewards">
+ <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.48.0-omamori-spirits">
  <script defer src="./harmony/rules.js?v=6.47.1-sealed-pulse"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
  <script defer src="./harmony/diagnostics.js?v=6.47.0-director4"></script>
  <script defer src="./harmony/goshuincho.js?v=6.43.0-japanese-numerals"></script>
  <script defer src="./harmony/economy.js?v=6.37.0"></script>
+  <script defer src="./harmony/spirits.js?v=6.48.0-identity-bond"></script>
  <script defer src="./harmony/fortune.js?v=6.38.0"></script>
- <script defer src="./harmony/app.js?v=6.47.0-director4"></script>
+ <script defer src="./harmony/app.js?v=6.48.0-identity-bond"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -95,6 +96,7 @@
     </div>
     <div id="paceStatus" class="pace-status" aria-live="off">PACING 3.0 · BYGGER</div>
     <div class="game-meta"><span class="eyebrow" id="levelNumber">NIVÅ 1 AV 10</span><strong id="levelTitle">First Match</strong></div>
+     <div id="spiritBadge" class="spirit-badge" hidden aria-live="polite"></div>
     <div class="goal"><span class="goal-glyph" aria-hidden="true">✿</span><span id="goalLabel">Fusioner</span><strong id="goalProgress">0 / 5</strong></div>
     <div id="starTargets" class="star-targets" aria-label="Historiska poängkrav för sparade äldre nivåer" hidden>
      <span></span><span></span><span></span>

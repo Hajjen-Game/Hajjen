@@ -144,7 +144,7 @@ async function main(){
 
 
  // Harvest previously shrank objects to 15% over 150ms: almost invisible.
- const harvest=between("async function animateEvent(evt){","async function playEvents(events){");
+ const harvest=between("async function animateEvent(evt){","async function playEvents(events,bondGain=null){");
  const motions=[],order=[];
  const harvestEvent=new Function("presentedBoard","FAST","MOBILE_LITE","Element","boardTiles","indexRect","fxAt","animateNode","sound","renderBoard","sparkleVacatedCells",harvest+"return animateEvent;")(
   [],()=>false,true,{prototype:{animate(){}}},boardTiles,indexRect,fxAt,

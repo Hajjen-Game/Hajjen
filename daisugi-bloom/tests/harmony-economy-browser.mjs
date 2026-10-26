@@ -53,6 +53,10 @@ try{
  await page.click('.omamori-card[data-omamori-id="sakura"] .omamori-action');
  const equipped=await page.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).economy.equipped);
  assert.equal(equipped,"sakura");
+ assert.equal(await page.$eval('.omamori-card[data-omamori-id="sakura"] .omamori-bond-detail',
+  nodes=>nodes.length),1,"Owned Sakura must have a Bond panel");
+ assert((await page.$eval('.omamori-card[data-omamori-id="sakura"] .omamori-bond-title',
+  e=>e.textContent)).includes("Bond 0/3"));
  await page.click('.omamori-tab:nth-child(2)');
  assert.equal(await page.$$eval(".omamori-card",xs=>xs.length),1);
  assert.equal(await page.$eval('.omamori-card[data-omamori-id="sakura"] .omamori-action',e=>e.textContent),"Ta av");
@@ -81,6 +85,23 @@ try{
  assert(small.scroll<=small.w&&small.modal<=small.w,"320px Omamori must fit");
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
  await page.screenshot({path:"/tmp/daisugi-bloom/omamori-shop-320.png"});
+ await page.click(".omamori-close");
+ await page.click("#continueButton");
+ const equippedChip=await page.$eval("#spiritBadge",e=>({
+  hidden:e.hidden,text:e.textContent,width:e.getBoundingClientRect().width
+ }));
+ assert.equal(equippedChip.hidden,false);
+ assert(equippedChip.text.includes("Sakuras välsignelse"));
+ assert(equippedChip.width<320,"The companion should not widen the mobile board");
+ await page.evaluate(()=>{
+  const key="japanese-harmony-puzzle-v2",state=JSON.parse(localStorage.getItem(key));
+  window.HarmonySpirits.observe(state,5,[{type:"collection",awards:[{family:"sakura",at:12}]}]);
+  localStorage.setItem(key,JSON.stringify(state));
+ });
+ await page.reload({waitUntil:"networkidle2"});
+ await page.click("#omamoriButton");
+ assert((await page.$eval('.omamori-card[data-omamori-id="sakura"] .omamori-bond-title',
+  el=>el.textContent)).includes("Bond 1/3"));
  assert.deepEqual(errors,[],"No browser JS errors");
  console.log("PASS Omamori 1.0 mobile, migration, persistence, buying and equipping");
 }finally{await context.close();await browser.close();}

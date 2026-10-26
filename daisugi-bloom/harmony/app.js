@@ -885,7 +885,7 @@ function showOmamori(tab="shop"){
    if(owned){
     if(E.equip(save,equipped?null:item.id).ok){persist();showOmamori(tab);showOmamoriNotice(equipped?"unequip":"equip",item);}
    }else{
-    if(E.purchase(save,item.id).ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
+    if(E.purchase(save,item.id).ok){P.starterForNewPurchase(save,item.id);persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
    }
   });
   const bond=S.status(save,item.id);
@@ -920,7 +920,7 @@ function showOmamori(tab="shop"){
  if(account.equipped){
   const worn=E.CATALOG.find(item=>item.id===account.equipped);
   wrapper.append(goshuinNode("p","omamori-equipped",
-   "✦ Din valda Omamori: "+worn.name+" · "+(S.status(save,worn.id)?"ger kosmetiska effekter och Bond-framsteg":"samlarfavorit utan speleffekter")+". Ingen påverkan på nivåbalans."));
+   "✦ Din valda Omamori: "+worn.name+" · "+(S.status(save,worn.id)?"ger Bond-framsteg och kosmetik":P.status(save,worn.id)?"har en aktiv välsignelse":"samlarfavorit utan speleffekter")+". Ingen påverkan på nivåbalans."));
  }
  panel.append(wrapper);
  const actions=$("modalActions");actions.replaceChildren();
@@ -2379,8 +2379,8 @@ function showResult(){
   const income=make("div","victory-harmony-income");
   const gained=coinReward.delta;
   income.append(make("span","victory-harmony-mark","✧"),
-   make("strong","",gained?("+"+prettify(gained)+" Harmony Coins"):"Harmony Coins redan insamlade"),
-   make("small","",gained?
+   make("strong","",game.assisted?"Assisterad vinst · inga Harmony Coins":gained?("+"+prettify(gained)+" Harmony Coins"):"Harmony Coins redan insamlade"),
+   make("small","",game.assisted?"Med Omamori-hjälp kan du gå vidare men får inga ordinarie belöningsmynt.":gained?
     "Belöning för nya stjärnor · sparad i din samling":
     "Nya mynt får du när du klarar en ny nivå eller förbättrar betyget."));
   result.append(income);

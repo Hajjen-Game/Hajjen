@@ -102,6 +102,52 @@ expect("A stone hit can only happen once per player decision",()=>{
  assert.equal(events.flatMap(e=>e.type==="sealed-hit"?e.hits:[]).filter(h=>h.at===24).length,1);
  assert(events.filter(e=>e.type==="pulse").every(e=>e.targets.every(t=>t.to!==24)));
 });
+expect("Harmony Pulse damages a Sealed Stone even when no fusion lands beside it",()=>{
+ const g=new R.Game(30,null,{seed:3030,directorMode:"v4"});
+ for(let turn=1;turn<=4;turn++){
+  g.board=blank();g.sealed=Array(49).fill(0);setStone(g,24,5-turn);
+  // A stage-five at 16 upgrades 17 to stage five. Only the latter
+  // sends a Pulse to the stone at 24; the fusion at 16 is too far away.
+  for(const at of [14,15,16])g.board[at].family="sakura";
+  g.board[16].stage=4;g.board[17].family="koi";g.board[17].stage=4;
+  g.moves--;
+  const events=g.resolve(-1);
+  assert(!events.filter(e=>e.type==="fusion").some(e=>e.groups.some(group=>
+   R.neighbors(group.at).includes(24))),"No adjacent fusion can damage the stone");
+  const beam=events.filter(e=>e.type==="pulse").flatMap(e=>e.stoneTargets||[])
+   .find(target=>target.to===24);
+  assert(beam,"The regular Harmony Pulse must visibly reach the fixed stone");
+  assert.equal(beam.alreadyHit,false,"Pulse is the first hit this turn");
+  const hits=events.filter(e=>e.type==="sealed-hit").flatMap(e=>e.hits)
+   .filter(hit=>hit.at===24);
+  assert.equal(hits.length,1);
+  assert.equal(hits[0].via,"pulse");
+  assert.equal(hits[0].remaining,4-turn);
+  assert.equal(g.sealed[24],4-turn);
+  assert.equal(g.sealedCleared,turn===4?1:0);
+  assert.equal(events.some(e=>e.type==="awakening"),turn===4);
+ }
+ assert(g.complete,"The fourth Pulse hit must complete a one-stone objective");
+});
+expect("A Pulse beam remains visible after a fusion hit but grants no extra damage",()=>{
+ const g=new R.Game(30,null,{seed:3031,directorMode:"v4"});
+ g.board=blank();g.sealed=Array(49).fill(0);setStone(g,24,4);
+ for(const at of [15,16,17])g.board[at].family="sakura";
+ g.board[17].stage=4;
+ g.moves--;
+ const events=g.resolve(-1);
+ const hits=events.filter(e=>e.type==="sealed-hit").flatMap(e=>e.hits)
+  .filter(hit=>hit.at===24);
+ assert.equal(hits.length,1,"Still a maximum of one stone hit per turn");
+ assert.equal(hits[0].via,"fusion");
+ assert.equal(g.sealed[24],3,"A fusion plus a Pulse is not two hits");
+ const beam=events.filter(e=>e.type==="pulse").flatMap(e=>e.stoneTargets||[])
+  .find(target=>target.to===24);
+ assert(beam,"The Pulse must not disappear visually when the stone was already hit");
+ assert.equal(beam.from,17);
+ assert.equal(beam.alreadyHit,true,"The beam must mark that damage was already applied");
+ assert.equal(g.sealedCleared,0);
+});
 expect("Fixed stone is retained through gravity, fair shuffle, and save/resume",()=>{
  const g=new R.Game(30,null,{seed:888,directorMode:"v3"});
  g.board=blank();g.sealed=Array(49).fill(0);setStone(g,24,3);

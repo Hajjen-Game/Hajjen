@@ -151,7 +151,7 @@ function endlessConfig(index,withDaruma=true,withSealed=true){
   const moves=[36,36,38,40,38,42,42,44,46,48][index-30];
   return {...old,name:chapter.name,subtitle:chapter.subtitle,
    goal:{type:"sealedStone",count},sealedStoneVersion:1,moves,par:Math.max(20,moves-12),
-   intro:chapter.focus+" Varje Sealed Stone kräver fyra träffar på olika drag; den sista frigör Awakening Pulse i åtta riktningar."};
+   intro:chapter.focus+" Fusioner intill stenen och Harmony Pulse kan träffa den, högst en gång per drag. Stenen kräver fyra träffar och frigör därefter Awakening Pulse i åtta riktningar."};
  }
 
  // The first Daruma is introduced at Level 21, AFTER the first twenty.
@@ -1150,6 +1150,7 @@ class Game{
   };
   // Eight-way pulse upgrades ordinary tiles and may release other stones.
   // All indirect upgrades and stone hits are limited to once per move.
+  // Already-hit stones remain visible as Pulse targets but receive no extra damage.
   const emitAwakenings=(indirect,created)=>{
    const newStageFive=[];
    let guard=0;
@@ -1159,7 +1160,7 @@ class Game{
     for(const to of neighbors8(source)){
      const piece=this.board[to];
      if(isSealed(piece)){
-      if(!stoneHitThisMove.has(to))stoneTargets.push({from:source,to});
+      stoneTargets.push({from:source,to,alreadyHit:stoneHitThisMove.has(to)});
       continue;
      }
      if(isDaruma(piece)){
@@ -1276,7 +1277,7 @@ class Game{
         continue;
        }
        if(isSealed(p)){
-        if(!stoneHitThisMove.has(to))stoneTargets.push({from:source,to});
+        stoneTargets.push({from:source,to,alreadyHit:stoneHitThisMove.has(to)});
         continue;
        }
        if(indirect.has(to)||!p||p.stage===5){
@@ -1298,7 +1299,9 @@ class Game{
       let points=targets.length*75;this.score+=points;
       events.push(this.frame("pulse",{sources:active,targets,mistTargets,darumaTargets,stoneTargets,wave,clearedMist,scoreDelta:points}));
       if(darumaTargets.length)hitDaruma(darumaTargets.map(t=>t.from),"pulse");
-      if(stoneTargets.length)hitStone(stoneTargets.map(t=>t.from),"pulse");
+      // Hit fixed stone positions (not pulse sources); already-hit stones show
+      // the energy beam without granting a second hit in the same turn.
+      if(stoneTargets.length)hitStone(stoneTargets.map(t=>t.to),"pulse",true);
       if(pendingAwakenings.length)
        for(const at of emitAwakenings(indirect,all))if(!next.includes(at))next.push(at);
      }

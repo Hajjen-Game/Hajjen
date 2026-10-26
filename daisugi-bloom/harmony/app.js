@@ -1289,7 +1289,9 @@ function trySwap(a,b){
  }
  selected=-1;$("selectedInfo").textContent="Välj två grannar eller svep.";
  sound("swap");
- void playEvents(result.events);
+ const bondGain=S.observe(save,level,result.events);
+ if(bondGain.ok)persist();
+ void playEvents(result.events,bondGain);
 }
 // Fusions move for real rather than swapping artwork separated by arbitrary timers.
 // This uses the compositor's Web Animations to minimize main-thread mobile jank.
@@ -2140,17 +2142,21 @@ async function animateEvent(evt){
    renderBoard(evt.board);
  }
 }
-async function playEvents(events){
+async function playEvents(events,bondGain=null){
  clearIdleHint();
  busy=true;$("board").setAttribute("aria-busy","true");
  $("resonanceLinks")?.classList.add("resonance-paused");
  rectCache=new Array(49);boardLayerRect=null;
  perf?.begin();
  clearPraise();
- let finished=false,goalReached=false;
+ let finished=false,goalReached=false,spiritCuePlayed=false;
  try{
   for(const evt of events){
    await animateEvent(evt);
+   if(!spiritCuePlayed&&((evt.type==="hero"&&save.economy?.equipped==="sakura")||
+    ((evt.type==="daruma"||evt.type==="sealed-hit")&&save.economy?.equipped==="daruma"))){
+    spiritMoment(evt);spiritCuePlayed=true;
+   }
    if(evt.scoreDelta>0){
     if(evt.type==="collection"){
      scoreShown+=evt.scoreDelta;animateScoreCount();scoreArrival(evt.scoreDelta);
@@ -2176,6 +2182,11 @@ async function playEvents(events){
   busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();updatePaceLabel();saveRun();
   if(!finished)armDecisionClock();
   if(!finished)restartIdleHint();
+ }
+ if(bondGain?.ok){
+  updateSpiritBadge();
+  toast(bondGain.tierUnlocked?"✦ Omamori Bond "+bondGain.tierUnlocked+" upplåst!":
+   "✦ "+bondGain.status.name+" · Bond "+bondGain.status.count+"/"+bondGain.status.max);
  }
  if(goalReached)unlockGoal();
  if(finished||goalReached)showResult();

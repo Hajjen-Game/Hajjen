@@ -849,7 +849,7 @@ function showOmamori(tab="shop"){
    "du har tillräckligt med mynt":prettify(nextCharm.price-account.coins)+" mynt kvar"):
   "✦ Hela Omamori-samlingen är fullbordad"));
  wrapper.append(goshuinNode("p","omamori-explanation",
-  "Harmony Coins tjänas genom nivåer och stjärnor. Bär Sakura eller Daruma för att låsa upp kosmetiska Bond-effekter genom sidouppdrag på olika nivåer. Ingen påverkan på drag, mål eller poäng. Inga riktiga köp."));
+  "Harmony Coins tjänas genom nivåer och stjärnor utan hjälp. Omamori finns kvar i din samling; Sakura, Koi och Månens ro ger aktiva engångskrafter. Du kan tjäna fler genom nya oassisterade nivåvinster med kortet utrustat. Assisterade resultat hålls åtskilda från vanliga rekord. Inga riktiga köp."));
  const tabs=goshuinNode("div","omamori-tabs");
  for(const [id,label] of [["shop","Butik"],["collection","Min samling"]]){
   const button=goshuinNode("button","omamori-tab"+(tab===id?" is-active":""),label);
@@ -920,7 +920,7 @@ function showOmamori(tab="shop"){
  if(account.equipped){
   const worn=E.CATALOG.find(item=>item.id===account.equipped);
   wrapper.append(goshuinNode("p","omamori-equipped",
-   "✦ Din valda Omamori: "+worn.name+" · "+(S.status(save,worn.id)?"ger Bond-framsteg och kosmetik":P.status(save,worn.id)?"har en aktiv välsignelse":"samlarfavorit utan speleffekter")+". Ingen påverkan på nivåbalans."));
+   "✦ Din valda Omamori: "+worn.name+" · "+(S.status(save,worn.id)?"ger Bond-framsteg och kosmetik":P.status(save,worn.id)?"har en aktiv välsignelse":"samlarfavorit utan speleffekter")+". En aktiv kraft gör nivån assisterad."));
  }
  panel.append(wrapper);
  const actions=$("modalActions");actions.replaceChildren();

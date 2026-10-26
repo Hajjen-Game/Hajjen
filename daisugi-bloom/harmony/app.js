@@ -797,8 +797,9 @@ function showOmamori(tab="shop"){
    }
   });
   const bond=S.status(save,item.id);
+  let detail=null;
   if(bond){
-   const detail=goshuinNode("div","omamori-bond-detail");
+   detail=goshuinNode("div","omamori-bond-detail");
    detail.append(goshuinNode("strong","omamori-bond-title","✦ Bond "+bond.tier+"/3 · "+(bond.tier?bond.titles[bond.tier-1]:"Ett nytt band")),
     goshuinNode("span","omamori-bond-mission","Uppdrag: "+bond.mission));
    const progress=goshuinNode("div","omamori-bond-track");
@@ -816,7 +817,7 @@ function showOmamori(tab="shop"){
    card.classList.add("has-bond");card.dataset.bondTier=String(bond.tier);
   }
   card.append(charm,copy,action);
-  if(bond)card.append(detail);
+  if(detail)card.append(detail);
   list.append(card);
  }
  wrapper.append(list);

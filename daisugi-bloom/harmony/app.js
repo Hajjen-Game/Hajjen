@@ -725,6 +725,94 @@ function spiritMoment(evt){
   {opacity:0,transform:"translate(-50%,-130%) scale(1.22)",offset:1}
  ],spirit.tier===3?760:550).finally(()=>node.remove());
 }
+// Omamori Powers 3.0 — targeted consumables, explicit confirmation, no auto-buy.
+function renderPowerBar(){
+ const bar=$("omamoriPowerBar");if(!bar)return;
+ const available=P.IDS.map(id=>P.status(save,id)).filter(v=>v.owned);
+ bar.replaceChildren();bar.hidden=!available.length;
+ if(!available.length)return;
+ const heading=document.createElement("span");heading.className="omamori-power-label";
+ heading.textContent=powerSelection?"Välj en ruta · Avbryt för att återgå":"OMAMORI-KRAFTER";
+ bar.append(heading);
+ for(const power of available){
+  const button=document.createElement("button");button.type="button";
+  const selectable=power.id!=="tsuki"&&!game?.complete&&!game?.failed&&game?.moves>0;
+  button.className="omamori-power-button"+(powerSelection===power.id?" is-targeting":"");
+  button.dataset.power=power.id;
+  button.textContent=power.symbol+" "+power.name+" · "+power.charges;
+  button.title=power.description;
+  button.disabled=!selectable||!power.charges||!!game?.blessingUsed;
+  button.addEventListener("click",()=>{
+   powerSelection=powerSelection===power.id?null:power.id;
+   selected=-1;renderPowerBar();
+   $("selectedInfo").textContent=powerSelection?"Tryck på en ruta för att använda "+power.name:"Välj två grannar eller svep.";
+  });
+  bar.append(button);
+ }
+ if(powerSelection){
+  const cancel=document.createElement("button");cancel.className="omamori-power-cancel";
+  cancel.type="button";cancel.textContent="Avbryt";
+  cancel.addEventListener("click",()=>{powerSelection=null;renderPowerBar();});
+  bar.append(cancel);
+ }
+}
+function commitActivePower(id,at){
+ if(!game||game.blessingUsed||!P.status(save,id)?.owned||P.status(save,id).charges<1)return false;
+ const result=P.apply(game,id,at);
+ if(!result.ok){toast("Omamori kunde inte användas här. Välj ett annat område.");return false;}
+ if(!P.consume(save,id))throw Error("Omamori inventory validation failed");
+ powerSelection=null;selected=-1;persist();
+ $("modal").hidden=true;renderPowerBar();
+ if(id==="tsuki"){
+  saveRun();renderBoard(game.board);renderHUD();
+  armDecisionClock();restartIdleHint();
+  toast("☾ Månens ro · 3 extra drag!");
+ }else void playEvents(result.events);
+ return true;
+}
+function confirmPowerTarget(at){
+ const id=powerSelection,power=P.status(save,id);
+ if(!power||!power.owned||!power.charges||game?.blessingUsed){powerSelection=null;renderPowerBar();return;}
+ const piece=game.board[at];
+ if(id==="sakura"&&(!piece||piece.stage>=5||["daruma","sealedStone"].includes(piece.family))){
+  toast("Välj en vanlig bricka som ännu inte nått stadium 5.");return;
+ }
+ if(id==="koi"){
+  const row=Math.floor(at/7),col=at%7;
+  const cells=[];
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+   const rr=row+dr,cc=col+dc;
+   if(rr>=0&&rr<7&&cc>=0&&cc<7&&!["daruma","sealedStone"].includes(game.board[rr*7+cc]?.family))cells.push(rr*7+cc);
+  }
+  if(cells.length<3){toast("Här finns för få flyttbara brickor för att blanda.");return;}
+ }
+ clearIdleHint();disarmDecisionClock();
+ $("modalEyebrow").textContent="OMAMORI · BEKRÄFTA";
+ $("modalTitle").textContent=power.name;
+ const content=$("modalContent");content.replaceChildren();
+ const desc=document.createElement("p");desc.className="omamori-power-confirm";
+ desc.textContent=power.description+" Ruta "+(Math.floor(at/7)+1)+"-"+(at%7+1)+
+  ". Förbrukar en välsignelse och markerar nivån som assisterad. Ditt vanliga rekord påverkas inte.";
+ content.append(desc);
+ const actions=$("modalActions");actions.replaceChildren();
+ actions.classList.remove("victory-actions","pause-menu-actions");
+ modalButton(actions,"Använd kortet (1 st)","primary",()=>commitActivePower(id,at));
+ modalButton(actions,"Avbryt","secondary",()=>{
+  $("modal").hidden=true;powerSelection=null;renderPowerBar();armDecisionClock();restartIdleHint();
+ });
+ $("modal").hidden=false;
+}
+function confirmMoonRescue(){
+ if(!game?.failed||game.blessingUsed||P.status(save,"tsuki")?.charges<1)return;
+ $("modalEyebrow").textContent="OMAMORI · SISTA CHANSEN";
+ $("modalTitle").textContent="Månens ro";
+ $("modalContent").textContent="Förbrukar ett Månkort för 3 extra drag. Nivån räknas som assisterad och vanliga stjärnor, mynt och rekord påverkas inte.";
+ const actions=$("modalActions");actions.replaceChildren();
+ actions.classList.remove("victory-actions","pause-menu-actions");
+ modalButton(actions,"Använd ☾ · +3 drag","primary",()=>commitActivePower("tsuki",-1));
+ modalButton(actions,"Tillbaka","secondary",showResult);
+ $("modal").hidden=false;
+}
 // Harmony Economy & Omamori 1.0 — the collection stays outside the 7x7 board.
 function showOmamori(tab="shop"){
  if(busy||!$("gameView").hidden)return;
@@ -801,6 +889,10 @@ function showOmamori(tab="shop"){
    }
   });
   const bond=S.status(save,item.id);
+  const power=P.status(save,item.id);
+  if(power){
+   copy.append(goshuinNode("span","omamori-power-shop","✦ "+power.name+" · "+(owned?power.charges+" användningar kvar":"samla för att låsa upp")));
+  }
   let detail=null;
   if(bond){
    detail=goshuinNode("div","omamori-bond-detail");
@@ -940,6 +1032,7 @@ async function celebrateCollection(evt){
 function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUsed:!!game.blessingUsed},backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false){
  if(busy)return;
+ powerSelection=null;
  disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
  resetResonanceVisuals();clearPraise();
  level=i;powerSelection=null;rewardStarsAtLevelStart=G.archivedStars(save,i);
@@ -2591,6 +2684,7 @@ function openEngineLab(){
 }
 function openGameMenu(){
  if(!game||$("gameView").hidden||busy)return;
+ powerSelection=null;renderPowerBar();
  disarmDecisionClock();clearIdleHint();
  $("modalEyebrow").textContent="JAPANESE HARMONY";
  $("modalTitle").textContent="Spelmeny";

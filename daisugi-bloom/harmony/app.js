@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lykta",koi:"Koi",fan:"Solfjäder",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu-drake"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -13,6 +13,7 @@ let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressC
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
+let powerSelection=null;
 const PLAY_MODES={auto:"Automatiskt · 4.0 från nivå 10",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
 const PACE_PHASE_NAMES={build:"BYGGER",flow:"FLOW",relax:"ANDRUM",recovery:"NYA MÖJLIGHETER"};
 let decisionReadyAt=0;
@@ -167,6 +168,9 @@ if(economyStart.newlyCreated)persist();
 // wallet purchases, saved stars and level archives exactly as they were.
 if(F.initialize(save).created)persist();
 if(!save.spirits||save.spirits.version!==S.VERSION){S.initialize(save);persist();}
+if(!save.powers||save.powers.version!==P.VERSION){P.initialize(save);persist();}
+if(!save.assistedStars||typeof save.assistedStars!=="object")save.assistedStars={};
+if(!save.assistedScores||typeof save.assistedScores!=="object")save.assistedScores={};
 // Match CSS-only ambient effects to the in-game accessibility preference.
 document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
@@ -721,6 +725,94 @@ function spiritMoment(evt){
   {opacity:0,transform:"translate(-50%,-130%) scale(1.22)",offset:1}
  ],spirit.tier===3?760:550).finally(()=>node.remove());
 }
+// Omamori Powers 3.0 — targeted consumables, explicit confirmation, no auto-buy.
+function renderPowerBar(){
+ const bar=$("omamoriPowerBar");if(!bar)return;
+ const available=P.IDS.map(id=>P.status(save,id)).filter(v=>v.owned);
+ bar.replaceChildren();bar.hidden=!available.length;
+ if(!available.length)return;
+ const heading=document.createElement("span");heading.className="omamori-power-label";
+ heading.textContent=game?.assisted?"ASSISTERAD NIVÅ · OMAMORI ANVÄND":"OMAMORI-KRAFTER"+(powerSelection?" · Välj ruta":"");
+ bar.append(heading);
+ for(const power of available){
+  const button=document.createElement("button");button.type="button";
+  const selectable=power.id!=="tsuki"&&!game?.complete&&!game?.failed&&game?.moves>0;
+  button.className="omamori-power-button"+(powerSelection===power.id?" is-targeting":"");
+  button.dataset.power=power.id;
+  button.textContent=power.symbol+" "+power.name+" · "+power.charges;
+  button.title=power.description;
+  button.disabled=!selectable||!power.charges||!!game?.blessingUsed;
+  button.addEventListener("click",()=>{
+   powerSelection=powerSelection===power.id?null:power.id;
+   selected=-1;renderPowerBar();
+   $("selectedInfo").textContent=powerSelection?"Tryck på en ruta för att använda "+power.name:"Välj två grannar eller svep.";
+  });
+  bar.append(button);
+ }
+ if(powerSelection){
+  const cancel=document.createElement("button");cancel.className="omamori-power-cancel";
+  cancel.type="button";cancel.textContent="Avbryt";
+  cancel.addEventListener("click",()=>{powerSelection=null;renderPowerBar();});
+  bar.append(cancel);
+ }
+}
+function commitActivePower(id,at){
+ if(!game||game.blessingUsed||!P.status(save,id)?.owned||P.status(save,id).charges<1)return false;
+ const result=P.apply(game,id,at);
+ if(!result.ok){toast("Omamori kunde inte användas här. Välj ett annat område.");return false;}
+ if(!P.consume(save,id))throw Error("Omamori inventory validation failed");
+ powerSelection=null;selected=-1;persist();
+ $("modal").hidden=true;renderPowerBar();
+ if(id==="tsuki"){
+  saveRun();renderBoard(game.board);renderHUD();
+  armDecisionClock();restartIdleHint();
+  toast("☾ Månens ro · 3 extra drag!");
+ }else void playEvents(result.events);
+ return true;
+}
+function confirmPowerTarget(at){
+ const id=powerSelection,power=P.status(save,id);
+ if(!power||!power.owned||!power.charges||game?.blessingUsed){powerSelection=null;renderPowerBar();return;}
+ const piece=game.board[at];
+ if(id==="sakura"&&(!piece||piece.stage>=5||["daruma","sealedStone"].includes(piece.family))){
+  toast("Välj en vanlig bricka som ännu inte nått stadium 5.");return;
+ }
+ if(id==="koi"){
+  const row=Math.floor(at/7),col=at%7;
+  const cells=[];
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+   const rr=row+dr,cc=col+dc;
+   if(rr>=0&&rr<7&&cc>=0&&cc<7&&!["daruma","sealedStone"].includes(game.board[rr*7+cc]?.family))cells.push(rr*7+cc);
+  }
+  if(cells.length<3){toast("Här finns för få flyttbara brickor för att blanda.");return;}
+ }
+ clearIdleHint();disarmDecisionClock();
+ $("modalEyebrow").textContent="OMAMORI · BEKRÄFTA";
+ $("modalTitle").textContent=power.name;
+ const content=$("modalContent");content.replaceChildren();
+ const desc=document.createElement("p");desc.className="omamori-power-confirm";
+ desc.textContent=power.description+" Ruta "+(Math.floor(at/7)+1)+"-"+(at%7+1)+
+  ". Förbrukar en välsignelse och markerar nivån som assisterad. Ditt vanliga rekord påverkas inte.";
+ content.append(desc);
+ const actions=$("modalActions");actions.replaceChildren();
+ actions.classList.remove("victory-actions","pause-menu-actions");
+ modalButton(actions,"Använd kortet (1 st)","primary",()=>commitActivePower(id,at));
+ modalButton(actions,"Avbryt","secondary",()=>{
+  $("modal").hidden=true;powerSelection=null;renderPowerBar();armDecisionClock();restartIdleHint();
+ });
+ $("modal").hidden=false;
+}
+function confirmMoonRescue(){
+ if(!game?.failed||game.blessingUsed||P.status(save,"tsuki")?.charges<1)return;
+ $("modalEyebrow").textContent="OMAMORI · SISTA CHANSEN";
+ $("modalTitle").textContent="Månens ro";
+ $("modalContent").textContent="Förbrukar ett Månkort för 3 extra drag. Nivån räknas som assisterad och vanliga stjärnor, mynt och rekord påverkas inte.";
+ const actions=$("modalActions");actions.replaceChildren();
+ actions.classList.remove("victory-actions","pause-menu-actions");
+ modalButton(actions,"Använd ☾ · +3 drag","primary",()=>commitActivePower("tsuki",-1));
+ modalButton(actions,"Tillbaka","secondary",showResult);
+ $("modal").hidden=false;
+}
 // Harmony Economy & Omamori 1.0 — the collection stays outside the 7x7 board.
 function showOmamori(tab="shop"){
  if(busy||!$("gameView").hidden)return;
@@ -757,7 +849,7 @@ function showOmamori(tab="shop"){
    "du har tillräckligt med mynt":prettify(nextCharm.price-account.coins)+" mynt kvar"):
   "✦ Hela Omamori-samlingen är fullbordad"));
  wrapper.append(goshuinNode("p","omamori-explanation",
-  "Harmony Coins tjänas genom nivåer och stjärnor. Bär Sakura eller Daruma för att låsa upp kosmetiska Bond-effekter genom sidouppdrag på olika nivåer. Ingen påverkan på drag, mål eller poäng. Inga riktiga köp."));
+  "Harmony Coins tjänas genom nivåer och stjärnor utan hjälp. Omamori finns kvar i din samling; Sakura, Koi och Månens ro ger aktiva engångskrafter. Du kan tjäna fler genom nya oassisterade nivåvinster med kortet utrustat. Assisterade resultat hålls åtskilda från vanliga rekord. Inga riktiga köp."));
  const tabs=goshuinNode("div","omamori-tabs");
  for(const [id,label] of [["shop","Butik"],["collection","Min samling"]]){
   const button=goshuinNode("button","omamori-tab"+(tab===id?" is-active":""),label);
@@ -793,10 +885,14 @@ function showOmamori(tab="shop"){
    if(owned){
     if(E.equip(save,equipped?null:item.id).ok){persist();showOmamori(tab);showOmamoriNotice(equipped?"unequip":"equip",item);}
    }else{
-    if(E.purchase(save,item.id).ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
+    if(E.purchase(save,item.id).ok){P.starterForNewPurchase(save,item.id);persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
    }
   });
   const bond=S.status(save,item.id);
+  const power=P.status(save,item.id);
+  if(power){
+   copy.append(goshuinNode("span","omamori-power-shop","✦ "+power.name+" · "+(owned?power.charges+" användningar kvar":"samla för att låsa upp")));
+  }
   let detail=null;
   if(bond){
    detail=goshuinNode("div","omamori-bond-detail");
@@ -824,7 +920,7 @@ function showOmamori(tab="shop"){
  if(account.equipped){
   const worn=E.CATALOG.find(item=>item.id===account.equipped);
   wrapper.append(goshuinNode("p","omamori-equipped",
-   "✦ Din valda Omamori: "+worn.name+" · "+(S.status(save,worn.id)?"ger kosmetiska effekter och Bond-framsteg":"samlarfavorit utan speleffekter")+". Ingen påverkan på nivåbalans."));
+   "✦ Din valda Omamori: "+worn.name+" · "+(S.status(save,worn.id)?"ger Bond-framsteg och kosmetik":P.status(save,worn.id)?"har en aktiv välsignelse":"samlarfavorit utan speleffekter")+". En aktiv kraft gör nivån assisterad."));
  }
  panel.append(wrapper);
  const actions=$("modalActions");actions.replaceChildren();
@@ -933,12 +1029,13 @@ async function celebrateCollection(evt){
  }
  await Promise.all(tasks);
 }
-function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:game.save(),backgroundId:currentBackground};persist();}}
+function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUsed:!!game.blessingUsed},backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false){
  if(busy)return;
+ powerSelection=null;
  disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
  resetResonanceVisuals();clearPraise();
- level=i;rewardStarsAtLevelStart=G.archivedStars(save,i);
+ level=i;powerSelection=null;rewardStarsAtLevelStart=G.archivedStars(save,i);
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
  game=new R.Game(i,data,data?null:{directorMode:save.playMode==="auto"?(i>=9?"v4":"v3"):save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
@@ -955,7 +1052,7 @@ function startLevel(i,resume=false){
    node.textContent="★".repeat(j+1)+" "+prettify(game.config.stars[j]);
   });
  }
- prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();updateSpiritBadge();saveRun();armDecisionClock();restartIdleHint();
+ prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();updateSpiritBadge();renderPowerBar();saveRun();armDecisionClock();restartIdleHint();
  if(i===30&&!resume&&game.config.goal.type==="sealedStone")
   toast("Sealed Stones står stilla. Fyra träffar på olika drag bryter stenen och utlöser en Awakening Pulse till alla åtta grannar.");
  if(i===20&&!resume&&game.config.goal.type==="daruma")
@@ -1212,7 +1309,7 @@ function renderHUD(state){
 }
 function renderScoreOnly(){
  $("scoreCount").textContent=prettify(scoreDisplayed);
- $("scoreBest").textContent=prettify(Math.max(scoreShown,activeRecords()[level]||0));
+ $("scoreBest").textContent=prettify(game?.assisted?(activeRecords()[level]||0):Math.max(scoreShown,activeRecords()[level]||0));
 }
 // Count actual earned points only on arrival, then visibly roll the displayed
 // number forward. No gameplay scores are changed; 260ms maximum tween.
@@ -1236,6 +1333,7 @@ function animateScoreCount(){
 }
 function choose(i){
  if(busy||!game||game.moves<=0||!$("modal").hidden)return;
+ if(powerSelection){confirmPowerTarget(i);return;}
  if(game.board[i]?.family==="daruma"){
   selected=-1;toast("Daruma flyttas inte. Matcha bredvid för att fylla dess ögon.");return;
  }
@@ -1259,7 +1357,7 @@ function choose(i){
  }
 }
 function trySwap(a,b){
- if(busy||!game||!$("modal").hidden)return;
+ if(busy||!game||powerSelection||!$("modal").hidden)return;
  clearIdleHint();
  // Remember the real screen geometry of linked source objects BEFORE swapping
  // so an earned Echo can visibly pull that thread into the fusion landing.
@@ -2137,7 +2235,7 @@ async function animateEvent(evt){
    // A fair shuffle relocates complete piece identities; use the existing
    // ID-based FLIP animation so developed objects visibly move to new slots
    // instead of appearing to change family/stage in place.
-   renderBoard(evt.board,Array.from({length:49},(_,i)=>i),"shuffling");
+   renderBoard(evt.board,evt.power==="koi"&&Number.isInteger(evt.at)?[evt.at,...R.neighbors8(evt.at)]:Array.from({length:49},(_,i)=>i),"shuffling");
    await flipMove(previous,evt.board,"shuffle");
    break;
   default:
@@ -2197,11 +2295,11 @@ function unlockGoal(){
  save.unlocked=Math.max(save.unlocked,level+1);
  if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.floor(save.unlocked/MENU_PAGE_SIZE);
  const archive=game.familyCount===4?save.fourFamilyStars:save.bestStars;
- archive[level]=Math.max(archive[level]||0,game.stars());
+ if(!game.assisted)archive[level]=Math.max(archive[level]||0,game.stars());
  // A pre-upgrade 5-family intro run may still be completed after the update.
  // Reflect its achievement in the permanent four-family introduction archive,
  // without altering or discarding the original five-family history.
- if(level<10)save.fourFamilyStars[level]=Math.max(save.fourFamilyStars[level]||0,game.stars());
+ if(level<10&&!game.assisted)save.fourFamilyStars[level]=Math.max(save.fourFamilyStars[level]||0,game.stars());
  persist();
 }
 function showResult(){
@@ -2212,16 +2310,21 @@ function showResult(){
  if(won)sound("result");
  if(won){
   unlockGoal();
+  if(game.assisted){
+   save.assistedStars[level]=Math.max(save.assistedStars[level]||0,game.stars());
+   save.assistedScores[level]=Math.max(save.assistedScores[level]||0,game.score);
+  }
   const scores=game.familyCount===4?save.fourFamilyScores:save.bestScores;
   const chains=game.familyCount===4?save.fourFamilyChain:save.bestChain;
-  scores[level]=Math.max(scores[level]||0,game.score);
-  chains[level]=Math.max(chains[level]||0,game.bestChain);
-  if(level<10){
+  if(!game.assisted)scores[level]=Math.max(scores[level]||0,game.score);
+  if(!game.assisted)chains[level]=Math.max(chains[level]||0,game.bestChain);
+  if(level<10&&!game.assisted){
    save.fourFamilyScores[level]=Math.max(save.fourFamilyScores[level]||0,game.score);
    save.fourFamilyChain[level]=Math.max(save.fourFamilyChain[level]||0,game.bestChain);
   }
  }
- const coinReward=won?E.claim(save,level,Math.max(1,game.stars())):{delta:0};
+ const coinReward=won&&!game.assisted?E.claim(save,level,Math.max(1,game.stars())):{delta:0};
+ const powerReward=won?P.grantForClear(save,level,!!game.assisted):{ok:false};
  const canContinue=won&&game.moves>0;
  if(!canContinue)save.run=null;
  persist();
@@ -2272,14 +2375,16 @@ function showResult(){
    ribbon.append(make("span","victory-archive-seal","✦"),copyRibbon);result.append(ribbon);
   }
   rewardStarsAtLevelStart=earnedStars;
+  if(game.assisted)result.append(make("p","omamori-assisted-notice","✧ Assisterad seger – nästa nivå låses upp. Vanliga stjärnor, mynt och rekord påverkas inte."));
   const income=make("div","victory-harmony-income");
   const gained=coinReward.delta;
   income.append(make("span","victory-harmony-mark","✧"),
-   make("strong","",gained?("+"+prettify(gained)+" Harmony Coins"):"Harmony Coins redan insamlade"),
-   make("small","",gained?
+   make("strong","",game.assisted?"Assisterad vinst · inga Harmony Coins":gained?("+"+prettify(gained)+" Harmony Coins"):"Harmony Coins redan insamlade"),
+   make("small","",game.assisted?"Med Omamori-hjälp kan du gå vidare men får inga ordinarie belöningsmynt.":gained?
     "Belöning för nya stjärnor · sparad i din samling":
     "Nya mynt får du när du klarar en ny nivå eller förbättrar betyget."));
   result.append(income);
+  if(powerReward.ok)result.append(make("p","omamori-power-earned","✦ Ny "+P.POWERS[powerReward.id].name+"-välsignelse! "+powerReward.charges+" i förrådet."));
   const goal=make("section","victory-goal");
   goal.setAttribute("aria-label","Avklarat nivåmål");
   const goalCopy=make("div","victory-goal-copy");
@@ -2309,7 +2414,7 @@ function showResult(){
   scoreHeader.append(make("div","victory-kicker","BONUSPOÄNG"));
   const record=make("span","victory-record");
   record.append(make("span","victory-record-mark","✦"),
-   make("span","","REKORD "+prettify(activeRecords()[level]||game.score)));
+   make("span","",game.assisted?"ASSISTERAD · EJ REKORD":"REKORD "+prettify(activeRecords()[level]||game.score)));
   scoreHeader.append(record);
   const strong=make("strong","victory-score-number",prettify(game.score));
   sum.append(scoreHeader,strong);
@@ -2356,6 +2461,8 @@ function showResult(){
  }
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.toggle("victory-actions",won);
+ if(!won&&P.status(save,"tsuki")?.owned&&P.status(save,"tsuki").charges>0&&!game.blessingUsed)
+  modalButton(actions,"☾ Månens ro · +3 drag ("+P.status(save,"tsuki").charges+" kvar)","primary omamori-moon-revive",()=>confirmMoonRescue());
  if(won)modalButton(actions,"Nästa nivå →","primary victory-next",()=>startLevel(level+1));
  if(canContinue)modalButton(actions,"Fortsätt för poängrekord","secondary victory-continue",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
@@ -2577,6 +2684,7 @@ function openEngineLab(){
 }
 function openGameMenu(){
  if(!game||$("gameView").hidden||busy)return;
+ powerSelection=null;renderPowerBar();
  disarmDecisionClock();clearIdleHint();
  $("modalEyebrow").textContent="JAPANESE HARMONY";
  $("modalTitle").textContent="Spelmeny";
@@ -2635,7 +2743,7 @@ function bind(){
  $("pauseButton").addEventListener("click",openGameMenu);
  $("devButton").addEventListener("click",openEngineLab);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);});
- $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> När du skapar en match sker fusionen på rutan dit du flyttade föremålet (eller på den andra bytesrutan om matchen bara bildas där). Resultatet blir högsta matchade stadium +1, oavsett var det högre föremålet låg. Automatiska kedjor använder det högsta stadiets ruta. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft uppåt, nedåt, höger och vänster. Befintliga föremål uppgraderas; dimma renas även på tomma rutor. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Harmony Mist från nivå 4:</strong> Varje nivå har ett konkret mål. På Harmony Mist-nivåer ska du rena magisk dimma som ligger på vissa rutor. Fusionera så att det uppgraderade föremålet stannar på en dimruta för att rena just den rutan. Harmony Pulse renar även tomma dimrutor i de fyra väderstrecken runt mästerverket. Föremål får fortfarande flyttas från och till dimrutor, men en vanlig matchning över dimman utan fusionens slutruta där rensar inte. Dimman sitter kvar när brickorna faller.</p><p><strong>Daruma, nivå 21–30:</strong> Daruma står stilla och får ett öga när en fusion landar intill eller Harmony Pulse träffar den. Varje Daruma behöver två träffar på olika drag. Kapitlet växlar mellan Daruma-utmaningar och dimma/fusion så att du kan prova olika taktiker.</p><p><strong>Sealed Stones, nivå 31–40:</strong> Varje sten står stilla och har fyra lager. Fusionera intill stenen eller träffa den med Harmony Pulse, högst en skada per sten och drag. Den sista träffen frigör Awakening Pulse till alla åtta grannar, även diagonalt. En sten som står intill en annan kan hjälpa dig skapa en kedja.</p><p><strong>Belöning:</strong> Nystartade nivåer ger minst en stjärna när du klarar målet. Två eller tre stjärnor får du när du når målet med färre drag, och betyget låses direkt. Poäng är ett frivilligt rekord. När målet är klart kan du gå vidare direkt eller fortsätta använda återstående drag för rekordet. Inga Power Moves.</p>'));
+ $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> När du skapar en match sker fusionen på rutan dit du flyttade föremålet (eller på den andra bytesrutan om matchen bara bildas där). Resultatet blir högsta matchade stadium +1, oavsett var det högre föremålet låg. Automatiska kedjor använder det högsta stadiets ruta. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft uppåt, nedåt, höger och vänster. Befintliga föremål uppgraderas; dimma renas även på tomma rutor. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Harmony Mist från nivå 4:</strong> Varje nivå har ett konkret mål. På Harmony Mist-nivåer ska du rena magisk dimma som ligger på vissa rutor. Fusionera så att det uppgraderade föremålet stannar på en dimruta för att rena just den rutan. Harmony Pulse renar även tomma dimrutor i de fyra väderstrecken runt mästerverket. Föremål får fortfarande flyttas från och till dimrutor, men en vanlig matchning över dimman utan fusionens slutruta där rensar inte. Dimman sitter kvar när brickorna faller.</p><p><strong>Daruma, nivå 21–30:</strong> Daruma står stilla och får ett öga när en fusion landar intill eller Harmony Pulse träffar den. Varje Daruma behöver två träffar på olika drag. Kapitlet växlar mellan Daruma-utmaningar och dimma/fusion så att du kan prova olika taktiker.</p><p><strong>Sealed Stones, nivå 31–40:</strong> Varje sten står stilla och har fyra lager. Fusionera intill stenen eller träffa den med Harmony Pulse, högst en skada per sten och drag. Den sista träffen frigör Awakening Pulse till alla åtta grannar, även diagonalt. En sten som står intill en annan kan hjälpa dig skapa en kedja.</p><p><strong>Belöning:</strong> Nystartade nivåer ger minst en stjärna när du klarar målet. Två eller tre stjärnor får du när du når målet med färre drag, och betyget låses direkt. Poäng är ett frivilligt rekord. När målet är klart kan du gå vidare direkt eller fortsätta använda återstående drag för rekordet. Omamori Powers: Sakura kan uppgradera en vald bricka, Koi kan blanda ett 3×3-område och Månens ro kan rädda en förlorad nivå med tre extra drag. Användningen är frivillig och förbrukar en välsignelse, inte själva samlarkortet. Med Omamori-hjälp räknas nivån som assisterad; ordinarie rekord och stjärnstämplar påverkas inte.</p>'));
  $("settingsButton").addEventListener("click",()=>{
   modalInfo("Inställningar",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Ljud</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Minska animationer</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;window.HarmonyAudio?.setEnabled(save.sound);if(save.sound)window.HarmonyAudio?.unlock();persist();});
@@ -2650,7 +2758,7 @@ function bind(){
   suppressClickUntil=performance.now()+450;
   const r=Math.floor(start.i/7),c=start.i%7;
   const destination=Math.abs(dx)>Math.abs(dy)?r*7+c+(dx>0?1:-1):(r+(dy>0?1:-1))*7+c;
-  if(R.neighbors(start.i).includes(destination)){selected=-1;trySwap(start.i,destination);}
+  if(!powerSelection&&R.neighbors(start.i).includes(destination)){selected=-1;trySwap(start.i,destination);}
  });
  // A click may open OR close a dialog: the final bubbling phase sees the
  // actual state, so resuming always starts a new 30-second interval.

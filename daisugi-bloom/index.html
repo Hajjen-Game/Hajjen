@@ -5,9 +5,9 @@
  <meta name="theme-color" content="#102A37">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Harmony Director 4.0 · 6.48.0</title>
+ <title>Japanese Harmony · Harmony Director 4.0 · 6.49.0</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
- <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.48.0-omamori-spirits">
+ <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.49.0-omamori-powers">
  <script defer src="./harmony/rules.js?v=6.47.1-sealed-pulse"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
@@ -15,8 +15,9 @@
  <script defer src="./harmony/goshuincho.js?v=6.43.0-japanese-numerals"></script>
  <script defer src="./harmony/economy.js?v=6.37.0"></script>
   <script defer src="./harmony/spirits.js?v=6.48.0-identity-bond"></script>
+  <script defer src="./harmony/powers.js?v=6.49.0-active-blessings"></script>
  <script defer src="./harmony/fortune.js?v=6.38.0"></script>
- <script defer src="./harmony/app.js?v=6.48.0-identity-bond"></script>
+ <script defer src="./harmony/app.js?v=6.49.0-active-blessings"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -33,7 +34,7 @@
       <div class="eyebrow">MIDNIGHT GARDEN · JAPANSKT MATCH-PUSSEL</div>
       <h1>Skapa något <em>extraordinärt.</em></h1>
       <p>Förädla japanska objekt genom fem stadier och samla mästerverk.</p>
-      <div class="hero-pills" aria-label="Spelprinciper"><span>Inga power-ups</span><span>Strategiska kedjor</span><span>Personliga rekord</span></div>
+      <div class="hero-pills" aria-label="Spelprinciper"><span>Valfria Omamori-krafter</span><span>Strategiska kedjor</span><span>Personliga rekord</span></div>
     </div>
     <div class="level-panel">
       <div class="panel-heading"><div><div class="eyebrow" id="chapterEyebrow">INTRODUKTION + JOURNEY</div><h2 id="chapterTitle">Goshuincho</h2><p id="chapterSubtitle">Samla stämplar och upptäck nästa kapitel.</p></div><div class="chapter-stat" id="chapterStars">☆ 0 / 30</div></div>
@@ -101,7 +102,8 @@
     <div id="starTargets" class="star-targets" aria-label="Historiska poängkrav för sparade äldre nivåer" hidden>
      <span></span><span></span><span></span>
     </div>
-    <div class="board-shell">
+    <div id="omamoriPowerBar" class="omamori-power-bar" hidden aria-label="Omamori-krafter"></div>
+     <div class="board-shell">
      <div id="board" class="board" role="grid" aria-label="Spelplan med 7 gånger 7 japanska föremål"></div>
      <div id="resonanceLinks" class="resonance-links" aria-hidden="true"></div>
      <div id="boardPraise" class="board-praise" aria-hidden="true"></div>

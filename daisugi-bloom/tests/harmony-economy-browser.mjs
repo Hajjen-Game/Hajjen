@@ -53,7 +53,7 @@ try{
  await page.click('.omamori-card[data-omamori-id="sakura"] .omamori-action');
  const equipped=await page.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).economy.equipped);
  assert.equal(equipped,"sakura");
- assert.equal(await page.$eval('.omamori-card[data-omamori-id="sakura"] .omamori-bond-detail',
+ assert.equal(await page.$$eval('.omamori-card[data-omamori-id="sakura"] .omamori-bond-detail',
   nodes=>nodes.length),1,"Owned Sakura must have a Bond panel");
  assert((await page.$eval('.omamori-card[data-omamori-id="sakura"] .omamori-bond-title',
   e=>e.textContent)).includes("Bond 0/3"));

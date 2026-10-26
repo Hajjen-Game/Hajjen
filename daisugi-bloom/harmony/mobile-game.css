@@ -5566,3 +5566,33 @@ body.harmony-reduced-motion #modal .omamori-reward-notice.is-new{animation:none!
 }
 @media(prefers-reduced-motion:reduce){#modal .omamori-bond-fill{transition:none}}
 body.harmony-reduced-motion #modal .omamori-bond-fill{transition:none}
+
+/* Omamori Powers 3.0 — thin mobile row, no board overlay */
+.game-view .omamori-power-bar{
+ display:flex;gap:5px;align-items:center;flex-wrap:wrap;
+ margin:0 2px 7px;padding:5px 7px;border-radius:11px;
+ border:1px solid rgba(240,209,157,.34);
+ background:linear-gradient(115deg,rgba(21,48,55,.91),rgba(47,60,64,.88));
+}
+.game-view .omamori-power-bar[hidden]{display:none!important}
+.omamori-power-label{font-size:10px;color:#efd4ab;font-weight:800;letter-spacing:.055em;flex-basis:100%}
+.omamori-power-button,.omamori-power-cancel{
+ flex:1 1 auto;min-width:0;min-height:32px;padding:5px 7px;
+ color:#523c37;background:linear-gradient(120deg,#f5d8b1,#eabca0);
+ border:1px solid #e8bd8f;border-radius:8px;cursor:pointer;
+ font-size:11px;font-weight:850;
+}
+.omamori-power-button:disabled{opacity:.55;cursor:default}
+.omamori-power-button.is-targeting{background:#ffe7a9;box-shadow:0 0 0 2px rgba(249,207,133,.6)}
+.omamori-power-cancel{flex:0 0 auto;color:#f9e6cb;background:transparent}
+#modal .omamori-power-shop{font-size:11px;color:#a66853;line-height:1.35;font-weight:800}
+#modal .omamori-power-confirm{font-size:13px;line-height:1.55;color:#f6e1c4;padding:12px;border:1px solid rgba(246,213,162,.25);border-radius:12px}
+#modal .omamori-assisted-notice,#modal .omamori-power-earned{
+ color:#765143;font-size:12px;line-height:1.4;padding:9px 12px;margin:6px 0;
+ border-radius:9px;background:#fbe6c6;
+}
+#modal .omamori-power-earned{color:#784736;background:#f8dba9;font-weight:800}
+@media(max-width:360px){
+ .game-view .omamori-power-bar{gap:4px;padding:4px;margin-bottom:5px}
+ .omamori-power-button{padding:4px;min-height:30px;font-size:10px}
+}

@@ -814,9 +814,10 @@ function showOmamori(tab="shop"){
     bond.count+"/"+bond.next+" nivåer · Nästa: "+bond.nextReward));
    if(!owned)detail.append(goshuinNode("small","omamori-bond-locked","Samla och bär Omamori för att påbörja dess Bond."));
    card.classList.add("has-bond");card.dataset.bondTier=String(bond.tier);
-   card.append(detail);
   }
-  card.append(charm,copy,action);list.append(card);
+  card.append(charm,copy,action);
+  if(bond)card.append(detail);
+  list.append(card);
  }
  wrapper.append(list);
  if(account.equipped){

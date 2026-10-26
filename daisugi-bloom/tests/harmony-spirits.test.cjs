@@ -56,7 +56,7 @@ check("Daruma missions work on actual blocker levels 21–40, not other chapters
 
 check("Equipping is required; progress persists and never awards coins, score or bonus moves",()=>{
  const state=save();E.initialize(state);
- const hero=[{type:"hero",positions:[11]}];
+ const hero=[{type:"hero",positions:[11]},{type:"collection",awards:[{family:"sakura",at:11}]}];
  assert.equal(S.observe(state,2,hero).reason,"no-active-spirit");
  state.economy.owned.push("sakura");E.equip(state,"sakura");
  assert(S.observe(state,2,hero).ok);

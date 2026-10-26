@@ -103,7 +103,7 @@ check("New power UI and distinct assisted archives exist without altering regula
  assert(app.includes("function confirmMoonRescue()"));
  assert(app.includes("P.consume(save,id)"));
  assert(app.includes("save.assistedStars"));
- assert(app.includes("!game.assisted?E.claim"));
+ assert(app.includes("won&&!game.assisted?E.claim"));
  assert(!rules.includes("HarmonyPowers"));
 });
 console.log("Omamori Powers 3.0 regression tests passed.");

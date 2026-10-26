@@ -1966,7 +1966,7 @@ try{
  assert(pauseLayout.utilityWidths.every(w=>w>70),"Help and settings must remain tappable");
  assert(pauseLayout.modalHeight<=pauseLayout.screenHeight,"Pause modal should fit the phone view");
  await page.evaluate(()=>document.querySelector("#modalActions button:nth-child(3)").click());
- assert((await page.$eval("#modalContent",e=>e.textContent)).includes("Power Moves"));
+ assert((await page.$eval("#modalContent",e=>e.textContent)).includes("Omamori Powers"));
  await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);
  // Coordinate regression: position real sprite clones at a far-right and
  // lower-row tile, not at the fusion layer's top-left. The previous

@@ -153,7 +153,7 @@ async function run(){
  assert.equal(travel.filter(x=>x==="reward-accent:pulse").length,1,
   "One subtle pearl/rose/gold accent per Pulse wave, not per target");
 
- const eventCode=part("async function animateEvent(evt){","async function playEvents(events){");
+ const eventCode=part("async function animateEvent(evt){","async function playEvents(events,bondGain=null){");
  const order=[];
  const createEvent=new Function("presentedBoard","MOBILE_LITE","pulseAnticipation","pulseBeams","renderBoard","animateNode",
   "boardTiles","flipMove","playFusion","masterpieceMoment","pulseLandingCues",eventCode+"return animateEvent;");

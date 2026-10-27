@@ -59,7 +59,7 @@ function buy(save,id){
  if(!item)return {ok:false,reason:"unknown"};
  const state=initialize(save);
  if(state.cards[id])return {ok:false,reason:"already-owned"};
- const economy=root.HarmonyEconomy.initialize(save);
+ const {account:economy}=root.HarmonyEconomy.initialize(save);
  if(economy.coins<item.price)return {ok:false,reason:"coins"};
  economy.coins-=item.price;state.cards[id]=original();
  if(!state.discovered.includes(id))state.discovered.push(id);
@@ -68,7 +68,7 @@ function buy(save,id){
  return {ok:true,id,price:item.price,balance:economy.coins};
 }
 function equip(save,id){
- const economy=root.HarmonyEconomy.initialize(save);
+ const {account:economy}=root.HarmonyEconomy.initialize(save);
  if(id!==null&&!has(save,id))return {ok:false,reason:"not-owned"};
  economy.equipped=id;return {ok:true,id};
 }
@@ -112,7 +112,7 @@ function replayCoins(save,level,won,assisted,day){
  const r=state.replay;
  if(date!==r.day){r.day=date;r.claims=0;}
  if(r.claims>=5)return 0;
- r.claims++;const e=root.HarmonyEconomy.initialize(save);
+ r.claims++;const {account:e}=root.HarmonyEconomy.initialize(save);
  const gained=Math.min(4,10000000-e.coins);e.coins+=gained;return gained;
 }
 const api={VERSION,THRESHOLDS,activeIds,descriptions,initialize,has,status,buy,equip,consume,observe,replayCoins};

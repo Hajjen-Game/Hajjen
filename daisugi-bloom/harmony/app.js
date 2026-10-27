@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lykta",koi:"Koi",fan:"Solfjäder",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu-drake"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -13,7 +13,7 @@ let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressC
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
-let powerSelection=null;
+let powerSelection=null,powerTargets=[];
 const PLAY_MODES={auto:"Automatiskt · 4.0 från nivå 10",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
 const PACE_PHASE_NAMES={build:"BYGGER",flow:"FLOW",relax:"ANDRUM",recovery:"NYA MÖJLIGHETER"};
 let decisionReadyAt=0;
@@ -168,7 +168,7 @@ if(economyStart.newlyCreated)persist();
 // wallet purchases, saved stars and level archives exactly as they were.
 if(F.initialize(save).created)persist();
 if(!save.spirits||save.spirits.version!==S.VERSION){S.initialize(save);persist();}
-if(!save.powers||save.powers.version!==P.VERSION){P.initialize(save);persist();}
+if(!save.omamoriCards||save.omamoriCards.version!==C.VERSION){C.initialize(save);persist();}
 if(!save.assistedStars||typeof save.assistedStars!=="object")save.assistedStars={};
 if(!save.assistedScores||typeof save.assistedScores!=="object")save.assistedScores={};
 // Match CSS-only ambient effects to the in-game accessibility preference.

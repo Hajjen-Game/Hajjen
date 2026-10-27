@@ -154,17 +154,22 @@ function pulseFrom(g,source,events){
  }
  refill(g,events);
 }
-function shuffle3(g,at){
- const r=Math.floor(at/7),c=at%7;
+// 2x2 stage I; 3x3 stage II; 3x3 plus one optional reroll stage III.
+function shuffleArea(g,at,tier=1){
+ const size=tier===1?2:3;
+ const row=Math.floor(at/7),col=at%7;
+ const firstRow=Math.min(7-size,Math.max(0,row-(size===3?1:0)));
+ const firstCol=Math.min(7-size,Math.max(0,col-(size===3?1:0)));
  const cells=[];
- for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
-  const row=r+dr,col=c+dc;
-  if(row>=0&&row<7&&col>=0&&col<7&&!fixed(g.board[row*7+col]))cells.push(row*7+col);
+ for(let dr=0;dr<size;dr++)for(let dc=0;dc<size;dc++){
+  const i=(firstRow+dr)*7+firstCol+dc;
+  if(!fixed(g.board[i]))cells.push(i);
  }
- if(cells.length<3)return false;
- const baseline=g.board.slice(),seed=(g.seed^Math.imul(at+1,0x9e3779b1)^Math.imul(g.moves+1,0x85ebca6b)^g.rolls)>>>0;
- // Do not let an item create an automatic match or an unplayable board.
- for(let trial=0;trial<120;trial++){
+ if(cells.length<2)return false;
+ const baseline=g.board.slice();
+ const seed=(g.seed^Math.imul(at+1,0x9e3779b1)^Math.imul(g.moves+1,0x85ebca6b)^g.rolls^
+  Math.imul((g.koiRerolls||0)+1,0x6d2b79f5))>>>0;
+ for(let trial=0;trial<180;trial++){
   let x=(seed+Math.imul(trial+1,0x6d2b79f5))>>>0;
   const rnd=()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return(x>>>0)/4294967296;};
   const shuffled=cells.map(i=>baseline[i]);
@@ -173,39 +178,55 @@ function shuffle3(g,at){
   const candidate=baseline.slice();
   cells.forEach((i,k)=>{candidate[i]=shuffled[k];});
   if(root.HarmonyRules.scan(candidate).length||!root.HarmonyRules.validSwaps(candidate).length)continue;
-  g.board=candidate;return true;
+  g.board=candidate;
+  return {cells,size,origin:firstRow*7+firstCol};
  }
  return false;
 }
-function apply(g,id,at=-1){
- if(!POWERS[id]||g.blessingUsed||g.complete)return {ok:false,reason:"unavailable"};
+function reroll(g){
+ if(!Number.isInteger(g?.koiRerollAt)||g.koiRerollAt<0||g.koiRerollAt>=49||g.complete||g.failed)
+  return {ok:false,reason:"unavailable"};
+ const at=g.koiRerollAt;
+ const changed=shuffleArea(g,at,3);
+ if(!changed)return {ok:false,reason:"no-fair-shuffle"};
+ g.koiRerollAt=-1;g.koiRerolls=(g.koiRerolls||0)+1;
+ return {ok:true,events:[snapshot(g,"shuffle",{power:"koi",at,cells:changed.cells,reroll:true})]};
+}
+function apply(g,id,at=-1,tier=1){
+ if(!POWERS[id]||g.complete)return {ok:false,reason:"unavailable"};
+ const stage=Math.max(1,Math.min(3,Math.trunc(tier)||1));
  if(id==="tsuki"){
   if(!g.failed||g.moves!==0)return {ok:false,reason:"not-out-of-moves"};
-  g.failed=false;g.moves=3;g.assisted=true;g.blessingUsed=true;
-  return {ok:true,events:[snapshot(g,"power",{power:id})]};
+  g.failed=false;g.moves=[0,2,3,5][stage];g.assisted=true;
+  g.blessingUses=(g.blessingUses||0)+1;
+  return {ok:true,events:[snapshot(g,"power",{power:id,tier:stage})]};
  }
- if(g.failed||g.moves<=0||!Number.isInteger(at)||at<0||at>=49)return {ok:false,reason:"invalid-target"};
+ if(g.failed||g.moves<=0)return {ok:false,reason:"unavailable"};
  let events=[];
  if(id==="sakura"){
-  const p=g.board[at];
-  if(!p||fixed(p)||p.stage>=5)return {ok:false,reason:"invalid-target"};
+  const targets=Array.isArray(at)?at:[at];
+  if(targets.length!==stage||new Set(targets).size!==targets.length||
+    targets.some(i=>!Number.isInteger(i)||i<0||i>=49||!g.board[i]||fixed(g.board[i])||g.board[i].stage>=5))
+   return {ok:false,reason:"invalid-target"};
   const created=new Set();
-  g.grow(at,created,false);
-  events.push(snapshot(g,"power",{power:id,at}));
-  if(created.size){
-   events.push(snapshot(g,"hero",{positions:[at]}));
-   pulseFrom(g,at,events);
+  for(const i of targets)g.grow(i,created,false);
+  events.push(snapshot(g,"power",{power:id,tier:stage,targets:targets.slice(),at:targets[0]}));
+  for(const i of created){
+   events.push(snapshot(g,"hero",{positions:[i]}));
+   pulseFrom(g,i,events);
   }
  }else if(id==="koi"){
-  if(!shuffle3(g,at))return {ok:false,reason:"no-fair-shuffle"};
-  events.push(snapshot(g,"shuffle",{power:id,at}));
+  if(!Number.isInteger(at)||at<0||at>=49)return {ok:false,reason:"invalid-target"};
+  const changed=shuffleArea(g,at,stage);
+  if(!changed)return {ok:false,reason:"no-fair-shuffle"};
+  events.push(snapshot(g,"shuffle",{power:id,at,tier:stage,cells:changed.cells}));
+  g.koiRerollAt=stage===3?at:-1;
  }
- g.assisted=true;g.blessingUsed=true;
- // Award goals and resolve any natural follow-up, without spending a move.
+ g.assisted=true;g.blessingUses=(g.blessingUses||0)+1;
  events=events.concat(g.resolve(-1));
- return {ok:true,events};
+ return {ok:true,events,tier:stage};
 }
-const api={VERSION,IDS,MAX,POWERS,initialize,status,grantForClear,starterForNewPurchase,consume,apply};
+const api={VERSION,IDS,MAX,POWERS,initialize,status,grantForClear,starterForNewPurchase,consume,apply,reroll,shuffleArea};
 root.HarmonyPowers=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

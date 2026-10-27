@@ -698,18 +698,18 @@ function showOmikuji(){
 // Cosmetic-only Omamori Spirits 2.0. Rules, score, moves and stars are unchanged.
 function updateSpiritBadge(){
  const badge=$("spiritBadge");if(!badge)return;
- const spirit=S.status(save,E.snapshot(save).equipped);
- badge.hidden=!spirit;
- if(!spirit)return;
+ const spirit=C.status(save,E.snapshot(save).equipped);
+ badge.hidden=!spirit?.owned;
+ if(!spirit?.owned)return;
  badge.dataset.spirit=spirit.id;
  badge.dataset.tier=String(spirit.tier);
- badge.textContent=spirit.symbol+" "+spirit.name+" · Bond "+spirit.tier+"/3";
- badge.title=spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" nivåer":" · fullbordad");
- badge.setAttribute("aria-label","Buren Omamori: "+spirit.name+", Bond "+spirit.tier+" av 3. "+spirit.mission);
+ badge.textContent=(E.CATALOG.find(c=>c.id===spirit.id)?.symbol||"✦")+" "+(E.CATALOG.find(c=>c.id===spirit.id)?.name||"Omamori")+" · stadium "+spirit.tier+"/3";
+ badge.title=spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" uppdrag":" · full utveckling");
+ badge.setAttribute("aria-label","Buren Omamori: "+spirit.id+", stadium "+spirit.tier+" av 3. "+spirit.mission);
 }
 function spiritMoment(evt){
- const spirit=S.status(save,E.snapshot(save).equipped);
- if(!spirit||!spirit.owned||FAST()||document.hidden||!Element.prototype.animate)return;
+ const spirit=C.status(save,E.snapshot(save).equipped);
+ if(!spirit?.owned||FAST()||document.hidden||!Element.prototype.animate)return;
  const sakura=spirit.id==="sakura"&&evt.type==="hero";
  const daruma=spirit.id==="daruma"&&(evt.type==="daruma"||evt.type==="sealed-hit");
  if(!sakura&&!daruma)return;

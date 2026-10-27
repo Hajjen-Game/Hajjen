@@ -17,7 +17,7 @@ try{
  assert.equal(await page.$$eval(".omamori-card",xs=>xs.length),6);
  assert.equal(await page.$$eval(".omamori-action:disabled",xs=>xs.length),6);
  await page.click('.omamori-tab:nth-child(2)');
- assert((await page.$eval(".omamori-empty",e=>e.textContent)).includes("ännu inga"));
+ assert((await page.$eval(".omamori-empty",e=>e.textContent)).includes("inga aktiva"));
  await page.click(".omamori-close");
  const untouched=await page.evaluate(()=>{
   const s=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
@@ -56,7 +56,7 @@ try{
  assert.equal(await page.$$eval('.omamori-card[data-omamori-id="sakura"] .omamori-bond-detail',
   nodes=>nodes.length),1,"Owned Sakura must have a Bond panel");
  assert((await page.$eval('.omamori-card[data-omamori-id="sakura"] .omamori-bond-title',
-  e=>e.textContent)).includes("Bond 0/3"));
+  e=>e.textContent)).includes("Stadium 1/3"));
  await page.click('.omamori-tab:nth-child(2)');
  assert.equal(await page.$$eval(".omamori-card",xs=>xs.length),1);
  assert.equal(await page.$eval('.omamori-card[data-omamori-id="sakura"] .omamori-action',e=>e.textContent),"Ta av");
@@ -95,13 +95,14 @@ try{
  assert(equippedChip.width<320,"The companion should not widen the mobile board");
  await page.evaluate(()=>{
   const key="japanese-harmony-puzzle-v2",state=JSON.parse(localStorage.getItem(key));
-  window.HarmonySpirits.observe(state,5,[{type:"collection",awards:[{family:"sakura",at:12}]}]);
+  window.HarmonyCards.observe(state,5,[{type:"collection",awards:[{family:"sakura",at:12}]}]);
   localStorage.setItem(key,JSON.stringify(state));
  });
  await page.reload({waitUntil:"networkidle2"});
  await page.click("#omamoriButton");
  assert((await page.$eval('.omamori-card[data-omamori-id="sakura"] .omamori-bond-title',
-  el=>el.textContent)).includes("Bond 1/3"));
+  el=>el.textContent)).includes("Stadium 1/3"));
+ assert.equal(await page.$eval('.omamori-card[data-omamori-id="sakura"] .omamori-bond-track',e=>e.getAttribute("aria-valuenow")),"1");
  assert.deepEqual(errors,[],"No browser JS errors");
  console.log("PASS Omamori 1.0 mobile, migration, persistence, buying and equipping");
 }finally{await context.close();await browser.close();}

@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lykta",koi:"Koi",fan:"Solfjäder",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu-drake"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -13,7 +13,7 @@ let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressC
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
-let powerSelection=null;
+let powerSelection=null,powerTargets=[];
 const PLAY_MODES={auto:"Automatiskt · 4.0 från nivå 10",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
 const PACE_PHASE_NAMES={build:"BYGGER",flow:"FLOW",relax:"ANDRUM",recovery:"NYA MÖJLIGHETER"};
 let decisionReadyAt=0;
@@ -168,7 +168,7 @@ if(economyStart.newlyCreated)persist();
 // wallet purchases, saved stars and level archives exactly as they were.
 if(F.initialize(save).created)persist();
 if(!save.spirits||save.spirits.version!==S.VERSION){S.initialize(save);persist();}
-if(!save.powers||save.powers.version!==P.VERSION){P.initialize(save);persist();}
+if(!save.omamoriCards||save.omamoriCards.version!==C.VERSION){C.initialize(save);persist();}
 if(!save.assistedStars||typeof save.assistedStars!=="object")save.assistedStars={};
 if(!save.assistedScores||typeof save.assistedScores!=="object")save.assistedScores={};
 // Match CSS-only ambient effects to the in-game accessibility preference.
@@ -277,8 +277,8 @@ function renderMenu(){
  if(coins)coins.textContent=prettify(menuWallet.coins)+" mynt";
  const charmProgress=$("omamoriProgress");
  if(charmProgress){
- const worn=S.status(save,menuWallet.equipped);
- charmProgress.textContent=worn?"Bär "+worn.name+" · Bond "+worn.tier+"/3":menuWallet.ownedCount+" av "+menuWallet.totalItems+" amuletter";
+ const worn=C.status(save,menuWallet.equipped);
+ charmProgress.textContent=worn?.owned?"Bär "+E.CATALOG.find(x=>x.id===worn.id).name+" · stadium "+worn.tier+"/3":E.CATALOG.filter(x=>C.has(save,x.id)).length+" aktiva Omamori-kort";
 }
  const daily=$("omikujiStatus");
  if(daily)daily.textContent=F.status(save).available?"Gratis idag":"Dagens lapp dragen";
@@ -698,18 +698,18 @@ function showOmikuji(){
 // Cosmetic-only Omamori Spirits 2.0. Rules, score, moves and stars are unchanged.
 function updateSpiritBadge(){
  const badge=$("spiritBadge");if(!badge)return;
- const spirit=S.status(save,E.snapshot(save).equipped);
- badge.hidden=!spirit;
- if(!spirit)return;
+ const spirit=C.status(save,E.snapshot(save).equipped);
+ badge.hidden=!spirit?.owned;
+ if(!spirit?.owned)return;
  badge.dataset.spirit=spirit.id;
  badge.dataset.tier=String(spirit.tier);
- badge.textContent=spirit.symbol+" "+spirit.name+" · Bond "+spirit.tier+"/3";
- badge.title=spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" nivåer":" · fullbordad");
- badge.setAttribute("aria-label","Buren Omamori: "+spirit.name+", Bond "+spirit.tier+" av 3. "+spirit.mission);
+ badge.textContent=(E.CATALOG.find(c=>c.id===spirit.id)?.symbol||"✦")+" "+(E.CATALOG.find(c=>c.id===spirit.id)?.name||"Omamori")+" · stadium "+spirit.tier+"/3";
+ badge.title=spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" uppdrag":" · full utveckling");
+ badge.setAttribute("aria-label","Buren Omamori: "+spirit.id+", stadium "+spirit.tier+" av 3. "+spirit.mission);
 }
 function spiritMoment(evt){
- const spirit=S.status(save,E.snapshot(save).equipped);
- if(!spirit||!spirit.owned||FAST()||document.hidden||!Element.prototype.animate)return;
+ const spirit=C.status(save,E.snapshot(save).equipped);
+ if(!spirit?.owned||FAST()||document.hidden||!Element.prototype.animate)return;
  const sakura=spirit.id==="sakura"&&evt.type==="hero";
  const daruma=spirit.id==="daruma"&&(evt.type==="daruma"||evt.type==="sealed-hit");
  if(!sakura&&!daruma)return;
@@ -726,90 +726,121 @@ function spiritMoment(evt){
  ],spirit.tier===3?760:550).finally(()=>node.remove());
 }
 // Omamori Powers 3.0 — targeted consumables, explicit confirmation, no auto-buy.
+// Omamori Cards 4.0: the owned and evolving card IS the consumable.
 function renderPowerBar(){
  const bar=$("omamoriPowerBar");if(!bar)return;
- const available=P.IDS.map(id=>P.status(save,id)).filter(v=>v.owned);
- bar.replaceChildren();bar.hidden=!available.length;
- if(!available.length)return;
+ const owned=C.activeIds.map(id=>C.status(save,id)).filter(v=>v.owned);
+ bar.replaceChildren();bar.hidden=!owned.length&&!(game?.koiRerollAt>=0);
+ if(bar.hidden)return;
  const heading=document.createElement("span");heading.className="omamori-power-label";
- heading.textContent=game?.assisted?"ASSISTERAD NIVÅ · OMAMORI ANVÄND":"OMAMORI-KRAFTER"+(powerSelection?" · Välj ruta":"");
+ heading.textContent=game?.assisted?"ASSISTERAD NIVÅ":"OMAMORI-KORT"+(powerSelection?" · Välj "+(C.status(save,powerSelection)?.tier||1)+" ruta/rutor":"");
  bar.append(heading);
- for(const power of available){
-  const button=document.createElement("button");button.type="button";
-  const selectable=power.id!=="tsuki"&&!game?.complete&&!game?.failed&&game?.moves>0;
-  button.className="omamori-power-button"+(powerSelection===power.id?" is-targeting":"");
-  button.dataset.power=power.id;
-  button.textContent=power.symbol+" "+power.name+" · "+power.charges;
-  button.title=power.description;
-  button.disabled=!selectable||!power.charges||!!game?.blessingUsed;
+ for(const card of owned){
+  const power=P.POWERS[card.id],button=document.createElement("button");
+  button.type="button";button.className="omamori-power-button"+(powerSelection===card.id?" is-targeting":"");
+  button.dataset.power=card.id;button.textContent=power.symbol+" "+power.name+" · "+["","I","II","III"][card.tier];
+  button.title="Stadium "+card.tier+" · "+power.description+" Kortet förbrukas vid användning.";
+  button.disabled=card.id==="tsuki"||!game||game.complete||game.failed||game.moves<=0;
   button.addEventListener("click",()=>{
-   powerSelection=powerSelection===power.id?null:power.id;
+   powerSelection=powerSelection===card.id?null:card.id;powerTargets=[];
    selected=-1;renderPowerBar();
-   $("selectedInfo").textContent=powerSelection?"Tryck på en ruta för att använda "+power.name:"Välj två grannar eller svep.";
-  });
-  bar.append(button);
+   $("selectedInfo").textContent=powerSelection?"Välj en ruta i spelplanen för "+power.name:"Välj två grannar eller svep.";
+  });bar.append(button);
+ }
+ if(game?.koiRerollAt>=0){
+  const button=document.createElement("button");button.type="button";
+  button.className="omamori-power-button";button.textContent="〰 Blanda igen";
+  button.addEventListener("click",()=>showKoiReroll());bar.append(button);
  }
  if(powerSelection){
-  const cancel=document.createElement("button");cancel.className="omamori-power-cancel";
-  cancel.type="button";cancel.textContent="Avbryt";
-  cancel.addEventListener("click",()=>{powerSelection=null;renderPowerBar();});
+  const cancel=document.createElement("button");cancel.type="button";
+  cancel.className="omamori-power-cancel";cancel.textContent="Avbryt";
+  cancel.addEventListener("click",()=>{powerSelection=null;powerTargets=[];renderPowerBar();});
   bar.append(cancel);
  }
 }
 function commitActivePower(id,at){
- if(!game||game.blessingUsed||!P.status(save,id)?.owned||P.status(save,id).charges<1)return false;
- const result=P.apply(game,id,at);
- if(!result.ok){toast("Omamori kunde inte användas här. Välj ett annat område.");return false;}
- if(!P.consume(save,id))throw Error("Omamori inventory validation failed");
- powerSelection=null;selected=-1;persist();
- $("modal").hidden=true;renderPowerBar();
+ const card=C.status(save,id);
+ if(!game||!card?.owned)return false;
+ const result=P.apply(game,id,at,card.tier);
+ if(!result.ok){toast("Det går inte att använda kortet här. Välj ett annat område.");return false;}
+ const spent=C.consume(save,id);
+ if(!spent.ok)throw Error("Consumable card was already spent");
+ powerSelection=null;powerTargets=[];selected=-1;persist();
+ $("modal").hidden=true;updateSpiritBadge();renderPowerBar();renderMenu();
  if(id==="tsuki"){
-  saveRun();renderBoard(game.board);renderHUD();
-  armDecisionClock();restartIdleHint();
-  toast("☾ Månens ro · 3 extra drag!");
+  saveRun();renderBoard(game.board);renderHUD();armDecisionClock();restartIdleHint();
+  toast("☾ Månens ro · "+game.moves+" extra drag!");
  }else void playEvents(result.events);
  return true;
 }
 function confirmPowerTarget(at){
- const id=powerSelection,power=P.status(save,id);
- if(!power||!power.owned||!power.charges||game?.blessingUsed){powerSelection=null;renderPowerBar();return;}
+ const id=powerSelection,card=C.status(save,id);
+ if(!card?.owned){powerSelection=null;powerTargets=[];renderPowerBar();return;}
  const piece=game.board[at];
- if(id==="sakura"&&(!piece||piece.stage>=5||["daruma","sealedStone"].includes(piece.family))){
-  toast("Välj en vanlig bricka som ännu inte nått stadium 5.");return;
- }
- if(id==="koi"){
-  const row=Math.floor(at/7),col=at%7;
-  const cells=[];
-  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
-   const rr=row+dr,cc=col+dc;
-   if(rr>=0&&rr<7&&cc>=0&&cc<7&&!["daruma","sealedStone"].includes(game.board[rr*7+cc]?.family))cells.push(rr*7+cc);
+ if(id==="sakura"){
+  if(!piece||piece.stage>=5||["daruma","sealedStone"].includes(piece.family)){
+   toast("Välj en vanlig bricka i stadium 1–4.");return;
   }
-  if(cells.length<3){toast("Här finns för få flyttbara brickor för att blanda.");return;}
+  if(powerTargets.includes(at)){toast("Välj en annan bricka.");return;}
+  powerTargets.push(at);
+  if(powerTargets.length<card.tier){
+   $("selectedInfo").textContent="Sakura stadium "+card.tier+": välj "+(card.tier-powerTargets.length)+" bricka/brickor till.";
+   toast("✿ "+powerTargets.length+"/"+card.tier+" brickor valda");
+   return;
+  }
  }
  clearIdleHint();disarmDecisionClock();
- $("modalEyebrow").textContent="OMAMORI · BEKRÄFTA";
- $("modalTitle").textContent=power.name;
+ $("modalEyebrow").textContent="OMAMORI · FÖRBRUKA KORT";
+ $("modalTitle").textContent=P.POWERS[id].name+" · stadium "+card.tier;
  const content=$("modalContent");content.replaceChildren();
- const desc=document.createElement("p");desc.className="omamori-power-confirm";
- desc.textContent=power.description+" Ruta "+(Math.floor(at/7)+1)+"-"+(at%7+1)+
-  ". Förbrukar en välsignelse och markerar nivån som assisterad. Ditt vanliga rekord påverkas inte.";
- content.append(desc);
+ const paragraph=document.createElement("p");paragraph.className="omamori-power-confirm";
+ paragraph.textContent=id==="sakura"?
+  "Utveckla "+card.tier+" valda brickor ett stadium.":"Blanda "+(card.tier===1?"2×2":"3×3")+
+  (card.tier===3?" och välj om du vill blanda samma område en gång till.":".");
+ paragraph.textContent+=" Kortet försvinner när du bekräftar, även om du senare förlorar nivån. Resultatet räknas som assisterat.";
+ content.append(paragraph);
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("victory-actions","pause-menu-actions");
- modalButton(actions,"Använd kortet (1 st)","primary",()=>commitActivePower(id,at));
+ const targets=id==="sakura"?powerTargets.slice():at;
+ modalButton(actions,"Använd kortet · stadium "+card.tier,"primary",()=>{
+  if(!commitActivePower(id,targets)){
+   $("modal").hidden=true;powerSelection=null;powerTargets=[];renderPowerBar();restartIdleHint();
+  }
+ });
  modalButton(actions,"Avbryt","secondary",()=>{
-  $("modal").hidden=true;powerSelection=null;renderPowerBar();armDecisionClock();restartIdleHint();
+  $("modal").hidden=true;powerSelection=null;powerTargets=[];renderPowerBar();armDecisionClock();restartIdleHint();
+ });
+ $("modal").hidden=false;
+}
+function showKoiReroll(){
+ if(!game||!Number.isInteger(game.koiRerollAt)||game.koiRerollAt<0||game.complete)return;
+ $("modalEyebrow").textContent="KOINS VÄG · STADIUM III";
+ $("modalTitle").textContent="Behåll eller blanda igen?";
+ $("modalContent").textContent="Du kan behålla det nya 3×3-området eller göra en andra omblandning utan extra kostnad. Samma område används.";
+ const actions=$("modalActions");actions.replaceChildren();
+ actions.classList.remove("victory-actions","pause-menu-actions");
+ modalButton(actions,"〰 Blanda igen","primary",()=>{
+  const again=P.reroll(game);
+  if(!again.ok){toast("Ingen bättre giltig omblandning hittades.");return;}
+  $("modal").hidden=true;saveRun();renderPowerBar();
+  void playEvents(again.events);
+ });
+ modalButton(actions,"Behåll","secondary",()=>{
+  game.koiRerollAt=-1;saveRun();$("modal").hidden=true;renderPowerBar();armDecisionClock();restartIdleHint();
  });
  $("modal").hidden=false;
 }
 function confirmMoonRescue(){
- if(!game?.failed||game.blessingUsed||P.status(save,"tsuki")?.charges<1)return;
+ const card=C.status(save,"tsuki");
+ if(!game?.failed||!card?.owned)return;
  $("modalEyebrow").textContent="OMAMORI · SISTA CHANSEN";
- $("modalTitle").textContent="Månens ro";
- $("modalContent").textContent="Förbrukar ett Månkort för 3 extra drag. Nivån räknas som assisterad och vanliga stjärnor, mynt och rekord påverkas inte.";
+ $("modalTitle").textContent="Månens ro · stadium "+card.tier;
+ const bonus=[0,2,3,5][card.tier];
+ $("modalContent").textContent="Förbruka hela Månkortet för "+bonus+" extra drag? Kortet försvinner även om nivån sedan förloras igen. Vanliga rekord och stjärnstämplar påverkas inte.";
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("victory-actions","pause-menu-actions");
- modalButton(actions,"Använd ☾ · +3 drag","primary",()=>commitActivePower("tsuki",-1));
+ modalButton(actions,"Använd Månen · +"+bonus+" drag","primary",()=>commitActivePower("tsuki",-1));
  modalButton(actions,"Tillbaka","secondary",showResult);
  $("modal").hidden=false;
 }
@@ -818,7 +849,7 @@ function showOmamori(tab="shop"){
  if(busy||!$("gameView").hidden)return;
  const account=E.snapshot(save);
  $("modalActions").classList.remove("pause-menu-actions","victory-actions");
- $("modalEyebrow").textContent="JAPANESE HARMONY · DIN SAMLING";
+ $("modalEyebrow").textContent="JAPANESE HARMONY · DIN KORTLEK";
  $("modalTitle").textContent="Omamori";
  const panel=$("modalContent");panel.replaceChildren();
  const wrapper=goshuinNode("section","omamori-shop");
@@ -827,109 +858,90 @@ function showOmamori(tab="shop"){
  const walletCopy=goshuinNode("div","omamori-wallet-copy");
  walletCopy.append(goshuinNode("span","","DIN BALANS"),
   goshuinNode("strong","",prettify(account.coins)+" Harmony Coins"));
- wallet.append(walletCopy,goshuinNode("span","omamori-owned-count",
-  account.ownedCount+" / "+account.totalItems+" samlade"));
+ const count=E.CATALOG.filter(item=>C.has(save,item.id)).length;
+ wallet.append(walletCopy,goshuinNode("span","omamori-owned-count",count+" / "+E.CATALOG.length+" kort"));
  wrapper.append(wallet);
- // The collection shelf is only a view of the existing six cosmetic items.
- const shelf=goshuinNode("div","omamori-shelf");
- shelf.setAttribute("role","group");
- shelf.setAttribute("aria-label","Omamori: "+account.ownedCount+" av "+account.totalItems+" samlade");
+ const shelf=goshuinNode("div","omamori-shelf");shelf.setAttribute("role","group");
+ shelf.setAttribute("aria-label","Omamori: "+count+" aktiva kort");
  for(const item of E.CATALOG){
-  const owned=account.owned.includes(item.id),equipped=account.equipped===item.id;
+  const owned=C.has(save,item.id),equipped=owned&&account.equipped===item.id;
   const slot=goshuinNode("span","omamori-shelf-slot"+(owned?" is-owned":"")+(equipped?" is-equipped":""),owned?item.symbol:"◇");
-  slot.setAttribute("role","img");
-  slot.setAttribute("aria-label",item.name+": "+(equipped?"bärs":owned?"samlad":"inte samlad"));
-  slot.title=item.name+(equipped?" · bärs":owned?" · i samlingen":" · inte samlad");
+  slot.setAttribute("role","img");slot.setAttribute("aria-label",item.name+": "+(equipped?"bärs":owned?"finns i kortleken":"saknas"));
+  slot.title=item.name+(owned?" · stadium "+C.status(save,item.id).tier:" · köp ett nytt kort");
   shelf.append(slot);
  }
  wrapper.append(shelf);
- const nextCharm=E.CATALOG.find(item=>!account.owned.includes(item.id));
+ const nextCharm=E.CATALOG.find(item=>!C.has(save,item.id));
  wrapper.append(goshuinNode("p","omamori-next-charm",nextCharm?
-  "Nästa i samlingen: "+nextCharm.name+" · "+(account.coins>=nextCharm.price?
+  "Nästa kort: "+nextCharm.name+" · "+(account.coins>=nextCharm.price?
    "du har tillräckligt med mynt":prettify(nextCharm.price-account.coins)+" mynt kvar"):
-  "✦ Hela Omamori-samlingen är fullbordad"));
+  "✦ Du har ett kort av varje sort"));
  wrapper.append(goshuinNode("p","omamori-explanation",
-  "Harmony Coins tjänas genom nivåer och stjärnor utan hjälp. Omamori finns kvar i din samling; Sakura, Koi och Månens ro ger aktiva engångskrafter. Du kan tjäna fler genom nya oassisterade nivåvinster med kortet utrustat. Assisterade resultat hålls åtskilda från vanliga rekord. Inga riktiga köp."));
+  "Varje Omamori är ett kort. Det börjar på stadium I, utvecklas genom uppdrag till II och III och kan användas redan på I. Använder du kortet försvinner det helt, även om du förlorar nivån. Köp ett nytt för Harmony Coins för att börja om på I. Oassisterade nivåvinster kan ge extra mynt. Inga riktiga köp."));
  const tabs=goshuinNode("div","omamori-tabs");
- for(const [id,label] of [["shop","Butik"],["collection","Min samling"]]){
+ for(const [id,label] of [["shop","Butik"],["collection","Min kortlek"]]){
   const button=goshuinNode("button","omamori-tab"+(tab===id?" is-active":""),label);
   button.type="button";button.setAttribute("aria-pressed",String(tab===id));
   button.addEventListener("click",()=>showOmamori(id));tabs.append(button);
  }
  wrapper.append(tabs);
  const list=goshuinNode("div","omamori-catalog");
- const shown=tab==="collection"?E.CATALOG.filter(item=>account.owned.includes(item.id)):E.CATALOG;
- if(!shown.length)list.append(goshuinNode("p","omamori-empty",
-  "Du har ännu inga Omamori. Välj en amulett i butiken när du har samlat mynt."));
+ const shown=tab==="collection"?E.CATALOG.filter(item=>C.has(save,item.id)):E.CATALOG;
+ if(!shown.length)list.append(goshuinNode("p","omamori-empty","Du har inga aktiva Omamori. Köp ett nytt kort i butiken."));
  for(const item of shown){
-  const owned=account.owned.includes(item.id),equipped=account.equipped===item.id;
+  const status=C.status(save,item.id),owned=status.owned,equipped=owned&&account.equipped===item.id;
   const card=goshuinNode("article","omamori-card"+(owned?" is-owned":"")+(equipped?" is-equipped":""));
-  card.dataset.omamoriId=item.id;
+  card.dataset.omamoriId=item.id;card.dataset.bondTier=String(status.tier);
   const charm=goshuinNode("div","omamori-charm omamori-"+item.theme);
   charm.setAttribute("aria-hidden","true");
-  charm.append(goshuinNode("span","omamori-knot","⌁"),
-   goshuinNode("span","omamori-charm-glyph",item.symbol));
+  charm.append(goshuinNode("span","omamori-knot","⌁"),goshuinNode("span","omamori-charm-glyph",item.symbol));
   const copy=goshuinNode("div","omamori-card-copy");
-  copy.append(goshuinNode("strong","",item.name),
-   goshuinNode("small","",item.subtitle),
-   goshuinNode("span","omamori-card-tag",
-    equipped?"Bärs just nu":owned?"I din samling":prettify(item.price)+" Harmony Coins"));
+  copy.append(goshuinNode("strong","",item.name),goshuinNode("small","",item.subtitle),
+   goshuinNode("span","omamori-card-tag",equipped?"Bärs just nu · stadium "+status.tier:
+    owned?"Stadium "+status.tier+" / 3":prettify(item.price)+" Harmony Coins"));
+  if(status.active)copy.append(goshuinNode("span","omamori-power-shop",
+   "✦ "+P.POWERS[item.id].name+" · "+(owned?"stadium "+status.tier:"köp för att använda")));
   const action=goshuinNode("button","omamori-action","");
   action.type="button";
   if(equipped)action.textContent="Ta av";
   else if(owned)action.textContent="Bär";
-  else if(account.coins<item.price){
-   action.textContent="Saknar "+prettify(item.price-account.coins)+" mynt";action.disabled=true;
-  }else action.textContent="Samla · "+prettify(item.price)+" mynt";
+  else if(account.coins<item.price){action.textContent="Saknar "+prettify(item.price-account.coins)+" mynt";action.disabled=true;}
+  else action.textContent="Köp nytt · "+prettify(item.price)+" mynt";
   action.addEventListener("click",()=>{
    if(owned){
-    if(E.equip(save,equipped?null:item.id).ok){persist();showOmamori(tab);showOmamoriNotice(equipped?"unequip":"equip",item);}
+    if(C.equip(save,equipped?null:item.id).ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice(equipped?"unequip":"equip",item);}
    }else{
-    if(E.purchase(save,item.id).ok){P.starterForNewPurchase(save,item.id);persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
+    if(C.buy(save,item.id).ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
    }
   });
-  const bond=S.status(save,item.id);
-  const power=P.status(save,item.id);
-  if(power){
-   copy.append(goshuinNode("span","omamori-power-shop","✦ "+power.name+" · "+(owned?power.charges+" användningar kvar":"samla för att låsa upp")));
-  }
-  let detail=null;
-  if(bond){
-   detail=goshuinNode("div","omamori-bond-detail");
-   detail.append(goshuinNode("strong","omamori-bond-title","✦ Bond "+bond.tier+"/3 · "+(bond.tier?bond.titles[bond.tier-1]:"Ett nytt band")),
-    goshuinNode("span","omamori-bond-mission","Uppdrag: "+bond.mission));
-   const progress=goshuinNode("div","omamori-bond-track");
-   progress.setAttribute("role","progressbar");
-   progress.setAttribute("aria-label",item.name+" Bond-framsteg");
-   progress.setAttribute("aria-valuemin","0");progress.setAttribute("aria-valuemax",String(bond.max));
-   progress.setAttribute("aria-valuenow",String(Math.min(bond.count,bond.max)));
-   const bar=goshuinNode("span","omamori-bond-fill");
-   bar.style.width=Math.min(100,Math.round(bond.count/bond.max*100))+"%";
-   progress.append(bar);detail.append(progress);
-   detail.append(goshuinNode("small","omamori-bond-next",bond.tier===3?
-    "Alla tre Bond-stadier upplåsta · "+bond.currentReward:
-    bond.count+"/"+bond.next+" nivåer · Nästa: "+bond.nextReward));
-   if(!owned)detail.append(goshuinNode("small","omamori-bond-locked","Samla och bär Omamori för att påbörja dess Bond."));
-   card.classList.add("has-bond");card.dataset.bondTier=String(bond.tier);
-  }
-  card.append(charm,copy,action);
-  if(detail)card.append(detail);
-  list.append(card);
+  card.classList.add("has-bond");
+  const detail=goshuinNode("div","omamori-bond-detail");
+  detail.append(goshuinNode("strong","omamori-bond-title",
+   "✦ "+(owned?"Stadium "+status.tier+"/3":"Nytt kort · stadium I")),
+   goshuinNode("span","omamori-bond-mission","Uppdrag: "+status.mission));
+  const progress=goshuinNode("div","omamori-bond-track");
+  progress.setAttribute("role","progressbar");progress.setAttribute("aria-label",item.name+" kortutveckling");
+  progress.setAttribute("aria-valuemin","0");progress.setAttribute("aria-valuemax","6");
+  progress.setAttribute("aria-valuenow",String(status.count));
+  const bar=goshuinNode("span","omamori-bond-fill");bar.style.width=Math.min(100,Math.round(status.count/6*100))+"%";
+  progress.append(bar);detail.append(progress);
+  detail.append(goshuinNode("small","omamori-bond-next",!owned?
+   "Köp kortet för att börja på stadium I":status.tier===3?
+   "Stadium III · högsta styrkan upplåst":status.count+"/"+status.next+" nivåuppdrag till stadium "+(status.tier+1)));
+  card.append(charm,copy,action,detail);list.append(card);
  }
  wrapper.append(list);
- if(account.equipped){
+ if(account.equipped&&C.has(save,account.equipped)){
   const worn=E.CATALOG.find(item=>item.id===account.equipped);
   wrapper.append(goshuinNode("p","omamori-equipped",
-   "✦ Din valda Omamori: "+worn.name+" · "+(S.status(save,worn.id)?"ger Bond-framsteg och kosmetik":P.status(save,worn.id)?"har en aktiv välsignelse":"samlarfavorit utan speleffekter")+". En aktiv kraft gör nivån assisterad."));
+   "✦ Du bär "+worn.name+" · stadium "+C.status(save,worn.id).tier+". Kortet förbrukas vid användning. Ett nytt köp börjar på stadium I."));
  }
  panel.append(wrapper);
  const actions=$("modalActions");actions.replaceChildren();
  modalButton(actions,"Stäng butiken","primary omamori-close",()=>{
   $("modal").hidden=true;$("omamoriButton").focus();
- });
- $("modal").hidden=false;
+ });$("modal").hidden=false;
 }
-
 function showOmamoriNotice(action,item){
  const shop=$("modalContent").querySelector(".omamori-shop");
  if(!shop)return;
@@ -1029,13 +1041,13 @@ async function celebrateCollection(evt){
  }
  await Promise.all(tasks);
 }
-function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUsed:!!game.blessingUsed},backgroundId:currentBackground};persist();}}
+function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false){
  if(busy)return;
  powerSelection=null;
  disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
  resetResonanceVisuals();clearPraise();
- level=i;powerSelection=null;rewardStarsAtLevelStart=G.archivedStars(save,i);
+ level=i;powerSelection=null;powerTargets=[];rewardStarsAtLevelStart=G.archivedStars(save,i);
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
  game=new R.Game(i,data,data?null:{directorMode:save.playMode==="auto"?(i>=9?"v4":"v3"):save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
@@ -1389,7 +1401,7 @@ function trySwap(a,b){
  }
  selected=-1;$("selectedInfo").textContent="Välj två grannar eller svep.";
  sound("swap");
- const bondGain=S.observe(save,level,result.events);
+ const bondGain=C.observe(save,level,result.events);
  if(bondGain.ok)persist();
  void playEvents(result.events,bondGain);
 }
@@ -2279,17 +2291,18 @@ async function playEvents(events,bondGain=null){
   echoLinkSnapshot.clear();
   rectCache=null;boardLayerRect=null;
   perf?.stop();
-  busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();updatePaceLabel();saveRun();
+  busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();updatePaceLabel();renderPowerBar();saveRun();
   if(!finished)armDecisionClock();
   if(!finished)restartIdleHint();
  }
  if(bondGain?.ok){
-  updateSpiritBadge();
-  toast(bondGain.tierUnlocked?"✦ Omamori Bond "+bondGain.tierUnlocked+" upplåst!":
-   "✦ "+bondGain.status.name+" · Bond "+bondGain.status.count+"/"+bondGain.status.max);
+  updateSpiritBadge();renderPowerBar();
+  toast(bondGain.promoted?"✦ Omamori uppgraderad till stadium "+bondGain.tier+"!":
+   "✦ Omamori-uppdrag "+bondGain.progress+"/6");
  }
  if(goalReached)unlockGoal();
  if(finished||goalReached)showResult();
+ else if(game?.koiRerollAt>=0)showKoiReroll();
 }
 function unlockGoal(){
  save.unlocked=Math.max(save.unlocked,level+1);
@@ -2324,7 +2337,11 @@ function showResult(){
   }
  }
  const coinReward=won&&!game.assisted?E.claim(save,level,Math.max(1,game.stars())):{delta:0};
- const powerReward=won?P.grantForClear(save,level,!!game.assisted):{ok:false};
+ // A completed clean replay earns a small capped amount after normal one-off rewards.
+ const replayReward=won&&!game.assisted&&!coinReward.delta&&!game.replayCoinClaimed?
+  C.replayCoins(save,level,true,false,new Date().toISOString().slice(0,10)):0;
+ if(won)game.replayCoinClaimed=true;
+ const moonMission=won?C.observe(save,level,[],true):{ok:false};
  const canContinue=won&&game.moves>0;
  if(!canContinue)save.run=null;
  persist();
@@ -2384,7 +2401,9 @@ function showResult(){
     "Belöning för nya stjärnor · sparad i din samling":
     "Nya mynt får du när du klarar en ny nivå eller förbättrar betyget."));
   result.append(income);
-  if(powerReward.ok)result.append(make("p","omamori-power-earned","✦ Ny "+P.POWERS[powerReward.id].name+"-välsignelse! "+powerReward.charges+" i förrådet."));
+  if(replayReward)result.append(make("p","omamori-power-earned","✦ Oassisterad omspelning · +"+replayReward+" Harmony Coins"));
+  if(moonMission.ok)result.append(make("p","omamori-power-earned",
+   moonMission.promoted?"✦ Omamori nådde stadium "+moonMission.tier:"✦ Omamori-uppdrag "+moonMission.progress+"/6"));
   const goal=make("section","victory-goal");
   goal.setAttribute("aria-label","Avklarat nivåmål");
   const goalCopy=make("div","victory-goal-copy");
@@ -2461,8 +2480,8 @@ function showResult(){
  }
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.toggle("victory-actions",won);
- if(!won&&P.status(save,"tsuki")?.owned&&P.status(save,"tsuki").charges>0&&!game.blessingUsed)
-  modalButton(actions,"☾ Månens ro · +3 drag ("+P.status(save,"tsuki").charges+" kvar)","primary omamori-moon-revive",()=>confirmMoonRescue());
+ if(!won&&C.status(save,"tsuki")?.owned)
+  modalButton(actions,"☾ Månens ro · +"+([0,2,3,5][C.status(save,"tsuki").tier])+" drag","primary omamori-moon-revive",()=>confirmMoonRescue());
  if(won)modalButton(actions,"Nästa nivå →","primary victory-next",()=>startLevel(level+1));
  if(canContinue)modalButton(actions,"Fortsätt för poängrekord","secondary victory-continue",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
@@ -2743,7 +2762,7 @@ function bind(){
  $("pauseButton").addEventListener("click",openGameMenu);
  $("devButton").addEventListener("click",openEngineLab);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);});
- $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> När du skapar en match sker fusionen på rutan dit du flyttade föremålet (eller på den andra bytesrutan om matchen bara bildas där). Resultatet blir högsta matchade stadium +1, oavsett var det högre föremålet låg. Automatiska kedjor använder det högsta stadiets ruta. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft uppåt, nedåt, höger och vänster. Befintliga föremål uppgraderas; dimma renas även på tomma rutor. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Harmony Mist från nivå 4:</strong> Varje nivå har ett konkret mål. På Harmony Mist-nivåer ska du rena magisk dimma som ligger på vissa rutor. Fusionera så att det uppgraderade föremålet stannar på en dimruta för att rena just den rutan. Harmony Pulse renar även tomma dimrutor i de fyra väderstrecken runt mästerverket. Föremål får fortfarande flyttas från och till dimrutor, men en vanlig matchning över dimman utan fusionens slutruta där rensar inte. Dimman sitter kvar när brickorna faller.</p><p><strong>Daruma, nivå 21–30:</strong> Daruma står stilla och får ett öga när en fusion landar intill eller Harmony Pulse träffar den. Varje Daruma behöver två träffar på olika drag. Kapitlet växlar mellan Daruma-utmaningar och dimma/fusion så att du kan prova olika taktiker.</p><p><strong>Sealed Stones, nivå 31–40:</strong> Varje sten står stilla och har fyra lager. Fusionera intill stenen eller träffa den med Harmony Pulse, högst en skada per sten och drag. Den sista träffen frigör Awakening Pulse till alla åtta grannar, även diagonalt. En sten som står intill en annan kan hjälpa dig skapa en kedja.</p><p><strong>Belöning:</strong> Nystartade nivåer ger minst en stjärna när du klarar målet. Två eller tre stjärnor får du när du når målet med färre drag, och betyget låses direkt. Poäng är ett frivilligt rekord. När målet är klart kan du gå vidare direkt eller fortsätta använda återstående drag för rekordet. Omamori Powers: Sakura kan uppgradera en vald bricka, Koi kan blanda ett 3×3-område och Månens ro kan rädda en förlorad nivå med tre extra drag. Användningen är frivillig och förbrukar en välsignelse, inte själva samlarkortet. Med Omamori-hjälp räknas nivån som assisterad; ordinarie rekord och stjärnstämplar påverkas inte.</p>'));
+ $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> När du skapar en match sker fusionen på rutan dit du flyttade föremålet (eller på den andra bytesrutan om matchen bara bildas där). Resultatet blir högsta matchade stadium +1, oavsett var det högre föremålet låg. Automatiska kedjor använder det högsta stadiets ruta. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft uppåt, nedåt, höger och vänster. Befintliga föremål uppgraderas; dimma renas även på tomma rutor. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Harmony Mist från nivå 4:</strong> Varje nivå har ett konkret mål. På Harmony Mist-nivåer ska du rena magisk dimma som ligger på vissa rutor. Fusionera så att det uppgraderade föremålet stannar på en dimruta för att rena just den rutan. Harmony Pulse renar även tomma dimrutor i de fyra väderstrecken runt mästerverket. Föremål får fortfarande flyttas från och till dimrutor, men en vanlig matchning över dimman utan fusionens slutruta där rensar inte. Dimman sitter kvar när brickorna faller.</p><p><strong>Daruma, nivå 21–30:</strong> Daruma står stilla och får ett öga när en fusion landar intill eller Harmony Pulse träffar den. Varje Daruma behöver två träffar på olika drag. Kapitlet växlar mellan Daruma-utmaningar och dimma/fusion så att du kan prova olika taktiker.</p><p><strong>Sealed Stones, nivå 31–40:</strong> Varje sten står stilla och har fyra lager. Fusionera intill stenen eller träffa den med Harmony Pulse, högst en skada per sten och drag. Den sista träffen frigör Awakening Pulse till alla åtta grannar, även diagonalt. En sten som står intill en annan kan hjälpa dig skapa en kedja.</p><p><strong>Belöning:</strong> Nystartade nivåer ger minst en stjärna när du klarar målet. Två eller tre stjärnor får du när du når målet med färre drag, och betyget låses direkt. Poäng är ett frivilligt rekord. När målet är klart kan du gå vidare direkt eller fortsätta använda återstående drag för rekordet. Omamori Cards: Köp kort för Harmony Coins på stadium I och utveckla till II och III genom nivåuppdrag. Sakura uppgraderar 1–3 valda brickor, Koi blandar 2×2 eller 3×3 och kan på stadium III blanda samma område två gånger; Månens ro ger 2, 3 eller 5 extradrag. Varje aktiverat kort förbrukas helt. Flera kort kan användas på samma nivå. Ett nytt kort börjar alltid på stadium I. Assisterade segrar påverkar inte vanliga rekord och stjärnstämplar.</p>'));
  $("settingsButton").addEventListener("click",()=>{
   modalInfo("Inställningar",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Ljud</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Minska animationer</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;window.HarmonyAudio?.setEnabled(save.sound);if(save.sound)window.HarmonyAudio?.unlock();persist();});

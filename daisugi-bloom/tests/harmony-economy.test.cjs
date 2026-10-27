@@ -84,7 +84,7 @@ check("UI and gameplay contracts: no Omamori effect applied to HarmonyRules",()=
  assert(html.includes('id="omamoriButton"'));
  assert(html.includes('id="harmonyCoins"'));
  assert(app.includes('const coinReward=won&&!game.assisted?E.claim(save,level,'));
- assert(app.includes('if(E.purchase(save,item.id).ok){P.starterForNewPurchase(save,item.id);persist()'));
+ assert(app.includes('if(C.buy(save,item.id).ok){persist()'));
  assert(app.includes('showOmamori(tab)'));
  assert(css.includes("Harmony Economy & Omamori 1.0"));
  assert(!rules.includes("HarmonyEconomy"));

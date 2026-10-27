@@ -24,7 +24,7 @@ jobs:
         run: node daisugi-bloom/tests/harmony-economy.test.cjs
       - name: Omamori Spirits 2.0 · unique-level Bond missions, persistence and cosmetic-only effects
         run: node daisugi-bloom/tests/harmony-spirits.test.cjs
-      - name: Omamori Powers 3.0 · staged consumables, real board effects and assisted record isolation
+      - name: Omamori Cards 4.0 · tiered and consumed card progression, rerolls and assisted separation
         run: node daisugi-bloom/tests/harmony-powers.test.cjs
       - name: Omikuji Fortune 1.0 · daily draws and same-wallet payouts
         run: node daisugi-bloom/tests/harmony-fortune.test.cjs
@@ -89,6 +89,7 @@ jobs:
           node --check daisugi-bloom/harmony/fortune.js
           node --check daisugi-bloom/harmony/spirits.js
           node --check daisugi-bloom/harmony/powers.js
+          node --check daisugi-bloom/harmony/cards.js
           node --check daisugi-bloom/harmony/app.js
   mobile-browser:
     runs-on: ubuntu-latest
@@ -106,7 +107,7 @@ jobs:
         run: node daisugi-bloom/tests/harmony-economy-browser.mjs
       - name: Run Omikuji Fortune daily-draw mobile smoke
         run: node daisugi-bloom/tests/harmony-fortune-browser.mjs
-      - name: Omamori Powers 3.0 mobile inventory and targeted use smoke
+      - name: Omamori Cards 4.0 · phone card consumption and two-step shuffle
         run: node daisugi-bloom/tests/harmony-powers-browser.mjs
       - name: Run Sealed Stone mobile 4-stage artwork and placement smoke
         run: node daisugi-bloom/tests/harmony-sealed-stone-browser.mjs

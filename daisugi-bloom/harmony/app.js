@@ -849,7 +849,7 @@ function showOmamori(tab="shop"){
  if(busy||!$("gameView").hidden)return;
  const account=E.snapshot(save);
  $("modalActions").classList.remove("pause-menu-actions","victory-actions");
- $("modalEyebrow").textContent="JAPANESE HARMONY · DIN SAMLING";
+ $("modalEyebrow").textContent="JAPANESE HARMONY · DIN KORTLEK";
  $("modalTitle").textContent="Omamori";
  const panel=$("modalContent");panel.replaceChildren();
  const wrapper=goshuinNode("section","omamori-shop");
@@ -858,109 +858,90 @@ function showOmamori(tab="shop"){
  const walletCopy=goshuinNode("div","omamori-wallet-copy");
  walletCopy.append(goshuinNode("span","","DIN BALANS"),
   goshuinNode("strong","",prettify(account.coins)+" Harmony Coins"));
- wallet.append(walletCopy,goshuinNode("span","omamori-owned-count",
-  account.ownedCount+" / "+account.totalItems+" samlade"));
+ const count=E.CATALOG.filter(item=>C.has(save,item.id)).length;
+ wallet.append(walletCopy,goshuinNode("span","omamori-owned-count",count+" / "+E.CATALOG.length+" kort"));
  wrapper.append(wallet);
- // The collection shelf is only a view of the existing six cosmetic items.
- const shelf=goshuinNode("div","omamori-shelf");
- shelf.setAttribute("role","group");
- shelf.setAttribute("aria-label","Omamori: "+account.ownedCount+" av "+account.totalItems+" samlade");
+ const shelf=goshuinNode("div","omamori-shelf");shelf.setAttribute("role","group");
+ shelf.setAttribute("aria-label","Omamori: "+count+" aktiva kort");
  for(const item of E.CATALOG){
-  const owned=account.owned.includes(item.id),equipped=account.equipped===item.id;
+  const owned=C.has(save,item.id),equipped=owned&&account.equipped===item.id;
   const slot=goshuinNode("span","omamori-shelf-slot"+(owned?" is-owned":"")+(equipped?" is-equipped":""),owned?item.symbol:"◇");
-  slot.setAttribute("role","img");
-  slot.setAttribute("aria-label",item.name+": "+(equipped?"bärs":owned?"samlad":"inte samlad"));
-  slot.title=item.name+(equipped?" · bärs":owned?" · i samlingen":" · inte samlad");
+  slot.setAttribute("role","img");slot.setAttribute("aria-label",item.name+": "+(equipped?"bärs":owned?"finns i kortleken":"saknas"));
+  slot.title=item.name+(owned?" · stadium "+C.status(save,item.id).tier:" · köp ett nytt kort");
   shelf.append(slot);
  }
  wrapper.append(shelf);
- const nextCharm=E.CATALOG.find(item=>!account.owned.includes(item.id));
+ const nextCharm=E.CATALOG.find(item=>!C.has(save,item.id));
  wrapper.append(goshuinNode("p","omamori-next-charm",nextCharm?
-  "Nästa i samlingen: "+nextCharm.name+" · "+(account.coins>=nextCharm.price?
+  "Nästa kort: "+nextCharm.name+" · "+(account.coins>=nextCharm.price?
    "du har tillräckligt med mynt":prettify(nextCharm.price-account.coins)+" mynt kvar"):
-  "✦ Hela Omamori-samlingen är fullbordad"));
+  "✦ Du har ett kort av varje sort"));
  wrapper.append(goshuinNode("p","omamori-explanation",
-  "Harmony Coins tjänas genom nivåer och stjärnor utan hjälp. Omamori finns kvar i din samling; Sakura, Koi och Månens ro ger aktiva engångskrafter. Du kan tjäna fler genom nya oassisterade nivåvinster med kortet utrustat. Assisterade resultat hålls åtskilda från vanliga rekord. Inga riktiga köp."));
+  "Varje Omamori är ett kort. Det börjar på stadium I, utvecklas genom uppdrag till II och III och kan användas redan på I. Använder du kortet försvinner det helt, även om du förlorar nivån. Köp ett nytt för Harmony Coins för att börja om på I. Oassisterade nivåvinster kan ge extra mynt. Inga riktiga köp."));
  const tabs=goshuinNode("div","omamori-tabs");
- for(const [id,label] of [["shop","Butik"],["collection","Min samling"]]){
+ for(const [id,label] of [["shop","Butik"],["collection","Min kortlek"]]){
   const button=goshuinNode("button","omamori-tab"+(tab===id?" is-active":""),label);
   button.type="button";button.setAttribute("aria-pressed",String(tab===id));
   button.addEventListener("click",()=>showOmamori(id));tabs.append(button);
  }
  wrapper.append(tabs);
  const list=goshuinNode("div","omamori-catalog");
- const shown=tab==="collection"?E.CATALOG.filter(item=>account.owned.includes(item.id)):E.CATALOG;
- if(!shown.length)list.append(goshuinNode("p","omamori-empty",
-  "Du har ännu inga Omamori. Välj en amulett i butiken när du har samlat mynt."));
+ const shown=tab==="collection"?E.CATALOG.filter(item=>C.has(save,item.id)):E.CATALOG;
+ if(!shown.length)list.append(goshuinNode("p","omamori-empty","Du har inga aktiva Omamori. Köp ett nytt kort i butiken."));
  for(const item of shown){
-  const owned=account.owned.includes(item.id),equipped=account.equipped===item.id;
+  const status=C.status(save,item.id),owned=status.owned,equipped=owned&&account.equipped===item.id;
   const card=goshuinNode("article","omamori-card"+(owned?" is-owned":"")+(equipped?" is-equipped":""));
-  card.dataset.omamoriId=item.id;
+  card.dataset.omamoriId=item.id;card.dataset.bondTier=String(status.tier);
   const charm=goshuinNode("div","omamori-charm omamori-"+item.theme);
   charm.setAttribute("aria-hidden","true");
-  charm.append(goshuinNode("span","omamori-knot","⌁"),
-   goshuinNode("span","omamori-charm-glyph",item.symbol));
+  charm.append(goshuinNode("span","omamori-knot","⌁"),goshuinNode("span","omamori-charm-glyph",item.symbol));
   const copy=goshuinNode("div","omamori-card-copy");
-  copy.append(goshuinNode("strong","",item.name),
-   goshuinNode("small","",item.subtitle),
-   goshuinNode("span","omamori-card-tag",
-    equipped?"Bärs just nu":owned?"I din samling":prettify(item.price)+" Harmony Coins"));
+  copy.append(goshuinNode("strong","",item.name),goshuinNode("small","",item.subtitle),
+   goshuinNode("span","omamori-card-tag",equipped?"Bärs just nu · stadium "+status.tier:
+    owned?"Stadium "+status.tier+" / 3":prettify(item.price)+" Harmony Coins"));
+  if(status.active)copy.append(goshuinNode("span","omamori-power-shop",
+   "✦ "+P.POWERS[item.id].name+" · "+(owned?"stadium "+status.tier:"köp för att använda")));
   const action=goshuinNode("button","omamori-action","");
   action.type="button";
   if(equipped)action.textContent="Ta av";
   else if(owned)action.textContent="Bär";
-  else if(account.coins<item.price){
-   action.textContent="Saknar "+prettify(item.price-account.coins)+" mynt";action.disabled=true;
-  }else action.textContent="Samla · "+prettify(item.price)+" mynt";
+  else if(account.coins<item.price){action.textContent="Saknar "+prettify(item.price-account.coins)+" mynt";action.disabled=true;}
+  else action.textContent="Köp nytt · "+prettify(item.price)+" mynt";
   action.addEventListener("click",()=>{
    if(owned){
-    if(E.equip(save,equipped?null:item.id).ok){persist();showOmamori(tab);showOmamoriNotice(equipped?"unequip":"equip",item);}
+    if(C.equip(save,equipped?null:item.id).ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice(equipped?"unequip":"equip",item);}
    }else{
-    if(E.purchase(save,item.id).ok){P.starterForNewPurchase(save,item.id);persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
+    if(C.buy(save,item.id).ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
    }
   });
-  const bond=S.status(save,item.id);
-  const power=P.status(save,item.id);
-  if(power){
-   copy.append(goshuinNode("span","omamori-power-shop","✦ "+power.name+" · "+(owned?power.charges+" användningar kvar":"samla för att låsa upp")));
-  }
-  let detail=null;
-  if(bond){
-   detail=goshuinNode("div","omamori-bond-detail");
-   detail.append(goshuinNode("strong","omamori-bond-title","✦ Bond "+bond.tier+"/3 · "+(bond.tier?bond.titles[bond.tier-1]:"Ett nytt band")),
-    goshuinNode("span","omamori-bond-mission","Uppdrag: "+bond.mission));
-   const progress=goshuinNode("div","omamori-bond-track");
-   progress.setAttribute("role","progressbar");
-   progress.setAttribute("aria-label",item.name+" Bond-framsteg");
-   progress.setAttribute("aria-valuemin","0");progress.setAttribute("aria-valuemax",String(bond.max));
-   progress.setAttribute("aria-valuenow",String(Math.min(bond.count,bond.max)));
-   const bar=goshuinNode("span","omamori-bond-fill");
-   bar.style.width=Math.min(100,Math.round(bond.count/bond.max*100))+"%";
-   progress.append(bar);detail.append(progress);
-   detail.append(goshuinNode("small","omamori-bond-next",bond.tier===3?
-    "Alla tre Bond-stadier upplåsta · "+bond.currentReward:
-    bond.count+"/"+bond.next+" nivåer · Nästa: "+bond.nextReward));
-   if(!owned)detail.append(goshuinNode("small","omamori-bond-locked","Samla och bär Omamori för att påbörja dess Bond."));
-   card.classList.add("has-bond");card.dataset.bondTier=String(bond.tier);
-  }
-  card.append(charm,copy,action);
-  if(detail)card.append(detail);
-  list.append(card);
+  card.classList.add("has-bond");
+  const detail=goshuinNode("div","omamori-bond-detail");
+  detail.append(goshuinNode("strong","omamori-bond-title",
+   "✦ "+(owned?"Stadium "+status.tier+"/3":"Nytt kort · stadium I")),
+   goshuinNode("span","omamori-bond-mission","Uppdrag: "+status.mission));
+  const progress=goshuinNode("div","omamori-bond-track");
+  progress.setAttribute("role","progressbar");progress.setAttribute("aria-label",item.name+" kortutveckling");
+  progress.setAttribute("aria-valuemin","0");progress.setAttribute("aria-valuemax","6");
+  progress.setAttribute("aria-valuenow",String(status.count));
+  const bar=goshuinNode("span","omamori-bond-fill");bar.style.width=Math.min(100,Math.round(status.count/6*100))+"%";
+  progress.append(bar);detail.append(progress);
+  detail.append(goshuinNode("small","omamori-bond-next",!owned?
+   "Köp kortet för att börja på stadium I":status.tier===3?
+   "Stadium III · högsta styrkan upplåst":status.count+"/"+status.next+" nivåuppdrag till stadium "+(status.tier+1)));
+  card.append(charm,copy,action,detail);list.append(card);
  }
  wrapper.append(list);
- if(account.equipped){
+ if(account.equipped&&C.has(save,account.equipped)){
   const worn=E.CATALOG.find(item=>item.id===account.equipped);
   wrapper.append(goshuinNode("p","omamori-equipped",
-   "✦ Din valda Omamori: "+worn.name+" · "+(S.status(save,worn.id)?"ger Bond-framsteg och kosmetik":P.status(save,worn.id)?"har en aktiv välsignelse":"samlarfavorit utan speleffekter")+". En aktiv kraft gör nivån assisterad."));
+   "✦ Du bär "+worn.name+" · stadium "+C.status(save,worn.id).tier+". Kortet förbrukas vid användning. Ett nytt köp börjar på stadium I."));
  }
  panel.append(wrapper);
  const actions=$("modalActions");actions.replaceChildren();
  modalButton(actions,"Stäng butiken","primary omamori-close",()=>{
   $("modal").hidden=true;$("omamoriButton").focus();
- });
- $("modal").hidden=false;
+ });$("modal").hidden=false;
 }
-
 function showOmamoriNotice(action,item){
  const shop=$("modalContent").querySelector(".omamori-shop");
  if(!shop)return;

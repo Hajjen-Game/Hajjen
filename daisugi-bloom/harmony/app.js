@@ -2291,7 +2291,7 @@ async function playEvents(events,bondGain=null){
   echoLinkSnapshot.clear();
   rectCache=null;boardLayerRect=null;
   perf?.stop();
-  busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();updatePaceLabel();saveRun();
+  busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();updatePaceLabel();renderPowerBar();saveRun();
   if(!finished)armDecisionClock();
   if(!finished)restartIdleHint();
  }
@@ -2302,6 +2302,7 @@ async function playEvents(events,bondGain=null){
  }
  if(goalReached)unlockGoal();
  if(finished||goalReached)showResult();
+ else if(game?.koiRerollAt>=0)showKoiReroll();
 }
 function unlockGoal(){
  save.unlocked=Math.max(save.unlocked,level+1);
@@ -2336,7 +2337,11 @@ function showResult(){
   }
  }
  const coinReward=won&&!game.assisted?E.claim(save,level,Math.max(1,game.stars())):{delta:0};
- const powerReward=won?P.grantForClear(save,level,!!game.assisted):{ok:false};
+ // A completed clean replay earns a small capped amount after normal one-off rewards.
+ const replayReward=won&&!game.assisted&&!coinReward.delta&&!game.replayCoinClaimed?
+  C.replayCoins(save,level,true,false,new Date().toISOString().slice(0,10)):0;
+ if(won)game.replayCoinClaimed=true;
+ const moonMission=won?C.observe(save,level,[],true):{ok:false};
  const canContinue=won&&game.moves>0;
  if(!canContinue)save.run=null;
  persist();
@@ -2396,7 +2401,9 @@ function showResult(){
     "Belöning för nya stjärnor · sparad i din samling":
     "Nya mynt får du när du klarar en ny nivå eller förbättrar betyget."));
   result.append(income);
-  if(powerReward.ok)result.append(make("p","omamori-power-earned","✦ Ny "+P.POWERS[powerReward.id].name+"-välsignelse! "+powerReward.charges+" i förrådet."));
+  if(replayReward)result.append(make("p","omamori-power-earned","✦ Oassisterad omspelning · +"+replayReward+" Harmony Coins"));
+  if(moonMission.ok)result.append(make("p","omamori-power-earned",
+   moonMission.promoted?"✦ Omamori nådde stadium "+moonMission.tier:"✦ Omamori-uppdrag "+moonMission.progress+"/6"));
   const goal=make("section","victory-goal");
   goal.setAttribute("aria-label","Avklarat nivåmål");
   const goalCopy=make("div","victory-goal-copy");
@@ -2473,8 +2480,8 @@ function showResult(){
  }
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.toggle("victory-actions",won);
- if(!won&&P.status(save,"tsuki")?.owned&&P.status(save,"tsuki").charges>0&&!game.blessingUsed)
-  modalButton(actions,"☾ Månens ro · +3 drag ("+P.status(save,"tsuki").charges+" kvar)","primary omamori-moon-revive",()=>confirmMoonRescue());
+ if(!won&&C.status(save,"tsuki")?.owned)
+  modalButton(actions,"☾ Månens ro · +"+([0,2,3,5][C.status(save,"tsuki").tier])+" drag","primary omamori-moon-revive",()=>confirmMoonRescue());
  if(won)modalButton(actions,"Nästa nivå →","primary victory-next",()=>startLevel(level+1));
  if(canContinue)modalButton(actions,"Fortsätt för poängrekord","secondary victory-continue",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
@@ -2755,7 +2762,7 @@ function bind(){
  $("pauseButton").addEventListener("click",openGameMenu);
  $("devButton").addEventListener("click",openEngineLab);
  $("continueButton").addEventListener("click",()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);});
- $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> När du skapar en match sker fusionen på rutan dit du flyttade föremålet (eller på den andra bytesrutan om matchen bara bildas där). Resultatet blir högsta matchade stadium +1, oavsett var det högre föremålet låg. Automatiska kedjor använder det högsta stadiets ruta. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft uppåt, nedåt, höger och vänster. Befintliga föremål uppgraderas; dimma renas även på tomma rutor. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Harmony Mist från nivå 4:</strong> Varje nivå har ett konkret mål. På Harmony Mist-nivåer ska du rena magisk dimma som ligger på vissa rutor. Fusionera så att det uppgraderade föremålet stannar på en dimruta för att rena just den rutan. Harmony Pulse renar även tomma dimrutor i de fyra väderstrecken runt mästerverket. Föremål får fortfarande flyttas från och till dimrutor, men en vanlig matchning över dimman utan fusionens slutruta där rensar inte. Dimman sitter kvar när brickorna faller.</p><p><strong>Daruma, nivå 21–30:</strong> Daruma står stilla och får ett öga när en fusion landar intill eller Harmony Pulse träffar den. Varje Daruma behöver två träffar på olika drag. Kapitlet växlar mellan Daruma-utmaningar och dimma/fusion så att du kan prova olika taktiker.</p><p><strong>Sealed Stones, nivå 31–40:</strong> Varje sten står stilla och har fyra lager. Fusionera intill stenen eller träffa den med Harmony Pulse, högst en skada per sten och drag. Den sista träffen frigör Awakening Pulse till alla åtta grannar, även diagonalt. En sten som står intill en annan kan hjälpa dig skapa en kedja.</p><p><strong>Belöning:</strong> Nystartade nivåer ger minst en stjärna när du klarar målet. Två eller tre stjärnor får du när du når målet med färre drag, och betyget låses direkt. Poäng är ett frivilligt rekord. När målet är klart kan du gå vidare direkt eller fortsätta använda återstående drag för rekordet. Omamori Powers: Sakura kan uppgradera en vald bricka, Koi kan blanda ett 3×3-område och Månens ro kan rädda en förlorad nivå med tre extra drag. Användningen är frivillig och förbrukar en välsignelse, inte själva samlarkortet. Med Omamori-hjälp räknas nivån som assisterad; ordinarie rekord och stjärnstämplar påverkas inte.</p>'));
+ $("helpButton").addEventListener("click",()=>modalInfo("Så spelar du",'<p><strong>Matcha:</strong> Byt två grannar och bilda tre eller fler av samma familj. Stadier får blandas. T- och L-former fungerar också.</p><p><strong>Förädla:</strong> När du skapar en match sker fusionen på rutan dit du flyttade föremålet (eller på den andra bytesrutan om matchen bara bildas där). Resultatet blir högsta matchade stadium +1, oavsett var det högre föremålet låg. Automatiska kedjor använder det högsta stadiets ruta. Fyra matchade ger en grannuppgradering; fem eller fler ger två.</p><p><strong>Harmony Resonance:</strong> Föremål i stadium 3–4 får en diskret ljuskoppling till en granne av samma familj. Om du använder båda i en efterföljande fusion skapas Harmony Echo med bonuspoäng (högst en per drag).</p><p><strong>Harmony Pulse:</strong> Vid stadium 5 sprider ett mästerverk sin kraft uppåt, nedåt, höger och vänster. Befintliga föremål uppgraderas; dimma renas även på tomma rutor. Kedjor avslutas innan tomma rutor fylls.</p><p><strong>Masterpiece Collection:</strong> Under spelplanen räknar varje ikon hur många mästerverk du har skapat av sin familj. Varje nytt mästerverk ger en växande bonus; antalet kan öka utan gräns.</p><p><strong>Harmony Mist från nivå 4:</strong> Varje nivå har ett konkret mål. På Harmony Mist-nivåer ska du rena magisk dimma som ligger på vissa rutor. Fusionera så att det uppgraderade föremålet stannar på en dimruta för att rena just den rutan. Harmony Pulse renar även tomma dimrutor i de fyra väderstrecken runt mästerverket. Föremål får fortfarande flyttas från och till dimrutor, men en vanlig matchning över dimman utan fusionens slutruta där rensar inte. Dimman sitter kvar när brickorna faller.</p><p><strong>Daruma, nivå 21–30:</strong> Daruma står stilla och får ett öga när en fusion landar intill eller Harmony Pulse träffar den. Varje Daruma behöver två träffar på olika drag. Kapitlet växlar mellan Daruma-utmaningar och dimma/fusion så att du kan prova olika taktiker.</p><p><strong>Sealed Stones, nivå 31–40:</strong> Varje sten står stilla och har fyra lager. Fusionera intill stenen eller träffa den med Harmony Pulse, högst en skada per sten och drag. Den sista träffen frigör Awakening Pulse till alla åtta grannar, även diagonalt. En sten som står intill en annan kan hjälpa dig skapa en kedja.</p><p><strong>Belöning:</strong> Nystartade nivåer ger minst en stjärna när du klarar målet. Två eller tre stjärnor får du när du når målet med färre drag, och betyget låses direkt. Poäng är ett frivilligt rekord. När målet är klart kan du gå vidare direkt eller fortsätta använda återstående drag för rekordet. Omamori Cards: Köp kort för Harmony Coins på stadium I och utveckla till II och III genom nivåuppdrag. Sakura uppgraderar 1–3 valda brickor, Koi blandar 2×2 eller 3×3 och kan på stadium III blanda samma område två gånger; Månens ro ger 2, 3 eller 5 extradrag. Varje aktiverat kort förbrukas helt. Flera kort kan användas på samma nivå. Ett nytt kort börjar alltid på stadium I. Assisterade segrar påverkar inte vanliga rekord och stjärnstämplar.</p>'));
  $("settingsButton").addEventListener("click",()=>{
   modalInfo("Inställningar",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Ljud</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Minska animationer</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;window.HarmonyAudio?.setEnabled(save.sound);if(save.sound)window.HarmonyAudio?.unlock();persist();});

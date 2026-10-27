@@ -726,90 +726,121 @@ function spiritMoment(evt){
  ],spirit.tier===3?760:550).finally(()=>node.remove());
 }
 // Omamori Powers 3.0 — targeted consumables, explicit confirmation, no auto-buy.
+// Omamori Cards 4.0: the owned and evolving card IS the consumable.
 function renderPowerBar(){
  const bar=$("omamoriPowerBar");if(!bar)return;
- const available=P.IDS.map(id=>P.status(save,id)).filter(v=>v.owned);
- bar.replaceChildren();bar.hidden=!available.length;
- if(!available.length)return;
+ const owned=C.activeIds.map(id=>C.status(save,id)).filter(v=>v.owned);
+ bar.replaceChildren();bar.hidden=!owned.length&&!(game?.koiRerollAt>=0);
+ if(bar.hidden)return;
  const heading=document.createElement("span");heading.className="omamori-power-label";
- heading.textContent=game?.assisted?"ASSISTERAD NIVÅ · OMAMORI ANVÄND":"OMAMORI-KRAFTER"+(powerSelection?" · Välj ruta":"");
+ heading.textContent=game?.assisted?"ASSISTERAD NIVÅ":"OMAMORI-KORT"+(powerSelection?" · Välj "+(C.status(save,powerSelection)?.tier||1)+" ruta/rutor":"");
  bar.append(heading);
- for(const power of available){
-  const button=document.createElement("button");button.type="button";
-  const selectable=power.id!=="tsuki"&&!game?.complete&&!game?.failed&&game?.moves>0;
-  button.className="omamori-power-button"+(powerSelection===power.id?" is-targeting":"");
-  button.dataset.power=power.id;
-  button.textContent=power.symbol+" "+power.name+" · "+power.charges;
-  button.title=power.description;
-  button.disabled=!selectable||!power.charges||!!game?.blessingUsed;
+ for(const card of owned){
+  const power=P.POWERS[card.id],button=document.createElement("button");
+  button.type="button";button.className="omamori-power-button"+(powerSelection===card.id?" is-targeting":"");
+  button.dataset.power=card.id;button.textContent=power.symbol+" "+power.name+" · "+["","I","II","III"][card.tier];
+  button.title="Stadium "+card.tier+" · "+power.description+" Kortet förbrukas vid användning.";
+  button.disabled=card.id==="tsuki"||!game||game.complete||game.failed||game.moves<=0;
   button.addEventListener("click",()=>{
-   powerSelection=powerSelection===power.id?null:power.id;
+   powerSelection=powerSelection===card.id?null:card.id;powerTargets=[];
    selected=-1;renderPowerBar();
-   $("selectedInfo").textContent=powerSelection?"Tryck på en ruta för att använda "+power.name:"Välj två grannar eller svep.";
-  });
-  bar.append(button);
+   $("selectedInfo").textContent=powerSelection?"Välj en ruta i spelplanen för "+power.name:"Välj två grannar eller svep.";
+  });bar.append(button);
+ }
+ if(game?.koiRerollAt>=0){
+  const button=document.createElement("button");button.type="button";
+  button.className="omamori-power-button";button.textContent="〰 Blanda igen";
+  button.addEventListener("click",()=>showKoiReroll());bar.append(button);
  }
  if(powerSelection){
-  const cancel=document.createElement("button");cancel.className="omamori-power-cancel";
-  cancel.type="button";cancel.textContent="Avbryt";
-  cancel.addEventListener("click",()=>{powerSelection=null;renderPowerBar();});
+  const cancel=document.createElement("button");cancel.type="button";
+  cancel.className="omamori-power-cancel";cancel.textContent="Avbryt";
+  cancel.addEventListener("click",()=>{powerSelection=null;powerTargets=[];renderPowerBar();});
   bar.append(cancel);
  }
 }
 function commitActivePower(id,at){
- if(!game||game.blessingUsed||!P.status(save,id)?.owned||P.status(save,id).charges<1)return false;
- const result=P.apply(game,id,at);
- if(!result.ok){toast("Omamori kunde inte användas här. Välj ett annat område.");return false;}
- if(!P.consume(save,id))throw Error("Omamori inventory validation failed");
- powerSelection=null;selected=-1;persist();
- $("modal").hidden=true;renderPowerBar();
+ const card=C.status(save,id);
+ if(!game||!card?.owned)return false;
+ const result=P.apply(game,id,at,card.tier);
+ if(!result.ok){toast("Det går inte att använda kortet här. Välj ett annat område.");return false;}
+ const spent=C.consume(save,id);
+ if(!spent.ok)throw Error("Consumable card was already spent");
+ powerSelection=null;powerTargets=[];selected=-1;persist();
+ $("modal").hidden=true;updateSpiritBadge();renderPowerBar();renderMenu();
  if(id==="tsuki"){
-  saveRun();renderBoard(game.board);renderHUD();
-  armDecisionClock();restartIdleHint();
-  toast("☾ Månens ro · 3 extra drag!");
+  saveRun();renderBoard(game.board);renderHUD();armDecisionClock();restartIdleHint();
+  toast("☾ Månens ro · "+game.moves+" extra drag!");
  }else void playEvents(result.events);
  return true;
 }
 function confirmPowerTarget(at){
- const id=powerSelection,power=P.status(save,id);
- if(!power||!power.owned||!power.charges||game?.blessingUsed){powerSelection=null;renderPowerBar();return;}
+ const id=powerSelection,card=C.status(save,id);
+ if(!card?.owned){powerSelection=null;powerTargets=[];renderPowerBar();return;}
  const piece=game.board[at];
- if(id==="sakura"&&(!piece||piece.stage>=5||["daruma","sealedStone"].includes(piece.family))){
-  toast("Välj en vanlig bricka som ännu inte nått stadium 5.");return;
- }
- if(id==="koi"){
-  const row=Math.floor(at/7),col=at%7;
-  const cells=[];
-  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
-   const rr=row+dr,cc=col+dc;
-   if(rr>=0&&rr<7&&cc>=0&&cc<7&&!["daruma","sealedStone"].includes(game.board[rr*7+cc]?.family))cells.push(rr*7+cc);
+ if(id==="sakura"){
+  if(!piece||piece.stage>=5||["daruma","sealedStone"].includes(piece.family)){
+   toast("Välj en vanlig bricka i stadium 1–4.");return;
   }
-  if(cells.length<3){toast("Här finns för få flyttbara brickor för att blanda.");return;}
+  if(powerTargets.includes(at)){toast("Välj en annan bricka.");return;}
+  powerTargets.push(at);
+  if(powerTargets.length<card.tier){
+   $("selectedInfo").textContent="Sakura stadium "+card.tier+": välj "+(card.tier-powerTargets.length)+" bricka/brickor till.";
+   toast("✿ "+powerTargets.length+"/"+card.tier+" brickor valda");
+   return;
+  }
  }
  clearIdleHint();disarmDecisionClock();
- $("modalEyebrow").textContent="OMAMORI · BEKRÄFTA";
- $("modalTitle").textContent=power.name;
+ $("modalEyebrow").textContent="OMAMORI · FÖRBRUKA KORT";
+ $("modalTitle").textContent=P.POWERS[id].name+" · stadium "+card.tier;
  const content=$("modalContent");content.replaceChildren();
- const desc=document.createElement("p");desc.className="omamori-power-confirm";
- desc.textContent=power.description+" Ruta "+(Math.floor(at/7)+1)+"-"+(at%7+1)+
-  ". Förbrukar en välsignelse och markerar nivån som assisterad. Ditt vanliga rekord påverkas inte.";
- content.append(desc);
+ const paragraph=document.createElement("p");paragraph.className="omamori-power-confirm";
+ paragraph.textContent=id==="sakura"?
+  "Utveckla "+card.tier+" valda brickor ett stadium.":"Blanda "+(card.tier===1?"2×2":"3×3")+
+  (card.tier===3?" och välj om du vill blanda samma område en gång till.":".");
+ paragraph.textContent+=" Kortet försvinner när du bekräftar, även om du senare förlorar nivån. Resultatet räknas som assisterat.";
+ content.append(paragraph);
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("victory-actions","pause-menu-actions");
- modalButton(actions,"Använd kortet (1 st)","primary",()=>commitActivePower(id,at));
+ const targets=id==="sakura"?powerTargets.slice():at;
+ modalButton(actions,"Använd kortet · stadium "+card.tier,"primary",()=>{
+  if(!commitActivePower(id,targets)){
+   $("modal").hidden=true;powerSelection=null;powerTargets=[];renderPowerBar();restartIdleHint();
+  }
+ });
  modalButton(actions,"Avbryt","secondary",()=>{
-  $("modal").hidden=true;powerSelection=null;renderPowerBar();armDecisionClock();restartIdleHint();
+  $("modal").hidden=true;powerSelection=null;powerTargets=[];renderPowerBar();armDecisionClock();restartIdleHint();
+ });
+ $("modal").hidden=false;
+}
+function showKoiReroll(){
+ if(!game||!Number.isInteger(game.koiRerollAt)||game.koiRerollAt<0||game.complete)return;
+ $("modalEyebrow").textContent="KOINS VÄG · STADIUM III";
+ $("modalTitle").textContent="Behåll eller blanda igen?";
+ $("modalContent").textContent="Du kan behålla det nya 3×3-området eller göra en andra omblandning utan extra kostnad. Samma område används.";
+ const actions=$("modalActions");actions.replaceChildren();
+ actions.classList.remove("victory-actions","pause-menu-actions");
+ modalButton(actions,"〰 Blanda igen","primary",()=>{
+  const again=P.reroll(game);
+  if(!again.ok){toast("Ingen bättre giltig omblandning hittades.");return;}
+  $("modal").hidden=true;saveRun();renderPowerBar();
+  void playEvents(again.events);
+ });
+ modalButton(actions,"Behåll","secondary",()=>{
+  game.koiRerollAt=-1;saveRun();$("modal").hidden=true;renderPowerBar();armDecisionClock();restartIdleHint();
  });
  $("modal").hidden=false;
 }
 function confirmMoonRescue(){
- if(!game?.failed||game.blessingUsed||P.status(save,"tsuki")?.charges<1)return;
+ const card=C.status(save,"tsuki");
+ if(!game?.failed||!card?.owned)return;
  $("modalEyebrow").textContent="OMAMORI · SISTA CHANSEN";
- $("modalTitle").textContent="Månens ro";
- $("modalContent").textContent="Förbrukar ett Månkort för 3 extra drag. Nivån räknas som assisterad och vanliga stjärnor, mynt och rekord påverkas inte.";
+ $("modalTitle").textContent="Månens ro · stadium "+card.tier;
+ const bonus=[0,2,3,5][card.tier];
+ $("modalContent").textContent="Förbruka hela Månkortet för "+bonus+" extra drag? Kortet försvinner även om nivån sedan förloras igen. Vanliga rekord och stjärnstämplar påverkas inte.";
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("victory-actions","pause-menu-actions");
- modalButton(actions,"Använd ☾ · +3 drag","primary",()=>commitActivePower("tsuki",-1));
+ modalButton(actions,"Använd Månen · +"+bonus+" drag","primary",()=>commitActivePower("tsuki",-1));
  modalButton(actions,"Tillbaka","secondary",showResult);
  $("modal").hidden=false;
 }

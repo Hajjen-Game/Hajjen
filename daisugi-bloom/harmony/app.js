@@ -277,8 +277,8 @@ function renderMenu(){
  if(coins)coins.textContent=prettify(menuWallet.coins)+" mynt";
  const charmProgress=$("omamoriProgress");
  if(charmProgress){
- const worn=S.status(save,menuWallet.equipped);
- charmProgress.textContent=worn?"Bär "+worn.name+" · Bond "+worn.tier+"/3":menuWallet.ownedCount+" av "+menuWallet.totalItems+" amuletter";
+ const worn=C.status(save,menuWallet.equipped);
+ charmProgress.textContent=worn?.owned?"Bär "+E.CATALOG.find(x=>x.id===worn.id).name+" · stadium "+worn.tier+"/3":E.CATALOG.filter(x=>C.has(save,x.id)).length+" aktiva Omamori-kort";
 }
  const daily=$("omikujiStatus");
  if(daily)daily.textContent=F.status(save).available?"Gratis idag":"Dagens lapp dragen";
@@ -1041,13 +1041,13 @@ async function celebrateCollection(evt){
  }
  await Promise.all(tasks);
 }
-function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUsed:!!game.blessingUsed},backgroundId:currentBackground};persist();}}
+function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false){
  if(busy)return;
  powerSelection=null;
  disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
  resetResonanceVisuals();clearPraise();
- level=i;powerSelection=null;rewardStarsAtLevelStart=G.archivedStars(save,i);
+ level=i;powerSelection=null;powerTargets=[];rewardStarsAtLevelStart=G.archivedStars(save,i);
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
  game=new R.Game(i,data,data?null:{directorMode:save.playMode==="auto"?(i>=9?"v4":"v3"):save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
@@ -1401,7 +1401,7 @@ function trySwap(a,b){
  }
  selected=-1;$("selectedInfo").textContent="Välj två grannar eller svep.";
  sound("swap");
- const bondGain=S.observe(save,level,result.events);
+ const bondGain=C.observe(save,level,result.events);
  if(bondGain.ok)persist();
  void playEvents(result.events,bondGain);
 }
@@ -2296,9 +2296,9 @@ async function playEvents(events,bondGain=null){
   if(!finished)restartIdleHint();
  }
  if(bondGain?.ok){
-  updateSpiritBadge();
-  toast(bondGain.tierUnlocked?"✦ Omamori Bond "+bondGain.tierUnlocked+" upplåst!":
-   "✦ "+bondGain.status.name+" · Bond "+bondGain.status.count+"/"+bondGain.status.max);
+  updateSpiritBadge();renderPowerBar();
+  toast(bondGain.promoted?"✦ Omamori uppgraderad till stadium "+bondGain.tier+"!":
+   "✦ Omamori-uppdrag "+bondGain.progress+"/6");
  }
  if(goalReached)unlockGoal();
  if(finished||goalReached)showResult();

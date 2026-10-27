@@ -27,7 +27,7 @@ check("Three tiers use 3 and 6 distinct level missions; new card resets them",()
   assert.equal(C.observe(s,level,ev).ok,false);
  }
  assert.equal(C.status(s,"sakura").tier,3);
- C.consume(s,"sakura");C.buy(s,"sakura");
+ C.consume(s,"sakura");C.buy(s,"sakura");C.equip(s,"sakura");
  assert.equal(C.status(s,"sakura").tier,1);
  assert.equal(C.observe(s,0,ev).ok,true);
 });

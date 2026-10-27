@@ -85,7 +85,8 @@ check("UI integrates a visible equipped Spirit and only cosmetic effects",()=>{
  const rules=fs.readFileSync(path.join(__dirname,"../harmony/rules.js"),"utf8");
  assert(html.includes('harmony/spirits.js?v=6.48.0-identity-bond'));
  assert(html.includes('id="spiritBadge"'));
- assert(app.includes("S.observe(save,level,result.events)"));
+ assert(app.includes("C.observe(save,level,result.events)"));
+ assert(app.includes("function spiritMoment(evt)"));
  assert(app.includes("function spiritMoment(evt)"));
  assert(app.includes("omamori-bond-detail"));
  assert(css.includes(".omamori-spirit-fx"));

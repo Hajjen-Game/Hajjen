@@ -215,9 +215,13 @@ check("Washi Zen UI 1.0: ten level cards per chapter and accurate Japanese label
   "A locked stage must never launch and resume must be preserved");
  assert(css.includes("grid-template-columns:repeat(5,minmax(0,1fr))"));
  assert(css.includes("grid-template-rows:repeat(2,minmax(0,1fr))"));
+ assert(css.includes("Washi Zen Polish 1.1"));
+ assert(app.includes('goshuinNode("span","washi-book-flourish"'));
+ assert(app.includes('numeralText.length>=3?'));
+ assert(html.includes("washi11"),"Updated app JS must bypass mobile cache");
  assert(css.includes("level-card.webp")&&css.includes("detail-card.webp"));
  assert(css.includes("book-background.webp")&&css.includes("arrow-left.webp"));
- assert(html.includes('washi-zen.css?v=1.0.0'));
+ assert(html.includes('washi-zen.css?v=1.1.0'));
  for(const [n,k] of [[1,"一"],[10,"十"],[11,"十一"],[24,"二十四"],[40,"四十"],[123,"百二十三"]])
   assert.equal(G.japaneseNumeral(n),k);
 });

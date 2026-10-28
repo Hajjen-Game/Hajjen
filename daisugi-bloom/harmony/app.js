@@ -423,8 +423,9 @@ function renderGoshuincho(){
  close.type="button";close.setAttribute("aria-label","Stäng nivåboken");
  close.addEventListener("click",()=>{$("modal").hidden=true;$("goshuinButton")?.focus();});
  const heading=goshuinNode("div","washi-book-heading");
- heading.append(goshuinNode("small","washi-book-eyebrow","御朱印帳 · KAPITEL "+info.number),
-  goshuinNode("h2","",info.title));
+ heading.append(goshuinNode("small","washi-book-eyebrow","第"+G.japaneseNumeral(info.number)+"章"),
+  goshuinNode("h2","",info.title),
+  goshuinNode("span","washi-book-flourish","── ✿ ──"));
  const progress=goshuinNode("span","washi-book-progress",info.earned+" / 10");
  progress.setAttribute("aria-label",info.earned+" av 10 nivåstämplar");
  head.append(heading,progress,close);album.append(head);
@@ -472,7 +473,8 @@ function renderGoshuincho(){
   tile.setAttribute("aria-label","Level "+stamp.number+", "+cfg.name+
     (stamp.locked?", låst":", "+stamp.stars+" av 3 stjärnor"));
   if(stamp.isCurrent)tile.setAttribute("aria-current","step");
-  const numeral=goshuinNode("span","washi-tile-jp",G.japaneseNumeral(stamp.number));
+  const numeralText=G.japaneseNumeral(stamp.number);
+  const numeral=goshuinNode("span","washi-tile-jp"+(numeralText.length>=4?" is-long-jp":numeralText.length>=3?" is-medium-jp":""),numeralText);
   numeral.lang="ja";
   const label=goshuinNode("strong","washi-tile-label","Level "+stamp.number);
   const grade=goshuinNode("span","washi-tile-seal");

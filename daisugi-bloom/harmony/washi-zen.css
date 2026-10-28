@@ -211,3 +211,274 @@ body:not(.harmony-playing) #menuView::after{
  font-size:12px;font-weight:700;color:#604437;
  background:#f9ebd3;border:1px solid #b9a07b;border-radius:9px;
 }
+
+
+/* ─────────────────────────────────────────────────────────────────────
+   Washi Zen Polish 1.1 · 2026-10-28
+   Reference: approved mobile screens. Painted assets remain unchanged.
+   This layer affects only the landing view and the ten-tile book.
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Do not allow the mobile browser to scroll into an empty strip below
+   the full-screen menu. Modals own their own scroll regions. */
+html:has(body:not(.harmony-playing) #menuView:not([hidden])){
+ height:100%;overflow:hidden;overscroll-behavior:none;
+}
+body:not(.harmony-playing):has(#menuView:not([hidden])){
+ height:100dvh;min-height:0;max-height:100dvh;
+ overflow:hidden;overscroll-behavior:none;
+}
+body:not(.harmony-playing):has(#menuView:not([hidden])) #app{
+ height:100dvh;min-height:0;max-height:100dvh;
+ overflow:hidden;padding:0!important;
+}
+body:not(.harmony-playing):has(#menuView:not([hidden])) #app > main{
+ height:100%;min-height:0;padding:0;margin:0;
+}
+body:not(.harmony-playing) #menuView{
+ height:100dvh;min-height:0;max-height:100dvh;
+ margin:0 auto!important;
+ padding:clamp(55px,9svh,105px) clamp(15px,3.8vw,28px)
+   calc(clamp(11px,2.1svh,23px) + env(safe-area-inset-bottom));
+ justify-content:flex-end;gap:0;
+ overflow:hidden;overscroll-behavior:contain;
+}
+body:not(.harmony-playing) #menuView .washi-home-logo{
+ min-height:0;flex:0 1 auto;
+ margin:auto 0 clamp(17px,3.8svh,40px);
+}
+body:not(.harmony-playing) #menuView .washi-home-asset-logo{
+ max-height:clamp(185px,34svh,315px);
+ width:min(94%,430px);
+}
+body:not(.harmony-playing) #menuView .washi-home-controls{
+ flex:0 0 auto;margin:0 auto;gap:clamp(10px,1.9svh,18px);
+}
+#menuView #continueButton{
+ position:relative;min-height:clamp(70px,10.3svh,94px);
+ width:min(91%,390px);
+ padding:9px 16px 12px;border:0;border-radius:0;
+ background:transparent url("../assets/washi-zen/play-brush.webp") center / 100% 100% no-repeat;
+ box-shadow:none;color:#fff8ed;
+}
+#menuView #continueButton span{font-size:clamp(24px,4.2svh,33px)}
+#menuView #continueButton strong{font-size:clamp(14px,2.3svh,18px)}
+#menuView #continueButton:focus-visible{outline-offset:0;border-radius:10px}
+
+#menuView .washi-home-link{
+ min-height:clamp(110px,16.7svh,141px);
+ padding:11px 5px 9px;gap:3px;border-radius:13px;
+ color:#54392f;border:1px solid #bf9761;
+ background:linear-gradient(135deg,#fff0d9ec,#efdec1f7);
+ box-shadow:0 2px 7px #4e352c25,inset 0 0 0 3px #fff6e5a6;
+}
+#menuView .washi-home-link::before{
+ content:"";position:absolute;inset:5px;border:1px solid #b88e58b3;
+ border-radius:9px;pointer-events:none;
+}
+#menuView .washi-home-link{position:relative}
+#menuView .washi-link-illustration{
+ min-height:30px;font-size:clamp(25px,4svh,35px);
+ color:#af473e;
+}
+#menuView .washi-home-link > span[lang="ja"]{
+ font-size:clamp(14px,2.35svh,19px);line-height:1.1;
+}
+#menuView .washi-home-link strong{
+ font-size:clamp(10px,1.65svh,12px);letter-spacing:.03em;
+}
+#menuView .washi-home-link small{
+ font-size:clamp(9px,1.55svh,11px);color:#7c6658;
+}
+#menuView .washi-advanced{
+ min-height:20px;margin:0 auto;
+ align-self:center;
+}
+#menuView .washi-advanced summary{
+ font-size:12px;color:#655449;line-height:20px;
+ text-shadow:0 1px 1px #f9eedac9;
+}
+#menuView .washi-advanced summary::marker{font-size:10px}
+#menuView .washi-advanced[open]{
+ max-height:min(42svh,280px);overflow-y:auto;
+ box-shadow:0 3px 18px #4c372929;
+}
+
+/* Allow scrolling only INSIDE advanced settings when it is expanded. */
+#menuView:has(.washi-advanced[open]){overflow-y:auto;justify-content:flex-start}
+#menuView:has(.washi-advanced[open]) .washi-home-logo{
+ margin-top:auto;
+}
+
+/* Small handsets: preserve visible control labels without introducing
+   a second page of blank viewport content. */
+@media(max-height:740px){
+ body:not(.harmony-playing) #menuView{
+  padding-top:clamp(38px,7svh,65px);
+  padding-bottom:calc(9px + env(safe-area-inset-bottom));
+ }
+ body:not(.harmony-playing) #menuView .washi-home-logo{
+  margin-bottom:clamp(8px,1.8svh,15px)
+ }
+ body:not(.harmony-playing) #menuView .washi-home-asset-logo{
+  max-height:clamp(160px,30svh,235px)
+ }
+ body:not(.harmony-playing) #menuView .washi-home-controls{
+  gap:clamp(6px,1.1svh,10px)
+ }
+ #menuView #continueButton{min-height:66px}
+ #menuView .washi-home-link{min-height:clamp(97px,15svh,113px)}
+}
+@media(max-height:610px){
+ body:not(.harmony-playing) #menuView{padding-top:35px}
+ body:not(.harmony-playing) #menuView .washi-home-asset-logo{max-height:25svh}
+ #menuView #continueButton{min-height:57px}
+ #menuView .washi-home-link{min-height:86px;padding-block:6px}
+ #menuView .washi-link-illustration{font-size:21px;min-height:22px}
+}
+
+/* More breathing room in the book header, a distinct chapter title
+   and aligned chapter navigation like the approved screenshot. */
+#modal .washi-goshuincho{
+ padding:calc(19px + env(safe-area-inset-top)) clamp(10px,3vw,22px)
+  calc(12px + env(safe-area-inset-bottom));
+}
+#modal .washi-book-top{
+ display:flex;align-items:center;justify-content:center;
+ min-height:clamp(98px,13svh,125px);
+ padding:0 46px;position:relative;
+}
+#modal .washi-book-heading{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ flex:1;gap:5px;min-width:0;text-align:center;
+}
+#modal .washi-book-eyebrow{
+ color:#755042;font:600 clamp(13px,2.3svh,16px)/1.15 Georgia,serif;
+ letter-spacing:.1em;
+}
+#modal .washi-book-heading h2{
+ font:700 clamp(22px,6.5vw,33px)/1.1 Georgia,"Times New Roman",serif;
+ color:#302622;margin:0;letter-spacing:-.015em;
+}
+#modal .washi-book-flourish{
+ font:700 15px/1 Georgia,serif;color:#ad7b37;
+ letter-spacing:.1em;white-space:nowrap;margin-top:1px;
+}
+#modal .washi-book-progress{
+ position:absolute;right:5px;top:54%;
+ transform:translateY(-50%);font:700 12px Georgia,serif;
+ color:#694739;
+}
+#modal .washi-book-close{
+ top:0;right:0;width:42px;height:42px;
+ border:1px solid #b98d55;background:#f6e7cc;
+ color:#71372e;box-shadow:0 1px 5px #4a2e2429;
+}
+#modal .washi-book-nav{
+ width:100%;max-width:570px;margin:3px auto clamp(12px,2svh,19px);
+ min-height:clamp(45px,7svh,58px);gap:12px;
+}
+#modal .washi-chapter-count{
+ font:700 clamp(13px,2.25svh,16px) Georgia,serif;
+ letter-spacing:.17em;color:#714334;text-align:center;
+}
+#modal .washi-nav{
+ flex:none;width:clamp(46px,7.4svh,58px);
+ height:clamp(46px,7.4svh,58px);
+}
+#modal .washi-level-grid{
+ width:100%;max-width:570px;
+ flex:0 1 auto;
+ height:clamp(220px,35svh,370px);
+ max-height:calc(100svh - 300px);
+ aspect-ratio:auto;
+ grid-template-columns:repeat(5,minmax(0,1fr));
+ grid-template-rows:repeat(2,minmax(0,1fr));
+ column-gap:clamp(3px,1.2vw,9px);
+ row-gap:clamp(7px,1.5svh,12px);
+}
+#modal .washi-level-tile{
+ display:grid;position:relative;
+ grid-template-rows:auto auto minmax(0,1fr);
+ justify-items:center;align-items:start;align-content:stretch;
+ min-width:0;min-height:0;overflow:hidden;
+ gap:clamp(3px,.65svh,6px);
+ padding:clamp(14px,2.3svh,19px) 4px 9px;
+ border:0;border-radius:10px;
+ background-size:100% 100%;
+ box-shadow:0 2px 6px #47312627;
+}
+#modal .washi-level-tile .washi-tile-label{
+ display:block;max-width:100%;line-height:1.1;
+ font-size:clamp(10px,2.75vw,14px);
+ color:#312720;text-align:center;white-space:nowrap;
+}
+#modal .washi-level-tile .washi-tile-jp{
+ display:block;max-width:100%;font:600 clamp(16px,4.4vw,24px)/1.05 Georgia,serif;
+ color:#332820;text-align:center;white-space:nowrap;
+}
+#modal .washi-level-tile .washi-tile-jp.is-medium-jp{
+ font-size:clamp(14px,3.65vw,19px);letter-spacing:-.025em;
+}
+#modal .washi-level-tile .washi-tile-jp.is-long-jp{
+ font-size:clamp(11px,3.05vw,16px);letter-spacing:-.06em;
+}
+#modal .washi-tile-seal{
+ align-self:end;justify-self:center;display:grid;place-items:center;
+ width:min(82%,63px);max-width:none;height:auto;aspect-ratio:1;
+ min-height:0;max-height:100%;margin:0 auto 1px;
+}
+#modal .washi-stamp-art{
+ display:grid;place-items:center;width:100%;max-width:100%;
+ max-height:100%;aspect-ratio:1;
+}
+#modal .washi-empty-seal{
+ width:85%;aspect-ratio:1;border:1px solid #c3958069;
+ border-radius:50%;font:700 clamp(17px,4vw,26px)/1 Georgia,serif;
+}
+#modal .washi-level-tile.is-selected{
+ outline:2px solid #b63e35;outline-offset:-2px;
+ box-shadow:0 0 0 2px #f4e2c7,0 0 0 4px #ac3932ba,0 3px 10px #a2323040;
+}
+#modal .washi-level-detail{
+ min-height:clamp(74px,11svh,99px);
+ flex:0 0 auto;gap:12px;padding:clamp(11px,1.75svh,17px) clamp(13px,2.5vw,20px);
+ margin:clamp(14px,2.4svh,24px) auto 0;
+ border:0;border-radius:11px;
+ background-size:100% 100%;
+ box-shadow:0 3px 11px #5336202b;
+}
+#modal .washi-detail-copy{gap:7px}
+#modal .washi-detail-numeral{
+ font:700 clamp(12px,2.4svh,15px)/1.1 Georgia,serif;
+ letter-spacing:.02em;
+}
+#modal .washi-detail-name{
+ font:700 clamp(15px,3.9vw,22px)/1.18 Georgia,serif;
+ line-height:1.15;overflow-wrap:anywhere;
+}
+#modal .washi-detail-play{
+ min-width:clamp(95px,24vw,142px);min-height:clamp(46px,7svh,64px);
+ flex:none;padding:7px 10px;border:0;border-radius:0;box-shadow:none;
+ background:transparent url("../assets/washi-zen/play-brush.webp") center / 100% 100% no-repeat;
+ color:#fff7ed;font-size:clamp(14px,2.2svh,18px);
+ text-shadow:0 1px 2px #532e27a1;
+}
+#modal .washi-detail-play:focus-visible{outline-offset:1px;border-radius:8px}
+@media(max-width:360px){
+ #modal .washi-book-top{padding-inline:35px}
+ #modal .washi-book-heading h2{font-size:clamp(19px,6vw,26px)}
+ #modal .washi-book-progress{right:0;top:70%}
+ #modal .washi-level-grid{height:clamp(215px,35svh,290px)}
+ #modal .washi-level-tile{padding-top:12px;gap:2px;padding-inline:2px}
+ #modal .washi-level-tile .washi-tile-label{font-size:clamp(9px,2.75vw,11px)}
+ #modal .washi-tile-seal{width:84%}
+ #modal .washi-detail-play{min-width:83px}
+}
+@media(max-height:700px){
+ #modal .washi-book-top{min-height:85px}
+ #modal .washi-book-nav{margin-bottom:9px}
+ #modal .washi-level-grid{height:clamp(195px,34svh,280px);max-height:calc(100svh - 240px)}
+ #modal .washi-level-tile{padding-top:11px;padding-bottom:5px;gap:3px}
+ #modal .washi-level-detail{min-height:68px;margin-top:10px}
+}

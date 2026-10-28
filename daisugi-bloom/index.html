@@ -2,12 +2,13 @@
 <html lang="sv">
 <head>
  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
- <meta name="theme-color" content="#102A37">
+ <meta name="theme-color" content="#f4e5d0">
  <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
- <title>Japanese Harmony · Harmony Director 4.0 · 6.50.0</title>
+ <title>Japanese Harmony · Washi Zen 1.0</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
  <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.50.0-omamori-cards">
+ <link rel="stylesheet" href="./harmony/washi-zen.css?v=1.0.0">
  <script defer src="./harmony/rules.js?v=6.47.1-sealed-pulse"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
@@ -30,63 +31,44 @@
    <div class="top-actions"><button id="helpButton" class="secondary small">Så spelar du</button><button id="devButton" class="secondary small dev-shortcut" aria-label="Game Dev Motorlab">Game Dev</button><button id="settingsButton" class="icon-button" aria-label="Inställningar">⚙</button></div>
   </header>
   <main>
-   <section id="menuView" class="menu-view">
-    <div class="hero">
-      <div class="eyebrow">MIDNIGHT GARDEN · JAPANSKT MATCH-PUSSEL</div>
-      <h1>Skapa något <em>extraordinärt.</em></h1>
-      <p>Förädla japanska objekt genom fem stadier och samla mästerverk.</p>
-      <div class="hero-pills" aria-label="Spelprinciper"><span>Valfria Omamori-krafter</span><span>Strategiska kedjor</span><span>Personliga rekord</span></div>
+   <section id="menuView" class="menu-view washi-home" aria-label="Japanese Harmony startsida">
+    <div class="washi-home-logo" role="img" aria-label="Japanese Harmony">
+      <span class="washi-home-kanji" lang="ja">和</span><span class="washi-home-seal" lang="ja">日本</span>
+      <span class="washi-home-name">JAPANESE <small>HARMONY</small></span>
+      <span class="washi-home-rule" aria-hidden="true">──── ✿ ────</span>
     </div>
-    <div class="level-panel">
-      <div class="panel-heading"><div><div class="eyebrow" id="chapterEyebrow">INTRODUKTION + JOURNEY</div><h2 id="chapterTitle">Goshuincho</h2><p id="chapterSubtitle">Samla stämplar och upptäck nästa kapitel.</p></div><div class="chapter-stat" id="chapterStars">☆ 0 / 30</div></div>
-      <div class="family-progression-note" aria-label="Objektfamiljer per nivå">
-       <strong>✿ 4 familjer · nivå 1–10</strong>
-       <span>5 familjer från nivå 11 · mjuk övergång</span>
+    <div class="washi-home-controls">
+      <button type="button" id="continueButton" class="washi-play-main"><span lang="ja">プレイ</span><strong>SPELA</strong></button>
+      <div class="washi-home-links" aria-label="Samling och belöningar">
+        <button type="button" id="goshuinButton" class="washi-home-link">
+          <span class="washi-link-illustration" aria-hidden="true">▤</span><span lang="ja">御朱印帳</span><strong>GOSHUINCHO</strong><small id="goshuinProgress">0 stämplar</small>
+        </button>
+        <button type="button" id="omamoriButton" class="washi-home-link">
+          <span class="washi-link-illustration" aria-hidden="true">守</span><span lang="ja">お守り</span><strong>OMAMORI</strong><small id="omamoriProgress">Kort</small><span id="harmonyCoins" class="washi-wallet">0 mynt</span>
+        </button>
+        <button type="button" id="omikujiButton" class="washi-home-link">
+          <span class="washi-link-illustration" aria-hidden="true">⛩</span><span lang="ja">おみくじ</span><strong>OMIKUJI</strong><small id="omikujiStatus">Lyckolapp</small>
+        </button>
       </div>
-      <button type="button" id="goshuinButton" class="goshuin-entry">
-       <span class="goshuin-entry-icon" aria-hidden="true">▤</span>
-       <span class="goshuin-entry-copy"><strong>Goshuincho · Välj nivå</strong><small>Öppna samlarboken, välj kapitel och spela</small></span>
-       <span class="goshuin-entry-progress" id="goshuinProgress">0 / 10 stämplar</span>
-       <span class="goshuin-entry-arrow" aria-hidden="true">›</span>
-      </button>
-      <div class="panel-footer"><button class="secondary" id="continueButton">Spela nästa nivå →</button><p>Välj nivå i Goshuincho. Klara målet för en stjärna, färre drag ger upp till tre.</p></div>
-      <section class="menu-rewards" aria-labelledby="menuRewardsTitle">
-       <div class="menu-rewards-heading"><h3 id="menuRewardsTitle">Samling &amp; belöningar</h3><span>En liten extra glädje</span></div>
-       <button type="button" id="omamoriButton" class="omamori-entry" aria-label="Öppna Omamori-butik och samling">
-       <span class="omamori-entry-mark" aria-hidden="true">✧</span>
-       <span class="omamori-entry-label"><strong>Omamori</strong><small id="omamoriProgress">0 av 6 amuletter</small></span>
-       <strong id="harmonyCoins" class="omamori-coin-count">0 mynt</strong>
-       <span aria-hidden="true" class="omamori-entry-arrow">›</span>
-      </button>
-      <button type="button" id="omikujiButton" class="omikuji-entry" aria-label="Öppna Omikuji lyckolapp">
-       <span class="omikuji-entry-mark" aria-hidden="true">お</span>
-       <span class="omikuji-entry-label"><strong>Omikuji</strong><small>Dagens lyckolapp</small></span>
-       <span id="omikujiStatus" class="omikuji-entry-status">Gratis idag</span>
-       <span class="omikuji-entry-arrow" aria-hidden="true">›</span>
-      </button>
-      </section>
-      <details class="menu-advanced" id="menuAdvanced">
-       <summary>Avancerat <span>Spelmotor och utvecklarinformation</span></summary>
-       <div class="director-picker">
+      <details class="washi-advanced" id="menuAdvanced">
+        <summary>Spelinställningar</summary>
         <label for="gameDirectorMode">SPELMOTOR</label>
         <select id="gameDirectorMode" aria-label="Välj Director-läge för nya spel">
-         <option value="auto" selected>Automatiskt · 4.0 från nivå 10</option>
-          <option value="v4">Harmony Director 4.0 (alla nivåer) · test</option>
+          <option value="auto" selected>Automatiskt · 4.0 från nivå 10</option>
+          <option value="v4">Harmony Director 4.0 · test</option>
           <option value="v3">Harmony Pacing Director 3.0</option>
-         <option value="v31">Objective Awareness Director 3.1 · experimentell</option>
-         <option value="v311">Endgame Objective Awareness 3.1.1 · experimentell</option>
-         <option value="v2">Opportunity Director 2.0</option>
-         <option value="standard">Standard – klassisk påfyllning</option>
+          <option value="v31">Objective Awareness Director 3.1</option>
+          <option value="v311">Endgame Objective Awareness 3.1.1</option>
+          <option value="v2">Opportunity Director 2.0</option>
+          <option value="standard">Standard</option>
         </select>
-        <p id="directorModeDescription">3.0 på nivå 1–9 och 4.0 från nivå 10. Påbörjade nivåer påverkas inte.</p>
-       </div>
+        <p id="directorModeDescription">3.0 på nivå 1–9 och 4.0 från nivå 10.</p>
       </details>
-      <!-- Legacy level-list DOM is kept hidden temporarily for compatibility
-           with historical diagnostic checks. Players use Goshuincho instead. -->
-      <div id="levelList" class="level-list" hidden aria-hidden="true" inert></div><nav id="levelPager" class="level-pager" hidden aria-hidden="true" inert></nav>
     </div>
-   </section>
-   <section id="gameView" class="game-view" hidden>
+    <div id="levelList" class="level-list" hidden inert aria-hidden="true"></div>
+    <nav id="levelPager" class="level-pager" hidden inert aria-hidden="true"></nav>
+  </section>
+  <section id="gameView" class="game-view" hidden>
     <div class="game-heading" aria-label="Spelstatus">
      <div class="moves"><span>DRAG KVAR</span><strong id="movesCount">24</strong></div>
      <div id="scorePanel" class="hud-score score-panel">

@@ -1652,7 +1652,7 @@ try{
   return {
    body:getComputedStyle(document.body,"::before").backgroundImage,
    backdropVisibility:getComputedStyle(node("#festivalBackdrop")).visibility,
-   frame:getComputedStyle(node(".board-shell"),"::after").backgroundImage,
+   frame:getComputedStyle(node(".board-frame-art")).backgroundImage,
    tile:paint(".game-view .tile:nth-child(3)"),
    tileEven:paint(".game-view .tile:nth-child(2)"),
    board:paint(".game-view .board"),
@@ -1669,41 +1669,87 @@ try{
    "Old blue festival backdrop must not cover gameplay background");
  assert(washi.frame.includes("gameplay-washi/board-frame.webp"),
    "Board must render the approved transparent antique gold frame");
- // Gameplay Washi Zen 1.2: art rails are visibly in FRONT of the
- // outer board edge, while an even-odd transparent cutout protects sprites.
- const frameLayer=await page.evaluate(()=>{
+
+ // Gameplay Washi Zen 1.3: the asset is a dedicated NON-interactive
+ // sibling and the grid sits inside the visible gold rails on every phone.
+ const frameLayer=await page.evaluate(async()=>{
    const shell=document.querySelector(".game-view .board-shell");
-   const paint=getComputedStyle(shell,"::after");
-   const board=getComputedStyle(document.querySelector(".game-view .board"));
-   const r=shell.getBoundingClientRect();
+   const frame=document.querySelector(".game-view .board-frame-art");
+   const board=document.querySelector(".game-view .board");
+   const style=getComputedStyle(frame);
+   const shellStyle=getComputedStyle(shell);
+   const box=shell.getBoundingClientRect();
+   const grid=board.getBoundingClientRect();
+   const first=board.querySelector(".tile");
+   const firstBox=first.getBoundingClientRect();
+   const element=document.elementFromPoint(firstBox.left+firstBox.width/2,firstBox.top+firstBox.height/2);
+   const url=style.backgroundImage.match(/url\\(["']?(.*?)["']?\\)/)?.[1]||"";
+   const img=new Image();
+   img.src=url;
+   await img.decode();
+   // At mid-height the file has gold rails but no sakura branches.
+   // Scan its real alpha channel to test against the reserved gutter,
+   // so moving or replacing the transparent source cannot silently
+   // bring the rail back onto interactive pieces.
+   const canvas=document.createElement("canvas");
+   canvas.width=img.naturalWidth;
+   canvas.height=1;
+   const ctx=canvas.getContext("2d",{willReadFrequently:true});
+   ctx.drawImage(img,0,Math.floor(img.naturalHeight/2),
+     img.naturalWidth,1,0,0,img.naturalWidth,1);
+   const rgba=ctx.getImageData(0,0,canvas.width,1).data;
+   let firstPainted=-1;
+   for(let x=0;x<canvas.width/2;x++){
+     if(rgba[x*4+3]>100){firstPainted=x;break}
+   }
    return {
-     inset:parseFloat(paint.top),xInset:parseFloat(paint.left),
-     backgroundSize:paint.backgroundSize,clip:paint.clipPath,
-     frameBand:paint.getPropertyValue("--jh-frame-band").trim(),
-     frameLayer:Number(paint.zIndex),boardLayer:Number(board.zIndex),
-     pointerEvents:paint.pointerEvents,
-     bodyWidth:document.body.scrollWidth,
+     url:style.backgroundImage,
+     frameDisplay:style.display,
+     frameSize:style.backgroundSize,
+     frameLayer:Number(style.zIndex),
+     boardLayer:Number(getComputedStyle(board).zIndex),
+     frameHit:style.pointerEvents,
+     pseudo:getComputedStyle(shell,"::after").display,
+     shellOverflow:shellStyle.overflow,
+     shellWidth:box.width, shellHeight:box.height,
+     boardWidth:grid.width,boardHeight:grid.height,
+     insetLeft:grid.left-box.left,
+     insetRight:box.right-grid.right,
+     insetTop:grid.top-box.top,
+     insetBottom:box.bottom-grid.bottom,
+     paintStartFraction:firstPainted/img.naturalWidth,
+     tileReachable:first?.contains(element)||element===first,
+     gridCount:board.querySelectorAll(".tile").length,
      viewportWidth:window.innerWidth,
-     boardWidth:document.querySelector(".game-view .board").getBoundingClientRect().width,
-     shellWidth:r.width
+     documentWidth:document.documentElement.scrollWidth
    };
  });
- assert.equal(frameLayer.inset,0,"Frame must stay in its shell without overflowing");
- assert.equal(frameLayer.xInset,0,"Frame may not expand document width");
- assert(frameLayer.backgroundSize.includes("calc("),
-   "Gold rails must be aligned to the outer edge of the approved art");
- assert(frameLayer.frameLayer>frameLayer.boardLayer,
-   "Frame must be visible in front of the board background");
- assert(frameLayer.clip.startsWith("polygon(evenodd"),
-   "Interior of front frame must be cut out, keeping all sprites and VFX visible");
- assert(frameLayer.frameBand.startsWith("clamp("),
-   "Protective frame band must scale across mobile and desktop");
- assert.equal(frameLayer.pointerEvents,"none",
-   "Frame must not intercept touch or pointer input");
- assert(frameLayer.bodyWidth<=frameLayer.viewportWidth,
-   "Frame must not introduce horizontal document overflow");
- assert(frameLayer.boardWidth<=frameLayer.shellWidth,
-   "Frame must not alter the playable board's width");
+ assert(frameLayer.url.includes("gameplay-washi/board-frame.webp"),
+  "Real standalone gold frame art must render");
+ assert.equal(frameLayer.frameDisplay,"block","The gold artwork layer must exist");
+ assert.equal(frameLayer.frameSize,"100% 100%","The frame must retain its complete uncropped transparency");
+ assert.equal(frameLayer.pseudo,"none","The old overlay frame must be disabled");
+ assert(frameLayer.frameLayer<frameLayer.boardLayer,
+  "Gold ornament belongs behind the board cells, outside their footprint");
+ assert.equal(frameLayer.frameHit,"none","Decorative art must not capture touch events");
+ assert.equal(frameLayer.shellOverflow,"visible","Flower tips cannot be clipped by shell overflow");
+ assert.equal(frameLayer.gridCount,49,"The game keeps its full 7×7 board");
+ assert(frameLayer.tileReachable,"Board tiles must remain reachable at centre");
+ assert(frameLayer.paintStartFraction>0&&frameLayer.paintStartFraction<.08,
+  "Frame image must have a narrow transparent outer gutter");
+ assert(frameLayer.insetLeft/frameLayer.shellWidth>frameLayer.paintStartFraction,
+  "The first playable column must start INSIDE the painted left rail");
+ assert(frameLayer.insetRight/frameLayer.shellWidth>frameLayer.paintStartFraction,
+  "The last playable column must end INSIDE the painted right rail");
+ assert(Math.abs(frameLayer.insetLeft-frameLayer.insetRight)<2,
+  "Board must be centered within the artwork");
+ assert(Math.abs(frameLayer.insetTop-frameLayer.insetBottom)<2,
+  "Top and bottom artwork spacing must match");
+ assert(Math.abs(frameLayer.shellWidth-frameLayer.shellHeight)<2,
+  "The 1536x1536 artwork must not be stretched off square");
+ assert(frameLayer.documentWidth<=frameLayer.viewportWidth,
+  "New frame must not cause horizontal mobile scrolling");
+ console.log("Washi frame alignment",JSON.stringify(frameLayer));
 
  assert.equal(washi.n,49,"Gameplay remains a 7×7 interactive grid");
  assert(washi.board.fill.includes("36, 29, 32"),

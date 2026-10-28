@@ -1634,89 +1634,77 @@ try{
  const box=await page.$eval("#board",e=>({width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}));
  assert(box.width>300&&Math.abs(box.width-box.height)<2,"7x7 board should be square and fill phone width");
 
- // Board Glass 1.0: the playable 7x7 surface and ordinary cell backgrounds
- // must actually be translucent midnight blue after ALL mobile CSS overrides.
- // This is a computed-style check, not just a brittle source-string assertion.
- const glass=await page.evaluate(()=>{
-  const bg=selector=>{
-   const style=getComputedStyle(document.querySelector(selector));
-   return {background:style.backgroundColor,image:style.backgroundImage,
-    border:style.borderColor,shadow:style.boxShadow};
-  };
-  return {shell:bg(".game-view .board-shell"),board:bg(".game-view .board"),
-   goal:bg(".game-view .goal"),odd:bg(".game-view .tile:nth-child(3)"),
-   even:bg(".game-view .tile:nth-child(2)")};
- });
- const channels=color=>{
-  const match=color.match(/^rgba?\(([^)]+)\)$/);
-  assert(match,"Expected CSS color, received "+color);
-  return match[1].split(",").map(Number);
- };
- for(const [name,item] of [["odd",glass.odd],["even",glass.even]]){
-  const [r,g,b,a]=channels(item.background);
-  assert(b>r&&g>r,"Regular "+name+" tile must be blue/teal rather than beige: "+item.background);
-  assert(a<1&&a>.55,"Regular "+name+" tile must be partly transparent, not solid: "+item.background);
- }
- assert(glass.shell.image.includes("linear-gradient")&&glass.board.image.includes("linear-gradient"),
-  "Shell and board must share dark blue translucent glass gradients");
- assert(glass.shell.shadow.includes("216, 173, 114")||glass.shell.shadow.includes("216,173,114"),
-  "Existing gold inset frame should remain around the glass playfield");
-
- // Board Glass 1.1: tile center light is an image layer, not an opaque
- // replacement that would erase the existing selected/swap/pulse tints.
- const polish=await page.evaluate(()=>{
-  const board=document.querySelector(".game-view .board");
-  const tile=document.querySelector(".game-view .tile:nth-child(3)");
-  const even=document.querySelector(".game-view .tile:nth-child(2)");
-  // Measure the final CSS states, not the first frame of the 80ms tint transition.
-  tile.style.setProperty("transition","none","important");
-  const view=e=>({color:getComputedStyle(e).backgroundColor,image:getComputedStyle(e).backgroundImage});
-  const base=view(tile),alternate=view(even);
-  const states={};
-  for(const state of ["swapped","pulsed","harvested","shuffling"]){
-   tile.classList.add(state);
-   states[state]=view(tile);
-   tile.classList.remove(state);
+ // Gameplay Washi Zen 1.0: actual browser-computed textures, frame and VFX.
+ // Keep the exact 49 real cells and preserve interaction/animation states.
+ const washi=await page.evaluate(()=>{
+  const node=q=>document.querySelector(q);
+  const paint=q=>{const v=getComputedStyle(node(q));return {
+   fill:v.backgroundColor,image:v.backgroundImage,border:v.borderTopWidth,shadow:v.boxShadow
+  }};
+  const tile=node(".game-view .tile:nth-child(3)");
+  const base=getComputedStyle(tile).backgroundImage;
+  const stateLayers={};
+  for(const state of ["selected","swapped","pulsed","harvested","shuffling"]){
+    tile.classList.add(state);
+    stateLayers[state]=getComputedStyle(tile).backgroundImage;
+    tile.classList.remove(state);
   }
-  return {gap:getComputedStyle(board).gap,base,alternate,states,
-   spriteFilter:getComputedStyle(tile.querySelector(".piece .sprite")).filter,
-   selectedBorder:(()=>{
-    tile.classList.add("selected");
-    const shadow=getComputedStyle(tile).boxShadow;
-    tile.classList.remove("selected");
-    return shadow;
-   })()};
+  return {
+   body:getComputedStyle(document.body,"::before").backgroundImage,
+   backdropVisibility:getComputedStyle(node("#festivalBackdrop")).visibility,
+   frame:getComputedStyle(node(".board-shell"),"::after").backgroundImage,
+   tile:paint(".game-view .tile:nth-child(3)"),
+   tileEven:paint(".game-view .tile:nth-child(2)"),
+   board:paint(".game-view .board"),
+   goal:paint(".game-view .goal"),
+   progress:paint("#goalProgress"),
+   states:stateLayers,
+   n:document.querySelectorAll("#board .tile").length,
+   base
+  };
  });
- const gridGap=parseFloat(polish.gap);
- assert(gridGap>=1.4&&gridGap<=1.9,
-  "Polished grid should be subtly thinner than the former 2px: "+polish.gap);
- assert(polish.base.image.includes("radial-gradient")&&polish.alternate.image.includes("radial-gradient"),
-  "All glass tiles require a subtle central highlight, not a flat fill");
- assert.notEqual(polish.base.image,polish.alternate.image,
-  "Alternating glass rows should have slightly different depth");
- assert(polish.spriteFilter.includes("drop-shadow"),
-  "Transparent item art must have a subtle silhouette shadow");
- for(const [name,state] of Object.entries(polish.states)){
-  assert.notEqual(state.color,polish.base.color,
-   "Glass depth must preserve "+name+" event tint rather than overwrite it");
-  assert(state.image.includes("radial-gradient"),
-   "Glass depth should persist throughout "+name+" state");
+ assert(washi.body.includes("gameplay-washi/background.webp"),
+   "Playing must use the approved sunset painting, independent of menu theme");
+ assert.equal(washi.backdropVisibility,"hidden",
+   "Old blue festival backdrop must not cover gameplay background");
+ assert(washi.frame.includes("gameplay-washi/board-frame.webp"),
+   "Board must render the approved transparent antique gold frame");
+ assert.equal(washi.n,49,"Gameplay remains a 7×7 interactive grid");
+ assert(washi.board.fill.includes("36, 29, 32"),
+   "Board gaps must be dark warm charcoal rather than blue glass");
+ for(const [name,tile] of [["odd",washi.tile],["even",washi.tileEven]]){
+  assert(tile.image.includes("gameplay-washi/tile.webp"),
+    name+" tile must display approved 256px washi texture");
+  assert(!tile.image.includes("radial-gradient"),
+    name+" tile must not carry the old blue-green glass glow");
  }
- assert(polish.selectedBorder.includes("242, 198, 110"),
-  "Gold selected-state marker must remain visible after polish");
-
+ assert(washi.goal.image.includes("gameplay-washi/goal.webp"),
+   "Goal panel must display the approved brown gold-bordered image");
+ assert.equal(washi.progress.fill,"rgba(0, 0, 0, 0)",
+   "Counter parchment is already part of goal artwork; no duplicate rectangle");
+ for(const [state,image] of Object.entries(washi.states)){
+  assert(image.includes("gameplay-washi/tile.webp"),
+    "The "+state+" board event must keep its textured surface");
+ }
+ assert(washi.states.selected.includes("linear-gradient"),
+   "Selected tile must retain a distinct visible warm selection tint");
 
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-hd"),{timeout:15000});
  const loadedBackground=await page.evaluate(()=>{
    const img=document.querySelector("#festivalBackdrop");
-   return {url:img.currentSrc||img.src,ready:img.complete&&img.naturalWidth>0,
-     display:getComputedStyle(img).display,
-     pseudo:getComputedStyle(document.body,"::before").display};
+   const art=getComputedStyle(document.body,"::before");
+   return {baseReady:img.complete&&img.naturalWidth>0,
+     baseSrc:img.currentSrc||img.src,
+     artImage:art.backgroundImage,artVisible:art.display,
+     backdropVisibility:getComputedStyle(img).visibility};
  });
- assert(loadedBackground.ready&&loadedBackground.url.includes("festival-hd-"),"HD image must be rendered by an actual loaded DOM image");
- assert.equal(loadedBackground.display,"block","Background element must be visible");
- assert.equal(loadedBackground.pseudo,"none","Old atlas should not be composited when HD is loaded");
+ assert(loadedBackground.baseReady&&loadedBackground.baseSrc.includes("festival-hd-"),
+  "The existing festival backdrop remains available for menu scenes");
+ assert(loadedBackground.artVisible!=="none"&&
+  loadedBackground.artImage.includes("gameplay-washi/background.webp")&&
+  loadedBackground.backdropVisibility==="hidden",
+  "The gameplay screen should display its own approved sunset");
  await page.screenshot({path:"/tmp/daisugi-bloom/japanese-harmony-mobile.png",fullPage:true});
  const layout=await page.evaluate(()=>{
   const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width}};

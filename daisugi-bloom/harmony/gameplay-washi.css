@@ -1,0 +1,305 @@
+/* Japanese Harmony · Gameplay Washi Zen 1.0
+   Approved artwork: 2026-10-28. Visual-only. Never change grid state,
+   fusion destinations, touch targets, sprites, Mist/Daruma/Stone VFX or saves.
+   Asset dimensions: background 1440x3200; frame 1536x1536;
+   tile texture 256x256; goal panel transparent 1600x264. */
+
+/* Play backdrop is deliberately independent of the menu/Goshuincho scenes.
+   Leave the HD festival img and its theme chooser intact for other views. */
+body.harmony-playing{
+  background-color:#3d3030;
+}
+body.harmony-playing .festival-backdrop{visibility:hidden!important}
+body.harmony-playing::before{
+  display:block!important;
+  opacity:1!important;
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-image:url("../assets/gameplay-washi/background.webp")!important;
+  background-size:cover!important;
+  background-position:center top!important;
+  background-repeat:no-repeat!important;
+}
+body.harmony-playing::after{
+  /* A gentle warm veil is enough. Do not muddy the sakura and red sun. */
+  background:linear-gradient(180deg,rgba(31,17,19,.07) 0%,
+    rgba(39,23,25,.12) 38%,rgba(29,19,20,.24) 100%)!important;
+}
+body.harmony-playing .game-view{
+  --jh-paper:#f5e5c9;
+  --jh-paper-ink:#46352c;
+  --jh-ink:#352729;
+  --jh-antique-gold:#bf925e;
+  --jh-border-gold:#cfa56a;
+  color:#f6e8d4;
+  margin-top:clamp(8px,1.4dvh,16px);
+  font-family:Georgia,Georgia,serif;
+}
+/* HUD: temporary CSS washi finishing, to be replaced by commissioned art
+   in Assets 2.0; preserve the actual moves/score/stars DOM. */
+body.harmony-playing .game-view .game-heading{
+  gap:clamp(5px,1.15vw,11px);
+  align-items:center;
+  margin-bottom:clamp(5px,1dvh,11px);
+}
+body.harmony-playing .game-view .moves,
+body.harmony-playing .game-view .hud-score{
+  min-height:0;
+  height:clamp(70px,18vw,108px);
+  padding:6px 7px;
+  opacity:1;
+  border:2px solid #9b694d;
+  border-radius:clamp(10px,3vw,18px);
+  color:#49342b;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(255,249,232,.95),transparent 75%),
+    linear-gradient(135deg,#f6e8ce,#ead1b0);
+  box-shadow:inset 0 0 0 2px #fff2d7,inset 0 0 0 4px #bd9566,
+    0 3px 0 #774a34,0 5px 11px rgba(30,15,16,.22);
+}
+body.harmony-playing .game-view .moves::after{
+  top:-5px;
+  left:5px;
+  color:#b47e63;
+  text-shadow:none;
+  font-size:13px;
+  opacity:.65;
+}
+body.harmony-playing .game-view .moves span,
+body.harmony-playing .game-view .hud-score .hud-label{
+  color:#654638;
+  letter-spacing:.10em;
+  font-family:Georgia,serif;
+}
+body.harmony-playing .game-view .moves strong,
+body.harmony-playing .game-view .hud-score #scoreCount{
+  color:#3a3430;
+  text-shadow:0 1px rgba(255,250,235,.85);
+}
+body.harmony-playing .game-view .hud-score .hud-score-footer{border-top-color:rgba(153,109,76,.30)}
+body.harmony-playing .game-view .hud-score .hud-record{color:#614334}
+body.harmony-playing .game-view .pause-button{
+  border:3px double #e3b878;
+  border-radius:50%;
+  color:#fce4a3;
+  background:radial-gradient(circle at 34% 23%,#b35243,#792520 70%,#561c20);
+  box-shadow:inset 0 0 0 2px #753525,inset 0 2px 5px #d37b55a0,
+    0 4px 8px #24121778;
+  text-shadow:0 1px #5c2521;
+  margin:0;
+}
+body.harmony-playing .game-view .pause-button:active{transform:translateY(2px) scale(.96)}
+body.harmony-playing .game-view .game-meta{
+  color:#f9e6cb;
+  text-shadow:0 1px 4px rgba(28,15,17,.9);
+  margin-bottom:clamp(5px,.9dvh,9px);
+}
+body.harmony-playing .game-view .game-meta .eyebrow{color:#f7d69b}
+body.harmony-playing .game-view .game-meta #levelTitle{color:#f8e5ce}
+
+/* Commissioned transparent 6.4:1 goal art already contains its count-paper.
+   Put the DOM progress on that paper; never add a second paper rectangle. */
+body.harmony-playing .game-view .goal,
+body.harmony-playing .game-view .goal.goal-complete{
+  position:relative;
+  min-height:clamp(55px,12vw,104px);
+  padding:clamp(7px,1.5vw,15px) 3%;
+  margin:0 0 clamp(5px,1.15dvh,12px);
+  gap:clamp(5px,1vw,10px);
+  color:#fbebda;
+  border:0;
+  border-radius:0;
+  background:transparent url("../assets/gameplay-washi/goal.webp") center / 100% 100% no-repeat;
+  box-shadow:none;
+}
+body.harmony-playing .game-view .goal::before{
+  content:"MÅL";
+  color:#f8d194;
+  font:700 clamp(10px,2.8vw,15px)/1 Georgia,serif;
+  letter-spacing:.06em;
+  flex:none;
+  text-shadow:0 1px rgba(46,26,20,.65);
+}
+body.harmony-playing .game-view .goal .goal-glyph{
+  color:#f4a2bd;
+  text-shadow:0 0 6px rgba(253,132,163,.45);
+  font-size:clamp(17px,4.5vw,28px);
+  flex:none;
+}
+body.harmony-playing .game-view .goal #goalLabel{
+  min-width:0;
+  flex:1 1 auto;
+  color:#fff0e1;
+  font:700 clamp(12px,3.2vw,21px)/1.12 Georgia,serif;
+  text-shadow:0 1px 2px #322022;
+}
+body.harmony-playing .game-view .goal #goalProgress{
+  flex:0 0 18%;
+  min-width:0;
+  max-width:18%;
+  margin:0 0 0 auto;
+  padding:0;
+  color:#693c30;
+  font:800 clamp(16px,4.8vw,28px)/1 Georgia,serif;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  text-align:center;
+  text-shadow:0 1px #fff0d1;
+}
+/* The Omamori system remains fully interactive; use restrained washi tones
+   while its commissioned ornamental strip is still pending. */
+body.harmony-playing .game-view .omamori-power-bar{
+  gap:clamp(3px,1vw,8px);
+  border:1px solid rgba(170,113,73,.75);
+  border-radius:12px;
+  padding:clamp(5px,1.1vw,9px);
+  margin:0 0 clamp(7px,1dvh,11px);
+  background:linear-gradient(155deg,rgba(251,238,210,.97),rgba(232,206,169,.95));
+  box-shadow:inset 0 0 0 2px #f8e7c7,0 3px 9px #27151848;
+}
+body.harmony-playing .game-view .omamori-power-label{
+  color:#624537;
+  letter-spacing:.07em;
+  font-family:Georgia,serif;
+}
+body.harmony-playing .game-view .omamori-power-button{
+  background:linear-gradient(155deg,#fff0d4,#f3dec0);
+  border:1px solid #c29b72;
+  box-shadow:inset 0 0 0 1px #fff4dd;
+  color:#633f35;
+  border-radius:8px;
+  font:700 clamp(9px,2.5vw,13px)/1.15 Georgia,serif;
+}
+body.harmony-playing .game-view .omamori-power-button.is-targeting{
+  background:#f7d5a0;
+  box-shadow:0 0 0 2px rgba(179,69,49,.54);
+}
+body.harmony-playing .game-view .omamori-power-cancel{
+  color:#683d33;
+  border-color:#b78266;
+}
+
+/* Board: 7x7 logic, sprite atlases, hit-testing and VFX remain untouched.
+   The old oversized cream frame, green moss and stone pseudo art is removed. */
+body.harmony-playing .game-view .board-shell{
+  position:relative;
+  isolation:isolate;
+  margin-top:clamp(7px,1.1dvh,14px);
+  padding:clamp(8px,1.7vw,17px);
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible;
+}
+body.harmony-playing .game-view .board-shell::before{
+  content:none!important;
+  display:none!important;
+}
+body.harmony-playing .game-view .board-shell::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  border:0;
+  border-radius:0;
+  background:transparent url("../assets/gameplay-washi/board-frame.webp") center / 100% 100% no-repeat;
+  opacity:1;
+}
+body.harmony-playing .game-view .board{
+  position:relative;
+  z-index:2;
+  border:0;
+  border-radius:4px;
+  gap:clamp(1px,.32vw,2px);
+  padding:clamp(1px,.32vw,2px);
+  background:#241d20;
+  box-shadow:none;
+}
+body.harmony-playing .game-view .tile,
+body.harmony-playing .game-view .tile:not(.selected),
+body.harmony-playing .game-view .tile:nth-child(even),
+body.harmony-playing .game-view .tile:nth-child(even):not(.selected),
+body.harmony-playing .game-view .tile:hover:not(.selected),
+body.harmony-playing .game-view .tile:nth-child(even):hover:not(.selected){
+  background-color:#3a2c2d;
+  background-image:url("../assets/gameplay-washi/tile.webp");
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  background-position:center;
+  border:0;
+  border-radius:clamp(2px,.55vw,5px);
+  box-shadow:inset 0 0 0 1px rgba(190,154,125,.14);
+}
+body.harmony-playing .game-view .tile.selected{
+  background-color:#5c4140;
+  background-image:linear-gradient(135deg,rgba(255,204,124,.21),rgba(215,151,89,.10)),
+   url("../assets/gameplay-washi/tile.webp");
+  background-size:100% 100%;
+  background-position:center;
+  box-shadow:inset 0 0 0 2px #ebbd71,0 0 8px rgba(245,181,92,.56);
+}
+body.harmony-playing .game-view .tile.swapped:not(.selected){
+  background-image:linear-gradient(rgba(228,161,105,.27),rgba(228,161,105,.27)),url("../assets/gameplay-washi/tile.webp");
+}
+body.harmony-playing .game-view .tile.pulsed:not(.selected){
+  background-image:linear-gradient(rgba(236,192,133,.24),rgba(236,192,133,.24)),url("../assets/gameplay-washi/tile.webp");
+}
+body.harmony-playing .game-view .tile.harvested:not(.selected){
+  background-image:linear-gradient(rgba(202,150,114,.22),rgba(202,150,114,.22)),url("../assets/gameplay-washi/tile.webp");
+}
+body.harmony-playing .game-view .tile.shuffling:not(.selected){
+  background-image:linear-gradient(rgba(178,142,170,.22),rgba(178,142,170,.22)),url("../assets/gameplay-washi/tile.webp");
+}
+
+/* Collection: first-pass paper styling only. Keep the five current
+   masterpiece art assets, counts and labels exactly as rendered. */
+body.harmony-playing .game-view .masterpiece-collection{
+  margin-top:clamp(5px,1dvh,12px);
+  padding:clamp(6px,1.3vw,12px);
+  background:linear-gradient(150deg,rgba(253,239,212,.97),rgba(231,205,169,.96));
+  border:2px solid #b78b5c;
+  border-radius:clamp(12px,2.5vw,19px);
+  box-shadow:inset 0 0 0 2px #fff3dc,0 3px 10px rgba(32,18,18,.24);
+}
+body.harmony-playing .game-view .collection-heading strong,
+body.harmony-playing .game-view .collection-heading span{
+  color:#604335;
+  text-shadow:none;
+  font-family:Georgia,serif;
+}
+body.harmony-playing .game-view .collection-label{
+  color:#49352e;
+  text-shadow:none;
+}
+body.harmony-playing .game-view .collection-count{
+  color:#fce1a4;
+  border-color:#cfac6d;
+  background:#43342e;
+}
+@media(max-width:540px){
+  body.harmony-playing .game-view{margin-top:7px}
+  body.harmony-playing .game-view .board-shell{
+    padding:clamp(6px,1.7vw,10px);
+    margin-top:clamp(6px,1dvh,11px);
+  }
+  body.harmony-playing .game-view .board{padding:1px;gap:1px}
+  body.harmony-playing .game-view .goal{
+    min-height:clamp(50px,12vw,60px);
+    padding:5px 2.7%;
+  }
+  body.harmony-playing .game-view .goal #goalProgress{flex-basis:18%;max-width:18%}
+}
+@media(max-width:360px){
+  body.harmony-playing .game-view .board-shell{padding:6px}
+  body.harmony-playing .game-view .goal #goalLabel{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  body.harmony-playing .game-view .pause-button{transition:none}
+}

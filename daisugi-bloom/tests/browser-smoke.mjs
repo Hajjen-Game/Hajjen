@@ -31,7 +31,7 @@ try{
  await page.click("#labPlay");
  await page.waitForFunction(()=>document.querySelector("#labStageTitle").textContent.includes("5/5"),{timeout:6000});
  await page.click("#closePlantLab");
-  await page.click("#continueButton");
+  await page.click("#continueButton");await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
 
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:10000});
  await new Promise(resolve=>setTimeout(resolve,1200));

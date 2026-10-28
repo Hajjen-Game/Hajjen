@@ -55,6 +55,8 @@ try{
   "Play brush must use its native source aspect ratio, not a stretched pill");
  assert(brush.image.includes("play-brush.webp"),"Use the approved painted asset");
  assert(brush.color==="rgba(0, 0, 0, 0)","No solid rectangle behind the brush");
+ assert(!!brush.transform,"Brush needs a transform to animate the press");
+
  await page.$eval("#continueButton",b=>b.classList.add("is-pressed"));
  const down=await page.$eval("#continueButton",b=>({
   transform:getComputedStyle(b).transform,
@@ -89,14 +91,14 @@ try{
   const nav=await bookNavContext.newPage();
   await nav.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await nav.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
-  await nav.click("#continueButton");
+  await nav.click("#continueButton");await nav.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   assert.equal(await nav.$eval("#gameView",e=>e.hidden),false);
   await nav.click("#pauseButton");
   await nav.click(".pause-levels");
   assert.equal(await nav.$eval("#modalTitle",e=>e.textContent),"Goshuincho");
   assert.equal(await nav.$$eval(".washi-level-tile",e=>e.length),10);
   assert.equal(await nav.$eval(".washi-detail-play",e=>e.textContent),"FORTSÄTT");
-  await nav.click(".washi-detail-play");
+  await nav.click(".washi-detail-play");await nav.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   assert.equal(await nav.$eval("#gameView",e=>e.hidden),false);
   assert.equal(await nav.$eval("#modal",e=>e.hidden),true);
   await nav.click("#pauseButton");
@@ -136,7 +138,7 @@ try{
    localStorage.setItem(key,JSON.stringify(store));
   });
   await dp.reload({waitUntil:"networkidle2"});
-  await dp.click("#continueButton");
+  await dp.click("#continueButton");await dp.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   const visual=await dp.evaluate(()=>{
    const tile=document.querySelector('.tile[data-index="24"]');
    const img=tile.querySelector(".daruma-art");
@@ -160,7 +162,7 @@ try{
    localStorage.setItem(key,JSON.stringify(store));
   });
   await dp.reload({waitUntil:"networkidle2"});
-  await dp.click("#continueButton");
+  await dp.click("#continueButton");await dp.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   const half=await dp.$eval('.tile[data-index="24"]',tile=>({
    state:tile.querySelector(".daruma-art")?.className,aria:tile.getAttribute("aria-label")}));
   assert(half.state.includes("state-1")&&half.aria.includes("ett öga kvar"),
@@ -202,6 +204,22 @@ try{
   assert(!cardFit.hasOverlap,"Card heading, Japanese numerals and seal must not collide");
   assert(cardFit.detailVisible&&cardFit.gridWidth<=390,
    "The full ten-card book and detail panel must fit mobile width and height");
+  const painted=await journal.$eval(".washi-level-tile.is-selected",tile=>{
+   const style=getComputedStyle(tile),accent=getComputedStyle(tile,"::after");
+   const artwork=getComputedStyle(tile,"::before");
+   return {background:style.backgroundImage,fill:style.backgroundColor,outline:style.outlineWidth,
+    shadow:style.boxShadow,paper:artwork.backgroundImage,accent:accent.borderTopWidth,
+    left:accent.left,top:accent.top};
+  });
+  assert(painted.background==="none"&&painted.fill==="rgba(0, 0, 0, 0)",
+   "No default beige rectangle can appear behind the painted level card");
+  assert(painted.outline==="0px"&&painted.shadow==="none",
+   "No red selection frame can outline the full transparent button canvas");
+  assert(painted.paper.includes("level-card.webp")&&parseFloat(painted.accent)>0,
+   "The painted card and inset red selection outline must both render");
+  assert(parseFloat(painted.left)>0&&parseFloat(painted.top)>0,
+   "Selection must be inset to match actual painted pixels");
+
   const cardZones=await journal.$eval(".washi-level-tile",tiles=>Array.from(tiles).map(tile=>{
    const rect=tile.getBoundingClientRect();
    const label=tile.querySelector(".washi-tile-label").getBoundingClientRect();
@@ -261,7 +279,7 @@ try{
   await journal.click(".washi-next");
   assert.equal(await journal.$eval(".washi-chapter-count",x=>x.textContent),"LEVEL 21–30");
   await journal.click('.washi-level-tile[data-level="25"]');
-  await journal.click(".washi-detail-play");
+  await journal.click(".washi-detail-play");await journal.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   assert.equal(await journal.$eval("#gameView",x=>x.hidden),false);
   assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
  }finally{await journalContext.close();}
@@ -604,7 +622,7 @@ try{
    localStorage.setItem("japanese-harmony-puzzle-v2",JSON.stringify(save));
   });
   await preview.reload({waitUntil:"networkidle2"});
-  await preview.click("#continueButton");
+  await preview.click("#continueButton");await preview.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   const older=await preview.evaluate(()=>{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
    return {count:run.familyCount,unique:new Set(run.board.map(p=>p.family)).size};
@@ -901,7 +919,7 @@ try{
    };
   });
   await praisePage.reload({waitUntil:"networkidle2"});
-  await praisePage.click("#continueButton");
+  await praisePage.click("#continueButton");await praisePage.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   await praisePage.evaluate(()=>{
    window.__masterpieceFireworks={big:0,flowers:0,diamonds:0,stars:0};
 
@@ -1114,7 +1132,7 @@ try{
    return selected;
   });
   await proof.reload({waitUntil:"networkidle2"});
-  await proof.click("#continueButton");
+  await proof.click("#continueButton");await proof.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   await proof.waitForFunction(()=>document.querySelectorAll("#resonanceLinks .resonance-link").length>0,{timeout:6000});
   const actual=await proof.evaluate(pair=>{
    const line=document.querySelector("#resonanceLinks .resonance-link");
@@ -1257,7 +1275,7 @@ try{
   "Running diagnostics must not overwrite a real player's saved game");
  await page.click("#modalActions button:last-child");
  assert.equal(await page.$eval("#modal",el=>el.hidden),true);
- await page.click("#continueButton");await page.waitForSelector(".tile");
+ await page.click("#continueButton");await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await page.waitForSelector(".tile");
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-art"),{timeout:10000});
  const background=await page.evaluate(async()=>{
    const scenes=[1,2,3].map(n=>"./assets/backgrounds/festival-hd-"+n+".avif");
@@ -1397,7 +1415,7 @@ try{
     expectedFirstClear:survivors.filter(i=>g.mist[i])};
   });
   await mistPage.reload({waitUntil:"networkidle2"});
-  await mistPage.click("#continueButton");
+  await mistPage.click("#continueButton");await mistPage.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   assert.equal(await mistPage.$eval("#goalLabel",x=>x.textContent),"Rena dimman");
   assert((await mistPage.$eval("#goalLabel",x=>x.title)).includes("Harmony Pulse"),
    "Mist instructions must explain that Harmony Pulse also clears fog");
@@ -2092,7 +2110,7 @@ try{
    localStorage.setItem(key,JSON.stringify(store));
   });
   await clarity.reload({waitUntil:"networkidle2"});
-  await clarity.click("#continueButton");
+  await clarity.click("#continueButton");await clarity.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   const finishingPair=await clarity.evaluate(()=>{
    const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
    return window.HarmonyRules.validSwaps(saved.board)[0];

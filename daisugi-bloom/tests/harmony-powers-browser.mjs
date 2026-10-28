@@ -23,7 +23,7 @@ try{
   localStorage.setItem(key,JSON.stringify(s));
  },key);
  await page.reload({waitUntil:"networkidle2"});
- await page.click("#continueButton");
+ await page.click("#continueButton");await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
  assert.equal(await page.$$eval(".omamori-power-button[data-power]",n=>n.length),3);
  assert((await page.$eval("#spiritBadge",e=>e.textContent)).includes("stadium 3"));
  const first=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);
@@ -66,7 +66,7 @@ try{
  assert.equal(last.omamoriCards.cards.koi,undefined,"Koi is spent only once across both shuffles");
  assert.deepEqual(last.bestStars,first.bestStars);
  await page.reload({waitUntil:"networkidle2"});
- await page.click("#continueButton");
+ await page.click("#continueButton");await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
  const reloaded=await page.evaluate(()=>({
   powerButtons:[...document.querySelectorAll(".omamori-power-button[data-power]")].map(b=>b.dataset.power),
   overflow:document.documentElement.scrollWidth>innerWidth

@@ -86,7 +86,7 @@ try{
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
  await page.screenshot({path:"/tmp/daisugi-bloom/omamori-shop-320.png"});
  await page.click(".omamori-close");
- await page.click("#continueButton");
+ await page.click("#continueButton");await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
  const equippedChip=await page.$eval("#spiritBadge",e=>({
   hidden:e.hidden,text:e.textContent,width:e.getBoundingClientRect().width
  }));

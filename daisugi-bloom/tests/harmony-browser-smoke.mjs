@@ -1744,10 +1744,10 @@ try{
   "Frame image must have a narrow transparent outer gutter");
  assert(frameLayer.midpointAlpha<10,
   "Frame centre must remain transparent when brought above puzzle tiles");
- assert(frameLayer.insetLeft>frameLayer.paintedRailOffset,
-  "The gold left rail must sit outside the playable grid");
- assert(frameLayer.insetRight>frameLayer.paintedRailOffset,
-  "The gold right rail must sit outside the playable grid");
+ assert(frameLayer.insetLeft-frameLayer.paintedRailOffset>5,
+  "The gold left rail must be at least 5px OUTSIDE the first interactive tile");
+ assert(frameLayer.insetRight-frameLayer.paintedRailOffset>5,
+  "The gold right rail must be at least 5px OUTSIDE the final interactive tile");
  assert(frameLayer.frameWidth>frameLayer.shellWidth*1.06,
   "Gold ornament must visibly surround the shell, not shrink to its bounds");
  assert(frameLayer.boardWidth>=frameLayer.shellWidth*.97,

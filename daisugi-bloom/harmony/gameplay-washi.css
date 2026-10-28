@@ -325,7 +325,9 @@ body.harmony-playing .game-view .board-shell::after{
 }
 body.harmony-playing .game-view .board-frame-art{
   position:absolute;
-  inset:-3.3%;
+  /* 1.4.2: ~4–5px more room between the gold rails and outermost tiles
+     at 390px phone width. Keep the 7x7 playfield at full 1.4.1 size. */
+  inset:-4.5%;
   display:block;
   z-index:10;
   pointer-events:none;

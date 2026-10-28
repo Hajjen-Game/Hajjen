@@ -18,7 +18,7 @@ body.harmony-playing::before{
   inset:0;
   z-index:0;
   pointer-events:none;
-  background-image:url("../assets/gameplay-washi/background.webp")!important;
+  background-image:url("../assets/shared/japanese-harmony-background-20261028.webp")!important;
   background-size:cover!important;
   background-position:center top!important;
   background-repeat:no-repeat!important;

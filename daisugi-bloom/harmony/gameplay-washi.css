@@ -304,31 +304,26 @@ body.harmony-playing .game-view .collection-count{
   body.harmony-playing .game-view .pause-button{transition:none}
 }
 
-/* Gameplay Washi Zen 1.3 · dedicated, dimensionally correct artwork layer
-   Important: the approved 1536×1536 frame contains transparent margins.
-   Rather than enlarging/cropping the image or masking its centre, reserve
-   the corresponding percentage of board-shell as a real INNER gutter.
-   The artwork is a separate absolute sibling of #board, so the entire
-   gold rail and blossoms are OUTSIDE the 7×7 interactive grid.
-   No board transform, no negative inset and no clipping of ornament tips.
-   The real 49-cell grid / hit areas stay unmodified. */
-body.harmony-playing .game-view .board-shell {
+/* Gameplay Washi Zen 1.3.1 — preserve full cell size while keeping
+   independent artwork genuinely outside the interactive grid.
+   Browser-measured alpha at frame's vertical midpoint starts 3.3203%
+   into the actual 1536px file. 3.2% shell padding + a 3px outward art
+   offset gives a small gold rail clearance without cropping any flowers.
+   The artwork lives in its own sibling and no transform is applied to #board. */
+body.harmony-playing .game-view .board-shell{
   position:relative;
   box-sizing:border-box;
   isolation:isolate;
-  padding:4.6%;
   overflow:visible;
+  padding:3.2%;
 }
 body.harmony-playing .game-view .board-shell::after{
   content:none!important;
   display:none!important;
 }
-/* The former #board background-image pseudo-element was attached to the
-   SAME box as the game and sat across its first and last tile columns.
-   It is now a normal decorative sibling, anchored to the entire shell. */
 body.harmony-playing .game-view .board-frame-art{
   position:absolute;
-  inset:0;
+  inset:-3px;
   display:block;
   z-index:1;
   pointer-events:none;
@@ -338,16 +333,9 @@ body.harmony-playing .game-view .board{
   position:relative;
   z-index:2;
 }
-/* The original CSS had a later small-screen override that forced shell
-   padding back down to 6px. Preserve the same proportional image gutter
-   at ALL widths; otherwise phone devices reproduce the old overlap. */
 @media(max-width:540px){
-  body.harmony-playing .game-view .board-shell{
-    padding:4.6%;
-  }
+  body.harmony-playing .game-view .board-shell{padding:3.2%}
 }
 @media(max-width:360px){
-  body.harmony-playing .game-view .board-shell{
-    padding:4.6%;
-  }
+  body.harmony-playing .game-view .board-shell{padding:3.2%}
 }

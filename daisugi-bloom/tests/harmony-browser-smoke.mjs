@@ -1718,6 +1718,7 @@ try{
      insetTop:grid.top-box.top,
      insetBottom:box.bottom-grid.bottom,
      paintStartFraction:firstPainted/img.naturalWidth,
+     paintedRailOffset: -3+ (box.width+6)*(firstPainted/img.naturalWidth),
      tileReachable:first?.contains(element)||element===first,
      gridCount:board.querySelectorAll(".tile").length,
      viewportWidth:window.innerWidth,
@@ -1737,9 +1738,9 @@ try{
  assert(frameLayer.tileReachable,"Board tiles must remain reachable at centre");
  assert(frameLayer.paintStartFraction>0&&frameLayer.paintStartFraction<.08,
   "Frame image must have a narrow transparent outer gutter");
- assert(frameLayer.insetLeft/frameLayer.shellWidth>frameLayer.paintStartFraction,
+ assert(frameLayer.insetLeft>frameLayer.paintedRailOffset+1,
   "The first playable column must start INSIDE the painted left rail");
- assert(frameLayer.insetRight/frameLayer.shellWidth>frameLayer.paintStartFraction,
+ assert(frameLayer.insetRight>frameLayer.paintedRailOffset+1,
   "The last playable column must end INSIDE the painted right rail");
  assert(Math.abs(frameLayer.insetLeft-frameLayer.insetRight)<2,
   "Board must be centered within the artwork");

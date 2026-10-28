@@ -1669,24 +1669,31 @@ try{
    "Old blue festival backdrop must not cover gameplay background");
  assert(washi.frame.includes("gameplay-washi/board-frame.webp"),
    "Board must render the approved transparent antique gold frame");
- // Frame 1.1: visual rails belong OUTSIDE the playfield, not over 49 icons.
+ // Washi frame 1.1.1: the art is optically enlarged INSIDE its layout
+ // box, without introducing scrollable negative-positioned overflow.
  const frameLayer=await page.evaluate(()=>{
    const shell=document.querySelector(".game-view .board-shell");
    const paint=getComputedStyle(shell,"::after");
    const board=getComputedStyle(document.querySelector(".game-view .board"));
    return {
      inset:parseFloat(paint.top),xInset:parseFloat(paint.left),
+     backgroundSize:paint.backgroundSize,
      frameLayer:Number(paint.zIndex),boardLayer:Number(board.zIndex),
-     pointerEvents:paint.pointerEvents,overflow:getComputedStyle(shell).overflow,
-     columns:getComputedStyle(document.querySelector(".game-view .board")).gridTemplateColumns
+     pointerEvents:paint.pointerEvents,
+     bodyWidth:document.body.scrollWidth,
+     viewportWidth:window.innerWidth
    };
  });
- assert(frameLayer.inset<=-13&&frameLayer.xInset<=-13,
-  "The transparent art padding must be compensated outside the board");
+ assert.equal(frameLayer.inset,0,"Frame wrapper may not extend outside shell");
+ assert.equal(frameLayer.xInset,0,"Frame wrapper may not extend horizontally");
+ assert(frameLayer.backgroundSize.includes("calc("),
+   "Painted rail padding must be compensated within the background image");
  assert(frameLayer.frameLayer<frameLayer.boardLayer,
-  "Approved floral decoration must be behind the 7x7 icons and VFX");
+   "Flowers and gold must render below the 49 puzzle icons and VFX");
  assert.equal(frameLayer.pointerEvents,"none",
-  "Frame must never intercept touches or clicks on game cells");
+   "Frame must not intercept touch or pointer input");
+ assert(frameLayer.bodyWidth<=frameLayer.viewportWidth,
+   "Frame must not introduce horizontal document overflow");
 
  assert.equal(washi.n,49,"Gameplay remains a 7×7 interactive grid");
  assert(washi.board.fill.includes("36, 29, 32"),

@@ -1113,6 +1113,7 @@ try{
  // Engine Lab 2.0 compares paired Standard/Director simulations on the real phone-sized menu,
  // with a computed report that is exportable and no player-save changes.
  const beforeLab=await page.evaluate(()=>localStorage.getItem("japanese-harmony-puzzle-v2"));
+ await page.$eval("#menuAdvanced",element=>element.open=true);
  await page.click("#devButton");
  assert.equal(await page.$eval("#modalTitle",el=>el.textContent),"Harmony Intelligence");
  await page.select(".engine-controls select","0");

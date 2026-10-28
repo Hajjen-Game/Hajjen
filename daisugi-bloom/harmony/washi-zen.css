@@ -203,3 +203,11 @@ body:not(.harmony-playing) #menuView::after{
 }
 #modal .washi-nav:empty::after{display:none!important}
 @media(max-height:700px){.washi-home-logo .washi-home-asset-logo{max-height:205px}}
+
+/* Internal tools remain discoverable under the folded advanced menu. */
+#menuView .washi-advanced-actions{display:flex;gap:8px;margin-top:10px}
+#menuView .washi-advanced-actions button{
+ display:block;flex:1;min-width:0;min-height:40px;padding:8px 6px;
+ font-size:12px;font-weight:700;color:#604437;
+ background:#f9ebd3;border:1px solid #b9a07b;border-radius:9px;
+}

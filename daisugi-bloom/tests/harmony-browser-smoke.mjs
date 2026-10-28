@@ -42,6 +42,24 @@ try{
  assert(uiMenu.legacyListHidden,"Old level list must remain hidden");
  assert.equal(uiMenu.advancedOpen,false);
  assert(uiMenu.bodyWidth<=390,"Mobile menu must have no horizontal overflow");
+ // Washi Zen 1.1: main menu must be one mobile viewport, not a scrollable
+ // document with empty space after the background.
+ const homeFit=await page.evaluate(()=>{
+  const menu=document.querySelector("#menuView").getBoundingClientRect();
+  const choices=document.querySelector(".washi-home-links").getBoundingClientRect();
+  const settings=document.querySelector("#menuAdvanced").getBoundingClientRect();
+  window.scrollTo(0,500);
+  return {offset:window.scrollY,docHeight:document.documentElement.scrollHeight,
+   viewport:window.innerHeight,menuHeight:menu.height,
+   actionsVisible:choices.bottom<=window.innerHeight+1,
+   settingsVisible:settings.bottom<=window.innerHeight+1};
+ });
+ assert.equal(homeFit.offset,0,"Home must not scroll into blank space");
+ assert(homeFit.docHeight<=homeFit.viewport+2,
+  "Home document must not exceed the visible mobile viewport");
+ assert(homeFit.actionsVisible&&homeFit.settingsVisible,
+  "Main actions and settings must remain reachable without scrolling");
+
  // Goshuincho Primary Navigation 1.0: game -> book -> saved level ->
  // Home -> book -> menu; no old level-list interaction in this flow.
  const bookNavContext=await browser.createBrowserContext();
@@ -145,6 +163,24 @@ try{
    [10,"1","10",0,false]);
   assert(initial.width<=390,"Goshuincho must fit the phone");
   assert.equal(await journal.$eval('.washi-level-tile[data-level="10"] .washi-tile-jp',x=>x.textContent),"十");
+  // Check actual phone geometry, not only stylesheet text. Long Japanese
+  // numerals, labels and stamps must not paint over the card borders.
+  const cardFit=await journal.evaluate(()=>{
+   const card=document.querySelector('.washi-level-tile[data-level="10"]');
+   const top=card.getBoundingClientRect();
+   const label=card.querySelector(".washi-tile-label").getBoundingClientRect();
+   const numeral=card.querySelector(".washi-tile-jp").getBoundingClientRect();
+   const seal=card.querySelector(".washi-tile-seal").getBoundingClientRect();
+   const detail=document.querySelector(".washi-level-detail").getBoundingClientRect();
+   return {topPadding:label.top-top.top,hasOverlap:label.bottom>numeral.top+.5||
+     numeral.bottom>seal.bottom+.5,detailVisible:detail.bottom<=window.innerHeight+1,
+     gridWidth:document.querySelector(".washi-level-grid").getBoundingClientRect().width};
+  });
+  assert(cardFit.topPadding>=9,"Level labels must clear painted card frames");
+  assert(!cardFit.hasOverlap,"Card heading, Japanese numerals and seal must not collide");
+  assert(cardFit.detailVisible&&cardFit.gridWidth<=390,
+   "The full ten-card book and detail panel must fit mobile width and height");
+
   await journal.click('.washi-level-tile[data-level="2"]');
   assert.equal(await journal.$eval(".washi-detail-play",x=>x.disabled),true);
   await journal.click(".washi-book-close");

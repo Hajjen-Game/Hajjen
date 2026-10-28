@@ -343,6 +343,12 @@ body.harmony-playing .game-view .board{
 @media(max-width:360px){
   body.harmony-playing .game-view .board-shell{padding:1%!important}
 }
+/* Clamp the absolutely-positioned source art's transparent overscan at
+   the VIEWPORT, never at the board shell (which would cut off blossoms).
+   Clip, rather than overflow:hidden, so vertical document flow is intact. */
+body.harmony-playing #app{
+  overflow-x:clip;
+}
 body.harmony-playing{
   overflow-x:clip;
 }

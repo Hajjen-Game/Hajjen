@@ -9,8 +9,8 @@
  <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
  <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.50.0-omamori-cards">
  <link rel="stylesheet" href="./harmony/washi-zen.css?v=1.6.0-background-v2">
- <link rel="stylesheet" href="./harmony/gameplay-washi.css?v=2.6.0-background-v2">
- <script defer src="./harmony/approved-game-panels.js?v=2.4.0-bronze-washi-panels"></script>
+ <link rel="stylesheet" href="./harmony/gameplay-washi.css?v=2.7.0-bottom-goal-layout">
+ <script defer src="./harmony/approved-game-panels.js?v=2.5.0-hide-masterpiece"></script>
  <script defer src="./harmony/rules.js?v=6.47.1-sealed-pulse"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
@@ -21,7 +21,7 @@
   <script defer src="./harmony/powers.js?v=6.50.0-tiered"></script>
   <script defer src="./harmony/cards.js?v=6.50.0-consumable"></script>
  <script defer src="./harmony/fortune.js?v=6.38.0"></script>
- <script defer src="./harmony/app.js?v=6.50.0-consumable-washi13"></script>
+ <script defer src="./harmony/app.js?v=6.50.1-bottom-goal-layout"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -86,21 +86,21 @@
     <div id="paceStatus" class="pace-status" aria-live="off">PACING 3.0 · BYGGER</div>
     <div class="game-meta"><span class="eyebrow" id="levelNumber">NIVÅ 1 AV 10</span><strong id="levelTitle">First Match</strong></div>
      <div id="spiritBadge" class="spirit-badge" hidden aria-live="polite"></div>
-    <div class="goal"><span class="goal-glyph" aria-hidden="true">✿</span><span id="goalLabel">Fusioner</span><strong id="goalProgress">0 / 5</strong></div>
-    <div id="starTargets" class="star-targets" aria-label="Historiska poängkrav för sparade äldre nivåer" hidden>
-     <span></span><span></span><span></span>
-    </div>
-    <div id="omamoriPowerBar" class="omamori-power-bar" hidden aria-label="Omamori-krafter"></div>
-     <div class="board-shell">
+    <div class="board-shell">
      <div class="board-frame-art" aria-hidden="true"></div>
      <div id="board" class="board" role="grid" aria-label="Spelplan med 7 gånger 7 japanska föremål"></div>
      <div id="resonanceLinks" class="resonance-links" aria-hidden="true"></div>
      <div id="boardPraise" class="board-praise" aria-hidden="true"></div>
     </div>
-    <section class="masterpiece-collection" aria-label="Mästerverk samlade under denna nivå">
-     <div class="collection-heading"><strong>✦ MÄSTERVERK</strong><span>Bonus för varje mästerverk</span></div>
-     <div id="masterpieceCollection" class="collection-items" aria-live="off"></div>
-    </section>
+    <div class="game-bottom-controls">
+     <div id="omamoriPowerBar" class="omamori-power-bar" hidden aria-label="Omamori-krafter"></div>
+     <div class="goal"><span class="goal-glyph" aria-hidden="true">✿</span><span id="goalLabel">Fusioner</span><strong id="goalProgress">0 / 5</strong></div>
+    </div>
+    <div id="starTargets" class="star-targets" aria-label="Historiska poängkrav för sparade äldre nivåer" hidden>
+     <span></span><span></span><span></span>
+    </div>
+    <!-- Invisible masterpiece bookkeeping keeps all existing scores/bonuses intact. -->
+    <div id="masterpieceCollection" hidden aria-hidden="true"></div>
     <p id="selectedInfo" class="sr-only" role="status" aria-live="polite">Välj två grannar eller svep.</p>
    </section>
   </main>

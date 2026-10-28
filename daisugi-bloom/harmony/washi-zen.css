@@ -27,7 +27,7 @@ body:not(.harmony-playing) #menuView{
 }
 body:not(.harmony-playing) #menuView::before{
  content:"";position:absolute;inset:0;z-index:-2;
- background-image:url("../assets/shared/japanese-harmony-background-20261028.webp"),
+ background-image:url("../assets/shared/japanese-harmony-background-20261028-v2.jpg"),
   radial-gradient(circle at 68% 29%,#c26f64 0 14%,transparent 14.5%),
   linear-gradient(180deg,#f7e6ce 0%,#f4e4ce 45%,#b6b2a4 84%,#d5bea2);
  background-position:center top,center,center;
@@ -110,7 +110,7 @@ body:not(.harmony-playing) #menuView::after{
 }
 #modal .washi-goshuincho::before{
  content:"";position:absolute;inset:0;z-index:-2;
- background-image:url("../assets/shared/japanese-harmony-background-20261028.webp"),
+ background-image:url("../assets/shared/japanese-harmony-background-20261028-v2.jpg"),
   radial-gradient(circle at 76% 12%,rgba(179,80,70,.5) 0 10%,transparent 10.5%),
   linear-gradient(180deg,#f7e6d1,#efdbc2 62%,#a8aba2);
  background-size:cover;background-position:center top;

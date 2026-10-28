@@ -303,3 +303,22 @@ body.harmony-playing .game-view .collection-count{
 @media(prefers-reduced-motion:reduce){
   body.harmony-playing .game-view .pause-button{transition:none}
 }
+
+/* Gameplay Washi Zen 1.1 — correct painted frame placement.
+   The approved 1536px PNG-derived WebP contains transparent padding around
+   its painted gold rails. With inset:0 these rails fall INSIDE the outer
+   playable tiles; placing art behind the board alone would hide them.
+   Expand ONLY the decoration (not the 7x7 board) until the rails sit just
+   outside the tiles. Render below all tile sprites, so corner blossoms
+   never obscure icons or VFX. */
+body.harmony-playing .game-view .board-shell::after{
+  inset:clamp(-32px,-4.4vw,-14px);
+  z-index:1;
+}
+body.harmony-playing .game-view .board{
+  z-index:2;
+}
+/* The outward decorative image must not introduce horizontal page scrolling. */
+body.harmony-playing{
+  overflow-x:clip;
+}

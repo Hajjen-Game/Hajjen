@@ -1683,7 +1683,7 @@ try{
    const first=board.querySelector(".tile");
    const firstBox=first.getBoundingClientRect();
    const element=document.elementFromPoint(firstBox.left+firstBox.width/2,firstBox.top+firstBox.height/2);
-   const url=style.backgroundImage.match(/url\\(["']?(.*?)["']?\\)/)?.[1]||"";
+   const url=style.backgroundImage.split('"')[1]||style.backgroundImage.slice(4,-1);
    const img=new Image();
    img.src=url;
    await img.decode();

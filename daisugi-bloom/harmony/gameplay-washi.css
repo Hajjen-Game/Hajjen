@@ -304,18 +304,20 @@ body.harmony-playing .game-view .collection-count{
   body.harmony-playing .game-view .pause-button{transition:none}
 }
 
-/* Gameplay Washi Zen 1.3.1 — preserve full cell size while keeping
-   independent artwork genuinely outside the interactive grid.
-   Browser-measured alpha at frame's vertical midpoint starts 3.3203%
-   into the actual 1536px file. 3.2% shell padding + a 3px outward art
-   offset gives a small gold rail clearance without cropping any flowers.
-   The artwork lives in its own sibling and no transform is applied to #board. */
+/* Gameplay Washi Zen Frame Fix 1.4 — enlarged OVERLAY border with an
+   expanded 7×7 grid. The previous frame was z=1 behind the z=2 board,
+   while a 3.2% inner gutter shrank all 49 tiles.
+   Let the source art's genuine transparency reveal every interior cell;
+   draw its gold rails and corner sakura ON TOP, with pointer-events:none.
+   The approved file has approximately 3.3% transparent margin per edge:
+   expanding art by 3.3% on each side pulls rails to the shell boundary.
+   No clip mask, crop or transform of the board or individual tiles. */
 body.harmony-playing .game-view .board-shell{
   position:relative;
   box-sizing:border-box;
   isolation:isolate;
+  padding:1%!important;
   overflow:visible;
-  padding:3.2%;
 }
 body.harmony-playing .game-view .board-shell::after{
   content:none!important;
@@ -323,9 +325,9 @@ body.harmony-playing .game-view .board-shell::after{
 }
 body.harmony-playing .game-view .board-frame-art{
   position:absolute;
-  inset:-3px;
+  inset:-3.3%;
   display:block;
-  z-index:1;
+  z-index:10;
   pointer-events:none;
   background:transparent url("../assets/gameplay-washi/board-frame.webp") center / 100% 100% no-repeat;
 }
@@ -333,9 +335,14 @@ body.harmony-playing .game-view .board{
   position:relative;
   z-index:2;
 }
+/* Never reinstate the old 5–10px mobile gutter: small phones need the
+   full available grid area, with the art overscanning OUTSIDE it. */
 @media(max-width:540px){
-  body.harmony-playing .game-view .board-shell{padding:3.2%}
+  body.harmony-playing .game-view .board-shell{padding:1%!important}
 }
 @media(max-width:360px){
-  body.harmony-playing .game-view .board-shell{padding:3.2%}
+  body.harmony-playing .game-view .board-shell{padding:1%!important}
+}
+body.harmony-playing{
+  overflow-x:clip;
 }

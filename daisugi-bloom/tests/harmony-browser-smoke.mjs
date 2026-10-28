@@ -1670,8 +1670,8 @@ try{
  assert(washi.frame.includes("gameplay-washi/board-frame.webp"),
    "Board must render the approved transparent antique gold frame");
 
- // Gameplay Washi Zen 1.3: the asset is a dedicated NON-interactive
- // sibling and the grid sits inside the visible gold rails on every phone.
+ // Gameplay Washi Zen 1.4: the ornament is visibly in FRONT of the grid
+ // with original transparent centre and an expanded playable 7x7.
  const frameLayer=await page.evaluate(async()=>{
    const shell=document.querySelector(".game-view .board-shell");
    const frame=document.querySelector(".game-view .board-frame-art");
@@ -1679,6 +1679,7 @@ try{
    const style=getComputedStyle(frame);
    const shellStyle=getComputedStyle(shell);
    const box=shell.getBoundingClientRect();
+   const ornament=frame.getBoundingClientRect();
    const grid=board.getBoundingClientRect();
    const first=board.querySelector(".tile");
    const firstBox=first.getBoundingClientRect();
@@ -1702,6 +1703,7 @@ try{
    for(let x=0;x<canvas.width/2;x++){
      if(rgba[x*4+3]>100){firstPainted=x;break}
    }
+   const midpointAlpha=rgba[(Math.floor(img.naturalWidth/2)*4)+3];
    return {
      url:style.backgroundImage,
      frameDisplay:style.display,
@@ -1712,13 +1714,15 @@ try{
      pseudo:getComputedStyle(shell,"::after").display,
      shellOverflow:shellStyle.overflow,
      shellWidth:box.width, shellHeight:box.height,
+     frameWidth:ornament.width, frameHeight:ornament.height,
      boardWidth:grid.width,boardHeight:grid.height,
      insetLeft:grid.left-box.left,
      insetRight:box.right-grid.right,
      insetTop:grid.top-box.top,
      insetBottom:box.bottom-grid.bottom,
      paintStartFraction:firstPainted/img.naturalWidth,
-     paintedRailOffset: -3+ (box.width+6)*(firstPainted/img.naturalWidth),
+     paintedRailOffset:(ornament.left-box.left)+ornament.width*(firstPainted/img.naturalWidth),
+     midpointAlpha,
      tileReachable:first?.contains(element)||element===first,
      gridCount:board.querySelectorAll(".tile").length,
      viewportWidth:window.innerWidth,
@@ -1730,18 +1734,24 @@ try{
  assert.equal(frameLayer.frameDisplay,"block","The gold artwork layer must exist");
  assert.equal(frameLayer.frameSize,"100% 100%","The frame must retain its complete uncropped transparency");
  assert.equal(frameLayer.pseudo,"none","The old overlay frame must be disabled");
- assert(frameLayer.frameLayer<frameLayer.boardLayer,
-  "Gold ornament belongs behind the board cells, outside their footprint");
+ assert(frameLayer.frameLayer>frameLayer.boardLayer,
+  "Gold ornament must paint ABOVE the board and its edge icons");
  assert.equal(frameLayer.frameHit,"none","Decorative art must not capture touch events");
  assert.equal(frameLayer.shellOverflow,"visible","Flower tips cannot be clipped by shell overflow");
  assert.equal(frameLayer.gridCount,49,"The game keeps its full 7×7 board");
  assert(frameLayer.tileReachable,"Board tiles must remain reachable at centre");
  assert(frameLayer.paintStartFraction>0&&frameLayer.paintStartFraction<.08,
   "Frame image must have a narrow transparent outer gutter");
- assert(frameLayer.insetLeft>frameLayer.paintedRailOffset+1,
-  "The first playable column must start INSIDE the painted left rail");
- assert(frameLayer.insetRight>frameLayer.paintedRailOffset+1,
-  "The last playable column must end INSIDE the painted right rail");
+ assert(frameLayer.midpointAlpha<10,
+  "Frame centre must remain transparent when brought above puzzle tiles");
+ assert(frameLayer.insetLeft>frameLayer.paintedRailOffset,
+  "The gold left rail must sit outside the playable grid");
+ assert(frameLayer.insetRight>frameLayer.paintedRailOffset,
+  "The gold right rail must sit outside the playable grid");
+ assert(frameLayer.frameWidth>frameLayer.shellWidth*1.06,
+  "Gold ornament must visibly surround the shell, not shrink to its bounds");
+ assert(frameLayer.boardWidth>=frameLayer.shellWidth*.97,
+  "The 49-cell grid must reclaim space from the retired inner gutter");
  assert(Math.abs(frameLayer.insetLeft-frameLayer.insetRight)<2,
   "Board must be centered within the artwork");
  assert(Math.abs(frameLayer.insetTop-frameLayer.insetBottom)<2,
@@ -1815,7 +1825,7 @@ try{
    artRatio:piece.width/tile.width,spriteRatio:sprite.width/tile.width,
    count:document.querySelectorAll("#board > .tile").length};
  });
- assert(boardReadability.width>=355,"Phone playfield must reclaim frame space: "+JSON.stringify(boardReadability));
+ assert(boardReadability.width>=365,"Phone playfield must use the larger 1.4 frame-free grid: "+JSON.stringify(boardReadability));
  assert(Math.abs(boardReadability.width-boardReadability.height)<2,"Expanded 7x7 board must remain square");
  assert(boardReadability.cell>=48,"Phone tile interaction area must grow alongside board");
  assert(boardReadability.artRatio>=.99&&boardReadability.spriteRatio>=1.03,

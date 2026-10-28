@@ -9,7 +9,7 @@
  <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
  <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.50.0-omamori-cards">
  <link rel="stylesheet" href="./harmony/washi-zen.css?v=1.4.0">
- <link rel="stylesheet" href="./harmony/gameplay-washi.css?v=2.0.0-panels">
+ <link rel="stylesheet" href="./harmony/gameplay-washi.css?v=2.1.0-panel-polish">
  <script defer src="./harmony/approved-game-panels.js?v=2.0.0"></script>
  <script defer src="./harmony/rules.js?v=6.47.1-sealed-pulse"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
@@ -78,7 +78,8 @@
      <div id="scorePanel" class="hud-score score-panel">
       <span class="hud-label">BONUSPOÄNG</span>
       <strong id="scoreCount">0</strong>
-      <div class="hud-score-footer"><span id="statusStars" class="star-mini" aria-label="Nivån klarad"></span><span class="hud-record">REKORD <strong id="scoreBest">0</strong></span></div>
+      <div class="hud-score-footer"><span id="statusStars" class="star-mini" aria-label="Nivåns stjärnbetyg"></span></div>
+      <strong id="scoreBest" hidden aria-hidden="true">0</strong>
      </div>
      <button id="pauseButton" class="pause-button" aria-label="Öppna spelmenyn" title="Spelmeny">Ⅱ</button>
     </div>

@@ -231,6 +231,8 @@ try{
     artFilter:art.filter,
     ringInsetLeft:parseFloat(ring.left),
     ringInsetTop:parseFloat(ring.top),
+    tileWidth:tile.getBoundingClientRect().width,
+    tileHeight:tile.getBoundingClientRect().height,
     detailImage:panel.backgroundImage,
     detailFill:panel.backgroundColor,
     detailBorder:panel.borderTopWidth,
@@ -241,8 +243,8 @@ try{
   });
   assert.equal(finish.ringShadow,"none","No extra light halo can extend beyond the red selection");
   assert.equal(finish.artFilter,"none","No painted-card shadow beyond a selected frame");
-  assert(finish.ringInsetLeft>=3&&finish.ringInsetTop>=5,
-    "Red selection must follow the real painted edges, not the canvas edge");
+  assert(finish.ringInsetLeft/finish.tileWidth>.025&&finish.ringInsetTop/finish.tileHeight>.055,
+    "Red selection must be inset by the painted artwork's proportional alpha edges");
   assert(finish.detailImage.includes("detail-card.webp"),
     "The approved transparent horizontal card must remain visible");
   assert.equal(finish.detailFill,"rgba(0, 0, 0, 0)",

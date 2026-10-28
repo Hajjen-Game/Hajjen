@@ -398,7 +398,7 @@ body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready{
   }
 }
 
-/* HUD & Masterpiece Polish 2.2 · 2026-10-28.
+/* HUD & Masterpiece Polish 2.3 · 2026-10-28.
    The three approved transparent PNG-derived WebP images are unchanged.
    Rebalance text and give the wide collection illustration its intended
    ~3.1:1 proportions. Visual changes only; no board/score logic changes. */
@@ -454,25 +454,26 @@ body.harmony-playing .game-view .hud-score .star-mini{
 }
 body.harmony-playing .game-view .hud-score .hud-record{display:none!important}
 
-/* Masterpiece Layout 2.2. Make the approved paper plaque noticeably taller
-   than its previous 3.1:1 presentation. The old layout squeezed the icons
-   into the gilt bottom rail and pushed their captions outside the artwork.
-   Give the heading, illustrations, badges and captions dedicated breathing
-   room; don't change the painted asset or any collection counts. */
+/* Masterpiece Layout 2.3 — horizontal proportions restored.
+   Goal: the wide, low gold/washi plaque in the approved screenshot.
+   2.2 accidentally turned it into a tall panel and bottom-aligned the art.
+   Slight horizontal overscan is safe; the panel lives under the 7x7 board.
+   Preserve all approved artwork, atlas sprites, score badges, and game state. */
 body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready{
   box-sizing:border-box;
   width:100%;
+  max-width:none;
   height:auto;
-  aspect-ratio:2.48 / 1;
-  min-height:clamp(150px,40vw,300px);
-  margin-top:clamp(8px,1.25vw,14px);
-  margin-bottom:clamp(6px,1.25vw,13px);
-  padding:clamp(17px,2.6vw,27px) clamp(15px,2.4vw,24px)
-          clamp(18px,2.8vw,29px)!important;
+  min-height:0;
+  aspect-ratio:3.35 / 1;
+  margin-top:clamp(5px,.9vw,9px);
+  margin-bottom:clamp(4px,.9vw,8px);
+  padding:clamp(10px,2.1vw,17px) clamp(11px,2vw,19px)
+          clamp(10px,2.25vw,18px)!important;
   display:flex;
   flex-direction:column;
-  justify-content:space-between;
-  gap:clamp(5px,1.3vw,11px);
+  justify-content:flex-start;
+  gap:clamp(3px,.7vw,7px);
   overflow:visible;
 }
 body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready .collection-heading{
@@ -481,7 +482,7 @@ body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready 
   align-items:center;
   justify-content:space-between;
   gap:6px;
-  margin:0 clamp(3px,.7vw,9px)!important;
+  margin:0 clamp(2px,.5vw,6px)!important;
   line-height:1.1;
 }
 body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready .collection-heading strong{
@@ -493,41 +494,40 @@ body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready 
 }
 body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready .collection-items{
   width:100%;
-  flex:1 1 auto;
+  flex:none;
   min-height:0;
   grid-template-columns:repeat(5,minmax(0,1fr));
-  gap:clamp(4px,1vw,10px);
-  align-items:end;
-  padding:0 clamp(2px,.4vw,6px);
+  gap:clamp(3px,.7vw,8px);
+  align-items:start;
+  padding:0 clamp(1px,.2vw,3px);
 }
 body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready .collection-items.four-families{
   grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:clamp(5px,1.1vw,11px);
+  gap:clamp(4px,.85vw,9px);
 }
 body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready .collection-card{
   width:100%;
   min-width:0;
   grid-template-rows:auto auto;
   justify-items:center;
-  align-content:end;
-  gap:clamp(4px,.9vw,8px);
+  align-content:start;
+  gap:clamp(1px,.3vw,3px);
   text-align:center;
 }
 body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready .collection-icon,
 body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready .collection-items.four-families .collection-icon{
-  /* No +7px overscan: otherwise adjacent stage-5 paintings collided. */
-  width:min(100%,132px);
+  width:min(97%,132px);
   max-width:100%;
   height:auto;
   aspect-ratio:1/1;
   margin:0 auto;
-  flex:none;
 }
 body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready .collection-count{
+  /* Anchor over the lower edge of the illustration, NOT over its caption. */
   left:0;
-  bottom:0;
-  min-width:clamp(23px,6.2vw,29px);
-  height:clamp(23px,6.2vw,29px);
+  bottom:clamp(12px,2.9vw,17px);
+  min-width:clamp(22px,5.6vw,29px);
+  height:clamp(22px,5.6vw,29px);
 }
 body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready .collection-label{
   display:block;
@@ -535,25 +535,32 @@ body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready 
   max-width:100%;
   min-height:1.15em;
   margin:0;
-  font-size:clamp(9px,1.95vw,12px);
+  font-size:clamp(8px,1.9vw,11px);
   line-height:1.15;
   white-space:nowrap;
   text-align:center;
   overflow:hidden;
   text-overflow:ellipsis;
 }
-@media(max-width:390px){
+/* Use a little more of the phone's width without widening the playfield
+   or creating horizontal scrolling. Do not increase the panel height. */
+@media(max-width:540px){
   body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready{
-    min-height:150px;
-    padding:18px 12px 20px!important;
-  }
-  body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready .collection-heading{
-    margin:0 4px!important;
+    width:calc(100% + 12px);
+    margin-left:-6px;
+    padding:clamp(9px,2.5vw,12px) 12px clamp(10px,2.7vw,13px)!important;
+    gap:3px;
   }
   body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready .collection-items{
-    gap:4px;
+    gap:3px;
   }
   body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready .collection-label{
-    font-size:9px;
+    font-size:clamp(8px,2.1vw,10px);
+  }
+}
+@media(max-width:360px){
+  body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready{
+    aspect-ratio:3.2 / 1;
+    padding:9px 11px 10px!important;
   }
 }

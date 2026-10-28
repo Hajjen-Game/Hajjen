@@ -202,7 +202,7 @@ try{
   assert(!cardFit.hasOverlap,"Card heading, Japanese numerals and seal must not collide");
   assert(cardFit.detailVisible&&cardFit.gridWidth<=390,
    "The full ten-card book and detail panel must fit mobile width and height");
-  const cardZones=await journal.$eval(".washi-level-tile",tiles=>tiles.map(tile=>{
+  const cardZones=await journal.$eval(".washi-level-tile",tiles=>Array.from(tiles).map(tile=>{
    const rect=tile.getBoundingClientRect();
    const label=tile.querySelector(".washi-tile-label").getBoundingClientRect();
    const jp=tile.querySelector(".washi-tile-jp").getBoundingClientRect();

@@ -304,19 +304,27 @@ body.harmony-playing .game-view .collection-count{
   body.harmony-playing .game-view .pause-button{transition:none}
 }
 
-/* Gameplay Washi Zen 1.1.1 · Frame alignment without scroll overflow.
-   The approved art has 4% transparent margins around its gold rails.
-   Oversize the painted BACKGROUND within the unchanged pseudo box:
-   the rails line up with the board's outside edge, but the layout box
-   cannot make the document wider. Keep the frame behind interactive tiles
-   so the painted flowers never cover puzzle sprites or VFX.
-   No board, touch-target, grid or gameplay dimensions change. */
+/* Gameplay Washi Zen 1.2 — frame in front of the OUTER board edge.
+   Original 1536px art has 3-5% transparent padding. Enlarging the image
+   inside its unchanged box makes the gold rails visible without causing
+   horizontal overflow. The even-odd cutout removes the entire central
+   image: the frame can be above the board, but never cover the actual puzzle
+   pieces or their fusion/pulse VFX. No layout or game-logic changes. */
 body.harmony-playing .game-view .board-shell::after{
+  --jh-frame-band:clamp(9px,2.8vw,16px);
   inset:0;
-  z-index:1;
+  z-index:3;
   background-size:
-    calc(100% + clamp(22px, 6.5vw, 54px))
-    calc(100% + clamp(22px, 6.5vw, 54px));
+    calc(100% + clamp(18px,5vw,40px))
+    calc(100% + clamp(18px,5vw,40px));
   background-position:center center;
+  clip-path:polygon(evenodd,
+    0 0,100% 0,100% 100%,0 100%,0 0,
+    var(--jh-frame-band) var(--jh-frame-band),
+    var(--jh-frame-band) calc(100% - var(--jh-frame-band)),
+    calc(100% - var(--jh-frame-band)) calc(100% - var(--jh-frame-band)),
+    calc(100% - var(--jh-frame-band)) var(--jh-frame-band),
+    var(--jh-frame-band) var(--jh-frame-band));
+  pointer-events:none;
 }
 body.harmony-playing .game-view .board{z-index:2}

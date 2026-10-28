@@ -1669,31 +1669,41 @@ try{
    "Old blue festival backdrop must not cover gameplay background");
  assert(washi.frame.includes("gameplay-washi/board-frame.webp"),
    "Board must render the approved transparent antique gold frame");
- // Washi frame 1.1.1: the art is optically enlarged INSIDE its layout
- // box, without introducing scrollable negative-positioned overflow.
+ // Gameplay Washi Zen 1.2: art rails are visibly in FRONT of the
+ // outer board edge, while an even-odd transparent cutout protects sprites.
  const frameLayer=await page.evaluate(()=>{
    const shell=document.querySelector(".game-view .board-shell");
    const paint=getComputedStyle(shell,"::after");
    const board=getComputedStyle(document.querySelector(".game-view .board"));
+   const r=shell.getBoundingClientRect();
    return {
      inset:parseFloat(paint.top),xInset:parseFloat(paint.left),
-     backgroundSize:paint.backgroundSize,
+     backgroundSize:paint.backgroundSize,clip:paint.clipPath,
+     frameBand:paint.getPropertyValue("--jh-frame-band").trim(),
      frameLayer:Number(paint.zIndex),boardLayer:Number(board.zIndex),
      pointerEvents:paint.pointerEvents,
      bodyWidth:document.body.scrollWidth,
-     viewportWidth:window.innerWidth
+     viewportWidth:window.innerWidth,
+     boardWidth:document.querySelector(".game-view .board").getBoundingClientRect().width,
+     shellWidth:r.width
    };
  });
- assert.equal(frameLayer.inset,0,"Frame wrapper may not extend outside shell");
- assert.equal(frameLayer.xInset,0,"Frame wrapper may not extend horizontally");
+ assert.equal(frameLayer.inset,0,"Frame must stay in its shell without overflowing");
+ assert.equal(frameLayer.xInset,0,"Frame may not expand document width");
  assert(frameLayer.backgroundSize.includes("calc("),
-   "Painted rail padding must be compensated within the background image");
- assert(frameLayer.frameLayer<frameLayer.boardLayer,
-   "Flowers and gold must render below the 49 puzzle icons and VFX");
+   "Gold rails must be aligned to the outer edge of the approved art");
+ assert(frameLayer.frameLayer>frameLayer.boardLayer,
+   "Frame must be visible in front of the board background");
+ assert(frameLayer.clip.startsWith("polygon(evenodd"),
+   "Interior of front frame must be cut out, keeping all sprites and VFX visible");
+ assert(frameLayer.frameBand.startsWith("clamp("),
+   "Protective frame band must scale across mobile and desktop");
  assert.equal(frameLayer.pointerEvents,"none",
    "Frame must not intercept touch or pointer input");
  assert(frameLayer.bodyWidth<=frameLayer.viewportWidth,
    "Frame must not introduce horizontal document overflow");
+ assert(frameLayer.boardWidth<=frameLayer.shellWidth,
+   "Frame must not alter the playable board's width");
 
  assert.equal(washi.n,49,"Gameplay remains a 7×7 interactive grid");
  assert(washi.board.fill.includes("36, 29, 32"),

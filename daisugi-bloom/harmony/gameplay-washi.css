@@ -354,3 +354,46 @@ body.harmony-playing #app{
 body.harmony-playing{
   overflow-x:clip;
 }
+
+
+/* Washi Zen HUD & Masterpiece Assets 2.0.
+   These rules are enabled only after the approved artwork has loaded.
+   Transparent edges belong to the asset, not a separate box/frame.
+   Keep all existing counters, star displays and masterpiece layout live. */
+body.harmony-playing .game-view .moves.jh-approved-panel-ready,
+body.harmony-playing .game-view .hud-score.jh-approved-panel-ready{
+  background-color:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background-position:center!important;
+  background-size:100% 100%!important;
+  background-repeat:no-repeat!important;
+  padding:clamp(8px,1.8vw,13px) clamp(9px,1.9vw,15px)!important;
+}
+body.harmony-playing .game-view .moves.jh-approved-panel-ready{
+  background-image:url("../assets/gameplay-washi/hud-moves.webp")!important;
+}
+body.harmony-playing .game-view .moves.jh-approved-panel-ready::after{
+  content:none!important;
+  display:none!important;
+}
+body.harmony-playing .game-view .hud-score.jh-approved-panel-ready{
+  background-image:url("../assets/gameplay-washi/hud-score.webp")!important;
+}
+body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready{
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:transparent url("../assets/gameplay-washi/masterpiece.webp") center / 100% 100% no-repeat!important;
+  padding:clamp(9px,1.5vw,14px) clamp(11px,2vw,18px)!important;
+}
+@media(max-width:540px){
+  body.harmony-playing .game-view .moves.jh-approved-panel-ready,
+  body.harmony-playing .game-view .hud-score.jh-approved-panel-ready{
+    padding:6px 7px!important;
+  }
+  body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready{
+    padding:9px 10px!important;
+  }
+}

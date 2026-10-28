@@ -667,3 +667,45 @@ body:not(.harmony-playing) #menuView .washi-home-controls{
  #menuView #continueButton,
  #modal .washi-detail-play {transition:none}
 }
+
+
+/* Washi Zen 1.3 · Match the painted card, not an oversized button.
+   The level-card art has transparent padding (x~2.7%, y~5.7%). */
+#modal .washi-level-grid .washi-level-tile{
+ position:relative;display:block;isolation:isolate;
+ background:none!important;background-color:transparent!important;
+ border:0!important;padding:0!important;margin:0;
+ border-radius:0;outline:0!important;box-shadow:none!important;
+ overflow:visible;-webkit-appearance:none;appearance:none;
+}
+/* All paint and shadows live in this dedicated art layer. No fallback
+   rectangle may show through around the corners of the real card. */
+#modal .washi-level-grid .washi-level-tile::before{
+ content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+ background:transparent url("../assets/washi-zen/level-card.webp") center / 100% 100% no-repeat;
+ filter:drop-shadow(0 2px 2px rgba(66,40,27,.18));
+}
+#modal .washi-level-grid .washi-level-tile.is-selected::after,
+#modal .washi-level-grid .washi-level-tile:focus-visible::after{
+ content:"";position:absolute;inset:5.7% 2.7% 6%;
+ z-index:1;pointer-events:none;
+ border:2px solid #ab403c;border-radius:clamp(7px,2.2vw,14px);
+ box-shadow:0 0 0 2px rgba(254,229,202,.76),0 1px 5px rgba(100,42,34,.20);
+}
+#modal .washi-level-grid .washi-level-tile:focus-visible::after{border-width:3px}
+#modal .washi-level-grid .washi-level-tile>*{z-index:2}
+#modal .washi-level-grid .washi-level-tile .washi-tile-label,
+#modal .washi-level-grid .washi-level-tile .washi-tile-jp,
+#modal .washi-level-grid .washi-level-tile .washi-tile-seal{position:absolute}
+#menuView #continueButton:is(:active,.is-pressed),
+#modal .washi-detail-play:not(:disabled):is(:active,.is-pressed){
+ transform:translateY(4px) scale(.95);
+ filter:brightness(.76) saturate(1.15);
+}
+#menuView #continueButton,#modal .washi-detail-play{
+ will-change:transform,filter;
+ transition:transform 90ms ease-out,filter 90ms ease-out;
+}
+@media(prefers-reduced-motion:reduce){
+ #menuView #continueButton,#modal .washi-detail-play{transition:none}
+}

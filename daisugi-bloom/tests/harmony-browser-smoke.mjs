@@ -42,6 +42,28 @@ try{
  assert(uiMenu.legacyListHidden,"Old level list must remain hidden");
  assert.equal(uiMenu.advancedOpen,false);
  assert(uiMenu.bodyWidth<=390,"Mobile menu must have no horizontal overflow");
+ // Washi Zen 1.2: the 3:1 watercolor brush must remain undistorted and
+ // provide unmistakable visual touch-down feedback before game launch.
+ const brush=await page.evaluate(()=>{
+  const btn=document.querySelector("#continueButton");
+  const rect=btn.getBoundingClientRect();
+  const style=getComputedStyle(btn);
+  return {ratio:rect.width/rect.height,image:style.backgroundImage,
+   color:style.backgroundColor,transform:style.transform};
+ });
+ assert(Math.abs(brush.ratio-849/283)<.08,
+  "Play brush must use its native source aspect ratio, not a stretched pill");
+ assert(brush.image.includes("play-brush.webp"),"Use the approved painted asset");
+ assert(brush.color==="rgba(0, 0, 0, 0)","No solid rectangle behind the brush");
+ await page.$eval("#continueButton",b=>b.classList.add("is-pressed"));
+ const down=await page.$eval("#continueButton",b=>({
+  transform:getComputedStyle(b).transform,
+  filter:getComputedStyle(b).filter
+ }));
+ assert(down.filter.includes("brightness")||down.transform!==brush.transform,
+  "Pressing the button must visibly darken and depress it");
+ await page.$eval("#continueButton",b=>b.classList.remove("is-pressed"));
+
  // Washi Zen 1.1: main menu must be one mobile viewport, not a scrollable
  // document with empty space after the background.
  const homeFit=await page.evaluate(()=>{
@@ -180,6 +202,33 @@ try{
   assert(!cardFit.hasOverlap,"Card heading, Japanese numerals and seal must not collide");
   assert(cardFit.detailVisible&&cardFit.gridWidth<=390,
    "The full ten-card book and detail panel must fit mobile width and height");
+  const cardZones=await journal.$eval(".washi-level-tile",tiles=>tiles.map(tile=>{
+   const rect=tile.getBoundingClientRect();
+   const label=tile.querySelector(".washi-tile-label").getBoundingClientRect();
+   const jp=tile.querySelector(".washi-tile-jp").getBoundingClientRect();
+   const seal=tile.querySelector(".washi-tile-seal").getBoundingClientRect();
+   return {
+    level:tile.dataset.level,
+    labelTop:(label.top-rect.top)/rect.height,
+    labelBottom:label.bottom,jpTop:jp.top,jpBottom:jp.bottom,
+    sealTop:seal.top,sealBottom:seal.bottom,sealMiddleX:(seal.left+seal.right)/2,
+    cardMiddleX:(rect.left+rect.right)/2,
+    bottomGap:(rect.bottom-seal.bottom)/rect.height
+   };
+  }));
+  for(const tile of cardZones){
+   assert(tile.labelTop>.11&&tile.labelTop<.23,
+    "Level "+tile.level+" text must start safely inside the painted border");
+   assert(tile.labelBottom<tile.jpTop+1,
+    "Level "+tile.level+" English and Japanese text must be separate");
+   assert(tile.jpBottom<tile.sealTop+1,
+    "Level "+tile.level+" stamp must not overlap the Japanese numeral");
+   assert(Math.abs(tile.sealMiddleX-tile.cardMiddleX)<1.5,
+    "Level "+tile.level+" stamp must be horizontally centered");
+   assert(tile.bottomGap>.08&&tile.bottomGap<.22,
+    "Level "+tile.level+" stamp must have a consistent bottom margin");
+  }
+
 
   await journal.click('.washi-level-tile[data-level="2"]');
   assert.equal(await journal.$eval(".washi-detail-play",x=>x.disabled),true);

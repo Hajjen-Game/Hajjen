@@ -193,3 +193,13 @@ body:not(.harmony-playing) #menuView::after{
  #modal .washi-level-detail{margin-top:7px;min-height:64px}
 }
 @media(prefers-reduced-motion:reduce){#modal .washi-level-tile{transition:none}}
+
+/* Approved transparent, hand-painted logo replaces typographic placeholder. */
+.washi-home-logo:has(.washi-home-asset-logo) > :not(.washi-home-asset-logo){display:none!important}
+.washi-home-logo .washi-home-asset-logo{
+ display:block;width:min(95%,465px);max-width:100%;height:auto;
+ max-height:min(40svh,320px);object-fit:contain;object-position:center;
+ filter:none;
+}
+#modal .washi-nav:empty::after{display:none!important}
+@media(max-height:700px){.washi-home-logo .washi-home-asset-logo{max-height:205px}}

@@ -219,6 +219,39 @@ try{
    "The painted card and inset red selection outline must both render");
   assert(parseFloat(painted.left)>0&&parseFloat(painted.top)>0,
    "Selection must be inset to match actual painted pixels");
+  const finish=await journal.evaluate(()=>{
+   const tile=document.querySelector(".washi-level-tile.is-selected");
+   const art=getComputedStyle(tile,"::before");
+   const ring=getComputedStyle(tile,"::after");
+   const detail=document.querySelector(".washi-level-detail");
+   const panel=getComputedStyle(detail);
+   const rect=detail.getBoundingClientRect();
+   return {
+    ringShadow:ring.boxShadow,
+    artFilter:art.filter,
+    ringInsetLeft:parseFloat(ring.left),
+    ringInsetTop:parseFloat(ring.top),
+    detailImage:panel.backgroundImage,
+    detailFill:panel.backgroundColor,
+    detailBorder:panel.borderTopWidth,
+    detailShadow:panel.boxShadow,
+    detailHeight:rect.height,
+    detailWidth:rect.width
+   };
+  });
+  assert.equal(finish.ringShadow,"none","No extra light halo can extend beyond the red selection");
+  assert.equal(finish.artFilter,"none","No painted-card shadow beyond a selected frame");
+  assert(finish.ringInsetLeft>=3&&finish.ringInsetTop>=5,
+    "Red selection must follow the real painted edges, not the canvas edge");
+  assert(finish.detailImage.includes("detail-card.webp"),
+    "The approved transparent horizontal card must remain visible");
+  assert.equal(finish.detailFill,"rgba(0, 0, 0, 0)",
+    "No oversized opaque beige backing behind the detail-card artwork");
+  assert.equal(finish.detailBorder,"0px","Detail card must not have a rectangular CSS border");
+  assert.equal(finish.detailShadow,"none","No extra rectangular detail-card shadow");
+  assert(finish.detailHeight>40&&finish.detailWidth>200,
+    "The detail card remains readable on mobile");
+
 
   const cardZones=await journal.$eval(".washi-level-tile",tiles=>Array.from(tiles).map(tile=>{
    const rect=tile.getBoundingClientRect();

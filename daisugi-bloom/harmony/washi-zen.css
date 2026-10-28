@@ -709,3 +709,36 @@ body:not(.harmony-playing) #menuView .washi-home-controls{
 @media(prefers-reduced-motion:reduce){
  #menuView #continueButton,#modal .washi-detail-play{transition:none}
 }
+
+
+/* Washi Zen UI 1.4 — eliminate layers outside the painted illustrations.
+   Verified artwork alpha edges:
+   level-card.webp 600x1044: x=16..584, y=59..984
+   detail-card.webp 1760x432: x=14..1745, y=19..413.
+   Keep their native transparent margins, no opaque CSS backplates. */
+#modal .washi-level-grid .washi-level-tile.is-selected::after,
+#modal .washi-level-grid .washi-level-tile:focus-visible::after {
+  /* Single restrained red stroke, entirely ON the painted paper.
+     Do not add pale halos or box-shadows beyond the red stroke. */
+  inset:6.3% 3.3% 6.5%;
+  border:2px solid #a7433e;
+  border-radius:clamp(6px,1.6vw,10px);
+  box-shadow:none!important;
+  outline:0!important;
+}
+#modal .washi-level-grid .washi-level-tile.is-selected::before {
+  /* The previous drop-shadow was visible OUTSIDE the red selection. */
+  filter:none!important;
+}
+#modal .washi-level-grid .washi-level-tile:focus-visible::after {
+  border-width:2px;
+}
+#modal .washi-level-detail {
+  /* Previous background:#f4e4c9 painted a solid, oversized pale rectangle. */
+  background:transparent url("../assets/washi-zen/detail-card.webp") center / 100% 100% no-repeat!important;
+  background-color:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  outline:0;
+  box-shadow:none!important;
+}

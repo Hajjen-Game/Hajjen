@@ -223,9 +223,10 @@ check("Washi Zen UI 1.0: ten level cards per chapter and accurate Japanese label
  assert(app.includes("activateWashiPlay(play,()=>"),"Book play button must press");
  assert(app.includes('activateWashiPlay($("continueButton"),()=>'),"Home play button must press");
  assert(css.includes("Washi Zen 1.3"),"Artwork-aligned selected card frame must be loaded");
+ assert(css.includes("Washi Zen UI 1.4"),"Transparent detail card and no-halo highlight must remain active");
  assert(css.includes("level-card.webp")&&css.includes("detail-card.webp"));
  assert(css.includes("book-background.webp")&&css.includes("arrow-left.webp"));
- assert(html.includes('washi-zen.css?v=1.3.0'));
+ assert(html.includes('washi-zen.css?v=1.4.0'));
  for(const [n,k] of [[1,"一"],[10,"十"],[11,"十一"],[24,"二十四"],[40,"四十"],[123,"百二十三"]])
   assert.equal(G.japaneseNumeral(n),k);
 });

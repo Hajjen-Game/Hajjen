@@ -137,7 +137,7 @@ body:not(.harmony-playing) #menuView::after{
  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
  grid-template-rows:repeat(2,minmax(0,1fr));
  width:100%;max-width:570px;max-height:360px;min-height:0;
- aspect-ratio:2.45;margin:0 auto;gap:clamp(3px,1vw,8px);
+ aspect-ratio:1.54;margin:0 auto;gap:clamp(3px,1vw,8px);
 }
 #modal .washi-level-tile{
  min-width:0;min-height:0;display:flex;flex-direction:column;
@@ -179,7 +179,7 @@ body:not(.harmony-playing) #menuView::after{
 #modal .washi-detail-play:disabled{filter:grayscale(.7);opacity:.58}
 @media(max-width:400px){
  #modal .washi-book-nav{margin:8px auto 10px}
- #modal .washi-level-grid{aspect-ratio:2.33}
+ #modal .washi-level-grid{aspect-ratio:1.54}
  #modal .washi-level-tile{gap:3px;padding-top:7px}
  #modal .washi-level-detail{min-height:72px}
  #modal .washi-detail-play{min-width:81px}

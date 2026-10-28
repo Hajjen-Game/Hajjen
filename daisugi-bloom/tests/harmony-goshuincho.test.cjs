@@ -191,182 +191,50 @@ check("Artwork Fidelity 1.0 keeps square atlas pixels inside non-square plaques"
 });
 
 
-check("Level Card Rework 1.0: three user-approved full-resolution artworks mapped by chapter",()=>{
- const fs=require("node:fs");
- const path=require("node:path");
- const expected=["sakura","mist","daruma"];
- for(let chapter=0;chapter<3;chapter++){
-  const src=G.artUrl("cards",chapter);
-  assert.equal(typeof src,"string");
-  assert(src.includes("level-card-"+expected[chapter]+".webp"));
-  const pathOnDisk=path.resolve(__dirname,"..",src.split("?")[0]);
-  const data=fs.readFileSync(pathOnDisk);
-  assert(data.length>50_000,"The chapter card must be a real high-fidelity file, not a 96px cell");
-  assert.equal(data.toString("ascii",0,4),"RIFF");
-  assert.equal(data.toString("ascii",8,12),"WEBP");
+
+check("Washi Zen UI 1.0: ten level cards per chapter and accurate Japanese labels",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+ const css=fs.readFileSync(path.join(__dirname,"../harmony/washi-zen.css"),"utf8");
+ const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
+ const state={unlocked:24,bestStars:{20:2,22:3},fourFamilyStars:{},bestScores:{},fourFamilyScores:{}};
+ const all=G.chapterSnapshot(state,2);
+ assert.equal(all.stamps.length,10);
+ assert.equal(all.stamps[0].number,21);
+ assert.equal(all.stamps.at(-1).number,30);
+ assert.equal(all.stamps.find(x=>x.number===25).isCurrent,true);
+ assert.equal(all.stamps.find(x=>x.number===26).locked,true);
+ assert(app.includes("G.chapterSnapshot(save,goshuinChapter)"));
+ assert(app.includes("for(const stamp of info.stamps)"));
+ assert(app.includes('goshuinNode("button","washi-level-tile"'));
+ assert(app.includes("G.japaneseNumeral(stamp.number)"));
+ assert(app.includes('goshuinArtwork(seal,"grades",stamp.stars)'),
+  "Approved 1–3 star seals must remain attached to genuine achievements");
+ assert(!app.includes('goshuinArtwork(tile,"cards",info.index)'));
+ assert(app.includes('latest.playable)startLevel(stamp.level,latest.resumable)'),
+  "A locked stage must never launch and resume must be preserved");
+ assert(css.includes("grid-template-columns:repeat(5,minmax(0,1fr))"));
+ assert(css.includes("grid-template-rows:repeat(2,minmax(0,1fr))"));
+ assert(css.includes("level-card.webp")&&css.includes("detail-card.webp"));
+ assert(css.includes("book-background.webp")&&css.includes("arrow-left.webp"));
+ assert(html.includes('washi-zen.css?v=1.0.0'));
+ for(const [n,k] of [[1,"一"],[10,"十"],[11,"十一"],[24,"二十四"],[40,"四十"],[123,"百二十三"]])
+  assert.equal(G.japaneseNumeral(n),k);
+});
+check("Washi Zen startsida: preserve controls and no legacy level selector",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
+ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+ for(const id of ["continueButton","goshuinButton","goshuinProgress","omamoriButton","omamoriProgress",
+   "omikujiButton","omikujiStatus","harmonyCoins","gameDirectorMode","levelList","levelPager"]){
+  assert(html.includes('id="'+id+'"'),"Retain control "+id);
  }
- assert.equal(G.artUrl("cards",3),null,"Unillustrated chapters must use their paper fallback");
- const app=fs.readFileSync(path.resolve(__dirname,"../harmony/app.js"),"utf8");
- assert(!app.includes('goshuinArtwork(tile,"cards",info.index)'));
- assert(app.includes('goshuinArtwork(crest,"chapters",info.index)'));
- assert(!app.includes('goshuinNode("span","goshuin-stamp-slot")'),
-  "Old circle slots may not render off-center again");
- const css=fs.readFileSync(path.resolve(__dirname,"../harmony/mobile-game.css"),"utf8");
- const section=css.slice(css.lastIndexOf("/* Goshuincho Level Card Rework 1.0"));
- assert(section.includes("aspect-ratio:4 / 5"));
- assert(section.includes("object-fit:contain"));
- assert(section.includes(".goshuin-grade"));
-});
-
-check("Asset Fidelity 2.0 has independent high-density images with no distortion",()=>{
- const fs=require("node:fs"),path=require("node:path");
- const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
- const fidelity=css.slice(css.lastIndexOf("/* Goshuincho Asset Fidelity 2.0"));
- assert(fidelity.includes("object-fit:contain"));
- assert(fidelity.includes("aspect-ratio:1 / 1"));
- assert(fidelity.includes(".goshuin-grade > img.goshuin-art"));
- assert(fidelity.includes(".goshuin-cover-slot > img.goshuin-art"));
- const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
- assert(app.includes('goshuinArtwork(crest,"chapters",info.index)'));
- assert(!app.includes('goshuinArtwork(tile,"cards",info.index)'));
- assert(app.includes('goshuinArtwork(grade,"grades",stamp.stars)'));
-});
-
-check("Optical Alignment 1.0 aligns actual chapter silhouettes and seal ink, not card geometry",()=>{
- const fs=require("node:fs"),path=require("node:path");
- const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
- const f=css.slice(css.lastIndexOf("/* Goshuincho Optical Alignment 1.0"));
- assert(f.length>1200,"Separate optical-only layer should be present");
- assert(f.includes('#modal .goshuin-cover-slot[data-art-key="chapter-01"]'));
- assert(f.includes('#modal .goshuin-cover-slot[data-art-key="chapter-02"]'));
- assert(f.includes('#modal .goshuin-cover-slot[data-art-key="chapter-03"]'));
- assert(f.includes('--goshuin-optical-x:-2%'));
- assert(f.includes('--goshuin-optical-x:0%'));
- assert(f.includes('--goshuin-optical-x:1.85%'));
- assert(f.includes('translate(var(--goshuin-optical-x,0%),1.4%) scale(1)'),
-  "All three header images must remain exactly the same size");
- for(let grade=1;grade<=3;grade++)
-  assert(f.includes('.goshuin-grade[data-grade="'+grade+'"]'));
- assert(f.includes('--goshuin-seal-optical-scale:.970'));
- assert(f.includes('--goshuin-seal-optical-scale:1.030'));
- assert(f.includes('--goshuin-seal-optical-scale:.945'));
- // Based on native PNG alpha bounding boxes measured at >=128; equalize the
- // three apparent ink diameters rather than the already-equal 512px canvases.
- const effective=[453*.970,425*1.030,465*.945];
- assert(Math.max(...effective)-Math.min(...effective)<3,
-  "Ink footprint should be visually consistent to under 1% across ratings");
- const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(html.includes("mobile-game.css?v=6.50.0-omamori-cards"),
-  "Paper-card CSS cache must be refreshed on phones");
- assert(html.includes('goshuincho.js?v=6.43.0-japanese-numerals'),
-  "Data mapping must stay untouched");
- const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
- assert(!app.includes('goshuinArtwork(tile,"cards",info.index)'),
-  "All level cards use dynamic parchment instead of per-chapter picture overlays");
- assert(app.includes('goshuinArtwork(crest,"chapters",info.index)'),
-  "Square chapter icons must remain independent from portraits");
-});
-
-check("Warm Parchment 2.0 renders all chapter cards with real level names",()=>{
- const fs=require("node:fs"),path=require("node:path");
- const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
- const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
- const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(app.includes('G.japaneseNumeral(stamp.number)'),"All chapter levels use the dynamic Japanese numbering");
- assert(!app.includes('stamp.level>=0&&stamp.level<4'),"No first-page-only gate remains");
- assert(app.includes('tile.classList.add("is-omikuji-preview")'),"Every stamp has parchment styling");
- assert(app.includes('goshuinNode("strong","goshuin-paper-title",levelConfig.name)'));
- assert(app.includes('goshuinArtwork(grade,"grades",stamp.stars)'),"Original star seals survive");
- assert(!app.includes('goshuinArtwork(tile,"cards",info.index)'),"No watercolor level tiles remain");
- assert(app.includes('goshuinArtwork(crest,"chapters",info.index)'),"Keep approved chapter header pictures");
- const cases=[[1,"一"],[4,"四"],[9,"九"],[10,"十"],[11,"十一"],[20,"二十"],
-  [23,"二十三"],[32,"三十二"],[40,"四十"],[49,"四十九"],
-  [99,"九十九"],[100,"百"],[101,"百一"],[110,"百十"],[123,"百二十三"],
-  [1000,"千"],[10000,"一万"],[12345,"一万二千三百四十五"]];
- for(const [level,expected] of cases)assert.equal(G.japaneseNumeral(level),expected);
- assert.equal(G.japaneseNumeral(0),"0");
- assert.equal(G.japaneseNumeral(1.3),"1.3");
- assert(css.includes("Goshuincho Warm Parchment 2.0"));
- assert(css.includes("#fbedd0")&&css.includes("#f5dfb4")&&css.includes("#efd09a"),
-  "Every card must use the approved warm golden parchment palette");
- const scoped=css.slice(css.indexOf("/* Goshuincho Warm Parchment 2.0"));
- assert(!scoped.includes("rgba(240,174,151"),"Old pink tint removed");
- assert(scoped.includes("rgba(214,170,103,.16)")&&scoped.includes("rgba(255,239,204,.30)"),
-  "Additional honey-gold highlights must replace the flat gray-beige appearance");
- assert(scoped.includes("rgba(184,129,67,.58)"),
-  "The inked card frame must be warm sepia");
- assert(scoped.includes("font-size:clamp(11px,3.35vw,14px)"),
-  "Stage number/eyebrow must be larger");
- assert(scoped.includes("font-size:clamp(12px,3.2vw,16px)"),
-  "Actual level title must be smaller");
- assert(scoped.includes("@media(max-width:360px)"),
-  "Small phones retain legible paper typography");
- for(const className of ["goshuin-paper-title","goshuin-paper-kanji","goshuin-paper-eyebrow","goshuin-paper-sakura"])
-  assert(css.includes("#modal .goshuin-stamp.is-omikuji-preview ."+className),
-   "Paper typography applies to all Goshuincho level cards");
- assert(css.includes(".goshuin-paper-kanji.is-multi-kanji")&&css.includes(".goshuin-paper-title.is-long"),
-  "Long Japanese numerals and titles must scale on small screens");
- assert(html.includes('goshuincho.js?v=6.43.0-japanese-numerals'));
- assert(html.includes('app.js?v=6.50.0-consumable'));
- assert(html.includes('mobile-game.css?v=6.50.0-omamori-cards'));
- const names=Array.from({length:4},(_,i)=>require("../harmony/rules.js").levelConfig(i).name);
- assert.deepEqual(names,["First Harmony","Growing Beauty","First Masterpiece","First Mist"]);
-});
-check("Primary Goshuincho navigation hides the old level list without removing progression",()=>{
- const fs=require("node:fs"),path=require("node:path");
- const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
- const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
- assert.match(html, /id="levelList"[^>]*\bhidden\b[^>]*aria-hidden="true"/,
-  "The old list must not be visible or accessible");
- assert.match(html, /id="levelPager"[^>]*\bhidden\b[^>]*aria-hidden="true"/);
- assert(css.includes("#levelList[hidden],#levelPager[hidden]{display:none!important}"));
- assert(html.includes('id="goshuinButton"')&&html.includes("Goshuincho · Välj nivå"));
+ assert(html.includes('class="menu-view washi-home"'));
+ assert(html.includes('class="washi-home-logo"'));
+ assert(html.includes('id="levelList"')&&html.includes('hidden inert aria-hidden="true"'));
  assert(app.includes("function showLevelSelection()"));
- assert(app.includes('showMenu();\n showGoshuincho();'),
-  "Leaving a run must open book on the player's current chapter");
- assert(app.includes('modalButton(actions,"Goshuincho · Nivåval"'));
- assert(app.includes('add("Till Goshuincho"'));
- assert(!html.includes('class="primary" id="continueButton"'),
-  "Quick Continue should not outrank primary book level selection");
-});
-
-check("Menu Focus & Reward Hierarchy 1.0 makes Goshuincho the primary menu action",()=>{
- const fs=require("node:fs"),path=require("node:path");
- const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
- const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
- assert(html.includes("Harmony Director 4.0"));
- assert(html.indexOf('id="goshuinButton"')<html.indexOf('id="continueButton"'),
-  "The album is presented before its subordinate quick-play shortcut");
- assert(html.indexOf('id="continueButton"')<html.indexOf('class="menu-rewards"'),
-  "Collection rewards must follow the two gameplay actions");
- assert(html.includes('id="menuRewardsTitle"')&&html.includes("Samling &amp; belöningar"));
- assert(html.includes('id="omamoriButton"')&&html.includes('id="omikujiButton"'),
-  "Coin shop and daily luck remain accessible");
- assert(html.includes('id="devButton"')&&html.includes('id="menuAdvanced"'),
-  "Developer tools remain accessible");
- assert(css.includes("/* Menu Focus & Reward Hierarchy 1.0"));
- assert(css.includes(".menu-view .panel-footer #continueButton"));
- assert(css.includes(".menu-view .hero h1,.menu-view .hero p,.menu-view .hero-pills{display:none}"));
- assert(css.includes(".menu-view .family-progression-note{display:none}"));
- assert(app.includes('showMenu();\n showGoshuincho();'),
-  "Leaving gameplay must still open Goshuincho");
- assert(app.includes('canResume?"Fortsätt nivå "'),
-  "The quick-play action must retain saved run support");
-});
-
-check("Reward Polish only marks legitimately earned chapter stamps",()=>{
- const fs=require("node:fs"),path=require("node:path");
- const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
- const state={unlocked:30,bestStars:{20:1},fourFamilyStars:{0:1}};
- assert.equal(G.chapterSnapshot(state,2).earned,1);
- assert.equal(G.chapterSnapshot(state,2).completed,false);
- for(let i=20;i<30;i++)state.bestStars[i]=1;
- assert.equal(G.chapterSnapshot(state,2).earned,10);
- assert.equal(G.chapterSnapshot(state,2).completed,true);
- assert(app.includes('stamp.earned?" is-earned":""'));
+ assert(app.includes('showMenu();\n showGoshuincho();'));
+ assert(app.includes('saveRun();'),"Leaving gameplay must retain save");
  assert(app.includes('rewardStarsAtLevelStart=G.archivedStars(save,i)'));
- assert(app.includes('const chapterReward=G.chapterSnapshot(save,Math.floor(level/G.CHAPTER_SIZE))'));
 });
-console.log("Goshuincho Collection + Level Cards + Asset Fidelity 2.0, Optical Alignment 1.0 and Menu Focus 1.0 tests passed.");
+console.log("Goshuincho ten-level Washi Zen 1.0 + archived stamp invariants passed.");

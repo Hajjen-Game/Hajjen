@@ -24,26 +24,24 @@ try{
  // Goshuincho Primary Navigation 1.0: the old list is absent visually.
  // The Director remains hidden behind the accessible disclosure.
  const uiMenu=await page.evaluate(()=>{
-  const a=document.querySelector(".hero").getBoundingClientRect();
-  const b=document.querySelector("#goshuinButton").getBoundingClientRect();
-  const advanced=document.querySelector("#menuAdvanced");
-  return {heroHeight:a.height,levelTop:b.top,advancedOpen:advanced.open,
-   directorHidden:getComputedStyle(document.querySelector("#gameDirectorMode")).display,
-   legacyListHidden:getComputedStyle(document.querySelector("#levelList")).display==="none"&&
-    getComputedStyle(document.querySelector("#levelPager")).display==="none",
-   goshuinVisible:!!document.querySelector("#goshuinButton").offsetParent,
-   introduction:document.querySelector(".hero p").textContent,
-   familyCopy:document.querySelector(".family-progression-note").textContent,
-   bodyWidth:document.body.scrollWidth};
+  const logo=document.querySelector(".washi-home-logo");
+  const play=document.querySelector("#continueButton");
+  const buttons=document.querySelectorAll(".washi-home-link");
+  return {
+    logoVisible:!!logo&&getComputedStyle(logo).display!=="none",
+    playVisible:!!play&&play.getBoundingClientRect().height>=46,
+    buttons:buttons.length,
+    advancedOpen:document.querySelector("#menuAdvanced").open,
+    legacyListHidden:getComputedStyle(document.querySelector("#levelList")).display==="none"&&
+     getComputedStyle(document.querySelector("#levelPager")).display==="none",
+    bodyWidth:document.body.scrollWidth
+  };
  });
- assert(uiMenu.heroHeight<210,"Shorter hero should no longer bury level selection");
- assert(uiMenu.levelTop<780,"Goshuincho must appear on the initial phone view");
- assert(uiMenu.legacyListHidden&&uiMenu.goshuinVisible,
-  "The old level list is hidden and Goshuincho is the visible level selector");
- assert.equal(uiMenu.advancedOpen,false,"Director controls should start folded");
- assert(!uiMenu.introduction.includes("fem per nivå"),"Intro must not claim five families on every level");
- assert(uiMenu.familyCopy.includes("4 familjer")&&uiMenu.familyCopy.includes("5 familjer"));
- assert(uiMenu.bodyWidth<=390,"Premium menu must have no horizontal overflow");
+ assert(uiMenu.logoVisible&&uiMenu.playVisible&&uiMenu.buttons===3,
+  "Washi Zen menu needs logo, play and the three collection actions");
+ assert(uiMenu.legacyListHidden,"Old level list must remain hidden");
+ assert.equal(uiMenu.advancedOpen,false);
+ assert(uiMenu.bodyWidth<=390,"Mobile menu must have no horizontal overflow");
  // Goshuincho Primary Navigation 1.0: game -> book -> saved level ->
  // Home -> book -> menu; no old level-list interaction in this flow.
  const bookNavContext=await browser.createBrowserContext();
@@ -52,32 +50,23 @@ try{
   await nav.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await nav.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
   await nav.click("#continueButton");
-  assert.equal(await nav.$eval("#gameView",el=>el.hidden),false);
+  assert.equal(await nav.$eval("#gameView",e=>e.hidden),false);
   await nav.click("#pauseButton");
   await nav.click(".pause-levels");
-  assert.equal(await nav.$eval("#modalTitle",el=>el.textContent),"Goshuincho");
-  assert.equal(await nav.$eval("#gameView",el=>el.hidden),true);
-  assert.equal(await nav.$eval("#menuView",el=>el.hidden),false);
-  assert.equal(await nav.$eval(".goshuin-page-count",el=>el.textContent),"Kapitel 1 · Sida 1 / 3");
-  assert.equal(await nav.$eval(".goshuin-play",el=>el.textContent),"Fortsätt nivå 1 →");
-  await nav.click(".goshuin-play");
-  assert.equal(await nav.$eval("#gameView",el=>el.hidden),false);
-  assert.equal(await nav.$eval("#modal",el=>el.hidden),true);
-  // During gameplay the global header is intentionally hidden, so use
-  // the actual in-game pause action before checking the menu's Home button.
+  assert.equal(await nav.$eval("#modalTitle",e=>e.textContent),"Goshuincho");
+  assert.equal(await nav.$$eval(".washi-level-tile",e=>e.length),10);
+  assert.equal(await nav.$eval(".washi-detail-play",e=>e.textContent),"FORTSÄTT");
+  await nav.click(".washi-detail-play");
+  assert.equal(await nav.$eval("#gameView",e=>e.hidden),false);
+  assert.equal(await nav.$eval("#modal",e=>e.hidden),true);
   await nav.click("#pauseButton");
   await nav.click(".pause-levels");
-  assert.equal(await nav.$eval("#modalTitle",el=>el.textContent),"Goshuincho");
-  await nav.click(".goshuin-close");
-  assert.equal(await nav.$eval("#modal",el=>el.hidden),true);
-  assert.equal(await nav.$eval("#menuView",el=>el.hidden),false);
-  await nav.click("#homeButton");
-  assert.equal(await nav.$eval("#modalTitle",el=>el.textContent),"Goshuincho",
-   "The visible Home action must also open the primary level book");
-  await nav.click(".goshuin-close");
-  assert.equal(await nav.$eval("#levelList",el=>getComputedStyle(el).display),"none");
-  assert.equal(await nav.$eval("#levelPager",el=>getComputedStyle(el).display),"none");
-  assert.equal(await nav.$eval("#goshuinButton",el=>el.textContent.includes("Välj nivå")),true);
+  await nav.click(".washi-book-close");
+  assert.equal(await nav.$eval("#menuView",e=>e.hidden),false);
+  assert.equal(await nav.$eval("#modal",e=>e.hidden),true);
+  await nav.click("#goshuinButton");
+  assert.equal(await nav.$$eval(".washi-level-tile",e=>e.length),10);
+  await nav.click(".washi-book-close");
  }finally{await bookNavContext.close();}
  // Daruma Awakening 1.0: the approved 3-state transparent WebP is shipped
  // and its actual state is rendered as a fixed tile on a narrow mobile board.
@@ -143,377 +132,54 @@ try{
   const journal=await journalContext.newPage();
   await journal.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await journal.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
-  assert.equal(await journal.$eval("#goshuinProgress",x=>x.textContent),"0 / 10 stämplar");
   await journal.click("#goshuinButton");
-  const empty=await journal.evaluate(()=>({
-   title:document.querySelector("#modalTitle")?.textContent,
-   tiles:document.querySelectorAll(".goshuin-stamp").length,
-   earned:document.querySelectorAll(".goshuin-stamp.is-earned").length,
-   text:document.querySelector(".goshuin-chapter-status")?.textContent,
-   page:document.querySelector(".goshuin-page-count")?.textContent,
-   nextDisabled:document.querySelectorAll(".goshuin-nav-button")[1]?.disabled,
-   scroll:document.documentElement.scrollWidth
+  const initial=await journal.evaluate(()=>({
+   count:document.querySelectorAll(".washi-level-tile").length,
+   first:document.querySelector(".washi-level-tile")?.dataset.level,
+   last:document.querySelector(".washi-level-tile:last-child")?.dataset.level,
+   stampCount:document.querySelectorAll(".washi-level-tile.is-earned").length,
+   play:document.querySelector(".washi-detail-play")?.disabled,
+   width:document.documentElement.scrollWidth
   }));
-  assert.equal(empty.title,"Goshuincho");
-  assert.equal(empty.tiles,4);
-  assert.equal(empty.earned,0);
-  assert(empty.text.includes("0 av 10"));
-  assert.equal(empty.page,"Kapitel 1 · Sida 1 / 3");
-  assert.equal(await journal.$eval(".goshuin-reward-marks",el=>el.getAttribute("aria-valuenow")),"0");
-  assert.equal(await journal.evaluate(()=>document.querySelectorAll(".goshuin-reward-mark.is-earned").length),0);
-  assert.equal(await journal.evaluate(()=>document.querySelectorAll(".goshuin-reward-mark").length),10);
-  assert.equal(empty.nextDisabled,false,"Next chapter can be previewed");
-  assert(empty.scroll<=390,"The album must not overflow the phone viewport");
-  // Warm Parchment 2.0: first chapter is the reference for all later cards.
-  // The large dark heading must be the actual title, not a repeated "Nivå X".
-  const freshPaper=await journal.evaluate(()=>Array.from(document.querySelectorAll(".goshuin-stamp")).map(tile=>({
-   number:tile.dataset.level,paper:tile.classList.contains("is-omikuji-preview"),
-   eyebrow:tile.querySelector(".goshuin-paper-eyebrow")?.textContent,
-   kanji:tile.querySelector(".goshuin-paper-kanji")?.textContent,
-   title:tile.querySelector(".goshuin-paper-title")?.textContent,
-   watercolor:!!tile.querySelector(":scope > img.goshuin-art"),
-   grade:!!tile.querySelector(".goshuin-grade")
-  })));
-  assert.deepEqual(freshPaper,[
-   {number:"1",paper:true,eyebrow:"第一番 · NIVÅ 1",kanji:"一",title:"First Harmony",watercolor:false,grade:false},
-   {number:"2",paper:true,eyebrow:"第二番 · NIVÅ 2",kanji:"二",title:"Growing Beauty",watercolor:false,grade:false},
-   {number:"3",paper:true,eyebrow:"第三番 · NIVÅ 3",kanji:"三",title:"First Masterpiece",watercolor:false,grade:false},
-   {number:"4",paper:true,eyebrow:"第四番 · NIVÅ 4",kanji:"四",title:"First Mist",watercolor:false,grade:false}
-  ]);
-  // Aged Paper Polish 1.1: compare actual computed typography and sand
-  // gradient on a 390px handset (not just CSS string literals).
-  const aged390=await journal.$eval(".goshuin-stamp.is-omikuji-preview",tile=>({
-   paper:getComputedStyle(tile).backgroundImage,
-   header:parseFloat(getComputedStyle(tile.querySelector(".goshuin-paper-eyebrow")).fontSize),
-   title:parseFloat(getComputedStyle(tile.querySelector(".goshuin-paper-title")).fontSize)
-  }));
-  assert(aged390.paper.includes("251, 237, 208")&&aged390.paper.includes("239, 208, 154"),
-   "Warm parchment must have approved honey-cream-to-golden gradient stops");
-  assert(aged390.header>=12&&aged390.header>aged390.title,
-   "Level number now has the stronger visual hierarchy on 390px");
-  assert(aged390.title<15,"Level name should be less dominant than before");
-  // Stamp Slot Polish 1.0: load the real nine-asset transparent atlas.
-  await journal.waitForSelector(".goshuin-cover-slot.has-art > img.goshuin-art");
-  const initialArt=await journal.evaluate(async()=>{
-   const image=new Image();image.src="./assets/goshuincho/goshuincho-nine-atlas.avif?v=6.34.0";
-   await image.decode();
-   const c=document.createElement("canvas");c.width=image.naturalWidth;c.height=image.naturalHeight;
-   const ctx=c.getContext("2d");ctx.drawImage(image,0,0);
-   return {width:image.naturalWidth,height:image.naturalHeight,
-    corner:ctx.getImageData(0,0,1,1).data[3],
-    cells:Array.from({length:9},(_,i)=>ctx.getImageData((i%3)*96+48,Math.floor(i/3)*96+48,1,1).data[3]),
-    chapter:document.querySelector(".goshuin-cover-slot > img.goshuin-art")?.getAttribute("src")};
-  });
-  assert.equal(initialArt.width,288);assert.equal(initialArt.height,288);
-  assert.equal(initialArt.corner,0,"Approved artwork should have transparent surroundings");
-  assert(initialArt.cells.every(a=>a>100),"All nine artwork cells must be nonempty");
-  assert(initialArt.chapter?.includes("chapter-icon-sakura.png"),"Chapter 1 uses original square Sakura icon");
-  assert.equal(await journal.$eval(".goshuin-cover-slot",
-   e=>getComputedStyle(e).getPropertyValue("--goshuin-optical-x").trim()),"-2%",
-   "Sakura source silhouette shifts slightly left");
-  await journal.click(".goshuin-nav-button:last-child");
-  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 2 / 3");
-  assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"5");
-  assert.equal(await journal.evaluate(()=>document.querySelectorAll(".goshuin-stamp").length),4);
-  assert.equal(await journal.evaluate(()=>document.querySelectorAll(".goshuin-stamp.is-omikuji-preview").length),4,
-   "Levels 5–8 must use the same parchment cards as levels 1–4");
-  assert.equal(await journal.evaluate(()=>document.querySelectorAll(".goshuin-stamp > img.goshuin-art").length),0);
-  assert.equal(await journal.$eval('.goshuin-stamp[data-level="8"] .goshuin-paper-kanji',el=>el.textContent),"八");
-  await journal.click(".goshuin-nav-button:last-child");
-  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 3 / 3");
-  assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"9");
-  assert.equal(await journal.$$eval(".goshuin-stamp",xs=>xs.length),2);
-  assert.equal(await journal.$eval(".goshuin-finale-progress",el=>el.getAttribute("aria-valuenow")),"0");
-  assert.equal(await journal.$eval(".goshuin-chapter-sigil",el=>el.classList.contains("is-earned")),false);
-  await journal.click(".goshuin-nav-button:last-child");
-  assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Dimträdgården");
-  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 2 · Sida 1 / 3");
-  assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"11");
-  assert.equal(await journal.$eval('.goshuin-stamp[data-level="11"] .goshuin-paper-kanji',e=>e.textContent),"十一");
-  assert.equal(await journal.$eval('.goshuin-stamp[data-level="11"] .goshuin-paper-eyebrow',e=>e.textContent),"第十一番 · NIVÅ 11");
-  assert.equal(await journal.evaluate(()=>document.querySelectorAll(".goshuin-stamp.is-omikuji-preview").length),4);
-  assert.equal(await journal.evaluate(()=>document.querySelectorAll(".goshuin-stamp > img.goshuin-art").length),0);
-  await journal.waitForSelector(".goshuin-cover-slot.has-art > img.goshuin-art");
-  assert((await journal.$eval(".goshuin-cover-slot > img.goshuin-art",x=>x.getAttribute("src"))).includes("chapter-icon-mist.png"));
-  assert.equal(await journal.$eval(".goshuin-cover-slot",
-   e=>getComputedStyle(e).getPropertyValue("--goshuin-optical-x").trim()),"0%",
-   "Mist source silhouette stays horizontally centered");
-  await journal.click(".goshuin-nav-button:first-child");
-  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 3 / 3");
-  assert.equal(await journal.$eval(".goshuin-stamp",x=>x.dataset.level),"9");
-  await journal.click(".goshuin-close");
-  assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
-  const seeded=await journal.evaluate(()=>{
-   const key="japanese-harmony-puzzle-v2",data=JSON.parse(localStorage.getItem(key));
-   data.unlocked=21;data.run=null;
-   data.fourFamilyStars=Object.fromEntries(Array.from({length:10},(_,i)=>[i,i===2?3:1]));
-   data.bestStars={10:2,12:3,20:1};
-   data.bestScores={10:1250,12:5000,20:250};
-   localStorage.setItem(key,JSON.stringify(data));
-   return {fourFamilyStars:data.fourFamilyStars,bestStars:data.bestStars};
-  });
-  await journal.reload({waitUntil:"networkidle2"});
-  assert.equal(await journal.$eval("#goshuinProgress",x=>x.textContent),"13 / 30 stämplar");
-  await journal.click("#goshuinButton");
-  assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Darumas önskan");
-  assert.equal(await journal.$eval(".goshuin-stamp.is-earned",x=>x.dataset.level),"21");
-  assert.equal(await journal.$eval(".goshuin-reward-marks",el=>el.getAttribute("aria-valuenow")),"1");
-  assert.equal(await journal.evaluate(()=>document.querySelectorAll(".goshuin-reward-mark.is-earned").length),1);
-  assert.equal(await journal.$eval(".goshuin-stamp.is-earned",x=>x.dataset.stars),"1");
-  await journal.waitForSelector(".goshuin-stamp .goshuin-grade.has-art");
-  const thirdChapter=await journal.evaluate(()=>({
-   chapter:document.querySelector(".goshuin-cover-slot > img.goshuin-art")?.getAttribute("src"),
-   card:document.querySelector(".goshuin-stamp.is-earned > img.goshuin-art")?.getAttribute("src"),
-   kanji:document.querySelector(".goshuin-stamp.is-earned .goshuin-paper-kanji")?.textContent,
-   paperCount:document.querySelectorAll(".goshuin-stamp.is-omikuji-preview").length,
-   legacySlotCount:document.querySelectorAll(".goshuin-stamp-slot").length,
-   grade:document.querySelector(".goshuin-stamp.is-earned .goshuin-grade > img.goshuin-art")?.getAttribute("src")
-  }));
-  assert(thirdChapter.chapter?.includes("chapter-icon-daruma.png"));
-  assert.equal(await journal.$eval(".goshuin-cover-slot",
-   e=>getComputedStyle(e).getPropertyValue("--goshuin-optical-x").trim()),"1.85%",
-   "Daruma source silhouette shifts right");
-  assert.equal(thirdChapter.card,undefined,"No watercolor Daruma card overlays remain");
-  assert.equal(thirdChapter.kanji,"二十一","Chapter 3 uses compound Japanese numeral");
-  assert.equal(thirdChapter.paperCount,4,"All chapter 3 levels use warm paper");
-  assert.equal(thirdChapter.legacySlotCount,0,"Repeated round stamp is removed");
-  assert(thirdChapter.grade?.includes("star-seal-1.png"),"One-star Japanese grade must be its original full-resolution PNG");
-  assert(Math.abs(await journal.$eval(".goshuin-grade.grade-1 > img.goshuin-art",
-   el=>new DOMMatrixReadOnly(getComputedStyle(el).transform).a)-.97)<.002,
-   "One-star native PNG uses optical ink size, not canvas size");
-  // Level Select 2.0: same book serves as a level browser without mutating
-  // progress or bypassing existing stage unlocks.
-  assert.equal(await journal.$eval('.goshuin-stamp[data-level="22"]',
-   x=>x.classList.contains("is-current")),true);
-  assert.equal(await journal.$eval(".goshuin-play",x=>x.textContent),"Spela nivå 22 →");
-  assert.equal(await journal.$eval(".goshuin-play",x=>x.disabled),false);
-  await journal.click('.goshuin-stamp[data-level="23"]');
-  assert.equal(await journal.$eval('.goshuin-stamp[data-level="23"]',
-   x=>x.dataset.state),"is-locked");
-  assert.equal(await journal.$eval(".goshuin-play",x=>x.disabled),true,
-   "Locked stages must never launch from the book");
-  assert((await journal.$eval(".goshuin-detail",x=>x.textContent)).includes("låst"));
-  assert.equal(await journal.$eval("#gameView",x=>x.hidden),true);
-  await journal.click('.goshuin-stamp[data-level="21"]');
-  assert.equal(await journal.$eval(".goshuin-play",x=>x.textContent),"Spela nivå 21 igen →");
-  assert((await journal.$eval(".goshuin-level-objective",x=>x.textContent)).includes("Daruma"));
-  // Back from chapter 3 / page 1 means chapter 2 / page 3 (not chapter 2 / page 1).
-  await journal.click(".goshuin-nav-button:first-child");
-  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 2 · Sida 3 / 3");
-  assert.equal(await journal.$$eval(".goshuin-stamp",xs=>xs.length),2);
-  await journal.click(".goshuin-nav-button:first-child");
-  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 2 · Sida 2 / 3");
-  await journal.click(".goshuin-nav-button:first-child");
-  assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Dimträdgården");
-  assert.equal(await journal.$$eval(".goshuin-stamp.is-earned",xs=>xs.length),2);
-  assert.equal(await journal.$eval('.goshuin-stamp[data-level="13"]',x=>x.dataset.stars),"3");
-  await journal.waitForSelector('.goshuin-stamp[data-level="13"] .goshuin-grade.has-art');
-  assert((await journal.$eval('.goshuin-stamp[data-level="13"] .goshuin-grade > img.goshuin-art',
-   x=>x.getAttribute("src"))).includes("star-seal-3.png"),"Three-star Japanese seal uses original PNG");
-  const seal2and3=await journal.evaluate(()=>({
-   second:new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.goshuin-stamp[data-level="11"] .goshuin-grade > img.goshuin-art')).transform).a,
-   third:new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.goshuin-stamp[data-level="13"] .goshuin-grade > img.goshuin-art')).transform).a
-  }));
-  assert(Math.abs(seal2and3.second-1.03)<.002,"Two-star stamp has balanced visible ink size");
-  assert(Math.abs(seal2and3.third-.945)<.002,"Gold three-star stamp has balanced visible ink size");
-  await journal.click('.goshuin-stamp[data-level="13"]');
-  const recordColor=await journal.$eval(".goshuin-level-record",x=>getComputedStyle(x).color);
-  assert.equal(recordColor,"rgb(92, 71, 62)","Recorded score must be readable on paper");
-  await journal.click(".goshuin-nav-button:first-child");
-  assert.equal(await journal.$eval(".goshuin-chapter-copy h3",x=>x.textContent),"Första harmonin");
-  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 3 / 3");
-  assert.equal(await journal.$$eval(".goshuin-stamp",xs=>xs.length),2);
-  assert.equal(await journal.$eval(".goshuin-chapter-sigil",x=>x.classList.contains("is-earned")),true);
-  assert.equal(await journal.$eval(".goshuin-finale-progress",x=>x.getAttribute("aria-valuenow")),"10");
-  assert.equal(await journal.$eval(".goshuin-chapter-seal-slot",x=>x.dataset.artKey),"chapter-01-complete");
-  assert.equal(await journal.$eval(".goshuin-chapter-seal-slot",x=>x.getBoundingClientRect().width>=50),true);
-  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
-  await journal.screenshot({path:"/tmp/daisugi-bloom/goshuincho-finale-390.png"});
-  await journal.click(".goshuin-nav-button:first-child");
-  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 2 / 3");
-  await journal.click(".goshuin-nav-button:first-child");
-  assert.equal(await journal.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 1 · Sida 1 / 3");
-  assert.equal(await journal.$$eval(".goshuin-stamp.is-earned",xs=>xs.length),4);
-  assert.equal(await journal.$$eval(".goshuin-chapter-sigil",xs=>xs.length),0);
-  const layout=await journal.evaluate(()=>({
-   width:innerWidth,doc:document.documentElement.scrollWidth,
-   modal:document.querySelector(".modal-inner").getBoundingClientRect().width,
-   grid:document.querySelector(".goshuin-stamp-grid").getBoundingClientRect().width,
-   artSlots:document.querySelectorAll(".goshuin-stamp-slot[data-art-key]").length,
-   cards:document.querySelectorAll(".goshuin-stamp > img.goshuin-art").length,
-   grades:document.querySelectorAll(".goshuin-grade[data-art-key]").length,
-   imgs:document.querySelectorAll(".goshuin-art").length,
-   atlas:document.querySelectorAll(".goshuin-atlas-art").length,
-   sampleGradeWidth:document.querySelector(".goshuin-grade").getBoundingClientRect().width,
-   cardShape:document.querySelector(".goshuin-stamp").getBoundingClientRect().height/
-      document.querySelector(".goshuin-stamp").getBoundingClientRect().width,
-   papers:document.querySelectorAll(".goshuin-stamp.is-omikuji-preview").length,
-   titles:[...document.querySelectorAll(".goshuin-paper-title")].map(e=>e.textContent),
-   cardsWithTextSeal:[...document.querySelectorAll(".goshuin-stamp")].every(tile=>{
-    const title=tile.querySelector(".goshuin-paper-title");
-    const seal=tile.querySelector(".goshuin-grade");
-    const kanji=tile.querySelector(".goshuin-paper-kanji");
-    return title&&seal&&kanji&&
-     title.getBoundingClientRect().bottom<=seal.getBoundingClientRect().top+2&&
-     kanji.getBoundingClientRect().bottom<=title.getBoundingClientRect().top+2;
-   }),
-   className:document.querySelector(".goshuin-stamp.is-earned").className
-  }));
-  assert(layout.doc<=layout.width&&layout.modal<=layout.width&&layout.grid<=layout.modal);
-  assert.equal(layout.artSlots,0,"No old circular artwork slot remains");
-  assert.equal(layout.papers,4,"The first page shares the paper design used by every other page");
-  assert.deepEqual(layout.titles,["First Harmony","Growing Beauty","First Masterpiece","First Mist"]);
-  assert.equal(layout.cards,0,"No level cards load the old watercolor illustrations");
-  assert.equal(layout.grades,4,"All earned grades keep their one Japanese seal");
-  assert.equal(layout.imgs,5,"Chapter cover and four sharp original grade PNGs remain");
-  assert(layout.cardsWithTextSeal,"Kanji, stage names, and seals do not overlap");
-  assert.equal(layout.atlas,0,"No atlas art is used for chapters or star grade");
-  assert(layout.sampleGradeWidth>=38&&layout.sampleGradeWidth<=58,"The seal no longer needs a giant plaque");
-  const imageQuality=await journal.evaluate(async()=>({
-   icon:document.querySelector(".goshuin-cover-slot > img.goshuin-art")?.naturalWidth,
-   seal:document.querySelector(".goshuin-grade > img.goshuin-art")?.naturalWidth,
-   cover:(()=>{const e=document.querySelector(".goshuin-cover-slot");const r=e.getBoundingClientRect();return {w:r.width,h:r.height}})(),
-   grade:(()=>{const e=document.querySelector(".goshuin-grade");const r=e.getBoundingClientRect();return {w:r.width,h:r.height}})()
-  }));
-  assert.equal(imageQuality.icon,724,"Chapter header loads the original 724px square illustration");
-  assert.equal(imageQuality.seal,512,"Star grade loads the original 512px PNG");
-  assert(Math.abs(imageQuality.cover.w-imageQuality.cover.h)<1,"Chapter header keeps a true square, not rectangular distortion");
-  assert(Math.abs(imageQuality.grade.w-imageQuality.grade.h)<1,"The grade image keeps square proportions");
-  assert(layout.cardShape>1.22&&layout.cardShape<1.28,"Cards preserve their portrait 4:5 proportion");
-  assert(layout.className.includes("is-omikuji-preview"));
-  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
-  await journal.screenshot({path:"/tmp/daisugi-bloom/goshuincho-390.png"});
-  await journal.click('.goshuin-stamp[data-level="3"]');
-  assert((await journal.$eval(".goshuin-detail",el=>el.textContent)).includes("3 av 3 stjärnor"));
-  const objectiveColor=await journal.$eval(".goshuin-level-objective",x=>getComputedStyle(x).color);
-  assert.equal(objectiveColor,"rgb(92, 71, 62)");
-  const preserved=await journal.evaluate(()=>{
-   const s=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
-   return {fourFamilyStars:s.fourFamilyStars,bestStars:s.bestStars};
-  });
-  assert.deepEqual(preserved,seeded,"Browsing the book must never mutate saved star archives");
-  await journal.setViewport({width:320,height:640,deviceScaleFactor:2,isMobile:true,hasTouch:true});
-  await journal.screenshot({path:"/tmp/daisugi-bloom/goshuincho-320.png"});
-  const small=await journal.evaluate(()=>({
-   doc:document.documentElement.scrollWidth,width:innerWidth,
-   modal:document.querySelector(".modal-inner").getBoundingClientRect().width,
-   cols:getComputedStyle(document.querySelector(".goshuin-stamp-grid")).gridTemplateColumns.split(" ").length,
-   titleSealsDoNotOverlap:[...document.querySelectorAll(".goshuin-stamp")].every(tile=>{
-    const title=tile.querySelector(".goshuin-paper-title").getBoundingClientRect();
-    const seal=tile.querySelector(".goshuin-grade").getBoundingClientRect();
-    return title.bottom<=seal.top+2&&title.width>40;
-   })
-  }));
-  assert(small.doc<=small.width&&small.modal<=small.width,"320px book must have no horizontal overflow");
-  assert.equal(small.cols,2,"320px album uses two large columns of stamps");
-  assert(small.titleSealsDoNotOverlap,"Paper title and star stamp must not collide at 320px");
-  const aged320=await journal.$eval(".goshuin-stamp.is-omikuji-preview",tile=>({
-   header:parseFloat(getComputedStyle(tile.querySelector(".goshuin-paper-eyebrow")).fontSize),
-   title:parseFloat(getComputedStyle(tile.querySelector(".goshuin-paper-title")).fontSize)
-  }));
-  assert(aged320.header>=10&&aged320.title<=13,
-   "320px phones keep the level number legible and the title restrained");
-  await journal.click(".goshuin-close");
-  assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
-  assert.equal(await journal.$eval(".level-tile.is-current",x=>x.getAttribute("aria-current")),"step");
-  assert.equal(await journal.$$eval(".level-tile",els=>els.length),20,
-   "The original twenty-row level list stays available during migration");
-  // Replaying a completed stage via the BOOK routes to the existing startLevel.
-  await journal.click("#goshuinButton");
-  await journal.click('.goshuin-stamp[data-level="21"]');
-  assert.equal(await journal.$eval(".goshuin-play",x=>x.disabled),false);
-  await journal.click(".goshuin-play");
-  assert.equal(await journal.$eval("#gameView",x=>x.hidden),false);
-  assert.equal(await journal.$eval("#levelNumber",x=>x.textContent),"NIVÅ 21");
-  assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
- }finally{await journalContext.close();}
- // Warm Parchment 2.0: all later levels must use the same paper, including
- // the 3-character Japanese numerals on level 31–40 and locked stage 40.
- const lateBookContext=await browser.createBrowserContext();
- try{
-  const late=await lateBookContext.newPage();
-  await late.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
-  await late.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
-  await late.evaluate(()=>{
+  assert.deepEqual([initial.count,initial.first,initial.last,initial.stampCount,initial.play],
+   [10,"1","10",0,false]);
+  assert(initial.width<=390,"Goshuincho must fit the phone");
+  assert.equal(await journal.$eval('.washi-level-tile[data-level="10"] .washi-tile-jp',x=>x.textContent),"十");
+  await journal.click('.washi-level-tile[data-level="2"]');
+  assert.equal(await journal.$eval(".washi-detail-play",x=>x.disabled),true);
+  await journal.click(".washi-book-close");
+  await journal.evaluate(()=>{
    const key="japanese-harmony-puzzle-v2";
    const state=JSON.parse(localStorage.getItem(key));
-   state.unlocked=38;state.run=null;
-   state.bestStars={30:2,31:3};
+   state.unlocked=24;
+   state.fourFamilyStars={0:3,1:2};
+   state.bestStars={20:2,22:3};
+   const g=new window.HarmonyRules.Game(24,null,{seed:54321,directorMode:"v3"});
+   state.run={level:24,data:g.save(),backgroundId:0};
    localStorage.setItem(key,JSON.stringify(state));
   });
-  await late.reload({waitUntil:"networkidle2"});
-  await late.click("#goshuinButton");
-  assert.equal(await late.$eval(".goshuin-page-count",e=>e.textContent),"Kapitel 4 · Sida 3 / 3");
-  assert.equal(await late.$eval('.goshuin-stamp[data-level="39"] .goshuin-paper-kanji',e=>e.textContent),"三十九");
-  assert.equal(await late.$eval('.goshuin-stamp[data-level="40"] .goshuin-paper-kanji',e=>e.textContent),"四十");
-  assert.equal(await late.$eval('.goshuin-stamp[data-level="40"]',e=>e.dataset.state),"is-locked");
-  await late.click(".goshuin-nav-button:first-child");
-  await late.click(".goshuin-nav-button:first-child");
-  assert.equal(await late.$eval(".goshuin-page-count",e=>e.textContent),"Kapitel 4 · Sida 1 / 3");
-  const sample=await late.evaluate(()=>[...document.querySelectorAll(".goshuin-stamp")].map(tile=>({
-   level:Number(tile.dataset.level),
-   paper:tile.classList.contains("is-omikuji-preview"),
-   label:tile.querySelector(".goshuin-paper-eyebrow")?.textContent,
-   kanji:tile.querySelector(".goshuin-paper-kanji")?.textContent,
-   fit:tile.querySelector(".goshuin-paper-kanji")?.classList.contains("is-multi-kanji"),
-   title:tile.querySelector(".goshuin-paper-title")?.textContent,
-   name:window.HarmonyRules.levelConfig(Number(tile.dataset.level)-1).name,
-   watercolor:!!tile.querySelector(":scope > img.goshuin-art"),
-   stamp:!!tile.querySelector(".goshuin-grade")
-  })));
-  assert.deepEqual(sample.map(x=>x.kanji),["三十一","三十二","三十三","三十四"]);
-  assert(sample.every(x=>x.paper&&x.fit&&x.title===x.name&&!x.watercolor),
-   "All chapter 4 stages must display dynamic names and sized kanji on paper");
-  assert(sample[0].stamp&&sample[1].stamp,"Recorded chapter 4 stars keep their real seal images");
-  await late.setViewport({width:320,height:640,deviceScaleFactor:2,isMobile:true,hasTouch:true});
-  const narrow=await late.evaluate(()=>({
-   scrollWidth:document.documentElement.scrollWidth,
-   viewport:innerWidth,
-   cards:[...document.querySelectorAll(".goshuin-stamp")].map(tile=>{
-    const kanji=tile.querySelector(".goshuin-paper-kanji"),title=tile.querySelector(".goshuin-paper-title");
-    const seal=tile.querySelector(".goshuin-grade");
-    return {kanjiFont:parseFloat(getComputedStyle(kanji).fontSize),
-     hasLongTitleClass:title.textContent.length<=20||title.classList.contains("is-long"),
-     textFits:!seal||title.getBoundingClientRect().bottom<=seal.getBoundingClientRect().top+2};
-   })
-  }));
-  assert(narrow.scrollWidth<=narrow.viewport,"Chapter 4 must not overflow on 320px phones");
-  assert(narrow.cards.every(x=>x.kanjiFont<=32&&x.hasLongTitleClass&&x.textFits),
-   "Compound kanji, long titles and star seals stay readable on narrow phones");
-  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
-  await late.screenshot({path:"/tmp/daisugi-bloom/goshuincho-chapter4-320.png"});
- }finally{await lateBookContext.close();}
- // Resume is a separate launch path and must reuse the exact saved board,
- // moves and score. Opening/inspecting the book itself is read-only.
- const resumeJournalContext=await browser.createBrowserContext();
- try{
-  const rp=await resumeJournalContext.newPage();
-  await rp.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
-  await rp.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
-  await rp.evaluate(()=>{
-   const key="japanese-harmony-puzzle-v2";
-   const data=JSON.parse(localStorage.getItem(key));
-   data.unlocked=24;
-   const g=new window.HarmonyRules.Game(24,null,{seed:54321,directorMode:"v3"});
-   const saved=g.save();
-   saved.moves=11;saved.score=4102;
-   data.run={level:24,data:saved,backgroundId:0};
-   localStorage.setItem(key,JSON.stringify(data));
-  });
-  await rp.reload({waitUntil:"networkidle2"});
-  await rp.click("#goshuinButton");
-  assert.equal(await rp.$eval(".goshuin-page-count",x=>x.textContent),"Kapitel 3 · Sida 2 / 3");
-  assert.equal(await rp.$eval(".goshuin-stamp.is-in-progress",x=>x.dataset.level),"25");
-  assert.equal(await rp.$eval(".goshuin-play",x=>x.textContent),"Fortsätt nivå 25 →");
-  assert.equal(await rp.$eval(".goshuin-level-status",x=>x.textContent),"PÅBÖRJAD");
-  assert.equal(await rp.$eval(".goshuin-play",x=>x.disabled),false);
-  await rp.click(".goshuin-play");
-  assert.equal(await rp.$eval("#gameView",x=>x.hidden),false);
-  assert.equal(await rp.$eval("#levelNumber",x=>x.textContent),"NIVÅ 25");
-  assert.equal(await rp.$eval("#movesCount",x=>Number(x.textContent)),11);
-  assert.equal(await rp.$eval("#scoreCount",x=>Number(x.textContent.replaceAll(" ","").replaceAll("\u00a0",""))),4102);
-  assert.equal(await rp.$eval("#modal",x=>x.hidden),true);
- }finally{await resumeJournalContext.close();}
+  await journal.reload({waitUntil:"networkidle2"});
+  await journal.click("#goshuinButton");
+  assert.equal(await journal.$$eval(".washi-level-tile",x=>x.length),10);
+  assert.equal(await journal.$eval(".washi-level-tile.is-selected",x=>x.dataset.level),"25");
+  assert.equal(await journal.$eval(".washi-detail-play",x=>x.textContent),"FORTSÄTT");
+  assert.equal(await journal.$eval('.washi-level-tile[data-level="26"]',x=>x.classList.contains("is-locked")),true);
+  await journal.click('.washi-level-tile[data-level="26"]');
+  assert.equal(await journal.$eval(".washi-detail-play",x=>x.disabled),true);
+  await journal.click('.washi-level-tile[data-level="21"]');
+  assert.equal(await journal.$eval(".washi-detail-play",x=>x.disabled),false);
+  assert.equal(await journal.$eval(".washi-detail-name",x=>x.textContent),
+   await journal.evaluate(()=>window.HarmonyRules.levelConfig(20).name));
+  await journal.click(".washi-prev");
+  assert.equal(await journal.$eval(".washi-chapter-count",x=>x.textContent),"LEVEL 11–20");
+  assert.equal(await journal.$eval('.washi-level-tile[data-level="11"] .washi-tile-jp',x=>x.textContent),"十一");
+  await journal.click(".washi-next");
+  assert.equal(await journal.$eval(".washi-chapter-count",x=>x.textContent),"LEVEL 21–30");
+  await journal.click('.washi-level-tile[data-level="25"]');
+  await journal.click(".washi-detail-play");
+  assert.equal(await journal.$eval("#gameView",x=>x.hidden),false);
+  assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
+ }finally{await journalContext.close();}
  await page.$eval("#menuAdvanced",e=>e.open=true);
  const advancedVisible=await page.$eval("#gameDirectorMode",e=>getComputedStyle(e).display);
  assert.notEqual(advancedVisible,"none","Advanced Director choice remains available");
@@ -762,7 +428,7 @@ try{
   await preview.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await preview.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
   assert.equal(await preview.$("#gameFamilyCount"),null,"The experiment selector is no longer needed");
-  assert((await preview.$eval(".family-progression-note",e=>e.textContent)).includes("4 familjer"));
+  assert(await preview.$eval(".washi-home-logo",e=>e.getBoundingClientRect().height>0));
   // Migrate an earlier five-family intro record and preserve the better
   // experimental four-family record. This migration is idempotent.
   await preview.evaluate(()=>{

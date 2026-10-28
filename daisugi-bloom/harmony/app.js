@@ -329,14 +329,14 @@ function renderMenu(){
   b.append(n,d,starsNode);b.addEventListener("click",()=>startLevel(i,false));list.appendChild(b);
  }
  const intro=menuPage===0;
- $("chapterEyebrow").textContent="DIN NIVÅRESA";
- $("chapterTitle").textContent="Goshuincho";
- $("chapterSubtitle").textContent="Samla stämplar och upptäck nästa kapitel.";
+ if($("chapterEyebrow"))$("chapterEyebrow").textContent="DIN NIVÅRESA";
+ if($("chapterTitle"))$("chapterTitle").textContent="Goshuincho";
+ if($("chapterSubtitle"))$("chapterSubtitle").textContent="Samla stämplar och upptäck nästa kapitel.";
  const stars=Object.entries(save.fourFamilyStars).reduce((n,[i,v])=>
   n+(Number(i)<10?Number(v)||0:0),0)+
   Object.entries(save.bestStars).reduce((n,[i,v])=>
    n+(Number(i)>=10?Number(v)||0:0),0);
- $("chapterStars").textContent="★ "+stars+" stjärnor";
+ if($("chapterStars"))$("chapterStars").textContent="★ "+stars+" stjärnor";
  const pager=$("levelPager");pager.replaceChildren();
  const prev=document.createElement("button");prev.className="secondary small";prev.textContent="← Föregående";prev.disabled=menuPage===0;
  prev.addEventListener("click",()=>{menuPage--;renderMenu();});
@@ -347,7 +347,12 @@ function renderMenu(){
  next.addEventListener("click",()=>{menuPage++;renderMenu();});
  pager.append(prev,range,next);
  const canResume=save.run&&save.run.level<=save.unlocked&&save.run.data&&save.run.data.moves>0;
- $("continueButton").textContent=canResume?"Fortsätt nivå "+(save.run.level+1)+" →":"Spela nivå "+(save.unlocked+1)+" →";
+ const playButton=$("continueButton");
+ const playLabel=canResume?"Fortsätt nivå "+(save.run.level+1):"Spela nivå "+(save.unlocked+1);
+ playButton.setAttribute("aria-label",playLabel);
+ const playText=playButton.querySelector("strong");
+ if(playText)playText.textContent=canResume?"FORTSÄTT":"SPELA";
+ else playButton.textContent=playLabel;
 }
 // Goshuincho Primary Level Select 1.0: sole visible level selector, sharing
 // the existing progression, launch/resume behaviour and stored star archive.

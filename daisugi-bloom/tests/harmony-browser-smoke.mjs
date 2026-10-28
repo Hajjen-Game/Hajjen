@@ -1339,7 +1339,7 @@ try{
  assert(background.backdropWidth>=390&&background.backdropHeight>=844,"Backdrop layer must cover the phone viewport");
  assert(background.imageSrc.includes("festival-hd-"),"Native image source must reference a genuine HD file");
  assert(background.overlay.includes("gradient"),"Readability scrim must be enabled");
- assert(background.glass.includes("gradient"),"The translucent goal strip must render");
+ assert(background.glass.includes("gameplay-washi/goal.webp"),"Approved translucent dark-brown washi goal panel must render");
  const festivalAtStart=background.id;
 
  assert.equal(await page.$$eval(".tile",els=>els.length),49);

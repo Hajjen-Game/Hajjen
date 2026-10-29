@@ -34,28 +34,28 @@ function activeFamilies(index,count=5){
 // rules. Stages 6–10 are real early puzzles; the fifth family appears
 // on level 11, on a forgiving fusion mission rather than alongside hard Mist.
 const levels=[
- {name:"First Harmony",subtitle:"Lär dig en fusion",moves:18,par:6,goal:{type:"fusion",count:3},intro:"Flytta en bricka till en granne och matcha tre av samma familj."},
- {name:"Growing Beauty",subtitle:"Föremål växer i fem stadier",moves:24,par:11,goal:{type:"stage3",count:1},intro:"Matcha samma familj, även om stadierna skiljer sig. Få ett föremål till stadium 3."},
- {name:"First Masterpiece",subtitle:"Ditt första mästerverk",moves:34,par:20,goal:{type:"masterpiece",count:1},intro:"Fusionera ett utvecklat föremål vidare till stadium 5. Då skapas ett mästerverk och Harmony Pulse."},
- {name:"First Mist",subtitle:"Lär dig rena dimma",moves:30,par:15,goal:{type:"mist",count:3},intro:"Rena tre dimrutor. Fusionen rensar sin slutruta och Harmony Pulse kan nå grannrutor. Brickorna går att flytta fritt."},
- {name:"Harmony Garden",subtitle:"Din första riktiga dimutmaning",moves:32,par:17,goal:{type:"mist",count:4},intro:"Rena fyra dimrutor i en liten grupp. Välj var fusionen landar och sikta på Harmony Pulse."},
- {name:"Four of a Kind",subtitle:"Fyrmatchningar över flera drag",moves:28,par:13,goal:{type:"fourTurns",count:4},intro:"Skapa minst en fyrmatchning under fyra olika drag. Flera fyrmatchningar i samma kedja räknas som ett drag."},
- {name:"Growing Harmony",subtitle:"Vårda åtta utvecklingar",moves:30,par:18,goal:{type:"stage3",count:8},intro:"Utveckla åtta föremål till stadium 3. Samma familj matchar i olika stadier."},
- {name:"Misty Path",subtitle:"Två små dimfält",moves:33,par:20,goal:{type:"mist",count:5},intro:"Rena två separata dimgrupper. Placera fusioner där de gör nytta."},
- {name:"Masterpiece Garden",subtitle:"Tre mästerverk i trädgården",moves:35,par:23,goal:{type:"masterpiece",count:3},intro:"Skapa tre mästerverk. Använd Harmony Pulse för att bygga vidare mot nästa."},
- {name:"Garden of Harmony",subtitle:"Första kapitlets final",moves:36,par:23,goal:{type:"mist",count:6},intro:"Rena två dimfält. Mästerverk och smarta fusionspositioner hjälper dig."}
+ {name:"First Harmony",subtitle:"Learn your first fusion",moves:18,par:6,goal:{type:"fusion",count:3},intro:"Swap adjacent tiles to match three of the same family."},
+ {name:"Growing Beauty",subtitle:"Every object has five stages",moves:24,par:11,goal:{type:"stage3",count:1},intro:"Match the same family, even across different stages. Upgrade one object to stage 3."},
+ {name:"First Masterpiece",subtitle:"Your first masterpiece",moves:34,par:20,goal:{type:"masterpiece",count:1},intro:"Fuse objects into stage 5 to create a masterpiece and trigger Harmony Pulse."},
+ {name:"First Mist",subtitle:"Learn to clear Mist",moves:30,par:15,goal:{type:"mist",count:3},intro:"Clear three Mist tiles. A fusion clears its destination, while Harmony Pulse reaches neighbors. Mist does not lock pieces."},
+ {name:"Harmony Garden",subtitle:"Your first Mist challenge",moves:32,par:17,goal:{type:"mist",count:4},intro:"Clear four nearby Mist tiles. Choose where your fusion lands and aim for Harmony Pulse."},
+ {name:"Four of a Kind",subtitle:"Four-tile matches across moves",moves:28,par:13,goal:{type:"fourTurns",count:4},intro:"Make a match of four on four separate moves. Multiple matches of four in one chain count as one move."},
+ {name:"Growing Harmony",subtitle:"Grow eight objects",moves:30,par:18,goal:{type:"stage3",count:8},intro:"Upgrade eight objects to stage 3. Different stages of the same family can match."},
+ {name:"Misty Path",subtitle:"Two small Mist patches",moves:33,par:20,goal:{type:"mist",count:5},intro:"Clear two separate patches of Mist. Position fusions where they matter."},
+ {name:"Masterpiece Garden",subtitle:"Three masterpieces in the garden",moves:35,par:23,goal:{type:"masterpiece",count:3},intro:"Create three masterpieces. Use Harmony Pulse to build toward the next."},
+ {name:"Garden of Harmony",subtitle:"First chapter finale",moves:36,par:23,goal:{type:"mist",count:6},intro:"Clear two Mist patches. Masterpieces and smart fusion placement will help."}
 ];
 const EARLY_JOURNEY=[
- {name:"New Friends",subtitle:"Fem familjer på spelplanen",moves:26,par:15,goal:{type:"fusion",count:20},intro:"En ny familj har tillkommit. Bygg tjugo fusioner för att lära känna den nya rytmen."},
- {name:"Steady Growth",subtitle:"Odla med fler familjer",moves:31,par:20,goal:{type:"stage3",count:8},intro:"Utveckla åtta föremål till stadium 3. Bygg vidare på dina starkaste föremål."},
- {name:"Mist Garden",subtitle:"Två avgränsade dimfält",moves:36,par:22,goal:{type:"mist",count:6},intro:"Rena sex dimrutor i två små grupper med fusioner eller Harmony Pulse."},
- {name:"Fourfold Festival",subtitle:"Fyrmatchningar med eftertanke",moves:30,par:18,goal:{type:"fourTurns",count:4},intro:"Skapa minst en fyrmatchning under fyra olika drag. Flera i samma kedja räknas bara som ett."},
- {name:"Moonlit Mist",subtitle:"Tre olika vägar",moves:37,par:23,goal:{type:"mist",count:7},intro:"Rena sju dimrutor som ligger i separata, strategiska grupper."},
- {name:"Harmony Awakening",subtitle:"Skapa en Pulse-kedja",moves:38,par:26,goal:{type:"pulseHits",count:9},intro:"Skapa mästerverk och låt Harmony Pulse förädla minst nio upptagna grannrutor."},
- {name:"Lantern Mist",subtitle:"Små fält, fler möjligheter",moves:40,par:25,goal:{type:"mist",count:8},intro:"Rena åtta dimrutor i flera små fält."},
- {name:"Fusion Festival",subtitle:"Bygg upp takten",moves:33,par:21,goal:{type:"fusion",count:26},intro:"Gör tjugosex fusioner. Mästerverk, Echo och andra kedjor ger bonuspoäng."},
- {name:"Quiet Mist",subtitle:"Precision och Pulse",moves:41,par:27,goal:{type:"mist",count:9},intro:"Rena nio dimrutor utan att slösa dina välutvecklade föremål."},
- {name:"Masterpiece Celebration",subtitle:"Fyra mästerverk",moves:43,par:32,goal:{type:"masterpiece",count:4},intro:"Skapa fyra mästerverk. Du har fler drag än i de tidigare kapitlen."}
+ {name:"New Friends",subtitle:"Five families on the board",moves:26,par:15,goal:{type:"fusion",count:20},intro:"A new family has joined. Create twenty fusions and find a new rhythm."},
+ {name:"Steady Growth",subtitle:"Grow with more families",moves:31,par:20,goal:{type:"stage3",count:8},intro:"Upgrade eight objects to stage 3. Build on your strongest pieces."},
+ {name:"Mist Garden",subtitle:"Two separated Mist patches",moves:36,par:22,goal:{type:"mist",count:6},intro:"Clear six Mist tiles across two small patches with fusions or Harmony Pulse."},
+ {name:"Fourfold Festival",subtitle:"Four-tile matches with care",moves:30,par:18,goal:{type:"fourTurns",count:4},intro:"Make a match of four on four separate moves. Multiple in the same chain count as one."},
+ {name:"Moonlit Mist",subtitle:"Three different paths",moves:37,par:23,goal:{type:"mist",count:7},intro:"Clear seven Mist tiles arranged in separate strategic groups."},
+ {name:"Harmony Awakening",subtitle:"Create a Pulse chain",moves:38,par:26,goal:{type:"pulseHits",count:9},intro:"Create masterpieces and let Harmony Pulse upgrade at least nine occupied neighboring tiles."},
+ {name:"Lantern Mist",subtitle:"Small patches, more possibilities",moves:40,par:25,goal:{type:"mist",count:8},intro:"Clear eight Mist tiles in several small patches."},
+ {name:"Fusion Festival",subtitle:"Build your rhythm",moves:33,par:21,goal:{type:"fusion",count:26},intro:"Complete twenty-six fusions. Masterpieces, Echoes, and chains award bonus points."},
+ {name:"Quiet Mist",subtitle:"Precision and Pulse",moves:41,par:27,goal:{type:"mist",count:9},intro:"Clear nine Mist tiles without wasting your advanced pieces."},
+ {name:"Masterpiece Celebration",subtitle:"Four masterpieces",moves:43,par:32,goal:{type:"masterpiece",count:4},intro:"Create four masterpieces. You have more moves than in earlier chapters."}
 ];
 // Difficulty Floor 1.0: preserve the previous mission contract when players
 // resume an existing run; only fresh games use the stronger objective.
@@ -88,55 +88,55 @@ function endlessScoreConfig(index){
   Math.ceil(originalTarget*(1.5+.15*mastery)/50)*50,
   Math.ceil(originalTarget*(2.25+.2*mastery)/50)*50];
  const stars=originalStars.map(points=>Math.round(points*JOURNEY_STAR_SCORE_MULTIPLIER));
- return {name:"Harmony Journey",subtitle:"Poängjakt · bana "+number,moves,par:0,
+ return {name:"Harmony Journey",subtitle:"Score challenge · level "+number,moves,par:0,
   goal:{type:"score",count:stars[0]},stars,
-  intro:"Nå poängmålet för en stjärna. Fortsätt samla poäng för två eller tre stjärnor."};
+  intro:"Reach the score goal for one star, then keep scoring to earn two or three."};
 }
 // Chapter Gameplay Identity 1.0 – authored challenges, not procedural copies.
 // Every route uses the EXISTING Daruma/Sealed Stone mechanics (2 / 4 moves
 // per blocker) and an explicit, recognizable layout. Indices are zero-based.
 // Level 28/30 Mist goals and their freshly calibrated stars stay untouched.
 const CHAPTER_DARUMA_DESIGNS={
- 20:{name:"Daruma Awakening",subtitle:"Första önskningen",positions:[24],
-     moves:36,par:22,focus:"Två träffar från fusioner eller Harmony Pulse fullbordar din första Daruma."},
- 22:{name:"Twin Wishes",subtitle:"Två önskningar, två riktningar",positions:[17,31],
-     moves:40,par:28,focus:"Välj mellan två åtskilda Daruma. Varje docka behöver två olika drag."},
- 23:{name:"Faraway Wishes",subtitle:"Två avlägsna Daruma",positions:[9,39],
-     moves:42,par:28,focus:"Två Daruma ligger långt från varandra. Planera vägen till båda."},
- 25:{name:"Diagonal Wishes",subtitle:"Fusioner över diagonalen",positions:[16,32],
-     moves:42,par:28,focus:"Fullborda båda Daruma. En vanlig Harmony Pulse går i fyra riktningar, inte diagonalt."},
- 26:{name:"Temple Gate",subtitle:"Två Daruma runt mitten",positions:[23,25],
-     moves:42,par:28,focus:"Sikta på fusioner nära mittgången för att nå båda Daruma."},
- 28:{name:"Three Wishes",subtitle:"Kapitlets Daruma-final",positions:[10,24,38],
-     moves:46,par:34,focus:"Tre Daruma väntar i olika delar av planen. Varje öga kräver ett separat drag."}
+ 20:{name:"Daruma Awakening",subtitle:"The first wish",positions:[24],
+     moves:36,par:22,focus:"Two hits from fusions or Harmony Pulse complete your first Daruma."},
+ 22:{name:"Twin Wishes",subtitle:"Two wishes, two directions",positions:[17,31],
+     moves:40,par:28,focus:"Choose between two separated Daruma dolls. Each needs hits on two different moves."},
+ 23:{name:"Faraway Wishes",subtitle:"Two distant Daruma",positions:[9,39],
+     moves:42,par:28,focus:"Two Daruma stand far apart. Plan a path to reach both."},
+ 25:{name:"Diagonal Wishes",subtitle:"Fusions across the diagonal",positions:[16,32],
+     moves:42,par:28,focus:"Complete both Daruma. Regular Harmony Pulse travels in four directions, not diagonally."},
+ 26:{name:"Temple Gate",subtitle:"Two Daruma near the center",positions:[23,25],
+     moves:42,par:28,focus:"Aim for fusions near the center to reach both Daruma."},
+ 28:{name:"Three Wishes",subtitle:"Daruma chapter finale",positions:[10,24,38],
+     moves:46,par:34,focus:"Three Daruma await in different parts of the board. Each eye requires a separate move."}
 };
 const CHAPTER_RELIEF_DESIGNS={
- 21:{name:"Moonlit Mist",subtitle:"En väg mellan önskningar",focus:"Rena dimman för att öppna trädgården mellan två Daruma-utmaningar."},
- 24:{name:"Festival of Fusion",subtitle:"Vila genom fusion",focus:"Gör elva fusioner och bygg vidare på de starkaste föremålen."},
- 27:{name:"The Hidden Path",subtitle:"Dimma mellan Daruma",focus:"Rena fjorton dimrutor. Placera fusioner där dimman faktiskt ligger."},
- 29:{name:"Final Blessing",subtitle:"Rena femton dimrutor",focus:"Sista steget i Daruma-kapitlet: rena trädgården med precision och Harmony Pulse."}
+ 21:{name:"Moonlit Mist",subtitle:"A path between wishes",focus:"Clear Mist to open the garden between Daruma challenges."},
+ 24:{name:"Festival of Fusion",subtitle:"A break through fusion",focus:"Make eleven fusions and build on your strongest objects."},
+ 27:{name:"The Hidden Path",subtitle:"Mist between Daruma",focus:"Clear fourteen Mist tiles. Place fusions where the Mist actually sits."},
+ 29:{name:"Final Blessing",subtitle:"Clear fifteen Mist tiles",focus:"Final step of the Daruma chapter: clear the garden with precision and Harmony Pulse."}
 };
 const CHAPTER_STONE_DESIGNS=[
- {name:"First Sealed Stone",subtitle:"Lär dig bryta förseglingen",positions:[24],
-  focus:"Fyra separata träffar bryter den första stenen. När den brister frigörs Awakening Pulse i åtta riktningar."},
- {name:"Northern Seal",subtitle:"Stenen ovanför mitten",positions:[17],
-  focus:"En försegling högre upp på spelplanen. Bygg fusioner på dess grannrutor."},
- {name:"Southern Seal",subtitle:"Stenen nedanför mitten",positions:[31],
-  focus:"Nu ligger stenen längre ned. Håll utrymmet runt den öppet."},
- {name:"Twin Seals",subtitle:"Två skilda förseglingar",positions:[17,31],
-  focus:"Bryt två stenar. Fördela träffarna mellan olika områden."},
- {name:"Hidden Seal",subtitle:"En sten på en ny väg",positions:[16],
-  focus:"En försegling åt sidan kräver en annan fusionsposition än mittstenen."},
- {name:"Distant Seals",subtitle:"Förseglingar i motsatta hörn",positions:[9,39],
-  focus:"Två stenar ligger långt ifrån varandra. Skapa möjligheter på båda sidor."},
- {name:"Diagonal Seals",subtitle:"Två diagonalrutter",positions:[16,32],
-  focus:"Välj vilken av två diagonalt förskjutna stenar du arbetar mot."},
- {name:"Awakening Link",subtitle:"Närliggande stenar",positions:[23,24],
-  focus:"Två förseglingar sitter intill varandra. En Awakening Pulse kan hjälpa till att spräcka den andra."},
- {name:"Three Seals",subtitle:"Tre separata mål",positions:[10,24,38],
-  focus:"Tre stenar delar spelplanen. Planera träffarna och frigör utrymmet."},
- {name:"Awakening Garden",subtitle:"Kapitlets sista kedja",positions:[16,24,32],
-  focus:"Tre förseglingar står diagonalt nära varandra. Utnyttja Awakening Pulse för att bygga en kedja."}
+ {name:"First Sealed Stone",subtitle:"Learn to break the seal",positions:[24],
+  focus:"Four separate hits break the first stone, releasing Awakening Pulse in eight directions."},
+ {name:"Northern Seal",subtitle:"Stone above the center",positions:[17],
+  focus:"A seal sits above the center. Build fusions on neighboring tiles."},
+ {name:"Southern Seal",subtitle:"Stone below the center",positions:[31],
+  focus:"The stone now sits lower. Keep the surrounding area open."},
+ {name:"Twin Seals",subtitle:"Two separate seals",positions:[17,31],
+  focus:"Break two stones. Spread your hits across the board."},
+ {name:"Hidden Seal",subtitle:"A stone on a new path",positions:[16],
+  focus:"An off-center seal needs a different fusion position."},
+ {name:"Distant Seals",subtitle:"Seals in opposite corners",positions:[9,39],
+  focus:"Two stones stand far apart. Create opportunities on both sides."},
+ {name:"Diagonal Seals",subtitle:"Two diagonal routes",positions:[16,32],
+  focus:"Choose which of the two diagonally placed stones to target."},
+ {name:"Awakening Link",subtitle:"Neighboring stones",positions:[23,24],
+  focus:"Two seals stand side by side. Awakening Pulse can help break the second."},
+ {name:"Three Seals",subtitle:"Three separate targets",positions:[10,24,38],
+  focus:"Three stones divide the board. Plan your hits to open space."},
+ {name:"Awakening Garden",subtitle:"Chapter's final chain",positions:[16,24,32],
+  focus:"Three seals stand close along a diagonal. Use Awakening Pulse to build a chain."}
 ];
 // HARMONY OBJECTIVES 2.0 — beyond the tutorial, every Journey level has
 // a tangible objective. Score remains a side challenge / personal record.
@@ -151,7 +151,7 @@ function endlessConfig(index,withDaruma=true,withSealed=true){
   const moves=[36,36,38,40,38,42,42,44,46,48][index-30];
   return {...old,name:chapter.name,subtitle:chapter.subtitle,
    goal:{type:"sealedStone",count},sealedStoneVersion:1,moves,par:Math.max(20,moves-12),
-   intro:chapter.focus+" Fusioner intill stenen och Harmony Pulse kan träffa den, högst en gång per drag. Stenen kräver fyra träffar och frigör därefter Awakening Pulse i åtta riktningar."};
+   intro:chapter.focus+" Fuse next to the stone or hit it with Harmony Pulse, once per move. Four hits break it and release Awakening Pulse in eight directions."};
  }
 
  // The first Daruma is introduced at Level 21, AFTER the first twenty.
@@ -163,7 +163,7 @@ function endlessConfig(index,withDaruma=true,withSealed=true){
   return {...old,name:design.name,subtitle:design.subtitle,
    moves:design.moves,par:design.par,
    goal:{type:"daruma",count},darumaVersion:1,
-   intro:design.focus+" Daruma kan inte flyttas. Fusioner på grannrutor eller Harmony Pulse fyller ett öga per drag."};
+   intro:design.focus+" Daruma cannot move. Adjacent fusions and Harmony Pulse fill one eye per move."};
  }
 
  if(index>=10&&index<20){
@@ -197,14 +197,14 @@ function endlessConfig(index,withDaruma=true,withSealed=true){
  const mist=goal.type==="mist";
  const label=mist?"Harmony Mist":goal.type==="masterpiece"?"Masterpiece Garden":
   goal.type==="fusion"?"Harmony Fusion":goal.type==="stage3"?"Growing Harmony":"Harmony Pulse";
- const description=mist?"Rena "+goal.count+" dimtäckta rutor. Fusionera på en dimruta eller träffa den med Harmony Pulse. Föremål i dimman kan fortfarande flyttas.":
-  goal.type==="masterpiece"?"Skapa "+goal.count+" mästerverk för att återställa harmonin.":
-  goal.type==="fusion"?"Gör "+goal.count+" lyckade fusioner.":
-  goal.type==="stage3"?"Utveckla "+goal.count+" föremål till stadium 3.":
-  "Träffa "+goal.count+" föremål med Harmony Pulse.";
+ const description=mist?"Clear "+goal.count+" Mist-covered tiles. Fuse onto Mist or hit it with Harmony Pulse. Objects on Mist can still move.":
+  goal.type==="masterpiece"?"Create "+goal.count+" masterpieces to restore harmony.":
+  goal.type==="fusion"?"Make "+goal.count+" successful fusions.":
+  goal.type==="stage3"?"Upgrade "+goal.count+" objects to stage 3.":
+  "Hit "+goal.count+" objects with Harmony Pulse.";
  const rest=index>=20&&index<30?CHAPTER_RELIEF_DESIGNS[index]:null;
  return {...base,name:rest?.name||label,
-  subtitle:rest?.subtitle||(mist?"Rena trädgårdens magiska dimma":"Ett nytt harmonimål"),
+  subtitle:rest?.subtitle||(mist?"Clear trädgårdens magiska dimma":"A new harmony goal"),
   // Fairness Rebalance 1.0: the chapter-three finale was running out of
   // moves in otherwise promising games. Four more turns on NEW runs only.
   moves:index===29?40:earlyJourney?earlyMoves[stage]:base.moves,
@@ -1092,7 +1092,7 @@ class Game{
  }
  goalText(){
   let g=this.config.goal;
-  return ({mist:"Rena dimman",score:"Poängmål",fusion:"Fusioner",stage3:"Föremål till stadium 3",stage4:"Föremål till stadium 4",masterpiece:"Mästerverk",pulseHits:"Harmony-förädlingar",familyMasterpiece:"Lyktmästerverk",four:"Fyrmatchningar",fourTurns:"Drag med fyrmatchning",daruma:"Fullbordade Daruma",sealedStone:"Brutna förseglingar",shape:"T-/L-matchningar",chain:"Mästerverk i en kedja"})[g.type]||"Mål";
+  return ({mist:"Clear dimman",score:"Score target",fusion:"Fusions",stage3:"Objects to stage 3",stage4:"Objects to stage 4",masterpiece:"Masterpieces",pulseHits:"Harmony upgrades",familyMasterpiece:"Lantern masterpieces",four:"Four-tile matches",fourTurns:"Moves with a four-tile match",daruma:"Completed Daruma",sealedStone:"Broken seals",shape:"T/L matches",chain:"Masterpieces i en kedja"})[g.type]||"Goal";
  }
  fulfilled(){return this.progress()>=this.target();}
  stars(){
@@ -1367,17 +1367,17 @@ class Game{
   return events;
  }
  swap(a,b,options=null){
-  if(this.moves<=0||this.failed)return {ok:false,reason:"Nivån är avslutad"};
+  if(this.moves<=0||this.failed)return {ok:false,reason:"Level has ended"};
   if(!Number.isInteger(a)||!Number.isInteger(b)||!neighbors(a).includes(b)||
    isFixed(this.board[a])||isFixed(this.board[b]))
    return {ok:false,reason:isSealed(this.board[a])||isSealed(this.board[b])?
-    "Sealed Stone står stilla – skapa fusioner bredvid stenen":
-    "Daruma står stilla – skapa fusioner bredvid den"};
+    "Sealed Stone cannot move — fuse beside it":
+    "Daruma cannot move — fuse beside it"};
   const armed=resonanceLinks(this.board);
   [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
   if(!scan(this.board).some(g=>g.includes(a)||g.includes(b))){
    [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
-   return {ok:false,reason:"Bytet behöver skapa minst tre i samma familj"};
+   return {ok:false,reason:"The swap must match at least three from one family"};
   }
   if(["v3","v31","v311","v4"].includes(this.directorMode)){
    const ms=options?.decisionMs;

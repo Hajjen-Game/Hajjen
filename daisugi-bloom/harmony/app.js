@@ -478,6 +478,7 @@ function renderGoshuincho(){
  const heading=goshuinNode("div","washi-book-heading");
  heading.append(goshuinNode("small","washi-book-eyebrow","第"+G.japaneseNumeral(info.number)+"章"),
   goshuinNode("h2","",info.title),
+  goshuinNode("span","washi-book-subtitle",info.subtitle),
   goshuinNode("span","washi-book-flourish","── ✿ ──"));
  const progress=goshuinNode("span","washi-book-progress",info.earned+" / 10");
  progress.setAttribute("aria-label",info.earned+" of 10 level stamps");
@@ -510,10 +511,12 @@ function renderGoshuincho(){
    goshuinNode("span","washi-detail-objective","GOAL · "+info.objective),
    goshuinNode("span","washi-detail-budget",preview.remaining!==null?
     preview.remaining+" moves left":info.moves+" moves"+(info.threeStars!==null?" · ★★★ within "+info.threeStars:"")));
-  if(info.lesson)copy.append(goshuinNode("span","washi-detail-lesson",info.lesson.short));
+  if(info.lesson||stamp.level>=40)
+   copy.append(goshuinNode("span","washi-detail-lesson",
+    info.lesson?.short||(stamp.level>=50?"Endless Garden · generated challenge":info.tip)));
   const play=goshuinNode("button","washi-detail-play",stamp.resumable?"CONTINUE":"PLAY");
   play.type="button";play.disabled=!stamp.playable;
-  play.setAttribute("aria-label",stamp.playable?"Play level "+stamp.number+", "+cfg.name:"Level "+stamp.number+" is locked");
+  play.setAttribute("aria-label",stamp.playable?"Play level "+stamp.number+", "+info.name:"Level "+stamp.number+" is locked");
   play.addEventListener("click",()=>activateWashiPlay(play,()=>{
    const latest=G.levelStatus(save,stamp.level);
    if(latest.playable)startLevel(stamp.level,latest.resumable);
@@ -997,7 +1000,8 @@ function startLevel(i,resume=false){
  $("goalLabel").title=game.config.intro||"";
  document.querySelector(".goal-glyph").textContent=game.config.goal.type==="mist"?"☁":
   game.config.goal.type==="daruma"?"◉":
-  game.config.goal.type==="sealedStone"?"✦":"✿";
+  game.config.goal.type==="sealedStone"?"✦":
+  ["familyFusion","familyMasterpiece"].includes(game.config.goal.type)?"灯":"✿";
  const milestones=$("starTargets");
  milestones.hidden=game.rewardVersion>=2||game.config.goal.type!=="score";
  if(!milestones.hidden){
@@ -2388,8 +2392,9 @@ function showResult(){
    card.append(copy);stats.append(card);
   });
   result.append(stats);
-  const note=make("p","victory-next-note",canContinue?
-   "✦ "+game.moves+" moves left left · keep playing for a high score or advance to the next level.":
+  const note=make("p","victory-next-note",level===49?
+   "✦ Lantern Path complete! Endless Garden opens next with generated puzzle challenges.":
+   canContinue?"✦ "+game.moves+" moves left · keep playing for a high score or advance to the next level.":
    "✦ Level complete · replay for a new record or move on.");
   result.append(note);
  }else{
@@ -2417,7 +2422,7 @@ function showResult(){
  actions.classList.toggle("victory-actions",won);
  if(!won&&C.status(save,"tsuki")?.owned)
   modalButton(actions,"☾ Moon's Serenity · +"+([0,2,3,5][C.status(save,"tsuki").tier])+" moves","primary omamori-moon-revive",()=>confirmMoonRescue());
- if(won)modalButton(actions,"Next level →","primary victory-next",()=>startLevel(level+1));
+ if(won)modalButton(actions,level===49?"Enter Endless Garden →":"Next level →","primary victory-next",()=>startLevel(level+1));
  if(canContinue)modalButton(actions,"Keep playing for a high score","secondary victory-continue",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
  });

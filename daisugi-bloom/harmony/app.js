@@ -656,22 +656,36 @@ const normalUses=()=>Math.min(2,game?.blessingUses||0);
 function renderPowerBar(){
  const bar=$("omamoriPowerBar");if(!bar)return;
  bar.replaceChildren();bar.hidden=false;
- const button=goshuinNode("button","omamori-open","✿  OMAMORI · お守り");
- button.type="button";button.disabled=!!powerSelection;
- button.setAttribute("aria-label","Open your Omamori boosts. "+C.total(save)+" cards owned, "+normalUses()+" of 2 regular boosts used.");
+ // Keep the inventory quantity immediately after お守り. The full plaque
+ // is passive artwork; only the clearly framed action is clickable.
+ const heading=goshuinNode("div","omamori-hud-heading");
+ heading.append(
+  goshuinNode("strong","omamori-hud-title","✿ OMAMORI · お守り"),
+  goshuinNode("span","omamori-hud-stock",C.total(save)+" cards")
+ );
+ const count=goshuinNode("span","omamori-remaining",normalUses()+"/2");
+ count.setAttribute("aria-label",normalUses()+" of 2 board boosts used");
+ count.title="Board boosts used on this level (maximum 2; Moon rescue is separate)";
+ const button=goshuinNode("button","omamori-open","");
+ button.type="button";
+ button.append(goshuinNode("span","",powerSelection?"SELECTING TILES":"OPEN CARDS"),
+  goshuinNode("span","omamori-open-chevron","▾"));
+ button.disabled=!!powerSelection;
+ button.setAttribute("aria-label","Open your Omamori cards. "+C.total(save)+" cards owned, "+normalUses()+" of 2 board boosts used.");
  button.addEventListener("click",showPowerPicker);
- const count=goshuinNode("span","omamori-remaining",C.total(save)+" cards  ·  "+normalUses()+"/2 used");
- bar.append(button,count);
+ bar.append(heading,count,button);
  if(powerSelection){
   const cancel=goshuinNode("button","omamori-power-cancel","Cancel");
   cancel.addEventListener("click",()=>{powerSelection=null;powerTargets=[];selected=-1;renderPowerBar();});
   bar.append(cancel);
-  count.textContent="Select target · "+P.POWERS[powerSelection].name;
- }
+  bar.classList.add("is-targeting");
+  heading.querySelector(".omamori-hud-stock").textContent=P.POWERS[powerSelection].name;
+ }else bar.classList.remove("is-targeting");
  if(game?.koiRerollAt>=0){
-  const reroll=goshuinNode("button","omamori-reroll-button","≋ Again");
+  const reroll=goshuinNode("button","omamori-reroll-button","≋ Shuffle again");
   reroll.addEventListener("click",showKoiReroll);bar.append(reroll);
- }
+  bar.classList.add("has-reroll");
+ }else bar.classList.remove("has-reroll");
 }
 function showPowerPicker(){
  if(!game||busy||game.failed||game.complete||!$("modal").hidden||powerSelection)return;

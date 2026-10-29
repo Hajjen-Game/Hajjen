@@ -46,7 +46,15 @@ function initialize(save){
   entry.tier=Math.max(1,Math.min(3,Number.isInteger(entry.tier)?entry.tier:1));
   entry.levels=[...new Set((Array.isArray(entry.levels)?entry.levels:[]).filter(validLevel))];
  }
- if(!state.replay||typeof state.replay!=="object")state.replay={day:"",claims:0};
+ if(!state.replay||typeof state.replay!=="object"||Array.isArray(state.replay))
+  state.replay={day:"",claims:0};
+ // An invalid counter must never turn the five-replays-per-day limit into
+ // an unlimited source of coins (NaN, strings and negative values included).
+ if(typeof state.replay.day!=="string"||!/^\\d{4}-\\d{2}-\\d{2}$/.test(state.replay.day))
+  state.replay.day="";
+ if(!Number.isInteger(state.replay.claims)||state.replay.claims<0)
+  state.replay.claims=5;
+ else state.replay.claims=Math.min(5,state.replay.claims);
  return state;
 }
 function has(save,id){return validId(id)&&!!initialize(save).cards[id];}

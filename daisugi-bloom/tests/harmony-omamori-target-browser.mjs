@@ -43,7 +43,7 @@ try{
  await target(23);await target(22);
  assert.deepEqual(await gold(),[22,23],"Both chosen tiles glow together while confirming");
  assert.equal(await page.$eval("#modal",el=>el.hidden),true,"Grand Bloom must NOT open a blocking confirmation dialog");
- assert.equal(await page.$eval(".omamori-target-actions.is-ready .omamori-power-confirm",xs=>xs.length),1);
+ assert.equal(await page.evaluate(()=>document.querySelectorAll(".omamori-target-actions.is-ready .omamori-power-confirm").length),1);
  const geometry=await page.evaluate(()=>{
   const board=document.querySelector("#board").getBoundingClientRect();
   const bar=document.querySelector("#omamoriPowerBar").getBoundingClientRect();
@@ -67,7 +67,7 @@ try{
  await pick("sakura");await target(24);
  assert.deepEqual(await gold(),[24],"Single tile stays gold until confirmation");
  assert.equal(await page.$eval("#modal",el=>el.hidden),true);
- assert.equal(await page.$eval(".omamori-target-actions.is-ready .omamori-power-confirm",xs=>xs.length),1);
+ assert.equal(await page.evaluate(()=>document.querySelectorAll(".omamori-target-actions.is-ready .omamori-power-confirm").length),1);
  await close();
  // Preview is exactly the legal shuffle footprint (not an arbitrary 3x3 glow).
  for(const [id,at] of [["koi",48],["deepCurrent",0]]){
@@ -77,9 +77,9 @@ try{
     family:e.classList.contains("daruma-tile")?"daruma":e.classList.contains("sealed-stone-tile")?"sealedStone":"normal"
    })):[]),{id,at});
   assert.deepEqual(await gold(),expected,id+" must mark every and only affected cell");
-  assert.equal(await page.$eval(".tile.omamori-gold-anchor",els=>els.length),1);
+  assert.equal(await page.evaluate(()=>document.querySelectorAll(".tile.omamori-gold-anchor").length),1);
   assert.equal(await page.$eval("#modal",e=>e.hidden),true);
-  assert.equal(await page.$eval(".omamori-target-actions.is-ready .omamori-power-confirm",xs=>xs.length),1);
+  assert.equal(await page.evaluate(()=>document.querySelectorAll(".omamori-target-actions.is-ready .omamori-power-confirm").length),1);
   await close();
  }
  await pick("grandBloom");await target(23);

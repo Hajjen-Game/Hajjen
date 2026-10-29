@@ -648,6 +648,15 @@ function spiritMoment(evt){
   {opacity:0,transform:"translate(-50%,-130%) scale(1.22)",offset:1}
  ],spirit.tier===3?760:550).finally(()=>node.remove());
 }
+// All displayed power descriptions are tier-specific. Equipping is only
+// needed for missions; the purchased card itself is always playable.
+function omamoriPowerEffect(id,tier=1){
+ const t=Math.max(1,Math.min(3,Math.trunc(tier)||1));
+ if(id==="sakura")return "Upgrade "+t+" different tile"+(t===1?"":"s")+" by one stage; stage 5 triggers Harmony Pulse.";
+ if(id==="koi")return "Shuffle "+(t===1?"2×2":"3×3")+" tiles"+(t===3?"; then optionally shuffle that same 3×3 area once more.":".");
+ if(id==="tsuki")return "Gain "+[0,2,3,5][t]+" extra moves after running out of moves.";
+ return "Decorative keepsake; no board power.";
+}
 // Omamori Powers 3.0 — targeted consumables, explicit confirmation, no auto-buy.
 // Omamori Cards 4.0: the owned and evolving card IS the consumable.
 function renderPowerBar(){
@@ -662,7 +671,7 @@ function renderPowerBar(){
   const power=P.POWERS[card.id],button=document.createElement("button");
   button.type="button";button.className="omamori-power-button"+(powerSelection===card.id?" is-targeting":"");
   button.dataset.power=card.id;button.textContent=power.symbol+" "+power.name+" · "+["","I","II","III"][card.tier];
-  button.title="Tier "+card.tier+" · "+power.description+" The card is consumed on use.";
+  button.title="Tier "+card.tier+" · "+omamoriPowerEffect(card.id,card.tier)+" Using it consumes this card. You do not need to equip it first.";
   button.disabled=card.id==="tsuki"||!game||game.complete||game.failed||game.moves<=0;
   button.addEventListener("click",()=>{
    powerSelection=powerSelection===card.id?null:card.id;powerTargets=[];
@@ -828,10 +837,7 @@ function showOmamori(tab="shop"){
    goshuinNode("span","omamori-card-tag",(item.kind==="power"?"Power card · ":"Permanent keepsake · ")+
     (owned?(equipped?"equipped · ":"")+"Tier "+status.tier+"/3":prettify(item.price)+" Coins")));
   if(status.active)copy.append(goshuinNode("span","omamori-power-shop",
-   "✦ "+P.POWERS[item.id].name+" · "+
-   (item.id==="sakura"?"Upgrade "+(owned?status.tier:1)+" tile(s)":
-    item.id==="koi"?(owned&&status.tier>=2?"3×3":"2×2")+" shuffle"+(owned&&status.tier===3?" + reroll":""):
-    "+"+([0,2,3,5][owned?status.tier:1])+" moves on defeat")));
+   "✦ "+P.POWERS[item.id].name+" · "+omamoriPowerEffect(item.id,owned?status.tier:1)));
   else copy.append(goshuinNode("span","omamori-keepsake-note",
    "✿ Permanent · equip for decorative effects and missions · no board power"));
   const action=goshuinNode("button","omamori-action","");

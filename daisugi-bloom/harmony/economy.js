@@ -58,7 +58,7 @@ function initialize(save){
  e.coins=saneCoins(e.coins);
  if(!e.paidStars||typeof e.paidStars!=="object"||Array.isArray(e.paidStars))e.paidStars={};
  if(!Array.isArray(e.owned))e.owned=[];
- e.owned=[...new Set(e.owned.filter(id=>typeof id==="string"&&!!byId(id)))];
+ e.owned=[...new Set(e.owned.filter(id=>typeof id==="string"&&(!!byId(id)||["kiri","daruma","akari"].includes(id))))];
  if(e.equipped!==null&&!e.owned.includes(e.equipped))e.equipped=null;
  return {newlyCreated:false,account:e};
 }

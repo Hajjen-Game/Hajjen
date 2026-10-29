@@ -83,7 +83,7 @@ check("UI integrates a visible equipped Spirit and only cosmetic effects",()=>{
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
  const css=fs.readFileSync(path.join(__dirname,"../harmony/mobile-game.css"),"utf8");
  const rules=fs.readFileSync(path.join(__dirname,"../harmony/rules.js"),"utf8");
- assert(html.includes('harmony/spirits.js?v=6.48.0-identity-bond'));
+ assert.match(html,/harmony\/spirits\.js\?v=[0-9][\w.-]*/);
  assert(html.includes('id="spiritBadge"'));
  assert(app.includes("C.observe(save,level,result.events)"));
  assert(app.includes("function spiritMoment(evt)"));

@@ -307,15 +307,15 @@ function renderMenu(){
   const d=document.createElement("span"),title=document.createElement("strong"),sub=document.createElement("small");
   title.textContent=i<10?cfg.name:cfg.name+" · "+(i+1);
   sub.textContent=i<10?cfg.subtitle:
-   cfg.moves+" moves · "+(cfg.goal.type==="mist"?cfg.goal.count+" dimrutor":
+   cfg.moves+" moves · "+(cfg.goal.type==="mist"?cfg.goal.count+" Mist tiles":
     cfg.goal.type==="masterpiece"?cfg.goal.count+" masterpieces":
     cfg.goal.type==="daruma"?cfg.goal.count+" Daruma":
     cfg.goal.type==="sealedStone"?cfg.goal.count+" Sealed Stones":
-    cfg.goal.type==="fusion"?cfg.goal.count+" fusioner":
-    cfg.goal.type==="stage3"?cfg.goal.count+" utvecklingar":
+    cfg.goal.type==="fusion"?cfg.goal.count+" fusions":
+    cfg.goal.type==="stage3"?cfg.goal.count+" upgrades":
     cfg.goal.type==="pulseHits"?cfg.goal.count+" Harmony Pulse hits":
-    cfg.goal.type==="fourTurns"?cfg.goal.count+" moves med fyrmatchning":
-    cfg.goal.type==="four"?cfg.goal.count+" fyrmatchningar":
+    cfg.goal.type==="fourTurns"?cfg.goal.count+" moves with a four-tile match":
+    cfg.goal.type==="four"?cfg.goal.count+" four-tile matches":
     prettify(cfg.goal.count)+" points");
   d.append(title,sub);
   if(allowed&&record>0){
@@ -441,13 +441,13 @@ function renderGoshuincho(){
  progress.setAttribute("aria-label",info.earned+" of 10 level stamps");
  head.append(heading,progress,close);album.append(head);
  const nav=goshuinNode("nav","washi-book-nav");
- nav.setAttribute("aria-label","Byt kapitel");
- const prev=goshuinNode("button","washi-nof washi-prev","");prev.type="button";
+ nav.setAttribute("aria-label","Switch chapters");
+ const prev=goshuinNode("button","washi-nav washi-prev","");prev.type="button";
  prev.disabled=goshuinChapter===0;prev.setAttribute("aria-label","Previous chapter");
  prev.addEventListener("click",()=>{if(goshuinChapter>0){goshuinChapter--;renderGoshuincho();}});
  const count=goshuinNode("span","washi-chapter-count",
   "LEVEL "+(info.first+1)+"–"+(info.last+1));
- const next=goshuinNode("button","washi-nof washi-next","");next.type="button";
+ const next=goshuinNode("button","washi-nav washi-next","");next.type="button";
  next.disabled=goshuinChapter>=summary.currentChapter;next.setAttribute("aria-label","Next chapter");
  next.addEventListener("click",()=>{if(goshuinChapter<summary.currentChapter){goshuinChapter++;renderGoshuincho();}});
  nav.append(prev,count,next);album.append(nav);
@@ -576,7 +576,7 @@ function updateSpiritBadge(){
  badge.dataset.tier=String(spirit.tier);
  badge.textContent=(E.CATALOG.find(c=>c.id===spirit.id)?.symbol||"✦")+" "+(E.CATALOG.find(c=>c.id===spirit.id)?.name||"Omamori")+" · tier "+spirit.tier+"/3";
  badge.title=spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" uppdrag":" · full utveckling");
- badge.setAttribute("aria-label","Buren Omamori: "+spirit.id+", tier "+spirit.tier+" of 3. "+spirit.mission);
+ badge.setAttribute("aria-label","Equipped Omamori: "+spirit.id+", tier "+spirit.tier+" of 3. "+spirit.mission);
 }
 function spiritMoment(evt){
  const spirit=C.status(save,E.snapshot(save).equipped);
@@ -857,7 +857,7 @@ function renderCollection(counts,awards=[]){
   card.dataset.count=String(count);
   card.querySelector(".collection-count").textContent=String(count);
   card.classList.toggle("collected",count>0);
-  card.setAttribute("aria-label",names[family]+": "+count+" masterpieces under leveln");
+  card.setAttribute("aria-label",names[family]+": "+count+" masterpieces during the level");
   if(count>previous&&awards.some(a=>a.family===family)&&!save.reduceMotion){
    card.classList.remove("collection-awarded");void card.offsetWidth;
    card.classList.add("collection-awarded");
@@ -1186,7 +1186,7 @@ function renderHUD(state){
  }else{
   $("statusStars").setAttribute("aria-label",
    earnedStars+" of 3 stars. Complete the goal in at most "+
-   game.config.par+" moves för 3 stars eller "+(game.config.par+4)+" for 2.");
+   game.config.par+" moves for 3 stars, or "+(game.config.par+4)+" for 2.");
  }
  document.querySelector(".goal").classList.toggle("goal-complete",game.complete);
 }
@@ -2168,7 +2168,7 @@ async function playEvents(events,bondGain=null){
  }
  if(bondGain?.ok){
   updateSpiritBadge();renderPowerBar();
-  toast(bondGain.promoted?"✦ Omamori uppgraderad to tier "+bondGain.tier+"!":
+  toast(bondGain.promoted?"✦ Omamori upgraded to tier "+bondGain.tier+"!":
    "✦ Omamori mission "+bondGain.progress+"/6");
  }
  if(goalReached)unlockGoal();
@@ -2484,7 +2484,7 @@ function openEngineLab(){
   output.replaceChildren();
   const summary=document.createElement("p");
   summary.textContent=result.runs.length+" runs · "+
-   new Set(result.results.map(r=>r.level)).size+" leveler · "+
+   new Set(result.results.map(r=>r.level)).size+" levels · "+
    result.options.modes.map(x=>api.MODE_LABELS[x]).join(" + ")+
    " · version "+result.gameVersion+".";
 
@@ -2540,7 +2540,7 @@ function openEngineLab(){
   if(engineLabRun)return;
   const requestedSeed=Number(seedInput.value);
   if(!Number.isInteger(requestedSeed)||requestedSeed<0||requestedSeed>0xffffffff){
-   engineLabText(status,"Ange ett heltal mellan 0 och 4294967295.");return;
+   engineLabText(status,"Enter an integer between 0 and 4294967295.");return;
   }
   const job={cancelled:false};engineLabRun=job;latest=null;
   runButton.disabled=true;cancelButton.disabled=false;exportButton.disabled=true;output.replaceChildren();

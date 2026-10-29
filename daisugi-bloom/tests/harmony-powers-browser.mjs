@@ -28,10 +28,12 @@ try{
   "Moon cards are not available as ordinary boosters");
  await page.click('.omamori-picker-item[data-power="sakura"]');
  await page.click('.tile[data-index="24"]');
- assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Bloom Touch");
+ assert.equal(await page.$eval(".omamori-hud-title",e=>e.textContent),"✿ Bloom Touch");
+ assert.equal(await page.$eval("#modal",e=>e.hidden),true,"No overlay hides the board");
+ assert.equal(await page.$eval(".omamori-target-actions.is-ready",x=>x.length),1);
  assert.equal(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).omamoriCards.counts.sakura,key),2,
   "Selecting a target must not spend a card");
- await page.click("#modalActions button.primary");
+ await page.click(".omamori-power-confirm");
  await page.waitForFunction(key=>{
   const s=JSON.parse(localStorage.getItem(key));
   return s.omamoriCards.counts.sakura===1&&s.run?.data?.blessingUses===1;
@@ -42,7 +44,9 @@ try{
  await page.click('.omamori-picker-item[data-power="grandBloom"]');
  await page.click('.tile[data-index="23"]');
  await page.click('.tile[data-index="22"]');
- await page.click("#modalActions button.primary");
+ assert.equal(await page.$eval("#modal",e=>e.hidden),true);
+ assert.equal(await page.$eval(".omamori-target-actions.is-ready",x=>x.length),1);
+ await page.click(".omamori-power-confirm");
  await page.waitForFunction(key=>{
   const s=JSON.parse(localStorage.getItem(key));
   return !s.omamoriCards.counts.grandBloom&&s.run?.data?.blessingUses===2;

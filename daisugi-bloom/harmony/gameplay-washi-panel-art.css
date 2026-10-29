@@ -206,3 +206,22 @@ body.harmony-playing{
 body.harmony-playing #app{
   min-height:100%;
 }
+
+/* Pause button artwork 3.3 · user's approved red watercolor circle.
+   Background uses the exact source design (lossless WebP). The existing
+   Ⅱ label stays as live text for legibility; all click handling remains. */
+body.harmony-playing .game-view #pauseButton.pause-button{
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:transparent url("../assets/gameplay-washi/pause-watercolor-red-20261029.webp") center / contain no-repeat!important;
+  color:#fff0d3!important;
+  text-shadow:0 1px 2px rgba(86,23,15,.65)!important;
+  font-family:Georgia,"Times New Roman",serif;
+  font-weight:700;
+  padding:0!important;
+}
+body.harmony-playing .game-view #pauseButton.pause-button:focus-visible{
+  outline:2px solid #f8e6c0;
+  outline-offset:2px;
+}

@@ -121,8 +121,13 @@ try{
   // Goal help must be voluntary, non-destructive and dismissible.
   assert(await nav.$eval("#goalHelpButton",e=>e.getBoundingClientRect().width>=20));
   const beforeHelp=await nav.$eval("#movesCount",e=>e.textContent);
+  const progressLabel=await nav.$eval("#goalProgress",e=>e.getAttribute("aria-label"));
+  assert(progressLabel?.length>8,"Goal progress must explain what remains for screen readers");
+  assert.equal(await nav.evaluate(()=>typeof window.HarmonyObjectiveFeedback),"object");
   await nav.click("#goalHelpButton");
   assert((await nav.$eval(".jh-guide-goal",e=>e.textContent)).includes("GOAL"));
+  assert((await nav.$eval(".jh-guide-state",e=>e.textContent)).length>8,
+    "Goal help must explain remaining progress, not only show a counter");
   await nav.click("#modalActions .primary");
   assert.equal(await nav.$eval("#modal",e=>e.hidden),true);
   assert.equal(await nav.$eval("#movesCount",e=>e.textContent),beforeHelp,

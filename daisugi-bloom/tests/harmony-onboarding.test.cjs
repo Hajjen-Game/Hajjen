@@ -6,7 +6,7 @@ const R=require("../harmony/rules.js");
 const O=require("../harmony/onboarding.js");
 
 const lessons=[[0,"match"],[1,"stages"],[2,"pulse"],[3,"mist"],
- [5,"four"],[10,"families"],[20,"daruma"],[30,"stone"]];
+ [5,"four"],[10,"families"],[20,"daruma"],[30,"stone"],[40,"lantern"],[42,"lantern-masterpiece"],[49,"lantern-finale"]];
 assert.deepEqual(Object.keys(O.LESSONS).map(Number),lessons.map(([i])=>i));
 for(const [index,key] of lessons){
  const l=O.lesson(index);
@@ -15,7 +15,7 @@ for(const [index,key] of lessons){
  assert(!l.short.includes("bonus score"),"Onboarding must teach actual mechanics");
 }
 assert.equal(O.lesson(4),null,"Regular puzzles do not interrupt with tutorials");
-assert.equal(O.lesson(40),null,"Do not promise an unimplemented Lantern tutorial");
+assert.equal(O.lesson(40).key,"lantern","Lantern Path must introduce its actual objective");
 assert.equal(O.lesson(51),null);
 
 for(let i=0;i<50;i++){
@@ -32,7 +32,7 @@ assert.equal(O.preview(5,R.levelConfig(5),R.moveStarTargets).objective,
  "4 moves with a four-tile match");
 assert.equal(O.preview(20,R.levelConfig(20),R.moveStarTargets).objective,"1 Daruma");
 assert.equal(O.preview(30,R.levelConfig(30),R.moveStarTargets).objective,"1 Sealed Stone");
-assert.equal(O.preview(47,R.levelConfig(47),R.moveStarTargets).objective,"15 Mist tiles");
+assert.equal(O.preview(47,R.levelConfig(47),R.moveStarTargets).objective,"7 Lantern fusions");
 assert.equal(O.preview(47,R.levelConfig(47)).threeStars,null);
 
 const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");

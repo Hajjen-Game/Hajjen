@@ -12,7 +12,7 @@ const CATALOG=Object.freeze([
  Object.freeze({id:"grandBloom",name:"Grand Bloom",theme:"sakura",symbol:"❀",kind:"power",price:140,subtitle:"Upgrade two treasures.",meaning:"Bloom"}),
  Object.freeze({id:"koi",name:"Ripple Shuffle",theme:"koi",symbol:"〰",kind:"power",price:65,subtitle:"Shuffle a 2×2 area.",meaning:"Flow"}),
  Object.freeze({id:"deepCurrent",name:"Deep Current",theme:"koi",symbol:"≋",kind:"power",price:140,subtitle:"Shuffle a 3×3 area and optionally reroll once.",meaning:"Flow"}),
- Object.freeze({id:"sealbreaker",name:"Sealbreaker",theme:"mist",symbol:"◈",kind:"power",price:90,subtitle:"Clear Mist or hit one obstacle.",meaning:"Resolve"}),
+ Object.freeze({id:"sealbreaker",name:"Sealbreaker",theme:"daruma",symbol:"◈",kind:"power",price:90,subtitle:"Clear Mist or hit one obstacle.",meaning:"Resolve"}),
  Object.freeze({id:"twinSealbreaker",name:"Twin Sealbreaker",theme:"daruma",symbol:"✧",kind:"power",price:170,subtitle:"Strike two distinct blocked tiles.",meaning:"Resolve"}),
  Object.freeze({id:"tsuki",name:"Moon's Serenity",theme:"moon",symbol:"☾",kind:"power",price:110,subtitle:"Continue with three moves after running out.",meaning:"Peace"}),
  Object.freeze({id:"moonGrace",name:"Moon's Grace",theme:"moon",symbol:"☽",kind:"power",price:190,subtitle:"Continue with five moves after running out.",meaning:"Peace"})

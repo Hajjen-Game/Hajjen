@@ -506,14 +506,13 @@ function renderGoshuincho(){
   const preview=levelPreview(stamp.level,stamp.resumable),info=preview.data;
   detail.replaceChildren();
   const copy=goshuinNode("div","washi-detail-copy");
+  // Four concise lines. Full guidance belongs to the in-level GOAL help,
+  // not in this narrow painted card.
   copy.append(goshuinNode("span","washi-detail-numeral","LEVEL "+stamp.number+" · "+G.japaneseNumeral(stamp.number)),
    goshuinNode("strong","washi-detail-name",info.name),
    goshuinNode("span","washi-detail-objective","GOAL · "+info.objective),
    goshuinNode("span","washi-detail-budget",preview.remaining!==null?
-    preview.remaining+" moves left":info.moves+" moves"+(info.threeStars!==null?" · ★★★ within "+info.threeStars:"")));
-  if(info.lesson||stamp.level>=40)
-   copy.append(goshuinNode("span","washi-detail-lesson",
-    info.lesson?.short||(stamp.level>=50?"Endless Garden · generated challenge":info.tip)));
+    preview.remaining+" MOVES LEFT":info.moves+" MOVES"+(info.threeStars!==null?" · ★★★ ≤"+info.threeStars:"")));
   const play=goshuinNode("button","washi-detail-play",stamp.resumable?"CONTINUE":"PLAY");
   play.type="button";play.disabled=!stamp.playable;
   play.setAttribute("aria-label",stamp.playable?"Play level "+stamp.number+", "+info.name:"Level "+stamp.number+" is locked");

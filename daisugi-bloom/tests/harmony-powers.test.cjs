@@ -2,99 +2,105 @@
 const assert=require("node:assert/strict");
 const R=require("../harmony/rules.js"),E=require("../harmony/economy.js");
 const P=require("../harmony/powers.js"),C=require("../harmony/cards.js");
-const check=(name,fn)=>{fn();console.log("PASS "+name)};
-function save(ids=[]){const s={economy:{version:1,coins:2000,paidStars:{},owned:ids,equipped:ids[0]||null}};C.initialize(s);return s;}
-check("Legacy card migration takes existing Bonds and keeps the coin balance",()=>{
- const s={economy:{version:1,coins:900,owned:["sakura","koi"],equipped:"sakura",paidStars:{}},
-  spirits:{version:1,bonds:{sakura:{levels:[0,1,2,3,4,5]}}}};
- assert.equal(C.status(s,"sakura").tier,3);assert.equal(C.status(s,"koi").tier,1);
- assert.equal(E.snapshot(s).coins,900);
- C.initialize(s);assert.equal(C.status(s,"sakura").tier,3);
-});
-check("Whole-card consumption removes power and Bond; repurchase starts at I",()=>{
- const s=save(["sakura"]);const before=s.economy.coins;
- assert(C.consume(s,"sakura").ok);assert.equal(C.has(s,"sakura"),false);
+const check=(name,fn)=>{fn();console.log("PASS "+name);};
+function save(coins=3000){return {economy:{version:1,coins,paidStars:{},owned:[],equipped:null}};}
+check("6.0 migrates stronger tiers and formerly permanent keepsakes exactly once",()=>{
+ const s=save(925);
+ s.economy.owned=["sakura","kiri","daruma","akari","koi","tsuki"];
+ s.omamoriCards={version:1,cards:{
+  sakura:{tier:3,levels:[1,2,3,4,5,6]},kiri:{tier:2,levels:[1]},
+  daruma:{tier:1,levels:[]},akari:{tier:1,levels:[]},
+  koi:{tier:3,levels:[1,2,3,4,5,6]},tsuki:{tier:3,levels:[1,2,3,4,5,6]}
+ },discovered:["kiri","daruma","akari"],replay:{day:"2026-10-29",claims:2}};
+ assert.deepEqual(C.initialize(s).counts,{
+  grandBloom:2,sealbreaker:1,twinSealbreaker:1,deepCurrent:1,moonGrace:1
+ });
+ assert.equal(s.economy.coins,925);
  assert.equal(s.economy.equipped,null);
+ const snapshot=JSON.stringify(s.omamoriCards);
+ C.initialize(s);assert.equal(JSON.stringify(s.omamoriCards),snapshot,"Migration is idempotent");
+ assert.equal(C.status(s,"kiri"),null,"Retired keepsakes cannot remain owned");
+});
+check("6.0 never resurrects previously spent cards from historical discovery",()=>{
+ const s=save();s.economy.owned=["sakura","kiri"];
+ s.omamoriCards={version:1,cards:{},discovered:["sakura","kiri"],replay:{day:"",claims:0}};
+ assert.equal(C.total(s),0);
+});
+check("6.0 supports repeat purchases, individual consumption and no mastery",()=>{
+ const s=save(500);const cost=E.CATALOG.find(i=>i.id==="sakura").price;
+ assert(C.buy(s,"sakura").ok);assert(C.buy(s,"sakura").ok);
+ assert.equal(C.count(s,"sakura"),2);assert.equal(s.economy.coins,500-cost*2);
+ assert.equal(C.consume(s,"sakura").quantity,1);assert.equal(C.count(s,"sakura"),1);
+ assert.equal(C.consume(s,"sakura").quantity,0);assert.equal(C.count(s,"sakura"),0);
  assert.equal(C.consume(s,"sakura").ok,false);
- assert(C.buy(s,"sakura").ok);assert.equal(s.economy.coins,before-80);
- assert.equal(C.status(s,"sakura").tier,1);assert.equal(C.status(s,"sakura").count,0);
- assert.equal(C.buy(s,"sakura").ok,false);
+ assert.equal(C.equip(s,"sakura").ok,false);
+ assert.equal(C.observe(s,5,[{type:"pulse"}]).ok,false);
+ assert.equal(C.buy(s,"sakura").ok,true);
 });
-check("Three tiers use 3 and 6 distinct level missions; new card resets them",()=>{
- const s=save(["sakura"]),ev=[{type:"collection",awards:[{family:"sakura",at:11}]}];
- for(let level=0;level<6;level++){
-  assert(C.observe(s,level,ev).ok);
-  assert.equal(C.observe(s,level,ev).ok,false);
- }
- assert.equal(C.status(s,"sakura").tier,3);
- C.consume(s,"sakura");C.buy(s,"sakura");C.equip(s,"sakura");
- assert.equal(C.status(s,"sakura").tier,1);
- assert.equal(C.observe(s,0,ev).ok,true);
-});
-check("Sakura I, II and III target respectively 1, 2 and 3 distinct ordinary tiles",()=>{
- for(const tier of [1,2,3]){
-  const g=new R.Game(12,null,{seed:311+tier,directorMode:"v4"});
-  const at=[2,3,4].slice(0,tier);const moves=g.moves,sc=g.score;
-  const bad=P.apply(g,"sakura",[],tier);assert.equal(bad.ok,false);
-  const ev=P.apply(g,"sakura",at,tier);assert(ev.ok,JSON.stringify(ev));
-  assert.equal(g.moves,moves);assert.equal(g.assisted,true);
-  assert.equal(g.blessingUses,1);assert(g.score>=sc);
- }
-});
-check("Koi I 2x2, II 3x3, III 3x3 with one reroll",()=>{
- for(const tier of [1,2,3]){
-  const g=new R.Game(12,null,{seed:157+tier,directorMode:"v4"});
-  const old=g.board.map(p=>p.id);const oldRolls=g.rolls;
-  const ev=P.apply(g,"koi",24,tier);assert(ev.ok,JSON.stringify(ev));
-  assert.equal(ev.events[0].cells.length,tier===1?4:9);
-  assert.equal(ev.events[0].tier,tier);assert.equal(g.rolls,oldRolls);
-  assert(R.validSwaps(g.board).length>0);assert.equal(R.scan(g.board).length,0);
-  for(let i=0;i<49;i++)if(!ev.events[0].cells.includes(i))assert.equal(g.board[i].id,old[i]);
-  if(tier!==3)assert.equal(g.koiRerollAt,-1);
-  else {
-   const again=P.reroll(g);assert(again.ok,JSON.stringify(again));
+check("Eight v6 strengths affect the board without consuming ordinary moves",()=>{
+ for(const [id,at] of [["sakura",2],["grandBloom",[2,3]],["koi",24],["deepCurrent",24]]){
+  const g=new R.Game(12,null,{seed:284,directorMode:"v4"}),moves=g.moves;
+  const result=P.apply(g,id,at);
+  assert(result.ok,id+": "+JSON.stringify(result));
+  assert.equal(g.moves,moves,id);assert.equal(g.blessingUses,1);
+  assert.equal(g.assisted,true);
+  if(id==="deepCurrent"){
+   assert.equal(result.events[0].cells.length,9);
+   assert.equal(g.koiRerollAt,24);
+   const reroll=P.reroll(g);assert(reroll.ok,JSON.stringify(reroll));
    assert.equal(g.koiRerollAt,-1);
-   assert.equal(P.reroll(g).ok,false);
-   assert.deepEqual(again.events[0].cells,ev.events[0].cells);
   }
+  if(id==="koi")assert.equal(result.events[0].cells.length,4);
  }
 });
-check("Several powers can be used in same run, each physical card consumed in inventory separately",()=>{
- const s=save(["sakura","koi"]);const g=new R.Game(12,null,{seed:276,directorMode:"v4"});
- assert(P.apply(g,"sakura",2,1).ok);assert(C.consume(s,"sakura").ok);
- assert(P.apply(g,"koi",24,1).ok);assert(C.consume(s,"koi").ok);
- assert.equal(g.blessingUses,2);assert(!C.has(s,"sakura"));assert(!C.has(s,"koi"));
+check("Sealbreaker and Twin Sealbreaker clear only chosen Mist cells",()=>{
+ const g=new R.Game(3,null,{seed:336,directorMode:"v3"});
+ const points=g.mist.map((x,i)=>x?i:-1).filter(x=>x>=0);
+ assert(points.length>=3);
+ const moves=g.moves;
+ assert(P.apply(g,"sealbreaker",points[0]).ok);
+ assert.equal(g.mist[points[0]],0);assert.equal(g.mistCleared,1);
+ assert(P.apply(g,"twinSealbreaker",points.slice(1,3)).ok);
+ assert.equal(g.mistCleared,3);
+ assert.equal(g.moves,moves);assert.equal(g.blessingUses,2);
+ assert.equal(P.apply(g,"sakura",2).ok,false,"Only two ordinary boosts per level");
 });
-check("Moon gives 2/3/5 extra moves according to the consumed card tier",()=>{
- for(const tier of [1,2,3]){
-  const g=new R.Game(12,null,{seed:129+tier});g.failed=true;g.moves=0;
-  assert.equal(P.apply(g,"tsuki",-1,tier).ok,true);
-  assert.equal(g.moves,[0,2,3,5][tier]);
-  assert(g.assisted);
+check("Sealbreaker damages Daruma and Sealed Stones, including a final Awakening",()=>{
+ const d=new R.Game(20,null,{seed:192});
+ const at=d.daruma.findIndex(x=>x>0);assert(at>=0);
+ assert(P.apply(d,"sealbreaker",at).ok);assert.equal(d.daruma[at],1);
+ // A new attempt may finish the remaining Daruma hit.
+ const d2=new R.Game(20,null,{seed:192});
+ d2.daruma[at]=1;
+ assert(P.apply(d2,"sealbreaker",at).ok);
+ assert.equal(d2.daruma[at],0);assert(d2.darumaCleared>=1);
+ const stone=new R.Game(30,null,{seed:558});
+ const sp=stone.sealed.findIndex(x=>x>0);assert(sp>=0);
+ stone.sealed[sp]=1;
+ const res=P.apply(stone,"sealbreaker",sp);
+ assert(res.ok);assert.equal(stone.sealed[sp],0);
+ assert(res.events.some(x=>x.type==="awakening"),"Final hit should release a real 8-neighbor pulse");
+});
+check("Moon is offered only when failed and ignores two-board-boost limit",()=>{
+ for(const [id,moves] of [["tsuki",3],["moonGrace",5]]){
+  const g=new R.Game(12,null,{seed:333});g.failed=true;g.moves=0;g.blessingUses=2;
+  assert(P.apply(g,id,-1).ok);assert.equal(g.moves,moves);
+  assert.equal(g.blessingUses,3);assert.equal(g.failed,false);
   const snap={...g.save(),assisted:g.assisted,blessingUses:g.blessingUses};
-  const restored=new R.Game(12,snap,{fastRestore:true});
-  assert.equal(restored.blessingUses,1);assert.equal(restored.assisted,true);
+  assert.equal(new R.Game(12,snap,{fastRestore:true}).blessingUses,3);
  }
 });
-check("Replay reward is limited to five clean wins per day and all purchases use Harmony Coins",()=>{
- const s=save(["koi"]);const old=s.economy.coins;
- let earned=0;for(let i=0;i<9;i++)earned+=C.replayCoins(s,1,true,false,"2026-10-27");
- assert.equal(earned,20);assert.equal(s.economy.coins,old+20);
- assert.equal(C.replayCoins(s,1,true,true,"2026-10-28"),0);
- assert.equal(C.replayCoins(s,2,true,false,"2026-10-28"),4);
+check("Repeat-play coin income remains capped after assisted clears",()=>{
+ const s=save(0);
+ for(let i=0;i<9;i++)C.replayCoins(s,0,true,true,"2026-10-29");
+ assert.equal(s.economy.coins,20);
 });
-check("v6.50 UI loads Cards before app; clean records remain separated",()=>{
- const fs=require("node:fs"),path=require("node:path");
- const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
- const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(html.includes("cards.js?v=6.53.0-omamori5"));
- assert(html.includes("powers.js?v=6.51.0-en"));
- assert(app.includes("C.consume(save,id)"));
- assert(app.includes("C.buy(save,item.id)"));
- assert(app.includes("C.observe(save,level,result.events)"));
- assert(app.includes("C.status(save,\"tsuki\")"));
- assert(app.includes("function showKoiReroll()"));
- assert(app.includes("save.assistedStars"));
- assert(app.includes("won&&!game.assisted?E.claim"));
-});
-console.log("Omamori Cards 4.0 and Tiered Powers tests passed.");
+const fs=require("node:fs"),path=require("node:path");
+const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
+assert(html.includes("cards.js?v=6.0.0-simple"));
+assert(app.includes("showPowerPicker()"));
+assert(app.includes("moonOfferShown"));
+assert(app.includes("C.consume(save,id)"));
+assert(app.includes("game.assisted?1:game.stars()"));
+console.log("PASS Omamori 6.0 · inventory, migration, 8 powers, limits and Moon rescue");

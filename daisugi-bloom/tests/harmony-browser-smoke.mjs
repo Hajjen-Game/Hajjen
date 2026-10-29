@@ -1843,7 +1843,7 @@ try{
    };
  });
  await page.evaluate(()=>{
-   window.__scoreFxSeen={score:0,trail:0,particle:0,shotColors:[],shotSizes:[],shotDurations:[],shotPaths:[],shotLifetimes:[],shotCore:0,burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,fusionFlow:0,fusionAfterglow:0,afterglowPositions:[],afterglowColors:[],afterglowOnEmpty:true,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,flowers:0,diamonds:0,stars:0,diamondColor:"",diamondGlow:"",diamondFontSize:0,unified:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
+   window.__scoreFxSeen={score:0,trail:0,particle:0,shotColors:[],shotSizes:[],shotDurations:[],shotPaths:[],shotLifetimes:[],shotCore:0,shotLeaders:0,shotTrailers:0,shotGlows:[],burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,fusionFlow:0,fusionAfterglow:0,afterglowPositions:[],afterglowColors:[],afterglowOnEmpty:true,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,flowers:0,diamonds:0,stars:0,diamondColor:"",diamondGlow:"",diamondFontSize:0,unified:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
    window.__scoreFxWatcher=new MutationObserver(records=>{
      for(const rec of records)for(const node of rec.addedNodes){
        if(node.nodeType!==1||!node.classList)continue;
@@ -1854,6 +1854,9 @@ try{
         window.__scoreFxSeen.shotColors.push(node.className);
         window.__scoreFxSeen.shotSizes.push(parseFloat(getComputedStyle(node).width));
         if(node.classList.contains("shot-core"))window.__scoreFxSeen.shotCore++;
+        if(node.classList.contains("shot-lead"))window.__scoreFxSeen.shotLeaders++;
+        if(node.classList.contains("shot-trailer"))window.__scoreFxSeen.shotTrailers++;
+        window.__scoreFxSeen.shotGlows.push(getComputedStyle(node).boxShadow);
         const animation=node.getAnimations()[0],timing=animation?.effect?.getTiming();
         if(timing){
          window.__scoreFxSeen.shotDurations.push(timing.duration);
@@ -1981,15 +1984,19 @@ try{
  assert(fx.maxFamilyToTileRatio>=1.25,"Family effect must be visibly larger than its tile on mobile: "+JSON.stringify(fx));
  assert.equal(fx.score,0,"There must be no visible flying +points pill");
  assert.equal(fx.trail,0,"There must be no old score beam/trail nodes");
- assert(fx.particle>=5&&fx.shotCore>=1,
+ assert(fx.particle>=12&&fx.shotCore>=1&&fx.shotLeaders>=3&&fx.shotTrailers>=9,
   "A small swarm of individual score motes must fly to SCORE: "+JSON.stringify(fx));
  assert(fx.shotColors.some(cls=>cls.includes("shot-pearl"))&&
   fx.shotColors.some(cls=>cls.includes("shot-gold"))&&
   fx.shotColors.some(cls=>cls.includes("shot-sakura"))&&
   fx.shotColors.some(cls=>cls.includes("shot-star")),
   "Match the pearl/gold/sakura/star magic dust on vacated tiles: "+JSON.stringify(fx));
- assert(fx.shotSizes.every(w=>w>0&&w<=6),
-  "Motes must be tiny points rather than a flying score badge");
+ assert(fx.shotSizes.every(w=>w>=6&&w<=11),
+  "Brightened motes stay small sparkles rather than another flying score badge");
+ assert(fx.shotGlows.some(glow=>glow.includes("22px")||glow.includes("20px")),
+  "Some leading particles need a strong luminous halo");
+ assert(fx.shotLifetimes.length>=12&&Math.max(...fx.shotLifetimes)-Math.min(...fx.shotLifetimes)>=140,
+  "Particle tail must persist well behind the leading motes without slowing the score flight");
  assert(fx.shotDurations.length>=5&&fx.shotDurations.every(ms=>ms>=475&&ms<=540),
   "Point stream should retain the original fast ~500ms flight, with no extra pause");
  assert(fx.shotPaths.every(path=>path.includes("translate3d(")),

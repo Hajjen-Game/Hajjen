@@ -25,13 +25,13 @@ try{
  await page.reload({waitUntil:"networkidle2"});
  await page.click("#continueButton");await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
  assert.equal(await page.$$eval(".omamori-power-button[data-power]",n=>n.length),3);
- assert((await page.$eval("#spiritBadge",e=>e.textContent)).includes("stadium 3"));
+ assert((await page.$eval("#spiritBadge",e=>e.textContent)).includes("tier 3"));
  const first=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);
  await page.click('.omamori-power-button[data-power="sakura"]');
  await page.click('.tile[data-index="24"]');
  await page.click('.tile[data-index="25"]');
  await page.click('.tile[data-index="26"]');
- assert((await page.$eval("#modalTitle",e=>e.textContent)).includes("stadium 3"));
+ assert((await page.$eval("#modalTitle",e=>e.textContent)).includes("tier 3"));
  assert.equal(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).omamoriCards.cards.sakura.tier,key),3,
   "Targeting is free until player confirms consumption");
  await page.click("#modalActions button.primary");
@@ -55,7 +55,7 @@ try{
  },{timeout:20000},key);
  await page.waitForFunction(()=>!document.querySelector("#modal").hidden,{timeout:20000});
  const modal=await page.$eval("#modalTitle",e=>e.textContent);
- assert(modal.includes("blanda igen"),"Tier III Koi offers the optional second 3x3 shuffle");
+ assert(modal.includes("shuffle again"),"Tier III Koi offers the optional second 3x3 shuffle");
  await page.click("#modalActions button.primary");
  await page.waitForFunction(key=>{
   const s=JSON.parse(localStorage.getItem(key));

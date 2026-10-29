@@ -8,12 +8,12 @@
 const VERSION=1,THRESHOLDS=[1,3,6];
 const activeIds=["sakura","koi","tsuki"];
 const descriptions={
- sakura:"Skapa minst ett mästerverk på en nivå",
- kiri:"Rena minst en dimruta på en nivå",
- daruma:"Träffa Daruma eller Sealed Stone på en nivå",
- akari:"Aktivera Harmony Pulse under en nivå",
- koi:"Skapa ett Harmony Pulse eller Harmony Echo under en nivå",
- tsuki:"Klara en nivå medan du bär Månens ro"
+ sakura:"Create at least one masterpiece in a level",
+ kiri:"Clear at least one mist tile in a level",
+ daruma:"Hit a Daruma or Sealed Stone in a level",
+ akari:"Trigger Harmony Pulse during a level",
+ koi:"Trigger Harmony Pulse or Harmony Echo during a level",
+ tsuki:"Complete a level while equipping Moon's Serenity"
 };
 const validLevel=n=>Number.isInteger(n)&&n>=0&&n<1000000;
 const catalog=()=>root.HarmonyEconomy.CATALOG;

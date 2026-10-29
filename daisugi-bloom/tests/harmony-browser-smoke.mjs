@@ -2325,7 +2325,7 @@ try{
   }
   await clarity.setViewport({width:390,height:844,deviceScaleFactor:2,
    isMobile:true,hasTouch:true});
-  assert.equal(reached.scoreLabel,"BONUS SCORE");
+  assert.equal(reached.scoreLabel,"SCORE");
   await clarity.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(x=>x.textContent.includes("Keep playing for a high score")).click());
   assert.equal(await clarity.$eval("#modal",x=>x.hidden),true,
    "Voluntary record play must resume immediately");

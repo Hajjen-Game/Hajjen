@@ -87,8 +87,8 @@ check("v6.50 UI loads Cards before app; clean records remain separated",()=>{
  const fs=require("node:fs"),path=require("node:path");
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(html.includes("cards.js?v=6.50.0-consumable"));
- assert(html.includes("powers.js?v=6.50.0-tiered"));
+ assert(html.includes("cards.js?v=6.53.0-omamori5"));
+ assert(html.includes("powers.js?v=6.51.0-en"));
  assert(app.includes("C.consume(save,id)"));
  assert(app.includes("C.buy(save,item.id)"));
  assert(app.includes("C.observe(save,level,result.events)"));

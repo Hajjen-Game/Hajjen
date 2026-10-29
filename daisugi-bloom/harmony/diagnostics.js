@@ -9,7 +9,7 @@ function create(R){
  const STRATEGIES=["random","score","goal","lookahead"];
  const MODES=["standard","director","director2","director3","director31","director311","director4"];
  const MODE_LABELS={standard:"Standard",director:"Director 1.0",director2:"Director 2.0",director3:"Pacing 3.0",director31:"Objective 3.1",director311:"Endgame 3.1.1",director4:"Objective & Recovery 4.0"};
- const LABELS={random:"Slumpmässig",score:"Poängjägare",goal:"Målfokuserad",lookahead:"Framåtblickande"};
+ const LABELS={random:"Random",score:"Score chaser",goal:"Goal-focused",lookahead:"Lookahead"};
  function assertInt(value,min,max,name){
   if(!Number.isInteger(value)||value<min||value>max)throw new RangeError(name+" must be an integer from "+min+" to "+max);
  }

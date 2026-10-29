@@ -1,5 +1,5 @@
 /* Japanese Harmony · Harmony Economy & Omamori 1.0
- * Offline Harmony Coins: consumable power cards and permanent keepsakes.
+ * Offline Harmony Coins for eight stackable, one-use board boosts.
  * First-clear rewards are star-based; repeat rewards are daily capped.
  * Pure helpers; only the caller persists its local browser save.
  */
@@ -8,12 +8,14 @@
 const VERSION=1;
 const START=12,PER_STAR=8,MAX_COINS=10000000;
 const CATALOG=Object.freeze([
- Object.freeze({id:"sakura",name:"Sakura's Blessing",theme:"sakura",symbol:"✿",kind:"power",price:80,subtitle:"A reminder of new beginnings.",meaning:"Bloom"}),
- Object.freeze({id:"kiri",name:"Stillness of Mist",theme:"mist",symbol:"☁",kind:"keepsake",price:140,subtitle:"Calm even when the path is unclear.",meaning:"Stillness"}),
- Object.freeze({id:"daruma",name:"Daruma's Promise",theme:"daruma",symbol:"◉",kind:"keepsake",price:220,subtitle:"A small promise of perseverance.",meaning:"Perseverance"}),
- Object.freeze({id:"akari",name:"Lantern Glow",theme:"lantern",symbol:"✦",kind:"keepsake",price:320,subtitle:"Carry a little warmth with you.",meaning:"Warmth"}),
- Object.freeze({id:"koi",name:"Path of the Koi",theme:"koi",symbol:"〰",kind:"power",price:160,subtitle:"Follow the current, find your rhythm.",meaning:"Flow"}),
- Object.freeze({id:"tsuki",name:"Moon's Serenity",theme:"moon",symbol:"☾",kind:"power",price:200,subtitle:"A quiet light along the journey.",meaning:"Peace"})
+ Object.freeze({id:"sakura",name:"Bloom Touch",theme:"sakura",symbol:"✿",kind:"power",price:65,subtitle:"Upgrade one treasure.",meaning:"Bloom"}),
+ Object.freeze({id:"grandBloom",name:"Grand Bloom",theme:"sakura",symbol:"❀",kind:"power",price:140,subtitle:"Upgrade two treasures.",meaning:"Bloom"}),
+ Object.freeze({id:"koi",name:"Ripple Shuffle",theme:"koi",symbol:"〰",kind:"power",price:65,subtitle:"Shuffle a 2×2 area.",meaning:"Flow"}),
+ Object.freeze({id:"deepCurrent",name:"Deep Current",theme:"koi",symbol:"≋",kind:"power",price:140,subtitle:"Shuffle a 3×3 area and optionally reroll once.",meaning:"Flow"}),
+ Object.freeze({id:"sealbreaker",name:"Sealbreaker",theme:"mist",symbol:"◈",kind:"power",price:90,subtitle:"Clear Mist or hit one obstacle.",meaning:"Resolve"}),
+ Object.freeze({id:"twinSealbreaker",name:"Twin Sealbreaker",theme:"daruma",symbol:"✧",kind:"power",price:170,subtitle:"Strike two distinct blocked tiles.",meaning:"Resolve"}),
+ Object.freeze({id:"tsuki",name:"Moon's Serenity",theme:"moon",symbol:"☾",kind:"power",price:110,subtitle:"Continue with three moves after running out.",meaning:"Peace"}),
+ Object.freeze({id:"moonGrace",name:"Moon's Grace",theme:"moon",symbol:"☽",kind:"power",price:190,subtitle:"Continue with five moves after running out.",meaning:"Peace"})
 ]);
 const byId=id=>CATALOG.find(x=>x.id===id)||null;
 const stars=n=>Number.isFinite(Number(n))?Math.max(0,Math.min(3,Math.trunc(Number(n)))):0;
@@ -76,19 +78,21 @@ function claim(save,index,rating){
  return {delta,reason:previous?"better-stars":"first-clear",coins:e.coins};
 }
 function purchase(save,id){
- const item=byId(id);if(!item)return {ok:false,reason:"unknown-item"};
+ const item=byId(id);
+ if(!item)return {ok:false,reason:"unknown-item"};
+ const cards=root.HarmonyCards;
+ if(cards?.buy){
+  const result=cards.buy(save,id);
+  return {...result,reason:result.ok?"purchased":result.reason==="coins"?"not-enough-coins":result.reason,item};
+ }
+ // Standalone compatibility with older Economy consumers.
  const {account:e}=initialize(save);
- if(e.owned.includes(id))return {ok:false,reason:"already-owned"};
  if(e.coins<item.price)return {ok:false,reason:"not-enough-coins"};
- e.coins-=item.price;e.owned.push(id);
+ e.coins-=item.price;
+ if(!e.owned.includes(id))e.owned.push(id);
  return {ok:true,reason:"purchased",coins:e.coins,item};
 }
-function equip(save,id){
- const {account:e}=initialize(save);
- if(id===null){e.equipped=null;return {ok:true};}
- if(!byId(id)||!e.owned.includes(id))return {ok:false,reason:"not-owned"};
- e.equipped=id;return {ok:true};
-}
+function equip(){return {ok:false,reason:"no-equipment-in-v6"};}
 const api={VERSION,CATALOG,earnedValue,completedRating,initialize,snapshot,claim,purchase,equip};
 root.HarmonyEconomy=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;

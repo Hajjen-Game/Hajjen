@@ -30,9 +30,10 @@ function activeFamilies(index,count=5){
  const picked=index<LEVEL_FAMILIES.length?LEVEL_FAMILIES[index].slice():endlessFamilies(index);
  return picked.slice(0,count===4?4:5);
 }
-// First 20 Levels Redesign 1.0. Only the first FIVE stages teach core
-// rules. Stages 6–10 are real early puzzles; the fifth family appears
-// on level 11, on a forgiving fusion mission rather than alongside hard Mist.
+// Gameplay Clarity & Onboarding 2.0: levels 1–3 introduce matching,
+// upgrades and Harmony Pulse; level 4 introduces Mist as the first obstacle.
+// Levels 5–10 reinforce the skills through real puzzles. The fifth family
+// arrives on level 11. Existing goals, move budgets and rewards are unchanged.
 const levels=[
  {name:"First Harmony",subtitle:"Learn your first fusion",moves:18,par:6,goal:{type:"fusion",count:3},intro:"Swap adjacent tiles to match three of the same family."},
  {name:"Growing Beauty",subtitle:"Every object has five stages",moves:24,par:11,goal:{type:"stage3",count:1},intro:"Match the same family, even across different stages. Upgrade one object to stage 3."},

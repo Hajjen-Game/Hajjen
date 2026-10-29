@@ -5,6 +5,7 @@ const path=require("node:path");
 const H=require("../harmony/save-health.js");
 const E=require("../harmony/economy.js");
 const C=require("../harmony/cards.js");
+const R=require("../harmony/rules.js");
 const KEY="japanese-harmony-puzzle-v2";
 const MARKER="japanese-harmony-first20-reset-20261024-v1";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,
@@ -98,6 +99,21 @@ check("Old first-20 reset still happens once, retaining only player preferences"
  const second=H.bootstrap(()=>box,KEY,MARKER,defaults,modes);
  assert.equal(second.save.unlocked,1);
  assert.equal(second.save.bestStars[0],2);
+});
+check("Real game snapshots from all active chapters survive validation",()=>{
+ for(const level of [0,9,10,20,30,40,49,50]){
+  const game=new R.Game(level,null,{seed:7300+level});
+  const run={level,data:game.save()};
+  assert.equal(H.validRun(run),true,"Level "+(level+1)+" was incorrectly rejected");
+  assert.deepEqual(H.normalize({run},defaults).run,run);
+ }
+});
+check("Malformed card arrays cannot masquerade as persisted owned Omamori",()=>{
+ const save={omamoriCards:{version:1,cards:{sakura:[]},discovered:[],
+  replay:[]}};
+ C.initialize(save);
+ assert.deepEqual(save.omamoriCards.cards,{});
+ assert.deepEqual(save.omamoriCards.replay,{day:"",claims:0});
 });
 check("Malformed Omamori daily replay counter cannot mint unlimited coins",()=>{
  const save={economy:{version:1,coins:10,owned:[],paidStars:{},equipped:null},

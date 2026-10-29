@@ -37,12 +37,12 @@ function initialize(save){
   // collected charm maps to one full card at its attained tier.
  }
  const state=save.omamoriCards;
- if(!state.cards||typeof state.cards!=="object")state.cards={};
+ if(!state.cards||typeof state.cards!=="object"||Array.isArray(state.cards))state.cards={};
  if(!Array.isArray(state.discovered))state.discovered=[];
  state.discovered=[...new Set(state.discovered.filter(validId))];
  for(const id of Object.keys(state.cards)){
   if(!validId(id)){delete state.cards[id];continue;}
-  const entry=state.cards[id];if(!entry||typeof entry!=="object"){delete state.cards[id];continue;}
+  const entry=state.cards[id];if(!entry||typeof entry!=="object"||Array.isArray(entry)){delete state.cards[id];continue;}
   entry.tier=Math.max(1,Math.min(3,Number.isInteger(entry.tier)?entry.tier:1));
   entry.levels=[...new Set((Array.isArray(entry.levels)?entry.levels:[]).filter(validLevel))];
  }

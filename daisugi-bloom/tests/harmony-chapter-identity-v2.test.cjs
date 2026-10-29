@@ -3,8 +3,8 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs"),path=require("node:path");
 const R=require("../harmony/rules.js"),G=require("../harmony/goshuincho.js"),O=require("../harmony/onboarding.js");
 const missions=[
- ["familyFusion",3],["stage3",8],["familyMasterpiece",1],["fourTurns",3],
- ["familyFusion",5],["pulseHits",10],["masterpiece",3],["familyFusion",7],
+ ["familyFusion",5],["stage3",10],["familyMasterpiece",1],["fourTurns",4],
+ ["familyFusion",7],["pulseHits",12],["masterpiece",4],["familyFusion",9],
  ["pulseHits",15],["familyMasterpiece",2]
 ];
 const uniqueNames=new Set();
@@ -88,7 +88,7 @@ assert(R.levelConfig(50).name.startsWith("Endless · "));
 assert(R.activeFamilies(50).length===5);
 assert.equal(O.lesson(40).key,"lantern");
 assert.equal(O.lesson(49).key,"lantern-finale");
-assert.equal(O.preview(47,R.levelConfig(47)).objective,"7 Lantern fusions");
+assert.equal(O.preview(47,R.levelConfig(47)).objective,"9 Lantern fusions");
 assert.equal(O.preview(49,R.levelConfig(49)).objective,"2 Lantern masterpieces");
 
 const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");

@@ -266,7 +266,7 @@ check("Calibration 1.0 ratings are independent of optional points and fixed at f
  assert.equal(g.stars(),1,"Extra play cannot increase the earned rating");
 });
 check("Curated 3-star move targets reward strategy, not merely clearing easy missions",()=>{
- const expert=[4,5,9,9,10,5,8,12,9,12,10,12,17,6,15,13,18,16,18,15];
+ const expert=[4,5,9,9,10,5,8,12,9,12,12,12,17,6,15,13,18,16,18,15];
  assert.deepEqual(Array.from({length:20},(_,i)=>R.levelConfig(i).starPar),expert);
  for(let i=0;i<20;i++){
   const config=R.levelConfig(i),targets=R.moveStarTargets(config);

@@ -40,27 +40,23 @@ check("On first new clear pay once; replay earns zero; upgrades award only diffe
  assert.equal(E.initialize(save).newlyCreated,false);
  assert.equal(save.economy.coins,64);
 });
-check("Shop purchases are atomic, one-time, persistent and cosmetic-only",()=>{
+check("Eight card types can be bought repeatedly and consumed individually",()=>{
+ const C=require("../harmony/cards.js");
  const save={bestStars:{},fourFamilyStars:{}};E.initialize(save);
- const ids=E.CATALOG.map(x=>x.id);
- assert.equal(new Set(ids).size,E.CATALOG.length);
- assert.equal(E.CATALOG.length,6);
+ assert.equal(new Set(E.CATALOG.map(x=>x.id)).size,8);
+ assert.equal(E.CATALOG.length,8);
  assert.equal(E.purchase(save,"unknown").reason,"unknown-item");
- assert.equal(E.purchase(save,ids[0]).reason,"not-enough-coins");
+ assert.equal(E.purchase(save,"sakura").reason,"not-enough-coins");
  for(let i=0;i<5;i++)E.claim(save,i,3);
  assert.equal(save.economy.coins,180);
- const first=E.CATALOG[0];
- assert.equal(E.purchase(save,first.id).ok,true);
- assert.equal(save.economy.coins,180-first.price);
- assert.equal(E.purchase(save,first.id).reason,"already-owned");
- assert.equal(E.equip(save,"daruma").reason,"not-owned");
- assert.equal(E.equip(save,first.id).ok,true);
- assert.equal(E.snapshot(save).equipped,first.id);
- assert.equal(E.equip(save,null).ok,true);
+ assert(E.purchase(save,"sakura").ok);
+ assert(E.purchase(save,"sakura").ok);
+ assert.equal(C.count(save,"sakura"),2);
+ assert.equal(save.economy.coins,50);
+ assert.equal(C.consume(save,"sakura").quantity,1);
+ assert.equal(C.count(save,"sakura"),1);
+ assert.equal(E.equip(save,"sakura").ok,false);
  assert.equal(E.snapshot(save).equipped,null);
- assert.deepEqual(E.snapshot(save).owned,[first.id]);
- assert.equal(E.purchase(save,ids[1]).reason,"not-enough-coins");
- assert.equal(save.economy.coins,100);
 });
 check("Malicious or malformed economy data is normalized without changing star records",()=>{
  const save={unlocked:9,fourFamilyStars:{3:2},bestStars:{20:3},
@@ -83,25 +79,25 @@ check("UI and gameplay contracts: no Omamori effect applied to HarmonyRules",()=
  assert.match(html,/harmony\/economy\.js\?v=[0-9][\w.-]*/);
  assert(html.includes('id="omamoriButton"'));
  assert(html.includes('id="harmonyCoins"'));
- assert(app.includes('const coinReward=won&&!game.assisted?E.claim(save,level,'));
- assert(app.includes('if(C.buy(save,item.id).ok){persist()'));
+ assert(app.includes('const coinReward=won?E.claim(save,level,'));
+ assert(app.includes('const result=C.buy(save,item.id)'));
  assert(app.includes('showOmamori(tab)'));
  assert(css.includes("Harmony Economy & Omamori 1.0"));
  assert(!rules.includes("HarmonyEconomy"));
  assert(!rules.includes("Omamori"));
  assert(!rules.includes("harmonyCoins"));
 });
-check("Reward Polish keeps six existing cosmetic charms",()=>{
+check("Omamori 6.0 retains home shop navigation and eight consumable charms",()=>{
  const fs=require("node:fs"),path=require("node:path");
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
  const state={bestStars:{},fourFamilyStars:{}};E.initialize(state);
  const baseline=JSON.stringify(state);
- assert.equal(E.CATALOG.length,6);
+ assert.equal(E.CATALOG.length,8);
  assert.equal(E.snapshot(state).ownedCount,0);
  assert.equal(JSON.stringify(state),baseline);
  assert(html.includes('id="omamoriProgress"'));
  assert(app.includes('for(const item of E.CATALOG)'));
  assert(app.includes('showOmamoriNotice("purchase",item)'));
 });
-console.log("Harmony Economy & Omamori 1.0 tests passed.");
+console.log("Harmony Economy & Omamori 6.0 tests passed.");

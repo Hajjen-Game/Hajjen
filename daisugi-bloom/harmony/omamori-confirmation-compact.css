@@ -1,0 +1,80 @@
+/* Omamori Confirmation Compact 1.0
+ * Keep ALL 49 tiles visible: confirmation is part of the existing
+ * washi Omamori plaque below the board, never a viewport-covering modal.
+ * The approved plaque art and 0/2 counter are left untouched.
+ */
+body.harmony-playing .game-view .omamori-target-actions{
+ box-sizing:border-box;
+ display:grid;
+ grid-column:1/-1;
+ grid-row:2;
+ grid-template-columns:minmax(0,1fr);
+ align-items:stretch;
+ min-width:0;
+ width:100%;
+ gap:clamp(5px,1.5vw,10px);
+ padding:0;
+ margin:0;
+}
+body.harmony-playing .game-view .omamori-target-actions.is-ready{
+ grid-template-columns:repeat(2,minmax(0,1fr));
+}
+body.harmony-playing .game-view .omamori-target-actions .omamori-power-confirm,
+body.harmony-playing .game-view .omamori-target-actions .omamori-power-cancel{
+ box-sizing:border-box!important;
+ grid-column:auto!important;
+ grid-row:auto!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ min-width:0!important;
+ width:100%!important;
+ height:auto!important;
+ min-height:44px!important;
+ max-width:none!important;
+ margin:0!important;
+ padding:3px 5px!important;
+ border:7px solid transparent!important;
+ border-image-source:url("../assets/gameplay-washi/moves-panel-20261029.png")!important;
+ border-image-slice:75 85 75 85 fill!important;
+ border-image-width:7px 9px!important;
+ border-image-repeat:stretch!important;
+ background:none!important;
+ box-shadow:none!important;
+ color:#704638!important;
+ font:800 clamp(11px,3.05vw,15px)/1.1 Georgia,"Times New Roman",serif!important;
+ letter-spacing:0!important;
+ white-space:nowrap;
+ touch-action:manipulation;
+ cursor:pointer;
+}
+body.harmony-playing .game-view .omamori-target-actions .omamori-power-confirm{
+ color:#963f30!important;
+}
+body.harmony-playing .game-view .omamori-target-actions .omamori-power-confirm:focus-visible,
+body.harmony-playing .game-view .omamori-target-actions .omamori-power-cancel:focus-visible{
+ outline:2px solid #a6493b;
+ outline-offset:1px;
+}
+body.harmony-playing .game-view .omamori-target-actions .omamori-power-confirm:active,
+body.harmony-playing .game-view .omamori-target-actions .omamori-power-cancel:active{
+ filter:brightness(.95);
+}
+body.harmony-playing .game-view .omamori-power-bar.is-targeting .omamori-hud-title{
+ max-width:70%;
+ overflow:hidden;
+ text-overflow:ellipsis;
+}
+body.harmony-playing .game-view .omamori-power-bar.is-targeting .omamori-hud-stock{
+ min-width:0;
+ flex:0 0 auto;
+ font-size:clamp(10px,2.7vw,13px)!important;
+}
+@media(max-width:360px){
+ body.harmony-playing .game-view .omamori-target-actions{gap:4px}
+ body.harmony-playing .game-view .omamori-target-actions .omamori-power-confirm,
+ body.harmony-playing .game-view .omamori-target-actions .omamori-power-cancel{
+  font-size:11px!important;
+  padding-inline:1px!important;
+ }
+}

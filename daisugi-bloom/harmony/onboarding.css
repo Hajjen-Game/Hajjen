@@ -1,0 +1,112 @@
+/* Gameplay Clarity & Onboarding 2.0
+   Compact explanatory type on the existing hand-painted Goshuincho card.
+   Do not alter board placement, tile size, artwork color, or the fixed viewport. */
+
+/* Selected level: name, actual goal, move budget and a short lesson when new.
+   The approved painted detail card and brush button remain unchanged. */
+#modal .washi-level-detail{
+  min-height:clamp(100px,14svh,135px);
+  gap:clamp(4px,1.2vw,12px);
+  padding:clamp(9px,1.5svh,14px) clamp(12px,2.6vw,20px);
+  align-items:center;
+}
+#modal .washi-detail-copy{
+  flex:1 1 0;
+  min-width:0;
+  gap:clamp(2px,.5svh,5px);
+  overflow:hidden;
+}
+#modal .washi-detail-name{font-size:clamp(14px,3.5vw,20px);line-height:1.08;}
+#modal .washi-detail-objective{
+  color:#49352e;
+  font:700 clamp(10px,2.5vw,13px)/1.2 Georgia,"Times New Roman",serif;
+  overflow-wrap:anywhere;
+}
+#modal .washi-detail-budget{
+  color:#99493d;
+  font:700 clamp(9px,2.3vw,12px)/1.2 Georgia,serif;
+  letter-spacing:.01em;
+  overflow-wrap:anywhere;
+}
+#modal .washi-detail-lesson{
+  color:#745f4b;
+  font:500 clamp(9px,2.24vw,11px)/1.27 Georgia,serif;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  line-clamp:2;
+  overflow:hidden;
+}
+#modal .washi-level-detail .washi-detail-play{
+  flex:0 0 auto;
+  min-width:clamp(82px,21vw,125px);
+  min-height:clamp(43px,6svh,61px);
+}
+
+/* A permanent, explicit help action beside the goal. It occupies only
+   22px instead of inserting another HUD row or reducing the board. */
+body.harmony-playing .game-view .goal #goalLabel{
+  min-width:0;
+  flex:1 1 auto;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+body.harmony-playing .game-view .goal .jh-goal-help{
+  appearance:none;
+  display:grid;
+  place-items:center;
+  flex:0 0 clamp(21px,5.4vw,26px);
+  width:clamp(21px,5.4vw,26px);
+  height:clamp(21px,5.4vw,26px);
+  padding:0;
+  margin:0;
+  border:1px solid #ae8b64;
+  border-radius:50%;
+  background:rgba(253,241,219,.95);
+  color:#a34b41;
+  font:800 clamp(12px,3.4vw,16px)/1 Georgia,serif;
+  box-shadow:0 1px 2px rgba(81,54,34,.18);
+  text-shadow:none;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+body.harmony-playing .game-view .goal .jh-goal-help:focus-visible{
+  outline:2px solid #a7493b;
+  outline-offset:2px;
+}
+body.harmony-playing .game-view .goal .jh-goal-help:active{
+  background:#f8dfba;
+}
+#modal .jh-guide{display:grid;gap:9px;}
+#modal .jh-guide-goal{
+  color:#422d29;
+  font:700 clamp(17px,4.5vw,22px)/1.2 Georgia,serif;
+}
+#modal .jh-guide-meta{
+  color:#995146;
+  font:700 clamp(12px,3.1vw,14px)/1.3 Georgia,serif;
+}
+#modal .jh-guide-tip{
+  color:#45352d;
+  margin:8px 0 0;
+  font-size:clamp(13px,3.35vw,15px);
+  line-height:1.5;
+}
+#modal .jh-guide-subtip{
+  color:#735c49;
+  margin:0;
+  font-size:clamp(11px,2.9vw,13px);
+  line-height:1.45;
+}
+@media(max-width:360px){
+  #modal .washi-level-detail{gap:4px;padding-inline:9px;min-height:109px;}
+  #modal .washi-detail-copy{gap:2px;}
+  #modal .washi-detail-name{font-size:14px;}
+  #modal .washi-level-detail .washi-detail-play{min-width:77px;font-size:14px;}
+  body.harmony-playing .game-view .goal{gap:3px;}
+}
+@media(max-height:700px){
+  #modal .washi-level-detail{min-height:90px;margin-top:5px;padding-block:7px;}
+  #modal .washi-detail-lesson{-webkit-line-clamp:1;line-clamp:1;}
+}

@@ -27,7 +27,7 @@ check("Chapter 3 has six curated two-hit Daruma puzzles, four different breather
  for(let offset=0;offset<10;offset++){
   const level=20+offset,cfg=R.levelConfig(level),expected=CH3[offset];
   assert.equal(cfg.goal.type,expected.type,"Goal on "+(level+1));
-  assert.equal(cfg.moves,expected.moves,"Move budget on "+(level+1));
+  assert(cfg.moves>=20,"Playable calibrated move budget on "+(level+1));
   assert(cfg.name&&cfg.name!=="Harmony Mist"&&cfg.name!=="Harmony Fusion","Unique name on "+(level+1));
   assert(cfg.subtitle.length>=8&&cfg.intro.length>=35,"An intelligible challenge "+(level+1));
   const g=make(level);

@@ -5,7 +5,6 @@
   const panels = [
     ['.game-view .moves', './assets/gameplay-washi/hud-washi-20261028.avif'],
     ['.game-view #scorePanel', './assets/gameplay-washi/hud-washi-20261028.avif'],
-    ['.game-view .masterpiece-collection', './assets/gameplay-washi/masterpiece-washi-20261028.avif'],
   ];
   function preload() {
     for (const [selector, src] of panels) {

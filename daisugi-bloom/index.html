@@ -9,8 +9,8 @@
  <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
  <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.50.0-omamori-cards">
  <link rel="stylesheet" href="./harmony/washi-zen.css?v=1.6.0-background-v2">
- <link rel="stylesheet" href="./harmony/gameplay-washi.css?v=2.6.0-background-v2">
- <script defer src="./harmony/approved-game-panels.js?v=2.4.0-bronze-washi-panels"></script>
+ <link rel="stylesheet" href="./harmony/gameplay-washi.css?v=2.8.0-frame-free-play">
+ <script defer src="./harmony/approved-game-panels.js?v=2.6.0-no-collection"></script>
  <script defer src="./harmony/rules.js?v=6.47.1-sealed-pulse"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
@@ -21,7 +21,7 @@
   <script defer src="./harmony/powers.js?v=6.50.0-tiered"></script>
   <script defer src="./harmony/cards.js?v=6.50.0-consumable"></script>
  <script defer src="./harmony/fortune.js?v=6.38.0"></script>
- <script defer src="./harmony/app.js?v=6.50.0-consumable-washi13"></script>
+ <script defer src="./harmony/app.js?v=6.50.2-frame-free-play"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -97,10 +97,8 @@
      <div id="resonanceLinks" class="resonance-links" aria-hidden="true"></div>
      <div id="boardPraise" class="board-praise" aria-hidden="true"></div>
     </div>
-    <section class="masterpiece-collection" aria-label="Mästerverk samlade under denna nivå">
-     <div class="collection-heading"><strong>✦ MÄSTERVERK</strong><span>Bonus för varje mästerverk</span></div>
-     <div id="masterpieceCollection" class="collection-items" aria-live="off"></div>
-    </section>
+    <!-- Data-only masterpiece bookkeeping: no visible collection panel in gameplay. -->
+    <div id="masterpieceCollection" hidden aria-hidden="true"></div>
     <p id="selectedInfo" class="sr-only" role="status" aria-live="polite">Välj två grannar eller svep.</p>
    </section>
   </main>

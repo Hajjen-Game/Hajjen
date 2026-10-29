@@ -564,3 +564,32 @@ body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready 
     padding:9px 11px 10px!important;
   }
 }
+
+/* Gameplay 2.8 · user-selected art, quiet 7x7 board and no gold perimeter.
+   Background is play-only; menu and Goshuincho keep their own backdrop. */
+body.harmony-playing::before{
+  background-image:
+    url("../assets/gameplay-washi/play-background-20261029.avif"),
+    url("../assets/shared/japanese-harmony-background-20261028-v2.jpg")!important;
+  background-size:cover,cover!important;
+  background-position:center top,center top!important;
+}
+body.harmony-playing .game-view .board-shell{
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  outline:0!important;
+}
+body.harmony-playing .game-view .board-frame-art,
+body.harmony-playing .game-view .board-shell::before,
+body.harmony-playing .game-view .board-shell::after{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+}
+body.harmony-playing .game-view .masterpiece-collection,
+body.harmony-playing .game-view #masterpieceCollection{
+  display:none!important;
+}

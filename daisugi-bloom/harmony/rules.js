@@ -897,7 +897,8 @@ class Game{
   this.mistLayoutVersion=options?.mistLayoutVersion===1?1:2;
   this.mist=this.config.goal.type==="mist"?Array.from({length:49},(_,i)=>Number(mistLayout(this.level,this.config.goal.count,this.mistLayoutVersion).includes(i))):Array(49).fill(0);
   this.mistCleared=0;
-  this.moves=this.config.moves;this.score=0;this.fusions=0;this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
+  this.moves=this.config.moves;this.score=0;this.fusions=0;this.familyFusions={};this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
+  this.chapterIdentityVersion=this.level>=40&&this.level<50?2:0;
   this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.fourTurns=0;this.shapes=0;this.bestChain=0;
   this.complete=false;this.failed=false;this.rewardVersion=3;this.starsAtGoal=0;this.goalMove=null;this.legacyScoreCompletion=false;
   // 1 = new chapter-three star / move thresholds. Old in-progress rounds
@@ -915,10 +916,13 @@ class Game{
    // silently converted or has its star/completion requirements changed.
    const isLegacyJourney=this.level>=10&&previous.objectiveVersion!==2;
    const oldSealedRun=this.level>=30&&this.level<40&&previous.sealedStoneVersion!==1;
+   const oldLanternRun=this.level>=40&&this.level<50&&previous.chapterIdentityVersion!==2;
    this.config=isLegacyJourney?endlessScoreConfig(this.level):
     (this.level>=20&&this.level<50&&previous.darumaVersion!==1&&
      darumaPositions(this.level).length?endlessConfig(this.level,false):
-     oldSealedRun?endlessConfig(this.level,true,false):levelConfig(this.level));
+     oldSealedRun?endlessConfig(this.level,true,false):
+     oldLanternRun?endlessConfig(this.level,true,true,false):levelConfig(this.level));
+   this.chapterIdentityVersion=oldLanternRun?0:this.level>=40&&this.level<50?2:0;
    // Preserve old star deadlines and L30's 36-turn budget for games that
    // existed before this update. No surprise change mid-level; retry uses
    // the updated thresholds. Saved records/stars are never edited.
@@ -986,7 +990,7 @@ class Game{
    }
    // Existing snapshots without a family count are ALWAYS five-family runs.
    this.familyCount=previous.familyCount===4?4:5;
-   this.families=activeFamilies(this.level,this.familyCount);
+   this.families=oldLanternRun?endlessFamilies(this.level):activeFamilies(this.level,this.familyCount);
    if(this.config.goal.type==="score"&&previous.complete&&previous.score<this.config.goal.count)
     this.legacyScoreCompletion=true;
    this.directorMode=previous.directorMode==="v4"?"v4":previous.directorMode==="v311"?"v311":previous.directorMode==="v31"?"v31":previous.directorMode==="v3"?"v3":previous.directorMode==="v2"?"v2":previous.opportunity?"v1":"standard";
@@ -999,6 +1003,7 @@ class Game{
    this.paceLastMajor=!!previous.paceLastMajor;
    this.collectionBonusTotal=this.collectionBonusTotal||0;
    this.familyMasterpieces=this.familyMasterpieces||{};
+   this.familyFusions=this.familyFusions||{};
    this.random=prng(this.seed);for(let i=0;i<this.rolls;i++)this.random();this.board=clone(previous.board);
    // Upgrade an unfinished pre-expansion saved run without discarding the
    // player's moves, stages, score or RNG position. Each obsolete identity is
@@ -1011,10 +1016,12 @@ class Game{
     const mapping=new Map(obsolete.map((f,i)=>[f,missing[i]||this.families[i%this.families.length]]));
     for(const p of this.board)if(p&&mapping.has(p.family))p.family=mapping.get(p.family);
     this.bag=(this.bag||[]).map(f=>mapping.get(f)||f).filter(f=>this.families.includes(f));
-    const remapped={};
-    for(const [family,count] of Object.entries(this.familyMasterpieces||{}))
+    for(const key of ["familyMasterpieces","familyFusions"]){
+     const remapped={};
+     for(const [family,count] of Object.entries(this[key]||{}))
       remapped[mapping.get(family)||family]=(remapped[mapping.get(family)||family]||0)+count;
-    this.familyMasterpieces=remapped;
+     this[key]=remapped;
+    }
    }
    // Level 8 used to require a rare T/L match. Grant the four added turns
    // once when continuing a pre-change level 8 save; preserve board and progress.
@@ -1110,11 +1117,11 @@ class Game{
  }
  progress(){
   let g=this.config.goal;
-  switch(g.type){case"sealedStone":return this.sealedCleared;case"mist":return this.mistCleared;case"score":return this.score;case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"fourTurns":return this.fourTurns;case"daruma":return this.darumaCleared;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
+  switch(g.type){case"familyFusion":return this.familyFusions[g.family]||0;case"sealedStone":return this.sealedCleared;case"mist":return this.mistCleared;case"score":return this.score;case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"fourTurns":return this.fourTurns;case"daruma":return this.darumaCleared;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
  }
  goalText(){
   let g=this.config.goal;
-  return ({mist:"Clear Mist",score:"Score target",fusion:"Fusions",stage3:"Objects to stage 3",stage4:"Objects to stage 4",masterpiece:"Masterpieces",pulseHits:"Harmony upgrades",familyMasterpiece:"Lantern masterpieces",four:"Four-tile matches",fourTurns:"Moves with a four-tile match",daruma:"Completed Daruma",sealedStone:"Broken seals",shape:"T/L matches",chain:"Masterpieces in one chain"})[g.type]||"Goal";
+  return ({mist:"Clear Mist",score:"Score target",fusion:"Fusions",stage3:"Objects to stage 3",stage4:"Objects to stage 4",masterpiece:"Masterpieces",pulseHits:"Harmony upgrades",familyMasterpiece:"Lantern masterpieces",familyFusion:"Lantern fusions",four:"Four-tile matches",fourTurns:"Moves with a four-tile match",daruma:"Completed Daruma",sealedStone:"Broken seals",shape:"T/L matches",chain:"Masterpieces in one chain"})[g.type]||"Goal";
  }
  fulfilled(){return this.progress()>=this.target();}
  stars(){
@@ -1125,7 +1132,7 @@ class Game{
   }
   return this.starsAtGoal||0;
  }
- frame(type,extra={}){return {type,board:clone(this.board),sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,mist:this.mist.slice(),mistCleared:this.mistCleared,moves:this.moves,score:this.score,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,echoes:this.echoes,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
+ frame(type,extra={}){return {type,board:clone(this.board),sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,mist:this.mist.slice(),mistCleared:this.mistCleared,moves:this.moves,score:this.score,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},familyFusions:{...this.familyFusions},collectionBonusTotal:this.collectionBonusTotal,echoes:this.echoes,goal:this.progress(),complete:this.complete,failed:this.failed,...extra};}
  markStage(p){if(p.stage===3)this.stage3++;if(p.stage===4)this.stage4++;}
  grow(i,created,indirect){
   const p=this.board[i];if(!p||isFixed(p)||p.stage>=5)return false;
@@ -1242,7 +1249,7 @@ class Game{
     if(number>=4)this.fours++;
     for(const i of indices)if(i!==destination)this.board[i]=null;
     this.board[destination]=p; // A stronger piece can travel to the selected cell.
-    this.grow(destination,created,false);this.fusions++;
+    this.grow(destination,created,false);this.fusions++;this.familyFusions[p.family]=(this.familyFusions[p.family]||0)+1;
     let pts=(number===3?100:number===4?175:300+(number-5)*60)+(p.stage>=4?100:0);
     pts=Math.round(pts*(1+Math.min(3,waveRound-1)*.25));earned+=pts;
     records.push({at:destination,origin:strongest,from:before,to:p.stage,family:p.family,
@@ -1445,7 +1452,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate

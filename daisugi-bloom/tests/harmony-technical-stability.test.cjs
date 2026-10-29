@@ -112,7 +112,8 @@ check("Malformed card arrays cannot masquerade as persisted owned Omamori",()=>{
  const save={omamoriCards:{version:1,cards:{sakura:[]},discovered:[],
   replay:[]}};
  C.initialize(save);
- assert.deepEqual(save.omamoriCards.cards,{});
+ assert.deepEqual(save.omamoriCards.counts,{});
+ assert.equal(save.omamoriCards.version,2);
  assert.deepEqual(save.omamoriCards.replay,{day:"",claims:0});
 });
 check("Malformed Omamori daily replay counter cannot mint unlimited coins",()=>{

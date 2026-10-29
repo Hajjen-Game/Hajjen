@@ -222,8 +222,8 @@ function endlessConfig(index,withDaruma=true,withSealed=true,withLantern=true){
   goal.type==="stage3"?"Upgrade "+goal.count+" objects to stage 3.":
   "Hit "+goal.count+" objects with Harmony Pulse.";
  const rest=index>=20&&index<30?CHAPTER_RELIEF_DESIGNS[index]:null;
- return {...base,name:rest?.name||label,
-  subtitle:rest?.subtitle||(mist?"Clear the garden's magical Mist":"A new harmony goal"),
+ return {...base,name:index>=50?"Endless · "+label:rest?.name||label,
+  subtitle:index>=50?"Generated objective · Endless Garden":rest?.subtitle||(mist?"Clear the garden's magical Mist":"A new harmony goal"),
   // Fairness Rebalance 1.0: the chapter-three finale was running out of
   // moves in otherwise promising games. Four more turns on NEW runs only.
   moves:index===29?40:earlyJourney?earlyMoves[stage]:base.moves,

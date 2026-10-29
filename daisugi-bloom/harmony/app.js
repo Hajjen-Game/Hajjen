@@ -699,8 +699,10 @@ function renderPowerBar(){
   actions.append(cancel);bar.append(actions);
   bar.classList.add("is-targeting");
   bar.classList.toggle("is-confirming",ready);
+  heading.querySelector(".omamori-hud-title").textContent=
+   "✿ "+P.POWERS[powerSelection].name;
   heading.querySelector(".omamori-hud-stock").textContent=
-   P.POWERS[powerSelection].name+" · "+powerTargets.length+"/"+needed+" selected";
+   powerTargets.length+"/"+needed+" selected";
  }else{bar.classList.remove("is-targeting","is-confirming");}
  if(game?.koiRerollAt>=0&&!powerSelection){
   const reroll=goshuinNode("button","omamori-reroll-button","≋ Shuffle again");

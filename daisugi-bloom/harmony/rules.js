@@ -204,7 +204,7 @@ function endlessConfig(index,withDaruma=true,withSealed=true){
   "Hit "+goal.count+" objects with Harmony Pulse.";
  const rest=index>=20&&index<30?CHAPTER_RELIEF_DESIGNS[index]:null;
  return {...base,name:rest?.name||label,
-  subtitle:rest?.subtitle||(mist?"Clear trädgårdens magiska dimma":"A new harmony goal"),
+  subtitle:rest?.subtitle||(mist?"Clear the garden's magical Mist":"A new harmony goal"),
   // Fairness Rebalance 1.0: the chapter-three finale was running out of
   // moves in otherwise promising games. Four more turns on NEW runs only.
   moves:index===29?40:earlyJourney?earlyMoves[stage]:base.moves,
@@ -1092,7 +1092,7 @@ class Game{
  }
  goalText(){
   let g=this.config.goal;
-  return ({mist:"Clear dimman",score:"Score target",fusion:"Fusions",stage3:"Objects to stage 3",stage4:"Objects to stage 4",masterpiece:"Masterpieces",pulseHits:"Harmony upgrades",familyMasterpiece:"Lantern masterpieces",four:"Four-tile matches",fourTurns:"Moves with a four-tile match",daruma:"Completed Daruma",sealedStone:"Broken seals",shape:"T/L matches",chain:"Masterpieces i en kedja"})[g.type]||"Goal";
+  return ({mist:"Clear dimman",score:"Score target",fusion:"Fusions",stage3:"Objects to stage 3",stage4:"Objects to stage 4",masterpiece:"Masterpieces",pulseHits:"Harmony upgrades",familyMasterpiece:"Lantern masterpieces",four:"Four-tile matches",fourTurns:"Moves with a four-tile match",daruma:"Completed Daruma",sealedStone:"Broken seals",shape:"T/L matches",chain:"Masterpieces in one chain"})[g.type]||"Goal";
  }
  fulfilled(){return this.progress()>=this.target();}
  stars(){

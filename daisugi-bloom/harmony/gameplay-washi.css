@@ -116,7 +116,7 @@ body.harmony-playing .game-view .goal.goal-complete{
   box-shadow:none;
 }
 body.harmony-playing .game-view .goal::before{
-  content:"MÅL";
+  content:"GOAL";
   color:#f8d194;
   font:700 clamp(10px,2.8vw,15px)/1 Georgia,serif;
   letter-spacing:.06em;

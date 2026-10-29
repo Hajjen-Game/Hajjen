@@ -558,7 +558,7 @@ function showOmikuji(){
    if(!result.ok){showOmikuji();return;}
    persist();renderMenu();showOmikuji();
   });
-  drawButton.setAttribute("aria-label","Dra en gratis Omikuji lyckolapp idag");
+  drawButton.setAttribute("aria-label","Draw a free Omikuji fortune today");
  }
  modalButton(actions,"Close fortune","secondary omikuji-close",()=>{
   $("modal").hidden=true;$("omikujiButton").focus();
@@ -575,7 +575,7 @@ function updateSpiritBadge(){
  badge.dataset.spirit=spirit.id;
  badge.dataset.tier=String(spirit.tier);
  badge.textContent=(E.CATALOG.find(c=>c.id===spirit.id)?.symbol||"✦")+" "+(E.CATALOG.find(c=>c.id===spirit.id)?.name||"Omamori")+" · tier "+spirit.tier+"/3";
- badge.title=spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" uppdrag":" · full utveckling");
+ badge.title=spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" missions":" · fully upgraded");
  badge.setAttribute("aria-label","Equipped Omamori: "+spirit.id+", tier "+spirit.tier+" of 3. "+spirit.mission);
 }
 function spiritMoment(evt){
@@ -1384,7 +1384,7 @@ function evolutionStageLabels(groups){
  for(const g of groups.slice(0,MOBILE_LITE?2:3)){
   if(!boardTiles[g.at]||!Number.isFinite(g.to))continue;
   const r=indexRect(g.at),x=r.left+r.width/2,y=r.top+r.height*.15;
-  const node=fxAt("evolution-stage-label",x,y,"✦ STADIUM "+g.to);
+  const node=fxAt("evolution-stage-label",x,y,"✦ STAGE "+g.to);
   animateNode(node,[
    {transform:"translate3d(0,8px,0) scale(.82)",opacity:0,offset:0},
    {transform:"translate3d(0,-8px,0) scale(1.02)",opacity:1,offset:.28},

@@ -7,16 +7,16 @@
 "use strict";
 const VERSION=1;
 const REWARDS=Object.freeze([
- Object.freeze({id:"daikichi",title:"Dai-kichi",kanji:"大吉",label:"Stor lycka",weight:10,coins:16,
-  text:"En ovanligt ljus dag. Låt små framsteg visa vägen.",symbol:"✦"}),
- Object.freeze({id:"chukichi",title:"Chū-kichi",kanji:"中吉",label:"God lycka",weight:20,coins:12,
-  text:"Harmonin växer när du ger plats åt det som känns rätt.",symbol:"☀"}),
- Object.freeze({id:"kichi",title:"Kichi",kanji:"吉",label:"Lycka",weight:30,coins:9,
-  text:"Det vackra finns i det du redan har börjat skapa.",symbol:"✿"}),
- Object.freeze({id:"shokichi",title:"Shō-kichi",kanji:"小吉",label:"Liten lycka",weight:25,coins:7,
-  text:"Även det minsta steget för resan framåt.",symbol:"❀"}),
- Object.freeze({id:"suekichi",title:"Sue-kichi",kanji:"末吉",label:"Lycka på väg",weight:15,coins:5,
-  text:"Ha tålamod. En stillsam början kan bli något stort.",symbol:"☾"})
+ Object.freeze({id:"daikichi",title:"Dai-kichi",kanji:"大吉",label:"Great Fortune",weight:10,coins:16,
+  text:"A bright day awaits. Let small steps guide you.",symbol:"✦"}),
+ Object.freeze({id:"chukichi",title:"Chū-kichi",kanji:"中吉",label:"Good Fortune",weight:20,coins:12,
+  text:"Harmony grows when you make space for what feels right.",symbol:"☀"}),
+ Object.freeze({id:"kichi",title:"Kichi",kanji:"吉",label:"Fortune",weight:30,coins:9,
+  text:"Beauty lives in what you have already begun.",symbol:"✿"}),
+ Object.freeze({id:"shokichi",title:"Shō-kichi",kanji:"小吉",label:"Small Fortune",weight:25,coins:7,
+  text:"Even the smallest step moves your journey forward.",symbol:"❀"}),
+ Object.freeze({id:"suekichi",title:"Sue-kichi",kanji:"末吉",label:"Fortune Ahead",weight:15,coins:5,
+  text:"Be patient. A quiet beginning can become something wonderful.",symbol:"☾"})
 ]);
 const lookup=id=>REWARDS.find(f=>f.id===id)||null;
 function dateKey(now=new Date()){

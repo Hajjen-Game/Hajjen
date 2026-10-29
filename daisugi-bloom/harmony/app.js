@@ -2318,7 +2318,7 @@ function showResult(){
    }
   }
   const starWrap=make("div","victory-stars");
-  starWrap.append(stars,make("span","jh-rating-label",Q.rewardLabel(game)));
+  starWrap.append(stars,make("span","jh-rating-label",game.assisted?"Omamori clear · ★":Q.rewardLabel(game)));
   result.append(starWrap);
   // Avoid replay celebrations even if unlockGoal() saved during playback.
   const earnedStars=G.archivedStars(save,level);
@@ -2344,9 +2344,7 @@ function showResult(){
     "New-star reward · saved to your collection":
     "Earn new coins by clearing new levels or improving your star rating."));
   result.append(income);
-  if(replayReward)result.append(make("p","omamori-power-earned","✦ Unassisted replay · +"+replayReward+" Harmony Coins"));
-  if(moonMission.ok)result.append(make("p","omamori-power-earned",
-   moonMission.promoted?"✦ Omamori reached tier "+moonMission.tier:"✦ Omamori mission "+moonMission.progress+"/6"));
+  if(replayReward)result.append(make("p","omamori-power-earned","✦ Replay reward · +"+replayReward+" Harmony Coins"));
   const goal=make("section","victory-goal");
   goal.setAttribute("aria-label","Completed level goal");
   const goalCopy=make("div","victory-goal-copy");
@@ -2362,11 +2360,11 @@ function showResult(){
    moves.append(make("strong","",String(game.goalMove)),
     make("span","","of "+game.config.moves+" moves"));
    const rating=make("div","victory-timing-stat");
-   rating.append(make("strong","",game.stars()+" / 3"),
+   rating.append(make("strong","",(game.assisted?1:game.stars())+" / 3"),
     make("span","","Goshuincho stars"));
    timing.append(moves,rating);
    const note=make("p","victory-star-note",game.assisted?
-    "Practice rating only. The next level unlocks; no stamps, coins or standard records are awarded.":
+    "Omamori clear · one star and Harmony Coins earned. Score records remain clean-only.":
     "The Goshuincho rating locks when you complete the objective.");
    result.append(timing,note);
   }
@@ -2431,8 +2429,6 @@ function showResult(){
  }
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.toggle("victory-actions",won);
- if(!won&&C.status(save,"tsuki")?.owned)
-  modalButton(actions,"☾ Moon's Serenity · +"+([0,2,3,5][C.status(save,"tsuki").tier])+" moves","primary omamori-moon-revive",()=>confirmMoonRescue());
  if(won)modalButton(actions,level===49?"Enter Endless Garden →":"Next level →","primary victory-next",()=>startLevel(level+1));
  if(canContinue)modalButton(actions,"Keep playing for a high score","secondary victory-continue",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();

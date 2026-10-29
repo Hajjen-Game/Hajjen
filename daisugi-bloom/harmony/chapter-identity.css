@@ -1,0 +1,30 @@
+/* Japanese Harmony · Chapter Identity 2.0
+   Book typography and a restrained Lantern focus. Approved artwork, 7×7
+   geometry, panel PNGs, and game viewport remain unchanged. */
+#modal .washi-book-heading{gap:clamp(2px,.5svh,4px)}
+#modal .washi-book-subtitle{
+ display:-webkit-box;
+ -webkit-box-orient:vertical;
+ -webkit-line-clamp:2;
+ line-clamp:2;
+ overflow:hidden;
+ max-width:29ch;
+ color:#875b4a;
+ font:600 clamp(9px,2.65vw,12px)/1.15 Georgia,"Times New Roman",serif;
+ letter-spacing:.01em;
+ text-align:center;
+ text-wrap:balance;
+}
+#modal .washi-detail-copy .washi-detail-lesson{
+ color:#755b4a;
+}
+body.harmony-playing .game-view .goal .goal-glyph{
+ color:#a44b3e;
+}
+@media(max-height:710px){
+ #modal .washi-book-subtitle{font-size:9px;max-height:20px}
+ #modal .washi-book-heading{gap:2px}
+}
+@media(max-width:360px){
+ #modal .washi-book-subtitle{font-size:9px;max-width:24ch}
+}

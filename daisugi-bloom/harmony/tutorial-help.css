@@ -1,0 +1,108 @@
+/* Japanese Harmony · Tutorial Help Modal 1.0
+   Minimal code-drawn lessons on the existing warm washi dialog.
+   The player reads at their own pace; no timed transitions. */
+#modal:has(.jh-tutorial) .modal-inner{
+ width:min(100%,460px);
+ max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+ padding:clamp(15px,4vw,24px);
+ overflow-y:auto;
+}
+#modal:has(.jh-tutorial) #modalTitle{
+ font-size:clamp(22px,6vw,28px);
+ line-height:1.15;
+ margin-bottom:8px;
+}
+#modal .jh-tutorial{
+ display:grid;
+ gap:clamp(8px,1.3dvh,12px);
+ color:#51382d;
+}
+#modal .jh-tutorial-intro{
+ margin:0;
+ font:600 clamp(13px,3.4vw,15px)/1.42 system-ui,sans-serif;
+ color:#493930;
+}
+#modal .jh-tutorial-examples{
+ display:grid;
+ gap:9px;
+}
+#modal .jh-tutorial-example{
+ min-width:0;
+ margin:0;
+ padding:10px 12px 9px;
+ border:1px solid #d7bc94;
+ border-radius:14px;
+ background:linear-gradient(160deg,rgba(255,251,238,.92),rgba(236,215,180,.87));
+ box-shadow:inset 0 1px rgba(255,255,255,.80);
+ display:grid;
+ justify-items:center;
+ gap:3px;
+}
+#modal .jh-tutorial-example-title{
+ font:700 clamp(13px,3.6vw,16px)/1.2 Georgia,serif;
+ color:#8c483c;
+ justify-self:start;
+}
+#modal .jh-tutorial-svg{
+ display:block;
+ width:min(100%,270px);
+ height:auto;
+ max-height:82px;
+ overflow:visible;
+}
+#modal .jh-tutorial-example-copy{
+ font:500 clamp(11.5px,3.1vw,13px)/1.32 system-ui,sans-serif;
+ color:#5b4a40;
+ margin:0;
+ text-align:center;
+}
+#modal .jh-tutorial-reminder{
+ margin:1px 0 0;
+ font:500 clamp(11px,2.9vw,12px)/1.32 system-ui,sans-serif;
+ color:#796251;
+ text-align:center;
+}
+#modal .jh-tutorial-status{
+ display:grid;
+ gap:3px;
+ padding:7px 10px;
+ border-radius:10px;
+ background:rgba(216,184,140,.20);
+}
+#modal .jh-tutorial-status .jh-guide-goal{
+ font-size:14px;
+}
+#modal .jh-tutorial-status .jh-guide-state{
+ color:#6a5141;
+ font-size:12px;
+ line-height:1.3;
+}
+#modal .jh-tutorial-more{
+ font-size:12px;
+ line-height:1.4;
+ color:#725c4d;
+}
+#modal .jh-tutorial-more summary{
+ cursor:pointer;
+ color:#914d42;
+ font-weight:700;
+}
+#modal .jh-tutorial-more p{margin:5px 0 0;}
+#modal .modal-actions .jh-tutorial-ok{
+ display:block;
+ width:100%;
+ min-height:50px;
+ font-size:16px;
+ letter-spacing:.04em;
+}
+@media(max-width:360px), (max-height:690px){
+ #modal:has(.jh-tutorial) .modal-inner{padding:12px 13px;}
+ #modal .jh-tutorial-example{padding:6px 9px;}
+ #modal .jh-tutorial-svg{max-height:64px;}
+ #modal .jh-tutorial{gap:6px;}
+ #modal .jh-tutorial-examples{gap:6px;}
+ #modal .jh-tutorial-reminder{font-size:10.5px;}
+}
+@media(prefers-reduced-motion:reduce){
+ #modal .jh-tutorial-svg *{animation:none!important;}
+}

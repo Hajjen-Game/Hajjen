@@ -12,7 +12,10 @@ const LESSONS=Object.freeze({
  5:Object.freeze({key:"four",jp:"四",title:"Four of a kind",short:"Make a match of four on separate moves to complete the goal.",detail:"A four-tile match can upgrade a neighboring treasure when one is eligible. For this objective, make a match of four on four different moves. Cascades in one move count only once."}),
  10:Object.freeze({key:"families",jp:"仲間",title:"A new family joins",short:"There are now five families on the board.",detail:"Look for matches within the same family—even when pieces have different stages. The new family gives you more combinations to consider."}),
  20:Object.freeze({key:"daruma",jp:"達磨",title:"Daruma wishes",short:"Hit each Daruma twice, on separate moves.",detail:"Daruma dolls are fixed in place. Fuse on a neighboring tile or reach the doll with Harmony Pulse. Each doll needs two hits, no more than one per move."}),
- 30:Object.freeze({key:"stone",jp:"封印",title:"Break the Sealed Stones",short:"Each stone needs four hits; the final hit releases Awakening Pulse.",detail:"Sealed Stones cannot move. Fuse next to them or reach them with Harmony Pulse. A stone can take only one hit per move. Breaking one releases Awakening Pulse to all eight neighbors, including diagonals."})
+ 30:Object.freeze({key:"stone",jp:"封印",title:"Break the Sealed Stones",short:"Each stone needs four hits; the final hit releases Awakening Pulse.",detail:"Sealed Stones cannot move. Fuse next to them or reach them with Harmony Pulse. A stone can take only one hit per move. Breaking one releases Awakening Pulse to all eight neighbors, including diagonals."}),
+ 40:Object.freeze({key:"lantern",jp:"灯",title:"Lantern Path begins",short:"Match Lanterns across stages. Each Lantern fusion helps light the path.",detail:"The Lantern family appears in every level of Lantern Path. Match at least three Lanterns to earn Lantern fusions. Each successful Lantern match, including cascades, counts once. Other families can still be matched normally."}),
+ 42:Object.freeze({key:"lantern-masterpiece",jp:"光",title:"Light a masterpiece",short:"Build a Lantern up to stage 5 to create a Lantern masterpiece.",detail:"Only a stage-5 Lantern counts for this goal. Fuse Lanterns at different stages to grow one. Harmony Pulse still upgrades all four orthogonal neighbors."}),
+ 49:Object.freeze({key:"lantern-finale",jp:"祭",title:"Festival of Lights",short:"Create two Lantern masterpieces to complete the festival.",detail:"The final Lantern Path challenge requires two stage-5 Lantern masterpieces. Each sends Harmony Pulse, helping you develop the next. You can build them across separate moves."})
 });
 const clean=n=>Number.isInteger(n)&&n>=0?n:0;
 function lesson(level){return LESSONS[clean(level)]||null;}
@@ -28,7 +31,8 @@ function objective(config){
   daruma:["Daruma","Daruma"],sealedStone:["Sealed Stone","Sealed Stones"],
   shape:["T/L match","T/L matches"],score:["point","points"],
   chain:["masterpiece in one chain","masterpieces in one chain"],
-  familyMasterpiece:["family masterpiece","family masterpieces"]
+  familyMasterpiece:["Lantern masterpiece","Lantern masterpieces"],
+  familyFusion:["Lantern fusion","Lantern fusions"]
  };
  const name=(labels[g.type]||["objective","objectives"])[count===1?0:1];
  return count+" "+name;

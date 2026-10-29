@@ -96,11 +96,24 @@ try{
   await nav.click("#pauseButton");
   await nav.click(".pause-levels");
   assert.equal(await nav.$eval("#modalTitle",e=>e.textContent),"Goshuincho");
-  assert.equal(await nav.$$eval(".washi-level-tile",e=>e.length),10);
+  assert.equal(await nav.$eval(".washi-level-tile",e=>e.length),10);
   assert.equal(await nav.$eval(".washi-detail-play",e=>e.textContent),"CONTINUE");
+  // Onboarding 2.0: book preview exposes the real mission and remaining moves.
+  const detail=await nav.$eval(".washi-level-detail",e=>e.textContent);
+  assert(detail.includes("GOAL")&&detail.includes("moves left"),
+    "Goshuincho must show goal and remaining moves before resuming");
   await nav.click(".washi-detail-play");await nav.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   assert.equal(await nav.$eval("#gameView",e=>e.hidden),false);
   assert.equal(await nav.$eval("#modal",e=>e.hidden),true);
+  // Goal help must be voluntary, non-destructive and dismissible.
+  assert(await nav.$eval("#goalHelpButton",e=>e.getBoundingClientRect().width>=20));
+  const beforeHelp=await nav.$eval("#movesCount",e=>e.textContent);
+  await nav.click("#goalHelpButton");
+  assert((await nav.$eval(".jh-guide-goal",e=>e.textContent)).includes("GOAL"));
+  await nav.click("#modalActions .primary");
+  assert.equal(await nav.$eval("#modal",e=>e.hidden),true);
+  assert.equal(await nav.$eval("#movesCount",e=>e.textContent),beforeHelp,
+    "Reading goal guidance must never spend a move");
   await nav.click("#pauseButton");
   await nav.click(".pause-levels");
   await nav.click(".washi-book-close");

@@ -26,6 +26,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-spirits.test.cjs
       - name: Omamori Cards 4.0 · tiered and consumed card progression, rerolls and assisted separation
         run: node daisugi-bloom/tests/harmony-powers.test.cjs
+      - name: Omamori System Audit 5.0 · permanent keepsakes, fair prices and consumable safety
+        run: node daisugi-bloom/tests/harmony-omamori-audit.test.cjs
       - name: Omikuji Fortune 1.0 · daily draws and same-wallet payouts
         run: node daisugi-bloom/tests/harmony-fortune.test.cjs
       - name: Daruma Awakening fixed-blocker, eye states and saved levels

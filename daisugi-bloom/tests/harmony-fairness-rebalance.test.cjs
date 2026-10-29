@@ -29,7 +29,7 @@ check("Only intended stage move/star requirements change",()=>{
  assert.deepEqual(R.moveStarTargets(R.levelConfig(28)),
   R.moveStarTargets(R.endlessConfig(28)));
  assert.equal(R.levelConfig(38).goal.type,"sealedStone");
- assert.equal(R.levelConfig(38).moves,46);
+ assert.equal(R.levelConfig(38).moves,49); // Difficulty Calibration 2.0, not the pre-calibration budget
  assert.deepEqual(R.sealedPositions(38),[10,24,38]);
 });
 check("Old saved levels 28 and 30 keep the original star/move contract",()=>{

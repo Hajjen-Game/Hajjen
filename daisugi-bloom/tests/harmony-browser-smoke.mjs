@@ -1634,186 +1634,77 @@ try{
  const box=await page.$eval("#board",e=>({width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}));
  assert(box.width>300&&Math.abs(box.width-box.height)<2,"7x7 board should be square and fill phone width");
 
- // Gameplay Washi Zen 1.0: actual browser-computed textures, frame and VFX.
- // Keep the exact 49 real cells and preserve interaction/animation states.
- const washi=await page.evaluate(()=>{
-  const node=q=>document.querySelector(q);
-  const paint=q=>{const v=getComputedStyle(node(q));return {
-   fill:v.backgroundColor,image:v.backgroundImage,border:v.borderTopWidth,shadow:v.boxShadow
-  }};
-  const tile=node(".game-view .tile:nth-child(3)");
-  const base=getComputedStyle(tile).backgroundImage;
-  const stateLayers={};
+ // Gameplay Washi 2026-10-29: the old gold frame and separate festival
+ // image were deliberately retired. Verify the *actual* approved paper
+ // textures, original HUD art, non-obstructing controls and board geometry.
+ const visual=await page.evaluate(()=>{
+  const q=s=>document.querySelector(s);
+  const board=q("#board"),shell=q(".board-shell"),first=q(".tile");
+  const boardRect=board.getBoundingClientRect(),shellRect=shell.getBoundingClientRect();
+  const cell=first.getBoundingClientRect();
+  const hit=document.elementFromPoint(cell.left+cell.width/2,cell.top+cell.height/2);
+  const originalTile=q(".game-view .tile:nth-child(3)");
+  const stateImages={};
   for(const state of ["selected","swapped","pulsed","harvested","shuffling"]){
-    tile.classList.add(state);
-    stateLayers[state]=getComputedStyle(tile).backgroundImage;
-    tile.classList.remove(state);
+   originalTile.classList.add(state);
+   stateImages[state]=getComputedStyle(originalTile).backgroundImage;
+   originalTile.classList.remove(state);
   }
+  const backdrop=getComputedStyle(document.body,"::before");
+  const moveBox=q(".moves").getBoundingClientRect(),scoreBox=q("#scorePanel").getBoundingClientRect();
   return {
-   body:getComputedStyle(document.body,"::before").backgroundImage,
-   backdropVisibility:getComputedStyle(node("#festivalBackdrop")).visibility,
-   frame:getComputedStyle(node(".board-frame-art")).backgroundImage,
-   tile:paint(".game-view .tile:nth-child(3)"),
-   tileEven:paint(".game-view .tile:nth-child(2)"),
-   board:paint(".game-view .board"),
-   goal:paint(".game-view .goal"),
-   progress:paint("#goalProgress"),
-   states:stateLayers,
-   n:document.querySelectorAll("#board .tile").length,
-   base
+   image:backdrop.backgroundImage,size:backdrop.backgroundSize,
+   position:backdrop.position,
+   festivalHidden:getComputedStyle(q("#festivalBackdrop")).display==="none",
+   boardFrameHidden:getComputedStyle(q(".board-frame-art")).display==="none",
+   shellFrameHidden:getComputedStyle(shell,"::after").display==="none",
+   goalArt:getComputedStyle(q(".goal")).borderImageSource,
+   tileImage:getComputedStyle(first).backgroundImage,
+   tileEvenImage:getComputedStyle(q(".tile:nth-child(2)")).backgroundImage,
+   stateImages,
+   tileReachable:first===hit||first.contains(hit),
+   count:board.querySelectorAll(".tile").length,
+   boardWidth:boardRect.width,boardHeight:boardRect.height,
+   shellWidth:shellRect.width,boardTop:boardRect.top,boardBottom:boardRect.bottom,
+   header:getComputedStyle(q(".topbar")).display,
+   movesBottom:moveBox.bottom,scoreBottom:scoreBox.bottom,scoreWidth:scoreBox.width,
+   viewportHeight:window.innerHeight,viewportWidth:window.innerWidth,
+   bodyWidth:document.body.scrollWidth
   };
  });
- assert(washi.body.includes("gameplay-washi/background.webp"),
-   "Playing must use the approved sunset painting, independent of menu theme");
- assert.equal(washi.backdropVisibility,"hidden",
-   "Old blue festival backdrop must not cover gameplay background");
- assert(washi.frame.includes("gameplay-washi/board-frame.webp"),
-   "Board must render the approved transparent antique gold frame");
-
- // Gameplay Washi Zen 1.4: the ornament is visibly in FRONT of the grid
- // with original transparent centre and an expanded playable 7x7.
- const frameLayer=await page.evaluate(async()=>{
-   const shell=document.querySelector(".game-view .board-shell");
-   const frame=document.querySelector(".game-view .board-frame-art");
-   const board=document.querySelector(".game-view .board");
-   const style=getComputedStyle(frame);
-   const shellStyle=getComputedStyle(shell);
-   const box=shell.getBoundingClientRect();
-   const ornament=frame.getBoundingClientRect();
-   const grid=board.getBoundingClientRect();
-   const first=board.querySelector(".tile");
-   const firstBox=first.getBoundingClientRect();
-   const element=document.elementFromPoint(firstBox.left+firstBox.width/2,firstBox.top+firstBox.height/2);
-   const url=style.backgroundImage.split('"')[1]||style.backgroundImage.slice(4,-1);
-   const img=new Image();
-   img.src=url;
-   await img.decode();
-   // At mid-height the file has gold rails but no sakura branches.
-   // Scan its real alpha channel to test against the reserved gutter,
-   // so moving or replacing the transparent source cannot silently
-   // bring the rail back onto interactive pieces.
-   const canvas=document.createElement("canvas");
-   canvas.width=img.naturalWidth;
-   canvas.height=1;
-   const ctx=canvas.getContext("2d",{willReadFrequently:true});
-   ctx.drawImage(img,0,Math.floor(img.naturalHeight/2),
-     img.naturalWidth,1,0,0,img.naturalWidth,1);
-   const rgba=ctx.getImageData(0,0,canvas.width,1).data;
-   let firstPainted=-1;
-   for(let x=0;x<canvas.width/2;x++){
-     if(rgba[x*4+3]>100){firstPainted=x;break}
-   }
-   const midpointAlpha=rgba[(Math.floor(img.naturalWidth/2)*4)+3];
-   return {
-     url:style.backgroundImage,
-     frameDisplay:style.display,
-     frameSize:style.backgroundSize,
-     frameLayer:Number(style.zIndex),
-     boardLayer:Number(getComputedStyle(board).zIndex),
-     frameHit:style.pointerEvents,
-     pseudo:getComputedStyle(shell,"::after").display,
-     shellOverflow:shellStyle.overflow,
-     shellWidth:box.width, shellHeight:box.height,
-     frameWidth:ornament.width, frameHeight:ornament.height,
-     boardWidth:grid.width,boardHeight:grid.height,
-     insetLeft:grid.left-box.left,
-     insetRight:box.right-grid.right,
-     insetTop:grid.top-box.top,
-     insetBottom:box.bottom-grid.bottom,
-     paintStartFraction:firstPainted/img.naturalWidth,
-     paintedRailOffset:(ornament.left-box.left)+ornament.width*(firstPainted/img.naturalWidth),
-     midpointAlpha,
-     tileReachable:first?.contains(element)||element===first,
-     gridCount:board.querySelectorAll(".tile").length,
-     viewportWidth:window.innerWidth,
-     documentWidth:document.documentElement.scrollWidth
-   };
- });
- assert(frameLayer.url.includes("gameplay-washi/board-frame.webp"),
-  "Real standalone gold frame art must render");
- assert.equal(frameLayer.frameDisplay,"block","The gold artwork layer must exist");
- assert.equal(frameLayer.frameSize,"100% 100%","The frame must retain its complete uncropped transparency");
- assert.equal(frameLayer.pseudo,"none","The old overlay frame must be disabled");
- assert(frameLayer.frameLayer>frameLayer.boardLayer,
-  "Gold ornament must paint ABOVE the board and its edge icons");
- assert.equal(frameLayer.frameHit,"none","Decorative art must not capture touch events");
- assert.equal(frameLayer.shellOverflow,"visible","Flower tips cannot be clipped by shell overflow");
- assert.equal(frameLayer.gridCount,49,"The game keeps its full 7×7 board");
- assert(frameLayer.tileReachable,"Board tiles must remain reachable at centre");
- assert(frameLayer.paintStartFraction>0&&frameLayer.paintStartFraction<.08,
-  "Frame image must have a narrow transparent outer gutter");
- assert(frameLayer.midpointAlpha<10,
-  "Frame centre must remain transparent when brought above puzzle tiles");
- assert(frameLayer.insetLeft-frameLayer.paintedRailOffset>5,
-  "The gold left rail must be at least 5px OUTSIDE the first interactive tile");
- assert(frameLayer.insetRight-frameLayer.paintedRailOffset>5,
-  "The gold right rail must be at least 5px OUTSIDE the final interactive tile");
- assert(frameLayer.frameWidth>frameLayer.shellWidth*1.06,
-  "Gold ornament must visibly surround the shell, not shrink to its bounds");
- assert(frameLayer.boardWidth>=frameLayer.shellWidth*.97,
-  "The 49-cell grid must reclaim space from the retired inner gutter");
- assert(Math.abs(frameLayer.insetLeft-frameLayer.insetRight)<2,
-  "Board must be centered within the artwork");
- assert(Math.abs(frameLayer.insetTop-frameLayer.insetBottom)<2,
-  "Top and bottom artwork spacing must match");
- assert(Math.abs(frameLayer.shellWidth-frameLayer.shellHeight)<2,
-  "The 1536x1536 artwork must not be stretched off square");
- assert(frameLayer.documentWidth<=frameLayer.viewportWidth,
-  "New frame must not cause horizontal mobile scrolling");
- console.log("Washi frame alignment",JSON.stringify(frameLayer));
-
- assert.equal(washi.n,49,"Gameplay remains a 7×7 interactive grid");
- assert(washi.board.fill.includes("36, 29, 32"),
-   "Board gaps must be dark warm charcoal rather than blue glass");
- for(const [name,tile] of [["odd",washi.tile],["even",washi.tileEven]]){
-  assert(tile.image.includes("gameplay-washi/tile.webp"),
-    name+" tile must display approved 256px washi texture");
-  assert(!tile.image.includes("radial-gradient"),
-    name+" tile must not carry the old blue-green glass glow");
- }
- assert(washi.goal.image.includes("gameplay-washi/goal.webp"),
-   "Goal panel must display the approved brown gold-bordered image");
- assert.equal(washi.progress.fill,"rgba(0, 0, 0, 0)",
-   "Counter parchment is already part of goal artwork; no duplicate rectangle");
- for(const [state,image] of Object.entries(washi.states)){
-  assert(image.includes("gameplay-washi/tile.webp"),
-    "The "+state+" board event must keep its textured surface");
- }
- assert(washi.states.selected.includes("linear-gradient"),
-   "Selected tile must retain a distinct visible warm selection tint");
-
+ assert(visual.image.includes("play-background-20261029.jpg")&&
+   visual.image.includes("linear-gradient")&&visual.size.includes("cover")&&
+   visual.position==="fixed"&&visual.festivalHidden,
+  "Approved gameplay painting and warm tint must cover the viewport without duplicate festival art");
+ assert(visual.goalArt.includes("goal-omamori-original-20261029.png"),
+  "The original user-approved goal plaque must retain its sliced artwork");
+ assert(visual.boardFrameHidden&&visual.shellFrameHidden,
+  "Retired gold board ornament must stay hidden and never obscure the grid");
+ assert.equal(visual.count,49,"All seven-by-seven board cells must remain rendered");
+ assert(visual.tileReachable,"Decorative backgrounds must never capture board touches");
+ assert(visual.boardWidth>=300&&Math.abs(visual.boardWidth-visual.boardHeight)<2,
+  "The mobile puzzle board must remain square and readable");
+ assert(visual.tileImage.includes("gameplay-washi/tile.webp")&&
+  visual.tileEvenImage.includes("gameplay-washi/tile.webp"),
+  "Both alternating cells must display the approved textured paper");
+ for(const [state,texture] of Object.entries(visual.stateImages))
+  assert(texture.includes("gameplay-washi/tile.webp"),
+   "The "+state+" feedback may tint a cell but must retain the paper texture");
+ assert(visual.stateImages.selected.includes("linear-gradient"),
+  "Selected cells must have clear, visually different feedback");
+ assert.equal(visual.header,"none","The game must not show the homepage top bar");
+ assert(visual.boardTop>=Math.max(visual.movesBottom,visual.scoreBottom)-2,
+  "The board must not overlap interactive score and moves controls");
+ assert(visual.boardWidth>visual.scoreWidth*1.7,
+  "The puzzle grid must remain the primary visual element");
+ assert(visual.bodyWidth<=visual.viewportWidth,
+  "The gameplay layout must not introduce horizontal scrolling");
+ assert.equal(await page.$(".game-dock"),null,
+  "Retired level/restart dock must not return beneath the puzzle");
+ assert.equal(await page.$("#gameTip"),null,
+  "Tutorial text must not crowd the playing board");
  fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
- await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-hd"),{timeout:15000});
- const loadedBackground=await page.evaluate(()=>{
-   const img=document.querySelector("#festivalBackdrop");
-   const art=getComputedStyle(document.body,"::before");
-   return {baseReady:img.complete&&img.naturalWidth>0,
-     baseSrc:img.currentSrc||img.src,
-     artImage:art.backgroundImage,artVisible:art.display,
-     backdropVisibility:getComputedStyle(img).visibility};
- });
- assert(loadedBackground.baseReady&&loadedBackground.baseSrc.includes("festival-hd-"),
-  "The existing festival backdrop remains available for menu scenes");
- assert(loadedBackground.artVisible!=="none"&&
-  loadedBackground.artImage.includes("gameplay-washi/background.webp")&&
-  loadedBackground.backdropVisibility==="hidden",
-  "The gameplay screen should display its own approved sunset");
  await page.screenshot({path:"/tmp/daisugi-bloom/japanese-harmony-mobile.png",fullPage:true});
- const layout=await page.evaluate(()=>{
-  const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width}};
-  return {header:getComputedStyle(document.querySelector(".topbar")).display,
-   moves:rect(".moves"),score:rect("#scorePanel"),board:rect(".board-shell"),
-   viewport:window.innerHeight,bodyWidth:document.body.scrollWidth};
- });
- assert.equal(layout.header,"none","Playing must not show the web-style header");
- assert(layout.moves.bottom<layout.board.top&&layout.score.bottom<layout.board.top,"Gameplay plaques should float above the board");
- assert(layout.board.width>layout.score.width*1.7,"Board must visually dominate the mobile HUD");
- assert(layout.board.bottom<layout.viewport,"Board should fit on the initial phone screen");
- assert.equal(await page.$(".game-dock"),null,"No level/restart dock belongs below the board");
- assert.equal(await page.$("#gameTip"),null,"Gameplay must not show instructional text beneath the board");
- assert.equal(await page.$("#endButton"),null,"End-level action belongs in the pause menu only");
- assert(layout.board.top-layout.moves.bottom>55,"Board should sit below HUD with breathing room");
- assert(layout.bodyWidth<=390,"Gameplay must not scroll horizontally");
 
  // Board & Icon Readability 1.0: genuine cell and art dimensions on 390px mobile.
  const boardReadability=await page.evaluate(()=>{

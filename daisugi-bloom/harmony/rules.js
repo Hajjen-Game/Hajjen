@@ -28,6 +28,7 @@ function activeFamilies(index,count=5){
  // Five remains the explicit original recipe; the live intro uses four.
  // Existing old snapshots retain their original five-family board on resume.
  const picked=index<LEVEL_FAMILIES.length?LEVEL_FAMILIES[index].slice():endlessFamilies(index);
+ if(index>=40&&index<50&&!picked.includes("lantern"))picked[picked.length-1]="lantern";
  return picked.slice(0,count===4?4:5);
 }
 // Gameplay Clarity & Onboarding 2.0: levels 1–3 introduce matching,
@@ -139,10 +140,27 @@ const CHAPTER_STONE_DESIGNS=[
  {name:"Awakening Garden",subtitle:"Chapter's final chain",positions:[16,24,32],
   focus:"Three seals stand close along a diagonal. Use Awakening Pulse to build a chain."}
 ];
+// Chapter Identity 2.0: ten authored Lantern Path missions.
+const CHAPTER_LANTERN_DESIGNS=[
+ {name:"Lantern Welcome",subtitle:"Light the first lantern",moves:34,par:17,goal:{type:"familyFusion",family:"lantern",count:3},intro:"Match Lanterns three times, even when their stages differ. Cascades count."},
+ {name:"Gathering Glow",subtitle:"Grow the festival",moves:35,par:20,goal:{type:"stage3",count:8},intro:"Create eight objects at stage 3. Lanterns are among the five families."},
+ {name:"First Lantern Masterpiece",subtitle:"A light in the dark",moves:44,par:26,goal:{type:"familyMasterpiece",family:"lantern",count:1},intro:"Create a stage-5 Lantern masterpiece to release Harmony Pulse."},
+ {name:"Four Lights",subtitle:"Four of a kind",moves:36,par:22,goal:{type:"fourTurns",count:3},intro:"Make at least one four-tile match on three separate moves."},
+ {name:"Winding Lanterns",subtitle:"Follow the lantern trail",moves:40,par:24,goal:{type:"familyFusion",family:"lantern",count:5},intro:"Make five Lantern fusions. Build higher stages for stronger chains."},
+ {name:"Festival Ripples",subtitle:"Harmony across the path",moves:42,par:26,goal:{type:"pulseHits",count:10},intro:"Upgrade ten occupied neighbors with Harmony Pulse."},
+ {name:"Evening Masterpieces",subtitle:"The garden shines",moves:44,par:27,goal:{type:"masterpiece",count:3},intro:"Create three masterpieces of any family."},
+ {name:"Lantern Crossing",subtitle:"Lanterns through the garden",moves:44,par:27,goal:{type:"familyFusion",family:"lantern",count:7},intro:"Make seven Lantern fusions. Different stages and cascades count."},
+ {name:"A Thousand Sparks",subtitle:"The last wave of light",moves:44,par:27,goal:{type:"pulseHits",count:15},intro:"Upgrade fifteen occupied neighbors using Harmony Pulse."},
+ {name:"Festival of Lights",subtitle:"Lantern Path finale",moves:48,par:29,goal:{type:"familyMasterpiece",family:"lantern",count:1},intro:"Finish the chapter by creating a stage-5 Lantern masterpiece."}
+];
 // HARMONY OBJECTIVES 2.0 — beyond the tutorial, every Journey level has
 // a tangible objective. Score remains a side challenge / personal record.
 // Objectives are fixed by level index, never adjusted by Director or player.
-function endlessConfig(index,withDaruma=true,withSealed=true){
+function endlessConfig(index,withDaruma=true,withSealed=true,withLantern=true){
+ if(withLantern&&index>=40&&index<50){
+  const design=CHAPTER_LANTERN_DESIGNS[index-40];
+  return {...endlessConfig(index,false,false,false),...design,goal:{...design.goal},chapterIdentityVersion:2,objectiveVersion:2,balanceVersion:2,chapter:5};
+ }
  // Chapter 4: four independent hits per stone; the final hit
  // frees eight-way Awakening Pulse. Older in-progress runs opt out.
  if(withSealed&&index>=30&&index<40){
@@ -496,7 +514,7 @@ function opportunityMetrics(board,goal){
    const maxStage=Math.max(...group.map(i=>board[i].stage));
    if(maxStage>=3)meaningful++;
    if(maxStage>=4)nearMasterpiece++;
-   if(goal?.type==="familyMasterpiece"&&board[group[0]].family===goal.family){
+   if(["familyMasterpiece","familyFusion"].includes(goal?.type)&&board[group[0]].family===goal.family){
     if(maxStage>=2)goalReady+=maxStage>=4?3:maxStage===3?2:1;
    }
   }
@@ -528,7 +546,7 @@ function opportunityMetricsV2(board,goal,drought=0){
    if(stage>=3)moveStrong=true;
    if(stage>=3)developed.add(board[survivor].id);
    if(stage>=4)nearReady.add(board[survivor].id);
-   if(goal?.type==="familyMasterpiece"&&board[survivor].family===goal.family&&stage>=2)
+   if(["familyMasterpiece","familyFusion"].includes(goal?.type)&&board[survivor].family===goal.family&&stage>=2)
     goalPieces.add(board[survivor].id);
   }
   [board[a],board[b]]=[board[b],board[a]];
@@ -631,6 +649,9 @@ function objectiveAwarenessMetrics(board,goal,mist=Array(N*N).fill(0)){
         if(neighbors(landing).some(n=>fog[n])||
            neighbors(landing).some(n=>neighbors(n).some(j=>fog[j])))hasNearby=true;
        }
+       break;
+      case "familyFusion":
+       if(family===goal.family)immediate++;
        break;
       case "familyMasterpiece":
        if(family===goal.family&&resultStage===5)immediate++;

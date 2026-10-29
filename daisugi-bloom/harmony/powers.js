@@ -7,9 +7,9 @@
 "use strict";
 const VERSION=1,IDS=Object.freeze(["sakura","koi","tsuki"]),MAX=3;
 const POWERS=Object.freeze({
- sakura:Object.freeze({name:"Bloom Touch",symbol:"✿",description:"Utveckla en bricka ett stadium. Stadium 5 ger Harmony Pulse."}),
- koi:Object.freeze({name:"Ripple Shuffle",symbol:"〰",description:"Blanda den valda rutans 3×3-område. Hinder flyttas inte."}),
- tsuki:Object.freeze({name:"Second Chance",symbol:"☾",description:"Få 3 extra drag efter att dragen tagit slut."})
+ sakura:Object.freeze({name:"Bloom Touch",symbol:"✿",description:"Upgrade a tile by one stage. Reaching stage 5 triggers Harmony Pulse."}),
+ koi:Object.freeze({name:"Ripple Shuffle",symbol:"〰",description:"Shuffle the selected area. Obstacles stay in place."}),
+ tsuki:Object.freeze({name:"Second Chance",symbol:"☾",description:"Gain extra moves when you run out."})
 });
 const validLevel=n=>Number.isInteger(n)&&n>=0&&n<1000000;
 function initialize(save){

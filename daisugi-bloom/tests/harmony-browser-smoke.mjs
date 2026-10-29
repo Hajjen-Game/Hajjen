@@ -1723,9 +1723,9 @@ try{
   "Illustrated objects should fill more of their own tile, without remapping atlases");
  assert.equal(boardReadability.count,49,"Larger board must retain exactly 49 playable cells");
  await page.click("#pauseButton");assert.equal(await page.$eval("#modal",x=>x.hidden),false);
- assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Spelmeny");
+ assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Game Menu");
  assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Restart level"));
- assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Till Goshuincho"));
+ assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Back to Goshuincho"));
  const pauseLayout=await page.evaluate(()=>{
   const actions=document.querySelector("#modalActions");
   const buttons=[...actions.querySelectorAll("button")];
@@ -1743,7 +1743,8 @@ try{
  assert(pauseLayout.utilityWidths.every(w=>w>70),"Help and settings must remain tappable");
  assert(pauseLayout.modalHeight<=pauseLayout.screenHeight,"Pause modal should fit the phone view");
  await page.evaluate(()=>document.querySelector("#modalActions button:nth-child(3)").click());
- assert((await page.$eval("#modalContent",e=>e.textContent)).includes("Omamori Cards"));
+ assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"How to Play");
+ assert((await page.$eval("#modalContent",e=>e.textContent)).includes("Harmony Pulse"));
  await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);
  // Coordinate regression: position real sprite clones at a far-right and
  // lower-row tile, not at the fusion layer's top-left. The previous
@@ -1974,7 +1975,7 @@ try{
  // that overlay before checking the dedicated in-game pause menu.
  await page.evaluate(()=>{const modal=document.querySelector("#modal");if(!modal.hidden)modal.hidden=true;});
  await page.click("#pauseButton");
- await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Spelmeny",{timeout:5000});
+ await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Game Menu",{timeout:5000});
  await page.evaluate(()=>{
   const button=[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Prestanda");
   if(!button)throw new Error("Performance action missing from open game menu");
@@ -1998,7 +1999,7 @@ try{
  assert.notEqual(festivalAfterRestart,festivalAtStart,"A restarted level must choose a different background");
  assert.equal(await page.$$eval(".tile",els=>els.length),49);
   await page.click("#pauseButton");
- await page.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Till Goshuincho").click());
+ await page.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Back to Goshuincho").click());
  assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
  assert.equal(await page.$eval("#gameView",x=>x.hidden),true);
  assert.equal(await page.$eval("#modalTitle",x=>x.textContent),"Goshuincho",
@@ -2196,7 +2197,7 @@ try{
    "Voluntary record play must resume immediately");
   assert.equal(await clarity.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.complete),true);
   await clarity.click("#pauseButton");
-  await clarity.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(x=>x.textContent==="Avsluta med resultat").click());
+  await clarity.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(x=>x.textContent==="Finish and view results").click());
   const archived=await clarity.evaluate(()=>{
    const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
    return {record:data.fourFamilyStars["0"],unlocked:data.unlocked,run:data.run};

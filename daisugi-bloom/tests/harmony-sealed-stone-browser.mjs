@@ -43,7 +43,7 @@ try{
   });
   assert.equal(data.count,1);
   assert(data.className.includes("state-"+stage));
-  assert(data.aria.includes(hp+" träffar kvar"));
+  assert(data.aria.includes(hp+" hits left"));
   assert(data.background.includes("sealed-stone-"+stage+".webp"));
   assert(data.artWidth<=data.tileWidth&&data.artWidth>20);
   assert(data.scroll<=data.screen+1,"No horizontal mobile overflow");

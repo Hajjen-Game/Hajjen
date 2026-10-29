@@ -238,3 +238,24 @@ body.harmony-playing .game-view .board-shell + .omamori-power-bar,
 body.harmony-playing .game-view .board-shell + .omamori-power-bar:not([hidden]){
   margin:clamp(6px,.9dvh,10px) 0 0!important;
 }
+
+
+/* HUD panel hierarchy 3.5 · 2026-10-29.
+   BONUSPOÄNG/stars now occupy the wider left plaque, DRAG KVAR the narrower
+   right one. Reuse the exact approved PNGs: the 900×360 original fits the
+   wide slot and the 720×360 original fits the narrow slot. No changes to
+   counter IDs, stars, score logic, button bindings, or image colors. */
+body.harmony-playing .game-view .hud-score.jh-approved-panel-ready{
+  background-image:url("../assets/gameplay-washi/moves-panel-20261029.png")!important;
+}
+body.harmony-playing .game-view .moves.jh-approved-panel-ready{
+  background-image:url("../assets/gameplay-washi/score-panel-20261029.png")!important;
+}
+/* The move count is short and should stay centred in its smaller plaque.
+   Score gets more visual emphasis without colliding with the star row. */
+body.harmony-playing .game-view .moves.jh-approved-panel-ready strong{
+  font-size:clamp(30px,8vw,43px);
+}
+body.harmony-playing .game-view .hud-score.jh-approved-panel-ready #scoreCount{
+  font-size:clamp(25px,7.2vw,38px);
+}

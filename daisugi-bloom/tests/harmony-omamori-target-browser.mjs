@@ -8,7 +8,11 @@ const page=await browser.newPage(),errors=[],key="japanese-harmony-puzzle-v2";
 page.on("pageerror",e=>errors.push(e.message));
 const gold=()=>page.$$eval(".tile.omamori-gold-target",els=>els.map(e=>Number(e.dataset.index)).sort((a,b)=>a-b));
 async function pick(id){await page.click(".omamori-open");await page.click('.omamori-picker-item[data-power="'+id+'"]');}
-async function close(){await page.click('#modalActions button.secondary');assert.deepEqual(await gold(),[],"Cancel clears persistent gold");}
+async function close(){
+ assert.equal(await page.$eval("#modal",el=>el.hidden),true,"No fullscreen modal during a target preview");
+ await page.click(".omamori-power-cancel");
+ assert.deepEqual(await gold(),[],"Cancel clears persistent gold");
+}
 async function target(i){await page.click('.tile[data-index="'+i+'"]');}
 try{
  await page.setViewport({width:360,height:780,deviceScaleFactor:2,isMobile:true,hasTouch:true});
@@ -37,10 +41,33 @@ try{
  await target(23);
  assert.deepEqual(await gold(),[],"Tapping again deselects a chosen tile");
  await target(23);await target(22);
- assert.deepEqual(await gold(),[22,23],"Both chosen tiles glow behind confirmation dialog");
+ assert.deepEqual(await gold(),[22,23],"Both chosen tiles glow together while confirming");
+ assert.equal(await page.$eval("#modal",el=>el.hidden),true,"Grand Bloom must NOT open a blocking confirmation dialog");
+ assert.equal(await page.$eval(".omamori-target-actions.is-ready .omamori-power-confirm",xs=>xs.length),1);
+ const geometry=await page.evaluate(()=>{
+  const board=document.querySelector("#board").getBoundingClientRect();
+  const bar=document.querySelector("#omamoriPowerBar").getBoundingClientRect();
+  const use=document.querySelector(".omamori-power-confirm").getBoundingClientRect();
+  const cancel=document.querySelector(".omamori-power-cancel").getBoundingClientRect();
+  return {boardBottom:board.bottom,barTop:bar.top,buttonTop:use.top,
+   buttonBottom:use.bottom,barBottom:bar.bottom,
+   useHeight:use.height,cancelHeight:cancel.height,
+   useRight:use.right,cancelLeft:cancel.left,
+   horizontalOverflow:document.documentElement.scrollWidth>innerWidth,
+   cover:document.querySelector("#modal").hidden===false};
+ });
+ assert(geometry.boardBottom<=geometry.barTop+1,"Compact controls must sit BELOW the 7×7 board");
+ assert(geometry.buttonTop>=geometry.boardBottom,"Use button must never cover gold highlights");
+ assert(geometry.buttonBottom<=geometry.barBottom+1,"Confirm buttons stay within existing Omamori plaque");
+ assert(geometry.useHeight>=44&&geometry.cancelHeight>=44,"Both actions have 44px phone tap targets");
+ assert(geometry.useRight<=geometry.cancelLeft+1,"Use and Cancel have separate nonoverlapping hit areas");
+ assert.equal(geometry.horizontalOverflow,false,"No horizontal scrolling on the phone");
+ assert.equal(geometry.cover,false);
  await close();
  await pick("sakura");await target(24);
  assert.deepEqual(await gold(),[24],"Single tile stays gold until confirmation");
+ assert.equal(await page.$eval("#modal",el=>el.hidden),true);
+ assert.equal(await page.$eval(".omamori-target-actions.is-ready .omamori-power-confirm",xs=>xs.length),1);
  await close();
  // Preview is exactly the legal shuffle footprint (not an arbitrary 3x3 glow).
  for(const [id,at] of [["koi",48],["deepCurrent",0]]){
@@ -50,7 +77,9 @@ try{
     family:e.classList.contains("daruma-tile")?"daruma":e.classList.contains("sealed-stone-tile")?"sealedStone":"normal"
    })):[]),{id,at});
   assert.deepEqual(await gold(),expected,id+" must mark every and only affected cell");
-  assert.equal(await page.$$eval(".tile.omamori-gold-anchor",els=>els.length),1);
+  assert.equal(await page.$eval(".tile.omamori-gold-anchor",els=>els.length),1);
+  assert.equal(await page.$eval("#modal",e=>e.hidden),true);
+  assert.equal(await page.$eval(".omamori-target-actions.is-ready .omamori-power-confirm",xs=>xs.length),1);
   await close();
  }
  await pick("grandBloom");await target(23);
@@ -65,5 +94,5 @@ try{
  assert.equal(inventory.grandBloom,1);
  assert.equal(inventory.deepCurrent,1);
  assert.deepEqual(errors,[]);
- console.log("PASS Omamori Target Feedback 1.0 browser: gold first/second target, toggle, 2x2/3x3, cancel and reduced-motion");
+ console.log("PASS Omamori Confirmation Compact 1.0 browser: gold preview fully visible, inline Use/Cancel, 2x2/3x3 and reduced-motion");
 }finally{await browser.close();}

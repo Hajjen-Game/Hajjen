@@ -17,6 +17,10 @@ assert(flight.includes("LITE_FX()?12:MOBILE_LITE?25:32"),"Visibility Boost must 
 assert(flight.includes("Math.max(12,96-fxCount())"),"Mobile must never collapse the swarm to one barely visible particle");
 assert(flight.includes("const trailMs=MOBILE_LITE?185:205"),"Keep a visibly longer tail without slowing the lead");
 assert(flight.includes("shot-lead")&&flight.includes("shot-trailer"),"Separate leading sparks from the long trailing stream");
+assert(app.includes("const fxDecorCount=()=>fxCount()-(scoreOverlay?.querySelectorAll("),
+ "Decorative effects must exclude SCORE particles when enforcing budgets");
+assert(app.includes("fxDecorCount()>=(MOBILE_LITE?32:66)")&&app.includes("fxDecorCount()>=(MOBILE_LITE?44:84)"),
+ "Harmony Echo and fusion sparkle effects remain visible alongside SCORE particles");
 assert(flight.includes("scoreFlights++")&&flight.includes("scoreFlights=Math.max(0,scoreFlights-1)"),
  "Every score flight must release concurrency cap");
 assert(flight.includes("scoreSession")&&flight.includes("if(id!==scoreSession)return"),

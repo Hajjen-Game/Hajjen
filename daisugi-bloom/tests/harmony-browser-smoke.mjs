@@ -2161,9 +2161,9 @@ try{
      header:computed(".modal-inner").backgroundImage,
      score:computed(".victory-score").backgroundImage,
      star:computed(".victory-star.is-earned").backgroundImage,
-     record:computed(".victory-record").backgroundImage,
-     firstIcon:computed(".victory-stat:first-child .victory-stat-icon").backgroundImage,
-     secondIcon:computed(".victory-stat:nth-child(2) .victory-stat-icon").backgroundImage,
+     record:computed(".victory-record").backgroundColor,
+     firstIcon:computed(".victory-stat:first-child .victory-stat-icon").backgroundColor,
+     secondIcon:computed(".victory-stat:nth-child(2) .victory-stat-icon").backgroundColor,
      action:computed(".victory-next").backgroundImage,
      stars:document.querySelector(".big-stars").textContent,
      stats:document.querySelectorAll(".victory-stat").length,
@@ -2183,7 +2183,7 @@ try{
     colors.firstIcon.includes("255, 246, 228")&&
     colors.secondIcon.includes("255, 246, 228")&&
     colors.action.includes("linear-gradient")&&colors.star.includes("linear-gradient"),
-    "Victory must use the current warm paper, bronze score and red action styling");
+    "Victory must use the current warm paper, bronze score and red action styling: "+JSON.stringify(colors));
    assert(colors.stars==="★★★"&&colors.stats===4&&colors.contentScroll==="auto",
     "Accent pass cannot change the reward content or scroll behaviour");
    assert(colors.docWidth<=colors.viewWidth&&colors.innerHeight<=colors.viewHeight&&

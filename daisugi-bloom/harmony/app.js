@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,$=id=>document.getElementById(id);
-const names={sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu Dragon"};
+const names={sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu Moveson"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
 const newFamilyRows={sushi:0,maneki:1,origami:2,ryu:3};
@@ -281,7 +281,7 @@ function renderMenu(){
  charmProgress.textContent=worn?.owned?"Wearing "+E.CATALOG.find(x=>x.id===worn.id).name+" · tier "+worn.tier+"/3":E.CATALOG.filter(x=>C.has(save,x.id)).length+" active Omamori cards";
 }
  const daily=$("omikujiStatus");
- if(daily)daily.textContent=F.status(save).available?"Gratis idag":"Dagens lapp dragen";
+ if(daily)daily.textContent=F.status(save).available?"Free today":"Fortune drawn today";
  const journalButton=$("goshuinButton");
  if(journalButton){
   $("goshuinProgress").textContent=journal.earned+" / "+(journal.visibleChapters*G.CHAPTER_SIZE)+" stamps";
@@ -307,14 +307,14 @@ function renderMenu(){
   const d=document.createElement("span"),title=document.createElement("strong"),sub=document.createElement("small");
   title.textContent=i<10?cfg.name:cfg.name+" · "+(i+1);
   sub.textContent=i<10?cfg.subtitle:
-   cfg.moves+" drag · "+(cfg.goal.type==="mist"?cfg.goal.count+" dimrutor":
+   cfg.moves+" moves · "+(cfg.goal.type==="mist"?cfg.goal.count+" dimrutor":
     cfg.goal.type==="masterpiece"?cfg.goal.count+" masterpieces":
     cfg.goal.type==="daruma"?cfg.goal.count+" Daruma":
     cfg.goal.type==="sealedStone"?cfg.goal.count+" Sealed Stones":
     cfg.goal.type==="fusion"?cfg.goal.count+" fusioner":
     cfg.goal.type==="stage3"?cfg.goal.count+" utvecklingar":
     cfg.goal.type==="pulseHits"?cfg.goal.count+" Harmony Pulse hits":
-    cfg.goal.type==="fourTurns"?cfg.goal.count+" drag med fyrmatchning":
+    cfg.goal.type==="fourTurns"?cfg.goal.count+" moves med fyrmatchning":
     cfg.goal.type==="four"?cfg.goal.count+" fyrmatchningar":
     prettify(cfg.goal.count)+" points");
   d.append(title,sub);
@@ -442,12 +442,12 @@ function renderGoshuincho(){
  head.append(heading,progress,close);album.append(head);
  const nav=goshuinNode("nav","washi-book-nav");
  nav.setAttribute("aria-label","Byt kapitel");
- const prev=goshuinNode("button","washi-nav washi-prev","");prev.type="button";
+ const prev=goshuinNode("button","washi-nof washi-prev","");prev.type="button";
  prev.disabled=goshuinChapter===0;prev.setAttribute("aria-label","Previous chapter");
  prev.addEventListener("click",()=>{if(goshuinChapter>0){goshuinChapter--;renderGoshuincho();}});
  const count=goshuinNode("span","washi-chapter-count",
   "LEVEL "+(info.first+1)+"–"+(info.last+1));
- const next=goshuinNode("button","washi-nav washi-next","");next.type="button";
+ const next=goshuinNode("button","washi-nof washi-next","");next.type="button";
  next.disabled=goshuinChapter>=summary.currentChapter;next.setAttribute("aria-label","Next chapter");
  next.addEventListener("click",()=>{if(goshuinChapter<summary.currentChapter){goshuinChapter++;renderGoshuincho();}});
  nav.append(prev,count,next);album.append(nav);
@@ -467,7 +467,7 @@ function renderGoshuincho(){
    goshuinNode("strong","washi-detail-name",cfg.name));
   const play=goshuinNode("button","washi-detail-play",stamp.resumable?"CONTINUE":"PLAY");
   play.type="button";play.disabled=!stamp.playable;
-  play.setAttribute("aria-label",stamp.playable?"Play level "+stamp.number+", "+cfg.name:"Level "+stamp.number+" är låst");
+  play.setAttribute("aria-label",stamp.playable?"Play level "+stamp.number+", "+cfg.name:"Level "+stamp.number+" is locked");
   play.addEventListener("click",()=>activateWashiPlay(play,()=>{
    const latest=G.levelStatus(save,stamp.level);
    if(latest.playable)startLevel(stamp.level,latest.resumable);
@@ -482,7 +482,7 @@ function renderGoshuincho(){
   tile.type="button";tile.dataset.level=String(stamp.number);
   tile.setAttribute("aria-pressed","false");
   tile.setAttribute("aria-label","Level "+stamp.number+", "+cfg.name+
-    (stamp.locked?", låst":", "+stamp.stars+" of 3 stars"));
+    (stamp.locked?", locked":", "+stamp.stars+" of 3 stars"));
   if(stamp.isCurrent)tile.setAttribute("aria-current","step");
   const numeralText=G.japaneseNumeral(stamp.number);
   const numeral=goshuinNode("span","washi-tile-jp"+(numeralText.length>=4?" is-long-jp":numeralText.length>=3?" is-medium-jp":""),numeralText);
@@ -576,7 +576,7 @@ function updateSpiritBadge(){
  badge.dataset.tier=String(spirit.tier);
  badge.textContent=(E.CATALOG.find(c=>c.id===spirit.id)?.symbol||"✦")+" "+(E.CATALOG.find(c=>c.id===spirit.id)?.name||"Omamori")+" · tier "+spirit.tier+"/3";
  badge.title=spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" uppdrag":" · full utveckling");
- badge.setAttribute("aria-label","Buren Omamori: "+spirit.id+", tier "+spirit.tier+" av 3. "+spirit.mission);
+ badge.setAttribute("aria-label","Buren Omamori: "+spirit.id+", tier "+spirit.tier+" of 3. "+spirit.mission);
 }
 function spiritMoment(evt){
  const spirit=C.status(save,E.snapshot(save).equipped);
@@ -604,13 +604,13 @@ function renderPowerBar(){
  bar.replaceChildren();bar.hidden=!owned.length&&!(game?.koiRerollAt>=0);
  if(bar.hidden)return;
  const heading=document.createElement("span");heading.className="omamori-power-label";
- heading.textContent=game?.assisted?"ASSISTED LEVEL":"OMAMORI · お守り"+(powerSelection?" · Välj "+(C.status(save,powerSelection)?.tier||1)+" tile(s)":"");
+ heading.textContent=game?.assisted?"ASSISTED LEVEL":"OMAMORI · お守り"+(powerSelection?" · Select "+(C.status(save,powerSelection)?.tier||1)+" tile(s)":"");
  bar.append(heading);
  for(const card of owned){
   const power=P.POWERS[card.id],button=document.createElement("button");
   button.type="button";button.className="omamori-power-button"+(powerSelection===card.id?" is-targeting":"");
   button.dataset.power=card.id;button.textContent=power.symbol+" "+power.name+" · "+["","I","II","III"][card.tier];
-  button.title="Tier "+card.tier+" · "+power.description+" Kortet förbrukas vid användning.";
+  button.title="Tier "+card.tier+" · "+power.description+" The card is consumed on use.";
   button.disabled=card.id==="tsuki"||!game||game.complete||game.failed||game.moves<=0;
   button.addEventListener("click",()=>{
    powerSelection=powerSelection===card.id?null:card.id;powerTargets=[];
@@ -641,7 +641,7 @@ function commitActivePower(id,at){
  $("modal").hidden=true;updateSpiritBadge();renderPowerBar();renderMenu();
  if(id==="tsuki"){
   saveRun();renderBoard(game.board);renderHUD();armDecisionClock();restartIdleHint();
-  toast("☾ Moon's Serenity · "+game.moves+" extra drag!");
+  toast("☾ Moon's Serenity · "+game.moves+" extra moves!");
  }else void playEvents(result.events);
  return true;
 }
@@ -656,7 +656,7 @@ function confirmPowerTarget(at){
   if(powerTargets.includes(at)){toast("Choose another tile.");return;}
   powerTargets.push(at);
   if(powerTargets.length<card.tier){
-   $("selectedInfo").textContent="Sakura tier "+card.tier+": välj "+(card.tier-powerTargets.length)+" more tile(s).";
+   $("selectedInfo").textContent="Sakura tier "+card.tier+": choose "+(card.tier-powerTargets.length)+" more tile(s).";
    toast("✿ "+powerTargets.length+"/"+card.tier+" tiles selected");
    return;
   }
@@ -667,8 +667,8 @@ function confirmPowerTarget(at){
  const content=$("modalContent");content.replaceChildren();
  const paragraph=document.createElement("p");paragraph.className="omamori-power-confirm";
  paragraph.textContent=id==="sakura"?
-  "Utveckla "+card.tier+" valda brickor ett stadium.":"Blanda "+(card.tier===1?"2×2":"3×3")+
-  (card.tier===3?" och välj om du vill blanda samma område en gång till.":".");
+  "Upgrade "+card.tier+" selected tiles by one stage.":"Shuffle "+(card.tier===1?"2×2":"3×3")+
+  (card.tier===3?" and choose whether to shuffle the same area once more.":".");
  paragraph.textContent+=" Confirming consumes the card, even if you later lose the level. This run will count as assisted.";
  content.append(paragraph);
  const actions=$("modalActions");actions.replaceChildren();
@@ -686,7 +686,7 @@ function confirmPowerTarget(at){
 }
 function showKoiReroll(){
  if(!game||!Number.isInteger(game.koiRerollAt)||game.koiRerollAt<0||game.complete)return;
- $("modalEyebrow").textContent="PATH OF THE KOI · STADIUM III";
+ $("modalEyebrow").textContent="PATH OF THE KOI · TIER III";
  $("modalTitle").textContent="Keep or shuffle again?";
  $("modalContent").textContent="Keep the new 3×3 arrangement or shuffle the same area once more for free.";
  const actions=$("modalActions");actions.replaceChildren();
@@ -711,8 +711,8 @@ function confirmMoonRescue(){
  $("modalContent").textContent="Consume the entire Moon card for "+bonus+" extra moves? It is consumed even if you lose again. Standard records and star stamps are unaffected.";
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("victory-actions","pause-menu-actions");
- modalButton(actions,"Use Moon · +"+bonus+" drag","primary",()=>commitActivePower("tsuki",-1));
- modalButton(actions,"Tillbaka","secondary",showResult);
+ modalButton(actions,"Use Moon · +"+bonus+" moves","primary",()=>commitActivePower("tsuki",-1));
+ modalButton(actions,"Back","secondary",showResult);
  $("modal").hidden=false;
 }
 // Harmony Economy & Omamori 1.0 — the collection stays outside the 7x7 board.
@@ -733,12 +733,12 @@ function showOmamori(tab="shop"){
  wallet.append(walletCopy,goshuinNode("span","omamori-owned-count",count+" / "+E.CATALOG.length+" cards"));
  wrapper.append(wallet);
  const shelf=goshuinNode("div","omamori-shelf");shelf.setAttribute("role","group");
- shelf.setAttribute("aria-label","Omamori: "+count+" aktiva cards");
+ shelf.setAttribute("aria-label","Omamori: "+count+" active cards");
  for(const item of E.CATALOG){
   const owned=C.has(save,item.id),equipped=owned&&account.equipped===item.id;
   const slot=goshuinNode("span","omamori-shelf-slot"+(owned?" is-owned":"")+(equipped?" is-equipped":""),owned?item.symbol:"◇");
-  slot.setAttribute("role","img");slot.setAttribute("aria-label",item.name+": "+(equipped?"bärs":owned?"finns i cardsleken":"saknas"));
-  slot.title=item.name+(owned?" · tier "+C.status(save,item.id).tier:" · köp ett nytt cards");
+  slot.setAttribute("role","img");slot.setAttribute("aria-label",item.name+": "+(equipped?"equipped":owned?"in your deck":"not owned"));
+  slot.title=item.name+(owned?" · tier "+C.status(save,item.id).tier:" · buy a new card");
   shelf.append(slot);
  }
  wrapper.append(shelf);
@@ -746,11 +746,11 @@ function showOmamori(tab="shop"){
  wrapper.append(goshuinNode("p","omamori-next-charm",nextCharm?
   "Next card: "+nextCharm.name+" · "+(account.coins>=nextCharm.price?
    "enough coins available":prettify(nextCharm.price-account.coins)+" coins needed"):
-  "✦ Du har ett cards av varje sort"));
+  "✦ You own every type of card"));
  wrapper.append(goshuinNode("p","omamori-explanation",
   "Each Omamori is a consumable card. It starts at tier I, grows through missions to II and III, and can be used at any tier. Once used, it disappears even if you lose. Buy another for Harmony Coins to start again at tier I. Unassisted victories may earn extra coins. No real-money purchases."));
  const tabs=goshuinNode("div","omamori-tabs");
- for(const [id,label] of [["shop","Butik"],["collection","Min cardslek"]]){
+ for(const [id,label] of [["shop","Shop"],["collection","My Cards"]]){
   const button=goshuinNode("button","omamori-tab"+(tab===id?" is-active":""),label);
   button.type="button";button.setAttribute("aria-pressed",String(tab===id));
   button.addEventListener("click",()=>showOmamori(id));tabs.append(button);
@@ -788,10 +788,10 @@ function showOmamori(tab="shop"){
   card.classList.add("has-bond");
   const detail=goshuinNode("div","omamori-bond-detail");
   detail.append(goshuinNode("strong","omamori-bond-title",
-   "✦ "+(owned?"Tier "+status.tier+"/3":"Nytt cards · tier I")),
+   "✦ "+(owned?"Tier "+status.tier+"/3":"New card · tier I")),
    goshuinNode("span","omamori-bond-mission","Mission: "+status.mission));
   const progress=goshuinNode("div","omamori-bond-track");
-  progress.setAttribute("role","progressbar");progress.setAttribute("aria-label",item.name+" cardsutveckling");
+  progress.setAttribute("role","progressbar");progress.setAttribute("aria-label",item.name+" card progress");
   progress.setAttribute("aria-valuemin","0");progress.setAttribute("aria-valuemax","6");
   progress.setAttribute("aria-valuenow",String(status.count));
   const bar=goshuinNode("span","omamori-bond-fill");bar.style.width=Math.min(100,Math.round(status.count/6*100))+"%";
@@ -805,7 +805,7 @@ function showOmamori(tab="shop"){
  if(account.equipped&&C.has(save,account.equipped)){
   const worn=E.CATALOG.find(item=>item.id===account.equipped);
   wrapper.append(goshuinNode("p","omamori-equipped",
-   "✦ Equipped: "+worn.name+" · tier "+C.status(save,worn.id).tier+". Kortet förbrukas vid användning. Ett nytt köp börjar på tier I."));
+   "✦ Equipped: "+worn.name+" · tier "+C.status(save,worn.id).tier+". The card is consumed on use. A new one starts at tier I."));
  }
  panel.append(wrapper);
  const actions=$("modalActions");actions.replaceChildren();
@@ -1093,9 +1093,9 @@ function renderBoard(board,highlight,effect){
   if(boardKeys[i]!==key){
    boardKeys[i]=key;
    btn.replaceChildren();
-   btn.setAttribute("aria-label",stone?"Sealed Stone, "+stoneLeft+" träffar kvar":
-    doll?"Daruma, "+(dState===0?"två ögon kvar":dState===1?"ett öga kvar":"fullbordad"):
-    piece?names[piece.family]+", tier "+piece.stage+", ruta "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
+   btn.setAttribute("aria-label",stone?"Sealed Stone, "+stoneLeft+" hits left":
+    doll?"Daruma, "+(dState===0?"two eyes left":dState===1?"one eye left":"completed"):
+    piece?names[piece.family]+", tier "+piece.stage+", tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
    if(stone){
     const art=document.createElement("span");art.className="sealed-stone-art state-"+stoneStage;
     art.setAttribute("aria-hidden","true");btn.append(art);
@@ -1127,11 +1127,11 @@ function renderBoard(board,highlight,effect){
    veil=document.createElement("span");veil.className="harmony-mist";
    veil.setAttribute("aria-hidden","true");btn.prepend(veil);
   }else if(!misted&&veil){veil.remove();}
-  const label=stone?"Sealed Stone, "+stoneLeft+" träffar kvar, ruta "+
+  const label=stone?"Sealed Stone, "+stoneLeft+" hits left, tile "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):
-   doll?"Daruma, "+(dState===0?"två ögon kvar":dState===1?"ett öga kvar":"fullbordad")+", ruta "+
+   doll?"Daruma, "+(dState===0?"two eyes left":dState===1?"one eye left":"completed")+", tile "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):
-   piece?names[piece.family]+", tier "+piece.stage+", ruta "+
+   piece?names[piece.family]+", tier "+piece.stage+", tile "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta";
   const accessible=label+(misted?", magisk dimma":"");
   if(btn.dataset.mist!==(misted?"1":"0")||btn.getAttribute("aria-label")!==accessible){
@@ -1172,21 +1172,21 @@ function renderHUD(state){
  if(game.rewardVersion===3){
   const thresholds=R.moveStarTargets(game.config);
   $("statusStars").setAttribute("aria-label",game.complete?
-   earnedStars+" of 3 stars. Målet klarades på "+game.goalMove+" drag.":
+   earnedStars+" of 3 stars. Objective completed in "+game.goalMove+" moves.":
    "Complete the goal for one star; use at most "+thresholds.two+" moves for two stars, or "+thresholds.three+" for three.");
  }else if(game.rewardVersion===2){
-  $("statusStars").setAttribute("aria-label",earnedStars?"Level klarad · 1 stjärna":"Klara levelmålet för 1 stjärna");
+  $("statusStars").setAttribute("aria-label",earnedStars?"Level complete · 1 star":"Complete the goal to earn 1 star");
  }else if(game.config.goal.type==="score"){
   const milestones=$("starTargets");
   [...milestones.children].forEach((node,j)=>{
    node.classList.toggle("reached",current.score>=game.config.stars[j]);
   });
   $("statusStars").setAttribute("aria-label",
-   earnedStars+" of 3 stars. Krav: "+game.config.stars.map(prettify).join(", "));
+   earnedStars+" of 3 stars. Targets: "+game.config.stars.map(prettify).join(", "));
  }else{
   $("statusStars").setAttribute("aria-label",
-   earnedStars+" of 3 stars. Klara målet på högst "+
-   game.config.par+" drag för 3 stars eller "+(game.config.par+4)+" för 2.");
+   earnedStars+" of 3 stars. Complete the goal in at most "+
+   game.config.par+" moves för 3 stars eller "+(game.config.par+4)+" for 2.");
  }
  document.querySelector(".goal").classList.toggle("goal-complete",game.complete);
 }
@@ -1218,16 +1218,16 @@ function choose(i){
  if(busy||!game||game.moves<=0||!$("modal").hidden)return;
  if(powerSelection){confirmPowerTarget(i);return;}
  if(game.board[i]?.family==="daruma"){
-  selected=-1;toast("Daruma flyttas inte. Matcha bredvid för att fylla dess ögon.");return;
+  selected=-1;toast("Daruma cannot move. Match beside it to fill its eyes.");return;
  }
  if(game.board[i]?.family==="sealedStone"){
-  selected=-1;toast("Sealed Stone flyttas inte. Matcha bredvid stenen eller träffa med Harmony Pulse (max en träff per drag).");return;
+  selected=-1;toast("Sealed Stone cannot move. Match beside it or hit it with Harmony Pulse (once per move).");return;
  }
  restartIdleHint();
  if(selected>=0&&selected!==i&&R.neighbors(selected).includes(i)){const a=selected;selected=-1;trySwap(a,i);return;}
  selected=selected===i?-1:i;
  if(selected===i)sound("tap");
- $("selectedInfo").textContent=selected<0?"Swap two adjacent tiles or swipe.":names[game.board[i].family]+" · tier "+game.board[i].stage+" av 5 · välj en granne";
+ $("selectedInfo").textContent=selected<0?"Swap two adjacent tiles or swipe.":names[game.board[i].family]+" · tier "+game.board[i].stage+" of 5 · choose a neighbor";
  renderBoard(game.board);
  if(selected===i&&!FAST()){
   const piece=boardTiles[i]?.querySelector(".piece");
@@ -2146,7 +2146,7 @@ async function playEvents(events,bondGain=null){
     }else flyPoints(evt);
    }
    if(["bonus","goal"].includes(evt.type))sound(evt.type);
-   if(evt.type==="daruma"&&(evt.hits||[]).some(h=>h.filled===2))toast("✦ Daruma fullbordad!");
+   if(evt.type==="daruma"&&(evt.hits||[]).some(h=>h.filled===2))toast("✦ Daruma completed!");
    if(evt.type==="echo")praise("echo");
    else if(evt.type==="hero")praise("masterpiece");
    else if(evt.type==="pulse"&&((evt.targets?.length||0)+(evt.mistTargets?.length||0)+(evt.darumaTargets?.length||0)>0))praise("pulse");
@@ -2169,7 +2169,7 @@ async function playEvents(events,bondGain=null){
  if(bondGain?.ok){
   updateSpiritBadge();renderPowerBar();
   toast(bondGain.promoted?"✦ Omamori uppgraderad to tier "+bondGain.tier+"!":
-   "✦ Omamori-uppdrag "+bondGain.progress+"/6");
+   "✦ Omamori mission "+bondGain.progress+"/6");
  }
  if(goalReached)unlockGoal();
  if(finished||goalReached)showResult();
@@ -2258,8 +2258,8 @@ function showResult(){
    const copyRibbon=make("div","victory-archive-copy");
    copyRibbon.append(make("strong","",chapterComplete?"Chapter seal earned!":
     isNew?"New stamp in Goshuincho":"Stamp upgraded"),
-    make("small","",chapterComplete?"Kapitel "+chapterReward.number+" fullbordat · 10 av 10 stamps":
-     "Kapitel "+chapterReward.number+" · "+chapterReward.earned+" av 10 stamps · "+earnedStars+" of 3 stars"));
+    make("small","",chapterComplete?"Chapter "+chapterReward.number+" complete · 10 of 10 stamps":
+     "Chapter "+chapterReward.number+" · "+chapterReward.earned+" of 10 stamps · "+earnedStars+" of 3 stars"));
    ribbon.append(make("span","victory-archive-seal","✦"),copyRibbon);result.append(ribbon);
   }
   rewardStarsAtLevelStart=earnedStars;
@@ -2267,14 +2267,14 @@ function showResult(){
   const income=make("div","victory-harmony-income");
   const gained=coinReward.delta;
   income.append(make("span","victory-harmony-mark","✧"),
-   make("strong","",game.assisted?"Assisterad vinst · inga Harmony Coins":gained?("+"+prettify(gained)+" Harmony Coins"):"Harmony Coins redan insamlade"),
+   make("strong","",game.assisted?"Assisted win · no Harmony Coins":gained?("+"+prettify(gained)+" Harmony Coins"):"Harmony Coins already collected"),
    make("small","",game.assisted?"Omamori help lets you advance but does not award standard bonus coins.":gained?
     "New-star reward · saved to your collection":
     "Earn new coins by clearing new levels or improving your star rating."));
   result.append(income);
-  if(replayReward)result.append(make("p","omamori-power-earned","✦ Oassisterad omspelning · +"+replayReward+" Harmony Coins"));
+  if(replayReward)result.append(make("p","omamori-power-earned","✦ Unassisted replay · +"+replayReward+" Harmony Coins"));
   if(moonMission.ok)result.append(make("p","omamori-power-earned",
-   moonMission.promoted?"✦ Omamori nådde tier "+moonMission.tier:"✦ Omamori-uppdrag "+moonMission.progress+"/6"));
+   moonMission.promoted?"✦ Omamori reached tier "+moonMission.tier:"✦ Omamori mission "+moonMission.progress+"/6"));
   const goal=make("section","victory-goal");
   goal.setAttribute("aria-label","Completed level goal");
   const goalCopy=make("div","victory-goal-copy");
@@ -2288,7 +2288,7 @@ function showResult(){
    const timing=make("div","victory-timing");
    const moves=make("div","victory-timing-stat");
    moves.append(make("strong","",String(game.goalMove)),
-    make("span","","av "+game.config.moves+" drag"));
+    make("span","","of "+game.config.moves+" moves"));
    const rating=make("div","victory-timing-stat");
    rating.append(make("strong","",game.stars()+" / 3"),
     make("span","","stars"));
@@ -2304,7 +2304,7 @@ function showResult(){
   scoreHeader.append(make("div","victory-kicker","BONUS SCORE"));
   const record=make("span","victory-record");
   record.append(make("span","victory-record-mark","✦"),
-   make("span","",game.assisted?"ASSISTERAD · EJ REKORD":"REKORD "+prettify(activeRecords()[level]||game.score)));
+   make("span","",game.assisted?"ASSISTED · NOT A RECORD":"RECORD "+prettify(activeRecords()[level]||game.score)));
   scoreHeader.append(record);
   const strong=make("strong","victory-score-number",prettify(game.score));
   sum.append(scoreHeader,strong);
@@ -2314,7 +2314,7 @@ function showResult(){
    [game.masterpieces,"Masterpiece","✿"],
    [game.echoes||0,"Harmony Echo","≋"],
    [game.bestChain,"Best Harmony chain","∞"],
-   [game.fusions,"Fusioner","✧"]
+   [game.fusions,"Fusions","✧"]
   ];
   entries.forEach(([value,label,symbol])=>{
    const card=make("div","victory-stat");
@@ -2325,13 +2325,13 @@ function showResult(){
   });
   result.append(stats);
   const note=make("p","victory-next-note",canContinue?
-   "✦ "+game.moves+" drag kvar · spela vidare för pointsrekord eller gå to nästa level.":
-   "✦ Nivån är klar · spela igen för ett nytt record eller gå vidare.");
+   "✦ "+game.moves+" moves left left · keep playing for a high score or advance to the next level.":
+   "✦ Level complete · replay for a new record or move on.");
   result.append(note);
  }else{
   if(game.config.goal.type==="mist"){
    const msg=make("p","mist-result",
-    "Du renade "+game.mistCleared+" av "+game.target()+" dimrutor. Försök nå resten.");
+    "You cleared "+game.mistCleared+" of "+game.target()+" Mist tiles. Try to clear the rest.");
    panel.append(msg);
   }
   const sum=make("div","summary"),label=make("div","","BONUS SCORE"),
@@ -2340,8 +2340,8 @@ function showResult(){
   // This pass only redesigns wins; preserve the existing failed-run stats.
   const stats=make("div","result-stats");
   [[game.masterpieces,"Masterpiece"],[game.echoes||0,"Harmony Echo"],
-   [game.bestChain,"Best Harmony chain"],[game.fusions,"Fusioner"],
-   [prettify(activeRecords()[level]||game.score),"Personligt record"]].forEach(([value,label])=>{
+   [game.bestChain,"Best Harmony chain"],[game.fusions,"Fusions"],
+   [prettify(activeRecords()[level]||game.score),"Personal best"]].forEach(([value,label])=>{
     const entry=make("div");
     entry.append(make("strong","",String(value)),make("small","",label));
     stats.append(entry);
@@ -2352,7 +2352,7 @@ function showResult(){
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.toggle("victory-actions",won);
  if(!won&&C.status(save,"tsuki")?.owned)
-  modalButton(actions,"☾ Moon's Serenity · +"+([0,2,3,5][C.status(save,"tsuki").tier])+" drag","primary omamori-moon-revive",()=>confirmMoonRescue());
+  modalButton(actions,"☾ Moon's Serenity · +"+([0,2,3,5][C.status(save,"tsuki").tier])+" moves","primary omamori-moon-revive",()=>confirmMoonRescue());
  if(won)modalButton(actions,"Next level →","primary victory-next",()=>startLevel(level+1));
  if(canContinue)modalButton(actions,"Keep playing for a high score","secondary victory-continue",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
@@ -2369,7 +2369,7 @@ function modalInfo(title,html){
  $("modalActions").classList.remove("pause-menu-actions");
  $("modalEyebrow").textContent="JAPANESE HARMONY";$("modalTitle").textContent=title;
  $("modalContent").innerHTML=html;const actions=$("modalActions");actions.replaceChildren();
- modalButton(actions,"Tillbaka to spelet","primary",()=>{$("modal").hidden=true;});$("modal").hidden=false;
+ modalButton(actions,"Back to spelet","primary",()=>{$("modal").hidden=true;});$("modal").hidden=false;
 }
 // This is a turn-based puzzle; the menu overlay blocks touches while open.
 // Local report only: no analytics, disk write or network transfer.
@@ -2379,15 +2379,15 @@ function showPerformanceReport(){
  const node=document.createElement("div");
  node.className="performance-report";
  const rows=[
-  ["Mätta drag",String(stats?.turns||0)],
-  ["Effekter",stats?.constrained?"Reducerade extra partiklar":"Normala"],
-  ["Senaste mätning",item?item.frames+" bildrutor":"Spela ett drag för att mäta"],
-  ["Genomsnittlig bildrutetid",item?item.averageMs+" ms":"—"],
-  ["95:e percentilen",item?item.p95Ms+" ms":"—"],
-  ["Uppskattad bildfrekvens",item?.approxFps?item.approxFps+" FPS":"—"],
-  ["Långsamma bildrutor",item?item.slowPct+" %":"—"],
-  ["Max tillfälliga effekter",item?String(item.peakFx):"—"],
-  ["Startade animationer",item?String(item.animations):"—"]
+  ["Measured moves",String(stats?.turns||0)],
+  ["Effects",stats?.constrained?"Fewer extra particles":"Normal"],
+  ["Latest sample",item?item.frames+" frames":"Make a move to measure"],
+  ["Average frame time",item?item.averageMs+" ms":"—"],
+  ["95th percentile",item?item.p95Ms+" ms":"—"],
+  ["Estimated frame rate",item?.approxFps?item.approxFps+" FPS":"—"],
+  ["Slow frames",item?item.slowPct+" %":"—"],
+  ["Peak simultaneous effects",item?String(item.peakFx):"—"],
+  ["Animations started",item?String(item.animations):"—"]
  ];
  for(const [label,value] of rows){
   const p=document.createElement("p"),bold=document.createElement("strong");
@@ -2395,13 +2395,13 @@ function showPerformanceReport(){
   p.append(bold,document.createTextNode(value));node.append(p);
  }
  const note=document.createElement("p");
- note.textContent="Mätningen gäller det senaste dragets animationer, inte hela telefonen. Inga data skickas iväg.";
+ note.textContent="This measures animations from the last move, not your whole phone. No data is sent.";
  node.append(note);
- $("modalEyebrow").textContent="MOBILDIAGNOSTIK";
- $("modalTitle").textContent="Prestanda";
+ $("modalEyebrow").textContent="MOBILE DIAGNOSTICS";
+ $("modalTitle").textContent="Performance";
  $("modalContent").replaceChildren(node);
  const actions=$("modalActions");actions.replaceChildren();
- modalButton(actions,"Tillbaka to spelet","primary",()=>{$("modal").hidden=true;});
+ modalButton(actions,"Back to spelet","primary",()=>{$("modal").hidden=true;});
  $("modal").hidden=false;
 }
 // Game Dev / Engine Lab 1.0: all experiments run on disposable rule-engine
@@ -2416,13 +2416,13 @@ function openEngineLab(){
  $("modalTitle").textContent="Harmony Intelligence";
  const content=$("modalContent");content.replaceChildren();
  const hint=document.createElement("p");
- hint.textContent="Jämför Director 4.0 mot tidigare motorer på samma startbräden. Simulerade omgångar påverkar inte stars, points eller sparfiler.";
+ hint.textContent="Compare Director 4.0 with earlier engines on identical starting boards. Simulated runs never affect stars, points, or saves.";
  content.append(hint);
  if(!api){
-  const missing=document.createElement("p");missing.textContent="Diagnostikmodulen kunde inte laddas. Öppna sidan på nytt.";
+  const missing=document.createElement("p");missing.textContent="Could not load diagnostics. Reload the page.";
   content.append(missing);
   const actions=$("modalActions");actions.replaceChildren();
-  modalButton(actions,"Tillbaka","primary",()=>{$("modal").hidden=true;});$("modal").hidden=false;
+  modalButton(actions,"Back","primary",()=>{$("modal").hidden=true;});$("modal").hidden=false;
   return;
  }
  const controls=document.createElement("div");controls.className="engine-controls";
@@ -2430,46 +2430,46 @@ function openEngineLab(){
   const label=document.createElement("label");label.textContent=name;label.append(node);controls.append(label);
  };
  const levels=document.createElement("select");
- const allOption=document.createElement("option");allOption.value="all";allOption.textContent="Introduktion level 1–10";levels.append(allOption);
+ const allOption=document.createElement("option");allOption.value="all";allOption.textContent="Introduction levels 1–10";levels.append(allOption);
  R.levels.forEach((cfg,i)=>{const option=document.createElement("option");option.value=String(i);option.textContent=(i+1)+". "+cfg.name;levels.append(option);});
  if(level>=R.levels.length){const option=document.createElement("option");option.value=String(level);option.textContent=(level+1)+". "+R.levelConfig(level).name;levels.append(option);}
- levels.value=game?String(level):"all";field("Nivåer",levels);
+ levels.value=game?String(level):"all";field("Levels",levels);
  const samples=document.createElement("select");
- for(const n of [2,5,10,25]){const option=document.createElement("option");option.value=String(n);option.textContent=n+" seeds per strategi och level";samples.append(option);}
- samples.value="5";field("Testomgångar",samples);
- const seedInput=document.createElement("input");seedInput.type="number";seedInput.min="0";seedInput.max="4294967295";seedInput.step="1";seedInput.value="20261022";field("Grundseed (reproducerbar)",seedInput);
+ for(const n of [2,5,10,25]){const option=document.createElement("option");option.value=String(n);option.textContent=n+" seeds per strategy and level";samples.append(option);}
+ samples.value="5";field("Test runs",samples);
+ const seedInput=document.createElement("input");seedInput.type="number";seedInput.min="0";seedInput.max="4294967295";seedInput.step="1";seedInput.value="20261022";field("Base seed (reproducible)",seedInput);
  const engineMode=document.createElement("select");engineMode.id="engineMode";
  for(const [value,label] of [
-  ["compare","Jämför Standard + Director 1.0 + 2.0 + 3.0"],
-  ["compare31","Jämför Director 3.0 mot Objective 3.1"],
-  ["compare311","Jämför Objective 3.1 mot Endgame 3.1.1"],
-   ["compare4","Jämför Endgame 3.1.1 mot Director 4.0"],
-  ["standard","Endast Standard"],
-  ["director","Endast Director 1.0"],
-  ["director2","Endast Director 2.0"],
-  ["director3","Endast Pacing Director 3.0"],
-  ["director31","Endast Objective Awareness 3.1"],
-  ["director311","Endast Endgame Objective Awareness 3.1.1"],
-   ["director4","Endast Harmony Director 4.0"]
+  ["compare","Compare Standard + Director 1.0 + 2.0 + 3.0"],
+  ["compare31","Compare Director 3.0 vs Objective 3.1"],
+  ["compare311","Compare Objective 3.1 vs Endgame 3.1.1"],
+   ["compare4","Compare Endgame 3.1.1 vs Director 4.0"],
+  ["standard","Only Standard"],
+  ["director","Only Director 1.0"],
+  ["director2","Only Director 2.0"],
+  ["director3","Only Pacing Director 3.0"],
+  ["director31","Only Objective Awareness 3.1"],
+  ["director311","Only Endgame Objective Awareness 3.1.1"],
+   ["director4","Only Harmony Director 4.0"]
  ]){
   const opt=document.createElement("option");opt.value=value;opt.textContent=label;engineMode.append(opt);
  }
- engineMode.value="compare4";field("Spelmotor",engineMode);
+ engineMode.value="compare4";field("Game engine",engineMode);
  const scopeNote=document.createElement("p");
  scopeNote.className="engine-lab-note";
- scopeNote.textContent="Director 4.0 är standard från level 10. Den förstår Daruma och Sealed Stones, räknar delträffar och föredrar mer användbara påfyllningar vid måltorka. Botarnas tempo är syntetiskt.";
+ scopeNote.textContent="Director 4.0 is the default from level 10. It understands Daruma, Sealed Stones, partial hits, and goal progress. Bot pacing is simulated.";
 
  content.append(controls,scopeNote);
  const status=document.createElement("p");status.className="engine-lab-status";status.setAttribute("role","status");
- status.textContent="Redo att mäta spelmotorn.";content.append(status);
+ status.textContent="Ready to analyze the game engine.";content.append(status);
  const output=document.createElement("div");output.className="engine-lab-output";content.append(output);
  const actions=$("modalActions");actions.replaceChildren();
- const runButton=modalButton(actions,"Kör analys","primary",()=>{});
+ const runButton=modalButton(actions,"Run analysis","primary",()=>{});
  const cancelButton=modalButton(actions,"Cancel","secondary",()=>{if(engineLabRun)engineLabRun.cancelled=true;});
  cancelButton.disabled=true;
  const exportButton=modalButton(actions,"Exportera JSON","secondary",()=>{});
  exportButton.disabled=true;
- modalButton(actions,"Tillbaka","secondary",()=>{if(engineLabRun)engineLabRun.cancelled=true;$("modal").hidden=true;});
+ modalButton(actions,"Back","secondary",()=>{if(engineLabRun)engineLabRun.cancelled=true;$("modal").hidden=true;});
  let latest=null;
  exportButton.addEventListener("click",()=>{
   if(!latest)return;
@@ -2483,7 +2483,7 @@ function openEngineLab(){
  function display(result){
   output.replaceChildren();
   const summary=document.createElement("p");
-  summary.textContent=result.runs.length+" omgångar · "+
+  summary.textContent=result.runs.length+" runs · "+
    new Set(result.results.map(r=>r.level)).size+" leveler · "+
    result.options.modes.map(x=>api.MODE_LABELS[x]).join(" + ")+
    " · version "+result.gameVersion+".";
@@ -2492,7 +2492,7 @@ function openEngineLab(){
   const wrap=document.createElement("div");wrap.className="engine-table-scroll";
   const table=document.createElement("table");table.className="engine-table";
   const head=document.createElement("thead"),header=document.createElement("tr");
-  for(const label of ["Nivå","Motor","AI","Vinst","Mål","Drag","Val","Kedjor","Echo","Utveckl.","Målfam.","Torka"]){
+  for(const label of ["Level","Engine","AI","Win","Goal","Moves","Choices","Chains","Echo","Growth","Goal family","Drought"]){
    const cell=document.createElement("th");cell.textContent=label;header.append(cell);
   }
   head.append(header);table.append(head);
@@ -2512,10 +2512,10 @@ function openEngineLab(){
   }
   table.append(body);wrap.append(table);output.append(wrap);
   const explain=document.createElement("p");explain.className="engine-lab-note";
-  explain.textContent="Val = tillåtna byten. Kedjor = drag med flera fusionsvågor. Echo = aktiverade resonansbelöningar per spel. Utveckl. = möjliga matcher som involverar tier 3+. Målfam. = möjliga utvecklingsmatcher med den efterfrågade familjen (relevant på t.ex. level 6). Torka = drag i följd utan registrerade målpoäng. Startseeds är identiska.";
+  explain.textContent="Choices = legal swaps. Chains = moves with multiple fusion waves. Echo = resonance rewards per run. Growth = possible matches involving stage 3+. Goal family = possible upgrades of the requested family. Drought = consecutive moves with no goal progress. Start seeds are identical.";
   if(result.options.modes.length>=2){
    const comparison=document.createElement("div");comparison.className="engine-comparison";
-   const title=document.createElement("strong");title.textContent="Direkt jämförelse · målframsteg, vinst och utveckling";
+   const title=document.createElement("strong");title.textContent="Direct comparison · goal progress, wins and growth";
    comparison.append(title);
    const baselineMode=result.options.modes.includes("standard")?"standard":
    result.options.modes.includes("director3")?"director3":result.options.modes.includes("director311")?"director311":"director31";
@@ -2526,9 +2526,9 @@ function openEngineLab(){
     const line=document.createElement("p");
     line.textContent="Level "+(classic.level+1)+" · "+api.LABELS[classic.strategy]+" · "+api.MODE_LABELS[mode]+": "+
      classic.wins+"/"+classic.samples+" → "+newer.wins+"/"+newer.samples+
-     " · Måluppfyllelse "+pct(classic.avgGoalRatio)+" → "+pct(newer.avgGoalRatio)+
-     " · Utveckl. "+classic.avgMeaningful.toFixed(1)+" → "+newer.avgMeaningful.toFixed(1)+
-     " · Möjligheter kring tier 4 "+classic.avgNearReady.toFixed(1)+" → "+newer.avgNearReady.toFixed(1);
+     " · Goal completion "+pct(classic.avgGoalRatio)+" → "+pct(newer.avgGoalRatio)+
+     " · Growth "+classic.avgMeaningful.toFixed(1)+" → "+newer.avgMeaningful.toFixed(1)+
+     " · Stage 4 opportunities "+classic.avgNearReady.toFixed(1)+" → "+newer.avgNearReady.toFixed(1);
     comparison.append(line);
    }
    }
@@ -2553,16 +2553,16 @@ function openEngineLab(){
    trials:Number(samples.value),seed:requestedSeed,strategies:api.STRATEGIES,modes,
    yieldEvery:1,cancel:()=>job.cancelled};
   const total=opts.levels.length*opts.trials*opts.strategies.length*opts.modes.length;
-  engineLabText(status,"Analyserar 0 / "+total+" testomgångar …");
+  engineLabText(status,"Analyzing 0 / "+total+" test runs …");
   try{
    const result=await api.runAsync(opts,({completed,total})=>{
-    if(engineLabRun===job)engineLabText(status,"Analyserar "+completed+" / "+total+" testomgångar …");
+    if(engineLabRun===job)engineLabText(status,"Analyzing "+completed+" / "+total+" test runs …");
    });
    if(engineLabRun!==job)return;
-   if(result.cancelled)engineLabText(status,"Avbrutet efter "+result.completed+" testomgångar.");
-   else{latest=result;display(result);engineLabText(status,"Analysen klar. Du kan exportera resultatet med seeds och alla omgångar.");exportButton.disabled=false;}
+   if(result.cancelled)engineLabText(status,"Cancelled after "+result.completed+" test runs.");
+   else{latest=result;display(result);engineLabText(status,"Analysis complete. You can export the results with seeds and all runs.");exportButton.disabled=false;}
   }catch(error){
-   if(engineLabRun===job){engineLabText(status,"Analysen kunde inte slutföras: "+error.message);console.error("Harmony Engine Lab",error);}
+   if(engineLabRun===job){engineLabText(status,"Analysis failed: "+error.message);console.error("Harmony Engine Lab",error);}
   }finally{
    if(engineLabRun===job){
     engineLabRun=null;runButton.disabled=false;cancelButton.disabled=true;
@@ -2580,7 +2580,7 @@ function openGameMenu(){
  $("modalTitle").textContent="Game Menu";
  const content=$("modalContent");content.replaceChildren();
  const desc=document.createElement("p");desc.className="pause-summary";
- desc.textContent="Level "+(level+1)+" · "+game.familyCount+" familjer · "+game.moves+" drag kvar";
+ desc.textContent="Level "+(level+1)+" · "+game.familyCount+" families · "+game.moves+" moves left";
  content.append(desc);
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.add("pause-menu-actions");
@@ -2590,32 +2590,32 @@ function openGameMenu(){
   return b;
  };
  add("Resume game","primary","resume",()=>{$("modal").hidden=true;armDecisionClock();});
- if(game.complete)add("Avsluta med resultat","secondary","finish",()=>{if(busy)return;game.finish();showResult();});
+ if(game.complete)add("Finish and view results","secondary","finish",()=>{if(busy)return;game.finish();showResult();});
  add("Restart level","secondary","restart",()=>{if(!busy)startLevel(level);});
  // Keep these DOM positions intact: the existing game and smoke tests rely
  // on direct button access and keyboard tab order, even with the new layout.
  add("How to Play","secondary","help",()=>{$("helpButton").click();});
  add("Settings","secondary","settings",()=>{$("settingsButton").click();});
- add("Prestanda","secondary","performance",showPerformanceReport);
- add("Game Dev · Motorlab","secondary","dev",openEngineLab);
- add("Till Goshuincho","secondary","levels",()=>{if(!busy)showLevelSelection();});
+ add("Performance","secondary","performance",showPerformanceReport);
+ add("Game Dev · Enginelab","secondary","dev",openEngineLab);
+ add("Back to Goshuincho","secondary","levels",()=>{if(!busy)showLevelSelection();});
  $("modal").hidden=false;
 }
 function bind(){
  const directorChoice=$("gameDirectorMode");
  const explainDirectorMode=()=>{
   $("directorModeDescription").textContent=save.playMode==="auto"?
-   "Automatiskt: Harmony Pacing 3.0 på level 1–9, Harmony Director 4.0 från level 10. En påbörjad level behåller sin motor.":
+   "Automatic: Harmony Pacing 3.0 on levels 1–9 and Director 4.0 from level 10. Started levels keep their current engine.":
    save.playMode==="v4"?
-   "Director 4.0 analyserar mål, delträffar mot hinder och måltorka utan gratismatchningar.":
+   "Director 4.0 analyzes goals, obstacle hits and stalled progress without free matches.":
    save.playMode==="v311"?
-   "Experimentell Endgame 3.1.1 analyserar de sista dimrutorna, utan extra drag.":
+   "Experimental Endgame 3.1.1 analyzes the last Mist tiles without adding moves.":
    save.playMode==="v31"?
-   "Experimentell Director 3.1 analyserar mål, fusionspositioner, Mist och Pulse.":
+   "Experimental Director 3.1 considers goals, fusion placement, Mist and Pulse.":
    save.playMode==="v3"?
-   "Director 3.0 följer spelarens rytm och använder rättvisa påfyllningar.":
-   save.playMode==="v2"?"Director 2.0 prioriterar utvecklingsmöjligheter i den vanliga objektpåsen.":
-   "Originalsystemets slumpmässiga påfyllning.";
+   "Director 3.0 follows the player's rhythm and uses fair refills.":
+   save.playMode==="v2"?"Director 2.0 prioritizes upgrade opportunities within the normal object pool.":
+   "The original random refill system.";
  };
  directorChoice.value=save.playMode;
  directorChoice.addEventListener("change",event=>{

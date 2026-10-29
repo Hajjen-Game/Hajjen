@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,H=window.HarmonySaveHealth,T=window.HarmonyTutorialHelp,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,H=window.HarmonySaveHealth,T=window.HarmonyTutorialHelp,OT=window.HarmonyOmamoriTargets,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu Dragon"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -59,7 +59,7 @@ function clearIdleHint(){
 }
 function hintEligible(){
  return !!game&&game.moves>0&&!game.failed&&!busy&&
-  !$("gameView").hidden&&$("modal").hidden&&!document.hidden;
+  !$("gameView").hidden&&$("modal").hidden&&!document.hidden&&!powerSelection;
 }
 function restartIdleHint(){
  clearIdleHint();
@@ -676,7 +676,7 @@ function renderPowerBar(){
  bar.append(heading,count,button);
  if(powerSelection){
   const cancel=goshuinNode("button","omamori-power-cancel","Cancel");
-  cancel.addEventListener("click",()=>{powerSelection=null;powerTargets=[];selected=-1;renderPowerBar();});
+  cancel.addEventListener("click",()=>{powerSelection=null;powerTargets=[];selected=-1;renderBoard(game.board);renderPowerBar();restartIdleHint();});
   bar.append(cancel);
   bar.classList.add("is-targeting");
   heading.querySelector(".omamori-hud-stock").textContent=P.POWERS[powerSelection].name;
@@ -710,7 +710,7 @@ function showPowerPicker(){
   button.addEventListener("click",()=>{
    if(normalUses()>=2)return;
    powerSelection=item.id;powerTargets=[];selected=-1;
-   $("modal").hidden=true;renderPowerBar();armDecisionClock();restartIdleHint();
+   $("modal").hidden=true;clearIdleHint();renderBoard(game.board);renderPowerBar();armDecisionClock();
    toast("Choose "+(item.id==="grandBloom"||item.id==="twinSealbreaker"?"two different tiles":"a tile")+
     " for "+item.name+". You can cancel without spending a card.",4300);
   });grid.append(button);
@@ -733,6 +733,7 @@ function commitActivePower(id,at){
  const spent=C.consume(save,id);
  if(!spent.ok)throw Error("Card inventory changed before confirmation");
  powerSelection=null;powerTargets=[];selected=-1;
+ renderBoard(game.board); // Never leave gold highlights after consuming the card.
  // Preserve the revived run even if the old state was already marked failed.
  persist();$("modal").hidden=true;renderPowerBar();renderMenu();
  if(moonIds.includes(id)){
@@ -743,8 +744,8 @@ function commitActivePower(id,at){
 }
 function confirmPowerTarget(at){
  const id=powerSelection;
- if(!C.has(save,id)){powerSelection=null;powerTargets=[];renderPowerBar();return;}
- const count=(id==="grandBloom"||id==="twinSealbreaker")?2:1;
+ if(!C.has(save,id)){powerSelection=null;powerTargets=[];renderBoard(game.board);renderPowerBar();restartIdleHint();return;}
+ const count=OT.required(id);
  const blocker=id==="sealbreaker"||id==="twinSealbreaker";
  const piece=game.board[at];
  if(id==="sakura"||id==="grandBloom"){
@@ -758,12 +759,21 @@ function confirmPowerTarget(at){
    toast("Choose a Mist tile, Daruma or Sealed Stone.");return;
   }
  }
- if(powerTargets.includes(at)){toast("Choose another tile.");return;}
- powerTargets.push(at);
- if(powerTargets.length<count){
-  toast("Choose one more different tile.",1900);return;
+ // Gold feedback is immediate and persists for every chosen target.
+ // A repeat tap removes an earlier choice without spending a card.
+ if(powerTargets.includes(at)){
+  powerTargets=powerTargets.filter(index=>index!==at);
+  renderBoard(game.board);
+  toast("Tile deselected. Choose "+(count-powerTargets.length)+" target"+(count-powerTargets.length===1?"":"s")+".",1900);
+  return;
  }
- clearIdleHint();disarmDecisionClock();
+ powerTargets.push(at);
+ clearIdleHint();renderBoard(game.board);
+ if(powerTargets.length<count){
+  toast(powerTargets.length+"/"+count+" selected · gold tiles are your targets.",1900);
+  return;
+ }
+ disarmDecisionClock();
  $("modalEyebrow").textContent="OMAMORI · ONE-USE CARD";
  $("modalTitle").textContent=P.POWERS[id].name;
  const panel=$("modalContent");panel.replaceChildren();
@@ -773,10 +783,10 @@ function confirmPowerTarget(at){
  actions.classList.remove("victory-actions","pause-menu-actions");
  const targets=count===2?powerTargets.slice():powerTargets[0];
  modalButton(actions,"Use card · 1 copy","primary",()=>{
-  if(!commitActivePower(id,targets)){powerSelection=null;powerTargets=[];$("modal").hidden=true;renderPowerBar();restartIdleHint();}
+  if(!commitActivePower(id,targets)){powerSelection=null;powerTargets=[];$("modal").hidden=true;renderBoard(game.board);renderPowerBar();restartIdleHint();}
  });
  modalButton(actions,"Cancel","secondary",()=>{
-  powerSelection=null;powerTargets=[];$("modal").hidden=true;renderPowerBar();armDecisionClock();restartIdleHint();
+  powerSelection=null;powerTargets=[];$("modal").hidden=true;renderBoard(game.board);renderPowerBar();armDecisionClock();restartIdleHint();
  });
  $("modal").hidden=false;
 }
@@ -980,7 +990,7 @@ async function celebrateCollection(evt){
 function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false){
  if(busy)return;
- powerSelection=null;
+ powerSelection=null;powerTargets=[];
  disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
  resetResonanceVisuals();clearPraise();
  level=i;powerSelection=null;powerTargets=[];moonOfferShown=false;rewardStarsAtLevelStart=G.archivedStars(save,i);
@@ -1137,6 +1147,10 @@ function renderBoard(board,highlight,effect){
   grid.replaceChildren(frag);
  }
  const highlighted=highlight&&highlight.length?new Set(highlight):null;
+ const omamoriPreview=powerSelection&&powerTargets.length?
+  new Set(OT.preview(powerSelection,powerTargets,board)):null;
+ const omamoriAnchor=powerSelection&&["koi","deepCurrent"].includes(powerSelection)?
+  powerTargets[powerTargets.length-1]:-1;
  const flash=effect||(highlight&&highlight.effect)||"pulsed";
  const mist=activeMistFrame||game?.mist||[];
  const daruma=activeDarumaFrame||game?.daruma||[];
@@ -1198,7 +1212,8 @@ function renderBoard(board,highlight,effect){
    btn.dataset.mist=misted?"1":"0";
    btn.setAttribute("aria-label",accessible);
   }
-  const cls="tile"+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+
+  const cls="tile"+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+(omamoriPreview?.has(i)?" omamori-gold-target":"")+
+   (omamoriAnchor===i?" omamori-gold-anchor":"")+
    (highlighted&&highlighted.has(i)?" "+flash:"")+
    (resonance.anchors.has(i)?" resonance-anchor":"")+
    (resonance.partners.has(i)?" resonance-partner":"")+
@@ -2664,7 +2679,7 @@ function openEngineLab(){
 }
 function openGameMenu(){
  if(!game||$("gameView").hidden||busy)return;
- powerSelection=null;renderPowerBar();
+ powerSelection=null;powerTargets=[];renderBoard(game.board);renderPowerBar();
  disarmDecisionClock();clearIdleHint();
  $("modalEyebrow").textContent="JAPANESE HARMONY";
  $("modalTitle").textContent="Game Menu";

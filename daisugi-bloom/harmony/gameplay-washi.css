@@ -569,7 +569,7 @@ body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready 
    Background is play-only; menu and Goshuincho keep their own backdrop. */
 body.harmony-playing::before{
   background-image:
-    url("../assets/gameplay-washi/play-background-20261029.avif"),
+    url("../assets/gameplay-washi/play-background-20261029.jpg"),
     url("../assets/shared/japanese-harmony-background-20261028-v2.jpg")!important;
   background-size:cover,cover!important;
   background-position:center top,center top!important;

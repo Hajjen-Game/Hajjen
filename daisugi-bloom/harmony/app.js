@@ -2353,7 +2353,7 @@ function showResult(){
    const copyRibbon=make("div","victory-archive-copy");
    copyRibbon.append(make("strong","",chapterComplete?"Chapter seal earned!":
     isNew?"New stamp in Goshuincho":"Stamp upgraded"),
-    make("small","",chapterComplete?"Chapter "+chapterReward.number+" complete · 10 of 10 stamps":
+    make("small","",chapterComplete?"10/10 stamps · Chapter seal in Goshuincho":
      "Chapter "+chapterReward.number+" · "+chapterReward.earned+" of 10 stamps · "+earnedStars+" of 3 stars"));
    ribbon.append(make("span","victory-archive-seal","✦"),copyRibbon);result.append(ribbon);
   }

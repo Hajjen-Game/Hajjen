@@ -1322,6 +1322,8 @@ try{
    }
    const backdrop=document.querySelector("#festivalBackdrop");
    const backdropStyle=getComputedStyle(backdrop),backdropRect=backdrop.getBoundingClientRect();
+   const playStyle=getComputedStyle(document.body,"::before");
+   const goalStyle=getComputedStyle(document.querySelector(".goal"));
    return {id:document.body.dataset.festival,
      imageSrc:backdrop.currentSrc||backdrop.src,
      imageReady:backdrop.complete&&backdrop.naturalWidth>0,
@@ -1329,18 +1331,24 @@ try{
      imageVisible:backdropStyle.display!=="none"&&Number(backdropStyle.opacity)>.95,
      imageFit:backdropStyle.objectFit,
      backdropWidth:backdropRect.width,backdropHeight:backdropRect.height,
-     overlay:getComputedStyle(document.body,"::after").backgroundImage,
-     dims,glass:getComputedStyle(document.querySelector(".goal")).backgroundImage};
+     playBackground:playStyle.backgroundImage,playBackgroundSize:playStyle.backgroundSize,
+     playPosition:playStyle.position,goalBorder:goalStyle.borderImageSource,
+     dims};
  });
  assert.deepEqual(background.dims,[[768,1536],[768,1536],[768,1536]],
   "The three supplied Festival Night images must remain at original sharp resolution");
  assert(Number(background.id)>=1&&Number(background.id)<=3,"Only approved HD backgrounds should rotate");
  assert(background.imageReady&&background.imageNaturalWidth===768,"Native HD image must be decoded in the real backdrop element");
- assert(background.imageVisible&&background.imageFit==="cover","The backdrop must actually be visible and cover the screen");
- assert(background.backdropWidth>=390&&background.backdropHeight>=844,"Backdrop layer must cover the phone viewport");
+ assert(!background.imageVisible,"Legacy festival image is intentionally hidden during gameplay");
+ assert(background.playBackground.includes("play-background-20261029.jpg")&&
+   background.playBackground.includes("linear-gradient"),
+   "Gameplay must paint its approved background and readability tint together");
+ assert(background.playPosition==="fixed"&&background.playBackgroundSize.includes("cover"),
+  "The visible gameplay background must fill the viewport without a second fullscreen image");
  assert(background.imageSrc.includes("festival-hd-"),"Native image source must reference a genuine HD file");
- assert(background.overlay.includes("gradient"),"Readability scrim must be enabled");
- assert(background.glass.includes("gameplay-washi/goal.webp"),"Approved translucent dark-brown washi goal panel must render");
+
+ assert(background.goalBorder.includes("goal-omamori-original-20261029.png"),
+  "Approved original goal panel artwork must render with border-image slicing");
  const festivalAtStart=background.id;
 
  assert.equal(await page.$$eval(".tile",els=>els.length),49);

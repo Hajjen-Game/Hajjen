@@ -629,11 +629,11 @@ try{
    const icons=[...document.querySelectorAll("#masterpieceCollection .collection-card")];
    return {families:run.familyCount,unique:new Set(run.board.map(p=>p.family)).size,
     cardCount:icons.length,mode:run.directorMode,
-    width:icons[0]?.querySelector(".collection-icon").getBoundingClientRect().width,
+    hidden:document.querySelector("#masterpieceCollection").hidden,
     classified:document.querySelector("#masterpieceCollection").classList.contains("four-families")};
   });
   assert.equal(four.families,4);assert.equal(four.unique,4);assert.equal(four.cardCount,4);
-  assert.equal(four.mode,"v3");assert(four.classified&&four.width>58);
+  assert.equal(four.mode,"v3");assert(four.classified&&four.hidden,"Collection bookkeeping must remain hidden");
   await preview.click("#pauseButton");
   await preview.click("#modalActions button:last-child");
   await clickLegacyLevel(preview,".level-tile:nth-child(11)");
@@ -641,44 +641,15 @@ try{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
    return {count:run.familyCount,unique:new Set(run.board.map(p=>p.family)).size,
     cards:document.querySelectorAll("#masterpieceCollection .collection-card").length,
-    width:document.querySelector("#masterpieceCollection .collection-icon").getBoundingClientRect().width};
+    hidden:document.querySelector("#masterpieceCollection").hidden};
   });
   assert.equal(five.count,5);assert.equal(five.unique,5);assert.equal(five.cards,5);
-  assert(four.width>five.width,"Four-family intro icons should be bigger than five-family Journey icons");
-
-  // Masterpiece Size & Collection Readability 1.0: verify real 4/5 column
-  // artwork footprints, readable badges and narrow-phone containment.
-  assert(four.width>=80,"Four-family collection art should fill its wider column: "+four.width);
-  assert(five.width>=64,"Five-family art should exceed the old ~45px cap: "+five.width);
-  const fiveFit=await preview.evaluate(()=>{
-   const panel=document.querySelector(".masterpiece-collection");
-   const icons=[...panel.querySelectorAll(".collection-icon")];
-   const labels=[...panel.querySelectorAll(".collection-label")];
-   const badges=[...panel.querySelectorAll(".collection-count")];
-   const p=panel.getBoundingClientRect();
-   return {height:p.height,bodyWidth:document.body.scrollWidth,
-    allInside:icons.every(icon=>{
-     const r=icon.getBoundingClientRect();
-     return r.left>=p.left&&r.right<=p.right&&Math.abs(r.width-r.height)<1;
-    }),
-    labelsFit:labels.every(label=>label.scrollWidth<=label.clientWidth+1),
-    countersVisible:badges.every(b=>getComputedStyle(b).display!=="none"
-      &&b.getBoundingClientRect().width>=24)};
-  });
-  assert(fiveFit.allInside&&fiveFit.labelsFit&&fiveFit.countersVisible,
-   "Larger five-family collection must fit with readable names/counters: "+JSON.stringify(fiveFit));
-  assert(fiveFit.bodyWidth<=390,"Larger masterpiece art must not create horizontal scrolling");
-  assert(fiveFit.height<175,"Expanded collection must remain a compact panel");
-  await preview.setViewport({width:360,height:760,deviceScaleFactor:2,isMobile:true,hasTouch:true});
-  const narrow=await preview.evaluate(()=>{
-   const p=document.querySelector(".masterpiece-collection").getBoundingClientRect();
-   const icons=[...document.querySelectorAll(".collection-icon")].map(x=>x.getBoundingClientRect());
-   return {width:icons[0].width,bodyWidth:document.body.scrollWidth,
-    allInside:icons.every(r=>r.left>=p.left&&r.right<=p.right)};
-  });
-  assert(narrow.width>=59&&narrow.bodyWidth<=360&&narrow.allInside,
-   "Five larger masterpieces must fit a 360px phone: "+JSON.stringify(narrow));
-  await preview.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  // Collection bookkeeping survives the HUD cleanup, but the old panel is
+  // deliberately hidden. Verify both family counts without asserting retired
+  // collection icon sizes or a visible masterpiece panel.
+  assert(five.hidden,"Five-family collection bookkeeping must remain hidden");
+  assert.equal(await preview.evaluate(()=>document.body.scrollWidth<=390),true,
+   "Five-family gameplay must not cause horizontal overflow");
   // A pre-upgrade stage-1 run without familyCount must keep its fifth family.
   await preview.evaluate(()=>{
    const old=new window.HarmonyRules.Game(0,null,{seed:991,familyCount:5,directorMode:"v3"});

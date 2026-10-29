@@ -811,12 +811,12 @@ function confirmMoonRescue(){
  modalButton(actions,"No thanks · End level","secondary",showResult);
  $("modal").hidden=false;
 }
-// Harmony Economy & Omamori 1.0 — the collection stays outside the 7x7 board.
+// Omamori 6.0 · one-use cards, all purchasable repeatedly with Coins.
 function showOmamori(tab="shop"){
  if(busy||!$("gameView").hidden)return;
  const account=E.snapshot(save);
  $("modalActions").classList.remove("pause-menu-actions","victory-actions");
- $("modalEyebrow").textContent="JAPANESE HARMONY · YOUR CARDS";
+ $("modalEyebrow").textContent="JAPANESE HARMONY · ONE-USE BOOSTS";
  $("modalTitle").textContent="Omamori";
  const panel=$("modalContent");panel.replaceChildren();
  const wrapper=goshuinNode("section","omamori-shop");
@@ -825,26 +825,10 @@ function showOmamori(tab="shop"){
  const walletCopy=goshuinNode("div","omamori-wallet-copy");
  walletCopy.append(goshuinNode("span","","YOUR BALANCE"),
   goshuinNode("strong","",prettify(account.coins)+" Harmony Coins"));
- const count=E.CATALOG.filter(item=>C.has(save,item.id)).length;
- wallet.append(walletCopy,goshuinNode("span","omamori-owned-count",count+" / "+E.CATALOG.length+" Omamori"));
+ wallet.append(walletCopy,goshuinNode("span","omamori-owned-count",C.total(save)+" cards"));
  wrapper.append(wallet);
- const shelf=goshuinNode("div","omamori-shelf");shelf.setAttribute("role","group");
- shelf.setAttribute("aria-label","Omamori: "+count+" owned power cards and keepsakes");
- for(const item of E.CATALOG){
-  const owned=C.has(save,item.id),equipped=owned&&account.equipped===item.id;
-  const slot=goshuinNode("span","omamori-shelf-slot"+(owned?" is-owned":"")+(equipped?" is-equipped":""),owned?item.symbol:"◇");
-  slot.setAttribute("role","img");slot.setAttribute("aria-label",item.name+": "+(equipped?"equipped":owned?"in your deck":"not owned"));
-  slot.title=item.name+(owned?" · tier "+C.status(save,item.id).tier:" · buy a new card");
-  shelf.append(slot);
- }
- wrapper.append(shelf);
- const nextCharm=E.CATALOG.find(item=>!C.has(save,item.id));
- wrapper.append(goshuinNode("p","omamori-next-charm",nextCharm?
-  "Next card: "+nextCharm.name+" · "+(account.coins>=nextCharm.price?
-   "enough coins available":prettify(nextCharm.price-account.coins)+" coins needed"):
-  "✦ You own every type of card"));
  wrapper.append(goshuinNode("p","omamori-explanation",
-  "POWER CARDS · Sakura, Koi and Moon are playable boosts. Use them from the game board even without equipping; use consumes the whole card, even after a loss. Buy a replacement at Tier I. KEEPSAKES · Mist, Daruma and Lantern are permanent collectibles with decorative effects, not board powers. Equip one Omamori to earn its tier missions across different levels. Assisted wins unlock levels but do not earn regular stars, coins or records. Harmony Coins only; no real-money purchases."));
+  "Buy as many copies as you can afford. Every card is used once. All owned cards are available during a level: up to two board boosts, plus one optional Moon rescue when you run out of moves. No equipping, tiers or missions."));
  const tabs=goshuinNode("div","omamori-tabs");
  for(const [id,label] of [["shop","Shop"],["collection","My Cards"]]){
   const button=goshuinNode("button","omamori-tab"+(tab===id?" is-active":""),label);
@@ -853,82 +837,44 @@ function showOmamori(tab="shop"){
  }
  wrapper.append(tabs);
  const list=goshuinNode("div","omamori-catalog");
- const shown=E.CATALOG.filter(item=>tab!=="collection"||C.has(save,item.id)).sort((a,b)=>Number(b.kind==="power")-Number(a.kind==="power"));
- if(!shown.length)list.append(goshuinNode("p","omamori-empty","Your Omamori collection is empty. Visit the shop for a power card or keepsake."));
- let lastKind="";
+ const shown=E.CATALOG.filter(item=>tab!=="collection"||C.has(save,item.id));
+ if(!shown.length)list.append(goshuinNode("p","omamori-empty",
+  "Your Omamori inventory is empty. Buy a card in the Shop."));
  for(const item of shown){
-  if(item.kind!==lastKind){
-   lastKind=item.kind;
-   list.append(goshuinNode("h3","omamori-group-heading",item.kind==="power"?"POWER CARDS · CONSUMABLE":"KEEPSAKES · PERMANENT"));
-  }
-  const status=C.status(save,item.id),owned=status.owned,equipped=owned&&account.equipped===item.id;
-  const card=goshuinNode("article","omamori-card"+(owned?" is-owned":"")+(equipped?" is-equipped":""));
-  card.dataset.omamoriId=item.id;card.dataset.bondTier=String(status.tier);card.dataset.kind=item.kind;
+  const owned=C.count(save,item.id),card=goshuinNode("article","omamori-card"+(owned?" is-owned":""));
+  card.dataset.omamoriId=item.id;card.dataset.kind="power";
   const charm=goshuinNode("div","omamori-charm omamori-"+item.theme);
   charm.setAttribute("aria-hidden","true");
   charm.append(goshuinNode("span","omamori-knot","⌁"),goshuinNode("span","omamori-charm-glyph",item.symbol));
   const copy=goshuinNode("div","omamori-card-copy");
-  copy.append(goshuinNode("strong","",item.name),goshuinNode("small","",item.subtitle),
-   goshuinNode("span","omamori-card-tag",(item.kind==="power"?"Power card · ":"Permanent keepsake · ")+
-    (owned?(equipped?"equipped · ":"")+"Tier "+status.tier+"/3":prettify(item.price)+" Coins")));
-  if(status.active)copy.append(goshuinNode("span","omamori-power-shop",
-   "✦ "+P.POWERS[item.id].name+" · "+omamoriPowerEffect(item.id,owned?status.tier:1)));
-  else copy.append(goshuinNode("span","omamori-keepsake-note",
-   "✿ Permanent · equip for decorative effects and missions · no board power"));
+  copy.append(goshuinNode("strong","",item.name),
+   goshuinNode("small","",omamoriPowerEffect(item.id)),
+   goshuinNode("span","omamori-card-tag","Owned ×"+owned+" · "+prettify(item.price)+" Coins / card"));
   const action=goshuinNode("button","omamori-action","");
   action.type="button";
-  if(equipped)action.textContent="Unequip";
-  else if(owned)action.textContent="Equip";
+  if(tab==="collection"){action.textContent="In inventory · ×"+owned;action.disabled=true;}
   else if(account.coins<item.price){action.textContent="Need "+prettify(item.price-account.coins)+" coins";action.disabled=true;}
-  else action.textContent=(item.kind==="power"?"Buy card · ":"Collect · ")+prettify(item.price)+" coins";
+  else{action.textContent="Buy 1 · "+prettify(item.price)+" coins";}
   action.addEventListener("click",()=>{
-   if(owned){
-    if(C.equip(save,equipped?null:item.id).ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice(equipped?"unequip":"equip",item);}
-   }else{
-    if(C.buy(save,item.id).ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
-   }
+   const result=C.buy(save,item.id);
+   if(result.ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
   });
-  card.classList.add("has-bond");
-  const detail=goshuinNode("div","omamori-bond-detail");
-  detail.append(goshuinNode("strong","omamori-bond-title",
-   "✦ "+(owned?"Tier "+status.tier+"/3":item.kind==="power"?"New power card · Tier I":"Permanent keepsake · Tier I")),
-   goshuinNode("span","omamori-bond-mission","Mission: "+status.mission));
-  const progress=goshuinNode("div","omamori-bond-track");
-  progress.setAttribute("role","progressbar");progress.setAttribute("aria-label",item.name+" card progress");
-  progress.setAttribute("aria-valuemin","0");progress.setAttribute("aria-valuemax","6");
-  progress.setAttribute("aria-valuenow",String(status.count));
-  const bar=goshuinNode("span","omamori-bond-fill");bar.style.width=Math.min(100,Math.round(status.count/6*100))+"%";
-  progress.append(bar);detail.append(progress);
-  detail.append(goshuinNode("small","omamori-bond-next",!owned?
-   (item.kind==="power"?"Buy at Tier I; use now or develop through missions":"Collect once; keep forever and improve its appearance"):
-   status.tier===3?(item.kind==="power"?"Tier III · maximum power":"Tier III · permanent collection complete"):
-   status.count+"/"+status.next+" different level missions to Tier "+(status.tier+1)));
-  card.append(charm,copy,action,detail);list.append(card);
+  card.append(charm,copy,action);list.append(card);
  }
- wrapper.append(list);
- if(account.equipped&&C.has(save,account.equipped)){
-  const worn=E.CATALOG.find(item=>item.id===account.equipped);
-  wrapper.append(goshuinNode("p","omamori-equipped",
-   "✦ Equipped: "+worn.name+" · Tier "+C.status(save,worn.id).tier+
-    (worn.kind==="power"?". Equip for missions; you can use the power without equipping. Use consumes the card. A replacement starts at Tier I.":". Permanent keepsake · decorative only, never consumed.")));
- }
- panel.append(wrapper);
+ wrapper.append(list);panel.append(wrapper);
  const actions=$("modalActions");actions.replaceChildren();
  modalButton(actions,"Close shop","primary omamori-close",()=>{
   $("modal").hidden=true;$("omamoriButton").focus();
- });$("modal").hidden=false;
+ });
+ $("modal").hidden=false;
 }
 function showOmamoriNotice(action,item){
- const shop=$("modalContent").querySelector(".omamori-shop");
- if(!shop)return;
- const note=goshuinNode("div","omamori-reward-notice"+(action==="purchase"?" is-new":""));
+ const shop=$("modalContent").querySelector(".omamori-shop");if(!shop)return;
+ const note=goshuinNode("div","omamori-reward-notice is-new");
  note.setAttribute("role","status");
- note.append(
-  goshuinNode("span","omamori-reward-emblem",action==="purchase"?"✦":"✧"),
-  goshuinNode("strong","",action==="purchase"?(item.kind==="power"?"New power card · Tier I":"Permanent keepsake collected"):
-   action==="equip"?"Equipped for tier missions":"Omamori unequipped"),
-  goshuinNode("small","",item.name+(action==="purchase"?(item.kind==="power"?" · consumed on activation":" · yours to keep"):""))
- );
+ note.append(goshuinNode("span","omamori-reward-emblem","✦"),
+  goshuinNode("strong","","Card added to inventory"),
+  goshuinNode("small","",item.name+" · owned ×"+C.count(save,item.id)));
  shop.insertBefore(note,shop.querySelector(".omamori-tabs"));
 }
 function collectionSprite(family){
@@ -1297,7 +1243,7 @@ function renderHUD(state){
  document.querySelector(".goal").classList.toggle("goal-complete",game.complete);
  $("statusStars").classList.toggle("jh-practice-stars",!!game.assisted);
  if(game.assisted)$("statusStars").setAttribute("aria-label",
-  "Practice rating only: "+earnedStars+" of 3 stars. Omamori-assisted wins do not award Goshuincho stamps.");
+  "Omamori used. A completed level earns one Goshuincho star; clean records remain separate.");
 }
 function renderScoreOnly(){
  $("scoreCount").textContent=prettify(scoreDisplayed);
@@ -1381,7 +1327,7 @@ function trySwap(a,b){
  }
  selected=-1;$("selectedInfo").textContent="Swap two adjacent tiles or swipe.";
  sound("swap");
- const bondGain=C.observe(save,level,result.events);
+ const bondGain={ok:false};
  if(bondGain.ok)persist();
  void playEvents(result.events,bondGain);
 }
@@ -2262,10 +2208,6 @@ async function playEvents(events,bondGain=null){
   for(const evt of events){
    await animateEvent(evt);
    if(evt.type==="daruma"||evt.type==="sealed-hit")objectiveHitCue(evt);
-   if(!spiritCuePlayed&&((evt.type==="hero"&&save.economy?.equipped==="sakura")||
-    ((evt.type==="daruma"||evt.type==="sealed-hit")&&save.economy?.equipped==="daruma"))){
-    spiritMoment(evt);spiritCuePlayed=true;
-   }
    if(evt.scoreDelta>0){
     if(evt.type==="collection"){
      scoreShown+=evt.scoreDelta;animateScoreCount();scoreArrival(evt.scoreDelta);
@@ -2306,11 +2248,11 @@ function unlockGoal(){
  save.unlocked=Math.max(save.unlocked,level+1);
  if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.floor(save.unlocked/MENU_PAGE_SIZE);
  const archive=game.familyCount===4?save.fourFamilyStars:save.bestStars;
- if(!game.assisted)archive[level]=Math.max(archive[level]||0,game.stars());
+ archive[level]=Math.max(archive[level]||0,game.assisted?1:game.stars());
  // A pre-upgrade 5-family intro run may still be completed after the update.
  // Reflect its achievement in the permanent four-family introduction archive,
  // without altering or discarding the original five-family history.
- if(level<10&&!game.assisted)save.fourFamilyStars[level]=Math.max(save.fourFamilyStars[level]||0,game.stars());
+ if(level<10)save.fourFamilyStars[level]=Math.max(save.fourFamilyStars[level]||0,game.assisted?1:game.stars());
  persist();
 }
 function showResult(){
@@ -2318,6 +2260,9 @@ function showResult(){
  if(!game)return;
  disarmDecisionClock();clearIdleHint();clearPraise();clearScoreFx();scoreShown=game.score;scoreDisplayed=scoreShown;renderScoreOnly();
  const won=game.complete;
+ if(!won&&game.failed&&!moonOfferShown&&(C.has(save,"tsuki")||C.has(save,"moonGrace"))){
+  moonOfferShown=true;confirmMoonRescue();return;
+ }
  if(won)sound("result");
  if(won){
   unlockGoal();
@@ -2334,12 +2279,12 @@ function showResult(){
    save.fourFamilyChain[level]=Math.max(save.fourFamilyChain[level]||0,game.bestChain);
   }
  }
- const coinReward=won&&!game.assisted?E.claim(save,level,Math.max(1,game.stars())):{delta:0};
+ const coinReward=won?E.claim(save,level,game.assisted?1:Math.max(1,game.stars())):{delta:0};
  // A completed clean replay earns a small capped amount after normal one-off rewards.
- const replayReward=won&&!game.assisted&&!coinReward.delta&&!game.replayCoinClaimed?
-  C.replayCoins(save,level,true,false,new Date().toISOString().slice(0,10)):0;
+ const replayReward=won&&!coinReward.delta&&!game.replayCoinClaimed?
+  C.replayCoins(save,level,true,game.assisted,new Date().toISOString().slice(0,10)):0;
  if(won)game.replayCoinClaimed=true;
- const moonMission=won?C.observe(save,level,[],true):{ok:false};
+
  const canContinue=won&&game.moves>0;
  if(!canContinue)save.run=null;
  persist();
@@ -2363,9 +2308,9 @@ function showResult(){
    stars.textContent="★ LEVEL COMPLETE";
   }else{
    stars.setAttribute("role","img");
-   stars.setAttribute("aria-label",game.stars()+" of 3 "+(game.assisted?"practice stars, not Goshuincho stamps":"Goshuincho stars"));
+   stars.setAttribute("aria-label",(game.assisted?1:game.stars())+" of 3 Goshuincho stars");
    for(let i=0;i<3;i++){
-    const filled=i<game.stars();
+    const filled=i<(game.assisted?1:game.stars());
     const star=make("span","victory-star"+(filled?" is-earned":" is-empty"),filled?"★":"☆");
     star.setAttribute("aria-hidden","true");
     star.style.setProperty("--star-index",i);
@@ -2390,12 +2335,12 @@ function showResult(){
    ribbon.append(make("span","victory-archive-seal","✦"),copyRibbon);result.append(ribbon);
   }
   rewardStarsAtLevelStart=earnedStars;
-  if(game.assisted)result.append(make("p","omamori-assisted-notice","✧ Assisted win — the next level unlocks. Standard stars, coins and records are unaffected."));
+  if(game.assisted)result.append(make("p","omamori-assisted-notice","✧ Omamori win · one Goshuincho stamp and Harmony Coins earned. Clean score records remain separate."));
   const income=make("div","victory-harmony-income");
   const gained=coinReward.delta;
   income.append(make("span","victory-harmony-mark","✧"),
-   make("strong","",game.assisted?"Assisted win · no Harmony Coins":gained?("+"+prettify(gained)+" Harmony Coins"):"Harmony Coins already collected"),
-   make("small","",game.assisted?"Omamori help lets you advance but does not award standard bonus coins.":gained?
+   make("strong","",gained?("+"+prettify(gained)+" Harmony Coins"):"Harmony Coins already collected"),
+   make("small","",gained?
     "New-star reward · saved to your collection":
     "Earn new coins by clearing new levels or improving your star rating."));
   result.append(income);
@@ -2418,7 +2363,7 @@ function showResult(){
     make("span","","of "+game.config.moves+" moves"));
    const rating=make("div","victory-timing-stat");
    rating.append(make("strong","",game.stars()+" / 3"),
-    make("span","",game.assisted?"practice stars":"Goshuincho stars"));
+    make("span","","Goshuincho stars"));
    timing.append(moves,rating);
    const note=make("p","victory-star-note",game.assisted?
     "Practice rating only. The next level unlocks; no stamps, coins or standard records are awarded.":

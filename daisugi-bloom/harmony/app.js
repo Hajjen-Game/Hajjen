@@ -80,6 +80,9 @@ const perf=window.HarmonyPerf?.create();
 let rectCache=null,boardLayerRect=null;
 const LITE_FX=()=>MOBILE_LITE&&!!perf?.constrained;
 const fxCount=()=>scoreOverlay?.childElementCount||0;
+// A dense SCORE stream must never starve Harmony Echo, Pulse or fusion dust.
+// Keep total FX accounting intact for the performance meter and score budget.
+const fxDecorCount=()=>fxCount()-(scoreOverlay?.querySelectorAll(".score-shot-mote").length||0);
 // First 20 Levels Redesign 1.0: one-time RESET FOR EVERY BROWSER PROFILE.
 // Scores, stars, old runs and unlocks belong to this browser's localStorage;
 // the repository has no remotely deletable player account database.
@@ -960,11 +963,11 @@ const REWARD_ACCENT_SHAPES=Object.freeze([
  ["star","✦"],["diamond","◆"],["flower","✿"]
 ]);
 function rewardAccentAt(x,y,kind){
- if(FAST()||document.hidden||!Element.prototype.animate||fxCount()>=(MOBILE_LITE?32:66))return;
+ if(FAST()||document.hidden||!Element.prototype.animate||fxDecorCount()>=(MOBILE_LITE?32:66))return;
  const count=LITE_FX()?2:3;
  const radius=kind==="collection"?21:kind==="pulse"?20:26;
  for(let i=0;i<count;i++){
-  if(fxCount()>=(MOBILE_LITE?36:72))break;
+  if(fxDecorCount()>=(MOBILE_LITE?36:72))break;
   const [shape,glyph]=REWARD_ACCENT_SHAPES[i];
   const node=fxAt("harmony-reward-accent harmony-"+shape+" harmony-accent-"+kind,x,y,glyph);
   node.setAttribute("aria-hidden","true");
@@ -1586,7 +1589,7 @@ function fusionBurst(positions,groups=[],kind="fusion"){
   for(let i=0;i<count;i++){
    // Repeat a balanced triad — pink petals, pearl-white gems, gold stars.
    // Stagger and asymmetric travel avoid a mechanical wheel/spinner.
-   if(fxCount()>=(MOBILE_LITE?44:84))break;
+   if(fxDecorCount()>=(MOBILE_LITE?44:84))break;
    const shape=FIREWORK_SHAPES[i%FIREWORK_SHAPES.length];
    const angle=(i/count)*Math.PI*2-.37+((i%3)-1)*.085;
    const distance=radius*(.77+(i%4)*.095);

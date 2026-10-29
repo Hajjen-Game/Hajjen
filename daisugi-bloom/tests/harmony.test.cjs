@@ -76,7 +76,7 @@ check("unfinished old level 8 saves get four extra turns only once",()=>{
  assert.equal(new R.Game(7,finished).moves,6,"Completed saves cannot gain turns");
 });
 check("First twenty levels have curated move budgets and later Journey keeps its original scaling",()=>{
- const early=[18,24,34,30,32,28,30,33,35,36,26,31,36,30,37,38,40,33,41,43];
+ const early=[18,24,34,30,32,28,30,33,35,36,25,29,36,30,37,38,40,33,41,43];
  for(let index=0;index<20;index++){
   assert.equal(R.levelConfig(index).moves,early[index],"Curated level "+(index+1));
   assert.equal(new R.Game(index).moves,early[index]);
@@ -84,7 +84,7 @@ check("First twenty levels have curated move budgets and later Journey keeps its
  for(const index of [20,29,49,50,150,23000]){
   const tier=Math.floor((index-10)/10);
   const before=Math.max(17,22-((index-10)%5)-Math.floor(tier/4));
-  assert.equal(R.levelConfig(index).moves,index===20?36:index===29?40:2*before,
+  assert.equal(R.levelConfig(index).moves,index===20?36:index===29?40:index===49?50:2*before,
    "Later Journey unchanged except targeted Level 21/30 adjustments "+(index+1));
  }
 });

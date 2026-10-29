@@ -1400,7 +1400,8 @@ try{
  assert(endless.every(x=>x.type!=="score"&&x.families===5&&
   (x.number<=20?(x.moves>=25&&x.moves<=43):(x.moves>=34))),
   "Journey 11–20 must have reduced moves while the later Journey stays unchanged");
- assert(endless[0].type==="fusion"&&endless[1].type==="mist");
+ assert(endless[0].type==="fusion"&&endless[1].type==="familyMasterpiece"&&endless[2].type==="mist",
+  "Journey starts with fusion, Lantern Path ends with its masterpiece, and Endless Garden retains Mist");
  const missionMix=await page.evaluate(()=>
   [10,11,12,13,14,15,16,17,18,19].map(i=>HarmonyRules.levelConfig(i).goal.type));
  assert.deepEqual(missionMix,["fusion","stage3","mist","fourTurns","mist",

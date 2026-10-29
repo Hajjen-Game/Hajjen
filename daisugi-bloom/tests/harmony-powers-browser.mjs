@@ -63,6 +63,33 @@ try{
  await page.evaluate(()=>document.querySelector(".jh-tutorial-ok")?.click());
  assert((await page.$eval(".omamori-remaining",x=>x.textContent)).includes("2/2 used"));
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ // Automatic Moon prompt appears when the FINAL move is actually spent.
+ const pair=await page.evaluate(key=>{
+  const s=JSON.parse(localStorage.getItem(key));
+  s.run.data.moves=1;localStorage.setItem(key,JSON.stringify(s));
+  return window.HarmonyRules.validSwaps(s.run.data.board)[0];
+ },key);
+ assert(pair&&pair.length===2);
+ await page.reload({waitUntil:"networkidle2"});
+ await page.click("#continueButton");
+ await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:9000});
+ await page.evaluate(()=>document.querySelector(".jh-tutorial-ok")?.click());
+ await page.click('.tile[data-index="'+pair[0]+'"]');
+ await page.click('.tile[data-index="'+pair[1]+'"]');
+ await page.waitForFunction(()=>!document.querySelector(".omamori-moon-choices")?.hidden&&
+  document.querySelector("#modalTitle")?.textContent==="Out of moves!",{timeout:20000});
+ const offered=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).omamoriCards.counts,key);
+ assert.equal(offered.tsuki,1,"Showing Moon prompt must not spend the card");
+ assert.equal(offered.moonGrace,1);
+ await page.click('.omamori-moon-choices .omamori-picker-item[data-power="tsuki"]');
+ await page.waitForFunction(key=>{
+  const s=JSON.parse(localStorage.getItem(key));
+  return !s.omamoriCards.counts.tsuki&&s.run?.data?.moves===3;
+ },{timeout:12000},key);
+ const rescued=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);
+ assert.equal(rescued.omamoriCards.counts.moonGrace,1);
+ assert.equal(rescued.run.data.blessingUses,3,"Moon does not occupy one of the two board boost slots");
+ assert.equal(rescued.run.data.assisted,true);
  assert.deepEqual(errors,[],"No mobile JavaScript errors");
  console.log("PASS Omamori 6.0: stacked Sakura, two-boost limit, Moon separation and saved inventory");
 }finally{await browser.close();}

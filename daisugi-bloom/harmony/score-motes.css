@@ -1,0 +1,51 @@
+/* Score Motes 1.0
+ * Score is carried by tiny floating-magic-dust-like particles, not a
+ * numbered token, ribbon or solid beam. Each dot is compositor animated
+ * on the existing pointer-free global score overlay.
+ */
+.score-fx-overlay .score-shot-mote{
+ position:absolute;
+ display:block;
+ box-sizing:border-box;
+ width:4px;
+ height:4px;
+ padding:0;
+ border:0;
+ border-radius:50%;
+ pointer-events:none;
+ translate:-50% -50%;
+ transform-origin:center;
+ opacity:0;
+ will-change:transform,opacity;
+ background:radial-gradient(circle,#fffdf6 0%,#ffe9c0 40%,rgba(240,182,100,.19) 75%,transparent 100%);
+ box-shadow:0 0 3px rgba(255,222,165,.38);
+}
+.score-fx-overlay .score-shot-mote.shot-core{
+ width:5.5px;
+ height:5.5px;
+}
+.score-fx-overlay .score-shot-mote.shot-pearl{
+ background:radial-gradient(circle,#fffefa 0%,#fff3dd 46%,rgba(255,245,221,.12) 77%,transparent 100%);
+ box-shadow:0 0 3px rgba(255,249,227,.4);
+}
+.score-fx-overlay .score-shot-mote.shot-gold{
+ background:radial-gradient(circle,#fff7df 0%,#f8dca2 43%,rgba(236,188,103,.15) 77%,transparent 100%);
+ box-shadow:0 0 4px rgba(255,214,135,.43);
+}
+.score-fx-overlay .score-shot-mote.shot-sakura{
+ background:radial-gradient(circle,#fff9fc 0%,#f4bed4 43%,rgba(244,163,197,.15) 77%,transparent 100%);
+ box-shadow:0 0 3px rgba(243,173,198,.28);
+}
+.score-fx-overlay .score-shot-mote.shot-star::after{
+ content:"";
+ position:absolute;
+ inset:-1px;
+ pointer-events:none;
+ background:
+  linear-gradient(90deg,transparent 44%,rgba(255,253,237,.50) 49% 51%,transparent 56%),
+  linear-gradient(0deg,transparent 44%,rgba(255,253,237,.48) 49% 51%,transparent 56%);
+}
+@media(prefers-reduced-motion:reduce){
+ .score-fx-overlay .score-shot-mote{display:none!important}
+}
+body.harmony-reduced-motion .score-fx-overlay .score-shot-mote{display:none!important}

@@ -147,3 +147,39 @@ body.harmony-playing .game-view .omamori-power-cancel{
   body.harmony-playing .game-view .omamori-power-bar{padding-inline:5px!important}
   body.harmony-playing .game-view .omamori-power-button{font-size:10px;padding-inline:3px!important}
 }
+
+/* Gameplay compact layout 3.1 · free space beneath the board for the Zen figure.
+   Keep the 7x7 board, painted PNG proportions and all interactive controls intact.
+   Level data remains in DOM for the game engine, but the redundant on-board row
+   is hidden; level selection in Goshuincho still shows the level title. */
+body.harmony-playing .game-view{
+  margin-top:clamp(3px,.6dvh,8px);
+}
+body.harmony-playing .game-view .game-meta{
+  display:none!important;
+}
+body.harmony-playing .game-view .game-heading{
+  margin-bottom:clamp(2px,.5dvh,5px)!important;
+}
+body.harmony-playing .game-view .goal,
+body.harmony-playing .game-view .goal.goal-complete{
+  min-height:clamp(51px,11.7vw,88px);
+  margin-bottom:clamp(3px,.55dvh,7px)!important;
+}
+body.harmony-playing .game-view .omamori-power-bar,
+body.harmony-playing .game-view .omamori-power-bar:not([hidden]){
+  min-height:clamp(65px,15vw,110px);
+  margin-bottom:clamp(2px,.5dvh,6px)!important;
+  padding-top:3px!important;
+  padding-bottom:4px!important;
+  gap:clamp(2px,.5vw,6px);
+}
+body.harmony-playing .game-view .omamori-power-label{
+  margin-bottom:0;
+}
+body.harmony-playing .game-view .omamori-power-button{
+  min-height:clamp(34px,8.5vw,50px);
+}
+body.harmony-playing .game-view .board-shell{
+  margin-top:clamp(1px,.3dvh,4px)!important;
+}

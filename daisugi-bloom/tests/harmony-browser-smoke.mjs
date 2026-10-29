@@ -835,7 +835,7 @@ try{
   assert.equal(migrated.nextStars,3,"Excellent prior score must still earn 3 stars");
   assert.deepEqual(migrated.bookStars,[1,3],
    "Goshuincho must display accurate achievements from migrated legacy scores");
-  assert.equal(migrated.target,20,"Level 11 now requires twenty fusions rather than a brief cascade");
+  assert.equal(migrated.target,24,"Level 11 uses the current calibrated fusion goal");
   assert.equal(migrated.oldTarget,7500,"Legacy score milestones remain preserved");
   await clickLegacyLevel(legacy,".level-tile:nth-child(11)");
   const milestones=await legacy.evaluate(()=>({

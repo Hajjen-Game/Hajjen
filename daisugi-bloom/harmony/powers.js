@@ -5,11 +5,16 @@
  */
 (function(root){
 "use strict";
-const VERSION=1,IDS=Object.freeze(["sakura","koi","tsuki"]),MAX=3;
+const VERSION=1,IDS=Object.freeze(["sakura","grandBloom","koi","deepCurrent","sealbreaker","twinSealbreaker","tsuki","moonGrace"]),MAX=3;
 const POWERS=Object.freeze({
- sakura:Object.freeze({name:"Bloom Touch",symbol:"✿",description:"Upgrade a tile by one stage. Reaching stage 5 triggers Harmony Pulse."}),
- koi:Object.freeze({name:"Ripple Shuffle",symbol:"〰",description:"Shuffle the selected area. Obstacles stay in place."}),
- tsuki:Object.freeze({name:"Second Chance",symbol:"☾",description:"Gain extra moves when you run out."})
+ sakura:Object.freeze({name:"Bloom Touch",symbol:"✿",description:"Upgrade one tile."}),
+ grandBloom:Object.freeze({name:"Grand Bloom",symbol:"❀",description:"Upgrade two tiles."}),
+ koi:Object.freeze({name:"Ripple Shuffle",symbol:"〰",description:"Shuffle a 2×2 area."}),
+ deepCurrent:Object.freeze({name:"Deep Current",symbol:"≋",description:"Shuffle a 3×3 area and optionally shuffle again."}),
+ sealbreaker:Object.freeze({name:"Sealbreaker",symbol:"◈",description:"Clear Mist or hit one obstacle."}),
+ twinSealbreaker:Object.freeze({name:"Twin Sealbreaker",symbol:"✧",description:"Hit two different obstacles or Mist tiles."}),
+ tsuki:Object.freeze({name:"Moon's Serenity",symbol:"☾",description:"Add three moves when out of moves."}),
+ moonGrace:Object.freeze({name:"Moon's Grace",symbol:"☽",description:"Add five moves when out of moves."})
 });
 const validLevel=n=>Number.isInteger(n)&&n>=0&&n<1000000;
 function initialize(save){
@@ -192,39 +197,105 @@ function reroll(g){
  g.koiRerollAt=-1;g.koiRerolls=(g.koiRerolls||0)+1;
  return {ok:true,events:[snapshot(g,"shuffle",{power:"koi",at,cells:changed.cells,reroll:true})]};
 }
+function strikeObstacles(g,positions,events){
+ const targets=Array.isArray(positions)?positions:[positions];
+ if(!targets.length||new Set(targets).size!==targets.length||targets.some(i=>
+  !Number.isInteger(i)||i<0||i>=49||
+  !(g.config.goal.type==="mist"&&g.mist[i])&&
+  !(g.board[i]?.family==="daruma"&&g.daruma[i])&&
+  !(g.board[i]?.family==="sealedStone"&&g.sealed[i])))return false;
+ const awakenings=[],hitDaruma=new Set(),hitStone=new Set();
+ for(const at of targets){
+  if(g.config.goal.type==="mist"&&g.mist[at]){
+   const clearedMist=g.clearMist([at]);
+   events.push(snapshot(g,"power",{power:"sealbreaker",targets:[at],clearedMist}));
+  }else if(g.board[at]?.family==="daruma"&&g.daruma[at]){
+   hitDaruma.add(at);
+   g.daruma[at]=g.daruma[at]===2?1:3;
+   const filled=g.daruma[at]===1?1:2;
+   events.push(snapshot(g,"daruma",{hits:[{at,via:"omamori",filled}]}));
+   if(filled===2){
+    g.daruma[at]=0;g.board[at]=null;g.darumaCleared++;
+    events.push(snapshot(g,"daruma-release",{positions:[at]}));
+   }
+  }else if(g.board[at]?.family==="sealedStone"&&g.sealed[at]){
+   hitStone.add(at);
+   g.sealed[at]--;
+   events.push(snapshot(g,"sealed-hit",{hits:[{at,via:"omamori",remaining:g.sealed[at]}]}));
+   if(!g.sealed[at]){g.board[at]=null;g.sealedCleared++;awakenings.push(at);}
+  }
+ }
+ const grown=new Set(),indirect=new Set();
+ for(let guard=0;awakenings.length&&guard<49;guard++){
+  const source=awakenings.shift(),targets=[],stoneTargets=[],darumaTargets=[],mistTargets=[],visualOnlyTargets=[];
+  for(const to of root.HarmonyRules.neighbors8(source)){
+   const piece=g.board[to];
+   if(piece?.family==="sealedStone"){
+    stoneTargets.push({from:source,to});
+    if(!hitStone.has(to)){
+     hitStone.add(to);g.sealed[to]--;
+     events.push(snapshot(g,"sealed-hit",{hits:[{at:to,via:"awakening",remaining:g.sealed[to]}]}));
+     if(!g.sealed[to]){g.board[to]=null;g.sealedCleared++;awakenings.push(to);}
+    }
+   }else if(piece?.family==="daruma"){
+    darumaTargets.push({from:source,to});
+    if(!hitDaruma.has(to)){
+     hitDaruma.add(to);g.daruma[to]=g.daruma[to]===2?1:3;
+     const filled=g.daruma[to]===1?1:2;
+     events.push(snapshot(g,"daruma",{hits:[{at:to,via:"awakening",filled}]}));
+     if(filled===2){g.daruma[to]=0;g.board[to]=null;g.darumaCleared++;
+      events.push(snapshot(g,"daruma-release",{positions:[to]}));}
+    }
+   }else if(!piece||piece.stage>=5||indirect.has(to)){
+    if(g.config.goal.type==="mist"&&g.mist[to])mistTargets.push({from:source,to,empty:!piece});
+    else visualOnlyTargets.push({from:source,to,empty:!piece});
+   }else{
+    indirect.add(to);g.grow(to,grown,true);
+    targets.push({from:source,to,stage:g.board[to].stage});
+   }
+  }
+  const clearedMist=g.clearMist([...targets.map(x=>x.to),...mistTargets.map(x=>x.to)]);
+  const points=targets.length*75;g.pulseHits+=targets.length;g.score+=points;
+  events.push(snapshot(g,"awakening",{sources:[source],source,targets,stoneTargets,darumaTargets,
+   mistTargets,visualOnlyTargets,clearedMist,scoreDelta:points,wave:1}));
+ }
+ for(const at of grown)if(g.board[at]?.stage===5)pulseFrom(g,at,events);
+ return true;
+}
 function apply(g,id,at=-1,tier=1){
  if(!POWERS[id]||g.complete)return {ok:false,reason:"unavailable"};
- const stage=Math.max(1,Math.min(3,Math.trunc(tier)||1));
- if(id==="tsuki"){
+ const moon=id==="tsuki"||id==="moonGrace";
+ if(moon){
   if(!g.failed||g.moves!==0)return {ok:false,reason:"not-out-of-moves"};
-  g.failed=false;g.moves=[0,2,3,5][stage];g.assisted=true;
+  g.failed=false;g.moves=id==="moonGrace"?5:3;g.assisted=true;
   g.blessingUses=(g.blessingUses||0)+1;
-  return {ok:true,events:[snapshot(g,"power",{power:id,tier:stage})]};
+  return {ok:true,events:[snapshot(g,"power",{power:id})]};
  }
- if(g.failed||g.moves<=0)return {ok:false,reason:"unavailable"};
+ if(g.failed||g.moves<=0||g.blessingUses>=2)return {ok:false,reason:"unavailable"};
  let events=[];
- if(id==="sakura"){
-  const targets=Array.isArray(at)?at:[at];
-  if(targets.length!==stage||new Set(targets).size!==targets.length||
+ if(id==="sakura"||id==="grandBloom"){
+  const n=id==="grandBloom"?2:1,targets=Array.isArray(at)?at:[at];
+  if(targets.length!==n||new Set(targets).size!==targets.length||
     targets.some(i=>!Number.isInteger(i)||i<0||i>=49||!g.board[i]||fixed(g.board[i])||g.board[i].stage>=5))
    return {ok:false,reason:"invalid-target"};
   const created=new Set();
   for(const i of targets)g.grow(i,created,false);
-  events.push(snapshot(g,"power",{power:id,tier:stage,targets:targets.slice(),at:targets[0]}));
-  for(const i of created){
-   events.push(snapshot(g,"hero",{positions:[i]}));
-   pulseFrom(g,i,events);
-  }
- }else if(id==="koi"){
+  events.push(snapshot(g,"power",{power:id,targets:targets.slice(),at:targets[0]}));
+  for(const i of created){events.push(snapshot(g,"hero",{positions:[i]}));pulseFrom(g,i,events);}
+ }else if(id==="koi"||id==="deepCurrent"){
   if(!Number.isInteger(at)||at<0||at>=49)return {ok:false,reason:"invalid-target"};
-  const changed=shuffleArea(g,at,stage);
+  const strength=id==="deepCurrent"?3:1,changed=shuffleArea(g,at,strength);
   if(!changed)return {ok:false,reason:"no-fair-shuffle"};
-  events.push(snapshot(g,"shuffle",{power:id,at,tier:stage,cells:changed.cells}));
-  g.koiRerollAt=stage===3?at:-1;
+  events.push(snapshot(g,"shuffle",{power:"koi",at,tier:strength,cells:changed.cells}));
+  g.koiRerollAt=id==="deepCurrent"?at:-1;
+ }else if(id==="sealbreaker"||id==="twinSealbreaker"){
+  const n=id==="twinSealbreaker"?2:1,targets=Array.isArray(at)?at:[at];
+  if(targets.length!==n)return {ok:false,reason:"invalid-target"};
+  if(!strikeObstacles(g,targets,events))return {ok:false,reason:"invalid-target"};
  }
  g.assisted=true;g.blessingUses=(g.blessingUses||0)+1;
  events=events.concat(g.resolve(-1));
- return {ok:true,events,tier:stage};
+ return {ok:true,events};
 }
 const api={VERSION,IDS,MAX,POWERS,initialize,status,grantForClear,starterForNewPurchase,consume,apply,reroll,shuffleArea};
 root.HarmonyPowers=api;

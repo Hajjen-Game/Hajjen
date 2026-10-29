@@ -411,7 +411,7 @@ check("First twenty have stable hand-authored objectives, fewer repeated Mist le
  }
  const stage11=R.levelConfig(10);
  assert.equal(stage11.goal.type,"fusion");
- assert.equal(stage11.goal.count,20);
+ assert.equal(stage11.goal.count,24);
  assert.equal(R.levelConfig(3).goal.count,3);
  assert.equal(R.levelConfig(4).goal.count,4);
  assert.equal(R.levelConfig(12).goal.count,6);

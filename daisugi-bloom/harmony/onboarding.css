@@ -54,6 +54,8 @@ body.harmony-playing .game-view .goal #goalLabel{
 }
 body.harmony-playing .game-view .goal .jh-goal-help{
   appearance:none;
+  position:relative;
+  z-index:1;
   display:grid;
   place-items:center;
   flex:0 0 clamp(21px,5.4vw,26px);
@@ -70,6 +72,12 @@ body.harmony-playing .game-view .goal .jh-goal-help{
   text-shadow:none;
   touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
+}
+/* Visual icon stays small, but the touch target is about 40–44 px. */
+body.harmony-playing .game-view .goal .jh-goal-help::after{
+  content:"";
+  position:absolute;
+  inset:-10px;
 }
 body.harmony-playing .game-view .goal .jh-goal-help:focus-visible{
   outline:2px solid #a7493b;

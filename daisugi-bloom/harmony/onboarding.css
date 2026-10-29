@@ -120,7 +120,7 @@ body.harmony-playing .game-view .goal .jh-goal-help:active{
 }
 
 
-/* Goshuincho selected-level readability 2.2
+/* Goshuincho selected-level readability 2.3
    Give the four text rows a safe inset from the left ornament and lift
    them slightly above the lower paper border. Keep the painted card,
    play button and chapter geometry exactly where they are. */
@@ -140,9 +140,9 @@ body.harmony-playing .game-view .goal .jh-goal-help:active{
  gap:clamp(2px,.4svh,4px);
  justify-content:center;
  box-sizing:border-box;
- padding-left:3px;
+ padding-left:9px;
  position:relative;
- top:-3px;
+ top:1px;
 }
 #modal .washi-goshuincho .washi-detail-numeral{
  color:#97493f;

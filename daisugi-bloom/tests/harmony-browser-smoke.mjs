@@ -96,7 +96,7 @@ try{
   await nav.click("#pauseButton");
   await nav.click(".pause-levels");
   assert.equal(await nav.$eval("#modalTitle",e=>e.textContent),"Goshuincho");
-  assert.equal(await nav.$eval(".washi-level-tile",e=>e.length),10);
+  assert.equal(await nav.$eval(".washi-level-tile",els=>els.length),10);
   assert.equal(await nav.$eval(".washi-detail-play",e=>e.textContent),"CONTINUE");
   // Onboarding 2.0: book preview exposes the real mission and remaining moves.
   const detail=await nav.$eval(".washi-level-detail",e=>e.textContent);

@@ -61,7 +61,7 @@ try{
  await page.click("#continueButton");
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:9000});
  await page.evaluate(()=>document.querySelector(".jh-tutorial-ok")?.click());
- assert((await page.$eval(".omamori-remaining",x=>x.textContent)).includes("2/2 used"));
+ assert.equal(await page.$eval(".omamori-remaining",x=>x.textContent),"2/2");
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  // Automatic Moon prompt appears when the FINAL move is actually spent.
  const pair=await page.evaluate(key=>{

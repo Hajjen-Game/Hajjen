@@ -19,7 +19,7 @@ expect("Exactly stages 31–40 use 4-hit Sealed Stone missions",()=>{
   assert.equal(g.config.goal.type,"sealedStone");
   assert.equal(g.config.goal.count,count);
   assert.equal(g.sealedStoneVersion,1);
-  assert.equal(g.goalText(),"Brutna förseglingar");
+  assert.equal(g.goalText(),"Broken seals");
   assert.equal(g.progress(),0);
   assert.equal(g.sealed.filter(Boolean).length,count);
   assert.equal(g.board.filter(c=>c?.family==="sealedStone").length,count);

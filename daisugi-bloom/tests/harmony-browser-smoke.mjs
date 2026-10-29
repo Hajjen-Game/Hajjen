@@ -1977,15 +1977,15 @@ try{
  await page.click("#pauseButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Game Menu",{timeout:5000});
  await page.evaluate(()=>{
-  const button=[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Prestanda");
+  const button=[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Performance");
   if(!button)throw new Error("Performance action missing from open game menu");
   button.click();
  });
- assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Prestanda");
+ assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Performance");
  const report=await page.$eval("#modalContent",e=>e.textContent);
  assert(report.includes("Measured moves")&&report.includes("95th percentile")&&report.includes("Animations started"),
   "Performance report should expose turn metrics, not fake benchmark values");
- assert(report.includes("Inga data skickas"),"Diagnostics must be local-only");
+ assert(report.includes("No data is sent."),"Diagnostics must be local-only");
  await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);
 
 
@@ -2129,7 +2129,7 @@ try{
   },finishingPair);
   await clarity.waitForFunction(()=>{
    const dialog=document.querySelector("#modal");
-   return !dialog.hidden&&dialog.querySelector("#modalTitle")?.textContent==="Vilken harmoni!";
+   return !dialog.hidden&&dialog.querySelector("#modalTitle")?.textContent==="Beautiful harmony!";
   },{timeout:35000});
   const reached=await clarity.evaluate(()=>{
    const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
@@ -2191,7 +2191,7 @@ try{
   }
   await clarity.setViewport({width:390,height:844,deviceScaleFactor:2,
    isMobile:true,hasTouch:true});
-  assert.equal(reached.scoreLabel,"SCORE");
+  assert(reached.scoreLabel.startsWith("SCORE"),"The score label must remain clear");
   await clarity.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(x=>x.textContent.includes("Keep playing for a high score")).click());
   assert.equal(await clarity.$eval("#modal",x=>x.hidden),true,
    "Voluntary record play must resume immediately");

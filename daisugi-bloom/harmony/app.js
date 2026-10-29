@@ -1227,7 +1227,7 @@ function choose(i){
  if(selected>=0&&selected!==i&&R.neighbors(selected).includes(i)){const a=selected;selected=-1;trySwap(a,i);return;}
  selected=selected===i?-1:i;
  if(selected===i)sound("tap");
- $("selectedInfo").textContent=selected<0?"Swap two adjacent tiles or swipe.":names[game.board[i].family]+" · tier "+game.board[i].stage+" of 5 · choose a neighbor";
+ $("selectedInfo").textContent=selected<0?"Swap two adjacent tiles or swipe.":names[game.board[i].family]+" · stage "+game.board[i].stage+" of 5 · choose a neighbor";
  renderBoard(game.board);
  if(selected===i&&!FAST()){
   const piece=boardTiles[i]?.querySelector(".piece");

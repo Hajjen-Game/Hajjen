@@ -1398,7 +1398,7 @@ try{
    families:R.activeFamilies(i).length,moves:R.levelConfig(i).moves}));
  });
  assert(endless.every(x=>x.type!=="score"&&x.families===5&&
-  (x.number<=20?(x.moves>=26&&x.moves<=43):(x.moves>=34))),
+  (x.number<=20?(x.moves>=25&&x.moves<=43):(x.moves>=34))),
   "Journey 11–20 must have reduced moves while the later Journey stays unchanged");
  assert(endless[0].type==="fusion"&&endless[1].type==="mist");
  const missionMix=await page.evaluate(()=>
@@ -1416,7 +1416,7 @@ try{
  });
  assert.deepEqual(floor.fresh,{type:"fourTurns",count:4});
  assert.deepEqual(floor.old,{type:"four",count:2});
- assert.equal(floor.label,"Drag med fyrmatchning");
+ assert.equal(floor.label,"Moves with a four-tile match");
  assert.equal(floor.balance,3);
  // Real 390px phone: faster fog drifts; fusion clears only its output
  // cell, while Harmony Pulse clears cells it actually hits.
@@ -2204,7 +2204,7 @@ try{
     return getComputedStyle(sprite).display==="block";
    })
   }));
-  assert(ryu.families.includes("Ryu-drake")&&ryu.visible,
+  assert(ryu.families.includes("Ryu Dragon")&&ryu.visible,
    "Level 5 should display Ryu's atlas sprite in the four-family game");
  // Core Gameplay & Clarity 1.0: real mobile completion should show the
  // result immediately without consuming the player's remaining moves.

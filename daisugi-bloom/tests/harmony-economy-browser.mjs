@@ -14,7 +14,7 @@ try{
  await page.click("#omamoriButton");
  assert.equal(await page.$eval("#modalTitle",el=>el.textContent),"Omamori");
  assert.equal(await page.$$eval(".omamori-card",xs=>xs.length),8);
- assert.equal(await page.$eval('.omamori-card[data-kind="keepsake"]',xs=>xs.length),0);
+ assert.equal(await page.$$eval('.omamori-card[data-kind="keepsake"]',xs=>xs.length),0);
  const cardPaint=await page.evaluate(()=>{
   const red=id=>getComputedStyle(document.querySelector(
    '.omamori-card[data-omamori-id="'+id+'"] .omamori-charm')).backgroundImage;

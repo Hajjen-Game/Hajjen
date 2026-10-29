@@ -1,4 +1,4 @@
-/* Score Motes 1.0
+/* Score Motes 1.1 – Visibility Boost
  * Score is carried by tiny floating-magic-dust-like particles, not a
  * numbered token, ribbon or solid beam. Each dot is compositor animated
  * on the existing pointer-free global score overlay.
@@ -7,8 +7,8 @@
  position:absolute;
  display:block;
  box-sizing:border-box;
- width:4px;
- height:4px;
+ width:6.5px;
+ height:6.5px;
  padding:0;
  border:0;
  border-radius:50%;
@@ -17,24 +17,38 @@
  transform-origin:center;
  opacity:0;
  will-change:transform,opacity;
- background:radial-gradient(circle,#fffdf6 0%,#ffe9c0 40%,rgba(240,182,100,.19) 75%,transparent 100%);
- box-shadow:0 0 3px rgba(255,222,165,.38);
+ background:radial-gradient(circle,#fffefa 0%,#ffe7af 45%,rgba(255,188,90,.48) 76%,transparent 100%);
+ box-shadow:0 0 7px 2px rgba(255,221,141,.80),0 0 16px 3px rgba(247,177,76,.33);
 }
 .score-fx-overlay .score-shot-mote.shot-core{
- width:5.5px;
- height:5.5px;
+ width:10px;
+ height:10px;
+}
+.score-fx-overlay .score-shot-mote.shot-lead{
+ width:9px;
+ height:9px;
+ box-shadow:0 0 9px 3px rgba(255,251,210,.91),0 0 20px 5px rgba(246,188,96,.54);
+}
+.score-fx-overlay .score-shot-mote.shot-trailer{
+ width:6px;
+ height:6px;
+}
+.score-fx-overlay .score-shot-mote.shot-core.shot-lead{
+ width:11px;
+ height:11px;
+ box-shadow:0 0 11px 4px rgba(255,252,224,.96),0 0 22px 6px rgba(251,197,97,.57);
 }
 .score-fx-overlay .score-shot-mote.shot-pearl{
- background:radial-gradient(circle,#fffefa 0%,#fff3dd 46%,rgba(255,245,221,.12) 77%,transparent 100%);
- box-shadow:0 0 3px rgba(255,249,227,.4);
+ background:radial-gradient(circle,#fff 0%,#fff5d9 46%,rgba(255,245,221,.60) 79%,transparent 100%);
+ box-shadow:0 0 9px 3px rgba(255,250,228,.84),0 0 17px rgba(255,227,175,.51);
 }
 .score-fx-overlay .score-shot-mote.shot-gold{
- background:radial-gradient(circle,#fff7df 0%,#f8dca2 43%,rgba(236,188,103,.15) 77%,transparent 100%);
- box-shadow:0 0 4px rgba(255,214,135,.43);
+ background:radial-gradient(circle,#fffcf0 0%,#ffcc64 47%,rgba(255,169,58,.54) 79%,transparent 100%);
+ box-shadow:0 0 9px 3px rgba(255,211,114,.83),0 0 17px rgba(251,178,72,.43);
 }
 .score-fx-overlay .score-shot-mote.shot-sakura{
- background:radial-gradient(circle,#fff9fc 0%,#f4bed4 43%,rgba(244,163,197,.15) 77%,transparent 100%);
- box-shadow:0 0 3px rgba(243,173,198,.28);
+ background:radial-gradient(circle,#fffdfc 0%,#ffbfda 47%,rgba(254,169,197,.52) 79%,transparent 100%);
+ box-shadow:0 0 8px 2px rgba(255,194,219,.72),0 0 16px rgba(246,157,193,.36);
 }
 .score-fx-overlay .score-shot-mote.shot-star::after{
  content:"";
@@ -42,8 +56,8 @@
  inset:-1px;
  pointer-events:none;
  background:
-  linear-gradient(90deg,transparent 44%,rgba(255,253,237,.50) 49% 51%,transparent 56%),
-  linear-gradient(0deg,transparent 44%,rgba(255,253,237,.48) 49% 51%,transparent 56%);
+  linear-gradient(90deg,transparent 44%,rgba(255,253,237,.90) 49% 51%,transparent 56%),
+  linear-gradient(0deg,transparent 44%,rgba(255,253,237,.87) 49% 51%,transparent 56%);
 }
 @media(prefers-reduced-motion:reduce){
  .score-fx-overlay .score-shot-mote{display:none!important}

@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,H=window.HarmonySaveHealth,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,H=window.HarmonySaveHealth,T=window.HarmonyTutorialHelp,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu Dragon"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -426,39 +426,61 @@ function levelPreview(index,resumable=false){
  }
  return {data:O.preview(index,cfg,rewardVersion===3?R.moveStarTargets:null),remaining,rewardVersion};
 }
-function showGoalHelp(){
+// Tutorial Help Modal 1.0: reuse the SAME illustrated guide for the first
+// encounter and the ? next to GOAL. Only OK acknowledges a new lesson.
+function goalLesson(){
+ const original=O.lesson(level);
+ if(original)return original;
+ const key=({mist:"mist",daruma:"daruma",sealedStone:"stone",fourTurns:"four",
+  familyFusion:"lantern",familyMasterpiece:"lantern-masterpiece",
+  masterpiece:"pulse",pulseHits:"pulse"})[game.config.goal.type];
+ return key?Object.values(O.LESSONS).find(item=>item.key===key)||null:null;
+}
+function showTutorialHelp(lesson,firstTime=false){
  if(!game||busy||$("gameView").hidden)return;
  disarmDecisionClock();clearIdleHint();
- const info=O.preview(level,game.config,R.moveStarTargets),lesson=info.lesson;
- $("modalEyebrow").textContent="LEVEL "+(level+1)+" · 目標";
- $("modalTitle").textContent=game.config.name;
+ const info=O.preview(level,game.config,R.moveStarTargets);
+ const topic=lesson||{key:"match",title:game.goalText(),short:game.config.intro||"Match treasures to complete this goal.",
+  detail:game.config.intro||"Match at least three objects in a line."};
+ $("modalEyebrow").textContent="LEVEL "+(level+1)+" · HOW TO PLAY";
+ $("modalTitle").textContent=topic.title;
  const panel=$("modalContent");panel.replaceChildren();
- const details=goshuinNode("section","jh-guide");
- details.append(goshuinNode("strong","jh-guide-goal","GOAL · "+info.objective),
-  goshuinNode("span","jh-guide-meta",game.moves+" moves left · "+game.progress()+" / "+game.target()));
- if(game.rewardVersion===3)details.append(goshuinNode("span","jh-guide-meta",
-  "Three stars: complete within "+info.threeStars+" moves · Two stars: within "+info.twoStars));
- details.append(goshuinNode("span","jh-guide-state",Q.detail(game)));
- details.append(goshuinNode("p","jh-guide-tip",lesson?.detail||info.tip));
- if(game.assisted)details.append(goshuinNode("p","jh-guide-subtip",
-  "Omamori-assisted wins unlock the next level but do not earn regular Goshuincho stars, coins or records."));
- panel.append(details);
+ panel.append(T.render(topic));
+ if(!firstTime){
+  const state=goshuinNode("div","jh-tutorial-status");
+  state.append(goshuinNode("strong","jh-guide-goal","GOAL · "+info.objective),
+   goshuinNode("span","jh-guide-state",Q.detail(game)));
+  panel.append(state);
+  const more=goshuinNode("details","jh-tutorial-more");
+  more.append(goshuinNode("summary","","More about this goal"),
+   goshuinNode("p","",topic.detail||info.tip));
+  panel.append(more);
+ }
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("pause-menu-actions","victory-actions");
- modalButton(actions,"BACK TO GAME","primary",()=>{
+ const ok=modalButton(actions,"OK","primary jh-tutorial-ok",()=>{
+  if(firstTime){
+   if(!save.tutorialHelpSeen||typeof save.tutorialHelpSeen!=="object"||
+      Array.isArray(save.tutorialHelpSeen))save.tutorialHelpSeen={};
+   save.tutorialHelpSeen[topic.key]=true;
+   persist();
+  }
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
  });
- modalButton(actions,"FULL RULES","secondary",()=>{$("helpButton").click();});
  $("modal").hidden=false;
+ ok.focus({preventScroll:true});
 }
-function offerFirstLesson(index,resuming){
- if(resuming)return;
+function showGoalHelp(){
+ if(!game||busy||$("gameView").hidden)return;
+ showTutorialHelp(goalLesson(),false);
+}
+function offerFirstLesson(index){
  const lesson=O.lesson(index);if(!lesson)return;
- if(!save.onboardingSeen||typeof save.onboardingSeen!=="object"||Array.isArray(save.onboardingSeen))
-  save.onboardingSeen={};
- if(save.onboardingSeen[lesson.key])return;
- save.onboardingSeen[lesson.key]=true;persist();
- toast(lesson.short+"  Tap the ? next to GOAL for details.",5200);
+ if(save.tutorialHelpSeen&&typeof save.tutorialHelpSeen==="object"&&
+    !Array.isArray(save.tutorialHelpSeen)&&save.tutorialHelpSeen[lesson.key]===true)return;
+ // No timed auto-hide and no premature seen flag. A resumed level still shows
+ // an unread guide; pressing OK is the sole persisted acknowledgment.
+ showTutorialHelp(lesson,true);
 }
 function showGoshuincho(chapterIndex=null){
  if(busy||!$("gameView").hidden)return;
@@ -1018,8 +1040,8 @@ function startLevel(i,resume=false){
   });
  }
  prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();updateSpiritBadge();renderPowerBar();saveRun();armDecisionClock();restartIdleHint();
- // One-time, non-blocking lesson. The board keeps its existing proportions.
- offerFirstLesson(i,!!data);
+ // One-time, player-acknowledged illustrated lesson, including resumed unread runs.
+ offerFirstLesson(i);
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.

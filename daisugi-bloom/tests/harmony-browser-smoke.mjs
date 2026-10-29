@@ -1997,7 +1997,7 @@ try{
  assert.equal(fx.ring,0,"The disliked circular ring must not appear on ordinary fusions");
  assert(fx.impact>=1,"Incoming points must pulse at the score field: "+JSON.stringify(fx));
  assert.equal(fx.maxTokenWidth,0,"Flying point badges have been intentionally removed");
- assert.equal(await page.$eval(".score-flight-token, .score-trail-dot",els=>els.length),0,
+ assert.equal(await page.evaluate(()=>document.querySelectorAll(".score-flight-token, .score-trail-dot").length),0,
   "Old score pill/trail may not return to the DOM");
  assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Score FX must not reintroduce permanent labels");
  assert.equal(await page.evaluate(()=>document.body.dataset.festival),festivalAtStart,"Backdrop must not change during a turn");

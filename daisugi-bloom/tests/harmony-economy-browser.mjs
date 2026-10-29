@@ -14,7 +14,14 @@ try{
  await page.click("#omamoriButton");
  assert.equal(await page.$eval("#modalTitle",el=>el.textContent),"Omamori");
  assert.equal(await page.$$eval(".omamori-card",xs=>xs.length),8);
- assert.equal(await page.$$eval('.omamori-card[data-kind="keepsake"]',xs=>xs.length),0);
+ assert.equal(await page.$eval('.omamori-card[data-kind="keepsake"]',xs=>xs.length),0);
+ const cardPaint=await page.evaluate(()=>{
+  const red=id=>getComputedStyle(document.querySelector(
+   '.omamori-card[data-omamori-id="'+id+'"] .omamori-charm')).backgroundImage;
+  return {single:red("sealbreaker"),twin:red("twinSealbreaker")};
+ });
+ assert.equal(cardPaint.single,cardPaint.twin,
+  "Sealbreaker and Twin Sealbreaker must share the exact red card finish");
  await page.click(".omamori-close");
  await page.evaluate(key=>{
   const s=JSON.parse(localStorage.getItem(key));
@@ -40,10 +47,40 @@ try{
  await page.click("#continueButton");
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:9000});
  await page.evaluate(()=>document.querySelector(".jh-tutorial-ok")?.click());
- const bar=await page.$eval("#omamoriPowerBar",e=>({height:e.getBoundingClientRect().height,
-  full:e.getBoundingClientRect().width,text:e.textContent}));
- assert(bar.height>=38&&bar.height<=51,"Single booster bar must be compact, got "+bar.height);
- assert(bar.text.includes("OMAMORI"));
+ const bar=await page.evaluate(()=>{
+  const plaque=document.querySelector("#omamoriPowerBar");
+  const title=plaque.querySelector(".omamori-hud-title");
+  const stock=plaque.querySelector(".omamori-hud-stock");
+  const meter=plaque.querySelector(".omamori-remaining");
+  const action=plaque.querySelector(".omamori-open");
+  const p=plaque.getBoundingClientRect(),b=action.getBoundingClientRect();
+  return {height:p.height,width:p.width,title:title.textContent,stock:stock.textContent,
+   children:[...plaque.children].map(node=>node.className),
+   label:action.textContent,used:meter.textContent,
+   frame:getComputedStyle(plaque).borderImageSource,
+   inset:getComputedStyle(meter).borderImageSource,
+   buttonFrame:getComputedStyle(action).borderImageSource,
+   buttonHeight:b.height,
+   buttonBounds:{left:b.left,right:b.right,top:b.top,bottom:b.bottom},
+   plaqueBounds:{left:p.left,right:p.right,top:p.top,bottom:p.bottom}};
+ });
+ assert(bar.height>=79&&bar.height<=116,"Approved washi Omamori panel should stay compact: "+bar.height);
+ assert(bar.frame.includes("goal-omamori-original-20261029.png"),
+  "Outer Omamori panel must reuse the exact approved GOAL plaque");
+ assert(bar.inset.includes("score-panel-20261029.png"),
+  "0/2 counter must have a miniature approved washi panel");
+ assert(bar.buttonFrame.includes("moves-panel-20261029.png"),
+  "OPEN CARDS must be a visibly framed action, not hidden in the title");
+ assert(bar.title.includes("OMAMORI")&&bar.title.includes("お守り"));
+ assert.equal(bar.stock,"2 cards");
+ assert.equal(bar.used,"0/2");
+ assert(bar.label.includes("OPEN CARDS"),"The action must explicitly say OPEN CARDS");
+ assert(bar.buttonHeight>=32,"OPEN CARDS needs a mobile-friendly tap target");
+ assert(bar.children.indexOf("omamori-hud-heading")<bar.children.indexOf("omamori-remaining"),
+  "Title and inventory quantity must precede the 0/2 panel");
+ assert(bar.buttonBounds.left>=bar.plaqueBounds.left-1&&
+  bar.buttonBounds.right<=bar.plaqueBounds.right+1&&
+  bar.buttonBounds.bottom<=bar.plaqueBounds.bottom+1,"Button must remain inside artwork");
  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
  assert.equal(overflow,false,"Small-phone layout must not scroll horizontally");
  await page.click(".omamori-open");

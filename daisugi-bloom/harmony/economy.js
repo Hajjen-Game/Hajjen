@@ -1,6 +1,6 @@
 /* Japanese Harmony · Harmony Economy & Omamori 1.0
- * Offline, cosmetic-only collection. One-time rewards for first clears and
- * higher earned stars; no random drops, pay-to-win or repeat-farming.
+ * Offline Harmony Coins: consumable power cards and permanent keepsakes.
+ * First-clear rewards are star-based; repeat rewards are daily capped.
  * Pure helpers; only the caller persists its local browser save.
  */
 (function(root){
@@ -8,12 +8,12 @@
 const VERSION=1;
 const START=12,PER_STAR=8,MAX_COINS=10000000;
 const CATALOG=Object.freeze([
- Object.freeze({id:"sakura",name:"Sakura's Blessing",theme:"sakura",symbol:"✿",price:80,subtitle:"A reminder of new beginnings.",meaning:"Bloom"}),
- Object.freeze({id:"kiri",name:"Stillness of Mist",theme:"mist",symbol:"☁",price:140,subtitle:"Calm even when the path is unclear.",meaning:"Stillness"}),
- Object.freeze({id:"daruma",name:"Daruma's Promise",theme:"daruma",symbol:"◉",price:220,subtitle:"A small promise of perseverance.",meaning:"Perseverance"}),
- Object.freeze({id:"akari",name:"Lantern Glow",theme:"lantern",symbol:"✦",price:320,subtitle:"Carry a little warmth with you.",meaning:"Warmth"}),
- Object.freeze({id:"koi",name:"Path of the Koi",theme:"koi",symbol:"〰",price:440,subtitle:"Follow the current, find your rhythm.",meaning:"Flow"}),
- Object.freeze({id:"tsuki",name:"Moon's Serenity",theme:"moon",symbol:"☾",price:560,subtitle:"A quiet light along the journey.",meaning:"Peace"})
+ Object.freeze({id:"sakura",name:"Sakura's Blessing",theme:"sakura",symbol:"✿",kind:"power",price:80,subtitle:"A reminder of new beginnings.",meaning:"Bloom"}),
+ Object.freeze({id:"kiri",name:"Stillness of Mist",theme:"mist",symbol:"☁",kind:"keepsake",price:140,subtitle:"Calm even when the path is unclear.",meaning:"Stillness"}),
+ Object.freeze({id:"daruma",name:"Daruma's Promise",theme:"daruma",symbol:"◉",kind:"keepsake",price:220,subtitle:"A small promise of perseverance.",meaning:"Perseverance"}),
+ Object.freeze({id:"akari",name:"Lantern Glow",theme:"lantern",symbol:"✦",kind:"keepsake",price:320,subtitle:"Carry a little warmth with you.",meaning:"Warmth"}),
+ Object.freeze({id:"koi",name:"Path of the Koi",theme:"koi",symbol:"〰",kind:"power",price:160,subtitle:"Follow the current, find your rhythm.",meaning:"Flow"}),
+ Object.freeze({id:"tsuki",name:"Moon's Serenity",theme:"moon",symbol:"☾",kind:"power",price:200,subtitle:"A quiet light along the journey.",meaning:"Peace"})
 ]);
 const byId=id=>CATALOG.find(x=>x.id===id)||null;
 const stars=n=>Number.isFinite(Number(n))?Math.max(0,Math.min(3,Math.trunc(Number(n)))):0;

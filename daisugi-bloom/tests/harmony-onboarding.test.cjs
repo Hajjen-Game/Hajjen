@@ -44,4 +44,15 @@ assert(app.includes("function showGoalHelp("));
 assert(app.includes("function offerFirstLesson("));
 assert(app.includes("offerFirstLesson(i,!!data);"));
 assert(app.includes("if(resuming)return;"),"Don't interrupt resumed games");
+const compactSection=app.slice(app.indexOf('const select=(stamp,tile)=>{'),app.indexOf('const play=goshuinNode("button","washi-detail-play"',app.indexOf('const select=(stamp,tile)=>{')));
+assert(compactSection.includes('washi-detail-objective')&&compactSection.includes('washi-detail-budget'),
+ "Goshuincho still needs goal and move counts");
+assert(!compactSection.includes('washi-detail-lesson'),
+ "Long tutorial text must not return to the narrow painted level card");
+assert(compactSection.includes('★★★ ≤'),
+ "The three-star challenge should be a concise single-line hint");
+const css=fs.readFileSync(path.join(__dirname,"../harmony/onboarding.css"),"utf8");
+assert(css.includes("Goshuincho selected-level readability 2.1"));
+assert(html.includes("onboarding.css?v=2.1.1-compact"));
+
 console.log("Gameplay Clarity & Onboarding 2.0 tests passed.");

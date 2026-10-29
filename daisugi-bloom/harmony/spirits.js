@@ -7,14 +7,14 @@
 const VERSION=1;
 const TIERS=Object.freeze([1,3,6]);
 const IDENTITIES=Object.freeze({
- sakura:Object.freeze({id:"sakura",symbol:"✿",name:"Sakuras välsignelse",
-  mission:"Skapa minst ett mästerverk under en nivå",
-  reward:["Sakuraglöd","Blomstrande ljuspuls","Gyllene körsbärsblomning"],
-  title:["Frö","Blomning","Evig vår"]}),
- daruma:Object.freeze({id:"daruma",symbol:"◉",name:"Darumas löfte",
-  mission:"Träffa en Daruma eller Sealed Stone under en nivå (21–40)",
-  reward:["Löftesglöd","Sigill av uthållighet","Gyllene välsignelse"],
-  title:["Löfte","Uthållighet","Fullbordan"]})
+ sakura:Object.freeze({id:"sakura",symbol:"✿",name:"Sakura's Blessing",
+  mission:"Create at least one masterpiece during a level",
+  reward:["Sakura Glow","Blooming Light Pulse","Golden Cherry Blossom"],
+  title:["Seed","Bloom","Eternal Spring"]}),
+ daruma:Object.freeze({id:"daruma",symbol:"◉",name:"Daruma's Promise",
+  mission:"Hit a Daruma or Sealed Stone during a level (21–40)",
+  reward:["Promise Glow","Seal of Perseverance","Golden Blessing"],
+  title:["Promise","Perseverance","Fulfillment"]})
 });
 const validLevel=n=>Number.isInteger(n)&&n>=0&&n<1000000;
 function initialize(save){

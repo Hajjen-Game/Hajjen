@@ -8,12 +8,12 @@
 const VERSION=1;
 const START=12,PER_STAR=8,MAX_COINS=10000000;
 const CATALOG=Object.freeze([
- Object.freeze({id:"sakura",name:"Sakuras välsignelse",theme:"sakura",symbol:"✿",price:80,subtitle:"En påminnelse om nya början.",meaning:"Blomning"}),
- Object.freeze({id:"kiri",name:"Dimmans stillhet",theme:"mist",symbol:"☁",price:140,subtitle:"Lugn även när vägen är oklar.",meaning:"Stillhet"}),
- Object.freeze({id:"daruma",name:"Darumas löfte",theme:"daruma",symbol:"◉",price:220,subtitle:"Ett litet löfte om uthållighet.",meaning:"Uthållighet"}),
- Object.freeze({id:"akari",name:"Lyktans sken",theme:"lantern",symbol:"✦",price:320,subtitle:"Ett varmt sken att bära med sig.",meaning:"Värme"}),
- Object.freeze({id:"koi",name:"Koins väg",theme:"koi",symbol:"〰",price:440,subtitle:"Följ strömmen, hitta din rytm.",meaning:"Flöde"}),
- Object.freeze({id:"tsuki",name:"Månens ro",theme:"moon",symbol:"☾",price:560,subtitle:"Ett stilla ljus över resan.",meaning:"Ro"})
+ Object.freeze({id:"sakura",name:"Sakura's Blessing",theme:"sakura",symbol:"✿",price:80,subtitle:"A reminder of new beginnings.",meaning:"Bloom"}),
+ Object.freeze({id:"kiri",name:"Stillness of Mist",theme:"mist",symbol:"☁",price:140,subtitle:"Calm even when the path is unclear.",meaning:"Stillness"}),
+ Object.freeze({id:"daruma",name:"Daruma's Promise",theme:"daruma",symbol:"◉",price:220,subtitle:"A small promise of perseverance.",meaning:"Perseverance"}),
+ Object.freeze({id:"akari",name:"Lantern Glow",theme:"lantern",symbol:"✦",price:320,subtitle:"Carry a little warmth with you.",meaning:"Warmth"}),
+ Object.freeze({id:"koi",name:"Path of the Koi",theme:"koi",symbol:"〰",price:440,subtitle:"Follow the current, find your rhythm.",meaning:"Flow"}),
+ Object.freeze({id:"tsuki",name:"Moon's Serenity",theme:"moon",symbol:"☾",price:560,subtitle:"A quiet light along the journey.",meaning:"Peace"})
 ]);
 const byId=id=>CATALOG.find(x=>x.id===id)||null;
 const stars=n=>Number.isFinite(Number(n))?Math.max(0,Math.min(3,Math.trunc(Number(n)))):0;

@@ -100,8 +100,21 @@ try{
   assert.equal(await nav.$eval(".washi-detail-play",e=>e.textContent),"CONTINUE");
   // Onboarding 2.0: book preview exposes the real mission and remaining moves.
   const detail=await nav.$eval(".washi-level-detail",e=>e.textContent);
-  assert(detail.includes("GOAL")&&detail.includes("moves left"),
+  assert(detail.includes("GOAL")&&detail.includes("MOVES LEFT"),
     "Goshuincho must show goal and remaining moves before resuming");
+  // Clarity 2.1: keep precisely four legible rows inside the paper.
+  const compact=await nav.$eval(".washi-level-detail",element=>{
+    const paper=element.getBoundingClientRect();
+    const copy=element.querySelector(".washi-detail-copy");
+    const rows=Array.from(copy.children).map(node=>node.getBoundingClientRect());
+    return {rows:rows.length,hasLongLesson:!!copy.querySelector(".washi-detail-lesson"),
+      top:Math.min(...rows.map(r=>r.top)),bottom:Math.max(...rows.map(r=>r.bottom)),
+      paperTop:paper.top,paperBottom:paper.bottom};
+  });
+  assert.equal(compact.rows,4,"Selected-level preview should contain four short rows");
+  assert.equal(compact.hasLongLesson,false,"Full tutorials should open in the game");
+  assert(compact.top>=compact.paperTop+4&&compact.bottom<=compact.paperBottom-4,
+    "Level summary must fit inside the painted frame");
   await nav.click(".washi-detail-play");await nav.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   assert.equal(await nav.$eval("#gameView",e=>e.hidden),false);
   assert.equal(await nav.$eval("#modal",e=>e.hidden),true);

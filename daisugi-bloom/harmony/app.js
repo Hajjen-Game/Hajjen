@@ -1680,39 +1680,41 @@ function flyPoints(evt){
   const dx=dest.left+dest.width*.5-x,dy=dest.top+dest.height*.5-y;
   const bend=dx>=0?Math.min(-18,-Math.abs(dx)*.12):Math.max(18,Math.abs(dx)*.12);
   scoreFlights++;
-  // Score Motes 1.0: no pill, number, beam or solid trail. A small swarm
+  // Score Motes 1.1: bright leading sparks followed by a long particle tail.
   // of pearly/gold/sakura dust shoots from the fusion tile to SCORE.
   // Keep roughly the old 500–555ms travel time and count up ON arrival.
   const duration=MOBILE_LITE?500:530;
-  const budget=LITE_FX()?5:MOBILE_LITE?8:11;
+  const budget=LITE_FX()?12:MOBILE_LITE?25:32;
   const motes=Math.max(1,Math.min(budget,
-   MOBILE_LITE?Math.max(1,36-fxCount()):Math.max(1,62-fxCount())));
-  const startW=Math.min(7,from.width*.105);
-  const startH=Math.min(6,from.height*.10);
+   MOBILE_LITE?Math.max(12,96-fxCount()):Math.max(18,140-fxCount())));
+  const trailMs=MOBILE_LITE?185:205;
+  const startW=Math.min(10,from.width*.18);
+  const startH=Math.min(9,from.height*.15);
   let lead=null;
   for(let k=0;k<motes;k++){
    // Deterministic offsets: the stream has organic depth, not random
    // state or changes to board outcomes. Every mote ends inside SCORE.
    const angle=(k*2.39996)+item.at*.46;
-   const radial=k===0?0:.4+((k*7)%5)*.20;
+   const radial=k===0?0:.32+((k*7)%7)*.14;
    const sx=Math.cos(angle)*startW*radial;
    const sy=Math.sin(angle)*startH*radial;
-   const ex=k===0?0:Math.cos(angle+1.7)*Math.min(5,dest.width*.10);
-   const ey=k===0?0:Math.sin(angle+1.7)*3.5;
-   const curve=bend*(k===0?1:.8+(k%4)*.10);
-   const rise=18+(k%4)*3;
+   const ex=k===0?0:Math.cos(angle+1.7)*Math.min(7,dest.width*.12);
+   const ey=k===0?0:Math.sin(angle+1.7)*4.5;
+   const leader=k<3;
+   const curve=bend*(leader?1:.78+(k%5)*.085);
+   const rise=18+(k%5)*3;
    const mote=fxAt("score-shot-mote "+
-    (k%5===0?"shot-pearl":k%5===2?"shot-sakura":"shot-gold")+
-    (k===0?" shot-core":"")+
-    (k%4===0?" shot-star":""),x+sx,y+sy);
+    (k%6===0?"shot-pearl":k%6===3?"shot-sakura":"shot-gold")+
+    (k===0?" shot-core":"")+(leader?" shot-lead":" shot-trailer")+
+    (k%5===0?" shot-star":""),x+sx,y+sy);
    if(k===0)mote.dataset.points=String(points);
-   const stagger=k===0?0:Math.min(70,9+k*8);
-   const travel=duration-(k%3)*8;
+   const stagger=leader?k*7:Math.round(17+((k-3)/Math.max(1,motes-4))*(trailMs-17));
+   const travel=duration-(k%4)*8;
    const motion=animateNode(mote,[
-    {transform:"translate3d(0,0,0) scale(.50)",opacity:.10,offset:0},
-    {transform:"translate3d("+((dx*.12+curve*.15))+"px,"+(dy*.12-rise*.6)+"px,0) scale(1.06)",opacity:.95,offset:.18},
-    {transform:"translate3d("+(dx*.48+curve)+"px,"+(dy*.48-rise)+"px,0) scale(.95)",opacity:.97,offset:.51},
-    {transform:"translate3d("+(dx*.84+curve*.25)+"px,"+(dy*.84-rise*.46)+"px,0) scale(.74)",opacity:.90,offset:.83},
+    {transform:"translate3d(0,0,0) scale(.70)",opacity:.50,offset:0},
+    {transform:"translate3d("+((dx*.12+curve*.15))+"px,"+(dy*.12-rise*.6)+"px,0) scale(1.13)",opacity:1,offset:.18},
+    {transform:"translate3d("+(dx*.48+curve)+"px,"+(dy*.48-rise)+"px,0) scale(1.03)",opacity:1,offset:.51},
+    {transform:"translate3d("+(dx*.84+curve*.25)+"px,"+(dy*.84-rise*.46)+"px,0) scale(.92)",opacity:.97,offset:.83},
     {transform:"translate3d("+(dx+ex)+"px,"+(dy+ey)+"px,0) scale(.24)",opacity:0,offset:1}
    ],travel,{delay:stagger,easing:"linear"}).finally(()=>mote.remove());
    if(k===0)lead=motion;

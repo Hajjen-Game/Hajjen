@@ -128,7 +128,7 @@ jobs:
         run: node daisugi-bloom/tests/harmony-fortune-browser.mjs
       - name: Omamori 6.1 · phone inventory, two-use limit and Moon prompt
         run: node daisugi-bloom/tests/harmony-powers-browser.mjs
-      - name: Omamori Target Feedback 1.0 · persistent gold target and area preview on phone
+      - name: Omamori Confirmation Compact 1.0 · no board obstruction and gold targets on phone
         run: node daisugi-bloom/tests/harmony-omamori-target-browser.mjs
       - name: Run Sealed Stone mobile 4-stage artwork and placement smoke
         run: node daisugi-bloom/tests/harmony-sealed-stone-browser.mjs

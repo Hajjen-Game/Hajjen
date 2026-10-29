@@ -675,13 +675,34 @@ function renderPowerBar(){
  button.addEventListener("click",showPowerPicker);
  bar.append(heading,count,button);
  if(powerSelection){
+  // Compact, NON-MODAL confirmation: the 7x7 board and every gold preview
+  // remain completely visible. No overlay, backdrop or screen-height change.
+  const needed=OT.required(powerSelection),ready=powerTargets.length===needed;
+  const actions=goshuinNode("div","omamori-target-actions"+(ready?" is-ready":""));
+  actions.setAttribute("role","group");
+  actions.setAttribute("aria-label",P.POWERS[powerSelection].name+" target confirmation");
+  if(ready){
+   const use=goshuinNode("button","omamori-power-confirm","Use card · 1 copy");
+   use.type="button";
+   use.addEventListener("click",()=>{
+    const id=powerSelection,targets=OT.required(id)===2?powerTargets.slice():powerTargets[0];
+    if(!commitActivePower(id,targets))renderPowerBar();
+   });
+   actions.append(use);
+  }
   const cancel=goshuinNode("button","omamori-power-cancel","Cancel");
-  cancel.addEventListener("click",()=>{powerSelection=null;powerTargets=[];selected=-1;renderBoard(game.board);renderPowerBar();restartIdleHint();});
-  bar.append(cancel);
+  cancel.type="button";
+  cancel.addEventListener("click",()=>{
+   powerSelection=null;powerTargets=[];selected=-1;
+   renderBoard(game.board);renderPowerBar();armDecisionClock();restartIdleHint();
+  });
+  actions.append(cancel);bar.append(actions);
   bar.classList.add("is-targeting");
-  heading.querySelector(".omamori-hud-stock").textContent=P.POWERS[powerSelection].name;
- }else bar.classList.remove("is-targeting");
- if(game?.koiRerollAt>=0){
+  bar.classList.toggle("is-confirming",ready);
+  heading.querySelector(".omamori-hud-stock").textContent=
+   P.POWERS[powerSelection].name+" · "+powerTargets.length+"/"+needed+" selected";
+ }else{bar.classList.remove("is-targeting","is-confirming");}
+ if(game?.koiRerollAt>=0&&!powerSelection){
   const reroll=goshuinNode("button","omamori-reroll-button","≋ Shuffle again");
   reroll.addEventListener("click",showKoiReroll);bar.append(reroll);
   bar.classList.add("has-reroll");
@@ -759,36 +780,26 @@ function confirmPowerTarget(at){
    toast("Choose a Mist tile, Daruma or Sealed Stone.");return;
   }
  }
- // Gold feedback is immediate and persists for every chosen target.
- // A repeat tap removes an earlier choice without spending a card.
+ // Gold feedback is immediate and persists until the player uses or
+ // cancels the card. The compact actions live BELOW the board in Omamori.
  if(powerTargets.includes(at)){
   powerTargets=powerTargets.filter(index=>index!==at);
-  renderBoard(game.board);
-  toast("Tile deselected. Choose "+(count-powerTargets.length)+" target"+(count-powerTargets.length===1?"":"s")+".",1900);
+  renderBoard(game.board);renderPowerBar();
+  toast("Tile deselected. Choose "+(count-powerTargets.length)+" target"+
+   (count-powerTargets.length===1?"":"s")+".",1900);
   return;
  }
- powerTargets.push(at);
- clearIdleHint();renderBoard(game.board);
+ // After all targets are chosen, tapping another legal tile updates the
+ // latest choice instead of accidentally accumulating 3+ targets.
+ if(powerTargets.length>=count)powerTargets[powerTargets.length-1]=at;
+ else powerTargets.push(at);
+ clearIdleHint();renderBoard(game.board);renderPowerBar();
  if(powerTargets.length<count){
   toast(powerTargets.length+"/"+count+" selected · gold tiles are your targets.",1900);
-  return;
+ }else{
+  toast(count+"/"+count+" selected · preview in gold. Use card or Cancel below the board.",3000);
  }
- disarmDecisionClock();
- $("modalEyebrow").textContent="OMAMORI · ONE-USE CARD";
- $("modalTitle").textContent=P.POWERS[id].name;
- const panel=$("modalContent");panel.replaceChildren();
- panel.append(goshuinNode("p","omamori-power-confirm",omamoriPowerEffect(id)+
-  " One card will be consumed. Cancel to keep it."));
- const actions=$("modalActions");actions.replaceChildren();
- actions.classList.remove("victory-actions","pause-menu-actions");
- const targets=count===2?powerTargets.slice():powerTargets[0];
- modalButton(actions,"Use card · 1 copy","primary",()=>{
-  if(!commitActivePower(id,targets)){powerSelection=null;powerTargets=[];$("modal").hidden=true;renderBoard(game.board);renderPowerBar();restartIdleHint();}
- });
- modalButton(actions,"Cancel","secondary",()=>{
-  powerSelection=null;powerTargets=[];$("modal").hidden=true;renderBoard(game.board);renderPowerBar();armDecisionClock();restartIdleHint();
- });
- $("modal").hidden=false;
+
 }
 function showKoiReroll(){
  if(!game||!Number.isInteger(game.koiRerollAt)||game.koiRerollAt<0||game.complete)return;

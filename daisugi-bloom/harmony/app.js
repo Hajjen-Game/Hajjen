@@ -1,8 +1,8 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,$=id=>document.getElementById(id);
-const names={sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu Moveson"};
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,$=id=>document.getElementById(id);
+const names={sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu Dragon"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
 const newFamilyRows={sushi:0,maneki:1,origami:2,ryu:3};
@@ -21,7 +21,7 @@ function armDecisionClock(){decisionReadyAt=performance.now();}
 function disarmDecisionClock(){decisionReadyAt=0;}
 function updatePaceLabel(){
  const node=$("paceStatus");if(!node||!game)return;
- node.textContent=(game.familyCount===4?"4 FAMILJER · ":"5 FAMILJER · ")+
+ node.textContent=(game.familyCount===4?"4 FAMILIES · ":"5 FAMILIES · ")+
   (game.directorMode==="v4"?"OBJECTIVE 4.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v311"?"ENDGAME 3.1.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v31"?"OBJECTIVE 3.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v3"?
   "PACING 3.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):
   game.directorMode==="v2"?"OPPORTUNITY 2.0":"STANDARD");
@@ -250,7 +250,7 @@ function initFestivalBackground(){
  },{passive:true});
 }
 
-function toast(text){const t=$("toast");t.textContent=text;t.hidden=false;clearTimeout(timer);timer=setTimeout(()=>t.hidden=true,2400);}
+function toast(text,duration=2400){const t=$("toast");t.textContent=text;t.hidden=false;clearTimeout(timer);timer=setTimeout(()=>t.hidden=true,duration);}
 // Event-specific sound design lives in harmony/audio.js. The engine unlocks
 // only after user interaction, respects preferences and limits polyphony.
 function sound(type,detail){
@@ -409,6 +409,48 @@ function goshuinNode(tag,cls,text){
  if(text!==undefined)node.textContent=text;
  return node;
 }
+// Onboarding 2.0: never change the underlying move, objective or reward rules.
+function levelPreview(index,resumable=false){
+ let cfg=R.levelConfig(index),remaining=null,rewardVersion=3;
+ if(resumable&&save.run?.level===index&&save.run.data){
+  const restored=new R.Game(index,save.run.data,{fastRestore:true});
+  cfg=restored.config;remaining=restored.moves;rewardVersion=restored.rewardVersion;
+ }
+ return {data:O.preview(index,cfg,rewardVersion===3?R.moveStarTargets:null),remaining,rewardVersion};
+}
+function showGoalHelp(){
+ if(!game||busy||$("gameView").hidden)return;
+ disarmDecisionClock();clearIdleHint();
+ const info=O.preview(level,game.config,R.moveStarTargets),lesson=info.lesson;
+ $("modalEyebrow").textContent="LEVEL "+(level+1)+" · 目標";
+ $("modalTitle").textContent=game.config.name;
+ const panel=$("modalContent");panel.replaceChildren();
+ const details=goshuinNode("section","jh-guide");
+ details.append(goshuinNode("strong","jh-guide-goal","GOAL · "+info.objective),
+  goshuinNode("span","jh-guide-meta",game.moves+" moves left · "+game.progress()+" / "+game.target()));
+ if(game.rewardVersion===3)details.append(goshuinNode("span","jh-guide-meta",
+  "Three stars: complete within "+info.threeStars+" moves · Two stars: within "+info.twoStars));
+ details.append(goshuinNode("p","jh-guide-tip",lesson?.detail||info.tip));
+ if(lesson&&info.tip&&info.tip!==lesson.detail)
+  details.append(goshuinNode("p","jh-guide-subtip",info.tip));
+ panel.append(details);
+ const actions=$("modalActions");actions.replaceChildren();
+ actions.classList.remove("pause-menu-actions","victory-actions");
+ modalButton(actions,"BACK TO GAME","primary",()=>{
+  $("modal").hidden=true;armDecisionClock();restartIdleHint();
+ });
+ modalButton(actions,"FULL RULES","secondary",()=>{$("helpButton").click();});
+ $("modal").hidden=false;
+}
+function offerFirstLesson(index,resuming){
+ if(resuming)return;
+ const lesson=O.lesson(index);if(!lesson)return;
+ if(!save.onboardingSeen||typeof save.onboardingSeen!=="object"||Array.isArray(save.onboardingSeen))
+  save.onboardingSeen={};
+ if(save.onboardingSeen[lesson.key])return;
+ save.onboardingSeen[lesson.key]=true;persist();
+ toast(lesson.short+"  Tap the ? next to GOAL for details.",5200);
+}
 function showGoshuincho(chapterIndex=null){
  if(busy||!$("gameView").hidden)return;
  const max=G.summary(save).currentChapter;
@@ -460,11 +502,15 @@ function renderGoshuincho(){
    b.classList.toggle("is-selected",b===tile);
    b.setAttribute("aria-pressed",b===tile?"true":"false");
   }
-  const cfg=R.levelConfig(stamp.level);
+  const preview=levelPreview(stamp.level,stamp.resumable),info=preview.data;
   detail.replaceChildren();
   const copy=goshuinNode("div","washi-detail-copy");
   copy.append(goshuinNode("span","washi-detail-numeral","LEVEL "+stamp.number+" · "+G.japaneseNumeral(stamp.number)),
-   goshuinNode("strong","washi-detail-name",cfg.name));
+   goshuinNode("strong","washi-detail-name",info.name),
+   goshuinNode("span","washi-detail-objective","GOAL · "+info.objective),
+   goshuinNode("span","washi-detail-budget",preview.remaining!==null?
+    preview.remaining+" moves left":info.moves+" moves"+(info.threeStars!==null?" · ★★★ within "+info.threeStars:"")));
+  if(info.lesson)copy.append(goshuinNode("span","washi-detail-lesson",info.lesson.short));
   const play=goshuinNode("button","washi-detail-play",stamp.resumable?"CONTINUE":"PLAY");
   play.type="button";play.disabled=!stamp.playable;
   play.setAttribute("aria-label",stamp.playable?"Play level "+stamp.number+", "+cfg.name:"Level "+stamp.number+" is locked");
@@ -936,14 +982,8 @@ function startLevel(i,resume=false){
   });
  }
  prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();updateSpiritBadge();renderPowerBar();saveRun();armDecisionClock();restartIdleHint();
- if(i===30&&!resume&&game.config.goal.type==="sealedStone")
-  toast("Sealed Stones cannot move. Four hits on separate moves break a stone and trigger Awakening Pulse in all eight directions.");
- if(i===20&&!resume&&game.config.goal.type==="daruma")
-  toast("Daruma cannot move. Fuse beside it or hit it with Harmony Pulse. Each eye requires a separate move.");
- if(i===3&&!resume&&game.config.goal.type==="mist"&&!save.mistPulseIntroShown){
-  toast("Clear Mist by fusing onto its tile or hitting it with Harmony Pulse. The pulse also clears empty Mist tiles.");
-  save.mistPulseIntroShown=true;persist();
- }
+ // One-time, non-blocking lesson. The board keeps its existing proportions.
+ offerFirstLesson(i,!!data);
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
@@ -2631,6 +2671,7 @@ function bind(){
  $("omamoriButton").addEventListener("click",()=>showOmamori());
  $("omikujiButton").addEventListener("click",()=>showOmikuji());
  $("pauseButton").addEventListener("click",openGameMenu);
+ $("goalHelpButton").addEventListener("click",showGoalHelp);
  $("devButton").addEventListener("click",openEngineLab);
  $("continueButton").addEventListener("click",()=>activateWashiPlay($("continueButton"),()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);}));
  $("helpButton").addEventListener("click",()=>modalInfo("How to Play",'<p><strong>Match:</strong> Swap adjacent tiles to match three or more objects from the same family. Stages can differ. T- and L-shaped matches also work.</p><p><strong>Fuse:</strong> A match fuses at the destination of your swap (or the other swapped tile if only that position makes a match). The result advances one stage above the highest matched object. Automatic chains fuse at the highest-stage tile. A match of four upgrades a neighbor; five or more upgrades two.</p><p><strong>Harmony Resonance:</strong> Objects at stages 3–4 may form a subtle light link with a neighboring object in the same family. Fuse both together to trigger Harmony Echo and earn bonus points, at most once per move.</p><p><strong>Harmony Pulse:</strong> A stage-5 masterpiece sends power to its four orthogonal neighbors. Existing objects advance, and Mist clears even on empty tiles. Chains finish before empty spaces refill.</p><p><strong>Masterpieces:</strong> Each new masterpiece still grants bonus points; the old masterpiece collection panel is hidden during play.</p><p><strong>Harmony Mist (from level 4):</strong> Clear magical Mist from marked tiles. Fuse onto a Mist tile or reach it with Harmony Pulse. Pieces can move into and out of Mist, but matching across Mist does not clear it unless the fusion lands there. Mist remains in place as pieces fall.</p><p><strong>Daruma (levels 21–30):</strong> Daruma cannot move. Each doll requires two hits on separate moves, from an adjacent fusion or Harmony Pulse. The chapter alternates between Daruma, Mist, and fusion challenges.</p><p><strong>Sealed Stones (levels 31–40):</strong> Stones cannot move and take four separate hits. Fuse beside a stone or hit it with Harmony Pulse, at most once per move. The final hit releases an Awakening Pulse toward all eight neighbors, including diagonals, and can start a chain.</p><p><strong>Rewards:</strong> Completing the objective awards at least one star. Earn two or three by finishing with fewer moves; your star rating locks when the goal is reached. Bonus score is an optional record. You can continue playing after the goal or move on. Omamori cards are purchased with Harmony Coins at tier I and upgraded through missions to tiers II and III. Sakura upgrades 1–3 selected tiles, Koi shuffles 2×2 or 3×3 areas (and can reroll once at tier III), and Moon\'s Serenity adds 2, 3, or 5 moves. Each used card is fully consumed. Multiple cards may be used in a level; a new card always starts at tier I. Assisted wins do not affect standard records or star stamps.</p>'));

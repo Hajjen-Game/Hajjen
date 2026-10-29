@@ -42,7 +42,7 @@ check("One free draw per local day and wallet paid only once",()=>{
  assert.equal(JSON.stringify(save.bestStars),stars,"Old star data is untouched");
  assert.equal(save.unlocked,20,"Level access is unchanged");
 });
-check("Buying Omamori continues to use the same wallet and same prices",()=>{
+check("Buying a v6 Omamori card uses the same Omikuji wallet and current booster price",()=>{
  const s={bestStars:{0:3},fourFamilyStars:{0:3}};
  E.initialize(s);F.initialize(s);
  s.economy.coins=79;
@@ -50,10 +50,10 @@ check("Buying Omamori continues to use the same wallet and same prices",()=>{
  assert.equal(s.economy.coins,84);
  const buy=E.purchase(s,"sakura");
  assert.equal(buy.ok,true);
- assert.equal(s.economy.coins,4);
+ assert.equal(s.economy.coins,84-E.CATALOG.find(item=>item.id==="sakura").price);
  assert.deepEqual(s.economy.owned,["sakura"]);
  assert.equal(F.draw(s,day("2026-10-25")).ok,false);
- assert.equal(s.economy.coins,4);
+ assert.equal(s.economy.coins,84-E.CATALOG.find(item=>item.id==="sakura").price);
 });
 check("Fortune initializes on old saves without granting historical extra currency",()=>{
  const save={unlocked:30,bestStars:{21:2},fourFamilyStars:{0:3},economy:{

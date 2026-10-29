@@ -2398,7 +2398,7 @@ function showResult(){
   }
   const sum=make("section","summary victory-score");
   const scoreHeader=make("div","victory-score-head");
-  scoreHeader.append(make("div","victory-kicker","BONUS SCORE"));
+  scoreHeader.append(make("div","victory-kicker","SCORE"));
   const record=make("span","victory-record");
   record.append(make("span","victory-record-mark","✦"),
    make("span","",game.assisted?"ASSISTED · NOT A RECORD":"RECORD "+prettify(activeRecords()[level]||game.score)));
@@ -2437,7 +2437,7 @@ function showResult(){
     "You cleared "+game.mistCleared+" of "+game.target()+" Mist tiles. Try to clear the rest.");
    panel.append(msg);
   }
-  const sum=make("div","summary"),label=make("div","","BONUS SCORE"),
+  const sum=make("div","summary"),label=make("div","","SCORE"),
    number=make("strong","",prettify(game.score));
   sum.append(label,number);panel.append(sum);
   // This pass only redesigns wins; preserve the existing failed-run stats.

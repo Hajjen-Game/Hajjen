@@ -52,7 +52,9 @@ assert(!compactSection.includes('washi-detail-lesson'),
 assert(compactSection.includes('★★★ ≤'),
  "The three-star challenge should be a concise single-line hint");
 const css=fs.readFileSync(path.join(__dirname,"../harmony/onboarding.css"),"utf8");
-assert(css.includes("Goshuincho selected-level readability 2.1"));
-assert(html.includes("onboarding.css?v=2.1.1-compact"));
+assert(css.includes("Goshuincho selected-level readability 2.2"));
+assert(css.includes("top:-3px;")&&css.includes("padding-left:3px;"),"Level summary moves upward and inward");
+assert(css.includes("padding:10px 11px 10px 17px;"),"Narrow phones also keep a safe ornamental inset");
+assert(html.includes("onboarding.css?v=2.2.0-frame-inset"));
 
 console.log("Gameplay Clarity & Onboarding 2.0 tests passed.");

@@ -120,13 +120,15 @@ body.harmony-playing .game-view .goal .jh-goal-help:active{
 }
 
 
-/* Goshuincho selected-level readability 2.1
-   The painted card stays at the same location; its text stays within the
-   inner paper area instead of overflowing the bottom ornamental border. */
+/* Goshuincho selected-level readability 2.2
+   Give the four text rows a safe inset from the left ornament and lift
+   them slightly above the lower paper border. Keep the painted card,
+   play button and chapter geometry exactly where they are. */
 #modal .washi-goshuincho .washi-level-detail{
  min-height:clamp(92px,12svh,110px);
  gap:clamp(6px,1.5vw,12px);
- padding:clamp(10px,1.3svh,14px) clamp(14px,2.8vw,20px);
+ padding:clamp(10px,1.3svh,14px) clamp(14px,2.8vw,20px)
+         clamp(10px,1.3svh,14px) clamp(20px,3.5vw,24px);
  box-sizing:border-box;
  align-items:center;
 }
@@ -137,6 +139,10 @@ body.harmony-playing .game-view .goal .jh-goal-help:active{
  min-width:0;
  gap:clamp(2px,.4svh,4px);
  justify-content:center;
+ box-sizing:border-box;
+ padding-left:3px;
+ position:relative;
+ top:-3px;
 }
 #modal .washi-goshuincho .washi-detail-numeral{
  color:#97493f;
@@ -167,7 +173,7 @@ body.harmony-playing .game-view .goal .jh-goal-help:active{
 @media(max-width:360px){
  #modal .washi-goshuincho .washi-level-detail{
   min-height:94px;
-  padding:10px 11px;
+  padding:10px 11px 10px 17px;
   gap:5px;
  }
  #modal .washi-goshuincho .washi-detail-copy{gap:2px}

@@ -28,6 +28,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-powers.test.cjs
       - name: Omamori System Audit 5.0 · permanent keepsakes, fair prices and consumable safety
         run: node daisugi-bloom/tests/harmony-omamori-audit.test.cjs
+      - name: Technical Cleanup & Stability 1.0 · corrupt saves, locked storage and replay limits
+        run: node daisugi-bloom/tests/harmony-technical-stability.test.cjs
       - name: Omikuji Fortune 1.0 · daily draws and same-wallet payouts
         run: node daisugi-bloom/tests/harmony-fortune.test.cjs
       - name: Daruma Awakening fixed-blocker, eye states and saved levels
@@ -81,6 +83,7 @@ jobs:
       - name: Syntax-check all browser scripts
         run: |
           node --check daisugi-bloom/harmony/onboarding.js
+          node --check daisugi-bloom/harmony/save-health.js
           node --check daisugi-bloom/harmony/objective-feedback.js
           node --check daisugi-bloom/src/rules.js
           node --check daisugi-bloom/src/visuals.js

@@ -431,8 +431,6 @@ function showGoalHelp(){
  if(game.rewardVersion===3)details.append(goshuinNode("span","jh-guide-meta",
   "Three stars: complete within "+info.threeStars+" moves · Two stars: within "+info.twoStars));
  details.append(goshuinNode("p","jh-guide-tip",lesson?.detail||info.tip));
- if(lesson&&info.tip&&info.tip!==lesson.detail)
-  details.append(goshuinNode("p","jh-guide-subtip",info.tip));
  if(game.assisted)details.append(goshuinNode("p","jh-guide-subtip",
   "Omamori-assisted wins unlock the next level but do not earn regular Goshuincho stars, coins or records."));
  panel.append(details);

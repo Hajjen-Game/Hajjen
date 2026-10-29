@@ -35,11 +35,11 @@ const CHAPTER_SIZE=10;
 const PAGE_SIZE=4;
 const PAGES_PER_CHAPTER=Math.ceil(CHAPTER_SIZE/PAGE_SIZE);
 const THEMES=[
- {title:"First Harmony",subtitle:"The journey begins",motif:"sakura",symbol:"✿"},
- {title:"Garden of Mist",subtitle:"Through mist and masterpieces",motif:"mist",symbol:"☁"},
- {title:"Daruma's Wish",subtitle:"Two eyes, one promise",motif:"daruma",symbol:"◉"},
- {title:"Path of the Seals",subtitle:"Four cracks, eight directions",motif:"sealed-stone",symbol:"✦"},
- {title:"Lantern Path",subtitle:"A warm light ahead",motif:"lantern",symbol:"✦"}
+ {title:"First Harmony",subtitle:"Learn matches, growth and Harmony Pulse",motif:"sakura",symbol:"✿"},
+ {title:"Garden of Mist",subtitle:"Clear Mist with well-placed fusions and pulses",motif:"mist",symbol:"☁"},
+ {title:"Daruma's Wish",subtitle:"Two hits to complete each Daruma wish",motif:"daruma",symbol:"◉"},
+ {title:"Path of the Seals",subtitle:"Four hits to release an eight-way Awakening Pulse",motif:"sealed-stone",symbol:"✦"},
+ {title:"Lantern Path",subtitle:"Lantern fusions and Lantern masterpieces",motif:"lantern",symbol:"✦"}
 ];
 // Asset Fidelity 2.0: the six APPROVED independent high-resolution PNGs
 // supply chapter headings and 1/2/3-star seals. Keep the old atlas only as
@@ -87,8 +87,8 @@ const archivedStars=(state,index)=>{
 };
 function chapter(index){
  const n=Math.max(0,Math.floor(Number(index)||0));
- const idea=THEMES[n]||{title:"Harmony Journey "+(n+1),
-  subtitle:"En ny sida i din resa",motif:"journey",symbol:"✿"};
+ const idea=THEMES[n]||{title:"Endless Garden · "+(n-THEMES.length+1),
+  subtitle:"Generated puzzle challenges beyond the five crafted chapters",motif:"journey",symbol:"✿"};
  return {index:n,first:n*CHAPTER_SIZE,last:n*CHAPTER_SIZE+CHAPTER_SIZE-1,
   number:n+1,artKey:"chapter-"+String(n+1).padStart(2,"0"),...idea};
 }

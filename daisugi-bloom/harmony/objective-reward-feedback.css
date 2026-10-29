@@ -1,0 +1,64 @@
+/* Japanese Harmony · Objective & Reward Feedback 2.0.
+   Add meaningful labels without resizing the approved HUD, panel art or 7×7 board. */
+.jh-objective-hit{
+ position:absolute;
+ display:block;
+ pointer-events:none;
+ white-space:nowrap;
+ z-index:4;
+ padding:3px 6px;
+ border:1px solid rgba(170,108,72,.55);
+ border-radius:9px;
+ background:rgba(255,244,218,.96);
+ color:#63392d;
+ font:800 clamp(9px,2.4vw,12px)/1.1 Georgia,"Times New Roman",serif;
+ letter-spacing:.015em;
+ box-shadow:0 2px 7px rgba(57,36,25,.3);
+ transform:translateX(-50%);
+}
+.jh-objective-hit.jh-hit-stone{color:#715243;border-color:#a88359;}
+.jh-objective-hit.jh-hit-daruma{color:#a34643;border-color:#bd6f65;}
+body.harmony-playing .game-view .star-mini.jh-practice-stars{
+ color:#8b7565!important;
+ opacity:.73;
+ filter:saturate(.3);
+}
+/* The help modal has enough space for precise remaining-hit information. */
+#modal .jh-guide-state{
+ display:block;
+ color:#984c43;
+ font:700 clamp(12px,3vw,15px)/1.36 Georgia,serif;
+ margin-top:3px;
+}
+#modal .jh-failed-goal{
+ display:grid;
+ gap:4px;
+ margin:6px 0 10px;
+ padding:10px 12px;
+ border:1px solid rgba(160,116,76,.42);
+ border-radius:10px;
+ background:rgba(255,241,215,.55);
+ color:#443129;
+}
+#modal .jh-failed-goal strong{font-size:clamp(13px,3.4vw,16px);font-weight:800;}
+#modal .jh-failed-goal span{color:#8b5646;font-size:clamp(12px,2.9vw,14px);}
+#modal .jh-rating-label{
+ display:block;
+ position:relative;
+ z-index:1;
+ margin-top:-3px;
+ text-align:center;
+ color:#94624b;
+ font:800 clamp(9px,2.65vw,12px)/1.2 Georgia,serif;
+ letter-spacing:.06em;
+}
+#modal .victory-result.is-assisted .jh-rating-label{color:#90564d;}
+#modal .victory-result.is-assisted .victory-star.is-earned{
+ filter:saturate(.24) brightness(.98);
+ opacity:.82;
+}
+#modal .victory-result.is-assisted .victory-stars::before{opacity:.33;}
+@media(prefers-reduced-motion:reduce){
+ .jh-objective-hit{display:none!important;}
+}
+body.harmony-reduced-motion .jh-objective-hit{display:none!important;}

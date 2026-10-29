@@ -612,8 +612,8 @@ try{
    const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
    return {introRecord:saved.fourFamilyScores["0"],introStars:saved.fourFamilyStars["0"],
     preservedOld:saved.bestScores["0"],journeyRecord:saved.bestScores["10"],
-    visibleIntro:document.querySelector(".level-tile:first-child")?.textContent,
-    visibleJourney:document.querySelector(".level-tile:nth-child(11)")?.textContent,
+    introBookStars:window.HarmonyGoshuincho.archivedStars(saved,0),
+    journeyBookStars:window.HarmonyGoshuincho.archivedStars(saved,10),
     migration:saved.familyProgressionVersion};
   });
   assert.equal(records.introRecord,9000);
@@ -621,8 +621,8 @@ try{
   assert.equal(records.preservedOld,9000);
   assert.equal(records.journeyRecord,7200);
   assert.equal(records.migration,1);
-  assert(records.visibleIntro.replace(/\s/g," ").includes("9 000"),"Migrated intro record should show 9 000");
-  assert(records.visibleJourney.replace(/\s/g," ").includes("7 200"),"Stage 11 should show original Journey record 7 200");
+  assert.equal(records.introBookStars,3,"Goshuincho should use the migrated intro stars");
+  assert.equal(records.journeyBookStars,1,"Journey stamp should keep its legacy score achievement");
   await clickLegacyLevel(preview,".level-tile:first-child");
   const four=await preview.evaluate(()=>{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;

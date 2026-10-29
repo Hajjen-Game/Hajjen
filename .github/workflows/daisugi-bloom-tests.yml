@@ -54,6 +54,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-audio.test.cjs
       - name: Verify Harmony 4.2 score animation and reset contracts
         run: node daisugi-bloom/tests/harmony-reward.test.cjs
+      - name: Score Motes 1.0 · no badge/beam, fast particle delivery and accessibility
+        run: node daisugi-bloom/tests/harmony-score-motes.test.cjs
       - name: Verify 4.3 mobile frame meter and adaptive decorative FX
         run: node daisugi-bloom/tests/harmony-performance.test.cjs
       - name: Verify visible fusion gathering and masterpiece release

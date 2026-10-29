@@ -30,8 +30,8 @@ for(let i=0;i<50;i++){
 assert.equal(O.preview(3,R.levelConfig(3),R.moveStarTargets).objective,"3 Mist tiles");
 assert.equal(O.preview(5,R.levelConfig(5),R.moveStarTargets).objective,
  "4 moves with a four-tile match");
-assert.equal(O.preview(20,R.levelConfig(20),R.moveStarTargets).objective,"1 Daruma dolls");
-assert.equal(O.preview(30,R.levelConfig(30),R.moveStarTargets).objective,"1 Sealed Stones");
+assert.equal(O.preview(20,R.levelConfig(20),R.moveStarTargets).objective,"1 Daruma");
+assert.equal(O.preview(30,R.levelConfig(30),R.moveStarTargets).objective,"1 Sealed Stone");
 assert.equal(O.preview(47,R.levelConfig(47),R.moveStarTargets).objective,"15 Mist tiles");
 assert.equal(O.preview(47,R.levelConfig(47)).threeStars,null);
 

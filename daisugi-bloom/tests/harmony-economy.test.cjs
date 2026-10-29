@@ -97,7 +97,7 @@ check("Omamori 6.0 retains home shop navigation and eight consumable charms",()=
  assert.equal(E.snapshot(state).ownedCount,0);
  assert.equal(JSON.stringify(state),baseline);
  assert(html.includes('id="omamoriProgress"'));
- assert(app.includes('for(const item of E.CATALOG)'));
+ assert(app.includes('const shown=E.CATALOG.filter('));
  assert(app.includes('showOmamoriNotice("purchase",item)'));
 });
 console.log("Harmony Economy & Omamori 6.0 tests passed.");

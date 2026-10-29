@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu Dragon"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -430,6 +430,7 @@ function showGoalHelp(){
   goshuinNode("span","jh-guide-meta",game.moves+" moves left · "+game.progress()+" / "+game.target()));
  if(game.rewardVersion===3)details.append(goshuinNode("span","jh-guide-meta",
   "Three stars: complete within "+info.threeStars+" moves · Two stars: within "+info.twoStars));
+ details.append(goshuinNode("span","jh-guide-state",Q.detail(game)));
  details.append(goshuinNode("p","jh-guide-tip",lesson?.detail||info.tip));
  if(game.assisted)details.append(goshuinNode("p","jh-guide-subtip",
   "Omamori-assisted wins unlock the next level but do not earn regular Goshuincho stars, coins or records."));
@@ -1225,6 +1226,12 @@ function renderHUD(state){
  $("movesCount").textContent=current.moves;
  renderScoreOnly();
  $("goalProgress").textContent=prettify(Math.min(game.target(),progress))+" / "+prettify(game.target());
+ // The existing compact panel remains unchanged; extra information is in
+ // accessibility text and the question-mark help view.
+ const progressHint=Q.detail(game);
+ $("goalProgress").setAttribute("aria-label",progressHint);
+ $("goalProgress").title=progressHint;
+ $("goalHelpButton").setAttribute("aria-label","Goal details: "+progressHint);
  if(progress>lastGoalProgress&&lastGoalProgress>=0){
   const node=$("goalProgress");
   if(!save.reduceMotion)animateNode(node,[
@@ -1256,6 +1263,9 @@ function renderHUD(state){
    game.config.par+" moves for 3 stars, or "+(game.config.par+4)+" for 2.");
  }
  document.querySelector(".goal").classList.toggle("goal-complete",game.complete);
+ $("statusStars").classList.toggle("jh-practice-stars",!!game.assisted);
+ if(game.assisted)$("statusStars").setAttribute("aria-label",
+  "Practice rating only: "+earnedStars+" of 3 stars. Omamori-assisted wins do not award Goshuincho stamps.");
 }
 function renderScoreOnly(){
  $("scoreCount").textContent=prettify(scoreDisplayed);
@@ -2192,6 +2202,22 @@ async function animateEvent(evt){
    renderBoard(evt.board);
  }
 }
+// Objective feedback 2.0: tiny labels at the actual blocker, never a new HUD row.
+function objectiveHitCue(evt){
+ if(FAST()||document.hidden||!Element.prototype.animate)return;
+ for(const hit of Q.eventLabels(evt).slice(0,MOBILE_LITE?2:4)){
+  const rect=indexRect(hit.at);
+  if(!rect?.width)continue;
+  const cue=fxAt("jh-objective-hit jh-hit-"+hit.kind,
+   rect.left+rect.width/2,rect.top+rect.height*.42,hit.label);
+  cue.setAttribute("aria-hidden","true");
+  void animateNode(cue,[
+   {opacity:0,transform:"translate(-50%,0) scale(.84)",offset:0},
+   {opacity:1,transform:"translate(-50%,-6px) scale(1)",offset:.3},
+   {opacity:0,transform:"translate(-50%,-22px) scale(1.03)",offset:1}
+  ],680).finally(()=>cue.remove());
+ }
+}
 async function playEvents(events,bondGain=null){
  clearIdleHint();
  busy=true;$("board").setAttribute("aria-busy","true");
@@ -2203,6 +2229,7 @@ async function playEvents(events,bondGain=null){
  try{
   for(const evt of events){
    await animateEvent(evt);
+   if(evt.type==="daruma"||evt.type==="sealed-hit")objectiveHitCue(evt);
    if(!spiritCuePlayed&&((evt.type==="hero"&&save.economy?.equipped==="sakura")||
     ((evt.type==="daruma"||evt.type==="sealed-hit")&&save.economy?.equipped==="daruma"))){
     spiritMoment(evt);spiritCuePlayed=true;
@@ -2213,7 +2240,6 @@ async function playEvents(events,bondGain=null){
     }else flyPoints(evt);
    }
    if(["bonus","goal"].includes(evt.type))sound(evt.type);
-   if(evt.type==="daruma"&&(evt.hits||[]).some(h=>h.filled===2))toast("✦ Daruma completed!");
    if(evt.type==="echo")praise("echo");
    else if(evt.type==="hero")praise("masterpiece");
    else if(evt.type==="pulse"&&((evt.targets?.length||0)+(evt.mistTargets?.length||0)+(evt.darumaTargets?.length||0)>0))praise("pulse");
@@ -2239,6 +2265,8 @@ async function playEvents(events,bondGain=null){
    "✦ Omamori mission "+bondGain.progress+"/6");
  }
  if(goalReached)unlockGoal();
+ const objectiveMessage=Q.summary(events,game);
+ if(objectiveMessage&&!bondGain?.ok)toast("✦ "+objectiveMessage,2250);
  if(finished||goalReached)showResult();
  else if(game?.koiRerollAt>=0)showKoiReroll();
 }
@@ -2293,7 +2321,7 @@ function showResult(){
   return node;
  };
  if(won){
-  const result=make("div","victory-result");
+  const result=make("div","victory-result"+(game.assisted?" is-assisted":""));
   panel.append(result);
   // Stars are the emotional headline, but never the whole reward contract:
   // retain the three-star accessible text and the legacy v2 completion label.
@@ -2303,7 +2331,7 @@ function showResult(){
    stars.textContent="★ LEVEL COMPLETE";
   }else{
    stars.setAttribute("role","img");
-   stars.setAttribute("aria-label",game.stars()+" of 3 stars");
+   stars.setAttribute("aria-label",game.stars()+" of 3 "+(game.assisted?"practice stars, not Goshuincho stamps":"Goshuincho stars"));
    for(let i=0;i<3;i++){
     const filled=i<game.stars();
     const star=make("span","victory-star"+(filled?" is-earned":" is-empty"),filled?"★":"☆");
@@ -2313,7 +2341,7 @@ function showResult(){
    }
   }
   const starWrap=make("div","victory-stars");
-  starWrap.append(stars);
+  starWrap.append(stars,make("span","jh-rating-label",Q.rewardLabel(game)));
   result.append(starWrap);
   // Avoid replay celebrations even if unlockGoal() saved during playback.
   const earnedStars=G.archivedStars(save,level);
@@ -2358,9 +2386,11 @@ function showResult(){
     make("span","","of "+game.config.moves+" moves"));
    const rating=make("div","victory-timing-stat");
    rating.append(make("strong","",game.stars()+" / 3"),
-    make("span","","stars"));
+    make("span","",game.assisted?"practice stars":"Goshuincho stars"));
    timing.append(moves,rating);
-   const note=make("p","victory-star-note","The rating locks when you complete the objective.");
+   const note=make("p","victory-star-note",game.assisted?
+    "Practice rating only. The next level unlocks; no stamps, coins or standard records are awarded.":
+    "The Goshuincho rating locks when you complete the objective.");
    result.append(timing,note);
   }
   if(game.config.goal.type==="mist"){
@@ -2397,6 +2427,11 @@ function showResult(){
    "✦ Level complete · replay for a new record or move on.");
   result.append(note);
  }else{
+  // Failure still shows objective progress, including unbroken seals/eyes.
+  const progressSection=make("section","jh-failed-goal");
+  progressSection.append(make("strong","","GOAL PROGRESS · "+game.progress()+" / "+game.target()),
+   make("span","",Q.detail(game)));
+  panel.append(progressSection);
   if(game.config.goal.type==="mist"){
    const msg=make("p","mist-result",
     "You cleared "+game.mistCleared+" of "+game.target()+" Mist tiles. Try to clear the rest.");

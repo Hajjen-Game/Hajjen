@@ -985,7 +985,7 @@ try{
       const shimmer=getComputedStyle(node,"::after");
       window.__pulseProbe.charge.push({
        to:Number(node.dataset.to),wave:Number(node.dataset.wave),
-       oldStage:Number(tile?.getAttribute("aria-label")?.match(/stadium (\d+)/)?.[1]),
+       oldStage:Number(tile?.getAttribute("aria-label")?.match(/tier (\d+)/)?.[1]),
        isMasterpiece:node.classList.contains("pulse-anticipation-masterpiece"),
        pointer:style.pointerEvents,bg:style.backgroundImage,shadow:style.boxShadow,
        mask:style.maskImage,webkitMask:style.webkitMaskImage,
@@ -1259,7 +1259,7 @@ try{
  await page.select(".engine-controls label:nth-child(2) select","2");
  await page.select("#engineMode","compare");
  await page.click("#modalActions button:first-child");
- await page.waitForFunction(()=>document.querySelector(".engine-lab-status")?.textContent.includes("Analysen klar"),{timeout:45000});
+ await page.waitForFunction(()=>document.querySelector(".engine-lab-status")?.textContent.includes("Analysis complete"),{timeout:45000});
  assert.equal(await page.evaluate(()=>document.querySelectorAll(".engine-table tbody tr").length),16,
   "Developer lab must show 4 bots × 4 paired engine modes");
  const comparisonUI=await page.evaluate(()=>({
@@ -1279,7 +1279,7 @@ try{
  await page.click("#modalActions button:first-child");
  await page.waitForFunction(()=>{
   const status=document.querySelector(".engine-lab-status")?.textContent;
-  return status?.includes("Analysen klar")&&
+  return status?.includes("Analysis complete")&&
    document.querySelectorAll(".engine-table tbody tr").length===8;
  },{timeout:45000});
  const objectiveCompare=await page.evaluate(()=>({
@@ -1294,7 +1294,7 @@ try{
  await page.click("#modalActions button:first-child");
  await page.waitForFunction(()=>{
   const status=document.querySelector(".engine-lab-status")?.textContent;
-  return status?.includes("Analysen klar")&&
+  return status?.includes("Analysis complete")&&
    document.querySelectorAll(".engine-table tbody tr").length===8;
  },{timeout:45000});
  const endgameCompare=await page.evaluate(()=>({
@@ -1344,10 +1344,10 @@ try{
  const festivalAtStart=background.id;
 
  assert.equal(await page.$$eval(".tile",els=>els.length),49);
- assert.equal(await page.$$eval(".tile",els=>els.filter(el=>el.getAttribute("aria-label")?.includes("stadium 1,")).length),49,"All newly generated mobile tiles must start at stage one");
+ assert.equal(await page.$$eval(".tile",els=>els.filter(el=>el.getAttribute("aria-label")?.includes("tier 1,")).length),49,"All newly generated mobile tiles must start at stage one");
  assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Stage fraction labels should never obscure tiles");
  await page.click(".tile");
- assert((await page.$eval("#selectedInfo",e=>e.textContent)).includes("stadium"),"Selecting a tile should provide stage information in the status line");
+ assert((await page.$eval("#selectedInfo",e=>e.textContent)).includes("stage"),"Selecting a tile should provide stage information in the status line");
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-atlas"),{timeout:10000});
  const atlasState=await page.evaluate(()=>{
   const old=document.querySelector(".tile .piece:not(.new-family) .sprite:not(.sprite-stage1-koi)");

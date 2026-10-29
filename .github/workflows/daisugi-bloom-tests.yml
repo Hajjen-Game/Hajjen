@@ -28,6 +28,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-powers.test.cjs
       - name: Omamori 6.1 · eight one-use cards and safe legacy conversion
         run: node daisugi-bloom/tests/harmony-omamori-audit.test.cjs
+      - name: Omamori Target Feedback 1.0 · exact gold area previews
+        run: node daisugi-bloom/tests/harmony-omamori-targets.test.cjs
       - name: Technical Cleanup & Stability 1.0 · corrupt saves, locked storage and replay limits
         run: node daisugi-bloom/tests/harmony-technical-stability.test.cjs
       - name: Omikuji Fortune 1.0 · daily draws and same-wallet payouts
@@ -84,6 +86,7 @@ jobs:
         run: |
           node --check daisugi-bloom/harmony/onboarding.js
           node --check daisugi-bloom/harmony/tutorial-help.js
+          node --check daisugi-bloom/harmony/omamori-targets.js
           node --check daisugi-bloom/harmony/save-health.js
           node --check daisugi-bloom/harmony/objective-feedback.js
           node --check daisugi-bloom/src/rules.js
@@ -125,6 +128,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-fortune-browser.mjs
       - name: Omamori 6.1 · phone inventory, two-use limit and Moon prompt
         run: node daisugi-bloom/tests/harmony-powers-browser.mjs
+      - name: Omamori Target Feedback 1.0 · persistent gold target and area preview on phone
+        run: node daisugi-bloom/tests/harmony-omamori-target-browser.mjs
       - name: Run Sealed Stone mobile 4-stage artwork and placement smoke
         run: node daisugi-bloom/tests/harmony-sealed-stone-browser.mjs
       - uses: actions/upload-artifact@v4

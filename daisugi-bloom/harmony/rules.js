@@ -151,7 +151,7 @@ const CHAPTER_LANTERN_DESIGNS=[
  {name:"Evening Masterpieces",subtitle:"The garden shines",moves:44,par:27,goal:{type:"masterpiece",count:3},intro:"Create three masterpieces of any family."},
  {name:"Lantern Crossing",subtitle:"Lanterns through the garden",moves:44,par:27,goal:{type:"familyFusion",family:"lantern",count:7},intro:"Make seven Lantern fusions. Different stages and cascades count."},
  {name:"A Thousand Sparks",subtitle:"The last wave of light",moves:44,par:27,goal:{type:"pulseHits",count:15},intro:"Upgrade fifteen occupied neighbors using Harmony Pulse."},
- {name:"Festival of Lights",subtitle:"Lantern Path finale",moves:48,par:29,goal:{type:"familyMasterpiece",family:"lantern",count:1},intro:"Finish the chapter by creating a stage-5 Lantern masterpiece."}
+ {name:"Festival of Lights",subtitle:"Lantern Path finale",moves:50,par:35,goal:{type:"familyMasterpiece",family:"lantern",count:2},intro:"Create two stage-5 Lantern masterpieces to complete the Lantern Path finale. Harmony Pulse can help build the second."}
 ];
 // HARMONY OBJECTIVES 2.0 — beyond the tutorial, every Journey level has
 // a tangible objective. Score remains a side challenge / personal record.

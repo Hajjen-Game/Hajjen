@@ -50,7 +50,7 @@ function initialize(save){
   state.replay={day:"",claims:0};
  // An invalid counter must never turn the five-replays-per-day limit into
  // an unlimited source of coins (NaN, strings and negative values included).
- if(typeof state.replay.day!=="string"||!/^\\d{4}-\\d{2}-\\d{2}$/.test(state.replay.day))
+ if(typeof state.replay.day!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(state.replay.day))
   state.replay.day="";
  if(!Number.isInteger(state.replay.claims)||state.replay.claims<0)
   state.replay.claims=5;

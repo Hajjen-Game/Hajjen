@@ -568,11 +568,28 @@ body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready 
 /* Gameplay 2.8 · user-selected art, quiet 7x7 board and no gold perimeter.
    Background is play-only; menu and Goshuincho keep their own backdrop. */
 body.harmony-playing::before{
+  /* Mobile anti-flicker: render the approved background and its original
+     dusk tint together in ONE fixed paint surface. The second full-screen
+     fallback image and separate fixed tint cost extra GPU composition
+     whenever fusion/score animations create temporary layers. */
   background-image:
-    url("../assets/gameplay-washi/play-background-20261029.jpg"),
-    url("../assets/shared/japanese-harmony-background-20261028-v2.jpg")!important;
-  background-size:cover,cover!important;
-  background-position:center top,center top!important;
+    linear-gradient(180deg,rgba(31,17,19,.07) 0%,
+      rgba(39,23,25,.12) 38%,rgba(29,19,20,.24) 100%),
+    url("../assets/gameplay-washi/play-background-20261029.jpg")!important;
+  background-size:100% 100%,cover!important;
+  background-position:center center,center top!important;
+  background-repeat:no-repeat,no-repeat!important;
+}
+/* The same tint now lives on ::before. Do not composite another viewport-
+   sized pseudo layer above it during active gameplay. */
+body.harmony-playing::after{
+  display:none!important;
+  content:none!important;
+}
+/* The unused festival <img> is a distinct full-screen backdrop in the DOM.
+   Removing it from the play layer tree is safer than visibility:hidden. */
+body.harmony-playing .festival-backdrop{
+  display:none!important;
 }
 body.harmony-playing .game-view .board-shell{
   padding:0!important;

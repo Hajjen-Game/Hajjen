@@ -97,7 +97,7 @@ try{
   await nav.click(".pause-levels");
   assert.equal(await nav.$eval("#modalTitle",e=>e.textContent),"Goshuincho");
   assert.equal(await nav.$$eval(".washi-level-tile",e=>e.length),10);
-  assert.equal(await nav.$eval(".washi-detail-play",e=>e.textContent),"FORTSÄTT");
+  assert.equal(await nav.$eval(".washi-detail-play",e=>e.textContent),"CONTINUE");
   await nav.click(".washi-detail-play");await nav.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   assert.equal(await nav.$eval("#gameView",e=>e.hidden),false);
   assert.equal(await nav.$eval("#modal",e=>e.hidden),true);
@@ -152,7 +152,7 @@ try{
   assert(visual.title.includes("Daruma")&&visual.goal.includes("Daruma"));
   assert(visual.locked&&visual.count===1&&visual.state.includes("state-0"));
   assert(visual.background.includes("daruma-states.webp"));
-  assert(visual.aria.includes("två ögon kvar"));
+  assert(visual.aria.includes("two eyes left"));
   fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
   await dp.screenshot({path:"/tmp/daisugi-bloom/daruma-l21.png"});
   await dp.evaluate(()=>{
@@ -165,7 +165,7 @@ try{
   await dp.click("#continueButton");await dp.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
   const half=await dp.$eval('.tile[data-index="24"]',tile=>({
    state:tile.querySelector(".daruma-art")?.className,aria:tile.getAttribute("aria-label")}));
-  assert(half.state.includes("state-1")&&half.aria.includes("ett öga kvar"),
+  assert(half.state.includes("state-1")&&half.aria.includes("one eye left"),
    "A half-painted Daruma must resume with the right second sprite");
  }finally{await darumaContext.close();}
  // Goshuincho Collection 1.0 — independent profile, no archive writes.
@@ -300,7 +300,7 @@ try{
   await journal.click("#goshuinButton");
   assert.equal(await journal.$$eval(".washi-level-tile",x=>x.length),10);
   assert.equal(await journal.$eval(".washi-level-tile.is-selected",x=>x.dataset.level),"25");
-  assert.equal(await journal.$eval(".washi-detail-play",x=>x.textContent),"FORTSÄTT");
+  assert.equal(await journal.$eval(".washi-detail-play",x=>x.textContent),"CONTINUE");
   assert.equal(await journal.$eval('.washi-level-tile[data-level="26"]',x=>x.classList.contains("is-locked")),true);
   await journal.click('.washi-level-tile[data-level="26"]');
   assert.equal(await journal.$eval(".washi-detail-play",x=>x.disabled),true);
@@ -1451,7 +1451,7 @@ try{
   });
   await mistPage.reload({waitUntil:"networkidle2"});
   await mistPage.click("#continueButton");await mistPage.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
-  assert.equal(await mistPage.$eval("#goalLabel",x=>x.textContent),"Rena dimman");
+  assert.equal(await mistPage.$eval("#goalLabel",x=>x.textContent),"Clear Mist");
   assert((await mistPage.$eval("#goalLabel",x=>x.title)).includes("Harmony Pulse"),
    "Mist instructions must explain that Harmony Pulse also clears fog");
   assert.equal(await mistPage.evaluate(()=>document.querySelectorAll(".tile.misted").length),fixture.mist);
@@ -1833,7 +1833,7 @@ try{
  assert.equal(boardReadability.count,49,"Larger board must retain exactly 49 playable cells");
  await page.click("#pauseButton");assert.equal(await page.$eval("#modal",x=>x.hidden),false);
  assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Spelmeny");
- assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Börja om nivån"));
+ assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Restart level"));
  assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Till Goshuincho"));
  const pauseLayout=await page.evaluate(()=>{
   const actions=document.querySelector("#modalActions");
@@ -1847,7 +1847,7 @@ try{
    screenHeight:window.innerHeight};
  });
  assert(pauseLayout.compact&&pauseLayout.columns===2,"Pause menu should group secondary actions in two columns");
- assert.equal(pauseLayout.primary,"Fortsätt spela");
+ assert.equal(pauseLayout.primary,"Resume game");
  assert(pauseLayout.resumeHeight>=44,"Resume remains the prominent tap target");
  assert(pauseLayout.utilityWidths.every(w=>w>70),"Help and settings must remain tappable");
  assert(pauseLayout.modalHeight<=pauseLayout.screenHeight,"Pause modal should fit the phone view");
@@ -1867,7 +1867,7 @@ try{
  // Invalid adjacent swaps are visual-only. They rebound without consuming
  // moves, changing the grid, or leaving the board permanently busy.
  const invalid=await page.evaluate(()=>{
-  const families={Sakura:"sakura",Lykta:"lantern",Koi:"koi",Solfjäder:"fan",Bonsai:"bonsai"};
+  const families={Sakura:"sakura",Lantern:"lantern",Koi:"koi",Fan:"fan",Bonsai:"bonsai"};
   const board=[...document.querySelectorAll(".tile")].map((el,i)=>({
    family:families[el.getAttribute("aria-label").split(",")[0]],stage:1,id:i+1
   }));
@@ -1905,7 +1905,7 @@ try{
  // The rejected target remains selected; clear it before the valid swap.
  await page.click(".tile:nth-child("+(invalid[1]+1)+")");
  const swap=await page.evaluate(()=>{
-  const fromName={Sakura:"sakura",Lykta:"lantern",Koi:"koi",Solfjäder:"fan",Bonsai:"bonsai"};
+  const fromName={Sakura:"sakura",Lantern:"lantern",Koi:"koi",Fan:"fan",Bonsai:"bonsai"};
   const cells=Array.from(document.querySelectorAll(".tile")).map((el,i)=>{
    const family=fromName[el.getAttribute("aria-label").split(",")[0]];
    return {family,stage:1,id:i+1};
@@ -2091,7 +2091,7 @@ try{
  });
  assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Prestanda");
  const report=await page.$eval("#modalContent",e=>e.textContent);
- assert(report.includes("Mätta drag")&&report.includes("95:e percentilen")&&report.includes("Startade animationer"),
+ assert(report.includes("Measured moves")&&report.includes("95th percentile")&&report.includes("Animations started"),
   "Performance report should expose turn metrics, not fake benchmark values");
  assert(report.includes("Inga data skickas"),"Diagnostics must be local-only");
  await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);
@@ -2099,7 +2099,7 @@ try{
 
  await page.click("#pauseButton");
  await page.evaluate(()=>{
-  const restart=[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Börja om nivån");
+  const restart=[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Restart level");
   if(!restart)throw new Error("Restart option missing from pause menu");
   restart.click();
  });
@@ -2252,7 +2252,7 @@ try{
   assert.equal(reached.star,3);
   assert(reached.completed&&reached.remaining>0,"Completion must retain optional turns");
   assert.equal(reached.starText,"★★★");
-  assert(reached.buttons.includes("Nästa nivå →")&&reached.buttons.includes("Fortsätt för poängrekord"));
+  assert(reached.buttons.includes("Next level →")&&reached.buttons.includes("Keep playing for a high score"));
   // Victory Accent 1.1: ensure the Sakura/peach hues are actually rendered,
   // limited to the victory dialog and do not displace actions on small phones.
   for(const width of [390,320]){
@@ -2299,8 +2299,8 @@ try{
   }
   await clarity.setViewport({width:390,height:844,deviceScaleFactor:2,
    isMobile:true,hasTouch:true});
-  assert.equal(reached.scoreLabel,"BONUSPOÄNG");
-  await clarity.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(x=>x.textContent.includes("Fortsätt för poängrekord")).click());
+  assert.equal(reached.scoreLabel,"BONUS SCORE");
+  await clarity.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(x=>x.textContent.includes("Keep playing for a high score")).click());
   assert.equal(await clarity.$eval("#modal",x=>x.hidden),true,
    "Voluntary record play must resume immediately");
   assert.equal(await clarity.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.complete),true);

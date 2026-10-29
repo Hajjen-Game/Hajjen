@@ -3,8 +3,8 @@
    Never touch moves, score, star calculation, board, cards or save data. */
 (() => {
   const panels = [
-    ['.game-view .moves', './assets/gameplay-washi/hud-washi-20261028.avif'],
-    ['.game-view #scorePanel', './assets/gameplay-washi/hud-washi-20261028.avif'],
+    ['.game-view .moves', './assets/gameplay-washi/moves-panel-20261029.png'],
+    ['.game-view #scorePanel', './assets/gameplay-washi/score-panel-20261029.png'],
   ];
   function preload() {
     for (const [selector, src] of panels) {

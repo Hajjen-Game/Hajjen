@@ -372,14 +372,14 @@ body.harmony-playing .game-view .hud-score.jh-approved-panel-ready{
   padding:clamp(8px,1.8vw,13px) clamp(9px,1.9vw,15px)!important;
 }
 body.harmony-playing .game-view .moves.jh-approved-panel-ready{
-  background-image:url("../assets/gameplay-washi/hud-washi-20261028.avif")!important;
+  background-image:url("../assets/gameplay-washi/moves-panel-20261029.png")!important;
 }
 body.harmony-playing .game-view .moves.jh-approved-panel-ready::after{
   content:none!important;
   display:none!important;
 }
 body.harmony-playing .game-view .hud-score.jh-approved-panel-ready{
-  background-image:url("../assets/gameplay-washi/hud-washi-20261028.avif")!important;
+  background-image:url("../assets/gameplay-washi/score-panel-20261029.png")!important;
 }
 body.harmony-playing .game-view .masterpiece-collection.jh-approved-panel-ready{
   border:0!important;
@@ -609,4 +609,13 @@ body.harmony-playing .game-view .board-shell::after{
 body.harmony-playing .game-view .masterpiece-collection,
 body.harmony-playing .game-view #masterpieceCollection{
   display:none!important;
+}
+
+/* HUD panel art 2.9: retain the supplied 900:360 and 720:360 image ratios.
+   Transparent PNG margins are part of the supplied artwork. Do not crop or tint. */
+body.harmony-playing .game-view .moves.jh-approved-panel-ready,
+body.harmony-playing .game-view .hud-score.jh-approved-panel-ready{
+  background-size:contain!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
 }

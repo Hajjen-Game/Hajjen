@@ -2176,13 +2176,14 @@ try{
    });
    assert(colors.isOpen&&colors.sakura==="#F2A9BF"&&colors.peach==="#F7B489",
     "Victory must apply the Sakura and peach design tokens");
-   assert(colors.header.includes("rgba(230, 124, 160")&&
-    colors.score.includes("rgba(255, 151, 107")&&
-    colors.record.includes("rgba(233, 127, 149")&&
-    colors.firstIcon.includes("rgba(245, 143, 179")&&
-    colors.secondIcon.includes("rgba(253, 160, 109")&&
+   assert(colors.header.includes("linear-gradient")&&
+    colors.header.includes("255, 245, 229")&&
+    colors.score.includes("linear-gradient")&&
+    colors.record.includes("255, 231, 184")&&
+    colors.firstIcon.includes("255, 246, 228")&&
+    colors.secondIcon.includes("255, 246, 228")&&
     colors.action.includes("linear-gradient")&&colors.star.includes("linear-gradient"),
-    "Victory rose, orange and gold gradients must render on mobile");
+    "Victory must use the current warm paper, bronze score and red action styling");
    assert(colors.stars==="★★★"&&colors.stats===4&&colors.contentScroll==="auto",
     "Accent pass cannot change the reward content or scroll behaviour");
    assert(colors.docWidth<=colors.viewWidth&&colors.innerHeight<=colors.viewHeight&&

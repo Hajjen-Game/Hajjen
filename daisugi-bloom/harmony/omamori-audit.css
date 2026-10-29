@@ -1,0 +1,49 @@
+/* Japanese Harmony · Omamori System Audit 5.0
+   Visual hierarchy only. Keep approved washi dialog, card artwork,
+   7x7 board and mobile gameplay geometry intact. */
+#modal .omamori-catalog .omamori-group-heading{
+ grid-column:1/-1;
+ margin:clamp(12px,2.5vw,18px) 0 2px;
+ padding:5px 0 7px;
+ border-bottom:1px solid rgba(154,110,76,.4);
+ color:#a34c40;
+ font:800 clamp(11px,2.8vw,14px)/1.2 Georgia,"Times New Roman",serif;
+ letter-spacing:.08em;
+}
+#modal .omamori-catalog .omamori-group-heading:first-child{margin-top:4px;}
+#modal .omamori-card[data-kind="keepsake"]{
+ border-color:rgba(174,143,92,.46);
+ background:linear-gradient(132deg,#fcf0da,#f3e1c6);
+}
+#modal .omamori-card[data-kind="keepsake"] .omamori-card-tag{
+ color:#765b40;
+}
+#modal .omamori-keepsake-note{
+ display:block;
+ color:#795b48;
+ font:600 clamp(10px,2.5vw,12px)/1.3 Georgia,serif;
+}
+#modal .omamori-card[data-kind="power"] .omamori-power-shop{color:#9b493f;}
+#modal .omamori-explanation{
+ line-height:1.5;
+ font-size:clamp(12px,2.8vw,13px);
+}
+#modal .omamori-card-copy .omamori-card-tag{
+ line-height:1.35;
+ overflow-wrap:anywhere;
+}
+#modal .omamori-owned-count{white-space:nowrap;}
+/* When wearing the related keepsake, feedback stays lightweight and cannot
+   mask the puzzle. No additional FX are created when reduced motion is on. */
+.omamori-spirit-fx.spirit-kiri{
+ color:#e6f1e9;
+ text-shadow:0 0 6px #b7d8d8,0 0 13px rgba(193,232,223,.6);
+}
+.omamori-spirit-fx.spirit-akari{
+ color:#ffe2aa;
+ text-shadow:0 0 6px #d8a45c,0 0 13px rgba(248,184,91,.65);
+}
+@media(max-width:360px){
+ #modal .omamori-group-heading{font-size:11px;letter-spacing:.03em;}
+ #modal .omamori-keepsake-note{font-size:10px;}
+}

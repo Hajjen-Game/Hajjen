@@ -30,7 +30,7 @@ try{
  await page.click('.tile[data-index="24"]');
  assert.equal(await page.$eval(".omamori-hud-title",e=>e.textContent),"✿ Bloom Touch");
  assert.equal(await page.$eval("#modal",e=>e.hidden),true,"No overlay hides the board");
- assert.equal(await page.$eval(".omamori-target-actions.is-ready",x=>x.length),1);
+ assert.equal(await page.evaluate(()=>document.querySelectorAll(".omamori-target-actions.is-ready").length),1);
  assert.equal(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).omamoriCards.counts.sakura,key),2,
   "Selecting a target must not spend a card");
  await page.click(".omamori-power-confirm");
@@ -45,7 +45,7 @@ try{
  await page.click('.tile[data-index="23"]');
  await page.click('.tile[data-index="22"]');
  assert.equal(await page.$eval("#modal",e=>e.hidden),true);
- assert.equal(await page.$eval(".omamori-target-actions.is-ready",x=>x.length),1);
+ assert.equal(await page.evaluate(()=>document.querySelectorAll(".omamori-target-actions.is-ready").length),1);
  await page.click(".omamori-power-confirm");
  await page.waitForFunction(key=>{
   const s=JSON.parse(localStorage.getItem(key));

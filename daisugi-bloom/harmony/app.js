@@ -171,7 +171,7 @@ function notifySaveWarning(){
  if(!saveBootComplete||saveStorageWarningShown||!saveStorageWarning)return;
  saveStorageWarningShown=true;
  toast(saveStorageWarning==="corrupt-save"?
-  "A damaged save was backed up. Your other progress is safe if it was readable.":
+  "Damaged save detected. A backup was kept; a fresh local save was started.":
   "Progress cannot be saved on this device. Check browser storage settings.",7500);
 }
 function persist(){

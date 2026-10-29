@@ -36,6 +36,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-sealed-stone.test.cjs
       - name: Chapter Gameplay Identity 1.0 · authored Daruma/Stone missions, layouts and saved games
         run: node daisugi-bloom/tests/harmony-chapter-identity.test.cjs
+      - name: Chapter Identity 2.0 · Lantern Path, old runs and Endless Garden
+        run: node daisugi-bloom/tests/harmony-chapter-identity-v2.test.cjs
       - name: Audit Harmony Pulse under relocated fusion survivors and chain waves
         run: node daisugi-bloom/tests/harmony-pulse-destination.test.cjs
       - name: Verify Japanese Harmony 4.1 visual-feedback contracts
@@ -74,6 +76,7 @@ jobs:
         run: node --check daisugi-bloom/tools/harmony-difficulty-reward-benchmark.cjs
       - name: Syntax-check all browser scripts
         run: |
+          node --check daisugi-bloom/harmony/onboarding.js
           node --check daisugi-bloom/src/rules.js
           node --check daisugi-bloom/src/visuals.js
           node --check daisugi-bloom/src/app.js

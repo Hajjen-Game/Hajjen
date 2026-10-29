@@ -225,7 +225,8 @@ check("Washi Zen UI 1.0: ten level cards per chapter and accurate Japanese label
  assert(css.includes("Washi Zen 1.3"),"Artwork-aligned selected card frame must be loaded");
  assert(css.includes("Washi Zen UI 1.4"),"Transparent detail card and no-halo highlight must remain active");
  assert(css.includes("level-card.webp")&&css.includes("detail-card.webp"));
- assert(css.includes("book-background.webp")&&css.includes("arrow-left.webp"));
+ assert(css.includes("#modal .washi-goshuincho::before")&&css.includes("arrow-left.webp"),
+  "Book background and navigation artwork styles must remain defined");
  assert.match(html, /harmony\/washi-zen\.css\?v=[0-9][\w.-]*/, "Washi Zen CSS must be cache-busted");
  for(const [n,k] of [[1,"一"],[10,"十"],[11,"十一"],[24,"二十四"],[40,"四十"],[123,"百二十三"]])
   assert.equal(G.japaneseNumeral(n),k);

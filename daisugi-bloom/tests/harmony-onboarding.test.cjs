@@ -32,7 +32,7 @@ assert.equal(O.preview(5,R.levelConfig(5),R.moveStarTargets).objective,
  "4 moves with a four-tile match");
 assert.equal(O.preview(20,R.levelConfig(20),R.moveStarTargets).objective,"1 Daruma");
 assert.equal(O.preview(30,R.levelConfig(30),R.moveStarTargets).objective,"1 Sealed Stone");
-assert.equal(O.preview(47,R.levelConfig(47),R.moveStarTargets).objective,"7 Lantern fusions");
+assert.equal(O.preview(47,R.levelConfig(47),R.moveStarTargets).objective,"9 Lantern fusions");
 assert.equal(O.preview(47,R.levelConfig(47)).threeStars,null);
 
 const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");

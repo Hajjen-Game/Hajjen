@@ -291,12 +291,34 @@ const FIRST20_STAR_PAR=[4,5,9,9,10,5,8,12,9,12,10,12,17,6,15,13,18,16,18,15];
 // 13-turn clear. Fixed thresholds, NEVER personalized or Director-adjusted.
 const FAIRNESS_STAR_PAR={27:19,29:23}; // player levels 28 and 30 (zero-based)
 const LEGACY_FAIRNESS_STAR_PAR=13;
-function levelConfig(index){
+// Difficulty Calibration 2.0: selectively rebalance fresh sessions only.
+// The first teaching levels, challenging Mist and most blockers stay intact.
+// Bot completions are diagnostics, NOT human win-rate measurements.
+const DIFFICULTY_CALIBRATION_2=Object.freeze({
+ 10:{moves:25,count:24,starPar:12}, // L11: five-family opener
+ 11:{moves:29,count:10},           // L12: stage growth
+ 24:{moves:31,count:17},           // L25: very brief fusion relief
+ 35:{moves:48},                    // L36: distant Sealed Stones
+ 38:{moves:49},                    // L39: three stone targets
+ 40:{moves:32,count:5},            // L41: Lantern introduction
+ 41:{moves:33,count:10},           // L42: five-family growth
+ 43:{moves:35,count:4},            // L44: four separate four-matches
+ 44:{moves:37,count:7},            // L45: Lantern fusions
+ 45:{moves:42,count:12},           // L46: Harmony Pulse upgrades
+ 46:{moves:42,count:4},            // L47: masterpieces
+ 47:{moves:42,count:9}             // L48: Lantern fusion precision
+});
+function levelConfig(index,calibrated=true){
  const base=levels[index]||endlessConfig(index);
- if(index>=0&&index<FIRST20_STAR_PAR.length)
-  return {...base,starPar:FIRST20_STAR_PAR[index]};
- return Object.prototype.hasOwnProperty.call(FAIRNESS_STAR_PAR,index)?
-  {...base,starPar:FAIRNESS_STAR_PAR[index]}:base;
+ const original=index>=0&&index<FIRST20_STAR_PAR.length?
+  {...base,starPar:FIRST20_STAR_PAR[index]}:
+  Object.prototype.hasOwnProperty.call(FAIRNESS_STAR_PAR,index)?
+   {...base,starPar:FAIRNESS_STAR_PAR[index]}:base;
+ const tuning=calibrated&&DIFFICULTY_CALIBRATION_2[index];
+ if(!tuning)return original;
+ return {...original,moves:tuning.moves,
+  goal:{...original.goal,...(tuning.count?{count:tuning.count}:{})},
+  ...(tuning.starPar?{starPar:tuning.starPar}:{})};
 }
 // New missions: pass always awards ★; ★★/★★★ recognize efficient
 // goal completion, never score. Extra post-win moves cannot change rating.
@@ -899,6 +921,7 @@ class Game{
   this.mistCleared=0;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.familyFusions={};this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
   this.chapterIdentityVersion=this.level>=40&&this.level<50?2:0;
+  this.difficultyCalibrationVersion=2;
   this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.fourTurns=0;this.shapes=0;this.bestChain=0;
   this.complete=false;this.failed=false;this.rewardVersion=3;this.starsAtGoal=0;this.goalMove=null;this.legacyScoreCompletion=false;
   // 1 = new chapter-three star / move thresholds. Old in-progress rounds
@@ -917,11 +940,14 @@ class Game{
    const isLegacyJourney=this.level>=10&&previous.objectiveVersion!==2;
    const oldSealedRun=this.level>=30&&this.level<40&&previous.sealedStoneVersion!==1;
    const oldLanternRun=this.level>=40&&this.level<50&&previous.chapterIdentityVersion!==2;
+   const oldDarumaRun=this.level>=20&&this.level<50&&previous.darumaVersion!==1&&
+    darumaPositions(this.level).length>0;
    this.config=isLegacyJourney?endlessScoreConfig(this.level):
-    (this.level>=20&&this.level<50&&previous.darumaVersion!==1&&
-     darumaPositions(this.level).length?endlessConfig(this.level,false):
-     oldSealedRun?endlessConfig(this.level,true,false):
-     oldLanternRun?endlessConfig(this.level,true,true,false):levelConfig(this.level));
+    oldDarumaRun?endlessConfig(this.level,false):
+    oldSealedRun?endlessConfig(this.level,true,false):
+    oldLanternRun?endlessConfig(this.level,true,true,false):
+    levelConfig(this.level,previous.difficultyCalibrationVersion===2);
+   this.difficultyCalibrationVersion=previous.difficultyCalibrationVersion===2?2:0;
    this.chapterIdentityVersion=oldLanternRun?0:this.level>=40&&this.level<50?2:0;
    // Preserve old star deadlines and L30's 36-turn budget for games that
    // existed before this update. No surprise change mid-level; retry uses
@@ -1452,7 +1478,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate

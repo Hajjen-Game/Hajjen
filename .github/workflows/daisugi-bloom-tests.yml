@@ -38,6 +38,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-chapter-identity.test.cjs
       - name: Chapter Identity 2.0 · Lantern Path, old runs and Endless Garden
         run: node daisugi-bloom/tests/harmony-chapter-identity-v2.test.cjs
+      - name: Difficulty Calibration 2.0 · selective tuning and old-game preservation
+        run: node daisugi-bloom/tests/harmony-difficulty-calibration-v2.test.cjs
       - name: Objective & Reward Feedback 2.0 · blockers, progress, practice stars
         run: node daisugi-bloom/tests/harmony-objective-feedback.test.cjs
       - name: Audit Harmony Pulse under relocated fusion survivors and chain waves

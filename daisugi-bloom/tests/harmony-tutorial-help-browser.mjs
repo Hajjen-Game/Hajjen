@@ -80,7 +80,7 @@ try{
  assert.equal((await info()).seen.mist,undefined);
  await page.reload({waitUntil:"networkidle2"});
  await page.click("#continueButton");
- await page.waitForFunction(()=>!document.querySelector(".jh-tutorial")?.dataset.lesson!=="mist"&&
+ await page.waitForFunction(()=>document.querySelector(".jh-tutorial")?.dataset.lesson==="mist"&&
   !document.querySelector("#modal").hidden,{timeout:9000});
  assert.equal((await info()).type,"mist","Unread resumed Mist lesson must reopen");
  await page.click(".jh-tutorial-ok");

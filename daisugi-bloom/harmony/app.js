@@ -433,6 +433,8 @@ function showGoalHelp(){
  details.append(goshuinNode("p","jh-guide-tip",lesson?.detail||info.tip));
  if(lesson&&info.tip&&info.tip!==lesson.detail)
   details.append(goshuinNode("p","jh-guide-subtip",info.tip));
+ if(game.assisted)details.append(goshuinNode("p","jh-guide-subtip",
+  "Omamori-assisted wins unlock the next level but do not earn regular Goshuincho stars, coins or records."));
  panel.append(details);
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("pause-menu-actions","victory-actions");

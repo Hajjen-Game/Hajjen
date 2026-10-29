@@ -27,7 +27,7 @@ function initialize(save){
   const counts={};
   const old=previous?.cards&&typeof previous.cards==="object"&&!Array.isArray(previous.cards)?
    previous.cards:{};
-  const migratedIds=Object.keys(old).length?Object.keys(old):legacyOwned;
+  const migratedIds=previous?.version===1?Object.keys(old):legacyOwned;
   for(const id of migratedIds){
    const entry=old[id];
    // Malformed entries are not revived into free cards.

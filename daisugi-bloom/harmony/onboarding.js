@@ -19,13 +19,19 @@ function lesson(level){return LESSONS[clean(level)]||null;}
 function objective(config){
  const g=config?.goal||{},count=clean(g.count);
  const labels={
-  mist:"Mist tiles",fusion:"fusions",stage3:"objects to stage 3",
-  stage4:"objects to stage 4",masterpiece:"masterpieces",
-  pulseHits:"Harmony upgrades",four:"four-tile matches",fourTurns:"moves with a four-tile match",
-  daruma:"Daruma dolls",sealedStone:"Sealed Stones",shape:"T/L matches",
-  score:"points",chain:"masterpieces in one chain",familyMasterpiece:"family masterpieces"
+  mist:["Mist tile","Mist tiles"],fusion:["fusion","fusions"],
+  stage3:["object to stage 3","objects to stage 3"],
+  stage4:["object to stage 4","objects to stage 4"],
+  masterpiece:["masterpiece","masterpieces"],pulseHits:["Harmony upgrade","Harmony upgrades"],
+  four:["four-tile match","four-tile matches"],
+  fourTurns:["move with a four-tile match","moves with a four-tile match"],
+  daruma:["Daruma","Daruma"],sealedStone:["Sealed Stone","Sealed Stones"],
+  shape:["T/L match","T/L matches"],score:["point","points"],
+  chain:["masterpiece in one chain","masterpieces in one chain"],
+  familyMasterpiece:["family masterpiece","family masterpieces"]
  };
- return count+" "+(labels[g.type]||"objectives");
+ const name=(labels[g.type]||["objective","objectives"])[count===1?0:1];
+ return count+" "+name;
 }
 function preview(level,config,moveStarTargets){
  const stars=typeof moveStarTargets==="function"?moveStarTargets(config):null;

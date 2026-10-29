@@ -83,6 +83,7 @@ jobs:
       - name: Syntax-check all browser scripts
         run: |
           node --check daisugi-bloom/harmony/onboarding.js
+          node --check daisugi-bloom/harmony/tutorial-help.js
           node --check daisugi-bloom/harmony/save-health.js
           node --check daisugi-bloom/harmony/objective-feedback.js
           node --check daisugi-bloom/src/rules.js
@@ -114,6 +115,8 @@ jobs:
         run: |
           python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/daisugi-bloom-server.log 2>&1 &
           echo $! > /tmp/daisugi-bloom-server.pid
+      - name: Tutorial Help Modal 1.0 · illustrated lessons, OK acknowledgment and replay
+        run: node daisugi-bloom/tests/harmony-tutorial-help-browser.mjs
       - name: Run Japanese Harmony mobile smoke
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
       - name: Run Harmony Economy and Omamori mobile smoke

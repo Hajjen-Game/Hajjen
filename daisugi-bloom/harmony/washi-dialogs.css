@@ -1,0 +1,390 @@
+/* Japanese Harmony · Washi Dialogs 1.0 · 2026-10-29
+   Unifies legacy blue dialogs with the current paper/sakura/bronze interface.
+   CSS-only: no changes to rules, controls, rewards, or saved progress.
+   Goshuincho is a dedicated full-screen illustration and remains untouched. */
+
+#modal:not(:has(.washi-goshuincho)){
+  --dialog-ink:#3d3029;
+  --dialog-copy:#604b3e;
+  --dialog-muted:#80695a;
+  --dialog-paper:#f7ead6;
+  --dialog-light:#fff6e7;
+  --dialog-sand:#ecd5b3;
+  --dialog-bronze:#ac8251;
+  --dialog-red:#994b40;
+  --dialog-deep-red:#743a35;
+  background:rgba(36,26,24,.68);
+  padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));
+}
+#modal:not(:has(.washi-goshuincho)) .modal-inner{
+  position:relative;
+  width:min(100%,485px);
+  max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y:auto;
+  border:1px solid #c29d6e;
+  border-radius:22px;
+  padding:clamp(18px,4.7vw,27px);
+  color:var(--dialog-ink);
+  background:
+    radial-gradient(ellipse 72% 35% at 100% 0%,rgba(205,137,129,.12),transparent 80%),
+    radial-gradient(ellipse 65% 45% at 0% 100%,rgba(187,144,84,.10),transparent 80%),
+    repeating-linear-gradient(4deg,transparent 0 9px,rgba(118,87,57,.014) 10px 11px),
+    linear-gradient(155deg,#fff4e2 0%,#f5e5ce 60%,#ebd4b2 100%);
+  box-shadow:0 22px 66px rgba(32,21,18,.48),inset 0 0 0 3px rgba(255,250,237,.58);
+}
+#modal:not(:has(.washi-goshuincho)) .modal-inner>.eyebrow{
+  color:#9a5940;
+  letter-spacing:.16em;
+  text-shadow:none;
+}
+#modal:not(:has(.washi-goshuincho)) .modal-inner>h2{
+  margin:6px 0 14px;
+  color:#382b27;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(27px,7vw,35px);
+  line-height:1.14;
+  letter-spacing:-.025em;
+  text-shadow:none;
+  overflow-wrap:anywhere;
+}
+#modal:not(:has(.washi-goshuincho)) #modalContent{
+  color:var(--dialog-copy);
+}
+#modal:not(:has(.washi-goshuincho)) .modal-inner p,
+#modal:not(:has(.washi-goshuincho)) .modal-inner li{
+  color:var(--dialog-copy);
+  line-height:1.55;
+}
+#modal:not(:has(.washi-goshuincho)) .modal-inner p{
+  font-size:13px;
+}
+#modal:not(:has(.washi-goshuincho)) .modal-inner .summary{
+  opacity:1;
+  margin:12px 0;
+  padding:14px 16px;
+  border:1px solid #ab8655;
+  border-radius:13px;
+  color:#f7e2b6;
+  background:linear-gradient(118deg,#674d33,#46362d);
+  box-shadow:inset 0 1px 0 rgba(255,235,191,.24);
+}
+#modal:not(:has(.washi-goshuincho)) .modal-inner .summary>div{
+  color:#f4d39b;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.14em;
+}
+#modal:not(:has(.washi-goshuincho)) .modal-inner .summary strong{
+  color:#ffe0a1;
+  font-family:Georgia,"Times New Roman",serif;
+  font-variant-numeric:tabular-nums;
+  font-size:clamp(27px,7vw,37px);
+}
+#modal:not(:has(.washi-goshuincho)) .result-stats{
+  gap:9px;
+}
+#modal:not(:has(.washi-goshuincho)) .result-stats>div{
+  min-width:0;
+  padding:12px;
+  border:1px solid rgba(177,126,77,.55);
+  border-radius:12px;
+  color:var(--dialog-ink);
+  background:linear-gradient(145deg,rgba(255,249,237,.94),rgba(240,216,181,.75));
+  box-shadow:inset 0 1px 0 rgba(255,255,252,.75);
+}
+#modal:not(:has(.washi-goshuincho)) .result-stats>div strong{
+  color:#8c552f;
+  font-variant-numeric:tabular-nums;
+}
+#modal:not(:has(.washi-goshuincho)) .result-stats>div small{
+  color:#705a4b;
+  line-height:1.35;
+}
+#modal:not(:has(.washi-goshuincho)) .modal-actions{
+  gap:9px;
+}
+#modal:not(:has(.washi-goshuincho)) .modal-actions button{
+  min-width:0;
+  min-height:43px;
+  border:1px solid #b48c65;
+  border-radius:11px;
+  color:#5b3d34;
+  background:linear-gradient(145deg,#fff1da,#e7cba5);
+  box-shadow:inset 0 1px 0 rgba(255,255,251,.55);
+  font-weight:800;
+  white-space:normal;
+  line-height:1.25;
+}
+#modal:not(:has(.washi-goshuincho)) .modal-actions button.primary{
+  color:#fff2dd;
+  border-color:#ab7350;
+  background:linear-gradient(120deg,#a75246,#753831);
+  box-shadow:inset 0 1px 0 rgba(255,220,181,.19),0 3px 9px rgba(90,43,36,.18);
+}
+#modal:not(:has(.washi-goshuincho)) .modal-actions button:focus-visible,
+#modal:not(:has(.washi-goshuincho)) button:focus-visible{
+  outline:2px solid #a34b40;
+  outline-offset:2px;
+}
+
+/* Failed run (screenshot): the retry and level-select are deliberately
+   prominent, while all five stats and personal record remain intact. */
+#modal:has(.result-stats:not(.victory-stats)) .mist-result{
+  margin:0 0 13px;
+  color:#655044;
+  font-size:14px;
+}
+#modal:has(.result-stats:not(.victory-stats)) .result-stats>div:last-child:nth-child(odd){
+  grid-column:1/-1;
+}
+#modal:has(.result-stats:not(.victory-stats)) .modal-actions button{
+  color:#fff1dc;
+  border-color:#9e6e50;
+  background:linear-gradient(115deg,#974b40,#773d36);
+}
+#modal:has(.result-stats:not(.victory-stats)) .modal-actions button:first-child{
+  background:linear-gradient(120deg,#ad5947,#804036);
+}
+#modal:has(.result-stats:not(.victory-stats)) .modal-actions button.omamori-moon-revive{
+  background:linear-gradient(120deg,#74526a,#5b405a);
+  border-color:#a98991;
+}
+
+/* Pause menu and utilities: preserve original order and two-column layout. */
+#modal:has(.pause-menu-actions) .modal-inner{
+  width:min(100%,450px);
+  border-color:#c29d6e;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(214,153,143,.14),transparent 55%),
+    linear-gradient(145deg,#fff2df,#f1dcc0);
+  box-shadow:0 22px 66px rgba(31,22,19,.45),inset 0 0 0 3px rgba(255,249,235,.6);
+}
+#modal .pause-summary,
+#modal .performance-report p{
+  color:#71594b;
+}
+#modal .performance-report p{
+  border-bottom-color:rgba(147,104,73,.24);
+}
+#modal .performance-report p strong{
+  color:#865039;
+}
+#modal:has(.pause-menu-actions) .pause-menu-actions .pause-action{
+  color:#644a40;
+  border-color:#c4a47f;
+  background:linear-gradient(145deg,#faebd5,#e7cca9);
+  box-shadow:inset 0 1px rgba(255,255,249,.55);
+}
+#modal:has(.pause-menu-actions) .pause-menu-actions .pause-resume{
+  color:#fff2db;
+  border-color:#ae7554;
+  background:linear-gradient(120deg,#a75445,#7a4037);
+}
+#modal:has(.pause-menu-actions) .pause-menu-actions .pause-performance,
+#modal:has(.pause-menu-actions) .pause-menu-actions .pause-dev{
+  color:#756153;
+  background:rgba(226,204,177,.60);
+}
+
+/* Victory retains its polished stars and reward hierarchy but no blue cards. */
+#modal:has(.victory-result) .modal-inner{
+  padding:0;
+  max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse 85% 28% at 50% 0%,rgba(213,141,131,.13),transparent 77%),
+    linear-gradient(160deg,#fff5e5 0%,#f5e4ca 65%,#ead2b1 100%);
+  color:#423129;
+}
+#modal:has(.victory-result) .modal-inner::before{
+  background:
+    radial-gradient(circle at 11% 12%,rgba(199,103,116,.13),transparent 32%),
+    radial-gradient(circle at 87% 6%,rgba(215,171,114,.16),transparent 33%);
+}
+#modal:has(.victory-result) .modal-inner>.eyebrow{
+  color:#9d5941;
+}
+#modal:has(.victory-result) .modal-inner>h2{
+  color:#3c2a29;
+  text-shadow:none;
+}
+#modal:has(.victory-result) #modalContent{
+  scrollbar-color:rgba(160,119,85,.44) transparent;
+}
+#modal:has(.victory-result) .victory-star.is-empty{
+  color:#bda78f;
+  text-shadow:none;
+}
+#modal:has(.victory-result) .victory-goal{
+  border-color:rgba(176,125,79,.47);
+  background:linear-gradient(125deg,#fff4dd,#e8cda9);
+  box-shadow:inset 0 1px rgba(255,255,250,.7);
+}
+#modal:has(.victory-result) .victory-goal .victory-kicker{
+  color:#a45a45;
+}
+#modal:has(.victory-result) .victory-goal-title{
+  color:#49382e;
+}
+#modal:has(.victory-result) .victory-goal-count{
+  color:#8c503a;
+  border-color:#c8aa82;
+  background:rgba(255,248,229,.7);
+}
+#modal:has(.victory-result) .victory-timing-stat strong{
+  color:#96593d;
+}
+#modal:has(.victory-result) .victory-timing-stat span,
+#modal:has(.victory-result) .victory-star-note,
+#modal:has(.victory-result) .victory-mist-note{
+  color:#786152;
+}
+#modal:has(.victory-result) .victory-timing-stat+.victory-timing-stat{
+  border-color:rgba(166,121,84,.25);
+}
+#modal:has(.victory-result) .summary.victory-score{
+  opacity:1;
+  border-color:#b38a5b;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(187,107,93,.20),transparent 66%),
+    linear-gradient(118deg,#694d31,#43362c);
+  box-shadow:inset 0 1px rgba(255,235,191,.25),0 5px 15px rgba(74,47,33,.16);
+}
+#modal:has(.victory-result) .summary.victory-score .victory-kicker{
+  color:#f8d8a3;
+}
+#modal:has(.victory-result) .summary.victory-score .victory-score-number{
+  color:#ffe0a1;
+  text-shadow:none;
+}
+#modal:has(.victory-result) .victory-record{
+  color:#ffebcc;
+  border-color:rgba(255,213,165,.36);
+  background:rgba(255,231,184,.11);
+}
+#modal:has(.victory-result) .victory-record-mark{
+  color:#f7c990;
+}
+#modal:has(.victory-result) .victory-stats .victory-stat{
+  border-color:rgba(179,128,79,.50);
+  background:linear-gradient(145deg,#fff5e4,#e9d1ae);
+  box-shadow:inset 0 1px rgba(255,255,250,.64);
+}
+#modal:has(.victory-result) .victory-stats .victory-stat:nth-child(even) strong,
+#modal:has(.victory-result) .victory-stats .victory-stat strong{
+  color:#885334;
+}
+#modal:has(.victory-result) .victory-stats .victory-stat small{
+  color:#71594c;
+}
+#modal:has(.victory-result) .victory-stat-icon,
+#modal:has(.victory-result) .victory-stat:nth-child(n) .victory-stat-icon{
+  border-color:#d6b48d;
+  color:#a75c4a;
+  background:rgba(255,246,228,.80);
+}
+#modal:has(.victory-result) .victory-next-note{
+  color:#776051;
+}
+#modal:has(.victory-result) .modal-actions.victory-actions{
+  border-top:1px solid rgba(167,119,79,.38);
+  background:linear-gradient(180deg,#f3e1c7,#ecd4b2);
+  box-shadow:0 -6px 18px rgba(87,58,39,.08);
+}
+#modal:has(.victory-result) .modal-actions.victory-actions .victory-next{
+  color:#fff1d8;
+  border-color:#9b694c;
+  background:linear-gradient(115deg,#a95646,#7d3c35);
+}
+#modal:has(.victory-result) .modal-actions.victory-actions .victory-continue,
+#modal:has(.victory-result) .modal-actions.victory-actions .victory-tertiary{
+  color:#624c40;
+  border-color:#bf9b76;
+  background:linear-gradient(145deg,#fff2df,#e4c5a0);
+}
+
+/* Other legacy blue surfaces in dialogs and notifications. */
+#modal .omamori-explanation,
+#modal .omamori-equipped,
+#modal .omikuji-intro,
+#modal .omikuji-result-note,
+#modal .omikuji-total{
+  color:#705a4d;
+}
+#modal .omamori-tab{
+  color:#785646;
+  background:rgba(255,245,224,.7);
+  border-color:#caa783;
+}
+#modal .omamori-tab.is-active{
+  color:#fff2db;
+  background:linear-gradient(115deg,#a65548,#7c3d37);
+  border-color:#a46a50;
+}
+#modal .omamori-shelf{
+  background:linear-gradient(135deg,#f7e6ca,#e7cba5);
+  border-color:rgba(172,121,80,.42);
+}
+#modal .omamori-shelf-slot{
+  color:#a17d65;
+  background:rgba(255,247,231,.70);
+  border-color:rgba(161,116,83,.45);
+}
+#modal .omamori-shelf-slot.is-owned{
+  color:#825036;
+  background:linear-gradient(145deg,#ffedcd,#f0caa1);
+}
+#modal .omamori-next-charm{
+  color:#86543c;
+}
+#modal .omamori-power-confirm{
+  color:#644c40;
+  background:rgba(252,240,220,.56);
+  border-color:#c8a681;
+}
+#modal .omikuji-result{
+  background:rgba(251,231,203,.76);
+  border-color:#c6a078;
+}
+#modal .omikuji-earned{
+  color:#8e4c35;
+}
+#modal .omikuji-draw{
+  color:#fff2dd;
+  background:linear-gradient(120deg,#a75246,#753831);
+}
+#modal:not(:has(.washi-goshuincho)) .modal-inner select,
+#modal:not(:has(.washi-goshuincho)) .modal-inner input{
+  color:#463730;
+  border-color:#c09c77;
+  background:#fff2dc;
+}
+.toast{
+  color:#fff0d7;
+  background:linear-gradient(135deg,#694536,#472d29);
+  border-color:#b59064;
+}
+.game-view .omamori-power-bar{
+  background:linear-gradient(120deg,rgba(248,230,199,.95),rgba(220,187,147,.95));
+  border-color:rgba(165,112,80,.57);
+}
+.game-view .omamori-power-label{
+  color:#764633;
+}
+.game-view .omamori-power-cancel{
+  color:#6f483b;
+  border-color:#b98c65;
+}
+.game-view .spirit-badge{
+  color:#ffebd5;
+  background:linear-gradient(110deg,rgba(113,65,56,.94),rgba(68,47,48,.94));
+}
+@media(max-width:360px){
+  #modal:not(:has(.washi-goshuincho)) .modal-inner{padding:15px}
+  #modal:has(.victory-result) .modal-inner{padding:0}
+  #modal:not(:has(.washi-goshuincho)) .result-stats{gap:6px}
+  #modal:not(:has(.washi-goshuincho)) .result-stats>div{padding:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  #modal:not(:has(.washi-goshuincho)) .modal-inner{animation:none}
+}

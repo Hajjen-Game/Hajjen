@@ -1,12 +1,15 @@
-/* Japanese Harmony · Omamori Cards 4.0
- * One physical, evolving and consumable card per kind in the first pilot.
- * Old Bond 2.0 owners migrate once, preserving levels. New purchases start at I.
- * Economy.owned remains a historical discovery archive, never a live inventory.
+/* Japanese Harmony · Omamori System Audit 5.0
+ * Power cards are physical, evolving, fully consumed on activation.
+ * Keepsakes are permanent, equippable collectibles with visual progression.
+ * Existing tier/missions/coins and the version-1 save schema remain intact.
+ * Economy.owned is discovery history; cards[] is the live inventory.
  */
 (function(root){
 "use strict";
 const VERSION=1,THRESHOLDS=[1,3,6];
 const activeIds=["sakura","koi","tsuki"];
+const keepsakeIds=["kiri","daruma","akari"];
+const kind=id=>catalog().find(c=>c.id===id)?.kind||null;
 const descriptions={
  sakura:"Create at least one masterpiece in a level",
  kiri:"Clear at least one mist tile in a level",
@@ -51,8 +54,10 @@ function status(save,id){
  if(!validId(id))return null;
  const state=initialize(save),entry=state.cards[id],count=entry?.levels.length||0;
  const next=entry&&entry.tier<3?THRESHOLDS[entry.tier]:null;
+ const type=kind(id);
  return {id,owned:!!entry,discovered:state.discovered.includes(id),tier:entry?.tier||0,
-  count,next,mission:descriptions[id],active:activeIds.includes(id)};
+  count,next,mission:descriptions[id],active:type==="power",
+  kind:type,permanent:type==="keepsake",consumable:type==="power"};
 }
 function buy(save,id){
  const item=catalog().find(c=>c.id===id);
@@ -73,6 +78,8 @@ function equip(save,id){
  economy.equipped=id;return {ok:true,id};
 }
 function consume(save,id){
+ // Prevent UI mistakes or future callers from deleting permanent collectibles.
+ if(kind(id)==="keepsake")return {ok:false,reason:"permanent-keepsake"};
  const state=initialize(save);
  if(!state.cards[id])return {ok:false,reason:"no-card"};
  const tier=state.cards[id].tier;
@@ -115,7 +122,7 @@ function replayCoins(save,level,won,assisted,day){
  r.claims++;const {account:e}=root.HarmonyEconomy.initialize(save);
  const gained=Math.min(4,10000000-e.coins);e.coins+=gained;return gained;
 }
-const api={VERSION,THRESHOLDS,activeIds,descriptions,initialize,has,status,buy,equip,consume,observe,replayCoins};
+const api={VERSION,THRESHOLDS,activeIds,keepsakeIds,kind,descriptions,initialize,has,status,buy,equip,consume,observe,replayCoins};
 root.HarmonyCards=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

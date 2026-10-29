@@ -24,7 +24,7 @@ check("Stamps reflect correct real 4-family/5-family archived stars",()=>{
  assert.equal(intro.earned,3);assert.equal(intro.stars,6);
  assert.equal(journey.earned,2);assert.equal(journey.stars,5);
  const latest=G.chapterSnapshot(s,2);
- assert.equal(latest.title,"Darumas önskan");
+ assert.equal(latest.title,"Daruma's Wish");
  assert.equal(latest.stamps[0].stars,3);
  assert.equal(G.summary(s).earned,6);
 });

@@ -225,3 +225,16 @@ body.harmony-playing .game-view #pauseButton.pause-button:focus-visible{
   outline:2px solid #f8e6c0;
   outline-offset:2px;
 }
+
+/* Gameplay layout 3.4 · Omamori below the puzzle.
+   The actual Omamori node is placed after the 7×7 board in index.html.
+   Moving the panel out of the HUD stack lifts the board by the full panel
+   height without shrinking tiles or touching game logic. Keep a modest
+   gap between the playable grid and the now-secondary power controls. */
+body.harmony-playing .game-view .board-shell{
+  margin-top:clamp(1px,.3dvh,4px)!important;
+}
+body.harmony-playing .game-view .board-shell + .omamori-power-bar,
+body.harmony-playing .game-view .board-shell + .omamori-power-bar:not([hidden]){
+  margin:clamp(6px,.9dvh,10px) 0 0!important;
+}

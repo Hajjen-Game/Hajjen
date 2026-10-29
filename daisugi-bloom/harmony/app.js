@@ -1679,35 +1679,47 @@ function flyPoints(evt){
   const x=from.left+from.width*.5,y=from.top+from.height*.45;
   const dx=dest.left+dest.width*.5-x,dy=dest.top+dest.height*.5-y;
   const bend=dx>=0?Math.min(-18,-Math.abs(dx)*.12):Math.max(18,Math.abs(dx)*.12);
-  const n=scoreFlights++;
-  // Arc above the board: legible +amount with a thick dark ink pill and gold rim.
-  const keyframes=[
-   {transform:"translate3d(0,6px,0) scale(.75)",opacity:0,offset:0},
-   {transform:"translate3d(0,-8px,0) scale(1.12)",opacity:1,offset:.16},
-   {transform:"translate3d("+(dx*.32+bend)+"px,"+(dy*.32-28)+"px,0) scale(1.06)",opacity:1,offset:.43},
-   {transform:"translate3d("+(dx*.70+bend*.5)+"px,"+(dy*.70-23)+"px,0) scale(.94)",opacity:1,offset:.77},
-   {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.48)",opacity:.96,offset:.96},
-   {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.2)",opacity:0,offset:1}
-  ];
-  const duration=MOBILE_LITE?500:555;
-  const label=fxAt("score-flight-token",x,y,"+"+prettify(points));
-  label.dataset.points=String(points);
-  const flight=animateNode(label,keyframes,duration,{easing:"linear"});
-  // A visible stream of small gold sparks follows the exact same curved arc.
-  const trails=MOBILE_LITE?2:Math.max(3,Math.min(5,5-n));
-  for(let k=0;k<trails;k++){
-   if((LITE_FX()&&k>=1)||(MOBILE_LITE&&fxCount()>=32))break;
-   const bead=fxAt("score-trail-dot"+(k%2===0?" bright":""),x,y);
-   const stagger=55+k*40;
-   animateNode(bead,[
-    {transform:"translate3d(0,0,0) scale(.3)",opacity:0,offset:0},
-    {transform:"translate3d("+(dx*.2+bend*.7)+"px,"+(dy*.2-18)+"px,0) scale(1)",opacity:1,offset:.32},
-    {transform:"translate3d("+(dx*.67+bend*.5)+"px,"+(dy*.67-22)+"px,0) scale(.8)",opacity:.95,offset:.77},
-    {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.18)",opacity:0,offset:1}
-   ],duration-45,{delay:stagger,easing:"linear"}).finally(()=>bead.remove());
+  scoreFlights++;
+  // Score Motes 1.0: no pill, number, beam or solid trail. A small swarm
+  // of pearly/gold/sakura dust shoots from the fusion tile to SCORE.
+  // Keep roughly the old 500–555ms travel time and count up ON arrival.
+  const duration=MOBILE_LITE?500:530;
+  const budget=LITE_FX()?5:MOBILE_LITE?8:11;
+  const motes=Math.max(1,Math.min(budget,
+   MOBILE_LITE?Math.max(1,36-fxCount()):Math.max(1,62-fxCount())));
+  const startW=Math.min(7,from.width*.105);
+  const startH=Math.min(6,from.height*.10);
+  let lead=null;
+  for(let k=0;k<motes;k++){
+   // Deterministic offsets: the stream has organic depth, not random
+   // state or changes to board outcomes. Every mote ends inside SCORE.
+   const angle=(k*2.39996)+item.at*.46;
+   const radial=k===0?0:.4+((k*7)%5)*.20;
+   const sx=Math.cos(angle)*startW*radial;
+   const sy=Math.sin(angle)*startH*radial;
+   const ex=k===0?0:Math.cos(angle+1.7)*Math.min(5,dest.width*.10);
+   const ey=k===0?0:Math.sin(angle+1.7)*3.5;
+   const curve=bend*(k===0?1:.8+(k%4)*.10);
+   const rise=18+(k%4)*3;
+   const mote=fxAt("score-shot-mote "+
+    (k%5===0?"shot-pearl":k%5===2?"shot-sakura":"shot-gold")+
+    (k===0?" shot-core":"")+
+    (k%4===0?" shot-star":""),x+sx,y+sy);
+   if(k===0)mote.dataset.points=String(points);
+   const stagger=k===0?0:Math.min(70,9+k*8);
+   const travel=duration-(k%3)*8;
+   const motion=animateNode(mote,[
+    {transform:"translate3d(0,0,0) scale(.50)",opacity:.10,offset:0},
+    {transform:"translate3d("+((dx*.12+curve*.15))+"px,"+(dy*.12-rise*.6)+"px,0) scale(1.06)",opacity:.95,offset:.18},
+    {transform:"translate3d("+(dx*.48+curve)+"px,"+(dy*.48-rise)+"px,0) scale(.95)",opacity:.97,offset:.51},
+    {transform:"translate3d("+(dx*.84+curve*.25)+"px,"+(dy*.84-rise*.46)+"px,0) scale(.74)",opacity:.90,offset:.83},
+    {transform:"translate3d("+(dx+ex)+"px,"+(dy+ey)+"px,0) scale(.24)",opacity:0,offset:1}
+   ],travel,{delay:stagger,easing:"linear"}).finally(()=>mote.remove());
+   if(k===0)lead=motion;
   }
-  flight.finally(()=>{
-   label.remove();
+  // A single core mote controls the score arrival regardless of swarm size.
+  // Session guard stops stale flights after restart, pause or level switch.
+  void lead.finally(()=>{
    if(id!==scoreSession)return;
    scoreFlights=Math.max(0,scoreFlights-1);
    scoreShown+=points;

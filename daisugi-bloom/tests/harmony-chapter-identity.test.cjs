@@ -56,7 +56,7 @@ check("Chapter 4 has ten intentional Sealed Stone formations, including an adjac
   assert(expected.every(at=>fresh.sealed[at]===4));
   assert.equal(fresh.board.filter(p=>p?.family==="sealedStone").length,expected.length);
   assert(R.validSwaps(fresh.board).length>=3,"Three legal swaps on "+(level+1));
-  assert(cfg.intro.includes("fyra träffar")&&cfg.intro.includes("Awakening Pulse"));
+  assert(cfg.intro.includes("Four hits")&&cfg.intro.includes("Awakening Pulse"));
   assert(cfg.subtitle.length>=8&&cfg.name.length>=5);
   names.add(cfg.name);patterns.add(expected.join(","));
  }

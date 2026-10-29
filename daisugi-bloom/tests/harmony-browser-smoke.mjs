@@ -823,19 +823,18 @@ try{
   await legacy.reload({waitUntil:"networkidle2"});
   const migrated=await legacy.evaluate(()=>{
    const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
-   const nodes=document.querySelectorAll(".level-tile");
-   const R=window.HarmonyRules;
+   const R=window.HarmonyRules,G=window.HarmonyGoshuincho;
    return {unlocked:saved.unlocked,record:saved.bestScores["10"],
     stars:saved.bestStars["10"],nextStars:saved.bestStars["11"],
-    shown:nodes[10].textContent,second:nodes[11].textContent,
+    bookStars:[G.archivedStars(saved,10),G.archivedStars(saved,11)],
     target:R.levelConfig(10).goal.count,oldTarget:R.legacyScoreConfig(10).goal.count};
   });
   assert.equal(migrated.unlocked,12,"Already unlocked future levels must stay unlocked");
   assert.equal(migrated.record,1600,"Original high score must not be overwritten");
   assert.equal(migrated.stars,1,"Old overly generous 3 stars should be adjusted to 1");
   assert.equal(migrated.nextStars,3,"Excellent prior score must still earn 3 stars");
-  assert(migrated.shown.replace(/\s/g," ").includes("1 600")&&migrated.second.replace(/\s/g," ").includes("18 000"),
-   "The level list must display personal best scores for completed stages");
+  assert.deepEqual(migrated.bookStars,[1,3],
+   "Goshuincho must display accurate achievements from migrated legacy scores");
   assert.equal(migrated.target,20,"Level 11 now requires twenty fusions rather than a brief cascade");
   assert.equal(migrated.oldTarget,7500,"Legacy score milestones remain preserved");
   await clickLegacyLevel(legacy,".level-tile:nth-child(11)");
@@ -845,7 +844,7 @@ try{
    mist:document.querySelectorAll(".tile.misted").length
   }));
   assert(milestones.hidden,"New mission levels use moves-based stars, not score milestones");
-  assert.equal(milestones.goal,"Fusioner");
+  assert.equal(milestones.goal,"Fusions");
   assert.equal(milestones.mist,0,"Fifth family should begin without an additional Mist challenge");
   // The user's actual 11–14 history should automatically earn the revised
   // stars, without deleting records or revoking old level completions.
@@ -863,13 +862,13 @@ try{
    const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
    return {scores:[10,11,12,13].map(i=>data.bestScores[i]),
     stars:[10,11,12,13].map(i=>data.bestStars[i]),
-    shown:[10,11,12,13].map(i=>document.querySelectorAll(".level-tile")[i].textContent)};
+    bookStars:[10,11,12,13].map(i=>window.HarmonyGoshuincho.archivedStars(data,i))};
   });
   assert.deepEqual(rebalanced.scores,[4710,7900,9125,9388]);
   assert.deepEqual(rebalanced.stars,[1,1,1,1],
    "Revised Journey rewards must recognize existing performance automatically");
-  assert(rebalanced.shown[1].includes("★")&&!rebalanced.shown[1].includes("★★"),
-   "Old achievements keep a completion star but the 50% higher 2-star milestone applies");
+  assert.deepEqual(rebalanced.bookStars,[1,1,1,1],
+   "Goshuincho must retain a genuine completion stamp for older Journey wins");
 
  }finally{await legacyContext.close();}
  // New public release: every existing browser must wipe archived scores,

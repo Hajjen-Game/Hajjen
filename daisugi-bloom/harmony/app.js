@@ -884,9 +884,9 @@ function showOmamoriNotice(action,item){
  note.setAttribute("role","status");
  note.append(
   goshuinNode("span","omamori-reward-emblem",action==="purchase"?"✦":"✧"),
-  goshuinNode("strong","",action==="purchase"?"New Omamori added to your collection":
-   action==="equip"?"Omamori equipped":"Charm remains in your collection"),
-  goshuinNode("small","",item.name+(action==="purchase"?" · a new memory from your journey":""))
+  goshuinNode("strong","",action==="purchase"?(item.kind==="power"?"New power card · Tier I":"Permanent keepsake collected"):
+   action==="equip"?"Equipped for tier missions":"Omamori unequipped"),
+  goshuinNode("small","",item.name+(action==="purchase"?(item.kind==="power"?" · consumed on activation":" · yours to keep"):""))
  );
  shop.insertBefore(note,shop.querySelector(".omamori-tabs"));
 }

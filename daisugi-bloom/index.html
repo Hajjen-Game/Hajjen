@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="sv">
+<html lang="en">
 <head>
  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
  <meta name="theme-color" content="#f4e5d0">
- <meta name="description" content="Japanese Harmony – förädla japanska föremål och skapa Harmony Pulse-kedjor.">
+ <meta name="description" content="Japanese Harmony — fuse Japanese treasures, clear the Mist, and create Harmony Pulse chains.">
  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
  <title>Japanese Harmony · Washi Zen 1.1</title>
  <link rel="stylesheet" href="./harmony/styles.css?v=6.24.0-core-clarity">
@@ -12,18 +12,19 @@
  <link rel="stylesheet" href="./harmony/gameplay-washi.css?v=2.9.0-exact-user-hud">
  <link rel="stylesheet" href="./harmony/washi-dialogs.css?v=1.0.0-washi-zen">
  <link rel="stylesheet" href="./harmony/gameplay-washi-panel-art.css?v=3.5.0-score-left-moves-right">
+ <link rel="stylesheet" href="./harmony/english-visual-hierarchy.css?v=1.0.0-en-ja">
  <script defer src="./harmony/approved-game-panels.js?v=2.9.0-exact-user-hud"></script>
- <script defer src="./harmony/rules.js?v=6.47.1-sealed-pulse"></script>
+ <script defer src="./harmony/rules.js?v=6.51.0-en"></script>
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=5.6.0"></script>
  <script defer src="./harmony/diagnostics.js?v=6.47.0-director4"></script>
- <script defer src="./harmony/goshuincho.js?v=6.43.0-japanese-numerals"></script>
- <script defer src="./harmony/economy.js?v=6.37.0"></script>
-  <script defer src="./harmony/spirits.js?v=6.48.0-identity-bond"></script>
-  <script defer src="./harmony/powers.js?v=6.50.0-tiered"></script>
-  <script defer src="./harmony/cards.js?v=6.50.0-consumable"></script>
- <script defer src="./harmony/fortune.js?v=6.38.0"></script>
- <script defer src="./harmony/app.js?v=6.50.2-frame-free-play"></script>
+ <script defer src="./harmony/goshuincho.js?v=6.51.0-en"></script>
+ <script defer src="./harmony/economy.js?v=6.51.0-en"></script>
+  <script defer src="./harmony/spirits.js?v=6.51.0-en"></script>
+  <script defer src="./harmony/powers.js?v=6.51.0-en"></script>
+  <script defer src="./harmony/cards.js?v=6.51.0-en"></script>
+ <script defer src="./harmony/fortune.js?v=6.51.0-en"></script>
+ <script defer src="./harmony/app.js?v=6.51.0-en"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -31,11 +32,11 @@
       alt="" aria-hidden="true" decoding="async" fetchpriority="high">
  <div id="app">
   <header class="topbar">
-   <button id="homeButton" class="brand" aria-label="Öppna Goshuincho nivåval"><span class="brand-flower">✿</span><span>JAPANESE <strong>HARMONY</strong></span></button>
-   <div class="top-actions"><button id="settingsButton" class="icon-button" aria-label="Inställningar">⚙</button></div>
+   <button id="homeButton" class="brand" aria-label="Open Goshuincho level select"><span class="brand-flower">✿</span><span>JAPANESE <strong>HARMONY</strong></span></button>
+   <div class="top-actions"><button id="settingsButton" class="icon-button" aria-label="Settings">⚙</button></div>
   </header>
   <main>
-   <section id="menuView" class="menu-view washi-home" aria-label="Japanese Harmony startsida">
+   <section id="menuView" class="menu-view washi-home" aria-label="Japanese Harmony home screen">
     <div class="washi-home-logo" role="img" aria-label="Japanese Harmony">
       <img class="washi-home-asset-logo" src="./assets/washi-zen/logo.webp" alt="" decoding="async">
       <span class="washi-home-kanji" lang="ja">和</span><span class="washi-home-seal" lang="ja">日本</span>
@@ -43,23 +44,23 @@
       <span class="washi-home-rule" aria-hidden="true">──── ✿ ────</span>
     </div>
     <div class="washi-home-controls">
-      <button type="button" id="continueButton" class="washi-play-main"><span lang="ja">プレイ</span><strong>SPELA</strong></button>
-      <div class="washi-home-links" aria-label="Samling och belöningar">
+      <button type="button" id="continueButton" class="washi-play-main"><span lang="ja">プレイ</span><strong>PLAY</strong></button>
+      <div class="washi-home-links" aria-label="Collection and rewards">
         <button type="button" id="goshuinButton" class="washi-home-link">
-          <span class="washi-link-illustration" aria-hidden="true">▤</span><span lang="ja">御朱印帳</span><strong>GOSHUINCHO</strong><small id="goshuinProgress">0 stämplar</small>
+          <span class="washi-link-illustration" aria-hidden="true">▤</span><span lang="ja">御朱印帳</span><strong>GOSHUINCHO</strong><small id="goshuinProgress">0 stamps</small>
         </button>
         <button type="button" id="omamoriButton" class="washi-home-link">
-          <span class="washi-link-illustration" aria-hidden="true">守</span><span lang="ja">お守り</span><strong>OMAMORI</strong><small id="omamoriProgress">Kort</small><span id="harmonyCoins" class="washi-wallet">0 mynt</span>
+          <span class="washi-link-illustration" aria-hidden="true">守</span><span lang="ja">お守り</span><strong>OMAMORI</strong><small id="omamoriProgress">Cards</small><span id="harmonyCoins" class="washi-wallet">0 coins</span>
         </button>
         <button type="button" id="omikujiButton" class="washi-home-link">
-          <span class="washi-link-illustration" aria-hidden="true">⛩</span><span lang="ja">おみくじ</span><strong>OMIKUJI</strong><small id="omikujiStatus">Lyckolapp</small>
+          <span class="washi-link-illustration" aria-hidden="true">⛩</span><span lang="ja">おみくじ</span><strong>OMIKUJI</strong><small id="omikujiStatus">Fortune</small>
         </button>
       </div>
       <details class="washi-advanced" id="menuAdvanced">
-        <summary>Spelinställningar</summary>
-        <label for="gameDirectorMode">SPELMOTOR</label>
-        <select id="gameDirectorMode" aria-label="Välj Director-läge för nya spel">
-          <option value="auto" selected>Automatiskt · 4.0 från nivå 10</option>
+        <summary>Game Settings</summary>
+        <label for="gameDirectorMode">GAME ENGINE</label>
+        <select id="gameDirectorMode" aria-label="Choose Director mode for new games">
+          <option value="auto" selected>Automatic · 4.0 from level 10</option>
           <option value="v4">Harmony Director 4.0 · test</option>
           <option value="v3">Harmony Pacing Director 3.0</option>
           <option value="v31">Objective Awareness Director 3.1</option>
@@ -67,41 +68,41 @@
           <option value="v2">Opportunity Director 2.0</option>
           <option value="standard">Standard</option>
         </select>
-        <p id="directorModeDescription">3.0 på nivå 1–9 och 4.0 från nivå 10.</p>
-        <div class="washi-advanced-actions"><button id="helpButton" type="button">Så spelar du</button><button id="devButton" type="button" aria-label="Game Dev Motorlab">Game Dev · Motorlab</button></div>
+        <p id="directorModeDescription">3.0 on levels 1–9 and 4.0 from level 10.</p>
+        <div class="washi-advanced-actions"><button id="helpButton" type="button">How to Play</button><button id="devButton" type="button" aria-label="Game Dev Motorlab">Game Dev · Motorlab</button></div>
       </details>
     </div>
     <div id="levelList" class="level-list" hidden inert aria-hidden="true"></div>
     <nav id="levelPager" class="level-pager" hidden inert aria-hidden="true"></nav>
   </section>
   <section id="gameView" class="game-view" hidden>
-    <div class="game-heading" aria-label="Spelstatus">
+    <div class="game-heading" aria-label="Game status">
      <div id="scorePanel" class="hud-score score-panel">
-      <span class="hud-label">BONUSPOÄNG</span>
+      <span class="hud-label">BONUS SCORE <span class="jh-jp" lang="ja">得点</span></span>
       <strong id="scoreCount">0</strong>
-      <div class="hud-score-footer"><span id="statusStars" class="star-mini" aria-label="Nivåns stjärnbetyg"></span></div>
+      <div class="hud-score-footer"><span id="statusStars" class="star-mini" aria-label="Level star rating"></span></div>
       <strong id="scoreBest" hidden aria-hidden="true">0</strong>
      </div>
-     <div class="moves"><span>DRAG KVAR</span><strong id="movesCount">24</strong></div>
-     <button id="pauseButton" class="pause-button" aria-label="Öppna spelmenyn" title="Spelmeny">Ⅱ</button>
+     <div class="moves"><span>MOVES LEFT <span class="jh-jp" lang="ja">手数</span></span><strong id="movesCount">24</strong></div>
+     <button id="pauseButton" class="pause-button" aria-label="Open game menu" title="Game menu">Ⅱ</button>
     </div>
-    <div id="paceStatus" class="pace-status" aria-live="off">PACING 3.0 · BYGGER</div>
-    <div class="game-meta"><span class="eyebrow" id="levelNumber">NIVÅ 1 AV 10</span><strong id="levelTitle">First Match</strong></div>
+    <div id="paceStatus" class="pace-status" aria-live="off">PACING 3.0 · BUILD</div>
+    <div class="game-meta"><span class="eyebrow" id="levelNumber">LEVEL 1 OF 10</span><strong id="levelTitle">First Match</strong></div>
      <div id="spiritBadge" class="spirit-badge" hidden aria-live="polite"></div>
-    <div class="goal"><span class="goal-glyph" aria-hidden="true">✿</span><span id="goalLabel">Fusioner</span><strong id="goalProgress">0 / 5</strong></div>
-    <div id="starTargets" class="star-targets" aria-label="Historiska poängkrav för sparade äldre nivåer" hidden>
+    <div class="goal"><span class="goal-glyph" aria-hidden="true">✿</span><span id="goalLabel">Fusions</span><strong id="goalProgress">0 / 5</strong></div>
+    <div id="starTargets" class="star-targets" aria-label="Historical star thresholds for saved older levels" hidden>
      <span></span><span></span><span></span>
     </div>
      <div class="board-shell">
      <div class="board-frame-art" aria-hidden="true"></div>
-     <div id="board" class="board" role="grid" aria-label="Spelplan med 7 gånger 7 japanska föremål"></div>
+     <div id="board" class="board" role="grid" aria-label="7 by 7 board of Japanese treasures"></div>
      <div id="resonanceLinks" class="resonance-links" aria-hidden="true"></div>
      <div id="boardPraise" class="board-praise" aria-hidden="true"></div>
     </div>
-    <div id="omamoriPowerBar" class="omamori-power-bar" hidden aria-label="Omamori-krafter"></div>
+    <div id="omamoriPowerBar" class="omamori-power-bar" hidden aria-label="Omamori powers"></div>
     <!-- Data-only masterpiece bookkeeping: no visible collection panel in gameplay. -->
     <div id="masterpieceCollection" hidden aria-hidden="true"></div>
-    <p id="selectedInfo" class="sr-only" role="status" aria-live="polite">Välj två grannar eller svep.</p>
+    <p id="selectedInfo" class="sr-only" role="status" aria-live="polite">Swap adjacent tiles or swipe.</p>
    </section>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

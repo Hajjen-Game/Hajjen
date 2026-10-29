@@ -35,11 +35,11 @@ const CHAPTER_SIZE=10;
 const PAGE_SIZE=4;
 const PAGES_PER_CHAPTER=Math.ceil(CHAPTER_SIZE/PAGE_SIZE);
 const THEMES=[
- {title:"Första harmonin",subtitle:"Din resa tar sin början",motif:"sakura",symbol:"✿"},
- {title:"Dimträdgården",subtitle:"Genom dimma och mästerverk",motif:"mist",symbol:"☁"},
- {title:"Darumas önskan",subtitle:"Två ögon, ett löfte",motif:"daruma",symbol:"◉"},
- {title:"Förseglingarnas väg",subtitle:"Fyra sprickor, åtta riktningar",motif:"sealed-stone",symbol:"✦"},
- {title:"Lyktornas stig",subtitle:"Ett varmt sken framåt",motif:"lantern",symbol:"✦"}
+ {title:"First Harmony",subtitle:"The journey begins",motif:"sakura",symbol:"✿"},
+ {title:"Garden of Mist",subtitle:"Through mist and masterpieces",motif:"mist",symbol:"☁"},
+ {title:"Daruma's Wish",subtitle:"Two eyes, one promise",motif:"daruma",symbol:"◉"},
+ {title:"Path of the Seals",subtitle:"Four cracks, eight directions",motif:"sealed-stone",symbol:"✦"},
+ {title:"Lantern Path",subtitle:"A warm light ahead",motif:"lantern",symbol:"✦"}
 ];
 // Asset Fidelity 2.0: the six APPROVED independent high-resolution PNGs
 // supply chapter headings and 1/2/3-star seals. Keep the old atlas only as

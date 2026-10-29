@@ -20,13 +20,13 @@ jobs:
         run: node daisugi-bloom/tests/harmony-consistency-audit.test.cjs
       - name: Goshuincho Collection 1.0 · archived stamps and chapters
         run: node daisugi-bloom/tests/harmony-goshuincho.test.cjs
-      - name: Harmony Economy & Omamori 1.0 · deterministic payouts and collection
+      - name: Harmony Economy & Omamori 6.1 · stackable cards and coin prices
         run: node daisugi-bloom/tests/harmony-economy.test.cjs
-      - name: Omamori Spirits 2.0 · unique-level Bond missions, persistence and cosmetic-only effects
+      - name: Omamori 6.1 · retired Spirit data remains safe on migration
         run: node daisugi-bloom/tests/harmony-spirits.test.cjs
-      - name: Omamori Cards 4.0 · tiered and consumed card progression, rerolls and assisted separation
+      - name: Omamori 6.1 · consumable inventory, board effects and Moon rescue
         run: node daisugi-bloom/tests/harmony-powers.test.cjs
-      - name: Omamori System Audit 5.0 · permanent keepsakes, fair prices and consumable safety
+      - name: Omamori 6.1 · eight one-use cards and safe legacy conversion
         run: node daisugi-bloom/tests/harmony-omamori-audit.test.cjs
       - name: Technical Cleanup & Stability 1.0 · corrupt saves, locked storage and replay limits
         run: node daisugi-bloom/tests/harmony-technical-stability.test.cjs
@@ -119,11 +119,11 @@ jobs:
         run: node daisugi-bloom/tests/harmony-tutorial-help-browser.mjs
       - name: Run Japanese Harmony mobile smoke
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
-      - name: Run Harmony Economy and Omamori mobile smoke
+      - name: Omamori 6.1 · washi HUD, inset meter, framed button and red Sealbreakers
         run: node daisugi-bloom/tests/harmony-economy-browser.mjs
       - name: Run Omikuji Fortune daily-draw mobile smoke
         run: node daisugi-bloom/tests/harmony-fortune-browser.mjs
-      - name: Omamori Cards 4.0 · phone card consumption and two-step shuffle
+      - name: Omamori 6.1 · phone inventory, two-use limit and Moon prompt
         run: node daisugi-bloom/tests/harmony-powers-browser.mjs
       - name: Run Sealed Stone mobile 4-stage artwork and placement smoke
         run: node daisugi-bloom/tests/harmony-sealed-stone-browser.mjs

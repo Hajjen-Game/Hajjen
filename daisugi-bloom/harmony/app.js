@@ -624,17 +624,23 @@ function updateSpiritBadge(){
  badge.title=(spirit.permanent?"Permanent collectible · no board power. ":"Power card · use without equipping. ")+spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" missions":" · fully upgraded");
  badge.setAttribute("aria-label","Equipped Omamori: "+spirit.id+", tier "+spirit.tier+" of 3. "+spirit.mission);
 }
+// Permanent keepsakes provide cosmetic feedback; never gameplay modifiers.
 function spiritMoment(evt){
  const spirit=C.status(save,E.snapshot(save).equipped);
  if(!spirit?.owned||FAST()||document.hidden||!Element.prototype.animate)return;
- const sakura=spirit.id==="sakura"&&evt.type==="hero";
- const daruma=spirit.id==="daruma"&&(evt.type==="daruma"||evt.type==="sealed-hit");
- if(!sakura&&!daruma)return;
- const at=sakura?evt.positions?.[0]:evt.hits?.[0]?.at;
+ const id=spirit.id;
+ const sakura=id==="sakura"&&evt.type==="hero";
+ const daruma=id==="daruma"&&(evt.type==="daruma"||evt.type==="sealed-hit");
+ const kiri=id==="kiri"&&Array.isArray(evt.clearedMist)&&evt.clearedMist.length>0;
+ const akari=id==="akari"&&(evt.type==="pulse"||evt.type==="awakening");
+ if(!sakura&&!daruma&&!kiri&&!akari)return;
+ const at=sakura?evt.positions?.[0]:daruma?evt.hits?.[0]?.at:
+  kiri?evt.clearedMist[0]:evt.targets?.[0]?.to??evt.mistTargets?.[0]?.to??evt.sources?.[0];
  if(!Number.isInteger(at)||!boardTiles[at])return;
+ const symbol=sakura?"✿":daruma?"◉":kiri?"☁":"✦";
  const rect=indexRect(at),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
- const node=fxAt("omamori-spirit-fx spirit-"+spirit.id+" tier-"+spirit.tier,x,y,
-  sakura?(spirit.tier>=2?"✿ ✦ ✿":"✿"):(spirit.tier>=2?"◉ ✦":"◉"));
+ const node=fxAt("omamori-spirit-fx spirit-"+id+" tier-"+spirit.tier,x,y,
+  spirit.tier>=3?symbol+" ✦ "+symbol:spirit.tier>=2?symbol+" ✦":symbol);
  node.setAttribute("aria-hidden","true");
  animateNode(node,[
   {opacity:0,transform:"translate(-50%,-40%) scale(.45)",offset:0},

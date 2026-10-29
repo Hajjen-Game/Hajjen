@@ -299,7 +299,7 @@ check("Difficulty 1.0 first twenty goals, two-star boundaries and fixed family m
 check("Difficulty Floor 1.0 requires distinct four-match turns, not cascade count",()=>{
  const g=new R.Game(13,null,{seed:101,directorMode:"standard"});
  assert.deepEqual(g.config.goal,{type:"fourTurns",count:4});
- assert.equal(g.goalText(),"Drag med fyrmatchning");
+ assert.equal(g.goalText(),"Moves with a four-tile match");
  assert.equal(g.fourTurns,0);
  // Two distant four-matches in the SAME resolve() simulate a player's
  // cascade or simultaneous groups. Only one decision is counted.

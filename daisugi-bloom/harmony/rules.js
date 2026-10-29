@@ -64,7 +64,7 @@ const EARLY_JOURNEY=[
 // No reset or alteration of previously earned stars/records.
 const PRE_FLOOR_GOALS={
  5:{type:"four",count:2},6:{type:"stage3",count:5},8:{type:"masterpiece",count:1},
- 10:{type:"fusion",count:15},11:{type:"stage3",count:6},
+ 10:{type:"fusion",count:15},11:{type:"stage3",count:6,intro:"A fifth family joins the board. Create 24 fusions, using cascades to build your rhythm."},
  13:{type:"four",count:2},15:{type:"pulseHits",count:6},
  17:{type:"fusion",count:23},19:{type:"masterpiece",count:3}
 };
@@ -114,7 +114,7 @@ const CHAPTER_DARUMA_DESIGNS={
 };
 const CHAPTER_RELIEF_DESIGNS={
  21:{name:"Moonlit Mist",subtitle:"A path between wishes",focus:"Clear Mist to open the garden between Daruma challenges."},
- 24:{name:"Festival of Fusion",subtitle:"A break through fusion",focus:"Make eleven fusions and build on your strongest objects."},
+ 24:{name:"Festival of Fusion",subtitle:"A break through fusion",focus:"Make eleven fusions and build on your strongest objects.",intro:"Make 17 successful fusions while building useful stage upgrades between Daruma challenges."},
  27:{name:"The Hidden Path",subtitle:"Mist between Daruma",focus:"Clear fourteen Mist tiles. Place fusions where the Mist actually sits."},
  29:{name:"Final Blessing",subtitle:"Clear fifteen Mist tiles",focus:"Final step of the Daruma chapter: clear the garden with precision and Harmony Pulse."}
 };
@@ -296,17 +296,17 @@ const LEGACY_FAIRNESS_STAR_PAR=13;
 // Bot completions are diagnostics, NOT human win-rate measurements.
 const DIFFICULTY_CALIBRATION_2=Object.freeze({
  10:{moves:25,count:24,starPar:12}, // L11: five-family opener
- 11:{moves:29,count:10},           // L12: stage growth
+ 11:{moves:29,count:10,intro:"Upgrade 10 objects to stage 3. Keep improving existing objects across the five families."},           // L12: stage growth
  24:{moves:31,count:17},           // L25: very brief fusion relief
  35:{moves:48},                    // L36: distant Sealed Stones
  38:{moves:49},                    // L39: three stone targets
- 40:{moves:32,count:5},            // L41: Lantern introduction
- 41:{moves:33,count:10},           // L42: five-family growth
- 43:{moves:35,count:4},            // L44: four separate four-matches
- 44:{moves:37,count:7},            // L45: Lantern fusions
- 45:{moves:42,count:12},           // L46: Harmony Pulse upgrades
- 46:{moves:42,count:4},            // L47: masterpieces
- 47:{moves:42,count:9}             // L48: Lantern fusion precision
+ 40:{moves:32,count:5,intro:"Create five Lantern-family fusions. Different Lantern stages match, and cascades count."},            // L41: Lantern introduction
+ 41:{moves:33,count:10,intro:"Grow ten objects to stage 3. Lanterns are one of the five available families."},           // L42: five-family growth
+ 43:{moves:35,count:4,intro:"Make a four-tile match on four different moves. Cascades on the same move count only once."},            // L44: four separate four-matches
+ 44:{moves:37,count:7,intro:"Create seven Lantern-family fusions. Evolve Lanterns at different stages for useful chains."},            // L45: Lantern fusions
+ 45:{moves:42,count:12,intro:"Use Harmony Pulse to upgrade twelve occupied neighbors. Each successful upgrade counts."},           // L46: Harmony Pulse upgrades
+ 46:{moves:42,count:4,intro:"Create four masterpieces of any family. Plan chain reactions to develop the next."},            // L47: masterpieces
+ 47:{moves:42,count:9,intro:"Make nine Lantern-family fusions. Different Lantern stages and cascading matches count."}             // L48: Lantern fusion precision
 });
 function levelConfig(index,calibrated=true){
  const base=levels[index]||endlessConfig(index);
@@ -318,7 +318,8 @@ function levelConfig(index,calibrated=true){
  if(!tuning)return original;
  return {...original,moves:tuning.moves,
   goal:{...original.goal,...(tuning.count?{count:tuning.count}:{})},
-  ...(tuning.starPar?{starPar:tuning.starPar}:{})};
+  ...(tuning.starPar?{starPar:tuning.starPar}:{}),
+  ...(tuning.intro?{intro:tuning.intro}:{})};
 }
 // New missions: pass always awards ★; ★★/★★★ recognize efficient
 // goal completion, never score. Extra post-win moves cannot change rating.

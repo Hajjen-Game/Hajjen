@@ -1368,29 +1368,19 @@ try{
  assert.equal(atlasState.fallback,"none","Classic atlas must hide emoji fallback");
  assert.equal(await page.$eval("#scorePanel",e=>e.contains(document.querySelector("#scoreCount"))),true,"Score panel must own the score counter");
  assert.equal(await page.$eval("#levelTitle",e=>e.textContent),"First Harmony");
- const collection=await page.evaluate(()=>({
-  icons:document.querySelectorAll("#masterpieceCollection .collection-card").length,
-  labels:[...document.querySelectorAll("#masterpieceCollection .collection-count")].map(e=>e.textContent),
-  noFractions:!document.querySelector("#masterpieceCollection").textContent.includes("/5"),
-  visible:!!document.querySelector(".masterpiece-collection")
- }));
- assert.equal(collection.icons,4,"Four active families must appear in the tutorial");
- assert.deepEqual(collection.labels,["0","0","0","0"],"All four counters begin at zero");
- assert(collection.noFractions&&collection.visible);
- const collectionLayout=await page.evaluate(()=>{
-  const icon=document.querySelector(".collection-icon");
-  const badge=icon.querySelector(".collection-count");
-  const main=icon.getBoundingClientRect(),counter=badge.getBoundingClientRect();
-  const css=getComputedStyle(icon);
-  return {noRing:css.backgroundImage==="none"&&css.borderTopWidth==="0px",
-   noFrame:getComputedStyle(icon,"::before").content==="none",
-   overlaid:badge.parentElement===icon&&getComputedStyle(badge).position==="absolute",
-   lowerLeft:counter.left<main.left+main.width*.5&&counter.top>=main.top+main.height*.4};
+ // Masterpieces still accumulate internally, but the collection artwork
+ // panel was intentionally removed from the gameplay hierarchy.
+ const collection=await page.evaluate(()=>{
+  const node=document.querySelector("#masterpieceCollection");
+  return {hidden:node.hidden,ariaHidden:node.getAttribute("aria-hidden"),
+   cards:node.querySelectorAll(".collection-card").length,
+   counters:[...node.querySelectorAll(".collection-count")].map(e=>e.textContent),
+   visible:getComputedStyle(node).display!=="none"};
  });
- assert(collectionLayout.noRing&&collectionLayout.noFrame,
-  "Stage-five art must float freely with no large ring, frame or background");
- assert(collectionLayout.overlaid&&collectionLayout.lowerLeft,
-  "One circular integer badge must sit over the icon's lower-left corner");
+ assert.equal(collection.cards,4,"Four family masterpiece counters must remain tracked");
+ assert.deepEqual(collection.counters,["0","0","0","0"],"All four counters start empty");
+ assert(collection.hidden&&collection.ariaHidden==="true"&&!collection.visible,
+  "The retired masterpiece panel must remain hidden without losing its bookkeeping");
  assert.equal(await page.$eval("#gameView",e=>e.hidden),false);
  const start=await page.evaluate(()=>{let g=new HarmonyRules.Game(0);return {moves:g.moves,stage:g.board.length,ready:HarmonyRules.validSwaps(g.board).length,level8Goal:HarmonyRules.levels[7].goal.type,level8Count:HarmonyRules.levels[7].goal.count,level8Moves:HarmonyRules.levels[7].moves};});
  assert.equal(start.moves,18);assert.equal(start.stage,49);assert(start.ready>=3);assert.equal(start.level8Goal,"mist");assert.equal(start.level8Count,5);assert.equal(start.level8Moves,33);

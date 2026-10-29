@@ -1843,12 +1843,24 @@ try{
    };
  });
  await page.evaluate(()=>{
-   window.__scoreFxSeen={score:0,trail:0,burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,fusionFlow:0,fusionAfterglow:0,afterglowPositions:[],afterglowColors:[],afterglowOnEmpty:true,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,flowers:0,diamonds:0,stars:0,diamondColor:"",diamondGlow:"",diamondFontSize:0,unified:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
+   window.__scoreFxSeen={score:0,trail:0,particle:0,shotColors:[],shotSizes:[],shotDurations:[],shotPaths:[],shotLifetimes:[],shotCore:0,burst:0,ring:0,impact:0,milestone:0,family:0,stage:0,fusionFlow:0,fusionAfterglow:0,afterglowPositions:[],afterglowColors:[],afterglowOnEmpty:true,pulseTrace:0,pulseLanding:0,pulseSource:0,masterpiece:0,flowers:0,diamonds:0,stars:0,diamondColor:"",diamondGlow:"",diamondFontSize:0,unified:0,maxTokenWidth:0,maxFamilyToTileRatio:0};
    window.__scoreFxWatcher=new MutationObserver(records=>{
      for(const rec of records)for(const node of rec.addedNodes){
        if(node.nodeType!==1||!node.classList)continue;
        if(node.classList.contains("score-flight-token"))window.__scoreFxSeen.score++;
        if(node.classList.contains("score-trail-dot"))window.__scoreFxSeen.trail++;
+       if(node.classList.contains("score-shot-mote")){
+        window.__scoreFxSeen.particle++;
+        window.__scoreFxSeen.shotColors.push(node.className);
+        window.__scoreFxSeen.shotSizes.push(parseFloat(getComputedStyle(node).width));
+        if(node.classList.contains("shot-core"))window.__scoreFxSeen.shotCore++;
+        const animation=node.getAnimations()[0],timing=animation?.effect?.getTiming();
+        if(timing){
+         window.__scoreFxSeen.shotDurations.push(timing.duration);
+         window.__scoreFxSeen.shotLifetimes.push(timing.duration+(timing.delay||0));
+         window.__scoreFxSeen.shotPaths.push(animation.effect?.getKeyframes()?.at(-1)?.transform||"");
+        }
+       }
        if(node.classList.contains("fusion-spark"))window.__scoreFxSeen.burst++;
        if(node.classList.contains("fusion-flow-bead"))window.__scoreFxSeen.fusionFlow++;
        if(node.classList.contains("fusion-afterglow-spark")){
@@ -1886,7 +1898,7 @@ try{
        if(node.classList.contains("pulse-target-hit"))window.__scoreFxSeen.pulseLanding++;
         if(node.classList.contains("pulse-source-halo"))window.__scoreFxSeen.pulseSource++;
         if(node.classList.contains("masterpiece-halo"))window.__scoreFxSeen.masterpiece++;
-       if(node.classList.contains("score-flight-token"))window.__scoreFxSeen.maxTokenWidth=Math.max(window.__scoreFxSeen.maxTokenWidth,node.getBoundingClientRect().width);
+
      }
    });
    window.__scoreFxWatcher.observe(document.body,{childList:true,subtree:true});
@@ -1943,7 +1955,7 @@ try{
  // intermediate number or drift while multiple rewards are arriving.
  await new Promise(resolve=>setTimeout(resolve,600));
  const scoreAfterTween=Number((await page.$eval("#scoreCount",e=>e.textContent)).replace(/\D/g,""));
- assert(scoreAfterTween>beforePoints,"Score must visibly count upward after the flying token arrives");
+ assert(scoreAfterTween>beforePoints,"Score must count upward as the last golden particles reach SCORE");
  const fx=await page.evaluate(()=>window.__scoreFxSeen);
  assert(fx.burst>=3,"Expected a small fusion burst around the survivor: "+JSON.stringify(fx));
  assert.equal(fx.fusionFlow,0,"Fusion Flow travelling beads must be removed when restoring original movement");
@@ -1967,10 +1979,26 @@ try{
  assert(fx.family>=1,"Every successful fusion must show its family identity: "+JSON.stringify(fx));
  assert(fx.stage>=1,"Even a basic 3-match must display its upgraded stage clearly: "+JSON.stringify(fx));
  assert(fx.maxFamilyToTileRatio>=1.25,"Family effect must be visibly larger than its tile on mobile: "+JSON.stringify(fx));
- assert(fx.score>=1&&fx.trail>=2,"Expected a flying point label with a lightweight trailing stream: "+JSON.stringify(fx));
+ assert.equal(fx.score,0,"There must be no visible flying +points pill");
+ assert.equal(fx.trail,0,"There must be no old score beam/trail nodes");
+ assert(fx.particle>=5&&fx.shotCore>=1,
+  "A small swarm of individual score motes must fly to SCORE: "+JSON.stringify(fx));
+ assert(fx.shotColors.some(cls=>cls.includes("shot-pearl"))&&
+  fx.shotColors.some(cls=>cls.includes("shot-gold"))&&
+  fx.shotColors.some(cls=>cls.includes("shot-sakura"))&&
+  fx.shotColors.some(cls=>cls.includes("shot-star")),
+  "Match the pearl/gold/sakura/star magic dust on vacated tiles: "+JSON.stringify(fx));
+ assert(fx.shotSizes.every(w=>w>0&&w<=6),
+  "Motes must be tiny points rather than a flying score badge");
+ assert(fx.shotDurations.length>=5&&fx.shotDurations.every(ms=>ms>=475&&ms<=540),
+  "Point stream should retain the original fast ~500ms flight, with no extra pause");
+ assert(fx.shotPaths.every(path=>path.includes("translate3d(")),
+  "Every mote must travel toward the SCORE counter");
  assert.equal(fx.ring,0,"The disliked circular ring must not appear on ordinary fusions");
  assert(fx.impact>=1,"Incoming points must pulse at the score field: "+JSON.stringify(fx));
- assert(fx.maxTokenWidth>=35,"Points must have a legible sized label: "+JSON.stringify(fx));
+ assert.equal(fx.maxTokenWidth,0,"Flying point badges have been intentionally removed");
+ assert.equal(await page.$eval(".score-flight-token, .score-trail-dot",els=>els.length),0,
+  "Old score pill/trail may not return to the DOM");
  assert.equal(await page.$$eval(".tile .stage",els=>els.length),0,"Score FX must not reintroduce permanent labels");
  assert.equal(await page.evaluate(()=>document.body.dataset.festival),festivalAtStart,"Backdrop must not change during a turn");
  await page.evaluate(()=>window.__scoreFxWatcher.disconnect());

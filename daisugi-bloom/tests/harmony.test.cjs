@@ -283,7 +283,7 @@ check("Difficulty 1.0 first twenty goals, two-star boundaries and fixed family m
  const goals=[
   ["fusion",3],["stage3",1],["masterpiece",1],["mist",3],["mist",4],
   ["fourTurns",4],["stage3",8],["mist",5],["masterpiece",3],["mist",6],
-  ["fusion",20],["stage3",8],["mist",6],["fourTurns",4],["mist",7],
+  ["fusion",24],["stage3",10],["mist",6],["fourTurns",4],["mist",7],
   ["pulseHits",9],["mist",8],["fusion",26],["mist",9],["masterpiece",4]
  ];
  goals.forEach(([type,count],i)=>{

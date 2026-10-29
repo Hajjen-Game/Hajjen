@@ -27,6 +27,7 @@ try{
   },{level,hp});
   await page.reload({waitUntil:"networkidle2"});
   await page.click("#continueButton");await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await page.evaluate(()=>document.querySelector("#modalActions .jh-tutorial-ok")?.click());
   await page.waitForSelector(".tile.sealed-stone-tile .sealed-stone-art");
  };
  for(const [hp,stage] of [[4,0],[3,1],[2,2],[1,3]]){

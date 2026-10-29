@@ -118,3 +118,61 @@ body.harmony-playing .game-view .goal .jh-goal-help:active{
   #modal .washi-level-detail{min-height:90px;margin-top:5px;padding-block:7px;}
   #modal .washi-detail-lesson{-webkit-line-clamp:1;line-clamp:1;}
 }
+
+
+/* Goshuincho selected-level readability 2.1
+   The painted card stays at the same location; its text stays within the
+   inner paper area instead of overflowing the bottom ornamental border. */
+#modal .washi-goshuincho .washi-level-detail{
+ min-height:clamp(92px,12svh,110px);
+ gap:clamp(6px,1.5vw,12px);
+ padding:clamp(10px,1.3svh,14px) clamp(14px,2.8vw,20px);
+ box-sizing:border-box;
+ align-items:center;
+}
+#modal .washi-goshuincho .washi-detail-copy{
+ display:flex;
+ flex-direction:column;
+ flex:1 1 0;
+ min-width:0;
+ gap:clamp(2px,.4svh,4px);
+ justify-content:center;
+}
+#modal .washi-goshuincho .washi-detail-numeral{
+ color:#97493f;
+ font:700 clamp(11px,2.8vw,13px)/1.1 Georgia,serif;
+ white-space:nowrap;
+}
+#modal .washi-goshuincho .washi-detail-name{
+ color:#372a25;
+ font:700 clamp(15px,3.6vw,18px)/1.13 Georgia,serif;
+ display:-webkit-box;
+ -webkit-box-orient:vertical;
+ -webkit-line-clamp:2;
+ line-clamp:2;
+ overflow:hidden;
+}
+#modal .washi-goshuincho .washi-detail-objective{
+ color:#49352e;
+ font:700 clamp(11px,2.8vw,13px)/1.17 Georgia,serif;
+}
+#modal .washi-goshuincho .washi-detail-budget{
+ color:#975043;
+ font:700 clamp(10px,2.55vw,12px)/1.15 Georgia,serif;
+ white-space:nowrap;
+}
+#modal .washi-goshuincho .washi-detail-play{
+ min-width:clamp(78px,22vw,125px);
+}
+@media(max-width:360px){
+ #modal .washi-goshuincho .washi-level-detail{
+  min-height:94px;
+  padding:10px 11px;
+  gap:5px;
+ }
+ #modal .washi-goshuincho .washi-detail-copy{gap:2px}
+ #modal .washi-goshuincho .washi-detail-name{font-size:14px}
+ #modal .washi-goshuincho .washi-detail-objective{font-size:10.5px}
+ #modal .washi-goshuincho .washi-detail-budget{font-size:10px}
+ #modal .washi-goshuincho .washi-detail-play{min-width:78px}
+}

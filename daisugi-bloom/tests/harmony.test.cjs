@@ -54,7 +54,7 @@ check("First 20 redesign teaches core rules in five levels and Mist by level 4",
  assert.deepEqual(stage8.goal,{type:"mist",count:5});
  assert.equal(stage8.moves,33);
  const g=new R.Game(7);
- assert.equal(g.goalText(),"Rena dimman");
+ assert.equal(g.goalText(),"Clear Mist");
  assert.equal(g.target(),5);
  g.mistCleared=4;assert.equal(g.progress(),4);assert(!g.fulfilled());
  g.mistCleared=5;assert.equal(g.progress(),5);assert(g.fulfilled());
@@ -405,7 +405,7 @@ check("First twenty have stable hand-authored objectives, fewer repeated Mist le
   assert.equal(a.objectiveVersion,2);
   if(cfg.goal.type==="mist"){
    assert.equal(a.mist.filter(Boolean).length,cfg.goal.count);
-   assert.equal(a.goalText(),"Rena dimman");
+   assert.equal(a.goalText(),"Clear Mist");
    assert.equal(a.progress(),0);
   }else assert.equal(a.mist.filter(Boolean).length,0);
  }

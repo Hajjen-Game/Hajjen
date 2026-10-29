@@ -5,6 +5,13 @@ const browserPaths=["/usr/bin/google-chrome","/usr/bin/google-chrome-stable","/u
 const exe=browserPaths.find(p=>fs.existsSync(p));
 if(!exe)throw new Error("Chrome/Chromium missing");
 const browser=await puppeteer.launch({executablePath:exe,headless:true,args:["--no-sandbox","--disable-setuid-sandbox"]});
+// A gameplay level may legitimately launch its one-time illustrated tutorial.
+// The general mechanics smoke acknowledges it; separate tutorial tests assert
+// that it stays open until OK and is not acknowledged by a timeout.
+async function acknowledgeTutorial(page){
+ const open=await page.$eval("#modal",node=>!node.hidden&&!!node.querySelector(".jh-tutorial"));
+ if(open)await page.click("#modalActions .jh-tutorial-ok");
+}
 // Transitional smoke utility: exercise legacy engine-start regression cases
 // without reintroducing a second visible level selector to production.
 async function clickLegacyLevel(page,selector){
@@ -13,6 +20,7 @@ async function clickLegacyLevel(page,selector){
   if(!node)throw new Error("Legacy level regression selector missing: "+selector);
   node.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));
  },selector);
+ await acknowledgeTutorial(page);
 }
 const page=await browser.newPage();const errors=[];
 page.on("pageerror",e=>errors.push(e.message));
@@ -91,7 +99,7 @@ try{
   const nav=await bookNavContext.newPage();
   await nav.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await nav.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
-  await nav.click("#continueButton");await nav.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await nav.click("#continueButton");await nav.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(nav);
   assert.equal(await nav.$eval("#gameView",e=>e.hidden),false);
   await nav.click("#pauseButton");
   await nav.click(".pause-levels");
@@ -115,7 +123,7 @@ try{
   assert.equal(compact.hasLongLesson,false,"Full tutorials should open in the game");
   assert(compact.top>=compact.paperTop+4&&compact.bottom<=compact.paperBottom-4,
     "Level summary must fit inside the painted frame");
-  await nav.click(".washi-detail-play");await nav.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await nav.click(".washi-detail-play");await nav.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(nav);
   assert.equal(await nav.$eval("#gameView",e=>e.hidden),false);
   assert.equal(await nav.$eval("#modal",e=>e.hidden),true);
   // Goal help must be voluntary, non-destructive and dismissible.
@@ -169,7 +177,7 @@ try{
    localStorage.setItem(key,JSON.stringify(store));
   });
   await dp.reload({waitUntil:"networkidle2"});
-  await dp.click("#continueButton");await dp.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await dp.click("#continueButton");await dp.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(dp);
   const visual=await dp.evaluate(()=>{
    const tile=document.querySelector('.tile[data-index="24"]');
    const img=tile.querySelector(".daruma-art");
@@ -193,7 +201,7 @@ try{
    localStorage.setItem(key,JSON.stringify(store));
   });
   await dp.reload({waitUntil:"networkidle2"});
-  await dp.click("#continueButton");await dp.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await dp.click("#continueButton");await dp.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(dp);
   const half=await dp.$eval('.tile[data-index="24"]',tile=>({
    state:tile.querySelector(".daruma-art")?.className,aria:tile.getAttribute("aria-label")}));
   assert(half.state.includes("state-1")&&half.aria.includes("one eye left"),
@@ -345,7 +353,7 @@ try{
   await journal.click(".washi-next");
   assert.equal(await journal.$eval(".washi-chapter-count",x=>x.textContent),"LEVEL 21–30");
   await journal.click('.washi-level-tile[data-level="25"]');
-  await journal.click(".washi-detail-play");await journal.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await journal.click(".washi-detail-play");await journal.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(journal);
   assert.equal(await journal.$eval("#gameView",x=>x.hidden),false);
   assert.equal(await journal.$eval("#modal",x=>x.hidden),true);
  }finally{await journalContext.close();}
@@ -659,7 +667,7 @@ try{
    localStorage.setItem("japanese-harmony-puzzle-v2",JSON.stringify(save));
   });
   await preview.reload({waitUntil:"networkidle2"});
-  await preview.click("#continueButton");await preview.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await preview.click("#continueButton");await preview.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(preview);
   const older=await preview.evaluate(()=>{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
    return {count:run.familyCount,unique:new Set(run.board.map(p=>p.family)).size};
@@ -955,7 +963,7 @@ try{
    };
   });
   await praisePage.reload({waitUntil:"networkidle2"});
-  await praisePage.click("#continueButton");await praisePage.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await praisePage.click("#continueButton");await praisePage.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(praisePage);
   await praisePage.evaluate(()=>{
    window.__masterpieceFireworks={big:0,flowers:0,diamonds:0,stars:0};
 
@@ -1168,7 +1176,7 @@ try{
    return selected;
   });
   await proof.reload({waitUntil:"networkidle2"});
-  await proof.click("#continueButton");await proof.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await proof.click("#continueButton");await proof.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(proof);
   await proof.waitForFunction(()=>document.querySelectorAll("#resonanceLinks .resonance-link").length>0,{timeout:6000});
   const actual=await proof.evaluate(pair=>{
    const line=document.querySelector("#resonanceLinks .resonance-link");
@@ -1311,7 +1319,7 @@ try{
   "Running diagnostics must not overwrite a real player's saved game");
  await page.click("#modalActions button:last-child");
  assert.equal(await page.$eval("#modal",el=>el.hidden),true);
- await page.click("#continueButton");await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await page.waitForSelector(".tile");
+ await page.click("#continueButton");await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(page);await page.waitForSelector(".tile");
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-festival-art"),{timeout:10000});
  const background=await page.evaluate(async()=>{
    const scenes=[1,2,3].map(n=>"./assets/backgrounds/festival-hd-"+n+".avif");
@@ -1450,7 +1458,7 @@ try{
     expectedFirstClear:survivors.filter(i=>g.mist[i])};
   });
   await mistPage.reload({waitUntil:"networkidle2"});
-  await mistPage.click("#continueButton");await mistPage.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await mistPage.click("#continueButton");await mistPage.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(mistPage);
   assert.equal(await mistPage.$eval("#goalLabel",x=>x.textContent),"Clear Mist");
   assert((await mistPage.$eval("#goalLabel",x=>x.title)).includes("Harmony Pulse"),
    "Mist instructions must explain that Harmony Pulse also clears fog");
@@ -2118,7 +2126,7 @@ try{
    localStorage.setItem(key,JSON.stringify(store));
   });
   await clarity.reload({waitUntil:"networkidle2"});
-  await clarity.click("#continueButton");await clarity.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await clarity.click("#continueButton");await clarity.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(clarity);
   const finishingPair=await clarity.evaluate(()=>{
    const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
    return window.HarmonyRules.validSwaps(saved.board)[0];

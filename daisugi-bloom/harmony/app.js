@@ -174,7 +174,7 @@ if(!save.assistedScores||typeof save.assistedScores!=="object")save.assistedScor
 // Match CSS-only ambient effects to the in-game accessibility preference.
 document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
-function prettify(x){return Math.round(x||0).toLocaleString("sv-SE");}
+function prettify(x){return Math.round(x||0).toLocaleString("en-US");}
 
 // Festival Night HD · Mobile 3.3
 // Three user-supplied 768x1536 scenes, stored as individual AVIF files.
@@ -621,7 +621,7 @@ function updateSpiritBadge(){
  badge.dataset.spirit=spirit.id;
  badge.dataset.tier=String(spirit.tier);
  badge.textContent=(E.CATALOG.find(c=>c.id===spirit.id)?.symbol||"✦")+" "+(E.CATALOG.find(c=>c.id===spirit.id)?.name||"Omamori")+" · tier "+spirit.tier+"/3";
- badge.title=spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" missions":" · fully upgraded");
+ badge.title=(spirit.permanent?"Permanent collectible · no board power. ":"Power card · use without equipping. ")+spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" missions":" · fully upgraded");
  badge.setAttribute("aria-label","Equipped Omamori: "+spirit.id+", tier "+spirit.tier+" of 3. "+spirit.mission);
 }
 function spiritMoment(evt){
@@ -715,7 +715,7 @@ function confirmPowerTarget(at){
  paragraph.textContent=id==="sakura"?
   "Upgrade "+card.tier+" selected tiles by one stage.":"Shuffle "+(card.tier===1?"2×2":"3×3")+
   (card.tier===3?" and choose whether to shuffle the same area once more.":".");
- paragraph.textContent+=" Confirming consumes the card, even if you later lose the level. This run will count as assisted.";
+ paragraph.textContent+=" This power card is consumed on confirmation, even if you later lose. Assisted wins unlock levels but earn no regular stars, coins or records.";
  content.append(paragraph);
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("victory-actions","pause-menu-actions");
@@ -754,7 +754,7 @@ function confirmMoonRescue(){
  $("modalEyebrow").textContent="OMAMORI · LAST CHANCE";
  $("modalTitle").textContent="Moon's Serenity · tier "+card.tier;
  const bonus=[0,2,3,5][card.tier];
- $("modalContent").textContent="Consume the entire Moon card for "+bonus+" extra moves? It is consumed even if you lose again. Standard records and star stamps are unaffected.";
+ $("modalContent").textContent="Consume this power card for "+bonus+" extra moves? It disappears even if you lose again. Assisted wins unlock levels but earn no regular stars, coins or records.";
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("victory-actions","pause-menu-actions");
  modalButton(actions,"Use Moon · +"+bonus+" moves","primary",()=>commitActivePower("tsuki",-1));
@@ -776,10 +776,10 @@ function showOmamori(tab="shop"){
  walletCopy.append(goshuinNode("span","","YOUR BALANCE"),
   goshuinNode("strong","",prettify(account.coins)+" Harmony Coins"));
  const count=E.CATALOG.filter(item=>C.has(save,item.id)).length;
- wallet.append(walletCopy,goshuinNode("span","omamori-owned-count",count+" / "+E.CATALOG.length+" cards"));
+ wallet.append(walletCopy,goshuinNode("span","omamori-owned-count",count+" / "+E.CATALOG.length+" Omamori"));
  wrapper.append(wallet);
  const shelf=goshuinNode("div","omamori-shelf");shelf.setAttribute("role","group");
- shelf.setAttribute("aria-label","Omamori: "+count+" active cards");
+ shelf.setAttribute("aria-label","Omamori: "+count+" owned power cards and keepsakes");
  for(const item of E.CATALOG){
   const owned=C.has(save,item.id),equipped=owned&&account.equipped===item.id;
   const slot=goshuinNode("span","omamori-shelf-slot"+(owned?" is-owned":"")+(equipped?" is-equipped":""),owned?item.symbol:"◇");
@@ -794,7 +794,7 @@ function showOmamori(tab="shop"){
    "enough coins available":prettify(nextCharm.price-account.coins)+" coins needed"):
   "✦ You own every type of card"));
  wrapper.append(goshuinNode("p","omamori-explanation",
-  "Each Omamori is a consumable card. It starts at tier I, grows through missions to II and III, and can be used at any tier. Once used, it disappears even if you lose. Buy another for Harmony Coins to start again at tier I. Unassisted victories may earn extra coins. No real-money purchases."));
+  "POWER CARDS · Sakura, Koi and Moon are playable boosts. Use them from the game board even without equipping; use consumes the whole card, even after a loss. Buy a replacement at Tier I. KEEPSAKES · Mist, Daruma and Lantern are permanent collectibles with decorative effects, not board powers. Equip one Omamori to earn its tier missions across different levels. Assisted wins unlock levels but do not earn regular stars, coins or records. Harmony Coins only; no real-money purchases."));
  const tabs=goshuinNode("div","omamori-tabs");
  for(const [id,label] of [["shop","Shop"],["collection","My Cards"]]){
   const button=goshuinNode("button","omamori-tab"+(tab===id?" is-active":""),label);
@@ -803,27 +803,37 @@ function showOmamori(tab="shop"){
  }
  wrapper.append(tabs);
  const list=goshuinNode("div","omamori-catalog");
- const shown=tab==="collection"?E.CATALOG.filter(item=>C.has(save,item.id)):E.CATALOG;
- if(!shown.length)list.append(goshuinNode("p","omamori-empty","You have no active Omamori cards. Buy one in the shop."));
+ const shown=E.CATALOG.filter(item=>tab!=="collection"||C.has(save,item.id)).sort((a,b)=>Number(b.kind==="power")-Number(a.kind==="power"));
+ if(!shown.length)list.append(goshuinNode("p","omamori-empty","Your Omamori collection is empty. Visit the shop for a power card or keepsake."));
+ let lastKind="";
  for(const item of shown){
+  if(item.kind!==lastKind){
+   lastKind=item.kind;
+   list.append(goshuinNode("h3","omamori-group-heading",item.kind==="power"?"POWER CARDS · CONSUMABLE":"KEEPSAKES · PERMANENT"));
+  }
   const status=C.status(save,item.id),owned=status.owned,equipped=owned&&account.equipped===item.id;
   const card=goshuinNode("article","omamori-card"+(owned?" is-owned":"")+(equipped?" is-equipped":""));
-  card.dataset.omamoriId=item.id;card.dataset.bondTier=String(status.tier);
+  card.dataset.omamoriId=item.id;card.dataset.bondTier=String(status.tier);card.dataset.kind=item.kind;
   const charm=goshuinNode("div","omamori-charm omamori-"+item.theme);
   charm.setAttribute("aria-hidden","true");
   charm.append(goshuinNode("span","omamori-knot","⌁"),goshuinNode("span","omamori-charm-glyph",item.symbol));
   const copy=goshuinNode("div","omamori-card-copy");
   copy.append(goshuinNode("strong","",item.name),goshuinNode("small","",item.subtitle),
-   goshuinNode("span","omamori-card-tag",equipped?"Equipped · tier "+status.tier:
-    owned?"Tier "+status.tier+" / 3":prettify(item.price)+" Harmony Coins"));
+   goshuinNode("span","omamori-card-tag",(item.kind==="power"?"Power card · ":"Permanent keepsake · ")+
+    (owned?(equipped?"equipped · ":"")+"Tier "+status.tier+"/3":prettify(item.price)+" Coins")));
   if(status.active)copy.append(goshuinNode("span","omamori-power-shop",
-   "✦ "+P.POWERS[item.id].name+" · "+(owned?"tier "+status.tier:"buy to use")));
+   "✦ "+P.POWERS[item.id].name+" · "+
+   (item.id==="sakura"?"Upgrade "+(owned?status.tier:1)+" tile(s)":
+    item.id==="koi"?(owned&&status.tier>=2?"3×3":"2×2")+" shuffle"+(owned&&status.tier===3?" + reroll":""):
+    "+"+([0,2,3,5][owned?status.tier:1])+" moves on defeat")));
+  else copy.append(goshuinNode("span","omamori-keepsake-note",
+   "✿ Permanent · equip for decorative effects and missions · no board power"));
   const action=goshuinNode("button","omamori-action","");
   action.type="button";
   if(equipped)action.textContent="Unequip";
   else if(owned)action.textContent="Equip";
   else if(account.coins<item.price){action.textContent="Need "+prettify(item.price-account.coins)+" coins";action.disabled=true;}
-  else action.textContent="Buy new · "+prettify(item.price)+" coins";
+  else action.textContent=(item.kind==="power"?"Buy card · ":"Collect · ")+prettify(item.price)+" coins";
   action.addEventListener("click",()=>{
    if(owned){
     if(C.equip(save,equipped?null:item.id).ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice(equipped?"unequip":"equip",item);}
@@ -834,7 +844,7 @@ function showOmamori(tab="shop"){
   card.classList.add("has-bond");
   const detail=goshuinNode("div","omamori-bond-detail");
   detail.append(goshuinNode("strong","omamori-bond-title",
-   "✦ "+(owned?"Tier "+status.tier+"/3":"New card · tier I")),
+   "✦ "+(owned?"Tier "+status.tier+"/3":item.kind==="power"?"New power card · Tier I":"Permanent keepsake · Tier I")),
    goshuinNode("span","omamori-bond-mission","Mission: "+status.mission));
   const progress=goshuinNode("div","omamori-bond-track");
   progress.setAttribute("role","progressbar");progress.setAttribute("aria-label",item.name+" card progress");
@@ -843,15 +853,17 @@ function showOmamori(tab="shop"){
   const bar=goshuinNode("span","omamori-bond-fill");bar.style.width=Math.min(100,Math.round(status.count/6*100))+"%";
   progress.append(bar);detail.append(progress);
   detail.append(goshuinNode("small","omamori-bond-next",!owned?
-   "Buy the card to start at tier I":status.tier===3?
-   "Tier III · maximum power unlocked":status.count+"/"+status.next+" level missions to tier "+(status.tier+1)));
+   (item.kind==="power"?"Buy at Tier I; use now or develop through missions":"Collect once; keep forever and improve its appearance"):
+   status.tier===3?(item.kind==="power"?"Tier III · maximum power":"Tier III · permanent collection complete"):
+   status.count+"/"+status.next+" different level missions to Tier "+(status.tier+1)));
   card.append(charm,copy,action,detail);list.append(card);
  }
  wrapper.append(list);
  if(account.equipped&&C.has(save,account.equipped)){
   const worn=E.CATALOG.find(item=>item.id===account.equipped);
   wrapper.append(goshuinNode("p","omamori-equipped",
-   "✦ Equipped: "+worn.name+" · tier "+C.status(save,worn.id).tier+". The card is consumed on use. A new one starts at tier I."));
+   "✦ Equipped: "+worn.name+" · Tier "+C.status(save,worn.id).tier+
+    (worn.kind==="power"?". Equip for missions; you can use the power without equipping. Use consumes the card. A replacement starts at Tier I.":". Permanent keepsake · decorative only, never consumed.")));
  }
  panel.append(wrapper);
  const actions=$("modalActions");actions.replaceChildren();

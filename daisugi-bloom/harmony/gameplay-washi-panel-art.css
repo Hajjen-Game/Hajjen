@@ -183,3 +183,26 @@ body.harmony-playing .game-view .omamori-power-button{
 body.harmony-playing .game-view .board-shell{
   margin-top:clamp(1px,.3dvh,4px)!important;
 }
+
+/* Gameplay viewport scroll fix 3.2 · 2026-10-29
+   The old 100vh minimum can be taller than Android Chrome's visible viewport
+   while the address bar is expanded, creating a ghost scroll range even though
+   the board and the complete backdrop figure fit on screen.
+   Lock the DOCUMENT scroll, size the actual play scroller to dynamic viewport
+   height, and allow overflow only when real content is taller (small screens,
+   zoom, or additional card rows). Menus and Goshuincho retain their own scroll. */
+html:has(body.harmony-playing){
+  height:100%;
+  overflow:hidden;
+  overscroll-behavior-y:none;
+}
+body.harmony-playing{
+  height:100dvh;
+  min-height:0;
+  max-height:100dvh;
+  overflow-y:auto;
+  overscroll-behavior-y:none;
+}
+body.harmony-playing #app{
+  min-height:100%;
+}

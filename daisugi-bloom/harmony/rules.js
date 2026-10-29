@@ -64,7 +64,7 @@ const EARLY_JOURNEY=[
 // No reset or alteration of previously earned stars/records.
 const PRE_FLOOR_GOALS={
  5:{type:"four",count:2},6:{type:"stage3",count:5},8:{type:"masterpiece",count:1},
- 10:{type:"fusion",count:15},11:{type:"stage3",count:6,intro:"A fifth family joins the board. Create 24 fusions, using cascades to build your rhythm."},
+ 10:{type:"fusion",count:15},11:{type:"stage3",count:6},
  13:{type:"four",count:2},15:{type:"pulseHits",count:6},
  17:{type:"fusion",count:23},19:{type:"masterpiece",count:3}
 };
@@ -114,7 +114,7 @@ const CHAPTER_DARUMA_DESIGNS={
 };
 const CHAPTER_RELIEF_DESIGNS={
  21:{name:"Moonlit Mist",subtitle:"A path between wishes",focus:"Clear Mist to open the garden between Daruma challenges."},
- 24:{name:"Festival of Fusion",subtitle:"A break through fusion",focus:"Make eleven fusions and build on your strongest objects.",intro:"Make 17 successful fusions while building useful stage upgrades between Daruma challenges."},
+ 24:{name:"Festival of Fusion",subtitle:"A break through fusion",focus:"Make eleven fusions and build on your strongest objects."},
  27:{name:"The Hidden Path",subtitle:"Mist between Daruma",focus:"Clear fourteen Mist tiles. Place fusions where the Mist actually sits."},
  29:{name:"Final Blessing",subtitle:"Clear fifteen Mist tiles",focus:"Final step of the Daruma chapter: clear the garden with precision and Harmony Pulse."}
 };
@@ -295,9 +295,9 @@ const LEGACY_FAIRNESS_STAR_PAR=13;
 // The first teaching levels, challenging Mist and most blockers stay intact.
 // Bot completions are diagnostics, NOT human win-rate measurements.
 const DIFFICULTY_CALIBRATION_2=Object.freeze({
- 10:{moves:25,count:24,starPar:12}, // L11: five-family opener
+ 10:{moves:25,count:24,starPar:12,intro:"A fifth family joins the board. Create 24 fusions, using cascades to build your rhythm."}, // L11: five-family opener
  11:{moves:29,count:10,intro:"Upgrade 10 objects to stage 3. Keep improving existing objects across the five families."},           // L12: stage growth
- 24:{moves:31,count:17},           // L25: very brief fusion relief
+ 24:{moves:31,count:17,intro:"Make 17 successful fusions while building useful stage upgrades between Daruma challenges."},           // L25: very brief fusion relief
  35:{moves:48},                    // L36: distant Sealed Stones
  38:{moves:49},                    // L39: three stone targets
  40:{moves:32,count:5,intro:"Create five Lantern-family fusions. Different Lantern stages match, and cascades count."},            // L41: Lantern introduction

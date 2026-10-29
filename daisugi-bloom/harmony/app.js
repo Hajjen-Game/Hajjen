@@ -13,7 +13,7 @@ let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressC
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
-let powerSelection=null,powerTargets=[];
+let powerSelection=null,powerTargets=[],moonOfferShown=false;
 const PLAY_MODES={auto:"Automatic · 4.0 from level 10",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
 const PACE_PHASE_NAMES={build:"BUILD",flow:"FLOW",relax:"CALM",recovery:"RECOVERY"};
 let decisionReadyAt=0;
@@ -284,10 +284,7 @@ function renderMenu(){
  const menuWallet=E.snapshot(save);
  if(coins)coins.textContent=prettify(menuWallet.coins)+" coins";
  const charmProgress=$("omamoriProgress");
- if(charmProgress){
- const worn=C.status(save,menuWallet.equipped);
- charmProgress.textContent=worn?.owned?"Wearing "+E.CATALOG.find(x=>x.id===worn.id).name+" · tier "+worn.tier+"/3":E.CATALOG.filter(x=>C.has(save,x.id)).length+" active Omamori cards";
-}
+ if(charmProgress)charmProgress.textContent=C.total(save)+" cards ready · 8 boost types";
  const daily=$("omikujiStatus");
  if(daily)daily.textContent=F.status(save).available?"Free today":"Fortune drawn today";
  const journalButton=$("goshuinButton");
@@ -645,136 +642,127 @@ function showOmikuji(){
  content.append(wrapper);$("modal").hidden=false;
 }
 
-// Cosmetic-only Omamori Spirits 2.0. Rules, score, moves and stars are unchanged.
+// Omamori 6.0 · one unobtrusive drawer button below the 7×7 board.
+// No passive effects, equipment, mastery, or buttons for individual cards.
 function updateSpiritBadge(){
- const badge=$("spiritBadge");if(!badge)return;
- const spirit=C.status(save,E.snapshot(save).equipped);
- badge.hidden=!spirit?.owned;
- if(!spirit?.owned)return;
- badge.dataset.spirit=spirit.id;
- badge.dataset.tier=String(spirit.tier);
- badge.textContent=(E.CATALOG.find(c=>c.id===spirit.id)?.symbol||"✦")+" "+(E.CATALOG.find(c=>c.id===spirit.id)?.name||"Omamori")+" · tier "+spirit.tier+"/3";
- badge.title=(spirit.permanent?"Permanent collectible · no board power. ":"Power card · use without equipping. ")+spirit.mission+(spirit.tier<3?" · "+spirit.count+"/"+spirit.next+" missions":" · fully upgraded");
- badge.setAttribute("aria-label","Equipped Omamori: "+spirit.id+", tier "+spirit.tier+" of 3. "+spirit.mission);
+ const badge=$("spiritBadge");if(badge)badge.hidden=true;
 }
-// Permanent keepsakes provide cosmetic feedback; never gameplay modifiers.
-function spiritMoment(evt){
- const spirit=C.status(save,E.snapshot(save).equipped);
- if(!spirit?.owned||FAST()||document.hidden||!Element.prototype.animate)return;
- const id=spirit.id;
- const sakura=id==="sakura"&&evt.type==="hero";
- const daruma=id==="daruma"&&(evt.type==="daruma"||evt.type==="sealed-hit");
- const kiri=id==="kiri"&&Array.isArray(evt.clearedMist)&&evt.clearedMist.length>0;
- const akari=id==="akari"&&(evt.type==="pulse"||evt.type==="awakening");
- if(!sakura&&!daruma&&!kiri&&!akari)return;
- const at=sakura?evt.positions?.[0]:daruma?evt.hits?.[0]?.at:
-  kiri?evt.clearedMist[0]:evt.targets?.[0]?.to??evt.mistTargets?.[0]?.to??evt.sources?.[0];
- if(!Number.isInteger(at)||!boardTiles[at])return;
- const symbol=sakura?"✿":daruma?"◉":kiri?"☁":"✦";
- const rect=indexRect(at),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
- const node=fxAt("omamori-spirit-fx spirit-"+id+" tier-"+spirit.tier,x,y,
-  spirit.tier>=3?symbol+" ✦ "+symbol:spirit.tier>=2?symbol+" ✦":symbol);
- node.setAttribute("aria-hidden","true");
- animateNode(node,[
-  {opacity:0,transform:"translate(-50%,-40%) scale(.45)",offset:0},
-  {opacity:1,transform:"translate(-50%,-75%) scale(1.08)",offset:.4},
-  {opacity:0,transform:"translate(-50%,-130%) scale(1.22)",offset:1}
- ],spirit.tier===3?760:550).finally(()=>node.remove());
+function omamoriPowerEffect(id){
+ return P.POWERS[id]?.description||"One-use Omamori boost.";
 }
-// All displayed power descriptions are tier-specific. Equipping is only
-// needed for missions; the purchased card itself is always playable.
-function omamoriPowerEffect(id,tier=1){
- const t=Math.max(1,Math.min(3,Math.trunc(tier)||1));
- if(id==="sakura")return "Upgrade "+t+" different tile"+(t===1?"":"s")+" by one stage; stage 5 triggers Harmony Pulse.";
- if(id==="koi")return "Shuffle "+(t===1?"2×2":"3×3")+" tiles"+(t===3?"; then optionally shuffle that same 3×3 area once more.":".");
- if(id==="tsuki")return "Gain "+[0,2,3,5][t]+" extra moves after running out of moves.";
- return "Decorative keepsake; no board power.";
-}
-// Omamori Powers 3.0 — targeted consumables, explicit confirmation, no auto-buy.
-// Omamori Cards 4.0: the owned and evolving card IS the consumable.
+const moonIds=["tsuki","moonGrace"];
+const normalOmamori=id=>!moonIds.includes(id);
+const normalUses=()=>Math.min(2,game?.blessingUses||0);
 function renderPowerBar(){
  const bar=$("omamoriPowerBar");if(!bar)return;
- const owned=C.activeIds.map(id=>C.status(save,id)).filter(v=>v.owned);
- bar.replaceChildren();bar.hidden=!owned.length&&!(game?.koiRerollAt>=0);
- if(bar.hidden)return;
- const heading=document.createElement("span");heading.className="omamori-power-label";
- heading.textContent=game?.assisted?"ASSISTED LEVEL":"OMAMORI · お守り"+(powerSelection?" · Select "+(C.status(save,powerSelection)?.tier||1)+" tile(s)":"");
- bar.append(heading);
- for(const card of owned){
-  const power=P.POWERS[card.id],button=document.createElement("button");
-  button.type="button";button.className="omamori-power-button"+(powerSelection===card.id?" is-targeting":"");
-  button.dataset.power=card.id;button.textContent=power.symbol+" "+power.name+" · "+["","I","II","III"][card.tier];
-  button.title="Tier "+card.tier+" · "+omamoriPowerEffect(card.id,card.tier)+" Using it consumes this card. You do not need to equip it first.";
-  button.disabled=card.id==="tsuki"||!game||game.complete||game.failed||game.moves<=0;
-  button.addEventListener("click",()=>{
-   powerSelection=powerSelection===card.id?null:card.id;powerTargets=[];
-   selected=-1;renderPowerBar();
-   $("selectedInfo").textContent=powerSelection?"Choose a tile on the board for "+power.name:"Swap two adjacent tiles or swipe.";
-  });bar.append(button);
+ bar.replaceChildren();bar.hidden=false;
+ const button=goshuinNode("button","omamori-open","✿  OMAMORI · お守り");
+ button.type="button";button.disabled=!!powerSelection;
+ button.setAttribute("aria-label","Open your Omamori boosts. "+C.total(save)+" cards owned, "+normalUses()+" of 2 regular boosts used.");
+ button.addEventListener("click",showPowerPicker);
+ const count=goshuinNode("span","omamori-remaining",C.total(save)+" cards  ·  "+normalUses()+"/2 used");
+ bar.append(button,count);
+ if(powerSelection){
+  const cancel=goshuinNode("button","omamori-power-cancel","Cancel");
+  cancel.addEventListener("click",()=>{powerSelection=null;powerTargets=[];selected=-1;renderPowerBar();});
+  bar.append(cancel);
+  count.textContent="Select target · "+P.POWERS[powerSelection].name;
  }
  if(game?.koiRerollAt>=0){
-  const button=document.createElement("button");button.type="button";
-  button.className="omamori-power-button";button.textContent="〰 Shuffle again";
-  button.addEventListener("click",()=>showKoiReroll());bar.append(button);
- }
- if(powerSelection){
-  const cancel=document.createElement("button");cancel.type="button";
-  cancel.className="omamori-power-cancel";cancel.textContent="Cancel";
-  cancel.addEventListener("click",()=>{powerSelection=null;powerTargets=[];renderPowerBar();});
-  bar.append(cancel);
+  const reroll=goshuinNode("button","omamori-reroll-button","≋ Again");
+  reroll.addEventListener("click",showKoiReroll);bar.append(reroll);
  }
 }
+function showPowerPicker(){
+ if(!game||busy||game.failed||game.complete||!$("modal").hidden||powerSelection)return;
+ disarmDecisionClock();clearIdleHint();
+ $("modalEyebrow").textContent="OMAMORI · お守り";
+ $("modalTitle").textContent="Choose a boost";
+ const panel=$("modalContent");panel.replaceChildren();
+ const wrap=goshuinNode("section","omamori-picker");
+ wrap.append(goshuinNode("p","omamori-picker-intro",
+  "Use up to two board boosts per level. Moon cards appear automatically when you run out of moves."));
+ wrap.append(goshuinNode("strong","omamori-picker-uses",normalUses()+" / 2 boosts used"));
+ const grid=goshuinNode("div","omamori-picker-grid");
+ const options=E.CATALOG.filter(item=>C.has(save,item.id)&&normalOmamori(item.id));
+ for(const item of options){
+  const button=goshuinNode("button","omamori-picker-item","");
+  button.type="button";button.dataset.power=item.id;
+  button.disabled=normalUses()>=2;
+  button.append(goshuinNode("span","omamori-picker-symbol",item.symbol),
+   goshuinNode("strong","",item.name),
+   goshuinNode("span","omamori-picker-count","×"+C.count(save,item.id)),
+   goshuinNode("small","",omamoriPowerEffect(item.id)));
+  button.addEventListener("click",()=>{
+   if(normalUses()>=2)return;
+   powerSelection=item.id;powerTargets=[];selected=-1;
+   $("modal").hidden=true;renderPowerBar();armDecisionClock();restartIdleHint();
+   toast("Choose "+(item.id==="grandBloom"||item.id==="twinSealbreaker"?"two different tiles":"a tile")+
+    " for "+item.name+". You can cancel without spending a card.",4300);
+  });grid.append(button);
+ }
+ if(!options.length)wrap.append(goshuinNode("p","omamori-picker-empty",
+  "No board boosts owned. You can buy cards from Omamori Shop on the home screen."));
+ if(options.length)wrap.append(grid);
+ panel.append(wrap);
+ const actions=$("modalActions");actions.replaceChildren();
+ actions.classList.remove("victory-actions","pause-menu-actions");
+ modalButton(actions,"Back to game","primary",()=>{
+  $("modal").hidden=true;armDecisionClock();restartIdleHint();
+ });
+ $("modal").hidden=false;
+}
 function commitActivePower(id,at){
- const card=C.status(save,id);
- if(!game||!card?.owned)return false;
- const result=P.apply(game,id,at,card.tier);
- if(!result.ok){toast("This card cannot be used here. Choose another area.");return false;}
+ if(!game||!C.has(save,id)||normalOmamori(id)&&normalUses()>=2)return false;
+ const result=P.apply(game,id,at);
+ if(!result.ok){toast("This card cannot be used here. Choose another tile.");return false;}
  const spent=C.consume(save,id);
- if(!spent.ok)throw Error("Consumable card was already spent");
- powerSelection=null;powerTargets=[];selected=-1;persist();
- $("modal").hidden=true;updateSpiritBadge();renderPowerBar();renderMenu();
- if(id==="tsuki"){
+ if(!spent.ok)throw Error("Card inventory changed before confirmation");
+ powerSelection=null;powerTargets=[];selected=-1;
+ // Preserve the revived run even if the old state was already marked failed.
+ persist();$("modal").hidden=true;renderPowerBar();renderMenu();
+ if(moonIds.includes(id)){
   saveRun();renderBoard(game.board);renderHUD();armDecisionClock();restartIdleHint();
-  toast("☾ Moon's Serenity · "+game.moves+" extra moves!");
+  toast("☾ "+P.POWERS[id].name+" · +"+game.moves+" moves!");
  }else void playEvents(result.events);
  return true;
 }
 function confirmPowerTarget(at){
- const id=powerSelection,card=C.status(save,id);
- if(!card?.owned){powerSelection=null;powerTargets=[];renderPowerBar();return;}
+ const id=powerSelection;
+ if(!C.has(save,id)){powerSelection=null;powerTargets=[];renderPowerBar();return;}
+ const count=(id==="grandBloom"||id==="twinSealbreaker")?2:1;
+ const blocker=id==="sealbreaker"||id==="twinSealbreaker";
  const piece=game.board[at];
- if(id==="sakura"){
+ if(id==="sakura"||id==="grandBloom"){
   if(!piece||piece.stage>=5||["daruma","sealedStone"].includes(piece.family)){
-   toast("Choose a normal tile at stage 1–4.");return;
+   toast("Choose a normal treasure at stage 1–4.");return;
   }
-  if(powerTargets.includes(at)){toast("Choose another tile.");return;}
-  powerTargets.push(at);
-  if(powerTargets.length<card.tier){
-   $("selectedInfo").textContent="Sakura tier "+card.tier+": choose "+(card.tier-powerTargets.length)+" more tile(s).";
-   toast("✿ "+powerTargets.length+"/"+card.tier+" tiles selected");
-   return;
+ }else if(blocker){
+  if(!((game.config.goal.type==="mist"&&game.mist[at])||
+    (piece?.family==="daruma"&&game.daruma[at])||
+    (piece?.family==="sealedStone"&&game.sealed[at]))){
+   toast("Choose a Mist tile, Daruma or Sealed Stone.");return;
   }
  }
+ if(powerTargets.includes(at)){toast("Choose another tile.");return;}
+ powerTargets.push(at);
+ if(powerTargets.length<count){
+  toast("Choose one more different tile.",1900);return;
+ }
  clearIdleHint();disarmDecisionClock();
- $("modalEyebrow").textContent="OMAMORI · CONSUME CARD";
- $("modalTitle").textContent=P.POWERS[id].name+" · tier "+card.tier;
- const content=$("modalContent");content.replaceChildren();
- const paragraph=document.createElement("p");paragraph.className="omamori-power-confirm";
- paragraph.textContent=id==="sakura"?
-  "Upgrade "+card.tier+" selected tiles by one stage.":"Shuffle "+(card.tier===1?"2×2":"3×3")+
-  (card.tier===3?" and choose whether to shuffle the same area once more.":".");
- paragraph.textContent+=" This power card is consumed on confirmation, even if you later lose. Assisted wins unlock levels but earn no regular stars, coins or records.";
- content.append(paragraph);
+ $("modalEyebrow").textContent="OMAMORI · ONE-USE CARD";
+ $("modalTitle").textContent=P.POWERS[id].name;
+ const panel=$("modalContent");panel.replaceChildren();
+ panel.append(goshuinNode("p","omamori-power-confirm",omamoriPowerEffect(id)+
+  " One card will be consumed. Cancel to keep it."));
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("victory-actions","pause-menu-actions");
- const targets=id==="sakura"?powerTargets.slice():at;
- modalButton(actions,"Use card · tier "+card.tier,"primary",()=>{
-  if(!commitActivePower(id,targets)){
-   $("modal").hidden=true;powerSelection=null;powerTargets=[];renderPowerBar();restartIdleHint();
-  }
+ const targets=count===2?powerTargets.slice():powerTargets[0];
+ modalButton(actions,"Use card · 1 copy","primary",()=>{
+  if(!commitActivePower(id,targets)){powerSelection=null;powerTargets=[];$("modal").hidden=true;renderPowerBar();restartIdleHint();}
  });
  modalButton(actions,"Cancel","secondary",()=>{
-  $("modal").hidden=true;powerSelection=null;powerTargets=[];renderPowerBar();armDecisionClock();restartIdleHint();
+  powerSelection=null;powerTargets=[];$("modal").hidden=true;renderPowerBar();armDecisionClock();restartIdleHint();
  });
  $("modal").hidden=false;
 }
@@ -797,16 +785,30 @@ function showKoiReroll(){
  $("modal").hidden=false;
 }
 function confirmMoonRescue(){
- const card=C.status(save,"tsuki");
- if(!game?.failed||!card?.owned)return;
+ if(!game?.failed)return;
+ const available=moonIds.filter(id=>C.has(save,id));
+ if(!available.length){showResult();return;}
+ disarmDecisionClock();clearIdleHint();
  $("modalEyebrow").textContent="OMAMORI · LAST CHANCE";
- $("modalTitle").textContent="Moon's Serenity · tier "+card.tier;
- const bonus=[0,2,3,5][card.tier];
- $("modalContent").textContent="Consume this power card for "+bonus+" extra moves? It disappears even if you lose again. Assisted wins unlock levels but earn no regular stars, coins or records.";
+ $("modalTitle").textContent="Out of moves!";
+ const panel=$("modalContent");panel.replaceChildren();
+ panel.append(goshuinNode("p","omamori-moon-intro",
+  "Continue this level? Choose a Moon card. Only the card you use will be consumed."));
+ const choices=goshuinNode("div","omamori-picker-grid omamori-moon-choices");
+ for(const id of available){
+  const item=E.CATALOG.find(x=>x.id===id);
+  const choice=goshuinNode("button","omamori-picker-item","");
+  choice.type="button";choice.dataset.power=id;
+  choice.append(goshuinNode("span","omamori-picker-symbol",item.symbol),
+   goshuinNode("strong","",item.name),
+   goshuinNode("span","omamori-picker-count","×"+C.count(save,id)),
+   goshuinNode("small","",id==="moonGrace"?"+5 moves":"+3 moves"));
+  choice.addEventListener("click",()=>commitActivePower(id,-1));choices.append(choice);
+ }
+ panel.append(choices);
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("victory-actions","pause-menu-actions");
- modalButton(actions,"Use Moon · +"+bonus+" moves","primary",()=>commitActivePower("tsuki",-1));
- modalButton(actions,"Back","secondary",showResult);
+ modalButton(actions,"No thanks · End level","secondary",showResult);
  $("modal").hidden=false;
 }
 // Harmony Economy & Omamori 1.0 — the collection stays outside the 7x7 board.
@@ -1021,7 +1023,7 @@ function startLevel(i,resume=false){
  powerSelection=null;
  disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
  resetResonanceVisuals();clearPraise();
- level=i;powerSelection=null;powerTargets=[];rewardStarsAtLevelStart=G.archivedStars(save,i);
+ level=i;powerSelection=null;powerTargets=[];moonOfferShown=false;rewardStarsAtLevelStart=G.archivedStars(save,i);
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
  game=new R.Game(i,data,data?null:{directorMode:save.playMode==="auto"?(i>=9?"v4":"v3"):save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;

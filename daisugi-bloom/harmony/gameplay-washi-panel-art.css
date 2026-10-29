@@ -1,0 +1,149 @@
+/* Japanese Harmony · Original HUD artwork 3.0 · 2026-10-29
+   Use only the user's supplied PNGs. No AI-made/generated replacements.
+   Wide 2200×540 original: both Goal and Omamori outer plaques.
+   Original 720×360 score art: Goal progress counter.
+   Original 900×360 moves art: interactive Omamori card buttons.
+   Nine-slice rendering protects the ornamental corners during resizing.
+   Pure presentation: gameplay, counter IDs, button events and saves untouched. */
+
+body.harmony-playing .game-view .goal,
+body.harmony-playing .game-view .goal.goal-complete{
+  display:flex;
+  align-items:center;
+  min-height:clamp(56px,12.5vw,96px);
+  padding:2px clamp(6px,1.6vw,14px)!important;
+  margin:0 0 clamp(6px,1dvh,11px);
+  gap:clamp(3px,.85vw,9px);
+  color:#52392b;
+  border:11px solid transparent!important;
+  border-image-source:url("../assets/gameplay-washi/goal-omamori-original-20261029.png")!important;
+  border-image-slice:110 125 110 125 fill!important;
+  border-image-width:11px 15px!important;
+  border-image-repeat:stretch!important;
+  border-radius:0!important;
+  background:none!important;
+  box-shadow:none!important;
+  font-family:Georgia,"Times New Roman",serif;
+}
+body.harmony-playing .game-view .goal::before{
+  color:#764934;
+  text-shadow:none;
+  font-size:clamp(10px,2.6vw,15px);
+  letter-spacing:.09em;
+}
+body.harmony-playing .game-view .goal .goal-glyph{
+  flex:0 0 auto;
+  color:#b04a43;
+  font-size:clamp(15px,3.8vw,24px);
+  text-shadow:none;
+}
+body.harmony-playing .game-view .goal #goalLabel{
+  min-width:0;
+  flex:1 1 auto;
+  color:#4d332a;
+  font:700 clamp(12px,3.4vw,20px)/1.2 Georgia,"Times New Roman",serif;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  text-overflow:clip;
+  text-shadow:none;
+}
+body.harmony-playing .game-view .goal #goalProgress{
+  display:flex;
+  flex:0 0 clamp(84px,25%,170px)!important;
+  max-width:clamp(84px,25%,170px)!important;
+  align-items:center;
+  justify-content:center;
+  align-self:center;
+  min-width:0;
+  min-height:clamp(34px,8.7vw,62px);
+  margin:0 0 0 auto!important;
+  padding:2px 4px!important;
+  color:#5b342a;
+  font:800 clamp(16px,4.7vw,29px)/1 Georgia,"Times New Roman",serif;
+  font-variant-numeric:tabular-nums;
+  text-align:center;
+  text-shadow:none;
+  border:7px solid transparent!important;
+  border-image-source:url("../assets/gameplay-washi/score-panel-20261029.png")!important;
+  border-image-slice:75 85 75 85 fill!important;
+  border-image-width:7px 9px!important;
+  border-image-repeat:stretch!important;
+  border-radius:0!important;
+  background:none!important;
+  box-shadow:none!important;
+}
+
+/* One original wide plaque encloses Omamori's live card controls. */
+body.harmony-playing .game-view .omamori-power-bar,
+body.harmony-playing .game-view .omamori-power-bar:not([hidden]){
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:clamp(3px,.7vw,8px);
+  min-height:clamp(70px,16vw,120px);
+  margin:0 0 clamp(6px,1dvh,11px)!important;
+  padding:5px clamp(9px,2vw,20px) 7px!important;
+  color:#50362b;
+  border:11px solid transparent!important;
+  border-image-source:url("../assets/gameplay-washi/goal-omamori-original-20261029.png")!important;
+  border-image-slice:110 125 110 125 fill!important;
+  border-image-width:11px 15px!important;
+  border-image-repeat:stretch!important;
+  border-radius:0!important;
+  background:none!important;
+  box-shadow:none!important;
+}
+body.harmony-playing .game-view .omamori-power-bar[hidden]{display:none!important}
+body.harmony-playing .game-view .omamori-power-label{
+  flex:1 0 100%;
+  margin:0 0 1px;
+  padding-left:3px;
+  color:#674332;
+  font:700 clamp(10px,2.6vw,15px)/1.15 Georgia,"Times New Roman",serif;
+  letter-spacing:.07em;
+}
+body.harmony-playing .game-view .omamori-power-button{
+  flex:1 1 calc(50% - 6px);
+  min-width:0;
+  min-height:clamp(36px,9vw,54px);
+  margin:0;
+  padding:3px 6px!important;
+  color:#55382d;
+  font:700 clamp(10px,2.7vw,15px)/1.15 Georgia,"Times New Roman",serif;
+  white-space:normal;
+  text-align:center;
+  border:7px solid transparent!important;
+  border-image-source:url("../assets/gameplay-washi/moves-panel-20261029.png")!important;
+  border-image-slice:75 85 75 85 fill!important;
+  border-image-width:7px 9px!important;
+  border-image-repeat:stretch!important;
+  border-radius:0!important;
+  background:none!important;
+  box-shadow:none!important;
+}
+body.harmony-playing .game-view .omamori-power-button.is-targeting{
+  outline:2px solid #b64c42;
+  outline-offset:-3px;
+}
+body.harmony-playing .game-view .omamori-power-button:disabled{
+  opacity:.52;
+}
+body.harmony-playing .game-view .omamori-power-cancel{
+  flex:1 1 100%;
+  min-height:35px;
+  color:#754332;
+  border:1px solid rgba(164,108,69,.55);
+  border-radius:7px;
+  background:rgba(249,231,200,.72);
+}
+@media(max-width:370px){
+  body.harmony-playing .game-view .goal,
+  body.harmony-playing .game-view .goal.goal-complete{padding-inline:3px!important;gap:3px}
+  body.harmony-playing .game-view .goal #goalProgress{
+    flex-basis:80px!important;
+    max-width:80px!important;
+    font-size:16px;
+  }
+  body.harmony-playing .game-view .omamori-power-bar{padding-inline:5px!important}
+  body.harmony-playing .game-view .omamori-power-button{font-size:10px;padding-inline:3px!important}
+}

@@ -1,0 +1,136 @@
+/* Japanese Harmony · English + Japanese UI & typography hierarchy 1.0
+   Visual-only: never alter the user-approved PNGs, the board, animation,
+   touch hitboxes, counters, star logic, saves or screen positioning.
+   Small Japanese accents distinguish the HUD without crowding mobile text. */
+
+:root{
+  --jh-type-primary:#3f2d28;
+  --jh-type-secondary:#725040;
+  --jh-type-muted:#8d6a55;
+  --jh-type-accent:#a24c43;
+  --jh-type-star:#ac7945;
+}
+
+/* Mobile HUD: consistent ink, burgundy accents and understated Japanese.
+   The right-hand MOVES label must stay compact, even on narrow phones. */
+body.harmony-playing .game-view .hud-score .hud-label,
+body.harmony-playing .game-view .moves>span{
+  color:var(--jh-type-secondary)!important;
+  text-shadow:none!important;
+  letter-spacing:.065em!important;
+  white-space:nowrap;
+  font-weight:800;
+}
+body.harmony-playing .game-view .hud-score .jh-jp,
+body.harmony-playing .game-view .moves .jh-jp{
+  display:inline;
+  margin-left:.35em;
+  color:var(--jh-type-accent);
+  font-family:"Noto Serif CJK JP","Yu Mincho","Hiragino Mincho ProN",serif;
+  font-size:.86em;
+  font-weight:600;
+  letter-spacing:0;
+  vertical-align:baseline;
+}
+body.harmony-playing .game-view .hud-score #scoreCount,
+body.harmony-playing .game-view .moves #movesCount{
+  color:var(--jh-type-primary)!important;
+  text-shadow:none!important;
+}
+body.harmony-playing .game-view .hud-score .star-mini{
+  color:var(--jh-type-star)!important;
+  text-shadow:none!important;
+}
+body.harmony-playing .game-view .goal::before{
+  content:"GOAL · 目標"!important;
+  color:var(--jh-type-accent)!important;
+  font-weight:800;
+  font-size:clamp(9px,2.35vw,13px)!important;
+  text-shadow:none!important;
+  letter-spacing:.015em!important;
+  white-space:nowrap;
+}
+body.harmony-playing .game-view .goal .goal-glyph{
+  color:#b16a63!important;
+  text-shadow:none!important;
+}
+body.harmony-playing .game-view .goal #goalLabel{
+  color:var(--jh-type-primary)!important;
+  text-shadow:none!important;
+}
+body.harmony-playing .game-view .goal #goalProgress{
+  color:var(--jh-type-primary)!important;
+  text-shadow:none!important;
+}
+body.harmony-playing .game-view .omamori-power-label{
+  color:var(--jh-type-accent)!important;
+  letter-spacing:.045em!important;
+}
+body.harmony-playing .game-view .omamori-power-button{
+  color:var(--jh-type-primary)!important;
+}
+body.harmony-playing .game-view .omamori-power-cancel{
+  color:var(--jh-type-secondary)!important;
+}
+
+/* Book, home screen and dialogs follow the same hierarchy:
+   important names = ink, section labels = vermilion, details = warm taupe. */
+#menuView .washi-home-link>span[lang="ja"]{
+  color:var(--jh-type-accent)!important;
+}
+#menuView .washi-home-link strong{
+  color:var(--jh-type-primary)!important;
+}
+#menuView .washi-home-link small,
+#menuView .washi-advanced summary,
+#menuView .washi-advanced label{
+  color:var(--jh-type-muted)!important;
+}
+#modal .washi-book-heading h2,
+#modal .washi-detail-name{
+  color:var(--jh-type-primary)!important;
+}
+#modal .washi-book-eyebrow,
+#modal .washi-detail-numeral{
+  color:var(--jh-type-accent)!important;
+}
+#modal .washi-level-tile .washi-tile-label{
+  color:var(--jh-type-secondary)!important;
+}
+#modal .washi-level-tile .washi-tile-jp{
+  color:var(--jh-type-primary)!important;
+}
+#modal:not(:has(.washi-goshuincho)) .modal-inner>.eyebrow{
+  color:var(--jh-type-accent)!important;
+}
+#modal:not(:has(.washi-goshuincho)) .modal-inner>h2,
+#modal .omamori-card-copy strong,
+#modal .omamori-wallet-copy strong{
+  color:var(--jh-type-primary)!important;
+}
+#modal .omamori-card-copy small,
+#modal .omamori-next-charm,
+#modal .omamori-explanation{
+  color:var(--jh-type-muted)!important;
+}
+#modal .omamori-card-tag,
+#modal .omamori-wallet-copy>span,
+#modal .victory-kicker{
+  color:var(--jh-type-accent)!important;
+}
+
+/* Labels should never force an extra HUD row on smaller screens. */
+@media(max-width:370px){
+  body.harmony-playing .game-view .hud-score .hud-label,
+  body.harmony-playing .game-view .moves>span{
+    letter-spacing:.015em!important;
+    font-size:clamp(8px,2.35vw,10px)!important;
+  }
+  body.harmony-playing .game-view .hud-score .jh-jp,
+  body.harmony-playing .game-view .moves .jh-jp{
+    margin-left:.12em;
+  }
+  body.harmony-playing .game-view .goal::before{
+    font-size:9px!important;
+  }
+}

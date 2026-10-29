@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,H=window.HarmonySaveHealth,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu Dragon"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -87,17 +87,11 @@ const fxCount=()=>scoreOverlay?.childElementCount||0;
 // cannot repopulate archived scores or stars after the reset. Preferences
 // are carried over, but every player restarts independently at level 1.
 const RESET_MARKER="japanese-harmony-first20-reset-20261024-v1";
-try{
- const stored=JSON.parse(localStorage.getItem(KEY)||"{}");
- if(localStorage.getItem(RESET_MARKER)!=="done"){
-  save={...defaults,
-   sound:typeof stored.sound==="boolean"?stored.sound:defaults.sound,
-   reduceMotion:!!stored.reduceMotion,
-   playMode:Object.hasOwn(PLAY_MODES,stored.playMode)?stored.playMode:defaults.playMode};
-  localStorage.setItem(KEY,JSON.stringify(save));
-  localStorage.setItem(RESET_MARKER,"done");
- }else save={...defaults,...stored};
-}catch(e){save={...defaults};}
+const saveBootstrap=H.bootstrap(()=>window.localStorage,KEY,RESET_MARKER,defaults,PLAY_MODES);
+save=saveBootstrap.save;
+let saveStorageWritable=saveBootstrap.writable;
+let saveStorageWarning=saveBootstrap.warning;
+let saveStorageWarningShown=false,saveBootComplete=false;
 // Legacy ten-level saves capped the last unlock at level 10 (zero-based 9).
 // Recover the next playable level using evidence of completed runs only;
 // neither an unfinished run nor a lost run may unlock an extra level.
@@ -173,7 +167,21 @@ if(!save.assistedStars||typeof save.assistedStars!=="object")save.assistedStars=
 if(!save.assistedScores||typeof save.assistedScores!=="object")save.assistedScores={};
 // Match CSS-only ambient effects to the in-game accessibility preference.
 document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}}
+function notifySaveWarning(){
+ if(!saveBootComplete||saveStorageWarningShown||!saveStorageWarning)return;
+ saveStorageWarningShown=true;
+ toast(saveStorageWarning==="corrupt-save"?
+  "A damaged save was backed up. Your other progress is safe if it was readable.":
+  "Progress cannot be saved on this device. Check browser storage settings.",7500);
+}
+function persist(){
+ if(!saveStorageWritable)return false;
+ if(H.persist(()=>window.localStorage,KEY,save))return true;
+ saveStorageWritable=false;
+ saveStorageWarning="storage-unavailable";
+ notifySaveWarning();
+ return false;
+}
 function prettify(x){return Math.round(x||0).toLocaleString("en-US");}
 
 // Festival Night HD · Mobile 3.3
@@ -2830,4 +2838,5 @@ window.addEventListener("online",()=>{
 window.HarmonyAudio?.setEnabled(save.sound);
 menuPage=Math.floor(Math.max(0,save.unlocked)/MENU_PAGE_SIZE);
 bind();checkAtlas();initFestivalBackground();renderMenu();
+saveBootComplete=true;notifySaveWarning();
 })();

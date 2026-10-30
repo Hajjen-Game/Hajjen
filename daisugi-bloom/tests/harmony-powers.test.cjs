@@ -98,7 +98,7 @@ check("Repeat-play coin income remains capped after assisted clears",()=>{
 const fs=require("node:fs"),path=require("node:path");
 const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
 const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
-assert(/cards\\.js\\?v=[\\w.-]+/.test(html));
+assert(/cards\.js\?v=[\w.-]+/.test(html));
 assert(app.includes("showPowerPicker()"));
 assert(app.includes("moonOfferShown"));
 assert(app.includes("C.consume(save,id)"));

@@ -7,6 +7,8 @@
 "use strict";
 const VERSION=1;
 const START=12,PER_STAR=8,MAX_COINS=10000000;
+// Levels 1–10 teach the puzzle. Real coin rewards start with level 11.
+const FIRST_COIN_LEVEL_INDEX=10;
 const CATALOG=Object.freeze([
  Object.freeze({id:"sakura",name:"Bloom Touch",theme:"sakura",symbol:"✿",kind:"power",price:65,subtitle:"Upgrade one treasure.",meaning:"Bloom"}),
  Object.freeze({id:"grandBloom",name:"Grand Bloom",theme:"sakura",symbol:"❀",kind:"power",price:140,subtitle:"Upgrade two treasures.",meaning:"Bloom"}),
@@ -42,7 +44,7 @@ function newAccount(save){
  let total=0;
  for(const i of keys){
   const rating=completedRating(save,i);
-  if(rating){paid[i]=rating;total+=earnedValue(rating);}
+  if(rating){paid[i]=rating;if(i>=FIRST_COIN_LEVEL_INDEX)total+=earnedValue(rating);}
  }
  return {version:VERSION,coins:Math.min(MAX_COINS,total),paidStars:paid,owned:[],equipped:null};
 }
@@ -70,6 +72,7 @@ function snapshot(save){
 function claim(save,index,rating){
  if(!Number.isInteger(index)||index<0||index>=1000000)return {delta:0,reason:"invalid-level"};
  const {account:e}=initialize(save);
+ if(index<FIRST_COIN_LEVEL_INDEX)return {delta:0,reason:"tutorial-no-coins",coins:e.coins};
  const earned=stars(rating),previous=stars(e.paidStars[index]);
  if(earned===0||earned<=previous)return {delta:0,reason:"already-paid"};
  const delta=Math.max(0,earnedValue(earned)-earnedValue(previous));
@@ -93,7 +96,7 @@ function purchase(save,id){
  return {ok:true,reason:"purchased",coins:e.coins,item};
 }
 function equip(){return {ok:false,reason:"no-equipment-in-v6"};}
-const api={VERSION,CATALOG,earnedValue,completedRating,initialize,snapshot,claim,purchase,equip};
+const api={VERSION,CATALOG,FIRST_COIN_LEVEL_INDEX,earnedValue,completedRating,initialize,snapshot,claim,purchase,equip};
 root.HarmonyEconomy=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

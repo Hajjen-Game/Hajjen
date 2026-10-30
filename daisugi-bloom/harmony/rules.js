@@ -1581,9 +1581,19 @@ function bestHint(game){
   const blockerHits=hitBefore?hitBefore.reduce((total,hp,i)=>
    total+Math.max(0,hp-(hitAfter[i]||0)),0):0;
   // For score levels, points ARE the objective; never double-count them.
-  const goalWeight=objective==="score"?0:450;
+  const goalWeight=objective==="score"?0:objective==="lotus"?6000:450;
+  // Hints for delivery objectives must value genuine vertical progress,
+  // not unrelated score fusions. This is read-only trial scoring.
+  let lotusAdvance=0;
+  if(objective==="lotus"){
+   const prior=new Map(game.board.map((p,i)=>[p?.id,i]).filter(([id])=>Number.isInteger(id)&&id<=-2000));
+   for(let i=0;i<trial.board.length;i++){
+    const p=trial.board[i];if(!isLotusSeed(p)||!prior.has(p.id))continue;
+    lotusAdvance+=Math.max(0,Math.floor(i/N)-Math.floor(prior.get(p.id)/N));
+   }
+  }
   const value=points+made*1100+stage4*350+stage3*150+
-   echo*200+pulse*55+goalProgress*goalWeight+blockerHits*1800;
+   echo*200+pulse*55+goalProgress*goalWeight+blockerHits*1800+lotusAdvance*2200;
   const sourceStage=game.board[hint.from]?.stage||0;
   // Stable tie-break favors moving the LESS evolved object; it leaves a
   // mature piece in position when equivalent swaps give the same outcome.

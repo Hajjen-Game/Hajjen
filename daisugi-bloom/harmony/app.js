@@ -2500,6 +2500,27 @@ function showResult(){
  $("modal").hidden=false;
 }
 function modalButton(parent,label,cls,fn){let b=document.createElement("button");b.className=cls;b.textContent=label;b.addEventListener("click",fn);parent.append(b);return b;}
+// Local-only, opt-in full reset for clean difficulty and coin-economy tests.
+// Two deliberate clicks are required; no player profile is cleared on deploy.
+function confirmResetProgress(){
+ $("modalActions").classList.remove("pause-menu-actions","victory-actions");
+ $("modalEyebrow").textContent="LOCAL SAVE · THIS DEVICE";
+ $("modalTitle").textContent="Start from level 1?";
+ const panel=$("modalContent");panel.replaceChildren();
+ const details=document.createElement("p");
+ details.textContent="This permanently erases all saved levels, Goshuincho stamps, stars, scores, Harmony Coins, Omamori cards, Omikuji history and any unfinished game in this browser. It cannot be undone. Sound, motion and Director settings return to defaults. Other players are not affected.";
+ panel.append(details);
+ const actions=$("modalActions");actions.replaceChildren();
+ modalButton(actions,"Cancel","secondary",()=>{$("settingsButton").click();});
+ modalButton(actions,"Erase my save & restart","primary",()=>{
+  if(!saveStorageWritable||!H.resetProgress(()=>window.localStorage,KEY,defaults).ok){
+   toast("Could not reset your save. Browser storage may be unavailable.",5000);
+   return;
+  }
+  window.location.reload();
+ });
+ $("modal").hidden=false;
+}
 function modalInfo(title,html){
  $("modalActions").classList.remove("pause-menu-actions");
  $("modalEyebrow").textContent="JAPANESE HARMONY";$("modalTitle").textContent=title;
@@ -2774,6 +2795,7 @@ function bind(){
   modalInfo("Settings",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Sound</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Reduce animations</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;window.HarmonyAudio?.setEnabled(save.sound);if(save.sound)window.HarmonyAudio?.unlock();persist();});
   $("settingsMotion").addEventListener("change",e=>{save.reduceMotion=e.target.checked;document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);persist();});
+  modalButton($("modalActions"),"Reset my progress…","secondary",confirmResetProgress);
  });
  $("board").addEventListener("pointerdown",e=>{if(!$("gameView").hidden)restartIdleHint();const tile=e.target.closest(".tile");if(tile&&$("modal").hidden)pointer={i:Number(tile.dataset.index),x:e.clientX,y:e.clientY};});
  $("board").addEventListener("pointerup",e=>{

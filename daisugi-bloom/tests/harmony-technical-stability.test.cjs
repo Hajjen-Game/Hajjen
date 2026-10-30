@@ -15,7 +15,7 @@ const modes={auto:"auto",v3:"v3",standard:"standard"};
 function storage(initial={}){
  const map=new Map(Object.entries(initial));
  return {map,getItem:k=>map.has(k)?map.get(k):null,
-  setItem(k,v){map.set(k,String(v));}};
+  setItem(k,v){map.set(k,String(v));},removeItem(k){map.delete(k);}};
 }
 function check(label,fn){fn();console.log("✓ "+label);}
 check("A valid existing save keeps stars, wallet, cards and unknown legacy fields",()=>{
@@ -99,6 +99,46 @@ check("Old first-20 reset still happens once, retaining only player preferences"
  const second=H.bootstrap(()=>box,KEY,MARKER,defaults,modes);
  assert.equal(second.save.unlocked,1);
  assert.equal(second.save.bestStars[0],2);
+});
+check("Explicit full reset starts a clean level-one profile without touching unrelated storage",()=>{
+ const old={...defaults,unlocked:64,playMode:"standard",sound:false,
+  bestStars:{0:3,49:2},bestScores:{49:12000},
+  fourFamilyStars:{0:3},assistedStars:{3:1},
+  economy:{version:1,coins:700,paidStars:{0:3},owned:["koi"]},
+  omamoriCards:{version:2,counts:{koi:3},discovered:["koi"],
+   replay:{day:"2026-10-30",claims:5}},
+  fortune:{version:1,lastDate:"2026-10-30",lastDraw:{id:"daikichi"},count:9},
+  run:{level:64,data:{board:[],moves:1}}};
+ const oldCopy=JSON.stringify(old);
+ const box=storage({[KEY]:oldCopy,[KEY+"-corrupt-backup"]:oldCopy,
+  [MARKER]:"done","other-app-save":"untouched"});
+ const reset=H.resetProgress(()=>box,KEY,defaults);
+ assert.equal(reset.ok,true);
+ assert.equal(box.getItem("other-app-save"),"untouched");
+ assert.equal(box.getItem(MARKER),"done");
+ assert.equal(box.getItem(KEY+"-corrupt-backup"),null);
+ const boot=H.bootstrap(()=>box,KEY,MARKER,defaults,modes);
+ assert.equal(boot.save.unlocked,0);
+ assert.equal(boot.save.run,null);
+ assert.deepEqual(boot.save.bestStars,{});
+ assert.deepEqual(boot.save.bestScores,{});
+ assert.deepEqual(boot.save.fourFamilyStars,{});
+ assert.equal(boot.save.playMode,"auto");
+ assert.equal(boot.save.sound,true);
+ assert.equal(E.snapshot(boot.save).coins,0);
+ assert.equal(C.total(boot.save),0);
+ assert.equal(boot.save.fortune,undefined);
+ assert.equal(boot.save.spirits,undefined);
+ assert.equal(boot.save.assistedStars,undefined);
+ assert.equal(H.resetProgress(()=>{throw Error("blocked");},KEY,defaults).ok,false);
+});
+check("Reset control must be explicit, confirmed and use the guarded local save adapter",()=>{
+ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+ assert(app.includes("Reset my progress…"));
+ assert(app.includes("function confirmResetProgress()"));
+ assert(app.includes("Erase my save & restart"));
+ assert(app.includes("H.resetProgress(()=>window.localStorage,KEY,defaults)"));
+ assert(app.includes("window.location.reload()"));
 });
 check("Real game snapshots from all active chapters survive validation",()=>{
  for(const level of [0,9,10,20,30,40,49,50]){

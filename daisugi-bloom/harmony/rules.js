@@ -1086,7 +1086,7 @@ class Game{
    // player's moves, stages, score or RNG position. Each obsolete identity is
    // mapped to a family missing from the new level pool, one-to-one, which
    // avoids creating an instant match by merging two old identities.
-   const obsolete=[...new Set(this.board.filter(Boolean).map(p=>p.family).filter(f=>!this.families.includes(f)&&f!=="daruma"&&f!=="sealedStone"&&f!=="terrain"))];
+   const obsolete=[...new Set(this.board.filter(Boolean).map(p=>p.family).filter(f=>!this.families.includes(f)&&f!=="daruma"&&f!=="sealedStone"&&f!=="terrain"&&f!=="lotusSeed"))];
    if(obsolete.length){
     const present=new Set(this.board.filter(Boolean).map(p=>p.family));
     const missing=this.families.filter(f=>!present.has(f));

@@ -1862,7 +1862,7 @@ function flipMove(previous,next,type){
   if(!p)return;
   const before=origin.get(p.id);
   if(before===i)return;
-  const piece=boardTiles[i].querySelector(".piece");
+  const piece=boardTiles[i].querySelector(".piece, .lotus-seed-art");
   if(!piece)return;
   if(before!==undefined){
    const a=indexRect(before),b=indexRect(i);
@@ -2317,7 +2317,19 @@ async function animateEvent(evt){
    sparkleVacatedCells(positions,evt.board);
    break;
   }
+  case "lotus-fall":
+   renderBoard(evt.board);
+   await flipMove(previous,evt.board,"fall");
+   break;
   case "lotus-delivery":{
+   if(!FAST())await Promise.all((evt.positions||[]).map(at=>{
+    const seed=boardTiles[at]?.querySelector(".lotus-seed-art");
+    return seed?animateNode(seed,[
+     {transform:"scale(1)",opacity:1},
+     {transform:"scale(.6)",opacity:.8,offset:.45},
+     {transform:"scale(.25)",opacity:0,offset:1}
+    ],235):Promise.resolve();
+   }));
    renderBoard(evt.board,(evt.positions||[]),"pulsed");
    for(const at of evt.positions||[]){
     const gate=boardTiles[at]?.querySelector(".lotus-collector");

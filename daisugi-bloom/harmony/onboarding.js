@@ -28,7 +28,7 @@ function lesson(level){return LESSONS[clean(level)]||null;}
 function objective(config){
  const g=config?.goal||{},count=clean(g.count);
  const labels={
-  mist:["Mist tile","Mist tiles"],fusion:["fusion","fusions"],
+  lotus:["Lotus seed","Lotus seeds"],mist:["Mist tile","Mist tiles"],fusion:["fusion","fusions"],
   stage3:["object to stage 3","objects to stage 3"],
   stage4:["object to stage 4","objects to stage 4"],
   masterpiece:["masterpiece","masterpieces"],pulseHits:["Harmony upgrade","Harmony upgrades"],

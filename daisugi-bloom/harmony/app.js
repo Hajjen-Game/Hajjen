@@ -2528,7 +2528,9 @@ function showResult(){
     (game.assisted?" · Omamori-assisted":"")));
   }
   if(level===49)result.append(make("p","victory-next-note",
-   "✦ Lantern Path complete · Endless Garden opens next."));
+   "✦ Lantern Path complete · Bamboo Paths opens next."));
+  if(level===59)result.append(make("p","victory-next-note",
+   "✦ Bamboo Paths complete · the garden journey continues."));
   if(welcomeOmamori){
    const welcome=make("section","jh-omamori-welcome");
    welcome.append(make("strong","","✿ You can buy your first Omamori!"),
@@ -2566,7 +2568,7 @@ function showResult(){
  }
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.toggle("victory-actions",won);
- if(won)modalButton(actions,level===49?"Enter Endless Garden →":"Next level →","primary victory-next",()=>startLevel(level+1));
+ if(won)modalButton(actions,level===49?"Enter Bamboo Paths →":"Next level →","primary victory-next",()=>startLevel(level+1));
  if(canContinue)modalButton(actions,"Keep playing for a high score","secondary victory-continue",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
  });

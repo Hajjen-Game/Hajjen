@@ -53,7 +53,27 @@ function picture(kind,variant){
  svg.setAttribute("viewBox","0 0 270 81");svg.setAttribute("role","img");
  svg.setAttribute("aria-label",variant===1?"Example before and after the action":"Second illustrated example");
  svg.classList.add("jh-tutorial-svg");
- if(kind==="mist"&&variant===1){
+ if(["bamboo-intro","temple-gate","twin-gardens","central-shrine","bamboo-finale"].includes(kind)){
+  const B=root.HarmonyBoardMechanics;
+  const rows=kind==="bamboo-intro"?[
+   ".......",".......",".......","..#.#..",".......",".......","......."
+  ]:kind==="temple-gate"?B?.PRESETS.templeGate:
+   kind==="twin-gardens"?B?.PRESETS.twinGardens:B?.PRESETS.centralShrine;
+  const size=9,originX=99,originY=5;
+  if(rows)for(let r=0;r<7;r++)for(let c=0;c<7;c++){
+   const wall=rows[r][c]==="#";
+   shape(svg,"rect",{x:originX+c*size,y:originY+r*size,
+    width:size-1,height:size-1,rx:1.6,
+    fill:wall?"#827360":"#efd7b2",
+    stroke:wall?"#675644":"#be9971","stroke-width":.6});
+   if(!wall&&(r+c)%5===0)
+    shape(svg,"circle",{cx:originX+c*size+size*.45,
+     cy:originY+r*size+size*.45,r:2.0,fill:"#bf7f6b"});
+  }
+  shape(svg,"text",{x:135,y:78,"text-anchor":"middle",
+   "font-size":9,fill:"#805b46","font-family":"Arial,sans-serif",
+   "font-weight":"700"},"STONE TILES STAY CLOSED");
+ }else if(kind==="mist"&&variant===1){
   [10,56,102].forEach((x,i)=>tile(svg,x,15,"pink",{mist:i===1,glow:i===1}));
   arrow(svg,158,36);tile(svg,208,15,"pink",{glow:true});
   shape(svg,"text",{x:229,y:73,"text-anchor":"middle","font-size":10,fill:"#5d7a60"},"CLEAR");
@@ -98,7 +118,12 @@ const EXAMPLES=Object.freeze({
  families:[["Same family","Colors and stages can vary. Match pieces of one family."]],
  lantern:[["Lantern fusions","Match Lanterns across stages to advance your goal."]],
  "lantern-masterpiece":[["Build a Lantern masterpiece","Grow a Lantern to stage 5."]],
- "lantern-finale":[["Festival of Lights","Build two Lantern masterpieces to finish the chapter."]]
+ "lantern-finale":[["Festival of Lights","Build two Lantern masterpieces to finish the chapter."]],
+ "bamboo-intro":[["Closed garden cells","The shaded stones stay fixed. Fuse treasures beside them."]],
+ "temple-gate":[["Narrow passages","Plan matches along the open paths of Temple Gate."]],
+ "twin-gardens":[["Two garden wings","The open crossing connects the two sides."]],
+ "central-shrine":[["Protected center","The shrine blocks matches through the middle."]],
+ "bamboo-finale":[["Clear Mist around the shrine","Closed stones stay fixed. Fuse onto Mist or hit it with Harmony Pulse."]]
 });
 function render(lesson){
  const kind=EXAMPLES[lesson?.key]?lesson.key:"match";

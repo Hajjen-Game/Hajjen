@@ -201,12 +201,12 @@ function strikeObstacles(g,positions,events){
  const targets=Array.isArray(positions)?positions:[positions];
  if(!targets.length||new Set(targets).size!==targets.length||targets.some(i=>
   !Number.isInteger(i)||i<0||i>=49||
-  !(g.config.goal.type==="mist"&&g.mist[i])&&
+  !(g.mist[i])&&
   !(g.board[i]?.family==="daruma"&&g.daruma[i])&&
   !(g.board[i]?.family==="sealedStone"&&g.sealed[i])))return false;
  const awakenings=[],hitDaruma=new Set(),hitStone=new Set();
  for(const at of targets){
-  if(g.config.goal.type==="mist"&&g.mist[at]){
+  if(g.mist[at]){
    const clearedMist=g.clearMist([at]);
    events.push(snapshot(g,"power",{power:"sealbreaker",targets:[at],clearedMist}));
   }else if(g.board[at]?.family==="daruma"&&g.daruma[at]){

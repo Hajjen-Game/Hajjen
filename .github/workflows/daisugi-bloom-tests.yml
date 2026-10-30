@@ -18,6 +18,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony.test.cjs
       - name: Audit all ten Harmony levels with seeded invariants
         run: node daisugi-bloom/tests/harmony-consistency-audit.test.cjs
+      - name: Board Mechanics Foundation 1.0 · terrain masks, overlays, seeded play and save
+        run: node daisugi-bloom/tests/harmony-board-mechanics.test.cjs
       - name: Goshuincho Collection 1.0 · archived stamps and chapters
         run: node daisugi-bloom/tests/harmony-goshuincho.test.cjs
       - name: Harmony Economy & Omamori 6.1 · stackable cards and coin prices
@@ -86,6 +88,7 @@ jobs:
         run: node --check daisugi-bloom/tools/harmony-difficulty-reward-benchmark.cjs
       - name: Syntax-check all browser scripts
         run: |
+          node --check daisugi-bloom/harmony/board-mechanics.js
           node --check daisugi-bloom/harmony/onboarding.js
           node --check daisugi-bloom/harmony/tutorial-help.js
           node --check daisugi-bloom/harmony/omamori-targets.js

@@ -10,8 +10,8 @@ if(!L||!B)throw Error("Lotus routing requires cargo and board mechanics");
 const VERSION=1;
 const prototypes=Object.freeze({
  "long-drop":Object.freeze({
-  name:"Long Lotus Crossing",moves:48,starPar:24,
-  lotus:Object.freeze({version:1,starts:[15,19],exits:[43,47]}),
+  name:"Long Lotus Crossing",moves:44,starPar:22,
+  lotus:Object.freeze({version:1,starts:[29,33],exits:[43,47]}),
   boardMechanics:Object.freeze({})
  }),
  "three-lanes":Object.freeze({
@@ -25,8 +25,8 @@ const prototypes=Object.freeze({
   boardMechanics:Object.freeze({})
  }),
  "garden-route":Object.freeze({
-  name:"Garden Lotus Crossing",moves:50,starPar:26,
-  lotus:Object.freeze({version:1,starts:[15,19],exits:[43,47]}),
+  name:"Garden Lotus Crossing",moves:48,starPar:25,
+  lotus:Object.freeze({version:1,starts:[22,26],exits:[43,47]}),
   boardMechanics:Object.freeze({blocked:[23,25]})
  })
 });

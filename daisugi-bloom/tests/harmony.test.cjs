@@ -276,7 +276,7 @@ check("Curated 3-star move targets reward strategy, not merely clearing easy mis
   assert.equal(R.missionStars(config,targets.three+1),2);
   assert.equal(R.missionStars(config,targets.two+1),1);
  }
- for(const later of [20,60])assert.equal(R.levelConfig(later).starPar,undefined);
+ for(const later of [20,61])assert.equal(R.levelConfig(later).starPar,undefined);
  assert(R.levelConfig(50).starPar>0,"Bamboo Paths has authored star deadlines");
  assert.equal(R.levelConfig(29).starPar,23,"Level 30 has a dedicated fairness star deadline");
 });

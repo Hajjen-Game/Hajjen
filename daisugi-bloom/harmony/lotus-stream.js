@@ -10,7 +10,7 @@ const PILOT=Object.freeze({
  name:"First Lotus Stream",subtitle:"Guide lotus seeds into the river",
  moves:38,par:20,starPar:17,
  goal:{type:"lotus",count:2},
- lotus:{version:VERSION,starts:[37,39],exits:[44,46]},
+ lotus:{version:VERSION,starts:[36,40],exits:[43,47]},
  intro:"Collect two lotus seeds. Match treasures BELOW a seed to let it fall down its column. A seed is not a matching treasure and cannot be swapped. Guide each seed into its glowing river gate at the bottom."
 });
 function normalize(input){
@@ -32,6 +32,15 @@ function get(index){
  return {...PILOT,goal:{...PILOT.goal},lotus:normalize(PILOT.lotus),
   chapter:7,lotusVersion:VERSION,objectiveVersion:2,balanceVersion:2};
 }
+// Two visible, legitimate bottom-row match opportunities. Both use only
+// stage-one treasures from the level's existing five-family pool. Neither
+// fusion happens automatically; the player still chooses the swaps.
+function opening(board,families){
+ const [a,c,b,d,e]=families;
+ for(const [at,family] of [[42,a],[43,a],[44,b],[45,e],[46,c],[47,c],[48,d],
+  [37,a],[41,c]])board[at]={...board[at],family,stage:1};
+ return board;
+}
 function seed(at){
  if(!Number.isInteger(at)||at<0||at>=42)throw Error("Invalid Lotus seed start");
  return {family:"lotusSeed",stage:0,id:-(2000+at)};
@@ -45,7 +54,7 @@ function collect(board,exits){
  }
  return collected;
 }
-const api=Object.freeze({VERSION,FIRST,PILOT,normalize,get,seed,isSeed,collect});
+const api=Object.freeze({VERSION,FIRST,PILOT,normalize,get,opening,seed,isSeed,collect});
 root.HarmonyLotusStream=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

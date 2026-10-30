@@ -88,6 +88,9 @@ check("Lotus save guard rejects changing cargo, IDs and collected counts",()=>{
 check("Historical Endless Garden level 61 round is never converted on resume",()=>{
  const legacy=new R.Game(60,null,{seed:9123,boardMechanics:{}});
  const previous=legacy.save();delete previous.lotusVersion;delete previous.lotus;delete previous.lotusDelivered;
+ // An actual pre-release Endless Garden round has no lotus cargo at all.
+ previous.board[36]={family:legacy.families[0],stage:1,id:37};
+ previous.board[40]={family:legacy.families[1],stage:1,id:41};
  previous.mist=Array(49).fill(0);
  const old=R.endlessConfig(60,true,true,true,true,false);
  const resumed=new R.Game(60,previous,{fastRestore:true});
@@ -95,7 +98,7 @@ check("Historical Endless Garden level 61 round is never converted on resume",()
  assert.equal(resumed.board.some(L.isSeed),false);
  assert.deepEqual(resumed.config.goal,old.goal);
  assert.equal(resumed.config.moves,old.moves);
- assert.deepEqual(resumed.board,legacy.board);
+ assert.deepEqual(resumed.board,previous.board);
 });
 check("UI and educational assets are wired with visible receiver and seed cues",()=>{
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");

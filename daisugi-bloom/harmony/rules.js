@@ -1,6 +1,8 @@
 /* Japanese Harmony puzzle rules 2.0 — pure match logic, no rendering dependencies. */
 (function(root){
 "use strict";
+const B=root.HarmonyBoardMechanics||(typeof require==="function"?require("./board-mechanics.js"):null);
+if(!B)throw Error("Board Mechanics Foundation must load before Harmony Rules");
 const N=7, ALL=["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"];
 // Fixed progression: four active families on levels 1–10, five from level
 // 11 onward. All nine families rotate across the introduction. The original
@@ -359,7 +361,8 @@ function scan(board){
 }
 function isDaruma(p){return !!p&&p.family==="daruma";}
 function isSealed(p){return !!p&&p.family==="sealedStone";}
-function isFixed(p){return isDaruma(p)||isSealed(p);}
+function isTerrain(p){return !!p&&p.family==="terrain";}
+function isFixed(p){return isDaruma(p)||isSealed(p)||isTerrain(p);}
 function neighbors8(i){
  const r=Math.floor(i/N),c=i%N,out=[];
  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
@@ -432,16 +435,19 @@ function fillBoard(families,rand){
  }
  return board;
 }
-function startBoard(level,random,families){
+function startBoard(level,random,families,mechanics=null){
+ const blocked=mechanics?.blocked||[];
+ const placeTerrain=board=>{for(const at of blocked)board[at]=B.terrainPiece(at);return board;};
  // NEW BOARD CONTRACT: all 49 items start at stage ONE, on EVERY level and retry.
  // Difficulty comes from family placement and objectives, never pre-evolved pieces.
  // Keep fair variants: no free match and at least three legal first swaps.
  for(let tries=0;tries<650;tries++){
-  const board=fillBoard(families,random);
+  const board=placeTerrain(fillBoard(families,random));
   if(families.every(f=>board.some(p=>p.family===f))&&validSwaps(board).length>=3)return board;
  }
  // Deterministic fallback: keep trying stage-one layouts instead of inserting
  // higher-stage "helping" pieces or permitting a locked starting position.
+ if(blocked.length)throw Error("Layout cannot provide three legal opening swaps");
  while(true){
   const board=fillBoard(families,random);
   if(families.every(f=>board.some(p=>p.family===f))&&validSwaps(board).length>=3)return board;
@@ -871,6 +877,8 @@ class Game{
  constructor(index=0,previous=null,options=null){
   this.level=Number.isInteger(index)&&index>=0?index:0;
   this.config=levelConfig(this.level);
+  // Future levels may provide terrain / overlays without changing their objective.
+  this.boardMechanics=B.normalize(options?.boardMechanics??this.config.boardMechanics);
   this.familyCount=options?.familyCount===4?4:options?.familyCount===5?5:levelFamilyCount(this.level);
   this.families=activeFamilies(this.level,this.familyCount);
   // The optional deterministic seed is exclusively used by the diagnostics
@@ -885,32 +893,34 @@ class Game{
   // Diagnostics-only fast restore avoids creating an unused random start
   // board for each simulated candidate. Normal start/resume is unchanged.
   this.board=options?.fastRestore&&previous?clone(previous.board):
-   startBoard(this.level,()=>this.fresh(),this.families);
+   startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics);
   this.daruma=Array(49).fill(0);this.darumaCleared=0;
   this.sealed=Array(49).fill(0);this.sealedCleared=0;
-  this.sealedStoneVersion=this.config.goal.type==="sealedStone"?1:0;
-  this.darumaVersion=this.config.goal.type==="daruma"?1:0;
+  this.sealedStoneVersion=this.config.goal.type==="sealedStone"||this.boardMechanics.sealedStone.length?1:0;
+  this.darumaVersion=this.config.goal.type==="daruma"||this.boardMechanics.daruma.length?1:0;
+  const darumaCells=this.boardMechanics.daruma.length?this.boardMechanics.daruma:darumaPositions(this.level);
+  const sealedCells=this.boardMechanics.sealedStone.length?this.boardMechanics.sealedStone:sealedPositions(this.level);
   if(!previous&&this.darumaVersion){
-   for(const at of darumaPositions(this.level)){
+   for(const at of darumaCells){
     this.board[at]={family:"daruma",stage:0,id:-(at+1)};
     this.daruma[at]=2;
    }
    // Keep the minimum 3-move fairness contract on the initial board.
    for(let retry=0;validSwaps(this.board).length<3&&retry<80;retry++){
-    this.board=startBoard(this.level,()=>this.fresh(),this.families);
-    for(const at of darumaPositions(this.level))
+    this.board=startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics);
+    for(const at of darumaCells)
      this.board[at]={family:"daruma",stage:0,id:-(at+1)};
    }
   }
   if(!previous&&this.sealedStoneVersion){
-   for(const at of sealedPositions(this.level)){
+   for(const at of sealedCells){
     this.board[at]={family:"sealedStone",stage:0,id:-(at+100)};
     this.sealed[at]=4;
    }
    // Ensure three opening moves while keeping all blockers fixed.
    for(let retry=0;validSwaps(this.board).length<3&&retry<120;retry++){
-    this.board=startBoard(this.level,()=>this.fresh(),this.families);
-    for(const at of sealedPositions(this.level))
+    this.board=startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics);
+    for(const at of sealedCells)
      this.board[at]={family:"sealedStone",stage:0,id:-(at+100)};
    }
   }
@@ -918,7 +928,9 @@ class Game{
   this.objectiveVersion=2;
   this.objectiveBalanceVersion=this.level<20?3:1;
   this.mistLayoutVersion=options?.mistLayoutVersion===1?1:2;
-  this.mist=this.config.goal.type==="mist"?Array.from({length:49},(_,i)=>Number(mistLayout(this.level,this.config.goal.count,this.mistLayoutVersion).includes(i))):Array(49).fill(0);
+  this.mist=this.boardMechanics.mist.length?
+   Array.from({length:49},(_,i)=>Number(this.boardMechanics.mist.includes(i))):
+   this.config.goal.type==="mist"?Array.from({length:49},(_,i)=>Number(mistLayout(this.level,this.config.goal.count,this.mistLayoutVersion).includes(i))):Array(49).fill(0);
   this.mistCleared=0;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.familyFusions={};this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
   this.chapterIdentityVersion=this.level>=40&&this.level<50?2:0;
@@ -930,6 +942,7 @@ class Game{
   this.fairnessBalanceVersion=1;
   if(previous){
    Object.assign(this,previous);
+   this.boardMechanics=B.normalize(previous.boardMechanics??this.config.boardMechanics);
    // Reusing a saved snapshot must not share mutable refill-bag arrays.
    this.bag=Array.isArray(previous.bag)?previous.bag.slice():[];
    // Existing runs retain their historical rating contract. New plays

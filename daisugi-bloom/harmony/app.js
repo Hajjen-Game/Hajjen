@@ -2595,7 +2595,7 @@ function showResult(){
  }
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.toggle("victory-actions",won);
- if(won)modalButton(actions,level===49?"Enter Bamboo Paths →":"Next level →","primary victory-next",()=>startLevel(level+1));
+ if(won)modalButton(actions,level===49?"Enter Bamboo Paths →":level===59?"Enter Lotus Stream →":"Next level →","primary victory-next",()=>startLevel(level+1));
  if(canContinue)modalButton(actions,"Keep playing for a high score","secondary victory-continue",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
  });

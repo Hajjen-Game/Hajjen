@@ -1245,7 +1245,7 @@ function renderBoard(board,highlight,effect){
  const removedMist=[];
  const resonance=refreshResonance(board);
  for(let i=0;i<49;i++){
-  const piece=board[i],btn=boardTiles[i],doll=piece?.family==="daruma",stone=piece?.family==="sealedStone",terrain=piece?.family==="terrain";
+  const piece=board[i],btn=boardTiles[i],doll=piece?.family==="daruma",stone=piece?.family==="sealedStone",terrain=piece?.family==="terrain",lotus=piece?.family==="lotusSeed";
   const dState=doll?(daruma[i]===2?0:daruma[i]===1?1:2):-1;
   const stoneLeft=stone?(sealed[i]??4):0,stoneStage=stone?Math.min(3,Math.max(0,4-stoneLeft)):-1;
   const key=piece?piece.id+"|"+piece.family+"|"+piece.stage+"|"+dState+"|"+stoneStage:"empty";
@@ -1254,10 +1254,13 @@ function renderBoard(board,highlight,effect){
   if(boardKeys[i]!==key){
    boardKeys[i]=key;
    btn.replaceChildren();
-   btn.setAttribute("aria-label",terrain?"Closed garden tile":stone?"Sealed Stone, "+stoneLeft+" hits left":
+   btn.setAttribute("aria-label",lotus?"Lotus seed, guide it to the river gate below":terrain?"Closed garden tile":stone?"Sealed Stone, "+stoneLeft+" hits left":
     doll?"Daruma, "+(dState===0?"two eyes left":dState===1?"one eye left":"completed"):
     piece?names[piece.family]+", tier "+piece.stage+", tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
-   if(terrain){
+   if(lotus){
+    const art=document.createElement("span");art.className="lotus-seed-art";art.setAttribute("aria-hidden","true");
+    const symbol=document.createElement("span");symbol.textContent="✿";art.append(symbol);btn.append(art);
+   }else if(terrain){
     const art=document.createElement("span");art.className="terrain-garden-art";
     art.setAttribute("aria-hidden","true");btn.append(art);
    }else if(stone){
@@ -1291,7 +1294,8 @@ function renderBoard(board,highlight,effect){
    veil=document.createElement("span");veil.className="harmony-mist";
    veil.setAttribute("aria-hidden","true");btn.prepend(veil);
   }else if(!misted&&veil){veil.remove();}
-  const label=terrain?"Closed garden tile, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
+  const label=lotus?"Lotus seed. Match beneath it to drop into the gate, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
+   terrain?"Closed garden tile, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
    stone?"Sealed Stone, "+stoneLeft+" hits left, tile "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):
    doll?"Daruma, "+(dState===0?"two eyes left":dState===1?"one eye left":"completed")+", tile "+
@@ -1303,7 +1307,14 @@ function renderBoard(board,highlight,effect){
    btn.dataset.mist=misted?"1":"0";
    btn.setAttribute("aria-label",accessible);
   }
-  const cls="tile"+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(terrain?" terrain-garden-tile":"")+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+(omamoriPreview?.has(i)?" omamori-gold-target":"")+
+  const exit=!!game?.lotus?.exits?.includes(i);
+  let gate=btn.querySelector(":scope > .lotus-collector");
+  if(exit&&!gate){
+   gate=document.createElement("span");gate.className="lotus-collector";gate.setAttribute("aria-hidden","true");
+   const ring=document.createElement("span");ring.className="lotus-collector-ring";gate.append(ring);
+   btn.append(gate);
+  }else if(!exit&&gate)gate.remove();
+  const cls="tile"+(lotus?" lotus-seed-tile":"")+(exit?" lotus-exit-tile":"")+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(terrain?" terrain-garden-tile":"")+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+(omamoriPreview?.has(i)?" omamori-gold-target":"")+
    (omamoriAnchor===i?" omamori-gold-anchor":"")+
    (highlighted&&highlighted.has(i)?" "+flash:"")+
    (resonance.anchors.has(i)?" resonance-anchor":"")+
@@ -1392,6 +1403,9 @@ function animateScoreCount(){
 function choose(i){
  if(busy||!game||game.moves<=0||!$("modal").hidden)return;
  if(powerSelection){confirmPowerTarget(i);return;}
+ if(game.board[i]?.family==="lotusSeed"){
+  selected=-1;toast("Lotus seeds cannot swap. Make matches beneath them so they fall into the river.");return;
+ }
  if(game.board[i]?.family==="terrain"){
   selected=-1;toast("This garden tile is closed. Build matches around it.");return;
  }
@@ -2301,6 +2315,19 @@ async function animateEvent(evt){
    // Pulse-upgraded masterpieces disappear at harvest, not during Pulse.
    // Let their dust drift into the falling refill, with no added turn delay.
    sparkleVacatedCells(positions,evt.board);
+   break;
+  }
+  case "lotus-delivery":{
+   renderBoard(evt.board,(evt.positions||[]),"pulsed");
+   for(const at of evt.positions||[]){
+    const gate=boardTiles[at]?.querySelector(".lotus-collector");
+    if(gate&&!FAST())await animateNode(gate,[
+     {transform:"scale(.85)",opacity:.75},
+     {transform:"scale(1.2)",opacity:1,offset:.5},
+     {transform:"scale(1)",opacity:1}
+    ],340);
+   }
+   toast("✿ Lotus seed collected · "+evt.goal+" / "+game.target(),1800);
    break;
   }
   case "fall":

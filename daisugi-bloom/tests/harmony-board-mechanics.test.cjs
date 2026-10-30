@@ -29,8 +29,8 @@ check("Independent mechanisms are validated without modifying the level objectiv
  assert.throws(()=>B.normalize({daruma:[8],sealedStone:[8]}),/overlap/);
  assert.throws(()=>B.normalize({version:99}),/version/);
 });
-check("Unchanged chapters 1–5 and generated level 61 retain opening boards",()=>{
- for(const level of [0,1,9,10,15,20,25,30,35,40,49,60]){
+check("Unchanged chapters 1–5 and generated level 62 retain opening boards",()=>{
+ for(const level of [0,1,9,10,15,20,25,30,35,40,49,61]){
   const before=new R.Game(level,null,{seed:8744+level});
   const after=new R.Game(level,null,{seed:8744+level,boardMechanics:{}});
   assert.deepEqual(before.board,after.board,"Initial board differs at level "+(level+1));

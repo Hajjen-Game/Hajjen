@@ -24,7 +24,13 @@ function validRun(run){
   (p.family==="daruma"||p.family==="sealedStone"?p.stage===0:p.stage>=1&&p.stage<=5));
 }
 function normalize(raw,defaults){
- const save={...defaults,...(record(raw)?raw:{})};
+ // Never share default record maps with a live save. A first-run star
+ // update must not leak back into defaults and survive a later full reset.
+ const baseline={};
+ for(const [key,value] of Object.entries(defaults)){
+  baseline[key]=record(value)?{}:Array.isArray(value)?[]:value;
+ }
+ const save={...baseline,...(record(raw)?raw:{})};
  for(const field of RECORD_FIELDS)if(!record(save[field]))save[field]={};
  if(!Number.isInteger(save.unlocked)||save.unlocked<0||save.unlocked>=1000000)
   save.unlocked=defaults.unlocked;

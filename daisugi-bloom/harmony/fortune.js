@@ -43,9 +43,10 @@ function initialize(save){
 function status(save,now=new Date()){
  const day=dateKey(now);
  const {fortune:f}=initialize(save);
- const available=!!day&&(!f.lastDate||day>f.lastDate);
+ const locked=!Number.isInteger(save?.unlocked)||save.unlocked<10;
+ const available=!locked&&!!day&&(!f.lastDate||day>f.lastDate);
  const last=f.lastDraw?{...f.lastDraw,fortune:lookup(f.lastDraw.id)}:null;
- return {date:day,available,count:f.count,last,coins:Number(save?.economy?.coins)||0};
+ return {date:day,available,locked,count:f.count,last,coins:Number(save?.economy?.coins)||0};
 }
 function select(rng){
  const roll=rng();
@@ -60,6 +61,7 @@ function select(rng){
 }
 function draw(save,now=new Date(),rng=Math.random){
  if(!save?.economy||save.economy.version!==1)return {ok:false,reason:"no-wallet"};
+ if(!Number.isInteger(save.unlocked)||save.unlocked<10)return {ok:false,reason:"tutorial-locked"};
  const day=dateKey(now);
  if(!day)return {ok:false,reason:"invalid-date"};
  const {fortune:f}=initialize(save);

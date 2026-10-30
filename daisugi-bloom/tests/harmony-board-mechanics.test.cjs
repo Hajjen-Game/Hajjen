@@ -87,6 +87,26 @@ check("Overlays and obstacles can coexist with a DIFFERENT primary goal",()=>{
  assert.equal(g.progress(),before,"Clearing supplemental Mist must not replace the main objective");
  assert(R.validSwaps(g.board).length>=3);
 });
+check("Harmony Pulse and Omamori cannot upgrade terrain or grant fake hits",()=>{
+ const P=require("../harmony/powers.js");
+ const garden=new R.Game(0,null,{seed:1201,boardMechanics:{layout:"templeGate"}});
+ // A single normal three-item fusion creates a Masterpiece beside terrain.
+ for(const at of [7,14,21])
+  garden.board[at]={family:"sakura",stage:at===7?4:1,id:at+1};
+ const frames=garden.resolve(-1);
+ assert(frames.some(e=>e.type==="hero"),"The new masterpiece must pulse");
+ assert.equal(garden.pulseHits,0,"A permanently closed tile is not a Pulse hit");
+ assert(!frames.some(e=>(e.targets||[]).some(t=>garden.boardMechanics.blocked.includes(t.to))));
+ for(const at of garden.boardMechanics.blocked)
+  assert.deepEqual(garden.board[at],B.terrainPiece(at));
+ const boost=new R.Game(0,null,{seed:1201,boardMechanics:{layout:"templeGate"}});
+ boost.board[7].stage=4;
+ const result=P.apply(boost,"sakura",7);
+ assert(result.ok);
+ assert(!result.events.some(e=>(e.targets||[]).some(t=>boost.boardMechanics.blocked.includes(t.to))));
+ for(const at of boost.boardMechanics.blocked)
+  assert.deepEqual(boost.board[at],B.terrainPiece(at));
+});
 check("Saved and restored future layouts retain cells, overlays, RNG and legal hints",()=>{
  const initial=new R.Game(1,null,{seed:10227,
   boardMechanics:{layout:"templeGate",mist:[9,10],sealedStone:[19]}});

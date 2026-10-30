@@ -8,19 +8,19 @@ check("Currency only follows actual completed stage evidence, not unlocked stage
    fourFamilyStars:{0:1,1:3},fourFamilyScores:{}};
  const result=E.initialize(account);
  assert.equal(result.newlyCreated,true);
- assert.equal(account.economy.coins,5*12+8*(1+2+3+1+3));
+ assert.equal(account.economy.coins,20+28+36,"Tutorial wins are not retroactively paid");
  assert.equal(account.economy.paidStars[20],1);
  assert.equal(account.economy.paidStars[21],2);
  assert.equal(account.economy.paidStars[22],3);
  assert.equal(E.snapshot(account).coins,account.economy.coins);
  assert.equal(E.initialize(account).newlyCreated,false);
- assert.equal(account.economy.coins,140);
+ assert.equal(account.economy.coins,84);
 });
 check("Older score-only wins award one star one time; uncompleted runs do not",()=>{
  const save={unlocked:30,fourFamilyScores:{9:2100},bestScores:{11:4500},
   run:{level:26,data:{moves:2,complete:false,starsAtGoal:3}}};
  E.initialize(save);
- assert.equal(save.economy.coins,40);
+ assert.equal(save.economy.coins,20);
  assert.equal(save.economy.paidStars[26],undefined);
  assert.equal(G.archivedStars(save,9),1);
  assert.equal(G.archivedStars(save,11),1);
@@ -30,15 +30,27 @@ check("On first new clear pay once; replay earns zero; upgrades award only diffe
  E.initialize(save);
  assert.equal(save.economy.coins,0);
  const first=E.claim(save,0,1);
- assert.deepEqual({delta:first.delta,reason:first.reason},{delta:20,reason:"first-clear"});
+ assert.deepEqual({delta:first.delta,reason:first.reason},{delta:0,reason:"tutorial-no-coins"});
  assert.equal(E.claim(save,0,1).delta,0);
  assert.equal(E.claim(save,0,0).delta,0);
- assert.deepEqual({delta:E.claim(save,0,3).delta,coins:save.economy.coins},{delta:16,coins:36});
+ assert.deepEqual({delta:E.claim(save,0,3).delta,coins:save.economy.coins},{delta:0,coins:0});
  assert.equal(E.claim(save,0,2).delta,0,"No downgrade removes or earns currency");
- assert.equal(E.claim(save,1,2).delta,28);
+ assert.equal(E.claim(save,10,3).delta,36);
+ assert.equal(E.claim(save,11,2).delta,28);
  assert.equal(save.economy.coins,64);
  assert.equal(E.initialize(save).newlyCreated,false);
  assert.equal(save.economy.coins,64);
+});
+check("Level 11 and 12 pay 36 coins each and unlock a 65-coin starter card",()=>{
+ const state={unlocked:10,bestStars:{},fourFamilyStars:{}};E.initialize(state);
+ for(let level=0;level<10;level++)assert.equal(E.claim(state,level,3).delta,0);
+ assert.equal(E.snapshot(state).coins,0);
+ assert.equal(E.claim(state,10,3).delta,36);
+ assert.equal(E.snapshot(state).coins,36);
+ assert.equal(E.claim(state,11,3).delta,36);
+ assert.equal(E.snapshot(state).coins,72);
+ assert.equal(Math.min(...E.CATALOG.map(item=>item.price)),65);
+ assert.equal(E.claim(state,10,3).delta,0);
 });
 check("Eight card types can be bought repeatedly and consumed individually",()=>{
  const C=require("../harmony/cards.js");
@@ -47,7 +59,7 @@ check("Eight card types can be bought repeatedly and consumed individually",()=>
  assert.equal(E.CATALOG.length,8);
  assert.equal(E.purchase(save,"unknown").reason,"unknown-item");
  assert.equal(E.purchase(save,"sakura").reason,"not-enough-coins");
- for(let i=0;i<5;i++)E.claim(save,i,3);
+ for(let i=10;i<15;i++)E.claim(save,i,3);
  assert.equal(save.economy.coins,180);
  assert(E.purchase(save,"sakura").ok);
  assert(E.purchase(save,"sakura").ok);

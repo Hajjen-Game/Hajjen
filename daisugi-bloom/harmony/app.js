@@ -657,6 +657,19 @@ function showOmikuji(){
  content.append(wrapper);$("modal").hidden=false;
 }
 
+// Omamori First-Card Journey 1.0. The milestone survives spending and
+// consuming cards: reaching an affordable balance is not a temporary state.
+const firstOmamoriPrice=()=>Math.min(...E.CATALOG.map(item=>item.price));
+function omamoriMilestoneReached(){
+ const ever=!!save.omamoriEverAffordable||!!save.omamoriIntroSeen||
+  C.total(save)>0||C.initialize(save).discovered.length>0||
+  E.snapshot(save).coins>=firstOmamoriPrice();
+ if(ever&&!save.omamoriEverAffordable){
+  save.omamoriEverAffordable=true;persist();
+ }
+ return ever;
+}
+
 // Omamori 6.0 · one unobtrusive drawer button below the 7×7 board.
 // No passive effects, equipment, mastery, or buttons for individual cards.
 function updateSpiritBadge(){
@@ -728,38 +741,83 @@ function renderPowerBar(){
 function showPowerPicker(){
  if(!game||busy||game.failed||game.complete||!$("modal").hidden||powerSelection)return;
  disarmDecisionClock();clearIdleHint();
+ const owned=C.total(save),coins=E.snapshot(save).coins,price=firstOmamoriPrice();
+ const unlocked=omamoriMilestoneReached();
+ const options=E.CATALOG.filter(item=>C.has(save,item.id)&&normalOmamori(item.id));
+ const learning=!unlocked&&owned===0;
  $("modalEyebrow").textContent="OMAMORI · お守り";
- $("modalTitle").textContent="Choose a boost";
+ $("modalTitle").textContent=learning?"Discover Omamori":options.length?"Choose a boost":"Your Omamori";
  const panel=$("modalContent");panel.replaceChildren();
  const wrap=goshuinNode("section","omamori-picker");
- wrap.append(goshuinNode("p","omamori-picker-intro",
-  "Use up to two board boosts per level. Moon cards appear automatically when you run out of moves."));
- wrap.append(goshuinNode("strong","omamori-picker-uses",normalUses()+" / 2 boosts used"));
- const grid=goshuinNode("div","omamori-picker-grid");
- const options=E.CATALOG.filter(item=>C.has(save,item.id)&&normalOmamori(item.id));
- for(const item of options){
-  const button=goshuinNode("button","omamori-picker-item","");
-  button.type="button";button.dataset.power=item.id;
-  button.disabled=normalUses()>=2;
-  button.append(goshuinNode("span","omamori-picker-symbol",item.symbol),
-   goshuinNode("strong","",item.name),
-   goshuinNode("span","omamori-picker-count","×"+C.count(save,item.id)),
-   goshuinNode("small","",omamoriPowerEffect(item.id)));
-  button.addEventListener("click",()=>{
-   if(normalUses()>=2)return;
-   powerSelection=item.id;powerTargets=[];selected=-1;
-   $("modal").hidden=true;clearIdleHint();renderBoard(game.board);renderPowerBar();armDecisionClock();
-   toast("Choose "+(item.id==="grandBloom"||item.id==="twinSealbreaker"?"two different tiles":"a tile")+
-    " for "+item.name+". You can cancel without spending a card.",4300);
-  });grid.append(button);
+ wrap.dataset.omamoriStage=learning?"learning":options.length?"owned":"unlocked";
+ if(learning){
+  wrap.append(goshuinNode("strong","omamori-journey-title","A little help for tricky puzzles"),
+   goshuinNode("p","omamori-picker-intro",
+    "Omamori are one-use cards that can upgrade treasures, shuffle tiles, or help when you run out of moves. Earn Harmony Coins to buy your first card."));
+  const progress=goshuinNode("div","omamori-coin-journey");
+  const header=goshuinNode("div","omamori-coin-journey-header");
+  header.append(goshuinNode("strong","","YOUR FIRST OMAMORI"),
+   goshuinNode("span","omamori-coin-amount",prettify(coins)+" / "+prettify(price)+" Coins"));
+  const meter=goshuinNode("div","omamori-coin-track");
+  meter.setAttribute("role","progressbar");
+  meter.setAttribute("aria-label","Harmony Coins toward first Omamori card");
+  meter.setAttribute("aria-valuemin","0");
+  meter.setAttribute("aria-valuemax",String(price));
+  meter.setAttribute("aria-valuenow",String(Math.min(price,coins)));
+  const fill=goshuinNode("span","omamori-coin-fill","");
+  fill.style.width=Math.round(Math.min(price,coins)/price*100)+"%";
+  meter.append(fill);
+  progress.append(header,meter,
+   goshuinNode("strong","omamori-coin-remaining",prettify(Math.max(0,price-coins))+" more Coins to your first card"));
+  if(save.unlocked<10)progress.append(goshuinNode("p","omamori-coin-help",
+   "Harmony Coins become available after you finish level 10."));
+  wrap.append(progress);
+ }else{
+  wrap.append(goshuinNode("p","omamori-picker-intro",
+   "Omamori cards are one-use helpers. Choose a board boost before making a move. Moon cards offer extra moves when you run out."));
+  if(options.length){
+   wrap.append(goshuinNode("strong","omamori-picker-uses",
+    normalUses()+" / 2 boosts used · "+owned+" cards owned"));
+  }else{
+   const ready=goshuinNode("div","omamori-journey-unlocked");
+   ready.append(goshuinNode("strong","","✿ Omamori unlocked"),
+    goshuinNode("p","",owned?
+     "Your Moon card is ready if you run out of moves. You have no board boosts to select right now.":
+     "You can now collect Omamori cards. Buy a card in the Main Menu shop, then return here to use it."),
+    goshuinNode("span","omamori-journey-balance",
+     prettify(coins)+" Harmony Coins · "+owned+" cards owned"));
+   wrap.append(ready);
+  }
  }
- if(!options.length)wrap.append(goshuinNode("p","omamori-picker-empty",
-  "No board boosts owned. You can buy cards from Omamori Shop on the home screen."));
- if(options.length)wrap.append(grid);
+ if(options.length){
+  const grid=goshuinNode("div","omamori-picker-grid");
+  for(const item of options){
+   const button=goshuinNode("button","omamori-picker-item","");
+   button.type="button";button.dataset.power=item.id;
+   button.disabled=normalUses()>=2;
+   button.append(goshuinNode("span","omamori-picker-symbol",item.symbol),
+    goshuinNode("strong","",item.name),
+    goshuinNode("span","omamori-picker-count","×"+C.count(save,item.id)),
+    goshuinNode("small","",omamoriPowerEffect(item.id)));
+   button.addEventListener("click",()=>{
+    if(normalUses()>=2)return;
+    powerSelection=item.id;powerTargets=[];selected=-1;
+    $("modal").hidden=true;clearIdleHint();renderBoard(game.board);renderPowerBar();armDecisionClock();
+    toast("Choose "+(item.id==="grandBloom"||item.id==="twinSealbreaker"?"two different tiles":"a tile")+
+     " for "+item.name+". You can cancel without spending a card.",4300);
+   });grid.append(button);
+  }
+  wrap.append(grid);
+ }
  panel.append(wrap);
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("victory-actions","pause-menu-actions");
- modalButton(actions,"Back to game","primary",()=>{
+ if(unlocked&&!options.length){
+  modalButton(actions,"Visit Omamori Shop","primary",()=>{
+   showMenu();showOmamori("shop");
+  });
+ }
+ modalButton(actions,"Back to game",unlocked&&!options.length?"secondary":"primary",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
  });
  $("modal").hidden=false;
@@ -910,7 +968,7 @@ function showOmamori(tab="shop"){
   else{action.textContent="Buy 1 · "+prettify(item.price)+" coins";}
   action.addEventListener("click",()=>{
    const result=C.buy(save,item.id);
-   if(result.ok){persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
+   if(result.ok){save.omamoriEverAffordable=true;persist();renderMenu();showOmamori(tab);showOmamoriNotice("purchase",item);}
   });
   card.append(charm,copy,action);list.append(card);
  }
@@ -2330,9 +2388,14 @@ function unlockGoal(){
 // One gentle introduction when the player's balance first crosses the price
 // of the cheapest Omamori card. Persist once; never nag on retries/replays.
 function firstAffordableOmamori(previousCoins){
- const cheapest=Math.min(...E.CATALOG.map(item=>item.price));
- if(save.omamoriIntroSeen||save.unlocked<10||C.total(save)>0||
-  previousCoins>=cheapest||E.snapshot(save).coins<cheapest)return false;
+ const price=firstOmamoriPrice();
+ const balance=E.snapshot(save).coins;
+ if(balance<price)return false;
+ const alreadyReached=!!save.omamoriEverAffordable||!!save.omamoriIntroSeen||
+  C.total(save)>0||C.initialize(save).discovered.length>0||
+  previousCoins>=price;
+ save.omamoriEverAffordable=true;
+ if(alreadyReached||save.unlocked<10)return false;
  save.omamoriIntroSeen=true;
  return true;
 }

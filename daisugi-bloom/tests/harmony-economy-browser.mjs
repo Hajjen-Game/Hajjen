@@ -90,7 +90,7 @@ try{
   await openPicker();
   assert.equal(await journey.$eval(".omamori-picker",p=>p.dataset.omamoriStage),"unlocked",
    "Spending the card must not reset onboarding to the coin tracker");
-  assert.equal(await journey.$eval(".omamori-coin-track",n=>n.length),0);
+  assert.equal(await journey.$eval(".omamori-coin-track",nodes=>nodes.length),0);
  }finally{await journeyContext.close();}
 
  await page.click("#omamoriButton");

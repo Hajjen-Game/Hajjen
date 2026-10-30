@@ -114,6 +114,18 @@ check("New hint priorities favor actual downward movement without inventing move
  assert.equal(JSON.stringify(long.board),copy,"Routing metric must never move objects");
 });
 
+check("Director 4 marks genuine descent as objective progress in prototypes",()=>{
+ const g=new R.Game(60,null,{seed:135,lotusPrototype:"long-drop",directorMode:"v4"});
+ g.objectiveDrought=6;g.directorDrought=6;
+ const before=g.board.map(p=>({...p})),hint=R.bestHint(g);
+ assert(hint);
+ assert(g.swap(hint.from,hint.to).ok);
+ assert(LR.advance(before,g.board,g.lotus)>0||g.lotusDelivered>0);
+ assert.equal(g.objectiveDrought,0,"Real descent should clear objective drought");
+ assert.equal(g.directorDrought,0,"Real descent should count for flow pacing");
+ const pilot=new R.Game(60,null,{seed:135,directorMode:"v4"});
+ assert.equal(pilot.lotusPrototype,null,"Original pilot keeps its existing Director behavior");
+});
 check("Two seeds can use the same gate sequentially without being fused or lost",()=>{
  const g=new R.Game(60,null,{seed:13044,lotusPrototype:"shared-gate"});
  const gate=g.lotus.exits.find(at=>at%7===1);

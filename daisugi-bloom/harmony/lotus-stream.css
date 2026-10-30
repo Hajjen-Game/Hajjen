@@ -1,0 +1,42 @@
+/* Lotus Stream 1.0 — lightweight CSS-only cargo and collection markers.
+   These are temporary gameplay motifs, not replacement PNG art assets. */
+#gameView .tile.lotus-seed-tile{isolation:isolate;cursor:default;}
+#gameView .tile .lotus-seed-art{
+ position:absolute;inset:12%;display:grid;place-items:center;pointer-events:none;
+ border-radius:45% 45% 50% 50%;
+ background:radial-gradient(ellipse at 38% 26%,#fff6d5 0%,#e9bc77 48%,#ad7155 88%);
+ border:1px solid #c99563;
+ box-shadow:inset 0 2px 3px #fff8d68c,0 2px 6px #2d211d77;
+ color:#9a594c;font:700 clamp(20px,6vw,32px)/1 Georgia,serif;
+ z-index:2;
+}
+#gameView .tile .lotus-seed-art span{
+ filter:drop-shadow(0 1px 0 #fff0c0);
+ transform:translateY(-2px);
+}
+#gameView .tile.lotus-exit-tile{
+ box-shadow:inset 0 0 0 2px #e0b876,inset 0 0 12px #b2baa765;
+}
+#gameView .tile .lotus-collector{
+ position:absolute;inset:6%;display:grid;place-items:center;
+ pointer-events:none;z-index:1;border-radius:18%;
+ box-shadow:inset 0 0 0 2px #ddb27a;
+ background:radial-gradient(ellipse at center,#e2c48130,#7b8f8954 70%,transparent 82%);
+}
+#gameView .tile .lotus-collector-ring{
+ position:absolute;inset:12%;border-radius:50%;
+ border:2px solid #e9c992;box-shadow:0 0 9px #f5d293aa,inset 0 0 8px #e9cf9788;
+ animation:lotus-gate-breathe 3.2s ease-in-out infinite;
+}
+#gameView .tile.lotus-exit-tile:not(.lotus-seed-tile) .lotus-collector::after{
+ content:"✿";position:absolute;font:700 21px Georgia,serif;
+ color:#e2ba7a;opacity:.75;text-shadow:0 0 9px #f6dca4;
+}
+@keyframes lotus-gate-breathe{
+ 0%,100%{opacity:.6;transform:scale(.93)}
+ 50%{opacity:1;transform:scale(1.025)}
+}
+@media(prefers-reduced-motion:reduce){
+ #gameView .tile .lotus-collector-ring{animation:none!important}
+}
+body.harmony-reduced-motion #gameView .tile .lotus-collector-ring{animation:none!important}

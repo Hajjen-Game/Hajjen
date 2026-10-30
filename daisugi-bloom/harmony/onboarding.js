@@ -20,7 +20,7 @@ const LESSONS=Object.freeze({
  52:Object.freeze({key:"temple-gate",jp:"門",title:"Temple Gate",short:"The path narrows. Plan your matches through the open passages.",detail:"Temple Gate uses fixed stones to divide parts of the 7×7 board. A row or column of matching treasures must be uninterrupted: stones never count as treasures. Keep working with the open passages."}),
  54:Object.freeze({key:"twin-gardens",jp:"庭",title:"Twin Gardens",short:"Two garden wings meet at one central crossing.",detail:"The closed stones divide upper and lower sections of the center column. Matching, falling and Harmony Pulse still obey their usual rules; use the open center row to plan your next moves."}),
  57:Object.freeze({key:"central-shrine",jp:"社",title:"Central Shrine",short:"The shrine occupies the center. Build Harmony around it.",detail:"The eight closed center tiles are part of the garden, not obstacles you have to break. They never move or take Pulse hits. Plan chains and fusions along the edges of the shrine."}),
- 59:Object.freeze({key:"bamboo-finale",jp:"和",title:"Path of Harmony",short:"Clear Mist around the sacred shrine to complete Bamboo Paths.",detail:"Fuse onto each misty tile or reach it with Harmony Pulse. The shrine stays closed and does not need clearing. All four Mist tiles must be removed to complete the chapter."})
+ 59:Object.freeze({key:"bamboo-finale",jp:"和",title:"Path of Harmony",short:"Clear Mist around the sacred shrine to complete Bamboo Paths.",detail:"Fuse onto each misty tile or reach it with Harmony Pulse. The shrine stays closed and does not need clearing. All three Mist tiles must be removed to complete the chapter."})
 });
 const clean=n=>Number.isInteger(n)&&n>=0?n:0;
 function lesson(level){return LESSONS[clean(level)]||null;}

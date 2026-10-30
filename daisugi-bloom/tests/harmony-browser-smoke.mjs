@@ -2190,6 +2190,56 @@ try{
   }));
   assert(ryu.families.includes("Ryu Dragon")&&ryu.visible,
    "Level 5 should display Ryu's atlas sprite in the four-family game");
+ // Economy Onboarding 2.0: after level 11 coins, level 12 should award
+ // just enough for an entry Omamori and show one concise, actionable invite.
+ const omamoriIntroContext=await browser.createBrowserContext();
+ try{
+  const intro=await omamoriIntroContext.newPage();
+  await intro.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await intro.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
+  await intro.evaluate(()=>{
+   const R=window.HarmonyRules,key="japanese-harmony-puzzle-v2";
+   const g=new R.Game(11,null,{seed:120012,directorMode:"v4"});
+   const pair=R.validSwaps(g.board)[0];
+   // A real stage-3 creation is now available from one legitimate fusion.
+   g.board[pair[1]].stage=2;
+   g.stage3=g.target()-1;
+   const s=JSON.parse(localStorage.getItem(key));
+   s.unlocked=11;s.bestStars={10:3};s.run={level:11,data:g.save()};
+   s.economy={version:1,coins:36,paidStars:{10:3},owned:[],equipped:null};
+   s.omamoriCards={version:2,counts:{},discovered:[],replay:{day:"",claims:0}};
+   localStorage.setItem(key,JSON.stringify(s));
+  });
+  await intro.reload({waitUntil:"networkidle2"});
+  await intro.click("#continueButton");
+  await intro.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await acknowledgeTutorial(intro);
+  const pair=await intro.evaluate(()=>{
+   const s=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   return window.HarmonyRules.validSwaps(s.run.data.board)[0];
+  });
+  await intro.evaluate(([a,b])=>{
+   document.querySelector('.tile[data-index="'+a+'"]').click();
+   document.querySelector('.tile[data-index="'+b+'"]').click();
+  },pair);
+  await intro.waitForFunction(()=>!document.querySelector("#modal").hidden&&
+   !!document.querySelector(".victory-compact"),{timeout:35000});
+  const reward=await intro.evaluate(()=>{
+   const s=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   return {coins:s.economy.coins,flag:s.omamoriIntroSeen,
+    invited:!!document.querySelector(".jh-omamori-welcome"),
+    shop:!!document.querySelector(".jh-omamori-shop-button")};
+  });
+  assert.equal(reward.coins,72,"Levels 11+12 at three stars should yield 72 coins");
+  assert(reward.invited&&reward.shop&&reward.flag,
+   "First affordable card must be introduced exactly when the player can buy it");
+  await intro.click(".jh-omamori-shop-button");
+  assert.equal(await intro.$eval("#modalTitle",e=>e.textContent),"Omamori");
+  assert.equal(await intro.$eval(".omamori-wallet strong",e=>e.textContent),"72 Harmony Coins");
+  assert.equal(await intro.$eval(".omamori-action",nodes=>nodes.filter(n=>!n.disabled).length),2,
+   "Starter cards should be available in the introduced shop");
+ }finally{await omamoriIntroContext.close();}
+
  // Core Gameplay & Clarity 1.0: real mobile completion should show the
  // result immediately without consuming the player's remaining moves.
  const clarityContext=await browser.createBrowserContext();
@@ -2236,6 +2286,15 @@ try{
   assert(reached.completed&&reached.remaining>0,"Completion must retain optional turns");
   assert.equal(reached.starText,"★★★");
   assert(reached.buttons.includes("Next level →")&&reached.buttons.includes("Keep playing for a high score"));
+  assert(reached.buttons.includes("Main Menu")&&!reached.buttons.includes("Goshuincho · Level Select"),
+   "Victory must offer Main Menu, not direct book navigation");
+  assert.equal(await clarity.$eval(".victory-details",e=>e.open),false,
+   "Optional statistics must be collapsed on first view");
+  assert.equal(await clarity.$eval(".victory-reward-copy span",e=>e.textContent),
+   "Harmony Coins unlock after level 10",
+   "Tutorial victories must not award coins");
+  assert.equal(await clarity.$eval(".victory-compact",e=>!e.querySelector(".jh-omamori-welcome")),true,
+   "Tutorial victories must not advertise affordable Omamori");
   // Victory Accent 1.1: ensure the Sakura/peach hues are actually rendered,
   // limited to the victory dialog and do not displace actions on small phones.
   for(const width of [390,320]){

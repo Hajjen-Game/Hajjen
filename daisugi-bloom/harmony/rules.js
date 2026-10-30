@@ -1238,7 +1238,7 @@ class Game{
       if(!darumaHitThisMove.has(to))darumaTargets.push({from:source,to});
       continue;
      }
-     if(indirect.has(to)||!piece||piece.stage>=5){
+     if(indirect.has(to)||!piece||isTerrain(piece)||piece.stage>=5){
       if(this.mist[to])mistTargets.push({from:source,to,empty:!piece});
       else visualOnlyTargets.push({from:source,to,empty:!piece});
       continue;
@@ -1351,7 +1351,7 @@ class Game{
         stoneTargets.push({from:source,to,alreadyHit:stoneHitThisMove.has(to)});
         continue;
        }
-       if(indirect.has(to)||!p||p.stage===5){
+       if(indirect.has(to)||!p||isTerrain(p)||p.stage===5){
         // Bonus-upgraded or already-mature neighbours must not receive a
         // second evolution. They can still be cleansed of fixed-cell mist.
         if(this.mist[to])

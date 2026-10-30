@@ -3,6 +3,8 @@
 "use strict";
 const B=root.HarmonyBoardMechanics||(typeof require==="function"?require("./board-mechanics.js"):null);
 if(!B)throw Error("Board Mechanics Foundation must load before Harmony Rules");
+const Bamboo=root.HarmonyBambooPaths||(typeof require==="function"?require("./bamboo-paths.js"):null);
+if(!Bamboo)throw Error("Bamboo Paths must load before Harmony Rules");
 const N=7, ALL=["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"];
 // Fixed progression: four active families on levels 1–10, five from level
 // 11 onward. All nine families rotate across the introduction. The original
@@ -158,7 +160,8 @@ const CHAPTER_LANTERN_DESIGNS=[
 // HARMONY OBJECTIVES 2.0 — beyond the tutorial, every Journey level has
 // a tangible objective. Score remains a side challenge / personal record.
 // Objectives are fixed by level index, never adjusted by Director or player.
-function endlessConfig(index,withDaruma=true,withSealed=true,withLantern=true){
+function endlessConfig(index,withDaruma=true,withSealed=true,withLantern=true,withBamboo=true){
+ if(withBamboo&&index>=50&&index<60)return Bamboo.get(index);
  if(withLantern&&index>=40&&index<50){
   const design=CHAPTER_LANTERN_DESIGNS[index-40];
   return {...endlessConfig(index,false,false,false),...design,goal:{...design.goal},chapterIdentityVersion:2,objectiveVersion:2,balanceVersion:2,chapter:5};
@@ -934,6 +937,7 @@ class Game{
   this.mistCleared=0;
   this.moves=this.config.moves;this.score=0;this.fusions=0;this.familyFusions={};this.masterpieces=0;this.familyMasterpieces={};this.collectionBonusTotal=0;
   this.chapterIdentityVersion=this.level>=40&&this.level<50?2:0;
+  this.bambooVersion=this.config.bambooVersion||0;
   this.difficultyCalibrationVersion=2;
   this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.fourTurns=0;this.shapes=0;this.bestChain=0;
   this.complete=false;this.failed=false;this.rewardVersion=3;this.starsAtGoal=0;this.goalMove=null;this.legacyScoreCompletion=false;
@@ -942,7 +946,9 @@ class Game{
   this.fairnessBalanceVersion=1;
   if(previous){
    Object.assign(this,previous);
-   this.boardMechanics=B.normalize(previous.boardMechanics??this.config.boardMechanics);
+   // Never retrofit a new chapter mask onto a pre-Bamboo saved run.
+   const oldBambooRun=this.level>=50&&this.level<60&&previous.bambooVersion!==1;
+   this.boardMechanics=B.normalize(previous.boardMechanics??(oldBambooRun?null:this.config.boardMechanics));
    // Reusing a saved snapshot must not share mutable refill-bag arrays.
    this.bag=Array.isArray(previous.bag)?previous.bag.slice():[];
    // Existing runs retain their historical rating contract. New plays
@@ -960,9 +966,11 @@ class Game{
     oldDarumaRun?endlessConfig(this.level,false):
     oldSealedRun?endlessConfig(this.level,true,false):
     oldLanternRun?endlessConfig(this.level,true,true,false):
+    oldBambooRun?endlessConfig(this.level,true,true,true,false):
     levelConfig(this.level,previous.difficultyCalibrationVersion===2);
    this.difficultyCalibrationVersion=previous.difficultyCalibrationVersion===2?2:0;
    this.chapterIdentityVersion=oldLanternRun?0:this.level>=40&&this.level<50?2:0;
+   this.bambooVersion=oldBambooRun?0:this.config.bambooVersion||0;
    // Preserve old star deadlines and L30's 36-turn budget for games that
    // existed before this update. No surprise change mid-level; retry uses
    // the updated thresholds. Saved records/stars are never edited.
@@ -1495,7 +1503,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate
@@ -1555,6 +1563,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,boardMechanics:B,levels,levelConfig,endlessConfig,sealedPositions,neighbors8,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,blockerObjectiveMetrics,mistLayout,resonanceLinks};
+const api={Game,boardMechanics:B,bambooPaths:Bamboo,levels,levelConfig,endlessConfig,sealedPositions,neighbors8,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,blockerObjectiveMetrics,mistLayout,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

@@ -7,6 +7,8 @@ const Bamboo=root.HarmonyBambooPaths||(typeof require==="function"?require("./ba
 if(!Bamboo)throw Error("Bamboo Paths must load before Harmony Rules");
 const Lotus=root.HarmonyLotusStream||(typeof require==="function"?require("./lotus-stream.js"):null);
 if(!Lotus)throw Error("Lotus Stream must load before Harmony Rules");
+const LotusRouting=root.HarmonyLotusRouting||(typeof require==="function"?require("./lotus-routing.js"):null);
+if(!LotusRouting)throw Error("Lotus routing prototypes must load before Harmony Rules");
 const N=7, ALL=["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"];
 // Fixed progression: four active families on levels 1–10, five from level
 // 11 onward. All nine families rotate across the introduction. The original
@@ -885,6 +887,17 @@ class Game{
  constructor(index=0,previous=null,options=null){
   this.level=Number.isInteger(index)&&index>=0?index:0;
   this.config=levelConfig(this.level);
+  // A prototype is explicitly opt-in in diagnostics only: no changes to
+  // production level 61, its initial board, level 62+, or old saved games.
+  this.lotusPrototype=null;
+  if(options?.lotusPrototype){
+   if(this.level!==60||previous)throw Error("Lotus routing prototypes require a fresh diagnostic level 61");
+   const route=LotusRouting.get(options.lotusPrototype);
+   this.lotusPrototype=route.key;
+   this.config={...this.config,name:route.name,moves:route.moves,par:route.starPar,
+    starPar:route.starPar,goal:{type:"lotus",count:route.lotus.starts.length},
+    lotus:route.lotus,boardMechanics:route.boardMechanics};
+  }
   this.lotus=Lotus.normalize(this.config.lotus);
   this.lotusVersion=this.config.lotusVersion||0;
   this.lotusDelivered=0;
@@ -941,7 +954,7 @@ class Game{
    let initial=this.board;
    for(let attempt=0;attempt<160;attempt++){
     if(attempt)initial=startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics);
-    initial=Lotus.opening(initial,this.families);
+    initial=this.lotusPrototype?LotusRouting.opening(initial,this.families):Lotus.opening(initial,this.families);
     for(const at of this.lotus.starts)initial[at]=Lotus.seed(at);
     if(validSwaps(initial).length>=3&&scan(initial).length===0)break;
     if(attempt===159)throw Error("No fair Lotus opening");
@@ -994,6 +1007,14 @@ class Game{
     oldBambooRun?endlessConfig(this.level,true,true,true,false):
     oldLotusRun?endlessConfig(this.level,true,true,true,true,false):
     levelConfig(this.level,previous.difficultyCalibrationVersion===2);
+   if(previous.lotusVersion===1&&previous.lotusPrototype){
+    const route=LotusRouting.get(previous.lotusPrototype);
+    this.lotusPrototype=route.key;
+    this.config={...this.config,name:route.name,moves:route.moves,
+     par:route.starPar,starPar:route.starPar,
+     goal:{type:"lotus",count:route.lotus.starts.length},
+     lotus:route.lotus,boardMechanics:route.boardMechanics};
+   }else this.lotusPrototype=null;
    this.difficultyCalibrationVersion=previous.difficultyCalibrationVersion===2?2:0;
    this.chapterIdentityVersion=oldLanternRun?0:this.level>=40&&this.level<50?2:0;
    this.bambooVersion=oldBambooRun?0:this.config.bambooVersion||0;
@@ -1158,10 +1179,12 @@ class Game{
     const blocker=this.directorMode==="v4"?
      blockerObjectiveMetrics(board,this.config.goal,
       this.config.goal.type==="daruma"?this.daruma:this.sealed):null;
-    return {...m,objective:aware,endgame,blocker,
+    const lotusRoute=this.lotusPrototype&&this.directorMode==="v4"?
+     LotusRouting.opportunity(board,this.lotus,validSwaps):0;
+    return {...m,objective:aware,endgame,blocker,lotusRoute,
      score:base+aware.score*(.72+pressure*(this.directorMode==="v4"?.28:.18))+
       (endgame?endgame.score*urgency:0)+
-      (blocker?blocker.score*(.72+pressure*.28):0)};
+      (blocker?blocker.score*(.72+pressure*.28):0)+lotusRoute};
    };
    let best=metric(baseline.board).score;
    // 2.0 intervenes conservatively (>=1.5 score advantage); it can increase
@@ -1543,7 +1566,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {lotusVersion:this.lotusVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {lotusPrototype:this.lotusPrototype,lotusVersion:this.lotusVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate
@@ -1598,8 +1621,11 @@ function bestHint(game){
     lotusAdvance+=Math.max(0,Math.floor(i/N)-Math.floor(prior.get(p.id)/N));
    }
   }
+  const routeBonus=objective==="lotus"&&game.lotusPrototype?
+   LotusRouting.hintBonus(game.board,trial.board,game.lotus,goalProgress):0;
   const value=points+made*1100+stage4*350+stage3*150+
-   echo*200+pulse*55+goalProgress*goalWeight+blockerHits*1800+lotusAdvance*2200;
+   echo*200+pulse*55+goalProgress*goalWeight+blockerHits*1800+
+   lotusAdvance*2200+routeBonus;
   const sourceStage=game.board[hint.from]?.stage||0;
   // Stable tie-break favors moving the LESS evolved object; it leaves a
   // mature piece in position when equivalent swaps give the same outcome.
@@ -1613,6 +1639,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,boardMechanics:B,bambooPaths:Bamboo,lotusStream:Lotus,levels,levelConfig,endlessConfig,sealedPositions,neighbors8,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,blockerObjectiveMetrics,mistLayout,resonanceLinks};
+const api={Game,boardMechanics:B,bambooPaths:Bamboo,lotusStream:Lotus,lotusRouting:LotusRouting,levels,levelConfig,endlessConfig,sealedPositions,neighbors8,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,blockerObjectiveMetrics,mistLayout,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

@@ -42,8 +42,18 @@ check("One free draw per local day and wallet paid only once",()=>{
  assert.equal(JSON.stringify(save.bestStars),stars,"Old star data is untouched");
  assert.equal(save.unlocked,20,"Level access is unchanged");
 });
+check("Daily Omikuji is locked throughout the ten tutorial levels",()=>{
+ const s={unlocked:9,bestStars:{},fourFamilyStars:{}};E.initialize(s);
+ assert.equal(F.status(s,day("2026-10-30")).locked,true);
+ assert.equal(F.status(s,day("2026-10-30")).available,false);
+ assert.equal(F.draw(s,day("2026-10-30"),()=>0).reason,"tutorial-locked");
+ assert.equal(E.snapshot(s).coins,0);
+ s.unlocked=10;
+ assert.equal(F.status(s,day("2026-10-30")).available,true);
+ assert.equal(F.draw(s,day("2026-10-30"),()=>0).coins,16);
+});
 check("Buying a v6 Omamori card uses the same Omikuji wallet and current booster price",()=>{
- const s={bestStars:{0:3},fourFamilyStars:{0:3}};
+ const s={unlocked:12,bestStars:{0:3},fourFamilyStars:{0:3}};
  E.initialize(s);F.initialize(s);
  s.economy.coins=79;
  F.draw(s,day("2026-10-25"),()=>.9); // +5
@@ -66,7 +76,7 @@ check("Fortune initializes on old saves without granting historical extra curren
  assert.equal(F.status(save,day("2026-10-25")).count,0);
 });
 check("Empty/invalid states are safe; no negative payout or replay farming at wallet cap",()=>{
- const s={economy:{version:1,coins:10000000,paidStars:{},owned:[],equipped:null},
+ const s={unlocked:12,economy:{version:1,coins:10000000,paidStars:{},owned:[],equipped:null},
   fortune:{version:1,lastDate:"2026-10-25",lastDraw:{date:"wrong",id:"fake",coins:123},count:-2}};
  assert.equal(F.initialize(s).created,false);
  assert.equal(F.status(s,day("2026-10-25")).available,false);
@@ -76,7 +86,7 @@ check("Empty/invalid states are safe; no negative payout or replay farming at wa
  assert.equal(s.economy.coins,10000000);
  assert.equal(F.draw(s,day("2026-10-26"),()=>0).ok,false);
  assert.equal(F.draw({fortune:{}},day("2026-10-26")).reason,"no-wallet");
- assert.equal(F.draw({economy:{version:1,coins:0}},new Date("bad")).reason,"invalid-date");
+ assert.equal(F.draw({unlocked:10,economy:{version:1,coins:0}},new Date("bad")).reason,"invalid-date");
 });
 check("UI loads Omikuji module before app; rules and rewards are cosmetic-only",()=>{
  const index=fs.readFileSync(path.resolve(__dirname,"../index.html"),"utf8");

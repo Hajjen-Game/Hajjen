@@ -2247,7 +2247,7 @@ try{
   await intro.click(".jh-omamori-shop-button");
   assert.equal(await intro.$eval("#modalTitle",e=>e.textContent),"Omamori");
   assert.equal(await intro.$eval(".omamori-wallet strong",e=>e.textContent),"72 Harmony Coins");
-  assert.equal(await intro.$eval(".omamori-action",nodes=>nodes.filter(n=>!n.disabled).length),2,
+  assert.equal(await intro.$eval(".omamori-catalog",root=>Array.from(root.querySelectorAll(".omamori-action")).filter(n=>!n.disabled).length),2,
    "Starter cards should be available in the introduced shop");
  }finally{await omamoriIntroContext.close();}
 

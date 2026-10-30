@@ -828,6 +828,9 @@ function commitActivePower(id,at){
  if(!result.ok){toast("This card cannot be used here. Choose another tile.");return false;}
  const spent=C.consume(save,id);
  if(!spent.ok)throw Error("Card inventory changed before confirmation");
+ // Afterglow starts only after a successful use AND actual card consumption.
+ // Its bounded Director 4 influence applies to the following two legal moves.
+ game.activateOmamoriAfterglow();
  powerSelection=null;powerTargets=[];selected=-1;
  renderBoard(game.board); // Never leave gold highlights after consuming the card.
  // Preserve the revived run even if the old state was already marked failed.

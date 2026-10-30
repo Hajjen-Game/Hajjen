@@ -73,6 +73,14 @@ function picture(kind,variant){
   shape(svg,"text",{x:135,y:78,"text-anchor":"middle",
    "font-size":9,fill:"#805b46","font-family":"Arial,sans-serif",
    "font-weight":"700"},"STONE TILES STAY CLOSED");
+ }else if(kind==="lotus-intro"){
+  tile(svg,14,12,"pink");tile(svg,59,12,"green");tile(svg,104,12,"pink");
+  shape(svg,"ellipse",{cx:81,cy:33,rx:13,ry:17,fill:"#dfb776",stroke:"#9d7256","stroke-width":1.5});
+  shape(svg,"text",{x:81,y:39,"text-anchor":"middle","font-size":19,fill:"#91534f"},"✿");
+  arrow(svg,159,36);
+  tile(svg,208,13,"green",{glow:true});
+  shape(svg,"ellipse",{cx:230,cy:52,rx:18,ry:5,fill:"none",stroke:"#d4b57f","stroke-width":2.5});
+  shape(svg,"text",{x:230,y:75,"text-anchor":"middle","font-size":10,fill:"#6f8c73"},"COLLECT");
  }else if(kind==="mist"&&variant===1){
   [10,56,102].forEach((x,i)=>tile(svg,x,15,"pink",{mist:i===1,glow:i===1}));
   arrow(svg,158,36);tile(svg,208,15,"pink",{glow:true});
@@ -123,7 +131,8 @@ const EXAMPLES=Object.freeze({
  "temple-gate":[["Narrow passages","Plan matches along the open paths of Temple Gate."]],
  "twin-gardens":[["Two garden wings","The open crossing connects the two sides."]],
  "central-shrine":[["Protected center","The shrine blocks matches through the middle."]],
- "bamboo-finale":[["Clear Mist around the shrine","Closed stones stay fixed. Fuse onto Mist or hit it with Harmony Pulse."]]
+ "bamboo-finale":[["Clear Mist around the shrine","Closed stones stay fixed. Fuse onto Mist or hit it with Harmony Pulse."]],
+ "lotus-intro":[["Let lotus seeds fall","Make matches below a seed so it drops into a glowing gate. Seeds cannot be matched or swapped."]]
 });
 function render(lesson){
  const kind=EXAMPLES[lesson?.key]?lesson.key:"match";

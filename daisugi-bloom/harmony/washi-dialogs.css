@@ -502,3 +502,37 @@
  #modal:has(.victory-compact) .victory-goal{min-height:45px}
  #modal:has(.victory-compact) .victory-reward-compact{padding:8px}
 }
+
+/* First affordable Omamori moment 1.1: gentle, unmistakable festival glow.
+   The glow lives outside the invitation; no flashing or blocked controls. */
+#modal .jh-omamori-welcome{
+ position:relative;isolation:isolate;
+ border:2px solid #cc8e61;
+ box-shadow:0 0 0 2px rgba(247,211,156,.42),
+  0 0 15px rgba(217,143,85,.35),0 0 29px rgba(213,133,131,.18);
+ animation:omamori-first-invite-glow 2.8s ease-in-out infinite;
+}
+#modal .jh-omamori-welcome strong{
+ color:#874238;font-size:clamp(14px,3.7vw,17px);
+}
+#modal .jh-omamori-welcome .jh-omamori-shop-button{
+ min-height:40px;font-size:13px;
+}
+@keyframes omamori-first-invite-glow{
+ 0%,100%{
+  border-color:#c58c64;
+  box-shadow:0 0 0 1px rgba(245,203,144,.38),
+   0 0 10px rgba(205,117,78,.24),0 0 19px rgba(195,120,133,.13);
+ }
+ 50%{
+  border-color:#edc17c;
+  box-shadow:0 0 0 3px rgba(249,216,150,.73),
+   0 0 20px rgba(235,170,87,.65),0 0 36px rgba(212,124,144,.38);
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #modal .jh-omamori-welcome{animation:none!important}
+}
+body.harmony-reduced-motion #modal .jh-omamori-welcome{
+ animation:none!important;
+}

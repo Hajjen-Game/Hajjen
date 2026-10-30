@@ -98,6 +98,7 @@ jobs:
           node --check daisugi-bloom/harmony/bamboo-paths.js
           node --check daisugi-bloom/harmony/lotus-stream.js
           node --check daisugi-bloom/harmony/lotus-routing.js
+          node --check daisugi-bloom/tools/lotus-routing-diagnostics.cjs
           node --check daisugi-bloom/harmony/onboarding.js
           node --check daisugi-bloom/harmony/tutorial-help.js
           node --check daisugi-bloom/harmony/omamori-targets.js

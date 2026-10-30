@@ -11,6 +11,88 @@ try{
  await page.setViewport({width:320,height:640,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
  await page.waitForFunction(()=>!!window.HarmonyCards&&window.HarmonyCards.VERSION===2);
+ // Onboarding: a fresh player sees the goal, not an empty card picker.
+ const journeyContext=await browser.createBrowserContext();
+ try{
+  const journey=await journeyContext.newPage();
+  await journey.setViewport({width:320,height:640,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await journey.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
+  await journey.evaluate(key=>{
+   const s=JSON.parse(localStorage.getItem(key));
+   s.unlocked=11;s.run=null;
+   s.economy={version:1,coins:36,owned:[],paidStars:{10:3},equipped:null};
+   s.omamoriCards={version:2,counts:{},discovered:[],replay:{day:"",claims:0}};
+   delete s.omamoriEverAffordable;delete s.omamoriIntroSeen;
+   localStorage.setItem(key,JSON.stringify(s));
+  },key);
+  await journey.reload({waitUntil:"networkidle2"});
+  async function openPicker(){
+   await journey.click("#continueButton");
+   await journey.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:9000});
+   await journey.evaluate(()=>document.querySelector(".jh-tutorial-ok")?.click());
+   await journey.click(".omamori-open");
+  }
+  await openPicker();
+  const learning=await journey.evaluate(()=>{
+   const panel=document.querySelector(".omamori-picker");
+   const track=panel.querySelector(".omamori-coin-track");
+   const rect=panel.getBoundingClientRect();
+   return {stage:panel.dataset.omamoriStage,title:document.querySelector("#modalTitle").textContent,
+    amount:panel.querySelector(".omamori-coin-amount")?.textContent,
+    remaining:panel.querySelector(".omamori-coin-remaining")?.textContent,
+    value:track?.getAttribute("aria-valuenow"),max:track?.getAttribute("aria-valuemax"),
+    width:rect.width,screen:innerWidth};
+  });
+  assert.equal(learning.stage,"learning");
+  assert.equal(learning.title,"Discover Omamori");
+  assert.equal(learning.amount,"36 / 65 Coins");
+  assert.equal(learning.remaining,"29 more Coins to your first card");
+  assert.equal(learning.value,"36");assert.equal(learning.max,"65");
+  assert(learning.width<=learning.screen,"Coin journey must fit small mobile screens");
+  await journey.click("#modalActions button.primary");
+  // Simulate crossing the affordability milestone through a legit wallet.
+  await journey.evaluate(key=>{
+   const s=JSON.parse(localStorage.getItem(key));
+   s.economy.coins=72;s.omamoriEverAffordable=true;s.run=null;
+   localStorage.setItem(key,JSON.stringify(s));
+  },key);
+  await journey.reload({waitUntil:"networkidle2"});
+  await openPicker();
+  const unlocked=await journey.evaluate(()=>{
+   const p=document.querySelector(".omamori-picker");
+   return {stage:p.dataset.omamoriStage,
+    hasTracker:!!p.querySelector(".omamori-coin-track"),
+    message:p.textContent,
+    button:[...document.querySelectorAll("#modalActions button")].map(b=>b.textContent)};
+  });
+  assert.equal(unlocked.stage,"unlocked");
+  assert.equal(unlocked.hasTracker,false,"First-card tracker must disappear permanently");
+  assert(unlocked.message.includes("Omamori unlocked"));
+  assert(unlocked.button.includes("Visit Omamori Shop"),"Player can reach shop after unlock");
+  await journey.click("#modalActions button.primary");
+  assert.equal(await journey.$eval("#modalTitle",e=>e.textContent),"Omamori",
+   "Shop button should take player straight to purchase without losing the run");
+  await journey.click('.omamori-card[data-omamori-id="sakura"] .omamori-action');
+  await journey.click(".omamori-close");
+  await journey.click("#continueButton");
+  await journey.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:9000});
+  await journey.evaluate(()=>document.querySelector(".jh-tutorial-ok")?.click());
+  await journey.click(".omamori-open");
+  assert.equal(await journey.$eval(".omamori-picker",p=>p.dataset.omamoriStage),"owned");
+  assert.equal(await journey.$eval(".omamori-picker-item[data-power=sakura] .omamori-picker-count",n=>n.textContent),"×1");
+  await journey.click("#modalActions button.primary");
+  // Once the card is gone, the milestone is still unlocked (wallet only 7).
+  await journey.evaluate(key=>{
+   const s=JSON.parse(localStorage.getItem(key));
+   s.omamoriCards.counts={};s.run=null;localStorage.setItem(key,JSON.stringify(s));
+  },key);
+  await journey.reload({waitUntil:"networkidle2"});
+  await openPicker();
+  assert.equal(await journey.$eval(".omamori-picker",p=>p.dataset.omamoriStage),"unlocked",
+   "Spending the card must not reset onboarding to the coin tracker");
+  assert.equal(await journey.$eval(".omamori-coin-track",n=>n.length),0);
+ }finally{await journeyContext.close();}
+
  await page.click("#omamoriButton");
  assert.equal(await page.$eval("#modalTitle",el=>el.textContent),"Omamori");
  assert.equal(await page.$$eval(".omamori-card",xs=>xs.length),8);

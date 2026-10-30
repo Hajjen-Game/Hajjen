@@ -2523,8 +2523,8 @@ function showResult(){
    "✦ Lantern Path complete · Endless Garden opens next."));
   if(welcomeOmamori){
    const welcome=make("section","jh-omamori-welcome");
-   welcome.append(make("strong","","✿ Your first Omamori is ready!"),
-    make("span","","You can now afford a one-use card for a tougher level."));
+   welcome.append(make("strong","","✿ You can buy your first Omamori!"),
+    make("span","","Use your Harmony Coins to get a one-use boost for a tougher level."));
    const shop=make("button","jh-omamori-shop-button","Browse Omamori cards");
    shop.type="button";
    shop.addEventListener("click",()=>{showMenu();showOmamori("shop");});

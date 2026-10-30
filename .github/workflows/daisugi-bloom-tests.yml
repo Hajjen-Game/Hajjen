@@ -26,6 +26,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-lotus-stream.test.cjs
       - name: Lotus Stream 1.1 · four routing prototypes, 96 seeded starts and fair Director hints
         run: node daisugi-bloom/tests/harmony-lotus-routing.test.cjs
+      - name: Omamori Afterglow 1.0 · conservative two-turn Director 4 boost and save invariants
+        run: node daisugi-bloom/tests/harmony-omamori-afterglow.test.cjs
       - name: Goshuincho Collection 1.0 · archived stamps and chapters
         run: node daisugi-bloom/tests/harmony-goshuincho.test.cjs
       - name: Harmony Economy & Omamori 6.1 · stackable cards and coin prices
@@ -98,6 +100,7 @@ jobs:
           node --check daisugi-bloom/harmony/bamboo-paths.js
           node --check daisugi-bloom/harmony/lotus-stream.js
           node --check daisugi-bloom/harmony/lotus-routing.js
+          node --check daisugi-bloom/harmony/omamori-afterglow.js
           node --check daisugi-bloom/tools/lotus-routing-diagnostics.cjs
           node --check daisugi-bloom/harmony/onboarding.js
           node --check daisugi-bloom/harmony/tutorial-help.js

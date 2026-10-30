@@ -13,7 +13,7 @@ let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressC
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
-let powerSelection=null,powerTargets=[],moonOfferShown=false;
+let powerSelection=null,powerTargets=[],moonOfferShown=false,omamoriFortuneInvite=false;
 const PLAY_MODES={auto:"Automatic · 4.0 from level 10",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
 const PACE_PHASE_NAMES={build:"BUILD",flow:"FLOW",relax:"CALM",recovery:"RECOVERY"};
 let decisionReadyAt=0;
@@ -289,7 +289,7 @@ function renderMenu(){
  const charmProgress=$("omamoriProgress");
  if(charmProgress)charmProgress.textContent=C.total(save)+" cards ready · 8 boost types";
  const daily=$("omikujiStatus");
- if(daily)daily.textContent=F.status(save).available?"Free today":"Fortune drawn today";
+ if(daily){const fortune=F.status(save);daily.textContent=fortune.locked?"Unlocks after level 10":fortune.available?"Free today":"Fortune drawn today";}
  const journalButton=$("goshuinButton");
  if(journalButton){
   $("goshuinProgress").textContent=journal.earned+" / "+(journal.visibleChapters*G.CHAPTER_SIZE)+" stamps";
@@ -600,7 +600,7 @@ function showOmikuji(){
  const content=$("modalContent");content.replaceChildren();
  const wrapper=goshuinNode("section","omikuji-fortune");
  wrapper.append(goshuinNode("p","omikuji-intro",
-  "Draw a fortune inspired by Japanese omikuji. Receive a small coin gift and an uplifting message. One free fortune each day, with no login streak."));
+  info.locked?"Omikuji coin gifts unlock once you complete level 10.":"Draw a fortune inspired by Japanese omikuji. Receive a small coin gift and an uplifting message. One free fortune each day, with no login streak."));
  const paper=goshuinNode("div","omikuji-paper"+(todayDraw?" is-revealed":" is-folded"));
  if(todayDraw){
   paper.dataset.fortune=todayDraw.id;
@@ -622,6 +622,7 @@ function showOmikuji(){
     "Your reward has already been added to your Omamori wallet."));
  }else{
   results.append(goshuinNode("span","omikuji-result-note",
+   info.locked?"Complete level 10 to unlock daily fortunes and Harmony Coins.":
    info.available?"Today's draw is free. Your result is saved in this browser.":
    "You've already drawn a fortune today. Another is available tomorrow."));
  }
@@ -630,11 +631,22 @@ function showOmikuji(){
   wrapper.append(goshuinNode("p","omikuji-total",
    "Fortunes drawn: "+prettify(info.count)+" · No daily streak required."));
  }
+ if(omamoriFortuneInvite){
+  const note=goshuinNode("div","jh-omamori-welcome");
+  note.append(goshuinNode("strong","","✿ Your first Omamori is within reach"),
+   goshuinNode("span","","You have enough Harmony Coins to buy a one-use card."));
+  wrapper.append(note);
+ }
  const actions=$("modalActions");actions.replaceChildren();
+ if(omamoriFortuneInvite){
+  modalButton(actions,"Browse Omamori cards","primary",()=>{omamoriFortuneInvite=false;showOmamori("shop");});
+ }
  if(info.available){
   const drawButton=modalButton(actions,"Draw today's fortune","primary omikuji-draw",()=>{
+   const before=E.snapshot(save).coins;
    const result=F.draw(save,new Date());
    if(!result.ok){showOmikuji();return;}
+   omamoriFortuneInvite=firstAffordableOmamori(before);
    persist();renderMenu();showOmikuji();
   });
   drawButton.setAttribute("aria-label","Draw a free Omikuji fortune today");
@@ -868,6 +880,7 @@ function showOmamori(tab="shop"){
  wallet.append(walletCopy,goshuinNode("span","omamori-owned-count",C.total(save)+" cards"));
  wrapper.append(wallet);
  wrapper.append(goshuinNode("p","omamori-explanation",
+  save.unlocked<10?"Harmony Coins start after level 10. Explore the one-use cards now, then earn coins from level 11.":
   "Buy as many copies as you can afford. Every card is used once. All owned cards are available during a level: up to two board boosts, plus one optional Moon rescue when you run out of moves. No equipping, tiers or missions."));
  const tabs=goshuinNode("div","omamori-tabs");
  for(const [id,label] of [["shop","Shop"],["collection","My Cards"]]){
@@ -2314,6 +2327,15 @@ function unlockGoal(){
  if(level<10)save.fourFamilyStars[level]=Math.max(save.fourFamilyStars[level]||0,game.assisted?1:game.stars());
  persist();
 }
+// One gentle introduction when the player's balance first crosses the price
+// of the cheapest Omamori card. Persist once; never nag on retries/replays.
+function firstAffordableOmamori(previousCoins){
+ const cheapest=Math.min(...E.CATALOG.map(item=>item.price));
+ if(save.omamoriIntroSeen||save.unlocked<10||C.total(save)>0||
+  previousCoins>=cheapest||E.snapshot(save).coins<cheapest)return false;
+ save.omamoriIntroSeen=true;
+ return true;
+}
 function showResult(){
  $("modalActions").classList.remove("pause-menu-actions");
  if(!game)return;
@@ -2338,11 +2360,13 @@ function showResult(){
    save.fourFamilyChain[level]=Math.max(save.fourFamilyChain[level]||0,game.bestChain);
   }
  }
+ const coinsBefore=E.snapshot(save).coins;
  const coinReward=won?E.claim(save,level,game.assisted?1:Math.max(1,game.stars())):{delta:0};
  // A completed clean replay earns a small capped amount after normal one-off rewards.
  const replayReward=won&&!coinReward.delta&&!game.replayCoinClaimed?
   C.replayCoins(save,level,true,game.assisted,new Date().toISOString().slice(0,10)):0;
  if(won)game.replayCoinClaimed=true;
+ const welcomeOmamori=won&&firstAffordableOmamori(coinsBefore);
 
  const canContinue=won&&game.moves>0;
  if(!canContinue)save.run=null;
@@ -2357,109 +2381,92 @@ function showResult(){
   return node;
  };
  if(won){
-  const result=make("div","victory-result"+(game.assisted?" is-assisted":""));
+  const result=make("div","victory-result victory-compact"+(game.assisted?" is-assisted":""));
   panel.append(result);
-  // Stars are the emotional headline, but never the whole reward contract:
-  // retain the three-star accessible text and the legacy v2 completion label.
+  // Celebrate the rating, but do not repeat the same counts in several cards.
   const stars=make("div","big-stars");
   if(game.rewardVersion===2){
-   stars.classList.add("legacy-stars");
-   stars.textContent="★ LEVEL COMPLETE";
+   stars.classList.add("legacy-stars");stars.textContent="★ LEVEL COMPLETE";
   }else{
+   const rating=game.assisted?1:game.stars();
    stars.setAttribute("role","img");
-   stars.setAttribute("aria-label",(game.assisted?1:game.stars())+" of 3 Goshuincho stars");
+   stars.setAttribute("aria-label",rating+" of 3 Goshuincho stars");
    for(let i=0;i<3;i++){
-    const filled=i<(game.assisted?1:game.stars());
+    const filled=i<rating;
     const star=make("span","victory-star"+(filled?" is-earned":" is-empty"),filled?"★":"☆");
-    star.setAttribute("aria-hidden","true");
-    star.style.setProperty("--star-index",i);
+    star.setAttribute("aria-hidden","true");star.style.setProperty("--star-index",i);
     stars.append(star);
    }
   }
   const starWrap=make("div","victory-stars");
-  starWrap.append(stars,make("span","jh-rating-label",game.assisted?"Omamori clear · ★":Q.rewardLabel(game)));
+  starWrap.append(stars,make("span","jh-rating-label",game.assisted?"OMAMORI CLEAR · 1 STAMP":"GOSHUINCHO STARS"));
   result.append(starWrap);
-  // Avoid replay celebrations even if unlockGoal() saved during playback.
-  const earnedStars=G.archivedStars(save,level);
-  const chapterReward=G.chapterSnapshot(save,Math.floor(level/G.CHAPTER_SIZE));
-  if(earnedStars>rewardStarsAtLevelStart){
-   const isNew=rewardStarsAtLevelStart===0;
-   const chapterComplete=isNew&&chapterReward.completed;
-   const ribbon=make("div","victory-archive-reward"+(chapterComplete?" is-chapter-complete":""));
-   const copyRibbon=make("div","victory-archive-copy");
-   copyRibbon.append(make("strong","",chapterComplete?"Chapter seal earned!":
-    isNew?"New stamp in Goshuincho":"Stamp upgraded"),
-    make("small","",chapterComplete?"10/10 stamps · Chapter seal in Goshuincho":
-     "Chapter "+chapterReward.number+" · "+chapterReward.earned+" of 10 stamps · "+earnedStars+" of 3 stars"));
-   ribbon.append(make("span","victory-archive-seal","✦"),copyRibbon);result.append(ribbon);
-  }
-  rewardStarsAtLevelStart=earnedStars;
-  if(game.assisted)result.append(make("p","omamori-assisted-notice","✧ Omamori win · one Goshuincho stamp and Harmony Coins earned. Clean score records remain separate."));
-  const income=make("div","victory-harmony-income");
-  const gained=coinReward.delta;
-  income.append(make("span","victory-harmony-mark","✧"),
-   make("strong","",gained?("+"+prettify(gained)+" Harmony Coins"):"Harmony Coins already collected"),
-   make("small","",gained?
-    "New-star reward · saved to your collection":
-    "Earn new coins by clearing new levels or improving your star rating."));
-  result.append(income);
-  if(replayReward)result.append(make("p","omamori-power-earned","✦ Replay reward · +"+replayReward+" Harmony Coins"));
   const goal=make("section","victory-goal");
   goal.setAttribute("aria-label","Completed level goal");
   const goalCopy=make("div","victory-goal-copy");
-  goalCopy.append(make("span","victory-kicker","GOAL COMPLETED"),
+  goalCopy.append(make("span","victory-kicker","GOAL COMPLETE"),
    make("strong","victory-goal-title",game.goalText()));
-  const goalProgress=make("span","victory-goal-count",
-   prettify(game.target())+" / "+prettify(game.target()));
-  goal.append(goalCopy,goalProgress);
+  goal.append(goalCopy,make("span","victory-goal-count",
+   prettify(game.target())+" / "+prettify(game.target())));
   result.append(goal);
-  if(game.rewardVersion===3){
-   const timing=make("div","victory-timing");
-   const moves=make("div","victory-timing-stat");
-   moves.append(make("strong","",String(game.goalMove)),
-    make("span","","of "+game.config.moves+" moves"));
-   const rating=make("div","victory-timing-stat");
-   rating.append(make("strong","",(game.assisted?1:game.stars())+" / 3"),
-    make("span","","Goshuincho stars"));
-   timing.append(moves,rating);
-   const note=make("p","victory-star-note",game.assisted?
-    "Omamori clear · one star and Harmony Coins earned. Score records remain clean-only.":
-    "The Goshuincho rating locks when you complete the objective.");
-   result.append(timing,note);
-  }
-  if(game.config.goal.type==="mist"){
-   result.append(make("p","victory-mist-note","✦ The garden Mist is cleared"));
-  }
-  const sum=make("section","summary victory-score");
-  const scoreHeader=make("div","victory-score-head");
-  scoreHeader.append(make("div","victory-kicker","SCORE"));
+  const earnedStars=G.archivedStars(save,level);
+  const isNewStamp=rewardStarsAtLevelStart===0&&earnedStars>0;
+  const chapterReward=G.chapterSnapshot(save,Math.floor(level/G.CHAPTER_SIZE));
+  const chapterComplete=isNewStamp&&chapterReward.completed;
+  rewardStarsAtLevelStart=earnedStars;
+  const reward=make("div","victory-reward-compact");
+  reward.append(make("span","victory-reward-emblem",chapterComplete?"✦":"✧"));
+  const rewardText=make("div","victory-reward-copy");
+  rewardText.append(make("strong","",chapterComplete?"Chapter seal earned!":
+   isNewStamp?"New Goshuincho stamp":game.assisted?"Level cleared with Omamori":"Level complete"));
+  const gained=coinReward.delta+replayReward;
+  rewardText.append(make("span","",gained?"+"+prettify(gained)+" Harmony Coins":
+   level<10?"Harmony Coins unlock after level 10":
+   "No new coins this time"));
+  reward.append(rewardText);result.append(reward);
   const record=make("span","victory-record");
   record.append(make("span","victory-record-mark","✦"),
-   make("span","",game.assisted?"ASSISTED · NOT A RECORD":"RECORD "+prettify(activeRecords()[level]||game.score)));
-  scoreHeader.append(record);
-  const strong=make("strong","victory-score-number",prettify(game.score));
-  sum.append(scoreHeader,strong);
+   make("span","",game.assisted?"ASSISTED · NO RECORD":
+    "RECORD "+prettify(activeRecords()[level]||game.score)));
+  const sum=make("section","summary victory-score");
+  const scoreHeader=make("div","victory-score-head");
+  scoreHeader.append(make("span","victory-kicker","SCORE"),record);
+  sum.append(scoreHeader,make("strong","victory-score-number",prettify(game.score)));
   result.append(sum);
+  const details=make("details","victory-details");
+  const summary=make("summary","","View match details");
+  details.append(summary);
   const stats=make("div","result-stats victory-stats");
-  const entries=[
-   [game.masterpieces,"Masterpiece","✿"],
-   [game.echoes||0,"Harmony Echo","≋"],
+  for(const [value,label,symbol] of [
+   [game.masterpieces,"Masterpieces","✿"],
+   [game.echoes||0,"Harmony Echoes","≋"],
    [game.bestChain,"Best Harmony chain","∞"],
    [game.fusions,"Fusions","✧"]
-  ];
-  entries.forEach(([value,label,symbol])=>{
+  ]){
    const card=make("div","victory-stat");
    card.append(make("span","victory-stat-icon",symbol));
    const copy=make("span","victory-stat-copy");
    copy.append(make("strong","",String(value)),make("small","",label));
    card.append(copy);stats.append(card);
-  });
-  result.append(stats);
-  const note=make("p","victory-next-note",level===49?
-   "✦ Lantern Path complete! Endless Garden opens next with generated puzzle challenges.":
-   canContinue?"✦ "+game.moves+" moves left · keep playing for a high score or advance to the next level.":
-   "✦ Level complete · replay for a new record or move on.");
-  result.append(note);
+  }
+  details.append(stats);result.append(details);
+  const movesUsed=game.goalMove;
+  if(game.rewardVersion===3&&Number.isInteger(movesUsed)){
+   result.append(make("p","victory-next-note",
+    "Goal reached in "+movesUsed+" of "+game.config.moves+" moves"+
+    (game.assisted?" · Omamori-assisted":"")));
+  }
+  if(level===49)result.append(make("p","victory-next-note",
+   "✦ Lantern Path complete · Endless Garden opens next."));
+  if(welcomeOmamori){
+   const welcome=make("section","jh-omamori-welcome");
+   welcome.append(make("strong","","✿ Your first Omamori is ready!"),
+    make("span","","You can now afford a one-use card for a tougher level."));
+   const shop=make("button","jh-omamori-shop-button","Browse Omamori cards");
+   shop.type="button";
+   shop.addEventListener("click",()=>{showMenu();showOmamori("shop");});
+   welcome.append(shop);result.append(welcome);
+  }
  }else{
   // Failure still shows objective progress, including unbroken seals/eyes.
   const progressSection=make("section","jh-failed-goal");
@@ -2492,10 +2499,12 @@ function showResult(){
  if(canContinue)modalButton(actions,"Keep playing for a high score","secondary victory-continue",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
  });
- modalButton(actions,won?"Play again":"Try again on a new board",won?"secondary victory-tertiary":"secondary",()=>startLevel(level));
- modalButton(actions,"Goshuincho · Level Select",won?"secondary victory-tertiary":"secondary",()=>{
-  if(won){game.finish();save.run=null;persist();}
-  showLevelSelection();
+ if(!won||!canContinue)modalButton(actions,won?"Play again":"Try again on a new board",
+  won?"secondary victory-tertiary":"secondary",()=>startLevel(level));
+ modalButton(actions,won?"Main Menu":"Goshuincho · Level Select",
+  won?"secondary victory-tertiary":"secondary",()=>{
+  if(won){game.finish();save.run=null;persist();showMenu();}
+  else showLevelSelection();
  });
  $("modal").hidden=false;
 }

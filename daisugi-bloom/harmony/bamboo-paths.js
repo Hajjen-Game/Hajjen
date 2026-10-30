@@ -46,7 +46,7 @@ for(const item of CHAPTER){
 function get(index){
  if(!Number.isInteger(index)||index<FIRST||index>=FIRST+CHAPTER.length)return null;
  const item=CHAPTER[index-FIRST];
- return {...item,goal:{...item.goal},
+ return {...item,par:item.starPar,goal:{...item.goal},
   boardMechanics:{...item.boardMechanics,
    ...(item.boardMechanics.blocked?{blocked:item.boardMechanics.blocked.slice()}:{}),
    ...(item.boardMechanics.mist?{mist:item.boardMechanics.mist.slice()}:{} )},

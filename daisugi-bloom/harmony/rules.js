@@ -1214,8 +1214,8 @@ class Game{
     ["v31","v311"].includes(this.directorMode)?(this.pacePhase==="relax"?3.0:2.2):
     isV3&&this.pacePhase==="relax"?2.8:
     isV2?(this.directorDrought>=3?1.1:1.5):.8;
-   const effectiveThreshold=Math.max(1.75,
-    threshold-Afterglow.thresholdReduction(afterglowRemaining));
+   const effectiveThreshold=afterglowRemaining?Math.max(1.75,
+    threshold-Afterglow.thresholdReduction(afterglowRemaining)):threshold;
    for(const candidate of candidates.slice(1)){
     if(candidate.autoMatches!==0)continue;
     const value=metric(candidate.board).score;

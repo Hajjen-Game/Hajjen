@@ -838,7 +838,12 @@ function commitActivePower(id,at){
  if(moonIds.includes(id)){
   saveRun();renderBoard(game.board);renderHUD();armDecisionClock();restartIdleHint();
   toast("☾ "+P.POWERS[id].name+" · +"+game.moves+" moves!");
- }else void playEvents(result.events);
+ }else{
+  // Commit the used card and Afterglow window before animation begins;
+  // a reload during particles must not silently lose the short boost.
+  saveRun();
+  void playEvents(result.events);
+ }
  return true;
 }
 function confirmPowerTarget(at){

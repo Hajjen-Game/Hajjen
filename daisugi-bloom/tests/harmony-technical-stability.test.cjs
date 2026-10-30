@@ -163,9 +163,9 @@ check("Malformed Omamori daily replay counter cannot mint unlimited coins",()=>{
  assert.equal(save.omamoriCards.replay.claims,5);
  assert.equal(C.replayCoins(save,10,true,false,"2026-10-29"),0);
  assert.equal(save.economy.coins,10);
- assert.equal(C.replayCoins(save,0,true,false,"2026-10-30"),4);
+ assert.equal(C.replayCoins(save,10,true,false,"2026-10-30"),4);
  assert.equal(save.omamoriCards.replay.claims,1);
- for(let i=0;i<8;i++)C.replayCoins(save,0,true,false,"2026-10-30");
+ for(let i=0;i<8;i++)C.replayCoins(save,10,true,false,"2026-10-30");
  assert.equal(save.omamoriCards.replay.claims,5);
  assert.equal(save.economy.coins,30);
 });

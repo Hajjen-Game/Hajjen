@@ -1,0 +1,31 @@
+/* Board Mechanics Foundation 1.0
+ * Preview skin for permanently closed garden cells on future layout
+ * templates. No effect on existing stages (which have zero terrain).
+ */
+.game-view .tile.terrain-garden-tile{
+ background:linear-gradient(145deg,#6f6251 0%,#4f483e 64%,#3d3c39 100%);
+ box-shadow:inset 0 1px 2px rgba(255,233,177,.21),inset 0 -4px 6px rgba(10,14,18,.25);
+ cursor:default;
+}
+.game-view .tile.terrain-garden-tile .terrain-garden-art{
+ position:absolute;inset:13%;
+ display:block;pointer-events:none;
+ border-radius:19% 24% 21% 28%;
+ background:radial-gradient(ellipse at 34% 24%,rgba(232,210,168,.39),transparent 60%),
+  linear-gradient(140deg,#ada08a,#897b69 52%,#60574c);
+ border:1px solid rgba(216,195,155,.4);
+ box-shadow:inset 0 2px 2px rgba(246,230,201,.28),0 3px 6px rgba(20,16,11,.26);
+}
+.game-view .tile.terrain-garden-tile .terrain-garden-art::after{
+ content:"";position:absolute;inset:24% 18%;
+ border-radius:50%;
+ border-top:1px solid rgba(232,212,175,.43);
+ transform:rotate(-22deg);
+}
+.game-view .tile.terrain-garden-tile.selected,
+.game-view .tile.terrain-garden-tile.omamori-gold-target{
+ outline:none!important;
+}
+@media(prefers-reduced-motion:reduce){
+ .game-view .tile.terrain-garden-tile .terrain-garden-art{animation:none!important}
+}

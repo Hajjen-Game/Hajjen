@@ -105,8 +105,8 @@ function pulseFrom(g,source,events){
     const piece=g.board[to];
     if(piece?.family==="daruma"){darumaTargets.push({from,to});continue;}
     if(piece?.family==="sealedStone"){stoneTargets.push({from,to});continue;}
-    if(!piece||piece.stage>=5||everUpgraded.has(to)){
-     if(g.config.goal.type==="mist"&&g.mist[to])mistTargets.push({from,to,empty:!piece});
+    if(!piece||fixed(piece)||piece.stage>=5||everUpgraded.has(to)){
+     if(g.mist[to])mistTargets.push({from,to,empty:!piece});
      else if(awakening)visualOnlyTargets.push({from,to,empty:!piece});
      continue;
     }
@@ -247,7 +247,7 @@ function strikeObstacles(g,positions,events){
       events.push(snapshot(g,"daruma-release",{positions:[to]}));}
     }
    }else if(!piece||piece.stage>=5||indirect.has(to)){
-    if(g.config.goal.type==="mist"&&g.mist[to])mistTargets.push({from:source,to,empty:!piece});
+    if(g.mist[to])mistTargets.push({from:source,to,empty:!piece});
     else visualOnlyTargets.push({from:source,to,empty:!piece});
    }else{
     indirect.add(to);g.grow(to,grown,true);

@@ -941,6 +941,7 @@ class Game{
    let initial=this.board;
    for(let attempt=0;attempt<160;attempt++){
     if(attempt)initial=startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics);
+    initial=Lotus.opening(initial,this.families);
     for(const at of this.lotus.starts)initial[at]=Lotus.seed(at);
     if(validSwaps(initial).length>=3&&scan(initial).length===0)break;
     if(attempt===159)throw Error("No fair Lotus opening");

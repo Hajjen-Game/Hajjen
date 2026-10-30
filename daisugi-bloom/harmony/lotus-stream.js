@@ -8,9 +8,9 @@
 const VERSION=1,FIRST=60;
 const PILOT=Object.freeze({
  name:"First Lotus Stream",subtitle:"Guide lotus seeds into the river",
- moves:42,par:21,starPar:20,
+ moves:38,par:20,starPar:17,
  goal:{type:"lotus",count:2},
- lotus:{version:VERSION,starts:[16,18],exits:[44,46]},
+ lotus:{version:VERSION,starts:[37,39],exits:[44,46]},
  intro:"Collect two lotus seeds. Match treasures BELOW a seed to let it fall down its column. A seed is not a matching treasure and cannot be swapped. Guide each seed into its glowing river gate at the bottom."
 });
 function normalize(input){

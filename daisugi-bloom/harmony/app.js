@@ -2557,7 +2557,7 @@ function showResult(){
   if(level===49)result.append(make("p","victory-next-note",
    "✦ Lantern Path complete · Bamboo Paths opens next."));
   if(level===59)result.append(make("p","victory-next-note",
-   "✦ Bamboo Paths complete · the garden journey continues."));
+   "✦ Bamboo Paths complete · Lotus Stream begins next."));
   if(welcomeOmamori){
    const welcome=make("section","jh-omamori-welcome");
    welcome.append(make("strong","","✿ You can buy your first Omamori!"),

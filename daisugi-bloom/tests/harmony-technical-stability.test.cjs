@@ -129,7 +129,8 @@ check("Explicit full reset starts a clean level-one profile without touching unr
  assert.equal(C.total(boot.save),0);
  assert.equal(boot.save.fortune,undefined);
  assert.equal(boot.save.spirits,undefined);
- assert.equal(boot.save.assistedStars,undefined);
+ assert.deepEqual(boot.save.assistedStars,{});
+ assert.deepEqual(defaults.bestStars,{},"Default records must not inherit previous play history");
  assert.equal(H.resetProgress(()=>{throw Error("blocked");},KEY,defaults).ok,false);
 });
 check("Reset control must be explicit, confirmed and use the guarded local save adapter",()=>{

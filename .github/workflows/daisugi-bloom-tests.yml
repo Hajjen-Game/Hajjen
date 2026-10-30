@@ -22,6 +22,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-board-mechanics.test.cjs
       - name: Bamboo Paths 1.0 · ten authored levels, chapter geometry, hints and save migration
         run: node daisugi-bloom/tests/harmony-bamboo-paths.test.cjs
+      - name: Lotus Stream 1.0 · seeded drop-and-collection pilot, saves and legacy safety
+        run: node daisugi-bloom/tests/harmony-lotus-stream.test.cjs
       - name: Goshuincho Collection 1.0 · archived stamps and chapters
         run: node daisugi-bloom/tests/harmony-goshuincho.test.cjs
       - name: Harmony Economy & Omamori 6.1 · stackable cards and coin prices
@@ -92,6 +94,7 @@ jobs:
         run: |
           node --check daisugi-bloom/harmony/board-mechanics.js
           node --check daisugi-bloom/harmony/bamboo-paths.js
+          node --check daisugi-bloom/harmony/lotus-stream.js
           node --check daisugi-bloom/harmony/onboarding.js
           node --check daisugi-bloom/harmony/tutorial-help.js
           node --check daisugi-bloom/harmony/omamori-targets.js
@@ -130,6 +133,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-tutorial-help-browser.mjs
       - name: Run Japanese Harmony mobile smoke
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
+      - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion
+        run: node daisugi-bloom/tests/harmony-lotus-browser.mjs
       - name: Omamori 6.1 · washi HUD, inset meter, framed button and red Sealbreakers
         run: node daisugi-bloom/tests/harmony-economy-browser.mjs
       - name: Run Omikuji Fortune daily-draw mobile smoke

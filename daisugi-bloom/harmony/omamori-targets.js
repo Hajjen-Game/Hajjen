@@ -20,7 +20,7 @@ function area(id,at,board){
   const index=(firstRow+dr)*SIZE+firstCol+dc;
   // Powers.shuffleArea excludes fixed Daruma and Sealed Stones.
   const piece=board?.[index];
-  if(piece?.family!=="daruma"&&piece?.family!=="sealedStone")cells.push(index);
+  if(piece?.family!=="daruma"&&piece?.family!=="sealedStone"&&piece?.family!=="terrain")cells.push(index);
  }
  return cells;
 }

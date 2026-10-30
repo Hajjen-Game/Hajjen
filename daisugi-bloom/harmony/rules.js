@@ -9,6 +9,8 @@ const Lotus=root.HarmonyLotusStream||(typeof require==="function"?require("./lot
 if(!Lotus)throw Error("Lotus Stream must load before Harmony Rules");
 const LotusRouting=root.HarmonyLotusRouting||(typeof require==="function"?require("./lotus-routing.js"):null);
 if(!LotusRouting)throw Error("Lotus routing prototypes must load before Harmony Rules");
+const Afterglow=root.HarmonyOmamoriAfterglow||(typeof require==="function"?require("./omamori-afterglow.js"):null);
+if(!Afterglow)throw Error("Omamori Afterglow policy must load before Harmony Rules");
 const N=7, ALL=["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"];
 // Fixed progression: four active families on levels 1–10, five from level
 // 11 onward. All nine families rotate across the introduction. The original
@@ -911,6 +913,8 @@ class Game{
   this.directorMode=options?.directorMode==="v4"?"v4":options?.directorMode==="v311"?"v311":options?.directorMode==="v31"?"v31":options?.directorMode==="v3"?"v3":options?.directorMode==="v2"?"v2":options?.opportunity===true?"v1":"standard";
   this.opportunity=this.directorMode!=="standard"; // Both Directors are opt-in.
   this.directorRefills=0;this.directorSelections=0;this.directorDrought=0;this.objectiveDrought=0;
+  this.omamoriAfterglow=Afterglow.fresh();
+  this.afterglowTurnActive=false;this.afterglowRefillTried=false;
   this.paceTimes=[];this.paceOutcomes=[];this.pacePhase="build";this.paceLastMajor=false;
   this.rolls=0;this.random=prng(this.seed);
   this.bag=[];
@@ -980,6 +984,8 @@ class Game{
   this.fairnessBalanceVersion=1;
   if(previous){
    Object.assign(this,previous);
+   this.omamoriAfterglow=Afterglow.normalize(previous.omamoriAfterglow);
+   this.afterglowTurnActive=false;this.afterglowRefillTried=false;
    // Never retrofit a new chapter mask onto a pre-Bamboo saved run.
    const oldBambooRun=this.level>=50&&this.level<60&&previous.bambooVersion!==1;
    const oldLotusRun=this.level===60&&previous.lotusVersion!==1;
@@ -1133,6 +1139,14 @@ class Game{
   this.level8Revision=this.level===7?1:0;
   this.movesExpansionVersion=1;
  }
+ activateOmamoriAfterglow(){
+  // Only after a real card has been successfully consumed by the UI.
+  // At most once per level; another card cannot stack or refresh it.
+  const result=Afterglow.activate(this.omamoriAfterglow,this.directorMode,
+   this.failed||this.complete,this.moves);
+  this.omamoriAfterglow=result.state;
+  return result.activated;
+ }
  fresh(){this.rolls++;return this.random();}
  nextFamily(board=null,index=-1){
   return drawBagFamily(this.bag,this.families,board,index,()=>this.fresh());
@@ -1140,6 +1154,11 @@ class Game{
  refillOpportunity(){
   const vacancies=this.board.filter(p=>!p).length;
   if(!vacancies)return;
+  // One chance to influence a normal refill on each of two legal moves.
+  // Cascades do not repeatedly amplify the same Omamori use.
+  const afterglowRemaining=this.afterglowTurnActive&&!this.afterglowRefillTried&&
+   this.directorMode==="v4"?this.omamoriAfterglow.remaining:0;
+  if(afterglowRemaining)this.afterglowRefillTried=true;
   // Candidate zero is EXACTLY the 5.3 standard refill, consuming the
   // ordinary RNG stream. Alternative candidate RNGs fork independently from
   // this turn's existing seed/roll counter, without advancing that stream.
@@ -1181,8 +1200,9 @@ class Game{
       this.config.goal.type==="daruma"?this.daruma:this.sealed):null;
     const lotusRoute=this.lotusPrototype&&this.directorMode==="v4"?
      LotusRouting.opportunity(board,this.lotus,validSwaps):0;
-    return {...m,objective:aware,endgame,blocker,lotusRoute,
-     score:base+aware.score*(.72+pressure*(this.directorMode==="v4"?.28:.18))+
+    const afterglowBonus=Afterglow.bonus(m,afterglowRemaining);
+    return {...m,objective:aware,endgame,blocker,lotusRoute,afterglowBonus,
+     score:base+afterglowBonus+aware.score*(.72+pressure*(this.directorMode==="v4"?.28:.18))+
       (endgame?endgame.score*urgency:0)+
       (blocker?blocker.score*(.72+pressure*.28):0)+lotusRoute};
    };
@@ -1194,10 +1214,12 @@ class Game{
     ["v31","v311"].includes(this.directorMode)?(this.pacePhase==="relax"?3.0:2.2):
     isV3&&this.pacePhase==="relax"?2.8:
     isV2?(this.directorDrought>=3?1.1:1.5):.8;
+   const effectiveThreshold=Math.max(1.75,
+    threshold-Afterglow.thresholdReduction(afterglowRemaining));
    for(const candidate of candidates.slice(1)){
     if(candidate.autoMatches!==0)continue;
     const value=metric(candidate.board).score;
-    if(value>best+threshold){best=value;selected=candidate;}
+    if(value>best+effectiveThreshold){best=value;selected=candidate;}
    }
   }
   this.board=selected.board;
@@ -1541,8 +1563,13 @@ class Game{
    const beforeBlockerHealth=this.config.goal.type==="daruma"?
     this.daruma.reduce((n,x)=>n+x,0):this.config.goal.type==="sealedStone"?
     this.sealed.reduce((n,x)=>n+x,0):0;
+  this.afterglowTurnActive=this.directorMode==="v4"&&this.omamoriAfterglow.remaining>0;
+  this.afterglowRefillTried=false;
   this.moves--;
   const events=[this.frame("swap",{from:a,to:b}),...this.resolve(b,armed,a)];
+  if(this.afterglowTurnActive)
+   this.omamoriAfterglow.remaining=Math.max(0,this.omamoriAfterglow.remaining-1);
+  this.afterglowTurnActive=false;this.afterglowRefillTried=false;
   // Update drought ONCE per player move, not per cascade wave; never use score
   // progress because score-based levels gain points on virtually every turn.
   if(["v2","v3","v31","v311","v4"].includes(this.directorMode)){
@@ -1572,7 +1599,7 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {lotusPrototype:this.lotusPrototype,lotusVersion:this.lotusVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {omamoriAfterglow:Afterglow.normalize(this.omamoriAfterglow),lotusPrototype:this.lotusPrototype,lotusVersion:this.lotusVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate
@@ -1645,6 +1672,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,boardMechanics:B,bambooPaths:Bamboo,lotusStream:Lotus,lotusRouting:LotusRouting,levels,levelConfig,endlessConfig,sealedPositions,neighbors8,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,blockerObjectiveMetrics,mistLayout,resonanceLinks};
+const api={Game,omamoriAfterglow:Afterglow,boardMechanics:B,bambooPaths:Bamboo,lotusStream:Lotus,lotusRouting:LotusRouting,levels,levelConfig,endlessConfig,sealedPositions,neighbors8,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,blockerObjectiveMetrics,mistLayout,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

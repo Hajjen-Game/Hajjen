@@ -4,10 +4,11 @@
  */
 (function(root){
 "use strict";
+const B=root.HarmonyBoardMechanics||(typeof require==="function"?require("./board-mechanics.js"):null);
 const RECORD_FIELDS=["bestStars","bestScores","bestChain","fourFamilyStars",
  "fourFamilyScores","fourFamilyChain","assistedStars","assistedScores","onboardingSeen"];
 const FAMILIES=new Set(["sakura","lantern","koi","fan","bonsai","sushi",
- "maneki","origami","ryu","daruma","sealedStone"]);
+ "maneki","origami","ryu","daruma","sealedStone","terrain"]);
 const record=x=>!!x&&typeof x==="object"&&!Array.isArray(x);
 function validRun(run){
  if(run===null)return true;
@@ -19,9 +20,15 @@ function validRun(run){
     !Number.isInteger(d.rolls)||d.rolls<0||d.rolls>100000||
     !Number.isInteger(d.seed)||d.seed<0||d.seed>0xffffffff||
     !Array.isArray(d.board)||d.board.length!==49)return false;
- return d.board.every(p=>record(p)&&FAMILIES.has(p.family)&&
+ let boardMechanics=null;
+ if(d.boardMechanics!==undefined){
+  try{boardMechanics=B.normalize(d.boardMechanics);}catch{return false;}
+ }
+ const terrain=new Set(boardMechanics?.blocked||[]);
+ return d.board.every((p,i)=>record(p)&&FAMILIES.has(p.family)&&
   Number.isInteger(p.id)&&Number.isInteger(p.stage)&&
-  (p.family==="daruma"||p.family==="sealedStone"?p.stage===0:p.stage>=1&&p.stage<=5));
+  (p.family==="terrain"?terrain.has(i)&&p.stage===0&&p.id===-(1000+i):
+   !terrain.has(i)&&(p.family==="daruma"||p.family==="sealedStone"?p.stage===0:p.stage>=1&&p.stage<=5)));
 }
 function normalize(raw,defaults){
  // Never share default record maps with a live save. A first-run star

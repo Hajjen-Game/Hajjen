@@ -1536,6 +1536,7 @@ class Game{
   // Pairs are located by persistent object IDs, not original slot indices.
   const beforeStage3=this.stage3,beforeStage4=this.stage4,beforeMasterpiece=this.masterpieces;
   const beforeEcho=this.echoes,beforePulse=this.pulseHits,beforeObjective=this.progress();
+  const beforeLotusBoard=this.lotusPrototype?clone(this.board):null;
    // Partial obstacle hits are goal progress before its final destruction.
    const beforeBlockerHealth=this.config.goal.type==="daruma"?
     this.daruma.reduce((n,x)=>n+x,0):this.config.goal.type==="sealedStone"?
@@ -1545,14 +1546,19 @@ class Game{
   // Update drought ONCE per player move, not per cascade wave; never use score
   // progress because score-based levels gain points on virtually every turn.
   if(["v2","v3","v31","v311","v4"].includes(this.directorMode)){
+   // In prototypes, a genuine seed descent is progress toward delivery,
+   // even when the seed has not yet reached its collecting gate. This does
+   // not alter the live level 61 Director or the win-condition counter.
+   const routeAdvanced=!!beforeLotusBoard&&(this.progress()>beforeObjective||
+    LotusRouting.advance(beforeLotusBoard,this.board,this.lotus)>0);
    const advanced=this.stage3>beforeStage3||this.stage4>beforeStage4||
-    this.masterpieces>beforeMasterpiece||this.echoes>beforeEcho||this.pulseHits>beforePulse;
+    this.masterpieces>beforeMasterpiece||this.echoes>beforeEcho||this.pulseHits>beforePulse||routeAdvanced;
    this.directorDrought=advanced?0:Math.min(12,this.directorDrought+1);
    if(["v3","v31","v311","v4"].includes(this.directorMode)){
     const blockerHealth=this.config.goal.type==="daruma"?
       this.daruma.reduce((n,x)=>n+x,0):this.config.goal.type==="sealedStone"?
       this.sealed.reduce((n,x)=>n+x,0):beforeBlockerHealth;
-    const objectiveAdvanced=this.progress()>beforeObjective||
+    const objectiveAdvanced=this.progress()>beforeObjective||routeAdvanced||
      (this.directorMode==="v4"&&blockerHealth<beforeBlockerHealth);
     if(["v31","v311","v4"].includes(this.directorMode))this.objectiveDrought=objectiveAdvanced?0:
      Math.min(12,this.objectiveDrought+1);

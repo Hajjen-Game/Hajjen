@@ -5,10 +5,11 @@
 (function(root){
 "use strict";
 const B=root.HarmonyBoardMechanics||(typeof require==="function"?require("./board-mechanics.js"):null);
+const L=root.HarmonyLotusStream||(typeof require==="function"?require("./lotus-stream.js"):null);
 const RECORD_FIELDS=["bestStars","bestScores","bestChain","fourFamilyStars",
  "fourFamilyScores","fourFamilyChain","assistedStars","assistedScores","onboardingSeen"];
 const FAMILIES=new Set(["sakura","lantern","koi","fan","bonsai","sushi",
- "maneki","origami","ryu","daruma","sealedStone","terrain"]);
+ "maneki","origami","ryu","daruma","sealedStone","terrain","lotusSeed"]);
 const record=x=>!!x&&typeof x==="object"&&!Array.isArray(x);
 function validRun(run){
  if(run===null)return true;
@@ -25,9 +26,24 @@ function validRun(run){
   try{boardMechanics=B.normalize(d.boardMechanics);}catch{return false;}
  }
  const terrain=new Set(boardMechanics?.blocked||[]);
+ let lotus={starts:[],exits:[]};
+ if(d.lotusVersion===1){
+  try{lotus=L.normalize(d.lotus);}catch{return false;}
+  if(d.lotusDelivered===undefined||!Number.isInteger(d.lotusDelivered)||
+   d.lotusDelivered<0||d.lotusDelivered>lotus.starts.length||
+   run.level!==60)return false;
+ }
+ if(d.lotusVersion===1){
+  const seeds=d.board.filter(p=>p?.family==="lotusSeed");
+  if(seeds.length+d.lotusDelivered!==lotus.starts.length||
+   new Set(seeds.map(p=>p.id)).size!==seeds.length||
+   seeds.some(p=>!lotus.starts.includes(-2000-p.id)))return false;
+ }
  return d.board.every((p,i)=>record(p)&&FAMILIES.has(p.family)&&
   Number.isInteger(p.id)&&Number.isInteger(p.stage)&&
   (p.family==="terrain"?terrain.has(i)&&p.stage===0&&p.id===-(1000+i):
+   p.family==="lotusSeed"?d.lotusVersion===1&&!terrain.has(i)&&p.stage===0&&p.id<=-2000&&
+    lotus.exits.some(exit=>exit%7===i%7)&&i<42:
    !terrain.has(i)&&(p.family==="daruma"||p.family==="sealedStone"?p.stage===0:p.stage>=1&&p.stage<=5)));
 }
 function normalize(raw,defaults){

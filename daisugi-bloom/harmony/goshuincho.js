@@ -39,7 +39,8 @@ const THEMES=[
  {title:"Garden of Mist",subtitle:"Clear Mist with well-placed fusions and pulses",motif:"mist",symbol:"☁"},
  {title:"Daruma's Wish",subtitle:"Two hits to complete each Daruma wish",motif:"daruma",symbol:"◉"},
  {title:"Path of the Seals",subtitle:"Four hits to release an eight-way Awakening Pulse",motif:"sealed-stone",symbol:"✦"},
- {title:"Lantern Path",subtitle:"Lantern fusions and Lantern masterpieces",motif:"lantern",symbol:"✦"}
+ {title:"Lantern Path",subtitle:"Lantern fusions and Lantern masterpieces",motif:"lantern",symbol:"✦"},
+ {title:"Bamboo Paths",subtitle:"Navigate garden stones, Temple Gate, Twin Gardens and Central Shrine",motif:"bamboo",symbol:"❖"}
 ];
 // Asset Fidelity 2.0: the six APPROVED independent high-resolution PNGs
 // supply chapter headings and 1/2/3-star seals. Keep the old atlas only as

@@ -30,8 +30,8 @@ check("Four prototype recipes cover long descent, multiple lanes, one shared gat
  assert.deepEqual(Object.keys(LR.prototypes),
   ["long-drop","three-lanes","shared-gate","garden-route"]);
  const names=Object.keys(LR.prototypes);
- const expected=[[[15,19],[43,47],0],[[22,24,26],[43,45,47],0],
-  [[8,22,12],[43,47],0],[[15,19],[43,47],2]];
+ const expected=[[[29,33],[43,47],0],[[22,24,26],[43,45,47],0],
+  [[8,22,12],[43,47],0],[[22,26],[43,47],2]];
  for(let i=0;i<names.length;i++){
   const cfg=LR.get(names[i]);
   assert.deepEqual(cfg.lotus.starts,expected[i][0]);

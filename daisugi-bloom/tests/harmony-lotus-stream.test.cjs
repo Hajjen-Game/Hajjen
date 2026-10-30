@@ -66,7 +66,8 @@ check("A seed neither fuses nor grows and stays in its lane through shuffle",()=
  assert.equal(g.grow(36,new Set(),true),false);
  assert.equal(R.scan(g.board).length,0);
  assert(R.validSwaps(g.board).every(([a,b])=>a!==36&&a!==40&&b!==36&&b!==40));
- const random=()=>.417;
+ let value=27064;
+ const random=()=>{value=(Math.imul(value,1664525)+1013904223)>>>0;return value/4294967296;};
  const shuffled=R.fairShuffle(g.board,random);
  assert.deepEqual(shuffled[36],g.board[36]);
  assert.deepEqual(shuffled[40],g.board[40]);

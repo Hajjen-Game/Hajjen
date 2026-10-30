@@ -16,7 +16,7 @@ check("Level 61 is the only Lotus pilot; chapter 7 is marked as a pilot",()=>{
  assert.equal(G.chapter(6).title,"Lotus Stream · Pilot");
  assert.equal(O.lesson(60).key,"lotus-intro");
  assert.equal(O.preview(60,c,R.moveStarTargets).objective,"2 Lotus seeds");
- assert.deepEqual(R.moveStarTargets(c),{three:17,two:28});
+ assert.deepEqual(R.moveStarTargets(c),{two:28,three:17});
 });
 check("Lotus descriptors reject impossible columns and malformed collection targets",()=>{
  assert.throws(()=>L.normalize({version:1,starts:[0],exits:[44]}),/reachable/);

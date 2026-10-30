@@ -91,7 +91,7 @@ function consume(save,id){
 function equip(){return {ok:false,reason:"no-equipment-in-v6"};}
 function observe(){return {ok:false,reason:"no-mastery-in-v6"};}
 function replayCoins(save,level,won,assisted,day){
- if(!won||!validLevel(level))return 0;
+ if(!won||!validLevel(level)||level<10)return 0;
  const state=initialize(save),date=/^\d{4}-\d\d-\d\d$/.test(day||"")?day:"";
  if(!date)return 0;
  const r=state.replay;

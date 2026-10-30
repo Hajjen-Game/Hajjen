@@ -82,7 +82,7 @@ check("Malicious or malformed economy data is normalized without changing star r
  assert.equal(JSON.stringify({a:save.fourFamilyStars,b:save.bestStars}),before);
  assert.equal(E.claim(save,Infinity,3).delta,0);
 });
-check("UI and gameplay contracts: no Omamori effect applied to HarmonyRules",()=>{
+check("UI and gameplay contracts: coin economy stays separate from bounded Director Afterglow",()=>{
  const fs=require("node:fs"),path=require("node:path");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
@@ -96,7 +96,9 @@ check("UI and gameplay contracts: no Omamori effect applied to HarmonyRules",()=
  assert(app.includes('showOmamori(tab)'));
  assert(css.includes("Harmony Economy & Omamori 1.0"));
  assert(!rules.includes("HarmonyEconomy"));
- assert(!rules.includes("Omamori"));
+ assert(rules.includes("Afterglow.activate"));
+ assert(rules.includes("Afterglow.bonus"));
+ assert(!rules.includes("C.buy("));
  assert(!rules.includes("harmonyCoins"));
 });
 check("Omamori 6.0 retains home shop navigation and eight consumable charms",()=>{

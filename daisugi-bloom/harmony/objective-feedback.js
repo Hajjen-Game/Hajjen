@@ -20,6 +20,7 @@ function detail(game){
    const hits=total(game?.sealed);
    return left===0?"All seals broken":left+" seals left · "+hits+" hits remaining";
   }
+  case "lotus":return left===0?"All Lotus seeds collected":left+" Lotus seeds to guide into the river gates";
   case "mist":return left===0?"All Mist cleared":left+" Mist tiles remaining";
   case "familyFusion":return left===0?"Lantern fusion goal complete":left+" Lantern fusions remaining";
   case "familyMasterpiece":return left===0?"Lantern masterpiece goal complete":left+" Lantern masterpieces remaining";
@@ -61,6 +62,7 @@ function summary(events,game){
  }
  if(!gained)return null;
  const target=nonnegative(typeof game.target==="function"?game.target():0);
+ if(type==="lotus")return "Lotus seeds collected +"+gained+" · "+final+"/"+target;
  if(type==="mist")return "Mist cleared +"+gained+" · "+final+"/"+target;
  if(type==="familyFusion")return "Lantern fusions +"+gained+" · "+final+"/"+target;
  if(type==="pulseHits")return "Harmony upgrades +"+gained+" · "+final+"/"+target;

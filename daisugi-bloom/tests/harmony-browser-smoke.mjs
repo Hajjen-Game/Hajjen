@@ -92,6 +92,54 @@ try{
  assert(homeFit.actionsVisible&&homeFit.settingsVisible,
   "Main actions and settings must remain reachable without scrolling");
 
+ // Reset Progress 1.0: verify the actual Settings -> confirm -> reload flow
+ // in an isolated browser profile; never mutate the main smoke test's save.
+ const cleanContext=await browser.createBrowserContext();
+ try{
+  const clean=await cleanContext.newPage();
+  await clean.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await clean.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
+  await clean.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2";
+   const data=JSON.parse(localStorage.getItem(key));
+   data.unlocked=44;data.bestStars={40:3};data.fourFamilyStars={0:3};
+   data.economy={version:1,coins:900,paidStars:{0:3},owned:["koi"],equipped:null};
+   data.omamoriCards={version:2,counts:{koi:2},discovered:["koi"],replay:{day:"2026-10-29",claims:4}};
+   data.run={level:44,data:new window.HarmonyRules.Game(44,null,{seed:20261030}).save()};
+   localStorage.setItem(key,JSON.stringify(data));
+   localStorage.setItem("another-game-key","keep me");
+  });
+  await clean.reload({waitUntil:"networkidle2"});
+  await clean.click("#settingsButton");
+  assert.equal(await clean.$eval("#modalActions button:nth-child(2)",e=>e.textContent),"Reset my progress…");
+  await clean.click("#modalActions button:nth-child(2)");
+  assert.equal(await clean.$eval("#modalTitle",e=>e.textContent),"Start from level 1?");
+  await clean.click("#modalActions button:first-child");
+  assert.equal(await clean.$eval("#modalTitle",e=>e.textContent),"Settings",
+   "Cancel must never delete a profile");
+  const stillOwned=await clean.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).economy.coins);
+  assert.equal(stillOwned,900);
+  await clean.click("#modalActions button:nth-child(2)");
+  await Promise.all([
+   clean.waitForNavigation({waitUntil:"networkidle2"}),
+   clean.click("#modalActions button.primary")
+  ]);
+  const reset=await clean.evaluate(()=>{
+   const s=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   return {unlocked:s.unlocked,run:s.run,stars:s.bestStars,introStars:s.fourFamilyStars,
+    coins:s.economy?.coins,omamori:s.omamoriCards?.counts,playMode:s.playMode,
+    unrelated:localStorage.getItem("another-game-key")};
+  });
+  assert.equal(reset.unlocked,0);
+  assert.equal(reset.run,null);
+  assert.deepEqual(reset.stars,{});
+  assert.deepEqual(reset.introStars,{});
+  assert.equal(reset.coins,0);
+  assert.deepEqual(reset.omamori,{});
+  assert.equal(reset.playMode,"auto");
+  assert.equal(reset.unrelated,"keep me","Reset must not clear other same-origin storage");
+ }finally{await cleanContext.close();}
+
  // Goshuincho Primary Navigation 1.0: game -> book -> saved level ->
  // Home -> book -> menu; no old level-list interaction in this flow.
  const bookNavContext=await browser.createBrowserContext();

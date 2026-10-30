@@ -82,7 +82,19 @@ function bootstrap(storageProvider,key,marker,defaults,playModes){
  }else save=normalize(stored,defaults);
  return {save,writable,warning};
 }
-const api=Object.freeze({validRun,normalize,persist,bootstrap});
+// Opt-in full progress reset, scoped to this game's save key on this device.
+// Never clear the origin's unrelated localStorage (other games/sites may use it).
+// The existing first-20 migration marker remains untouched; a truly new
+// profile will go through current initialization and receive zero coins/cards.
+function resetProgress(storageProvider,key,defaults){
+ const fresh=normalize({},defaults);
+ if(!persist(storageProvider,key,fresh))return {ok:false,reason:"storage-unavailable"};
+ // A corrupt backup can contain the player's previous profile. Best effort
+ // removal only after the new clean save is safely written.
+ try{storageProvider().removeItem(key+"-corrupt-backup");}catch{}
+ return {ok:true,save:fresh};
+}
+const api=Object.freeze({validRun,normalize,persist,bootstrap,resetProgress});
 root.HarmonySaveHealth=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

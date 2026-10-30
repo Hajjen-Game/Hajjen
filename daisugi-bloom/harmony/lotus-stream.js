@@ -23,8 +23,11 @@ function normalize(input){
  };
  const starts=check(input.starts,"starts"),exits=check(input.exits,"exits");
  if(starts.length>6||exits.length>7||exits.some(i=>i<42))throw Error("Invalid Lotus collection gate");
- if(starts.some(i=>i>=42)||starts.length!==exits.length||
-  starts.some(i=>!exits.some(exitIndex=>exitIndex%7===i%7)))throw Error("Lotus seeds need a reachable exit in their column");
+ // Several seeds can flow into the SAME gate one after another, but every
+ // physical gate must serve at least one seed and every seed needs a gate.
+ if(starts.some(i=>i>=42)||starts.some(i=>!exits.some(exitIndex=>exitIndex%7===i%7))||
+  exits.some(i=>!starts.some(start=>start%7===i%7)))
+  throw Error("Lotus seeds need a reachable exit in their column");
  return {version:VERSION,starts,exits};
 }
 function get(index){

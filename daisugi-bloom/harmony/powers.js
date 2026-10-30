@@ -68,7 +68,7 @@ function consume(save,id){
  p.charges[id]--;
  return true;
 }
-const fixed=p=>p?.family==="daruma"||p?.family==="sealedStone"||p?.family==="terrain";
+const fixed=p=>p?.family==="daruma"||p?.family==="sealedStone"||p?.family==="terrain"||p?.family==="lotusSeed";
 const snapshot=(g,type,fields={})=>g.frame(type,fields);
 function refill(g,events){
  if(!g.board.some(p=>!p))return;

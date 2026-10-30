@@ -146,10 +146,10 @@ check("Two seeds can use the same gate sequentially without being fused or lost"
 check("Long-route fixed stones stay fixed, and Omamori cannot target cargo",()=>{
  const g=new R.Game(60,null,{seed:80101,lotusPrototype:"garden-route"});
  assert.equal(g.boardMechanics.blocked.length,2);
- assert.equal(g.board[15].family,"lotusSeed");
- assert.equal(g.grow(15,new Set(),true),false);
- assert.equal(P.apply(g,"sakura",15).ok,false);
- assert.equal(g.swap(15,16).ok,false);
+ assert.equal(g.board[22].family,"lotusSeed");
+ assert.equal(g.grow(22,new Set(),true),false);
+ assert.equal(P.apply(g,"sakura",22).ok,false);
+ assert.equal(g.swap(22,23).ok,false);
  const serial=g.board.filter(p=>L.isSeed(p)).map(p=>p.id).sort((a,b)=>a-b);
  let seed=1979;
  const shuffled=R.fairShuffle(g.board,()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;});

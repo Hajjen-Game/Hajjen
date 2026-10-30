@@ -6,6 +6,7 @@
 "use strict";
 const B=root.HarmonyBoardMechanics||(typeof require==="function"?require("./board-mechanics.js"):null);
 const L=root.HarmonyLotusStream||(typeof require==="function"?require("./lotus-stream.js"):null);
+const LR=root.HarmonyLotusRouting||(typeof require==="function"?require("./lotus-routing.js"):null);
 const RECORD_FIELDS=["bestStars","bestScores","bestChain","fourFamilyStars",
  "fourFamilyScores","fourFamilyChain","assistedStars","assistedScores","onboardingSeen"];
 const FAMILIES=new Set(["sakura","lantern","koi","fan","bonsai","sushi",
@@ -27,6 +28,13 @@ function validRun(run){
  }
  const terrain=new Set(boardMechanics?.blocked||[]);
  let lotus={starts:[],exits:[]};
+ if(d.lotusPrototype!==undefined&&d.lotusPrototype!==null){
+  if(d.lotusVersion!==1||run.level!==60||!LR)return false;
+  let recipe;
+  try{recipe=LR.get(d.lotusPrototype);}catch{return false;}
+  if(!record(d.lotus)||JSON.stringify(L.normalize(d.lotus))!==JSON.stringify(recipe.lotus)||
+   JSON.stringify(boardMechanics)!==JSON.stringify(recipe.boardMechanics))return false;
+ }
  if(d.lotusVersion===1){
   try{lotus=L.normalize(d.lotus);}catch{return false;}
   if(d.lotusDelivered===undefined||!Number.isInteger(d.lotusDelivered)||

@@ -65,7 +65,8 @@ check("Closed tiles remain fixed, survive refill/shuffle and never consume moves
     for(const at of closed)assert.deepEqual(g.board[at],B.terrainPiece(at));
    }
    const original=g.board.filter(p=>p.family!=="terrain").map(p=>p.id).sort((a,b)=>a-b);
-   const shuffled=R.fairShuffle(g.board,()=>0.417);
+   let shuffleSeed=7654321;
+   const shuffled=R.fairShuffle(g.board,()=>{shuffleSeed=(Math.imul(shuffleSeed,1664525)+1013904223)>>>0;return shuffleSeed/4294967296;});
    for(const at of closed)assert.deepEqual(shuffled[at],B.terrainPiece(at));
    assert.deepEqual(shuffled.filter(p=>p.family!=="terrain").map(p=>p.id).sort((a,b)=>a-b),original);
   }
@@ -88,7 +89,7 @@ check("Overlays and obstacles can coexist with a DIFFERENT primary goal",()=>{
 });
 check("Saved and restored future layouts retain cells, overlays, RNG and legal hints",()=>{
  const initial=new R.Game(1,null,{seed:10227,
-  boardMechanics:{layout:"templeGate",mist:[9,10],sealedStone:[18]}});
+  boardMechanics:{layout:"templeGate",mist:[9,10],sealedStone:[19]}});
  const snapshot=initial.save();
  assert(H.validRun({level:1,data:snapshot}));
  const restored=new R.Game(1,snapshot,{fastRestore:true});

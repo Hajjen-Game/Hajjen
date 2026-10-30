@@ -2202,6 +2202,7 @@ try{
    const g=new R.Game(11,null,{seed:120012,directorMode:"v4"});
    const pair=R.validSwaps(g.board)[0];
    // A real stage-3 creation is now available from one legitimate fusion.
+   g.board[pair[0]].stage=2;
    g.board[pair[1]].stage=2;
    g.stage3=g.target()-1;
    const s=JSON.parse(localStorage.getItem(key));

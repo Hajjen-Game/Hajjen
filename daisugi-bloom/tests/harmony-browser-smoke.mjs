@@ -2234,6 +2234,16 @@ try{
   assert.equal(reward.coins,72,"Levels 11+12 at three stars should yield 72 coins");
   assert(reward.invited&&reward.shop&&reward.flag,
    "First affordable card must be introduced exactly when the player can buy it");
+  const inviteGlow=await intro.evaluate(()=>{
+   const element=document.querySelector(".victory-compact .jh-omamori-welcome");
+   const style=getComputedStyle(element),bounds=element.getBoundingClientRect();
+   return {name:style.animationName,duration:style.animationDuration,
+    color:style.borderColor,shadow:style.boxShadow,
+    inside:bounds.left>=0&&bounds.right<=innerWidth+1};
+  });
+  assert(inviteGlow.name.includes("omamori-first-invite-glow")&&
+   inviteGlow.duration!=="0s"&&inviteGlow.shadow!=="none"&&inviteGlow.inside,
+   "First affordable card must be highlighted with a warm, visible, mobile-safe pulse");
   await intro.click(".jh-omamori-shop-button");
   assert.equal(await intro.$eval("#modalTitle",e=>e.textContent),"Omamori");
   assert.equal(await intro.$eval(".omamori-wallet strong",e=>e.textContent),"72 Harmony Coins");

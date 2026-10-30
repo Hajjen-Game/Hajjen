@@ -40,9 +40,12 @@ assert(html.includes("objective-reward-feedback.css"));
 assert(app.includes("Q.eventLabels(evt)"));
 assert(app.includes("Q.summary(events,game)"));
 assert(app.includes("Q.detail(game)"));
-assert(app.includes("Q.rewardLabel(game)"));
-assert(app.includes('game.assisted?"Omamori clear · ★":Q.rewardLabel(game)'));
-assert(app.includes('if(game.assisted)result.append(make("p","omamori-assisted-notice"'));
+// Victory Compact 2.0 retired repeated reward-label notices; the current
+// primary win state must still distinguish assisted clears and records.
+assert(app.includes('"victory-result victory-compact"+(game.assisted?" is-assisted":"")'));
+assert(app.includes('game.assisted?"OMAMORI CLEAR · 1 STAMP":"GOSHUINCHO STARS"'));
+assert(app.includes('"ASSISTED · NO RECORD"'));
+assert(app.includes("victory-reward-compact"));
 assert(app.includes('const coinReward=won?E.claim'));
 assert(app.includes('archive[level]=Math.max(archive[level]||0,game.assisted?1:game.stars())'));
 assert(css.includes("prefers-reduced-motion:reduce"));

@@ -845,7 +845,7 @@ function confirmPowerTarget(at){
  const blocker=id==="sealbreaker"||id==="twinSealbreaker";
  const piece=game.board[at];
  if(id==="sakura"||id==="grandBloom"){
-  if(!piece||piece.stage>=5||["daruma","sealedStone"].includes(piece.family)){
+  if(!piece||piece.stage>=5||["daruma","sealedStone","terrain"].includes(piece.family)){
    toast("Choose a normal treasure at stage 1–4.");return;
   }
  }else if(blocker){
@@ -1245,7 +1245,7 @@ function renderBoard(board,highlight,effect){
  const removedMist=[];
  const resonance=refreshResonance(board);
  for(let i=0;i<49;i++){
-  const piece=board[i],btn=boardTiles[i],doll=piece?.family==="daruma",stone=piece?.family==="sealedStone";
+  const piece=board[i],btn=boardTiles[i],doll=piece?.family==="daruma",stone=piece?.family==="sealedStone",terrain=piece?.family==="terrain";
   const dState=doll?(daruma[i]===2?0:daruma[i]===1?1:2):-1;
   const stoneLeft=stone?(sealed[i]??4):0,stoneStage=stone?Math.min(3,Math.max(0,4-stoneLeft)):-1;
   const key=piece?piece.id+"|"+piece.family+"|"+piece.stage+"|"+dState+"|"+stoneStage:"empty";
@@ -1254,10 +1254,13 @@ function renderBoard(board,highlight,effect){
   if(boardKeys[i]!==key){
    boardKeys[i]=key;
    btn.replaceChildren();
-   btn.setAttribute("aria-label",stone?"Sealed Stone, "+stoneLeft+" hits left":
+   btn.setAttribute("aria-label",terrain?"Closed garden tile":stone?"Sealed Stone, "+stoneLeft+" hits left":
     doll?"Daruma, "+(dState===0?"two eyes left":dState===1?"one eye left":"completed"):
     piece?names[piece.family]+", tier "+piece.stage+", tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
-   if(stone){
+   if(terrain){
+    const art=document.createElement("span");art.className="terrain-garden-art";
+    art.setAttribute("aria-hidden","true");btn.append(art);
+   }else if(stone){
     const art=document.createElement("span");art.className="sealed-stone-art state-"+stoneStage;
     art.setAttribute("aria-hidden","true");btn.append(art);
    }else if(doll){
@@ -1288,7 +1291,8 @@ function renderBoard(board,highlight,effect){
    veil=document.createElement("span");veil.className="harmony-mist";
    veil.setAttribute("aria-hidden","true");btn.prepend(veil);
   }else if(!misted&&veil){veil.remove();}
-  const label=stone?"Sealed Stone, "+stoneLeft+" hits left, tile "+
+  const label=terrain?"Closed garden tile, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
+   stone?"Sealed Stone, "+stoneLeft+" hits left, tile "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):
    doll?"Daruma, "+(dState===0?"two eyes left":dState===1?"one eye left":"completed")+", tile "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):
@@ -1299,7 +1303,7 @@ function renderBoard(board,highlight,effect){
    btn.dataset.mist=misted?"1":"0";
    btn.setAttribute("aria-label",accessible);
   }
-  const cls="tile"+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+(omamoriPreview?.has(i)?" omamori-gold-target":"")+
+  const cls="tile"+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(terrain?" terrain-garden-tile":"")+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+(omamoriPreview?.has(i)?" omamori-gold-target":"")+
    (omamoriAnchor===i?" omamori-gold-anchor":"")+
    (highlighted&&highlighted.has(i)?" "+flash:"")+
    (resonance.anchors.has(i)?" resonance-anchor":"")+
@@ -1388,6 +1392,9 @@ function animateScoreCount(){
 function choose(i){
  if(busy||!game||game.moves<=0||!$("modal").hidden)return;
  if(powerSelection){confirmPowerTarget(i);return;}
+ if(game.board[i]?.family==="terrain"){
+  selected=-1;toast("This garden tile is closed. Build matches around it.");return;
+ }
  if(game.board[i]?.family==="daruma"){
   selected=-1;toast("Daruma cannot move. Match beside it to fill its eyes.");return;
  }
@@ -1395,6 +1402,7 @@ function choose(i){
   selected=-1;toast("Sealed Stone cannot move. Match beside it or hit it with Harmony Pulse (once per move).");return;
  }
  restartIdleHint();
+ if(!game.board[i])return;
  if(selected>=0&&selected!==i&&R.neighbors(selected).includes(i)){const a=selected;selected=-1;trySwap(a,i);return;}
  selected=selected===i?-1:i;
  if(selected===i)sound("tap");

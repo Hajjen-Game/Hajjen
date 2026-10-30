@@ -33,7 +33,7 @@ C.initialize(old);assert.equal(JSON.stringify(old.omamoriCards),keep);
 const source=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
 const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
 assert(/omamori-simple\.css\?v=6\.[0-9.]+/.test(html),"Omamori v6 CSS is loaded with cache busting");
-assert(/cards\\.js\\?v=[\\w.-]+/.test(html));
+assert(/cards\.js\?v=[\w.-]+/.test(html));
 assert(source.includes('C.buy(save,item.id)'));
 assert(source.includes('C.consume(save,id)'));
 assert(source.includes('normalUses()>=2'));

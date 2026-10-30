@@ -92,7 +92,7 @@ check("Moon is offered only when failed and ignores two-board-boost limit",()=>{
 });
 check("Repeat-play coin income remains capped after assisted clears",()=>{
  const s=save(0);
- for(let i=0;i<9;i++)C.replayCoins(s,0,true,true,"2026-10-29");
+ for(let i=0;i<9;i++)C.replayCoins(s,10,true,true,"2026-10-29");
  assert.equal(s.economy.coins,20);
 });
 const fs=require("node:fs"),path=require("node:path");

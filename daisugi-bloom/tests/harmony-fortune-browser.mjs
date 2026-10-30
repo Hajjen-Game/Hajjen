@@ -10,6 +10,17 @@ try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
  await page.waitForFunction(()=>!!window.HarmonyFortune&&!!window.HarmonyEconomy);
+ // The free coin-giving fortune must not bypass the ten-level tutorial.
+ assert.equal(await page.$eval("#omikujiStatus",el=>el.textContent),"Unlocks after level 10");
+ await page.click("#omikujiButton");
+ assert.equal(await page.$eval(".omikuji-draw",x=>x.length),0);
+ assert((await page.$eval("#modalContent",e=>e.textContent)).includes("Complete level 10"));
+ await page.click(".omikuji-close");
+ await page.evaluate(()=>{
+  const key="japanese-harmony-puzzle-v2",s=JSON.parse(localStorage.getItem(key));
+  s.unlocked=10;localStorage.setItem(key,JSON.stringify(s));
+ });
+ await page.reload({waitUntil:"networkidle2"});
  assert.equal(await page.$eval("#omikujiStatus",el=>el.textContent),"Free today");
  assert.equal(await page.$eval("#harmonyCoins",el=>el.textContent),"0 coins");
  await page.click("#omikujiButton");

@@ -82,9 +82,11 @@ assert.deepEqual(R.levelConfig(27).goal,{type:"mist",count:14},"Old Daruma relie
 assert.equal(R.levelConfig(37).goal.type,"sealedStone","Stone chapter remains intact");
 assert.equal(G.chapter(4).title,"Lantern Path");
 assert(G.chapter(4).subtitle.includes("Lantern"));
-assert.equal(G.chapter(5).title,"Endless Garden · 1");
-assert(G.chapter(5).subtitle.includes("Generated"));
-assert(R.levelConfig(50).name.startsWith("Endless · "));
+assert.equal(G.chapter(5).title,"Bamboo Paths");
+assert(G.chapter(5).subtitle.includes("Temple Gate"));
+assert.equal(G.chapter(6).title,"Endless Garden · 1");
+assert.equal(R.levelConfig(50).name,"First Bamboo");
+assert(R.levelConfig(60).name.startsWith("Endless · "));
 assert(R.activeFamilies(50).length===5);
 assert.equal(O.lesson(40).key,"lantern");
 assert.equal(O.lesson(49).key,"lantern-finale");
@@ -93,8 +95,8 @@ assert.equal(O.preview(49,R.levelConfig(49)).objective,"2 Lantern masterpieces")
 
 const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
 const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
-assert(app.includes('level===49?"Enter Endless Garden →"'));
+assert(app.includes('level===49?"Enter Bamboo Paths →"'));
 assert(app.includes("washi-book-subtitle"));
 assert(app.includes("info.name:\"Level \""),"Book play button must reference its selected preview");
 assert(html.includes("chapter-identity.css"),"Book chapter focus styles are linked");
-console.log("PASS Chapter Identity 2.0: ten Lantern levels, mission tracking, saved-run compatibility, Endless Garden");
+console.log("PASS Chapter Identity 2.0: ten Lantern levels, mission tracking, saved-run compatibility, Bamboo handoff");

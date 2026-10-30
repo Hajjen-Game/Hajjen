@@ -1433,6 +1433,7 @@ class Game{
     }
    }
    // Gravity and controlled stage-one refills only after all Harmony waves have finished.
+   const beforeLotus=this.lotus.starts.length?new Map(this.board.map((p,i)=>[p?.id,i]).filter(([id])=>Number.isInteger(id)&&id<=-2000)):null;
    for(let c=0;c<N;c++){
     // Each Daruma splits the column until its second hit. Pieces never fall
     // through a stationary blocker. Once removed, the segment rejoins.
@@ -1446,6 +1447,10 @@ class Game{
      for(let r=bottom;r>top;r--)this.board[r*N+c]=keep[bottom-r]||null;
      bottom=top-1;
     }
+   }
+   if(beforeLotus){
+    const moved=this.board.some((p,i)=>isLotusSeed(p)&&beforeLotus.has(p.id)&&beforeLotus.get(p.id)!==i);
+    if(moved)events.push(this.frame("lotus-fall"));
    }
    if(this.lotus.exits.length){
     const delivered=Lotus.collect(this.board,this.lotus.exits);

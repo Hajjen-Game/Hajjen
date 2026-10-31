@@ -53,7 +53,7 @@ function eventSummary(event){
  for(const key of ["round","wave","scoreDelta","chain","unused","from","to"]){
   if(Number.isFinite(event[key]))kept[key]=event[key];
  }
- for(const key of ["positions","clearedMist","mistTargets","darumaTargets","stoneTargets"]){
+ for(const key of ["positions","clearedMist","mistTargets","darumaTargets","stoneTargets","mirrorTargets"]){
   if(Array.isArray(event[key]))kept[key]=event[key].slice(0,49).map(x=>
    typeof x==="number"?x:{at:x.at,to:x.to,from:x.from,via:x.via,source:x.source}).slice(0,49);
  }

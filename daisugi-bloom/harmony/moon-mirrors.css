@@ -52,3 +52,30 @@ body.moon-mirror-preview #omamoriPowerBar{display:none!important}
  .moon-mirror-art{inset:3%}
  .moon-mirror-arrow{font-size:clamp(16px,5vw,23px)}
 }
+
+/* 1.2 – an ordinary Fusion Echo is deliberately warmer and smaller
+ * than the blue-silver, full Masterpiece Harmony Pulse. */
+.pulse-trace.moon-mirror-echo-trace{
+ height:3px;background:linear-gradient(90deg,rgba(249,222,165,.48),rgba(255,241,201,.96));
+ box-shadow:0 0 8px rgba(255,221,146,.78),0 0 13px rgba(255,234,190,.3);
+}
+.pulse-dot.moon-mirror-echo-dot{
+ background:#fff1c9;box-shadow:0 0 9px rgba(255,224,161,.95);
+}
+.moon-preview-grid{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+ margin:8px 0 2px;width:100%;
+}
+.moon-preview-choice{
+ min-width:0;min-height:76px;display:flex;flex-direction:column;justify-content:center;
+ gap:4px;text-align:left;padding:10px 11px;
+ border:1px solid rgba(155,119,67,.58);border-radius:10px;
+ color:#5d4531;background:linear-gradient(155deg,#f8edd8,#ecdfc5);
+ box-shadow:inset 0 1px 0 rgba(255,250,231,.95);
+ cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+.moon-preview-choice strong{font-size:13px;line-height:1.16;}
+.moon-preview-choice small{font-size:11px;line-height:1.23;opacity:.79;}
+.moon-preview-choice:active{transform:scale(.97);filter:brightness(.96)}
+.moon-preview-choice:focus-visible{outline:2px solid #8d642d;outline-offset:2px}
+@media(max-width:350px){.moon-preview-grid{gap:6px}.moon-preview-choice{padding:8px;min-height:70px}}

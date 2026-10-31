@@ -901,7 +901,7 @@ class Game{
    const p=Mirror.descriptor(this.moonMirrorPreview);
    this.config={...this.config,name:p.name,subtitle:p.subtitle,intro:p.intro,
     moves:p.moves,par:Math.floor(p.moves*.55),starPar:Math.floor(p.moves*.55),
-    goal:p.goal,boardMechanics:{version:1,mist:p.mist}};
+    goal:p.goal,boardMechanics:{version:1,mist:p.mist,sealedStone:p.sealedStone}};
   }
   // A prototype is explicitly opt-in in diagnostics only: no changes to
   // production level 61, its initial board, level 62+, or old saved games.
@@ -996,6 +996,11 @@ class Game{
    // Fixed mirror fixtures replace ordinary family pieces. A deliberate,
    // legal opening at 17 -> 24 creates the first masterpiece and reflection.
    for(let attempt=0;attempt<200;attempt++){
+    // Preserve authored obstacles when retrying a fair seeded opening.
+    for(const at of this.boardMechanics.sealedStone){
+     this.board[at]={family:"sealedStone",stage:0,id:-(at+100)};
+     this.sealed[at]=4;
+    }
     Mirror.opening(this.board,this.families,this.moonMirrorPreview);
     Mirror.install(this.board,this.moonMirrors);
     if(!scan(this.board).length&&validSwaps(this.board).length>=3&&
@@ -1057,7 +1062,7 @@ class Game{
     const p=Mirror.descriptor(this.moonMirrorPreview);
     this.config={...this.config,name:p.name,subtitle:p.subtitle,intro:p.intro,
      moves:p.moves,par:Math.floor(p.moves*.55),starPar:Math.floor(p.moves*.55),
-     goal:p.goal,boardMechanics:{version:1,mist:p.mist}};
+     goal:p.goal,boardMechanics:{version:1,mist:p.mist,sealedStone:p.sealedStone}};
    }
    if(previous.lotusVersion===1&&previous.lotusPrototype){
     const route=LotusRouting.get(previous.lotusPrototype);

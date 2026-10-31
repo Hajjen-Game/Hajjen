@@ -896,6 +896,17 @@ class Game{
  constructor(index=0,previous=null,options=null){
   this.level=Number.isInteger(index)&&index>=0?index:0;
   this.config=levelConfig(this.level);
+  // Lotus Stream previews reuse the genuine L61 pilot and four existing
+  // routing diagnostics. They never assign new recipes to levels 62–70.
+  this.lotusPreview=options?.lotusPreview||previous?.lotusPreview||null;
+  if(this.lotusPreview){
+   if(this.level!==60||typeof this.lotusPreview!=="string"||
+    (this.lotusPreview!=="pilot"&&!Object.hasOwn(LotusRouting.prototypes,this.lotusPreview))||
+    options?.moonMirrorPreview||previous?.moonMirrorPreview||
+    options?.windGardenPreview||previous?.windGardenPreview||
+    options?.bambooPreview||previous?.bambooPreview)
+    throw Error("Lotus Stream preview requires a valid level-61 pilot or routing prototype");
+  }
   // Preview the REAL authored levels 51–60, with original layouts, objectives,
   // refill and gravity. Only the UI rewards/progress are disabled for previews.
   this.bambooPreview=options?.bambooPreview===true||previous?.bambooPreview===true;
@@ -925,9 +936,13 @@ class Game{
   // A prototype is explicitly opt-in in diagnostics only: no changes to
   // production level 61, its initial board, level 62+, or old saved games.
   this.lotusPrototype=null;
-  if(options?.lotusPrototype){
+  const requestedLotusPrototype=options?.lotusPrototype||
+   (this.lotusPreview&&this.lotusPreview!=="pilot"?this.lotusPreview:null);
+  if(requestedLotusPrototype){
    if(this.level!==60||previous)throw Error("Lotus routing prototypes require a fresh diagnostic level 61");
-   const route=LotusRouting.get(options.lotusPrototype);
+   if(this.lotusPreview&&options?.lotusPrototype&&options.lotusPrototype!==this.lotusPreview)
+    throw Error("Lotus preview conflicts with another routing prototype");
+   const route=LotusRouting.get(requestedLotusPrototype);
    this.lotusPrototype=route.key;
    this.config={...this.config,name:route.name,moves:route.moves,par:route.starPar,
     starPar:route.starPar,goal:{type:"lotus",count:route.lotus.starts.length},
@@ -1875,6 +1890,7 @@ class Game{
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
  save(){return {roundTrace:this.roundTrace,
+  lotusPreview:this.lotusPreview,
   bambooPreview:this.bambooPreview,
   windGardenPreview:this.windGardenPreview,
   windGarden:this.windGarden?Wind.normalize(this.windGarden):null,

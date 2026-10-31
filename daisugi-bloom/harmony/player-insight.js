@@ -19,8 +19,8 @@ function initial(game,partial=false){
  return {version:VERSION,partial,level:game.level+1,seed:game.seed,
   directorMode:game.directorMode,goal:{...game.config.goal},
   moonMirrors:game.moonMirrors?.map(x=>({...x}))||[],
-  preview:game.moonMirrorPreview||game.windGardenPreview||null,
-  previewType:game.windGardenPreview?"wind-garden":game.moonMirrorPreview?"moon-mirrors":null,
+  preview:game.bambooPreview?"bamboo-paths":game.moonMirrorPreview||game.windGardenPreview||null,
+  previewType:game.bambooPreview?"bamboo-paths":game.windGardenPreview?"wind-garden":game.moonMirrorPreview?"moon-mirrors":null,
   windGarden:game.windGarden?{every:game.windGarden.every,steps:game.windGarden.steps.map(x=>({...x}))}:null,
   start:snapshot(game),moves:[],cards:[],rejected:[],truncated:false};
 }
@@ -109,13 +109,13 @@ function last(game,trace,profile,intentAwareness=null){
   privacy:"Player-exported locally. No account, device ID, wallet balance or purchase history.",
   level:game.level+1,levelName:game.config.name,
   goal:game.config.goal,directorMode:game.directorMode,
-  preview:game.moonMirrorPreview||game.windGardenPreview||null,
-  previewType:game.windGardenPreview?"wind-garden":game.moonMirrorPreview?"moon-mirrors":null,
+  preview:game.bambooPreview?"bamboo-paths":game.moonMirrorPreview||game.windGardenPreview||null,
+  previewType:game.bambooPreview?"bamboo-paths":game.windGardenPreview?"wind-garden":game.moonMirrorPreview?"moon-mirrors":null,
   windGarden:game.windGarden?{every:game.windGarden.every,steps:game.windGarden.steps.map(x=>({...x}))}:null,
   moonMirrors:game.moonMirrors?.map(x=>({...x}))||[],
   result:{complete:!!game.complete,failed:!!game.failed,
-   score:game.score,stars:game.moonMirrorPreview||game.windGardenPreview?0:game.assisted?1:game.stars(),
-   assisted:!!game.assisted,unranked:!!(game.moonMirrorPreview||game.windGardenPreview),movesUsed:game.config.moves-game.moves,
+   score:game.score,stars:game.bambooPreview||game.moonMirrorPreview||game.windGardenPreview?0:game.assisted?1:game.stars(),
+   assisted:!!game.assisted,unranked:!!(game.bambooPreview||game.moonMirrorPreview||game.windGardenPreview),movesUsed:game.config.moves-game.moves,
    movesRemaining:game.moves,progress:game.progress(),target:game.target()},
   playerInsight:profile,intentAwareness,round:JSON.parse(JSON.stringify(trace))};
 }

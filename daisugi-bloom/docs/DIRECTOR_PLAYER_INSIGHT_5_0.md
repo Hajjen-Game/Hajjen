@@ -43,10 +43,12 @@ where necessary. No separate developer test mode is needed.
 
 ## Player Insight: local passive evidence only
 The player profile stores small aggregate counters for:
-- Completed distinct levels and voluntary replays.
-- Improved stars vs. the level-start Goshuincho archive.
+- Completed distinct levels and completed replays, including replays of archive levels that predate Player Insight.
+- **Real** star improvements: replaying a previously completed level and earning more stars. A first completion, even with three stars, is **not** evidence of perfectionism.
 - Big fusion chains (5+), Masterpieces and fusion counts.
 - Omamori-assisted clears.
+
+Because this is a completion-based journal, **Goshuincho stamps do not establish a collecting preference**. Completion and true score improvement are separate signals. There is no persistent Masterpiece collection in the current game; Omamori are consumable cards. An older v1 counter that accidentally counted first clears as star improvements is retired without affecting levels or saved star records.
 
 It avoids guessing personality or purchase propensity. Confidence remains
 `insufficient` before five logged rounds. The report exposes objective

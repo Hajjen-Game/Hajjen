@@ -2420,6 +2420,58 @@ try{
   assert(archived.unlocked>=1,"Completion must unlock the next stage");
   assert.equal(archived.run,null,"Finishing should close the saved run");
  }finally{await clarityContext.close();}
+ // Director 5.1: export of a lost round should be as discreet and honest as
+ // victory export. A one-move failure is not evidence of frustration.
+ const retryContext=await browser.createBrowserContext();
+ try{
+  const retry=await retryContext.newPage();
+  await retry.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await retry.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+  await retry.evaluate(()=>{
+   const g=new window.HarmonyRules.Game(0,null,{seed:990051,directorMode:"v4"});
+   g.moves=1;
+   const key="japanese-harmony-puzzle-v2",state=JSON.parse(localStorage.getItem(key));
+   state.run={level:0,data:g.save()};state.unlocked=0;
+   state.sound=false;state.reduceMotion=true;
+   localStorage.setItem(key,JSON.stringify(state));
+  });
+  await retry.reload({waitUntil:"networkidle2"});
+  await retry.click("#continueButton");
+  await retry.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});
+  await acknowledgeTutorial(retry);
+  const pair=await retry.evaluate(()=>{
+   const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
+   return window.HarmonyRules.validSwaps(data.board)[0];
+  });
+  await retry.evaluate(([a,b])=>{
+   document.querySelector('.tile[data-index="'+a+'"]').click();
+   document.querySelector('.tile[data-index="'+b+'"]').click();
+  },pair);
+  await retry.waitForFunction(()=>!document.querySelector("#modal").hidden&&
+   document.querySelector("#modalTitle").textContent==="Out of moves",{timeout:35000});
+  const failedExport=await retry.evaluate(async()=>{
+   const button=document.querySelector("#modalContent > .jh-round-export");
+   if(!button)return {error:"Missing quiet export link in failure panel"};
+   const original=URL.createObjectURL;
+   let blob=null;URL.createObjectURL=function(data){
+    blob=data;return original.call(URL,data);
+   };
+   try{
+    button.click();
+    return blob?{report:JSON.parse(await blob.text()),
+     label:button.textContent,size:parseFloat(getComputedStyle(button).fontSize)}:
+     {error:"Failure export created no file"};
+   }finally{URL.createObjectURL=original;}
+  });
+  assert(!failedExport.error,failedExport.error||"Failure file exported");
+  assert.equal(failedExport.report.result.failed,true);
+  assert.equal(failedExport.report.round.moves.length,1);
+  assert.equal(failedExport.report.intentAwareness.round.friction.classification,"none",
+   "An ordinary loss must not automatically be labeled frustration");
+  assert.equal(failedExport.report.intentAwareness.profile.completion.failed,1);
+  assert.equal(failedExport.report.intentAwareness.profile.affectsOmamori,false);
+  assert(failedExport.label.includes("Export round")&&failedExport.size<=13);
+ }finally{await retryContext.close();}
  assert(!errors.length,"Unexpected browser errors: "+errors.join("; "));
  console.log("PASS Japanese Harmony mobile first playable",box);
 }finally{await browser.close();}

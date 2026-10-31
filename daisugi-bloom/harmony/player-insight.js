@@ -63,7 +63,10 @@ function eventSummary(event){
   from:t.from,to:t.to,stage:t.stage
  }));
  if(Array.isArray(event.delivered))kept.delivered=event.delivered.slice(0,8);
- return kept;
+ // An identical snapshot must survive JSON save/reload. Omitting optional
+ // undefined fields here avoids invisible differences between live and
+ // restored fusion/target records in the actual round report.
+ return JSON.parse(JSON.stringify(kept));
 }
 function finishMove(trace,turn,game,events){
  if(!valid(trace)||!turn)return;

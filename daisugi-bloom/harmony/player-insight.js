@@ -125,7 +125,8 @@ function recordRound(save,game,previousStars){
  s.rounds=Math.min(PROFILE_MAX,s.rounds+1);
  if(s.levels.includes(level))s.replays=Math.min(PROFILE_MAX,s.replays+1);
  else s.levels.push(level);
- if(game.stars()>nonnegative(previousStars))s.starsImproved=Math.min(PROFILE_MAX,s.starsImproved+1);
+ if((game.assisted?1:game.stars())>nonnegative(previousStars))
+  s.starsImproved=Math.min(PROFILE_MAX,s.starsImproved+1);
  if(game.assisted)s.assistedRounds=Math.min(PROFILE_MAX,s.assistedRounds+1);
  if(game.bestChain>=5)s.largeChains=Math.min(PROFILE_MAX,s.largeChains+1);
  s.masterpieces=Math.min(PROFILE_MAX,s.masterpieces+nonnegative(game.masterpieces));
@@ -138,11 +139,23 @@ function recordRound(save,game,previousStars){
 function readProfile(save,goshuincho){
  const s=profileState(save.playerInsight),book=goshuincho?.summary?.(save)||{earned:0,stars:0};
  const total=Math.max(1,s.rounds),stamps=Math.max(0,book.earned||0);
+ const archive={one:0,two:0,three:0},known=goshuincho?.archivedStars;
+ if(typeof known==="function"){
+  const visible=Math.max(0,Math.min(250,nonnegative(save.unlocked)+1));
+  for(let i=0;i<visible;i++){
+   const stars=known(save,i);
+   if(stars===1)archive.one++;
+   else if(stars===2)archive.two++;
+   else if(stars===3)archive.three++;
+  }
+ }
  // Signals are evidence of play behavior, not inferred personality or spending intent.
  // Return 'unknown' when evidence is insufficient rather than guessing.
  const observed=s.rounds>=5;
  const signals={
-  completion:{count:stamps,source:"Goshuincho stamps"},
+  completion:{count:stamps,chapters:book.completedChapters||0,
+   oneStar:archive.one,twoStars:archive.two,threeStars:archive.three,
+   source:"Goshuincho stamps"},
   replay:{count:s.replays,rate:Number((s.replays/total).toFixed(3))},
   starImprovement:{count:s.starsImproved,rate:Number((s.starsImproved/total).toFixed(3))},
   chaining:{count:s.largeChains,rate:Number((s.largeChains/total).toFixed(3))},

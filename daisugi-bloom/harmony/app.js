@@ -1925,7 +1925,21 @@ function flipMove(previous,next,type){
   if(before!==undefined){
    const a=indexRect(before),b=indexRect(i);
    const dx=a.left-b.left,dy=a.top-b.top;
-   if(type==="swap"){
+   if(type==="wind"&&Math.abs((before%7)-(i%7))===6){
+    // The wraparound treasure exits the edge and returns on the other
+    // side, never drawing an implausible streak across six grid columns.
+    tasks.push(animateTilePiece(i,piece,[
+     {opacity:0,transform:"translate3d("+(dx>0?"-10":"10")+"px,0,0) scale(.9)",offset:0},
+     {opacity:.55,transform:"translate3d("+(dx>0?"-5":"5")+"px,0,0)",offset:.5},
+     {opacity:1,transform:"translate3d(0,0,0)",offset:1}
+    ],240,{easing:"cubic-bezier(.18,.68,.31,1)"}));
+   }else if(type==="wind"){
+    tasks.push(animateTilePiece(i,piece,[
+     {transform:"translate3d("+dx+"px,0,0) scale(.98)",offset:0},
+     {transform:"translate3d("+(dx*.2)+"px,0,0) scale(1.025)",offset:.75},
+     {transform:"translate3d(0,0,0) scale(1)",offset:1}
+    ],235,{easing:"cubic-bezier(.25,.66,.26,1)"}));
+   }else if(type==="swap"){
     tasks.push(animateTilePiece(i,piece,[
      {transform:"translate3d("+dx+"px,"+dy+"px,0) scale(.98)",offset:0},
      {transform:"translate3d("+(dx*.25)+"px,"+(dy*.25)+"px,0) scale(1.025)",offset:.72},

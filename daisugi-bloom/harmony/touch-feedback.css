@@ -1,0 +1,31 @@
+/* Japanese Harmony · Touch Feedback Polish 1.0
+ * Android / WebKit native tap highlights flash bright blue over painted
+ * Washi cards and controls. Our own tactile animations provide feedback.
+ * This only affects the native touch overlay, not actual selection state,
+ * focus-visible accessibility rings, pressed transforms or game behavior.
+ */
+html,
+body,
+button,
+a,
+input,
+select,
+textarea,
+summary,
+label,
+[role="button"],
+[role="tab"],
+[tabindex],
+#modal .washi-level-grid .washi-level-tile,
+.game-view .tile{
+ -webkit-tap-highlight-color:transparent;
+}
+/* Painted Goshuincho cards have nested art and text. Suppress tap feedback
+ * on the descendants too, including in older Android WebView versions. */
+#modal .washi-level-grid .washi-level-tile,
+#modal .washi-level-grid .washi-level-tile *{
+ -webkit-tap-highlight-color:transparent;
+}
+/* Deliberately NO outline:none or :focus-visible override here:
+ * keyboard navigation keeps the book's red focus ring.
+ */

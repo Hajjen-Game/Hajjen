@@ -93,7 +93,8 @@ const capture=async(scenario,direction)=>{
  const expected=direction==="right"?["-125%","175%"]:["175%","-125%"];
  assert(animation.from.includes(expected[0])&&animation.to.includes(expected[1]),
   "Whole cloud must move in precisely the announced wind direction");
- assert(animation.duration>=240&&animation.duration<=500);
+ assert(animation.duration>=240&&animation.duration<=320,
+  "Actual wind gust must be faster than the earlier 330 ms sweep");
  await page.waitForFunction(()=>document.querySelector(".wind-sweep-row")===null&&
   document.querySelector("#board")?.getAttribute("aria-busy")==="false",
   {timeout:35000});
@@ -128,6 +129,37 @@ try{
  await page.reload({waitUntil:"networkidle2"});
  const left=await capture("tide","left");
  assert.equal(right.bandCount,1);assert.equal(left.bandCount,1);
+ // With alternating target rows, the SAME continuous wind layer changes
+ // its position and direction after the second valid move, not on every
+ // redraw. An announced 2-move wait must still have visible moving air.
+ await page.reload({waitUntil:"networkidle2"});
+ await choose("crossing");
+ await page.evaluate(()=>{window.__windCrossing=document.querySelector(".wind-ambient-row");});
+ assert.deepEqual(await page.$eval(".wind-ambient-row",x=>[x.dataset.row,x.dataset.direction]),["2","left"]);
+ await swap();
+ await page.waitForFunction(()=>
+  document.querySelector("#board")?.getAttribute("aria-busy")==="false"&&
+  document.querySelector("#movesCount")?.textContent==="17",{timeout:35000});
+ assert.deepEqual(await page.$eval(".wind-ambient-row",x=>[x.dataset.row,x.dataset.direction]),["2","left"]);
+ const pair=await page.evaluate(()=>{
+  const game=new HarmonyRules.Game(2,null,
+   {seed:20261031,directorMode:"v4",windGardenPreview:"crossing"});
+  game.swap(17,24);return HarmonyRules.validSwaps(game.board)[0];
+ });
+ await page.evaluate(([from,to])=>{
+  document.querySelector('.tile[data-index="'+from+'"]').click();
+  document.querySelector('.tile[data-index="'+to+'"]').click();
+ },pair);
+ await page.waitForFunction(()=>
+  document.querySelector("#board")?.getAttribute("aria-busy")==="false"&&
+  document.querySelector("#movesCount")?.textContent==="16",{timeout:35000});
+ const crossing=await page.evaluate(()=>({
+  same:document.querySelector(".wind-ambient-row")===window.__windCrossing,
+  row:document.querySelector(".wind-ambient-row")?.dataset.row,
+  direction:document.querySelector(".wind-ambient-row")?.dataset.direction
+ }));
+ assert.deepEqual(crossing,{same:true,row:"4",direction:"right"},
+  "One persistent wind sheet must follow the next forecasted row");
  // User's Reduce animations option always takes priority over cosmetics.
  await page.evaluate(key=>{
   const save=JSON.parse(localStorage.getItem(key));

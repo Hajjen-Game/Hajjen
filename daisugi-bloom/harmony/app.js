@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,H=window.HarmonySaveHealth,T=window.HarmonyTutorialHelp,OT=window.HarmonyOmamoriTargets,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,H=window.HarmonySaveHealth,T=window.HarmonyTutorialHelp,OT=window.HarmonyOmamoriTargets,I=window.HarmonyPlayerInsight,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu Dragon"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -824,6 +824,7 @@ function showPowerPicker(){
 }
 function commitActivePower(id,at){
  if(!game||!C.has(save,id)||normalOmamori(id)&&normalUses()>=2)return false;
+ const cardBefore=I.snapshot(game);
  const result=P.apply(game,id,at);
  if(!result.ok){toast("This card cannot be used here. Choose another tile.");return false;}
  const spent=C.consume(save,id);
@@ -831,6 +832,7 @@ function commitActivePower(id,at){
  // Afterglow starts only after a successful use AND actual card consumption.
  // Its bounded Director 4 influence applies to the following two legal moves.
  game.activateOmamoriAfterglow();
+ game.recordOmamoriUse(id,cardBefore);
  powerSelection=null;powerTargets=[];selected=-1;
  renderBoard(game.board); // Never leave gold highlights after consuming the card.
  // Preserve the revived run even if the old state was already marked failed.
@@ -2484,6 +2486,9 @@ function showResult(){
  const replayReward=won&&!coinReward.delta&&!game.replayCoinClaimed?
   C.replayCoins(save,level,true,game.assisted,new Date().toISOString().slice(0,10)):0;
  if(won)game.replayCoinClaimed=true;
+ // Aggregate only real finished rounds. This is local observation, not
+ // a purchase-interest model and has NO impact on Director decisions yet.
+ if(won)I.recordRound(save,game,rewardStarsAtLevelStart);
  const welcomeOmamori=won&&firstAffordableOmamori(coinsBefore);
 
  const canContinue=won&&game.moves>0;
@@ -2578,6 +2583,28 @@ function showResult(){
    "✦ Lantern Path complete · Bamboo Paths opens next."));
   if(level===59)result.append(make("p","victory-next-note",
    "✦ Bamboo Paths complete · Lotus Stream begins next."));
+  // Small intentional export link — no extra debug overlay or test mode.
+  // The file is generated only after a player taps it; never uploaded.
+  const exportLink=make("button","jh-round-export",game.roundTrace?.partial?
+   "Export round (partial) · JSON":"Export round · JSON");
+  exportLink.type="button";
+  exportLink.title="Download moves, board states and Director decisions. Stored locally; nothing is sent.";
+  exportLink.setAttribute("aria-label","Export this level's round and Director decisions as a local JSON file");
+  exportLink.addEventListener("click",()=>{
+   try{
+    const report=I.last(game,game.roundTrace,I.readProfile(save,G));
+    const data=new Blob([JSON.stringify(report,null,2)],{type:"application/json;charset=utf-8"});
+    const url=URL.createObjectURL(data),a=document.createElement("a");
+    a.href=url;a.download="japanese-harmony-level-"+String(level+1).padStart(3,"0")+"-round.json";
+    a.style.display="none";document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),15000);
+    toast("Round report downloaded. Share the JSON file here for analysis.");
+   }catch(error){
+    console.error("Could not export round",error);
+    toast("The report could not be downloaded on this device.");
+   }
+  });
+  result.append(exportLink);
   if(welcomeOmamori){
    const welcome=make("section","jh-omamori-welcome");
    welcome.append(make("strong","","✿ You can buy your first Omamori!"),

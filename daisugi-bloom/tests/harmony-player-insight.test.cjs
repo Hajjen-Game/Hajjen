@@ -134,6 +134,30 @@ check("Local Goshuincho observation gives evidence, not inferred purchase prefer
  assert.equal(I.readProfile(save,G).personalizationActive,false);
  assert.equal(Object.hasOwn(save.playerInsight,"purchaseIntent"),false);
 });
+check("First clears are not perfectionism; only a real replay with more stars counts",()=>{
+ const state={unlocked:5,bestStars:{3:3,4:2},bestScores:{},
+  fourFamilyStars:{},fourFamilyScores:{}};
+ const round=(level,seed,stars)=>({level,seed,stars:()=>stars,assisted:false,
+  bestChain:1,masterpieces:0,fusions:2});
+ assert(I.recordRound(state,round(3,123,3),0));
+ assert.equal(state.playerInsight.starsImproved,0,"A new 3-star stamp is not a star improvement");
+ assert.equal(state.playerInsight.replays,0);
+ assert(I.recordRound(state,round(3,124,3),3));
+ assert.equal(state.playerInsight.starsImproved,0,"Identical stars on replay are not an improvement");
+ assert.equal(state.playerInsight.replays,1);
+ assert(I.recordRound(state,round(3,125,3),1));
+ assert.equal(state.playerInsight.starsImproved,1,"A genuine 1-to-3-star replay is an improvement");
+ assert.equal(state.playerInsight.replays,2);
+ assert(I.recordRound(state,round(4,126,2),2));
+ assert.equal(state.playerInsight.replays,3,"A cleared level predating Player Insight is a replay");
+ assert.equal(state.playerInsight.starsImproved,1);
+ const signals=I.readProfile(state,G).signals;
+ assert.equal(signals.completion.loggedFirstClears,1);
+ assert.equal(signals.starImprovement.count,1);
+ const legacy=I.profileState({...state.playerInsight,starSignalVersion:undefined,starsImproved:14});
+ assert.equal(legacy.starsImproved,0,"Miscounted old first clears must not inflate preferences");
+ assert.equal(legacy.rounds,4,"Other aggregate progression must survive migration");
+});
 check("Telemetry has bounded length and rejects malformed round snapshots",()=>{
  const g=new R.Game(21,null,{seed:4557});
  const trace=g.roundTrace;

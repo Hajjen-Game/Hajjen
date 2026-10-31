@@ -7,6 +7,7 @@
 const B=root.HarmonyBoardMechanics||(typeof require==="function"?require("./board-mechanics.js"):null);
 const L=root.HarmonyLotusStream||(typeof require==="function"?require("./lotus-stream.js"):null);
 const LR=root.HarmonyLotusRouting||(typeof require==="function"?require("./lotus-routing.js"):null);
+const Insight=root.HarmonyPlayerInsight||(typeof require==="function"?require("./player-insight.js"):null);
 const RECORD_FIELDS=["bestStars","bestScores","bestChain","fourFamilyStars",
  "fourFamilyScores","fourFamilyChain","assistedStars","assistedScores","onboardingSeen"];
 const FAMILIES=new Set(["sakura","lantern","koi","fan","bonsai","sushi",
@@ -26,6 +27,8 @@ function validRun(run){
  if(d.boardMechanics!==undefined){
   try{boardMechanics=B.normalize(d.boardMechanics);}catch{return false;}
  }
+ if(d.roundTrace!==undefined&&(!Insight||!Insight.valid(d.roundTrace)||
+  d.roundTrace.level!==run.level+1||d.roundTrace.seed!==d.seed))return false;
  const terrain=new Set(boardMechanics?.blocked||[]);
  let lotus={starts:[],exits:[]};
  if(d.lotusPrototype!==undefined&&d.lotusPrototype!==null){

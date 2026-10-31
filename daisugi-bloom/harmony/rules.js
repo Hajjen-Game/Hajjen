@@ -11,6 +11,8 @@ const LotusRouting=root.HarmonyLotusRouting||(typeof require==="function"?requir
 if(!LotusRouting)throw Error("Lotus routing prototypes must load before Harmony Rules");
 const Afterglow=root.HarmonyOmamoriAfterglow||(typeof require==="function"?require("./omamori-afterglow.js"):null);
 if(!Afterglow)throw Error("Omamori Afterglow policy must load before Harmony Rules");
+const Insight=root.HarmonyPlayerInsight||(typeof require==="function"?require("./player-insight.js"):null);
+if(!Insight)throw Error("Player Insight telemetry must load before Harmony Rules");
 const N=7, ALL=["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"];
 // Fixed progression: four active families on levels 1–10, five from level
 // 11 onward. All nine families rotate across the introduction. The original
@@ -1138,6 +1140,15 @@ class Game{
   }
   this.level8Revision=this.level===7?1:0;
   this.movesExpansionVersion=1;
+  // Diagnostics fast-restore clones must never write into the player's log.
+  this.traceEnabled=!options?.fastRestore;
+  this.traceCurrentTurn=null;
+  this.roundTrace=previous?
+   Insight.restore(previous.roundTrace,this):Insight.initial(this);
+ }
+ recordOmamoriUse(cardId,before){
+  if(this.traceEnabled&&this.roundTrace)
+   Insight.recordCard(this.roundTrace,this,cardId,before);
  }
  activateOmamoriAfterglow(){
   // Only after a real card has been successfully consumed by the UI.
@@ -1166,6 +1177,8 @@ class Game{
   const baseline=draftRefill(this.board,this.bag,this.families,
    this.nextId,()=>this.fresh());
   const candidates=[baseline];
+  const evaluations=[];
+  let thresholdUsed=null,selectedReason="baseline";
   const fork=(this.seed^Math.imul(this.rolls+1,0x85ebca6b)^
    Math.imul(this.nextId+1,0x9e3779b1))>>>0;
   for(let c=1;c<pacingProposalCount(this.level,this.directorDrought,this.directorMode,this.objectiveDrought);c++){
@@ -1206,7 +1219,11 @@ class Game{
       (endgame?endgame.score*urgency:0)+
       (blocker?blocker.score*(.72+pressure*.28):0)+lotusRoute};
    };
-   let best=metric(baseline.board).score;
+   const firstMetrics=metric(baseline.board);
+   let best=firstMetrics.score;
+   if(this.traceCurrentTurn)evaluations.push({candidate:0,
+    autoMatches:baseline.autoMatches,score:Number(best.toFixed(4)),
+    goodMoves:firstMetrics.goodMoves??null,strongMoves:firstMetrics.strongMoves??null});
    // 2.0 intervenes conservatively (>=1.5 score advantage); it can increase
    // pressure after several turns without evolved-stage progress.
    const threshold=this.directorMode==="v4"?
@@ -1216,12 +1233,35 @@ class Game{
     isV2?(this.directorDrought>=3?1.1:1.5):.8;
    const effectiveThreshold=afterglowRemaining?Math.max(1.75,
     threshold-Afterglow.thresholdReduction(afterglowRemaining)):threshold;
-   for(const candidate of candidates.slice(1)){
-    if(candidate.autoMatches!==0)continue;
-    const value=metric(candidate.board).score;
-    if(value>best+effectiveThreshold){best=value;selected=candidate;}
+   thresholdUsed=effectiveThreshold;
+   for(let i=1;i<candidates.length;i++){
+    const candidate=candidates[i];
+    if(candidate.autoMatches!==0){
+     if(this.traceCurrentTurn)evaluations.push({candidate:i,
+      autoMatches:candidate.autoMatches,excluded:"automatic-match"});
+     continue;
+    }
+    const candidateMetrics=metric(candidate.board),value=candidateMetrics.score;
+    if(this.traceCurrentTurn)evaluations.push({candidate:i,
+     autoMatches:0,score:Number(value.toFixed(4)),
+     goodMoves:candidateMetrics.goodMoves??null,strongMoves:candidateMetrics.strongMoves??null});
+    if(value>best+effectiveThreshold){
+     best=value;selected=candidate;selectedReason="stronger-legal-opportunities";
+    }
    }
   }
+  if(this.traceCurrentTurn)Insight.refill(this.traceCurrentTurn,{
+   source:"Director",mode:this.directorMode,
+   phase:this.pacePhase,drought:this.directorDrought,
+   objectiveDrought:this.objectiveDrought,
+   vacancies,seedRolls:this.rolls,
+   candidateCount:candidates.length,candidates:evaluations,
+   baselineAutoMatches:baseline.autoMatches,
+   chosen:candidates.indexOf(selected),
+   threshold:thresholdUsed,reason:baseline.autoMatches?
+    "preserved-natural-cascade":selectedReason,
+   afterglow:afterglowRemaining
+  });
   this.board=selected.board;
   this.bag=selected.bag;
   this.nextId=selected.nextId;
@@ -1538,6 +1578,7 @@ class Game{
     "Closed garden tile cannot move":isSealed(this.board[a])||isSealed(this.board[b])?
     "Sealed Stone cannot move — fuse beside it":
     "Daruma cannot move — fuse beside it"};
+  const beforeBoard=this.traceEnabled?Insight.snapshot(this):null;
   const armed=resonanceLinks(this.board);
   [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
   if(!scan(this.board).some(g=>g.includes(a)||g.includes(b))){
@@ -1563,6 +1604,10 @@ class Game{
    const beforeBlockerHealth=this.config.goal.type==="daruma"?
     this.daruma.reduce((n,x)=>n+x,0):this.config.goal.type==="sealedStone"?
     this.sealed.reduce((n,x)=>n+x,0):0;
+  if(this.traceEnabled){
+   this.traceCurrentTurn=Insight.beginMove(this,a,b,options?.decisionMs);
+   this.traceCurrentTurn.before=beforeBoard;
+  }
   this.afterglowTurnActive=this.directorMode==="v4"&&this.omamoriAfterglow.remaining>0;
   this.afterglowRefillTried=false;
   this.moves--;
@@ -1596,10 +1641,13 @@ class Game{
     this.pacePhase=pacingPhase(this.paceTimes,this.paceOutcomes,this.directorDrought,major);
    }
   }
+  if(this.traceEnabled&&this.traceCurrentTurn)
+   Insight.finishMove(this.roundTrace,this.traceCurrentTurn,this,events);
+  this.traceCurrentTurn=null;
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {omamoriAfterglow:Afterglow.normalize(this.omamoriAfterglow),lotusPrototype:this.lotusPrototype,lotusVersion:this.lotusVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+ save(){return {roundTrace:this.roundTrace,omamoriAfterglow:Afterglow.normalize(this.omamoriAfterglow),lotusPrototype:this.lotusPrototype,lotusVersion:this.lotusVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate
@@ -1672,6 +1720,6 @@ function bestHint(game){
  return best;
 }
 function wouldMatchAt(board,i,f){let r=Math.floor(i/N),c=i%N,match=(row,col)=>row>=0&&row<N&&col>=0&&col<N&&board[row*N+col]&&board[row*N+col].family===f;return match(r,c-1)&&match(r,c-2)||match(r,c+1)&&match(r,c+2)||match(r,c-1)&&match(r,c+1)||match(r-1,c)&&match(r-2,c)||match(r+1,c)&&match(r+2,c)||match(r-1,c)&&match(r+1,c);}
-const api={Game,omamoriAfterglow:Afterglow,boardMechanics:B,bambooPaths:Bamboo,lotusStream:Lotus,lotusRouting:LotusRouting,levels,levelConfig,endlessConfig,sealedPositions,neighbors8,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,blockerObjectiveMetrics,mistLayout,resonanceLinks};
+const api={Game,playerInsight:Insight,omamoriAfterglow:Afterglow,boardMechanics:B,bambooPaths:Bamboo,lotusStream:Lotus,lotusRouting:LotusRouting,levels,levelConfig,endlessConfig,sealedPositions,neighbors8,legacyScoreConfig:endlessScoreConfig,scoreStars,moveStarTargets,missionStars,levelFamilyCount,pacingProposalCount,families:ALL,levelFamilies:LEVEL_FAMILIES,activeFamilies,scan,neighbors,validSwaps,directedHint,bestHint,startBoard,fairShuffle,opportunityMetrics,opportunityMetricsV2,pacingPhase,pacingOpportunityScore,objectiveAwarenessMetrics,endgameMistMetrics,blockerObjectiveMetrics,mistLayout,resonanceLinks};
 root.HarmonyRules=api;if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

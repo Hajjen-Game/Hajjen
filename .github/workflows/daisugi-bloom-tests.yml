@@ -24,6 +24,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-identity-prototypes.test.cjs
       - name: Moon Mirrors 1.2 · Fusion Echo routing, obstacles, stage-five chains and save safety
         run: node daisugi-bloom/tests/harmony-moon-mirrors.test.cjs
+      - name: Wind Garden 1.0 · real scheduled row movement, cascades, safeguards and save
+        run: node daisugi-bloom/tests/harmony-wind-garden.test.cjs
       - name: Bamboo Paths 1.0 · ten authored levels, chapter geometry, hints and save migration
         run: node daisugi-bloom/tests/harmony-bamboo-paths.test.cjs
       - name: Lotus Stream 1.0 · seeded drop-and-collection pilot, saves and legacy safety
@@ -107,6 +109,7 @@ jobs:
           node --check daisugi-bloom/harmony/board-mechanics.js
           node --check daisugi-bloom/harmony/identity-prototypes.js
           node --check daisugi-bloom/harmony/moon-mirrors.js
+          node --check daisugi-bloom/harmony/wind-garden.js
           node --check daisugi-bloom/harmony/bamboo-paths.js
           node --check daisugi-bloom/harmony/lotus-stream.js
           node --check daisugi-bloom/harmony/lotus-routing.js
@@ -154,6 +157,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
       - name: Moon Mirrors 1.2 · six previews, Fusion Echo chain and 390px save isolation
         run: node daisugi-bloom/tests/harmony-moon-mirrors-browser.mjs
+      - name: Wind Garden 1.0 · 390px real row shift, next-wind forecast and save isolation
+        run: node daisugi-bloom/tests/harmony-wind-garden-browser.mjs
       - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion
         run: node daisugi-bloom/tests/harmony-lotus-browser.mjs
       - name: Omamori 6.1 · washi HUD, inset meter, framed button and red Sealbreakers

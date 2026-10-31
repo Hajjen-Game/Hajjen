@@ -61,7 +61,7 @@ check("reflected Sealed Stone receives exactly one damage",()=>{
 });
 check("mirror overlay survives save/restore without changing board, RNG, or results",()=>{
  const game=preview("chain"),saved=JSON.parse(JSON.stringify(game.save()));
- const restored=new R.Game(2,saved,{fastRestore:true});
+ const restored=new R.Game(2,saved); // Real resume, including identical round telemetry.
  assert.deepEqual(restored.moonMirrors,game.moonMirrors);
  assert.deepEqual(restored.config.goal,game.config.goal);
  assert.equal(restored.moonMirrorPreview,"chain");

@@ -281,7 +281,7 @@ try{
    });
   });
   assert(tapFeedback.every(({found,color})=>found&&
-   /^(transparent|rgba\\(0, 0, 0, 0\\))$/.test(color)),
+   /^(transparent|rgba\(0, 0, 0, 0\))$/.test(color)),
    "No blue Android tap flash is allowed over Goshuincho cards or controls: "+
     JSON.stringify(tapFeedback));
   const initial=await journal.evaluate(()=>({

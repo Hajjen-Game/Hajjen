@@ -93,7 +93,7 @@ function recordCard(trace,game,cardId,before,refills=[],events=[]){
   events:events.map(eventSummary),
   afterglow:game.omamoriAfterglow?.remaining||0});
 }
-function last(game,trace,profile){
+function last(game,trace,profile,intentAwareness=null){
  return {format:"japanese-harmony-round",version:VERSION,
   privacy:"Player-exported locally. No account, device ID, wallet balance or purchase history.",
   level:game.level+1,levelName:game.config.name,
@@ -102,7 +102,7 @@ function last(game,trace,profile){
    score:game.score,stars:game.assisted?1:game.stars(),
    assisted:!!game.assisted,movesUsed:game.config.moves-game.moves,
    movesRemaining:game.moves,progress:game.progress(),target:game.target()},
-  playerInsight:profile,round:JSON.parse(JSON.stringify(trace))};
+  playerInsight:profile,intentAwareness,round:JSON.parse(JSON.stringify(trace))};
 }
 const PROFILE_MAX=10000,STAR_SIGNAL_VERSION=2;
 const profileDefault=()=>({version:VERSION,starSignalVersion:STAR_SIGNAL_VERSION,

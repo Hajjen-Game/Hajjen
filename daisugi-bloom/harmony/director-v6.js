@@ -154,7 +154,8 @@ function choose(baseline,alternatives,scoreFn,context,validSwaps,scan){
      m.legal===best.legal&&v>bestScore+1.5)){
    selected=x;best=m;bestScore=v;reason="health-recovery";continue;
   }
-  if(best.legal<=4&&m.legal>=best.legal+2&&v>=bestScore-4){
+  if(best.legal<=4&&m.legal>best.legal&&
+   v>=bestScore-(m.legal>=best.legal+2?3:1.5)){
    selected=x;best=m;bestScore=v;reason="proactive-mobility";continue;
   }
   if(best.legal<=2&&m.legal>best.legal){

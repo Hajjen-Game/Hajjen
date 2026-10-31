@@ -896,6 +896,14 @@ class Game{
  constructor(index=0,previous=null,options=null){
   this.level=Number.isInteger(index)&&index>=0?index:0;
   this.config=levelConfig(this.level);
+  // Preview the REAL authored levels 51–60, with original layouts, objectives,
+  // refill and gravity. Only the UI rewards/progress are disabled for previews.
+  this.bambooPreview=options?.bambooPreview===true||previous?.bambooPreview===true;
+  if(this.bambooPreview){
+   if(this.level<50||this.level>59||options?.moonMirrorPreview||
+    previous?.moonMirrorPreview||options?.windGardenPreview||previous?.windGardenPreview)
+    throw Error("Bamboo Paths preview must use a real chapter level 51–60");
+  }
   this.windGardenPreview=options?.windGardenPreview||previous?.windGardenPreview||null;
   if(this.windGardenPreview){
    if(this.level!==2||options?.moonMirrorPreview||previous?.moonMirrorPreview)
@@ -1867,6 +1875,7 @@ class Game{
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
  save(){return {roundTrace:this.roundTrace,
+  bambooPreview:this.bambooPreview,
   windGardenPreview:this.windGardenPreview,
   windGarden:this.windGarden?Wind.normalize(this.windGarden):null,
   windGardenVersion:this.windGarden?Wind.VERSION:0,

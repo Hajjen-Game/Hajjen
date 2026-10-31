@@ -98,6 +98,27 @@ check("Omamori effects and Afterglow are represented in the exported round",()=>
  assert.equal(exportData.privacy.includes("No account"),true);
  assert.equal(Object.hasOwn(exportData,"balance"),false);
 });
+check("Omamori-made cascades are traced with their real refill candidates",()=>{
+ const g=new R.Game(21,null,{seed:2323,directorMode:"v4"});
+ const at=g.board.findIndex(p=>p.stage===1);
+ g.board[at].stage=4;
+ const before=I.snapshot(g);
+ g.beginOmamoriTrace();
+ const effect=P.apply(g,"sakura",at);
+ assert(effect.ok);
+ assert(g.activateOmamoriAfterglow());
+ g.recordOmamoriUse("sakura",before,effect.events);
+ const entry=g.roundTrace.cards[0];
+ assert(entry.events.some(x=>x.type==="power"));
+ assert(entry.events.some(x=>x.type==="pulse"||x.type==="hero"));
+ assert(entry.refills.length>=1,"A card-triggered fusion should record the Director refill");
+ assert.equal(entry.refills[0].candidateCount>=1,true);
+ assert.equal(g.traceCurrentTurn,null);
+ const g2=new R.Game(21,null,{seed:3323,directorMode:"v4"});
+ g2.beginOmamoriTrace();
+ g2.discardOmamoriTrace();
+ assert.equal(g2.roundTrace.cards.length,0,"Cancelled card must not appear");
+});
 check("Local Goshuincho observation gives evidence, not inferred purchase preferences",()=>{
  const save={unlocked:26,bestStars:{21:2,22:3},bestScores:{21:2500},
   fourFamilyStars:{0:3},fourFamilyScores:{}};

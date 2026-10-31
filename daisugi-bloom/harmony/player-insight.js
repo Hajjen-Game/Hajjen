@@ -50,10 +50,10 @@ function refill(turn,data){
 }
 function eventSummary(event){
  const kept={type:event.type};
- for(const key of ["round","wave","scoreDelta","chain","unused","from","to"]){
+ for(const key of ["round","wave","scoreDelta","chain","unused","from","to","source","mirrorAt"]){
   if(Number.isFinite(event[key]))kept[key]=event[key];
  }
- for(const key of ["positions","clearedMist","mistTargets","darumaTargets","stoneTargets","mirrorTargets"]){
+ for(const key of ["positions","clearedMist","mistTargets","darumaTargets","stoneTargets","mirrorTargets","visualOnlyTargets"]){
   if(Array.isArray(event[key]))kept[key]=event[key].slice(0,49).map(x=>
    typeof x==="number"?x:{at:x.at,to:x.to,from:x.from,via:x.via,source:x.source}).slice(0,49);
  }
@@ -64,6 +64,7 @@ function eventSummary(event){
  if(Array.isArray(event.targets))kept.targets=event.targets.slice(0,49).map(t=>({
   from:t.from,to:t.to,stage:t.stage,via:t.via,source:t.source
  }));
+ if(typeof event.direction==="string"&&["up","right","down","left"].includes(event.direction))kept.direction=event.direction;
  if(Array.isArray(event.reflections))kept.reflections=event.reflections.slice(0,16).map(r=>({from:r.from,to:r.to,direction:r.direction,source:r.source}));
  if(Array.isArray(event.delivered))kept.delivered=event.delivered.slice(0,8);
  // An identical snapshot must survive JSON save/reload. Omitting optional

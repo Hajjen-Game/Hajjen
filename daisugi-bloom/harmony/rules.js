@@ -982,6 +982,16 @@ class Game{
    }
    this.board=initial;
   }
+  if(!previous&&!this.moonMirrorPreview&&this.moonMirrors.length){
+   // Future opt-in custom layouts use the same complete fixed mirror
+   // objects, never an overlay hiding a normal family treasure.
+   for(let tries=0;tries<150;tries++){
+    Mirror.install(this.board,this.moonMirrors);
+    if(!scan(this.board).length&&validSwaps(this.board).length>=3)break;
+    if(tries===149)throw Error("Mirror layout has no fair opening");
+    this.board=startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics);
+   }
+  }
   if(!previous&&this.moonMirrorPreview){
    // Fixed mirror fixtures replace ordinary family pieces. A deliberate,
    // legal opening at 17 -> 24 creates the first masterpiece and reflection.
@@ -1147,7 +1157,7 @@ class Game{
    this.random=prng(this.seed);for(let i=0;i<this.rolls;i++)this.random();this.board=clone(previous.board);
    // Old nonpersistent mirror preview snapshots may have family tiles
    // underneath the previous overlay. Only preview runs can be converted.
-   if(this.moonMirrorPreview){
+   if(this.moonMirrors.length){
     if((previous.moonMirrorVersion||0)<Mirror.VERSION)
      Mirror.install(this.board,this.moonMirrors);
     for(const {at} of this.moonMirrors)if(!isMoonMirror(this.board[at]))
@@ -1715,7 +1725,7 @@ class Game{
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
  save(){return {roundTrace:this.roundTrace,moonMirrorPreview:this.moonMirrorPreview,
-  moonMirrorVersion:this.moonMirrorPreview?Mirror.VERSION:0,
+  moonMirrorVersion:this.moonMirrors.length?Mirror.VERSION:0,
   moonMirrors:this.moonMirrors.map(x=>({...x})),omamoriAfterglow:Afterglow.normalize(this.omamoriAfterglow),lotusPrototype:this.lotusPrototype,lotusVersion:this.lotusVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for

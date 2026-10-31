@@ -2345,6 +2345,12 @@ try{
   assert.equal(exported.report.round.moves[0].events.some(e=>e.type==="fusion"),true);
   assert.equal(exported.report.round.moves[0].refills.length>0,true);
   assert.equal(exported.report.playerInsight.personalizationActive,false);
+  assert.equal(exported.report.intentAwareness?.round?.status,"observational-only");
+  assert.equal(exported.report.intentAwareness?.round?.friction?.classification,"none",
+   "A normal tutorial win must not imply player frustration");
+  assert.equal(exported.report.intentAwareness?.profile?.personalizationActive,false);
+  assert.equal(exported.report.intentAwareness?.profile?.affectsDifficulty,false);
+  assert.equal(exported.report.intentAwareness?.profile?.affectsOmamori,false);
   assert(exported.linkText.includes("Export round"));
   assert(Number.parseFloat(exported.css)<=13,"Export must stay visually understated");
   assert.equal(await clarity.$eval(".victory-reward-copy span",e=>e.textContent),

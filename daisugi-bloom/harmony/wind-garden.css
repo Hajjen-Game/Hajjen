@@ -129,3 +129,125 @@ body.wind-garden-preview .game-view .wind-sweep-gust::after{
 body.harmony-reduced-motion.wind-garden-preview .game-view .wind-sweep-row{
  display:none!important;
 }
+
+/* WIND GARDEN ANIMATION 1.1 — permanent moving atmosphere.
+   The indicated row feels windy BEFORE the player acts. Like the existing
+   Mist wisps, two soft pearly cloud fronts drift continuously. BOTH travel
+   in the announced direction; they never reverse or alternate. They share
+   one persistent, non-interactive layer and survive board re-renders. */
+body.wind-garden-preview .game-view .fusion-fx-layer.wind-ambient-layer{
+ z-index:7;
+ overflow:visible;
+ contain:style;
+ pointer-events:none;
+}
+body.wind-garden-preview .game-view .wind-ambient-row{
+ position:absolute;
+ display:block;
+ overflow:hidden;
+ pointer-events:none;
+ border-radius:6px;
+ isolation:isolate;
+}
+body.wind-garden-preview .game-view .wind-ambient-haze{
+ position:absolute;
+ inset:0;
+ display:block;
+ pointer-events:none;
+ opacity:.72;
+ border-radius:6px;
+ background:
+  linear-gradient(180deg,transparent 0%,
+   rgba(225,252,250,.15) 12%,rgba(213,244,251,.22) 49%,
+   rgba(215,227,251,.12) 84%,transparent 100%),
+  radial-gradient(ellipse 75% 68% at 52% 53%,
+   rgba(238,255,255,.17),transparent 99%);
+}
+body.wind-garden-preview .game-view .wind-ambient-wisp{
+ position:absolute;
+ display:block;
+ top:0;
+ left:0;
+ width:60%;
+ height:100%;
+ pointer-events:none;
+ opacity:0;
+ border-radius:45%;
+ background:
+  radial-gradient(ellipse 68% 37% at 37% 32%,
+   rgba(246,255,254,.65) 0%,rgba(218,248,249,.34) 53%,transparent 97%),
+  radial-gradient(ellipse 67% 35% at 54% 68%,
+   rgba(230,233,255,.53) 0%,rgba(210,234,252,.24) 57%,transparent 98%);
+ will-change:transform,opacity;
+ animation-timing-function:linear;
+ animation-iteration-count:infinite;
+ animation-fill-mode:both;
+}
+body.wind-garden-preview .game-view .wind-ambient-wisp-near{
+ animation-duration:3.6s;
+ animation-delay:-.8s;
+}
+body.wind-garden-preview .game-view .wind-ambient-wisp-far{
+ top:-12%;height:125%;
+ width:57%;
+ opacity:0;
+ animation-duration:4.6s;
+ animation-delay:-2.7s;
+ background:
+  radial-gradient(ellipse 66% 34% at 43% 36%,
+   rgba(252,255,255,.49),rgba(215,243,250,.28) 55%,transparent 97%),
+  radial-gradient(ellipse 71% 36% at 52% 70%,
+   rgba(232,236,254,.49),rgba(214,245,252,.18) 60%,transparent 98%);
+}
+body.wind-garden-preview .game-view .wind-ambient-row[data-direction="right"] .wind-ambient-wisp{
+ animation-name:wind-ambient-right;
+}
+body.wind-garden-preview .game-view .wind-ambient-row[data-direction="left"] .wind-ambient-wisp{
+ animation-name:wind-ambient-left;
+}
+/* Percentages are relative to each ~60%-width wisp. Both endpoints are
+   outside the clipped seven-cell band; the invisible reset never reads as
+   wind blowing back in the opposite direction. */
+@keyframes wind-ambient-right{
+ 0%{transform:translate3d(-140%,0,0);opacity:0}
+ 13%{opacity:.78}
+ 78%{opacity:.79}
+ 100%{transform:translate3d(270%,0,0);opacity:0}
+}
+@keyframes wind-ambient-left{
+ 0%{transform:translate3d(270%,0,0);opacity:0}
+ 13%{opacity:.78}
+ 78%{opacity:.79}
+ 100%{transform:translate3d(-140%,0,0);opacity:0}
+}
+/* A real row shift briefly strengthens and accelerates the EXISTING wind.
+   The stronger one-shot gust from Animation 1.0 is layered above it. */
+body.wind-garden-preview .game-view .wind-ambient-row.wind-ambient-burst .wind-ambient-wisp{
+ animation-duration:1.0s;
+}
+body.wind-garden-preview .game-view .wind-ambient-row.wind-ambient-burst .wind-ambient-haze{
+ opacity:1;
+ background:
+  linear-gradient(180deg,transparent,
+   rgba(240,255,255,.28) 19%,rgba(226,249,255,.35) 53%,
+   rgba(227,233,253,.24) 85%,transparent);
+}
+body.wind-garden-preview .game-view .wind-sweep-layer .wind-sweep-gust{
+ background:
+  radial-gradient(ellipse 57% 34% at 39% 27%,
+   rgba(255,255,255,.85),rgba(233,255,255,.55) 48%,transparent 96%),
+  radial-gradient(ellipse 74% 36% at 52% 65%,
+   rgba(240,241,255,.69),rgba(217,242,255,.40) 54%,transparent 98%),
+  radial-gradient(ellipse 63% 64% at 49% 49%,
+   rgba(229,255,250,.37),transparent 100%);
+}
+/* Player and OS reduce-motion preferences take priority. Keep a soft
+   static row tint, but never run a never-ending animation when reduced. */
+@media(prefers-reduced-motion:reduce){
+ body.wind-garden-preview .game-view .wind-ambient-wisp{
+  display:none!important;animation:none!important;
+ }
+}
+body.harmony-reduced-motion.wind-garden-preview .game-view .wind-ambient-wisp{
+ display:none!important;animation:none!important;
+}

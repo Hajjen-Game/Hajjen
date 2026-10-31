@@ -1369,6 +1369,7 @@ class Game{
  resolve(preferred,armedLinks=[],alternate=-1){
   const foursBefore=this.fours;
   const darumaHitThisMove=new Set(),stoneHitThisMove=new Set(),pendingAwakenings=[];
+  const mirrorResonatedThisMove=new Set(),mirrorResonanceTargetsThisMove=new Set();
   const hitDaruma=(positions,via,direct=false)=>{
    const hits=[];
    const candidates=direct?new Set(positions):new Set(positions.flatMap(at=>neighbors(at)));
@@ -1496,6 +1497,50 @@ class Game{
       anchorId:echoCandidate.link.anchorId,partnerId:echoCandidate.link.partnerId,
       scoreDelta:points
      }));
+    }
+   }
+   // Moon Mirrors 1.2: a fusion triggers only when its SURVIVOR cell
+   // touches a fixed mirror. The directional reflection is a single remote
+   // hit, never another reflection by itself. Each mirror and destination
+   // is limited to once per player move (including falling cascade waves).
+   // Stage-five upgrades join the authentic Harmony Pulse below.
+   if(this.moonMirrors.length){
+    const echoes=Mirror.planFusionResonance(records,this.moonMirrors,{
+     blocked:this.boardMechanics.blocked,
+     used:[...mirrorResonatedThisMove],targeted:[...mirrorResonanceTargetsThisMove]});
+    for(const echo of echoes){
+     mirrorResonatedThisMove.add(echo.mirrorAt);
+     mirrorResonanceTargetsThisMove.add(echo.to);
+     const piece=this.board[echo.to];
+     const ray={from:echo.mirrorAt,to:echo.to,via:"fusion-mirror",source:echo.from};
+     const targets=[],mistTargets=[],darumaTargets=[],stoneTargets=[],visualOnlyTargets=[];
+     if(isDaruma(piece)){
+      darumaTargets.push({...ray,alreadyHit:darumaHitThisMove.has(echo.to)});
+     }else if(isSealed(piece)){
+      stoneTargets.push({...ray,alreadyHit:stoneHitThisMove.has(echo.to)});
+     }else if(!piece||isFixed(piece)||isLotusSeed(piece)||piece.stage>=5||
+      indirect.has(echo.to)){
+      if(this.mist[echo.to])mistTargets.push({...ray,empty:!piece});
+      else visualOnlyTargets.push({...ray,empty:!piece});
+     }else if(this.grow(echo.to,created,true)){
+      indirect.add(echo.to);
+      targets.push({...ray,stage:this.board[echo.to].stage});
+     }
+     // Mist at a fusion-survivor destination is handled separately above;
+     // here Mist clears on the actual reflected target, even if empty.
+     const clearedMist=this.clearMist([
+      ...targets.map(x=>x.to),...mistTargets.map(x=>x.to)]);
+     const scoreDelta=targets.length*50;
+     this.score+=scoreDelta;
+     events.push(this.frame("mirror-resonance",{
+      source:echo.from,mirrorAt:echo.mirrorAt,direction:echo.direction,
+      reflections:[{from:echo.mirrorAt,to:echo.to,direction:echo.direction,source:echo.from}],
+      mirrorTargets:[{from:echo.from,to:echo.mirrorAt}],
+      targets,mistTargets,darumaTargets,stoneTargets,visualOnlyTargets,
+      clearedMist,scoreDelta,round:waveRound
+     }));
+     if(darumaTargets.length)hitDaruma([echo.to],"mirror-resonance",true);
+     if(stoneTargets.length)hitStone([echo.to],"mirror-resonance",true);
     }
    }
    // Bonus follows all direct fusions, never the cells that have just been removed.

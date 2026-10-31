@@ -1,0 +1,30 @@
+/* Moon Mirrors 1.0 – visual language for stationary, directional overlays.
+ * Entirely pointer-transparent. No visual changes outside explicit previews.
+ */
+.moon-mirror-tile{isolation:isolate}
+.moon-mirror-glyph{
+ position:absolute;z-index:5;right:5%;top:5%;display:grid;place-items:center;
+ width:29%;height:29%;max-width:25px;max-height:25px;
+ border:1px solid rgba(255,244,210,.92);border-radius:7px;
+ color:#fff9e4;background:linear-gradient(145deg,rgba(122,151,172,.9),rgba(57,74,111,.94));
+ box-shadow:0 0 0 1px rgba(59,74,93,.52),0 0 9px rgba(220,231,243,.65),inset 0 1px 2px rgba(255,255,255,.65);
+ font-size:clamp(11px,3.3vw,18px);line-height:1;font-weight:750;
+ text-shadow:0 1px 2px #283a55;pointer-events:none;user-select:none;
+}
+.moon-mirror-tile::after{
+ content:"";position:absolute;inset:2px;z-index:2;pointer-events:none;border-radius:6px;
+ box-shadow:inset 0 0 0 1px rgba(220,234,241,.28);
+}
+.pulse-trace.moon-mirror-trace{
+ height:4px;background:linear-gradient(90deg,rgba(194,225,251,.5),rgba(249,250,235,.98));
+ box-shadow:0 0 9px rgba(212,238,255,.9),0 0 17px rgba(219,235,255,.58);
+}
+.pulse-dot.moon-mirror-dot{background:#f1fcff;box-shadow:0 0 10px #e1f6ff,0 0 18px #effcff;}
+.mirror-preview-result{font-weight:650;color:var(--jh-ink,#564532)}
+body.moon-mirror-preview #omamoriPowerBar{display:none!important}
+@media(prefers-reduced-motion:reduce){
+ .pulse-trace.moon-mirror-trace,.pulse-dot.moon-mirror-dot{transition:none!important;animation:none!important}
+}
+@media(max-width:370px){
+ .moon-mirror-glyph{border-radius:4px;max-height:18px;max-width:18px;font-size:12px}
+}

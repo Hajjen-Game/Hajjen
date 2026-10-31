@@ -1402,7 +1402,7 @@ class Game{
  // Fusion Destination Control 1.0: player-driven first-wave matches land on
  // the swapped destination when it belongs to a match. A match formed only
  // at the swapped source lands there. Cascades keep the strongest-stage rule.
- resolve(preferred,armedLinks=[],alternate=-1){
+ resolve(preferred,armedLinks=[],alternate=-1,mechanicOptions=null){
   const foursBefore=this.fours;
   const darumaHitThisMove=new Set(),stoneHitThisMove=new Set(),pendingAwakenings=[];
   const mirrorResonatedThisMove=new Set(),mirrorResonanceTargetsThisMove=new Set();
@@ -1475,8 +1475,19 @@ class Game{
    return newStageFive;
   };
   let events=[],waveRound=0,echoAwarded=false;
-  while(waveRound++<35){
+  // Mechanic Balance 1.0: the base game still permits all 35 normal
+  // cascade rounds. A Wind Garden shift may cause ONE extra automatic
+  // fusion GROUP, not start another entire cascade machine.
+  // Other matching groups remain visible as strategic opportunities for
+  // the player's next legal move; do not silently re-roll or reshuffle
+  // existing high-stage objects to conceal them.
+  const windLimited=mechanicOptions?.windLimited===true;
+  while(waveRound++<(windLimited?1:35)){
    let groups=scan(this.board);if(!groups.length)break;
+   if(windLimited){
+    const row=mechanicOptions.row;
+    groups=[groups.find(g=>g.some(at=>Math.floor(at/N)===row))||groups[0]];
+   }
    let created=new Set(),indirect=new Set(),records=[],shapeCount=0,earned=0;
    // Only the first player-triggered wave may consume a pre-existing link.
    // Resolve against immutable IDs before any matched piece is removed.
@@ -1540,10 +1551,13 @@ class Game{
    // hit, never another reflection by itself. Each mirror and destination
    // is limited to once per player move (including falling cascade waves).
    // Stage-five upgrades join the authentic Harmony Pulse below.
-   if(this.moonMirrors.length){
+   // Only the fusion that the player created initially may activate
+   // Mirror Echo. Automatic cascades and Wind never amplify it again.
+   if(this.moonMirrors.length&&waveRound===1&&!windLimited){
     const echoes=Mirror.planFusionResonance(records,this.moonMirrors,{
      blocked:this.boardMechanics.blocked,
-     used:[...mirrorResonatedThisMove],targeted:[...mirrorResonanceTargetsThisMove]});
+     used:[...mirrorResonatedThisMove],targeted:[...mirrorResonanceTargetsThisMove]})
+      .slice(0,1); // exactly one Fusion Echo per accepted player move
     for(const echo of echoes){
      mirrorResonatedThisMove.add(echo.mirrorAt);
      mirrorResonanceTargetsThisMove.add(echo.to);
@@ -1781,7 +1795,8 @@ class Game{
       afterMove:turns,moved:shift.moved}));
      // The scheduled shift may itself form real matches. They cascade with
      // existing gravity, scoring, Pulse, goal and Director contracts.
-     if(scan(this.board).length)events.push(...this.resolve(-1));
+     if(scan(this.board).length)events.push(...this.resolve(-1,[],-1,
+      {windLimited:true,row:next.row}));
      else if(!validSwaps(this.board).length){
       this.board=fairShuffle(this.board,()=>this.fresh());
       events.push(this.frame("shuffle"));

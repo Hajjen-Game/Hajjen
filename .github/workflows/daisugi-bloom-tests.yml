@@ -152,6 +152,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-tutorial-help-browser.mjs
       - name: Run Japanese Harmony mobile smoke
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
+      - name: Moon Mirrors 1.0 · 390px playable preview, reflected chain and save isolation
+        run: node daisugi-bloom/tests/harmony-moon-mirrors-browser.mjs
       - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion
         run: node daisugi-bloom/tests/harmony-lotus-browser.mjs
       - name: Omamori 6.1 · washi HUD, inset meter, framed button and red Sealbreakers

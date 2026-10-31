@@ -10,6 +10,7 @@ const stages=["","Bud / beginning","Growing","Developed","Near masterpiece","Mas
 const KEY="japanese-harmony-puzzle-v2";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false,playMode:"auto",fourFamilyScores:{},fourFamilyStars:{},fourFamilyChain:{}};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
+let moonMirrorPreview=null; // Deliberate, unranked, unsaved sandbox on the real board.
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
@@ -272,7 +273,7 @@ function showMenu(){
  if(busy)return;
  disarmDecisionClock();clearIdleHint();
  resetResonanceVisuals();clearScoreFx();clearPraise();
- saveRun();document.body.classList.remove("harmony-playing");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
+ saveRun();moonMirrorPreview=null;document.body.classList.remove("harmony-playing","moon-mirror-preview");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 // Primary level selection is the book. Keep the landing menu accessible for
 // daily Omikuji, Omamori and Game Dev; leaving a run opens Goshuincho directly.
@@ -683,7 +684,9 @@ const normalOmamori=id=>!moonIds.includes(id);
 const normalUses=()=>Math.min(2,game?.blessingUses||0);
 function renderPowerBar(){
  const bar=$("omamoriPowerBar");if(!bar)return;
- bar.replaceChildren();bar.hidden=false;
+ bar.replaceChildren();
+ if(moonMirrorPreview){bar.hidden=true;return;} // Never consume actual cards during an experiment.
+ bar.hidden=false;
  // Keep the inventory quantity immediately after お守り. The full plaque
  // is passive artwork; only the clearly framed action is clickable.
  const heading=goshuinNode("div","omamori-hud-heading");
@@ -1085,16 +1088,21 @@ async function celebrateCollection(evt){
  }
  await Promise.all(tasks);
 }
-function saveRun(){if(game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
-function startLevel(i,resume=false){
+function saveRun(){if(!moonMirrorPreview&&game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
+function startLevel(i,resume=false,mirrorScenario=null){
  if(busy)return;
+ moonMirrorPreview=mirrorScenario;document.body.classList.toggle("moon-mirror-preview",!!mirrorScenario);
  powerSelection=null;powerTargets=[];
  disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
  resetResonanceVisuals();clearPraise();
  level=i;powerSelection=null;powerTargets=[];moonOfferShown=false;rewardStarsAtLevelStart=G.archivedStars(save,i);
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
- game=new R.Game(i,data,data?null:{directorMode:save.playMode==="auto"?(i>=9?"v4":"v3"):save.playMode});chooseFestivalBackground(resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
+ game=new R.Game(i,mirrorScenario?null:data,mirrorScenario?
+  {directorMode:"v4",moonMirrorPreview:mirrorScenario,seed:20261031}:
+  data?null:{directorMode:save.playMode==="auto"?(i>=9?"v4":"v3"):save.playMode});
+ chooseFestivalBackground(mirrorScenario?save.lastBackground:
+  resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="LEVEL "+(i+1);
  $("goalLabel").textContent=game.goalText();
  $("goalLabel").title=game.config.intro||"";
@@ -1111,7 +1119,7 @@ function startLevel(i,resume=false){
  }
  prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();updateSpiritBadge();renderPowerBar();saveRun();armDecisionClock();restartIdleHint();
  // One-time, player-acknowledged illustrated lesson, including resumed unread runs.
- offerFirstLesson(i);
+ if(!mirrorScenario)offerFirstLesson(i);
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
@@ -1313,11 +1321,20 @@ function renderBoard(board,highlight,effect){
    (Math.floor(i/7)+1)+"-"+(i%7+1):
    piece?names[piece.family]+", tier "+piece.stage+", tile "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta";
-  const accessible=label+(misted?", magisk dimma":"");
+  const mirror=game?.moonMirrors?.find(m=>m.at===i);
+  const accessible=label+(misted?", magisk dimma":"")+
+   (mirror?", Moon Mirror reflecting "+mirror.direction:"");
   if(btn.dataset.mist!==(misted?"1":"0")||btn.getAttribute("aria-label")!==accessible){
    btn.dataset.mist=misted?"1":"0";
    btn.setAttribute("aria-label",accessible);
   }
+  let glyph=btn.querySelector(":scope > .moon-mirror-glyph");
+  if(mirror&&!glyph){
+   glyph=document.createElement("span");glyph.className="moon-mirror-glyph";
+   glyph.setAttribute("aria-hidden","true");btn.append(glyph);
+  }
+  if(mirror){glyph.textContent=({up:"↑",right:"→",down:"↓",left:"←"})[mirror.direction];}
+  else if(glyph)glyph.remove();
   const exit=!!game?.lotus?.exits?.includes(i);
   let gate=btn.querySelector(":scope > .lotus-collector");
   if(exit&&!gate){
@@ -1325,7 +1342,7 @@ function renderBoard(board,highlight,effect){
    const ring=document.createElement("span");ring.className="lotus-collector-ring";gate.append(ring);
    btn.append(gate);
   }else if(!exit&&gate)gate.remove();
-  const cls="tile"+(lotus?" lotus-seed-tile":"")+(exit?" lotus-exit-tile":"")+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(terrain?" terrain-garden-tile":"")+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+(omamoriPreview?.has(i)?" omamori-gold-target":"")+
+  const cls="tile"+(lotus?" lotus-seed-tile":"")+(exit?" lotus-exit-tile":"")+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(terrain?" terrain-garden-tile":"")+(mirror?" moon-mirror-tile":"")+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+(omamoriPreview?.has(i)?" omamori-gold-target":"")+
    (omamoriAnchor===i?" omamori-gold-anchor":"")+
    (highlighted&&highlighted.has(i)?" "+flash:"")+
    (resonance.anchors.has(i)?" resonance-anchor":"")+
@@ -2131,7 +2148,8 @@ function pulseBeams(evt){
   const dx=b.left-a.left,dy=b.top-a.top;
   const sx=a.left-layer.rect.left+a.width*.5,sy=a.top-layer.rect.top+a.height*.5;
   const angle=Math.atan2(dy,dx),dist=Math.hypot(dx,dy);
-  const trace=document.createElement("span");trace.className="pulse-trace";
+  const trace=document.createElement("span");
+  trace.className="pulse-trace"+(target.via==="mirror"?" moon-mirror-trace":"");
   trace.style.left=sx+"px";trace.style.top=sy+"px";trace.style.width=dist+"px";
   layer.node.appendChild(trace);
   tasks.push(animateNode(trace,[
@@ -2139,7 +2157,8 @@ function pulseBeams(evt){
    {transform:"rotate("+angle+"rad) scaleX(.48)",opacity:1,offset:.48},
    {transform:"rotate("+angle+"rad) scaleX(1)",opacity:.18,offset:1}
   ],travelMs,{easing:"cubic-bezier(.2,.4,.5,1)"}));
-  const dot=document.createElement("span");dot.className="pulse-dot";
+  const dot=document.createElement("span");
+  dot.className="pulse-dot"+(target.via==="mirror"?" moon-mirror-dot":"");
   dot.style.left=(sx-6)+"px";dot.style.top=(sy-6)+"px";
   layer.node.appendChild(dot);
   tasks.push(animateNode(dot,[
@@ -2481,9 +2500,47 @@ function makeRoundExport(make){
  });
  return exportLink;
 }
+function showMoonMirrorPreviewResult(){
+ // Preview does not grant achievements, coins, stars or purchase prompts.
+ clearIdleHint();disarmDecisionClock();clearScoreFx();
+ const won=game.complete;
+ $("modalEyebrow").textContent="MOON MIRRORS · UNRANKED PREVIEW";
+ $("modalTitle").textContent=won?"Reflection complete!":"Moonlight fades";
+ const content=$("modalContent");content.replaceChildren();
+ const p=document.createElement("p");
+ p.textContent=won?"You completed the reflection challenge. No progression or rewards were changed.":
+  "Try another approach: your own swaps determine whether the mirror reaches its target.";
+ content.append(p);
+ const summary=document.createElement("p");summary.className="mirror-preview-result";
+ summary.textContent="Goal "+game.progress()+"/"+game.target()+" · "+game.masterpieces+
+  " masterpieces · "+game.pulseHits+" Pulse upgrades · "+game.score+" points.";
+ content.append(summary);
+ const make=(tag,cls,t)=>{const el=document.createElement(tag);el.className=cls;el.textContent=t;return el;};
+ content.append(makeRoundExport(make));
+ const actions=$("modalActions");actions.replaceChildren();
+ modalButton(actions,"Retry this reflection","primary",()=>startLevel(2,false,moonMirrorPreview));
+ modalButton(actions,"Choose another preview","secondary",showMoonMirrorPreviewChooser);
+ modalButton(actions,"Back to main menu","secondary",showMenu);
+ $("modal").hidden=false;
+}
+function showMoonMirrorPreviewChooser(){
+ if(busy)return;
+ $("modalEyebrow").textContent="GAME DEV · MECHANICS PREVIEW";
+ $("modalTitle").textContent="Moon Mirrors 1.0";
+ const content=$("modalContent");content.replaceChildren();
+ const intro=document.createElement("p");
+ intro.textContent="Try real Harmony Pulse reflections on the standard board. Select the developed treasure at row 4, column 3, then swap right into the center. These trials never spend cards or change your progress.";
+ content.append(intro);
+ const actions=$("modalActions");actions.replaceChildren();
+ for(const [key,label] of [["first","1 · First Reflection"],["mist","2 · Moonlit Mist"],["chain","3 · Reflected Harmony"]])
+  modalButton(actions,label,key==="first"?"primary":"secondary",()=>{showMenu();startLevel(2,false,key);});
+ modalButton(actions,"Cancel","secondary",()=>{if(game&&!$("gameView").hidden){$("modal").hidden=true;armDecisionClock();}else showMenu();});
+ $("modal").hidden=false;
+}
 function showResult(){
  $("modalActions").classList.remove("pause-menu-actions");
  if(!game)return;
+ if(moonMirrorPreview){showMoonMirrorPreviewResult();return;}
  disarmDecisionClock();clearIdleHint();clearPraise();clearScoreFx();scoreShown=game.score;scoreDisplayed=scoreShown;renderScoreOnly();
  const won=game.complete;
  if(!won&&game.failed&&!moonOfferShown&&(C.has(save,"tsuki")||C.has(save,"moonGrace"))){
@@ -2911,7 +2968,7 @@ function openGameMenu(){
  };
  add("Resume game","primary","resume",()=>{$("modal").hidden=true;armDecisionClock();});
  if(game.complete)add("Finish and view results","secondary","finish",()=>{if(busy)return;game.finish();showResult();});
- add("Restart level","secondary","restart",()=>{if(!busy)startLevel(level);});
+ add("Restart level","secondary","restart",()=>{if(!busy)startLevel(level,false,moonMirrorPreview);});
  // Keep these DOM positions intact: the existing game and smoke tests rely
  // on direct button access and keyboard tab order, even with the new layout.
  add("How to Play","secondary","help",()=>{$("helpButton").click();});
@@ -2953,6 +3010,7 @@ function bind(){
  $("pauseButton").addEventListener("click",openGameMenu);
  $("goalHelpButton").addEventListener("click",showGoalHelp);
  $("devButton").addEventListener("click",openEngineLab);
+ $("moonMirrorPreviewButton")?.addEventListener("click",showMoonMirrorPreviewChooser);
  $("continueButton").addEventListener("click",()=>activateWashiPlay($("continueButton"),()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);}));
  $("helpButton").addEventListener("click",()=>modalInfo("How to Play",'<p><strong>Match:</strong> Swap adjacent tiles to match three or more objects from the same family. Stages can differ. T- and L-shaped matches also work.</p><p><strong>Fuse:</strong> A match fuses at the destination of your swap (or the other swapped tile if only that position makes a match). The result advances one stage above the highest matched object. Automatic chains fuse at the highest-stage tile. A match of four upgrades a neighbor; five or more upgrades two.</p><p><strong>Harmony Resonance:</strong> Objects at stages 3–4 may form a subtle light link with a neighboring object in the same family. Fuse both together to trigger Harmony Echo and earn bonus points, at most once per move.</p><p><strong>Harmony Pulse:</strong> A stage-5 masterpiece sends power to its four orthogonal neighbors. Existing objects advance, and Mist clears even on empty tiles. Chains finish before empty spaces refill.</p><p><strong>Masterpieces:</strong> Each new masterpiece still grants bonus points; the old masterpiece collection panel is hidden during play.</p><p><strong>Harmony Mist (from level 4):</strong> Clear magical Mist from marked tiles. Fuse onto a Mist tile or reach it with Harmony Pulse. Pieces can move into and out of Mist, but matching across Mist does not clear it unless the fusion lands there. Mist remains in place as pieces fall.</p><p><strong>Daruma (levels 21–30):</strong> Daruma cannot move. Each doll requires two hits on separate moves, from an adjacent fusion or Harmony Pulse. The chapter alternates between Daruma, Mist, and fusion challenges.</p><p><strong>Sealed Stones (levels 31–40):</strong> Stones cannot move and take four separate hits. Fuse beside a stone or hit it with Harmony Pulse, at most once per move. The final hit releases an Awakening Pulse toward all eight neighbors, including diagonals, and can start a chain.</p><p><strong>Rewards:</strong> Completing the objective awards at least one star. Earn two or three by finishing with fewer moves; your star rating locks when the goal is reached. Bonus score is an optional record. You can continue playing after the goal or move on. Harmony Coins start from level 11. Buy one-use Omamori cards from the Main Menu shop: Bloom Touch upgrades a tile, Ripple Shuffle rearranges a small area, Sealbreaker hits an obstacle, and Moon cards grant extra moves when you run out. Stronger variants cost more. Up to two board boosts can be used per level, plus one optional Moon rescue. Omamori-assisted wins earn a single Goshuincho stamp and coins, while clean star ratings and score records remain separate.</p>'));
  $("settingsButton").addEventListener("click",()=>{

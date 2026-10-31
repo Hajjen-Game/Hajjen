@@ -2759,7 +2759,7 @@ function showMoonMirrorPreviewChooser(){
  const choices=goshuinNode("div","moon-preview-grid");
  const items=[
   ["echo","Mirror Echo","Normal fusion grows a distant treasure"],
-  ["obstacle","Echo Across Stone","Normal fusion strikes Stone and clears Mist"],
+  ["obstacle","Echo Across Stone","Hit Stone first, then plan a fusion to clear Mist"],
   ["spark","Moonlit Chain","An ordinary fusion creates a Masterpiece remotely"],
   ["first","First Reflection","Harmony Pulse through one mirror"],
   ["mist","Moonlit Mist","Harmony Pulse reaches distant Mist"],

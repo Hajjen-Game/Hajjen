@@ -56,3 +56,21 @@ body.bamboo-paths-preview #omamoriPowerBar{display:none!important}
 @media(prefers-reduced-motion:reduce){
  .bamboo-preview-choice:active{transform:none}
 }
+
+/* With all three mechanic previews exposed, the old five-buttons-in-one-row
+   advanced menu becomes unreadable on a phone. Use compact paired actions;
+   the new Bamboo entry takes a full final row. This is menu-only styling. */
+#menuView .washi-advanced-actions:has(#bambooPreviewButton){
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:7px;
+}
+#menuView .washi-advanced-actions #bambooPreviewButton{
+ grid-column:1/-1;
+}
+#menuView .washi-advanced-actions:has(#bambooPreviewButton) button{
+ font-size:11px;
+ line-height:1.25;
+ padding:8px 6px;
+ min-height:38px;
+}

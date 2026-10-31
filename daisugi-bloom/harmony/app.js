@@ -492,9 +492,10 @@ function showTutorialHelp(lesson,firstTime=false){
  // In addition to passive 30-second guidance, a player who is stuck may
  // ask for an actual legal move. This does not move pieces or rescue a loss.
  if(!firstTime&&game.moves>0&&!game.failed&&!game.complete){
-  modalButton(actions,"Show a possible move","secondary",()=>{
+  const hintButton=modalButton(actions,"Show a possible move","secondary",()=>{
    if(!revealPossibleMove())toast("No legal move found. Try reopening the puzzle.",2500);
   });
+  hintButton.classList.add("jh-on-demand-hint");
  }
  const ok=modalButton(actions,"OK","primary jh-tutorial-ok",()=>{
   if(firstTime){
@@ -3439,9 +3440,12 @@ function bind(){
  // A click may open OR close a dialog: the final bubbling phase sees the
  // actual state, so resuming always starts a new 30-second interval.
  document.addEventListener("click",event=>{
-  // Do not continually defer assistance as the player tries taps and
-  // invalid swaps on the board. Modal exits already re-arm the timer.
-  if($("gameView").hidden||!$("modal").hidden)restartIdleHint();
+  // Searching the board is not a new accepted move. Do not postpone hints
+  // on exploratory taps. Returning from a dialog MUST re-arm the clock,
+  // except when that dialog explicitly asked to reveal the hint right now.
+  if(event.target.closest(".jh-on-demand-hint"))return;
+  if($("gameView").hidden||!$("modal").hidden||
+   event.target.closest("#modal"))restartIdleHint();
  });
  document.addEventListener("visibilitychange",()=>{
   if(document.hidden){disarmDecisionClock();clearIdleHint();}else{if(game&&!busy&&!$("gameView").hidden&&$("modal").hidden)armDecisionClock();restartIdleHint();}

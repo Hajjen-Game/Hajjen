@@ -4,7 +4,7 @@
  */
 (function(root){
 "use strict";
-const VERSION=1,MAX_MOVES=160,MAX_REFILLS=14,MAX_CARDS=12;
+const VERSION=1,MAX_MOVES=160,MAX_REFILLS=14,MAX_CARDS=12,MAX_REJECTED=80;
 const nonnegative=x=>Number.isFinite(x)?Math.max(0,Math.trunc(x)):0;
 const board=game=>game.board.map(p=>p?[p.id,p.family,p.stage]:null);
 function snapshot(game){
@@ -18,13 +18,14 @@ function snapshot(game){
 function initial(game,partial=false){
  return {version:VERSION,partial,level:game.level+1,seed:game.seed,
   directorMode:game.directorMode,goal:{...game.config.goal},
-  start:snapshot(game),moves:[],cards:[],truncated:false};
+  start:snapshot(game),moves:[],cards:[],rejected:[],truncated:false};
 }
 function valid(trace){
  return !!trace&&typeof trace==="object"&&!Array.isArray(trace)&&
   trace.version===VERSION&&Number.isInteger(trace.level)&&trace.level>=1&&
   Array.isArray(trace.moves)&&trace.moves.length<=MAX_MOVES&&
   Array.isArray(trace.cards)&&trace.cards.length<=MAX_CARDS&&
+  (!trace.rejected||(Array.isArray(trace.rejected)&&trace.rejected.length<=MAX_REJECTED))&&
   !!trace.start&&Array.isArray(trace.start.board)&&trace.start.board.length===49;
 }
 function restore(trace,game){
@@ -74,6 +75,15 @@ function finishMove(trace,turn,game,events){
   afterglowRemaining:game.omamoriAfterglow?.remaining||0};
  if(trace.moves.length>=MAX_MOVES){trace.truncated=true;return;}
  trace.moves.push(turn);
+}
+// Unsuccessful taps/swaps spend no moves but are useful to diagnose
+// confusing layouts. Log them separately from the numbered legal moves.
+function rejected(trace,game,from,to,reason){
+ if(!valid(trace))return;
+ if(!Array.isArray(trace.rejected))trace.rejected=[];
+ if(trace.rejected.length>=MAX_REJECTED){trace.truncated=true;return;}
+ trace.rejected.push({atMove:game.config.moves-game.moves+1,
+  from,to,reason:String(reason).slice(0,120)});
 }
 function recordCard(trace,game,cardId,before){
  if(!valid(trace))return;
@@ -143,7 +153,7 @@ function readProfile(save,goshuincho){
   signals,preference:"undetermined",personalizationActive:false};
 }
 const api=Object.freeze({VERSION,MAX_MOVES,snapshot,initial,valid,restore,
- beginMove,refill,eventSummary,finishMove,recordCard,last,profileDefault,
+ beginMove,refill,eventSummary,finishMove,rejected,recordCard,last,profileDefault,
  profileState,recordRound,readProfile});
 root.HarmonyPlayerInsight=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;

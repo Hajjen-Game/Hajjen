@@ -2323,6 +2323,30 @@ try{
    "Victory must offer Main Menu, not direct book navigation");
   assert.equal(await clarity.$eval(".victory-details",e=>e.open),false,
    "Optional statistics must be collapsed on first view");
+  // Director 5.0: export is a quiet link in the actual win modal, and the
+  // real file bytes contain the player's move and actual refill decisions.
+  const exported=await clarity.evaluate(async()=>{
+   const exportButton=document.querySelector(".victory-result .jh-round-export");
+   if(!exportButton)return {error:"Missing export link"};
+   const original=URL.createObjectURL;
+   let file=null;
+   URL.createObjectURL=function(blob){file=blob;return original.call(URL,blob);};
+   try{
+    exportButton.click();
+    if(!file)return {error:"No JSON file generated"};
+    return {linkText:exportButton.textContent,report:JSON.parse(await file.text()),
+     css:getComputedStyle(exportButton).fontSize};
+   }finally{URL.createObjectURL=original;}
+  });
+  assert(!exported.error,exported.error||"Download generated");
+  assert.equal(exported.report.format,"japanese-harmony-round");
+  assert.equal(exported.report.level,1);
+  assert.equal(exported.report.round.moves.length,1);
+  assert.equal(exported.report.round.moves[0].events.some(e=>e.type==="fusion"),true);
+  assert.equal(exported.report.round.moves[0].refills.length>0,true);
+  assert.equal(exported.report.playerInsight.personalizationActive,false);
+  assert(exported.linkText.includes("Export round"));
+  assert(Number.parseFloat(exported.css)<=13,"Export must stay visually understated");
   assert.equal(await clarity.$eval(".victory-reward-copy span",e=>e.textContent),
    "Harmony Coins unlock after level 10",
    "Tutorial victories must not award coins");

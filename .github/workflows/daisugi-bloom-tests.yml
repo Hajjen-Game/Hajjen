@@ -22,6 +22,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-board-mechanics.test.cjs
       - name: Identity Plan 1.0 · isolated Moon Mirrors and Wind Garden mechanic contracts
         run: node daisugi-bloom/tests/harmony-identity-prototypes.test.cjs
+      - name: Moon Mirrors 1.0 · real Pulse relay, Mist, blockers, chains and replay safety
+        run: node daisugi-bloom/tests/harmony-moon-mirrors.test.cjs
       - name: Bamboo Paths 1.0 · ten authored levels, chapter geometry, hints and save migration
         run: node daisugi-bloom/tests/harmony-bamboo-paths.test.cjs
       - name: Lotus Stream 1.0 · seeded drop-and-collection pilot, saves and legacy safety
@@ -104,6 +106,7 @@ jobs:
         run: |
           node --check daisugi-bloom/harmony/board-mechanics.js
           node --check daisugi-bloom/harmony/identity-prototypes.js
+          node --check daisugi-bloom/harmony/moon-mirrors.js
           node --check daisugi-bloom/harmony/bamboo-paths.js
           node --check daisugi-bloom/harmony/lotus-stream.js
           node --check daisugi-bloom/harmony/lotus-routing.js

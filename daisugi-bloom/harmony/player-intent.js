@@ -25,6 +25,7 @@ function normalize(raw){
   Number.isInteger(r.level)&&r.level>=1&&r.level<=100000&&
   ["none","watch"].includes(r.friction)).slice(-RECENT).map(r=>({
    key:r.key,level:r.level,won:!!r.won,friction:r.friction,
+   previousStars:Math.min(3,bounded(r.previousStars)),
    signals:Array.isArray(r.signals)?r.signals.filter(x=>typeof x==="string").slice(0,5):[],
    goal:r.goal||null}));
  return s;
@@ -85,6 +86,7 @@ function observeRound(save,game,trace,previousStars){
  if(state.recent.some(r=>r.key===key))return false;
  const analysis=analyzeRound(game,trace,previousStars);
  const row={key,level:game.level+1,won:!!game.complete,
+  previousStars:Math.min(3,bounded(previousStars)),
   friction:analysis.friction.classification,
   signals:analysis.intent.signals,
   goal:game.config?.goal?.type||null};
@@ -111,7 +113,7 @@ function aggregate(save){
  const state=normalize(save?.playerIntentAwareness),n=state.observed;
  // A working hypothesis may be shown after repeated support, but never
  // silently used to change game rewards or assess propensity to purchase.
- const thresholds=n>=8&&state.replays>=3?"possible-star-review-interest":
+ const thresholds=n>=8&&state.replays>=3&&state.starImprovements>=2?"possible-star-improvement-interest":
   n>=8&&state.comboRounds>=4?"possible-combination-interest":"undetermined";
  const repeated=n>=5&&state.possibleFriction>=3?"recurring-round-obstacles":"not-established";
  return {version:VERSION,observedRounds:n,
@@ -128,11 +130,12 @@ function aggregate(save){
 }
 function report(save,game,trace){
  const state=normalize(save?.playerIntentAwareness),key=roundKey(game);
+ const stored=state.recent.find(r=>r.key===key);
  return {version:VERSION,round:analyzeRound(game,trace,
-  // The saved earlier result is already recorded; new reports can also
-  // be generated on partial/historic runs without inventing prior intent.
-  0),
-  observedInHistory:state.recent.some(r=>r.key===key),
+  // Preserve the level-start star record so exported replay intent reflects
+  // the real archived result, not the updated score after this win.
+  stored?.previousStars??0),
+  observedInHistory:!!stored,
   profile:aggregate(save)};
 }
 const api=Object.freeze({VERSION,RECENT,defaultState,normalize,analyzeRound,

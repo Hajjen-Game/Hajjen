@@ -1104,8 +1104,8 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null){
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
  game=new R.Game(i,mirrorScenario||windScenario?null:data,mirrorScenario?
-  {directorMode:"v4",moonMirrorPreview:mirrorScenario,seed:20261031}:
-  windScenario?{directorMode:"v4",windGardenPreview:windScenario,seed:20261031}:
+  {directorMode:"v4",moonMirrorPreview:mirrorScenario,seed:13}:
+  windScenario?{directorMode:"v4",windGardenPreview:windScenario,seed:13}:
   data?null:{directorMode:save.playMode==="auto"?(i>=9?"v4":"v3"):save.playMode});
  chooseFestivalBackground(mirrorScenario||windScenario?save.lastBackground:
   resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
@@ -2703,13 +2703,13 @@ function showWindGardenPreviewChooser(){
  $("modalTitle").textContent="Wind Garden 1.0";
  const content=$("modalContent");content.replaceChildren();
  const intro=document.createElement("p");
- intro.textContent="The marked row shifts one tile after the announced number of valid moves. Objects keep their stages, the edge wraps around, and new matches fuse automatically. Look for 風 above the board. Make your first fusion by swapping row 3, column 4 down into row 4, column 4. No cards, stars or save data are spent.";
+ intro.textContent="The marked row shifts one tile after the announced number of valid moves. Objects keep their stages, the edge wraps around, and the wind can cause one controlled fusion wave. Look for 風 above the board. Make your first fusion by swapping row 3, column 4 down into row 4, column 4. No cards, stars or save data are spent.";
  content.append(intro);
  const choices=goshuinNode("div","wind-preview-grid");
  const options=[
-  ["breeze","First Breeze","Row 4 shifts right every move"],
-  ["crossing","Crossing Winds","Rows 3 and 5 alternate every two moves"],
-  ["tide","Garden Tide","Row 4 alternates left and right; Mist remains fixed"]
+  ["breeze","First Breeze","Row 4 shifts right every two moves"],
+  ["crossing","Crossing Winds","Rows 3 and 5 alternate every three moves"],
+  ["tide","Garden Tide","Row 4 alternates every two moves; Mist stays fixed"]
  ];
  for(const [key,title,description] of options){
   const btn=goshuinNode("button","wind-preview-choice");btn.type="button";

@@ -13,6 +13,7 @@ let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressC
 let moonMirrorPreview=null; // Deliberate, unranked, unsaved sandbox on the real board.
 let windGardenPreview=null; // Separate unranked Wind Garden gameplay preview.
 let bambooPreview=false; // Genuine, unranked Bamboo Paths chapter-level previews.
+let lotusPreview=null; // Genuine L61 pilot or one of four unranked Lotus route experiments.
 let windAtmosphere=null; // One persistent, directional row layer for the active Wind preview.
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
@@ -276,8 +277,8 @@ function showMenu(){
  if(busy)return;
  disarmDecisionClock();clearIdleHint();
  resetResonanceVisuals();clearScoreFx();clearPraise();clearWindAtmosphere();
- saveRun();moonMirrorPreview=null;windGardenPreview=null;bambooPreview=false;
- document.body.classList.remove("harmony-playing","moon-mirror-preview","wind-garden-preview","bamboo-paths-preview");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
+ saveRun();moonMirrorPreview=null;windGardenPreview=null;bambooPreview=false;lotusPreview=null;
+ document.body.classList.remove("harmony-playing","moon-mirror-preview","wind-garden-preview","bamboo-paths-preview","lotus-stream-preview");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 // Primary level selection is the book. Keep the landing menu accessible for
 // daily Omikuji, Omamori and Game Dev; leaving a run opens Goshuincho directly.
@@ -689,7 +690,7 @@ const normalUses=()=>Math.min(2,game?.blessingUses||0);
 function renderPowerBar(){
  const bar=$("omamoriPowerBar");if(!bar)return;
  bar.replaceChildren();
- if(moonMirrorPreview||windGardenPreview||bambooPreview){bar.hidden=true;return;} // Never consume actual cards during an experiment.
+ if(moonMirrorPreview||windGardenPreview||bambooPreview||lotusPreview){bar.hidden=true;return;} // Never consume actual cards during an experiment.
  bar.hidden=false;
  // Keep the inventory quantity immediately after お守り. The full plaque
  // is passive artwork; only the clearly framed action is clickable.
@@ -1092,25 +1093,28 @@ async function celebrateCollection(evt){
  }
  await Promise.all(tasks);
 }
-function saveRun(){if(!moonMirrorPreview&&!windGardenPreview&&!bambooPreview&&game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
-function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooScenario=false){
+function saveRun(){if(!moonMirrorPreview&&!windGardenPreview&&!bambooPreview&&!lotusPreview&&game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
+function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooScenario=false,lotusScenario=null){
  if(busy)return;
  moonMirrorPreview=mirrorScenario;windGardenPreview=windScenario;bambooPreview=!!bambooScenario;
+ lotusPreview=lotusScenario;
  document.body.classList.toggle("moon-mirror-preview",!!mirrorScenario);
  document.body.classList.toggle("wind-garden-preview",!!windScenario);
  document.body.classList.toggle("bamboo-paths-preview",bambooPreview);
+ document.body.classList.toggle("lotus-stream-preview",!!lotusScenario);
  powerSelection=null;powerTargets=[];
  disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
  clearWindAtmosphere();resetResonanceVisuals();clearPraise();
  level=i;powerSelection=null;powerTargets=[];moonOfferShown=false;rewardStarsAtLevelStart=G.archivedStars(save,i);
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
- game=new R.Game(i,mirrorScenario||windScenario||bambooScenario?null:data,mirrorScenario?
+ game=new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario?null:data,mirrorScenario?
   {directorMode:"v4",moonMirrorPreview:mirrorScenario,seed:13}:
   windScenario?{directorMode:"v4",windGardenPreview:windScenario,seed:13}:
   bambooScenario?{directorMode:"v4",bambooPreview:true,seed:20261031+i*97}:
+  lotusScenario?{directorMode:"v4",lotusPreview:lotusScenario,seed:20261101}:
   data?null:{directorMode:save.playMode==="auto"?(i>=9?"v4":"v3"):save.playMode});
- chooseFestivalBackground(mirrorScenario||windScenario||bambooScenario?save.lastBackground:
+ chooseFestivalBackground(mirrorScenario||windScenario||bambooScenario||lotusScenario?save.lastBackground:
   resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="LEVEL "+(i+1);
  $("goalLabel").textContent=game.goalText();
@@ -1128,7 +1132,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  }
  prepareCollection();renderBoard(game.board);syncWindAtmosphere();renderHUD();updatePaceLabel();updateSpiritBadge();renderPowerBar();saveRun();armDecisionClock();restartIdleHint();
  // One-time, player-acknowledged illustrated lesson, including resumed unread runs.
- if(!mirrorScenario&&!windScenario&&!bambooScenario)offerFirstLesson(i);
+ if(!mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario)offerFirstLesson(i);
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
@@ -2627,7 +2631,7 @@ async function playEvents(events,bondGain=null){
  else if(game?.koiRerollAt>=0)showKoiReroll();
 }
 function unlockGoal(){
- if(moonMirrorPreview||windGardenPreview||bambooPreview)return; // A preview can never unlock progress.
+ if(moonMirrorPreview||windGardenPreview||bambooPreview||lotusPreview)return; // A preview can never unlock progress.
  save.unlocked=Math.max(save.unlocked,level+1);
  if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.floor(save.unlocked/MENU_PAGE_SIZE);
  const archive=game.familyCount===4?save.fourFamilyStars:save.bestStars;
@@ -2675,6 +2679,65 @@ function makeRoundExport(make){
   }
  });
  return exportLink;
+}
+function showLotusPreviewResult(){
+ // These are genuine cargo-drop puzzles, but no progression, economy,
+ // Omamori, rewards or saved normal rounds are affected.
+ clearIdleHint();disarmDecisionClock();clearScoreFx();
+ const won=game.complete;
+ $("modalEyebrow").textContent="LOTUS STREAM · UNRANKED PREVIEW";
+ $("modalTitle").textContent=won?"Lotus seeds delivered!":"The river awaits";
+ const content=$("modalContent");content.replaceChildren();
+ const copy=document.createElement("p");
+ copy.textContent=won?
+  "You guided the Lotus seeds into their river gates. This preview did not award any progress.":
+  "Match treasures beneath the Lotus seeds so they fall toward their matching river gates. Try another route or retry.";
+ content.append(copy);
+ const summary=document.createElement("p");summary.className="lotus-preview-result";
+ summary.textContent=game.config.name+" · Delivered "+game.lotusDelivered+"/"+game.target()+
+  " · "+(game.config.moves-game.moves)+" moves · "+game.fusions+" fusions";
+ content.append(summary);
+ const make=(tag,cls,t)=>{const node=document.createElement(tag);node.className=cls;node.textContent=t;return node;};
+ content.append(makeRoundExport(make));
+ const actions=$("modalActions");actions.replaceChildren();
+ modalButton(actions,"Retry this Lotus puzzle","primary",
+  ()=>startLevel(60,false,null,null,false,lotusPreview));
+ modalButton(actions,"Choose another Lotus route","secondary",showLotusPreviewChooser);
+ modalButton(actions,"Back to main menu","secondary",showMenu);
+ $("modal").hidden=false;
+}
+function showLotusPreviewChooser(){
+ if(busy)return;
+ $("modalActions").classList.remove("pause-menu-actions");
+ $("modalEyebrow").textContent="GAME DEV · MECHANICS PREVIEW";
+ $("modalTitle").textContent="Lotus Stream · Preview";
+ const content=$("modalContent");content.replaceChildren();
+ const intro=document.createElement("p");
+ intro.textContent="Lotus seeds cannot be swapped or fused. Match objects BELOW them to let them fall into the glowing river gates at the bottom. Level 61 is the real playable pilot; the other four choices are experimental routes, not finished levels 62–70. None affects your progress, cards or coins.";
+ content.append(intro);
+ const choices=goshuinNode("div","lotus-preview-grid");
+ const pilot=window.HarmonyLotusStream?.get(60);
+ const options=[
+  ["pilot",pilot?.name||"First Lotus Stream","Real level 61 · two Lotus seeds"],
+  ["long-drop","Long Lotus Crossing","Experiment · longer descent"],
+  ["three-lanes","Three Lotus Channels","Experiment · three separate lanes"],
+  ["shared-gate","Two Seeds, One River Gate","Experiment · shared collection gate"],
+  ["garden-route","Garden Lotus Crossing","Experiment · Lotus with Bamboo stones"]
+ ];
+ for(const [key,name,description] of options){
+  const btn=goshuinNode("button","lotus-preview-choice");btn.type="button";
+  btn.dataset.preview=key;
+  btn.append(goshuinNode("strong","",name),goshuinNode("small","",description));
+  btn.addEventListener("click",()=>{showMenu();startLevel(60,false,null,null,false,key);});
+  choices.append(btn);
+ }
+ content.append(choices);
+ const actions=$("modalActions");actions.replaceChildren();
+ modalButton(actions,"Cancel","secondary",()=>{
+  if(game&&!$("gameView").hidden){$("modal").hidden=true;armDecisionClock();}
+  else showMenu();
+ });
+ $("modal").hidden=false;
 }
 function showBambooPreviewResult(){
  // Genuine Bamboo 51–60 objectives and board layouts, but NEVER permanent
@@ -2844,6 +2907,7 @@ function showResult(){
  if(moonMirrorPreview){showMoonMirrorPreviewResult();return;}
  if(windGardenPreview){showWindGardenPreviewResult();return;}
  if(bambooPreview){showBambooPreviewResult();return;}
+ if(lotusPreview){showLotusPreviewResult();return;}
  disarmDecisionClock();clearIdleHint();clearPraise();clearScoreFx();scoreShown=game.score;scoreDisplayed=scoreShown;renderScoreOnly();
  const won=game.complete;
  if(!won&&game.failed&&!moonOfferShown&&(C.has(save,"tsuki")||C.has(save,"moonGrace"))){
@@ -3271,7 +3335,7 @@ function openGameMenu(){
  };
  add("Resume game","primary","resume",()=>{$("modal").hidden=true;armDecisionClock();});
  if(game.complete)add("Finish and view results","secondary","finish",()=>{if(busy)return;game.finish();showResult();});
- add("Restart level","secondary","restart",()=>{if(!busy)startLevel(level,false,moonMirrorPreview,windGardenPreview,bambooPreview);});
+ add("Restart level","secondary","restart",()=>{if(!busy)startLevel(level,false,moonMirrorPreview,windGardenPreview,bambooPreview,lotusPreview);});
  // Keep these DOM positions intact: the existing game and smoke tests rely
  // on direct button access and keyboard tab order, even with the new layout.
  add("How to Play","secondary","help",()=>{$("helpButton").click();});
@@ -3316,6 +3380,7 @@ function bind(){
  $("moonMirrorPreviewButton")?.addEventListener("click",showMoonMirrorPreviewChooser);
  $("windGardenPreviewButton")?.addEventListener("click",showWindGardenPreviewChooser);
  $("bambooPreviewButton")?.addEventListener("click",showBambooPreviewChooser);
+ $("lotusPreviewButton")?.addEventListener("click",showLotusPreviewChooser);
  $("continueButton").addEventListener("click",()=>activateWashiPlay($("continueButton"),()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);}));
  $("helpButton").addEventListener("click",()=>modalInfo("How to Play",'<p><strong>Match:</strong> Swap adjacent tiles to match three or more objects from the same family. Stages can differ. T- and L-shaped matches also work.</p><p><strong>Fuse:</strong> A match fuses at the destination of your swap (or the other swapped tile if only that position makes a match). The result advances one stage above the highest matched object. Automatic chains fuse at the highest-stage tile. A match of four upgrades a neighbor; five or more upgrades two.</p><p><strong>Harmony Resonance:</strong> Objects at stages 3–4 may form a subtle light link with a neighboring object in the same family. Fuse both together to trigger Harmony Echo and earn bonus points, at most once per move.</p><p><strong>Harmony Pulse:</strong> A stage-5 masterpiece sends power to its four orthogonal neighbors. Existing objects advance, and Mist clears even on empty tiles. Chains finish before empty spaces refill.</p><p><strong>Masterpieces:</strong> Each new masterpiece still grants bonus points; the old masterpiece collection panel is hidden during play.</p><p><strong>Harmony Mist (from level 4):</strong> Clear magical Mist from marked tiles. Fuse onto a Mist tile or reach it with Harmony Pulse. Pieces can move into and out of Mist, but matching across Mist does not clear it unless the fusion lands there. Mist remains in place as pieces fall.</p><p><strong>Daruma (levels 21–30):</strong> Daruma cannot move. Each doll requires two hits on separate moves, from an adjacent fusion or Harmony Pulse. The chapter alternates between Daruma, Mist, and fusion challenges.</p><p><strong>Sealed Stones (levels 31–40):</strong> Stones cannot move and take four separate hits. Fuse beside a stone or hit it with Harmony Pulse, at most once per move. The final hit releases an Awakening Pulse toward all eight neighbors, including diagonals, and can start a chain.</p><p><strong>Rewards:</strong> Completing the objective awards at least one star. Earn two or three by finishing with fewer moves; your star rating locks when the goal is reached. Bonus score is an optional record. You can continue playing after the goal or move on. Harmony Coins start from level 11. Buy one-use Omamori cards from the Main Menu shop: Bloom Touch upgrades a tile, Ripple Shuffle rearranges a small area, Sealbreaker hits an obstacle, and Moon cards grant extra moves when you run out. Stronger variants cost more. Up to two board boosts can be used per level, plus one optional Moon rescue. Omamori-assisted wins earn a single Goshuincho stamp and coins, while clean star ratings and score records remain separate.</p>'));
  $("settingsButton").addEventListener("click",()=>{

@@ -54,9 +54,26 @@ try{
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Reflection complete!"&&
   !document.querySelector("#modal").hidden,{timeout:35000});
  assert.equal(await page.$eval(".jh-round-export",x=>x.textContent.includes("Export round")),true);
+ // Return to the preview picker after a real chain and check that a
+ // smaller normal Fusion Echo and the obstacle demo also finish on mobile.
+ for(const scenario of ["echo","obstacle"]){
+  await page.evaluate(()=>{
+   [...document.querySelectorAll("#modalActions button")]
+    .find(button=>button.textContent.includes("Choose another preview")).click();
+  });
+  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Moon Mirrors 1.2");
+  await page.click('.moon-preview-choice[data-preview="'+scenario+'"]');
+  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:10000});
+  await page.evaluate(()=>{
+   document.querySelector('.tile[data-index="17"]').click();
+   document.querySelector('.tile[data-index="24"]').click();
+  });
+  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Reflection complete!"&&
+   !document.querySelector("#modal").hidden,{timeout:35000});
+ }
  const after=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  for(const field of ["unlocked","bestStars","bestScores","fourFamilyStars","run","economy","omamoriCards","playerInsight","playerIntent"])
   assert.deepEqual(after[field],baseline[field],"Moon Mirror preview must preserve "+field);
  assert.deepEqual(errors,[],"No mobile JavaScript errors");
- console.log("PASS Moon Mirrors 1.2: six playable choices, Fusion Echo-created Pulse, standalone mirrors and unchanged save");
+ console.log("PASS Moon Mirrors 1.2: six preview choices, three real browser wins, standalone mirror art and unchanged save");
 }finally{await browser.close();}

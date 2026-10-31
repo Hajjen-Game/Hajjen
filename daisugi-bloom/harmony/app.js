@@ -1909,6 +1909,69 @@ function makeFxLayer(){
  parent.appendChild(layer);
  return {node:layer,rect:b};
 }
+// Wind Garden Animation 1.0 — a full-row, one-way mist-like sweep.
+// Read geometry from the real 7×7 tiles. One bounded, pointer-transparent FX
+// layer is reused throughout anticipation, motion and dissipation. It is
+// ALWAYS removed (including cancelled/reduced-motion turns), and never
+// modifies game state, object positions, RNG or the Wind Garden schedule.
+async function directionalWindSweep(evt,previous){
+ const row=evt.row;
+ const affected=Array.from({length:7},(_,col)=>row*7+col);
+ if(!Number.isInteger(row)||row<0||row>=7||
+  (evt.direction!=="left"&&evt.direction!=="right")){
+  renderBoard(evt.board,affected,"wind-blown");
+  return flipMove(previous,evt.board,"wind");
+ }
+ if(FAST()||document.hidden||!Element.prototype.animate){
+  renderBoard(evt.board,affected,"wind-blown");
+  return flipMove(previous,evt.board,"wind");
+ }
+ const layer=makeFxLayer(),left=indexRect(row*7),right=indexRect(row*7+6);
+ const veil=document.createElement("span"),gust=document.createElement("span");
+ const band=document.createElement("span");
+ layer.node.classList.add("wind-sweep-layer");
+ layer.node.dataset.row=String(row);
+ layer.node.dataset.direction=evt.direction;
+ band.className="wind-sweep-row";
+ band.dataset.row=String(row);
+ band.dataset.direction=evt.direction;
+ band.setAttribute("aria-hidden","true");
+ band.style.left=(left.left-layer.rect.left)+"px";
+ band.style.top=(left.top-layer.rect.top)+"px";
+ band.style.width=(right.right-left.left)+"px";
+ band.style.height=left.height+"px";
+ veil.className="wind-sweep-veil";
+ gust.className="wind-sweep-gust";
+ band.append(veil,gust);
+ layer.node.append(band);
+ // Both cloud banks move with this SAME directional parent, never opposite.
+ const toRight=evt.direction==="right";
+ const start=toRight?"-125%":"175%",end=toRight?"175%":"-125%";
+ try{
+  // Quiet anticipation. The player sees which complete row is affected.
+  await animateNode(veil,[
+   {opacity:0,offset:0},{opacity:.64,offset:1}
+  ],105,{easing:"ease-out"});
+  renderBoard(evt.board,affected,"wind-blown");
+  // Real object motion and cloud movement start together. A single
+  // clipped band crosses the full row; end-to-end direction is unambiguous.
+  await Promise.all([
+   flipMove(previous,evt.board,"wind"),
+   animateNode(gust,[
+    {transform:"translate3d("+start+",0,0)",opacity:0,offset:0},
+    {transform:"translate3d("+(toRight?"-45%":"95%")+",0,0)",opacity:.82,offset:.29},
+    {transform:"translate3d("+(toRight?"92%":"-42%")+",0,0)",opacity:.85,offset:.75},
+    {transform:"translate3d("+end+",0,0)",opacity:0,offset:1}
+   ],330,{easing:"cubic-bezier(.24,.39,.45,.96)"}),
+   animateNode(veil,[
+    {opacity:.55,offset:0},{opacity:.43,offset:.47},
+    {opacity:.18,offset:.83},{opacity:0,offset:1}
+   ],330,{easing:"ease-out"})
+  ]);
+ }finally{
+  layer.node.remove();
+ }
+}
 // Identical 49 stable tiles; only actual moving pieces get animations.
 // The last 20% is a short landing cushion, not a whole-board shake.
 function flipMove(previous,next,type){
@@ -2451,11 +2514,9 @@ async function animateEvent(evt){
    await flipMove(previous,evt.board,"fall");
    break;
   case "wind-shift":{
-   // Animate ACTUAL identity-preserving row positions with the existing
-   // FLIP compositor. No dummy sprite or fake match animations.
-   const affected=Array.from({length:7},(_,col)=>evt.row*7+col);
-   renderBoard(evt.board,affected,"wind-blown");
-   await flipMove(previous,evt.board,"wind");
+   // Full-row directional mist sweep precedes and accompanies the genuine
+   // one-cell FLIP. One row, one direction, no per-tile smoke puffs.
+   await directionalWindSweep(evt,previous);
    break;
   }
   case "wind-blocked":

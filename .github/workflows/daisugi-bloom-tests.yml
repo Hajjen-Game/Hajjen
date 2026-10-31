@@ -159,6 +159,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-moon-mirrors-browser.mjs
       - name: Wind Garden 1.0 · 390px real row shift, next-wind forecast and save isolation
         run: node daisugi-bloom/tests/harmony-wind-garden-browser.mjs
+      - name: Wind Garden Animation 1.0 · single-direction Mist-style row sweep, motion and cleanup
+        run: node daisugi-bloom/tests/harmony-wind-sweep-browser.mjs
       - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion
         run: node daisugi-bloom/tests/harmony-lotus-browser.mjs
       - name: Omamori 6.1 · washi HUD, inset meter, framed button and red Sealbreakers

@@ -12,6 +12,7 @@ const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,soun
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
 let moonMirrorPreview=null; // Deliberate, unranked, unsaved sandbox on the real board.
 let windGardenPreview=null; // Separate unranked Wind Garden gameplay preview.
+let windAtmosphere=null; // One persistent, directional row layer for the active Wind preview.
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
@@ -273,7 +274,7 @@ function sound(type,detail){
 function showMenu(){
  if(busy)return;
  disarmDecisionClock();clearIdleHint();
- resetResonanceVisuals();clearScoreFx();clearPraise();
+ resetResonanceVisuals();clearScoreFx();clearPraise();clearWindAtmosphere();
  saveRun();moonMirrorPreview=null;windGardenPreview=null;
  document.body.classList.remove("harmony-playing","moon-mirror-preview","wind-garden-preview");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
@@ -1098,7 +1099,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null){
  document.body.classList.toggle("wind-garden-preview",!!windScenario);
  powerSelection=null;powerTargets=[];
  disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
- resetResonanceVisuals();clearPraise();
+ clearWindAtmosphere();resetResonanceVisuals();clearPraise();
  level=i;powerSelection=null;powerTargets=[];moonOfferShown=false;rewardStarsAtLevelStart=G.archivedStars(save,i);
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
@@ -1122,7 +1123,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null){
    node.textContent="★".repeat(j+1)+" "+prettify(game.config.stars[j]);
   });
  }
- prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();updateSpiritBadge();renderPowerBar();saveRun();armDecisionClock();restartIdleHint();
+ prepareCollection();renderBoard(game.board);syncWindAtmosphere();renderHUD();updatePaceLabel();updateSpiritBadge();renderPowerBar();saveRun();armDecisionClock();restartIdleHint();
  // One-time, player-acknowledged illustrated lesson, including resumed unread runs.
  if(!mirrorScenario&&!windScenario)offerFirstLesson(i);
 }
@@ -1263,7 +1264,7 @@ function renderBoard(board,highlight,effect){
  const omamoriAnchor=powerSelection&&["koi","deepCurrent"].includes(powerSelection)?
   powerTargets[powerTargets.length-1]:-1;
  const flash=effect||(highlight&&highlight.effect)||"pulsed";
- const windNext=windGardenPreview?windForecast():null;
+ const windNext=windGardenPreview?(busy&&windAtmosphere?.spec?windAtmosphere.spec:windForecast()):null;
  const mist=activeMistFrame||game?.mist||[];
  const daruma=activeDarumaFrame||game?.daruma||[];
  const sealed=activeSealedFrame||game?.sealed||[];
@@ -1364,6 +1365,7 @@ function renderBoard(board,highlight,effect){
 window.addEventListener("resize",()=>{
  settledResonanceCache=null; // Width/position may change with the viewport.
  if(game&&!busy&&!$("gameView").hidden)renderBoard(game.board);
+ if(windAtmosphere)syncWindAtmosphere(null,true);
 },{passive:true});
 function windForecast(){
  if(!game?.windGarden)return null;
@@ -1909,6 +1911,70 @@ function makeFxLayer(){
  parent.appendChild(layer);
  return {node:layer,rect:b};
 }
+// Wind Garden Animation 1.1 — persistent, directional air on the NEXT
+// scheduled row, from the moment a preview opens until it ends.
+// Keep the SAME DOM and CSS animation phase during selection and playback;
+// only reposition or change direction when the forecast actually changes.
+// A short burst is layered over this air during the real wind movement.
+function clearWindAtmosphere(){
+ if(windAtmosphere?.layer?.node)windAtmosphere.layer.node.remove();
+ windAtmosphere=null;
+}
+function positionWindBand(band,layer,row){
+ const left=indexRect(row*7),right=indexRect(row*7+6);
+ band.style.left=(left.left-layer.rect.left)+"px";
+ band.style.top=(left.top-layer.rect.top)+"px";
+ band.style.width=(right.right-left.left)+"px";
+ band.style.height=left.height+"px";
+}
+function syncWindAtmosphere(override=null,forceLayout=false){
+ const previewActive=!!(windGardenPreview&&game?.windGarden&&
+  !$("gameView").hidden);
+ if(!previewActive){clearWindAtmosphere();return null;}
+ const forecast=override||windForecast();
+ if(!forecast||!Number.isInteger(forecast.row)||forecast.row<0||forecast.row>=7||
+   !["left","right"].includes(forecast.direction)){
+  clearWindAtmosphere();return null;
+ }
+ if(!windAtmosphere||!windAtmosphere.layer.node.isConnected){
+  const layer=makeFxLayer();
+  layer.node.classList.add("wind-ambient-layer");
+  layer.node.setAttribute("aria-hidden","true");
+  const band=document.createElement("span");
+  band.className="wind-ambient-row";band.setAttribute("aria-hidden","true");
+  for(const name of ["wind-ambient-haze","wind-ambient-wisp wind-ambient-wisp-near",
+    "wind-ambient-wisp wind-ambient-wisp-far"]){
+   const item=document.createElement("span");item.className=name;band.append(item);
+  }
+  layer.node.append(band);
+  windAtmosphere={layer,band,spec:null};
+  forceLayout=true;
+ }
+ const old=windAtmosphere.spec;
+ const changed=!old||old.row!==forecast.row||old.direction!==forecast.direction;
+ if(changed){
+  windAtmosphere.spec={row:forecast.row,direction:forecast.direction};
+  windAtmosphere.band.dataset.row=String(forecast.row);
+  windAtmosphere.band.dataset.direction=forecast.direction;
+  windAtmosphere.layer.node.dataset.row=String(forecast.row);
+  windAtmosphere.layer.node.dataset.direction=forecast.direction;
+ }
+ if(changed||forceLayout){
+  const layer=windAtmosphere.layer;
+  if(forceLayout){
+   const boardRect=$("board").getBoundingClientRect();
+   const parent=layer.node.parentElement;
+   const parentRect=parent.getBoundingClientRect();
+   layer.rect=boardRect;
+   layer.node.style.left=(boardRect.left-parentRect.left-parent.clientLeft)+"px";
+   layer.node.style.top=(boardRect.top-parentRect.top-parent.clientTop)+"px";
+   layer.node.style.width=boardRect.width+"px";
+   layer.node.style.height=boardRect.height+"px";
+  }
+  positionWindBand(windAtmosphere.band,layer,forecast.row);
+ }
+ return windAtmosphere;
+}
 // Wind Garden Animation 1.0 — a full-row, one-way mist-like sweep.
 // Read geometry from the real 7×7 tiles. One bounded, pointer-transparent FX
 // layer is reused throughout anticipation, motion and dissipation. It is
@@ -1926,6 +1992,8 @@ async function directionalWindSweep(evt,previous){
   renderBoard(evt.board,affected,"wind-blown");
   return flipMove(previous,evt.board,"wind");
  }
+ const ambient=syncWindAtmosphere({row,direction:evt.direction});
+ ambient?.band.classList.add("wind-ambient-burst");
  const layer=makeFxLayer(),left=indexRect(row*7),right=indexRect(row*7+6);
  const veil=document.createElement("span"),gust=document.createElement("span");
  const band=document.createElement("span");
@@ -1951,7 +2019,7 @@ async function directionalWindSweep(evt,previous){
   // Quiet anticipation. The player sees which complete row is affected.
   await animateNode(veil,[
    {opacity:0,offset:0},{opacity:.64,offset:1}
-  ],105,{easing:"ease-out"});
+  ],75,{easing:"ease-out"});
   renderBoard(evt.board,affected,"wind-blown");
   // Real object motion and cloud movement start together. A single
   // clipped band crosses the full row; end-to-end direction is unambiguous.
@@ -1959,16 +2027,17 @@ async function directionalWindSweep(evt,previous){
    flipMove(previous,evt.board,"wind"),
    animateNode(gust,[
     {transform:"translate3d("+start+",0,0)",opacity:0,offset:0},
-    {transform:"translate3d("+(toRight?"-45%":"95%")+",0,0)",opacity:.82,offset:.29},
-    {transform:"translate3d("+(toRight?"92%":"-42%")+",0,0)",opacity:.85,offset:.75},
+    {transform:"translate3d("+(toRight?"-45%":"95%")+",0,0)",opacity:1,offset:.29},
+    {transform:"translate3d("+(toRight?"92%":"-42%")+",0,0)",opacity:1,offset:.75},
     {transform:"translate3d("+end+",0,0)",opacity:0,offset:1}
-   ],330,{easing:"cubic-bezier(.24,.39,.45,.96)"}),
+   ],285,{easing:"cubic-bezier(.24,.39,.45,.96)"}),
    animateNode(veil,[
     {opacity:.55,offset:0},{opacity:.43,offset:.47},
     {opacity:.18,offset:.83},{opacity:0,offset:1}
-   ],330,{easing:"ease-out"})
+   ],285,{easing:"ease-out"})
   ]);
  }finally{
+  ambient?.band.classList.remove("wind-ambient-burst");
   layer.node.remove();
  }
 }
@@ -2583,7 +2652,7 @@ async function playEvents(events,bondGain=null){
   echoLinkSnapshot.clear();
   rectCache=null;boardLayerRect=null;
   perf?.stop();
-  busy=false;$("board").setAttribute("aria-busy","false");renderBoard(game.board);renderHUD();updatePaceLabel();renderPowerBar();saveRun();
+  busy=false;$("board").setAttribute("aria-busy","false");syncWindAtmosphere();renderBoard(game.board);renderHUD();updatePaceLabel();renderPowerBar();saveRun();
   if(!finished)armDecisionClock();
   if(!finished)restartIdleHint();
  }

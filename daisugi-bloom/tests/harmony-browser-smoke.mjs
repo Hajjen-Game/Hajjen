@@ -262,6 +262,28 @@ try{
   await journal.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await journal.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
   await journal.click("#goshuinButton");
+  // Android Touch Feedback Polish 1.0: painted book cards, nested art and
+  // controls must never show the browser's bright-blue tap overlay.
+  const tapFeedback=await journal.evaluate(()=>{
+   const selectors=[
+    "#goshuinButton",
+    ".washi-level-tile",
+    ".washi-level-tile .washi-tile-label",
+    ".washi-level-tile .washi-tile-jp",
+    ".washi-detail-play",
+    ".washi-nav",
+    ".washi-book-close"
+   ];
+   return selectors.map(selector=>{
+    const node=document.querySelector(selector);
+    return {selector,found:!!node,
+     color:node?getComputedStyle(node).webkitTapHighlightColor:null};
+   });
+  });
+  assert(tapFeedback.every(({found,color})=>found&&
+   /^(transparent|rgba\\(0, 0, 0, 0\\))$/.test(color)),
+   "No blue Android tap flash is allowed over Goshuincho cards or controls: "+
+    JSON.stringify(tapFeedback));
   const initial=await journal.evaluate(()=>({
    count:document.querySelectorAll(".washi-level-tile").length,
    first:document.querySelector(".washi-level-tile")?.dataset.level,

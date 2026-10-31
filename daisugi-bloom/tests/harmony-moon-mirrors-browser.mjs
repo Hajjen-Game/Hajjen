@@ -32,19 +32,23 @@ try{
  const start=await page.evaluate(()=>({
   heading:document.querySelector("#levelTitle").textContent,
   mirrored:[...document.querySelectorAll(".moon-mirror-tile")].map(n=>({
-   at:Number(n.dataset.index),direction:n.querySelector(".moon-mirror-glyph")?.textContent,
-   accessible:n.getAttribute("aria-label")
+   at:Number(n.dataset.index),direction:n.querySelector(".moon-mirror-arrow")?.textContent,
+   accessible:n.getAttribute("aria-label"),
+   hasStandaloneGlass:!!n.querySelector(".moon-mirror-glass"),
+   hasFamilySprite:!!n.querySelector(".piece, .sprite")
   })),
   cardsHidden:getComputedStyle(document.querySelector("#omamoriPowerBar")).display==="none",
   scrollWidth:document.documentElement.scrollWidth,screenWidth:innerWidth
  }));
  assert.equal(start.heading,"Reflected Harmony");
  assert.deepEqual(start.mirrored.map(x=>[x.at,x.direction]),[[25,"→"],[33,"↓"]]);
- assert(start.mirrored.every(x=>x.accessible.includes("Moon Mirror reflecting")));
+ assert(start.mirrored.every(x=>x.accessible.includes("Moon Mirror, fixed, reflects Harmony Pulse")));
+ assert(start.mirrored.every(x=>x.hasStandaloneGlass&&!x.hasFamilySprite),
+  "A mirror must be a standalone fixture with no family object or sprite underneath");
  assert(start.cardsHidden,"Preview must hide real Omamori cards");
  assert(start.scrollWidth<=start.screenWidth+1,"Mirror markers must fit mobile width");
  await page.evaluate(()=>{
-  document.querySelector('.tile[data-index="23"]').click();
+  document.querySelector('.tile[data-index="17"]').click();
   document.querySelector('.tile[data-index="24"]').click();
  });
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Reflection complete!"&&
@@ -54,5 +58,5 @@ try{
  for(const field of ["unlocked","bestStars","bestScores","fourFamilyStars","run","economy","omamoriCards","playerInsight","playerIntent"])
   assert.deepEqual(after[field],baseline[field],"Moon Mirror preview must preserve "+field);
  assert.deepEqual(errors,[],"No mobile JavaScript errors");
- console.log("PASS Moon Mirrors: accessible arrow overlays, real Pulse chain, unranked result and unchanged save");
+ console.log("PASS Moon Mirrors 1.1: standalone mirror art, fixed cells, real Pulse chain, unchanged save");
 }finally{await browser.close();}

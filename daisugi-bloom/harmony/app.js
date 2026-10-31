@@ -2129,16 +2129,18 @@ async function pulseAnticipation(evt){
 // targets AFTER travel as in 4.1. No canvas or full-screen filters.
 function pulseBeams(evt){
  const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mirrorTargets||[]),...(evt.mistTargets||[]),...(evt.visualOnlyTargets||[]),...(evt.targets||[])];
- if(visualTargets.length)sound("pulse",{wave:evt.wave||0});
+ if(visualTargets.length&&!evt.silent)sound(evt.type==="mirror-resonance"?"echo":"pulse",{wave:evt.wave||0});
  if(FAST()||!visualTargets.length)return Promise.resolve();
  // Prioritize mist-clearing beams when decorative paths are capped on mobile.
  // Logical target updates are NEVER capped.
  // When mobile FX are capped, keep the signature reflected ray visible.
  // This affects presentation only; the engine already applied every hit.
  const targets=visualTargets.slice().sort((a,b)=>
-  Number(b.via==="mirror")-Number(a.via==="mirror"))
+  Number(b.via==="mirror"||b.via==="fusion-mirror")-
+  Number(a.via==="mirror"||a.via==="fusion-mirror"))
   .slice(0,evt.type==="awakening"?8:MOBILE_LITE?(LITE_FX()?3:5):9);
- const travelMs=(evt.wave||1)>=3?170:(evt.wave||1)===2?195:230;
+ const travelMs=evt.type==="mirror-resonance"?145:
+  (evt.wave||1)>=3?170:(evt.wave||1)===2?195:230;
  const layer=makeFxLayer(),tasks=[];
  const sources=[...new Set(targets.map(t=>t.from))];
  for(const from of sources.slice(0,MOBILE_LITE?2:4)){
@@ -2156,7 +2158,8 @@ function pulseBeams(evt){
   const sx=a.left-layer.rect.left+a.width*.5,sy=a.top-layer.rect.top+a.height*.5;
   const angle=Math.atan2(dy,dx),dist=Math.hypot(dx,dy);
   const trace=document.createElement("span");
-  trace.className="pulse-trace"+(target.via==="mirror"?" moon-mirror-trace":"");
+  trace.className="pulse-trace"+(target.via==="mirror"?" moon-mirror-trace":
+   target.via==="fusion-mirror"?" moon-mirror-echo-trace":"");
   trace.style.left=sx+"px";trace.style.top=sy+"px";trace.style.width=dist+"px";
   layer.node.appendChild(trace);
   tasks.push(animateNode(trace,[
@@ -2165,7 +2168,8 @@ function pulseBeams(evt){
    {transform:"rotate("+angle+"rad) scaleX(1)",opacity:.18,offset:1}
   ],travelMs,{easing:"cubic-bezier(.2,.4,.5,1)"}));
   const dot=document.createElement("span");
-  dot.className="pulse-dot"+(target.via==="mirror"?" moon-mirror-dot":"");
+  dot.className="pulse-dot"+(target.via==="mirror"?" moon-mirror-dot":
+   target.via==="fusion-mirror"?" moon-mirror-echo-dot":"");
   dot.style.left=(sx-6)+"px";dot.style.top=(sy-6)+"px";
   layer.node.appendChild(dot);
   tasks.push(animateNode(dot,[
@@ -2259,6 +2263,28 @@ async function animateEvent(evt){
    await Promise.all(targets.slice(0,MOBILE_LITE?4:7).map(t=>animateNode(boardTiles[t.to]?.querySelector(".piece"),[
     {transform:"scale(.83)",offset:0},{transform:"scale(1.13)",offset:.58},{transform:"scale(1)",offset:1}
    ],133)));
+   break;
+  }
+  case "mirror-resonance":{
+   // Two small, distinct legs show that an ordinary fusion (not a
+   // Masterpiece) has activated a real mirror: fusion -> glass -> target.
+   // The board update follows the reflected impact, not the initial swap.
+   const targets=evt.targets||[];
+   const endTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),
+    ...(evt.mistTargets||[]),...(evt.visualOnlyTargets||[]),...targets];
+   await pulseBeams({type:"mirror-resonance",silent:true,
+    mirrorTargets:(evt.mirrorTargets||[]).map(t=>({...t,via:"fusion-mirror"}))});
+   const releaseCharge=await pulseAnticipation({...evt,mirrorTargets:[],wave:3});
+   try{
+    await pulseBeams({...evt,mirrorTargets:[]});
+   }finally{releaseCharge();}
+   renderBoard(evt.board,endTargets.map(t=>t.to),"pulsed");
+   pulseLandingCues(endTargets);
+   await Promise.all(targets.slice(0,3).map(t=>animateNode(
+    boardTiles[t.to]?.querySelector(".piece"),[
+     {transform:"scale(.88)"},{transform:"scale(1.12)",offset:.6},
+     {transform:"scale(1)"}
+    ],120)));
    break;
   }
   case "awakening":
@@ -2534,14 +2560,29 @@ function showMoonMirrorPreviewResult(){
 function showMoonMirrorPreviewChooser(){
  if(busy)return;
  $("modalEyebrow").textContent="GAME DEV · MECHANICS PREVIEW";
- $("modalTitle").textContent="Moon Mirrors 1.0";
+ $("modalTitle").textContent="Moon Mirrors 1.2";
  const content=$("modalContent");content.replaceChildren();
  const intro=document.createElement("p");
- intro.textContent="Moon Mirrors are fixed, reflective objects — not family treasures. Swap the developed treasure at row 3, column 4 down into the center (row 4, column 4). These trials never spend cards or change your progress.";
+ intro.textContent="A normal fusion beside a fixed mirror now sends a small Echo along its arrow. A real Masterpiece still sends the stronger Harmony Pulse. In each preview, swap the developed treasure at row 3, column 4 down into the center. These trials never spend cards or change your progress.";
  content.append(intro);
+ const choices=goshuinNode("div","moon-preview-grid");
+ const items=[
+  ["echo","Mirror Echo","Normal fusion grows a distant treasure"],
+  ["obstacle","Echo Across Stone","Normal fusion strikes Stone and clears Mist"],
+  ["spark","Moonlit Chain","An ordinary fusion creates a Masterpiece remotely"],
+  ["first","First Reflection","Harmony Pulse through one mirror"],
+  ["mist","Moonlit Mist","Harmony Pulse reaches distant Mist"],
+  ["chain","Reflected Harmony","Two masterpieces, one reflected wave"]
+ ];
+ for(const [key,title,detail] of items){
+  const btn=goshuinNode("button","moon-preview-choice");
+  btn.type="button";btn.dataset.preview=key;
+  btn.append(goshuinNode("strong","",title),goshuinNode("small","",detail));
+  btn.addEventListener("click",()=>{showMenu();startLevel(2,false,key);});
+  choices.append(btn);
+ }
+ content.append(choices);
  const actions=$("modalActions");actions.replaceChildren();
- for(const [key,label] of [["first","1 · First Reflection"],["mist","2 · Moonlit Mist"],["chain","3 · Reflected Harmony"]])
-  modalButton(actions,label,key==="first"?"primary":"secondary",()=>{showMenu();startLevel(2,false,key);});
  modalButton(actions,"Cancel","secondary",()=>{if(game&&!$("gameView").hidden){$("modal").hidden=true;armDecisionClock();}else showMenu();});
  $("modal").hidden=false;
 }

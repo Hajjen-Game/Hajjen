@@ -2452,6 +2452,7 @@ async function playEvents(events,bondGain=null){
  else if(game?.koiRerollAt>=0)showKoiReroll();
 }
 function unlockGoal(){
+ if(moonMirrorPreview)return; // Neither animation nor result may unlock permanent progress.
  save.unlocked=Math.max(save.unlocked,level+1);
  if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.floor(save.unlocked/MENU_PAGE_SIZE);
  const archive=game.familyCount===4?save.fourFamilyStars:save.bestStars;

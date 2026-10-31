@@ -15,12 +15,13 @@ try{
  await page.evaluate(key=>{
   const data=JSON.parse(localStorage.getItem(key));
   const previous=new window.HarmonyRules.Game(5,null,{seed:8819,directorMode:"v4"});
-  data.run={level:5,data:previous.save()};
+  data.unlocked=5;data.run={level:5,data:previous.save()};
   data.reduceMotion=true;data.tutorialHelpSeen={};
   localStorage.setItem(key,JSON.stringify(data));
  },KEY);
  await page.reload({waitUntil:"networkidle2"});
  const baseline=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
+ assert(baseline.run?.data?.board?.length===49,"Existing saved run must be present before preview");
  await page.$eval("#menuAdvanced",node=>node.open=true);
  await page.click("#moonMirrorPreviewButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Moon Mirrors 1.0");

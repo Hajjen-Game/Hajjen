@@ -50,7 +50,15 @@ function bestIdleHint(){
   cachedIdleHint.signature===signature&&cachedIdleHint.moves===game.moves&&
   cachedIdleHint.score===game.score&&cachedIdleHint.rolls===game.rolls)
   return cachedIdleHint.value;
- const value=R.bestHint(game);
+ // A rare simulation error must not suppress ALL hints. The board's
+ // real legal-swap list is a safe, strictly non-mutating fallback.
+ let value=null;
+ try{value=R.bestHint(game);}
+ catch(error){console.warn("Harmony best-move simulation unavailable",error);}
+ if(!value){
+  const legal=R.validSwaps(game.board);
+  for(const pair of legal){value=R.directedHint(game.board,pair);if(value)break;}
+ }
  cachedIdleHint={game,signature,moves:game.moves,score:game.score,
   rolls:game.rolls,value};
  return value;
@@ -66,6 +74,25 @@ function hintEligible(){
  return !!game&&game.moves>0&&!game.failed&&!busy&&
   !$("gameView").hidden&&$("modal").hidden&&!document.hidden&&!powerSelection;
 }
+function showDirectedHint(hint,announce=false){
+ if(!hint||!Number.isInteger(hint.from)||!Number.isInteger(hint.to))return false;
+ clearIdleHint();
+ idleHintFrom=hint.from;idleHintTo=hint.to;
+ for(const [at,cls] of [[hint.from,"idle-hint-source"],[hint.to,"idle-hint-target"]]){
+  document.querySelector('.tile[data-index="'+at+'"]')?.classList.add(cls);
+ }
+ if(announce)toast("Possible move: gold tile → mint tile.",2800);
+ return true;
+}
+function revealPossibleMove(){
+ if(!game||game.moves<=0||game.failed||game.complete)return false;
+ const hint=bestIdleHint();
+ if(!hint)return false;
+ // The help modal must close before the hint becomes visible on the board.
+ $("modal").hidden=true;
+ armDecisionClock();
+ return showDirectedHint(hint,true);
+}
 function restartIdleHint(){
  clearIdleHint();
  if(!hintEligible())return;
@@ -74,9 +101,7 @@ function restartIdleHint(){
   if(!hintEligible())return;
   const hint=bestIdleHint();
   if(!hint)return;
-  idleHintFrom=hint.from;idleHintTo=hint.to;
-  document.querySelector('.tile[data-index="'+hint.from+'"]')?.classList.add("idle-hint-source");
-  document.querySelector('.tile[data-index="'+hint.to+'"]')?.classList.add("idle-hint-target");
+  showDirectedHint(hint,game?.config?.goal?.type==="lotus");
  },IDLE_HINT_DELAY_MS);
 }
 let scoreShown=0,scoreDisplayed=0,scoreRaf=0,scoreSession=0,scoreFlights=0,scoreOverlay=null;
@@ -464,6 +489,13 @@ function showTutorialHelp(lesson,firstTime=false){
  }
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.remove("pause-menu-actions","victory-actions");
+ // In addition to passive 30-second guidance, a player who is stuck may
+ // ask for an actual legal move. This does not move pieces or rescue a loss.
+ if(!firstTime&&game.moves>0&&!game.failed&&!game.complete){
+  modalButton(actions,"Show a possible move","secondary",()=>{
+   if(!revealPossibleMove())toast("No legal move found. Try reopening the puzzle.",2500);
+  });
+ }
  const ok=modalButton(actions,"OK","primary jh-tutorial-ok",()=>{
   if(firstTime){
    if(!save.tutorialHelpSeen||typeof save.tutorialHelpSeen!=="object"||
@@ -1482,7 +1514,8 @@ function choose(i){
  if(game.board[i]?.family==="sealedStone"){
   selected=-1;toast("Sealed Stone cannot move. Match beside it or hit it with Harmony Pulse (once per move).");return;
  }
- restartIdleHint();
+ // Do not reset the 30-second hint when the player is unsuccessfully
+ // testing tiles. Only an accepted move starts a new hint interval.
  if(!game.board[i])return;
  if(selected>=0&&selected!==i&&R.neighbors(selected).includes(i)){const a=selected;selected=-1;trySwap(a,i);return;}
  selected=selected===i?-1:i;
@@ -1501,7 +1534,6 @@ function choose(i){
 }
 function trySwap(a,b){
  if(busy||!game||powerSelection||!$("modal").hidden)return;
- clearIdleHint();
  // Remember the real screen geometry of linked source objects BEFORE swapping
  // so an earned Echo can visibly pull that thread into the fusion landing.
  echoLinkSnapshot.clear();
@@ -1518,7 +1550,7 @@ function trySwap(a,b){
  }
  const decisionMs=decisionReadyAt&&!document.hidden?performance.now()-decisionReadyAt:null;
  const result=game.swap(a,b,{decisionMs});
- if(result.ok)disarmDecisionClock();
+ if(result.ok){clearIdleHint();disarmDecisionClock();}
  if(!result.ok){
   echoLinkSnapshot.clear();
   selected=b;renderBoard(game.board);
@@ -1527,7 +1559,11 @@ function trySwap(a,b){
   sound("invalid");
   // Bounce holds busy=true until it settles. A timer restart during that
   // interval was rejected by hintEligible(), leaving the hint disabled.
-  void invalidSwapBounce(a,b).finally(()=>restartIdleHint());
+  void invalidSwapBounce(a,b).finally(()=>{
+   // An invalid swap is NOT a new valid decision; preserve the original
+   // hint countdown, unless it elapsed during this short bounce.
+   if(!idleHintTimer&&idleHintFrom<0)restartIdleHint();
+  });
   return;
  }
  selected=-1;$("selectedInfo").textContent="Swap two adjacent tiles or swipe.";
@@ -3389,7 +3425,7 @@ function bind(){
   $("settingsMotion").addEventListener("change",e=>{save.reduceMotion=e.target.checked;document.body.classList.toggle("harmony-reduced-motion",!!save.reduceMotion);persist();});
   modalButton($("modalActions"),"Reset my progress…","secondary",confirmResetProgress);
  });
- $("board").addEventListener("pointerdown",e=>{if(!$("gameView").hidden)restartIdleHint();const tile=e.target.closest(".tile");if(tile&&$("modal").hidden)pointer={i:Number(tile.dataset.index),x:e.clientX,y:e.clientY};});
+ $("board").addEventListener("pointerdown",e=>{const tile=e.target.closest(".tile");if(tile&&$("modal").hidden)pointer={i:Number(tile.dataset.index),x:e.clientX,y:e.clientY};});
  $("board").addEventListener("pointerup",e=>{
   if(!pointer)return;const start=pointer;pointer=null;
   if(!$("modal").hidden)return;
@@ -3402,7 +3438,11 @@ function bind(){
  });
  // A click may open OR close a dialog: the final bubbling phase sees the
  // actual state, so resuming always starts a new 30-second interval.
- document.addEventListener("click",()=>restartIdleHint());
+ document.addEventListener("click",event=>{
+  // Do not continually defer assistance as the player tries taps and
+  // invalid swaps on the board. Modal exits already re-arm the timer.
+  if($("gameView").hidden||!$("modal").hidden)restartIdleHint();
+ });
  document.addEventListener("visibilitychange",()=>{
   if(document.hidden){disarmDecisionClock();clearIdleHint();}else{if(game&&!busy&&!$("gameView").hidden&&$("modal").hidden)armDecisionClock();restartIdleHint();}
  });

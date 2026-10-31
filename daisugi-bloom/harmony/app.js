@@ -11,6 +11,7 @@ const KEY="japanese-harmony-puzzle-v2";
 const defaults={unlocked:0,bestStars:{},bestScores:{},bestChain:{},run:null,sound:true,reduceMotion:false,playMode:"auto",fourFamilyScores:{},fourFamilyStars:{},fourFamilyChain:{}};
 let save,game=null,level=0,selected=-1,busy=false,timer=0,pointer=null,suppressClickUntil=0;
 let moonMirrorPreview=null; // Deliberate, unranked, unsaved sandbox on the real board.
+let windGardenPreview=null; // Separate unranked Wind Garden gameplay preview.
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
@@ -273,7 +274,8 @@ function showMenu(){
  if(busy)return;
  disarmDecisionClock();clearIdleHint();
  resetResonanceVisuals();clearScoreFx();clearPraise();
- saveRun();moonMirrorPreview=null;document.body.classList.remove("harmony-playing","moon-mirror-preview");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
+ saveRun();moonMirrorPreview=null;windGardenPreview=null;
+ document.body.classList.remove("harmony-playing","moon-mirror-preview","wind-garden-preview");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 // Primary level selection is the book. Keep the landing menu accessible for
 // daily Omikuji, Omamori and Game Dev; leaving a run opens Goshuincho directly.
@@ -685,7 +687,7 @@ const normalUses=()=>Math.min(2,game?.blessingUses||0);
 function renderPowerBar(){
  const bar=$("omamoriPowerBar");if(!bar)return;
  bar.replaceChildren();
- if(moonMirrorPreview){bar.hidden=true;return;} // Never consume actual cards during an experiment.
+ if(moonMirrorPreview||windGardenPreview){bar.hidden=true;return;} // Never consume actual cards during an experiment.
  bar.hidden=false;
  // Keep the inventory quantity immediately after お守り. The full plaque
  // is passive artwork; only the clearly framed action is clickable.
@@ -1088,20 +1090,23 @@ async function celebrateCollection(evt){
  }
  await Promise.all(tasks);
 }
-function saveRun(){if(!moonMirrorPreview&&game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
-function startLevel(i,resume=false,mirrorScenario=null){
+function saveRun(){if(!moonMirrorPreview&&!windGardenPreview&&game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
+function startLevel(i,resume=false,mirrorScenario=null,windScenario=null){
  if(busy)return;
- moonMirrorPreview=mirrorScenario;document.body.classList.toggle("moon-mirror-preview",!!mirrorScenario);
+ moonMirrorPreview=mirrorScenario;windGardenPreview=windScenario;
+ document.body.classList.toggle("moon-mirror-preview",!!mirrorScenario);
+ document.body.classList.toggle("wind-garden-preview",!!windScenario);
  powerSelection=null;powerTargets=[];
  disarmDecisionClock();clearIdleHint();cachedIdleHint=null;
  resetResonanceVisuals();clearPraise();
  level=i;powerSelection=null;powerTargets=[];moonOfferShown=false;rewardStarsAtLevelStart=G.archivedStars(save,i);
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
- game=new R.Game(i,mirrorScenario?null:data,mirrorScenario?
+ game=new R.Game(i,mirrorScenario||windScenario?null:data,mirrorScenario?
   {directorMode:"v4",moonMirrorPreview:mirrorScenario,seed:20261031}:
+  windScenario?{directorMode:"v4",windGardenPreview:windScenario,seed:20261031}:
   data?null:{directorMode:save.playMode==="auto"?(i>=9?"v4":"v3"):save.playMode});
- chooseFestivalBackground(mirrorScenario?save.lastBackground:
+ chooseFestivalBackground(mirrorScenario||windScenario?save.lastBackground:
   resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="LEVEL "+(i+1);
  $("goalLabel").textContent=game.goalText();
@@ -1119,7 +1124,7 @@ function startLevel(i,resume=false,mirrorScenario=null){
  }
  prepareCollection();renderBoard(game.board);renderHUD();updatePaceLabel();updateSpiritBadge();renderPowerBar();saveRun();armDecisionClock();restartIdleHint();
  // One-time, player-acknowledged illustrated lesson, including resumed unread runs.
- if(!mirrorScenario)offerFirstLesson(i);
+ if(!mirrorScenario&&!windScenario)offerFirstLesson(i);
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
@@ -1258,6 +1263,7 @@ function renderBoard(board,highlight,effect){
  const omamoriAnchor=powerSelection&&["koi","deepCurrent"].includes(powerSelection)?
   powerTargets[powerTargets.length-1]:-1;
  const flash=effect||(highlight&&highlight.effect)||"pulsed";
+ const windNext=windGardenPreview?windForecast():null;
  const mist=activeMistFrame||game?.mist||[];
  const daruma=activeDarumaFrame||game?.daruma||[];
  const sealed=activeSealedFrame||game?.sealed||[];
@@ -1342,7 +1348,9 @@ function renderBoard(board,highlight,effect){
    const ring=document.createElement("span");ring.className="lotus-collector-ring";gate.append(ring);
    btn.append(gate);
   }else if(!exit&&gate)gate.remove();
-  const cls="tile"+(lotus?" lotus-seed-tile":"")+(exit?" lotus-exit-tile":"")+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(terrain?" terrain-garden-tile":"")+(mirror?" moon-mirror-tile":"")+(misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+(omamoriPreview?.has(i)?" omamori-gold-target":"")+
+  const cls="tile"+(lotus?" lotus-seed-tile":"")+(exit?" lotus-exit-tile":"")+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(terrain?" terrain-garden-tile":"")+(mirror?" moon-mirror-tile":"")+
+   (windNext&&Math.floor(i/7)===windNext.row?" wind-next-tile":"")+
+   (misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+(omamoriPreview?.has(i)?" omamori-gold-target":"")+
    (omamoriAnchor===i?" omamori-gold-anchor":"")+
    (highlighted&&highlighted.has(i)?" "+flash:"")+
    (resonance.anchors.has(i)?" resonance-anchor":"")+
@@ -1357,8 +1365,27 @@ window.addEventListener("resize",()=>{
  settledResonanceCache=null; // Width/position may change with the viewport.
  if(game&&!busy&&!$("gameView").hidden)renderBoard(game.board);
 },{passive:true});
+function windForecast(){
+ if(!game?.windGarden)return null;
+ try{
+  const used=game.config.moves-game.moves;
+  return window.HarmonyWindGarden.next(used,game.windGarden);
+ }catch{return null;}
+}
+function updateWindForecast(){
+ const badge=$("levelNumber");if(!badge||!game)return;
+ if(!windGardenPreview){badge.textContent="LEVEL "+(level+1);badge.removeAttribute("title");return;}
+ const next=windForecast();
+ if(!next)return;
+ const dir=next.direction==="left"?"←":"→";
+ badge.textContent="風 ROW "+(next.row+1)+" "+dir+" · "+next.inMoves+" MOVE"+(next.inMoves===1?"":"S");
+ badge.title="Wind Garden: row "+(next.row+1)+" moves "+next.direction+
+  " after "+next.inMoves+" valid move"+(next.inMoves===1?"":"s")+
+  ". The row wraps around; Mist stays on the same cells.";
+}
 function renderHUD(state){
  if(!game)return;
+ updateWindForecast();
  let current=state||game,progress=state?state.goal:game.progress();
  $("movesCount").textContent=current.moves;
  renderScoreOnly();
@@ -2409,6 +2436,18 @@ async function animateEvent(evt){
    renderBoard(evt.board);
    await flipMove(previous,evt.board,"fall");
    break;
+  case "wind-shift":{
+   // Animate ACTUAL identity-preserving row positions with the existing
+   // FLIP compositor. No dummy sprite or fake match animations.
+   const affected=Array.from({length:7},(_,col)=>evt.row*7+col);
+   renderBoard(evt.board,affected,"wind-blown");
+   await flipMove(previous,evt.board,"wind");
+   break;
+  }
+  case "wind-blocked":
+   renderBoard(evt.board);
+   toast("風 Wind could not move this row: a fixed object blocks it.",1600);
+   break;
   case "shuffle":
    // A fair shuffle relocates complete piece identities; use the existing
    // ID-based FLIP animation so developed objects visibly move to new slots
@@ -2485,7 +2524,7 @@ async function playEvents(events,bondGain=null){
  else if(game?.koiRerollAt>=0)showKoiReroll();
 }
 function unlockGoal(){
- if(moonMirrorPreview)return; // Neither animation nor result may unlock permanent progress.
+ if(moonMirrorPreview||windGardenPreview)return; // Neither animation nor result may unlock permanent progress.
  save.unlocked=Math.max(save.unlocked,level+1);
  if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.floor(save.unlocked/MENU_PAGE_SIZE);
  const archive=game.familyCount===4?save.fourFamilyStars:save.bestStars;
@@ -2533,6 +2572,58 @@ function makeRoundExport(make){
   }
  });
  return exportLink;
+}
+function showWindGardenPreviewResult(){
+ // No archive stars, economy changes, persistent run or tutorial flag.
+ clearIdleHint();disarmDecisionClock();clearScoreFx();
+ const won=game.complete;
+ $("modalEyebrow").textContent="WIND GARDEN · UNRANKED PREVIEW";
+ $("modalTitle").textContent=won?"Garden in harmony!":"The wind settles";
+ const content=$("modalContent");content.replaceChildren();
+ const copy=document.createElement("p");
+ copy.textContent=won?"You solved the wind puzzle. No permanent rewards or progress were changed.":
+  "The row movements are predictable; try planning around the next shift.";
+ content.append(copy);
+ const summary=document.createElement("p");summary.className="wind-preview-result";
+ summary.textContent="Goal "+game.progress()+"/"+game.target()+" · "+
+  (game.config.moves-game.moves)+" moves · "+game.fusions+" fusions · "+game.score+" points";
+ content.append(summary);
+ const make=(tag,cls,t)=>{const el=document.createElement(tag);el.className=cls;el.textContent=t;return el;};
+ content.append(makeRoundExport(make));
+ const actions=$("modalActions");actions.replaceChildren();
+ modalButton(actions,"Retry this wind","primary",()=>startLevel(2,false,null,windGardenPreview));
+ modalButton(actions,"Choose another wind","secondary",showWindGardenPreviewChooser);
+ modalButton(actions,"Back to main menu","secondary",showMenu);
+ $("modal").hidden=false;
+}
+function showWindGardenPreviewChooser(){
+ if(busy)return;
+ $("modalActions").classList.remove("pause-menu-actions");
+ $("modalEyebrow").textContent="GAME DEV · MECHANICS PREVIEW";
+ $("modalTitle").textContent="Wind Garden 1.0";
+ const content=$("modalContent");content.replaceChildren();
+ const intro=document.createElement("p");
+ intro.textContent="The marked row shifts one tile after the announced number of valid moves. Objects keep their stages, the edge wraps around, and new matches fuse automatically. Look for 風 above the board. Make your first fusion by swapping row 3, column 4 down into row 4, column 4. No cards, stars or save data are spent.";
+ content.append(intro);
+ const choices=goshuinNode("div","wind-preview-grid");
+ const options=[
+  ["breeze","First Breeze","Row 4 shifts right every move"],
+  ["crossing","Crossing Winds","Rows 3 and 5 alternate every two moves"],
+  ["tide","Garden Tide","Row 4 alternates left and right; Mist remains fixed"]
+ ];
+ for(const [key,title,description] of options){
+  const btn=goshuinNode("button","wind-preview-choice");btn.type="button";
+  btn.dataset.preview=key;btn.append(goshuinNode("strong","",title),goshuinNode("small","",description));
+  btn.addEventListener("click",()=>{showMenu();startLevel(2,false,null,key);});
+  choices.append(btn);
+ }
+ content.append(choices);
+ const actions=$("modalActions");actions.replaceChildren();
+ modalButton(actions,"Cancel","secondary",()=>{
+  if(game&&!$("gameView").hidden){$("modal").hidden=true;armDecisionClock();}
+  else showMenu();
+ });
+ $("modal").hidden=false;
 }
 function showMoonMirrorPreviewResult(){
  // Preview does not grant achievements, coins, stars or purchase prompts.
@@ -2590,6 +2681,7 @@ function showResult(){
  $("modalActions").classList.remove("pause-menu-actions");
  if(!game)return;
  if(moonMirrorPreview){showMoonMirrorPreviewResult();return;}
+ if(windGardenPreview){showWindGardenPreviewResult();return;}
  disarmDecisionClock();clearIdleHint();clearPraise();clearScoreFx();scoreShown=game.score;scoreDisplayed=scoreShown;renderScoreOnly();
  const won=game.complete;
  if(!won&&game.failed&&!moonOfferShown&&(C.has(save,"tsuki")||C.has(save,"moonGrace"))){
@@ -3017,7 +3109,7 @@ function openGameMenu(){
  };
  add("Resume game","primary","resume",()=>{$("modal").hidden=true;armDecisionClock();});
  if(game.complete)add("Finish and view results","secondary","finish",()=>{if(busy)return;game.finish();showResult();});
- add("Restart level","secondary","restart",()=>{if(!busy)startLevel(level,false,moonMirrorPreview);});
+ add("Restart level","secondary","restart",()=>{if(!busy)startLevel(level,false,moonMirrorPreview,windGardenPreview);});
  // Keep these DOM positions intact: the existing game and smoke tests rely
  // on direct button access and keyboard tab order, even with the new layout.
  add("How to Play","secondary","help",()=>{$("helpButton").click();});
@@ -3060,6 +3152,7 @@ function bind(){
  $("goalHelpButton").addEventListener("click",showGoalHelp);
  $("devButton").addEventListener("click",openEngineLab);
  $("moonMirrorPreviewButton")?.addEventListener("click",showMoonMirrorPreviewChooser);
+ $("windGardenPreviewButton")?.addEventListener("click",showWindGardenPreviewChooser);
  $("continueButton").addEventListener("click",()=>activateWashiPlay($("continueButton"),()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);}));
  $("helpButton").addEventListener("click",()=>modalInfo("How to Play",'<p><strong>Match:</strong> Swap adjacent tiles to match three or more objects from the same family. Stages can differ. T- and L-shaped matches also work.</p><p><strong>Fuse:</strong> A match fuses at the destination of your swap (or the other swapped tile if only that position makes a match). The result advances one stage above the highest matched object. Automatic chains fuse at the highest-stage tile. A match of four upgrades a neighbor; five or more upgrades two.</p><p><strong>Harmony Resonance:</strong> Objects at stages 3–4 may form a subtle light link with a neighboring object in the same family. Fuse both together to trigger Harmony Echo and earn bonus points, at most once per move.</p><p><strong>Harmony Pulse:</strong> A stage-5 masterpiece sends power to its four orthogonal neighbors. Existing objects advance, and Mist clears even on empty tiles. Chains finish before empty spaces refill.</p><p><strong>Masterpieces:</strong> Each new masterpiece still grants bonus points; the old masterpiece collection panel is hidden during play.</p><p><strong>Harmony Mist (from level 4):</strong> Clear magical Mist from marked tiles. Fuse onto a Mist tile or reach it with Harmony Pulse. Pieces can move into and out of Mist, but matching across Mist does not clear it unless the fusion lands there. Mist remains in place as pieces fall.</p><p><strong>Daruma (levels 21–30):</strong> Daruma cannot move. Each doll requires two hits on separate moves, from an adjacent fusion or Harmony Pulse. The chapter alternates between Daruma, Mist, and fusion challenges.</p><p><strong>Sealed Stones (levels 31–40):</strong> Stones cannot move and take four separate hits. Fuse beside a stone or hit it with Harmony Pulse, at most once per move. The final hit releases an Awakening Pulse toward all eight neighbors, including diagonals, and can start a chain.</p><p><strong>Rewards:</strong> Completing the objective awards at least one star. Earn two or three by finishing with fewer moves; your star rating locks when the goal is reached. Bonus score is an optional record. You can continue playing after the goal or move on. Harmony Coins start from level 11. Buy one-use Omamori cards from the Main Menu shop: Bloom Touch upgrades a tile, Ripple Shuffle rearranges a small area, Sealbreaker hits an obstacle, and Moon cards grant extra moves when you run out. Stronger variants cost more. Up to two board boosts can be used per level, plus one optional Moon rescue. Omamori-assisted wins earn a single Goshuincho stamp and coins, while clean star ratings and score records remain separate.</p>'));
  $("settingsButton").addEventListener("click",()=>{

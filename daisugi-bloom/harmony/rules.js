@@ -1423,7 +1423,7 @@ class Game{
    candidateCount:candidates.length,candidates:evaluations,
    baselineAutoMatches:baseline.autoMatches,
    chosen:candidates.indexOf(selected),
-   spatial:spatialAssessment,
+   ...(spatialAssessment?{spatial:spatialAssessment}:{}),
    threshold:thresholdUsed,reason:baseline.autoMatches?
     "preserved-natural-cascade":selectedReason,
    afterglow:afterglowRemaining

@@ -7,7 +7,7 @@
 "use strict";
 const SIZE=7,CELLS=SIZE*SIZE;
 const DELTAS=Object.freeze({up:[-1,0],right:[0,1],down:[1,0],left:[0,-1]});
-const FIXED=new Set(["terrain","daruma","sealedStone","lotusSeed"]);
+const FIXED=new Set(["terrain","daruma","sealedStone","lotusSeed","moonMirror"]);
 function cell(at){
  if(!Number.isInteger(at)||at<0||at>=CELLS)throw Error("Invalid board cell");
  return [Math.floor(at/SIZE),at%SIZE];
@@ -39,7 +39,7 @@ function normalizeMirrors(mirrors,blocked=[]){
  }
  return out;
 }
-// A mirror is a stationary CELL overlay, not a piece. Its ordinary adjacent
+// A mirror is a stationary non-matchable fixture at this CELL. Its ordinary adjacent
 // Pulse target is still hit; ONE extra hit is relayed in the specified direction.
 // Duplicates and blocked terrain cells are excluded. Never recursively relay.
 function planMirrorPulse(source,mirrors=[],options={}){

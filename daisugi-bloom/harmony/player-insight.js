@@ -18,6 +18,8 @@ function snapshot(game){
 function initial(game,partial=false){
  return {version:VERSION,partial,level:game.level+1,seed:game.seed,
   directorMode:game.directorMode,goal:{...game.config.goal},
+  moonMirrors:game.moonMirrors?.map(x=>({...x}))||[],
+  preview:game.moonMirrorPreview||null,
   start:snapshot(game),moves:[],cards:[],rejected:[],truncated:false};
 }
 function valid(trace){
@@ -53,15 +55,16 @@ function eventSummary(event){
  }
  for(const key of ["positions","clearedMist","mistTargets","darumaTargets","stoneTargets"]){
   if(Array.isArray(event[key]))kept[key]=event[key].slice(0,49).map(x=>
-   typeof x==="number"?x:{at:x.at,to:x.to,from:x.from}).slice(0,49);
+   typeof x==="number"?x:{at:x.at,to:x.to,from:x.from,via:x.via,source:x.source}).slice(0,49);
  }
  if(Array.isArray(event.groups))kept.groups=event.groups.slice(0,12).map(g=>({
   family:g.family,at:g.at,stage:g.stage,size:g.size,kind:g.kind,
   indices:Array.isArray(g.indices)?g.indices.slice(0,8):undefined
  }));
  if(Array.isArray(event.targets))kept.targets=event.targets.slice(0,49).map(t=>({
-  from:t.from,to:t.to,stage:t.stage
+  from:t.from,to:t.to,stage:t.stage,via:t.via,source:t.source
  }));
+ if(Array.isArray(event.reflections))kept.reflections=event.reflections.slice(0,16).map(r=>({from:r.from,to:r.to,direction:r.direction,source:r.source}));
  if(Array.isArray(event.delivered))kept.delivered=event.delivered.slice(0,8);
  // An identical snapshot must survive JSON save/reload. Omitting optional
  // undefined fields here avoids invisible differences between live and
@@ -101,9 +104,10 @@ function last(game,trace,profile,intentAwareness=null){
   privacy:"Player-exported locally. No account, device ID, wallet balance or purchase history.",
   level:game.level+1,levelName:game.config.name,
   goal:game.config.goal,directorMode:game.directorMode,
+  preview:game.moonMirrorPreview||null,moonMirrors:game.moonMirrors?.map(x=>({...x}))||[],
   result:{complete:!!game.complete,failed:!!game.failed,
-   score:game.score,stars:game.assisted?1:game.stars(),
-   assisted:!!game.assisted,movesUsed:game.config.moves-game.moves,
+   score:game.score,stars:game.moonMirrorPreview?0:game.assisted?1:game.stars(),
+   assisted:!!game.assisted,unranked:!!game.moonMirrorPreview,movesUsed:game.config.moves-game.moves,
    movesRemaining:game.moves,progress:game.progress(),target:game.target()},
   playerInsight:profile,intentAwareness,round:JSON.parse(JSON.stringify(trace))};
 }

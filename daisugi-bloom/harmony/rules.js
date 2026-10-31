@@ -11,6 +11,8 @@ const LotusRouting=root.HarmonyLotusRouting||(typeof require==="function"?requir
 if(!LotusRouting)throw Error("Lotus routing prototypes must load before Harmony Rules");
 const Mirror=root.HarmonyMoonMirrors||(typeof require==="function"?require("./moon-mirrors.js"):null);
 if(!Mirror)throw Error("Moon Mirrors 1.0 must load before Harmony Rules");
+const Wind=root.HarmonyWindGarden||(typeof require==="function"?require("./wind-garden.js"):null);
+if(!Wind)throw Error("Wind Garden 1.0 must load before Harmony Rules");
 const Afterglow=root.HarmonyOmamoriAfterglow||(typeof require==="function"?require("./omamori-afterglow.js"):null);
 if(!Afterglow)throw Error("Omamori Afterglow policy must load before Harmony Rules");
 const Insight=root.HarmonyPlayerInsight||(typeof require==="function"?require("./player-insight.js"):null);
@@ -894,6 +896,15 @@ class Game{
  constructor(index=0,previous=null,options=null){
   this.level=Number.isInteger(index)&&index>=0?index:0;
   this.config=levelConfig(this.level);
+  this.windGardenPreview=options?.windGardenPreview||previous?.windGardenPreview||null;
+  if(this.windGardenPreview){
+   if(this.level!==2||options?.moonMirrorPreview||previous?.moonMirrorPreview)
+    throw Error("Wind Garden preview needs its own level-3 sandbox");
+   const w=Wind.descriptor(this.windGardenPreview);
+   this.config={...this.config,name:w.name,subtitle:w.subtitle,intro:w.intro,
+    moves:w.moves,par:Math.ceil(w.moves*.6),starPar:Math.ceil(w.moves*.6),
+    goal:w.goal,boardMechanics:{version:1,mist:w.mist}};
+  }
   // Explicit, disposable Moon Mirrors previews never alter live level recipes.
   this.moonMirrorPreview=options?.moonMirrorPreview||previous?.moonMirrorPreview||null;
   if(this.moonMirrorPreview){
@@ -919,6 +930,8 @@ class Game{
   this.lotusDelivered=0;
   // Future levels may provide terrain / overlays without changing their objective.
   this.boardMechanics=B.normalize(options?.boardMechanics??this.config.boardMechanics);
+  this.windGarden=Wind.normalize(options?.windGarden??(this.windGardenPreview?
+   Wind.descriptor(this.windGardenPreview).schedule:previous?.windGarden));
   this.moonMirrors=Mirror.normalize(options?.moonMirrors??(this.moonMirrorPreview?
    Mirror.descriptor(this.moonMirrorPreview).mirrors:previous?.moonMirrors),
    this.boardMechanics.blocked);
@@ -982,6 +995,17 @@ class Game{
    }
    this.board=initial;
   }
+  if(!previous&&this.windGardenPreview){
+   // Deterministically authored, legal opening; wind itself remains
+   // predictable and never creates a scripted victory.
+   for(let attempt=0;attempt<180;attempt++){
+    Wind.opening(this.board,this.families,this.windGardenPreview);
+    if(!scan(this.board).length&&validSwaps(this.board).length>=3&&
+     validSwaps(this.board).some(([a,b])=>a===17&&b===24))break;
+    if(attempt===179)throw Error("Could not make fair Wind Garden opening");
+    this.board=startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics);
+   }
+  }
   if(!previous&&!this.moonMirrorPreview&&this.moonMirrors.length){
    // Future opt-in custom layouts use the same complete fixed mirror
    // objects, never an overlay hiding a normal family treasure.
@@ -1037,6 +1061,7 @@ class Game{
    this.lotusVersion=oldLotusRun?0:previous.lotusVersion||0;
    this.lotusDelivered=oldLotusRun?0:Math.max(0,Math.min(this.lotus.starts.length,Number(previous.lotusDelivered)||0));
    this.boardMechanics=B.normalize(previous.boardMechanics??(oldBambooRun?null:this.config.boardMechanics));
+   this.windGarden=Wind.normalize(previous.windGarden);
    this.moonMirrors=Mirror.normalize(previous.moonMirrors,this.boardMechanics.blocked);
    // Reusing a saved snapshot must not share mutable refill-bag arrays.
    this.bag=Array.isArray(previous.bag)?previous.bag.slice():[];
@@ -1058,6 +1083,12 @@ class Game{
     oldBambooRun?endlessConfig(this.level,true,true,true,false):
     oldLotusRun?endlessConfig(this.level,true,true,true,true,false):
     levelConfig(this.level,previous.difficultyCalibrationVersion===2);
+   if(this.windGardenPreview){
+    const w=Wind.descriptor(this.windGardenPreview);
+    this.config={...this.config,name:w.name,subtitle:w.subtitle,intro:w.intro,
+     moves:w.moves,par:Math.ceil(w.moves*.6),starPar:Math.ceil(w.moves*.6),
+     goal:w.goal,boardMechanics:{version:1,mist:w.mist}};
+   }
    if(this.moonMirrorPreview){
     const p=Mirror.descriptor(this.moonMirrorPreview);
     this.config={...this.config,name:p.name,subtitle:p.subtitle,intro:p.intro,
@@ -1739,6 +1770,29 @@ class Game{
   this.afterglowRefillTried=false;
   this.moves--;
   const events=[this.frame("swap",{from:a,to:b}),...this.resolve(b,armed,a)];
+  if(this.windGarden&&!this.complete&&!this.failed){
+   const turns=this.config.moves-this.moves;
+   if(turns%this.windGarden.every===0){
+    const next=Wind.next(turns-1,this.windGarden);
+    const shift=Wind.shift(this.board,next.row,next.direction);
+    if(shift.ok){
+     this.board=shift.board;
+     events.push(this.frame("wind-shift",{row:next.row,direction:next.direction,
+      afterMove:turns,moved:shift.moved}));
+     // The scheduled shift may itself form real matches. They cascade with
+     // existing gravity, scoring, Pulse, goal and Director contracts.
+     if(scan(this.board).length)events.push(...this.resolve(-1));
+     else if(!validSwaps(this.board).length){
+      this.board=fairShuffle(this.board,()=>this.fresh());
+      events.push(this.frame("shuffle"));
+     }
+    }else{
+     // No silent movement of terrain, Daruma, Stones or Lotus cargo.
+     events.push(this.frame("wind-blocked",{row:next.row,
+      direction:next.direction,reason:shift.reason,afterMove:turns}));
+    }
+   }
+  }
   if(this.afterglowTurnActive)
    this.omamoriAfterglow.remaining=Math.max(0,this.omamoriAfterglow.remaining-1);
   this.afterglowTurnActive=false;this.afterglowRefillTried=false;
@@ -1774,7 +1828,11 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {roundTrace:this.roundTrace,moonMirrorPreview:this.moonMirrorPreview,
+ save(){return {roundTrace:this.roundTrace,
+  windGardenPreview:this.windGardenPreview,
+  windGarden:this.windGarden?Wind.normalize(this.windGarden):null,
+  windGardenVersion:this.windGarden?Wind.VERSION:0,
+  moonMirrorPreview:this.moonMirrorPreview,
   moonMirrorVersion:this.moonMirrors.length?Mirror.VERSION:0,
   moonMirrors:this.moonMirrors.map(x=>({...x})),omamoriAfterglow:Afterglow.normalize(this.omamoriAfterglow),lotusPrototype:this.lotusPrototype,lotusVersion:this.lotusVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }

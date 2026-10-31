@@ -94,7 +94,7 @@ try{
   document.querySelector(".wind-ambient-row")),true,"Wind never restarts for ordinary turns");
  await checkAmbient(3,"right");
  const breezeNext=await page.evaluate(()=>{
-  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v4",windGardenPreview:"breeze"});
+  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v6",windGardenPreview:"breeze"});
   game.swap(17,24);return HarmonyRules.validSwaps(game.board)[0];
  });
  await playMove(...breezeNext);await settled(12);
@@ -111,7 +111,7 @@ try{
   document.querySelector(".wind-ambient-row")),true);
  await checkAmbient(3,"left","The first move is not an immediate gust");
  const tideNext=await page.evaluate(()=>{
-  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v4",windGardenPreview:"tide"});
+  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v6",windGardenPreview:"tide"});
   game.swap(17,24);return HarmonyRules.validSwaps(game.board)[0];
  });
  await playMove(...tideNext);await settled(16);
@@ -126,7 +126,7 @@ try{
   document.querySelector(".wind-ambient-row")),true);
  await checkAmbient(2,"left");
  const pair=await page.evaluate(()=>{
-  const engine=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v4",windGardenPreview:"crossing"});
+  const engine=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v6",windGardenPreview:"crossing"});
   engine.swap(17,24);return HarmonyRules.validSwaps(engine.board)[0];
  });
  await playMove(...pair);await settled(16);
@@ -134,7 +134,7 @@ try{
   document.querySelector(".wind-ambient-row")),true);
  await checkAmbient(2,"left"); // Still waiting for move three.
  const third=await page.evaluate(()=>{
-  const engine=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v4",windGardenPreview:"crossing"});
+  const engine=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v6",windGardenPreview:"crossing"});
   engine.swap(17,24);engine.swap(...HarmonyRules.validSwaps(engine.board)[0]);
   return HarmonyRules.validSwaps(engine.board)[0];
  });

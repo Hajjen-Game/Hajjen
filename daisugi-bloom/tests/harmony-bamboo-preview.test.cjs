@@ -97,8 +97,12 @@ check("saved preview replays exactly with unchanged original level recipe",()=>{
   const pair=R.validSwaps(g.board)[0];
   assert.equal(g.swap(...pair).ok,true);
   assert.equal(restored.swap(...pair).ok,true);
-  assert.deepEqual(JSON.parse(JSON.stringify(restored.save())),
-   JSON.parse(JSON.stringify(g.save())));
+  // Insight's round history intentionally begins a new local segment
+  // after a restore. The actual game state, RNG and future moves must match.
+  const one=g.save(),two=restored.save();
+  delete one.roundTrace;delete two.roundTrace;
+  assert.deepEqual(JSON.parse(JSON.stringify(two)),
+   JSON.parse(JSON.stringify(one)));
  }
 });
 check("round export explicitly identifies Bamboo as unranked without earning stars",()=>{

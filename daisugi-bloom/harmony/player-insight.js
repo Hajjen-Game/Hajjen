@@ -85,11 +85,12 @@ function rejected(trace,game,from,to,reason){
  trace.rejected.push({atMove:game.config.moves-game.moves+1,
   from,to,reason:String(reason).slice(0,120)});
 }
-function recordCard(trace,game,cardId,before){
+function recordCard(trace,game,cardId,before,refills=[],events=[]){
  if(!valid(trace))return;
  if(trace.cards.length>=MAX_CARDS){trace.truncated=true;return;}
  trace.cards.push({card:cardId,turn:game.config.moves-game.moves,
-  before,after:snapshot(game),
+  before,after:snapshot(game),refills:refills.slice(0,MAX_REFILLS),
+  events:events.map(eventSummary),
   afterglow:game.omamoriAfterglow?.remaining||0});
 }
 function last(game,trace,profile){

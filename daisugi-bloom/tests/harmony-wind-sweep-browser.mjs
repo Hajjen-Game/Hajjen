@@ -30,6 +30,27 @@ const swap=async()=>{
 };
 const capture=async(scenario,direction)=>{
  await choose(scenario);
+ // Wind must be present and move continuously BEFORE any player action.
+ const initial=await page.evaluate(()=>{
+  const root=document.querySelector(".wind-ambient-row");
+  const wisps=[...document.querySelectorAll(".wind-ambient-wisp")];
+  window.__windAmbientIdentity=root;
+  return {row:root?.dataset.row,direction:root?.dataset.direction,
+   layers:document.querySelectorAll(".wind-ambient-row").length,
+   hasContinuousMotion:wisps.length===2&&wisps.every(n=>
+    getComputedStyle(n).animationIterationCount==="infinite"&&
+    getComputedStyle(n).animationPlayState==="running"),
+   names:wisps.map(n=>getComputedStyle(n).animationName),
+   eventLayerCount:document.querySelectorAll(".wind-sweep-row").length
+  };
+ });
+ assert.equal(initial.row,"3");
+ assert.equal(initial.direction,direction);
+ assert.equal(initial.layers,1);
+ assert.equal(initial.eventLayerCount,0,"The wind should be blowing before any shift");
+ assert(initial.hasContinuousMotion,"Both background wisps should move continuously");
+ assert(initial.names.every(name=>name==="wind-ambient-"+direction),
+  "Wind animation must have the same direction across the entire row");
  await swap();
  await page.waitForSelector(".wind-sweep-row",{timeout:35000});
  const geometry=await page.evaluate(()=>{
@@ -76,8 +97,19 @@ const capture=async(scenario,direction)=>{
  await page.waitForFunction(()=>document.querySelector(".wind-sweep-row")===null&&
   document.querySelector("#board")?.getAttribute("aria-busy")==="false",
   {timeout:35000});
- assert.equal(await page.$$eval(".wind-sweep-row",n=>n.length),0,
-  "Wind FX layer must be cleaned up when the move finishes");
+ assert.equal(await page.$eval(".wind-sweep-row",n=>n.length),0,
+  "The temporary strong gust must disappear after shifting");
+ const ongoing=await page.evaluate(()=>({
+  stillSameLayer:document.querySelector(".wind-ambient-row")===window.__windAmbientIdentity,
+  continuousLayers:document.querySelectorAll(".wind-ambient-row").length,
+  nextDirection:document.querySelector(".wind-ambient-row")?.dataset.direction,
+  nextRow:document.querySelector(".wind-ambient-row")?.dataset.row
+ }));
+ assert.equal(ongoing.stillSameLayer,true,"Wind must not stop or restart after a row shift");
+ assert.equal(ongoing.continuousLayers,1);
+ assert.equal(ongoing.nextRow,"3");
+ assert.equal(ongoing.nextDirection,scenario==="tide"?"right":"right",
+  "The ongoing wind must follow the next forecast direction");
  return geometry;
 };
 try{
@@ -106,12 +138,16 @@ try{
  await swap();
  await page.waitForFunction(()=>document.querySelector("#board")?.getAttribute("aria-busy")==="false"&&
   document.querySelector("#movesCount")?.textContent==="13",{timeout:35000});
- assert.equal(await page.$$eval(".wind-sweep-row",x=>x.length),0,
+ assert.equal(await page.$eval(".wind-sweep-row",x=>x.length),0,
   "Reduce animations must skip Wind Sweep without skipping the actual move");
+ assert.equal(await page.$eval(".wind-ambient-row",x=>x.length),1,
+  "Reduced motion keeps a static wind-row marking");
+ assert.equal(await page.$eval(".wind-ambient-wisp",x=>getComputedStyle(x).display),"none",
+  "Reduced motion must disable the continuously moving cloud");
  const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  for(const field of ["unlocked","run","bestScores","bestStars","omamoriCards","economy"])
   assert.deepEqual(saved[field],baseline[field],
    "Visual Wind Sweep must not change progress: "+field);
  assert.deepEqual(errors,[],"No browser errors");
- console.log("PASS Wind Sweep 1.0: continuous row-width cloud, monotonic left/right movement, reduced motion, clean FX and unchanged player progress");
+ console.log("PASS Wind Sweep 1.1: persistent one-way row wind before/after turns, faster gust on shift, reduced motion and save safety");
 }finally{await browser.close();}

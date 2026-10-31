@@ -108,7 +108,7 @@ const capture=async(scenario,direction)=>{
  assert.equal(ongoing.stillSameLayer,true,"Wind must not stop or restart after a row shift");
  assert.equal(ongoing.continuousLayers,1);
  assert.equal(ongoing.nextRow,"3");
- assert.equal(ongoing.nextDirection,scenario==="tide"?"right":"right",
+ assert.equal(ongoing.nextDirection,scenario==="tide"?"right":direction,
   "The ongoing wind must follow the next forecast direction");
  return geometry;
 };

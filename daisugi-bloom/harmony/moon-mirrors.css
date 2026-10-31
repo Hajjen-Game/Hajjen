@@ -1,19 +1,42 @@
-/* Moon Mirrors 1.0 – visual language for stationary, directional overlays.
- * Entirely pointer-transparent. No visual changes outside explicit previews.
+/* Moon Mirrors 1.1 — standalone fixed mirror objects.
+ * No family treasure or sprite appears underneath the mirror.
+ * This art is drawn within the cell; neither click nor swipe intercept.
  */
 .moon-mirror-tile{isolation:isolate}
-.moon-mirror-glyph{
- position:absolute;z-index:5;right:5%;top:5%;display:grid;place-items:center;
- width:29%;height:29%;max-width:25px;max-height:25px;
- border:1px solid rgba(255,244,210,.92);border-radius:7px;
- color:#fff9e4;background:linear-gradient(145deg,rgba(122,151,172,.9),rgba(57,74,111,.94));
- box-shadow:0 0 0 1px rgba(59,74,93,.52),0 0 9px rgba(220,231,243,.65),inset 0 1px 2px rgba(255,255,255,.65);
- font-size:clamp(11px,3.3vw,18px);line-height:1;font-weight:750;
- text-shadow:0 1px 2px #283a55;pointer-events:none;user-select:none;
+.moon-mirror-art{
+ position:absolute;inset:4%;z-index:5;display:grid;place-items:center;
+ pointer-events:none;user-select:none;
+ filter:drop-shadow(0 2px 3px rgba(28,27,38,.45));
+}
+.moon-mirror-frame{
+ position:absolute;inset:7%;border-radius:25% 25% 28% 28%;
+ background:linear-gradient(145deg,#f5dca9 2%,#b48d57 21%,#f2dab2 42%,#987348 69%,#d8b57a 90%);
+ border:1px solid #705838;
+ box-shadow:inset 0 1px 2px rgba(255,249,219,.94),inset 0 -2px 3px rgba(65,43,27,.54),0 0 0 1px rgba(236,204,142,.3);
+}
+.moon-mirror-glass{
+ position:absolute;inset:15%;border-radius:23% 23% 26% 26%;
+ background:
+  radial-gradient(circle at 30% 24%,rgba(255,255,249,.92),transparent 30%),
+  linear-gradient(136deg,rgba(228,236,231,.96) 2%,rgba(165,181,184,.92) 35%,rgba(207,221,222,.99) 54%,rgba(104,126,144,.96) 100%);
+ border:1px solid rgba(241,244,232,.95);
+ box-shadow:inset 0 0 0 1px rgba(88,94,108,.45),inset 2px -4px 5px rgba(95,112,128,.18);
+}
+.moon-mirror-glass::before{
+ content:"";position:absolute;top:4%;left:15%;width:32%;height:80%;
+ transform:skew(-27deg);border-radius:30%;
+ background:linear-gradient(90deg,rgba(255,255,255,.30),rgba(255,255,255,.07));
+}
+.moon-mirror-arrow{
+ position:relative;z-index:3;display:grid;place-items:center;
+ width:43%;height:43%;line-height:1;border-radius:50%;
+ color:#413b48;font-weight:800;font-size:clamp(17px,5.1vw,31px);
+ text-shadow:0 1px 1px rgba(255,250,232,.92);
+ background:radial-gradient(circle,rgba(248,247,230,.5) 0%,rgba(252,252,238,0) 77%);
 }
 .moon-mirror-tile::after{
- content:"";position:absolute;inset:2px;z-index:2;pointer-events:none;border-radius:6px;
- box-shadow:inset 0 0 0 1px rgba(220,234,241,.28);
+ content:"";position:absolute;inset:2px;pointer-events:none;border-radius:5px;
+ box-shadow:inset 0 0 0 1px rgba(237,219,172,.23);
 }
 .pulse-trace.moon-mirror-trace{
  height:4px;background:linear-gradient(90deg,rgba(194,225,251,.5),rgba(249,250,235,.98));
@@ -26,5 +49,6 @@ body.moon-mirror-preview #omamoriPowerBar{display:none!important}
  .pulse-trace.moon-mirror-trace,.pulse-dot.moon-mirror-dot{transition:none!important;animation:none!important}
 }
 @media(max-width:370px){
- .moon-mirror-glyph{border-radius:4px;max-height:18px;max-width:18px;font-size:12px}
+ .moon-mirror-art{inset:3%}
+ .moon-mirror-arrow{font-size:clamp(16px,5vw,23px)}
 }

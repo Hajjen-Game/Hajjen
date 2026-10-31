@@ -1264,19 +1264,27 @@ function renderBoard(board,highlight,effect){
  const removedMist=[];
  const resonance=refreshResonance(board);
  for(let i=0;i<49;i++){
-  const piece=board[i],btn=boardTiles[i],doll=piece?.family==="daruma",stone=piece?.family==="sealedStone",terrain=piece?.family==="terrain",lotus=piece?.family==="lotusSeed";
+  const piece=board[i],btn=boardTiles[i],doll=piece?.family==="daruma",stone=piece?.family==="sealedStone",terrain=piece?.family==="terrain",lotus=piece?.family==="lotusSeed",moon=piece?.family==="moonMirror";
+  const mirror=game?.moonMirrors?.find(m=>m.at===i);
   const dState=doll?(daruma[i]===2?0:daruma[i]===1?1:2):-1;
   const stoneLeft=stone?(sealed[i]??4):0,stoneStage=stone?Math.min(3,Math.max(0,4-stoneLeft)):-1;
-  const key=piece?piece.id+"|"+piece.family+"|"+piece.stage+"|"+dState+"|"+stoneStage:"empty";
+  const key=piece?piece.id+"|"+piece.family+"|"+piece.stage+"|"+dState+"|"+stoneStage+"|"+(mirror?.direction||""):"empty";
   // Most frames change only 1-4 pieces. Preserve the other sprites, textures,
   // event listeners and their DOM nodes for a smoother mobile experience.
   if(boardKeys[i]!==key){
    boardKeys[i]=key;
    btn.replaceChildren();
-   btn.setAttribute("aria-label",lotus?"Lotus seed, guide it to the river gate below":terrain?"Closed garden tile":stone?"Sealed Stone, "+stoneLeft+" hits left":
+   btn.setAttribute("aria-label",moon?"Moon Mirror, fixed, reflects "+(mirror?.direction||"unknown"):lotus?"Lotus seed, guide it to the river gate below":terrain?"Closed garden tile":stone?"Sealed Stone, "+stoneLeft+" hits left":
     doll?"Daruma, "+(dState===0?"two eyes left":dState===1?"one eye left":"completed"):
     piece?names[piece.family]+", tier "+piece.stage+", tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
-   if(lotus){
+   if(moon){
+    const art=document.createElement("span");art.className="moon-mirror-art";art.setAttribute("aria-hidden","true");
+    const frame=document.createElement("span");frame.className="moon-mirror-frame";
+    const glass=document.createElement("span");glass.className="moon-mirror-glass";
+    const arrow=document.createElement("span");arrow.className="moon-mirror-arrow";
+    arrow.textContent=({up:"↑",right:"→",down:"↓",left:"←"})[mirror?.direction]||"✦";
+    art.append(frame,glass,arrow);btn.append(art);
+   }else if(lotus){
     const art=document.createElement("span");art.className="lotus-seed-art";art.setAttribute("aria-hidden","true");
     const symbol=document.createElement("span");symbol.textContent="✿";art.append(symbol);btn.append(art);
    }else if(terrain){
@@ -1313,7 +1321,8 @@ function renderBoard(board,highlight,effect){
    veil=document.createElement("span");veil.className="harmony-mist";
    veil.setAttribute("aria-hidden","true");btn.prepend(veil);
   }else if(!misted&&veil){veil.remove();}
-  const label=lotus?"Lotus seed. Match beneath it to drop into the gate, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
+  const label=moon?"Moon Mirror, fixed, reflects Harmony Pulse "+(mirror?.direction||"")+" — tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
+   lotus?"Lotus seed. Match beneath it to drop into the gate, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
    terrain?"Closed garden tile, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
    stone?"Sealed Stone, "+stoneLeft+" hits left, tile "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):
@@ -1321,20 +1330,11 @@ function renderBoard(board,highlight,effect){
    (Math.floor(i/7)+1)+"-"+(i%7+1):
    piece?names[piece.family]+", tier "+piece.stage+", tile "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta";
-  const mirror=game?.moonMirrors?.find(m=>m.at===i);
-  const accessible=label+(misted?", magisk dimma":"")+
-   (mirror?", Moon Mirror reflecting "+mirror.direction:"");
+  const accessible=label+(misted?", magical Mist":"");
   if(btn.dataset.mist!==(misted?"1":"0")||btn.getAttribute("aria-label")!==accessible){
    btn.dataset.mist=misted?"1":"0";
    btn.setAttribute("aria-label",accessible);
   }
-  let glyph=btn.querySelector(":scope > .moon-mirror-glyph");
-  if(mirror&&!glyph){
-   glyph=document.createElement("span");glyph.className="moon-mirror-glyph";
-   glyph.setAttribute("aria-hidden","true");btn.append(glyph);
-  }
-  if(mirror){glyph.textContent=({up:"↑",right:"→",down:"↓",left:"←"})[mirror.direction];}
-  else if(glyph)glyph.remove();
   const exit=!!game?.lotus?.exits?.includes(i);
   let gate=btn.querySelector(":scope > .lotus-collector");
   if(exit&&!gate){
@@ -1431,6 +1431,9 @@ function animateScoreCount(){
 function choose(i){
  if(busy||!game||game.moves<=0||!$("modal").hidden)return;
  if(powerSelection){confirmPowerTarget(i);return;}
+ if(game.board[i]?.family==="moonMirror"){
+  selected=-1;toast("Moon Mirror is fixed. Create a Harmony Pulse next to it to reflect the light.");return;
+ }
  if(game.board[i]?.family==="lotusSeed"){
   selected=-1;toast("Lotus seeds cannot swap. Make matches beneath them so they fall into the river.");return;
  }
@@ -2084,7 +2087,7 @@ const PULSE_CHARGE_TIMINGS=Object.freeze([
  {delay:20,ramp:135}  // Third and later: snappy but still readable.
 ]);
 async function pulseAnticipation(evt){
- const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mistTargets||[]),...(evt.visualOnlyTargets||[]),...(evt.targets||[])];
+ const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mirrorTargets||[]),...(evt.mistTargets||[]),...(evt.visualOnlyTargets||[]),...(evt.targets||[])];
  const affected=[...new Set(visualTargets.map(t=>t.to))];
  if(!affected.length||FAST()||document.hidden||!Element.prototype.animate)return ()=>{};
  const wave=Math.max(1,Number(evt.wave)||1);
@@ -2125,7 +2128,7 @@ async function pulseAnticipation(evt){
 // Animate real from/to coordinates, cap decorative FX, update all logical
 // targets AFTER travel as in 4.1. No canvas or full-screen filters.
 function pulseBeams(evt){
- const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mistTargets||[]),...(evt.visualOnlyTargets||[]),...(evt.targets||[])];
+ const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mirrorTargets||[]),...(evt.mistTargets||[]),...(evt.visualOnlyTargets||[]),...(evt.targets||[])];
  if(visualTargets.length)sound("pulse",{wave:evt.wave||0});
  if(FAST()||!visualTargets.length)return Promise.resolve();
  // Prioritize mist-clearing beams when decorative paths are capped on mobile.
@@ -2263,7 +2266,7 @@ async function animateEvent(evt){
   // Use the existing travelling pulse VFX for all eight destinations.
   case "pulse":{
    const targets=evt.targets||[];
-   const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mistTargets||[]),...(evt.visualOnlyTargets||[]),...targets];
+   const visualTargets=[...(evt.darumaTargets||[]),...(evt.stoneTargets||[]),...(evt.mirrorTargets||[]),...(evt.mistTargets||[]),...(evt.visualOnlyTargets||[]),...targets];
    // Empty mist-covered cells glow as well; their sprites stay empty.
    const releaseCharge=await pulseAnticipation(evt);
    try{
@@ -2534,7 +2537,7 @@ function showMoonMirrorPreviewChooser(){
  $("modalTitle").textContent="Moon Mirrors 1.0";
  const content=$("modalContent");content.replaceChildren();
  const intro=document.createElement("p");
- intro.textContent="Try real Harmony Pulse reflections on the standard board. Select the developed treasure at row 4, column 3, then swap right into the center. These trials never spend cards or change your progress.";
+ intro.textContent="Moon Mirrors are fixed, reflective objects — not family treasures. Swap the developed treasure at row 3, column 4 down into the center (row 4, column 4). These trials never spend cards or change your progress.";
  content.append(intro);
  const actions=$("modalActions");actions.replaceChildren();
  for(const [key,label] of [["first","1 · First Reflection"],["mist","2 · Moonlit Mist"],["chain","3 · Reflected Harmony"]])

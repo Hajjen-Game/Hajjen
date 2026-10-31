@@ -104,8 +104,9 @@ function last(game,trace,profile){
    movesRemaining:game.moves,progress:game.progress(),target:game.target()},
   playerInsight:profile,round:JSON.parse(JSON.stringify(trace))};
 }
-const PROFILE_MAX=10000;
-const profileDefault=()=>({version:VERSION,rounds:0,replays:0,
+const PROFILE_MAX=10000,STAR_SIGNAL_VERSION=2;
+const profileDefault=()=>({version:VERSION,starSignalVersion:STAR_SIGNAL_VERSION,
+ rounds:0,replays:0,
  starsImproved:0,assistedRounds:0,largeChains:0,masterpieces:0,
  fusionCount:0,levels:[],lastRounds:[]});
 function profileState(raw){
@@ -114,6 +115,10 @@ function profileState(raw){
  const s=profileDefault();
  for(const k of ["rounds","replays","starsImproved","assistedRounds","largeChains","masterpieces","fusionCount"])
   s[k]=Math.min(PROFILE_MAX,nonnegative(raw[k]));
+ // Old v1 counted a first clear as a star improvement. Do not present
+ // that misleading historical value as verified replay improvement.
+ s.starsImproved=raw.starSignalVersion===STAR_SIGNAL_VERSION?
+  s.starsImproved:0;
  s.levels=[...new Set(raw.levels.filter(n=>Number.isInteger(n)&&n>=1&&n<=100000))].slice(-250);
  s.lastRounds=raw.lastRounds.filter(x=>x&&typeof x.key==="string"&&x.key.length<=65).slice(-25);
  return s;
@@ -124,9 +129,12 @@ function recordRound(save,game,previousStars){
  if(s.lastRounds.some(x=>x.key===key))return false;
  const level=game.level+1;
  s.rounds=Math.min(PROFILE_MAX,s.rounds+1);
- if(s.levels.includes(level))s.replays=Math.min(PROFILE_MAX,s.replays+1);
- else s.levels.push(level);
- if((game.assisted?1:game.stars())>nonnegative(previousStars))
+ const oldStars=nonnegative(previousStars);
+ const replayed=s.levels.includes(level)||oldStars>0;
+ if(replayed)s.replays=Math.min(PROFILE_MAX,s.replays+1);
+ if(!s.levels.includes(level))s.levels.push(level);
+ // A new stamp is a first clear, NOT a 1→3-star improvement.
+ if(oldStars>0&&(game.assisted?1:game.stars())>oldStars)
   s.starsImproved=Math.min(PROFILE_MAX,s.starsImproved+1);
  if(game.assisted)s.assistedRounds=Math.min(PROFILE_MAX,s.assistedRounds+1);
  if(game.bestChain>=5)s.largeChains=Math.min(PROFILE_MAX,s.largeChains+1);
@@ -155,10 +163,13 @@ function readProfile(save,goshuincho){
  const observed=s.rounds>=5;
  const signals={
   completion:{count:stamps,chapters:book.completedChapters||0,
+   loggedFirstClears:Math.max(0,s.rounds-s.replays),
    oneStar:archive.one,twoStars:archive.two,threeStars:archive.three,
    source:"Goshuincho stamps"},
-  replay:{count:s.replays,rate:Number((s.replays/total).toFixed(3))},
-  starImprovement:{count:s.starsImproved,rate:Number((s.starsImproved/total).toFixed(3))},
+  replay:{count:s.replays,rate:Number((s.replays/total).toFixed(3)),
+   description:"Completed rounds on levels already cleared"},
+  starImprovement:{count:s.starsImproved,rate:Number((s.starsImproved/total).toFixed(3)),
+   description:"Higher stars on a previously cleared level only"},
   chaining:{count:s.largeChains,rate:Number((s.largeChains/total).toFixed(3))},
   creation:{masterpieces:s.masterpieces,fusions:s.fusionCount},
   assisted:{count:s.assistedRounds}

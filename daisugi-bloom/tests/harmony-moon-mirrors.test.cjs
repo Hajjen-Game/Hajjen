@@ -78,20 +78,27 @@ check("Fusion Echo hits Daruma once and retains second eye",()=>{
  assert.equal(event(result,"daruma").some(e=>e.hits.some(h=>h.at===26)),true);
  assert.equal(g.pulseHits,0);
 });
-check("ordinary fusion genuinely strikes a Sealed Stone and clears separate Mist",()=>{
+check("one Fusion Echo hits Sealed Stone; a second nearby mirror does not fire for free",()=>{
  const g=preview("obstacle"),before=g.sealed[26];
  assert.equal(before,4);
  const result=play(g);
  assert.equal(result.ok,true);
  assert.equal(g.sealed[26],3);
- assert.equal(g.mist[38],0);
- assert.equal(g.mistCleared,1);
+ assert.equal(g.mist[38],1,"Second mirror must wait for another player-placed fusion");
+ assert.equal(g.mistCleared,0);
  assert.equal(g.pulseHits,0);
  assert.equal(event(result,"pulse").length,0);
- assert.equal(event(result,"mirror-resonance").length,2);
- assert(event(result,"mirror-resonance").some(e=>e.stoneTargets.some(t=>t.to===26)));
- assert(event(result,"mirror-resonance").some(e=>e.clearedMist.includes(38)));
- assert.equal(g.complete,true);
+ assert.equal(event(result,"mirror-resonance").length,1);
+ assert(event(result,"mirror-resonance")[0].stoneTargets.some(t=>t.to===26));
+ assert.equal(g.complete,false);
+});
+check("all ordinary refill cascades retain normal power without farming extra Mirror Echos",()=>{
+ const g=preview("first"),result=play(g);
+ assert(result.events.filter(x=>x.type==="fusion").length>=2);
+ assert.equal(event(result,"mirror-resonance").length,1);
+ const echo=event(result,"mirror-resonance")[0];
+ assert.equal(echo.round,1,"Only the player's first fusion wave may activate a mirror");
+ assert.equal(R.scan(g.board).length,0,"Game board must always settle normally");
 });
 check("ordinary fusion creates a true stage-five Masterpiece and one authentic Pulse",()=>{
  const g=preview("spark");assert.equal(g.board[17].stage,2);

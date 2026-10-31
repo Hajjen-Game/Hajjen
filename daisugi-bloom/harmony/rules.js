@@ -1484,10 +1484,6 @@ class Game{
   const windLimited=mechanicOptions?.windLimited===true;
   while(waveRound++<(windLimited?1:35)){
    let groups=scan(this.board);if(!groups.length)break;
-   if(windLimited){
-    const row=mechanicOptions.row;
-    groups=[groups.find(g=>g.some(at=>Math.floor(at/N)===row))||groups[0]];
-   }
    let created=new Set(),indirect=new Set(),records=[],shapeCount=0,earned=0;
    // Only the first player-triggered wave may consume a pre-existing link.
    // Resolve against immutable IDs before any matched piece is removed.
@@ -1712,7 +1708,28 @@ class Game{
      events.push(this.frame("lotus-delivery",{delivered,positions:delivered.map(d=>d.at)}));
     }
    }
-   if(this.opportunity)this.refillOpportunity();
+   if(windLimited){
+    // Wind is a positional puzzle mechanic, not a second Director-driven
+    // refill chain. Keep the ordinary shuffled family bag but select a
+    // non-auto-matching completion when one exists. The ordinary game
+    // keeps its exact baseline refill and all normal cascades.
+    const first=draftRefill(this.board,this.bag,this.families,
+     this.nextId,()=>this.fresh());
+    let chosen=first;
+    if(first.autoMatches){
+     const fork=(this.seed^Math.imul(this.rolls+1,0x85ebca6b)^
+      Math.imul(this.nextId+1,0x9e3779b1))>>>0;
+     for(let attempt=1;attempt<=48;attempt++){
+      const seed=(fork^Math.imul(attempt,0x9e3779b1))>>>0;
+      const candidate=draftRefill(this.board,this.bag,this.families,
+       this.nextId,prng(seed));
+      if(candidate.autoMatches===0){chosen=candidate;break;}
+     }
+    }
+    this.board=chosen.board;
+    this.bag=chosen.bag;
+    this.nextId=chosen.nextId;
+   }else if(this.opportunity)this.refillOpportunity();
    else for(let r=0;r<N;r++)for(let c=0;c<N;c++){
     let i=r*N+c;if(this.board[i])continue;
     const family=this.nextFamily(this.board,i);
@@ -1720,6 +1737,12 @@ class Game{
    }
    events.push(this.frame("fall",{round:waveRound}));preferred=-1;
   }
+  // Do not leave already-matched lines frozen on the board. If even a
+  // controlled wind refill cannot prevent a follow-on match (for example,
+  // gravity aligned existing stage-3 treasures), respect the ordinary
+  // resolver as a rare fallback instead of changing objects invisibly.
+  if(windLimited&&scan(this.board).length)
+   events.push(...this.resolve(-1,[],-1,{windFallback:true}));
   if(!validSwaps(this.board).length){
    this.board=fairShuffle(this.board,()=>this.fresh());
    events.push(this.frame("shuffle"));
@@ -1793,8 +1816,8 @@ class Game{
      this.board=shift.board;
      events.push(this.frame("wind-shift",{row:next.row,direction:next.direction,
       afterMove:turns,moved:shift.moved}));
-     // The scheduled shift may itself form real matches. They cascade with
-     // existing gravity, scoring, Pulse, goal and Director contracts.
+     // Only one additional wind-triggered fusion WAVE, with a calm refill.
+     // Genuine unavoidable matches still resolve to keep a valid board.
      if(scan(this.board).length)events.push(...this.resolve(-1,[],-1,
       {windLimited:true,row:next.row}));
      else if(!validSwaps(this.board).length){

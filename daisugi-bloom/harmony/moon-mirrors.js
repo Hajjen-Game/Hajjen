@@ -25,7 +25,7 @@ const SCENARIOS=Object.freeze({
  obstacle:Object.freeze({name:"Echo Across Stone",subtitle:"A fusion reaches obstacles",moves:16,
   goal:{type:"mist",count:1},mirrors:[{at:25,direction:"right"},{at:31,direction:"down"}],
   mist:[38],sealedStone:[26],fusionStage:2,
-  intro:"A normal fusion beside two mirrors strikes a Sealed Stone and clears Mist. No stage-five Pulse is needed."}),
+  intro:"An ordinary fusion triggers one mirror each move. First hit the distant Stone, then plan another move to clear Mist."}),
  spark:Object.freeze({name:"Moonlit Chain",subtitle:"Fusion Echo creates a Masterpiece",moves:16,
   goal:{type:"mist",count:1},mirrors:[{at:25,direction:"right"},{at:33,direction:"down"}],
   mist:[40],fusionStage:2,remoteStage:4,

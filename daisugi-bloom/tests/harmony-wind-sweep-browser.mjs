@@ -91,9 +91,15 @@ try{
  await page.evaluate(()=>{window.__windReference=document.querySelector(".wind-ambient-row");});
  await playMove();await settled(13);
  assert.equal(await page.evaluate(()=>window.__windReference===
-  document.querySelector(".wind-ambient-row")),true,"Wind must never restart for ordinary turns");
+  document.querySelector(".wind-ambient-row")),true,"Wind never restarts for ordinary turns");
  await checkAmbient(3,"right");
- // Replacing the earlier one-shot cloud must not affect the real movement.
+ const breezeNext=await page.evaluate(()=>{
+  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v4",windGardenPreview:"breeze"});
+  game.swap(17,24);return HarmonyRules.validSwaps(game.board)[0];
+ });
+ await playMove(...breezeNext);await settled(12);
+ await checkAmbient(3,"right");
+ // Calm shift, no bright cloud, full continuous wind retained.
  assert.equal(await page.$$eval(".wind-sweep-row",x=>x.length),0);
  // Garden Tide switches direction but reuses the existing flowing-air layer.
  await page.reload({waitUntil:"networkidle2"});
@@ -103,6 +109,12 @@ try{
  await playMove();await settled(17);
  assert.equal(await page.evaluate(()=>window.__windReference===
   document.querySelector(".wind-ambient-row")),true);
+ await checkAmbient(3,"left","The first move is not an immediate gust");
+ const tideNext=await page.evaluate(()=>{
+  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v4",windGardenPreview:"tide"});
+  game.swap(17,24);return HarmonyRules.validSwaps(game.board)[0];
+ });
+ await playMove(...tideNext);await settled(16);
  await checkAmbient(3,"right");
  // Crossing Winds: same row through a nonwind turn, then new row.
  await page.reload({waitUntil:"networkidle2"});
@@ -114,10 +126,19 @@ try{
   document.querySelector(".wind-ambient-row")),true);
  await checkAmbient(2,"left");
  const pair=await page.evaluate(()=>{
-  const engine=new HarmonyRules.Game(2,null,{seed:20261031,directorMode:"v4",windGardenPreview:"crossing"});
+  const engine=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v4",windGardenPreview:"crossing"});
   engine.swap(17,24);return HarmonyRules.validSwaps(engine.board)[0];
  });
  await playMove(...pair);await settled(16);
+ assert.equal(await page.evaluate(()=>window.__windReference===
+  document.querySelector(".wind-ambient-row")),true);
+ await checkAmbient(2,"left"); // Still waiting for move three.
+ const third=await page.evaluate(()=>{
+  const engine=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v4",windGardenPreview:"crossing"});
+  engine.swap(17,24);engine.swap(...HarmonyRules.validSwaps(engine.board)[0]);
+  return HarmonyRules.validSwaps(engine.board)[0];
+ });
+ await playMove(...third);await settled(15);
  assert.equal(await page.evaluate(()=>window.__windReference===
   document.querySelector(".wind-ambient-row")),true);
  await checkAmbient(4,"right");

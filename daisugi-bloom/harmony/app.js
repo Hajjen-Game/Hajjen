@@ -86,7 +86,14 @@ function showDirectedHint(hint,announce=false){
 }
 function revealPossibleMove(){
  if(!game||game.moves<=0||game.failed||game.complete)return false;
- const hint=bestIdleHint();
+ // On-demand help must respond immediately on slower phones. It only needs
+ // a real legal move, not the more expensive predictive ranking used by
+ // the passive 30-second hint.
+ let hint=null;
+ for(const pair of R.validSwaps(game.board)){
+  hint=R.directedHint(game.board,pair);
+  if(hint)break;
+ }
  if(!hint)return false;
  // The help modal must close before the hint becomes visible on the board.
  $("modal").hidden=true;

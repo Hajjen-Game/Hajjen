@@ -15,7 +15,7 @@ const SCENARIOS=Object.freeze({
  mist:Object.freeze({name:"Moonlit Mist",subtitle:"Reflected light clears distant Mist",moves:22,goal:{type:"mist",count:2},
   mirrors:[{at:25,direction:"right"},{at:31,direction:"down"}],mist:[26,38],
   intro:"Reflect Harmony Pulse toward distant Mist. The mirror is its own fixed cell, never a treasure underneath."}),
- chain:Object.freeze({name:"Reflected Harmony",subtitle:"Grow a second masterpiece with reflected light",moves:24,goal:{type:"pulseHits",count:7},
+ chain:Object.freeze({name:"Reflected Harmony",subtitle:"Grow a second masterpiece with reflected light",moves:24,goal:{type:"pulseHits",count:6},
   mirrors:[{at:25,direction:"right"},{at:33,direction:"down"}],mist:[40],
   intro:"Fuse the developed treasure into the center from above. Reflect Harmony Pulse into another stage-4 treasure to trigger a second wave."})
 });

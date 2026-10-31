@@ -937,7 +937,7 @@ class Game{
   // production level 61, its initial board, level 62+, or old saved games.
   this.lotusPrototype=null;
   const requestedLotusPrototype=options?.lotusPrototype||
-   (this.lotusPreview&&this.lotusPreview!=="pilot"?this.lotusPreview:null);
+   (!previous&&this.lotusPreview&&this.lotusPreview!=="pilot"?this.lotusPreview:null);
   if(requestedLotusPrototype){
    if(this.level!==60||previous)throw Error("Lotus routing prototypes require a fresh diagnostic level 61");
    if(this.lotusPreview&&options?.lotusPrototype&&options.lotusPrototype!==this.lotusPreview)

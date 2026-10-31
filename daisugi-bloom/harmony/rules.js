@@ -1147,9 +1147,17 @@ class Game{
    (options?.fastRestore&&Insight.valid(previous.roundTrace)?
     previous.roundTrace:Insight.restore(previous.roundTrace,this)):Insight.initial(this);
  }
- recordOmamoriUse(cardId,before){
+ beginOmamoriTrace(){
+  if(this.traceEnabled)this.traceCurrentTurn={refills:[],source:"Omamori"};
+ }
+ discardOmamoriTrace(){
+  if(this.traceCurrentTurn?.source==="Omamori")this.traceCurrentTurn=null;
+ }
+ recordOmamoriUse(cardId,before,events=[]){
   if(this.traceEnabled&&this.roundTrace)
-   Insight.recordCard(this.roundTrace,this,cardId,before);
+   Insight.recordCard(this.roundTrace,this,cardId,before,
+    this.traceCurrentTurn?.source==="Omamori"?this.traceCurrentTurn.refills:[],events);
+  this.discardOmamoriTrace();
  }
  activateOmamoriAfterglow(){
   // Only after a real card has been successfully consumed by the UI.

@@ -53,10 +53,10 @@ try{
  },KEY);
  const baseline=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  assert.equal(baseline.run.level,5);
- // First Breeze: one actual match => row-four rotation.
+ // First Breeze: wind shifts every second valid move.
  let start=await enter("breeze");
  assert.equal(start.title,"First Breeze");
- assert(start.forecast.includes("ROW 4")&&start.forecast.includes("→")&&start.forecast.includes("1 MOVE"));
+ assert(start.forecast.includes("ROW 4")&&start.forecast.includes("→")&&start.forecast.includes("2 MOVES"));
  assert.deepEqual(start.highlights,[21,22,23,24,25,26,27]);
  assert(start.forecastDescription.includes("wraps around"));
  assert(start.omamoriHidden);assert(start.width<=start.screen+1);
@@ -71,17 +71,31 @@ try{
  assert.equal(breeze.stillPlaying,true,"The preview should last more than one move");
  assert.equal(breeze.highlighted,7);
  assert(breeze.rowLabels.every(Boolean));
- // Crossing Winds: nothing after move one, row-three shift after move two.
+ assert(breeze.forecast.includes("1 MOVE"));
+ const breezePair=await page.evaluate(()=>{
+  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v4",windGardenPreview:"breeze"});
+  game.swap(17,24);return HarmonyRules.validSwaps(game.board)[0];
+ });
+ await swap(...breezePair);await waitSettled(12);
+ assert((await page.$eval("#levelNumber",e=>e.textContent)).includes("2 MOVES"));
+ // Crossing Winds: shift after every third valid move.
  start=await enter("crossing");
  assert.equal(start.title,"Crossing Winds");
- assert(start.forecast.includes("ROW 3")&&start.forecast.includes("2 MOVES"));
+ assert(start.forecast.includes("ROW 3")&&start.forecast.includes("3 MOVES"));
  await swap(17,24);await waitSettled(17);
- assert((await page.$eval("#levelNumber",e=>e.textContent)).includes("1 MOVE"));
+ assert((await page.$eval("#levelNumber",e=>e.textContent)).includes("2 MOVES"));
  const next=await page.evaluate(()=>{
-  const game=new HarmonyRules.Game(2,null,{seed:20261031,directorMode:"v4",windGardenPreview:"crossing"});
+  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v4",windGardenPreview:"crossing"});
   game.swap(17,24);return HarmonyRules.validSwaps(game.board)[0];
  });
  assert(next?.length===2);await swap(...next);await waitSettled(16);
+ assert((await page.$eval("#levelNumber",e=>e.textContent)).includes("1 MOVE"));
+ const third=await page.evaluate(()=>{
+  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v4",windGardenPreview:"crossing"});
+  game.swap(17,24);game.swap(...HarmonyRules.validSwaps(game.board)[0]);
+  return HarmonyRules.validSwaps(game.board)[0];
+ });
+ await swap(...third);await waitSettled(15);
  assert((await page.$eval("#levelNumber",e=>e.textContent)).includes("ROW 5"));
  assert((await page.$eval("#levelNumber",e=>e.textContent)).includes("→"));
  // Garden Tide alternates, with Mist remaining visually fixed in its cells.
@@ -89,8 +103,14 @@ try{
  assert.equal(start.title,"Garden Tide");
  assert(start.forecast.includes("ROW 4")&&start.forecast.includes("←"));
  await swap(17,24);await waitSettled(17);
+ assert((await page.$eval("#levelNumber",e=>e.textContent)).includes("←"));
+ const tidePair=await page.evaluate(()=>{
+  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v4",windGardenPreview:"tide"});
+  game.swap(17,24);return HarmonyRules.validSwaps(game.board)[0];
+ });
+ await swap(...tidePair);await waitSettled(16);
  assert((await page.$eval("#levelNumber",e=>e.textContent)).includes("→"));
- assert.equal(await page.$$eval(".tile.misted",x=>x.length),1);
+ assert.equal(await page.$eval(".tile.misted",x=>x.length),1);
  const stored=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  for(const key of ["unlocked","bestStars","bestScores","fourFamilyStars","run",
   "economy","omamoriCards","playerInsight","playerIntent"])

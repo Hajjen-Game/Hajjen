@@ -19,7 +19,9 @@ function initial(game,partial=false){
  return {version:VERSION,partial,level:game.level+1,seed:game.seed,
   directorMode:game.directorMode,goal:{...game.config.goal},
   moonMirrors:game.moonMirrors?.map(x=>({...x}))||[],
-  preview:game.moonMirrorPreview||null,
+  preview:game.moonMirrorPreview||game.windGardenPreview||null,
+  previewType:game.windGardenPreview?"wind-garden":game.moonMirrorPreview?"moon-mirrors":null,
+  windGarden:game.windGarden?{every:game.windGarden.every,steps:game.windGarden.steps.map(x=>({...x}))}:null,
   start:snapshot(game),moves:[],cards:[],rejected:[],truncated:false};
 }
 function valid(trace){
@@ -50,7 +52,7 @@ function refill(turn,data){
 }
 function eventSummary(event){
  const kept={type:event.type};
- for(const key of ["round","wave","scoreDelta","chain","unused","from","to","source","mirrorAt"]){
+ for(const key of ["round","wave","scoreDelta","chain","unused","from","to","source","mirrorAt","row","afterMove"]){
   if(Number.isFinite(event[key]))kept[key]=event[key];
  }
  for(const key of ["positions","clearedMist","mistTargets","darumaTargets","stoneTargets","mirrorTargets","visualOnlyTargets"]){
@@ -66,6 +68,8 @@ function eventSummary(event){
  }));
  if(typeof event.direction==="string"&&["up","right","down","left"].includes(event.direction))kept.direction=event.direction;
  if(Array.isArray(event.reflections))kept.reflections=event.reflections.slice(0,16).map(r=>({from:r.from,to:r.to,direction:r.direction,source:r.source}));
+ if(Array.isArray(event.moved))kept.moved=event.moved.slice(0,7).map(x=>({from:x.from,to:x.to,id:x.id}));
+ if(event.type==="wind-blocked"&&typeof event.reason==="string")kept.reason=event.reason.slice(0,80);
  if(Array.isArray(event.delivered))kept.delivered=event.delivered.slice(0,8);
  // An identical snapshot must survive JSON save/reload. Omitting optional
  // undefined fields here avoids invisible differences between live and
@@ -105,10 +109,13 @@ function last(game,trace,profile,intentAwareness=null){
   privacy:"Player-exported locally. No account, device ID, wallet balance or purchase history.",
   level:game.level+1,levelName:game.config.name,
   goal:game.config.goal,directorMode:game.directorMode,
-  preview:game.moonMirrorPreview||null,moonMirrors:game.moonMirrors?.map(x=>({...x}))||[],
+  preview:game.moonMirrorPreview||game.windGardenPreview||null,
+  previewType:game.windGardenPreview?"wind-garden":game.moonMirrorPreview?"moon-mirrors":null,
+  windGarden:game.windGarden?{every:game.windGarden.every,steps:game.windGarden.steps.map(x=>({...x}))}:null,
+  moonMirrors:game.moonMirrors?.map(x=>({...x}))||[],
   result:{complete:!!game.complete,failed:!!game.failed,
-   score:game.score,stars:game.moonMirrorPreview?0:game.assisted?1:game.stars(),
-   assisted:!!game.assisted,unranked:!!game.moonMirrorPreview,movesUsed:game.config.moves-game.moves,
+   score:game.score,stars:game.moonMirrorPreview||game.windGardenPreview?0:game.assisted?1:game.stars(),
+   assisted:!!game.assisted,unranked:!!(game.moonMirrorPreview||game.windGardenPreview),movesUsed:game.config.moves-game.moves,
    movesRemaining:game.moves,progress:game.progress(),target:game.target()},
   playerInsight:profile,intentAwareness,round:JSON.parse(JSON.stringify(trace))};
 }

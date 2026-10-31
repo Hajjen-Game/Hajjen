@@ -1,0 +1,58 @@
+/* Bamboo Paths · Early Chapter Preview 1.0
+ * Test the real level 51–60 boards without unlocking them.
+ * A two-column, contained scroll area keeps the modal usable on phones.
+ * Actual terrain cells use the existing Board Mechanics Foundation art. */
+.bamboo-preview-grid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px;
+ margin:8px 0 4px;
+ width:100%;
+ max-height:min(43vh,390px);
+ overflow-y:auto;
+ overscroll-behavior:contain;
+ -webkit-overflow-scrolling:touch;
+ padding:2px 2px 5px;
+ scrollbar-width:thin;
+ scrollbar-color:rgba(135,104,66,.45) transparent;
+}
+.bamboo-preview-choice{
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ gap:5px;
+ min-width:0;
+ min-height:73px;
+ text-align:left;
+ padding:10px;
+ background:linear-gradient(145deg,#f8efdd 0%,#e8dbc1 100%);
+ color:#5b4932;
+ border:1px solid rgba(155,124,77,.63);
+ border-radius:10px;
+ box-shadow:inset 0 1px 0 rgba(255,251,239,.92);
+ cursor:pointer;
+ touch-action:manipulation;
+ -webkit-tap-highlight-color:transparent;
+}
+.bamboo-preview-choice strong{
+ font-size:12px;
+ line-height:1.18;
+ overflow-wrap:break-word;
+}
+.bamboo-preview-choice small{
+ font-size:11px;
+ line-height:1.25;
+ opacity:.82;
+}
+.bamboo-preview-choice:active{transform:scale(.975);filter:brightness(.96)}
+.bamboo-preview-choice:focus-visible{outline:2px solid #947047;outline-offset:2px}
+.bamboo-preview-result{font-weight:650;color:#624a33}
+body.bamboo-paths-preview #omamoriPowerBar{display:none!important}
+@media(max-width:360px){
+ .bamboo-preview-grid{gap:6px}
+ .bamboo-preview-choice{padding:8px;min-height:67px}
+ .bamboo-preview-choice strong{font-size:11.5px}
+}
+@media(prefers-reduced-motion:reduce){
+ .bamboo-preview-choice:active{transform:none}
+}

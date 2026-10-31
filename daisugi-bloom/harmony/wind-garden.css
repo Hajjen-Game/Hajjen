@@ -47,3 +47,85 @@ body.wind-garden-preview #omamoriPowerBar{display:none!important}
 @media(prefers-reduced-motion:reduce){
  body.wind-garden-preview .tile.wind-blown{animation:none}
 }
+
+/* WIND GARDEN ANIMATION 1.0 — DIRECTIONAL ROW SWEEP
+   Take the pearl/mint/lavender watercolour softness from Harmony Mist 1.2,
+   but carry an entire transparent cloud band in exactly ONE horizontal
+   direction. The sheet never captures taps or shifts Mist/objective tiles.
+   One overlay and two compositor animations per wind event, no canvas. */
+body.wind-garden-preview .game-view .fusion-fx-layer.wind-sweep-layer{
+ pointer-events:none;
+ overflow:visible;
+ contain:style;
+}
+body.wind-garden-preview .game-view .wind-sweep-row{
+ position:absolute;
+ display:block;
+ overflow:hidden;
+ border-radius:6px;
+ pointer-events:none;
+ isolation:isolate;
+}
+body.wind-garden-preview .game-view .wind-sweep-veil{
+ position:absolute;
+ inset:1% 0;
+ display:block;
+ opacity:0;
+ pointer-events:none;
+ border-radius:7px;
+ background:
+  linear-gradient(180deg,
+    transparent 0%,
+    rgba(233,248,248,.15) 18%,
+    rgba(227,247,252,.21) 44%,
+    rgba(225,230,252,.13) 70%,
+    transparent 100%),
+  radial-gradient(ellipse 72% 72% at 50% 50%,rgba(212,245,244,.16),transparent 94%);
+ will-change:opacity;
+}
+body.wind-garden-preview .game-view .wind-sweep-gust{
+ position:absolute;
+ top:-16%;
+ left:0;
+ width:67%;
+ height:132%;
+ opacity:0;
+ border-radius:42%;
+ pointer-events:none;
+ background:
+  radial-gradient(ellipse 56% 33% at 39% 27%,
+    rgba(252,255,255,.66) 0%,
+    rgba(229,252,251,.45) 47%,
+    transparent 96%),
+  radial-gradient(ellipse 73% 33% at 52% 65%,
+    rgba(235,235,255,.52) 0%,
+    rgba(211,237,254,.31) 51%,
+    transparent 98%),
+  radial-gradient(ellipse 63% 64% at 49% 49%,
+    rgba(222,252,247,.29),transparent 100%);
+ will-change:transform,opacity;
+}
+body.wind-garden-preview .game-view .wind-sweep-gust::before,
+body.wind-garden-preview .game-view .wind-sweep-gust::after{
+ content:"";
+ position:absolute;
+ pointer-events:none;
+ border-radius:50%;
+}
+body.wind-garden-preview .game-view .wind-sweep-gust::before{
+ inset:16% 7% 35% 4%;
+ background:
+  radial-gradient(ellipse 64% 45% at 35% 48%,rgba(245,255,255,.49),transparent 92%),
+  radial-gradient(ellipse 39% 43% at 79% 53%,rgba(218,247,245,.34),transparent 95%);
+}
+body.wind-garden-preview .game-view .wind-sweep-gust::after{
+ inset:48% 0% 12% 10%;
+ background:radial-gradient(ellipse 73% 44% at 54% 50%,
+  rgba(226,225,253,.42),rgba(204,239,248,.17) 51%,transparent 97%);
+}
+@media(prefers-reduced-motion:reduce){
+ body.wind-garden-preview .game-view .wind-sweep-row{display:none!important}
+}
+body.harmony-reduced-motion.wind-garden-preview .game-view .wind-sweep-row{
+ display:none!important;
+}

@@ -2130,7 +2130,11 @@ function pulseBeams(evt){
  if(FAST()||!visualTargets.length)return Promise.resolve();
  // Prioritize mist-clearing beams when decorative paths are capped on mobile.
  // Logical target updates are NEVER capped.
- const targets=visualTargets.slice(0,evt.type==="awakening"?8:MOBILE_LITE?(LITE_FX()?3:5):9);
+ // When mobile FX are capped, keep the signature reflected ray visible.
+ // This affects presentation only; the engine already applied every hit.
+ const targets=visualTargets.slice().sort((a,b)=>
+  Number(b.via==="mirror")-Number(a.via==="mirror"))
+  .slice(0,evt.type==="awakening"?8:MOBILE_LITE?(LITE_FX()?3:5):9);
  const travelMs=(evt.wave||1)>=3?170:(evt.wave||1)===2?195:230;
  const layer=makeFxLayer(),tasks=[];
  const sources=[...new Set(targets.map(t=>t.from))];

@@ -15,15 +15,28 @@ const SCENARIOS=Object.freeze({
  mist:Object.freeze({name:"Moonlit Mist",subtitle:"Reflected light clears distant Mist",moves:22,goal:{type:"mist",count:2},
   mirrors:[{at:25,direction:"right"},{at:31,direction:"down"}],mist:[26,38],
   intro:"Reflect Harmony Pulse toward distant Mist. The mirror is its own fixed cell, never a treasure underneath."}),
- chain:Object.freeze({name:"Reflected Harmony",subtitle:"Grow a second masterpiece with reflected light",moves:24,goal:{type:"pulseHits",count:6},
+ chain:Object.freeze({name:"Reflected Harmony",subtitle:"Grow a second masterpiece with reflected light",moves:24,goal:{type:"pulseHits",count:5},
   mirrors:[{at:25,direction:"right"},{at:33,direction:"down"}],mist:[40],
-  intro:"Fuse the developed treasure into the center from above. Reflect Harmony Pulse into another stage-4 treasure to trigger a second wave."})
+  intro:"Fuse the developed treasure into the center. Two neighboring masterpieces then send a shared Harmony Pulse wave."}),
+ echo:Object.freeze({name:"Mirror Echo",subtitle:"Fusion activates a Moon Mirror",moves:13,
+  goal:{type:"stage4",count:1},mirrors:[{at:25,direction:"right"}],mist:[],
+  fusionStage:2,remoteStage:3,
+  intro:"Make an ordinary fusion into the center. Its neighboring mirror upgrades a distant stage-3 treasure to stage 4 — no Masterpiece required."}),
+ obstacle:Object.freeze({name:"Echo Across Stone",subtitle:"A fusion reaches obstacles",moves:16,
+  goal:{type:"mist",count:1},mirrors:[{at:25,direction:"right"},{at:31,direction:"down"}],
+  mist:[38],sealedStone:[26],fusionStage:2,
+  intro:"A normal fusion beside two mirrors strikes a Sealed Stone and clears Mist. No stage-five Pulse is needed."}),
+ spark:Object.freeze({name:"Moonlit Chain",subtitle:"Fusion Echo creates a Masterpiece",moves:16,
+  goal:{type:"mist",count:1},mirrors:[{at:25,direction:"right"},{at:33,direction:"down"}],
+  mist:[40],fusionStage:2,remoteStage:4,
+  intro:"Your ordinary fusion reaches the first mirror, upgrades a distant stage-4 treasure into a Masterpiece, then its genuine Harmony Pulse reaches Mist through a second mirror."})
 });
 function descriptor(key){
  if(!Object.hasOwn(SCENARIOS,key))throw Error("Unknown Moon Mirrors preview");
  const s=SCENARIOS[key];
  return {version:VERSION,key,name:s.name,subtitle:s.subtitle,moves:s.moves,
-  goal:{...s.goal},mirrors:s.mirrors.map(x=>({...x})),mist:s.mist.slice(),intro:s.intro};
+  goal:{...s.goal},mirrors:s.mirrors.map(x=>({...x})),mist:s.mist.slice(),
+  sealedStone:(s.sealedStone||[]).slice(),intro:s.intro};
 }
 function normalize(raw,blocked=[]){
  if(raw==null)return [];
@@ -37,11 +50,12 @@ function opening(board,families,key){
  // A real 17 -> 24 swap completes the horizontal row 22,23,24.
  // Neither of the mirrors occupies a match piece or hides a treasure.
  for(const at of [22,23]){board[at].family=primary;board[at].stage=1;}
- board[17].family=primary;board[17].stage=4;
+ board[17].family=primary;board[17].stage=SCENARIOS[key].fusionStage||4;
  board[24].family=other;board[24].stage=1;
- if(key==="chain"){
-  // This real stage-4 treasure only upgrades when the reflected beam lands.
-  board[26].family=other;board[26].stage=4;
+ if(key==="chain"||key==="echo"||key==="spark"){
+  // This remote developed treasure changes only if a directed reflection
+  // reaches it. Its existing stage is visible and earns no free growth.
+  board[26].family=other;board[26].stage=SCENARIOS[key].remoteStage||4;
  }
  return board;
 }

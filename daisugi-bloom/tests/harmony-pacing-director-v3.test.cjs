@@ -37,9 +37,14 @@ check("Valid moves record real intervals, invalid moves never create timing pres
  const g=new R.Game(12,null,{seed:651,directorMode:"v3"});
  const invalid=[0,1];
  if(!R.validSwaps(g.board).some(pair=>pair[0]===0&&pair[1]===1)){
-  const before=JSON.stringify(g.save());
+  // Director 5.x intentionally logs rejected swaps for voluntary round
+  // diagnosis; they still must NEVER change the playable state or timing.
+  const before=JSON.stringify({...g.save(),roundTrace:undefined});
+  const rejectedBefore=g.roundTrace.rejected.length;
   assert.equal(g.swap(...invalid,{decisionMs:8000}).ok,false);
-  assert.equal(JSON.stringify(g.save()),before);
+  assert.equal(JSON.stringify({...g.save(),roundTrace:undefined}),before);
+  assert.equal(g.roundTrace.rejected.length,rejectedBefore+1);
+  assert.deepEqual(g.paceTimes,[]);
  }
  const p=R.validSwaps(g.board)[0];
  assert(g.swap(...p,{decisionMs:4400}).ok);

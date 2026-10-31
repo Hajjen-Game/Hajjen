@@ -1144,7 +1144,8 @@ class Game{
   this.traceEnabled=!options?.fastRestore;
   this.traceCurrentTurn=null;
   this.roundTrace=previous?
-   Insight.restore(previous.roundTrace,this):Insight.initial(this);
+   (options?.fastRestore&&Insight.valid(previous.roundTrace)?
+    previous.roundTrace:Insight.restore(previous.roundTrace,this)):Insight.initial(this);
  }
  recordOmamoriUse(cardId,before){
   if(this.traceEnabled&&this.roundTrace)

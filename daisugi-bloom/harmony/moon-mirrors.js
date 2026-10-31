@@ -7,7 +7,7 @@
 "use strict";
 const P=root.HarmonyIdentityPrototypes||(typeof require==="function"?require("./identity-prototypes.js"):null);
 if(!P)throw Error("Identity prototype planner required");
-const VERSION=2;
+const VERSION=2; // Saved fixture schema remains compatible; new Fusion Resonance needs no migration.
 const SCENARIOS=Object.freeze({
  first:Object.freeze({name:"First Reflection",subtitle:"One Moon Mirror",moves:18,goal:{type:"masterpiece",count:1},
   mirrors:[{at:25,direction:"right"}],mist:[],
@@ -60,7 +60,29 @@ function install(board,mirrors){
  }
  return board;
 }
-const api=Object.freeze({VERSION,SCENARIOS,descriptor,normalize,opening,install,piece,plan:P.planMirrorPulse});
+// Fusion Destination Control: ONLY the survivor/output cell is a trigger.
+ // Each mirror may fire at most once per entire player decision, and each
+ // remote destination may be resolved once. No recursive Mirror -> Mirror
+ // traversal, no off-board effect, no reflected hit onto the fusion itself.
+function planFusionResonance(records,mirrors,options={}){
+ const installed=normalize(mirrors,options.blocked||[]);
+ const occupied=new Set(options.used||[]),targeted=new Set(options.targeted||[]);
+ const blocked=new Set(options.blocked||[]),echoes=[];
+ for(const record of records){
+  const source=typeof record==="number"?record:record?.at;
+  if(!Number.isInteger(source)||source<0||source>=49)throw Error("Invalid fusion destination");
+  for(const mirror of installed){
+   if(occupied.has(mirror.at)||!P.adjacent(source).includes(mirror.at))continue;
+   const to=P.step(mirror.at,mirror.direction);
+   if(to===null||to===source||blocked.has(to)||targeted.has(to))continue;
+   occupied.add(mirror.at);targeted.add(to);
+   echoes.push({from:source,mirrorAt:mirror.at,to,direction:mirror.direction});
+  }
+ }
+ return echoes;
+}
+const api=Object.freeze({VERSION,SCENARIOS,descriptor,normalize,opening,install,piece,
+ plan:P.planMirrorPulse,planFusionResonance});
 root.HarmonyMoonMirrors=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

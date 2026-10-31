@@ -376,9 +376,10 @@ function scan(board){
 function isDaruma(p){return !!p&&p.family==="daruma";}
 function isSealed(p){return !!p&&p.family==="sealedStone";}
 function isTerrain(p){return !!p&&p.family==="terrain";}
+function isMoonMirror(p){return !!p&&p.family==="moonMirror";}
 function isLotusSeed(p){return Lotus.isSeed(p);}
 function isShuffleAnchor(p){return isFixed(p)||isLotusSeed(p);}
-function isFixed(p){return isDaruma(p)||isSealed(p)||isTerrain(p);}
+function isFixed(p){return isDaruma(p)||isSealed(p)||isTerrain(p)||isMoonMirror(p);}
 function neighbors8(i){
  const r=Math.floor(i/N),c=i%N,out=[];
  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
@@ -982,12 +983,14 @@ class Game{
    this.board=initial;
   }
   if(!previous&&this.moonMirrorPreview){
-   // A guaranteed *legal* first stage-five fusion, but still made by the
-   // player. Everything afterwards uses ordinary moves, gravity and Director.
-   for(let attempt=0;attempt<120;attempt++){
+   // Fixed mirror fixtures replace ordinary family pieces. A deliberate,
+   // legal opening at 17 -> 24 creates the first masterpiece and reflection.
+   for(let attempt=0;attempt<200;attempt++){
     Mirror.opening(this.board,this.families,this.moonMirrorPreview);
-    if(!scan(this.board).length&&validSwaps(this.board).some(([a,b])=>a===23&&b===24))break;
-    if(attempt===119)throw Error("Could not create fair Moon Mirror preview opening");
+    Mirror.install(this.board,this.moonMirrors);
+    if(!scan(this.board).length&&validSwaps(this.board).length>=3&&
+     validSwaps(this.board).some(([a,b])=>a===17&&b===24))break;
+    if(attempt===199)throw Error("Could not create fair Moon Mirror preview opening");
     this.board=startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics);
    }
   }
@@ -1142,11 +1145,19 @@ class Game{
    this.familyMasterpieces=this.familyMasterpieces||{};
    this.familyFusions=this.familyFusions||{};
    this.random=prng(this.seed);for(let i=0;i<this.rolls;i++)this.random();this.board=clone(previous.board);
+   // Old nonpersistent mirror preview snapshots may have family tiles
+   // underneath the previous overlay. Only preview runs can be converted.
+   if(this.moonMirrorPreview){
+    if((previous.moonMirrorVersion||0)<Mirror.VERSION)
+     Mirror.install(this.board,this.moonMirrors);
+    for(const {at} of this.moonMirrors)if(!isMoonMirror(this.board[at]))
+     throw Error("Moon Mirror save does not match fixed mirror positions");
+   }
    // Upgrade an unfinished pre-expansion saved run without discarding the
    // player's moves, stages, score or RNG position. Each obsolete identity is
    // mapped to a family missing from the new level pool, one-to-one, which
    // avoids creating an instant match by merging two old identities.
-   const obsolete=[...new Set(this.board.filter(Boolean).map(p=>p.family).filter(f=>!this.families.includes(f)&&f!=="daruma"&&f!=="sealedStone"&&f!=="terrain"&&f!=="lotusSeed"))];
+   const obsolete=[...new Set(this.board.filter(Boolean).map(p=>p.family).filter(f=>!this.families.includes(f)&&f!=="daruma"&&f!=="sealedStone"&&f!=="terrain"&&f!=="lotusSeed"&&f!=="moonMirror"))];
    if(obsolete.length){
     const present=new Set(this.board.filter(Boolean).map(p=>p.family));
     const missing=this.families.filter(f=>!present.has(f));
@@ -1398,7 +1409,7 @@ class Game{
       if(!darumaHitThisMove.has(to))darumaTargets.push({from:source,to});
       continue;
      }
-     if(indirect.has(to)||!piece||isTerrain(piece)||isLotusSeed(piece)||piece.stage>=5){
+     if(indirect.has(to)||!piece||isTerrain(piece)||isLotusSeed(piece)||isMoonMirror(piece)||piece.stage>=5){
       if(this.mist[to])mistTargets.push({from:source,to,empty:!piece});
       else visualOnlyTargets.push({from:source,to,empty:!piece});
       continue;
@@ -1492,7 +1503,7 @@ class Game{
     let all=new Set(created),active=[...created],pulsed=new Set(),wave=0,chainHits=0;
     events.push(this.frame("hero",{positions:active}));
     while(active.length&&wave++<49){
-     let targets=[],mistTargets=[],darumaTargets=[],stoneTargets=[],reflections=[],next=[],visited=new Set();
+     let targets=[],mistTargets=[],darumaTargets=[],stoneTargets=[],mirrorTargets=[],reflections=[],next=[],visited=new Set();
      for(const source of active){
       if(pulsed.has(source))continue;pulsed.add(source);
       // The Pulse is spatial: it reaches all four neighbouring CELLS.
@@ -1517,6 +1528,12 @@ class Game{
         stoneTargets.push({...ray,alreadyHit:stoneHitThisMove.has(to)});
         continue;
        }
+       if(isMoonMirror(p)){
+        // Mirror receives and redirects the beam but never upgrades.
+        // Still draw the incoming segment even with no ordinary upgrades.
+        mirrorTargets.push(ray);
+        continue;
+       }
        if(indirect.has(to)||!p||isTerrain(p)||isLotusSeed(p)||p.stage===5){
         // Bonus-upgraded or already-mature neighbours must not receive a
         // second evolution. They can still be cleansed of fixed-cell mist.
@@ -1528,13 +1545,13 @@ class Game{
        if(this.board[to].stage===5)next.push(to);
       }
      }
-     if(targets.length||mistTargets.length||darumaTargets.length||stoneTargets.length){
+     if(targets.length||mistTargets.length||darumaTargets.length||stoneTargets.length||mirrorTargets.length){
       // Visual mist-only targets retain the Pulse path even on empty tiles,
       // but never grant Pulse hits, points or additional chain evolution.
       const clearedMist=this.clearMist([...targets.map(t=>t.to),...mistTargets.map(t=>t.to)]);
       chainHits+=targets.length;this.pulseHits+=targets.length;
       let points=targets.length*75;this.score+=points;
-      events.push(this.frame("pulse",{sources:active,targets,mistTargets,darumaTargets,stoneTargets,reflections,wave,clearedMist,scoreDelta:points}));
+      events.push(this.frame("pulse",{sources:active,targets,mistTargets,darumaTargets,stoneTargets,mirrorTargets,reflections,wave,clearedMist,scoreDelta:points}));
       if(darumaTargets.length)hitDaruma(darumaTargets.map(t=>t.to),"pulse",true);
       // Hit fixed stone positions (not pulse sources); already-hit stones show
       // the energy beam without granting a second hit in the same turn.
@@ -1623,7 +1640,8 @@ class Game{
   if(this.moves<=0||this.failed)return this.rejectMove(a,b,"Level has ended");
   if(!Number.isInteger(a)||!Number.isInteger(b)||!neighbors(a).includes(b)||
    (!this.board[a]||!this.board[b]||isShuffleAnchor(this.board[a])||isShuffleAnchor(this.board[b])))
-   return this.rejectMove(a,b,isLotusSeed(this.board[a])||isLotusSeed(this.board[b])?
+   return this.rejectMove(a,b,isMoonMirror(this.board[a])||isMoonMirror(this.board[b])?
+    "Moon Mirror is fixed — reflect Harmony Pulse through it":isLotusSeed(this.board[a])||isLotusSeed(this.board[b])?
     "Lotus seeds fall when you make matches below them":isTerrain(this.board[a])||isTerrain(this.board[b])?
     "Closed garden tile cannot move":isSealed(this.board[a])||isSealed(this.board[b])?
     "Sealed Stone cannot move — fuse beside it":"Daruma cannot move — fuse beside it");
@@ -1697,6 +1715,7 @@ class Game{
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
  save(){return {roundTrace:this.roundTrace,moonMirrorPreview:this.moonMirrorPreview,
+  moonMirrorVersion:this.moonMirrorPreview?Mirror.VERSION:0,
   moonMirrors:this.moonMirrors.map(x=>({...x})),omamoriAfterglow:Afterglow.normalize(this.omamoriAfterglow),lotusPrototype:this.lotusPrototype,lotusVersion:this.lotusVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for

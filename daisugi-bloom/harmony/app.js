@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,H=window.HarmonySaveHealth,T=window.HarmonyTutorialHelp,OT=window.HarmonyOmamoriTargets,I=window.HarmonyPlayerInsight,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,H=window.HarmonySaveHealth,T=window.HarmonyTutorialHelp,OT=window.HarmonyOmamoriTargets,I=window.HarmonyPlayerInsight,J=window.HarmonyPlayerIntent,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu Dragon"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -2457,6 +2457,30 @@ function firstAffordableOmamori(previousCoins){
  save.omamoriIntroSeen=true;
  return true;
 }
+// Victory and failure share a quiet, voluntary diagnostic export.
+function makeRoundExport(make){
+ const exportLink=make("button","jh-round-export",game.roundTrace?.partial?
+  "Export round (partial) · JSON":"Export round · JSON");
+ exportLink.type="button";
+ exportLink.title="Download moves, board states and Director observations. Stored locally; nothing is sent.";
+ exportLink.setAttribute("aria-label","Export this round and Director decisions as a local JSON file");
+ exportLink.addEventListener("click",()=>{
+  try{
+   const report=I.last(game,game.roundTrace,I.readProfile(save,G),
+    J.report(save,game,game.roundTrace));
+   const data=new Blob([JSON.stringify(report,null,2)],{type:"application/json;charset=utf-8"});
+   const url=URL.createObjectURL(data),a=document.createElement("a");
+   a.href=url;a.download="japanese-harmony-level-"+String(level+1).padStart(3,"0")+"-round.json";
+   a.style.display="none";document.body.append(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),15000);
+   toast("Round report downloaded. Share the JSON file here for analysis.");
+  }catch(error){
+   console.error("Could not export round",error);
+   toast("The report could not be downloaded on this device.");
+  }
+ });
+ return exportLink;
+}
 function showResult(){
  $("modalActions").classList.remove("pause-menu-actions");
  if(!game)return;
@@ -2490,6 +2514,9 @@ function showResult(){
  // Aggregate only real finished rounds. This is local observation, not
  // a purchase-interest model and has NO impact on Director decisions yet.
  if(won)I.recordRound(save,game,rewardStarsAtLevelStart);
+ // Director 5.1 observes final outcomes, including failed rounds, but does
+ // not change gameplay or sell a card in response to difficulty.
+ if(won||game.failed)J.observeRound(save,game,game.roundTrace,rewardStarsAtLevelStart);
  const welcomeOmamori=won&&firstAffordableOmamori(coinsBefore);
 
  const canContinue=won&&game.moves>0;
@@ -2584,28 +2611,7 @@ function showResult(){
    "✦ Lantern Path complete · Bamboo Paths opens next."));
   if(level===59)result.append(make("p","victory-next-note",
    "✦ Bamboo Paths complete · Lotus Stream begins next."));
-  // Small intentional export link — no extra debug overlay or test mode.
-  // The file is generated only after a player taps it; never uploaded.
-  const exportLink=make("button","jh-round-export",game.roundTrace?.partial?
-   "Export round (partial) · JSON":"Export round · JSON");
-  exportLink.type="button";
-  exportLink.title="Download moves, board states and Director decisions. Stored locally; nothing is sent.";
-  exportLink.setAttribute("aria-label","Export this level's round and Director decisions as a local JSON file");
-  exportLink.addEventListener("click",()=>{
-   try{
-    const report=I.last(game,game.roundTrace,I.readProfile(save,G));
-    const data=new Blob([JSON.stringify(report,null,2)],{type:"application/json;charset=utf-8"});
-    const url=URL.createObjectURL(data),a=document.createElement("a");
-    a.href=url;a.download="japanese-harmony-level-"+String(level+1).padStart(3,"0")+"-round.json";
-    a.style.display="none";document.body.append(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),15000);
-    toast("Round report downloaded. Share the JSON file here for analysis.");
-   }catch(error){
-    console.error("Could not export round",error);
-    toast("The report could not be downloaded on this device.");
-   }
-  });
-  result.append(exportLink);
+  result.append(makeRoundExport(make));
   if(welcomeOmamori){
    const welcome=make("section","jh-omamori-welcome");
    welcome.append(make("strong","","✿ You can buy your first Omamori!"),
@@ -2640,6 +2646,7 @@ function showResult(){
    });
   panel.append(stats);
   panel.append(make("p","","Each retry offers a fresh, fair board. No lives or waiting timers."));
+  panel.append(makeRoundExport(make));
  }
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.toggle("victory-actions",won);

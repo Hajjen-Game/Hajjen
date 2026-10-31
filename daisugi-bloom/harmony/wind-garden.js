@@ -10,7 +10,7 @@ if(!P)throw Error("Wind Garden needs identity-prototypes.js");
 const VERSION=1;
 const SCENARIOS=Object.freeze({
  breeze:Object.freeze({name:"First Breeze",subtitle:"Follow the moving row",moves:14,
-  goal:{type:"fusion",count:5},schedule:{every:1,steps:[{row:3,direction:"right"}]},
+  goal:{type:"fusion",count:18},schedule:{every:1,steps:[{row:3,direction:"right"}]},
   mist:[],intro:"After every valid move, row 4 shifts one cell right. The rightmost treasure wraps around to the left. Plan where your upgrades will land."}),
  crossing:Object.freeze({name:"Crossing Winds",subtitle:"Two rows take turns",moves:18,
   goal:{type:"stage3",count:4},schedule:{every:2,steps:[{row:2,direction:"left"},{row:4,direction:"right"}]},

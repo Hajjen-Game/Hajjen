@@ -1569,21 +1569,24 @@ class Game{
   if(this.moves<=0){this.failed=!this.complete;events.push(this.frame(this.complete?"end":"lose",{stars:this.stars()}));}
   return events;
  }
+ rejectMove(a,b,reason){
+  if(this.traceEnabled)Insight.rejected(this.roundTrace,this,a,b,reason);
+  return {ok:false,reason};
+ }
  swap(a,b,options=null){
-  if(this.moves<=0||this.failed)return {ok:false,reason:"Level has ended"};
+  if(this.moves<=0||this.failed)return this.rejectMove(a,b,"Level has ended");
   if(!Number.isInteger(a)||!Number.isInteger(b)||!neighbors(a).includes(b)||
    (!this.board[a]||!this.board[b]||isShuffleAnchor(this.board[a])||isShuffleAnchor(this.board[b])))
-   return {ok:false,reason:isLotusSeed(this.board[a])||isLotusSeed(this.board[b])?
+   return this.rejectMove(a,b,isLotusSeed(this.board[a])||isLotusSeed(this.board[b])?
     "Lotus seeds fall when you make matches below them":isTerrain(this.board[a])||isTerrain(this.board[b])?
     "Closed garden tile cannot move":isSealed(this.board[a])||isSealed(this.board[b])?
-    "Sealed Stone cannot move — fuse beside it":
-    "Daruma cannot move — fuse beside it"};
+    "Sealed Stone cannot move — fuse beside it":"Daruma cannot move — fuse beside it");
   const beforeBoard=this.traceEnabled?Insight.snapshot(this):null;
   const armed=resonanceLinks(this.board);
   [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
   if(!scan(this.board).some(g=>g.includes(a)||g.includes(b))){
    [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
-   return {ok:false,reason:"The swap must match at least three from one family"};
+   return this.rejectMove(a,b,"The swap must match at least three from one family");
   }
   if(["v3","v31","v311","v4"].includes(this.directorMode)){
    const ms=options?.decisionMs;

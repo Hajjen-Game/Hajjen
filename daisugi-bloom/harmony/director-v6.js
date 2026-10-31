@@ -24,6 +24,20 @@ function components(board){
  }
  return {parts,ownership};
 }
+// Gravity never crosses a fixed piece. A connected board can still have
+// narrow vertical channels with very few meaningful refill opportunities.
+function gravityChannels(board){
+ const runs=[];
+ for(let col=0;col<N;col++){
+  let run=[];
+  for(let row=0;row<=N;row++){
+   const at=row*N+col;
+   if(row<N&&board[at]&&!fixed.has(board[at].family))run.push(at);
+   else if(run.length){runs.push(run);run=[];}
+  }
+ }
+ return runs;
+}
 // One-turn real swaps. The goal score is *opportunity*, not progress. In
 // particular a pulse or cargo delivery is never assumed to have happened.
 function evaluate(board,goal,context={},validSwaps,scan){
@@ -31,6 +45,8 @@ function evaluate(board,goal,context={},validSwaps,scan){
   typeof scan!=="function")throw Error("Director 6 requires a 7x7 board and pure swap/scan functions");
  const legal=validSwaps(board),parts=components(board),goals=goal?.type||"fusion";
  const active=new Set(),direct=new Set(),potential=new Set();
+ const channels=gravityChannels(board);
+ const supportedChannels=new Set();
  let meaningful=0,deep=0,pulse=0,echo=0,wind=0,lotus=0;
  const mirror=Array.isArray(context.mirrors)?context.mirrors:[];
  const winds=context.wind?.steps||[];
@@ -41,6 +57,8 @@ function evaluate(board,goal,context={},validSwaps,scan){
  for(const [a,b] of legal){
   if(parts.ownership[a]>=0)active.add(parts.ownership[a]);
   if(parts.ownership[b]>=0)active.add(parts.ownership[b]);
+  for(let i=0;i<channels.length;i++)
+   if(channels[i].includes(a)||channels[i].includes(b))supportedChannels.add(i);
   [board[a],board[b]]=[board[b],board[a]];
   try{
    const matches=scan(board).filter(g=>g.includes(a)||g.includes(b));
@@ -91,12 +109,16 @@ function evaluate(board,goal,context={},validSwaps,scan){
  const usable=parts.parts.filter(p=>p.length>=3);
  const underserved=usable.filter(p=>!active.has(parts.ownership[p[0]])).length;
  const maxPart=Math.max(0,...usable.map(p=>p.length));
+ const usableChannels=channels.filter(p=>p.length>=3);
+ const unsupportedChannels=usableChannels.filter(p=>
+  !supportedChannels.has(channels.indexOf(p))).length;
  // Most geometry pressure comes from too few actual choices, rather than
  // raw wall count. Penalize an isolated playable section but not its presence.
  const mobility=legal.length===0?-90:legal.length===1?-35:
   legal.length===2?-19:legal.length===3?-6:
   Math.min(legal.length,9)*1.8;
  const shape= -Math.min(3,underserved)*4 + Math.min(3,active.size)*1.15 +
+  Math.min(4,supportedChannels.size)*.45-Math.min(4,unsupportedChannels)*.55+
   (maxPart<10?-3:0);
  const objective=(goals==="pulseHits"?
   Math.min(3,pulse)*2.2+Math.min(3,potential.size)*1.1:
@@ -109,6 +131,7 @@ function evaluate(board,goal,context={},validSwaps,scan){
  const score=mobility+shape+Math.min(6,meaningful)*.6+
   Math.min(3,deep)*.75+objective+mechanism;
  return {legal:legal.length,parts:usable.length,activeParts:active.size,
+  channels:usableChannels.length,supportedChannels:supportedChannels.size,
   underserved,meaningful,objective:Math.round(objective*100)/100,
   pulse,lotus,mirror:echo,wind,score:Math.round(score*1000)/1000};
 }
@@ -130,6 +153,9 @@ function choose(baseline,alternatives,scoreFn,context,validSwaps,scan){
      best.legal<target&&m.legal>best.legal||
      m.legal===best.legal&&v>bestScore+1.5)){
    selected=x;best=m;bestScore=v;reason="health-recovery";continue;
+  }
+  if(best.legal<=4&&m.legal>=best.legal+2&&v>=bestScore-4){
+   selected=x;best=m;bestScore=v;reason="proactive-mobility";continue;
   }
   if(best.legal<=2&&m.legal>best.legal){
    selected=x;best=m;bestScore=v;reason="health-recovery";continue;

@@ -169,6 +169,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-bamboo-preview-browser.mjs
       - name: Lotus Stream Early Preview · 390px cargo delivery, river gates and no saved progress changes
         run: node daisugi-bloom/tests/harmony-lotus-preview-browser.mjs
+      - name: Lotus hint reliability · no starvation by invalid touches, manual legal hint and saved state safety
+        run: node daisugi-bloom/tests/harmony-lotus-hint-browser.mjs
       - name: Wind Garden Animation 1.1 · persistent directional atmosphere, fast gust and cleanup
         run: node daisugi-bloom/tests/harmony-wind-sweep-browser.mjs
       - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion

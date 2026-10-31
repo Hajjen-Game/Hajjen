@@ -24,10 +24,10 @@ try{
  assert(baseline.run?.data?.board?.length===49,"Existing saved run must be present before preview");
  await page.$eval("#menuAdvanced",node=>node.open=true);
  await page.click("#moonMirrorPreviewButton");
- await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Moon Mirrors 1.0");
- const choices=await page.$$eval("#modalActions button",buttons=>buttons.map(b=>b.textContent));
- assert(choices.some(x=>x.includes("Reflected Harmony")));
- await page.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(x=>x.textContent.includes("Reflected Harmony")).click());
+ await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Moon Mirrors 1.2");
+ const choices=await page.$eval(".moon-preview-choice",buttons=>buttons.map(b=>b.dataset.preview));
+ assert.deepEqual(choices,["echo","obstacle","spark","first","mist","chain"]);
+ await page.click('.moon-preview-choice[data-preview="spark"]');
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:10000});
  const start=await page.evaluate(()=>({
   heading:document.querySelector("#levelTitle").textContent,
@@ -40,7 +40,7 @@ try{
   cardsHidden:getComputedStyle(document.querySelector("#omamoriPowerBar")).display==="none",
   scrollWidth:document.documentElement.scrollWidth,screenWidth:innerWidth
  }));
- assert.equal(start.heading,"Reflected Harmony");
+ assert.equal(start.heading,"Moonlit Chain");
  assert.deepEqual(start.mirrored.map(x=>[x.at,x.direction]),[[25,"→"],[33,"↓"]]);
  assert(start.mirrored.every(x=>x.accessible.includes("Moon Mirror, fixed, reflects Harmony Pulse")));
  assert(start.mirrored.every(x=>x.hasStandaloneGlass&&!x.hasFamilySprite),
@@ -58,5 +58,5 @@ try{
  for(const field of ["unlocked","bestStars","bestScores","fourFamilyStars","run","economy","omamoriCards","playerInsight","playerIntent"])
   assert.deepEqual(after[field],baseline[field],"Moon Mirror preview must preserve "+field);
  assert.deepEqual(errors,[],"No mobile JavaScript errors");
- console.log("PASS Moon Mirrors 1.1: standalone mirror art, fixed cells, real Pulse chain, unchanged save");
+ console.log("PASS Moon Mirrors 1.2: six playable choices, Fusion Echo-created Pulse, standalone mirrors and unchanged save");
 }finally{await browser.close();}

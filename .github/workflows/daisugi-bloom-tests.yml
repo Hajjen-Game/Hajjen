@@ -28,6 +28,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-wind-garden.test.cjs
       - name: Bamboo Paths Early Preview · authentic chapter gameplay, fixed cells and isolation
         run: node daisugi-bloom/tests/harmony-bamboo-preview.test.cjs
+      - name: Lotus Stream Early Preview · genuine level 61, routing variants and saved state isolation
+        run: node daisugi-bloom/tests/harmony-lotus-preview.test.cjs
       - name: Mechanic Balance 1.0 · controlled cascades, saved replay and normal-game isolation
         run: node daisugi-bloom/tests/harmony-mechanic-balance.test.cjs
       - name: Bamboo Paths 1.0 · ten authored levels, chapter geometry, hints and save migration
@@ -165,6 +167,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-wind-garden-browser.mjs
       - name: Bamboo Paths Early Preview · 390px chapter chooser and true locked-cell puzzle isolation
         run: node daisugi-bloom/tests/harmony-bamboo-preview-browser.mjs
+      - name: Lotus Stream Early Preview · 390px cargo delivery, river gates and no saved progress changes
+        run: node daisugi-bloom/tests/harmony-lotus-preview-browser.mjs
       - name: Wind Garden Animation 1.1 · persistent directional atmosphere, fast gust and cleanup
         run: node daisugi-bloom/tests/harmony-wind-sweep-browser.mjs
       - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion

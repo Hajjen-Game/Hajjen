@@ -30,6 +30,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-omamori-afterglow.test.cjs
       - name: Director 5.0 · real move and refill telemetry, voluntary export and local Goshuincho signals
         run: node daisugi-bloom/tests/harmony-player-insight.test.cjs
+      - name: Director 5.1 · cautious intent and friction observation, retry exports and false-positive guards
+        run: node daisugi-bloom/tests/harmony-player-intent.test.cjs
       - name: Goshuincho Collection 1.0 · archived stamps and chapters
         run: node daisugi-bloom/tests/harmony-goshuincho.test.cjs
       - name: Harmony Economy & Omamori 6.1 · stackable cards and coin prices
@@ -104,6 +106,7 @@ jobs:
           node --check daisugi-bloom/harmony/lotus-routing.js
           node --check daisugi-bloom/harmony/omamori-afterglow.js
           node --check daisugi-bloom/harmony/player-insight.js
+          node --check daisugi-bloom/harmony/player-intent.js
           node --check daisugi-bloom/tools/lotus-routing-diagnostics.cjs
           node --check daisugi-bloom/harmony/onboarding.js
           node --check daisugi-bloom/harmony/tutorial-help.js

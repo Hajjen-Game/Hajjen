@@ -1311,8 +1311,11 @@ class Game{
   let thresholdUsed=null,selectedReason="baseline";
   const fork=(this.seed^Math.imul(this.rolls+1,0x85ebca6b)^
    Math.imul(this.nextId+1,0x9e3779b1))>>>0;
+  // Spend additional search effort ONLY when the board is close to
+  // running out of genuine player choices. No candidate changes bag odds.
+  const baselineChoices=this.directorMode==="v6"?validSwaps(baseline.board).length:0;
   const proposalCount=this.directorMode==="v6"?
-   (validSwaps(baseline.board).length<=2?12:8):
+   (baselineChoices<=2?18:baselineChoices<=4?10:6):
    pacingProposalCount(this.level,this.directorDrought,this.directorMode,this.objectiveDrought);
   for(let c=1;c<proposalCount;c++){
    const seed=(fork^Math.imul(c,0x9e3779b1))>>>0;

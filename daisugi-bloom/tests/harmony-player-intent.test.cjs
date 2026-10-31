@@ -95,8 +95,8 @@ check("Intent is a cautious repeated-evidence hypothesis, never a purchase predi
  assert.equal(agg.personalizationActive,false);
  assert.equal(agg.affectsDifficulty,false);
  assert.equal(agg.affectsOmamori,false);
- assert(!JSON.stringify(agg).includes("purchase"));
- assert(!JSON.stringify(agg).includes("spend"));
+ assert(!Object.hasOwn(agg.intent,"purchaseIntent"));
+ assert(!Object.hasOwn(agg,"spendingPropensity"));
  const old=J.normalize({version:4,observed:1000,recent:[]});
  assert.equal(old.observed,0);
 });

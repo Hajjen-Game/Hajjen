@@ -18,6 +18,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony.test.cjs
       - name: Audit all ten Harmony levels with seeded invariants
         run: node daisugi-bloom/tests/harmony-consistency-audit.test.cjs
+      - name: Level Architecture 2.0 · versioned cross-mechanic recipes and legacy isolation
+        run: node daisugi-bloom/tests/harmony-level-architecture.test.cjs
       - name: Board Mechanics Foundation 1.0 · terrain masks, overlays, seeded play and save
         run: node daisugi-bloom/tests/harmony-board-mechanics.test.cjs
       - name: Identity Plan 1.0 · isolated Moon Mirrors and Wind Garden mechanic contracts
@@ -123,6 +125,7 @@ jobs:
       - name: Syntax-check all browser scripts
         run: |
           node --check daisugi-bloom/harmony/board-mechanics.js
+          node --check daisugi-bloom/harmony/level-architecture.js
           node --check daisugi-bloom/harmony/identity-prototypes.js
           node --check daisugi-bloom/harmony/moon-mirrors.js
           node --check daisugi-bloom/harmony/wind-garden.js

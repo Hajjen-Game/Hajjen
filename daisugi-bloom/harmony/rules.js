@@ -25,6 +25,8 @@ const Director61=root.HarmonyDirector61||(typeof require==="function"?require(".
 if(!Director61)throw Error("Director 6.1 objective intelligence must load before Harmony Rules");
 const Director62=root.HarmonyDirector62||(typeof require==="function"?require("./director-v62.js"):null);
 if(!Director62)throw Error("Director 6.2 must load before Harmony Rules");
+const Journey=root.HarmonyLevelArchitecture||(typeof require==="function"?require("./level-architecture.js"):null);
+if(!Journey)throw Error("Level Architecture 2.0 must load before Harmony Rules");
 const N=7, ALL=["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"];
 // Fixed progression: four active families on levels 1–10, five from level
 // 11 onward. All nine families rotate across the introduction. The original
@@ -913,6 +915,18 @@ class Game{
  constructor(index=0,previous=null,options=null){
   this.level=Number.isInteger(index)&&index>=0?index:0;
   this.config=levelConfig(this.level);
+  // Architecture 2.0: opt-in diagnostics only; save the immutable recipe.
+  if(options?.levelRecipe&&(previous||options.journeyDiagnostic!==true))
+   throw Error("Journey recipes require a fresh explicit diagnostic game");
+  if(previous?.levelRecipe&&previous.levelArchitectureVersion!==Journey.VERSION)
+   throw Error("Incompatible saved Journey recipe version");
+  const authored=previous?.levelArchitectureVersion===Journey.VERSION?
+   previous.levelRecipe:options?.levelRecipe;
+  if(authored&&(options?.moonMirrorPreview||options?.windGardenPreview||
+    options?.bambooPreview||options?.lotusPreview||options?.lotusPrototype))
+   throw Error("Journey recipes cannot be combined with legacy preview overrides");
+  this.levelRecipe=authored?Journey.normalize(authored,this.level):null;
+  if(this.levelRecipe)this.config=Journey.compile(this.level,this.config,this.levelRecipe);
   // Lotus Stream previews reuse the genuine L61 pilot and four existing
   // routing diagnostics. They never assign new recipes to levels 62–70.
   this.lotusPreview=options?.lotusPreview||previous?.lotusPreview||null;
@@ -982,7 +996,7 @@ class Game{
    this.windGardenPreview?Wind.descriptor(this.windGardenPreview).schedule:
    this.config.windGarden);
   this.moonMirrors=Mirror.normalize(options?.moonMirrors??(this.moonMirrorPreview?
-   Mirror.descriptor(this.moonMirrorPreview).mirrors:previous?.moonMirrors),
+   Mirror.descriptor(this.moonMirrorPreview).mirrors:previous?.moonMirrors??this.config.moonMirrors),
    this.boardMechanics.blocked);
   this.familyCount=options?.familyCount===4?4:options?.familyCount===5?5:levelFamilyCount(this.level);
   this.families=activeFamilies(this.level,this.familyCount);
@@ -1007,7 +1021,7 @@ class Game{
   this.darumaVersion=this.config.goal.type==="daruma"||this.boardMechanics.daruma.length?1:0;
   const darumaCells=this.boardMechanics.daruma.length?this.boardMechanics.daruma:darumaPositions(this.level);
   const sealedCells=this.boardMechanics.sealedStone.length?this.boardMechanics.sealedStone:sealedPositions(this.level);
-  if(!previous&&this.darumaVersion){
+  if(!previous&&!this.levelRecipe&&this.darumaVersion){
    for(const at of darumaCells){
     this.board[at]={family:"daruma",stage:0,id:-(at+1)};
     this.daruma[at]=2;
@@ -1019,7 +1033,7 @@ class Game{
      this.board[at]={family:"daruma",stage:0,id:-(at+1)};
    }
   }
-  if(!previous&&this.sealedStoneVersion){
+  if(!previous&&!this.levelRecipe&&this.sealedStoneVersion){
    for(const at of sealedCells){
     this.board[at]={family:"sealedStone",stage:0,id:-(at+100)};
     this.sealed[at]=4;
@@ -1033,7 +1047,7 @@ class Game{
   }
   // Lotus seeds are unmatchable cargo. A valid opening must remain after
   // introducing the cargo, and seed identity must survive every move.
-  if(!previous&&this.lotus.starts.length){
+  if(!previous&&!this.levelRecipe&&this.lotus.starts.length){
    let initial=this.board;
    for(let attempt=0;attempt<160;attempt++){
     if(attempt)initial=startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics);
@@ -1057,7 +1071,7 @@ class Game{
     this.board=startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics);
    }
   }
-  if(!previous&&!this.moonMirrorPreview&&this.moonMirrors.length){
+  if(!previous&&!this.levelRecipe&&!this.moonMirrorPreview&&this.moonMirrors.length){
    // Future opt-in custom layouts use the same complete fixed mirror
    // objects, never an overlay hiding a normal family treasure.
    for(let tries=0;tries<150;tries++){
@@ -1084,6 +1098,32 @@ class Game{
     this.board=startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics);
    }
   }
+  if(!previous&&this.levelRecipe){
+   // One coordinated opening pass keeps every fixture across retries.
+   let valid=false;
+   for(let attempt=0;attempt<240;attempt++){
+    const candidate=attempt?
+     startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics):
+     this.board;
+    if(this.lotus.starts.length){
+     Hanabi.opening(candidate,this.families);
+     for(const at of this.lotus.starts)candidate[at]=Lotus.seed(at);
+     Hanabi.install(candidate,this.lotus.exits);
+    }
+    for(const at of darumaCells){
+     candidate[at]={family:"daruma",stage:0,id:-(at+1)};
+     this.daruma[at]=2;
+    }
+    for(const at of sealedCells){
+     candidate[at]={family:"sealedStone",stage:0,id:-(at+100)};
+     this.sealed[at]=4;
+    }
+    if(this.moonMirrors.length)Mirror.install(candidate,this.moonMirrors);
+    if(scan(candidate).length||validSwaps(candidate).length<3)continue;
+    this.board=candidate;valid=true;break;
+   }
+   if(!valid)throw Error("Journey recipe has no fair seeded opening");
+  }
   this.nextId=50;
   this.objectiveVersion=2;
   this.objectiveBalanceVersion=this.level<20?3:1;
@@ -1103,6 +1143,7 @@ class Game{
   this.fairnessBalanceVersion=1;
   if(previous){
    Object.assign(this,previous);
+   if(this.levelRecipe)this.levelRecipe=Journey.normalize(this.levelRecipe,this.level);
    this.omamoriAfterglow=Afterglow.normalize(previous.omamoriAfterglow);
    this.afterglowTurnActive=false;this.afterglowRefillTried=false;
    // Never retrofit a new chapter mask onto a pre-Bamboo saved run.
@@ -1135,6 +1176,7 @@ class Game{
     oldBambooRun?endlessConfig(this.level,true,true,true,false):
     oldLotusRun?endlessConfig(this.level,true,true,true,true,false):
     levelConfig(this.level,previous.difficultyCalibrationVersion===2);
+   if(this.levelRecipe)this.config=Journey.compile(this.level,this.config,this.levelRecipe);
    // The old level-54 session stays wind-free with its original explanation.
    if(this.level===53&&!this.windGarden&&!oldBambooRun)
     this.config={...this.config,subtitle:"Create Harmony in the passage",
@@ -2021,7 +2063,8 @@ class Game{
   return {ok:true,events};
  }
  finish(){if(!this.complete)return false;this.moves=0;return true;}
- save(){return {roundTrace:this.roundTrace,
+ save(){return {...(this.levelRecipe?{levelArchitectureVersion:Journey.VERSION,
+  levelRecipe:Journey.normalize(this.levelRecipe,this.level)}:{}),roundTrace:this.roundTrace,
   lotusPreview:this.lotusPreview,
   bambooPreview:this.bambooPreview,
   windGardenPreview:this.windGardenPreview,

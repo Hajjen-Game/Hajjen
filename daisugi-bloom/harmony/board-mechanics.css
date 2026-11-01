@@ -1,8 +1,15 @@
-/* Void Board 1.0 – missing tiles instead of ornamental Bamboo stones.
- * Preserve fixed terrain IDs in the rules/save format for compatibility.
- * The slot remains in the CSS grid, but EVERY visual layer is hidden so
- * the board's actual background appears through it as a continuous opening.
+/* Bamboo Void Board 1.1 – true cutouts through to the landscape.
+ * Keep terrain sentinels in their 7x7 positions for physics/save compatibility.
+ * Only boards containing permanent void cells lose the board-wide dark fill;
+ * otherwise hiding a tile reveals #241d20 instead of the background artwork.
+ * Treasure tiles keep their own original backgrounds, borders and animations.
  */
+body.harmony-playing .game-view .board:has(> .tile.terrain-garden-tile){
+ background:transparent!important;
+ background-image:none!important;
+ box-shadow:none!important;
+}
+
 .game-view .tile.terrain-garden-tile{
  visibility:hidden!important;
  pointer-events:none!important;

@@ -2721,6 +2721,11 @@ async function animateEvent(evt){
       {transform:"rotate(0deg) translate3d(0,"+dy+"px,0) scale(.36)",opacity:0,offset:1}
      ],330,{easing:"cubic-bezier(.3,.05,.55,1)"});
     }
+    // animateNode() cancels its fill animation on completion, otherwise
+    // the old sprite snaps back above the crate during the 180ms intake glow.
+    // Detach the delivered cargo before that glow (also for reduced motion).
+    // The next renderBoard(evt.board) commits the engine's empty source cell.
+    source?.remove();
     // Let the rocket finish its travel before the wood/magic contact cue.
     sound("hanabi-load");
     const box=boardTiles[at]?.querySelector(".hanabi-crate");

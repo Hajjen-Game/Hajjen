@@ -109,6 +109,26 @@ try{
   });
   watcher.observe(document.body,{childList:true,subtree:true});
   window.__hanabiObserver=watcher;
+  // Regression: a loaded rocket must not reappear in the old square while
+  // its receiving box glows. Check every animation frame of the intake cue.
+  window.__hanabiReturnWitness={glowFrames:0,returned:[]};
+  const watchLoad=()=>{
+   for(const box of document.querySelectorAll(".hanabi-crate")){
+    const loading=box.getAnimations().some(animation=>
+     animation.playState==="running"&&
+     animation.effect?.getKeyframes().some(frame=>
+      String(frame.filter||"").includes("brightness(1.9)")));
+    if(!loading)continue;
+    const at=Number(box.parentElement?.dataset.index);
+    const above=at-7;
+    window.__hanabiReturnWitness.glowFrames++;
+    if(above>=0&&document.querySelector('.tile[data-index="'+above+'"] .hanabi-firework-art'))
+     window.__hanabiReturnWitness.returned.push(above);
+   }
+   if(document.querySelector("#board")?.getAttribute("aria-busy")==="true")
+    requestAnimationFrame(watchLoad);
+  };
+  requestAnimationFrame(watchLoad);
   document.querySelector('.tile[data-index="37"]').click();
   document.querySelector('.tile[data-index="44"]').click();
  });
@@ -121,9 +141,14 @@ try{
   saved:JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run,
   width:document.documentElement.scrollWidth,screen:innerWidth,
   fx:window.__hanabiVisualWitness,
+  rocketReturn:window.__hanabiReturnWitness,
   audio:window.__hanabiAudioWitness
  }));
  assert.equal(after.cargo,1);assert.equal(after.crate,2);assert(after.noSpritesInCrates);
+ assert(after.rocketReturn.glowFrames>0,
+  "A delivered rocket must trigger the receiving box glow");
+ assert.deepEqual(after.rocketReturn.returned,[],
+  "A delivered rocket must never pop back above its crate during the intake glow");
  assert.equal(after.saved.data.hanabiVersion,2);
  assert(after.saved.data.board[43].family==="hanabiCrate");
  assert.equal(after.saved.data.lotusDelivered,1);

@@ -30,7 +30,7 @@ try{
  const baseline=await page.evaluate(storageKey=>JSON.parse(localStorage.getItem(storageKey)),key);
  await page.$eval("#menuAdvanced",node=>node.open=true);
  await page.click("#lotusPreviewButton");
- await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Lotus Stream · Preview");
+ await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Hanabi Crate · Preview");
  await page.click('.lotus-preview-choice[data-preview="garden-route"]');
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:12000});
  const before=await page.$eval("#movesCount",node=>node.textContent);

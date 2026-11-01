@@ -38,6 +38,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-gate-wind.test.cjs
       - name: Lotus Stream 1.0 · seeded drop-and-collection pilot, saves and legacy safety
         run: node daisugi-bloom/tests/harmony-lotus-stream.test.cjs
+      - name: Hanabi Crate 1.0 · real upward pulse, cargo delivery, legacy save
+        run: node daisugi-bloom/tests/harmony-hanabi-crate.test.cjs
       - name: Lotus Stream 1.1 · four routing prototypes, 96 seeded starts and fair Director hints
         run: node daisugi-bloom/tests/harmony-lotus-routing.test.cjs
       - name: Omamori Afterglow 1.0 · conservative two-turn Director 4 boost and save invariants
@@ -128,6 +130,7 @@ jobs:
           node --check daisugi-bloom/harmony/director-v61.js
           node --check daisugi-bloom/harmony/director-v62.js
           node --check daisugi-bloom/harmony/bamboo-paths.js
+          node --check daisugi-bloom/harmony/hanabi-crate.js
           node --check daisugi-bloom/harmony/lotus-stream.js
           node --check daisugi-bloom/harmony/lotus-routing.js
           node --check daisugi-bloom/harmony/omamori-afterglow.js
@@ -178,6 +181,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-director-v62-browser.mjs
       - name: Gate of Echoes 1.1 · 390px lower-row Wind and real turns
         run: node daisugi-bloom/tests/harmony-gate-wind-browser.mjs
+      - name: Hanabi Crate 1.0 · 390px crate, fireworks, real pulse and save
+        run: node daisugi-bloom/tests/harmony-hanabi-crate-browser.mjs
       - name: Run Japanese Harmony mobile smoke
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
       - name: Moon Mirrors 1.2 · six previews, Fusion Echo chain and 390px save isolation

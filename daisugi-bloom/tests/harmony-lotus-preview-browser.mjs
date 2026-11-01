@@ -13,17 +13,17 @@ const page=await browser.newPage(),errors=[],KEY="japanese-harmony-puzzle-v2";
 page.on("pageerror",error=>errors.push(error.message));
 const url="http://127.0.0.1:8000/daisugi-bloom/";
 const scenarios=[
- ["pilot","First Lotus Stream",2],
- ["long-drop","Long Lotus Crossing",2],
- ["three-lanes","Three Lotus Channels",3],
- ["shared-gate","Two Seeds, One River Gate",3],
- ["garden-route","Garden Lotus Crossing",2]
+ ["pilot","First Hanabi Crate",2],
+ ["long-drop","Long Hanabi Crossing",2],
+ ["three-lanes","Three Hanabi Launchers",3],
+ ["shared-gate","Two Fireworks, One Crate",3],
+ ["garden-route","Bamboo Hanabi Crossing",2]
 ];
 async function enter(key){
  await page.reload({waitUntil:"networkidle2"});
  await page.$eval("#menuAdvanced",node=>node.open=true);
  await page.click("#lotusPreviewButton");
- await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Lotus Stream · Preview");
+ await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Hanabi Crate · Preview");
  const options=await page.$$eval(".lotus-preview-choice",nodes=>
   nodes.map(node=>({key:node.dataset.preview,label:node.textContent})));
  assert.deepEqual(options.map(x=>x.key),scenarios.map(x=>x[0]));
@@ -52,13 +52,13 @@ async function enter(key){
    exits,gates:lotus.exits.slice().sort((a,b)=>a-b),
    stones,terrain,
    hasCargoArt:[...document.querySelectorAll(".tile.lotus-seed-tile")]
-    .every(node=>!!node.querySelector(".lotus-seed-art")),
+    .every(node=>!!node.querySelector(".hanabi-firework-art")),
    noCards:getComputedStyle(document.querySelector("#omamoriPowerBar")).display==="none",
    screen:innerWidth,width:document.documentElement.scrollWidth,
    validSwap:HarmonyRules.validSwaps(engine.board)[0]};
  },key);
  assert.equal(state.label,"LEVEL 61");
- assert.equal(state.goal,"Collect Lotus seeds");
+ assert.equal(state.goal,"Deliver fireworks");
  assert.deepEqual(state.seeds,state.starts);
  assert.deepEqual(state.exits,state.gates);
  assert.deepEqual(state.stones,state.terrain);

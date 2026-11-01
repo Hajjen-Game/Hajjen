@@ -21,7 +21,7 @@ try{
   goal:HarmonyRules.levelConfig(60).goal,
   beyond:HarmonyRules.levelConfig(61).name
  }));
- assert.equal(config.name,"First Lotus Stream");
+ assert.equal(config.name,"First Hanabi Crate");
  assert.equal(config.goal.type,"lotus");
  assert.equal(config.beyond.startsWith("Endless · "),true,
   "Only the pilot is authored; levels 62–70 remain the original generated missions");
@@ -34,15 +34,16 @@ try{
   const board=document.querySelector("#board");
   const seeds=[...board.querySelectorAll(".tile.lotus-seed-tile")].map(n=>Number(n.dataset.index));
   const exits=[...board.querySelectorAll(".tile.lotus-exit-tile")].map(n=>Number(n.dataset.index));
-  const first=board.querySelector(".lotus-seed-art");
-  return {seeds,exits,graphic:!!first,goal:document.querySelector("#goalLabel").textContent,
+  const first=board.querySelector(".hanabi-firework-art");
+  return {seeds,exits,graphic:!!first,crates:board.querySelectorAll(".hanabi-crate").length,goal:document.querySelector("#goalLabel").textContent,
    progress:document.querySelector("#goalProgress").textContent,
    layoutWidth:document.body.scrollWidth,port:innerWidth};
  });
  assert.deepEqual(intro.seeds,[36,40]);
  assert.deepEqual(intro.exits,[43,47]);
  assert.equal(intro.graphic,true);
- assert.equal(intro.goal,"Collect Lotus seeds");
+ assert.equal(intro.crates,2);
+ assert.equal(intro.goal,"Deliver fireworks");
  assert.equal(intro.progress,"0 / 2");
  assert(intro.layoutWidth<=intro.port+1,"Lotus symbols must not cause mobile scrolling");
  async function swap(a,b){

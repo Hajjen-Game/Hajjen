@@ -1976,6 +1976,55 @@ function animateTilePiece(index,piece,frames,duration,options){
  });
 }
 
+// Hanabi Launch 1.0: an upward flowing column of pearl/gold/vermilion
+// motes, inspired by Score Motes 1.1 and vacant-cell magic dust.
+// All particles are pointer-free, bounded and removed after their flight.
+async function animateHanabiLaunch(evt){
+ const at=evt.at;
+ if(!Number.isInteger(at)||at<42||at>=49){renderBoard(evt.board);return;}
+ if(FAST()||!Element.prototype.animate){renderBoard(evt.board);return;}
+ const first=indexRect(at),last=indexRect(at%7);
+ const x=first.left+first.width*.5,y=first.top+first.height*.46;
+ const travel=(last.top+last.height*.4)-y;
+ const duration=MOBILE_LITE?470:590;
+ const count=LITE_FX()?9:MOBILE_LITE?17:25;
+ const tasks=[];
+ const core=fxAt("hanabi-launch-mote hanabi-launch-core",x,y);
+ tasks.push(animateNode(core,[
+  {transform:"translate3d(0,0,0) scale(.7)",opacity:.8,offset:0},
+  {transform:"translate3d(0,"+(travel*.35)+"px,0) scale(1.28)",opacity:1,offset:.36},
+  {transform:"translate3d(0,"+(travel*.73)+"px,0) scale(1.06)",opacity:1,offset:.78},
+  {transform:"translate3d(0,"+travel+"px,0) scale(.2)",opacity:0,offset:1}
+ ],duration,{easing:"cubic-bezier(.16,.72,.25,1)"}).finally(()=>core.remove()));
+ for(let i=0;i<count;i++){
+  const angle=i*2.39996,spread=(i%4+1)*2.3;
+  const dx=Math.cos(angle)*spread;
+  const trail=i*5+(i%3)*8;
+  const mote=fxAt("hanabi-launch-mote "+(i%5===0?"hanabi-launch-star":""),x+dx,y+Math.sin(angle)*4);
+  const wave=Math.sin(i*1.3)*7;
+  tasks.push(animateNode(mote,[
+   {transform:"translate3d(0,0,0) scale(.6)",opacity:0,offset:0},
+   {transform:"translate3d("+(wave*.5)+"px,"+(travel*.33)+"px,0) scale(1.18)",opacity:.96,offset:.36},
+   {transform:"translate3d("+wave+"px,"+(travel*.79)+"px,0) scale(.85)",opacity:.90,offset:.82},
+   {transform:"translate3d("+dx+"px,"+travel+"px,0) scale(.16)",opacity:0,offset:1}
+  ],duration-(i%5)*10,{delay:trail,easing:"cubic-bezier(.22,.56,.25,1)"}).finally(()=>mote.remove()));
+ }
+ // Distinct individual tile impacts climb upwards as the spark column passes.
+ for(let row=6;row>=0;row--){
+  const tile=row*7+(at%7),r=indexRect(tile),wait=Math.round((6-row)*duration/6);
+  const impact=fxAt("hanabi-launch-impact",r.left+r.width*.5-11,r.top+r.height*.5-11);
+  tasks.push(animateNode(impact,[
+   {transform:"scale(.18)",opacity:0,offset:0},
+   {transform:"scale(.72)",opacity:.92,offset:.35},
+   {transform:"scale(1.32)",opacity:0,offset:1}
+  ],220,{delay:wait,easing:"ease-out"}).finally(()=>impact.remove()));
+ }
+ await Promise.all(tasks);
+ const struck=[...(evt.targets||[]),...(evt.darumaTargets||[]),
+  ...(evt.stoneTargets||[]),...(evt.mistTargets||[])];
+ renderBoard(evt.board,struck.map(t=>t.to),"pulsed");
+ pulseLandingCues(struck);
+}
 function makeFxLayer(){
  const board=$("board"),parent=board.parentElement;
  const b=board.getBoundingClientRect(),p=boardLayerRect||parent.getBoundingClientRect();
@@ -2590,6 +2639,9 @@ async function animateEvent(evt){
   case "lotus-fall":
    renderBoard(evt.board);
    await flipMove(previous,evt.board,"fall");
+   break;
+  case "hanabi-launch":
+   await animateHanabiLaunch(evt);
    break;
   case "hanabi-delivery":
   case "lotus-delivery":{

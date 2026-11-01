@@ -79,6 +79,7 @@ function normalize(recipe,index=recipe?.index){
  const mirrors=Mirror.normalize(raw.mirrors??[],mask.blocked);
  const mirrorCells=mirrors.map(m=>m.at);
  overlaps(mirrorCells,physical,"Moon Mirror / fixed fixture");
+ overlaps(mask.mist,[...physical,...mirrorCells],"Mist / fixed fixture");
  for(const mirror of mirrors){
   if(step(mirror.at,mirror.direction)===null)
    throw Error("Moon Mirror must point inside the board");
@@ -104,6 +105,9 @@ function normalize(recipe,index=recipe?.index){
  if(hanabi){
   const anchors=[...hanabi.starts,...hanabi.exits];
   overlaps(anchors,[...physical,...mirrorCells],"Hanabi / fixed fixture");
+  overlaps(anchors,mask.mist,"Hanabi / Mist fixture");
+  if(wind&&wind.steps.some(step=>hanabi.exits.some(at=>Math.floor(at/7)===step.row)))
+   throw Error("Wind row cannot move fixed Hanabi crates");
   const occupiedColumns=new Set(hanabi.starts.map(i=>i%7));
   for(const cell of physical.concat(mirrorCells)){
    if(occupiedColumns.has(cell%7)){

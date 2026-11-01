@@ -106,7 +106,18 @@ function launch(game,delivered,h){
   }
  }
 }
-const api=Object.freeze({VERSION,path,launch,crate,isCrate,install,collect,opening});
+// Presentation-only targeting. Logic still fires through the whole column;
+// blank and un-misted squares never pretend to receive a visual hit.
+function visiblePath(event){
+ const meaningful=[
+  ...(event.targets||[]),...(event.darumaTargets||[]),
+  ...(event.stoneTargets||[]),...(event.mistTargets||[]),
+  ...(event.visualOnlyTargets||[]).filter(t=>!t.empty)
+ ];
+ const at=new Set(meaningful.map(t=>t.to).filter(Number.isInteger));
+ return path(event.at).filter(to=>at.has(to));
+}
+const api=Object.freeze({VERSION,path,visiblePath,launch,crate,isCrate,install,collect,opening});
 root.HarmonyHanabiCrate=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

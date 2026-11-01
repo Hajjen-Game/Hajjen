@@ -1995,15 +1995,9 @@ async function animateHanabiLaunch(evt){
  const at=evt.at;
  if(!Number.isInteger(at)||at<42||at>=49)return;
  const reduced=FAST()||document.hidden||!Element.prototype.animate;
- // The engine traverses six squares for its effect. An empty, un-misted
- // square is NOT a visible impact; don't telegraph or pretend to hit it.
- const meaningful=[
-  ...(evt.targets||[]),...(evt.darumaTargets||[]),
-  ...(evt.stoneTargets||[]),...(evt.mistTargets||[]),
-  ...(evt.visualOnlyTargets||[]).filter(t=>!t.empty)
- ];
- const affected=new Set(meaningful.map(t=>t.to).filter(Number.isInteger));
- const path=window.HarmonyHanabiCrate.path(at).filter(to=>affected.has(to));
+ // Same true target set as the rules event; don't invent hits on
+ // empty top cells. Mist clears still count even when a tile has no icon.
+ const path=window.HarmonyHanabiCrate.visiblePath(evt);
  const stepMs=96,stepDelay=65,holdMs=95,glitterMs=680;
  const marks=[],sparks=[];
  const source=indexRect(at),end=indexRect(path[path.length-1]??at-7);

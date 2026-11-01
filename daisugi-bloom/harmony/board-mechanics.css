@@ -12,7 +12,7 @@
  inset:4%;
  display:block;
  pointer-events:none;
- background:url("../assets/gameplay-washi/bamboo-obstacle-256.webp") center / contain no-repeat;
+ background:url("../assets/gameplay-washi/bamboo-obstacle-256-simple.webp") center / contain no-repeat;
  border:0;
  box-shadow:none;
 }

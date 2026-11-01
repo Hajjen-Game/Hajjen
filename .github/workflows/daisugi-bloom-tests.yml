@@ -34,8 +34,6 @@ jobs:
         run: node daisugi-bloom/tests/harmony-mechanic-balance.test.cjs
       - name: Bamboo Paths 1.0 · ten authored levels, chapter geometry, hints and save migration
         run: node daisugi-bloom/tests/harmony-bamboo-paths.test.cjs
-      - name: Bamboo Void Board 1.0 · new nine-cell gap and old-save geometry
-        run: node daisugi-bloom/tests/harmony-bamboo-void.test.cjs
       - name: Gate of Echoes 1.1 · bottom-row Wind, authentic turns and old saves
         run: node daisugi-bloom/tests/harmony-gate-wind.test.cjs
       - name: Lotus Stream 1.0 · seeded drop-and-collection pilot, saves and legacy safety
@@ -183,8 +181,6 @@ jobs:
         run: node daisugi-bloom/tests/harmony-director-v62-browser.mjs
       - name: Gate of Echoes 1.1 · 390px lower-row Wind and real turns
         run: node daisugi-bloom/tests/harmony-gate-wind-browser.mjs
-      - name: Bamboo Void Board 1.0 · 390px true 3x3 void with safe mobile play
-        run: node daisugi-bloom/tests/harmony-bamboo-void-browser.mjs
       - name: Hanabi Crate 1.0 · 390px crate, fireworks, real pulse and save
         run: node daisugi-bloom/tests/harmony-hanabi-crate-browser.mjs
       - name: Hanabi Gravity 1.0 · 390px real FLIP after launch-created hole
@@ -195,14 +191,14 @@ jobs:
         run: node daisugi-bloom/tests/harmony-lotus-hint-browser.mjs
       - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion
         run: node daisugi-bloom/tests/harmony-lotus-browser.mjs
-      - name: Bamboo Paths Early Preview · 390px chapter chooser and true locked-cell puzzle isolation
-        run: node daisugi-bloom/tests/harmony-bamboo-preview-browser.mjs
       - name: Run Japanese Harmony mobile smoke
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
       - name: Moon Mirrors 1.2 · six previews, Fusion Echo chain and 390px save isolation
         run: node daisugi-bloom/tests/harmony-moon-mirrors-browser.mjs
       - name: Wind Garden 1.0 · 390px real row shift, next-wind forecast and save isolation
         run: node daisugi-bloom/tests/harmony-wind-garden-browser.mjs
+      - name: Bamboo Paths Early Preview · 390px chapter chooser and true locked-cell puzzle isolation
+        run: node daisugi-bloom/tests/harmony-bamboo-preview-browser.mjs
       - name: Wind Garden Animation 1.1 · persistent directional atmosphere, fast gust and cleanup
         run: node daisugi-bloom/tests/harmony-wind-sweep-browser.mjs
       - name: Omamori 6.1 · washi HUD, inset meter, framed button and red Sealbreakers

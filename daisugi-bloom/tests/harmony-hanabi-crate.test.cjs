@@ -56,6 +56,28 @@ test("first legal collection launches exactly one full-column Pulse",()=>{
  const report=g.roundTrace.moves[0].events.find(e=>e.type==="hanabi-launch");
  assert(report&&report.column===1&&report.at===43);
 });
+test("Hanabi-created Masterpiece holes settle by the same gravity as Fusion before refill",()=>{
+ const g=create(20261101);
+ const originalAbove=g.board[15]?.id,originalTop=g.board[8]?.id;
+ assert(Number.isInteger(originalAbove)&&Number.isInteger(originalTop));
+ // Stage four becomes five ONLY when the delivered Hanabi ray hits it.
+ g.board[22].stage=4;
+ const result=g.swap(37,44);
+ assert(result.ok);
+ const types=result.events.map(e=>e.type);
+ const launchIndex=types.indexOf("hanabi-launch"),harvestIndex=types.indexOf("harvest");
+ const fallIndex=types.lastIndexOf("fall");
+ assert(launchIndex>=0&&harvestIndex>launchIndex&&fallIndex>harvestIndex);
+ assert(result.events[harvestIndex].positions.includes(22),
+  "Hanabi must really remove the new Masterpiece");
+ const fallen=result.events[fallIndex].board;
+ assert.equal(fallen[22]?.id,originalAbove,
+  "The original object immediately ABOVE the harvested position must fall into it");
+ assert.equal(fallen[15]?.id,originalTop,
+  "Further originals fall through the same column, not appear as new refills");
+ assert(g.board.every((p,i)=>p||g.boardMechanics.blocked.includes(i)===false));
+ assert.equal(g.roundTrace.moves[0].events.some(e=>e.type==="fall"),true);
+});
 test("two authentic player swaps collect both fireworks and can finish",()=>{
  const g=create(27631);
  const a=g.swap(37,44);

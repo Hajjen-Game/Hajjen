@@ -42,7 +42,7 @@ async function enter(level){
    hiddenCards:getComputedStyle(document.querySelector("#omamoriPowerBar")).display==="none",
    pageOverflow:document.documentElement.scrollWidth>innerWidth+1,
    validPair:HarmonyRules.validSwaps(
-    new HarmonyRules.Game(level-1,null,{directorMode:"v6",
+    new HarmonyRules.Game(level-1,null,{directorMode:"v61",
      seed:20261031+(level-1)*97,bambooPreview:true}).board)[0]
   };
  },level);

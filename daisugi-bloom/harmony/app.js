@@ -2000,6 +2000,7 @@ async function animateHanabiLaunch(evt){
  const path=window.HarmonyHanabiCrate.visiblePath(evt);
  const stepMs=96,stepDelay=65,holdMs=95,glitterMs=680;
  const marks=[],sparks=[];
+ if(!reduced&&path.length)sound("hanabi-charge",{count:path.length});
  const source=indexRect(at),end=indexRect(path[path.length-1]??at-7);
  const x=source.left+source.width*.5,y=source.top+source.height*.32;
  const dy=end.top+end.height*.38-y;
@@ -2032,6 +2033,8 @@ async function animateHanabiLaunch(evt){
     {transform:"scale(1)",opacity:1,offset:1}
    ],holdMs);
   }
+  // The real audio launch starts at the first glitter particle.
+  sound("hanabi-launch",{count:path.length});
   if(!reduced){
    const budget=LITE_FX()?20:MOBILE_LITE?36:50;
    const palette=["gold","pink","orange","violet","pearl"];
@@ -2718,6 +2721,8 @@ async function animateEvent(evt){
       {transform:"rotate(0deg) translate3d(0,"+dy+"px,0) scale(.36)",opacity:0,offset:1}
      ],330,{easing:"cubic-bezier(.3,.05,.55,1)"});
     }
+    // Let the rocket finish its travel before the wood/magic contact cue.
+    sound("hanabi-load");
     const box=boardTiles[at]?.querySelector(".hanabi-crate");
     if(box&&!FAST())await animateNode(box,[
      {filter:"brightness(1)",transform:"scale(1)",offset:0},

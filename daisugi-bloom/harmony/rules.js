@@ -1159,8 +1159,13 @@ class Game{
      goal:{type:"lotus",count:route.lotus.starts.length},
      lotus:route.lotus,boardMechanics:route.boardMechanics,hanabiVersion:this.hanabiVersion};
    }else this.lotusPrototype=null;
-   if(this.level===60&&this.lotusVersion===1&&this.hanabiVersion<2)
-    this.config={...this.config,...(!this.hanabiVersion&&!this.lotusPrototype?Lotus.LEGACY_PILOT:{}),hanabiVersion:this.hanabiVersion};
+   if(this.level===60&&this.lotusVersion===1&&this.hanabiVersion<2){
+    const oldIntro="Guide two fireworks into their wooden crates on the bottom row. Match treasures below each firework so it falls. Each delivered firework launches a bright vertical pulse through its column, upgrading treasures and striking responsive blockers.";
+    this.config={...this.config,
+     ...(!this.hanabiVersion&&!this.lotusPrototype?Lotus.LEGACY_PILOT:
+      this.hanabiVersion===1?{intro:oldIntro}:{}),
+     hanabiVersion:this.hanabiVersion};
+   }
    this.difficultyCalibrationVersion=previous.difficultyCalibrationVersion===2?2:0;
    this.chapterIdentityVersion=oldLanternRun?0:this.level>=40&&this.level<50?2:0;
    this.bambooVersion=oldBambooRun?0:this.config.bambooVersion||0;

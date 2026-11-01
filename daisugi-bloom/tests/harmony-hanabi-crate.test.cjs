@@ -54,6 +54,21 @@ test("two authentic player swaps collect both fireworks and can finish",()=>{
  assert.equal(restored.complete,true);
  assert(!restored.board.some(L.isSeed));
 });
+test("old Hanabi 1.0 saved run retains overlapping target squares and its pulse",()=>{
+ const v1=new R.Game(60,null,{seed:18001,directorMode:"v62",hanabiVersion:1});
+ assert.equal(v1.hanabiVersion,1);
+ assert.equal(v1.board[43].family!=="hanabiCrate",true);
+ const restored=new R.Game(60,v1.save(),{fastRestore:true});
+ assert.equal(restored.hanabiVersion,1);
+ assert.equal(restored.board[36].family,"lotusSeed");
+ assert.equal(restored.config.intro.includes("Match treasures below each firework"),true);
+ const result=restored.swap(37,44);
+ assert.equal(result.ok,true);
+ assert(result.events.some(e=>e.type==="hanabi-delivery"));
+ assert(result.events.some(e=>e.type==="hanabi-launch"));
+ assert.equal(restored.board[43]?.family==="hanabiCrate",false);
+ assert(Save.validRun({level:60,data:restored.save()}));
+});
 test("old unfinished Lotus round does not acquire fireworks or new line pulses",()=>{
  const g=new R.Game(60,null,{seed:33991,directorMode:"v62",hanabiVersion:1});
  const old=g.save();delete old.hanabiVersion;

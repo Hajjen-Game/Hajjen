@@ -33,6 +33,25 @@ try{
  assert.equal(first.cargo,2);assert.equal(first.crates,2);assert(first.body);
  assert(first.scroll<=first.screen+1);
  await page.evaluate(()=>{
+  // Confirm the launch is a real on-screen beam even in reduced-motion mode.
+  window.__hanabiVisualWitness={beamSeen:false,visible:false,height:0,impacts:0};
+  const watcher=new MutationObserver(records=>{
+   for(const rec of records)for(const n of rec.addedNodes){
+    if(n.nodeType!==1)continue;
+    const beam=n.classList?.contains("hanabi-launch-beam")?n:n.querySelector?.(".hanabi-launch-beam");
+    if(beam){
+     window.__hanabiVisualWitness.beamSeen=true;
+     window.__hanabiVisualWitness.height=Math.max(window.__hanabiVisualWitness.height,beam.getBoundingClientRect().height);
+     requestAnimationFrame(()=>{
+      window.__hanabiVisualWitness.visible ||= parseFloat(getComputedStyle(beam).opacity)>.5;
+     });
+    }
+    const impact=n.classList?.contains("hanabi-launch-impact")?n:n.querySelector?.(".hanabi-launch-impact");
+    if(impact)window.__hanabiVisualWitness.impacts++;
+   }
+  });
+  watcher.observe(document.body,{childList:true,subtree:true});
+  window.__hanabiObserver=watcher;
   document.querySelector('.tile[data-index="37"]').click();
   document.querySelector('.tile[data-index="44"]').click();
  });
@@ -43,7 +62,8 @@ try{
   crate:document.querySelectorAll(".hanabi-crate").length,
   noSpritesInCrates:[43,47].every(at=>!document.querySelector('.tile[data-index="'+at+'"] .piece')),
   saved:JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run,
-  width:document.documentElement.scrollWidth,screen:innerWidth
+  width:document.documentElement.scrollWidth,screen:innerWidth,
+  fx:window.__hanabiVisualWitness
  }));
  assert.equal(after.cargo,1);assert.equal(after.crate,2);assert(after.noSpritesInCrates);
  assert.equal(after.saved.data.hanabiVersion,2);
@@ -51,6 +71,9 @@ try{
  assert.equal(after.saved.data.lotusDelivered,1);
  assert(after.saved.data.roundTrace.moves[0].events.some(e=>e.type==="hanabi-launch"));
  assert(after.width<=after.screen+1);
+ assert(after.fx.beamSeen&&after.fx.visible&&after.fx.height>300,
+  "Entire board must show an unmistakable gold vertical launch");
+ assert(after.fx.impacts>=7,"Every cell in the launch column gets a ring impact");
  assert.deepEqual(errors,[]);
  console.log("PASS Hanabi Crate mobile: two boxes, two rockets, 1 authentic delivery and vertical pulse");
 }finally{await browser.close();}

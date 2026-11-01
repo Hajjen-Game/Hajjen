@@ -63,7 +63,7 @@ try{
       witness.colors.push(n.dataset.color);
      if(witness.firstSparkAt<0){
       witness.firstSparkAt=witness.events.length;
-      witness.markedBeforeGlitter=witness.marks.length===6;
+      witness.markedBeforeGlitter=witness.marks.length>0;
       witness.events.push("glitter");
      }
     }

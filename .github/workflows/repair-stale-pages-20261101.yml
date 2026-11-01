@@ -7,11 +7,31 @@ on:
 permissions:
   contents: read
   deployments: write
-  pages: read
+  pages: write
 jobs:
   release-stale:
     runs-on: ubuntu-latest
     steps:
+      - name: Cancel only the specific stale GitHub Pages deployment SHA
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner=context.repo.owner,repo=context.repo.repo;
+            const staleSha="094aa5e387aaf2c26a937b34b6bbe44779ddc930";
+            const endpoint="GET /repos/{owner}/{repo}/pages/deployments/{pages_deployment_id}";
+            try{
+              const current=await github.request(endpoint,{
+                owner,repo,pages_deployment_id:staleSha
+              });
+              core.info("Old Pages deployment status before fix: "+JSON.stringify(current.data));
+            }catch(err){
+              core.warning("Pages status read: "+err.status+" "+err.message);
+            }
+            const result=await github.request(
+              "POST /repos/{owner}/{repo}/pages/deployments/{pages_deployment_id}/cancel",
+              {owner,repo,pages_deployment_id:staleSha}
+            );
+            core.info("Cancellation of old Pages deployment returned HTTP "+result.status);
       - name: Diagnose and release only the stale successful-commit Pages deployment
         uses: actions/github-script@v7
         with:

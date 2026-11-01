@@ -1985,77 +1985,105 @@ function animateTilePiece(index,piece,frames,duration,options){
 // Hanabi Launch 1.0: an upward flowing column of pearl/gold/vermilion
 // motes, inspired by Score Motes 1.1 and vacant-cell magic dust.
 // All particles are pointer-free, bounded and removed after their flight.
+// Hanabi Launch Telegraph 1.0: every square glows, bottom to top,
+// BEFORE any glitter starts. Reuse Harmony Pulse's real target-ring art,
+// never repaint or blink the unrelated treasure sprites.
 async function animateHanabiLaunch(evt){
  const at=evt.at;
  if(!Number.isInteger(at)||at<42||at>=49)return;
- const base=indexRect(at),head=indexRect(at%7);
- const x=base.left+base.width*.5,y=base.top+base.height*.27;
- const ceiling=head.top+head.height*.22,travel=ceiling-y;
- const height=Math.abs(travel),reduced=FAST()||document.hidden;
- const duration=reduced?230:MOBILE_LITE?790:900;
- const rays=[],fx=scoreFxLayer();
- // A continuous, high-contrast GOLD/IVORY shaft solves the tiny-mote
- // visibility problem. The beam traverses every cell, not whole-board blink.
- for(const cls of ["hanabi-launch-halo","hanabi-launch-beam"]){
-  const beam=document.createElement("span");beam.className=cls;
-  beam.style.left=x+"px";beam.style.top=ceiling+"px";
-  beam.style.height=height+"px";beam.setAttribute("aria-hidden","true");
-  fx.append(beam);rays.push(beam);
- }
- const impactAt=pos=>{const r=indexRect(pos);
-  return {x:r.left+r.width*.5,y:r.top+r.height*.5};};
- const animTasks=[];
- const shown=(node,keyframes,time,opts={})=>{
-  if(reduced||!node.animate){node.style.opacity="1";return Promise.resolve();}
-  return animateNode(node,keyframes,time,opts);
- };
- for(const ray of rays){
-  animTasks.push(shown(ray,[
-   {transform:"translateX(-50%) scaleY(.015)",opacity:0,offset:0},
-   {transform:"translateX(-50%) scaleY(.25)",opacity:.95,offset:.23},
-   {transform:"translateX(-50%) scaleY(.72)",opacity:1,offset:.63},
-   {transform:"translateX(-50%) scaleY(1)",opacity:1,offset:.81},
-   {transform:"translateX(-50%) scaleY(1)",opacity:0,offset:1}
-  ],duration,{easing:"cubic-bezier(.16,.6,.15,1)"}));
- }
- // Score Motes-like fireworks follow the same upward track. On mobile
- // they complement a thick visible beam instead of bearing all the light.
- if(!reduced){
-  const count=LITE_FX()?12:MOBILE_LITE?24:34;
-  const core=fxAt("hanabi-launch-mote hanabi-launch-core",x,y);
-  animTasks.push(animateNode(core,[
-   {transform:"translate3d(0,0,0) scale(1)",opacity:.9,offset:0},
-   {transform:"translate3d(0,"+(travel*.45)+"px,0) scale(1.38)",opacity:1,offset:.46},
-   {transform:"translate3d(0,"+travel+"px,0) scale(.1)",opacity:0,offset:1}
-  ],duration-70,{easing:"cubic-bezier(.12,.65,.22,1)"}).finally(()=>core.remove()));
-  for(let i=0;i<count;i++){
-   const angle=i*2.39996,side=(i%7+2)*1.9,dx=Math.cos(angle)*side;
-   const mote=fxAt("hanabi-launch-mote "+(i%4===0?"hanabi-launch-star":""),x+dx,y+Math.sin(angle)*5);
-   const sway=Math.sin(angle)*11,delay=18+i*6;
-   animTasks.push(animateNode(mote,[
-    {transform:"translate3d(0,0,0) scale(.5)",opacity:.45,offset:0},
-    {transform:"translate3d("+sway+"px,"+(travel*.5)+"px,0) scale(1.3)",opacity:1,offset:.48},
-    {transform:"translate3d("+dx+"px,"+travel+"px,0) scale(.12)",opacity:0,offset:1}
-   ],duration-85,{delay,easing:"cubic-bezier(.15,.55,.22,1)"}).finally(()=>mote.remove()));
+ const path=window.HarmonyHanabiCrate.path(at); // [cell above crate, ..., top]
+ const reduced=FAST()||document.hidden||!Element.prototype.animate;
+ const stepMs=76,glitterMs=540;
+ const marks=[],sparks=[];
+ const fx=scoreFxLayer();
+ const source=indexRect(at),top=indexRect(path[path.length-1]);
+ const x=source.left+source.width*.5,y=source.top+source.height*.32;
+ const dy=(top.top+top.height*.35)-y;
+ const ringPositions=new Set(path);
+ // The same elegant rotating gold border used by normal Harmony Pulse.
+ // The charged marks persist together until the first glitter travels.
+ try{
+  if(!reduced){
+   for(let rank=0;rank<path.length;rank++){
+    const to=path[rank],tile=boardTiles[to];
+    if(!tile)continue;
+    const mark=document.createElement("span");
+    mark.className="pulse-anticipation-glow hanabi-telegraph-glow";
+    mark.dataset.to=String(to);
+    mark.dataset.order=String(rank+1);
+    mark.dataset.wave="1";
+    mark.style.opacity="0";mark.setAttribute("aria-hidden","true");
+    tile.append(mark);marks.push(mark);
+    await animateNode(mark,[
+     {opacity:0,transform:"scale(.87)",offset:0},
+     {opacity:.93,transform:"scale(1.05)",offset:.70},
+     {opacity:1,transform:"scale(1)",offset:1}
+    ],stepMs,{easing:"cubic-bezier(.18,.66,.24,1)"});
+    mark.style.opacity="1";
+    mark.classList.add("hanabi-telegraph-charged");
+   }
+   // Everything is marked before the colourful energy is released.
+   // The last glow holds the eye briefly as the crate is charged.
+   await animateNode(marks[marks.length-1],[
+    {transform:"scale(1)",opacity:1,offset:0},
+    {transform:"scale(1.06)",opacity:1,offset:.5},
+    {transform:"scale(1)",opacity:1,offset:1}
+   ],100);
   }
+  // Motions and impact delays intentionally match the direction of the
+  // ascending glitter — no immediate full-column flash or solid laser.
+  if(!reduced){
+   const budget=LITE_FX()?20:MOBILE_LITE?36:50;
+   const palette=["gold","pink","orange","violet","pearl"];
+   const flight=[];
+   const leader=fxAt("hanabi-glitter-mote hanabi-glitter-core",x,y);
+   sparks.push(leader);
+   flight.push(animateNode(leader,[
+    {transform:"translate3d(0,0,0) scale(.8)",opacity:.96,offset:0},
+    {transform:"translate3d(0,"+(dy*.49)+"px,0) scale(1.28)",opacity:1,offset:.49},
+    {transform:"translate3d(0,"+dy+"px,0) scale(.42)",opacity:0,offset:1}
+   ],glitterMs,{easing:"cubic-bezier(.16,.5,.22,1)"}));
+   for(let i=0;i<budget;i++){
+    const angle=i*2.399963,rad=3+(i%6)*1.85;
+    const sx=Math.cos(angle)*rad,sy=Math.sin(angle)*rad*.65;
+    const wobble=Math.sin(angle*1.3)*12;
+    const hue=palette[i%palette.length];
+    const mote=fxAt("hanabi-glitter-mote hanabi-glitter-"+hue+
+     (i%7===0?" hanabi-glitter-star":""),x+sx,y+sy);
+    mote.dataset.color=hue;
+    sparks.push(mote);
+    // Trailer motes depart later, but follow the same upward trajectory.
+    const stagger=12+Math.round((i/Math.max(1,budget-1))*175);
+    flight.push(animateNode(mote,[
+     {transform:"translate3d(0,0,0) scale(.48)",opacity:.45,offset:0},
+     {transform:"translate3d("+(wobble*.72)+"px,"+(dy*.47)+"px,0) scale(1.18)",opacity:1,offset:.47},
+     {transform:"translate3d("+(wobble*.33)+"px,"+(dy*.82)+"px,0) scale(.84)",opacity:.95,offset:.83},
+     {transform:"translate3d("+sx+"px,"+dy+"px,0) scale(.13)",opacity:0,offset:1}
+    ],glitterMs-(i%5)*7,{delay:stagger,easing:"cubic-bezier(.15,.53,.25,1)"}));
+   }
+   // Only the six targeted column cells get contact rings, timed so
+   // the glitter reaches each one in order. All sprites remain stable.
+   for(let index=0;index<path.length;index++){
+    const to=path[index];if(!ringPositions.has(to))continue;
+    const r=indexRect(to);
+    const impact=fxAt("hanabi-glitter-impact",r.left+r.width*.5-16,r.top+r.height*.5-16);
+    impact.dataset.to=String(to);impact.dataset.order=String(index+1);
+    sparks.push(impact);
+    flight.push(animateNode(impact,[
+     {transform:"scale(.22)",opacity:0,offset:0},
+     {transform:"scale(.85)",opacity:1,offset:.31},
+     {transform:"scale(1.45)",opacity:0,offset:1}
+    ],220,{delay:Math.round((index+.35)*glitterMs/path.length),easing:"ease-out"}));
+   }
+   await Promise.all(flight);
+  }
+ }finally{
+  for(const mark of marks)mark.remove();
+  for(const spark of sparks)spark.remove();
  }
- // Sequential small impact rings, one per cell in the fired COLUMN.
- // These never animate other columns or reset unrelated treasure art.
- for(let row=6;row>=0;row--){
-  const pos=row*7+at%7,{x:ix,y:iy}=impactAt(pos),wait=(6-row)*Math.round(duration/8);
-  const ring=fxAt("hanabi-launch-impact",ix-17,iy-17);
-  animTasks.push(shown(ring,[
-   {transform:"scale(.25)",opacity:0,offset:0},
-   {transform:"scale(.85)",opacity:1,offset:.38},
-   {transform:"scale(1.5)",opacity:0,offset:1}
-  ],240,{delay:wait,easing:"ease-out"}).finally(()=>ring.remove()));
- }
- if(reduced)await new Promise(resolve=>setTimeout(resolve,duration));
- else await Promise.all(animTasks);
- for(const ray of rays)ray.remove();
- const actual=evt.targets||[];
- renderBoard(evt.board,actual.map(t=>t.to),"hanabi-upgraded");
- pulseLandingCues(actual);
+ // The engine already calculated the upgrades. Reveal those exact
+ // updated cells once, after the visual launch; no global tile blinking.
+ renderBoard(evt.board);
 }
 function makeFxLayer(){
  const board=$("board"),parent=board.parentElement;

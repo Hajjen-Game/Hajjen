@@ -13,7 +13,7 @@ const check=(name,fn)=>{fn();console.log("PASS "+name);};
 check("Production Lotus pilot and levels beyond it remain untouched",()=>{
  for(const seed of [53,185,20261030]){
   const g=new R.Game(60,null,{seed,directorMode:"v4"});
-  assert.equal(g.config.name,"First Lotus Stream");
+  assert.equal(g.config.name,"First Hanabi Crate");
   assert.equal(g.config.moves,38);
   assert.equal(g.lotusPrototype,null);
   assert.deepEqual(g.lotus.starts,[36,40]);

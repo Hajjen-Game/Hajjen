@@ -15,7 +15,7 @@ check("one authentic L61 pilot and four explicitly experimental route choices",(
  assert.deepEqual(scenarios,["pilot","long-drop","three-lanes","shared-gate","garden-route"]);
  const live=new R.Game(60,null,{seed:20261101,directorMode:"v4"});
  const p=make("pilot");
- assert.equal(p.config.name,"First Lotus Stream");
+ assert.equal(p.config.name,"First Hanabi Crate");
  assert.deepEqual(p.config.goal,live.config.goal);
  assert.equal(p.config.moves,live.config.moves);
  assert.deepEqual(p.boardMechanics,live.boardMechanics);

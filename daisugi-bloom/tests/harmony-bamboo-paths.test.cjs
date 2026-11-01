@@ -31,7 +31,7 @@ check("Exactly ten authored Bamboo Paths goals replace generated levels 51–60"
  }
  assert.equal(C.get(49),null);
  assert.equal(C.get(60),null);
- assert.equal(R.levelConfig(60).name,"First Lotus Stream");
+ assert.equal(R.levelConfig(60).name,"First Hanabi Crate");
  assert.equal(R.levelConfig(61).name.startsWith("Endless · "),true);
 });
 check("The 51–60 learning curve introduces each board shape in the promised order",()=>{
@@ -51,7 +51,7 @@ check("The 51–60 learning curve introduces each board shape in the promised or
  assert.deepEqual(b(59).mist,[9,13,35]);
  assert.deepEqual(R.levelConfig(59).goal,{type:"mist",count:3});
  assert.equal(G.chapter(5).title,"Bamboo Paths");
- assert.equal(G.chapter(6).title,"Lotus Stream · Pilot");
+ assert.equal(G.chapter(6).title,"Hanabi Festival · Pilot");
 });
 check("One-time illustrated lessons explain each change of geometry",()=>{
  for(const [index,key] of [[50,"bamboo-intro"],[52,"temple-gate"],

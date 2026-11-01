@@ -7,15 +7,15 @@ const R=require("../harmony/rules.js"),L=require("../harmony/lotus-stream.js"),
 const check=(name,fn)=>{fn();console.log("PASS "+name);};
 check("Level 61 is the only Lotus pilot; chapter 7 is marked as a pilot",()=>{
  const c=R.levelConfig(60);
- assert.equal(c.name,"First Lotus Stream");
+ assert.equal(c.name,"First Hanabi Crate");
  assert.deepEqual(c.goal,{type:"lotus",count:2});
  assert.deepEqual(c.lotus,L.normalize({version:1,starts:[36,40],exits:[43,47]}));
  assert.equal(c.chapter,7);
  assert.equal(R.levelConfig(59).goal.type,"mist");
  assert.equal(R.levelConfig(61).goal.type,"mist");
- assert.equal(G.chapter(6).title,"Lotus Stream · Pilot");
+ assert.equal(G.chapter(6).title,"Hanabi Festival · Pilot");
  assert.equal(O.lesson(60).key,"lotus-intro");
- assert.equal(O.preview(60,c,R.moveStarTargets).objective,"2 Lotus seeds");
+ assert.equal(O.preview(60,c,R.moveStarTargets).objective,"2 fireworks");
  assert.deepEqual(R.moveStarTargets(c),{two:28,three:17});
 });
 check("Lotus descriptors reject impossible columns and malformed collection targets",()=>{
@@ -28,6 +28,7 @@ check("Each of 24 random pilot openings has two real match-based deliveries",()=
  for(let seed=1;seed<=24;seed++){
   const g=new R.Game(60,null,{seed:seed*217+6,directorMode:"v4"});
   assert.equal(g.lotusVersion,1);
+  assert.equal(g.hanabiVersion,1);
   assert.equal(g.progress(),0);
   assert.deepEqual(g.board.map((p,i)=>L.isSeed(p)?i:-1).filter(i=>i>=0),[36,40]);
   assert.equal(R.scan(g.board).length,0);
@@ -37,11 +38,11 @@ check("Each of 24 random pilot openings has two real match-based deliveries",()=
   const refused=g.swap(36,37);
   assert.equal(refused.ok,false);
   assert.equal(g.moves,movesBefore);
-  assert.match(refused.reason,/Lotus seeds fall/);
+  assert.match(refused.reason,/Fireworks fall/);
   const delivered1=g.swap(37,44);
   assert.equal(delivered1.ok,true);
-  assert.equal(delivered1.events.filter(e=>e.type==="lotus-delivery").length,1);
-  assert.deepEqual(delivered1.events.find(e=>e.type==="lotus-delivery").delivered.map(d=>d.at),[43]);
+  assert.equal(delivered1.events.filter(e=>e.type==="hanabi-delivery").length,1);
+  assert.deepEqual(delivered1.events.find(e=>e.type==="hanabi-delivery").delivered.map(d=>d.at),[43]);
   assert.equal(g.progress(),1);
   const save=g.save();
   assert(H.validRun({level:60,data:save}));
@@ -52,7 +53,7 @@ check("Each of 24 random pilot openings has two real match-based deliveries",()=
   assert.deepEqual(resumed.save(),save);
   const delivered2=resumed.swap(41,48);
   assert.equal(delivered2.ok,true);
-  assert.deepEqual(delivered2.events.find(e=>e.type==="lotus-delivery").delivered.map(d=>d.at),[47]);
+  assert.deepEqual(delivered2.events.find(e=>e.type==="hanabi-delivery").delivered.map(d=>d.at),[47]);
   assert.equal(resumed.progress(),2);
   assert.equal(resumed.complete,true);
   assert.equal(resumed.moves,movesBefore-2);
@@ -89,6 +90,7 @@ check("Historical Endless Garden level 61 round is never converted on resume",()
  const legacy=new R.Game(60,null,{seed:9123,boardMechanics:{}});
  const previous=legacy.save();delete previous.lotusVersion;delete previous.lotus;delete previous.lotusDelivered;
  // An actual pre-release Endless Garden round has no lotus cargo at all.
+ delete previous.hanabiVersion;
  previous.board[36]={family:legacy.families[0],stage:1,id:37};
  previous.board[40]={family:legacy.families[1],stage:1,id:41};
  previous.mist=Array(49).fill(0);
@@ -108,7 +110,7 @@ check("UI and educational assets are wired with visible receiver and seed cues",
  assert(html.indexOf("lotus-stream.js?v=")<html.indexOf("rules.js?v="));
  assert(html.includes("lotus-stream.css"));
  assert(app.includes("lotus-seed-art")&&app.includes("lotus-collector"));
- assert(app.includes('case "lotus-delivery"'));
+ assert(app.includes('case "hanabi-delivery"'));
  assert(css.includes("prefers-reduced-motion:reduce"));
 });
 console.log("Lotus Stream 1.0 pilot unit checks passed.");

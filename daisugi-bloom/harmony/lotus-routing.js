@@ -10,22 +10,22 @@ if(!L||!B)throw Error("Lotus routing requires cargo and board mechanics");
 const VERSION=1;
 const prototypes=Object.freeze({
  "long-drop":Object.freeze({
-  name:"Long Lotus Crossing",moves:44,starPar:22,
+  name:"Long Hanabi Crossing",moves:44,starPar:22,
   lotus:Object.freeze({version:1,starts:[29,33],exits:[43,47]}),
   boardMechanics:Object.freeze({})
  }),
  "three-lanes":Object.freeze({
-  name:"Three Lotus Channels",moves:54,starPar:32,
+  name:"Three Hanabi Launchers",moves:54,starPar:32,
   lotus:Object.freeze({version:1,starts:[22,24,26],exits:[43,45,47]}),
   boardMechanics:Object.freeze({})
  }),
  "shared-gate":Object.freeze({
-  name:"Two Seeds, One River Gate",moves:56,starPar:33,
+  name:"Two Fireworks, One Crate",moves:56,starPar:33,
   lotus:Object.freeze({version:1,starts:[8,22,12],exits:[43,47]}),
   boardMechanics:Object.freeze({})
  }),
  "garden-route":Object.freeze({
-  name:"Garden Lotus Crossing",moves:48,starPar:25,
+  name:"Bamboo Hanabi Crossing",moves:48,starPar:25,
   lotus:Object.freeze({version:1,starts:[22,26],exits:[43,47]}),
   boardMechanics:Object.freeze({blocked:[23,25]})
  })
@@ -47,7 +47,7 @@ function validate(lotusInput,mechanicsInput){
 function get(name){
  if(!Object.hasOwn(prototypes,name))throw Error("Unknown Lotus prototype: "+name);
  const recipe=prototypes[name],{lotus,mechanics}=validate(recipe.lotus,recipe.boardMechanics);
- return {name:recipe.name,key:name,moves:recipe.moves,starPar:recipe.starPar,
+ return {name:recipe.name,key:name,moves:recipe.moves,starPar:recipe.starPar,hanabiVersion:1,
   lotus,boardMechanics:mechanics};
 }
 function remaining(board,lotusInput){

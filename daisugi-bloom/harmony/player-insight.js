@@ -13,11 +13,11 @@ function snapshot(game){
   fusions:game.fusions,stage3:game.stage3,stage4:game.stage4,
   masterpieces:game.masterpieces,echoes:game.echoes,pulseHits:game.pulseHits,
   mist:game.mist?.slice(),daruma:game.daruma?.slice(),sealed:game.sealed?.slice(),
-  lotusDelivered:game.lotusDelivered};
+  lotusDelivered:game.lotusDelivered,hanabiVersion:game.hanabiVersion||0};
 }
 function initial(game,partial=false){
  return {version:VERSION,partial,level:game.level+1,seed:game.seed,
-  directorMode:game.directorMode,goal:{...game.config.goal},
+  directorMode:game.directorMode,hanabiVersion:game.hanabiVersion||0,goal:{...game.config.goal},
   moonMirrors:game.moonMirrors?.map(x=>({...x}))||[],
   preview:game.lotusPreview|| (game.bambooPreview?"bamboo-paths":game.moonMirrorPreview||game.windGardenPreview||null),
   previewType:game.lotusPreview?"lotus-stream":game.bambooPreview?"bamboo-paths":game.windGardenPreview?"wind-garden":game.moonMirrorPreview?"moon-mirrors":null,
@@ -52,7 +52,7 @@ function refill(turn,data){
 }
 function eventSummary(event){
  const kept={type:event.type};
- for(const key of ["round","wave","scoreDelta","chain","unused","from","to","source","mirrorAt","row","afterMove"]){
+ for(const key of ["round","wave","scoreDelta","chain","unused","from","to","source","mirrorAt","row","column","at","afterMove"]){
   if(Number.isFinite(event[key]))kept[key]=event[key];
  }
  for(const key of ["positions","clearedMist","mistTargets","darumaTargets","stoneTargets","mirrorTargets","visualOnlyTargets"]){
@@ -108,7 +108,7 @@ function last(game,trace,profile,intentAwareness=null){
  return {format:"japanese-harmony-round",version:VERSION,
   privacy:"Player-exported locally. No account, device ID, wallet balance or purchase history.",
   level:game.level+1,levelName:game.config.name,
-  goal:game.config.goal,directorMode:game.directorMode,
+  goal:game.config.goal,directorMode:game.directorMode,hanabiVersion:game.hanabiVersion||0,
   preview:game.lotusPreview|| (game.bambooPreview?"bamboo-paths":game.moonMirrorPreview||game.windGardenPreview||null),
   previewType:game.lotusPreview?"lotus-stream":game.bambooPreview?"bamboo-paths":game.windGardenPreview?"wind-garden":game.moonMirrorPreview?"moon-mirrors":null,
   windGarden:game.windGarden?{every:game.windGarden.every,steps:game.windGarden.steps.map(x=>({...x}))}:null,

@@ -41,7 +41,7 @@ const THEMES=[
  {title:"Path of the Seals",subtitle:"Four hits to release an eight-way Awakening Pulse",motif:"sealed-stone",symbol:"✦"},
  {title:"Lantern Path",subtitle:"Lantern fusions and Lantern masterpieces",motif:"lantern",symbol:"✦"},
  {title:"Bamboo Paths",subtitle:"Navigate garden stones, Temple Gate, Twin Gardens and Central Shrine",motif:"bamboo",symbol:"❖"},
- {title:"Lotus Stream · Pilot",subtitle:"Guide lotus seeds through falling treasures to river gates",motif:"lotus",symbol:"✿"}
+ {title:"Hanabi Festival · Pilot",subtitle:"Guide fireworks into crates to launch vertical festival pulses",motif:"lotus",symbol:"✦"}
 ];
 // Asset Fidelity 2.0: the six APPROVED independent high-resolution PNGs
 // supply chapter headings and 1/2/3-star seals. Keep the old atlas only as

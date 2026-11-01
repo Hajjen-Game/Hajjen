@@ -21,14 +21,14 @@ const LESSONS=Object.freeze({
  54:Object.freeze({key:"twin-gardens",jp:"庭",title:"Twin Gardens",short:"Two garden wings meet at one central crossing.",detail:"The closed stones divide upper and lower sections of the center column. Matching, falling and Harmony Pulse still obey their usual rules; use the open center row to plan your next moves."}),
  57:Object.freeze({key:"central-shrine",jp:"社",title:"Central Shrine",short:"The shrine occupies the center. Build Harmony around it.",detail:"The eight closed center tiles are part of the garden, not obstacles you have to break. They never move or take Pulse hits. Plan chains and fusions along the edges of the shrine."}),
  59:Object.freeze({key:"bamboo-finale",jp:"和",title:"Path of Harmony",short:"Clear Mist around the sacred shrine to complete Bamboo Paths.",detail:"Fuse onto each misty tile or reach it with Harmony Pulse. The shrine stays closed and does not need clearing. All three Mist tiles must be removed to complete the chapter."}),
- 60:Object.freeze({key:"lotus-intro",jp:"蓮",title:"First Lotus Stream",short:"Match treasures beneath a lotus seed to guide it into the glowing river gate.",detail:"Lotus seeds cannot be swapped, matched, grown or destroyed with Harmony Pulse. They fall vertically when matches make room below them. Collect both seeds at their glowing gates along the bottom row. The seeds stay intact through shuffle and saving."})
+ 60:Object.freeze({key:"lotus-intro",jp:"花火",title:"First Hanabi Crate",short:"Match below each firework to guide it into a wooden crate.",detail:"Fireworks cannot be swapped, matched, upgraded or destroyed by Harmony Pulse. They fall when matches open space below them. A firework reaching its crate fires a vertical launch Pulse straight up that column, upgrading ordinary treasures and striking reactive blockers. The two crates remain on the bottom row."})
 });
 const clean=n=>Number.isInteger(n)&&n>=0?n:0;
 function lesson(level){return LESSONS[clean(level)]||null;}
 function objective(config){
  const g=config?.goal||{},count=clean(g.count);
  const labels={
-  lotus:["Lotus seed","Lotus seeds"],mist:["Mist tile","Mist tiles"],fusion:["fusion","fusions"],
+  lotus:["firework","fireworks"],mist:["Mist tile","Mist tiles"],fusion:["fusion","fusions"],
   stage3:["object to stage 3","objects to stage 3"],
   stage4:["object to stage 4","objects to stage 4"],
   masterpiece:["masterpiece","masterpieces"],pulseHits:["Harmony upgrade","Harmony upgrades"],

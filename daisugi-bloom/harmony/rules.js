@@ -8,6 +8,8 @@ if(!Bamboo)throw Error("Bamboo Paths must load before Harmony Rules");
 const Lotus=root.HarmonyLotusStream||(typeof require==="function"?require("./lotus-stream.js"):null);
 if(!Lotus)throw Error("Lotus Stream must load before Harmony Rules");
 const LotusRouting=root.HarmonyLotusRouting||(typeof require==="function"?require("./lotus-routing.js"):null);
+const Hanabi=root.HarmonyHanabiCrate||(typeof require==="function"?require("./hanabi-crate.js"):null);
+if(!Hanabi)throw Error("Hanabi Crate must load before Harmony Rules");
 if(!LotusRouting)throw Error("Lotus routing prototypes must load before Harmony Rules");
 const Mirror=root.HarmonyMoonMirrors||(typeof require==="function"?require("./moon-mirrors.js"):null);
 if(!Mirror)throw Error("Moon Mirrors 1.0 must load before Harmony Rules");
@@ -959,11 +961,12 @@ class Game{
    const route=LotusRouting.get(requestedLotusPrototype);
    this.lotusPrototype=route.key;
    this.config={...this.config,name:route.name,moves:route.moves,par:route.starPar,
-    starPar:route.starPar,goal:{type:"lotus",count:route.lotus.starts.length},
+    starPar:route.starPar,hanabiVersion:1,goal:{type:"lotus",count:route.lotus.starts.length},
     lotus:route.lotus,boardMechanics:route.boardMechanics};
   }
   this.lotus=Lotus.normalize(this.config.lotus);
   this.lotusVersion=this.config.lotusVersion||0;
+  this.hanabiVersion=this.config.hanabiVersion||0;
   this.lotusDelivered=0;
   // Future levels may provide terrain / overlays without changing their objective.
   this.boardMechanics=B.normalize(options?.boardMechanics??this.config.boardMechanics);
@@ -1099,6 +1102,7 @@ class Game{
    const oldLotusRun=this.level===60&&previous.lotusVersion!==1;
    this.lotus=Lotus.normalize(oldLotusRun?null:previous.lotus??this.config.lotus);
    this.lotusVersion=oldLotusRun?0:previous.lotusVersion||0;
+   this.hanabiVersion=previous.hanabiVersion===1&&!oldLotusRun?1:0;
    this.lotusDelivered=oldLotusRun?0:Math.max(0,Math.min(this.lotus.starts.length,Number(previous.lotusDelivered)||0));
    this.boardMechanics=B.normalize(previous.boardMechanics??(oldBambooRun?null:this.config.boardMechanics));
    this.windGarden=Wind.normalize(previous.windGarden);
@@ -1145,8 +1149,10 @@ class Game{
     this.config={...this.config,name:route.name,moves:route.moves,
      par:route.starPar,starPar:route.starPar,
      goal:{type:"lotus",count:route.lotus.starts.length},
-     lotus:route.lotus,boardMechanics:route.boardMechanics};
+     lotus:route.lotus,boardMechanics:route.boardMechanics,hanabiVersion:this.hanabiVersion};
    }else this.lotusPrototype=null;
+   if(this.level===60&&this.lotusVersion===1&&!this.hanabiVersion)
+    this.config={...this.config,...(this.lotusPrototype?{}:Lotus.LEGACY_PILOT),hanabiVersion:0};
    this.difficultyCalibrationVersion=previous.difficultyCalibrationVersion===2?2:0;
    this.chapterIdentityVersion=oldLanternRun?0:this.level>=40&&this.level<50?2:0;
    this.bambooVersion=oldBambooRun?0:this.config.bambooVersion||0;
@@ -1481,7 +1487,7 @@ class Game{
  }
  goalText(){
   let g=this.config.goal;
-  return ({lotus:"Collect Lotus seeds",mist:"Clear Mist",score:"Score target",fusion:"Fusions",stage3:"Objects to stage 3",stage4:"Objects to stage 4",masterpiece:"Masterpieces",pulseHits:"Harmony upgrades",familyMasterpiece:"Lantern masterpieces",familyFusion:"Lantern fusions",four:"Four-tile matches",fourTurns:"Moves with a four-tile match",daruma:"Completed Daruma",sealedStone:"Broken seals",shape:"T/L matches",chain:"Masterpieces in one chain"})[g.type]||"Goal";
+  return ({lotus:this.hanabiVersion?"Deliver fireworks":"Collect Lotus seeds",mist:"Clear Mist",score:"Score target",fusion:"Fusions",stage3:"Objects to stage 3",stage4:"Objects to stage 4",masterpiece:"Masterpieces",pulseHits:"Harmony upgrades",familyMasterpiece:"Lantern masterpieces",familyFusion:"Lantern fusions",four:"Four-tile matches",fourTurns:"Moves with a four-tile match",daruma:"Completed Daruma",sealedStone:"Broken seals",shape:"T/L matches",chain:"Masterpieces in one chain"})[g.type]||"Goal";
  }
  fulfilled(){return this.progress()>=this.target();}
  stars(){
@@ -1806,7 +1812,11 @@ class Game{
     const delivered=Lotus.collect(this.board,this.lotus.exits);
     if(delivered.length){
      this.lotusDelivered+=delivered.length;
-     events.push(this.frame("lotus-delivery",{delivered,positions:delivered.map(d=>d.at)}));
+     events.push(this.frame(this.hanabiVersion?"hanabi-delivery":"lotus-delivery",
+      {delivered,positions:delivered.map(d=>d.at)}));
+     if(this.hanabiVersion)Hanabi.launch(this,delivered,{events,
+      frame:(type,extra)=>this.frame(type,extra),hitDaruma,hitStone,
+      emitAwakenings,neighbors,pendingAwakenings});
     }
    }
    if(windLimited){
@@ -1871,7 +1881,7 @@ class Game{
    (!this.board[a]||!this.board[b]||isShuffleAnchor(this.board[a])||isShuffleAnchor(this.board[b])))
    return this.rejectMove(a,b,isMoonMirror(this.board[a])||isMoonMirror(this.board[b])?
     "Moon Mirror is fixed — reflect Harmony Pulse through it":isLotusSeed(this.board[a])||isLotusSeed(this.board[b])?
-    "Lotus seeds fall when you make matches below them":isTerrain(this.board[a])||isTerrain(this.board[b])?
+    this.hanabiVersion?"Fireworks fall when you make matches below them":"Lotus seeds fall when you make matches below them":isTerrain(this.board[a])||isTerrain(this.board[b])?
     "Closed garden tile cannot move":isSealed(this.board[a])||isSealed(this.board[b])?
     "Sealed Stone cannot move — fuse beside it":"Daruma cannot move — fuse beside it");
   const beforeBoard=this.traceEnabled?Insight.snapshot(this):null;
@@ -1975,7 +1985,7 @@ class Game{
   windGardenVersion:this.windGarden?Wind.VERSION:0,
   moonMirrorPreview:this.moonMirrorPreview,
   moonMirrorVersion:this.moonMirrors.length?Mirror.VERSION:0,
-  moonMirrors:this.moonMirrors.map(x=>({...x})),omamoriAfterglow:Afterglow.normalize(this.omamoriAfterglow),lotusPrototype:this.lotusPrototype,lotusVersion:this.lotusVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+  moonMirrors:this.moonMirrors.map(x=>({...x})),omamoriAfterglow:Afterglow.normalize(this.omamoriAfterglow),lotusPrototype:this.lotusPrototype,lotusVersion:this.lotusVersion,hanabiVersion:this.hanabiVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate

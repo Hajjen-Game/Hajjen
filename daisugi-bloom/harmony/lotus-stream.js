@@ -1,4 +1,4 @@
-/* Lotus Stream 1.0 · Drop & Collection Foundation
+/* Hanabi Crate 1.0 · Firework Drop & Box On Board
  * One authored, playable pilot (level 61). Remaining Lotus Stream levels
  * are deliberately not assigned before real difficulty and clarity testing.
  * Seeds are living cargo, not matchable treasures or fixed terrain.
@@ -6,12 +6,14 @@
 (function(root){
 "use strict";
 const VERSION=1,FIRST=60;
+const LEGACY_PILOT=Object.freeze({name:"First Lotus Stream",subtitle:"Guide lotus seeds into the river",
+ intro:"Collect two lotus seeds. Match treasures BELOW a seed to let it fall down its column. A seed is not a matching treasure and cannot be swapped. Guide each seed into its glowing river gate at the bottom."});
 const PILOT=Object.freeze({
- name:"First Lotus Stream",subtitle:"Guide lotus seeds into the river",
+ name:"First Hanabi Crate",subtitle:"Launch fireworks from festival boxes",
  moves:38,par:20,starPar:17,
  goal:{type:"lotus",count:2},
- lotus:{version:VERSION,starts:[36,40],exits:[43,47]},
- intro:"Collect two lotus seeds. Match treasures BELOW a seed to let it fall down its column. A seed is not a matching treasure and cannot be swapped. Guide each seed into its glowing river gate at the bottom."
+ lotus:{version:VERSION,starts:[36,40],exits:[43,47]},hanabiVersion:1,
+ intro:"Guide two fireworks into their wooden crates on the bottom row. Match treasures below each firework so it falls. Each delivered firework launches a bright vertical pulse through its column, upgrading treasures and striking responsive blockers."
 });
 function normalize(input){
  if(input===null||input===undefined)return {version:VERSION,starts:[],exits:[]};
@@ -33,7 +35,7 @@ function normalize(input){
 function get(index){
  if(index!==FIRST)return null;
  return {...PILOT,goal:{...PILOT.goal},lotus:normalize(PILOT.lotus),
-  chapter:7,lotusVersion:VERSION,objectiveVersion:2,balanceVersion:2};
+  chapter:7,lotusVersion:VERSION,hanabiVersion:1,objectiveVersion:2,balanceVersion:2};
 }
 // Two visible, legitimate bottom-row match opportunities. Both use only
 // stage-one treasures from the level's existing five-family pool. Neither
@@ -57,7 +59,7 @@ function collect(board,exits){
  }
  return collected;
 }
-const api=Object.freeze({VERSION,FIRST,PILOT,normalize,get,opening,seed,isSeed,collect});
+const api=Object.freeze({VERSION,FIRST,PILOT,LEGACY_PILOT,normalize,get,opening,seed,isSeed,collect});
 root.HarmonyLotusStream=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

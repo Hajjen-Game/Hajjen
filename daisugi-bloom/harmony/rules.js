@@ -8,6 +8,8 @@ if(!Bamboo)throw Error("Bamboo Paths must load before Harmony Rules");
 const Lotus=root.HarmonyLotusStream||(typeof require==="function"?require("./lotus-stream.js"):null);
 if(!Lotus)throw Error("Lotus Stream must load before Harmony Rules");
 const LotusRouting=root.HarmonyLotusRouting||(typeof require==="function"?require("./lotus-routing.js"):null);
+const Hanabi=root.HarmonyHanabiCrate||(typeof require==="function"?require("./hanabi-crate.js"):null);
+if(!Hanabi)throw Error("Hanabi Crate must load before Harmony Rules");
 if(!LotusRouting)throw Error("Lotus routing prototypes must load before Harmony Rules");
 const Mirror=root.HarmonyMoonMirrors||(typeof require==="function"?require("./moon-mirrors.js"):null);
 if(!Mirror)throw Error("Moon Mirrors 1.0 must load before Harmony Rules");
@@ -1810,7 +1812,11 @@ class Game{
     const delivered=Lotus.collect(this.board,this.lotus.exits);
     if(delivered.length){
      this.lotusDelivered+=delivered.length;
-     events.push(this.frame("lotus-delivery",{delivered,positions:delivered.map(d=>d.at)}));
+     events.push(this.frame(this.hanabiVersion?"hanabi-delivery":"lotus-delivery",
+      {delivered,positions:delivered.map(d=>d.at)}));
+     if(this.hanabiVersion)Hanabi.launch(this,delivered,{events,
+      frame:(type,extra)=>this.frame(type,extra),hitDaruma,hitStone,
+      emitAwakenings,neighbors,pendingAwakenings});
     }
    }
    if(windLimited){

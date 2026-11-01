@@ -34,6 +34,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-mechanic-balance.test.cjs
       - name: Bamboo Paths 1.0 · ten authored levels, chapter geometry, hints and save migration
         run: node daisugi-bloom/tests/harmony-bamboo-paths.test.cjs
+      - name: Gate of Echoes 1.1 · bottom-row Wind, authentic turns and old saves
+        run: node daisugi-bloom/tests/harmony-gate-wind.test.cjs
       - name: Lotus Stream 1.0 · seeded drop-and-collection pilot, saves and legacy safety
         run: node daisugi-bloom/tests/harmony-lotus-stream.test.cjs
       - name: Lotus Stream 1.1 · four routing prototypes, 96 seeded starts and fair Director hints
@@ -135,6 +137,7 @@ jobs:
           node --check daisugi-bloom/tools/harmony-director-v6-benchmark.cjs
           node --check daisugi-bloom/tools/harmony-director-v61-benchmark.cjs
           node --check daisugi-bloom/tools/harmony-director-v62-benchmark.cjs
+          node --check daisugi-bloom/tools/harmony-gate-wind-benchmark.cjs
           node --check daisugi-bloom/harmony/onboarding.js
           node --check daisugi-bloom/harmony/tutorial-help.js
           node --check daisugi-bloom/harmony/omamori-targets.js
@@ -181,6 +184,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-wind-garden-browser.mjs
       - name: Bamboo Paths Early Preview · 390px chapter chooser and true locked-cell puzzle isolation
         run: node daisugi-bloom/tests/harmony-bamboo-preview-browser.mjs
+      - name: Gate of Echoes 1.1 · 390px lower-row Wind and real turns
+        run: node daisugi-bloom/tests/harmony-gate-wind-browser.mjs
       - name: Lotus Stream Early Preview · 390px cargo delivery, river gates and no saved progress changes
         run: node daisugi-bloom/tests/harmony-lotus-preview-browser.mjs
       - name: Lotus hint reliability · no starvation by invalid touches, manual legal hint and saved state safety
@@ -236,6 +241,22 @@ jobs:
         with:
           name: japanese-harmony-director61-reachability-benchmark
           path: daisugi-bloom/reports/harmony-director-v61-sample.json
+          if-no-files-found: ignore
+
+  gate54-wind-benchmark:
+    name: Gate of Echoes · seeded Wind versus original board
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare real legal-move games with and without Wind
+        run: node daisugi-bloom/tools/harmony-gate-wind-benchmark.cjs --seeds=8 --moves=25 --write
+      - name: Save per-seed objective and bottom-row activity
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japanese-harmony-gate54-wind-study
+          path: daisugi-bloom/reports/gate54-wind-study.json
           if-no-files-found: ignore
 
   director62-momentum-benchmark:

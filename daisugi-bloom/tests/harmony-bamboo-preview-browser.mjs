@@ -47,7 +47,10 @@ async function enter(level){
   };
  },level);
  assert.equal(state.title,HarmonyBambooPathsNames[level],"Real chapter title");
- assert.equal(state.levelNumber,"LEVEL "+level);
+ if(level===54)
+  assert(state.levelNumber.startsWith("LEVEL 54 · 風 R7 →"),
+   "The real level-54 preview must announce its upcoming bottom-row Wind");
+ else assert.equal(state.levelNumber,"LEVEL "+level);
  assert.deepEqual(state.actual,state.blocked,"Terrain positions must match live Bamboo chapter layout");
  assert(state.hasStoneArt);
  assert(state.hiddenCards,"Bamboo previews cannot spend Omamori cards");

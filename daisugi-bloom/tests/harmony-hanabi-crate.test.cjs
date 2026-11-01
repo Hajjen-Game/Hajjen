@@ -76,13 +76,19 @@ test("Hanabi-created Masterpiece holes settle by the same gravity as Fusion befo
  assert(harvestIndex>launchIndex,"Hanabi must harvest its newly formed Masterpiece");
  const harvested=events[harvestIndex];
  assert.equal(harvested.board[upgraded.to],null);
- const aboveId=harvested.board[upgraded.to-7]?.id;
- assert(Number.isInteger(aboveId)&&aboveId>0,"An actual treasure above the hole must be available to fall");
+ // Two holes may open at once: the delivered cargo square AND the
+ // harvested Masterpiece. All existing identities must preserve their order
+ // while compressing down from the bottom of the non-fixed column.
+ const positions=H.path(43),originals=positions
+  .map(i=>harvested.board[i]?.id).filter(Number.isInteger);
+ assert(originals.length>=2,"Test needs at least two original treasures above the holes");
  const fallIndex=events.findIndex((e,i)=>i>harvestIndex&&e.type==="fall");
  assert(fallIndex>harvestIndex,"A genuine fall event must follow Hanabi harvest");
  const fallen=events[fallIndex].board;
- assert.equal(fallen[upgraded.to]?.id,aboveId,
-  "The original object above Hanabi's harvested masterpiece must fall into its vacant cell");
+ assert.deepEqual(positions.slice(0,originals.length).map(i=>fallen[i]?.id),originals,
+  "Every original object must move down in order through both Hanabi-created holes, not be replaced by a refill");
+ assert(originals.some((id,j)=>harvested.board[positions[j]]?.id!==id),
+  "The test must exercise a real downward shift of original IDs");
  assert(g.board.every(Boolean),"Refill still fills all non-blocked squares");
  assert(g.roundTrace.moves[0].events.some(e=>e.type==="fall"));
 });

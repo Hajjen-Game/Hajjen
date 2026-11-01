@@ -967,8 +967,11 @@ class Game{
   this.lotusDelivered=0;
   // Future levels may provide terrain / overlays without changing their objective.
   this.boardMechanics=B.normalize(options?.boardMechanics??this.config.boardMechanics);
-  this.windGarden=Wind.normalize(options?.windGarden??(this.windGardenPreview?
-   Wind.descriptor(this.windGardenPreview).schedule:previous?.windGarden));
+  this.windGarden=Wind.normalize(
+   options&&Object.hasOwn(options,"windGarden")?options.windGarden:
+   previous?previous.windGarden:
+   this.windGardenPreview?Wind.descriptor(this.windGardenPreview).schedule:
+   this.config.windGarden);
   this.moonMirrors=Mirror.normalize(options?.moonMirrors??(this.moonMirrorPreview?
    Mirror.descriptor(this.moonMirrorPreview).mirrors:previous?.moonMirrors),
    this.boardMechanics.blocked);
@@ -1120,6 +1123,10 @@ class Game{
     oldBambooRun?endlessConfig(this.level,true,true,true,false):
     oldLotusRun?endlessConfig(this.level,true,true,true,true,false):
     levelConfig(this.level,previous.difficultyCalibrationVersion===2);
+   // The old level-54 session stays wind-free with its original explanation.
+   if(this.level===53&&!this.windGarden&&!oldBambooRun)
+    this.config={...this.config,subtitle:"Create Harmony in the passage",
+     intro:Bamboo.GATE_LEGACY_INTRO};
    if(this.windGardenPreview){
     const w=Wind.descriptor(this.windGardenPreview);
     this.config={...this.config,name:w.name,subtitle:w.subtitle,intro:w.intro,

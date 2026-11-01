@@ -34,7 +34,8 @@ try{
    pair:HarmonyRules.validSwaps(g.board)[0]};
  });
  assert(state.mode.includes("6.2"),"Preview must load Director 6.2");
- assert.equal(state.level,"LEVEL 54");
+ assert(state.level.startsWith("LEVEL 54")&&state.level.includes("風 R7"),
+  "Authored level 54 must retain its number and announce its Wind row");
  assert.equal(state.moves,46);
  await page.evaluate(pair=>{
   document.querySelector('.tile[data-index="'+pair[0]+'"]').click();

@@ -40,6 +40,8 @@ check("The 51–60 learning curve introduces each board shape in the promised or
  assert.deepEqual(b(51).blocked,[16,18,30,32]);
  assert.equal(b(52).layout,"templeGate");
  assert.equal(b(53).layout,"templeGate");
+ assert.deepEqual(R.levelConfig(53).windGarden,{every:3,
+  steps:[{row:6,direction:"right"}]});
  assert.equal(b(54).layout,"twinGardens");
  assert.equal(b(55).layout,"twinGardens");
  assert.equal(B.normalize(b(56)).blocked.length,0,"Level 57 offers an open relief board");

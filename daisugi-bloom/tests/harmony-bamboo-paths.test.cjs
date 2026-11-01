@@ -137,4 +137,20 @@ check("Chapter 6 does not retune existing levels 1–50",()=>{
   assert.equal(a.boardMechanics.blocked.length,0);
  }
 });
+
+check("Bamboo obstruction uses its transparent 256px game icon",()=>{
+ const artPath=path.join(__dirname,"../assets/gameplay-washi/bamboo-obstacle-256.webp");
+ const art=fs.readFileSync(artPath);
+ assert.equal(art.toString("ascii",0,4),"RIFF");
+ assert.equal(art.toString("ascii",8,12),"WEBP");
+ assert.equal(art.toString("ascii",12,16),"VP8X");
+ assert(art[20]&0x10,"Bamboo icon must preserve an alpha channel");
+ assert.equal(art.readUIntLE(24,3)+1,256,"Bamboo icon width");
+ assert.equal(art.readUIntLE(27,3)+1,256,"Bamboo icon height");
+ const css=fs.readFileSync(path.join(__dirname,"../harmony/board-mechanics.css"),"utf8");
+ assert(css.includes('url("../assets/gameplay-washi/bamboo-obstacle-256.webp")'));
+ assert(css.includes(".terrain-garden-art"));
+ assert(!css.includes("visibility:hidden"),"Bamboo obstruction must stay visible");
+});
+
 console.log("Bamboo Paths 1.0 authored level contracts passed.");

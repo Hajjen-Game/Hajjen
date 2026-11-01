@@ -1,0 +1,5 @@
+/* Journey 2.0 Step B — unranked level design previews.
+ * Hide live consumable inventory even when production HUD display rules
+ * explicitly set the Omamori power panel to grid.
+ */
+body.journey-draft-preview #omamoriPowerBar{display:none!important}

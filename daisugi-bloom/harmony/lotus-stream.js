@@ -12,8 +12,8 @@ const PILOT=Object.freeze({
  name:"First Hanabi Crate",subtitle:"Launch fireworks from festival boxes",
  moves:38,par:20,starPar:17,
  goal:{type:"lotus",count:2},
- lotus:{version:VERSION,starts:[36,40],exits:[43,47]},hanabiVersion:1,
- intro:"Guide two fireworks into their wooden crates on the bottom row. Match treasures below each firework so it falls. Each delivered firework launches a bright vertical pulse through its column, upgrading treasures and striking responsive blockers."
+ lotus:{version:VERSION,starts:[29,33],exits:[43,47]},hanabiVersion:2,
+ intro:"The wooden crates occupy their own fixed squares at the bottom. Match beneath each firework until it reaches the square directly ABOVE its crate. It drops inside and launches a strong upward Pulse along that column."
 });
 function normalize(input){
  if(input===null||input===undefined)return {version:VERSION,starts:[],exits:[]};
@@ -35,7 +35,7 @@ function normalize(input){
 function get(index){
  if(index!==FIRST)return null;
  return {...PILOT,goal:{...PILOT.goal},lotus:normalize(PILOT.lotus),
-  chapter:7,lotusVersion:VERSION,hanabiVersion:1,objectiveVersion:2,balanceVersion:2};
+  chapter:7,lotusVersion:VERSION,hanabiVersion:2,objectiveVersion:2,balanceVersion:2};
 }
 // Two visible, legitimate bottom-row match opportunities. Both use only
 // stage-one treasures from the level's existing five-family pool. Neither

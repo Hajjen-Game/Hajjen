@@ -11,7 +11,7 @@ const Insight=root.HarmonyPlayerInsight||(typeof require==="function"?require(".
 const RECORD_FIELDS=["bestStars","bestScores","bestChain","fourFamilyStars",
  "fourFamilyScores","fourFamilyChain","assistedStars","assistedScores","onboardingSeen"];
 const FAMILIES=new Set(["sakura","lantern","koi","fan","bonsai","sushi",
- "maneki","origami","ryu","daruma","sealedStone","terrain","lotusSeed"]);
+ "maneki","origami","ryu","daruma","sealedStone","terrain","lotusSeed","hanabiCrate"]);
 const record=x=>!!x&&typeof x==="object"&&!Array.isArray(x);
 function validRun(run){
  if(run===null)return true;
@@ -38,8 +38,8 @@ function validRun(run){
   if(!record(d.lotus)||JSON.stringify(L.normalize(d.lotus))!==JSON.stringify(recipe.lotus)||
    JSON.stringify(boardMechanics)!==JSON.stringify(recipe.boardMechanics))return false;
  }
- if(d.hanabiVersion!==undefined&&d.hanabiVersion!==0&&d.hanabiVersion!==1)return false;
- if(d.hanabiVersion===1&&(d.lotusVersion!==1||run.level!==60))return false;
+ if(d.hanabiVersion!==undefined&&![0,1,2].includes(d.hanabiVersion))return false;
+ if(d.hanabiVersion>=1&&(d.lotusVersion!==1||run.level!==60))return false;
  if(d.lotusVersion===1){
   try{lotus=L.normalize(d.lotus);}catch{return false;}
   if(d.lotusDelivered===undefined||!Number.isInteger(d.lotusDelivered)||
@@ -48,13 +48,18 @@ function validRun(run){
  }
  if(d.lotusVersion===1){
   const seeds=d.board.filter(p=>p?.family==="lotusSeed");
+  if(d.hanabiVersion===2){
+   const crateCells=d.board.map((p,i)=>p?.family==="hanabiCrate"?i:-1).filter(i=>i>=0);
+   if(JSON.stringify(crateCells)!==JSON.stringify(lotus.exits.slice().sort((a,b)=>a-b)))return false;
+  }else if(d.board.some(p=>p?.family==="hanabiCrate"))return false;
   if(seeds.length+d.lotusDelivered!==lotus.starts.length||
    new Set(seeds.map(p=>p.id)).size!==seeds.length||
    seeds.some(p=>!lotus.starts.includes(-2000-p.id)))return false;
  }
  return d.board.every((p,i)=>record(p)&&FAMILIES.has(p.family)&&
   Number.isInteger(p.id)&&Number.isInteger(p.stage)&&
-  (p.family==="terrain"?terrain.has(i)&&p.stage===0&&p.id===-(1000+i):
+  (p.family==="hanabiCrate"?d.hanabiVersion===2&&lotus.exits.includes(i)&&p.stage===0&&p.id===-(3000+i):
+   p.family==="terrain"?terrain.has(i)&&p.stage===0&&p.id===-(1000+i):
    p.family==="lotusSeed"?d.lotusVersion===1&&!terrain.has(i)&&p.stage===0&&p.id<=-2000&&
     lotus.exits.some(exit=>exit%7===i%7)&&i<42:
    !terrain.has(i)&&(p.family==="daruma"||p.family==="sealedStone"?p.stage===0:p.stage>=1&&p.stage<=5)));

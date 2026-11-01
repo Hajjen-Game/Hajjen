@@ -4,8 +4,23 @@
  */
 (function(root){
 "use strict";
-const VERSION=1,SIZE=7;
-const fixed=new Set(["terrain","lotusSeed","moonMirror"]);
+const VERSION=2,SIZE=7;
+const crateAt=at=>Number.isInteger(at)&&at>=42&&at<49;
+const isCrate=p=>p?.family==="hanabiCrate"&&p.stage===0;
+const crate=at=>{if(!crateAt(at))throw Error("Hanabi crate must be on bottom row");return {family:"hanabiCrate",stage:0,id:-(3000+at)};};
+function install(board,exits){for(const at of exits)board[at]=crate(at);return board;}
+// The firework is delivered from the cell directly ABOVE a permanent crate.
+function collect(board,exits){const out=[];for(const at of exits){const from=at-SIZE;
+ if(board[from]?.family==="lotusSeed"&&board[from].stage===0&&isCrate(board[at])){
+  out.push({at,from,id:board[from].id});board[from]=null;
+ }}return out;}
+// Original, genuine two-swap opportunities now take place on row six.
+function opening(board,families){const [a,c,b,d,e]=families;
+ for(const [at,family] of [[35,a],[36,a],[37,b],[38,e],[39,c],[40,c],[41,d],[44,a],[48,c]])
+  board[at]={...board[at],family,stage:1};
+ return board;
+}
+const fixed=new Set(["terrain","lotusSeed","moonMirror","hanabiCrate"]);
 function path(at){
  if(!Number.isInteger(at)||at<42||at>=49)throw Error("Hanabi box must occupy the bottom row");
  const out=[];for(let i=at-SIZE;i>=0;i-=SIZE)out.push(i);
@@ -91,7 +106,7 @@ function launch(game,delivered,h){
   }
  }
 }
-const api=Object.freeze({VERSION,path,launch});
+const api=Object.freeze({VERSION,path,launch,crate,isCrate,install,collect,opening});
 root.HarmonyHanabiCrate=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

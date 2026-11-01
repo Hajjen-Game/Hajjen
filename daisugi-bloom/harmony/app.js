@@ -14,6 +14,7 @@ let moonMirrorPreview=null; // Deliberate, unranked, unsaved sandbox on the real
 let windGardenPreview=null; // Separate unranked Wind Garden gameplay preview.
 let bambooPreview=false; // Genuine, unranked Bamboo Paths chapter-level previews.
 let lotusPreview=null; // Genuine L61 pilot or one of four unranked Lotus route experiments.
+let journeyDraftPreview=false; // Unranked Journey 2.0 levels 1–10, never saved to normal progress.
 let windAtmosphere=null; // One persistent, directional row layer for the active Wind preview.
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
@@ -309,8 +310,8 @@ function showMenu(){
  if(busy)return;
  disarmDecisionClock();clearIdleHint();
  resetResonanceVisuals();clearScoreFx();clearPraise();clearWindAtmosphere();
- saveRun();moonMirrorPreview=null;windGardenPreview=null;bambooPreview=false;lotusPreview=null;
- document.body.classList.remove("harmony-playing","moon-mirror-preview","wind-garden-preview","wind-garden-active","bamboo-paths-preview","lotus-stream-preview","hanabi-active");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
+ saveRun();moonMirrorPreview=null;windGardenPreview=null;bambooPreview=false;lotusPreview=null;journeyDraftPreview=false;
+ document.body.classList.remove("harmony-playing","moon-mirror-preview","wind-garden-preview","wind-garden-active","bamboo-paths-preview","lotus-stream-preview","journey-draft-preview","hanabi-active");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 // Primary level selection is the book. Keep the landing menu accessible for
 // daily Omikuji, Omamori and Game Dev; leaving a run opens Goshuincho directly.
@@ -730,7 +731,7 @@ const normalUses=()=>Math.min(2,game?.blessingUses||0);
 function renderPowerBar(){
  const bar=$("omamoriPowerBar");if(!bar)return;
  bar.replaceChildren();
- if(moonMirrorPreview||windGardenPreview||bambooPreview||lotusPreview){bar.hidden=true;return;} // Never consume actual cards during an experiment.
+ if(moonMirrorPreview||windGardenPreview||bambooPreview||lotusPreview||journeyDraftPreview){bar.hidden=true;return;} // Never consume actual cards during an experiment.
  bar.hidden=false;
  // Keep the inventory quantity immediately after お守り. The full plaque
  // is passive artwork; only the clearly framed action is clickable.
@@ -1133,11 +1134,14 @@ async function celebrateCollection(evt){
  }
  await Promise.all(tasks);
 }
-function saveRun(){if(!moonMirrorPreview&&!windGardenPreview&&!bambooPreview&&!lotusPreview&&game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
-function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooScenario=false,lotusScenario=null){
+function saveRun(){if(!moonMirrorPreview&&!windGardenPreview&&!bambooPreview&&!lotusPreview&&!journeyDraftPreview&&game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
+function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooScenario=false,lotusScenario=null,journeyScenario=false){
  if(busy)return;
  moonMirrorPreview=mirrorScenario;windGardenPreview=windScenario;bambooPreview=!!bambooScenario;
- lotusPreview=lotusScenario;
+ lotusPreview=lotusScenario;journeyDraftPreview=!!journeyScenario;
+ const journeyRecipe=journeyDraftPreview?window.HarmonyJourneyDrafts?.get(i):null;
+ if(journeyDraftPreview&&!journeyRecipe)throw Error("Unknown Journey 2.0 draft");
+ document.body.classList.toggle("journey-draft-preview",journeyDraftPreview);
  document.body.classList.toggle("moon-mirror-preview",!!mirrorScenario);
  document.body.classList.toggle("wind-garden-preview",!!windScenario);
  document.body.classList.toggle("bamboo-paths-preview",bambooPreview);
@@ -1148,7 +1152,9 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  level=i;powerSelection=null;powerTargets=[];moonOfferShown=false;rewardStarsAtLevelStart=G.archivedStars(save,i);
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
- game=new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario?null:data,mirrorScenario?
+ game=new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario||journeyDraftPreview?null:data,
+  journeyDraftPreview?{directorMode:i>=9?"v4":"v3",
+   journeyDiagnostic:true,levelRecipe:journeyRecipe,seed:20261102+i*197}:mirrorScenario?
   {directorMode:"v62",moonMirrorPreview:mirrorScenario,seed:13}:
   windScenario?{directorMode:"v62",windGardenPreview:windScenario,seed:13}:
   bambooScenario?{directorMode:"v62",bambooPreview:true,seed:20261031+i*97}:
@@ -1158,7 +1164,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  // The older wind-garden-preview class still controls preview-only cards.
  document.body.classList.toggle("wind-garden-active",!!game.windGarden);
  document.body.classList.toggle("hanabi-active",!!game.hanabiVersion);
- chooseFestivalBackground(mirrorScenario||windScenario||bambooScenario||lotusScenario?save.lastBackground:
+ chooseFestivalBackground(mirrorScenario||windScenario||bambooScenario||lotusScenario||journeyDraftPreview?save.lastBackground:
   resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="LEVEL "+(i+1);
  $("goalLabel").textContent=game.goalText();
@@ -1176,7 +1182,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  }
  prepareCollection();renderBoard(game.board);syncWindAtmosphere();renderHUD();updatePaceLabel();updateSpiritBadge();renderPowerBar();saveRun();armDecisionClock();restartIdleHint();
  // One-time, player-acknowledged illustrated lesson, including resumed unread runs.
- if(!mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario)offerFirstLesson(i);
+ if(!mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario&&!journeyDraftPreview)offerFirstLesson(i);
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
@@ -2851,7 +2857,7 @@ async function playEvents(events,bondGain=null){
  else if(game?.koiRerollAt>=0)showKoiReroll();
 }
 function unlockGoal(){
- if(moonMirrorPreview||windGardenPreview||bambooPreview||lotusPreview)return; // A preview can never unlock progress.
+ if(moonMirrorPreview||windGardenPreview||bambooPreview||lotusPreview||journeyDraftPreview)return; // A preview can never unlock progress.
  save.unlocked=Math.max(save.unlocked,level+1);
  if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.floor(save.unlocked/MENU_PAGE_SIZE);
  const archive=game.familyCount===4?save.fourFamilyStars:save.bestStars;
@@ -2899,6 +2905,56 @@ function makeRoundExport(make){
   }
  });
  return exportLink;
+}
+// Journey 2.0 Step B: real levels 1–10 played with authored, opt-in recipes.
+// These previews do not save, award stars, unlock levels, change the wallet,
+// consume Omamori, or replace existing tutorials in the production Journey.
+function showJourneyDraftResult(){
+ clearIdleHint();disarmDecisionClock();clearScoreFx();
+ $("modalEyebrow").textContent="JOURNEY 2.0 · UNRANKED DESIGN TEST";
+ $("modalTitle").textContent=game.complete?"A new harmony!":"Try another route";
+ const content=$("modalContent");content.replaceChildren();
+ content.append(goshuinNode("p","","You have played a draft level using the real puzzle rules. Your normal Journey, Goshuincho and inventory remain unchanged."));
+ const info=goshuinNode("p","journey-draft-summary",
+  "Level "+(level+1)+" · "+game.config.name+" · "+game.progress()+"/"+game.target()+
+  " objective · "+(game.config.moves-game.moves)+" moves used");
+ content.append(info);
+ const make=(tag,cls,value)=>{const el=document.createElement(tag);el.className=cls;el.textContent=value;return el;};
+ content.append(makeRoundExport(make));
+ const actions=$("modalActions");actions.replaceChildren();
+ modalButton(actions,"Retry this draft","primary",()=>startLevel(level,false,null,null,false,null,true));
+ modalButton(actions,"Choose another draft","secondary",showJourneyDraftChooser);
+ modalButton(actions,"Back to main menu","secondary",showMenu);
+ $("modal").hidden=false;
+}
+function showJourneyDraftChooser(){
+ if(busy)return;
+ $("modalActions").classList.remove("pause-menu-actions");
+ $("modalEyebrow").textContent="GAME DEV · LEVEL DESIGN PREVIEW";
+ $("modalTitle").textContent="Journey 2.0 · Levels 1–10";
+ const content=$("modalContent");content.replaceChildren();
+ content.append(goshuinNode("p","","Try the redesigned first ten levels with their real Fusion, Mist and Harmony Pulse rules. Every round is unranked and does not affect your saved Journey, rewards or cards. These designs are not published levels yet."));
+ const choices=goshuinNode("div","bamboo-preview-grid journey-draft-grid");
+ choices.setAttribute("aria-label","Choose a Journey 2.0 draft level");
+ for(let i=0;i<10;i++){
+  const draft=window.HarmonyJourneyDrafts?.get(i);
+  if(!draft)continue;
+  const button=goshuinNode("button","bamboo-preview-choice");
+  button.type="button";button.dataset.level=String(i+1);
+  button.append(
+   goshuinNode("strong","","Level "+(i+1)+" · "+draft.name),
+   goshuinNode("small","",draft.subtitle+" · "+draft.moves+" moves")
+  );
+  button.addEventListener("click",()=>{showMenu();startLevel(i,false,null,null,false,null,true);});
+  choices.append(button);
+ }
+ content.append(choices);
+ const actions=$("modalActions");actions.replaceChildren();
+ modalButton(actions,"Cancel","secondary",()=>{
+  if(game&&!$("gameView").hidden){$("modal").hidden=true;armDecisionClock();}
+  else showMenu();
+ });
+ $("modal").hidden=false;
 }
 function showLotusPreviewResult(){
  // These are genuine cargo-drop puzzles, but no progression, economy,
@@ -3128,6 +3184,7 @@ function showResult(){
  if(windGardenPreview){showWindGardenPreviewResult();return;}
  if(bambooPreview){showBambooPreviewResult();return;}
  if(lotusPreview){showLotusPreviewResult();return;}
+ if(journeyDraftPreview){showJourneyDraftResult();return;}
  disarmDecisionClock();clearIdleHint();clearPraise();clearScoreFx();scoreShown=game.score;scoreDisplayed=scoreShown;renderScoreOnly();
  const won=game.complete;
  if(!won&&game.failed&&!moonOfferShown&&(C.has(save,"tsuki")||C.has(save,"moonGrace"))){
@@ -3555,7 +3612,7 @@ function openGameMenu(){
  };
  add("Resume game","primary","resume",()=>{$("modal").hidden=true;armDecisionClock();});
  if(game.complete)add("Finish and view results","secondary","finish",()=>{if(busy)return;game.finish();showResult();});
- add("Restart level","secondary","restart",()=>{if(!busy)startLevel(level,false,moonMirrorPreview,windGardenPreview,bambooPreview,lotusPreview);});
+ add("Restart level","secondary","restart",()=>{if(!busy)startLevel(level,false,moonMirrorPreview,windGardenPreview,bambooPreview,lotusPreview,journeyDraftPreview);});
  // Keep these DOM positions intact: the existing game and smoke tests rely
  // on direct button access and keyboard tab order, even with the new layout.
  add("How to Play","secondary","help",()=>{$("helpButton").click();});
@@ -3604,6 +3661,7 @@ function bind(){
  $("windGardenPreviewButton")?.addEventListener("click",showWindGardenPreviewChooser);
  $("bambooPreviewButton")?.addEventListener("click",showBambooPreviewChooser);
  $("lotusPreviewButton")?.addEventListener("click",showLotusPreviewChooser);
+ $("journeyDraftButton")?.addEventListener("click",showJourneyDraftChooser);
  $("continueButton").addEventListener("click",()=>activateWashiPlay($("continueButton"),()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);}));
  $("helpButton").addEventListener("click",()=>modalInfo("How to Play",'<p><strong>Match:</strong> Swap adjacent tiles to match three or more objects from the same family. Stages can differ. T- and L-shaped matches also work.</p><p><strong>Fuse:</strong> A match fuses at the destination of your swap (or the other swapped tile if only that position makes a match). The result advances one stage above the highest matched object. Automatic chains fuse at the highest-stage tile. A match of four upgrades a neighbor; five or more upgrades two.</p><p><strong>Harmony Resonance:</strong> Objects at stages 3–4 may form a subtle light link with a neighboring object in the same family. Fuse both together to trigger Harmony Echo and earn bonus points, at most once per move.</p><p><strong>Harmony Pulse:</strong> A stage-5 masterpiece sends power to its four orthogonal neighbors. Existing objects advance, and Mist clears even on empty tiles. Chains finish before empty spaces refill.</p><p><strong>Masterpieces:</strong> Each new masterpiece still grants bonus points; the old masterpiece collection panel is hidden during play.</p><p><strong>Harmony Mist (from level 4):</strong> Clear magical Mist from marked tiles. Fuse onto a Mist tile or reach it with Harmony Pulse. Pieces can move into and out of Mist, but matching across Mist does not clear it unless the fusion lands there. Mist remains in place as pieces fall.</p><p><strong>Daruma (levels 21–30):</strong> Daruma cannot move. Each doll requires two hits on separate moves, from an adjacent fusion or Harmony Pulse. The chapter alternates between Daruma, Mist, and fusion challenges.</p><p><strong>Sealed Stones (levels 31–40):</strong> Stones cannot move and take four separate hits. Fuse beside a stone or hit it with Harmony Pulse, at most once per move. The final hit releases an Awakening Pulse toward all eight neighbors, including diagonals, and can start a chain.</p><p><strong>Rewards:</strong> Completing the objective awards at least one star. Earn two or three by finishing with fewer moves; your star rating locks when the goal is reached. Bonus score is an optional record. You can continue playing after the goal or move on. Harmony Coins start from level 11. Buy one-use Omamori cards from the Main Menu shop: Bloom Touch upgrades a tile, Ripple Shuffle rearranges a small area, Sealbreaker hits an obstacle, and Moon cards grant extra moves when you run out. Stronger variants cost more. Up to two board boosts can be used per level, plus one optional Moon rescue. Omamori-assisted wins earn a single Goshuincho stamp and coins, while clean star ratings and score records remain separate.</p>'));
  $("settingsButton").addEventListener("click",()=>{

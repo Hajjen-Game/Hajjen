@@ -20,6 +20,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-consistency-audit.test.cjs
       - name: Level Architecture 2.0 · versioned cross-mechanic recipes and legacy isolation
         run: node daisugi-bloom/tests/harmony-level-architecture.test.cjs
+      - name: Journey 2.0 · first-ten draft gameplay, saved state safety and immutable catalogue
+        run: node daisugi-bloom/tests/harmony-journey-v2-drafts.test.cjs
       - name: Board Mechanics Foundation 1.0 · terrain masks, overlays, seeded play and save
         run: node daisugi-bloom/tests/harmony-board-mechanics.test.cjs
       - name: Identity Plan 1.0 · isolated Moon Mirrors and Wind Garden mechanic contracts
@@ -126,6 +128,7 @@ jobs:
         run: |
           node --check daisugi-bloom/harmony/board-mechanics.js
           node --check daisugi-bloom/harmony/level-architecture.js
+          node --check daisugi-bloom/harmony/journey-levels-v2.js
           node --check daisugi-bloom/harmony/identity-prototypes.js
           node --check daisugi-bloom/harmony/moon-mirrors.js
           node --check daisugi-bloom/harmony/wind-garden.js
@@ -190,6 +193,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-hanabi-gravity-browser.mjs
       - name: Lotus Stream Early Preview · 390px cargo delivery, river gates and no saved progress changes
         run: node daisugi-bloom/tests/harmony-lotus-preview-browser.mjs
+      - name: Journey 2.0 · 390px first-ten preview, real swap and saved-run isolation
+        run: node daisugi-bloom/tests/harmony-journey-v2-browser.mjs
       - name: Lotus hint reliability · no starvation by invalid touches, manual legal hint and saved state safety
         run: node daisugi-bloom/tests/harmony-lotus-hint-browser.mjs
       - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion

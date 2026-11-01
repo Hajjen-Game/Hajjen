@@ -1,0 +1,79 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+import puppeteer from "puppeteer-core";
+// Journey 2.0 draft previews must be truly playable on a 390px phone
+// and MUST NOT touch the player's normal level, rewards or inventory.
+const exe=["/usr/bin/google-chrome","/usr/bin/google-chrome-stable","/usr/bin/chromium"]
+ .find(path=>fs.existsSync(path));
+if(!exe)throw Error("Chromium missing");
+const browser=await puppeteer.launch({executablePath:exe,headless:true,
+ args:["--no-sandbox","--disable-setuid-sandbox"]});
+const page=await browser.newPage(),errors=[],KEY="japanese-harmony-puzzle-v2";
+page.on("pageerror",err=>errors.push(err.message));
+try{
+ await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+ await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+ await page.waitForFunction(()=>window.HarmonyJourneyDrafts?.COUNT===10);
+ await page.evaluate(key=>{
+  const save=JSON.parse(localStorage.getItem(key));
+  save.unlocked=9;
+  save.run={level:8,data:new window.HarmonyRules.Game(8,null,
+   {seed:9321,directorMode:"v3"}).save()};
+  save.tutorialHelpSeen={};
+  save.reduceMotion=true;
+  localStorage.setItem(key,JSON.stringify(save));
+ },KEY);
+ await page.reload({waitUntil:"networkidle2"});
+ const baseline=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
+ assert.equal(baseline.run.level,8);
+ await page.$eval("#menuAdvanced",node=>node.open=true);
+ await page.click("#journeyDraftButton");
+ await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Journey 2.0 · Levels 1–10");
+ const options=await page.$$eval(".journey-draft-grid button",xs=>
+  xs.map(x=>({level:x.dataset.level,label:x.textContent})));
+ assert.equal(options.length,10);
+ assert.deepEqual(options.map(x=>Number(x.level)),[1,2,3,4,5,6,7,8,9,10]);
+ assert(options[7].label.includes("Misty Crossroads"));
+ await page.click('.journey-draft-grid button[data-level="8"]');
+ await page.waitForFunction(()=>!document.querySelector("#gameView").hidden);
+ const state=await page.evaluate(()=>{
+  const g=window.HarmonyJourneyDrafts.get(7);
+  return {
+   title:document.querySelector("#levelTitle").textContent,
+   moves:Number(document.querySelector("#movesCount").textContent),
+   mist:document.querySelectorAll(".tile.misted").length,
+   cards:getComputedStyle(document.querySelector("#omamoriPowerBar")).display,
+   width:document.documentElement.scrollWidth,screen:innerWidth,
+   active:document.body.classList.contains("journey-draft-preview"),
+   recipe:g
+  };
+ });
+ assert.equal(state.title,"Misty Crossroads");
+ assert.equal(state.moves,state.recipe.moves);
+ assert.equal(state.mist,5);
+ assert.equal(state.cards,"none");
+ assert(state.active&&state.width<=state.screen+1);
+ // The preview uses exactly the same deterministic game engine and start seed.
+ const action=await page.evaluate(()=>{
+  const draft=window.HarmonyJourneyDrafts.get(7);
+  const game=new window.HarmonyRules.Game(7,null,
+   {seed:20261102+7*197,directorMode:"v3",journeyDiagnostic:true,levelRecipe:draft});
+  return window.HarmonyRules.validSwaps(game.board)[0];
+ });
+ await page.evaluate(([a,b])=>{
+  document.querySelector('.tile[data-index="'+a+'"]').click();
+  document.querySelector('.tile[data-index="'+b+'"]').click();
+ },action);
+ await page.waitForFunction(()=>document.querySelector("#board")?.getAttribute("aria-busy")==="false"&&
+  document.querySelector("#movesCount")?.textContent==="34",{timeout:35000});
+ const after=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
+ for(const field of ["unlocked","run","bestStars","bestScores","fourFamilyStars","economy","omamoriCards","playerInsight","playerIntent"])
+  assert.deepEqual(after[field],baseline[field],"Journey preview must not alter "+field);
+ // Leaving via the real Home button must never persist the draft run.
+ await page.click("#homeButton");
+ await page.waitForFunction(()=>document.querySelector("#menuView")?.hidden===false);
+ const final=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
+ assert.deepEqual(final,baseline,"Opening, playing and leaving a draft may not write player data");
+ assert.deepEqual(errors,[]);
+ console.log("PASS Journey 2.0 390px preview: 10 choices, real seeded swap, Mist artwork, no lost save/stars/cards/progress");
+}finally{await browser.close();}

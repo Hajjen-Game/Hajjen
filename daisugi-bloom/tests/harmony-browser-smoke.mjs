@@ -1547,7 +1547,7 @@ try{
     sprite:!!tile?.querySelector(".piece .sprite")};
   });
   assert(mistLook.overlay&&mistLook.back.includes("gradient")&&
-   mistLook.pointer==="none"&&mistLook.aria.includes("magisk dimma")&&mistLook.sprite,
+   mistLook.pointer==="none"&&mistLook.aria.includes("magical Mist")&&mistLook.sprite,
    "Harmony Mist must stay translucent, accessible and preserve the original sprite");
   assert(mistLook.mask.includes("radial-gradient")&&
    mistLook.animation.includes("harmony-mist-breathe")&&

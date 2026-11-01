@@ -14,3 +14,6 @@ A real 6.1 level-54 Gate of Echoes round (seed 20266172) cleared seven pulse hit
 
 ## Limits
 No multi-turn gravity, Wind/Mirror, or RNG prediction is claimed. Some deadlocks cannot be prevented with ordinary refill candidates. Measure seed-paired outcomes and Android responsiveness before claiming player-facing improvement.
+
+## Follow-up validation
+A separate seeded v61/v62 benchmark now records honest legal-move outcomes across Bamboo, Lotus, Moon and Wind; see tools/harmony-director-v62-benchmark.cjs and the CI artifact. Fixed an existing hint UX defect in app.js that left glowing idle-hint tiles visible on the first selection tap.

@@ -1506,6 +1506,10 @@ function animateScoreCount(){
 }
 function choose(i){
  if(busy||!game||game.moves<=0||!$("modal").hidden)return;
+ // An active idle hint clears on the very first interaction, even a tap
+ // selecting a tile rather than a successful swap. Re-arm only after
+ // the normal idle interval; exploratory taps otherwise keep their clock.
+ if(idleHintFrom>=0||idleHintTo>=0)restartIdleHint();
  if(powerSelection){confirmPowerTarget(i);return;}
  if(game.board[i]?.family==="moonMirror"){
   selected=-1;toast("Moon Mirror is fixed. Create a Harmony Pulse next to it to reflect the light.");return;

@@ -45,9 +45,11 @@ check("The 51–60 learning curve introduces each board shape in the promised or
  assert.equal(b(54).layout,"twinGardens");
  assert.equal(b(55).layout,"twinGardens");
  assert.equal(B.normalize(b(56)).blocked.length,0,"Level 57 offers an open relief board");
- assert.equal(b(57).layout,"centralShrine");
- assert.equal(b(58).layout,"centralShrine");
- assert.equal(b(59).layout,"centralShrine");
+ for(const i of [57,58,59]){
+  assert.equal(b(i).layout,"centralShrine");
+  assert.deepEqual(b(i).blocked,[24]);
+  assert.deepEqual(B.normalize(b(i)).blocked,[16,17,18,23,24,25,30,31,32]);
+ }
  assert.deepEqual(b(59).mist,[9,13,35]);
  assert.deepEqual(R.levelConfig(59).goal,{type:"mist",count:3});
  assert.equal(G.chapter(5).title,"Bamboo Paths");

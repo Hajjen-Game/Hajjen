@@ -58,21 +58,22 @@ function picture(kind,variant){
   const rows=kind==="bamboo-intro"?[
    ".......",".......",".......","..#.#..",".......",".......","......."
   ]:kind==="temple-gate"?B?.PRESETS.templeGate:
-   kind==="twin-gardens"?B?.PRESETS.twinGardens:B?.PRESETS.centralShrine;
+   kind==="twin-gardens"?B?.PRESETS.twinGardens:
+   B?.PRESETS.centralShrine.map((row,r)=>r===3?"..###..":row);
   const size=9,originX=99,originY=5;
   if(rows)for(let r=0;r<7;r++)for(let c=0;c<7;c++){
    const wall=rows[r][c]==="#";
+   if(wall)continue; // Missing square: no fake stone rectangle.
    shape(svg,"rect",{x:originX+c*size,y:originY+r*size,
     width:size-1,height:size-1,rx:1.6,
-    fill:wall?"#827360":"#efd7b2",
-    stroke:wall?"#675644":"#be9971","stroke-width":.6});
+    fill:"#efd7b2",stroke:"#be9971","stroke-width":.6});
    if(!wall&&(r+c)%5===0)
     shape(svg,"circle",{cx:originX+c*size+size*.45,
      cy:originY+r*size+size*.45,r:2.0,fill:"#bf7f6b"});
   }
   shape(svg,"text",{x:135,y:78,"text-anchor":"middle",
    "font-size":9,fill:"#805b46","font-family":"Arial,sans-serif",
-   "font-weight":"700"},"STONE TILES STAY CLOSED");
+   "font-weight":"700"},"NO TILES IN THE GAPS");
  }else if(kind==="lotus-intro"){
   tile(svg,14,12,"pink");tile(svg,59,12,"green");tile(svg,104,12,"pink");
   shape(svg,"path",{d:"M68 42 L78 18 L86 18 L96 42 Z",fill:"#c86650",stroke:"#8f433a","stroke-width":1.5});
@@ -129,11 +130,11 @@ const EXAMPLES=Object.freeze({
  lantern:[["Lantern fusions","Match Lanterns across stages to advance your goal."]],
  "lantern-masterpiece":[["Build a Lantern masterpiece","Grow a Lantern to stage 5."]],
  "lantern-finale":[["Festival of Lights","Build two Lantern masterpieces to finish the chapter."]],
- "bamboo-intro":[["Closed garden cells","The shaded stones stay fixed. Fuse treasures beside them."]],
+ "bamboo-intro":[["Missing board squares","Empty gaps have no tile. Fuse treasures around them."]],
  "temple-gate":[["Narrow passages","Plan matches along the open paths of Temple Gate."]],
  "twin-gardens":[["Two garden wings","The open crossing connects the two sides."]],
- "central-shrine":[["Protected center","The shrine blocks matches through the middle."]],
- "bamboo-finale":[["Clear Mist around the shrine","Closed stones stay fixed. Fuse onto Mist or hit it with Harmony Pulse."]],
+ "central-shrine":[["Open center gap","The entire middle 3×3 area has no playable tiles."]],
+ "bamboo-finale":[["Clear Mist around the opening","No tiles occupy the center. Fuse onto Mist or hit it with Harmony Pulse."]],
  "lotus-intro":[["Launch Hanabi fireworks","Clear the space beneath each firework. When it reaches the tile ABOVE its fixed crate, it drops inside and launches a visible Pulse upward through its column."]]
 });
 function render(lesson){

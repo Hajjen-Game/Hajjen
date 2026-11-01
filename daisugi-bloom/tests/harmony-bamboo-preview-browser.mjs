@@ -37,8 +37,14 @@ async function enter(level){
    goal:document.querySelector("#goalLabel").textContent,
    moves:Number(document.querySelector("#movesCount").textContent),
    blocked,actual,
-   hasStoneArt:[...document.querySelectorAll(".tile.terrain-garden-tile")]
-    .every(x=>!!x.querySelector(".terrain-garden-art")),
+   noStoneArt:[...document.querySelectorAll(".tile.terrain-garden-tile")]
+    .every(x=>!x.querySelector(".terrain-garden-art")),
+   hiddenVoids:[...document.querySelectorAll(".tile.terrain-garden-tile")]
+    .every(x=>getComputedStyle(x).visibility==="hidden"&&x.disabled&&x.tabIndex===-1),
+   centerCell:level>=58&&level<=60?{
+    hidden:getComputedStyle(document.querySelector('.tile[data-index="24"]')).visibility==="hidden",
+    blocked:!!document.querySelector('.tile[data-index="24"].terrain-garden-tile')
+   }:null,
    hiddenCards:getComputedStyle(document.querySelector("#omamoriPowerBar")).display==="none",
    pageOverflow:document.documentElement.scrollWidth>innerWidth+1,
    validPair:HarmonyRules.validSwaps(
@@ -52,7 +58,9 @@ async function enter(level){
    "The real level-54 preview must announce its upcoming bottom-row Wind");
  else assert.equal(state.levelNumber,"LEVEL "+level);
  assert.deepEqual(state.actual,state.blocked,"Terrain positions must match live Bamboo chapter layout");
- assert(state.hasStoneArt);
+ assert(state.noStoneArt&&state.hiddenVoids,"Missing board cells must have no artwork, visible tile or focus");
+ if(level>=58&&level<=60)
+  assert(state.centerCell.hidden&&state.centerCell.blocked,"The center square itself must also be absent");
  assert(state.hiddenCards,"Bamboo previews cannot spend Omamori cards");
  assert.equal(state.pageOverflow,false,"No horizontal overflow on 390px phone");
  assert(state.validPair?.length===2);
@@ -99,5 +107,5 @@ try{
     "Bamboo level "+level+" unexpectedly changed permanent "+field);
  }
  assert.deepEqual(errors,[],"No mobile JavaScript errors");
- console.log("PASS Bamboo Paths mobile: ten authentic choices, six genuine layouts and real moves, fixed geometry, original player run intact");
+ console.log("PASS Void Board mobile: missing tiles have no art, border, focus or click, original plays intact");
 }finally{await browser.close();}

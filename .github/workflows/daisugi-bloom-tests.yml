@@ -34,6 +34,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-mechanic-balance.test.cjs
       - name: Bamboo Paths 1.0 · ten authored levels, chapter geometry, hints and save migration
         run: node daisugi-bloom/tests/harmony-bamboo-paths.test.cjs
+      - name: Bamboo Void Board 1.0 · new nine-cell gap and old-save geometry
+        run: node daisugi-bloom/tests/harmony-bamboo-void.test.cjs
       - name: Gate of Echoes 1.1 · bottom-row Wind, authentic turns and old saves
         run: node daisugi-bloom/tests/harmony-gate-wind.test.cjs
       - name: Lotus Stream 1.0 · seeded drop-and-collection pilot, saves and legacy safety
@@ -181,6 +183,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-director-v62-browser.mjs
       - name: Gate of Echoes 1.1 · 390px lower-row Wind and real turns
         run: node daisugi-bloom/tests/harmony-gate-wind-browser.mjs
+      - name: Bamboo Void Board 1.0 · 390px true 3x3 void with safe mobile play
+        run: node daisugi-bloom/tests/harmony-bamboo-void-browser.mjs
       - name: Hanabi Crate 1.0 · 390px crate, fireworks, real pulse and save
         run: node daisugi-bloom/tests/harmony-hanabi-crate-browser.mjs
       - name: Hanabi Gravity 1.0 · 390px real FLIP after launch-created hole

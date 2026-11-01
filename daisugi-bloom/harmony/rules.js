@@ -19,6 +19,8 @@ const Insight=root.HarmonyPlayerInsight||(typeof require==="function"?require(".
 if(!Insight)throw Error("Player Insight telemetry must load before Harmony Rules");
 const Director6=root.HarmonyDirector6||(typeof require==="function"?require("./director-v6.js"):null);
 if(!Director6)throw Error("Director 6 spatial intelligence must load before Harmony Rules");
+const Director61=root.HarmonyDirector61||(typeof require==="function"?require("./director-v61.js"):null);
+if(!Director61)throw Error("Director 6.1 objective intelligence must load before Harmony Rules");
 const N=7, ALL=["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"];
 // Fixed progression: four active families on levels 1–10, five from level
 // 11 onward. All nine families rotate across the introduction. The original
@@ -973,7 +975,7 @@ class Game{
   // The optional deterministic seed is exclusively used by the diagnostics
   // harness. Normal gameplay still uses the original random seedFor(level).
   this.seed=options&&Number.isInteger(options.seed)?options.seed>>>0:seedFor(this.level);
-  this.directorMode=options?.directorMode==="v6"?"v6":options?.directorMode==="v4"?"v4":options?.directorMode==="v311"?"v311":options?.directorMode==="v31"?"v31":options?.directorMode==="v3"?"v3":options?.directorMode==="v2"?"v2":options?.opportunity===true?"v1":"standard";
+  this.directorMode=options?.directorMode==="v61"?"v61":options?.directorMode==="v6"?"v6":options?.directorMode==="v4"?"v4":options?.directorMode==="v311"?"v311":options?.directorMode==="v31"?"v31":options?.directorMode==="v3"?"v3":options?.directorMode==="v2"?"v2":options?.opportunity===true?"v1":"standard";
   this.opportunity=this.directorMode!=="standard"; // Both Directors are opt-in.
   this.directorRefills=0;this.directorSelections=0;this.directorDrought=0;this.objectiveDrought=0;
   this.omamoriAfterglow=Afterglow.fresh();
@@ -1212,7 +1214,7 @@ class Game{
    this.families=oldLanternRun?endlessFamilies(this.level):activeFamilies(this.level,this.familyCount);
    if(this.config.goal.type==="score"&&previous.complete&&previous.score<this.config.goal.count)
     this.legacyScoreCompletion=true;
-   this.directorMode=previous.directorMode==="v6"?"v6":previous.directorMode==="v4"?"v4":previous.directorMode==="v311"?"v311":previous.directorMode==="v31"?"v31":previous.directorMode==="v3"?"v3":previous.directorMode==="v2"?"v2":previous.opportunity?"v1":"standard";
+   this.directorMode=previous.directorMode==="v61"?"v61":previous.directorMode==="v6"?"v6":previous.directorMode==="v4"?"v4":previous.directorMode==="v311"?"v311":previous.directorMode==="v31"?"v31":previous.directorMode==="v3"?"v3":previous.directorMode==="v2"?"v2":previous.opportunity?"v1":"standard";
    this.opportunity=this.directorMode!=="standard";
    this.directorDrought=Number.isInteger(previous.directorDrought)?Math.max(0,previous.directorDrought):0;
    this.objectiveDrought=Number.isInteger(previous.objectiveDrought)?Math.max(0,Math.min(12,previous.objectiveDrought)):0;
@@ -1298,7 +1300,7 @@ class Game{
   // One chance to influence a normal refill on each of two legal moves.
   // Cascades do not repeatedly amplify the same Omamori use.
   const afterglowRemaining=this.afterglowTurnActive&&!this.afterglowRefillTried&&
-   ["v4","v6"].includes(this.directorMode)?this.omamoriAfterglow.remaining:0;
+   ["v4","v6","v61"].includes(this.directorMode)?this.omamoriAfterglow.remaining:0;
   if(afterglowRemaining)this.afterglowRefillTried=true;
   // Candidate zero is EXACTLY the 5.3 standard refill, consuming the
   // ordinary RNG stream. Alternative candidate RNGs fork independently from
@@ -1313,8 +1315,8 @@ class Game{
    Math.imul(this.nextId+1,0x9e3779b1))>>>0;
   // Spend additional search effort ONLY when the board is close to
   // running out of genuine player choices. No candidate changes bag odds.
-  const baselineChoices=this.directorMode==="v6"?validSwaps(baseline.board).length:0;
-  const proposalCount=this.directorMode==="v6"?
+  const baselineChoices=["v6","v61"].includes(this.directorMode)?validSwaps(baseline.board).length:0;
+  const proposalCount=["v6","v61"].includes(this.directorMode)?
    (baselineChoices<=2?18:baselineChoices<=4?10:6):
    pacingProposalCount(this.level,this.directorDrought,this.directorMode,this.objectiveDrought);
   for(let c=1;c<proposalCount;c++){
@@ -1325,15 +1327,15 @@ class Game{
   let selected=baseline,spatialAssessment=null;
   // Preserve the existence of automatic chain reactions in baseline random
   // outcome. Only compare alternative boards when baseline has NO free match.
-  if(baseline.autoMatches===0&&this.directorMode!=="v6"){
-   const isV2=["v2","v3","v31","v311","v4","v6"].includes(this.directorMode);
-   const isV3=["v3","v31","v311","v4","v6"].includes(this.directorMode);
+  if(baseline.autoMatches===0&&!["v6","v61"].includes(this.directorMode)){
+   const isV2=["v2","v3","v31","v311","v4","v6","v61"].includes(this.directorMode);
+   const isV3=["v3","v31","v311","v4","v6","v61"].includes(this.directorMode);
    const metric=board=>{
     if(!isV2)return opportunityMetrics(board,this.config.goal);
     const m=opportunityMetricsV2(board,this.config.goal,this.directorDrought);
     if(!isV3)return m;
     const base=pacingOpportunityScore(m,this.pacePhase);
-    if(!["v31","v311","v4","v6"].includes(this.directorMode))return {...m,score:base};
+    if(!["v31","v311","v4","v6","v61"].includes(this.directorMode))return {...m,score:base};
     const aware=objectiveAwarenessMetrics(board,this.config.goal,this.mist);
     // Bounded bonus, no guaranteed win and no excessive recovery cheating.
     const pressure=Math.min(1,this.objectiveDrought/5);
@@ -1386,18 +1388,23 @@ class Game{
     }
    }
   }
-  if(this.directorMode==="v6"&&baseline.autoMatches===0){
+  if(["v6","v61"].includes(this.directorMode)&&baseline.autoMatches===0){
    const context={goal:this.config.goal,mist:this.mist,
     blockers:this.config.goal.type==="daruma"?this.daruma:this.sealed,
-    lotus:this.lotus,mirrors:this.moonMirrors,wind:this.windGarden};
+    lotus:this.lotus,mirrors:this.moonMirrors,wind:this.windGarden,
+    objectiveDrought:this.objectiveDrought,
+    remainingGoal:Math.max(0,this.target()-this.progress())};
    const scoreFn=board=>{
     const metrics=opportunityMetricsV2(board,this.config.goal,this.directorDrought);
     const aware=objectiveAwarenessMetrics(board,this.config.goal,this.mist);
     return pacingOpportunityScore(metrics,this.pacePhase)+
      aware.score+Math.min(4,metrics.strongMoves)*.9;
    };
-   const evaluation=Director6.choose(baseline,candidates.slice(1),scoreFn,
-    context,validSwaps,scan);
+   const evaluation=this.directorMode==="v61"?
+    Director61.choose(baseline,candidates.slice(1),scoreFn,
+     context,validSwaps,scan):
+    Director6.choose(baseline,candidates.slice(1),scoreFn,
+     context,validSwaps,scan);
    selected=evaluation.selected;
    spatialAssessment={before:evaluation.health,after:evaluation.chosenHealth};
    selectedReason=evaluation.reason;
@@ -1408,10 +1415,17 @@ class Game{
      const c=candidates[i];
      if(c.autoMatches){evaluations.push({candidate:i,autoMatches:c.autoMatches,
       excluded:"automatic-match"});continue;}
-     const h=Director6.evaluate(c.board,this.config.goal,context,validSwaps,scan);
+     const h=this.directorMode==="v61"?
+      Director61.assess(c.board,this.config.goal,context,validSwaps,scan):
+      Director6.evaluate(c.board,this.config.goal,context,validSwaps,scan);
      evaluations.push({candidate:i,autoMatches:0,legal:h.legal,
       activeParts:h.activeParts,underserved:h.underserved,
-      goalOpportunity:h.objective,health:h.score});
+      goalOpportunity:h.objective,
+      ...(this.directorMode==="v61"?{
+       reachability:h.objectiveReachability,strategicMoves:h.strategicMoves,
+       routes:h.nextStepRoutes,channels:h.channels,
+       supportedChannels:h.supportedChannels}:{}),
+      health:h.score});
     }
    }
   }
@@ -1813,7 +1827,7 @@ class Game{
   if(windLimited&&scan(this.board).length)
    events.push(...this.resolve(-1,[],-1,{windFallback:true}));
   if(!validSwaps(this.board).length){
-   this.board=fairShuffle(this.board,()=>this.fresh(),this.directorMode==="v6"?{minLegal:4}:null);
+   this.board=fairShuffle(this.board,()=>this.fresh(),["v6","v61"].includes(this.directorMode)?{minLegal:4}:null);
    events.push(this.frame("shuffle"));
   }
   // Cascades may contain several four-matches, but all are the result
@@ -1849,7 +1863,7 @@ class Game{
    [this.board[a],this.board[b]]=[this.board[b],this.board[a]];
    return this.rejectMove(a,b,"The swap must match at least three from one family");
   }
-  if(["v3","v31","v311","v4","v6"].includes(this.directorMode)){
+  if(["v3","v31","v311","v4","v6","v61"].includes(this.directorMode)){
    const ms=options?.decisionMs;
    // Ignore interruptions, background sleep and idle gaps beyond 90s.
    if(Number.isFinite(ms)&&ms>=0&&ms<=90000){
@@ -1863,7 +1877,7 @@ class Game{
   // Pairs are located by persistent object IDs, not original slot indices.
   const beforeStage3=this.stage3,beforeStage4=this.stage4,beforeMasterpiece=this.masterpieces;
   const beforeEcho=this.echoes,beforePulse=this.pulseHits,beforeObjective=this.progress();
-  const beforeLotusBoard=(this.lotusPrototype||this.directorMode==="v6"&&this.lotus.starts.length)?clone(this.board):null;
+  const beforeLotusBoard=(this.lotusPrototype||["v6","v61"].includes(this.directorMode)&&this.lotus.starts.length)?clone(this.board):null;
    // Partial obstacle hits are goal progress before its final destruction.
    const beforeBlockerHealth=this.config.goal.type==="daruma"?
     this.daruma.reduce((n,x)=>n+x,0):this.config.goal.type==="sealedStone"?
@@ -1872,7 +1886,7 @@ class Game{
    this.traceCurrentTurn=Insight.beginMove(this,a,b,options?.decisionMs);
    this.traceCurrentTurn.before=beforeBoard;
   }
-  this.afterglowTurnActive=["v4","v6"].includes(this.directorMode)&&this.omamoriAfterglow.remaining>0;
+  this.afterglowTurnActive=["v4","v6","v61"].includes(this.directorMode)&&this.omamoriAfterglow.remaining>0;
   this.afterglowRefillTried=false;
   this.moves--;
   const events=[this.frame("swap",{from:a,to:b}),...this.resolve(b,armed,a)];
@@ -1890,7 +1904,7 @@ class Game{
      if(scan(this.board).length)events.push(...this.resolve(-1,[],-1,
       {windLimited:true,row:next.row}));
      else if(!validSwaps(this.board).length){
-      this.board=fairShuffle(this.board,()=>this.fresh(),this.directorMode==="v6"?{minLegal:4}:null);
+      this.board=fairShuffle(this.board,()=>this.fresh(),["v6","v61"].includes(this.directorMode)?{minLegal:4}:null);
       events.push(this.frame("shuffle"));
      }
     }else{
@@ -1905,7 +1919,7 @@ class Game{
   this.afterglowTurnActive=false;this.afterglowRefillTried=false;
   // Update drought ONCE per player move, not per cascade wave; never use score
   // progress because score-based levels gain points on virtually every turn.
-  if(["v2","v3","v31","v311","v4","v6"].includes(this.directorMode)){
+  if(["v2","v3","v31","v311","v4","v6","v61"].includes(this.directorMode)){
    // In prototypes, a genuine seed descent is progress toward delivery,
    // even when the seed has not yet reached its collecting gate. This does
    // not alter the live level 61 Director or the win-condition counter.
@@ -1914,15 +1928,15 @@ class Game{
    const advanced=this.stage3>beforeStage3||this.stage4>beforeStage4||
     this.masterpieces>beforeMasterpiece||this.echoes>beforeEcho||this.pulseHits>beforePulse||routeAdvanced;
    this.directorDrought=advanced?0:Math.min(12,this.directorDrought+1);
-   if(["v3","v31","v311","v4","v6"].includes(this.directorMode)){
+   if(["v3","v31","v311","v4","v6","v61"].includes(this.directorMode)){
     const blockerHealth=this.config.goal.type==="daruma"?
       this.daruma.reduce((n,x)=>n+x,0):this.config.goal.type==="sealedStone"?
       this.sealed.reduce((n,x)=>n+x,0):beforeBlockerHealth;
     const objectiveAdvanced=this.progress()>beforeObjective||routeAdvanced||
-     (["v4","v6"].includes(this.directorMode)&&blockerHealth<beforeBlockerHealth);
-    if(["v31","v311","v4","v6"].includes(this.directorMode))this.objectiveDrought=objectiveAdvanced?0:
+     (["v4","v6","v61"].includes(this.directorMode)&&blockerHealth<beforeBlockerHealth);
+    if(["v31","v311","v4","v6","v61"].includes(this.directorMode))this.objectiveDrought=objectiveAdvanced?0:
      Math.min(12,this.objectiveDrought+1);
-    this.paceOutcomes.push(advanced||(["v31","v311","v4","v6"].includes(this.directorMode)&&objectiveAdvanced));
+    this.paceOutcomes.push(advanced||(["v31","v311","v4","v6","v61"].includes(this.directorMode)&&objectiveAdvanced));
     this.paceOutcomes=this.paceOutcomes.slice(-8);
     const major=this.masterpieces>beforeMasterpiece||this.echoes>beforeEcho||this.pulseHits>beforePulse;
     this.paceLastMajor=major;

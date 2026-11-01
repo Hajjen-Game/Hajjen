@@ -69,8 +69,11 @@ try{
  const after=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  for(const field of ["unlocked","run","bestStars","bestScores","fourFamilyStars","economy","omamoriCards","playerInsight","playerIntent"])
   assert.deepEqual(after[field],baseline[field],"Journey preview must not alter "+field);
- // Leaving via the real Home button must never persist the draft run.
- await page.click("#homeButton");
+ // Leave through the actual in-game pause menu. The home header is
+ // intentionally not clickable over the portrait gameplay view.
+ await page.click("#pauseButton");
+ await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Game Menu");
+ await page.click("#modalActions .pause-levels");
  await page.waitForFunction(()=>document.querySelector("#menuView")?.hidden===false);
  const final=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  assert.deepEqual(final,baseline,"Opening, playing and leaving a draft may not write player data");

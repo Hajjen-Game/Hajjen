@@ -42,7 +42,7 @@ async function enter(key){
    .map(x=>Number(x.dataset.index)).sort((a,b)=>a-b);
   const stones=[...document.querySelectorAll(".tile.terrain-garden-tile")]
    .map(x=>Number(x.dataset.index)).sort((a,b)=>a-b);
-  const engine=new HarmonyRules.Game(60,null,{directorMode:"v6",
+  const engine=new HarmonyRules.Game(60,null,{directorMode:"v61",
    seed:20261101,lotusPreview:key});
   return {title:document.querySelector("#levelTitle").textContent,
    label:document.querySelector("#levelNumber").textContent,

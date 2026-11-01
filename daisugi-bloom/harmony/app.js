@@ -1311,7 +1311,7 @@ function renderBoard(board,highlight,effect){
  const omamoriAnchor=powerSelection&&["koi","deepCurrent"].includes(powerSelection)?
   powerTargets[powerTargets.length-1]:-1;
  const flash=effect||(highlight&&highlight.effect)||"pulsed";
- const windNext=windGardenPreview?(busy&&windAtmosphere?.spec?windAtmosphere.spec:windForecast()):null;
+ const windNext=game?.windGarden?(busy&&windAtmosphere?.spec?windAtmosphere.spec:windForecast()):null;
  const mist=activeMistFrame||game?.mist||[];
  const daruma=activeDarumaFrame||game?.daruma||[];
  const sealed=activeSealedFrame||game?.sealed||[];
@@ -1423,11 +1423,13 @@ function windForecast(){
 }
 function updateWindForecast(){
  const badge=$("levelNumber");if(!badge||!game)return;
- if(!windGardenPreview){badge.textContent="LEVEL "+(level+1);badge.removeAttribute("title");return;}
+ if(!game.windGarden){badge.textContent="LEVEL "+(level+1);badge.removeAttribute("title");return;}
  const next=windForecast();
  if(!next)return;
  const dir=next.direction==="left"?"←":"→";
- badge.textContent="風 ROW "+(next.row+1)+" "+dir+" · "+next.inMoves+" MOVE"+(next.inMoves===1?"":"S");
+ badge.textContent=(windGardenPreview?"":"LEVEL "+(level+1)+" · ")+"風 "+
+  (windGardenPreview?"ROW ":"R")+(next.row+1)+" "+dir+" · "+next.inMoves+
+  " MOVE"+(next.inMoves===1?"":"S");
  badge.title="Wind Garden: row "+(next.row+1)+" moves "+next.direction+
   " after "+next.inMoves+" valid move"+(next.inMoves===1?"":"s")+
   ". The row wraps around; Mist stays on the same cells.";
@@ -1983,9 +1985,8 @@ function positionWindBand(band,layer,row){
  band.style.height=left.height+"px";
 }
 function syncWindAtmosphere(override=null,forceLayout=false){
- const previewActive=!!(windGardenPreview&&game?.windGarden&&
-  !$("gameView").hidden);
- if(!previewActive){clearWindAtmosphere();return null;}
+ const hasWind=!!(game?.windGarden&&!$("gameView").hidden);
+ if(!hasWind){clearWindAtmosphere();return null;}
  const forecast=override||windForecast();
  if(!forecast||!Number.isInteger(forecast.row)||forecast.row<0||forecast.row>=7||
    !["left","right"].includes(forecast.direction)){

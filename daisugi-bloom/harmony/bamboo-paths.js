@@ -6,6 +6,10 @@
 (function(root){
 "use strict";
 const VERSION=1,FIRST=50;
+const GATE_LEGACY_INTRO="Create a stage-5 Masterpiece inside Temple Gate. Its Harmony Pulse upgrades open neighboring tiles, not blocked stones.";
+// The uninterrupted seventh row can rotate without moving any Bamboo stone.
+const GATE_BOTTOM_WIND=Object.freeze({every:3,
+ steps:Object.freeze([Object.freeze({row:6,direction:"right"})])});
 const CHAPTER=Object.freeze([
  {name:"First Bamboo",subtitle:"Discover closed garden tiles",moves:26,starPar:9,
   goal:{type:"fusion",count:10},boardMechanics:{blocked:[23,25]},
@@ -16,9 +20,10 @@ const CHAPTER=Object.freeze([
  {name:"Temple Gate",subtitle:"Enter the narrow passages",moves:33,starPar:12,
   goal:{type:"fusion",count:14},boardMechanics:{layout:"templeGate"},
   intro:"Temple Gate has narrow openings. Use the connected paths to set up fourteen fusions around fixed stones."},
- {name:"Gate of Echoes",subtitle:"Create Harmony in the passage",moves:46,starPar:24,
+ {name:"Gate of Echoes",subtitle:"Wind beneath the gate",moves:46,starPar:24,
   goal:{type:"pulseHits",count:7},boardMechanics:{layout:"templeGate"},
-  intro:"Create a stage-5 Masterpiece inside Temple Gate. Its Harmony Pulse upgrades open neighboring tiles, not blocked stones."},
+  windGarden:GATE_BOTTOM_WIND,
+  intro:"Reach seven Harmony Pulse hits by growing stage-5 Masterpieces. Every three valid moves Wind shifts the bottom row one cell right, wrapping around its edge. The Bamboo stones remain fixed."},
  {name:"Twin Gardens",subtitle:"Two garden wings, one crossing",moves:35,starPar:12,
   goal:{type:"fusion",count:16},boardMechanics:{layout:"twinGardens"},
   intro:"The two gardens connect through the middle crossing. Match across each side to make sixteen fusions."},
@@ -47,12 +52,14 @@ function get(index){
  if(!Number.isInteger(index)||index<FIRST||index>=FIRST+CHAPTER.length)return null;
  const item=CHAPTER[index-FIRST];
  return {...item,par:item.starPar,goal:{...item.goal},
+  ...(item.windGarden?{windGarden:{every:item.windGarden.every,
+   steps:item.windGarden.steps.map(step=>({...step}))}}:{}),
   boardMechanics:{...item.boardMechanics,
    ...(item.boardMechanics.blocked?{blocked:item.boardMechanics.blocked.slice()}:{}),
    ...(item.boardMechanics.mist?{mist:item.boardMechanics.mist.slice()}:{} )},
   chapter:6,bambooVersion:VERSION,objectiveVersion:2,balanceVersion:2};
 }
-const api=Object.freeze({VERSION,FIRST,CHAPTER,get});
+const api=Object.freeze({VERSION,FIRST,CHAPTER,get,GATE_LEGACY_INTRO});
 root.HarmonyBambooPaths=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

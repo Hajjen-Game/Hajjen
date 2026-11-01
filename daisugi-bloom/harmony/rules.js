@@ -967,8 +967,11 @@ class Game{
   this.lotusDelivered=0;
   // Future levels may provide terrain / overlays without changing their objective.
   this.boardMechanics=B.normalize(options?.boardMechanics??this.config.boardMechanics);
-  this.windGarden=Wind.normalize(options?.windGarden??(this.windGardenPreview?
-   Wind.descriptor(this.windGardenPreview).schedule:previous?.windGarden));
+  this.windGarden=Wind.normalize(
+   options&&Object.hasOwn(options,"windGarden")?options.windGarden:
+   previous?previous.windGarden:
+   this.windGardenPreview?Wind.descriptor(this.windGardenPreview).schedule:
+   this.config.windGarden);
   this.moonMirrors=Mirror.normalize(options?.moonMirrors??(this.moonMirrorPreview?
    Mirror.descriptor(this.moonMirrorPreview).mirrors:previous?.moonMirrors),
    this.boardMechanics.blocked);
@@ -1099,6 +1102,10 @@ class Game{
    this.lotusDelivered=oldLotusRun?0:Math.max(0,Math.min(this.lotus.starts.length,Number(previous.lotusDelivered)||0));
    this.boardMechanics=B.normalize(previous.boardMechanics??(oldBambooRun?null:this.config.boardMechanics));
    this.windGarden=Wind.normalize(previous.windGarden);
+   // Never add Wind or Wind instructions to an unfinished pre-Wind save.
+   if(this.level===53&&!this.windGarden)
+    this.config={...this.config,subtitle:"Create Harmony in the passage",
+     intro:Bamboo.GATE_LEGACY_INTRO};
    this.moonMirrors=Mirror.normalize(previous.moonMirrors,this.boardMechanics.blocked);
    // Reusing a saved snapshot must not share mutable refill-bag arrays.
    this.bag=Array.isArray(previous.bag)?previous.bag.slice():[];

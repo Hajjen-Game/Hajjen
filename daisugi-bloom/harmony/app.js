@@ -2810,13 +2810,13 @@ function showLotusPreviewResult(){
  // Omamori, rewards or saved normal rounds are affected.
  clearIdleHint();disarmDecisionClock();clearScoreFx();
  const won=game.complete;
- $("modalEyebrow").textContent="LOTUS STREAM · UNRANKED PREVIEW";
- $("modalTitle").textContent=won?"Lotus seeds delivered!":"The river awaits";
+ $("modalEyebrow").textContent="HANABI CRATE · UNRANKED PREVIEW";
+ $("modalTitle").textContent=won?"Hanabi fireworks launched!":"The crates await";
  const content=$("modalContent");content.replaceChildren();
  const copy=document.createElement("p");
  copy.textContent=won?
-  "You guided the Lotus seeds into their river gates. This preview did not award any progress.":
-  "Match treasures beneath the Lotus seeds so they fall toward their matching river gates. Try another route or retry.";
+  "You guided the fireworks into their wooden crates and launched the upward pulses. This preview did not award permanent progress.":
+  "Match treasures below each firework so it falls toward its crate. Watch the upward pulse when it arrives.";
  content.append(copy);
  const summary=document.createElement("p");summary.className="lotus-preview-result";
  summary.textContent=game.config.name+" · Delivered "+game.lotusDelivered+"/"+game.target()+
@@ -2825,9 +2825,9 @@ function showLotusPreviewResult(){
  const make=(tag,cls,t)=>{const node=document.createElement(tag);node.className=cls;node.textContent=t;return node;};
  content.append(makeRoundExport(make));
  const actions=$("modalActions");actions.replaceChildren();
- modalButton(actions,"Retry this Lotus puzzle","primary",
+ modalButton(actions,"Retry this Hanabi puzzle","primary",
   ()=>startLevel(60,false,null,null,false,lotusPreview));
- modalButton(actions,"Choose another Lotus route","secondary",showLotusPreviewChooser);
+ modalButton(actions,"Choose another Hanabi route","secondary",showLotusPreviewChooser);
  modalButton(actions,"Back to main menu","secondary",showMenu);
  $("modal").hidden=false;
 }
@@ -2835,19 +2835,19 @@ function showLotusPreviewChooser(){
  if(busy)return;
  $("modalActions").classList.remove("pause-menu-actions");
  $("modalEyebrow").textContent="GAME DEV · MECHANICS PREVIEW";
- $("modalTitle").textContent="Lotus Stream · Preview";
+ $("modalTitle").textContent="Hanabi Crate · Preview";
  const content=$("modalContent");content.replaceChildren();
  const intro=document.createElement("p");
- intro.textContent="Lotus seeds cannot be swapped or fused. Match objects BELOW them to let them fall into the glowing river gates at the bottom. Level 61 is the real playable pilot; the other four choices are experimental routes, not finished levels 62–70. None affects your progress, cards or coins.";
+ intro.textContent="Guide Hanabi fireworks into wooden crates on the bottom row by matching objects beneath them. Each delivered rocket launches a vertical upgrade Pulse straight up its column. Level 61 is the playable pilot; the other routes are unranked experiments. None affects progress, cards or coins.";
  content.append(intro);
  const choices=goshuinNode("div","lotus-preview-grid");
  const pilot=window.HarmonyLotusStream?.get(60);
  const options=[
-  ["pilot",pilot?.name||"First Lotus Stream","Real level 61 · two Lotus seeds"],
-  ["long-drop","Long Lotus Crossing","Experiment · longer descent"],
-  ["three-lanes","Three Lotus Channels","Experiment · three separate lanes"],
-  ["shared-gate","Two Seeds, One River Gate","Experiment · shared collection gate"],
-  ["garden-route","Garden Lotus Crossing","Experiment · Lotus with Bamboo stones"]
+  ["pilot",pilot?.name||"First Hanabi Crate","Real level 61 · two fireworks"],
+  ["long-drop","Long Hanabi Crossing","Experiment · longer descent"],
+  ["three-lanes","Three Hanabi Launchers","Experiment · three separate lanes"],
+  ["shared-gate","Two Fireworks, One Crate","Experiment · shared receiving crate"],
+  ["garden-route","Bamboo Hanabi Crossing","Experiment · Hanabi with Bamboo stones"]
  ];
  for(const [key,name,description] of options){
   const btn=goshuinNode("button","lotus-preview-choice");btn.type="button";
@@ -3159,7 +3159,7 @@ function showResult(){
   if(level===49)result.append(make("p","victory-next-note",
    "✦ Lantern Path complete · Bamboo Paths opens next."));
   if(level===59)result.append(make("p","victory-next-note",
-   "✦ Bamboo Paths complete · Lotus Stream begins next."));
+   "✦ Bamboo Paths complete · Hanabi Festival begins next."));
   result.append(makeRoundExport(make));
   if(welcomeOmamori){
    const welcome=make("section","jh-omamori-welcome");
@@ -3199,7 +3199,7 @@ function showResult(){
  }
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.toggle("victory-actions",won);
- if(won)modalButton(actions,level===49?"Enter Bamboo Paths →":level===59?"Enter Lotus Stream →":"Next level →","primary victory-next",()=>startLevel(level+1));
+ if(won)modalButton(actions,level===49?"Enter Bamboo Paths →":level===59?"Enter Hanabi Festival →":"Next level →","primary victory-next",()=>startLevel(level+1));
  if(canContinue)modalButton(actions,"Keep playing for a high score","secondary victory-continue",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
  });

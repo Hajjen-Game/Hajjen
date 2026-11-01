@@ -42,7 +42,7 @@
 body.harmony-reduced-motion #gameView .tile .lotus-collector-ring{animation:none!important}
 
 
-// HANABI CRATE 1.0 — CSS-painted premium 2.5D festival assets.
+/* HANABI CRATE 1.0 — CSS-painted premium 2.5D festival assets. */
 // Keep the earlier Lotus look available for old saved rounds.
 body.hanabi-active #gameView .tile .lotus-collector{display:none}
 #gameView .tile .hanabi-firework-art{

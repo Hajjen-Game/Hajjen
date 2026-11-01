@@ -75,12 +75,14 @@ function picture(kind,variant){
    "font-weight":"700"},"STONE TILES STAY CLOSED");
  }else if(kind==="lotus-intro"){
   tile(svg,14,12,"pink");tile(svg,59,12,"green");tile(svg,104,12,"pink");
-  shape(svg,"ellipse",{cx:81,cy:33,rx:13,ry:17,fill:"#dfb776",stroke:"#9d7256","stroke-width":1.5});
-  shape(svg,"text",{x:81,y:39,"text-anchor":"middle","font-size":19,fill:"#91534f"},"✿");
+  shape(svg,"path",{d:"M68 42 L78 18 L86 18 L96 42 Z",fill:"#c86650",stroke:"#8f433a","stroke-width":1.5});
+  shape(svg,"path",{d:"M78 18 L82 8 L86 18 Z",fill:"#eac17e",stroke:"#9e704e","stroke-width":1});
+  shape(svg,"path",{d:"M82 42 V50",stroke:"#e9a65f","stroke-width":2});
   arrow(svg,159,36);
   tile(svg,208,13,"green",{glow:true});
-  shape(svg,"ellipse",{cx:230,cy:52,rx:18,ry:5,fill:"none",stroke:"#d4b57f","stroke-width":2.5});
-  shape(svg,"text",{x:230,y:75,"text-anchor":"middle","font-size":10,fill:"#6f8c73"},"COLLECT");
+  shape(svg,"rect",{x:213,y:43,width:35,height:28,rx:3,fill:"#8e5e3e",stroke:"#d5a16e","stroke-width":2});
+  shape(svg,"path",{d:"M210 44 H251 V49 H210 Z",fill:"#d1a16a",stroke:"#744527","stroke-width":1.5});
+  shape(svg,"text",{x:230,y:62,"text-anchor":"middle","font-size":13,fill:"#f8deb0"},"花");
  }else if(kind==="mist"&&variant===1){
   [10,56,102].forEach((x,i)=>tile(svg,x,15,"pink",{mist:i===1,glow:i===1}));
   arrow(svg,158,36);tile(svg,208,15,"pink",{glow:true});
@@ -132,7 +134,7 @@ const EXAMPLES=Object.freeze({
  "twin-gardens":[["Two garden wings","The open crossing connects the two sides."]],
  "central-shrine":[["Protected center","The shrine blocks matches through the middle."]],
  "bamboo-finale":[["Clear Mist around the shrine","Closed stones stay fixed. Fuse onto Mist or hit it with Harmony Pulse."]],
- "lotus-intro":[["Let lotus seeds fall","Make matches below a seed so it drops into a glowing gate. Seeds cannot be matched or swapped."]]
+ "lotus-intro":[["Launch Hanabi fireworks","Make matches below a firework to drop it into a crate. Each delivery pulses upward through the whole column."]]
 });
 function render(lesson){
  const kind=EXAMPLES[lesson?.key]?lesson.key:"match";

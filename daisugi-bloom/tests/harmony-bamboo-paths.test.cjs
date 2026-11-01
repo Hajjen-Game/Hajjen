@@ -143,10 +143,24 @@ check("Bamboo obstruction uses its transparent 256px game icon",()=>{
  const art=fs.readFileSync(artPath);
  assert.equal(art.toString("ascii",0,4),"RIFF");
  assert.equal(art.toString("ascii",8,12),"WEBP");
- assert.equal(art.toString("ascii",12,16),"VP8X");
- assert(art[20]&0x10,"Bamboo icon must preserve an alpha channel");
- assert.equal(art.readUIntLE(24,3)+1,256,"Bamboo icon width");
- assert.equal(art.readUIntLE(27,3)+1,256,"Bamboo icon height");
+ const variant=art.toString("ascii",12,16);
+ // A lossless WebP can use VP8L (alpha in its 32-bit dimensions header)
+ // or an extended VP8X container (alpha flag + 24-bit dimensions).
+ // Both are valid transparent assets and retain the original painting.
+ assert(["VP8X","VP8L"].includes(variant),"Expected a supported WebP container");
+ let width,height,hasAlpha;
+ if(variant==="VP8X"){
+  hasAlpha=!!(art[20]&0x10);
+  width=art.readUIntLE(24,3)+1;height=art.readUIntLE(27,3)+1;
+ }else{
+  assert.equal(art[20],0x2f,"Expected a lossless WebP signature");
+  const bits=art.readUInt32LE(21);
+  hasAlpha=!!(bits&0x10000000);
+  width=(bits&0x3fff)+1;height=((bits>>>14)&0x3fff)+1;
+ }
+ assert(hasAlpha,"Bamboo icon must preserve an alpha channel");
+ assert.equal(width,256,"Bamboo icon width");
+ assert.equal(height,256,"Bamboo icon height");
  const css=fs.readFileSync(path.join(__dirname,"../harmony/board-mechanics.css"),"utf8");
  assert(css.includes('url("../assets/gameplay-washi/bamboo-obstacle-256-simple.webp")'));
  assert(css.includes(".terrain-garden-art"));

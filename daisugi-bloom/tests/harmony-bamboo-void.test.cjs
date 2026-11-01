@@ -67,7 +67,7 @@ test("an existing eight-square ring save keeps its center object and topology",(
 test("Wind level 54 and the other six Bamboo board topologies are unmodified",()=>{
  for(const i of [50,51,52,53,54,55,56]){
   const orig=C.get(i).boardMechanics;
-  assert.equal(orig.blocked?.includes(24),false);
+  assert.equal(!!orig.blocked?.includes(24),false);
   const g=new R.Game(i,null,{seed:20261101+i,directorMode:"v62"});
   assert.deepEqual(g.boardMechanics,B.normalize(orig));
  }

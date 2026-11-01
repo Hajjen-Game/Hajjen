@@ -102,6 +102,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-director-v6.test.cjs
       - name: Director 6.1 · goal reachability, stage investments, gravity channels, saved mode isolation
         run: node daisugi-bloom/tests/harmony-director-v61.test.cjs
+      - name: Director 6.2 · proactive mobility, goal momentum, save integrity
+        run: node daisugi-bloom/tests/harmony-director-v62.test.cjs
       - name: Verify Four Families Experiment 1.0 board, save compatibility and Director 3.0
         run: node daisugi-bloom/tests/harmony-four-families.test.cjs
       - name: Verify Harmony Resonance Echo scoring, sound isolation and saved states
@@ -122,6 +124,7 @@ jobs:
           node --check daisugi-bloom/harmony/wind-garden.js
           node --check daisugi-bloom/harmony/director-v6.js
           node --check daisugi-bloom/harmony/director-v61.js
+          node --check daisugi-bloom/harmony/director-v62.js
           node --check daisugi-bloom/harmony/bamboo-paths.js
           node --check daisugi-bloom/harmony/lotus-stream.js
           node --check daisugi-bloom/harmony/lotus-routing.js
@@ -131,6 +134,7 @@ jobs:
           node --check daisugi-bloom/tools/lotus-routing-diagnostics.cjs
           node --check daisugi-bloom/tools/harmony-director-v6-benchmark.cjs
           node --check daisugi-bloom/tools/harmony-director-v61-benchmark.cjs
+          node --check daisugi-bloom/tools/harmony-director-v62-benchmark.cjs
           node --check daisugi-bloom/harmony/onboarding.js
           node --check daisugi-bloom/harmony/tutorial-help.js
           node --check daisugi-bloom/harmony/omamori-targets.js
@@ -167,6 +171,8 @@ jobs:
           echo $! > /tmp/daisugi-bloom-server.pid
       - name: Tutorial Help Modal 1.0 · illustrated lessons, OK acknowledgment and replay
         run: node daisugi-bloom/tests/harmony-tutorial-help-browser.mjs
+      - name: Director 6.2 · actual 390px Bamboo preview, first real swap and existing saves
+        run: node daisugi-bloom/tests/harmony-director-v62-browser.mjs
       - name: Run Japanese Harmony mobile smoke
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
       - name: Moon Mirrors 1.2 · six previews, Fusion Echo chain and 390px save isolation
@@ -230,6 +236,22 @@ jobs:
         with:
           name: japanese-harmony-director61-reachability-benchmark
           path: daisugi-bloom/reports/harmony-director-v61-sample.json
+          if-no-files-found: ignore
+
+  director62-momentum-benchmark:
+    name: Director 6.2 · seed-paired mobility and target momentum
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare authentic 6.1 and 6.2 on identical seeds
+        run: node daisugi-bloom/tools/harmony-director-v62-benchmark.cjs --trials=3 --moves=14 --write
+      - name: Archive complete per-seed shuffle and stall evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japanese-harmony-director62-momentum-benchmark
+          path: daisugi-bloom/reports/harmony-director-v62-sample.json
           if-no-files-found: ignore
 
   director6-mechanic-benchmark:

@@ -13,7 +13,7 @@ try{
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
  await page.evaluate(()=>{
   const k="japanese-harmony-puzzle-v2",s=JSON.parse(localStorage.getItem(k));
-  s.unlocked=60;s.run=null;s.tutorialHelpSeen={};s.reduceMotion=false;
+  s.unlocked=60;s.run=null;s.tutorialHelpSeen={};s.reduceMotion=false;s.sound=true;
   localStorage.setItem(k,JSON.stringify(s));
  });
  await page.reload({waitUntil:"networkidle2"});
@@ -36,6 +36,14 @@ try{
  await page.evaluate(()=>{
   // Audit the actual visual DOM sequence, not hypothetical timing data.
   // Every telegraph mark must arrive before the first glitter particle.
+  window.__hanabiAudioWitness=[];
+  const originalAudio=window.HarmonyAudio;
+  // Existing play() facade is frozen; replace the window binding, not the
+  // immutable method, to observe the real player gesture/audio lifecycle.
+  window.HarmonyAudio={...originalAudio,play(type,detail){
+   if(type.startsWith("hanabi-"))window.__hanabiAudioWitness.push(type);
+   return originalAudio.play(type,detail);
+  }};
   window.__hanabiVisualWitness={
    events:[],marks:[],delays:[],glitter:0,colors:[],impacts:[],
    glitterSize:0,glitterDuration:0,spiralMarks:0,
@@ -88,7 +96,8 @@ try{
   noSpritesInCrates:[43,47].every(at=>!document.querySelector('.tile[data-index="'+at+'"] .piece')),
   saved:JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run,
   width:document.documentElement.scrollWidth,screen:innerWidth,
-  fx:window.__hanabiVisualWitness
+  fx:window.__hanabiVisualWitness,
+  audio:window.__hanabiAudioWitness
  }));
  assert.equal(after.cargo,1);assert.equal(after.crate,2);assert(after.noSpritesInCrates);
  assert.equal(after.saved.data.hanabiVersion,2);
@@ -118,6 +127,8 @@ try{
  assert(after.fx.glitterSize>=9&&after.fx.glitterDuration>=675,
   "Score Motes-like glitter should be visibly larger and longer-lived");
  assert.equal(after.fx.oldBeam,false,"No old solid laser can appear");
+ assert.deepEqual(after.audio,["hanabi-load","hanabi-charge","hanabi-launch"],
+  "A delivered firework must sound intake, charging and launch in visual order");
  assert.deepEqual(errors,[]);
  console.log("PASS Hanabi Telegraph mobile: only true targets, smooth staggered tile glows, larger longer five-colour glitter, no circular hits or laser");
 }finally{await browser.close();}

@@ -195,14 +195,14 @@ jobs:
         run: node daisugi-bloom/tests/harmony-lotus-hint-browser.mjs
       - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion
         run: node daisugi-bloom/tests/harmony-lotus-browser.mjs
+      - name: Bamboo Paths Early Preview · 390px chapter chooser and true locked-cell puzzle isolation
+        run: node daisugi-bloom/tests/harmony-bamboo-preview-browser.mjs
       - name: Run Japanese Harmony mobile smoke
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
       - name: Moon Mirrors 1.2 · six previews, Fusion Echo chain and 390px save isolation
         run: node daisugi-bloom/tests/harmony-moon-mirrors-browser.mjs
       - name: Wind Garden 1.0 · 390px real row shift, next-wind forecast and save isolation
         run: node daisugi-bloom/tests/harmony-wind-garden-browser.mjs
-      - name: Bamboo Paths Early Preview · 390px chapter chooser and true locked-cell puzzle isolation
-        run: node daisugi-bloom/tests/harmony-bamboo-preview-browser.mjs
       - name: Wind Garden Animation 1.1 · persistent directional atmosphere, fast gust and cleanup
         run: node daisugi-bloom/tests/harmony-wind-sweep-browser.mjs
       - name: Omamori 6.1 · washi HUD, inset meter, framed button and red Sealbreakers

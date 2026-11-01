@@ -35,6 +35,9 @@ try{
    at:Number(n.dataset.index),direction:n.querySelector(".moon-mirror-arrow")?.textContent,
    accessible:n.getAttribute("aria-label"),
    hasStandaloneGlass:!!n.querySelector(".moon-mirror-glass"),
+   fullCellGlass:Math.abs(n.querySelector(".moon-mirror-glass").getBoundingClientRect().width-n.getBoundingClientRect().width)<2,
+   paintedSurface:getComputedStyle(n.querySelector(".moon-mirror-glass")).backgroundImage.includes("moon-mirror-tile-256.webp"),
+   oldFrameHidden:getComputedStyle(n.querySelector(".moon-mirror-frame")).display==="none",
    hasFamilySprite:!!n.querySelector(".piece, .sprite")
   })),
   cardsHidden:getComputedStyle(document.querySelector("#omamoriPowerBar")).display==="none",
@@ -45,6 +48,8 @@ try{
  assert(start.mirrored.every(x=>x.accessible.includes("Moon Mirror, fixed, reflects Harmony Pulse")));
  assert(start.mirrored.every(x=>x.hasStandaloneGlass&&!x.hasFamilySprite),
   "A mirror must be a standalone fixture with no family object or sprite underneath");
+ assert(start.mirrored.every(x=>x.fullCellGlass&&x.paintedSurface&&x.oldFrameHidden),
+  "The user's 256px watercolor mirror must fill the whole tile, without a generated frame");
  assert(start.cardsHidden,"Preview must hide real Omamori cards");
  assert(start.scrollWidth<=start.screenWidth+1,"Mirror markers must fit mobile width");
  await page.evaluate(()=>{

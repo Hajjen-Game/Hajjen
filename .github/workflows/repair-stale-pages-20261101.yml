@@ -1,0 +1,45 @@
+# One-off maintenance, branch-only. Never touches app code or live content.
+name: Repair stale Pages deployment 2026-11-01
+on:
+  push:
+    branches:
+      - maintenance/unstick-pages-20261101
+permissions:
+  contents: read
+  deployments: write
+jobs:
+  release-stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Diagnose and release only the stale successful-commit Pages deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner=context.repo.owner,repo=context.repo.repo;
+            const staleSha="094aa5e387aaf2c26a937b34b6bbe44779ddc930";
+            const deploys=await github.paginate(github.rest.repos.listDeployments,{
+              owner,repo,sha:staleSha,environment:"github-pages",per_page:100
+            });
+            core.info("Pages deployment records for older SHA: "+deploys.length);
+            let released=0;
+            for(const dep of deploys){
+              const {data:statuses}=await github.rest.repos.listDeploymentStatuses({
+                owner,repo,deployment_id:dep.id,per_page:100
+              });
+              const latest=statuses[0];
+              core.info("Deployment "+dep.id+" status="+(latest?.state||"none")+
+                " created="+dep.created_at);
+              if(!latest||!["in_progress","queued","pending"].includes(latest.state))
+                continue;
+              if(Date.now()-Date.parse(latest.created_at)<10*60*1000){
+                core.warning("Not touching an active deployment less than 10 min old");
+                continue;
+              }
+              await github.rest.repos.createDeploymentStatus({
+                owner,repo,deployment_id:dep.id,state:"failure",
+                description:"Release stale Pages deployment blocking Hanabi 1.0 publication",
+                auto_inactive:false
+              });
+              released++;core.info("Released stale Pages deployment "+dep.id);
+            }
+            core.info("Stale deployment statuses released: "+released);

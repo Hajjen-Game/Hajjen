@@ -43,12 +43,14 @@ async function checkAmbient(row,direction,reduced=false){
    return {name:style.animationName,iteration:style.animationIterationCount,
     display:style.display,from:frames[0]?.transform,to:frames.at(-1)?.transform,
     timing:an?.effect.getTiming().duration,
+    peakOpacity:Math.max(0,...frames.map(frame=>Number(frame.opacity)||0)),
     background:style.backgroundImage};
   });
   return {row:band?.dataset.row,direction:band?.dataset.direction,
    layers:document.querySelectorAll(".wind-ambient-row").length,
    gustLayers:document.querySelectorAll(".wind-sweep-row").length,
-   info,layerPointer:getComputedStyle(band?.parentElement).pointerEvents,
+   info,hazeOpacity:Number(getComputedStyle(band.querySelector(".wind-ambient-haze")).opacity),
+   layerPointer:getComputedStyle(band?.parentElement).pointerEvents,
    rowPointer:getComputedStyle(band).pointerEvents,
    left:Math.abs(r.left-a.left),right:Math.abs(r.right-b.right),
    height:Math.abs(r.height-a.height),
@@ -59,11 +61,15 @@ async function checkAmbient(row,direction,reduced=false){
  assert.equal(data.layers,1);
  assert.equal(data.gustLayers,0,"No separate white burst cloud should exist");
  assert.equal(data.info.length,3,"Three staggered, elongated moving streams should remain");
+ assert(data.hazeOpacity>=.55&&data.hazeOpacity<=.65,
+  "Wind stays visible on the complete row, without becoming a white fog patch");
  assert.equal(data.layerPointer,"none");assert.equal(data.rowPointer,"none");
  assert(data.left<2&&data.right<2&&data.height<2,"Wind must fill exactly one seven-cell row");
  assert.equal(data.overflow,false);
  for(const line of data.info){
   if(reduced){assert.equal(line.display,"none");continue;}
+  assert(line.peakOpacity>=.9&&line.peakOpacity<=1,
+   "Thin directional wind lines must stay readable on dark artwork");
   assert.equal(line.iteration,"infinite");
   assert.equal(line.name,"wind-stream-"+direction);
   assert(line.from?.includes(direction==="right"?"-105%":"105%"));

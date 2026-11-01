@@ -965,6 +965,11 @@ class Game{
     starPar:route.starPar,hanabiVersion:2,goal:{type:"lotus",count:route.lotus.starts.length},
     lotus:route.lotus,boardMechanics:route.boardMechanics};
   }
+  // Diagnostic-only legacy replay fixture; never used by live new rounds.
+  if(!previous&&this.level===60&&options?.hanabiVersion===1){
+   this.config={...this.config,lotus:{version:1,starts:[36,40],exits:[43,47]},
+    hanabiVersion:1};
+  }
   this.lotus=Lotus.normalize(this.config.lotus);
   this.lotusVersion=this.config.lotusVersion||0;
   this.hanabiVersion=this.config.hanabiVersion||0;

@@ -3,7 +3,7 @@
  * All four recipes are opt-in diagnostics. Live level 61 and levels 62+ stay unchanged.
  */
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path");
-const L=require("../harmony/lotus-stream.js"),
+const L=require("../harmony/lotus-stream.js"),Hanabi=require("../harmony/hanabi-crate.js"),
  LR=require("../harmony/lotus-routing.js"),
  R=require("../harmony/rules.js"),
  H=require("../harmony/save-health.js"),
@@ -16,7 +16,7 @@ check("Production Lotus pilot and levels beyond it remain untouched",()=>{
   assert.equal(g.config.name,"First Hanabi Crate");
   assert.equal(g.config.moves,38);
   assert.equal(g.lotusPrototype,null);
-  assert.deepEqual(g.lotus.starts,[36,40]);
+  assert.deepEqual(g.lotus.starts,[29,33]);
   assert.deepEqual(g.lotus.exits,[43,47]);
   assert.equal(R.validSwaps(g.board).length>=3,true);
   assert(H.validRun({level:60,data:g.save()}));
@@ -133,12 +133,12 @@ check("Two seeds can use the same gate sequentially without being fused or lost"
  assert.equal(g.board.filter(L.isSeed).length,3);
  const bottom=g.board.find(p=>L.isSeed(p)&&p.id===-2022);
  const top=g.board.find(p=>L.isSeed(p)&&p.id===-2008);
- g.board[gate]=bottom;
- let batch=L.collect(g.board,g.lotus.exits);
+ g.board[gate-7]=bottom;
+ let batch=Hanabi.collect(g.board,g.lotus.exits);
  assert.deepEqual(batch.map(p=>p.id),[-2022]);
  assert.equal(g.board.some(p=>p?.id===-2008),true);
- g.board[gate]=top;
- batch=L.collect(g.board,g.lotus.exits);
+ g.board[gate-7]=top;
+ batch=Hanabi.collect(g.board,g.lotus.exits);
  assert.deepEqual(batch.map(p=>p.id),[-2008]);
  assert.notEqual(batch[0].id,-2022);
 });

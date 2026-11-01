@@ -9,7 +9,9 @@ const create=(seed=20261101)=>new R.Game(60,null,{seed,directorMode:"v62"});
 test("Hanabi is a real versioned level-61 recipe with two crates on the bottom row",()=>{
  const game=create();
  assert.equal(game.config.name,"First Hanabi Crate");
- assert.equal(game.hanabiVersion,1);
+ assert.equal(game.hanabiVersion,2);
+ assert.equal(game.board[43].family,"hanabiCrate");
+ assert.equal(game.board[47].family,"hanabiCrate");
  assert.deepEqual(game.lotus.exits,[43,47]);
  assert.deepEqual(H.path(43),[36,29,22,15,8,1]);
  assert.deepEqual(H.path(47),[40,33,26,19,12,5]);
@@ -24,6 +26,8 @@ test("first legal collection launches exactly one full-column Pulse",()=>{
  const delivery=result.events.find(e=>e.type==="hanabi-delivery");
  const launch=result.events.find(e=>e.type==="hanabi-launch");
  assert(delivery&&launch);
+ assert.deepEqual(delivery.delivered[0],{at:43,from:36,id:-(2000+29)});
+ assert.equal(g.board[43].family,"hanabiCrate");
  assert.equal(launch.at,43);
  assert.equal(launch.column,1);
  const affected=[...launch.targets,...launch.mistTargets,...launch.darumaTargets,
@@ -42,7 +46,7 @@ test("two authentic player swaps collect both fireworks and can finish",()=>{
  const a=g.swap(37,44);
  assert(a.ok&&a.events.some(e=>e.type==="hanabi-launch"));
  const saved=g.save(),restored=new R.Game(60,saved,{fastRestore:true});
- assert.equal(restored.hanabiVersion,1);
+ assert.equal(restored.hanabiVersion,2);
  assert.deepEqual(restored.board,g.board);
  const b=restored.swap(41,48);
  assert(b.ok&&b.events.some(e=>e.type==="hanabi-launch"));
@@ -51,7 +55,7 @@ test("two authentic player swaps collect both fireworks and can finish",()=>{
  assert(!restored.board.some(L.isSeed));
 });
 test("old unfinished Lotus round does not acquire fireworks or new line pulses",()=>{
- const g=create(33991);
+ const g=new R.Game(60,null,{seed:33991,directorMode:"v62",hanabiVersion:1});
  const old=g.save();delete old.hanabiVersion;
  const r=new R.Game(60,old,{fastRestore:true});
  assert.equal(r.hanabiVersion,0);
@@ -63,10 +67,10 @@ test("old unfinished Lotus round does not acquire fireworks or new line pulses",
 });
 test("Hanabi launch never invents free matches when no cargo was delivered",()=>{
  const g=create();
- const rejected=g.swap(36,37);
+ const rejected=g.swap(29,30);
  assert.equal(rejected.ok,false);
  assert.equal(g.roundTrace.moves.length,0);
  assert.equal(g.progress(),0);
  assert(!g.save().roundTrace.moves.some(m=>m.events.some(e=>e.type==="hanabi-launch")));
 });
-console.log("Hanabi Crate 1.0 real engine contracts passed");
+console.log("Hanabi Crate 1.1 dedicated board and delivery contracts passed");

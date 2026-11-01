@@ -41,11 +41,13 @@ try{
  const after=await page.evaluate(()=>({
   cargo:document.querySelectorAll(".hanabi-firework-art").length,
   crate:document.querySelectorAll(".hanabi-crate").length,
+  noSpritesInCrates:[43,47].every(at=>!document.querySelector('.tile[data-index="'+at+'"] .piece')),
   saved:JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run,
   width:document.documentElement.scrollWidth,screen:innerWidth
  }));
- assert.equal(after.cargo,1);assert.equal(after.crate,2);
- assert.equal(after.saved.data.hanabiVersion,1);
+ assert.equal(after.cargo,1);assert.equal(after.crate,2);assert(after.noSpritesInCrates);
+ assert.equal(after.saved.data.hanabiVersion,2);
+ assert(after.saved.data.board[43].family==="hanabiCrate");
  assert.equal(after.saved.data.lotusDelivered,1);
  assert(after.saved.data.roundTrace.moves[0].events.some(e=>e.type==="hanabi-launch"));
  assert(after.width<=after.screen+1);

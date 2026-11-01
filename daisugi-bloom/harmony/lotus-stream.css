@@ -42,80 +42,31 @@
 body.harmony-reduced-motion #gameView .tile .lotus-collector-ring{animation:none!important}
 
 
-/* HANABI CRATE 1.0 — CSS-painted premium 2.5D festival assets. */
-// Keep the earlier Lotus look available for old saved rounds.
+/* HANABI CRATE 1.4 — original watercolor artwork for rocket & receiving box.
+ * These are visual-only replacements for the CSS-drawn placeholders.
+ * Keep the same DOM containers for animation, gravity, and delivery.
+ * The artwork is 256x256 lossless WebP with real alpha.
+ */
 body.hanabi-active #gameView .tile .lotus-collector{display:none}
 #gameView .tile .hanabi-firework-art{
- position:absolute;inset:9% 24% 11%;z-index:3;
+ position:absolute;inset:0;z-index:3;
  pointer-events:none;isolation:isolate;
  transform:rotate(12deg);
- filter:drop-shadow(0 3px 3px rgba(39,21,18,.65));
+ background:transparent url("../assets/gameplay-washi/hanabi-firework-rocket-256.webp") center / contain no-repeat;
+ filter:drop-shadow(0 2px 3px rgba(39,21,18,.4));
 }
-#gameView .tile .hanabi-rocket-body{
- position:absolute;left:17%;top:24%;width:66%;height:54%;
- border-radius:13% 13% 27% 27%;
- transform:rotate(0deg);
- background:linear-gradient(90deg,#893c37 0%,#c75d4a 18%,#df8a65 45%,#b3443c 77%,#78332f 100%);
- border:1px solid #8d4d39;
- box-shadow:inset 2px 1px 3px #fdd4a573,inset -3px -2px 4px #4321208a;
-}
-#gameView .tile .hanabi-rocket-tip{
- position:absolute;left:15%;top:1%;width:70%;height:37%;
- clip-path:polygon(50% 0%,100% 83%,88% 100%,12% 100%,0% 83%);
- background:linear-gradient(100deg,#a86b40,#f8df9e 44%,#d39a56 74%,#875339);
- filter:drop-shadow(0 1px 1px #563120);
-}
-#gameView .tile .hanabi-rocket-band{
- position:absolute;left:17%;top:44%;width:66%;height:16%;
- background:linear-gradient(#f5dfa4,#b98548 78%,#76502f);
- box-shadow:0 0 3px #f6cf8777;z-index:2;
-}
-#gameView .tile .hanabi-rocket-fuse{
- position:absolute;left:46%;top:77%;width:9%;height:16%;
- border-radius:2px;background:#f5d4a0;
- box-shadow:0 0 3px #efa352;z-index:2;
-}
-#gameView .tile .hanabi-rocket-spark{
- position:absolute;left:36%;top:88%;width:30%;height:12%;
- border-radius:50%;
- background:radial-gradient(ellipse,#fff9db 0%,#f2b65d 34%,transparent 75%);
- filter:drop-shadow(0 0 4px #f8ae68);
- animation:hanabi-fuse-glow 1.7s ease-in-out infinite alternate;
-}
-@keyframes hanabi-fuse-glow{from{opacity:.65;transform:scale(.8)}to{opacity:1;transform:scale(1.4)}}
+/* Keep legacy child elements harmless; animations follow the parent art. */
+#gameView .tile .hanabi-firework-art > span{display:none!important}
 #gameView .tile.hanabi-box-tile{
  box-shadow:inset 0 0 0 2px #d5a35b,inset 0 0 12px #c08a4990;
 }
 #gameView .tile .hanabi-crate{
- position:absolute;inset:13% 9% 7%;z-index:4;pointer-events:none;
- filter:drop-shadow(0 2px 3px #24190fb8);
+ position:absolute;inset:0;z-index:4;pointer-events:none;
+ background:transparent url("../assets/gameplay-washi/hanabi-firework-crate-256.webp") center / contain no-repeat;
+ filter:drop-shadow(0 2px 3px rgba(36,25,15,.55));
 }
-#gameView .tile .hanabi-crate-body{
- position:absolute;left:5%;right:5%;bottom:0%;height:57%;
- border:2px solid #b9894d;border-radius:4px 4px 9px 9px;
- background:linear-gradient(105deg,#422b23d9 0%,#a56d41ce 17%,#774b30ac 49%,#985f38cc 85%,#35231ede 100%);
- box-shadow:inset 0 2px 5px #f5d49265,inset 0 -5px 6px #2e1c1882,0 0 9px #da9a5680;
-}
-#gameView .tile .hanabi-crate-rim{
- position:absolute;left:1%;right:1%;top:24%;height:25%;z-index:2;
- border-radius:8px 8px 4px 4px;border:2px solid #dfa65f;
- background:linear-gradient(180deg,#efcd88 0%,#7d4f33 44%,#322525 57%,#1c1615 80%,#9c6941 100%);
- box-shadow:inset 0 2px 2px #fff0bb8c,0 1px 3px #332018;
- transform:perspective(80px) rotateX(23deg);
-}
-#gameView .tile .hanabi-crate-seal{
- position:absolute;z-index:3;left:40%;bottom:14%;width:22%;height:24%;
- border-radius:50%;display:grid;place-items:center;
- font:700 clamp(8px,2.3vw,13px)/1 serif;color:#523323;
- background:radial-gradient(circle,#f9e9ae,#bf9454);
- box-shadow:0 0 3px #f4bd68c5;
-}
+#gameView .tile .hanabi-crate > span{display:none!important}
 #gameView .tile.hanabi-box-tile .piece{display:none!important}
-
-@media(prefers-reduced-motion:reduce){
- #gameView .tile .hanabi-rocket-spark{animation:none}
-}
-body.harmony-reduced-motion #gameView .tile .hanabi-rocket-spark{animation:none}
 
 /* Hanabi Launch Telegraph 1.0: use the SAME rotating rim art as
  * Harmony Pulse; only the order of the six marks is changed.

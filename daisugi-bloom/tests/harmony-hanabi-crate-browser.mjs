@@ -26,12 +26,36 @@ try{
   goal:document.querySelector("#goalLabel").textContent,
   cargo:document.querySelectorAll(".hanabi-firework-art").length,
   crates:document.querySelectorAll(".hanabi-crate").length,
+  rocketImage:getComputedStyle(document.querySelector(".hanabi-firework-art")).backgroundImage,
+  crateImage:getComputedStyle(document.querySelector(".hanabi-crate")).backgroundImage,
+  oldRocketHidden:[...document.querySelector(".hanabi-firework-art").children]
+   .every(node=>getComputedStyle(node).display==="none"),
+  oldCrateHidden:[...document.querySelector(".hanabi-crate").children]
+   .every(node=>getComputedStyle(node).display==="none"),
   body:document.body.classList.contains("hanabi-active"),
   scroll:document.documentElement.scrollWidth,screen:innerWidth
  }));
  assert.equal(first.name,"First Hanabi Crate");
  assert.equal(first.goal,"Deliver fireworks");
  assert.equal(first.cargo,2);assert.equal(first.crates,2);assert(first.body);
+ assert(first.rocketImage.includes("hanabi-firework-rocket-256.webp")&&
+  first.crateImage.includes("hanabi-firework-crate-256.webp"),
+  "Hanabi must render both approved watercolor artworks");
+ assert(first.oldRocketHidden&&first.oldCrateHidden,
+  "The previous CSS-drawn rocket and box must not overlay the new artwork");
+ const imageSizes=await page.evaluate(async()=>{
+  return Promise.all([
+   "./assets/gameplay-washi/hanabi-firework-rocket-256.webp",
+   "./assets/gameplay-washi/hanabi-firework-crate-256.webp"
+  ].map(url=>new Promise(resolve=>{
+   const image=new Image();
+   image.onload=()=>resolve([image.naturalWidth,image.naturalHeight]);
+   image.onerror=()=>resolve(null);
+   image.src=url;
+  })));
+ });
+ assert.deepEqual(imageSizes,[[256,256],[256,256]],
+  "Both transparent game sprites must load at exactly 256x256");
  assert(first.scroll<=first.screen+1);
  await page.evaluate(()=>{
   // Audit the actual visual DOM sequence, not hypothetical timing data.

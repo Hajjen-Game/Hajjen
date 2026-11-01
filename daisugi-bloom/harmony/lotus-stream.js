@@ -1,5 +1,5 @@
 /* Hanabi Crate 1.0 · Firework Drop & Box On Board
- * One authored, playable pilot (level 61). Remaining Lotus Stream levels
+ * One authored, playable pilot (level 61). Remaining Hanabi Festival levels
  * are deliberately not assigned before real difficulty and clarity testing.
  * Seeds are living cargo, not matchable treasures or fixed terrain.
  */

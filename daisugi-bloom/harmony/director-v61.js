@@ -134,7 +134,12 @@ function assess(board,goal={},context={},validSwaps,scan){
  const investment=Math.min(6,anchors)*.65;
  const variety=Math.min(3,occupied.size)*.45+
   Math.min(5,destinations.size)*.24+Math.min(4,strategicMoves)*.42;
- const baseStrategic=goalDepth+routes+investment+variety;
+ // A collection puzzle must prioritize clearing cargo lanes, not building
+ // Masterpieces for their own sake. Bamboo Pulse puzzles benefit from long
+ // stage-growth paths; Lotus puzzles do not share that objective.
+ const baseStrategic=kind==="lotus"?
+  Math.min(5,goalActions)*2.6+routes*.18+investment*.12+variety*.25:
+  goalDepth+routes+investment+variety;
  const drought=Math.max(0,Math.min(12,Number(context.objectiveDrought)||0));
  // More reachability weight during prolonged goal drought, but capped,
  // and never a promise to win or a scripted target.
@@ -159,6 +164,10 @@ function choose(baseline,alternatives,scoreFn,context,validSwaps,scan){
   // Do not sacrifice a usable puzzle just to maximize the potential of one
   // Masterpiece. Critical deadlocks take priority over speculative paths.
   if(!underPressure&&m.legal<Math.max(3,original.legal-1))continue;
+  // Collection routes should not be traded for prettier stage growth when
+  // the candidate adds no new cargo-clearing opportunity.
+  if(context.goal?.type==="lotus"&&m.legal<original.legal&&
+   m.goalActions<=original.goalActions)continue;
   const pace=scoreFn(candidate.board);
   if(best.legal<=2&&m.legal>best.legal){
    selected=candidate;best=m;bestPace=pace;reason="mobility-recovery";continue;

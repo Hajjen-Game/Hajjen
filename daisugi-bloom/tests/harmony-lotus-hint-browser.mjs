@@ -50,7 +50,7 @@ try{
   const from=Number(document.querySelector(".idle-hint-source").dataset.index);
   const to=Number(document.querySelector(".idle-hint-target").dataset.index);
   const g=new HarmonyRules.Game(60,null,{
-   seed:20261101,lotusPreview:"garden-route",directorMode:"v6"});
+   seed:20261101,lotusPreview:"garden-route",directorMode:"v61"});
   return {from,to,legal:HarmonyRules.validSwaps(g.board)};
  });
  assert(marked.legal.some(([a,b])=>(a===marked.from&&b===marked.to)||

@@ -1332,7 +1332,7 @@ function renderBoard(board,highlight,effect){
   if(boardKeys[i]!==key){
    boardKeys[i]=key;
    btn.replaceChildren();
-   btn.setAttribute("aria-label",crate?"Hanabi firework crate, fixed receiving box":moon?"Moon Mirror, fixed, reflects "+(mirror?.direction||"unknown"):lotus?(game?.hanabiVersion?"Hanabi firework, guide it to a crate below":"Lotus seed, guide it to the river gate below"):terrain?"Closed garden tile":stone?"Sealed Stone, "+stoneLeft+" hits left":
+   btn.setAttribute("aria-label",crate?"Hanabi firework crate, fixed receiving box":moon?"Moon Mirror, fixed, reflects "+(mirror?.direction||"unknown"):lotus?(game?.hanabiVersion?"Hanabi firework, guide it to a crate below":"Lotus seed, guide it to the river gate below"):terrain?"Missing board square":stone?"Sealed Stone, "+stoneLeft+" hits left":
     doll?"Daruma, "+(dState===0?"two eyes left":dState===1?"one eye left":"completed"):
     piece?names[piece.family]+", tier "+piece.stage+", tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
    if(moon){
@@ -1355,8 +1355,9 @@ function renderBoard(board,highlight,effect){
    }else if(crate){
     // Fixed crate renders only its receiver art, never a treasure sprite.
    }else if(terrain){
-    const art=document.createElement("span");art.className="terrain-garden-art";
-    art.setAttribute("aria-hidden","true");btn.append(art);
+    // Void Board 1.0: closed positions retain their engine terrain ID but
+    // have no visible tile, frame, background, or decorative stone art.
+    // Keeping all 49 grid coordinates preserves FLIP, gravity and target maths.
    }else if(stone){
     const art=document.createElement("span");art.className="sealed-stone-art state-"+stoneStage;
     art.setAttribute("aria-hidden","true");btn.append(art);
@@ -1391,7 +1392,7 @@ function renderBoard(board,highlight,effect){
   const label=crate?"Hanabi crate, fixed receiving box. Guide the firework to the tile above, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
    moon?"Moon Mirror, fixed, reflects Harmony Pulse "+(mirror?.direction||"")+" — tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
    lotus?(game?.hanabiVersion?"Hanabi firework. Match beneath it to drop into the crate, tile ":"Lotus seed. Match beneath it to drop into the gate, tile ")+(Math.floor(i/7)+1)+"-"+(i%7+1):
-   terrain?"Closed garden tile, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
+   terrain?"No board tile, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
    stone?"Sealed Stone, "+stoneLeft+" hits left, tile "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):
    doll?"Daruma, "+(dState===0?"two eyes left":dState===1?"one eye left":"completed")+", tile "+
@@ -1428,6 +1429,15 @@ function renderBoard(board,highlight,effect){
    (resonance.partners.has(i)?" resonance-partner":"")+
    (resonance.awakened.has(i)?" resonance-awakening":"");
   if(btn.className!==cls)btn.className=cls;
+  // A hidden void occupies a grid coordinate for physics but is not a
+  // focusable, interactive or accessible button.
+  if(btn.disabled!==terrain)btn.disabled=terrain;
+  if(terrain){
+   btn.tabIndex=-1;
+   if(btn.getAttribute("aria-hidden")!=="true")btn.setAttribute("aria-hidden","true");
+  }else{
+   btn.removeAttribute("tabindex");btn.removeAttribute("aria-hidden");
+  }
  }
  presentedBoard=board.map(p=>p?{id:p.id,family:p.family,stage:p.stage}:null);
  if(removedMist.length)releaseMist(removedMist);
@@ -2965,7 +2975,7 @@ function showBambooPreviewResult(){
  const message=document.createElement("p");
  message.textContent=won?
   "You solved an authentic Bamboo Paths chapter puzzle. Your regular progression remains untouched.":
-  "Closed bamboo stones cannot move, fuse or fall. Try using the open corridors to grow treasures.";
+  "Missing board squares cannot hold treasures or matches. Use the remaining paths around the gaps.";
  content.append(message);
  const summary=document.createElement("p");summary.className="bamboo-preview-result";
  summary.textContent="Level "+(level+1)+" · "+game.config.name+" · Goal "+
@@ -2988,7 +2998,7 @@ function showBambooPreviewChooser(){
  $("modalTitle").textContent="Bamboo Paths · Preview";
  const content=$("modalContent");content.replaceChildren();
  const intro=document.createElement("p");
- intro.textContent="Play the actual levels 51–60 early. Closed bamboo stones permanently divide the 7×7 board, shaping swaps, falling treasures and Harmony Pulse. Every layout, objective and move limit is from the real chapter. These trials never spend cards, grant rewards, or change your saved progress.";
+ intro.textContent="Play the actual levels 51–60 early. Missing tiles form openings in the 7×7 board, shaping swaps, falling treasures and Harmony Pulse. Every layout, objective and move limit is from the real chapter. These trials never spend cards, grant rewards, or change your saved progress.";
  content.append(intro);
  const choices=goshuinNode("div","bamboo-preview-grid");
  choices.setAttribute("aria-label","Choose a Bamboo Paths level to test");

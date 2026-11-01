@@ -183,6 +183,12 @@ jobs:
         run: node daisugi-bloom/tests/harmony-gate-wind-browser.mjs
       - name: Hanabi Crate 1.0 · 390px crate, fireworks, real pulse and save
         run: node daisugi-bloom/tests/harmony-hanabi-crate-browser.mjs
+      - name: Lotus Stream Early Preview · 390px cargo delivery, river gates and no saved progress changes
+        run: node daisugi-bloom/tests/harmony-lotus-preview-browser.mjs
+      - name: Lotus hint reliability · no starvation by invalid touches, manual legal hint and saved state safety
+        run: node daisugi-bloom/tests/harmony-lotus-hint-browser.mjs
+      - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion
+        run: node daisugi-bloom/tests/harmony-lotus-browser.mjs
       - name: Run Japanese Harmony mobile smoke
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
       - name: Moon Mirrors 1.2 · six previews, Fusion Echo chain and 390px save isolation
@@ -191,14 +197,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-wind-garden-browser.mjs
       - name: Bamboo Paths Early Preview · 390px chapter chooser and true locked-cell puzzle isolation
         run: node daisugi-bloom/tests/harmony-bamboo-preview-browser.mjs
-      - name: Lotus Stream Early Preview · 390px cargo delivery, river gates and no saved progress changes
-        run: node daisugi-bloom/tests/harmony-lotus-preview-browser.mjs
-      - name: Lotus hint reliability · no starvation by invalid touches, manual legal hint and saved state safety
-        run: node daisugi-bloom/tests/harmony-lotus-hint-browser.mjs
       - name: Wind Garden Animation 1.1 · persistent directional atmosphere, fast gust and cleanup
         run: node daisugi-bloom/tests/harmony-wind-sweep-browser.mjs
-      - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion
-        run: node daisugi-bloom/tests/harmony-lotus-browser.mjs
       - name: Omamori 6.1 · washi HUD, inset meter, framed button and red Sealbreakers
         run: node daisugi-bloom/tests/harmony-economy-browser.mjs
       - name: Run Omikuji Fortune daily-draw mobile smoke

@@ -39,7 +39,7 @@ try{
    progress:document.querySelector("#goalProgress").textContent,
    layoutWidth:document.body.scrollWidth,port:innerWidth};
  });
- assert.deepEqual(intro.seeds,[36,40]);
+ assert.deepEqual(intro.seeds,[29,33]);
  assert.deepEqual(intro.exits,[43,47]);
  assert.equal(intro.graphic,true);
  assert.equal(intro.crates,2);

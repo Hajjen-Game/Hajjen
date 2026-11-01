@@ -47,7 +47,7 @@ function validate(lotusInput,mechanicsInput){
 function get(name){
  if(!Object.hasOwn(prototypes,name))throw Error("Unknown Lotus prototype: "+name);
  const recipe=prototypes[name],{lotus,mechanics}=validate(recipe.lotus,recipe.boardMechanics);
- return {name:recipe.name,key:name,moves:recipe.moves,starPar:recipe.starPar,hanabiVersion:1,
+ return {name:recipe.name,key:name,moves:recipe.moves,starPar:recipe.starPar,hanabiVersion:2,
   lotus,boardMechanics:mechanics};
 }
 function remaining(board,lotusInput){

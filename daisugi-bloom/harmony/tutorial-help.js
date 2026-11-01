@@ -134,7 +134,7 @@ const EXAMPLES=Object.freeze({
  "twin-gardens":[["Two garden wings","The open crossing connects the two sides."]],
  "central-shrine":[["Protected center","The shrine blocks matches through the middle."]],
  "bamboo-finale":[["Clear Mist around the shrine","Closed stones stay fixed. Fuse onto Mist or hit it with Harmony Pulse."]],
- "lotus-intro":[["Launch Hanabi fireworks","Make matches below a firework to drop it into a crate. Each delivery pulses upward through the whole column."]]
+ "lotus-intro":[["Launch Hanabi fireworks","Clear the space beneath each firework. When it reaches the tile ABOVE its fixed crate, it drops inside and launches a visible Pulse upward through its column."]]
 });
 function render(lesson){
  const kind=EXAMPLES[lesson?.key]?lesson.key:"match";

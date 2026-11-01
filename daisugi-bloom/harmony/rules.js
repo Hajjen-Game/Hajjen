@@ -386,10 +386,11 @@ function scan(board){
 function isDaruma(p){return !!p&&p.family==="daruma";}
 function isSealed(p){return !!p&&p.family==="sealedStone";}
 function isTerrain(p){return !!p&&p.family==="terrain";}
+function isHanabiCrate(p){return Hanabi.isCrate(p);}
 function isMoonMirror(p){return !!p&&p.family==="moonMirror";}
 function isLotusSeed(p){return Lotus.isSeed(p);}
 function isShuffleAnchor(p){return isFixed(p)||isLotusSeed(p);}
-function isFixed(p){return isDaruma(p)||isSealed(p)||isTerrain(p)||isMoonMirror(p);}
+function isFixed(p){return isDaruma(p)||isSealed(p)||isTerrain(p)||isMoonMirror(p)||isHanabiCrate(p);}
 function neighbors8(i){
  const r=Math.floor(i/N),c=i%N,out=[];
  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
@@ -961,8 +962,13 @@ class Game{
    const route=LotusRouting.get(requestedLotusPrototype);
    this.lotusPrototype=route.key;
    this.config={...this.config,name:route.name,moves:route.moves,par:route.starPar,
-    starPar:route.starPar,hanabiVersion:1,goal:{type:"lotus",count:route.lotus.starts.length},
+    starPar:route.starPar,hanabiVersion:2,goal:{type:"lotus",count:route.lotus.starts.length},
     lotus:route.lotus,boardMechanics:route.boardMechanics};
+  }
+  // Diagnostic-only legacy replay fixture; never used by live new rounds.
+  if(!previous&&this.level===60&&options?.hanabiVersion===1){
+   this.config={...this.config,lotus:{version:1,starts:[36,40],exits:[43,47]},
+    hanabiVersion:1};
   }
   this.lotus=Lotus.normalize(this.config.lotus);
   this.lotusVersion=this.config.lotusVersion||0;
@@ -1031,8 +1037,10 @@ class Game{
    let initial=this.board;
    for(let attempt=0;attempt<160;attempt++){
     if(attempt)initial=startBoard(this.level,()=>this.fresh(),this.families,this.boardMechanics);
-    initial=this.lotusPrototype?LotusRouting.opening(initial,this.families):Lotus.opening(initial,this.families);
+    initial=this.hanabiVersion>=2?Hanabi.opening(initial,this.families):
+     this.lotusPrototype?LotusRouting.opening(initial,this.families):Lotus.opening(initial,this.families);
     for(const at of this.lotus.starts)initial[at]=Lotus.seed(at);
+    if(this.hanabiVersion>=2)Hanabi.install(initial,this.lotus.exits);
     if(validSwaps(initial).length>=3&&scan(initial).length===0)break;
     if(attempt===159)throw Error("No fair Lotus opening");
    }
@@ -1102,7 +1110,7 @@ class Game{
    const oldLotusRun=this.level===60&&previous.lotusVersion!==1;
    this.lotus=Lotus.normalize(oldLotusRun?null:previous.lotus??this.config.lotus);
    this.lotusVersion=oldLotusRun?0:previous.lotusVersion||0;
-   this.hanabiVersion=previous.hanabiVersion===1&&!oldLotusRun?1:0;
+   this.hanabiVersion=!oldLotusRun&&[1,2].includes(previous.hanabiVersion)?previous.hanabiVersion:0;
    this.lotusDelivered=oldLotusRun?0:Math.max(0,Math.min(this.lotus.starts.length,Number(previous.lotusDelivered)||0));
    this.boardMechanics=B.normalize(previous.boardMechanics??(oldBambooRun?null:this.config.boardMechanics));
    this.windGarden=Wind.normalize(previous.windGarden);
@@ -1151,8 +1159,13 @@ class Game{
      goal:{type:"lotus",count:route.lotus.starts.length},
      lotus:route.lotus,boardMechanics:route.boardMechanics,hanabiVersion:this.hanabiVersion};
    }else this.lotusPrototype=null;
-   if(this.level===60&&this.lotusVersion===1&&!this.hanabiVersion)
-    this.config={...this.config,...(this.lotusPrototype?{}:Lotus.LEGACY_PILOT),hanabiVersion:0};
+   if(this.level===60&&this.lotusVersion===1&&this.hanabiVersion<2){
+    const oldIntro="Guide two fireworks into their wooden crates on the bottom row. Match treasures below each firework so it falls. Each delivered firework launches a bright vertical pulse through its column, upgrading treasures and striking responsive blockers.";
+    this.config={...this.config,
+     ...(!this.hanabiVersion&&!this.lotusPrototype?Lotus.LEGACY_PILOT:
+      this.hanabiVersion===1?{intro:oldIntro}:{}),
+     hanabiVersion:this.hanabiVersion};
+   }
    this.difficultyCalibrationVersion=previous.difficultyCalibrationVersion===2?2:0;
    this.chapterIdentityVersion=oldLanternRun?0:this.level>=40&&this.level<50?2:0;
    this.bambooVersion=oldBambooRun?0:this.config.bambooVersion||0;
@@ -1253,7 +1266,7 @@ class Game{
    // player's moves, stages, score or RNG position. Each obsolete identity is
    // mapped to a family missing from the new level pool, one-to-one, which
    // avoids creating an instant match by merging two old identities.
-   const obsolete=[...new Set(this.board.filter(Boolean).map(p=>p.family).filter(f=>!this.families.includes(f)&&f!=="daruma"&&f!=="sealedStone"&&f!=="terrain"&&f!=="lotusSeed"&&f!=="moonMirror"))];
+   const obsolete=[...new Set(this.board.filter(Boolean).map(p=>p.family).filter(f=>!this.families.includes(f)&&f!=="daruma"&&f!=="sealedStone"&&f!=="terrain"&&f!=="lotusSeed"&&f!=="moonMirror"&&f!=="hanabiCrate"))];
    if(obsolete.length){
     const present=new Set(this.board.filter(Boolean).map(p=>p.family));
     const missing=this.families.filter(f=>!present.has(f));
@@ -1809,11 +1822,12 @@ class Game{
     if(moved)events.push(this.frame("lotus-fall"));
    }
    if(this.lotus.exits.length){
-    const delivered=Lotus.collect(this.board,this.lotus.exits);
+    const delivered=this.hanabiVersion>=2?Hanabi.collect(this.board,this.lotus.exits):
+     Lotus.collect(this.board,this.lotus.exits);
     if(delivered.length){
      this.lotusDelivered+=delivered.length;
      events.push(this.frame(this.hanabiVersion?"hanabi-delivery":"lotus-delivery",
-      {delivered,positions:delivered.map(d=>d.at)}));
+      {delivered,positions:delivered.map(d=>d.from??d.at)}));
      if(this.hanabiVersion)Hanabi.launch(this,delivered,{events,
       frame:(type,extra)=>this.frame(type,extra),hitDaruma,hitStone,
       emitAwakenings,neighbors,pendingAwakenings});
@@ -1880,7 +1894,8 @@ class Game{
   if(!Number.isInteger(a)||!Number.isInteger(b)||!neighbors(a).includes(b)||
    (!this.board[a]||!this.board[b]||isShuffleAnchor(this.board[a])||isShuffleAnchor(this.board[b])))
    return this.rejectMove(a,b,isMoonMirror(this.board[a])||isMoonMirror(this.board[b])?
-    "Moon Mirror is fixed — reflect Harmony Pulse through it":isLotusSeed(this.board[a])||isLotusSeed(this.board[b])?
+    "Moon Mirror is fixed — reflect Harmony Pulse through it":isHanabiCrate(this.board[a])||isHanabiCrate(this.board[b])?
+    "Hanabi crate is fixed — deliver a firework from the tile above":isLotusSeed(this.board[a])||isLotusSeed(this.board[b])?
     this.hanabiVersion?"Fireworks fall when you make matches below them":"Lotus seeds fall when you make matches below them":isTerrain(this.board[a])||isTerrain(this.board[b])?
     "Closed garden tile cannot move":isSealed(this.board[a])||isSealed(this.board[b])?
     "Sealed Stone cannot move — fuse beside it":"Daruma cannot move — fuse beside it");

@@ -1322,7 +1322,7 @@ function renderBoard(board,highlight,effect){
  const removedMist=[];
  const resonance=refreshResonance(board);
  for(let i=0;i<49;i++){
-  const piece=board[i],btn=boardTiles[i],doll=piece?.family==="daruma",stone=piece?.family==="sealedStone",terrain=piece?.family==="terrain",lotus=piece?.family==="lotusSeed",moon=piece?.family==="moonMirror";
+  const piece=board[i],btn=boardTiles[i],doll=piece?.family==="daruma",stone=piece?.family==="sealedStone",terrain=piece?.family==="terrain",lotus=piece?.family==="lotusSeed",crate=piece?.family==="hanabiCrate",moon=piece?.family==="moonMirror";
   const mirror=game?.moonMirrors?.find(m=>m.at===i);
   const dState=doll?(daruma[i]===2?0:daruma[i]===1?1:2):-1;
   const stoneLeft=stone?(sealed[i]??4):0,stoneStage=stone?Math.min(3,Math.max(0,4-stoneLeft)):-1;
@@ -1332,7 +1332,7 @@ function renderBoard(board,highlight,effect){
   if(boardKeys[i]!==key){
    boardKeys[i]=key;
    btn.replaceChildren();
-   btn.setAttribute("aria-label",moon?"Moon Mirror, fixed, reflects "+(mirror?.direction||"unknown"):lotus?(game?.hanabiVersion?"Hanabi firework, guide it to a crate below":"Lotus seed, guide it to the river gate below"):terrain?"Closed garden tile":stone?"Sealed Stone, "+stoneLeft+" hits left":
+   btn.setAttribute("aria-label",crate?"Hanabi firework crate, fixed receiving box":moon?"Moon Mirror, fixed, reflects "+(mirror?.direction||"unknown"):lotus?(game?.hanabiVersion?"Hanabi firework, guide it to a crate below":"Lotus seed, guide it to the river gate below"):terrain?"Closed garden tile":stone?"Sealed Stone, "+stoneLeft+" hits left":
     doll?"Daruma, "+(dState===0?"two eyes left":dState===1?"one eye left":"completed"):
     piece?names[piece.family]+", tier "+piece.stage+", tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
    if(moon){
@@ -1352,6 +1352,8 @@ function renderBoard(board,highlight,effect){
      }
     }else{const symbol=document.createElement("span");symbol.textContent="✿";art.append(symbol);}
     btn.append(art);
+   }else if(crate){
+    // Fixed crate renders only its receiver art, never a treasure sprite.
    }else if(terrain){
     const art=document.createElement("span");art.className="terrain-garden-art";
     art.setAttribute("aria-hidden","true");btn.append(art);
@@ -1386,7 +1388,8 @@ function renderBoard(board,highlight,effect){
    veil=document.createElement("span");veil.className="harmony-mist";
    veil.setAttribute("aria-hidden","true");btn.prepend(veil);
   }else if(!misted&&veil){veil.remove();}
-  const label=moon?"Moon Mirror, fixed, reflects Harmony Pulse "+(mirror?.direction||"")+" — tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
+  const label=crate?"Hanabi crate, fixed receiving box. Guide the firework to the tile above, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
+   moon?"Moon Mirror, fixed, reflects Harmony Pulse "+(mirror?.direction||"")+" — tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
    lotus?(game?.hanabiVersion?"Hanabi firework. Match beneath it to drop into the crate, tile ":"Lotus seed. Match beneath it to drop into the gate, tile ")+(Math.floor(i/7)+1)+"-"+(i%7+1):
    terrain?"Closed garden tile, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
    stone?"Sealed Stone, "+stoneLeft+" hits left, tile "+
@@ -1535,6 +1538,9 @@ function choose(i){
  if(powerSelection){confirmPowerTarget(i);return;}
  if(game.board[i]?.family==="moonMirror"){
   selected=-1;toast("Moon Mirror is fixed. Create a Harmony Pulse next to it to reflect the light.");return;
+ }
+ if(game.board[i]?.family==="hanabiCrate"){
+  selected=-1;toast("The crate stays in this square. Drop a firework into it from above.");return;
  }
  if(game.board[i]?.family==="lotusSeed"){
   selected=-1;toast(game.hanabiVersion?
@@ -1981,49 +1987,75 @@ function animateTilePiece(index,piece,frames,duration,options){
 // All particles are pointer-free, bounded and removed after their flight.
 async function animateHanabiLaunch(evt){
  const at=evt.at;
- if(!Number.isInteger(at)||at<42||at>=49){renderBoard(evt.board);return;}
- if(FAST()||!Element.prototype.animate){renderBoard(evt.board);return;}
- const first=indexRect(at),last=indexRect(at%7);
- const x=first.left+first.width*.5,y=first.top+first.height*.46;
- const travel=(last.top+last.height*.4)-y;
- const duration=MOBILE_LITE?470:590;
- const count=LITE_FX()?9:MOBILE_LITE?17:25;
- const tasks=[];
- const core=fxAt("hanabi-launch-mote hanabi-launch-core",x,y);
- tasks.push(animateNode(core,[
-  {transform:"translate3d(0,0,0) scale(.7)",opacity:.8,offset:0},
-  {transform:"translate3d(0,"+(travel*.35)+"px,0) scale(1.28)",opacity:1,offset:.36},
-  {transform:"translate3d(0,"+(travel*.73)+"px,0) scale(1.06)",opacity:1,offset:.78},
-  {transform:"translate3d(0,"+travel+"px,0) scale(.2)",opacity:0,offset:1}
- ],duration,{easing:"cubic-bezier(.16,.72,.25,1)"}).finally(()=>core.remove()));
- for(let i=0;i<count;i++){
-  const angle=i*2.39996,spread=(i%4+1)*2.3;
-  const dx=Math.cos(angle)*spread;
-  const trail=i*5+(i%3)*8;
-  const mote=fxAt("hanabi-launch-mote "+(i%5===0?"hanabi-launch-star":""),x+dx,y+Math.sin(angle)*4);
-  const wave=Math.sin(i*1.3)*7;
-  tasks.push(animateNode(mote,[
-   {transform:"translate3d(0,0,0) scale(.6)",opacity:0,offset:0},
-   {transform:"translate3d("+(wave*.5)+"px,"+(travel*.33)+"px,0) scale(1.18)",opacity:.96,offset:.36},
-   {transform:"translate3d("+wave+"px,"+(travel*.79)+"px,0) scale(.85)",opacity:.90,offset:.82},
-   {transform:"translate3d("+dx+"px,"+travel+"px,0) scale(.16)",opacity:0,offset:1}
-  ],duration-(i%5)*10,{delay:trail,easing:"cubic-bezier(.22,.56,.25,1)"}).finally(()=>mote.remove()));
+ if(!Number.isInteger(at)||at<42||at>=49)return;
+ const base=indexRect(at),head=indexRect(at%7);
+ const x=base.left+base.width*.5,y=base.top+base.height*.27;
+ const ceiling=head.top+head.height*.22,travel=ceiling-y;
+ const height=Math.abs(travel),reduced=FAST()||document.hidden;
+ const duration=reduced?230:MOBILE_LITE?790:900;
+ const rays=[],fx=scoreFxLayer();
+ // A continuous, high-contrast GOLD/IVORY shaft solves the tiny-mote
+ // visibility problem. The beam traverses every cell, not whole-board blink.
+ for(const cls of ["hanabi-launch-halo","hanabi-launch-beam"]){
+  const beam=document.createElement("span");beam.className=cls;
+  beam.style.left=x+"px";beam.style.top=ceiling+"px";
+  beam.style.height=height+"px";beam.setAttribute("aria-hidden","true");
+  fx.append(beam);rays.push(beam);
  }
- // Distinct individual tile impacts climb upwards as the spark column passes.
+ const impactAt=pos=>{const r=indexRect(pos);
+  return {x:r.left+r.width*.5,y:r.top+r.height*.5};};
+ const animTasks=[];
+ const shown=(node,keyframes,time,opts={})=>{
+  if(reduced||!node.animate){node.style.opacity="1";return Promise.resolve();}
+  return animateNode(node,keyframes,time,opts);
+ };
+ for(const ray of rays){
+  animTasks.push(shown(ray,[
+   {transform:"translateX(-50%) scaleY(.015)",opacity:0,offset:0},
+   {transform:"translateX(-50%) scaleY(.25)",opacity:.95,offset:.23},
+   {transform:"translateX(-50%) scaleY(.72)",opacity:1,offset:.63},
+   {transform:"translateX(-50%) scaleY(1)",opacity:1,offset:.81},
+   {transform:"translateX(-50%) scaleY(1)",opacity:0,offset:1}
+  ],duration,{easing:"cubic-bezier(.16,.6,.15,1)"}));
+ }
+ // Score Motes-like fireworks follow the same upward track. On mobile
+ // they complement a thick visible beam instead of bearing all the light.
+ if(!reduced){
+  const count=LITE_FX()?12:MOBILE_LITE?24:34;
+  const core=fxAt("hanabi-launch-mote hanabi-launch-core",x,y);
+  animTasks.push(animateNode(core,[
+   {transform:"translate3d(0,0,0) scale(1)",opacity:.9,offset:0},
+   {transform:"translate3d(0,"+(travel*.45)+"px,0) scale(1.38)",opacity:1,offset:.46},
+   {transform:"translate3d(0,"+travel+"px,0) scale(.1)",opacity:0,offset:1}
+  ],duration-70,{easing:"cubic-bezier(.12,.65,.22,1)"}).finally(()=>core.remove()));
+  for(let i=0;i<count;i++){
+   const angle=i*2.39996,side=(i%7+2)*1.9,dx=Math.cos(angle)*side;
+   const mote=fxAt("hanabi-launch-mote "+(i%4===0?"hanabi-launch-star":""),x+dx,y+Math.sin(angle)*5);
+   const sway=Math.sin(angle)*11,delay=18+i*6;
+   animTasks.push(animateNode(mote,[
+    {transform:"translate3d(0,0,0) scale(.5)",opacity:.45,offset:0},
+    {transform:"translate3d("+sway+"px,"+(travel*.5)+"px,0) scale(1.3)",opacity:1,offset:.48},
+    {transform:"translate3d("+dx+"px,"+travel+"px,0) scale(.12)",opacity:0,offset:1}
+   ],duration-85,{delay,easing:"cubic-bezier(.15,.55,.22,1)"}).finally(()=>mote.remove()));
+  }
+ }
+ // Sequential small impact rings, one per cell in the fired COLUMN.
+ // These never animate other columns or reset unrelated treasure art.
  for(let row=6;row>=0;row--){
-  const tile=row*7+(at%7),r=indexRect(tile),wait=Math.round((6-row)*duration/6);
-  const impact=fxAt("hanabi-launch-impact",r.left+r.width*.5-11,r.top+r.height*.5-11);
-  tasks.push(animateNode(impact,[
-   {transform:"scale(.18)",opacity:0,offset:0},
-   {transform:"scale(.72)",opacity:.92,offset:.35},
-   {transform:"scale(1.32)",opacity:0,offset:1}
-  ],220,{delay:wait,easing:"ease-out"}).finally(()=>impact.remove()));
+  const pos=row*7+at%7,{x:ix,y:iy}=impactAt(pos),wait=(6-row)*Math.round(duration/8);
+  const ring=fxAt("hanabi-launch-impact",ix-17,iy-17);
+  animTasks.push(shown(ring,[
+   {transform:"scale(.25)",opacity:0,offset:0},
+   {transform:"scale(.85)",opacity:1,offset:.38},
+   {transform:"scale(1.5)",opacity:0,offset:1}
+  ],240,{delay:wait,easing:"ease-out"}).finally(()=>ring.remove()));
  }
- await Promise.all(tasks);
- const struck=[...(evt.targets||[]),...(evt.darumaTargets||[]),
-  ...(evt.stoneTargets||[]),...(evt.mistTargets||[])];
- renderBoard(evt.board,struck.map(t=>t.to),"pulsed");
- pulseLandingCues(struck);
+ if(reduced)await new Promise(resolve=>setTimeout(resolve,duration));
+ else await Promise.all(animTasks);
+ for(const ray of rays)ray.remove();
+ const actual=evt.targets||[];
+ renderBoard(evt.board,actual.map(t=>t.to),"hanabi-upgraded");
+ pulseLandingCues(actual);
 }
 function makeFxLayer(){
  const board=$("board"),parent=board.parentElement;
@@ -2643,7 +2675,31 @@ async function animateEvent(evt){
   case "hanabi-launch":
    await animateHanabiLaunch(evt);
    break;
-  case "hanabi-delivery":
+  case "hanabi-delivery":{
+   // The rocket has arrived in the square directly ABOVE the fixed crate.
+   // Fly its existing sprite visibly down into the opening before firing.
+   for(const item of evt.delivered||[]){
+    const from=item.from??item.at,at=item.at;
+    const source=boardTiles[from]?.querySelector(".hanabi-firework-art");
+    if(source&&!FAST()){
+     const a=indexRect(from),b=indexRect(at),dy=(b.top+b.height*.48)-(a.top+a.height*.5);
+     await animateTilePiece(from,source,[
+      {transform:"rotate(12deg) translate3d(0,0,0) scale(1)",opacity:1,offset:0},
+      {transform:"rotate(0deg) translate3d(0,"+(dy*.55)+"px,0) scale(.83)",opacity:1,offset:.65},
+      {transform:"rotate(0deg) translate3d(0,"+dy+"px,0) scale(.36)",opacity:0,offset:1}
+     ],330,{easing:"cubic-bezier(.3,.05,.55,1)"});
+    }
+    const box=boardTiles[at]?.querySelector(".hanabi-crate");
+    if(box&&!FAST())await animateNode(box,[
+     {filter:"brightness(1)",transform:"scale(1)",offset:0},
+     {filter:"brightness(1.9) drop-shadow(0 0 8px #ffdf9a)",transform:"scale(1.12)",offset:.5},
+     {filter:"brightness(1)",transform:"scale(1)",offset:1}
+    ],180);
+   }
+   renderBoard(evt.board); // The crate remains; only the cargo disappeared.
+   toast("✦ Firework loaded · "+evt.goal+" / "+game.target(),1550);
+   break;
+  }
   case "lotus-delivery":{
    if(!FAST())await Promise.all((evt.positions||[]).map(at=>{
     const seed=boardTiles[at]?.querySelector(".lotus-seed-art,.hanabi-firework-art");

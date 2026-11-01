@@ -9,7 +9,7 @@ check("Level 61 is the only Lotus pilot; chapter 7 is marked as a pilot",()=>{
  const c=R.levelConfig(60);
  assert.equal(c.name,"First Hanabi Crate");
  assert.deepEqual(c.goal,{type:"lotus",count:2});
- assert.deepEqual(c.lotus,L.normalize({version:1,starts:[36,40],exits:[43,47]}));
+ assert.deepEqual(c.lotus,L.normalize({version:1,starts:[29,33],exits:[43,47]}));
  assert.equal(c.chapter,7);
  assert.equal(R.levelConfig(59).goal.type,"mist");
  assert.equal(R.levelConfig(61).goal.type,"mist");
@@ -28,14 +28,14 @@ check("Each of 24 random pilot openings has two real match-based deliveries",()=
  for(let seed=1;seed<=24;seed++){
   const g=new R.Game(60,null,{seed:seed*217+6,directorMode:"v4"});
   assert.equal(g.lotusVersion,1);
-  assert.equal(g.hanabiVersion,1);
+  assert.equal(g.hanabiVersion,2);
   assert.equal(g.progress(),0);
-  assert.deepEqual(g.board.map((p,i)=>L.isSeed(p)?i:-1).filter(i=>i>=0),[36,40]);
+  assert.deepEqual(g.board.map((p,i)=>L.isSeed(p)?i:-1).filter(i=>i>=0),[29,33]);
   assert.equal(R.scan(g.board).length,0);
   assert(R.validSwaps(g.board).length>=3);
   assert(H.validRun({level:60,data:g.save()}));
   const movesBefore=g.moves;
-  const refused=g.swap(36,37);
+  const refused=g.swap(29,30);
   assert.equal(refused.ok,false);
   assert.equal(g.moves,movesBefore);
   assert.match(refused.reason,/Fireworks fall/);
@@ -63,15 +63,17 @@ check("Each of 24 random pilot openings has two real match-based deliveries",()=
 });
 check("A seed neither fuses nor grows and stays in its lane through shuffle",()=>{
  const g=new R.Game(60,null,{seed:27064});
- assert.equal(g.board[36].stage,0);
- assert.equal(g.grow(36,new Set(),true),false);
+ assert.equal(g.board[29].stage,0);
+ assert.equal(g.grow(29,new Set(),true),false);
  assert.equal(R.scan(g.board).length,0);
- assert(R.validSwaps(g.board).every(([a,b])=>a!==36&&a!==40&&b!==36&&b!==40));
+ assert(R.validSwaps(g.board).every(([a,b])=>a!==29&&a!==33&&b!==29&&b!==33&&a!==43&&a!==47&&b!==43&&b!==47));
  let value=27064;
  const random=()=>{value=(Math.imul(value,1664525)+1013904223)>>>0;return value/4294967296;};
  const shuffled=R.fairShuffle(g.board,random);
- assert.deepEqual(shuffled[36],g.board[36]);
- assert.deepEqual(shuffled[40],g.board[40]);
+ assert.deepEqual(shuffled[29],g.board[29]);
+ assert.deepEqual(shuffled[43],g.board[43]);
+ assert.deepEqual(shuffled[33],g.board[33]);
+ assert.deepEqual(shuffled[47],g.board[47]);
  assert.equal(R.scan(shuffled).length,0);
 });
 check("Lotus save guard rejects changing cargo, IDs and collected counts",()=>{
@@ -79,9 +81,9 @@ check("Lotus save guard rejects changing cargo, IDs and collected counts",()=>{
  const snapshot=g.save(),clone=()=>JSON.parse(JSON.stringify(snapshot));
  const corrupt=clone();corrupt.lotusDelivered=1;
  assert.equal(H.validRun({level:60,data:corrupt}),false);
- const corruptId=clone();corruptId.board[36].id=-9999;
+ const corruptId=clone();corruptId.board[29].id=-9999;
  assert.equal(H.validRun({level:60,data:corruptId}),false);
- const corruptLane=clone();[corruptLane.board[36],corruptLane.board[38]]=[corruptLane.board[38],corruptLane.board[36]];
+ const corruptLane=clone();[corruptLane.board[29],corruptLane.board[30]]=[corruptLane.board[30],corruptLane.board[29]];
  assert.equal(H.validRun({level:60,data:corruptLane}),false);
  const wrongLevel=clone();
  assert.equal(H.validRun({level:61,data:wrongLevel}),false);
@@ -91,6 +93,8 @@ check("Historical Endless Garden level 61 round is never converted on resume",()
  const previous=legacy.save();delete previous.lotusVersion;delete previous.lotus;delete previous.lotusDelivered;
  // An actual pre-release Endless Garden round has no lotus cargo at all.
  delete previous.hanabiVersion;
+ for(const at of [29,33,36,40,43,47])
+  previous.board[at]={family:legacy.families[0],stage:1,id:at+100};
  previous.board[36]={family:legacy.families[0],stage:1,id:37};
  previous.board[40]={family:legacy.families[1],stage:1,id:41};
  previous.mist=Array(49).fill(0);

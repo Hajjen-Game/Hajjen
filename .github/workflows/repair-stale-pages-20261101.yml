@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   deployments: write
+  pages: read
 jobs:
   release-stale:
     runs-on: ubuntu-latest
@@ -43,3 +44,28 @@ jobs:
               released++;core.info("Released stale Pages deployment "+dep.id);
             }
             core.info("Stale deployment statuses released: "+released);
+            // Read-only Pages backend diagnostics. Never modify a
+            // successfully published website based on a stale UI label.
+            for(const [name,endpoint] of [
+              ["site","GET /repos/{owner}/{repo}/pages"],
+              ["recent-builds","GET /repos/{owner}/{repo}/pages/builds"],
+              ["last-build","GET /repos/{owner}/{repo}/pages/builds/latest"]
+            ]){
+              try{
+                const result=await github.request(endpoint,{owner,repo});
+                if(name==="site"){
+                  const d=result.data;
+                  core.info("Pages site status="+d.status+" build_type="+d.build_type+
+                    " url="+d.html_url+" custom_domain="+d.cname);
+                }else if(name==="recent-builds"){
+                  core.info("Recent Pages builds: "+JSON.stringify(
+                    result.data.slice(0,4).map(d=>({status:d.status,commit:d.commit,
+                      created_at:d.created_at,updated_at:d.updated_at,error:d.error}))));
+                }else{
+                  const d=result.data;
+                  core.info("Last Pages build: "+JSON.stringify({status:d.status,
+                    commit:d.commit,created_at:d.created_at,updated_at:d.updated_at,error:d.error}));
+                }
+              }catch(err){core.warning("Pages "+name+" query: "+err.status+" "+err.message)}
+            }
+

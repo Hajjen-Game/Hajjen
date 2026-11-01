@@ -34,11 +34,13 @@ try{
    level:document.querySelector("#levelNumber").textContent,
    highlighted:[...document.querySelectorAll(".wind-next-tile")].map(x=>Number(x.dataset.index)),
    atmosphere:!!document.querySelector(".wind-ambient-layer"),
+   activeStyle:document.body.classList.contains("wind-garden-active"),
+   actualBand:getComputedStyle(document.querySelector(".wind-ambient-row")).display,
    noOverflow:document.documentElement.scrollWidth<=innerWidth+1};
  });
  assert(data.level.includes("LEVEL 54")&&data.level.includes("R7")&&data.level.includes("3 MOVES"));
  assert.deepEqual(data.highlighted,[42,43,44,45,46,47,48]);
- assert(data.atmosphere&&data.noOverflow);
+ assert(data.atmosphere&&data.activeStyle&&data.actualBand==="block"&&data.noOverflow);
  assert(data.moves[2].includes("wind-shift"),"The real move three must rotate row 7");
  for(let i=0;i<3;i++){
   await page.evaluate(pair=>{

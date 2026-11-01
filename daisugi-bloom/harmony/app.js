@@ -310,7 +310,7 @@ function showMenu(){
  disarmDecisionClock();clearIdleHint();
  resetResonanceVisuals();clearScoreFx();clearPraise();clearWindAtmosphere();
  saveRun();moonMirrorPreview=null;windGardenPreview=null;bambooPreview=false;lotusPreview=null;
- document.body.classList.remove("harmony-playing","moon-mirror-preview","wind-garden-preview","bamboo-paths-preview","lotus-stream-preview");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
+ document.body.classList.remove("harmony-playing","moon-mirror-preview","wind-garden-preview","wind-garden-active","bamboo-paths-preview","lotus-stream-preview");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 // Primary level selection is the book. Keep the landing menu accessible for
 // daily Omikuji, Omamori and Game Dev; leaving a run opens Goshuincho directly.
@@ -1154,6 +1154,9 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
   bambooScenario?{directorMode:"v62",bambooPreview:true,seed:20261031+i*97}:
   lotusScenario?{directorMode:"v62",lotusPreview:lotusScenario,seed:20261101}:
   data?null:{directorMode:save.playMode==="auto"?(i>=50?"v62":i>=9?"v4":"v3"):save.playMode});
+ // Enable ordinary Wind visuals when an authored live level contains Wind.
+ // The older wind-garden-preview class still controls preview-only cards.
+ document.body.classList.toggle("wind-garden-active",!!game.windGarden);
  chooseFestivalBackground(mirrorScenario||windScenario||bambooScenario||lotusScenario?save.lastBackground:
   resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="LEVEL "+(i+1);

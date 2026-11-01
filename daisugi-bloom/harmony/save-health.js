@@ -38,6 +38,8 @@ function validRun(run){
   if(!record(d.lotus)||JSON.stringify(L.normalize(d.lotus))!==JSON.stringify(recipe.lotus)||
    JSON.stringify(boardMechanics)!==JSON.stringify(recipe.boardMechanics))return false;
  }
+ if(d.hanabiVersion!==undefined&&d.hanabiVersion!==0&&d.hanabiVersion!==1)return false;
+ if(d.hanabiVersion===1&&(d.lotusVersion!==1||run.level!==60))return false;
  if(d.lotusVersion===1){
   try{lotus=L.normalize(d.lotus);}catch{return false;}
   if(d.lotusDelivered===undefined||!Number.isInteger(d.lotusDelivered)||

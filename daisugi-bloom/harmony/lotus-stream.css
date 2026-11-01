@@ -122,12 +122,24 @@ body.harmony-reduced-motion #gameView .tile .hanabi-rocket-spark{animation:none}
  * Keep existing treasure sprites untouched while marking.
  */
 body.harmony-playing #gameView .tile .pulse-anticipation-glow.hanabi-telegraph-glow{
- border-color:rgba(255,233,178,.97);
- z-index:10;
- box-shadow:inset 0 0 0 1px rgba(255,246,206,.24),0 0 7px rgba(242,177,111,.5);
+ position:absolute;inset:2px;z-index:10;border-radius:clamp(7px,1.7vw,12px);
+ border:2px solid rgba(255,226,154,.93)!important;
+ background:radial-gradient(ellipse at center,rgba(255,223,155,.24),rgba(255,236,182,.08) 75%)!important;
+ box-shadow:inset 0 0 10px rgba(255,218,139,.46),0 0 8px rgba(242,177,111,.42)!important;
+ -webkit-mask:none!important;mask:none!important;
+ filter:none;pointer-events:none;
+ will-change:opacity,transform;
+}
+/* The spinning perimeter ornaments were expensive and read as extra rings.
+ * Keep a single animated square/rounded-tile glow and still use the
+ * existing Harmony Pulse marker class for the shared design language.
+ */
+body.harmony-playing #gameView .tile .pulse-anticipation-glow.hanabi-telegraph-glow::before,
+body.harmony-playing #gameView .tile .pulse-anticipation-glow.hanabi-telegraph-glow::after{
+ display:none!important;animation:none!important;content:none!important;
 }
 .score-fx-overlay .hanabi-glitter-mote{
- position:absolute;z-index:95;width:7px;height:7px;
+ position:absolute;z-index:95;width:9px;height:9px;
  pointer-events:none;border-radius:50%;will-change:transform,opacity;
  background:radial-gradient(circle at 37% 32%,#fffef5 0%,#fff1c8 23%,#ebbc67 56%,transparent 100%);
  box-shadow:0 0 8px 2px rgba(251,194,121,.84);
@@ -153,15 +165,9 @@ body.harmony-playing #gameView .tile .pulse-anticipation-glow.hanabi-telegraph-g
  box-shadow:0 0 9px 3px #c5f0ffac;
 }
 .score-fx-overlay .hanabi-glitter-core{
- width:14px;height:14px;
+ width:18px;height:18px;
  background:radial-gradient(circle,#fff 0%,#fff6d4 31%,#ffcc91 65%,transparent 100%);
- box-shadow:0 0 12px 5px #ffe8b0de,0 0 25px 10px #eeab8399;
+ box-shadow:0 0 14px 5px #ffe8b0e8,0 0 28px 11px #eeab83a6;
 }
 .score-fx-overlay .hanabi-glitter-star{border-radius:2px;transform:rotate(45deg)}
-.score-fx-overlay .hanabi-glitter-impact{
- position:absolute;width:32px;height:32px;border:2px solid #fff0c4;
- border-radius:50%;pointer-events:none;z-index:95;
- background:radial-gradient(circle,#fff9de66,#d18f9c55 46%,transparent 75%);
- box-shadow:0 0 12px 3px #ffe5afbd,0 0 17px #e6a9bf88;
-}
 /* Reduced motion: no rapid build or shower; the engine result is immediate. */

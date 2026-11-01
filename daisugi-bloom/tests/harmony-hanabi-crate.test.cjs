@@ -18,6 +18,21 @@ test("Hanabi is a real versioned level-61 recipe with two crates on the bottom r
  assert.equal(game.config.goal.type,"lotus");
  assert(Save.validRun({level:60,data:game.save()}));
 });
+test("telegraph skips empty top cells and only tracks actual launch targets",()=>{
+ const emptyTop=H.visiblePath({at:43,
+  targets:[{to:36,stage:3},{to:22,stage:5}],
+  mistTargets:[{to:15,empty:true}], // clearing Mist is a genuine hit
+  visualOnlyTargets:[{to:29,empty:true},{to:8,empty:true},{to:1,empty:true}]
+ });
+ assert.deepEqual(emptyTop,[36,22,15]);
+ const single=H.visiblePath({at:47,
+  visualOnlyTargets:[{to:40,empty:false},{to:33,empty:true},
+   {to:26,empty:true},{to:19,empty:true},{to:12,empty:true},{to:5,empty:true}]
+ });
+ assert.deepEqual(single,[40],"No imaginary hits on five empty cells above");
+ assert.deepEqual(H.visiblePath({at:43,
+  visualOnlyTargets:H.path(43).map(to=>({to,empty:true}))}),[]);
+});
 test("first legal collection launches exactly one full-column Pulse",()=>{
  const g=create(20261101);
  const before=g.board.map(p=>({...p}));

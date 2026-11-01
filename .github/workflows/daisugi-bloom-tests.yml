@@ -102,6 +102,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-director-v6.test.cjs
       - name: Director 6.1 · goal reachability, stage investments, gravity channels, saved mode isolation
         run: node daisugi-bloom/tests/harmony-director-v61.test.cjs
+      - name: Director 6.2 · proactive mobility, goal momentum, save integrity
+        run: node daisugi-bloom/tests/harmony-director-v62.test.cjs
       - name: Verify Four Families Experiment 1.0 board, save compatibility and Director 3.0
         run: node daisugi-bloom/tests/harmony-four-families.test.cjs
       - name: Verify Harmony Resonance Echo scoring, sound isolation and saved states
@@ -122,6 +124,7 @@ jobs:
           node --check daisugi-bloom/harmony/wind-garden.js
           node --check daisugi-bloom/harmony/director-v6.js
           node --check daisugi-bloom/harmony/director-v61.js
+          node --check daisugi-bloom/harmony/director-v62.js
           node --check daisugi-bloom/harmony/bamboo-paths.js
           node --check daisugi-bloom/harmony/lotus-stream.js
           node --check daisugi-bloom/harmony/lotus-routing.js

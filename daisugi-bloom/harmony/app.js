@@ -19,7 +19,7 @@ const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
 let powerSelection=null,powerTargets=[],moonOfferShown=false,omamoriFortuneInvite=false;
-const PLAY_MODES={auto:"Automatic · 4.0 from level 10",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
+const PLAY_MODES={auto:"Automatic · 6.2 from level 51",v62:"Proactive Mobility 6.2",v61:"Reachability 6.1",v6:"Board Health 6.0",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
 const PACE_PHASE_NAMES={build:"BUILD",flow:"FLOW",relax:"CALM",recovery:"RECOVERY"};
 let decisionReadyAt=0;
 function armDecisionClock(){decisionReadyAt=performance.now();}
@@ -27,10 +27,10 @@ function disarmDecisionClock(){decisionReadyAt=0;}
 function updatePaceLabel(){
  const node=$("paceStatus");if(!node||!game)return;
  node.textContent=(game.familyCount===4?"4 FAMILIES · ":"5 FAMILIES · ")+
-  (game.directorMode==="v61"?"REACHABILITY 6.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v6"?"BOARD HEALTH 6.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v4"?"OBJECTIVE 4.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v311"?"ENDGAME 3.1.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v31"?"OBJECTIVE 3.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v3"?
+  (game.directorMode==="v62"?"MOBILITY 6.2 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v61"?"REACHABILITY 6.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v6"?"BOARD HEALTH 6.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v4"?"OBJECTIVE 4.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v311"?"ENDGAME 3.1.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v31"?"OBJECTIVE 3.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v3"?
   "PACING 3.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):
   game.directorMode==="v2"?"OPPORTUNITY 2.0":"STANDARD");
- node.title=game.directorMode==="v61"?"Director 6.1 evaluates real swaps, paths toward stage-five masterpieces and safe strategic mobility.":game.directorMode==="v6"?"Director 6.0 scores real legal moves, obstacle geometry and mechanistic routes; shuffles are a last resort.":game.directorMode==="v4"?"Director 4.0 evaluates reachable goals, partial hits on Daruma and Sealed Stones, and fair refills.":game.directorMode==="v311"?"Endgame 3.1.1 evaluates the last 1–3 Mist tiles with the same fair refills as 3.1.":
+ node.title=game.directorMode==="v62"?"Director 6.2 favors resilient move choices and goal momentum using fair refills.":game.directorMode==="v61"?"Director 6.1 evaluates real swaps, paths toward stage-five masterpieces and safe strategic mobility.":game.directorMode==="v6"?"Director 6.0 scores real legal moves, obstacle geometry and mechanistic routes; shuffles are a last resort.":game.directorMode==="v4"?"Director 4.0 evaluates reachable goals, partial hits on Daruma and Sealed Stones, and fair refills.":game.directorMode==="v311"?"Endgame 3.1.1 evaluates the last 1–3 Mist tiles with the same fair refills as 3.1.":
   game.directorMode==="v31"?"Objective Awareness considers goals, fusion placement and Pulse while using fair refills.":
   game.directorMode==="v3"?"3.0 builds on Opportunity 2.0 and selects fair refills.":"Refill mode for this run";
  // Preserve diagnostics for accessibility / game testing but remove the
@@ -1149,11 +1149,11 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
  game=new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario?null:data,mirrorScenario?
-  {directorMode:"v61",moonMirrorPreview:mirrorScenario,seed:13}:
-  windScenario?{directorMode:"v61",windGardenPreview:windScenario,seed:13}:
-  bambooScenario?{directorMode:"v61",bambooPreview:true,seed:20261031+i*97}:
-  lotusScenario?{directorMode:"v61",lotusPreview:lotusScenario,seed:20261101}:
-  data?null:{directorMode:save.playMode==="auto"?(i>=50?"v61":i>=9?"v4":"v3"):save.playMode});
+  {directorMode:"v62",moonMirrorPreview:mirrorScenario,seed:13}:
+  windScenario?{directorMode:"v62",windGardenPreview:windScenario,seed:13}:
+  bambooScenario?{directorMode:"v62",bambooPreview:true,seed:20261031+i*97}:
+  lotusScenario?{directorMode:"v62",lotusPreview:lotusScenario,seed:20261101}:
+  data?null:{directorMode:save.playMode==="auto"?(i>=50?"v62":i>=9?"v4":"v3"):save.playMode});
  chooseFestivalBackground(mirrorScenario||windScenario||bambooScenario||lotusScenario?save.lastBackground:
   resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="LEVEL "+(i+1);
@@ -3393,7 +3393,10 @@ function bind(){
  const directorChoice=$("gameDirectorMode");
  const explainDirectorMode=()=>{
   $("directorModeDescription").textContent=save.playMode==="auto"?
-   "Automatic: Harmony Pacing 3.0 on levels 1–9 and Director 4.0 from level 10. Started levels keep their current engine.":
+   "Automatic: 3.0 on levels 1–9, 4.0 on levels 10–50, 6.2 from level 51. Started levels keep their engine.":
+   save.playMode==="v62"?"6.2 anticipates deadlocks and supports objective momentum through regular refills.":
+   save.playMode==="v61"?"6.1 prioritizes strategic development and reachability.":
+   save.playMode==="v6"?"6.0 assesses mechanism-aware board health.":
    save.playMode==="v4"?
    "Director 4.0 analyzes goals, obstacle hits and stalled progress without free matches.":
    save.playMode==="v311"?

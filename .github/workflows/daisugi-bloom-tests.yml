@@ -171,6 +171,8 @@ jobs:
           echo $! > /tmp/daisugi-bloom-server.pid
       - name: Tutorial Help Modal 1.0 · illustrated lessons, OK acknowledgment and replay
         run: node daisugi-bloom/tests/harmony-tutorial-help-browser.mjs
+      - name: Director 6.2 · actual 390px Bamboo preview, first real swap and existing saves
+        run: node daisugi-bloom/tests/harmony-director-v62-browser.mjs
       - name: Run Japanese Harmony mobile smoke
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
       - name: Moon Mirrors 1.2 · six previews, Fusion Echo chain and 390px save isolation

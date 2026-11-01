@@ -310,7 +310,7 @@ function showMenu(){
  disarmDecisionClock();clearIdleHint();
  resetResonanceVisuals();clearScoreFx();clearPraise();clearWindAtmosphere();
  saveRun();moonMirrorPreview=null;windGardenPreview=null;bambooPreview=false;lotusPreview=null;
- document.body.classList.remove("harmony-playing","moon-mirror-preview","wind-garden-preview","wind-garden-active","bamboo-paths-preview","lotus-stream-preview");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
+ document.body.classList.remove("harmony-playing","moon-mirror-preview","wind-garden-preview","wind-garden-active","bamboo-paths-preview","lotus-stream-preview","hanabi-active");$("gameView").hidden=true;$("menuView").hidden=false;$("modal").hidden=true;renderMenu();
 }
 // Primary level selection is the book. Keep the landing menu accessible for
 // daily Omikuji, Omamori and Game Dev; leaving a run opens Goshuincho directly.
@@ -1157,6 +1157,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  // Enable ordinary Wind visuals when an authored live level contains Wind.
  // The older wind-garden-preview class still controls preview-only cards.
  document.body.classList.toggle("wind-garden-active",!!game.windGarden);
+ document.body.classList.toggle("hanabi-active",!!game.hanabiVersion);
  chooseFestivalBackground(mirrorScenario||windScenario||bambooScenario||lotusScenario?save.lastBackground:
   resume&&save.run&&save.run.level===i?save.run.backgroundId:null);scoreShown=game.score;clearScoreFx();lastGoalProgress=game.progress();selected=-1;$("menuView").hidden=true;$("gameView").hidden=false;document.body.classList.add("harmony-playing");$("modal").hidden=true;
  $("levelTitle").textContent=game.config.name;$("levelNumber").textContent="LEVEL "+(i+1);
@@ -1325,13 +1326,13 @@ function renderBoard(board,highlight,effect){
   const mirror=game?.moonMirrors?.find(m=>m.at===i);
   const dState=doll?(daruma[i]===2?0:daruma[i]===1?1:2):-1;
   const stoneLeft=stone?(sealed[i]??4):0,stoneStage=stone?Math.min(3,Math.max(0,4-stoneLeft)):-1;
-  const key=piece?piece.id+"|"+piece.family+"|"+piece.stage+"|"+dState+"|"+stoneStage+"|"+(mirror?.direction||""):"empty";
+  const key=piece?piece.id+"|"+piece.family+"|"+piece.stage+"|"+dState+"|"+stoneStage+"|"+(mirror?.direction||"")+"|"+(game?.hanabiVersion||0):"empty";
   // Most frames change only 1-4 pieces. Preserve the other sprites, textures,
   // event listeners and their DOM nodes for a smoother mobile experience.
   if(boardKeys[i]!==key){
    boardKeys[i]=key;
    btn.replaceChildren();
-   btn.setAttribute("aria-label",moon?"Moon Mirror, fixed, reflects "+(mirror?.direction||"unknown"):lotus?"Lotus seed, guide it to the river gate below":terrain?"Closed garden tile":stone?"Sealed Stone, "+stoneLeft+" hits left":
+   btn.setAttribute("aria-label",moon?"Moon Mirror, fixed, reflects "+(mirror?.direction||"unknown"):lotus?(game?.hanabiVersion?"Hanabi firework, guide it to a crate below":"Lotus seed, guide it to the river gate below"):terrain?"Closed garden tile":stone?"Sealed Stone, "+stoneLeft+" hits left":
     doll?"Daruma, "+(dState===0?"two eyes left":dState===1?"one eye left":"completed"):
     piece?names[piece.family]+", tier "+piece.stage+", tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):"Tom ruta");
    if(moon){
@@ -1342,8 +1343,15 @@ function renderBoard(board,highlight,effect){
     arrow.textContent=({up:"↑",right:"→",down:"↓",left:"←"})[mirror?.direction]||"✦";
     art.append(frame,glass,arrow);btn.append(art);
    }else if(lotus){
-    const art=document.createElement("span");art.className="lotus-seed-art";art.setAttribute("aria-hidden","true");
-    const symbol=document.createElement("span");symbol.textContent="✿";art.append(symbol);btn.append(art);
+    const art=document.createElement("span");art.className=game?.hanabiVersion?"hanabi-firework-art":"lotus-seed-art";
+    art.setAttribute("aria-hidden","true");
+    if(game?.hanabiVersion){
+     for(const name of ["hanabi-rocket-tip","hanabi-rocket-body",
+      "hanabi-rocket-band","hanabi-rocket-fuse","hanabi-rocket-spark"]){
+      const part=document.createElement("span");part.className=name;art.append(part);
+     }
+    }else{const symbol=document.createElement("span");symbol.textContent="✿";art.append(symbol);}
+    btn.append(art);
    }else if(terrain){
     const art=document.createElement("span");art.className="terrain-garden-art";
     art.setAttribute("aria-hidden","true");btn.append(art);
@@ -1379,7 +1387,7 @@ function renderBoard(board,highlight,effect){
    veil.setAttribute("aria-hidden","true");btn.prepend(veil);
   }else if(!misted&&veil){veil.remove();}
   const label=moon?"Moon Mirror, fixed, reflects Harmony Pulse "+(mirror?.direction||"")+" — tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
-   lotus?"Lotus seed. Match beneath it to drop into the gate, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
+   lotus?(game?.hanabiVersion?"Hanabi firework. Match beneath it to drop into the crate, tile ":"Lotus seed. Match beneath it to drop into the gate, tile ")+(Math.floor(i/7)+1)+"-"+(i%7+1):
    terrain?"Closed garden tile, tile "+(Math.floor(i/7)+1)+"-"+(i%7+1):
    stone?"Sealed Stone, "+stoneLeft+" hits left, tile "+
    (Math.floor(i/7)+1)+"-"+(i%7+1):
@@ -1393,13 +1401,22 @@ function renderBoard(board,highlight,effect){
    btn.setAttribute("aria-label",accessible);
   }
   const exit=!!game?.lotus?.exits?.includes(i);
-  let gate=btn.querySelector(":scope > .lotus-collector");
+  let gate=btn.querySelector(":scope > .lotus-collector, :scope > .hanabi-crate");
+  if(gate&&gate.classList.contains("hanabi-crate")!==!!game?.hanabiVersion){gate.remove();gate=null;}
   if(exit&&!gate){
-   gate=document.createElement("span");gate.className="lotus-collector";gate.setAttribute("aria-hidden","true");
-   const ring=document.createElement("span");ring.className="lotus-collector-ring";gate.append(ring);
+   gate=document.createElement("span");gate.className=game?.hanabiVersion?"hanabi-crate":"lotus-collector";
+   gate.setAttribute("aria-hidden","true");
+   if(game?.hanabiVersion){
+    for(const name of ["hanabi-crate-rim","hanabi-crate-body","hanabi-crate-seal"]){
+     const part=document.createElement("span");part.className=name;
+     if(name==="hanabi-crate-seal")part.textContent="花";gate.append(part);
+    }
+   }else{
+    const ring=document.createElement("span");ring.className="lotus-collector-ring";gate.append(ring);
+   }
    btn.append(gate);
   }else if(!exit&&gate)gate.remove();
-  const cls="tile"+(lotus?" lotus-seed-tile":"")+(exit?" lotus-exit-tile":"")+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(terrain?" terrain-garden-tile":"")+(mirror?" moon-mirror-tile":"")+
+  const cls="tile"+(lotus?" lotus-seed-tile":"")+(exit?" lotus-exit-tile":"")+(exit&&game?.hanabiVersion?" hanabi-box-tile":"")+(doll?" daruma-tile":"")+(stone?" sealed-stone-tile":"")+(terrain?" terrain-garden-tile":"")+(mirror?" moon-mirror-tile":"")+
    (windNext&&Math.floor(i/7)===windNext.row?" wind-next-tile":"")+
    (misted?" misted":"")+(idleHintFrom===i?" idle-hint-source":"")+(idleHintTo===i?" idle-hint-target":"")+(selected===i?" selected":"")+(omamoriPreview?.has(i)?" omamori-gold-target":"")+
    (omamoriAnchor===i?" omamori-gold-anchor":"")+
@@ -1520,7 +1537,9 @@ function choose(i){
   selected=-1;toast("Moon Mirror is fixed. Create a Harmony Pulse next to it to reflect the light.");return;
  }
  if(game.board[i]?.family==="lotusSeed"){
-  selected=-1;toast("Lotus seeds cannot swap. Make matches beneath them so they fall into the river.");return;
+  selected=-1;toast(game.hanabiVersion?
+   "Fireworks cannot swap. Match beneath them to drop them into the crates.":
+   "Lotus seeds cannot swap. Make matches beneath them so they fall into the river.");return;
  }
  if(game.board[i]?.family==="terrain"){
   selected=-1;toast("This garden tile is closed. Build matches around it.");return;
@@ -2067,7 +2086,7 @@ function flipMove(previous,next,type){
   if(!p)return;
   const before=origin.get(p.id);
   if(before===i)return;
-  const piece=boardTiles[i].querySelector(".piece, .lotus-seed-art");
+  const piece=boardTiles[i].querySelector(".piece, .lotus-seed-art, .hanabi-firework-art");
   if(!piece)return;
   if(before!==undefined){
    const a=indexRect(before),b=indexRect(i);
@@ -2572,9 +2591,10 @@ async function animateEvent(evt){
    renderBoard(evt.board);
    await flipMove(previous,evt.board,"fall");
    break;
+  case "hanabi-delivery":
   case "lotus-delivery":{
    if(!FAST())await Promise.all((evt.positions||[]).map(at=>{
-    const seed=boardTiles[at]?.querySelector(".lotus-seed-art");
+    const seed=boardTiles[at]?.querySelector(".lotus-seed-art,.hanabi-firework-art");
     return seed?animateNode(seed,[
      {transform:"scale(1)",opacity:1},
      {transform:"scale(.6)",opacity:.8,offset:.45},
@@ -2583,14 +2603,15 @@ async function animateEvent(evt){
    }));
    renderBoard(evt.board,(evt.positions||[]),"pulsed");
    for(const at of evt.positions||[]){
-    const gate=boardTiles[at]?.querySelector(".lotus-collector");
+    const gate=boardTiles[at]?.querySelector(".lotus-collector,.hanabi-crate");
     if(gate&&!FAST())await animateNode(gate,[
      {transform:"scale(.85)",opacity:.75},
      {transform:"scale(1.2)",opacity:1,offset:.5},
      {transform:"scale(1)",opacity:1}
     ],340);
    }
-   toast("✿ Lotus seed collected · "+evt.goal+" / "+game.target(),1800);
+   toast(game.hanabiVersion?"✦ Hanabi loaded · "+evt.goal+" / "+game.target():
+    "✿ Lotus seed collected · "+evt.goal+" / "+game.target(),1800);
    break;
   }
   case "fall":

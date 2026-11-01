@@ -37,7 +37,8 @@ try{
   // Audit the actual visual DOM sequence, not hypothetical timing data.
   // Every telegraph mark must arrive before the first glitter particle.
   window.__hanabiVisualWitness={
-   events:[],marks:[],glitter:0,colors:[],impacts:[],
+   events:[],marks:[],delays:[],glitter:0,colors:[],impacts:[],
+   glitterSize:0,glitterDuration:0,spiralMarks:0,
    markedBeforeGlitter:false,oldBeam:false,firstSparkAt:-1
   };
   const watcher=new MutationObserver(records=>{
@@ -48,10 +49,16 @@ try{
     if(classList.contains("hanabi-telegraph-glow")){
      const cell=Number(n.dataset.to);
      witness.marks.push(cell);
+     witness.delays.push(n.getAnimations()[0]?.effect?.getTiming()?.delay??-1);
+     if(getComputedStyle(n,"::before").display!=="none")witness.spiralMarks++;
      witness.events.push("mark:"+cell);
     }
     if(classList.contains("hanabi-glitter-mote")){
      witness.glitter++;
+     witness.glitterSize=Math.max(witness.glitterSize,
+      parseFloat(getComputedStyle(n).width)||0);
+     witness.glitterDuration=Math.max(witness.glitterDuration,
+      n.getAnimations()[0]?.effect?.getTiming()?.duration||0);
      if(n.dataset.color&&!witness.colors.includes(n.dataset.color))
       witness.colors.push(n.dataset.color);
      if(witness.firstSparkAt<0){
@@ -89,16 +96,28 @@ try{
  assert.equal(after.saved.data.lotusDelivered,1);
  assert(after.saved.data.roundTrace.moves[0].events.some(e=>e.type==="hanabi-launch"));
  assert(after.width<=after.screen+1);
- assert.deepEqual(after.fx.marks,[36,29,22,15,8,1],
-  "Harmony Pulse telegraph must mark every cell bottom-to-top in order");
- assert(after.fx.markedBeforeGlitter&&after.fx.firstSparkAt===6,
-  "The FIRST glitter particle may not appear until ALL six marks exist");
+ assert(after.fx.marks.length>=1&&after.fx.marks.length<=6,
+  "Only the actual visible column targets should be marked");
+ assert(after.fx.marks.every(at=>at%7===1),
+  "No unrelated columns may be highlighted by Hanabi");
+ assert.deepEqual(after.fx.marks,
+  after.fx.marks.slice().sort((a,b)=>b-a),
+  "Tiles must charge from the crate upward, skipping true empty cells");
+ assert(after.fx.delays.every((d,i)=>
+   i===0?d===0:d-after.fx.delays[i-1]>=60),
+  "Sequential marks should be staggered on the compositor, without serial JS waits");
+ assert(after.fx.markedBeforeGlitter&&after.fx.firstSparkAt===after.fx.marks.length,
+  "The FIRST glitter particle may not appear until ALL actual marks exist");
+ assert.equal(after.fx.spiralMarks,0,
+  "No heavy rotating perimeter animation may remain on charged tiles");
  assert(after.fx.glitter>=30,"Mobile must show a rich, Score Motes-style glitter tail");
  assert.deepEqual(after.fx.colors.sort(),["gold","orange","pearl","pink","violet"],
   "The festival glitter must have five distinct color groups");
- assert.deepEqual(after.fx.impacts,[36,29,22,15,8,1],
-  "Impact rings must stay inside the same column");
+ assert.deepEqual(after.fx.impacts,[],
+  "Do not create separate circular impact rings in each tile");
+ assert(after.fx.glitterSize>=9&&after.fx.glitterDuration>=675,
+  "Score Motes-like glitter should be visibly larger and longer-lived");
  assert.equal(after.fx.oldBeam,false,"No old solid laser can appear");
  assert.deepEqual(errors,[]);
- console.log("PASS Hanabi Telegraph mobile: six ordered Pulse marks BEFORE five-color glitter, six column-only impacts, no old beam");
+ console.log("PASS Hanabi Telegraph mobile: only true targets, smooth staggered tile glows, larger longer five-colour glitter, no circular hits or laser");
 }finally{await browser.close();}

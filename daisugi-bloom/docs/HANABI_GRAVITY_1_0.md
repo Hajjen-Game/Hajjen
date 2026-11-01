@@ -1,0 +1,7 @@
+# Hanabi Gravity 1.0 — fall like Fusion
+
+The level-61 player noticed that treasures shifted unevenly after Hanabi launches compared with ordinary Fusion. The engine previously performed its column gravity before delivering fireworks and launching the upward pulse. A Hanabi hit could promote a stage-four treasure to a stage-five Masterpiece, harvest it and leave a hole **after** gravity had already completed. Refills were then placed directly in the hole and appeared to snap.
+
+This patch reuses the same blocked-segment gravity compaction as Fusion for the new holes before refills, preserving real piece IDs and stage changes. The existing `fall` visual event then performs the existing identity-based FLIP with its soft landing cushion and top-down newly spawned refills, without any new dedicated Hanabi easing. If the second gravity causes another firework to legitimately reach a crate, a `hanabi-fall` frame reuses the same FLIP before that firework is consumed; the chain is bounded by the number of original seeds. Existing objectives, Pulse rules, saves, animations and Director rules remain intact.
+
+Tests force a real Hanabi-assisted stage-five harvest at tile 22. They assert that the original objects from tiles 15 and 8 descend into the vacant spaces before refilling, and that the normal `fall` event follows the harvest. Browser playback tests confirm moving artwork receives the existing real fall transform and duration.

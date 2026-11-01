@@ -2696,6 +2696,8 @@ async function animateEvent(evt){
    break;
   }
   case "lotus-fall":
+  case "hanabi-fall":
+   // Hanabi-created holes use the SAME stable-ID fall motion as Fusion.
    renderBoard(evt.board);
    await flipMove(previous,evt.board,"fall");
    break;

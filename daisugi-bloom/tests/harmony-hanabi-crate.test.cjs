@@ -56,6 +56,42 @@ test("first legal collection launches exactly one full-column Pulse",()=>{
  const report=g.roundTrace.moves[0].events.find(e=>e.type==="hanabi-launch");
  assert(report&&report.column===1&&report.at===43);
 });
+test("Hanabi-created Masterpiece holes settle by the same gravity as Fusion before refill",()=>{
+ const g=create(20261101);
+ // The first legitimate descent moves this stage-four object down within
+ // its column; do not assume its original cell is its Hanabi impact cell.
+ g.board[22].stage=4;
+ const originalId=g.board[22].id;
+ const result=g.swap(37,44);
+ assert(result.ok);
+ const events=result.events;
+ const launchIndex=events.findIndex(e=>e.type==="hanabi-launch"&&
+  e.targets.some(t=>t.stage===5));
+ assert(launchIndex>=0,"Stage four must be promoted by the actual Hanabi ray");
+ const launch=events[launchIndex];
+ const upgraded=launch.targets.find(t=>t.stage===5);
+ assert.equal(launch.board[upgraded.to]?.id,originalId);
+ const harvestIndex=events.findIndex((e,i)=>i>launchIndex&&
+  e.type==="harvest"&&e.positions.includes(upgraded.to));
+ assert(harvestIndex>launchIndex,"Hanabi must harvest its newly formed Masterpiece");
+ const harvested=events[harvestIndex];
+ assert.equal(harvested.board[upgraded.to],null);
+ // Two holes may open at once: the delivered cargo square AND the
+ // harvested Masterpiece. All existing identities must preserve their order
+ // while compressing down from the bottom of the non-fixed column.
+ const positions=H.path(43),originals=positions
+  .map(i=>harvested.board[i]?.id).filter(Number.isInteger);
+ assert(originals.length>=2,"Test needs at least two original treasures above the holes");
+ const fallIndex=events.findIndex((e,i)=>i>harvestIndex&&e.type==="fall");
+ assert(fallIndex>harvestIndex,"A genuine fall event must follow Hanabi harvest");
+ const fallen=events[fallIndex].board;
+ assert.deepEqual(positions.slice(0,originals.length).map(i=>fallen[i]?.id),originals,
+  "Every original object must move down in order through both Hanabi-created holes, not be replaced by a refill");
+ assert(originals.some((id,j)=>harvested.board[positions[j]]?.id!==id),
+  "The test must exercise a real downward shift of original IDs");
+ assert(g.board.every(Boolean),"Refill still fills all non-blocked squares");
+ assert(g.roundTrace.moves[0].events.some(e=>e.type==="fall"));
+});
 test("two authentic player swaps collect both fireworks and can finish",()=>{
  const g=create(27631);
  const a=g.swap(37,44);

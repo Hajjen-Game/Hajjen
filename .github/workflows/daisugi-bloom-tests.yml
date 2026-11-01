@@ -183,6 +183,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-gate-wind-browser.mjs
       - name: Hanabi Crate 1.0 · 390px crate, fireworks, real pulse and save
         run: node daisugi-bloom/tests/harmony-hanabi-crate-browser.mjs
+      - name: Hanabi Gravity 1.0 · 390px real FLIP after launch-created hole
+        run: node daisugi-bloom/tests/harmony-hanabi-gravity-browser.mjs
       - name: Lotus Stream Early Preview · 390px cargo delivery, river gates and no saved progress changes
         run: node daisugi-bloom/tests/harmony-lotus-preview-browser.mjs
       - name: Lotus hint reliability · no starvation by invalid touches, manual legal hint and saved state safety

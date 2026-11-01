@@ -176,6 +176,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-tutorial-help-browser.mjs
       - name: Director 6.2 · actual 390px Bamboo preview, first real swap and existing saves
         run: node daisugi-bloom/tests/harmony-director-v62-browser.mjs
+      - name: Gate of Echoes 1.1 · 390px lower-row Wind and real turns
+        run: node daisugi-bloom/tests/harmony-gate-wind-browser.mjs
       - name: Run Japanese Harmony mobile smoke
         run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
       - name: Moon Mirrors 1.2 · six previews, Fusion Echo chain and 390px save isolation
@@ -184,8 +186,6 @@ jobs:
         run: node daisugi-bloom/tests/harmony-wind-garden-browser.mjs
       - name: Bamboo Paths Early Preview · 390px chapter chooser and true locked-cell puzzle isolation
         run: node daisugi-bloom/tests/harmony-bamboo-preview-browser.mjs
-      - name: Gate of Echoes 1.1 · 390px lower-row Wind and real turns
-        run: node daisugi-bloom/tests/harmony-gate-wind-browser.mjs
       - name: Lotus Stream Early Preview · 390px cargo delivery, river gates and no saved progress changes
         run: node daisugi-bloom/tests/harmony-lotus-preview-browser.mjs
       - name: Lotus hint reliability · no starvation by invalid touches, manual legal hint and saved state safety

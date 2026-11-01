@@ -73,7 +73,7 @@ try{
  assert(breeze.rowLabels.every(Boolean));
  assert(breeze.forecast.includes("1 MOVE"));
  const breezePair=await page.evaluate(()=>{
-  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v6",windGardenPreview:"breeze"});
+  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v61",windGardenPreview:"breeze"});
   game.swap(17,24);return HarmonyRules.validSwaps(game.board)[0];
  });
  await swap(...breezePair);await waitSettled(12);
@@ -85,13 +85,13 @@ try{
  await swap(17,24);await waitSettled(17);
  assert((await page.$eval("#levelNumber",e=>e.textContent)).includes("2 MOVES"));
  const next=await page.evaluate(()=>{
-  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v6",windGardenPreview:"crossing"});
+  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v61",windGardenPreview:"crossing"});
   game.swap(17,24);return HarmonyRules.validSwaps(game.board)[0];
  });
  assert(next?.length===2);await swap(...next);await waitSettled(16);
  assert((await page.$eval("#levelNumber",e=>e.textContent)).includes("1 MOVE"));
  const third=await page.evaluate(()=>{
-  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v6",windGardenPreview:"crossing"});
+  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v61",windGardenPreview:"crossing"});
   game.swap(17,24);game.swap(...HarmonyRules.validSwaps(game.board)[0]);
   return HarmonyRules.validSwaps(game.board)[0];
  });
@@ -105,7 +105,7 @@ try{
  await swap(17,24);await waitSettled(17);
  assert((await page.$eval("#levelNumber",e=>e.textContent)).includes("←"));
  const tidePair=await page.evaluate(()=>{
-  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v6",windGardenPreview:"tide"});
+  const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v61",windGardenPreview:"tide"});
   game.swap(17,24);return HarmonyRules.validSwaps(game.board)[0];
  });
  await swap(...tidePair);await waitSettled(16);

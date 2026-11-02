@@ -115,7 +115,7 @@ try{
  await playMove();await settled(17);
  assert.equal(await page.evaluate(()=>window.__windReference===
   document.querySelector(".wind-ambient-row")),true);
- await checkAmbient(3,"left","The first move is not an immediate gust");
+ await checkAmbient(3,"left"); // The first move is not an immediate gust.
  const tideNext=await page.evaluate(()=>{
   const game=new HarmonyRules.Game(2,null,{seed:13,directorMode:"v61",windGardenPreview:"tide"});
   game.swap(17,24);return HarmonyRules.validSwaps(game.board)[0];

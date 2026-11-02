@@ -1139,7 +1139,7 @@ async function celebrateCollection(evt){
  }
  await Promise.all(tasks);
 }
-function saveRun(){if(!moonMirrorPreview&&!windGardenPreview&&!bambooPreview&&!lotusPreview&&!journeyDraftPreview&&game&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
+function saveRun(){if(!moonMirrorPreview&&!windGardenPreview&&!bambooPreview&&!lotusPreview&&!journeyDraftPreview&&game&&!game.levelRecipe&&!$("gameView").hidden&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooScenario=false,lotusScenario=null,journeyScenario=false){
  if(busy)return;
  moonMirrorPreview=mirrorScenario;windGardenPreview=windScenario;bambooPreview=!!bambooScenario;

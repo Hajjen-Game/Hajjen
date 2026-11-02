@@ -22,6 +22,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-level-architecture.test.cjs
       - name: Journey 2.0 · first-ten draft gameplay, saved state safety and immutable catalogue
         run: node daisugi-bloom/tests/harmony-journey-v2-drafts.test.cjs
+      - name: Journey 2.0 · chapter two, 60 seeded Daruma / Mist starts and legacy saves
+        run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two.test.cjs
       - name: Board Mechanics Foundation 1.0 · terrain masks, overlays, seeded play and save
         run: node daisugi-bloom/tests/harmony-board-mechanics.test.cjs
       - name: Identity Plan 1.0 · isolated Moon Mirrors and Wind Garden mechanic contracts
@@ -195,6 +197,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-lotus-preview-browser.mjs
       - name: Journey 2.0 · 390px first-ten preview, real swap and saved-run isolation
         run: node daisugi-bloom/tests/harmony-journey-v2-browser.mjs
+      - name: Journey 2.0 · 390px levels 11–20, Daruma, chapter tabs and save isolation
+        run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two-browser.mjs
       - name: Lotus hint reliability · no starvation by invalid touches, manual legal hint and saved state safety
         run: node daisugi-bloom/tests/harmony-lotus-hint-browser.mjs
       - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion

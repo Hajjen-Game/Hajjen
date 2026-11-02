@@ -16,6 +16,13 @@ let bambooPreview=false; // Genuine, unranked Bamboo Paths chapter-level preview
 let lotusPreview=null; // Genuine L61 pilot or one of four unranked Lotus route experiments.
 let journeyDraftPreview=false; // Unranked Journey 2.0 levels 1–10, never saved to normal progress.
 let journeyFinalePreviewRuns=0; // Repeated level-10 tests explore different reproducible boards.
+const journeyDraftPlayCounts=new Map(); // Other chapter-two drafts use reproducible but distinct retries.
+function journeyDraftSeed(i){
+ if(i===9)return 20261102+i*197+journeyFinalePreviewRuns++*7919;
+ const count=journeyDraftPlayCounts.get(i)||0;
+ journeyDraftPlayCounts.set(i,count+1);
+ return 20261102+i*197+(i>=10?count*7919:0);
+}
 let windAtmosphere=null; // One persistent, directional row layer for the active Wind preview.
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
@@ -469,6 +476,12 @@ function levelPreview(index,resumable=false){
 // Tutorial Help Modal 1.0: reuse the SAME illustrated guide for the first
 // encounter and the ? next to GOAL. Only OK acknowledges a new lesson.
 function goalLesson(){
+ if(journeyDraftPreview&&level>=10&&game?.config){
+  const kind=game.config.goal.type;
+  const guide=O.LESSONS[kind==="daruma"?20:kind==="mist"?3:
+   kind==="masterpiece"||kind==="pulseHits"?2:kind==="stage4"?1:10];
+  return {...guide,title:game.config.name,short:game.config.intro,detail:game.config.intro};
+ }
  if(journeyDraftPreview&&game?.config?.goal?.type==="familyMasterpiece"&&
     game.config.goal.family!=="lantern")
   return {...O.LESSONS[2],title:game.config.name,
@@ -1160,7 +1173,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  game=new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario||journeyDraftPreview?null:data,
   journeyDraftPreview?{directorMode:i>=9?"v4":"v3",
    journeyDiagnostic:true,levelRecipe:journeyRecipe,
-   seed:20261102+i*197+(i===9?journeyFinalePreviewRuns++*7919:0)}:mirrorScenario?
+   seed:journeyDraftSeed(i)}:mirrorScenario?
   {directorMode:"v62",moonMirrorPreview:mirrorScenario,seed:13}:
   windScenario?{directorMode:"v62",windGardenPreview:windScenario,seed:13}:
   bambooScenario?{directorMode:"v62",bambooPreview:true,seed:20261031+i*97}:
@@ -2929,20 +2942,32 @@ function showJourneyDraftResult(){
  content.append(makeRoundExport(make));
  const actions=$("modalActions");actions.replaceChildren();
  modalButton(actions,"Retry this draft","primary",()=>startLevel(level,false,null,null,false,null,true));
- modalButton(actions,"Choose another draft","secondary",showJourneyDraftChooser);
+ modalButton(actions,"Choose another draft","secondary",()=>showJourneyDraftChooser(Math.floor(level/10)));
  modalButton(actions,"Back to main menu","secondary",showMenu);
  $("modal").hidden=false;
 }
-function showJourneyDraftChooser(){
+function showJourneyDraftChooser(chapter=0){
  if(busy)return;
+ const activeChapter=chapter===1?1:0;
  $("modalActions").classList.remove("pause-menu-actions");
  $("modalEyebrow").textContent="GAME DEV · LEVEL DESIGN PREVIEW";
- $("modalTitle").textContent="Journey 2.0 · Levels 1–10";
+ $("modalTitle").textContent="Journey 2.0 · Levels "+(activeChapter*10+1)+"–"+(activeChapter*10+10);
  const content=$("modalContent");content.replaceChildren();
- content.append(goshuinNode("p","","Try the redesigned first ten levels with their real Fusion, Mist and Harmony Pulse rules. Every round is unranked and does not affect your saved Journey, rewards or cards. These designs are not published levels yet."));
+ content.append(goshuinNode("p","",activeChapter===0?
+  "Try the first ten redesigned levels with real Fusion, Mist and Harmony Pulse rules. Each test is unranked and does not affect your saved Journey, rewards or cards.":
+  "Try levels 11–20: five families, Mist, and the Daruma introduction at level 15. Daruma requires two separate hits. These are unranked designs and will not alter your saved progress, stars or cards."));
+ const tabs=goshuinNode("div","journey-chapter-tabs");
+ for(let ch=0;ch<2;ch++){
+  const tab=goshuinNode("button","journey-chapter-tab"+(ch===activeChapter?" selected":""),
+   "Levels "+(ch*10+1)+"–"+(ch*10+10));
+  tab.type="button";tab.setAttribute("aria-pressed",String(ch===activeChapter));
+  tab.addEventListener("click",()=>showJourneyDraftChooser(ch));
+  tabs.append(tab);
+ }
+ content.append(tabs);
  const choices=goshuinNode("div","bamboo-preview-grid journey-draft-grid");
  choices.setAttribute("aria-label","Choose a Journey 2.0 draft level");
- for(let i=0;i<10;i++){
+ for(let i=activeChapter*10;i<(activeChapter+1)*10;i++){
   const draft=window.HarmonyJourneyDrafts?.get(i);
   if(!draft)continue;
   const button=goshuinNode("button","bamboo-preview-choice");

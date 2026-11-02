@@ -8,7 +8,7 @@ const J=require("../harmony/level-architecture.js");
 const Draft=require("../harmony/journey-levels-v2.js");
 const check=(name,fn)=>{fn();console.log("PASS "+name);};
 check("Ten explicitly authored first-chapter draft recipes",()=>{
- assert.equal(Draft.COUNT,10);
+ assert.equal(Draft.COUNT,20);
  assert.equal(Draft.FIRST,0);
  const all=Array.from({length:10},(_,i)=>Draft.get(i));
  assert.equal(new Set(all.map(x=>x.id)).size,10);
@@ -18,7 +18,7 @@ check("Ten explicitly authored first-chapter draft recipes",()=>{
  assert.equal(all[1].goal.count,1);
  assert.equal(all[2].goal.count,1);
  assert.equal(Draft.get(-1),null);
- assert.equal(Draft.get(10),null);
+ assert.equal(Draft.get(20),null);
  assert.equal(Draft.get("1"),null);
  for(const [i,r] of all.entries()){
   assert.equal(r.index,i);

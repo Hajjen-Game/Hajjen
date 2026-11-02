@@ -25,7 +25,7 @@ try{
  await page.$eval("#menuAdvanced",node=>node.open=true);
  await page.click("#moonMirrorPreviewButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Moon Mirrors 1.2");
- const choices=await page["$eval"](".moon-preview-choice",buttons=>buttons.map(b=>b.dataset.preview));
+ const choices=await page.evaluate(()=>[...document.querySelectorAll(".moon-preview-choice")].map(b=>b.dataset.preview));
  assert.deepEqual(choices,["echo","obstacle","spark","first","mist","chain"]);
  await page.click('.moon-preview-choice[data-preview="spark"]');
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:10000});

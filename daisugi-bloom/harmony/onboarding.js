@@ -37,10 +37,16 @@ function objective(config){
   daruma:["Daruma","Daruma"],sealedStone:["Sealed Stone","Sealed Stones"],
   shape:["T/L match","T/L matches"],score:["point","points"],
   chain:["masterpiece in one chain","masterpieces in one chain"],
-  familyMasterpiece:["Lantern masterpiece","Lantern masterpieces"],
-  familyFusion:["Lantern fusion","Lantern fusions"]
+  familyMasterpiece:["family masterpiece","family masterpieces"],
+  familyFusion:["family fusion","family fusions"]
  };
+ const family=({sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",
+  bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",
+  origami:"Origami",ryu:"Ryū"})[g.family];
  const name=(labels[g.type]||["objective","objectives"])[count===1?0:1];
+ if(["familyMasterpiece","familyFusion"].includes(g.type))
+  return count+" "+(family||"Family")+" "+(g.type==="familyMasterpiece"?
+   (count===1?"masterpiece":"masterpieces"):(count===1?"fusion":"fusions"));
  return count+" "+name;
 }
 function preview(level,config,moveStarTargets){

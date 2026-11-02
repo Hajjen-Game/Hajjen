@@ -5,6 +5,9 @@
 (function(root){
 "use strict";
 const nonnegative=n=>Number.isFinite(n)?Math.max(0,Math.trunc(n)):0;
+const familyName=family=>({sakura:"Sakura",lantern:"Lantern",koi:"Koi",
+ fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",
+ origami:"Origami",ryu:"Ryū"})[family]||"Family";
 const total=arr=>Array.isArray(arr)?arr.reduce((sum,x)=>sum+nonnegative(x),0):0;
 function detail(game){
  const type=game?.config?.goal?.type;
@@ -24,8 +27,10 @@ function detail(game){
    (left===0?"All Hanabi fireworks launched":left+" fireworks to guide into the wooden crates"):
    (left===0?"All Lotus seeds collected":left+" Lotus seeds to guide into the river gates");
   case "mist":return left===0?"All Mist cleared":left+" Mist tiles remaining";
-  case "familyFusion":return left===0?"Lantern fusion goal complete":left+" Lantern fusions remaining";
-  case "familyMasterpiece":return left===0?"Lantern masterpiece goal complete":left+" Lantern masterpieces remaining";
+  case "familyFusion":return left===0?familyName(game.config.goal.family)+" fusion goal complete":
+   left+" "+familyName(game.config.goal.family)+(left===1?" fusion":" fusions")+" remaining";
+  case "familyMasterpiece":return left===0?familyName(game.config.goal.family)+" masterpiece goal complete":
+   left+" "+familyName(game.config.goal.family)+(left===1?" masterpiece":" masterpieces")+" remaining";
   case "pulseHits":return left===0?"Harmony Pulse goal complete":left+" Harmony upgrades remaining";
   case "fourTurns":return left===0?"Four-match goal complete":left+" separate four-match moves remaining";
   default:return left===0?"Goal completed":left+" more to reach your goal";
@@ -66,7 +71,8 @@ function summary(events,game){
  const target=nonnegative(typeof game.target==="function"?game.target():0);
  if(type==="lotus")return (game.hanabiVersion?"Fireworks launched +":"Lotus seeds collected +")+gained+" · "+final+"/"+target;
  if(type==="mist")return "Mist cleared +"+gained+" · "+final+"/"+target;
- if(type==="familyFusion")return "Lantern fusions +"+gained+" · "+final+"/"+target;
+ if(type==="familyFusion")return familyName(game.config.goal.family)+" fusions +"+gained+" · "+final+"/"+target;
+ if(type==="familyMasterpiece")return familyName(game.config.goal.family)+" masterpieces +"+gained+" · "+final+"/"+target;
  if(type==="pulseHits")return "Harmony upgrades +"+gained+" · "+final+"/"+target;
  return "Goal progress +"+gained+" · "+final+"/"+target;
 }

@@ -23,10 +23,20 @@ coins, saved rounds, move economy, or the first-timer onboarding.
 | 7 | Pulse Garden | 5 Harmony Pulse upgrades | 33 | 16 | Teach purposeful fusion landing |
 | 8 | Misty Crossroads | Clear 5 Mist across two small groups | 35 | 18 | Apply Mist knowledge, with spatial separation |
 | 9 | Growing Treasures | 9 upgrades to stage 3 | 34 | 19 | Stage development as an alternative to clearing |
-| 10 | Masterpiece Festival | 2 Masterpieces | 40 | 22 | A satisfying chain-building chapter finale |
+| 10 | Koi Masterpiece Finale | 2 **Koi** Masterpieces | 40 | 17 | Requires intentional development of one specific family; other Masterpieces still help via Pulse |
 
 The stars/moves listed above are provisional art-direction targets; they must be
 calibrated with actual player rounds and **not** treated as verified success rates.
+
+## Level 10 refinement · playtest feedback (2 November 2026)
+Two successful playtests reached the old two-any-family Masterpiece goal in approximately
+five moves. The new goal requires **two stage-5 Koi Masterpieces** (only Koi counts);
+other families still provide real Harmony Pulse upgrades and chain opportunities.
+
+This is not a new mechanic or an arbitrary extra move penalty. Koi is one of the four
+families already present on level 10, and the HUD now names the required family.
+The 40-move budget is retained as a fair safety margin; 3-star threshold is provisionally
+17 turns, pending repeated playtests and seeded outcome evaluation.
 
 ## Preview available in Game Settings
 Open **Game Settings → Journey 2.0 · Levels 1–10 Preview**.

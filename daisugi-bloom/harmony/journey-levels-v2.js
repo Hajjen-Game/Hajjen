@@ -35,9 +35,9 @@ const DESIGNS=[
  {id:"growing-treasures",name:"Growing Treasures",subtitle:"Plan ahead, not just the next match",
   intro:"Upgrade nine treasures to stage 3. Build across different families and let Fusion chains help.",
   moves:34,starPar:19,difficulty:"challenge",goal:{type:"stage3",count:9},mechanics:{}},
- {id:"masterpiece-festival",name:"Masterpiece Festival",subtitle:"Two Masterpieces, one final harmony",
-  intro:"Create two stage-5 Masterpieces. Let the first Harmony Pulse prepare your next chain.",
-  moves:40,starPar:22,difficulty:"challenge",goal:{type:"masterpiece",count:2},mechanics:{}}
+ {id:"koi-masterpiece-finale",name:"Koi Masterpiece Finale",subtitle:"Two Koi, one final harmony",
+  intro:"Create TWO stage-5 Koi Masterpieces. Other Masterpieces still trigger Harmony Pulse and can help develop your Koi, but only Koi count toward the goal.",
+  moves:40,starPar:17,difficulty:"challenge",goal:{type:"familyMasterpiece",family:"koi",count:2},mechanics:{}}
 ];
 const ALL=Object.freeze(DESIGNS.map((design,i)=>{
  const raw={version:2,index:i,...design,id:"journey2-"+design.id};

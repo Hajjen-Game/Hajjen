@@ -77,6 +77,29 @@ try{
  await page.waitForFunction(()=>document.querySelector("#menuView")?.hidden===false);
  const final=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  assert.deepEqual(final,baseline,"Opening, playing and leaving a draft may not write player data");
+ // Regression from real playtest: formerly "two any-family Masterpieces"
+ // completed in about five moves; the finale must demand two Koi.
+ await page.$eval("#menuAdvanced",node=>node.open=true);
+ await page.click("#journeyDraftButton");
+ await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Journey 2.0 · Levels 1–10");
+ await page.click('.journey-draft-grid button[data-level="10"]');
+ await page.waitForFunction(()=>!document.querySelector("#gameView").hidden);
+ assert.equal(await page.$eval("#goalLabel",node=>node.textContent),"Koi masterpieces");
+ assert.equal(await page.$eval("#goalProgress",node=>node.textContent.trim()),"0 / 2");
+ const beforeRestart=await page.$eval(".tile",xs=>xs.map(x=>x.getAttribute("aria-label")));
+ await page.click("#pauseButton");
+ await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Game Menu");
+ await page.click("#modalActions .pause-restart");
+ await page.waitForFunction(()=>!document.querySelector("#gameView").hidden&&document.querySelector("#modal").hidden);
+ const afterRestart=await page.$eval(".tile",xs=>xs.map(x=>x.getAttribute("aria-label")));
+ assert.notDeepEqual(afterRestart,beforeRestart,"Repeated finale attempts should use a new seed");
+ assert.equal(await page.$eval("#goalLabel",node=>node.textContent),"Koi masterpieces");
+ await page.click("#pauseButton");
+ await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Game Menu");
+ await page.click("#modalActions .pause-levels");
+ await page.waitForFunction(()=>document.querySelector("#menuView")?.hidden===false);
+ const finalAfterFinale=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
+ assert.deepEqual(finalAfterFinale,baseline,"Finale retries may not alter live saves or rewards");
  assert.deepEqual(errors,[]);
  console.log("PASS Journey 2.0 390px preview: 10 choices, real seeded swap, Mist artwork, no lost save/stars/cards/progress");
 }finally{await browser.close();}

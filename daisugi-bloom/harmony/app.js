@@ -15,6 +15,7 @@ let windGardenPreview=null; // Separate unranked Wind Garden gameplay preview.
 let bambooPreview=false; // Genuine, unranked Bamboo Paths chapter-level previews.
 let lotusPreview=null; // Genuine L61 pilot or one of four unranked Lotus route experiments.
 let journeyDraftPreview=false; // Unranked Journey 2.0 levels 1–10, never saved to normal progress.
+let journeyFinalePreviewRuns=0; // Repeated level-10 tests explore different reproducible boards.
 let windAtmosphere=null; // One persistent, directional row layer for the active Wind preview.
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
@@ -468,6 +469,10 @@ function levelPreview(index,resumable=false){
 // Tutorial Help Modal 1.0: reuse the SAME illustrated guide for the first
 // encounter and the ? next to GOAL. Only OK acknowledges a new lesson.
 function goalLesson(){
+ if(journeyDraftPreview&&game?.config?.goal?.type==="familyMasterpiece"&&
+    game.config.goal.family!=="lantern")
+  return {...O.LESSONS[2],title:game.config.name,
+   short:game.config.intro,detail:game.config.intro};
  const original=O.lesson(level);
  if(original)return original;
  const key=({mist:"mist",daruma:"daruma",sealedStone:"stone",fourTurns:"four",
@@ -1154,7 +1159,8 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
  game=new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario||journeyDraftPreview?null:data,
   journeyDraftPreview?{directorMode:i>=9?"v4":"v3",
-   journeyDiagnostic:true,levelRecipe:journeyRecipe,seed:20261102+i*197}:mirrorScenario?
+   journeyDiagnostic:true,levelRecipe:journeyRecipe,
+   seed:20261102+i*197+(i===9?journeyFinalePreviewRuns++*7919:0)}:mirrorScenario?
   {directorMode:"v62",moonMirrorPreview:mirrorScenario,seed:13}:
   windScenario?{directorMode:"v62",windGardenPreview:windScenario,seed:13}:
   bambooScenario?{directorMode:"v62",bambooPreview:true,seed:20261031+i*97}:

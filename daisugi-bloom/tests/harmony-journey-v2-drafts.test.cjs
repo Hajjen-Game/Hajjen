@@ -13,7 +13,7 @@ check("Ten explicitly authored first-chapter draft recipes",()=>{
  const all=Array.from({length:10},(_,i)=>Draft.get(i));
  assert.equal(new Set(all.map(x=>x.id)).size,10);
  assert.deepEqual(all.map(x=>x.goal.type),
-  ["fusion","stage3","masterpiece","mist","fusion","fourTurns","pulseHits","mist","stage3","masterpiece"]);
+  ["fusion","stage3","masterpiece","mist","fusion","fourTurns","pulseHits","mist","stage3","familyMasterpiece"]);
  assert.equal(all[0].goal.count,3);
  assert.equal(all[1].goal.count,1);
  assert.equal(all[2].goal.count,1);
@@ -42,7 +42,10 @@ check("Mechanic sequence teaches only core Fusion, Pulse and Mist",()=>{
   assert(!r.intro.includes("Bamboo"));
  }
  assert.equal(all[2].goal.type,"masterpiece");
- assert.equal(all[9].goal.type,"masterpiece");
+ assert.deepEqual(all[9].goal,{type:"familyMasterpiece",family:"koi",count:2});
+ assert.equal(all[9].name,"Koi Masterpiece Finale");
+ assert.equal(all[9].moves,40);
+ assert.equal(all[9].starPar,17);
 });
 check("Six seeds per level create real 4-family playable openings and unchanged draft snapshots",()=>{
  for(let i=0;i<10;i++){
@@ -55,6 +58,11 @@ check("Six seeds per level create real 4-family playable openings and unchanged 
    assert.equal(game.config.levelRecipeId,recipe.id);
    assert.deepEqual(game.config.goal,recipe.goal);
    assert.equal(game.config.moves,recipe.moves);
+   if(i===9){
+    assert.equal(game.goalText(),"Koi masterpieces");
+    assert.deepEqual(game.families,["koi","bonsai","sushi","origami"]);
+    assert.equal(game.progress(),0);
+   }
    assert.equal(game.moves,recipe.moves);
    assert.deepEqual(game.boardMechanics.mist,recipe.mechanics.mist);
    assert.equal(R.scan(game.board).length,0);
@@ -98,6 +106,37 @@ check("Ordinary production 1–100 levels and historical runs remain unaffected"
  assert.equal(R.levelConfig(20).name,"Daruma Awakening");
  assert.equal(R.levelConfig(30).goal.type,"sealedStone");
  assert.equal(R.levelConfig(60).name,"First Hanabi Crate");
+});
+check("Specific-family Masterpieces must count only the required family",()=>{
+ const recipe=Draft.get(9);
+ const game=new R.Game(9,null,{seed:20261102+9*197,
+  journeyDiagnostic:true,levelRecipe:recipe,directorMode:"v3"});
+ const original=game.goalText();
+ assert.equal(original,"Koi masterpieces");
+ game.masterpieces=2;game.familyMasterpieces={sushi:1,origami:1};
+ assert.equal(game.progress(),0,"Wrong-family Masterpieces cannot finish the level");
+ assert.equal(game.fulfilled(),false);
+ game.familyMasterpieces.koi=1;
+ assert.equal(game.progress(),1);
+ assert.equal(game.fulfilled(),false);
+ game.familyMasterpieces.koi=2;
+ assert.equal(game.progress(),2);
+ assert.equal(game.fulfilled(),true);
+ assert.equal(game.goalText(),original);
+});
+check("Koi-specific labels remain accurate in the HUD and goal help",()=>{
+ const draft=Draft.get(9);
+ const game=new R.Game(9,null,{seed:34123,journeyDiagnostic:true,
+  levelRecipe:draft,directorMode:"v3"});
+ const O=require("../harmony/onboarding.js");
+ const Q=require("../harmony/objective-feedback.js");
+ assert.equal(O.objective(draft),"2 Koi masterpieces");
+ assert.equal(Q.detail(game),"2 Koi masterpieces remaining");
+ assert.equal(game.goalText(),"Koi masterpieces");
+ game.familyMasterpieces={sushi:4,koi:1};
+ assert.equal(Q.detail(game),"1 Koi masterpiece remaining");
+ const lantern=R.levelConfig(49);
+ assert.equal(O.objective(lantern),"2 Lantern masterpieces");
 });
 check("Preview cannot be silently enabled in normal gameplay",()=>{
  const recipe=Draft.get(4);

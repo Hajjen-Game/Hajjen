@@ -1542,7 +1542,13 @@ class Game{
  }
  goalText(){
   let g=this.config.goal;
-  return ({lotus:this.hanabiVersion?"Deliver fireworks":"Collect Lotus seeds",mist:"Clear Mist",score:"Score target",fusion:"Fusions",stage3:"Objects to stage 3",stage4:"Objects to stage 4",masterpiece:"Masterpieces",pulseHits:"Harmony upgrades",familyMasterpiece:"Lantern masterpieces",familyFusion:"Lantern fusions",four:"Four-tile matches",fourTurns:"Moves with a four-tile match",daruma:"Completed Daruma",sealedStone:"Broken seals",shape:"T/L matches",chain:"Masterpieces in one chain"})[g.type]||"Goal";
+  if(g.type==="familyMasterpiece"||g.type==="familyFusion"){
+   const display=({sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",
+    bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",
+    origami:"Origami",ryu:"Ryū"})[g.family]||"Family";
+   return display+(g.type==="familyMasterpiece"?" masterpieces":" fusions");
+  }
+  return ({lotus:this.hanabiVersion?"Deliver fireworks":"Collect Lotus seeds",mist:"Clear Mist",score:"Score target",fusion:"Fusions",stage3:"Objects to stage 3",stage4:"Objects to stage 4",masterpiece:"Masterpieces",pulseHits:"Harmony upgrades",four:"Four-tile matches",fourTurns:"Moves with a four-tile match",daruma:"Completed Daruma",sealedStone:"Broken seals",shape:"T/L matches",chain:"Masterpieces in one chain"})[g.type]||"Goal";
  }
  fulfilled(){return this.progress()>=this.target();}
  stars(){

@@ -110,7 +110,7 @@ try{
  });
  await swap(...tidePair);await waitSettled(16);
  assert((await page.$eval("#levelNumber",e=>e.textContent)).includes("→"));
- assert.equal(await page.$eval(".tile.misted",x=>x.length),1);
+ assert.equal(await page.evaluate(()=>document.querySelectorAll(".tile.misted").length),1);
  const stored=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  for(const key of ["unlocked","bestStars","bestScores","fourFamilyStars","run",
   "economy","omamoriCards","playerInsight","playerIntent"])

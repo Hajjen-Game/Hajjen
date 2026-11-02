@@ -7,7 +7,7 @@
 const nonnegative=n=>Number.isFinite(n)?Math.max(0,Math.trunc(n)):0;
 const familyName=family=>({sakura:"Sakura",lantern:"Lantern",koi:"Koi",
  fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",
- origami:"Origami",ryu:"Ryū"})[family]||"Family";
+ origami:"Origami",ryu:"Ryū"})[family]||"Lantern";
 const total=arr=>Array.isArray(arr)?arr.reduce((sum,x)=>sum+nonnegative(x),0):0;
 function detail(game){
  const type=game?.config?.goal?.type;

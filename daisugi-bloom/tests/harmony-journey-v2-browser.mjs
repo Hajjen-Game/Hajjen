@@ -77,6 +77,10 @@ try{
  await page.waitForFunction(()=>document.querySelector("#menuView")?.hidden===false);
  const final=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  assert.deepEqual(final,baseline,"Opening, playing and leaving a draft may not write player data");
+ // The pause-menu exit opens Goshuincho; close its modal before
+ // using the separate Game Settings preview chooser.
+ await page.click(".washi-book-close");
+ await page.waitForFunction(()=>document.querySelector("#modal").hidden);
  // Regression from real playtest: formerly "two any-family Masterpieces"
  // completed in about five moves; the finale must demand two Koi.
  await page.$eval("#menuAdvanced",node=>node.open=true);
@@ -86,12 +90,12 @@ try{
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden);
  assert.equal(await page.$eval("#goalLabel",node=>node.textContent),"Koi masterpieces");
  assert.equal(await page.$eval("#goalProgress",node=>node.textContent.trim()),"0 / 2");
- const beforeRestart=await page.$eval(".tile",xs=>xs.map(x=>x.getAttribute("aria-label")));
+ const beforeRestart=await page.$$eval(".tile",xs=>xs.map(x=>x.getAttribute("aria-label")));
  await page.click("#pauseButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Game Menu");
  await page.click("#modalActions .pause-restart");
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden&&document.querySelector("#modal").hidden);
- const afterRestart=await page.$eval(".tile",xs=>xs.map(x=>x.getAttribute("aria-label")));
+ const afterRestart=await page.$$eval(".tile",xs=>xs.map(x=>x.getAttribute("aria-label")));
  assert.notDeepEqual(afterRestart,beforeRestart,"Repeated finale attempts should use a new seed");
  assert.equal(await page.$eval("#goalLabel",node=>node.textContent),"Koi masterpieces");
  await page.click("#pauseButton");

@@ -1,0 +1,21 @@
+/* Japanese Harmony · Ryū Dragon Artwork Refresh 1.0 (2026-11-03)
+ * Five user-provided illustrations, preserved in a dedicated transparent
+ * lossless 5×1 WebP sprite strip, 256×256 pixels per stage.
+ * Original new-family atlas is untouched; ?ryu=classic restores old art.
+ */
+.has-ryu-art .piece.new-family .sprite.sprite-new.sprite-ryu{
+ background-image:var(--harmony-ryu-art)!important;
+ background-size:500% 100%!important;
+ background-position:var(--sx) center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-ryu-art .piece.new-family:has(.sprite-ryu) .fallback{display:none!important}
+.has-ryu-art .collection-art.collection-new.collection-ryu{
+ background-image:var(--harmony-ryu-art)!important;
+ background-size:500% 100%!important;
+ background-position:100% center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-ryu-art .collection-card:has(.collection-ryu) .collection-fallback{display:none!important}

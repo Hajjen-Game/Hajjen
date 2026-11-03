@@ -62,8 +62,22 @@ try{
  assert(saved.valid&&saved.run?.level===60);
  assert.equal(saved.run.data.lotusDelivered,1);
  await swap(41,48);
- await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Beautiful harmony!"&&
-  !document.querySelector("#modal").hidden,{timeout:35000});
+ try{
+  await page.waitForFunction(()=>document.querySelector("#goalProgress")?.textContent==="2 / 2"&&
+   !document.querySelector("#modal").hidden,{timeout:45000});
+ }catch(error){
+  const debug=await page.evaluate(()=>({
+   progress:document.querySelector("#goalProgress")?.textContent,
+   moves:document.querySelector("#movesCount")?.textContent,
+   modalTitle:document.querySelector("#modalTitle")?.textContent,
+   modalHidden:document.querySelector("#modal")?.hidden,
+   busy:document.querySelector("#board")?.getAttribute("aria-busy"),
+   cargo:[...document.querySelectorAll(".tile.lotus-seed-tile")].map(n=>n.dataset.index),
+   crates:[...document.querySelectorAll(".tile.lotus-exit-tile")].map(n=>n.dataset.index)
+  }));
+  throw Error("Second Hanabi pilot delivery did not finish: "+JSON.stringify(debug),{cause:error});
+ }
+ assert.equal(await page.$eval("#modalTitle",node=>node.textContent),"Beautiful harmony!");
  const complete=await page.evaluate(key=>{
   const s=JSON.parse(localStorage.getItem(key));
   return {unlocked:s.unlocked,stars:s.bestStars[60],goal:document.querySelector("#goalProgress").textContent,

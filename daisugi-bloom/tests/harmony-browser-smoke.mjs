@@ -460,7 +460,8 @@ try{
    assert(item.corners.every(v=>v===0),"Stage-1 "+name+" must have real alpha: "+JSON.stringify(item));
    assert(item.center>170,"Stage-1 "+name+" artwork should be visible");
   }
-  await art.waitForFunction(()=>["has-atlas","has-new-atlas","has-koi-stage1","has-maneki-stage1"]
+  await art.waitForFunction(()=>["has-atlas","has-new-atlas","has-koi-stage1","has-maneki-stage1",
+    "has-koi-art","has-maneki-art"]
    .every(cls=>document.documentElement.classList.contains(cls)),{timeout:18000});
   await clickLegacyLevel(art,".level-tile:first-child");
   const koiTile=await art.evaluate(()=>{
@@ -470,8 +471,9 @@ try{
     fallback:el&&getComputedStyle(el.parentElement.querySelector(".fallback")).display,
     background:bg?.backgroundImage,size:bg?.backgroundSize,position:bg?.backgroundPosition};
   });
-  assert(koiTile.exists&&koiTile.background.includes("koi-stage1.avif"),"Live Koi stage 1 must show new transparent sprite");
-  assert.equal(koiTile.size,"100% 100%");
+  assert(koiTile.exists&&koiTile.background.includes("koi-five-stages.webp"),
+   "Live Koi stage 1 must show the newly approved five-stage transparent artwork");
+  assert.equal(koiTile.size,"500% 100%");
   assert.equal(koiTile.display,"block","Koi must be VISIBLE, not merely have a URL in CSS");
   assert.equal(koiTile.fallback,"none","The blue fallback emoji must be hidden");
   await art.evaluate(()=>{
@@ -492,9 +494,9 @@ try{
      s.classList.contains("sprite-stage1-koi")||s.classList.contains("sprite-stage1-maneki")||
      !getComputedStyle(s).backgroundImage.includes("stage1.avif"))};
   });
-  assert(manekiTile.exists&&manekiTile.background.includes("maneki-stage1.avif"),
-   "Live Maneki-neko stage 1 must show the new centered paw");
-  assert.equal(manekiTile.size,"100% 100%");
+  assert(manekiTile.exists&&manekiTile.background.includes("maneki-five-stages.webp"),
+   "Live Maneki-neko stage 1 must show the approved five-stage artwork");
+  assert.equal(manekiTile.size,"500% 100%");
   assert.equal(manekiTile.display,"block","Paw must be VISIBLE");
   assert.equal(manekiTile.fallback,"none","The cat fallback emoji must be hidden");
   assert(manekiTile.atlasProtected,"Other stages and object families must retain their atlas sprites");

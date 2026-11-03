@@ -1,0 +1,21 @@
+/* Japanese Harmony · Fan Artwork Refresh 1.0 — 2026-11-03.
+ * Five user-supplied illustrations in a transparent 5x1 WebP sprite strip,
+ * 256x256 per stage. Old classic atlas remains unchanged.
+ * ?fan=classic restores the original Fan sprites only.
+ */
+.has-fan-art .piece .sprite.sprite-fan{
+ background-image:var(--harmony-fan-art)!important;
+ background-size:500% 100%!important;
+ background-position:var(--sx) center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-fan-art .piece:has(.sprite-fan) .fallback{display:none!important}
+.has-fan-art .collection-art.collection-fan{
+ background-image:var(--harmony-fan-art)!important;
+ background-size:500% 100%!important;
+ background-position:100% center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-fan-art .collection-card:has(.collection-fan) .collection-fallback{display:none!important}

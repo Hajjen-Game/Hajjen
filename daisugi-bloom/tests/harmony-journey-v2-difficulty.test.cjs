@@ -31,9 +31,9 @@ check("14 revised missions have real independent goals with no changed core tuto
   if(!s){assert.equal(x.goal.requires,undefined);continue;}
   matched.push(i+1);
   assert.deepEqual(x.goal.requires.map(x=>[x.type,x.count,...(x.family?[x.family]:[])]),s);
-  assert(x.intro.includes("require")||x.intro.includes("must")||
-   x.intro.includes("Also")||x.intro.includes("addition"),
-   "The player should be told the requirement at level "+(i+1));
+  assert(x.intro.length>=80,"Each mixed objective needs a meaningful play hint");
+  assert(O.objective(x).includes(" + "),
+   "The player must be shown every mandatory subgoal at level "+(i+1));
  }
  assert.equal(matched.length,14);
  assert.deepEqual(Draft.get(9).goal,{type:"familyMasterpiece",family:"koi",count:2});

@@ -2593,6 +2593,84 @@ async function animateEcho(evt){
   ],540)
  ]).finally(()=>{ring.remove();label.remove();});
 }
+// Daruma Awakening 1.0 — all visuals use the existing three-state Daruma atlas.
+async function darumaEyeAnimation(hits){
+ // Motion accessibility and sound preferences are independent.
+ if(hits.some(h=>h.filled===2))sound("daruma-awaken");
+ if(FAST()||document.hidden||!Element.prototype.animate)return;
+ const tasks=[];
+ for(const hit of hits){
+  const art=boardTiles[hit.at]?.querySelector(".daruma-art");
+  if(!art)continue;
+  if(hit.filled!==2){
+   tasks.push(animateNode(art,[
+    {transform:"rotate(-5deg) scale(.94)",offset:0},
+    {transform:"rotate(5deg) scale(1.06)",offset:.48},
+    {transform:"rotate(0) scale(1)",offset:1}
+   ],245));continue;
+  }
+  const r=indexRect(hit.at),x=r.left+r.width/2,y=r.top+r.height/2;
+  // A brief rocking anticipation, a small jump, then a soft landing.
+  tasks.push(animateNode(art,[
+   {transform:"translateY(0) rotate(-6deg) scale(.94)",offset:0},
+   {transform:"translateY(1px) rotate(7deg) scale(1.02)",offset:.21},
+   {transform:"translateY(-7px) rotate(-3deg) scale(1.12)",offset:.51},
+   {transform:"translateY(0) rotate(2deg) scale(.97)",offset:.8},
+   {transform:"translateY(0) rotate(0) scale(1)",offset:1}
+  ],570,{easing:"cubic-bezier(.22,.78,.2,1)"}));
+  const ring=fxAt("jh-daruma-awakening-ring",x,y);
+  ring.style.width=ring.style.height=Math.round(r.width*1.75)+"px";
+  tasks.push(animateNode(ring,[
+   {opacity:0,transform:"translate(-50%,-50%) scale(.34)",offset:0},
+   {opacity:.98,transform:"translate(-50%,-50%) scale(.77)",offset:.38},
+   {opacity:.73,transform:"translate(-50%,-50%) scale(1.02)",offset:.67},
+   {opacity:0,transform:"translate(-50%,-50%) scale(1.25)",offset:1}
+  ],650).finally(()=>ring.remove()));
+  // Bounded tiny flower petals and gold glints, drawn with CSS (no images).
+  for(let j=0;j<4;j++){
+   const angle=(j*.5+.15)*Math.PI;
+   const dx=(Math.cos(angle)*r.width*.74).toFixed(1);
+   const dy=(Math.sin(angle)*r.height*.63-r.height*.26).toFixed(1);
+   const particle=fxAt(j%2?"jh-daruma-awakening-petal":"jh-daruma-awakening-glint",x,y);
+   const size=Math.max(8,Math.round(r.width*.15));
+   particle.style.width=particle.style.height=size+"px";
+   tasks.push(animateNode(particle,[
+    {opacity:0,transform:"translate(-50%,-50%) rotate(0deg) scale(.3)",offset:0},
+    {opacity:1,transform:"translate(-50%,-50%) rotate(25deg) scale(1)",offset:.32},
+    {opacity:0,transform:"translate(calc(-50% + "+dx+"px),calc(-50% + "+dy+"px)) rotate("+Math.round(125+j*43)+"deg) scale(.6)",offset:1}
+   ],630,{easing:"ease-out"}).finally(()=>particle.remove()));
+  }
+ }
+ await Promise.all(tasks);
+}
+async function darumaReleaseAnimation(evt){
+ const positions=evt.positions||[];
+ if(FAST()||document.hidden||!Element.prototype.animate){
+  renderBoard(evt.board,positions,"pulsed");return;
+ }
+ const animations=[];
+ for(const at of positions){
+  const art=boardTiles[at]?.querySelector(".daruma-art");
+  if(!art)continue;
+  const r=indexRect(at),x=r.left+r.width/2,y=r.top+r.height/2;
+  const pulse=fxAt("jh-daruma-release-pulse",x,y);
+  pulse.style.width=pulse.style.height=Math.round(r.width*1.95)+"px";
+  void animateNode(pulse,[
+   {opacity:.82,transform:"translate(-50%,-50%) scale(.3)",offset:0},
+   {opacity:.94,transform:"translate(-50%,-50%) scale(.8)",offset:.32},
+   {opacity:0,transform:"translate(-50%,-50%) scale(1.55)",offset:1}
+  ],520).finally(()=>pulse.remove());
+  animations.push(animateNode(art,[
+   {opacity:1,transform:"scale(1)",offset:0},
+   {opacity:.93,transform:"scale(1.06)",offset:.32},
+   {opacity:0,transform:"scale(.6)",offset:1}
+  ],245,{easing:"ease-in"}));
+ }
+ // The fully painted state stays visible until its exit transition finishes.
+ await Promise.all(animations);
+ renderBoard(evt.board,positions,"pulsed");
+}
+
 async function animateEvent(evt){
  const previous=presentedBoard;
  activeMistFrame=Array.isArray(evt.mist)?evt.mist:null;
@@ -2670,23 +2748,13 @@ async function animateEvent(evt){
    break;
   }
   case "daruma":{
-   renderBoard(evt.board,(evt.hits||[]).map(h=>h.at),"daruma-hit");
-   if(!FAST())await Promise.all((evt.hits||[]).map(h=>
-    animateNode(boardTiles[h.at]?.querySelector(".daruma-art"),[
-     {transform:"scale(.87)",filter:"brightness(1)",offset:0},
-     {transform:"scale(1.13)",filter:"brightness(1.3)",offset:.55},
-     {transform:"scale(1)",filter:"brightness(1)",offset:1}
-    ],220)));
+   const hits=evt.hits||[];
+   renderBoard(evt.board,hits.map(h=>h.at),"daruma-hit");
+   await darumaEyeAnimation(hits);
    break;
   }
   case "daruma-release":{
-   if(!FAST())for(const at of evt.positions||[]){
-    const r=indexRect(at),fx=fxAt("harvest-release",r.left+r.width*.5,r.top+r.height*.5);
-    fx.style.width=r.width+"px";fx.style.height=r.height+"px";
-    animateNode(fx,[{opacity:.8,transform:"scale(.4)"},{opacity:.75,transform:"scale(1.1)",offset:.42},
-     {opacity:0,transform:"scale(1.5)"}],360).finally(()=>fx.remove());
-   }
-   renderBoard(evt.board,(evt.positions||[]),"pulsed");
+   await darumaReleaseAnimation(evt);
    break;
   }
   case "hero":

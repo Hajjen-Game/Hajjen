@@ -73,6 +73,13 @@ assert(oscillators.slice(beforeLaunch).length>=3,
  "Glitter needs a small multi-tone sparkle tail");
 assert.equal(audio.play("hanabi-launch"),false,
  "A chain of launches must not create duplicate layers inside the cooldown");
+clock+=500;
+const beforeDaruma=oscillators.length;
+assert.equal(audio.play("daruma-awaken"),true,"Daruma must have a real audible completion cue");
+assert(oscillators.slice(beforeDaruma).some(o=>o.hz===350),
+ "Daruma awakening should begin with a soft wooden knock");
+assert.equal(audio.play("daruma-awaken"),false,
+ "Duplicate awakenings should obey the cooldown");
 const count=oscillators.length;
 audio.setEnabled(false);
 assert.equal(audio.play("goal"),false,"Muted audio must stay silent");

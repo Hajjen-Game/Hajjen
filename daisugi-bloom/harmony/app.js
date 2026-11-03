@@ -1068,7 +1068,7 @@ function showOmamoriNotice(action,item){
 }
 function collectionSprite(family){
  const isNew=Object.hasOwn(newFamilyRows,family);
- const art=document.createElement("span");art.className="collection-art"+(isNew?" collection-new":"");
+ const art=document.createElement("span");art.className="collection-art"+(isNew?" collection-new":"")+(family==="sakura"?" collection-sakura":"");
  art.style.setProperty("--collection-y",(isNew?newFamilyRows[family]*100/3:familyRows[family]*25)+"%");
  const fallback=document.createElement("span");fallback.className="collection-fallback";fallback.textContent=symbols[family];
  return [art,fallback];
@@ -1397,6 +1397,7 @@ function renderBoard(board,highlight,effect){
     img.style.setProperty("--sx",((piece.stage-1)*25)+"%");
     img.style.setProperty("--sy",(isNew?(newFamilyRows[piece.family]*100/3):familyRows[piece.family]*25)+"%");
     if(isNew)img.classList.add("sprite-new");
+    if(piece.family==="sakura")img.classList.add("sprite-sakura");
     // Stage 1 refresh: independent transparent art only for the paw and koi.
     // Stage 2–5 keep their original atlas cells and all existing stage rules.
     if(piece.stage===1&&(piece.family==="koi"||piece.family==="maneki"))
@@ -3737,12 +3738,14 @@ function bind(){
 // behind either atlas. All loads are checked for true decode, and transient
 // network/cache failures retry with a different URL. CSS points to the exact
 // successful URL (including cache-buster), not the stale failed request.
+const SAKURA_CLASSIC_ART=new URLSearchParams(window.location.search).get("sakura")==="classic";
 const ART_RESOURCES=[
  {file:"harmony-atlas.webp",query:"v=icons-20261022",ready:"has-atlas",css:"--harmony-classic-art"},
+ {file:"sakura-five-stages.avif",query:"v=sakura-20261103-1",ready:"has-sakura-art",css:"--harmony-sakura-art"},
  {file:"harmony-new-families.avif",query:"v=5.0",ready:"has-new-atlas",css:"--harmony-new-art"},
  {file:"koi-stage1.avif",query:"v=20261023",ready:"has-koi-stage1",css:"--harmony-koi-stage1-art"},
  {file:"maneki-stage1.avif",query:"v=20261023",ready:"has-maneki-stage1",css:"--harmony-maneki-stage1-art"}
-];
+].filter(item=>!SAKURA_CLASSIC_ART||item.file!=="sakura-five-stages.avif");
 const artworkLoaders=[];
 function checkAtlas(){
  const root=document.documentElement;

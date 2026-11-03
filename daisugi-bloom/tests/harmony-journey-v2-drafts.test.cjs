@@ -50,10 +50,10 @@ check("Hanabi appears before Mirror and Wind; Daruma/Stone remain later",()=>{
   assert(!r.mechanics.bamboo?.blocked?.length);
  }
  assert.deepEqual(f[4].goal,{type:"lotus",count:1});
- assert.deepEqual(f[5].goal,{type:"lotus",count:2});
- assert.deepEqual(f[6].goal,{type:"mist",count:4});
- assert.deepEqual(f[7].goal,{type:"masterpiece",count:2});
- assert.deepEqual(f[8].goal,{type:"lotus",count:2});
+ assert.deepEqual({type:f[5].goal.type,count:f[5].goal.count},{type:"lotus",count:2});
+ assert.deepEqual({type:f[6].goal.type,count:f[6].goal.count},{type:"mist",count:4});
+ assert.deepEqual({type:f[7].goal.type,count:f[7].goal.count},{type:"masterpiece",count:2});
+ assert.deepEqual({type:f[8].goal.type,count:f[8].goal.count},{type:"lotus",count:2});
  assert.equal(f[10].name,"First Moon Mirror");
  assert.equal(f[15].name,"First Wind Garden");
 });

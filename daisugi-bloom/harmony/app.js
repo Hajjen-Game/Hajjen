@@ -1068,7 +1068,7 @@ function showOmamoriNotice(action,item){
 }
 function collectionSprite(family){
  const isNew=Object.hasOwn(newFamilyRows,family);
- const art=document.createElement("span");art.className="collection-art"+(isNew?" collection-new":"")+(family==="sakura"?" collection-sakura":"")+(family==="koi"?" collection-koi":"")+(family==="lantern"?" collection-lantern":"")+(family==="fan"?" collection-fan":"")+(family==="sushi"?" collection-sushi":"")+(family==="maneki"?" collection-maneki":"")+(family==="origami"?" collection-origami":"");
+ const art=document.createElement("span");art.className="collection-art"+(isNew?" collection-new":"")+(family==="sakura"?" collection-sakura":"")+(family==="koi"?" collection-koi":"")+(family==="lantern"?" collection-lantern":"")+(family==="fan"?" collection-fan":"")+(family==="sushi"?" collection-sushi":"")+(family==="maneki"?" collection-maneki":"")+(family==="origami"?" collection-origami":"")+(family==="bonsai"?" collection-bonsai":"");
  art.style.setProperty("--collection-y",(isNew?newFamilyRows[family]*100/3:familyRows[family]*25)+"%");
  const fallback=document.createElement("span");fallback.className="collection-fallback";fallback.textContent=symbols[family];
  return [art,fallback];
@@ -1404,6 +1404,7 @@ function renderBoard(board,highlight,effect){
     if(piece.family==="sushi")img.classList.add("sprite-sushi");
     if(piece.family==="maneki")img.classList.add("sprite-maneki");
     if(piece.family==="origami")img.classList.add("sprite-origami");
+    if(piece.family==="bonsai")img.classList.add("sprite-bonsai");
     // Stage 1 refresh: independent transparent art only for the paw and koi.
     // Stage 2–5 keep their original atlas cells and all existing stage rules.
     if(piece.stage===1&&(piece.family==="koi"||piece.family==="maneki"))
@@ -3751,6 +3752,7 @@ const FAN_CLASSIC_ART=new URLSearchParams(window.location.search).get("fan")==="
 const SUSHI_CLASSIC_ART=new URLSearchParams(window.location.search).get("sushi")==="classic";
 const MANEKI_CLASSIC_ART=new URLSearchParams(window.location.search).get("maneki")==="classic";
 const ORIGAMI_CLASSIC_ART=new URLSearchParams(window.location.search).get("origami")==="classic";
+const BONSAI_CLASSIC_ART=new URLSearchParams(window.location.search).get("bonsai")==="classic";
 const ART_RESOURCES=[
  {file:"harmony-atlas.webp",query:"v=icons-20261022",ready:"has-atlas",css:"--harmony-classic-art"},
  {file:"sakura-five-stages.avif",query:"v=sakura-20261103-1",ready:"has-sakura-art",css:"--harmony-sakura-art"},
@@ -3760,6 +3762,7 @@ const ART_RESOURCES=[
  {file:"sushi-five-stages.webp",query:"v=sushi-20261103-1",ready:"has-sushi-art",css:"--harmony-sushi-art"},
  {file:"maneki-five-stages.webp",query:"v=maneki-20261103-1",ready:"has-maneki-art",css:"--harmony-maneki-art"},
  {file:"origami-five-stages.webp",query:"v=origami-20261103-1",ready:"has-origami-art",css:"--harmony-origami-art"},
+ {file:"bonsai-five-stages.webp",query:"v=bonsai-20261103-1",ready:"has-bonsai-art",css:"--harmony-bonsai-art"},
  {file:"harmony-new-families.avif",query:"v=5.0",ready:"has-new-atlas",css:"--harmony-new-art"},
  {file:"koi-stage1.avif",query:"v=20261023",ready:"has-koi-stage1",css:"--harmony-koi-stage1-art"},
  {file:"maneki-stage1.avif",query:"v=20261023",ready:"has-maneki-stage1",css:"--harmony-maneki-stage1-art"}
@@ -3769,7 +3772,8 @@ const ART_RESOURCES=[
                (!FAN_CLASSIC_ART||item.file!=="fan-five-stages.webp") &&
                (!SUSHI_CLASSIC_ART||item.file!=="sushi-five-stages.webp") &&
                (!MANEKI_CLASSIC_ART||item.file!=="maneki-five-stages.webp") &&
-               (!ORIGAMI_CLASSIC_ART||item.file!=="origami-five-stages.webp"));
+               (!ORIGAMI_CLASSIC_ART||item.file!=="origami-five-stages.webp") &&
+               (!BONSAI_CLASSIC_ART||item.file!=="bonsai-five-stages.webp"));
 const artworkLoaders=[];
 function checkAtlas(){
  const root=document.documentElement;

@@ -228,8 +228,8 @@ body.harmony-playing .game-view .tile:nth-child(even),
 body.harmony-playing .game-view .tile:nth-child(even):not(.selected),
 body.harmony-playing .game-view .tile:hover:not(.selected),
 body.harmony-playing .game-view .tile:nth-child(even):hover:not(.selected){
-  background-color:#3a2c2d;
-  background-image:url("../assets/gameplay-washi/tile.webp");
+  background-color:#625d56;
+  background-image:url("../assets/gameplay-washi/tile.webp?v=stone-grey-20261103");
   background-size:100% 100%;
   background-repeat:no-repeat;
   background-position:center;
@@ -238,24 +238,24 @@ body.harmony-playing .game-view .tile:nth-child(even):hover:not(.selected){
   box-shadow:inset 0 0 0 1px rgba(190,154,125,.14);
 }
 body.harmony-playing .game-view .tile.selected{
-  background-color:#5c4140;
+  background-color:#625d56;
   background-image:linear-gradient(135deg,rgba(255,204,124,.21),rgba(215,151,89,.10)),
-   url("../assets/gameplay-washi/tile.webp");
+   url("../assets/gameplay-washi/tile.webp?v=stone-grey-20261103");
   background-size:100% 100%;
   background-position:center;
   box-shadow:inset 0 0 0 2px #ebbd71,0 0 8px rgba(245,181,92,.56);
 }
 body.harmony-playing .game-view .tile.swapped:not(.selected){
-  background-image:linear-gradient(rgba(228,161,105,.27),rgba(228,161,105,.27)),url("../assets/gameplay-washi/tile.webp");
+  background-image:linear-gradient(rgba(228,161,105,.27),rgba(228,161,105,.27)),url("../assets/gameplay-washi/tile.webp?v=stone-grey-20261103");
 }
 body.harmony-playing .game-view .tile.pulsed:not(.selected){
-  background-image:linear-gradient(rgba(236,192,133,.24),rgba(236,192,133,.24)),url("../assets/gameplay-washi/tile.webp");
+  background-image:linear-gradient(rgba(236,192,133,.24),rgba(236,192,133,.24)),url("../assets/gameplay-washi/tile.webp?v=stone-grey-20261103");
 }
 body.harmony-playing .game-view .tile.harvested:not(.selected){
-  background-image:linear-gradient(rgba(202,150,114,.22),rgba(202,150,114,.22)),url("../assets/gameplay-washi/tile.webp");
+  background-image:linear-gradient(rgba(202,150,114,.22),rgba(202,150,114,.22)),url("../assets/gameplay-washi/tile.webp?v=stone-grey-20261103");
 }
 body.harmony-playing .game-view .tile.shuffling:not(.selected){
-  background-image:linear-gradient(rgba(178,142,170,.22),rgba(178,142,170,.22)),url("../assets/gameplay-washi/tile.webp");
+  background-image:linear-gradient(rgba(178,142,170,.22),rgba(178,142,170,.22)),url("../assets/gameplay-washi/tile.webp?v=stone-grey-20261103");
 }
 
 /* Collection: first-pass paper styling only. Keep the five current

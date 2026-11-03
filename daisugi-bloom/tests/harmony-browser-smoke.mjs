@@ -568,13 +568,20 @@ try{
   const recovered=await recover.evaluate(()=>{
    const el=document.querySelector(".piece .sprite:not(.sprite-new):not(.sprite-stage1-koi)");
    const style=el&&getComputedStyle(el);
+   const root=getComputedStyle(document.documentElement);
    return {visible:style?.display,background:style?.backgroundImage,
-    fallback:el&&getComputedStyle(el.parentElement.querySelector(".fallback")).display};
+    fallback:el&&getComputedStyle(el.parentElement.querySelector(".fallback")).display,
+    classicAtlas:root.getPropertyValue("--harmony-classic-art"),
+    newAtlas:root.getPropertyValue("--harmony-new-art")};
   });
   assert.equal(recovered.visible,"block");
   assert.equal(recovered.fallback,"none");
-  assert(recovered.background.includes("recovery=1"),
-   "Atlas CSS must use the recovered URL rather than a failed cached URL");
+  // Approved five-stage artwork often overrides the old atlas on the sprite;
+  // inspect the actual recovered CSS variables instead of its sprite URL.
+  assert(recovered.classicAtlas.includes("recovery=1"),
+   "Classic atlas variable must contain the successfully recovered URL");
+  assert(recovered.newAtlas.includes("recovery=1"),
+   "New-families atlas variable must contain the successfully recovered URL");
  }finally{await recoverContext.close();}
  // Live player-mode picker: new sessions default to Pacing 3.0 (including
  // Opportunity 2.0), while 2.0 and Standard are explicitly selectable.

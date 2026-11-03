@@ -1,4 +1,4 @@
-# Journey Levels 1–50 Redesign · Step B, Batch 1 (Levels 1–10)
+> **Historical draft (superseded):** This document records the earlier iteration before the Early Game Identity redesign. For the current proposed levels 1–20, see [Journey 2.0 Early Game Identity](JOURNEY_2_0_EARLY_GAME_IDENTITY.md). The older Daruma-first or no-Hanabi positions below are no longer the active draft.\n\n# Journey Levels 1–50 Redesign · Step B, Batch 1 (Levels 1–10)
 2 November 2026 · Design preview, **not** the published journey.
 
 ## Goal

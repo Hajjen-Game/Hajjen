@@ -15,7 +15,11 @@ function collect(board,exits){const out=[];for(const at of exits){const from=at-
   out.push({at,from,id:board[from].id});board[from]=null;
  }}return out;}
 // Original, genuine two-swap opportunities now take place on row six.
-function opening(board,families){const [a,c,b,d,e]=families;
+function opening(board,families){
+ if(!Array.isArray(families)||families.length<4)throw Error("Hanabi opening requires at least four treasure families");
+ // Early Journey has four families; later chapters have five. Never write
+ // an undefined family into the seeded bottom-row opening.
+ const [a,c,b,d]=families,e=families[4]||d;
  for(const [at,family] of [[35,a],[36,a],[37,b],[38,e],[39,c],[40,c],[41,d],[44,a],[48,c]])
   board[at]={...board[at],family,stage:1};
  return board;

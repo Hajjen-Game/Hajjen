@@ -14,14 +14,15 @@ let moonMirrorPreview=null; // Deliberate, unranked, unsaved sandbox on the real
 let windGardenPreview=null; // Separate unranked Wind Garden gameplay preview.
 let bambooPreview=false; // Genuine, unranked Bamboo Paths chapter-level previews.
 let lotusPreview=null; // Genuine L61 pilot or one of four unranked Lotus route experiments.
-let journeyDraftPreview=false; // Unranked Journey 2.0 levels 1–10, never saved to normal progress.
+let journeyDraftPreview=false; // Unranked Journey 2.0 levels 1–20, never saved to normal progress.
+const journeyDraftIntroSeen=new Set(); // Per-session lesson flags, never persisted.
 let journeyFinalePreviewRuns=0; // Repeated level-10 tests explore different reproducible boards.
 const journeyDraftPlayCounts=new Map(); // Other chapter-two drafts use reproducible but distinct retries.
 function journeyDraftSeed(i){
  if(i===9)return 20261102+i*197+journeyFinalePreviewRuns++*7919;
  const count=journeyDraftPlayCounts.get(i)||0;
  journeyDraftPlayCounts.set(i,count+1);
- return 20261102+i*197+(i>=10?count*7919:0);
+ return 20261102+i*197+(i>=4?count*7919:0);
 }
 let windAtmosphere=null; // One persistent, directional row layer for the active Wind preview.
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
@@ -476,16 +477,21 @@ function levelPreview(index,resumable=false){
 // Tutorial Help Modal 1.0: reuse the SAME illustrated guide for the first
 // encounter and the ? next to GOAL. Only OK acknowledges a new lesson.
 function goalLesson(){
- if(journeyDraftPreview&&level>=10&&game?.config){
-  const kind=game.config.goal.type;
-  const guide=O.LESSONS[kind==="daruma"?20:kind==="mist"?3:
-   kind==="masterpiece"||kind==="pulseHits"?2:kind==="stage4"?1:10];
-  return {...guide,title:game.config.name,short:game.config.intro,detail:game.config.intro};
+ if(journeyDraftPreview&&game?.config){
+  const original=level<4?O.lesson(level):null;
+  if(original)return original;
+  const m=game.levelRecipe?.mechanics||{},goal=game.config.goal.type;
+  let visual=goal==="mist"?O.LESSONS[3]:goal==="stage4"?O.LESSONS[1]:O.LESSONS[2];
+  if(m.hanabi)visual=O.LESSONS[60];
+  if(m.mirrors?.length)visual={key:"moon",jp:"月",title:"Moon Mirror",
+   short:"Fuse beside the fixed mirror to reflect energy one square in its arrow's direction.",
+   detail:"A Fusion beside a Moon Mirror sends a reflected hit to the adjacent square beyond the mirror. The mirror itself stays fixed. A Masterpiece also releases its regular Harmony Pulse."};
+  if(m.wind)visual={key:"wind",jp:"風",title:"Wind Garden",
+   short:"After a set number of valid moves, the marked row shifts one cell.",
+   detail:"Watch which row will move next. Every scheduled shift wraps the end treasure around to the other side; invalid swaps do not advance the wind."};
+  return {...visual,title:game.config.name,
+   short:game.config.intro,detail:visual.detail+" "+game.config.intro};
  }
- if(journeyDraftPreview&&game?.config?.goal?.type==="familyMasterpiece"&&
-    game.config.goal.family!=="lantern")
-  return {...O.LESSONS[2],title:game.config.name,
-   short:game.config.intro,detail:game.config.intro};
  const original=O.lesson(level);
  if(original)return original;
  const key=({mist:"mist",daruma:"daruma",sealedStone:"stone",fourTurns:"four",
@@ -1171,7 +1177,8 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
  game=new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario||journeyDraftPreview?null:data,
-  journeyDraftPreview?{directorMode:i>=9?"v4":"v3",
+  journeyDraftPreview?{directorMode:
+   journeyRecipe.mechanics.hanabi||journeyRecipe.mechanics.mirrors.length||journeyRecipe.mechanics.wind?"v62":i>=9?"v4":"v3",
    journeyDiagnostic:true,levelRecipe:journeyRecipe,
    seed:journeyDraftSeed(i)}:mirrorScenario?
   {directorMode:"v62",moonMirrorPreview:mirrorScenario,seed:13}:
@@ -1191,6 +1198,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  document.querySelector(".goal-glyph").textContent=game.config.goal.type==="mist"?"☁":
   game.config.goal.type==="daruma"?"◉":
   game.config.goal.type==="sealedStone"?"✦":
+  game.config.goal.type==="lotus"&&game.hanabiVersion?"花":
   ["familyFusion","familyMasterpiece"].includes(game.config.goal.type)?"灯":"✿";
  const milestones=$("starTargets");
  milestones.hidden=game.rewardVersion>=2||game.config.goal.type!=="score";
@@ -1202,6 +1210,11 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  prepareCollection();renderBoard(game.board);syncWindAtmosphere();renderHUD();updatePaceLabel();updateSpiritBadge();renderPowerBar();saveRun();armDecisionClock();restartIdleHint();
  // One-time, player-acknowledged illustrated lesson, including resumed unread runs.
  if(!mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario&&!journeyDraftPreview)offerFirstLesson(i);
+ // A new mechanic gets a contextual, dismissible tutorial the first time
+ // it is previewed. No progress or seen flags are written to player saves.
+ if(journeyDraftPreview&&[4,10,15].includes(i)&&!journeyDraftIntroSeen.has(i)){
+  journeyDraftIntroSeen.add(i);showTutorialHelp(goalLesson(),false);
+ }
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.
 // The old renderer recreated ~150 DOM nodes and 49 listeners for EVERY fusion frame.
@@ -3031,8 +3044,8 @@ function showJourneyDraftChooser(chapter=0){
  $("modalTitle").textContent="Journey 2.0 · Levels "+(activeChapter*10+1)+"–"+(activeChapter*10+10);
  const content=$("modalContent");content.replaceChildren();
  content.append(goshuinNode("p","",activeChapter===0?
-  "Try the first ten redesigned levels with real Fusion, Mist and Harmony Pulse rules. Each test is unranked and does not affect your saved Journey, rewards or cards.":
-  "Try levels 11–20: five families, Mist, and the Daruma introduction at level 15. Daruma requires two separate hits. These are unranked designs and will not alter your saved progress, stars or cards."));
+  "Early-game identity: learn Fusion and Mist, launch your first Hanabi at level 5, then finish with the Koi Masterpiece challenge. These are unranked drafts; your Journey and rewards stay unchanged.":
+  "Moon Mirror enters at level 11 and Wind Garden at 16. These puzzles combine mirrors, shifting rows and fireworks without Wind and Mist on the same board. Draft tests never change saved progress or cards."));
  const tabs=goshuinNode("div","journey-chapter-tabs");
  for(let ch=0;ch<2;ch++){
   const tab=goshuinNode("button","journey-chapter-tab"+(ch===activeChapter?" selected":""),

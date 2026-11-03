@@ -73,6 +73,18 @@ function picture(kind,variant){
   shape(svg,"text",{x:135,y:78,"text-anchor":"middle",
    "font-size":9,fill:"#805b46","font-family":"Arial,sans-serif",
    "font-weight":"700"},"STONE TILES STAY CLOSED");
+ }else if(kind==="moon"){
+  tile(svg,15,15,"green");tile(svg,60,15,"pink");
+  tile(svg,110,15,"star",{glow:true});
+  shape(svg,"rect",{x:153,y:15,width:43,height:43,rx:8,fill:"#7b899a",stroke:"#bfc9d4","stroke-width":2});
+  shape(svg,"path",{d:"M175 20 L190 36 L175 52 L160 36 Z",fill:"#c1d8de",stroke:"#edf2e5","stroke-width":2});
+  shape(svg,"path",{d:"M179 36 H215 M208 30 L216 36 L208 42",fill:"none",stroke:"#a97c4e","stroke-width":3,"stroke-linecap":"round"});
+  tile(svg,219,15,"green",{glow:true,pulse:true});
+ }else if(kind==="wind"){
+  for(const x of [14,63,112])tile(svg,x,15,"green");
+  for(const y of [19,32,45])
+   shape(svg,"path",{d:"M160 "+y+" H230 m-9 -5 9 5 -9 5",fill:"none",stroke:"#7db0ba","stroke-width":2.2,opacity:.85});
+  shape(svg,"text",{x:195,y:75,"text-anchor":"middle","font-size":10,fill:"#6f8190","font-weight":"700"},"ROW SHIFTS");
  }else if(kind==="lotus-intro"){
   tile(svg,14,12,"pink");tile(svg,59,12,"green");tile(svg,104,12,"pink");
   shape(svg,"path",{d:"M68 42 L78 18 L86 18 L96 42 Z",fill:"#c86650",stroke:"#8f433a","stroke-width":1.5});
@@ -118,6 +130,10 @@ function picture(kind,variant){
  return svg;
 }
 const EXAMPLES=Object.freeze({
+ moon:[["Fusion Resonance","A Fusion beside the mirror reflects one hit along its arrow."],
+  ["Harmony Pulse","Masterpieces also send Pulse to neighbors, including mirrors."]],
+ wind:[["Predict the row","The highlighted row moves after the announced number of successful moves."],
+  ["Plan a return","Treasures wrap across the row. Fixed board fixtures never shift."]],
  mist:[["1 · Fuse on Mist","Land a fusion on the misty tile to clear it."],["2 · Harmony Pulse","A neighboring stage-5 Pulse also removes Mist."]],
  daruma:[["1 · First hit","Fuse beside Daruma or reach it with Harmony Pulse."],["2 · Second hit","Hit again on a later move to complete both eyes."]],
  stone:[["1 · Break the seal","Hit the stone four times, at most once per move."],["2 · Awakening Pulse","The final hit sends energy to all eight neighbors."]],

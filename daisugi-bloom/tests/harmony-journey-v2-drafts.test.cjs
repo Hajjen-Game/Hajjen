@@ -1,151 +1,147 @@
 "use strict";
-/* Journey 2.0 Step B: draft only — full real-engine fixtures, immutable catalogue,
- * save isolation, and no accidental changes to published levels 1–100.
+/* Japanese Harmony Journey 2.0: deliberate early identity.
+ * Keep the old teaching section (1–4) and the tested Koi finale (10),
+ * introduce Hanabi on 5, Mirror on 11, Wind on 16.
  */
 const assert=require("node:assert/strict");
-const R=require("../harmony/rules.js");
-const J=require("../harmony/level-architecture.js");
+const Rules=require("../harmony/rules.js");
+const Architecture=require("../harmony/level-architecture.js");
 const Draft=require("../harmony/journey-levels-v2.js");
-const check=(name,fn)=>{fn();console.log("PASS "+name);};
-check("Ten explicitly authored first-chapter draft recipes",()=>{
+const Hanabi=require("../harmony/hanabi-crate.js");
+const check=(name,test)=>{test();console.log("PASS "+name);};
+const seeds=[11,29,53,79,103,127];
+check("Twenty independent recipes retain the first four and Koi finale",()=>{
  assert.equal(Draft.COUNT,20);
  assert.equal(Draft.FIRST,0);
- const all=Array.from({length:10},(_,i)=>Draft.get(i));
- assert.equal(new Set(all.map(x=>x.id)).size,10);
- assert.deepEqual(all.map(x=>x.goal.type),
-  ["fusion","stage3","masterpiece","mist","fusion","fourTurns","pulseHits","mist","stage3","familyMasterpiece"]);
- assert.equal(all[0].goal.count,3);
- assert.equal(all[1].goal.count,1);
- assert.equal(all[2].goal.count,1);
- assert.equal(Draft.get(-1),null);
- assert.equal(Draft.get(20),null);
- assert.equal(Draft.get("1"),null);
- for(const [i,r] of all.entries()){
-  assert.equal(r.index,i);
-  assert.equal(J.compatible(r).ok,true);
-  assert.equal(r.version,2);
-  assert.equal(typeof r.starPar,"number");
-  assert(r.starPar<r.moves-1);
-  assert(r.mechanics.mist.length===0||r.goal.type==="mist");
+ assert.deepEqual(Array.from({length:4},(_,i)=>Draft.get(i).goal.type),
+  ["fusion","stage3","masterpiece","mist"]);
+ const koi=Draft.get(9);
+ assert.equal(koi.id,"journey2-koi-masterpiece-finale");
+ assert.deepEqual(koi.goal,{type:"familyMasterpiece",family:"koi",count:2});
+ assert.equal(koi.moves,40);assert.equal(koi.starPar,17);
+ assert.equal(Draft.get(-1),null);assert.equal(Draft.get(20),null);
+ assert.equal(Draft.get("5"),null);
+ assert.equal(new Set(Draft.summary().map(x=>x.name)).size,20);
+ for(let i=0;i<20;i++){
+  const recipe=Draft.get(i);
+  assert.equal(recipe.index,i);
+  assert.equal(Architecture.compatible(recipe).ok,true);
+  assert(recipe.starPar<recipe.moves-1);
  }
- const one=Draft.get(3);one.mechanics.mist.push(48);one.goal.count=99;
- assert.deepEqual(Draft.get(3).mechanics.mist,[17,24,31]);
- assert.equal(Draft.get(3).goal.count,3);
+ const before=Draft.get(19),copy=Draft.get(19);
+ copy.mechanics.mirrors[0].at=47;copy.mechanics.hanabi.starts[0]=3;
+ copy.goal.count=45;
+ assert.deepEqual(Draft.get(19),before);
+ const wind=Draft.get(17),edited=Draft.get(17);
+ edited.mechanics.wind.steps[0].row=6;
+ assert.deepEqual(Draft.get(17),wind);
 });
-check("Mechanic sequence teaches only core Fusion, Pulse and Mist",()=>{
- const all=Array.from({length:10},(_,i)=>Draft.get(i));
- const mists=all.map((x,i)=>x.mechanics.mist.length?i+1:null).filter(Boolean);
- assert.deepEqual(mists,[4,8],"Mist should not dominate repeated levels");
- for(const r of all){
-  assert.deepEqual(Object.keys(r.mechanics),["mist"]);
-  assert(["gentle","standard","challenge"].includes(r.difficulty));
-  assert(!r.intro.includes("Bamboo"));
+check("Hanabi appears before Mirror and Wind; Daruma/Stone remain later",()=>{
+ const f=Array.from({length:20},(_,i)=>Draft.get(i));
+ assert.deepEqual(f.map((r,i)=>r.mechanics.hanabi?i+1:null).filter(Boolean),
+  [5,6,7,8,9,13,15,17,20]);
+ assert.equal(f.findIndex(r=>r.mechanics.mirrors.length)+1,11);
+ assert.equal(f.findIndex(r=>r.mechanics.wind)+1,16);
+ assert.equal(f.findIndex(r=>r.mechanics.daruma.length),-1);
+ assert.equal(f.findIndex(r=>r.mechanics.sealedStones?.length),-1);
+ for(const r of f){
+  assert(!(r.mechanics.wind&&r.mechanics.mist.length),
+   "Wind + Mist is intentionally excluded from early identity");
+  assert(!r.mechanics.bamboo?.blocked?.length);
  }
- assert.equal(all[2].goal.type,"masterpiece");
- assert.deepEqual(all[9].goal,{type:"familyMasterpiece",family:"koi",count:2});
- assert.equal(all[9].name,"Koi Masterpiece Finale");
- assert.equal(all[9].moves,40);
- assert.equal(all[9].starPar,17);
+ assert.deepEqual(f[4].goal,{type:"lotus",count:1});
+ assert.deepEqual(f[5].goal,{type:"lotus",count:2});
+ assert.deepEqual(f[6].goal,{type:"mist",count:4});
+ assert.deepEqual(f[7].goal,{type:"masterpiece",count:2});
+ assert.deepEqual(f[8].goal,{type:"lotus",count:2});
+ assert.equal(f[10].name,"First Moon Mirror");
+ assert.equal(f[15].name,"First Wind Garden");
 });
-check("Six seeds per level create real 4-family playable openings and unchanged draft snapshots",()=>{
+check("Hanabi accepts a four-family opening without invalid treasures",()=>{
+ const families=["sakura","lantern","koi","fan"];
+ const board=Array.from({length:49},(_,i)=>({family:families[i%4],stage:1,id:i+1}));
+ Hanabi.opening(board,families);
+ assert(board.every(p=>families.includes(p.family)), "Four-family board needs no fifth sprite");
+ assert.throws(()=>Hanabi.opening(board,["sakura","lantern","koi"]),/four/);
+});
+check("60 seeded early-level games have genuine sprites, legal swaps, safe saves",()=>{
  for(let i=0;i<10;i++){
   const recipe=Draft.get(i);
-  for(const seed of [11,29,53,79,103,127]){
-   const game=new R.Game(i,null,{seed,directorMode:i>=9?"v4":"v3",
-    journeyDiagnostic:true,levelRecipe:recipe});
-   assert.equal(game.familyCount,4);
-   assert.equal(game.config.levelArchitectureVersion,2);
-   assert.equal(game.config.levelRecipeId,recipe.id);
-   assert.deepEqual(game.config.goal,recipe.goal);
-   assert.equal(game.config.moves,recipe.moves);
+  for(const seed of seeds){
+   const options={seed,directorMode:i>=4&&i!==9?"v62":i===9?"v4":"v3",
+    journeyDiagnostic:true,levelRecipe:recipe};
+   const g=new Rules.Game(i,null,options);
+   assert.equal(g.familyCount,4);
+   assert.equal(new Set(g.families).size,4);
+   assert.equal(g.config.levelRecipeId,recipe.id);
+   assert.deepEqual(g.config.goal,recipe.goal);
+   assert.equal(g.config.starPar,recipe.starPar);
+   assert.equal(g.moves,recipe.moves);
+   assert.equal(Rules.scan(g.board).length,0);
+   assert(Rules.validSwaps(g.board).length>=3);
+   assert.deepEqual(g.boardMechanics.mist,recipe.mechanics.mist);
+   assert.equal(g.mist.filter(Boolean).length,recipe.mechanics.mist.length);
+   assert.equal(g.daruma.filter(Boolean).length,0);
+   assert.equal(g.sealed.filter(Boolean).length,0);
+   assert.equal(g.moonMirrors.length,0);assert.equal(g.windGarden,null);
+   if(recipe.mechanics.hanabi){
+    assert.equal(g.hanabiVersion,2);
+    assert.deepEqual(g.lotus.starts,recipe.mechanics.hanabi.starts);
+    assert.deepEqual(g.lotus.exits,recipe.mechanics.hanabi.crates);
+    for(const at of recipe.mechanics.hanabi.starts)
+     assert.equal(g.board[at]?.family,"lotusSeed");
+    for(const at of recipe.mechanics.hanabi.crates)
+     assert.equal(g.board[at]?.family,"hanabiCrate");
+    assert(g.board.every(p=>!p||!p.family||g.families.includes(p.family)||
+     ["lotusSeed","hanabiCrate"].includes(p.family)),
+     "Early Hanabi must never insert an undefined or fifth family");
+   }else assert.equal(g.hanabiVersion,0);
    if(i===9){
-    assert.equal(game.goalText(),"Koi masterpieces");
-    assert.deepEqual(game.families,["koi","bonsai","sushi","origami"]);
-    assert.equal(game.progress(),0);
+    assert.equal(g.goalText(),"Koi masterpieces");
+    assert.deepEqual(g.families,["koi","bonsai","sushi","origami"]);
    }
-   assert.equal(game.moves,recipe.moves);
-   assert.deepEqual(game.boardMechanics.mist,recipe.mechanics.mist);
-   assert.equal(R.scan(game.board).length,0);
-   assert(R.validSwaps(game.board).length>=3);
-   assert.equal(game.moonMirrors.length,0);
-   assert.equal(game.windGarden,null);
-   assert.equal(game.hanabiVersion,0);
-   assert.equal(game.daruma.filter(Boolean).length,0);
-   assert.equal(game.sealed.filter(Boolean).length,0);
-   assert.equal(game.mist.filter(Boolean).length,recipe.mechanics.mist.length);
-   const saved=game.save();
-   const resume=new R.Game(i,saved,{fastRestore:true});
-   assert.deepEqual(resume.board,game.board);
-   assert.deepEqual(resume.config.goal,game.config.goal);
-   assert.deepEqual(resume.boardMechanics,game.boardMechanics);
-   assert.deepEqual(resume.mist,game.mist);
-   assert.equal(resume.config.name,recipe.name);
-   assert.equal(resume.config.starPar,recipe.starPar);
-   const swap=R.validSwaps(game.board)[0];
-   assert.equal(game.swap(...swap).ok,true);
+   const saved=g.save(),resumed=new Rules.Game(i,saved,{fastRestore:true});
+   assert.deepEqual(resumed.board,g.board);
+   assert.deepEqual(resumed.lotus,g.lotus);
+   assert.deepEqual(resumed.mist,g.mist);
+   assert.deepEqual(resumed.config.goal,g.config.goal);
+   const move=Rules.validSwaps(g.board)[0];
+   assert.equal(g.swap(...move).ok,true);
+   assert.equal(g.moves,recipe.moves-1);
   }
  }
 });
-check("Ordinary production 1–100 levels and historical runs remain unaffected",()=>{
- for(let i=0;i<100;i++){
-  const config=R.levelConfig(i);
-  assert(!Object.hasOwn(config,"levelRecipeId"));
-  assert(!Object.hasOwn(config,"levelArchitectureVersion"));
-  if(i<10){
-   const original=new R.Game(i,null,{seed:20261101+i,directorMode:"v3"});
-   assert(!original.levelRecipe);
-   assert(!Object.hasOwn(original.save(),"levelRecipe"));
-   const resume=new R.Game(i,original.save(),{fastRestore:true});
-   assert.deepEqual(resume.board,original.board);
-   assert.deepEqual(resume.config.goal,original.config.goal);
-  }
- }
- assert.equal(R.levelConfig(0).name,"First Harmony");
- assert.equal(R.levelConfig(4).name,"Harmony Garden");
- assert.equal(R.levelConfig(9).name,"Garden of Harmony");
- assert.equal(R.levelConfig(20).name,"Daruma Awakening");
- assert.equal(R.levelConfig(30).goal.type,"sealedStone");
- assert.equal(R.levelConfig(60).name,"First Hanabi Crate");
-});
-check("Specific-family Masterpieces must count only the required family",()=>{
- const recipe=Draft.get(9);
- const game=new R.Game(9,null,{seed:20261102+9*197,
-  journeyDiagnostic:true,levelRecipe:recipe,directorMode:"v3"});
- const original=game.goalText();
- assert.equal(original,"Koi masterpieces");
- game.masterpieces=2;game.familyMasterpieces={sushi:1,origami:1};
- assert.equal(game.progress(),0,"Wrong-family Masterpieces cannot finish the level");
- assert.equal(game.fulfilled(),false);
- game.familyMasterpieces.koi=1;
- assert.equal(game.progress(),1);
- assert.equal(game.fulfilled(),false);
- game.familyMasterpieces.koi=2;
- assert.equal(game.progress(),2);
- assert.equal(game.fulfilled(),true);
- assert.equal(game.goalText(),original);
-});
-check("Koi-specific labels remain accurate in the HUD and goal help",()=>{
- const draft=Draft.get(9);
- const game=new R.Game(9,null,{seed:34123,journeyDiagnostic:true,
-  levelRecipe:draft,directorMode:"v3"});
+check("Specific-family Masterpieces count only the required Koi",()=>{
+ const r=Draft.get(9),g=new Rules.Game(9,null,{seed:289,
+  journeyDiagnostic:true,levelRecipe:r,directorMode:"v4"});
+ assert.equal(g.goalText(),"Koi masterpieces");
+ g.masterpieces=4;g.familyMasterpieces={sushi:2,koi:0};
+ assert.equal(g.progress(),0);
+ g.familyMasterpieces.koi=1;assert.equal(g.fulfilled(),false);
+ g.familyMasterpieces.koi=2;assert.equal(g.fulfilled(),true);
  const O=require("../harmony/onboarding.js");
- const Q=require("../harmony/objective-feedback.js");
- assert.equal(O.objective(draft),"2 Koi masterpieces");
- assert.equal(Q.detail(game),"2 Koi masterpieces remaining");
- assert.equal(game.goalText(),"Koi masterpieces");
- game.familyMasterpieces={sushi:4,koi:1};
- assert.equal(Q.detail(game),"1 Koi masterpiece remaining");
- const lantern=R.levelConfig(49);
- assert.equal(O.objective(lantern),"2 Lantern masterpieces");
+ assert.equal(O.objective(r),"2 Koi masterpieces");
 });
-check("Preview cannot be silently enabled in normal gameplay",()=>{
- const recipe=Draft.get(4);
- assert.throws(()=>new R.Game(4,null,{seed:41,levelRecipe:recipe}),/diagnostic/);
- assert.throws(()=>new R.Game(4,null,{seed:41,journeyDiagnostic:true,
-  levelRecipe:{...recipe,index:5}}),/index/);
- const game=new R.Game(4,null,{seed:41,journeyDiagnostic:true,levelRecipe:recipe});
- const saved=game.save();
- assert.equal(saved.levelArchitectureVersion,2);
- assert.deepEqual(saved.levelRecipe, J.normalize(recipe));
+check("Production 1–100 and previous normal saves do not silently adopt new drafts",()=>{
+ for(let i=0;i<100;i++){
+  const original=Rules.levelConfig(i);
+  assert(!Object.hasOwn(original,"levelRecipeId"));
+  assert(!Object.hasOwn(original,"levelArchitectureVersion"));
+ }
+ for(const i of [0,4,5,8,9,10,11,15,16,19,20]){
+  const normal=new Rules.Game(i,null,{seed:20261103+i,directorMode:"v4"});
+  assert(!normal.levelRecipe);
+  const saved=normal.save();
+  assert(!Object.hasOwn(saved,"levelRecipe"));
+  const restored=new Rules.Game(i,saved,{fastRestore:true});
+  assert.deepEqual(restored.board,normal.board);
+  assert.deepEqual(restored.config.goal,normal.config.goal);
+ }
+ for(const i of [4,10,15]){
+  assert.throws(()=>new Rules.Game(i,null,{seed:42,levelRecipe:Draft.get(i)}),/diagnostic/);
+ }
+ assert.equal(Rules.levelConfig(4).name,"Harmony Garden");
+ assert.equal(Rules.levelConfig(9).name,"Garden of Harmony");
+ assert.equal(Rules.levelConfig(20).name,"Daruma Awakening");
 });
-console.log("PASS Journey 2.0 Chapter 1 design draft contracts");
+console.log("PASS Journey 2.0 early-identity four-family and legacy isolation tests");

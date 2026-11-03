@@ -1,0 +1,21 @@
+/* Japanese Harmony · Koi Artwork Refresh 1.0 (2026-11-03)
+ * Five user-selected illustrations in a transparent 5 x 1 WebP atlas,
+ * 256 x 256 pixels per stage. Classic artwork is never overwritten.
+ * ?koi=classic switches back to all previous Koi stages, including stage 1.
+ */
+.has-koi-art .piece .sprite.sprite-koi{
+ background-image:var(--harmony-koi-art)!important;
+ background-size:500% 100%!important;
+ background-position:var(--sx) center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-koi-art .piece:has(.sprite-koi) .fallback{display:none!important}
+.has-koi-art .collection-art.collection-koi{
+ background-image:var(--harmony-koi-art)!important;
+ background-size:500% 100%!important;
+ background-position:100% center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-koi-art .collection-card:has(.collection-koi) .collection-fallback{display:none!important}

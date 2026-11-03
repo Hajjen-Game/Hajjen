@@ -20,9 +20,9 @@ jobs:
         run: node daisugi-bloom/tests/harmony-consistency-audit.test.cjs
       - name: Level Architecture 2.0 · versioned cross-mechanic recipes and legacy isolation
         run: node daisugi-bloom/tests/harmony-level-architecture.test.cjs
-      - name: Journey 2.0 · first-ten draft gameplay, saved state safety and immutable catalogue
+      - name: Journey 2.0 · Hanabi-first level 1–10 design, 60 authentic seeds and legacy isolation
         run: node daisugi-bloom/tests/harmony-journey-v2-drafts.test.cjs
-      - name: Journey 2.0 · chapter two, 60 seeded Daruma / Mist starts and legacy saves
+      - name: Journey 2.0 · Moon and Wind levels 11–20, 60 seeded games and save safety
         run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two.test.cjs
       - name: Board Mechanics Foundation 1.0 · terrain masks, overlays, seeded play and save
         run: node daisugi-bloom/tests/harmony-board-mechanics.test.cjs
@@ -183,6 +183,10 @@ jobs:
         run: |
           python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/daisugi-bloom-server.log 2>&1 &
           echo $! > /tmp/daisugi-bloom-server.pid
+      - name: Journey 2.0 · 390px levels 1–10, Hanabi intro, Koi finale and saved-run isolation
+        run: node daisugi-bloom/tests/harmony-journey-v2-browser.mjs
+      - name: Journey 2.0 · 390px early identity, Hanabi 5, Moon 11, Wind 16 and safe saves
+        run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two-browser.mjs
       - name: Tutorial Help Modal 1.0 · illustrated lessons, OK acknowledgment and replay
         run: node daisugi-bloom/tests/harmony-tutorial-help-browser.mjs
       - name: Director 6.2 · actual 390px Bamboo preview, first real swap and existing saves
@@ -195,10 +199,6 @@ jobs:
         run: node daisugi-bloom/tests/harmony-hanabi-gravity-browser.mjs
       - name: Lotus Stream Early Preview · 390px cargo delivery, river gates and no saved progress changes
         run: node daisugi-bloom/tests/harmony-lotus-preview-browser.mjs
-      - name: Journey 2.0 · 390px first-ten preview, real swap and saved-run isolation
-        run: node daisugi-bloom/tests/harmony-journey-v2-browser.mjs
-      - name: Journey 2.0 · 390px levels 11–20, Daruma, chapter tabs and save isolation
-        run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two-browser.mjs
       - name: Lotus hint reliability · no starvation by invalid touches, manual legal hint and saved state safety
         run: node daisugi-bloom/tests/harmony-lotus-hint-browser.mjs
       - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion

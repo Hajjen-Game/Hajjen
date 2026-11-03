@@ -186,7 +186,7 @@ expect("Approved assets are independent high-resolution transparent WebP files",
  }
  const app=fs.readFileSync(path.resolve(__dirname,"../harmony/app.js"),"utf8");
  const css=fs.readFileSync(path.resolve(__dirname,"../harmony/mobile-game.css"),"utf8");
- for(let n=0;n<4;n++)assert(css.includes("sealed-stone-"+n+".webp?v=6.39.0"));
+ for(let n=0;n<4;n++)assert(css.includes("sealed-stone-"+n+".webp?v=20261103"));
  assert(app.includes('className="sealed-stone-art state-"+stoneStage'));
  assert(app.includes('case "awakening":'));
  assert(app.includes('praise("awakening")'));

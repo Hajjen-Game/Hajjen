@@ -238,7 +238,8 @@ try{
   });
   assert(visual.title.includes("Daruma")&&visual.goal.includes("Daruma"));
   assert(visual.locked&&visual.count===1&&visual.state.includes("state-0"));
-  assert(visual.background.includes("daruma-states.webp"));
+  assert(visual.background.includes("daruma-states-20261103.webp"),
+   "Daruma should render the approved 2026-11-03 three-state artwork");
   assert(visual.aria.includes("two eyes left"));
   fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
   await dp.screenshot({path:"/tmp/daisugi-bloom/daruma-l21.png"});

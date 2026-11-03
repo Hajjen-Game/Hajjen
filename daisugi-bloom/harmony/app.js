@@ -2595,8 +2595,9 @@ async function animateEcho(evt){
 }
 // Daruma Awakening 1.0 — all visuals use the existing three-state Daruma atlas.
 async function darumaEyeAnimation(hits){
- if(FAST()||document.hidden||!Element.prototype.animate)return;
+ // Motion accessibility and sound preferences are independent.
  if(hits.some(h=>h.filled===2))sound("daruma-awaken");
+ if(FAST()||document.hidden||!Element.prototype.animate)return;
  const tasks=[];
  for(const hit of hits){
   const art=boardTiles[hit.at]?.querySelector(".daruma-art");

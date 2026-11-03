@@ -1,0 +1,20 @@
+/* Japanese Harmony · Lantern Artwork Refresh 1.0 — 2026-11-03.
+ * Five user-supplied transparent images in a 5×1 WebP strip, 256px per stage.
+ * The existing classic atlas remains intact. ?lantern=classic restores it.
+ */
+.has-lantern-art .piece .sprite.sprite-lantern{
+ background-image:var(--harmony-lantern-art)!important;
+ background-size:500% 100%!important;
+ background-position:var(--sx) center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-lantern-art .piece:has(.sprite-lantern) .fallback{display:none!important}
+.has-lantern-art .collection-art.collection-lantern{
+ background-image:var(--harmony-lantern-art)!important;
+ background-size:500% 100%!important;
+ background-position:100% center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-lantern-art .collection-card:has(.collection-lantern) .collection-fallback{display:none!important}

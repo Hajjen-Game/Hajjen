@@ -93,14 +93,17 @@ try{
  state=await count();
  assert.equal(state.title,"First Moon Mirror");assert.equal(state.mirrors,1);
  assert.equal(state.hanabi,0);assert.equal(state.wind,0);assert.equal(state.mist,0);
- assert.equal(state.goal,"Objects to stage 4");assert(state.validWidth);
+ assert.equal(state.goal,"Stage 4 + Moon Mirror");assert(state.validWidth);
+ assert.equal(await page.$eval("#goalProgress",x=>x.textContent),"0/2 · 0/3");
+ assert((await page.$eval("#goalHelpButton",x=>x.getAttribute("aria-label"))).includes("Mirror activations 0/3"));
  assert.equal(await page.$eval('.tile[data-index="25"]',n=>n.classList.contains("moon-mirror-tile")),true);
  await leave();
  await draft(16,1);await lesson("First Wind Garden");
  state=await count();
  assert.equal(state.title,"First Wind Garden");assert.equal(state.wind,1);
  assert.equal(state.mirrors,0);assert.equal(state.hanabi,0);assert.equal(state.mist,0);
- assert.equal(state.goal,"Fusions");assert(state.validWidth);
+ assert.equal(state.goal,"Fusions + Four-matches");assert(state.validWidth);
+ assert.equal(await page.$eval("#goalProgress",x=>x.textContent),"0/14 · 0/4");
  await leave();
  await draft(18,1);
  state=await count();
@@ -110,7 +113,18 @@ try{
  await draft(20,1);
  state=await count();
  assert.equal(state.title,"Festival of Reflections");
- assert.equal(state.goal,"Deliver fireworks");
+ assert.equal(state.goal,"Hanabi + Moon Mirror + Masterpieces");
+ assert.equal(await page.$eval("#goalProgress",x=>x.textContent),"0/2 · 0/6 · 0/2");
+ assert((await page.$eval("#goalHelpButton",x=>x.getAttribute("aria-label"))).includes("Mirror activations 0/6"));
+ // Completing both rockets alone must not complete the chapter finale.
+ const incomplete=await page.evaluate(()=>{
+  const r=HarmonyJourneyDrafts.get(19);
+  const g=new HarmonyRules.Game(19,null,{seed:1339,directorMode:"v62",
+   journeyDiagnostic:true,levelRecipe:r});
+  g.lotusDelivered=2;
+  return {progress:g.progress(),complete:g.fulfilled(),parts:g.goalParts().length};
+ });
+ assert.deepEqual(incomplete,{progress:2,complete:false,parts:3});
  assert.equal(state.hanabi,2);assert.equal(state.crates,2);assert.equal(state.mirrors,2);
  assert.equal(state.wind,0);assert.equal(state.mist,0);
  await leave();

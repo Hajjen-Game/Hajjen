@@ -11,7 +11,7 @@ const Lotus=root.HarmonyLotusStream||(typeof require==="function"?require("./lot
 if(!B||!Mirror||!Wind||!Lotus)throw Error("Level Architecture requires the four existing mechanic adapters");
 const VERSION=2,MAX=49;
 const families=new Set(["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"]);
-const goals=new Set(["fusion","stage3","stage4","masterpiece","pulseHits","mist","daruma","sealedStone","lotus","fourTurns","familyFusion","familyMasterpiece"]);
+const goals=new Set(["fusion","stage3","stage4","masterpiece","pulseHits","mist","daruma","sealedStone","lotus","fourTurns","familyFusion","familyMasterpiece","mirrorResonances"]);
 const difficulties=new Set(["gentle","standard","challenge","expert"]);
 const fields=new Set(["version","id","index","name","subtitle","intro","moves","starPar","goal","difficulty","mechanics","compatibility"]);
 const mechanicalFields=new Set(["bamboo","mist","daruma","sealedStones","mirrors","wind","hanabi"]);
@@ -60,12 +60,28 @@ function normalize(recipe,index=recipe?.index){
   throw Error("Level recipe starPar must be lower than move budget");
  if(!difficulties.has(recipe.difficulty))throw Error("Unknown difficulty tier");
  const goal=object(recipe.goal,"Goal");
- keys(goal,new Set(["type","count","family"]),"goal");
- if(!goals.has(goal.type)||!Number.isInteger(goal.count)||goal.count<1||goal.count>120)
-  throw Error("Invalid level goal");
- if(["familyFusion","familyMasterpiece"].includes(goal.type)){
-  if(!families.has(goal.family))throw Error("Family goal requires a real treasure family");
- }else if(goal.family!==undefined)throw Error("Non-family goal cannot specify a family");
+ keys(goal,new Set(["type","count","family","requires"]),"goal");
+ const checkTask=(task,label)=>{
+  object(task,label);
+  keys(task,new Set(["type","count","family"]),label);
+  if(!goals.has(task.type)||!Number.isInteger(task.count)||task.count<1||task.count>120)
+   throw Error("Invalid "+label);
+  if(["familyFusion","familyMasterpiece"].includes(task.type)){
+   if(!families.has(task.family))throw Error("Family goal requires a real treasure family");
+  }else if(task.family!==undefined)throw Error("Non-family goal cannot specify a family");
+  return {...task};
+ };
+ checkTask({type:goal.type,count:goal.count,...(goal.family?{family:goal.family}:{})},"level goal");
+ const requirements=goal.requires===undefined?[]:goal.requires;
+ if(!Array.isArray(requirements)||requirements.length>3)
+  throw Error("Goal requirements must contain at most three tasks");
+ const required=requirements.map(x=>checkTask(x,"required objective"));
+ const primaryId=goal.type+":"+(goal.family||"");
+ const ids=[primaryId,...required.map(x=>x.type+":"+(x.family||""))];
+ if(new Set(ids).size!==ids.length)throw Error("Duplicate primary or required objective");
+ const compiledGoal={type:goal.type,count:goal.count,
+  ...(goal.family?{family:goal.family}:{}),
+  ...(required.length?{requires:required}:{} )};
  const raw=object(recipe.mechanics,"Mechanics");
  keys(raw,mechanicalFields,"mechanics");
  const b=raw.bamboo===undefined?{}:object(raw.bamboo,"Bamboo");
@@ -125,17 +141,26 @@ function normalize(recipe,index=recipe?.index){
      throw Error("Wind cannot sweep through an active Hanabi cargo route");
   }
  }
- if(goal.type==="daruma"&&goal.count>mask.daruma.length)throw Error("Daruma objective exceeds targets");
- if(goal.type==="sealedStone"&&goal.count>mask.sealedStone.length)throw Error("Stone objective exceeds targets");
- if(goal.type==="mist"&&goal.count>mask.mist.length)throw Error("Mist objective exceeds target cells");
- if(goal.type==="lotus"&&(!hanabi||goal.count>hanabi.starts.length))
-  throw Error("Hanabi goal exceeds available rockets");
+ for(const task of [compiledGoal,...required]){
+  if(task.type==="daruma"&&task.count>mask.daruma.length)
+   throw Error("Daruma objective exceeds targets");
+  if(task.type==="sealedStone"&&task.count>mask.sealedStone.length)
+   throw Error("Stone objective exceeds targets");
+  if(task.type==="mist"&&task.count>mask.mist.length)
+   throw Error("Mist objective exceeds target cells");
+  if(task.type==="lotus"&&(!hanabi||task.count>hanabi.starts.length))
+   throw Error("Hanabi goal exceeds available rockets");
+  if(task.type==="mirrorResonances"&&(!mirrors.length||task.count>recipe.moves))
+   throw Error("Mirror resonance objective requires fixed mirrors and achievable turns");
+  if(task.type==="fourTurns"&&task.count>recipe.moves)
+   throw Error("Four-match turn requirement exceeds available moves");
+ }
  // Each call returns fresh plain data. No mutation leaks into catalog entries
  // or into parallel seed simulations.
  return {
   version:VERSION,id:recipe.id,index,name:recipe.name,subtitle:recipe.subtitle,
   intro:recipe.intro,moves:recipe.moves,starPar:recipe.starPar,
-  difficulty:recipe.difficulty,goal:{...goal},
+  difficulty:recipe.difficulty,goal:compiledGoal,
   compatibility:{allowWindMist:compatibility.allowWindMist===true},
   mechanics:{
    bamboo:{layout:mask.layout,blocked:mask.blocked.slice()},
@@ -152,7 +177,8 @@ function compile(index,base,raw){
  const boardMechanics=B.normalize({layout:m.bamboo.layout,blocked:m.bamboo.blocked,
   mist:m.mist,daruma:m.daruma,sealedStone:m.sealedStones});
  const out={...base,name:recipe.name,subtitle:recipe.subtitle,intro:recipe.intro,
-  moves:recipe.moves,starPar:recipe.starPar,goal:{...recipe.goal},
+  moves:recipe.moves,starPar:recipe.starPar,goal:{...recipe.goal,
+   ...(recipe.goal.requires?{requires:recipe.goal.requires.map(x=>({...x}))}:{})},
   boardMechanics,chapter:Math.floor(index/10)+1,
   levelArchitectureVersion:VERSION,levelRecipeId:recipe.id,
   difficultyTier:recipe.difficulty,

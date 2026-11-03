@@ -10,6 +10,17 @@ const familyName=family=>({sakura:"Sakura",lantern:"Lantern",koi:"Koi",
  origami:"Origami",ryu:"Ryū"})[family]||"Lantern";
 const total=arr=>Array.isArray(arr)?arr.reduce((sum,x)=>sum+nonnegative(x),0):0;
 function detail(game){
+ // Separate mandatory skills remain visible after the first goal has been met.
+ // This is presentation only; the genuine goalParts come from Rules.Game.
+ if(game?.config?.goal?.requires?.length&&typeof game.goalParts==="function"){
+  const label=p=>({lotus:"Hanabi",mist:"Mist",masterpiece:"Masterpieces",
+   stage3:"Stage 3",stage4:"Stage 4",fourTurns:"Four-match turns",
+   mirrorResonances:"Mirror activations",fusion:"Fusions",
+   familyFusion:(p.family||"Family")+" fusions",
+   familyMasterpiece:(p.family||"Family")+" Masterpieces"})[p.type]||p.type;
+  return game.goalParts().map(p=>label(p)+" "+
+   Math.min(p.progress,p.count)+"/"+p.count).join(" · ");
+ }
  const type=game?.config?.goal?.type;
  const target=nonnegative(typeof game?.target==="function"?game.target():game?.config?.goal?.count);
  const done=nonnegative(typeof game?.progress==="function"?game.progress():0);

@@ -24,6 +24,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-journey-v2-drafts.test.cjs
       - name: Journey 2.0 · Moon and Wind levels 11–20, 60 seeded games and save safety
         run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two.test.cjs
+      - name: Early Game Difficulty 3.0 · authentic secondary goals, mirror per-move limit, no two-move finale
+        run: node daisugi-bloom/tests/harmony-journey-v2-difficulty.test.cjs
       - name: Board Mechanics Foundation 1.0 · terrain masks, overlays, seeded play and save
         run: node daisugi-bloom/tests/harmony-board-mechanics.test.cjs
       - name: Identity Plan 1.0 · isolated Moon Mirrors and Wind Garden mechanic contracts

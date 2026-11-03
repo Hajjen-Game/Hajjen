@@ -20,3 +20,16 @@ body.journey-draft-preview #omamoriPowerBar{display:none!important}
  background:#a17542;color:#fff8e9;border-color:#81552d;
  box-shadow:inset 0 1px 2px rgba(255,255,255,.2);
 }
+
+/* Show the genuine subtasks, not a misleading 2/2-complete Hanabi label
+   while the level is still waiting for Mirror Resonance or Masterpieces. */
+body.journey-draft-preview #goalLabel{
+ font-size:clamp(10px,2.75vw,13px);
+ line-height:1.25;
+ overflow-wrap:anywhere;
+}
+body.journey-draft-preview #goalProgress{
+ font-size:clamp(10px,2.65vw,13px);
+ line-height:1.35;
+ white-space:normal;
+}

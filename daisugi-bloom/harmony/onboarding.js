@@ -38,16 +38,19 @@ function objective(config){
   shape:["T/L match","T/L matches"],score:["point","points"],
   chain:["masterpiece in one chain","masterpieces in one chain"],
   familyMasterpiece:["family masterpiece","family masterpieces"],
-  familyFusion:["family fusion","family fusions"]
+  familyFusion:["family fusion","family fusions"],
+  mirrorResonances:["Moon Mirror activation","Moon Mirror activations"]
  };
  const family=({sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",
   bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",
   origami:"Origami",ryu:"Ryū"})[g.family];
  const name=(labels[g.type]||["objective","objectives"])[count===1?0:1];
- if(["familyMasterpiece","familyFusion"].includes(g.type))
-  return count+" "+(family||"Family")+" "+(g.type==="familyMasterpiece"?
-   (count===1?"masterpiece":"masterpieces"):(count===1?"fusion":"fusions"));
- return count+" "+name;
+ const main=["familyMasterpiece","familyFusion"].includes(g.type)?
+  count+" "+(family||"Family")+" "+(g.type==="familyMasterpiece"?
+   (count===1?"masterpiece":"masterpieces"):(count===1?"fusion":"fusions")):
+  count+" "+name;
+ return Array.isArray(g.requires)&&g.requires.length?
+  [main,...g.requires.map(task=>objective({goal:task}))].join(" + "):main;
 }
 function preview(level,config,moveStarTargets){
  const stars=typeof moveStarTargets==="function"?moveStarTargets(config):null;

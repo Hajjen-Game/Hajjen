@@ -1136,7 +1136,7 @@ class Game{
   this.chapterIdentityVersion=this.level>=40&&this.level<50?2:0;
   this.bambooVersion=this.config.bambooVersion||0;
   this.difficultyCalibrationVersion=2;
-  this.stage3=0;this.stage4=0;this.echoes=0;this.pulseHits=0;this.fours=0;this.fourTurns=0;this.shapes=0;this.bestChain=0;
+  this.stage3=0;this.stage4=0;this.echoes=0;this.mirrorResonances=0;this.pulseHits=0;this.fours=0;this.fourTurns=0;this.shapes=0;this.bestChain=0;
   this.complete=false;this.failed=false;this.rewardVersion=3;this.starsAtGoal=0;this.goalMove=null;this.legacyScoreCompletion=false;
   // 1 = new chapter-three star / move thresholds. Old in-progress rounds
   // remain at version 0 and keep their original contract through reloads.
@@ -1536,12 +1536,45 @@ class Game{
   }
   return cleared;
  }
- progress(){
-  let g=this.config.goal;
-  switch(g.type){case"lotus":return this.lotusDelivered;case"familyFusion":return this.familyFusions[g.family]||0;case"sealedStone":return this.sealedCleared;case"mist":return this.mistCleared;case"score":return this.score;case"fusion":return this.fusions;case"stage3":return this.stage3;case"stage4":return this.stage4;case"masterpiece":return this.masterpieces;case"pulseHits":return this.pulseHits;case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;case"four":return this.fours;case"fourTurns":return this.fourTurns;case"daruma":return this.darumaCleared;case"shape":return this.shapes;case"chain":return this.bestChain;default:return 0;}
+ partProgress(g){
+  switch(g.type){case"lotus":return this.lotusDelivered;
+   case"familyFusion":return this.familyFusions[g.family]||0;
+   case"sealedStone":return this.sealedCleared;
+   case"mist":return this.mistCleared;
+   case"score":return this.score;
+   case"fusion":return this.fusions;
+   case"stage3":return this.stage3;
+   case"stage4":return this.stage4;
+   case"masterpiece":return this.masterpieces;
+   case"pulseHits":return this.pulseHits;
+   case"familyMasterpiece":return this.familyMasterpieces[g.family]||0;
+   case"four":return this.fours;
+   case"fourTurns":return this.fourTurns;
+   case"daruma":return this.darumaCleared;
+   case"shape":return this.shapes;
+   case"chain":return this.bestChain;
+   case"mirrorResonances":return this.mirrorResonances||0;
+   default:return 0;
+  }
  }
+ goalParts(){
+  return [this.config.goal,...(this.config.goal.requires||[])].map(part=>
+   ({...part,progress:this.partProgress(part)}));
+ }
+ progress(){return this.partProgress(this.config.goal);}
  goalText(){
   let g=this.config.goal;
+  if(g.requires?.length){
+   const labels={lotus:"Hanabi",mist:"Mist",masterpiece:"Masterpieces",
+    stage4:"Stage 4",stage3:"Stage 3",fourTurns:"Four-matches",
+    mirrorResonances:"Moon Mirror",fusion:"Fusions",familyFusion:"Family fusions",
+    familyMasterpiece:"Family Masterpiece"};
+   return [g,...g.requires].map(part=>
+    ["familyFusion","familyMasterpiece"].includes(part.type)?
+     (part.family.charAt(0).toUpperCase()+part.family.slice(1))+
+      (part.type==="familyFusion"?" fusions":" Masterpiece"):
+     (labels[part.type]||"Goal")).join(" + ");
+  }
   if(g.type==="familyMasterpiece"||g.type==="familyFusion"){
    const display=({sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",
     bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",
@@ -1550,7 +1583,7 @@ class Game{
   }
   return ({lotus:this.hanabiVersion?"Deliver fireworks":"Collect Lotus seeds",mist:"Clear Mist",score:"Score target",fusion:"Fusions",stage3:"Objects to stage 3",stage4:"Objects to stage 4",masterpiece:"Masterpieces",pulseHits:"Harmony upgrades",four:"Four-tile matches",fourTurns:"Moves with a four-tile match",daruma:"Completed Daruma",sealedStone:"Broken seals",shape:"T/L matches",chain:"Masterpieces in one chain"})[g.type]||"Goal";
  }
- fulfilled(){return this.progress()>=this.target();}
+ fulfilled(){return this.goalParts().every(part=>part.progress>=part.count);}
  stars(){
   if(this.rewardVersion===3)return this.complete?this.starsAtGoal||1:0;
   if(this.rewardVersion===2)return this.complete?1:0;
@@ -1725,6 +1758,9 @@ class Game{
     for(const echo of echoes){
      mirrorResonatedThisMove.add(echo.mirrorAt);
      mirrorResonanceTargetsThisMove.add(echo.to);
+     // A real player-created Fusion next to a mirror earns ONE resonance.
+     // Cascade-only echoes and visual-only Hanabi beams never earn this credit.
+     this.mirrorResonances=(this.mirrorResonances||0)+1;
      const piece=this.board[echo.to];
      const ray={from:echo.mirrorAt,to:echo.to,via:"fusion-mirror",source:echo.from};
      const targets=[],mistTargets=[],darumaTargets=[],stoneTargets=[],visualOnlyTargets=[];
@@ -2078,7 +2114,7 @@ class Game{
   windGardenVersion:this.windGarden?Wind.VERSION:0,
   moonMirrorPreview:this.moonMirrorPreview,
   moonMirrorVersion:this.moonMirrors.length?Mirror.VERSION:0,
-  moonMirrors:this.moonMirrors.map(x=>({...x})),omamoriAfterglow:Afterglow.normalize(this.omamoriAfterglow),lotusPrototype:this.lotusPrototype,lotusVersion:this.lotusVersion,hanabiVersion:this.hanabiVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
+  moonMirrors:this.moonMirrors.map(x=>({...x})),omamoriAfterglow:Afterglow.normalize(this.omamoriAfterglow),lotusPrototype:this.lotusPrototype,lotusVersion:this.lotusVersion,hanabiVersion:this.hanabiVersion,lotus:{version:this.lotus.version,starts:this.lotus.starts.slice(),exits:this.lotus.exits.slice()},lotusDelivered:this.lotusDelivered,bambooVersion:this.bambooVersion,boardMechanics:{...this.boardMechanics,blocked:this.boardMechanics.blocked.slice(),mist:this.boardMechanics.mist.slice(),daruma:this.boardMechanics.daruma.slice(),sealedStone:this.boardMechanics.sealedStone.slice()},fairnessBalanceVersion:this.fairnessBalanceVersion,sealedStoneVersion:this.sealedStoneVersion,sealed:this.sealed.slice(),sealedCleared:this.sealedCleared,darumaVersion:this.darumaVersion,daruma:this.daruma.slice(),darumaCleared:this.darumaCleared,rewardVersion:this.rewardVersion,objectiveVersion:this.objectiveVersion,objectiveBalanceVersion:this.objectiveBalanceVersion,mistLayoutVersion:this.mistLayoutVersion,chapterIdentityVersion:this.chapterIdentityVersion,difficultyCalibrationVersion:this.difficultyCalibrationVersion,mist:this.mist.slice(),mistCleared:this.mistCleared,familyCount:this.familyCount,board:clone(this.board),moves:this.moves,score:this.score,seed:this.seed,rolls:this.rolls,bag:this.bag.slice(),nextId:this.nextId,opportunity:this.opportunity,directorMode:this.directorMode,directorDrought:this.directorDrought||0,paceTimes:this.paceTimes.slice(),paceOutcomes:this.paceOutcomes.slice(),pacePhase:this.pacePhase,paceLastMajor:this.paceLastMajor,objectiveDrought:this.objectiveDrought,directorRefills:this.directorRefills||0,directorSelections:this.directorSelections||0,fusions:this.fusions,familyFusions:{...this.familyFusions},masterpieces:this.masterpieces,familyMasterpieces:{...this.familyMasterpieces},collectionBonusTotal:this.collectionBonusTotal,stage3:this.stage3,stage4:this.stage4,echoes:this.echoes,mirrorResonances:this.mirrorResonances||0,pulseHits:this.pulseHits,fours:this.fours,fourTurns:this.fourTurns,shapes:this.shapes,bestChain:this.bestChain,complete:this.complete,failed:this.failed,starsAtGoal:this.starsAtGoal,goalMove:this.goalMove,legacyScoreCompletion:this.legacyScoreCompletion,level8Revision:this.level8Revision,movesExpansionVersion:this.movesExpansionVersion};}
 }
 // Smart Idle Hint 1.2: evaluate the game's REAL deterministic outcome for
 // each legal move in a cloned, non-destructive Game instance. Reward immediate

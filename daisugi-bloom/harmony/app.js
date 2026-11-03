@@ -1510,7 +1510,10 @@ function renderHUD(state){
  let current=state||game,progress=state?state.goal:game.progress();
  $("movesCount").textContent=current.moves;
  renderScoreOnly();
- $("goalProgress").textContent=prettify(Math.min(game.target(),progress))+" / "+prettify(game.target());
+ if(journeyDraftPreview&&game.config.goal.requires?.length){
+  $("goalProgress").textContent=game.goalParts().map(p=>
+   Math.min(p.progress,p.count)+"/"+p.count).join(" · ");
+ }else $("goalProgress").textContent=prettify(Math.min(game.target(),progress))+" / "+prettify(game.target());
  // The existing compact panel remains unchanged; extra information is in
  // accessibility text and the question-mark help view.
  const progressHint=Q.detail(game);
@@ -3025,8 +3028,8 @@ function showJourneyDraftResult(){
  const content=$("modalContent");content.replaceChildren();
  content.append(goshuinNode("p","","You have played a draft level using the real puzzle rules. Your normal Journey, Goshuincho and inventory remain unchanged."));
  const info=goshuinNode("p","journey-draft-summary",
-  "Level "+(level+1)+" · "+game.config.name+" · "+game.progress()+"/"+game.target()+
-  " objective · "+(game.config.moves-game.moves)+" moves used");
+  "Level "+(level+1)+" · "+game.config.name+" · "+Q.detail(game)+
+  " · "+(game.config.moves-game.moves)+" moves used");
  content.append(info);
  const make=(tag,cls,value)=>{const el=document.createElement(tag);el.className=cls;el.textContent=value;return el;};
  content.append(makeRoundExport(make));

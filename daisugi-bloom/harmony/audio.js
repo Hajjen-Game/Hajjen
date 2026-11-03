@@ -12,7 +12,7 @@ const voices=new Set(),lastPlayed=new Map();
 const MAX_VOICES=8;
 const FAMILY_PITCH={sakura:523.25,lantern:587.33,koi:659.25,fan:698.46,bonsai:783.99,sushi:739.99,maneki:880,origami:987.77,ryu:659.25};
 const PENTATONIC=[587.33,659.25,783.99,880,987.77,1174.66,1318.51];
-const LIMITS={tap:65,swap:85,invalid:190,fusion:125,echo:340,bonus:115,pulse:115,hero:240,harvest:285,goal:700,arrival:170,progress:150,result:900,
+const LIMITS={tap:65,swap:85,invalid:190,fusion:125,echo:340,bonus:115,pulse:115,hero:240,harvest:285,"daruma-awaken":360,goal:700,arrival:170,progress:150,result:900,
  "hanabi-load":180,"hanabi-charge":180,"hanabi-launch":280};
 function unlock(){
  if(!enabled)return false;
@@ -187,6 +187,12 @@ function play(type,detail={}){
    note(659.25,0,.30,.055,"triangle");
    note(880,.075,.37,.055,"sine");
    note(1174.66,.17,.46,.045,"sine");
+   break;
+  case "daruma-awaken":
+   // A compact warm wooden knock and rising lucky-bell pair, with no samples.
+   note(350,0,.12,.049,"triangle");
+   note(659.25,.065,.24,.041,"sine");
+   note(880,.18,.34,.044,"sine");
    break;
   case "goal":
    note(587.33,0,.23,.048,"triangle");

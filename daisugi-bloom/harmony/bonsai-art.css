@@ -1,0 +1,21 @@
+/* Japanese Harmony · Bonsai Artwork Refresh 1.0 — 2026-11-03
+ * Five user-provided transparent paintings, left to right in a 5x1
+ * lossless WebP strip (256px per stage). Classic atlas unchanged.
+ * ?bonsai=classic restores the old Bonsai family independently.
+ */
+.has-bonsai-art .piece .sprite.sprite-bonsai{
+ background-image:var(--harmony-bonsai-art)!important;
+ background-size:500% 100%!important;
+ background-position:var(--sx) center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-bonsai-art .piece:has(.sprite-bonsai) .fallback{display:none!important}
+.has-bonsai-art .collection-art.collection-bonsai{
+ background-image:var(--harmony-bonsai-art)!important;
+ background-size:500% 100%!important;
+ background-position:100% center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-bonsai-art .collection-card:has(.collection-bonsai) .collection-fallback{display:none!important}

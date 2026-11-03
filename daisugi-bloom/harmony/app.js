@@ -3757,7 +3757,7 @@ const BONSAI_CLASSIC_ART=new URLSearchParams(window.location.search).get("bonsai
 const RYU_CLASSIC_ART=new URLSearchParams(window.location.search).get("ryu")==="classic";
 const ART_RESOURCES=[
  {file:"harmony-atlas.webp",query:"v=icons-20261022",ready:"has-atlas",css:"--harmony-classic-art"},
- {file:"sakura-five-stages.avif",query:"v=sakura-20261103-1",ready:"has-sakura-art",css:"--harmony-sakura-art"},
+ {file:"sakura-five-stages-20261103-v2.webp",query:"v=sakura-20261103-2",ready:"has-sakura-art",css:"--harmony-sakura-art"},
  {file:"koi-five-stages.webp",query:"v=koi-20261103-1",ready:"has-koi-art",css:"--harmony-koi-art"},
  {file:"lantern-five-stages.webp",query:"v=lantern-20261103-1",ready:"has-lantern-art",css:"--harmony-lantern-art"},
  {file:"fan-five-stages.webp",query:"v=fan-20261103-1",ready:"has-fan-art",css:"--harmony-fan-art"},
@@ -3769,7 +3769,7 @@ const ART_RESOURCES=[
  {file:"harmony-new-families.avif",query:"v=5.0",ready:"has-new-atlas",css:"--harmony-new-art"},
  {file:"koi-stage1.avif",query:"v=20261023",ready:"has-koi-stage1",css:"--harmony-koi-stage1-art"},
  {file:"maneki-stage1.avif",query:"v=20261023",ready:"has-maneki-stage1",css:"--harmony-maneki-stage1-art"}
-].filter(item=>(!SAKURA_CLASSIC_ART||item.file!=="sakura-five-stages.avif") &&
+].filter(item=>(!SAKURA_CLASSIC_ART||item.file!=="sakura-five-stages-20261103-v2.webp") &&
                (!KOI_CLASSIC_ART||item.file!=="koi-five-stages.webp") &&
                (!LANTERN_CLASSIC_ART||item.file!=="lantern-five-stages.webp") &&
                (!FAN_CLASSIC_ART||item.file!=="fan-five-stages.webp") &&

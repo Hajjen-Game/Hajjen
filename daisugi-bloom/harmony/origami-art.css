@@ -1,0 +1,21 @@
+/* Japanese Harmony · Origami Artwork Refresh 1.0 (2026-11-03)
+ * Five exact user-supplied transparent origami icons in 5x1 WebP sprite strip;
+ * 256x256 per stage. The previous new-family atlas stays untouched.
+ * ?origami=classic shows the former artwork without affecting saved games.
+ */
+.has-origami-art .piece.new-family .sprite.sprite-new.sprite-origami{
+ background-image:var(--harmony-origami-art)!important;
+ background-size:500% 100%!important;
+ background-position:var(--sx) center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-origami-art .piece.new-family:has(.sprite-origami) .fallback{display:none!important}
+.has-origami-art .collection-art.collection-new.collection-origami{
+ background-image:var(--harmony-origami-art)!important;
+ background-size:500% 100%!important;
+ background-position:100% center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-origami-art .collection-card:has(.collection-origami) .collection-fallback{display:none!important}

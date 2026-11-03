@@ -3805,6 +3805,39 @@ body.harmony-reduced-motion .menu-view .level-tile{
 }
 
 
+/* Daruma Awakening 1.0 · CSS-only accents; original sprite art is untouched.
+   Fixed-position overlay avoids clipping petals and gold rings to the cell. */
+.jh-daruma-awakening-ring,.jh-daruma-release-pulse{
+ position:absolute;display:block;pointer-events:none;z-index:5;
+ border-radius:50%;box-sizing:border-box;
+ border:2px solid rgba(255,223,149,.9);
+ background:radial-gradient(circle,rgba(255,244,202,.27) 0%,rgba(253,201,115,.13) 37%,transparent 71%);
+ box-shadow:0 0 15px rgba(253,206,118,.42),inset 0 0 10px rgba(255,232,185,.28);
+ will-change:transform,opacity;
+}
+.jh-daruma-release-pulse{
+ border-color:rgba(255,225,155,.92);
+ box-shadow:0 0 19px rgba(255,202,119,.50);
+ background:radial-gradient(circle,rgba(255,239,192,.51),rgba(246,190,112,.17) 48%,transparent 76%);
+}
+.jh-daruma-awakening-petal,.jh-daruma-awakening-glint{
+ position:absolute;display:block;pointer-events:none;z-index:6;
+ will-change:transform,opacity;
+}
+.jh-daruma-awakening-petal{
+ border-radius:70% 20% 70% 20%;
+ background:linear-gradient(140deg,#fff6ee 4%,#f8b3c3 55%,#d77a91 100%);
+ box-shadow:0 0 5px rgba(248,160,178,.6);
+}
+.jh-daruma-awakening-glint{
+ clip-path:polygon(50% 0,63% 36%,100% 50%,63% 64%,50% 100%,37% 64%,0 50%,37% 36%);
+ background:#ffe2a2;filter:drop-shadow(0 0 3px #f4ba6b);
+}
+@media(prefers-reduced-motion:reduce){
+ .jh-daruma-awakening-ring,.jh-daruma-release-pulse,
+ .jh-daruma-awakening-petal,.jh-daruma-awakening-glint{display:none!important}
+}
+
 /* Goshuincho Collection 1.0 · minimal functional album, ready for PNG/WebP.
    Stamp content, chapter motif and star grade are each distinct art slots.
    Future artwork is enabled via goshuincho.js ART map; no CSS redesign needed. */

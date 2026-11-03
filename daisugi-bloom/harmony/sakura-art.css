@@ -1,7 +1,9 @@
-/* Japanese Harmony · Sakura Artwork Trial 1.0 (2026-11-03)
- * Five standalone stage images share a 5×1, 192px-per-cell AVIF.
- * The classic 5×5 atlas remains untouched. If the new asset is unavailable,
- * normal classic artwork remains in use. ?sakura=classic is the A/B rollback.
+/* Japanese Harmony · Sakura Artwork Refinement 2.0 (2026-11-03)
+ * The five new user-supplied images share a transparent, lossless 5×1 WebP
+ * atlas with 256×256 cells; pigments, forms and stage order are preserved.
+ * Only faint exterior transparent residue was suppressed in the exported art.
+ * The earlier Sakura AVIF and the classic 5×5 atlas are both preserved.
+ * ?sakura=classic restores classic artwork independently of other families.
  */
 .has-sakura-art .piece .sprite.sprite-sakura{
  background-image:var(--harmony-sakura-art)!important;

@@ -1,0 +1,24 @@
+/* Japanese Harmony · Maneki-neko Artwork Refresh 1.0 (2026-11-03)
+ * Five user-selected transparent Maneki-neko illustrations in a 5x1 WebP,
+ * 256px per stage. Original new-family atlas and standalone stage 1 preserved.
+ * ?maneki=classic restores the previous art without affecting saved games.
+ *
+ * Specificity deliberately matches/exceeds mobile-game.css's legacy
+ * .sprite-stage1-maneki rule; this stylesheet loads AFTER mobile-game.css.
+ */
+.has-maneki-art .piece.new-family .sprite.sprite-new.sprite-maneki{
+ background-image:var(--harmony-maneki-art)!important;
+ background-size:500% 100%!important;
+ background-position:var(--sx) center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-maneki-art .piece.new-family:has(.sprite-maneki) .fallback{display:none!important}
+.has-maneki-art .collection-art.collection-new.collection-maneki{
+ background-image:var(--harmony-maneki-art)!important;
+ background-size:500% 100%!important;
+ background-position:100% center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-maneki-art .collection-card:has(.collection-maneki) .collection-fallback{display:none!important}

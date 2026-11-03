@@ -1,0 +1,21 @@
+/* Japanese Harmony — Sushi Artwork Refresh 1.0 (2026-11-03).
+ * Five supplied transparent Sushi illustrations, left to right in a 5x1
+ * WebP image with 256px square cells. The old new-family atlas is untouched.
+ * ?sushi=classic restores previous Sushi art without affecting the save.
+ */
+.has-sushi-art .piece.new-family .sprite.sprite-new.sprite-sushi{
+ background-image:var(--harmony-sushi-art)!important;
+ background-size:500% 100%!important;
+ background-position:var(--sx) center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-sushi-art .piece:has(.sprite-sushi) .fallback{display:none!important}
+.has-sushi-art .collection-art.collection-new.collection-sushi{
+ background-image:var(--harmony-sushi-art)!important;
+ background-size:500% 100%!important;
+ background-position:100% center!important;
+ background-repeat:no-repeat!important;
+ display:block!important;
+}
+.has-sushi-art .collection-card:has(.collection-sushi) .collection-fallback{display:none!important}

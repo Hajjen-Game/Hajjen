@@ -1068,7 +1068,7 @@ function showOmamoriNotice(action,item){
 }
 function collectionSprite(family){
  const isNew=Object.hasOwn(newFamilyRows,family);
- const art=document.createElement("span");art.className="collection-art"+(isNew?" collection-new":"")+(family==="sakura"?" collection-sakura":"")+(family==="koi"?" collection-koi":"")+(family==="lantern"?" collection-lantern":"")+(family==="fan"?" collection-fan":"");
+ const art=document.createElement("span");art.className="collection-art"+(isNew?" collection-new":"")+(family==="sakura"?" collection-sakura":"")+(family==="koi"?" collection-koi":"")+(family==="lantern"?" collection-lantern":"")+(family==="fan"?" collection-fan":"")+(family==="sushi"?" collection-sushi":"");
  art.style.setProperty("--collection-y",(isNew?newFamilyRows[family]*100/3:familyRows[family]*25)+"%");
  const fallback=document.createElement("span");fallback.className="collection-fallback";fallback.textContent=symbols[family];
  return [art,fallback];
@@ -1401,6 +1401,7 @@ function renderBoard(board,highlight,effect){
     if(piece.family==="koi")img.classList.add("sprite-koi");
     if(piece.family==="lantern")img.classList.add("sprite-lantern");
     if(piece.family==="fan")img.classList.add("sprite-fan");
+    if(piece.family==="sushi")img.classList.add("sprite-sushi");
     // Stage 1 refresh: independent transparent art only for the paw and koi.
     // Stage 2–5 keep their original atlas cells and all existing stage rules.
     if(piece.stage===1&&(piece.family==="koi"||piece.family==="maneki"))
@@ -3745,19 +3746,22 @@ const SAKURA_CLASSIC_ART=new URLSearchParams(window.location.search).get("sakura
 const KOI_CLASSIC_ART=new URLSearchParams(window.location.search).get("koi")==="classic";
 const LANTERN_CLASSIC_ART=new URLSearchParams(window.location.search).get("lantern")==="classic";
 const FAN_CLASSIC_ART=new URLSearchParams(window.location.search).get("fan")==="classic";
+const SUSHI_CLASSIC_ART=new URLSearchParams(window.location.search).get("sushi")==="classic";
 const ART_RESOURCES=[
  {file:"harmony-atlas.webp",query:"v=icons-20261022",ready:"has-atlas",css:"--harmony-classic-art"},
  {file:"sakura-five-stages.avif",query:"v=sakura-20261103-1",ready:"has-sakura-art",css:"--harmony-sakura-art"},
  {file:"koi-five-stages.webp",query:"v=koi-20261103-1",ready:"has-koi-art",css:"--harmony-koi-art"},
  {file:"lantern-five-stages.webp",query:"v=lantern-20261103-1",ready:"has-lantern-art",css:"--harmony-lantern-art"},
  {file:"fan-five-stages.webp",query:"v=fan-20261103-1",ready:"has-fan-art",css:"--harmony-fan-art"},
+ {file:"sushi-five-stages.webp",query:"v=sushi-20261103-1",ready:"has-sushi-art",css:"--harmony-sushi-art"},
  {file:"harmony-new-families.avif",query:"v=5.0",ready:"has-new-atlas",css:"--harmony-new-art"},
  {file:"koi-stage1.avif",query:"v=20261023",ready:"has-koi-stage1",css:"--harmony-koi-stage1-art"},
  {file:"maneki-stage1.avif",query:"v=20261023",ready:"has-maneki-stage1",css:"--harmony-maneki-stage1-art"}
 ].filter(item=>(!SAKURA_CLASSIC_ART||item.file!=="sakura-five-stages.avif") &&
                (!KOI_CLASSIC_ART||item.file!=="koi-five-stages.webp") &&
                (!LANTERN_CLASSIC_ART||item.file!=="lantern-five-stages.webp") &&
-               (!FAN_CLASSIC_ART||item.file!=="fan-five-stages.webp"));
+               (!FAN_CLASSIC_ART||item.file!=="fan-five-stages.webp") &&
+               (!SUSHI_CLASSIC_ART||item.file!=="sushi-five-stages.webp"));
 const artworkLoaders=[];
 function checkAtlas(){
  const root=document.documentElement;

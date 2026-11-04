@@ -61,6 +61,38 @@ check("Top-row solo Hanabi fixtures and festival stone routing are spatial",()=>
  assert.equal(game.board.filter(x=>x?.family==="lotusSeed").length,2);
  assert.equal(game.board.filter(x=>x?.family==="hanabiCrate").length,2);
 });
+check("Live Journey 2.0 exports every real move, board snapshot and Director observation",()=>{
+ const I=require("../harmony/player-insight.js");
+ const J=require("../harmony/player-intent.js");
+ const g=A.build(R,H.get(8),{seed:20262678,directorMode:"v62",recordRound:true});
+ assert.equal(g.traceEnabled,true);
+ assert.equal(g.roundTrace.partial,false);
+ assert.equal(g.roundTrace.moves.length,0);
+ assert.deepEqual(g.roundTrace.start.board,g.board.map(p=>p?[p.id,p.family,p.stage]:null));
+ const pair=R.validSwaps(g.board)[0];
+ assert.equal(g.swap(...pair,{decisionMs:800}).ok,true);
+ assert.equal(g.roundTrace.moves.length,1);
+ const move=g.roundTrace.moves[0];
+ assert.deepEqual([move.from,move.to],pair);
+ assert.equal(move.number,1);
+ assert.equal(move.before.board.length,49);
+ assert.equal(move.after.board.length,49);
+ assert(Array.isArray(move.events));
+ assert.equal(move.director.mode,"v62");
+ const report=I.last(g,g.roundTrace,null,null);
+ assert.equal(report.round.partial,false);
+ assert.equal(report.round.moves.length,1);
+ assert.equal(report.round.moves[0].after.moves,g.moves);
+ assert.equal(J.analyzeRound(g,g.roundTrace).coverage.validMoves,1);
+ const restored=new R.Game(8,g.save());
+ assert.equal(restored.roundTrace.moves.length,1);
+ assert.equal(restored.traceEnabled,true);
+ const second=R.validSwaps(restored.board)[0];
+ assert.equal(restored.swap(...second).ok,true);
+ assert.equal(restored.roundTrace.moves.length,2);
+ const simulated=A.build(R,H.get(8),{seed:20262678,directorMode:"v62"});
+ assert.equal(simulated.traceEnabled,false,"Bots should keep fast restore");
+});
 check("Old production boards never inherit these hand-authored layouts",()=>{
  for(const i of indices){
   const g=new R.Game(i,null,{seed:123});

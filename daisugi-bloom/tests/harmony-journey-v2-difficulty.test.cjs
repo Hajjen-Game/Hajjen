@@ -20,7 +20,7 @@ const specs={
  15:[["mirrorResonances",4],["lotus",1]],
  16:[["fourTurns",4]],
  17:[["fourTurns",4],["stage4",5]],
- 18:[["mirrorResonances",5]],19:[["fourTurns",5]],
+ 18:[["mirrorResonances",3]],19:[["fourTurns",5]],
  20:[["mirrorResonances",6],["masterpiece",2]]
 };
 check("14 revised missions have real independent goals with no changed core tutorial",()=>{

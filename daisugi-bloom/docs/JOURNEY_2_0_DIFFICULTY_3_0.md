@@ -39,7 +39,7 @@ fake credit or arbitrary difficulty multiplier is added.
 | 15 | 2 Masterpieces | 4 Mirror Resonances; 1 Hanabi rocket |
 | 16 | 14 Fusions | Four-tile matches on 4 separate turns |
 | 17 | 1 Hanabi rocket | Four-tile matches on 4 separate turns; 5 stage-4 upgrades |
-| 18 | 3 stage-4 upgrades | 5 Mirror Resonances |
+| 18 | 3 stage-4 upgrades | 3 Mirror Resonances (Wind helps create the openings) |
 | 19 | 2 Masterpieces | Four-tile matches on 5 separate turns |
 | **20** | **2 Hanabi rockets** | **6 Mirror Resonances; 2 Masterpieces** |
 

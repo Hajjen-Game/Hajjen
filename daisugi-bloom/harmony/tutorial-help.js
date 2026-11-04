@@ -51,7 +51,7 @@ function hit(svg,x,y,count){
 function picture(kind,variant){
  const svg=document.createElementNS(NS,"svg");
  svg.setAttribute("viewBox","0 0 270 81");svg.setAttribute("role","img");
- svg.setAttribute("aria-label",variant===1?"Example before and after the action":"Second illustrated example");
+ svg.setAttribute("aria-label",kind+" illustrated mechanic "+variant);
  svg.classList.add("jh-tutorial-svg");
  if(["bamboo-intro","temple-gate","twin-gardens","central-shrine","bamboo-finale"].includes(kind)){
   const B=root.HarmonyBoardMechanics;
@@ -86,15 +86,25 @@ function picture(kind,variant){
    shape(svg,"path",{d:"M160 "+y+" H230 m-9 -5 9 5 -9 5",fill:"none",stroke:"#7db0ba","stroke-width":2.2,opacity:.85});
   shape(svg,"text",{x:195,y:75,"text-anchor":"middle","font-size":10,fill:"#6f8190","font-weight":"700"},"ROW SHIFTS");
  }else if(kind==="lotus-intro"){
-  tile(svg,14,12,"pink");tile(svg,59,12,"green");tile(svg,104,12,"pink");
-  shape(svg,"path",{d:"M68 42 L78 18 L86 18 L96 42 Z",fill:"#c86650",stroke:"#8f433a","stroke-width":1.5});
-  shape(svg,"path",{d:"M78 18 L82 8 L86 18 Z",fill:"#eac17e",stroke:"#9e704e","stroke-width":1});
-  shape(svg,"path",{d:"M82 42 V50",stroke:"#e9a65f","stroke-width":2});
-  arrow(svg,159,36);
-  tile(svg,208,13,"green",{glow:true});
-  shape(svg,"rect",{x:213,y:43,width:35,height:28,rx:3,fill:"#8e5e3e",stroke:"#d5a16e","stroke-width":2});
-  shape(svg,"path",{d:"M210 44 H251 V49 H210 Z",fill:"#d1a16a",stroke:"#744527","stroke-width":1.5});
-  shape(svg,"text",{x:230,y:62,"text-anchor":"middle","font-size":13,fill:"#f8deb0"},"花");
+  // The crate is on the LAST row, while collection happens one square ABOVE
+  // it. The diagram shows a cleared lane, not a rocket entering crate space.
+  shape(svg,"text",{x:47,y:8,"text-anchor":"middle","font-size":9,fill:"#805b46","font-weight":700},"BEFORE");
+  shape(svg,"text",{x:215,y:8,"text-anchor":"middle","font-size":9,fill:"#805b46","font-weight":700},"AFTER");
+  for(const x of [28,196])for(const y of [12,32,52])
+   shape(svg,"rect",{x,y,width:38,height:19,rx:4,fill:"#f3dfbc",stroke:"#b99670","stroke-width":1.1});
+  // Rocket above two ordinary treasures.
+  shape(svg,"path",{d:"M42 25 L47 14 L52 25 Z",fill:"#c95f4e",stroke:"#95483d","stroke-width":1.3});
+  shape(svg,"path",{d:"M45 14 L47 9 L49 14",fill:"#e6b656"});
+  shape(svg,"circle",{cx:47,cy:42,r:6,fill:"#c87692"});
+  shape(svg,"rect",{x:32,y:56,width:30,height:13,rx:3,fill:"#8e5e3e",stroke:"#6c4736","stroke-width":1.4});
+  shape(svg,"text",{x:47,y:65,"text-anchor":"middle","font-size":8,fill:"#f8deb0"},"花");
+  arrow(svg,99,41);
+  // Rocket delivered from the square immediately above its fixed crate.
+  shape(svg,"path",{d:"M211 47 L215 34 L219 47 Z",fill:"#c95f4e",stroke:"#95483d","stroke-width":1.3});
+  shape(svg,"rect",{x:200,y:56,width:30,height:13,rx:3,fill:"#8e5e3e",stroke:"#6c4736","stroke-width":1.4});
+  shape(svg,"text",{x:215,y:65,"text-anchor":"middle","font-size":8,fill:"#f8deb0"},"花");
+  shape(svg,"path",{d:"M215 32 V13 m-5 6 5 -6 5 6",fill:"none",stroke:"#d79b47","stroke-width":2.4,"stroke-linecap":"round"});
+  for(const dx of [-10,0,10])shape(svg,"circle",{cx:215+dx,cy:12,r:2.5,fill:dx?"#d98870":"#d5ae54"});
  }else if(kind==="mist"&&variant===1){
   [10,56,102].forEach((x,i)=>tile(svg,x,15,"pink",{mist:i===1,glow:i===1}));
   arrow(svg,158,36);tile(svg,208,15,"pink",{glow:true});
@@ -117,7 +127,22 @@ function picture(kind,variant){
   arrow(svg,159,36);tile(svg,207,15,"star",{pulse:true});
  }else if(kind==="stages"){
   tile(svg,15,15,"green");tile(svg,61,15,"green");tile(svg,107,15,"green");
-  arrow(svg,160,36);tile(svg,208,15,"star");
+  arrow(svg,160,36);tile(svg,208,15,"green",{glow:true});
+  shape(svg,"text",{x:229,y:72,"text-anchor":"middle","font-size":11,fill:"#7e563d","font-weight":700},"STAGE 2");
+ }else if(kind==="koi-finale"){
+  // Two individual Koi reach stage five. Other families do not count.
+  for(const cx of [55,122]){
+   shape(svg,"ellipse",{cx,cy:32,rx:24,ry:12,fill:"#efdbc0",stroke:"#9c6857","stroke-width":1.6});
+   shape(svg,"path",{d:`M${cx-19} 32 l-17 -13 v26 Z`,fill:"#bb6b57",stroke:"#9c6857","stroke-width":1.2});
+   shape(svg,"path",{d:`M${cx-6} 22 q8 11 14 0 q-2 12 -14 19`,fill:"none",stroke:"#d98769","stroke-width":6,"stroke-linecap":"round"});
+   shape(svg,"circle",{cx:cx+16,cy:29,r:2,fill:"#523d32"});
+  }
+  arrow(svg,163,36);
+  for(const x of [212,247]){
+   shape(svg,"circle",{cx:x,cy:35,r:14,fill:"#f3e0a9",stroke:"#bf8d4d","stroke-width":1.7});
+   shape(svg,"text",{x,y:42,"text-anchor":"middle","font-size":20,fill:"#ae7e3d"},"★");
+  }
+  shape(svg,"text",{x:230,y:73,"text-anchor":"middle","font-size":10,fill:"#7e563d","font-weight":700},"2 KOI");
  }else if(kind==="four"){
   [15,60,105,150].forEach(x=>tile(svg,x,15,"pink"));arrow(svg,204,36);
  }else if(kind==="families"||kind==="lantern"||kind==="lantern-masterpiece"||kind==="lantern-finale"){
@@ -132,7 +157,7 @@ function picture(kind,variant){
 const EXAMPLES=Object.freeze({
  moon:[["Fusion Resonance","A Fusion beside the mirror reflects one hit along its arrow."],
   ["Harmony Pulse","Masterpieces also send Pulse to neighbors, including mirrors."]],
- wind:[["Predict the row","The highlighted row moves after the announced number of successful moves."],
+ wind:[["Read the Wind","Every third successful move shifts the marked row. Five treasure families now share the board."],
   ["Plan a return","Treasures wrap across the row. Fixed board fixtures never shift."]],
  mist:[["1 · Fuse on Mist","Land a fusion on the misty tile to clear it."],["2 · Harmony Pulse","A neighboring stage-5 Pulse also removes Mist."]],
  daruma:[["1 · First hit","Fuse beside Daruma or reach it with Harmony Pulse."],["2 · Second hit","Hit again on a later move to complete both eyes."]],
@@ -140,7 +165,8 @@ const EXAMPLES=Object.freeze({
  match:[["Match three","Swap neighboring pieces to line up three of one family."]],
  stages:[["Grow a treasure","A fusion creates a higher stage from the strongest piece."]],
  pulse:[["Create stage 5","A masterpiece sends Harmony Pulse to four neighboring tiles."]],
- four:[["Make four of a kind","Match four objects on separate moves for this goal."]],
+ "koi-finale":[["Two Koi masterpieces","Create two separate stage-5 Koi; only Koi count toward this objective."]],
+ four:[["Four of a kind","A match of four counts once per turn. To reach a goal of two, make a four-object match on two different moves."]],
  families:[["Same family","Colors and stages can vary. Match pieces of one family."]],
  lantern:[["Lantern fusions","Match Lanterns across stages to advance your goal."]],
  "lantern-masterpiece":[["Build a Lantern masterpiece","Grow a Lantern to stage 5."]],

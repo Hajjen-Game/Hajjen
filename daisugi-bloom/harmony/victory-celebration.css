@@ -13,7 +13,7 @@
  background:radial-gradient(circle at 50% 49%,#f7df9e23,transparent 65%);
  opacity:0;animation:jh-victory-aura var(--jh-victory-duration,950ms) ease-out both;
 }
-.jh-victory-board{animation:jh-victory-board-breathe 970ms ease-out both}
+.jh-victory-board{animation:jh-victory-board-breathe var(--jh-victory-duration,1950ms) ease-out both}
 .jh-victory-celebration .jh-victory-title{
  position:absolute;left:50%;top:51%;transform:translate(-50%,-50%) scale(.9);
  display:grid;gap:0;justify-items:center;align-content:center;

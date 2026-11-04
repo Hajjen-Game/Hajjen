@@ -46,12 +46,21 @@ for(let i=20;i<40;i++){
   const saved=game.save(),restored=new R.Game(i,saved);
   assert.deepEqual(restored.board,game.board,"Save/resume board stability");
   assert.equal(restored.config.levelRecipeId,recipe.id);
+  let goalDirectedOpenings=0;
   for(const pair of design.planned){
+   const hint=R.directedHint(game.board,pair);
+   assert(hint,"Every authored opening needs a real Fusion destination");
+   const to=hint.to,fixtures=[...recipe.mechanics.daruma,...recipe.mechanics.sealedStones];
+   const attacks=fixtures.some(at=>R.neighbors(to).includes(at));
+   const cargo=recipe.mechanics.hanabi?.starts.some(at=>at%7===to%7&&to>at);
+   const wind=recipe.mechanics.wind?.steps.some(step=>step.row===Math.floor(to/7));
+   if(attacks||cargo||wind)goalDirectedOpenings++;
    assert(legal.some(p=>p[0]===pair[0]&&p[1]===pair[1]),
     "Designed opening "+pair+" must be a legal authentic Fusion at level "+(i+1));
    const probe=A.build(R,bp,{seed,directorMode:"v62"});
    assert.equal(probe.swap(...pair).ok,true,"Designed move must run in actual Rules.Game");
   }
+  assert(goalDirectedOpenings>=1,"Level "+(i+1)+" must have a real goal-facing opening move");
  }
  const legacy=new R.Game(i,null,{seed:1234});
  assert(!legacy.levelRecipe,"Unpublished chapters must not affect Goshuincho");

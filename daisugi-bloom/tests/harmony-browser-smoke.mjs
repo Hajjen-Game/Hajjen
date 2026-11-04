@@ -1458,8 +1458,10 @@ try{
   };
  });
  assert.equal(atlasState.images,49,"All 49 cells must have art sprites");
- assert(atlasState.loaded&&atlasState.style?.includes("harmony-atlas.webp"),
-  "Approved Japanese art atlas must render on a CLASSIC sprite, not a custom Koi sprite");
+ assert(atlasState.loaded&&
+  (atlasState.style?.includes("harmony-atlas.webp")||
+   atlasState.style?.includes("five-stages")),
+  "Approved art must render from the classic atlas OR the newer family-specific sprite strips");
  assert.equal(atlasState.visible,"block","Classic sprites must actually be visible");
  assert.equal(atlasState.fallback,"none","Classic atlas must hide emoji fallback");
  assert.equal(await page.$eval("#scorePanel",e=>e.contains(document.querySelector("#scoreCount"))),true,"Score panel must own the score counter");

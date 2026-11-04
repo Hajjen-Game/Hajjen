@@ -90,4 +90,32 @@ for(let i=20;i<40;i++){
    "The authored route must damage its intended Sealed Stone exactly once");
  }
 }
+// Level 25 comparison: retain the enjoyable dual-Hanabi + dual-Daruma
+// objective, but do not repeat level 16's two perfectly aligned corridors.
+{
+ const old=D.get(15),recipe=D.get(24),bp=O.get(24);
+ assert.deepEqual(old.mechanics.daruma,[15,19]);
+ assert.deepEqual(old.mechanics.hanabi.starts,[29,33]);
+ assert.deepEqual(recipe.mechanics.daruma,[8,19]);
+ assert.deepEqual(recipe.mechanics.hanabi.starts,[15,26]);
+ assert.deepEqual(recipe.mechanics.hanabi.crates,[43,47]);
+ assert.deepEqual(recipe.goal,{type:"daruma",count:2,
+  requires:[{type:"lotus",count:2}]});
+ assert.equal(recipe.moves,49);
+ const rows=O.chapterSummary().find(x=>x.index===24).rows;
+ assert.deepEqual(rows,["DCBEACC","D-AAEBB","A-EBA-C","BBDBD-C",
+  "EAECCEB","CEBDBCA","A-ABD-D"]);
+ const game=A.build(R,bp,{seed:20261104+24*197,directorMode:"v62"});
+ assert.equal(R.scan(game.board).length,0);
+ assert(R.validSwaps(game.board).length>=6,"The two-lane puzzle needs route choices");
+ for(const pair of [[29,36],[33,40]]){
+  assert(R.validSwaps(game.board).some(x=>x[0]===pair[0]&&x[1]===pair[1]));
+  const route=R.directedHint(game.board,pair);
+  assert(route&&recipe.mechanics.hanabi.starts.some(start=>
+   start%7===route.to%7&&route.to>start),
+   "Both original satisfying launch-lane openings must remain possible");
+  const trial=A.build(R,bp,{seed:20261104+24*197,directorMode:"v62"});
+  assert.equal(trial.swap(...pair).ok,true);
+ }
+}
 console.log("PASS 20 individually authored Journey 2.0 levels 21–40");

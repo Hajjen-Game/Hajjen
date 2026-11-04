@@ -18,7 +18,7 @@ try{
  await page.goto(gamePage,{waitUntil:"networkidle2",timeout:40000});
  await page.waitForFunction(()=>!!window.HarmonyVictoryCelebration);
  const d=await page.evaluate(()=>window.HarmonyVictoryCelebration.DURATIONS);
- assert.deepEqual(d,{"1":950,"2":1120,"3":1330});
+ assert.deepEqual(d,{"1":1950,"2":2120,"3":2330});
  await page.click("#continueButton");
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:12000});
  if(!await page.$eval("#modal",el=>el.hidden)){
@@ -38,14 +38,25 @@ try{
     motes:layer?.querySelectorAll(".jh-victory-mote").length,
     stars:layer?.dataset.stars,
     clear:document.querySelector("#modal").hidden,
-    aria:layer?.getAttribute("aria-hidden"),width:document.documentElement.scrollWidth,screen:innerWidth};
+    aria:layer?.getAttribute("aria-hidden"),
+    lastBurstDelay:Number.parseInt([...layer.querySelectorAll(".jh-victory-burst")].at(-1)?.style.getPropertyValue("--delay")),
+    lastMoteDelay:Number.parseInt([...layer.querySelectorAll(".jh-victory-mote")].at(-1)?.style.getPropertyValue("--delay")),
+    boardDuration:document.querySelector("#board").style.getPropertyValue("--jh-victory-duration"),
+    width:document.documentElement.scrollWidth,screen:innerWidth};
   },stars);
   assert.equal(live.bursts,bursts);assert.equal(live.motes,motes);
   assert.equal(live.stars,String(stars));assert(live.clear);
   assert.equal(live.aria,"true");
+  assert.equal(live.boardDuration,d[stars]+"ms");
+  assert(live.lastBurstDelay>d[stars]*.6,"Fireworks must continue into the added second");
+  assert(live.lastBurstDelay+540<=d[stars],"Last burst must finish before popup");
+  assert(live.lastMoteDelay>d[stars]*.58,"Glitter must fill the longer celebration");
+  assert(live.lastMoteDelay+610<=d[stars],"Last mote must finish before popup");
   assert(live.width<=live.screen+1,"Victory FX must stay within phone width");
   await page.waitForFunction(()=>!document.querySelector(".jh-victory-celebration"),{timeout:5000});
   assert.equal(await page.$eval(".board-shell",el=>el.classList.contains("jh-victory-active")),false);
+  assert.equal(await page.$eval("#board",el=>el.style.getPropertyValue("--jh-victory-duration")),"",
+   "The animation must clean up inline timing after the result");
  }
  assert.equal(await page.evaluate(key=>localStorage.getItem(key),KEY),baseline,
   "Decorative victory animation cannot save or change a run");

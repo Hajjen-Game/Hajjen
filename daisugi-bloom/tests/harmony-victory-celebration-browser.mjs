@@ -66,10 +66,13 @@ try{
   return {result,overlay:!!document.querySelector(".jh-victory-celebration")};
  });
  assert.equal(reduced.result.status,"skipped");assert.equal(reduced.overlay,false);
+ // Set up an authentic, recipe-backed Journey 2.0 near-finish game; legacy
+ // saves without a levelRecipe are deliberately discarded by startLevel.
  // Set up an authentic near-finish game and complete it through a REAL move,
  // not by calling a result function or mutating DOM.
  await page.evaluate(key=>{
-  const R=window.HarmonyRules,g=new R.Game(0,null,{seed:20261024,directorMode:"v311"});
+  const R=window.HarmonyRules,g=new R.Game(0,null,{seed:20261024,directorMode:"v62",
+   levelRecipe:window.HarmonyJourneyDrafts.get(0),recordRound:true});
   g.fusions=g.target()-1;g.moves=15;
   const save=JSON.parse(localStorage.getItem(key));
   save.unlocked=0;save.run={level:0,data:g.save()};

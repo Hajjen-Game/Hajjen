@@ -12,7 +12,10 @@ check("Chapter 2 has deliberate Wind, Daruma, Stone and Hanabi identities",()=>{
  assert.deepEqual([10,11,12,16].map(i=>!!D.get(i).mechanics.wind),[true,true,true,true]);
  assert.deepEqual(D.get(13).mechanics.daruma,[24]);
  assert.deepEqual(D.get(14).mechanics.daruma,[23,25]);
- assert.deepEqual(D.get(15).mechanics.daruma,[15,22]);
+ assert.deepEqual(D.get(15).mechanics.daruma,[15,19]);
+ assert.deepEqual(D.get(15).mechanics.hanabi.starts,[29,33]);
+ assert.deepEqual(D.get(15).mechanics.hanabi.crates,[43,47]);
+ assert.deepEqual(D.get(15).goal.requires,[{type:"lotus",count:2}]);
  assert.deepEqual(D.get(17).mechanics.sealedStones,[24]);
  assert.deepEqual(D.get(18).mechanics.sealedStones,[24,31]);
  assert.deepEqual(D.get(19).mechanics.sealedStones,[15,19,22,26]);

@@ -40,6 +40,10 @@ assert.deepEqual(g(13).map(x=>x.key),["daruma"]);
 assert.deepEqual(g(17).map(x=>x.key),["stone"]);
 assert.deepEqual(g(21).map(x=>x.key),["daruma","lotus-intro"]);
 assert.deepEqual(g(27).map(x=>x.key),["stone"]);
+assert.equal(O.previewLesson(7,Journey.get(7),Journey.get(7),new Set()),null,
+ "A repeat Hanabi puzzle in levels 1–20 must not interrupt draft testers");
+assert.equal(O.previewLesson(4,Journey.get(4),Journey.get(4),new Set())?.key,
+ "lotus-intro","Only the actual early Hanabi introduction prompts");
 const seen=new Set(["daruma"]);
 assert.equal(O.previewLesson(20,Journey.get(20),Journey.get(20),seen),null);
 assert.equal(O.previewLesson(21,Journey.get(21),Journey.get(21),seen)?.key,"lotus-intro");

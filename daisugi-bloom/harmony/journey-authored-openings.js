@@ -92,12 +92,12 @@ const boards=Object.freeze({
   detail:"The complete board geometry is fixed; later refills remain genuine and unpredicted."
  },
  15:{
-  name:"Hanabi can strike two Daruma upstream",
-  rows:["CDCBCBE","ACACDCB","B-DAAEE","A-DAECD","A-ABADA","BBAABEC","E-DDBBA"],
-  insight:"One vertical launch affects blockers above the rocket",primary:"Launch-and-hit timing",secondary:"Daruma follow-up",
-  sequence:["Notice both Daruma aligned above the crate","Open the Hanabi route and launch","Use adjacent Fusions to finish any surviving Daruma"],
+  name:"Two independent Hanabi routes guard two Daruma",
+  rows:["CDCBCBE","ACACDCB","B-DAA-E","ACDAECD","A-ABA-A","BBAABEC","E-DDB-A"],
+  insight:"Each guardian belongs to a separate launch column",primary:"Two-lane Hanabi routing",secondary:"Daruma follow-up",
+  sequence:["Compare the two Daruma columns and their crates","Open one rocket route without neglecting the other","Launch both rockets and finish the remaining guardian hits"],
   planned:[],
-  detail:"The complete board geometry is fixed; later refills remain genuine and unpredicted."
+  detail:"Two rockets at 29 and 33, two crates at 43 and 47, Daruma at 15 and 19; normal refills remain genuine."
  },
  16:{
   name:"A predictable wind row sets up blocker hits",

@@ -163,4 +163,40 @@ for(let i=20;i<40;i++){
    " opening swaps and "+searched+" two-turn paths without early fireworks");
  }
 }
+// Level 28 user playtest change (November 4): two marked tiles on
+// row 5, columns 4 and 5 become genuine four-hit Sealed Stones.
+{
+ const index=27,recipe=D.get(index),bp=O.get(index);
+ assert.equal(recipe.name,"Awakening Circle");
+ assert.deepEqual(recipe.mechanics.sealedStones,[16,17,24,31,32]);
+ assert.deepEqual(recipe.goal,{type:"sealedStone",count:5});
+ assert.equal(recipe.moves,52,"Keep the original move budget for the first playtest");
+ const expected=["DEECDAA","AABEDBB","BD--BEA","BBD-DEE",
+  "AAB--DD","ACBBADC","CCECECE"];
+ const design=O.chapterSummary().find(x=>x.index===index);
+ assert.deepEqual(design.rows,expected);
+ assert.deepEqual(design.planned,[[22,23],[18,25]]);
+ for(const seed of [20261104+index*197,20261125+index*197]){
+  const game=A.build(R,bp,{seed,directorMode:"v62",recordRound:true});
+  assert.equal(game.config.goal.count,5);
+  assert.equal(game.board.filter(p=>p?.family==="sealedStone").length,5);
+  assert.equal(R.scan(game.board).length,0);
+  assert(R.validSwaps(game.board).length>=3);
+  for(const at of [16,17,24,31,32]){
+   assert.equal(game.board[at]?.family,"sealedStone");
+   assert.equal(game.sealed[at],4,"Each new and existing Stone needs four hits");
+  }
+  assert.equal(game.board[30]?.family!=="sealedStone",true);
+  assert.equal(game.board[33]?.family!=="sealedStone",true);
+  const legal=R.validSwaps(game.board);
+  for(const pair of [[22,23],[18,25]]){
+   assert(legal.some(x=>x[0]===pair[0]&&x[1]===pair[1]),
+    "Keep the original two strategic opening moves");
+   const trial=A.build(R,bp,{seed,directorMode:"v62"});
+   assert.equal(trial.swap(...pair).ok,true);
+  }
+  const restored=new R.Game(index,game.save(),{fastRestore:true});
+  assert.deepEqual(restored.sealed,game.sealed);
+ }
+}
 console.log("PASS 20 individually authored Journey 2.0 levels 21–40");

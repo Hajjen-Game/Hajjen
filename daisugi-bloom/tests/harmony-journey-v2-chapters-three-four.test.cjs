@@ -67,4 +67,27 @@ for(let i=20;i<40;i++){
  assert(!Object.hasOwn(legacy.save(),"levelRecipe"));
  console.log("PASS level "+(i+1)+" "+recipe.name+" · fixed 7×7 · "+design.planned.length+" verified opening moves");
 }
+// Level 24 review: the stones move to the actual central column, but
+// the board must preserve meaningful choice and not become a free cascade.
+{
+ const index=23,recipe=D.get(index),bp=O.get(index);
+ assert.equal(recipe.name,"Sealed Heart");
+ assert.deepEqual(recipe.mechanics.sealedStones,[17,24]);
+ const rows=O.chapterSummary().find(x=>x.index===index).rows;
+ assert.deepEqual(rows,["DEDECAE","DEDECBD","ABC-ABB","DCD-DDE",
+  "BACEAAC","BABCADA","CCBABDE"]);
+ const game=A.build(R,bp,{seed:20261104+index*197,directorMode:"v62"});
+ assert.equal(R.scan(game.board).length,0);
+ assert.equal(R.validSwaps(game.board).length,8,
+  "Keep the opening choice count at the original eight legal swaps");
+ for(const [from,to,landing,stone] of [[16,23,16,17],[18,25,25,24]]){
+  const directed=R.directedHint(game.board,[from,to]);
+  assert.equal(directed?.to,landing,"A purposeful Fusion must land beside a stone");
+  assert(R.neighbors(landing).includes(stone));
+  const trial=A.build(R,bp,{seed:20261104+index*197,directorMode:"v62"});
+  assert.equal(trial.swap(from,to).ok,true);
+  assert.equal(trial.sealed[stone],3,
+   "The authored route must damage its intended Sealed Stone exactly once");
+ }
+}
 console.log("PASS 20 individually authored Journey 2.0 levels 21–40");

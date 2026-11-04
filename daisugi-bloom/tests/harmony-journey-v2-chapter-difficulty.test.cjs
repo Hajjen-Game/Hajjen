@@ -15,6 +15,11 @@ for(let i=20;i<40;i++){
   for(const strategy of ["objective"]){
    const run=Lab.play(R,A,bp,{seed,strategy,directorMode:"v62",maxCandidates:3,maxTurns:D.get(i).moves});
    rows.push(run);totalRuns++;
+   if(i===26)console.log("LEVEL27 agent "+strategy+": "+JSON.stringify({
+    won:run.won,movesUsed:run.movesUsed,goalParts:run.goalParts,
+    rocketsDelivered:run.usage.hanabi,masterpieces:run.usage.masterpieces,
+    maxGoalDrought:run.maxGoalDrought,firstProgressTurn:run.firstProgressTurn
+   }));
    assert(run.initialLegal>=3,"Unsafe opening at level "+(i+1));
    assert(!run.limitedByTurnCap||run.movesUsed>=D.get(i).moves,
     "Unexpected early test termination at "+(i+1));
@@ -23,6 +28,13 @@ for(let i=20;i<40;i++){
   }
  }
  const summary=Lab.summarize(rows);
+ if(i===26){
+  const spatial=Lab.play(R,A,bp,{seed:20261104+i*197,strategy:"spatial",
+   directorMode:"v62",maxCandidates:3,maxTurns:D.get(i).moves});
+  console.log("LEVEL27 spatial: "+JSON.stringify({won:spatial.won,
+   movesUsed:spatial.movesUsed,goalParts:spatial.goalParts,
+   rocketsDelivered:spatial.usage.hanabi,masterpieces:spatial.usage.masterpieces}));
+ }
  console.log(JSON.stringify({level:i+1,name:D.get(i).name,
   budget:D.get(i).moves,attempts:summary.attempts,
   diagnosticWins:summary.wins,medianWinMoves:summary.winningMoves.p50,

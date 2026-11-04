@@ -483,6 +483,8 @@ function goalLesson(){
   const m=game.levelRecipe?.mechanics||{},goal=game.config.goal.type;
   let visual=goal==="mist"?O.LESSONS[3]:goal==="stage4"?O.LESSONS[1]:O.LESSONS[2];
   if(m.hanabi)visual=O.LESSONS[60];
+  if(m.daruma?.length)visual=O.LESSONS[20];
+  if(m.sealedStones?.length)visual=O.LESSONS[30];
   if(m.mirrors?.length)visual={key:"moon",jp:"月",title:"Moon Mirror",
    short:"Fuse beside the fixed mirror to reflect energy one square in its arrow's direction.",
    detail:"A Fusion beside a Moon Mirror sends a reflected hit to the adjacent square beyond the mirror. The mirror itself stays fixed. A Masterpiece also releases its regular Harmony Pulse."};
@@ -1165,8 +1167,8 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  lotusPreview=lotusScenario;journeyDraftPreview=!!journeyScenario;
  const journeyRecipe=journeyDraftPreview?window.HarmonyJourneyDrafts?.get(i):null;
  if(journeyDraftPreview&&!journeyRecipe)throw Error("Unknown Journey 2.0 draft");
- // The five reference puzzles use exact 7x7 openings authored and validated
- // by Puzzle Architect; every other draft keeps the legacy seeded opening.
+ // Fifteen reference puzzles use exact 7x7 openings authored for the focused
+ // Journey 2.0 progression; tutorial 1–4 and Koi finale retain seeded boards.
  const authoredOpening=journeyDraftPreview?window.HarmonyJourneyAuthoredOpenings?.get(i):null;
  const journeySeed=journeyDraftPreview?journeyDraftSeed(i):null;
  document.body.classList.toggle("journey-draft-preview",journeyDraftPreview);
@@ -1220,7 +1222,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  if(!mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario&&!journeyDraftPreview)offerFirstLesson(i);
  // A new mechanic gets a contextual, dismissible tutorial the first time
  // it is previewed. No progress or seen flags are written to player saves.
- if(journeyDraftPreview&&[4,10,15].includes(i)&&!journeyDraftIntroSeen.has(i)){
+ if(journeyDraftPreview&&[4,10,13,17].includes(i)&&!journeyDraftIntroSeen.has(i)){
   journeyDraftIntroSeen.add(i);showTutorialHelp(goalLesson(),false);
  }
 }
@@ -3042,9 +3044,15 @@ function showJourneyDraftResult(){
  const make=(tag,cls,value)=>{const el=document.createElement(tag);el.className=cls;el.textContent=value;return el;};
  content.append(makeRoundExport(make));
  const actions=$("modalActions");actions.replaceChildren();
- modalButton(actions,"Retry this draft","primary",()=>startLevel(level,false,null,null,false,null,true));
- modalButton(actions,"Choose another draft","secondary",()=>showJourneyDraftChooser(Math.floor(level/10)));
- modalButton(actions,"Back to main menu","secondary",showMenu);
+ if(game.complete&&level<19){
+  modalButton(actions,"Next Journey level","primary",()=>startLevel(level+1,false,null,null,false,null,true));
+  modalButton(actions,"Retry this level","secondary",()=>startLevel(level,false,null,null,false,null,true));
+ }else if(game.complete){
+  modalButton(actions,"Review levels 1–20","primary",()=>showJourneyDraftChooser(1));
+ }else{
+  modalButton(actions,"Retry this level","primary",()=>startLevel(level,false,null,null,false,null,true));
+ }
+ modalButton(actions,"Choose a Journey level","secondary",()=>showJourneyDraftChooser(Math.floor(level/10)));
  $("modal").hidden=false;
 }
 function showJourneyDraftChooser(chapter=0){
@@ -3056,7 +3064,7 @@ function showJourneyDraftChooser(chapter=0){
  const content=$("modalContent");content.replaceChildren();
  content.append(goshuinNode("p","",activeChapter===0?
   "Early-game identity: learn Fusion and Mist, launch your first Hanabi at level 5, then finish with the Koi Masterpiece challenge. These are unranked drafts; your Journey and rewards stay unchanged.":
-  "Moon Mirror enters at level 11 and Wind Garden at 16. These puzzles combine mirrors, shifting rows and fireworks without Wind and Mist on the same board. Draft tests never change saved progress or cards."));
+  "Wind Garden begins at 11, Daruma at 14 and Sealed Stones at 18. The final puzzles combine purposeful mechanics, not Moon Mirrors. Draft play never changes saved progress or cards."));
  const tabs=goshuinNode("div","journey-chapter-tabs");
  for(let ch=0;ch<2;ch++){
   const tab=goshuinNode("button","journey-chapter-tab"+(ch===activeChapter?" selected":""),

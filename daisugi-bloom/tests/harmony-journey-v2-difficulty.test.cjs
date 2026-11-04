@@ -28,15 +28,16 @@ check("Every stage has few visible requirements, no Mirror counters, and real bo
 });
 check("Finale needs genuine Stone breaks AND rocket deliveries",()=>{
  const x=D.get(19);
- assert.deepEqual(x.goal,{type:"sealedStone",count:2,
+ assert.deepEqual(x.goal,{type:"sealedStone",count:4,
   requires:[{type:"lotus",count:2}]});
  const g=new R.Game(19,null,{seed:42,journeyDiagnostic:true,
   directorMode:"v62",levelRecipe:x});
  assert.equal(g.goalParts().length,2);
  assert.equal(g.sealed.filter(Boolean).length,4);
  g.lotusDelivered=2;assert(!g.fulfilled(),"Rockets alone must not finish");
- g.lotusDelivered=0;g.sealedCleared=2;assert(!g.fulfilled(),"Stones alone must not finish");
- g.lotusDelivered=2;assert(g.fulfilled());
+ g.lotusDelivered=0;g.sealedCleared=4;assert(!g.fulfilled(),"Stones alone must not finish");
+ g.lotusDelivered=2;g.sealedCleared=2;assert(!g.fulfilled(),"Two stones must not finish");
+ g.sealedCleared=4;assert(g.fulfilled());
  assert(Q.detail(g).includes("Hanabi"));
 });
 check("Retained Koi finale asks for actual Koi Masterpieces",()=>{

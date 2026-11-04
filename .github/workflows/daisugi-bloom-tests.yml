@@ -430,17 +430,19 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Analyze level 20 under paired real-game seeds
+      - name: Compare five genuinely authored boards under paired strategies
         run: |
-          node daisugi-bloom/tools/puzzle-difficulty-lab.cjs \
-            --level 20 --trials 2 --seed 20261104 \
-            --strategies random,objective,spatial \
-            --max-candidates 6 \
-            --out daisugi-bloom/reports/puzzle-architect-reference20.json
-      - name: Preserve level-20 diagnostic summary and real move outcomes
+          for level in 5 11 16 18 20; do
+            node daisugi-bloom/tools/puzzle-difficulty-lab.cjs \
+              --level "$level" --trials 3 --seed 20261104 \
+              --strategies random,objective,spatial \
+              --max-candidates 6 \
+              --out "daisugi-bloom/reports/puzzle-architect-level${level}.json"
+          done
+      - name: Preserve five full-game research reports and replay seeds
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: japanese-harmony-puzzle-architect-reference-20
-          path: daisugi-bloom/reports/puzzle-architect-reference20.json
+          name: japanese-harmony-five-authored-puzzles
+          path: daisugi-bloom/reports/puzzle-architect-level*.json
           if-no-files-found: warn

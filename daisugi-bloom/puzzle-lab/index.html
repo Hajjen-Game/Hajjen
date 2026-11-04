@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>Japanese Harmony · Puzzle Architect 1.0 / Difficulty Lab 1.0</title>
+<style>
+:root{color-scheme:light;--ink:#352e2c;--paper:#f4ecd9;--panel:#fff9ed;--line:#d3bfa0;--gold:#a2723e;--muted:#6d645e}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 50% -5%,#d2b28c 0,transparent 42%),#e8dfcb;color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:#2c3539;color:#fff9e9;padding:23px max(18px,calc((100vw - 1180px)/2))}
+h1{font:700 clamp(23px,4vw,34px)/1.13 Georgia,serif;margin:5px 0 8px}
+h2{font:700 22px Georgia,serif;margin:0 0 14px}
+header p{max-width:900px;color:#e3d7c3;margin:0}
+main{max-width:1200px;margin:24px auto;padding:0 16px;display:grid;grid-template-columns:minmax(280px,1.1fr) minmax(290px,.9fr);gap:18px;align-items:start}
+section{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:18px;box-shadow:0 4px 18px #4d3c2812}
+.editor{grid-row:span 2}
+label{display:block;font-size:12px;letter-spacing:.02em;font-weight:700;color:#554b43;margin-bottom:5px}
+input,select,textarea,button{font:inherit}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid #c9b596;border-radius:9px;background:#fffdf5;color:var(--ink)}
+textarea{resize:vertical;min-height:72px}
+button{cursor:pointer;border-radius:9px;padding:10px 13px;border:1px solid #ac8961;background:#f7ecdb;color:#3d3128;font-weight:700}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #437f96;outline-offset:2px}
+button:hover{background:#e9d9bf}
+button.primary{background:#634935;color:#fffdf6;border-color:#634935}
+button.primary:hover{background:#7b5b43}
+button:disabled{opacity:.6;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.row>div{flex:1;min-width:126px}
+.meta{font-size:13px;color:var(--muted);margin:6px 0 12px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:9px 0}
+.legend span{font-size:12px;background:#f1e3c9;padding:4px 7px;border-radius:7px}
+.board{width:min(100%,515px);display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;padding:9px;border:3px solid #998063;border-radius:14px;background:#403c3b;margin:10px auto}
+.tile{aspect-ratio:1;min-width:0;padding:1px;border:1px solid #a89a87;border-radius:9px;background:#e1cfb0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:clamp(10px,1.3vw,14px);line-height:1.1;position:relative;color:#40372d}
+.tile span{font-size:clamp(10px,1.7vw,17px);font-weight:800}
+.tile small{font-size:9px;line-height:1.1}
+.tile.fixed{border:2px solid #c5a86c;background:#555d63;color:#fff7df;cursor:not-allowed}
+.tile.wind{box-shadow:inset 0 -3px #65a9c3}
+.tile.route:after{content:"↑";position:absolute;right:2px;top:2px;font-size:11px;color:#b75b29}
+.tile.mist:before{content:"◌";position:absolute;left:2px;top:0;font-size:12px;color:#857ca4}
+.tile.target:after{content:"✦";position:absolute;right:2px;bottom:1px;color:#bd6423;font-size:10px}
+.tile.paint{box-shadow:inset 0 0 0 2px #d9a247}
+.toolrow{display:flex;flex-wrap:wrap;gap:6px}
+.family{font-size:12px;padding:7px 9px}
+.family.active{outline:3px solid #497a89;background:#fbf5e8}
+.status{border:1px solid #cebca4;background:#f5eddf;padding:11px 13px;border-radius:10px;font-size:13px;white-space:pre-line}
+.status.good{border-color:#8fa887;color:#375735;background:#edf2e8}
+.status.bad{border-color:#b78a7b;color:#893b35;background:#f8e9e3}
+small.note{font-size:12px;color:var(--muted);display:block}
+.mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.report{width:100%;border-collapse:collapse;font-size:13px}
+.report td,.report th{padding:7px 5px;text-align:right;border-bottom:1px solid #d9c8b0}
+.report th:first-child,.report td:first-child{text-align:left}
+.report th{font-size:11px;color:var(--muted)}
+.flags{font-size:12px;line-height:1.7;margin:8px 0;padding-left:20px}
+footer{max-width:1200px;margin:6px auto 40px;padding:0 16px;font-size:12px;color:#625e57}
+@media(max-width:830px){main{display:block}section{margin-bottom:14px}.editor{grid-row:auto}.tile small{font-size:7px}.tile span{font-size:12px}}
+</style>
+</head>
+<body>
+<header>
+ <div style="font-size:12px;letter-spacing:.16em;color:#e0bb8d">JAPANESE HARMONY · DEVELOPMENT TOOLS</div>
+ <h1>Puzzle Architect 1.0 + Difficulty Lab 1.0</h1>
+ <p>Rita en verklig 7×7-öppning, kontrollera brädgeometrin och låt fyra diagnostiska spelstilar spela samma pussel. Verktyget ändrar <strong>inte</strong> din sparfil eller nivåerna i spelet.</p>
+</header>
+<main>
+ <section class="editor">
+  <h2>1. Brädredigerare</h2>
+  <div class="row">
+   <div><label for="level">Nivåutkast</label><select id="level"></select></div>
+   <div><label for="seed">Startfrö (uint32)</label><input id="seed" type="number" min="0" max="4294967295" step="1" value="20261104"/></div>
+  </div>
+  <p class="meta" id="levelInfo"></p>
+  <div class="row">
+   <button id="capture" type="button">Hämta startbräde från frö</button>
+   <button id="validate" type="button">Kontrollera layout</button>
+   <button id="export" type="button">Exportera blueprint JSON</button>
+  </div>
+  <div class="legend"><span>✦ Spegelstråle</span><span>↑ Hanabi-rutt</span><span>◌ Mist</span><span>Blå underkant = Vindrad</span></div>
+  <div class="board" role="group" aria-label="Redigerbart 7 gånger 7 spelbräde" id="board"></div>
+  <label>Målarpensel – välj familj och tryck på valfri vanlig ruta</label>
+  <div class="toolrow" id="families"></div>
+  <p class="meta">Fasta spelobjekt kan inte övermålas. En layout med omedelbara matchningar eller färre än tre verkliga lagliga drag underkänns. Färgerna är redigeringsmarkörer, inte nya grafikresurser.</p>
+  <div id="boardStatus" class="status" role="status" aria-live="polite">Välj en nivå och kontrollera dess bräde.</div>
+ </section>
+ <section>
+  <h2>2. Pusslets designidé</h2>
+  <label for="insight">Vad ska spelaren komma på?</label>
+  <textarea id="insight"></textarea>
+  <label for="skill">Huvudfärdighet</label>
+  <input id="skill"/>
+  <label for="secondary">Andra färdighet (valfritt)</label>
+  <input id="secondary"/>
+  <label for="sequence">Tänkta beslut – ett per rad (2–6)</label>
+  <textarea id="sequence" rows="4"></textarea>
+  <p class="meta">Dessa fält är ett designkontrakt, inte en skriptad lösning. Spelaren är alltid fri att göra andra drag.</p>
+  <div class="status" id="geometry">Hanabi-rutter och spegelriktningar visas här.</div>
+ </section>
+ <section>
+  <h2>3. Difficulty Lab</h2>
+  <p class="meta">Fyra heuristiska agenter gör <strong>riktiga drag</strong> i samma spelmotor: Random, Greedy, Objective och Spatial (begränsad tvåstegsplanering). Testet är ingen garanti att en nivå är lösbar eller rolig.</p>
+  <div class="mini-grid">
+   <div><label for="trials">Frön per spelstil</label><select id="trials"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>6</option></select></div>
+   <div><label for="mode">Harmony Director</label><select id="mode"><option value="v62" selected>Director 6.2</option><option value="standard">Standard (utan Director)</option></select></div>
+  </div>
+  <div class="row" style="margin-top:12px">
+   <button class="primary" id="run">Spela simulerade rundor</button>
+   <button id="downloadReport" disabled>Exportera rapport</button>
+  </div>
+  <p class="meta" id="analysisStatus" aria-live="polite">Inga simuleringar körda ännu.</p>
+  <div id="results"></div>
+ </section>
+</main>
+<footer>Endast utvecklingsverktyg · ingen koppling till localStorage, Goshuincho, mynt eller Omamori · Alla tester är reproducerbara med samma blueprint och seed.</footer>
+<script defer src="../harmony/board-mechanics.js"></script>
+<script defer src="../harmony/bamboo-paths.js"></script>
+<script defer src="../harmony/hanabi-crate.js"></script>
+<script defer src="../harmony/lotus-stream.js"></script>
+<script defer src="../harmony/lotus-routing.js"></script>
+<script defer src="../harmony/identity-prototypes.js"></script>
+<script defer src="../harmony/moon-mirrors.js"></script>
+<script defer src="../harmony/wind-garden.js"></script>
+<script defer src="../harmony/level-architecture.js"></script>
+<script defer src="../harmony/journey-levels-v2.js"></script>
+<script defer src="../harmony/omamori-afterglow.js"></script>
+<script defer src="../harmony/player-insight.js"></script>
+<script defer src="../harmony/player-intent.js"></script>
+<script defer src="../harmony/director-v6.js"></script>
+<script defer src="../harmony/director-v61.js"></script>
+<script defer src="../harmony/director-v62.js"></script>
+<script defer src="../harmony/rules.js"></script>
+<script defer src="../harmony/puzzle-architect.js"></script>
+<script defer src="../harmony/difficulty-lab.js"></script>
+<script defer src="./ui.js"></script>
+</body>
+</html>

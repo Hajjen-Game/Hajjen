@@ -4,27 +4,58 @@ const R=require("../harmony/rules.js");
 const D=require("../harmony/journey-levels-v2.js");
 const A=require("../harmony/puzzle-architect.js");
 const O=require("../harmony/journey-authored-openings.js");
+
 assert.equal(D.COUNT,40);
+assert.equal(O.COUNT,15,"Existing first-twenty reference boards must remain intact");
+assert.equal(O.CHAPTER_COUNT,20);
+const summaries=O.chapterSummary();
+assert.deepEqual(summaries.map(x=>x.index),Array.from({length:20},(_,k)=>k+20));
+const signatures=new Set();
 for(let i=20;i<40;i++){
- const recipe=D.get(i),bp=O.get(i);
- assert(recipe&&bp,"Missing level "+(i+1));
+ const recipe=D.get(i),bp=O.get(i),design=summaries[i-20];
+ assert(recipe&&bp&&design,"Missing authored chapter board "+(i+1));
  assert.equal(recipe.index,i);
- assert.equal(recipe.mechanics.mirrors.length,0);
- assert.equal(recipe.mechanics.mist.length,0);
+ assert.equal(recipe.mechanics.mirrors.length,0,"Moon Mirror is parked");
+ assert.equal(recipe.mechanics.mist.length,0,"No Wind+Mist visual overlap");
  assert.equal(bp.recipe.id,recipe.id);
- const game=A.build(R,bp,{seed:20261104+i*197,recordRound:true,directorMode:"v62"});
- assert.equal(game.config.levelRecipeId,recipe.id);
- assert.equal(game.moves,recipe.moves);
- assert.deepEqual(game.config.goal,recipe.goal);
- assert.equal(R.scan(game.board).length,0);
- assert(R.validSwaps(game.board).length>=3,"No swaps on "+(i+1));
- assert.equal(game.board.filter(p=>p?.family==="daruma").length,recipe.mechanics.daruma.length);
- assert.equal(game.board.filter(p=>p?.family==="sealedStone").length,recipe.mechanics.sealedStones.length);
- assert.equal(game.board.filter(p=>p?.family==="lotusSeed").length,recipe.mechanics.hanabi?.starts.length||0);
- const saved=game.save(),restored=new R.Game(i,saved,{fastRestore:true});
- assert.deepEqual(restored.board,game.board);
- assert.equal(restored.config.levelRecipeId,recipe.id);
- assert.equal(game.swap(...R.validSwaps(game.board)[0]).ok,true);
- console.log("PASS preview level "+(i+1)+": "+recipe.name);
+ assert.equal(bp.opening.provenance,"hand-authored","No captured-seed fallbacks");
+ assert.equal(design.rows.length,7);
+ assert(design.rows.every(r=>r.length===7&&/^[A-E-]+$/.test(r)));
+ assert.equal(bp.opening.grid.length,49);
+ assert.equal(bp.opening.grid.filter(Boolean).length,49-
+  recipe.mechanics.daruma.length-recipe.mechanics.sealedStones.length-
+  (recipe.mechanics.hanabi?.starts.length||0)-(recipe.mechanics.hanabi?.crates.length||0));
+ assert(design.planned.length>=2,"Opening needs two purposeful entry moves");
+ const signature=design.rows.join("");
+ assert(!signatures.has(signature),"Every opening must be distinct");
+ signatures.add(signature);
+ for(const seed of [20261104+i*197,24680+i]){
+  const game=A.build(R,bp,{seed,recordRound:true,directorMode:"v62"});
+  assert.equal(game.config.levelRecipeId,recipe.id);
+  assert.equal(game.moves,recipe.moves);
+  assert.deepEqual(game.config.goal,recipe.goal);
+  assert.deepEqual(A.cellsOf(game),bp.opening.grid,"No procedurally generated opening");
+  assert.equal(R.scan(game.board).length,0,"No free Fusion at start");
+  const legal=R.validSwaps(game.board);
+  assert(legal.length>=3,"No deadlocked opening on "+(i+1));
+  assert.equal(game.board.filter(p=>p?.family==="daruma").length,recipe.mechanics.daruma.length);
+  assert.equal(game.board.filter(p=>p?.family==="sealedStone").length,recipe.mechanics.sealedStones.length);
+  assert.equal(game.board.filter(p=>p?.family==="lotusSeed").length,recipe.mechanics.hanabi?.starts.length||0);
+  assert.equal(game.board.filter(p=>p?.family==="hanabiCrate").length,recipe.mechanics.hanabi?.crates.length||0);
+  assert.equal(game.traceEnabled,true,"Playtest must record exported turns");
+  const saved=game.save(),restored=new R.Game(i,saved);
+  assert.deepEqual(restored.board,game.board,"Save/resume board stability");
+  assert.equal(restored.config.levelRecipeId,recipe.id);
+  for(const pair of design.planned){
+   assert(legal.some(p=>p[0]===pair[0]&&p[1]===pair[1]),
+    "Designed opening "+pair+" must be a legal authentic Fusion at level "+(i+1));
+   const probe=A.build(R,bp,{seed,directorMode:"v62"});
+   assert.equal(probe.swap(...pair).ok,true,"Designed move must run in actual Rules.Game");
+  }
+ }
+ const legacy=new R.Game(i,null,{seed:1234});
+ assert(!legacy.levelRecipe,"Unpublished chapters must not affect Goshuincho");
+ assert(!Object.hasOwn(legacy.save(),"levelRecipe"));
+ console.log("PASS level "+(i+1)+" "+recipe.name+" · fixed 7×7 · "+design.planned.length+" verified opening moves");
 }
-console.log("PASS Journey chapters 3 and 4 · 20 authentic playable puzzles");
+console.log("PASS 20 individually authored Journey 2.0 levels 21–40");

@@ -1,10 +1,10 @@
 /* Japanese Harmony — Victory Celebration 2.0
- * A short, board-local, pre-modal festival finale. No gameplay state, rewards,
+ * An unhurried, board-local, pre-modal festival finale. No gameplay state, rewards,
  * timers, saves, touch handlers, audio engines, or purchases are mutated here.
  */
 (function(root){
 "use strict";
-const DURATIONS=Object.freeze({1:950,2:1120,3:1330});
+const DURATIONS=Object.freeze({1:1950,2:2120,3:2330});
 const SPOTS=Object.freeze([
  [25,33],[77,47],[51,22],[35,71],[70,73]
 ]);
@@ -46,7 +46,7 @@ function play({boardShell,board,stars=1,reduceMotion=false,onStart}={}){
   const [x,y]=SPOTS[i];
   burst.style.setProperty("--x",x+"%");
   burst.style.setProperty("--y",y+"%");
-  burst.style.setProperty("--delay",(i*180+185)+"ms");
+  burst.style.setProperty("--delay",Math.round(durationMs*(.12+.60*i/(bursts-1)))+"ms");
   for(let ray=0;ray<8;ray++){
    const spark=element("i","jh-victory-ray");
    spark.style.setProperty("--angle",(ray*45)+"deg");
@@ -61,7 +61,7 @@ function play({boardShell,board,stars=1,reduceMotion=false,onStart}={}){
   // Stable hand-arranged geometry without random input or reflow.
   mote.style.setProperty("--x",(12+(i*37)%75)+"%");
   mote.style.setProperty("--y",(21+(i*29)%63)+"%");
-  mote.style.setProperty("--delay",(145+i*22)+"ms");
+  mote.style.setProperty("--delay",Math.round(durationMs*(.09+.57*i/(count-1)))+"ms");
   mote.style.setProperty("--drift",((i%5)-2)*9+"px");
   overlay.append(mote);
  }

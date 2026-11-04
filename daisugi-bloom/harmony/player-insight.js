@@ -57,8 +57,9 @@ function eventSummary(event){
  }
  for(const key of ["positions","clearedMist","mistTargets","darumaTargets","stoneTargets","mirrorTargets","visualOnlyTargets"]){
   if(Array.isArray(event[key]))kept[key]=event[key].slice(0,49).map(x=>
-   typeof x==="number"?x:{at:x.at,to:x.to,from:x.from,via:x.via,source:x.source}).slice(0,49);
+   typeof x==="number"?x:{at:x.at,to:x.to,from:x.from,via:x.via,source:x.source,alreadyHit:x.alreadyHit===true?true:undefined}).slice(0,49);
  }
+ if(event.type==="sealed-hit"&&Array.isArray(event.hits))kept.hits=event.hits.slice(0,49).map(h=>({at:h.at,via:h.via,remaining:h.remaining,broken:h.remaining===0}));
  if(Array.isArray(event.groups))kept.groups=event.groups.slice(0,12).map(g=>({
   family:g.family,at:g.at,stage:g.stage,size:g.size,kind:g.kind,
   indices:Array.isArray(g.indices)?g.indices.slice(0,8):undefined

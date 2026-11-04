@@ -23,6 +23,80 @@ const LESSONS=Object.freeze({
  59:Object.freeze({key:"bamboo-finale",jp:"和",title:"Path of Harmony",short:"Clear Mist around the sacred shrine to complete Bamboo Paths.",detail:"Fuse onto each misty tile or reach it with Harmony Pulse. The shrine stays closed and does not need clearing. All three Mist tiles must be removed to complete the chapter."}),
  60:Object.freeze({key:"lotus-intro",jp:"花火",title:"First Hanabi Crate",short:"Match below each firework to guide it into a wooden crate.",detail:"The wooden crates are permanent board squares: treasures cannot occupy or swap onto them. Clear treasures beneath a firework so it falls into the square immediately ABOVE its crate. It then drops inside and fires a bright vertical Pulse straight up the column. Crates remain fixed on the bottom row."})
 });
+// Onboarding Polish 2.0: the OLD numbered LESSONS describe legacy Journey.
+ // Journey 2.0 moves Hanabi to level 5, Wind to 11, Daruma to 14,
+ // and Sealed Stones to 18. Never show a legacy lesson on the wrong level.
+const SPECIAL=Object.freeze({
+ "lotus-intro":LESSONS[60],
+ "daruma":LESSONS[20],
+ "stone":LESSONS[30],
+ "four":LESSONS[5],
+ "match":LESSONS[0],
+ "stages":LESSONS[1],
+ "pulse":LESSONS[2],
+ "mist":LESSONS[3],
+ "families":LESSONS[10],
+ "koi-finale":Object.freeze({key:"koi-finale",jp:"鯉",title:"Two Koi masterpieces",
+  short:"Only stage-5 Koi count toward this level's goal.",
+  detail:"Grow two separate Koi to stage 5. Other families still fuse and release Harmony Pulse, but their masterpieces do not count toward the Koi objective."}),
+ "wind":Object.freeze({key:"wind",jp:"風",title:"Wind Garden · five families",
+  short:"Watch the marked row: it shifts after every third successful move. A fifth family also joins the garden.",
+  detail:"Every third successful move, the marked row shifts one cell and wraps at its edge. Plan your Fusion around the upcoming shift. There are now five treasure families on the board, not four."})
+});
+const JOURNEY_FIRSTS=Object.freeze({
+ 0:"match",1:"stages",2:"pulse",3:"mist",4:"lotus-intro",
+ 9:"koi-finale",10:"wind",11:"four",13:"daruma",17:"stone"
+});
+const guideByKey=key=>SPECIAL[key]||null;
+function journeyLesson(index){
+ const key=JOURNEY_FIRSTS[index];
+ return typeof key==="string"?guideByKey(key):null;
+}
+function dedupeGuides(keys){
+ const seen=new Set(),out=[];
+ for(const key of keys){
+  if(seen.has(key))continue;
+  const guide=guideByKey(key);
+  if(!guide)continue;
+  seen.add(key);out.push(guide);
+ }
+ return out;
+}
+// Return all mechanics actually present in a level. The primary objective
+// comes first in the replayable ? guide. This covers mixed obstacle levels.
+function levelGuides(index,config,recipe){
+ const m=recipe?.mechanics||{},goal=config?.goal||recipe?.goal||{};
+ const keys=[];
+ const objectiveKeys={lotus:"lotus-intro",daruma:"daruma",
+  sealedStone:"stone",mist:"mist",fourTurns:"four",four:"four",
+  stage3:"stages",stage4:"stages",masterpiece:"pulse",
+  familyMasterpiece:goal.family==="koi"?"koi-finale":"pulse",
+  familyFusion:"families"};
+ if(objectiveKeys[goal.type])keys.push(objectiveKeys[goal.type]);
+ if(Array.isArray(goal.requires))for(const task of goal.requires){
+  if(task.type==="fourTurns")keys.push("four");
+ }
+ if(m.sealedStones?.length)keys.push("stone");
+ if(m.daruma?.length)keys.push("daruma");
+ if(m.hanabi?.starts?.length)keys.push("lotus-intro");
+ if(m.wind)keys.push("wind");
+ if(m.mist?.length)keys.push("mist");
+ if(index===10&&recipe)keys.push("wind");
+ const first=index<20&&recipe?journeyLesson(index):null;
+ if(first)keys.unshift(first.key);
+ if(!keys.length)keys.push("match");
+ return dedupeGuides(keys);
+}
+// Playtest previews deliberately never alter the player's permanent tutorial
+// flags. Show at most one new core-mechanic guide per level start.
+function previewLesson(index,config,recipe,seen){
+ if(!recipe)return null;
+ const mechanicKeys=levelGuides(index,config,recipe)
+  .map(x=>x.key).filter(x=>["lotus-intro","wind","daruma","stone"].includes(x));
+ for(const key of mechanicKeys)if(!(seen instanceof Set)||!seen.has(key))return guideByKey(key);
+ return null;
+}
+
 const clean=n=>Number.isInteger(n)&&n>=0?n:0;
 function lesson(level){return LESSONS[clean(level)]||null;}
 function objective(config){
@@ -59,7 +133,7 @@ function preview(level,config,moveStarTargets){
   tip:String(config?.intro||config?.subtitle||"Complete the goal to earn a star."),
   threeStars:stars?.three??null,twoStars:stars?.two??null};
 }
-const api=Object.freeze({LESSONS,lesson,objective,preview});
+const api=Object.freeze({LESSONS,SPECIAL,JOURNEY_FIRSTS,lesson,journeyLesson,levelGuides,previewLesson,guideByKey,objective,preview});
 root.HarmonyOnboarding=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

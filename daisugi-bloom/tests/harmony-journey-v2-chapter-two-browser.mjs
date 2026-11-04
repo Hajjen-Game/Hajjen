@@ -71,7 +71,7 @@ try{
   document.querySelector('.tile[data-index="'+b+'"]').click();
  },realMove);
  await page.waitForFunction(()=>document.querySelector("#board")?.getAttribute("aria-busy")==="false"&&
-  document.querySelector("#movesCount")?.textContent==="56",{timeout:35000});
+  Number(document.querySelector("#movesCount")?.textContent)===window.HarmonyJourneyDrafts.get(19).moves-1,{timeout:35000});
  await leave();
  assert.deepEqual(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY),baseline);
  assert.deepEqual(errors,[]);

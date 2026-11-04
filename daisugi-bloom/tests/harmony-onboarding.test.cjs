@@ -15,6 +15,35 @@ for(const [index,key] of lessons){
  assert(!l.short.includes("bonus score"),"Onboarding must teach actual mechanics");
 }
 assert.equal(O.lesson(4),null,"Regular puzzles do not interrupt with tutorials");
+
+// Journey 2.0 first encounters differ from the old level-1–100 lesson map.
+const journeyFirsts=[[0,"match"],[1,"stages"],[2,"pulse"],[3,"mist"],
+ [4,"lotus-intro"],[9,"koi-finale"],[10,"wind"],[11,"four"],
+ [13,"daruma"],[17,"stone"]];
+for(const [i,key] of journeyFirsts){
+ assert.equal(O.journeyLesson(i)?.key,key,"Wrong Journey lesson at level "+(i+1));
+ assert(O.journeyLesson(i).short.length>20);
+ assert(O.journeyLesson(i).detail.length>45);
+}
+for(const i of [5,6,7,8,12,14,15,16,18,19])
+ assert.equal(O.journeyLesson(i),null,"Do not interrupt level "+(i+1));
+assert(O.journeyLesson(10).short.includes("fifth family"),
+ "Wind and five-family transition must share one guide");
+const Journey=require("../harmony/journey-levels-v2.js");
+const g=i=>O.levelGuides(i,Journey.get(i),Journey.get(i));
+assert.deepEqual(g(4).map(x=>x.key),["lotus-intro"]);
+assert.deepEqual(g(10).map(x=>x.key),["wind"]);
+assert.deepEqual(g(11).map(x=>x.key),["four","pulse","wind"]);
+assert.deepEqual(g(13).map(x=>x.key),["daruma"]);
+assert.deepEqual(g(17).map(x=>x.key),["stone"]);
+assert.deepEqual(g(21).map(x=>x.key),["daruma","lotus-intro"]);
+assert.deepEqual(g(27).map(x=>x.key),["stone"]);
+const seen=new Set(["daruma"]);
+assert.equal(O.previewLesson(20,Journey.get(20),Journey.get(20),seen),null);
+assert.equal(O.previewLesson(21,Journey.get(21),Journey.get(21),seen)?.key,"lotus-intro");
+assert.equal(O.previewLesson(22,Journey.get(22),Journey.get(22),seen)?.key,"wind");
+assert.equal(O.previewLesson(27,Journey.get(27),Journey.get(27),seen)?.key,"stone");
+
 assert.equal(O.lesson(40).key,"lantern","Lantern Path must introduce its actual objective");
 assert.equal(O.lesson(51),null);
 
@@ -42,8 +71,12 @@ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
 assert(app.includes("function levelPreview("));
 assert(app.includes("function showGoalHelp("));
 assert(app.includes("function offerFirstLesson("));
-assert(app.includes("offerFirstLesson(i,!!data);"));
-assert(app.includes("if(resuming)return;"),"Don't interrupt resumed games");
+assert(app.includes("else offerFirstLesson(i);"));
+assert(app.includes("O.journeyLesson(index)"));
+assert(app.includes("O.previewLesson(i,game.config,game.levelRecipe,journeyDraftIntroSeen)"));
+assert(app.includes("save.tutorialHelpSeen[topic.key]=true;"),"Persist live acknowledgment only after OK");
+assert(app.includes("journeyDraftIntroSeen.add(topic.key);"),"Drafts acknowledge in-session");
+assert(!app.includes("journeyDraftIntroSeen.add(i)"),"Do not premark unseen draft lessons");
 const compactSection=app.slice(app.indexOf('const select=(stamp,tile)=>{'),app.indexOf('const play=goshuinNode("button","washi-detail-play"',app.indexOf('const select=(stamp,tile)=>{')));
 assert(compactSection.includes('washi-detail-objective')&&compactSection.includes('washi-detail-budget'),
  "Goshuincho still needs goal and move counts");

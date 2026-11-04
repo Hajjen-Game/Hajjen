@@ -1,61 +1,57 @@
-# Japanese Harmony — Early Game Identity Redesign · Journey 2.0
-November 2026 · **Step B: playable, unranked drafts for levels 1–20**.
+# Japanese Harmony — Journey 2.0 · focused levels 1–20
 
-## Design rationale
-Experienced match-three players already know basic swaps, three-in-a-row, and ordinary blockers. The first minutes should show what makes **Japanese Harmony** different: ascending treasure stages, Fusion Destination Control, large Masterpiece pulses and Japanese festival magic.
+**Current playtest design, 4 November 2026.** This supersedes the earlier Moon Mirror introduction and the old counter-heavy difficulty patch.
 
-Introduce *spectacle* first, then strategic control, and only afterward multi-hit blockers. The sequence selected after human playtests is:
-1. **Hanabi Crate — level 5** (easy to understand and visually satisfying).
-2. **Moon Mirror — level 11** (a Fusion's destination controls a reflection).
-3. **Wind Garden — level 16** (predictable row shifts following valid moves).
-4. **Daruma — planned level 21**, not in first twenty.
-5. **Sealed Stones — planned level 31**, with Hanabi + Stone combinations.
-6. **Bamboo — late experimental content**, roughly 75+, only if it plays fairly.
+## One direction
 
-### Authored first 20 missions
-| Level | Design / identity | Objective | Move budget | 3-star par | Mechanics |
-|---:|---|---|---:|---:|---|
-| 1 | First Harmony | 3 Fusions | 18 | 4 | Core |
-| 2 | Growing Beauty | 1 stage-3 upgrade | 24 | 5 | Core |
-| 3 | First Masterpiece | 1 Masterpiece | 34 | 9 | Harmony Pulse |
-| 4 | First Mist | Clear 3 Mist | 30 | 9 | Mist |
-| **5** | **First Firework** | **Deliver 1 rocket** | 30 | 13 | Hanabi |
-| 6 | Twin Fireworks | Deliver 2 rockets | 38 | 21 | Hanabi |
-| 7 | Fireworks Through Mist | Clear 4 Mist | 38 | 21 | Hanabi + Mist |
-| 8 | Festival Bloom | Create 2 Masterpieces | 39 | 23 | Hanabi (optional launch) |
-| 9 | Firework Finale | Deliver 2 rockets | 41 | 23 | Hanabi + optional Mist |
-| **10** | **Koi Masterpiece Finale** | **2 Koi Masterpieces** | 40 | 17 | Core, unchanged from approved playtest |
-| **11** | **First Moon Mirror** | 2 stage-4 upgrades | 39 | 21 | Moon Mirror |
-| 12 | Moonlit Mist | Clear 3 Mist | 43 | 24 | Mirror + Mist |
-| 13 | Moon and Fireworks | Deliver 2 rockets | 45 | 25 | Mirror + Hanabi |
-| 14 | Double Reflection | 3 stage-4 upgrades | 45 | 26 | Two Moon Mirrors |
-| 15 | Moonlit Bloom | Create 2 Masterpieces | 46 | 26 | Mirror + Hanabi |
-| **16** | **First Wind Garden** | **14 Fusions** | 37 | 22 | Wind |
-| 17 | Wind and Fireworks | Deliver 1 rocket | 40 | 23 | Wind + Hanabi |
-| 18 | Wind and Moonlight | 3 stage-4 upgrades | 46 | 27 | Wind + Mirror |
-| 19 | Crossing Winds | Create 2 Masterpieces | 48 | 29 | Two shifting Wind rows |
-| 20 | Festival of Reflections | Deliver 2 rockets | 48 | 28 | Hanabi + two Mirrors |
+Playtests confirm the level design is improving. Moon Mirror lacks a necessary gameplay role, so it is **parked throughout levels 1–20**. The game keeps its real Fusion, evolution, Harmony Pulse and Mist teaching mechanics. Four clear pillars lead the puzzle progression: **Hanabi Crate, Wind Garden, Daruma and Sealed Stones**.
 
-All budgets and star thresholds **remain provisional until repeated playtests**. The original chapter-one learning sequence and the positively reviewed Koi goal are unchanged.
+The central question for every level is what the player must notice, prepare and exploit. Do not replace spatial design with long lists of counters. A second objective is included only when it makes an interacting mechanic genuinely necessary. There are no fake minimum-turn locks, scripted wins or required boosters.
 
-## Rules, compatibility and feedback
-- The original **seven-by-seven, real Rules.Game** performs swaps, gravity, board refills, damage, Fusion, Masterpieces and objective accounting. Level-architecture recipes never grant fake credit or scripted wins.
-- **Hanabi's launch** still travels *straight upward*. It can clear Mist and hit Daruma / Sealed Stones once those mechanics arrive; its blast is **not reflected by Moon Mirror** until a separate rules design is approved. The rocket must arrive in the crate before firing.
-- On 5–9 the **four-family** opening uses a valid fallback in Hanabi's existing authored starting row. Level 11 introduces the real fifth family.
-- **Mirror Fusion Resonance** is active for ordinary Fusions next to a fixed Mirror, without requiring a Masterpiece.
-- **Wind** shifts a forecast row after a scheduled number of successful moves. Wind never mixes with Mist in this batch. Wind rows cannot include a Moon Mirror or a Hanabi crate; any Hanabi cargo route below its start must remain unaffected by Wind.
-- First encounters on **5, 11 and 16** show a dismissal-only contextual tutorial with the existing illustrated help system. The confirmation does not write tutorial flags to the normal save.
-- **Harmony Director 6.2** operates on the new mechanized test boards; legacy first levels and Koi retain their original draft modes.
+## Level plan
 
-## Safe preview / test path
-Open **Game Settings → Journey 2.0 · Levels 1–20 Preview** and select the desired chapter tab. It is unranked: no permanent stars, coins, Omamori spending, inventory, unlocks, records or current run changes. Draft levels use versioned recipe descriptors, and the normal published Journey remains untouched.
+| Level | Name | Mechanic | Objective | Moves | Discovery |
+|---:|---|---|---|---:|---|
+| 1 | First Harmony | Fusion | 3 Fusions | 18 | Learn the merge |
+| 2 | Growing Beauty | Stages | Stage 3 | 24 | Control evolution |
+| 3 | First Masterpiece | Harmony Pulse | 1 Masterpiece | 34 | Earn a stage-five Pulse |
+| 4 | First Mist | Mist | Clear 3 Mist | 30 | Land Fusion on the overlay |
+| 5 | First Firework | Hanabi intro | Deliver 1 rocket | 30 | Two-step setup |
+| 6 | Long Fuse | Hanabi | Deliver top-row rocket | 36 | Open a full-column route |
+| 7 | Twin Ascent | Hanabi | Deliver 2 top-row rockets | 43 | Handle independent routes |
+| 8 | Festival Bloom | Hanabi + Masterpiece goal | 2 Masterpieces and 1 rocket | 44 | Use the blast to evolve |
+| 9 | Festival Clearing | Hanabi + Mist | 3 Mist and 2 rockets | 47 | Work outside blast columns |
+| 10 | Koi Masterpiece Finale | Koi | 2 Koi Masterpieces | 40 | Keep approved Koi challenge |
+| 11 | First Wind Garden | Wind | 12 Fusions | 38 | Read the third-turn shift |
+| 12 | Crossing Winds | Wind | 1 Masterpiece and 2 four-match turns | 43 | Plan alternating rows |
+| 13 | Wind and Fireworks | Wind + Hanabi | 1 rocket and 2 stage-4 upgrades | 43 | Coordinate upper Wind and cargo |
+| 14 | First Daruma | Daruma | Clear 1 Daruma | 38 | Land two separate hits |
+| 15 | Twin Daruma | Daruma | Clear 2 Daruma | 44 | Hit two guardians |
+| 16 | Festival Guardian | Hanabi + Daruma | Clear 2 Daruma and 1 rocket | 46 | Hit blockers with the blast |
+| 17 | Wind Shrine | Wind + Daruma | Clear 2 Daruma | 48 | Shift toward blockers |
+| 18 | First Sealed Stone | Stone | Clear 1 Stone | 46 | Four hits and Awakening |
+| 19 | Awakening Pair | Stones | Clear 2 Stones | 52 | One break helps another |
+| 20 | Festival Seal | Stones + Hanabi | Clear 2 Stones and 2 rockets | 57 | Blast through stone columns |
 
-## Tests and acceptance criteria
-- Chapter 1: 60 actual seeded games with genuine legal swaps, valid four-family Hanabi cargo, deterministic openings, no free match, and save/restore parity.
-- Chapter 2: 60 actual seeded games with genuine legal swaps, fixed Mirror placement, Wind schedule, combined Hanabi fixtures and save/restore parity.
-- Mobile: 390px full flow verifying the first Hanabi, Moon and Wind tutorials, cargo and crate artworks, actual player swap, mixed later chapter layouts, and *byte-equivalent logical save data* before and after.
-- Existing production 1–100 and historical saved games remain unaffected.
-- Acceptance for publication requires *human playtests* of 5–9, 11, 16–20; track objective reachability, stall/shuffles and move counts. Technical checks alone do not validate final difficulty.
+**Hanabi placement policy:** The first Hanabi is introduced at level 5 with a short drop. Subsequent solo Hanabi levels 6 and 7 start rockets in the **top row**. Level 8 (with a Masterpiece goal) and level 9 (with Mist) also start rockets at the top. Mixed Wind / Daruma / Stone puzzles may position rockets lower to make the interaction more interesting.
 
-## Retired designs
-The older level 11–20 *Daruma-first* drafts and the old level 5–9 no-Hanabi drafts are superseded by these recipes. They must not be confused with published live levels. This file is the current source of truth for the early-game identity proposal.
+**Chapter rhythm:** 1–5 discovery; 6–10 long Hanabi routes and Koi finale; 11–15 Wind then Daruma; 16–20 interactions, Stone Awakening and a festival finale. Wind and Mist never mix in the first 20; no Bamboo and no Mirror.
+
+## Implementation
+
+- All twenty versioned recipes live in harmony/journey-levels-v2.js. Sealed Stone positions are included in the recipe's deep-copy contract.
+- Fifteen **fixed, complete, 49-cell reference openings** live in harmony/journey-authored-openings.js for 5–9 and 11–20. Levels 1–4 and the already playtested Koi level 10 retain their original generation.
+- All goals, Fusions, gravity, real swaps, Harmony Director and refills use HarmonyRules.Game. No artificial goal progress is granted.
+- Game Settings → Journey 2.0 Preview is still opt-in and unranked. A completed level offers **Next Journey level**, permitting a continuous 1–20 playthrough.
+- Contextual teaching prompts appear at levels 5 (Hanabi), 11 (Wind), 14 (Daruma) and 18 (Stone).
+- Normal Journey 1–100, saved runs, Goshuincho, cards, coins, unlocked levels and earned stars are deliberately isolated.
+
+## Review criteria
+
+1. No accidental 2–3-move clears in the later puzzle challenges; level 5 can be short after its actual setup.
+2. Each opening has genuine legal swaps and a visible planned interaction (not just long objectives).
+3. Monitor full rounds for deadlocks, excessive auto-shuffles, sudden cascade victories and long stretches without target progress.
+4. Diagnostic agent wins are *not* player win rates and cannot guarantee a level is enjoyable or solvable for humans.
+5. Human testing decides whether any of the provisional move / star budgets or board layouts should be changed before normal publication.
+
+Historical Mirror-first Journey specs are retained only as previous design experiments.

@@ -738,7 +738,8 @@ try{
   assert(five.hidden,"Five-family collection bookkeeping must remain hidden");
   assert.equal(await preview.evaluate(()=>document.body.scrollWidth<=390),true,
    "Five-family gameplay must not cause horizontal overflow");
-  // A pre-upgrade stage-1 run without familyCount must keep its fifth family.
+  // A pre-Journey level-one save lacking an authored recipe is intentionally
+  // replaced with the four-family Journey 2.0 tutorial, not resurrected.
   await preview.evaluate(()=>{
    const old=new window.HarmonyRules.Game(0,null,{seed:991,familyCount:5,directorMode:"v3"});
    const save=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
@@ -752,8 +753,8 @@ try{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
    return {count:run.familyCount,unique:new Set(run.board.map(p=>p.family)).size};
   });
-  assert.equal(older.count,5);
-  assert.equal(older.unique,5,"Legacy level-one run must resume with its original five families");
+  assert.equal(older.count,4,"Journey 2.0 replaces incompatible legacy level-one runs");
+  assert.equal(older.unique,4,"The Journey tutorial must have four treasure families");
  }finally{await progressionContext.close();}
  // Directed idle hint 1.2: a real legal swap is shown after 30 seconds.
  // Shorten only this 30-second hint timer inside the isolated browser.

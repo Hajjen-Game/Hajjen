@@ -11,7 +11,7 @@ if(!Architecture)throw Error("Puzzle Architect needs Level Architecture 2.0");
 const VERSION=1,SIZE=7,CELLS=49;
 const FIXED=new Set(["terrain","lotusSeed","hanabiCrate","daruma","sealedStone","moonMirror"]);
 const FAMILY=new Set(["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"]);
-const MODES=new Set(["standard","v3","v4","v62"]);
+const MODES=new Set(["standard","v2","v3","v31","v311","v4","v6","v61","v62"]);
 function check(cond,message){if(!cond)throw Error(message);}
 function obj(value,label){check(value&&typeof value==="object"&&!Array.isArray(value),label+" must be an object");return value;}
 function strict(value,allowed,label){

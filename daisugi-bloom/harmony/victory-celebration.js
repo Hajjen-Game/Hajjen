@@ -28,6 +28,7 @@ function play({boardShell,board,stars=1,reduceMotion=false,onStart}={}){
  const durationMs=DURATIONS[tier];
  const overlay=element("div","jh-victory-celebration");
  overlay.dataset.stars=String(tier);
+ overlay.style.setProperty("--jh-victory-duration",durationMs+"ms");
  overlay.setAttribute("aria-hidden","true");
  const aura=element("span","jh-victory-aura");
  const title=element("span","jh-victory-title");
@@ -60,7 +61,7 @@ function play({boardShell,board,stars=1,reduceMotion=false,onStart}={}){
   // Stable hand-arranged geometry without random input or reflow.
   mote.style.setProperty("--x",(12+(i*37)%75)+"%");
   mote.style.setProperty("--y",(21+(i*29)%63)+"%");
-  mote.style.setProperty("--delay",(145+i*39)+"ms");
+  mote.style.setProperty("--delay",(145+i*22)+"ms");
   mote.style.setProperty("--drift",((i%5)-2)*9+"px");
   overlay.append(mote);
  }

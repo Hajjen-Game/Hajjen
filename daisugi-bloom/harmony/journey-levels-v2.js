@@ -68,7 +68,12 @@ const DESIGNS=[
   moves:52,starPar:34,difficulty:"challenge",goal:{type:"sealedStone",count:2},mechanics:{sealedStones:[24,31]}},
  {id:"festival-seal",name:"Festival Seal",subtitle:"Fireworks against the stones",
   intro:"Break all four Sealed Stones and guide both rockets into their crates. Each stone can take one hit per move, even when multiple Harmony Pulses reach it. Use Hanabi blasts to open the center.",
-  moves:64,starPar:44,difficulty:"challenge",goal:{type:"sealedStone",count:4,requires:[{type:"lotus",count:2}]},mechanics:{sealedStones:[15,19,22,26],hanabi:{starts:[29,33],crates:[43,47]}}}
+  moves:64,starPar:44,difficulty:"challenge",goal:{type:"sealedStone",count:4,requires:[{type:"lotus",count:2}]},mechanics:{sealedStones:[15,19,22,26],hanabi:{starts:[29,33],crates:[43,47]}}},
+{"id":"guardian-crossroads","name":"Guardian Crossroads","subtitle":"Plan the route","intro":"Plan your Fusion destinations and the order of your objectives. Every move should advance the puzzle.","moves":48,"starPar":31,"difficulty":"challenge","goal":{"type":"daruma","count":2},"mechanics":{"daruma":[17,31]}},
+{"id":"lantern-route","name":"Lantern Route","subtitle":"Plan the route","intro":"Plan your Fusion destinations and the order of your objectives. Every move should advance the puzzle.","moves":49,"starPar":32,"difficulty":"challenge","goal":{"type":"daruma","count":1,"requires":[{"type":"lotus","count":1}]},"mechanics":{"daruma":[10],"hanabi":{"starts":[24],"crates":[45]}}},
+{"id":"two-winds","name":"Two Winds","subtitle":"Plan the route","intro":"Plan your Fusion destinations and the order of your objectives. Every move should advance the puzzle.","moves":50,"starPar":33,"difficulty":"challenge","goal":{"type":"masterpiece","count":1,"requires":[{"type":"fourTurns","count":2}]},"mechanics":{"wind":{"every":3,"steps":[{"row":1,"direction":"right"},{"row":4,"direction":"left"}]}}},
+{"id":"sealed-corner","name":"Sealed Corner","subtitle":"Plan the route","intro":"Plan your Fusion destinations and the order of your objectives. Every move should advance the puzzle.","moves":54,"starPar":36,"difficulty":"challenge","goal":{"type":"sealedStone","count":2},"mechanics":{"sealedStones":[16,23]}},
+{"id":"festival-gates","name":"Festival Gates","subtitle":"Plan the route","intro":"Plan your Fusion destinations and the order of your objectives. Every move should advance the puzzle.","moves":57,"starPar":38,"difficulty":"challenge","goal":{"type":"daruma","count":2,"requires":[{"type":"lotus","count":2}]},"mechanics":{"daruma":[8,12],"hanabi":{"starts":[22,26],"crates":[43,47]}}}
 ];
 function freezeWind(w){
  if(!w)return null;

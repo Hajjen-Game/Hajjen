@@ -67,8 +67,8 @@ const DESIGNS=[
   intro:"Two neighboring Sealed Stones need four hits each. Breaking one creates an eight-direction Awakening Pulse that can help damage the other.",
   moves:52,starPar:34,difficulty:"challenge",goal:{type:"sealedStone",count:2},mechanics:{sealedStones:[24,31]}},
  {id:"festival-seal",name:"Festival Seal",subtitle:"Fireworks against the stones",
-  intro:"Guide both rockets into their crates and break two Sealed Stones. Hanabi's upward blasts can hit stones in the rocket columns; decide when to launch.",
-  moves:57,starPar:37,difficulty:"challenge",goal:{type:"sealedStone",count:2,requires:[{type:"lotus",count:2}]},mechanics:{sealedStones:[15,19,22,26],hanabi:{starts:[29,33],crates:[43,47]}}}
+  intro:"Break all four Sealed Stones and guide both rockets into their crates. Each stone can take one hit per move, even when multiple Harmony Pulses reach it. Use Hanabi blasts to open the center.",
+  moves:64,starPar:44,difficulty:"challenge",goal:{type:"sealedStone",count:4,requires:[{type:"lotus",count:2}]},mechanics:{sealedStones:[15,19,22,26],hanabi:{starts:[29,33],crates:[43,47]}}}
 ];
 function freezeWind(w){
  if(!w)return null;

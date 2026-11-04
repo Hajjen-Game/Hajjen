@@ -7,9 +7,9 @@ const Lab=require("../harmony/difficulty-lab.js");
 const Journey=require("../harmony/journey-levels-v2.js");
 const check=(name,fn)=>{fn();console.log("PASS "+name);};
 const example=Architect.create(R,Journey.get(19),{
- seed:12345,insight:"The two launches must prepare deliberate reflection and Masterpieces.",
- primarySkill:"Moon Mirror destination",
- sequence:["Prepare a rocket lane","Fuse beside a mirror","Complete the final chapter goal"]
+ seed:12345,insight:"The two launches must weaken the Sealed Stones.",
+ primarySkill:"Hanabi-to-Stone geometry",
+ sequence:["Prepare a rocket lane","Develop a stone-hit route","Complete the final chapter goal"]
 });
 check("Seeded real-game strategies count legal moves and preserve authored state",()=>{
  const before=JSON.stringify(example);
@@ -20,10 +20,10 @@ check("Seeded real-game strategies count legal moves and preserve authored state
   assert.equal(run.strategy,strategy);
   assert(run.initialLegal>=3);
   assert(run.movesUsed>=1&&run.movesUsed<=5);
-  assert(run.goalParts.length===3);
+  assert(run.goalParts.length===2);
   assert(run.goalCompletion>=0&&run.goalCompletion<=1);
   assert(run.shuffles>=0&&Number.isInteger(run.shuffles));
-  assert.equal(run.moveBudget,48);
+  assert.equal(run.moveBudget,57);
   assert.equal(run.zeroLegal,0);
   assert.equal(typeof run.won,"boolean");
   assert(run.firstProgressTurn===null||run.firstProgressTurn<=run.movesUsed);

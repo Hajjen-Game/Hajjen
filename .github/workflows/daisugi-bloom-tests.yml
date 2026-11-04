@@ -192,6 +192,7 @@ jobs:
           node --check daisugi-bloom/harmony/spirits.js
           node --check daisugi-bloom/harmony/powers.js
           node --check daisugi-bloom/harmony/cards.js
+          node --check daisugi-bloom/harmony/victory-celebration.js
           node --check daisugi-bloom/harmony/app.js
   mobile-browser:
     runs-on: ubuntu-latest
@@ -211,6 +212,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-journey-v2-browser.mjs
       - name: Journey 2.0 · 390px Hanabi top, Wind, Daruma and Stone finale
         run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two-browser.mjs
+      - name: Victory Celebration 2.0 · real mobile pre-modal fireworks, rating and state safety
+        run: node daisugi-bloom/tests/harmony-victory-celebration-browser.mjs
       - name: Onboarding Polish 2.0 · illustrated new-player and 21–40 preview mobile walkthrough
         run: node daisugi-bloom/tests/harmony-onboarding-polish-browser.mjs
       - name: Tutorial Help Modal 1.0 · illustrated lessons, OK acknowledgment and replay

@@ -482,31 +482,20 @@ function levelPreview(index,resumable=false){
 }
 // Tutorial Help Modal 1.0: reuse the SAME illustrated guide for the first
 // encounter and the ? next to GOAL. Only OK acknowledges a new lesson.
-function goalLesson(){
- if((journeyDraftPreview||level<OFFICIAL_JOURNEY_LEVELS)&&game?.config){
-  const original=level<4?O.lesson(level):null;
-  if(original)return original;
-  const m=game.levelRecipe?.mechanics||{},goal=game.config.goal.type;
-  let visual=goal==="mist"?O.LESSONS[3]:goal==="stage4"?O.LESSONS[1]:O.LESSONS[2];
-  if(m.hanabi)visual=O.LESSONS[60];
-  if(m.daruma?.length)visual=O.LESSONS[20];
-  if(m.sealedStones?.length)visual=O.LESSONS[30];
-  if(m.mirrors?.length)visual={key:"moon",jp:"月",title:"Moon Mirror",
-   short:"Fuse beside the fixed mirror to reflect energy one square in its arrow's direction.",
-   detail:"A Fusion beside a Moon Mirror sends a reflected hit to the adjacent square beyond the mirror. The mirror itself stays fixed. A Masterpiece also releases its regular Harmony Pulse."};
-  if(m.wind)visual={key:"wind",jp:"風",title:"Wind Garden",
-   short:"After a set number of valid moves, the marked row shifts one cell.",
-   detail:"Watch which row will move next. Every scheduled shift wraps the end treasure around to the other side; invalid swaps do not advance the wind."};
-  return {...visual,title:game.config.name,
-   short:game.config.intro,detail:visual.detail+" "+game.config.intro};
- }
+// Onboarding Polish 2.0: lessons follow the actual Journey 2.0 recipe.
+function lessonChoices(){
+ if(!game)return [];
+ if(game.levelRecipe)return O.levelGuides(level,game.config,game.levelRecipe);
  const original=O.lesson(level);
- if(original)return original;
- const key=({mist:"mist",daruma:"daruma",sealedStone:"stone",fourTurns:"four",
-  familyFusion:"lantern",familyMasterpiece:"lantern-masterpiece",
-  masterpiece:"pulse",pulseHits:"pulse"})[game.config.goal.type];
- return key?Object.values(O.LESSONS).find(item=>item.key===key)||null:null;
+ if(original)return [original];
+ const key=({mist:"mist",daruma:"daruma",sealedStone:"stone",
+  fourTurns:"four",lotus:"lotus-intro",masterpiece:"pulse",
+  familyFusion:"families",familyMasterpiece:"pulse",
+  pulseHits:"pulse"})[game.config.goal.type];
+ const guide=key?O.guideByKey(key):null;
+ return guide?[guide]:[];
 }
+function goalLesson(){return lessonChoices()[0]||null;}
 function showTutorialHelp(lesson,firstTime=false){
  if(!game||busy||$("gameView").hidden)return;
  disarmDecisionClock();clearIdleHint();
@@ -522,6 +511,22 @@ function showTutorialHelp(lesson,firstTime=false){
   state.append(goshuinNode("strong","jh-guide-goal","GOAL · "+info.objective),
    goshuinNode("span","jh-guide-state",Q.detail(game)));
   panel.append(state);
+  // The ? guide offers every mechanic used by a combined-goal puzzle.
+  // Changing this page never spends moves or acknowledges a new lesson.
+  const guides=lessonChoices();
+  if(guides.length>1){
+   const nav=goshuinNode("div","jh-tutorial-topics");
+   nav.setAttribute("aria-label","Mechanics in this level");
+   for(const guide of guides){
+    const button=goshuinNode("button",
+     "jh-tutorial-topic"+(guide.key===topic.key?" selected":""),guide.title);
+    button.type="button";
+    button.setAttribute("aria-pressed",String(guide.key===topic.key));
+    button.addEventListener("click",()=>showTutorialHelp(guide,false));
+    nav.append(button);
+   }
+   panel.append(nav);
+  }
   const more=goshuinNode("details","jh-tutorial-more");
   more.append(goshuinNode("summary","","More about this goal"),
    goshuinNode("p","",topic.detail||info.tip));
@@ -539,10 +544,16 @@ function showTutorialHelp(lesson,firstTime=false){
  }
  const ok=modalButton(actions,"OK","primary jh-tutorial-ok",()=>{
   if(firstTime){
-   if(!save.tutorialHelpSeen||typeof save.tutorialHelpSeen!=="object"||
-      Array.isArray(save.tutorialHelpSeen))save.tutorialHelpSeen={};
-   save.tutorialHelpSeen[topic.key]=true;
-   persist();
+   if(journeyDraftPreview){
+    // Preview lessons are acknowledged only within this browser tab.
+    // Regular Journey progress and tutorial flags are never modified.
+    journeyDraftIntroSeen.add(topic.key);
+   }else{
+    if(!save.tutorialHelpSeen||typeof save.tutorialHelpSeen!=="object"||
+       Array.isArray(save.tutorialHelpSeen))save.tutorialHelpSeen={};
+    save.tutorialHelpSeen[topic.key]=true;
+    persist();
+   }
   }
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
  });
@@ -554,7 +565,8 @@ function showGoalHelp(){
  showTutorialHelp(goalLesson(),false);
 }
 function offerFirstLesson(index){
- const lesson=O.lesson(index);if(!lesson)return;
+ const lesson=index<OFFICIAL_JOURNEY_LEVELS?O.journeyLesson(index):O.lesson(index);
+ if(!lesson)return;
  if(save.tutorialHelpSeen&&typeof save.tutorialHelpSeen==="object"&&
     !Array.isArray(save.tutorialHelpSeen)&&save.tutorialHelpSeen[lesson.key]===true)return;
  // No timed auto-hide and no premature seen flag. A resumed level still shows
@@ -1230,12 +1242,13 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
   });
  }
  prepareCollection();renderBoard(game.board);syncWindAtmosphere();renderHUD();updatePaceLabel();updateSpiritBadge();renderPowerBar();saveRun();armDecisionClock();restartIdleHint();
- // One-time, player-acknowledged illustrated lesson, including resumed unread runs.
- if(!mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario&&!journeyDraftPreview)offerFirstLesson(i);
- // A new mechanic gets a contextual, dismissible tutorial the first time
- // it is previewed. No progress or seen flags are written to player saves.
- if(useJourney&&[4,10,13,17].includes(i)&&!journeyDraftIntroSeen.has(i)){
-  journeyDraftIntroSeen.add(i);showTutorialHelp(goalLesson(),false);
+ // Exactly ONE illustrated introduction per new Journey 2.0 mechanic.
+ // Level 11's Wind and fifth-family change share a single guide.
+ if(!mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario){
+  if(journeyDraftPreview){
+   const intro=O.previewLesson(i,game.config,game.levelRecipe,journeyDraftIntroSeen);
+   if(intro)showTutorialHelp(intro,true);
+  }else offerFirstLesson(i);
  }
 }
 // Keep 49 stable cells. Only update a sprite when the piece in that cell changes.

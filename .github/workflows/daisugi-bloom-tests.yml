@@ -20,12 +20,14 @@ jobs:
         run: node daisugi-bloom/tests/harmony-consistency-audit.test.cjs
       - name: Level Architecture 2.0 · versioned cross-mechanic recipes and legacy isolation
         run: node daisugi-bloom/tests/harmony-level-architecture.test.cjs
-      - name: Journey 2.0 · Hanabi-first level 1–10 design, 60 authentic seeds and legacy isolation
+      - name: Journey 2.0 · top-row Hanabi and level 1–10 design isolation
         run: node daisugi-bloom/tests/harmony-journey-v2-drafts.test.cjs
-      - name: Journey 2.0 · Moon and Wind levels 11–20, 60 seeded games and save safety
+      - name: Journey 2.0 · Wind, Daruma and Stone levels 11–20
         run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two.test.cjs
-      - name: Early Game Difficulty 3.0 · authentic secondary goals, mirror per-move limit, no two-move finale
+      - name: Journey 2.0 · spatial objectives, Stone finale and no Mirror goals
         run: node daisugi-bloom/tests/harmony-journey-v2-difficulty.test.cjs
+      - name: Journey 2.0 · fifteen exact reference layouts and two-step Hanabi regression
+        run: node daisugi-bloom/tests/harmony-journey-authored.test.cjs
       - name: Puzzle Architect 1.0 · exact 7×7 openings, fixtures, save isolation
         run: node daisugi-bloom/tests/harmony-puzzle-architect.test.cjs
       - name: Difficulty Lab 1.0 · paired seeds, authentic swaps and truthful metrics
@@ -142,6 +144,7 @@ jobs:
           node --check daisugi-bloom/puzzle-lab/worker.js
           node --check daisugi-bloom/tools/puzzle-difficulty-lab.cjs
           node --check daisugi-bloom/harmony/journey-levels-v2.js
+          node --check daisugi-bloom/harmony/journey-authored-openings.js
           node --check daisugi-bloom/harmony/identity-prototypes.js
           node --check daisugi-bloom/harmony/moon-mirrors.js
           node --check daisugi-bloom/harmony/wind-garden.js
@@ -196,11 +199,11 @@ jobs:
           echo $! > /tmp/daisugi-bloom-server.pid
       - name: Puzzle Architect 1.0 · 390px authored board editor and isolated Difficulty Lab worker
         run: node daisugi-bloom/tests/harmony-puzzle-architect-browser.mjs
-      - name: Journey 2.0 · 390px five actual authored preview puzzles and real planned moves
+      - name: Journey 2.0 · 390px spatial openings and save safety
         run: node daisugi-bloom/tests/harmony-journey-authored-browser.mjs
       - name: Journey 2.0 · 390px levels 1–10, Hanabi intro, Koi finale and saved-run isolation
         run: node daisugi-bloom/tests/harmony-journey-v2-browser.mjs
-      - name: Journey 2.0 · 390px early identity, Hanabi 5, Moon 11, Wind 16 and safe saves
+      - name: Journey 2.0 · 390px Hanabi top, Wind, Daruma and Stone finale
         run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two-browser.mjs
       - name: Tutorial Help Modal 1.0 · illustrated lessons, OK acknowledgment and replay
         run: node daisugi-bloom/tests/harmony-tutorial-help-browser.mjs
@@ -430,19 +433,19 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Compare five genuinely authored boards under paired strategies
+      - name: Compare six representative focused Journey 2.0 puzzles under paired strategies
         run: |
-          for level in 5 11 16 18 20; do
+          for level in 5 6 11 14 18 20; do
             node daisugi-bloom/tools/puzzle-difficulty-lab.cjs \
               --level "$level" --trials 3 --seed 20261104 \
               --strategies random,objective,spatial \
               --max-candidates 6 \
               --out "daisugi-bloom/reports/puzzle-architect-level${level}.json"
           done
-      - name: Preserve five full-game research reports and replay seeds
+      - name: Preserve six focused Journey research reports and replay seeds
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: japanese-harmony-five-authored-puzzles
+          name: japanese-harmony-focused-journey-puzzles
           path: daisugi-bloom/reports/puzzle-architect-level*.json
           if-no-files-found: warn

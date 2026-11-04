@@ -19,7 +19,7 @@ active object families. No new artwork, pieces or mechanics are required.
 
 | Level | Purpose | Intended player discovery | Explicit planned move |
 |---|---|---|---|
-| 5 — First Firework | Delivery setup | Use destination control to clear the square directly beneath Hanabi | C5 ↔ C6 (indices 30→37); the B6 match opens rocket lane B5→B7 |
+| 5 — First Firework | Two-step delivery setup | First position the missing object, then clear the square beneath Hanabi | C5 ↔ D5 (30→31) prepares C5=A; then C5 ↔ C6 (30→37) clears B6 and opens the lane B5→B7 |
 | 11 — First Moon Mirror | Reflection geometry | A Fusion must **land** immediately left of a mirror | C4 ↔ D4 (23→24) creates A at D3/D4/D5, reflecting toward F4 |
 | 16 — First Wind Garden | Advance planning | Wind's third-turn right shift can finish a prepared vertical match | Row 4 carries B4's A into C4 between C3/C5 |
 | 18 — Wind and Moonlight | Two-step causal chain | Wind **creates the opportunity** for a later Mirror Fusion | Row 3 left shift E3→D3; later C4→D4 activates mirror at E4 |
@@ -47,6 +47,28 @@ creates an **actual** Fusion/Mirror event using the genuine game rules.
 - The published 1–100 Journey levels and all regular saved games are untouched.
 - Other Journey 2.0 previews (including the approved Koi finale at 10) retain
   their existing start logic.
+
+## First calibration findings (3 paired seeds per agent)
+The first full-round benchmark uncovered a design flaw even after hand-authoring:
+**level 5 was completed in one move by all three bots** (random, objective,
+spatial). That is suitable for a scripted tutorial, not the reference puzzle
+we need. The opening was therefore reauthored to require an actual setup
+move before the Hanabi delivery match.
+
+The other four original references gave distinct diagnostic profiles:
+- **L11:** random 1/3 wins, objective 3/3 (median 13 moves), spatial 2/3
+  (median 18.5 moves).
+- **L16:** random 2/3 (median 28.5), objective 3/3 (median 9), spatial 3/3
+  (median 12).
+- **L18:** random 0/3, objective 2/3 (median 30.5), spatial 2/3
+  (median 31) — potentially too much grinding.
+- **L20:** random 0/3, objective 3/3 (median 37), spatial 3/3
+  (median 19); one automatic shuffle appeared in the random trials,
+  and none in the goal/spatial trials.
+
+These tiny numbers are **not human win rates**, and no simulation certifies
+that a puzzle is enjoyable. Their purpose is to find trivial or suspicious
+patterns before asking the player to test.
 
 ## Validation / remaining work
 - Unit contract: all five layouts preserve their intended placements, actual

@@ -3028,8 +3028,28 @@ async function playEvents(events,bondGain=null){
  if(goalReached)unlockGoal();
  const objectiveMessage=Q.summary(events,game);
  if(objectiveMessage&&!bondGain?.ok)toast("✦ "+objectiveMessage,2250);
- if(finished||goalReached)showResult();
- else if(game?.koiRerollAt>=0)showKoiReroll();
+ if(finished||goalReached){
+  if(game?.complete){
+   // Victory Celebration 2.0: all real fusion/Hanabi/Pulse events have
+   // settled; hold touch input while the actual board celebrates, THEN
+   // reveal the ordinary result dialog. No scores, moves, saves or rewards
+   // are changed by this visual-only pause.
+   busy=true;$("board").setAttribute("aria-busy","true");
+   try{
+    sound("result",{stars:game.assisted?1:game.stars()});
+    await window.HarmonyVictoryCelebration?.play({
+     boardShell:document.querySelector(".board-shell"),
+     board:$("board"),
+     stars:game.assisted?1:game.stars(),
+     reduceMotion:FAST()
+    });
+   }catch(error){console.warn("Victory celebration unavailable",error);}
+   finally{
+    busy=false;$("board").setAttribute("aria-busy","false");
+   }
+  }
+  showResult();
+ }else if(game?.koiRerollAt>=0)showKoiReroll();
 }
 function unlockGoal(){
  if(moonMirrorPreview||windGardenPreview||bambooPreview||lotusPreview||journeyDraftPreview)return; // A preview can never unlock progress.
@@ -3384,7 +3404,7 @@ function showResult(){
  if(!won&&game.failed&&!moonOfferShown&&(C.has(save,"tsuki")||C.has(save,"moonGrace"))){
   moonOfferShown=true;confirmMoonRescue();return;
  }
- if(won)sound("result");
+ // The victory chime plays over the board BEFORE the dialog, not on top of it.
  if(won){
   unlockGoal();
   if(game.assisted){

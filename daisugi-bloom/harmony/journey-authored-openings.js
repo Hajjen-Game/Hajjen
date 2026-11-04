@@ -133,6 +133,18 @@ const boards=Object.freeze({
  }
 });
 function get(index){
+ // Chapter 3–4 provisional reference openings are reproducible engine captures.
+ // Their fixture geometry is authored in the recipes; playtests will guide
+ // subsequent hand-authored treasure placement without changing levels 1–20.
+ if(index>=20&&index<40){
+  const recipe=D.get(index);
+  if(!recipe)return null;
+  return A.create(R,recipe,{seed:20261104+index*197,
+   insight:"Solve the obstacle layout by choosing a useful Fusion destination.",
+   primarySkill:"Objective-first route planning",
+   secondarySkill:"Harmony Pulse timing",
+   sequence:["Read the fixed fixtures and goal","Choose a route that advances the blockers","Finish the remaining objectives" ]});
+ }
  const spec=boards[index];if(!spec)return null;
  const names=R.activeFamilies(index,index<10?4:5);
  const pattern=spec.rows.join("");

@@ -469,7 +469,7 @@ function goshuinNode(tag,cls,text){
 // Onboarding 2.0: never change the underlying move, objective or reward rules.
 function levelPreview(index,resumable=false){
  let cfg=R.levelConfig(index),remaining=null,rewardVersion=3;
- if(index<OFFICIAL_JOURNEY_LEVELS&&(!resumable||!save.run?.data?.levelRecipeId)){
+ if(index<OFFICIAL_JOURNEY_LEVELS&&(!resumable||!save.run?.data?.levelRecipe)){
   const recipe=window.HarmonyJourneyDrafts?.get(index);
   if(recipe)cfg={...R.levelConfig(index),...recipe};
  }
@@ -1177,7 +1177,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  if(journeyDraftPreview&&!journeyRecipe)throw Error("Unknown Journey 2.0 draft");
  // Fifteen reference puzzles use exact 7x7 openings authored for the focused
  // Journey 2.0 progression; tutorial 1–4 and Koi finale retain seeded boards.
- const authoredOpening=useJourney&&!(officialJourney&&resume&&save.run?.level===i&&save.run?.data?.levelRecipeId)?window.HarmonyJourneyAuthoredOpenings?.get(i):null;
+ const authoredOpening=useJourney&&!(officialJourney&&resume&&save.run?.level===i&&save.run?.data?.levelRecipe)?window.HarmonyJourneyAuthoredOpenings?.get(i):null;
  const journeySeed=useJourney?journeyDraftSeed(i):null;
  document.body.classList.toggle("journey-draft-preview",journeyDraftPreview);
  document.body.classList.toggle("moon-mirror-preview",!!mirrorScenario);
@@ -1189,7 +1189,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  clearWindAtmosphere();resetResonanceVisuals();clearPraise();
  level=i;powerSelection=null;powerTargets=[];moonOfferShown=false;rewardStarsAtLevelStart=G.archivedStars(save,i);
  const savedRun=resume&&save.run&&save.run.level===i?save.run.data:null;
- const data=officialJourney&&savedRun&&!savedRun.levelRecipeId?null:savedRun;
+ const data=officialJourney&&savedRun&&!savedRun.levelRecipe?null:savedRun;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
  game=officialJourney&&resume&&data?
   new R.Game(i,data):

@@ -6,7 +6,9 @@ const R=require("../harmony/rules.js");
 const O=require("../harmony/onboarding.js");
 
 const lessons=[[0,"match"],[1,"stages"],[2,"pulse"],[3,"mist"],
- [5,"four"],[10,"families"],[20,"daruma"],[30,"stone"],[40,"lantern"],[42,"lantern-masterpiece"],[49,"lantern-finale"]];
+ [5,"four"],[10,"families"],[20,"daruma"],[30,"stone"],[40,"lantern"],[42,"lantern-masterpiece"],[49,"lantern-finale"],
+ [50,"bamboo-intro"],[52,"temple-gate"],[54,"twin-gardens"],[57,"central-shrine"],
+ [59,"bamboo-finale"],[60,"lotus-intro"]];
 assert.deepEqual(Object.keys(O.LESSONS).map(Number),lessons.map(([i])=>i));
 for(const [index,key] of lessons){
  const l=O.lesson(index);

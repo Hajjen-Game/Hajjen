@@ -26,7 +26,7 @@ check("30 genuine five-family games have all intended special objects and fair o
   assert.equal(g.familyCount,5);assert.equal(g.moves,x.moves);
   assert.deepEqual(g.config.goal,x.goal);assert.equal(g.config.levelRecipeId,x.id);
   assert.equal(R.scan(g.board).length,0);assert(R.validSwaps(g.board).length>=3);
-  assert.deepEqual(g.moonMirrors,[]);assert.deepEqual(g.windGarden,m.wind);
+  assert.deepEqual(g.moonMirrors,[]);assert.deepEqual(g.windGarden,m.wind??null);
   assert.deepEqual(g.boardMechanics.daruma,m.daruma);
   assert.deepEqual(g.boardMechanics.sealedStone,m.sealedStones);
   assert.equal(g.board.filter(p=>p?.family==="daruma").length,m.daruma.length);

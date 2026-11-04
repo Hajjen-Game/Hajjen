@@ -1019,8 +1019,13 @@ class Game{
   this.sealed=Array(49).fill(0);this.sealedCleared=0;
   this.sealedStoneVersion=this.config.goal.type==="sealedStone"||this.boardMechanics.sealedStone.length?1:0;
   this.darumaVersion=this.config.goal.type==="daruma"||this.boardMechanics.daruma.length?1:0;
-  const darumaCells=this.boardMechanics.daruma.length?this.boardMechanics.daruma:darumaPositions(this.level);
-  const sealedCells=this.boardMechanics.sealedStone.length?this.boardMechanics.sealedStone:sealedPositions(this.level);
+  // An authored Journey recipe is the complete source of fixture truth.
+  // An explicit empty list means NO fixture; do not reintroduce legacy
+  // chapter Daruma / Sealed Stone positions for indices 21–40.
+  const darumaCells=this.levelRecipe?this.boardMechanics.daruma:
+   this.boardMechanics.daruma.length?this.boardMechanics.daruma:darumaPositions(this.level);
+  const sealedCells=this.levelRecipe?this.boardMechanics.sealedStone:
+   this.boardMechanics.sealedStone.length?this.boardMechanics.sealedStone:sealedPositions(this.level);
   if(!previous&&!this.levelRecipe&&this.darumaVersion){
    for(const at of darumaCells){
     this.board[at]={family:"daruma",stage:0,id:-(at+1)};

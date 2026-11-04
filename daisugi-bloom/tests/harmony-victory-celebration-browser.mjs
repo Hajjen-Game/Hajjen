@@ -72,7 +72,7 @@ try{
  // not by calling a result function or mutating DOM.
  await page.evaluate(key=>{
   const R=window.HarmonyRules,g=new R.Game(0,null,{seed:20261024,directorMode:"v62",
-   levelRecipe:window.HarmonyJourneyDrafts.get(0),recordRound:true});
+   journeyDiagnostic:true,levelRecipe:window.HarmonyJourneyDrafts.get(0),recordRound:true});
   g.fusions=g.target()-1;g.moves=15;
   const save=JSON.parse(localStorage.getItem(key));
   save.unlocked=0;save.run={level:0,data:g.save()};

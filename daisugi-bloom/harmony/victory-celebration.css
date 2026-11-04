@@ -102,9 +102,9 @@
 }
 @keyframes jh-victory-title{
  0%{opacity:0;transform:translate(-50%,-45%) scale(.78)}
- 26%{opacity:0}
- 44%{opacity:1;transform:translate(-50%,-50%) scale(1.04)}
- 64%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+ 22%{opacity:0}
+ 37%{opacity:1;transform:translate(-50%,-50%) scale(1.04)}
+ 75%{opacity:1;transform:translate(-50%,-50%) scale(1)}
  100%{opacity:0;transform:translate(-50%,-54%) scale(1.02)}
 }
 @keyframes jh-victory-ray{

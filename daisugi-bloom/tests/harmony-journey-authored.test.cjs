@@ -58,13 +58,18 @@ check("Level 5: deliberately clear the column immediately below Hanabi",()=>{
  assert.equal(g.board[29]?.family,"lotusSeed");
  assert.equal(g.board[43]?.family,"hanabiCrate");
  assert.equal(g.board[35]?.family,g.board[36]?.family);
- assert.equal(g.board[30]?.family,g.board[36]?.family);
+ assert.notEqual(g.board[30]?.family,g.board[36]?.family,
+  "Hanabi should NOT be a one-swap tutorial shortcut");
+ assert.equal(g.board[31]?.family,g.board[36]?.family);
  assert.notEqual(g.board[37]?.family,g.board[36]?.family);
- assert(supports(g,30,37));
- const before=g.lotusDelivered;
- const step=g.swap(30,37);
- assert.equal(step.ok,true);
- assert(g.lotusDelivered>=before,"The planned route uses real delivery rules");
+ assert(supports(g,30,31),"First move must set up the rocket lane");
+ const first=g.swap(30,31);
+ assert.equal(first.ok,true);
+ assert.equal(g.lotusDelivered,0,"The setup move must not win immediately");
+ assert(supports(g,30,37),"The second move must be available after the setup");
+ const second=g.swap(30,37);
+ assert.equal(second.ok,true);
+ assert(g.lotusDelivered>=1,"Second Fusion must launch the real Hanabi rocket");
 });
 check("Level 11: player-created vertical Fusion next to Moon Mirror",()=>{
  const g=physical(10);

@@ -130,7 +130,14 @@ function build(rules,input,options={}){
  check(legal.length>=3,"Opening needs at least three real legal swaps (found "+legal.length+")");
  saved.bag=[];  // Rebuild ordinary refill bag from the actually authored opening.
  saved.roundTrace=null; // Rebuild round telemetry from the modified opening.
- game=new rules.Game(bp.recipe.index,saved,{fastRestore:true});
+ // A preview played by a person must record every real move. The fast-restore
+ // path is for disposable simulations and intentionally disables telemetry.
+ // Authored openings are genuine round starts, not resumed partial rounds.
+ game=new rules.Game(bp.recipe.index,saved,{fastRestore:!options.recordRound});
+ if(options.recordRound&&game.roundTrace){
+  game.roundTrace.partial=false;
+  check(game.traceEnabled,"Live authored round must enable move telemetry");
+ }
  check(game.config.levelRecipeId===bp.recipe.id,"Restored test game lost recipe identity");
  return game;
 }

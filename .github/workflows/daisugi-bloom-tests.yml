@@ -20,6 +20,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-consistency-audit.test.cjs
       - name: Level Architecture 2.0 · versioned cross-mechanic recipes and legacy isolation
         run: node daisugi-bloom/tests/harmony-level-architecture.test.cjs
+      - name: Onboarding Polish 2.0 · Journey milestones and save-safe first encounters
+        run: node daisugi-bloom/tests/harmony-onboarding.test.cjs
       - name: Journey 2.0 · top-row Hanabi and level 1–10 design isolation
         run: node daisugi-bloom/tests/harmony-journey-v2-drafts.test.cjs
       - name: Journey 2.0 · Wind, Daruma and Stone levels 11–20
@@ -209,6 +211,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-journey-v2-browser.mjs
       - name: Journey 2.0 · 390px Hanabi top, Wind, Daruma and Stone finale
         run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two-browser.mjs
+      - name: Onboarding Polish 2.0 · illustrated new-player and 21–40 preview mobile walkthrough
+        run: node daisugi-bloom/tests/harmony-onboarding-polish-browser.mjs
       - name: Tutorial Help Modal 1.0 · illustrated lessons, OK acknowledgment and replay
         run: node daisugi-bloom/tests/harmony-tutorial-help-browser.mjs
       - name: Director 6.2 · actual 390px Bamboo preview, first real swap and existing saves

@@ -124,17 +124,19 @@ for(let i=20;i<40;i++){
 {
  const index=26,recipe=D.get(index),bp=O.get(index);
  assert.equal(recipe.name,"Hanabi Triad");
- assert.deepEqual(recipe.mechanics.hanabi.starts,[1,12,24]);
+ assert.deepEqual(recipe.mechanics.hanabi.starts,[8,19,24]);
  assert.deepEqual(recipe.mechanics.hanabi.crates,[43,45,47]);
  assert.deepEqual(recipe.goal,{type:"lotus",count:3,
   requires:[{type:"masterpiece",count:1}]});
  const design=O.chapterSummary().find(x=>x.index===index);
- assert.deepEqual(design.rows,["A-ACBAA","DDBBE-E","AABEBAA",
+ assert.deepEqual(design.rows,["ACACBAA","D-BBECE","AABEB-A",
   "DDC-CDC","ABABACE","EAEDCEA","E-E-B-A"]);
  assert.deepEqual(design.planned,[[10,17],[26,33],[29,36]]);
  for(const seed of [20261104+index*197,20261125+index*197]){
   const start=A.build(R,bp,{seed,directorMode:"v62"});
   assert.equal(start.lotusDelivered,0);
+  assert.equal(start.board[8]?.family,"lotusSeed");
+  assert.equal(start.board[19]?.family,"lotusSeed");
   assert.equal(start.board[24]?.family,"lotusSeed");
   assert.equal(start.board[45]?.family,"hanabiCrate");
   const firstMoves=R.validSwaps(start.board);

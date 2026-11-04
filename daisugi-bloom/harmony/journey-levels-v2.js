@@ -1,6 +1,7 @@
-/* Japanese Harmony · Journey 2.0 · Step B, authored draft levels 1–20.
- * Preview-only catalogue; does not alter published levelConfig or saves.
- * Levels 1–4 and the Koi level-10 finale stay intact. Hanabi starts at 5, Mirror at 11, Wind at 16; Daruma moves to 21.
+/* Japanese Harmony · Journey 2.0 · focused 1–20 playtest sequence (2026-11-04).
+ * Opt-in, unranked previews only. Mirror is deliberately parked.
+ * Four meaningful pillars: Hanabi, Wind, Daruma and Sealed Stones.
+ * Short tutorials → spatial challenges → connected festival finale.
  */
 (function(root){
 "use strict";
@@ -8,7 +9,7 @@ const ARCH=root.HarmonyLevelArchitecture||(typeof require==="function"?require("
 if(!ARCH)throw Error("Journey Drafts require Level Architecture 2.0");
 const VERSION=2,FIRST=0;
 const DESIGNS=[
- {id:"first-harmony",name:"First Harmony",subtitle:"Discover the joy of fusion",
+{id:"first-harmony",name:"First Harmony",subtitle:"Discover the joy of fusion",
   intro:"Swap neighboring treasures to make a match of three. Every fusion grows the strongest treasure.",
   moves:18,starPar:4,difficulty:"gentle",goal:{type:"fusion",count:3},mechanics:{}},
  {id:"growing-beauty",name:"Growing Beauty",subtitle:"Every treasure has five stages",
@@ -20,26 +21,54 @@ const DESIGNS=[
  {id:"first-mist",name:"First Mist",subtitle:"Make the garden visible",
   intro:"Clear three Mist cells. Fuse onto a misted tile or strike it with Harmony Pulse. Treasures beneath Mist still move.",
   moves:30,starPar:9,difficulty:"gentle",goal:{type:"mist",count:3},mechanics:{mist:[17,24,31]}},
- {id:"first-firework",name:"First Firework",subtitle:"Light the festival sky",intro:"Guide one firework into its wooden crate. Match treasures below the rocket so it falls into the crate and launches a bright vertical Harmony Pulse.",moves:30,starPar:13,difficulty:"gentle",goal:{type:"lotus",count:1},mechanics:{hanabi:{starts:[29],crates:[43]}}},
- {id:"twin-fireworks",name:"Twin Fireworks",subtitle:"Two rockets, two launch paths",intro:"Deliver both fireworks to their crates. Make matches in the two columns and choose which rocket to launch first. Also make a four-object match on three separate moves; two immediate launches alone no longer finish the puzzle.",moves:38,starPar:21,difficulty:"standard",goal:{type:"lotus",count:2,requires:[{type:"fourTurns",count:3}]},mechanics:{hanabi:{starts:[29,33],crates:[43,47]}}},
- {id:"fireworks-through-mist",name:"Fireworks Through Mist",subtitle:"Use the launch to clear the garden",intro:"Clear four Mist cells. A Hanabi launch sweeps upward and can clear the Mist in its column; one extra patch needs your own well-placed Fusion. You must also deliver the rocket and complete five Fan fusions. A single vertical blast is not the whole solution.",moves:38,starPar:21,difficulty:"standard",goal:{type:"mist",count:4,requires:[{type:"lotus",count:1},{type:"familyFusion",family:"fan",count:5}]},mechanics:{hanabi:{starts:[29],crates:[43]},mist:[8,15,22,24]}},
- {id:"festival-bloom",name:"Festival Bloom",subtitle:"Use fireworks to grow Masterpieces",intro:"Create two Masterpieces. Delivering the firework is optional, but its upward Pulse can upgrade treasures and start beautiful chains. The level also requires the rocket to launch and one Koi Masterpiece, not just any two Masterpieces.",moves:39,starPar:23,difficulty:"challenge",goal:{type:"masterpiece",count:2,requires:[{type:"lotus",count:1},{type:"familyMasterpiece",family:"koi",count:1}]},mechanics:{hanabi:{starts:[29],crates:[43]}}},
- {id:"firework-finale",name:"Firework Finale",subtitle:"Plan two launches through lingering Mist",intro:"Deliver both fireworks. Mist remains on two separate cells and can be cleared by Fusion or Harmony Pulse, but only delivered rockets count toward this goal. Deliver both rockets, clear both Mist tiles, and make six Lantern fusions. Finishing the prebuilt launches is no longer enough.",moves:41,starPar:23,difficulty:"challenge",goal:{type:"lotus",count:2,requires:[{type:"mist",count:2},{type:"familyFusion",family:"lantern",count:6}]},mechanics:{hanabi:{starts:[29,33],crates:[43,47]},mist:[9,26]}},
+ {id:"first-firework",name:"First Firework",subtitle:"Learn the launch",
+  intro:"Open the column below the rocket with a real Fusion. The rocket falls into its wooden crate and sends a Hanabi Pulse upwards.",
+  moves:30,starPar:13,difficulty:"gentle",goal:{type:"lotus",count:1},mechanics:{hanabi:{starts:[29],crates:[43]}}},
+ {id:"long-fuse",name:"Long Fuse",subtitle:"The rocket starts at the top",
+  intro:"This time the rocket begins in the top row. Plan several Fusions in its column to guide it all the way to the crate. There is no shortcut at the bottom.",
+  moves:36,starPar:20,difficulty:"standard",goal:{type:"lotus",count:1},mechanics:{hanabi:{starts:[1],crates:[43]}}},
+ {id:"twin-ascent",name:"Twin Ascent",subtitle:"Two long routes",
+  intro:"Both rockets start at the top. Open their lanes deliberately; completing one column does not automatically open the other.",
+  moves:43,starPar:26,difficulty:"challenge",goal:{type:"lotus",count:2},mechanics:{hanabi:{starts:[1,5],crates:[43,47]}}},
+ {id:"festival-bloom",name:"Festival Bloom",subtitle:"Use the launch to grow treasures",
+  intro:"Guide the top-row rocket to its crate and create two Masterpieces. Hanabi's upward Pulse can help develop the treasures, but timing the launch matters.",
+  moves:44,starPar:27,difficulty:"challenge",goal:{type:"masterpiece",count:2,requires:[{type:"lotus",count:1}]},mechanics:{hanabi:{starts:[3],crates:[45]}}},
+ {id:"festival-clearing",name:"Festival Clearing",subtitle:"One launch is not the whole answer",
+  intro:"Deliver both top-row rockets and clear the three Mist patches. The fireworks can clear Mist in their own columns; a patch away from the blast needs a deliberate Fusion.",
+  moves:47,starPar:30,difficulty:"challenge",goal:{type:"mist",count:3,requires:[{type:"lotus",count:2}]},mechanics:{hanabi:{starts:[1,5],crates:[43,47]},mist:[8,15,24]}},
  {id:"koi-masterpiece-finale",name:"Koi Masterpiece Finale",subtitle:"Two Koi, one final harmony",
   intro:"Create TWO stage-5 Koi Masterpieces. Other Masterpieces still trigger Harmony Pulse and can help develop your Koi, but only Koi count toward the goal.",
   moves:40,starPar:17,difficulty:"challenge",goal:{type:"familyMasterpiece",family:"koi",count:2},mechanics:{}},
- // Chapter 2: introduce the fifth family, then Daruma gradually on level 15.
- // Each blocker is deliberate; opening, movement and Pulse remain unscripted.
- {id:"first-moon-mirror",name:"First Moon Mirror",subtitle:"A fusion can reach beyond its neighbor",intro:"A Moon Mirror stays fixed and reflects the energy of an adjacent Fusion one step farther. Develop two treasures to stage 4 using well-placed Fusions. Trigger the mirror with a real Fusion on three separate moves; upgrades alone will not finish this level.",moves:39,starPar:21,difficulty:"standard",goal:{type:"stage4",count:2,requires:[{type:"mirrorResonances",count:3}]},mechanics:{mirrors:[{at:25,direction:"right"}]}},
- {id:"moonlit-mist",name:"Moonlit Mist",subtitle:"Let reflected light reach the Mist",intro:"Clear three Mist cells. Fuse beside the Moon Mirror to reflect energy toward a distant tile; ordinary Fusion and Harmony Pulse can clear the other patches. In addition to clearing Mist, activate Moon Mirror by Fusion on four separate moves.",moves:43,starPar:24,difficulty:"standard",goal:{type:"mist",count:3,requires:[{type:"mirrorResonances",count:4}]},mechanics:{mirrors:[{at:25,direction:"right"}],mist:[26,33,40]}},
- {id:"moon-and-fireworks",name:"Moon and Fireworks",subtitle:"Plan two rocket paths around the mirror",intro:"Deliver two fireworks while a fixed Moon Mirror reflects nearby Fusions. Its reflection can grow treasures but the fireworks still need to reach their own crates. The moon must resonate on four separate Fusion moves, in addition to delivering both rockets.",moves:45,starPar:25,difficulty:"challenge",goal:{type:"lotus",count:2,requires:[{type:"mirrorResonances",count:4}]},mechanics:{hanabi:{starts:[29,33],crates:[43,47]},mirrors:[{at:24,direction:"right"}]}},
- {id:"double-reflection",name:"Double Reflection",subtitle:"The moon lights two directions",intro:"Develop three treasures to stage 4. Two Moon Mirrors change where the energy of a Fusion can go; their directions matter. Activate one of the fixed mirrors on five separate Fusion moves as well as growing the required treasures.",moves:45,starPar:26,difficulty:"challenge",goal:{type:"stage4",count:3,requires:[{type:"mirrorResonances",count:5}]},mechanics:{mirrors:[{at:25,direction:"right"},{at:31,direction:"down"}]}},
- {id:"moonlit-bloom",name:"Moonlit Bloom",subtitle:"A spectacular reflected chain",intro:"Create two Masterpieces using a Moon Mirror and one optional firework. The firework's vertical Pulse does not reflect automatically through the mirror. Two Masterpieces, four real Mirror activations and the rocket are all required to finish.",moves:46,starPar:26,difficulty:"challenge",goal:{type:"masterpiece",count:2,requires:[{type:"mirrorResonances",count:4},{type:"lotus",count:1}]},mechanics:{mirrors:[{at:24,direction:"right"}],hanabi:{starts:[29],crates:[43]}}},
- {id:"first-wind-garden",name:"First Wind Garden",subtitle:"Watch the shifting row",intro:"After every third successful move, Wind Garden shifts a marked row one cell to the right. Plan your Fusions around the coming shift. Also create four-object matches on four separate player moves. Position them before the scheduled wind shifts.",moves:37,starPar:22,difficulty:"standard",goal:{type:"fusion",count:14,requires:[{type:"fourTurns",count:4}]},mechanics:{wind:{every:3,steps:[{row:3,direction:"right"}]}}},
- {id:"wind-and-fireworks",name:"Wind and Fireworks",subtitle:"A breeze above the launch path",intro:"Deliver one firework. The wind shifts an upper row every third move, so watch where your treasures will land while preparing the crate below. A rocket launch alone is not enough: plan four separate four-object matches and five stage-4 upgrades.",moves:40,starPar:23,difficulty:"challenge",goal:{type:"lotus",count:1,requires:[{type:"fourTurns",count:4},{type:"stage4",count:5}]},mechanics:{hanabi:{starts:[29],crates:[43]},wind:{every:3,steps:[{row:2,direction:"right"}]}}},
- {id:"wind-and-moonlight",name:"Wind and Moonlight",subtitle:"Bring your treasures to the mirror",intro:"Develop three stage-4 treasures. Wind shifts row three every third move; the Moon Mirror beside it can reflect a Fusion's energy. Use Wind to line up a smart Mirror Fusion, then activate the mirror through three different player-created Fusions.",moves:46,starPar:27,difficulty:"challenge",goal:{type:"stage4",count:3,requires:[{type:"mirrorResonances",count:3}]},mechanics:{mirrors:[{at:25,direction:"right"}],wind:{every:3,steps:[{row:2,direction:"left"}]}}},
- {id:"crossing-winds",name:"Crossing Winds",subtitle:"Two breezes, one changing garden",intro:"Create two Masterpieces. Every third successful move, the wind alternates between two shifting rows, so the next row matters. Two Masterpieces are only part of the puzzle. Make four-object matches on five distinct turns as the wind alternates.",moves:48,starPar:29,difficulty:"challenge",goal:{type:"masterpiece",count:2,requires:[{type:"fourTurns",count:5}]},mechanics:{wind:{every:3,steps:[{row:1,direction:"left"},{row:3,direction:"right"}]}}},
- {id:"festival-of-reflections",name:"Festival of Reflections",subtitle:"Two launches under the moon",intro:"Deliver both fireworks, activate Moon Mirrors with six separate player-created Fusions, and create two Masterpieces. Rockets alone cannot win: plan the Fusion destination to reach each mirror.",moves:48,starPar:28,difficulty:"challenge",goal:{type:"lotus",count:2,requires:[{type:"mirrorResonances",count:6},{type:"masterpiece",count:2}]},mechanics:{hanabi:{starts:[29,33],crates:[43,47]},mirrors:[{at:18,direction:"left"},{at:24,direction:"right"}]}}
+ {id:"first-wind-garden",name:"First Wind Garden",subtitle:"Read the shifting row",
+  intro:"After every third successful move, the marked row shifts one cell right. Plan where a useful Fusion will form after Wind moves the treasures.",
+  moves:38,starPar:22,difficulty:"standard",goal:{type:"fusion",count:12},mechanics:{wind:{every:3,steps:[{row:3,direction:"right"}]}}},
+ {id:"crossing-winds",name:"Crossing Winds",subtitle:"Choose which row will shift",
+  intro:"Every third move, Wind alternates between the two marked rows. Prepare a Masterpiece without losing your setup, and make two separate four-object match turns.",
+  moves:43,starPar:26,difficulty:"challenge",goal:{type:"masterpiece",count:1,requires:[{type:"fourTurns",count:2}]},mechanics:{wind:{every:3,steps:[{row:1,direction:"left"},{row:3,direction:"right"}]}}},
+ {id:"wind-and-fireworks",name:"Wind and Fireworks",subtitle:"Let the breeze open a route",
+  intro:"Watch the upper wind row while preparing a Hanabi launch below. Deliver the rocket and grow two treasures to stage four; make each Fusion serve the route.",
+  moves:43,starPar:26,difficulty:"challenge",goal:{type:"lotus",count:1,requires:[{type:"stage4",count:2}]},mechanics:{hanabi:{starts:[29],crates:[43]},wind:{every:3,steps:[{row:2,direction:"right"}]}}},
+ {id:"first-daruma",name:"First Daruma",subtitle:"Two hits wake the doll",
+  intro:"The Daruma is fixed in place and needs two separate hits. Fuse beside it or direct Harmony Pulse into it. Think about where your Fusion lands.",
+  moves:38,starPar:22,difficulty:"standard",goal:{type:"daruma",count:1},mechanics:{daruma:[24]}},
+ {id:"twin-daruma",name:"Twin Daruma",subtitle:"Work around the guardians",
+  intro:"Two Daruma block the central garden. A well-placed Fusion or Harmony Pulse can strike more than one; clear both without relying on random chains.",
+  moves:44,starPar:27,difficulty:"challenge",goal:{type:"daruma",count:2},mechanics:{daruma:[23,25]}},
+ {id:"festival-guardian",name:"Festival Guardian",subtitle:"Light the guardian column",
+  intro:"Two Daruma stand above a Hanabi rocket. Deliver the rocket and use its upward blast to damage both guardians; then finish their remaining hits.",
+  moves:46,starPar:29,difficulty:"challenge",goal:{type:"daruma",count:2,requires:[{type:"lotus",count:1}]},mechanics:{daruma:[15,22],hanabi:{starts:[29],crates:[43]}}},
+ {id:"wind-shrine",name:"Wind Shrine",subtitle:"Bring matches to the guardians",
+  intro:"Wind shifts an upper row left. Prepare Fusion destinations that can strike both Daruma. Read the wind and protect your useful setup.",
+  moves:48,starPar:30,difficulty:"challenge",goal:{type:"daruma",count:2},mechanics:{daruma:[24,32],wind:{every:3,steps:[{row:2,direction:"left"}]}}},
+ {id:"first-sealed-stone",name:"First Sealed Stone",subtitle:"Four cracks release a pulse",
+  intro:"A Sealed Stone needs four hits. Fuse next to it or reach it with Harmony Pulse; breaking it releases an Awakening Pulse to the eight surrounding cells.",
+  moves:46,starPar:28,difficulty:"standard",goal:{type:"sealedStone",count:1},mechanics:{sealedStones:[24]}},
+ {id:"awakening-pair",name:"Awakening Pair",subtitle:"One awakening helps the next",
+  intro:"Two neighboring Sealed Stones need four hits each. Breaking one creates an eight-direction Awakening Pulse that can help damage the other.",
+  moves:52,starPar:34,difficulty:"challenge",goal:{type:"sealedStone",count:2},mechanics:{sealedStones:[24,31]}},
+ {id:"festival-seal",name:"Festival Seal",subtitle:"Fireworks against the stones",
+  intro:"Guide both rockets into their crates and break two Sealed Stones. Hanabi's upward blasts can hit stones in the rocket columns; decide when to launch.",
+  moves:57,starPar:37,difficulty:"challenge",goal:{type:"sealedStone",count:2,requires:[{type:"lotus",count:2}]},mechanics:{sealedStones:[15,19,22,26],hanabi:{starts:[29,33],crates:[43,47]}}}
 ];
 function freezeWind(w){
  if(!w)return null;
@@ -53,6 +82,7 @@ function copyMechanics(m){
  return {
   mist:m.mist.slice(),
   daruma:m.daruma.slice(),
+  sealedStones:m.sealedStones.slice(),
   mirrors:m.mirrors.map(x=>({...x})),
   ...(m.wind?{wind:{every:m.wind.every,steps:m.wind.steps.map(x=>({...x}))}}:{}),
   ...(m.hanabi?{hanabi:{starts:m.hanabi.starts.slice(),crates:m.hanabi.crates.slice()}}:{})
@@ -69,6 +99,7 @@ const ALL=Object.freeze(DESIGNS.map((design,i)=>{
   mechanics:Object.freeze({
    mist:Object.freeze(m.mist.slice()),
    daruma:Object.freeze(m.daruma.slice()),
+   sealedStones:Object.freeze(m.sealedStones.slice()),
    mirrors:Object.freeze(m.mirrors.map(x=>Object.freeze({...x}))),
    wind:freezeWind(m.wind),
    hanabi:freezeHanabi(m.hanabi)

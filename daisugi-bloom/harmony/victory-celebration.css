@@ -11,7 +11,7 @@
  position:absolute;inset:2%;border:2px solid rgba(255,226,157,.8);
  border-radius:12px;box-shadow:inset 0 0 14px #f6cf7544,0 0 15px #e9b86566;
  background:radial-gradient(circle at 50% 49%,#f7df9e23,transparent 65%);
- opacity:0;animation:jh-victory-aura 950ms ease-out both;
+ opacity:0;animation:jh-victory-aura var(--jh-victory-duration,950ms) ease-out both;
 }
 .jh-victory-board{animation:jh-victory-board-breathe 970ms ease-out both}
 .jh-victory-celebration .jh-victory-title{
@@ -22,7 +22,7 @@
  background:radial-gradient(ellipse at center,#513d35ed,#2b3038da);
  box-shadow:0 5px 20px #211b2570,0 0 12px #f7ca6b55;
  color:#fff3d8;opacity:0;
- animation:jh-victory-title 950ms cubic-bezier(.2,.7,.2,1) both;
+ animation:jh-victory-title var(--jh-victory-duration,950ms) cubic-bezier(.2,.7,.2,1) both;
 }
 .jh-victory-celebration .jh-victory-kanji{
  font-family:serif;font-size:clamp(27px,8vw,49px);font-weight:700;
@@ -47,20 +47,20 @@
  background:currentColor;box-shadow:0 0 5px currentColor;
  transform-origin:2px 9px;
  opacity:0;
- animation:jh-victory-ray 650ms cubic-bezier(.15,.6,.3,1) var(--delay) both;
+ animation:jh-victory-ray 530ms cubic-bezier(.15,.6,.3,1) var(--delay) both;
  rotate:var(--angle);
 }
 .jh-victory-celebration .jh-victory-center{
  position:absolute;left:-6px;top:-6px;width:12px;height:12px;
  border-radius:50%;background:currentColor;
  box-shadow:0 0 11px 3px currentColor;
- animation:jh-victory-core 600ms ease-out var(--delay) both;
+ animation:jh-victory-core 540ms ease-out var(--delay) both;
 }
 .jh-victory-celebration .jh-victory-mote{
  position:absolute;left:var(--x);top:var(--y);
  width:5px;height:5px;border-radius:2px;background:currentColor;
  opacity:0;box-shadow:0 0 5px currentColor;
- animation:jh-victory-mote 790ms ease-out var(--delay) both;
+ animation:jh-victory-mote 610ms ease-out var(--delay) both;
 }
 @keyframes jh-victory-board-breathe{
  0%,100%{opacity:1}43%{opacity:.87}69%{opacity:1}

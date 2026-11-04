@@ -13,6 +13,7 @@ const R=require("../harmony/rules.js");
 const A=require("../harmony/puzzle-architect.js");
 const D=require("../harmony/difficulty-lab.js");
 const Journey=require("../harmony/journey-levels-v2.js");
+const Authored=require("../harmony/journey-authored-openings.js");
 function parse(args){
  const options={level:20,trials:3,seed:20261104,directorMode:"v62",
   maxCandidates:8,maxTurns:120,strategies:D.STRATEGIES.slice(),
@@ -49,7 +50,7 @@ function main(){
   blueprint=A.normalize(JSON.parse(fs.readFileSync(full,"utf8")),R);
  }else{
   const recipe=Journey.get(opts.level-1);
-  blueprint=A.create(R,recipe,{seed:opts.seed,directorMode:opts.directorMode,
+  blueprint=Authored.get(opts.level-1)||A.create(R,recipe,{seed:opts.seed,directorMode:opts.directorMode,
    insight:recipe.intro,primarySkill:"Explore the intended objective's spatial route",
    sequence:["Find an advantageous opening","Prepare a deliberate mechanic interaction",
     "Convert the setup into goal progress"]});

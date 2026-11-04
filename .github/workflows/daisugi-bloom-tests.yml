@@ -196,6 +196,8 @@ jobs:
           echo $! > /tmp/daisugi-bloom-server.pid
       - name: Puzzle Architect 1.0 · 390px authored board editor and isolated Difficulty Lab worker
         run: node daisugi-bloom/tests/harmony-puzzle-architect-browser.mjs
+      - name: Journey 2.0 · 390px five actual authored preview puzzles and real planned moves
+        run: node daisugi-bloom/tests/harmony-journey-authored-browser.mjs
       - name: Journey 2.0 · 390px levels 1–10, Hanabi intro, Koi finale and saved-run isolation
         run: node daisugi-bloom/tests/harmony-journey-v2-browser.mjs
       - name: Journey 2.0 · 390px early identity, Hanabi 5, Moon 11, Wind 16 and safe saves

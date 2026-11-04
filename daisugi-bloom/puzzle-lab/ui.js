@@ -46,7 +46,8 @@ function load(){
   const recipe=D.get(index);
   if(!recipe)throw Error("Nivå saknas");
   const m=recipe.mechanics;
-  blueprint=A.create(R,recipe,{seed:seed(),directorMode:$("mode").value,
+  const authored=window.HarmonyJourneyAuthoredOpenings?.get(index);
+  blueprint=authored||A.create(R,recipe,{seed:seed(),directorMode:$("mode").value,
    insight:recipe.intro,
    primarySkill:m.hanabi?"Hanabi delivery path":m.mirrors.length?
     "Mirror Fusion destination":m.wind?"Wind timing":"Treasure development",

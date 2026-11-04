@@ -1165,6 +1165,10 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  lotusPreview=lotusScenario;journeyDraftPreview=!!journeyScenario;
  const journeyRecipe=journeyDraftPreview?window.HarmonyJourneyDrafts?.get(i):null;
  if(journeyDraftPreview&&!journeyRecipe)throw Error("Unknown Journey 2.0 draft");
+ // The five reference puzzles use exact 7x7 openings authored and validated
+ // by Puzzle Architect; every other draft keeps the legacy seeded opening.
+ const authoredOpening=journeyDraftPreview?window.HarmonyJourneyAuthoredOpenings?.get(i):null;
+ const journeySeed=journeyDraftPreview?journeyDraftSeed(i):null;
  document.body.classList.toggle("journey-draft-preview",journeyDraftPreview);
  document.body.classList.toggle("moon-mirror-preview",!!mirrorScenario);
  document.body.classList.toggle("wind-garden-preview",!!windScenario);
@@ -1176,11 +1180,15 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  level=i;powerSelection=null;powerTargets=[];moonOfferShown=false;rewardStarsAtLevelStart=G.archivedStars(save,i);
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
- game=new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario||journeyDraftPreview?null:data,
+ game=authoredOpening?
+  window.HarmonyPuzzleArchitect.build(R,authoredOpening,{
+   seed:journeySeed,directorMode:"v62"
+  }):
+  new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario||journeyDraftPreview?null:data,
   journeyDraftPreview?{directorMode:
    journeyRecipe.mechanics.hanabi||journeyRecipe.mechanics.mirrors.length||journeyRecipe.mechanics.wind?"v62":i>=9?"v4":"v3",
    journeyDiagnostic:true,levelRecipe:journeyRecipe,
-   seed:journeyDraftSeed(i)}:mirrorScenario?
+   seed:journeySeed}:mirrorScenario?
   {directorMode:"v62",moonMirrorPreview:mirrorScenario,seed:13}:
   windScenario?{directorMode:"v62",windGardenPreview:windScenario,seed:13}:
   bambooScenario?{directorMode:"v62",bambooPreview:true,seed:20261031+i*97}:

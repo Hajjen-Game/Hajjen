@@ -1195,10 +1195,11 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
   new R.Game(i,data):
   authoredOpening?
   window.HarmonyPuzzleArchitect.build(R,authoredOpening,{
-   seed:journeySeed,directorMode:"v62",recordRound:true
+   seed:journeySeed,directorMode:officialJourney&&save.playMode!=="auto"?save.playMode:"v62",recordRound:true
   }):
   new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario||useJourney?null:data,
   useJourney?{directorMode:
+   officialJourney&&save.playMode!=="auto"?save.playMode:
    journeyRecipe.mechanics.hanabi||journeyRecipe.mechanics.mirrors.length||journeyRecipe.mechanics.wind?"v62":i>=9?"v4":"v3",
    journeyDiagnostic:true,levelRecipe:journeyRecipe,
    seed:journeySeed}:mirrorScenario?

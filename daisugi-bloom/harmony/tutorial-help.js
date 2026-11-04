@@ -84,7 +84,7 @@ function picture(kind,variant){
   for(const x of [14,63,112])tile(svg,x,15,"green");
   for(const y of [19,32,45])
    shape(svg,"path",{d:"M160 "+y+" H230 m-9 -5 9 5 -9 5",fill:"none",stroke:"#7db0ba","stroke-width":2.2,opacity:.85});
-  shape(svg,"text",{x:195,y:75,"text-anchor":"middle","font-size":10,fill:"#6f8190","font-weight":"700"},"ROW SHIFTS");
+  shape(svg,"text",{x:195,y:75,"text-anchor":"middle","font-size":10,fill:"#6f8190","font-weight":"700"},"ROW SHIFTS · 5 FAMILIES");
  }else if(kind==="lotus-intro"){
   // The crate is on the LAST row, while collection happens one square ABOVE
   // it. The diagram shows a cleared lane, not a rocket entering crate space.
@@ -123,8 +123,22 @@ function picture(kind,variant){
   arrow(svg,117,36);tile(svg,171,15,variant===2?"star":"stone",{crack:variant===1,glow:true,pulse:variant===2});
   hit(svg,191,73,variant===2?"AWAKENING":"4 HITS");
  }else if(kind==="pulse"){
-  tile(svg,15,15,"pink");tile(svg,61,15,"pink");tile(svg,107,15,"pink");
-  arrow(svg,159,36);tile(svg,207,15,"star",{pulse:true});
+  // A stage-five masterpiece emits to exactly four orthogonal neighbors,
+  // not diagonals. Make this visible in the very first Pulse lesson.
+  for(const x of [13,45,77]){
+   shape(svg,"circle",{cx:x+10,cy:39,r:10,fill:"#cd7991",stroke:"#f5dec7","stroke-width":1.5});
+  }
+  arrow(svg,115,39);
+  const cx=211,cy=39;
+  for(const [x,y] of [[cx-28,cy],[cx+28,cy],[cx,cy-27],[cx,cy+27]]){
+   shape(svg,"rect",{x:x-10,y:y-10,width:20,height:20,rx:5,
+    fill:"#e4ceb0",stroke:"#ac8f6b","stroke-width":1.2});
+   shape(svg,"circle",{cx:x,cy:y,r:6.5,fill:"#90afa2"});
+   shape(svg,"path",{d:`M${cx+(x-cx)*.3} ${cy+(y-cy)*.3} L${cx+(x-cx)*.7} ${cy+(y-cy)*.7}`,
+    fill:"none",stroke:"#c99c47","stroke-width":2.2,"stroke-linecap":"round"});
+  }
+  shape(svg,"circle",{cx,cy,r:13.5,fill:"#f2db9b",stroke:"#b68c54","stroke-width":1.6});
+  shape(svg,"text",{x:cx,y:cy+6,"text-anchor":"middle","font-size":20,fill:"#bd863f"},"✦");
  }else if(kind==="stages"){
   tile(svg,15,15,"green");tile(svg,61,15,"green");tile(svg,107,15,"green");
   arrow(svg,160,36);tile(svg,208,15,"green",{glow:true});

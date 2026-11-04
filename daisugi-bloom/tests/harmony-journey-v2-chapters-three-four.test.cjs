@@ -1,0 +1,30 @@
+"use strict";
+const assert=require("node:assert/strict");
+const R=require("../harmony/rules.js");
+const D=require("../harmony/journey-levels-v2.js");
+const A=require("../harmony/puzzle-architect.js");
+const O=require("../harmony/journey-authored-openings.js");
+assert.equal(D.COUNT,40);
+for(let i=20;i<40;i++){
+ const recipe=D.get(i),bp=O.get(i);
+ assert(recipe&&bp,"Missing level "+(i+1));
+ assert.equal(recipe.index,i);
+ assert.equal(recipe.mechanics.mirrors.length,0);
+ assert.equal(recipe.mechanics.mist.length,0);
+ assert.equal(bp.recipe.id,recipe.id);
+ const game=A.build(R,bp,{seed:20261104+i*197,recordRound:true,directorMode:"v62"});
+ assert.equal(game.config.levelRecipeId,recipe.id);
+ assert.equal(game.moves,recipe.moves);
+ assert.deepEqual(game.config.goal,recipe.goal);
+ assert.equal(R.scan(game.board).length,0);
+ assert(R.validSwaps(game.board).length>=3,"No swaps on "+(i+1));
+ assert.equal(game.board.filter(p=>p?.family==="daruma").length,recipe.mechanics.daruma.length);
+ assert.equal(game.board.filter(p=>p?.family==="sealedStone").length,recipe.mechanics.sealedStones.length);
+ assert.equal(game.board.filter(p=>p?.family==="lotusSeed").length,recipe.mechanics.hanabi?.starts.length||0);
+ const saved=game.save(),restored=new R.Game(i,saved,{fastRestore:true});
+ assert.deepEqual(restored.board,game.board);
+ assert.equal(restored.config.levelRecipeId,recipe.id);
+ assert.equal(game.swap(...R.validSwaps(game.board)[0]).ok,true);
+ console.log("PASS preview level "+(i+1)+": "+recipe.name);
+}
+console.log("PASS Journey chapters 3 and 4 · 20 authentic playable puzzles");

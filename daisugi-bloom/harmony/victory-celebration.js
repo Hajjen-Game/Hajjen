@@ -68,6 +68,9 @@ function play({boardShell,board,stars=1,reduceMotion=false,onStart}={}){
  boardShell.append(overlay);
  boardShell.classList.add("jh-victory-active");
  board.classList.add("jh-victory-board");
+ // Match the board shimmer to the same duration as the festival layer.
+ const priorBoardDuration=board.style.getPropertyValue("--jh-victory-duration");
+ board.style.setProperty("--jh-victory-duration",durationMs+"ms");
  try{onStart?.(tier);}catch(error){root.console?.warn?.("Victory sound unavailable",error);}
  return new Promise(resolve=>{
   let done=false;
@@ -80,6 +83,8 @@ function play({boardShell,board,stars=1,reduceMotion=false,onStart}={}){
    overlay.remove();
    boardShell.classList.remove("jh-victory-active");
    board.classList.remove("jh-victory-board");
+   if(priorBoardDuration)board.style.setProperty("--jh-victory-duration",priorBoardDuration);
+   else board.style.removeProperty("--jh-victory-duration");
    if(active?.finish===finish)active=null;
    resolve({status,stars:tier,durationMs});
   };

@@ -1,4 +1,4 @@
-/* Victory Celebration 2.0 — quiet premium Japanese festival finale.
+/* Victory Celebration 2.2 — quiet premium Japanese festival finale.
  * All FX sit inside .board-shell. Nothing intercepts touch or affects layout.
  */
 .board-shell .jh-victory-celebration{
@@ -41,6 +41,23 @@
 .jh-victory-celebration .jh-victory-sakura{color:var(--jh-sakura)}
 .jh-victory-celebration .jh-victory-ivory{color:var(--jh-ivory)}
 .jh-victory-celebration .jh-victory-teal{color:var(--jh-teal)}
+.jh-victory-celebration .jh-victory-encore .jh-victory-ray{
+ height:20px;
+ box-shadow:0 0 9px 1px currentColor;
+}
+.jh-victory-celebration .jh-victory-final-ring{
+ position:absolute;inset:11%;border:2px solid #f4cc81;
+ border-radius:50%;opacity:0;
+ box-shadow:0 0 18px 4px #f8d18a55,inset 0 0 12px 3px #f8d18a32;
+ animation:jh-victory-final-ring var(--jh-victory-duration,2450ms) ease-out both;
+}
+.jh-victory-celebration .jh-victory-petal{
+ position:absolute;left:var(--x);top:var(--y);
+ width:10px;height:7px;border-radius:85% 0 80% 0;
+ background:linear-gradient(135deg,#ffe6e8,#e6a6bd);
+ box-shadow:0 0 5px #f4b2cb66;opacity:0;
+ animation:jh-victory-petal 760ms ease-in-out var(--delay) both;
+}
 .jh-victory-celebration .jh-victory-ray{
  display:block;position:absolute;left:-2px;top:-9px;
  width:4px;height:17px;border-radius:99px;
@@ -61,6 +78,18 @@
  width:5px;height:5px;border-radius:2px;background:currentColor;
  opacity:0;box-shadow:0 0 5px currentColor;
  animation:jh-victory-mote 610ms ease-out var(--delay) both;
+}
+@keyframes jh-victory-final-ring{
+ 0%,48%{opacity:0;transform:scale(.66)}
+ 64%{opacity:.53;transform:scale(.90)}
+ 78%{opacity:.28;transform:scale(1.01)}
+ 100%{opacity:0;transform:scale(1.08)}
+}
+@keyframes jh-victory-petal{
+ 0%{opacity:0;transform:translate3d(0,-9px,0) rotate(-25deg) scale(.5)}
+ 20%{opacity:.9}
+ 80%{opacity:.75}
+ 100%{opacity:0;transform:translate3d(var(--drift),29px,0) rotate(var(--twist)) scale(.75)}
 }
 @keyframes jh-victory-board-breathe{
  0%,100%{opacity:1}43%{opacity:.87}69%{opacity:1}
@@ -103,5 +132,7 @@
  .jh-victory-celebration .jh-victory-ray,
  .jh-victory-celebration .jh-victory-mote,
  .jh-victory-celebration .jh-victory-title,
- .jh-victory-celebration .jh-victory-aura{animation:none!important;opacity:0!important}
+ .jh-victory-celebration .jh-victory-aura,
+ .jh-victory-celebration .jh-victory-final-ring,
+ .jh-victory-celebration .jh-victory-petal{animation:none!important;opacity:0!important}
 }

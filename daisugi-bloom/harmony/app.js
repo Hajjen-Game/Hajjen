@@ -474,7 +474,7 @@ function levelPreview(index,resumable=false){
   if(recipe)cfg={...R.levelConfig(index),...recipe};
  }
  if(resumable&&save.run?.level===index&&save.run.data&&
-  (index>=OFFICIAL_JOURNEY_LEVELS||save.run.data.levelRecipeId)){
+  (index>=OFFICIAL_JOURNEY_LEVELS||save.run.data.levelRecipe)){
   const restored=new R.Game(index,save.run.data,{fastRestore:true});
   cfg=restored.config;remaining=restored.moves;rewardVersion=restored.rewardVersion;
  }

@@ -2193,7 +2193,8 @@ try{
   save.unlocked=4;save.run=null;localStorage.setItem(key,JSON.stringify(save));
  });
  await page.reload({waitUntil:"networkidle2"});
- await page.waitForFunction(()=>document.documentElement.classList.contains("has-new-atlas"),{timeout:15000});
+ await page.waitForFunction(()=>document.documentElement.classList.contains("has-new-atlas")&&
+  document.documentElement.classList.contains("has-origami-art"),{timeout:15000});
  const atlas=await page.evaluate(async()=>{
   const src="./assets/harmony-new-families.avif?v=5.0";
   const image=new Image();image.src=src;await image.decode();
@@ -2206,7 +2207,9 @@ try{
   const present=new Set([...document.querySelectorAll(".tile")].map(x=>x.getAttribute("aria-label")?.split(",")[0]));
   return {count:items.length,present:[...present],visible:items.every(x=>{
    const sprite=x.querySelector(".sprite-new"),style=getComputedStyle(sprite);
-   return style.display==="block"&&style.backgroundImage.includes("harmony-new-families.avif");
+   return style.display==="block"&&
+    (style.backgroundImage.includes("origami-five-stages.webp")||
+     style.backgroundImage.includes("harmony-new-families.avif"));
   })};
  });
  assert(renderedNew.count>0&&renderedNew.visible,

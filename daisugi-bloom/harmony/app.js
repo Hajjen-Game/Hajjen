@@ -3096,16 +3096,17 @@ function showJourneyDraftResult(){
 }
 function showJourneyDraftChooser(chapter=0){
  if(busy)return;
- const activeChapter=chapter===1?1:0;
+ const activeChapter=chapter===3?3:chapter===2?2:chapter===1?1:0;
  $("modalActions").classList.remove("pause-menu-actions");
  $("modalEyebrow").textContent="GAME DEV · LEVEL DESIGN PREVIEW";
  $("modalTitle").textContent="Journey 2.0 · Levels "+(activeChapter*10+1)+"–"+(activeChapter*10+10);
  const content=$("modalContent");content.replaceChildren();
- content.append(goshuinNode("p","",activeChapter===0?
+ content.append(goshuinNode("p","",activeChapter>=2?
+  "CHAPTER PLAYTEST · 21–40. Harder objective-driven puzzles. These runs are unranked and do not alter Goshuincho progress.":activeChapter===0?
   "Early-game identity: learn Fusion and Mist, launch your first Hanabi at level 5, then finish with the Koi Masterpiece challenge. These are unranked drafts; your Journey and rewards stay unchanged.":
   "Wind Garden begins at 11, Daruma at 14 and Sealed Stones at 18. The final puzzles combine purposeful mechanics, not Moon Mirrors. Draft play never changes saved progress or cards."));
  const tabs=goshuinNode("div","journey-chapter-tabs");
- for(let ch=0;ch<2;ch++){
+ for(let ch=2;ch<4;ch++){
   const tab=goshuinNode("button","journey-chapter-tab"+(ch===activeChapter?" selected":""),
    "Levels "+(ch*10+1)+"–"+(ch*10+10));
   tab.type="button";tab.setAttribute("aria-pressed",String(ch===activeChapter));

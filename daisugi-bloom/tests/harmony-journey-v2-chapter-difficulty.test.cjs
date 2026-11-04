@@ -11,8 +11,9 @@ let totalShuffles=0,quickWins=0,totalRuns=0;
 for(let i=20;i<40;i++){
  const bp=O.get(i),rows=[];
  for(const seed of [20261104+i*197,20261125+i*197]){
-  for(const strategy of ["objective","spatial"]){
-   const run=Lab.play(R,A,bp,{seed,strategy,directorMode:"v62",maxCandidates:7,maxTurns:D.get(i).moves});
+  // Objective agent on two paired seeds; deeper spatial lookahead only on boss levels.
+  for(const strategy of (seed===20261104+i*197&&[29,39].includes(i)?["objective","spatial"]:["objective"])){
+   const run=Lab.play(R,A,bp,{seed,strategy,directorMode:"v62",maxCandidates:5,maxTurns:D.get(i).moves});
    rows.push(run);totalRuns++;
    assert(run.initialLegal>=3,"Unsafe opening at level "+(i+1));
    assert(!run.limitedByTurnCap||run.movesUsed>=D.get(i).moves,

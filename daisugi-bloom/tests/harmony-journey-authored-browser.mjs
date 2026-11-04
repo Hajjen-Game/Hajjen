@@ -9,11 +9,14 @@ const page=await browser.newPage(),errors=[],KEY="japanese-harmony-puzzle-v2";
 page.on("pageerror",e=>errors.push(e.message));
 async function open(n){
  await page.$eval("#menuAdvanced",e=>e.open=true);
- await page.click("#journeyDraftButton");
- await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Journey 2.0 · Levels 1–10");
- if(n>10){
-  await page.click(".journey-chapter-tab:nth-child(2)");
-  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Journey 2.0 · Levels 11–20");
+ await page.click(n>20?"#journeyChapterPlaytestButton":"#journeyDraftButton");
+ const chapter=Math.floor((n-1)/10);
+ await page.waitForFunction(ch=>document.querySelector("#modalTitle")?.textContent===
+  "Journey 2.0 · Levels "+(ch*10+1)+"–"+(ch*10+10),{},chapter===0||chapter===2?chapter:chapter-1);
+ if(chapter===1||chapter===3){
+  await page.click(".journey-chapter-tab:nth-child("+(chapter+1)+")");
+  await page.waitForFunction(ch=>document.querySelector("#modalTitle")?.textContent===
+   "Journey 2.0 · Levels "+(ch*10+1)+"–"+(ch*10+10),{},chapter);
  }
  await page.click('.journey-draft-grid button[data-level="'+n+'"]');
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden);
@@ -51,13 +54,14 @@ try{
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
  await page.waitForFunction(()=>window.HarmonyJourneyAuthoredOpenings?.COUNT===15);
  const save=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
- for(const n of [5,6,7,9,11,14,18,20]){
+ for(const n of [5,6,7,9,11,14,18,20,21,22,25,28,30,31,34,36,40]){
   const b=await open(n);
   if(n===6)assert.equal(b.opening[1],null,"First advanced Hanabi starts at top");
   if(n===20)assert.equal(b.fixtures,8);
+  if(n>=21)assert.equal(b.opening.length,49);
   await leave();
  }
  assert.deepEqual(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY),save);
  assert.deepEqual(errors,[]);
- console.log("PASS 390px fifteen fixed reference blueprints used in real preview without save mutations");
+ console.log("PASS 390px Journey reference previews 1–20 and authored chapter tests 21–40 without save mutations");
 }finally{await browser.close();}

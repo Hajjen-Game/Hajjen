@@ -91,7 +91,26 @@ try{
   document.querySelector('.tile[data-index="'+pair[0]+'"]').click();
   document.querySelector('.tile[data-index="'+pair[1]+'"]').click();
  },pair);
- await page.waitForFunction(()=>!!document.querySelector(".jh-victory-celebration"),{timeout:35000});
+ try{
+  await page.waitForFunction(()=>!!document.querySelector(".jh-victory-celebration"),{timeout:35000});
+ }catch(error){
+  const debug=await page.evaluate(key=>{
+   const stored=JSON.parse(localStorage.getItem(key));
+   return {modalTitle:document.querySelector("#modalTitle")?.textContent,
+    modalHidden:document.querySelector("#modal").hidden,
+    boardBusy:document.querySelector("#board").getAttribute("aria-busy"),
+    stage:document.querySelector("#goalProgress")?.textContent,
+    moves:document.querySelector("#movesCount")?.textContent,
+    saveMoves:stored.run?.data?.moves,
+    saveComplete:stored.run?.data?.complete,
+    saveFusions:stored.run?.data?.fusions,
+    goal:stored.run?.data?.config?.goal,
+    hasModule:!!window.HarmonyVictoryCelebration,
+    reduced:getComputedStyle(document.querySelector(".board-shell")).animationName,
+    errors:window.__victoryErrors||[]};
+  },KEY);
+  throw Error("Real final-swap celebration was not observed: "+JSON.stringify(debug),{cause:error});
+ }
  const during=await page.evaluate(key=>{
   const save=JSON.parse(localStorage.getItem(key));
   return {modalHidden:document.querySelector("#modal").hidden,

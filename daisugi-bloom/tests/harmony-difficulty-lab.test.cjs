@@ -23,7 +23,7 @@ check("Seeded real-game strategies count legal moves and preserve authored state
   assert(run.goalParts.length===2);
   assert(run.goalCompletion>=0&&run.goalCompletion<=1);
   assert(run.shuffles>=0&&Number.isInteger(run.shuffles));
-  assert.equal(run.moveBudget,57);
+  assert.equal(run.moveBudget,Journey.get(19).moves);
   assert.equal(run.zeroLegal,0);
   assert.equal(typeof run.won,"boolean");
   assert(run.firstProgressTurn===null||run.firstProgressTurn<=run.movesUsed);

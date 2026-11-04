@@ -14,7 +14,8 @@ let moonMirrorPreview=null; // Deliberate, unranked, unsaved sandbox on the real
 let windGardenPreview=null; // Separate unranked Wind Garden gameplay preview.
 let bambooPreview=false; // Genuine, unranked Bamboo Paths chapter-level previews.
 let lotusPreview=null; // Genuine L61 pilot or one of four unranked Lotus route experiments.
-let journeyDraftPreview=false; // Unranked Journey 2.0 levels 1–20, never saved to normal progress.
+let journeyDraftPreview=false; // Legacy unranked design test.
+const OFFICIAL_JOURNEY_LEVELS=20; // Journey 2.0 is the live Goshuincho progression.
 const journeyDraftIntroSeen=new Set(); // Per-session lesson flags, never persisted.
 let journeyFinalePreviewRuns=0; // Repeated level-10 tests explore different reproducible boards.
 const journeyDraftPlayCounts=new Map(); // Other chapter-two drafts use reproducible but distinct retries.
@@ -468,6 +469,10 @@ function goshuinNode(tag,cls,text){
 // Onboarding 2.0: never change the underlying move, objective or reward rules.
 function levelPreview(index,resumable=false){
  let cfg=R.levelConfig(index),remaining=null,rewardVersion=3;
+ if(index<OFFICIAL_JOURNEY_LEVELS&&!resumable){
+  const recipe=window.HarmonyJourneyDrafts?.get(index);
+  if(recipe)cfg={...R.levelConfig(index),...recipe};
+ }
  if(resumable&&save.run?.level===index&&save.run.data){
   const restored=new R.Game(index,save.run.data,{fastRestore:true});
   cfg=restored.config;remaining=restored.moves;rewardVersion=restored.rewardVersion;
@@ -477,7 +482,7 @@ function levelPreview(index,resumable=false){
 // Tutorial Help Modal 1.0: reuse the SAME illustrated guide for the first
 // encounter and the ? next to GOAL. Only OK acknowledges a new lesson.
 function goalLesson(){
- if(journeyDraftPreview&&game?.config){
+ if((journeyDraftPreview||level<OFFICIAL_JOURNEY_LEVELS)&&game?.config){
   const original=level<4?O.lesson(level):null;
   if(original)return original;
   const m=game.levelRecipe?.mechanics||{},goal=game.config.goal.type;
@@ -1160,17 +1165,19 @@ async function celebrateCollection(evt){
  }
  await Promise.all(tasks);
 }
-function saveRun(){if(!moonMirrorPreview&&!windGardenPreview&&!bambooPreview&&!lotusPreview&&!journeyDraftPreview&&game&&!game.levelRecipe&&!$("gameView").hidden&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
+function saveRun(){if(!moonMirrorPreview&&!windGardenPreview&&!bambooPreview&&!lotusPreview&&!journeyDraftPreview&&game&&!$("gameView").hidden&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooScenario=false,lotusScenario=null,journeyScenario=false){
  if(busy)return;
  moonMirrorPreview=mirrorScenario;windGardenPreview=windScenario;bambooPreview=!!bambooScenario;
  lotusPreview=lotusScenario;journeyDraftPreview=!!journeyScenario;
- const journeyRecipe=journeyDraftPreview?window.HarmonyJourneyDrafts?.get(i):null;
+ const officialJourney=i<OFFICIAL_JOURNEY_LEVELS&&!mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario&&!journeyDraftPreview;
+ const useJourney=officialJourney||journeyDraftPreview;
+ const journeyRecipe=useJourney?window.HarmonyJourneyDrafts?.get(i):null;
  if(journeyDraftPreview&&!journeyRecipe)throw Error("Unknown Journey 2.0 draft");
  // Fifteen reference puzzles use exact 7x7 openings authored for the focused
  // Journey 2.0 progression; tutorial 1–4 and Koi finale retain seeded boards.
- const authoredOpening=journeyDraftPreview?window.HarmonyJourneyAuthoredOpenings?.get(i):null;
- const journeySeed=journeyDraftPreview?journeyDraftSeed(i):null;
+ const authoredOpening=useJourney&&!resume?window.HarmonyJourneyAuthoredOpenings?.get(i):null;
+ const journeySeed=useJourney?journeyDraftSeed(i):null;
  document.body.classList.toggle("journey-draft-preview",journeyDraftPreview);
  document.body.classList.toggle("moon-mirror-preview",!!mirrorScenario);
  document.body.classList.toggle("wind-garden-preview",!!windScenario);
@@ -1182,12 +1189,14 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  level=i;powerSelection=null;powerTargets=[];moonOfferShown=false;rewardStarsAtLevelStart=G.archivedStars(save,i);
  const data=resume&&save.run&&save.run.level===i?save.run.data:null;
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
- game=authoredOpening?
+ game=officialJourney&&resume&&data?
+  new R.Game(i,data):
+  authoredOpening?
   window.HarmonyPuzzleArchitect.build(R,authoredOpening,{
    seed:journeySeed,directorMode:"v62",recordRound:true
   }):
-  new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario||journeyDraftPreview?null:data,
-  journeyDraftPreview?{directorMode:
+  new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario||useJourney?null:data,
+  useJourney?{directorMode:
    journeyRecipe.mechanics.hanabi||journeyRecipe.mechanics.mirrors.length||journeyRecipe.mechanics.wind?"v62":i>=9?"v4":"v3",
    journeyDiagnostic:true,levelRecipe:journeyRecipe,
    seed:journeySeed}:mirrorScenario?
@@ -1222,7 +1231,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  if(!mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario&&!journeyDraftPreview)offerFirstLesson(i);
  // A new mechanic gets a contextual, dismissible tutorial the first time
  // it is previewed. No progress or seen flags are written to player saves.
- if(journeyDraftPreview&&[4,10,13,17].includes(i)&&!journeyDraftIntroSeen.has(i)){
+ if(useJourney&&[4,10,13,17].includes(i)&&!journeyDraftIntroSeen.has(i)){
   journeyDraftIntroSeen.add(i);showTutorialHelp(goalLesson(),false);
  }
 }

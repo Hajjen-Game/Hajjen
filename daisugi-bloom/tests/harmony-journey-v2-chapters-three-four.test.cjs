@@ -118,4 +118,47 @@ for(let i=20;i<40;i++){
   assert.equal(trial.swap(...pair).ok,true);
  }
 }
+// Level 27: verify the requested center rocket and that no legitimate
+// opening followed by a second legitimate move can launch any firework.
+// Test the real gravity/refill/Director path, not a geometric approximation.
+{
+ const index=26,recipe=D.get(index),bp=O.get(index);
+ assert.equal(recipe.name,"Hanabi Triad");
+ assert.deepEqual(recipe.mechanics.hanabi.starts,[1,12,24]);
+ assert.deepEqual(recipe.mechanics.hanabi.crates,[43,45,47]);
+ assert.deepEqual(recipe.goal,{type:"lotus",count:3,
+  requires:[{type:"masterpiece",count:1}]});
+ const design=O.chapterSummary().find(x=>x.index===index);
+ assert.deepEqual(design.rows,["A-ACBAA","DDBBE-E","AABEBAA",
+  "DDC-CDC","ABABACE","EAEDCEA","E-E-B-A"]);
+ assert.deepEqual(design.planned,[[10,17],[26,33],[29,36]]);
+ for(const seed of [20261104+index*197,20261125+index*197]){
+  const start=A.build(R,bp,{seed,directorMode:"v62"});
+  assert.equal(start.lotusDelivered,0);
+  assert.equal(start.board[24]?.family,"lotusSeed");
+  assert.equal(start.board[45]?.family,"hanabiCrate");
+  const firstMoves=R.validSwaps(start.board);
+  assert(firstMoves.length>=3);
+  const snapshot=start.save();
+  let searched=0;
+  for(const first of firstMoves){
+   const afterFirst=new R.Game(index,snapshot,{fastRestore:true});
+   assert.equal(afterFirst.swap(...first).ok,true);
+   assert.equal(afterFirst.lotusDelivered,0,
+    "Level 27 launched after one move: "+first+" seed "+seed);
+   const secondSnapshot=afterFirst.save();
+   for(const second of R.validSwaps(afterFirst.board)){
+    const afterSecond=new R.Game(index,secondSnapshot,{fastRestore:true});
+    assert.equal(afterSecond.swap(...second).ok,true);
+    searched++;
+    assert.equal(afterSecond.lotusDelivered,0,
+     "Level 27 launched in only two moves: "+first+" then "+second+
+     " seed "+seed);
+   }
+  }
+  assert(searched>0,"Must exercise genuine two-turn branches");
+  console.log("PASS level 27 seed "+seed+": "+firstMoves.length+
+   " opening swaps and "+searched+" two-turn paths without early fireworks");
+ }
+}
 console.log("PASS 20 individually authored Journey 2.0 levels 21–40");

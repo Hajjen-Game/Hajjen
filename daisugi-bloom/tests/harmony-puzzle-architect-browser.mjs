@@ -32,7 +32,7 @@ try{
  }));
  assert.equal(setup.level,"19");
  assert.equal(setup.board,49);
- assert.equal(setup.fixed,6,"Level 20 has two rockets, two crates and two mirrors");
+ assert.equal(setup.fixed,8,"Level 20 has two rockets, two crates and four Sealed Stones");
  assert(setup.status.startsWith("Giltigt bräde"));
  assert(setup.contentWidth<=setup.viewport+1);
  assert.equal(setup.localStorageKey,"untouched");

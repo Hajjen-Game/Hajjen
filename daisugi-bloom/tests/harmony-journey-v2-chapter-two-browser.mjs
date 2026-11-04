@@ -50,7 +50,7 @@ async function leave(){
 try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
- await page.waitForFunction(()=>window.HarmonyJourneyDrafts?.COUNT===20);
+ await page.waitForFunction(()=>window.HarmonyJourneyDrafts?.COUNT===40);
  const baseline=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  let s=await openDraft(5);assert.equal(s.rockets[0],29);assert.equal(s.crates,1);await leave();
  s=await openDraft(6);assert.deepEqual(s.rockets,[1]);assert.equal(s.crates,1);await leave();

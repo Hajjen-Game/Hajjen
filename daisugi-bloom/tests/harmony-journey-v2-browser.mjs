@@ -58,8 +58,9 @@ try{
  // The preview uses exactly the same deterministic game engine and start seed.
  const action=await page.evaluate(()=>{
   const draft=window.HarmonyJourneyDrafts.get(7);
-  const game=new window.HarmonyRules.Game(7,null,
-   {seed:20261102+7*197,directorMode:"v62",journeyDiagnostic:true,levelRecipe:draft});
+  const game=window.HarmonyPuzzleArchitect.build(window.HarmonyRules,
+   window.HarmonyJourneyAuthoredOpenings.get(7),
+   {seed:20261102+7*197,directorMode:"v62"});
   return window.HarmonyRules.validSwaps(game.board)[0];
  });
  await page.evaluate(([a,b])=>{
@@ -67,7 +68,7 @@ try{
   document.querySelector('.tile[data-index="'+b+'"]').click();
  },action);
  await page.waitForFunction(()=>document.querySelector("#board")?.getAttribute("aria-busy")==="false"&&
-  document.querySelector("#movesCount")?.textContent==="38",{timeout:35000});
+  document.querySelector("#movesCount")?.textContent==="43",{timeout:35000});
  const after=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  for(const field of ["unlocked","run","bestStars","bestScores","fourFamilyStars","economy","omamoriCards","playerInsight","playerIntent"])
   assert.deepEqual(after[field],baseline[field],"Journey preview must not alter "+field);

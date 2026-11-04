@@ -2764,13 +2764,41 @@ async function animateEvent(evt){
    break;
   }
   case "sealed-hit":{
-   renderBoard(evt.board,(evt.hits||[]).map(h=>h.at),"sealed-hit");
-   if(!FAST())await Promise.all((evt.hits||[]).map(h=>
-    animateNode(boardTiles[h.at]?.querySelector(".sealed-stone-art"),[
-     {transform:"scale(.89)",filter:"brightness(1)",offset:0},
-     {transform:"scale(1.09)",filter:"brightness(1.4)",offset:.55},
-     {transform:"scale(1)",filter:"brightness(1)",offset:1}
-    ],240)));
+   const hits=evt.hits||[];
+   // Capture the OLD stone image before renderBoard replaces its state sprite.
+   // Without this, the new cracked image pops in for one frame and then flashes.
+   const previous=hits.map(h=>({
+    at:h.at,art:boardTiles[h.at]?.querySelector(".sealed-stone-art")?.cloneNode(true)
+   }));
+   renderBoard(evt.board,hits.map(h=>h.at),"sealed-hit");
+   if(!FAST()&&!document.hidden){
+    await Promise.all(previous.map(async ({at,art})=>{
+     const tile=boardTiles[at],next=tile?.querySelector(".sealed-stone-art");
+     if(!tile||!next||!art)return;
+     art.classList.add("sealed-stone-transition-old");
+     next.classList.add("sealed-stone-transition-new");
+     tile.append(art);
+     const duration=MOBILE_LITE?260:320;
+     try{
+      await Promise.all([
+       animateNode(art,[
+        {opacity:1,transform:"translate(0,0) scale(1)",offset:0},
+        {opacity:1,transform:"translate(-1px,1px) scale(.96)",offset:.25},
+        {opacity:.66,transform:"translate(1px,-1px) scale(1.035)",offset:.57},
+        {opacity:0,transform:"translate(0,0) scale(1.06)",offset:1}
+       ],duration),
+       animateNode(next,[
+        {opacity:.42,transform:"scale(.96)",offset:0},
+        {opacity:.78,transform:"scale(1.035)",offset:.57},
+        {opacity:1,transform:"scale(1)",offset:1}
+       ],duration)
+      ]);
+     }finally{
+      art.remove();
+      next.classList.remove("sealed-stone-transition-new");
+     }
+    }));
+   }
    break;
   }
   case "daruma":{

@@ -1,4 +1,4 @@
-/* Japanese Harmony · Journey 2.0 · focused 1–20 playtest sequence (2026-11-04).
+/* Japanese Harmony · Journey 2.0 · official 1–20 and chapter 3–4 previews (2026-11-04).
  * Opt-in, unranked previews only. Mirror is deliberately parked.
  * Four meaningful pillars: Hanabi, Wind, Daruma and Sealed Stones.
  * Short tutorials → spatial challenges → connected festival finale.

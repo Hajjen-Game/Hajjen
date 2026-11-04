@@ -1184,7 +1184,7 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  activeSealedFrame=null;activeDarumaFrame=null;activeMistFrame=null;
  game=authoredOpening?
   window.HarmonyPuzzleArchitect.build(R,authoredOpening,{
-   seed:journeySeed,directorMode:"v62"
+   seed:journeySeed,directorMode:"v62",recordRound:true
   }):
   new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario||journeyDraftPreview?null:data,
   journeyDraftPreview?{directorMode:

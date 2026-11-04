@@ -16,15 +16,15 @@ const VERSION=1;
 // truly fixed board object supplied by the Rules.Game fixture adapters.
 const boards=Object.freeze({
  4:{
-  name:"A single deliberate Hanabi lane",
-  rows:["DCDDBCB","DACDCBD","BDBBAAD","BCDACDC","A-AABBC","AABBCAA","D-DBCBD"],
-  insight:"First aim a Fusion at B6 so the Hanabi rocket above can descend into its crate.",
-  primary:"Hanabi delivery route",secondary:"Fusion destination control",
-  sequence:["Find the two matching treasures across A6 and B6",
-   "Swap C5 into C6 to complete a horizontal Fusion through B6",
-   "Watch the cleared rocket lane deliver Hanabi into the fixed crate"],
-  planned:[[30,37]],
-  detail:"Cells A6 B6 and C5 create a single-step teachable lane. B5=rocket, B7=crate. The player may pursue other valid swaps."
+  name:"A two-decision Hanabi route",
+  rows:["CBDCACB","CBCAADA","DADDBBC","ADDBCAC","B-BADBD","AABBDCD","C-DDCCB"],
+  insight:"First prepare the object above C6; then make a deliberate Fusion through B6 to deliver Hanabi.",
+  primary:"Hanabi delivery route",secondary:"Two-step Fusion destination control",
+  sequence:["Notice A6 and B6 are an unfinished horizontal match",
+   "Swap C5 with D5: the valid vertical Fusion leaves the needed A at C5",
+   "Swap C5 into C6 to clear B6 and let the rocket fall into its crate"],
+  planned:[[30,31],[30,37]],
+  detail:"Stage 1 C5↔D5 triggers a genuine vertical Fusion at D4/D5/D6, leaving an A at C5. Stage 2 C5↔C6 finishes a match through B6; the rocket B5 can enter B7. No legal first swap directly clears B6."
  },
  10:{
   name:"First reflection requires destination control",

@@ -91,6 +91,16 @@ function levelGuides(index,config,recipe){
 // flags. Show at most one new core-mechanic guide per level start.
 function previewLesson(index,config,recipe,seen){
  if(!recipe)return null;
+ // The early-design preview still follows actual first-encounter milestones.
+ // Do not interrupt somebody testing level 8 just because its recipe
+ // happens to contain an already-introduced Hanabi rocket.
+ if(index<20){
+  const intro=journeyLesson(index);
+  if(!intro||!["lotus-intro","wind","daruma","stone"].includes(intro.key))return null;
+  return seen instanceof Set&&seen.has(intro.key)?null:intro;
+ }
+ // Chapters 21–40 can be opened in ANY order. Teach a core mechanic once
+ // per preview session when the player first encounters it there.
  const mechanicKeys=levelGuides(index,config,recipe)
   .map(x=>x.key).filter(x=>["lotus-intro","wind","daruma","stone"].includes(x));
  for(const key of mechanicKeys)if(!(seen instanceof Set)||!seen.has(key))return guideByKey(key);

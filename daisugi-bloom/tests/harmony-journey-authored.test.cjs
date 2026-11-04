@@ -53,6 +53,20 @@ check("Level 11 retains a deliberate Wind-aligned three-in-a-row",()=>{
  moved.splice(21,7,row[6],...row.slice(0,6));
  assert(R.scan(moved).some(line=>line.includes(16)&&line.includes(23)&&line.includes(30)));
 });
+check("Level 16 has one Daruma, rocket and crate in each independent column",()=>{
+ const g=physical(15);
+ for(const [daruma,rocket,crate] of [[15,29,43],[19,33,47]]){
+  assert.equal(daruma%7,rocket%7);
+  assert.equal(rocket%7,crate%7);
+  assert.equal(g.board[daruma]?.family,"daruma");
+  assert.equal(g.board[rocket]?.family,"lotusSeed");
+  assert.equal(g.board[crate]?.family,"hanabiCrate");
+ }
+ assert.equal(g.config.goal.requires[0].count,2);
+ assert.equal(g.board.filter(x=>x?.family==="daruma").length,2);
+ assert.equal(g.board.filter(x=>x?.family==="lotusSeed").length,2);
+ assert.equal(g.board.filter(x=>x?.family==="hanabiCrate").length,2);
+});
 check("Top-row solo Hanabi fixtures and festival stone routing are spatial",()=>{
  for(const i of [5,6,7,8])for(const at of D.get(i).mechanics.hanabi.starts)
   assert(at<7,"Rocket must begin on top row after intro");

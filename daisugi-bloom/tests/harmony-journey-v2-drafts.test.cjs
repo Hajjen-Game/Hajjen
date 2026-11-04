@@ -6,12 +6,12 @@ const D=require("../harmony/journey-levels-v2.js");
 const check=(name,fn)=>{fn();console.log("PASS "+name);};
 const starts=(i)=>D.get(i).mechanics.hanabi?.starts||[];
 check("All 20 focused recipes are distinct and retain the early foundations",()=>{
- assert.equal(D.COUNT,20);assert.equal(D.FIRST,0);
+ assert.equal(D.COUNT,40);assert.equal(D.FIRST,0);
  assert.deepEqual(Array.from({length:4},(_,i)=>D.get(i).goal.type),
   ["fusion","stage3","masterpiece","mist"]);
  assert.equal(D.get(9).id,"journey2-koi-masterpiece-finale");
  assert.deepEqual(D.get(9).goal,{type:"familyMasterpiece",family:"koi",count:2});
- assert.equal(new Set(D.summary().map(x=>x.name)).size,20);
+ assert.equal(new Set(D.summary().slice(0,20).map(x=>x.name)).size,20);
  for(let i=0;i<20;i++){
   const x=D.get(i);assert.equal(x.index,i);assert(A.compatible(x).ok);
   assert(x.moves>x.starPar+1);assert.equal(x.mechanics.mirrors.length,0);
@@ -19,7 +19,7 @@ check("All 20 focused recipes are distinct and retain the early foundations",()=
   assert(!(x.mechanics.wind&&x.mechanics.mist.length));
   assert(!x.mechanics.bamboo?.blocked?.length);
  }
- assert.equal(D.get(-1),null);assert.equal(D.get(20),null);
+ assert.equal(D.get(-1),null);assert(D.get(20),"Chapter 3 begins at index 20");assert.equal(D.get(40),null);
 });
 check("Hanabi starts at the top after tutorial on the solo festival boards",()=>{
  assert.deepEqual(starts(4),[29]);

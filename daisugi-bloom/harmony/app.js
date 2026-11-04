@@ -3083,15 +3083,15 @@ function showJourneyDraftResult(){
  const make=(tag,cls,value)=>{const el=document.createElement(tag);el.className=cls;el.textContent=value;return el;};
  content.append(makeRoundExport(make));
  const actions=$("modalActions");actions.replaceChildren();
- if(game.complete&&level<19){
+ if(game.complete&&level<39){
   modalButton(actions,"Next Journey level","primary",()=>startLevel(level+1,false,null,null,false,null,true));
   modalButton(actions,"Retry this level","secondary",()=>startLevel(level,false,null,null,false,null,true));
  }else if(game.complete){
-  modalButton(actions,"Review levels 1–20","primary",()=>showJourneyDraftChooser(1));
+  modalButton(actions,"Review levels 21–40","primary",()=>showJourneyDraftChooser(3));
  }else{
   modalButton(actions,"Retry this level","primary",()=>startLevel(level,false,null,null,false,null,true));
  }
- modalButton(actions,"Choose a Journey level","secondary",()=>showJourneyDraftChooser(Math.floor(level/10)));
+ modalButton(actions,"Choose a Journey level","secondary",()=>showJourneyDraftChooser(Math.max(2,Math.floor(level/10))));
  $("modal").hidden=false;
 }
 function showJourneyDraftChooser(chapter=0){

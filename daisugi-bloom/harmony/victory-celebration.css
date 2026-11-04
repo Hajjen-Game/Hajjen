@@ -1,0 +1,107 @@
+/* Victory Celebration 2.0 — quiet premium Japanese festival finale.
+ * All FX sit inside .board-shell. Nothing intercepts touch or affects layout.
+ */
+.board-shell .jh-victory-celebration{
+ position:absolute;inset:0;z-index:24;border-radius:inherit;overflow:hidden;
+ pointer-events:none;isolation:isolate;contain:paint;
+ --jh-gold:#f4ce89;--jh-sakura:#f0a7bc;--jh-ivory:#fff5dc;--jh-teal:#8bd6bf;
+}
+.board-shell.jh-victory-active{isolation:isolate}
+.jh-victory-celebration .jh-victory-aura{
+ position:absolute;inset:2%;border:2px solid rgba(255,226,157,.8);
+ border-radius:12px;box-shadow:inset 0 0 14px #f6cf7544,0 0 15px #e9b86566;
+ background:radial-gradient(circle at 50% 49%,#f7df9e23,transparent 65%);
+ opacity:0;animation:jh-victory-aura 950ms ease-out both;
+}
+.jh-victory-board{animation:jh-victory-board-breathe 970ms ease-out both}
+.jh-victory-celebration .jh-victory-title{
+ position:absolute;left:50%;top:51%;transform:translate(-50%,-50%) scale(.9);
+ display:grid;gap:0;justify-items:center;align-content:center;
+ min-width:42%;padding:10px 17px 11px;
+ border:1px solid #e5bd7d99;border-radius:18px;
+ background:radial-gradient(ellipse at center,#513d35ed,#2b3038da);
+ box-shadow:0 5px 20px #211b2570,0 0 12px #f7ca6b55;
+ color:#fff3d8;opacity:0;
+ animation:jh-victory-title 950ms cubic-bezier(.2,.7,.2,1) both;
+}
+.jh-victory-celebration .jh-victory-kanji{
+ font-family:serif;font-size:clamp(27px,8vw,49px);font-weight:700;
+ line-height:1.13;color:#f6db97;text-shadow:0 0 9px #f2ce886e;
+}
+.jh-victory-celebration .jh-victory-word{
+ font:800 clamp(10px,2.9vw,15px)/1.2 system-ui,sans-serif;
+ letter-spacing:.18em;color:#f7e8d0;
+}
+.jh-victory-celebration .jh-victory-burst{
+ position:absolute;left:var(--x);top:var(--y);
+ width:1px;height:1px;
+ color:var(--jh-gold);pointer-events:none;
+}
+.jh-victory-celebration .jh-victory-gold{color:var(--jh-gold)}
+.jh-victory-celebration .jh-victory-sakura{color:var(--jh-sakura)}
+.jh-victory-celebration .jh-victory-ivory{color:var(--jh-ivory)}
+.jh-victory-celebration .jh-victory-teal{color:var(--jh-teal)}
+.jh-victory-celebration .jh-victory-ray{
+ display:block;position:absolute;left:-2px;top:-9px;
+ width:4px;height:17px;border-radius:99px;
+ background:currentColor;box-shadow:0 0 5px currentColor;
+ transform-origin:2px 9px;
+ opacity:0;
+ animation:jh-victory-ray 650ms cubic-bezier(.15,.6,.3,1) var(--delay) both;
+ rotate:var(--angle);
+}
+.jh-victory-celebration .jh-victory-center{
+ position:absolute;left:-6px;top:-6px;width:12px;height:12px;
+ border-radius:50%;background:currentColor;
+ box-shadow:0 0 11px 3px currentColor;
+ animation:jh-victory-core 600ms ease-out var(--delay) both;
+}
+.jh-victory-celebration .jh-victory-mote{
+ position:absolute;left:var(--x);top:var(--y);
+ width:5px;height:5px;border-radius:2px;background:currentColor;
+ opacity:0;box-shadow:0 0 5px currentColor;
+ animation:jh-victory-mote 790ms ease-out var(--delay) both;
+}
+@keyframes jh-victory-board-breathe{
+ 0%,100%{opacity:1}43%{opacity:.87}69%{opacity:1}
+}
+@keyframes jh-victory-aura{
+ 0%{opacity:0;transform:scale(.96)}
+ 25%{opacity:.86;transform:scale(.99)}
+ 65%{opacity:.68;transform:scale(1)}
+ 100%{opacity:0;transform:scale(1.012)}
+}
+@keyframes jh-victory-title{
+ 0%{opacity:0;transform:translate(-50%,-45%) scale(.78)}
+ 26%{opacity:0}
+ 44%{opacity:1;transform:translate(-50%,-50%) scale(1.04)}
+ 64%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+ 100%{opacity:0;transform:translate(-50%,-54%) scale(1.02)}
+}
+@keyframes jh-victory-ray{
+ 0%{opacity:0;transform:translateY(0) scale(.18)}
+ 23%{opacity:1;transform:translateY(-10px) scale(.9)}
+ 60%{opacity:.85;transform:translateY(-19px) scale(.88)}
+ 100%{opacity:0;transform:translateY(-28px) scale(.4)}
+}
+@keyframes jh-victory-core{
+ 0%{opacity:0;transform:scale(.2)}
+ 32%{opacity:1;transform:scale(1.3)}
+ 100%{opacity:0;transform:scale(.12)}
+}
+@keyframes jh-victory-mote{
+ 0%{opacity:0;transform:translate3d(0,5px,0) scale(.3) rotate(0deg)}
+ 25%{opacity:.85}
+ 100%{opacity:0;transform:translate3d(var(--drift),-31px,0) scale(.45) rotate(60deg)}
+}
+@media(max-width:500px){
+ .jh-victory-celebration .jh-victory-title{border-radius:13px;padding:7px 11px 8px}
+ .jh-victory-celebration .jh-victory-ray{width:3px;left:-1.5px}
+}
+@media(prefers-reduced-motion:reduce){
+ .jh-victory-celebration,.jh-victory-board{animation:none!important}
+ .jh-victory-celebration .jh-victory-ray,
+ .jh-victory-celebration .jh-victory-mote,
+ .jh-victory-celebration .jh-victory-title,
+ .jh-victory-celebration .jh-victory-aura{animation:none!important;opacity:0!important}
+}

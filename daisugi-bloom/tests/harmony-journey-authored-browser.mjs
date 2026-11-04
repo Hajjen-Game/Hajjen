@@ -81,7 +81,8 @@ try{
   document.querySelector('.tile[data-index="23"]').click();
   document.querySelector('.tile[data-index="24"]').click();
  });
- await page.waitForFunction(()=>document.querySelector("#movesCount")?.textContent==="38",{timeout:35000});
+ await page.waitForFunction(()=>document.querySelector("#movesCount")?.textContent==="38"&&
+  document.querySelector("#board")?.getAttribute("aria-busy")==="false",{timeout:35000});
  const after=await page.$eval("#goalHelpButton",n=>n.getAttribute("aria-label"));
  assert(after.includes("Mirror activations 1/3"),"First deliberate mirror swap must activate once");
  await returnHome();

@@ -26,6 +26,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two.test.cjs
       - name: Journey 2.0 · twenty chapter 3–4 playable previews
         run: node daisugi-bloom/tests/harmony-journey-v2-chapters-three-four.test.cjs
+      - name: Journey 2.0 · real-game seeded chapter 3–4 difficulty probe
+        run: node daisugi-bloom/tests/harmony-journey-v2-chapter-difficulty.test.cjs
       - name: Journey 2.0 · spatial objectives, Stone finale and no Mirror goals
         run: node daisugi-bloom/tests/harmony-journey-v2-difficulty.test.cjs
       - name: Journey 2.0 · fifteen exact reference layouts and two-step Hanabi regression

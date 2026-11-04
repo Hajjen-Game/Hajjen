@@ -132,20 +132,13 @@ const boards=Object.freeze({
   detail:"The complete board geometry is fixed; later refills remain genuine and unpredicted."
  }
 });
+// Chapter 3–4: fixed 7×7 treasure placements, never a fresh captured seed.
+// Each board reserves its real engine fixtures with '-' and documents
+// intended opening decisions for regression tests and later playtest review.
+const chapterBoards=Object.freeze({
+});
 function get(index){
- // Chapter 3–4 provisional reference openings are reproducible engine captures.
- // Their fixture geometry is authored in the recipes; playtests will guide
- // subsequent hand-authored treasure placement without changing levels 1–20.
- if(index>=20&&index<40){
-  const recipe=D.get(index);
-  if(!recipe)return null;
-  return A.create(R,recipe,{seed:20261104+index*197,
-   insight:"Solve the obstacle layout by choosing a useful Fusion destination.",
-   primarySkill:"Objective-first route planning",
-   secondarySkill:"Harmony Pulse timing",
-   sequence:["Read the fixed fixtures and goal","Choose a route that advances the blockers","Finish the remaining objectives" ]});
- }
- const spec=boards[index];if(!spec)return null;
+ const spec=boards[index]||chapterBoards[index];if(!spec)return null;
  const names=R.activeFamilies(index,index<10?4:5);
  const pattern=spec.rows.join("");
  if(pattern.length!==49)throw Error("Bad authored 7x7 grid at "+(index+1));
@@ -166,7 +159,8 @@ function summary(){
    planned:x.planned.map(pair=>pair.slice()),rows:x.rows.slice()};
  });
 }
-const api=Object.freeze({VERSION,COUNT:Object.keys(boards).length,get,summary});
+const api=Object.freeze({VERSION,COUNT:Object.keys(boards).length,CHAPTER_COUNT:Object.keys(chapterBoards).length,get,summary,
+ chapterSummary:()=>Object.keys(chapterBoards).map(key=>{const x=chapterBoards[key];return {index:Number(key),level:Number(key)+1,name:x.name,rows:x.rows.slice(),planned:x.planned.map(m=>m.slice())};})});
 root.HarmonyJourneyAuthoredOpenings=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

@@ -5151,6 +5151,22 @@ body.harmony-reduced-motion .menu-view .level-tile{
 .game-view .tile.sealed-stone-tile .sealed-stone-art.state-3{
  background-image:url("../assets/sealed-stone-3.webp?v=20261103");
 }
+/* Sealed Stone Hit Polish 1.0: retain the previous crack sprite above the
+   incoming sprite for a short, gentle crossfade. Both use GPU opacity /
+   transform only; no changing the actual stone asset or game state. */
+.game-view .tile.sealed-stone-tile .sealed-stone-transition-old{
+ z-index:4;
+ will-change:opacity,transform;
+}
+.game-view .tile.sealed-stone-tile .sealed-stone-transition-new{
+ z-index:3;
+ will-change:opacity,transform;
+}
+@media (prefers-reduced-motion:reduce){
+ .game-view .tile.sealed-stone-tile .sealed-stone-transition-old{
+  display:none;
+ }
+}
 .game-view .tile.sealed-stone-tile.sealed-hit{
  background:radial-gradient(circle,rgba(248,196,118,.42),rgba(50,52,72,.42) 86%);
  box-shadow:inset 0 0 0 2px rgba(255,217,141,.89),0 0 8px rgba(249,187,99,.42);

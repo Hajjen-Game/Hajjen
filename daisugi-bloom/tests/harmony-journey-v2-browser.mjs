@@ -13,7 +13,7 @@ page.on("pageerror",err=>errors.push(err.message));
 try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
- await page.waitForFunction(()=>window.HarmonyJourneyDrafts?.COUNT===20);
+ await page.waitForFunction(()=>window.HarmonyJourneyDrafts?.COUNT===40);
  await page.evaluate(key=>{
   const save=JSON.parse(localStorage.getItem(key));
   save.unlocked=9;

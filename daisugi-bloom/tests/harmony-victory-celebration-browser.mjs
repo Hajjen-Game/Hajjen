@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import puppeteer from "puppeteer-core";
 
-// Victory Celebration 2.0: real Chromium, 390px phone, real saved move.
+// Victory Celebration 2.2: real Chromium, 390px phone, real saved move.
 // The result dialog must wait until fireworks finish; gameplay state may
 // never be changed by celebratory particles.
 const executablePath=["/usr/bin/google-chrome","/usr/bin/google-chrome-stable","/usr/bin/chromium"]
@@ -18,7 +18,7 @@ try{
  await page.goto(gamePage,{waitUntil:"networkidle2",timeout:40000});
  await page.waitForFunction(()=>!!window.HarmonyVictoryCelebration);
  const d=await page.evaluate(()=>window.HarmonyVictoryCelebration.DURATIONS);
- assert.deepEqual(d,{"1":1950,"2":2120,"3":2330});
+ assert.deepEqual(d,{"1":2450,"2":2620,"3":2830});
  await page.click("#continueButton");
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:12000});
  if(!await page.$eval("#modal",el=>el.hidden)){
@@ -28,7 +28,7 @@ try{
  const baseline=await page.evaluate(key=>localStorage.getItem(key),KEY);
  // Direct visual checks: one/two/three-star intensity must differ without
  // consuming turns, adding any scroll width, or leaving any DOM behind.
- for(const [stars,bursts,motes] of [[1,2,7],[2,3,13],[3,4,19]]){
+ for(const [stars,bursts,motes,petals] of [[1,3,10,3],[2,5,17,5],[3,7,25,7]]){
   const live=await page.evaluate(stars=>{
    const effect=window.HarmonyVictoryCelebration;
    window.__victoryCheck=effect.play({boardShell:document.querySelector(".board-shell"),
@@ -36,6 +36,9 @@ try{
    const layer=document.querySelector(".jh-victory-celebration");
    return {bursts:layer?.querySelectorAll(".jh-victory-burst").length,
     motes:layer?.querySelectorAll(".jh-victory-mote").length,
+    petals:layer?.querySelectorAll(".jh-victory-petal").length,
+    encore:layer?.querySelectorAll(".jh-victory-burst.jh-victory-encore").length,
+    halo:layer?.querySelectorAll(".jh-victory-final-ring").length,
     stars:layer?.dataset.stars,
     clear:document.querySelector("#modal").hidden,
     aria:layer?.getAttribute("aria-hidden"),
@@ -45,12 +48,14 @@ try{
     width:document.documentElement.scrollWidth,screen:innerWidth};
   },stars);
   assert.equal(live.bursts,bursts);assert.equal(live.motes,motes);
+  assert.equal(live.petals,petals);assert.equal(live.encore,stars);
+  assert.equal(live.halo,1,"An extra golden halo plays during the second firework wave");
   assert.equal(live.stars,String(stars));assert(live.clear);
   assert.equal(live.aria,"true");
   assert.equal(live.boardDuration,d[stars]+"ms");
-  assert(live.lastBurstDelay>d[stars]*.6,"Fireworks must continue into the added second");
+  assert(live.lastBurstDelay>d[stars]*.67,"Second-wave fireworks must play near the end");
   assert(live.lastBurstDelay+540<=d[stars],"Last burst must finish before popup");
-  assert(live.lastMoteDelay>d[stars]*.58,"Glitter must fill the longer celebration");
+  assert(live.lastMoteDelay>d[stars]*.65,"Glitter must fill the longer celebration");
   assert(live.lastMoteDelay+610<=d[stars],"Last mote must finish before popup");
   assert(live.width<=live.screen+1,"Victory FX must stay within phone width");
   await page.waitForFunction(()=>!document.querySelector(".jh-victory-celebration"),{timeout:5000});
@@ -136,7 +141,7 @@ try{
  },KEY);
  assert.equal(during.modalHidden,true,"Never show result during board celebration");
  assert.equal(during.stars,"3");
- assert.equal(during.fireworks,4);
+ assert.equal(during.fireworks,7);
  assert.equal(during.busy,"true","Swaps must be blocked during celebration");
  assert.equal(during.runComplete,true);
  const movesDuring=during.savedMoves;
@@ -161,5 +166,5 @@ try{
  assert.equal(after.complete,true);assert.equal(after.next,true);
  assert(after.width<=after.screen+1);
  assert.deepEqual(errors,[],"No JavaScript errors on a real victory");
- console.log("PASS Victory Celebration 2.0: 1/2/3 stars, real winning swap, pre-modal animation, locked input, reduced motion, cancel and save invariants");
+ console.log("PASS Victory Celebration 2.2: +500ms, second Hanabi wave, petals, gold halo, real winning swap, modal delay and unchanged save");
 }finally{await browser.close();}

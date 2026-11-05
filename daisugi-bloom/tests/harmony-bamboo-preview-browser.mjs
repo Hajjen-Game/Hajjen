@@ -78,6 +78,9 @@ try{
  },KEY);
  await page.reload({waitUntil:"networkidle2"});
  const baseline=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
+ // A first normal persist may add the empty Journey reward ledger to an old save.
+ // Keep verifying the entire original save; any real reward change must fail.
+ baseline.economy.journeyPaidStars ??= {};
  assert.equal(baseline.run.level,5);
  for(const level of [51,52,53,55,58,60]){
   const board=await enter(level);

@@ -87,7 +87,7 @@ try{
  // Set up an authentic near-finish game and complete it through a REAL move,
  // not by calling a result function or mutating DOM.
  await page.evaluate(key=>{
-  const R=window.HarmonyRules,g=new R.Game(0,null,{seed:20261024,directorMode:"v62",
+  const R=window.HarmonyRules,g=new R.Game(0,null,{seed:20261024,directorMode:"v63",
    journeyDiagnostic:true,levelRecipe:window.HarmonyJourneyDrafts.get(0),recordRound:true});
   g.fusions=g.target()-1;g.moves=15;
   const save=JSON.parse(localStorage.getItem(key));

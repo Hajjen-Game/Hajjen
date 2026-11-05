@@ -21,8 +21,8 @@ const storage=(initial={})=>{
 };
 const gameFor=(index,seed=20261105)=>{
  const blueprint=O.get(index);
- return blueprint?A.build(R,blueprint,{seed,recordRound:true,directorMode:"v62"}):
-  new R.Game(index,null,{seed,directorMode:"v62",
+ return blueprint?A.build(R,blueprint,{seed,recordRound:true,directorMode:"v63"}):
+  new R.Game(index,null,{seed,directorMode:"v63",
    journeyDiagnostic:true,levelRecipe:D.get(index)});
 };
 const runFor=game=>({level:game.level,data:game.save(),backgroundId:1});
@@ -46,7 +46,7 @@ check("All 40 production Journey games, including 15 Hanabi levels, save and res
     replay:{day:"2026-11-05",claims:0}}};
   const raw=JSON.stringify(snapshot);
   const box=storage({[KEY]:raw,[MARKER]:"done"});
-  const boot=H.bootstrap(()=>box,KEY,MARKER,defaults,{auto:"auto",v62:"v62"});
+  const boot=H.bootstrap(()=>box,KEY,MARKER,defaults,{auto:"auto",v62:"v63"});
   assert.equal(boot.warning,null,"Unexpected recovery warning at level "+(i+1));
   assert.equal(boot.writable,true);
   assert.deepEqual(boot.save.run,next,"Snapshot changed on reload");
@@ -57,7 +57,7 @@ check("All 40 production Journey games, including 15 Hanabi levels, save and res
   assert.deepEqual(restored.board,game.board,"Restored board differs on level "+(i+1));
   assert.equal(restored.moves,game.moves,"Moves changed on reload");
   assert.equal(restored.config.levelRecipeId,D.get(i).id);
-  assert.equal(restored.directorMode,"v62");
+  assert.equal(restored.directorMode,"v63");
  }
  assert.equal(hanabi,15,"Keep coverage for every currently published Hanabi level");
 });

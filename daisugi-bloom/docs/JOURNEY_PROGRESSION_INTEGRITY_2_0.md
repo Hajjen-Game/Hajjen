@@ -24,7 +24,7 @@ The receipt ledger intentionally distinguishes new work from historical payouts.
 
 ## Compatibility and safety
 - `HarmonyGoshuincho` remains a pure read-only projection and preserves standalone legacy behavior when no versioned profile ledger exists, for old compatibility tests and archival tooling.
-- No changes to Harmony Director 6.2, published 7×7 layouts, goals, refill probabilities, damage rules or star thresholds.
+- Progression migration does not modify refills, approved 7×7 layouts, goals, damage rules or star thresholds. Fresh games now use Harmony Director 6.3; saved 6.2 runs remain compatible.
 - `Save Integrity 2.0` continues to validate and recover authentic Hanabi in-flight game snapshots.
 - Malformed prior progression ledger data, if present, is copied into `journeyProgressionArchive` before creating a new ledger.
 - Existing saved stars and score maps must **not** be populated with new Journey clears; they are now genuinely historical.

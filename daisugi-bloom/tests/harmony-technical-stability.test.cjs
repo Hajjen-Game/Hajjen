@@ -175,7 +175,7 @@ check("Static page loads the save guard before the game entry point",()=>{
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
  assert(html.indexOf("harmony/save-health.js")>0);
  assert(html.indexOf("harmony/save-health.js")<html.indexOf("harmony/app.js"));
- assert(app.includes("H.bootstrap(()=>window.localStorage"));
+ assert(app.includes("H.freshJourney(()=>window.localStorage"));
  assert(app.includes("H.persist(()=>window.localStorage"));
  assert(!app.includes('JSON.parse(localStorage.getItem(KEY)'));
 });

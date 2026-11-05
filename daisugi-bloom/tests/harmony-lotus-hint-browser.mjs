@@ -29,6 +29,7 @@ try{
  await page.reload({waitUntil:"networkidle2"});
  const baseline=await page.evaluate(storageKey=>JSON.parse(localStorage.getItem(storageKey)),key);
  await page.$eval("#menuAdvanced",node=>node.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
  await page.click("#lotusPreviewButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Hanabi Crate · Preview");
  await page.click('.lotus-preview-choice[data-preview="garden-route"]');

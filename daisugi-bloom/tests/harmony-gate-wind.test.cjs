@@ -8,7 +8,7 @@ const Bamboo=require("../harmony/bamboo-paths.js");
 const Insight=require("../harmony/player-insight.js");
 const check=(name,fn)=>{fn();console.log("PASS "+name);};
 const make=(overrides={})=>new R.Game(53,null,
- {seed:20266172,directorMode:"v62",bambooPreview:true,...overrides});
+ {seed:20266172,directorMode:"v63",bambooPreview:true,...overrides});
 const snapshot=g=>JSON.parse(JSON.stringify(g.save()));
 const play=g=>g.swap(...R.validSwaps(g.board)[0]);
 check("level 54 has a scheduled bottom-row Wind but the same original puzzle",()=>{
@@ -21,7 +21,7 @@ check("level 54 has a scheduled bottom-row Wind but the same original puzzle",()
  assert.deepEqual(g.boardMechanics.blocked,[8,12,16,18,30,32,36,40]);
  assert.equal(control.windGarden,null);
  for(const level of [0,50,52,54,57,59,60])
-  assert.equal(new R.Game(level,null,{seed:20266172,directorMode:"v62"}).windGarden,null);
+  assert.equal(new R.Game(level,null,{seed:20266172,directorMode:"v63"}).windGarden,null);
 });
 check("real Wind appears every third valid move and only rotates bottom row",()=>{
  const g=make();

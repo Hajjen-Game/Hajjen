@@ -49,7 +49,7 @@ try{
  const proof=await page.evaluate(key=>{
   const s=JSON.parse(localStorage.getItem(key));
   const g=window.HarmonyPuzzleArchitect.build(window.HarmonyRules,
-   window.HarmonyJourneyAuthoredOpenings.get(4),{seed:123,recordRound:true,directorMode:"v62"});
+   window.HarmonyJourneyAuthoredOpenings.get(4),{seed:123,recordRound:true,directorMode:"v63"});
   if(!g.swap(30,31).ok||!g.swap(30,37).ok||!g.complete)throw Error("Hanabi proof not won");
   const stamp=window.HarmonyJourneyProgression.complete(s,g);
   if(!stamp.ok)throw Error("Won level rejected");

@@ -1290,66 +1290,30 @@ try{
   "Hidden legacy regression data temporarily retains pagination; Goshuincho is the visible selector");
  assert.equal(await page.evaluate(()=>getComputedStyle(document.querySelector("#levelList")).display),"none");
  assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
- // Engine Lab 2.0 compares paired Standard/Director simulations on the real phone-sized menu,
- // with a computed report that is exportable and no player-save changes.
+
+ // Harmony Intelligence now offers only current Director 6.2 comparisons.
+ // The lab must never alter the player's actual Journey or Omamori save.
  const beforeLab=await page.evaluate(()=>localStorage.getItem("japanese-harmony-puzzle-v2"));
- await page.$eval("#menuAdvanced",element=>element.open=true);
+ await page.$eval("#menuAdvanced",el=>el.open=true);
  await page.click("#devButton");
  assert.equal(await page.$eval("#modalTitle",el=>el.textContent),"Harmony Intelligence");
+ const modernModes=await page.$$eval("#engineMode option",xs=>xs.map(x=>x.value));
+ assert.deepEqual(modernModes,["compare62","compareStandard62","director62","standard"]);
  await page.select(".engine-controls select","0");
  await page.select(".engine-controls label:nth-child(2) select","2");
- await page.select("#engineMode","compare");
+ await page.select("#engineMode","compare62");
  await page.click("#modalActions button:first-child");
  await page.waitForFunction(()=>document.querySelector(".engine-lab-status")?.textContent.includes("Analysis complete"),{timeout:45000});
- assert.equal(await page.evaluate(()=>document.querySelectorAll(".engine-table tbody tr").length),16,
-  "Developer lab must show 4 bots × 4 paired engine modes");
- const comparisonUI=await page.evaluate(()=>({
-  versions:[...document.querySelectorAll(".engine-table tbody tr")]
-   .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
-  summaries:document.querySelectorAll(".engine-comparison p").length,
-  versionShown:document.querySelector(".engine-lab-output")?.textContent.includes("6.30.0")
- }));
- assert.equal(comparisonUI.versions.filter(x=>x==="Standard").length,4);
- assert.equal(comparisonUI.versions.filter(x=>x==="Director 1.0").length,4);
- assert.equal(comparisonUI.versions.filter(x=>x==="Director 2.0").length,4);
- assert.equal(comparisonUI.versions.filter(x=>x==="Pacing 3.0").length,4);
- assert.equal(comparisonUI.summaries,12);
- assert(comparisonUI.versionShown,"The report must expose the game engine version");
- // Paired A/B must be available independently of the original four-engine lab.
- await page.select("#engineMode","compare31");
- await page.click("#modalActions button:first-child");
- await page.waitForFunction(()=>{
-  const status=document.querySelector(".engine-lab-status")?.textContent;
-  return status?.includes("Analysis complete")&&
-   document.querySelectorAll(".engine-table tbody tr").length===8;
- },{timeout:45000});
- const objectiveCompare=await page.evaluate(()=>({
-  modes:[...document.querySelectorAll(".engine-table tbody tr")]
-   .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
+ const comparison=await page.evaluate(()=>({
+  engines:[...document.querySelectorAll(".engine-table tbody tr")].map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
   summaries:document.querySelectorAll(".engine-comparison p").length
  }));
- assert.equal(objectiveCompare.modes.filter(x=>x==="Pacing 3.0").length,4);
- assert.equal(objectiveCompare.modes.filter(x=>x==="Objective 3.1").length,4);
- assert.equal(objectiveCompare.summaries,4,"3.0-vs-3.1 comparison must include paired outcome rows");
- await page.select("#engineMode","compare311");
- await page.click("#modalActions button:first-child");
- await page.waitForFunction(()=>{
-  const status=document.querySelector(".engine-lab-status")?.textContent;
-  return status?.includes("Analysis complete")&&
-   document.querySelectorAll(".engine-table tbody tr").length===8;
- },{timeout:45000});
- const endgameCompare=await page.evaluate(()=>({
-  modes:[...document.querySelectorAll(".engine-table tbody tr")]
-   .map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
-  summaries:document.querySelectorAll(".engine-comparison p").length
- }));
- assert.equal(endgameCompare.modes.filter(x=>x==="Objective 3.1").length,4);
- assert.equal(endgameCompare.modes.filter(x=>x==="Endgame 3.1.1").length,4);
- assert.equal(endgameCompare.summaries,4,"3.1-vs-3.1.1 must have paired rows");
- assert.equal(await page.$eval("#modalActions button:nth-child(3)",b=>b.disabled),false,
-  "A finished report must be exportable as JSON");
- assert.equal(await page.evaluate(()=>localStorage.getItem("japanese-harmony-puzzle-v2")),beforeLab,
-  "Running diagnostics must not overwrite a real player's saved game");
+ assert.equal(comparison.engines.filter(x=>x==="Harmony Director 6.2").length,4);
+ assert.equal(comparison.engines.filter(x=>x==="Objective & Recovery 4.0").length,4);
+ assert.equal(comparison.summaries,4,"Directly compare the same seeded runs");
+ assert.equal(await page.$eval("#modalActions button:nth-child(3)",el=>el.disabled),false,
+  "Completed reports must remain exportable as JSON");
+ assert.equal(await page.evaluate(()=>localStorage.getItem("japanese-harmony-puzzle-v2")),beforeLab);
  await page.click("#modalActions button:last-child");
  assert.equal(await page.$eval("#modal",el=>el.hidden),true);
  await page.click("#continueButton");await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(page);await page.waitForSelector(".tile");

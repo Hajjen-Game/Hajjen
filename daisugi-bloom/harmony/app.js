@@ -15,7 +15,11 @@ let windGardenPreview=null; // Separate unranked Wind Garden gameplay preview.
 let bambooPreview=false; // Genuine, unranked Bamboo Paths chapter-level previews.
 let lotusPreview=null; // Genuine L61 pilot or one of four unranked Lotus route experiments.
 let journeyDraftPreview=false; // Legacy unranked design test.
-const OFFICIAL_JOURNEY_LEVELS=40; // Approved Journey 2.0 levels 1–40 are the live Goshuincho progression.
+const OFFICIAL_JOURNEY_LEVELS=40; // Only approved Puzzle Architect Journey 2.0 levels are publicly playable.
+const LAST_PUBLISHED_CHAPTER=Math.floor((OFFICIAL_JOURNEY_LEVELS-1)/G.CHAPTER_SIZE);
+// The archived level 41+ configs remain internal for research/compatibility,
+// but old chapter progress never makes those unapproved puzzles playable.
+function publishedBookState(){return {...save,unlocked:Math.min(save.unlocked,OFFICIAL_JOURNEY_LEVELS-1)};}
 const journeyDraftIntroSeen=new Set(); // Per-session lesson flags, never persisted.
 let journeyFinalePreviewRuns=0; // Repeated level-10 tests explore different reproducible boards.
 const journeyDraftPlayCounts=new Map(); // Other chapter-two drafts use reproducible but distinct retries.
@@ -32,9 +36,9 @@ let goshuinChapter=0,goshuinPage=0;
 // they can resume the newly approved Journey 2.0 puzzle layout.
 function canResumeJourneyRun(index){
  const run=save?.run;
- return Number.isInteger(index)&&run?.level===index&&!!run.data&&
-  Number(run.data.moves)>0&&!run.data.failed&&
-  (index>=OFFICIAL_JOURNEY_LEVELS||!!run.data.levelRecipe);
+ return Number.isInteger(index)&&index>=0&&index<OFFICIAL_JOURNEY_LEVELS&&
+  run?.level===index&&!!run.data&&!!run.data.levelRecipe&&
+  Number(run.data.moves)>0&&!run.data.failed;
 }
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
 let powerSelection=null,powerTargets=[],moonOfferShown=false,omamoriFortuneInvite=false;
@@ -346,7 +350,7 @@ function showLevelSelection(){
  showGoshuincho();
 }
 function renderMenu(){
- const journal=G.summary(save);
+ const journal=G.summary(publishedBookState());
  const coins=$("harmonyCoins");
  const menuWallet=E.snapshot(save);
  if(coins)coins.textContent=prettify(menuWallet.coins)+" coins";
@@ -364,9 +368,9 @@ function renderMenu(){
  // Legacy level list remains hidden for historical regression checks only.
  // Players now see Goshuincho as the sole visible level-selection surface.
  const list=$("levelList");list.replaceChildren();
- const first=menuPage*MENU_PAGE_SIZE,last=first+MENU_PAGE_SIZE;
+ const first=menuPage*MENU_PAGE_SIZE,last=Math.min(first+MENU_PAGE_SIZE,OFFICIAL_JOURNEY_LEVELS);
  for(let i=first;i<last;i++){
-  const cfg=R.levelConfig(i),allowed=i<=save.unlocked,stars=starsForLevel(i)[i]||0,record=Number(recordsForLevel(i)[i])||0;
+  const cfg=i<OFFICIAL_JOURNEY_LEVELS?window.HarmonyJourneyDrafts?.get(i)||R.levelConfig(i):R.levelConfig(i),allowed=i<=save.unlocked,stars=starsForLevel(i)[i]||0,record=Number(recordsForLevel(i)[i])||0;
   const b=document.createElement("button");
   // Visual distinctions only: previously earned stars and current unlocked
   // level are already authoritative in the same save. Never alter access.
@@ -415,15 +419,16 @@ function renderMenu(){
  const range=document.createElement("span");range.textContent="Level "+(first+1)+"–"+last;
  const next=document.createElement("button");next.className="secondary small";next.textContent="Next →";
  // Show the next chapter only when the player has progressed to it.
- next.disabled=save.unlocked<last;
+ next.disabled=save.unlocked<last||last>=OFFICIAL_JOURNEY_LEVELS;
  next.addEventListener("click",()=>{menuPage++;renderMenu();});
  pager.append(prev,range,next);
  const canResume=canResumeJourneyRun(save.run?.level)&&save.run.level<=save.unlocked;
  const playButton=$("continueButton");
- const playLabel=canResume?"Resume level "+(save.run.level+1):"Play level "+(save.unlocked+1);
+ const allPublishedComplete=save.unlocked>=OFFICIAL_JOURNEY_LEVELS;
+ const playLabel=canResume?"Resume level "+(save.run.level+1):allPublishedComplete?"Review completed Journey levels":"Play level "+(save.unlocked+1);
  playButton.setAttribute("aria-label",playLabel);
  const playText=playButton.querySelector("strong");
- if(playText)playText.textContent=canResume?"CONTINUE":"PLAY";
+ if(playText)playText.textContent=canResume?"CONTINUE":allPublishedComplete?"LEVELS":"PLAY";
  else playButton.textContent=playLabel;
 }
 // Goshuincho Primary Level Select 1.0: sole visible level selector, sharing
@@ -590,7 +595,7 @@ function offerFirstLesson(index){
 }
 function showGoshuincho(chapterIndex=null){
  if(busy||!$("gameView").hidden)return;
- const max=G.summary(save).currentChapter;
+ const max=G.summary(publishedBookState()).currentChapter;
  goshuinChapter=Math.min(max,Math.max(0,
   Number.isInteger(chapterIndex)?chapterIndex:Math.floor(save.unlocked/G.CHAPTER_SIZE)));
  goshuinPage=0;
@@ -603,7 +608,7 @@ function showGoshuincho(chapterIndex=null){
 }
 function renderGoshuincho(){
  const area=$("modalContent");area.replaceChildren();
- const summary=G.summary(save);
+ const summary=G.summary(publishedBookState());
  goshuinChapter=Math.min(summary.currentChapter,Math.max(0,goshuinChapter));
  const info=G.chapterSnapshot(save,goshuinChapter);
  const album=goshuinNode("section","washi-goshuincho");
@@ -691,7 +696,9 @@ function renderGoshuincho(){
   grid.append(tile);
  }
  album.append(grid,detail);
- const recommended=info.stamps.find(s=>canResumeJourneyRun(s.level))||info.stamps.find(s=>s.isCurrent)||
+ const recommended=info.stamps.find(s=>canResumeJourneyRun(s.level))||
+  (save.unlocked>=OFFICIAL_JOURNEY_LEVELS?info.stamps.find(s=>s.level===OFFICIAL_JOURNEY_LEVELS-1):null)||
+  info.stamps.find(s=>s.isCurrent)||
   info.stamps.find(s=>s.earned)||info.stamps[0];
  const recommendedButton=Array.from(grid.children).find(b=>Number(b.dataset.level)===recommended.number);
  if(recommendedButton)select(recommended,recommendedButton);
@@ -1199,6 +1206,13 @@ async function celebrateCollection(evt){
 function saveRun(){if(!moonMirrorPreview&&!windGardenPreview&&!bambooPreview&&!lotusPreview&&!journeyDraftPreview&&game&&!$("gameView").hidden&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooScenario=false,lotusScenario=null,journeyScenario=false){
  if(busy)return;
+ // Never enter pre-Puzzle-Architect legacy chapters through the real Journey.
+ // Explicit, unranked developer mechanic previews remain possible.
+ if(!Number.isInteger(i)||i<0||(i>=OFFICIAL_JOURNEY_LEVELS&&
+  !mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario&&!journeyScenario)){
+  toast("The next Journey chapter is not ready. Replay levels 1–40 in Goshuincho.");
+  return;
+ }
  moonMirrorPreview=mirrorScenario;windGardenPreview=windScenario;bambooPreview=!!bambooScenario;
  lotusPreview=lotusScenario;journeyDraftPreview=!!journeyScenario;
  const officialJourney=i<OFFICIAL_JOURNEY_LEVELS&&!mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario&&!journeyDraftPreview;
@@ -1228,16 +1242,14 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
    seed:journeySeed,directorMode:officialJourney&&save.playMode!=="auto"?save.playMode:"v62",recordRound:true
   }):
   new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario||useJourney?null:data,
-  useJourney?{directorMode:
-   officialJourney&&save.playMode!=="auto"?save.playMode:
-   journeyRecipe.mechanics.hanabi||journeyRecipe.mechanics.mirrors.length||journeyRecipe.mechanics.wind?"v62":i>=9?"v4":"v3",
+  useJourney?{directorMode:"v62",
    journeyDiagnostic:true,levelRecipe:journeyRecipe,
    seed:journeySeed}:mirrorScenario?
   {directorMode:"v62",moonMirrorPreview:mirrorScenario,seed:13}:
   windScenario?{directorMode:"v62",windGardenPreview:windScenario,seed:13}:
   bambooScenario?{directorMode:"v62",bambooPreview:true,seed:20261031+i*97}:
   lotusScenario?{directorMode:"v62",lotusPreview:lotusScenario,seed:20261101}:
-  data?null:{directorMode:save.playMode==="auto"?(i>=50?"v62":i>=9?"v4":"v3"):save.playMode});
+  data?null:{directorMode:save.playMode==="auto"?"v62":save.playMode});
  // Enable ordinary Wind visuals when an authored live level contains Wind.
  // The older wind-garden-preview class still controls preview-only cards.
  document.body.classList.toggle("wind-garden-active",!!game.windGarden);
@@ -3071,8 +3083,10 @@ async function playEvents(events,bondGain=null){
 }
 function unlockGoal(){
  if(moonMirrorPreview||windGardenPreview||bambooPreview||lotusPreview||journeyDraftPreview)return; // A preview can never unlock progress.
- save.unlocked=Math.max(save.unlocked,level+1);
- if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.floor(save.unlocked/MENU_PAGE_SIZE);
+ // Level 40 is the published finale. Never unlock legacy level 41.
+ save.unlocked=Math.max(save.unlocked,Math.min(level+1,OFFICIAL_JOURNEY_LEVELS));
+ if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.min(LAST_PUBLISHED_CHAPTER*G.CHAPTER_SIZE/MENU_PAGE_SIZE,
+  Math.floor((OFFICIAL_JOURNEY_LEVELS-1)/MENU_PAGE_SIZE));
  const archive=game.familyCount===4?save.fourFamilyStars:save.bestStars;
  archive[level]=Math.max(archive[level]||0,game.assisted?1:game.stars());
  // A pre-upgrade 5-family intro run may still be completed after the update.
@@ -3583,7 +3597,14 @@ function showResult(){
  }
  const actions=$("modalActions");actions.replaceChildren();
  actions.classList.toggle("victory-actions",won);
- if(won)modalButton(actions,level===49?"Enter Bamboo Paths →":level===59?"Enter Hanabi Festival →":"Next level →","primary victory-next",()=>startLevel(level+1));
+ if(won){
+  if(level===OFFICIAL_JOURNEY_LEVELS-1){
+   result?.append(make("p","victory-next-note","Journey 2.0 complete! Your next chapter is being designed."));
+   modalButton(actions,"View Goshuincho","primary victory-next",()=>{
+    game.finish();save.run=null;persist();showMenu();showGoshuincho(LAST_PUBLISHED_CHAPTER);
+   });
+  }else modalButton(actions,"Next level →","primary victory-next",()=>startLevel(level+1));
+ }
  if(canContinue)modalButton(actions,"Keep playing for a high score","secondary victory-continue",()=>{
   $("modal").hidden=true;armDecisionClock();restartIdleHint();
  });
@@ -3827,7 +3848,7 @@ function bind(){
  const explainDirectorMode=()=>{
   $("directorModeDescription").textContent=save.playMode==="v62"?
    "Director 6.2 protects legal moves and keeps objective progress possible." :
-   "Recommended. Journey 2.0 levels 1–40 use Director 6.2; levels 41–50 use 4.0; levels 51+ use 6.2. Current rounds keep their engine.";
+   "Recommended. Director 6.2 runs all 40 published Journey levels. New Puzzle Architect chapters will be added when ready. Current rounds keep their engine.";
  };
  directorChoice.value=save.playMode;
  directorChoice.addEventListener("change",event=>{
@@ -3851,7 +3872,12 @@ function bind(){
  $("lotusPreviewButton")?.addEventListener("click",showLotusPreviewChooser);
  $("journeyDraftButton")?.addEventListener("click",()=>showJourneyDraftChooser(0));
  $("journeyChapterPlaytestButton")?.addEventListener("click",()=>showJourneyDraftChooser(2));
- $("continueButton").addEventListener("click",()=>activateWashiPlay($("continueButton"),()=>{const r=canResumeJourneyRun(save.run?.level)?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);}));
+ $("continueButton").addEventListener("click",()=>activateWashiPlay($("continueButton"),()=>{
+  const r=canResumeJourneyRun(save.run?.level)?save.run:null;
+  if(r)startLevel(r.level,true);
+  else if(save.unlocked>=OFFICIAL_JOURNEY_LEVELS)showGoshuincho(LAST_PUBLISHED_CHAPTER);
+  else startLevel(save.unlocked);
+ }));
  const HOW_TO_PLAY_HTML="<div class=\"jh-help-guide\"><p class=\"jh-help-lead\">Match treasures, grow them into masterpieces and solve each board’s objective. Plan where your Fusion lands.</p><section><h3>1 · Match &amp; grow</h3><p>Swap adjacent treasures to match three or more from the same family. Their stages can differ. T- and L-shaped matches count. A match fuses at the swap’s destination and grows a treasure one stage beyond the highest one matched.</p></section><section><h3>2 · Harmony Pulse</h3><p>A stage-5 Masterpiece sends a Pulse to its four direct neighbors, upgrading treasures and affecting nearby obstacles. Set up chain reactions, but keep an eye on the level goal.</p></section><section><h3>3 · Festival mechanics</h3><p><strong>Mist:</strong> Fuse onto a misty square or hit it with Harmony Pulse to clear it. Treasures can move through Mist.</p><p><strong>Hanabi Crate:</strong> Make matches beneath a rocket to let it fall into its crate. The launch sends a vertical firework Pulse up the column.</p><p><strong>Wind Garden:</strong> A marked row shifts when its wind cycle triggers. Watch its direction before you swap.</p><p><strong>Daruma:</strong> Each stationary doll needs two separate hits from adjacent Fusions or Harmony Pulse, at most one hit per move.</p><p><strong>Sealed Stones:</strong> Each fixed stone needs four separate hits. Breaking one releases an Awakening Pulse to all eight surrounding spaces, including diagonals.</p></section><section><h3>4 · Objectives &amp; stars</h3><p>Follow the <strong>GOAL</strong> panel: some levels require several things, such as launches <em>and</em> masterpieces. Tap <strong>?</strong> beside the goal for help. Finish using fewer moves to earn up to three Goshuincho stars.</p></section><section><h3>5 · Omamori &amp; rewards</h3><p>Harmony Coins become available after level 10. Spend them on one-use Omamori boosts from the Main Menu, with up to two board boosts per level and an optional Moon rescue. Assisted wins earn one stamp; unassisted runs can earn higher star ratings and score records.</p></section></div>";
  $("helpButton").addEventListener("click",()=>modalInfo("How to Play",HOW_TO_PLAY_HTML));
  $("settingsButton").addEventListener("click",()=>{
@@ -3978,7 +4004,8 @@ window.addEventListener("online",()=>{
  }
 });
 window.HarmonyAudio?.setEnabled(save.sound);
-menuPage=Math.floor(Math.max(0,save.unlocked)/MENU_PAGE_SIZE);
+menuPage=Math.min(Math.floor((OFFICIAL_JOURNEY_LEVELS-1)/MENU_PAGE_SIZE),
+ Math.floor(Math.max(0,save.unlocked)/MENU_PAGE_SIZE));
 bind();checkAtlas();initFestivalBackground();renderMenu();
 saveBootComplete=true;notifySaveWarning();
 })();

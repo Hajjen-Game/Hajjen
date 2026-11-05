@@ -35,7 +35,7 @@ check("Seeded real-game strategies count legal moves and preserve authored state
 });
 check("Paired seeds, percentile estimates and diagnostics are explicit",()=>{
  const r=Lab.analyze(R,Architect,example,{trials:2,baseSeed:777,
-  strategies:["random","objective"],maxCandidates:4,maxTurns:4,directorMode:"v62"});
+  strategies:["random","objective"],maxCandidates:4,maxTurns:4,directorMode:"v63"});
  assert.deepEqual(r.seeds,[777,8696]);
  assert.equal(r.runs.length,4);
  assert.deepEqual(r.strategies,["random","objective"]);
@@ -48,7 +48,7 @@ check("Paired seeds, percentile estimates and diagnostics are explicit",()=>{
  assert.equal(Lab.percentile([1,3,7,9],.5),5);
  assert.equal(Lab.percentile([],.5),null);
  const repeat=Lab.analyze(R,Architect,example,{trials:2,baseSeed:777,
-  strategies:["random","objective"],maxCandidates:4,maxTurns:4,directorMode:"v62"});
+  strategies:["random","objective"],maxCandidates:4,maxTurns:4,directorMode:"v63"});
  assert.deepEqual(r,repeat,"Report must be reproducible by blueprint and base seed");
 });
 check("No result is silently described as human win rate or reachability proof",()=>{

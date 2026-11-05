@@ -20,7 +20,7 @@ try{
    const run={level,data:game.save(),backgroundId:0};
    if(!window.HarmonySaveHealth.validRun(run))throw Error("Real Journey run rejected");
    const save=JSON.parse(localStorage.getItem(key));
-   save.unlocked=level;save.run=run;
+   save.unlocked=level;save.run=run;delete save.journeyProgression;
    save.economy={version:1,coins:216,paidStars:{20:2},owned:[],equipped:null};
    save.omamoriCards={version:2,counts:{sakura:2},discovered:["sakura"],
     replay:{day:"2026-11-05",claims:0}};

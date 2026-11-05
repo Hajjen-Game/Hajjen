@@ -673,7 +673,7 @@ try{
     classified:document.querySelector("#masterpieceCollection").classList.contains("four-families")};
   });
   assert.equal(four.families,4);assert.equal(four.unique,4);assert.equal(four.cardCount,4);
-  assert.equal(four.mode,"v3");assert(four.classified&&four.hidden,"Collection bookkeeping must remain hidden");
+  assert.equal(four.mode,"v62");assert(four.classified&&four.hidden,"Collection bookkeeping must remain hidden");
   await preview.click("#pauseButton");
   await preview.click("#modalActions button:last-child");
   await clickLegacyLevel(preview,".level-tile:nth-child(11)");
@@ -953,7 +953,7 @@ try{
   assert.deepEqual(reset.level1,{type:"fusion",count:3});
   assert.equal(reset.introMist,"mist");
   assert.equal(reset.sound,false);assert.equal(reset.motion,true);
-  assert.equal(reset.playMode,"v31","User settings survive, not progress");
+  assert.equal(reset.playMode,"auto","Obsolete future engine preferences migrate to Automatic");
   await freshStart.reload({waitUntil:"networkidle2"});
   assert.equal(await freshStart.evaluate(()=>
     JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).unlocked),0,

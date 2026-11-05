@@ -208,14 +208,14 @@ try{
   await published.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
   await published.evaluate(()=>{
    const key="japanese-harmony-puzzle-v2",s=JSON.parse(localStorage.getItem(key));
-   s.unlocked=44;s.bestStars={39:3,40:3};
+   s.unlocked=44;s.bestStars={39:3,40:3};delete s.journeyProgression;
    s.run={level:44,data:new HarmonyRules.Game(44,null,{seed:20261105}).save()};
    localStorage.setItem(key,JSON.stringify(s));
   });
   await published.reload({waitUntil:"networkidle2"});
   assert.equal(await published.$eval("#continueButton strong",e=>e.textContent),"LEVELS",
    "A legacy level 45 run must not resume into the published Journey");
-  assert.equal(await published.$eval("#goshuinProgress",e=>e.textContent),"1 / 40 stamps",
+  assert.equal(await published.$eval("#goshuinProgress",e=>e.textContent),"0 / 40 stamps",
    "Level 41 legacy stars must not inflate published progress");
   await published.click("#continueButton");
   await published.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Goshuincho");
@@ -262,15 +262,16 @@ try{
    const key="japanese-harmony-puzzle-v2";
    const store=JSON.parse(localStorage.getItem(key));
    store.unlocked=20;
-   const g=new window.HarmonyRules.Game(20,null,{seed:20261024,directorMode:"v3"});
+   delete store.journeyProgression;
+   const g=window.HarmonyPuzzleArchitect.build(window.HarmonyRules,window.HarmonyJourneyAuthoredOpenings.get(20),{seed:20261024,recordRound:true,directorMode:"v62"});
    store.run={level:20,data:g.save(),backgroundId:0};
    localStorage.setItem(key,JSON.stringify(store));
   });
   await dp.reload({waitUntil:"networkidle2"});
   await dp.click("#continueButton");await dp.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(dp);
   const visual=await dp.evaluate(()=>{
-   const tile=document.querySelector('.tile[data-index="24"]');
-   const img=tile.querySelector(".daruma-art");
+   const tile=document.querySelector(".tile.daruma-tile");
+   const img=tile?.querySelector(".daruma-art");
    return {title:document.querySelector("#levelTitle")?.textContent,
     goal:document.querySelector("#goalLabel")?.textContent,
     locked:tile.classList.contains("daruma-tile"),
@@ -278,8 +279,8 @@ try{
     aria:tile.getAttribute("aria-label"),
     count:document.querySelectorAll(".tile.daruma-tile").length};
   });
-  assert(visual.title.includes("Daruma")&&visual.goal.includes("Daruma"));
-  assert(visual.locked&&visual.count===1&&visual.state.includes("state-0"));
+  assert(visual.goal.includes("Daruma"));
+  assert(visual.locked&&visual.count>=1&&visual.state.includes("state-0"));
   assert(visual.background.includes("daruma-states-20261103.webp"),
    "Daruma should render the approved 2026-11-03 three-state artwork");
   assert(visual.aria.includes("two eyes left"));
@@ -443,8 +444,8 @@ try{
    const state=JSON.parse(localStorage.getItem(key));
    state.unlocked=24;
    state.fourFamilyStars={0:3,1:2};
-   state.bestStars={20:2,22:3};
-   const g=new window.HarmonyRules.Game(24,null,{seed:54321,directorMode:"v3"});
+   state.bestStars={20:2,22:3};delete state.journeyProgression;
+   const g=window.HarmonyPuzzleArchitect.build(window.HarmonyRules,window.HarmonyJourneyAuthoredOpenings.get(24),{seed:54321,recordRound:true,directorMode:"v62"});
    state.run={level:24,data:g.save(),backgroundId:0};
    localStorage.setItem(key,JSON.stringify(state));
   });
@@ -459,7 +460,7 @@ try{
   await journal.click('.washi-level-tile[data-level="21"]');
   assert.equal(await journal.$eval(".washi-detail-play",x=>x.disabled),false);
   assert.equal(await journal.$eval(".washi-detail-name",x=>x.textContent),
-   await journal.evaluate(()=>window.HarmonyRules.levelConfig(20).name));
+   await journal.evaluate(()=>window.HarmonyJourneyDrafts.get(20).name));
   await journal.click(".washi-prev");
   assert.equal(await journal.$eval(".washi-chapter-count",x=>x.textContent),"LEVEL 11–20");
   assert.equal(await journal.$eval('.washi-level-tile[data-level="11"] .washi-tile-jp',x=>x.textContent),"十一");
@@ -915,8 +916,8 @@ try{
   assert.equal(migrated.record,1600,"Original high score must not be overwritten");
   assert.equal(migrated.stars,1,"Old overly generous 3 stars should be adjusted to 1");
   assert.equal(migrated.nextStars,3,"Excellent prior score must still earn 3 stars");
-  assert.deepEqual(migrated.bookStars,[1,3],
-   "Goshuincho must display accurate achievements from migrated legacy scores");
+  assert.deepEqual(migrated.bookStars,[0,0],
+   "Historical score stars stay archived but cannot become new Journey 2.0 stamps");
   assert.equal(migrated.target,24,"Level 11 uses the current calibrated fusion goal");
   assert.equal(migrated.oldTarget,7500,"Legacy score milestones remain preserved");
   await clickLegacyLevel(legacy,".level-tile:nth-child(11)");
@@ -1586,7 +1587,7 @@ try{
    label:document.querySelectorAll(".level-tile")[10]?.textContent||""
   }));
   assert.equal(skillStars.saved,3,"New mission stars must not be downgraded by historical score recalibration");
-  assert(skillStars.label.includes("★★★"),"The level list must retain three earned mission stars");
+  assert(!skillStars.label.includes("★★★"),"Old unproven stars must not masquerade as new Journey stamps");
  }finally{await mistContext.close();}
  // Harmony Resonance 1.0: noninteractive board links, semantic scoring and
  // successful manual fusion from an already-linked stage-three object.

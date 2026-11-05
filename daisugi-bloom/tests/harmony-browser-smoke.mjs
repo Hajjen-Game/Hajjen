@@ -198,6 +198,47 @@ try{
   assert.equal(await nav.$$eval(".washi-level-tile",e=>e.length),10);
   await nav.click(".washi-book-close");
  }finally{await bookNavContext.close();}
+
+ // A pre-Architect profile can have stars and a resumable round from level 45.
+ // Only the forty approved Journey 2.0 stages may appear in the real book.
+ const publishedContext=await browser.createBrowserContext();
+ try{
+  const published=await publishedContext.newPage();
+  await published.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  await published.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
+  await published.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2",s=JSON.parse(localStorage.getItem(key));
+   s.unlocked=44;s.bestStars={39:3,40:3};
+   s.run={level:44,data:new HarmonyRules.Game(44,null,{seed:20261105}).save()};
+   localStorage.setItem(key,JSON.stringify(s));
+  });
+  await published.reload({waitUntil:"networkidle2"});
+  assert.equal(await published.$eval("#continueButton strong",e=>e.textContent),"LEVELS",
+   "A legacy level 45 run must not resume into the published Journey");
+  assert.equal(await published.$eval("#goshuinProgress",e=>e.textContent),"1 / 40 stamps",
+   "Level 41 legacy stars must not inflate published progress");
+  await published.click("#continueButton");
+  await published.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Goshuincho");
+  assert.equal(await published.$eval(".washi-chapter-count",e=>e.textContent),"LEVEL 31–40",
+   "Goshuincho must not expose the unapproved fifth chapter");
+  assert.equal(await published.$eval(".washi-level-tile",xs=>xs.length),10);
+  await published.click('.washi-level-tile[data-level="40"]');
+  const name=await published.$eval(".washi-detail-name",e=>e.textContent);
+  assert.equal(name,"Sealed Garden Finale");
+  await published.click(".washi-detail-play");
+  await published.waitForFunction(()=>!document.querySelector("#gameView").hidden);
+  await acknowledgeTutorial(published);
+  const live=await published.evaluate(()=>{
+   const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run;
+   return {level:run.level,mode:run.data.directorMode,recipe:run.data.levelRecipe?.id};
+  });
+  assert.equal(live.level,39);
+  assert.equal(live.mode,"v62");
+  assert(live.recipe?.startsWith("journey2-"),"Level 40 uses its approved Journey recipe");
+  await published.click("#pauseButton");
+  await published.click("#modalActions .pause-main");
+  assert.equal(await published.$eval("#modal",e=>e.hidden),true);
+ }finally{await publishedContext.close();}
  // Daruma Awakening 1.0: the approved 3-state transparent WebP is shipped
  // and its actual state is rendered as a fixed tile on a narrow mobile board.
  const darumaArt=await page.evaluate(async()=>{

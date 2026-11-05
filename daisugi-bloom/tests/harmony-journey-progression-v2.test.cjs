@@ -167,7 +167,8 @@ check("Old unversioned standalone Goshuincho summaries remain read-only compatib
 check("Production wiring uses versioned achievements without rewriting historical stars",()=>{
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
  const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
- assert(app.includes("JP.initialize(save).created"));
+ assert(app.includes("const journeyMigration=JP.initialize(save);"));
+ assert(app.includes("if(journeyMigration.created)"));
  assert(app.includes("JP.complete(save,game)"));
  assert(app.includes("JP.matchesRun(run)"));
  assert(app.includes("JP.get(save,level)?.signature"));

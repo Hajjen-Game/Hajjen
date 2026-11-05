@@ -21,7 +21,7 @@ const guideInfo=()=>page.evaluate(key=>{
 },KEY);
 async function loadOfficial(index){
  await page.evaluate(({key,index})=>{
-  const data=JSON.parse(localStorage.getItem(key));data.unlocked=index;data.run=null;
+  const data=JSON.parse(localStorage.getItem(key));data.unlocked=index;data.run=null;delete data.journeyProgression;
   localStorage.setItem(key,JSON.stringify(data));
  },{key:KEY,index});
  await page.reload({waitUntil:"networkidle2"});

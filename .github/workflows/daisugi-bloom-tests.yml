@@ -8,6 +8,27 @@ on:
 permissions:
   contents: read
 jobs:
+  director63-smoke:
+    name: Harmony Director 6.3 · isolated engine and 390px mobile regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Director 6.3 · authentic multi-goal refills and historical 6.2 saves
+        run: node daisugi-bloom/tests/harmony-director-v63.test.cjs
+      - name: Director 6.3 · active player, Puzzle Architect and lab wiring
+        run: node daisugi-bloom/tests/harmony-director-v63-wiring.test.cjs
+      - name: Director 6.3 · paired bounded refill benchmark smoke
+        run: node daisugi-bloom/tools/harmony-director-v63-benchmark.cjs --trials=1 --turns=6 --candidates=3
+      - name: Install browser driver
+        run: npm install --no-save puppeteer-core@24.11.0
+      - name: Start local static server
+        run: |
+          python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/daisugi-bloom-server.log 2>&1 &
+          echo $! > /tmp/daisugi-bloom-server.pid
+      - name: Director 6.3 · 390px Goshuincho, multi-goal UI and old-save resume
+        run: node daisugi-bloom/tests/harmony-director-v63-browser.mjs
+
   rules:
     runs-on: ubuntu-latest
     steps:

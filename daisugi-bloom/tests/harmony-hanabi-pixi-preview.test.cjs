@@ -25,6 +25,8 @@ assert(app.includes("if(usedPixi){renderBoard(evt.board);return;}"),
  "GPU success must skip the classic duplicate");
 assert(app.includes("async function animateHanabiLaunch(evt)"));
 assert(src.includes('preference:"webgl"'));
+assert(src.includes("const lib=pixi;"),
+ "A successful prepare() returns boolean; GPU initialization must use the actual Pixi module");
 assert(src.includes('backgroundAlpha:0'));
 assert(src.includes('pointerEvents:"none"'));
 assert(src.includes("if(!(await ensureGraphics()))return false"),

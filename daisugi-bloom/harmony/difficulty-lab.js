@@ -123,8 +123,16 @@ function play(rules,architect,blueprint,options={}){
   settings.maxCandidates<=40,"Candidate limit must be 3–40");
  check(Number.isInteger(settings.maxTurns)&&settings.maxTurns>=1&&
   settings.maxTurns<=120,"Turn cap must be 1–120");
- const game=architect.build(rules,blueprint,{seed,directorMode:settings.directorMode});
+ // Lab 2.0 can inject the official seeded Journey start (levels 1–4, 10),
+ // which has no hand-authored blueprint. All other agents and moves remain
+ // identical to Lab 1.0; no live gameplay implementation is modified.
+ const game=typeof options.gameFactory==="function"?
+  options.gameFactory(seed,settings.directorMode):
+  architect.build(rules,blueprint,{seed,directorMode:settings.directorMode});
+ check(game&&game.config&&Array.isArray(game.board)&&game.board.length===49,
+  "Diagnostic factory must return a genuine 7x7 HarmonyRules.Game");
  const start=game.config.moves,initialLegal=rules.validSwaps(game.board).length;
+ if(typeof options.onStart==="function")options.onStart(game,{seed,initialLegal});
  const rng=rand((seed^((STRATEGIES.indexOf(strategy)+1)*0x9e3779b9))>>>0);
  const baseline=progress(game);
  let turns=0,shuffles=0,zeroLegal=0,firstProgressTurn=null,goalDrought=0,maxGoalDrought=0;
@@ -137,6 +145,11 @@ function play(rules,architect,blueprint,options={}){
   const step=game.swap(...pair,{decisionMs:2400});
   check(step.ok,"Agent attempted an illegal move");
   turns++;
+  // Read-only observer for health, objective momentum, legal mobility, and
+  // refill activity. Observers must not mutate the game or choose its moves.
+  if(typeof options.onTurn==="function")
+   options.onTurn(game,{turn:turns,events:step.events,
+    legal:rules.validSwaps(game.board).length,pair:pair.slice()});
   shuffles+=step.events.filter(x=>x.type==="shuffle").length;
   usage.wind+=step.events.filter(x=>x.type==="wind-shift").length;
   usage.mirror+=(game.mirrorResonances||0)-prior.mirror;
@@ -150,6 +163,7 @@ function play(rules,architect,blueprint,options={}){
   }else{goalDrought++;maxGoalDrought=Math.max(maxGoalDrought,goalDrought);}
  }
  const parts=progress(game);
+ if(typeof options.onFinish==="function")options.onFinish(game,{turns,seed,strategy});
  return {strategy,seed,won:game.complete,movesUsed:turns,
   moveBudget:start,movesRemaining:game.moves,
   goalCompletion:Math.round(completion(game)*1000)/1000,

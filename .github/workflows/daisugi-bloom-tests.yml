@@ -262,6 +262,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-hanabi-spread-v2-browser.mjs
       - name: Hanabi Pixi Pilot 1.0 · mobile failed-WebGL/CDN fallback
         run: node daisugi-bloom/tests/harmony-hanabi-pixi-preview-browser.mjs
+      - name: Hanabi Pixi Pilot 1.0 · real WebGL GPU render when runner supports it
+        run: node daisugi-bloom/tests/harmony-hanabi-pixi-gpu-browser.mjs
 
   mobile-mechanics-isolated:
     name: Mobile · active Omamori, Omikuji and Sealed Stones

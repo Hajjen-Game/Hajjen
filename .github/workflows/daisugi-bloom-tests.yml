@@ -103,6 +103,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-omamori-targets.test.cjs
       - name: Technical Cleanup & Stability 1.0 · corrupt saves, locked storage and replay limits
         run: node daisugi-bloom/tests/harmony-technical-stability.test.cjs
+      - name: Journey Fresh Start 3.0 · mandatory clean Director 6.3 save migration
+        run: node daisugi-bloom/tests/harmony-fresh-journey-v3.test.cjs
       - name: Save Integrity 2.0 · 40-level authentic Hanabi saves, verified resumes and recovery backup
         run: node daisugi-bloom/tests/harmony-save-integrity-v2.test.cjs
       - name: Journey Progression Integrity 2.0 · signed stamps, legacy archives and idempotent rewards

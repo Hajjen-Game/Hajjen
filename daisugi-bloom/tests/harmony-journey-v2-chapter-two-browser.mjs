@@ -62,7 +62,7 @@ try{
  assert.equal(s.crates,2);assert.equal(s.stones,4);assert.equal(s.dolls,0);
  const realMove=await page.evaluate(()=>{
   const R=window.HarmonyRules,A=window.HarmonyPuzzleArchitect,H=window.HarmonyJourneyAuthoredOpenings;
-  const g=A.build(R,H.get(19),{seed:20261102+19*197,directorMode:"v62"});
+  const g=A.build(R,H.get(19),{seed:20261102+19*197,directorMode:"v63"});
   return R.validSwaps(g.board)[0];
  });
  await page.evaluate(([a,b])=>{

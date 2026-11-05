@@ -90,7 +90,8 @@ function opportunities(board,context={},validSwaps,scan){
  // No benefit from "helping" goals already completed by the player.
  const minimum=components.length?Math.min(...components.map(x=>x.coverage)):0;
  const score=round(components.reduce((n,x)=>n+Math.min(3,x.opportunities)*.55,0)+minimum*3.5);
- return {components,active:goals.length,covered:components.filter(x=>x.opportunities>0).length,
+ return {legal:legal.length,components,active:goals.length,
+  covered:components.filter(x=>x.opportunities>0).length,
   weakest:round(minimum),multiObjectiveScore:score};
 }
 function assess(board,goal={},context={},validSwaps,scan){
@@ -98,41 +99,69 @@ function assess(board,goal={},context={},validSwaps,scan){
  return {...base,...opportunities(board,context,validSwaps,scan)};
 }
 function choose(baseline,alternatives,scoreFn,context,validSwaps,scan){
+ // Delegate the structural safety search to unchanged Director 6.2. Reuse
+ // its health assessments rather than recalculating the same expensive
+ // multi-step geometry for every candidate.
  const previous=D62.choose(baseline,alternatives,scoreFn,context,validSwaps,scan);
- const original=assess(baseline.board,context.goal,context,validSwaps,scan);
- if(original.active<2)return {...previous,
-  health:original,chosenHealth:assess(previous.selected.board,context.goal,context,validSwaps,scan)};
- const underPressure=original.legal<=2;
- let selected=previous.selected,choice=assess(selected.board,context.goal,context,validSwaps,scan);
+ const originalOp=opportunities(baseline.board,context,validSwaps,scan);
+ const original={...previous.health,...originalOp};
+ const selectedOp=previous.selected===baseline?originalOp:
+  opportunities(previous.selected.board,context,validSwaps,scan);
+ let selected=previous.selected,choice={...previous.chosenHealth,...selectedOp};
  let reason=previous.reason;
- // Safety rule: a better-looking primary objective cannot erase viable
- // routes to a second unfinished goal just to create prettier refills.
- if(!underPressure&&(choice.covered<original.covered&&choice.weakest<original.weakest-.2)){
+ const afterglow=Math.min(2,Math.max(0,Number(context.afterglowRemaining)||0));
+ if(original.active<2){
+  // A consumed Omamori can still have a small, genuine two-move Afterglow
+  // on single-goal levels, without modifying the ordinary 6.2 decisions.
+  if(!afterglow)return {...previous,health:original,chosenHealth:choice};
+  const basePace=scoreFn(baseline.board);
+  let bestPace=scoreFn(selected.board);
+  for(const candidate of alternatives){
+   if(candidate.autoMatches!==0||candidate===selected)continue;
+   const legal=validSwaps(candidate.board).length;
+   if(legal<Math.max(3,original.legal)||legal<choice.legal)continue;
+   const pace=scoreFn(candidate.board);
+   if(pace<=Math.max(bestPace,basePace)+1.25)continue;
+   const h=D62.assess(candidate.board,context.goal,context,validSwaps,scan);
+   if(h.mobilityRisk>original.mobilityRisk||
+     h.objectiveMomentum<original.objectiveMomentum-1)continue;
+   selected=candidate;choice={...h,...opportunities(candidate.board,context,validSwaps,scan)};
+   bestPace=pace;reason="omamori-afterglow-opportunity";
+  }
+  return {selected,health:original,chosenHealth:choice,reason};
+ }
+ const underPressure=original.legal<=2;
+ // Do not let a primary-objective improvement erase the weakest unfinished
+ // secondary goal in the default 6.2 result, unless near a true deadlock.
+ if(!underPressure&&choice.covered<original.covered&&
+    choice.weakest<original.weakest-.2){
   selected=baseline;choice=original;reason="retain-multi-goal-routes";
  }
  let bestValue=choice.multiObjectiveScore+Math.min(10,choice.legal)*.18;
  const basePace=scoreFn(baseline.board);
+ const threshold=Math.max(.65,1-afterglow*.16);
+ // Cheap first-pass objective screen, then full 6.2 structural safety only
+ // for candidates with a real improvement. This avoids 2–3× overhead
+ // from repeating the entire 6.1/6.2 assessment on every alternative.
  for(const candidate of alternatives){
-  if(candidate.autoMatches!==0)continue;
-  const m=assess(candidate.board,context.goal,context,validSwaps,scan);
+  if(candidate.autoMatches!==0||candidate===selected)continue;
+  const m=opportunities(candidate.board,context,validSwaps,scan);
   if(!m.legal||m.legal<Math.max(1,original.legal-(underPressure?0:1)))continue;
-  if(m.mobilityRisk>original.mobilityRisk+2)continue;
+  if(!underPressure&&original.legal<=8&&m.legal<original.legal)continue;
   if(!underPressure&&m.covered<original.covered)continue;
   if(m.weakest<original.weakest-.13)continue;
-  if(scoreFn(candidate.board)<basePace-(underPressure?6:4))continue;
   const improvedCoverage=m.covered>original.covered;
   const improvedWeakest=m.weakest>=original.weakest+.16;
   const improvement=m.multiObjectiveScore-original.multiObjectiveScore;
   if(!improvedCoverage&&!improvedWeakest&&improvement<1.5)continue;
   const value=m.multiObjectiveScore+Math.min(10,m.legal)*.18;
-  // Short, bounded Omamori Afterglow: slightly lowers the improvement
-  // threshold, never relaxes board safety or manufactures progress.
-  const afterglow=Math.min(2,Math.max(0,Number(context.afterglowRemaining)||0));
-  if(value>bestValue+Math.max(.65,1.0-afterglow*.16)){
-   selected=candidate;choice=m;bestValue=value;
-   reason=improvedCoverage?"multi-objective-coverage":
-    improvedWeakest?"weakest-goal-mobility":"multi-objective-opportunity";
-  }
+  if(value<=bestValue+threshold)continue;
+  if(scoreFn(candidate.board)<basePace-(underPressure?6:4))continue;
+  const structural=D62.assess(candidate.board,context.goal,context,validSwaps,scan);
+  if(structural.mobilityRisk>original.mobilityRisk+2)continue;
+  selected=candidate;choice={...structural,...m};bestValue=value;
+  reason=improvedCoverage?"multi-objective-coverage":
+   improvedWeakest?"weakest-goal-mobility":"multi-objective-opportunity";
  }
  return {selected,health:original,chosenHealth:choice,reason};
 }

@@ -35,13 +35,15 @@ check("Fifteen complete fixed openings occupy the correct 7×7 fixtures",()=>{
   }
  }
 });
-check("Level 5 retains its proven two-swap real Hanabi setup",()=>{
+check("Level 5 teaches Hanabi with a centered rocket and an authentic two-swap delivery",()=>{
  const g=physical(4);
- assert.equal(g.board[29]?.family,"lotusSeed");
- assert.equal(g.board[43]?.family,"hanabiCrate");
- const first=g.swap(30,31);assert.equal(first.ok,true);
+ assert.equal(g.board[31]?.family,"lotusSeed");
+ assert.equal(31%7,3,"First rocket must occupy the exact center column");
+ assert.equal(g.board[45]?.family,"hanabiCrate");
+ assert.equal(45%7,3,"First crate must occupy the exact center column");
+ const first=g.swap(32,33);assert.equal(first.ok,true);
  assert.equal(g.lotusDelivered,0);
- const second=g.swap(30,37);assert.equal(second.ok,true);
+ const second=g.swap(32,39);assert.equal(second.ok,true);
  assert(g.lotusDelivered>=1);
 });
 check("Level 11 retains a deliberate Wind-aligned three-in-a-row",()=>{

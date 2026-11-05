@@ -19,7 +19,7 @@ try{
   await journey.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
   await journey.evaluate(key=>{
    const s=JSON.parse(localStorage.getItem(key));
-   s.unlocked=11;s.run=null;
+   s.unlocked=11;s.run=null;delete s.journeyProgression;
    s.economy={version:1,coins:36,owned:[],paidStars:{10:3},equipped:null};
    s.omamoriCards={version:2,counts:{},discovered:[],replay:{day:"",claims:0}};
    delete s.omamoriEverAffordable;delete s.omamoriIntroSeen;

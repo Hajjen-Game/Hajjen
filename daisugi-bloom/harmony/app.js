@@ -3599,7 +3599,7 @@ function showResult(){
  actions.classList.toggle("victory-actions",won);
  if(won){
   if(level===OFFICIAL_JOURNEY_LEVELS-1){
-   panel.append(make("p","victory-next-note","Journey 2.0 complete! Your next chapter is being designed."));
+   panel.querySelector(".victory-result")?.append(make("p","victory-next-note","Journey 2.0 complete! Your next chapter is being designed."));
    modalButton(actions,"View Goshuincho","primary victory-next",()=>{
     game.finish();save.run=null;persist();showMenu();showGoshuincho(LAST_PUBLISHED_CHAPTER);
    });

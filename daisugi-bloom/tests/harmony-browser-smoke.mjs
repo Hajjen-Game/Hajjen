@@ -233,7 +233,7 @@ try{
    return {level:run.level,mode:run.data.directorMode,recipe:run.data.levelRecipe?.id};
   });
   assert.equal(live.level,39);
-  assert.equal(live.mode,"v62");
+  assert.equal(live.mode,"v63");
   assert(live.recipe?.startsWith("journey2-"),"Level 40 uses its approved Journey recipe");
   await published.click("#pauseButton");
   await published.click("#modalActions .pause-main");
@@ -263,7 +263,7 @@ try{
    const store=JSON.parse(localStorage.getItem(key));
    store.unlocked=20;
    delete store.journeyProgression;
-   const g=window.HarmonyPuzzleArchitect.build(window.HarmonyRules,window.HarmonyJourneyAuthoredOpenings.get(20),{seed:20261024,recordRound:true,directorMode:"v62"});
+   const g=window.HarmonyPuzzleArchitect.build(window.HarmonyRules,window.HarmonyJourneyAuthoredOpenings.get(20),{seed:20261024,recordRound:true,directorMode:"v63"});
    store.run={level:20,data:g.save(),backgroundId:0};
    localStorage.setItem(key,JSON.stringify(store));
   });
@@ -445,7 +445,7 @@ try{
    state.unlocked=24;delete state.journeyProgression;
    state.fourFamilyStars={0:3,1:2};
    state.bestStars={20:2,22:3};delete state.journeyProgression;
-   const g=window.HarmonyPuzzleArchitect.build(window.HarmonyRules,window.HarmonyJourneyAuthoredOpenings.get(24),{seed:54321,recordRound:true,directorMode:"v62"});
+   const g=window.HarmonyPuzzleArchitect.build(window.HarmonyRules,window.HarmonyJourneyAuthoredOpenings.get(24),{seed:54321,recordRound:true,directorMode:"v63"});
    state.run={level:24,data:g.save(),backgroundId:0};
    localStorage.setItem(key,JSON.stringify(state));
   });
@@ -635,7 +635,7 @@ try{
   await demo.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await demo.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
   const options=await demo.$$eval("#gameDirectorMode option",xs=>xs.map(x=>x.value));
-  assert.deepEqual(options,["auto","v62"]);
+  assert.deepEqual(options,["auto","v63"]);
   assert.equal(await demo.$eval("#gameDirectorMode",el=>el.value),"auto");
   await clickLegacyLevel(demo,".level-tile:first-child");
   const active=await demo.evaluate(()=>{
@@ -643,17 +643,17 @@ try{
    return {mode:run.data.directorMode,recipe:run.data.levelRecipe?.id,
     label:document.querySelector("#paceStatus")?.textContent};
   });
-  assert.equal(active.mode,"v62","Approved Journey levels use Director 6.2");
+  assert.equal(active.mode,"v63","Approved Journey levels use Director 6.3");
   assert(active.recipe?.startsWith("journey2-"));
-  assert(active.label.includes("MOBILITY 6.2"));
+  assert(active.label.includes("OBJECTIVES 6.3"));
   await demo.click("#pauseButton");
   await demo.click("#modalActions .pause-main");
   await demo.$eval("#menuAdvanced",x=>x.open=true);
-  await demo.select("#gameDirectorMode","v62");
+  await demo.select("#gameDirectorMode","v63");
   await demo.reload({waitUntil:"networkidle2"});
-  assert.equal(await demo.$eval("#gameDirectorMode",x=>x.value),"v62");
+  assert.equal(await demo.$eval("#gameDirectorMode",x=>x.value),"v63");
   await clickLegacyLevel(demo,".level-tile:first-child");
-  assert.equal(await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode),"v62");
+  assert.equal(await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode),"v63");
   await demo.click("#pauseButton");
   await demo.click("#modalActions .pause-main");
   await demo.$eval("#menuAdvanced",x=>x.open=true);
@@ -669,7 +669,7 @@ try{
    return {mode:run.data.directorMode,level:run.level};
   });
   assert.equal(tenth.level,9);
-  assert.equal(tenth.mode,"v62","The published Journey level 10 also uses Director 6.2");
+  assert.equal(tenth.mode,"v63","The published Journey level 10 also uses Director 6.3");
  }finally{await directorContext.close();}
  // Fixed family progression: 4 in stages 1–10 and 5 from stage 11.
  // Old five-family saved runs and BOTH historical score archives survive.
@@ -715,7 +715,7 @@ try{
     classified:document.querySelector("#masterpieceCollection").classList.contains("four-families")};
   });
   assert.equal(four.families,4);assert.equal(four.unique,4);assert.equal(four.cardCount,4);
-  assert.equal(four.mode,"v62");assert(four.classified&&four.hidden,"Collection bookkeeping must remain hidden");
+  assert.equal(four.mode,"v63");assert(four.classified&&four.hidden,"Collection bookkeeping must remain hidden");
   await preview.click("#pauseButton");
   await preview.click("#modalActions button:last-child");
   await clickLegacyLevel(preview,".level-tile:nth-child(11)");
@@ -1333,24 +1333,24 @@ try{
  assert.equal(await page.evaluate(()=>getComputedStyle(document.querySelector("#levelList")).display),"none");
  assert.equal(await page.$eval("#continueButton",x=>x.disabled),false);
 
- // Harmony Intelligence now offers only current Director 6.2 comparisons.
+ // Harmony Intelligence now offers only current Director 6.3 comparisons.
  // The lab must never alter the player's actual Journey or Omamori save.
  const beforeLab=await page.evaluate(()=>localStorage.getItem("japanese-harmony-puzzle-v2"));
  await page.$eval("#menuAdvanced",el=>el.open=true);
  await page.click("#devButton");
  assert.equal(await page.$eval("#modalTitle",el=>el.textContent),"Harmony Intelligence");
  const modernModes=await page.$$eval("#engineMode option",xs=>xs.map(x=>x.value));
- assert.deepEqual(modernModes,["compare62","compareStandard62","director62","standard"]);
+ assert.deepEqual(modernModes,["compare63","compareStandard63","director63","standard"]);
  await page.select(".engine-controls select","0");
  await page.select(".engine-controls label:nth-child(2) select","2");
- await page.select("#engineMode","compare62");
+ await page.select("#engineMode","compare63");
  await page.click("#modalActions button:first-child");
  await page.waitForFunction(()=>document.querySelector(".engine-lab-status")?.textContent.includes("Analysis complete"),{timeout:45000});
  const comparison=await page.evaluate(()=>({
   engines:[...document.querySelectorAll(".engine-table tbody tr")].map(tr=>tr.querySelector("td:nth-child(2)")?.textContent),
   summaries:document.querySelectorAll(".engine-comparison p").length
  }));
- assert.equal(comparison.engines.filter(x=>x==="Harmony Director 6.2").length,4);
+ assert.equal(comparison.engines.filter(x=>x==="Harmony Director 6.3").length,4);
  assert.equal(comparison.engines.filter(x=>x==="Objective & Recovery 4.0").length,4);
  assert.equal(comparison.summaries,4,"Directly compare the same seeded runs");
  assert.equal(await page.$eval("#modalActions button:nth-child(3)",el=>el.disabled),false,

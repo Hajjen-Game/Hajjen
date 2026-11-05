@@ -92,6 +92,9 @@ try{
  },KEY);
  await page.reload({waitUntil:"networkidle2"});
  const baseline=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
+ // A first normal persist may add the empty Journey reward ledger to an old save.
+ // Keep verifying the entire original save; any real reward change must fail.
+ baseline.economy.journeyPaidStars ??= {};
  // The row is visibly windy before any move, and still windy afterward.
  await openPreview("breeze");
  const wind=await checkAmbient(3,"right");

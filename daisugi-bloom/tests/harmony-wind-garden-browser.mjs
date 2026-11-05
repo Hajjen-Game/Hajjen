@@ -26,6 +26,7 @@ async function waitSettled(remaining){
 async function enter(key){
  await page.reload({waitUntil:"networkidle2"});
  await page.$eval("#menuAdvanced",x=>x.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
  await page.click("#windGardenPreviewButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Wind Garden 1.0");
  const choices=await page.$$eval(".wind-preview-choice",nodes=>nodes.map(x=>x.dataset.preview));

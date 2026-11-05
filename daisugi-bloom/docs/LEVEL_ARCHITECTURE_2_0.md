@@ -32,7 +32,7 @@ const R = require("./harmony/rules.js");
 const compiled = J.compile(80, R.levelConfig(80), recipe);
 // Opt-in diagnostic in the real engine, never triggered by ordinary play:
 const game = new R.Game(80, null, {
-  seed: 421, directorMode: "v62",
+  seed: 421, directorMode: "v63",
   journeyDiagnostic: true, levelRecipe: recipe
 });
 const save = game.save();
@@ -43,7 +43,7 @@ const resumed = new R.Game(80, save, { fastRestore: true });
 The `starPar` is a design target; its actual suitability must be calibrated with players and seeded simulations. The `difficulty` tier is design metadata, not a Director instruction or automatic move adjustment.
 
 ## Design and safety rules
-1. **No auto-activation:** no authored v2 recipes are published for the current live Journey. The `levelRecipe` option requires explicit `journeyDiagnostic: true` on a *fresh* Game. Ordinary UI and saved games have no route into that mode.
+1. **Published Journey:** approved Journey 2.0 recipes are now active for levels 1–40 in Goshuincho. The `levelRecipe` option requires explicit `journeyDiagnostic: true` on a *fresh* Game. Ordinary UI and saved games have no route into that mode.
 2. **Versioned snapshots:** diagnostic save data contains `levelArchitectureVersion: 2` and an immutable, normalized recipe. Restoring uses that original recipe rather than applying a new level layout. Existing saves contain no new fields.
 3. **Coordinated opening:** custom recipes install Hanabi rockets/crates, Daruma, Stones and Moon Mirror fixtures together on every seeded opening retry; valid legal moves and lack of automatic matches are checked. No blockers vanish on reroll.
 4. **Overlap constraints:** Bamboo holes, fixed blockers, mirrors, cargo and crates cannot occupy the same cell. Mirror directions must point onto the board. Wind shifts cannot contain fixed fixtures. Hanabi must have a reachable matching crate in its column. Existing Hanabi authored opener slots are reserved until its generalized opening builder arrives.

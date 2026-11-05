@@ -4007,4 +4007,6 @@ menuPage=Math.min(Math.floor((OFFICIAL_JOURNEY_LEVELS-1)/MENU_PAGE_SIZE),
  Math.floor(JP.unlocked(save)/MENU_PAGE_SIZE));
 bind();checkAtlas();initFestivalBackground();renderMenu();
 saveBootComplete=true;notifySaveWarning();
+if(saveBootstrap.resetApplied&&saveStorageWritable)
+ toast("A new Journey begins! All progress starts from level 1 with Director 6.3.",6500);
 })();

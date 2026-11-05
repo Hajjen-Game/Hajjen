@@ -201,7 +201,7 @@ async function play(evt,{rectFor,onCharge,onLaunch,onBurst,onReveal}={}){
     update(p,target.point.x+dx*v,target.point.y+dy*v+unit*.18*v*v,1.2,v>0?visible:0);
    }
   });
-  app.renderer.render(app.stage);
+  app.render(); // Match the working PixiJS 8 render loop from arena3v3.
   return t<TIMING.total;
  };
  try{

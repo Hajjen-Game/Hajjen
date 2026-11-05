@@ -42,10 +42,10 @@ function canResumeJourneyRun(index){
 }
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
 let powerSelection=null,powerTargets=[],moonOfferShown=false,omamoriFortuneInvite=false;
-const PLAY_MODES={auto:"Automatic · Recommended",v62:"Harmony Director 6.2",v61:"Reachability 6.1",v6:"Board Health 6.0",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
+const PLAY_MODES={auto:"Automatic · Recommended",v63:"Harmony Director 6.3",v62:"Harmony Director 6.2 (legacy)",v61:"Reachability 6.1",v6:"Board Health 6.0",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
 // Legacy engines remain compatible with saved rounds, but the player-facing
 // picker only lists the supported modern choices.
-const VISIBLE_PLAY_MODES=new Set(["auto","v62"]);
+const VISIBLE_PLAY_MODES=new Set(["auto","v63"]);
 const PACE_PHASE_NAMES={build:"BUILD",flow:"FLOW",relax:"CALM",recovery:"RECOVERY"};
 let decisionReadyAt=0;
 function armDecisionClock(){decisionReadyAt=performance.now();}
@@ -53,10 +53,10 @@ function disarmDecisionClock(){decisionReadyAt=0;}
 function updatePaceLabel(){
  const node=$("paceStatus");if(!node||!game)return;
  node.textContent=(game.familyCount===4?"4 FAMILIES · ":"5 FAMILIES · ")+
-  (game.directorMode==="v62"?"MOBILITY 6.2 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v61"?"REACHABILITY 6.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v6"?"BOARD HEALTH 6.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v4"?"OBJECTIVE 4.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v311"?"ENDGAME 3.1.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v31"?"OBJECTIVE 3.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v3"?
+  (game.directorMode==="v63"?"OBJECTIVES 6.3 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v62"?"MOBILITY 6.2 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v61"?"REACHABILITY 6.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v6"?"BOARD HEALTH 6.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v4"?"OBJECTIVE 4.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v311"?"ENDGAME 3.1.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v31"?"OBJECTIVE 3.1 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):game.directorMode==="v3"?
   "PACING 3.0 · "+(PACE_PHASE_NAMES[game.pacePhase]||"BUILD"):
   game.directorMode==="v2"?"OPPORTUNITY 2.0":"STANDARD");
- node.title=game.directorMode==="v62"?"Director 6.2 favors resilient move choices and goal momentum using fair refills.":game.directorMode==="v61"?"Director 6.1 evaluates real swaps, paths toward stage-five masterpieces and safe strategic mobility.":game.directorMode==="v6"?"Director 6.0 scores real legal moves, obstacle geometry and mechanistic routes; shuffles are a last resort.":game.directorMode==="v4"?"Director 4.0 evaluates reachable goals, partial hits on Daruma and Sealed Stones, and fair refills.":game.directorMode==="v311"?"Endgame 3.1.1 evaluates the last 1–3 Mist tiles with the same fair refills as 3.1.":
+ node.title=game.directorMode==="v63"?"Director 6.3 balances unfinished goals and mobility using fair refills.":game.directorMode==="v62"?"Director 6.2 favors resilient move choices and goal momentum using fair refills.":game.directorMode==="v61"?"Director 6.1 evaluates real swaps, paths toward stage-five masterpieces and safe strategic mobility.":game.directorMode==="v6"?"Director 6.0 scores real legal moves, obstacle geometry and mechanistic routes; shuffles are a last resort.":game.directorMode==="v4"?"Director 4.0 evaluates reachable goals, partial hits on Daruma and Sealed Stones, and fair refills.":game.directorMode==="v311"?"Endgame 3.1.1 evaluates the last 1–3 Mist tiles with the same fair refills as 3.1.":
   game.directorMode==="v31"?"Objective Awareness considers goals, fusion placement and Pulse while using fair refills.":
   game.directorMode==="v3"?"3.0 builds on Opportunity 2.0 and selects fair refills.":"Refill mode for this run";
  // Preserve diagnostics for accessibility / game testing but remove the
@@ -1252,17 +1252,17 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
   new R.Game(i,data):
   authoredOpening?
   window.HarmonyPuzzleArchitect.build(R,authoredOpening,{
-   seed:journeySeed,directorMode:officialJourney&&save.playMode!=="auto"?save.playMode:"v62",recordRound:true
+   seed:journeySeed,directorMode:officialJourney&&save.playMode!=="auto"?save.playMode:"v63",recordRound:true
   }):
   new R.Game(i,mirrorScenario||windScenario||bambooScenario||lotusScenario||useJourney?null:data,
-  useJourney?{directorMode:"v62",
+  useJourney?{directorMode:"v63",
    journeyDiagnostic:true,levelRecipe:journeyRecipe,
    seed:journeySeed}:mirrorScenario?
-  {directorMode:"v62",moonMirrorPreview:mirrorScenario,seed:13}:
-  windScenario?{directorMode:"v62",windGardenPreview:windScenario,seed:13}:
-  bambooScenario?{directorMode:"v62",bambooPreview:true,seed:20261031+i*97}:
-  lotusScenario?{directorMode:"v62",lotusPreview:lotusScenario,seed:20261101}:
-  data?null:{directorMode:save.playMode==="auto"?"v62":save.playMode});
+  {directorMode:"v63",moonMirrorPreview:mirrorScenario,seed:13}:
+  windScenario?{directorMode:"v63",windGardenPreview:windScenario,seed:13}:
+  bambooScenario?{directorMode:"v63",bambooPreview:true,seed:20261031+i*97}:
+  lotusScenario?{directorMode:"v63",lotusPreview:lotusScenario,seed:20261101}:
+  data?null:{directorMode:save.playMode==="auto"?"v63":save.playMode});
  // Enable ordinary Wind visuals when an authored live level contains Wind.
  // The older wind-garden-preview class still controls preview-only cards.
  document.body.classList.toggle("wind-garden-active",!!game.windGarden);
@@ -3657,7 +3657,7 @@ function openEngineLab(){
  $("modalTitle").textContent="Harmony Intelligence";
  const content=$("modalContent");content.replaceChildren();
  const hint=document.createElement("p");
- hint.textContent="Test the current Harmony Director 6.2 against Director 4.0 or the original refill system on the same Journey 2.0 puzzles. Simulations never change your levels, stamps, coins or saves.";
+ hint.textContent="Compare current Harmony Director 6.3 with the previous 6.2 and Standard engines on the same Journey 2.0 puzzles. Simulations never change levels, stamps, coins or saves.";
  content.append(hint);
  if(!api){
   const missing=document.createElement("p");missing.textContent="Could not load diagnostics. Reload the page.";
@@ -3688,17 +3688,17 @@ function openEngineLab(){
  const seedInput=document.createElement("input");seedInput.type="number";seedInput.min="0";seedInput.max="4294967295";seedInput.step="1";seedInput.value="20261022";field("Base seed (reproducible)",seedInput);
  const engineMode=document.createElement("select");engineMode.id="engineMode";
  for(const [value,label] of [
-  ["compare62","Compare Director 4.0 vs Harmony Director 6.2"],
-  ["compareStandard62","Compare Standard vs Harmony Director 6.2"],
-  ["director62","Only Harmony Director 6.2"],
+  ["compare63","Compare Director 6.2 vs Harmony Director 6.3"],
+  ["compareStandard63","Compare Standard vs Harmony Director 6.3"],
+  ["director63","Only Harmony Director 6.3"],
   ["standard","Only Standard (no Director)"]
  ]){
   const opt=document.createElement("option");opt.value=value;opt.textContent=label;engineMode.append(opt);
  }
- engineMode.value="compare62";field("Game engine",engineMode);
+ engineMode.value="compare63";field("Game engine",engineMode);
  const scopeNote=document.createElement("p");
  scopeNote.className="engine-lab-note";
- scopeNote.textContent="The approved Journey 2.0 boards use Director 6.2 in normal play. These results come from automated test players, not human success rates.";
+ scopeNote.textContent="All 40 published Journey 2.0 levels use Director 6.3 on new runs. The previous 6.2 remains available for compatibility and comparison. Bot results are not human success rates.";
 
  content.append(controls,scopeNote);
  const status=document.createElement("p");status.className="engine-lab-status";status.setAttribute("role","status");
@@ -3786,8 +3786,8 @@ function openEngineLab(){
   const job={cancelled:false};engineLabRun=job;latest=null;
   runButton.disabled=true;cancelButton.disabled=false;exportButton.disabled=true;output.replaceChildren();
   levels.disabled=true;samples.disabled=true;seedInput.disabled=true;engineMode.disabled=true;
-  const modes=engineMode.value==="compare62"?["director4","director62"]:
-   engineMode.value==="compareStandard62"?["standard","director62"]:[engineMode.value];
+  const modes=engineMode.value==="compare63"?["director62","director63"]:
+   engineMode.value==="compareStandard63"?["standard","director63"]:[engineMode.value];
   const scope=levels.value.startsWith("chapter-")?Number(levels.value.slice(8)):-1;
   const selectedLevels=scope>=0&&scope<4?
    Array.from({length:10},(_,i)=>scope*10+i):[Number(levels.value)];
@@ -3844,9 +3844,9 @@ function openGameMenu(){
 function bind(){
  const directorChoice=$("gameDirectorMode");
  const explainDirectorMode=()=>{
-  $("directorModeDescription").textContent=save.playMode==="v62"?
-   "Director 6.2 protects legal moves and keeps objective progress possible." :
-   "Recommended. Director 6.2 runs all 40 published Journey levels. New Puzzle Architect chapters will be added when ready. Current rounds keep their engine.";
+  $("directorModeDescription").textContent=save.playMode==="v63"?
+   "Director 6.3 protects legal moves while balancing unfinished objectives." :
+   "Recommended. Director 6.3 runs all 40 published Journey levels. Previously saved rounds keep their Director. Future Puzzle Architect chapters will be added when ready.";
  };
  directorChoice.value=save.playMode;
  directorChoice.addEventListener("change",event=>{

@@ -21,6 +21,7 @@ try{
  assert.equal(initial.mode,"v62");assert(initial.legal&&initial.ok&&initial.settled);
  assert.equal(initial.restored,"v62");
  await page.$eval("#menuAdvanced",node=>node.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
  await page.click("#bambooPreviewButton");
  await page.waitForSelector('.bamboo-preview-choice[data-level="54"]');
  await page.click('.bamboo-preview-choice[data-level="54"]');

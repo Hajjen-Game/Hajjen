@@ -59,6 +59,10 @@ function initialize(save){
  const e=save.economy;
  e.coins=saneCoins(e.coins);
  if(!e.paidStars||typeof e.paidStars!=="object"||Array.isArray(e.paidStars))e.paidStars={};
+ // Separate receipt book for actual clears of signed Journey 2.0 recipes.
+ // Never retroactively issue a credit for a migrated legacy achievement.
+ if(!e.journeyPaidStars||typeof e.journeyPaidStars!=="object"||Array.isArray(e.journeyPaidStars))
+  e.journeyPaidStars={};
  if(!Array.isArray(e.owned))e.owned=[];
  e.owned=[...new Set(e.owned.filter(id=>typeof id==="string"&&(!!byId(id)||["kiri","daruma","akari"].includes(id))))];
  if(e.equipped!==null&&!e.owned.includes(e.equipped))e.equipped=null;
@@ -69,14 +73,20 @@ function snapshot(save){
  return {coins:e.coins,owned:[...e.owned],equipped:e.equipped,
   ownedCount:e.owned.length,totalItems:CATALOG.length};
 }
-function claim(save,index,rating){
+function claim(save,index,rating,journeyReceipt=null){
  if(!Number.isInteger(index)||index<0||index>=1000000)return {delta:0,reason:"invalid-level"};
  const {account:e}=initialize(save);
  if(index<FIRST_COIN_LEVEL_INDEX)return {delta:0,reason:"tutorial-no-coins",coins:e.coins};
- const earned=stars(rating),previous=stars(e.paidStars[index]);
+ // An explicit receipt identifies the COMPLETED new Puzzle Architect puzzle.
+ // Historical level-number payments and current recipe payments cannot
+ // consume one another. Neither wallet balance nor legacy paidStars is reset.
+ const current=typeof journeyReceipt==="string"&&/^journey2-[a-z0-9-]+@[0-9a-f]{8}$/.test(journeyReceipt);
+ const paid=current?e.journeyPaidStars:e.paidStars;
+ const key=current?journeyReceipt:index;
+ const earned=stars(rating),previous=stars(paid[key]);
  if(earned===0||earned<=previous)return {delta:0,reason:"already-paid"};
  const delta=Math.max(0,earnedValue(earned)-earnedValue(previous));
- e.paidStars[index]=earned;
+ paid[key]=earned;
  e.coins=Math.min(MAX_COINS,e.coins+delta);
  return {delta,reason:previous?"better-stars":"first-clear",coins:e.coins};
 }

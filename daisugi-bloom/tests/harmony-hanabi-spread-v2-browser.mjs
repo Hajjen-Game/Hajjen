@@ -66,6 +66,7 @@ try{
   window.__hanabiSpreadVfx={
    mainMarks:[],sideMarks:[],sideSparks:[],audio:[],
    impactBlooms:[],impactParticles:[],mainGlitterSeen:false,burstAfterMain:false,
+   apexFlowers:[],apexRays:0,apexFlash:false,sideAfterApex:false,
    fullBoardAtLaunch:null,initialMarkedBeforeGlitter:false,
    firstMainParticle:false
   };
@@ -90,9 +91,18 @@ try{
      }
      w.mainGlitterSeen=true;
     }
+    if(n.classList.contains("hanabi-apex-flower"))
+     w.apexFlowers.push({
+      duration:n.getAnimations()[0]?.effect?.getTiming()?.duration??0,
+      width:parseFloat(getComputedStyle(n).width)||0,
+      cellWidth:document.querySelector(".tile")?.getBoundingClientRect().width||1
+     });
+    if(n.classList.contains("hanabi-apex-ray"))w.apexRays++;
+    if(n.classList.contains("hanabi-apex-flash"))w.apexFlash=true;
     if(n.classList.contains("hanabi-spread-glow")){
      w.sideMarks.push(Number(n.dataset.to));
      w.burstAfterMain=w.burstAfterMain||w.mainGlitterSeen;
+     w.sideAfterApex=w.sideAfterApex||w.apexFlowers.length===1;
     }
     if(n.classList.contains("hanabi-spread-spark"))
      w.sideSparks.push(Number(n.dataset.to));
@@ -156,6 +166,16 @@ try{
  assert(result.vfx.initialMarkedBeforeGlitter);
  assert.equal(result.vfx.fullBoardAtLaunch,true,"No fireworks may launch into blank tiles");
  assert(result.vfx.burstAfterMain);
+ assert.equal(result.vfx.apexFlowers.length,1,
+  "The firework MUST have a single unmistakable explosion at the top");
+ assert(result.vfx.apexFlowers[0].duration>=950,
+  "The main explosion must outlive the grid charge and not flicker away");
+ assert(result.vfx.apexFlowers[0].width>=result.vfx.apexFlowers[0].cellWidth*2.7,
+  "The apex blossom should span almost three full game tiles");
+ assert(result.vfx.apexRays>=12&&result.vfx.apexFlash,
+  "A radial, colorful spark shower must erupt from the actual apex");
+ assert(result.vfx.sideAfterApex,
+  "The three real side impacts must arrive AFTER the explosion starts");
  assert(result.vfx.sideSparks.length>=6,"Fan sparks must actually fly to upgraded neighbors");
  assert(result.vfx.sideSparks.every(to=>result.targets.includes(to)));
  const mainBloom=result.vfx.impactBlooms.filter(x=>x.kind==="column"),

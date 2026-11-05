@@ -2320,11 +2320,18 @@ async function animateHanabiLaunch(evt){
     ignition.style.width=Math.round(unit*2.6)+"px";
     ignition.style.height=Math.round(unit*2.6)+"px";
     sparks.push(ignition);
-    await animateNode(ignition,[
-     {transform:"translate(-50%,-50%) scale(.18)",opacity:0,offset:0},
-     {transform:"translate(-50%,-50%) scale(.95)",opacity:.86,offset:.30},
-     {transform:"translate(-50%,-50%) scale(1.22)",opacity:0,offset:1}
-    ],245,{easing:"ease-out"});
+    try{
+     await animateNode(ignition,[
+      {transform:"translate(-50%,-50%) scale(.18)",opacity:0,offset:0},
+      {transform:"translate(-50%,-50%) scale(.95)",opacity:.86,offset:.30},
+      {transform:"translate(-50%,-50%) scale(1.22)",opacity:0,offset:1}
+     ],245,{easing:"ease-out"});
+    }finally{
+     // animateNode cancels WAAPI's fill on completion. Without immediate
+     // removal the flash reappears at its top-left anchor (down/right of
+     // the real apex), fully opaque until the entire shower completes.
+     ignition.remove();
+    }
     // Reveal genuine upgraded sprites while the explosion is still in
     // full bloom. Append target blooms after renderBoard replaced the old
     // treasure sprites so their effects remain attached and visible.

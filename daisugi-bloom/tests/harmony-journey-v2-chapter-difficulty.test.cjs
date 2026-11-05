@@ -1,6 +1,6 @@
 "use strict";
 // First-pass automated playtest, not an estimate of human win rate.
-// The real Rules.Game, refills and Director 6.2 are used for every move.
+// The real Rules.Game, refills and Director 6.3 are used for every move.
 const assert=require("node:assert/strict");
 const R=require("../harmony/rules.js");
 const A=require("../harmony/puzzle-architect.js");
@@ -13,7 +13,7 @@ for(let i=20;i<40;i++){
  for(const seed of [20261104+i*197]){
   // Small deterministic smoke probe; extended spatial analysis belongs in the offline lab.
   for(const strategy of ["objective"]){
-   const run=Lab.play(R,A,bp,{seed,strategy,directorMode:"v62",maxCandidates:3,maxTurns:D.get(i).moves});
+   const run=Lab.play(R,A,bp,{seed,strategy,directorMode:"v63",maxCandidates:3,maxTurns:D.get(i).moves});
    rows.push(run);totalRuns++;
    if(i===26)console.log("LEVEL27 agent "+strategy+": "+JSON.stringify({
     won:run.won,movesUsed:run.movesUsed,goalParts:run.goalParts,
@@ -30,7 +30,7 @@ for(let i=20;i<40;i++){
  const summary=Lab.summarize(rows);
  if(i===26){
   const spatial=Lab.play(R,A,bp,{seed:20261104+i*197,strategy:"spatial",
-   directorMode:"v62",maxCandidates:3,maxTurns:D.get(i).moves});
+   directorMode:"v63",maxCandidates:3,maxTurns:D.get(i).moves});
   console.log("LEVEL27 spatial: "+JSON.stringify({won:spatial.won,
    movesUsed:spatial.movesUsed,goalParts:spatial.goalParts,
    rocketsDelivered:spatial.usage.hanabi,masterpieces:spatial.usage.masterpieces}));

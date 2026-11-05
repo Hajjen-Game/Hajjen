@@ -25,7 +25,7 @@ try{
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden);
  const data=await page.evaluate(()=>{
   const g=new HarmonyRules.Game(53,null,{seed:20261031+53*97,
-   directorMode:"v62",bambooPreview:true});
+   directorMode:"v63",bambooPreview:true});
   const pairs=[],moves=[];
   for(let i=0;i<3;i++){
    const p=HarmonyRules.validSwaps(g.board)[0];

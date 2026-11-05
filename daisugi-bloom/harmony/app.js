@@ -17,8 +17,8 @@ let lotusPreview=null; // Genuine L61 pilot or one of four unranked Lotus route 
 let journeyDraftPreview=false; // Legacy unranked design test.
 const OFFICIAL_JOURNEY_LEVELS=40; // Only approved Puzzle Architect Journey 2.0 levels are publicly playable.
 const LAST_PUBLISHED_CHAPTER=Math.floor((OFFICIAL_JOURNEY_LEVELS-1)/G.CHAPTER_SIZE);
-// The archived level 41+ configs remain internal for research/compatibility,
-// but old chapter progress never makes those unapproved puzzles playable.
+// The only public Journey levels are approved Puzzle Architect recipes 1–40.
+// Older generated configurations remain internal engine fixtures only.
 function publishedBookState(){return {...save,unlocked:Math.min(JP.unlocked(save),OFFICIAL_JOURNEY_LEVELS-1)};}
 const journeyDraftIntroSeen=new Set(); // Per-session lesson flags, never persisted.
 let journeyFinalePreviewRuns=0; // Repeated level-10 tests explore different reproducible boards.
@@ -379,7 +379,9 @@ function renderMenu(){
  const list=$("levelList");list.replaceChildren();
  const first=menuPage*MENU_PAGE_SIZE,last=Math.min(first+MENU_PAGE_SIZE,OFFICIAL_JOURNEY_LEVELS);
  for(let i=first;i<last;i++){
-  const cfg=i<OFFICIAL_JOURNEY_LEVELS?window.HarmonyJourneyDrafts?.get(i)||R.levelConfig(i):R.levelConfig(i),allowed=i<=JP.unlocked(save),stars=JP.stars(save,i),record=JP.score(save,i);
+  const cfg=window.HarmonyJourneyDrafts?.get(i);
+  if(!cfg)throw Error("Missing approved Puzzle Architect recipe "+(i+1));
+  const allowed=i<=JP.unlocked(save),stars=JP.stars(save,i),record=JP.score(save,i);
   const b=document.createElement("button");
   // Visual distinctions only: previously earned stars and current unlocked
   // level are already authoritative in the same save. Never alter access.
@@ -1217,11 +1219,9 @@ async function celebrateCollection(evt){
 function saveRun(){if(!moonMirrorPreview&&!windGardenPreview&&!bambooPreview&&!lotusPreview&&!journeyDraftPreview&&game&&!$("gameView").hidden&&game.moves>0&&!game.failed){save.run={level,data:{...game.save(),assisted:!!game.assisted,blessingUses:game.blessingUses||0,koiRerollAt:game.koiRerollAt??-1,koiRerolls:game.koiRerolls||0,replayCoinClaimed:!!game.replayCoinClaimed},backgroundId:currentBackground};persist();}}
 function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooScenario=false,lotusScenario=null,journeyScenario=false){
  if(busy)return;
- // Never enter pre-Puzzle-Architect legacy chapters through the real Journey.
- // Explicit, unranked developer mechanic previews remain possible.
- if(!Number.isInteger(i)||i<0||(i>=OFFICIAL_JOURNEY_LEVELS&&
-  !mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario&&!journeyScenario)){
-  toast("The next Journey chapter is not ready. Replay levels 1–40 in Goshuincho.");
+ // No old generated levels 41+ may start, even through an archived preview.
+ if(!Number.isInteger(i)||i<0||i>=OFFICIAL_JOURNEY_LEVELS){
+  toast("This level has not been built with Puzzle Architect.");
   return;
  }
  moonMirrorPreview=mirrorScenario;windGardenPreview=windScenario;bambooPreview=!!bambooScenario;
@@ -1229,7 +1229,10 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  const officialJourney=i<OFFICIAL_JOURNEY_LEVELS&&!mirrorScenario&&!windScenario&&!bambooScenario&&!lotusScenario&&!journeyDraftPreview;
  const useJourney=officialJourney||journeyDraftPreview;
  const journeyRecipe=useJourney?window.HarmonyJourneyDrafts?.get(i):null;
- if(journeyDraftPreview&&!journeyRecipe)throw Error("Unknown Journey 2.0 draft");
+ if(useJourney&&!journeyRecipe){
+  toast("This level has no approved Puzzle Architect recipe.");
+  return;
+ }
  // Approved reference puzzles use exact 7x7 openings across Journey 1–40;
  // tutorial 1–4 and the Koi finale retain their seeded openings.
  const authoredOpening=useJourney&&!(officialJourney&&resume&&save.run?.level===i&&save.run?.data?.levelRecipe)?window.HarmonyJourneyAuthoredOpenings?.get(i):null;

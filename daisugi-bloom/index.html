@@ -14,7 +14,7 @@
  <link rel="stylesheet" href="./harmony/mobile-game.css?v=6.52.0-stone-hit-polish">
  <link rel="stylesheet" href="./harmony/washi-zen.css?v=1.6.0-background-v2">
  <link rel="stylesheet" href="./harmony/gameplay-washi.css?v=6.51.1-brown-tile-restore-20261103">
- <link rel="stylesheet" href="./harmony/washi-dialogs.css?v=2.1.0-omamori-glow">
+ <link rel="stylesheet" href="./harmony/washi-dialogs.css?v=2.2.0-settings-cleanup">
  <link rel="stylesheet" href="./harmony/gameplay-washi-panel-art.css?v=3.5.0-score-left-moves-right">
  <link rel="stylesheet" href="./harmony/english-visual-hierarchy.css?v=1.0.0-en-ja">
  <link rel="stylesheet" href="./harmony/onboarding.css?v=2.3.0-text-alignment">
@@ -71,7 +71,7 @@
  <script defer src="./harmony/performance.js?v=5.6.0"></script>
  <script defer src="./harmony/audio.js?v=4.3.0-daruma-awakening"></script>
   <script defer src="./harmony/victory-celebration.js?v=2.2.0-hanabi-encore"></script>
- <script defer src="./harmony/diagnostics.js?v=6.51.0-en"></script>
+ <script defer src="./harmony/diagnostics.js?v=7.0.0-director-62"></script>
  <script defer src="./harmony/goshuincho.js?v=hanabi-1.0.0"></script>
  <script defer src="./harmony/economy.js?v=6.2.0-post-tutorial"></script>
   <script defer src="./harmony/spirits.js?v=6.51.0-en"></script>
@@ -80,7 +80,7 @@
  <script defer src="./harmony/omamori-targets.js?v=1.2.0-lotus-safe"></script>
  <script defer src="./harmony/fortune.js?v=6.52.0-post-tutorial"></script>
  <script defer src="./harmony/save-health.js?v=1.6.0-round-telemetry"></script>
- <script defer src="./harmony/app.js?v=7.8.0-journey-21-40-live"></script>
+ <script defer src="./harmony/app.js?v=7.9.0-settings-cleanup"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -116,19 +116,25 @@
         <summary>Game Settings</summary>
         <label for="gameDirectorMode">GAME ENGINE</label>
         <select id="gameDirectorMode" aria-label="Choose Director mode for new games">
-          <option value="auto" selected>Automatic · 6.2 from level 51</option>
-          <option value="v62">Harmony Director 6.2 · Proactive Mobility</option>
-          <option value="v61">Harmony Director 6.1 · Reachability</option>
-          <option value="v6">Harmony Director 6.0 · Board Health</option>
-          <option value="v4">Harmony Director 4.0 · test</option>
-          <option value="v3">Harmony Pacing Director 3.0</option>
-          <option value="v31">Objective Awareness Director 3.1</option>
-          <option value="v311">Endgame Objective Awareness 3.1.1</option>
-          <option value="v2">Opportunity Director 2.0</option>
-          <option value="standard">Standard</option>
+          <option value="auto" selected>Automatic · Recommended</option>
+          <option value="v62">Harmony Director 6.2</option>
         </select>
-        <p id="directorModeDescription">3.0 on levels 1–9 and 4.0 from level 10.</p>
-        <div class="washi-advanced-actions"><button id="helpButton" type="button">How to Play</button><button id="devButton" type="button" aria-label="Game Dev Motorlab">Game Dev · Motorlab</button><button id="moonMirrorPreviewButton" type="button">Moon Mirrors · Preview</button><button id="windGardenPreviewButton" type="button">Wind Garden · Preview</button><button id="bambooPreviewButton" type="button">Bamboo Paths · Preview</button><button id="lotusPreviewButton" type="button">Hanabi Crate · Preview</button><button id="journeyDraftButton" type="button">Journey 2.0 · Levels 1–20 Preview</button><button id="journeyChapterPlaytestButton" type="button">Journey 2.0 · Levels 21–40 Playtest</button></div>
+        <p id="directorModeDescription">Recommended. Journey 2.0 levels 1–40 use Director 6.2; levels 41–50 use 4.0; levels 51+ use 6.2.</p>
+        <div class="washi-advanced-actions jh-settings-core">
+          <button id="helpButton" type="button">How to Play</button>
+          <button id="devButton" type="button" aria-label="Open Harmony Intelligence">Game Dev · Intelligence</button>
+        </div>
+        <details class="jh-dev-previews" id="devPreviews">
+          <summary>Experimental previews &amp; archived tests</summary>
+          <div class="washi-advanced-actions">
+            <button id="moonMirrorPreviewButton" type="button">Moon Mirrors · Preview</button>
+            <button id="windGardenPreviewButton" type="button">Wind Garden · Preview</button>
+            <button id="bambooPreviewButton" type="button">Bamboo Paths · Preview</button>
+            <button id="lotusPreviewButton" type="button">Hanabi Crate · Preview</button>
+            <button id="journeyDraftButton" type="button">Journey 1–20 · Archived test</button>
+            <button id="journeyChapterPlaytestButton" type="button">Journey 21–40 · Archived test</button>
+          </div>
+        </details>
       </details>
     </div>
     <div id="levelList" class="level-list" hidden inert aria-hidden="true"></div>

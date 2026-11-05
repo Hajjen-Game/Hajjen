@@ -23,7 +23,7 @@ const DESIGNS=[
   moves:30,starPar:9,difficulty:"gentle",goal:{type:"mist",count:3},mechanics:{mist:[17,24,31]}},
  {id:"first-firework",name:"First Firework",subtitle:"Learn the launch",
   intro:"Open the column below the rocket with a real Fusion. The rocket falls into its wooden crate and sends a Hanabi Pulse upwards.",
-  moves:30,starPar:13,difficulty:"gentle",goal:{type:"lotus",count:1},mechanics:{hanabi:{starts:[29],crates:[43]}}},
+  moves:30,starPar:13,difficulty:"gentle",goal:{type:"lotus",count:1},mechanics:{hanabi:{starts:[31],crates:[45]}}},
  {id:"long-fuse",name:"Long Fuse",subtitle:"The rocket starts at the top",
   intro:"This time the rocket begins in the top row. Plan several Fusions in its column to guide it all the way to the crate. There is no shortcut at the bottom.",
   moves:36,starPar:20,difficulty:"standard",goal:{type:"lotus",count:1},mechanics:{hanabi:{starts:[1],crates:[43]}}},

@@ -31,12 +31,19 @@ function setMode(value){
 function isEnabled(){return choice==="pixi"&&!failed;}
 async function prepare(){
  if(!isEnabled())return false;
- if(!modulePromise)modulePromise=import(MODULE_URL).then(lib=>{
-  pixi=lib;return lib;
- }).catch(error=>{
-  failed=true;lastReason="PixiJS could not load";console.warn("[Hanabi Pixi Preview] Dynamic import failed; classic VFX retained.",error);
-  return null;
- });
+ if(!modulePromise){
+  let timer=0;
+  const deadline=new Promise((_,reject)=>{
+   timer=setTimeout(()=>reject(new Error("PixiJS preview CDN deadline (5 seconds)")),5000);
+  });
+  modulePromise=Promise.race([import(MODULE_URL),deadline]).then(lib=>{
+   pixi=lib;return lib;
+  }).catch(error=>{
+   failed=true;lastReason="PixiJS could not load";
+   console.warn("[Hanabi Pixi Preview] Dynamic import failed; classic VFX retained.",error);
+   return null;
+  }).finally(()=>clearTimeout(timer));
+ }
  return !!(await modulePromise);
 }
 function viewRect(){

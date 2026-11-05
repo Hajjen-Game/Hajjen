@@ -5,13 +5,13 @@
 Make Game Settings, Harmony Intelligence and the in-level Game Menu smaller and understandable to players. Preserve the approved Journey 2.0 puzzles (including levels 21–40), gameplay rules, saves, Omamori and visual assets.
 
 ## Game Settings
-- Player-facing Game Engine choices are **Automatic (Recommended)** and **Harmony Director 6.2**.
+- Player-facing Game Engine choices are **Automatic (Recommended)** and **Harmony Director 6.3**.
 - Internal legacy Director modes remain available to restore saved rounds and run historical diagnostics. Outdated future-start preferences migrate to Automatic, without rewriting the Director of an in-progress saved round.
 - Game Dev · Intelligence is accessible from Main Menu → Game Settings only.
 - Mechanic previews and old Journey draft playtests are preserved in a separately folded **Experimental previews & archived tests** section. They are not the official level selector.
 
 ## Harmony Intelligence
-- Simplified to Director 4.0 vs 6.2, Standard vs 6.2, 6.2 alone and Standard alone.
+- Simplified to Director 6.2 vs 6.3, Standard vs 6.3, 6.3 alone and Standard alone.
 - For levels 1–40, the benchmark now uses the actual Journey 2.0 recipe and hand-authored 7×7 opening when one exists. Simulated trials are separate from real player progress.
 - Historical modes remain in the diagnostic engine for reproducible archival tests, but are not presented as the normal UI.
 
@@ -29,3 +29,5 @@ Make Game Settings, Harmony Intelligence and the in-level Game Menu smaller and 
 - Goshuincho Node regression coverage checks new game settings, folded previews, pause actions and current help topics.
 - Relevant mobile browser tests were updated for the new Main Menu navigation and folded test previews.
 - Full browser/CI success is **not** asserted until the workflows report results.
+
+> Update 2026-11-05: The current UI now selects 6.3; old 6.2 is retained only for running saves and Intelligence comparison. See [Director 6.3](HARMONY_DIRECTOR_6_3.md).

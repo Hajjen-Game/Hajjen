@@ -102,7 +102,7 @@ try{
   await clean.evaluate(()=>{
    const key="japanese-harmony-puzzle-v2";
    const data=JSON.parse(localStorage.getItem(key));
-   data.unlocked=44;data.bestStars={40:3};data.fourFamilyStars={0:3};
+   data.unlocked=44;delete data.journeyProgression;data.bestStars={40:3};data.fourFamilyStars={0:3};
    data.economy={version:1,coins:900,paidStars:{0:3},owned:["koi"],equipped:null};
    data.omamoriCards={version:2,counts:{koi:2},discovered:["koi"],replay:{day:"2026-10-29",claims:4}};
    data.run={level:44,data:new window.HarmonyRules.Game(44,null,{seed:20261030}).save()};
@@ -442,7 +442,7 @@ try{
   await journal.evaluate(()=>{
    const key="japanese-harmony-puzzle-v2";
    const state=JSON.parse(localStorage.getItem(key));
-   state.unlocked=24;
+   state.unlocked=24;delete state.journeyProgression;
    state.fourFamilyStars={0:3,1:2};
    state.bestStars={20:2,22:3};delete state.journeyProgression;
    const g=window.HarmonyPuzzleArchitect.build(window.HarmonyRules,window.HarmonyJourneyAuthoredOpenings.get(24),{seed:54321,recordRound:true,directorMode:"v62"});
@@ -522,7 +522,7 @@ try{
   await art.evaluate(()=>{
    const key="japanese-harmony-puzzle-v2";
    const old=JSON.parse(localStorage.getItem(key));
-   old.unlocked=7;old.run=null;
+   old.unlocked=7;delete old.journeyProgression;old.run=null;
    localStorage.setItem(key,JSON.stringify(old));
   });
   await art.reload({waitUntil:"networkidle2"});
@@ -571,7 +571,7 @@ try{
   assert.equal(koiOffline.atlas,false);
   await offline.evaluate(()=>{
    const key="japanese-harmony-puzzle-v2",save=JSON.parse(localStorage.getItem(key));
-   save.unlocked=7;save.run=null;localStorage.setItem(key,JSON.stringify(save));
+   save.unlocked=7;delete save.journeyProgression;save.run=null;localStorage.setItem(key,JSON.stringify(save));
   });
   await offline.reload({waitUntil:"domcontentloaded"});
   await offline.waitForFunction(()=>document.documentElement.classList.contains("has-maneki-stage1"),{timeout:18000});
@@ -660,7 +660,7 @@ try{
   await demo.select("#gameDirectorMode","auto");
   await demo.evaluate(()=>{
    const key="japanese-harmony-puzzle-v2",state=JSON.parse(localStorage.getItem(key));
-   state.unlocked=9;state.run=null;localStorage.setItem(key,JSON.stringify(state));
+   state.unlocked=9;delete state.journeyProgression;state.run=null;localStorage.setItem(key,JSON.stringify(state));
   });
   await demo.reload({waitUntil:"networkidle2"});
   await clickLegacyLevel(demo,".level-tile:nth-child(10)");
@@ -934,7 +934,7 @@ try{
   await legacy.evaluate(()=>{
    const key="japanese-harmony-puzzle-v2";
    const old=JSON.parse(localStorage.getItem(key));
-   old.unlocked=14;
+   old.unlocked=14;delete old.journeyProgression;
    Object.assign(old.bestScores,{"10":4710,"11":7900,"12":9125,"13":9388});
    Object.assign(old.bestStars,{"10":1,"11":1,"12":1,"13":1});
    old.run=null;
@@ -1576,7 +1576,7 @@ try{
   await mistPage.evaluate(()=>{
    const key="japanese-harmony-puzzle-v2";
    const save=JSON.parse(localStorage.getItem(key));
-   save.run=null;save.objectiveArchiveVersion=2;save.unlocked=11;
+   save.run=null;save.objectiveArchiveVersion=2;save.unlocked=11;delete save.journeyProgression;
    save.bestScores={...save.bestScores,"10":2400};
    save.bestStars={...save.bestStars,"10":3};
    localStorage.setItem(key,JSON.stringify(save));
@@ -2143,7 +2143,7 @@ try{
  // introduction. Both should use the approved transparent atlas.
  await page.evaluate(()=>{
   const key="japanese-harmony-puzzle-v2",save=JSON.parse(localStorage.getItem(key)||"{}");
-  save.unlocked=4;save.run=null;localStorage.setItem(key,JSON.stringify(save));
+  save.unlocked=4;delete save.journeyProgression;save.run=null;localStorage.setItem(key,JSON.stringify(save));
  });
  await page.reload({waitUntil:"networkidle2"});
  await page.waitForFunction(()=>document.documentElement.classList.contains("has-new-atlas")&&
@@ -2196,7 +2196,7 @@ try{
    g.board[pair[1]].stage=2;
    g.stage3=g.target()-1;
    const s=JSON.parse(localStorage.getItem(key));
-   s.unlocked=11;s.bestStars={10:3};s.run={level:11,data:g.save()};
+   s.unlocked=11;delete s.journeyProgression;s.bestStars={10:3};s.run={level:11,data:g.save()};
    s.economy={version:1,coins:36,paidStars:{10:3},owned:[],equipped:null};
    s.omamoriCards={version:2,counts:{},discovered:[],replay:{day:"",claims:0}};
    localStorage.setItem(key,JSON.stringify(s));
@@ -2255,7 +2255,7 @@ try{
    g.moves=15;
    const key="japanese-harmony-puzzle-v2";
    const store=JSON.parse(localStorage.getItem(key));
-   store.unlocked=0;store.run={level:0,data:g.save()};
+   store.unlocked=0;delete store.journeyProgression;store.run={level:0,data:g.save()};
    store.sound=false;store.reduceMotion=true;
    localStorage.setItem(key,JSON.stringify(store));
   });
@@ -2399,7 +2399,7 @@ try{
    const g=new window.HarmonyRules.Game(0,null,{seed:990051,directorMode:"v4"});
    g.moves=1;
    const key="japanese-harmony-puzzle-v2",state=JSON.parse(localStorage.getItem(key));
-   state.run={level:0,data:g.save()};state.unlocked=0;
+   state.run={level:0,data:g.save()};state.unlocked=0;delete state.journeyProgression;
    state.sound=false;state.reduceMotion=true;
    localStorage.setItem(key,JSON.stringify(state));
   });

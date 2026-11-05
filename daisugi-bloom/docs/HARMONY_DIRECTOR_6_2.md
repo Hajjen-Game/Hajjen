@@ -1,4 +1,6 @@
 # Harmony Director 6.2 — Proactive Deadlock Prevention & Objective Momentum
+
+> **Historical documentation:** 6.2 is superseded by [Harmony Director 6.3](HARMONY_DIRECTOR_6_3.md) for all newly started published Journey levels. This document describes the preserved legacy 6.2 engine for saved runs and comparative benchmarks.
 **1 November 2026** · separate new-run engine mode
 
 ## Evidence and motivation

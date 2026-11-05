@@ -696,6 +696,8 @@ try{
     preservedOld:saved.bestScores["0"],journeyRecord:saved.bestScores["10"],
     introBookStars:window.HarmonyGoshuincho.archivedStars(saved,0),
     journeyBookStars:window.HarmonyGoshuincho.archivedStars(saved,10),
+    introLegacyStars:window.HarmonyGoshuincho.archivedStars({...saved,journeyProgression:undefined},0),
+    journeyLegacyStars:window.HarmonyGoshuincho.archivedStars({...saved,journeyProgression:undefined},10),
     migration:saved.familyProgressionVersion};
   });
   assert.equal(records.introRecord,9000);
@@ -703,8 +705,10 @@ try{
   assert.equal(records.preservedOld,9000);
   assert.equal(records.journeyRecord,7200);
   assert.equal(records.migration,1);
-  assert.equal(records.introBookStars,3,"Goshuincho should use the migrated intro stars");
-  assert.equal(records.journeyBookStars,1,"Journey stamp should keep its legacy score achievement");
+  assert.equal(records.introBookStars,0,"Unsigned historic results must not become new Journey stamps");
+  assert.equal(records.journeyBookStars,0,"Legacy scores must not forge current Puzzle Architect stamps");
+  assert.equal(records.introLegacyStars,3,"Legacy stars remain readable in archived projection");
+  assert.equal(records.journeyLegacyStars,1,"Historical fifth-family star remains archived");
   await clickLegacyLevel(preview,".level-tile:first-child");
   const four=await preview.evaluate(()=>{
    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;

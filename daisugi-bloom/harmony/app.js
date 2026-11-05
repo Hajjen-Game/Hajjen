@@ -3085,8 +3085,8 @@ function unlockGoal(){
  if(moonMirrorPreview||windGardenPreview||bambooPreview||lotusPreview||journeyDraftPreview)return; // A preview can never unlock progress.
  // Level 40 is the published finale. Never unlock legacy level 41.
  save.unlocked=Math.max(save.unlocked,Math.min(level+1,OFFICIAL_JOURNEY_LEVELS));
- if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.min(LAST_PUBLISHED_CHAPTER*G.CHAPTER_SIZE/MENU_PAGE_SIZE,
-  Math.floor((OFFICIAL_JOURNEY_LEVELS-1)/MENU_PAGE_SIZE));
+ if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.min(Math.floor((OFFICIAL_JOURNEY_LEVELS-1)/MENU_PAGE_SIZE),
+  Math.floor(save.unlocked/MENU_PAGE_SIZE));
  const archive=game.familyCount===4?save.fourFamilyStars:save.bestStars;
  archive[level]=Math.max(archive[level]||0,game.assisted?1:game.stars());
  // A pre-upgrade 5-family intro run may still be completed after the update.
@@ -3599,7 +3599,7 @@ function showResult(){
  actions.classList.toggle("victory-actions",won);
  if(won){
   if(level===OFFICIAL_JOURNEY_LEVELS-1){
-   result?.append(make("p","victory-next-note","Journey 2.0 complete! Your next chapter is being designed."));
+   panel.append(make("p","victory-next-note","Journey 2.0 complete! Your next chapter is being designed."));
    modalButton(actions,"View Goshuincho","primary victory-next",()=>{
     game.finish();save.run=null;persist();showMenu();showGoshuincho(LAST_PUBLISHED_CHAPTER);
    });

@@ -1,7 +1,7 @@
 /* Japanese Harmony · first playable mobile-first application */
 (function(){
 "use strict";
-const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,H=window.HarmonySaveHealth,T=window.HarmonyTutorialHelp,OT=window.HarmonyOmamoriTargets,I=window.HarmonyPlayerInsight,J=window.HarmonyPlayerIntent,$=id=>document.getElementById(id);
+const R=window.HarmonyRules,G=window.HarmonyGoshuincho,E=window.HarmonyEconomy,F=window.HarmonyFortune,S=window.HarmonySpirits,P=window.HarmonyPowers,C=window.HarmonyCards,O=window.HarmonyOnboarding,Q=window.HarmonyObjectiveFeedback,H=window.HarmonySaveHealth,T=window.HarmonyTutorialHelp,OT=window.HarmonyOmamoriTargets,I=window.HarmonyPlayerInsight,J=window.HarmonyPlayerIntent,JP=window.HarmonyJourneyProgression,$=id=>document.getElementById(id);
 const names={sakura:"Sakura",lantern:"Lantern",koi:"Koi",fan:"Fan",bonsai:"Bonsai",sushi:"Sushi",maneki:"Maneki-neko",origami:"Origami",ryu:"Ryu Dragon"};
 const symbols={sakura:"🌸",lantern:"🏮",koi:"🐟",fan:"🪭",bonsai:"🌳",sushi:"🍣",maneki:"🐱",origami:"🕊️",ryu:"🐉"};
 const familyRows={sakura:0,lantern:1,koi:2,fan:3,bonsai:4};
@@ -19,7 +19,7 @@ const OFFICIAL_JOURNEY_LEVELS=40; // Only approved Puzzle Architect Journey 2.0 
 const LAST_PUBLISHED_CHAPTER=Math.floor((OFFICIAL_JOURNEY_LEVELS-1)/G.CHAPTER_SIZE);
 // The archived level 41+ configs remain internal for research/compatibility,
 // but old chapter progress never makes those unapproved puzzles playable.
-function publishedBookState(){return {...save,unlocked:Math.min(save.unlocked,OFFICIAL_JOURNEY_LEVELS-1)};}
+function publishedBookState(){return {...save,unlocked:Math.min(JP.unlocked(save),OFFICIAL_JOURNEY_LEVELS-1)};}
 const journeyDraftIntroSeen=new Set(); // Per-session lesson flags, never persisted.
 let journeyFinalePreviewRuns=0; // Repeated level-10 tests explore different reproducible boards.
 const journeyDraftPlayCounts=new Map(); // Other chapter-two drafts use reproducible but distinct retries.
@@ -37,7 +37,7 @@ let goshuinChapter=0,goshuinPage=0;
 function canResumeJourneyRun(index){
  const run=save?.run;
  return Number.isInteger(index)&&index>=0&&index<OFFICIAL_JOURNEY_LEVELS&&
-  run?.level===index&&!!run.data&&!!run.data.levelRecipe&&
+  run?.level===index&&!!run.data&&JP.matchesRun(run)&&
   Number(run.data.moves)>0&&!run.data.failed;
 }
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
@@ -220,10 +220,12 @@ if(save.familyProgressionVersion!==1){
  save.familyProgressionVersion=1;
  migratedScores=true;
 }
-function activeRecords(){return game?.familyCount===4?save.fourFamilyScores:save.bestScores;}
-function recordsForLevel(index){return R.levelFamilyCount(index)===4?save.fourFamilyScores:save.bestScores;}
-function starsForLevel(index){return R.levelFamilyCount(index)===4?save.fourFamilyStars:save.bestStars;}
-
+// The pre-Journey score maps remain permanent historical archives.
+ // Current records/stamps come only from the verified recipe ledger.
+function activeRecords(){return JP.scores(save);}
+function recordsForLevel(){return JP.scores(save);}
+function starsForLevel(){return Object.fromEntries(Array.from({length:OFFICIAL_JOURNEY_LEVELS},(_,i)=>[i,JP.stars(save,i)]));}
+if(JP.initialize(save).created)migratedScores=true;
 if(migratedScores)persist();
 // One-time credit for already earned levels; never reward historical records again.
 const economyStart=E.initialize(save);
@@ -374,7 +376,7 @@ function renderMenu(){
  const list=$("levelList");list.replaceChildren();
  const first=menuPage*MENU_PAGE_SIZE,last=Math.min(first+MENU_PAGE_SIZE,OFFICIAL_JOURNEY_LEVELS);
  for(let i=first;i<last;i++){
-  const cfg=i<OFFICIAL_JOURNEY_LEVELS?window.HarmonyJourneyDrafts?.get(i)||R.levelConfig(i):R.levelConfig(i),allowed=i<=save.unlocked,stars=starsForLevel(i)[i]||0,record=Number(recordsForLevel(i)[i])||0;
+  const cfg=i<OFFICIAL_JOURNEY_LEVELS?window.HarmonyJourneyDrafts?.get(i)||R.levelConfig(i):R.levelConfig(i),allowed=i<=JP.unlocked(save),stars=JP.stars(save,i),record=JP.score(save,i);
   const b=document.createElement("button");
   // Visual distinctions only: previously earned stars and current unlocked
   // level are already authoritative in the same save. Never alter access.
@@ -412,10 +414,7 @@ function renderMenu(){
  if($("chapterEyebrow"))$("chapterEyebrow").textContent="YOUR JOURNEY";
  if($("chapterTitle"))$("chapterTitle").textContent="Goshuincho";
  if($("chapterSubtitle"))$("chapterSubtitle").textContent="Collect stamps and discover the next chapter.";
- const stars=Object.entries(save.fourFamilyStars).reduce((n,[i,v])=>
-  n+(Number(i)<10?Number(v)||0:0),0)+
-  Object.entries(save.bestStars).reduce((n,[i,v])=>
-   n+(Number(i)>=10?Number(v)||0:0),0);
+ const stars=JP.totalStars(save);
  if($("chapterStars"))$("chapterStars").textContent="★ "+stars+" stars";
  const pager=$("levelPager");pager.replaceChildren();
  const prev=document.createElement("button");prev.className="secondary small";prev.textContent="← Previous";prev.disabled=menuPage===0;
@@ -423,13 +422,13 @@ function renderMenu(){
  const range=document.createElement("span");range.textContent="Level "+(first+1)+"–"+last;
  const next=document.createElement("button");next.className="secondary small";next.textContent="Next →";
  // Show the next chapter only when the player has progressed to it.
- next.disabled=save.unlocked<last||last>=OFFICIAL_JOURNEY_LEVELS;
+ next.disabled=JP.unlocked(save)<last||last>=OFFICIAL_JOURNEY_LEVELS;
  next.addEventListener("click",()=>{menuPage++;renderMenu();});
  pager.append(prev,range,next);
- const canResume=canResumeJourneyRun(save.run?.level)&&save.run.level<=save.unlocked;
+ const canResume=canResumeJourneyRun(save.run?.level)&&save.run.level<=JP.unlocked(save);
  const playButton=$("continueButton");
- const allPublishedComplete=save.unlocked>=OFFICIAL_JOURNEY_LEVELS;
- const playLabel=canResume?"Resume level "+(save.run.level+1):allPublishedComplete?"Review completed Journey levels":"Play level "+(save.unlocked+1);
+ const allPublishedComplete=JP.unlocked(save)>=OFFICIAL_JOURNEY_LEVELS;
+ const playLabel=canResume?"Resume level "+(save.run.level+1):allPublishedComplete?"Review completed Journey levels":"Play level "+(JP.unlocked(save)+1);
  playButton.setAttribute("aria-label",playLabel);
  const playText=playButton.querySelector("strong");
  if(playText)playText.textContent=canResume?"CONTINUE":allPublishedComplete?"LEVELS":"PLAY";
@@ -601,7 +600,7 @@ function showGoshuincho(chapterIndex=null){
  if(busy||!$("gameView").hidden)return;
  const max=G.summary(publishedBookState()).currentChapter;
  goshuinChapter=Math.min(max,Math.max(0,
-  Number.isInteger(chapterIndex)?chapterIndex:Math.floor(save.unlocked/G.CHAPTER_SIZE)));
+  Number.isInteger(chapterIndex)?chapterIndex:Math.floor(JP.unlocked(save)/G.CHAPTER_SIZE)));
  goshuinPage=0;
  $("modalActions").classList.remove("pause-menu-actions","victory-actions");
  $("modalEyebrow").textContent="JAPANESE HARMONY";
@@ -701,7 +700,7 @@ function renderGoshuincho(){
  }
  album.append(grid,detail);
  const recommended=info.stamps.find(s=>canResumeJourneyRun(s.level))||
-  (save.unlocked>=OFFICIAL_JOURNEY_LEVELS?info.stamps.find(s=>s.level===OFFICIAL_JOURNEY_LEVELS-1):null)||
+  (JP.unlocked(save)>=OFFICIAL_JOURNEY_LEVELS?info.stamps.find(s=>s.level===OFFICIAL_JOURNEY_LEVELS-1):null)||
   info.stamps.find(s=>s.isCurrent)||
   info.stamps.find(s=>s.earned)||info.stamps[0];
  const recommendedButton=Array.from(grid.children).find(b=>Number(b.dataset.level)===recommended.number);
@@ -3086,17 +3085,16 @@ async function playEvents(events,bondGain=null){
  }else if(game?.koiRerollAt>=0)showKoiReroll();
 }
 function unlockGoal(){
- if(moonMirrorPreview||windGardenPreview||bambooPreview||lotusPreview||journeyDraftPreview)return; // A preview can never unlock progress.
- // Level 40 is the published finale. Never unlock legacy level 41.
- save.unlocked=Math.max(save.unlocked,Math.min(level+1,OFFICIAL_JOURNEY_LEVELS));
- if(save.unlocked>=MENU_PAGE_SIZE*(menuPage+1))menuPage=Math.min(Math.floor((OFFICIAL_JOURNEY_LEVELS-1)/MENU_PAGE_SIZE),
-  Math.floor(save.unlocked/MENU_PAGE_SIZE));
- const archive=game.familyCount===4?save.fourFamilyStars:save.bestStars;
- archive[level]=Math.max(archive[level]||0,game.assisted?1:game.stars());
- // A pre-upgrade 5-family intro run may still be completed after the update.
- // Reflect its achievement in the permanent four-family introduction archive,
- // without altering or discarding the original five-family history.
- if(level<10)save.fourFamilyStars[level]=Math.max(save.fourFamilyStars[level]||0,game.assisted?1:game.stars());
+ if(moonMirrorPreview||windGardenPreview||bambooPreview||lotusPreview||journeyDraftPreview)return;
+ // Only this exact approved Puzzle Architect recipe may earn a new stamp.
+ // Historical stars/scores remain stored separately and are not overwritten.
+ const earned=JP.complete(save,game);
+ if(!earned.ok)throw Error("Cannot reward an unverified Journey recipe");
+ // Preserve pre-existing access (and the Economy/Omikuji unlock contracts).
+ save.unlocked=Math.max(save.unlocked,JP.unlocked(save));
+ if(JP.unlocked(save)>=MENU_PAGE_SIZE*(menuPage+1))
+  menuPage=Math.min(Math.floor((OFFICIAL_JOURNEY_LEVELS-1)/MENU_PAGE_SIZE),
+   Math.floor(JP.unlocked(save)/MENU_PAGE_SIZE));
  persist();
 }
 // One gentle introduction when the player's balance first crosses the price
@@ -3441,23 +3439,9 @@ function showResult(){
   moonOfferShown=true;confirmMoonRescue();return;
  }
  // The victory chime plays over the board BEFORE the dialog, not on top of it.
- if(won){
-  unlockGoal();
-  if(game.assisted){
-   save.assistedStars[level]=Math.max(save.assistedStars[level]||0,game.stars());
-   save.assistedScores[level]=Math.max(save.assistedScores[level]||0,game.score);
-  }
-  const scores=game.familyCount===4?save.fourFamilyScores:save.bestScores;
-  const chains=game.familyCount===4?save.fourFamilyChain:save.bestChain;
-  if(!game.assisted)scores[level]=Math.max(scores[level]||0,game.score);
-  if(!game.assisted)chains[level]=Math.max(chains[level]||0,game.bestChain);
-  if(level<10&&!game.assisted){
-   save.fourFamilyScores[level]=Math.max(save.fourFamilyScores[level]||0,game.score);
-   save.fourFamilyChain[level]=Math.max(save.fourFamilyChain[level]||0,game.bestChain);
-  }
- }
+ if(won)unlockGoal();
  const coinsBefore=E.snapshot(save).coins;
- const coinReward=won?E.claim(save,level,game.assisted?1:Math.max(1,game.stars())):{delta:0};
+ const coinReward=won?E.claim(save,level,game.assisted?1:Math.max(1,game.stars()),JP.get(save,level)?.signature):{delta:0};
  // A completed clean replay earns a small capped amount after normal one-off rewards.
  const replayReward=won&&!coinReward.delta&&!game.replayCoinClaimed?
   C.replayCoins(save,level,true,game.assisted,new Date().toISOString().slice(0,10)):0;
@@ -3879,8 +3863,8 @@ function bind(){
  $("continueButton").addEventListener("click",()=>activateWashiPlay($("continueButton"),()=>{
   const r=canResumeJourneyRun(save.run?.level)?save.run:null;
   if(r)startLevel(r.level,true);
-  else if(save.unlocked>=OFFICIAL_JOURNEY_LEVELS)showGoshuincho(LAST_PUBLISHED_CHAPTER);
-  else startLevel(save.unlocked);
+  else if(JP.unlocked(save)>=OFFICIAL_JOURNEY_LEVELS)showGoshuincho(LAST_PUBLISHED_CHAPTER);
+  else startLevel(JP.unlocked(save));
  }));
  const HOW_TO_PLAY_HTML="<div class=\"jh-help-guide\"><p class=\"jh-help-lead\">Match treasures, grow them into masterpieces and solve each board’s objective. Plan where your Fusion lands.</p><section><h3>1 · Match &amp; grow</h3><p>Swap adjacent treasures to match three or more from the same family. Their stages can differ. T- and L-shaped matches count. A match fuses at the swap’s destination and grows a treasure one stage beyond the highest one matched.</p></section><section><h3>2 · Harmony Pulse</h3><p>A stage-5 Masterpiece sends a Pulse to its four direct neighbors, upgrading treasures and affecting nearby obstacles. Set up chain reactions, but keep an eye on the level goal.</p></section><section><h3>3 · Festival mechanics</h3><p><strong>Mist:</strong> Fuse onto a misty square or hit it with Harmony Pulse to clear it. Treasures can move through Mist.</p><p><strong>Hanabi Crate:</strong> Make matches beneath a rocket to let it fall into its crate. The launch sends a vertical firework Pulse up the column.</p><p><strong>Wind Garden:</strong> A marked row shifts when its wind cycle triggers. Watch its direction before you swap.</p><p><strong>Daruma:</strong> Each stationary doll needs two separate hits from adjacent Fusions or Harmony Pulse, at most one hit per move.</p><p><strong>Sealed Stones:</strong> Each fixed stone needs four separate hits. Breaking one releases an Awakening Pulse to all eight surrounding spaces, including diagonals.</p></section><section><h3>4 · Objectives &amp; stars</h3><p>Follow the <strong>GOAL</strong> panel: some levels require several things, such as launches <em>and</em> masterpieces. Tap <strong>?</strong> beside the goal for help. Finish using fewer moves to earn up to three Goshuincho stars.</p></section><section><h3>5 · Omamori &amp; rewards</h3><p>Harmony Coins become available after level 10. Spend them on one-use Omamori boosts from the Main Menu, with up to two board boosts per level and an optional Moon rescue. Assisted wins earn one stamp; unassisted runs can earn higher star ratings and score records.</p></section></div>";
  $("helpButton").addEventListener("click",()=>modalInfo("How to Play",HOW_TO_PLAY_HTML));

@@ -42,7 +42,7 @@ for(let i=20;i<40;i++){
  assert(!signatures.has(signature),"Every opening must be distinct");
  signatures.add(signature);
  for(const seed of [20261104+i*197,24680+i]){
-  const game=A.build(R,bp,{seed,recordRound:true,directorMode:"v62"});
+  const game=A.build(R,bp,{seed,recordRound:true,directorMode:"v63"});
   assert.equal(game.config.levelRecipeId,recipe.id);
   assert.equal(game.moves,recipe.moves);
   assert.deepEqual(game.config.goal,recipe.goal);
@@ -69,7 +69,7 @@ for(let i=20;i<40;i++){
    if(attacks||cargo||wind)goalDirectedOpenings++;
    assert(legal.some(p=>p[0]===pair[0]&&p[1]===pair[1]),
     "Designed opening "+pair+" must be a legal authentic Fusion at level "+(i+1));
-   const probe=A.build(R,bp,{seed,directorMode:"v62"});
+   const probe=A.build(R,bp,{seed,directorMode:"v63"});
    assert.equal(probe.swap(...pair).ok,true,"Designed move must run in actual Rules.Game");
   }
   assert(goalDirectedOpenings>=1,"Level "+(i+1)+" must have a real goal-facing opening move");
@@ -88,7 +88,7 @@ for(let i=20;i<40;i++){
  const rows=O.chapterSummary().find(x=>x.index===index).rows;
  assert.deepEqual(rows,["DEDECAE","DEDECBD","ABC-ABB","DCD-DDE",
   "BACEAAC","BABCADA","CCBABDE"]);
- const game=A.build(R,bp,{seed:20261104+index*197,directorMode:"v62"});
+ const game=A.build(R,bp,{seed:20261104+index*197,directorMode:"v63"});
  assert.equal(R.scan(game.board).length,0);
  assert.equal(R.validSwaps(game.board).length,8,
   "Keep the opening choice count at the original eight legal swaps");
@@ -96,7 +96,7 @@ for(let i=20;i<40;i++){
   const directed=R.directedHint(game.board,[from,to]);
   assert.equal(directed?.to,landing,"A purposeful Fusion must land beside a stone");
   assert(R.neighbors(landing).includes(stone));
-  const trial=A.build(R,bp,{seed:20261104+index*197,directorMode:"v62"});
+  const trial=A.build(R,bp,{seed:20261104+index*197,directorMode:"v63"});
   assert.equal(trial.swap(from,to).ok,true);
   assert.equal(trial.sealed[stone],3,
    "The authored route must damage its intended Sealed Stone exactly once");
@@ -117,7 +117,7 @@ for(let i=20;i<40;i++){
  const rows=O.chapterSummary().find(x=>x.index===24).rows;
  assert.deepEqual(rows,["DCBEACC","D-AAEBB","A-EBA-C","BBDBD-C",
   "EAECCEB","CEBDBCA","A-ABD-D"]);
- const game=A.build(R,bp,{seed:20261104+24*197,directorMode:"v62"});
+ const game=A.build(R,bp,{seed:20261104+24*197,directorMode:"v63"});
  assert.equal(R.scan(game.board).length,0);
  assert(R.validSwaps(game.board).length>=6,"The two-lane puzzle needs route choices");
  for(const pair of [[29,36],[33,40]]){
@@ -126,7 +126,7 @@ for(let i=20;i<40;i++){
   assert(route&&recipe.mechanics.hanabi.starts.some(start=>
    start%7===route.to%7&&route.to>start),
    "Both original satisfying launch-lane openings must remain possible");
-  const trial=A.build(R,bp,{seed:20261104+24*197,directorMode:"v62"});
+  const trial=A.build(R,bp,{seed:20261104+24*197,directorMode:"v63"});
   assert.equal(trial.swap(...pair).ok,true);
  }
 }
@@ -145,7 +145,7 @@ for(let i=20;i<40;i++){
   "DDC-CDC","ABABACE","EAEDCEA","E-E-B-A"]);
  assert.deepEqual(design.planned,[[10,17],[26,33],[29,36]]);
  for(const seed of [20261104+index*197,20261125+index*197]){
-  const start=A.build(R,bp,{seed,directorMode:"v62"});
+  const start=A.build(R,bp,{seed,directorMode:"v63"});
   assert.equal(start.lotusDelivered,0);
   assert.equal(start.board[8]?.family,"lotusSeed");
   assert.equal(start.board[19]?.family,"lotusSeed");
@@ -189,7 +189,7 @@ for(let i=20;i<40;i++){
  assert.deepEqual(design.rows,expected);
  assert.deepEqual(design.planned,[[22,23],[18,25]]);
  for(const seed of [20261104+index*197,20261125+index*197]){
-  const game=A.build(R,bp,{seed,directorMode:"v62",recordRound:true});
+  const game=A.build(R,bp,{seed,directorMode:"v63",recordRound:true});
   assert.equal(game.config.goal.count,5);
   assert.equal(game.board.filter(p=>p?.family==="sealedStone").length,5);
   assert.equal(R.scan(game.board).length,0);
@@ -204,7 +204,7 @@ for(let i=20;i<40;i++){
   for(const pair of [[22,23],[18,25]]){
    assert(legal.some(x=>x[0]===pair[0]&&x[1]===pair[1]),
     "Keep the original two strategic opening moves");
-   const trial=A.build(R,bp,{seed,directorMode:"v62"});
+   const trial=A.build(R,bp,{seed,directorMode:"v63"});
    assert.equal(trial.swap(...pair).ok,true);
   }
   const restored=new R.Game(index,game.save(),{fastRestore:true});

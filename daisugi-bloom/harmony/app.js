@@ -380,7 +380,7 @@ function renderMenu(){
   const b=document.createElement("button");
   // Visual distinctions only: previously earned stars and current unlocked
   // level are already authoritative in the same save. Never alter access.
-  const current=allowed&&i===save.unlocked;
+  const current=allowed&&i===JP.unlocked(save);
   b.className="level-tile"+(allowed?"":" locked")+
    (stars>0?" is-completed":"")+(current?" is-current":"");
   b.disabled=!allowed;
@@ -3095,7 +3095,7 @@ function unlockGoal(){
  if(JP.unlocked(save)>=MENU_PAGE_SIZE*(menuPage+1))
   menuPage=Math.min(Math.floor((OFFICIAL_JOURNEY_LEVELS-1)/MENU_PAGE_SIZE),
    Math.floor(JP.unlocked(save)/MENU_PAGE_SIZE));
- persist();
+ // ShowResult commits the signed stamp and coin receipt together in one save.
 }
 // One gentle introduction when the player's balance first crosses the price
 // of the cheapest Omamori card. Persist once; never nag on retries/replays.

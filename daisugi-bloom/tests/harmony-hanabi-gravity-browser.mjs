@@ -15,19 +15,31 @@ try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.emulateMediaFeatures([{name:"prefers-reduced-motion",value:"no-preference"}]);
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
+ // Level 61 is an unranked Game Dev preview, not a published Journey level.
+ // Instrument only the fixture's real Game constructor during preview creation
+ // to guarantee the stage-four tile which proves FLIP after Hanabi harvesting.
+ const baseline=await page.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")));
  await page.evaluate(()=>{
-  const k="japanese-harmony-puzzle-v2",s=JSON.parse(localStorage.getItem(k));
-  const g=new HarmonyRules.Game(60,null,{seed:20261101,directorMode:"v62"});
-  g.board[22].stage=4;g.stage4=1;
-  s.unlocked=60;s.run={level:60,data:g.save()};
-  s.reduceMotion=false;s.tutorialHelpSeen={};
-  localStorage.setItem(k,JSON.stringify(s));
+  const original=HarmonyRules.Game;
+  HarmonyRules.Game=new Proxy(original,{construct(target,args,newTarget){
+   const game=Reflect.construct(target,args,newTarget);
+   if(args[0]===60&&args[2]?.lotusPreview==="pilot"){
+    if(!game.board[22]||game.board[22].stage<1)throw Error("Missing real Hanabi stage-four fixture");
+    game.board[22].stage=4;game.stage4=1;
+    window.__hanabiGravityGame=game;
+   }
+   return game;
+  }});
+  window.__hanabiRestoreGame=()=>{HarmonyRules.Game=original;};
  });
- await page.reload({waitUntil:"networkidle2"});
- await page.click("#continueButton");
+ await page.$eval("#menuAdvanced",e=>e.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
+ await page.click("#lotusPreviewButton");
+ await page.waitForSelector('.lotus-preview-choice[data-preview="pilot"]');
+ await page.click('.lotus-preview-choice[data-preview="pilot"]');
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:15000});
- await page.waitForFunction(()=>!document.querySelector("#modal").hidden,{timeout:15000});
- await page.click("#modalActions .jh-tutorial-ok");
+ await page.evaluate(()=>window.__hanabiRestoreGame());
+ assert.equal(await page.$eval("#modal",e=>e.hidden),true);
  const state=await page.evaluate(()=>({
   tile:document.querySelector('.tile[data-index="22"]').getAttribute("aria-label"),
   box:document.querySelectorAll(".hanabi-crate").length
@@ -65,9 +77,13 @@ try{
   {timeout:40000});
  const result=await page.evaluate(()=>({
   witness:window.__hanabiGravity,
-  saved:JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run
+  saved:window.__hanabiGravityGame.save(),
+  persisted:JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"))
  }));
- const events=result.saved.data.roundTrace.moves[0].events;
+ for(const key of ["unlocked","run","journeyProgression","economy","bestStars","omamoriCards"])
+  assert.deepEqual(result.persisted[key],baseline[key],
+   "Unranked Hanabi FLIP fixture must preserve actual "+key);
+ const events=result.saved.roundTrace.moves[0].events;
  const launch=events.find(e=>e.type==="hanabi-launch"&&e.targets?.some(t=>t.stage===5));
  assert(launch,"A real Hanabi stage-five promotion must occur");
  const destination=launch.targets.find(t=>t.stage===5).to;

@@ -730,29 +730,6 @@ body.festival-fallback .festival-backdrop{display:none}
  .score-arrival-glint{display:none}
 }
 
-/* Mobile Performance 4.3 – read-only per-turn diagnostic in pause menu.
-   No fixed debug HUD during play: the board remains the primary focus. */
-.performance-report{display:grid;gap:3px}
-.performance-report p{
- display:flex;
- flex-wrap:wrap;
- justify-content:space-between;
- gap:6px 12px;
- margin:0;
- padding:7px 0;
- border-bottom:1px solid #afc9b02b;
- font-size:12px;
- line-height:1.4;
-}
-.performance-report p strong{color:#ffe0a6;font-weight:850}
-.performance-report p:last-child{
- display:block;
- border:0;
- margin-top:5px;
- font-size:11px;
- color:#d3e0d3;
-}
-
 /* Fusion & Harvest Readability 4.3.1
    The whole original piece travels, readable until it contacts its target.
    Do not blur, desaturate or dissolve the moving sprite. */
@@ -2068,18 +2045,7 @@ body:not(.harmony-playing) .top-actions .dev-shortcut{
 }
 .modal-actions.pause-menu-actions .pause-help{order:4}
 .modal-actions.pause-menu-actions .pause-settings{order:5}
-.modal-actions.pause-menu-actions .pause-performance{
- order:6;
- background:rgba(28,65,74,.51);
- color:#ccd5d1;
- font-size:11px;
-}
-.modal-actions.pause-menu-actions .pause-dev{
- order:7;
- background:rgba(28,65,74,.51);
- color:#c8d4d1;
- font-size:11px;
-}
+
 @media(max-width:390px){
  .menu-view .hero{padding:13px 4px 13px}
  .menu-view .hero h1{font-size:28px}

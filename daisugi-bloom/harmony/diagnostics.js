@@ -7,8 +7,8 @@
 function create(R){
  if(!R||!R.Game||!R.validSwaps)throw new Error("HarmonyRules is required");
  const STRATEGIES=["random","score","goal","lookahead"];
- const MODES=["standard","director","director2","director3","director31","director311","director4","director62"];
- const MODE_LABELS={standard:"Standard",director:"Director 1.0",director2:"Director 2.0",director3:"Pacing 3.0",director31:"Objective 3.1",director311:"Endgame 3.1.1",director4:"Objective & Recovery 4.0",director62:"Harmony Director 6.2"};
+ const MODES=["standard","director","director2","director3","director31","director311","director4","director62","director63"];
+ const MODE_LABELS={standard:"Standard",director:"Director 1.0",director2:"Director 2.0",director3:"Pacing 3.0",director31:"Objective 3.1",director311:"Endgame 3.1.1",director4:"Objective & Recovery 4.0",director62:"Harmony Director 6.2 (legacy)",director63:"Harmony Director 6.3"};
  const LABELS={random:"Random",score:"Score chaser",goal:"Goal-focused",lookahead:"Lookahead"};
  function assertInt(value,min,max,name){
   if(!Number.isInteger(value)||value<min||value>max)throw new RangeError(name+" must be an integer from "+min+" to "+max);
@@ -90,7 +90,7 @@ function create(R){
   assertInt(level,0,999999,"level");
   if(!STRATEGIES.includes(strategy))throw new RangeError("Unknown strategy: "+strategy);
   if(!MODES.includes(mode))throw new RangeError("Unknown mode: "+mode);
-  const directorMode=mode==="director62"?"v62":mode==="director4"?"v4":
+  const directorMode=mode==="director63"?"v63":mode==="director62"?"v62":mode==="director4"?"v4":
     mode==="director311"?"v311":mode==="director31"?"v31":
     mode==="director3"?"v3":mode==="director2"?"v2":"standard";
    const gameOptions={seed:seed>>>0,mistLayoutVersion,opportunity:mode==="director",directorMode};

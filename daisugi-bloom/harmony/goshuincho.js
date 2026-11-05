@@ -31,6 +31,7 @@ function japaneseNumeral(value){
  }
  return rest?String(value):blocks.join("");
 }
+const JP=root.HarmonyJourneyProgression||(typeof require==="function"?require("./journey-progression.js"):null);
 const CHAPTER_SIZE=10;
 const PAGE_SIZE=4;
 const PAGES_PER_CHAPTER=Math.ceil(CHAPTER_SIZE/PAGE_SIZE);
@@ -76,6 +77,11 @@ const clampStars=value=>{
 };
 const archivedStars=(state,index)=>{
  if(!Number.isInteger(index)||index<0)return 0;
+ // Production profiles require a stamp proven against the exact current
+ // Puzzle Architect recipe. Historic unversioned records remain accessible
+ // to the legacy read-only projection and wallet, but not to Journey stamps.
+ if(state?.journeyProgression?.version===JP?.VERSION)
+  return JP.stars(state,index);
  const main=index<10?"fourFamilyStars":"bestStars";
  const scores=index<10?"fourFamilyScores":"bestScores";
  const archived=clampStars(state?.[main]?.[index]);
@@ -95,12 +101,14 @@ function chapter(index){
   number:n+1,artKey:"chapter-"+String(n+1).padStart(2,"0"),...idea};
 }
 function levelStatus(state,index){
- const current=Number.isInteger(state?.unlocked)?Math.max(0,state.unlocked):0;
+ const current=state?.journeyProgression?.version===JP?.VERSION?
+  JP.unlocked(state):Number.isInteger(state?.unlocked)?Math.max(0,state.unlocked):0;
  const playable=Number.isInteger(index)&&index>=0&&index<=current;
  const stars=archivedStars(state,index);
  const run=state?.run;
  const resumable=playable&&run?.level===index&&run?.data&&
-  Number(run.data.moves)>0&&!run.data.failed;
+  Number(run.data.moves)>0&&!run.data.failed&&
+  (state?.journeyProgression?.version!==JP?.VERSION||JP.matchesRun(run));
  return {playable,earned:stars>0,stars,isCurrent:playable&&index===current,
   resumable:!!resumable,locked:!playable};
 }
@@ -131,7 +139,9 @@ function pageSnapshot(state,chapterIndex,pageIndex){
   isFinalPage:page===PAGES_PER_CHAPTER-1};
 }
 function summary(state){
- const current=Number.isInteger(state?.unlocked)?Math.max(0,state.unlocked):0;
+ const current=state?.journeyProgression?.version===JP?.VERSION?
+  Math.min(39,JP.unlocked(state)):
+  Number.isInteger(state?.unlocked)?Math.max(0,state.unlocked):0;
  const lastCurrentChapter=Math.floor(current/CHAPTER_SIZE);
  let totalStamps=0,totalStars=0,completedChapters=0;
  for(let c=0;c<=lastCurrentChapter;c++){

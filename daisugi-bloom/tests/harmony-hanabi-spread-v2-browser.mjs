@@ -67,6 +67,7 @@ try{
    mainMarks:[],sideMarks:[],sideSparks:[],audio:[],
    impactBlooms:[],impactParticles:[],mainGlitterSeen:false,burstAfterMain:false,
    apexFlowers:[],apexRays:0,apexFlash:false,sideAfterApex:false,
+    flashGoneBeforeSide:true,flashCenteredByDefault:false,
    fullBoardAtLaunch:null,initialMarkedBeforeGlitter:false,
    firstMainParticle:false
   };
@@ -98,11 +99,22 @@ try{
       cellWidth:document.querySelector(".tile")?.getBoundingClientRect().width||1
      });
     if(n.classList.contains("hanabi-apex-ray"))w.apexRays++;
-    if(n.classList.contains("hanabi-apex-flash"))w.apexFlash=true;
+    if(n.classList.contains("hanabi-apex-flash")){
+      w.apexFlash=true;
+      // Capture its safe resting-state CSS: WAAPI's cancel() must never
+      // expose an opaque, top-left-anchored disk after the 245ms flash.
+      const css=[...document.styleSheets].flatMap(sheet=>{
+       try{return [...sheet.cssRules];}catch{return [];}
+      }).find(rule=>rule.selectorText===".score-fx-overlay .hanabi-apex-flash");
+      w.flashCenteredByDefault=css?.style?.opacity==="0"&&
+       css?.style?.transform==="translate(-50%, -50%)";
+     }
     if(n.classList.contains("hanabi-spread-glow")){
      w.sideMarks.push(Number(n.dataset.to));
      w.burstAfterMain=w.burstAfterMain||w.mainGlitterSeen;
      w.sideAfterApex=w.sideAfterApex||w.apexFlowers.length===1;
+      w.flashGoneBeforeSide=w.flashGoneBeforeSide&&
+       !document.querySelector(".hanabi-apex-flash");
     }
     if(n.classList.contains("hanabi-spread-spark"))
      w.sideSparks.push(Number(n.dataset.to));
@@ -176,6 +188,10 @@ try{
   "A radial, colorful spark shower must erupt from the actual apex");
  assert(result.vfx.sideAfterApex,
   "The three real side impacts must arrive AFTER the explosion starts");
+ assert(result.vfx.flashGoneBeforeSide,
+  "The short apex flash must disappear before side hits (no displaced residual disk)");
+ assert(result.vfx.flashCenteredByDefault,
+  "Even after WAAPI cancellation, the flash must remain centered and transparent");
  assert(result.vfx.sideSparks.length>=6,"Fan sparks must actually fly to upgraded neighbors");
  assert(result.vfx.sideSparks.every(to=>result.targets.includes(to)));
  const mainBloom=result.vfx.impactBlooms.filter(x=>x.kind==="column"),

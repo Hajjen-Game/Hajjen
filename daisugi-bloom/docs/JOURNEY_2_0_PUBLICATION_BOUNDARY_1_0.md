@@ -2,7 +2,7 @@
 Date: 2026-11-05
 
 ## Decision
-**Only the 40 approved, Puzzle Architect-designed Journey 2.0 levels are public.** Legacy generated/old levels 41 and above are not production content. Levels 41–50 will be rebuilt as new authored puzzles, not merely reactivated. Harmony Director **6.2** is the automatic/refill Director across **all 40 approved levels**, including seeded introductions.
+**Only the 40 approved, Puzzle Architect-designed Journey 2.0 levels are public.** Legacy generated/old levels 41 and above are not production content. Levels 41–50 will be rebuilt as new authored puzzles, not merely reactivated. Harmony Director **6.3** is the automatic/refill Director across **all 40 approved levels**, including seeded introductions.
 
 ## Player experience
 - Goshuincho shows no chapter beyond 31–40, even if an older browser profile reports level 41+ unlocked or has awards beyond that point.
@@ -17,9 +17,9 @@ Date: 2026-11-05
 - Do **not** wipe saves, scores, coins, Omamori inventory, old archive fields or user's approved 1–40 boards.
 - The legacy level configs remain in the underlying rules engine temporarily for test coverage and for archived experiments. They are **not published** and must **not** be counted as approved Puzzle Architect levels.
 - The normal app is now bounded independently of those historical engine definitions. Deleting internal legacy definitions requires a separate dependency audit.
-- Legacy rounds keep their original stored Director if already in progress and are still within 1–40. New normal Journey rounds use 6.2.
+- Legacy rounds keep their original stored Director if already in progress and are still within 1–40. New normal Journey rounds use 6.3.
 
 ## Regression
-- Static Node tests assert the 40-level publication boundary, no stage 41 onward, valid hand-authored chapter 3–4 recipes, and the 6.2 default.
+- Static Node tests assert the 40-level publication boundary, no stage 41 onward, valid hand-authored chapter 3–4 recipes, and the 6.3 default.
 - Browser smoke tests include an older save with level 45 unlocked, an old level 45 run, and a legacy level-41 star. This must display the 31–40 Goshuincho page, a 40-level stamp denominator, and create a new real Director-6.2 level-40 round.
 - JavaScript parse checks completed; full remote browser/CI status requires separate confirmation.

@@ -139,3 +139,51 @@ body.harmony-playing #gameView .tile .hanabi-spread-glow::after{
 }
 .score-fx-overlay .hanabi-spread-spark{width:9px;height:9px;z-index:97}
 .score-fx-overlay .hanabi-spread-core{z-index:98;pointer-events:none}
+
+
+/* Hanabi Impact Polish 2.1 — watercolor-compatible starfire on each REAL
+   upgraded cell. A luminous star and smaller echoes replace a hard ring.
+   All animation runs through WAAPI in app.js and is removed afterwards. */
+body.harmony-playing #gameView .tile .hanabi-impact-bloom{
+ position:absolute;inset:-1px;z-index:14;pointer-events:none;
+ border-radius:clamp(6px,1.6vw,11px);isolation:isolate;
+ background:radial-gradient(ellipse at 50% 50%,
+  rgba(255,255,237,.75) 0%,rgba(255,226,165,.34) 32%,
+  rgba(255,200,165,.13) 54%,transparent 80%);
+ box-shadow:inset 0 0 13px rgba(255,239,186,.56),0 0 11px rgba(255,206,142,.32);
+ -webkit-mask:none!important;mask:none!important;
+ will-change:transform,opacity;
+ --hanabi-impact-ink:#ffe7a7;
+}
+body.harmony-playing #gameView .tile .hanabi-impact-bloom::before{
+ content:"✦";position:absolute;top:48%;left:50%;
+ transform:translate(-50%,-50%);
+ font-size:clamp(22px,5vw,36px);line-height:1;color:var(--hanabi-impact-ink);
+ text-shadow:0 0 3px #fff,0 0 9px var(--hanabi-impact-ink),
+  0 0 18px var(--hanabi-impact-ink);
+}
+body.harmony-playing #gameView .tile .hanabi-impact-bloom::after{
+ content:"✧";position:absolute;top:18%;left:18%;
+ font-size:clamp(14px,3vw,22px);line-height:1;color:#fff7e8;
+ text-shadow:0 0 7px #fff7e8,0 0 14px var(--hanabi-impact-ink);
+}
+body.harmony-playing #gameView .tile .hanabi-impact-canopy{
+ background:radial-gradient(ellipse at 50% 48%,
+  rgba(255,253,241,.88) 0%,rgba(255,219,163,.50) 32%,
+  rgba(255,173,164,.22) 62%,transparent 86%);
+ box-shadow:inset 0 0 17px rgba(255,237,178,.68),
+  0 0 16px rgba(255,209,155,.54);
+}
+body.harmony-playing #gameView .tile .hanabi-impact-canopy::before{
+ font-size:clamp(27px,6vw,45px);
+}
+body.harmony-playing #gameView .tile .hanabi-impact-pink{--hanabi-impact-ink:#ffadd8}
+body.harmony-playing #gameView .tile .hanabi-impact-orange{--hanabi-impact-ink:#ffb789}
+body.harmony-playing #gameView .tile .hanabi-impact-violet{--hanabi-impact-ink:#d8b0ff}
+body.harmony-playing #gameView .tile .hanabi-impact-pearl{--hanabi-impact-ink:#d9f4ff}
+body.harmony-playing #gameView .tile .hanabi-impact-gold{--hanabi-impact-ink:#ffe6a4}
+.score-fx-overlay .hanabi-hit-particle{
+ position:absolute;z-index:99;width:9px;height:9px;pointer-events:none;
+ border-radius:2px;transform:rotate(45deg);
+ will-change:transform,opacity;
+}

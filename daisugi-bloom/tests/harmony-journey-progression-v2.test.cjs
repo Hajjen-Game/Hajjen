@@ -102,7 +102,7 @@ check("Repeat clears improve signed stars and records but never duplicate a stam
 });
 
 check("A legitimate delivered Hanabi game earns an actual proof while a preview cannot",()=>{
- const game=A.build(R,O.get(4),{seed:123,recordRound:true,directorMode:"v62"});
+ const game=A.build(R,O.get(4),{seed:123,recordRound:true,directorMode:"v63"});
  assert(game.swap(30,31).ok);
  assert(game.swap(30,37).ok);
  assert.equal(game.complete,true);
@@ -146,7 +146,7 @@ check("Historic rewards are preserved; only earned current Journey clears create
 
 check("A current signed active round can resume, while an obsolete run with the same level cannot",()=>{
  const save=legacy();P.initialize(save);
- const real=A.build(R,O.get(24),{seed:20261105,recordRound:true,directorMode:"v62"});
+ const real=A.build(R,O.get(24),{seed:20261105,recordRound:true,directorMode:"v63"});
  save.run={level:24,data:real.save()};
  assert(P.matchesRun(save.run));
  assert.equal(G.levelStatus(save,24).resumable,true);

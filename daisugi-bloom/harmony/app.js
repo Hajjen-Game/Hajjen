@@ -225,7 +225,14 @@ if(save.familyProgressionVersion!==1){
 function activeRecords(){return JP.scores(save);}
 function recordsForLevel(){return JP.scores(save);}
 function starsForLevel(){return Object.fromEntries(Array.from({length:OFFICIAL_JOURNEY_LEVELS},(_,i)=>[i,JP.stars(save,i)]));}
-if(JP.initialize(save).created)migratedScores=true;
+const journeyMigration=JP.initialize(save);
+if(journeyMigration.created){
+ migratedScores=true;
+ const legacyMarks=["bestStars","fourFamilyStars","bestScores","fourFamilyScores"]
+  .some(field=>Object.values(save[field]||{}).some(value=>Number(value)>0));
+ // One short explanation in the book, not an intrusive reset dialog.
+ if(legacyMarks)save.journeyProgression.legacyNoticePending=true;
+}
 if(migratedScores)persist();
 // One-time credit for already earned levels; never reward historical records again.
 const economyStart=E.initialize(save);
@@ -608,6 +615,11 @@ function showGoshuincho(chapterIndex=null){
  $("modalActions").replaceChildren();
  $("modal").hidden=false;
  renderGoshuincho();
+ if(save.journeyProgression?.legacyNoticePending){
+  save.journeyProgression.legacyNoticePending=false;
+  persist();
+  toast("Earlier achievements are preserved. Complete redesigned Journey puzzles to earn new stamps.",6500);
+ }
 }
 function renderGoshuincho(){
  const area=$("modalContent");area.replaceChildren();

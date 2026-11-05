@@ -44,14 +44,13 @@ async function accept(key){
 async function leavePreview(){
  await page.click("#pauseButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Game Menu");
- await page.click("#modalActions .pause-levels");
+ await page.click("#modalActions .pause-main");
  await page.waitForFunction(()=>!document.querySelector("#menuView").hidden);
- await page.click(".washi-book-close");
- await page.waitForFunction(()=>document.querySelector("#modal").hidden);
 }
 async function openPreview(index,first=false){
  if(!first)await leavePreview();
  await page.$eval("#menuAdvanced",n=>n.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
  await page.click("#journeyChapterPlaytestButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Journey 2.0 · Levels 21–30");
  if(index>=30){

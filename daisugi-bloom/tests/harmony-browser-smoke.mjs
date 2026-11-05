@@ -274,7 +274,7 @@ try{
    const img=tile?.querySelector(".daruma-art");
    return {title:document.querySelector("#levelTitle")?.textContent,
     goal:document.querySelector("#goalLabel")?.textContent,
-    locked:tile.classList.contains("daruma-tile"),
+    locked:tile.classList.contains("daruma-tile"),at:Number(tile.dataset.index),
     state:img?.className,background:img&&getComputedStyle(img).backgroundImage,
     aria:tile.getAttribute("aria-label"),
     count:document.querySelectorAll(".tile.daruma-tile").length};
@@ -286,15 +286,15 @@ try{
   assert(visual.aria.includes("two eyes left"));
   fs.mkdirSync("/tmp/daisugi-bloom",{recursive:true});
   await dp.screenshot({path:"/tmp/daisugi-bloom/daruma-l21.png"});
-  await dp.evaluate(()=>{
+  await dp.evaluate(at=>{
    const key="japanese-harmony-puzzle-v2";
    const store=JSON.parse(localStorage.getItem(key));
-   store.run.data.daruma[24]=1;
+   store.run.data.daruma[at]=1;
    localStorage.setItem(key,JSON.stringify(store));
-  });
+  },visual.at);
   await dp.reload({waitUntil:"networkidle2"});
   await dp.click("#continueButton");await dp.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(dp);
-  const half=await dp.$eval('.tile[data-index="24"]',tile=>({
+  const half=await dp.$eval('.tile[data-index="'+visual.at+'"]',tile=>({
    state:tile.querySelector(".daruma-art")?.className,aria:tile.getAttribute("aria-label")}));
   assert(half.state.includes("state-1")&&half.aria.includes("one eye left"),
    "A half-painted Daruma must resume with the right second sprite");

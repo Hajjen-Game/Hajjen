@@ -9,6 +9,7 @@ const page=await browser.newPage(),errors=[],KEY="japanese-harmony-puzzle-v2";
 page.on("pageerror",e=>errors.push(e.message));
 async function openDraft(n){
  await page.$eval("#menuAdvanced",e=>e.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
  await page.click("#journeyDraftButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Journey 2.0 · Levels 1–10");
  if(n>10){
@@ -42,10 +43,8 @@ async function openDraft(n){
 async function leave(){
  await page.click("#pauseButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Game Menu");
- await page.click("#modalActions .pause-levels");
+ await page.click("#modalActions .pause-main");
  await page.waitForFunction(()=>!document.querySelector("#menuView").hidden);
- await page.click(".washi-book-close");
- await page.waitForFunction(()=>document.querySelector("#modal").hidden);
 }
 try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});

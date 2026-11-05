@@ -96,7 +96,10 @@ assert.equal(O.preview(49,R.levelConfig(49)).objective,"2 Lantern masterpieces")
 
 const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
 const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
-assert(app.includes('level===49?"Enter Bamboo Paths →"'));
+// Chapters 41+ remain archived research until Puzzle Architect publishes them.
+assert(app.includes("const OFFICIAL_JOURNEY_LEVELS=40"));
+assert(app.includes("The next Journey chapter is not ready. Replay levels 1–40 in Goshuincho."));
+assert(html.includes('id="bambooPreviewButton"'),"Bamboo remains available as an opt-in developer preview");
 assert(app.includes("washi-book-subtitle"));
 assert(app.includes("info.name:\"Level \""),"Book play button must reference its selected preview");
 assert(html.includes("chapter-identity.css"),"Book chapter focus styles are linked");

@@ -247,4 +247,29 @@ check("Washi Zen startsida: preserve controls and no legacy level selector",()=>
  assert(app.includes('saveRun();'),"Leaving gameplay must retain save");
  assert(app.includes('rewardStarsAtLevelStart=G.archivedStars(save,i)'));
 });
+check("UI Cleanup 1.0: modern Director picker, folded previews and a player-only pause menu",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
+ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+ const css=fs.readFileSync(path.join(__dirname,"../harmony/washi-dialogs.css"),"utf8");
+ const lab=fs.readFileSync(path.join(__dirname,"../harmony/diagnostics.js"),"utf8");
+ const selector=html.match(/<select id="gameDirectorMode"[\s\S]*?<\/select>/)?.[0];
+ assert(selector,"The player Director selection must exist");
+ const values=[...selector.matchAll(/<option value="([^"]+)"/g)].map(x=>x[1]);
+ assert.deepEqual(values,["auto","v62"],"Old engines are not player choices");
+ assert(html.includes('id="devButton"')&&html.includes('id="devPreviews"'));
+ assert(html.includes('Experimental previews &amp; archived tests'));
+ assert(css.includes(".jh-dev-previews")&&css.includes(".jh-help-guide"));
+ const pause=app.slice(app.indexOf("function openGameMenu()"),app.indexOf("function bind()"));
+ assert(pause.includes('add("Main Menu"')&&pause.includes('showMenu();'));
+ for(const removed of ['add("Game Dev','add("Performance','add("Back to Goshuincho'])
+  assert(!pause.includes(removed),"Pause must not expose "+removed);
+ assert(!app.includes("function showPerformanceReport()"));
+ assert(app.includes('modalInfo("How to Play",HOW_TO_PLAY_HTML)'));
+ for(const topic of ["Hanabi Crate","Wind Garden","Daruma","Sealed Stones","Mist"])
+  assert(app.includes(topic),"Help must explain "+topic);
+ for(const mode of ["compare62","compareStandard62","director62"])
+  assert(app.includes(mode),"Intelligence UI must include "+mode);
+ assert(lab.includes('director62:"Harmony Director 6.2"'));
+});
 console.log("Goshuincho ten-level Washi Zen 1.0 + archived stamp invariants passed.");

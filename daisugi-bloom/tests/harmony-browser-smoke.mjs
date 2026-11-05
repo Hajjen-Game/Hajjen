@@ -584,99 +584,50 @@ try{
   assert(recovered.newAtlas.includes("recovery=1"),
    "New-families atlas variable must contain the successfully recovered URL");
  }finally{await recoverContext.close();}
- // Live player-mode picker: new sessions default to Pacing 3.0 (including
- // Opportunity 2.0), while 2.0 and Standard are explicitly selectable.
+
+ // The player-facing picker contains only the supported modern choices.
+ // Previously saved rounds retain their internal Director version.
  const directorContext=await browser.createBrowserContext();
  try{
   const demo=await directorContext.newPage();
   await demo.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
   await demo.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2",timeout:40000});
-  assert.equal(await demo.$eval("#gameDirectorMode",n=>n.value),"auto");
+  const options=await demo.$$eval("#gameDirectorMode option",xs=>xs.map(x=>x.value));
+  assert.deepEqual(options,["auto","v62"]);
+  assert.equal(await demo.$eval("#gameDirectorMode",el=>el.value),"auto");
   await clickLegacyLevel(demo,".level-tile:first-child");
-  const fresh=await demo.evaluate(()=>{
-   const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
-   return {mode:saved.run?.data?.directorMode,status:document.querySelector("#paceStatus")?.textContent};
+  const active=await demo.evaluate(()=>{
+   const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run;
+   return {mode:run.data.directorMode,recipe:run.data.levelRecipe?.id,
+    label:document.querySelector("#paceStatus")?.textContent};
   });
-  assert.equal(fresh.mode,"v3","New live levels must ACTUALLY use Pacing 3.0");
-  assert(fresh.status.includes("PACING 3.0"));
-  const pair=await demo.evaluate(()=>{
-   const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
-   return window.HarmonyRules.validSwaps(data.board)[0];
-  });
-  await demo.evaluate(([a,b])=>{
-   const first=document.querySelector('.tile[data-index="'+a+'"]');
-   const second=document.querySelector('.tile[data-index="'+b+'"]');
-   first.click();second.click();
-  },pair);
-  await demo.waitForFunction(()=>{
-   const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"))?.run?.data;
-   return run&&run.paceTimes.length>0&&run.moves<24;
-  },{timeout:18000});
-  const persisted=await demo.evaluate(()=>{
-   const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
-   return {mode:data.directorMode,samples:data.paceTimes.length,phase:data.pacePhase};
-  });
-  assert.equal(persisted.mode,"v3");
-  assert.equal(persisted.samples,1,"A completed user move should persist its real decision interval");
-  assert(["build","flow","recovery","relax"].includes(persisted.phase));
+  assert.equal(active.mode,"v62","Approved Journey levels use Director 6.2");
+  assert(active.recipe?.startsWith("journey2-"));
+  assert(active.label.includes("MOBILITY 6.2"));
   await demo.click("#pauseButton");
-  await demo.click("#modalActions button:last-child");
-  await demo.$eval("#menuAdvanced",e=>e.open=true);
-  await demo.select("#gameDirectorMode","v2");
+  await demo.click("#modalActions .pause-main");
+  await demo.$eval("#menuAdvanced",x=>x.open=true);
+  await demo.select("#gameDirectorMode","v62");
   await demo.reload({waitUntil:"networkidle2"});
-  assert.equal(await demo.$eval("#gameDirectorMode",el=>el.value),"v2",
-   "A selected engine mode must persist across reload");
+  assert.equal(await demo.$eval("#gameDirectorMode",x=>x.value),"v62");
   await clickLegacyLevel(demo,".level-tile:first-child");
-  const v2=await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode);
-  assert.equal(v2,"v2","Director 2.0 must remain available in live gameplay");
+  assert.equal(await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode),"v62");
   await demo.click("#pauseButton");
-  await demo.click("#modalActions button:last-child");
-  await demo.$eval("#menuAdvanced",e=>e.open=true);
-  await demo.select("#gameDirectorMode","standard");
-  await clickLegacyLevel(demo,".level-tile:first-child");
-  const standard=await demo.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data.directorMode);
-  assert.equal(standard,"standard","Standard remains selectable");
-  await demo.click("#pauseButton");
-  await demo.click("#modalActions button:last-child");
-  await demo.$eval("#menuAdvanced",e=>e.open=true);
-  await demo.select("#gameDirectorMode","v31");
-  await clickLegacyLevel(demo,".level-tile:first-child");
-  const objectiveMode=await demo.evaluate(()=>{
-   const data=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
-   return {mode:data.directorMode,drought:data.objectiveDrought,status:document.querySelector("#paceStatus")?.textContent};
+  await demo.click("#modalActions .pause-main");
+  await demo.$eval("#menuAdvanced",x=>x.open=true);
+  await demo.select("#gameDirectorMode","auto");
+  await demo.evaluate(()=>{
+   const key="japanese-harmony-puzzle-v2",state=JSON.parse(localStorage.getItem(key));
+   state.unlocked=9;state.run=null;localStorage.setItem(key,JSON.stringify(state));
   });
-  assert.equal(objectiveMode.mode,"v31","Objective 3.1 must be playable without replacing 3.0");
-  assert.equal(objectiveMode.drought,0);
-  assert(objectiveMode.status.includes("OBJECTIVE 3.1"));
-  await demo.click("#pauseButton");
-  await demo.click("#modalActions button:last-child");
-  await demo.$eval("#menuAdvanced",e=>e.open=true);
-  await demo.select("#gameDirectorMode","v311");
-  await clickLegacyLevel(demo,".level-tile:first-child");
-  const endgameMode=await demo.evaluate(()=>{
-   const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
-   return {mode:run.directorMode,status:document.querySelector("#paceStatus")?.textContent};
+  await demo.reload({waitUntil:"networkidle2"});
+  await clickLegacyLevel(demo,".level-tile:nth-child(10)");
+  const tenth=await demo.evaluate(()=>{
+   const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run;
+   return {mode:run.data.directorMode,level:run.level};
   });
-  assert.equal(endgameMode.mode,"v311","Endgame 3.1.1 must be separately playable");
-  assert(endgameMode.status.includes("ENDGAME 3.1.1"));
-   // Automatic level gate: fresh level 10 uses 4.0, first nine retain 3.0.
-   await demo.click("#pauseButton");
-   await demo.click("#modalActions button:last-child");
-   await demo.$eval("#menuAdvanced",e=>e.open=true);
-   await demo.select("#gameDirectorMode","auto");
-   await demo.evaluate(()=>{
-    const key="japanese-harmony-puzzle-v2",state=JSON.parse(localStorage.getItem(key));
-    state.unlocked=9;state.run=null;localStorage.setItem(key,JSON.stringify(state));
-   });
-   await demo.reload({waitUntil:"networkidle2"});
-   await clickLegacyLevel(demo,".level-tile:nth-child(10)");
-   const level10=await demo.evaluate(()=>{
-    const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run;
-    return {mode:run.data.directorMode,level:run.level,status:document.querySelector("#paceStatus")?.textContent};
-   });
-   assert.equal(level10.level,9);
-   assert.equal(level10.mode,"v4","Level 10 must default to Harmony Director 4.0");
-   assert(level10.status.includes("OBJECTIVE 4.0"));
+  assert.equal(tenth.level,9);
+  assert.equal(tenth.mode,"v62","The published Journey level 10 also uses Director 6.2");
  }finally{await directorContext.close();}
  // Fixed family progression: 4 in stages 1–10 and 5 from stage 11.
  // Old five-family saved runs and BOTH historical score archives survive.

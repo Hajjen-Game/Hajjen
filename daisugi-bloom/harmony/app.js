@@ -242,6 +242,10 @@ function notifySaveWarning(){
  saveStorageWarningShown=true;
  toast(saveStorageWarning==="corrupt-save"?
   "Damaged save detected. A backup was kept; a fresh local save was started.":
+  saveStorageWarning==="invalid-run"?
+  "A saved round could not be verified. A recovery backup was kept; your stars, coins and cards are safe.":
+  saveStorageWarning==="invalid-run-unbacked"?
+  "Saved round needs recovery, but backup storage is unavailable. Original data was not overwritten.":
   "Progress cannot be saved on this device. Check browser storage settings.",7500);
 }
 function persist(){

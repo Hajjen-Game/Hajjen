@@ -23,6 +23,7 @@ try{
  const baseline=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  assert(baseline.run?.data?.board?.length===49,"Existing saved run must be present before preview");
  await page.$eval("#menuAdvanced",node=>node.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
  await page.click("#moonMirrorPreviewButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Moon Mirrors 1.2");
  const choices=await page.evaluate(()=>[...document.querySelectorAll(".moon-preview-choice")].map(b=>b.dataset.preview));

@@ -64,7 +64,7 @@ try{
   worker.onerror=e=>{worker.terminate();reject(Error(e.message));};
   worker.postMessage({blueprint:recipe,options:{
    trials:1,baseSeed:6121,maxTurns:3,maxCandidates:4,
-   strategies:["random","objective"],directorMode:"v62"
+   strategies:["random","objective"],directorMode:"v63"
   }});
  }));
  assert.equal(worked.samples,2);

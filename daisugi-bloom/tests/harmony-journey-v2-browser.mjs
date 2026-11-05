@@ -61,7 +61,7 @@ try{
   const draft=window.HarmonyJourneyDrafts.get(7);
   const game=window.HarmonyPuzzleArchitect.build(window.HarmonyRules,
    window.HarmonyJourneyAuthoredOpenings.get(7),
-   {seed:20261102+7*197,directorMode:"v62"});
+   {seed:20261102+7*197,directorMode:"v63"});
   return window.HarmonyRules.validSwaps(game.board)[0];
  });
  await page.evaluate(([a,b])=>{

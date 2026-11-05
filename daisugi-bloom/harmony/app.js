@@ -2127,6 +2127,7 @@ async function animateHanabiLaunch(evt){
  // Same true target set as the rules event; don't invent hits on
  // empty top cells. Mist clears still count even when a tile has no icon.
  const path=window.HarmonyHanabiCrate.visiblePath(evt);
+ const spreadTargets=(evt.spreadTargets||[]).filter(t=>Number.isInteger(t.to)&&t.to>=0&&t.to<21);
  const stepMs=96,stepDelay=65,holdMs=95,glitterMs=680;
  const marks=[],sparks=[];
  if(!reduced&&path.length)sound("hanabi-charge",{count:path.length});
@@ -2207,6 +2208,55 @@ async function animateHanabiLaunch(evt){
      .then(()=>{mark.style.opacity="1";}));
    }
    await Promise.all(flight);
+  }
+  // After the vertical glitter reaches the upper canopy, the genuine
+  // extra upgrades burst sideways into the exact target cells from the
+  // engine event. No visual-only random positions or circular impact rings.
+  if(spreadTargets.length){
+   sound("hanabi-burst",{count:spreadTargets.length});
+   if(!reduced){
+    const canopy=indexRect(7+at%7);
+    const bx=canopy.left+canopy.width*.5,by=canopy.top+canopy.height*.5;
+    const palette=["pink","gold","violet","orange","pearl"];
+    const flights=[];
+    const core=fxAt("hanabi-glitter-mote hanabi-glitter-core hanabi-spread-core",bx,by);
+    sparks.push(core);
+    flights.push(animateNode(core,[
+     {transform:"scale(.55)",opacity:.8,offset:0},
+     {transform:"scale(1.75)",opacity:1,offset:.36},
+     {transform:"scale(.25)",opacity:0,offset:1}
+    ],370,{easing:"ease-out"}));
+    for(let n=0;n<spreadTargets.length;n++){
+     const to=spreadTargets[n].to,tile=boardTiles[to];
+     if(!tile)continue;
+     const mark=document.createElement("span");
+     mark.className="pulse-anticipation-glow hanabi-spread-glow";
+     mark.dataset.to=String(to);
+     mark.setAttribute("aria-hidden","true");
+     tile.append(mark);marks.push(mark);
+     flights.push(animateNode(mark,[
+      {transform:"scale(.65)",opacity:0,offset:0},
+      {transform:"scale(1.07)",opacity:.98,offset:.49},
+      {transform:"scale(1)",opacity:0,offset:1}
+     ],440,{delay:n*42,easing:"ease-out"}));
+     const goal=indexRect(to),dx=goal.left+goal.width*.5-bx,dy=goal.top+goal.height*.5-by;
+     // The three fan arms visibly diverge from the top of the main ray.
+     for(let p=0;p<(LITE_FX()?2:3);p++){
+      const color=palette[(n+p)%palette.length];
+      const mote=fxAt("hanabi-glitter-mote hanabi-glitter-"+color+
+       " hanabi-spread-spark",bx,by);
+      mote.dataset.to=String(to);mote.dataset.color=color;
+      sparks.push(mote);
+      const offset=(p-1)*6;
+      flights.push(animateNode(mote,[
+       {transform:"translate3d(0,0,0) scale(.8)",opacity:.92,offset:0},
+       {transform:"translate3d("+(dx*.55+offset)+"px,"+(dy*.43-8)+"px,0) scale(1.3)",opacity:1,offset:.5},
+       {transform:"translate3d("+(dx+offset)+"px,"+(dy+(p%2?5:-5))+"px,0) scale(.2)",opacity:0,offset:1}
+      ],345+p*24,{delay:n*42+p*16,easing:"cubic-bezier(.19,.48,.26,1)"}));
+     }
+    }
+    await Promise.all(flights);
+   }
   }
  }finally{
   for(const mark of marks)mark.remove();
@@ -2925,7 +2975,9 @@ async function animateEvent(evt){
   }
   case "lotus-fall":
   case "hanabi-fall":
-   // Hanabi-created holes use the SAME stable-ID fall motion as Fusion.
+  case "hanabi-prelaunch-fill":
+   // Hanabi pre-launch refills and later harvest holes both use Fusion's
+   // same stable-ID gravity animation, completed before firing the rocket.
    renderBoard(evt.board);
    await flipMove(previous,evt.board,"fall");
    break;

@@ -272,4 +272,35 @@ check("UI Cleanup 1.0: modern Director picker, folded previews and a player-only
   assert(app.includes(mode),"Intelligence UI must include "+mode);
  assert(lab.includes('director62:"Harmony Director 6.2"'));
 });
+check("Published Journey ends at 40; stale legacy chapters stay out of Goshuincho",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
+ const html=fs.readFileSync(path.join(__dirname,"../index.html"),"utf8");
+ assert(app.includes("const OFFICIAL_JOURNEY_LEVELS=40;"));
+ assert(app.includes("function publishedBookState()"));
+ assert(app.includes("G.summary(publishedBookState())"),
+  "Book chapter count must ignore previous 41+ progress");
+ assert(app.includes("index<OFFICIAL_JOURNEY_LEVELS"),
+  "Past level runs cannot resume unapproved chapters");
+ assert(app.includes("i>=OFFICIAL_JOURNEY_LEVELS&&"),
+  "Real level launch must reject old chapters");
+ assert(app.includes("if(level===OFFICIAL_JOURNEY_LEVELS-1)"),
+  "Level 40 must have its own completion flow");
+ assert(app.includes('modalButton(actions,"View Goshuincho"'),
+  "No Next level button should launch level 41");
+ assert(app.includes('allPublishedComplete?"LEVELS":"PLAY"'),
+  "Home Play should show the finished Journey book");
+ assert(app.includes('else if(save.unlocked>=OFFICIAL_JOURNEY_LEVELS)showGoshuincho(LAST_PUBLISHED_CHAPTER)'));
+ assert(app.includes('useJourney?{directorMode:"v62"'),
+  "Every published Journey level uses Director 6.2, including generated-openings introductions");
+ assert(html.includes("Director 6.2 runs all 40 approved Journey levels"));
+ assert(!html.includes("levels 41–50 use 4.0"));
+ const Journey=require("../harmony/journey-levels-v2.js");
+ const Openings=require("../harmony/journey-authored-openings.js");
+ for(let index=0;index<40;index++){
+  assert(Journey.get(index),"Missing approved Journey recipe at level "+(index+1));
+  if(index>=20)assert.equal(Openings.get(index)?.opening?.provenance,"hand-authored");
+ }
+ assert.equal(Journey.get(40),null,"A new Puzzle Architect chapter has not been approved yet");
+});
 console.log("Goshuincho ten-level Washi Zen 1.0 + archived stamp invariants passed.");

@@ -15,7 +15,7 @@ const D=require("../harmony/difficulty-lab.js");
 const Journey=require("../harmony/journey-levels-v2.js");
 const Authored=require("../harmony/journey-authored-openings.js");
 function parse(args){
- const options={level:20,trials:3,seed:20261104,directorMode:"v62",
+ const options={level:20,trials:3,seed:20261104,directorMode:"v63",
   maxCandidates:8,maxTurns:120,strategies:D.STRATEGIES.slice(),
   blueprint:null,out:null};
  for(let i=0;i<args.length;i+=2){

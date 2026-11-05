@@ -130,8 +130,10 @@ jobs:
         run: node daisugi-bloom/tests/harmony-director-v6.test.cjs
       - name: Director 6.1 · goal reachability, stage investments, gravity channels, saved mode isolation
         run: node daisugi-bloom/tests/harmony-director-v61.test.cjs
-      - name: Director 6.2 · proactive mobility, goal momentum, save integrity
+      - name: Director 6.2 · legacy mobility and save compatibility
         run: node daisugi-bloom/tests/harmony-director-v62.test.cjs
+      - name: Director 6.3 · unfinished subgoals, fair refills and legacy replay
+        run: node daisugi-bloom/tests/harmony-director-v63.test.cjs
       - name: Verify Four Families Experiment 1.0 board, save compatibility and Director 3.0
         run: node daisugi-bloom/tests/harmony-four-families.test.cjs
       - name: Verify Harmony Resonance Echo scoring, sound isolation and saved states
@@ -162,6 +164,7 @@ jobs:
           node --check daisugi-bloom/harmony/director-v6.js
           node --check daisugi-bloom/harmony/director-v61.js
           node --check daisugi-bloom/harmony/director-v62.js
+          node --check daisugi-bloom/harmony/director-v63.js
           node --check daisugi-bloom/harmony/bamboo-paths.js
           node --check daisugi-bloom/harmony/hanabi-crate.js
           node --check daisugi-bloom/harmony/lotus-stream.js
@@ -227,8 +230,10 @@ jobs:
         run: node daisugi-bloom/tests/harmony-onboarding-polish-browser.mjs
       - name: Tutorial Help Modal 1.0 · illustrated lessons, OK acknowledgment and replay
         run: node daisugi-bloom/tests/harmony-tutorial-help-browser.mjs
-      - name: Director 6.2 · actual 390px Bamboo preview, first real swap and existing saves
+      - name: Director 6.2 · legacy 390px Bamboo preview and existing saves
         run: node daisugi-bloom/tests/harmony-director-v62-browser.mjs
+      - name: Director 6.3 · live Goshuincho 390px, multi-goal status and 6.2 resume
+        run: node daisugi-bloom/tests/harmony-director-v63-browser.mjs
       - name: Gate of Echoes 1.1 · 390px lower-row Wind and real turns
         run: node daisugi-bloom/tests/harmony-gate-wind-browser.mjs
       - name: Hanabi Crate 1.0 · 390px crate, fireworks, real pulse and save

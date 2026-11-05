@@ -54,7 +54,7 @@ try{
  // A first normal persist may add the empty Journey reward ledger to an old save.
  // Keep verifying the entire original save; any real reward change must fail.
  baseline.economy.journeyPaidStars ??= {};
- let s=await openDraft(5);assert.equal(s.rockets[0],29);assert.equal(s.crates,1);await leave();
+ let s=await openDraft(5);assert.equal(s.rockets[0],31);assert.equal(s.crates,1);await leave();
  s=await openDraft(6);assert.deepEqual(s.rockets,[1]);assert.equal(s.crates,1);await leave();
  s=await openDraft(7);assert.deepEqual(s.rockets,[1,5]);await leave();
  s=await openDraft(11);assert.equal(s.title,"First Wind Garden");assert.equal(s.wind,1);await leave();

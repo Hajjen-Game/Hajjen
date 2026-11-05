@@ -2128,7 +2128,8 @@ async function animateHanabiLaunch(evt){
  // empty top cells. Mist clears still count even when a tile has no icon.
  const path=window.HarmonyHanabiCrate.visiblePath(evt);
  const spreadTargets=(evt.spreadTargets||[]).filter(t=>Number.isInteger(t.to)&&t.to>=0&&t.to<21);
- const stepMs=96,stepDelay=65,holdMs=95,glitterMs=680;
+ // Short ignition cue: the rocket and its apex, not six lit tiles, own the show.
+ const stepMs=66,stepDelay=24,holdMs=45,glitterMs=680;
  const marks=[],sparks=[],impactBlooms=[];
  const impactPalette=["gold","pink","pearl","orange","violet"];
  // Per-tile floral fireworks are VFX only; the rules own all upgrades.
@@ -2186,9 +2187,9 @@ async function animateHanabiLaunch(evt){
     mark.style.opacity="0";mark.setAttribute("aria-hidden","true");
     tile.append(mark);marks.push(mark);
     charging.push(animateNode(mark,[
-     {opacity:0,transform:"scale(.91)",offset:0},
-     {opacity:.82,transform:"scale(1.04)",offset:.70},
-     {opacity:1,transform:"scale(1)",offset:1}
+     {opacity:0,transform:"scale(.94)",offset:0},
+     {opacity:.48,transform:"scale(1.025)",offset:.70},
+     {opacity:.64,transform:"scale(1)",offset:1}
     ],stepMs,{delay:rank*stepDelay,easing:"cubic-bezier(.19,.55,.27,1)"})
      .then(()=>{mark.style.opacity="1";mark.classList.add("hanabi-telegraph-charged");}));
    }
@@ -2246,25 +2247,88 @@ async function animateHanabiLaunch(evt){
    }
    await Promise.all(flight);
   }
-  // After the vertical glitter reaches the upper canopy, the genuine
-  // extra upgrades burst sideways into the exact target cells from the
-  // engine event. No visual-only random positions or circular impact rings.
+  // Firework Choreography 3.0: ONE recognizable aerial explosion
+  // happens at the top of the rocket trail. A circular shower blooms
+  // outward first, and only THEN do the three genuine side hits land.
+  // No fake targets and no gameplay changes: game events remain authoritative.
   if(spreadTargets.length){
    sound("hanabi-burst",{count:spreadTargets.length});
-   // The real upgraded icons become visible DURING the canopy explosion.
-   renderBoard(evt.board,[...path,...spreadTargets.map(t=>t.to)],"pulsed");
    if(!reduced){
-    const canopy=indexRect(7+at%7);
+    const canopy=indexRect(7+at%7),unit=Math.min(canopy.width,canopy.height);
     const bx=canopy.left+canopy.width*.5,by=canopy.top+canopy.height*.5;
-    const palette=["pink","gold","violet","orange","pearl"];
-    const flights=[];
-    const core=fxAt("hanabi-glitter-mote hanabi-glitter-core hanabi-spread-core",bx,by);
-    sparks.push(core);
-    flights.push(animateNode(core,[
-     {transform:"scale(.55)",opacity:.8,offset:0},
-     {transform:"scale(1.75)",opacity:1,offset:.36},
-     {transform:"scale(.25)",opacity:0,offset:1}
-    ],640,{easing:"ease-out"}));
+    const palette=["gold","pink","orange","violet","pearl"];
+    const fireworks=[];
+    const flower=fxAt("hanabi-apex-flower",bx,by);
+    flower.dataset.hanabiPhase="apex";flower.setAttribute("aria-hidden","true");
+    flower.style.width=Math.round(unit*3.15)+"px";
+    flower.style.height=Math.round(unit*3.15)+"px";
+    sparks.push(flower);
+    fireworks.push(animateNode(flower,[
+     {transform:"translate(-50%,-50%) scale(.12)",opacity:0,offset:0},
+     {transform:"translate(-50%,-50%) scale(.83)",opacity:1,offset:.20},
+     {transform:"translate(-50%,-50%) scale(1.08)",opacity:.98,offset:.48},
+     {transform:"translate(-50%,-50%) scale(1.26)",opacity:.58,offset:.76},
+     {transform:"translate(-50%,-50%) scale(1.35)",opacity:0,offset:1}
+    ],1030,{easing:"cubic-bezier(.14,.52,.24,1)"}));
+    // A radial, five-colour star shower makes the blast unmistakably
+    // different from a straight laser or a row of Harmony Pulse markers.
+    const showerCount=LITE_FX()?12:MOBILE_LITE?19:27;
+    for(let p=0;p<showerCount;p++){
+     const angle=(2*Math.PI*p)/showerCount-.25;
+     const radius=unit*(1.27+(p%4)*.26);
+     const dx=Math.cos(angle)*radius,dy=Math.sin(angle)*radius;
+     const color=palette[p%palette.length];
+     const spark=fxAt("hanabi-glitter-mote hanabi-glitter-"+color+
+      " hanabi-apex-ray"+(p%5===0?" hanabi-glitter-star":""),bx,by);
+     spark.dataset.hanabiPhase="apex-ray";spark.dataset.color=color;
+     sparks.push(spark);
+     fireworks.push(animateNode(spark,[
+      {transform:"translate3d(0,0,0) scale(.55)",opacity:0,offset:0},
+      {transform:"translate3d("+(dx*.13)+"px,"+(dy*.13)+"px,0) scale(1.48)",opacity:1,offset:.16},
+      {transform:"translate3d("+(dx*.75)+"px,"+(dy*.72)+"px,0) scale(.98)",opacity:.96,offset:.60},
+      {transform:"translate3d("+dx+"px,"+(dy+unit*.30)+"px,0) scale(.12)",opacity:0,offset:1}
+     ],850+(p%4)*65,{delay:(p%3)*15,
+      easing:"cubic-bezier(.13,.55,.26,1)"}));
+    }
+    // The three outward trails travel from the SAME explosion center,
+    // not as three independent grid glows. Their destinations are real
+    // player-visible upgrades chosen by the deterministic game engine.
+    for(let n=0;n<spreadTargets.length;n++){
+     const to=spreadTargets[n].to,goal=indexRect(to);
+     const dx=goal.left+goal.width*.5-bx,dy=goal.top+goal.height*.5-by;
+     for(let p=0;p<(LITE_FX()?2:3);p++){
+      const hue=palette[(n+p+1)%palette.length];
+      const mote=fxAt("hanabi-glitter-mote hanabi-glitter-"+hue+
+       " hanabi-spread-spark",bx,by);
+      mote.dataset.to=String(to);mote.dataset.color=hue;
+      sparks.push(mote);
+      const offset=(p-1)*unit*.11;
+      fireworks.push(animateNode(mote,[
+       {transform:"translate3d(0,0,0) scale(.5)",opacity:0,offset:0},
+       {transform:"translate3d("+(dx*.18+offset)+"px,"+(dy*.13-unit*.1)+"px,0) scale(1.25)",opacity:1,offset:.19},
+       {transform:"translate3d("+(dx*.70+offset)+"px,"+(dy*.65-unit*.12)+"px,0) scale(.82)",opacity:.91,offset:.72},
+       {transform:"translate3d("+(dx+offset)+"px,"+dy+"px,0) scale(.2)",opacity:0,offset:1}
+      ],490+p*27,{delay:80+n*65+p*20,
+       easing:"cubic-bezier(.17,.44,.25,1)"}));
+     }
+    }
+    // Hold the initial 'BOOM' for a beat before the side tiles light up.
+    // This time belongs to the actual aerial blossom, not a blank pause.
+    const ignition=fxAt("hanabi-apex-flash",bx,by);
+    ignition.dataset.hanabiPhase="apex-flash";
+    ignition.setAttribute("aria-hidden","true");
+    ignition.style.width=Math.round(unit*2.6)+"px";
+    ignition.style.height=Math.round(unit*2.6)+"px";
+    sparks.push(ignition);
+    await animateNode(ignition,[
+     {transform:"translate(-50%,-50%) scale(.18)",opacity:0,offset:0},
+     {transform:"translate(-50%,-50%) scale(.95)",opacity:.86,offset:.30},
+     {transform:"translate(-50%,-50%) scale(1.22)",opacity:0,offset:1}
+    ],245,{easing:"ease-out"});
+    // Reveal genuine upgraded sprites while the explosion is still in
+    // full bloom. Append target blooms after renderBoard replaced the old
+    // treasure sprites so their effects remain attached and visible.
+    renderBoard(evt.board,[...path,...spreadTargets.map(t=>t.to)],"pulsed");
     for(let n=0;n<spreadTargets.length;n++){
      const to=spreadTargets[n].to,tile=boardTiles[to];
      if(!tile)continue;
@@ -2273,29 +2337,17 @@ async function animateHanabiLaunch(evt){
      mark.dataset.to=String(to);
      mark.setAttribute("aria-hidden","true");
      tile.append(mark);marks.push(mark);
-     flights.push(animateNode(mark,[
-      {transform:"scale(.65)",opacity:0,offset:0},
-      {transform:"scale(1.07)",opacity:.98,offset:.49},
+     fireworks.push(animateNode(mark,[
+      {transform:"scale(.67)",opacity:0,offset:0},
+      {transform:"scale(1.10)",opacity:1,offset:.27},
+      {transform:"scale(1.05)",opacity:.88,offset:.62},
       {transform:"scale(1)",opacity:0,offset:1}
-     ],850,{delay:n*68,easing:"ease-out"}));
-     impactAt(to,n*68+62,true,flights);
-     const goal=indexRect(to),dx=goal.left+goal.width*.5-bx,dy=goal.top+goal.height*.5-by;
-     // The three fan arms visibly diverge from the top of the main ray.
-     for(let p=0;p<(LITE_FX()?2:3);p++){
-      const color=palette[(n+p)%palette.length];
-      const mote=fxAt("hanabi-glitter-mote hanabi-glitter-"+color+
-       " hanabi-spread-spark",bx,by);
-      mote.dataset.to=String(to);mote.dataset.color=color;
-      sparks.push(mote);
-      const offset=(p-1)*6;
-      flights.push(animateNode(mote,[
-       {transform:"translate3d(0,0,0) scale(.8)",opacity:.92,offset:0},
-       {transform:"translate3d("+(dx*.55+offset)+"px,"+(dy*.43-8)+"px,0) scale(1.3)",opacity:1,offset:.5},
-       {transform:"translate3d("+(dx+offset)+"px,"+(dy+(p%2?5:-5))+"px,0) scale(.2)",opacity:0,offset:1}
-      ],590+p*27,{delay:n*68+p*18,easing:"cubic-bezier(.19,.48,.26,1)"}));
-     }
+     ],760,{delay:155+n*65,easing:"ease-out"}));
+     impactAt(to,155+n*65,true,fireworks);
     }
-    await Promise.all(flights);
+    await Promise.all(fireworks);
+   }else{
+    renderBoard(evt.board,[...path,...spreadTargets.map(t=>t.to)],"pulsed");
    }
   }
  }finally{

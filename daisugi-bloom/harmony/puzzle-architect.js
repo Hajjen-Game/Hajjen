@@ -11,7 +11,7 @@ if(!Architecture)throw Error("Puzzle Architect needs Level Architecture 2.0");
 const VERSION=1,SIZE=7,CELLS=49;
 const FIXED=new Set(["terrain","lotusSeed","hanabiCrate","daruma","sealedStone","moonMirror"]);
 const FAMILY=new Set(["sakura","lantern","koi","fan","bonsai","sushi","maneki","origami","ryu"]);
-const MODES=new Set(["standard","v2","v3","v31","v311","v4","v6","v61","v62"]);
+const MODES=new Set(["standard","v2","v3","v31","v311","v4","v6","v61","v62","v63"]);
 function check(cond,message){if(!cond)throw Error(message);}
 function obj(value,label){check(value&&typeof value==="object"&&!Array.isArray(value),label+" must be an object");return value;}
 function strict(value,allowed,label){
@@ -76,7 +76,7 @@ function compatible(input,rules){
  catch(e){return {ok:false,reason:e.message};}
 }
 function mode(value){check(MODES.has(value),"Unknown Director mode");return value;}
-function captured(rules,recipe,seed=20261104,directorMode="v62"){
+function captured(rules,recipe,seed=20261104,directorMode="v63"){
  check(rules&&typeof rules.Game==="function","Real HarmonyRules.Game required");
  const normalized=Architecture.normalize(recipe),choice=mode(directorMode);
  const game=new rules.Game(normalized.index,null,{seed,
@@ -90,7 +90,7 @@ function create(rules,recipe,options={}){
  const r=Architecture.normalize(recipe);
  const seed=options.seed??20261104;
  check(Number.isInteger(seed)&&seed>=0&&seed<=0xffffffff,"Seed must be uint32");
- const sample=captured(rules,r,seed,options.directorMode??"v62");
+ const sample=captured(rules,r,seed,options.directorMode??"v63");
  return normalize({
   version:VERSION,id:"architect-"+r.id,
   insight:options.insight??"Use the intended mechanic to unlock a meaningful later decision.",
@@ -104,7 +104,7 @@ function build(rules,input,options={}){
  check(rules&&typeof rules.Game==="function","HarmonyRules.Game required");
  const bp=normalize(input,rules),seed=options.seed??20261104;
  check(Number.isInteger(seed)&&seed>=0&&seed<=0xffffffff,"Seed must be uint32");
- const directorMode=mode(options.directorMode??"v62");
+ const directorMode=mode(options.directorMode??"v63");
  let game=new rules.Game(bp.recipe.index,null,{
   seed,directorMode,journeyDiagnostic:true,levelRecipe:bp.recipe
  });

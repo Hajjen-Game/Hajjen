@@ -32,8 +32,8 @@ function journeyDraftSeed(i){
 let windAtmosphere=null; // One persistent, directional row layer for the active Wind preview.
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
-// Keep pre-publication 21–40 runs intact in the archive without pretending
-// they can resume the newly approved Journey 2.0 puzzle layout.
+// Only completed Puzzle Architect receipts and authentic saved rounds
+// count toward this fresh Journey. Prior generation saves are reset at boot.
 function canResumeJourneyRun(index){
  const run=save?.run;
  return Number.isInteger(index)&&index>=0&&index<OFFICIAL_JOURNEY_LEVELS&&
@@ -146,14 +146,12 @@ const fxCount=()=>scoreOverlay?.childElementCount||0;
 // A dense SCORE stream must never starve Harmony Echo, Pulse or fusion dust.
 // Keep total FX accounting intact for the performance meter and score budget.
 const fxDecorCount=()=>fxCount()-(scoreOverlay?.querySelectorAll(".score-shot-mote").length||0);
-// First 20 Levels Redesign 1.0: one-time RESET FOR EVERY BROWSER PROFILE.
-// Scores, stars, old runs and unlocks belong to this browser's localStorage;
-// the repository has no remotely deletable player account database.
-// This marker is separate from the save so even historic save-migrations
-// cannot repopulate archived scores or stars after the reset. Preferences
-// are carried over, but every player restarts independently at level 1.
-const RESET_MARKER="japanese-harmony-first20-reset-20261024-v1";
-const saveBootstrap=H.bootstrap(()=>window.localStorage,KEY,RESET_MARKER,defaults,PLAY_MODES);
+// Journey Fresh Start 3.0: Director 6.3 + the 40 approved Puzzle
+// Architect levels are a clean release. Previously stored progress is erased
+// once on each browser profile, with sound/reduced-motion preferences retained.
+// There is no remote player database: each device resets on its next visit.
+const RESET_MARKER="japanese-harmony-architect40-director63-reset-20261105-v1";
+const saveBootstrap=H.freshJourney(()=>window.localStorage,KEY,RESET_MARKER,defaults,PLAY_MODES);
 save=saveBootstrap.save;
 let saveStorageWritable=saveBootstrap.writable;
 let saveStorageWarning=saveBootstrap.warning;

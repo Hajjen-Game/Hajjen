@@ -534,7 +534,7 @@ body.harmony-reduced-motion #modal .jh-omamori-welcome{
 #menuView .jh-dev-previews .washi-advanced-actions{margin-top:4px}
 #menuView .jh-dev-previews .washi-advanced-actions button{font-size:11px}
 #modal:has(.pause-menu-actions) .pause-menu-actions .pause-main{
-  grid-column:1/-1;min-height:46px;
+  grid-column:1/-1;order:3;min-height:46px;
   color:#6c463a;background:linear-gradient(145deg,#f4dbb5,#e7c49a);
   border-color:#ba8f65;
 }

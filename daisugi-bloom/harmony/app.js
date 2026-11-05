@@ -2128,6 +2128,19 @@ async function animateHanabiLaunch(evt){
  // empty top cells. Mist clears still count even when a tile has no icon.
  const path=window.HarmonyHanabiCrate.visiblePath(evt);
  const spreadTargets=(evt.spreadTargets||[]).filter(t=>Number.isInteger(t.to)&&t.to>=0&&t.to<21);
+ // Pixi Preview 1.0 is strictly opt-in. The engine's targets remain the
+ // single source of truth; any GPU, CDN or WebGL failure falls back to
+ // the complete, already-tested Classic animation below.
+ if(!reduced&&window.HarmonyHanabiPixi?.isEnabled()){
+  const usedPixi=await window.HarmonyHanabiPixi.play({...evt,path},{
+   rectFor:indexRect,
+   onCharge:()=>sound("hanabi-charge",{count:path.length}),
+   onLaunch:()=>sound("hanabi-launch",{count:path.length}),
+   onBurst:()=>sound("hanabi-burst",{count:spreadTargets.length}),
+   onReveal:()=>renderBoard(evt.board,[...path,...spreadTargets.map(t=>t.to)],"pulsed")
+  });
+  if(usedPixi){renderBoard(evt.board);return;}
+ }
  // Short ignition cue: the rocket and its apex, not six lit tiles, own the show.
  const stepMs=66,stepDelay=24,holdMs=45,glitterMs=680;
  const marks=[],sparks=[],impactBlooms=[];
@@ -3995,6 +4008,16 @@ function openGameMenu(){
  $("modal").hidden=false;
 }
 function bind(){
+ // Advanced-settings A/B choice; only the VFX renderer changes.
+ const previewChoice=$("hanabiVfxMode");
+ if(previewChoice&&window.HarmonyHanabiPixi){
+  previewChoice.value=window.HarmonyHanabiPixi.mode();
+  previewChoice.addEventListener("change",()=>{
+   window.HarmonyHanabiPixi.setMode(previewChoice.value);
+  });
+  if(window.HarmonyHanabiPixi.isEnabled())
+   void window.HarmonyHanabiPixi.prepare();
+ }
  const directorChoice=$("gameDirectorMode");
  const explainDirectorMode=()=>{
   $("directorModeDescription").textContent=save.playMode==="v63"?

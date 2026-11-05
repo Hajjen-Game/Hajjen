@@ -13,6 +13,7 @@ page.on("pageerror",e=>errors.push(e.message));
 const url="http://127.0.0.1:8000/daisugi-bloom/";
 async function openPicker(){
  await page.$eval("#menuAdvanced",node=>node.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
  await page.click("#bambooPreviewButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Bamboo Paths · Preview");
  const options=await page.$$eval(".bamboo-preview-choice",nodes=>

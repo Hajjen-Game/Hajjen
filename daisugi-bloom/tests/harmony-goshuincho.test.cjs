@@ -256,7 +256,7 @@ check("UI Cleanup 1.0: modern Director picker, folded previews and a player-only
  const selector=html.match(/<select id="gameDirectorMode"[\s\S]*?<\/select>/)?.[0];
  assert(selector,"The player Director selection must exist");
  const values=[...selector.matchAll(/<option value="([^"]+)"/g)].map(x=>x[1]);
- assert.deepEqual(values,["auto","v62"],"Old engines are not player choices");
+ assert.deepEqual(values,["auto","v63"],"Old engines are not player choices");
  assert(html.includes('id="devButton"')&&html.includes('id="devPreviews"'));
  assert(html.includes('Experimental previews &amp; archived tests'));
  assert(css.includes(".jh-dev-previews")&&css.includes(".jh-help-guide"));
@@ -268,9 +268,9 @@ check("UI Cleanup 1.0: modern Director picker, folded previews and a player-only
  assert(app.includes('modalInfo("How to Play",HOW_TO_PLAY_HTML)'));
  for(const topic of ["Hanabi Crate","Wind Garden","Daruma","Sealed Stones","Mist"])
   assert(app.includes(topic),"Help must explain "+topic);
- for(const mode of ["compare62","compareStandard62","director62"])
+ for(const mode of ["compare63","compareStandard63","director63"])
   assert(app.includes(mode),"Intelligence UI must include "+mode);
- assert(lab.includes('director62:"Harmony Director 6.2"'));
+ assert(lab.includes('director63:"Harmony Director 6.3"'));
 });
 check("Published Journey ends at 40; stale legacy chapters stay out of Goshuincho",()=>{
  const fs=require("node:fs"),path=require("node:path");
@@ -291,9 +291,9 @@ check("Published Journey ends at 40; stale legacy chapters stay out of Goshuinch
  assert(app.includes('allPublishedComplete?"LEVELS":"PLAY"'),
   "Home Play should show the finished Journey book");
  assert(app.includes('else if(save.unlocked>=OFFICIAL_JOURNEY_LEVELS)showGoshuincho(LAST_PUBLISHED_CHAPTER)'));
- assert(app.includes('useJourney?{directorMode:"v62"'),
-  "Every published Journey level uses Director 6.2, including generated-openings introductions");
- assert(html.includes("Director 6.2 runs all 40 approved Journey levels"));
+ assert(app.includes('useJourney?{directorMode:"v63"'),
+  "Every published Journey level uses Director 6.3, including generated-openings introductions");
+ assert(html.includes("Director 6.3 runs all 40 approved Journey levels"));
  assert(!html.includes("levels 41–50 use 4.0"));
  const Journey=require("../harmony/journey-levels-v2.js");
  const Openings=require("../harmony/journey-authored-openings.js");

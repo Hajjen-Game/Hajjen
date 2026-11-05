@@ -65,7 +65,7 @@ try{
  await page.evaluate(()=>{
   window.__hanabiSpreadVfx={
    mainMarks:[],sideMarks:[],sideSparks:[],audio:[],
-   mainGlitterSeen:false,burstAfterMain:false,
+   impactBlooms:[],impactParticles:[],mainGlitterSeen:false,burstAfterMain:false,
    fullBoardAtLaunch:null,initialMarkedBeforeGlitter:false,
    firstMainParticle:false
   };
@@ -96,6 +96,16 @@ try{
     }
     if(n.classList.contains("hanabi-spread-spark"))
      w.sideSparks.push(Number(n.dataset.to));
+    if(n.classList.contains("hanabi-impact-bloom")){
+     w.impactBlooms.push({
+      to:Number(n.dataset.to),kind:n.dataset.kind,
+      duration:n.getAnimations()[0]?.effect?.getTiming()?.duration??0,
+      revealed:n.dataset.kind!=="canopy"||
+       !!n.closest(".tile")?.getAttribute("aria-label")?.includes("tier ")
+     });
+    }
+    if(n.classList.contains("hanabi-hit-particle"))
+     w.impactParticles.push({to:Number(n.dataset.to),kind:n.dataset.kind});
    }
   });
   observer.observe(document.body,{childList:true,subtree:true});
@@ -148,6 +158,20 @@ try{
  assert(result.vfx.burstAfterMain);
  assert(result.vfx.sideSparks.length>=6,"Fan sparks must actually fly to upgraded neighbors");
  assert(result.vfx.sideSparks.every(to=>result.targets.includes(to)));
+ const mainBloom=result.vfx.impactBlooms.filter(x=>x.kind==="column"),
+  canopyBloom=result.vfx.impactBlooms.filter(x=>x.kind==="canopy");
+ assert.deepEqual(mainBloom.map(x=>x.to).sort((a,b)=>a-b),
+  [3,10,17,24,31,38],"Every real vertical hit must bloom");
+ assert.deepEqual(canopyBloom.map(x=>x.to).sort((a,b)=>a-b),
+  [...result.targets].sort((a,b)=>a-b),
+  "Each of the 3 extra upgraded treasures needs its own visible starfire");
+ assert(mainBloom.every(x=>x.duration>=550),"Column impacts must be readable");
+ assert(canopyBloom.every(x=>x.duration>=800),
+  "The actual firework explosion must be longer than the old 440ms flash");
+ assert(canopyBloom.every(x=>x.revealed),
+  "Upgraded treasure artwork must already be revealed DURING the explosion");
+ assert(result.vfx.impactParticles.length>=24,
+  "The genuine hit cells need outward-travelling firework sparks, not just borders");
  assert.deepEqual(result.vfx.audio,[
   "hanabi-load","hanabi-charge","hanabi-launch","hanabi-burst"
  ],"Load, charge, launch and canopy explosion need audible order");

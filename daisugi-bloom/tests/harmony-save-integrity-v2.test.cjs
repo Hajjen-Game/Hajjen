@@ -64,8 +64,8 @@ check("All 40 production Journey games, including 15 Hanabi levels, save and res
 
 check("An actual Hanabi delivery stays resumable after cargo lands in its crate",()=>{
  const game=gameFor(4,123);
- assert(game.swap(30,31).ok);
- assert(game.swap(30,37).ok);
+ assert(game.swap(32,33).ok);
+ assert(game.swap(32,39).ok);
  assert.equal(game.lotusDelivered,1);
  const run=runFor(game);
  assert(H.validRun(run),"Delivered Hanabi round was rejected");

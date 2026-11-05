@@ -173,7 +173,50 @@ function resetProgress(storageProvider,key,defaults){
  }catch{}
  return {ok:true,save:fresh};
 }
-const api=Object.freeze({validRun,normalize,persist,bootstrap,resetProgress});
+// Director 6.3 / Puzzle Architect fresh-start release.
+// A NEW marker deliberately supersedes all older progression migrations.
+// Only audio/accessibility preferences survive. No level, stamp, reward,
+// inventory, unfinished round or unknown archived profile fields are imported.
+// The reset is local to this game's key, once per browser profile. An existing
+// corrupt/backup file cannot prevent the explicitly approved fresh start.
+function freshJourney(storageProvider,key,marker,defaults,playModes){
+ let storage,raw=null;
+ try{
+  storage=storageProvider();
+  if(storage.getItem(marker)==="done")
+   return {...bootstrap(storageProvider,key,marker,defaults,playModes),resetApplied:false};
+  raw=storage.getItem(key);
+ }catch{
+  return {save:normalize({},defaults),writable:false,warning:"storage-unavailable",resetApplied:false};
+ }
+ let previous={};
+ if(raw!==null){
+  try{
+   const decoded=JSON.parse(raw);
+   if(record(decoded))previous=decoded;
+  }catch{}
+ }
+ const fresh=normalize({
+  sound:typeof previous.sound==="boolean"?previous.sound:defaults.sound,
+  reduceMotion:!!previous.reduceMotion,
+  playMode:defaults.playMode
+ },defaults);
+ try{
+  storage.setItem(key,JSON.stringify(fresh));
+  storage.setItem(marker,"done");
+ }catch{
+  return {save:fresh,writable:false,warning:"storage-unavailable",resetApplied:false};
+ }
+ // Old diagnostic backups are no longer valid profiles for this release.
+ // Never touch localStorage keys belonging to another application.
+ try{
+  storage.removeItem(key+"-corrupt-backup");
+  storage.removeItem(key+"-invalid-run-backup");
+  storage.removeItem("japanese-harmony-first20-reset-20261024-v1");
+ }catch{}
+ return {save:fresh,writable:true,warning:null,resetApplied:raw!==null};
+}
+const api=Object.freeze({validRun,normalize,persist,bootstrap,resetProgress,freshJourney});
 root.HarmonySaveHealth=api;
 if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window!=="undefined"?window:globalThis);

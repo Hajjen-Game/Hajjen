@@ -103,8 +103,8 @@ check("Repeat clears improve signed stars and records but never duplicate a stam
 
 check("A legitimate delivered Hanabi game earns an actual proof while a preview cannot",()=>{
  const game=A.build(R,O.get(4),{seed:123,recordRound:true,directorMode:"v63"});
- assert(game.swap(30,31).ok);
- assert(game.swap(30,37).ok);
+ assert(game.swap(32,33).ok);
+ assert(game.swap(32,39).ok);
  assert.equal(game.complete,true);
  assert.equal(game.lotusDelivered,1);
  const save={unlocked:4};P.initialize(save);

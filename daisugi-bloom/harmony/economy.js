@@ -46,7 +46,8 @@ function newAccount(save){
   const rating=completedRating(save,i);
   if(rating){paid[i]=rating;if(i>=FIRST_COIN_LEVEL_INDEX)total+=earnedValue(rating);}
  }
- return {version:VERSION,coins:Math.min(MAX_COINS,total),paidStars:paid,owned:[],equipped:null};
+ return {version:VERSION,coins:Math.min(MAX_COINS,total),paidStars:paid,
+  journeyPaidStars:{},owned:[],equipped:null};
 }
 function initialize(save){
  if(!save||typeof save!=="object")throw new Error("Save required");

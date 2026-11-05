@@ -19,7 +19,7 @@ assert.match(app,/window\.HarmonyJourneyAuthoredOpenings\?\.get\(i\)/);
 assert.match(app,/const resumable=canResumeJourneyRun\(stamp\.level\)/);
 assert.match(app,/const preview=levelPreview\(stamp\.level,resumable\)/);
 assert.match(app,/const r=canResumeJourneyRun\(save\.run\?\.level\)/);
-assert.match(html,/app\.js\?v=7\.8\.0-journey-21-40-live/);
+assert.match(html,/app\.js\?v=8\.1\.0-save-integrity-v2/);
 const summaries=O.chapterSummary();
 assert.deepEqual(summaries.map(x=>x.index),Array.from({length:20},(_,k)=>k+20));
 const signatures=new Set();

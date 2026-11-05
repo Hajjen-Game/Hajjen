@@ -101,7 +101,7 @@ function auditRun(entry,options={}){
  const agents=options.strategies??["random","objective"];
  if(!Array.isArray(agents)||!agents.length||new Set(agents).size!==agents.length||
     !agents.every(x=>STRATEGIES.includes(x)))throw Error("Choose unique valid diagnostic strategies");
- const modes=options.compareStandard?["v62","standard"]:["v62"];
+ const modes=options.compareStandard?["v63","standard"]:["v63"];
  const baseSeed=between(options.baseSeed??20261105,0,0xffffffff,"Base seed");
  const maxCandidates=between(options.maxCandidates??5,3,40,"Candidate limit");
  const maxTurns=between(options.maxTurns??entry.recipe.moves,1,120,"Max turns");
@@ -120,7 +120,7 @@ function auditRun(entry,options={}){
    runs.push({mode,...observer.finish(finalGame,raw)});
   }
  }
- const primary=runs.filter(x=>x.mode==="v62");
+ const primary=runs.filter(x=>x.mode==="v63");
  const byStrategy=Object.fromEntries(agents.map(strategy=>{
   const rows=primary.filter(x=>x.strategy===strategy);
   return { ...Lab.summarize(rows),
@@ -163,16 +163,16 @@ function auditRun(entry,options={}){
    return !other||row.openingSignature!==other.openingSignature;
   });
   comparison={paired:!incompatible,mode:"standard",
-   v62WinRate:round(primary.filter(x=>x.won).length/primary.length),
+   v63WinRate:round(primary.filter(x=>x.won).length/primary.length),
    standardWinRate:round(baseline.filter(x=>x.won).length/baseline.length),
-   v62Work:avg(primary,x=>x.objectiveDetails.work),
+   v63Work:avg(primary,x=>x.objectiveDetails.work),
    standardWork:avg(baseline,x=>x.objectiveDetails.work),
-   v62Shuffles:sum(primary.map(x=>x.shuffles)),
+   v63Shuffles:sum(primary.map(x=>x.shuffles)),
    standardShuffles:sum(baseline.map(x=>x.shuffles))};
   if(incompatible)add("UNPAIRED_OPENINGS","investigate","Different start boards make the Director comparison inconclusive");
-  else if(Math.abs(comparison.v62Work-comparison.standardWork)>=.25)
+  else if(Math.abs(comparison.v63Work-comparison.standardWork)>=.25)
    add("DIRECTOR_OUTCOME_DIVERGENCE","investigate",
-    "Director 6.2 and Standard differed by at least 25 percentage points of objective work");
+    "Director 6.3 and Standard differed by at least 25 percentage points of objective work");
  }
  return {level:entry.index+1,name:entry.recipe.name,recipeId:entry.recipe.id,
   chapter:Math.floor(entry.index/10)+1,opening:entry.opening,
@@ -193,10 +193,10 @@ function audit(options={}){
   levels.push(result);
   if(typeof options.onLevel==="function")options.onLevel(result);
  }
- const all=levels.flatMap(x=>x.runs.filter(r=>r.mode==="v62"));
+ const all=levels.flatMap(x=>x.runs.filter(r=>r.mode==="v63"));
  const warnings=levels.flatMap(l=>l.warnings.map(w=>({level:l.level,...w})));
  const chapters=Array.from(new Set(levels.map(x=>x.chapter)),chapter=>{
-  const subset=levels.filter(x=>x.chapter===chapter),rows=subset.flatMap(x=>x.runs.filter(r=>r.mode==="v62"));
+  const subset=levels.filter(x=>x.chapter===chapter),rows=subset.flatMap(x=>x.runs.filter(r=>r.mode==="v63"));
   return {chapter,levels:subset.length,attempts:rows.length,diagnosticWins:rows.filter(x=>x.won).length,
    avgObjectiveWork:avg(rows,x=>x.objectiveDetails.work),
    avgWorkDrought:avg(rows,x=>x.longestWorkDrought),

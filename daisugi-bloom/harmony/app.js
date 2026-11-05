@@ -2132,14 +2132,19 @@ async function animateHanabiLaunch(evt){
  // single source of truth; any GPU, CDN or WebGL failure falls back to
  // the complete, already-tested Classic animation below.
  if(!reduced&&window.HarmonyHanabiPixi?.isEnabled()){
-  const usedPixi=await window.HarmonyHanabiPixi.play({...evt,path},{
-   rectFor:indexRect,
-   onCharge:()=>sound("hanabi-charge",{count:path.length}),
-   onLaunch:()=>sound("hanabi-launch",{count:path.length}),
-   onBurst:()=>sound("hanabi-burst",{count:spreadTargets.length}),
-   onReveal:()=>renderBoard(evt.board,[...path,...spreadTargets.map(t=>t.to)],"pulsed")
-  });
-  if(usedPixi){renderBoard(evt.board);return;}
+  try{
+   const usedPixi=await window.HarmonyHanabiPixi.play({...evt,path},{
+    rectFor:indexRect,
+    onCharge:()=>sound("hanabi-charge",{count:path.length}),
+    onLaunch:()=>sound("hanabi-launch",{count:path.length}),
+    onBurst:()=>sound("hanabi-burst",{count:spreadTargets.length}),
+    onReveal:()=>renderBoard(evt.board,[...path,...spreadTargets.map(t=>t.to)],"pulsed")
+   });
+   if(usedPixi){renderBoard(evt.board);return;}
+  }catch(error){
+   // A renderer preview must NEVER prevent a valid game move or a win.
+   console.warn("[Hanabi Pixi Preview] Classic fallback after GPU exception",error);
+  }
  }
  // Short ignition cue: the rocket and its apex, not six lit tiles, own the show.
  const stepMs=66,stepDelay=24,holdMs=45,glitterMs=680;

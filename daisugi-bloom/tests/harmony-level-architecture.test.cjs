@@ -96,7 +96,7 @@ check("Hanabi, Mirror and Daruma compile as one coherent recipe",()=>{
 check("15 real seeded openings preserve every fixture and legal moves",()=>{
  for(const [example,seeds] of [[blockers,[1,7,21,53,91]],[hanabi,[1,7,21,53,91]],[bamboo,[1,7,21,53,91]]]){
   for(const seed of seeds){
-   const g=new R.Game(example.index,null,{seed,directorMode:"v62",
+   const g=new R.Game(example.index,null,{seed,directorMode:"v63",
     journeyDiagnostic:true,levelRecipe:example});
    const m=example.mechanics;
    for(const at of m.daruma||[])assertFixture(g,at,"daruma");

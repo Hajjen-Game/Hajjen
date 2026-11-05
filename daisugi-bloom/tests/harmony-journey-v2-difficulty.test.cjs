@@ -16,7 +16,7 @@ check("Every stage has few visible requirements, no Mirror counters, and real bo
   assert(!m.sealedStones.length||targets.some(t=>t.type==="sealedStone"));
   if(targets.length>1)assert(O.objective(x).includes(" + "));
   const g=new R.Game(i,null,{seed:20261104+i,journeyDiagnostic:true,
-   directorMode:"v62",levelRecipe:x});
+   directorMode:"v63",levelRecipe:x});
   assert.deepEqual(g.config.goal,x.goal);
   assert.equal(g.goalParts().length,targets.length);
   assert(g.goalParts().every(p=>p.progress===0));
@@ -31,7 +31,7 @@ check("Finale needs genuine Stone breaks AND rocket deliveries",()=>{
  assert.deepEqual(x.goal,{type:"sealedStone",count:4,
   requires:[{type:"lotus",count:2}]});
  const g=new R.Game(19,null,{seed:42,journeyDiagnostic:true,
-  directorMode:"v62",levelRecipe:x});
+  directorMode:"v63",levelRecipe:x});
  assert.equal(g.goalParts().length,2);
  assert.equal(g.sealed.filter(Boolean).length,4);
  g.lotusDelivered=2;assert(!g.fulfilled(),"Rockets alone must not finish");
@@ -42,7 +42,7 @@ check("Finale needs genuine Stone breaks AND rocket deliveries",()=>{
 });
 check("Retained Koi finale asks for actual Koi Masterpieces",()=>{
  const x=D.get(9),g=new R.Game(9,null,{seed:311,journeyDiagnostic:true,
-  directorMode:"v62",levelRecipe:x});
+  directorMode:"v63",levelRecipe:x});
  g.masterpieces=4;g.familyMasterpieces={koi:0,sushi:4};
  assert(!g.fulfilled());g.familyMasterpieces.koi=2;assert(g.fulfilled());
 });

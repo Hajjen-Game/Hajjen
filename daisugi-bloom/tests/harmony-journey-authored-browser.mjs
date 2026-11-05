@@ -60,7 +60,15 @@ try{
   if(n>=21)assert.equal(b.opening.length,49);
   await leave();
  }
- assert.deepEqual(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY),save);
+ const after=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
+ // A legacy save may gain this empty, backwards-compatible reward ledger during
+ // its first normal persist. Previews must not alter any real progress or coins.
+ assert.deepEqual(after.economy?.journeyPaidStars,save.economy?.journeyPaidStars??{},
+  "Preview cannot issue or alter Journey star reward receipts");
+ if(!Object.hasOwn(save.economy??{},"journeyPaidStars")){
+  delete after.economy.journeyPaidStars;
+ }
+ assert.deepEqual(after,save,"Preview may not mutate saved progress or active runs");
  assert.deepEqual(errors,[]);
  console.log("PASS 390px Journey reference previews 1–20 and authored chapter tests 21–40 without save mutations");
 }finally{await browser.close();}

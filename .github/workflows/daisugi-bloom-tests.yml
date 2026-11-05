@@ -119,6 +119,13 @@ jobs:
         run: node daisugi-bloom/tests/harmony-chapter-identity.test.cjs
       # Retired: pre-Architect levels 41+ / Endless Garden chapter contracts.
       # Its test file remains archived but these boards are not a release.
+
+  rules-regression:
+    name: Rules · UI, Director 6.3 and gameplay polish
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
       - name: Difficulty Calibration 2.0 · selective tuning and old-game preservation
         run: node daisugi-bloom/tests/harmony-difficulty-calibration-v2.test.cjs
       - name: Objective & Reward Feedback 2.0 · blockers, progress, practice stars
@@ -230,6 +237,7 @@ jobs:
           node --check daisugi-bloom/harmony/cards.js
           node --check daisugi-bloom/harmony/victory-celebration.js
           node --check daisugi-bloom/harmony/app.js
+
   mobile-smoke-isolated:
     name: Mobile · Director 6.3 fresh start and 40 approved levels
     runs-on: ubuntu-latest

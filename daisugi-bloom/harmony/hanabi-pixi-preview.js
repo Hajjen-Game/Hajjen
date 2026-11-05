@@ -65,7 +65,10 @@ async function ensureGraphics(){
  if(app&&!failed)return true;
  if(graphicsPromise)return graphicsPromise;
  graphicsPromise=(async()=>{
-  const lib=await prepare();if(!lib)return false;
+  if(!(await prepare()))return false;
+  // prepare() is deliberately a boolean public API. The module namespace
+  // itself is retained in pixi, matching arena3v3's imported PIXI object.
+  const lib=pixi;
   const rect=viewRect();
   const element=document.createElement("canvas");
   element.className="jh-hanabi-pixi-preview";

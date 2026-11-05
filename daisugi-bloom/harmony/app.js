@@ -344,8 +344,21 @@ function sound(type,detail){
  if(!save.sound||document.hidden)return;
  window.HarmonyAudio?.play(type,detail||{});
 }
+// Read-only experimental telemetry, hidden in collapsed Game Settings.
+// Never put renderer diagnostics into saved game progress.
+function refreshHanabiVfxStatus(){
+ const target=$("hanabiVfxStatus"),report=window.HarmonyHanabiPixi?.inspect();
+ if(!target||!report)return;
+ target.textContent=report.mode!=="pixi"?
+  "Classic fireworks active (unchanged).":
+  report.failed?"PixiJS unavailable on this device/network. Classic fallback active.":
+  report.frames>0?"PixiJS WebGL active · last Hanabi "+report.estimatedFps+
+    " FPS ("+report.frames+" frames, "+report.elapsedMs+" ms).":
+  "PixiJS selected. WebGL initializes on the first firework.";
+}
 function showMenu(){
  if(busy)return;
+ refreshHanabiVfxStatus();
  disarmDecisionClock();clearIdleHint();
  resetResonanceVisuals();clearScoreFx();clearPraise();clearWindAtmosphere();
  saveRun();moonMirrorPreview=null;windGardenPreview=null;bambooPreview=false;lotusPreview=null;journeyDraftPreview=false;
@@ -2140,7 +2153,7 @@ async function animateHanabiLaunch(evt){
     onBurst:()=>sound("hanabi-burst",{count:spreadTargets.length}),
     onReveal:()=>renderBoard(evt.board,[...path,...spreadTargets.map(t=>t.to)],"pulsed")
    });
-   if(usedPixi){renderBoard(evt.board);return;}
+   if(usedPixi){renderBoard(evt.board);refreshHanabiVfxStatus();return;}
   }catch(error){
    // A renderer preview must NEVER prevent a valid game move or a win.
    console.warn("[Hanabi Pixi Preview] Classic fallback after GPU exception",error);
@@ -4019,9 +4032,11 @@ function bind(){
   previewChoice.value=window.HarmonyHanabiPixi.mode();
   previewChoice.addEventListener("change",()=>{
    window.HarmonyHanabiPixi.setMode(previewChoice.value);
+   refreshHanabiVfxStatus();
   });
   if(window.HarmonyHanabiPixi.isEnabled())
-   void window.HarmonyHanabiPixi.prepare();
+   void window.HarmonyHanabiPixi.prepare().then(refreshHanabiVfxStatus);
+  refreshHanabiVfxStatus();
  }
  const directorChoice=$("gameDirectorMode");
  const explainDirectorMode=()=>{

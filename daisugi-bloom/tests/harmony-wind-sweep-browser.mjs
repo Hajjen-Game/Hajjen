@@ -12,6 +12,7 @@ page.on("pageerror",e=>errors.push(e.message));
 const url="http://127.0.0.1:8000/daisugi-bloom/";
 async function openPreview(key){
  await page.$eval("#menuAdvanced",n=>n.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
  await page.click("#windGardenPreviewButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Wind Garden 1.0");
  await page.click('.wind-preview-choice[data-preview="'+key+'"]');

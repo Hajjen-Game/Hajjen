@@ -290,7 +290,7 @@ check("Published Journey ends at 40; stale legacy chapters stay out of Goshuinch
   "No Next level button should launch level 41");
  assert(app.includes('allPublishedComplete?"LEVELS":"PLAY"'),
   "Home Play should show the finished Journey book");
- assert(app.includes('else if(save.unlocked>=OFFICIAL_JOURNEY_LEVELS)showGoshuincho(LAST_PUBLISHED_CHAPTER)'));
+ assert(app.includes('else if(JP.unlocked(save)>=OFFICIAL_JOURNEY_LEVELS)showGoshuincho(LAST_PUBLISHED_CHAPTER)'));
  assert(app.includes('useJourney?{directorMode:"v63"'),
   "Every published Journey level uses Director 6.3, including generated-openings introductions");
  assert(html.includes("Director 6.3 runs all 40 approved Journey levels"));

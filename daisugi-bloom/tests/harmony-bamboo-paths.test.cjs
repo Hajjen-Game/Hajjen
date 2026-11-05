@@ -65,10 +65,11 @@ check("One-time illustrated lessons explain each change of geometry",()=>{
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
  assert(html.includes("bamboo-paths.js?v="));
  assert(html.indexOf("bamboo-paths.js?v=")<html.indexOf("rules.js?v="));
- // Bamboo remains available only through its Game Dev preview, not as
- // a published Journey entry point while chapter design is still parked.
- assert(html.includes('id="bambooPreviewButton"'));
- assert(app.includes("Bamboo Paths · Preview"));
+ // The generated Bamboo 51–60 chapter is now an ENGINE FIXTURE only.
+ // Players only see Puzzle Architect-authored levels 1–40.
+ assert(!html.includes('id="bambooPreviewButton"'));
+ assert(!html.includes('id="lotusPreviewButton"'));
+ assert(app.includes('if(!Number.isInteger(i)||i<0||i>=OFFICIAL_JOURNEY_LEVELS)'));
  assert(app.includes("Bamboo Paths complete"));
 });
 check("Seeded mobile Director 4 starts and fair shuffles preserve every closed cell",()=>{

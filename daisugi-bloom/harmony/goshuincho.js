@@ -1,7 +1,8 @@
 /* Japanese Harmony · Goshuincho Level Select 2.0
  * Fictional travel-stamp album inspired by Japan's goshuincho tradition.
- * Pure read-only projections of the existing star archive: no new currency,
- * save migration, unlocks, gameplay mutations, or real shrine stamps.
+ * Pure read-only projections: current Journey stamps require a verified
+ * Puzzle Architect recipe signature; old score archives remain independent.
+ * No currency, save migration, gameplay mutation, or real shrine stamps.
  * Future generated assets: fill URL entries in ART below.
  */
 (function(root){

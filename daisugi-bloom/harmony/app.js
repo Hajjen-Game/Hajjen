@@ -223,8 +223,6 @@ if(save.familyProgressionVersion!==1){
 // The pre-Journey score maps remain permanent historical archives.
  // Current records/stamps come only from the verified recipe ledger.
 function activeRecords(){return JP.scores(save);}
-function recordsForLevel(){return JP.scores(save);}
-function starsForLevel(){return Object.fromEntries(Array.from({length:OFFICIAL_JOURNEY_LEVELS},(_,i)=>[i,JP.stars(save,i)]));}
 const journeyMigration=JP.initialize(save);
 if(journeyMigration.created){
  migratedScores=true;
@@ -4005,7 +4003,7 @@ window.addEventListener("online",()=>{
 });
 window.HarmonyAudio?.setEnabled(save.sound);
 menuPage=Math.min(Math.floor((OFFICIAL_JOURNEY_LEVELS-1)/MENU_PAGE_SIZE),
- Math.floor(Math.max(0,save.unlocked)/MENU_PAGE_SIZE));
+ Math.floor(JP.unlocked(save)/MENU_PAGE_SIZE));
 bind();checkAtlas();initFestivalBackground();renderMenu();
 saveBootComplete=true;notifySaveWarning();
 })();

@@ -75,7 +75,7 @@ function launch(game,delivered,h){
    Math.imul((game.moves||0)+1,0x85ebca6b)^
    Math.imul(at+1,0xc2b2ae35)^
    Math.imul((game.lotusDelivered||0)+1,0x27d4eb2d))>>>0;
-  for(const to of spreadPositions(game.board,at,spreadSeed,struck)){
+  for(const to of (game.hanabiVersion>=2?spreadPositions(game.board,at,spreadSeed,struck):[])){
    struck.add(to);game.grow(to,created,true);
    spreadTargets.push({from:SIZE+at%SIZE,to,stage:game.board[to].stage});
   }

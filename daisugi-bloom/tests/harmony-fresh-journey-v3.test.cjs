@@ -49,8 +49,10 @@ check("Director 6.3 starts EVERY existing browser profile from level 1",()=>{
  for(const name of ["bestStars","bestScores","bestChain","fourFamilyStars","fourFamilyScores"])
   assert.deepEqual(fresh[name],{});
  for(const name of ["journeyProgression","economy","omamoriCards","fortune",
-  "archivedField","assistedStars"])assert.equal(fresh[name],undefined,name+" survived reset");
+  "archivedField"])assert.equal(fresh[name],undefined,name+" survived reset");
  assert.equal(fresh.run,null);
+ assert.deepEqual(fresh.assistedStars,{},"Legacy assisted ratings must be empty");
+ assert.deepEqual(fresh.assistedScores,{},"Legacy assisted scores must be empty");
  assert.equal(fresh.playMode,"auto");
  assert.equal(fresh.sound,false);
  assert.equal(fresh.reduceMotion,true);

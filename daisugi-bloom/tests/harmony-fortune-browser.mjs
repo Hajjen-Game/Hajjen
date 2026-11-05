@@ -13,7 +13,7 @@ try{
  // The free coin-giving fortune must not bypass the ten-level tutorial.
  assert.equal(await page.$eval("#omikujiStatus",el=>el.textContent),"Unlocks after level 10");
  await page.click("#omikujiButton");
- assert.equal(await page.$eval(".omikuji-draw",x=>x.length),0);
+ assert.equal(await page.$$eval(".omikuji-draw",x=>x.length),0);
  assert((await page.$eval("#modalContent",e=>e.textContent)).includes("Complete level 10"));
  await page.click(".omikuji-close");
  await page.evaluate(()=>{

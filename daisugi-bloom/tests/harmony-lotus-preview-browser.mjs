@@ -22,6 +22,7 @@ const scenarios=[
 async function enter(key){
  await page.reload({waitUntil:"networkidle2"});
  await page.$eval("#menuAdvanced",node=>node.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
  await page.click("#lotusPreviewButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Hanabi Crate · Preview");
  const options=await page.$$eval(".lotus-preview-choice",nodes=>

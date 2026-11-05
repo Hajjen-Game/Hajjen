@@ -65,7 +65,10 @@ check("One-time illustrated lessons explain each change of geometry",()=>{
  const app=fs.readFileSync(path.join(__dirname,"../harmony/app.js"),"utf8");
  assert(html.includes("bamboo-paths.js?v="));
  assert(html.indexOf("bamboo-paths.js?v=")<html.indexOf("rules.js?v="));
- assert(app.includes("Enter Bamboo Paths →"));
+ // Bamboo remains available only through its Game Dev preview, not as
+ // a published Journey entry point while chapter design is still parked.
+ assert(html.includes('id="bambooPreviewButton"'));
+ assert(app.includes("Bamboo Paths · Preview"));
  assert(app.includes("Bamboo Paths complete"));
 });
 check("Seeded mobile Director 4 starts and fair shuffles preserve every closed cell",()=>{

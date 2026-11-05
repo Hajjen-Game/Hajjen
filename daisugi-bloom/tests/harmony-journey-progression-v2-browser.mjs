@@ -33,7 +33,7 @@ try{
    stamps:G.summary(s).earned,legacyStars:s.bestStars,
    score:s.bestScores,coins:s.economy.coins,inventory:s.omamoriCards.counts};
  },KEY);
- assert.equal(migration.version,2);assert.equal(migration.unlocked,39);
+ assert.equal(migration.version,2);assert.equal(migration.unlocked,40, "Historical level-40 completion preserves access but not a current stamp");
  assert.equal(migration.stamps,0);
  assert.deepEqual(migration.legacyStars,original.stars);
  assert.deepEqual(migration.score,original.score);

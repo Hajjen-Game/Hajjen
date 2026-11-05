@@ -38,7 +38,10 @@ function canResumeJourneyRun(index){
 }
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
 let powerSelection=null,powerTargets=[],moonOfferShown=false,omamoriFortuneInvite=false;
-const PLAY_MODES={auto:"Automatic · 6.2 from level 51",v62:"Proactive Mobility 6.2",v61:"Reachability 6.1",v6:"Board Health 6.0",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
+const PLAY_MODES={auto:"Automatic · Recommended",v62:"Harmony Director 6.2",v61:"Reachability 6.1",v6:"Board Health 6.0",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
+// Legacy engines remain compatible with saved rounds, but the player-facing
+// picker only lists the supported modern choices.
+const VISIBLE_PLAY_MODES=new Set(["auto","v62"]);
 const PACE_PHASE_NAMES={build:"BUILD",flow:"FLOW",relax:"CALM",recovery:"RECOVERY"};
 let decisionReadyAt=0;
 function armDecisionClock(){decisionReadyAt=performance.now();}
@@ -184,7 +187,11 @@ if(save.objectiveArchiveVersion!==2){
  }
  save.objectiveArchiveVersion=2;migratedScores=true;
 }
-if(!Object.hasOwn(PLAY_MODES,save.playMode))save.playMode="auto";
+if(!VISIBLE_PLAY_MODES.has(save.playMode)){
+ // Replace an obsolete future-start preference, not the engine stored in
+ // an unfinished round. Current player progress and rewards are untouched.
+ save.playMode="auto";migratedScores=true;
+}
 // Old 3.0 was the default. Upgrade that stored default to automatic.
 // Preserve other manually selected modes and all running game snapshots.
 if(save.directorDefaultVersion!==4){
@@ -353,7 +360,7 @@ function renderMenu(){
   journalButton.setAttribute("aria-label","Open Goshuincho stamp book, "+journal.earned+" stamps");
  }
  const selected=$("gameDirectorMode");
- if(selected)selected.value=save.playMode;
+ if(selected)selected.value=VISIBLE_PLAY_MODES.has(save.playMode)?save.playMode:"auto";
  // Legacy level list remains hidden for historical regression checks only.
  // Players now see Goshuincho as the sole visible level-selection surface.
  const list=$("levelList");list.replaceChildren();
@@ -3615,41 +3622,10 @@ function modalInfo(title,html){
  $("modalActions").classList.remove("pause-menu-actions");
  $("modalEyebrow").textContent="JAPANESE HARMONY";$("modalTitle").textContent=title;
  $("modalContent").innerHTML=html;const actions=$("modalActions");actions.replaceChildren();
- modalButton(actions,"Back to spelet","primary",()=>{$("modal").hidden=true;});$("modal").hidden=false;
+ modalButton(actions,$("gameView").hidden?"Close":"Back to game","primary",()=>{$("modal").hidden=true;});$("modal").hidden=false;
 }
-// This is a turn-based puzzle; the menu overlay blocks touches while open.
-// Local report only: no analytics, disk write or network transfer.
-function showPerformanceReport(){
- $("modalActions").classList.remove("pause-menu-actions");
- const stats=perf?.summary(),item=stats?.latest;
- const node=document.createElement("div");
- node.className="performance-report";
- const rows=[
-  ["Measured moves",String(stats?.turns||0)],
-  ["Effects",stats?.constrained?"Fewer extra particles":"Normal"],
-  ["Latest sample",item?item.frames+" frames":"Make a move to measure"],
-  ["Average frame time",item?item.averageMs+" ms":"—"],
-  ["95th percentile",item?item.p95Ms+" ms":"—"],
-  ["Estimated frame rate",item?.approxFps?item.approxFps+" FPS":"—"],
-  ["Slow frames",item?item.slowPct+" %":"—"],
-  ["Peak simultaneous effects",item?String(item.peakFx):"—"],
-  ["Animations started",item?String(item.animations):"—"]
- ];
- for(const [label,value] of rows){
-  const p=document.createElement("p"),bold=document.createElement("strong");
-  bold.textContent=label+": ";
-  p.append(bold,document.createTextNode(value));node.append(p);
- }
- const note=document.createElement("p");
- note.textContent="This measures animations from the last move, not your whole phone. No data is sent.";
- node.append(note);
- $("modalEyebrow").textContent="MOBILE DIAGNOSTICS";
- $("modalTitle").textContent="Performance";
- $("modalContent").replaceChildren(node);
- const actions=$("modalActions");actions.replaceChildren();
- modalButton(actions,"Back to spelet","primary",()=>{$("modal").hidden=true;});
- $("modal").hidden=false;
-}
+// Performance profiling still optimizes effects internally; the unused
+// player-facing diagnostics dialog has been retired.
 // Game Dev / Engine Lab 1.0: all experiments run on disposable rule-engine
 // instances, never on the player's live Game, localStorage or save data.
 let engineLabRun=null;
@@ -3662,7 +3638,7 @@ function openEngineLab(){
  $("modalTitle").textContent="Harmony Intelligence";
  const content=$("modalContent");content.replaceChildren();
  const hint=document.createElement("p");
- hint.textContent="Compare Director 4.0 with earlier engines on identical starting boards. Simulated runs never affect stars, points, or saves.";
+ hint.textContent="Test the current Harmony Director 6.2 against Director 4.0 or the original refill system on the same Journey 2.0 puzzles. Simulations never change your levels, stamps, coins or saves.";
  content.append(hint);
  if(!api){
   const missing=document.createElement("p");missing.textContent="Could not load diagnostics. Reload the page.";
@@ -3676,34 +3652,34 @@ function openEngineLab(){
   const label=document.createElement("label");label.textContent=name;label.append(node);controls.append(label);
  };
  const levels=document.createElement("select");
- const allOption=document.createElement("option");allOption.value="all";allOption.textContent="Introduction levels 1–10";levels.append(allOption);
- R.levels.forEach((cfg,i)=>{const option=document.createElement("option");option.value=String(i);option.textContent=(i+1)+". "+cfg.name;levels.append(option);});
- if(level>=R.levels.length){const option=document.createElement("option");option.value=String(level);option.textContent=(level+1)+". "+R.levelConfig(level).name;levels.append(option);}
- levels.value=game?String(level):"all";field("Levels",levels);
+ for(let chapter=0;chapter<4;chapter++){
+  const option=document.createElement("option");option.value="chapter-"+chapter;
+  option.textContent="Journey 2.0 · Levels "+(chapter*10+1)+"–"+(chapter*10+10);
+  levels.append(option);
+ }
+ for(let i=0;i<40;i++){
+  const recipe=window.HarmonyJourneyDrafts?.get(i);
+  const option=document.createElement("option");option.value=String(i);
+  option.textContent=(i+1)+". "+(recipe?.name||R.levelConfig(i).name);levels.append(option);
+ }
+ levels.value=game&&level<40?String(level):"chapter-0";field("Levels",levels);
  const samples=document.createElement("select");
  for(const n of [2,5,10,25]){const option=document.createElement("option");option.value=String(n);option.textContent=n+" seeds per strategy and level";samples.append(option);}
  samples.value="5";field("Test runs",samples);
  const seedInput=document.createElement("input");seedInput.type="number";seedInput.min="0";seedInput.max="4294967295";seedInput.step="1";seedInput.value="20261022";field("Base seed (reproducible)",seedInput);
  const engineMode=document.createElement("select");engineMode.id="engineMode";
  for(const [value,label] of [
-  ["compare","Compare Standard + Director 1.0 + 2.0 + 3.0"],
-  ["compare31","Compare Director 3.0 vs Objective 3.1"],
-  ["compare311","Compare Objective 3.1 vs Endgame 3.1.1"],
-   ["compare4","Compare Endgame 3.1.1 vs Director 4.0"],
-  ["standard","Only Standard"],
-  ["director","Only Director 1.0"],
-  ["director2","Only Director 2.0"],
-  ["director3","Only Pacing Director 3.0"],
-  ["director31","Only Objective Awareness 3.1"],
-  ["director311","Only Endgame Objective Awareness 3.1.1"],
-   ["director4","Only Harmony Director 4.0"]
+  ["compare62","Compare Director 4.0 vs Harmony Director 6.2"],
+  ["compareStandard62","Compare Standard vs Harmony Director 6.2"],
+  ["director62","Only Harmony Director 6.2"],
+  ["standard","Only Standard (no Director)"]
  ]){
   const opt=document.createElement("option");opt.value=value;opt.textContent=label;engineMode.append(opt);
  }
- engineMode.value="compare4";field("Game engine",engineMode);
+ engineMode.value="compare62";field("Game engine",engineMode);
  const scopeNote=document.createElement("p");
  scopeNote.className="engine-lab-note";
- scopeNote.textContent="Director 4.0 is the default from level 10. It understands Daruma, Sealed Stones, partial hits, and goal progress. Bot pacing is simulated.";
+ scopeNote.textContent="The approved Journey 2.0 boards use Director 6.2 in normal play. These results come from automated test players, not human success rates.";
 
  content.append(controls,scopeNote);
  const status=document.createElement("p");status.className="engine-lab-status";status.setAttribute("role","status");
@@ -3763,8 +3739,8 @@ function openEngineLab(){
    const comparison=document.createElement("div");comparison.className="engine-comparison";
    const title=document.createElement("strong");title.textContent="Direct comparison · goal progress, wins and growth";
    comparison.append(title);
-   const baselineMode=result.options.modes.includes("standard")?"standard":
-   result.options.modes.includes("director3")?"director3":result.options.modes.includes("director311")?"director311":"director31";
+   const baselineMode=result.options.modes.includes("director4")?"director4":
+   result.options.modes.includes("standard")?"standard":result.options.modes[0];
    for(const classic of result.results.filter(x=>x.mode===baselineMode)){
     for(const mode of result.options.modes.filter(m=>m!==baselineMode)){
     const newer=result.results.find(x=>x.level===classic.level&&x.strategy===classic.strategy&&x.mode===mode);
@@ -3791,11 +3767,12 @@ function openEngineLab(){
   const job={cancelled:false};engineLabRun=job;latest=null;
   runButton.disabled=true;cancelButton.disabled=false;exportButton.disabled=true;output.replaceChildren();
   levels.disabled=true;samples.disabled=true;seedInput.disabled=true;engineMode.disabled=true;
-  const modes=engineMode.value==="compare"?["standard","director","director2","director3"]:
-   engineMode.value==="compare31"?["director3","director31"]:
-   engineMode.value==="compare311"?["director31","director311"]:
-    engineMode.value==="compare4"?["director311","director4"]:[engineMode.value];
-  const opts={levels:levels.value==="all"?Array.from({length:10},(_,i)=>i):[Number(levels.value)],
+  const modes=engineMode.value==="compare62"?["director4","director62"]:
+   engineMode.value==="compareStandard62"?["standard","director62"]:[engineMode.value];
+  const scope=levels.value.startsWith("chapter-")?Number(levels.value.slice(8)):-1;
+  const selectedLevels=scope>=0&&scope<4?
+   Array.from({length:10},(_,i)=>scope*10+i):[Number(levels.value)];
+  const opts={levels:selectedLevels,
    trials:Number(samples.value),seed:requestedSeed,strategies:api.STRATEGIES,modes,
    yieldEvery:1,cancel:()=>job.cancelled};
   const total=opts.levels.length*opts.trials*opts.strategies.length*opts.modes.length;
@@ -3838,37 +3815,23 @@ function openGameMenu(){
  add("Resume game","primary","resume",()=>{$("modal").hidden=true;armDecisionClock();});
  if(game.complete)add("Finish and view results","secondary","finish",()=>{if(busy)return;game.finish();showResult();});
  add("Restart level","secondary","restart",()=>{if(!busy)startLevel(level,false,moonMirrorPreview,windGardenPreview,bambooPreview,lotusPreview,journeyDraftPreview);});
- // Keep these DOM positions intact: the existing game and smoke tests rely
- // on direct button access and keyboard tab order, even with the new layout.
  add("How to Play","secondary","help",()=>{$("helpButton").click();});
  add("Settings","secondary","settings",()=>{$("settingsButton").click();});
- add("Performance","secondary","performance",showPerformanceReport);
- add("Game Dev · Enginelab","secondary","dev",openEngineLab);
- add("Back to Goshuincho","secondary","levels",()=>{if(!busy)showLevelSelection();});
+ // Developer tools are accessible only from Game Settings on the home screen.
+ // The active round is persisted before returning to Main Menu.
+ add("Main Menu","secondary","main",()=>{if(!busy)showMenu();});
  $("modal").hidden=false;
 }
 function bind(){
  const directorChoice=$("gameDirectorMode");
  const explainDirectorMode=()=>{
-  $("directorModeDescription").textContent=save.playMode==="auto"?
-   "Automatic: 3.0 on levels 1–9, 4.0 on levels 10–50, 6.2 from level 51. Started levels keep their engine.":
-   save.playMode==="v62"?"6.2 anticipates deadlocks and supports objective momentum through regular refills.":
-   save.playMode==="v61"?"6.1 prioritizes strategic development and reachability.":
-   save.playMode==="v6"?"6.0 assesses mechanism-aware board health.":
-   save.playMode==="v4"?
-   "Director 4.0 analyzes goals, obstacle hits and stalled progress without free matches.":
-   save.playMode==="v311"?
-   "Experimental Endgame 3.1.1 analyzes the last Mist tiles without adding moves.":
-   save.playMode==="v31"?
-   "Experimental Director 3.1 considers goals, fusion placement, Mist and Pulse.":
-   save.playMode==="v3"?
-   "Director 3.0 follows the player's rhythm and uses fair refills.":
-   save.playMode==="v2"?"Director 2.0 prioritizes upgrade opportunities within the normal object pool.":
-   "The original random refill system.";
+  $("directorModeDescription").textContent=save.playMode==="v62"?
+   "Director 6.2 protects legal moves and keeps objective progress possible." :
+   "Recommended. Journey 2.0 levels 1–40 use Director 6.2; levels 41–50 use 4.0; levels 51+ use 6.2. Current rounds keep their engine.";
  };
  directorChoice.value=save.playMode;
  directorChoice.addEventListener("change",event=>{
-  save.playMode=Object.hasOwn(PLAY_MODES,event.target.value)?event.target.value:"auto";
+  save.playMode=VISIBLE_PLAY_MODES.has(event.target.value)?event.target.value:"auto";
   persist();explainDirectorMode();
  });
  explainDirectorMode();
@@ -3889,7 +3852,8 @@ function bind(){
  $("journeyDraftButton")?.addEventListener("click",()=>showJourneyDraftChooser(0));
  $("journeyChapterPlaytestButton")?.addEventListener("click",()=>showJourneyDraftChooser(2));
  $("continueButton").addEventListener("click",()=>activateWashiPlay($("continueButton"),()=>{const r=canResumeJourneyRun(save.run?.level)?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);}));
- $("helpButton").addEventListener("click",()=>modalInfo("How to Play",'<p><strong>Match:</strong> Swap adjacent tiles to match three or more objects from the same family. Stages can differ. T- and L-shaped matches also work.</p><p><strong>Fuse:</strong> A match fuses at the destination of your swap (or the other swapped tile if only that position makes a match). The result advances one stage above the highest matched object. Automatic chains fuse at the highest-stage tile. A match of four upgrades a neighbor; five or more upgrades two.</p><p><strong>Harmony Resonance:</strong> Objects at stages 3–4 may form a subtle light link with a neighboring object in the same family. Fuse both together to trigger Harmony Echo and earn bonus points, at most once per move.</p><p><strong>Harmony Pulse:</strong> A stage-5 masterpiece sends power to its four orthogonal neighbors. Existing objects advance, and Mist clears even on empty tiles. Chains finish before empty spaces refill.</p><p><strong>Masterpieces:</strong> Each new masterpiece still grants bonus points; the old masterpiece collection panel is hidden during play.</p><p><strong>Harmony Mist (from level 4):</strong> Clear magical Mist from marked tiles. Fuse onto a Mist tile or reach it with Harmony Pulse. Pieces can move into and out of Mist, but matching across Mist does not clear it unless the fusion lands there. Mist remains in place as pieces fall.</p><p><strong>Daruma (levels 21–30):</strong> Daruma cannot move. Each doll requires two hits on separate moves, from an adjacent fusion or Harmony Pulse. The chapter alternates between Daruma, Mist, and fusion challenges.</p><p><strong>Sealed Stones (levels 31–40):</strong> Stones cannot move and take four separate hits. Fuse beside a stone or hit it with Harmony Pulse, at most once per move. The final hit releases an Awakening Pulse toward all eight neighbors, including diagonals, and can start a chain.</p><p><strong>Rewards:</strong> Completing the objective awards at least one star. Earn two or three by finishing with fewer moves; your star rating locks when the goal is reached. Bonus score is an optional record. You can continue playing after the goal or move on. Harmony Coins start from level 11. Buy one-use Omamori cards from the Main Menu shop: Bloom Touch upgrades a tile, Ripple Shuffle rearranges a small area, Sealbreaker hits an obstacle, and Moon cards grant extra moves when you run out. Stronger variants cost more. Up to two board boosts can be used per level, plus one optional Moon rescue. Omamori-assisted wins earn a single Goshuincho stamp and coins, while clean star ratings and score records remain separate.</p>'));
+ const HOW_TO_PLAY_HTML="<div class=\"jh-help-guide\"><p class=\"jh-help-lead\">Match treasures, grow them into masterpieces and solve each board’s objective. Plan where your Fusion lands.</p><section><h3>1 · Match &amp; grow</h3><p>Swap adjacent treasures to match three or more from the same family. Their stages can differ. T- and L-shaped matches count. A match fuses at the swap’s destination and grows a treasure one stage beyond the highest one matched.</p></section><section><h3>2 · Harmony Pulse</h3><p>A stage-5 Masterpiece sends a Pulse to its four direct neighbors, upgrading treasures and affecting nearby obstacles. Set up chain reactions, but keep an eye on the level goal.</p></section><section><h3>3 · Festival mechanics</h3><p><strong>Mist:</strong> Fuse onto a misty square or hit it with Harmony Pulse to clear it. Treasures can move through Mist.</p><p><strong>Hanabi Crate:</strong> Make matches beneath a rocket to let it fall into its crate. The launch sends a vertical firework Pulse up the column.</p><p><strong>Wind Garden:</strong> A marked row shifts when its wind cycle triggers. Watch its direction before you swap.</p><p><strong>Daruma:</strong> Each stationary doll needs two separate hits from adjacent Fusions or Harmony Pulse, at most one hit per move.</p><p><strong>Sealed Stones:</strong> Each fixed stone needs four separate hits. Breaking one releases an Awakening Pulse to all eight surrounding spaces, including diagonals.</p></section><section><h3>4 · Objectives &amp; stars</h3><p>Follow the <strong>GOAL</strong> panel: some levels require several things, such as launches <em>and</em> masterpieces. Tap <strong>?</strong> beside the goal for help. Finish using fewer moves to earn up to three Goshuincho stars.</p></section><section><h3>5 · Omamori &amp; rewards</h3><p>Harmony Coins become available after level 10. Spend them on one-use Omamori boosts from the Main Menu, with up to two board boosts per level and an optional Moon rescue. Assisted wins earn one stamp; unassisted runs can earn higher star ratings and score records.</p></section></div>";
+ $("helpButton").addEventListener("click",()=>modalInfo("How to Play",HOW_TO_PLAY_HTML));
  $("settingsButton").addEventListener("click",()=>{
   modalInfo("Settings",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Sound</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Reduce animations</label></p>');
   $("settingsSound").addEventListener("change",e=>{save.sound=e.target.checked;window.HarmonyAudio?.setEnabled(save.sound);if(save.sound)window.HarmonyAudio?.unlock();persist();});

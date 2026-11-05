@@ -2129,7 +2129,44 @@ async function animateHanabiLaunch(evt){
  const path=window.HarmonyHanabiCrate.visiblePath(evt);
  const spreadTargets=(evt.spreadTargets||[]).filter(t=>Number.isInteger(t.to)&&t.to>=0&&t.to<21);
  const stepMs=96,stepDelay=65,holdMs=95,glitterMs=680;
- const marks=[],sparks=[];
+ const marks=[],sparks=[],impactBlooms=[];
+ const impactPalette=["gold","pink","pearl","orange","violet"];
+ // Per-tile floral fireworks are VFX only; the rules own all upgrades.
+ function impactAt(to,delay,canopy,jobs){
+  const tile=boardTiles[to];if(!tile)return;
+  const r=indexRect(to),cx=r.left+r.width*.5,cy=r.top+r.height*.5;
+  const size=Math.min(r.width,r.height);
+  const color=impactPalette[(to+(canopy?2:0))%impactPalette.length];
+  const bloom=document.createElement("span");
+  bloom.className="hanabi-impact-bloom"+(canopy?" hanabi-impact-canopy":" hanabi-impact-column")+
+   " hanabi-impact-"+color;
+  bloom.dataset.to=String(to);bloom.dataset.kind=canopy?"canopy":"column";
+  bloom.setAttribute("aria-hidden","true");tile.append(bloom);impactBlooms.push(bloom);
+  jobs.push(animateNode(bloom,[
+   {opacity:0,transform:"scale(.44)",offset:0},
+   {opacity:1,transform:"scale(1.15)",offset:.19},
+   {opacity:.92,transform:"scale(1.26)",offset:.40},
+   {opacity:.60,transform:"scale(1.30)",offset:.68},
+   {opacity:0,transform:"scale(1.42)",offset:1}
+  ],canopy?850:560,{delay,easing:"cubic-bezier(.18,.56,.24,1)"}));
+  const count=canopy?(LITE_FX()?4:7):(LITE_FX()?2:3);
+  for(let p=0;p<count;p++){
+   const angle=2*Math.PI*p/count+to*.43;
+   const radius=size*(canopy?.72:.50)*(p%2?.82:1);
+   const dx=Math.cos(angle)*radius,dy=Math.sin(angle)*radius;
+   const sparkle=fxAt("hanabi-hit-particle hanabi-glitter-"+
+    impactPalette[(p+to)%impactPalette.length],cx,cy);
+   sparkle.dataset.to=String(to);sparkle.dataset.kind=canopy?"canopy":"column";
+   sparks.push(sparkle);
+   jobs.push(animateNode(sparkle,[
+    {transform:"translate3d(0,0,0) scale(.45)",opacity:0,offset:0},
+    {transform:"translate3d("+(dx*.17)+"px,"+(dy*.17)+"px,0) scale(1.24)",opacity:1,offset:.18},
+    {transform:"translate3d("+(dx*.78)+"px,"+(dy*.78)+"px,0) scale(.87)",opacity:.95,offset:.62},
+    {transform:"translate3d("+dx+"px,"+(dy+size*.16)+"px,0) scale(.18)",opacity:0,offset:1}
+   ],canopy?660:470,{delay:delay+20+p*14,
+    easing:"cubic-bezier(.16,.48,.28,1)"}));
+  }
+ }
  if(!reduced&&path.length)sound("hanabi-charge",{count:path.length});
  const source=indexRect(at),end=indexRect(path[path.length-1]??at-7);
  const x=source.left+source.width*.5,y=source.top+source.height*.32;
@@ -2195,11 +2232,11 @@ async function animateHanabiLaunch(evt){
      {transform:"translate3d("+sx+"px,"+dy+"px,0) scale(.15)",opacity:0,offset:1}
     ],glitterMs-(i%5)*7,{delay:stagger,easing:"cubic-bezier(.15,.53,.25,1)"}));
    }
-   // No circular impact ring. The marked CELL itself brightens when
-   // the rising glitter reaches it, using the existing square overlay.
+   // Miniature fireworks erupt in each real column target, bottom to top.
    const reachMs=path.length?glitterMs/path.length:0;
-   for(let index=0;index<marks.length;index++){
-    const mark=marks[index];
+   for(let index=0;index<path.length;index++){
+    const to=path[index],mark=marks[index];
+    impactAt(to,Math.round((index+.27)*reachMs),false,flight);
     flight.push(animateNode(mark,[
      {opacity:1,transform:"scale(1)",offset:0},
      {opacity:1,transform:"scale(1.075)",offset:.4},
@@ -2214,6 +2251,8 @@ async function animateHanabiLaunch(evt){
   // engine event. No visual-only random positions or circular impact rings.
   if(spreadTargets.length){
    sound("hanabi-burst",{count:spreadTargets.length});
+   // The real upgraded icons become visible DURING the canopy explosion.
+   renderBoard(evt.board,[...path,...spreadTargets.map(t=>t.to)],"pulsed");
    if(!reduced){
     const canopy=indexRect(7+at%7);
     const bx=canopy.left+canopy.width*.5,by=canopy.top+canopy.height*.5;
@@ -2225,7 +2264,7 @@ async function animateHanabiLaunch(evt){
      {transform:"scale(.55)",opacity:.8,offset:0},
      {transform:"scale(1.75)",opacity:1,offset:.36},
      {transform:"scale(.25)",opacity:0,offset:1}
-    ],370,{easing:"ease-out"}));
+    ],640,{easing:"ease-out"}));
     for(let n=0;n<spreadTargets.length;n++){
      const to=spreadTargets[n].to,tile=boardTiles[to];
      if(!tile)continue;
@@ -2238,7 +2277,8 @@ async function animateHanabiLaunch(evt){
       {transform:"scale(.65)",opacity:0,offset:0},
       {transform:"scale(1.07)",opacity:.98,offset:.49},
       {transform:"scale(1)",opacity:0,offset:1}
-     ],440,{delay:n*42,easing:"ease-out"}));
+     ],850,{delay:n*68,easing:"ease-out"}));
+     impactAt(to,n*68+62,true,flights);
      const goal=indexRect(to),dx=goal.left+goal.width*.5-bx,dy=goal.top+goal.height*.5-by;
      // The three fan arms visibly diverge from the top of the main ray.
      for(let p=0;p<(LITE_FX()?2:3);p++){
@@ -2252,7 +2292,7 @@ async function animateHanabiLaunch(evt){
        {transform:"translate3d(0,0,0) scale(.8)",opacity:.92,offset:0},
        {transform:"translate3d("+(dx*.55+offset)+"px,"+(dy*.43-8)+"px,0) scale(1.3)",opacity:1,offset:.5},
        {transform:"translate3d("+(dx+offset)+"px,"+(dy+(p%2?5:-5))+"px,0) scale(.2)",opacity:0,offset:1}
-      ],345+p*24,{delay:n*42+p*16,easing:"cubic-bezier(.19,.48,.26,1)"}));
+      ],590+p*27,{delay:n*68+p*18,easing:"cubic-bezier(.19,.48,.26,1)"}));
      }
     }
     await Promise.all(flights);
@@ -2260,6 +2300,7 @@ async function animateHanabiLaunch(evt){
   }
  }finally{
   for(const mark of marks)mark.remove();
+  for(const bloom of impactBlooms)bloom.remove();
   for(const spark of sparks)spark.remove();
  }
  // Reveal exactly the original engine's changes after the effect,

@@ -1923,49 +1923,8 @@ class Game{
      }
     }
    };
-   // First descent is exactly the same as Fusion. If a firework reaches
-   // the crate, animate its existing descent BEFORE playing the intake.
-   const beforeLotus=this.lotus.starts.length?
-    new Map(this.board.map((p,i)=>[p?.id,i]).filter(([id])=>Number.isInteger(id)&&id<=-2000)):null;
-   settleGravity();
-   if(beforeLotus){
-    const moved=this.board.some((p,i)=>isLotusSeed(p)&&beforeLotus.has(p.id)&&beforeLotus.get(p.id)!==i);
-    if(moved)events.push(this.frame("lotus-fall"));
-   }
-   if(this.lotus.exits.length){
-    const collect=()=>this.hanabiVersion>=2?
-     Hanabi.collect(this.board,this.lotus.exits):
-     Lotus.collect(this.board,this.lotus.exits);
-    const launch=delivered=>{
-     if(!delivered.length)return;
-     this.lotusDelivered+=delivered.length;
-     events.push(this.frame(this.hanabiVersion?"hanabi-delivery":"lotus-delivery",
-      {delivered,positions:delivered.map(d=>d.from??d.at)}));
-     if(this.hanabiVersion)Hanabi.launch(this,delivered,{events,
-      frame:(type,extra)=>this.frame(type,extra),hitDaruma,hitStone,
-      emitAwakenings,neighbors,pendingAwakenings});
-    };
-    let delivered=collect();
-    if(delivered.length)launch(delivered);
-    // An upgraded stage-4 treasure becomes a Masterpiece and is harvested
-    // by Hanabi, opening space AFTER first gravity. Without a second
-    // compaction the refills are placed straight into mid-board holes.
-    // Leave final motion+refill to the existing "fall" event/FLIP.
-    if(this.hanabiVersion>=2&&delivered.length){
-     for(let step=0;step<this.lotus.starts.length;step++){
-      settleGravity();
-      // A further cargo may have legitimately descended into its crate
-      // after the launch. Show its ID-based fall before consuming it.
-      const awaiting=this.lotus.exits.some(at=>
-       Hanabi.isCrate(this.board[at])&&isLotusSeed(this.board[at-N]));
-      if(!awaiting)break;
-      events.push(this.frame("hanabi-fall",{round:waveRound}));
-      delivered=collect();
-      if(!delivered.length)break;
-      launch(delivered);
-     }
-    }
-   }
+   // Reuse ordinary fair/Director refills before launch and after its waves.
+   const refillSettledBoard=()=>{
    if(windLimited){
     // Wind is a positional puzzle mechanic, not a second Director-driven
     // refill chain. Keep the ordinary shuffled family bag but select a
@@ -1993,6 +1952,58 @@ class Game{
     const family=this.nextFamily(this.board,i);
     this.board[i]={family,stage:1,id:this.nextId++};
    }
+   };
+   // First descent is exactly the same as Fusion. If a firework reaches
+   // the crate, animate its existing descent BEFORE playing the intake.
+   const beforeLotus=this.lotus.starts.length?
+    new Map(this.board.map((p,i)=>[p?.id,i]).filter(([id])=>Number.isInteger(id)&&id<=-2000)):null;
+   settleGravity();
+   if(beforeLotus){
+    const moved=this.board.some((p,i)=>isLotusSeed(p)&&beforeLotus.has(p.id)&&beforeLotus.get(p.id)!==i);
+    if(moved)events.push(this.frame("lotus-fall"));
+   }
+   if(this.lotus.exits.length){
+    const collect=()=>this.hanabiVersion>=2?
+     Hanabi.collect(this.board,this.lotus.exits):
+     Lotus.collect(this.board,this.lotus.exits);
+    const launch=delivered=>{
+     if(!delivered.length)return;
+     this.lotusDelivered+=delivered.length;
+     events.push(this.frame(this.hanabiVersion?"hanabi-delivery":"lotus-delivery",
+      {delivered,positions:delivered.map(d=>d.from??d.at)}));
+     if(this.hanabiVersion>=2){
+      // Hanabi Spread 2.0: first settle every empty cell using the normal
+      // Fusion gravity and Director refill, then launch into a full board.
+      settleGravity();
+      refillSettledBoard();
+      events.push(this.frame("hanabi-prelaunch-fill",{delivered,round:waveRound}));
+     }
+     if(this.hanabiVersion)Hanabi.launch(this,delivered,{events,
+      frame:(type,extra)=>this.frame(type,extra),hitDaruma,hitStone,
+      emitAwakenings,neighbors,pendingAwakenings});
+    };
+    let delivered=collect();
+    if(delivered.length)launch(delivered);
+    // An upgraded stage-4 treasure becomes a Masterpiece and is harvested
+    // by Hanabi, opening space AFTER first gravity. Without a second
+    // compaction the refills are placed straight into mid-board holes.
+    // Leave final motion+refill to the existing "fall" event/FLIP.
+    if(this.hanabiVersion>=2&&delivered.length){
+     for(let step=0;step<this.lotus.starts.length;step++){
+      settleGravity();
+      // A further cargo may have legitimately descended into its crate
+      // after the launch. Show its ID-based fall before consuming it.
+      const awaiting=this.lotus.exits.some(at=>
+       Hanabi.isCrate(this.board[at])&&isLotusSeed(this.board[at-N]));
+      if(!awaiting)break;
+      events.push(this.frame("hanabi-fall",{round:waveRound}));
+      delivered=collect();
+      if(!delivered.length)break;
+      launch(delivered);
+     }
+    }
+   }
+   refillSettledBoard();
    events.push(this.frame("fall",{round:waveRound}));preferred=-1;
   }
   // Do not leave already-matched lines frozen on the board. If even a

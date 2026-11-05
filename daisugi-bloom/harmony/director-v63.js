@@ -22,7 +22,7 @@ function activeGoals(context){
 // deliver a rocket or produce a future Masterpiece. The game remains sovereign.
 function opportunities(board,context={},validSwaps,scan){
  const goals=activeGoals(context),legal=validSwaps(board),values=goals.map(()=>0);
- const distinct=goals.map(()=>new Set()),profiles=goals.map(()=>({type:null,moves:0}));
+ const distinct=goals.map(()=>new Set());
  const cargo=board.map((p,i)=>p?.family==="lotusSeed"?i:-1).filter(i=>i>=0);
  const daruma=board.map((p,i)=>p?.family==="daruma"&&context.darumaHealth?.[i]>0?i:-1).filter(i=>i>=0);
  const stones=board.map((p,i)=>p?.family==="sealedStone"&&context.sealedHealth?.[i]>0?i:-1).filter(i=>i>=0);
@@ -125,7 +125,10 @@ function choose(baseline,alternatives,scoreFn,context,validSwaps,scan){
   const improvement=m.multiObjectiveScore-original.multiObjectiveScore;
   if(!improvedCoverage&&!improvedWeakest&&improvement<1.5)continue;
   const value=m.multiObjectiveScore+Math.min(10,m.legal)*.18;
-  if(value>bestValue+1.0){
+  // Short, bounded Omamori Afterglow: slightly lowers the improvement
+  // threshold, never relaxes board safety or manufactures progress.
+  const afterglow=Math.min(2,Math.max(0,Number(context.afterglowRemaining)||0));
+  if(value>bestValue+Math.max(.65,1.0-afterglow*.16)){
    selected=candidate;choice=m;bestValue=value;
    reason=improvedCoverage?"multi-objective-coverage":
     improvedWeakest?"weakest-goal-mobility":"multi-objective-opportunity";

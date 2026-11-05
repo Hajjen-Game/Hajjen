@@ -14,7 +14,11 @@ const KEY="japanese-harmony-puzzle-v2";
 async function openLevel(index){
  await page.evaluate(({index,key})=>{
   const save=JSON.parse(localStorage.getItem(key));
+  // Fixture-only progression: Continue follows verified Journey 2.0 state,
+  // not the archived pre-redesign unlocked field.
   save.unlocked=index;save.run=null;
+  if(save.journeyProgression?.version!==2)throw Error("Journey progression missing");
+  save.journeyProgression.unlocked=index;
   localStorage.setItem(key,JSON.stringify(save));
  },{index,key:KEY});
  await page.reload({waitUntil:"networkidle2"});
@@ -92,7 +96,7 @@ try{
  await page.click(".jh-tutorial-ok");
 
  // All three main blocker guides use the same system and preserve the board.
- for(const [level,key] of [[20,"daruma"],[30,"stone"]]){
+ for(const [level,key] of [[13,"daruma"],[17,"stone"]]){
   await openLevel(level);
   const before=await info();
   assert.equal(before.type,key);assert.equal(before.cards,2);

@@ -17,7 +17,7 @@ function normalize(value){
 }
 function activate(state,mode,gameOver,moves){
  const current=normalize(state);
- if(mode!=="v4"||gameOver||moves<=0||current.used)return {state:current,activated:false};
+ if(!["v4","v63"].includes(mode)||gameOver||moves<=0||current.used)return {state:current,activated:false};
  return {state:{version:VERSION,used:true,remaining:WINDOW},activated:true};
 }
 // This is NOT an objective or drop-rate multiplier. Only score the

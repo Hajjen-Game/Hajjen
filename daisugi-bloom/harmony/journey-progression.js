@@ -14,14 +14,18 @@ const clampStars=v=>integer(v,3);
 function canonical(index,recipe){
  try{return JSON.stringify(A.normalize(recipe,index));}catch{return null;}
 }
+const SIGNATURE_CACHE=new Map();
 function signature(index){
+ if(SIGNATURE_CACHE.has(index))return SIGNATURE_CACHE.get(index);
  const recipe=D.get(index);
  if(!recipe||index<0||index>=COUNT)return null;
  const payload=canonical(index,recipe);
  if(!payload)return null;
  let h=2166136261;
  for(let i=0;i<payload.length;i++)h=Math.imul(h^payload.charCodeAt(i),16777619)>>>0;
- return recipe.id+"@"+h.toString(16).padStart(8,"0");
+ const signed=recipe.id+"@"+h.toString(16).padStart(8,"0");
+ SIGNATURE_CACHE.set(index,signed);
+ return signed;
 }
 function matchesRun(run){
  const i=run?.level,d=run?.data,recipe=D.get(i);

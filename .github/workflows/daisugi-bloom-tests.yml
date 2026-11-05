@@ -82,6 +82,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-omamori-targets.test.cjs
       - name: Technical Cleanup & Stability 1.0 · corrupt saves, locked storage and replay limits
         run: node daisugi-bloom/tests/harmony-technical-stability.test.cjs
+      - name: Save Integrity 2.0 · 40-level authentic Hanabi saves, verified resumes and recovery backup
+        run: node daisugi-bloom/tests/harmony-save-integrity-v2.test.cjs
       - name: Omikuji Fortune 1.0 · daily draws and same-wallet payouts
         run: node daisugi-bloom/tests/harmony-fortune.test.cjs
       - name: Daruma Awakening fixed-blocker, eye states and saved levels
@@ -212,6 +214,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-journey-v2-browser.mjs
       - name: Journey 2.0 · 390px Hanabi top, Wind, Daruma and Stone finale
         run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two-browser.mjs
+      - name: Save Integrity 2.0 · mobile reload/resume for authentic Hanabi and damaged-round recovery
+        run: node daisugi-bloom/tests/harmony-save-integrity-v2-browser.mjs
       - name: Victory Celebration 2.0 · real mobile pre-modal fireworks, rating and state safety
         run: node daisugi-bloom/tests/harmony-victory-celebration-browser.mjs
       - name: Onboarding Polish 2.0 · illustrated new-player and 21–40 preview mobile walkthrough

@@ -221,7 +221,7 @@ try{
   await published.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Goshuincho");
   assert.equal(await published.$eval(".washi-chapter-count",e=>e.textContent),"LEVEL 31–40",
    "Goshuincho must not expose the unapproved fifth chapter");
-  assert.equal(await published.$eval(".washi-level-tile",xs=>xs.length),10);
+  assert.equal(await published.$$eval(".washi-level-tile",xs=>xs.length),10);
   await published.click('.washi-level-tile[data-level="40"]');
   const name=await published.$eval(".washi-detail-name",e=>e.textContent);
   assert.equal(name,"Sealed Garden Finale");

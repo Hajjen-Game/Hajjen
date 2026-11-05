@@ -6,7 +6,7 @@ const H=require("../harmony/journey-authored-openings.js");
 const D=require("../harmony/journey-levels-v2.js");
 const check=(name,fn)=>{fn();console.log("PASS "+name);};
 const indices=[4,5,6,7,8,10,11,12,13,14,15,16,17,18,19];
-const physical=(i,seed=123)=>A.build(R,H.get(i),{seed,directorMode:"v62"});
+const physical=(i,seed=123)=>A.build(R,H.get(i),{seed,directorMode:"v63"});
 check("Fifteen complete fixed openings occupy the correct 7×7 fixtures",()=>{
  assert.equal(H.VERSION,2);assert.equal(H.COUNT,15);
  assert.deepEqual(H.summary().map(x=>x.index),indices);
@@ -22,7 +22,7 @@ check("Fifteen complete fixed openings occupy the correct 7×7 fixtures",()=>{
    ...m.hanabi?[...m.hanabi.starts,...m.hanabi.crates]:[]];
   for(const at of anchors)assert.equal(bp.opening.grid[at],null);
   for(const seed of [123,20261104]){
-   const g=A.build(R,bp,{seed,directorMode:"v62"});
+   const g=A.build(R,bp,{seed,directorMode:"v63"});
    assert.deepEqual(A.cellsOf(g),bp.opening.grid);
    assert.equal(R.scan(g.board).length,0);
    assert(R.validSwaps(g.board).length>=3);
@@ -78,7 +78,7 @@ check("Top-row solo Hanabi fixtures and festival stone routing are spatial",()=>
 check("Live Journey 2.0 exports every real move, board snapshot and Director observation",()=>{
  const I=require("../harmony/player-insight.js");
  const J=require("../harmony/player-intent.js");
- const g=A.build(R,H.get(8),{seed:20262678,directorMode:"v62",recordRound:true});
+ const g=A.build(R,H.get(8),{seed:20262678,directorMode:"v63",recordRound:true});
  assert.equal(g.traceEnabled,true);
  assert.equal(g.roundTrace.partial,false);
  assert.equal(g.roundTrace.moves.length,0);
@@ -92,7 +92,7 @@ check("Live Journey 2.0 exports every real move, board snapshot and Director obs
  assert.equal(move.before.board.length,49);
  assert.equal(move.after.board.length,49);
  assert(Array.isArray(move.events));
- assert.equal(move.director.mode,"v62");
+ assert.equal(move.director.mode,"v63");
  const report=I.last(g,g.roundTrace,null,null);
  assert.equal(report.round.partial,false);
  assert.equal(report.round.moves.length,1);
@@ -104,7 +104,7 @@ check("Live Journey 2.0 exports every real move, board snapshot and Director obs
  const second=R.validSwaps(restored.board)[0];
  assert.equal(restored.swap(...second).ok,true);
  assert.equal(restored.roundTrace.moves.length,2);
- const simulated=A.build(R,H.get(8),{seed:20262678,directorMode:"v62"});
+ const simulated=A.build(R,H.get(8),{seed:20262678,directorMode:"v63"});
  assert.equal(simulated.traceEnabled,false,"Bots should keep fast restore");
 });
 check("Old production boards never inherit these hand-authored layouts",()=>{

@@ -216,10 +216,9 @@ function play(type,detail={}){
    break;
   }
   case "hanabi-charge":{
-   // Three-quarters of a second is enough to suggest rising anticipation,
-   // without six high-pitched ticks fighting the on-screen tile marks.
+   // The flash now belongs to the apex explosion, not the six-cell charge.
    const count=Math.max(1,Math.min(6,Math.floor(Number(detail.count)||6)));
-   const duration=Math.min(.57,Math.max(.23,((count-1)*65+96+95)/1000));
+   const duration=Math.min(.32,Math.max(.19,((count-1)*24+66+45)/1000));
    glide(390,783.99,0,duration,.037,"sine");
    note(587.33,.06,.16,.022,"triangle");
    break;
@@ -237,11 +236,13 @@ function play(type,detail={}){
    break;
   }
   case "hanabi-burst":{
-   // Short warm crackle at the three genuine canopy upgrades.
-   hanabiRush(.008,.27,.024);
-   note(783.99,0,.12,.030,"triangle");
-   note(1174.66,.055,.14,.035,"sine");
-   note(1567.98,.12,.20,.028,"sine");
+   // A distinct BOOM-and-shower: low impact, brief broad crackle,
+   // then bright falling chimes. Keeps the eight-voice mobile cap.
+   hanabiRush(.008,.38,.052);
+   note(175,0,.18,.078,"triangle");
+   glide(710,270,.012,.25,.032,"sawtooth");
+   note(1174.66,.13,.19,.030,"sine");
+   note(1567.98,.26,.24,.024,"sine");
    break;
   }
   case "result":

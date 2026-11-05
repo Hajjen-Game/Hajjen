@@ -150,7 +150,9 @@ try{
   await nav.click("#continueButton");await nav.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(nav);
   assert.equal(await nav.$eval("#gameView",e=>e.hidden),false);
   await nav.click("#pauseButton");
-  await nav.click(".pause-levels");
+  await nav.click(".pause-main");
+  assert.equal(await nav.$eval("#modal",e=>e.hidden),true);
+  await nav.click("#goshuinButton");
   assert.equal(await nav.$eval("#modalTitle",e=>e.textContent),"Goshuincho");
   assert.equal(await nav.$$eval(".washi-level-tile",els=>els.length),10);
   assert.equal(await nav.$eval(".washi-detail-play",e=>e.textContent),"CONTINUE");
@@ -189,8 +191,7 @@ try{
   assert.equal(await nav.$eval("#movesCount",e=>e.textContent),beforeHelp,
     "Reading goal guidance must never spend a move");
   await nav.click("#pauseButton");
-  await nav.click(".pause-levels");
-  await nav.click(".washi-book-close");
+  await nav.click(".pause-main");
   assert.equal(await nav.$eval("#menuView",e=>e.hidden),false);
   assert.equal(await nav.$eval("#modal",e=>e.hidden),true);
   await nav.click("#goshuinButton");
@@ -1816,7 +1817,8 @@ try{
  await page.click("#pauseButton");assert.equal(await page.$eval("#modal",x=>x.hidden),false);
  assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Game Menu");
  assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Restart level"));
- assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Back to Goshuincho"));
+ assert((await page.$eval("#modalActions",e=>e.textContent)).includes("Main Menu"));
+ assert(!/Game Dev|Performance/.test(await page.$eval("#modalActions",e=>e.textContent)));
  const pauseLayout=await page.evaluate(()=>{
   const actions=document.querySelector("#modalActions");
   const buttons=[...actions.querySelectorAll("button")];
@@ -1824,7 +1826,7 @@ try{
    compact:actions.classList.contains("pause-menu-actions"),
    primary:buttons[0].textContent,buttonCount:buttons.length,
    resumeHeight:buttons[0].getBoundingClientRect().height,
-   utilityWidths:[buttons[3],buttons[4]].map(b=>b?.getBoundingClientRect().width||0),
+   utilityWidths:[buttons[2],buttons[3]].map(b=>b?.getBoundingClientRect().width||0),
    modalHeight:document.querySelector(".modal-inner").getBoundingClientRect().height,
    screenHeight:window.innerHeight};
  });
@@ -2102,18 +2104,11 @@ try{
  await page.evaluate(()=>{const modal=document.querySelector("#modal");if(!modal.hidden)modal.hidden=true;});
  await page.click("#pauseButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Game Menu",{timeout:5000});
- await page.evaluate(()=>{
-  const button=[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Performance");
-  if(!button)throw new Error("Performance action missing from open game menu");
-  button.click();
- });
- assert.equal(await page.$eval("#modalTitle",e=>e.textContent),"Performance");
- const report=await page.$eval("#modalContent",e=>e.textContent);
- assert(report.includes("Measured moves")&&report.includes("95th percentile")&&report.includes("Animations started"),
-  "Performance report should expose turn metrics, not fake benchmark values");
- assert(report.includes("No data is sent."),"Diagnostics must be local-only");
- await page.click("#modalActions button");assert.equal(await page.$eval("#modal",x=>x.hidden),true);
-
+ const pauseOptions=await page.$$eval("#modalActions button",items=>items.map(x=>x.textContent));
+ assert(!pauseOptions.includes("Performance")&&!pauseOptions.some(x=>x.includes("Game Dev")),
+  "Unused diagnostics are absent from the pause menu");
+ await page.click("#modalActions .pause-resume");
+ assert.equal(await page.$eval("#modal",e=>e.hidden),true);
 
  await page.click("#pauseButton");
  await page.evaluate(()=>{
@@ -2125,11 +2120,11 @@ try{
  assert.notEqual(festivalAfterRestart,festivalAtStart,"A restarted level must choose a different background");
  assert.equal(await page.$$eval(".tile",els=>els.length),49);
   await page.click("#pauseButton");
- await page.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Back to Goshuincho").click());
+ await page.evaluate(()=>[...document.querySelectorAll("#modalActions button")].find(b=>b.textContent==="Main Menu").click());
  assert.equal(await page.$eval("#menuView",x=>x.hidden),false);
  assert.equal(await page.$eval("#gameView",x=>x.hidden),true);
- assert.equal(await page.$eval("#modalTitle",x=>x.textContent),"Goshuincho",
-  "Returning from the pause menu must open the primary level book");
+ assert.equal(await page.$eval("#modal",x=>x.hidden),true,
+  "Returning from pause must show Main Menu, not open the book");
  assert.notEqual(await page.$eval(".topbar",e=>getComputedStyle(e).display),"none","Level select must restore main header");
  // Regression: if an HD URL fails after deployment, a known-good image must
  // replace it, not leave a plain dark background.

@@ -27,6 +27,7 @@ try{
  const baseline=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  assert.equal(baseline.run.level,8);
  await page.$eval("#menuAdvanced",node=>node.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
  await page.click("#journeyDraftButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Journey 2.0 · Levels 1–10");
  const options=await page.$$eval(".journey-draft-grid button",xs=>
@@ -76,17 +77,15 @@ try{
  // intentionally not clickable over the portrait gameplay view.
  await page.click("#pauseButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Game Menu");
- await page.click("#modalActions .pause-levels");
+ await page.click("#modalActions .pause-main");
  await page.waitForFunction(()=>document.querySelector("#menuView")?.hidden===false);
  const final=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  assert.deepEqual(final,baseline,"Opening, playing and leaving a draft may not write player data");
- // The pause-menu exit opens Goshuincho; close its modal before
- // using the separate Game Settings preview chooser.
- await page.click(".washi-book-close");
- await page.waitForFunction(()=>document.querySelector("#modal").hidden);
+ // The pause-menu exit now goes directly to Main Menu.
  // Regression from real playtest: formerly "two any-family Masterpieces"
  // completed in about five moves; the finale must demand two Koi.
  await page.$eval("#menuAdvanced",node=>node.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
  await page.click("#journeyDraftButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Journey 2.0 · Levels 1–10");
  await page.click('.journey-draft-grid button[data-level="10"]');
@@ -103,7 +102,7 @@ try{
  assert.equal(await page.$eval("#goalLabel",node=>node.textContent),"Koi masterpieces");
  await page.click("#pauseButton");
  await page.waitForFunction(()=>document.querySelector("#modalTitle")?.textContent==="Game Menu");
- await page.click("#modalActions .pause-levels");
+ await page.click("#modalActions .pause-main");
  await page.waitForFunction(()=>document.querySelector("#menuView")?.hidden===false);
  const finalAfterFinale=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  assert.deepEqual(finalAfterFinale,baseline,"Finale retries may not alter live saves or rewards");

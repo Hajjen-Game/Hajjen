@@ -73,7 +73,7 @@ This project follows the accompanying research report
 4. Record the discovery you want the player to make, and the expected
    **setup → interaction → payoff** sequence.
 5. Click **Kontrollera layout**. Resolve auto-matches and mobility errors.
-6. Run one or two seeds under Director 6.2, then compare a second run with
+6. Run one or two seeds under Director 6.3, then compare a second run with
    Director disabled. Inspect near-trivial completions, shuffles, droughts and
    strategic advantage.
 7. **Exportera blueprint JSON**, and preserve the companion Difficulty Lab
@@ -90,7 +90,7 @@ From the repository root:
 
 ```bash
 node daisugi-bloom/tools/puzzle-difficulty-lab.cjs \
-  --level 20 --trials 3 --director v62 \
+  --level 20 --trials 3 --director v63 \
   --max-candidates 8 --out daisugi-bloom/reports/puzzle-lab-level20.json
 ```
 

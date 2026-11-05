@@ -13,7 +13,7 @@ const MAX_VOICES=8;
 const FAMILY_PITCH={sakura:523.25,lantern:587.33,koi:659.25,fan:698.46,bonsai:783.99,sushi:739.99,maneki:880,origami:987.77,ryu:659.25};
 const PENTATONIC=[587.33,659.25,783.99,880,987.77,1174.66,1318.51];
 const LIMITS={tap:65,swap:85,invalid:190,fusion:125,echo:340,bonus:115,pulse:115,hero:240,harvest:285,"daruma-awaken":360,goal:700,arrival:170,progress:150,result:900,
- "hanabi-load":180,"hanabi-charge":180,"hanabi-launch":280};
+ "hanabi-load":180,"hanabi-charge":180,"hanabi-launch":280,"hanabi-burst":340};
 function unlock(){
  if(!enabled)return false;
  const Audio=root.AudioContext||root.webkitAudioContext;
@@ -234,6 +234,14 @@ function play(type,detail={}){
    note(1174.66,.29,.15,.023,"sine");
    note(1318.51,.43,.17,.022,"sine");
    note(987.77,.56,.17,.017,"sine");
+   break;
+  }
+  case "hanabi-burst":{
+   // Short warm crackle at the three genuine canopy upgrades.
+   hanabiRush(.008,.27,.024);
+   note(783.99,0,.12,.030,"triangle");
+   note(1174.66,.055,.14,.035,"sine");
+   note(1567.98,.12,.20,.028,"sine");
    break;
   }
   case "result":

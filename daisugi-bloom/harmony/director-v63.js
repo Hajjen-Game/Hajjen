@@ -103,6 +103,12 @@ function choose(baseline,alternatives,scoreFn,context,validSwaps,scan){
  // its health assessments rather than recalculating the same expensive
  // multi-step geometry for every candidate.
  const previous=D62.choose(baseline,alternatives,scoreFn,context,validSwaps,scan);
+ // Keep 6.2's full structural search. The EXTRA multi-goal pass is
+ // deliberately capped and distributed across forked refill candidates;
+ // expensive second opinions must not stall a phone's animation loop.
+ const shortlist=alternatives.length<=10?alternatives:
+  Array.from({length:10},(_,i)=>alternatives[
+   Math.floor(i*(alternatives.length-1)/9)]);
  const originalOp=opportunities(baseline.board,context,validSwaps,scan);
  const original={...previous.health,...originalOp};
  const selectedOp=previous.selected===baseline?originalOp:
@@ -116,7 +122,7 @@ function choose(baseline,alternatives,scoreFn,context,validSwaps,scan){
   if(!afterglow)return {...previous,health:original,chosenHealth:choice};
   const basePace=scoreFn(baseline.board);
   let bestPace=scoreFn(selected.board);
-  for(const candidate of alternatives){
+  for(const candidate of shortlist){
    if(candidate.autoMatches!==0||candidate===selected)continue;
    const legal=validSwaps(candidate.board).length;
    if(legal<Math.max(3,original.legal)||legal<choice.legal)continue;
@@ -143,7 +149,7 @@ function choose(baseline,alternatives,scoreFn,context,validSwaps,scan){
  // Cheap first-pass objective screen, then full 6.2 structural safety only
  // for candidates with a real improvement. This avoids 2–3× overhead
  // from repeating the entire 6.1/6.2 assessment on every alternative.
- for(const candidate of alternatives){
+ for(const candidate of shortlist){
   if(candidate.autoMatches!==0||candidate===selected)continue;
   const m=opportunities(candidate.board,context,validSwaps,scan);
   if(!m.legal||m.legal<Math.max(1,original.legal-(underPressure?0:1)))continue;

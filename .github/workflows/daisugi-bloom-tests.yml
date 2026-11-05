@@ -83,6 +83,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-hanabi-crate.test.cjs
       - name: Hanabi Firework Spread 2.0 · full-board prefill, seeded upper side hits and saved replay
         run: node daisugi-bloom/tests/harmony-hanabi-spread-v2.test.cjs
+      - name: Hanabi Pixi Pilot 1.0 · opt-in WebGL, default Classic and no rule mutations
+        run: node daisugi-bloom/tests/harmony-hanabi-pixi-preview.test.cjs
       - name: Lotus Stream 1.1 · four routing prototypes, 96 seeded starts and fair Director hints
         run: node daisugi-bloom/tests/harmony-lotus-routing.test.cjs
       - name: Omamori Afterglow 1.0 · conservative two-turn Director 4 boost and save invariants
@@ -258,6 +260,8 @@ jobs:
         run: node daisugi-bloom/tests/harmony-director-v63-browser.mjs
       - name: Hanabi Firework Spread 2.0 · 390px refill, real side upgrades, fan VFX and audio
         run: node daisugi-bloom/tests/harmony-hanabi-spread-v2-browser.mjs
+      - name: Hanabi Pixi Pilot 1.0 · mobile failed-WebGL/CDN fallback
+        run: node daisugi-bloom/tests/harmony-hanabi-pixi-preview-browser.mjs
 
   mobile-mechanics-isolated:
     name: Mobile · active Omamori, Omikuji and Sealed Stones

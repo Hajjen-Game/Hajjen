@@ -82,7 +82,8 @@
  <script defer src="./harmony/omamori-targets.js?v=1.2.0-lotus-safe"></script>
  <script defer src="./harmony/fortune.js?v=6.52.0-post-tutorial"></script>
  <script defer src="./harmony/save-health.js?v=3.0.0-architect40-clean-start"></script>
- <script defer src="./harmony/app.js?v=8.7.1-hanabi-flash-fade"></script>
+ <script defer src="./harmony/hanabi-pixi-preview.js?v=1.0.0-webgl-pilot"></script>
+ <script defer src="./harmony/app.js?v=8.8.0-pixi-hanabi-preview"></script>
 </head>
 <body>
  <img id="festivalBackdrop" class="festival-backdrop"
@@ -122,6 +123,12 @@
           <option value="v63">Harmony Director 6.3</option>
         </select>
         <p id="directorModeDescription">Recommended. Director 6.3 powers all 40 approved Puzzle Architect levels. This release starts a new Journey at level 1.</p>
+        <label for="hanabiVfxMode">HANABI ANIMATIONS · PREVIEW</label>
+        <select id="hanabiVfxMode" aria-label="Compare Classic and PixiJS Hanabi fireworks">
+          <option value="classic" selected>Classic · Current fireworks</option>
+          <option value="pixi">PixiJS · Experimental GPU fireworks</option>
+        </select>
+        <p class="jh-pixi-preview-note">Only affects Hanabi animation. Experimental PixiJS uses WebGL and falls back to Classic if unavailable. No changes to gameplay or saved progress.</p>
         <div class="washi-advanced-actions jh-settings-core">
           <button id="helpButton" type="button">How to Play</button>
           <button id="devButton" type="button" aria-label="Open Harmony Intelligence">Game Dev · Intelligence</button>

@@ -12,12 +12,12 @@ if(!A||!R||!D)throw Error("Journey reference boards require Puzzle Architect and
 const VERSION=2;
 const boards=Object.freeze({
  4:{
-  name:"A two-decision Hanabi introduction",
-  rows:["CBDCACB","CBCAADA","DADDBBC","ADDBCAC","B-BADBD","AABBDCD","C-DDCCB"],
-  insight:"One setup Fusion precedes the launch",primary:"Hanabi delivery route",secondary:"Destination-controlled Fusion",
-  sequence:["Recognize the unfinished bottom-column match","Prepare it with C5 to D5","Make the second Fusion to deliver Hanabi"],
-  planned:[[30,31],[30,37]],
-  detail:"Two actual swaps from the previously tested first Hanabi board."
+  name:"A centered two-decision Hanabi introduction",
+  rows:["CBCBDCA","DACBCAA","BCDADDB","ACADDBC","BDB-BAD","CDAABBD","CBC-DDC"],
+  insight:"The first rocket sits right above its crate in the middle column",primary:"Hanabi delivery route",secondary:"Destination-controlled Fusion",
+  sequence:["Find the centered rocket and the crate directly below it","Prepare the nearby match with a first Fusion","Make the second Fusion to launch Hanabi down the middle"],
+  planned:[[32,33],[32,39]],
+  detail:"The original two-decision tutorial translated into the central column. Two authentic swaps still deliver the firework."
  },
  5:{
   name:"Top-row rocket has a longer route",

@@ -7,6 +7,7 @@
 const B=root.HarmonyBoardMechanics||(typeof require==="function"?require("./board-mechanics.js"):null);
 const L=root.HarmonyLotusStream||(typeof require==="function"?require("./lotus-stream.js"):null);
 const LR=root.HarmonyLotusRouting||(typeof require==="function"?require("./lotus-routing.js"):null);
+const Journey=root.HarmonyLevelArchitecture||(typeof require==="function"?require("./level-architecture.js"):null);
 const Insight=root.HarmonyPlayerInsight||(typeof require==="function"?require("./player-insight.js"):null);
 const RECORD_FIELDS=["bestStars","bestScores","bestChain","fourFamilyStars",
  "fourFamilyScores","fourFamilyChain","assistedStars","assistedScores","onboardingSeen"];
@@ -39,12 +40,25 @@ function validRun(run){
    JSON.stringify(boardMechanics)!==JSON.stringify(recipe.boardMechanics))return false;
  }
  if(d.hanabiVersion!==undefined&&![0,1,2].includes(d.hanabiVersion))return false;
- if(d.hanabiVersion>=1&&(d.lotusVersion!==1||run.level!==60))return false;
+ if(d.hanabiVersion>=1&&d.lotusVersion!==1)return false;
  if(d.lotusVersion===1){
   try{lotus=L.normalize(d.lotus);}catch{return false;}
-  if(d.lotusDelivered===undefined||!Number.isInteger(d.lotusDelivered)||
-   d.lotusDelivered<0||d.lotusDelivered>lotus.starts.length||
-   run.level!==60)return false;
+  // The original Lotus/Hanabi pilot lives at index 60. Published Journey 2.0
+  // recipes also use the SAME legitimate cargo/crate engine on other levels.
+  // Validate the exact saved recipe and fixtures; never trust the level index
+  // alone, and never permit arbitrary version-1 cargo outside these two cases.
+  const legacyPilot=run.level===60&&!d.levelRecipe;
+  if(!legacyPilot){
+   if(!Journey||d.levelArchitectureVersion!==Journey.VERSION||
+      d.hanabiVersion!==2||!record(d.levelRecipe))return false;
+   let recipe;
+   try{recipe=Journey.normalize(d.levelRecipe,run.level);}catch{return false;}
+   const expected=recipe.mechanics.hanabi;
+   if(!expected||JSON.stringify(lotus.starts)!==JSON.stringify(expected.starts)||
+      JSON.stringify(lotus.exits)!==JSON.stringify(expected.crates))return false;
+  }
+  if(!Number.isInteger(d.lotusDelivered)||d.lotusDelivered<0||
+     d.lotusDelivered>lotus.starts.length)return false;
  }
  if(d.lotusVersion===1){
   const seeds=d.board.filter(p=>p?.family==="lotusSeed");
@@ -126,7 +140,22 @@ function bootstrap(storageProvider,key,marker,defaults,playModes){
     storage.setItem(marker,"done");
    }catch{writable=false;warning="storage-unavailable";}
   }
- }else save=normalize(stored,defaults);
+ }else{
+  // Save Integrity 2.0: quarantine an invalid *round* before normalization
+  // removes it. Keep the whole original profile for manual recovery; never
+  // overwrite a different backup or silently discard the only copy.
+  if(stored.run!==undefined&&stored.run!==null&&!validRun(stored.run)){
+   try{
+    const backupKey=key+"-invalid-run-backup",previous=storage.getItem(backupKey);
+    if(previous!==null&&previous!==raw)throw Error("Backup occupied");
+    if(previous===null)storage.setItem(backupKey,raw);
+    warning="invalid-run";
+   }catch{
+    writable=false;warning="invalid-run-unbacked";
+   }
+  }
+  save=normalize(stored,defaults);
+ }
  return {save,writable,warning};
 }
 // Opt-in full progress reset, scoped to this game's save key on this device.
@@ -138,7 +167,10 @@ function resetProgress(storageProvider,key,defaults){
  if(!persist(storageProvider,key,fresh))return {ok:false,reason:"storage-unavailable"};
  // A corrupt backup can contain the player's previous profile. Best effort
  // removal only after the new clean save is safely written.
- try{storageProvider().removeItem(key+"-corrupt-backup");}catch{}
+ try{
+  storageProvider().removeItem(key+"-corrupt-backup");
+  storageProvider().removeItem(key+"-invalid-run-backup");
+ }catch{}
  return {ok:true,save:fresh};
 }
 const api=Object.freeze({validRun,normalize,persist,bootstrap,resetProgress});

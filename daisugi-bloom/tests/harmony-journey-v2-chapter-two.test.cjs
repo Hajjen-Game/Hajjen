@@ -25,7 +25,7 @@ check("Chapter 2 has deliberate Wind, Daruma, Stone and Hanabi identities",()=>{
 check("30 genuine five-family games have all intended special objects and fair openings",()=>{
  for(let i=10;i<20;i++)for(const seed of [11,29,53]){
   const x=D.get(i),m=x.mechanics;
-  const g=new R.Game(i,null,{seed,directorMode:"v62",journeyDiagnostic:true,levelRecipe:x});
+  const g=new R.Game(i,null,{seed,directorMode:"v63",journeyDiagnostic:true,levelRecipe:x});
   assert.equal(g.familyCount,5);assert.equal(g.moves,x.moves);
   assert.deepEqual(g.config.goal,x.goal);assert.equal(g.config.levelRecipeId,x.id);
   assert.equal(R.scan(g.board).length,0);assert(R.validSwaps(g.board).length>=3);

@@ -1498,6 +1498,10 @@ class Game{
     evaluations.length=0;
     for(let i=0;i<candidates.length;i++){
      const c=candidates[i];
+     if(this.directorMode==="v63"&&i>=8&&c!==selected){
+      evaluations.push({candidate:i,autoMatches:c.autoMatches,
+       excluded:"detailed-telemetry-budget"});continue;
+     }
      if(c.autoMatches){evaluations.push({candidate:i,autoMatches:c.autoMatches,
       excluded:"automatic-match"});continue;}
      const h=this.directorMode==="v63"?

@@ -15,7 +15,7 @@ let windGardenPreview=null; // Separate unranked Wind Garden gameplay preview.
 let bambooPreview=false; // Genuine, unranked Bamboo Paths chapter-level previews.
 let lotusPreview=null; // Genuine L61 pilot or one of four unranked Lotus route experiments.
 let journeyDraftPreview=false; // Legacy unranked design test.
-const OFFICIAL_JOURNEY_LEVELS=20; // Journey 2.0 is the live Goshuincho progression.
+const OFFICIAL_JOURNEY_LEVELS=40; // Approved Journey 2.0 levels 1–40 are the live Goshuincho progression.
 const journeyDraftIntroSeen=new Set(); // Per-session lesson flags, never persisted.
 let journeyFinalePreviewRuns=0; // Repeated level-10 tests explore different reproducible boards.
 const journeyDraftPlayCounts=new Map(); // Other chapter-two drafts use reproducible but distinct retries.
@@ -28,6 +28,14 @@ function journeyDraftSeed(i){
 let windAtmosphere=null; // One persistent, directional row layer for the active Wind preview.
 const MENU_PAGE_SIZE=20;let menuPage=0;const collectionCards=new Map();
 let goshuinChapter=0,goshuinPage=0;
+// Keep pre-publication 21–40 runs intact in the archive without pretending
+// they can resume the newly approved Journey 2.0 puzzle layout.
+function canResumeJourneyRun(index){
+ const run=save?.run;
+ return Number.isInteger(index)&&run?.level===index&&!!run.data&&
+  Number(run.data.moves)>0&&!run.data.failed&&
+  (index>=OFFICIAL_JOURNEY_LEVELS||!!run.data.levelRecipe);
+}
 let rewardStarsAtLevelStart=0; // transient baseline, never persisted
 let powerSelection=null,powerTargets=[],moonOfferShown=false,omamoriFortuneInvite=false;
 const PLAY_MODES={auto:"Automatic · 6.2 from level 51",v62:"Proactive Mobility 6.2",v61:"Reachability 6.1",v6:"Board Health 6.0",v4:"Objective & Recovery 4.0",standard:"Standard",v2:"Opportunity 2.0",v3:"Pacing 3.0",v31:"Objective Awareness 3.1",v311:"Endgame Objective Awareness 3.1.1"};
@@ -403,7 +411,7 @@ function renderMenu(){
  next.disabled=save.unlocked<last;
  next.addEventListener("click",()=>{menuPage++;renderMenu();});
  pager.append(prev,range,next);
- const canResume=save.run&&save.run.level<=save.unlocked&&save.run.data&&save.run.data.moves>0;
+ const canResume=canResumeJourneyRun(save.run?.level)&&save.run.level<=save.unlocked;
  const playButton=$("continueButton");
  const playLabel=canResume?"Resume level "+(save.run.level+1):"Play level "+(save.unlocked+1);
  playButton.setAttribute("aria-label",playLabel);
@@ -625,7 +633,8 @@ function renderGoshuincho(){
    b.classList.toggle("is-selected",b===tile);
    b.setAttribute("aria-pressed",b===tile?"true":"false");
   }
-  const preview=levelPreview(stamp.level,stamp.resumable),info=preview.data;
+  const resumable=canResumeJourneyRun(stamp.level);
+  const preview=levelPreview(stamp.level,resumable),info=preview.data;
   detail.replaceChildren();
   const copy=goshuinNode("div","washi-detail-copy");
   // Four concise lines. Full guidance belongs to the in-level GOAL help,
@@ -635,7 +644,7 @@ function renderGoshuincho(){
    goshuinNode("span","washi-detail-objective","GOAL · "+info.objective),
    goshuinNode("span","washi-detail-budget",preview.remaining!==null?
     preview.remaining+" MOVES LEFT":info.moves+" MOVES"+(info.threeStars!==null?" · ★★★ ≤"+info.threeStars:"")));
-  const play=goshuinNode("button","washi-detail-play",stamp.resumable?"CONTINUE":"PLAY");
+  const play=goshuinNode("button","washi-detail-play",resumable?"CONTINUE":"PLAY");
   play.type="button";play.disabled=!stamp.playable;
   play.setAttribute("aria-label",stamp.playable?"Play level "+stamp.number+", "+info.name:"Level "+stamp.number+" is locked");
   play.addEventListener("click",()=>activateWashiPlay(play,()=>{
@@ -645,7 +654,9 @@ function renderGoshuincho(){
   detail.append(copy,play);
  };
  for(const stamp of info.stamps){
-  const cfg=R.levelConfig(stamp.level);
+  const cfg=stamp.level<OFFICIAL_JOURNEY_LEVELS?
+   window.HarmonyJourneyDrafts?.get(stamp.level)||R.levelConfig(stamp.level):
+   R.levelConfig(stamp.level);
   const tile=goshuinNode("button","washi-level-tile"+
     (stamp.locked?" is-locked":"")+(stamp.earned?" is-earned":"")+
     (stamp.isCurrent?" is-current":""));
@@ -673,7 +684,7 @@ function renderGoshuincho(){
   grid.append(tile);
  }
  album.append(grid,detail);
- const recommended=info.stamps.find(s=>s.resumable)||info.stamps.find(s=>s.isCurrent)||
+ const recommended=info.stamps.find(s=>canResumeJourneyRun(s.level))||info.stamps.find(s=>s.isCurrent)||
   info.stamps.find(s=>s.earned)||info.stamps[0];
  const recommendedButton=Array.from(grid.children).find(b=>Number(b.dataset.level)===recommended.number);
  if(recommendedButton)select(recommended,recommendedButton);
@@ -1187,8 +1198,8 @@ function startLevel(i,resume=false,mirrorScenario=null,windScenario=null,bambooS
  const useJourney=officialJourney||journeyDraftPreview;
  const journeyRecipe=useJourney?window.HarmonyJourneyDrafts?.get(i):null;
  if(journeyDraftPreview&&!journeyRecipe)throw Error("Unknown Journey 2.0 draft");
- // Fifteen reference puzzles use exact 7x7 openings authored for the focused
- // Journey 2.0 progression; tutorial 1–4 and Koi finale retain seeded boards.
+ // Approved reference puzzles use exact 7x7 openings across Journey 1–40;
+ // tutorial 1–4 and the Koi finale retain their seeded openings.
  const authoredOpening=useJourney&&!(officialJourney&&resume&&save.run?.level===i&&save.run?.data?.levelRecipe)?window.HarmonyJourneyAuthoredOpenings?.get(i):null;
  const journeySeed=useJourney?journeyDraftSeed(i):null;
  document.body.classList.toggle("journey-draft-preview",journeyDraftPreview);
@@ -3877,7 +3888,7 @@ function bind(){
  $("lotusPreviewButton")?.addEventListener("click",showLotusPreviewChooser);
  $("journeyDraftButton")?.addEventListener("click",()=>showJourneyDraftChooser(0));
  $("journeyChapterPlaytestButton")?.addEventListener("click",()=>showJourneyDraftChooser(2));
- $("continueButton").addEventListener("click",()=>activateWashiPlay($("continueButton"),()=>{const r=save.run&&save.run.data&&save.run.data.moves>0?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);}));
+ $("continueButton").addEventListener("click",()=>activateWashiPlay($("continueButton"),()=>{const r=canResumeJourneyRun(save.run?.level)?save.run:null;if(r)startLevel(r.level,true);else startLevel(save.unlocked);}));
  $("helpButton").addEventListener("click",()=>modalInfo("How to Play",'<p><strong>Match:</strong> Swap adjacent tiles to match three or more objects from the same family. Stages can differ. T- and L-shaped matches also work.</p><p><strong>Fuse:</strong> A match fuses at the destination of your swap (or the other swapped tile if only that position makes a match). The result advances one stage above the highest matched object. Automatic chains fuse at the highest-stage tile. A match of four upgrades a neighbor; five or more upgrades two.</p><p><strong>Harmony Resonance:</strong> Objects at stages 3–4 may form a subtle light link with a neighboring object in the same family. Fuse both together to trigger Harmony Echo and earn bonus points, at most once per move.</p><p><strong>Harmony Pulse:</strong> A stage-5 masterpiece sends power to its four orthogonal neighbors. Existing objects advance, and Mist clears even on empty tiles. Chains finish before empty spaces refill.</p><p><strong>Masterpieces:</strong> Each new masterpiece still grants bonus points; the old masterpiece collection panel is hidden during play.</p><p><strong>Harmony Mist (from level 4):</strong> Clear magical Mist from marked tiles. Fuse onto a Mist tile or reach it with Harmony Pulse. Pieces can move into and out of Mist, but matching across Mist does not clear it unless the fusion lands there. Mist remains in place as pieces fall.</p><p><strong>Daruma (levels 21–30):</strong> Daruma cannot move. Each doll requires two hits on separate moves, from an adjacent fusion or Harmony Pulse. The chapter alternates between Daruma, Mist, and fusion challenges.</p><p><strong>Sealed Stones (levels 31–40):</strong> Stones cannot move and take four separate hits. Fuse beside a stone or hit it with Harmony Pulse, at most once per move. The final hit releases an Awakening Pulse toward all eight neighbors, including diagonals, and can start a chain.</p><p><strong>Rewards:</strong> Completing the objective awards at least one star. Earn two or three by finishing with fewer moves; your star rating locks when the goal is reached. Bonus score is an optional record. You can continue playing after the goal or move on. Harmony Coins start from level 11. Buy one-use Omamori cards from the Main Menu shop: Bloom Touch upgrades a tile, Ripple Shuffle rearranges a small area, Sealbreaker hits an obstacle, and Moon cards grant extra moves when you run out. Stronger variants cost more. Up to two board boosts can be used per level, plus one optional Moon rescue. Omamori-assisted wins earn a single Goshuincho stamp and coins, while clean star ratings and score records remain separate.</p>'));
  $("settingsButton").addEventListener("click",()=>{
   modalInfo("Settings",'<p><label><input type="checkbox" id="settingsSound" '+(save.sound?"checked":"")+'> Sound</label></p><p><label><input type="checkbox" id="settingsMotion" '+(save.reduceMotion?"checked":"")+'> Reduce animations</label></p>');

@@ -96,32 +96,6 @@ function makeObserver(entry){
  });
  return {onStart,onTurn,finish};
 }
-function runLevel(entry,options={}){
- const seeds=between(options.seeds??3,1,50,"Seeds");
- const agents=options.strategies??["random","objective"];
- if(!Array.isArray(agents)||agents.length<1||new Set(agents).size!==agents.length||
-    !agents.every(x=>STRATEGIES.includes(x)))throw Error("Choose unique valid diagnostic strategies");
- const modes=options.compareStandard?["v62","standard"]:["v62"];
- const baseSeed=options.baseSeed??20261105;
- between(baseSeed,0,0xffffffff,"Base seed");
- const maxCandidates=between(options.maxCandidates??5,3,40,"Candidate limit");
- const maxTurns=between(options.maxTurns??entry.recipe.moves,1,120,"Max turns");
- const runs=[];
- for(let n=0;n<seeds;n++){
-  const seed=(baseSeed+Math.imul(entry.index,197)+Math.imul(n,7919))>>>0;
-  for(const mode of modes)for(const strategy of agents){
-   const observer=makeObserver(entry);
-   const raw=Lab.play(Rules,Architect,entry.blueprint,{
-    seed,strategy,directorMode:mode,maxCandidates,maxTurns,
-    gameFactory:(seed,directorMode)=>officialGame(entry,seed,directorMode),
-    onStart:observer.onStart,onTurn:observer.onTurn
-   });
-   runs.push(observer.finish(null,raw));
-  }
- }
- // The observer also inspects the actual game at the end, via onFinish
- return runs;
-}
 function auditRun(entry,options={}){
  const seeds=between(options.seeds??3,1,50,"Seeds");
  const agents=options.strategies??["random","objective"];

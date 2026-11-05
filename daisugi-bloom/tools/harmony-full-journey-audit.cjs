@@ -32,7 +32,7 @@ const auditOptions={
  strategies:opts.strategies??["random","objective"],
  compareStandard:opts.compareStandard,
  onLevel:result=>{
-  const rows=result.runs.filter(x=>x.mode==="v62");
+  const rows=result.runs.filter(x=>x.mode==="v63");
   const wins=rows.filter(x=>x.won).length;
   console.log("LEVEL "+String(result.level).padStart(2,"0")+" "+result.name+
    ": "+wins+"/"+rows.length+" diagnostic wins, "+
@@ -52,13 +52,13 @@ const lines=[
  "",
  "- Approved levels: "+report.scope.first+"–"+report.scope.last+
   " ("+report.scope.levels+" levels, "+report.scope.blueprints+" hand-authored openings)",
- "- Director: 6.2"+(report.settings.compareStandard?" paired with Standard":""),
+ "- Director: 6.3"+(report.settings.compareStandard?" paired with Standard":""),
  "- Seeds per level: "+report.settings.seeds+
   " (deterministic, paired across strategies and Directors)",
  "- Strategies: "+report.settings.strategies.join(", ")+
   "; candidates: "+report.settings.maxCandidates+
   "; turn cap: "+report.settings.maxTurns,
- "- Runs: "+report.totals.runs+" (v62 only), wins: "+report.totals.diagnosticWins+
+ "- Runs: "+report.totals.runs+" (v63 only), wins: "+report.totals.diagnosticWins+
   ", shuffles: "+report.totals.shuffles+", no-legal flags: "+report.totals.noLegal,
  "- Average objective completion: "+report.totals.avgObjectiveCompletion+
   "; objective work including partial Daruma/Stone hits: "+report.totals.avgWorkCompletion,
@@ -76,7 +76,7 @@ lines.push("","## Per-level diagnostics","",
  "| Level | Opening | Budget | Legal opening moves | Bot wins | Goal work | Partial hits | Shuffles | Longest work drought | Signals |",
  "|---|---|---:|---:|---:|---:|---:|---:|---:|---|");
 for(const l of report.levels){
- const runs=l.runs.filter(x=>x.mode==="v62"),wins=runs.filter(x=>x.won).length;
+ const runs=l.runs.filter(x=>x.mode==="v63"),wins=runs.filter(x=>x.won).length;
  const mean=fn=>Math.round(runs.reduce((n,x)=>n+fn(x),0)/runs.length*100)/100;
  lines.push("| "+l.level+" "+l.name.replaceAll("|","/")+" | "+l.opening+
   " | "+l.moves+" | "+l.initialLegal+" | "+wins+"/"+runs.length+
@@ -92,13 +92,13 @@ const risks=report.warnings.slice().sort((a,b)=>(severity[a.severity]??9)-(sever
 if(!risks.length)lines.push("No configured signals were triggered in this bounded sample.");
 else for(const r of risks)lines.push("- **Level "+r.level+" · "+r.code+" ("+r.severity+")** — "+r.evidence);
 if(report.settings.compareStandard){
- lines.push("","## Director 6.2 vs Standard (paired seeds)","");
+ lines.push("","## Director 6.3 vs Standard (paired seeds)","");
  for(const l of report.levels){
   const c=l.comparison;
   lines.push("- Level "+l.level+": "+(c.paired?"same starting board":"unpaired opening!")+
-   "; wins 6.2 "+c.v62WinRate+" vs Standard "+c.standardWinRate+
-   "; goal work "+c.v62Work+" vs "+c.standardWork+
-   "; shuffles "+c.v62Shuffles+" vs "+c.standardShuffles);
+   "; wins 6.3 "+c.v63WinRate+" vs Standard "+c.standardWinRate+
+   "; goal work "+c.v63Work+" vs "+c.standardWork+
+   "; shuffles "+c.v63Shuffles+" vs "+c.standardShuffles);
  }
 }
 lines.push("","## Method and limitations","",

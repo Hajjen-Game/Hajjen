@@ -22,7 +22,8 @@ check("All 20 focused recipes are distinct and retain the early foundations",()=
  assert.equal(D.get(-1),null);assert(D.get(20),"Chapter 3 begins at index 20");assert.equal(D.get(40),null);
 });
 check("Hanabi starts at the top after tutorial on the solo festival boards",()=>{
- assert.deepEqual(starts(4),[29]);
+ assert.deepEqual(starts(4),[31]);
+  assert.deepEqual(D.get(4).mechanics.hanabi.crates,[45]);
  assert.deepEqual(starts(5),[1]);assert.deepEqual(starts(6),[1,5]);
  assert.deepEqual(starts(7),[3]);assert.deepEqual(starts(8),[1,5]);
  for(const index of [5,6,7,8])assert(starts(index).every(i=>i<7));

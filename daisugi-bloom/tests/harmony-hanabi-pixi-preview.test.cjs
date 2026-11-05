@@ -21,7 +21,7 @@ assert(html.includes('<option value="pixi">'));
 assert(html.includes('harmony/hanabi-pixi-preview.js'));
 assert(html.indexOf('harmony/hanabi-pixi-preview.js')<html.indexOf('harmony/app.js'));
 assert(app.includes("window.HarmonyHanabiPixi?.isEnabled()"));
-assert(app.includes("if(usedPixi){renderBoard(evt.board);return;}"),
+assert(app.includes("if(usedPixi){renderBoard(evt.board);refreshHanabiVfxStatus();return;}"),
  "GPU success must skip the classic duplicate");
 assert(app.includes("async function animateHanabiLaunch(evt)"));
 assert(src.includes('preference:"webgl"'));

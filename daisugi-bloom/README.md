@@ -1,5 +1,7 @@
 # Japanese Harmony — aktivt 7×7-fusionspussel
 
+**Aktuell produktion (2026-11-05):** Journey 2.0 nivå 1–40 använder **Harmony Director 6.3 – Multi-Objective Awareness** som ny standard. Goshuincho och Puzzle Architect har uppdaterats; påbörjade 6.2-omgångar använder fortfarande sin historiska motor. Läs [Director 6.3](docs/HARMONY_DIRECTOR_6_3.md). Äldre avsnitt nedan är versionshistorik, inte aktuella standardinställningar.
+
 ## Harmony Director 4.0 — Objective Intelligence & Adaptive Recovery (2026-10-25)
 
 **Aktiverad automatiskt från nivå 10 och uppåt.** Nivå 1–9 använder fortsatt Pacing Director 3.0 och tidigare påbörjade spel behåller sin motor. Nya Director 4.0 analyserar riktiga träffmöjligheter på Daruma och Sealed Stones, känner igen delträffar som framsteg och föredrar försiktigt bättre lagliga brickpåfyllningar efter flera drag utan målframsteg. Inga extra drag, gratis träffar eller manipulerade poäng/stjärnor. Game Dev → Motorlab kan jämföra 3.1.1 och 4.0 med samma seed.

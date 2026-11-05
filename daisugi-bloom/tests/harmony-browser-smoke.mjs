@@ -1351,7 +1351,7 @@ try{
   summaries:document.querySelectorAll(".engine-comparison p").length
  }));
  assert.equal(comparison.engines.filter(x=>x==="Harmony Director 6.3").length,4);
- assert.equal(comparison.engines.filter(x=>x==="Objective & Recovery 4.0").length,4);
+ assert.equal(comparison.engines.filter(x=>x==="Harmony Director 6.2 (legacy)").length,4);
  assert.equal(comparison.summaries,4,"Directly compare the same seeded runs");
  assert.equal(await page.$eval("#modalActions button:nth-child(3)",el=>el.disabled),false,
   "Completed reports must remain exportable as JSON");

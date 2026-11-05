@@ -16,7 +16,7 @@ try{
  await page.waitForFunction(()=>window.HarmonyJourneyDrafts?.COUNT===40);
  await page.evaluate(key=>{
   const save=JSON.parse(localStorage.getItem(key));
-  save.unlocked=9;
+  save.unlocked=9;delete save.journeyProgression;
   save.run={level:8,data:new window.HarmonyRules.Game(8,null,
    {seed:9321,directorMode:"v3"}).save()};
   save.tutorialHelpSeen={};

@@ -47,7 +47,10 @@ assert(app.includes('game.assisted?"OMAMORI CLEAR · 1 STAMP":"GOSHUINCHO STARS"
 assert(app.includes('"ASSISTED · NO RECORD"'));
 assert(app.includes("victory-reward-compact"));
 assert(app.includes('const coinReward=won?E.claim'));
-assert(app.includes('archive[level]=Math.max(archive[level]||0,game.assisted?1:game.stars())'));
+// Signed Journey 2.0 stamp writes supersede the old mutable star archives.
+assert(app.includes("JP.complete(save,game)"));
+assert(app.includes("if(!earned.ok)throw Error"));
+assert(!app.includes("archive[level]=Math.max(archive[level]||0,game.assisted?1:game.stars())"));
 assert(css.includes("prefers-reduced-motion:reduce"));
 assert(css.includes(".jh-failed-goal"));
 console.log("PASS Objective & Reward Feedback 2.0: truthful progress, blocker hits, v6 assisted rewards, immutable saves");

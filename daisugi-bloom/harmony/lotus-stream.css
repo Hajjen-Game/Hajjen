@@ -194,6 +194,9 @@ body.harmony-playing #gameView .tile .hanabi-impact-gold{--hanabi-impact-ink:#ff
    sparks, centered in the upper garden, never a grid-cell highlight. */
 .score-fx-overlay .hanabi-apex-flower{
  position:absolute;z-index:106;pointer-events:none;border-radius:50%;
+ /* Keep a centered, fully faded base state even if the Web Animation
+    is cancelled on page hide or while replaying events. */
+ opacity:0;transform:translate(-50%,-50%);
  background:
   radial-gradient(circle,rgba(255,252,231,.92) 0%,rgba(255,223,150,.87) 6%,
    rgba(255,201,157,.36) 17%,transparent 36%),
@@ -219,6 +222,9 @@ body.harmony-playing #gameView .tile .hanabi-impact-gold{--hanabi-impact-ink:#ff
 }
 .score-fx-overlay .hanabi-apex-flash{
  position:absolute;z-index:107;pointer-events:none;border-radius:50%;
+ /* WAAPI restores this safe state after the 245 ms flash finishes;
+    otherwise a full-bright disk appears down/right of the main burst. */
+ opacity:0;transform:translate(-50%,-50%);
  background:radial-gradient(circle,rgba(255,255,242,.97) 0%,
   rgba(255,249,186,.92) 12%,rgba(255,194,142,.46) 38%,
   rgba(255,160,195,.13) 62%,transparent 78%);

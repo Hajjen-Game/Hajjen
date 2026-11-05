@@ -235,3 +235,13 @@ body.harmony-playing #gameView .tile .hanabi-impact-gold{--hanabi-impact-ink:#ff
  z-index:108;width:9px;height:9px;
  box-shadow:0 0 9px 3px rgba(255,205,150,.8);
 }
+
+/* Pixi GPU pilot is available only through collapsed Game Settings.
+   Keep this separate from published Hanabi rules and the board layout. */
+#menuAdvanced .jh-pixi-preview-note{
+ margin:.3rem 0 .75rem;font-size:.76rem;line-height:1.45;opacity:.78;
+ max-width:39rem;
+}
+#menuAdvanced #hanabiVfxMode{
+ display:block;width:100%;margin:.25rem 0 .35rem;
+}

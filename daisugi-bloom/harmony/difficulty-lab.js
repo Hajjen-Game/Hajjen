@@ -117,7 +117,7 @@ function play(rules,architect,blueprint,options={}){
  const settings={
   maxCandidates:options.maxCandidates??9,
   maxTurns:options.maxTurns??120,
-  directorMode:options.directorMode??"v62"
+  directorMode:options.directorMode??"v63"
  };
  check(Number.isInteger(settings.maxCandidates)&&settings.maxCandidates>=3&&
   settings.maxCandidates<=40,"Candidate limit must be 3–40");
@@ -209,7 +209,7 @@ function analyze(rules,architect,blueprint,options={}){
  const runs=[];
  for(const seed of seeds)for(const strategy of agents)
   runs.push(play(rules,architect,normalized,{seed,strategy,
-   directorMode:options.directorMode??"v62",
+   directorMode:options.directorMode??"v63",
    maxCandidates:options.maxCandidates??9,maxTurns:options.maxTurns??120}));
  const byStrategy=Object.fromEntries(agents.map(strategy=>
   [strategy,summarize(runs.filter(x=>x.strategy===strategy))]));
@@ -229,7 +229,7 @@ function analyze(rules,architect,blueprint,options={}){
  return {
   version:VERSION,blueprintId:normalized.id,level:normalized.recipe.index+1,
   insight:normalized.insight,opening:normalized.opening?.provenance??"seeded",
-  directorMode:options.directorMode??"v62",seeds,strategies:agents.slice(),
+  directorMode:options.directorMode??"v63",seeds,strategies:agents.slice(),
   byStrategy,runs,signals,
   caveat:"Heuristic, bounded agent simulation. Does NOT prove reachability, fairness, human win rate, or enjoyable difficulty."
  };

@@ -122,3 +122,20 @@ body.harmony-playing #gameView .tile .pulse-anticipation-glow.hanabi-telegraph-g
 }
 .score-fx-overlay .hanabi-glitter-star{border-radius:2px;transform:rotate(45deg)}
 /* Reduced motion: no rapid build or shower; the engine result is immediate. */
+
+
+/* Firework Spread 2.0 · three brief square-cell hits after the vertical
+   spark shower reaches the canopy. No ring, full-screen flash or repaint. */
+body.harmony-playing #gameView .tile .pulse-anticipation-glow.hanabi-spread-glow{
+ position:absolute;inset:2px;z-index:11;pointer-events:none;
+ border-radius:clamp(7px,1.7vw,12px);
+ border:2px solid rgba(255,235,171,.96)!important;
+ background:radial-gradient(ellipse at center,rgba(255,211,139,.38),rgba(255,184,175,.15) 68%,transparent 100%)!important;
+ box-shadow:inset 0 0 13px 3px rgba(255,226,147,.56),0 0 11px rgba(255,184,180,.35);
+}
+body.harmony-playing #gameView .tile .hanabi-spread-glow::before,
+body.harmony-playing #gameView .tile .hanabi-spread-glow::after{
+ display:none!important;animation:none!important;content:none!important;
+}
+.score-fx-overlay .hanabi-spread-spark{width:9px;height:9px;z-index:97}
+.score-fx-overlay .hanabi-spread-core{z-index:98;pointer-events:none}

@@ -41,7 +41,7 @@ check("Wind, Daruma and Stone enter without Mirror and keep real fixtures",()=>{
 });
 check("30 seeded 1–10 real openings and restored runs are safe",()=>{
  for(let i=0;i<10;i++)for(const seed of [11,29,53]){
-  const x=D.get(i),g=new R.Game(i,null,{seed,directorMode:"v62",
+  const x=D.get(i),g=new R.Game(i,null,{seed,directorMode:"v63",
    journeyDiagnostic:true,levelRecipe:x});
   assert.equal(g.familyCount,4);assert.equal(g.config.levelRecipeId,x.id);
   assert.deepEqual(g.config.goal,x.goal);assert.equal(g.moves,x.moves);

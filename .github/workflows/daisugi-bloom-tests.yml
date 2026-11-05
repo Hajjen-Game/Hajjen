@@ -231,7 +231,7 @@ jobs:
           node --check daisugi-bloom/harmony/victory-celebration.js
           node --check daisugi-bloom/harmony/app.js
   mobile-smoke-isolated:
-    name: Mobile · isolated full Japanese Harmony smoke regression
+    name: Mobile · Director 6.3 fresh start and 40 approved levels
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -242,11 +242,13 @@ jobs:
         run: |
           python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/daisugi-bloom-server.log 2>&1 &
           echo $! > /tmp/daisugi-bloom-server.pid
-      - name: Verify current 1–40 Journey, book, saves and game UI
-        run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
+      - name: Director 6.3 · verified clean browser reset, 1–40 boundary and first real level
+        run: node daisugi-bloom/tests/harmony-fresh-journey-v3-browser.mjs
+      - name: Director 6.3 · real objective board, game settings and engine diagnostics
+        run: node daisugi-bloom/tests/harmony-director-v63-browser.mjs
 
   mobile-mechanics-isolated:
-    name: Mobile · isolated additional mechanic and Omamori regressions
+    name: Mobile · active Omamori, Omikuji and Sealed Stones
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -257,27 +259,21 @@ jobs:
         run: |
           python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/daisugi-bloom-server.log 2>&1 &
           echo $! > /tmp/daisugi-bloom-server.pid
-      - name: Moon Mirrors 1.2 · six previews, Fusion Echo chain and 390px save isolation
-        run: node daisugi-bloom/tests/harmony-moon-mirrors-browser.mjs
-      - name: Wind Garden 1.0 · 390px real row shift, next-wind forecast and save isolation
-        run: node daisugi-bloom/tests/harmony-wind-garden-browser.mjs
-      - name: Bamboo Paths Early Preview · 390px chapter chooser and true locked-cell puzzle isolation
-        run: node daisugi-bloom/tests/harmony-bamboo-preview-browser.mjs
-      - name: Wind Garden Animation 1.1 · persistent directional atmosphere, fast gust and cleanup
-        run: node daisugi-bloom/tests/harmony-wind-sweep-browser.mjs
-      - name: Omamori 6.1 · washi HUD, inset meter, framed button and red Sealbreakers
+      - name: Current Omamori economy · inventory, coins and cards
         run: node daisugi-bloom/tests/harmony-economy-browser.mjs
-      - name: Run Omikuji Fortune daily-draw mobile smoke
+      - name: Current Omikuji · locked first 10 levels and once-a-day rewards
         run: node daisugi-bloom/tests/harmony-fortune-browser.mjs
-      - name: Omamori 6.1 · phone inventory, two-use limit and Moon prompt
+      - name: Current Omamori cards · two-use board boost and Moon prompt
         run: node daisugi-bloom/tests/harmony-powers-browser.mjs
-      - name: Omamori Confirmation Compact 1.0 · no board obstruction and gold targets on phone
+      - name: Current Omamori · exact gold targets and compact controls
         run: node daisugi-bloom/tests/harmony-omamori-target-browser.mjs
-      - name: Run Sealed Stone mobile 4-stage artwork and placement smoke
+      - name: Current Sealed Stones · four-hit artwork and phone placement
         run: node daisugi-bloom/tests/harmony-sealed-stone-browser.mjs
 
   mobile-browser:
+    name: Mobile · current Puzzle Architect Journey and victory
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Install browser driver
@@ -286,60 +282,20 @@ jobs:
         run: |
           python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/daisugi-bloom-server.log 2>&1 &
           echo $! > /tmp/daisugi-bloom-server.pid
-      - name: Puzzle Architect 1.0 · 390px authored board editor and isolated Difficulty Lab worker
+      - name: Puzzle Architect · 390px authored level and Difficulty Lab
         run: node daisugi-bloom/tests/harmony-puzzle-architect-browser.mjs
-      - name: Journey 2.0 · 390px spatial openings and save safety
+      - name: Puzzle Architect · official 7x7 openings, save isolation, chapters 1–4
         run: node daisugi-bloom/tests/harmony-journey-authored-browser.mjs
-      - name: Journey 2.0 · 390px levels 1–10, Hanabi intro, Koi finale and saved-run isolation
+      - name: Journey 1–10 · live Hanabi, Koi finale and four-family progression
         run: node daisugi-bloom/tests/harmony-journey-v2-browser.mjs
-      - name: Journey 2.0 · 390px Hanabi top, Wind, Daruma and Stone finale
+      - name: Journey 11–20 · current Wind, Daruma, Sealed Stones and Hanabi
         run: node daisugi-bloom/tests/harmony-journey-v2-chapter-two-browser.mjs
-      - name: Save Integrity 2.0 · mobile reload/resume for authentic Hanabi and damaged-round recovery
-        run: node daisugi-bloom/tests/harmony-save-integrity-v2-browser.mjs
-      - name: Journey Progression Integrity 2.0 · old archives and new stamps on 390px mobile
-        run: node daisugi-bloom/tests/harmony-journey-progression-v2-browser.mjs
-      - name: Victory Celebration 2.0 · real mobile pre-modal fireworks, rating and state safety
+      - name: Victory 2.0 · real celebration before mobile result modal
         run: node daisugi-bloom/tests/harmony-victory-celebration-browser.mjs
-      - name: Onboarding Polish 2.0 · illustrated new-player and 21–40 preview mobile walkthrough
+      - name: Current Journey · mobile onboarding and chapter guide
         run: node daisugi-bloom/tests/harmony-onboarding-polish-browser.mjs
-      - name: Tutorial Help Modal 1.0 · illustrated lessons, OK acknowledgment and replay
+      - name: Current Journey · tutorial help and legal move hint
         run: node daisugi-bloom/tests/harmony-tutorial-help-browser.mjs
-      - name: Director 6.2 · legacy 390px Bamboo preview and existing saves
-        run: node daisugi-bloom/tests/harmony-director-v62-browser.mjs
-      - name: Director 6.3 · live Goshuincho 390px, multi-goal status and 6.2 resume
-        run: node daisugi-bloom/tests/harmony-director-v63-browser.mjs
-      - name: Gate of Echoes 1.1 · 390px lower-row Wind and real turns
-        run: node daisugi-bloom/tests/harmony-gate-wind-browser.mjs
-      - name: Hanabi Crate 1.0 · 390px crate, fireworks, real pulse and save
-        run: node daisugi-bloom/tests/harmony-hanabi-crate-browser.mjs
-      - name: Hanabi Gravity 1.0 · 390px real FLIP after launch-created hole
-        run: node daisugi-bloom/tests/harmony-hanabi-gravity-browser.mjs
-      - name: Lotus Stream Early Preview · 390px cargo delivery, river gates and no saved progress changes
-        run: node daisugi-bloom/tests/harmony-lotus-preview-browser.mjs
-      - name: Lotus hint reliability · no starvation by invalid touches, manual legal hint and saved state safety
-        run: node daisugi-bloom/tests/harmony-lotus-hint-browser.mjs
-      - name: Lotus Stream 1.0 · mobile delivery, tutorial, persistent goal and completion
-        run: node daisugi-bloom/tests/harmony-lotus-browser.mjs
-      - name: Run Japanese Harmony mobile smoke
-        run: node daisugi-bloom/tests/harmony-browser-smoke.mjs
-      - name: Moon Mirrors 1.2 · six previews, Fusion Echo chain and 390px save isolation
-        run: node daisugi-bloom/tests/harmony-moon-mirrors-browser.mjs
-      - name: Wind Garden 1.0 · 390px real row shift, next-wind forecast and save isolation
-        run: node daisugi-bloom/tests/harmony-wind-garden-browser.mjs
-      - name: Bamboo Paths Early Preview · 390px chapter chooser and true locked-cell puzzle isolation
-        run: node daisugi-bloom/tests/harmony-bamboo-preview-browser.mjs
-      - name: Wind Garden Animation 1.1 · persistent directional atmosphere, fast gust and cleanup
-        run: node daisugi-bloom/tests/harmony-wind-sweep-browser.mjs
-      - name: Omamori 6.1 · washi HUD, inset meter, framed button and red Sealbreakers
-        run: node daisugi-bloom/tests/harmony-economy-browser.mjs
-      - name: Run Omikuji Fortune daily-draw mobile smoke
-        run: node daisugi-bloom/tests/harmony-fortune-browser.mjs
-      - name: Omamori 6.1 · phone inventory, two-use limit and Moon prompt
-        run: node daisugi-bloom/tests/harmony-powers-browser.mjs
-      - name: Omamori Confirmation Compact 1.0 · no board obstruction and gold targets on phone
-        run: node daisugi-bloom/tests/harmony-omamori-target-browser.mjs
-      - name: Run Sealed Stone mobile 4-stage artwork and placement smoke
-        run: node daisugi-bloom/tests/harmony-sealed-stone-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

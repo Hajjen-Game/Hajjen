@@ -747,12 +747,32 @@ try{
   });
   await preview.reload({waitUntil:"networkidle2"});
   await preview.click("#continueButton");await preview.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:6000});await acknowledgeTutorial(preview);
-  const older=await preview.evaluate(()=>{
-   const run=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run.data;
-   return {count:run.familyCount,unique:new Set(run.board.map(p=>p.family)).size};
+  const continued=await preview.evaluate(()=>{
+   const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   return {level:saved.run.level,mode:saved.run.data.directorMode,
+    recipe:saved.run.data.levelRecipe?.id,
+    familyCount:saved.run.data.familyCount};
   });
+  // This profile already reached level 11. Invalid level-1 legacy rounds
+  // must NOT resume, but Continue must preserve the actual next-level unlock.
+  assert.equal(continued.level,10,"Continue must ignore the obsolete level-one round");
+  assert.equal(continued.familyCount,5,"Unlocked level 11 uses five families");
+  assert.equal(continued.mode,"v63");
+  assert(continued.recipe?.startsWith("journey2-"));
+  await preview.click("#pauseButton");
+  await preview.click("#modalActions .pause-main");
+  await clickLegacyLevel(preview,".level-tile:first-child");
+  const older=await preview.evaluate(()=>{
+   const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
+   const run=saved.run.data;
+   return {level:saved.run.level,count:run.familyCount,
+    unique:new Set(run.board.map(p=>p.family)).size,
+    approved:run.levelRecipe?.id?.startsWith("journey2-")};
+  });
+  assert.equal(older.level,0,"Replaying level one must use the approved Journey puzzle");
   assert.equal(older.count,4,"Journey 2.0 replaces incompatible legacy level-one runs");
   assert.equal(older.unique,4,"The Journey tutorial must have four treasure families");
+  assert.equal(older.approved,true);
  }finally{await progressionContext.close();}
  // Directed idle hint 1.2: a real legal swap is shown after 30 seconds.
  // Shorten only this 30-second hint timer inside the isolated browser.

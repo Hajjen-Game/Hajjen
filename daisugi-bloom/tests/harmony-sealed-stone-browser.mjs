@@ -16,12 +16,22 @@ try{
   await page.evaluate(({level,hp})=>{
    const key="japanese-harmony-puzzle-v2";
    const save=JSON.parse(localStorage.getItem(key));
-   const g=new HarmonyRules.Game(level,null,{seed:20261025});
+   // Restore exact approved Puzzle Architect levels; retired generated levels
+   // must no longer be reachable in normal player UI or smoke checks.
+   const recipe=HarmonyJourneyDrafts.get(level);
+   const blueprint=HarmonyJourneyAuthoredOpenings.get(level);
+   if(!recipe)throw Error("No approved sealed-stone level");
+   const g=blueprint?
+    HarmonyPuzzleArchitect.build(HarmonyRules,blueprint,{seed:20261025,recordRound:true,directorMode:"v63"}):
+    new HarmonyRules.Game(level,null,{seed:20261025,directorMode:"v63",
+     journeyDiagnostic:true,levelRecipe:recipe});
    if(hp!=null){
-    const at=HarmonyRules.sealedPositions(level)[0];
+    const at=recipe.mechanics.sealedStones[0];
+    if(!Number.isInteger(at)||g.sealed[at]!==4)throw Error("No genuine Stone fixture");
     g.sealed[at]=hp;
    }
    save.unlocked=level;
+   save.journeyProgression.unlocked=level;
    save.run={level,data:g.save()};
    localStorage.setItem(key,JSON.stringify(save));
   },{level,hp});
@@ -31,7 +41,7 @@ try{
   await page.waitForSelector(".tile.sealed-stone-tile .sealed-stone-art");
  };
  for(const [hp,stage] of [[4,0],[3,1],[2,2],[1,3]]){
-  await prepare(30,hp);
+  await prepare(17,hp);
   const data=await page.evaluate(()=>{
    const at=document.querySelector(".tile.sealed-stone-tile");
    const art=at.querySelector(".sealed-stone-art");
@@ -58,10 +68,10 @@ try{
    await page.screenshot({path:"/tmp/daisugi-bloom/sealed-stone-critical-390.png"});
   }
  }
- await prepare(33,4);
+ await prepare(18,4);
  assert.equal(await page.$$eval(".tile.sealed-stone-tile",nodes=>nodes.length),2);
- await prepare(39,4);
- assert.equal(await page.$$eval(".tile.sealed-stone-tile",nodes=>nodes.length),3);
+ await prepare(19,4);
+ assert.equal(await page.$$eval(".tile.sealed-stone-tile",nodes=>nodes.length),4);
  await page.setViewport({width:320,height:640,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  const mobile=await page.evaluate(()=>({screen:innerWidth,scroll:document.documentElement.scrollWidth,
   art:document.querySelector(".sealed-stone-art").getBoundingClientRect().width}));

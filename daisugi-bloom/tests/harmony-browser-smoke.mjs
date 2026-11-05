@@ -751,12 +751,15 @@ try{
    const saved=JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2"));
    return {level:saved.run.level,mode:saved.run.data.directorMode,
     recipe:saved.run.data.levelRecipe?.id,
-    familyCount:saved.run.data.familyCount};
+    familyCount:saved.run.data.familyCount,
+    nextUnlocked:saved.journeyProgression?.unlocked};
   });
-  // This profile already reached level 11. Invalid level-1 legacy rounds
-  // must NOT resume, but Continue must preserve the actual next-level unlock.
-  assert.equal(continued.level,10,"Continue must ignore the obsolete level-one round");
-  assert.equal(continued.familyCount,5,"Unlocked level 11 uses five families");
+  // Verified historical records may advance the next unlock. An invalid
+  // legacy level-one run must never displace that reconciled progression.
+  assert(continued.nextUnlocked>=10&&continued.nextUnlocked<40);
+  assert.equal(continued.level,continued.nextUnlocked,
+   "Continue must use the correctly reconciled next level, not an obsolete run");
+  assert.equal(continued.familyCount,5,"Unlocked levels after chapter one use five families");
   assert.equal(continued.mode,"v63");
   assert(continued.recipe?.startsWith("journey2-"));
   await preview.click("#pauseButton");

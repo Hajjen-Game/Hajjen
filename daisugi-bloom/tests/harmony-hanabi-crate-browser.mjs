@@ -11,16 +11,16 @@ try{
  await page.setViewport({width:390,height:844,deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await page.emulateMediaFeatures([{name:"prefers-reduced-motion",value:"no-preference"}]);
  await page.goto("http://127.0.0.1:8000/daisugi-bloom/",{waitUntil:"networkidle2"});
- await page.evaluate(()=>{
-  const k="japanese-harmony-puzzle-v2",s=JSON.parse(localStorage.getItem(k));
-  s.unlocked=60;s.run=null;s.tutorialHelpSeen={};s.reduceMotion=false;s.sound=true;
-  localStorage.setItem(k,JSON.stringify(s));
- });
- await page.reload({waitUntil:"networkidle2"});
- await page.click("#continueButton");
+ // The public Journey stops at level 40. Exercise the original level-61
+ // Hanabi pilot through its explicit, unranked Game Dev preview instead.
+ const baseline=await page.evaluate(()=>JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")));
+ await page.$eval("#menuAdvanced",e=>e.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
+ await page.click("#lotusPreviewButton");
+ await page.waitForSelector('.lotus-preview-choice[data-preview="pilot"]');
+ await page.click('.lotus-preview-choice[data-preview="pilot"]');
  await page.waitForFunction(()=>!document.querySelector("#gameView").hidden,{timeout:15000});
- await page.waitForFunction(()=>!document.querySelector("#modal").hidden,{timeout:10000});
- await page.click("#modalActions .jh-tutorial-ok");
+ assert.equal(await page.$eval("#modal",e=>e.hidden),true);
  const first=await page.evaluate(()=>({
   name:document.querySelector("#levelTitle").textContent,
   goal:document.querySelector("#goalLabel").textContent,
@@ -138,7 +138,15 @@ try{
   cargo:document.querySelectorAll(".hanabi-firework-art").length,
   crate:document.querySelectorAll(".hanabi-crate").length,
   noSpritesInCrates:[43,47].every(at=>!document.querySelector('.tile[data-index="'+at+'"] .piece')),
-  saved:JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")).run,
+  persisted:JSON.parse(localStorage.getItem("japanese-harmony-puzzle-v2")),
+  proof:(()=>{
+   const g=new HarmonyRules.Game(60,null,{seed:20261101,directorMode:"v63",
+    lotusPreview:"pilot",recordRound:true});
+   const moved=g.swap(37,44);
+   return {ok:moved.ok,hanabiVersion:g.hanabiVersion,
+    crate:g.board[43]?.family,delivered:g.lotusDelivered,
+    launch:g.roundTrace?.moves?.[0]?.events?.some(e=>e.type==="hanabi-launch")};
+  })(),
   width:document.documentElement.scrollWidth,screen:innerWidth,
   fx:window.__hanabiVisualWitness,
   rocketReturn:window.__hanabiReturnWitness,
@@ -149,10 +157,14 @@ try{
   "A delivered rocket must trigger the receiving box glow");
  assert.deepEqual(after.rocketReturn.returned,[],
   "A delivered rocket must never pop back above its crate during the intake glow");
- assert.equal(after.saved.data.hanabiVersion,2);
- assert(after.saved.data.board[43].family==="hanabiCrate");
- assert.equal(after.saved.data.lotusDelivered,1);
- assert(after.saved.data.roundTrace.moves[0].events.some(e=>e.type==="hanabi-launch"));
+ assert.equal(after.proof.ok,true,"Pilot must permit the genuine delivery swap");
+ assert.equal(after.proof.hanabiVersion,2);
+ assert.equal(after.proof.crate,"hanabiCrate");
+ assert.equal(after.proof.delivered,1);
+ assert.equal(after.proof.launch,true,"Genuine engine trace must include Hanabi launch");
+ for(const field of ["unlocked","run","journeyProgression","bestStars","economy","omamoriCards"])
+  assert.deepEqual(after.persisted[field],baseline[field],
+   "Unranked Hanabi pilot must not modify saved "+field);
  assert(after.width<=after.screen+1);
  assert(after.fx.marks.length>=1&&after.fx.marks.length<=6,
   "Only the actual visible column targets should be marked");

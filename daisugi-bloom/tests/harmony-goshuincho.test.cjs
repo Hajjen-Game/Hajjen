@@ -282,7 +282,7 @@ check("Published Journey ends at 40; stale legacy chapters stay out of Goshuinch
   "Book chapter count must ignore previous 41+ progress");
  assert(app.includes("index<OFFICIAL_JOURNEY_LEVELS"),
   "Past level runs cannot resume unapproved chapters");
- assert(app.includes("i>=OFFICIAL_JOURNEY_LEVELS&&"),
+ assert(app.includes("i<0||i>=OFFICIAL_JOURNEY_LEVELS"),
   "Real level launch must reject old chapters");
  assert(app.includes("if(level===OFFICIAL_JOURNEY_LEVELS-1)"),
   "Level 40 must have its own completion flow");
@@ -293,7 +293,7 @@ check("Published Journey ends at 40; stale legacy chapters stay out of Goshuinch
  assert(app.includes('else if(JP.unlocked(save)>=OFFICIAL_JOURNEY_LEVELS)showGoshuincho(LAST_PUBLISHED_CHAPTER)'));
  assert(app.includes('useJourney?{directorMode:"v63"'),
   "Every published Journey level uses Director 6.3, including generated-openings introductions");
- assert(html.includes("Director 6.3 runs all 40 approved Journey levels"));
+ assert(html.includes("Director 6.3 powers all 40 approved Puzzle Architect levels"));
  assert(!html.includes("levels 41–50 use 4.0"));
  const Journey=require("../harmony/journey-levels-v2.js");
  const Openings=require("../harmony/journey-authored-openings.js");

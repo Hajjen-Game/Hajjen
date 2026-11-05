@@ -19,7 +19,10 @@ assert.match(app,/window\.HarmonyJourneyAuthoredOpenings\?\.get\(i\)/);
 assert.match(app,/const resumable=canResumeJourneyRun\(stamp\.level\)/);
 assert.match(app,/const preview=levelPreview\(stamp\.level,resumable\)/);
 assert.match(app,/const r=canResumeJourneyRun\(save\.run\?\.level\)/);
-assert.match(html,/app\.js\?v=8\.2\.1-progression-integrity/);
+assert.match(html,/<script defer src="\.\/harmony\/app\.js\?v=[^"]+"><\/script>/,
+ "Live Journey must load its cache-busted app script");
+assert(html.indexOf("harmony/director-v63.js")<html.indexOf("harmony/app.js"),
+ "Current Director 6.3 must load before the Journey app");
 const summaries=O.chapterSummary();
 assert.deepEqual(summaries.map(x=>x.index),Array.from({length:20},(_,k)=>k+20));
 const signatures=new Set();

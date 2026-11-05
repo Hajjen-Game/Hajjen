@@ -19,6 +19,7 @@ importScripts(
  "../harmony/director-v6.js",
  "../harmony/director-v61.js",
  "../harmony/director-v62.js",
+  "../harmony/director-v63.js",
  "../harmony/rules.js",
  "../harmony/puzzle-architect.js",
  "../harmony/difficulty-lab.js"

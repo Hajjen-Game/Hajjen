@@ -258,7 +258,7 @@ check("UI Cleanup 1.0: modern Director picker, folded previews and a player-only
  const values=[...selector.matchAll(/<option value="([^"]+)"/g)].map(x=>x[1]);
  assert.deepEqual(values,["auto","v63"],"Old engines are not player choices");
  assert(html.includes('id="devButton"')&&html.includes('id="devPreviews"'));
- assert(html.includes('Experimental previews &amp; archived tests'));
+  assert(html.includes('Puzzle Architect · Unranked level tests'));
  assert(css.includes(".jh-dev-previews")&&css.includes(".jh-help-guide"));
  const pause=app.slice(app.indexOf("function openGameMenu()"),app.indexOf("function bind()"));
  assert(pause.includes('add("Main Menu"')&&pause.includes('showMenu();'));

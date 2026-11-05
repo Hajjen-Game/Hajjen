@@ -15,7 +15,7 @@ try{
   const expected=await page.evaluate((level,key)=>{
    const R=window.HarmonyRules;
    const game=window.HarmonyPuzzleArchitect.build(R,window.HarmonyJourneyAuthoredOpenings.get(level),
-    {seed:20261105+level,recordRound:true,directorMode:"v62"});
+    {seed:20261105+level,recordRound:true,directorMode:"v63"});
    if(!game.swap(...R.validSwaps(game.board)[0]).ok)throw Error("Opening move failed");
    const run={level,data:game.save(),backgroundId:0};
    if(!window.HarmonySaveHealth.validRun(run))throw Error("Real Journey run rejected");
@@ -41,7 +41,7 @@ try{
   assert.equal(data.run.moves,expected.moves);
   assert.equal(data.run.score,expected.score);
   assert.equal(data.run.levelRecipe.id,expected.levelRecipe.id);
-  assert.equal(data.run.directorMode,"v62");
+  assert.equal(data.run.directorMode,"v63");
   assert.equal(data.coins,216);assert.equal(data.cards,2);assert.equal(data.preview,false);
   console.log("PASS browser reload/resume for Journey level "+(index+1));
  }

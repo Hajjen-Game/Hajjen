@@ -18,6 +18,7 @@ try{
  });
  await page.reload({waitUntil:"networkidle2"});
  await page.$eval("#menuAdvanced",x=>x.open=true);
+ await page.$eval("#devPreviews",e=>e.open=true);
  await page.click("#bambooPreviewButton");
  await page.waitForSelector('.bamboo-preview-choice[data-level="54"]');
  await page.click('.bamboo-preview-choice[data-level="54"]');

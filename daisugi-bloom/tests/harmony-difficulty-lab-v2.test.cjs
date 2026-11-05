@@ -12,11 +12,11 @@ check("Every one of 40 released levels opens the exact approved Journey 2.0 puzz
  assert.equal(D.COUNT,40);
  assert.equal(Lab.COUNT,40);
  for(let index=0;index<40;index++){
-  const entry=Lab.descriptor(index),g=Lab.officialGame(entry,20261105+index*197,"v62");
+  const entry=Lab.descriptor(index),g=Lab.officialGame(entry,20261105+index*197,"v63");
   assert.equal(g.level,index);
   assert.equal(g.levelRecipe.id,D.get(index).id);
   assert.equal(g.config.moves,D.get(index).moves);
-  assert.equal(g.directorMode,"v62");
+  assert.equal(g.directorMode,"v63");
   assert.equal(R.scan(g.board).length,0,"Free initial Fusion on level "+(index+1));
   assert(R.validSwaps(g.board).length>=3,"Unsafe opening "+(index+1));
   if(O.get(index)){
@@ -69,7 +69,7 @@ check("A smoke scan really executes one swap on ALL 40 production boards",()=>{
   assert(result.objectiveDetails.work>=0&&result.objectiveDetails.work<=1);
   assert(result.partialBlockerHits>=0);
   assert(result.nearDeadlockTurns>=0);
-  assert.equal(result.mode,"v62");
+  assert.equal(result.mode,"v63");
   assert.equal(result.recipeId,D.get(level.level-1).id);
  }
  assert.equal(JSON.stringify(D.summary()),original,
@@ -94,12 +94,12 @@ check("Multiple real seeds and strategies are paired and deterministic",()=>{
  assert.equal(a.levels[0].opening,"hand-authored");
 });
 
-check("Director 6.2 and Standard use paired openings, never pretend unpaired samples are controlled",()=>{
+check("Director 6.3 and Standard use paired openings, never pretend unpaired samples are controlled",()=>{
  const result=Lab.audit({from:5,to:5,seeds:1,strategies:["random"],
   maxTurns:3,maxCandidates:3,compareStandard:true});
  const level=result.levels[0];
  assert.equal(level.runs.length,2);
- assert.equal(level.runs[0].mode,"v62");
+ assert.equal(level.runs[0].mode,"v63");
  assert.equal(level.runs[1].mode,"standard");
  assert.equal(level.comparison.paired,true);
  assert.equal(level.runs[0].openingSignature,level.runs[1].openingSignature);

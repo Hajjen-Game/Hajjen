@@ -1,5 +1,6 @@
 "use strict";
 const assert=require("node:assert/strict");
+const fs=require("node:fs");
 const R=require("../harmony/rules.js");
 const D=require("../harmony/journey-levels-v2.js");
 const A=require("../harmony/puzzle-architect.js");
@@ -8,6 +9,17 @@ const O=require("../harmony/journey-authored-openings.js");
 assert.equal(D.COUNT,40);
 assert.equal(O.COUNT,15,"Existing first-twenty reference boards must remain intact");
 assert.equal(O.CHAPTER_COUNT,20);
+// The book now opens these exact approved boards as normal, reward-earning
+// progression. Legacy engine defaults remain unchanged for historic saves.
+const app=fs.readFileSync(__dirname+"/../harmony/app.js","utf8");
+const html=fs.readFileSync(__dirname+"/../index.html","utf8");
+assert.match(app,/const OFFICIAL_JOURNEY_LEVELS=40;/);
+assert.match(app,/const useJourney=officialJourney\|\|journeyDraftPreview;/);
+assert.match(app,/window\.HarmonyJourneyAuthoredOpenings\?\.get\(i\)/);
+assert.match(app,/const resumable=canResumeJourneyRun\(stamp\.level\)/);
+assert.match(app,/const preview=levelPreview\(stamp\.level,resumable\)/);
+assert.match(app,/const r=canResumeJourneyRun\(save\.run\?\.level\)/);
+assert.match(html,/app\.js\?v=7\.8\.0-journey-21-40-live/);
 const summaries=O.chapterSummary();
 assert.deepEqual(summaries.map(x=>x.index),Array.from({length:20},(_,k)=>k+20));
 const signatures=new Set();
@@ -63,7 +75,7 @@ for(let i=20;i<40;i++){
   assert(goalDirectedOpenings>=1,"Level "+(i+1)+" must have a real goal-facing opening move");
  }
  const legacy=new R.Game(i,null,{seed:1234});
- assert(!legacy.levelRecipe,"Unpublished chapters must not affect Goshuincho");
+ assert(!legacy.levelRecipe,"Default engine must preserve legacy level configs; Goshuincho explicitly selects approved boards");
  assert(!Object.hasOwn(legacy.save(),"levelRecipe"));
  console.log("PASS level "+(i+1)+" "+recipe.name+" · fixed 7×7 · "+design.planned.length+" verified opening moves");
 }

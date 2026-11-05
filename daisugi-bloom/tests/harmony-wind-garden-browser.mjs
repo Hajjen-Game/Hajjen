@@ -53,6 +53,9 @@ try{
   localStorage.setItem(key,JSON.stringify(save));
  },KEY);
  const baseline=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
+ // A first normal persist may add the empty Journey reward ledger to an old save.
+ // Keep verifying the entire original save; any real reward change must fail.
+ baseline.economy.journeyPaidStars ??= {};
  assert.equal(baseline.run.level,5);
  // First Breeze: wind shifts every second valid move.
  let start=await enter("breeze");

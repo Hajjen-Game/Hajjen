@@ -1,8 +1,17 @@
-# CHROMA RUSH — Mobile Performance Optimization 1.0
+# CHROMA RUSH — Flow Balance 1.1
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Flow Balance 1.1 (2026-11-06)
+
+- Based on two actual exported runs (zone 8 and zone 10), reduce excessive Chroma State time while preserving its 2× reward.
+- Normal clears grant **5 Flow** instead of 6; precision **8** instead of 10; Perfect Zone bonus **5** instead of 8.
+- Smooth high-Flow pressure begins at **65** and ramps to **4.5 Flow per second** at 100. Original idle decay and hit penalty remain unchanged.
+- The 30/65/90 thresholds, 1×/1.25×/1.5×/2× multipliers, Perfect Zone **+10 HP** recovery and saved progression remain untouched.
+- Physics, obstacles, speed, Director and graphics quality do not change.
+- See [Flow Balance 1.1 design notes](docs/flow-balance-1.1.md).
 
 ## Mobile Performance Optimization 1.0 (2026-11-06)
 

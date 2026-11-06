@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Chroma Flow & Perfect Zones 1.0.
+/* CHROMA RUSH — Flow Balance 1.1 — high-tier resistance.
  * Gameplay-only model: deterministic, no DOM, rendering or audio dependencies.
  * A perfect zone requires real successful obstacle clears, not an empty timer.
  */
@@ -24,9 +24,17 @@
     tick(dt){
       if(!(dt>0))return;
       this.timeSinceClear+=dt;
-      if(this.timeSinceClear>this.rules.decayDelay){
-        this.value=clamp(this.value-this.rules.decayPerSecond*dt,0,100);
+      // Smooth high-Flow pressure. Exact exponential integration makes it
+      // independent of graphical FPS or the number of simulation steps.
+      const start=this.rules.highFlowPressureStart;
+      const rate=this.rules.highFlowPressurePerSecond;
+      if(Number.isFinite(start)&&Number.isFinite(rate)&&start<100&&this.value>start&&rate>0){
+        const slope=rate/(100-start);
+        this.value=start+(this.value-start)*Math.exp(-slope*dt);
       }
+      if(this.timeSinceClear>this.rules.decayDelay)
+        this.value-=this.rules.decayPerSecond*dt;
+      this.value=clamp(this.value,0,100);
     }
     registerClear({precision=false}={}){
       const previousTier=this.tier;

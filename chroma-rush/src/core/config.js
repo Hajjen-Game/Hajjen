@@ -33,15 +33,18 @@
     thresholds:Object.freeze([30,65,90]),
     multipliers:Object.freeze([1,1.25,1.5,2]),
     clearPoints:135,
-    clearGain:6,
-    precisionGain:10,
+    clearGain:5,
+    precisionGain:8,
     damagePenalty:35,
     decayDelay:3.5,
     decayPerSecond:1.5,
+    // High Flow has progressive resistance, never a sudden tier reset.
+    highFlowPressureStart:65,
+    highFlowPressurePerSecond:4.5,
     minPerfectClears:3,
     perfectHeal:10,
     perfectPoints:350,
-    perfectFlowGain:8
+    perfectFlowGain:5
   });
   const AUDIO=Object.freeze({
     startBpm:110,maxBpm:156,bpmPerSpeed:.026,

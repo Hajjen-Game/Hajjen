@@ -13,6 +13,8 @@ const audio = require('../src/audio/reactive-audio.js');
 const progression = require('../src/progression/arcade-progress.js');
 const arcadeUI = require('../src/ui/arcade-ui.js');
 const terrain = require('../src/terrain/terrain-system.js');
+const jump = require('../src/gameplay/jump-controller.js');
+const motion = require('../src/render/player-motion.js');
 
 function setup(initialStorage={}) {
   const objects=new Map();
@@ -34,7 +36,7 @@ function setup(initialStorage={}) {
   let requested;
   const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};

@@ -64,5 +64,11 @@
     minGapSeparation:1250,
     fallThreshold:125
   });
-  return {PALETTES,GAME,FLOW,AUDIO,TERRAIN};
+  const JUMP_FEEL=Object.freeze({
+    coyoteSeconds:.080,
+    maxCoyoteDistance:48,
+    bufferSeconds:.110,
+    landingAnimationSeconds:.230
+  });
+  return {PALETTES,GAME,FLOW,AUDIO,TERRAIN,JUMP_FEEL};
 });

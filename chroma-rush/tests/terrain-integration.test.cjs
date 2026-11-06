@@ -12,6 +12,8 @@ const modules={
  ChromaProgress:require('../src/progression/arcade-progress.js'),
  ChromaArcadeUI:require('../src/ui/arcade-ui.js'),
  ChromaTerrain:require('../src/terrain/terrain-system.js'),
+ ChromaJump:require('../src/gameplay/jump-controller.js'),
+ ChromaMotion:require('../src/render/player-motion.js'),
 };
 function harness(){
  const elements=new Map(),events={};

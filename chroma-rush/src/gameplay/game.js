@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Dynamic Terrain & Gap Jumps 1.0
+/* CHROMA RUSH — Jump Feel & Forgiveness 1.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -21,6 +21,8 @@
   const GAME = window.ChromaConfig.GAME;
   const GEO = window.ChromaGeometry;
   const terrain = new window.ChromaTerrain.TerrainSystem();
+  const jumpControl = new window.ChromaJump.JumpController();
+  const motion = new window.ChromaMotion.PlayerMotion();
   const HUD = window.ChromaHud;
   const $ = {
     menu:el('menu'), hud:el('hud'), controls:el('controls'), gameover:el('gameover'),
@@ -114,7 +116,7 @@
     const palette=PALETTES[(zone-1)%PALETTES.length];
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
     hurdles=[];motes=[];rings=[];streaks=[];director.reset();flow.reset();flow.currentZone=zone;
-    distance=0;gapRecovery=null;terrain.reset(floorY);
+    distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();motion.reset();
     // Practice retains the chosen zone/difficulty but starts on a fresh,
     // safe runway, rather than loading a nonexistent alternate level.
     terrain.ensure(W+1000,zone,speed);
@@ -166,11 +168,38 @@
   function closeMilestones(){
     $.milestonePanel.classList.add('hidden');$.menu.classList.remove('hidden');
   }
+  function launchJump(){
+    // Launch velocity and the hitbox remain identical to Terrain 1.0.
+    player.vy=GAME.jumpVelocity;player.landed=false;motion.jump();
+    ripple(player.x,player.feet-5,c1,12);
+    for(let i=0;i<12;i++){
+      motes.push(makeMote(player.x+rand(-15,15),player.feet-2,c2,
+        {vx:rand(-155,60),vy:rand(-110,-25),life:rand(.16,.40),r:rand(1.0,2.8)}));
+    }
+    if(motes.length>180)motes.splice(0,motes.length-180);
+    sound('jump');
+  }
   function jump(){
-    if(status!=='running'||!player.landed||player.duck)return;
-    player.vy=GAME.jumpVelocity;player.landed=false;player.stretch=1;
-    ripple(player.x,player.feet-5,c1,10);
-    burst(player.x,player.feet-3,13,c1,.7);sound('jump');
+    if(status!=='running')return;
+    const action=jumpControl.request({grounded:player.landed,ducking:player.duck,
+      recovering:Boolean(gapRecovery),worldX:distance+player.x});
+    if(action==='jump'||action==='coyote')launchJump();
+  }
+  function landingImpact(ground,velocity){
+    const strength=motion.land(velocity);
+    // Short-lived dust streams sideways along the actual terrain surface.
+    const n=Math.round(8+strength*9);
+    for(let i=0;i<n;i++){
+      const side=i%2===0?1:-1;
+      motes.push(makeMote(player.x+side*rand(3,12),ground-3,side===1?c1:c2,
+        {vx:side*rand(70,205)*(0.6+strength*.5),vy:rand(-62,-9),
+         life:rand(.18,.40),r:rand(1.0,2.9)}));
+    }
+    if(motes.length>180)motes.splice(0,motes.length-180);
+    ripple(player.x,ground,c2,15+strength*10);
+    // Max 2 logical px before the draw() camera damping factor.
+    if(velocity>650)shake=Math.max(shake,2.0);
+    sound('land');
   }
   function startDuck(){
     if(status!=='running'||!player.landed||player.duck||player.duckRecovery>0)return;
@@ -278,7 +307,7 @@
   }
   function failGap(gap){
     if(!terrain.markGap(gap,true))return;
-    gapRecovery=gap;
+    gapRecovery=gap;jumpControl.cancel();motion.reset();
     // Damage follows exactly the same HP/Flow/Director rules as a box hit.
     hp=Math.max(0,hp-GAME.damagePerHit);
     director.registerDamage();flow.registerDamage();
@@ -324,7 +353,7 @@
     c3=rgbHex(PALETTES[j].shadow,PALETTES[i].shadow,t);
     flow.tick(dt);
     player.invulnerable=Math.max(0,player.invulnerable-dt);
-    player.stretch=Math.max(0,player.stretch-dt*3);
+    jumpControl.tick(dt,distance+player.x);motion.tick(dt);
     shake=Math.max(0,shake-dt*36);hitFlash=Math.max(0,hitFlash-dt);
     if(lastZoneCallout>0){lastZoneCallout-=dt;if(lastZoneCallout<=0)$.zoneCallout.classList.add('hidden')}
     if(milestoneTime>0){milestoneTime-=dt;if(milestoneTime<=0)$.milestoneToast.classList.add('hidden')}
@@ -339,11 +368,12 @@
       player.feet=Math.min(player.feet,terrain.baseY-45);
       if(ground!==null&&playerWorld>=gapRecovery.end+24){
         player.feet=ground;player.landed=true;gapRecovery=null;
-        sound('land');
+        jumpControl.onLand({recovering:true});motion.land(300);sound('land');
       }
     }else if(player.landed){
       if(ground===null){
         player.landed=false;player.vy=0;
+        if(currentGap)jumpControl.leaveLedge(currentGap.start);
       }else{
         // Running follows the true slope while preserving horizontal speed.
         player.feet=ground;
@@ -353,8 +383,18 @@
       player.vy+=GAME.gravity*dt;
       player.feet+=player.vy*dt;
       if(ground!==null&&player.vy>=0&&previousFeet<=ground+5&&player.feet>=ground){
+        const impact=player.vy;
         player.feet=ground;player.vy=0;player.landed=true;
-        burst(player.x,ground-5,10,c1,.45);ripple(player.x,ground,c2,16);sound('land');
+        landingImpact(ground,impact);
+        // A valid touchdown on the far side completes a gap even if the player
+        // has buffered another immediate jump. Otherwise the next jump could
+        // hide the grounded frame required by the original gap-clear logic.
+        for(const gap of terrain.visibleGaps(playerWorld-Math.max(1100,speed*1.30),playerWorld)){
+          if(!gap.resolved&&playerWorld>=gap.end)clearGap(gap);
+        }
+        // Fire immediately after a valid landing if the player pressed up to
+        // 110 ms too early. A duck or gap recovery never queues a jump.
+        if(jumpControl.onLand({ducking:player.duck}))launchJump();
       }
     }
     // Any unlanded descent below the level is a real gap miss, not a
@@ -578,10 +618,10 @@
       ctx.fillStyle=rgba(c1,clamp(.055+(8-i)*.025,0,.24));
       roundRectPath(x,b.y+(1-sc)*b.h/2,b.w*sc,b.h*sc,6);ctx.fill();
     }
-    const stretch=player.landed?player.duck?0:-player.stretch*.09:clamp(-player.vy/1100,-.14,.16);
-    const rw=b.w*(1-stretch*.5)*beat, rh=b.h*(1+stretch)*beat;
+    const shape=motion.sample({landed:player.landed,duck:player.duck,vy:player.vy});
+    const rw=b.w*shape.scaleX*beat, rh=b.h*shape.scaleY*beat;
     const rx=player.x-rw/2,ry=player.feet-rh;
-    ctx.shadowColor=c1;ctx.shadowBlur=31;
+    ctx.shadowColor=c1;ctx.shadowBlur=31+shape.glow*17;
     roundRectPath(rx,ry,rw,rh,player.duck?8:8);ctx.fillStyle='#f3fcff';ctx.fill();
     ctx.shadowBlur=9;ctx.lineWidth=2;ctx.strokeStyle=c1;ctx.stroke();
     const shading=ctx.createLinearGradient(rx,ry,rx+rw,ry+rh);

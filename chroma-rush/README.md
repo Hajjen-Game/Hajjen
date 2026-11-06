@@ -1,8 +1,18 @@
-# CHROMA RUSH — Dynamic Terrain & Gap Jumps 1.0
+# CHROMA RUSH — Jump Feel & Forgiveness 1.0
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Jump Feel & Forgiveness 1.0 (new)
+
+- **Coyote time:** A new press up to 80 ms after leaving a gap edge can launch the original jump. At high speed this is additionally capped to 48 world units beyond the edge; no double jump is introduced.
+- **Jump buffer:** A jump pressed up to 110 ms before landing will trigger exactly once on landing. Queued input expires naturally. Ducking and spectral gap-recovery cannot queue jumps. Both mobile and keyboard input use these shared rules.
+- **Visual motion:** A dedicated animation module adds a fast takeoff squash, upward stretch, small apex settling, directional landing particles, subtle impact glow, a brief 230 ms landing squash/rebound and a restrained camera reaction after a hard landing. All animations use the existing neon colors.
+- **Gameplay integrity:** Launch velocity, gravity, obstacle/gap geometry, auto-run speed, damage and two-button controls are unchanged. Rendering deformation never modifies collision shapes.
+- **Gap integrity:** A landing on the far platform counts as a successful gap clear before a buffered hop immediately launches again, preventing missing Flow/score when chained hops occur.
+- **Modular architecture:** `src/gameplay/jump-controller.js` owns timing rules and `src/render/player-motion.js` owns sprite deformation; both have pure Node tests plus browser-game VM integration tests.
+- **Not added:** No variable-height jumps, double jump, new level selection or major gravity/apex changes. Those remain possible separate experiments.
 
 ## Dynamic Terrain & Gap Jumps 1.0 (new)
 
@@ -139,3 +149,7 @@ node --test chroma-rush/tests/*.cjs
 - **Audio 1.0 (2026-11-06):** Independent Web Audio engine, phase-responsive original layered music, Flow/zone sync, sound effects, pause/mute persistence, audio regression tests.
 
 - **Arcade 1.0 (2026-11-06):** Personal best zone/streak/score, six milestones, milestone gallery and separately marked unranked practice from unlocked zones.
+
+## Jump Feel tuning
+
+Change timings in `src/core/config.js` under `JUMP_FEEL`. The Coyote Time distance cap matters at late-game speed: do not increase it without checking gap fairness. Jump buffering and squash/stretch are meant to improve responsiveness and visuals, not lower the underlying challenge. Run `node --test chroma-rush/tests/*.cjs` before changing physics or terrain interaction.

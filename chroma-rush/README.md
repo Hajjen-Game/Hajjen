@@ -1,10 +1,24 @@
-# CHROMA RUSH — Chroma Flow & Perfect Zones 1.0
+# CHROMA RUSH — Reactive Audio System 1.0
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
 
-## Chroma Flow & Perfect Zones 1.0 (new)
+## Reactive Audio System 1.0 (new)
+
+- **Original procedural synth score** in `src/audio/reactive-audio.js`: electronic kick, hi-hat pulses, synth bass, ambient harmonic pads and a high-register arpeggio. No third-party tracks, sound files, assets, downloads or libraries.
+- **Reactive intensity:** BUILD keeps a driving but restrained pulse; PEAK adds dense percussion and arpeggios; FADE softens; RELAX drops to a sparse heartbeat. All fades are smoothed. The **Director**, not audio, decides which phase the game is in.
+- **Acceleration:** soundtrack grows from 110 BPM toward a capped 156 BPM as the scrolling speed increases. Music never affects the actual gameplay speed.
+- **Flow:** High Flow gradually strengthens the soundtrack; Chroma State adds brighter, more intricate notes. Flow falls naturally after damage and the mix follows.
+- **Zone identity:** new zones shift the harmony and sound a short transition; Perfect Zone has its own three-note celebration instead of layering both transitions at once.
+- **Clear audio ownership:** music and gameplay sound effects use separate gain buses, with a shared master volume. Original jump, duck, land, score, hit, warning and Flow cues are retained as synthesized events with updated tones.
+- **Mobile-friendly:** audio context is created and unlocked only after a deliberate Start/Resume/unmute gesture. Scheduling is tied to the existing animation loop, looks ahead only 90 ms, caps at three steps per frame and never starts an independent timer or background worker.
+- **Control & safety:** one sound button mutes both music and effects, and the choice persists in local storage. Pausing, changing tabs, or ending a run fades music; unsupported Web Audio simply remains silent without breaking gameplay.
+- **Unchanged gameplay:** Director 2.0, Chroma Flow, Perfect Zones, physics, HP and speed all retain their existing rules.
+
+**Mobile listening test needed:** This first synth mix is intentionally conservative and must be evaluated for musicality, headroom and device speaker balance on actual phones. It is an original procedural prototype score, not a mastered soundtrack.
+
+## Chroma Flow & Perfect Zones 1.0
 
 - **Flow** rises when real, unhit obstacles are cleared (+6), and rises more for narrow jump clearances / well-timed duck presses (+10). It falls 35 on damage, and decays slowly (1.5/s) after a 3.5-second stretch without successful clears. Flow never fills passively during a Director break.
 - **Chroma State** starts at 90 Flow. Thresholds: 30, 65, 90. Multipliers on *obstacle-clear* score: 1× / 1.25× / 1.5× / 2×. Survival-time score is deliberately unaffected so simply waiting does not generate boosted points.
@@ -39,7 +53,9 @@ chroma-rush/
       adaptive-director.js    Director 2.0: pacing, stress, confidence, safe gaps
     gameplay/
       flow.js                 Pure Flow/Perfect Zone state and scoring rules
-      game.js                 Input, game state, collision, world rendering and effects
+      game.js                 Input, game state, collision and world rendering
+    audio/
+      reactive-audio.js       Standalone Web Audio soundtrack + SFX orchestration
     ui/
       hud.js                  Reusable HUD and zone transition presentation
   tests/
@@ -47,6 +63,7 @@ chroma-rush/
     director-2.test.cjs        Pattern selection, adaptive state and high-speed safety
     game-smoke.test.cjs        Full game loop and mobile/keyboard duck regression
     flow.test.cjs              Flow thresholds, flawless zones, damage, healing and reset
+    reactive-audio.test.cjs    Audio lifecycle, phase mix, tempo, mute and scheduling
 ```
 
 Modules are plain browser JavaScript with CommonJS compatibility for Node tests, so the game needs **no build process, dependencies, CDN, account or analytics**. All script URLs carry a version query to limit stale browser caches on GitHub Pages.
@@ -58,7 +75,7 @@ Modules are plain browser JavaScript with CommonJS compatibility for Node tests,
 3. Add new patterns to `src/director/patterns.js`; only the Director chooses when to use them.
 4. `adaptive-director.js` makes planning decisions and exposes `insight` for future diagnostics. It does not read DOM, draw or modify player inputs.
 5. Shared HUD drawing goes into `src/ui/hud.js`. Do not mix UI styling with gameplay decisions.
-6. `src/gameplay/game.js` currently still owns input + world rendering: **next modularization targets** are `src/input/controls.js`, `src/render/world.js`, and `src/audio/sound.js` after the new Director has been playtested. Avoid invasive extraction in the same change as gameplay tuning.
+6. All audio synthesis and playback lives in `src/audio/reactive-audio.js`. The gameplay engine only reports events and state. Input and world rendering still live in `game.js`: **next modularization targets** are `src/input/controls.js` and `src/render/world.js`.
 7. All new rules require targeted Node regression tests. Keep deterministic RNG injection in the Director.
 
 ## Run and test
@@ -76,7 +93,7 @@ node --test chroma-rush/tests/*.cjs
 - The target is a thrilling **2–3 minute run**, not infinite perfect reaction time. A full Speed Fairness & Readability redesign is deferred until playtests suggest it is needed.
 - The Director may ease the number and complexity of obstacles but **never lowers scrolling speed**.
 - AI Director 2.0 is a transparent, deterministic-rule system; it is not a neural network or an unbeatable automated level designer. Gameplay still requires real-device testing and balancing.
-- No new controls, collectibles, metaprogression, music systems, or economy are introduced by this update.
+- No new controls, collectibles, metaprogression or economy are introduced by this update. Step 4 adds only adaptive sound and music.
 
 ## Versions
 
@@ -84,3 +101,5 @@ node --test chroma-rush/tests/*.cjs
 - **1.1:** Tap-to-duck with a fixed duration and recovery.
 - **2.0:** Adaptive motif generation, player-friction awareness, shared modules and Director regression tests.
 - **Flow 1.0:** Reactive Flow tiers, skill-based score bonuses, Perfect Zones and shield recovery.
+
+- **Audio 1.0 (2026-11-06):** Independent Web Audio engine, phase-responsive original layered music, Flow/zone sync, sound effects, pause/mute persistence, audio regression tests.

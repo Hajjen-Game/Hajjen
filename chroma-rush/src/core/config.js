@@ -43,5 +43,10 @@
     perfectPoints:350,
     perfectFlowGain:8
   });
-  return {PALETTES,GAME,FLOW};
+  const AUDIO=Object.freeze({
+    startBpm:110,maxBpm:156,bpmPerSpeed:.026,
+    lookaheadSeconds:.09,maxStepsPerFrame:3,
+    masterGain:.66,musicGain:.34,effectsGain:.40
+  });
+  return {PALETTES,GAME,FLOW,AUDIO};
 });

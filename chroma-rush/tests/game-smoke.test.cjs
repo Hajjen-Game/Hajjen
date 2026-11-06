@@ -9,6 +9,7 @@ const config = require('../src/core/config.js');
 const geometry = require('../src/core/geometry.js');
 const hud = require('../src/ui/hud.js');
 const flow = require('../src/gameplay/flow.js');
+const audio = require('../src/audio/reactive-audio.js');
 
 function setup() {
   const objects=new Map();
@@ -30,7 +31,7 @@ function setup() {
   let requested;
   const local={};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
@@ -106,4 +107,18 @@ test('airborne duck input is not queued for landing',()=>{
   h.release(p);
   const p2=h.press();assert.equal(h.active(),true);
   h.release(p2);
+});
+
+test('sound toggle works during play and pause without an AudioContext',()=>{
+  const g=setup();g.step(0);g.get('start-btn').click();
+  const button=g.get('sound-btn');
+  assert.equal(button['aria-pressed'],'true');
+  button.click();assert.equal(button['aria-pressed'],'false');
+  button.click();assert.equal(button['aria-pressed'],'true');
+  g.get('pause-btn').click();
+  assert.ok(!g.get('pause-menu').classList.contains('hidden'));
+  g.get('resume-btn').click();
+  assert.ok(g.get('pause-menu').classList.contains('hidden'));
+  for(let i=1;i<=90;i++)g.step(i*16.667);
+  assert.ok(g.get('flow-number').textContent.endsWith('%'));
 });

@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Chroma Flow & Perfect Zones 1.0
+/* CHROMA RUSH — Reactive Audio System 1.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,13 +6,15 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
   const el = id => document.getElementById(id);
   const director = new window.ChromaDirector.AdaptiveRushDirector();
   const flow = new window.ChromaFlow.FlowSystem();
+  function preferredAudio(){try{return localStorage.getItem('chromaRushSoundOff')!=='true'}catch(_){return true}}
+  const audio = new window.ChromaAudio.ReactiveAudioSystem({scope:window,enabled:preferredAudio()});
   const GAME = window.ChromaConfig.GAME;
   const GEO = window.ChromaGeometry;
   const HUD = window.ChromaHud;
@@ -49,36 +51,15 @@
   // Each new press triggers a fixed duck pulse. Holding never extends or repeats it.
   const DUCK_DURATION=GAME.duckDuration;
   const DUCK_RECOVERY=GAME.duckRecovery;
-  let soundEnabled=true, soundCtx=null;
-
-  function initAudio(){
-    if(!soundEnabled)return;
-    try{ const API=window.AudioContext||window.webkitAudioContext; if(!API)return;
-      if(!soundCtx)soundCtx=new API(); if(soundCtx.state==='suspended')soundCtx.resume();
-    }catch(_){}
+  // Audio is fully owned by src/audio/reactive-audio.js, including all effects.
+  function sound(kind){audio.effect(kind)}
+  function syncSoundButton(){
+    $.sound.textContent=audio.enabled?'♫':'×';
+    $.sound.title=audio.enabled?'Mute sound':'Enable sound';
+    $.sound.setAttribute('aria-pressed',String(audio.enabled));
+    $.sound.setAttribute('aria-label',audio.enabled?'Mute sound':'Enable sound');
   }
-  function beep(freq=400,duration=.09,type='sine',volume=.07,frequencyEnd=null){
-    if(!soundEnabled||!soundCtx)return;
-    try{
-      const t=soundCtx.currentTime,osc=soundCtx.createOscillator(),gain=soundCtx.createGain();
-      osc.type=type;osc.frequency.setValueAtTime(freq,t);
-      if(frequencyEnd)osc.frequency.exponentialRampToValueAtTime(Math.max(30,frequencyEnd),t+duration);
-      gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(Math.max(.001,volume),t+.012);
-      gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
-      osc.connect(gain);gain.connect(soundCtx.destination);osc.start(t);osc.stop(t+duration+.01);
-    }catch(_){}
-  }
-  function sound(kind){
-    if(kind==='jump')beep(350,.18,'triangle',.07,620);
-    if(kind==='duck')beep(250,.11,'sine',.04,140);
-    if(kind==='land')beep(190,.07,'sine',.035,110);
-    if(kind==='hit'){beep(180,.27,'sawtooth',.13,62);setTimeout(()=>beep(100,.15,'sine',.05,65),65)}
-    if(kind==='zone'){beep(420,.25,'triangle',.075,770);setTimeout(()=>beep(670,.29,'sine',.07,1140),110)}
-    if(kind==='score')beep(680,.07,'sine',.02,860);
-    if(kind==='flow'){beep(610,.13,'sine',.045,840)}
-    if(kind==='perfect'){beep(570,.22,'triangle',.065,810);setTimeout(()=>beep(780,.19,'sine',.045,1010),100)}
-    if(kind==='start'){beep(430,.14,'triangle',.08,710);setTimeout(()=>beep(610,.22,'sine',.07,1050),100)}
-  }
+  syncSoundButton();
   function resize(){
     const cw=Math.max(1,canvas.clientWidth),ch=Math.max(1,canvas.clientHeight);
     dpr=Math.min(window.devicePixelRatio||1,2);
@@ -107,13 +88,13 @@
     $.menu.classList.add('hidden');$.gameover.classList.add('hidden');$.pauseMenu.classList.add('hidden');
     $.hud.classList.remove('hidden');$.controls.classList.remove('hidden');$.pauseBtn.classList.remove('hidden');
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');
-    status='running';lastTs=performance.now();updateHud();initAudio();sound('start');
+    status='running';lastTs=performance.now();updateHud();audio.start();sound('start');
   }
-  function pause(){if(status!=='running')return;status='paused';$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;player.duck=false;player.duckTime=0;player.duckRecovery=0;$.duck.classList.remove('is-down');}
-  function resume(){if(status!=='paused')return;status='running';$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();}
+  function pause(){if(status!=='running')return;status='paused';$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;player.duck=false;player.duckTime=0;player.duckRecovery=0;$.duck.classList.remove('is-down');audio.pause();}
+  function resume(){if(status!=='paused')return;status='running';$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();audio.resume();}
   function endRun(){
     if(status!=='running')return;
-    status='dead';sound('hit');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
+    status='dead';audio.stop();sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
     const total=Math.floor(score);
     if(total>best){best=total;store.put(best)}
     $.finalScore.textContent=total.toLocaleString('en-US');$.finalZone.textContent=String(zone).padStart(2,'0');
@@ -174,7 +155,7 @@
     el('start-btn').addEventListener('click',reset);el('retry-btn').addEventListener('click',reset);
     el('resume-btn').addEventListener('click',resume);el('restart-paused-btn').addEventListener('click',reset);
     $.pauseBtn.addEventListener('click',()=>status==='paused'?resume():pause());
-    $.sound.addEventListener('click',()=>{soundEnabled=!soundEnabled;$.sound.textContent=soundEnabled?'♫':'×';$.sound.title=soundEnabled?'Mute sound':'Enable sound';initAudio();if(soundEnabled)beep(500,.08)});
+    $.sound.addEventListener('click',()=>{audio.setEnabled(!audio.enabled);try{localStorage.setItem('chromaRushSoundOff',String(!audio.enabled))}catch(_){}syncSoundButton();});
     document.addEventListener('contextmenu',e=>e.preventDefault());
   }
   registerControls();
@@ -195,7 +176,7 @@
     lastZoneCallout=1.4;
     HUD.showZoneCallout($,{zone,name:PALETTES[(zone-1)%PALETTES.length].name,
       color:PALETTES[(zone-1)%PALETTES.length].primary,perfectReward:reward?.perfect?reward:null});
-    ripple(player.x,floorY-20,c1,35);burst(player.x,floorY-20,24,c1,1.7);sound('zone');
+    ripple(player.x,floorY-20,c1,35);burst(player.x,floorY-20,24,c1,1.7);if(!reward?.perfect)sound('zone');
   }
   function onHit(o){
     if(o.hit)return;
@@ -286,7 +267,8 @@
     motes=motes.filter(m=>m.life>0).slice(-180);
     for(const r of rings){r.r+=dt*160;r.life-=dt}
     rings=rings.filter(r=>r.life>0);
-    if(hp>0&&hp<=25&&Math.floor(worldTime*1.5)!==Math.floor((worldTime-dt)*1.5))beep(510,.075,'triangle',.025,410);
+    if(hp>0&&hp<=25&&Math.floor(worldTime*1.5)!==Math.floor((worldTime-dt)*1.5))sound('warning');
+    audio.tick({phase:director.phase,speed,flow:flow.value,zone,hp});
     updateHud();
   }
 

@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Duck Feel & Effect Language 1.0
+/* CHROMA RUSH — Mobile Arcade Polish 1.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -16,6 +16,10 @@
   function preferredAudio(){try{return localStorage.getItem('chromaRushSoundOff')!=='true'}catch(_){return true}}
   const audio = new window.ChromaAudio.ReactiveAudioSystem({scope:window,enabled:preferredAudio()});
   let profileStorage=null;try{profileStorage=localStorage}catch(_){}
+  const preferences = new window.ChromaMobilePreferences.MobilePreferences(profileStorage);
+  audio.setMusicEnabled(preferences.music);
+  audio.setEffectsEnabled(preferences.effects);
+  audio.setEffectsVolume(preferences.effectsVolume/100);
   const progression = new window.ChromaProgress.ArcadeProgression(profileStorage);
   const arcadeUI = window.ChromaArcadeUI;
   const GAME = window.ChromaConfig.GAME;
@@ -50,7 +54,11 @@
     finalMode:el('final-mode'),finalStreak:el('final-streak'),finalRecord:el('final-record'),finalMilestones:el('final-milestones'),
     exportRun:el('export-run-btn'),graphicsButton:el('graphics-btn'),
     graphicsPanel:el('graphics-panel'),graphicsMode:el('graphics-mode'),
-    graphicsActive:el('graphics-active'),perfOverlay:el('perf-overlay')
+    graphicsActive:el('graphics-active'),perfOverlay:el('perf-overlay'),
+    musicEnabled:el('music-enabled'),effectsEnabled:el('effects-enabled'),
+    effectsVolume:el('effects-volume'),effectsVolumeValue:el('effects-volume-value'),
+    hapticsEnabled:el('haptics-enabled'),fullscreenButton:el('fullscreen-btn'),
+    fullscreenStatus:el('fullscreen-status'),runLaunch:el('run-launch')
   };
   const PALETTES = window.ChromaConfig.PALETTES;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -64,7 +72,7 @@
   let visualSeed=0x7e3a91d2;
   const visualRandom=()=>{visualSeed=(Math.imul(1664525,visualSeed)+1013904223)>>>0;return visualSeed/4294967296;};
   const fxRand=(a,b)=>a+visualRandom()*(b-a);
-  const vib=ms=>{try{if(navigator.vibrate)navigator.vibrate(ms)}catch(_){}};
+  const vib=ms=>{if(!preferences.haptics)return;try{if(navigator.vibrate)navigator.vibrate(ms)}catch(_){}};
   const store = {
     get(){try{return Number(localStorage.getItem('chromaRushBestFlow1'))||0}catch(_){return 0}},
     put(v){try{localStorage.setItem('chromaRushBestFlow1',String(v))}catch(_){}}
@@ -80,7 +88,7 @@
   let distance=0,gapRecovery=null;
   let c1=PALETTES[0].primary, c2=PALETTES[0].secondary, c3=PALETTES[0].shadow;
   let player={x:300,feet:floorY,vy:0,landed:true,duck:false,duckTime:0,duckRecovery:0,wasAirborne:false,invulnerable:0,stretch:0};
-  const input={duckKeys:new Set(),duckPointer:null};
+  const input={duckKeys:new Set(),duckPointer:null,jumpPointer:null};
   // Each new press triggers a fixed duck pulse. Holding never extends or repeats it.
   const DUCK_DURATION=GAME.duckDuration;
   const DUCK_RECOVERY=GAME.duckRecovery;
@@ -115,7 +123,7 @@
     const blocked=audio.enabled&&state==='blocked';
     const unsupported=audio.enabled&&state==='unsupported';
     $.sound.textContent=audio.enabled?'♫':'×';
-    const label=blocked?'Tap to unlock audio':unsupported?'Audio unavailable':audio.enabled?'Mute sound':'Enable sound';
+    const label=blocked?'Tap to unlock audio':unsupported?'Audio unavailable':audio.enabled?'Mute all sound':'Enable all sound';
     $.sound.title=label;
     $.sound.setAttribute('aria-pressed',String(audio.enabled));
     $.sound.setAttribute('aria-label',label);
@@ -142,10 +150,58 @@
     $.graphicsActive.textContent=quality.mode.toUpperCase()+' · '+quality.tier.toUpperCase();
   }
   syncGraphics();
+  function syncMobilePreferences(){
+    $.musicEnabled.checked=preferences.music;
+    $.effectsEnabled.checked=preferences.effects;
+    $.hapticsEnabled.checked=preferences.haptics;
+    $.effectsVolume.value=String(preferences.effectsVolume);
+    $.effectsVolumeValue.textContent=preferences.effectsVolume+'%';
+  }
+  syncMobilePreferences();
+  const shell=el('game-shell');
+  function syncFullscreenButton(message=''){
+    const supported=typeof shell.requestFullscreen==='function'&&document.fullscreenEnabled!==false;
+    const active=document.fullscreenElement===shell;
+    const safeToChange=status==='ready'||status==='dead';
+    $.fullscreenButton.disabled=!supported||!safeToChange;
+    $.fullscreenButton.textContent=active?'EXIT FULLSCREEN':'GO FULLSCREEN';
+    $.fullscreenStatus.textContent=message||(!supported?'Fullscreen not available in this browser.':!safeToChange?'Return to menu to change fullscreen.':active?'Fullscreen is active.':'Optional: hide browser bars for more space.');
+  }
+  syncFullscreenButton();
+  const showSettings=()=>{
+    const nowHidden=$.graphicsPanel.classList.toggle('hidden');
+    $.graphicsButton.setAttribute('aria-expanded',String(!nowHidden));
+    if(!nowHidden){syncMobilePreferences();syncGraphics();syncFullscreenButton()}
+  };
   $.graphicsButton.addEventListener('click',()=>{
-    const opened=$.graphicsPanel.classList.toggle('hidden');
-    $.graphicsButton.setAttribute('aria-expanded',String(!opened));
+    showSettings();
   });
+  $.musicEnabled.addEventListener('change',()=>{
+    preferences.set('music',Boolean($.musicEnabled.checked));
+    audio.setMusicEnabled(preferences.music);
+  });
+  $.effectsEnabled.addEventListener('change',()=>{
+    preferences.set('effects',Boolean($.effectsEnabled.checked));
+    audio.setEffectsEnabled(preferences.effects);
+  });
+  $.hapticsEnabled.addEventListener('change',()=>{
+    preferences.set('haptics',Boolean($.hapticsEnabled.checked));
+  });
+  $.effectsVolume.addEventListener('input',()=>{
+    preferences.set('effectsVolume',Number($.effectsVolume.value));
+    audio.setEffectsVolume(preferences.effectsVolume/100);
+    syncMobilePreferences();
+  });
+  $.fullscreenButton.addEventListener('click',()=>{
+    const active=document.fullscreenElement===shell;
+    try{
+      const result=active?document.exitFullscreen():shell.requestFullscreen({navigationUI:'hide'});
+      if(result&&typeof result.then==='function')
+        result.then(()=>{syncFullscreenButton();resize()}).catch(()=>syncFullscreenButton('Fullscreen was blocked by the browser.'));
+      else syncFullscreenButton();
+    }catch(_){syncFullscreenButton('Fullscreen is unavailable here.')}
+  });
+  document.addEventListener('fullscreenchange',()=>{syncFullscreenButton();resize()});
   $.graphicsMode.addEventListener('change',()=>{
     if(quality.setMode($.graphicsMode.value)){resize();syncGraphics();}
   });
@@ -180,12 +236,17 @@
     $.exportRun.textContent='EXPORT RUN LOG';
     milestoneTime=0;unlockedThisRun=[];
     player={x:W*.265,feet:floorY,vy:0,landed:true,duck:false,duckTime:0,duckRecovery:0,wasAirborne:false,invulnerable:0,stretch:0};
-    input.duckKeys.clear();input.duckPointer=null;$.jump.classList.remove('is-down');$.duck.classList.remove('is-down');
+    input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');$.duck.classList.remove('is-down');
     $.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');
     $.menu.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.gameover.classList.add('hidden');$.pauseMenu.classList.add('hidden');
     $.hud.classList.remove('hidden');$.controls.classList.remove('hidden');$.pauseBtn.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');$.milestoneToast.classList.add('hidden');
     arcadeUI.hud($,runMode==='practice');
+    // Decorative GO cue runs while the usual safe runway begins, without
+    // freezing or delaying physics, input or the procedural Director.
+    $.runLaunch.classList.remove('run-launch-active');
+    void $.runLaunch.offsetWidth;
+    $.runLaunch.classList.add('run-launch-active');
     status='running';lastTs=performance.now();frameClock.reset(lastTs);
     updateHud();audio.start();syncSoundButton(true);sound('start');
   }
@@ -201,9 +262,9 @@
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
     $.controls.classList.add('hidden');$.hud.classList.add('hidden');$.pauseBtn.classList.add('hidden');
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');
-    $.menu.classList.remove('hidden');$.graphicsButton.classList.remove('hidden');syncSoundButton(true);arcadeUI.menu($,progression);
+    $.menu.classList.remove('hidden');$.graphicsButton.classList.remove('hidden');$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');syncSoundButton(true);arcadeUI.menu($,progression);
   }
-  function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
+  function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
   function resume(){if(status!=='paused')return;status='running';$.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();frameClock.reset(lastTs);audio.resume();syncSoundButton(true);}
   function endRun(){
     if(status!=='running')return;
@@ -290,10 +351,21 @@
     }
   }
   function registerControls(){
-    $.jump.addEventListener('pointerdown',e=>{e.preventDefault();$.jump.classList.add('is-down');
-      try{$.jump.setPointerCapture(e.pointerId)}catch(_){}jump();});
-    const jumpRelease=()=>$.jump.classList.remove('is-down');
-    $.jump.addEventListener('pointerup',jumpRelease);$.jump.addEventListener('pointercancel',jumpRelease);
+    $.jump.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      if(input.jumpPointer!==null)return; // one action per new thumb press
+      input.jumpPointer=e.pointerId;
+      $.jump.classList.add('is-down');
+      try{$.jump.setPointerCapture(e.pointerId)}catch(_){}
+      jump();
+    });
+    const jumpRelease=e=>{
+      if(e.pointerId!==input.jumpPointer)return;
+      input.jumpPointer=null;$.jump.classList.remove('is-down');
+    };
+    $.jump.addEventListener('pointerup',jumpRelease);
+    $.jump.addEventListener('pointercancel',jumpRelease);
+    $.jump.addEventListener('lostpointercapture',jumpRelease);
     $.duck.addEventListener('pointerdown',e=>{e.preventDefault();
       if(input.duckPointer!==null)return;
       const freshPress=input.duckKeys.size===0;
@@ -312,11 +384,12 @@
         const freshPress=input.duckKeys.size===0&&input.duckPointer===null;
         input.duckKeys.add(k);if(freshPress)startDuck();
       }
+      if(k==='Escape'&&!$.graphicsPanel.classList.contains('hidden')){$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');return}
       if(k==='Escape'&&!$.milestonePanel.classList.contains('hidden')){closeMilestones();return}
       if((k==='Escape'||k==='KeyP')&&!e.repeat){if(status==='running')pause();else if(status==='paused')resume()}
     });
     window.addEventListener('keyup',e=>{input.duckKeys.delete(e.code)});
-    window.addEventListener('blur',()=>{input.duckKeys.clear();input.duckPointer=null;if(status==='running')pause()});
+    window.addEventListener('blur',()=>{input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');if(status==='running')pause()});
     document.addEventListener('visibilitychange',()=>{if(document.hidden&&status==='running')pause()});
     el('start-btn').addEventListener('click',()=>startRun('arcade'));
     el('retry-btn').addEventListener('click',()=>startRun(runMode,startZone));

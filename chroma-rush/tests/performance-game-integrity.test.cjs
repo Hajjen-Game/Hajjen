@@ -23,6 +23,7 @@ const modules={
  ChromaUnifiedTerrainDirector:require('../src/director/unified-terrain-director.js'),
  ChromaQuality:require('../src/performance/quality-manager.js'),
  ChromaFrameClock:require('../src/performance/frame-clock.js'),
+ ChromaMobilePreferences:require('../src/ui/mobile-preferences.js'),
 };
 function run(mode){
  const els=new Map();

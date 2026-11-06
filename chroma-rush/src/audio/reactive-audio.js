@@ -20,6 +20,7 @@
   class ReactiveAudioSystem {
     constructor({scope=typeof window!=='undefined'?window:{},enabled=true}={}){
       this.scope=scope;this.enabled=Boolean(enabled);this.playing=false;
+      this.musicEnabled=true;this.effectsEnabled=true;this.effectsVolume=1;
       this.context=null;this.musicBus=null;this.effectsBus=null;this.master=null;
       this.phase='BUILD';this.speed=370;this.zone=1;this.flow=0;this.hp=100;
       this.stepIndex=0;this.nextStepAt=0;this.scheduledSteps=0;
@@ -73,8 +74,8 @@
     }
     _updateMix(){
       if(!this.context)return;
-      this._gain(this.musicBus,this.enabled&&this.playing?AUDIO.musicGain*this.layerMix:0,.08);
-      this._gain(this.effectsBus,this.enabled?AUDIO.effectsGain:0,.025);
+      this._gain(this.musicBus,this.enabled&&this.musicEnabled&&this.playing?AUDIO.musicGain*this.layerMix:0,.08);
+      this._gain(this.effectsBus,this.enabled&&this.effectsEnabled?AUDIO.effectsGain*this.effectsVolume:0,.025);
     }
     start(){
       this.playing=true;this.phase='BUILD';this.speed=370;this.zone=1;this.flow=0;this.hp=100;
@@ -97,12 +98,27 @@
       if(this.enabled){this.unlock();if(this.context)this.nextStepAt=this.context.currentTime+.04;}
       this._updateMix();return this.enabled;
     }
+    setMusicEnabled(value){
+      this.musicEnabled=Boolean(value);
+      if(this.musicEnabled&&this.playing){
+        this.unlock();if(this.context)this.nextStepAt=this.context.currentTime+.04;
+      }
+      this._updateMix();return this.musicEnabled;
+    }
+    setEffectsEnabled(value){
+      this.effectsEnabled=Boolean(value);
+      this._updateMix();return this.effectsEnabled;
+    }
+    setEffectsVolume(value){
+      this.effectsVolume=clamp(Number.isFinite(value)?value:1,0,1);
+      this._updateMix();return this.effectsVolume;
+    }
     tick({phase='BUILD',speed=370,flow=0,zone=1,hp=100}={}){
       this.phase=phase;this.speed=Number.isFinite(speed)?speed:370;
       this.flow=clamp(Number.isFinite(flow)?flow:0,0,100);
       this.zone=Math.max(1,Math.floor(Number.isFinite(zone)?zone:1));
       this.hp=hp;
-      if(!this.enabled||!this.playing||!this.context||this.context.state!=='running')return;
+      if(!this.enabled||!this.musicEnabled||!this.playing||!this.context||this.context.state!=='running')return;
       this._updateMix();
       const now=this.context.currentTime;
       if(this.nextStepAt<now-.16)this.nextStepAt=now+.025; // background/throttled frame guard
@@ -161,7 +177,7 @@
         this._voice(root+48+MELODY[index],at,eighth*.66,.032,'sine');
     }
     effect(kind){
-      if(!this.enabled||!this.context||this.context.state!=='running')return;
+      if(!this.enabled||!this.effectsEnabled||this.effectsVolume<=0||!this.context||this.context.state!=='running')return;
       const at=this.context.currentTime+.005;
       const fx=(note,duration,level,type='sine',end=null,delay=0)=>
         this._voice({hz:note},at+delay,duration,level,type,this.effectsBus,end===null?null:{hz:end});

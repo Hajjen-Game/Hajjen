@@ -22,6 +22,7 @@ const runAudit = require('../src/diagnostics/round-audit.js');
 const unified = require('../src/director/unified-terrain-director.js');
 const perf = require('../src/performance/quality-manager.js');
 const clock = require('../src/performance/frame-clock.js');
+const mobilePreferences = require('../src/ui/mobile-preferences.js');
 
 function setup(initialStorage={}) {
   const objects=new Map();
@@ -43,7 +44,7 @@ function setup(initialStorage={}) {
   let requested;
   const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
@@ -194,4 +195,47 @@ test('graphics picker stores a rendering mode and changes backing pixels only',(
  assert.equal(g.get('graphics-btn').classList.contains('hidden'),true);
  for(let i=1;i<100;i++)g.step(i*16.667);
  assert.equal(g.get('zone-display').textContent,'ZONE 01');
+});
+
+test('settings panel persists independent audio and vibration options without changing game rules',()=>{
+ const g=setup();g.step(0);
+ g.get('graphics-btn').click();
+ assert.equal(g.get('graphics-panel').classList.contains('hidden'),false);
+ const music=g.get('music-enabled'),fx=g.get('effects-enabled'),haptic=g.get('haptics-enabled');
+ music.checked=false;for(const cb of music.events.change??[])cb();
+ fx.checked=false;for(const cb of fx.events.change??[])cb();
+ haptic.checked=false;for(const cb of haptic.events.change??[])cb();
+ g.get('effects-volume').value='35';for(const cb of g.get('effects-volume').events.input??[])cb();
+ const saved=JSON.parse(g.local.chromaRushMobilePolishV1);
+ assert.equal(saved.music,false);assert.equal(saved.effects,false);assert.equal(saved.haptics,false);
+ assert.equal(saved.effectsVolume,35);
+ assert.equal(g.get('effects-volume-value').textContent,'35%');
+ g.get('start-btn').click();
+ for(let i=1;i<200;i++)g.step(i*16.667);
+ assert.match(g.get('zone-display').textContent,/ZONE/);
+ assert.ok(g.get('run-launch').classList.contains('run-launch-active'));
+});
+
+test('dual-thumb input is pointer-id aware and a second jump pointer cannot cancel first',()=>{
+ const h=duckHarness(),jump=h.game.get('jump-btn');
+ const d=h.press();
+ const down={pointerId:88,preventDefault(){}};
+ for(const cb of jump.events.pointerdown??[])cb(down);
+ assert.ok(jump.classList.contains('is-down'));
+ for(const cb of jump.events.pointerdown??[])cb({pointerId:89,preventDefault(){}});
+ for(const cb of jump.events.pointerup??[])cb({pointerId:89});
+ assert.ok(jump.classList.contains('is-down'));
+ for(const cb of jump.events.pointerup??[])cb({pointerId:88});
+ assert.equal(jump.classList.contains('is-down'),false);
+ assert.equal(h.active(),true);
+ h.release(d);h.advance(40);
+ assert.equal(h.active(),false);
+});
+
+test('fullscreen button degrades gracefully when browser lacks fullscreen API',()=>{
+ const g=setup();g.step(0);g.get('graphics-btn').click();
+ assert.equal(g.get('fullscreen-btn').disabled,true);
+ assert.match(g.get('fullscreen-status').textContent,/not available/);
+ g.get('fullscreen-btn').click();
+ assert.equal(g.get('fullscreen-btn').disabled,true);
 });

@@ -1,8 +1,18 @@
-# CHROMA RUSH — Duck Feel & Effect Language 1.0
+# CHROMA RUSH — Mobile Arcade Polish 1.0
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Mobile Arcade Polish 1.0 (2026-11-06)
+
+- **Landscape touch controls** retain comfortable 80×80 px hit targets with a smaller visual footprint, clearer pressed states and independent pointer-ID handling for two-thumb play.
+- **HUD hierarchy** prioritizes shield, Flow, zone and score without colliding with top-right actions, including short landscape phones.
+- **Sound settings** now distinguish Music, Sound Effects, Effects Volume and Vibration. The existing quick sound button still mutes all audio, while separate choices persist locally.
+- **Optional fullscreen** is available from the menu where the browser supports it; fallback is safe and explains browser limitations.
+- **Polished transitions** add a short nonblocking GO cue and subtle pause/results panel easing; reduced-motion preference is respected.
+- **No game rule changes:** speed, jump/duck geometry, damage, Chroma Flow, Director, terrain and the selected graphics quality are unchanged.
+- [Technical details and test plan](docs/mobile-arcade-polish-1.0.md).
 
 ## Duck Feel & Effect Language 1.0 (2026-11-06)
 

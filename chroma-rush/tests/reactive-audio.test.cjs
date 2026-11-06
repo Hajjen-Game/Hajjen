@@ -107,8 +107,38 @@ test('entry point loads independent audio module before the gameplay engine',()=
   const root=path.join(__dirname,'..');
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const scripts=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
-  const audio=scripts.indexOf('src/audio/reactive-audio.js?v=audio-1.1');
-  const engine=scripts.indexOf('src/gameplay/game.js?v=duck-effects-1.0');
+  const audio=scripts.indexOf('src/audio/reactive-audio.js?v=mobile-polish-1.0');
+  const engine=scripts.indexOf('src/gameplay/game.js?v=mobile-polish-1.0');
   assert.ok(audio>0 && engine>audio);
   assert.ok(scripts.every(src=>fs.existsSync(path.join(root,src.split('?')[0]))));
+});
+
+test('music can be disabled independently while effects still play',()=>{
+  const {scope,stats}=fakeContext();const a=new ReactiveAudioSystem({scope});
+  a.start();a.tick(info());
+  a.setMusicEnabled(false);
+  assert.equal(a.musicBus.gain.target,0);
+  const before=stats.oscillators.length,steps=a.scheduledSteps;
+  a.context.currentTime+=1;a.tick(info('PEAK',900,100,5));
+  assert.equal(a.scheduledSteps,steps);
+  a.effect('duck');assert.ok(stats.oscillators.length>before);
+  a.setMusicEnabled(true);a.context.currentTime+=.06;a.tick(info('PEAK',900,100,5));
+  assert.ok(a.scheduledSteps>steps);
+});
+
+test('effects toggle and effect volume do not mute music',()=>{
+  const {scope,stats}=fakeContext();const a=new ReactiveAudioSystem({scope});
+  a.start();a.tick(info());
+  a.setEffectsEnabled(false);
+  assert.equal(a.effectsBus.gain.target,0);
+  let before=stats.oscillators.length;
+  a.effect('jump');assert.equal(stats.oscillators.length,before);
+  a.context.currentTime+=.30;a.tick(info());
+  assert.ok(stats.oscillators.length>before,'music must keep playing');
+  a.setEffectsEnabled(true);a.setEffectsVolume(.4);
+  assert.ok(Math.abs(a.effectsBus.gain.target-AUDIO.effectsGain*.4)<1e-8);
+  before=stats.oscillators.length;a.effect('hit');
+  assert.ok(stats.oscillators.length>before);
+  a.setEffectsVolume(0);before=stats.oscillators.length;
+  a.effect('hit');assert.equal(stats.oscillators.length,before);
 });

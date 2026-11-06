@@ -1,8 +1,16 @@
-# CHROMA RUSH — Full Background Continuity 1.0
+# CHROMA RUSH — Game Experience & Visual Audit 1.0
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Game Experience & Visual Audit 1.0 (2026-11-06)
+
+- **Chromium visual audit** at four landscape sizes: start/results screens, flat/hilly/gap terrain, pixel comparisons against the actual full-height background and browser-error checks. GitHub Actions now saves screenshots as a temporary artifact.
+- **Gap-hit consistency:** falling during temporary shield invulnerability still counts as a missed gap and Flow mistake, but does not deduct another 25 HP.
+- **Short-display layout:** the start menu is kept fully visible on 640×330 and similarly short landscape displays; the Jump/Duck touch targets are unchanged.
+- **Local run diagnostics:** the results screen now offers **EXPORT RUN LOG**, downloading JSON with hits, gap results, Director phases, Flow saturation, Perfect Zones, score and key events. No third-party tracking or personal information is collected.
+- **Detailed audit:** [docs/game-experience-visual-audit-1.0.md](docs/game-experience-visual-audit-1.0.md). No new levels or gameplay buttons.
 
 ## Full Background Continuity 1.0 (2026-11-06)
 

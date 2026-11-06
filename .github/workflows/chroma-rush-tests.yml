@@ -20,4 +20,25 @@ jobs:
         with:
           node-version: '22'
       - name: Test Director, inputs, and shared modules
-        run: node --test chroma-rush/tests/*.cjs
+        run: node --test chroma-rush/tests/*.test.cjs
+  visual-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent browser test tooling
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Check canvas, terrain, gap transparency, layout and run export
+        run: python chroma-rush/scripts/visual-audit.py
+      - name: Retain screenshots and audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chroma-visual-audit
+          path: chroma-rush/artifacts/visual-audit/
+          if-no-files-found: warn
+          retention-days: 7

@@ -16,6 +16,7 @@ const modules={
  ChromaMotion:require('../src/render/player-motion.js'),
  ChromaTerrainRender:require('../src/render/terrain-renderer.js'),
  ChromaWorldBackground:require('../src/render/world-background.js'),
+ ChromaRoundAudit:require('../src/diagnostics/round-audit.js'),
 };
 function harness(){
  const elements=new Map(),events={};
@@ -87,4 +88,14 @@ test('continuous uphill terrain changes feet elevation without altering running 
  assert.ok(state.player().feet<510,'uphill slope should raise the runner');
  assert.ok(state.player().feet>450);
  assert.equal(state.hp(),100);
+});
+test('falling into a gap during hit invulnerability does not double-charge shield',()=>{
+ const h=harness(),{state,gap}=h.start();
+ h.advance(52);
+ state.player().invulnerable=1.2;
+ h.advance(110);
+ assert.equal(gap.resolved,true);
+ assert.equal(gap.missed,true);
+ assert.equal(state.hp(),100,'a gap should honor the same shield invulnerability as an obstacle');
+ assert.equal(state.player().landed,true);
 });

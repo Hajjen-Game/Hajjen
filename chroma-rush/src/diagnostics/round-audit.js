@@ -1,0 +1,99 @@
+/* CHROMA RUSH — Game Experience & Visual Audit 1.0.
+ * Ephemeral per-run analytics, deliberately local-only and privacy-safe.
+ * Does not change gameplay, storage, Director decisions, or RNG.
+ */
+(function(root,factory){
+  const api=factory();
+  if(typeof module!=='undefined'&&module.exports)module.exports=api;
+  if(root)root.ChromaRoundAudit=api;
+})(typeof window!=='undefined'?window:null,function(){
+  'use strict';
+  const MAX_EVENTS=600;
+  const PHASES=['BUILD','PEAK','FADE','RELAX'];
+  const TYPES=new Set(['start','phase','zone','terrain','spawn','obstacle_clear','obstacle_hit',
+    'invulnerable_contact','gap_clear','gap_miss','perfect_zone','flow_tier','run_end']);
+  const number=(n)=>Number.isFinite(Number(n))?Math.round(Number(n)*100)/100:0;
+  const snap=(input={})=>({
+    time:number(input.time),zone:Math.max(1,number(input.zone)||1),
+    hp:number(input.hp),score:number(input.score),flow:number(input.flow),
+    speed:number(input.speed),distance:number(input.distance),
+    phase:PHASES.includes(input.phase)?input.phase:'UNKNOWN'
+  });
+  const stats=()=>({obstaclesSpawned:0,obstaclesCleared:0,obstacleHits:0,invulnerableContacts:0,
+    gapsCleared:0,gapsMissed:0,perfectZones:0,terrainSlopes:0,terrainGaps:0,
+    maxFlow:0,chromaSeconds:0,flowAbove65Seconds:0,highestStreak:0,
+    peakStress:0,peakConfidence:0,phaseSeconds:{BUILD:0,PEAK:0,FADE:0,RELAX:0}});
+  class RoundAudit {
+    constructor(){this.reset()}
+    reset({mode='arcade',startingZone=1}={}){
+      this.mode=mode==='practice'?'practice':'arcade';
+      this.startingZone=Math.max(1,Math.floor(Number(startingZone)||1));
+      this.events=[];this.overflow=0;this.elapsed=0;this.sampleAccumulator=0;
+      this.samples=[];this.summary=stats();this.finished=false;
+      this.finalState=null;
+    }
+    record(type,context={},data={}){
+      if(this.finished||!TYPES.has(type))return;
+      const state=snap(context);
+      const payload={};
+      for(const [key,value] of Object.entries(data||{})){
+        if(typeof value==='number'&&Number.isFinite(value))payload[key]=number(value);
+        else if(typeof value==='string'&&value.length<100)payload[key]=value;
+        else if(typeof value==='boolean')payload[key]=value;
+      }
+      if(this.events.length<MAX_EVENTS)this.events.push({type,...state,...payload});
+      else this.overflow++;
+      switch(type){
+        case 'spawn':this.summary.obstaclesSpawned++;break;
+        case 'obstacle_clear':this.summary.obstaclesCleared++;break;
+        case 'obstacle_hit':this.summary.obstacleHits++;break;
+        case 'invulnerable_contact':this.summary.invulnerableContacts++;break;
+        case 'gap_clear':this.summary.gapsCleared++;break;
+        case 'gap_miss':this.summary.gapsMissed++;break;
+        case 'perfect_zone':this.summary.perfectZones++;break;
+        case 'terrain':
+          if(payload.feature==='slope')this.summary.terrainSlopes++;
+          if(payload.feature==='gap')this.summary.terrainGaps++;
+          break;
+      }
+    }
+    tick(dt,context={},directorInsight={}){
+      if(this.finished||!(dt>0))return;
+      this.elapsed+=dt;
+      const state=snap(context),s=this.summary;
+      s.maxFlow=Math.max(s.maxFlow,state.flow);
+      s.highestStreak=Math.max(s.highestStreak,number(context.streak));
+      s.peakStress=Math.max(s.peakStress,number(directorInsight.stress));
+      s.peakConfidence=Math.max(s.peakConfidence,number(directorInsight.confidence));
+      if(state.flow>=90)s.chromaSeconds+=dt;
+      if(state.flow>=65)s.flowAbove65Seconds+=dt;
+      if(PHASES.includes(state.phase))s.phaseSeconds[state.phase]+=dt;
+      this.sampleAccumulator+=dt;
+      if(this.sampleAccumulator>=2-1e-7){
+        this.sampleAccumulator=Math.max(0,this.sampleAccumulator-2);
+        // 2s samples; a 3-minute session generates only about 90 items.
+        if(this.samples.length<300)this.samples.push({...state,streak:number(context.streak),
+          stress:number(directorInsight.stress),confidence:number(directorInsight.confidence)});
+      }
+    }
+    finish(context={}){
+      if(this.finished)return;
+      this.record('run_end',context);
+      this.finalState=snap(context);
+      this.finished=true;
+    }
+    snapshot(context={}){
+      const duration=Math.round(this.elapsed*100)/100;
+      const sum={...this.summary,phaseSeconds:Object.fromEntries(
+        Object.entries(this.summary.phaseSeconds).map(([phase,seconds])=>[phase,number(seconds)])),
+        chromaSeconds:number(this.summary.chromaSeconds),
+        flowAbove65Seconds:number(this.summary.flowAbove65Seconds)};
+      return {format:'chroma-rush-round-audit',version:1,mode:this.mode,
+        startingZone:this.startingZone,durationSeconds:duration,summary:sum,
+        finalState:this.finalState||snap(context),events:this.events.map(e=>({...e})),
+        samples:this.samples.map(s=>({...s})),truncatedEvents:this.overflow};
+    }
+    toJSON(context={}){return JSON.stringify(this.snapshot(context),null,2)}
+  }
+  return {RoundAudit,MAX_EVENTS};
+});

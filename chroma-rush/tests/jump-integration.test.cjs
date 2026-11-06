@@ -16,6 +16,7 @@ const modules={
  ChromaMotion:require('../src/render/player-motion.js'),
  ChromaTerrainRender:require('../src/render/terrain-renderer.js'),
  ChromaWorldBackground:require('../src/render/world-background.js'),
+ ChromaRoundAudit:require('../src/diagnostics/round-audit.js'),
 };
 function harness(){
  const elements=new Map(),events={};

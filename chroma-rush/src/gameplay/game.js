@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Full Background Continuity 1.0
+/* CHROMA RUSH — Game Experience & Visual Audit 1.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaTerrainRender || !window.ChromaWorldBackground) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -25,6 +25,7 @@
   const motion = new window.ChromaMotion.PlayerMotion();
   const terrainRender = window.ChromaTerrainRender;
   const worldBackground = window.ChromaWorldBackground;
+  const runAudit = new window.ChromaRoundAudit.RoundAudit();
   const HUD = window.ChromaHud;
   const $ = {
     menu:el('menu'), hud:el('hud'), controls:el('controls'), gameover:el('gameover'),
@@ -41,7 +42,8 @@
     practiceSelect:el('practice-zone'),practiceButton:el('practice-start-btn'),practiceHint:el('practice-hint'),
     modeIndicator:el('mode-indicator'),milestoneToast:el('milestone-toast'),milestoneToastName:el('milestone-toast-name'),
     milestonePanel:el('milestone-panel'),milestoneGrid:el('milestone-grid'),
-    finalMode:el('final-mode'),finalStreak:el('final-streak'),finalRecord:el('final-record'),finalMilestones:el('final-milestones')
+    finalMode:el('final-mode'),finalStreak:el('final-streak'),finalRecord:el('final-record'),finalMilestones:el('final-milestones'),
+    exportRun:el('export-run-btn')
   };
   const PALETTES = window.ChromaConfig.PALETTES;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -68,6 +70,24 @@
   // Each new press triggers a fixed duck pulse. Holding never extends or repeats it.
   const DUCK_DURATION=GAME.duckDuration;
   const DUCK_RECOVERY=GAME.duckRecovery;
+  function auditState(){return {time:worldTime,zone,hp,score,flow:flow.value,speed,distance,
+    phase:director.phase,streak:flow.streak};}
+  function exportRound(){
+    if(status!=='dead')return;
+    const contents=runAudit.toJSON(auditState());
+    const filename=`chroma-rush-zone-${String(zone).padStart(2,'0')}-${runMode}-audit.json`;
+    try{
+      const blob=new Blob([contents],{type:'application/json'});
+      const url=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=url;a.download=filename;a.style.display='none';
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),2000);
+    }catch(_){
+      // Fallback for restricted browsers; no server or third-party upload.
+      if(navigator.clipboard&&typeof navigator.clipboard.writeText==='function')
+        navigator.clipboard.writeText(contents).then(()=>{$.exportRun.textContent='LOG COPIED';}).catch(()=>{});
+    }
+  }
   // Audio is fully owned by src/audio/reactive-audio.js, including all effects.
   function sound(kind){audio.effect(kind)}
   let lastAudioState='';
@@ -122,6 +142,9 @@
     // Practice retains the chosen zone/difficulty but starts on a fresh,
     // safe runway, rather than loading a nonexistent alternate level.
     terrain.ensure(W+1000,zone,speed);
+    runAudit.reset({mode:runMode,startingZone:startZone});
+    runAudit.record('start',auditState(),{startingZone:startZone});
+    $.exportRun.textContent='EXPORT RUN LOG';
     milestoneTime=0;unlockedThisRun=[];
     player={x:W*.265,feet:floorY,vy:0,landed:true,duck:false,duckTime:0,duckRecovery:0,wasAirborne:false,invulnerable:0,stretch:0};
     input.duckKeys.clear();input.duckPointer=null;$.jump.classList.remove('is-down');$.duck.classList.remove('is-down');
@@ -150,6 +173,7 @@
   function endRun(){
     if(status!=='running')return;
     status='dead';audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
+    runAudit.finish(auditState());
     const total=Math.floor(score),previousBest=progression.bestScore;
     if(runMode==='arcade'){
       earnedMilestones(progression.finishRankedRun({score:total,zone,bestStreak:flow.bestStreak}).earned);
@@ -258,6 +282,7 @@
     el('restart-paused-btn').addEventListener('click',()=>startRun(runMode,startZone));
     el('menu-paused-btn').addEventListener('click',showMenu);
     el('menu-result-btn').addEventListener('click',showMenu);
+    $.exportRun.addEventListener('click',exportRound);
     el('milestone-view-btn').addEventListener('click',openMilestones);
     el('milestone-back-btn').addEventListener('click',closeMilestones);
     $.pauseBtn.addEventListener('click',()=>status==='paused'?resume():pause());
@@ -287,6 +312,7 @@
     if(groundY===null)return false;
     hurdles.push({type:data.type,x,worldX,groundY,width,height,hit:false,cleared:false,
       closestClearance:Infinity,entryDuckTime:null,phase:data.phase,pulse:Math.random()*Math.PI*2});
+    runAudit.record('spawn',auditState(),{obstacle:data.type,pattern:data.pattern||'',worldX});
     return true;
   }
   function updateHud(){
@@ -302,18 +328,27 @@
   function onHit(o){
     if(o.hit)return;
     o.hit=true;
-    if(player.invulnerable>0){flow.registerCollision();return;}
-    hp=Math.max(0,hp-GAME.damagePerHit);player.invulnerable=.96;shake=12;hitFlash=.38;
+    if(player.invulnerable>0){
+      flow.registerCollision();runAudit.record('invulnerable_contact',auditState(),{obstacle:o.type});return;
+    }
+    hp=Math.max(0,hp-GAME.damagePerHit);
+    runAudit.record('obstacle_hit',auditState(),{obstacle:o.type});player.invulnerable=.96;shake=12;hitFlash=.38;
     director.registerDamage();flow.registerDamage();burst(player.x,player.feet-30,'#ff506d',30,1.4);ripple(player.x,player.feet-26,'#ff596e',25);
     vib([25,40,30]);sound('hit');if(hp===0)endRun();
   }
   function failGap(gap){
     if(!terrain.markGap(gap,true))return;
     gapRecovery=gap;jumpControl.cancel();motion.reset();
-    // Damage follows exactly the same HP/Flow/Director rules as a box hit.
-    hp=Math.max(0,hp-GAME.damagePerHit);
-    director.registerDamage();flow.registerDamage();
-    player.invulnerable=1.15;shake=13;hitFlash=.42;
+    // Match regular obstacle invulnerability: the gap still counts as a
+    // missed challenge, but cannot immediately charge a second shield hit.
+    const absorbed=player.invulnerable>0;
+    if(absorbed)flow.registerCollision();
+    else{
+      hp=Math.max(0,hp-GAME.damagePerHit);
+      director.registerDamage();flow.registerDamage();
+    }
+    runAudit.record('gap_miss',auditState(),{width:gap.end-gap.start,shieldCharged:!absorbed});
+    player.invulnerable=Math.max(player.invulnerable,1.15);shake=13;hitFlash=.42;
     burst(player.x,player.feet-12,'#ff5998',26,1.3);ripple(player.x,player.feet-8,c2,27);
     sound('hit');vib([30,45,30]);
     if(hp===0)endRun();
@@ -323,6 +358,7 @@
     director.registerClear();
     const reward=flow.registerClear({precision:false});
     score+=reward.earnedPoints;
+    runAudit.record('gap_clear',auditState(),{width:gap.end-gap.start});
     if(runMode==='arcade')earnedMilestones(progression.reachedStreak(flow.streak).earned);
     burst(player.x,player.feet-7,c1===c2?5:9,c1,.58);
     if(reward.tierUp)sound('flow');else sound('score');
@@ -338,15 +374,23 @@
         score+=reward.bonusPoints;
         burst(player.x,floorY-36,21,c2,1.05);ripple(player.x,floorY-18,c1,22);
         sound('perfect');
+        runAudit.record('perfect_zone',auditState(),{completedZone:zone,healed:reward.heal});
         if(runMode==='arcade')earnedMilestones(progression.perfectZone().earned);
       }
       zone=next;
+      runAudit.record('zone',auditState(),{newZone:zone});
       if(runMode==='arcade')earnedMilestones(progression.reachedZone(zone).earned);
       nextZone(reward);
     }
     speed=GAME.speedAt(time,zone);
     distance+=speed*dt;
+    const lastTerrainWorld=terrain.generated;
     terrain.ensure(distance+W+800,zone,speed);
+    for(const feature of terrain.segments){
+      if(feature.start>=lastTerrainWorld&&('gap'===feature.type||'slope'===feature.type))
+        runAudit.record('terrain',auditState(),{feature:feature.type,width:feature.end-feature.start,
+          start:feature.start,elevationChange:feature.y1-feature.y0});
+    }
     terrain.prune(distance+player.x,speed);
     const i=(zone-1)%PALETTES.length, j=(zone-2+PALETTES.length)%PALETTES.length;
     const t=zone===1?1:smooth((time%GAME.zoneSeconds)/.68);
@@ -417,7 +461,9 @@
         {vx:rand(-160,-40),vy:rand(-55,25),life:rand(.2,.42),r:rand(.9,2.4)}));
     }
     if(!player.landed&&Math.random()<.7)motes.push(makeMote(player.x+rand(-14,14),player.feet-8,c1,{vx:rand(-170,-20),vy:rand(10,70),life:.32,r:rand(1,3)}));
+    const phaseBefore=director.phase;
     director.tick(dt,{zone,speed,hp},spawn);
+    if(phaseBefore!==director.phase)runAudit.record('phase',auditState(),{from:phaseBefore,to:director.phase});
     const p=GEO.playerBox(player);
     for(const o of hurdles){
       const priorX=o.x;
@@ -446,6 +492,8 @@
           if(precision)director.registerNearMiss();
           const gained=flow.registerClear({precision});
           score+=gained.earnedPoints;
+          runAudit.record('obstacle_clear',auditState(),{obstacle:o.type,precision});
+          if(gained.tierUp)runAudit.record('flow_tier',auditState(),{tier:flow.tier});
           if(runMode==='arcade')earnedMilestones(progression.reachedStreak(flow.streak).earned);
           if(gained.tierUp){burst(player.x,floorY-25,9,c1,.62);sound('flow')}
           else if(Math.random()<.25)sound('score');
@@ -460,6 +508,7 @@
     rings=rings.filter(r=>r.life>0);
     if(hp>0&&hp<=25&&Math.floor(worldTime*1.5)!==Math.floor((worldTime-dt)*1.5))sound('warning');
     audio.tick({phase:director.phase,speed,flow:flow.value,zone,hp});
+    runAudit.tick(dt,auditState(),director.insight);
     syncSoundButton();
     updateHud();
   }

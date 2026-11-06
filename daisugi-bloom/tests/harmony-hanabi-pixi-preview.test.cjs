@@ -21,8 +21,12 @@ assert(html.includes('<option value="pixi">'));
 assert(html.includes('harmony/hanabi-pixi-preview.js'));
 assert(html.indexOf('harmony/hanabi-pixi-preview.js')<html.indexOf('harmony/app.js'));
 assert(app.includes("window.HarmonyHanabiPixi?.isEnabled()"));
-assert(app.includes("if(usedPixi){renderBoard(evt.board);refreshHanabiVfxStatus();return;}"),
- "GPU success must skip the classic duplicate");
+assert(app.includes("if(usedPixi){")&&app.includes("await reveal();"),
+ "GPU success must complete Hanabi stage transitions before final rendering");
+assert(app.includes("onReveal:()=>{void reveal();}"),
+ "Pixi impact must trigger the same staged reveal as Classic");
+assert(app.includes("fireworks.push(reveal())"),
+ "Classic impact must play the shared staged reveal during its fireworks");
 assert(app.includes("async function animateHanabiLaunch(evt)"));
 assert(src.includes('preference:"webgl"'));
 assert(src.includes("const lib=pixi;"),

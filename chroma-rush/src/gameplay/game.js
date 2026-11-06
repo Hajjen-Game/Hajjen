@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Arcade Progression 1.0 + Reactive Audio 1.1
+/* CHROMA RUSH — Dynamic Terrain & Gap Jumps 1.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -20,6 +20,7 @@
   const arcadeUI = window.ChromaArcadeUI;
   const GAME = window.ChromaConfig.GAME;
   const GEO = window.ChromaGeometry;
+  const terrain = new window.ChromaTerrain.TerrainSystem();
   const HUD = window.ChromaHud;
   const $ = {
     menu:el('menu'), hud:el('hud'), controls:el('controls'), gameover:el('gameover'),
@@ -55,6 +56,8 @@
   let status='ready', time=0, worldTime=0, zone=1, lastTs=0, shake=0, hitFlash=0, lastZoneCallout=0;
   let speed=GAME.baseSpeed, hp=GAME.startingHP, score=0, best=progression.bestScore, hurdles=[], motes=[], rings=[], streaks=[];
   let runMode='arcade', startZone=1, milestoneTime=0, unlockedThisRun=[];
+  // Absolute travelled distance: terrain and obstacles share this world axis.
+  let distance=0,gapRecovery=null;
   let c1=PALETTES[0].primary, c2=PALETTES[0].secondary, c3=PALETTES[0].shadow;
   let player={x:300,feet:floorY,vy:0,landed:true,duck:false,duckTime:0,duckRecovery:0,wasAirborne:false,invulnerable:0,stretch:0};
   const input={duckKeys:new Set(),duckPointer:null};
@@ -85,7 +88,10 @@
     canvas.width=Math.max(1,Math.floor(cw*dpr));canvas.height=Math.max(1,Math.floor(ch*dpr));
     W=720*cw/ch; H=720;scale=ch/H; floorY=H*GAME.floorRatio;
     player.x=W*.265;
-    if(status==='ready')player.feet=floorY;
+    if(status==='ready'){
+      terrain.reset(floorY);
+      player.feet=floorY;
+    }
   }
   window.addEventListener('resize',resize,{passive:true});resize();
   const makeMote=(x,y,color,options={})=>({x,y,vx:options.vx??rand(-130,90),vy:options.vy??rand(-120,45),
@@ -108,6 +114,10 @@
     const palette=PALETTES[(zone-1)%PALETTES.length];
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
     hurdles=[];motes=[];rings=[];streaks=[];director.reset();flow.reset();flow.currentZone=zone;
+    distance=0;gapRecovery=null;terrain.reset(floorY);
+    // Practice retains the chosen zone/difficulty but starts on a fresh,
+    // safe runway, rather than loading a nonexistent alternate level.
+    terrain.ensure(W+1000,zone,speed);
     milestoneTime=0;unlockedThisRun=[];
     player={x:W*.265,feet:floorY,vy:0,landed:true,duck:false,duckTime:0,duckRecovery:0,wasAirborne:false,invulnerable:0,stretch:0};
     input.duckKeys.clear();input.duckPointer=null;$.jump.classList.remove('is-down');$.duck.classList.remove('is-down');
@@ -158,8 +168,9 @@
   }
   function jump(){
     if(status!=='running'||!player.landed||player.duck)return;
-    player.vy=GAME.jumpVelocity;player.landed=false;player.stretch=1;ripple(player.x,floorY-5,c1,10);
-    burst(player.x,floorY-3,13,c1,.7);sound('jump');
+    player.vy=GAME.jumpVelocity;player.landed=false;player.stretch=1;
+    ripple(player.x,player.feet-5,c1,10);
+    burst(player.x,player.feet-3,13,c1,.7);sound('jump');
   }
   function startDuck(){
     if(status!=='running'||!player.landed||player.duck||player.duckRecovery>0)return;
@@ -239,8 +250,13 @@
   function spawn(data){
     const width=data.type==='jump'?rand(43,58):rand(54,71);
     const height=data.type==='jump'?rand(53,66):rand(115,158);
-    hurdles.push({type:data.type,x:W+90,width,height,hit:false,cleared:false,closestClearance:Infinity,entryDuckTime:null,phase:data.phase,
-      pulse:Math.random()*Math.PI*2});
+    const x=W+90,worldX=distance+x;
+    if(!terrain.canSpawnObstacle(worldX,width,speed))return false;
+    const groundY=terrain.groundAt(worldX+width*.5);
+    if(groundY===null)return false;
+    hurdles.push({type:data.type,x,worldX,groundY,width,height,hit:false,cleared:false,
+      closestClearance:Infinity,entryDuckTime:null,phase:data.phase,pulse:Math.random()*Math.PI*2});
+    return true;
   }
   function updateHud(){
     HUD.update($,{hp,zone,color:c1,phase:director.label,score,speed,
@@ -260,6 +276,26 @@
     director.registerDamage();flow.registerDamage();burst(player.x,player.feet-30,'#ff506d',30,1.4);ripple(player.x,player.feet-26,'#ff596e',25);
     vib([25,40,30]);sound('hit');if(hp===0)endRun();
   }
+  function failGap(gap){
+    if(!terrain.markGap(gap,true))return;
+    gapRecovery=gap;
+    // Damage follows exactly the same HP/Flow/Director rules as a box hit.
+    hp=Math.max(0,hp-GAME.damagePerHit);
+    director.registerDamage();flow.registerDamage();
+    player.invulnerable=1.15;shake=13;hitFlash=.42;
+    burst(player.x,player.feet-12,'#ff5998',26,1.3);ripple(player.x,player.feet-8,c2,27);
+    sound('hit');vib([30,45,30]);
+    if(hp===0)endRun();
+  }
+  function clearGap(gap){
+    if(!terrain.markGap(gap,false))return;
+    director.registerClear();
+    const reward=flow.registerClear({precision:false});
+    score+=reward.earnedPoints;
+    if(runMode==='arcade')earnedMilestones(progression.reachedStreak(flow.streak).earned);
+    burst(player.x,player.feet-7,c1===c2?5:9,c1,.58);
+    if(reward.tierUp)sound('flow');else sound('score');
+  }
   function update(dt){
     time+=dt;worldTime+=dt;
     const next=Math.floor(time/GAME.zoneSeconds)+1;
@@ -278,6 +314,9 @@
       nextZone(reward);
     }
     speed=GAME.speedAt(time,zone);
+    distance+=speed*dt;
+    terrain.ensure(distance+W+800,zone,speed);
+    terrain.prune(distance+player.x,speed);
     const i=(zone-1)%PALETTES.length, j=(zone-2+PALETTES.length)%PALETTES.length;
     const t=zone===1?1:smooth((time%GAME.zoneSeconds)/.68);
     c1=rgbHex(PALETTES[j].primary,PALETTES[i].primary,t);
@@ -289,13 +328,44 @@
     shake=Math.max(0,shake-dt*36);hitFlash=Math.max(0,hitFlash-dt);
     if(lastZoneCallout>0){lastZoneCallout-=dt;if(lastZoneCallout<=0)$.zoneCallout.classList.add('hidden')}
     if(milestoneTime>0){milestoneTime-=dt;if(milestoneTime<=0)$.milestoneToast.classList.add('hidden')}
+    const playerWorld=distance+player.x;
+    const ground=terrain.groundAt(playerWorld);
+    const currentGap=terrain.gapAt(playerWorld);
     player.wasAirborne=!player.landed;
-    if(!player.landed){
+    if(gapRecovery){
+      // Brief spectral recovery after a fall: prevents repeated invisible
+      // deaths while the same gap passes underneath the player.
+      player.landed=false;player.vy=0;
+      player.feet=Math.min(player.feet,terrain.baseY-45);
+      if(ground!==null&&playerWorld>=gapRecovery.end+24){
+        player.feet=ground;player.landed=true;gapRecovery=null;
+        sound('land');
+      }
+    }else if(player.landed){
+      if(ground===null){
+        player.landed=false;player.vy=0;
+      }else{
+        // Running follows the true slope while preserving horizontal speed.
+        player.feet=ground;
+      }
+    }else{
+      const previousFeet=player.feet;
       player.vy+=GAME.gravity*dt;
       player.feet+=player.vy*dt;
-      if(player.feet>=floorY){
-        player.feet=floorY;player.vy=0;player.landed=true;
-        burst(player.x,floorY-5,10,c1,.45);ripple(player.x,floorY,c2,16);sound('land');
+      if(ground!==null&&player.vy>=0&&previousFeet<=ground+5&&player.feet>=ground){
+        player.feet=ground;player.vy=0;player.landed=true;
+        burst(player.x,ground-5,10,c1,.45);ripple(player.x,ground,c2,16);sound('land');
+      }
+    }
+    // Any unlanded descent below the level is a real gap miss, not a
+    // landing from below the floor. The fall is charged once per gap.
+    if(!gapRecovery){
+      for(const gap of terrain.visibleGaps(playerWorld-Math.max(1100,speed*1.30),playerWorld+40)){
+        if(gap.resolved||playerWorld<gap.start)continue;
+        if(player.feet>terrain.baseY+window.ChromaConfig.TERRAIN.fallThreshold){
+          failGap(gap);break;
+        }
+        if(playerWorld>=gap.end+26&&player.landed){clearGap(gap)}
       }
     }
     updateDuck(dt);
@@ -310,7 +380,7 @@
     for(const o of hurdles){
       const priorX=o.x;
       o.x-=speed*dt;
-      const b=GEO.obstacleBox(o,floorY);
+      const b=GEO.obstacleBox(o,o.groundY);
       // Swept X check prevents skipping a narrow obstacle on a slow phone.
       const sweptX=GEO.sweptXOverlap(p,priorX,o);
       const yOverlap=GEO.verticalOverlap(p,b);
@@ -401,8 +471,8 @@
       const x=((i*135-t*speed*.56)%(W+135)+(W+135))%(W+135);
       glowLine(x,floorY-181,x,floorY-164,i%2?c2:c1,2,7,.23);
     }
-    // Infinite neon floor/grid that scrolls with the world.
-    const ground=ctx.createLinearGradient(0,floorY,0,H);
+    // The former fixed-height floor is now rendered in drawTerrain().
+    /* const ground=ctx.createLinearGradient(0,floorY,0,H);
     ground.addColorStop(0,rgba(c1,.105+flowCharge*.08));ground.addColorStop(.7,'#090e20');ground.addColorStop(1,'#050812');
     ctx.fillStyle=ground;ctx.fillRect(0,floorY,W,H-floorY);
     for(let y=floorY+24;y<H+110;y+=35){
@@ -414,12 +484,62 @@
       glowLine(xx,floorY,xx-88,H,c2,1.4,0,.21);
     }
     glowLine(0,floorY,W,floorY,c1,2.2+flowCharge*1.2,20+flowCharge*18,.96);
-    glowLine(0,floorY+3,W,floorY+3,c2,1,6,.56);
+    glowLine(0,floorY+3,W,floorY+3,c2,1,6,.56); */
     // Scanning line across the upper half; very faint.
     glowLine(0,(t*55)%floorY,W,(t*55)%floorY,c1,.9,0,.07);
   }
+  function drawTerrain(){
+    const left=distance,right=distance+W;
+    // Segment polygons are independent so gaps truly reveal empty space.
+    for(const s of terrain.segments){
+      if(s.end<left-30||s.start>right+30)continue;
+      const x0=Math.max(s.start,left-30),x1=Math.min(s.end,right+30);
+      const screen0=x0-distance,screen1=x1-distance;
+      if(s.type==='gap'){
+        // Dark recessed void, neon endcaps and a small readable jump cue.
+        const depth=ctx.createLinearGradient(0,floorY-65,0,H);
+        depth.addColorStop(0,'rgba(3,4,16,.25)');depth.addColorStop(1,'#02030c');
+        ctx.fillStyle=depth;ctx.fillRect(screen0,Math.min(s.y0,s.y1)-2,screen1-screen0,H);
+        for(const edge of [s.start,s.end]){
+          const x=edge-distance;
+          if(x<-20||x>W+20)continue;
+          glowLine(x,s.y0-2,x,s.y0+53,c2,3,17,.85);
+          glowLine(x-5,s.y0,x+5,s.y0,'#fff',2,10,.64);
+        }
+        if(s.start-distance>-30&&s.start-distance<W){
+          ctx.save();ctx.fillStyle=c2;ctx.font='800 13px system-ui';ctx.textAlign='center';
+          ctx.globalAlpha=.8;ctx.fillText('↑',s.start-distance-32,s.y0-35);ctx.restore();
+        }
+        continue;
+      }
+      const ground=ctx.createLinearGradient(0,s.y0-25,0,H);
+      ground.addColorStop(0,rgba(c1,.15+flow.value/100*.08));
+      ground.addColorStop(.55,'#0b1224');ground.addColorStop(1,'#050812');
+      ctx.beginPath();ctx.moveTo(screen0,H);
+      const startY=terrain.groundAt(x0);
+      ctx.lineTo(screen0,startY);
+      for(let x=x0+18;x<x1;x+=18)ctx.lineTo(x-distance,terrain.groundAt(x));
+      ctx.lineTo(screen1,terrain.groundAt(x1-.001));ctx.lineTo(screen1,H);ctx.closePath();
+      ctx.fillStyle=ground;ctx.fill();
+      // Horizontal and perspective grid lines follow the track surface.
+      ctx.save();ctx.beginPath();ctx.moveTo(screen0,startY);
+      for(let x=x0+18;x<x1;x+=18)ctx.lineTo(x-distance,terrain.groundAt(x));
+      ctx.lineTo(screen1,terrain.groundAt(x1-.001));
+      ctx.strokeStyle=c1;ctx.shadowColor=c1;ctx.shadowBlur=21+flow.value*.12;
+      ctx.globalAlpha=.90;ctx.lineWidth=2.8;ctx.stroke();ctx.restore();
+      for(let x=Math.ceil(x0/105)*105;x<x1;x+=105){
+        const y=terrain.groundAt(x);
+        glowLine(x-distance,y+2,x-distance-72,H,c2,1,1,.17);
+      }
+      for(const depth of [32,76,126]){
+        const y0=Math.min(H,terrain.groundAt(x0)+depth);
+        const y1=Math.min(H,terrain.groundAt(x1-.001)+depth);
+        glowLine(screen0,y0,screen1,y1,c1,.8,0,.12);
+      }
+    }
+  }
   function drawObstacle(o){
-    const b=GEO.obstacleBox(o,floorY), isLow=o.type==='jump',color=isLow?c2:c1;
+    const b=GEO.obstacleBox(o,o.groundY), isLow=o.type==='jump',color=isLow?c2:c1;
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
     ctx.save();
     ctx.shadowColor=color;ctx.shadowBlur=23;ctx.globalAlpha=twinkle;
@@ -475,8 +595,11 @@
       ctx.globalAlpha=.25+.06*Math.sin(worldTime*5);
       ctx.beginPath();ctx.ellipse(player.x,player.feet-b.h/2,b.w*.95,b.h*.95,0,0,Math.PI*2);ctx.stroke();ctx.restore();
     }
-    const height=clamp((floorY-player.feet)*.16,0,80);
-    ctx.fillStyle=rgba(c1,.14);ctx.beginPath();ctx.ellipse(player.x,floorY+5,clamp(25-height*.18,9,25),4,0,0,Math.PI*2);ctx.fill();
+    const surface=terrain.groundAt(distance+player.x);
+    if(surface!==null){
+      const height=clamp((surface-player.feet)*.16,0,80);
+      ctx.fillStyle=rgba(c1,.14);ctx.beginPath();ctx.ellipse(player.x,surface+5,clamp(25-height*.18,9,25),4,0,0,Math.PI*2);ctx.fill();
+    }
   }
   function drawFx(dt){
     for(const m of motes){
@@ -506,6 +629,7 @@
     ctx.save();
     if(shake>0&&status==='running')ctx.translate(rand(-shake,shake)*.4,rand(-shake,shake)*.35);
     drawWorld(worldTime);
+    drawTerrain();
     for(const o of hurdles)drawObstacle(o);
     drawPlayer();drawFx();
     ctx.restore();

@@ -48,5 +48,21 @@
     lookaheadSeconds:.09,maxStepsPerFrame:3,
     masterGain:.76,musicGain:.58,effectsGain:.40
   });
-  return {PALETTES,GAME,FLOW,AUDIO};
+  const TERRAIN=Object.freeze({
+    slopeFromZone:2,
+    gapFromZone:3,
+    firstGapWorld:2600,
+    gapChance:.23,
+    slopeChance:.62,
+    maxHeightChange:65,
+    maxOffset:70,
+    minSlopeWidth:410,
+    maxSlopeWidth:570,
+    minLandingFlat:680,
+    minGapWidth:132,
+    maxGapWidth:500,
+    minGapSeparation:1250,
+    fallThreshold:125
+  });
+  return {PALETTES,GAME,FLOW,AUDIO,TERRAIN};
 });

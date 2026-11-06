@@ -1,8 +1,20 @@
-# CHROMA RUSH — Arcade Progression 1.0 + Audio Audibility 1.1
+# CHROMA RUSH — Dynamic Terrain & Gap Jumps 1.0
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Dynamic Terrain & Gap Jumps 1.0 (new)
+
+- The **same endless randomly generated course** now includes rolling slopes from zone 2 and occasional jumpable chasms from zone 3. No separate levels, tracks, buttons or progression reset.
+- `src/terrain/terrain-system.js` owns a world-space series of flats, smoothed hills and true groundless gaps. It is dependency-free and has a deterministic RNG injection for tests.
+- The existing Director remains responsible for authored jump/duck patterns and pacing, but **will defer an obstacle** when terrain says its takeoff/landing vicinity is unsafe. In-flight patterns are kept and retried, not silently counted as spawned.
+- Landing / running heights and box positions now sample the same ground geometry. Vertical physics prevent landing from *underneath* a platform.
+- Gap width is bounded relative to running speed and the existing jump duration. A fall costs 25 shield, interrupts Flow and prevents Perfect Zone, with a single brief recovery until the far ledge, avoiding infinite fall loops.
+- Clearing a gap without falling registers an ordinary clear for Flow, streak, Director confidence and points; a missed gap never counts as a successful obstacle.
+- Terrain is painted directly as a live neon surface with real dark gaps, illuminated edges and a subtle jump cue. The grid adapts to changing surface elevation.
+- Existing audio, Chroma Flow, Perfect Zones, practice, milestones, records and two-button controls remain present.
+- **Balancing target:** high-energy 2–3 minute arcade rounds, not an unlimited reaction-time redesign. Mobile playtesting is still required.
 
 ## Arcade Progression 1.0 (new)
 
@@ -15,13 +27,11 @@ A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only g
 - **Modular architecture**: `src/progression/arcade-progress.js` owns all durable record, unlock and milestone rules; `src/ui/arcade-ui.js` renders progress without implementing the rules. No additions to gameplay controls or dependencies.
 - **Design target**: the same fast, satisfying 2–3 minute arcade run. Speed Fairness & Readability remains a separately deferred task.
 
-## Reactive Audio 1.1 — mobile audibility hotfix
+## Reactive Audio 1.1 — Mobile audibility
 
-- The BUILD phase now plays an original mid/high-range melody and more audible percussion, not mostly sub-bass.
-- A more balanced music bus and midrange bass make the sound more noticeable on small phone speakers.
-- Interrupted or suspended Web Audio is resumed on a player gesture. If browser playback is blocked, the sound button offers a second unlock gesture instead of muting, and a small prompt is displayed.
-- Added tests for early-music audibility, interruption recovery and honest playback status.
-- No changes to gameplay physics, Director, Chroma Flow, progression or scores.
+- The BUILD phase plays an original midrange melody and prominent percussion, not mostly sub-bass.
+- A louder but bounded music bus makes the soundtrack more audible on phone speakers.
+- Suspended/interrupted mobile Web Audio can be unlocked from a user gesture, with a visual hint when audio is blocked.
 
 ## Reactive Audio System 1.0
 

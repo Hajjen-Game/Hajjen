@@ -119,8 +119,14 @@
         this.spawnCountdown=Math.max(.01,previousSafety-elapsed);
         return;
       }
+      // Terrain may veto an obstacle if its landing/takeoff area is unsafe.
+      // Keep the pending action and retry later, rather than counting a fake
+      // obstacle or popping an impossible pattern step.
+      if(spawn({...next,phase:this.phase})===false){
+        this.spawnCountdown=.22;
+        return;
+      }
       this.pending.shift();
-      spawn({...next,phase:this.phase});
       this.totalSpawned++;this.lastSpawnTime=this.time;
       const following=this.pending[0]?.type||null;
       const safety=following?minimumGap(next.type,following,context.speed):0;

@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Core Prototype 1.0
+/* CHROMA RUSH — Core Prototype 1.1
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -46,8 +46,11 @@
   let status='ready', time=0, worldTime=0, zone=1, lastTs=0, shake=0, hitFlash=0, lastZoneCallout=0;
   let speed=370, hp=100, score=0, best=store.get(), hurdles=[], motes=[], rings=[], streaks=[];
   let c1=PALETTES[0].primary, c2=PALETTES[0].secondary, c3=PALETTES[0].shadow;
-  let player={x:300,feet:floorY,vy:0,landed:true,duck:false,wasAirborne:false,invulnerable:0,stretch:0};
+  let player={x:300,feet:floorY,vy:0,landed:true,duck:false,duckTime:0,duckRecovery:0,wasAirborne:false,invulnerable:0,stretch:0};
   const input={duckKeys:new Set(),duckPointer:null};
+  // Each new press triggers a fixed duck pulse. Holding never extends or repeats it.
+  const DUCK_DURATION=.55;
+  const DUCK_RECOVERY=.12;
   let soundEnabled=true, soundCtx=null;
 
   function initAudio(){
@@ -99,14 +102,14 @@
     time=0;worldTime=0;zone=1;hp=100;speed=370;score=0;shake=0;hitFlash=0;
     c1=PALETTES[0].primary;c2=PALETTES[0].secondary;c3=PALETTES[0].shadow;
     hurdles=[];motes=[];rings=[];streaks=[];director.reset();
-    player={x:W*.265,feet:floorY,vy:0,landed:true,duck:false,wasAirborne:false,invulnerable:0,stretch:0};
+    player={x:W*.265,feet:floorY,vy:0,landed:true,duck:false,duckTime:0,duckRecovery:0,wasAirborne:false,invulnerable:0,stretch:0};
     input.duckKeys.clear();input.duckPointer=null;$.jump.classList.remove('is-down');$.duck.classList.remove('is-down');
     $.menu.classList.add('hidden');$.gameover.classList.add('hidden');$.pauseMenu.classList.add('hidden');
     $.hud.classList.remove('hidden');$.controls.classList.remove('hidden');$.pauseBtn.classList.remove('hidden');
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');
     status='running';lastTs=performance.now();updateHud();initAudio();sound('start');
   }
-  function pause(){if(status!=='running')return;status='paused';$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;player.duck=false;}
+  function pause(){if(status!=='running')return;status='paused';$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;player.duck=false;player.duckTime=0;player.duckRecovery=0;$.duck.classList.remove('is-down');}
   function resume(){if(status!=='paused')return;status='running';$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();}
   function endRun(){
     if(status!=='running')return;
@@ -121,13 +124,25 @@
     player.vy=-870;player.landed=false;player.stretch=1;ripple(player.x,floorY-5,c1,10);
     burst(player.x,floorY-3,13,c1,.7);sound('jump');
   }
-  function duck(active){
-    if(status!=='running')return;
-    const before=player.duck;
-    player.duck=Boolean(active)&&player.landed;
-    if(player.duck&&!before){sound('duck');burst(player.x-16,floorY-5,4,c2,.26)}
+  function startDuck(){
+    if(status!=='running'||!player.landed||player.duck||player.duckRecovery>0)return;
+    player.duck=true;
+    player.duckTime=DUCK_DURATION;
+    $.duck.classList.add('is-down');
+    sound('duck');burst(player.x-16,floorY-5,4,c2,.26);
   }
-  function refreshDuck(){const active=input.duckKeys.size>0||input.duckPointer!==null;duck(active);$.duck.classList.toggle('is-down',active);}
+  function updateDuck(dt){
+    if(player.duck){
+      player.duckTime=Math.max(0,player.duckTime-dt);
+      if(player.duckTime===0){
+        player.duck=false;
+        player.duckRecovery=DUCK_RECOVERY;
+        $.duck.classList.remove('is-down');
+      }
+    }else{
+      player.duckRecovery=Math.max(0,player.duckRecovery-dt);
+    }
+  }
   function registerControls(){
     $.jump.addEventListener('pointerdown',e=>{e.preventDefault();$.jump.classList.add('is-down');
       try{$.jump.setPointerCapture(e.pointerId)}catch(_){}jump();});
@@ -135,17 +150,25 @@
     $.jump.addEventListener('pointerup',jumpRelease);$.jump.addEventListener('pointercancel',jumpRelease);
     $.duck.addEventListener('pointerdown',e=>{e.preventDefault();
       if(input.duckPointer!==null)return;
-      input.duckPointer=e.pointerId;try{$.duck.setPointerCapture(e.pointerId)}catch(_){}refreshDuck();});
-    const duckRelease=e=>{if(input.duckPointer===e.pointerId){input.duckPointer=null;refreshDuck()}};
+      const freshPress=input.duckKeys.size===0;
+      input.duckPointer=e.pointerId;
+      try{$.duck.setPointerCapture(e.pointerId)}catch(_){}
+      if(freshPress)startDuck();
+    });
+    const duckRelease=e=>{if(input.duckPointer===e.pointerId)input.duckPointer=null;};
     $.duck.addEventListener('pointerup',duckRelease);$.duck.addEventListener('pointercancel',duckRelease);
+    $.duck.addEventListener('lostpointercapture',duckRelease);
     window.addEventListener('keydown',e=>{
       const k=e.code;
       if(['Space','ArrowUp','KeyW','ArrowDown','KeyS','Escape','KeyP'].includes(k))e.preventDefault();
       if((k==='Space'||k==='ArrowUp'||k==='KeyW')&&!e.repeat){if(status==='ready'||status==='dead')reset();else jump();}
-      if(k==='ArrowDown'||k==='KeyS'){input.duckKeys.add(k);refreshDuck()}
+      if((k==='ArrowDown'||k==='KeyS')&&!e.repeat&&!input.duckKeys.has(k)){
+        const freshPress=input.duckKeys.size===0&&input.duckPointer===null;
+        input.duckKeys.add(k);if(freshPress)startDuck();
+      }
       if((k==='Escape'||k==='KeyP')&&!e.repeat){if(status==='running')pause();else if(status==='paused')resume()}
     });
-    window.addEventListener('keyup',e=>{if(input.duckKeys.delete(e.code))refreshDuck()});
+    window.addEventListener('keyup',e=>{input.duckKeys.delete(e.code)});
     window.addEventListener('blur',()=>{input.duckKeys.clear();input.duckPointer=null;if(status==='running')pause()});
     document.addEventListener('visibilitychange',()=>{if(document.hidden&&status==='running')pause()});
     el('start-btn').addEventListener('click',reset);el('retry-btn').addEventListener('click',reset);
@@ -216,7 +239,6 @@
     player.stretch=Math.max(0,player.stretch-dt*3);
     shake=Math.max(0,shake-dt*36);hitFlash=Math.max(0,hitFlash-dt);
     if(lastZoneCallout>0){lastZoneCallout-=dt;if(lastZoneCallout<=0)$.zoneCallout.classList.add('hidden')}
-    const duckWanted=input.duckKeys.size>0||input.duckPointer!==null;
     player.wasAirborne=!player.landed;
     if(!player.landed){
       player.vy+=2140*dt;
@@ -226,7 +248,7 @@
         burst(player.x,floorY-5,10,c1,.45);ripple(player.x,floorY,c2,16);sound('land');
       }
     }
-    player.duck=duckWanted&&player.landed;
+    updateDuck(dt);
     if(!player.landed&&Math.random()<.7)motes.push(makeMote(player.x+rand(-14,14),player.feet-8,c1,{vx:rand(-170,-20),vy:rand(10,70),life:.32,r:rand(1,3)}));
     director.tick(dt,{zone,speed,hp},spawn);
     const p=playerBox();

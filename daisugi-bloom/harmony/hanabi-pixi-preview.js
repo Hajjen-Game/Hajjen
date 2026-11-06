@@ -1,4 +1,4 @@
-/* Japanese Harmony · Hanabi Pixi Preview 1.1
+/* Japanese Harmony · Hanabi Pixi Preview 1.2
  * Opt-in GPU particle layer, adapted from arena3v3's pinned PixiJS 8.21.0
  * + WebGL-first initialization and safe Canvas/WAAPI fallback.
  * Never reads/writes gameplay, seeds, boards, rewards or saved runs.
@@ -7,9 +7,9 @@
 "use strict";
 const MODULE_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const STORAGE_KEY="japanese-harmony-hanabi-vfx-preview-v1";
-const TIMING=Object.freeze({charge:210,ascent:610,burst:820,sideDelay:505,sideFlight:420,tail:1000,total:2110});
+const TIMING=Object.freeze({charge:270,ascent:680,burst:1050,sideDelay:650,sideFlight:440,tail:1000,total:2430});
 const COLORS=Object.freeze([0xffdb91,0xffa8d4,0xffae74,0xdcc1ff,0xd8f8ff]);
-let choice="classic",modulePromise=null,graphicsPromise=null,app=null,canvas=null,pixi=null,texture=null,streakTexture=null;
+let choice="classic",modulePromise=null,graphicsPromise=null,app=null,canvas=null,pixi=null,texture=null,streakTexture=null,tileTexture=null;
 let failed=false,lastReason=null,playing=false,shown=false;
 let metrics={renderer:"classic",frames:0,elapsedMs:0,estimatedFps:0,maxFrameGapMs:0};
 try{
@@ -68,6 +68,22 @@ function streakTextureFor(lib){
  ctx.fill();
  return lib.Texture.from(cn);
 }
+function tileTextureFor(lib){
+ // An actual lit square for the Hanabi column, like Classic's telegraph.
+ // Drawn as a cached texture rather than rebuilding canvas each frame.
+ const cn=document.createElement("canvas");cn.width=64;cn.height=64;
+ const ctx=cn.getContext("2d");if(!ctx)throw new Error("Hanabi tile texture unavailable");
+ const g=ctx.createRadialGradient(32,32,3,32,32,34);
+ g.addColorStop(0,"rgba(255,229,185,.55)");
+ g.addColorStop(.35,"rgba(247,173,187,.38)");
+ g.addColorStop(1,"rgba(255,223,157,0)");
+ ctx.fillStyle=g;ctx.fillRect(0,0,64,64);
+ ctx.strokeStyle="rgba(255,232,166,.95)";
+ ctx.lineWidth=2;ctx.strokeRect(4,4,56,56);
+ ctx.strokeStyle="rgba(255,248,223,.5)";
+ ctx.lineWidth=1;ctx.strokeRect(7,7,50,50);
+ return lib.Texture.from(cn);
+}
 function textureFor(lib){
  const cn=document.createElement("canvas");cn.width=64;cn.height=64;
  const ctx=cn.getContext("2d");if(!ctx)throw new Error("Canvas gradient unavailable");
@@ -101,8 +117,8 @@ async function ensureGraphics(){
     backgroundAlpha:0,antialias:false,autoStart:false,preference:"webgl",
     resolution:Math.min(2,Math.max(1,Number(root.devicePixelRatio)||1))});
    instance.ticker.stop();
-   const glow=textureFor(lib),needle=streakTextureFor(lib);
-   app=instance;canvas=element;texture=glow;streakTexture=needle;
+   const glow=textureFor(lib),needle=streakTextureFor(lib),tile=tileTextureFor(lib);
+   app=instance;canvas=element;texture=glow;streakTexture=needle;tileTexture=tile;
    failed=false;lastReason=null;metrics.renderer="pixi-webgl";
    return true;
   }catch(error){
@@ -116,7 +132,7 @@ async function ensureGraphics(){
  return graphicsPromise;
 }
 function particle(x,y,color,diameter,kind="glow"){
- const s=new pixi.Sprite(kind==="streak"?streakTexture:texture);
+ const s=new pixi.Sprite(kind==="streak"?streakTexture:kind==="tile"?tileTexture:texture);
  s.anchor.set(.5);s.x=x;s.y=y;s.tint=color;s.alpha=0;
  const base=diameter/64;
  s.scale.set(base);
@@ -153,7 +169,8 @@ async function play(evt,{rectFor,onCharge,onLaunch,onBurst,onReveal}={}){
   return {x:r.left+r.width/2,y:r.top+r.height/2,size:Math.min(r.width,r.height)};
  };
  const path=(evt.path||[]).filter(Number.isInteger);
- const source=loc(evt.at),apex=loc(path[path.length-1]??evt.at-7);
+ // Classic's blossom is centered on row 2, not clipped against the HUD at row 1.
+ const source=loc(evt.at),apex=loc(7+evt.at%7);
  const unit=apex.size,burstStart=TIMING.charge+TIMING.ascent;
  const targets=evt.spreadTargets.map(t=>({at:t.to,point:loc(t.to)}));
  playing=true;shown=true;canvas.style.visibility="visible";
@@ -163,9 +180,31 @@ async function play(evt,{rectFor,onCharge,onLaunch,onBurst,onReveal}={}){
   p:particle(source.x,source.y,COLORS[i%COLORS.length],unit*.13),
   start:TIMING.charge+20+i*17,wobble:(rnd()-.5)*unit*.36
  }));
- const chargeGlows=path.map((at,i)=>({p:particle(loc(at).x,loc(at).y,0xffdb91,unit*.50),i,point:loc(at)}));
- const bloom=particle(apex.x,apex.y,0xffe1b3,unit*1.38);
- const innerBloom=particle(apex.x,apex.y,0xfff7e5,unit*.86);
+ const chargeGlows=path.map((at,i)=>{
+  const point=loc(at);
+  return {p:particle(point.x,point.y,0xffdb91,unit*.50),
+   cell:particle(point.x,point.y,0xffffff,point.size*.96,"tile"),
+   point,i};
+ });
+ const columnHits=path.map((at,i)=>{
+  const point=loc(at);
+  const rays=Array.from({length:5},(_,j)=>{
+   const angle=j*Math.PI*2/5+.2*i;
+   return {p:particle(point.x,point.y,COLORS[(i+j)%COLORS.length],unit*.24,"streak"),
+    dx:Math.cos(angle)*unit*.35,dy:Math.sin(angle)*unit*.35,angle};
+  });
+  return {i,point,p:particle(point.x,point.y,COLORS[i%COLORS.length],unit*.56),rays};
+ });
+ const bloom=particle(apex.x,apex.y,0xffe1b3,unit*1.60);
+ const innerBloom=particle(apex.x,apex.y,0xfff7e5,unit*1.12);
+ // Soft rose and gold petals give the sharp Pixi streaks Classic's flower shape.
+ const petals=Array.from({length:20},(_,i)=>{
+  const angle=Math.PI*2*i/20+.13+(rnd()-.5)*.08;
+  const radius=unit*(.9+rnd()*.45);
+  const petalColors=[0xffbcd8,0xffe2ae,0xffa5dc,0xffebc5,0xfff2e2];
+  return {p:particle(apex.x,apex.y,petalColors[i%petalColors.length],unit*(.58+rnd()*.20)),
+   dx:Math.cos(angle)*radius,dy:Math.sin(angle)*radius,offset:(i%4)*16};
+ });
  // Clearly visible radial streaks are the main blast; the glow is only an accent.
  const rays=Array.from({length:32},(_,i)=>{
   const angle=Math.PI*2*i/32-.28+(rnd()-.5)*.06;
@@ -183,10 +222,15 @@ async function play(evt,{rectFor,onCharge,onLaunch,onBurst,onReveal}={}){
   halo:particle(target.point.x,target.point.y,COLORS[(n+1)%COLORS.length],unit*.72),
   core:particle(target.point.x,target.point.y,0xfff5d5,unit*.30),
   trail:Array.from({length:4},(_,i)=>particle(apex.x,apex.y,COLORS[(n+i+1)%COLORS.length],unit*(.40-i*.055),"streak")),
-  burst:Array.from({length:10},(_,i)=>{
-   const angle=Math.PI*2*i/10+.25*n,rad=unit*(.38+rnd()*.38);
-   return {p:particle(target.point.x,target.point.y,COLORS[(n+i)%COLORS.length],unit*(.32+rnd()*.16),"streak"),
+  burst:Array.from({length:12},(_,i)=>{
+   const angle=Math.PI*2*i/12+.25*n,rad=unit*(.38+rnd()*.40);
+   return {p:particle(target.point.x,target.point.y,COLORS[(n+i)%COLORS.length],unit*(.36+rnd()*.14),"streak"),
     dx:Math.cos(angle)*rad,dy:Math.sin(angle)*rad,angle};
+  }),
+  petals:Array.from({length:7},(_,i)=>{
+   const angle=Math.PI*2*i/7+.31*n,rad=unit*(.22+rnd()*.18);
+   return {p:particle(target.point.x,target.point.y,COLORS[(n+i+1)%COLORS.length],unit*.38),
+    dx:Math.cos(angle)*rad,dy:Math.sin(angle)*rad};
   })
  }));
  let chargePlayed=false,launchPlayed=false,burstPlayed=false,revealed=false,frame=0,largestGap=0,previousTime=0;
@@ -199,9 +243,25 @@ async function play(evt,{rectFor,onCharge,onLaunch,onBurst,onReveal}={}){
   if(!launchPlayed&&t>=TIMING.charge){launchPlayed=true;onLaunch?.();}
   if(!burstPlayed&&t>=burstStart){burstPlayed=true;onBurst?.();}
   if(!revealed&&t>=burstStart+TIMING.sideDelay){revealed=true;onReveal?.();}
-  for(const {p,i,point} of chargeGlows){
-   const q=(t-i*22)/170;
-   update(p,point.x,point.y,1+Math.max(0,q)*.42,q<0||q>1?0:.25*Math.sin(Math.PI*q));
+  for(const {p,cell,i,point} of chargeGlows){
+   const startAt=i*32,charged=clamp((t-startAt)/130,0,1);
+   const decay=1-clamp((t-(burstStart+280))/440,0,1);
+   const pulse=.86+.14*Math.sin(t*.011+i*.6);
+   update(cell,point.x,point.y,1,charged*.78*decay*pulse);
+   update(p,point.x,point.y,1+charged*.36,
+    charged*.25*decay*pulse);
+  }
+  // Small sparks climb exactly the genuine Hanabi column, never empty targets.
+  for(const {i,point,p,rays} of columnHits){
+   const arrival=TIMING.charge+(i+.2)*TIMING.ascent/Math.max(1,path.length);
+   const q=clamp((t-arrival)/310,0,1),active=t>=arrival&&q<1;
+   const fade=active?Math.sin(Math.PI*q)*.75:0;
+   update(p,point.x,point.y,.95+q*1.45,fade*.72);
+   for(const r of rays){
+    const a=active?Math.pow(1-q,1.28)*Math.min(1,q*14)*.82:0;
+    update(r.p,point.x+r.dx*q,point.y+r.dy*q,
+     1.05-q*.43,a,r.angle+Math.PI/2);
+   }
   }
   const rocket=clamp((t-TIMING.charge)/TIMING.ascent,0,1);
   update(ascentCore,source.x,lerp(source.y,apex.y,rocket),1.2,
@@ -214,10 +274,17 @@ async function play(evt,{rectFor,onCharge,onLaunch,onBurst,onReveal}={}){
   }
   const boom=clamp((t-burstStart)/TIMING.burst,0,1);
   const blast=boom>0&&boom<1;
-  update(bloom,apex.x,apex.y,.76+boom*1.55,
-   blast?Math.sin(Math.PI*boom)*.38:0);
-  update(innerBloom,apex.x,apex.y,1+boom*.84,
-   blast?Math.pow(1-boom,2)*.96:0);
+  update(bloom,apex.x,apex.y,.82+boom*1.65,
+   blast?Math.sin(Math.PI*boom)*.56:0);
+  update(innerBloom,apex.x,apex.y,1+boom*.95,
+   blast?Math.pow(1-boom,2)*.98:0);
+  for(const petal of petals){
+   const q=clamp((t-burstStart-petal.offset)/960,0,1);
+   const visible=q>0&&q<1?.82*Math.pow(Math.sin(Math.PI*q),.62):0;
+   update(petal.p,apex.x+petal.dx*(.13+q*.94),
+    apex.y+petal.dy*(.13+q*.94)+unit*.11*q*q,
+    1.14-q*.35,visible);
+  }
   for(const ray of rays){
    const q=clamp((t-burstStart-ray.offset)/(TIMING.burst*.96),0,1);
    const fade=q>0&&q<1?Math.pow(1-q,.83)*Math.min(1,q*13):0;
@@ -230,7 +297,7 @@ async function play(evt,{rectFor,onCharge,onLaunch,onBurst,onReveal}={}){
    update(ember.p,apex.x+ember.dx*q,apex.y+ember.dy*q+unit*.23*q*q,
     .82-q*.4,fade);
   }
-  branches.forEach(({target,trail,burst,halo,core},n)=>{
+  branches.forEach(({target,trail,burst,petals:sidePetals,halo,core},n)=>{
    const depart=burstStart+70+n*58;
    const q=clamp((t-depart)/TIMING.sideFlight,0,1);
    const angle=Math.atan2(target.point.y-apex.y,target.point.x-apex.x)+Math.PI/2;
@@ -242,13 +309,18 @@ async function play(evt,{rectFor,onCharge,onLaunch,onBurst,onReveal}={}){
      .95-f*.24,a,angle);
    });
    const impactStart=depart+TIMING.sideFlight;
-   const v=clamp((t-impactStart)/610,0,1);
+   const v=clamp((t-impactStart)/680,0,1);
    const alive=t>=impactStart&&v<1;
    // Every secondary explosion, including the rightmost one, fades away.
    const flash=alive?Math.pow(1-v,2)*Math.min(1,v*22):0;
    update(core,target.point.x,target.point.y,.85+v*.5,flash*.91);
    update(halo,target.point.x,target.point.y,.75+v*1.48,
     alive?.38*Math.sin(Math.PI*v):0);
+   for(const {p,dx,dy} of sidePetals){
+    const visible=alive?.88*Math.pow(Math.sin(Math.PI*v),.8):0;
+    update(p,target.point.x+dx*v,target.point.y+dy*v,
+     1.08-v*.32,visible);
+   }
    for(const {p,dx,dy,angle:rayAngle} of burst){
     const visible=alive?Math.pow(1-v,1.2)*Math.min(1,v*15):0;
     update(p,target.point.x+dx*v,target.point.y+dy*v+unit*.16*v*v,

@@ -15,6 +15,7 @@ const arcadeUI = require('../src/ui/arcade-ui.js');
 const terrain = require('../src/terrain/terrain-system.js');
 const jump = require('../src/gameplay/jump-controller.js');
 const motion = require('../src/render/player-motion.js');
+const effects = require('../src/render/effect-language.js');
 const terrainRender = require('../src/render/terrain-renderer.js');
 const worldBackground = require('../src/render/world-background.js');
 const runAudit = require('../src/diagnostics/round-audit.js');
@@ -42,7 +43,7 @@ function setup(initialStorage={}) {
   let requested;
   const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};

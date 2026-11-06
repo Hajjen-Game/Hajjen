@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Mobile Performance Optimization 1.0
+/* CHROMA RUSH — Duck Feel & Effect Language 1.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -24,6 +24,7 @@
   const terrainDirector = new window.ChromaUnifiedTerrainDirector.UnifiedTerrainDirector({terrain,director});
   const jumpControl = new window.ChromaJump.JumpController();
   const motion = new window.ChromaMotion.PlayerMotion();
+  const effects = new window.ChromaEffects.EffectLanguage();
   const terrainRender = window.ChromaTerrainRender;
   const worldBackground = window.ChromaWorldBackground;
   const runAudit = new window.ChromaRoundAudit.RoundAudit();
@@ -73,7 +74,7 @@
   let frameDiagnosticsElapsed=0,previousFrameTimestamp=null;
   if(diagnosticsOn)$.perfOverlay.classList.remove('hidden');
   let status='ready', time=0, worldTime=0, zone=1, lastTs=0, shake=0, hitFlash=0, lastZoneCallout=0;
-  let speed=GAME.baseSpeed, hp=GAME.startingHP, score=0, best=progression.bestScore, hurdles=[], motes=[], rings=[], streaks=[];
+  let speed=GAME.baseSpeed, hp=GAME.startingHP, score=0, best=progression.bestScore, hurdles=[], motes=[], streaks=[];
   let runMode='arcade', startZone=1, milestoneTime=0, unlockedThisRun=[];
   // Absolute travelled distance: terrain and obstacles share this world axis.
   let distance=0,gapRecovery=null;
@@ -158,7 +159,8 @@
     }
     if(motes.length>180)motes.splice(0,motes.length-180);
   }
-  function ripple(x,y,color,r=20){rings.push({x,y,r,life:.52,max:.52,color});}
+  function groundPulse(x,y,color,size=20,strength=1){effects.ground(x,y,color,size,strength);}
+  function frameEcho(x,y,color,size=28,strength=1){effects.frame(x,y,color,size,strength);}
   function startRun(requestedMode='arcade',requestedZone=1){
     // A practice run can only begin in a zone already reached in real arcade play.
     const selected=Number(requestedZone);
@@ -168,7 +170,7 @@
     hp=GAME.startingHP;speed=GAME.speedAt(time,zone);score=0;shake=0;hitFlash=0;
     const palette=PALETTES[(zone-1)%PALETTES.length];
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
-    hurdles=[];motes=[];rings=[];streaks=[];director.reset();terrainDirector.reset();flow.reset();flow.currentZone=zone;
+    hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();motion.reset();
     // Practice retains the chosen zone/difficulty but starts on a fresh,
     // safe runway, rather than loading a nonexistent alternate level.
@@ -201,7 +203,7 @@
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');
     $.menu.classList.remove('hidden');$.graphicsButton.classList.remove('hidden');syncSoundButton(true);arcadeUI.menu($,progression);
   }
-  function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;player.duck=false;player.duckTime=0;player.duckRecovery=0;$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
+  function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
   function resume(){if(status!=='paused')return;status='running';$.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();frameClock.reset(lastTs);audio.resume();syncSoundButton(true);}
   function endRun(){
     if(status!=='running')return;
@@ -230,7 +232,7 @@
   function launchJump(){
     // Launch velocity and the hitbox remain identical to Terrain 1.0.
     player.vy=GAME.jumpVelocity;player.landed=false;motion.jump();
-    ripple(player.x,player.feet-5,c1,12);
+    groundPulse(player.x,player.feet-3,c1,18,.85);
     for(let i=0;i<Math.max(4,Math.round(12*quality.profile.particles));i++){
       motes.push(makeMote(player.x+fxRand(-15,15),player.feet-2,c2,
         {vx:fxRand(-155,60),vy:fxRand(-110,-25),life:fxRand(.16,.40),r:fxRand(1.0,2.8)}));
@@ -255,7 +257,7 @@
          life:fxRand(.18,.40),r:fxRand(1.0,2.9)}));
     }
     if(motes.length>180)motes.splice(0,motes.length-180);
-    ripple(player.x,ground,c2,15+strength*10);
+    groundPulse(player.x,ground-2,c2,15+strength*10,1+strength*.3);
     // Max 2 logical px before the draw() camera damping factor.
     if(velocity>650)shake=Math.max(shake,2.0);
     sound('land');
@@ -264,8 +266,14 @@
     if(status!=='running'||!player.landed||player.duck||player.duckRecovery>0)return;
     player.duck=true;
     player.duckTime=DUCK_DURATION;
+    motion.duckStart();
+    groundPulse(player.x,player.feet-2,c2,18,.82);
     $.duck.classList.add('is-down');
-    sound('duck');burst(player.x-16,floorY-5,4,c2,.26);
+    sound('duck');
+    // A short, horizontal ground streak: low-cost and readable on weak phones.
+    for(let i=0;i<Math.max(2,Math.round(5*quality.profile.particles));i++)
+      motes.push(makeMote(player.x-18-fxRand(0,12),player.feet-fxRand(2,7),c2,
+        {vx:fxRand(-205,-80),vy:fxRand(-12,5),life:fxRand(.12,.28),r:fxRand(.9,1.7)}));
   }
   function updateDuck(dt){
     if(player.duck){
@@ -273,6 +281,8 @@
       if(player.duckTime===0){
         player.duck=false;
         player.duckRecovery=DUCK_RECOVERY;
+        motion.duckRelease();
+        groundPulse(player.x,player.feet-2,c1,12,.52);
         $.duck.classList.remove('is-down');
       }
     }else{
@@ -356,7 +366,7 @@
     lastZoneCallout=1.4;
     HUD.showZoneCallout($,{zone,name:PALETTES[(zone-1)%PALETTES.length].name,
       color:PALETTES[(zone-1)%PALETTES.length].primary,perfectReward:reward?.perfect?reward:null});
-    ripple(player.x,floorY-20,c1,35);burst(player.x,floorY-20,24,c1,1.7);if(!reward?.perfect)sound('zone');
+    frameEcho(player.x,player.feet-25,c1,43,1.25);burst(player.x,player.feet-20,24,c1,1.7);if(!reward?.perfect)sound('zone');
   }
   function onHit(o){
     if(o.hit)return;
@@ -366,7 +376,7 @@
     }
     hp=Math.max(0,hp-GAME.damagePerHit);
     runAudit.record('obstacle_hit',auditState(),{obstacle:o.type});player.invulnerable=.96;shake=12;hitFlash=.38;
-    director.registerDamage();flow.registerDamage();burst(player.x,player.feet-30,'#ff506d',30,1.4);ripple(player.x,player.feet-26,'#ff596e',25);
+    director.registerDamage();flow.registerDamage();burst(player.x,player.feet-30,'#ff506d',30,1.4);frameEcho(player.x,player.feet-26,'#ff596e',29,1.1);
     vib([25,40,30]);sound('hit');if(hp===0)endRun();
   }
   function failGap(gap){
@@ -383,7 +393,7 @@
     }
     runAudit.record('gap_miss',auditState(),{width:gap.end-gap.start,shieldCharged:!absorbed});
     player.invulnerable=Math.max(player.invulnerable,1.15);shake=13;hitFlash=.42;
-    burst(player.x,player.feet-12,'#ff5998',26,1.3);ripple(player.x,player.feet-8,c2,27);
+    burst(player.x,player.feet-12,'#ff5998',26,1.3);frameEcho(player.x,player.feet-18,c2,28);
     sound('hit');vib([30,45,30]);
     if(hp===0)endRun();
   }
@@ -396,6 +406,7 @@
     runAudit.record('gap_clear',auditState(),{width:gap.end-gap.start});
     if(runMode==='arcade')earnedMilestones(progression.reachedStreak(flow.streak).earned);
     burst(player.x,player.feet-7,c1===c2?5:9,c1,.58);
+    frameEcho(player.x,player.feet-18,c2,20,.55);
     if(reward.tierUp)sound('flow');else sound('score');
   }
   function update(dt){
@@ -407,7 +418,7 @@
       if(reward.perfect){
         hp=Math.min(GAME.startingHP,hp+reward.heal);
         score+=reward.bonusPoints;
-        burst(player.x,floorY-36,21,c2,1.05);ripple(player.x,floorY-18,c1,22);
+        burst(player.x,player.feet-36,21,c2,1.05);frameEcho(player.x,player.feet-25,c1,38,1.22);
         sound('perfect');
         runAudit.record('perfect_zone',auditState(),{completedZone:zone,healed:reward.heal});
         if(runMode==='arcade')earnedMilestones(progression.perfectZone().earned);
@@ -540,8 +551,7 @@
     score+=dt*(45+speed*.095);
     for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;m.vy+=150*dt;m.life-=dt}
     motes=motes.filter(m=>m.life>0).slice(-180);
-    for(const r of rings){r.r+=dt*160;r.life-=dt}
-    rings=rings.filter(r=>r.life>0);
+    effects.tick(dt);
     if(hp>0&&hp<=25&&Math.floor(worldTime*1.5)!==Math.floor((worldTime-dt)*1.5))sound('warning');
     audio.tick({phase:director.phase,speed,flow:flow.value,zone,hp});
     runAudit.tick(dt,auditState(),director.insight);
@@ -618,17 +628,31 @@
     shading.addColorStop(0,'rgba(255,255,255,.9)');shading.addColorStop(.6,'rgba(247,251,255,.08)');shading.addColorStop(1,rgba(c1,.34));
     ctx.fillStyle=shading;roundRectPath(rx+5,ry+4,rw-10,rh-8,5);ctx.fill();
     glowLine(rx+6,ry+6,rx+rw*.6,ry+6,'#fff',2,6,.7);
+    if(player.duck){
+      const n=Math.max(1,Math.round(3*quality.profile.particles));
+      for(let i=0;i<n;i++){
+        const x=rx-(i*13+12),y=player.feet-4-i*4;
+        glowLine(x,y,x-12-speed/110,y,c2,1.1,5,.34-i*.065);
+      }
+    }
     ctx.restore();
-    // At high Flow a soft halo frames the runner; collision shape is untouched.
+    // High Flow: detached neon corners, never an out-of-plane ellipse.
     if(flow.tier===3){
-      ctx.save();ctx.strokeStyle=c2;ctx.lineWidth=1.6;ctx.shadowColor=c2;ctx.shadowBlur=16*quality.profile.glow;
-      ctx.globalAlpha=.25+.06*Math.sin(worldTime*5);
-      ctx.beginPath();ctx.ellipse(player.x,player.feet-b.h/2,b.w*.95,b.h*.95,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+      const pad=8,left=b.x-pad,right=b.x+b.w+pad,top=b.y-pad,bottom=b.y+b.h+pad,arm=9;
+      ctx.save();ctx.strokeStyle=c2;ctx.lineWidth=1.6;ctx.shadowColor=c2;
+      ctx.shadowBlur=13*quality.profile.glow;ctx.globalAlpha=.22+.06*Math.sin(worldTime*5);
+      ctx.beginPath();
+      for(const sx of [-1,1])for(const sy of [-1,1]){
+        const x=sx<0?left:right,y=sy<0?top:bottom;
+        ctx.moveTo(x-sx*arm,y);ctx.lineTo(x,y);ctx.lineTo(x,y-sy*arm);
+      }
+      ctx.stroke();ctx.restore();
     }
     const surface=terrain.groundAt(distance+player.x);
     if(surface!==null){
-      const height=clamp((surface-player.feet)*.16,0,80);
-      ctx.fillStyle=rgba(c1,.14);ctx.beginPath();ctx.ellipse(player.x,surface+5,clamp(25-height*.18,9,25),4,0,0,Math.PI*2);ctx.fill();
+      // Side-view contact glow: thin horizontal strip instead of a floor oval.
+      const height=clamp((surface-player.feet)*.16,0,80),w=clamp(44-height*.36,18,44);
+      ctx.fillStyle=rgba(c1,.14);ctx.fillRect(player.x-w/2,surface+3,w,2.5);
     }
   }
   function drawFx(dt){
@@ -639,11 +663,7 @@
       ctx.beginPath();ctx.arc(m.x,m.y,m.r*a,0,Math.PI*2);ctx.fill();
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
-    for(const r of rings){
-      ctx.globalAlpha=clamp(r.life/r.max,0,1)*.65;
-      ctx.strokeStyle=r.color;ctx.lineWidth=2;ctx.shadowColor=r.color;ctx.shadowBlur=13*quality.profile.glow;
-      ctx.beginPath();ctx.ellipse(r.x,r.y,r.r,r.r*.4,0,0,Math.PI*2);ctx.stroke();
-    }
+    effects.draw(ctx,{glow:quality.profile.glow,density:quality.profile.density});
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     if(hitFlash>0){ctx.fillStyle=`rgba(255,25,80,${hitFlash*.23})`;ctx.fillRect(0,0,W,H)}
     if(hp<=25&&status==='running'){

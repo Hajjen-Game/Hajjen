@@ -27,7 +27,7 @@ SCENE_HOOK = r'''
       hp=100;shake=0;hitFlash=0;gapRecovery=null;
       c1=PALETTES[3].primary;c2=PALETTES[3].secondary;c3=PALETTES[3].shadow;
       const x=distance;
-      if(kind==='flat')terrain.segments=[
+      if(['flat','duck','duck-release','impact'].includes(kind))terrain.segments=[
         {type:'flat',start:0,end:10000,y0:floorY,y1:floorY}];
       if(kind==='hills')terrain.segments=[
         {type:'flat',start:0,end:x+220,y0:floorY,y1:floorY},
@@ -47,7 +47,22 @@ SCENE_HOOK = r'''
       player.feet=terrain.groundAt(distance+player.x)??floorY;
       player.vy=0;player.landed=true;player.invulnerable=0;
       flow.value=85;
-      hurdles=[];motes=[];rings=[];streaks=[];
+      hurdles=[];motes=[];streaks=[];effects.reset();motion.reset();player.duck=false;
+      if(kind==='duck'){
+        player.duck=true;motion.duckStart();
+        effects.ground(player.x,player.feet-2,c2,22,1.1);
+        effects.tick(.035);
+      }
+      if(kind==='duck-release'){
+        motion.duckStart();motion.duckRelease();motion.tick(.06);
+        effects.ground(player.x,player.feet-2,c1,18,.7);
+        effects.tick(.045);
+      }
+      if(kind==='impact'){
+        motion.land(1000);
+        effects.ground(player.x,player.feet-2,c2,29,1.25);
+        effects.tick(.07);
+      }
       $.hud.classList.remove('hidden');$.controls.classList.remove('hidden');
       $.menu.classList.add('hidden');$.pauseBtn.classList.remove('hidden');
       director.tick=()=>{};
@@ -114,6 +129,10 @@ def main():
                 if scene != 'background':
                     page.screenshot(path=str(OUT / f'{scene}-{vw}x{vh}.png'))
                 colors[scene] = page.evaluate('window.__visualAudit.sample(790, 620)')
+            # Capture the real player motion and horizontal/geometric VFX as well.
+            for scene in ['duck','duck-release','impact']:
+                page.evaluate('window.__visualAudit.setScene', scene)
+                page.screenshot(path=str(OUT / f'{scene}-{vw}x{vh}.png'))
             # The void must reveal exactly the same background pixels as the
             # no-floor scene, not an opaque rectangle or shadow gradient.
             diff = max(abs(a-b) for a, b in zip(colors['gap'], colors['background']))

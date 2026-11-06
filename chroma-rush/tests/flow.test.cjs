@@ -88,27 +88,37 @@ test('collisions during invulnerability still disqualify a Perfect Zone without 
   assert.equal(f.completeZone({hp:75}).perfect,false);
 });
 
-
-test('high-flow pressure is smooth above 65 and absent below it',()=>{
+test('high Flow pressure ramps continuously, preserving low and midrange meter',()=>{
   const f=new FlowSystem();
   clears(f,12);assert.equal(f.value,60);
-  f.tick(2);assert.equal(f.value,60);
+  f.tick(2);assert.equal(f.value,60,'below pressure threshold, normal gap remains free');
   clears(f,2);assert.equal(f.value,70);
-  f.tick(1);assert.ok(f.value<70&&f.value>65);
+  const before=f.value;f.tick(1);
+  const expected=before-FLOW.highFlowPressurePerSecond*((before-FLOW.highFlowPressureStart)/(100-FLOW.highFlowPressureStart));
+  assert.ok(Math.abs(f.value-expected)<.4);
+  assert.ok(f.value>65,'not a hard reset or cap');
+  f.tick(2.5);assert.ok(f.value<before);
 });
-test('precision bonuses and Perfect Zone healing are retained',()=>{
-  const f=new FlowSystem();clears(f,20);f.tick(1);
-  const before=f.value;const precise=f.registerClear({precision:true});
-  assert.ok(f.value>before&&precise.earnedPoints>0);
-  const result=f.completeZone({hp:65});
-  assert.equal(result.perfect,true);assert.equal(result.heal,10);
+
+test('damage, Perfect Zone healing and precise clears remain independent of pressure',()=>{
+  const f=new FlowSystem();clears(f,20);
+  f.tick(1);
+  const before=f.value;assert.ok(before<100);
+  const precise=f.registerClear({precision:true});
+  assert.ok(f.value>before);
+  assert.ok(precise.earnedPoints>0);
+  const perfect=f.completeZone({hp:65,maxHP:100});
+  assert.equal(perfect.perfect,true);assert.equal(perfect.heal,10);
   assert.equal(f.value,Math.min(100,before+FLOW.precisionGain+FLOW.perfectFlowGain));
+  f.registerDamage();assert.equal(f.value,Math.max(0,Math.min(100,before+FLOW.precisionGain+FLOW.perfectFlowGain)-FLOW.damagePenalty));
 });
-test('high-Flow pressure is based on elapsed time, not frame count',()=>{
+
+test('no frame-rate-dependent pressure and no after-pause recovery',()=>{
   const a=new FlowSystem(),b=new FlowSystem();
-  clears(a,20);clears(b,20);a.tick(1);
+  clears(a,20);clears(b,20);
+  a.tick(1);
   for(let i=0;i<60;i++)b.tick(1/60);
-  assert.ok(Math.abs(a.value-b.value)<.25);
+  assert.ok(Math.abs(a.value-b.value)<.25,`pressure should not vary much with tick rate: ${a.value} vs ${b.value}`);
   const before=a.value;a.tick(0);assert.equal(a.value,before);
 });
 
@@ -119,7 +129,7 @@ test('static entry point loads Flow before HUD and engine with cache-busted shar
   assert.ok(refs.indexOf('src/core/config.js?v=flow-1.1')>=0);
   assert.ok(refs.indexOf('src/gameplay/flow.js?v=flow-1.1')>refs.indexOf('src/core/config.js?v=flow-1.1'));
   assert.ok(refs.indexOf('src/ui/hud.js?v=flow-1.0')>refs.indexOf('src/gameplay/flow.js?v=flow-1.1'));
-  assert.ok(refs.indexOf('src/gameplay/game.js?v=performance-1.0')>refs.indexOf('src/ui/hud.js?v=flow-1.0'));
+  assert.ok(refs.indexOf('src/gameplay/game.js?v=duck-effects-1.0')>refs.indexOf('src/ui/hud.js?v=flow-1.0'));
   for(const src of refs) assert.ok(fs.existsSync(path.join(root,src.split('?')[0])),`missing script ${src}`);
   for(const name of ['flow-inner','flow-number','flow-state','flow-outer','flow-multiplier','flow-streak','zone-perfect','final-perfect'])assert.ok(html.includes(`id="${name}"`),name);
 });

@@ -1,70 +1,44 @@
-# CHROMA RUSH — Flow Balance 1.1
+# CHROMA RUSH — Duck Feel & Effect Language 1.0
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
 
+## Duck Feel & Effect Language 1.0 (2026-11-06)
+
+- Duck has a fast downward compression, a brief low speed trail, and an elastic upright release; the 0.55 s tap pulse, 0.12 s recovery, collision boxes, jump physics and input semantics remain untouched.
+- Added `src/render/effect-language.js` for bounded, reusable **horizontal ground pulses** and **detached rectangular corner echoes**. The old screen-plane oval rings are removed from jumps, landings, gaps, hits and zone celebrations.
+- The Chroma State halo and contact shadow now use straight neon brackets / a ground strip instead of ellipses. Tiny round particles remain intentionally as sparks, not rings.
+- Effects are capped to 24 concurrent instances and respect High / Balanced / Performance graphics settings. Cosmetic random draws stay isolated from gameplay generation.
+- Node regression and Chromium screenshots cover the new animation states, VFX shape and gameplay integrity; no new levels, obstacles or control buttons.
+
 ## Flow Balance 1.1 (2026-11-06)
 
-- Based on two actual exported runs (zone 8 and zone 10), reduce excessive Chroma State time while preserving its 2× reward.
-- Normal clears grant **5 Flow** instead of 6; precision **8** instead of 10; Perfect Zone bonus **5** instead of 8.
-- Smooth high-Flow pressure begins at **65** and ramps to **4.5 Flow per second** at 100. Original idle decay and hit penalty remain unchanged.
-- The 30/65/90 thresholds, 1×/1.25×/1.5×/2× multipliers, Perfect Zone **+10 HP** recovery and saved progression remain untouched.
-- Physics, obstacles, speed, Director and graphics quality do not change.
-- See [Flow Balance 1.1 design notes](docs/flow-balance-1.1.md).
-
-## Mobile Performance Optimization 1.0 (2026-11-06)
-
-- Three render-only quality tiers (**HIGH / BALANCED / PERFORMANCE**) plus an automatic tier with frame pacing hysteresis. Change from the ⚙ settings button; your preference stays local.
-- Device-sensitive canvas DPR/pixel budget, fewer expensive decorative glow strokes and terrain grid operations at lower tiers. Game rules, generated terrain, obstacles and scores remain unchanged.
-- Dedicated visual randomness ensures changing graphics quality never alters Director decisions or terrain randomness.
-- Fixed-step 60 Hz gameplay clock helps preserve simulation consistency at 30, 60 or 120 Hz while bounding catch-up after browser stalls.
-- Add `?perf=1` to the URL for local FPS/frame-time/JS render timing overlay. Existing exported run JSON now includes a small `renderPerformance` snapshot. Nothing is uploaded.
-- Node regression tests, browser screenshots and an independent Chromium quality benchmark are included. Synthetic timings are not a guarantee of improvement on physical Android devices.
-- Details: [docs/mobile-performance-optimization-1.0.md](docs/mobile-performance-optimization-1.0.md).
-
+- Rebalanced from two real arcade-run exports (zone 8 and zone 10): Chroma State no longer spends most of the session saturated at 100%.
+- Normal clears grant **5 Flow** instead of 6, precision clears **8** instead of 10, and a Perfect Zone grants **5 Flow** instead of 8. Existing Perfect Zone **+10 shield**, points, Flow tiers, multipliers and all score mechanics are retained.
+- Smooth, high-tier-only resistance starts at 65 Flow and scales to **4.5 Flow per second at 100**. There is no extra decay below 65; the old inactivity decay remains unchanged. No sudden wipe or hard timer.
+- Challenge generation, score multipliers, physics, Director, accessibility options and graphics quality remain unchanged. The high-tier visual effects naturally respond to the new Flow meter without adding expensive rendering.
+- Local-only event replay checks the original two logs against the new rules. Historical scores are not rewritten; new scores follow the revised Flow economy.
+- Technical details: [docs/flow-balance-1.1.md](docs/flow-balance-1.1.md).
 
 ## Unified Terrain Director 3.0 (2026-11-06)
 
-- **Single procedural track:** new `src/director/unified-terrain-director.js` links terrain planning and the existing Adaptive Rush Director 2.0. No separate levels, extra controls or speed changes.
-- **Phase-aware terrain:** BUILD favors gentle slopes, PEAK permits occasional gaps, while FADE/RELAX avoid planning new gaps. The planner considers **when terrain will reach the player**, not just which phase was active when generated.
-- **Player-aware recovery:** Low shield or high stress suppresses future gap pressure; missed gaps delay new gap proposals and protect upcoming obstacle spacing. Already generated geometry is never changed under the player.
-- **Safe combinations:** geometry remains the authority for gap widths and landing areas. Motif steps too close to an abyss are deferred, never silently discarded or counted as spawned.
-- **Evidence:** the exported round log now labels terrain by planned phase. New seeded three-minute simulations check terrain variety, spacing and recovery. The four-size Chromium visual audit passes.
-- **Performance:** no new shaders, particles or gameplay buttons. Rendering slowdowns on older phones remain a separate profiling and optimization task.
-- [Technical design and verification](docs/unified-terrain-director-3.0.md).
+- **One continuous procedural run, never fixed levels:** `src/director/unified-terrain-director.js` coordinates terrain choices with Adaptive Rush Director 2.0 while retaining the existing two controls, speed, Flow and HP rules.
+- **Phase-aware terrain:** BUILD favors broad rolling slopes, PEAK may introduce occasional gaps, FADE limits new hazards, and RELAX is predominantly stable, flat ground. Zone restrictions still apply (slopes from zone 2, gaps from zone 3).
+- **Arrival-aware planning:** the coordinator estimates which Director phase will be active when each upcoming terrain feature reaches the player; this prevents scheduling a new gap merely because PEAK is active while the generated section is still far off-screen.
+- **Recovery and safety:** an unsafe gap/obstacle combination is deferred until the terrain is clear. Missed gaps temporarily reduce future gap pressure, especially at low shield or high stress; successful gaps keep forward momentum.
+- **Separate responsibilities:** `terrain-system.js` remains responsible for geometrically valid slopes/gaps, `adaptive-director.js` still selects authored jump/duck motifs and pacing, and the unified coordinator determines the shared timing policy. No extra game actions or levels.
+- **Diagnostics:** exported round logs now label generated slopes and gaps with their intended Director phase. New seeded 3-minute simulations test variety, gap spacing, deferral, recovery, and phase behavior.
+- **Performance:** this change deliberately does not increase visual effects or perform per-frame full-course pathfinding. Existing mobile rendering performance remains an independent optimization task; subjective feel is not claimed to be validated on slow devices.
 
 ## Game Experience & Visual Audit 1.0 (2026-11-06)
 
-- **Chromium visual audit** at four landscape sizes: start/results screens, flat/hilly/gap terrain, pixel comparisons against the actual full-height background and browser-error checks. GitHub Actions now saves screenshots as a temporary artifact.
-- **Gap-hit consistency:** falling during temporary shield invulnerability still counts as a missed gap and Flow mistake, but does not deduct another 25 HP.
-- **Short-display layout:** the start menu is kept fully visible on 640×330 and similarly short landscape displays; the Jump/Duck touch targets are unchanged.
-- **Local run diagnostics:** the results screen now offers **EXPORT RUN LOG**, downloading JSON with hits, gap results, Director phases, Flow saturation, Perfect Zones, score and key events. No third-party tracking or personal information is collected.
-- **Detailed audit:** [docs/game-experience-visual-audit-1.0.md](docs/game-experience-visual-audit-1.0.md). No new levels or gameplay buttons.
-
-## Full Background Continuity 1.0 (2026-11-06)
-
-- The world scene is isolated into `src/render/world-background.js`. The background now covers the entire logical canvas regardless of terrain height, including under valleys and behind gaps.
-- Previously, a second glow layer was drawn only below a fixed floor coordinate, introducing a hard horizontal edge exposed by descending terrain and open gaps. Both atmospheric glows now render across the full screen with continuous radial falloff.
-- Faraway architecture, streaks and stars also extend into the lower viewport and fade naturally, rather than ending at the old floor level.
-- Terrain polygons render above the independent background; gaps remain unfilled and show the world scene behind them.
-- Four new regression tests verify full-height coverage, screen proportions, and terrain independence. No changes to jump physics, HP, Flow, audio, Director or arcade records.
-
-## Terrain Visual Fix 1.2 — clip-path regression fix (2026-11-06)
-
-- Fixes an accidental diagonal wedge underneath terrain: the shared Canvas path used a second `moveTo` after the bottom edge, splitting the intended floor polygon and closing it diagonally.
-- Each solid terrain island now starts at its bottom-left, joins the actual surface, follows all connected slopes and flats, and closes at the bottom-right. Gaps remain open and show the parallax background.
-- Verified with headless Chromium using a representative flat/slope/gap layout, comparing screenshots before and after.
-- Added explicit polygon-path tests (including a scrolled camera) so a triangular closure cannot silently pass regression tests again.
-- Pure render correction; no changes to jumps, HP, collision, Director, audio or progression.
-
-## Terrain Visual Fix 1.1 (2026-11-06)
-
-- One continuous track surface and perspective grid, with a shared gradient, fix the vertical seams underneath hills and flats.
-- The old black rectangle beneath every gap is gone: actual palette-colored world background now shows through. Neon edge markers still communicate where to jump.
-- Separate presentation module: `src/render/terrain-renderer.js`.
-- Purely graphical: terrain physics, gap jump rules, Director, Flow, shield damage and progression remain unchanged.
-- Four new renderer tests cover seamless boundaries, transparency, grid origin and data immutability.
+- **Actual Chromium visual suite** at four landscape resolutions: flat/hilly/gap terrain, menu and result screens, full-height background pixel checks, and JavaScript error monitoring. GitHub Actions now uploads rendered screenshots after each change.
+- **Fixed** a shield-damage inconsistency: a gap miss during temporary invulnerability no longer charges another 25 HP (but still breaks Flow and records a failed gap).
+- **Fixed** clipping of the start menu on very short landscape viewports without reducing gameplay button hit areas.
+- **Run diagnostics:** finished runs now offer an optional **EXPORT RUN LOG** JSON download (zones, hits, gaps, Flow/Chroma State, Director phases/stress and key events). Logs are local-only, bounded and contain no personal data.
+- **Full report:** [docs/game-experience-visual-audit-1.0.md](docs/game-experience-visual-audit-1.0.md), including tested coverage, limitations and next improvements.
+- Same gameplay rules, Director 2.0, terrain, acceleration, music and scoring. The only rule correction is consistent gap invulnerability.
 
 ## Jump Feel & Forgiveness 1.0 (new)
 

@@ -1,10 +1,21 @@
-# CHROMA RUSH — Reactive Audio System 1.0
+# CHROMA RUSH — Arcade Progression 1.0
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
 
-## Reactive Audio System 1.0 (new)
+## Arcade Progression 1.0 (new)
+
+- **Personal records**: persistent best score, highest reached zone and longest damage-free obstacle streak. A compact record panel lives on the start menu, with best streak also appearing on results.
+- **Six personal milestones**: Zone 03 (IGNITION), Zone 05 (NEON PILOT), 10-hit-free clear streak (TEN STRONG), first Perfect Zone (FLAWLESS), Zone 08 (CHROMA RUNNER), and Zone 12 (REDLINE). Tap the Milestones counter to open the full gallery.
+- **Practice mode**: after reaching Zone 02 in a normal arcade run, choose any zone reached in **standard** play. Practice begins at that zone's speed and palette, with fresh Flow, full HP and the same Director/audio mechanics.
+- **Ranked integrity**: practice is clearly marked UNRANKED in the HUD and results. It never writes best score, best zone, streak, Perfect Zone totals or milestones; it never unlocks further practice zones. Standard runs always start at Zone 01. Neither practice nor milestones grant gameplay powers.
+- **Record migration**: existing `chromaRushBestFlow1` score remains the starting best score. Historical zone and streak records were not tracked by old builds, so they start fresh rather than being guessed. New progress is saved under `chromaRushArcadeV1`.
+- **Safe persistence**: missing/corrupt/blocked local storage falls back to a playable game. Record updates happen on new ranked zone/streak achievements and on run completion. Personal records stay on the same browser/device without an account.
+- **Modular architecture**: `src/progression/arcade-progress.js` owns all durable record, unlock and milestone rules; `src/ui/arcade-ui.js` renders progress without implementing the rules. No additions to gameplay controls or dependencies.
+- **Design target**: the same fast, satisfying 2–3 minute arcade run. Speed Fairness & Readability remains a separately deferred task.
+
+## Reactive Audio System 1.0
 
 - **Original procedural synth score** in `src/audio/reactive-audio.js`: electronic kick, hi-hat pulses, synth bass, ambient harmonic pads and a high-register arpeggio. No third-party tracks, sound files, assets, downloads or libraries.
 - **Reactive intensity:** BUILD keeps a driving but restrained pulse; PEAK adds dense percussion and arpeggios; FADE softens; RELAX drops to a sparse heartbeat. All fades are smoothed. The **Director**, not audio, decides which phase the game is in.
@@ -56,14 +67,18 @@ chroma-rush/
       game.js                 Input, game state, collision and world rendering
     audio/
       reactive-audio.js       Standalone Web Audio soundtrack + SFX orchestration
+    progression/
+      arcade-progress.js      Ranked records, practice unlocks and personal milestones
     ui/
       hud.js                  Reusable HUD and zone transition presentation
+      arcade-ui.js            Record panels, practice selector and milestone gallery
   tests/
     director.test.cjs          Original Director pacing regression checks
     director-2.test.cjs        Pattern selection, adaptive state and high-speed safety
     game-smoke.test.cjs        Full game loop and mobile/keyboard duck regression
     flow.test.cjs              Flow thresholds, flawless zones, damage, healing and reset
     reactive-audio.test.cjs    Audio lifecycle, phase mix, tempo, mute and scheduling
+    arcade-progress.test.cjs  Persistence migration, milestones, unlock safety and UI
 ```
 
 Modules are plain browser JavaScript with CommonJS compatibility for Node tests, so the game needs **no build process, dependencies, CDN, account or analytics**. All script URLs carry a version query to limit stale browser caches on GitHub Pages.
@@ -76,7 +91,8 @@ Modules are plain browser JavaScript with CommonJS compatibility for Node tests,
 4. `adaptive-director.js` makes planning decisions and exposes `insight` for future diagnostics. It does not read DOM, draw or modify player inputs.
 5. Shared HUD drawing goes into `src/ui/hud.js`. Do not mix UI styling with gameplay decisions.
 6. All audio synthesis and playback lives in `src/audio/reactive-audio.js`. The gameplay engine only reports events and state. Input and world rendering still live in `game.js`: **next modularization targets** are `src/input/controls.js` and `src/render/world.js`.
-7. All new rules require targeted Node regression tests. Keep deterministic RNG injection in the Director.
+7. Arcade records and practice unlocks live exclusively in `src/progression/arcade-progress.js`. The renderer never writes progression. Practice sessions must not call any `reached*`, `perfectZone`, or `finishRankedRun` method.
+8. All new rules require targeted Node regression tests. Keep deterministic RNG injection in the Director.
 
 ## Run and test
 
@@ -93,7 +109,7 @@ node --test chroma-rush/tests/*.cjs
 - The target is a thrilling **2–3 minute run**, not infinite perfect reaction time. A full Speed Fairness & Readability redesign is deferred until playtests suggest it is needed.
 - The Director may ease the number and complexity of obstacles but **never lowers scrolling speed**.
 - AI Director 2.0 is a transparent, deterministic-rule system; it is not a neural network or an unbeatable automated level designer. Gameplay still requires real-device testing and balancing.
-- No new controls, collectibles, metaprogression or economy are introduced by this update. Step 4 adds only adaptive sound and music.
+- No new gameplay controls, collectibles or economy. The optional practice selector exists only on the menu and practice does not influence ranked results.
 
 ## Versions
 
@@ -103,3 +119,5 @@ node --test chroma-rush/tests/*.cjs
 - **Flow 1.0:** Reactive Flow tiers, skill-based score bonuses, Perfect Zones and shield recovery.
 
 - **Audio 1.0 (2026-11-06):** Independent Web Audio engine, phase-responsive original layered music, Flow/zone sync, sound effects, pause/mute persistence, audio regression tests.
+
+- **Arcade 1.0 (2026-11-06):** Personal best zone/streak/score, six milestones, milestone gallery and separately marked unranked practice from unlocked zones.

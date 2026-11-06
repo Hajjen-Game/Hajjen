@@ -81,3 +81,56 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
 @media (prefers-reduced-motion:reduce){#flow-inner{transition:none}}
 
 @media (max-width:800px) {.flow-status #flow-streak{display:none}.flow-status{letter-spacing:.05em}}
+
+/* Arcade Progression 1.0 — minimal records, milestones and unranked training controls. */
+.arcade-records{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:min(480px,100%);gap:10px;margin-top:13px;}
+.arcade-records>div{min-width:0;display:flex;flex-direction:column;gap:2px;padding:7px 6px;border-radius:10px;background:#0f1c36b8;border:1px solid #6ce9ff27;}
+.arcade-records span{font-size:clamp(8px,.72vw,10px);letter-spacing:.14em;color:#8b9cbb;font-weight:800;white-space:nowrap;}
+.arcade-records strong{font-size:clamp(15px,1.65vw,22px);font-variant-numeric:tabular-nums;letter-spacing:.04em;color:#d5faff;}
+.arcade-milestones{width:min(480px,100%);display:flex;justify-content:space-between;gap:8px;margin-top:7px;color:#b9a9e9;font-weight:800;font-size:clamp(8px,.72vw,11px);letter-spacing:.08em;}
+.arcade-milestones span{white-space:nowrap;}
+.practice-controls{width:min(410px,100%);display:flex;gap:8px;justify-content:center;margin-top:11px;}
+.practice-controls select,.practice-controls button{border:1px solid #5d9ccf7d;background:#0e2442;color:#d9f8ff;border-radius:9px;padding:8px 12px;min-height:34px;font-weight:800;font-size:clamp(10px,.85vw,13px);letter-spacing:.1em;}
+.practice-controls select{flex:1;max-width:165px;}
+.practice-controls button{flex:1;max-width:160px;color:#8af1ff;}
+.practice-controls button:not(:disabled):active{transform:scale(.97)}
+.practice-controls :disabled{opacity:.46;cursor:default;}
+.practice-hint{margin-top:5px;font-size:9px;letter-spacing:.1em;color:#8599bb;font-weight:750;}
+#mode-indicator{margin-top:5px;color:#80efff;font-size:clamp(8px,.75vw,11px);font-weight:900;letter-spacing:.12em;text-shadow:0 0 14px #3ed9ff80;}
+#milestone-toast{position:absolute;top:20%;left:14%;transform:translateY(-50%);z-index:8;display:flex;flex-direction:column;pointer-events:none;gap:2px;padding:7px 11px;border-radius:9px;background:#07182b9c;border-left:2px solid #75f9ff;box-shadow:0 0 18px #64eaff24;}
+#milestone-toast span{font-size:9px;color:#8acbe9;font-weight:800;letter-spacing:.15em;}
+#milestone-toast strong{color:#d4fcff;font-size:clamp(12px,1.35vw,20px);letter-spacing:.1em;}
+.result-stats{gap:clamp(7px,2vw,22px);flex-wrap:wrap;justify-content:center;}
+.result-stats div{min-width:58px;}
+.final-record{margin-top:8px;color:#98b0c8;font-size:clamp(10px,.85vw,13px);letter-spacing:.17em;font-weight:900;}
+.final-record.new-record{color:#b8ffd9;text-shadow:0 0 14px #54fbd26b;}
+.final-milestones{margin-top:4px;color:#b3a9e8;font-size:clamp(9px,.75vw,11px);letter-spacing:.11em;font-weight:800;}
+#menu-result-btn,#menu-paused-btn{margin-top:9px;}
+@media (max-height:440px){
+  .arcade-records{margin-top:7px;gap:6px;}
+  .arcade-records>div{padding:3px 5px;gap:0;}
+  .arcade-records strong{font-size:16px;}
+  .arcade-milestones{margin-top:4px;}
+  .practice-controls{margin-top:6px;}
+  .practice-controls select,.practice-controls button{min-height:27px;padding:4px 8px;}
+  .practice-hint{font-size:8px;margin-top:2px;}
+  .screen-panel .help-text{line-height:1.3;margin-top:6px;}
+  .screen-panel .version{margin-top:5px;}
+  #gameover h2{margin:5px 0;}
+  #gameover .primary-btn{margin-top:7px;}
+  #milestone-toast{top:24%;left:13%;}
+}
+@media (max-width:650px){.arcade-records strong{font-size:15px}.arcade-milestones{font-size:8px}.practice-controls select,.practice-controls button{font-size:10px}}
+.arcade-milestones button{padding:0;border:0;background:none;color:#bde5ff;font-size:inherit;font-weight:900;letter-spacing:.08em;}
+.arcade-milestones button:focus-visible{outline:2px solid #98f1ff;outline-offset:4px;}
+#milestone-panel{width:min(620px,90%);}
+#milestone-panel h2{margin:6px 0 9px;}
+.milestone-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:100%;max-width:580px;}
+.milestone-item{display:flex;flex-direction:column;min-width:0;gap:2px;text-align:left;border-radius:11px;padding:10px 12px;border:1px solid #8ae2ff29;background:#132440a8;}
+.milestone-item>span{font-size:9px;letter-spacing:.15em;color:#7b8ba8;font-weight:800;}
+.milestone-item>strong{font-size:clamp(11px,1.2vw,15px);letter-spacing:.08em;color:#d0e7ff;}
+.milestone-item>small{font-size:clamp(9px,.8vw,11px);color:#9aafcb;line-height:1.2;}
+.milestone-item.achieved{border-color:#87efff70;background:#123654a8;}
+.milestone-item.achieved>span{color:#77f7df;}
+#milestone-back-btn{margin-top:11px;}
+@media(max-height:440px){#milestone-panel h2{font-size:26px;margin:2px 0 5px;}.milestone-grid{gap:5px}.milestone-item{padding:5px 8px;gap:1px}.milestone-item>strong{font-size:11px}.milestone-item>small{font-size:9px}}

@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
   <meta name="theme-color" content="#080b19" />
   <meta name="description" content="CHROMA RUSH — a neon speed-survival arcade prototype." />
-  <title>CHROMA RUSH | Reactive Audio 1.0</title>
-  <link rel="stylesheet" href="style.css?v=audio-1.0" />
+  <title>CHROMA RUSH | Arcade Progression 1.0</title>
+  <link rel="stylesheet" href="style.css?v=arcade-1.0" />
 </head>
 <body>
   <main id="game-shell" aria-label="CHROMA RUSH arcade game">
@@ -20,10 +20,11 @@
         <div id="flow-outer" class="flow-outer" role="progressbar" aria-label="Chroma Flow" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="flow-inner"></div></div>
         <div class="flow-status"><span id="flow-state">LOW FLOW</span><span id="flow-streak">0 STREAK</span></div>
       </div>
-      <div class="hud-center"><div class="small-label">CHROMA <b>RUSH</b></div><div id="zone-display">ZONE 01</div><div id="phase-display">BUILDING</div></div>
+      <div class="hud-center"><div class="small-label">CHROMA <b>RUSH</b></div><div id="zone-display">ZONE 01</div><div id="phase-display">BUILDING</div><div id="mode-indicator" class="hidden">PRACTICE · NO RECORDS</div></div>
       <div class="hud-right"><div class="small-label">SCORE</div><div id="score-display">000000</div><div class="tiny-label" id="speed-display">SPEED 1.00×</div></div>
     </header>
     <div id="danger-indicator" aria-hidden="true">CRITICAL SHIELD</div>
+    <div id="milestone-toast" class="hidden" aria-live="polite"><span>MILESTONE UNLOCKED</span><strong id="milestone-toast-name"></strong></div>
     <div id="zone-callout" class="hidden" aria-hidden="true"><span id="zone-callout-tag">ZONE 02</span><strong id="zone-callout-name">VIOLET</strong><span id="zone-perfect" class="hidden">PERFECT ZONE</span></div>
     <div id="controls" class="hidden">
       <button id="jump-btn" class="control control-jump" type="button" aria-label="Jump">
@@ -40,18 +41,35 @@
       <div class="menu-line"></div>
       <p>JUMP. DUCK. SURVIVE THE ACCELERATION.</p>
       <button id="start-btn" class="primary-btn" type="button">START RUN <span>→</span></button>
+      <div class="arcade-records" aria-label="Personal arcade records">
+        <div><span>BEST SCORE</span><strong id="record-score">0</strong></div>
+        <div><span>BEST ZONE</span><strong id="record-zone">01</strong></div>
+        <div><span>BEST STREAK</span><strong id="record-streak">0</strong></div>
+      </div>
+      <div class="arcade-milestones"><button id="milestone-view-btn" type="button" aria-haspopup="dialog"><span id="milestone-progress">MILESTONES 0/6</span> <span aria-hidden="true">›</span></button><span id="milestone-next">NEXT: IGNITION</span></div>
+      <div class="practice-controls"><select id="practice-zone" aria-label="Practice starting zone" disabled><option>ZONE 02</option></select><button type="button" id="practice-start-btn" disabled>TRAIN ZONE</button></div>
+      <div id="practice-hint" class="practice-hint">REACH ZONE 02 TO UNLOCK PRACTICE</div>
       <p class="help-text">LEFT THUMB: JUMP &nbsp;•&nbsp; RIGHT THUMB: DUCK<br/>KEYBOARD: ↑ / SPACE &nbsp;•&nbsp; ↓ / S</p>
-      <div class="version">REACTIVE AUDIO SYSTEM 1.0</div>
+      <div class="version">ARCADE PROGRESSION 1.0</div>
+    </section>
+    <section id="milestone-panel" class="screen-panel hidden" role="dialog" aria-modal="true" aria-label="Arcade milestones">
+      <div class="menu-eyebrow">YOUR ARCADE JOURNEY</div><h2>MILESTONES</h2>
+      <div class="milestone-grid" id="milestone-grid"></div>
+      <button id="milestone-back-btn" class="secondary-btn" type="button">BACK TO MENU</button>
     </section>
     <section id="pause-menu" class="screen-panel hidden" aria-live="polite">
       <div class="menu-eyebrow">RUN INTERRUPTED</div><h2>PAUSED</h2>
       <button id="resume-btn" class="primary-btn" type="button">RESUME <span>→</span></button>
       <button id="restart-paused-btn" class="secondary-btn" type="button">RESTART RUN</button>
+      <button id="menu-paused-btn" class="secondary-btn" type="button">MAIN MENU</button>
     </section>
     <section id="gameover" class="screen-panel hidden" aria-live="polite">
-      <div class="menu-eyebrow">SYSTEM OVERLOAD</div><h2>RUN COMPLETE</h2>
-      <div class="result-stats"><div><span>SCORE</span><strong id="final-score">0</strong></div><div><span>ZONE</span><strong id="final-zone">01</strong></div><div><span>BEST</span><strong id="final-best">0</strong></div><div><span>PERFECT</span><strong id="final-perfect">0</strong></div></div>
+      <div class="menu-eyebrow" id="final-mode">ARCADE RUN · RANKED</div><h2>RUN COMPLETE</h2>
+      <div class="result-stats"><div><span>SCORE</span><strong id="final-score">0</strong></div><div><span>ZONE</span><strong id="final-zone">01</strong></div><div><span>BEST</span><strong id="final-best">0</strong></div><div><span>PERFECT</span><strong id="final-perfect">0</strong></div><div><span>STREAK</span><strong id="final-streak">0</strong></div></div>
+      <div class="final-record" id="final-record">KEEP PUSHING YOUR RECORD</div>
+      <div class="final-milestones" id="final-milestones">MILESTONES EARNED IN ARCADE MODE</div>
       <button id="retry-btn" class="primary-btn" type="button">RUN AGAIN <span>→</span></button>
+      <button id="menu-result-btn" class="secondary-btn" type="button">MAIN MENU</button>
     </section>
     <div id="portrait-tip" aria-live="polite"><div class="rotate-icon">▭ ↻</div><strong>ROTATE YOUR DEVICE</strong><span>CHROMA RUSH is built for landscape play.</span></div>
   </main>
@@ -62,6 +80,8 @@
   <script src="src/gameplay/flow.js?v=flow-1.0"></script>
   <script src="src/ui/hud.js?v=flow-1.0"></script>
   <script src="src/audio/reactive-audio.js?v=audio-1.0"></script>
-  <script src="src/gameplay/game.js?v=audio-1.0"></script>
+  <script src="src/progression/arcade-progress.js?v=arcade-1.0"></script>
+  <script src="src/ui/arcade-ui.js?v=arcade-1.0"></script>
+  <script src="src/gameplay/game.js?v=arcade-1.0"></script>
 </body>
 </html>

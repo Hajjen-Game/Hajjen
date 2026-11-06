@@ -10,8 +10,10 @@ const geometry = require('../src/core/geometry.js');
 const hud = require('../src/ui/hud.js');
 const flow = require('../src/gameplay/flow.js');
 const audio = require('../src/audio/reactive-audio.js');
+const progression = require('../src/progression/arcade-progress.js');
+const arcadeUI = require('../src/ui/arcade-ui.js');
 
-function setup() {
+function setup(initialStorage={}) {
   const objects=new Map();
   function get(id){
     if(!objects.has(id)) {
@@ -29,16 +31,16 @@ function setup() {
     createLinearGradient(){return {addColorStop(){}}},createRadialGradient(){return {addColorStop(){}}}};
   get('game').getContext=()=>draw;
   let requested;
-  const local={};
+  const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
   const context=vm.createContext({window:world,document,navigator:{},localStorage:{getItem:k=>local[k],setItem:(k,v)=>local[k]=v},
     requestAnimationFrame:f=>{requested=f},performance:{now:()=>0},setTimeout:()=>{},Math,console});
   vm.runInContext(fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8'),context,{filename:'game.js'});
-  return {get,step:(time)=>{assert.ok(requested);requested(time)},context,
+  return {get,local,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
 }
 
@@ -121,4 +123,48 @@ test('sound toggle works during play and pause without an AudioContext',()=>{
   assert.ok(g.get('pause-menu').classList.contains('hidden'));
   for(let i=1;i<=90;i++)g.step(i*16.667);
   assert.ok(g.get('flow-number').textContent.endsWith('%'));
+});
+
+test('arcade menu displays records and the milestone gallery can be opened and closed',()=>{
+  const g=setup({chromaRushBestFlow1:'8200'});g.step(0);
+  assert.equal(g.get('record-score').textContent,'8,200');
+  assert.equal(g.get('practice-start-btn').disabled,true);
+  g.get('milestone-view-btn').click();
+  assert.ok(g.get('menu').classList.contains('hidden'));
+  assert.ok(!g.get('milestone-panel').classList.contains('hidden'));
+  assert.match(g.get('milestone-grid').innerHTML,/IGNITION/);
+  g.get('milestone-back-btn').click();
+  assert.ok(!g.get('menu').classList.contains('hidden'));
+});
+
+test('practice starts at unlocked zone speed, is marked unranked and never writes records',()=>{
+  const profile={bestScore:3800,bestZone:6,bestStreak:11,perfectZones:2,completedRuns:2};
+  const stored=JSON.stringify(profile);
+  const g=setup({chromaRushArcadeV1:stored,chromaRushBestFlow1:'3800'});
+  g.step(0);
+  assert.equal(g.get('practice-start-btn').disabled,false);
+  assert.match(g.get('practice-zone').innerHTML,/ZONE 06/);
+  g.get('practice-zone').value='5';
+  g.get('practice-start-btn').click();
+  assert.equal(g.get('zone-display').textContent,'ZONE 05');
+  assert.equal(g.get('mode-indicator').classList.contains('hidden'),false);
+  assert.match(g.get('mode-indicator').textContent,/PRACTICE/);
+  assert.notEqual(g.get('speed-display').textContent,'SPEED 1.00×');
+  for(let i=1;i<=950;i++)g.step(i*16.667);
+  assert.equal(g.local.chromaRushArcadeV1,stored);
+  assert.equal(g.local.chromaRushBestFlow1,'3800');
+  g.get('pause-btn').click();g.get('menu-paused-btn').click();
+  assert.equal(g.get('milestone-panel').classList.contains('hidden'),true);
+  assert.equal(g.get('menu').classList.contains('hidden'),false);
+  assert.equal(g.get('record-zone').textContent,'06');
+  assert.equal(g.get('record-streak').textContent,'11');
+});
+
+test('arcade run can return to menu and resets to zone 01 without practice tag',()=>{
+  const g=setup({chromaRushArcadeV1:JSON.stringify({bestZone:4})});
+  g.step(0);g.get('start-btn').click();
+  assert.equal(g.get('zone-display').textContent,'ZONE 01');
+  assert.equal(g.get('mode-indicator').classList.contains('hidden'),true);
+  g.get('pause-btn').click();g.get('menu-paused-btn').click();
+  assert.equal(g.get('menu').classList.contains('hidden'),false);
 });

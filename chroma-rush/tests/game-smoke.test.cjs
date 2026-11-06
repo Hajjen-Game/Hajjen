@@ -23,6 +23,8 @@ const unified = require('../src/director/unified-terrain-director.js');
 const perf = require('../src/performance/quality-manager.js');
 const clock = require('../src/performance/frame-clock.js');
 const mobilePreferences = require('../src/ui/mobile-preferences.js');
+const replay = require('../src/progression/replay-challenge.js');
+const replayUI = require('../src/ui/replay-ui.js');
 
 function setup(initialStorage={}) {
   const objects=new Map();
@@ -44,7 +46,7 @@ function setup(initialStorage={}) {
   let requested;
   const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
@@ -238,4 +240,16 @@ test('fullscreen button degrades gracefully when browser lacks fullscreen API',(
  assert.match(g.get('fullscreen-status').textContent,/not available/);
  g.get('fullscreen-btn').click();
  assert.equal(g.get('fullscreen-btn').disabled,true);
+});
+
+test('replay PB HUD survives a paused restart without writing stats',()=>{
+ const prior=JSON.stringify({bestScore:1500,bestZone:4,bestStreak:3,perfectZones:0,completedRuns:1});
+ const g=setup({chromaRushArcadeV1:prior,chromaRushReplayV1:JSON.stringify({bestDistance:13000})});
+ g.step(0);g.get('start-btn').click();
+ assert.equal(g.get('replay-progress').classList.contains('hidden'),false);
+ assert.match(g.get('replay-target').textContent,/PB 1,500/);
+ for(let i=1;i<=60;i++)g.step(i*16.667);
+ g.get('pause-btn').click();g.get('restart-paused-btn').click();
+ assert.match(g.get('replay-target').textContent,/PB 1,500/);
+ assert.equal(g.local.chromaRushArcadeV1,prior);
 });

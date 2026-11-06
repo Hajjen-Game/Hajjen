@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const {ReactiveAudioSystem,PHASE_MIX}=require('../src/audio/reactive-audio.js');
 const {AUDIO}=require('../src/core/config.js');
 
-function fakeContext(){
+function fakeContext(initialState='running'){
   const stats={contexts:0,oscillators:[],gains:[],connections:0,resumes:0};
   class Param{
     constructor(){this.value=0;this.target=0}
@@ -20,7 +20,7 @@ function fakeContext(){
     stop(){}
   }
   class Context{
-    constructor(){stats.contexts++;this.currentTime=0;this.state='running';this.destination=new Node()}
+    constructor(){stats.contexts++;this.currentTime=0;this.state=initialState;this.destination=new Node()}
     createGain(){const n=new Node();stats.gains.push(n);return n}
     createOscillator(){const n=new Node();stats.oscillators.push(n);return n}
     resume(){stats.resumes++;this.state='running';return Promise.resolve()}
@@ -107,8 +107,35 @@ test('entry point loads independent audio module before the gameplay engine',()=
   const root=path.join(__dirname,'..');
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const scripts=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
-  const audio=scripts.indexOf('src/audio/reactive-audio.js?v=audio-1.0');
-  const engine=scripts.indexOf('src/gameplay/game.js?v=arcade-1.0');
+  const audio=scripts.indexOf('src/audio/reactive-audio.js?v=audio-1.1');
+  const engine=scripts.indexOf('src/gameplay/game.js?v=audio-1.1');
   assert.ok(audio>0 && engine>audio);
   assert.ok(scripts.every(src=>fs.existsSync(path.join(root,src.split('?')[0]))));
+});
+
+test('BUILD has a clearly audible-range melody on the first musical step',()=>{
+  const {scope,stats}=fakeContext(),a=new ReactiveAudioSystem({scope});
+  a.start();a.tick(info('BUILD',370,0,1));
+  const frequencies=stats.oscillators.map(o=>o.frequency.value);
+  assert.ok(frequencies.some(f=>f>500),`no melody above 500 Hz: ${frequencies}`);
+  assert.ok(stats.oscillators.length>=5);
+  assert.equal(a.playbackState,'playing');
+  assert.ok(AUDIO.musicGain>=.5);
+});
+
+test('mobile suspended and interrupted AudioContext is resumed from user gesture',()=>{
+  for(const state of ['suspended','interrupted']){
+    const {scope,stats}=fakeContext(state),a=new ReactiveAudioSystem({scope});
+    a.start();assert.equal(stats.resumes,1);
+    a.tick(info('BUILD'));assert.ok(a.scheduledSteps>=1);
+  }
+});
+
+test('sound on is not mistaken for audible sound',()=>{
+  const {scope}=fakeContext(),a=new ReactiveAudioSystem({scope,enabled:false});
+  assert.equal(a.playbackState,'muted');
+  a.setEnabled(true);assert.equal(a.playbackState,'ready');
+  a.start();assert.equal(a.playbackState,'playing');
+  a.pause();assert.equal(a.playbackState,'ready');
+  a.setEnabled(false);assert.equal(a.playbackState,'muted');
 });

@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Reactive Audio System 1.0.
+/* CHROMA RUSH — Reactive Audio System 1.1 — mobile audibility.
  * Entirely original procedurally synthesized soundtrack. No samples, network or timers.
  * Gameplay calls tick() from requestAnimationFrame; notes use AudioContext time and a
  * bounded 90 ms scheduling window. Never drives/changes the game's speed or rules.
@@ -25,6 +25,14 @@
       this.stepIndex=0;this.nextStepAt=0;this.scheduledSteps=0;
     }
     get available(){return Boolean(this.scope.AudioContext||this.scope.webkitAudioContext)}
+    // A stored "sound on" preference alone does not mean audio is actually running.
+    get playbackState(){
+      if(!this.enabled)return 'muted';
+      if(!this.available)return 'unsupported';
+      if(!this.context)return 'ready';
+      if(this.context.state==='running')return this.playing?'playing':'ready';
+      return this.context.state==='closed'?'unsupported':'blocked';
+    }
     get bpm(){return clamp(AUDIO.startBpm+(this.speed-370)*AUDIO.bpmPerSpeed,AUDIO.startBpm,AUDIO.maxBpm)}
     get layerMix(){
       const flow=clamp(this.flow,0,100)/100;
@@ -46,15 +54,22 @@
     }
     unlock(){
       if(!this.enabled||!this.init())return false;
-      try{if(this.context.state==='suspended'){
-        const promise=this.context.resume();if(promise&&typeof promise.catch==='function')promise.catch(()=>{});
-      }}catch(_){}
+      try{
+        // Safari can report "interrupted" as well as "suspended".
+        if(this.context.state!=='running'&&this.context.state!=='closed'){
+          const promise=this.context.resume();
+          if(promise&&typeof promise.catch==='function')promise.catch(()=>{});
+        }
+      }catch(_){}
       return true;
     }
     _gain(node,target,time=.055){
       if(!node||!this.context)return;
       const now=this.context.currentTime;
-      try{node.gain.cancelScheduledValues(now);node.gain.setTargetAtTime(Math.max(0,target),now,time)}catch(_){}
+      try{
+        node.gain.cancelScheduledValues(now);
+        node.gain.setTargetAtTime(Math.max(0,target),now,time);
+      }catch(_){try{node.gain.value=Math.max(0,target)}catch(__){}}
     }
     _updateMix(){
       if(!this.context)return;
@@ -120,25 +135,30 @@
       const root=ROOTS[(Math.floor(step/8)+zone-1)%ROOTS.length];
       const beat=step%8,index=step%16;
       const peak=phase==='PEAK',relax=phase==='RELAX';
-      // Four independent layers whose density responds to Director + Flow.
-      if(beat%2===0 && (!relax||beat===0)){
-        this._voice({hz:118},at,.19,peak?.24:.20,'sine',this.musicBus,{hz:49}); // electronic kick
-        this._voice(root,at,eighth*(relax?1.7:1.18),peak?.15:.12,'triangle'); // bass
+      // Kick with an upper-octave bass voice: the original sub-bass was
+      // too quiet on small phone speakers.
+      if(beat%2===0&&(!relax||beat===0)){
+        this._voice({hz:118},at,.18,peak?.22:.17,'sine',this.musicBus,{hz:53});
+        this._voice(root+12,at,eighth*1.18,peak?.19:.16,'triangle');
+        if(!relax)this._voice(root+24,at,eighth*.76,.067,'sine');
       }
-      if(beat%2===1&&(peak||phase==='BUILD'||flow>=35)&&!relax){
-        this._voice({hz:1700},at,.026,peak?.045:.027,'triangle'); // hi-hat tick
-      }
+      // Crisp highs and backbeat are audible from the FIRST zone.
+      if(!relax&&beat%2===1)this._voice({hz:1850},at,.034,peak?.074:.052,'triangle');
+      if(!relax&&(beat===2||beat===6))
+        this._voice({hz:470},at,.085,peak?.09:.068,'triangle',this.musicBus,{hz:215});
+      // Midrange harmony stays audible even during a calm section.
       if(beat===0){
-        this._voice(root+12,at,eighth*6.5,.023,'sine');
-        this._voice(root+19,at,eighth*6.5,.014,'triangle'); // ambient two-voice pad
+        this._voice(root+24,at,eighth*5.9,relax?.055:.072,'sine');
+        this._voice(root+31,at,eighth*5.9,relax?.024:.038,'triangle');
       }
-      const arpEnabled=peak||flow>=65;
-      if(arpEnabled&&!relax&&(peak||beat%2===0)){
-        this._voice(root+24+MELODY[index],at+.008,eighth*.58,flow>=90?.061:.039,'triangle');
+      // Original motif in a phone-friendly 500–1200 Hz register.
+      // BUILD plays every second eighth, PEAK every eighth.
+      if(!relax&&(peak||beat%2===0)){
+        const lead=.085+(peak?.026:0)+(flow/100)*.028;
+        this._voice(root+36+MELODY[index],at+.009,eighth*(peak?.55:.78),lead,'triangle');
       }
-      if(peak&&flow>=90&&beat===7){
-        this._voice(root+36+MELODY[index],at,eighth*.8,.031,'sine');
-      }
+      if(peak&&flow>=90&&beat===7)
+        this._voice(root+48+MELODY[index],at,eighth*.66,.032,'sine');
     }
     effect(kind){
       if(!this.enabled||!this.context||this.context.state!=='running')return;

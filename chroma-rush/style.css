@@ -134,3 +134,11 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
 .milestone-item.achieved>span{color:#77f7df;}
 #milestone-back-btn{margin-top:11px;}
 @media(max-height:440px){#milestone-panel h2{font-size:26px;margin:2px 0 5px;}.milestone-grid{gap:5px}.milestone-item{padding:5px 8px;gap:1px}.milestone-item>strong{font-size:11px}.milestone-item>small{font-size:9px}}
+
+/* Audio 1.1 — show a prompt only when the browser blocks Web Audio. */
+.audio-hint {position:absolute;right:0;top:49px;padding:6px 9px;border-radius:8px;
+  background:rgba(11,19,40,.88);border:1px solid rgba(105,238,246,.43);
+  box-shadow:0 0 14px rgba(52,207,247,.12);color:#d7fbff;
+  font-size:10px;letter-spacing:.09em;font-weight:800;white-space:nowrap;
+  text-shadow:0 1px 7px #050915;pointer-events:none;}
+@media (max-height:420px){.audio-hint{top:42px;font-size:9px;}}

@@ -1,4 +1,4 @@
-# CHROMA RUSH — Arcade Progression 1.0
+# CHROMA RUSH — Arcade Progression 1.0 + Audio Audibility 1.1
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
@@ -14,6 +14,14 @@ A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only g
 - **Safe persistence**: missing/corrupt/blocked local storage falls back to a playable game. Record updates happen on new ranked zone/streak achievements and on run completion. Personal records stay on the same browser/device without an account.
 - **Modular architecture**: `src/progression/arcade-progress.js` owns all durable record, unlock and milestone rules; `src/ui/arcade-ui.js` renders progress without implementing the rules. No additions to gameplay controls or dependencies.
 - **Design target**: the same fast, satisfying 2–3 minute arcade run. Speed Fairness & Readability remains a separately deferred task.
+
+## Reactive Audio 1.1 — mobile audibility hotfix
+
+- The BUILD phase now plays an original mid/high-range melody and more audible percussion, not mostly sub-bass.
+- A more balanced music bus and midrange bass make the sound more noticeable on small phone speakers.
+- Interrupted or suspended Web Audio is resumed on a player gesture. If browser playback is blocked, the sound button offers a second unlock gesture instead of muting, and a small prompt is displayed.
+- Added tests for early-music audibility, interruption recovery and honest playback status.
+- No changes to gameplay physics, Director, Chroma Flow, progression or scores.
 
 ## Reactive Audio System 1.0
 

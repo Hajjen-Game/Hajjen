@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Arcade Progression 1.0
+/* CHROMA RUSH — Arcade Progression 1.0 + Reactive Audio 1.1
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -27,7 +27,7 @@
     hp:el('hp-inner'), hpNumber:el('hp-number'), zone:el('zone-display'), phase:el('phase-display'),
     score:el('score-display'), speed:el('speed-display'), critical:el('danger-indicator'),
     zoneCallout:el('zone-callout'), zoneCalloutTag:el('zone-callout-tag'), zoneCalloutName:el('zone-callout-name'),
-    sound:el('sound-btn'), finalScore:el('final-score'), finalZone:el('final-zone'), finalBest:el('final-best'),
+    sound:el('sound-btn'), audioHint:el('audio-hint'), finalScore:el('final-score'), finalZone:el('final-zone'), finalBest:el('final-best'),
     finalPerfect:el('final-perfect'), zonePerfect:el('zone-perfect'),
     flowNumber:el('flow-number'),flowBar:el('flow-inner'),flowOuter:el('flow-outer'),
     flowMultiplier:el('flow-multiplier'),flowState:el('flow-state'),flowStreak:el('flow-streak'),
@@ -63,13 +63,22 @@
   const DUCK_RECOVERY=GAME.duckRecovery;
   // Audio is fully owned by src/audio/reactive-audio.js, including all effects.
   function sound(kind){audio.effect(kind)}
-  function syncSoundButton(){
+  let lastAudioState='';
+  function syncSoundButton(force=false){
+    const state=audio.playbackState;
+    if(!force&&state===lastAudioState)return;
+    lastAudioState=state;
+    const blocked=audio.enabled&&state==='blocked';
+    const unsupported=audio.enabled&&state==='unsupported';
     $.sound.textContent=audio.enabled?'♫':'×';
-    $.sound.title=audio.enabled?'Mute sound':'Enable sound';
+    const label=blocked?'Tap to unlock audio':unsupported?'Audio unavailable':audio.enabled?'Mute sound':'Enable sound';
+    $.sound.title=label;
     $.sound.setAttribute('aria-pressed',String(audio.enabled));
-    $.sound.setAttribute('aria-label',audio.enabled?'Mute sound':'Enable sound');
+    $.sound.setAttribute('aria-label',label);
+    $.audioHint.textContent=unsupported?'AUDIO NOT SUPPORTED':'TAP ♫ FOR MUSIC';
+    $.audioHint.classList.toggle('hidden',status!=='running'||(!blocked&&!unsupported));
   }
-  syncSoundButton();
+  syncSoundButton(true);
   function resize(){
     const cw=Math.max(1,canvas.clientWidth),ch=Math.max(1,canvas.clientHeight);
     dpr=Math.min(window.devicePixelRatio||1,2);
@@ -106,7 +115,7 @@
     $.hud.classList.remove('hidden');$.controls.classList.remove('hidden');$.pauseBtn.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');$.milestoneToast.classList.add('hidden');
     arcadeUI.hud($,runMode==='practice');
-    status='running';lastTs=performance.now();updateHud();audio.start();sound('start');
+    status='running';lastTs=performance.now();updateHud();audio.start();syncSoundButton(true);sound('start');
   }
   function earnedMilestones(awards){
     if(runMode!=='arcade'||!awards?.length)return;
@@ -120,13 +129,13 @@
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
     $.controls.classList.add('hidden');$.hud.classList.add('hidden');$.pauseBtn.classList.add('hidden');
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');
-    $.menu.classList.remove('hidden');arcadeUI.menu($,progression);
+    $.menu.classList.remove('hidden');syncSoundButton(true);arcadeUI.menu($,progression);
   }
-  function pause(){if(status!=='running')return;status='paused';$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;player.duck=false;player.duckTime=0;player.duckRecovery=0;$.duck.classList.remove('is-down');audio.pause();}
-  function resume(){if(status!=='paused')return;status='running';$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();audio.resume();}
+  function pause(){if(status!=='running')return;status='paused';$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;player.duck=false;player.duckTime=0;player.duckRecovery=0;$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
+  function resume(){if(status!=='paused')return;status='running';$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();audio.resume();syncSoundButton(true);}
   function endRun(){
     if(status!=='running')return;
-    status='dead';audio.stop();sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
+    status='dead';audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
     const total=Math.floor(score),previousBest=progression.bestScore;
     if(runMode==='arcade'){
       earnedMilestones(progression.finishRankedRun({score:total,zone,bestStreak:flow.bestStreak}).earned);
@@ -210,7 +219,16 @@
     el('milestone-view-btn').addEventListener('click',openMilestones);
     el('milestone-back-btn').addEventListener('click',closeMilestones);
     $.pauseBtn.addEventListener('click',()=>status==='paused'?resume():pause());
-    $.sound.addEventListener('click',()=>{audio.setEnabled(!audio.enabled);try{localStorage.setItem('chromaRushSoundOff',String(!audio.enabled))}catch(_){}syncSoundButton();});
+    $.sound.addEventListener('click',()=>{
+      if(audio.enabled&&audio.playbackState==='blocked'){
+        audio.unlock();
+        if(status==='running')audio.resume();
+      }else{
+        audio.setEnabled(!audio.enabled);
+        try{localStorage.setItem('chromaRushSoundOff',String(!audio.enabled))}catch(_){}
+      }
+      syncSoundButton(true);
+    });
     document.addEventListener('contextmenu',e=>e.preventDefault());
   }
   registerControls();
@@ -330,6 +348,7 @@
     rings=rings.filter(r=>r.life>0);
     if(hp>0&&hp<=25&&Math.floor(worldTime*1.5)!==Math.floor((worldTime-dt)*1.5))sound('warning');
     audio.tick({phase:director.phase,speed,flow:flow.value,zone,hp});
+    syncSoundButton();
     updateHud();
   }
 

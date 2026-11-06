@@ -22,6 +22,8 @@ const modules={
  ChromaQuality:require('../src/performance/quality-manager.js'),
  ChromaFrameClock:require('../src/performance/frame-clock.js'),
  ChromaMobilePreferences:require('../src/ui/mobile-preferences.js'),
+ ChromaReplay:require('../src/progression/replay-challenge.js'),
+ ChromaReplayUI:require('../src/ui/replay-ui.js'),
 };
 function harness(){
  const elements=new Map(),events={};

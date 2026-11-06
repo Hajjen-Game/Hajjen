@@ -1,8 +1,16 @@
-# CHROMA RUSH — Terrain Visual Fix 1.1
+# CHROMA RUSH — Terrain Visual Fix 1.2
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Terrain Visual Fix 1.2 — clip-path regression fix (2026-11-06)
+
+- Fixes an accidental diagonal wedge underneath terrain: the shared Canvas path used a second `moveTo` after the bottom edge, splitting the intended floor polygon and closing it diagonally.
+- Each solid terrain island now starts at its bottom-left, joins the actual surface, follows all connected slopes and flats, and closes at the bottom-right. Gaps remain open and show the parallax background.
+- Verified with headless Chromium using a representative flat/slope/gap layout, comparing screenshots before and after.
+- Added explicit polygon-path tests (including a scrolled camera) so a triangular closure cannot silently pass regression tests again.
+- Pure render correction; no changes to jumps, HP, collision, Director, audio or progression.
 
 ## Terrain Visual Fix 1.1 (2026-11-06)
 

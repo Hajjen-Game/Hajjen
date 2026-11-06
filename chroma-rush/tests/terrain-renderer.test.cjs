@@ -40,3 +40,28 @@ test('renderer never changes terrain data or collision state',()=>{
  const before=JSON.stringify(terrain);drawTerrain({...opts(ctx),terrain});
  assert.equal(JSON.stringify(terrain),before);
 });
+test('floor clipping path connects the bottom-left to the top-left before the surface',()=>{
+ const {ctx,calls}=fake();drawTerrain(opts(ctx));
+ const begin=calls.findIndex(c=>c[0]==='beginPath');
+ const clip=calls.findIndex(c=>c[0]==='clip');
+ const path=calls.slice(begin+1,clip).filter(c=>['moveTo','lineTo','closePath'].includes(c[0]));
+ // The old bug called moveTo twice here, creating a triangular wedge under
+ // the platform. Each island must have ONE moveTo and a closing bottom edge.
+ assert.deepEqual(path.slice(0,2),[['moveTo',0,728],['lineTo',0,515]]);
+ assert.equal(path.filter(c=>c[0]==='moveTo').length,2);
+ assert.equal(path.filter(c=>c[0]==='closePath').length,2);
+ const firstClosed=path.findIndex(c=>c[0]==='closePath');
+ assert.deepEqual(path[firstClosed-1],['lineTo',850,728]);
+ assert.deepEqual(path[firstClosed+1],['moveTo',1000,728]);
+ assert.deepEqual(path[firstClosed+2],['lineTo',1000,460]);
+});
+test('scrolling ground mask remains bottom-anchored after a camera offset',()=>{
+ const {ctx,calls}=fake();
+ drawTerrain({...opts(ctx),distance:400,width:780});
+ const clip=calls.findIndex(c=>c[0]==='clip');
+ const path=calls.slice(0,clip).filter(c=>['moveTo','lineTo','closePath'].includes(c[0]));
+ assert.deepEqual(path[0],['moveTo',-36,728]);
+ assert.equal(path[1][0],'lineTo');
+ assert.ok(path[1][2]>=460&&path[1][2]<515);
+ assert.equal(path.filter(c=>c[0]==='moveTo').length,2);
+});

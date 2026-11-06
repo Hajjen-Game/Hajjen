@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Terrain Visual Seam Fix 1.1. Presentation only. */
+/* CHROMA RUSH — Terrain Visual Fix 1.2 — corrected ground clip polygons. Presentation only. */
 (function(root,factory){
  const api=factory();
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
@@ -24,9 +24,13 @@
    if(current.length)runs.push(current);
    return runs;
  }
- function traceSurface(ctx,run,distance,depth=0){
+ function traceSurface(ctx,run,distance,depth=0,connect=false){
    const first=run[0];
-   ctx.moveTo(first.lo-distance,surface(first.s,first.lo)+depth);
+   // The compound floor clip starts at the bottom of each island.
+   // Its NEXT point must be joined to the surface, not a new subpath:
+   // moveTo() here produced the diagonal black wedge seen in-game.
+   if(connect)ctx.lineTo(first.lo-distance,surface(first.s,first.lo)+depth);
+   else ctx.moveTo(first.lo-distance,surface(first.s,first.lo)+depth);
    for(const {s,lo,hi} of run){
      for(let x=lo+16;x<hi;x+=16)ctx.lineTo(x-distance,surface(s,x)+depth);
      ctx.lineTo(hi-distance,surface(s,hi)+depth);
@@ -41,7 +45,8 @@
    ctx.save();ctx.beginPath();
    for(const run of runs){
      const start=run[0].lo-distance,end=run[run.length-1].hi-distance;
-     ctx.moveTo(start,height+8);traceSurface(ctx,run,distance);
+     ctx.moveTo(start,height+8);
+     traceSurface(ctx,run,distance,0,true);
      ctx.lineTo(end,height+8);ctx.closePath();
    }
    ctx.clip();

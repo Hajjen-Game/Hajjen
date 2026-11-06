@@ -1,4 +1,4 @@
-/* Japanese Harmony · Hanabi Pixi Preview 1.0
+/* Japanese Harmony · Hanabi Pixi Preview 1.1
  * Opt-in GPU particle layer, adapted from arena3v3's pinned PixiJS 8.21.0
  * + WebGL-first initialization and safe Canvas/WAAPI fallback.
  * Never reads/writes gameplay, seeds, boards, rewards or saved runs.
@@ -7,9 +7,9 @@
 "use strict";
 const MODULE_URL="https://cdn.jsdelivr.net/npm/pixi.js@8.21.0/dist/pixi.min.mjs";
 const STORAGE_KEY="japanese-harmony-hanabi-vfx-preview-v1";
-const TIMING=Object.freeze({charge:210,ascent:610,burst:820,sideDelay:245,sideFlight:420,tail:1000,total:2030});
+const TIMING=Object.freeze({charge:210,ascent:610,burst:820,sideDelay:505,sideFlight:420,tail:1000,total:2110});
 const COLORS=Object.freeze([0xffdb91,0xffa8d4,0xffae74,0xdcc1ff,0xd8f8ff]);
-let choice="classic",modulePromise=null,graphicsPromise=null,app=null,canvas=null,pixi=null,texture=null;
+let choice="classic",modulePromise=null,graphicsPromise=null,app=null,canvas=null,pixi=null,texture=null,streakTexture=null;
 let failed=false,lastReason=null,playing=false,shown=false;
 let metrics={renderer:"classic",frames:0,elapsedMs:0,estimatedFps:0,maxFrameGapMs:0};
 try{
@@ -49,6 +49,25 @@ async function prepare(){
 function viewRect(){
  return {width:Math.max(1,root.innerWidth||390),height:Math.max(1,root.innerHeight||844)};
 }
+function streakTextureFor(lib){
+ // A narrow tapered spark instead of another blurry radial-glow sprite.
+ const cn=document.createElement("canvas");cn.width=64;cn.height=64;
+ const ctx=cn.getContext("2d");if(!ctx)throw new Error("Pixi streak texture unavailable");
+ const fade=ctx.createLinearGradient(0,6,0,58);
+ fade.addColorStop(0,"rgba(255,255,255,0)");
+ fade.addColorStop(.18,"rgba(255,255,255,.7)");
+ fade.addColorStop(.48,"rgba(255,255,255,1)");
+ fade.addColorStop(.73,"rgba(255,255,255,.8)");
+ fade.addColorStop(1,"rgba(255,255,255,0)");
+ ctx.fillStyle=fade;
+ ctx.beginPath();
+ ctx.moveTo(32,6);ctx.bezierCurveTo(36,22,37,30,36,35);
+ ctx.bezierCurveTo(35,43,33,52,32,58);
+ ctx.bezierCurveTo(30,45,28,38,28,32);
+ ctx.bezierCurveTo(28,23,31,15,32,6);
+ ctx.fill();
+ return lib.Texture.from(cn);
+}
 function textureFor(lib){
  const cn=document.createElement("canvas");cn.width=64;cn.height=64;
  const ctx=cn.getContext("2d");if(!ctx)throw new Error("Canvas gradient unavailable");
@@ -82,8 +101,8 @@ async function ensureGraphics(){
     backgroundAlpha:0,antialias:false,autoStart:false,preference:"webgl",
     resolution:Math.min(2,Math.max(1,Number(root.devicePixelRatio)||1))});
    instance.ticker.stop();
-   const glow=textureFor(lib);
-   app=instance;canvas=element;texture=glow;
+   const glow=textureFor(lib),needle=streakTextureFor(lib);
+   app=instance;canvas=element;texture=glow;streakTexture=needle;
    failed=false;lastReason=null;metrics.renderer="pixi-webgl";
    return true;
   }catch(error){
@@ -96,17 +115,18 @@ async function ensureGraphics(){
  })().finally(()=>{graphicsPromise=null;});
  return graphicsPromise;
 }
-function particle(x,y,color,diameter){
- const s=new pixi.Sprite(texture);
+function particle(x,y,color,diameter,kind="glow"){
+ const s=new pixi.Sprite(kind==="streak"?streakTexture:texture);
  s.anchor.set(.5);s.x=x;s.y=y;s.tint=color;s.alpha=0;
  const base=diameter/64;
  s.scale.set(base);
  app.stage.addChild(s);
  return {s,base};
 }
-function update(p,x,y,diameter,alpha){
+function update(p,x,y,diameter,alpha,rotation=0){
  p.s.x=x;p.s.y=y;
  p.s.scale.set(p.base*diameter);
+ p.s.rotation=rotation;
  p.s.alpha=clamp(alpha,0,1);
 }
 function randomGenerator(seed){
@@ -144,20 +164,29 @@ async function play(evt,{rectFor,onCharge,onLaunch,onBurst,onReveal}={}){
   start:TIMING.charge+20+i*17,wobble:(rnd()-.5)*unit*.36
  }));
  const chargeGlows=path.map((at,i)=>({p:particle(loc(at).x,loc(at).y,0xffdb91,unit*.50),i,point:loc(at)}));
- const bloom=particle(apex.x,apex.y,0xffe1b3,unit*2.4);
+ const bloom=particle(apex.x,apex.y,0xffe1b3,unit*1.38);
  const innerBloom=particle(apex.x,apex.y,0xfff7e5,unit*.86);
+ // Clearly visible radial streaks are the main blast; the glow is only an accent.
  const rays=Array.from({length:32},(_,i)=>{
-  const angle=Math.PI*2*i/32-.28,rad=unit*(1.45+rnd()*.67);
-  return {p:particle(apex.x,apex.y,COLORS[i%COLORS.length],unit*(.19+rnd()*.16)),
-   dx:Math.cos(angle)*rad,dy:Math.sin(angle)*rad,offset:rnd()*95};
+  const angle=Math.PI*2*i/32-.28+(rnd()-.5)*.06;
+  const rad=unit*(1.34+rnd()*.77);
+  return {p:particle(apex.x,apex.y,COLORS[i%COLORS.length],unit*(.52+rnd()*.21),"streak"),
+   dx:Math.cos(angle)*rad,dy:Math.sin(angle)*rad,angle,offset:(i%3)*18+rnd()*32};
+ });
+ const embers=Array.from({length:12},(_,i)=>{
+  const angle=Math.PI*i/6+.20,rad=unit*(1.1+rnd()*.7);
+  return {p:particle(apex.x,apex.y,COLORS[(i+1)%COLORS.length],unit*(.12+rnd()*.12)),
+   dx:Math.cos(angle)*rad,dy:Math.sin(angle)*rad,offset:80+rnd()*90};
  });
  const branches=targets.map((target,n)=>({
-  target,trail:Array.from({length:4},(_,i)=>particle(apex.x,apex.y,COLORS[(n+i+1)%COLORS.length],unit*.18)),
-  burst:Array.from({length:8},(_,i)=>{
-   const angle=Math.PI*2*i/8+.25*n;
-   return {p:particle(target.point.x,target.point.y,COLORS[(n+i)%COLORS.length],unit*.18),
-    dx:Math.cos(angle)*unit*(.35+rnd()*.26),
-    dy:Math.sin(angle)*unit*(.35+rnd()*.26)};
+  target,
+  halo:particle(target.point.x,target.point.y,COLORS[(n+1)%COLORS.length],unit*.72),
+  core:particle(target.point.x,target.point.y,0xfff5d5,unit*.30),
+  trail:Array.from({length:4},(_,i)=>particle(apex.x,apex.y,COLORS[(n+i+1)%COLORS.length],unit*(.40-i*.055),"streak")),
+  burst:Array.from({length:10},(_,i)=>{
+   const angle=Math.PI*2*i/10+.25*n,rad=unit*(.38+rnd()*.38);
+   return {p:particle(target.point.x,target.point.y,COLORS[(n+i)%COLORS.length],unit*(.32+rnd()*.16),"streak"),
+    dx:Math.cos(angle)*rad,dy:Math.sin(angle)*rad,angle};
   })
  }));
  let chargePlayed=false,launchPlayed=false,burstPlayed=false,revealed=false,frame=0,largestGap=0,previousTime=0;
@@ -185,30 +214,45 @@ async function play(evt,{rectFor,onCharge,onLaunch,onBurst,onReveal}={}){
   }
   const boom=clamp((t-burstStart)/TIMING.burst,0,1);
   const blast=boom>0&&boom<1;
-  update(bloom,apex.x,apex.y,1.15+boom*2.1,
-   blast?Math.sin(Math.PI*boom)*.88:0);
+  update(bloom,apex.x,apex.y,.76+boom*1.55,
+   blast?Math.sin(Math.PI*boom)*.38:0);
   update(innerBloom,apex.x,apex.y,1+boom*.84,
    blast?Math.pow(1-boom,2)*.96:0);
   for(const ray of rays){
-   const q=clamp((t-burstStart-ray.offset)/(TIMING.burst*.85),0,1);
-   const fade=q>0&&q<1?Math.pow(1-q,1.35):0;
-   update(ray.p,apex.x+ray.dx*q,apex.y+ray.dy*q+unit*.13*q*q,
-    1+Math.sin(q*Math.PI)*.32,fade);
+   const q=clamp((t-burstStart-ray.offset)/(TIMING.burst*.96),0,1);
+   const fade=q>0&&q<1?Math.pow(1-q,.83)*Math.min(1,q*13):0;
+   update(ray.p,apex.x+ray.dx*q,apex.y+ray.dy*q+unit*.15*q*q,
+    1.12-q*.49,fade,ray.angle+Math.PI/2);
   }
-  branches.forEach(({target,trail,burst},n)=>{
+  for(const ember of embers){
+   const q=clamp((t-burstStart-ember.offset)/(TIMING.burst*.89),0,1);
+   const fade=q>0&&q<1?.82*Math.pow(1-q,1.55)*Math.min(1,q*12):0;
+   update(ember.p,apex.x+ember.dx*q,apex.y+ember.dy*q+unit*.23*q*q,
+    .82-q*.4,fade);
+  }
+  branches.forEach(({target,trail,burst,halo,core},n)=>{
    const depart=burstStart+70+n*58;
    const q=clamp((t-depart)/TIMING.sideFlight,0,1);
+   const angle=Math.atan2(target.point.y-apex.y,target.point.x-apex.x)+Math.PI/2;
    trail.forEach((p,i)=>{
-    const f=clamp(q-i*.08,0,1),e=(t-depart-i*25)/TIMING.sideFlight;
-    const a=e>=0&&e<1?.75*(1-e):0;
+    const f=clamp(q-i*.09,0,1),e=(t-depart-i*24)/TIMING.sideFlight;
+    const a=e>=0&&e<1?.92*Math.pow(1-e,.72):0;
     update(p,lerp(apex.x,target.point.x,f),
-     lerp(apex.y,target.point.y,f)-unit*.15*Math.sin(Math.PI*f),.90,a);
+     lerp(apex.y,target.point.y,f)-unit*.13*Math.sin(Math.PI*f),
+     .95-f*.24,a,angle);
    });
    const impactStart=depart+TIMING.sideFlight;
-   const v=clamp((t-impactStart)/580,0,1);
-   for(const {p,dx,dy} of burst){
-    const visible=v>0&&v<1?Math.pow(1-v,1.2):0;
-    update(p,target.point.x+dx*v,target.point.y+dy*v+unit*.18*v*v,1.2,v>0?visible:0);
+   const v=clamp((t-impactStart)/610,0,1);
+   const alive=t>=impactStart&&v<1;
+   // Every secondary explosion, including the rightmost one, fades away.
+   const flash=alive?Math.pow(1-v,2)*Math.min(1,v*22):0;
+   update(core,target.point.x,target.point.y,.85+v*.5,flash*.91);
+   update(halo,target.point.x,target.point.y,.75+v*1.48,
+    alive?.38*Math.sin(Math.PI*v):0);
+   for(const {p,dx,dy,angle:rayAngle} of burst){
+    const visible=alive?Math.pow(1-v,1.2)*Math.min(1,v*15):0;
+    update(p,target.point.x+dx*v,target.point.y+dy*v+unit*.16*v*v,
+     1.02-v*.42,visible,rayAngle+Math.PI/2);
    }
   });
   app.render(); // Match the working PixiJS 8 render loop from arena3v3.

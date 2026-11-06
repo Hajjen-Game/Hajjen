@@ -33,6 +33,15 @@ assert(src.includes("if(!(await ensureGraphics()))return false"),
  "Failed GPU or dynamic import must hand control to Classic");
 assert(src.includes("onReveal?.()"),"Sprite upgrades must remain visible during Pixi sparks");
 assert(src.includes("streakTextureFor(lib)"),"The main burst must use crisp streak particles");
+assert(src.includes("tileTextureFor(lib)"),"Column cells must receive persistent square highlights");
+assert(src.includes("const petals=Array.from"),"Main aerial burst must have colored flower petals");
+assert(src.includes("const source=loc(evt.at),apex=loc(7+evt.at%7)"),"Pixi firework must bloom at Classic canopy height");
+assert(src.includes("const columnHits=path.map"),"Each real column cell must have a small spark hit");
+assert(preview.TIMING.sideDelay>=70+2*58+preview.TIMING.sideFlight,
+ "Game-board upgrades must wait until all secondary rockets land");
+assert(preview.TIMING.total>=preview.TIMING.charge+preview.TIMING.ascent+
+ 70+2*58+preview.TIMING.sideFlight+680,
+ "All side floral impacts must fade before the overlay disappears");
 assert(src.includes("halo:particle"),"Each side hit must have its own fade-out glow");
 assert(preview.TIMING.sideDelay>=70+preview.TIMING.sideFlight,
  "Targets must not reveal before the first firework impact");
@@ -44,4 +53,4 @@ assert(!src.includes("game.grow("));
 assert(!src.includes("game.score="));
 assert(!src.includes("Math.random("),"Visual emitter cannot alter game randomness");
 assert.equal(preview.setMode("classic"),"classic");
-console.log("PASS Hanabi Pixi Preview 1.1 · opt-in, pinned Pixi8, WebGL, safe fallback, no game mutation");
+console.log("PASS Hanabi Pixi Preview 1.2 · opt-in, pinned Pixi8, WebGL, safe fallback, no game mutation");

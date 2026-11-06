@@ -1,8 +1,16 @@
-# CHROMA RUSH — Jump Feel & Forgiveness 1.0
+# CHROMA RUSH — Terrain Visual Fix 1.1
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Terrain Visual Fix 1.1 (2026-11-06)
+
+- One continuous track surface and perspective grid, with a shared gradient, fix the vertical seams underneath hills and flats.
+- The old black rectangle beneath every gap is gone: actual palette-colored world background now shows through. Neon edge markers still communicate where to jump.
+- Separate presentation module: `src/render/terrain-renderer.js`.
+- Purely graphical: terrain physics, gap jump rules, Director, Flow, shield damage and progression remain unchanged.
+- Four new renderer tests cover seamless boundaries, transparency, grid origin and data immutability.
 
 ## Jump Feel & Forgiveness 1.0 (new)
 

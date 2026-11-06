@@ -14,6 +14,7 @@ const modules={
  ChromaTerrain:require('../src/terrain/terrain-system.js'),
  ChromaJump:require('../src/gameplay/jump-controller.js'),
  ChromaMotion:require('../src/render/player-motion.js'),
+ ChromaTerrainRender:require('../src/render/terrain-renderer.js'),
 };
 function harness(){
  const elements=new Map(),events={};
@@ -29,7 +30,7 @@ function harness(){
  }
  const noop=()=>{},gradient=()=>({addColorStop:noop});
  const draw={setTransform:noop,save:noop,restore:noop,translate:noop,
-  fillRect:noop,strokeRect:noop,beginPath:noop,moveTo:noop,lineTo:noop,arcTo:noop,
+  fillRect:noop,strokeRect:noop,clip:noop,beginPath:noop,moveTo:noop,lineTo:noop,arcTo:noop,
   closePath:noop,fill:noop,stroke:noop,arc:noop,ellipse:noop,fillText:noop,
   createLinearGradient:gradient,createRadialGradient:gradient};
  el('game').getContext=()=>draw;

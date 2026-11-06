@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Jump Feel & Forgiveness 1.0
+/* CHROMA RUSH — Terrain Visual Seam Fix 1.1
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaTerrainRender) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -23,6 +23,7 @@
   const terrain = new window.ChromaTerrain.TerrainSystem();
   const jumpControl = new window.ChromaJump.JumpController();
   const motion = new window.ChromaMotion.PlayerMotion();
+  const terrainRender = window.ChromaTerrainRender;
   const HUD = window.ChromaHud;
   const $ = {
     menu:el('menu'), hud:el('hud'), controls:el('controls'), gameover:el('gameover'),
@@ -476,12 +477,17 @@
     ctx.fillStyle='#070b17';ctx.fillRect(0,0,W,H);
     // Underlying color changes across every zone: sky, pillars, ground and obstacles.
     const bg=ctx.createLinearGradient(0,0,0,H);
-    bg.addColorStop(0,'#060b19');bg.addColorStop(.43,rgba(c3,.92));bg.addColorStop(.85,'#070b18');bg.addColorStop(1,'#050913');
+    bg.addColorStop(0,'#060b19');bg.addColorStop(.43,rgba(c3,.92));bg.addColorStop(.85,rgba(c3,.62));bg.addColorStop(1,rgba(c3,.44));
     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
     const flowCharge=flow.value/100;
     const hazy=ctx.createRadialGradient(W*.66,floorY-120,20,W*.66,floorY-100,W*.64);
     hazy.addColorStop(0,rgba(c1,.135+flowCharge*.12));hazy.addColorStop(.5,rgba(c2,.058));hazy.addColorStop(1,rgba(c1,0));
     ctx.fillStyle=hazy;ctx.fillRect(0,0,W,H);
+    // Palette-colored background continues below the floor and shows through gaps.
+    const lowerHaze=ctx.createRadialGradient(W*.65,floorY+65,15,W*.65,floorY+85,Math.max(W*.65,H*.56));
+    lowerHaze.addColorStop(0,rgba(c1,.17));lowerHaze.addColorStop(.62,rgba(c2,.075));
+    lowerHaze.addColorStop(1,rgba(c1,0));
+    ctx.fillStyle=lowerHaze;ctx.fillRect(0,floorY-28,W,H-floorY+28);
     // Architectural forms; far enough away from collision lane to remain legible.
     const drift=t*speed*.13;
     for(let k=-2;k<Math.ceil(W/155)+3;k++){
@@ -529,54 +535,8 @@
     glowLine(0,(t*55)%floorY,W,(t*55)%floorY,c1,.9,0,.07);
   }
   function drawTerrain(){
-    const left=distance,right=distance+W;
-    // Segment polygons are independent so gaps truly reveal empty space.
-    for(const s of terrain.segments){
-      if(s.end<left-30||s.start>right+30)continue;
-      const x0=Math.max(s.start,left-30),x1=Math.min(s.end,right+30);
-      const screen0=x0-distance,screen1=x1-distance;
-      if(s.type==='gap'){
-        // Dark recessed void, neon endcaps and a small readable jump cue.
-        const depth=ctx.createLinearGradient(0,floorY-65,0,H);
-        depth.addColorStop(0,'rgba(3,4,16,.25)');depth.addColorStop(1,'#02030c');
-        ctx.fillStyle=depth;ctx.fillRect(screen0,Math.min(s.y0,s.y1)-2,screen1-screen0,H);
-        for(const edge of [s.start,s.end]){
-          const x=edge-distance;
-          if(x<-20||x>W+20)continue;
-          glowLine(x,s.y0-2,x,s.y0+53,c2,3,17,.85);
-          glowLine(x-5,s.y0,x+5,s.y0,'#fff',2,10,.64);
-        }
-        if(s.start-distance>-30&&s.start-distance<W){
-          ctx.save();ctx.fillStyle=c2;ctx.font='800 13px system-ui';ctx.textAlign='center';
-          ctx.globalAlpha=.8;ctx.fillText('↑',s.start-distance-32,s.y0-35);ctx.restore();
-        }
-        continue;
-      }
-      const ground=ctx.createLinearGradient(0,s.y0-25,0,H);
-      ground.addColorStop(0,rgba(c1,.15+flow.value/100*.08));
-      ground.addColorStop(.55,'#0b1224');ground.addColorStop(1,'#050812');
-      ctx.beginPath();ctx.moveTo(screen0,H);
-      const startY=terrain.groundAt(x0);
-      ctx.lineTo(screen0,startY);
-      for(let x=x0+18;x<x1;x+=18)ctx.lineTo(x-distance,terrain.groundAt(x));
-      ctx.lineTo(screen1,terrain.groundAt(x1-.001));ctx.lineTo(screen1,H);ctx.closePath();
-      ctx.fillStyle=ground;ctx.fill();
-      // Horizontal and perspective grid lines follow the track surface.
-      ctx.save();ctx.beginPath();ctx.moveTo(screen0,startY);
-      for(let x=x0+18;x<x1;x+=18)ctx.lineTo(x-distance,terrain.groundAt(x));
-      ctx.lineTo(screen1,terrain.groundAt(x1-.001));
-      ctx.strokeStyle=c1;ctx.shadowColor=c1;ctx.shadowBlur=21+flow.value*.12;
-      ctx.globalAlpha=.90;ctx.lineWidth=2.8;ctx.stroke();ctx.restore();
-      for(let x=Math.ceil(x0/105)*105;x<x1;x+=105){
-        const y=terrain.groundAt(x);
-        glowLine(x-distance,y+2,x-distance-72,H,c2,1,1,.17);
-      }
-      for(const depth of [32,76,126]){
-        const y0=Math.min(H,terrain.groundAt(x0)+depth);
-        const y1=Math.min(H,terrain.groundAt(x1-.001)+depth);
-        glowLine(screen0,y0,screen1,y1,c1,.8,0,.12);
-      }
-    }
+    terrainRender.drawTerrain({ctx,terrain,distance,width:W,height:H,baseY:floorY,
+      primary:c1,secondary:c2,flow:flow.value,glowLine});
   }
   function drawObstacle(o){
     const b=GEO.obstacleBox(o,o.groundY), isLow=o.type==='jump',color=isLow?c2:c1;

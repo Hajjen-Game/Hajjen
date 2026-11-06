@@ -2150,7 +2150,7 @@ function revealHanabiUpgrades(evt,highlighted){
    if(!before||!after||before.id!==after.id||
       before.family!==after.family||after.stage<=before.stage)continue;
    const piece=boardTiles[at]?.querySelector(".piece");
-   if(piece)snapshots.push({at,old:piece.cloneNode(true)});
+   if(piece)snapshots.push({at,old:piece.cloneNode(true),family:after.family,to:after.stage});
   }
  }
  renderBoard(evt.board,highlighted,"pulsed");
@@ -2182,6 +2182,15 @@ function revealHanabiUpgrades(evt,highlighted){
    ],215,{easing:"cubic-bezier(.2,.67,.26,1)"})
   ]).finally(()=>old.remove());
  });
+ // A standard Fusion has THREE additional cosmetic layers beyond its landing
+ // bounce: the pink/gold/pearl fusionBurst, family evolution glow and stage
+ // label. Reuse those exact Classic helpers for every *genuine* Hanabi
+ // promotion. They have their existing mobile FX budgets and never touch the
+ // board, score, saved progress or the Pixi fireworks renderer.
+ const groups=snapshots.map(({at,family,to})=>({at,family,to,number:1}));
+ fusionBurst(groups.map(g=>g.at),groups,"fusion");
+ evolveFamilyFx(groups);
+ evolutionStageLabels(groups);
  return Promise.all(tasks);
 }
 

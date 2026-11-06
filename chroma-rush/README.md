@@ -1,8 +1,16 @@
-# CHROMA RUSH — Terrain Visual Fix 1.2
+# CHROMA RUSH — Full Background Continuity 1.0
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Full Background Continuity 1.0 (2026-11-06)
+
+- The world scene is isolated into `src/render/world-background.js`. The background now covers the entire logical canvas regardless of terrain height, including under valleys and behind gaps.
+- Previously, a second glow layer was drawn only below a fixed floor coordinate, introducing a hard horizontal edge exposed by descending terrain and open gaps. Both atmospheric glows now render across the full screen with continuous radial falloff.
+- Faraway architecture, streaks and stars also extend into the lower viewport and fade naturally, rather than ending at the old floor level.
+- Terrain polygons render above the independent background; gaps remain unfilled and show the world scene behind them.
+- Four new regression tests verify full-height coverage, screen proportions, and terrain independence. No changes to jump physics, HP, Flow, audio, Director or arcade records.
 
 ## Terrain Visual Fix 1.2 — clip-path regression fix (2026-11-06)
 

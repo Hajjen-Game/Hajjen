@@ -15,6 +15,7 @@ const modules={
  ChromaJump:require('../src/gameplay/jump-controller.js'),
  ChromaMotion:require('../src/render/player-motion.js'),
  ChromaTerrainRender:require('../src/render/terrain-renderer.js'),
+ ChromaWorldBackground:require('../src/render/world-background.js'),
 };
 function harness(){
  const elements=new Map(),events={};

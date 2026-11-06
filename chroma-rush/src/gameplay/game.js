@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Terrain Visual Seam Fix 1.1
+/* CHROMA RUSH — Full Background Continuity 1.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaTerrainRender) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaTerrainRender || !window.ChromaWorldBackground) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -24,6 +24,7 @@
   const jumpControl = new window.ChromaJump.JumpController();
   const motion = new window.ChromaMotion.PlayerMotion();
   const terrainRender = window.ChromaTerrainRender;
+  const worldBackground = window.ChromaWorldBackground;
   const HUD = window.ChromaHud;
   const $ = {
     menu:el('menu'), hud:el('hud'), controls:el('controls'), gameover:el('gameover'),
@@ -474,65 +475,8 @@
     ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();
   }
   function drawWorld(t){
-    ctx.fillStyle='#070b17';ctx.fillRect(0,0,W,H);
-    // Underlying color changes across every zone: sky, pillars, ground and obstacles.
-    const bg=ctx.createLinearGradient(0,0,0,H);
-    bg.addColorStop(0,'#060b19');bg.addColorStop(.43,rgba(c3,.92));bg.addColorStop(.85,rgba(c3,.62));bg.addColorStop(1,rgba(c3,.44));
-    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-    const flowCharge=flow.value/100;
-    const hazy=ctx.createRadialGradient(W*.66,floorY-120,20,W*.66,floorY-100,W*.64);
-    hazy.addColorStop(0,rgba(c1,.135+flowCharge*.12));hazy.addColorStop(.5,rgba(c2,.058));hazy.addColorStop(1,rgba(c1,0));
-    ctx.fillStyle=hazy;ctx.fillRect(0,0,W,H);
-    // Palette-colored background continues below the floor and shows through gaps.
-    const lowerHaze=ctx.createRadialGradient(W*.65,floorY+65,15,W*.65,floorY+85,Math.max(W*.65,H*.56));
-    lowerHaze.addColorStop(0,rgba(c1,.17));lowerHaze.addColorStop(.62,rgba(c2,.075));
-    lowerHaze.addColorStop(1,rgba(c1,0));
-    ctx.fillStyle=lowerHaze;ctx.fillRect(0,floorY-28,W,H-floorY+28);
-    // Architectural forms; far enough away from collision lane to remain legible.
-    const drift=t*speed*.13;
-    for(let k=-2;k<Math.ceil(W/155)+3;k++){
-      const x=((k*155-drift*.35)%(W+310)+(W+310))%(W+310)-155;
-      const h=72+((k*17+201)%7)*16;
-      ctx.fillStyle=rgba(c1,.028);ctx.fillRect(x,floorY-h-50,30,h);
-      glowLine(x,floorY-h-50,x+30,floorY-h-50,c2,1,4,.13);
-      if(k%3===0){ctx.fillStyle=rgba(c2,.12);ctx.fillRect(x+11,floorY-h-40,2,23)}
-    }
-    // Fast streaks: saturation and frequency grow with speed.
-    for(let i=0;i<18;i++){
-      const y=65+(i*43+17)%(Math.floor(floorY-120));
-      const x=((i*147-t*speed*(.12+i%4*.08))%(W+300)+(W+300))%(W+300)-130;
-      const len=(18+i%5*16)*(1+speed/1500);
-      glowLine(x,y,x+len,y,i%2?c1:c2,i%4===0?1.9:1,5,.08+(speed/2500)*.13);
-    }
-    // Sparse stars.
-    for(let i=0;i<44;i++){
-      const x=((i*269.8-t*(7+i%4*5))%W+W)%W;
-      const y=(i*112.7)%(floorY-100)+30;
-      ctx.fillStyle=rgba(i%2?c1:'#d4eaff',.09+(i%5)*.035);
-      ctx.fillRect(x,y,i%7===0?2:1,i%7===0?2:1);
-    }
-    // Track horizon and light columns.
-    glowLine(0,floorY-178,W,floorY-178,c1,1,9,.16);
-    for(let i=0;i<Math.ceil(W/135)+2;i++){
-      const x=((i*135-t*speed*.56)%(W+135)+(W+135))%(W+135);
-      glowLine(x,floorY-181,x,floorY-164,i%2?c2:c1,2,7,.23);
-    }
-    // The former fixed-height floor is now rendered in drawTerrain().
-    /* const ground=ctx.createLinearGradient(0,floorY,0,H);
-    ground.addColorStop(0,rgba(c1,.105+flowCharge*.08));ground.addColorStop(.7,'#090e20');ground.addColorStop(1,'#050812');
-    ctx.fillStyle=ground;ctx.fillRect(0,floorY,W,H-floorY);
-    for(let y=floorY+24;y<H+110;y+=35){
-      const a=(y-floorY)/(H-floorY);glowLine(0,y,W,y,c1,1,0,.09+a*.16);
-    }
-    const step=96,offset=(t*speed)%step;
-    for(let x=-step;x<W+step;x+=step){
-      const xx=x-offset;
-      glowLine(xx,floorY,xx-88,H,c2,1.4,0,.21);
-    }
-    glowLine(0,floorY,W,floorY,c1,2.2+flowCharge*1.2,20+flowCharge*18,.96);
-    glowLine(0,floorY+3,W,floorY+3,c2,1,6,.56); */
-    // Scanning line across the upper half; very faint.
-    glowLine(0,(t*55)%floorY,W,(t*55)%floorY,c1,.9,0,.07);
+    worldBackground.drawBackground({ctx,width:W,height:H,time:t,speed,
+      primary:c1,secondary:c2,shadow:c3,flow:flow.value,glowLine});
   }
   function drawTerrain(){
     terrainRender.drawTerrain({ctx,terrain,distance,width:W,height:H,baseY:floorY,

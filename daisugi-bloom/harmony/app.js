@@ -2133,6 +2133,58 @@ function animateTilePiece(index,piece,frames,duration,options){
 // Hanabi Launch Telegraph 1.1: only occupied/actually affected squares
 // glow, from crate upwards. Existing Harmony Pulse mechanics are unchanged.
 // Compositor-scheduled markers avoid one blocking await per cell on mobile.
+// Hanabi Upgrade Transition 1.0 — preserve the previous sprite through
+// the stage change, then play the same new-stage landing as a normal Fusion.
+// The event's real upgrades are already resolved by the rules engine.
+// Never animate empty/mist-only cells or fabricate a stage on the board.
+function revealHanabiUpgrades(evt,highlighted){
+ const snapshots=[],seen=new Set();
+ if(!FAST()&&!document.hidden&&Element.prototype.animate){
+  for(const hit of [...(evt.targets||[]),...(evt.spreadTargets||[])]){
+   const at=hit.to;
+   if(!Number.isInteger(at)||at<0||at>=49||seen.has(at))continue;
+   seen.add(at);
+   const before=presentedBoard?.[at],after=evt.board?.[at];
+   // IDs are stable across game.grow(); this ensures we only animate genuine
+   // stage promotions, not refills, shuffles or stationary blockers.
+   if(!before||!after||before.id!==after.id||
+      before.family!==after.family||after.stage<=before.stage)continue;
+   const piece=boardTiles[at]?.querySelector(".piece");
+   if(piece)snapshots.push({at,old:piece.cloneNode(true)});
+  }
+ }
+ renderBoard(evt.board,highlighted,"pulsed");
+ if(!snapshots.length)return Promise.resolve();
+ const tasks=snapshots.map(({at,old})=>{
+  const tile=boardTiles[at],next=tile?.querySelector(".piece");
+  if(!tile||!next)return Promise.resolve();
+  // Keep Stage N visibly present until Stage N+1 blossoms in its place.
+  // The old sprite has its own DOM node so renderBoard cannot snap it away.
+  old.setAttribute("aria-hidden","true");
+  Object.assign(old.style,{
+   position:"absolute",inset:"0",zIndex:"8",pointerEvents:"none",
+   transition:"none",transformOrigin:"center"
+  });
+  tile.append(old);
+  const duration=MOBILE_LITE?235:265;
+  return Promise.all([
+   animateNode(old,[
+    {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:0},
+    {transform:"translate3d(0,0,0) scale(1.06)",opacity:1,offset:.25},
+    {transform:"translate3d(0,-2px,0) scale(.90)",opacity:.38,offset:.70},
+    {transform:"translate3d(0,-2px,0) scale(.77)",opacity:0,offset:1}
+   ],duration,{easing:"cubic-bezier(.2,.67,.26,1)"}),
+   animateNode(next,[
+    {transform:"translate3d(0,1px,0) scale(.80)",opacity:.9,offset:0},
+    {transform:"translate3d(0,-2px,0) scale(1.13)",opacity:1,offset:.58},
+    {transform:"translate3d(0,1px,0) scale(.97)",opacity:1,offset:.85},
+    {transform:"translate3d(0,0,0) scale(1)",opacity:1,offset:1}
+   ],215,{easing:"cubic-bezier(.2,.67,.26,1)"})
+  ]).finally(()=>old.remove());
+ });
+ return Promise.all(tasks);
+}
+
 async function animateHanabiLaunch(evt){
  const at=evt.at;
  if(!Number.isInteger(at)||at<42||at>=49)return;
@@ -2141,6 +2193,11 @@ async function animateHanabiLaunch(evt){
  // empty top cells. Mist clears still count even when a tile has no icon.
  const path=window.HarmonyHanabiCrate.visiblePath(evt);
  const spreadTargets=(evt.spreadTargets||[]).filter(t=>Number.isInteger(t.to)&&t.to>=0&&t.to<21);
+ // Reveal once per launch even if the optional GPU renderer fails mid-frame.
+ // Both Pixi and Classic use the SAME stage transition.
+ let revealTask=null;
+ const reveal=()=>revealTask||(revealTask=revealHanabiUpgrades(evt,
+  [...path,...spreadTargets.map(t=>t.to)]));
  // Pixi Preview 1.0 is strictly opt-in. The engine's targets remain the
  // single source of truth; any GPU, CDN or WebGL failure falls back to
  // the complete, already-tested Classic animation below.
@@ -2151,9 +2208,12 @@ async function animateHanabiLaunch(evt){
     onCharge:()=>sound("hanabi-charge",{count:path.length}),
     onLaunch:()=>sound("hanabi-launch",{count:path.length}),
     onBurst:()=>sound("hanabi-burst",{count:spreadTargets.length}),
-    onReveal:()=>renderBoard(evt.board,[...path,...spreadTargets.map(t=>t.to)],"pulsed")
+    onReveal:()=>{void reveal();}
    });
-   if(usedPixi){renderBoard(evt.board);refreshHanabiVfxStatus();return;}
+   if(usedPixi){
+    await reveal();
+    renderBoard(evt.board);refreshHanabiVfxStatus();return;
+   }
   }catch(error){
    // A renderer preview must NEVER prevent a valid game move or a win.
    console.warn("[Hanabi Pixi Preview] Classic fallback after GPU exception",error);
@@ -2366,7 +2426,7 @@ async function animateHanabiLaunch(evt){
     // Reveal genuine upgraded sprites while the explosion is still in
     // full bloom. Append target blooms after renderBoard replaced the old
     // treasure sprites so their effects remain attached and visible.
-    renderBoard(evt.board,[...path,...spreadTargets.map(t=>t.to)],"pulsed");
+    fireworks.push(reveal());
     for(let n=0;n<spreadTargets.length;n++){
      const to=spreadTargets[n].to,tile=boardTiles[to];
      if(!tile)continue;
@@ -2385,7 +2445,7 @@ async function animateHanabiLaunch(evt){
     }
     await Promise.all(fireworks);
    }else{
-    renderBoard(evt.board,[...path,...spreadTargets.map(t=>t.to)],"pulsed");
+    await reveal();
    }
   }
  }finally{
@@ -2393,8 +2453,9 @@ async function animateHanabiLaunch(evt){
   for(const bloom of impactBlooms)bloom.remove();
   for(const spark of sparks)spark.remove();
  }
- // Reveal exactly the original engine's changes after the effect,
- // without an extra whole-board blink or adding any gameplay effect.
+ // Also cover the rare launch with no upper spread targets. Never leave
+ // column upgrades as an immediate one-frame stage replacement.
+ await reveal();
  renderBoard(evt.board);
 }
 function makeFxLayer(){

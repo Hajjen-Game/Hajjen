@@ -249,3 +249,43 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
   .settings-fullscreen {padding:5px 6px;font-size:10px;}
   #fullscreen-status {font-size:8px;line-height:1.1;}
 }
+
+/* Replay Challenge 1.0 — visual feedback never covers the playfield. */
+.arcade-records{grid-template-columns:repeat(4,minmax(0,1fr));width:min(510px,100%);gap:6px;}
+.arcade-records>div{padding:6px 4px;}
+.arcade-records span{font-size:clamp(7px,.64vw,10px);letter-spacing:.07em;}
+.arcade-records strong{font-size:clamp(13px,1.35vw,20px);}
+.replay-progress{width:100%;max-width:155px;margin:7px 0 0 auto;opacity:.87;}
+.replay-meta{display:flex;justify-content:space-between;gap:6px;white-space:nowrap;color:#92c8e5;
+ font-size:clamp(8px,.7vw,10px);font-weight:850;letter-spacing:.06em;}
+.replay-progress.beaten .replay-meta{color:#b9ffe5;text-shadow:0 0 11px #5affcf77;}
+.replay-track{height:3px;margin-top:4px;background:#30415b;border-radius:8px;overflow:hidden;}
+#replay-fill{height:100%;width:0;background:linear-gradient(90deg,#2ea2e5,#78faff);border-radius:8px;}
+.replay-progress.beaten #replay-fill{background:#91ffc9;}
+#replay-toast{pointer-events:none;position:absolute;z-index:7;top:21%;right:15%;font-weight:950;
+ letter-spacing:.15em;font-size:clamp(10px,1.3vw,18px);color:#bbffec;text-shadow:0 0 16px #5fffd799;}
+#replay-toast.replay-toast-live{animation:replayFlash 1.65s ease-out both;}
+@keyframes replayFlash{0%{opacity:0;transform:translateY(9px)}18%{opacity:1;transform:translateY(0)}
+ 68%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+.final-comparison{margin-top:4px;color:#9bb9d1;font-size:clamp(8px,.76vw,11px);
+ font-weight:750;letter-spacing:.055em;line-height:1.35;}
+.final-challenge{margin-top:7px;color:#8ff4ff;font-size:clamp(9px,.85vw,12px);
+ letter-spacing:.12em;font-weight:900;}
+#gameover .result-stats{margin:6px 0 1px;}
+#gameover .result-stats>div{min-width:52px;}
+#gameover .result-stats strong{font-size:clamp(19px,2.2vw,30px);}
+#gameover .primary-btn{margin-top:clamp(8px,1.15vw,17px);}
+@media(max-height:420px){
+ .replay-progress{margin-top:4px;max-width:115px;}
+ .replay-meta{font-size:8px}.replay-track{margin-top:2px;}
+ #gameover h2{font-size:clamp(27px,4vw,42px);margin:4px 0;}
+ #gameover .result-stats strong{font-size:clamp(17px,2.1vw,24px);}
+ #gameover .result-stats{gap:8px;margin:3px 0;}
+ #gameover .final-comparison{font-size:8px;line-height:1.1;}
+ #gameover .final-challenge{margin-top:3px;font-size:9px;}
+ #gameover .final-record{margin-top:3px;}
+ #gameover .final-milestones{margin-top:2px;font-size:8px;}
+ #gameover #menu-result-btn{margin-top:4px;}
+ #replay-toast{top:27%;right:12%;}
+}
+@media(prefers-reduced-motion:reduce){#replay-toast.replay-toast-live{animation:none;opacity:1;}}

@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Mobile Arcade Polish 1.0
+/* CHROMA RUSH — Replay Challenge 1.0 on Mobile Arcade Polish 1.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -22,6 +22,8 @@
   audio.setEffectsVolume(preferences.effectsVolume/100);
   const progression = new window.ChromaProgress.ArcadeProgression(profileStorage);
   const arcadeUI = window.ChromaArcadeUI;
+  const replay = new window.ChromaReplay.ReplayChallenge(profileStorage);
+  const replayUI = window.ChromaReplayUI;
   const GAME = window.ChromaConfig.GAME;
   const GEO = window.ChromaGeometry;
   const terrain = new window.ChromaTerrain.TerrainSystem();
@@ -47,11 +49,15 @@
     flowNumber:el('flow-number'),flowBar:el('flow-inner'),flowOuter:el('flow-outer'),
     flowMultiplier:el('flow-multiplier'),flowState:el('flow-state'),flowStreak:el('flow-streak'),
     recordScore:el('record-score'),recordZone:el('record-zone'),recordStreak:el('record-streak'),
+    recordDistance:el('record-distance'),replayProgress:el('replay-progress'),
+    replayTarget:el('replay-target'),replayPercent:el('replay-percent'),replayFill:el('replay-fill'),
+    replayToast:el('replay-toast'),
     milestoneProgress:el('milestone-progress'),milestoneNext:el('milestone-next'),
     practiceSelect:el('practice-zone'),practiceButton:el('practice-start-btn'),practiceHint:el('practice-hint'),
     modeIndicator:el('mode-indicator'),milestoneToast:el('milestone-toast'),milestoneToastName:el('milestone-toast-name'),
     milestonePanel:el('milestone-panel'),milestoneGrid:el('milestone-grid'),
     finalMode:el('final-mode'),finalStreak:el('final-streak'),finalRecord:el('final-record'),finalMilestones:el('final-milestones'),
+    finalDistance:el('final-distance'),finalComparison:el('final-comparison'),finalChallenge:el('final-challenge'),
     exportRun:el('export-run-btn'),graphicsButton:el('graphics-btn'),
     graphicsPanel:el('graphics-panel'),graphicsMode:el('graphics-mode'),
     graphicsActive:el('graphics-active'),perfOverlay:el('perf-overlay'),
@@ -84,6 +90,7 @@
   let status='ready', time=0, worldTime=0, zone=1, lastTs=0, shake=0, hitFlash=0, lastZoneCallout=0;
   let speed=GAME.baseSpeed, hp=GAME.startingHP, score=0, best=progression.bestScore, hurdles=[], motes=[], streaks=[];
   let runMode='arcade', startZone=1, milestoneTime=0, unlockedThisRun=[];
+  let peakFlow=0,replayToastTime=0;
   // Absolute travelled distance: terrain and obstacles share this world axis.
   let distance=0,gapRecovery=null;
   let c1=PALETTES[0].primary, c2=PALETTES[0].secondary, c3=PALETTES[0].shadow;
@@ -228,6 +235,8 @@
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
     hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();motion.reset();
+    peakFlow=0;replayToastTime=0;
+    replay.start({practice:runMode==='practice',bestScore:progression.bestScore,bestZone:progression.bestZone});
     // Practice retains the chosen zone/difficulty but starts on a fresh,
     // safe runway, rather than loading a nonexistent alternate level.
     terrainDirector.prepare({right:W+1000,playerWorld:player.x,zone,speed,hp});
@@ -241,6 +250,7 @@
     $.menu.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.gameover.classList.add('hidden');$.pauseMenu.classList.add('hidden');
     $.hud.classList.remove('hidden');$.controls.classList.remove('hidden');$.pauseBtn.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');$.milestoneToast.classList.add('hidden');
+    $.replayToast.classList.add('hidden');
     arcadeUI.hud($,runMode==='practice');
     // Decorative GO cue runs while the usual safe runway begins, without
     // freezing or delaying physics, input or the procedural Director.
@@ -258,11 +268,12 @@
   }
   function showMenu(){
     if(status==='running'||status==='paused')audio.stop();
-    status='ready';runMode='arcade';milestoneTime=0;
+    status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;
+    $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
     $.controls.classList.add('hidden');$.hud.classList.add('hidden');$.pauseBtn.classList.add('hidden');
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');
-    $.menu.classList.remove('hidden');$.graphicsButton.classList.remove('hidden');$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');syncSoundButton(true);arcadeUI.menu($,progression);
+    $.menu.classList.remove('hidden');$.graphicsButton.classList.remove('hidden');$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');syncSoundButton(true);arcadeUI.menu($,progression);replayUI.menu($,replay);
   }
   function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
   function resume(){if(status!=='paused')return;status='running';$.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();frameClock.reset(lastTs);audio.resume();syncSoundButton(true);}
@@ -271,15 +282,19 @@
     status='dead';$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
     runAudit.finish(auditState());
     const total=Math.floor(score),previousBest=progression.bestScore;
+    replayToastTime=0;$.replayToast.classList.add('hidden');
     if(runMode==='arcade'){
       earnedMilestones(progression.finishRankedRun({score:total,zone,bestStreak:flow.bestStreak}).earned);
       best=progression.bestScore;
       if(best>previousBest)store.put(best); // Preserve the Flow 1.0 record used by earlier versions.
     }
+    const replayResult=replay.finish({score:total,distance:Math.floor(distance),zone,
+      peakFlow,perfectZones:flow.perfectZones,bestScore:progression.bestScore,bestZone:progression.bestZone});
     arcadeUI.results($,{practice:runMode==='practice',score:total,zone,runStreak:flow.bestStreak,
       perfectZones:flow.perfectZones,bestScore:progression.bestScore,recordScore:runMode==='arcade'&&total>previousBest,
       earned:unlockedThisRun});
-    arcadeUI.menu($,progression);
+    replayUI.results($,{practice:runMode==='practice',score:total,distance:Math.floor(distance),...replayResult});
+    arcadeUI.menu($,progression);replayUI.menu($,replay);
     $.milestoneToast.classList.add('hidden');$.gameover.classList.remove('hidden');
   }
   function openMilestones(){
@@ -415,7 +430,7 @@
     document.addEventListener('contextmenu',e=>e.preventDefault());
   }
   registerControls();
-  arcadeUI.menu($,progression);
+  arcadeUI.menu($,progression);replayUI.menu($,replay);
 
   // Timings are in seconds. Spatial distances increase with speed, keeping
   // obstacle-recovery time physically feasible rather than randomly compressing in pixels.
@@ -434,6 +449,7 @@
   function updateHud(){
     HUD.update($,{hp,zone,color:c1,phase:director.label,score,speed,
       baseSpeed:GAME.baseSpeed,status,flow});
+    replayUI.hud($,{practice:runMode==='practice',score,previousScore:replay.previousScore});
   }
   function nextZone(reward=null){
     lastZoneCallout=1.4;
@@ -523,6 +539,7 @@
     shake=Math.max(0,shake-dt*36);hitFlash=Math.max(0,hitFlash-dt);
     if(lastZoneCallout>0){lastZoneCallout-=dt;if(lastZoneCallout<=0)$.zoneCallout.classList.add('hidden')}
     if(milestoneTime>0){milestoneTime-=dt;if(milestoneTime<=0)$.milestoneToast.classList.add('hidden')}
+    if(replayToastTime>0){replayToastTime-=dt;if(replayToastTime<=0)$.replayToast.classList.add('hidden')}
     const playerWorld=distance+player.x;
     const ground=terrain.groundAt(playerWorld);
     const currentGap=terrain.gapAt(playerWorld);
@@ -622,6 +639,9 @@
     }
     hurdles=hurdles.filter(o=>o.x+o.width>-100);
     score+=dt*(45+speed*.095);
+    peakFlow=Math.max(peakFlow,flow.value);
+    const records=replay.watch({score,distance});
+    if(records.length){replayUI.toast($,records.includes('score')?'score':'distance');replayToastTime=1.7;}
     for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;m.vy+=150*dt;m.life-=dt}
     motes=motes.filter(m=>m.life>0).slice(-180);
     effects.tick(dt);

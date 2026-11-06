@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
   <meta name="theme-color" content="#080b19" />
   <meta name="description" content="CHROMA RUSH — a neon speed-survival arcade prototype." />
-  <title>CHROMA RUSH | Mobile Arcade Polish 1.0</title>
-  <link rel="stylesheet" href="style.css?v=mobile-polish-1.0" />
+  <title>CHROMA RUSH | Replay Challenge 1.0</title>
+  <link rel="stylesheet" href="style.css?v=replay-1.0" />
 </head>
 <body>
   <main id="game-shell" aria-label="CHROMA RUSH arcade game">
@@ -22,9 +22,10 @@
         <div class="flow-status"><span id="flow-state">LOW FLOW</span><span id="flow-streak">0 STREAK</span></div>
       </div>
       <div class="hud-center"><div class="small-label">CHROMA <b>RUSH</b></div><div id="zone-display">ZONE 01</div><div id="phase-display">BUILDING</div><div id="mode-indicator" class="hidden">PRACTICE · NO RECORDS</div></div>
-      <div class="hud-right"><div class="small-label">SCORE</div><div id="score-display">000000</div><div class="tiny-label" id="speed-display">SPEED 1.00×</div></div>
+      <div class="hud-right"><div class="small-label">SCORE</div><div id="score-display">000000</div><div class="tiny-label" id="speed-display">SPEED 1.00×</div><div id="replay-progress" class="replay-progress hidden" aria-label="Personal best score progress"><div class="replay-meta"><span id="replay-target">PB 0</span><span id="replay-percent">0%</span></div><div class="replay-track"><div id="replay-fill"></div></div></div></div>
     </header>
     <div id="danger-indicator" aria-hidden="true">CRITICAL SHIELD</div>
+    <div id="replay-toast" class="hidden" aria-live="polite"></div>
     <div id="milestone-toast" class="hidden" aria-live="polite"><span>MILESTONE UNLOCKED</span><strong id="milestone-toast-name"></strong></div>
     <div id="zone-callout" class="hidden" aria-hidden="true"><span id="zone-callout-tag">ZONE 02</span><strong id="zone-callout-name">VIOLET</strong><span id="zone-perfect" class="hidden">PERFECT ZONE</span></div>
     <div id="controls" class="hidden">
@@ -67,13 +68,13 @@
       <div class="arcade-records" aria-label="Personal arcade records">
         <div><span>BEST SCORE</span><strong id="record-score">0</strong></div>
         <div><span>BEST ZONE</span><strong id="record-zone">01</strong></div>
-        <div><span>BEST STREAK</span><strong id="record-streak">0</strong></div>
+        <div><span>BEST STREAK</span><strong id="record-streak">0</strong></div><div><span>BEST DIST</span><strong id="record-distance">0</strong></div>
       </div>
       <div class="arcade-milestones"><button id="milestone-view-btn" type="button" aria-haspopup="dialog"><span id="milestone-progress">MILESTONES 0/6</span> <span aria-hidden="true">›</span></button><span id="milestone-next">NEXT: IGNITION</span></div>
       <div class="practice-controls"><select id="practice-zone" aria-label="Practice starting zone" disabled><option>ZONE 02</option></select><button type="button" id="practice-start-btn" disabled>TRAIN ZONE</button></div>
       <div id="practice-hint" class="practice-hint">REACH ZONE 02 TO UNLOCK PRACTICE</div>
       <p class="help-text">LEFT THUMB: JUMP &nbsp;•&nbsp; RIGHT THUMB: DUCK<br/>KEYBOARD: ↑ / SPACE &nbsp;•&nbsp; ↓ / S</p>
-      <div class="version">MOBILE ARCADE POLISH 1.0</div>
+      <div class="version">REPLAY CHALLENGE 1.0</div>
     </section>
     <section id="milestone-panel" class="screen-panel hidden" role="dialog" aria-modal="true" aria-label="Arcade milestones">
       <div class="menu-eyebrow">YOUR ARCADE JOURNEY</div><h2>MILESTONES</h2>
@@ -88,8 +89,10 @@
     </section>
     <section id="gameover" class="screen-panel hidden" aria-live="polite">
       <div class="menu-eyebrow" id="final-mode">ARCADE RUN · RANKED</div><h2>RUN COMPLETE</h2>
-      <div class="result-stats"><div><span>SCORE</span><strong id="final-score">0</strong></div><div><span>ZONE</span><strong id="final-zone">01</strong></div><div><span>BEST</span><strong id="final-best">0</strong></div><div><span>PERFECT</span><strong id="final-perfect">0</strong></div><div><span>STREAK</span><strong id="final-streak">0</strong></div></div>
+      <div class="result-stats"><div><span>SCORE</span><strong id="final-score">0</strong></div><div><span>ZONE</span><strong id="final-zone">01</strong></div><div><span>BEST</span><strong id="final-best">0</strong></div><div><span>PERFECT</span><strong id="final-perfect">0</strong></div><div><span>STREAK</span><strong id="final-streak">0</strong></div><div><span>DIST</span><strong id="final-distance">0</strong></div></div>
       <div class="final-record" id="final-record">KEEP PUSHING YOUR RECORD</div>
+      <div id="final-comparison" class="final-comparison">PREVIOUS RECORDS</div>
+      <div id="final-challenge" class="final-challenge">NEXT RUN · REACH ZONE 03</div>
       <div class="final-milestones" id="final-milestones">MILESTONES EARNED IN ARCADE MODE</div>
       <button id="retry-btn" class="primary-btn" type="button">RUN AGAIN <span>→</span></button>
       <button id="menu-result-btn" class="secondary-btn" type="button">MAIN MENU</button>
@@ -109,6 +112,8 @@
   <script src="src/audio/reactive-audio.js?v=mobile-polish-1.0"></script>
   <script src="src/progression/arcade-progress.js?v=arcade-1.0"></script>
   <script src="src/ui/arcade-ui.js?v=arcade-1.0"></script>
+  <script src="src/progression/replay-challenge.js?v=replay-1.0"></script>
+  <script src="src/ui/replay-ui.js?v=replay-1.0"></script>
   <script src="src/gameplay/jump-controller.js?v=jump-1.0"></script>
   <script src="src/render/player-motion.js?v=duck-effects-1.0"></script>
   <script src="src/render/effect-language.js?v=duck-effects-1.0"></script>
@@ -117,6 +122,6 @@
   <script src="src/diagnostics/round-audit.js?v=audit-1.0"></script>
   <script src="src/performance/quality-manager.js?v=performance-1.0"></script>
   <script src="src/performance/frame-clock.js?v=performance-1.0"></script>
-  <script src="src/gameplay/game.js?v=mobile-polish-1.0"></script>
+  <script src="src/gameplay/game.js?v=replay-1.0"></script>
 </body>
 </html>

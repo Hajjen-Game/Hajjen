@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
   <meta name="theme-color" content="#080b19" />
   <meta name="description" content="CHROMA RUSH — a neon speed-survival arcade prototype." />
-  <meta name="chroma-build" content="tap-duck-1.1.1" />
-  <title>CHROMA RUSH | Core Prototype 1.1</title>
+  <title>CHROMA RUSH | Adaptive Rush Director 2.0</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -39,7 +38,7 @@
       <p>JUMP. DUCK. SURVIVE THE ACCELERATION.</p>
       <button id="start-btn" class="primary-btn" type="button">START RUN <span>→</span></button>
       <p class="help-text">LEFT THUMB: JUMP &nbsp;•&nbsp; RIGHT THUMB: DUCK<br/>KEYBOARD: ↑ / SPACE &nbsp;•&nbsp; ↓ / S</p>
-      <div class="version">CORE PROTOTYPE 1.1</div>
+      <div class="version">ADAPTIVE RUSH DIRECTOR 2.0</div>
     </section>
     <section id="pause-menu" class="screen-panel hidden" aria-live="polite">
       <div class="menu-eyebrow">RUN INTERRUPTED</div><h2>PAUSED</h2>
@@ -53,7 +52,11 @@
     </section>
     <div id="portrait-tip" aria-live="polite"><div class="rotate-icon">▭ ↻</div><strong>ROTATE YOUR DEVICE</strong><span>CHROMA RUSH is built for landscape play.</span></div>
   </main>
-  <script src="director.js"></script>
-  <script src="game.js?v=1.1.1"></script>
+  <script src="src/core/config.js?v=2.0"></script>
+  <script src="src/core/geometry.js?v=2.0"></script>
+  <script src="src/director/patterns.js?v=2.0"></script>
+  <script src="src/director/adaptive-director.js?v=2.0"></script>
+  <script src="src/ui/hud.js?v=2.0"></script>
+  <script src="src/gameplay/game.js?v=2.0"></script>
 </body>
 </html>

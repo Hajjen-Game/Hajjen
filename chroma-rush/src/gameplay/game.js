@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Core Prototype 1.1
+/* CHROMA RUSH — Adaptive Rush Director 2.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,12 +6,15 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
   const el = id => document.getElementById(id);
-  const director = new window.ChromaDirector.AdaptiveFlowDirector();
+  const director = new window.ChromaDirector.AdaptiveRushDirector();
+  const GAME = window.ChromaConfig.GAME;
+  const GEO = window.ChromaGeometry;
+  const HUD = window.ChromaHud;
   const $ = {
     menu:el('menu'), hud:el('hud'), controls:el('controls'), gameover:el('gameover'),
     pauseMenu:el('pause-menu'), pauseBtn:el('pause-btn'), jump:el('jump-btn'), duck:el('duck-btn'),
@@ -20,16 +23,7 @@
     zoneCallout:el('zone-callout'), zoneCalloutTag:el('zone-callout-tag'), zoneCalloutName:el('zone-callout-name'),
     sound:el('sound-btn'), finalScore:el('final-score'), finalZone:el('final-zone'), finalBest:el('final-best')
   };
-  const PALETTES = [
-    {name:'CYAN', primary:'#3feeff', secondary:'#53b5ff', shadow:'#061a30'},
-    {name:'VIOLET', primary:'#a06bff',secondary:'#e265ff',shadow:'#1b0d39'},
-    {name:'MAGENTA',primary:'#ff4aa2',secondary:'#ff8ada',shadow:'#310d27'},
-    {name:'LIME',primary:'#b6ff4e',secondary:'#3ef5d3',shadow:'#183016'},
-    {name:'AMBER',primary:'#ffc25d',secondary:'#ff5d7e',shadow:'#32200f'},
-    {name:'ELECTRIC',primary:'#6078ff',secondary:'#30fdce',shadow:'#111335'},
-    {name:'REDLINE',primary:'#ff466c',secondary:'#ffb151',shadow:'#330d1a'},
-    {name:'WHITEOUT',primary:'#f1fbff',secondary:'#72dfff',shadow:'#0d2133'}
-  ];
+  const PALETTES = window.ChromaConfig.PALETTES;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const mix=(a,b,t)=>a+(b-a)*t;
   const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
@@ -42,15 +36,15 @@
     get(){try{return Number(localStorage.getItem('chromaRushBest'))||0}catch(_){return 0}},
     put(v){try{localStorage.setItem('chromaRushBest',String(v))}catch(_){}}
   };
-  let W=1280,H=720,scale=1,floorY=H*.715,dpr=1;
+  let W=1280,H=720,scale=1,floorY=H*GAME.floorRatio,dpr=1;
   let status='ready', time=0, worldTime=0, zone=1, lastTs=0, shake=0, hitFlash=0, lastZoneCallout=0;
-  let speed=370, hp=100, score=0, best=store.get(), hurdles=[], motes=[], rings=[], streaks=[];
+  let speed=GAME.baseSpeed, hp=GAME.startingHP, score=0, best=store.get(), hurdles=[], motes=[], rings=[], streaks=[];
   let c1=PALETTES[0].primary, c2=PALETTES[0].secondary, c3=PALETTES[0].shadow;
   let player={x:300,feet:floorY,vy:0,landed:true,duck:false,duckTime:0,duckRecovery:0,wasAirborne:false,invulnerable:0,stretch:0};
   const input={duckKeys:new Set(),duckPointer:null};
   // Each new press triggers a fixed duck pulse. Holding never extends or repeats it.
-  const DUCK_DURATION=.55;
-  const DUCK_RECOVERY=.12;
+  const DUCK_DURATION=GAME.duckDuration;
+  const DUCK_RECOVERY=GAME.duckRecovery;
   let soundEnabled=true, soundCtx=null;
 
   function initAudio(){
@@ -83,7 +77,7 @@
     const cw=Math.max(1,canvas.clientWidth),ch=Math.max(1,canvas.clientHeight);
     dpr=Math.min(window.devicePixelRatio||1,2);
     canvas.width=Math.max(1,Math.floor(cw*dpr));canvas.height=Math.max(1,Math.floor(ch*dpr));
-    W=720*cw/ch; H=720;scale=ch/H; floorY=H*.715;
+    W=720*cw/ch; H=720;scale=ch/H; floorY=H*GAME.floorRatio;
     player.x=W*.265;
     if(status==='ready')player.feet=floorY;
   }
@@ -99,7 +93,7 @@
   }
   function ripple(x,y,color,r=20){rings.push({x,y,r,life:.52,max:.52,color});}
   function reset(){
-    time=0;worldTime=0;zone=1;hp=100;speed=370;score=0;shake=0;hitFlash=0;
+    time=0;worldTime=0;zone=1;hp=GAME.startingHP;speed=GAME.baseSpeed;score=0;shake=0;hitFlash=0;
     c1=PALETTES[0].primary;c2=PALETTES[0].secondary;c3=PALETTES[0].shadow;
     hurdles=[];motes=[];rings=[];streaks=[];director.reset();
     player={x:W*.265,feet:floorY,vy:0,landed:true,duck:false,duckTime:0,duckRecovery:0,wasAirborne:false,invulnerable:0,stretch:0};
@@ -121,7 +115,7 @@
   }
   function jump(){
     if(status!=='running'||!player.landed||player.duck)return;
-    player.vy=-870;player.landed=false;player.stretch=1;ripple(player.x,floorY-5,c1,10);
+    player.vy=GAME.jumpVelocity;player.landed=false;player.stretch=1;ripple(player.x,floorY-5,c1,10);
     burst(player.x,floorY-3,13,c1,.7);sound('jump');
   }
   function startDuck(){
@@ -187,51 +181,29 @@
     hurdles.push({type:data.type,x:W+90,width,height,hit:false,cleared:false,phase:data.phase,
       pulse:Math.random()*Math.PI*2});
   }
-  function playerBox(){
-    const ducked=player.duck && player.landed;
-    const w=ducked?66:player.landed?44:36;
-    const h=ducked?21:player.landed?44:52;
-    return {x:player.x-w/2,y:player.feet-h,w,h};
-  }
-  function obstacleBox(h){
-    // Raised beam has a clearance of 28 world units: 44px-standing collides,
-    // 21px-crouched clears. Jump obstacles stand on the floor.
-    return h.type==='jump'?{x:h.x,y:floorY-h.height,w:h.width,h:h.height}:
-      {x:h.x,y:floorY-28-h.height,w:h.width,h:h.height};
-  }
   function updateHud(){
-    $.hpNumber.textContent=String(hp);
-    $.hp.style.width=hp+'%';
-    $.hp.style.background=hp<=25?'linear-gradient(90deg,#ff315e,#ff8f7d)':hp<=50?'linear-gradient(90deg,#ffaf5d,#ffc95c)':'linear-gradient(90deg,#34b9e8,#6bf2ea)';
-    $.hp.style.boxShadow=hp<=25?'0 0 18px #fa3769':'0 0 13px #40e8ff';
-    $.critical.classList.toggle('active',hp<=25&&hp>0&&status==='running');
-    $.zone.textContent='ZONE '+String(zone).padStart(2,'0');
-    $.zone.style.color=c1;$.phase.textContent=director.label;$.phase.style.color=c1;
-    $.score.textContent=String(Math.floor(score)).padStart(6,'0');
-    $.speed.textContent='SPEED '+(speed/370).toFixed(2)+'×';
+    HUD.update($,{hp,zone,color:c1,phase:director.label,score,speed,
+      baseSpeed:GAME.baseSpeed,status});
   }
   function nextZone(){
     lastZoneCallout=1.4;
-    $.zoneCallout.classList.remove('hidden');
-    $.zoneCallout.style.animation='none';void $.zoneCallout.offsetWidth;$.zoneCallout.style.animation='';
-    $.zoneCalloutTag.textContent='ZONE '+String(zone).padStart(2,'0');
-    $.zoneCalloutName.textContent=PALETTES[(zone-1)%PALETTES.length].name;
-    $.zoneCalloutName.style.color=PALETTES[(zone-1)%PALETTES.length].primary;
+    HUD.showZoneCallout($,{zone,name:PALETTES[(zone-1)%PALETTES.length].name,
+      color:PALETTES[(zone-1)%PALETTES.length].primary});
     ripple(player.x,floorY-20,c1,35);burst(player.x,floorY-20,24,c1,1.7);sound('zone');
   }
   function onHit(o){
     if(player.invulnerable>0||o.hit)return;
-    o.hit=true;hp=Math.max(0,hp-25);player.invulnerable=.96;shake=12;hitFlash=.38;
+    o.hit=true;hp=Math.max(0,hp-GAME.damagePerHit);player.invulnerable=.96;shake=12;hitFlash=.38;
     director.registerDamage();burst(player.x,player.feet-30,'#ff506d',30,1.4);ripple(player.x,player.feet-26,'#ff596e',25);
     vib([25,40,30]);sound('hit');if(hp===0)endRun();
   }
   function update(dt){
     time+=dt;worldTime+=dt;
-    const next=Math.floor(time/12)+1;
+    const next=Math.floor(time/GAME.zoneSeconds)+1;
     if(next!==zone){zone=next;nextZone();}
-    speed=370+time*11.5+Math.max(0,zone-1)*12;
+    speed=GAME.speedAt(time,zone);
     const i=(zone-1)%PALETTES.length, j=(zone-2+PALETTES.length)%PALETTES.length;
-    const t=zone===1?1:smooth((time%12)/.68);
+    const t=zone===1?1:smooth((time%GAME.zoneSeconds)/.68);
     c1=rgbHex(PALETTES[j].primary,PALETTES[i].primary,t);
     c2=rgbHex(PALETTES[j].secondary,PALETTES[i].secondary,t);
     c3=rgbHex(PALETTES[j].shadow,PALETTES[i].shadow,t);
@@ -241,7 +213,7 @@
     if(lastZoneCallout>0){lastZoneCallout-=dt;if(lastZoneCallout<=0)$.zoneCallout.classList.add('hidden')}
     player.wasAirborne=!player.landed;
     if(!player.landed){
-      player.vy+=2140*dt;
+      player.vy+=GAME.gravity*dt;
       player.feet+=player.vy*dt;
       if(player.feet>=floorY){
         player.feet=floorY;player.vy=0;player.landed=true;
@@ -251,18 +223,18 @@
     updateDuck(dt);
     if(!player.landed&&Math.random()<.7)motes.push(makeMote(player.x+rand(-14,14),player.feet-8,c1,{vx:rand(-170,-20),vy:rand(10,70),life:.32,r:rand(1,3)}));
     director.tick(dt,{zone,speed,hp},spawn);
-    const p=playerBox();
+    const p=GEO.playerBox(player);
     for(const o of hurdles){
       const priorX=o.x;
       o.x-=speed*dt;
-      const b=obstacleBox(o);
+      const b=GEO.obstacleBox(o,floorY);
       // Swept X check prevents skipping a narrow obstacle on a slow phone.
-      const sweptX=priorX < p.x+p.w && o.x+o.width > p.x;
-      const yOverlap=p.y < b.y+b.h && p.y+p.h > b.y;
+      const sweptX=GEO.sweptXOverlap(p,priorX,o);
+      const yOverlap=GEO.verticalOverlap(p,b);
       if(sweptX&&yOverlap)onHit(o);
       if(!o.cleared&&o.x+o.width<p.x){
         o.cleared=true;
-        if(!o.hit){score+=135;const near=o.type==='jump'?Math.abs(p.y+p.h-b.y)<22:Math.abs(p.y-(b.y+b.h))<13;
+        if(!o.hit){score+=135;director.registerClear();const near=o.type==='jump'?Math.abs(p.y+p.h-b.y)<22:Math.abs(p.y-(b.y+b.h))<13;
           if(near)director.registerNearMiss();
           if(Math.random()<.25)sound('score');
         }
@@ -344,7 +316,7 @@
     glowLine(0,(t*55)%floorY,W,(t*55)%floorY,c1,.9,0,.07);
   }
   function drawObstacle(o){
-    const b=obstacleBox(o), isLow=o.type==='jump',color=isLow?c2:c1;
+    const b=GEO.obstacleBox(o,floorY), isLow=o.type==='jump',color=isLow?c2:c1;
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
     ctx.save();
     ctx.shadowColor=color;ctx.shadowBlur=23;ctx.globalAlpha=twinkle;
@@ -375,7 +347,7 @@
     ctx.restore();
   }
   function drawPlayer(){
-    const b=playerBox(),beat=1+Math.sin(worldTime*14)*.025;
+    const b=GEO.playerBox(player),beat=1+Math.sin(worldTime*14)*.025;
     ctx.save();
     if(player.invulnerable>0&&Math.floor(worldTime*16)%2===0)ctx.globalAlpha=.32;
     for(let i=5;i>=1;i--){

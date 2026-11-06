@@ -1,0 +1,23 @@
+name: CHROMA RUSH gameplay checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'chroma-rush/**'
+      - '.github/workflows/chroma-rush-tests.yml'
+  pull_request:
+    paths:
+      - 'chroma-rush/**'
+      - '.github/workflows/chroma-rush-tests.yml'
+permissions:
+  contents: read
+jobs:
+  node-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test Director, inputs, and shared modules
+        run: node --test chroma-rush/tests/*.cjs

@@ -1,8 +1,19 @@
-# CHROMA RUSH — Unified Terrain Director 3.0
+# CHROMA RUSH — Mobile Performance Optimization 1.0
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Mobile Performance Optimization 1.0 (2026-11-06)
+
+- Three render-only quality tiers (**HIGH / BALANCED / PERFORMANCE**) plus an automatic tier with frame pacing hysteresis. Change from the ⚙ settings button; your preference stays local.
+- Device-sensitive canvas DPR/pixel budget, fewer expensive decorative glow strokes and terrain grid operations at lower tiers. Game rules, generated terrain, obstacles and scores remain unchanged.
+- Dedicated visual randomness ensures changing graphics quality never alters Director decisions or terrain randomness.
+- Fixed-step 60 Hz gameplay clock helps preserve simulation consistency at 30, 60 or 120 Hz while bounding catch-up after browser stalls.
+- Add `?perf=1` to the URL for local FPS/frame-time/JS render timing overlay. Existing exported run JSON now includes a small `renderPerformance` snapshot. Nothing is uploaded.
+- Node regression tests, browser screenshots and an independent Chromium quality benchmark are included. Synthetic timings are not a guarantee of improvement on physical Android devices.
+- Details: [docs/mobile-performance-optimization-1.0.md](docs/mobile-performance-optimization-1.0.md).
+
 
 ## Unified Terrain Director 3.0 (2026-11-06)
 

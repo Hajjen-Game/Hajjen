@@ -34,6 +34,16 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Check canvas, terrain, gap transparency, layout and run export
         run: python chroma-rush/scripts/visual-audit.py
+      - name: Compare mobile graphics profiles and backing resolution
+        run: python chroma-rush/scripts/mobile-performance-audit.py
+      - name: Retain performance audit captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chroma-performance-audit
+          path: chroma-rush/artifacts/performance-audit/
+          if-no-files-found: warn
+          retention-days: 7
       - name: Retain screenshots and audit report
         if: always()
         uses: actions/upload-artifact@v4

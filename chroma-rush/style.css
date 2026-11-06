@@ -153,3 +153,20 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
 @media (max-height:345px) and (orientation:landscape){
   #menu{transform:translate(-50%,-50%) scale(.93);transform-origin:center;}
 }
+
+/* Mobile Performance Optimization 1.0 — small opt-in graphics picker. */
+.graphics-panel {position:absolute;z-index:12;top:max(73px,calc(env(safe-area-inset-top) + 59px));
+  right:max(20px,env(safe-area-inset-right));display:flex;flex-direction:column;gap:6px;
+  width:min(230px,48vw);padding:13px 14px;border-radius:12px;
+  background:rgba(8,15,33,.96);border:1px solid rgba(92,224,249,.34);
+  box-shadow:0 16px 32px rgba(0,0,0,.5);pointer-events:auto;}
+.graphics-panel label {font-size:10px;font-weight:850;letter-spacing:.15em;color:#a6e9f6;}
+.graphics-panel select {height:36px;min-height:32px;background:#0e2442;color:#ecfcff;
+  border:1px solid #60b9da8a;border-radius:8px;font-size:13px;font-weight:800;padding:6px;}
+.graphics-panel #graphics-active {font-size:10px;letter-spacing:.06em;color:#75e7fc;}
+.graphics-panel small {color:#a0aec9;font-size:10px;line-height:1.35;}
+.perf-overlay {position:absolute;z-index:9;top:75px;left:max(24px,env(safe-area-inset-left));
+  padding:7px 9px;color:#d9feff;background:rgba(4,10,24,.76);border:1px solid #6bdbec60;
+  border-radius:6px;white-space:pre;font:11px/1.45 monospace;pointer-events:none;}
+@media (max-height:430px) {.graphics-panel {top:51px;padding:8px 10px;gap:3px;}
+ .graphics-panel select {height:30px;min-height:30px}.perf-overlay {top:50px}}

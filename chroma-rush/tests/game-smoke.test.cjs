@@ -19,6 +19,8 @@ const terrainRender = require('../src/render/terrain-renderer.js');
 const worldBackground = require('../src/render/world-background.js');
 const runAudit = require('../src/diagnostics/round-audit.js');
 const unified = require('../src/director/unified-terrain-director.js');
+const perf = require('../src/performance/quality-manager.js');
+const clock = require('../src/performance/frame-clock.js');
 
 function setup(initialStorage={}) {
   const objects=new Map();
@@ -40,7 +42,7 @@ function setup(initialStorage={}) {
   let requested;
   const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
@@ -174,4 +176,21 @@ test('arcade run can return to menu and resets to zone 01 without practice tag',
   assert.equal(g.get('mode-indicator').classList.contains('hidden'),true);
   g.get('pause-btn').click();g.get('menu-paused-btn').click();
   assert.equal(g.get('menu').classList.contains('hidden'),false);
+});
+
+
+test('graphics picker stores a rendering mode and changes backing pixels only',()=>{
+ const g=setup({chromaRushGraphicsV1:'high'});g.step(0);
+ const canvas=g.get('game'),original=canvas.width;
+ assert.ok(original>0);
+ assert.equal(g.get('graphics-mode').value,'high');
+ g.get('graphics-mode').value='performance';
+ for(const fn of g.get('graphics-mode').events.change??[])fn();
+ assert.equal(g.local.chromaRushGraphicsV1,'performance');
+ assert.ok(canvas.width<original,'render backing pixel width should change');
+ assert.equal(g.get('graphics-active').textContent,'PERFORMANCE · PERFORMANCE');
+ g.get('start-btn').click();
+ assert.equal(g.get('graphics-btn').classList.contains('hidden'),true);
+ for(let i=1;i<100;i++)g.step(i*16.667);
+ assert.equal(g.get('zone-display').textContent,'ZONE 01');
 });

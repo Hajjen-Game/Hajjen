@@ -18,6 +18,8 @@ const modules={
  ChromaWorldBackground:require('../src/render/world-background.js'),
  ChromaRoundAudit:require('../src/diagnostics/round-audit.js'),
  ChromaUnifiedTerrainDirector:require('../src/director/unified-terrain-director.js'),
+ ChromaQuality:require('../src/performance/quality-manager.js'),
+ ChromaFrameClock:require('../src/performance/frame-clock.js'),
 };
 function harness(){
  const elements=new Map(),events={};

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
   <meta name="theme-color" content="#080b19" />
   <meta name="description" content="CHROMA RUSH — a neon speed-survival arcade prototype." />
-  <title>CHROMA RUSH | Unified Terrain Director 3.0</title>
+  <title>CHROMA RUSH | Mobile Performance Optimization 1.0</title>
   <link rel="stylesheet" href="style.css?v=arcade-1.0" />
 </head>
 <body>
@@ -34,7 +34,19 @@
         <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 13v24m-12-12 12 12 12-12"/></svg><span>DUCK</span>
       </button>
     </div>
-    <div id="top-actions"><button id="sound-btn" class="icon-button" aria-label="Toggle sound" title="Toggle sound">♫</button><span id="audio-hint" class="audio-hint hidden" aria-live="polite"></span><button id="pause-btn" class="icon-button hidden" aria-label="Pause" title="Pause">Ⅱ</button></div>
+    <div id="top-actions"><button id="graphics-btn" class="icon-button" type="button" title="Graphics quality" aria-label="Graphics settings" aria-expanded="false">⚙</button><button id="sound-btn" class="icon-button" aria-label="Toggle sound" title="Toggle sound">♫</button><span id="audio-hint" class="audio-hint hidden" aria-live="polite"></span><button id="pause-btn" class="icon-button hidden" aria-label="Pause" title="Pause">Ⅱ</button></div>
+    <section id="graphics-panel" class="graphics-panel hidden" aria-label="Graphics settings">
+      <label for="graphics-mode">GRAPHICS QUALITY</label>
+      <select id="graphics-mode" aria-label="Graphics quality">
+        <option value="auto">AUTO</option>
+        <option value="high">HIGH</option>
+        <option value="balanced">BALANCED</option>
+        <option value="performance">PERFORMANCE</option>
+      </select>
+      <span id="graphics-active" aria-live="polite">AUTO · BALANCED</span>
+      <small>Same physics, Director and gameplay in every mode.</small>
+    </section>
+    <output id="perf-overlay" class="perf-overlay hidden" aria-label="Render performance metrics"></output>
     <section id="menu" class="screen-panel" aria-live="polite">
       <div class="menu-eyebrow">A NEON SPEED SURVIVAL GAME</div>
       <h1><span>CHROMA</span> <em>RUSH</em></h1>
@@ -50,7 +62,7 @@
       <div class="practice-controls"><select id="practice-zone" aria-label="Practice starting zone" disabled><option>ZONE 02</option></select><button type="button" id="practice-start-btn" disabled>TRAIN ZONE</button></div>
       <div id="practice-hint" class="practice-hint">REACH ZONE 02 TO UNLOCK PRACTICE</div>
       <p class="help-text">LEFT THUMB: JUMP &nbsp;•&nbsp; RIGHT THUMB: DUCK<br/>KEYBOARD: ↑ / SPACE &nbsp;•&nbsp; ↓ / S</p>
-      <div class="version">UNIFIED TERRAIN DIRECTOR 3.0</div>
+      <div class="version">MOBILE PERFORMANCE OPTIMIZATION 1.0</div>
     </section>
     <section id="milestone-panel" class="screen-panel hidden" role="dialog" aria-modal="true" aria-label="Arcade milestones">
       <div class="menu-eyebrow">YOUR ARCADE JOURNEY</div><h2>MILESTONES</h2>
@@ -90,6 +102,8 @@
   <script src="src/render/terrain-renderer.js?v=terrain-visual-1.2"></script>
   <script src="src/render/world-background.js?v=background-1.0"></script>
   <script src="src/diagnostics/round-audit.js?v=audit-1.0"></script>
-  <script src="src/gameplay/game.js?v=unified-3.0"></script>
+  <script src="src/performance/quality-manager.js?v=performance-1.0"></script>
+  <script src="src/performance/frame-clock.js?v=performance-1.0"></script>
+  <script src="src/gameplay/game.js?v=performance-1.0"></script>
 </body>
 </html>

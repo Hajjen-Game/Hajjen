@@ -15,7 +15,7 @@
     return 'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+clamp(alpha,0,1)+')';
   };
   const wrap=(value,length)=>(value%length+length)%length;
-  function drawBackground({ctx,width:W,height:H,time:t=0,speed=370,primary:c1,secondary:c2,shadow:c3,flow=0,glowLine}){
+  function drawBackground({ctx,width:W,height:H,time:t=0,speed=370,primary:c1,secondary:c2,shadow:c3,flow=0,glowLine,quality={density:1}}){
     if(!ctx||!(W>0)||!(H>0))return;
     const flowCharge=clamp(flow,0,100)/100;
     // Base paints ALL pixels, including those behind holes and below slopes.
@@ -44,7 +44,8 @@
     facade.addColorStop(.65,rgba(c1,.027));
     facade.addColorStop(1,rgba(c1,.003));
     const drift=t*speed*.13;
-    for(let k=-2;k<Math.ceil(W/155)+3;k++){
+    const facadeStride=quality.density>=.9?1:quality.density>=.55?2:3;
+    for(let k=-2;k<Math.ceil(W/155)+3;k+=facadeStride){
       const x=wrap(k*155-drift*.35,W+310)-155;
       const h=72+wrap(k*17+201,7)*16;
       const top=H*.54-h*.67;
@@ -53,14 +54,14 @@
       if(k%3===0){ctx.fillStyle=rgba(c2,.093);ctx.fillRect(x+11,top+10,2,23);}
     }
     // Scrolling light streaks and distant particles cover the *full* height.
-    for(let i=0;i<24;i++){
+    for(let i=0;i<Math.max(8,Math.round(24*quality.density));i++){
       const y=46+wrap(i*43+17,Math.max(50,H-66));
       const x=wrap(i*147-t*speed*(.12+i%4*.08),W+300)-130;
       const len=(18+i%5*16)*(1+speed/1500);
       const fade=1-y/H*.42;
       glowLine(x,y,x+len,y,i%2?c1:c2,i%4===0?1.9:1,5,(.09+speed/2500*.13)*fade);
     }
-    for(let i=0;i<58;i++){
+    for(let i=0;i<Math.max(15,Math.round(58*quality.density));i++){
       const x=wrap(i*269.8-t*(7+i%4*5),W);
       const y=24+wrap(i*112.7,Math.max(40,H-48));
       ctx.fillStyle=rgba(i%2?c1:'#d4eaff',(.09+i%5*.035)*(1-y/H*.28));
@@ -69,7 +70,7 @@
     // Distant horizon is a scene detail, NOT an end of the background layer.
     const horizon=H*.47;
     glowLine(0,horizon,W,horizon,c1,1,9,.15);
-    for(let i=0;i<Math.ceil(W/135)+2;i++){
+    for(let i=0;i<Math.ceil(W/135)+2;i+=quality.density<.5?2:1){
       const x=wrap(i*135-t*speed*.56,W+135);
       glowLine(x,horizon-3,x,horizon+14,i%2?c2:c1,2,7,.21);
     }

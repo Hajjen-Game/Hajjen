@@ -32,35 +32,43 @@
       return seg;
     }
     _last(){return this.segments[this.segments.length-1]}
-    _choose(zone,speed){
+    _choose(zone,speed,policy=null){
       const prev=this._last(),r=this.rules;
       if(prev.type!=='flat'){
         // A guaranteed flat landing / preparation area after every feature.
-        this._append('flat',this._random(r.minLandingFlat,r.minLandingFlat+260));
-        return;
+        return this._append('flat',this._random(r.minLandingFlat,r.minLandingFlat+260));
       }
       const roll=this.random();
       const gapAllowed=zone>=r.gapFromZone &&
         prev.end-this.lastGapEnd>=Math.max(r.minGapSeparation,speed*2.2) &&
-        prev.end>r.firstGapWorld;
-      if(gapAllowed&&roll<r.gapChance){
-        const width=clamp(speed*this._random(.30,.37),r.minGapWidth,r.maxGapWidth);
-        this._append('gap',width);
-        return;
-      }
-      if(zone>=r.slopeFromZone&&roll<r.slopeChance){
-        const delta=this._random(-r.maxHeightChange,r.maxHeightChange);
+        prev.end>r.firstGapWorld && (!policy||policy.allowGap);
+      const gapChance=policy?Math.max(0,policy.gapChance||0):r.gapChance;
+      const slopeChance=policy?Math.max(0,policy.slopeChance||0):r.slopeChance-gapChance;
+      let segment;
+      if(gapAllowed&&roll<gapChance){
+        const minSeconds=policy?.gapSecondsMin??.30;
+        const maxSeconds=policy?.gapSecondsMax??.37;
+        const width=clamp(speed*this._random(minSeconds,maxSeconds),r.minGapWidth,r.maxGapWidth);
+        segment=this._append('gap',width);
+      }else if(zone>=r.slopeFromZone&&roll<(policy?(gapAllowed?gapChance:0)+slopeChance:r.slopeChance)){
+        const change=policy?.maxHeightChange??r.maxHeightChange;
+        const delta=this._random(-change,change);
         const nextY=clamp(prev.y1+delta,this.baseY-r.maxOffset,this.baseY+r.maxOffset);
-        // Smooth slopes: never a sudden vertical wall or a forced jump.
-        this._append('slope',this._random(r.minSlopeWidth,r.maxSlopeWidth),nextY);
-        return;
-      }
-      this._append('flat',this._random(400,740));
+        segment=this._append('slope',this._random(r.minSlopeWidth,r.maxSlopeWidth),nextY);
+      }else segment=this._append('flat',this._random(400,740));
+      if(policy){segment.plannedPhase=policy.phase;segment.lookaheadSeconds=policy.leadSeconds;}
+      return segment;
     }
-    ensure(right,zone=1,speed=370){
-      // Capped work and retained forward buffers keep mobile frames predictable.
+    ensure(right,zone=1,speed=370,policy=null){
+      // This optional policy is supplied by Unified Terrain Director 3.0.
+      // Calls without a policy retain the original standalone random behavior.
+      const added=[];
       let attempts=0;
-      while(this.generated<right+100 && attempts++<24)this._choose(zone,speed);
+      while(this.generated<right+100&&attempts++<24){
+        const decision=typeof policy==='function'?policy(this.generated):policy;
+        added.push(this._choose(zone,speed,decision));
+      }
+      return added;
     }
     _segmentAt(x){
       if(x<0)return this.segments[0];

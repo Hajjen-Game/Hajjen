@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Game Experience & Visual Audit 1.0
+/* CHROMA RUSH — Unified Terrain Director 3.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -21,6 +21,7 @@
   const GAME = window.ChromaConfig.GAME;
   const GEO = window.ChromaGeometry;
   const terrain = new window.ChromaTerrain.TerrainSystem();
+  const terrainDirector = new window.ChromaUnifiedTerrainDirector.UnifiedTerrainDirector({terrain,director});
   const jumpControl = new window.ChromaJump.JumpController();
   const motion = new window.ChromaMotion.PlayerMotion();
   const terrainRender = window.ChromaTerrainRender;
@@ -137,11 +138,11 @@
     hp=GAME.startingHP;speed=GAME.speedAt(time,zone);score=0;shake=0;hitFlash=0;
     const palette=PALETTES[(zone-1)%PALETTES.length];
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
-    hurdles=[];motes=[];rings=[];streaks=[];director.reset();flow.reset();flow.currentZone=zone;
+    hurdles=[];motes=[];rings=[];streaks=[];director.reset();terrainDirector.reset();flow.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();motion.reset();
     // Practice retains the chosen zone/difficulty but starts on a fresh,
     // safe runway, rather than loading a nonexistent alternate level.
-    terrain.ensure(W+1000,zone,speed);
+    terrainDirector.prepare({right:W+1000,playerWorld:player.x,zone,speed,hp});
     runAudit.reset({mode:runMode,startingZone:startZone});
     runAudit.record('start',auditState(),{startingZone:startZone});
     $.exportRun.textContent='EXPORT RUN LOG';
@@ -339,6 +340,7 @@
   function failGap(gap){
     if(!terrain.markGap(gap,true))return;
     gapRecovery=gap;jumpControl.cancel();motion.reset();
+    terrainDirector.noteGapOutcome({missed:true,worldX:distance+player.x,speed});
     // Match regular obstacle invulnerability: the gap still counts as a
     // missed challenge, but cannot immediately charge a second shield hit.
     const absorbed=player.invulnerable>0;
@@ -355,6 +357,7 @@
   }
   function clearGap(gap){
     if(!terrain.markGap(gap,false))return;
+    terrainDirector.noteGapOutcome({missed:false,worldX:distance+player.x,speed});
     director.registerClear();
     const reward=flow.registerClear({precision:false});
     score+=reward.earnedPoints;
@@ -385,11 +388,12 @@
     speed=GAME.speedAt(time,zone);
     distance+=speed*dt;
     const lastTerrainWorld=terrain.generated;
-    terrain.ensure(distance+W+800,zone,speed);
+    terrainDirector.prepare({right:distance+W+800,playerWorld:distance+player.x,zone,speed,hp});
     for(const feature of terrain.segments){
       if(feature.start>=lastTerrainWorld&&('gap'===feature.type||'slope'===feature.type))
         runAudit.record('terrain',auditState(),{feature:feature.type,width:feature.end-feature.start,
-          start:feature.start,elevationChange:feature.y1-feature.y0});
+          start:feature.start,elevationChange:feature.y1-feature.y0,
+          plannedPhase:feature.plannedPhase||'LEGACY'});
     }
     terrain.prune(distance+player.x,speed);
     const i=(zone-1)%PALETTES.length, j=(zone-2+PALETTES.length)%PALETTES.length;
@@ -462,7 +466,7 @@
     }
     if(!player.landed&&Math.random()<.7)motes.push(makeMote(player.x+rand(-14,14),player.feet-8,c1,{vx:rand(-170,-20),vy:rand(10,70),life:.32,r:rand(1,3)}));
     const phaseBefore=director.phase;
-    director.tick(dt,{zone,speed,hp},spawn);
+    terrainDirector.tick(dt,{zone,speed,hp,distance,spawnX:W+90},spawn);
     if(phaseBefore!==director.phase)runAudit.record('phase',auditState(),{from:phaseBefore,to:director.phase});
     const p=GEO.playerBox(player);
     for(const o of hurdles){

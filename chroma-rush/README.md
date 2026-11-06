@@ -1,8 +1,18 @@
-# CHROMA RUSH — Game Experience & Visual Audit 1.0
+# CHROMA RUSH — Unified Terrain Director 3.0
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Unified Terrain Director 3.0 (2026-11-06)
+
+- **Single procedural track:** new `src/director/unified-terrain-director.js` links terrain planning and the existing Adaptive Rush Director 2.0. No separate levels, extra controls or speed changes.
+- **Phase-aware terrain:** BUILD favors gentle slopes, PEAK permits occasional gaps, while FADE/RELAX avoid planning new gaps. The planner considers **when terrain will reach the player**, not just which phase was active when generated.
+- **Player-aware recovery:** Low shield or high stress suppresses future gap pressure; missed gaps delay new gap proposals and protect upcoming obstacle spacing. Already generated geometry is never changed under the player.
+- **Safe combinations:** geometry remains the authority for gap widths and landing areas. Motif steps too close to an abyss are deferred, never silently discarded or counted as spawned.
+- **Evidence:** the exported round log now labels terrain by planned phase. New seeded three-minute simulations check terrain variety, spacing and recovery. The four-size Chromium visual audit passes.
+- **Performance:** no new shaders, particles or gameplay buttons. Rendering slowdowns on older phones remain a separate profiling and optimization task.
+- [Technical design and verification](docs/unified-terrain-director-3.0.md).
 
 ## Game Experience & Visual Audit 1.0 (2026-11-06)
 

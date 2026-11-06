@@ -32,9 +32,16 @@ assert(src.includes('pointerEvents:"none"'));
 assert(src.includes("if(!(await ensureGraphics()))return false"),
  "Failed GPU or dynamic import must hand control to Classic");
 assert(src.includes("onReveal?.()"),"Sprite upgrades must remain visible during Pixi sparks");
+assert(src.includes("streakTextureFor(lib)"),"The main burst must use crisp streak particles");
+assert(src.includes("halo:particle"),"Each side hit must have its own fade-out glow");
+assert(preview.TIMING.sideDelay>=70+preview.TIMING.sideFlight,
+ "Targets must not reveal before the first firework impact");
+assert(preview.TIMING.total>=preview.TIMING.charge+preview.TIMING.ascent+
+ 70+2*58+preview.TIMING.sideFlight+610,
+ "The final side explosion must fade before the Pixi overlay disappears");
 assert(!src.includes("game.swap("));
 assert(!src.includes("game.grow("));
 assert(!src.includes("game.score="));
 assert(!src.includes("Math.random("),"Visual emitter cannot alter game randomness");
 assert.equal(preview.setMode("classic"),"classic");
-console.log("PASS Hanabi Pixi Preview 1.0 · opt-in, pinned Pixi8, WebGL, safe fallback, no game mutation");
+console.log("PASS Hanabi Pixi Preview 1.1 · opt-in, pinned Pixi8, WebGL, safe fallback, no game mutation");

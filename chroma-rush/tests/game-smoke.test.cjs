@@ -8,13 +8,14 @@ const director = require('../src/director/adaptive-director.js');
 const config = require('../src/core/config.js');
 const geometry = require('../src/core/geometry.js');
 const hud = require('../src/ui/hud.js');
+const flow = require('../src/gameplay/flow.js');
 
 function setup() {
   const objects=new Map();
   function get(id){
     if(!objects.has(id)) {
       const events={};const classes=new Set(['hidden']);
-      objects.set(id, {id, textContent:'',style:{}, clientWidth:1280,clientHeight:720,
+      objects.set(id, {id, textContent:'',style:{},dataset:{}, setAttribute(name,value){this[name]=value},clientWidth:1280,clientHeight:720,
         classList:{add:k=>classes.add(k),remove:k=>classes.delete(k),contains:k=>classes.has(k),toggle:(k,val)=>val?classes.add(k):classes.delete(k)},
         addEventListener:(name,fn)=>{(events[name]??=[]).push(fn)},
         click(){for(const fn of events.click??[])fn()},setPointerCapture(){},
@@ -29,7 +30,7 @@ function setup() {
   let requested;
   const local={};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
@@ -48,6 +49,8 @@ test('game initializes, starts, advances zones and updates HUD without runtime e
   assert.match(g.get('zone-display').textContent,/ZONE 0[1-9]/);
   assert.match(g.get('speed-display').textContent,/SPEED \d+\.\d+×/);
   assert.ok(+g.get('hp-number').textContent<=100);
+  assert.match(g.get('flow-number').textContent,/^\d+%$/);
+  assert.match(g.get('flow-multiplier').textContent,/^\d+(?:\.\d+)?×$/);
 });
 
 function duckHarness(){

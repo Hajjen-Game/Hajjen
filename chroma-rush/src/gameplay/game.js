@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Adaptive Rush Director 2.0
+/* CHROMA RUSH — Chroma Flow & Perfect Zones 1.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,12 +6,13 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
   const el = id => document.getElementById(id);
   const director = new window.ChromaDirector.AdaptiveRushDirector();
+  const flow = new window.ChromaFlow.FlowSystem();
   const GAME = window.ChromaConfig.GAME;
   const GEO = window.ChromaGeometry;
   const HUD = window.ChromaHud;
@@ -21,7 +22,10 @@
     hp:el('hp-inner'), hpNumber:el('hp-number'), zone:el('zone-display'), phase:el('phase-display'),
     score:el('score-display'), speed:el('speed-display'), critical:el('danger-indicator'),
     zoneCallout:el('zone-callout'), zoneCalloutTag:el('zone-callout-tag'), zoneCalloutName:el('zone-callout-name'),
-    sound:el('sound-btn'), finalScore:el('final-score'), finalZone:el('final-zone'), finalBest:el('final-best')
+    sound:el('sound-btn'), finalScore:el('final-score'), finalZone:el('final-zone'), finalBest:el('final-best'),
+    finalPerfect:el('final-perfect'), zonePerfect:el('zone-perfect'),
+    flowNumber:el('flow-number'),flowBar:el('flow-inner'),flowOuter:el('flow-outer'),
+    flowMultiplier:el('flow-multiplier'),flowState:el('flow-state'),flowStreak:el('flow-streak')
   };
   const PALETTES = window.ChromaConfig.PALETTES;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -33,8 +37,8 @@
   const rand=(a,b)=>a+Math.random()*(b-a);
   const vib=ms=>{try{if(navigator.vibrate)navigator.vibrate(ms)}catch(_){}};
   const store = {
-    get(){try{return Number(localStorage.getItem('chromaRushBest'))||0}catch(_){return 0}},
-    put(v){try{localStorage.setItem('chromaRushBest',String(v))}catch(_){}}
+    get(){try{return Number(localStorage.getItem('chromaRushBestFlow1'))||0}catch(_){return 0}},
+    put(v){try{localStorage.setItem('chromaRushBestFlow1',String(v))}catch(_){}}
   };
   let W=1280,H=720,scale=1,floorY=H*GAME.floorRatio,dpr=1;
   let status='ready', time=0, worldTime=0, zone=1, lastTs=0, shake=0, hitFlash=0, lastZoneCallout=0;
@@ -71,6 +75,8 @@
     if(kind==='hit'){beep(180,.27,'sawtooth',.13,62);setTimeout(()=>beep(100,.15,'sine',.05,65),65)}
     if(kind==='zone'){beep(420,.25,'triangle',.075,770);setTimeout(()=>beep(670,.29,'sine',.07,1140),110)}
     if(kind==='score')beep(680,.07,'sine',.02,860);
+    if(kind==='flow'){beep(610,.13,'sine',.045,840)}
+    if(kind==='perfect'){beep(570,.22,'triangle',.065,810);setTimeout(()=>beep(780,.19,'sine',.045,1010),100)}
     if(kind==='start'){beep(430,.14,'triangle',.08,710);setTimeout(()=>beep(610,.22,'sine',.07,1050),100)}
   }
   function resize(){
@@ -95,12 +101,12 @@
   function reset(){
     time=0;worldTime=0;zone=1;hp=GAME.startingHP;speed=GAME.baseSpeed;score=0;shake=0;hitFlash=0;
     c1=PALETTES[0].primary;c2=PALETTES[0].secondary;c3=PALETTES[0].shadow;
-    hurdles=[];motes=[];rings=[];streaks=[];director.reset();
+    hurdles=[];motes=[];rings=[];streaks=[];director.reset();flow.reset();
     player={x:W*.265,feet:floorY,vy:0,landed:true,duck:false,duckTime:0,duckRecovery:0,wasAirborne:false,invulnerable:0,stretch:0};
     input.duckKeys.clear();input.duckPointer=null;$.jump.classList.remove('is-down');$.duck.classList.remove('is-down');
     $.menu.classList.add('hidden');$.gameover.classList.add('hidden');$.pauseMenu.classList.add('hidden');
     $.hud.classList.remove('hidden');$.controls.classList.remove('hidden');$.pauseBtn.classList.remove('hidden');
-    $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');
+    $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');
     status='running';lastTs=performance.now();updateHud();initAudio();sound('start');
   }
   function pause(){if(status!=='running')return;status='paused';$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;player.duck=false;player.duckTime=0;player.duckRecovery=0;$.duck.classList.remove('is-down');}
@@ -111,7 +117,7 @@
     const total=Math.floor(score);
     if(total>best){best=total;store.put(best)}
     $.finalScore.textContent=total.toLocaleString('en-US');$.finalZone.textContent=String(zone).padStart(2,'0');
-    $.finalBest.textContent=best.toLocaleString('en-US');$.gameover.classList.remove('hidden');
+    $.finalBest.textContent=best.toLocaleString('en-US');$.finalPerfect.textContent=String(flow.perfectZones);$.gameover.classList.remove('hidden');
   }
   function jump(){
     if(status!=='running'||!player.landed||player.duck)return;
@@ -178,35 +184,48 @@
   function spawn(data){
     const width=data.type==='jump'?rand(43,58):rand(54,71);
     const height=data.type==='jump'?rand(53,66):rand(115,158);
-    hurdles.push({type:data.type,x:W+90,width,height,hit:false,cleared:false,phase:data.phase,
+    hurdles.push({type:data.type,x:W+90,width,height,hit:false,cleared:false,closestClearance:Infinity,entryDuckTime:null,phase:data.phase,
       pulse:Math.random()*Math.PI*2});
   }
   function updateHud(){
     HUD.update($,{hp,zone,color:c1,phase:director.label,score,speed,
-      baseSpeed:GAME.baseSpeed,status});
+      baseSpeed:GAME.baseSpeed,status,flow});
   }
-  function nextZone(){
+  function nextZone(reward=null){
     lastZoneCallout=1.4;
     HUD.showZoneCallout($,{zone,name:PALETTES[(zone-1)%PALETTES.length].name,
-      color:PALETTES[(zone-1)%PALETTES.length].primary});
+      color:PALETTES[(zone-1)%PALETTES.length].primary,perfectReward:reward?.perfect?reward:null});
     ripple(player.x,floorY-20,c1,35);burst(player.x,floorY-20,24,c1,1.7);sound('zone');
   }
   function onHit(o){
-    if(player.invulnerable>0||o.hit)return;
-    o.hit=true;hp=Math.max(0,hp-GAME.damagePerHit);player.invulnerable=.96;shake=12;hitFlash=.38;
-    director.registerDamage();burst(player.x,player.feet-30,'#ff506d',30,1.4);ripple(player.x,player.feet-26,'#ff596e',25);
+    if(o.hit)return;
+    o.hit=true;
+    if(player.invulnerable>0){flow.registerCollision();return;}
+    hp=Math.max(0,hp-GAME.damagePerHit);player.invulnerable=.96;shake=12;hitFlash=.38;
+    director.registerDamage();flow.registerDamage();burst(player.x,player.feet-30,'#ff506d',30,1.4);ripple(player.x,player.feet-26,'#ff596e',25);
     vib([25,40,30]);sound('hit');if(hp===0)endRun();
   }
   function update(dt){
     time+=dt;worldTime+=dt;
     const next=Math.floor(time/GAME.zoneSeconds)+1;
-    if(next!==zone){zone=next;nextZone();}
+    if(next!==zone){
+      // Reward the completed zone before switching; empty zones never count as perfect.
+      const reward=flow.completeZone({hp,maxHP:GAME.startingHP});
+      if(reward.perfect){
+        hp=Math.min(GAME.startingHP,hp+reward.heal);
+        score+=reward.bonusPoints;
+        burst(player.x,floorY-36,21,c2,1.05);ripple(player.x,floorY-18,c1,22);
+        sound('perfect');
+      }
+      zone=next;nextZone(reward);
+    }
     speed=GAME.speedAt(time,zone);
     const i=(zone-1)%PALETTES.length, j=(zone-2+PALETTES.length)%PALETTES.length;
     const t=zone===1?1:smooth((time%GAME.zoneSeconds)/.68);
     c1=rgbHex(PALETTES[j].primary,PALETTES[i].primary,t);
     c2=rgbHex(PALETTES[j].secondary,PALETTES[i].secondary,t);
     c3=rgbHex(PALETTES[j].shadow,PALETTES[i].shadow,t);
+    flow.tick(dt);
     player.invulnerable=Math.max(0,player.invulnerable-dt);
     player.stretch=Math.max(0,player.stretch-dt*3);
     shake=Math.max(0,shake-dt*36);hitFlash=Math.max(0,hitFlash-dt);
@@ -221,6 +240,11 @@
       }
     }
     updateDuck(dt);
+    // Tiny, performance-bounded particles make high Flow visibly different.
+    if(flow.tier>=1&&Math.random()<dt*(flow.tier===3?19:flow.tier===2?11:5)){
+      motes.push(makeMote(player.x-25,player.feet-20,Math.random()<.5?c1:c2,
+        {vx:rand(-160,-40),vy:rand(-55,25),life:rand(.2,.42),r:rand(.9,2.4)}));
+    }
     if(!player.landed&&Math.random()<.7)motes.push(makeMote(player.x+rand(-14,14),player.feet-8,c1,{vx:rand(-170,-20),vy:rand(10,70),life:.32,r:rand(1,3)}));
     director.tick(dt,{zone,speed,hp},spawn);
     const p=GEO.playerBox(player);
@@ -231,12 +255,28 @@
       // Swept X check prevents skipping a narrow obstacle on a slow phone.
       const sweptX=GEO.sweptXOverlap(p,priorX,o);
       const yOverlap=GEO.verticalOverlap(p,b);
+      if(sweptX && !yOverlap && !o.hit){
+        // A real narrow jump clearance or well-timed duck is a precision pass.
+        if(o.type==='jump' && p.y+p.h<=b.y){
+          o.closestClearance=Math.min(o.closestClearance,b.y-(p.y+p.h));
+        }else if(o.type==='duck' && player.duck && o.entryDuckTime===null){
+          o.entryDuckTime=player.duckTime;
+        }
+      }
       if(sweptX&&yOverlap)onHit(o);
       if(!o.cleared&&o.x+o.width<p.x){
         o.cleared=true;
-        if(!o.hit){score+=135;director.registerClear();const near=o.type==='jump'?Math.abs(p.y+p.h-b.y)<22:Math.abs(p.y-(b.y+b.h))<13;
-          if(near)director.registerNearMiss();
-          if(Math.random()<.25)sound('score');
+        if(!o.hit){
+          const traverse=(o.width+66)/Math.max(300,speed);
+          const precision=o.type==='jump'
+            ?o.closestClearance>=0&&o.closestClearance<=18
+            :o.entryDuckTime!==null&&o.entryDuckTime>=traverse+.02&&o.entryDuckTime<=traverse+.16;
+          director.registerClear();
+          if(precision)director.registerNearMiss();
+          const gained=flow.registerClear({precision});
+          score+=gained.earnedPoints;
+          if(gained.tierUp){burst(player.x,floorY-25,9,c1,.62);sound('flow')}
+          else if(Math.random()<.25)sound('score');
         }
       }
     }
@@ -266,8 +306,9 @@
     const bg=ctx.createLinearGradient(0,0,0,H);
     bg.addColorStop(0,'#060b19');bg.addColorStop(.43,rgba(c3,.92));bg.addColorStop(.85,'#070b18');bg.addColorStop(1,'#050913');
     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    const flowCharge=flow.value/100;
     const hazy=ctx.createRadialGradient(W*.66,floorY-120,20,W*.66,floorY-100,W*.64);
-    hazy.addColorStop(0,rgba(c1,.135));hazy.addColorStop(.5,rgba(c2,.058));hazy.addColorStop(1,rgba(c1,0));
+    hazy.addColorStop(0,rgba(c1,.135+flowCharge*.12));hazy.addColorStop(.5,rgba(c2,.058));hazy.addColorStop(1,rgba(c1,0));
     ctx.fillStyle=hazy;ctx.fillRect(0,0,W,H);
     // Architectural forms; far enough away from collision lane to remain legible.
     const drift=t*speed*.13;
@@ -300,7 +341,7 @@
     }
     // Infinite neon floor/grid that scrolls with the world.
     const ground=ctx.createLinearGradient(0,floorY,0,H);
-    ground.addColorStop(0,rgba(c1,.105));ground.addColorStop(.7,'#090e20');ground.addColorStop(1,'#050812');
+    ground.addColorStop(0,rgba(c1,.105+flowCharge*.08));ground.addColorStop(.7,'#090e20');ground.addColorStop(1,'#050812');
     ctx.fillStyle=ground;ctx.fillRect(0,floorY,W,H-floorY);
     for(let y=floorY+24;y<H+110;y+=35){
       const a=(y-floorY)/(H-floorY);glowLine(0,y,W,y,c1,1,0,.09+a*.16);
@@ -310,7 +351,7 @@
       const xx=x-offset;
       glowLine(xx,floorY,xx-88,H,c2,1.4,0,.21);
     }
-    glowLine(0,floorY,W,floorY,c1,2.2,20,.96);
+    glowLine(0,floorY,W,floorY,c1,2.2+flowCharge*1.2,20+flowCharge*18,.96);
     glowLine(0,floorY+3,W,floorY+3,c2,1,6,.56);
     // Scanning line across the upper half; very faint.
     glowLine(0,(t*55)%floorY,W,(t*55)%floorY,c1,.9,0,.07);
@@ -350,9 +391,9 @@
     const b=GEO.playerBox(player),beat=1+Math.sin(worldTime*14)*.025;
     ctx.save();
     if(player.invulnerable>0&&Math.floor(worldTime*16)%2===0)ctx.globalAlpha=.32;
-    for(let i=5;i>=1;i--){
+    for(let i=5+Math.floor(flow.value/25);i>=1;i--){
       const x=b.x-i*(9+speed/110),sc=1-i*.105;
-      ctx.fillStyle=rgba(c1,.08+(5-i)*.025);
+      ctx.fillStyle=rgba(c1,clamp(.055+(8-i)*.025,0,.24));
       roundRectPath(x,b.y+(1-sc)*b.h/2,b.w*sc,b.h*sc,6);ctx.fill();
     }
     const stretch=player.landed?player.duck?0:-player.stretch*.09:clamp(-player.vy/1100,-.14,.16);
@@ -366,6 +407,12 @@
     ctx.fillStyle=shading;roundRectPath(rx+5,ry+4,rw-10,rh-8,5);ctx.fill();
     glowLine(rx+6,ry+6,rx+rw*.6,ry+6,'#fff',2,6,.7);
     ctx.restore();
+    // At high Flow a soft halo frames the runner; collision shape is untouched.
+    if(flow.tier===3){
+      ctx.save();ctx.strokeStyle=c2;ctx.lineWidth=1.6;ctx.shadowColor=c2;ctx.shadowBlur=16;
+      ctx.globalAlpha=.25+.06*Math.sin(worldTime*5);
+      ctx.beginPath();ctx.ellipse(player.x,player.feet-b.h/2,b.w*.95,b.h*.95,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+    }
     const height=clamp((floorY-player.feet)*.16,0,80);
     ctx.fillStyle=rgba(c1,.14);ctx.beginPath();ctx.ellipse(player.x,floorY+5,clamp(25-height*.18,9,25),4,0,0,Math.PI*2);ctx.fill();
   }

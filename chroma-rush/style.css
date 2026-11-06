@@ -65,3 +65,19 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
 @media (orientation:portrait) and (max-width:850px) {#portrait-tip {display:flex;}}
 @media (max-height:420px) {.screen-panel {padding:8px;}.screen-panel p {margin:4px 0}.screen-panel .help-text{margin-top:5px;}.version{margin-top:5px;}.primary-btn{margin-top:7px}.control{bottom:13px;width:75px;height:75px;border-radius:18px}.control svg{width:26px;height:26px}.hud-center{min-width:100px}#hud {top:9px;}#top-actions{top:6px;}.screen-panel::before{inset:-10px -24px;}}
 @media (prefers-reduced-motion:reduce){.control{transition:none;}#danger-indicator.active{animation:none;opacity:1;}#zone-callout{animation:zoneReveal 1.4s ease-out both;}}
+
+/* Chroma Flow 1.0 — quiet visual hierarchy; does not obstruct obstacle lane. */
+.flow-heading { display:flex;justify-content:space-between;align-items:center;margin-top:11px;color:#9bacd1;font-size:clamp(9px,.82vw,12px);font-weight:800;letter-spacing:.16em; }
+.flow-heading b {color:#f5f8ff;letter-spacing:.02em;}
+.flow-heading > b {color:#7cf6ff;text-shadow:0 0 10px #45e8ff66;}
+.flow-outer {height:5px;width:100%;background:#263047;border-radius:20px;overflow:hidden;margin-top:5px;border:1px solid #61739c44;}
+#flow-inner {height:100%;width:0%;border-radius:20px;background:linear-gradient(90deg,#31a9d4,#4bf1ff);box-shadow:0 0 10px #42eafa99;transition:width .12s linear,background .2s;}
+#flow-outer[data-tier="2"] #flow-inner{background:linear-gradient(90deg,#42ecf2,#bd74ff);box-shadow:0 0 12px #bd74ff99;}
+#flow-outer[data-tier="3"] #flow-inner{background:linear-gradient(90deg,#47d8fb,#a96dff,#ff66c0);box-shadow:0 0 14px #ff66c0cc;}
+.flow-status {display:flex;justify-content:space-between;gap:5px;color:#7f93b7;font-weight:700;letter-spacing:.12em;font-size:clamp(8px,.7vw,10px);margin-top:5px;white-space:nowrap;}
+#flow-state.chroma-live{color:#ff9ee3;text-shadow:0 0 14px #ff4abb88;}
+#zone-perfect {color:#91fff0;font-size:clamp(10px,1.15vw,15px);font-weight:900;letter-spacing:.18em;white-space:nowrap;text-shadow:0 0 12px #46eddc99;margin-top:5px;}
+@media (max-height:420px){.flow-heading{margin-top:6px}.flow-status{margin-top:3px}.flow-outer{margin-top:3px}}
+@media (prefers-reduced-motion:reduce){#flow-inner{transition:none}}
+
+@media (max-width:800px) {.flow-status #flow-streak{display:none}.flow-status{letter-spacing:.05em}}

@@ -1,8 +1,18 @@
-# CHROMA RUSH — Adaptive Rush Director 2.0
+# CHROMA RUSH — Chroma Flow & Perfect Zones 1.0
 
 A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Chroma Flow & Perfect Zones 1.0 (new)
+
+- **Flow** rises when real, unhit obstacles are cleared (+6), and rises more for narrow jump clearances / well-timed duck presses (+10). It falls 35 on damage, and decays slowly (1.5/s) after a 3.5-second stretch without successful clears. Flow never fills passively during a Director break.
+- **Chroma State** starts at 90 Flow. Thresholds: 30, 65, 90. Multipliers on *obstacle-clear* score: 1× / 1.25× / 1.5× / 2×. Survival-time score is deliberately unaffected so simply waiting does not generate boosted points.
+- **Reactive visuals** ramp floor glow, track glow, player trail length, subtle motes and a player halo at CHROMA STATE. The colors still follow the existing zone palettes. Transitions are restrained to protect obstacle readability.
+- **Perfect Zones** are counted only if at least **three actual obstacles were cleared** in the last 12-second zone, with zero collisions (including contacts absorbed by temporary invulnerability). They grant up to **10 shield** without exceeding the 100-HP cap, plus a 350-base-point bonus and a small Flow boost. An empty zone is never perfect. The toast identifies the *completed* zone.
+- **Feedback** includes a Flow bar, current multiplier, clear streak, a Perfect Zone transition announcement and count on the results screen; brief synthetic audio cues play on Flow-tier increases and Perfect Zones. Full layered music remains planned for Step 4.
+- **Best score for Flow scoring** uses a new `chromaRushBestFlow1` local-storage key. The old record remains stored intact under `chromaRushBest`, because the scoring rules changed.
+- **Modular implementation:** `src/gameplay/flow.js` owns score/Flow/streak/zone rules; `src/core/config.js` owns all tunable constants; `src/ui/hud.js` only presents state. No extra player inputs, collectible economy or dependencies.
 
 ## What changed in 2.0?
 
@@ -28,6 +38,7 @@ chroma-rush/
       patterns.js             Authored micro-pattern catalog and selection
       adaptive-director.js    Director 2.0: pacing, stress, confidence, safe gaps
     gameplay/
+      flow.js                 Pure Flow/Perfect Zone state and scoring rules
       game.js                 Input, game state, collision, world rendering and effects
     ui/
       hud.js                  Reusable HUD and zone transition presentation
@@ -35,6 +46,7 @@ chroma-rush/
     director.test.cjs          Original Director pacing regression checks
     director-2.test.cjs        Pattern selection, adaptive state and high-speed safety
     game-smoke.test.cjs        Full game loop and mobile/keyboard duck regression
+    flow.test.cjs              Flow thresholds, flawless zones, damage, healing and reset
 ```
 
 Modules are plain browser JavaScript with CommonJS compatibility for Node tests, so the game needs **no build process, dependencies, CDN, account or analytics**. All script URLs carry a version query to limit stale browser caches on GitHub Pages.
@@ -71,3 +83,4 @@ node --test chroma-rush/tests/*.cjs
 - **1.0 (2026-11-06):** First single-page prototype.
 - **1.1:** Tap-to-duck with a fixed duration and recovery.
 - **2.0:** Adaptive motif generation, player-friction awareness, shared modules and Director regression tests.
+- **Flow 1.0:** Reactive Flow tiers, skill-based score bonuses, Perfect Zones and shield recovery.

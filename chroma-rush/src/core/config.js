@@ -29,5 +29,19 @@
     damagePerHit:25,
     speedAt(time,zone){return this.baseSpeed+time*this.acceleration+Math.max(0,zone-1)*this.zoneSpeedBonus}
   });
-  return {PALETTES,GAME};
+  const FLOW=Object.freeze({
+    thresholds:Object.freeze([30,65,90]),
+    multipliers:Object.freeze([1,1.25,1.5,2]),
+    clearPoints:135,
+    clearGain:6,
+    precisionGain:10,
+    damagePenalty:35,
+    decayDelay:3.5,
+    decayPerSecond:1.5,
+    minPerfectClears:3,
+    perfectHeal:10,
+    perfectPoints:350,
+    perfectFlowGain:8
+  });
+  return {PALETTES,GAME,FLOW};
 });

@@ -54,7 +54,7 @@ test('Spectral Wave and all new Arcade Animation assets remain wired unchanged',
   assert.match(game,/paint\(spectralWave\.from\).*paint\(spectralWave\.to\)/s);
   assert.match(game,/effects\.cue\('precision'/);
   assert.match(game,/speedTrails\.draw\(ctx/);
-  assert.match(html,/name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0"/);
+  assert.match(html,/name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0-duck-gate-1\.0"/);
   assert.match(html,/world-background\.js\?v=original-background-restored-1\.0/);
   assert.match(html,/src\/gameplay\/game\.js\?v=arcade-animation-2\.0/);
   assert.equal(GAME.baseSpeed,370);

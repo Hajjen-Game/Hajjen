@@ -361,3 +361,43 @@ test('real arcade loop introduces Echo Jump in zone 2, allows one new press and 
   state.gravityShift.ceiling=false;
   assert.doesNotThrow(()=>state.render());
 });
+
+test('real zone-4 PEAK introduces a standalone Echo Spire: single jump fails, Echo Jump clears',()=>{
+  function play({secondJump=false,ceiling=false}={}){
+    const g=setup({chromaRushArcadeV1:JSON.stringify({bestZone:6,bestScore:1800})});
+    g.step(0);g.get('practice-zone').value='4';g.get('practice-start-btn').click();
+    const state=g.context.window.__gravityHarness;
+    assert.equal(state.zone(),4);
+    state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
+    state.terrain.gaps=[];state.terrain.generated=10000000;
+    state.director.phase='PEAK';state.director.phaseDuration=6;state.director.phaseElapsed=0;
+    state.director.spawnCountdown=0;state.director.stress=0;state.director.confidence=.85;
+    if(ceiling)state.gravityShift.ceiling=true;
+    g.step(1000/60);
+    const first=state.hurdles()[0];
+    assert.ok(first,'Director must introduce a visible obstacle');
+    assert.equal(first.type,'echo','safe first encounter is a double-jump pillar');
+    assert.equal(state.director.echoIntroduced,true);
+    const tap=id=>{
+      for(const fn of g.get('jump-btn').events.pointerdown??[])fn({pointerId:id,preventDefault(){}});
+      for(const fn of g.get('jump-btn').events.pointerup??[])fn({pointerId:id});
+    };
+    for(let i=2;i<=114;i++){
+      // The obstacle starts ~1.25s ahead. Launch ~.7s before arrival,
+      // then use the second impulse ~.32s after first takeoff.
+      if(i===33)tap(61);
+      if(i===53&&secondJump)tap(62);
+      g.step(i*1000/60);
+    }
+    assert.equal(first.cleared,true);
+    return {hit:first.hit,hp:state.hp(),echoUsed:state.jumpControl.echoUsed,
+      introduced:state.director.echoIntroduced};
+  }
+  const ordinary=play(),echo=play({secondJump:true}),ceiling=play({secondJump:true,ceiling:true});
+  assert.equal(ordinary.hit,true,'one jump cannot cross a real Echo Spire');
+  assert.ok(ordinary.hp<100);
+  assert.equal(echo.hit,false,'two correctly timed jumps must clear');
+  assert.equal(echo.hp,100);
+  assert.equal(ceiling.hit,false,'same valid double jump works under inverted gravity');
+  assert.equal(ceiling.hp,100);
+});

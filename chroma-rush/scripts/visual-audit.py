@@ -146,8 +146,8 @@ def main():
             # of the world while remaining behind obstacles/player.
             def spectral_capture(progress):
                 info=page.evaluate('window.__visualAudit.setSpectralScene',progress)
-                left=page.evaluate('window.__visualAudit.sample', [160,215])
-                right=page.evaluate('window.__visualAudit.sample',
+                left=page.evaluate('([x,y]) => window.__visualAudit.sample(x,y)', [160,215])
+                right=page.evaluate('([x,y]) => window.__visualAudit.sample(x,y)',
                     [page.evaluate('window.__visualAudit.info().W')-160,215])
                 return info,left,right
 

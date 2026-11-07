@@ -84,8 +84,9 @@
       // A tall Echo Spire needs time for two presses AND the second apex.
       // At extreme speed its entire visible approach can become too short.
       // Prefer simpler actions rather than a hidden, physically unfair cue.
-      const approach=context.spawnX==null?Infinity:
-        (context.spawnX-(context.playerX??300))/Math.max(300,context.speed||370);
+      const echoX=typeof context.spawnXFor==='function'?context.spawnXFor('echo'):context.spawnX;
+      const approach=echoX==null?Infinity:
+        (echoX-(context.playerX??300))/Math.max(300,context.speed||370);
       const echoReady=approach>=.78 &&
         this.movement.echoReady(readiness,this.time,firstEcho);
       const options=patterns.candidates(this.phase,context.zone||1,
@@ -134,8 +135,9 @@
         this.pending=motif.steps.map((type,index)=>({type,pattern:motif.id,step:index+1}));
       }
       const next=this.pending[0];
-      if(next.type==='echo'&&context.spawnX!=null&&
-        (context.spawnX-(context.playerX??300))/Math.max(300,context.speed||370)<.78){
+      const actionX=typeof context.spawnXFor==='function'?context.spawnXFor(next.type):context.spawnX;
+      if(next.type==='echo'&&actionX!=null&&
+        (actionX-(context.playerX??300))/Math.max(300,context.speed||370)<.78){
         // A pending Echo step becomes inappropriate as speed increases.
         // Do not retry it forever or starve the other hazard families.
         this.pending=[];this.spawnCountdown=.18;this.movement.deferredPatterns++;

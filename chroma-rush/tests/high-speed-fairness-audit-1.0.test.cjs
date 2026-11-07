@@ -4,6 +4,7 @@ const fs=require('node:fs'),path=require('node:path');
 const FAIR=require('../src/director/high-speed-fairness.js');
 const {GAME}=require('../src/core/config.js');
 const {RoundAudit}=require('../src/diagnostics/round-audit.js');
+const {AdaptiveRushDirector}=require('../src/director/adaptive-director.js');
 const {QualityManager}=require('../src/performance/quality-manager.js');
 const {FixedStepClock}=require('../src/performance/frame-clock.js');
 const {simulate,matrix}=require('../scripts/high-speed-fairness-audit.cjs');
@@ -112,6 +113,8 @@ test('twenty-four deterministic three-minute sweeps cover fast phones, narrow vi
   assert.ok(report.obstacles>80);
   assert.equal(report.underBudget,0,JSON.stringify(report.results.filter(r=>r.underBudget)));
   assert.equal(report.lateGaps,0,JSON.stringify(report.results.filter(r=>r.lateGaps)));
+  assert.equal(report.transitionViolations,0,
+    JSON.stringify(report.results.filter(r=>r.transitionViolations)));
   assert.equal(report.cuesChecked,report.warnings);
   assert.ok(report.warnings>0);
   assert.ok(report.results.every(r=>r.gravityFlips>0));
@@ -119,7 +122,8 @@ test('twenty-four deterministic three-minute sweeps cover fast phones, narrow vi
   console.log('high-speed-fairness audit summary: '+JSON.stringify({
     runs:report.runs,simulatedSeconds:report.totalSeconds,
     obstacles:report.obstacles,offscreenCues:report.warnings,
-    gapRiskCount:report.lateGaps,belowReactionBudget:report.underBudget}));
+    gapRiskCount:report.lateGaps,belowReactionBudget:report.underBudget,
+    unsafeTransitions:report.transitionViolations}));
 });
 test('strain simulation still has recovery phases and does not block all hazards',()=>{
   const r=simulate({seed:101,seconds:180,viewportWidth:900,damageEvery:17});
@@ -139,4 +143,29 @@ test('scripts load before gameplay and exact fair hazard positions feed the Dire
   assert.match(s,/FAIR\.warning\(\{hurdles,gaps:terrain\.gaps/);
   assert.match(s,/FAIR\.drawWarning\(ctx,cue/);
   assert.match(s,/runAudit\.noteFrame\?\.\(frameElapsed,timing\.dropped\)/);
+});
+
+test('arrival-time safety is protected when Echo warning begins much farther offscreen',()=>{
+  const speed=2200,viewportWidth=1280,playerX=339;
+  const spawnXFor=type=>FAIR.horizonFor(type,{speed,playerX,viewportWidth});
+  const d=new AdaptiveRushDirector(()=>.5);
+  d.phase='PEAK';d.phaseElapsed=0;d.phaseDuration=100;
+  d.confidence=.9;d.spawnCountdown=0;
+  const ctx={zone:8,hp:100,speed,spawnXFor,spawnX:viewportWidth+90,playerX};
+  const spawned=[];
+  d.pending=[{type:'echo',step:1,pattern:'solo'}];
+  d.tick(1/60,ctx,step=>{spawned.push(step.type);return true});
+  assert.deepEqual(spawned,['echo']);
+  const oldTime=d.lastSpawnTime;
+  assert.ok(d.lastSpawnLead>=FAIR.rule('echo').lead);
+  d.pending=[{type:'duck',step:1,pattern:'followup'}];
+  d.spawnCountdown=0;
+  d.time=oldTime+1.54;
+  d.tick(1/60,ctx,step=>{spawned.push(step.type);return true});
+  assert.deepEqual(spawned,['echo'],
+    'spawn-time gap alone passes, but physical arrival spacing is unsafe');
+  assert.ok(d.spawnCountdown>.15);
+  d.time=oldTime+2.15;d.spawnCountdown=0;
+  d.tick(1/60,ctx,step=>{spawned.push(step.type);return true});
+  assert.deepEqual(spawned,['echo','duck']);
 });

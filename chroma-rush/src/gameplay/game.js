@@ -7,13 +7,15 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
   const el = id => document.getElementById(id);
   const director = new window.ChromaDirector.AdaptiveRushDirector();
   const flow = new window.ChromaFlow.FlowSystem();
+  const combo = new window.ChromaPrecisionCombo.PrecisionComboSystem();
+  const gradePrecision = window.ChromaPrecisionCombo.assessPrecision;
   function preferredAudio(){try{return localStorage.getItem('chromaRushSoundOff')!=='true'}catch(_){return true}}
   const audio = new window.ChromaAudio.ReactiveAudioSystem({scope:window,enabled:preferredAudio()});
   let profileStorage=null;try{profileStorage=localStorage}catch(_){}
@@ -112,7 +114,8 @@
   function auditState(){return {time:worldTime,zone,hp,score,flow:flow.value,speed,distance,
     phase:director.phase,streak:flow.streak,chromaActive:flow.tier===3,
     gravityMode:gravityShift.ceiling?'ceiling':'floor',gravityPhase:gravityShift.phase,
-    movementPressure:director.movement.pressure};}
+    movementPressure:director.movement.pressure,
+    comboChain:combo.chain.length};}
   function exportRound(){
     if(status!=='dead')return;
     const exported=runAudit.snapshot(auditState());
@@ -254,7 +257,7 @@
     spectralWave.start({from:palette,to:palette,width:W,reducedMotion:true});
     chromaVfx.reset();speedTrails.reset();gravityShift.reset();
     zoneSoundAtCrossing=false;
-    hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();flow.currentZone=zone;
+    hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();combo.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();motion.reset();
     peakFlow=0;replayToastTime=0;
     echoHintTime=startZone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone?3.9:0;
@@ -295,7 +298,7 @@
     if(status==='running'||status==='paused')audio.stop();
     status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;echoHintTime=0;
     $.echoHint.classList.add('hidden');
-    spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();effects.reset();zoneSoundAtCrossing=false;
+    spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();effects.reset();combo.reset();zoneSoundAtCrossing=false;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
     $.controls.classList.add('hidden');$.hud.classList.add('hidden');$.pauseBtn.classList.add('hidden');
@@ -530,7 +533,7 @@
   }
   function updateHud(){
     HUD.update($,{hp,zone,color:c1,phase:director.label,score,speed,
-      baseSpeed:GAME.baseSpeed,status,flow});
+      baseSpeed:GAME.baseSpeed,status,flow,combo});
     replayUI.hud($,{practice:runMode==='practice',score,previousScore:replay.previousScore});
   }
   function nextZone(reward=null){
@@ -563,6 +566,28 @@
       sound('gravity-warning');
     }
   }
+  // Combo rewards never create a second clear, second streak or separate
+  // multiplier. They enhance existing Flow only for ACTUAL successful moves.
+  function awardCombo(action,{precision=false,master=false}={}){
+    if(player.invulnerable>0){combo.breakChain();return;}
+    const chain=combo.onClear({action,time:worldTime,precision,master});
+    if(!chain)return;
+    const reward=flow.registerCombo({length:chain.length});
+    score+=reward.earnedPoints;
+    combo.noteBonus(reward.earnedPoints);
+    director.noteCombo(chain);
+    runAudit.record('combo',auditState(),{length:chain.length,
+      sequence:chain.actions,precisionClears:chain.precisionCount,
+      masterClears:chain.masterCount,bonusPoints:reward.earnedPoints,
+      bonusFlow:reward.flowGain});
+    if(chain.flourish){
+      effects.cue('combo',player.x,player.feet-22,c1,c2,
+        {speed,reducedMotion,strength:chain.length===4?1.12:.92});
+      sound('combo');
+      if(chain.length===4)vib(12);
+    }
+    if(reward.tierUp&&reward.tier!==3)sound('flow');
+  }
   function onHit(o){
     if(o.hit)return;
     if(gravityShift.protected){
@@ -573,6 +598,7 @@
       return;
     }
     o.hit=true;
+    combo.breakChain();
     if(player.invulnerable>0){
       flow.registerCollision();runAudit.record('invulnerable_contact',auditState(),{obstacle:o.type});return;
     }
@@ -583,7 +609,7 @@
   }
   function failGap(gap){
     if(!terrain.markGap(gap,true))return;
-    gapRecovery=gap;jumpControl.cancel();motion.reset();
+    gapRecovery=gap;jumpControl.cancel();motion.reset();combo.breakChain();
     terrainDirector.noteGapOutcome({missed:true,echo:Boolean(gap.echoChallenge),
       worldX:distance+player.x,speed});
     // Match regular obstacle invulnerability: the gap still counts as a
@@ -609,6 +635,7 @@
     director.registerClear({action:gap.echoChallenge?'echo-gap':'gap'});
     const reward=flow.registerClear({precision:false});
     score+=reward.earnedPoints;
+    awardCombo(gap.echoChallenge?'echo-gap':'gap');
     runAudit.record('gap_clear',auditState(),{width:gap.end-gap.start,
       echoChallenge:Boolean(gap.echoChallenge),variant:gap.echoVariant||''});
     if(runMode==='arcade')earnedMilestones(progression.reachedStreak(flow.streak).earned);
@@ -672,6 +699,7 @@
       zoneSoundAtCrossing=false;
     }
     flow.tick(dt,{phase:director.phase});
+    combo.tick(dt);
     player.invulnerable=Math.max(0,player.invulnerable-dt);
     jumpControl.tick(dt,distance+player.x);motion.tick(dt);
     shake=Math.max(0,shake-dt*36);hitFlash=Math.max(0,hitFlash-dt);
@@ -690,7 +718,7 @@
     const gravityEvent=gravityShift.tick(dt,{safe:safeShift,reducedMotion});
     if(gravityEvent==='begin'){
       player.invulnerable=Math.max(player.invulnerable,.58+.28);
-      jumpControl.cancel();speedTrails.reset();
+      jumpControl.cancel();speedTrails.reset();combo.breakChain();
       if(!reducedMotion){
         groundPulse(player.x,player.feet-2,c2,33,1.1);
         frameEcho(player.x,player.feet-23,c1,36,1);
@@ -786,9 +814,10 @@
         o.cleared=true;
         if(!o.hit){
           const traverse=(o.width+66)/Math.max(300,speed);
-          const precision=(o.type==='jump'||o.type==='echo')
-            ?o.closestClearance>=0&&o.closestClearance<=18
-            :o.entryDuckTime!==null&&o.entryDuckTime>=traverse+.02&&o.entryDuckTime<=traverse+.16;
+          const graded=gradePrecision({action:o.type,
+            closestClearance:o.closestClearance,entryDuckTime:o.entryDuckTime,
+            traverseSeconds:traverse});
+          const precision=graded.precision;
           director.registerClear({action:o.type});
           if(precision){
             director.registerNearMiss();
@@ -796,7 +825,10 @@
           }
           const gained=flow.registerClear({precision});
           score+=gained.earnedPoints;
-          runAudit.record('obstacle_clear',auditState(),{obstacle:o.type,precision});
+          awardCombo(o.type,{precision,master:graded.master});
+          runAudit.record('obstacle_clear',auditState(),
+            {obstacle:o.type,precision,master:graded.master,
+              precisionMargin:graded.margin===null?-1:graded.margin});
           if(o.type==='echo'){
             // Compact clean-clear reward for a real double-jump barrier.
             // Doesn't mask the next obstacle or change the scoring contract.

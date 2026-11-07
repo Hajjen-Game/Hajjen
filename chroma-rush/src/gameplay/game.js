@@ -525,7 +525,7 @@
     runAudit.record('spawn',auditState(),{obstacle:data.type,pattern:data.pattern||'',worldX,
       leadSeconds:fairness.leadSeconds,requiredSeconds:fairness.requiredSeconds,
       visibleSeconds:fairness.visibleSeconds,earlyCueSeconds:fairness.earlyCueSeconds,
-      fair:fairness.fair});
+      fair:fairness.fair,needsCue:fairness.needsCue});
     return true;
   }
   function updateHud(){

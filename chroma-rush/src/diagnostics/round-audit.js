@@ -60,7 +60,12 @@
               Math.min(reaction.minLeadSeconds,lead);
             reaction.minVisibleSeconds=reaction.minVisibleSeconds===null?visible:
               Math.min(reaction.minVisibleSeconds,visible);
-            if(data.earlyCueSeconds>.015)reaction.earlyCues++;
+            // Count only cues which add necessary time; the normal 90px
+            // offscreen margin alone must not inflate this number.
+            const needsCue=data.needsCue===true||
+              (data.needsCue!==false && data.earlyCueSeconds>.015&&
+                data.visibleSeconds<data.requiredSeconds);
+            if(needsCue)reaction.earlyCues++;
             if(data.fair===false)reaction.underBudget++;
             const key=['jump','duck','echo'].includes(data.obstacle)?data.obstacle:'other';
             const entry=reaction.byAction[key]||(reaction.byAction[key]={
@@ -69,7 +74,7 @@
             entry.minLeadSeconds=entry.minLeadSeconds===null?lead:
               Math.min(entry.minLeadSeconds,lead);
             if(data.fair===false)entry.underBudget++;
-            if(data.earlyCueSeconds>.015)entry.earlyCues++;
+            if(needsCue)entry.earlyCues++;
           }
           break;
         }

@@ -354,7 +354,11 @@
     // Echo never changes horizontal movement speed, gravity, or collision size.
     // One weaker impulse is available per intentional jump and is restored
     // only on a valid landing or a new buffered grounded takeoff.
-    player.vy=GAME.echoJumpVelocity;
+    // Preserve upward momentum for quick second taps. A pure assignment to
+    // -650 could actually SLOW the cube just after an ordinary takeoff.
+    // This always produces a real impulse, yet never exceeds first-jump power.
+    player.vy=Math.max(GAME.jumpVelocity,
+      Math.min(GAME.echoJumpVelocity,player.vy-GAME.echoUpwardBoost));
     motion.echoJump();
     speedTrails.reset(); // the new beat starts a distinct clean afterimage arc
     frameEcho(player.x,player.feet-25,c2,31,.92);
@@ -367,7 +371,7 @@
           life:fxRand(.20,.49),r:fxRand(.9,2.7)}));
     }
     if(motes.length>180)motes.splice(0,motes.length-180);
-    runAudit.record('echo_jump',auditState(),{verticalImpulse:GAME.echoJumpVelocity,
+    runAudit.record('echo_jump',auditState(),{verticalImpulse:player.vy,
       surface:gravityShift.ceiling?'ceiling':'floor'});
     sound('echo');vib(12);
   }

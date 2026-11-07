@@ -12,6 +12,7 @@ const modules={
  ChromaGeometry:require('../src/core/geometry.js'),
  ChromaHud:require('../src/ui/hud.js'),
  ChromaFlow:require('../src/gameplay/flow.js'),
+ ChromaPrecisionCombo:require('../src/gameplay/precision-combo.js'),
  ChromaAudio:require('../src/audio/reactive-audio.js'),
  ChromaProgress:require('../src/progression/arcade-progress.js'),
  ChromaArcadeUI:require('../src/ui/arcade-ui.js'),

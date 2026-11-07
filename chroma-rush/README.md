@@ -1,8 +1,17 @@
-# CHROMA RUSH — Background Depth & Parallax 2.1
+# CHROMA RUSH — Arcade Animation Language 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Arcade Animation Language 2.0 (2026-11-07)
+
+- A shared **side-on neon visual grammar** for seven actual game moments: jump launch, landing, duck entry, duck release, registered near-miss precision clearance, first speed milestones, and Perfect Zone rewards.
+- Short straight-line accents coordinate with existing Speed Trails, Spectral Wave and Chroma State instead of adding circular rings or a screen-wide flash.
+- Precision passes get a distinctive detached neon cross-cut; at speed multipliers 1.5×, 2×, 3×, 4×, 6× and 8×, a single short rail burst marks the milestone.
+- Reduced pre-existing random launch/land/duck particles, bounded all new cues in the existing 24-entry effect pool, added a cooldown/priority mechanism, and scaled layers to the current mobile graphics preset.
+- No changes to collision, Jump/Duck controls, difficulty, score, Flow, Director or audio. Reduced-motion disables the new moving cues.
+- [Detailed animation plan and test coverage](docs/arcade-animation-language-2.0.md).
 
 ## Background Depth & Parallax 2.1 – Layered Landscape Pass (2026-11-07)
 

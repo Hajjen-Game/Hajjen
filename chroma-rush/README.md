@@ -1,8 +1,16 @@
-# CHROMA RUSH — High-Speed Readability & Fairness Audit 1.0
+# CHROMA RUSH — Jump Obstacle Visual Identity 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Jump Obstacle Visual Identity 1.0 (2026-11-07)
+
+- **Low Neon Barrier:** the normal JUMP obstacle now reads as a physical grounded barrier with a full-footprint beveled shell, continuous top rail, recessed panel, vertical chassis supports and a broad luminous base. It uses the existing palette-linked colors and the same lightweight canvas drawing language as Duck Gates, without copying their tall silhouette.
+- **No in-world direction labels:** the old floating `↑ JUMP` / `↓ DUCK` text and arrows are removed from regular obstacles. The Echo Spire also drops the floating `2× JUMP` instruction and replaces its arrow-shaped inner chevrons with two integrated energy chambers. The tall DUCK energy field and crawl clearance are unchanged.
+- **All collision footprints are unchanged:** normal JUMP widths 43–58 and heights 53–66, the DUCK gate's 28 logical-unit slot, and the Echo Spire's double-jump height remain exactly the same. The normal barrier's solid artwork stays entirely within its original hitbox; no invisible solid decorative wings or altered timing are introduced.
+- Gameplay buttons, Gravity Shift world reflection, scoring, procedural Director, high-speed fairness budgets and offscreen reaction-time HUD remain untouched. **The high-speed offscreen cue is a separate accessibility/fairness system, not text floating on an obstacle.**
+- [Regression tests](tests/jump-obstacle-visual-identity-1.0.test.cjs) render all three live obstacle branches under normal and Low graphics settings and assert text removal, integrated shape, geometric footprint integrity and ceiling symmetry. Manual visual review on mobile is still recommended.
 
 ## High-Speed Readability & Fairness Audit 1.0 (2026-11-07)
 

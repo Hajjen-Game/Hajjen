@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Unified Terrain Director 3.0.
+/* CHROMA RUSH — Unified Terrain Director 3.0 + Movement Awareness 1.0.
  * Coordinates procedural landforms with Adaptive Rush Director 2.0.
  * The course remains endless and random; this is not a level list.
  * Never changes speed, jump/duck physics, scoring or input.
@@ -66,8 +66,15 @@
       const maxHeightChange=({BUILD:62,PEAK:58,FADE:38,RELAX:23})[future.phase]||40;
       // Echo Gaps occur only in healthy, confident PEAK sections with
       // enough time remaining for takeoff, two jumps and a safe landing.
+      // The same movement budget governs obstacle phrases AND big jumps.
+      // A planned Echo Gap must not demand another intense input immediately
+      // after an Echo Spire, a miss, or a recent gravity transition.
+      const movement=this.director.movement;
+      const arrival=(this.director.time||0)+lead;
+      const movementSafe=!movement || (movement.pressure<1.6&&
+        arrival-movement.lastEchoTime>3.3&&arrival>=movement.recoveryUntil+.6);
       const echoSafe=zone>=5&&safeArrival&&peak&&future.remaining>=1.58&&
-        !gentle&&stress<.33&&confidence>=.53&&hp>50;
+        !gentle&&stress<.33&&confidence>=.53&&hp>50&&movementSafe;
       const policy={phase:future.phase,leadSeconds:lead,allowGap:safeArrival,
         gapChance,slopeChance,maxHeightChange:gentle?Math.min(40,maxHeightChange):maxHeightChange,
         gapSecondsMin:peak?.30:.27,gapSecondsMax:gapTime,
@@ -95,17 +102,27 @@
         if(spawnWorld<this.noHazardsBefore){this.spawnsDeferred++;return false;}
         // Wider than the basic collision veto: allow the player to finish a
         // gap landing before the next obstacle needs a reaction.
-        const nearby=this.terrain.visibleGaps(spawnWorld-speed*.90,
-          spawnWorld+speed*1.10);
-        if(nearby.length){this.spawnsDeferred++;return false;}
+        const echo=step.type==='echo';
+        const nearby=this.terrain.visibleGaps(spawnWorld-speed*1.85,
+          spawnWorld+speed*1.85);
+        const overloaded=nearby.some(g=>{
+          // Echo Gaps and Echo Spires both consume a second aerial beat;
+          // ordinary hurdles also need a clean recovery after a long gap.
+          const seconds=echo||g.echoChallenge?1.65:1.10;
+          return g.end>=spawnWorld-speed*seconds&&
+            g.start<=spawnWorld+speed*seconds;
+        });
+        if(overloaded){this.spawnsDeferred++;return false;}
         const created=spawn(step);
         if(created===false)this.spawnsDeferred++;
         return created;
       });
     }
-    noteGapOutcome({missed=false,worldX=0,speed=370}={}){
+    noteGapOutcome({missed=false,echo=false,worldX=0,speed=370}={}){
       const v=Math.max(300,speed);
-      this.noHazardsBefore=Math.max(this.noHazardsBefore,worldX+v*(missed?1.45:.65));
+      this.director.noteGapOutcome?.({missed,echo});
+      this.noHazardsBefore=Math.max(this.noHazardsBefore,worldX+
+        v*(missed?(echo?2.05:1.45):(echo?1.15:.65)));
       if(missed){
         this.gapFails++;
         // Include lookahead: the next gap must be safely beyond recovery.

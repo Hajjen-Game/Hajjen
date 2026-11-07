@@ -82,9 +82,9 @@ SCENE_HOOK = r'''
       return {kind,age,active:effects.active.filter(e=>e.kind.startsWith('cue-')).length,
         state:status,score,hp,flow:flow.value,playerX:player.x};
     },
-    setDepthScene({motif='CYAN',scroll=1800,reducedMotion=false,profile='high'}={}){
-      // Isolated rendering of the ACTUAL production background module:
-      // assess architecture depth without terrain or the player on top.
+    setOriginalBackdropScene({motif='CYAN',time=0,profile='high'}={}){
+      // Actual pre-2.0 background, using its original time/speed-driven drift.
+      // The hook exists only in this isolated Chromium visual audit.
       window.__visualAudit.setScene('background');
       const p=PALETTES.find(v=>v.name===motif)||PALETTES[0];
       const presets={high:{name:'high',density:1,glow:1},
@@ -92,12 +92,11 @@ SCENE_HOOK = r'''
         performance:{name:'performance',density:.36,glow:.24}};
       ctx.save();
       ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);
-      worldBackground.drawBackground({ctx,width:W,height:H,time:0,
-        scroll,speed:1020,primary:p.primary,secondary:p.secondary,
-        shadow:p.shadow,motif:p.name,flow:75,quality:presets[profile]||presets.high,
-        reducedMotion,glowLine});
+      worldBackground.drawBackground({ctx,width:W,height:H,time,
+        speed:1020,primary:p.primary,secondary:p.secondary,shadow:p.shadow,
+        flow:75,quality:presets[profile]||presets.high,glowLine});
       ctx.restore();
-      return {motif:p.name,scroll,reducedMotion,profile};
+      return {motif:p.name,time,profile};
     },
     setSpeedTrailScene(kind){
       // A repeatable high-speed timeline, using only public fixed-step
@@ -238,35 +237,33 @@ def main():
                 if scene != 'background':
                     page.screenshot(path=str(OUT / f'{scene}-{vw}x{vh}.png'))
                 colors[scene] = page.evaluate('window.__visualAudit.sample(790, 620)')
-            # Background Depth & Parallax 2.1: continuous mountain scenes
-            # across four landscape sizes, all eight landforms and reduced-motion.
-            depth_base=page.evaluate('window.__visualAudit.setDepthScene',
-                {'motif':'CYAN','scroll':0,'profile':'high'})
-            image_far=page.locator('#game').screenshot()
-            page.screenshot(path=str(OUT/f'depth-cyan-{vw}x{vh}.png'))
-            depth_move=page.evaluate('window.__visualAudit.setDepthScene',
-                {'motif':'CYAN','scroll':4200,'profile':'high'})
-            image_move=page.locator('#game').screenshot()
-            page.screenshot(path=str(OUT/f'depth-cyan-scrolled-{vw}x{vh}.png'))
-            assert depth_base['motif']==depth_move['motif']=='CYAN'
-            assert image_far!=image_move, f'Parallax did not move at {vw}x{vh}'
-            for motif in ['VIOLET','MAGENTA','LIME','AMBER','ELECTRIC','REDLINE','WHITEOUT']:
-                profile={'motif':motif,'scroll':4200,'profile':'high'}
-                result=page.evaluate('window.__visualAudit.setDepthScene',profile)
-                page.screenshot(path=str(OUT/f'depth-{motif.lower()}-{vw}x{vh}.png'))
+            # The exact pre-2.0 background is restored, not a replacement
+            # architecture or mountain scene. Validate its original time drift,
+            # colors and graphics quality at all tested landscape sizes.
+            original=page.evaluate('window.__visualAudit.setOriginalBackdropScene',
+                {'motif':'CYAN','time':0,'profile':'high'})
+            still=page.locator('#game').screenshot()
+            page.screenshot(path=str(OUT/f'original-backdrop-cyan-{vw}x{vh}.png'))
+            again=page.evaluate('window.__visualAudit.setOriginalBackdropScene',
+                {'motif':'CYAN','time':0,'profile':'high'})
+            assert still==page.locator('#game').screenshot(), (
+                f'Original background not deterministic at {vw}x{vh}')
+            moved=page.evaluate('window.__visualAudit.setOriginalBackdropScene',
+                {'motif':'CYAN','time':6,'profile':'high'})
+            moving=page.locator('#game').screenshot()
+            page.screenshot(path=str(OUT/f'original-backdrop-motion-{vw}x{vh}.png'))
+            assert original['time']==again['time']==0 and moved['time']==6
+            assert still!=moving, f'Original background motion missing at {vw}x{vh}'
+            for motif in ['VIOLET','LIME','AMBER','ELECTRIC']:
+                result=page.evaluate('window.__visualAudit.setOriginalBackdropScene',
+                    {'motif':motif,'time':6,'profile':'high'})
+                page.screenshot(path=str(OUT/f'original-backdrop-{motif.lower()}-{vw}x{vh}.png'))
                 assert result['motif']==motif
-                assert page.locator('#game').screenshot()!=image_move, (
-                    f'{motif} mountain landscape looks identical at {vw}x{vh}')
-            page.evaluate('window.__visualAudit.setDepthScene',
-                {'motif':'AMBER','scroll':4200,'profile':'performance'})
-            page.screenshot(path=str(OUT/f'depth-amber-performance-{vw}x{vh}.png'))
-            page.evaluate('window.__visualAudit.setDepthScene',
-                {'motif':'CYAN','scroll':0,'reducedMotion':True})
-            reduced_still=page.locator('#game').screenshot()
-            page.evaluate('window.__visualAudit.setDepthScene',
-                {'motif':'CYAN','scroll':4200,'reducedMotion':True})
-            assert reduced_still==page.locator('#game').screenshot(), (
-                f'Reduced-motion background should not drift at {vw}x{vh}')
+                assert page.locator('#game').screenshot()!=moving, (
+                    f'Original background palette unchanged in {motif} at {vw}x{vh}')
+            page.evaluate('window.__visualAudit.setOriginalBackdropScene',
+                {'motif':'LIME','time':6,'profile':'performance'})
+            page.screenshot(path=str(OUT/f'original-backdrop-low-{vw}x{vh}.png'))
 
             # A spectrum front must actually recolor two independent portions
             # of the world while remaining behind obstacles/player.

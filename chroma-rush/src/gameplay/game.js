@@ -336,7 +336,7 @@
     sound('jump');
   }
   function jump(){
-    if(status!=='running')return;
+    if(status!=='running'||gravityShift.shifting)return;
     const action=jumpControl.request({grounded:player.landed,ducking:player.duck,
       recovering:Boolean(gapRecovery),worldX:distance+player.x});
     if(action==='jump'||action==='coyote')launchJump();
@@ -359,7 +359,7 @@
     sound('land');
   }
   function startDuck(){
-    if(status!=='running'||!player.landed||player.duck||player.duckRecovery>0)return;
+    if(status!=='running'||gravityShift.shifting||!player.landed||player.duck||player.duckRecovery>0)return;
     player.duck=true;
     player.duckTime=DUCK_DURATION;
     motion.duckStart();

@@ -68,6 +68,6 @@ test('game uses geometric VFX and no legacy ripple or ellipse pulse code',()=>{
   assert.doesNotMatch(game,/\brings\b/);
   assert.doesNotMatch(game,/ctx\.ellipse\(/);
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  assert.ok(html.includes('src/render/effect-language.js?v=duck-effects-1.0'));
+  assert.ok(html.includes('src/render/effect-language.js?v=arcade-animation-2.0'));
   assert.ok(html.indexOf('src/render/effect-language.js')<html.indexOf('src/gameplay/game.js'));
 });

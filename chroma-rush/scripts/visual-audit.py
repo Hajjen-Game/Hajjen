@@ -69,6 +69,19 @@ SCENE_HOOK = r'''
       director.tick=()=>{};
       draw();
     },
+    setArcadeCueScene({kind=null,age=.085}={}){
+      // Real EffectLanguage 2.0 renderer in the actual game Canvas.
+      // This seam exists only inside the browser audit.
+      window.__visualAudit.setScene('flat');
+      if(kind){
+        const y=['precision','perfect'].includes(kind)?player.feet-24:player.feet-2;
+        effects.cue(kind,player.x,y,c1,c2,{speed:770});
+        effects.tick(age);
+      }
+      draw();
+      return {kind,age,active:effects.active.filter(e=>e.kind.startsWith('cue-')).length,
+        state:status,score,hp,flow:flow.value,playerX:player.x};
+    },
     setDepthScene({motif='CYAN',scroll=1800,reducedMotion=false,profile='high'}={}){
       // Isolated rendering of the ACTUAL production background module:
       // assess architecture depth without terrain or the player on top.
@@ -277,6 +290,27 @@ def main():
             for progress,label in [(0,'entry'),(.5,'crossing'),(.75,'arrival'),(1,'complete')]:
                 page.evaluate('window.__visualAudit.setSpectralScene',progress)
                 page.screenshot(path=str(OUT / f'spectral-{label}-{vw}x{vh}.png'))
+
+            # Arcade Animation Language 2.0: verify seven distinct, brief,
+            # straight-line cues in the REAL game Canvas at each viewport.
+            quiet=page.evaluate('window.__visualAudit.setArcadeCueScene',{})
+            baseline=page.locator('#game').screenshot()
+            for cue in ['jump','land','duck','release','precision','speed','perfect']:
+                detail=page.evaluate('window.__visualAudit.setArcadeCueScene',
+                    {'kind':cue,'age':.08})
+                picture=page.locator('#game').screenshot()
+                assert detail['active']==1, f'No {cue} animation at {vw}x{vh}'
+                assert picture!=baseline, f'{cue} not visible at {vw}x{vh}'
+                assert detail['score']==quiet['score'] and detail['hp']==quiet['hp'] and detail['flow']==quiet['flow'], (
+                    f'{cue} accidentally changed game state at {vw}x{vh}')
+                page.screenshot(path=str(OUT/f'arcade-cue-{cue}-{vw}x{vh}.png'))
+            late=page.evaluate('window.__visualAudit.setArcadeCueScene',
+                {'kind':'precision','age':.30})
+            assert late['active']==1, f'Precision celebration too short at {vw}x{vh}'
+            assert page.locator('#game').screenshot()!=baseline
+            finished=page.evaluate('window.__visualAudit.setArcadeCueScene',
+                {'kind':'precision','age':.43})
+            assert finished['active']==0, f'Precision animation lingered at {vw}x{vh}'
 
             # Flow Multiplier Glow 1.0: each tier must be larger and pulse
             # more emphatically, without colliding with the other HUD text.

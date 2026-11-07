@@ -138,6 +138,6 @@ test('game composition attaches all layers behind the hazards and keeps existing
   const obstacles=code.indexOf("for(const o of hurdles)drawObstacle(o)");
   assert.ok(env>=0&&obstacles>env,'ambient effects cannot cover incoming hazards');
   assert.ok(html.indexOf('src/render/chroma-state-vfx.js?v=speed-trails-2.0')<
-    html.indexOf('src/gameplay/game.js?v=background-depth-2.0'));
-  assert.match(html,/LAYERED LANDSCAPE 2\.1/);
+    html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0'));
+  assert.match(html,/ARCADE ANIMATION 2\.0/);
 });

@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Background Depth & Parallax 2.0 on Speed Trails 2.0
+/* CHROMA RUSH — Arcade Animation Language 2.0 on Layered Landscape 2.1
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -103,6 +103,8 @@
   // Each new press triggers a fixed duck pulse. Holding never extends or repeats it.
   const DUCK_DURATION=GAME.duckDuration;
   const DUCK_RECOVERY=GAME.duckRecovery;
+  const SPEED_MARKS=Object.freeze([1.5,2,3,4,6,8]);
+  let nextSpeedMark=0;
   function auditState(){return {time:worldTime,zone,hp,score,flow:flow.value,speed,distance,
     phase:director.phase,streak:flow.streak,chromaActive:flow.tier===3};}
   function exportRound(){
@@ -238,6 +240,9 @@
     startZone=runMode==='practice'?selected:1;
     time=(startZone-1)*GAME.zoneSeconds;worldTime=0;zone=startZone;
     hp=GAME.startingHP;speed=GAME.speedAt(time,zone);score=0;shake=0;hitFlash=0;
+    // Starting practice at later zones must never spam past speed milestones.
+    nextSpeedMark=SPEED_MARKS.findIndex(mark=>speed/GAME.baseSpeed<mark);
+    if(nextSpeedMark<0)nextSpeedMark=SPEED_MARKS.length;
     const palette=PALETTES[(zone-1)%PALETTES.length];
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
     spectralWave.start({from:palette,to:palette,width:W,reducedMotion:true});
@@ -279,7 +284,7 @@
   function showMenu(){
     if(status==='running'||status==='paused')audio.stop();
     status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;
-    spectralWave.reset();chromaVfx.reset();speedTrails.reset();zoneSoundAtCrossing=false;
+    spectralWave.reset();chromaVfx.reset();speedTrails.reset();effects.reset();zoneSoundAtCrossing=false;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
     $.controls.classList.add('hidden');$.hud.classList.add('hidden');$.pauseBtn.classList.add('hidden');
@@ -290,7 +295,7 @@
   function resume(){if(status!=='paused')return;status='running';$.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();frameClock.reset(lastTs);audio.resume();syncSoundButton(true);}
   function endRun(){
     if(status!=='running')return;
-    status='dead';speedTrails.reset();$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
+    status='dead';speedTrails.reset();effects.reset();$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
     runAudit.finish(auditState());
     const total=Math.floor(score),previousBest=progression.bestScore;
     replayToastTime=0;$.replayToast.classList.add('hidden');
@@ -320,7 +325,8 @@
     // Launch velocity and the hitbox remain identical to Terrain 1.0.
     player.vy=GAME.jumpVelocity;player.landed=false;motion.jump();
     groundPulse(player.x,player.feet-3,c1,18,.85);
-    for(let i=0;i<Math.max(4,Math.round(12*quality.profile.particles));i++){
+    effects.cue('jump',player.x,player.feet-2,c1,c2,{speed,reducedMotion});
+    for(let i=0;i<Math.max(3,Math.round(8*quality.profile.particles));i++){
       motes.push(makeMote(player.x+fxRand(-15,15),player.feet-2,c2,
         {vx:fxRand(-155,60),vy:fxRand(-110,-25),life:fxRand(.16,.40),r:fxRand(1.0,2.8)}));
     }
@@ -336,7 +342,7 @@
   function landingImpact(ground,velocity){
     const strength=motion.land(velocity);
     // Short-lived dust streams sideways along the actual terrain surface.
-    const n=Math.max(4,Math.round((8+strength*9)*quality.profile.particles));
+    const n=Math.max(3,Math.round((6+strength*6)*quality.profile.particles));
     for(let i=0;i<n;i++){
       const side=i%2===0?1:-1;
       motes.push(makeMote(player.x+side*fxRand(3,12),ground-3,side===1?c1:c2,
@@ -345,6 +351,7 @@
     }
     if(motes.length>180)motes.splice(0,motes.length-180);
     groundPulse(player.x,ground-2,c2,15+strength*10,1+strength*.3);
+    effects.cue('land',player.x,ground-2,c1,c2,{strength,speed,reducedMotion});
     // Max 2 logical px before the draw() camera damping factor.
     if(velocity>650)shake=Math.max(shake,2.0);
     sound('land');
@@ -355,10 +362,11 @@
     player.duckTime=DUCK_DURATION;
     motion.duckStart();
     groundPulse(player.x,player.feet-2,c2,18,.82);
+    effects.cue('duck',player.x,player.feet-2,c1,c2,{speed,reducedMotion});
     $.duck.classList.add('is-down');
     sound('duck');
     // A short, horizontal ground streak: low-cost and readable on weak phones.
-    for(let i=0;i<Math.max(2,Math.round(5*quality.profile.particles));i++)
+    for(let i=0;i<Math.max(1,Math.round(3*quality.profile.particles));i++)
       motes.push(makeMote(player.x-18-fxRand(0,12),player.feet-fxRand(2,7),c2,
         {vx:fxRand(-205,-80),vy:fxRand(-12,5),life:fxRand(.12,.28),r:fxRand(.9,1.7)}));
   }
@@ -370,6 +378,7 @@
         player.duckRecovery=DUCK_RECOVERY;
         motion.duckRelease();
         groundPulse(player.x,player.feet-2,c1,12,.52);
+        effects.cue('release',player.x,player.feet-2,c1,c2,{speed,reducedMotion});
         $.duck.classList.remove('is-down');
       }
     }else{
@@ -524,7 +533,8 @@
       if(reward.perfect){
         hp=Math.min(GAME.startingHP,hp+reward.heal);
         score+=reward.bonusPoints;
-        burst(player.x,player.feet-36,21,c2,1.05);frameEcho(player.x,player.feet-25,c1,38,1.22);
+        burst(player.x,player.feet-36,14,c2,.84);frameEcho(player.x,player.feet-25,c1,38,1.1);
+        effects.cue('perfect',player.x,player.feet-24,c1,c2,{speed,reducedMotion});
         sound('perfect');
         runAudit.record('perfect_zone',auditState(),{completedZone:zone,healed:reward.heal});
         if(runMode==='arcade')earnedMilestones(progression.perfectZone().earned);
@@ -535,6 +545,12 @@
       nextZone(reward);
     }
     speed=GAME.speedAt(time,zone);
+    // First-crossing-only celebrations at spaced speed milestones.
+    // They do not change speed, scoring, collision or Director pacing.
+    if(nextSpeedMark<SPEED_MARKS.length&&speed>=GAME.baseSpeed*SPEED_MARKS[nextSpeedMark]){
+      effects.cue('speed',player.x,player.feet-3,c1,c2,{speed,reducedMotion});
+      nextSpeedMark++;
+    }
     distance+=speed*dt;
     const lastTerrainWorld=terrain.generated;
     terrainDirector.prepare({right:distance+W+800,playerWorld:distance+player.x,zone,speed,hp});
@@ -650,7 +666,10 @@
             ?o.closestClearance>=0&&o.closestClearance<=18
             :o.entryDuckTime!==null&&o.entryDuckTime>=traverse+.02&&o.entryDuckTime<=traverse+.16;
           director.registerClear();
-          if(precision)director.registerNearMiss();
+          if(precision){
+            director.registerNearMiss();
+            effects.cue('precision',player.x,player.feet-24,c1,c2,{speed,reducedMotion});
+          }
           const gained=flow.registerClear({precision});
           score+=gained.earnedPoints;
           runAudit.record('obstacle_clear',auditState(),{obstacle:o.type,precision});
@@ -806,7 +825,7 @@
       ctx.beginPath();ctx.arc(m.x,m.y,m.r*a,0,Math.PI*2);ctx.fill();
     }
     ctx.globalAlpha=1;ctx.shadowBlur=0;
-    effects.draw(ctx,{glow:quality.profile.glow,density:quality.profile.density});
+    effects.draw(ctx,{glow:quality.profile.glow,density:quality.profile.density,reducedMotion});
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     if(hitFlash>0){ctx.fillStyle=`rgba(255,25,80,${hitFlash*.23})`;ctx.fillRect(0,0,W,H)}
     if(hp<=25&&status==='running'){

@@ -61,5 +61,5 @@ test('tiered glow is isolated to HUD multiplier and has an accessible static fal
   assert.match(html,/id="flow-multiplier"/);
   assert.match(html,/style\.css\?v=flow-multiplier-1\.0/);
   assert.match(html,/src\/ui\/hud\.js\?v=flow-multiplier-1\.0/);
-  assert.match(html,/<meta name="chroma-build" content="background-depth-2\.1"/);
+  assert.match(html,/<meta name="chroma-build" content="arcade-animation-2\.0"/);
 });

@@ -146,11 +146,11 @@ test('no randomness in the visual module; deterministic positions at same fixed-
 });
 test('HTML loads speed trails before game, with isolated cache versions',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  assert.match(html,/<meta name="chroma-build" content="background-depth-2\.1"/);
+  assert.match(html,/<meta name="chroma-build" content="arcade-animation-2\.0"/);
   const trail=html.indexOf('src/render/speed-trails.js?v=speed-trails-2.0');
-  const game=html.indexOf('src/gameplay/game.js?v=background-depth-2.0');
+  const game=html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
   assert.ok(trail>0&&game>trail);
-  assert.match(html,/LAYERED LANDSCAPE 2\.1/);
+  assert.match(html,/ARCADE ANIMATION 2\.0/);
   const source=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
   assert.match(source,/speedTrails\.tick\(dt,/);
   assert.match(source,/speedTrails\.draw\(ctx,/);

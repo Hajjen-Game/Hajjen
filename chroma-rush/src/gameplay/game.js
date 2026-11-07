@@ -769,6 +769,13 @@
           const gained=flow.registerClear({precision});
           score+=gained.earnedPoints;
           runAudit.record('obstacle_clear',auditState(),{obstacle:o.type,precision});
+          if(o.type==='echo'){
+            // Compact clean-clear reward for a real double-jump barrier.
+            // Doesn't mask the next obstacle or change the scoring contract.
+            frameEcho(player.x,player.feet-22,c2,24,.7);
+            burst(o.x+o.width*.5,o.groundY-o.height*.35,7,c2,.62);
+            runAudit.record('echo_spire_clear',auditState(),{precision,phase:o.phase});
+          }
           if(gained.tierUp)runAudit.record('flow_tier',auditState(),{tier:flow.tier});
           if(runMode==='arcade')earnedMilestones(progression.reachedStreak(flow.streak).earned);
           if(gained.tierUp){burst(player.x,floorY-25,9,c1,.62);if(gained.tier!==3)sound('flow')}

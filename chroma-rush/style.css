@@ -85,7 +85,7 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
   font-variant-numeric:tabular-nums;white-space:nowrap;
   transform-origin:right center;
   color:#9cd5e5;text-shadow:0 0 7px #63dfff55;
-  transition:font-size .18s ease,color .18s ease,text-shadow .18s ease;
+  transition:color .18s ease;
 }
 #flow-multiplier[data-tier="1"] {
   font-size:clamp(14px,1.6vw,17px);color:#a2fff3;

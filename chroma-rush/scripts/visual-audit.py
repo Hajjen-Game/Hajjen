@@ -69,6 +69,23 @@ SCENE_HOOK = r'''
       director.tick=()=>{};
       draw();
     },
+    setDepthScene({motif='CYAN',scroll=1800,reducedMotion=false,profile='high'}={}){
+      // Isolated rendering of the ACTUAL production background module:
+      // assess architecture depth without terrain or the player on top.
+      window.__visualAudit.setScene('background');
+      const p=PALETTES.find(v=>v.name===motif)||PALETTES[0];
+      const presets={high:{name:'high',density:1,glow:1},
+        balanced:{name:'balanced',density:.65,glow:.64},
+        performance:{name:'performance',density:.36,glow:.24}};
+      ctx.save();
+      ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);
+      worldBackground.drawBackground({ctx,width:W,height:H,time:0,
+        scroll,speed:1020,primary:p.primary,secondary:p.secondary,
+        shadow:p.shadow,motif:p.name,flow:75,quality:presets[profile]||presets.high,
+        reducedMotion,glowLine});
+      ctx.restore();
+      return {motif:p.name,scroll,reducedMotion,profile};
+    },
     setSpeedTrailScene(kind){
       // A repeatable high-speed timeline, using only public fixed-step
       // trail updates. This hook never ships in the production game.
@@ -208,6 +225,36 @@ def main():
                 if scene != 'background':
                     page.screenshot(path=str(OUT / f'{scene}-{vw}x{vh}.png'))
                 colors[scene] = page.evaluate('window.__visualAudit.sample(790, 620)')
+            # Background Depth & Parallax 2.0: isolated architecture scenes
+            # across four landscape sizes plus dynamic movement and reduced-motion.
+            depth_base=page.evaluate('window.__visualAudit.setDepthScene',
+                {'motif':'CYAN','scroll':0,'profile':'high'})
+            image_far=page.locator('#game').screenshot()
+            page.screenshot(path=str(OUT/f'depth-cyan-{vw}x{vh}.png'))
+            depth_move=page.evaluate('window.__visualAudit.setDepthScene',
+                {'motif':'CYAN','scroll':4200,'profile':'high'})
+            image_move=page.locator('#game').screenshot()
+            page.screenshot(path=str(OUT/f'depth-cyan-scrolled-{vw}x{vh}.png'))
+            assert depth_base['motif']==depth_move['motif']=='CYAN'
+            assert image_far!=image_move, f'Parallax did not move at {vw}x{vh}'
+            for motif in ['VIOLET','AMBER','ELECTRIC']:
+                profile={'motif':motif,'scroll':4200,'profile':'high'}
+                result=page.evaluate('window.__visualAudit.setDepthScene',profile)
+                page.screenshot(path=str(OUT/f'depth-{motif.lower()}-{vw}x{vh}.png'))
+                assert result['motif']==motif
+                assert page.locator('#game').screenshot()!=image_move, (
+                    f'{motif} zone architecture looks identical at {vw}x{vh}')
+            page.evaluate('window.__visualAudit.setDepthScene',
+                {'motif':'AMBER','scroll':4200,'profile':'performance'})
+            page.screenshot(path=str(OUT/f'depth-amber-performance-{vw}x{vh}.png'))
+            page.evaluate('window.__visualAudit.setDepthScene',
+                {'motif':'CYAN','scroll':0,'reducedMotion':True})
+            reduced_still=page.locator('#game').screenshot()
+            page.evaluate('window.__visualAudit.setDepthScene',
+                {'motif':'CYAN','scroll':4200,'reducedMotion':True})
+            assert reduced_still==page.locator('#game').screenshot(), (
+                f'Reduced-motion background should not drift at {vw}x{vh}')
+
             # A spectrum front must actually recolor two independent portions
             # of the world while remaining behind obstacles/player.
             def spectral_capture(progress):

@@ -11,15 +11,27 @@
     const h=ducked?21:player.landed?44:52;
     return {x:player.x-w/2,y:player.feet-h,w,h};
   }
+  const DUCK_CLEARANCE=28;
+  // The old suspended duck beam had a finite height, so Echo Jump could
+  // leap OVER it. A true high gate reaches past the edge of the playable sky.
+  // Keeping this in world coordinates makes ceiling inversion identical.
+  const DUCK_GATE_TOP=-160;
+  function duckGateCoreBox(obstacle,floorY){
+    return {x:obstacle.x,y:floorY-DUCK_CLEARANCE-obstacle.height,
+      w:obstacle.width,h:obstacle.height};
+  }
   function obstacleBox(obstacle,floorY){
-    // 28 logical units clearance under a high beam; jump obstacles touch the floor.
-    return obstacle.type==='jump'
-      ?{x:obstacle.x,y:floorY-obstacle.height,w:obstacle.width,h:obstacle.height}
-      :{x:obstacle.x,y:floorY-28-obstacle.height,w:obstacle.width,h:obstacle.height};
+    if(obstacle.type==='jump')
+      return {x:obstacle.x,y:floorY-obstacle.height,w:obstacle.width,h:obstacle.height};
+    const lower=floorY-DUCK_CLEARANCE;
+    // Same 28px duck passage; collision now covers ALL visible energy from
+    // the overhead gate rather than leaving a bypass above its short core.
+    return {x:obstacle.x,y:DUCK_GATE_TOP,w:obstacle.width,h:lower-DUCK_GATE_TOP};
   }
   function sweptXOverlap(player,priorX,obstacle){
     return priorX<player.x+player.w && obstacle.x+obstacle.width>player.x;
   }
   function verticalOverlap(a,b){return a.y<b.y+b.h&&a.y+a.h>b.y;}
-  return {playerBox,obstacleBox,sweptXOverlap,verticalOverlap};
+  return {playerBox,obstacleBox,duckGateCoreBox,DUCK_GATE_TOP,DUCK_CLEARANCE,
+    sweptXOverlap,verticalOverlap};
 });

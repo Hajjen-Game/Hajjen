@@ -68,6 +68,19 @@ SCENE_HOOK = r'''
       director.tick=()=>{};
       draw();
     },
+    setSpectralScene(progress){
+      this.setScene('flat');
+      zone=2;
+      const incoming=PALETTES[1],outgoing=PALETTES[0];
+      c1=incoming.primary;c2=incoming.secondary;c3=incoming.shadow;
+      spectralWave.start({from:outgoing,to:incoming,width:W,duration:.92});
+      if(progress>0)spectralWave.tick(Math.min(1,progress)*.92,
+        {playerX:player.x,playerY:player.feet,height:H});
+      $.zoneCallout.classList.add('hidden');
+      draw();
+      return {front:spectralWave.frontAt(H*.3,H),active:spectralWave.active,
+        playerColor:spectralWave.colorAt(player.x,'primary',player.feet,H)};
+    },
     sample(x,y){
       const px=Math.max(0,Math.min(canvas.width-1,Math.round(x*canvas.width/W)));
       const py=Math.max(0,Math.min(canvas.height-1,Math.round(y*canvas.height/H)));
@@ -129,6 +142,29 @@ def main():
                 if scene != 'background':
                     page.screenshot(path=str(OUT / f'{scene}-{vw}x{vh}.png'))
                 colors[scene] = page.evaluate('window.__visualAudit.sample(790, 620)')
+            # A spectrum front must actually recolor two independent portions
+            # of the world while remaining behind obstacles/player.
+            def spectral_capture(progress):
+                info=page.evaluate('window.__visualAudit.setSpectralScene',progress)
+                left=page.evaluate('window.__visualAudit.sample', [160,215])
+                right=page.evaluate('window.__visualAudit.sample',
+                    [page.evaluate('window.__visualAudit.info().W')-160,215])
+                return info,left,right
+
+            old,old_left,old_right=spectral_capture(0)
+            middle,mid_left,mid_right=spectral_capture(.5)
+            new,new_left,new_right=spectral_capture(1)
+            left_diff=max(abs(a-b) for a,b in zip(old_left,mid_left))
+            right_diff=max(abs(a-b) for a,b in zip(new_right,mid_right))
+            palette_diff=max(abs(a-b) for a,b in zip(old_right,new_right))
+            assert left_diff<=5, f'Old left side changed early at {vw}x{vh}: {left_diff}'
+            assert right_diff<=5, f'New right side not recolored at {vw}x{vh}: {right_diff}'
+            assert palette_diff>=4, f'Zone colors indistinguishable: {old_right} vs {new_right}'
+            assert middle['active'] and not new['active'], 'Wave did not complete on time'
+            for progress,label in [(0,'entry'),(.5,'crossing'),(.75,'arrival'),(1,'complete')]:
+                page.evaluate('window.__visualAudit.setSpectralScene',progress)
+                page.screenshot(path=str(OUT / f'spectral-{label}-{vw}x{vh}.png'))
+
             # Capture the real player motion and horizontal/geometric VFX as well.
             for scene in ['duck','duck-release','impact']:
                 page.evaluate('window.__visualAudit.setScene', scene)

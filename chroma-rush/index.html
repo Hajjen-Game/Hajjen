@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
   <meta name="theme-color" content="#080b19" />
-  <meta name="chroma-build" content="original-background-restored-1.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0" />
+  <meta name="chroma-build" content="original-background-restored-1.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0" />
   <meta name="description" content="CHROMA RUSH — a neon speed-survival arcade prototype." />
   <title>CHROMA RUSH | Original Background Restored</title>
   <link rel="stylesheet" href="style.css?v=flow-multiplier-1.0" />
@@ -26,6 +26,7 @@
       <div class="hud-right"><div class="small-label">SCORE</div><div id="score-display">000000</div><div class="tiny-label" id="speed-display">SPEED 1.00×</div><div id="replay-progress" class="replay-progress hidden" aria-label="Personal best score progress"><div class="replay-meta"><span id="replay-target">PB 0</span><span id="replay-percent">0%</span></div><div class="replay-track"><div id="replay-fill"></div></div></div></div>
     </header>
     <div id="danger-indicator" aria-hidden="true">CRITICAL SHIELD</div>
+    <div id="echo-hint" class="hidden" aria-live="polite">ECHO JUMP <span>· TAP JUMP AGAIN IN THE AIR</span></div>
     <div id="replay-toast" class="hidden" aria-live="polite"></div>
     <div id="milestone-toast" class="hidden" aria-live="polite"><span>MILESTONE UNLOCKED</span><strong id="milestone-toast-name"></strong></div>
     <div id="zone-callout" class="hidden" aria-hidden="true"><span id="zone-callout-tag">ZONE 02</span><strong id="zone-callout-name">VIOLET</strong><span id="zone-perfect" class="hidden">PERFECT ZONE</span></div>
@@ -74,7 +75,7 @@
       <div class="arcade-milestones"><button id="milestone-view-btn" type="button" aria-haspopup="dialog"><span id="milestone-progress">MILESTONES 0/6</span> <span aria-hidden="true">›</span></button><span id="milestone-next">NEXT: IGNITION</span></div>
       <div class="practice-controls"><select id="practice-zone" aria-label="Practice starting zone" disabled><option>ZONE 02</option></select><button type="button" id="practice-start-btn" disabled>TRAIN ZONE</button></div>
       <div id="practice-hint" class="practice-hint">REACH ZONE 02 TO UNLOCK PRACTICE</div>
-      <p class="help-text">LEFT THUMB: JUMP &nbsp;•&nbsp; RIGHT THUMB: DUCK<br/>KEYBOARD: ↑ / SPACE &nbsp;•&nbsp; ↓ / S</p>
+      <p class="help-text">LEFT THUMB: JUMP &nbsp;•&nbsp; RIGHT THUMB: DUCK<br/>ECHO JUMP: TAP JUMP AGAIN IN AIR (ZONE 02+)<br/>KEYBOARD: ↑ / SPACE &nbsp;•&nbsp; ↓ / S</p>
       <div class="version">ORIGINAL BACKGROUND RESTORED</div>
     </section>
     <section id="milestone-panel" class="screen-panel hidden" role="dialog" aria-modal="true" aria-label="Arcade milestones">
@@ -101,24 +102,24 @@
     </section>
     <div id="portrait-tip" aria-live="polite"><div class="rotate-icon">▭ ↻</div><strong>ROTATE YOUR DEVICE</strong><span>CHROMA RUSH is built for landscape play.</span></div>
   </main>
-  <script src="src/core/config.js?v=flow-1.2"></script>
+  <script src="src/core/config.js?v=flow-1.2-movement-1.0"></script>
   <script src="src/core/geometry.js?v=2.0"></script>
   <script src="src/director/patterns.js?v=2.0"></script>
   <script src="src/director/adaptive-director.js?v=terrain-1.0"></script>
-  <script src="src/terrain/terrain-system.js?v=unified-3.0"></script>
-  <script src="src/director/unified-terrain-director.js?v=unified-3.0"></script>
+  <script src="src/terrain/terrain-system.js?v=unified-3.0-movement-1.0"></script>
+  <script src="src/director/unified-terrain-director.js?v=unified-3.0-movement-1.0"></script>
   <script src="src/gameplay/flow.js?v=flow-1.2"></script>
   <script src="src/ui/hud.js?v=flow-multiplier-1.0"></script>
   <script src="src/ui/mobile-preferences.js?v=mobile-polish-1.0"></script>
-  <script src="src/audio/reactive-audio.js?v=chroma-state-2.0-chroma-pulse-1.0-gravity-1.0"></script>
+  <script src="src/audio/reactive-audio.js?v=chroma-state-2.0-chroma-pulse-1.0-gravity-1.0-movement-1.0"></script>
   <script src="src/progression/arcade-progress.js?v=arcade-1.0"></script>
   <script src="src/ui/arcade-ui.js?v=arcade-1.0"></script>
   <script src="src/progression/replay-challenge.js?v=replay-1.0"></script>
   <script src="src/ui/replay-ui.js?v=replay-1.0"></script>
-  <script src="src/gameplay/jump-controller.js?v=jump-1.0"></script>
-  <script src="src/render/player-motion.js?v=duck-effects-1.0"></script>
-  <script src="src/render/effect-language.js?v=arcade-animation-2.0"></script>
-  <script src="src/render/terrain-renderer.js?v=terrain-visual-1.2"></script>
+  <script src="src/gameplay/jump-controller.js?v=jump-1.0-movement-1.0"></script>
+  <script src="src/render/player-motion.js?v=duck-effects-1.0-movement-1.0"></script>
+  <script src="src/render/effect-language.js?v=arcade-animation-2.0-movement-1.0"></script>
+  <script src="src/render/terrain-renderer.js?v=terrain-visual-1.2-movement-1.0"></script>
   <script src="src/render/world-background.js?v=original-background-restored-1.0"></script>
   <script src="src/render/spectral-wave.js?v=spectral-wave-1.0-chroma-pulse-1.0"></script>
   <script src="src/render/chroma-state-vfx.js?v=speed-trails-2.0-ceiling-sync-1.0"></script>
@@ -127,7 +128,7 @@
   <script src="src/performance/quality-manager.js?v=performance-1.0"></script>
   <script src="src/performance/frame-clock.js?v=performance-1.0"></script>
   <script src="src/gameplay/gravity-shift.js?v=gravity-1.0"></script>
-  <script src="src/gameplay/game.js?v=arcade-animation-2.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0"></script>
+  <script src="src/gameplay/game.js?v=arcade-animation-2.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0"></script>
   <script src="src/ui/build-freshness.js?v=pages-recovery-1.0"></script>
 </body>
 </html>

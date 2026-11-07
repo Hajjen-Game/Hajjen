@@ -897,17 +897,16 @@
       const pulse=.30+.16*(.5+.5*Math.sin(worldTime*8+o.pulse));
       ctx.fillStyle=rgba(color,pulse);
       ctx.fillRect(b.x+inset,b.y+8,b.w-inset*2,b.h-17);
-      // Split structure, twin ascending chevrons and three bright transverse
-      // accents; sparse on low profiles so it stays clean on older phones.
+      // Two luminous energy chambers distinguish Echo Spire from a regular
+      // barrier without text or direction arrows. Both bands belong to its
+      // physical silhouette and remain readable on Performance graphics.
       for(let k=0;k<2;k++){
         const yy=b.y+21+k*54;
-        ctx.strokeStyle=k===0?'#ffffff':color;
-        ctx.lineWidth=k===0?2.6:2.1;
-        ctx.shadowColor=color;ctx.shadowBlur=8*quality.profile.glow;
-        ctx.beginPath();
-        ctx.moveTo(cx-13,yy+10);ctx.lineTo(cx,yy-3);ctx.lineTo(cx+13,yy+10);
-        ctx.stroke();
-        glowLine(b.x+4,yy+24,b.x+b.w-4,yy+24,color,2,7,.85);
+        ctx.fillStyle=rgba(k===0?'#ffffff':color,.25);
+        ctx.fillRect(b.x+8,yy-2,b.w-16,18);
+        glowLine(b.x+8,yy+17,b.x+b.w-8,yy+17,color,2.4,8,.88);
+        ctx.shadowColor=color;ctx.shadowBlur=5*quality.profile.glow;
+        glowLine(b.x+12,yy+2,b.x+b.w-12,yy+2,'#ffffff',1.3,4,.56);
       }
       glowLine(b.x+4,b.y+5,b.x+b.w-4,b.y+5,'#ffffff',2.3,9,.9);
       glowLine(b.x-5,b.y+b.h-3,b.x+b.w+5,b.y+b.h-3,color,4,12,.95);
@@ -918,26 +917,41 @@
         ctx.moveTo(b.x+b.w-10,b.y+143);ctx.lineTo(b.x+b.w-10,b.y+b.h-13);
         ctx.stroke();
       }
-      // Always readable in Low graphics; the mechanic is never a hidden
-      // height check. A separate short label is less ambiguous than arrows.
-      ctx.textAlign='center';ctx.font='900 14px system-ui';
-      ctx.fillStyle='#ffffff';ctx.shadowColor=color;
-      ctx.shadowBlur=8*quality.profile.glow;
-      ctx.fillText('2× JUMP',cx,b.y-20);
     }else if(isLow){
-      // Floor blocks keep their original strong silhouette and jump cue.
-      ctx.shadowColor=color;ctx.shadowBlur=23*quality.profile.glow;
+      // Jump Obstacle Visual Identity 1.0 — Low Neon Barrier.
+      // Broad plinth, beveled shell and recessed face make this a grounded
+      // piece of course architecture instead of a floating UI/pickup tile.
+      // Every solid stroke stays INSIDE the existing b collision footprint:
+      // zero gameplay or fairness changes across mobile and Ceiling Run.
+      const x=b.x,y=b.y,w=b.w,h=b.h,bevel=Math.min(8,w*.16);
       ctx.globalAlpha=twinkle;
-      roundRectPath(b.x,b.y,b.w,b.h,6);
-      ctx.fillStyle=rgba(color,.3);ctx.fill();
-      ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
+      ctx.shadowColor=color;ctx.shadowBlur=19*quality.profile.glow;
+      ctx.beginPath();
+      ctx.moveTo(x+bevel,y+1);ctx.lineTo(x+w-bevel,y+1);
+      ctx.lineTo(x+w-1,y+bevel);ctx.lineTo(x+w-1,y+h-3);
+      ctx.lineTo(x+w-4,y+h-1);ctx.lineTo(x+4,y+h-1);
+      ctx.lineTo(x+1,y+h-3);ctx.lineTo(x+1,y+bevel);
+      ctx.closePath();
+      ctx.fillStyle=rgba(color,.30);ctx.fill();
+      ctx.lineWidth=2.6;ctx.strokeStyle=color;ctx.stroke();
       ctx.shadowBlur=0;ctx.globalAlpha=1;
-      ctx.fillStyle=rgba(color,.14);
-      roundRectPath(b.x+7,b.y+7,b.w-14,b.h-14,3);ctx.fill();
-      glowLine(b.x+9,b.y+12,b.x+b.w-9,b.y+12,'#ffffff',1,4,.5);
-      for(let k=0;k<3;k++){
-        const yp=b.y+16+k*15;glowLine(b.x+9,yp,b.x+b.w-9,yp,color,1,0,.5);
-      }
+      // One uninterrupted luminous cap; no detached word, arrow or pickup.
+      glowLine(x+bevel+1,y+5,x+w-bevel-1,y+5,'#ffffff',2.6,11,.90);
+      glowLine(x+3,y+bevel+2,x+3,y+h-11,color,1.7,6,.72);
+      glowLine(x+w-3,y+bevel+2,x+w-3,y+h-11,color,1.7,6,.72);
+      // Tapered side cheeks + low wide footing: perceived mass and ground
+      // connection are stronger while geometry remains unchanged.
+      ctx.fillStyle=rgba(color,.17);
+      ctx.fillRect(x+6,y+bevel+8,w-12,h-bevel-22);
+      ctx.strokeStyle=rgba('#ffffff',.27);ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.moveTo(x+10,y+bevel+12);ctx.lineTo(x+10,y+h-14);
+      ctx.moveTo(x+w-10,y+bevel+12);ctx.lineTo(x+w-10,y+h-14);
+      ctx.stroke();
+      ctx.fillStyle=rgba(color,.38);
+      ctx.fillRect(x+2,y+h-12,w-4,10);
+      glowLine(x+3,y+h-12,x+w-3,y+h-12,color,2.3,8,.91);
+      glowLine(x+4,y+h-3,x+w-4,y+h-3,'#ffffff',1.5,6,.55);
     }else{
       // This is one continuous, visible overhead energy gate. Its sparse,
       // low-opacity field extends beyond the top of the camera so a second
@@ -970,12 +984,6 @@
         glowLine(x,core.y+12,x,by-12,color,1,0,.36);
       }
       glowLine(core.x,core.y,core.x+core.w,core.y,'#ffffff',1,8,.45);
-    }
-    if(time<24&&!isEcho){
-      ctx.globalAlpha=clamp((24-time)/5,0,1)*.86;
-      ctx.font='800 14px system-ui';ctx.textAlign='center';ctx.letterSpacing='3px';
-      ctx.fillStyle=color;ctx.shadowBlur=8*quality.profile.glow;ctx.shadowColor=color;
-      ctx.fillText(isLow?'↑ JUMP':'↓ DUCK',cx,core.y-20-(isLow?5:0));
     }
     ctx.restore();
   }

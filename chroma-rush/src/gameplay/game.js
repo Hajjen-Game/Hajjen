@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Arcade Animation Language 2.0 on Layered Landscape 2.1
+/* CHROMA RUSH — Chroma Pulse Transition 1.0 on Original Background Restored
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -474,12 +474,16 @@
   function nextZone(reward=null){
     const incoming=PALETTES[(zone-1)%PALETTES.length];
     const outgoing=PALETTES[(zone-2+PALETTES.length)%PALETTES.length];
-    const animated=spectralWave.start({from:outgoing,to:incoming,width:W,duration:.92,reducedMotion});
+    const animated=spectralWave.start({from:outgoing,to:incoming,width:W,
+      duration:.92,chargeDuration:.23,reducedMotion});
     // The panel peaks as the wave reaches the player's horizontal position.
     lastZoneCallout=1.6;
     HUD.showZoneCallout($,{zone,name:incoming.name,
       color:incoming.primary,perfectReward:reward?.perfect?reward:null});
     zoneSoundAtCrossing=animated&&!reward?.perfect;
+    // Charge cue precedes the color wave; the established zone sound still
+    // lands once, at the runner crossing. Perfect Zone has its own reward cue.
+    if(animated&&!reward?.perfect)sound('zone-charge');
     if(!animated&&!reward?.perfect)sound('zone');
   }
   function onHit(o){

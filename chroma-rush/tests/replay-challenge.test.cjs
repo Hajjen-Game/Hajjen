@@ -74,6 +74,6 @@ test('HTML loads replay modules before game and provides required IDs',()=>{
   assert.ok(html.includes('id="'+id+'"'),id);
  const a=html.indexOf('src/progression/replay-challenge.js?v=replay-1.0');
  const b=html.indexOf('src/ui/replay-ui.js?v=replay-1.0');
- const c=html.indexOf('src/gameplay/game.js?v=replay-1.0');
+ const c=html.indexOf('src/gameplay/game.js?v=flow-1.2');
  assert.ok(a>0&&a<b&&b<c);
 });

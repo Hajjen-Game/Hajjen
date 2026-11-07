@@ -505,6 +505,15 @@
     if(!terrain.canSpawnObstacle(worldX,width,speed))return false;
     const groundY=terrain.groundAt(worldX+width*.5);
     if(groundY===null)return false;
+    if(data.type==='echo'){
+      // Double-jump barriers need a readable run-up and a predictable
+      // takeoff. Wide elevation changes or a late visible approach are vetoed.
+      const approach=(x-player.x)/Math.max(300,speed);
+      const launchY=terrain.groundAt(worldX-speed*.55);
+      const landY=terrain.groundAt(worldX+width+speed*.20);
+      if(approach<.78||launchY===null||landY===null||
+        Math.abs(launchY-groundY)>34||Math.abs(landY-groundY)>34)return false;
+    }
     hurdles.push({type:data.type,x,worldX,groundY,width,height,hit:false,cleared:false,
       closestClearance:Infinity,entryDuckTime:null,phase:data.phase,pulse:Math.random()*Math.PI*2});
     runAudit.record('spawn',auditState(),{obstacle:data.type,pattern:data.pattern||'',worldX});
@@ -739,7 +748,8 @@
     }
     if(!player.landed&&visualRandom()<.7*quality.profile.particles)motes.push(makeMote(player.x+fxRand(-14,14),player.feet-8,c1,{vx:fxRand(-170,-20),vy:fxRand(10,70),life:.32,r:fxRand(1,3)}));
     const phaseBefore=director.phase;
-    terrainDirector.tick(dt,{zone,speed,hp,distance,spawnX:W+90},spawn);
+    terrainDirector.tick(dt,{zone,speed,hp,distance,spawnX:W+90,
+      playerX:player.x},spawn);
     if(phaseBefore!==director.phase)runAudit.record('phase',auditState(),
       {from:phaseBefore,to:director.phase,movement:director.movement.insight});
     const p=GEO.playerBox(player);

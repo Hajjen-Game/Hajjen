@@ -24,7 +24,8 @@
     reset(){
       this.phase=PHASE.BUILD;this.phaseElapsed=0;this.phaseDuration=7.4;
       this.spawnCountdown=2.2;this.previousType=null;this.previousPattern=null;
-      this.pending=[];this.time=0;this.lastSpawnTime=-999;this.totalSpawned=0;this.totalCleared=0;
+      this.pending=[];this.time=0;this.lastSpawnTime=-999;this.lastSpawnLead=0;
+      this.totalSpawned=0;this.totalCleared=0;
       this.cycle=0;this.streak=0;this.confidence=.32;this.stress=0;
       this.lastDamageAt=-999;this.lastNearMissAt=-999;
       this.lastPatternId=null;this.patternHistory=[];this.echoIntroduced=false;
@@ -155,6 +156,20 @@
         this.spawnCountdown=Math.max(.01,previousSafety-elapsed);
         return;
       }
+      // A farther-offscreen warning changes the *arrival* order: spawn-time
+      // spacing alone is insufficient. E.g. Echo → Duck would be too tight
+      // because the Echo starts much farther ahead at high speed.
+      const speed=Math.max(300,context.speed||370);
+      const nextLead=actionX==null?0:
+        Math.max(0,(actionX-(context.playerX??300)-22)/speed);
+      if(this.previousType&&typeof context.spawnXFor==='function'){
+        const arrivalInterval=elapsed+nextLead-this.lastSpawnLead;
+        if(arrivalInterval<previousSafety){
+          this.spawnCountdown=Math.max(.01,previousSafety-arrivalInterval);
+          this.movement.deferredPatterns++;
+          return;
+        }
+      }
       // Terrain may veto an obstacle if its landing/takeoff area is unsafe.
       // Keep the pending action and retry later, rather than counting a fake
       // obstacle or popping an impossible pattern step.
@@ -166,6 +181,7 @@
       this.movement.onSpawn(next.type,this.time);
       if(next.type==='echo')this.echoIntroduced=true;
       this.totalSpawned++;this.lastSpawnTime=this.time;
+      this.lastSpawnLead=nextLead;
       const following=this.pending[0]?.type||null;
       const safety=following?minimumGap(next.type,following,context.speed):0;
       // Pattern gaps are physically checked; an authored motif cannot force an impossible combo.

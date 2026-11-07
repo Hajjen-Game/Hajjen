@@ -146,5 +146,5 @@ test('Spectral Wave still spatially clips old/new landscape identity',()=>{
   assert.match(game,/paint\(spectralWave\.from\).*paint\(spectralWave\.to\)/s);
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   assert.match(html,/name="chroma-build" content="arcade-animation-2\.0"/);
-  assert.match(html,/world-background\.js\?v=arcade-animation-2\.0/);
+  assert.match(html,/world-background\.js\?v=background-depth-2\.1/);
 });

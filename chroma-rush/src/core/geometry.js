@@ -21,7 +21,9 @@
       w:obstacle.width,h:obstacle.height};
   }
   function obstacleBox(obstacle,floorY){
-    if(obstacle.type==='jump')
+    // Echo Spires, like ordinary jump barriers, are firmly attached to the
+    // track. Unlike the suspended duck gates they cannot be crawled under.
+    if(obstacle.type==='jump'||obstacle.type==='echo')
       return {x:obstacle.x,y:floorY-obstacle.height,w:obstacle.width,h:obstacle.height};
     const lower=floorY-DUCK_CLEARANCE;
     // Same 28px duck passage; collision now covers ALL visible energy from

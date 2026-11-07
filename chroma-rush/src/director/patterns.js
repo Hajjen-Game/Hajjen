@@ -13,6 +13,11 @@
     {id:'single-duck',steps:['duck'],tier:0,minZone:1,weight:3.0},
     {id:'twin-jump',steps:['jump','jump'],tier:1,minZone:1,weight:1.4},
     {id:'twin-duck',steps:['duck','duck'],tier:1,minZone:1,weight:1.1},
+    // The first tall pillar is taught as one isolated action, not a combo.
+    {id:'single-echo',steps:['echo'],tier:1,minZone:4,weight:1.5},
+    // Advanced phrases appear only after the player has had time to practice.
+    {id:'echo-then-jump',steps:['echo','jump'],tier:2,minZone:6,weight:.8},
+    {id:'jump-then-echo',steps:['jump','echo'],tier:3,minZone:8,weight:.7},
     {id:'up-down',steps:['jump','duck'],tier:1,minZone:2,weight:2.0},
     {id:'down-up',steps:['duck','jump'],tier:1,minZone:2,weight:2.0},
     {id:'up-down-up',steps:['jump','duck','jump'],tier:2,minZone:3,weight:1.2},
@@ -22,9 +27,10 @@
     {id:'switchback',steps:['jump','duck','jump','duck'],tier:3,minZone:6,weight:.8},
     {id:'reverse-switchback',steps:['duck','jump','duck','jump'],tier:3,minZone:6,weight:.8}
   ].map(p=>Object.freeze({...p,steps:Object.freeze(p.steps)})));
-  function candidates(phase,zone,maxTier){
+  function candidates(phase,zone,maxTier,{allowEcho=true}={}){
     const allowed=phase==='FADE'?0:phase==='BUILD'?Math.min(1,maxTier):maxTier;
-    return PATTERNS.filter(p=>p.minZone<=zone&&p.tier<=allowed);
+    return PATTERNS.filter(p=>p.minZone<=zone&&p.tier<=allowed&&
+      (allowEcho||!p.steps.includes('echo')));
   }
   function chooseWeighted(list,random=Math.random,excludeId=null){
     if(!list.length)return null;

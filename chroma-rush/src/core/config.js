@@ -62,6 +62,13 @@
     lookaheadSeconds:.09,maxStepsPerFrame:3,
     masterGain:.76,musicGain:.58,effectsGain:.40
   });
+  const ECHO_SPIRE=Object.freeze({
+    firstZone:4,
+    minWidth:49,maxWidth:58,
+    // At g=2140 and launch v=-870 the standard jump rises ~177px.
+    // These pillars require an intentional second airborne impulse.
+    minHeight:204,maxHeight:216
+  });
   const TERRAIN=Object.freeze({
     slopeFromZone:2,
     gapFromZone:3,
@@ -86,5 +93,5 @@
     echoUnlockZone:2,
     echoMinAirSeconds:.095
   });
-  return {PALETTES,GAME,FLOW,AUDIO,TERRAIN,JUMP_FEEL};
+  return {PALETTES,GAME,FLOW,AUDIO,TERRAIN,JUMP_FEEL,ECHO_SPIRE};
 });

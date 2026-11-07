@@ -64,9 +64,15 @@
       const gapChance=safeArrival?(peak?(gentle?.13:.29):.065):0;
       const slopeChance=({BUILD:.52,PEAK:.36,FADE:.24,RELAX:.10})[future.phase]||.2;
       const maxHeightChange=({BUILD:62,PEAK:58,FADE:38,RELAX:23})[future.phase]||40;
+      // Echo Gaps occur only in healthy, confident PEAK sections with
+      // enough time remaining for takeoff, two jumps and a safe landing.
+      const echoSafe=zone>=5&&safeArrival&&peak&&future.remaining>=1.58&&
+        !gentle&&stress<.33&&confidence>=.53&&hp>50;
       const policy={phase:future.phase,leadSeconds:lead,allowGap:safeArrival,
         gapChance,slopeChance,maxHeightChange:gentle?Math.min(40,maxHeightChange):maxHeightChange,
         gapSecondsMin:peak?.30:.27,gapSecondsMax:gapTime,
+        echoGapChance:echoSafe?.30:0,
+        echoGapSecondsMin:.92,echoGapSecondsMax:1.015,
         noGapBefore:this.noGapsBefore};
       this.lastPolicy=policy;
       return policy;

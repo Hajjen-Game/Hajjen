@@ -11,20 +11,22 @@
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
   class PlayerMotion {
     constructor(rules=RULES){this.rules=rules;this.reset();}
-    reset(){this.launchTime=0;this.landTime=0;this.impact=0;this.duckEntry=0;this.duckExit=0;}
-    jump(){this.launchTime=0.13;this.landTime=0;this.duckEntry=0;this.duckExit=0;}
+    reset(){this.launchTime=0;this.echoTime=0;this.landTime=0;this.impact=0;this.duckEntry=0;this.duckExit=0;}
+    jump(){this.launchTime=0.13;this.echoTime=0;this.landTime=0;this.duckEntry=0;this.duckExit=0;}
+    echoJump(){this.echoTime=.19;this.launchTime=0;this.landTime=0;this.duckEntry=0;this.duckExit=0;}
     duckStart(){this.duckEntry=.105;this.duckExit=0;this.landTime=0;}
     duckRelease(){this.duckEntry=0;this.duckExit=.12;}
     duckCancel(){this.duckEntry=0;this.duckExit=0;}
 
     land(velocity=0){
       this.landTime=this.rules.landingAnimationSeconds;
-      this.launchTime=0;
+      this.launchTime=0;this.echoTime=0;
       this.impact=clamp((Math.abs(velocity)-220)/750,.45,1);
       return this.impact;
     }
     tick(dt){
       this.launchTime=Math.max(0,this.launchTime-dt);
+      this.echoTime=Math.max(0,this.echoTime-dt);
       this.landTime=Math.max(0,this.landTime-dt);
       this.duckEntry=Math.max(0,this.duckEntry-dt);
       this.duckExit=Math.max(0,this.duckExit-dt);
@@ -53,7 +55,14 @@
           if(elapsed<.025)scaleY-=.10*(1-elapsed/.025);
           else scaleY+=.035*Math.max(0,1-(elapsed-.025)/.105);
         }
-        glow=.2;
+        if(this.echoTime>0){
+          // A distinct secondary beat: fast inward compression followed by a
+          // taller spring release, all in the course's gravity-relative space.
+          const t=clamp(1-this.echoTime/.19,0,1);
+          const echoScale=t<.2?.76+2.2*t:1+.2*Math.sin(Math.PI*(t-.2)/.8);
+          scaleY*=echoScale;
+          glow=.4+.38*(1-t);
+        }else glow=.2;
       }else if(this.landTime>0){
         const t=1-this.landTime/this.rules.landingAnimationSeconds;
         if(t<.45){scaleY-=.135*this.impact*(1-t/.45);}

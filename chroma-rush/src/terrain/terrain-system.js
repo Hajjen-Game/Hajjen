@@ -46,10 +46,21 @@
       const slopeChance=policy?Math.max(0,policy.slopeChance||0):r.slopeChance-gapChance;
       let segment;
       if(gapAllowed&&roll<gapChance){
-        const minSeconds=policy?.gapSecondsMin??.30;
-        const maxSeconds=policy?.gapSecondsMax??.37;
-        const width=clamp(speed*this._random(minSeconds,maxSeconds),r.minGapWidth,r.maxGapWidth);
+        // Rare Echo Gaps are a distinct movement challenge, not a hidden
+        // widening of normal gaps. The Director gates them by player readiness.
+        const echo=zone>=5&&(policy?.echoGapChance??0)>0&&
+          this.random()<policy.echoGapChance;
+        const minSeconds=echo?(policy.echoGapSecondsMin??.92):(policy?.gapSecondsMin??.30);
+        const maxSeconds=echo?(policy.echoGapSecondsMax??1.015):(policy?.gapSecondsMax??.37);
+        const raw=speed*this._random(minSeconds,maxSeconds);
+        const width=echo
+          ?clamp(raw,Math.max(r.minGapWidth,speed*.89),speed*1.04)
+          :clamp(raw,r.minGapWidth,r.maxGapWidth);
         segment=this._append('gap',width);
+        if(echo){
+          segment.echoChallenge=true;
+          segment.echoVariant=width/speed>=.97?'extended':'approach';
+        }
       }else if(zone>=r.slopeFromZone&&roll<(policy?(gapAllowed?gapChance:0)+slopeChance:r.slopeChance)){
         const change=policy?.maxHeightChange??r.maxHeightChange;
         const delta=this._random(-change,change);

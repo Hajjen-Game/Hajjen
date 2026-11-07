@@ -1,8 +1,18 @@
-# CHROMA RUSH — Gravity Shift / Ceiling Run 1.0
+# CHROMA RUSH — Movement Evolution 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Movement Evolution 1.0 — Echo Jump (2026-11-07)
+
+- **No Dash, no third or fourth button.** The existing Jump and Duck inputs remain unchanged. Starting at zone 2, tapping Jump a second time while airborne (after a brief ~95ms protection against accidental double taps) performs one **Echo Jump** per flight. It uses a weaker second-jump target (−650), plus a bounded early-tap boost so the second press always adds real lift without exceeding the ordinary takeoff speed. The ability resets only after valid landing / fresh grounded takeoff.
+- Normal jump, coyote time, 110ms landing buffer, recovery safety, gravity transitions and collision hitboxes are retained. Echo Jump does not alter horizontal speed, score or the Director's obstacle timing.
+- The secondary beat has a distinct fast squash-then-stretch, layered angular light cuts, a small glow trail, procedural two-part sound and short vibration. Effects are drawn in the canonical player world, so ceiling mode mirrors them correctly. Reduced-motion and Low Graphics remain respected.
+- A brief in-run cue teaches **TAP JUMP AGAIN IN THE AIR** at zone 2. A two-pronged accent follows the cube when the airborne second jump is available. Practice runs starting in later zones have it immediately.
+- **Echo Gaps** are rare, opt-in longer chasms beginning zone 5, labelled **2× JUMP**. The Unified Terrain Director permits these only in healthy, confident PEAK segments with enough time to land. Regular gaps keep their previous sizes and generation rates.
+- Run audit records Echo Jump uses and whether each gap was an Echo challenge. The new [movement tests](tests/movement-evolution-1.0.test.cjs) cover controller state, physical flight reachability, Director policy, marker generation and mobile input.
+- Initial tuning proposal: playtest the second impulse and long-gap frequency; the current values are not yet declared final.
 
 ## Ceiling Player Animation Sync 1.0 (2026-11-07)
 

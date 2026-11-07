@@ -173,6 +173,6 @@ test('release HTML loads spectral module before game and advertises its build',(
   const wave=html.indexOf('src/render/spectral-wave.js?v=spectral-wave-1.0');
   const game=html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
   assert.ok(wave>0&&game>wave);
-  assert.match(html,/<meta name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0"/);
+  assert.match(html,/<meta name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0"/);
   assert.match(html,/ORIGINAL BACKGROUND RESTORED/);
 });

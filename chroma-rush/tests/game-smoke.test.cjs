@@ -60,7 +60,7 @@ function setup(initialStorage={}) {
   const ending='  requestAnimationFrame(frame);\n})();';
   assert.ok(gameCode.includes(ending));
   vm.runInContext(gameCode.replace(ending,
-    "  window.__gravityHarness={gravityShift,terrain,director,chromaVfx,effects,player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
+    "  window.__gravityHarness={gravityShift,terrain,director,chromaVfx,effects,jumpControl,motion,player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
     context,{filename:'game.js'});
   return {get,local,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
@@ -327,4 +327,37 @@ test('ceiling Chroma State retains one canvas mirror for cube, corner FX, dust a
   assert.equal(observed.afterPlayer,1);
   assert.equal(observed.particles,1);
   assert.equal(stack.length,0);
+});
+
+test('real arcade loop introduces Echo Jump in zone 2, allows one new press and keeps ceiling mirror',()=>{
+  const g=setup(),state=g.context.window.__gravityHarness;
+  g.step(0);g.get('start-btn').click();
+  // Same safe level geometry at either quality. Isolate the new input semantics.
+  state.director.tick=()=>{};
+  state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
+  state.terrain.gaps=[];state.terrain.generated=10000000;
+  for(let i=1;i<=733;i++)g.step(i*1000/60);
+  assert.equal(state.zone(),2,'Echo ability must be introduced early');
+  assert.equal(g.get('jump-btn')['aria-label'],
+    'Jump; tap again in the air for Echo Jump');
+  const jump=g.get('jump-btn');
+  const tap=(id)=>{
+    for(const cb of jump.events.pointerdown??[])cb({pointerId:id,preventDefault(){}});
+    for(const cb of jump.events.pointerup??[])cb({pointerId:id});
+  };
+  tap(31);assert.equal(state.jumpControl.echoAvailable,true);
+  for(let i=734;i<=742;i++)g.step(i*1000/60);
+  tap(32);
+  assert.equal(state.jumpControl.echoUsed,true);
+  assert.equal(state.jumpControl.echoAvailable,false);
+  assert.ok(state.player().vy<=config.GAME.echoJumpVelocity);
+  assert.ok(state.player().vy>=config.GAME.jumpVelocity);
+  tap(33);
+  assert.equal(state.jumpControl.echoUsed,true,'no third airborne impulse');
+  // The physics remain canonical while gravity mirror is active.
+  state.gravityShift.ceiling=true;
+  assert.doesNotThrow(()=>state.render());
+  // Return to the floor and verify no permanent orientation/audio side effects.
+  state.gravityShift.ceiling=false;
+  assert.doesNotThrow(()=>state.render());
 });

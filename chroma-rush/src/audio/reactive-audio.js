@@ -189,6 +189,10 @@
         this._voice({hz:note},at+delay,duration,level,type,this.effectsBus,end===null?null:{hz:end});
       switch(kind){
         case 'jump': fx(380,.13,.16,'triangle',670);break;
+        case 'echo':
+          // A bright two-stage upward snap distinct from the ordinary jump.
+          fx(390,.12,.11,'triangle',740);
+          fx(730,.19,.082,'sine',1050,.065);break;
         case 'duck': fx(280,.105,.13,'sine',146);break;
         case 'land': fx(155,.09,.08,'sine',100);break;
         case 'hit': fx(210,.21,.28,'sawtooth',62);fx(85,.22,.12,'sine',45,.055);break;

@@ -344,3 +344,17 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
  #replay-toast{top:27%;right:12%;}
 }
 @media(prefers-reduced-motion:reduce){#replay-toast.replay-toast-live{animation:none;opacity:1;}}
+
+/* Movement Evolution 1.0 — brief, non-interactive Echo Jump teaching cue.
+ * Upper sky placement keeps the action lane, hazards and both thumbs clear.
+ */
+#echo-hint {
+  position:absolute;z-index:5;pointer-events:none;left:50%;top:17%;
+  transform:translateX(-50%);max-width:82vw;text-align:center;white-space:nowrap;
+  color:#edfdff;font-size:clamp(10px,1.18vw,15px);font-weight:900;
+  letter-spacing:.10em;text-shadow:0 0 11px rgba(72,229,255,.65),0 2px 9px #071125;
+}
+#echo-hint span {color:#a6edff;font-weight:750;letter-spacing:.065em;}
+@media(max-height:420px){
+  #echo-hint{top:20%;font-size:clamp(9px,1vw,12px);}
+}

@@ -13,6 +13,7 @@
   const MAX_EFFECTS=24;
   const CUES=Object.freeze({
     jump:Object.freeze({life:.28,cooldown:.08,priority:2}),
+    echo:Object.freeze({life:.42,cooldown:.09,priority:3}),
     land:Object.freeze({life:.31,cooldown:.10,priority:2}),
     duck:Object.freeze({life:.23,cooldown:.10,priority:2}),
     release:Object.freeze({life:.24,cooldown:.10,priority:1}),
@@ -109,6 +110,23 @@
             i%2?e.accent:e.color,.73-i*.09,2.25-i*.24,10);
         }
         line(x-12,y-7,x-27-t*36,y-18-t*28,e.accent,.34,1.3,5);
+      }else if(kind==='echo'){
+        // A distinct second-beat release: split prongs, diagonal cuts and
+        // short afterimages, never circular rings or a full-screen flash.
+        // All positions are gravity-relative; Gravity Shift mirrors the pass.
+        const spread=13+74*t,back=(20+100*t)*reach;
+        for(let i=0;i<detail;i++){
+          const lift=11+i*9+25*t;
+          line(x-9-i*5,y+8,x-back-i*11,y+lift,
+            i%2?e.color:e.accent,.85-i*.13,2.5-i*.3,12);
+          line(x+11+i*2,y+5,x+spread*.42+i*4,y-lift*.8,
+            e.accent,.48-i*.12,1.45,6);
+        }
+        line(x-5,y+14,x-5,y-33-28*t,e.color,.68,2,10);
+        if(d>.52){
+          line(x-18,y-19,x-44-27*t,y-19,e.accent,.40,1.2,4);
+          line(x+7,y-24,x+24+20*t,y-24,e.color,.30,1.1,3);
+        }
       }else if(kind==='land'){
         // Compression discharges parallel to the real platform; no ellipse.
         const spread=15+t*(68+e.strength*26);

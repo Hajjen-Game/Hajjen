@@ -34,7 +34,7 @@ test('a stale build is checked with no-store and reloaded with unique release qu
   await next();
   assert.equal(h.calls.length,1);
   assert.equal(h.calls[0].opts.cache,'no-store');
-  assert.match(h.calls[0].url,/\/_chroma_probe=12000/);
+  assert.match(h.calls[0].url,/[?&]_chroma_probe=12000/);
   assert.equal(h.replaces.length,1);
   assert.ok(h.replaces[0].includes('build=flow-1.2'));
 });

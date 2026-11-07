@@ -87,7 +87,7 @@
     }
     drawCue(ctx,e,{glow=1,density=1}={}){
       const kind=e.kind.slice(4),t=clamp(e.age/e.life,0,1);
-      const fade=Math.pow(1-t,1.5),energy=e.strength;
+      const fade=Math.pow(1-t,1.2),energy=e.strength;
       const d=clamp(density,.3,1),g=clamp(glow,.15,1);
       const reach=clamp(e.speed/620,.65,3.25);
       const x=e.x,y=e.y;
@@ -106,29 +106,29 @@
         for(let i=0;i<detail;i++){
           const h=7+i*7+t*21;
           line(x-12-i*6,y-4-i*2,x-back-i*14,y+h-7,
-            i%2?e.accent:e.color,.57-i*.09,2-i*.24,10);
+            i%2?e.accent:e.color,.73-i*.09,2.25-i*.24,10);
         }
         line(x-12,y-7,x-27-t*36,y-18-t*28,e.accent,.34,1.3,5);
       }else if(kind==='land'){
         // Compression discharges parallel to the real platform; no ellipse.
         const spread=15+t*(68+e.strength*26);
         for(const side of [-1,1]){
-          line(x+side*8,y,x+side*spread,y,e.color,.69,2.6,10);
+          line(x+side*8,y,x+side*spread,y,side<0?e.color:e.accent,.83,2.6,10);
           if(d>.52)line(x+side*12,y-5-t*2,x+side*(spread*.66),y-5-t*2,
             e.accent,.35,1.15,3);
         }
       }else if(kind==='duck'){
         // A low, horizontal compression travelling strictly behind the runner.
         const rear=x-24-t*(65+e.speed*.023);
-        line(x-18,y-6,rear,y-6,e.accent,.73,2.6,11);
-        line(x-25,y-13,rear-19,y-13,e.color,.43,1.3,5);
+        line(x-18,y-6,rear,y-6,e.accent,.89,2.75,11);
+        line(x-25,y-13,rear-19,y-13,e.color,.56,1.3,5);
         if(d>.52)line(x-32,y-2,rear-32,y-2,e.accent,.26,1,3);
       }else if(kind==='release'){
         const lift=12+25*t;
-        line(x-24,y-2,x-31-t*33,y-2,e.color,.39,1.2,6);
+        line(x-24,y-2,x-31-t*33,y-2,e.color,.52,1.3,6);
         for(let i=0;i<detail;i++){
           const sx=x-18-i*9;
-          line(sx,y-4,sx-7,y-lift-i*5,e.accent,.50-i*.10,1.3,5);
+          line(sx,y-4,sx-7,y-lift-i*5,e.accent,.62-i*.10,1.4,5);
         }
       }else if(kind==='precision'){
         // Precision is the visual hero: three intersecting straight cuts
@@ -144,13 +144,13 @@
         for(let i=0;i<detail+1;i++){
           const yy=y-22+i*11,anchor=x-23-i*9;
           line(anchor,yy,anchor-length*(.66+i*.11),yy,
-            i%2?e.accent:e.color,.56-i*.07,1.8,11);
+            i%2?e.accent:e.color,.68-i*.07,1.9,11);
         }
       }else if(kind==='perfect'){
         // Celebratory split ribbons stay local; the gameplay area remains clear.
         for(let i=0;i<detail+1;i++){
           const yy=y-14-i*8,span=40+65*t+i*14;
-          line(x-15,yy,x-span,yy,i%2?e.accent:e.color,.47-i*.045,2,9);
+          line(x-15,yy,x-span,yy,i%2?e.accent:e.color,.60-i*.05,2,9);
         }
         line(x-24,y+3,x-75-t*42,y+3,e.accent,.37,1.4,4);
       }

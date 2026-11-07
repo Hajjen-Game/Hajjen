@@ -69,6 +69,20 @@ SCENE_HOOK = r'''
       director.tick=()=>{};
       draw();
     },
+    setFlowMultiplierScene(value){
+      window.__visualAudit.setScene('flat');
+      flow.reset();flow.value=value;flow.syncChroma();
+      updateHud();
+      const number=$.flowMultiplier,box=number.getBoundingClientRect();
+      const heading=document.querySelector('.flow-heading').getBoundingClientRect();
+      const left=document.querySelector('.flow-heading > span').getBoundingClientRect();
+      const style=window.getComputedStyle(number);
+      draw();
+      return {tier:flow.tier,multiplier:number.textContent,
+        size:parseFloat(style.fontSize),animation:style.animationName,
+        duration:style.animationDuration,box:{left:box.left,right:box.right},
+        leftRight:left.right,headingRight:heading.right};
+    },
     setChromaScene(kind){
       window.__visualAudit.setScene('flat');
       flow.value=95;flow.syncChroma(); // Identical gameplay state in both images.
@@ -180,6 +194,34 @@ def main():
             for progress,label in [(0,'entry'),(.5,'crossing'),(.75,'arrival'),(1,'complete')]:
                 page.evaluate('window.__visualAudit.setSpectralScene',progress)
                 page.screenshot(path=str(OUT / f'spectral-{label}-{vw}x{vh}.png'))
+
+            # Flow Multiplier Glow 1.0: each tier must be larger and pulse
+            # more emphatically, without colliding with the other HUD text.
+            flow_views=[]
+            for value,expected,expected_label in [
+                (0,0,'1×'),(30,1,'1.25×'),(65,2,'1.5×'),(90,3,'2×')]:
+                state=page.evaluate('window.__visualAudit.setFlowMultiplierScene',value)
+                assert state['tier']==expected
+                assert state['multiplier']==expected_label
+                assert state['box']['right']<=state['headingRight']+4, (
+                    f'Multiplier overflows Flow heading at {vw}x{vh}, tier {expected}: {state}')
+                assert state['leftRight']<=state['box']['left']+3, (
+                    f'Multiplier collides with Flow label at {vw}x{vh}, tier {expected}: {state}')
+                if expected>0:
+                    assert 'flowMultiplierBreath' in state['animation']
+                    page.screenshot(path=str(OUT / f'flow-multiplier-{expected}-{vw}x{vh}.png'))
+                else:
+                    assert state['animation']=='none'
+                flow_views.append(state)
+            assert all(flow_views[i]['size']<flow_views[i+1]['size'] for i in range(3)), (
+                f'Multiplier font sizes should rise with each Flow tier: {flow_views}')
+            durations=[float(v['duration'].rstrip('s')) for v in flow_views[1:]]
+            assert durations[0]>durations[1]>durations[2], (
+                f'Multiplier glow should pulse faster at higher tiers: {durations}')
+            page.emulate_media(reduced_motion='reduce')
+            reduced=page.evaluate('window.__visualAudit.setFlowMultiplierScene',90)
+            assert reduced['animation']=='none', 'Reduced motion must disable glow pulse'
+            page.emulate_media(reduced_motion='no-preference')
 
             # Chroma State 2.0 is a genuine transformation, not just a
             # slightly brighter static Flow bar: compare the ACTUAL canvas.

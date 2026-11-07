@@ -4,6 +4,14 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
 
+## Ceiling Player Animation Sync 1.0 (2026-11-07)
+
+- Fixed a Canvas 2D save/restore mismatch in `ChromaStateVisuals.drawBehindPlayer`: when Chroma Flow was active, the player wake restored a state that it did not own. In ceiling mode, this prematurely removed the world mirror during `drawPlayer`, leaving the post-player neon brackets, contact glow, particle dust and arcade accents at floor orientation.
+- The Chroma wake now **saves its own state before changing styles** and restores exactly that state; the gameplay camera transform stays active throughout the player and FX passes, then resets before the upright gravity indicator.
+- Post-player brackets use the **rendered, animated silhouette** (`rw/rh`) rather than the rigid collision hitbox (`b.w/b.h`), so launch stretch, duck squash and landing deformation stay visually synchronized on both surfaces.
+- No changes to hitboxes, physics, Director, speed, terrain generation, original background, Flow progression or input. Low graphics and reduced-motion settings remain supported.
+- Added Canvas state-balance regression tests and an actual arcade-frame test for Chroma-active ceiling rendering, with a return-to-floor check.
+
 ## Gravity Shift / Ceiling Run 1.0 (2026-11-07)
 
 - From **zone 3**, and then on every second new zone (5, 7, 9…), the runner alternates between the floor and the ceiling. In ceiling mode the entire course — terrain, actual gaps, low and overhead obstacles, trails and player — is mirrored vertically. The camera, two controls, original atmospheric background and DOM HUD stay upright.

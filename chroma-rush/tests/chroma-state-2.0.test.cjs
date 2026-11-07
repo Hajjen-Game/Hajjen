@@ -86,6 +86,28 @@ test('cosmetic ambient, wake, prismatic corners have no circular/ring geometry',
   assert.equal(ENTRY_SECONDS,.62);
 });
 
+test('active Chroma wake is canvas-state balanced for ceiling or floor and every graphics mode',()=>{
+  const fx=new ChromaStateVisuals();fx.setActive(true);fx.tick(.5);
+  for(const density of [1,.65,.36]){
+    let depth=0,saves=0,restores=0;
+    const {ctx}=paint();
+    ctx.save=()=>{depth++;saves++};
+    ctx.restore=()=>{depth--;restores++;assert.ok(depth>=0,'FX cannot pop the caller transform')};
+    ctx.save();const parentDepth=depth;
+    fx.drawBehindPlayer(ctx,{...player,quality:{density,glow:density}});
+    assert.equal(depth,parentDepth,'Chroma wake restores only its own style');
+    assert.equal(saves,2);
+    assert.equal(restores,1);
+    fx.drawAfterPlayer(ctx,{...player,quality:{density,glow:density}});
+    assert.equal(depth,parentDepth,'detached neon corners also preserve parent transform');
+    ctx.restore();assert.equal(depth,0);
+  }
+  const low=paint();let count=0;
+  low.ctx.restore=()=>{count++};
+  fx.drawBehindPlayer(low.ctx,{...player,reducedMotion:true});
+  assert.equal(count,0,'reduced motion has no unmatched canvas operation');
+});
+
 test('performance graphics creates fewer draw strokes but preserves recognizable layers',()=>{
   const a=new ChromaStateVisuals();a.setActive(true);a.tick(.65);
   const high=paint(),low=paint();

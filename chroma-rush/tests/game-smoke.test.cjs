@@ -60,7 +60,7 @@ function setup(initialStorage={}) {
   const ending='  requestAnimationFrame(frame);\n})();';
   assert.ok(gameCode.includes(ending));
   vm.runInContext(gameCode.replace(ending,
-    "  window.__gravityHarness={gravityShift,terrain,director,zone:()=>zone};\\n".replace('\\n','\n')+ending),
+    "  window.__gravityHarness={gravityShift,terrain,director,chromaVfx,effects,player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
     context,{filename:'game.js'});
   return {get,local,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
@@ -280,4 +280,51 @@ test('actual zone 3 turns the course onto the ceiling and zone 5 restores the fl
   assert.equal(state.zone(),5);
   assert.equal(state.gravityShift.ceiling,false,'zone 5 must return to floor');
   assert.equal(state.gravityShift.count,2);
+});
+
+test('ceiling Chroma State retains one canvas mirror for cube, corner FX, dust and ground contact',()=>{
+  const g=setup(),state=g.context.window.__gravityHarness;
+  g.step(0);g.get('start-btn').click();
+  // Reproduce the screenshot: ceiling running with Chroma Flow's player wake active.
+  state.gravityShift.ceiling=true;
+  state.chromaVfx.setActive(true);state.chromaVfx.tick(.5);
+  const ctx=g.get('game').getContext(),stack=[];
+  let sy=1,ty=0;
+  ctx.setTransform=(_a,_b,_c,d,_e,f)=>{sy=d;ty=f};
+  ctx.save=()=>{stack.push([sy,ty])};
+  ctx.restore=()=>{assert.ok(stack.length>0,'unbalanced canvas restore');[sy,ty]=stack.pop()};
+  ctx.translate=(_x,y)=>{ty+=sy*y};
+  ctx.scale=(_x,y)=>{sy*=y};
+  const observed={};
+  const behind=state.chromaVfx.drawBehindPlayer.bind(state.chromaVfx);
+  state.chromaVfx.drawBehindPlayer=(canvas,args)=>{
+    observed.before=sy;const count=stack.length;
+    behind(canvas,args);
+    observed.afterBehind=sy;
+    assert.equal(stack.length,count,'Chroma behind-player FX must own its save/restore');
+  };
+  const after=state.chromaVfx.drawAfterPlayer.bind(state.chromaVfx);
+  state.chromaVfx.drawAfterPlayer=(canvas,args)=>{
+    observed.afterPlayer=sy;
+    after(canvas,args);
+  };
+  const fx=state.effects.draw.bind(state.effects);
+  state.effects.draw=(canvas,args)=>{observed.particles=sy;fx(canvas,args)};
+  const overlay=state.gravityShift.drawOverlay.bind(state.gravityShift);
+  state.gravityShift.drawOverlay=(canvas,args)=>{observed.hud=sy;overlay(canvas,args)};
+  state.render();
+  assert.equal(observed.before,-1,'course is mirrored onto the ceiling');
+  assert.equal(observed.afterBehind,-1,'player wake must not cancel ceiling mirror');
+  assert.equal(observed.afterPlayer,-1,'post-player brackets use ceiling position');
+  assert.equal(observed.particles,-1,'gameplay dust and cue geometry follow the cube');
+  assert.equal(observed.hud,1,'upright gravity HUD is not mirrored');
+  assert.equal(stack.length,0,'all render-state frames return to baseline');
+  assert.equal(sy,1);
+  // Round-trip back to the floor with exactly the same draw-state integrity.
+  state.gravityShift.ceiling=false;
+  observed.before=undefined;state.render();
+  assert.equal(observed.before,1);
+  assert.equal(observed.afterPlayer,1);
+  assert.equal(observed.particles,1);
+  assert.equal(stack.length,0);
 });

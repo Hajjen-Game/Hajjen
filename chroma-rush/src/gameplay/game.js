@@ -856,7 +856,9 @@
     }
     ctx.restore();
     // Transformed mode keeps the same clear square silhouette.
-    chromaVfx.drawAfterPlayer(ctx,{x:player.x,y:player.feet,width:b.w,height:b.h,
+    // Post-player neon brackets follow the ACTUAL deformed pose, including
+    // jump stretch, landing squash and duck compression on either surface.
+    chromaVfx.drawAfterPlayer(ctx,{x:player.x,y:player.feet,width:rw,height:rh,
       primary:pc1,secondary:pc2,quality:quality.profile,reducedMotion});
     const surface=terrain.groundAt(distance+player.x);
     if(surface!==null){

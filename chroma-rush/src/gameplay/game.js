@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Chroma State 2.0 on Spectral Wave 1.0
+/* CHROMA RUSH — Speed Trails 2.0 on Chroma State 2.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -35,6 +35,7 @@
   const worldBackground = window.ChromaWorldBackground;
   const spectralWave = new window.ChromaSpectralWave.SpectralWave();
   const chromaVfx = new window.ChromaStateVFX.ChromaStateVisuals();
+  const speedTrails = new window.ChromaSpeedTrails.SpeedTrails();
   const reducedMotion=Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
   const runAudit = new window.ChromaRoundAudit.RoundAudit();
   const quality = new window.ChromaQuality.QualityManager({storage:profileStorage,
@@ -147,7 +148,10 @@
     const pixelsX=Math.max(1,Math.floor(cw*dpr)),pixelsY=Math.max(1,Math.floor(ch*dpr));
     // Setting canvas dimensions clears its buffers. Avoid reallocating unless needed.
     if(canvas.width!==pixelsX||canvas.height!==pixelsY){canvas.width=pixelsX;canvas.height=pixelsY;}
+    const previousWidth=W;
     W=720*cw/ch; H=720;scale=ch/H; floorY=H*GAME.floorRatio;
+    // A rotation/aspect change invalidates old screen-space echo positions.
+    if(Math.abs(W-previousWidth)>1)speedTrails.reset();
     player.x=W*.265;
     if(status==='ready'){
       terrain.reset(floorY);
@@ -237,7 +241,7 @@
     const palette=PALETTES[(zone-1)%PALETTES.length];
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
     spectralWave.start({from:palette,to:palette,width:W,reducedMotion:true});
-    chromaVfx.reset();
+    chromaVfx.reset();speedTrails.reset();
     zoneSoundAtCrossing=false;
     hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();motion.reset();
@@ -275,7 +279,7 @@
   function showMenu(){
     if(status==='running'||status==='paused')audio.stop();
     status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;
-    spectralWave.reset();chromaVfx.reset();zoneSoundAtCrossing=false;
+    spectralWave.reset();chromaVfx.reset();speedTrails.reset();zoneSoundAtCrossing=false;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
     $.controls.classList.add('hidden');$.hud.classList.add('hidden');$.pauseBtn.classList.add('hidden');
@@ -286,7 +290,7 @@
   function resume(){if(status!=='paused')return;status='running';$.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();frameClock.reset(lastTs);audio.resume();syncSoundButton(true);}
   function endRun(){
     if(status!=='running')return;
-    status='dead';$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
+    status='dead';speedTrails.reset();$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
     runAudit.finish(auditState());
     const total=Math.floor(score),previousBest=progression.bestScore;
     replayToastTime=0;$.replayToast.classList.add('hidden');
@@ -477,7 +481,7 @@
     }
     hp=Math.max(0,hp-GAME.damagePerHit);
     runAudit.record('obstacle_hit',auditState(),{obstacle:o.type});player.invulnerable=.96;shake=12;hitFlash=.38;
-    director.registerDamage();flow.registerDamage();burst(player.x,player.feet-30,'#ff506d',30,1.4);frameEcho(player.x,player.feet-26,'#ff596e',29,1.1);
+    director.registerDamage();flow.registerDamage();speedTrails.disrupt();burst(player.x,player.feet-30,'#ff506d',30,1.4);frameEcho(player.x,player.feet-26,'#ff596e',29,1.1);
     vib([25,40,30]);sound('hit');if(hp===0)endRun();
   }
   function failGap(gap){
@@ -490,7 +494,7 @@
     if(absorbed)flow.registerCollision();
     else{
       hp=Math.max(0,hp-GAME.damagePerHit);
-      director.registerDamage();flow.registerDamage();
+      director.registerDamage();flow.registerDamage();speedTrails.disrupt();
     }
     runAudit.record('gap_miss',auditState(),{width:gap.end-gap.start,shieldCharged:!absorbed});
     player.invulnerable=Math.max(player.invulnerable,1.15);shake=13;hitFlash=.42;
@@ -677,6 +681,16 @@
       sound('chroma');
     }
     chromaVfx.tick(dt,{reducedMotion});
+    // Actual time-sampled history of the pose, independent of gameplay RNG.
+    // A trail is visual; sampled only after movement, clears and collisions.
+    const trailPose=motion.sample({landed:player.landed,duck:player.duck,vy:player.vy});
+    const hitbox=GEO.playerBox(player);
+    speedTrails.tick(dt,{playerX:player.x,feet:player.feet,
+      width:hitbox.w*trailPose.scaleX,height:hitbox.h*trailPose.scaleY,
+      distance,speed,flow:flow.value,chromaActive:flow.tier===3,
+      primary:spectralWave.colorAt(player.x,'primary',player.feet,H),
+      secondary:spectralWave.colorAt(player.x,'secondary',player.feet,H),
+      quality:quality.profile,reducedMotion});
     if(hp>0&&hp<=25&&Math.floor(worldTime*1.5)!==Math.floor((worldTime-dt)*1.5))sound('warning');
     audio.tick({phase:director.phase,speed,flow:flow.value,chromaActive:flow.tier===3,zone,hp});
     runAudit.tick(dt,auditState(),director.insight);
@@ -748,11 +762,8 @@
     const pc2=spectralWave.colorAt(player.x,'secondary',player.feet,H);
     ctx.save();
     if(player.invulnerable>0&&Math.floor(worldTime*16)%2===0)ctx.globalAlpha=.32;
-    for(let i=Math.max(2,Math.round((5+Math.floor(flow.value/25))*quality.profile.particles));i>=1;i--){
-      const x=b.x-i*(9+speed/110),sc=1-i*.105;
-      ctx.fillStyle=rgba(pc1,clamp(.055+(8-i)*.025,0,.24));
-      roundRectPath(x,b.y+(1-sc)*b.h/2,b.w*sc,b.h*sc,6);ctx.fill();
-    }
+    // Speed Trails 2.0 renders historical poses separately *behind* hazards.
+    // The old per-frame fake copies of the current pose are retired.
     const shape=motion.sample({landed:player.landed,duck:player.duck,vy:player.vy});
     const rw=b.w*shape.scaleX*beat, rh=b.h*shape.scaleY*beat;
     const rx=player.x-rw/2,ry=player.feet-rh;
@@ -816,6 +827,8 @@
     const terrainDone=performance.now();
     // Overlay stays beneath all hazards and the player for clear silhouettes.
     spectralWave.draw(ctx,{width:W,height:H,groundY:floorY,quality:quality.profile});
+    // Trails stay under hazards so a high-speed afterimage never masks a jump or duck cue.
+    speedTrails.draw(ctx,{quality:quality.profile,reducedMotion});
     for(const o of hurdles)drawObstacle(o);
     drawPlayer();
     const actorsDone=performance.now();

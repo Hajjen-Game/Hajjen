@@ -137,7 +137,7 @@ test('game composition attaches all layers behind the hazards and keeps existing
   const env=code.indexOf("chromaVfx.drawEnvironment(ctx");
   const obstacles=code.indexOf("for(const o of hurdles)drawObstacle(o)");
   assert.ok(env>=0&&obstacles>env,'ambient effects cannot cover incoming hazards');
-  assert.ok(html.indexOf('src/render/chroma-state-vfx.js?v=chroma-state-2.0')<
-    html.indexOf('src/gameplay/game.js?v=chroma-state-2.0'));
-  assert.match(html,/FLOW MULTIPLIER 1\.0/);
+  assert.ok(html.indexOf('src/render/chroma-state-vfx.js?v=speed-trails-2.0')<
+    html.indexOf('src/gameplay/game.js?v=speed-trails-2.0'));
+  assert.match(html,/SPEED TRAILS 2\.0/);
 });

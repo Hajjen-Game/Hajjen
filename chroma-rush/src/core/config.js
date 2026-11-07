@@ -38,9 +38,16 @@
     damagePenalty:35,
     decayDelay:3.5,
     decayPerSecond:1.5,
-    // High Flow has progressive resistance, never a sudden tier reset.
+    // Flow Balance 1.2: gentler exponential pressure in high tiers.
+    // At 100 Flow the full-pressure initial loss is 2.5/s (previously 4.5/s).
     highFlowPressureStart:65,
-    highFlowPressurePerSecond:4.5,
+    highFlowPressurePerSecond:2.5,
+    // Director recovery creates breathing room, not a Flow punishment.
+    fadePressureScale:0.75,
+    relaxPressureScale:0.4,
+    relaxIdleDecayScale:0.5,
+    // Enter Chroma at 90; leave only below 87 to avoid oscillation.
+    chromaExitThreshold:87,
     minPerfectClears:3,
     perfectHeal:10,
     perfectPoints:350,

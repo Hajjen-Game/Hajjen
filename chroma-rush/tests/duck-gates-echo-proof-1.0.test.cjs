@@ -74,7 +74,9 @@ test('full gate is drawn visibly in the same coordinates used for collision',()=
   assert.match(s,/ctx\.fillRect\(b\.x,b\.y,b\.w,b\.h\)/);
   assert.match(s,/ctx\.lineTo\(b\.x\+1,by\)/);
   assert.match(s,/ctx\.lineTo\(b\.x\+b\.w-1,by\)/);
-  assert.match(s,/ctx\.fillText\(isLow\?'↑ JUMP':'↓ DUCK',cx,core\.y/);
+  assert.doesNotMatch(s,/ctx\.fillText\(isLow\?'↑ JUMP':'↓ DUCK'/,
+    'normal obstacles rely on their silhouettes, not text or arrows');
+  assert.match(s,/ctx\.fillRect\(b\.x,b\.y,b\.w,b\.h\)/);
   assert.doesNotMatch(s,/gravityShift\.shifting\)return;\s*\/\/ force duck input/,
     'duck gates must stay playable through the existing control');
 });

@@ -118,12 +118,14 @@ test('echo intro is deferred rather than fabricated if terrain vetoes the spawn'
   assert.equal(d.echoIntroduced,true);
 });
 
-test('twin-chevron silhouette and explicit 2× JUMP cue are in the actor render',()=>{
+test('dual energy-chamber Echo silhouette needs no text or arrow label',()=>{
   const s=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
   assert.match(s,/data\.type==='echo'\?rand\(spire\.minHeight,spire\.maxHeight\)/);
   assert.match(s,/const b=GEO\.obstacleBox\(o,o\.groundY\)/);
   assert.match(s,/if\(isEcho\)/);
-  assert.match(s,/ctx\.fillText\('2× JUMP',cx,b\.y-20\)/);
+  assert.doesNotMatch(s,/ctx\.fillText\('2× JUMP',cx,b\.y-20\)/);
+  assert.match(s,/for\(let k=0;k<2;k\+\+\)/);
+  assert.match(s,/ctx\.fillRect\(b\.x\+8,yy-2,b\.w-16,18\)/);
   assert.match(s,/o\.type==='echo'/);
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   assert.match(html,/id="jump-btn"/);assert.match(html,/id="duck-btn"/);

@@ -842,5 +842,7 @@
     }
     requestAnimationFrame(frame);
   }
+  // The unstarted title scene still uses the first palette consistently.
+  spectralWave.start({from:PALETTES[0],to:PALETTES[0],reducedMotion:true});
   requestAnimationFrame(frame);
 })();

@@ -8,6 +8,7 @@ const {AdaptiveRushDirector}=require('../src/director/adaptive-director.js');
 const {TerrainSystem}=require('../src/terrain/terrain-system.js');
 const {UnifiedTerrainDirector}=require('../src/director/unified-terrain-director.js');
 const FAIR=require('../src/director/high-speed-fairness.js');
+const {minimumGap}=require('../src/director/movement-awareness.js');
 function seeded(seed){
   let x=seed>>>0;
   return ()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296};
@@ -23,7 +24,8 @@ function simulate({seed=42,seconds=180,viewportWidth=1280,
   const pending=[],seenGaps=new Set(),hits={jump:0,duck:0,echo:0},
     minMargins={jump:Infinity,duck:Infinity,echo:Infinity,gap:Infinity,'echo-gap':Infinity};
   let warnings=0,underBudget=0,cuesChecked=0,clears=0,
-    normalGaps=0,echoGaps=0,lateGaps=0,gravityFlips=0;
+    normalGaps=0,echoGaps=0,lateGaps=0,gravityFlips=0,
+    transitionViolations=0,minTransitionMargin=Infinity,lastArrival=null;
   for(let i=0;i<seconds/dt;i++){
     elapsed+=dt;
     const newZone=startingZone+Math.floor(elapsed/GAME.zoneSeconds);
@@ -69,6 +71,17 @@ function simulate({seed=42,seconds=180,viewportWidth=1280,
       const m=FAIR.metrics(step.type,{x,playerX,viewportWidth,speed});
       minMargins[step.type]=Math.min(minMargins[step.type],m.marginSeconds);
       if(!m.fair)underBudget++;
+      // The arrival-time separation is the REAL interval players experience.
+      // Fixed spawn-time separation is not adequate when Echo warning leads
+      // differ from normal JUMP/DUCK warning leads.
+      const arrival={time:elapsed+m.leadSeconds,type:step.type};
+      if(lastArrival){
+        const required=minimumGap(lastArrival.type,step.type,speed,width);
+        const margin=arrival.time-lastArrival.time-required;
+        minTransitionMargin=Math.min(minTransitionMargin,margin);
+        if(margin<-.025)transitionViolations++;
+      }
+      lastArrival=arrival;
       if(m.needsCue){
         warnings++;
         const preview=FAIR.warning({hurdles:[{type:step.type,x,worldX}],
@@ -101,6 +114,8 @@ function simulate({seed=42,seconds=180,viewportWidth=1280,
     finalSpeed:GAME.speedAt((startingZone-1)*12+seconds,startingZone+Math.floor(seconds/12)),
     obstacles:hits,cleared:clears,normalGaps,echoGaps,
     underBudget,lateGaps,warnings,cuesChecked,gravityFlips,
+    transitionViolations,minTransitionMargin:Number.isFinite(minTransitionMargin)?
+      Number(minTransitionMargin.toFixed(3)):null,
     minMargins:Object.fromEntries(Object.entries(minMargins).map(([k,v])=>
       [k,Number.isFinite(v)?Number(v.toFixed(3)):null])),
     director:{echoClears:director.movement.echoClears,echoMisses:director.movement.echoMisses,
@@ -120,6 +135,7 @@ function matrix(){
     runs:rows.length,totalSeconds:rows.reduce((n,r)=>n+r.seconds,0),
     underBudget:rows.reduce((n,r)=>n+r.underBudget,0),
     lateGaps:rows.reduce((n,r)=>n+r.lateGaps,0),
+    transitionViolations:rows.reduce((n,r)=>n+r.transitionViolations,0),
     obstacles:rows.reduce((n,r)=>n+Object.values(r.obstacles).reduce((a,b)=>a+b,0),0),
     cuesChecked:rows.reduce((n,r)=>n+r.cuesChecked,0),
     warnings:rows.reduce((n,r)=>n+r.warnings,0),results:rows};

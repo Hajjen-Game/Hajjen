@@ -57,6 +57,7 @@
       if(!this.active||!(dt>0))return false;
       const before=this.frontAt(playerY,height);
       this.elapsed=Math.min(this.duration,this.elapsed+dt);
+      if(this.duration-this.elapsed<1e-9)this.elapsed=this.duration;
       const after=this.frontAt(playerY,height);
       const crossed=!this.playerCrossed&&before>=playerX&&after<=playerX;
       if(crossed)this.playerCrossed=true;

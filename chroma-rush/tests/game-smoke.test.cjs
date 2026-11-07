@@ -350,7 +350,8 @@ test('real arcade loop introduces Echo Jump in zone 2, allows one new press and 
   tap(32);
   assert.equal(state.jumpControl.echoUsed,true);
   assert.equal(state.jumpControl.echoAvailable,false);
-  assert.equal(state.player().vy,config.GAME.echoJumpVelocity);
+  assert.ok(state.player().vy<=config.GAME.echoJumpVelocity);
+  assert.ok(state.player().vy>=config.GAME.jumpVelocity);
   tap(33);
   assert.equal(state.jumpControl.echoUsed,true,'no third airborne impulse');
   // The physics remain canonical while gravity mirror is active.

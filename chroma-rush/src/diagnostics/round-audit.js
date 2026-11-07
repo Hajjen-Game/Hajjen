@@ -65,14 +65,16 @@
       s.highestStreak=Math.max(s.highestStreak,number(context.streak));
       s.peakStress=Math.max(s.peakStress,number(directorInsight.stress));
       s.peakConfidence=Math.max(s.peakConfidence,number(directorInsight.confidence));
-      if(state.flow>=90)s.chromaSeconds+=dt;
+      // Hysteresis can keep CHROMA active briefly below 90%; measure the actual tier.
+      const chromaActive=typeof context.chromaActive==='boolean'?context.chromaActive:state.flow>=90;
+      if(chromaActive)s.chromaSeconds+=dt;
       if(state.flow>=65)s.flowAbove65Seconds+=dt;
       if(PHASES.includes(state.phase))s.phaseSeconds[state.phase]+=dt;
       this.sampleAccumulator+=dt;
       if(this.sampleAccumulator>=2-1e-7){
         this.sampleAccumulator=Math.max(0,this.sampleAccumulator-2);
         // 2s samples; a 3-minute session generates only about 90 items.
-        if(this.samples.length<300)this.samples.push({...state,streak:number(context.streak),
+        if(this.samples.length<300)this.samples.push({...state,chromaActive,streak:number(context.streak),
           stress:number(directorInsight.stress),confidence:number(directorInsight.confidence)});
       }
     }

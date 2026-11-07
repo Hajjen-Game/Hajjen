@@ -100,7 +100,7 @@
   const DUCK_DURATION=GAME.duckDuration;
   const DUCK_RECOVERY=GAME.duckRecovery;
   function auditState(){return {time:worldTime,zone,hp,score,flow:flow.value,speed,distance,
-    phase:director.phase,streak:flow.streak};}
+    phase:director.phase,streak:flow.streak,chromaActive:flow.tier===3};}
   function exportRound(){
     if(status!=='dead')return;
     const exported=runAudit.snapshot(auditState());
@@ -533,7 +533,7 @@
     c1=rgbHex(PALETTES[j].primary,PALETTES[i].primary,t);
     c2=rgbHex(PALETTES[j].secondary,PALETTES[i].secondary,t);
     c3=rgbHex(PALETTES[j].shadow,PALETTES[i].shadow,t);
-    flow.tick(dt);
+    flow.tick(dt,{phase:director.phase});
     player.invulnerable=Math.max(0,player.invulnerable-dt);
     jumpControl.tick(dt,distance+player.x);motion.tick(dt);
     shake=Math.max(0,shake-dt*36);hitFlash=Math.max(0,hitFlash-dt);
@@ -646,7 +646,7 @@
     motes=motes.filter(m=>m.life>0).slice(-180);
     effects.tick(dt);
     if(hp>0&&hp<=25&&Math.floor(worldTime*1.5)!==Math.floor((worldTime-dt)*1.5))sound('warning');
-    audio.tick({phase:director.phase,speed,flow:flow.value,zone,hp});
+    audio.tick({phase:director.phase,speed,flow:flow.value,chromaActive:flow.tier===3,zone,hp});
     runAudit.tick(dt,auditState(),director.insight);
     syncSoundButton();
     updateHud();

@@ -107,8 +107,8 @@ test('entry point loads independent audio module before the gameplay engine',()=
   const root=path.join(__dirname,'..');
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const scripts=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
-  const audio=scripts.indexOf('src/audio/reactive-audio.js?v=mobile-polish-1.0');
-  const engine=scripts.indexOf('src/gameplay/game.js?v=replay-1.0');
+  const audio=scripts.indexOf('src/audio/reactive-audio.js?v=flow-1.2');
+  const engine=scripts.indexOf('src/gameplay/game.js?v=flow-1.2');
   assert.ok(audio>0 && engine>audio);
   assert.ok(scripts.every(src=>fs.existsSync(path.join(root,src.split('?')[0]))));
 });

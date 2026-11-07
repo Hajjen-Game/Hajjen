@@ -4,6 +4,14 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
 
+## Echo-proof Duck Gates 1.0 (2026-11-07)
+
+- Echo Jump revealed a bypass in the original suspended **DUCK** obstacles: the player could jump over their short upper edge instead of ducking.
+- DUCK hazards are now **continuous overhead energy gates** extending beyond the sky. Their collision occupies the same full-height region as their visible low-opacity field, so there are **no invisible blockers**. The previous saturated lower hanging module remains readable, with delicate vertical rails/crossbars continuing into the upper sky.
+- The **28-unit duck clearance** below each gate remains unchanged. Standard standing movement and jumping collide, while properly timed duck still passes. Floor **JUMP** obstacles, procedural spacing, Echo Jump physics, HP/Flow scoring, and controls are untouched.
+- All geometry stays in the canonical game world, so Gravity Shift mirrors the entire gate to the opposite side during ceiling running.
+- [Regression tests](tests/duck-gates-echo-proof-1.0.test.cjs) cover collision at the Echo Jump apex, true duck passage, existing jump obstacles, floor/ceiling reflection, and visible gate/collider synchronization.
+
 ## Movement Evolution 1.0 — Echo Jump (2026-11-07)
 
 - **No Dash, no third or fourth button.** The existing Jump and Duck inputs remain unchanged. Starting at zone 2, tapping Jump a second time while airborne (after a brief ~95ms protection against accidental double taps) performs one **Echo Jump** per flight. It uses a weaker second-jump target (−650), plus a bounded early-tap boost so the second press always adds real lift without exceeding the ordinary takeoff speed. The ability resets only after valid landing / fresh grounded takeoff.

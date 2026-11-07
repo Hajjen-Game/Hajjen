@@ -839,34 +839,63 @@
     else paint(PALETTES[(zone-1)%PALETTES.length]);
   }
   function drawObstacle(o){
-    const b=GEO.obstacleBox(o,o.groundY), isLow=o.type==='jump';
-    const color=spectralWave.colorAt(o.x,isLow?'secondary':'primary',b.y+b.h*.5,H);
+    const b=GEO.obstacleBox(o,o.groundY),isLow=o.type==='jump';
+    const core=isLow?b:GEO.duckGateCoreBox(o,o.groundY);
+    const color=spectralWave.colorAt(o.x,isLow?'secondary':'primary',core.y+core.h*.5,H);
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
     ctx.save();
-    ctx.shadowColor=color;ctx.shadowBlur=23*quality.profile.glow;ctx.globalAlpha=twinkle;
-    roundRectPath(b.x,b.y,b.w,b.h,isLow?6:4);ctx.fillStyle=rgba(color,.3);ctx.fill();
-    ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
-    ctx.shadowBlur=0;ctx.globalAlpha=1;
     if(isLow){
-      ctx.fillStyle=rgba(color,.14);roundRectPath(b.x+7,b.y+7,b.w-14,b.h-14,3);ctx.fill();
+      // Floor blocks keep their original strong silhouette and jump cue.
+      ctx.shadowColor=color;ctx.shadowBlur=23*quality.profile.glow;
+      ctx.globalAlpha=twinkle;
+      roundRectPath(b.x,b.y,b.w,b.h,6);
+      ctx.fillStyle=rgba(color,.3);ctx.fill();
+      ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
+      ctx.shadowBlur=0;ctx.globalAlpha=1;
+      ctx.fillStyle=rgba(color,.14);
+      roundRectPath(b.x+7,b.y+7,b.w-14,b.h-14,3);ctx.fill();
       glowLine(b.x+9,b.y+12,b.x+b.w-9,b.y+12,'#ffffff',1,4,.5);
       for(let k=0;k<3;k++){
         const yp=b.y+16+k*15;glowLine(b.x+9,yp,b.x+b.w-9,yp,color,1,0,.5);
       }
     }else{
-      ctx.fillStyle=rgba(color,.18);roundRectPath(b.x+6,b.y+8,b.w-12,b.h-15,2);ctx.fill();
-      const by=b.y+b.h;
+      // This is one continuous, visible overhead energy gate. Its sparse,
+      // low-opacity field extends beyond the top of the camera so a second
+      // jump cannot escape over the old short hanging beam.
+      // The collider matches the entire field; no invisible ceiling wall.
+      const by=b.y+b.h,top=Math.max(0,b.y);
+      ctx.shadowBlur=0;ctx.globalAlpha=twinkle;
+      ctx.fillStyle=rgba(color,.105);ctx.fillRect(b.x,b.y,b.w,b.h);
+      ctx.strokeStyle=rgba(color,.68);ctx.lineWidth=1.9;
+      ctx.beginPath();
+      ctx.moveTo(b.x+1,b.y);ctx.lineTo(b.x+1,by);
+      ctx.moveTo(b.x+b.w-1,b.y);ctx.lineTo(b.x+b.w-1,by);
+      ctx.stroke();
+      // Repeating narrow crossbars make the full damaging column clearly
+      // readable without turning the sky into a solid saturated rectangle.
+      ctx.lineWidth=1;ctx.strokeStyle=rgba(color,.36);
+      for(let y=top+20;y<core.y-4;y+=43){
+        ctx.beginPath();ctx.moveTo(b.x+7,y);ctx.lineTo(b.x+b.w-7,y);ctx.stroke();
+      }
+      ctx.shadowColor=color;ctx.shadowBlur=21*quality.profile.glow;
+      roundRectPath(core.x,core.y,core.w,core.h,4);
+      ctx.fillStyle=rgba(color,.30);ctx.fill();
+      ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
+      ctx.shadowBlur=0;ctx.globalAlpha=1;
+      ctx.fillStyle=rgba(color,.18);
+      roundRectPath(core.x+6,core.y+8,core.w-12,core.h-15,2);ctx.fill();
       glowLine(b.x-7,by,b.x+b.w+7,by,color,5,14,1);
       for(let k=0;k<4;k++){
-        const x=b.x+10+k*(b.w-20)/3;glowLine(x,b.y+12,x,by-12,color,1,0,.36);
+        const x=core.x+10+k*(core.w-20)/3;
+        glowLine(x,core.y+12,x,by-12,color,1,0,.36);
       }
-      glowLine(b.x,b.y,b.x+b.w,b.y,'#ffffff',1,8,.45);
+      glowLine(core.x,core.y,core.x+core.w,core.y,'#ffffff',1,8,.45);
     }
     if(time<24){
       ctx.globalAlpha=clamp((24-time)/5,0,1)*.86;
-      ctx.font='800 14px system-ui';ctx.textAlign='center';ctx.letterSpacing='3px';ctx.fillStyle=color;
-      ctx.shadowBlur=8*quality.profile.glow;ctx.shadowColor=color;
-      ctx.fillText(isLow?'↑ JUMP':'↓ DUCK',cx,isLow?b.y-25:b.y-20);
+      ctx.font='800 14px system-ui';ctx.textAlign='center';ctx.letterSpacing='3px';
+      ctx.fillStyle=color;ctx.shadowBlur=8*quality.profile.glow;ctx.shadowColor=color;
+      ctx.fillText(isLow?'↑ JUMP':'↓ DUCK',cx,core.y-20-(isLow?5:0));
     }
     ctx.restore();
   }

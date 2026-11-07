@@ -1,8 +1,18 @@
-# CHROMA RUSH — Mobile Arcade Polish 1.0
+# CHROMA RUSH — Zone Transition Spectral Wave 1.0
 
-A minimal landscape-first 2D arcade runner. **Jump** and **Duck** are the only gameplay actions. Survive the unstoppable acceleration as the neon world changes color.
+A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Zone Transition Spectral Wave 1.0 (2026-11-07)
+
+- Entering a new zone launches a **0.92-second right-to-left neon color front**. The old palette remains on the left while the new one rolls in from the right.
+- The parallax backdrop and terrain are recolored in distinct Canvas 2D clipped layers. Obstacles and player color respond to their actual positions within the front rather than switching globally.
+- The moving boundary carries a soft prismatic glow, a few horizontal light streaks, and a ground-aligned accent — no large oval rings, flashes, or obstacle-obscuring overlays.
+- The zone title crests near the moment the wave crosses the player, accompanied by a short linear pulse and restrained sparkle. Perfect Zone audio remains the priority.
+- No gameplay effects: jump/duck controls, speed, zones, Director, obstacle collision, Flow, and score do not change. Effects scale with graphics quality; reduced-motion immediately recolors the scene.
+- The published build is version-marked so the main-menu cache freshness check detects updates.
+- [Implementation and test notes](docs/zone-transition-spectral-wave-1.0.md).
 
 ## Mobile Arcade Polish 1.0 (2026-11-06)
 

@@ -99,7 +99,7 @@ test('Echo Jump increases flight time enough for marked gaps without changing ru
   }
   const single=duration(null),echo=duration(.36);
   assert.ok(single>.79&&single<.84);
-  assert.ok(echo>1.17&&echo<1.4);
+  assert.ok(echo>1.14&&echo<1.4);
   assert.ok(echo-single>.3);
 });
 

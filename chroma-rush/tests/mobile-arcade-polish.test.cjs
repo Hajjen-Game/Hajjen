@@ -46,7 +46,7 @@ test('existing game HTML exposes settings, fullscreen, and script load order',()
     'jump-btn','duck-btn'];
   for(const id of required)assert.ok(html.includes(`id="${id}"`),id);
   const module=html.indexOf('src/ui/mobile-preferences.js?v=mobile-polish-1.0');
-  const game=html.indexOf('src/gameplay/game.js?v=flow-1.2');
+  const game=html.indexOf('src/gameplay/game.js?v=spectral-wave-1.0');
   assert.ok(module>0&&game>module);
-  assert.ok(html.includes('style.css?v=replay-1.0'));
+  assert.ok(html.includes('style.css?v=spectral-wave-1.0'));
 });

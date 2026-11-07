@@ -75,7 +75,7 @@ test('module order and cache versions include both new independent modules',()=>
  const sources=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
  const ctrl=sources.indexOf('src/gameplay/jump-controller.js?v=jump-1.0');
  const motion=sources.indexOf('src/render/player-motion.js?v=duck-effects-1.0');
- const game=sources.indexOf('src/gameplay/game.js?v=flow-1.2');
+ const game=sources.indexOf('src/gameplay/game.js?v=spectral-wave-1.0');
  const config=sources.indexOf('src/core/config.js?v=flow-1.2');
  assert.ok(config>=0&&ctrl>config&&motion>ctrl&&game>motion);
  for(const src of sources)assert.ok(fs.existsSync(path.join(root,src.split('?')[0])),src);

@@ -4,8 +4,12 @@ const {drawBackground}=require('../src/render/world-background.js');
 function render(overrides={}){
   const calls=[];
   const log=name=>(...args)=>calls.push([name,...args]);
+  // Background Depth 2.0 renders procedural polygon structures and thin
+  // architectural lines, not only the old rect-based facade layers.
   const ctx={fillRect:log('fillRect'),save:log('save'),restore:log('restore'),
-    createLinearGradient(...args){calls.push(['linear',...args]);return {addColorStop:log('stop')}} ,
+    beginPath:log('beginPath'),moveTo:log('moveTo'),lineTo:log('lineTo'),
+    closePath:log('closePath'),fill:log('fill'),stroke:log('stroke'),
+    createLinearGradient(...args){calls.push(['linear',...args]);return {addColorStop:log('stop')}},
     createRadialGradient(...args){calls.push(['radial',...args]);return {addColorStop:log('stop')}}};
   drawBackground({ctx,width:1280,height:720,time:15,speed:710,flow:78,
     primary:'#40ffff',secondary:'#ffaaee',shadow:'#173145',glowLine:log('glowLine'),...overrides});

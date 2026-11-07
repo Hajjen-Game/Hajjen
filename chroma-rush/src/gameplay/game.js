@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Speed Trails 2.0 on Chroma State 2.0
+/* CHROMA RUSH — Background Depth & Parallax 2.0 on Speed Trails 2.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -711,6 +711,9 @@
   }
   function drawWorld(t){
     const paint=p=>worldBackground.drawBackground({ctx,width:W,height:H,time:t,speed,
+      // Palette objects are shared with Spectral Wave: shape and color transition
+      // through the same spatial clipping front, with identical world parallax.
+      scroll:distance,motif:p.name,reducedMotion,
       primary:p.primary,secondary:p.secondary,shadow:p.shadow,flow:flow.value,
       glowLine,quality:quality.profile});
     if(spectralWave.active)spectralWave.drawLayer(ctx,W,H,

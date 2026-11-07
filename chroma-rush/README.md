@@ -1,8 +1,18 @@
-# CHROMA RUSH — Jump Obstacle Visual Identity 1.0
+# CHROMA RUSH — Precision & Combo System 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Precision & Combo System 1.0 (2026-11-07)
+
+- **Existing precision is preserved and clarified:** normal JUMP and Echo Spire still qualify for a precision clear at 0–18 logical units above their obstacle; DUCK retains its real entry-duration window (traversal + .02–.16 seconds). A tighter subset is logged as **master** without changing the existing regular Precision reward. Ordinary gap clears do not invent precision timing.
+- **Real movement chains, no extra controls:** `src/gameplay/precision-combo.js` recognizes *successfully cleared* alternating gestures (Jump → Duck, Duck → Echo Spire, Jump → Duck → Echo, etc.). Gaps use the Jump gesture; Echo Gaps use Echo. Repeating the same gesture, waiting more than 5.8 game-time seconds, damage, a missed gap or a Gravity Shift breaks the chain. Pauses do not consume the window. The maximum chain is **4** moves, then the next clear starts a fresh chain.
+- **Only Flow owns rewards:** existing obstacle clears and precision points are still awarded exactly once. Combo milestones at 2 / 3 / 4 moves add modest **20 / 35 / 55 base points** multiplied by the *current Flow multiplier*, with **0 / 1 / 1 Flow** bonus respectively. Combo events do not grant free streak, Perfect Zone clear or additional health; there is no separate combo multiplier.
+- **Minimal feedback:** for ~0.8–1.25 seconds the existing Flow streak caption reads `CHAIN ×2/3/4`. Chains of 3+ receive a short angular, layered light-trail cue and small procedural synth phrase; higher chains get very brief optional vibration. No new words on obstacles, floating text panels, rings or full-screen effects. Reduced-motion/Low Graphics retain the same scoring and movement, with fewer visual strokes.
+- **Passive Director insight:** the Movement-Aware Director records actual completed chains and best chain in its diagnostic insight. It **does not force harder hazard patterns** or bypass high-speed fairness restrictions just because a combo exists.
+- **Round export:** the local audit now records precision/master clear counts, chain sequences, real bonus points/Flow and maximum combo length (plus totals for each length). Nothing is sent to a server. Existing jump/duck/echo physics and user-selected settings are unchanged.
+- [Combo tests](tests/precision-combo-system-1.0.test.cjs) and the full browser smoke harness cover no-repeat farming, capped rewards, genuine chain breaks, Flow tier integration, Director telemetry, actual UI feedback, Low Graphics and no extra button/Dash.
 
 ## Jump Obstacle Visual Identity 1.0 (2026-11-07)
 

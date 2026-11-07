@@ -494,8 +494,12 @@
     // Hold new hazards while the arena safely changes orientation. Existing
     // hazards finish their normal course; no artificial clears are awarded.
     if(gravityShift.pending||gravityShift.shifting)return false;
-    const width=data.type==='jump'?rand(43,58):rand(54,71);
-    const height=data.type==='jump'?rand(53,66):rand(115,158);
+    const spire=window.ChromaConfig.ECHO_SPIRE;
+    if(data.type==='echo'&&(zone<spire.firstZone||hp<=50||director.stress>=.42))return false;
+    const width=data.type==='echo'?rand(spire.minWidth,spire.maxWidth):
+      data.type==='jump'?rand(43,58):rand(54,71);
+    const height=data.type==='echo'?rand(spire.minHeight,spire.maxHeight):
+      data.type==='jump'?rand(53,66):rand(115,158);
     const x=W+90,worldX=distance+x;
     if(!terrain.canSpawnObstacle(worldX,width,speed))return false;
     const groundY=terrain.groundAt(worldX+width*.5);
@@ -743,7 +747,7 @@
       const yOverlap=GEO.verticalOverlap(p,b);
       if(sweptX && !yOverlap && !o.hit){
         // A real narrow jump clearance or well-timed duck is a precision pass.
-        if(o.type==='jump' && p.y+p.h<=b.y){
+        if((o.type==='jump'||o.type==='echo') && p.y+p.h<=b.y){
           o.closestClearance=Math.min(o.closestClearance,b.y-(p.y+p.h));
         }else if(o.type==='duck' && player.duck && o.entryDuckTime===null){
           o.entryDuckTime=player.duckTime;
@@ -754,7 +758,7 @@
         o.cleared=true;
         if(!o.hit){
           const traverse=(o.width+66)/Math.max(300,speed);
-          const precision=o.type==='jump'
+          const precision=(o.type==='jump'||o.type==='echo')
             ?o.closestClearance>=0&&o.closestClearance<=18
             :o.entryDuckTime!==null&&o.entryDuckTime>=traverse+.02&&o.entryDuckTime<=traverse+.16;
           director.registerClear();
@@ -839,12 +843,53 @@
     else paint(PALETTES[(zone-1)%PALETTES.length]);
   }
   function drawObstacle(o){
-    const b=GEO.obstacleBox(o,o.groundY),isLow=o.type==='jump';
-    const core=isLow?b:GEO.duckGateCoreBox(o,o.groundY);
-    const color=spectralWave.colorAt(o.x,isLow?'secondary':'primary',core.y+core.h*.5,H);
+    const b=GEO.obstacleBox(o,o.groundY),isLow=o.type==='jump',isEcho=o.type==='echo';
+    const core=(isLow||isEcho)?b:GEO.duckGateCoreBox(o,o.groundY);
+    const color=spectralWave.colorAt(o.x,(isLow||isEcho)?'secondary':'primary',core.y+core.h*.5,H);
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
     ctx.save();
-    if(isLow){
+    if(isEcho){
+      // Echo Spire: two illuminated compression chambers in a tall grounded
+      // silhouette. Unlike the sky-to-floor duck gate, its top is clearly
+      // visible, and both its artwork and collider end at the same height.
+      ctx.shadowColor=color;ctx.shadowBlur=23*quality.profile.glow;
+      ctx.globalAlpha=twinkle;
+      roundRectPath(b.x,b.y,b.w,b.h,5);
+      ctx.fillStyle=rgba(color,.32);ctx.fill();
+      ctx.strokeStyle=color;ctx.lineWidth=3;ctx.stroke();
+      ctx.globalAlpha=1;ctx.shadowBlur=0;
+      const inset=7;
+      const pulse=.30+.16*(.5+.5*Math.sin(worldTime*8+o.pulse));
+      ctx.fillStyle=rgba(color,pulse);
+      ctx.fillRect(b.x+inset,b.y+8,b.w-inset*2,b.h-17);
+      // Split structure, twin ascending chevrons and three bright transverse
+      // accents; sparse on low profiles so it stays clean on older phones.
+      for(let k=0;k<2;k++){
+        const yy=b.y+21+k*54;
+        ctx.strokeStyle=k===0?'#ffffff':color;
+        ctx.lineWidth=k===0?2.6:2.1;
+        ctx.shadowColor=color;ctx.shadowBlur=8*quality.profile.glow;
+        ctx.beginPath();
+        ctx.moveTo(cx-13,yy+10);ctx.lineTo(cx,yy-3);ctx.lineTo(cx+13,yy+10);
+        ctx.stroke();
+        glowLine(b.x+4,yy+24,b.x+b.w-4,yy+24,color,2,7,.85);
+      }
+      glowLine(b.x+4,b.y+5,b.x+b.w-4,b.y+5,'#ffffff',2.3,9,.9);
+      glowLine(b.x-5,b.y+b.h-3,b.x+b.w+5,b.y+b.h-3,color,4,12,.95);
+      if(quality.profile.density>.5){
+        ctx.shadowBlur=0;ctx.lineWidth=1.2;ctx.strokeStyle=rgba('#ffffff',.46);
+        ctx.beginPath();
+        ctx.moveTo(b.x+10,b.y+143);ctx.lineTo(b.x+10,b.y+b.h-13);
+        ctx.moveTo(b.x+b.w-10,b.y+143);ctx.lineTo(b.x+b.w-10,b.y+b.h-13);
+        ctx.stroke();
+      }
+      // Always readable in Low graphics; the mechanic is never a hidden
+      // height check. A separate short label is less ambiguous than arrows.
+      ctx.textAlign='center';ctx.font='900 14px system-ui';
+      ctx.fillStyle='#ffffff';ctx.shadowColor=color;
+      ctx.shadowBlur=8*quality.profile.glow;
+      ctx.fillText('2× JUMP',cx,b.y-20);
+    }else if(isLow){
       // Floor blocks keep their original strong silhouette and jump cue.
       ctx.shadowColor=color;ctx.shadowBlur=23*quality.profile.glow;
       ctx.globalAlpha=twinkle;
@@ -891,7 +936,7 @@
       }
       glowLine(core.x,core.y,core.x+core.w,core.y,'#ffffff',1,8,.45);
     }
-    if(time<24){
+    if(time<24&&!isEcho){
       ctx.globalAlpha=clamp((24-time)/5,0,1)*.86;
       ctx.font='800 14px system-ui';ctx.textAlign='center';ctx.letterSpacing='3px';
       ctx.fillStyle=color;ctx.shadowBlur=8*quality.profile.glow;ctx.shadowColor=color;

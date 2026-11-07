@@ -225,8 +225,8 @@ def main():
                 if scene != 'background':
                     page.screenshot(path=str(OUT / f'{scene}-{vw}x{vh}.png'))
                 colors[scene] = page.evaluate('window.__visualAudit.sample(790, 620)')
-            # Background Depth & Parallax 2.0: isolated architecture scenes
-            # across four landscape sizes plus dynamic movement and reduced-motion.
+            # Background Depth & Parallax 2.1: continuous mountain scenes
+            # across four landscape sizes, all eight landforms and reduced-motion.
             depth_base=page.evaluate('window.__visualAudit.setDepthScene',
                 {'motif':'CYAN','scroll':0,'profile':'high'})
             image_far=page.locator('#game').screenshot()
@@ -237,13 +237,13 @@ def main():
             page.screenshot(path=str(OUT/f'depth-cyan-scrolled-{vw}x{vh}.png'))
             assert depth_base['motif']==depth_move['motif']=='CYAN'
             assert image_far!=image_move, f'Parallax did not move at {vw}x{vh}'
-            for motif in ['VIOLET','AMBER','ELECTRIC']:
+            for motif in ['VIOLET','MAGENTA','LIME','AMBER','ELECTRIC','REDLINE','WHITEOUT']:
                 profile={'motif':motif,'scroll':4200,'profile':'high'}
                 result=page.evaluate('window.__visualAudit.setDepthScene',profile)
                 page.screenshot(path=str(OUT/f'depth-{motif.lower()}-{vw}x{vh}.png'))
                 assert result['motif']==motif
                 assert page.locator('#game').screenshot()!=image_move, (
-                    f'{motif} zone architecture looks identical at {vw}x{vh}')
+                    f'{motif} mountain landscape looks identical at {vw}x{vh}')
             page.evaluate('window.__visualAudit.setDepthScene',
                 {'motif':'AMBER','scroll':4200,'profile':'performance'})
             page.screenshot(path=str(OUT/f'depth-amber-performance-{vw}x{vh}.png'))

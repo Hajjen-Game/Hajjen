@@ -1,8 +1,17 @@
-# CHROMA RUSH — Background Depth & Parallax 2.0
+# CHROMA RUSH — Background Depth & Parallax 2.1
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Background Depth & Parallax 2.1 – Layered Landscape Pass (2026-11-07)
+
+- **Replaces the high, separate city/building objects** from 2.0 with **three continuous, gently rolling mountain/ridge silhouettes**; no freestanding towers, hard-edged windows or faux obstacles.
+- Keeps the distant starfield and independent far/middle/near parallax based on accumulated world travel. Low-contrast haze between ridges creates depth without busy details.
+- Eight palette zones now have distinct *landscape geometry*: CYAN soft hills, VIOLET soft peaked ridges, MAGENTA dunes, LIME open valleys, AMBER rounded mesas, ELECTRIC folds, REDLINE dramatic mountain ridges and WHITEOUT frosted peaks.
+- **Spectral Wave** still reveals both the new zone colors and its landforms using the same clipped color front; full-height background remains visible through real gaps and slopes.
+- Geometry, crest strokes, stars and glow adapt to High/Balanced/Performance settings and reduced motion. No changes to Director, obstacle shapes, collision, jump/duck, Flow or speed.
+- [Technical design and tests](docs/background-depth-parallax-2.1.md).
 
 ## Background Depth & Parallax 2.0 (2026-11-07)
 

@@ -21,6 +21,7 @@ const worldBackground = require('../src/render/world-background.js');
 const spectralWave = require('../src/render/spectral-wave.js');
 const chromaVfx = require('../src/render/chroma-state-vfx.js');
 const speedTrails = require('../src/render/speed-trails.js');
+const gravityShift = require('../src/gameplay/gravity-shift.js');
 const runAudit = require('../src/diagnostics/round-audit.js');
 const unified = require('../src/director/unified-terrain-director.js');
 const perf = require('../src/performance/quality-manager.js');
@@ -42,20 +43,25 @@ function setup(initialStorage={}) {
     }
     return objects.get(id);
   }
-  const draw={fillRect(){},strokeRect(){},setTransform(){},save(){},restore(){},translate(){},
+  const draw={fillRect(){},strokeRect(){},setTransform(){},save(){},restore(){},translate(){},scale(){},
     beginPath(){},clip(){},moveTo(){},lineTo(){},arcTo(){},closePath(){},fill(){},stroke(){},arc(){},ellipse(){},fillText(){},
     createLinearGradient(){return {addColorStop(){}}},createRadialGradient(){return {addColorStop(){}}}};
   get('game').getContext=()=>draw;
   let requested;
   const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaSpectralWave:spectralWave,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaSpectralWave:spectralWave,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaGravityShift:gravityShift,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
   const context=vm.createContext({window:world,document,navigator:{},localStorage:{getItem:k=>local[k],setItem:(k,v)=>local[k]=v},
     requestAnimationFrame:f=>{requested=f},performance:{now:()=>0},setTimeout:()=>{},Math,console});
-  vm.runInContext(fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8'),context,{filename:'game.js'});
+  const gameCode=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');
+  const ending='  requestAnimationFrame(frame);\n})();';
+  assert.ok(gameCode.includes(ending));
+  vm.runInContext(gameCode.replace(ending,
+    "  window.__gravityHarness={gravityShift,terrain,director,zone:()=>zone};\\n".replace('\\n','\n')+ending),
+    context,{filename:'game.js'});
   return {get,local,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
 }
@@ -255,4 +261,23 @@ test('replay PB HUD survives a paused restart without writing stats',()=>{
  g.get('pause-btn').click();g.get('restart-paused-btn').click();
  assert.match(g.get('replay-target').textContent,/PB 1,500/);
  assert.equal(g.local.chromaRushArcadeV1,prior);
+});
+
+
+test('actual zone 3 turns the course onto the ceiling and zone 5 restores the floor',()=>{
+  const g=setup();g.step(0);g.get('start-btn').click();
+  const state=g.context.window.__gravityHarness;
+  assert.ok(state);
+  // No random hazards/gaps: isolate gravity timing in the real game loop.
+  state.director.tick=()=>{};
+  state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
+  state.terrain.gaps=[];state.terrain.generated=10000000;
+  for(let i=1;i<=1620;i++)g.step(i*1000/60);
+  assert.equal(state.zone(),3);
+  assert.equal(state.gravityShift.ceiling,true,'zone 3 must be a real ceiling run');
+  assert.equal(state.gravityShift.phase,'idle');
+  for(let i=1621;i<=3150;i++)g.step(i*1000/60);
+  assert.equal(state.zone(),5);
+  assert.equal(state.gravityShift.ceiling,false,'zone 5 must return to floor');
+  assert.equal(state.gravityShift.count,2);
 });

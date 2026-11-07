@@ -1,8 +1,17 @@
-# CHROMA RUSH — Original Background Restored 1.0
+# CHROMA RUSH — Gravity Shift / Ceiling Run 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Gravity Shift / Ceiling Run 1.0 (2026-11-07)
+
+- From **zone 3**, and then on every second new zone (5, 7, 9…), the runner alternates between the floor and the ceiling. In ceiling mode the entire course — terrain, actual gaps, low and overhead obstacles, trails and player — is mirrored vertically. The camera, two controls, original atmospheric background and DOM HUD stay upright.
+- **JUMP** sends the runner away from the active surface: visibly downward while upside down; **DUCK** compresses the character toward the ceiling. The underlying collision and jump model remains canonical, so existing coyote time, jump buffering, gaps, scoring and procedural patterns still work.
+- A **0.9-second GRAVITY SHIFT warning** precedes the flip. If the physical runway is not clear (obstacles, gaps or an airborne player), the warning waits rather than flipping into danger. Incoming hazards are paused during preparation and the brief transition.
+- The **0.58-second mirrored squeeze-and-expand** includes a thin electric seam and two newly synthesized sound cues. Brief post-flip invulnerability prevents unfair hits, with no fake clears. Low graphics retains the warning and persistent **CEILING RUN** indicator.
+- *Reduced motion* makes the mode switch instant after a safe warning; pause/restart/menu reset transitions cleanly. The game does **not** slow down during the shift.
+- [New safety and geometry tests](tests/gravity-shift-1.0.test.cjs) validate the sequence and the transform. This is an initial gameplay pass; its visual impact and frequency should be playtested on mobile before extending it.
 
 ## Original Background Restored 1.0 (2026-11-07)
 

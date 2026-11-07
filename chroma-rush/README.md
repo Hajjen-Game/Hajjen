@@ -1,8 +1,17 @@
-# CHROMA RUSH — Chroma State 2.0
+# CHROMA RUSH — Flow Multiplier Glow 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Flow Multiplier Glow 1.0 (2026-11-07)
+
+- **1.25×** now starts the reward ladder with a slightly larger cyan number and slow, soft breathing neon glow.
+- **1.5×** is more prominent, lavender and visibly pulsing.
+- **2×** is a large pink-violet neon reward with the strongest, fastest glow pulse.
+- The label uses the actual **Flow tier**, including Chroma State's existing 90% entry / 87% exit latch. No scoring, difficulty or speed changes.
+- Only the small HUD text pulses: no whole-screen flashes, rings, gameplay obstruction or layout-jolting scaling. Reduced-motion keeps static tier colors and glow.
+- [Implementation notes](docs/flow-multiplier-glow-1.0.md).
 
 ## Chroma State 2.0 (2026-11-07)
 

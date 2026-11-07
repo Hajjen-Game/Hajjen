@@ -23,6 +23,8 @@
       elements.flowOuter.setAttribute('aria-valuenow',String(Math.round(flow.value)));
       elements.flowOuter.dataset.tier=String(tier);
       elements.flowMultiplier.textContent=flow.multiplier.toFixed(flow.multiplier%1?2:0).replace(/0$/,'')+'×';
+      // Display-only visual intensity: tiers 1/2/3 correspond to 1.25/1.5/2×.
+      elements.flowMultiplier.dataset.tier=String(tier);
       elements.flowState.textContent=flow.stateName;
       elements.flowStreak.textContent=flow.streak+' STREAK';
       elements.flowState.classList.toggle('chroma-live',tier===3);

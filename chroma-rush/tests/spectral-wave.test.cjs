@@ -130,6 +130,6 @@ test('release HTML loads spectral module before game and advertises its build',(
   const wave=html.indexOf('src/render/spectral-wave.js?v=spectral-wave-1.0');
   const game=html.indexOf('src/gameplay/game.js?v=chroma-state-2.0');
   assert.ok(wave>0&&game>wave);
-  assert.match(html,/<meta name="chroma-build" content="chroma-state-2\.0"/);
-  assert.match(html,/CHROMA STATE 2\.0/);
+  assert.match(html,/<meta name="chroma-build" content="flow-multiplier-1\.0"/);
+  assert.match(html,/FLOW MULTIPLIER 1\.0/);
 });

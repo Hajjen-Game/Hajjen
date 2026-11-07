@@ -139,5 +139,5 @@ test('game composition attaches all layers behind the hazards and keeps existing
   assert.ok(env>=0&&obstacles>env,'ambient effects cannot cover incoming hazards');
   assert.ok(html.indexOf('src/render/chroma-state-vfx.js?v=chroma-state-2.0')<
     html.indexOf('src/gameplay/game.js?v=chroma-state-2.0'));
-  assert.match(html,/CHROMA STATE 2\.0/);
+  assert.match(html,/FLOW MULTIPLIER 1\.0/);
 });

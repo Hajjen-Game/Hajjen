@@ -22,6 +22,8 @@
     zoneSpeedBonus:12,
     zoneSeconds:12,
     jumpVelocity:-870,
+    // Echo Jump is deliberately weaker and can be used only once per flight.
+    echoJumpVelocity:-650,
     gravity:2140,
     duckDuration:.55,
     duckRecovery:.12,
@@ -78,7 +80,9 @@
     coyoteSeconds:.080,
     maxCoyoteDistance:48,
     bufferSeconds:.110,
-    landingAnimationSeconds:.230
+    landingAnimationSeconds:.230,
+    echoUnlockZone:2,
+    echoMinAirSeconds:.095
   });
   return {PALETTES,GAME,FLOW,AUDIO,TERRAIN,JUMP_FEEL};
 });

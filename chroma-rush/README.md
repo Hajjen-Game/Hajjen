@@ -1,8 +1,16 @@
-# CHROMA RUSH — Arcade Animation Language 2.0
+# CHROMA RUSH — Original Background Restored 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Original Background Restored 1.0 (2026-11-07)
+
+- Restored **the exact Full Background Continuity 1.0 renderer** from the commit preceding Background Depth & Parallax 2.0. The user preferred its calmer original neon haze, faint structures, horizon and star streaks over the later buildings and mountain layers.
+- Background Depth & Parallax 2.0 and 2.1 are **historical, not currently active**. Their docs remain for future design reference.
+- **Arcade Animation Language 2.0, Speed Trails 2.0, Chroma State 2.0, Spectral Wave, Flow, terrain, Director, and all controls stay in place.**
+- The original background still covers every pixel behind gaps and slopes. Spectral Wave continues its old/new color transition, while the scenery itself uses its original time-based motion.
+- New regression and screenshot checks guard against accidentally reintroducing buildings or mountain profiles.
 
 ## Arcade Animation Language 2.0 (2026-11-07)
 
@@ -13,7 +21,7 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 - No changes to collision, Jump/Duck controls, difficulty, score, Flow, Director or audio. Reduced-motion disables the new moving cues.
 - [Detailed animation plan and test coverage](docs/arcade-animation-language-2.0.md).
 
-## Background Depth & Parallax 2.1 – Layered Landscape Pass (2026-11-07)
+## Background Depth & Parallax 2.1 – Layered Landscape Pass (archived, not active)
 
 - **Replaces the high, separate city/building objects** from 2.0 with **three continuous, gently rolling mountain/ridge silhouettes**; no freestanding towers, hard-edged windows or faux obstacles.
 - Keeps the distant starfield and independent far/middle/near parallax based on accumulated world travel. Low-contrast haze between ridges creates depth without busy details.
@@ -22,7 +30,7 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 - Geometry, crest strokes, stars and glow adapt to High/Balanced/Performance settings and reduced motion. No changes to Director, obstacle shapes, collision, jump/duck, Flow or speed.
 - [Technical design and tests](docs/background-depth-parallax-2.1.md).
 
-## Background Depth & Parallax 2.0 (2026-11-07)
+## Background Depth & Parallax 2.0 (archived, not active)
 
 - Rebuilt the pure Canvas 2D world with **four spatial parallax planes** (distant stars, far towers, intermediate architecture, and nearer structures) plus subtle fast-moving horizon streaks.
 - Eight neon palette zones now own **distinct silhouettes** — for example VIOLET spires, LIME terraces, AMBER foundries and ELECTRIC arched conduits.

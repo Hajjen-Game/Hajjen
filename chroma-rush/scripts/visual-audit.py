@@ -69,7 +69,7 @@ SCENE_HOOK = r'''
       draw();
     },
     setSpectralScene(progress){
-      this.setScene('flat');
+      window.__visualAudit.setScene('flat');
       zone=2;
       const incoming=PALETTES[1],outgoing=PALETTES[0];
       c1=incoming.primary;c2=incoming.secondary;c3=incoming.shadow;

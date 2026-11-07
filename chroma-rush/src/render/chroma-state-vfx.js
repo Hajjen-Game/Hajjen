@@ -82,26 +82,10 @@
       if(!this.visible||reducedMotion)return;
       const strength=this.intensity,glow=clamp(quality.glow??1,.15,1);
       const density=clamp(quality.density??1,.3,1);
-      const count=density<.5?3:density<.8?5:8;
-      const tail=clamp(speed/630,.65,2.6);
+      // Speed Trails 2.0 now owns the animated multi-filament wake and
+      // historical square silhouettes. This layer keeps only the two short
+      // Chroma-specific accents, avoiding redundant overlapping streaks.
       const top=y-height,arrival=this.arrival;
-      ctx.save();
-      // Three separated layers of energy: inner cyan body wake, outer
-      // secondary speed filaments and tiny offset fragments. Nothing travels
-      // in the player's collision path in front of the square.
-      for(let i=0;i<count;i++){
-        const t=(i+1)/count;
-        const start=x-width*.5-13-i*(11+3*tail);
-        const end=start-(24+52*t)*tail;
-        const pulse=Math.sin(this.elapsed*15+i*2.23);
-        const yLine=top+height*(.16+.68*((i*3)%count)/count)+pulse*3.3;
-        ctx.strokeStyle=i%3===0?secondary:primary;
-        ctx.lineWidth=i%3===0?2.1:1.25;
-        ctx.shadowColor=i%3===0?secondary:primary;
-        ctx.shadowBlur=(8+5*arrival)*glow;
-        ctx.globalAlpha=(.19+.23*(1-t))*(.78+.22*pulse)*strength*density;
-        ctx.beginPath();ctx.moveTo(start,yLine);ctx.lineTo(end,yLine);ctx.stroke();
-      }
       // Two luminous side rails mirror the square silhouette: they do not
       // encircle it or create a side-view-breaking oval halo.
       ctx.strokeStyle=secondary;ctx.lineWidth=1.7;

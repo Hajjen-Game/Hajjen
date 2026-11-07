@@ -97,8 +97,12 @@
     // makes room for it. Never manufacture a fake obstacle clear.
     tick(dt,context,spawn){
       const speed=Math.max(300,context.speed||370);
-      const spawnWorld=(context.distance||0)+(context.spawnX||0);
       this.director.tick(dt,context,step=>{
+        // The reaction-time planner may spawn an advanced obstacle farther
+        // beyond the screen. All gap/terrain checks must use that ACTUAL x.
+        const spawnX=typeof context.spawnXFor==='function'?
+          context.spawnXFor(step.type):context.spawnX||0;
+        const spawnWorld=(context.distance||0)+spawnX;
         if(spawnWorld<this.noHazardsBefore){this.spawnsDeferred++;return false;}
         // Wider than the basic collision veto: allow the player to finish a
         // gap landing before the next obstacle needs a reaction.

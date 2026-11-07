@@ -14,6 +14,7 @@ const jump=(c,props={})=>c.request({grounded:false,worldX:300,echoEnabled:true,.
 test('Echo Jump unlocks in zone 2, with a weaker second impulse and fixed gravity',()=>{
   assert.equal(JUMP_FEEL.echoUnlockZone,2);
   assert.ok(GAME.echoJumpVelocity<0&&GAME.echoJumpVelocity>GAME.jumpVelocity);
+  assert.equal(GAME.echoUpwardBoost,150);
   assert.equal(GAME.gravity,2140);
   assert.equal(GAME.jumpVelocity,-870);
 });

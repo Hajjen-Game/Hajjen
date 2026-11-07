@@ -24,9 +24,9 @@ function draw(kind,{quality={glow:1,density:1},age=.1,speed=780}={}){
   fx.tick(age);fx.draw(p.ctx,quality);
   return {fx,...p};
 }
-test('7 clear events, each with a unique bound lifetime and cooldown',()=>{
+test('8 clear events, each with a unique bound lifetime and cooldown',()=>{
   assert.deepEqual(Object.keys(CUES).sort(),
-    ['jump','land','duck','release','precision','speed','perfect'].sort());
+    ['jump','echo','land','duck','release','precision','speed','perfect'].sort());
   assert.ok(Object.values(CUES).every(x=>x.life>=.20&&x.life<=.75));
   assert.ok(Object.values(CUES).every(x=>x.cooldown>=.08&&x.cooldown<=.85));
 });

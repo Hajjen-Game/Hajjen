@@ -4,6 +4,15 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
 
+## Echo Spire 1.0 — True Double-Jump Hazards (2026-11-07)
+
+- Adds **Echo Spire**, a grounded, tall neon obstacle with a distinctive split-chevron body and a clear **2× JUMP** label, readable on Low graphics. It is not a stretched duck gate and cannot be crouched under.
+- Height: **204–216 logical pixels**. The regular first-jump apex is about **177 pixels**, making a single jump physically insufficient; a reasonably timed Echo Jump clears comfortably. The hitbox ends at the visible top and matches the drawn body exactly.
+- Introduced starting **zone 4**, after the zone 2 Echo Jump onboarding. The Adaptive Director places a **single isolated introductory Spire** at the first healthy, confident PEAK opportunity and defers it if the ground is unsafe. After introduction it may appear in BUILD/PEAK phrases, with later zone 6+/8+ optional multi-action motifs.
+- Director spacing accounts for Echo flight and landing recovery. No Spires during low HP, high friction, early tutorial, FADE/RELAX or the unsafe portion of Gravity Shift. The existing terrain safety veto ensures no gaps or unsuitable slopes near the takeoff/landing.
+- Normal jumps, duck gates, two-button controls, normal and Echo Gaps, physics, speed progression, score rules and original atmosphere remain intact. All obstacle coordinates are inverted with the course during ceiling running.
+- A genuine Echo Spire clear receives a compact angular/particle flourish and an audit event. New regression tests simulate normal-vs-double-jump collision across speeds and verify Director sequencing, low-HP exclusions and the real arcade loop on both surfaces.
+
 ## Echo-proof Duck Gates 1.0 (2026-11-07)
 
 - Echo Jump revealed a bypass in the original suspended **DUCK** obstacles: the player could jump over their short upper edge instead of ducking.

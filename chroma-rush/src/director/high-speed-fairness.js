@@ -40,7 +40,10 @@
     const offscreen=Math.max(0,atImpact-visible);
     return {type,requiredSeconds:r.lead,leadSeconds:atImpact,
       visibleSeconds:visible,earlyCueSeconds:offscreen,
-      marginSeconds:atImpact-r.lead,needsCue:offscreen>.015,
+      marginSeconds:atImpact-r.lead,
+      // An offscreen object needs NO HUD warning when its natural on-screen
+      // approach already exceeds the action's recognition-time budget.
+      needsCue:visible+1e-5<r.lead&&offscreen>.015,
       fair:atImpact+1e-5>=r.lead};
   }
   function warning({hurdles=[],gaps=[],distance=0,playerX=300,
@@ -50,7 +53,7 @@
     function consider(type,worldX,screenX,key){
       if(!(screenX>viewportWidth-4))return;
       const m=metrics(type,{x:screenX,playerX,viewportWidth,speed:v});
-      if(!(m.leadSeconds>0&&m.leadSeconds<=2.2))return;
+      if(!m.needsCue||!(m.leadSeconds>0&&m.leadSeconds<=2.2))return;
       // Only show warnings which have genuine offscreen world geometry,
       // not a predicted or randomly chosen future action.
       if(!best||m.leadSeconds<best.seconds)

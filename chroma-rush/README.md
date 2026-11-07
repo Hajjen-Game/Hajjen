@@ -1,8 +1,17 @@
-# CHROMA RUSH — Movement-Aware Director 1.0
+# CHROMA RUSH — High-Speed Readability & Fairness Audit 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## High-Speed Readability & Fairness Audit 1.0 (2026-11-07)
+
+- **Measured reaction windows, not just pixels.** Fast jump, duck and Echo Spire hazards are spawned farther ahead only when necessary to preserve their action-specific timing budgets (0.57s / 0.56s / 1.00s); gap and Echo Gap visual cue budgets are 0.66s / 1.10s. Running speed, hitboxes, gameplay RNG, buttons, and physics do not change.
+- **Restrained offscreen preview.** If a *real* incoming hazard or generated gap would otherwise become visible too late, a small upright warning at the right edge identifies the required action and seconds remaining. Normal-speed play does not get unnecessary cues; ceiling mirroring and Low Graphics are supported.
+- **Actual arrival-time safety.** The Director checks both spawn-time spacing and when each hazard physically reaches the player. A delayed Echo→Duck or Echo→Jump transition cannot silently become tighter merely because the two actions have different offscreen lookahead.
+- **Local per-run observability.** Exported rounds include per-spawn visible and total reaction time, required timing budget, early cue usage, low-budget warnings, longest frame, frame stalls and fixed-step dropped simulation time. No identifiers or tracking.
+- **24 deterministic 180-second audits**, spanning 3 mobile/desktop widths, 4 seeds and 2 scripted health/recovery behaviors: **2,206 obstacles**, 974 necessary advance cues, **zero under-budget spawns, late gap cues or unsafe arrival intervals**. These are scheduling/geometry checks, not proof of human playability or real-phone FPS.
+- [**Full audit report & recommended mobile acceptance tests**](docs/high-speed-readability-fairness-audit-1.0.md) · [Audit script](scripts/high-speed-fairness-audit.cjs) · [Regression tests](tests/high-speed-fairness-audit-1.0.test.cjs).
 
 ## Movement-Aware Director 1.0 (2026-11-07)
 

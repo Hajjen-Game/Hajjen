@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Game Experience & Visual Audit 1.0.
+/* CHROMA RUSH — Game Experience, High-Speed Readability & Fairness Audit 1.0.
  * Ephemeral per-run analytics, deliberately local-only and privacy-safe.
  * Does not change gameplay, storage, Director decisions, or RNG.
  */
@@ -22,7 +22,9 @@
   const stats=()=>({obstaclesSpawned:0,obstaclesCleared:0,obstacleHits:0,invulnerableContacts:0,
     gapsCleared:0,gapsMissed:0,perfectZones:0,terrainSlopes:0,terrainGaps:0,
     maxFlow:0,chromaSeconds:0,flowAbove65Seconds:0,highestStreak:0,
-    peakStress:0,peakConfidence:0,phaseSeconds:{BUILD:0,PEAK:0,FADE:0,RELAX:0}});
+    peakStress:0,peakConfidence:0,phaseSeconds:{BUILD:0,PEAK:0,FADE:0,RELAX:0},
+    reaction:{measured:0,earlyCues:0,underBudget:0,
+      minLeadSeconds:null,minVisibleSeconds:null,byAction:{}}});
   class RoundAudit {
     constructor(){this.reset()}
     reset({mode='arcade',startingZone=1}={}){
@@ -31,6 +33,8 @@
       this.events=[];this.overflow=0;this.elapsed=0;this.sampleAccumulator=0;
       this.samples=[];this.summary=stats();this.finished=false;
       this.finalState=null;
+      this.frameFairness={samples:0,slowFrames:0,stalls:0,
+        longestFrameMs:0,droppedSimulationSeconds:0};
     }
     record(type,context={},data={}){
       if(this.finished||!TYPES.has(type))return;
@@ -44,7 +48,36 @@
       if(this.events.length<MAX_EVENTS)this.events.push({type,...state,...payload});
       else this.overflow++;
       switch(type){
-        case 'spawn':this.summary.obstaclesSpawned++;break;
+        case 'spawn':{
+          this.summary.obstaclesSpawned++;
+          // Source: true obstacle spawn position in the actual game loop.
+          // No player identifiers, touch coordinates or external logging.
+          const reaction=this.summary.reaction;
+          if(Number.isFinite(data.leadSeconds)&&Number.isFinite(data.requiredSeconds)){
+            reaction.measured++;
+            const lead=number(data.leadSeconds),visible=number(data.visibleSeconds);
+            reaction.minLeadSeconds=reaction.minLeadSeconds===null?lead:
+              Math.min(reaction.minLeadSeconds,lead);
+            reaction.minVisibleSeconds=reaction.minVisibleSeconds===null?visible:
+              Math.min(reaction.minVisibleSeconds,visible);
+            // Count only cues which add necessary time; the normal 90px
+            // offscreen margin alone must not inflate this number.
+            const needsCue=data.needsCue===true||
+              (data.needsCue!==false && data.earlyCueSeconds>.015&&
+                data.visibleSeconds<data.requiredSeconds);
+            if(needsCue)reaction.earlyCues++;
+            if(data.fair===false)reaction.underBudget++;
+            const key=['jump','duck','echo'].includes(data.obstacle)?data.obstacle:'other';
+            const entry=reaction.byAction[key]||(reaction.byAction[key]={
+              count:0,underBudget:0,minLeadSeconds:null,earlyCues:0});
+            entry.count++;
+            entry.minLeadSeconds=entry.minLeadSeconds===null?lead:
+              Math.min(entry.minLeadSeconds,lead);
+            if(data.fair===false)entry.underBudget++;
+            if(needsCue)entry.earlyCues++;
+          }
+          break;
+        }
         case 'obstacle_clear':this.summary.obstaclesCleared++;break;
         case 'obstacle_hit':this.summary.obstacleHits++;break;
         case 'invulnerable_contact':this.summary.invulnerableContacts++;break;
@@ -78,6 +111,15 @@
           stress:number(directorInsight.stress),confidence:number(directorInsight.confidence)});
       }
     }
+    noteFrame(elapsedMs=0,droppedSeconds=0){
+      if(this.finished||!(elapsedMs>0))return;
+      const f=this.frameFairness;
+      f.samples++;
+      f.longestFrameMs=Math.max(f.longestFrameMs,number(elapsedMs));
+      if(elapsedMs>33.4)f.slowFrames++;
+      if(elapsedMs>66.7)f.stalls++;
+      if(droppedSeconds>0)f.droppedSimulationSeconds+=droppedSeconds;
+    }
     finish(context={}){
       if(this.finished)return;
       this.record('run_end',context);
@@ -89,11 +131,15 @@
       const sum={...this.summary,phaseSeconds:Object.fromEntries(
         Object.entries(this.summary.phaseSeconds).map(([phase,seconds])=>[phase,number(seconds)])),
         chromaSeconds:number(this.summary.chromaSeconds),
-        flowAbove65Seconds:number(this.summary.flowAbove65Seconds)};
+        flowAbove65Seconds:number(this.summary.flowAbove65Seconds),
+        reaction:{...this.summary.reaction,byAction:Object.fromEntries(
+          Object.entries(this.summary.reaction.byAction).map(([k,v])=>[k,{...v}]))}};
       return {format:'chroma-rush-round-audit',version:1,mode:this.mode,
         startingZone:this.startingZone,durationSeconds:duration,summary:sum,
         finalState:this.finalState||snap(context),events:this.events.map(e=>({...e})),
-        samples:this.samples.map(s=>({...s})),truncatedEvents:this.overflow};
+        samples:this.samples.map(s=>({...s})),truncatedEvents:this.overflow,
+        highSpeedPerformance:{...this.frameFairness,
+          droppedSimulationSeconds:number(this.frameFairness.droppedSimulationSeconds)}};
     }
     toJSON(context={}){return JSON.stringify(this.snapshot(context),null,2)}
   }

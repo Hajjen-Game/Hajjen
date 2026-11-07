@@ -5,6 +5,7 @@ const root=path.join(__dirname,'..');
 const modules={
  ChromaDirector:require('../src/director/adaptive-director.js'),
  ChromaMovementAwareness:require('../src/director/movement-awareness.js'),
+ ChromaHighSpeedFairness:require('../src/director/high-speed-fairness.js'),
  ChromaConfig:require('../src/core/config.js'),
  ChromaGeometry:require('../src/core/geometry.js'),
  ChromaHud:require('../src/ui/hud.js'),

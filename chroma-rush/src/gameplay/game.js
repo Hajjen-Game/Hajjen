@@ -7,7 +7,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -27,6 +27,7 @@
   const replayUI = window.ChromaReplayUI;
   const GAME = window.ChromaConfig.GAME;
   const GEO = window.ChromaGeometry;
+  const FAIR = window.ChromaHighSpeedFairness;
   const terrain = new window.ChromaTerrain.TerrainSystem();
   const terrainDirector = new window.ChromaUnifiedTerrainDirector.UnifiedTerrainDirector({terrain,director});
   const jumpControl = new window.ChromaJump.JumpController();
@@ -489,8 +490,11 @@
   registerControls();
   arcadeUI.menu($,progression);replayUI.menu($,replay);
 
-  // Timings are in seconds. Spatial distances increase with speed, keeping
-  // obstacle-recovery time physically feasible rather than randomly compressing in pixels.
+  // Response windows follow the ACTION'S physical demand. Place high-speed
+  // hazards farther outside the view, with an upright early visual warning.
+  // Never reduce track speed or alter collision geometry.
+  const spawnXFor=type=>FAIR.horizonFor(type,
+    {speed,playerX:player.x,viewportWidth:W});
   function spawn(data){
     // Hold new hazards while the arena safely changes orientation. Existing
     // hazards finish their normal course; no artificial clears are awarded.
@@ -501,7 +505,7 @@
       data.type==='jump'?rand(43,58):rand(54,71);
     const height=data.type==='echo'?rand(spire.minHeight,spire.maxHeight):
       data.type==='jump'?rand(53,66):rand(115,158);
-    const x=W+90,worldX=distance+x;
+    const x=spawnXFor(data.type),worldX=distance+x;
     if(!terrain.canSpawnObstacle(worldX,width,speed))return false;
     const groundY=terrain.groundAt(worldX+width*.5);
     if(groundY===null)return false;
@@ -516,7 +520,12 @@
     }
     hurdles.push({type:data.type,x,worldX,groundY,width,height,hit:false,cleared:false,
       closestClearance:Infinity,entryDuckTime:null,phase:data.phase,pulse:Math.random()*Math.PI*2});
-    runAudit.record('spawn',auditState(),{obstacle:data.type,pattern:data.pattern||'',worldX});
+    const fairness=FAIR.metrics(data.type,
+      {x,playerX:player.x,viewportWidth:W,speed});
+    runAudit.record('spawn',auditState(),{obstacle:data.type,pattern:data.pattern||'',worldX,
+      leadSeconds:fairness.leadSeconds,requiredSeconds:fairness.requiredSeconds,
+      visibleSeconds:fairness.visibleSeconds,earlyCueSeconds:fairness.earlyCueSeconds,
+      fair:fairness.fair,needsCue:fairness.needsCue});
     return true;
   }
   function updateHud(){
@@ -637,7 +646,11 @@
     }
     distance+=speed*dt;
     const lastTerrainWorld=terrain.generated;
-    terrainDirector.prepare({right:distance+W+800,playerWorld:distance+player.x,zone,speed,hp});
+    // The generator must cover the farthest possible action-specific spawn,
+    // including an offscreen Echo Spire with a full second of warning.
+    const farthestSpawn=spawnXFor('echo');
+    terrainDirector.prepare({right:distance+Math.max(W+800,farthestSpawn+speed*.48),
+      playerWorld:distance+player.x,zone,speed,hp});
     for(const feature of terrain.segments){
       if(feature.start>=lastTerrainWorld&&('gap'===feature.type||'slope'===feature.type))
         runAudit.record('terrain',auditState(),{feature:feature.echoChallenge?'echo-gap':feature.type,
@@ -749,7 +762,7 @@
     if(!player.landed&&visualRandom()<.7*quality.profile.particles)motes.push(makeMote(player.x+fxRand(-14,14),player.feet-8,c1,{vx:fxRand(-170,-20),vy:fxRand(10,70),life:.32,r:fxRand(1,3)}));
     const phaseBefore=director.phase;
     terrainDirector.tick(dt,{zone,speed,hp,distance,spawnX:W+90,
-      playerX:player.x},spawn);
+      spawnXFor,playerX:player.x},spawn);
     if(phaseBefore!==director.phase)runAudit.record('phase',auditState(),
       {from:phaseBefore,to:director.phase,movement:director.movement.insight});
     const p=GEO.playerBox(player);
@@ -1065,6 +1078,12 @@
     // Upright warning, shift energy and persistent ceiling-mode orientation.
     gravityShift.drawOverlay(ctx,{width:W,height:H,primary:c1,secondary:c2,
       quality:quality.profile,reducedMotion});
+    // Upright, minimal warning only while the real course feature is
+    // offscreen; unaffected by gravity and visible in Performance graphics.
+    const cue=FAIR.warning({hurdles,gaps:terrain.gaps,distance,
+      playerX:player.x,viewportWidth:W,speed});
+    FAIR.drawWarning(ctx,cue,{width:W,height:H,primary:c1,
+      glow:quality.profile.glow,reducedMotion});
     ctx.restore();
     if(status!=='running'){
       ctx.fillStyle='rgba(4,7,18,.33)';ctx.fillRect(0,0,W,H);
@@ -1083,6 +1102,7 @@
     if(status==='ready')worldTime+=timing.elapsed*.38;
     const updateMs=performance.now()-updateStart;
     const measured=draw();measured.update=updateMs;
+    if(status==='running')runAudit.noteFrame?.(frameElapsed,timing.dropped);
     if(status==='running'&&quality.observe(frameElapsed,measured)){
       resize();syncGraphics();
     }

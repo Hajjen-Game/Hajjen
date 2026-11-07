@@ -20,6 +20,7 @@ const modules={
  ChromaSpectralWave:require('../src/render/spectral-wave.js'),
  ChromaStateVFX:require('../src/render/chroma-state-vfx.js'),
  ChromaSpeedTrails:require('../src/render/speed-trails.js'),
+ ChromaGravityShift:require('../src/gameplay/gravity-shift.js'),
  ChromaRoundAudit:require('../src/diagnostics/round-audit.js'),
  ChromaUnifiedTerrainDirector:require('../src/director/unified-terrain-director.js'),
  ChromaQuality:require('../src/performance/quality-manager.js'),
@@ -41,7 +42,7 @@ function harness(){
   }return elements.get(id);
  }
  const noop=()=>{},gradient=()=>({addColorStop:noop});
- const draw={setTransform:noop,save:noop,restore:noop,translate:noop,
+ const draw={setTransform:noop,save:noop,restore:noop,translate:noop,scale:noop,
   fillRect:noop,strokeRect:noop,clip:noop,beginPath:noop,moveTo:noop,lineTo:noop,arcTo:noop,
   closePath:noop,fill:noop,stroke:noop,arc:noop,ellipse:noop,fillText:noop,
   createLinearGradient:gradient,createRadialGradient:gradient};

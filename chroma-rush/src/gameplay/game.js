@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Replay Challenge 1.0 on Mobile Arcade Polish 1.0
+/* CHROMA RUSH — Zone Transition Spectral Wave 1.0 on Flow Balance 1.2
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -33,6 +33,8 @@
   const effects = new window.ChromaEffects.EffectLanguage();
   const terrainRender = window.ChromaTerrainRender;
   const worldBackground = window.ChromaWorldBackground;
+  const spectralWave = new window.ChromaSpectralWave.SpectralWave();
+  const reducedMotion=Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
   const runAudit = new window.ChromaRoundAudit.RoundAudit();
   const quality = new window.ChromaQuality.QualityManager({storage:profileStorage,
     device:{deviceMemory:navigator.deviceMemory,hardwareConcurrency:navigator.hardwareConcurrency}});
@@ -90,7 +92,7 @@
   let status='ready', time=0, worldTime=0, zone=1, lastTs=0, shake=0, hitFlash=0, lastZoneCallout=0;
   let speed=GAME.baseSpeed, hp=GAME.startingHP, score=0, best=progression.bestScore, hurdles=[], motes=[], streaks=[];
   let runMode='arcade', startZone=1, milestoneTime=0, unlockedThisRun=[];
-  let peakFlow=0,replayToastTime=0;
+  let peakFlow=0,replayToastTime=0,zoneSoundAtCrossing=false;
   // Absolute travelled distance: terrain and obstacles share this world axis.
   let distance=0,gapRecovery=null;
   let c1=PALETTES[0].primary, c2=PALETTES[0].secondary, c3=PALETTES[0].shadow;
@@ -233,6 +235,8 @@
     hp=GAME.startingHP;speed=GAME.speedAt(time,zone);score=0;shake=0;hitFlash=0;
     const palette=PALETTES[(zone-1)%PALETTES.length];
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
+    spectralWave.start({from:palette,to:palette,width:W,reducedMotion:true});
+    zoneSoundAtCrossing=false;
     hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();motion.reset();
     peakFlow=0;replayToastTime=0;
@@ -269,6 +273,7 @@
   function showMenu(){
     if(status==='running'||status==='paused')audio.stop();
     status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;
+    spectralWave.reset();zoneSoundAtCrossing=false;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
     $.controls.classList.add('hidden');$.hud.classList.add('hidden');$.pauseBtn.classList.add('hidden');
@@ -452,10 +457,15 @@
     replayUI.hud($,{practice:runMode==='practice',score,previousScore:replay.previousScore});
   }
   function nextZone(reward=null){
-    lastZoneCallout=1.4;
-    HUD.showZoneCallout($,{zone,name:PALETTES[(zone-1)%PALETTES.length].name,
-      color:PALETTES[(zone-1)%PALETTES.length].primary,perfectReward:reward?.perfect?reward:null});
-    frameEcho(player.x,player.feet-25,c1,43,1.25);burst(player.x,player.feet-20,24,c1,1.7);if(!reward?.perfect)sound('zone');
+    const incoming=PALETTES[(zone-1)%PALETTES.length];
+    const outgoing=PALETTES[(zone-2+PALETTES.length)%PALETTES.length];
+    const animated=spectralWave.start({from:outgoing,to:incoming,width:W,duration:.92,reducedMotion});
+    // The panel peaks as the wave reaches the player's horizontal position.
+    lastZoneCallout=1.6;
+    HUD.showZoneCallout($,{zone,name:incoming.name,
+      color:incoming.primary,perfectReward:reward?.perfect?reward:null});
+    zoneSoundAtCrossing=animated&&!reward?.perfect;
+    if(!animated&&!reward?.perfect)sound('zone');
   }
   function onHit(o){
     if(o.hit)return;
@@ -528,11 +538,18 @@
           plannedPhase:feature.plannedPhase||'LEGACY'});
     }
     terrain.prune(distance+player.x,speed);
-    const i=(zone-1)%PALETTES.length, j=(zone-2+PALETTES.length)%PALETTES.length;
-    const t=zone===1?1:smooth((time%GAME.zoneSeconds)/.68);
-    c1=rgbHex(PALETTES[j].primary,PALETTES[i].primary,t);
-    c2=rgbHex(PALETTES[j].secondary,PALETTES[i].secondary,t);
-    c3=rgbHex(PALETTES[j].shadow,PALETTES[i].shadow,t);
+    const current=PALETTES[(zone-1)%PALETTES.length];
+    c1=current.primary;c2=current.secondary;c3=current.shadow;
+    // Presentation-only transition: no change to speed, terrain, Director
+    // pacing, colliders, Flow, score, or seeded obstacle generation.
+    if(spectralWave.tick(dt,{playerX:player.x,playerY:player.feet,height:H})){
+      // One small lateral light accent when the spectral front crosses the runner.
+      groundPulse(player.x,player.feet-2,c2,23,.88);
+      frameEcho(player.x,player.feet-24,c1,24,.65);
+      burst(player.x,player.feet-18,9,c1,.52);
+      if(zoneSoundAtCrossing)sound('zone');
+      zoneSoundAtCrossing=false;
+    }
     flow.tick(dt,{phase:director.phase});
     player.invulnerable=Math.max(0,player.invulnerable-dt);
     jumpControl.tick(dt,distance+player.x);motion.tick(dt);
@@ -664,15 +681,23 @@
     ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();
   }
   function drawWorld(t){
-    worldBackground.drawBackground({ctx,width:W,height:H,time:t,speed,
-      primary:c1,secondary:c2,shadow:c3,flow:flow.value,glowLine,quality:quality.profile});
+    const paint=p=>worldBackground.drawBackground({ctx,width:W,height:H,time:t,speed,
+      primary:p.primary,secondary:p.secondary,shadow:p.shadow,flow:flow.value,
+      glowLine,quality:quality.profile});
+    if(spectralWave.active)spectralWave.drawLayer(ctx,W,H,
+      ()=>paint(spectralWave.from),()=>paint(spectralWave.to));
+    else paint(PALETTES[(zone-1)%PALETTES.length]);
   }
   function drawTerrain(){
-    terrainRender.drawTerrain({ctx,terrain,distance,width:W,height:H,baseY:floorY,
-      primary:c1,secondary:c2,flow:flow.value,glowLine,quality:quality.profile});
+    const paint=p=>terrainRender.drawTerrain({ctx,terrain,distance,width:W,height:H,baseY:floorY,
+      primary:p.primary,secondary:p.secondary,flow:flow.value,glowLine,quality:quality.profile});
+    if(spectralWave.active)spectralWave.drawLayer(ctx,W,H,
+      ()=>paint(spectralWave.from),()=>paint(spectralWave.to));
+    else paint(PALETTES[(zone-1)%PALETTES.length]);
   }
   function drawObstacle(o){
-    const b=GEO.obstacleBox(o,o.groundY), isLow=o.type==='jump',color=isLow?c2:c1;
+    const b=GEO.obstacleBox(o,o.groundY), isLow=o.type==='jump';
+    const color=spectralWave.colorAt(o.x,isLow?'secondary':'primary',b.y+b.h*.5,H);
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
     ctx.save();
     ctx.shadowColor=color;ctx.shadowBlur=23*quality.profile.glow;ctx.globalAlpha=twinkle;
@@ -704,35 +729,37 @@
   }
   function drawPlayer(){
     const b=GEO.playerBox(player),beat=1+Math.sin(worldTime*14)*.025;
+    const pc1=spectralWave.colorAt(player.x,'primary',player.feet,H);
+    const pc2=spectralWave.colorAt(player.x,'secondary',player.feet,H);
     ctx.save();
     if(player.invulnerable>0&&Math.floor(worldTime*16)%2===0)ctx.globalAlpha=.32;
     for(let i=Math.max(2,Math.round((5+Math.floor(flow.value/25))*quality.profile.particles));i>=1;i--){
       const x=b.x-i*(9+speed/110),sc=1-i*.105;
-      ctx.fillStyle=rgba(c1,clamp(.055+(8-i)*.025,0,.24));
+      ctx.fillStyle=rgba(pc1,clamp(.055+(8-i)*.025,0,.24));
       roundRectPath(x,b.y+(1-sc)*b.h/2,b.w*sc,b.h*sc,6);ctx.fill();
     }
     const shape=motion.sample({landed:player.landed,duck:player.duck,vy:player.vy});
     const rw=b.w*shape.scaleX*beat, rh=b.h*shape.scaleY*beat;
     const rx=player.x-rw/2,ry=player.feet-rh;
-    ctx.shadowColor=c1;ctx.shadowBlur=(31+shape.glow*17)*Math.max(.45,quality.profile.glow);
+    ctx.shadowColor=pc1;ctx.shadowBlur=(31+shape.glow*17)*Math.max(.45,quality.profile.glow);
     roundRectPath(rx,ry,rw,rh,player.duck?8:8);ctx.fillStyle='#f3fcff';ctx.fill();
-    ctx.shadowBlur=9*quality.profile.glow;ctx.lineWidth=2;ctx.strokeStyle=c1;ctx.stroke();
+    ctx.shadowBlur=9*quality.profile.glow;ctx.lineWidth=2;ctx.strokeStyle=pc1;ctx.stroke();
     const shading=ctx.createLinearGradient(rx,ry,rx+rw,ry+rh);
-    shading.addColorStop(0,'rgba(255,255,255,.9)');shading.addColorStop(.6,'rgba(247,251,255,.08)');shading.addColorStop(1,rgba(c1,.34));
+    shading.addColorStop(0,'rgba(255,255,255,.9)');shading.addColorStop(.6,'rgba(247,251,255,.08)');shading.addColorStop(1,rgba(pc1,.34));
     ctx.fillStyle=shading;roundRectPath(rx+5,ry+4,rw-10,rh-8,5);ctx.fill();
     glowLine(rx+6,ry+6,rx+rw*.6,ry+6,'#fff',2,6,.7);
     if(player.duck){
       const n=Math.max(1,Math.round(3*quality.profile.particles));
       for(let i=0;i<n;i++){
         const x=rx-(i*13+12),y=player.feet-4-i*4;
-        glowLine(x,y,x-12-speed/110,y,c2,1.1,5,.34-i*.065);
+        glowLine(x,y,x-12-speed/110,y,pc2,1.1,5,.34-i*.065);
       }
     }
     ctx.restore();
     // High Flow: detached neon corners, never an out-of-plane ellipse.
     if(flow.tier===3){
       const pad=8,left=b.x-pad,right=b.x+b.w+pad,top=b.y-pad,bottom=b.y+b.h+pad,arm=9;
-      ctx.save();ctx.strokeStyle=c2;ctx.lineWidth=1.6;ctx.shadowColor=c2;
+      ctx.save();ctx.strokeStyle=pc2;ctx.lineWidth=1.6;ctx.shadowColor=pc2;
       ctx.shadowBlur=13*quality.profile.glow;ctx.globalAlpha=.22+.06*Math.sin(worldTime*5);
       ctx.beginPath();
       for(const sx of [-1,1])for(const sy of [-1,1]){
@@ -745,7 +772,7 @@
     if(surface!==null){
       // Side-view contact glow: thin horizontal strip instead of a floor oval.
       const height=clamp((surface-player.feet)*.16,0,80),w=clamp(44-height*.36,18,44);
-      ctx.fillStyle=rgba(c1,.14);ctx.fillRect(player.x-w/2,surface+3,w,2.5);
+      ctx.fillStyle=rgba(pc1,.14);ctx.fillRect(player.x-w/2,surface+3,w,2.5);
     }
   }
   function drawFx(dt){
@@ -776,6 +803,8 @@
     const background=performance.now();
     drawTerrain();
     const terrainDone=performance.now();
+    // Overlay stays beneath all hazards and the player for clear silhouettes.
+    spectralWave.draw(ctx,{width:W,height:H,groundY:floorY,quality:quality.profile});
     for(const o of hurdles)drawObstacle(o);
     drawPlayer();
     const actorsDone=performance.now();
@@ -813,5 +842,7 @@
     }
     requestAnimationFrame(frame);
   }
+  // The unstarted title scene still uses the first palette consistently.
+  spectralWave.start({from:PALETTES[0],to:PALETTES[0],reducedMotion:true});
   requestAnimationFrame(frame);
 })();

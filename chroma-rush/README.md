@@ -1,8 +1,18 @@
-# CHROMA RUSH — Speed Trails 2.0
+# CHROMA RUSH — Background Depth & Parallax 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Background Depth & Parallax 2.0 (2026-11-07)
+
+- Rebuilt the pure Canvas 2D world with **four spatial parallax planes** (distant stars, far towers, intermediate architecture, and nearer structures) plus subtle fast-moving horizon streaks.
+- Eight neon palette zones now own **distinct silhouettes** — for example VIOLET spires, LIME terraces, AMBER foundries and ELECTRIC arched conduits.
+- The existing **Spectral Wave** reveals the incoming architecture as well as the palette, with old/new motifs on the correct side of the passing color front.
+- All scrolling derives from travelled world distance; atmosphere continues behind gap terrain with no hard floor seam, and hazards remain above every background detail.
+- All geometry is generated in code. High/Balanced/Performance profiles reduce distant and near structure costs; reduced-motion keeps the scenery static.
+- No changes to scoring, AI Director, obstacle patterns, collision, player speed, controls or Flow.
+- [Technical design and testing](docs/background-depth-parallax-2.0.md).
 
 ## Speed Trails 2.0 (2026-11-07)
 

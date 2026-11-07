@@ -47,7 +47,7 @@ SCENE_HOOK = r'''
       player.feet=terrain.groundAt(distance+player.x)??floorY;
       player.vy=0;player.landed=true;player.invulnerable=0;
       flow.value=85;flow.syncChroma();
-      chromaVfx.reset();spectralWave.reset();
+      chromaVfx.reset();spectralWave.reset();speedTrails.reset();
       hurdles=[];motes=[];streaks=[];effects.reset();motion.reset();player.duck=false;
       if(kind==='duck'){
         player.duck=true;motion.duckStart();
@@ -68,6 +68,42 @@ SCENE_HOOK = r'''
       $.menu.classList.add('hidden');$.pauseBtn.classList.remove('hidden');
       director.tick=()=>{};
       draw();
+    },
+    setSpeedTrailScene(kind){
+      // A repeatable high-speed timeline, using only public fixed-step
+      // trail updates. This hook never ships in the production game.
+      window.__visualAudit.setScene('flat');
+      if(kind==='off'){
+        draw();
+        return {...speedTrails.diagnostics,kind,speed};
+      }
+      const fast=['fast','chroma','duck','jump'].includes(kind);
+      speed=fast?1550:490;
+      flow.value=kind==='chroma'?95:40;
+      flow.syncChroma();
+      if(kind==='chroma'){chromaVfx.setActive(true);chromaVfx.tick(.8);}
+      if(kind==='duck'){
+        player.duck=true;motion.duckStart();motion.tick(.15);
+      }
+      const frameCount=31,dt=1/60;
+      for(let i=0;i<frameCount;i++){
+        const fraction=i/(frameCount-1);
+        if(kind==='jump'){
+          player.landed=false;
+          player.vy=-220;
+          player.feet=floorY-135*Math.sin(fraction*Math.PI*.77);
+        }
+        distance+=speed*dt;
+        const hit=GEO.playerBox(player);
+        const shape=motion.sample({landed:player.landed,duck:player.duck,vy:player.vy});
+        speedTrails.tick(dt,{playerX:player.x,feet:player.feet,
+          width:hit.w*shape.scaleX,height:hit.h*shape.scaleY,
+          distance,speed,flow:flow.value,chromaActive:flow.tier===3,
+          primary:c1,secondary:c2,quality:quality.profile});
+      }
+      updateHud();draw();
+      return {...speedTrails.diagnostics,kind,speed,
+        sampleFeet:speedTrails.samples.map(sample=>sample.feet)};
     },
     setFlowMultiplierScene(value){
       window.__visualAudit.setScene('flat');
@@ -239,6 +275,27 @@ def main():
             assert entry['intensity']>0 and entry['intensity']<live['intensity']
             assert live['intensity']==1
             assert base_pixels!=live_pixels, f'Chroma 2.0 VFX invisible at {vw}x{vh}'
+
+            # Speed Trails 2.0 must show actual pose-history silhouettes,
+            # directed backward particles and a longer wake at high speed.
+            trail_base=page.evaluate('window.__visualAudit.setSpeedTrailScene','off')
+            cruise=page.evaluate('window.__visualAudit.setSpeedTrailScene','cruise')
+            page.screenshot(path=str(OUT/f'speed-trails-cruise-{vw}x{vh}.png'))
+            fast=page.evaluate('window.__visualAudit.setSpeedTrailScene','fast')
+            page.screenshot(path=str(OUT/f'speed-trails-fast-{vw}x{vh}.png'))
+            chroma=page.evaluate('window.__visualAudit.setSpeedTrailScene','chroma')
+            page.screenshot(path=str(OUT/f'speed-trails-chroma-{vw}x{vh}.png'))
+            duck_trails=page.evaluate('window.__visualAudit.setSpeedTrailScene','duck')
+            page.screenshot(path=str(OUT/f'speed-trails-duck-{vw}x{vh}.png'))
+            jump_trails=page.evaluate('window.__visualAudit.setSpeedTrailScene','jump')
+            page.screenshot(path=str(OUT/f'speed-trails-jump-{vw}x{vh}.png'))
+            assert trail_base['samples']==trail_base['fragments']==0
+            assert cruise['samples']>0 and cruise['fragments']>0
+            assert fast['reach']>cruise['reach'], f'Speed trails do not scale: {cruise} -> {fast}'
+            assert chroma['samples']>0 and chroma['fragments']>0
+            assert duck_trails['samples']>0
+            assert len({round(v,2) for v in jump_trails['sampleFeet']})>=3, (
+                f'Jump trail did not preserve historical heights: {jump_trails}')
 
             # Capture the real player motion and horizontal/geometric VFX as well.
             for scene in ['duck','duck-release','impact']:

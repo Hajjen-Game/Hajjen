@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Chroma Pulse Transition 1.0 on Original Background Restored
+/* CHROMA RUSH — Gravity Shift / Ceiling Run 1.0 on Original Background Restored
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -34,6 +34,7 @@
   const terrainRender = window.ChromaTerrainRender;
   const worldBackground = window.ChromaWorldBackground;
   const spectralWave = new window.ChromaSpectralWave.SpectralWave();
+  const gravityShift = new window.ChromaGravityShift.GravityShift();
   const chromaVfx = new window.ChromaStateVFX.ChromaStateVisuals();
   const speedTrails = new window.ChromaSpeedTrails.SpeedTrails();
   const reducedMotion=Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
@@ -106,7 +107,8 @@
   const SPEED_MARKS=Object.freeze([1.5,2,3,4,6,8]);
   let nextSpeedMark=0;
   function auditState(){return {time:worldTime,zone,hp,score,flow:flow.value,speed,distance,
-    phase:director.phase,streak:flow.streak,chromaActive:flow.tier===3};}
+    phase:director.phase,streak:flow.streak,chromaActive:flow.tier===3,
+    gravityMode:gravityShift.ceiling?'ceiling':'floor',gravityPhase:gravityShift.phase};}
   function exportRound(){
     if(status!=='dead')return;
     const exported=runAudit.snapshot(auditState());
@@ -246,7 +248,7 @@
     const palette=PALETTES[(zone-1)%PALETTES.length];
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
     spectralWave.start({from:palette,to:palette,width:W,reducedMotion:true});
-    chromaVfx.reset();speedTrails.reset();
+    chromaVfx.reset();speedTrails.reset();gravityShift.reset();
     zoneSoundAtCrossing=false;
     hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();motion.reset();
@@ -284,7 +286,7 @@
   function showMenu(){
     if(status==='running'||status==='paused')audio.stop();
     status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;
-    spectralWave.reset();chromaVfx.reset();speedTrails.reset();effects.reset();zoneSoundAtCrossing=false;
+    spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();effects.reset();zoneSoundAtCrossing=false;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
     $.controls.classList.add('hidden');$.hud.classList.add('hidden');$.pauseBtn.classList.add('hidden');
@@ -455,6 +457,9 @@
   // Timings are in seconds. Spatial distances increase with speed, keeping
   // obstacle-recovery time physically feasible rather than randomly compressing in pixels.
   function spawn(data){
+    // Hold new hazards while the arena safely changes orientation. Existing
+    // hazards finish their normal course; no artificial clears are awarded.
+    if(gravityShift.pending||gravityShift.shifting)return false;
     const width=data.type==='jump'?rand(43,58):rand(54,71);
     const height=data.type==='jump'?rand(53,66):rand(115,158);
     const x=W+90,worldX=distance+x;
@@ -485,9 +490,26 @@
     // lands once, at the runner crossing. Perfect Zone has its own reward cue.
     if(animated&&!reward?.perfect)sound('zone-charge');
     if(!animated&&!reward?.perfect)sound('zone');
+    if(gravityShift.requestForZone(zone)){
+      // Schedule a breathing space; generated gaps already ahead are respected
+      // and the shift waits until the actual visible runway is safe.
+      terrainDirector.noHazardsBefore=Math.max(terrainDirector.noHazardsBefore,
+        distance+W+speed*1.5);
+      terrainDirector.noGapsBefore=Math.max(terrainDirector.noGapsBefore,
+        distance+W+speed*1.8);
+      runAudit.record('gravity_warning',auditState(),{target:gravityShift.targetCeiling?'ceiling':'floor'});
+      sound('gravity-warning');
+    }
   }
   function onHit(o){
     if(o.hit)return;
+    if(gravityShift.protected){
+      // Absolute guarantee: a hazard that arrives during the flip cannot
+      // cause hidden damage or count as a free precision clearance.
+      o.hit=true;o.cleared=true;
+      runAudit.record('gravity_protected_contact',auditState(),{obstacle:o.type});
+      return;
+    }
     o.hit=true;
     if(player.invulnerable>0){
       flow.registerCollision();runAudit.record('invulnerable_contact',auditState(),{obstacle:o.type});return;
@@ -585,6 +607,28 @@
     if(milestoneTime>0){milestoneTime-=dt;if(milestoneTime<=0)$.milestoneToast.classList.add('hidden')}
     if(replayToastTime>0){replayToastTime-=dt;if(replayToastTime<=0)$.replayToast.classList.add('hidden')}
     const playerWorld=distance+player.x;
+    // The upcoming runway must have no gaps or hazards around the runner.
+    // Every threshold is measured in travel seconds, independent of FPS.
+    const safeShift=player.landed&&!player.duck&&!gapRecovery &&
+      terrain.visibleGaps(playerWorld-speed*.35,playerWorld+speed*1.55).length===0 &&
+      hurdles.every(o=>o.hit||o.cleared||
+        o.x+o.width<player.x-speed*.35||o.x>player.x+speed*1.55);
+    const gravityEvent=gravityShift.tick(dt,{safe:safeShift,reducedMotion});
+    if(gravityEvent==='begin'){
+      player.invulnerable=Math.max(player.invulnerable,.58+.28);
+      jumpControl.cancel();speedTrails.reset();
+      if(!reducedMotion){
+        groundPulse(player.x,player.feet-2,c2,33,1.1);
+        frameEcho(player.x,player.feet-23,c1,36,1);
+      }
+      sound('gravity-shift');
+      runAudit.record('gravity_shift_begin',auditState(),{target:gravityShift.targetCeiling?'ceiling':'floor'});
+    }else if(gravityEvent==='complete'){
+      player.invulnerable=Math.max(player.invulnerable,.28);
+      speedTrails.reset();
+      runAudit.record('gravity_shift_complete',auditState(),{mode:gravityShift.ceiling?'ceiling':'floor'});
+      if(reducedMotion)sound('gravity-shift');
+    }
     const ground=terrain.groundAt(playerWorld);
     const currentGap=terrain.gapAt(playerWorld);
     player.wasAirborne=!player.landed;
@@ -846,6 +890,9 @@
     ctx.save();
     if(shake>0&&status==='running')ctx.translate(fxRand(-shake,shake)*.4,fxRand(-shake,shake)*.35);
     drawWorld(worldTime);
+    // Only the course flips: the original atmospheric background and DOM HUD
+    // stay upright. All gameplay sprites, gaps and trails share one transform.
+    ctx.save();gravityShift.applyCourseTransform(ctx,H);
     chromaVfx.drawEnvironment(ctx,{width:W,height:H,groundY:floorY,
       primary:c1,secondary:c2,quality:quality.profile,reducedMotion});
     const background=performance.now();
@@ -859,6 +906,10 @@
     drawPlayer();
     const actorsDone=performance.now();
     drawFx();
+    ctx.restore();
+    // Upright warning, shift energy and persistent ceiling-mode orientation.
+    gravityShift.drawOverlay(ctx,{width:W,height:H,primary:c1,secondary:c2,
+      quality:quality.profile,reducedMotion});
     ctx.restore();
     if(status!=='running'){
       ctx.fillStyle='rgba(4,7,18,.33)';ctx.fillRect(0,0,W,H);

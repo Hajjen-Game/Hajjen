@@ -39,6 +39,10 @@
     clearPoints:135,
     clearGain:5,
     precisionGain:8,
+    // Small, capped bonuses on REAL alternating movement chains only.
+    // They reuse Flow tiers and never multiply a separate combo meter.
+    comboBonusPoints:Object.freeze({2:20,3:35,4:55}),
+    comboFlowGain:Object.freeze({2:0,3:1,4:1}),
     damagePenalty:35,
     decayDelay:3.5,
     decayPerSecond:1.5,

@@ -105,10 +105,22 @@
         glowLine(x-5,gap.y0,x+5,gap.y0,'#ffffff',2,10,.64);
       }
       const cue=gap.start-distance;
-      if(cue>-30&&cue<width){
-        ctx.save();ctx.fillStyle=secondary;ctx.font='800 13px system-ui';
-        ctx.textAlign='center';ctx.globalAlpha=.8;ctx.fillText('↑',cue-32,gap.y0-35);
+      if(cue>-110&&cue<width){
+        ctx.save();
+        ctx.fillStyle=gap.echoChallenge?'#ffffff':secondary;
+        ctx.font=gap.echoChallenge?'850 13px system-ui':'800 13px system-ui';
+        ctx.textAlign='center';ctx.globalAlpha=.88;
+        ctx.shadowColor=secondary;ctx.shadowBlur=gap.echoChallenge?9*quality.glow:0;
+        // Echo gaps have an explicit double-jump visual vocabulary,
+        // including in low graphics; no hidden jumps or surprise geometry.
+        ctx.fillText(gap.echoChallenge?'2× JUMP':'↑',cue-(gap.echoChallenge?54:32),gap.y0-35);
         ctx.restore();
+      }
+      if(gap.echoChallenge&&cue>-55&&cue<width+55){
+        for(let i=0;i<2;i++){
+          const x=cue-14-i*10;
+          glowLine(x,gap.y0-5,x-5,gap.y0-15,secondary,1.8,6,.75);
+        }
       }
     }
   }

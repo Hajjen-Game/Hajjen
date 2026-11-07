@@ -192,6 +192,9 @@
         case 'duck': fx(280,.105,.13,'sine',146);break;
         case 'land': fx(155,.09,.08,'sine',100);break;
         case 'hit': fx(210,.21,.28,'sawtooth',62);fx(85,.22,.12,'sine',45,.055);break;
+        case 'zone-charge':
+          // Soft original rising sub-pulse, kept quieter than damage/perfect.
+          fx(190,.18,.053,'sine',310);fx(390,.17,.038,'triangle',570,.075);break;
         case 'zone': fx(350,.18,.12,'triangle',620);fx(520,.20,.09,'sine',860,.10);break;
         case 'score': fx(720,.055,.041,'sine',920);break;
         case 'flow': fx(600,.14,.10,'triangle',830);fx(860,.14,.06,'sine',1060,.065);break;

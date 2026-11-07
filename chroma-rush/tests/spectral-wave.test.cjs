@@ -94,6 +94,49 @@ test('spectral glow is a restrained line-based effect without rings or dark mask
   assert.ok(low.calls.stroke<high,'Performance graphics should use fewer streaks');
 });
 
+test('a distinct energetic scout pulse precedes every animated color change',()=>{
+  const wave=new SpectralWave();
+  wave.start({from:A,to:B,width:1000,duration:.9,chargeDuration:.23});
+  wave.tick(.16,{playerX:300,playerY:515});
+  assert.equal(wave.charging,true);
+  assert.equal(wave.progress,0,'palette front must not move during pre-charge');
+  assert.equal(wave.colorAt(950,'primary',515),A.primary);
+  const {ctx,calls}=mockCanvas(),passes=[];
+  wave.draw(ctx,{width:1000,height:720,groundY:515,quality:{density:1,glow:1}});
+  assert.ok(calls.stroke>=3,'pre-pulse has its own parallel electric rails');
+  wave.drawLayer(ctx,1000,720,()=>passes.push('old'),()=>passes.push('new'));
+  assert.deepEqual(passes,['old']);
+  wave.tick(.08,{playerX:300,playerY:515});
+  assert.equal(wave.charging,false);
+  assert.ok(wave.progress>0);
+  assert.ok(wave.frontAt(515)<wave.width+150);
+});
+
+test('delayed color front still crosses player once at either frame rate',()=>{
+  const coarse=new SpectralWave(),fine=new SpectralWave();
+  for(const wave of [coarse,fine])
+    wave.start({from:A,to:B,width:1000,duration:.9,chargeDuration:.23});
+  coarse.tick(.5,{playerX:300,playerY:515});
+  for(let i=0;i<30;i++)fine.tick(1/60,{playerX:300,playerY:515});
+  assert.ok(Math.abs(coarse.frontAt(515)-fine.frontAt(515))<1e-5);
+  let crossings=0;
+  for(let i=0;i<45;i++)crossings+=Number(fine.tick(1/60,{playerX:300,playerY:515}));
+  assert.equal(crossings,1);
+  assert.equal(fine.active,false);
+  assert.equal(fine.playerCrossed,true);
+  const {ctx,calls}=mockCanvas();
+  fine.draw(ctx,{width:1000,height:720,groundY:515});
+  assert.equal(calls.stroke,0,'all pulse strokes must stop after completion');
+});
+
+test('reduced motion disables the pre-pulse, just as it disables the wave',()=>{
+  const wave=new SpectralWave();
+  wave.start({from:A,to:B,width:1000,chargeDuration:.23,reducedMotion:true});
+  assert.equal(wave.charging,false);
+  assert.equal(wave.active,false);
+  assert.equal(wave.colorAt(950,'primary'),B.primary);
+});
+
 test('reduced-motion immediately chooses the next palette and never animates',()=>{
   const wave=new SpectralWave();
   assert.equal(wave.start({from:A,to:B,reducedMotion:true}),false);
@@ -130,6 +173,6 @@ test('release HTML loads spectral module before game and advertises its build',(
   const wave=html.indexOf('src/render/spectral-wave.js?v=spectral-wave-1.0');
   const game=html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
   assert.ok(wave>0&&game>wave);
-  assert.match(html,/<meta name="chroma-build" content="original-background-restored-1\.0"/);
+  assert.match(html,/<meta name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0"/);
   assert.match(html,/ORIGINAL BACKGROUND RESTORED/);
 });

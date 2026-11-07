@@ -107,8 +107,8 @@ test('entry point loads independent audio module before the gameplay engine',()=
   const root=path.join(__dirname,'..');
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const scripts=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
-  const audio=scripts.indexOf('src/audio/reactive-audio.js?v=chroma-state-2.0');
-  const engine=scripts.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
+  const audio=scripts.indexOf('src/audio/reactive-audio.js?v=chroma-state-2.0-chroma-pulse-1.0');
+  const engine=scripts.indexOf('src/gameplay/game.js?v=arcade-animation-2.0-chroma-pulse-1.0');
   assert.ok(audio>0 && engine>audio);
   assert.ok(scripts.every(src=>fs.existsSync(path.join(root,src.split('?')[0]))));
 });
@@ -141,4 +141,16 @@ test('effects toggle and effect volume do not mute music',()=>{
   assert.ok(stats.oscillators.length>before);
   a.setEffectsVolume(0);before=stats.oscillators.length;
   a.effect('hit');assert.equal(stats.oscillators.length,before);
+});
+
+test('zone charge uses a separate, brief and restrained two-voice swell',()=>{
+  const audio=new ReactiveAudioSystem({scope:{},enabled:false});
+  const notes=[];
+  audio.enabled=true;audio.playing=true;audio.effectsEnabled=true;
+  audio.context={state:'running',currentTime:0};
+  audio._voice=(...args)=>notes.push(args);
+  audio.effect('zone-charge');
+  assert.equal(notes.length,2);
+  assert.ok(notes[0][0].hz<notes[1][0].hz);
+  assert.ok(notes[0][3]<.1&&notes[1][3]<.1);
 });

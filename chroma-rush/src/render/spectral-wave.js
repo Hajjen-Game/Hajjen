@@ -1,5 +1,5 @@
-/* CHROMA RUSH — Zone Transition Spectral Wave 1.0
- * A purely presentational, deterministic horizontal color-front system.
+/* CHROMA RUSH — Chroma Pulse Transition 1.0
+ * A purely presentational, deterministic pre-pulse and horizontal color-front system.
  * No terrain/Director/Flow/input references. No timers, assets or random calls.
  */
 (function(root,factory){
@@ -24,18 +24,20 @@
   class SpectralWave {
     constructor(){this.reset()}
     reset(){
-      this.active=false;this.elapsed=0;this.duration=.9;this.width=1280;
+      this.active=false;this.elapsed=0;this.duration=.9;this.chargeDuration=0;this.width=1280;
       this.from=null;this.to=null;this.playerCrossed=false;
     }
-    start({from,to,width=1280,duration=.9,reducedMotion=false}={}){
+    start({from,to,width=1280,duration=.9,chargeDuration=0,reducedMotion=false}={}){
       this.reset();
       this.from=from||to||null;this.to=to||from||null;
       this.width=Math.max(1,Number(width)||1280);
       this.duration=clamp(Number(duration)||.9,.45,1.4);
+      this.chargeDuration=clamp(Number(chargeDuration)||0,0,.35);
       this.active=Boolean(this.from&&this.to&&!reducedMotion);
       return this.active;
     }
-    get progress(){return this.active?clamp(this.elapsed/this.duration,0,1):1}
+    get progress(){return this.active?clamp((this.elapsed-this.chargeDuration)/this.duration,0,1):1}
+    get charging(){return this.active&&this.chargeDuration>0&&this.elapsed<this.chargeDuration}
     // Begin outside the right edge, sweep past the left. Vertical displacement
     // gives the edge a slight living shimmer, never a circular/radial blast.
     frontAt(y,height=720){
@@ -56,12 +58,13 @@
     tick(dt,{playerX=300,playerY=500,height=720}={}){
       if(!this.active||!(dt>0))return false;
       const before=this.frontAt(playerY,height);
-      this.elapsed=Math.min(this.duration,this.elapsed+dt);
-      if(this.duration-this.elapsed<1e-9)this.elapsed=this.duration;
+      const total=this.chargeDuration+this.duration;
+      this.elapsed=Math.min(total,this.elapsed+dt);
+      if(total-this.elapsed<1e-9)this.elapsed=total;
       const after=this.frontAt(playerY,height);
       const crossed=!this.playerCrossed&&before>=playerX&&after<=playerX;
       if(crossed)this.playerCrossed=true;
-      if(this.elapsed>=this.duration)this.active=false;
+      if(this.elapsed>=total)this.active=false;
       return crossed;
     }
     clipSide(ctx,width,height,side){
@@ -88,8 +91,60 @@
       ctx.save();this.clipSide(ctx,width,height,'old');drawOld();ctx.restore();
       ctx.save();this.clipSide(ctx,width,height,'new');drawNew();ctx.restore();
     }
+    // A luminous scout pulse runs ahead of the color front. It reads as a
+    // horizontal electrical surge on the track, not a screen flash or ring.
+    // Drawn under hazards/player, with strictly cosmetic time-based motion.
+    drawPrePulse(ctx,{width,height,groundY,quality}={}){
+      if(!this.active||this.chargeDuration<=0)return;
+      const density=clamp(quality.density??1,.3,1);
+      const glow=clamp(quality.glow??1,.15,1);
+      const pre=this.charging?smooth(this.elapsed/this.chargeDuration):1;
+      const sweep=this.progress;
+      const power=this.charging ? .22+.78*pre : 1-smooth((sweep-.035)/.72);
+      const lead=clamp(width*.27,160,360);
+      const head=this.frontAt(groundY,height)-lead*pre;
+      if(power<.018||head<-115||head>width+115)return;
+      const intensity=power*density;
+      const primary=this.to?.primary||'#3feeff';
+      const secondary=this.to?.secondary||primary;
+      ctx.save();
+      // Narrow horizon-to-floor bloom; never covers jump/duck silhouettes.
+      const band=ctx.createLinearGradient(head-98,0,head+114,0);
+      band.addColorStop(0,rgba(primary,0));
+      band.addColorStop(.30,rgba(primary,.11*intensity));
+      band.addColorStop(.49,rgba('#ffffff',.28*intensity));
+      band.addColorStop(.61,rgba(secondary,.21*intensity));
+      band.addColorStop(1,rgba(secondary,0));
+      const left=Math.max(0,head-98),right=Math.min(width,head+114);
+      if(right>left){
+        ctx.fillStyle=band;
+        ctx.fillRect(left,groundY-78,right-left,98);
+      }
+      // Short parallel energy rails and crisp white-hot leading tip.
+      // Less work for Performance mode; no particles or offscreen canvas.
+      const count=density<.5?2:density<.8?3:5;
+      for(let i=0;i<count;i++){
+        const y=groundY+3-i*12;
+        const length=54+i*18;
+        ctx.strokeStyle=i===0?'#ffffff':(i%2?secondary:primary);
+        ctx.globalAlpha=(i===0?.74:.36)*intensity;
+        ctx.lineWidth=i===0?3.2:1.6;
+        ctx.shadowColor=i===0?secondary:primary;
+        ctx.shadowBlur=(i===0?19:10)*glow;
+        ctx.beginPath();
+        ctx.moveTo(head-8-i*4,y);ctx.lineTo(head+length,y);ctx.stroke();
+      }
+      ctx.globalAlpha=.64*intensity;
+      ctx.strokeStyle='#ffffff';ctx.lineWidth=2;
+      ctx.shadowColor=secondary;ctx.shadowBlur=18*glow;
+      ctx.beginPath();ctx.moveTo(head,groundY-38);
+      ctx.lineTo(head-3,groundY+9);ctx.stroke();
+      ctx.restore();
+    }
     draw(ctx,{width,height,groundY=height*.715,quality={density:1,glow:1}}={}){
       if(!this.active||!(width>0)||!(height>0))return;
+      this.drawPrePulse(ctx,{width,height,groundY,quality});
+      if(this.charging)return; // Old palette stays put until the pulse arrives.
       const head=this.frontAt(height*.5,height);
       if(head<-64||head>width+64)return;
       const color=this.to?.primary||'#3feeff';

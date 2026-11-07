@@ -18,6 +18,7 @@
     duck:Object.freeze({life:.23,cooldown:.10,priority:2}),
     release:Object.freeze({life:.24,cooldown:.10,priority:1}),
     precision:Object.freeze({life:.40,cooldown:.20,priority:3}),
+    combo:Object.freeze({life:.48,cooldown:.27,priority:3}),
     speed:Object.freeze({life:.65,cooldown:.80,priority:2}),
     perfect:Object.freeze({life:.72,cooldown:.80,priority:3})
   });
@@ -156,6 +157,17 @@
         line(anchor+1,cy-16,anchor+1,cy+15,e.color,.72,1.7,9);
         line(anchor-22,cy+10,anchor-8,cy+1,e.accent,.43,1.1,3);
         if(d>.52)line(anchor-33,cy-11,anchor-13,cy-11,e.color,.40,1.1,4);
+      }else if(kind==='combo'){
+        // Three layered, staggered rails travel BEHIND the cube. No rings,
+        // floating words or flash; density automatically limits detail.
+        const reach=(28+75*t)*Math.min(1.8,e.speed/700);
+        for(let i=0;i<detail;i++){
+          const yy=y-11-i*9,back=x-28-i*7;
+          line(back,yy,back-reach-i*11,yy,
+            i%2?e.accent:e.color,.77-i*.10,2.0-i*.16,9);
+          if(i<2)line(back-8,yy+3,back-15-reach*.46,yy+11,
+            e.accent,.35,1.15,3);
+        }
       }else if(kind==='speed'){
         // Forward velocity represented by short, staggered leftward rails.
         const length=(52+115*t)*reach;

@@ -17,6 +17,10 @@
   const minimumGap=(previous,next,speed,obstacleWidth=70)=>{
     // Includes player width and obstacle traversal in addition to animation recovery.
     const travel=(obstacleWidth+44)/Math.max(300,speed);
+    // Echo Spires need a longer flight and a clean approach. Prevent a
+    // preceding motif from forcing a double-jump while still recovering.
+    if(previous==='echo')return 1.47+travel;
+    if(next==='echo')return (previous==='duck'?1.14:1.09)+travel;
     if(previous==='jump')return .88+travel; // ~0.81s airborne + landing tolerance
     if(previous==='duck'&&next==='jump')return .68+travel; // .55s duck + .12s recovery
     if(previous==='duck'&&next==='duck')return .70+travel;
@@ -31,7 +35,7 @@
       this.pending=[];this.time=0;this.lastSpawnTime=-999;this.totalSpawned=0;this.totalCleared=0;
       this.cycle=0;this.streak=0;this.confidence=.32;this.stress=0;
       this.lastDamageAt=-999;this.lastNearMissAt=-999;
-      this.lastPatternId=null;this.patternHistory=[];
+      this.lastPatternId=null;this.patternHistory=[];this.echoIntroduced=false;
     }
     registerDamage(){
       this.lastDamageAt=this.time;
@@ -80,8 +84,17 @@
       return tier;
     }
     selectPattern(context){
-      const options=patterns.candidates(this.phase,context.zone||1,this.tierFor(context));
-      const chosen=patterns.chooseWeighted(options,this.random,this.previousPattern);
+      const echoReady=(context.zone||1)>=4 && (context.hp??100)>50 &&
+        this.stress<.42 && this.confidence>=.38 &&
+        (this.echoIntroduced||this.phase===PHASE.PEAK);
+      const options=patterns.candidates(this.phase,context.zone||1,
+        this.tierFor(context),{allowEcho:echoReady});
+      // A single clearly telegraphed introduction during the first eligible
+      // PEAK ensures players actually encounter the new mechanic. Defer it on
+      // damage, during recovery, or if the terrain vetoes the spawn.
+      const intro=!this.echoIntroduced&&echoReady&&this.phase===PHASE.PEAK;
+      const chosen=(intro?options.find(p=>p.id==='single-echo'):null)||
+        patterns.chooseWeighted(options,this.random,this.previousPattern);
       if(!chosen)return null;
       this.previousPattern=chosen.id;this.lastPatternId=chosen.id;
       this.patternHistory.push(chosen.id);
@@ -127,6 +140,7 @@
         return;
       }
       this.pending.shift();
+      if(next.type==='echo')this.echoIntroduced=true;
       this.totalSpawned++;this.lastSpawnTime=this.time;
       const following=this.pending[0]?.type||null;
       const safety=following?minimumGap(next.type,following,context.speed):0;

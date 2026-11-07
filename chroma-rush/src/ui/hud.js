@@ -5,7 +5,7 @@
   if(root)root.ChromaHud=api;
 })(typeof window!=='undefined'?window:null,function(){
   'use strict';
-  function update(elements,{hp,zone,color,phase,score,speed,baseSpeed,status,flow}){
+  function update(elements,{hp,zone,color,phase,score,speed,baseSpeed,status,flow,combo}){
     elements.hpNumber.textContent=String(hp);
     elements.hp.style.width=hp+'%';
     elements.hp.style.background=hp<=25?'linear-gradient(90deg,#ff315e,#ff8f7d)':hp<=50?'linear-gradient(90deg,#ffaf5d,#ffc95c)':'linear-gradient(90deg,#34b9e8,#6bf2ea)';
@@ -26,7 +26,10 @@
       // Display-only visual intensity: tiers 1/2/3 correspond to 1.25/1.5/2×.
       elements.flowMultiplier.dataset.tier=String(tier);
       elements.flowState.textContent=flow.stateName;
-      elements.flowStreak.textContent=flow.streak+' STREAK';
+      // Reuse the EXISTING small Flow caption, never add floating text over
+      // obstacles or a competing combo HUD. A brief chain cue fades back.
+      elements.flowStreak.textContent=combo?.displayTime>0?
+        'CHAIN ×'+combo.displayTier:flow.streak+' STREAK';
       elements.flowState.classList.toggle('chroma-live',tier===3);
       // Cosmetic HUD resonance mirrors the existing Flow 1.2 Chroma latch.
       elements.hud.classList.toggle('chroma-transformed',tier===3);

@@ -72,6 +72,18 @@
       return {precision,tier:this.tier,tierUp:this.tier>previousTier,multiplier:this.multiplier,
         earnedPoints:Math.round(this.rules.clearPoints*this.multiplier)};
     }
+    registerCombo({length=0}={}){
+      // Flow owns all rewards. Combo adds neither a second streak nor a
+      // second clear: Perfect Zone still requires real obstacle passages.
+      const previousTier=this.tier;
+      const base=this.rules.comboBonusPoints?.[length]??0;
+      if(!base)return {earnedPoints:0,flowGain:0,tierUp:false,tier:this.tier};
+      const flowGain=this.rules.comboFlowGain?.[length]??0;
+      this.value=clamp(this.value+flowGain,0,100);
+      this.syncChroma();
+      return {earnedPoints:Math.round(base*this.multiplier),flowGain,
+        tierUp:this.tier>previousTier,tier:this.tier};
+    }
     registerCollision(){
       // An absorbed hit is still a mistake, even if invulnerability blocks HP damage.
       this.zoneDamage++;

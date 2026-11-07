@@ -24,9 +24,9 @@ function draw(kind,{quality={glow:1,density:1},age=.1,speed=780}={}){
   fx.tick(age);fx.draw(p.ctx,quality);
   return {fx,...p};
 }
-test('8 clear events, each with a unique bound lifetime and cooldown',()=>{
+test('9 clear events, each with a unique bound lifetime and cooldown',()=>{
   assert.deepEqual(Object.keys(CUES).sort(),
-    ['jump','echo','land','duck','release','precision','speed','perfect'].sort());
+    ['jump','echo','land','duck','release','precision','combo','speed','perfect'].sort());
   assert.ok(Object.values(CUES).every(x=>x.life>=.20&&x.life<=.75));
   assert.ok(Object.values(CUES).every(x=>x.cooldown>=.08&&x.cooldown<=.85));
 });
@@ -126,7 +126,7 @@ test('game triggers on real physics, timing and obstacle-clear events, not simul
 });
 test('engine effects module loads before game, uses new version marker and no RNG',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  assert.match(html,/name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0-duck-gate-1\.0-echo-spire-1\.0-aware-1\.0-fairness-1\.0-jump-visual-1\.0"/);
+  assert.match(html,/name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0-duck-gate-1\.0-echo-spire-1\.0-aware-1\.0-fairness-1\.0-jump-visual-1\.0-combo-1\.0"/);
   const i=html.indexOf('src/render/effect-language.js?v=arcade-animation-2.0');
   const j=html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
   assert.ok(i>=0&&j>i);

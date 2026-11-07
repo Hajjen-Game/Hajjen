@@ -11,6 +11,7 @@ const config = require('../src/core/config.js');
 const geometry = require('../src/core/geometry.js');
 const hud = require('../src/ui/hud.js');
 const flow = require('../src/gameplay/flow.js');
+const precisionCombo=require('../src/gameplay/precision-combo.js');
 const audio = require('../src/audio/reactive-audio.js');
 const progression = require('../src/progression/arcade-progress.js');
 const arcadeUI = require('../src/ui/arcade-ui.js');
@@ -52,7 +53,7 @@ function setup(initialStorage={}) {
   let requested;
   const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaMovementAwareness:movementAwareness,ChromaHighSpeedFairness:highSpeedFairness,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaSpectralWave:spectralWave,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaGravityShift:gravityShift,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaMovementAwareness:movementAwareness,ChromaHighSpeedFairness:highSpeedFairness,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaPrecisionCombo:precisionCombo,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaSpectralWave:spectralWave,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaGravityShift:gravityShift,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
@@ -62,7 +63,7 @@ function setup(initialStorage={}) {
   const ending='  requestAnimationFrame(frame);\n})();';
   assert.ok(gameCode.includes(ending));
   vm.runInContext(gameCode.replace(ending,
-    "  window.__gravityHarness={gravityShift,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,motion,hurdles:()=>hurdles,hp:()=>hp,player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
+    "  window.__gravityHarness={gravityShift,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,motion,combo,flow,comboAward:awardCombo,score:()=>score,hurdles:()=>hurdles,hp:()=>hp,player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
     context,{filename:'game.js'});
   return {get,local,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
@@ -402,4 +403,36 @@ test('real zone-4 PEAK introduces a standalone Echo Spire: single jump fails, Ec
   assert.equal(echo.hp,100);
   assert.equal(ceiling.hit,false,'same valid double jump works under inverted gravity');
   assert.equal(ceiling.hp,100);
+});
+
+test('live arcade Flow integration awards only verified alternating clear chains',()=>{
+  const g=setup(),state=()=>g.context.window.__gravityHarness;
+  g.step(0);g.get('start-btn').click();
+  g.step(1000/60);
+  const h=state();
+  h.flow.registerClear({precision:true});
+  const start=h.score();
+  h.comboAward('jump',{precision:true,master:true});
+  assert.equal(h.score(),start,'first movement does not pay a combo');
+  g.step(2000/60);
+  h.flow.registerClear({precision:false});
+  h.comboAward('duck');
+  assert.equal(h.combo.totalCombos,1);
+  assert.equal(h.combo.displayTier,2);
+  assert.ok(h.score()>start);
+  g.step(3000/60);
+  assert.match(g.get('flow-streak').textContent,/CHAIN ×2/);
+  h.flow.registerClear({precision:true});
+  const prior=h.score();
+  h.comboAward('echo',{precision:true});
+  assert.equal(h.combo.bestChain,3);
+  assert.ok(h.score()-prior>=35);
+  assert.equal(h.director.insight.combo.best,3);
+  assert.ok(h.effects.active.some(e=>e.kind==='cue-combo'));
+  assert.equal(h.flow.zoneClears,3,'combo bonuses cannot fake an extra clear');
+  assert.equal(h.flow.totalPrecision,2,'combo reward does not fake precision');
+  h.combo.breakChain();
+  assert.equal(h.combo.chain.length,0);
+  g.step(4000/60);
+  assert.match(g.get('flow-streak').textContent,/3 STREAK/);
 });

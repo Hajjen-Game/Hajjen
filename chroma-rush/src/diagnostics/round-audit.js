@@ -11,7 +11,7 @@
   const MAX_EVENTS=600;
   const PHASES=['BUILD','PEAK','FADE','RELAX'];
   const TYPES=new Set(['start','phase','zone','terrain','spawn','obstacle_clear','obstacle_hit',
-    'invulnerable_contact','gap_clear','gap_miss','perfect_zone','flow_tier','run_end']);
+    'invulnerable_contact','gap_clear','gap_miss','perfect_zone','flow_tier','combo','run_end']);
   const number=(n)=>Number.isFinite(Number(n))?Math.round(Number(n)*100)/100:0;
   const snap=(input={})=>({
     time:number(input.time),zone:Math.max(1,number(input.zone)||1),
@@ -22,6 +22,8 @@
   const stats=()=>({obstaclesSpawned:0,obstaclesCleared:0,obstacleHits:0,invulnerableContacts:0,
     gapsCleared:0,gapsMissed:0,perfectZones:0,terrainSlopes:0,terrainGaps:0,
     maxFlow:0,chromaSeconds:0,flowAbove65Seconds:0,highestStreak:0,
+    precisionClears:0,masterClears:0,
+    combos:{count:0,bestChain:0,bonusPoints:0,bonusFlow:0,byLength:{2:0,3:0,4:0}},
     peakStress:0,peakConfidence:0,phaseSeconds:{BUILD:0,PEAK:0,FADE:0,RELAX:0},
     reaction:{measured:0,earlyCues:0,underBudget:0,
       minLeadSeconds:null,minVisibleSeconds:null,byAction:{}}});
@@ -78,7 +80,23 @@
           }
           break;
         }
-        case 'obstacle_clear':this.summary.obstaclesCleared++;break;
+        case 'obstacle_clear':
+          this.summary.obstaclesCleared++;
+          if(data.precision===true)this.summary.precisionClears++;
+          if(data.master===true)this.summary.masterClears++;
+          break;
+        case 'combo':{
+          const length=Math.floor(Number(data.length));
+          if(length>=2&&length<=4){
+            const stats=this.summary.combos;
+            stats.count++;
+            stats.bestChain=Math.max(stats.bestChain,length);
+            stats.bonusPoints+=Math.max(0,number(data.bonusPoints));
+            stats.bonusFlow+=Math.max(0,number(data.bonusFlow));
+            stats.byLength[length]++;
+          }
+          break;
+        }
         case 'obstacle_hit':this.summary.obstacleHits++;break;
         case 'invulnerable_contact':this.summary.invulnerableContacts++;break;
         case 'gap_clear':this.summary.gapsCleared++;break;
@@ -132,6 +150,7 @@
         Object.entries(this.summary.phaseSeconds).map(([phase,seconds])=>[phase,number(seconds)])),
         chromaSeconds:number(this.summary.chromaSeconds),
         flowAbove65Seconds:number(this.summary.flowAbove65Seconds),
+        combos:{...this.summary.combos,byLength:{...this.summary.combos.byLength}},
         reaction:{...this.summary.reaction,byAction:Object.fromEntries(
           Object.entries(this.summary.reaction.byAction).map(([k,v])=>[k,{...v}]))}};
       return {format:'chroma-rush-round-audit',version:1,mode:this.mode,

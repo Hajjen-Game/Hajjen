@@ -24,6 +24,8 @@
     jumpVelocity:-870,
     // Echo Jump is deliberately weaker and can be used only once per flight.
     echoJumpVelocity:-650,
+    // Early second taps add a real upward boost rather than slowing an ascent.
+    echoUpwardBoost:150,
     gravity:2140,
     duckDuration:.55,
     duckRecovery:.12,

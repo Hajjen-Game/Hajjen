@@ -18,6 +18,7 @@ const modules={
  ChromaTerrainRender:require('../src/render/terrain-renderer.js'),
  ChromaWorldBackground:require('../src/render/world-background.js'),
  ChromaSpectralWave:require('../src/render/spectral-wave.js'),
+ ChromaStateVFX:require('../src/render/chroma-state-vfx.js'),
  ChromaRoundAudit:require('../src/diagnostics/round-audit.js'),
  ChromaUnifiedTerrainDirector:require('../src/director/unified-terrain-director.js'),
  ChromaQuality:require('../src/performance/quality-manager.js'),

@@ -38,7 +38,7 @@
     get bpm(){return clamp(AUDIO.startBpm+(this.speed-370)*AUDIO.bpmPerSpeed,AUDIO.startBpm,AUDIO.maxBpm)}
     get layerMix(){
       const flow=clamp(this.flow,0,100)/100;
-      return clamp((PHASE_MIX[this.phase]??.7)*(.78+flow*.22),.15,1);
+      return clamp((PHASE_MIX[this.phase]??.7)*(.78+flow*.22)*(this.chromaActive?1.055:1),.15,1);
     }
     init(){
       if(this.context)return true;
@@ -176,8 +176,11 @@
         const lead=.085+(peak?.026:0)+(flow/100)*.028;
         this._voice(root+36+MELODY[index],at+.009,eighth*(peak?.55:.78),lead,'triangle');
       }
-      if(peak&&this.chromaActive&&beat===7)
-        this._voice(root+48+MELODY[index],at,eighth*.66,.032,'sine');
+      // Chroma's extra shimmer is lightly syncopated, and stays present
+      // in BUILD/FADE instead of disappearing between Director peaks.
+      if(this.chromaActive&&!relax&&(beat===3||beat===7)){
+        this._voice(root+48+MELODY[index],at+.02,eighth*.55,peak?.045:.031,'sine');
+      }
     }
     effect(kind){
       if(!this.enabled||!this.effectsEnabled||this.effectsVolume<=0||!this.context||this.context.state!=='running')return;
@@ -192,6 +195,12 @@
         case 'zone': fx(350,.18,.12,'triangle',620);fx(520,.20,.09,'sine',860,.10);break;
         case 'score': fx(720,.055,.041,'sine',920);break;
         case 'flow': fx(600,.14,.10,'triangle',830);fx(860,.14,.06,'sine',1060,.065);break;
+        case 'chroma':
+          // A short three-voice ascending activation cue (original synthesis).
+          // Separate from zone/perfect cues, bounded and non-looping.
+          fx(480,.18,.12,'triangle',710);
+          fx(690,.21,.095,'sine',950,.085);
+          fx(900,.27,.072,'triangle',1220,.18);break;
         case 'perfect':fx(540,.24,.16,'triangle',850);fx(720,.23,.10,'sine',1100,.11);fx(1040,.30,.07,'sine',1320,.23);break;
         case 'warning':fx(495,.095,.075,'triangle',390);break;
         case 'start':fx(420,.13,.10,'triangle',620);fx(620,.18,.09,'sine',930,.115);break;

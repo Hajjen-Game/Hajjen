@@ -1,4 +1,5 @@
 /* CHROMA RUSH — Gravity Shift / Ceiling Run 1.0 on Original Background Restored
+   Movement Evolution 1.0 — Echo Jump, angular air VFX and adaptive Echo Gaps.
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -46,6 +47,7 @@
   const $ = {
     menu:el('menu'), hud:el('hud'), controls:el('controls'), gameover:el('gameover'),
     pauseMenu:el('pause-menu'), pauseBtn:el('pause-btn'), jump:el('jump-btn'), duck:el('duck-btn'),
+    echoHint:el('echo-hint'),
     hp:el('hp-inner'), hpNumber:el('hp-number'), zone:el('zone-display'), phase:el('phase-display'),
     score:el('score-display'), speed:el('speed-display'), critical:el('danger-indicator'),
     zoneCallout:el('zone-callout'), zoneCalloutTag:el('zone-callout-tag'), zoneCalloutName:el('zone-callout-name'),
@@ -95,7 +97,7 @@
   let status='ready', time=0, worldTime=0, zone=1, lastTs=0, shake=0, hitFlash=0, lastZoneCallout=0;
   let speed=GAME.baseSpeed, hp=GAME.startingHP, score=0, best=progression.bestScore, hurdles=[], motes=[], streaks=[];
   let runMode='arcade', startZone=1, milestoneTime=0, unlockedThisRun=[];
-  let peakFlow=0,replayToastTime=0,zoneSoundAtCrossing=false;
+  let peakFlow=0,replayToastTime=0,zoneSoundAtCrossing=false,echoHintTime=0;
   // Absolute travelled distance: terrain and obstacles share this world axis.
   let distance=0,gapRecovery=null;
   let c1=PALETTES[0].primary, c2=PALETTES[0].secondary, c3=PALETTES[0].shadow;
@@ -253,6 +255,8 @@
     hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();motion.reset();
     peakFlow=0;replayToastTime=0;
+    echoHintTime=startZone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone?3.9:0;
+    $.echoHint.classList.add('hidden');
     replay.start({practice:runMode==='practice',bestScore:progression.bestScore,bestZone:progression.bestZone});
     // Practice retains the chosen zone/difficulty but starts on a fresh,
     // safe runway, rather than loading a nonexistent alternate level.
@@ -268,6 +272,8 @@
     $.hud.classList.remove('hidden');$.controls.classList.remove('hidden');$.pauseBtn.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');$.milestoneToast.classList.add('hidden');
     $.replayToast.classList.add('hidden');
+    $.jump.setAttribute('aria-label',startZone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone?
+      'Jump; tap again in the air for Echo Jump':'Jump');
     arcadeUI.hud($,runMode==='practice');
     // Decorative GO cue runs while the usual safe runway begins, without
     // freezing or delaying physics, input or the procedural Director.
@@ -285,7 +291,8 @@
   }
   function showMenu(){
     if(status==='running'||status==='paused')audio.stop();
-    status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;
+    status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;echoHintTime=0;
+    $.echoHint.classList.add('hidden');
     spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();effects.reset();zoneSoundAtCrossing=false;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
@@ -297,7 +304,7 @@
   function resume(){if(status!=='paused')return;status='running';$.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();frameClock.reset(lastTs);audio.resume();syncSoundButton(true);}
   function endRun(){
     if(status!=='running')return;
-    status='dead';speedTrails.reset();effects.reset();$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
+    status='dead';speedTrails.reset();effects.reset();$.echoHint.classList.add('hidden');$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
     runAudit.finish(auditState());
     const total=Math.floor(score),previousBest=progression.bestScore;
     replayToastTime=0;$.replayToast.classList.add('hidden');
@@ -338,8 +345,31 @@
   function jump(){
     if(status!=='running'||gravityShift.shifting)return;
     const action=jumpControl.request({grounded:player.landed,ducking:player.duck,
-      recovering:Boolean(gapRecovery),worldX:distance+player.x});
+      recovering:Boolean(gapRecovery),worldX:distance+player.x,
+      echoEnabled:zone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone});
     if(action==='jump'||action==='coyote')launchJump();
+    else if(action==='echo')launchEcho();
+  }
+  function launchEcho(){
+    // Echo never changes horizontal movement speed, gravity, or collision size.
+    // One weaker impulse is available per intentional jump and is restored
+    // only on a valid landing or a new buffered grounded takeoff.
+    player.vy=GAME.echoJumpVelocity;
+    motion.echoJump();
+    speedTrails.reset(); // the new beat starts a distinct clean afterimage arc
+    frameEcho(player.x,player.feet-25,c2,31,.92);
+    effects.cue('echo',player.x,player.feet-23,c2,c1,{speed,reducedMotion});
+    const n=Math.max(3,Math.round(12*quality.profile.particles));
+    for(let i=0;i<n;i++){
+      const side=i%2===0?1:-1;
+      motes.push(makeMote(player.x+side*fxRand(5,18),player.feet-fxRand(12,37),
+        side>0?c1:c2,{vx:side*fxRand(85,220),vy:fxRand(-185,-40),
+          life:fxRand(.20,.49),r:fxRand(.9,2.7)}));
+    }
+    if(motes.length>180)motes.splice(0,motes.length-180);
+    runAudit.record('echo_jump',auditState(),{verticalImpulse:GAME.echoJumpVelocity,
+      surface:gravityShift.ceiling?'ceiling':'floor'});
+    sound('echo');vib(12);
   }
   function landingImpact(ground,velocity){
     const strength=motion.land(velocity);
@@ -490,6 +520,11 @@
     // lands once, at the runner crossing. Perfect Zone has its own reward cue.
     if(animated&&!reward?.perfect)sound('zone-charge');
     if(!animated&&!reward?.perfect)sound('zone');
+    if(zone===window.ChromaConfig.JUMP_FEEL.echoUnlockZone){
+      echoHintTime=4.1;
+      $.jump.setAttribute('aria-label','Jump; tap again in the air for Echo Jump');
+      runAudit.record('echo_unlocked',auditState(),{zone});
+    }
     if(gravityShift.requestForZone(zone)){
       // Schedule a breathing space; generated gaps already ahead are respected
       // and the shift waits until the actual visible runway is safe.
@@ -531,7 +566,8 @@
       hp=Math.max(0,hp-GAME.damagePerHit);
       director.registerDamage();flow.registerDamage();speedTrails.disrupt();
     }
-    runAudit.record('gap_miss',auditState(),{width:gap.end-gap.start,shieldCharged:!absorbed});
+    runAudit.record('gap_miss',auditState(),{width:gap.end-gap.start,shieldCharged:!absorbed,
+      echoChallenge:Boolean(gap.echoChallenge)});
     player.invulnerable=Math.max(player.invulnerable,1.15);shake=13;hitFlash=.42;
     burst(player.x,player.feet-12,'#ff5998',26,1.3);frameEcho(player.x,player.feet-18,c2,28);
     sound('hit');vib([30,45,30]);
@@ -543,7 +579,8 @@
     director.registerClear();
     const reward=flow.registerClear({precision:false});
     score+=reward.earnedPoints;
-    runAudit.record('gap_clear',auditState(),{width:gap.end-gap.start});
+    runAudit.record('gap_clear',auditState(),{width:gap.end-gap.start,
+      echoChallenge:Boolean(gap.echoChallenge),variant:gap.echoVariant||''});
     if(runMode==='arcade')earnedMilestones(progression.reachedStreak(flow.streak).earned);
     burst(player.x,player.feet-7,c1===c2?5:9,c1,.58);
     frameEcho(player.x,player.feet-18,c2,20,.55);
@@ -582,7 +619,8 @@
     terrainDirector.prepare({right:distance+W+800,playerWorld:distance+player.x,zone,speed,hp});
     for(const feature of terrain.segments){
       if(feature.start>=lastTerrainWorld&&('gap'===feature.type||'slope'===feature.type))
-        runAudit.record('terrain',auditState(),{feature:feature.type,width:feature.end-feature.start,
+        runAudit.record('terrain',auditState(),{feature:feature.echoChallenge?'echo-gap':feature.type,
+          variant:feature.echoVariant||'',width:feature.end-feature.start,
           start:feature.start,elevationChange:feature.y1-feature.y0,
           plannedPhase:feature.plannedPhase||'LEGACY'});
     }
@@ -606,6 +644,8 @@
     if(lastZoneCallout>0){lastZoneCallout-=dt;if(lastZoneCallout<=0)$.zoneCallout.classList.add('hidden')}
     if(milestoneTime>0){milestoneTime-=dt;if(milestoneTime<=0)$.milestoneToast.classList.add('hidden')}
     if(replayToastTime>0){replayToastTime-=dt;if(replayToastTime<=0)$.replayToast.classList.add('hidden')}
+    if(echoHintTime>0)echoHintTime=Math.max(0,echoHintTime-dt);
+    $.echoHint.classList.toggle('hidden',echoHintTime<=0||lastZoneCallout>0||status!=='running');
     const playerWorld=distance+player.x;
     // The upcoming runway must have no gaps or hazards around the runner.
     // Every threshold is measured in travel seconds, independent of FPS.
@@ -853,6 +893,19 @@
         const x=rx-(i*13+12),y=player.feet-4-i*4;
         glowLine(x,y,x-12-speed/110,y,pc2,1.1,5,.34-i*.065);
       }
+    }
+    // A tiny angular availability marker follows the player's actual body.
+    // It is visually subdued and disappears as soon as Echo Jump is spent.
+    if(!player.landed&&zone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone&&
+      jumpControl.echoAvailable&&!gravityShift.shifting){
+      ctx.save();
+      ctx.globalAlpha=.68;ctx.shadowColor=pc2;ctx.shadowBlur=5*quality.profile.glow;
+      ctx.strokeStyle=pc2;ctx.lineWidth=1.8;
+      ctx.beginPath();
+      const cx=rx+rw+7,cy=ry+rh*.5;
+      ctx.moveTo(cx,cy-8);ctx.lineTo(cx+5,cy-8);ctx.lineTo(cx+5,cy);
+      ctx.moveTo(cx+8,cy-3);ctx.lineTo(cx+13,cy-3);ctx.lineTo(cx+13,cy+5);
+      ctx.stroke();ctx.restore();
     }
     ctx.restore();
     // Transformed mode keeps the same clear square silhouette.

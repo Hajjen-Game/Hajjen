@@ -1,8 +1,16 @@
-# CHROMA RUSH — Flow Multiplier Glow 1.0
+# CHROMA RUSH — Speed Trails 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Speed Trails 2.0 (2026-11-07)
+
+- Replaced the old fixed-row ghost copies with **actual timed afterimages** from earlier frames. During jump or duck, the echoes retain the corresponding earlier height and silhouette.
+- **Longer light rails at higher speed**, plus separate small luminous fragments that travel backward and fade. High-speed momentum is visible even outside Chroma State.
+- Unified the trail language with Chroma State 2.0 to avoid two overlapping sets of wake filaments. Chroma adds restrained visual intensity without changing its Flow reward.
+- Quality budgets are capped for High/Balanced/Performance, and reduced-motion suppresses animated trails. No score, speed, collision, Director or input changes.
+- [Implementation notes and tests](docs/speed-trails-2.0.md).
 
 ## Flow Multiplier Glow 1.0 (2026-11-07)
 

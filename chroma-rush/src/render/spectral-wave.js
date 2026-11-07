@@ -100,7 +100,7 @@
       const glow=clamp(quality.glow??1,.15,1);
       const pre=this.charging?smooth(this.elapsed/this.chargeDuration):1;
       const sweep=this.progress;
-      const power=this.charging?.22+.78*pre:1-smooth((sweep-.035)/.72);
+      const power=this.charging ? .22+.78*pre : 1-smooth((sweep-.035)/.72);
       const lead=clamp(width*.27,160,360);
       const head=this.frontAt(groundY,height)-lead*pre;
       if(power<.018||head<-115||head>width+115)return;

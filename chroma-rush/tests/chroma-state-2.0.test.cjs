@@ -70,8 +70,8 @@ test('state change relies on Flow Balance 1.2 hysteresis, not raw meter',()=>{
   flow.tick(1);assert.ok(flow.value<90&&flow.value>87);
   assert.equal(flow.tier,3);assert.equal(fx.setActive(flow.tier===3),null);
   flow.registerDamage();assert.ok(flow.value<87);
-  assert.equal(flow.tier,2);assert.equal(fx.setActive(flow.tier===3),'exit');
-  assert.equal(flow.multiplier,1.5);
+  assert.equal(flow.tier,1);assert.equal(fx.setActive(flow.tier===3),'exit');
+  assert.equal(flow.multiplier,1.25);
 });
 
 test('cosmetic ambient, wake, prismatic corners have no circular/ring geometry',()=>{

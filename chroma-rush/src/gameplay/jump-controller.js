@@ -11,19 +11,21 @@
   'use strict';
   class JumpController {
     constructor(rules=DEFAULT_RULES){this.rules=rules;this.reset()}
-    reset(){this.coyote=0;this.edgeX=-Infinity;this.buffer=0;this.graceUsed=false;}
+    reset(){this.coyote=0;this.edgeX=-Infinity;this.buffer=0;this.graceUsed=false;
+      this.echoAvailable=false;this.echoUsed=false;this.airAge=0;}
     leaveLedge(edgeX){
       if(!Number.isFinite(edgeX))return;
       this.coyote=this.rules.coyoteSeconds;
-      this.edgeX=edgeX;this.graceUsed=false;
+      this.edgeX=edgeX;this.graceUsed=false;this.echoAvailable=false;this.echoUsed=false;
     }
     tick(dt,worldX){
       if(!(dt>0))return;
       this.coyote=Math.max(0,this.coyote-dt);
       this.buffer=Math.max(0,this.buffer-dt);
+      if(this.echoAvailable)this.airAge+=dt;
       if(worldX-this.edgeX>this.rules.maxCoyoteDistance)this.coyote=0;
     }
-    request({grounded=false,ducking=false,recovering=false,worldX=0}={}){
+    request({grounded=false,ducking=false,recovering=false,worldX=0,echoEnabled=false}={}){
       // During duck and spectral gap recovery, input must not queue up a surprise jump.
       if(ducking||recovering)return 'ignored';
       if(grounded){this.consumeJump();return 'jump';}
@@ -31,14 +33,24 @@
          worldX-this.edgeX<=this.rules.maxCoyoteDistance){
         this.consumeJump();return 'coyote';
       }
+      // A fresh press while airborne can trigger one additional vertical impulse.
+      // The first few frames are guarded against accidental rapid double taps.
+      // Holding input does not count as a new press; that is enforced by the UI.
+      if(echoEnabled&&this.echoAvailable&&!this.echoUsed){
+        if(this.airAge<(this.rules.echoMinAirSeconds??.095))return 'ignored';
+        this.echoUsed=true;this.echoAvailable=false;this.buffer=0;this.coyote=0;
+        return 'echo';
+      }
       this.buffer=this.rules.bufferSeconds;
       return 'buffered';
     }
-    consumeJump(){this.coyote=0;this.buffer=0;this.graceUsed=true;}
+    consumeJump(){this.coyote=0;this.buffer=0;this.graceUsed=true;
+      this.echoAvailable=true;this.echoUsed=false;this.airAge=0;}
     onLand({ducking=false,recovering=false}={}){
       this.coyote=0;
       this.edgeX=-Infinity;
       this.graceUsed=false;
+      this.echoAvailable=false;this.echoUsed=false;this.airAge=0;
       if(recovering||ducking){this.buffer=0;return false;}
       const jump=this.buffer>0;
       this.buffer=0;

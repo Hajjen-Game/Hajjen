@@ -1,6 +1,6 @@
 name: CHROMA RUSH Pages recovery
 
-# Recovery is scoped to the stuck Speed Trails 2.0 deployment.
+# Recovery is scoped to the stuck Background Depth 2.0 deployment.
 # The existing Pages publish source (main) stays unchanged.
 on:
   push:
@@ -17,15 +17,15 @@ jobs:
   release-stale-pages-deployment:
     runs-on: ubuntu-latest
     steps:
-      - name: Release stalled Speed Trails 2.0 Pages deployment
+      - name: Release stalled Background Depth 2.0 Pages deployment
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           # The Pages deployment ID is the commit SHA of its blocked run.
           # If it has already resolved, do not cancel a newer deployment.
-          if gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/deployments/1bc425305b0ed6425991150d18f8091257bd16ec/cancel"; then
-            echo "Stalled Speed Trails 2.0 Pages deployment cancelled; publishing may resume."
+          if gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/deployments/728b3f3d9a77d71ceeb4c8ede49f59c4bc4b9dc0/cancel"; then
+            echo "Stalled Background Depth 2.0 Pages deployment cancelled; publishing may resume."
           else
             echo "::warning::The old deployment could not be cancelled (possibly already finished)."
           fi

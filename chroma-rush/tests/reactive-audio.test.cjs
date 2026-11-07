@@ -152,5 +152,5 @@ test('zone charge uses a separate, brief and restrained two-voice swell',()=>{
   audio.effect('zone-charge');
   assert.equal(notes.length,2);
   assert.ok(notes[0][0].hz<notes[1][0].hz);
-  assert.ok(notes[0][2]<.1&&notes[1][2]<.1);
+  assert.ok(notes[0][3]<.1&&notes[1][3]<.1);
 });

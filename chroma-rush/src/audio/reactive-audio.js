@@ -210,6 +210,8 @@
         case 'zone': fx(350,.18,.12,'triangle',620);fx(520,.20,.09,'sine',860,.10);break;
         case 'score': fx(720,.055,.041,'sine',920);break;
         case 'flow': fx(600,.14,.10,'triangle',830);fx(860,.14,.06,'sine',1060,.065);break;
+        case 'combo': fx(660,.11,.07,'triangle',940);
+          fx(880,.14,.055,'sine',1100,.045);break;
         case 'chroma':
           // A short three-voice ascending activation cue (original synthesis).
           // Separate from zone/perfect cues, bounded and non-looping.

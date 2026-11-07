@@ -22,11 +22,13 @@ test('authored patterns are supported, unique and short',()=>{
   assert.equal(new Set(PATTERNS.map(p=>p.id)).size,PATTERNS.length);
   for(const p of PATTERNS){
     assert.ok(p.steps.length>=1 && p.steps.length<=4);
-    assert.ok(p.steps.every(s=>s==='jump'||s==='duck'));
+    assert.ok(p.steps.every(s=>['jump','duck','echo'].includes(s)));
     assert.ok(p.weight>0 && p.minZone>=1);
   }
   assert.ok(candidates(PHASE.BUILD,1,1).every(p=>p.tier<=1));
   assert.ok(candidates(PHASE.FADE,12,3).every(p=>p.tier===0));
+  assert.ok(candidates(PHASE.PEAK,3,3).every(p=>!p.steps.includes('echo')));
+  assert.ok(candidates(PHASE.PEAK,8,3,{allowEcho:false}).every(p=>!p.steps.includes('echo')));
 });
 
 test('patterns vary across a run, not single random obstacles forever',()=>{

@@ -142,3 +142,15 @@ test('effects toggle and effect volume do not mute music',()=>{
   a.setEffectsVolume(0);before=stats.oscillators.length;
   a.effect('hit');assert.equal(stats.oscillators.length,before);
 });
+
+test('zone charge uses a separate, brief and restrained two-voice swell',()=>{
+  const audio=new ReactiveAudioSystem({scope:{},enabled:false});
+  const notes=[];
+  audio.enabled=true;audio.playing=true;audio.effectsEnabled=true;
+  audio.context={state:'running',currentTime:0};
+  audio._voice=(...args)=>notes.push(args);
+  audio.effect('zone-charge');
+  assert.equal(notes.length,2);
+  assert.ok(notes[0][0].hz<notes[1][0].hz);
+  assert.ok(notes[0][2]<.1&&notes[1][2]<.1);
+});

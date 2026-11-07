@@ -81,7 +81,13 @@
     selectPattern(context){
       const readiness={...context,phase:this.phase,stress:this.stress,confidence:this.confidence};
       const firstEcho=!this.echoIntroduced;
-      const echoReady=this.movement.echoReady(readiness,this.time,firstEcho);
+      // A tall Echo Spire needs time for two presses AND the second apex.
+      // At extreme speed its entire visible approach can become too short.
+      // Prefer simpler actions rather than a hidden, physically unfair cue.
+      const approach=context.spawnX==null?Infinity:
+        (context.spawnX-(context.playerX??300))/Math.max(300,context.speed||370);
+      const echoReady=approach>=.78 &&
+        this.movement.echoReady(readiness,this.time,firstEcho);
       const options=patterns.candidates(this.phase,context.zone||1,
         this.tierFor(context),{allowEcho:echoReady});
       // Build short, playable phrases from actual movement requirements.
@@ -128,6 +134,19 @@
         this.pending=motif.steps.map((type,index)=>({type,pattern:motif.id,step:index+1}));
       }
       const next=this.pending[0];
+      if(next.type==='echo'&&context.spawnX!=null&&
+        (context.spawnX-(context.playerX??300))/Math.max(300,context.speed||370)<.78){
+        // A pending Echo step becomes inappropriate as speed increases.
+        // Do not retry it forever or starve the other hazard families.
+        this.pending=[];this.spawnCountdown=.18;this.movement.deferredPatterns++;
+        return;
+      }
+      if(next.type==='echo'&& !this.movement.echoReady({
+        ...context,phase:this.phase,stress:this.stress,confidence:this.confidence},
+        this.time,!this.echoIntroduced)){
+        this.spawnCountdown=.18;
+        return;
+      }
       const previousSafety=this.previousType?minimumGap(this.previousType,next.type,context.speed):0;
       const elapsed=this.time-this.lastSpawnTime;
       if(elapsed<previousSafety){

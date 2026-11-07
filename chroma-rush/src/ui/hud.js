@@ -26,6 +26,8 @@
       elements.flowState.textContent=flow.stateName;
       elements.flowStreak.textContent=flow.streak+' STREAK';
       elements.flowState.classList.toggle('chroma-live',tier===3);
+      // Cosmetic HUD resonance mirrors the existing Flow 1.2 Chroma latch.
+      elements.hud.classList.toggle('chroma-transformed',tier===3);
     }
   }
   function showZoneCallout(elements,{zone,name,color,perfectReward=null}){

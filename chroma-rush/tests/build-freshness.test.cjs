@@ -86,10 +86,10 @@ test('network failure does not block menu or gameplay',async()=>{
 
 test('entrypoint includes build metadata, versioned code and a post-game freshness monitor',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  assert.match(html,/<meta name="chroma-build" content="spectral-wave-1\.0"/);
+  assert.match(html,/<meta name="chroma-build" content="chroma-state-2\.0"/);
   assert.ok(html.includes('src/core/config.js?v=flow-1.2'));
   assert.ok(html.includes('src/gameplay/flow.js?v=flow-1.2'));
-  const game=html.indexOf('src/gameplay/game.js?v=spectral-wave-1.0');
+  const game=html.indexOf('src/gameplay/game.js?v=chroma-state-2.0');
   const monitorScript=html.indexOf('src/ui/build-freshness.js?v=pages-recovery-1.0');
   assert.ok(game>0&&monitorScript>game);
 });

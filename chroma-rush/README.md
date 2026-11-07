@@ -1,8 +1,15 @@
-# CHROMA RUSH — Zone Transition Spectral Wave 1.0
+# CHROMA RUSH — Chroma State 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Chroma State 2.0 (2026-11-07)
+
+- At 90% Flow, Chroma State now arrives as a multilayer neon transformation: a one-time activation accent, streaked energy wake, luminous straight-edge corner accents and atmospheric world light.
+- A distinct ascending synth cue and understated melody shimmer reinforce the upgraded 2× state. The Flow/score economy, 90%-enter/87%-exit hysteresis, HP and all gameplay geometry are unchanged.
+- Animations use the existing High/Balanced/Performance graphics settings and honor reduced-motion preferences. No extra buttons or circular ring effects.
+- [Technical notes](docs/chroma-state-2.0.md).
 
 ## Zone Transition Spectral Wave 1.0 (2026-11-07)
 

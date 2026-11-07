@@ -46,7 +46,8 @@ SCENE_HOOK = r'''
       player.x=W*.265;
       player.feet=terrain.groundAt(distance+player.x)??floorY;
       player.vy=0;player.landed=true;player.invulnerable=0;
-      flow.value=85;
+      flow.value=85;flow.syncChroma();
+      chromaVfx.reset();spectralWave.reset();
       hurdles=[];motes=[];streaks=[];effects.reset();motion.reset();player.duck=false;
       if(kind==='duck'){
         player.duck=true;motion.duckStart();
@@ -67,6 +68,21 @@ SCENE_HOOK = r'''
       $.menu.classList.add('hidden');$.pauseBtn.classList.remove('hidden');
       director.tick=()=>{};
       draw();
+    },
+    setChromaScene(kind){
+      window.__visualAudit.setScene('flat');
+      flow.value=95;flow.syncChroma(); // Identical gameplay state in both images.
+      chromaVfx.reset();
+      if(kind!=='off'){
+        chromaVfx.setActive(true);
+        chromaVfx.tick(kind==='entry'?.17:.70);
+      }
+      if(kind==='duck'){
+        player.duck=true;motion.duckStart();
+      }
+      draw();
+      return {active:chromaVfx.active,intensity:chromaVfx.intensity,
+        tier:flow.tier,flow:flow.value};
     },
     setSpectralScene(progress){
       window.__visualAudit.setScene('flat');
@@ -164,6 +180,23 @@ def main():
             for progress,label in [(0,'entry'),(.5,'crossing'),(.75,'arrival'),(1,'complete')]:
                 page.evaluate('window.__visualAudit.setSpectralScene',progress)
                 page.screenshot(path=str(OUT / f'spectral-{label}-{vw}x{vh}.png'))
+
+            # Chroma State 2.0 is a genuine transformation, not just a
+            # slightly brighter static Flow bar: compare the ACTUAL canvas.
+            base=page.evaluate('window.__visualAudit.setChromaScene','off')
+            base_pixels=page.locator('#game').screenshot()
+            entry=page.evaluate('window.__visualAudit.setChromaScene','entry')
+            page.screenshot(path=str(OUT / f'chroma-entry-{vw}x{vh}.png'))
+            live=page.evaluate('window.__visualAudit.setChromaScene','steady')
+            live_pixels=page.locator('#game').screenshot()
+            page.screenshot(path=str(OUT / f'chroma-live-{vw}x{vh}.png'))
+            duck=page.evaluate('window.__visualAudit.setChromaScene','duck')
+            page.screenshot(path=str(OUT / f'chroma-duck-{vw}x{vh}.png'))
+            assert base['tier']==entry['tier']==live['tier']==duck['tier']==3
+            assert base['flow']==live['flow']==95
+            assert entry['intensity']>0 and entry['intensity']<live['intensity']
+            assert live['intensity']==1
+            assert base_pixels!=live_pixels, f'Chroma 2.0 VFX invisible at {vw}x{vh}'
 
             # Capture the real player motion and horizontal/geometric VFX as well.
             for scene in ['duck','duck-release','impact']:

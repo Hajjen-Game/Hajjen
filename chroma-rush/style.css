@@ -84,6 +84,24 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
 #flow-outer[data-tier="3"] #flow-inner{background:linear-gradient(90deg,#47d8fb,#a96dff,#ff66c0);box-shadow:0 0 14px #ff66c0cc;}
 .flow-status {display:flex;justify-content:space-between;gap:5px;color:#7f93b7;font-weight:700;letter-spacing:.12em;font-size:clamp(8px,.7vw,10px);margin-top:5px;white-space:nowrap;}
 #flow-state.chroma-live{color:#ff9ee3;text-shadow:0 0 14px #ff4abb88;}
+/* Chroma State 2.0 — restrained HUD activation, not a screen flash. */
+#hud.chroma-transformed #flow-outer {
+  border-color:#ed8cf299;
+  box-shadow:0 0 11px #e17aff55,0 0 3px #64ecff77 inset;
+}
+#hud.chroma-transformed .flow-heading > b {
+  color:#ffe0ff;
+  text-shadow:0 0 10px #d477ffff,0 0 18px #a650ff99;
+}
+#hud.chroma-transformed #flow-state {
+  color:#ffd2f6;
+  text-shadow:0 0 11px #fc6cccaa;
+}
+@media(prefers-reduced-motion:reduce){
+  #hud.chroma-transformed #flow-outer,
+  #hud.chroma-transformed .flow-heading > b,
+  #hud.chroma-transformed #flow-state {transition:none;animation:none}
+}
 #zone-perfect {color:#91fff0;font-size:clamp(10px,1.15vw,15px);font-weight:900;letter-spacing:.18em;white-space:nowrap;text-shadow:0 0 12px #46eddc99;margin-top:5px;}
 @media (max-height:420px){.flow-heading{margin-top:6px}.flow-status{margin-top:3px}.flow-outer{margin-top:3px}}
 @media (prefers-reduced-motion:reduce){#flow-inner{transition:none}}

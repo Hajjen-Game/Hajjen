@@ -29,6 +29,7 @@
       this.cycle=0;this.streak=0;this.confidence=.32;this.stress=0;
       this.lastDamageAt=-999;this.lastNearMissAt=-999;
       this.lastPatternId=null;this.patternHistory=[];this.echoIntroduced=false;
+      this.comboInsight={total:0,best:0,lastAt:-Infinity};
       this.movement.reset();
     }
     registerDamage({action=null}={}){
@@ -190,10 +191,18 @@
     }
     noteGapOutcome(data={}){this.movement.onGapOutcome({...data,now:this.time});}
     noteGravityShift(){this.movement.onGravityShift(this.time);}
+    noteCombo({length=0}={}){
+      // Observe real player execution, never force a pattern from an active
+      // combo. Existing physical and fairness gates remain authoritative.
+      if(length<2||length>4)return;
+      this.comboInsight.total++;
+      this.comboInsight.best=Math.max(this.comboInsight.best,length);
+      this.comboInsight.lastAt=this.time;
+    }
     get label(){return ({BUILD:'BUILDING',PEAK:'INTENSE',FADE:'EASING',RELAX:'BREATHE'})[this.phase];}
     get insight(){return {phase:this.phase,stress:this.stress,confidence:this.confidence,streak:this.streak,
       totalSpawned:this.totalSpawned,totalCleared:this.totalCleared,pattern:this.lastPatternId,
-      movement:this.movement.insight};}
+      movement:this.movement.insight,combo:{...this.comboInsight}};}
   }
   // Keep the legacy exported constructor name for tests/integrations.
   return {PHASE,AdaptiveRushDirector,AdaptiveFlowDirector:AdaptiveRushDirector,minimumGap};

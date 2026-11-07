@@ -192,6 +192,14 @@
         case 'duck': fx(280,.105,.13,'sine',146);break;
         case 'land': fx(155,.09,.08,'sine',100);break;
         case 'hit': fx(210,.21,.28,'sawtooth',62);fx(85,.22,.12,'sine',45,.055);break;
+        case 'gravity-warning':
+          // Two quiet upward impulses announce a ceiling/floor reversal.
+          fx(215,.16,.067,'triangle',440);
+          fx(370,.16,.052,'sine',630,.095);break;
+        case 'gravity-shift':
+          // Original mirrored-frequency sweep, never a prolonged alarm.
+          fx(760,.28,.11,'sine',170);
+          fx(250,.32,.075,'triangle',630,.12);break;
         case 'zone-charge':
           // Soft original rising sub-pulse, kept quieter than damage/perfect.
           fx(190,.18,.053,'sine',310);fx(390,.17,.038,'triangle',570,.075);break;

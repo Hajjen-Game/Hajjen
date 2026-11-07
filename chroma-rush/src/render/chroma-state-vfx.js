@@ -88,6 +88,10 @@
       const top=y-height,arrival=this.arrival;
       // Two luminous side rails mirror the square silhouette: they do not
       // encircle it or create a side-view-breaking oval halo.
+      // Own this canvas state: a restore without a matching save used to pop
+      // Gravity Shift's course mirror in Chroma mode, detaching the player's
+      // post-layer brackets, contact glow, and particles from the ceiling.
+      ctx.save();
       ctx.strokeStyle=secondary;ctx.lineWidth=1.7;
       ctx.globalAlpha=(.20+.18*arrival)*strength;
       ctx.shadowColor=secondary;ctx.shadowBlur=13*glow;

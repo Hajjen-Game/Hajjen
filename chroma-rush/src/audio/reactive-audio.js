@@ -23,6 +23,7 @@
       this.musicEnabled=true;this.effectsEnabled=true;this.effectsVolume=1;
       this.context=null;this.musicBus=null;this.effectsBus=null;this.master=null;
       this.phase='BUILD';this.speed=370;this.zone=1;this.flow=0;this.hp=100;
+      this.chromaActive=false;
       this.stepIndex=0;this.nextStepAt=0;this.scheduledSteps=0;
     }
     get available(){return Boolean(this.scope.AudioContext||this.scope.webkitAudioContext)}
@@ -79,6 +80,7 @@
     }
     start(){
       this.playing=true;this.phase='BUILD';this.speed=370;this.zone=1;this.flow=0;this.hp=100;
+      this.chromaActive=false;
       this.stepIndex=0;this.scheduledSteps=0;
       this.unlock();this.nextStepAt=this.context?this.context.currentTime+.04:0;
       this._updateMix();
@@ -113,9 +115,10 @@
       this.effectsVolume=clamp(Number.isFinite(value)?value:1,0,1);
       this._updateMix();return this.effectsVolume;
     }
-    tick({phase='BUILD',speed=370,flow=0,zone=1,hp=100}={}){
+    tick({phase='BUILD',speed=370,flow=0,chromaActive=null,zone=1,hp=100}={}){
       this.phase=phase;this.speed=Number.isFinite(speed)?speed:370;
       this.flow=clamp(Number.isFinite(flow)?flow:0,0,100);
+      this.chromaActive=typeof chromaActive==='boolean'?chromaActive:this.flow>=90;
       this.zone=Math.max(1,Math.floor(Number.isFinite(zone)?zone:1));
       this.hp=hp;
       if(!this.enabled||!this.musicEnabled||!this.playing||!this.context||this.context.state!=='running')return;
@@ -173,7 +176,7 @@
         const lead=.085+(peak?.026:0)+(flow/100)*.028;
         this._voice(root+36+MELODY[index],at+.009,eighth*(peak?.55:.78),lead,'triangle');
       }
-      if(peak&&flow>=90&&beat===7)
+      if(peak&&this.chromaActive&&beat===7)
         this._voice(root+48+MELODY[index],at,eighth*.66,.032,'sine');
     }
     effect(kind){

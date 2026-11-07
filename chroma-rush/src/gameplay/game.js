@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Zone Transition Spectral Wave 1.0 on Flow Balance 1.2
+/* CHROMA RUSH — Chroma State 2.0 on Spectral Wave 1.0
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -6,7 +6,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -34,6 +34,7 @@
   const terrainRender = window.ChromaTerrainRender;
   const worldBackground = window.ChromaWorldBackground;
   const spectralWave = new window.ChromaSpectralWave.SpectralWave();
+  const chromaVfx = new window.ChromaStateVFX.ChromaStateVisuals();
   const reducedMotion=Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
   const runAudit = new window.ChromaRoundAudit.RoundAudit();
   const quality = new window.ChromaQuality.QualityManager({storage:profileStorage,
@@ -236,6 +237,7 @@
     const palette=PALETTES[(zone-1)%PALETTES.length];
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
     spectralWave.start({from:palette,to:palette,width:W,reducedMotion:true});
+    chromaVfx.reset();
     zoneSoundAtCrossing=false;
     hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();motion.reset();
@@ -273,7 +275,7 @@
   function showMenu(){
     if(status==='running'||status==='paused')audio.stop();
     status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;
-    spectralWave.reset();zoneSoundAtCrossing=false;
+    spectralWave.reset();chromaVfx.reset();zoneSoundAtCrossing=false;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
     $.controls.classList.add('hidden');$.hud.classList.add('hidden');$.pauseBtn.classList.add('hidden');
@@ -506,7 +508,8 @@
     if(runMode==='arcade')earnedMilestones(progression.reachedStreak(flow.streak).earned);
     burst(player.x,player.feet-7,c1===c2?5:9,c1,.58);
     frameEcho(player.x,player.feet-18,c2,20,.55);
-    if(reward.tierUp)sound('flow');else sound('score');
+    if(reward.tierUp&&reward.tier!==3)sound('flow');
+    else if(!reward.tierUp)sound('score');
   }
   function update(dt){
     time+=dt;worldTime+=dt;
@@ -649,7 +652,7 @@
           runAudit.record('obstacle_clear',auditState(),{obstacle:o.type,precision});
           if(gained.tierUp)runAudit.record('flow_tier',auditState(),{tier:flow.tier});
           if(runMode==='arcade')earnedMilestones(progression.reachedStreak(flow.streak).earned);
-          if(gained.tierUp){burst(player.x,floorY-25,9,c1,.62);sound('flow')}
+          if(gained.tierUp){burst(player.x,floorY-25,9,c1,.62);if(gained.tier!==3)sound('flow')}
           else if(Math.random()<.25)sound('score');
         }
       }
@@ -662,6 +665,18 @@
     for(const m of motes){m.x+=m.vx*dt;m.y+=m.vy*dt;m.vy+=150*dt;m.life-=dt}
     motes=motes.filter(m=>m.life>0).slice(-180);
     effects.tick(dt);
+    // React to the latched Chroma tier (90% enter, below 87% exit)
+    // after all clears, damage and Perfect Zone updates this tick.
+    const chromaEvent=chromaVfx.setActive(flow.tier===3);
+    if(chromaEvent==='enter'){
+      if(!reducedMotion){
+        groundPulse(player.x,player.feet-2,c2,35,1.22);
+        frameEcho(player.x,player.feet-23,c1,39,1.2);
+        burst(player.x-16,player.feet-17,16,c2,.8);
+      }
+      sound('chroma');
+    }
+    chromaVfx.tick(dt,{reducedMotion});
     if(hp>0&&hp<=25&&Math.floor(worldTime*1.5)!==Math.floor((worldTime-dt)*1.5))sound('warning');
     audio.tick({phase:director.phase,speed,flow:flow.value,chromaActive:flow.tier===3,zone,hp});
     runAudit.tick(dt,auditState(),director.insight);
@@ -741,6 +756,9 @@
     const shape=motion.sample({landed:player.landed,duck:player.duck,vy:player.vy});
     const rw=b.w*shape.scaleX*beat, rh=b.h*shape.scaleY*beat;
     const rx=player.x-rw/2,ry=player.feet-rh;
+    chromaVfx.drawBehindPlayer(ctx,{x:player.x,y:player.feet,width:rw,height:rh,
+      duck:player.duck,primary:pc1,secondary:pc2,speed,
+      quality:quality.profile,reducedMotion});
     ctx.shadowColor=pc1;ctx.shadowBlur=(31+shape.glow*17)*Math.max(.45,quality.profile.glow);
     roundRectPath(rx,ry,rw,rh,player.duck?8:8);ctx.fillStyle='#f3fcff';ctx.fill();
     ctx.shadowBlur=9*quality.profile.glow;ctx.lineWidth=2;ctx.strokeStyle=pc1;ctx.stroke();
@@ -756,18 +774,9 @@
       }
     }
     ctx.restore();
-    // High Flow: detached neon corners, never an out-of-plane ellipse.
-    if(flow.tier===3){
-      const pad=8,left=b.x-pad,right=b.x+b.w+pad,top=b.y-pad,bottom=b.y+b.h+pad,arm=9;
-      ctx.save();ctx.strokeStyle=pc2;ctx.lineWidth=1.6;ctx.shadowColor=pc2;
-      ctx.shadowBlur=13*quality.profile.glow;ctx.globalAlpha=.22+.06*Math.sin(worldTime*5);
-      ctx.beginPath();
-      for(const sx of [-1,1])for(const sy of [-1,1]){
-        const x=sx<0?left:right,y=sy<0?top:bottom;
-        ctx.moveTo(x-sx*arm,y);ctx.lineTo(x,y);ctx.lineTo(x,y-sy*arm);
-      }
-      ctx.stroke();ctx.restore();
-    }
+    // Transformed mode keeps the same clear square silhouette.
+    chromaVfx.drawAfterPlayer(ctx,{x:player.x,y:player.feet,width:b.w,height:b.h,
+      primary:pc1,secondary:pc2,quality:quality.profile,reducedMotion});
     const surface=terrain.groundAt(distance+player.x);
     if(surface!==null){
       // Side-view contact glow: thin horizontal strip instead of a floor oval.
@@ -800,6 +809,8 @@
     ctx.save();
     if(shake>0&&status==='running')ctx.translate(fxRand(-shake,shake)*.4,fxRand(-shake,shake)*.35);
     drawWorld(worldTime);
+    chromaVfx.drawEnvironment(ctx,{width:W,height:H,groundY:floorY,
+      primary:c1,secondary:c2,quality:quality.profile,reducedMotion});
     const background=performance.now();
     drawTerrain();
     const terrainDone=performance.now();

@@ -1,7 +1,7 @@
 name: CHROMA RUSH Pages recovery
 
-# One-time recovery for a stale Pages deployment lock.
-# Only changing this workflow triggers this job; it does not affect any game files.
+# Recovery is scoped to the stuck Flow Balance 1.2 deployment.
+# The existing Pages publish source (main) stays unchanged.
 on:
   push:
     branches: [main]
@@ -17,10 +17,15 @@ jobs:
   release-stale-pages-deployment:
     runs-on: ubuntu-latest
     steps:
-      - name: Cancel blocked Pages deployment 67aa70c
+      - name: Release stalled Flow Balance 1.2 Pages deployment
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/deployments/67aa70ceefdc54a68723369a857555201e6e9b49/cancel"
-          echo "GitHub Pages stale deployment cancellation requested."
+          # The Pages deployment ID is the commit SHA of its blocked run.
+          # If it has already resolved, do not cancel a newer deployment.
+          if gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/deployments/9deb606fb4e0f24238e597a0832f317ab8dc4220/cancel"; then
+            echo "Stalled Flow Balance 1.2 Pages deployment cancelled; publishing may resume."
+          else
+            echo "::warning::The old deployment could not be cancelled (possibly already finished)."
+          fi

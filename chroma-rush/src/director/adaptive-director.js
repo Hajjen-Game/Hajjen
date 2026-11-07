@@ -1,34 +1,26 @@
-/* CHROMA RUSH — Adaptive Rush Director 2.0.
+/* CHROMA RUSH — Adaptive Rush Director 2.0 + Movement-Aware Director 1.0.
  * Short authored motifs, player-friction awareness and four-phase pacing.
  * Uses seconds rather than raw pixels so existing actions remain physically feasible.
  * No ML, random difficulty spikes, online dependencies, or input manipulation.
  */
 (function(root,factory){
   const patterns=typeof module!=='undefined'&&module.exports?require('./patterns.js'):(root&&root.ChromaPatterns);
-  const api=factory(patterns);
+  const movement=typeof module!=='undefined'&&module.exports?require('./movement-awareness.js'):(root&&root.ChromaMovementAwareness);
+  const api=factory(patterns,movement);
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(root)root.ChromaDirector=api;
-})(typeof window!=='undefined'?window:null,function(patterns){
+})(typeof window!=='undefined'?window:null,function(patterns,movement){
   'use strict';
-  if(!patterns)throw new Error('ChromaPatterns must load before AdaptiveRushDirector');
+  if(!patterns||!movement)throw new Error('ChromaPatterns and MovementAwareness must load before AdaptiveRushDirector');
   const PHASE=Object.freeze({BUILD:'BUILD',PEAK:'PEAK',FADE:'FADE',RELAX:'RELAX'});
   const ORDER=Object.values(PHASE);
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
-  const minimumGap=(previous,next,speed,obstacleWidth=70)=>{
-    // Includes player width and obstacle traversal in addition to animation recovery.
-    const travel=(obstacleWidth+44)/Math.max(300,speed);
-    // Echo Spires need a longer flight and a clean approach. Prevent a
-    // preceding motif from forcing a double-jump while still recovering.
-    if(previous==='echo')return 1.47+travel;
-    if(next==='echo')return (previous==='duck'?1.14:1.09)+travel;
-    if(previous==='jump')return .88+travel; // ~0.81s airborne + landing tolerance
-    if(previous==='duck'&&next==='jump')return .68+travel; // .55s duck + .12s recovery
-    if(previous==='duck'&&next==='duck')return .70+travel;
-    return 0;
-  };
+  const minimumGap=movement.minimumGap;
 
   class AdaptiveRushDirector{
-    constructor(random=Math.random){this.random=random;this.reset();}
+    constructor(random=Math.random){
+      this.random=random;this.movement=new movement.MovementAwareness();this.reset();
+    }
     reset(){
       this.phase=PHASE.BUILD;this.phaseElapsed=0;this.phaseDuration=7.4;
       this.spawnCountdown=2.2;this.previousType=null;this.previousPattern=null;
@@ -36,9 +28,11 @@
       this.cycle=0;this.streak=0;this.confidence=.32;this.stress=0;
       this.lastDamageAt=-999;this.lastNearMissAt=-999;
       this.lastPatternId=null;this.patternHistory=[];this.echoIntroduced=false;
+      this.movement.reset();
     }
-    registerDamage(){
+    registerDamage({action=null}={}){
       this.lastDamageAt=this.time;
+      this.movement.onDamage(this.time,action);
       this.stress=clamp(this.stress+.45,0,1);
       this.confidence=clamp(this.confidence-.17,0,1);
       this.streak=0;
@@ -50,8 +44,9 @@
       this.lastNearMissAt=this.time;
       this.stress=clamp(this.stress+.085,0,1);
     }
-    registerClear(){
+    registerClear({action=null}={}){
       this.totalCleared++;this.streak++;
+      if(action==='echo')this.movement.onClear(action,this.time);
       this.confidence=clamp(this.confidence+.024,0,1);
     }
     durationFor(phase,context){
@@ -84,17 +79,27 @@
       return tier;
     }
     selectPattern(context){
-      const echoReady=(context.zone||1)>=4 && (context.hp??100)>50 &&
-        this.stress<.42 && this.confidence>=.38 &&
-        (this.echoIntroduced||this.phase===PHASE.PEAK);
+      const readiness={...context,phase:this.phase,stress:this.stress,confidence:this.confidence};
+      const firstEcho=!this.echoIntroduced;
+      // A tall Echo Spire needs time for two presses AND the second apex.
+      // At extreme speed its entire visible approach can become too short.
+      // Prefer simpler actions rather than a hidden, physically unfair cue.
+      const approach=context.spawnX==null?Infinity:
+        (context.spawnX-(context.playerX??300))/Math.max(300,context.speed||370);
+      const echoReady=approach>=.78 &&
+        this.movement.echoReady(readiness,this.time,firstEcho);
       const options=patterns.candidates(this.phase,context.zone||1,
         this.tierFor(context),{allowEcho:echoReady});
-      // A single clearly telegraphed introduction during the first eligible
-      // PEAK ensures players actually encounter the new mechanic. Defer it on
-      // damage, during recovery, or if the terrain vetoes the spawn.
-      const intro=!this.echoIntroduced&&echoReady&&this.phase===PHASE.PEAK;
-      const chosen=(intro?options.find(p=>p.id==='single-echo'):null)||
-        patterns.chooseWeighted(options,this.random,this.previousPattern);
+      // Build short, playable phrases from actual movement requirements.
+      // Repeated Echo checks after a miss are replaced by a calm phrase;
+      // heavy combos are only offered after a successful solo Echo clear.
+      const intro=firstEcho&&echoReady&&this.phase===PHASE.PEAK;
+      const safe=options.filter(p=>this.movement.allowPattern(p,readiness,this.time,
+        {firstEcho:intro&&p.id==='single-echo'}));
+      this.movement.deferredPatterns+=options.length-safe.length;
+      const weighted=safe.map(p=>({...p,weight:this.movement.adjustedWeight(p,readiness)}));
+      const chosen=(intro?weighted.find(p=>p.id==='single-echo'):null)||
+        patterns.chooseWeighted(weighted,this.random,this.previousPattern);
       if(!chosen)return null;
       this.previousPattern=chosen.id;this.lastPatternId=chosen.id;
       this.patternHistory.push(chosen.id);
@@ -106,11 +111,14 @@
       const base=this.phase===PHASE.PEAK?1.13:this.phase===PHASE.FADE?1.56:1.48;
       const zoneReduction=clamp((zone-1)*.046,0,.27);
       const hpBonus=context.hp<=25?.23:context.hp<=50?.10:0;
-      return clamp(base-zoneReduction+this.stress*.28+hpBonus+(this.random()-.5)*.17,.84,2.1);
+      const breath=Math.min(.35,this.movement.pressure*.075);
+      return clamp(base-zoneReduction+this.stress*.28+hpBonus+breath+
+        (this.random()-.5)*.17,.84,2.4);
     }
     tick(dt,context,spawn){
       if(!(dt>0))return;
       this.time+=dt;this.phaseElapsed+=dt;
+      this.movement.tick(dt);
       this.stress=Math.max(0,this.stress-dt*.024);
       // A single phase transition is sufficient with the gameplay fixed-step frame cap.
       if(this.phaseElapsed>=this.phaseDuration)this.advance(context);
@@ -126,6 +134,19 @@
         this.pending=motif.steps.map((type,index)=>({type,pattern:motif.id,step:index+1}));
       }
       const next=this.pending[0];
+      if(next.type==='echo'&&context.spawnX!=null&&
+        (context.spawnX-(context.playerX??300))/Math.max(300,context.speed||370)<.78){
+        // A pending Echo step becomes inappropriate as speed increases.
+        // Do not retry it forever or starve the other hazard families.
+        this.pending=[];this.spawnCountdown=.18;this.movement.deferredPatterns++;
+        return;
+      }
+      if(next.type==='echo'&& !this.movement.echoReady({
+        ...context,phase:this.phase,stress:this.stress,confidence:this.confidence},
+        this.time,!this.echoIntroduced)){
+        this.spawnCountdown=.18;
+        return;
+      }
       const previousSafety=this.previousType?minimumGap(this.previousType,next.type,context.speed):0;
       const elapsed=this.time-this.lastSpawnTime;
       if(elapsed<previousSafety){
@@ -140,6 +161,7 @@
         return;
       }
       this.pending.shift();
+      this.movement.onSpawn(next.type,this.time);
       if(next.type==='echo')this.echoIntroduced=true;
       this.totalSpawned++;this.lastSpawnTime=this.time;
       const following=this.pending[0]?.type||null;
@@ -148,9 +170,12 @@
       this.spawnCountdown=Math.max(safety,this.gapFor(context));
       this.previousType=next.type;
     }
+    noteGapOutcome(data={}){this.movement.onGapOutcome({...data,now:this.time});}
+    noteGravityShift(){this.movement.onGravityShift(this.time);}
     get label(){return ({BUILD:'BUILDING',PEAK:'INTENSE',FADE:'EASING',RELAX:'BREATHE'})[this.phase];}
     get insight(){return {phase:this.phase,stress:this.stress,confidence:this.confidence,streak:this.streak,
-      totalSpawned:this.totalSpawned,totalCleared:this.totalCleared,pattern:this.lastPatternId};}
+      totalSpawned:this.totalSpawned,totalCleared:this.totalCleared,pattern:this.lastPatternId,
+      movement:this.movement.insight};}
   }
   // Keep the legacy exported constructor name for tests/integrations.
   return {PHASE,AdaptiveRushDirector,AdaptiveFlowDirector:AdaptiveRushDirector,minimumGap};

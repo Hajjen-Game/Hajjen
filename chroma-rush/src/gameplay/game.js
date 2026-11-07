@@ -7,7 +7,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -110,7 +110,8 @@
   let nextSpeedMark=0;
   function auditState(){return {time:worldTime,zone,hp,score,flow:flow.value,speed,distance,
     phase:director.phase,streak:flow.streak,chromaActive:flow.tier===3,
-    gravityMode:gravityShift.ceiling?'ceiling':'floor',gravityPhase:gravityShift.phase};}
+    gravityMode:gravityShift.ceiling?'ceiling':'floor',gravityPhase:gravityShift.phase,
+    movementPressure:director.movement.pressure};}
   function exportRound(){
     if(status!=='dead')return;
     const exported=runAudit.snapshot(auditState());
@@ -504,6 +505,15 @@
     if(!terrain.canSpawnObstacle(worldX,width,speed))return false;
     const groundY=terrain.groundAt(worldX+width*.5);
     if(groundY===null)return false;
+    if(data.type==='echo'){
+      // Double-jump barriers need a readable run-up and a predictable
+      // takeoff. Wide elevation changes or a late visible approach are vetoed.
+      const approach=(x-player.x)/Math.max(300,speed);
+      const launchY=terrain.groundAt(worldX-speed*.55);
+      const landY=terrain.groundAt(worldX+width+speed*.20);
+      if(approach<.78||launchY===null||landY===null||
+        Math.abs(launchY-groundY)>34||Math.abs(landY-groundY)>34)return false;
+    }
     hurdles.push({type:data.type,x,worldX,groundY,width,height,hit:false,cleared:false,
       closestClearance:Infinity,entryDuckTime:null,phase:data.phase,pulse:Math.random()*Math.PI*2});
     runAudit.record('spawn',auditState(),{obstacle:data.type,pattern:data.pattern||'',worldX});
@@ -559,20 +569,22 @@
     }
     hp=Math.max(0,hp-GAME.damagePerHit);
     runAudit.record('obstacle_hit',auditState(),{obstacle:o.type});player.invulnerable=.96;shake=12;hitFlash=.38;
-    director.registerDamage();flow.registerDamage();speedTrails.disrupt();burst(player.x,player.feet-30,'#ff506d',30,1.4);frameEcho(player.x,player.feet-26,'#ff596e',29,1.1);
+    director.registerDamage({action:o.type});flow.registerDamage();speedTrails.disrupt();burst(player.x,player.feet-30,'#ff506d',30,1.4);frameEcho(player.x,player.feet-26,'#ff596e',29,1.1);
     vib([25,40,30]);sound('hit');if(hp===0)endRun();
   }
   function failGap(gap){
     if(!terrain.markGap(gap,true))return;
     gapRecovery=gap;jumpControl.cancel();motion.reset();
-    terrainDirector.noteGapOutcome({missed:true,worldX:distance+player.x,speed});
+    terrainDirector.noteGapOutcome({missed:true,echo:Boolean(gap.echoChallenge),
+      worldX:distance+player.x,speed});
     // Match regular obstacle invulnerability: the gap still counts as a
     // missed challenge, but cannot immediately charge a second shield hit.
     const absorbed=player.invulnerable>0;
     if(absorbed)flow.registerCollision();
     else{
       hp=Math.max(0,hp-GAME.damagePerHit);
-      director.registerDamage();flow.registerDamage();speedTrails.disrupt();
+      director.registerDamage({action:gap.echoChallenge?'echo-gap':'gap'});
+      flow.registerDamage();speedTrails.disrupt();
     }
     runAudit.record('gap_miss',auditState(),{width:gap.end-gap.start,shieldCharged:!absorbed,
       echoChallenge:Boolean(gap.echoChallenge)});
@@ -583,8 +595,9 @@
   }
   function clearGap(gap){
     if(!terrain.markGap(gap,false))return;
-    terrainDirector.noteGapOutcome({missed:false,worldX:distance+player.x,speed});
-    director.registerClear();
+    terrainDirector.noteGapOutcome({missed:false,echo:Boolean(gap.echoChallenge),
+      worldX:distance+player.x,speed});
+    director.registerClear({action:gap.echoChallenge?'echo-gap':'gap'});
     const reward=flow.registerClear({precision:false});
     score+=reward.earnedPoints;
     runAudit.record('gap_clear',auditState(),{width:gap.end-gap.start,
@@ -673,7 +686,7 @@
       runAudit.record('gravity_shift_begin',auditState(),{target:gravityShift.targetCeiling?'ceiling':'floor'});
     }else if(gravityEvent==='complete'){
       player.invulnerable=Math.max(player.invulnerable,.28);
-      speedTrails.reset();
+      speedTrails.reset();director.noteGravityShift();
       runAudit.record('gravity_shift_complete',auditState(),{mode:gravityShift.ceiling?'ceiling':'floor'});
       if(reducedMotion)sound('gravity-shift');
     }
@@ -735,8 +748,10 @@
     }
     if(!player.landed&&visualRandom()<.7*quality.profile.particles)motes.push(makeMote(player.x+fxRand(-14,14),player.feet-8,c1,{vx:fxRand(-170,-20),vy:fxRand(10,70),life:.32,r:fxRand(1,3)}));
     const phaseBefore=director.phase;
-    terrainDirector.tick(dt,{zone,speed,hp,distance,spawnX:W+90},spawn);
-    if(phaseBefore!==director.phase)runAudit.record('phase',auditState(),{from:phaseBefore,to:director.phase});
+    terrainDirector.tick(dt,{zone,speed,hp,distance,spawnX:W+90,
+      playerX:player.x},spawn);
+    if(phaseBefore!==director.phase)runAudit.record('phase',auditState(),
+      {from:phaseBefore,to:director.phase,movement:director.movement.insight});
     const p=GEO.playerBox(player);
     for(const o of hurdles){
       const priorX=o.x;
@@ -761,7 +776,7 @@
           const precision=(o.type==='jump'||o.type==='echo')
             ?o.closestClearance>=0&&o.closestClearance<=18
             :o.entryDuckTime!==null&&o.entryDuckTime>=traverse+.02&&o.entryDuckTime<=traverse+.16;
-          director.registerClear();
+          director.registerClear({action:o.type});
           if(precision){
             director.registerNearMiss();
             effects.cue('precision',player.x,player.feet-24,c1,c2,{speed,reducedMotion});

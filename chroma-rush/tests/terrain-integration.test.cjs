@@ -4,6 +4,7 @@ const fs=require('node:fs');const vm=require('node:vm');const path=require('node
 const root=path.join(__dirname,'..');
 const modules={
  ChromaDirector:require('../src/director/adaptive-director.js'),
+ ChromaMovementAwareness:require('../src/director/movement-awareness.js'),
  ChromaConfig:require('../src/core/config.js'),
  ChromaGeometry:require('../src/core/geometry.js'),
  ChromaHud:require('../src/ui/hud.js'),

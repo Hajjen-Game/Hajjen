@@ -1,8 +1,18 @@
-# CHROMA RUSH — Movement Evolution 1.0
+# CHROMA RUSH — Movement-Aware Director 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Movement-Aware Director 1.0 (2026-11-07)
+
+- Adds a **pure, testable movement intelligence layer** (`src/director/movement-awareness.js`) alongside Adaptive Rush Director 2.0 and Unified Terrain Director 3.0. It models regular jumps, duck, Echo Jump, ordinary gaps and long Echo Gaps using **real control-commitment windows**, skill demand and recovery costs, without changing the input, physics, score or auto-run speed.
+- Director composes short, **physically playable action phrases** (jump → duck, duck → jump, solo Echo, and later Echo combinations). Motif costs and dynamic effort budgets screen out overly hard strings after damage, recent heavy moves or low confidence; phase transitions still create genuine no-hazard breathing room.
+- **Echo Spire difficulty is intentionally moderated.** The initial Spire remains a solitary, clearly labeled lesson after zone 4 during a healthy PEAK. More complex Echo phrases are only eligible after **at least one actual Echo Spire clear**. Echo spawns are separated by at least 7.2 seconds and refused when the visible approach becomes too short at extreme speed, avoiding impossible late prompts and stalled spawn queues.
+- **Gap and obstacle Directors cooperate:** full aerial-recovery distance prevents an Echo Spire from immediately following a chasm or an Echo Gap from piling onto a recent Spire. Successful / missed gaps, real collision damage, genuine obstacle clears and gravity shifts feed measured movement pressure and future recovery windows. A terrain veto postpones unsafe obstacles rather than faking successful clears.
+- Terrain generation and player physics remain canonical, so ceiling running mirrors the same collision/reaction windows. No Dash, extra buttons, physics alterations, scripted fixed levels or monetization.
+- Run diagnostics include movement pressure at each recorded event and a Director insight snapshot with demand/cooldown state. New [movement-aware tests](tests/movement-aware-director-1.0.test.cjs) cover real jump durations, phrase effort, cooldowns, low-HP fallback, gap coordination, gravity recovery and high-speed lead-time safety.
+- This is **first-pass calibration**. The goals are fewer unfair strings and more deliberate rhythm, not making all obstacles easy. Review player runs for how often hard Echo phrases actually occur before tuning their weights further.
 
 ## Echo Spire 1.0 — True Double-Jump Hazards (2026-11-07)
 

@@ -93,7 +93,8 @@ test('both world and track render exactly once while wave changes their palette'
     terrain:{segments},distance:0,flow:40,
     primary:to.primary,secondary:to.secondary,glowLine,
     quality:{density:.65,glow:.64,terrainStep:24,gridStep:145},tide:wave});
-  assert.equal(calls.clips,1,'ONLY the real solid-ground mask is clipped');
+  assert.equal(calls.clips,3,
+    'two lightweight atmospheric palette clips plus ONE real ground mask');
   assert.ok(calls.linears.some(x=>x.stops.length===4&&x.stops[0][1]===from.primary),
     'single-pass horizontal gradient carries both palettes');
   assert.ok(calls.strokes>0);

@@ -31,7 +31,7 @@ test('time-based transition spacing remains safe and adapts to varying speed',()
 test('initial Echo Spire is isolated; combos require demonstrated success',()=>{
   const d=new AdaptiveRushDirector(()=>.5);
   d.phase=PHASE.PEAK;d.confidence=.85;d.time=20;
-  assert.equal(d.selectPattern({zone:5,hp:100,speed:800,surface:'floor'}).id,'single-echo');
+  assert.equal(d.selectPattern({zone:2,hp:100,speed:480,surface:'floor',zoneElapsed:2}).id,'single-echo');
   d.echoIntroduced=true;
   const choices=candidates('PEAK',8,3).filter(p=>d.movement.allowPattern(p,ready,20));
   assert.ok(choices.some(p=>p.id==='single-echo'));
@@ -133,7 +133,7 @@ test('no Echo is introduced during low shield, relax, recovery or after gravity 
 });
 test('browser loads movement model before Director, and game reports movement state',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  const first=html.indexOf('src/director/movement-awareness.js?v=movement-aware-1.0-echo-polish-1.1');
+  const first=html.indexOf('src/director/movement-awareness.js?v=movement-aware-1.0-echo-polish-1.1-echo-zone2-1.2');
   const next=html.indexOf('src/director/adaptive-director.js?v=');
   const game=html.indexOf('src/gameplay/game.js?v=');
   assert.ok(first>0&&first<next&&next<game);

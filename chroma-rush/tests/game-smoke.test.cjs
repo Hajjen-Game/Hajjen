@@ -365,12 +365,12 @@ test('real arcade loop introduces Echo Jump in zone 2, allows one new press and 
   assert.doesNotThrow(()=>state.render());
 });
 
-test('first floor Echo lesson in zone 5: one jump fails, Echo clears, later ceiling remains playable',()=>{
+test('first floor Echo lesson in zone 2: one jump fails, Echo clears, later ceiling remains playable',()=>{
   function play({secondJump=false,ceiling=false}={}){
     const g=setup({chromaRushArcadeV1:JSON.stringify({bestZone:6,bestScore:1800})});
-    g.step(0);g.get('practice-zone').value='5';g.get('practice-start-btn').click();
+    g.step(0);g.get('practice-zone').value='2';g.get('practice-start-btn').click();
     const state=g.context.window.__gravityHarness;
-    assert.equal(state.zone(),5);
+    assert.equal(state.zone(),2);
     state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
     state.terrain.gaps=[];state.terrain.generated=10000000;
     state.director.phase='PEAK';state.director.phaseDuration=6;state.director.phaseElapsed=0;
@@ -395,7 +395,7 @@ test('first floor Echo lesson in zone 5: one jump fails, Echo clears, later ceil
     // Time the input relative to the ACTUAL obstacle's arrival, not a
     // constant calibrated to Speed Curve 1.0. Both curves must satisfy the
     // same physical test: one jump fails, two correctly timed jumps clear.
-    const speed=config.GAME.speedAt(4*config.GAME.zoneSeconds,5);
+    const speed=config.GAME.speedAt(config.GAME.zoneSeconds,2);
     const untilContact=(first.x-state.player().x-22)/speed;
     // Slower movement means the wide pillar overlaps the player longer;
     // place contact near the broad Echo apex, not near descent.
@@ -450,4 +450,36 @@ test('live arcade Flow integration awards only verified alternating clear chains
   assert.equal(h.combo.chain.length,0);
   g.step(4000/60);
   assert.match(g.get('flow-streak').textContent,/3 STREAK/);
+});
+
+test('normal arcade run introduces its first real Echo Spire IN zone 2 on the floor',()=>{
+  const g=setup();g.step(0);g.get('start-btn').click();
+  const state=g.context.window.__gravityHarness;
+  const seen=new Set();let first=null,phaseAtSpawn=null;
+  for(let i=1;i<=60*23;i++){
+    // The test does not simulate human taps. Temporary invulnerability
+    // prevents unrelated early hazards from interrupting the onboarding.
+    state.player().invulnerable=4;
+    g.step(i*1000/60);
+    for(const o of state.hurdles()){
+      if(seen.has(o.worldX))continue;
+      seen.add(o.worldX);
+      if(o.type!=='echo')continue;
+      first={zone:state.zone(),onCeiling:state.gravityShift.ceiling,
+        height:o.height,width:o.width,worldX:o.worldX,
+        frame:i,firstWasIntroduced:state.director.echoIntroduced};
+      phaseAtSpawn=state.director.phase;
+      break;
+    }
+    if(first)break;
+  }
+  assert.ok(first,'the early guided lesson must really spawn during zone 2');
+  assert.equal(first.zone,2,'first double jump cannot wait until the ceiling run');
+  assert.equal(first.onCeiling,false);
+  assert.equal(first.firstWasIntroduced,true);
+  assert.ok(first.height>=config.ECHO_SPIRE.introMinHeight);
+  assert.ok(first.height<=config.ECHO_SPIRE.introMaxHeight);
+  assert.ok(first.width<=config.ECHO_SPIRE.introMaxWidth);
+  assert.ok(first.frame<60*22,'the obstacle must be introduced well before zone 3');
+  assert.ok(phaseAtSpawn);
 });

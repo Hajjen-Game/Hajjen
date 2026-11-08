@@ -503,10 +503,17 @@
     // hazards finish their normal course; no artificial clears are awarded.
     if(gravityShift.pending||gravityShift.shifting)return false;
     const spire=window.ChromaConfig.ECHO_SPIRE;
+    const firstEcho=data.type==='echo'&&!director.echoIntroduced;
     if(data.type==='echo'&&(zone<spire.firstZone||hp<=50||director.stress>=.42))return false;
-    const width=data.type==='echo'?rand(spire.minWidth,spire.maxWidth):
+    if(firstEcho&&(gravityShift.ceiling||gravityShift.pending||
+      gravityShift.shifting||gravityShift.protected))return false;
+    const width=data.type==='echo'?
+      rand(firstEcho?spire.introMinWidth:spire.minWidth,
+        firstEcho?spire.introMaxWidth:spire.maxWidth):
       data.type==='jump'?rand(43,58):rand(54,71);
-    const height=data.type==='echo'?rand(spire.minHeight,spire.maxHeight):
+    const height=data.type==='echo'?
+      rand(firstEcho?spire.introMinHeight:spire.minHeight,
+        firstEcho?spire.introMaxHeight:spire.maxHeight):
       data.type==='jump'?rand(53,66):rand(115,158);
     const x=spawnXFor(data.type),worldX=distance+x;
     if(!terrain.canSpawnObstacle(worldX,width,speed))return false;
@@ -518,14 +525,17 @@
       const approach=(x-player.x)/Math.max(300,speed);
       const launchY=terrain.groundAt(worldX-speed*.55);
       const landY=terrain.groundAt(worldX+width+speed*.20);
+      // Keep the takeoff and landing on nearly the same level: a launch
+      // from much higher ground could let ONE jump clear a lower Spire.
       if(approach<.78||launchY===null||landY===null||
-        Math.abs(launchY-groundY)>34||Math.abs(landY-groundY)>34)return false;
+        Math.abs(launchY-groundY)>8||Math.abs(landY-groundY)>8)return false;
     }
     hurdles.push({type:data.type,x,worldX,groundY,width,height,hit:false,cleared:false,
       closestClearance:Infinity,entryDuckTime:null,phase:data.phase,pulse:Math.random()*Math.PI*2});
     const fairness=FAIR.metrics(data.type,
       {x,playerX:player.x,viewportWidth:W,speed});
     runAudit.record('spawn',auditState(),{obstacle:data.type,pattern:data.pattern||'',worldX,
+      surface:gravityShift.ceiling?'ceiling':'floor',intro:firstEcho,
       leadSeconds:fairness.leadSeconds,requiredSeconds:fairness.requiredSeconds,
       visibleSeconds:fairness.visibleSeconds,earlyCueSeconds:fairness.earlyCueSeconds,
       fair:fairness.fair,needsCue:fairness.needsCue});
@@ -790,7 +800,10 @@
     if(!player.landed&&visualRandom()<.7*quality.profile.particles)motes.push(makeMote(player.x+fxRand(-14,14),player.feet-8,c1,{vx:fxRand(-170,-20),vy:fxRand(10,70),life:.32,r:fxRand(1,3)}));
     const phaseBefore=director.phase;
     terrainDirector.tick(dt,{zone,speed,hp,distance,spawnX:W+90,
-      spawnXFor,playerX:player.x},spawn);
+      spawnXFor,playerX:player.x,
+      surface:gravityShift.ceiling?'ceiling':'floor',
+      gravityPending:gravityShift.pending||gravityShift.shifting||
+        gravityShift.protected},spawn);
     if(phaseBefore!==director.phase)runAudit.record('phase',auditState(),
       {from:phaseBefore,to:director.phase,movement:director.movement.insight});
     const p=GEO.playerBox(player);

@@ -573,3 +573,43 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
 @media(prefers-reduced-motion:reduce){
   #menu .menu-highlights *,#gameover .result-highlights *{transition:none;}
 }
+
+/* Chroma Identity 1.0 — authored typography and visual rhythm.
+ * No added continuous animation, expensive filters or background changes. */
+#menu h1{position:relative;isolation:isolate;letter-spacing:-.067em;filter:none;}
+#menu h1 span{color:#eaffff;text-shadow:0 0 11px rgba(68,223,255,.46);}
+#menu h1 em{color:#fc77c6;text-shadow:0 0 14px rgba(250,73,178,.37);}
+@supports (-webkit-background-clip:text) or (background-clip:text){
+  #menu h1 em{background:linear-gradient(110deg,#ff9ed6,#fa49b2 52%,#a67dff);
+    -webkit-background-clip:text;background-clip:text;color:transparent;}
+}
+#menu h1::after{content:"";position:absolute;bottom:-8px;left:24%;width:52%;height:3px;
+  transform:skewX(-32deg);pointer-events:none;opacity:.88;
+  background:linear-gradient(90deg,transparent,#4bf0ff 22%,#f6faff 46%,#fa49b2 77%,transparent);}
+#menu .menu-eyebrow{color:#97bad5;letter-spacing:.4em;}
+#menu .menu-tagline{margin-top:14px;color:#b7cde3;letter-spacing:.24em;}
+#menu .primary-btn,#gameover .primary-btn{
+  position:relative;border-color:rgba(200,250,255,.86);
+  background:linear-gradient(105deg,#60eaff,#a8f8ff 73%,#d1faff);
+  box-shadow:0 0 24px rgba(62,228,255,.24),inset 0 1px rgba(255,255,255,.8);
+  letter-spacing:.16em;}
+#menu .primary-btn::before,#gameover .primary-btn::before{
+  content:"";position:absolute;left:13px;top:50%;height:15px;width:3px;
+  transform:translateY(-50%) skewX(-27deg);pointer-events:none;
+  background:#153b58;opacity:.55;}
+#gameover h2{letter-spacing:-.055em;text-shadow:0 0 14px rgba(71,223,245,.19);}
+#gameover .result-score strong{letter-spacing:-.01em;text-shadow:0 0 18px rgba(74,224,255,.20);}
+#gameover .result-score::after{content:"";display:block;width:44%;height:2px;margin-top:5px;
+  background:linear-gradient(90deg,transparent,#58e9ff,#fa6ac5,transparent);opacity:.72;}
+#hud .hud-center .small-label{color:#a8cde6;letter-spacing:.25em;}
+#zone-display{text-shadow:0 0 12px currentColor;}
+#hud #score-display{font-weight:850;letter-spacing:.065em;}
+#flow-outer,#hud .hp-outer{border-radius:3px;}
+#flow-inner,#hud #hp-inner{border-radius:2px;}
+#menu .version{opacity:.38;}
+@media(max-height:440px) and (orientation:landscape){
+  #menu h1::after{height:2px;bottom:-4px;}
+  #menu .menu-tagline{margin-top:5px;}
+  #gameover .result-score::after{margin-top:2px;}
+}
+@media(prefers-reduced-motion:reduce){#menu .primary-btn,#gameover .primary-btn{transition:none;}}

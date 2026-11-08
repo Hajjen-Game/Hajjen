@@ -7,7 +7,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo || !window.ChromaShieldCore || !window.ChromaShieldCoreRender || !window.ChromaDashHazards) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo || !window.ChromaShieldCore || !window.ChromaShieldCoreRender || !window.ChromaDashHazards || !window.ChromaIdentity) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -39,6 +39,7 @@
   const shieldCoreRender = window.ChromaShieldCoreRender;
   const motion = new window.ChromaMotion.PlayerMotion();
   const effects = new window.ChromaEffects.EffectLanguage();
+  const identity = window.ChromaIdentity;
   const terrainRender = window.ChromaTerrainRender;
   const worldBackground = window.ChromaWorldBackground;
   const spectralWave = new window.ChromaSpectralWave.SpectralWave();
@@ -1281,6 +1282,8 @@
       }
       glowLine(core.x,core.y,core.x+core.w,core.y,'#ffffff',1,8,.45);
     }
+    identity.drawHazardMark(ctx,{x:core.x,y:core.y,w:core.w,h:core.h,
+      type:o.type,charged:Boolean(o.dashSatisfied),quality:quality.profile});
     if(DASH_HAZARDS.isDashHazard(o.type)){
       // The luminous, hairline momentum seal is NOT another rectangular
       // obstacle. It visually spans the airborne route (Air Dash) or the
@@ -1383,6 +1386,10 @@
     playerPath(rx+5,ry+4,rw-10,rh-8,5,bend*.82);
     ctx.fill();
     glowLine(rx+bend+6,ry+6,rx+bend+rw*.63,ry+6,'#fff',2,6,.7);
+    // Inset identity mark follows the rendered elastic cube and ceiling mirror.
+    identity.drawPlayerMark(ctx,{x:rx,y:ry,w:rw,h:rh,offset:bend,
+      primary:pc1,secondary:pc2,duck:player.duck,dash:dashAmount,
+      quality:quality.profile});
     if(player.duck){
       const n=Math.max(1,Math.round(3*quality.profile.particles));
       for(let i=0;i<n;i++){

@@ -251,6 +251,18 @@
             ctx.beginPath();ctx.moveTo(x+8,y);
             ctx.lineTo(x+span,y-1.5);ctx.stroke();
           }
+          // High-tier boundary shear; attached to the REAL palette wave.
+          // Performance adds zero strokes. No detached scout or fake obstacle.
+          if(intensity>=.8){
+            ctx.shadowBlur=3*glow;ctx.lineWidth=1.2;
+            for(let i=0;i<3;i++){
+              const y=height*(.22+i*.28),front=this.frontAt(y,height);
+              ctx.globalAlpha=(.19+.07*Math.sin(this.elapsed*12+i)**2)*intensity;
+              ctx.strokeStyle=i===1?secondary:primary;
+              ctx.beginPath();ctx.moveTo(front+16,y-6);
+              ctx.lineTo(front+54+i*10,y-10);ctx.stroke();
+            }
+          }
           // Two short streak cuts give a tangible moment of acceleration
           // without flashing across the HUD or obscuring player/hazards.
           ctx.shadowBlur=8*glow;ctx.strokeStyle=primary;ctx.lineWidth=1.8;

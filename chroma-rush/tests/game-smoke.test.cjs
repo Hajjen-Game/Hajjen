@@ -28,6 +28,7 @@ const worldBackground = require('../src/render/world-background.js');
 const spectralWave = require('../src/render/spectral-wave.js');
 const chromaVfx = require('../src/render/chroma-state-vfx.js');
 const speedTrails = require('../src/render/speed-trails.js');
+const identity = require('../src/render/chroma-identity.js');
 const gravityShift = require('../src/gameplay/gravity-shift.js');
 const runAudit = require('../src/diagnostics/round-audit.js');
 const unified = require('../src/director/unified-terrain-director.js');
@@ -59,7 +60,7 @@ function setup(initialStorage={}) {
   let requested;
   const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaMovementAwareness:movementAwareness,ChromaHighSpeedFairness:highSpeedFairness,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaPrecisionCombo:precisionCombo,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaDash:dashModule,ChromaShieldCore:shieldCore,ChromaShieldCoreRender:shieldCoreRender,ChromaDashHazards:dashHazards,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaSpectralWave:spectralWave,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaGravityShift:gravityShift,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaMovementAwareness:movementAwareness,ChromaHighSpeedFairness:highSpeedFairness,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaPrecisionCombo:precisionCombo,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaDash:dashModule,ChromaShieldCore:shieldCore,ChromaShieldCoreRender:shieldCoreRender,ChromaDashHazards:dashHazards,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaSpectralWave:spectralWave,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaIdentity:identity,ChromaGravityShift:gravityShift,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
@@ -205,7 +206,7 @@ test('zone 1: real touch taps trigger ground and air dashes, and audit records b
   assert.ok(g.dash.travel>before);
   assert.equal(g.runAudit.summary.movement.airDashes,1);
   assert.equal(g.runAudit.summary.movement.echoJumps,0);
-  assert.equal(g.runAudit.snapshot().build,'performance-stability-2.0');
+  assert.equal(g.runAudit.snapshot().build,'chroma-identity-visual-polish-1.0');
 });
 
 test('fast double-tap is buffered, then truly launches the second impulse',()=>{

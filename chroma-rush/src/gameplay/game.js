@@ -948,7 +948,7 @@
       glowLine(x+bevel+1,y+5,x+w-bevel-1,y+5,'#ffffff',2.6,11,.90);
       glowLine(x+3,y+bevel+2,x+3,y+h-11,color,1.7,6,.72);
       glowLine(x+w-3,y+bevel+2,x+w-3,y+h-11,color,1.7,6,.72);
-      ctx.fillStyle=rgba(color,isEcho?.12:.17);
+      ctx.fillStyle=rgba(color,isEcho ? .12 : .17);
       ctx.fillRect(x+6,y+bevel+8,w-12,h-bevel-22);
       if(isEcho){
         // The double-jump Spire belongs to the SAME obstacle family,

@@ -38,6 +38,8 @@
       this.lastDashHazardAt=-Infinity;
       this.lastDashHazardType=null;
       this.dashHazardRepeats=0;
+      this.dashRetryAfter=0;
+      this.dashPlacementFailures=0;
       this.comboInsight={total:0,best:0,lastAt:-Infinity};
       this.movement.reset();
     }
@@ -184,11 +186,14 @@
       // their return. Alternate actions every ~24s on *safe* BUILD/PEAK
       // sections rather than hoping a tiny random pattern weight hits.
       const repeatType=this.lastDashHazardType==='dash-jump'?'dash-duck':'dash-jump';
-      const repeating=Boolean(!firstDashType&&!guidedEcho&&calm&&
+      const repeating=Boolean(this.dashIntroduced.air&&this.dashIntroduced.ground&&
+        Number.isFinite(this.lastDashHazardAt)&&!guidedEcho&&calm&&
         activePhase&&this.time-this.lastDashHazardAt>=DASH_REPEAT_SECONDS);
-      const guidedDash=firstDash||repeating;
+      const guidedDash=(firstDash||repeating)&&this.time>=this.dashRetryAfter;
       const guidedType=firstDash?firstDashType:repeating?repeatType:null;
-      if(guidedDash&&this.pending[0]?.type!==guidedType){
+      // NEVER replace a pending Echo Spire or a pending ordinary pattern:
+      // finish its physical commitment before offering a new Dash lesson.
+      if(guidedDash&&!this.pending.length){
         this.pending=[{type:guidedType,pattern:'single-'+guidedType,step:1,guided:true}];
         this.spawnCountdown=Math.min(this.spawnCountdown,.12);
       }
@@ -268,13 +273,28 @@
       // Keep the pending action and retry later, rather than counting a fake
       // obstacle or popping an impossible pattern step.
       if(spawn({...next,phase:this.phase})===false){
+        if(next.guided&&(next.type==='dash-jump'||next.type==='dash-duck')){
+          this.dashPlacementFailures++;
+          if(this.dashPlacementFailures>=4){
+            // A long gap/sloped section must never freeze the hazard queue
+            // while waiting for one rare Dash opportunity.
+            this.pending.shift();
+            this.dashPlacementFailures=0;
+            this.dashRetryAfter=this.time+2.2;
+            this.spawnCountdown=.30;
+            this.movement.deferredPatterns++;
+            return;
+          }
+        }
         this.spawnCountdown=.22;
         return;
       }
+      this.dashPlacementFailures=0;
       this.pending.shift();
       this.movement.onSpawn(next.type,this.time);
       if(next.type==='echo')this.echoIntroduced=true;
       if(next.type==='dash-jump'||next.type==='dash-duck'){
+        this.dashRetryAfter=0;
         const wasIntroduced=next.type==='dash-jump'?this.dashIntroduced.air:
           this.dashIntroduced.ground;
         if(wasIntroduced)this.dashHazardRepeats++;

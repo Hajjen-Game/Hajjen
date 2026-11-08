@@ -47,6 +47,45 @@ test('a new special obstacle cannot have its first appearance in ceiling mode',(
     surface:'ceiling',confidence:.38}),true);
 });
 
+test('long playtime alone never emits Dash before either family is taught',()=>{
+  const d=new AdaptiveRushDirector(()=>.46),seen=[];
+  d.phase='PEAK';d.phaseDuration=100;d.time=100;d.spawnCountdown=0;
+  d.tick(.08,{zone:2,zoneElapsed:4,hp:100,speed:600,surface:'floor'},
+    step=>{seen.push(step.type);return true});
+  assert.equal(seen.some(t=>t===AIR||t===GROUND),false);
+  assert.equal(d.dashIntroduced.air,false);
+  assert.equal(d.dashIntroduced.ground,false);
+});
+
+test('new Dash scheduler never displaces a queued Echo lesson',()=>{
+  const d=new AdaptiveRushDirector(()=>.45),seen=[];
+  d.phase='PEAK';d.phaseDuration=100;d.confidence=.9;d.spawnCountdown=0;
+  d.pending=[{type:'echo',pattern:'single-echo',step:1}];
+  d.tick(.05,{zone:5,zoneElapsed:4,hp:100,speed:900,playerX:300,
+    spawnX:1370,surface:'floor',gravityPending:false},
+    step=>{seen.push(step.type);return true});
+  assert.deepEqual(seen,['echo']);
+  assert.equal(d.echoIntroduced,true);
+  assert.equal(d.dashIntroduced.air,false);
+});
+
+test('unavailable Dash terrain yields the queue back to regular obstacles',()=>{
+  const d=new AdaptiveRushDirector(()=>.47),attempts=[];
+  d.phase='PEAK';d.phaseDuration=100;d.confidence=.88;d.spawnCountdown=0;
+  const ctx={zone:5,zoneElapsed:4,hp:100,speed:700,playerX:300,
+    spawnX:1450,surface:'floor',gravityPending:false};
+  for(let i=0;i<12;i++){
+    d.tick(.28,ctx,step=>{
+      attempts.push(step.type);
+      return step.type!==AIR;
+    });
+  }
+  assert.ok(attempts.includes(AIR),'attempt a first safe lesson');
+  assert.ok(d.dashRetryAfter>0,'suspend after repeated safety vetoes');
+  assert.ok(attempts.some(t=>t!==AIR),'ordinary actions continue while deferred');
+  assert.equal(d.dashIntroduced.air,false,'never invent a successful lesson');
+});
+
 test('a queued first-lesson is withdrawn if the course is now in ceiling mode',()=>{
   const d=new AdaptiveRushDirector(()=>.47),spawned=[];
   d.pending=[{type:AIR,pattern:'single-dash-jump',step:1,guided:true}];

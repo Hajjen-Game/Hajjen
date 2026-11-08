@@ -179,6 +179,6 @@ test('release HTML loads spectral module before game and advertises its build',(
   const wave=html.indexOf('src/render/spectral-wave.js?v=spectral-wave-1.0');
   const game=html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
   assert.ok(wave>0&&game>wave);
-  assert.match(html,/<meta name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0-duck-gate-1\.0-echo-spire-1\.0-aware-1\.0-fairness-1\.0-jump-visual-1\.0-combo-1\.0-speed-curve-2\.0-echo-polish-1\.1-echo-zone2-1\.2-no-scout-1\.1-tide-2\.0"/);
+  assert.match(html,/<meta name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0-duck-gate-1\.0-echo-spire-1\.0-aware-1\.0-fairness-1\.0-jump-visual-1\.0-combo-1\.0-speed-curve-2\.0-echo-polish-1\.1-echo-zone2-1\.2-no-scout-1\.1-tide-2\.0-spectacle-1\.0"/);
   assert.match(html,/LATEST UPDATE · CHROMA TIDE SPECTACLE 1\.0/);
 });

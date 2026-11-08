@@ -18,6 +18,7 @@ const modules={
  ChromaArcadeUI:require('../src/ui/arcade-ui.js'),
  ChromaTerrain:require('../src/terrain/terrain-system.js'),
  ChromaJump:require('../src/gameplay/jump-controller.js'),
+ ChromaDash:require('../src/gameplay/contextual-dash.js'),
  ChromaMotion:require('../src/render/player-motion.js'),
  ChromaEffects:require('../src/render/effect-language.js'),
  ChromaTerrainRender:require('../src/render/terrain-renderer.js'),

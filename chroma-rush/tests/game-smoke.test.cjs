@@ -384,7 +384,7 @@ test('real arcade loop introduces Echo Jump in zone 2, allows one new press and 
   for(let i=1;i<=733;i++)g.step(i*1000/60);
   assert.equal(state.zone(),2,'Echo ability must be introduced early');
   assert.equal(g.get('jump-btn')['aria-label'],
-    'Jump; tap again in the air for Echo Jump');
+    'Jump; tap again in the air for Double Jump');
   const jump=g.get('jump-btn');
   const tap=(id)=>{
     for(const cb of jump.events.pointerdown??[])cb({pointerId:id,preventDefault(){}});

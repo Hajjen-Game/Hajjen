@@ -365,12 +365,12 @@ test('real arcade loop introduces Echo Jump in zone 2, allows one new press and 
   assert.doesNotThrow(()=>state.render());
 });
 
-test('first floor Echo lesson in zone 5: one jump fails, Echo clears, later ceiling remains playable',()=>{
+test('first floor Echo lesson in zone 2: one jump fails, Echo clears, later ceiling remains playable',()=>{
   function play({secondJump=false,ceiling=false}={}){
     const g=setup({chromaRushArcadeV1:JSON.stringify({bestZone:6,bestScore:1800})});
-    g.step(0);g.get('practice-zone').value='5';g.get('practice-start-btn').click();
+    g.step(0);g.get('practice-zone').value='2';g.get('practice-start-btn').click();
     const state=g.context.window.__gravityHarness;
-    assert.equal(state.zone(),5);
+    assert.equal(state.zone(),2);
     state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
     state.terrain.gaps=[];state.terrain.generated=10000000;
     state.director.phase='PEAK';state.director.phaseDuration=6;state.director.phaseElapsed=0;
@@ -395,7 +395,7 @@ test('first floor Echo lesson in zone 5: one jump fails, Echo clears, later ceil
     // Time the input relative to the ACTUAL obstacle's arrival, not a
     // constant calibrated to Speed Curve 1.0. Both curves must satisfy the
     // same physical test: one jump fails, two correctly timed jumps clear.
-    const speed=config.GAME.speedAt(4*config.GAME.zoneSeconds,5);
+    const speed=config.GAME.speedAt(config.GAME.zoneSeconds,2);
     const untilContact=(first.x-state.player().x-22)/speed;
     // Slower movement means the wide pillar overlaps the player longer;
     // place contact near the broad Echo apex, not near descent.

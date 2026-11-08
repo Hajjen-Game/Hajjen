@@ -39,5 +39,6 @@ test('spawn output only produces supported control actions', () => {
   const d = new AdaptiveFlowDirector(() => .4), types=[];
   for(let i=0;i<450;i++)d.tick(.05,{hp:75,zone:2,speed:480},o=>types.push(o.type));
   assert.ok(types.length>5);
-  assert.ok(types.every(t=>t==='jump'||t==='duck'));
+  assert.ok(types.every(t=>['jump','duck','echo'].includes(t)));
+  assert.ok(types.includes('echo'),'zone 2 now includes an introductory double-jump obstacle');
 });

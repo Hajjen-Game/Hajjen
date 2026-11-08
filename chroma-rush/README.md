@@ -1,8 +1,18 @@
-# CHROMA RUSH — Echo Spire 1.2
+# CHROMA RUSH — Chroma Tide 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Chroma Tide 2.0 — Premium Color-Zone Transitions (2026-11-08)
+
+- **No false hazards:** the separate on-ground scout rectangle and its vertical tip remain completely absent. The 0.19-second awakening phase introduces only a *scene-wide subtle tint and rising zone-charge sound*, not a new object to jump over.
+- **Unified chromatic tide:** over the next **0.86 seconds**, a full-height, softly warped color boundary sweeps right-to-left. A prismatic leading veil, layered light filaments and short refraction flecks move **with the same wave front**; an approximately 0.27-second pair of restrained horizontal resonance rails accompanies the single crossing of the player. No rings or full-screen white flash. Zone sound lands once at the actual crossing.
+- **Perceptually blended pigments:** per-palette, per-channel 65-step OKLab color ramps are generated **once on zone change**. Subsequent actor, environment and ground-light samples use only simple lookup (no per-frame exponent/power calculations). Original eight palettes and their exact endpoint colors remain unchanged.
+- **Original background remains intact:** atmospheric sky, distant columns, subtle streaks, stars, floor/grid and full-height continuity are preserved. World objects change color where the same spatial wave passes; global haze and ground ambience blend smoothly across the entire duration rather than snapping at the center of the frame.
+- **The big performance fix:** during the tide the original code drew both palette versions of the **entire background AND terrain** in separate clipped passes. Chroma Tide 2.0 calls the real background renderer **once** and the real terrain renderer **once**, with spatial color gradients and per-object color sampling. The terrain's original gap transparency mask still clips once. The tide itself limits luminous strokes independent of forced High glow. This reduces redundant Canvas drawing; actual FPS benefit depends on the phone and must be checked on device.
+- **Game integrity:** the Director, difficulty curve, zone cadence, collision bounds, world geometry, speed, Flow/combos, Double Jump, Gravity Shift, HUD and two controls are untouched. The existing reduced-motion setting bypasses the animated tide while still applying the next palette.
+- **Acceptance QA:** [Chroma Tide tests](tests/chroma-tide-2.0.test.cjs) verify 8 palette ramps, one-pass world/terrain, correct gradient direction, charge without object geometry, fixed FX budget, reduced motion and unchanged control semantics. [Game-loop tests](tests/game-smoke.test.cjs) verify a real zone transition renders exactly one backdrop and ground pass. For older phones, compare zone 1→2 and 2→3 in High vs Balanced and export run FPS/frame-stall metrics.
 
 ## Echo Spire 1.2 — Early Zone-2 Double-Jump Onboarding (2026-11-08)
 

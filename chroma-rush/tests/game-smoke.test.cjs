@@ -63,7 +63,7 @@ function setup(initialStorage={}) {
   const ending='  requestAnimationFrame(frame);\n})();';
   assert.ok(gameCode.includes(ending));
   vm.runInContext(gameCode.replace(ending,
-    "  window.__gravityHarness={gravityShift,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,motion,combo,flow,comboAward:awardCombo,score:()=>score,hurdles:()=>hurdles,hp:()=>hp,player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
+    "  window.__gravityHarness={gravityShift,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,hurdles:()=>hurdles,hp:()=>hp,player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
     context,{filename:'game.js'});
   return {get,local,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
@@ -482,4 +482,34 @@ test('normal arcade run introduces its first real Echo Spire IN zone 2 on the fl
   assert.ok(first.width<=config.ECHO_SPIRE.introMaxWidth);
   assert.ok(first.frame<60*22,'the obstacle must be introduced well before zone 3');
   assert.ok(phaseAtSpawn);
+});
+
+test('real game frames draw ONE background and ONE terrain during Chroma Tide 2.0',()=>{
+  const g=setup();
+  g.step(0);g.get('start-btn').click();
+  const state=g.context.window.__gravityHarness;
+  // This measures the actual zone render, not survival skills of a simulated
+  // player with no controls. Keep the procedural game clock/zone real but
+  // supply a flat test runway and harmless contacts until the first crossing.
+  state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
+  state.terrain.gaps=[];state.terrain.generated=10000000;
+  let timestamp=0;
+  for(let i=1;i<=60*13;i++){
+    state.player().invulnerable=9;
+    timestamp=i*1000/60;g.step(timestamp);
+    if(state.spectralWave.active&&!state.spectralWave.charging)break;
+  }
+  assert.ok(state.spectralWave.active,'the live game should be transitioning zones');
+  let backgrounds=0,terrains=0;
+  const oldBg=worldBackground.drawBackground,oldTerrain=terrainRender.drawTerrain;
+  try{
+    worldBackground.drawBackground=(opts)=>{backgrounds++;return oldBg(opts)};
+    terrainRender.drawTerrain=(opts)=>{terrains++;return oldTerrain(opts)};
+    g.step(timestamp+1000/60);
+    assert.equal(backgrounds,1,'no duplicate background on an active zone wave');
+    assert.equal(terrains,1,'no duplicate terrain on an active zone wave');
+  }finally{
+    worldBackground.drawBackground=oldBg;
+    terrainRender.drawTerrain=oldTerrain;
+  }
 });

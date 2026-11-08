@@ -37,13 +37,12 @@
   const GAME=Object.freeze({
     floorRatio:.715,
     baseSpeed:370,
-    // Speed Curve 2.0: preserve the 370-unit arcade launch but give
-    // increasingly complex mechanics room to breathe. The course never
-    // slows, and the late segment is continuous at the 120s breakpoint.
-    acceleration:7,
-    lateAcceleration:4.5,
-    lateAccelerationAfterSeconds:120,
-    zoneSpeedBonus:7,
+    // Speed Curve 3.0: gentle long-run progression, no abrupt zone speed boost.
+    // Always increasing with a diminishing acceleration and positive late slope.
+    speedRise:620,
+    speedEaseSeconds:180,
+    cruiseAcceleration:.55,
+    zoneSpeedBonus:0,
     zoneSeconds:12,
     jumpVelocity:-870,
     // Echo Jump is deliberately weaker and can be used only once per flight.
@@ -57,10 +56,10 @@
     damagePerHit:25,
     speedAt(time,zone){
       const elapsed=Math.max(0,time);
-      const early=Math.min(elapsed,this.lateAccelerationAfterSeconds);
-      const late=Math.max(0,elapsed-this.lateAccelerationAfterSeconds);
-      return this.baseSpeed+early*this.acceleration+late*this.lateAcceleration+
-        Math.max(0,zone-1)*this.zoneSpeedBonus;
+      // Public time/zone API retained for arcade and practice. Velocity is
+      // continuous in elapsed time; zones trigger visuals, not speed steps.
+      return this.baseSpeed+this.speedRise*(1-Math.exp(-elapsed/this.speedEaseSeconds))+
+        elapsed*this.cruiseAcceleration;
     }
   });
   const FLOW=Object.freeze({

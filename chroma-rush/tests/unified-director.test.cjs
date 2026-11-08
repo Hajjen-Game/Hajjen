@@ -37,7 +37,8 @@ test('gap planning is suppressed for low shield and high stress without changing
   assert.equal(unified.policyAt(1400,{...context,hp:25}).gapChance,0);
   director.stress=.75;
   assert.equal(unified.policyAt(1400,{...context,hp:100}).gapChance,0);
-  assert.equal(GAME.speedAt(60,6),GAME.baseSpeed+60*GAME.acceleration+5*GAME.zoneSpeedBonus);
+  assert.ok(GAME.speedAt(60,6)>GAME.baseSpeed);
+  assert.equal(GAME.speedAt(60,6),GAME.speedAt(60,1),'zone labels must not cause speed steps');
 });
 test('an obstacle deferred near a chasm remains pending and is not counted as spawned',()=>{
   const {unified,director,terrain}=harness();

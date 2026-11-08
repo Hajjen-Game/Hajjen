@@ -118,10 +118,9 @@ test('twenty-four deterministic three-minute sweeps cover fast phones, narrow vi
   assert.equal(report.cuesChecked,report.warnings);
   assert.ok(report.warnings>0);
   assert.ok(report.results.every(r=>r.gravityFlips>0));
-  // Speed Curve 2.0 deliberately caps acceleration (not speed). Every
-  // zone-one three-minute reference run now ends near 1,585 rather than 2,620.
+  // The continuous long-run curve reaches approximately 861 units/s at 3m.
   assert.ok(report.results.every(r=>r.finalSpeed===GAME.speedAt(180,16)));
-  assert.ok(report.results.every(r=>r.finalSpeed===1585));
+  assert.ok(report.results.every(r=>Math.round(r.finalSpeed)===861));
   console.log('high-speed-fairness audit summary: '+JSON.stringify({
     runs:report.runs,simulatedSeconds:report.totalSeconds,
     obstacles:report.obstacles,offscreenCues:report.warnings,
@@ -130,7 +129,7 @@ test('twenty-four deterministic three-minute sweeps cover fast phones, narrow vi
 });
 test('late-zone practice still exercises high-speed fairness with the new curve',()=>{
   const r=simulate({seed:42,seconds:180,startingZone:12,viewportWidth:900,damageEvery:17});
-  assert.ok(r.finalSpeed>2000,'higher-zone practice remains fast');
+  assert.ok(r.finalSpeed>GAME.speedAt(180,16),'later-zone practice is faster than zone-one pace');
   assert.ok(r.finalSpeed<GAME.speedAt(300,26)+300);
   assert.ok(r.cleared>10);
   assert.equal(r.underBudget,0);

@@ -1,8 +1,18 @@
-# CHROMA RUSH — Dash Energy Bridge 1.0
+# CHROMA RUSH — Speed Curve 3.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Speed Curve 3.0 — Long-Run Progression (2026-11-09)
+
+- **Balancing target:** exceptional runs around 5–7 minutes, with 10+ minutes still possible. This is not a forced death time or a measured human survival distribution.
+- Keeps 370 units/s launch and 12-second zones; replaces the two-slope plus per-zone boost with one continuously increasing, diminishing-acceleration velocity curve.
+- Formula: `370 + 620 × (1 − exp(−t/180)) + 0.55 × t` for elapsed time `t` in seconds. Expected: ~579 at 1m, ~738 at 2m, ~861 at 3m, ~1,038 at 5m, ~1,161 at 7m, ~1,298 at 10m. There is **no speed cap**.
+- Zone changes still trigger visual/color milestones and progression, but no extra speed jump; later-zone practice starts at the same corresponding time-derived speed.
+- No changes to Director decisions, movement, HP/Flow, obstacle physics, original camera/background, graphics quality or gap collision. The **existing Dash Energy Bridge is still present**; the seal-less geometry and dynamic camera are separate future passes.
+- Previously saved scores, PBs and milestones remain; older scores may not be directly comparable with the new speed curve.
+- [Speed Curve 3.0 regression tests](tests/speed-curve-3.0.test.cjs) include long-run speed integrity and seven-minute fairness auditing; see [design notes](docs/speed-curve-3.0.md).
 
 ## Dash Energy Bridge 1.0 (2026-11-08)
 
@@ -221,7 +231,7 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 | 120 sec | 11 | 1,870 | 1,280 | 32% |
 | 180 sec | 16 | 2,620 | 1,585 | 40% |
 
-- [Speed Curve 2.0 regression tests](tests/speed-curve-2.0.test.cjs) verify exact checkpoints, late-phase continuity, monotonic zone transitions, no hard cap, practice alignment and unchanged controls/physics. The existing [High-Speed Fairness Audit](tests/high-speed-fairness-audit-1.0.test.cjs) is re-baselined to the new 180-second speed and separately tests later-zone high-speed practice.
+- [Speed Curve 3.0 regression tests](tests/speed-curve-3.0.test.cjs) verify exact checkpoints, late-phase continuity, monotonic zone transitions, no hard cap, practice alignment and unchanged controls/physics. The existing [High-Speed Fairness Audit](tests/high-speed-fairness-audit-1.0.test.cjs) is re-baselined to the new 180-second speed and separately tests later-zone high-speed practice.
 - **Manual playtest focus:** zone 1–3 onboarding, zone 4–8 difficulty/response rhythm, zone 11+ longer runs. Change Director complexity only after comparing gameplay feedback; this is deliberately a one-variable balance pass. Older recorded high-speed audit results refer to the **previous** curve.
 
 ## Precision & Combo System 1.0 (2026-11-07)

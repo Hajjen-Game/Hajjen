@@ -117,8 +117,11 @@ test('game triggers on real physics, timing and obstacle-clear events, not simul
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
   for(const kind of Object.keys(CUES))assert.ok(game.includes("effects.cue('"+kind+"'"),kind);
   const precision=game.indexOf("effects.cue('precision'");
-  const nearMiss=game.indexOf('director.registerNearMiss()');
-  assert.ok(nearMiss>=0&&precision>nearMiss);
+  const precisionSkill=game.indexOf('director.registerPrecisionClear()');
+  assert.ok(precisionSkill>=0&&precision>precisionSkill,
+    'precision animation follows a real skill-reward event');
+  assert.ok(!game.includes('director.registerNearMiss()'),
+    'successful precision must not masquerade as Director stress');
   assert.match(game,/SPEED_MARKS=Object\.freeze\(\[1\.5,2,3,4,6,8\]\)/);
   assert.match(game,/nextSpeedMark\+\+/);
   assert.equal(GAME.jumpVelocity,-870);

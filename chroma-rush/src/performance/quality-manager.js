@@ -1,5 +1,6 @@
-/* CHROMA RUSH — Mobile Performance Optimization 1.0.
- * Rendering-only settings and local frame statistics. NEVER alters gameplay RNG.
+/* CHROMA RUSH — Performance Stability 2.0.
+ * Rendering-only AUTO tuning and bounded frame measurements. HIGH is untouched.
+ * Never touches gameplay clock, difficulty, physics or gameplay RNG.
  */
 (function(root,factory){
   const api=factory();
@@ -30,7 +31,8 @@
       try{saved=storage?.getItem(KEY)}catch(_){}
       this.mode=MODES.includes(saved)?saved:'auto';
       this.tier=this.mode==='auto'?initialTier(device):this.mode;
-      this.history=[];this.samples=0;this.averageFrame=0;this.cooldown=0;this.slowSeconds=0;this.fastSeconds=0;
+      this.history=[];this.cursor=0;this.samples=0;this.averageFrame=0;
+      this.cooldown=0;this.slowSeconds=0;this.fastSeconds=0;
       this.render={background:0,terrain:0,actors:0,effects:0,total:0,update:0};
       this.lastFrame=0;this.fps=0;this.frameP90=0;
     }
@@ -40,9 +42,18 @@
       if(!MODES.includes(mode))return false;
       this.mode=mode;
       this.tier=mode==='auto'?initialTier(this.device):mode;
-      this.history=[];this.samples=0;this.cooldown=0;this.slowSeconds=0;this.fastSeconds=0;
+      this.suspend();
+      this.cooldown=0;
       try{this.storage?.setItem(KEY,mode)}catch(_){}
       return true;
+    }
+    // Reset the measuring window after menus, pause or app backgrounding.
+    // Retain the chosen tier; never reinterpret the suspended interval as
+    // slow gameplay or drop visual quality on the first resumed frame.
+    suspend(){
+      this.history=[];this.cursor=0;this.samples=0;
+      this.averageFrame=0;this.frameP90=0;this.fps=0;
+      this.slowSeconds=0;this.fastSeconds=0;
     }
     effectiveDpr(deviceDpr,width,height){
       const p=this.profile;
@@ -54,10 +65,11 @@
       if(!(elapsedMs>=5&&elapsedMs<=160))return false;
       this.lastFrame=elapsedMs;
       this.render={background,terrain,actors,effects,total,update};
-      this.history.push(elapsedMs);
-      if(this.history.length>180)this.history.shift();
-      // Sorting every RAF is unnecessary overhead, especially on old phones.
-      // Recalculate 90th percentile and average only every 30 active frames.
+      // Ring buffer: O(1) sampling without shifting 180 elements each RAF.
+      // Percentiles are calculated only once per 30 active frames.
+      if(this.history.length<180)this.history.push(elapsedMs);
+      else this.history[this.cursor]=elapsedMs;
+      this.cursor=(this.cursor+1)%180;
       if(++this.samples%30===0){
         const values=this.history.slice().sort((a,b)=>a-b);
         this.averageFrame=this.history.reduce((a,b)=>a+b,0)/this.history.length;
@@ -74,12 +86,15 @@
       if(this.cooldown>0)return false;
       if(this.slowSeconds>=6&&this.tier!=='performance'){
         this.tier=this.tier==='high'?'balanced':'performance';
-        this.cooldown=18;this.slowSeconds=0;this.fastSeconds=0;this.history=[];
+        this.suspend();this.cooldown=22;
         return true;
       }
-      if(this.fastSeconds>=32&&this.tier!=='high'){
+      // Modern devices with no exposed memory/concurrency hints should not
+      // be held at Balanced for an entire run if they deliver smooth frames.
+      // A longer cooldown prevents tier ping-pong on marginal hardware.
+      if(this.fastSeconds>=18&&this.tier!=='high'){
         this.tier=this.tier==='performance'?'balanced':'high';
-        this.cooldown=35;this.fastSeconds=0;this.slowSeconds=0;this.history=[];
+        this.suspend();this.cooldown=35;
         return true;
       }
       return false;

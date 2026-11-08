@@ -86,7 +86,9 @@
   const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
   const hexRgb=s=>[parseInt(s.slice(1,3),16),parseInt(s.slice(3,5),16),parseInt(s.slice(5,7),16)];
   const rgbHex=(a,b,t)=>{ const A=hexRgb(a),B=hexRgb(b); return '#'+A.map((v,i)=>Math.round(mix(v,B[i],t)).toString(16).padStart(2,'0')).join('');};
-  const rgba=(hex,alpha)=>{const c=hexRgb(hex);return `rgba(${c[0]},${c[1]},${c[2]},${alpha})`};
+  // Avoid allocating three-number arrays in the obstacle drawing hot path.
+  const rgba=(hex,alpha)=>{const n=parseInt(hex.slice(1),16);
+    return `rgba(${n>>16},${(n>>8)&255},${n&255},${alpha})`;};
   const rand=(a,b)=>a+Math.random()*(b-a);
   // Visual-only PRNG: graphics quality cannot perturb Director/terrain randomness.
   let visualSeed=0x7e3a91d2;
@@ -305,6 +307,7 @@
     $.runLaunch.classList.remove('run-launch-active');
     void $.runLaunch.offsetWidth;
     $.runLaunch.classList.add('run-launch-active');
+    quality.suspend();
     status='running';lastTs=performance.now();frameClock.reset(lastTs);
     updateHud();audio.start();syncSoundButton(true);sound('start');
   }
@@ -326,8 +329,8 @@
     closeMenuDrawers();closeResultDetails();
     $.menu.classList.remove('hidden');$.graphicsButton.classList.remove('hidden');$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');syncSoundButton(true);arcadeUI.menu($,progression);replayUI.menu($,replay);
   }
-  function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');dash.cancel();dashReleasePending=null;dash.onDuckEnd();$.duck.classList.remove('dash-active');player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
-  function resume(){if(status!=='paused')return;status='running';$.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();frameClock.reset(lastTs);audio.resume();syncSoundButton(true);}
+  function pause(){if(status!=='running')return;quality.suspend();status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');dash.cancel();dashReleasePending=null;dash.onDuckEnd();$.duck.classList.remove('dash-active');player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
+  function resume(){if(status!=='paused')return;quality.suspend();status='running';$.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();frameClock.reset(lastTs);audio.resume();syncSoundButton(true);}
   function endRun(){
     if(status!=='running')return;
     status='dead';dash.cancel();dashReleasePending=null;shieldCores.reset();shieldGainLeft=0;$.shieldGain.classList.add('hidden');$.hud.classList.remove('shield-recharged');$.duck.classList.remove('dash-active');speedTrails.reset();effects.reset();$.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
@@ -1158,8 +1161,9 @@
     if(hp>0&&hp<=25&&Math.floor(worldTime*1.5)!==Math.floor((worldTime-dt)*1.5))sound('warning');
     audio.tick({phase:director.phase,speed,flow:flow.value,chromaActive:flow.tier===3,zone,hp});
     runAudit.tick(dt,auditState(),director.insight);
-    syncSoundButton();
-    updateHud();
+    // HUD and sound button DOM are presentation, not simulation. At slow
+    // refresh rates the clock may run 2–6 deterministic physics steps before
+    // ONE paint. Updating the DOM on every step multiplies layout work.
   }
 
   function rect(x,y,w,h,color,alpha=1){ctx.fillStyle=alpha===1?color:rgba(color,alpha);ctx.fillRect(x,y,w,h)}
@@ -1189,6 +1193,10 @@
       tide:spectralWave.active?spectralWave:null});
   }
   function drawObstacle(o){
+    // Off-screen advanced hazards need fair lead time, not off-screen
+    // gradients/shadows. Pad past the maximum visible glow; do not change
+    // any physics, spawn/collision or authored visual geometry.
+    if(o.x>W+100||o.x+o.width<-100)return;
     const b=GEO.obstacleBox(o,o.groundY),
       isLow=o.type==='jump'||o.type==='dash-jump',isEcho=o.type==='echo';
     const core=(isLow||isEcho)?b:GEO.duckGateCoreBox(o,o.groundY);
@@ -1482,6 +1490,12 @@
       if(status!=='running')return false;update(dt);return status==='running';
     });
     if(status==='ready')worldTime+=timing.elapsed*.38;
+    if(status==='running'&&timing.steps>0){
+      // A 120 Hz display often renders twice per physics step; flush only
+      // when the state changed, and never 2–6 times for catch-up simulation.
+      updateHud();
+      syncSoundButton();
+    }
     const updateMs=performance.now()-updateStart;
     const measured=draw();measured.update=updateMs;
     if(status==='running')runAudit.noteFrame?.(frameElapsed,timing.dropped);

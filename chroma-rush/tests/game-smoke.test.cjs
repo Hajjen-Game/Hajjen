@@ -205,7 +205,7 @@ test('zone 1: real touch taps trigger ground and air dashes, and audit records b
   assert.ok(g.dash.travel>before);
   assert.equal(g.runAudit.summary.movement.airDashes,1);
   assert.equal(g.runAudit.summary.movement.echoJumps,0);
-  assert.equal(g.runAudit.snapshot().build,'director-flow-2.0');
+  assert.equal(g.runAudit.snapshot().build,'performance-stability-2.0');
 });
 
 test('fast double-tap is buffered, then truly launches the second impulse',()=>{

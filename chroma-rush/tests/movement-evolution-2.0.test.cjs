@@ -86,5 +86,5 @@ test('two large thumb targets, canonical scripts, and one world step for terrain
   assert.match(game,/o\.x-=worldStep/);
   assert.match(game,/dash\.onLand\(\)/);
   assert.match(game,/sound\(action==='air'\?'dash-air':'dash-ground'\)/);
-  assert.match(html,/LATEST UPDATE · DIRECTOR FLOW 2\.0/);
+  assert.match(html,/LATEST UPDATE · PERFORMANCE STABILITY 2\.0/);
 });

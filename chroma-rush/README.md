@@ -1,8 +1,19 @@
-# CHROMA RUSH — Director Experience & Flow Balance 2.0
+# CHROMA RUSH — Performance Stability 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Performance Stability 2.0 (2026-11-08)
+
+- **Premium High is protected:** no changes to HIGH resolution budgets, glow, particle density, animation language, Chroma Tide or background aesthetics. Manual HIGH is never dynamically downgraded.
+- **One DOM update per rendered simulation frame:** when a slow device needs multiple deterministic 60 Hz simulation steps, HUD and sound-button updates now happen once per visible frame, not once per catch-up step. On 120 Hz displays, no unnecessary DOM update occurs for frames without a simulation step. Dash, terrain, scoring and movement are identical.
+- **Offscreen hazard culling:** high-speed future Dash/Echo obstacles still exist for collision and Director lookahead but skip expensive canvas gradients/shadows until they can affect the viewport. Visible geometry and glow are unchanged.
+- **Faster terrain lookups:** binary search replaces repeated linear traversal of monotonic terrain segments. World coordinates, gaps, slopes and hitboxes remain exactly the same.
+- **Lower JS churn:** an O(1) bounded circular frame history replaces per-frame array shifting. Color RGBA formatting no longer allocates a three-number array per obstacle paint call.
+- **More robust Auto Quality:** after a pause, run start or resume, stale frame measurements are cleared without changing the chosen visual tier. Stable devices with unknown Safari/browser hardware hints are allowed back to High sooner, with a long hysteresis cooldown; marginal devices can still automatically step down after sustained slow frames. Manual settings never change.
+- **Verification:** new regression tests cover High integrity, Auto recovery, frame-rate statistics, long-run terrain boundaries, and render-only instrumentation, alongside the existing seeded High-vs-Performance gameplay parity test.
+- **Scope boundary:** this release does not lower visual ambition to accommodate the older Galaxy A51, nor does it claim to measure actual iPhone 16 performance remotely. Use a fresh iPhone test run to confirm perceived stability.
 
 ## Director Experience & Flow Balance 2.0 (2026-11-08)
 

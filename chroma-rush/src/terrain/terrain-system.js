@@ -83,10 +83,18 @@
     }
     _segmentAt(x){
       if(x<0)return this.segments[0];
-      // Most queries are around the player / visible screen; the list is short
-      // after pruning and remains monotonic by absolute world position.
-      for(const s of this.segments)if(x>=s.start&&x<s.end)return s;
-      return x>=this.generated?this._last():null;
+      // Lookup is called by collision, takeoff/landing and gameplay Director.
+      // Binary search prevents long-run terrain history from creating linear
+      // work on every physics step. Segment geometry and boundaries unchanged.
+      if(x>=this.generated)return this._last();
+      let lo=0,hi=this.segments.length-1;
+      while(lo<=hi){
+        const mid=(lo+hi)>>>1,s=this.segments[mid];
+        if(x<s.start)hi=mid-1;
+        else if(x>=s.end)lo=mid+1;
+        else return s;
+      }
+      return null;
     }
     groundAt(x){
       const s=this._segmentAt(x);

@@ -125,7 +125,7 @@ test('Audit logs successful and failed seals without inventing ordinary clears',
   log.record('dash_hazard_miss',{zone:5,hp:75},{obstacle:GROUND,sealBroken:false});
   assert.deepEqual(log.summary.dashHazards,{spawned:{air:0,ground:0},charged:{air:0,ground:0},cleared:{air:1,ground:1},missed:{air:0,ground:1},deferred:{total:0,byReason:{}}});
   assert.equal(log.summary.obstaclesCleared,0);
-  assert.equal(log.snapshot().build,'director-flow-2.0');
+  assert.equal(log.snapshot().build,'performance-stability-2.0');
 });
 test('Momentum-seal feedback is audible but never grants invulnerability',()=>{
   const a=new ReactiveAudioSystem({scope:{},enabled:false}),notes=[];
@@ -144,7 +144,7 @@ test('Momentum-seal feedback is audible but never grants invulnerability',()=>{
 test('Build scripts, visible unobtrusive seal labels and action cues are connected',()=>{
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const game=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');
-  const meta=html.indexOf('DIRECTOR FLOW 2.0');
+  const meta=html.indexOf('PERFORMANCE STABILITY 2.0');
   const dash=html.indexOf('src/gameplay/dash-hazards.js?v=dash-hazards-1.0');
   const engine=html.indexOf('src/gameplay/game.js?v=');
   assert.ok(meta>0&&dash>0&&engine>dash);

@@ -646,6 +646,15 @@
     if(isDashChallenge){
       terrainDirector.noGapsBefore=Math.max(terrainDirector.noGapsBefore,
         worldX+width+speed*1.2);
+      if(firstDash){
+        // Teach the new pair of controls only ONCE per mode, after its
+        // opening safe spawn. Reuse the existing short HUD helper; never put
+        // labels or detached icons on the obstacle itself.
+        $.dashHint.textContent=dashMode==='air'?
+          'AIR DASH · JUMP THEN TAP DUCK':
+          'GROUND DASH · TAP DUCK TWICE';
+        dashHintTime=Math.max(dashHintTime,5.0);
+      }
     }
     const fairness=FAIR.metrics(data.type,
       {x,playerX:player.x,viewportWidth:W,speed});
@@ -1218,7 +1227,7 @@
     if(DASH_HAZARDS.isDashHazard(o.type)){
       // The luminous, hairline momentum seal is NOT another rectangular
       // obstacle. It visually spans the airborne route (Air Dash) or the
-      // 28px duck passage (Ground Dash). No camera rings or blocking UI.
+      // 28px duck passage (Ground Dash). No circular overlays or blocking UI.
       const sealX=DASH_HAZARDS.sealX(o);
       const top=isLow?b.y-167:b.y+b.h-23;
       const bottom=isLow?b.y+5:o.groundY-3;
@@ -1239,16 +1248,9 @@
         ctx.lineTo(sealX-4,yy);ctx.lineTo(sealX-10,yy+5);ctx.stroke();
       }
       ctx.restore();
-      // One integrated action label: first-time readable, not a fake warning
-      // block. The ceiling course mirrors but the tiny letters remain upright.
-      ctx.save();
-      ctx.translate(sealX,isLow?top-11:core.y+16);
-      if(gravityShift.mix>.5)ctx.scale(1,-1);
-      ctx.font='900 12px system-ui';ctx.textAlign='center';
-      ctx.fillStyle=charged?'#8efad0':'#e7fdff';
-      ctx.shadowColor=color;ctx.shadowBlur=4*quality.profile.glow;
-      ctx.fillText(isLow?'AIR DASH':'GROUND DASH',0,0);
-      ctx.restore();
+      // No in-world text, floating arrows or detached icons: the existing
+      // obstacle architecture + integrated luminous seam carries the cue.
+      // A readable lesson appears in the existing Dash HUD hint instead.
     }
     ctx.restore();
   }

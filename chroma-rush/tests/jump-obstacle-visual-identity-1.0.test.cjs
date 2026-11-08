@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const vm=require('node:vm');
 const fs=require('node:fs'),path=require('node:path');
 const GEO=require('../src/core/geometry.js');
+const DASH_HAZARDS=require('../src/gameplay/dash-hazards.js');
 const {GAME,ECHO_SPIRE}=require('../src/core/config.js');
 
 const original=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
@@ -25,7 +26,7 @@ function renderObstacle(type,{glow=.8,density=.8}={}){
   const obstacle={type,x:300,width:type==='echo'?49:type==='duck'?62:52,
     height:type==='echo'?194:type==='duck'?135:60,groundY:515,pulse:1};
   const lines=[];
-  const env={ctx,GEO,H:720,worldTime:1.75,
+  const env={ctx,GEO,DASH_HAZARDS,H:720,worldTime:1.75,
     quality:{profile:{glow,density}},
     spectralWave:{colorAt:()=> '#53b5ff'},
     rgba:(hex,alpha)=>hex,

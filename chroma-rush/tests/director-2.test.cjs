@@ -22,7 +22,7 @@ test('authored patterns are supported, unique and short',()=>{
   assert.equal(new Set(PATTERNS.map(p=>p.id)).size,PATTERNS.length);
   for(const p of PATTERNS){
     assert.ok(p.steps.length>=1 && p.steps.length<=4);
-    assert.ok(p.steps.every(s=>['jump','duck','echo'].includes(s)));
+    assert.ok(p.steps.every(s=>['jump','duck','echo','dash-jump','dash-duck'].includes(s)));
     assert.ok(p.weight>0 && p.minZone>=1);
   }
   assert.ok(candidates(PHASE.BUILD,1,1).every(p=>p.tier<=1));

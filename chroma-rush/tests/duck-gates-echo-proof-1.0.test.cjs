@@ -69,7 +69,7 @@ test('normal ground obstacles remain the same exact shapes and still require jum
 
 test('full gate is drawn visibly in the same coordinates used for collision',()=>{
   const s=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
-  assert.match(s,/const b=GEO\.obstacleBox\(o,o\.groundY\),isLow=o\.type==='jump'/);
+  assert.match(s,/const b=GEO\.obstacleBox\(o,o\.groundY\),\s*isLow=o\.type==='jump'\|\|o\.type==='dash-jump'/);
   assert.match(s,/GEO\.duckGateCoreBox\(o,o\.groundY\)/);
   assert.match(s,/ctx\.fillRect\(b\.x,b\.y,b\.w,b\.h\)/);
   assert.match(s,/ctx\.lineTo\(b\.x\+1,by\)/);

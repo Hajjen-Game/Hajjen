@@ -146,7 +146,11 @@ test('Build scripts, visible unobtrusive seal labels and action cues are connect
   const dash=html.indexOf('src/gameplay/dash-hazards.js?v=dash-hazards-1.0');
   const engine=html.indexOf('src/gameplay/game.js?v=');
   assert.ok(meta>0&&dash>0&&engine>dash);
-  assert.match(game,/isLow\?'AIR DASH':'GROUND DASH'/);
+  assert.match(game,/AIR DASH · JUMP THEN TAP DUCK/);
+  assert.match(game,/GROUND DASH · TAP DUCK TWICE/);
+  const portion=game.slice(game.indexOf('  function drawObstacle(o){'),
+    game.indexOf('  function drawPlayer(){'));
+  assert.doesNotMatch(portion,/fillText\s*\(/,'obstacle visuals stay text-free');
   assert.match(game,/gravityShift\.mix>\.5/);
   assert.match(game,/shieldCores\.blocksHazard/);
   assert.match(game,/terrain\.visibleGaps\(worldX-pad,worldX\+width\+pad\)/);

@@ -91,59 +91,12 @@
       ctx.save();this.clipSide(ctx,width,height,'old');drawOld();ctx.restore();
       ctx.save();this.clipSide(ctx,width,height,'new');drawNew();ctx.restore();
     }
-    // A luminous scout pulse runs ahead of the color front. It reads as a
-    // horizontal electrical surge on the track, not a screen flash or ring.
-    // Drawn under hazards/player, with strictly cosmetic time-based motion.
-    drawPrePulse(ctx,{width,height,groundY,quality}={}){
-      if(!this.active||this.chargeDuration<=0)return;
-      const density=clamp(quality.density??1,.3,1);
-      const glow=clamp(quality.glow??1,.15,1);
-      const pre=this.charging?smooth(this.elapsed/this.chargeDuration):1;
-      const sweep=this.progress;
-      const power=this.charging ? .22+.78*pre : 1-smooth((sweep-.035)/.72);
-      const lead=clamp(width*.27,160,360);
-      const head=this.frontAt(groundY,height)-lead*pre;
-      if(power<.018||head<-115||head>width+115)return;
-      const intensity=power*density;
-      const primary=this.to?.primary||'#3feeff';
-      const secondary=this.to?.secondary||primary;
-      ctx.save();
-      // Narrow horizon-to-floor bloom; never covers jump/duck silhouettes.
-      const band=ctx.createLinearGradient(head-98,0,head+114,0);
-      band.addColorStop(0,rgba(primary,0));
-      band.addColorStop(.30,rgba(primary,.11*intensity));
-      band.addColorStop(.49,rgba('#ffffff',.28*intensity));
-      band.addColorStop(.61,rgba(secondary,.21*intensity));
-      band.addColorStop(1,rgba(secondary,0));
-      const left=Math.max(0,head-98),right=Math.min(width,head+114);
-      if(right>left){
-        ctx.fillStyle=band;
-        ctx.fillRect(left,groundY-78,right-left,98);
-      }
-      // Short parallel energy rails and crisp white-hot leading tip.
-      // Less work for Performance mode; no particles or offscreen canvas.
-      const count=density<.5?2:density<.8?3:5;
-      for(let i=0;i<count;i++){
-        const y=groundY+3-i*12;
-        const length=54+i*18;
-        ctx.strokeStyle=i===0?'#ffffff':(i%2?secondary:primary);
-        ctx.globalAlpha=(i===0?.74:.36)*intensity;
-        ctx.lineWidth=i===0?3.2:1.6;
-        ctx.shadowColor=i===0?secondary:primary;
-        ctx.shadowBlur=(i===0?19:10)*glow;
-        ctx.beginPath();
-        ctx.moveTo(head-8-i*4,y);ctx.lineTo(head+length,y);ctx.stroke();
-      }
-      ctx.globalAlpha=.64*intensity;
-      ctx.strokeStyle='#ffffff';ctx.lineWidth=2;
-      ctx.shadowColor=secondary;ctx.shadowBlur=18*glow;
-      ctx.beginPath();ctx.moveTo(head,groundY-38);
-      ctx.lineTo(head-3,groundY+9);ctx.stroke();
-      ctx.restore();
-    }
+    // No separate pre-wave marker. The retired mark-aligned scout could
+    // be mistaken for a JUMP obstacle. Keep anticipation in the soundtrack
+    // and let the actual full-height chromatic front carry the color change.
     draw(ctx,{width,height,groundY=height*.715,quality={density:1,glow:1}}={}){
       if(!this.active||!(width>0)||!(height>0))return;
-      this.drawPrePulse(ctx,{width,height,groundY,quality});
+      // Zone-charge is audio-only: no separate rectangular or floor-scout visual.
       if(this.charging)return; // Old palette stays put until the pulse arrives.
       const head=this.frontAt(height*.5,height);
       if(head<-64||head>width+64)return;

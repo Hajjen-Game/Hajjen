@@ -94,16 +94,17 @@ test('spectral glow is a restrained line-based effect without rings or dark mask
   assert.ok(low.calls.stroke<high,'Performance graphics should use fewer streaks');
 });
 
-test('a distinct energetic scout pulse precedes every animated color change',()=>{
+test('zone charge has no in-world scout, square, ground mark or premature flash',()=>{
   const wave=new SpectralWave();
   wave.start({from:A,to:B,width:1000,duration:.9,chargeDuration:.23});
   wave.tick(.16,{playerX:300,playerY:515});
   assert.equal(wave.charging,true);
-  assert.equal(wave.progress,0,'palette front must not move during pre-charge');
+  assert.equal(wave.progress,0,'palette front does not travel during audio charge');
   assert.equal(wave.colorAt(950,'primary',515),A.primary);
   const {ctx,calls}=mockCanvas(),passes=[];
   wave.draw(ctx,{width:1000,height:720,groundY:515,quality:{density:1,glow:1}});
-  assert.ok(calls.stroke>=3,'pre-pulse has its own parallel electric rails');
+  assert.equal(calls.stroke,0,'NO physical-looking vertical tip or parallel ground rails');
+  assert.equal(calls.fillRect,0,'NO grounded luminous rectangle or separate scout');
   wave.drawLayer(ctx,1000,720,()=>passes.push('old'),()=>passes.push('new'));
   assert.deepEqual(passes,['old']);
   wave.tick(.08,{playerX:300,playerY:515});
@@ -173,6 +174,6 @@ test('release HTML loads spectral module before game and advertises its build',(
   const wave=html.indexOf('src/render/spectral-wave.js?v=spectral-wave-1.0');
   const game=html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
   assert.ok(wave>0&&game>wave);
-  assert.match(html,/<meta name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0-duck-gate-1\.0-echo-spire-1\.0-aware-1\.0-fairness-1\.0-jump-visual-1\.0-combo-1\.0-speed-curve-2\.0-echo-polish-1\.1-echo-zone2-1\.2"/);
+  assert.match(html,/<meta name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0-duck-gate-1\.0-echo-spire-1\.0-aware-1\.0-fairness-1\.0-jump-visual-1\.0-combo-1\.0-speed-curve-2\.0-echo-polish-1\.1-echo-zone2-1\.2-no-scout-1\.1"/);
   assert.match(html,/ORIGINAL BACKGROUND RESTORED/);
 });

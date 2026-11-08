@@ -550,7 +550,7 @@
     const incoming=PALETTES[(zone-1)%PALETTES.length];
     const outgoing=PALETTES[(zone-2+PALETTES.length)%PALETTES.length];
     const animated=spectralWave.start({from:outgoing,to:incoming,width:W,
-      duration:.92,chargeDuration:.23,reducedMotion});
+      duration:.86,chargeDuration:.19,reducedMotion});
     // The panel peaks as the wave reaches the player's horizontal position.
     lastZoneCallout=1.6;
     HUD.showZoneCallout($,{zone,name:incoming.name,
@@ -906,22 +906,19 @@
     ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();
   }
   function drawWorld(t){
-    const paint=p=>worldBackground.drawBackground({ctx,width:W,height:H,time:t,speed,
-      // Palette objects are shared with Spectral Wave: shape and color transition
-      // through the same spatial clipping front, with identical world parallax.
-      scroll:distance,motif:p.name,reducedMotion,
-      primary:p.primary,secondary:p.secondary,shadow:p.shadow,flow:flow.value,
-      glowLine,quality:quality.profile});
-    if(spectralWave.active)spectralWave.drawLayer(ctx,W,H,
-      ()=>paint(spectralWave.from),()=>paint(spectralWave.to));
-    else paint(PALETTES[(zone-1)%PALETTES.length]);
+    // Chroma Tide 2.0 draws the ORIGINAL background ONCE, even while
+    // the chromatic boundary is in flight. Distant scenery samples the
+    // spatial palette, eliminating two full expensive clipped redraws.
+    worldBackground.drawBackground({ctx,width:W,height:H,time:t,speed,
+      primary:c1,secondary:c2,shadow:c3,flow:flow.value,
+      glowLine,quality:quality.profile,tide:spectralWave.active?spectralWave:null});
   }
   function drawTerrain(){
-    const paint=p=>terrainRender.drawTerrain({ctx,terrain,distance,width:W,height:H,baseY:floorY,
-      primary:p.primary,secondary:p.secondary,flow:flow.value,glowLine,quality:quality.profile});
-    if(spectralWave.active)spectralWave.drawLayer(ctx,W,H,
-      ()=>paint(spectralWave.from),()=>paint(spectralWave.to));
-    else paint(PALETTES[(zone-1)%PALETTES.length]);
+    // One clipped terrain geometry pass, tinted in-place by the same front.
+    // Ground gaps, sloped collider geometry and visual spacing are unchanged.
+    terrainRender.drawTerrain({ctx,terrain,distance,width:W,height:H,baseY:floorY,
+      primary:c1,secondary:c2,flow:flow.value,glowLine,quality:quality.profile,
+      tide:spectralWave.active?spectralWave:null});
   }
   function drawObstacle(o){
     const b=GEO.obstacleBox(o,o.groundY),isLow=o.type==='jump',isEcho=o.type==='echo';

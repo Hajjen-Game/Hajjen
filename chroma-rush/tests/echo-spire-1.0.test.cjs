@@ -42,13 +42,13 @@ test('Echo Spire must exceed single-jump apex, but stay well below Echo apex',()
   assert.ok(ECHO_SPIRE.minHeight>singleRise+12);
   assert.ok(ECHO_SPIRE.maxHeight<515-echo.minimum-50);
   assert.ok(ECHO_SPIRE.minWidth>=45&&ECHO_SPIRE.maxWidth<=52);
-  assert.equal(ECHO_SPIRE.firstZone,5);
+  assert.equal(ECHO_SPIRE.firstZone,2);
   assert.ok(ECHO_SPIRE.introMaxHeight<ECHO_SPIRE.maxHeight);
   assert.ok(ECHO_SPIRE.introMaxWidth<ECHO_SPIRE.maxWidth);
 });
 
 test('ordinary jump always hits; one timed Echo Jump clears all pillar heights',()=>{
-  for(const speed of [550,650,780,1050,1700]){
+  for(const speed of [440,480,550,650,780,1050,1700]){
     for(const height of [ECHO_SPIRE.minHeight,ECHO_SPIRE.maxHeight]){
       const ordinary=flight({speed,height});
       const echo=flight({speed,height,echoAt:.34});
@@ -87,12 +87,12 @@ test('ceilings mirror the whole collision box; the same double-jump trajectory w
 
 test('Director introduces a solo Echo Spire in a safe PEAK, not during damage recovery',()=>{
   assert.ok(PATTERNS.some(p=>p.id==='single-echo'));
-  assert.ok(candidates('PEAK',4,3).every(p=>!p.steps.includes('echo')));
+  assert.ok(candidates('PEAK',1,3).every(p=>!p.steps.includes('echo')));
   assert.ok(candidates('PEAK',8,3,{allowEcho:false}).every(p=>!p.steps.includes('echo')));
   const d=new AdaptiveRushDirector(()=>.5);
   d.phase='PEAK';d.phaseElapsed=0;d.phaseDuration=6;d.spawnCountdown=0;
   d.confidence=.8;
-  const inputs={zone:5,hp:100,speed:820,surface:'floor'};
+  const inputs={zone:2,hp:100,speed:480,surface:'floor',zoneElapsed:2};
   const preview=d.selectPattern(inputs);
   assert.equal(preview.id,'single-echo');
   assert.equal(d.echoIntroduced,false,'not counted as introduced until actual spawn');
@@ -112,11 +112,11 @@ test('Director introduces a solo Echo Spire in a safe PEAK, not during damage re
 test('echo intro is deferred rather than fabricated if terrain vetoes the spawn',()=>{
   const d=new AdaptiveRushDirector(()=>.5);d.confidence=.8;
   d.phase='PEAK';d.phaseDuration=6;d.spawnCountdown=0;
-  d.tick(1/60,{zone:5,hp:100,speed:900,surface:'floor'},()=>false);
+  d.tick(1/60,{zone:2,hp:100,speed:480,surface:'floor',zoneElapsed:2},()=>false);
   assert.equal(d.totalSpawned,0);assert.equal(d.echoIntroduced,false);
   assert.equal(d.pending[0]?.type,'echo');
   d.spawnCountdown=0;
-  d.tick(1/60,{zone:5,hp:100,speed:900,surface:'floor'},()=>true);
+  d.tick(1/60,{zone:2,hp:100,speed:480,surface:'floor',zoneElapsed:2},()=>true);
   assert.equal(d.echoIntroduced,true);
 });
 
@@ -137,7 +137,7 @@ test('Echo has twin chambers inside the shared Low Neon Barrier visual shell',()
 });
 
 test('slower Speed Curve 2.0 still gives a broad Echo timing window on the floor',()=>{
-  for(const speed of [550,650,800]){
+  for(const speed of [440,480,550,650,800]){
     for(const lead of [.57,.61,.65,.69]){
       const ordinary=flight({speed,height:ECHO_SPIRE.introMinHeight,
         width:ECHO_SPIRE.introMaxWidth,lead});
@@ -156,7 +156,7 @@ test('floor-only introductory Echo is deferred without allowing a ceiling shortc
   const d=new AdaptiveRushDirector(()=>.5);
   d.phase='PEAK';d.phaseElapsed=0;d.phaseDuration=7;
   d.confidence=.9;d.spawnCountdown=0;
-  const ceiling={zone:5,hp:100,speed:690,surface:'ceiling'};
+  const ceiling={zone:2,hp:100,speed:480,surface:'ceiling',zoneElapsed:2};
   const floor={...ceiling,surface:'floor'};
   assert.ok(d.selectPattern(ceiling).steps.every(s=>s!=='echo'));
   assert.equal(d.selectPattern(floor).id,'single-echo');

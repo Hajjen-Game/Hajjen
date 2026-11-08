@@ -194,17 +194,21 @@
           fx(390,.12,.11,'triangle',740);
           fx(730,.19,.082,'sine',1050,.065);break;
         case 'duck': fx(280,.105,.13,'sine',146);break;
+        case 'dash-charge':
+          // Brief, restrained anticipation before the TOP of the body whips
+          // forwards. Music, damage and Perfect Zone peaks retain priority.
+          fx(185,.055,.064,'triangle',150);break;
         case 'dash-air':
-          // Distinct launch snap + bright swept air tail. Kept below damage
-          // and perfect-zone peaks, using the existing effects volume bus.
-          fx(225,.085,.135,'triangle',540);
-          fx(420,.22,.120,'sawtooth',1040,.015);
-          fx(820,.28,.062,'sine',1160,.075);break;
+          // Release exactly when the elastic body curves forward. The first
+          // attack is brisk; the secondary sweeps form an airy falling tail.
+          fx(270,.09,.135,'triangle',665);
+          fx(430,.19,.105,'sawtooth',990,.012);
+          fx(810,.24,.060,'sine',1160,.066);break;
         case 'dash-ground':
-          // Low contact punch and skidding after-tone, not a second jump.
-          fx(125,.10,.145,'triangle',245);
-          fx(290,.24,.125,'sawtooth',610,.018);
-          fx(610,.25,.053,'sine',760,.070);break;
+          // Heavier contact, compact skid and short trailing shimmer.
+          fx(145,.09,.140,'triangle',310);
+          fx(290,.20,.103,'sawtooth',655,.010);
+          fx(600,.21,.049,'sine',770,.065);break;
         case 'land': fx(155,.09,.08,'sine',100);break;
         case 'hit': fx(210,.21,.28,'sawtooth',62);fx(85,.22,.12,'sine',45,.055);break;
         case 'gravity-warning':

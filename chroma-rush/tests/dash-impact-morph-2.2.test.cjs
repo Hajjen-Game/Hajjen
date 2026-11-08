@@ -73,8 +73,8 @@ test('Air Dash bends the TOP while lower side stays anchored and rounded',()=>{
   m.tick(.055);
   const action=m.sample(p);
   assert.ok(action.shear>1.25,'air top springs further forward');
-  assert.ok(action.scaleX>before.scaleX&&action.scaleX<before.scaleX+.11);
-  assert.ok(action.scaleY<before.scaleY&&action.scaleY>before.scaleY-.04);
+  assert.ok(action.scaleX>before.scaleX+.13&&action.scaleX<before.scaleX+.16);
+  assert.ok(action.scaleY<before.scaleY-.075&&action.scaleY>before.scaleY-.095);
   assert.equal(action.dashMode,'air');
   assert.equal('tilt' in action,false,'whole sprite is never rotated');
   assert.deepEqual(playerBox(p),box,'body deformation is not collision geometry');
@@ -121,7 +121,7 @@ test('Elastic Canvas geometry has curved sides and fixed lower corners',()=>{
 test('reduced motion, Ceiling Run and asset versions do not affect gameplay',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
-  assert.match(html,/LATEST UPDATE · DASH ELASTIC 2\.4/);
+  assert.match(html,/LATEST UPDATE · DASH ANIMATION 2\.5/);
   assert.match(html,/player-motion\.js\?v=duck-effects-1\.0-movement-1\.0-dash-elastic-2\.4/);
   assert.match(game,/window\.ChromaMotion\.elasticBodyPath/);
   assert.doesNotMatch(game,/ctx\.rotate\(|dashBodyPath|shape\.tilt/);

@@ -102,6 +102,7 @@
   let speed=GAME.baseSpeed, hp=GAME.startingHP, score=0, best=progression.bestScore, hurdles=[], motes=[], streaks=[];
   let runMode='arcade', startZone=1, milestoneTime=0, unlockedThisRun=[];
   let peakFlow=0,replayToastTime=0,zoneSoundAtCrossing=false,echoHintTime=0,dashHintTime=0;
+  let dashReleasePending=null; // audio and particles follow the curved cube's thrust phase
   // Absolute travelled distance: terrain and obstacles share this world axis.
   let distance=0,gapRecovery=null;
   let c1=PALETTES[0].primary, c2=PALETTES[0].secondary, c3=PALETTES[0].shadow;
@@ -262,7 +263,7 @@
     chromaVfx.reset();speedTrails.reset();gravityShift.reset();
     zoneSoundAtCrossing=false;
     hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();combo.reset();flow.currentZone=zone;
-    distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();dash.reset();motion.reset();
+    distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();dash.reset();motion.reset();dashReleasePending=null;
     peakFlow=0;replayToastTime=0;
     // All moves are usable immediately. Explain dash first; save the Echo
     // tip for its first tall Spire in zone 2, without overlapping callouts.
@@ -307,7 +308,7 @@
   function showMenu(){
     if(status==='running'||status==='paused')audio.stop();
     status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;echoHintTime=0;dashHintTime=0;
-    $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');dash.reset();$.duck.classList.remove('dash-active');
+    $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');dash.reset();dashReleasePending=null;$.duck.classList.remove('dash-active');
     spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();effects.reset();combo.reset();zoneSoundAtCrossing=false;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
@@ -315,11 +316,11 @@
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');
     $.menu.classList.remove('hidden');$.graphicsButton.classList.remove('hidden');$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');syncSoundButton(true);arcadeUI.menu($,progression);replayUI.menu($,replay);
   }
-  function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');dash.cancel();dash.onDuckEnd();$.duck.classList.remove('dash-active');player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
+  function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');dash.cancel();dashReleasePending=null;dash.onDuckEnd();$.duck.classList.remove('dash-active');player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
   function resume(){if(status!=='paused')return;status='running';$.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();frameClock.reset(lastTs);audio.resume();syncSoundButton(true);}
   function endRun(){
     if(status!=='running')return;
-    status='dead';dash.cancel();$.duck.classList.remove('dash-active');speedTrails.reset();effects.reset();$.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
+    status='dead';dash.cancel();dashReleasePending=null;$.duck.classList.remove('dash-active');speedTrails.reset();effects.reset();$.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
     runAudit.finish(auditState());
     const total=Math.floor(score),previousBest=progression.bestScore;
     replayToastTime=0;$.replayToast.classList.add('hidden');
@@ -430,22 +431,31 @@
     }
     if(action==='ground')player.duckTime=Math.max(player.duckTime,DASH.groundDuckMinRemaining);
     motion.dashStart(action==='ground');
-    const color=action==='ground'?c2:c1;
-    if(!reducedMotion){
-      frameEcho(player.x-14,player.feet-(action==='ground'?10:26),color,30,.82);
-      // Horizontal linear slashes are readable with this flat 2D camera.
-      for(let i=0;i<Math.max(3,Math.round(9*quality.profile.particles));i++){
-        motes.push(makeMote(player.x-24-fxRand(0,18),
-          player.feet-fxRand(action==='ground'?3:10,action==='ground'?18:46),i%2?c1:c2,
-          {vx:fxRand(-310,-145),vy:fxRand(-25,25),life:fxRand(.12,.30),r:fxRand(.8,1.9)}));
-      }
-      if(motes.length>180)motes.splice(0,motes.length-180);
-    }
+    // Small anticipation click now; bright whoosh, particles and haptics
+    // fire ONLY as the cube's curved top crosses forward, ~45–65 ms later.
+    // Avoid an initial box/frame effect that could be mistaken for a hazard.
+    dashReleasePending=action;
+    sound('dash-charge');vib(6);
     $.duck.classList.add('dash-active');
     director.noteDash(action);
     runAudit.record(action==='air'?'air_dash':'ground_dash',auditState(),
       {extraSpeedFactor:DASH.bonusFactor,grounded:player.landed,
         ceiling:gravityShift.ceiling,remainingDuck:player.duckTime});
+  }
+  function dashThrustRelease(action){
+    // Release timing is driven by PlayerMotion.dashFeel, never a second
+    // arbitrary VFX timer. Visual RNG cannot affect terrain/Director seeds.
+    if(!reducedMotion){
+      const count=Math.max(2,Math.round(6*quality.profile.particles));
+      for(let i=0;i<count;i++){
+        motes.push(makeMote(player.x-24-fxRand(0,20),
+          player.feet-fxRand(action==='ground'?4:10,action==='ground'?17:43),
+          i%2?c1:c2,
+          {vx:fxRand(-355,-185),vy:fxRand(-18,18),
+            life:fxRand(.11,.23),r:fxRand(.7,1.7)}));
+      }
+      if(motes.length>180)motes.splice(0,motes.length-180);
+    }
     sound(action==='air'?'dash-air':'dash-ground');
     vib(18);
   }
@@ -686,7 +696,7 @@
   }
   function failGap(gap){
     if(!terrain.markGap(gap,true))return;
-    gapRecovery=gap;jumpControl.cancel();dash.cancel();motion.reset();combo.breakChain();
+    gapRecovery=gap;jumpControl.cancel();dash.cancel();dashReleasePending=null;motion.reset();combo.breakChain();
     terrainDirector.noteGapOutcome({missed:true,echo:Boolean(gap.echoChallenge),
       worldX:distance+player.x,speed});
     // Match regular obstacle invulnerability: the gap still counts as a
@@ -785,6 +795,14 @@
     const bufferedEcho=jumpControl.tick(dt,distance+player.x);
     if(bufferedEcho==='echo'&&!player.landed&&!gapRecovery&&!gravityShift.shifting)launchEcho();
     motion.tick(dt);
+    if(dashReleasePending){
+      const phase=motion.sample({landed:player.landed,duck:player.duck,vy:player.vy});
+      if(!dash.active)dashReleasePending=null;
+      else if(phase.dashFeel?.burst){
+        dashThrustRelease(dashReleasePending);
+        dashReleasePending=null;
+      }
+    }
     shake=Math.max(0,shake-dt*36);hitFlash=Math.max(0,hitFlash-dt);
     if(lastZoneCallout>0){lastZoneCallout-=dt;if(lastZoneCallout<=0)$.zoneCallout.classList.add('hidden')}
     if(milestoneTime>0){milestoneTime-=dt;if(milestoneTime<=0)$.milestoneToast.classList.add('hidden')}
@@ -803,7 +821,7 @@
     const gravityEvent=gravityShift.tick(dt,{safe:safeShift,reducedMotion});
     if(gravityEvent==='begin'){
       player.invulnerable=Math.max(player.invulnerable,.58+.28);
-      jumpControl.cancel();dash.cancel();speedTrails.reset();combo.breakChain();
+      jumpControl.cancel();dash.cancel();dashReleasePending=null;motion.reset();speedTrails.reset();combo.breakChain();
       if(!reducedMotion){
         groundPulse(player.x,player.feet-2,c2,33,1.1);
         frameEcho(player.x,player.feet-23,c1,36,1);
@@ -959,6 +977,8 @@
     speedTrails.tick(dt,{playerX:player.x,feet:player.feet,
       width:hitbox.w*trailPose.scaleX,height:hitbox.h*trailPose.scaleY,
       distance,speed:speed+dash.bonusSpeed,flow:flow.value,chromaActive:flow.tier===3,
+      dashPose:dash.active&&trailPose.dashFeel?.burst?
+        {shear:trailPose.shear,mode:player.duck?'ground':'air'}:null,
       primary:spectralWave.colorAt(player.x,'primary',player.feet,H),
       secondary:spectralWave.colorAt(player.x,'secondary',player.feet,H),
       quality:quality.profile,reducedMotion});
@@ -1093,6 +1113,11 @@
     const rw=b.w*shape.scaleX*beat, rh=b.h*shape.scaleY*beat;
     const rx=player.x-rw/2,ry=player.feet-rh;
     const dashAmount=shape.dash||0;
+    if(shape.dashFeel?.windup>0&&!reducedMotion){
+      // One low-cost charge accent at the BACK of the existing cube.
+      const charge=shape.dashFeel.windup;
+      glowLine(rx-6,ry+rh*.52,rx-19-charge*9,ry+rh*.52,pc2,1.25,5,.33*charge);
+    }
     if(dash.active&&!reducedMotion&&shape.shear>0){
       // Side-view speed wake; brighter and longer than 2.1, but always
       // BEHIND the runner. Rendered at most 4 strokes, 2 on older phones.
@@ -1203,7 +1228,8 @@
     // Overlay stays beneath all hazards and the player for clear silhouettes.
     spectralWave.draw(ctx,{width:W,height:H,groundY:floorY,quality:quality.profile});
     // Trails stay under hazards so a high-speed afterimage never masks a jump or duck cue.
-    speedTrails.draw(ctx,{quality:quality.profile,reducedMotion});
+    speedTrails.draw(ctx,{quality:quality.profile,reducedMotion,
+      dashPath:window.ChromaMotion.elasticBodyPath});
     for(const o of hurdles)drawObstacle(o);
     drawPlayer();
     const actorsDone=performance.now();

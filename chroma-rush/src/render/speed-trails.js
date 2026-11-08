@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Speed Trails 2.0.
+/* CHROMA RUSH — Speed Trails 2.5 / Dash Shape Afterimages.
  * Time-sampled square afterimages, backward-directed light fragments and
  * speed-proportional luminous streaks. Purely cosmetic: no RNG, hitboxes,
  * Director, Flow or player movement decisions. Side-on lines, never rings.
@@ -13,6 +13,8 @@
   const SAMPLE_INTERVAL=.045;
   const MAX_ECHOES=10;
   const MAX_FRAGMENTS=36;
+  const MAX_DASH_ECHOES=3;
+  const DASH_ECHO_INTERVAL=.043;
   const BASE_SPEED=370;
   const speedCharge=speed=>clamp((speed-BASE_SPEED)/1450,0,1);
   const trailReach=speed=>clamp(speed*.225,102,410);
@@ -30,26 +32,34 @@
       this.mutedFor=0;
       this.samples=[];
       this.fragments=[];
+      this.dashEchoes=[];
+      this.dashEchoAccumulator=0;
+      this.dashReleased=false;
       this.current=null;
     }
     disrupt(){
       // A hit breaks the momentum *visually*, without touching Flow/HP.
       this.samples.length=0;
       this.fragments.length=0;
+      this.dashEchoes.length=0;
+      this.dashEchoAccumulator=0;
+      this.dashReleased=false;
       this.sampleAccumulator=0;
       this.fragmentAccumulator=0;
       this.mutedFor=.19;
     }
     tick(dt,{playerX=300,feet=515,width=44,height=44,
       distance=0,speed=BASE_SPEED,flow=0,chromaActive=false,
-      primary='#3feeff',secondary='#53b5ff',quality={},reducedMotion=false}={}){
+      primary='#3feeff',secondary='#53b5ff',quality={},reducedMotion=false,
+      dashPose=null}={}){
       if(!(dt>0))return;
       this.elapsed+=dt;
       this.mutedFor=Math.max(0,this.mutedFor-dt);
       if(reducedMotion){
-        this.samples.length=0;this.fragments.length=0;
+        this.samples.length=0;this.fragments.length=0;this.dashEchoes.length=0;
         this.current=null;
         this.sampleAccumulator=0;this.fragmentAccumulator=0;
+        this.dashEchoAccumulator=0;this.dashReleased=false;
         return;
       }
       const density=profileDensity(quality);
@@ -65,8 +75,29 @@
       this.fragments=this.fragments.filter(p=>p.life>0&&p.x>-65);
       const ageLimit=.34+.035*charge;
       this.samples=this.samples.filter(s=>this.elapsed-s.at<=ageLimit);
+      this.dashEchoes=this.dashEchoes.filter(s=>this.elapsed-s.at<=.225);
 
       if(this.mutedFor>0)return;
+      // A bounded extension of the EXISTING trail layer, not an additional
+      // particle system. Preserve real time/height/shape for each dash echo.
+      // No RNG or game state is mutated; assets fade in under 225ms.
+      if(dashPose?.shear>.15){
+        if(!this.dashReleased){
+          this.dashReleased=true;
+          this.dashEchoAccumulator=DASH_ECHO_INTERVAL;
+        }else this.dashEchoAccumulator+=dt;
+        if(this.dashEchoAccumulator>=DASH_ECHO_INTERVAL){
+          this.dashEchoAccumulator-=DASH_ECHO_INTERVAL;
+          const topShift=dashPose.shear*(dashPose.mode==='ground'?66*.065:36*.35);
+          this.dashEchoes.push({at:this.elapsed,x:playerX,feet,width,height,distance,
+            primary,secondary,topShift,mode:dashPose.mode});
+          if(this.dashEchoes.length>MAX_DASH_ECHOES)this.dashEchoes.shift();
+        }
+      }else{
+        this.dashEchoAccumulator=0;
+        this.dashReleased=false;
+      }
+
       this.sampleAccumulator+=dt;
       // Fixed-time sampling produces real temporal silhouettes, including
       // jump arcs and duck posture, not repainted copies of the current pose.
@@ -98,9 +129,10 @@
       }
     }
     get diagnostics(){return {samples:this.samples.length,fragments:this.fragments.length,
+      dashEchoes:this.dashEchoes.length,
       charge:this.current?.charge??0,reach:trailReach(this.current?.speed??BASE_SPEED)};}
 
-    draw(ctx,{quality={},reducedMotion=false}={}){
+    draw(ctx,{quality={},reducedMotion=false,dashPath=null}={}){
       const p=this.current;
       if(!p||reducedMotion)return;
       const density=profileDensity(quality),glow=profileGlow(quality);
@@ -109,7 +141,7 @@
       const strength=this.mutedFor>0?.22:1;
       const xLimit=playerX-width*.5-4;
       const maxReach=trailReach(speed);
-      const echoLimit=density<.5?2:density<.8?4:7;
+      const echoLimit=this.dashEchoes.length>0?(density<.5?1:2):density<.5?2:density<.8?4:7;
       const now=this.elapsed;
       ctx.save();
       // Layer 1: transparent time-history silhouettes. Older jump/duck
@@ -135,6 +167,35 @@
         ctx.shadowBlur=7*glow;
         ctx.strokeRect(left,top,ghostWidth,s.height);
       }
+      // Dash 2.5: true past elastic poses, rendered UNDER hazards by game.js.
+      // Quality caps: High 3 / Balanced 2 / Performance 1, with no blur on
+      // old phones. Ghosts stay entirely BEHIND the runner, never an obstacle.
+      const maxDash=density<.5?1:density<.8?2:MAX_DASH_ECHOES;
+      let shownDash=0;
+      for(let i=this.dashEchoes.length-1;i>=0&&shownDash<maxDash;i--){
+        const s=this.dashEchoes[i],age=now-s.at;
+        const x=s.x-(distance-s.distance)-6;
+        const left=x-s.width*.5,top=s.feet-s.height;
+        if(x+s.width*.5+Math.max(0,s.topShift)>=playerX-3||
+          playerX-x>maxReach||left+s.width<-15)continue;
+        shownDash++;
+        const fade=clamp(1-age/.225,0,1);
+        const alpha=(.20+.12*density)*fade*fade*strength;
+        ctx.globalAlpha=alpha;
+        ctx.shadowColor=s.primary;
+        ctx.shadowBlur=density<.5?0:5*glow;
+        ctx.fillStyle=s.primary;
+        ctx.strokeStyle=s.secondary;
+        ctx.lineWidth=1.5;
+        if(typeof dashPath==='function'){
+          dashPath(ctx,left,top,s.width,s.height,s.topShift,7);
+          ctx.fill();ctx.stroke();
+        }else{
+          ctx.fillRect(left,top,s.width,s.height);
+          ctx.strokeRect(left,top,s.width,s.height);
+        }
+      }
+      ctx.globalAlpha=1;ctx.shadowBlur=0;
       // Layer 2: main continuous speed rails. Starts just behind the
       // square's left edge. Length follows SPEED, not the score tier.
       const start=xLimit-3;
@@ -177,6 +238,6 @@
       ctx.restore();
     }
   }
-  return {SpeedTrails,BASE_SPEED,SAMPLE_INTERVAL,MAX_ECHOES,MAX_FRAGMENTS,
+  return {SpeedTrails,BASE_SPEED,SAMPLE_INTERVAL,MAX_ECHOES,MAX_FRAGMENTS,MAX_DASH_ECHOES,
     speedCharge,trailReach};
 });

@@ -1,8 +1,18 @@
-# CHROMA RUSH — Dash Elastic 2.4
+# CHROMA RUSH — Dash Animation 2.5 — Squash, Stretch & Speed Feel
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Dash Animation 2.5 — Squash, Stretch & Speed Feel (2026-11-08)
+
+- **Reference:** applies the 5-stage movement-feel pattern identified in the user's Dash video: anticipation → strong shape deformation → synchronized whoosh → brief afterimages → speed lines. The extra camera push was deliberately omitted to preserve obstacle readability on a fast auto-runner.
+- **Elastic silhouette:** keep the approved 2.4 softly bowed top (28% stronger forward), bottom fixed, never rotate the cube. Layer in Air wind-up horizontal compression (~8.5% narrower, ~6.5% taller) then release stretch (~14.5% longer, ~8.3% shorter). Compact Ground Duck gets a smaller 4.3% compression and 6.8% release stretch.
+- **Release-linked sound & VFX:** a restrained charge click and very short haptic cue occur on input. The main Dash whoosh, quick negative-X streak particles and stronger haptic cue fire **once** when the actual PlayerMotion `dashFeel.burst` transitions forward, not at the initial backward pose. The former instant rectangular frame is removed; don't add distracting circular rings.
+- **Pose-matched afterimages:** 2–3 true, curved top-edge samples share the existing `SpeedTrails` module; recorded positions use the real world distance and feet of each sample, not copies glued to the current frame. Render under hazards and behind the player to avoid fake obstacles. Caps: High 3 / Balanced 2 / Performance 1; entries fade after 225ms. In Performance mode blur is disabled.
+- **Physics/Director/HP unchanged:** Dash 2.2 thrust, 0.30s window, level/zone 1 availability, collision geometry, ceiling mirroring and fairness are identical; VFX does not mutate gameplay RNG. Reduced-motion removes pose ghosts and lowers deformation.
+- **Tests:** deterministic phase behavior, zone-1 touch input, audio charge→release sequencing, true echo geometry and age caps, no ghost on reduced motion, no rings, fixed physics and exact cache-versioned files.
+- **Next stage:** Dash-specific obstacles only after real-device movement testing; keep required inputs telegraphed and timed by the Director.
 
 ## Dash Elastic 2.4 (2026-11-08)
 

@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Elastic Dash 2.4 / existing Jump & Duck Motion
+/* CHROMA RUSH — Dash Animation 2.5 / Squash, Stretch & Speed Feel
  * Pure visual deformation. Collision shapes come only from core/geometry.js.
  */
 (function(root,factory){
@@ -15,6 +15,17 @@
   // the entire sprite. The front stretch is 28% stronger than the wind-up.
   const FRONT_BEND_RATIO=1.28;
   const smooth=t=>{const n=clamp(t,0,1);return n*n*(3-2*n);};
+  // Readable deformation cues, derived from the SAME phase as the top bend.
+  // These are visual-only; real collision remains in core/geometry.js.
+  function dashFeel(remaining){
+    const shear=dashShear(remaining);
+    return {
+      windup:clamp(-shear,0,1),
+      release:clamp(shear/FRONT_BEND_RATIO,0,1),
+      // Authoritative signal for trail and sound synchronization: no independent timer.
+      burst:shear>.15
+    };
+  }
   function dashShear(remaining){
     if(!(remaining>0))return 0;
     const t=clamp(dashDuration-remaining,0,dashDuration);
@@ -81,13 +92,13 @@
         const settle=Math.pow(Math.max(0,1-t),2);
         const dash=dashStrength(this.dashTime);
         const shear=dashShear(this.dashTime);
-        const drive=Math.max(0,shear)/FRONT_BEND_RATIO;
-        // Ground Duck is already wide and low: bend the top by ~4–5px
-        // instead of making the cube long, pointed or rotated.
-        return {scaleX:1.045+.16*settle+.035*drive,
-          scaleY:1-.19*settle-.015*drive,
+        const feel=dashFeel(this.dashTime);
+        // Duck stays low and compact. Wind-up gathers into the back edge;
+        // forward thrust widens only slightly in addition to the top bend.
+        return {scaleX:1.045+.16*settle-.043*feel.windup+.068*feel.release,
+          scaleY:1-.19*settle+.030*feel.windup-.030*feel.release,
           glow:.16+.14*settle+.85*dash,
-          dash,shear,dashMode:dash>0?'ground':null};
+          dash,shear,dashFeel:feel,dashMode:dash>0?'ground':null};
       }
       if(landed&&this.duckExit>0){
         // Springing upright is visual only; the normal hitbox is active now.
@@ -120,13 +131,13 @@
       }
       const dash=dashStrength(this.dashTime);
       const shear=dashShear(this.dashTime);
-      const drive=Math.max(0,shear)/FRONT_BEND_RATIO;
-      // Air Dash: top bows back, then 28% more forward. Only small
-      // supplemental stretch; flight trajectory and collisions unchanged.
-      return {scaleX:1/clamp(scaleY,.7,1.3)+.075*drive,
-        scaleY:scaleY-.028*drive,glow:glow+.90*dash,
-        dash,shear,dashMode:dash>0?'air':null};
+      const feel=dashFeel(this.dashTime);
+      // Air Dash: a visibly compressed anticipation and a supple horizontal
+      // extension, while the lower edge stays anchored in the 2.4 contour.
+      return {scaleX:1/clamp(scaleY,.7,1.3)-.085*feel.windup+.145*feel.release,
+        scaleY:scaleY+.065*feel.windup-.083*feel.release,glow:glow+.90*dash,
+        dash,shear,dashFeel:feel,dashMode:dash>0?'air':null};
     }
   }
-  return {PlayerMotion,dashStrength,dashShear,elasticBodyPath,FRONT_BEND_RATIO};
+  return {PlayerMotion,dashStrength,dashShear,dashFeel,elasticBodyPath,FRONT_BEND_RATIO};
 });

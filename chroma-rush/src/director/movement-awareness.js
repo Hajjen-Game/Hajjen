@@ -97,11 +97,15 @@
     }
     echoReady({zone=1,hp=100,stress=0,confidence=0,phase='BUILD',
       surface='floor',gravityPending=false}={},now=0,first=false){
-      if(zone<ECHO_SPIRE.firstZone||hp<=50||stress>=.42||confidence<.38)return false;
+      const earlyLesson=first&&zone===ECHO_SPIRE.firstZone;
+      // A short, isolated teaching obstacle is okay even when the current
+      // pacing phase is FADE/RELAX. It is NOT an advanced difficulty spike.
+      if(zone<ECHO_SPIRE.firstZone||hp<=50||stress>=.42||
+        (!earlyLesson&&confidence<.38))return false;
       if(first&&(surface!=='floor'||gravityPending))return false;
-      if(phase==='FADE'||phase==='RELAX')return false;
+      if(!earlyLesson&&(phase==='FADE'||phase==='RELAX'))return false;
       if(now<this.recoveryUntil)return false;
-      if(first)return phase==='PEAK';
+      if(first)return earlyLesson||phase==='PEAK';
       if(now-this.lastEchoTime<7.2 || now-this.lastGapTime<2.2)return false;
       return true;
     }

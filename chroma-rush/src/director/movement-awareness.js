@@ -5,10 +5,10 @@
  */
 (function(root,factory){
   const config=typeof module!=='undefined'&&module.exports?require('../core/config.js'):(root&&root.ChromaConfig);
-  const api=factory(config.GAME,config.JUMP_FEEL);
+  const api=factory(config.GAME,config.JUMP_FEEL,config.ECHO_SPIRE);
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(root)root.ChromaMovementAwareness=api;
-})(typeof window!=='undefined'?window:null,function(GAME,JUMP_FEEL){
+})(typeof window!=='undefined'?window:null,function(GAME,JUMP_FEEL,ECHO_SPIRE){
   'use strict';
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   // Timing envelopes describe actual control commitments, not obstacle height.
@@ -95,8 +95,10 @@
     onGravityShift(now){
       this.recoveryUntil=Math.max(this.recoveryUntil,now+1.35);
     }
-    echoReady({zone=1,hp=100,stress=0,confidence=0,phase='BUILD'}={},now=0,first=false){
-      if(zone<4||hp<=50||stress>=.42||confidence<.38)return false;
+    echoReady({zone=1,hp=100,stress=0,confidence=0,phase='BUILD',
+      surface='floor',gravityPending=false}={},now=0,first=false){
+      if(zone<ECHO_SPIRE.firstZone||hp<=50||stress>=.42||confidence<.38)return false;
+      if(first&&(surface!=='floor'||gravityPending))return false;
       if(phase==='FADE'||phase==='RELAX')return false;
       if(now<this.recoveryUntil)return false;
       if(first)return phase==='PEAK';

@@ -385,11 +385,19 @@ test('real zone-4 PEAK introduces a standalone Echo Spire: single jump fails, Ec
       for(const fn of g.get('jump-btn').events.pointerdown??[])fn({pointerId:id,preventDefault(){}});
       for(const fn of g.get('jump-btn').events.pointerup??[])fn({pointerId:id});
     };
-    for(let i=2;i<=114;i++){
-      // The obstacle starts ~1.25s ahead. Launch ~.7s before arrival,
-      // then use the second impulse ~.32s after first takeoff.
-      if(i===33)tap(61);
-      if(i===53&&secondJump)tap(62);
+    // Time the input relative to the ACTUAL obstacle's arrival, not a
+    // constant calibrated to Speed Curve 1.0. Both curves must satisfy the
+    // same physical test: one jump fails, two correctly timed jumps clear.
+    const speed=config.GAME.speedAt(3*config.GAME.zoneSeconds,4);
+    const untilContact=(first.x-state.player().x-22)/speed;
+    // Slower movement means the wide pillar overlaps the player longer;
+    // place contact near the broad Echo apex, not near descent.
+    const launchFrame=Math.max(3,Math.round((untilContact-.60)*60));
+    const echoFrame=launchFrame+20;
+    const finishFrame=Math.max(114,Math.ceil((untilContact+.30)*60));
+    for(let i=2;i<=finishFrame;i++){
+      if(i===launchFrame)tap(61);
+      if(i===echoFrame&&secondJump)tap(62);
       g.step(i*1000/60);
     }
     assert.equal(first.cleared,true);

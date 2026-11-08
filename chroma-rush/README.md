@@ -1,8 +1,27 @@
-# CHROMA RUSH — Precision & Combo System 1.0
+# CHROMA RUSH — Speed Curve 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Speed Curve 2.0 (2026-11-08)
+
+- The first-phase speed progression is deliberately gentler now that CHROMA RUSH includes double jumps, Echo Spires, Gravity Shift, varied terrain and movement combos. **Only the speed formula in shared config changes.** The start remains **370**, with acceleration reduced **11.5 → 7 logical units/s²**, and zone bonus reduced **12 → 7 units per new zone**.
+- At **120 seconds**, the continuous speed curve transitions to a smaller **4.5 units/s²** acceleration; it does not hard-cap or temporarily slow the runner. The zone cadence remains **12 seconds** and gives the same +7 increment before and after the taper. Existing jump/duck physics, obstacles, Director pacing, fairness warning thresholds, Flow, graphics and all controls are preserved.
+- For wall-clock run time `t` and 1-based zone `z`, the speed formula is `370 + 7 × min(t, 120) + 4.5 × max(0, t − 120) + 7 × max(0, z − 1)`. Starting a practice run in a later zone uses the same absolute point on this curve as getting there naturally.
+- Reference values (computed from the shipped config):
+
+| Elapsed | Zone | Old speed | New speed | Reduction |
+|---|---:|---:|---:|---:|
+| 0 sec | 1 | 370 | 370 | 0% |
+| 30 sec | 3 | 739 | 594 | 20% |
+| 60 sec | 6 | 1,120 | 825 | 26% |
+| 90 sec | 8 | 1,489 | 1,049 | 30% |
+| 120 sec | 11 | 1,870 | 1,280 | 32% |
+| 180 sec | 16 | 2,620 | 1,585 | 40% |
+
+- [Speed Curve 2.0 regression tests](tests/speed-curve-2.0.test.cjs) verify exact checkpoints, late-phase continuity, monotonic zone transitions, no hard cap, practice alignment and unchanged controls/physics. The existing [High-Speed Fairness Audit](tests/high-speed-fairness-audit-1.0.test.cjs) is re-baselined to the new 180-second speed and separately tests later-zone high-speed practice.
+- **Manual playtest focus:** zone 1–3 onboarding, zone 4–8 difficulty/response rhythm, zone 11+ longer runs. Change Director complexity only after comparing gameplay feedback; this is deliberately a one-variable balance pass. Older recorded high-speed audit results refer to the **previous** curve.
 
 ## Precision & Combo System 1.0 (2026-11-07)
 

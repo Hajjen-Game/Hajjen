@@ -85,5 +85,5 @@ test('physics, controls, fairness and Director source stay unchanged',()=>{
   assert.match(html,/id="jump-btn"/);
   assert.match(html,/id="duck-btn"/);
   assert.doesNotMatch(html,/id="dash-btn"/);
-  assert.ok(html.includes('src/core/config.js?v=flow-1.2-movement-1.0-echo-spire-1.0-combo-1.0-speed-curve-2.0'));
+  assert.ok(html.includes('src/core/config.js?v=flow-1.2-movement-1.0-echo-spire-1.0-combo-1.0-speed-curve-2.0-echo-polish-1.1'));
 });

@@ -47,7 +47,7 @@ function harness(){
  }
  const noop=()=>{},gradient=()=>({addColorStop:noop});
  const draw={setTransform:noop,save:noop,restore:noop,translate:noop,rotate:noop,scale:noop,
-  fillRect:noop,strokeRect:noop,clip:noop,beginPath:noop,moveTo:noop,lineTo:noop,arcTo:noop,
+  fillRect:noop,strokeRect:noop,clip:noop,beginPath:noop,moveTo:noop,lineTo:noop,arcTo:noop,quadraticCurveTo:noop,bezierCurveTo:noop,
   closePath:noop,fill:noop,stroke:noop,arc:noop,ellipse:noop,fillText:noop,
   createLinearGradient:gradient,createRadialGradient:gradient};
  el('game').getContext=()=>draw;

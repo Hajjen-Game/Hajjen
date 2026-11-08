@@ -1093,7 +1093,8 @@
     const rw=b.w*shape.scaleX*beat, rh=b.h*shape.scaleY*beat;
     const rx=player.x-rw/2,ry=player.feet-rh;
     const dashAmount=shape.dash||0;
-    if(dash.active&&!reducedMotion){
+    if(dash.active&&!reducedMotion&&shape.shear>0){
+      // Wait for the bent top to spring forward before drawing the speed wake.
       // Side-view speed wake; brighter and longer than 2.1, but always
       // BEHIND the runner. Rendered at most 4 strokes, 2 on older phones.
       const density=quality.profile.density;

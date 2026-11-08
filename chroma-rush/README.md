@@ -1,8 +1,16 @@
-# CHROMA RUSH — Dash Soft Lean 2.3
+# CHROMA RUSH — Dash Elastic 2.4
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Dash Elastic 2.4 (2026-11-08)
+
+- **User-confirmed animation language:** the top of the rounded cube bends **backward** for a short ~45ms wind-up, then springs forward with **28% more deformation** than the backward anticipation. The bottom stays anchored and the rounded sides gently bow, using a small Canvas bezier path rather than rotating or swapping sprites.
+- **Timing:** wind-up 0–45ms → spring through zero to a full forward stretch by 100ms → brief held impact → subtle elastic recoil → upright by 300ms, synchronized with the existing duration. A pure easing function is used so movement remains smooth even across skipped mobile frames.
+- **Air Dash:** the relatively tall existing jumping silhouette gets an upper-edge shift of up to roughly 16px (on its 36px-wide hitbox), staying soft and vertical rather than a triangle or leaning as a rigid block. **Ground Dash:** only ~6px of top-edge displacement on its compact 66×21 duck silhouette. Both keep the original white core, gleam, and rounded ink/neon outline.
+- **Unchanged gameplay:** original Dash thrust (2.2), duration, mechanics, collision box, jump/duck physics, Director, sounds, HUD, background and controller bindings are left alone; Ceiling Run mirrors the curved artwork with the same board transform. Reduced-motion still shows the state but with a smaller bend.
+- **Tests:** verify backward/front ratio, independent motion phases, unshifted feet, curved sides, visible effect in actual frame rendering, release asset freshness, and CPU-only browser/gameplay regressions. No dash-only obstacles are introduced here.
 
 ## Dash Soft Lean 2.3 (2026-11-08)
 

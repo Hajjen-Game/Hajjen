@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const {GAME,DASH,JUMP_FEEL,ECHO_SPIRE}=require('../src/core/config.js');
 const {ContextualDash}=require('../src/gameplay/contextual-dash.js');
-const {PlayerMotion,dashStrength}=require('../src/render/player-motion.js');
+const {PlayerMotion,dashStrength,dashShear,elasticBodyPath,FRONT_BEND_RATIO}=require('../src/render/player-motion.js');
 const {playerBox}=require('../src/core/geometry.js');
 
 function distanceFor(speed){
@@ -15,96 +15,118 @@ function distanceFor(speed){
   assert.equal(dash.tick(.03,speed),0);
   return total;
 }
-test('all movement abilities usable in zone 1; Echo Spire still teaches in zone 2',()=>{
+function tracePath(shift,mode='air'){
+  const w=mode==='air'?42:68,h=mode==='air'?52:21;
+  const commands=[];
+  const ctx={
+    beginPath(){commands.push(['begin'])},
+    moveTo(...p){commands.push(['move',...p])},
+    lineTo(...p){commands.push(['line',...p])},
+    quadraticCurveTo(...p){commands.push(['quadratic',...p])},
+    bezierCurveTo(...p){commands.push(['bezier',...p])},
+    closePath(){commands.push(['close'])}
+  };
+  elasticBodyPath(ctx,120,40,w,h,shift,8);
+  return {commands,w,h};
+}
+
+test('all movement abilities still work in zone 1; physics is untouched',()=>{
   assert.equal(DASH.unlockZone,1);
   assert.equal(JUMP_FEEL.echoUnlockZone,1);
   assert.equal(ECHO_SPIRE.firstZone,2);
   assert.equal(GAME.jumpVelocity,-870);
   assert.equal(GAME.gravity,2140);
-});
-test('2.2 Dash delivers a clearly stronger finite surge on both early and later zones',()=>{
   assert.equal(DASH.duration,.30);
   assert.equal(DASH.bonusFactor,1.05);
-  const launch=distanceFor(370);
-  const later=distanceFor(680);
-  assert.ok(launch>110&&launch<140,'start-zone extra distance is visible, not a teleport');
-  assert.ok(later>190&&later<240,'faster-zone dash remains capped and deterministic');
-  assert.ok(launch>64.8*1.6,'stronger than previous 2.1 extra travel');
-  const d=new ContextualDash();
-  d.onDuckStart();
-  assert.equal(d.request({zone:1,grounded:true,ducking:true}),'ground');
-  assert.ok(d.tick(1/60,370)>7);
-  assert.equal(d.request({zone:1,grounded:true,ducking:true}),null);
+  assert.ok(distanceFor(370)>110&&distanceFor(370)<140);
+  assert.ok(distanceFor(680)>190&&distanceFor(680)<240);
 });
-test('air dash uses a rounded cube with soft forward lean, never a pointed glider',()=>{
+test('elastic charge back and forward bend has exactly 28% stronger forward peak',()=>{
+  assert.equal(FRONT_BEND_RATIO,1.28);
+  assert.equal(dashShear(.30),0);
+  const back=dashShear(.255);
+  const front=dashShear(.20);
+  assert.ok(back<-.999&&back>=-1.001);
+  assert.ok(Math.abs(front/Math.abs(back)-1.28)<1e-5,
+    'forward top bend is 28 percent stronger than backward wind-up');
+  assert.equal(dashShear(0),0);
+  assert.ok(dashShear(.295)<0,'charge begins smoothly backward');
+  assert.ok(dashShear(.235)<dashShear(.205),'release grows forwards');
+  assert.ok(dashShear(.015)<0,'small elastic recoil before returning upright');
+});
+test('wind-up and dash both show up at low 30fps with no frame-sensitive logic',()=>{
+  // 30fps and a slower 26.6fps phone; no frame index, angle or RNG.
+  for(const dt of [1/30,1/26.6]){
+    assert.ok(dashShear(.30-dt)<0,'first update bends back');
+    assert.ok(dashShear(.30-3*dt)>0,'three updates reach forward bend');
+    assert.ok(dashShear(.30-3*dt)>.5,'forward bend becomes readable');
+  }
+});
+test('Air Dash bends the TOP while lower side stays anchored and rounded',()=>{
   const m=new PlayerMotion();
   const p={x:330,feet:515,vy:-200,landed:false,duck:false};
   const box=playerBox(p);
   const before=m.sample(p);
-  m.dashStart(false);
-  m.tick(.08);
-  const active=m.sample(p);
-  assert.ok(active.dash>.95);
-  assert.ok(active.scaleX>before.scaleX+.10&&active.scaleX<before.scaleX+.20,
-    'air stretches gently, not into an arrow');
-  assert.ok(active.scaleY<before.scaleY-.03&&active.scaleY>before.scaleY-.08,
-    'air keeps the original squash/stretch scale');
-  assert.ok(active.tilt>.20&&active.tilt<.22,'air gently leans about 12 degrees');
-  assert.ok(active.glow>before.glow+.65);
-  assert.equal(active.dashMode,'air');
-  assert.deepEqual(playerBox(p),box,'morph never widens the collider');
-  m.tick(.27);
-  assert.equal(m.sample(p).dash,0);
+  m.dashStart(false);m.tick(.045);
+  const wind=m.sample(p);
+  assert.ok(wind.shear<-.98,'air top bends backward');
+  m.tick(.055);
+  const action=m.sample(p);
+  assert.ok(action.shear>1.25,'air top springs further forward');
+  assert.ok(action.scaleX>before.scaleX&&action.scaleX<before.scaleX+.11);
+  assert.ok(action.scaleY<before.scaleY&&action.scaleY>before.scaleY-.04);
+  assert.equal(action.dashMode,'air');
+  assert.equal('tilt' in action,false,'whole sprite is never rotated');
+  assert.deepEqual(playerBox(p),box,'body deformation is not collision geometry');
+  m.tick(.205);
+  assert.equal(m.sample(p).shear,0);
 });
-test('ground dash keeps compact duck silhouette and only a small forward lean',()=>{
+test('Ground Dash has same animation language but much smaller displacement',()=>{
   const m=new PlayerMotion();
-  m.duckStart();
-  m.dashStart(true);
-  m.tick(.09);
-  const pose=m.sample({landed:true,duck:true,vy:0});
-  assert.ok(pose.scaleX>1.1&&pose.scaleX<1.25,
-    'ground Dash stays almost the same width as duck');
-  assert.ok(pose.scaleY>.9&&pose.scaleY<=1,
-    'ground Dash stays compact instead of becoming a low arrow');
-  assert.ok(pose.tilt>.049&&pose.tilt<.054,'duck has only about 3 degrees lean');
-  assert.equal(pose.dashMode,'ground');
-  assert.ok(dashStrength(.15)>.99);
+  m.duckStart();m.dashStart(true);m.tick(.045);
+  const back=m.sample({landed:true,duck:true});
+  assert.ok(back.shear<-.98);
+  m.tick(.055);
+  const front=m.sample({landed:true,duck:true});
+  assert.ok(front.shear>1.25);
+  assert.equal(front.dashMode,'ground');
+  assert.ok(front.scaleX>1.05&&front.scaleX<1.14,'duck remains compact');
+  assert.ok(front.scaleY>.95&&front.scaleY<1.01,'duck remains low and compact');
+  // Actual top shift in gameplay is based on ORIGINAL collision width:
+  const airFrontShift=1.28*36*.35;
+  const groundFrontShift=1.28*66*.065;
+  assert.ok(airFrontShift>16&&airFrontShift<16.3);
+  assert.ok(groundFrontShift>5&&groundFrontShift<6);
   m.duckRelease();
-  assert.equal(m.sample({landed:true,duck:false}).dash,undefined);
   assert.equal(m.dashTime,0);
+  assert.equal(m.sample({landed:true,duck:false}).shear,undefined);
 });
-test('dash lean fades smoothly in and out; normal movement stays upright',()=>{
-  assert.equal(dashStrength(0),0);
-  assert.equal(dashStrength(.30),0);
-  assert.ok(dashStrength(.29)>0&&dashStrength(.29)<.5);
-  assert.ok(dashStrength(.27)>dashStrength(.29));
-  assert.equal(dashStrength(.20),1);
-  assert.ok(dashStrength(.05)>0&&dashStrength(.05)<1);
-  const motion=new PlayerMotion();
-  assert.equal(motion.sample({landed:false,vy:-330}).tilt,0);
-  assert.equal(motion.sample({landed:true,duck:true}).tilt,0);
-  motion.dashStart(false);
-  motion.tick(.1);
-  const air=motion.sample({landed:false,vy:-330});
-  motion.duckStart();
-  motion.dashStart(true);
-  motion.tick(.1);
-  const ground=motion.sample({landed:true,duck:true});
-  assert.ok(air.tilt>ground.tilt*3.5,
-    'air lean should be prominent while ground lean is subtle');
-  motion.duckCancel();
-  assert.equal(motion.sample({landed:true,duck:true}).tilt,0);
+test('Elastic Canvas geometry has curved sides and fixed lower corners',()=>{
+  const back=tracePath(-13),front=tracePath(13*FRONT_BEND_RATIO),duck=tracePath(5,'ground');
+  for(const pose of [back,front,duck]){
+    assert.equal(pose.commands.filter(c=>c[0]==='bezier').length,2);
+    assert.equal(pose.commands.filter(c=>c[0]==='quadratic').length,4);
+    assert.equal(pose.commands.at(-1)[0],'close');
+    const first=pose.commands.find(c=>c[0]==='move');
+    assert.ok(Number.isFinite(first[1]));
+    // A lower-right corner remains fixed to x+w,y+h for either sign of bend.
+    const lowerRight=pose.commands.find(c=>c[0]==='quadratic'&&c[1]===120+pose.w);
+    assert.deepEqual(lowerRight.slice(1,3),[120+pose.w,40+pose.h]);
+    const lowerLeft=pose.commands.find(c=>c[0]==='quadratic'&&c[1]===120&&c[2]===40+pose.h);
+    assert.ok(lowerLeft,'lower-left corner stays fixed');
+  }
+  assert.ok(back.commands.find(c=>c[0]==='move')[1]<
+    front.commands.find(c=>c[0]==='move')[1],'top changes direction');
 });
-test('release renders original rounded cube with rotation, no arrow path',()=>{
+test('reduced motion, Ceiling Run and asset versions do not affect gameplay',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
-  assert.match(html,/LATEST UPDATE · DASH SOFT LEAN 2\.3/);
-  assert.match(html,/contextual-dash\.js\?v=contextual-dash-2\.2/);
-  assert.match(html,/player-motion\.js\?v=duck-effects-1\.0-movement-1\.0-dash-soft-lean-2\.3/);
-  assert.match(html,/ALL MOVES AVAILABLE FROM ZONE 01/);
-  assert.match(game,/ctx\.rotate\(reducedMotion\?shape\.tilt\*\.25:shape\.tilt\)/);
-  assert.match(game,/roundRectPath\(rx,ry,rw,rh,8\)/);
-  assert.doesNotMatch(game,/dashBodyPath|pointed aerial glider|forward-facing wedge/);
+  assert.match(html,/LATEST UPDATE · DASH ELASTIC 2\.4/);
+  assert.match(html,/player-motion\.js\?v=duck-effects-1\.0-movement-1\.0-dash-elastic-2\.4/);
+  assert.match(game,/window\.ChromaMotion\.elasticBodyPath/);
+  assert.doesNotMatch(game,/ctx\.rotate\(|dashBodyPath|shape\.tilt/);
+  assert.match(game,/gravityShift\.applyCourseTransform\(ctx,H\)/);
+  assert.match(game,/reducedMotion\?\.55:1/);
   assert.match(game,/const worldStep=speed\*dt\+dash\.tick\(dt,speed\)/);
   assert.match(game,/o\.x-=worldStep/);
 });

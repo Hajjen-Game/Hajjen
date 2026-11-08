@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Soft Lean Dash 2.3 / Jump & Duck Motion 1.0
+/* CHROMA RUSH — Elastic Dash 2.4 / existing Jump & Duck Motion
  * Pure visual deformation. Collision shapes come only from core/geometry.js.
  */
 (function(root,factory){
@@ -10,13 +10,44 @@
   'use strict';
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
   const dashDuration=DASH?.duration||.30;
-  // The cube stays a ROUNDED CUBE. Dash blends a natural clockwise lean
-  // (forward is +x in course space) with tiny squash/stretch. The normal
-  // jump/duck silhouettes stay intact and gameplay hitboxes are unchanged.
+  // The existing jump and duck silhouettes are preserved. Dash bends the
+  // TOP of the rounded cube while its bottom remains anchored, never rotates
+  // the entire sprite. The front stretch is 28% stronger than the wind-up.
+  const FRONT_BEND_RATIO=1.28;
+  const smooth=t=>{const n=clamp(t,0,1);return n*n*(3-2*n);};
+  function dashShear(remaining){
+    if(!(remaining>0))return 0;
+    const t=clamp(dashDuration-remaining,0,dashDuration);
+    // 0–45ms wind-up backwards, 45–100ms drive forwards, 100–205ms hold,
+    // then an understated elastic recoil and return by the 300ms mark.
+    if(t<=.045)return -smooth(t/.045);
+    if(t<=.100)return -1+(1+FRONT_BEND_RATIO)*smooth((t-.045)/.055);
+    if(t<=.205)return FRONT_BEND_RATIO-.08*smooth((t-.100)/.105);
+    if(t<=.270)return 1.20-1.26*smooth((t-.205)/.065);
+    return -.06*(1-smooth((t-.270)/(dashDuration-.270)));
+  }
   function dashStrength(remaining){
+    // Existing glow/speed wake remains compatible with dash 2.2.
     if(!(remaining>0))return 0;
     const t=clamp(Math.min((dashDuration-remaining)/.055,remaining/.095,1),0,1);
-    return t*t*(3-2*t); // smoothstep: no hard angular snaps
+    return smooth(t);
+  }
+  function elasticBodyPath(ctx,x,y,w,h,topShift,radius=8){
+    // Original round-rectangle vocabulary with gently bowed side walls.
+    // Top corners follow the sheared top edge; the lower corners do NOT move.
+    const r=Math.min(radius,w/4,h/3);
+    const s=clamp(topShift,-w*.48,w*.48);
+    ctx.beginPath();
+    ctx.moveTo(x+s+r,y);
+    ctx.lineTo(x+s+w-r,y);
+    ctx.quadraticCurveTo(x+s+w,y,x+s+w,y+r);
+    ctx.bezierCurveTo(x+w+s*.83,y+h*.36,x+w+s*.17,y+h*.7,x+w,y+h-r);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.bezierCurveTo(x+s*.17,y+h*.7,x+s*.83,y+h*.36,x+s,y+r);
+    ctx.quadraticCurveTo(x+s,y,x+s+r,y);
+    ctx.closePath();
   }
   class PlayerMotion {
     constructor(rules=RULES){this.rules=rules;this.reset();}
@@ -49,12 +80,14 @@
         const t=1-this.duckEntry/.105;
         const settle=Math.pow(Math.max(0,1-t),2);
         const dash=dashStrength(this.dashTime);
-        // Ground Dash stays compact: slight forward lean, not a stretched
-        // projectile. The underlying duck collision box is unchanged.
-        return {scaleX:1.045+.16*settle+.075*dash,
-          scaleY:1-.19*settle-.025*dash,
+        const shear=dashShear(this.dashTime);
+        const drive=Math.max(0,shear)/FRONT_BEND_RATIO;
+        // Ground Duck is already wide and low: bend the top by ~4–5px
+        // instead of making the cube long, pointed or rotated.
+        return {scaleX:1.045+.16*settle+.035*drive,
+          scaleY:1-.19*settle-.015*drive,
           glow:.16+.14*settle+.85*dash,
-          dash,tilt:.052*dash,dashMode:dash>0?'ground':null};
+          dash,shear,dashMode:dash>0?'ground':null};
       }
       if(landed&&this.duckExit>0){
         // Springing upright is visual only; the normal hitbox is active now.
@@ -86,12 +119,14 @@
         glow=(1-t)*.42*this.impact;
       }
       const dash=dashStrength(this.dashTime);
-      // Air Dash feels dynamic through a graceful forward rotation and a
-      // touch of horizontal stretch: no pointed polygon or hard edges.
-      return {scaleX:1/clamp(scaleY,.7,1.3)+.13*dash,
-        scaleY:scaleY-.045*dash,glow:glow+.90*dash,
-        dash,tilt:.215*dash,dashMode:dash>0?'air':null};
+      const shear=dashShear(this.dashTime);
+      const drive=Math.max(0,shear)/FRONT_BEND_RATIO;
+      // Air Dash: top bows back, then 28% more forward. Only small
+      // supplemental stretch; flight trajectory and collisions unchanged.
+      return {scaleX:1/clamp(scaleY,.7,1.3)+.075*drive,
+        scaleY:scaleY-.028*drive,glow:glow+.90*dash,
+        dash,shear,dashMode:dash>0?'air':null};
     }
   }
-  return {PlayerMotion,dashStrength};
+  return {PlayerMotion,dashStrength,dashShear,elasticBodyPath,FRONT_BEND_RATIO};
 });

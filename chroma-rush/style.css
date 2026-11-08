@@ -46,7 +46,7 @@ h1 span {color:#d7fcff;text-shadow:0 0 18px #1fd8ff8f,0 0 60px #1fd8ff55;}h1 em 
 .primary-btn:active {transform:scale(.98);}
 .secondary-btn {border:0;background:transparent;color:#9cb0cb;font-size:12px;letter-spacing:.2em;margin-top:15px;}
 .screen-panel .help-text {font-size:clamp(9px,.9vw,12px);color:#7b91b4;line-height:1.9;letter-spacing:.11em;margin-top:16px;}
-.version {font-size:9px;color:#4f688b;letter-spacing:.24em;margin-top:16px;}
+.version {font-size:10px;color:#91bedb;font-weight:750;letter-spacing:.16em;margin-top:12px;}
 h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacing:-.04em;margin:10px 0 15px;color:#eefaff;}
 .result-stats {display:flex;gap:30px;margin:12px 0 3px;}
 .result-stats div {display:flex;min-width:72px;flex-direction:column;gap:4px;}

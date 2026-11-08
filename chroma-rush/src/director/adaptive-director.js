@@ -152,6 +152,14 @@
         this.pending=motif.steps.map((type,index)=>({type,pattern:motif.id,step:index+1}));
       }
       const next=this.pending[0];
+      // If an unlucky stretch of collisions/terrain has blocked the lesson,
+      // do NOT introduce it seconds before the next ceiling transition.
+      // It can safely retry in a later floor section.
+      if(next.type==='echo'&&!this.echoIntroduced&&context.zone===2&&
+        context.zoneElapsed>8.4){
+        this.pending=[];this.spawnCountdown=.3;this.movement.deferredPatterns++;
+        return;
+      }
       // Never drag the very first Echo Spire into the ceiling section.
       // Cancel the queued lesson and allow normal motifs to continue while
       // we wait for the safe floor return, rather than blocking the queue.

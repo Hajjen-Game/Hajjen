@@ -488,9 +488,14 @@ test('real game frames draw ONE background and ONE terrain during Chroma Tide 2.
   const g=setup();
   g.step(0);g.get('start-btn').click();
   const state=g.context.window.__gravityHarness;
-  // Advance normally across the first real zone boundary, not a mock wave.
+  // This measures the actual zone render, not survival skills of a simulated
+  // player with no controls. Keep the procedural game clock/zone real but
+  // supply a flat test runway and harmless contacts until the first crossing.
+  state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
+  state.terrain.gaps=[];state.terrain.generated=10000000;
   let timestamp=0;
   for(let i=1;i<=60*13;i++){
+    state.player().invulnerable=9;
     timestamp=i*1000/60;g.step(timestamp);
     if(state.spectralWave.active&&!state.spectralWave.charging)break;
   }

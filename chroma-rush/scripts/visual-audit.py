@@ -407,7 +407,14 @@ def main():
         page.set_content(html,wait_until='load')
         page.locator('#start-btn').click()
         page.evaluate('window.__visualAudit.endRun()')
-        assert page.locator('#export-run-btn').is_visible(), 'No audit export action on results screen'
+        # Pass 4: diagnostics remain available under the opt-in Run Details
+        # drawer. They should NOT clutter the default results screen.
+        assert not page.locator('#export-run-btn').is_visible(), (
+            'Diagnostics should stay inside collapsed Run Details')
+        page.locator('#result-details-btn').click()
+        assert page.locator('#result-details-btn').get_attribute('aria-expanded')=='true'
+        assert page.locator('#export-run-btn').is_visible(), (
+            'No audit export action inside Run Details')
         with page.expect_download() as downloaded:
             page.locator('#export-run-btn').click()
         file = downloaded.value

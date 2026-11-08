@@ -78,8 +78,8 @@
     masterGain:.76,musicGain:.58,effectsGain:.40
   });
   const ECHO_SPIRE=Object.freeze({
-    // First guided Echo obstacle comes after the first ceiling section.
-    firstZone:5,
+    // Teach double-jump as soon as it unlocks, BEFORE the first ceiling run.
+    firstZone:2,
     minWidth:46,maxWidth:52,
     minHeight:190,maxHeight:200,
     introMinWidth:46,introMaxWidth:49,

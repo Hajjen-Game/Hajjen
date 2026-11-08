@@ -155,5 +155,5 @@ test('Build scripts, visible unobtrusive seal labels and action cues are connect
   assert.doesNotMatch(portion,/fillText\s*\(/,'obstacle visuals stay text-free');
   assert.match(game,/gravityShift\.mix>\.5/);
   assert.match(game,/shieldCores\.blocksHazard/);
-  assert.match(game,/terrain\.visibleGaps\(worldX-pad,worldX\+width\+pad\)/);
+  assert.match(game,/terrain\.canSpawnObstacle\(worldX,width,speed\)/);
 });

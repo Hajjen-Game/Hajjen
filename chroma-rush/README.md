@@ -1,8 +1,16 @@
-# CHROMA RUSH — Chroma Identity & Visual Polish 1.0
+# CHROMA RUSH — Player & Movement Identity 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Player & Movement Identity 2.0 (2026-11-08)
+
+- **Removed unwanted markings:** no painted lines on the runner; removed the confusing arrow/text-like glyphs from Jump, Duck, Echo and Dash obstacles, including the three inward chevrons from Dash seals. Actual obstacle architecture and collision remain untouched.
+- **Living glass cube:** an updated multi-stop, zone-reactive material coats the existing squash/stretch shape with continuous body color. Jump, Echo, landing, duck and Dash visual-clock intensities modulate rim glow and color without adding glyphs, icons or floating geometry.
+- **Responsive surface light:** the existing contact strip gains brief, land/duck-aware illumination. Premium modes get one extra low-cost optical coating; Performance gets a single material gradient and contact strip.
+- **Safe under inversion:** all body and contact effects draw within the already gravity-transformed course; original atmospheric backdrop remains unchanged. No input, Director, Flow, hitbox or speed-rule changes.
+- **Cache and QA:** asset query versions and audit build stamp refreshed; legacy tests and dedicated visual tests validate no glyphs, limited draw budget and unchanged physics.
 
 ## Chroma Identity & Visual Polish 1.0 (2026-11-08)
 

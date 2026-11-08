@@ -1,6 +1,7 @@
-/* CHROMA RUSH — Chroma Identity & Visual Polish 1.0.
- * One small, renderer-only inset cut grammar shared by runner and hazards.
- * No gameplay, collision geometry, RNG, detached sprites, rings or labels.
+/* CHROMA RUSH — Player & Movement Identity 2.0.
+ * Motion-reactive translucent cube body, halo and contact light.
+ * Absolutely NO glyphs, arrows, lettering or internal stripes on the runner
+ * or obstacle surfaces. Pure presentation; same physics and hitboxes.
  */
 (function(root,factory){
   const api=factory();
@@ -8,71 +9,93 @@
   if(root)root.ChromaIdentity=api;
 })(typeof window!=='undefined'?window:null,function(){
   'use strict';
-  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  function visualBudget(quality={}){
-    const density=clamp(quality.density??1,.3,1);
-    return {density,detail:density>=.7?2:1,glow:density>=.7?clamp(quality.glow??1,.15,1):0};
+  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+  const rgba=(hex,alpha)=>{
+    const v=parseInt(hex.slice(1),16);
+    return 'rgba('+(v>>16)+','+((v>>8)&255)+','+(v&255)+','+clamp(alpha,0,1)+')';
+  };
+  // Modest pigment mixing: white stays the dominant identifying color,
+  // while both edges answer Chroma Tide's actual local zone colors.
+  function tint(white,color,fraction){
+    const a=parseInt(white.slice(1),16),b=parseInt(color.slice(1),16);
+    const t=clamp(fraction,0,1);
+    return '#'+[16,8,0].map(n=>
+      Math.round(((a>>n)&255)*(1-t)+((b>>n)&255)*t)
+        .toString(16).padStart(2,'0')).join('');
   }
-  function drawPlayerMark(ctx,{x,y,w,h,offset=0,primary='#4bf0ff',
-    secondary='#fa49b2',duck=false,dash=0,quality={}}={}){
-    if(!(w>=18&&h>=12))return;
-    const budget=visualBudget(quality);
-    const ox=clamp(offset,-w*.28,w*.28)*.42;
-    const cy=y+h*.52;
-    const span=Math.min(w*.35,h*.43,16);
-    const depth=duck?Math.min(4,h*.19):Math.min(9,h*.24);
-    ctx.save();ctx.lineCap='square';ctx.lineJoin='bevel';
-    ctx.shadowBlur=0;ctx.globalAlpha=.74;ctx.strokeStyle='#122a40';
-    ctx.lineWidth=Math.min(3.2,Math.max(1.8,w*.065));
-    ctx.beginPath();
-    ctx.moveTo(x+w*.34+ox,cy-depth);
-    ctx.lineTo(x+w*.34-span*.28+ox,cy+depth);
-    ctx.moveTo(x+w*.61+ox,cy-depth);
-    ctx.lineTo(x+w*.61-span*.28+ox,cy+depth);
+  const budget=quality=>{
+    const density=clamp(quality?.density??1,.3,1);
+    return {density,glow:clamp(quality?.glow??1,.15,1),premium:density>=.7};
+  };
+  // Read existing purely-visual clocks. Never advance state here.
+  function expression(motion={},reducedMotion=false){
+    if(reducedMotion)return {launch:0,echo:0,landing:0,duck:0,release:0,dash:0};
+    const duration=Math.max(.01,motion.rules?.landingAnimationSeconds||.2);
+    const pulse=(remaining,window)=>clamp(remaining/window,0,1);
+    return {
+      launch:pulse(motion.launchTime||0,.13),
+      echo:pulse(motion.echoTime||0,.19),
+      landing:pulse(motion.landTime||0,duration)*clamp(motion.impact??1,0,1),
+      duck:pulse(motion.duckEntry||0,.105),
+      release:pulse(motion.duckExit||0,.12),
+      dash:pulse(motion.dashTime||0,.30)
+    };
+  }
+  // Material changes are FULL-SURFACE gradients that conform to the cube's
+  // existing curved deformation. No lettering, additional geometric symbols,
+  // arrowheads, stripes, floating objects or double render passes of the world.
+  function paintPlayer(ctx,{x,y,w,h,topShift=0,primary='#4bf0ff',
+    secondary='#fa49b2',pose={},motion={},quality={},reducedMotion=false,
+    bodyPath}={}){
+    if(typeof bodyPath!=='function'||!(w>0&&h>0))return;
+    const p=expression(motion,reducedMotion),q=budget(quality);
+    const burst=clamp(p.echo*.7+p.dash*.8+p.landing*.65+p.launch*.35,0,1);
+    const drive=clamp(p.dash*.52+p.echo*.27+p.duck*.12,0,.7);
+    ctx.save();
+    // The glow is welded to the actual moving silhouette; no halo ring.
+    ctx.shadowColor=burst>.28?secondary:primary;
+    ctx.shadowBlur=(22+Math.min(16,(pose.glow||0)*12+burst*11))*q.glow;
+    const shell=ctx.createLinearGradient(x+topShift*.35,y,x+w,y+h);
+    shell.addColorStop(0,'#ffffff');
+    shell.addColorStop(.23,burst>.4?'#ffffff':'#f7fcff');
+    shell.addColorStop(.66,tint('#f4faff',primary,.12+p.launch*.14+p.landing*.07));
+    shell.addColorStop(1,tint('#e2effc',secondary,.16+drive*.28));
+    ctx.fillStyle=shell;
+    bodyPath(x,y,w,h,8,topShift);ctx.fill();
+    ctx.shadowBlur=(7+burst*8)*q.glow;
+    ctx.strokeStyle=burst>.4?secondary:primary;
+    ctx.lineWidth=2.1+Math.min(.65,burst*.65);
     ctx.stroke();
-    if(budget.detail>1){
-      ctx.lineWidth=1.35;
-      ctx.strokeStyle=dash>.25?secondary:primary;
-      ctx.globalAlpha=.72;ctx.shadowColor=ctx.strokeStyle;
-      ctx.shadowBlur=3*budget.glow;
-      ctx.beginPath();const lx=x+w*.77+ox;
-      ctx.moveTo(lx,cy-depth*.65);ctx.lineTo(lx,cy+depth*.65);
-      ctx.stroke();
+    if(q.premium){
+      // One broad optical coating, not an inset icon or an engraved line.
+      // Entire second fill follows the approved cube silhouette.
+      const sheen=ctx.createLinearGradient(x,y+h*.1,x+w,y+h*.9);
+      sheen.addColorStop(0,'rgba(255,255,255,.38)');
+      sheen.addColorStop(.48,'rgba(255,255,255,.06)');
+      sheen.addColorStop(1,rgba(primary,.11+burst*.08));
+      ctx.fillStyle=sheen;ctx.shadowBlur=0;
+      bodyPath(x+2,y+2,w-4,h-4,5,topShift*.78);
+      ctx.fill();
     }
     ctx.restore();
   }
-  function drawHazardMark(ctx,{x,y,w,h,type='jump',charged=false,quality={}}={}){
-    if(!(w>=14&&h>=15))return;
-    const budget=visualBudget(quality);
-    const echo=type==='echo',dash=type==='dash-jump'||type==='dash-duck';
-    const overhead=type==='duck'||type==='dash-duck';
-    ctx.save();ctx.lineCap='square';ctx.lineJoin='bevel';
-    ctx.shadowBlur=0;ctx.globalAlpha=.59;
-    ctx.strokeStyle=charged?'#a5ffe0':'#f6fdff';
-    ctx.lineWidth=budget.detail>1?1.65:1.3;
-    ctx.beginPath();
-    if(overhead){
-      const cy=y+h*.54;
-      ctx.moveTo(x+w*.24,cy);ctx.lineTo(x+w*.76,cy);
-      if(budget.detail>1){
-        ctx.moveTo(x+w*.36,cy+5);ctx.lineTo(x+w*.66,cy+5);
-      }
-    }else{
-      for(let i=0;i<(echo?2:1);i++){
-        const cy=y+h*(echo?.28+i*.40:.48);
-        const span=Math.min(w*.32,12);
-        ctx.moveTo(x+w*.5-span*.5,cy-span*.28);
-        ctx.lineTo(x+w*.5,cy+span*.28);
-        ctx.lineTo(x+w*.5+span*.5,cy-span*.28);
-      }
-    }
-    ctx.stroke();
-    if(dash&&charged&&budget.detail>1){
-      ctx.globalAlpha=.64;ctx.strokeStyle='#87ffcf';ctx.lineWidth=1.5;
-      ctx.beginPath();const cy=y+h*.73;
-      ctx.moveTo(x+w*.24,cy);ctx.lineTo(x+w*.76,cy);ctx.stroke();
+  // Short contact glow expands WITH the landing / duck compression.
+  // It stays on the real surface, including when the course is inverted.
+  function drawContact(ctx,{x,surface,width=44,primary='#4bf0ff',
+    secondary='#fa49b2',motion={},quality={},reducedMotion=false}={}){
+    if(!Number.isFinite(surface))return;
+    const p=expression(motion,reducedMotion),q=budget(quality);
+    const impulse=clamp(p.landing*.8+p.duck*.35+p.release*.18,0,1);
+    const w=clamp(width*(1+impulse*.38),16,90);
+    ctx.save();ctx.shadowBlur=0;
+    ctx.fillStyle=rgba(impulse>.35?secondary:primary,.15+impulse*.35);
+    ctx.fillRect(x-w*.5,surface+3,w,2.5+impulse*.9);
+    // Performance paints only a single straight contact strip.
+    if(q.premium&&impulse>.15){
+      ctx.globalAlpha=impulse*.24;ctx.fillStyle=primary;
+      ctx.fillRect(x-w*.31,surface+7,w*.62,1.4);
     }
     ctx.restore();
   }
-  return {visualBudget,drawPlayerMark,drawHazardMark};
+  return {budget,expression,paintPlayer,drawContact,tint};
 });

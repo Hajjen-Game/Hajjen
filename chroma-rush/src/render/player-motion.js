@@ -95,15 +95,15 @@
         const feel=dashFeel(this.dashTime);
         // Duck stays low and compact. Wind-up gathers into the back edge;
         // forward thrust widens only slightly in addition to the top bend.
-        return {scaleX:1.045+.16*settle-.043*feel.windup+.068*feel.release,
-          scaleY:1-.19*settle+.030*feel.windup-.030*feel.release,
+        return {scaleX:1.045+.20*settle-.043*feel.windup+.068*feel.release,
+          scaleY:1-.22*settle+.030*feel.windup-.030*feel.release,
           glow:.16+.14*settle+.85*dash,
           dash,shear,dashFeel:feel,dashMode:dash>0?'ground':null};
       }
       if(landed&&this.duckExit>0){
         // Springing upright is visual only; the normal hitbox is active now.
         const t=1-this.duckExit/.12;
-        const y=.84+.16*t+.045*Math.sin(Math.PI*t);
+        const y=.84+.16*t+.060*Math.sin(Math.PI*t);
         return {scaleX:1/y,scaleY:y,glow:(1-t)*.20};
       }
       let scaleY=1,glow=0;
@@ -112,8 +112,8 @@
         scaleY+=clamp(-vy/1500,-.085,.105);
         if(this.launchTime>0){
           const elapsed=.13-this.launchTime;
-          if(elapsed<.025)scaleY-=.10*(1-elapsed/.025);
-          else scaleY+=.035*Math.max(0,1-(elapsed-.025)/.105);
+          if(elapsed<.025)scaleY-=.125*(1-elapsed/.025);
+          else scaleY+=.053*Math.max(0,1-(elapsed-.025)/.105);
         }
         if(this.echoTime>0){
           // A distinct secondary beat: fast inward compression followed by a
@@ -125,9 +125,9 @@
         }else glow=.2;
       }else if(this.landTime>0){
         const t=1-this.landTime/this.rules.landingAnimationSeconds;
-        if(t<.45){scaleY-=.135*this.impact*(1-t/.45);}
-        else{scaleY+=.042*this.impact*Math.sin((t-.45)/.55*Math.PI);}
-        glow=(1-t)*.42*this.impact;
+        if(t<.45){scaleY-=.185*this.impact*(1-t/.45);}
+        else{scaleY+=.062*this.impact*Math.sin((t-.45)/.55*Math.PI);}
+        glow=(1-t)*.56*this.impact;
       }
       const dash=dashStrength(this.dashTime);
       const shear=dashShear(this.dashTime);

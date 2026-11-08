@@ -41,7 +41,18 @@
   const effects = new window.ChromaEffects.EffectLanguage();
   // Renderer-only optional enhancement: never prevent the game starting if a cached
   // HTML page races a cosmetic script while GitHub Pages is publishing.
-  const identity = window.ChromaIdentity || {drawPlayerMark(){},drawHazardMark(){}};
+  // Optional while GitHub Pages serves cached HTML during an update. The
+  // fallback paints the original cube instead of making the runner invisible.
+  const identity = window.ChromaIdentity || {
+    paintPlayer(ctx,{x,y,w,h,topShift=0,primary,bodyPath}){
+      ctx.shadowColor=primary;ctx.shadowBlur=24;
+      bodyPath(x,y,w,h,8,topShift);ctx.fillStyle='#f3fcff';ctx.fill();
+      ctx.strokeStyle=primary;ctx.lineWidth=2.1;ctx.stroke();
+    },
+    drawContact(ctx,{x,surface,width,primary}){
+      ctx.fillStyle=rgba(primary,.14);ctx.fillRect(x-width/2,surface+3,width,2.5);
+    }
+  };
   const terrainRender = window.ChromaTerrainRender;
   const worldBackground = window.ChromaWorldBackground;
   const spectralWave = new window.ChromaSpectralWave.SpectralWave();
@@ -1284,8 +1295,6 @@
       }
       glowLine(core.x,core.y,core.x+core.w,core.y,'#ffffff',1,8,.45);
     }
-    identity.drawHazardMark(ctx,{x:core.x,y:core.y,w:core.w,h:core.h,
-      type:o.type,charged:Boolean(o.dashSatisfied),quality:quality.profile});
     if(DASH_HAZARDS.isDashHazard(o.type)){
       // The luminous, hairline momentum seal is NOT another rectangular
       // obstacle. It visually spans the airborne route (Air Dash) or the
@@ -1302,13 +1311,8 @@
       ctx.lineWidth=2.3;ctx.strokeStyle=sealColor;
       ctx.beginPath();ctx.moveTo(sealX,top);ctx.lineTo(sealX,bottom);ctx.stroke();
       ctx.shadowBlur=0;
-      // Three chevrons embedded inside the existing barrier material.
-      for(let k=0;k<3;k++){
-        const yy=isLow?b.y+13+k*14:core.y+30+k*29;
-        if(yy>o.groundY-6)break;
-        ctx.beginPath();ctx.moveTo(sealX-10,yy-5);
-        ctx.lineTo(sealX-4,yy);ctx.lineTo(sealX-10,yy+5);ctx.stroke();
-      }
+      // No chevron or arrow marks; the continuous in-place energy seal
+      // and its success fracture communicate the Dash challenge alone.
       if(charged&&o.chargeFlash>0&&!reducedMotion){
         // Two delicate fracture strokes, embedded in the seal (no circular overlays).
         const flash=Math.min(1,o.chargeFlash/.38);
@@ -1375,23 +1379,11 @@
       if(deformed)window.ChromaMotion.elasticBodyPath(ctx,x,y,w,h,offset,r);
       else roundRectPath(x,y,w,h,r);
     };
-    ctx.shadowColor=pc1;ctx.shadowBlur=(31+shape.glow*17)*Math.max(.45,quality.profile.glow);
-    playerPath(rx,ry,rw,rh,8,bend);
-    ctx.fillStyle='#f3fcff';ctx.fill();
-    ctx.shadowBlur=9*quality.profile.glow;ctx.lineWidth=2.1;
-    ctx.strokeStyle=pc1;ctx.stroke();
-    const shading=ctx.createLinearGradient(rx,ry,rx+rw,ry+rh);
-    shading.addColorStop(0,'rgba(255,255,255,.9)');
-    shading.addColorStop(.6,'rgba(247,251,255,.08)');
-    shading.addColorStop(1,rgba(pc1,.34));
-    ctx.fillStyle=shading;
-    playerPath(rx+5,ry+4,rw-10,rh-8,5,bend*.82);
-    ctx.fill();
-    glowLine(rx+bend+6,ry+6,rx+bend+rw*.63,ry+6,'#fff',2,6,.7);
-    // Inset identity mark follows the rendered elastic cube and ceiling mirror.
-    identity.drawPlayerMark(ctx,{x:rx,y:ry,w:rw,h:rh,offset:bend,
-      primary:pc1,secondary:pc2,duck:player.duck,dash:dashAmount,
-      quality:quality.profile});
+    // Motion-reactive FULL-SURFACE glass material: no glyphs or stripes.
+    // The approved squash/stretch path is kept, as are all collision boxes.
+    identity.paintPlayer(ctx,{x:rx,y:ry,w:rw,h:rh,topShift:bend,
+      primary:pc1,secondary:pc2,pose:shape,motion,
+      quality:quality.profile,reducedMotion,bodyPath:playerPath});
     if(player.duck){
       const n=Math.max(1,Math.round(3*quality.profile.particles));
       for(let i=0;i<n;i++){
@@ -1422,7 +1414,8 @@
     if(surface!==null){
       // Side-view contact glow: thin horizontal strip instead of a floor oval.
       const height=clamp((surface-player.feet)*.16,0,80),w=clamp(44-height*.36,18,44);
-      ctx.fillStyle=rgba(pc1,.14);ctx.fillRect(player.x-w/2,surface+3,w,2.5);
+      identity.drawContact(ctx,{x:player.x,surface,width:w,primary:pc1,
+        secondary:pc2,motion,quality:quality.profile,reducedMotion});
     }
   }
   function drawFx(dt){

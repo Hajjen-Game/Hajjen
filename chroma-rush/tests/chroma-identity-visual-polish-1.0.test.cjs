@@ -3,42 +3,71 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const root=path.join(__dirname,'..');
-const identity=require('../src/render/chroma-identity.js');
-function sketch(){
- const points=[],ctx={save(){},restore(){},beginPath(){},stroke(){},
-  moveTo(x,y){points.push([x,y])},lineTo(x,y){points.push([x,y])}};
- return {ctx,points};
+const visuals=require('../src/render/chroma-identity.js');
+const {PlayerMotion}=require('../src/render/player-motion.js');
+function context(){
+  const calls=[];
+  const ctx={save(){calls.push('save')},restore(){calls.push('restore')},
+    fill(){calls.push('fill')},stroke(){calls.push('stroke')},
+    fillRect(...args){calls.push(['fillRect',...args])},
+    createLinearGradient(){calls.push('gradient');return {addColorStop(){}}}};
+  return {ctx,calls};
 }
-test('quality scales identity marks without adding Performance glow',()=>{
- assert.deepEqual(identity.visualBudget({density:.3,glow:1}),{density:.3,detail:1,glow:0});
- assert.deepEqual(identity.visualBudget({density:1,glow:1}),{density:1,detail:2,glow:1});
+test('Pass 2 removes every interior player/hazard glyph and chevron',()=>{
+  const game=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');
+  const identity=fs.readFileSync(path.join(root,'src/render/chroma-identity.js'),'utf8');
+  assert.doesNotMatch(game,/identity\.draw(?:PlayerMark|HazardMark)\(/);
+  assert.doesNotMatch(game,/Three chevrons embedded/);
+  assert.doesNotMatch(game,/ctx\.lineTo\(sealX-4,yy\\)/);
+  assert.doesNotMatch(identity,/drawPlayerMark|drawHazardMark/);
+  assert.doesNotMatch(identity,/ctx\.(?:moveTo|lineTo|fillText)\(/);
 });
-test('player signature stays inside squash/stretched painted body',()=>{
- for(const p of [{x:100,y:60,w:46,h:46,offset:12},{x:100,y:92,w:49,h:17,offset:-5,duck:true}]){
-  const {ctx,points}=sketch();identity.drawPlayerMark(ctx,{...p,quality:{density:1,glow:1}});
-  assert.ok(points.length>=4);
-  for(const [x,y] of points){assert.ok(x>=p.x&&x<=p.x+p.w);assert.ok(y>=p.y&&y<=p.y+p.h);}
+test('High has two continuous material coats; Performance receives one',()=>{
+  const p=new PlayerMotion();
+  for(const density of [.32,1]){
+    const {ctx,calls}=context();
+    const paths=[];
+    visuals.paintPlayer(ctx,{x:100,y:50,w:46,h:45,
+      primary:'#4bf0ff',secondary:'#fa49b2',motion:p,
+      pose:p.sample({landed:true}),quality:{density,glow:1},
+      bodyPath(...args){paths.push(args)}});
+    assert.equal(paths.length,density>.5?2:1);
+    assert.equal(calls.filter(x=>x==='stroke').length,1);
+    assert.equal(calls.filter(x=>x==='gradient').length,density>.5?2:1);
+    assert.equal(calls.filter(x=>x==='save').length,1);
+    assert.equal(calls.filter(x=>x==='restore').length,1);
+  }
+});
+test('motion clocks modulate only presentational light, never movement',()=>{
+  const m=new PlayerMotion();
+  const rest=visuals.expression(m);
+  assert.deepEqual(rest,{launch:0,echo:0,landing:0,duck:0,release:0,dash:0});
+  m.jump();assert.ok(visuals.expression(m).launch>.9);
+  m.echoJump();assert.ok(visuals.expression(m).echo>.9);
+  m.duckStart();assert.ok(visuals.expression(m).duck>.9);
+  m.land(700);assert.ok(visuals.expression(m).landing>0);
+  assert.deepEqual(visuals.expression(m,true),rest);
+});
+test('contact glow reacts to landing without creating a fake obstacle',()=>{
+ const m=new PlayerMotion();m.land(900);
+ for(const density of [.3,1]){
+  const {ctx,calls}=context();
+  visuals.drawContact(ctx,{x:300,surface:515,width:44,primary:'#4bf0ff',
+    secondary:'#fa49b2',motion:m,quality:{density,glow:1}});
+  assert.equal(calls.filter(Array.isArray).length,density<.5?1:2);
+  for(const c of calls.filter(Array.isArray)){
+   assert.ok(c[1]>=255&&c[1]+c[3]<=345);
+   assert.ok(c[2]>=518&&c[2]<=522);
+  }
  }
 });
-test('all obstacle family insets remain within the existing collision rectangle',()=>{
- for(const type of ['jump','duck','echo','dash-jump','dash-duck']){
-  const {ctx,points}=sketch();
-  identity.drawHazardMark(ctx,{x:20,y:40,w:70,h:120,type,charged:true,quality:{density:1,glow:1}});
-  assert.ok(points.length>=2);
-  for(const [x,y] of points){assert.ok(x>=20&&x<=90);assert.ok(y>=40&&y<=160);}
- }
-});
-test('index assets and gameplay wiring preserve original background and cosmetic-only API',()=>{
+test('new asset versions protect background and avoid stale legacy glyphs',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
  const game=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');
- const wave=fs.readFileSync(path.join(root,'src/render/spectral-wave.js'),'utf8');
- const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
- assert.match(html,/chroma-identity\.js\?v=chroma-identity-visual-polish-1\.0/);
+ assert.match(html,/chroma-identity\.js\?v=player-movement-identity-2\.0/);
  assert.match(html,/world-background\.js\?v=original-background-restored-1\.0/);
- assert.match(game,/identity\.drawPlayerMark\(ctx/);
- assert.match(game,/identity\.drawHazardMark\(ctx/);
- assert.match(wave,/if\(intensity>=\.8\)/);
- assert.match(css,/#menu h1::after/);
- assert.match(css,/#gameover \.result-score::after/);
+ assert.match(html,/PLAYER IDENTITY 2\.0/);
+ assert.match(game,/identity\.paintPlayer\(ctx/);
+ assert.match(game,/identity\.drawContact\(ctx/);
  assert.doesNotMatch(game,/identity\.(?:update|tick|collide|spawn)\(/);
 });

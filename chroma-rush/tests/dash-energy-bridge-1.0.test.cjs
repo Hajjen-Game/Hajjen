@@ -52,7 +52,7 @@ test('speed-adjusted Energy Bridge has two actual standard-size colliders',()=>{
     {x:460+width/2-18,w:36},460+width/2,b)));
   assert.equal(sealX(o),o.x+width/2);
   assert.equal(sealWorldX(o),o.worldX+width/2);
-  const tolerance=Math.max(160,speed*.35);
+  const tolerance=Math.max(160,speed*.35,width/2+44);
   assert.ok(width/2+22<tolerance,
     'Air Dash can be triggered before entering the first box');
   assert.equal(mayCharge(o,{action:'air',playerWorld:sealWorldX(o)-tolerance*.95,

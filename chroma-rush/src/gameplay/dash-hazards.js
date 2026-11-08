@@ -41,11 +41,12 @@
     // Begin a Dash just ahead of (or inside) the luminous seal. Requiring a
     // recent, local action removes a free clearance from an old distant dash.
     const ahead=sealWorldX(o)-playerWorld;
-    // Give the air bridge a constant ~0.35s proximity window at speed.
-    // The prior hard 280-unit cap shrank below 140ms in late zones.
+    // Allow an Air Dash before the FIRST physical box even at the slower
+    // early-zone speeds of Speed Curve 3.0. Geometry, not a fixed time
+    // alone, sets the minimum reach; late-zone timing remains ~0.35s.
     // Ground Dash retains its existing local double-duck timing.
     const tolerance=o.type===AIR?
-      Math.max(160,Math.max(300,speed)*.35):
+      Math.max(160,Math.max(300,speed)*.35,o.width*.5+44):
       Math.max(125,Math.min(280,speed*.30));
     return ahead>=-28&&ahead<=tolerance;
   }

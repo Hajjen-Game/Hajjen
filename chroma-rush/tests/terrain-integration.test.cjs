@@ -17,6 +17,8 @@ const modules={
  ChromaTerrain:require('../src/terrain/terrain-system.js'),
  ChromaJump:require('../src/gameplay/jump-controller.js'),
  ChromaDash:require('../src/gameplay/contextual-dash.js'),
+ ChromaShieldCore:require('../src/gameplay/shield-core.js'),
+ ChromaShieldCoreRender:require('../src/render/shield-core-renderer.js'),
  ChromaMotion:require('../src/render/player-motion.js'),
  ChromaEffects:require('../src/render/effect-language.js'),
  ChromaTerrainRender:require('../src/render/terrain-renderer.js'),

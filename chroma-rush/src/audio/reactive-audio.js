@@ -209,6 +209,10 @@
           fx(145,.09,.140,'triangle',310);
           fx(290,.20,.103,'sawtooth',655,.010);
           fx(600,.21,.049,'sine',770,.065);break;
+        case 'shield-core':
+          // Distinct two-step ascending collectible chime, not a hazard cue.
+          fx(560,.115,.078,'triangle',790);
+          fx(850,.22,.060,'sine',1210,.048);break;
         case 'land': fx(155,.09,.08,'sine',100);break;
         case 'hit': fx(210,.21,.28,'sawtooth',62);fx(85,.22,.12,'sine',45,.055);break;
         case 'gravity-warning':

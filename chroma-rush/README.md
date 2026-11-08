@@ -1,8 +1,18 @@
-# CHROMA RUSH — Dash Animation 2.5 — Squash, Stretch & Speed Feel
+# CHROMA RUSH — Shield Core 1.0 — Collectible Recovery & Pickup Feel
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Shield Core 1.0 — Collectible Recovery & Pickup Feel (2026-11-08)
+
+- Optional and rare **+25 SHIELD** crystal (capped at 100), appearing at earliest zone 2 and only if shield <=75. It never awards points, Flow or separate currency.
+- Core position: 268px above **local flat terrain**, deliberately above normal single-jump reach. A real Echo Jump press and vertical hitbox overlap are required; proximity alone cannot reward the player.
+- Director safe corridor: spawn only on a stable flat launch/landing span, away from existing hurdles and gaps; later hazards are vetoed while the reward is active. Single active core, deterministic 27–33s opportunity spacing, no gameplay random calls or forced obstacles.
+- Pickup: code-drawn white/cyan crystal with small `×2` cue, tiny local magnet *only after* Echo Jump, brief pop and energy diamond flying toward the upright HUD, +25 feedback and a soft shield-bar glow. Small two-note synth pickup chime, optional haptic, quality-scaled sparkle. No confusing boxes or particle rings.
+- Gravity Shift: positions and collision stay in canonical floor coordinates and are transformed through the course display; the short pickup flight transforms its origin once and moves to the upright HUD.
+- Run audit logs spawn/pickup/miss plus collected count and shield restored, locally only.
+- Existing Dash 2.5, gameplay hitbox, jump physics, procedural Director randomness, controls and level difficulty remain unchanged.
 
 ## Dash Animation 2.5 — Squash, Stretch & Speed Feel (2026-11-08)
 

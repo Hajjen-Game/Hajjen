@@ -408,3 +408,10 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
   #menu .version{margin-top:6px;font-size:9px;}
   #menu .primary-btn{margin-top:8px;}
 }
+
+/* Shield Core 1.0: compact existing-HUD reward. Never overlays the track. */
+.shield-gain {display:inline-block;margin-left:4px;color:#a9fff0;font-size:clamp(9px,.80vw,12px);font-weight:900;text-shadow:0 0 9px rgba(95,255,236,.8)}
+#hud.shield-recharged #hp-inner {box-shadow:0 0 16px #8efeff,0 0 25px rgba(91,245,238,.5);filter:brightness(1.22)}
+@media(prefers-reduced-motion:reduce){.shield-gain,#hud.shield-recharged #hp-inner{animation:none!important;transition:none!important}}
+
+.shield-gain.hidden {display:none!important}

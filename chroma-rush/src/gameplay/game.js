@@ -7,7 +7,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo || !window.ChromaShieldCore || !window.ChromaShieldCoreRender) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -34,6 +34,8 @@
   const terrainDirector = new window.ChromaUnifiedTerrainDirector.UnifiedTerrainDirector({terrain,director});
   const jumpControl = new window.ChromaJump.JumpController();
   const dash = new window.ChromaDash.ContextualDash();
+  const shieldCores = new window.ChromaShieldCore.ShieldCoreSystem();
+  const shieldCoreRender = window.ChromaShieldCoreRender;
   const motion = new window.ChromaMotion.PlayerMotion();
   const effects = new window.ChromaEffects.EffectLanguage();
   const terrainRender = window.ChromaTerrainRender;
@@ -52,7 +54,7 @@
     menu:el('menu'), hud:el('hud'), controls:el('controls'), gameover:el('gameover'),
     pauseMenu:el('pause-menu'), pauseBtn:el('pause-btn'), jump:el('jump-btn'), duck:el('duck-btn'),
     echoHint:el('echo-hint'),dashHint:el('dash-hint'),
-    hp:el('hp-inner'), hpNumber:el('hp-number'), zone:el('zone-display'), phase:el('phase-display'),
+    hp:el('hp-inner'), hpNumber:el('hp-number'), shieldGain:el('shield-gain'), zone:el('zone-display'), phase:el('phase-display'),
     score:el('score-display'), speed:el('speed-display'), critical:el('danger-indicator'),
     zoneCallout:el('zone-callout'), zoneCalloutTag:el('zone-callout-tag'), zoneCalloutName:el('zone-callout-name'),
     sound:el('sound-btn'), audioHint:el('audio-hint'), finalScore:el('final-score'), finalZone:el('final-zone'), finalBest:el('final-best'),
@@ -103,6 +105,7 @@
   let runMode='arcade', startZone=1, milestoneTime=0, unlockedThisRun=[];
   let peakFlow=0,replayToastTime=0,zoneSoundAtCrossing=false,echoHintTime=0,dashHintTime=0;
   let dashReleasePending=null; // audio and particles follow the curved cube's thrust phase
+  let shieldGainLeft=0;
   // Absolute travelled distance: terrain and obstacles share this world axis.
   let distance=0,gapRecovery=null;
   let c1=PALETTES[0].primary, c2=PALETTES[0].secondary, c3=PALETTES[0].shadow;
@@ -264,6 +267,7 @@
     zoneSoundAtCrossing=false;
     hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();combo.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();dash.reset();motion.reset();dashReleasePending=null;
+    shieldCores.reset();shieldGainLeft=0;$.shieldGain.classList.add('hidden');$.hud.classList.remove('shield-recharged');
     peakFlow=0;replayToastTime=0;
     // All moves are usable immediately. Explain dash first; save the Echo
     // tip for its first tall Spire in zone 2, without overlapping callouts.
@@ -308,7 +312,7 @@
   function showMenu(){
     if(status==='running'||status==='paused')audio.stop();
     status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;echoHintTime=0;dashHintTime=0;
-    $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');dash.reset();dashReleasePending=null;$.duck.classList.remove('dash-active');
+    $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');dash.reset();dashReleasePending=null;shieldCores.reset();shieldGainLeft=0;$.shieldGain.classList.add('hidden');$.hud.classList.remove('shield-recharged');$.duck.classList.remove('dash-active');
     spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();effects.reset();combo.reset();zoneSoundAtCrossing=false;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
@@ -320,7 +324,7 @@
   function resume(){if(status!=='paused')return;status='running';$.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();frameClock.reset(lastTs);audio.resume();syncSoundButton(true);}
   function endRun(){
     if(status!=='running')return;
-    status='dead';dash.cancel();dashReleasePending=null;$.duck.classList.remove('dash-active');speedTrails.reset();effects.reset();$.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
+    status='dead';dash.cancel();dashReleasePending=null;shieldCores.reset();shieldGainLeft=0;$.shieldGain.classList.add('hidden');$.hud.classList.remove('shield-recharged');$.duck.classList.remove('dash-active');speedTrails.reset();effects.reset();$.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
     runAudit.finish(auditState());
     const total=Math.floor(score),previousBest=progression.bestScore;
     replayToastTime=0;$.replayToast.classList.add('hidden');
@@ -587,6 +591,8 @@
         firstEcho?spire.introMaxHeight:spire.maxHeight):
       data.type==='jump'?rand(53,66):rand(115,158);
     const x=spawnXFor(data.type),worldX=distance+x;
+    // Shield Core reserves an optional, obstruction-free double-jump corridor.
+    if(shieldCores.blocksHazard(worldX,width,speed))return false;
     if(!terrain.canSpawnObstacle(worldX,width,speed))return false;
     const groundY=terrain.groundAt(worldX+width*.5);
     if(groundY===null)return false;
@@ -767,7 +773,14 @@
     // The generator must cover the farthest possible action-specific spawn,
     // including an offscreen Echo Spire with a full second of warning.
     const farthestSpawn=spawnXFor('echo');
-    terrainDirector.prepare({right:distance+Math.max(W+800,farthestSpawn+speed*.48),
+    // When a rare recovery opportunity is due, ask the EXISTING terrain
+    // planner for enough known runway to verify launch and landing. This
+    // never inserts obstacles or consumes a new gameplay RNG stream.
+    const shieldPlanAhead=zone>=window.ChromaConfig.SHIELD_CORE.firstZone&&
+      hp<=window.ChromaConfig.SHIELD_CORE.spawnAtOrBelow&&
+      !shieldCores.visible&&time>=shieldCores.nextAt-.7?
+      player.x+Math.max(300,speed)*2.65:0;
+    terrainDirector.prepare({right:distance+Math.max(W+800,farthestSpawn+speed*.48,shieldPlanAhead),
       playerWorld:distance+player.x,zone,speed,hp});
     for(const feature of terrain.segments){
       if(feature.start>=lastTerrainWorld&&('gap'===feature.type||'slope'===feature.type))
@@ -982,6 +995,40 @@
       primary:spectralWave.colorAt(player.x,'primary',player.feet,H),
       secondary:spectralWave.colorAt(player.x,'secondary',player.feet,H),
       quality:quality.profile,reducedMotion});
+    // Optional reward lane. No extra game randomness, knockback or bonus
+    // score: the collectible restores only the existing HP/shield bar.
+    const shieldEvents=shieldCores.tick(dt,{time,zone,hp,
+      playerWorld:distance+player.x,playerBox:GEO.playerBox(player),
+      echoUsed:jumpControl.echoUsed,landed:player.landed,
+      terrain,hurdles,speed,distance,playerX:player.x,
+      viewportWidth:W,gravityBusy:gravityShift.pending||
+        gravityShift.shifting||gravityShift.protected});
+    if(shieldEvents.spawned){
+      runAudit.record('shield_core_spawn',auditState(),{worldX:shieldEvents.spawned.worldX,
+        zone,restore:window.ChromaConfig.SHIELD_CORE.restore});
+    }
+    if(shieldEvents.missed)
+      runAudit.record('shield_core_miss',auditState(),{worldX:shieldEvents.missed.worldX});
+    if(shieldEvents.picked){
+      const reward=shieldEvents.picked;
+      hp=Math.min(GAME.startingHP,hp+reward.restored);
+      shieldCores.startFlight(reward.x,gravityShift.screenY(reward.y,H),reward.restored);
+      shieldGainLeft=.9;
+      $.shieldGain.textContent='+'+reward.restored;
+      $.shieldGain.classList.remove('hidden');
+      $.hud.classList.add('shield-recharged');
+      if(!reducedMotion){
+        burst(reward.x,reward.y,7,'#a3ffff',.6);
+      }
+      runAudit.record('shield_core_pickup',auditState(),{
+        amount:reward.restored,before:reward.before,after:hp,zone});
+      sound('shield-core');vib(14);
+    }
+    if(shieldGainLeft>0){
+      shieldGainLeft=Math.max(0,shieldGainLeft-dt);
+      if(shieldGainLeft===0){$.shieldGain.classList.add('hidden');
+        $.hud.classList.remove('shield-recharged');}
+    }
     if(hp>0&&hp<=25&&Math.floor(worldTime*1.5)!==Math.floor((worldTime-dt)*1.5))sound('warning');
     audio.tick({phase:director.phase,speed,flow:flow.value,chromaActive:flow.tier===3,zone,hp});
     runAudit.tick(dt,auditState(),director.insight);
@@ -1230,11 +1277,17 @@
     // Trails stay under hazards so a high-speed afterimage never masks a jump or duck cue.
     speedTrails.draw(ctx,{quality:quality.profile,reducedMotion,
       dashPath:window.ChromaMotion.elasticBodyPath});
+    if(shieldCores.active)shieldCoreRender.drawCore(ctx,shieldCores.active,
+      {time:worldTime,quality:quality.profile,reducedMotion,
+        ceiling:gravityShift.mix>.5});
     for(const o of hurdles)drawObstacle(o);
     drawPlayer();
     const actorsDone=performance.now();
     drawFx();
     ctx.restore();
+    // The collectible flies to the UPRIGHT HUD; the course may be inverted.
+    if(shieldCores.flight)shieldCoreRender.drawTransfer(ctx,shieldCores.flight,
+      {width:W,quality:quality.profile,reducedMotion});
     // Upright warning, shift energy and persistent ceiling-mode orientation.
     gravityShift.drawOverlay(ctx,{width:W,height:H,primary:c1,secondary:c2,
       quality:quality.profile,reducedMotion});

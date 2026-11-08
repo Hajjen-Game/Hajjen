@@ -75,8 +75,8 @@ test('module order and cache versions include both new independent modules',()=>
  const sources=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
  const ctrl=sources.indexOf('src/gameplay/jump-controller.js?v=jump-1.0-movement-1.0-echo-fix-2.1');
  const motion=sources.indexOf('src/render/player-motion.js?v=duck-effects-1.0-movement-1.0-dash-squash-stretch-2.5');
- const game=sources.indexOf('src/gameplay/game.js?v=arcade-animation-2.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0-duck-gate-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-jump-visual-1.0-combo-1.0-echo-polish-1.1-echo-zone2-1.2-tide-2.0-dash-2.5');
- const config=sources.indexOf('src/core/config.js?v=flow-1.2-movement-1.0-echo-spire-1.0-combo-1.0-speed-curve-2.0-echo-polish-1.1-echo-zone2-1.2-dash-impact-2.2');
+ const game=sources.indexOf('src/gameplay/game.js?v=arcade-animation-2.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0-duck-gate-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-jump-visual-1.0-combo-1.0-echo-polish-1.1-echo-zone2-1.2-tide-2.0-dash-2.5-shield-core-1.0');
+ const config=sources.indexOf('src/core/config.js?v=flow-1.2-movement-1.0-echo-spire-1.0-combo-1.0-speed-curve-2.0-echo-polish-1.1-echo-zone2-1.2-dash-impact-2.2-shield-core-1.0');
  assert.ok(config>=0&&ctrl>config&&motion>ctrl&&game>motion);
  for(const src of sources)assert.ok(fs.existsSync(path.join(root,src.split('?')[0])),src);
 });

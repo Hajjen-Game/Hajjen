@@ -109,6 +109,13 @@
     minBonusSpeed:400,maxBonusSpeed:760,
     groundDuckMinRemaining:.62,hintSeconds:5.2
   });
+  // Shield Core 1.0: a RARE optional recovery reward, never a third obstacle.
+  // Its height exceeds the maximum normal-jump player's highest body edge.
+  const SHIELD_CORE=Object.freeze({
+    firstZone:2,firstTime:16,restore:25,maxShield:100,spawnAtOrBelow:75,
+    rise:268,radius:12,magnetDistance:35,magnetPull:9,
+    visibleLeadSeconds:1.65,minCooldown:25,maxCooldown:35
+  });
   const JUMP_FEEL=Object.freeze({
     coyoteSeconds:.080,
     maxCoyoteDistance:48,
@@ -117,5 +124,5 @@
     echoUnlockZone:1,
     echoMinAirSeconds:.095
   });
-  return {PALETTES,GAME,FLOW,AUDIO,TERRAIN,JUMP_FEEL,ECHO_SPIRE,DASH};
+  return {PALETTES,GAME,FLOW,AUDIO,TERRAIN,JUMP_FEEL,ECHO_SPIRE,DASH,SHIELD_CORE};
 });

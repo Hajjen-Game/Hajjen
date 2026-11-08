@@ -286,7 +286,7 @@ test('Shield Core pickup integrates with real game physics, audit and HUD withou
   h.advance(1);
   g.setHP(75);
   const p=g.player();
-  const base=515,coreY=base-window.ChromaConfig.SHIELD_CORE.rise;
+  const base=515,coreY=base-config.SHIELD_CORE.rise;
   p.landed=false;p.vy=0;p.feet=coreY+28;
   g.shieldCores.active={worldX:g.distance()+p.x,x:p.x,y:coreY,displayY:coreY,
     ground:base,age:0,radius:12};

@@ -122,7 +122,7 @@ test('reduced motion, Ceiling Run and asset versions do not affect gameplay',()=
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
   assert.match(html,/LATEST UPDATE · DASH ANIMATION 2\.5/);
-  assert.match(html,/player-motion\.js\?v=duck-effects-1\.0-movement-1\.0-dash-elastic-2\.4/);
+  assert.match(html,/player-motion\.js\?v=duck-effects-1\.0-movement-1\.0-dash-squash-stretch-2\.5/);
   assert.match(game,/window\.ChromaMotion\.elasticBodyPath/);
   assert.doesNotMatch(game,/ctx\.rotate\(|dashBodyPath|shape\.tilt/);
   assert.match(game,/gravityShift\.applyCourseTransform\(ctx,H\)/);

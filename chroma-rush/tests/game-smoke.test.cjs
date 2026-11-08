@@ -451,3 +451,35 @@ test('live arcade Flow integration awards only verified alternating clear chains
   g.step(4000/60);
   assert.match(g.get('flow-streak').textContent,/3 STREAK/);
 });
+
+test('normal arcade run introduces its first real Echo Spire IN zone 2 on the floor',()=>{
+  const g=setup();g.step(0);g.get('start-btn').click();
+  const state=g.context.window.__gravityHarness;
+  const seen=new Set();let first=null,phaseAtSpawn=null;
+  for(let i=1;i<=60*23;i++){
+    // The test does not simulate human taps. Temporary invulnerability
+    // prevents unrelated early hazards from interrupting the onboarding.
+    state.player().invulnerable=4;
+    g.step(i*1000/60);
+    for(const o of state.hurdles()){
+      if(seen.has(o.worldX))continue;
+      seen.add(o.worldX);
+      if(o.type!=='echo')continue;
+      first={zone:state.zone(),onCeiling:state.gravityShift.ceiling,
+        height:o.height,width:o.width,worldX:o.worldX,
+        frame:i,firstWasIntroduced:state.director.echoIntroduced};
+      phaseAtSpawn=state.director.phase;
+      break;
+    }
+    if(first)break;
+  }
+  assert.ok(first,'the early guided lesson must really spawn during zone 2');
+  assert.equal(first.zone,2,'first double jump cannot wait until the ceiling run');
+  assert.equal(first.onCeiling,false);
+  assert.equal(first.firstWasIntroduced,true);
+  assert.ok(first.height>=config.ECHO_SPIRE.introMinHeight);
+  assert.ok(first.height<=config.ECHO_SPIRE.introMaxHeight);
+  assert.ok(first.width<=config.ECHO_SPIRE.introMaxWidth);
+  assert.ok(first.frame<60*22,'the obstacle must be introduced well before zone 3');
+  assert.ok(phaseAtSpawn);
+});

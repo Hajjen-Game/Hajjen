@@ -90,6 +90,17 @@
     get chargeLevel(){return this.charging?smooth(this.elapsed/this.chargeDuration):0}
     get resonance(){return this.active&&this.resonanceAge<.27?
       1-smooth(this.resonanceAge/.27):0}
+    // Global atmosphere evolves gradually across the entire tide duration.
+    // Individual architecture/terrain lights still change locally at frontAt.
+    // Prevents the base sky from snapping when the front hits screen center.
+    ambientColor(channel='primary'){
+      const next=this.to?.[channel]||'#ffffff';
+      if(!this.active)return next;
+      const previous=this.from?.[channel]||next;
+      const t=this.charging?0:smooth(this.progress);
+      return t<=0?previous:t>=1?next:
+        (this.ramps?.[channel]?.[Math.round(t*STEPS)]||blendHex(previous,next,t));
+    }
     // Begin outside the right edge, sweep past the left. Vertical displacement
     // gives the edge a slight living shimmer, never a circular/radial blast.
     frontAt(y,height=720){

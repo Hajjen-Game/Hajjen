@@ -23,9 +23,12 @@
     // paint. No architecture or parallax layout changes.
     const colorAt=(x,channel,y)=>tide?.active?
       tide.colorAt(x,channel,y,H):({primary:c1,secondary:c2,shadow:c3})[channel];
-    const midPrimary=colorAt(W*.62,'primary',H*.49);
-    const midSecondary=colorAt(W*.62,'secondary',H*.57);
-    const midShadow=colorAt(W*.5,'shadow',H*.48);
+    // Broad radial light / sky take the slowly blended atmosphere so they
+    // cannot flash across the WHOLE screen at the instant of front crossing.
+    // The small neon scenic details still use true spatial front colors.
+    const midPrimary=tide?.active?tide.ambientColor('primary'):c1;
+    const midSecondary=tide?.active?tide.ambientColor('secondary'):c2;
+    const midShadow=tide?.active?tide.ambientColor('shadow'):c3;
     // Base paints ALL pixels, including those behind holes and below slopes.
     ctx.fillStyle='#070b17';ctx.fillRect(0,0,W,H);
     const sky=ctx.createLinearGradient(0,0,0,H);

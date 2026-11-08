@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Adaptive Rush Director 2.1 + Dash Opportunity Queue & Ground-first Intro 2.0.
+/* CHROMA RUSH — Adaptive Rush Director 2.3 + Experience-Aware Precision & Dash Opportunity Queue & Ground-first Intro 2.0.
  * Short authored motifs, player-friction awareness and four-phase pacing.
  * Uses seconds rather than raw pixels so existing actions remain physically feasible.
  * No ML, random difficulty spikes, online dependencies, or input manipulation.
@@ -43,6 +43,8 @@
       this.pendingBlockedSince=null;
       this.pendingBlockedType=null;
       this.comboInsight={total:0,best:0,lastAt:-Infinity};
+      this.precisionClears=0;
+      this.precisionStressRelief=0;
       this.movement.reset();
     }
     registerDamage({action=null}={}){
@@ -53,11 +55,23 @@
       this.streak=0;
       // Existing in-flight obstacles remain. Only future motif steps are cancelled.
       this.pending=[];
+      this.pendingBlockedSince=null;this.pendingBlockedType=null;
       this.spawnCountdown=Math.max(this.spawnCountdown,.65);
     }
     registerNearMiss(){
+      // Reserve danger pressure for real threatening events, not for skill.
       this.lastNearMissAt=this.time;
       this.stress=clamp(this.stress+.085,0,1);
+    }
+    registerPrecisionClear(){
+      // A safely completed, narrowly timed pass is evidence of mastery.
+      // Previously it was reported as a near miss, raising stress and
+      // delaying advanced patterns for players who performed well.
+      this.precisionClears++;
+      const before=this.stress;
+      this.stress=Math.max(0,this.stress-.028);
+      this.precisionStressRelief+=before-this.stress;
+      this.confidence=clamp(this.confidence+.012,0,1);
     }
     registerClear({action=null}={}){
       this.totalCleared++;this.streak++;
@@ -353,7 +367,10 @@
     }
     get label(){return ({BUILD:'BUILDING',PEAK:'INTENSE',FADE:'EASING',RELAX:'BREATHE'})[this.phase];}
     get insight(){return {phase:this.phase,stress:this.stress,confidence:this.confidence,streak:this.streak,
-      totalSpawned:this.totalSpawned,totalCleared:this.totalCleared,pattern:this.lastPatternId,
+      totalSpawned:this.totalSpawned,totalCleared:this.totalCleared,
+      precisionClears:this.precisionClears,
+      precisionStressRelief:Number(this.precisionStressRelief.toFixed(3)),
+      pattern:this.lastPatternId,
       dashHazards:{introduced:{...this.dashIntroduced},
         lastAt:this.lastDashHazardAt,lastType:this.lastDashHazardType,
         repeats:this.dashHazardRepeats},

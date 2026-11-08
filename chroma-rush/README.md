@@ -1,8 +1,16 @@
-# CHROMA RUSH — Dash Reliability 1.2 + UI Calm 1.0
+# CHROMA RUSH — Director Experience & Flow Balance 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Director Experience & Flow Balance 2.0 (2026-11-08)
+
+- **Precision means skill, not stress:** a successful tight-clearance obstacle pass now calls `registerPrecisionClear` instead of registering a near-miss. The Director gains slightly more confidence (+0.012) and relieves existing stress (-0.028) without altering hazard geometry, speed, score, HP, or hitboxes. Real dangerous near-misses and collisions still raise pressure normally. Previously, repeated precision clears incorrectly raised stress and could postpone special challenges.
+- **Fairness during Director-authored breathers:** Flow's idle-decay timer ages at half speed during FADE and does not age during RELAX. A RELAX phase restores at most one second of unused idle grace for the subsequent BUILD; it cannot refill Flow. Above 65%, gentle exponential pressure still runs during both phases with their existing reduced rates; long no-clear runs still lose Chroma.
+- **What is intentionally unchanged:** Flow gains for clears (5), precision (8), combo points, thresholds (30/65/90), 2× Chroma, damage penalty (35), Perfect Zone criteria (three real clears), adaptive terrain/obstacle safety, Dash scheduling, graphics profiles and the speed curve.
+- **Player evidence:** exported run logs now include `directorExperience` with precision/stress diagnostics and `flowBalance` with cumulative pressure loss, idle loss, recovery-phase time and current Flow/tier. No additional menu or HUD clutter.
+- **QA:** deterministic fixed-step tests for successful precision, genuine danger, no free Flow, relaxation grace, extended idle and new run diagnostics; existing Node, browser and high-speed fairness checks remain authoritative.
 
 ## Dash Reliability 1.2 + UI Calm 1.0 (2026-11-08)
 

@@ -130,6 +130,10 @@
     const exported=runAudit.snapshot(auditState());
     // A local-only snapshot helps diagnose weak devices without collecting identifiers.
     exported.renderPerformance=quality.snapshot();
+    // Explain WHY a run felt intense or Flow dropped, without changing
+    // gameplay or collecting device/user identifiers.
+    exported.directorExperience=director.insight;
+    exported.flowBalance=flow.insight;
     const contents=JSON.stringify(exported,null,2);
     const filename=`chroma-rush-zone-${String(zone).padStart(2,'0')}-${runMode}-audit.json`;
     try{
@@ -1055,7 +1059,7 @@
           const precision=graded.precision;
           director.registerClear({action:o.type});
           if(precision){
-            director.registerNearMiss();
+            director.registerPrecisionClear();
             effects.cue('precision',player.x,player.feet-24,c1,c2,{speed,reducedMotion});
           }
           const gained=flow.registerClear({precision});

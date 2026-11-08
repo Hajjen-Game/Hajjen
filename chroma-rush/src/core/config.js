@@ -83,7 +83,9 @@
     // Director recovery creates breathing room, not a Flow punishment.
     fadePressureScale:0.75,
     relaxPressureScale:0.4,
-    relaxIdleDecayScale:0.5,
+    // Director-created quiet windows cannot consume full idle grace.
+    fadeIdleClockScale:0.5,
+    relaxReturnGraceSeconds:1.0,
     // Enter Chroma at 90; leave only below 87 to avoid oscillation.
     chromaExitThreshold:87,
     minPerfectClears:3,

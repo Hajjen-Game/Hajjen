@@ -71,6 +71,7 @@ test('new Dash scheduler never displaces a queued Echo lesson',()=>{
 
 test('unavailable Dash terrain yields the queue back to regular obstacles',()=>{
   const d=new AdaptiveRushDirector(()=>.47),attempts=[];
+  d.echoIntroduced=true;
   d.phase='PEAK';d.phaseDuration=100;d.confidence=.88;d.spawnCountdown=0;
   const ctx={zone:5,zoneElapsed:4,hp:100,speed:700,playerX:300,
     spawnX:1450,surface:'floor',gravityPending:false};

@@ -97,6 +97,7 @@ test('Director teaches the two new types singly and maintains longer recovery ga
   assert.ok(minimumGap(AIR,'jump',800)>=1.7);
   assert.ok(minimumGap('duck',GROUND,800)>=1.7);
   const d=new AdaptiveRushDirector(()=>.5);
+  d.echoIntroduced=true; // Double Jump is taught before Dash barriers.
   const context={zone:3,zoneElapsed:4,hp:100,speed:550,
     confidence:.55,stress:0,playerX:330,gravityPending:false,surface:'floor'};
   const seen=[];
@@ -105,6 +106,7 @@ test('Director teaches the two new types singly and maintains longer recovery ga
   assert.equal(d.dashIntroduced.air,true);
   assert.equal(d.dashIntroduced.ground,false);
   const next=new AdaptiveRushDirector(()=>.5);
+  next.echoIntroduced=true;
   next.dashIntroduced.air=true;
   const seen2=[];
   for(let i=0;i<16&&!seen2.length;i++)next.tick(.1,{...context,zone:4},o=>{seen2.push(o.type);return true});

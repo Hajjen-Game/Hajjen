@@ -174,21 +174,26 @@
       const firstDashType=!this.dashIntroduced.air&&context.zone>=3?'dash-jump':
         !this.dashIntroduced.ground&&this.dashIntroduced.air&&
           context.zone>=4?'dash-duck':null;
-      const floorLesson=(context.surface||'floor')==='floor';
+      // Unknown surface is NOT assumed to be floor: legacy offline audits
+      // intentionally omit course orientation and must not fabricate a
+      // tutorial whose real-world orientation they cannot validate.
+      const floorLesson=context.surface==='floor';
       const calm=context.hp>50&&this.stress<.42&&!context.gravityPending&&
         this.time>=this.movement.recoveryUntil&&
         this.movement.pressure<DASH_PRESSURE_LIMIT;
       const teachWindow=(context.zoneElapsed??3)>=DASH_INTRO_ZONE_ELAPSED;
       const activePhase=this.phase===PHASE.BUILD||this.phase===PHASE.PEAK;
-      const firstDash=Boolean(firstDashType&&!guidedEcho&&floorLesson&&
-        calm&&teachWindow&&activePhase);
+      const firstDash=Boolean(firstDashType&&this.echoIntroduced&&
+        !guidedEcho&&floorLesson&&calm&&teachWindow&&activePhase);
       // Once both families have been taught, surface type does not restrict
       // their return. Alternate actions every ~24s on *safe* BUILD/PEAK
       // sections rather than hoping a tiny random pattern weight hits.
       const repeatType=this.lastDashHazardType==='dash-jump'?'dash-duck':'dash-jump';
       const repeating=Boolean(this.dashIntroduced.air&&this.dashIntroduced.ground&&
-        Number.isFinite(this.lastDashHazardAt)&&!guidedEcho&&calm&&
-        activePhase&&this.time-this.lastDashHazardAt>=DASH_REPEAT_SECONDS);
+        Number.isFinite(this.lastDashHazardAt)&&
+        (context.surface==='floor'||context.surface==='ceiling')&&
+        !guidedEcho&&calm&&activePhase&&
+        this.time-this.lastDashHazardAt>=DASH_REPEAT_SECONDS);
       const guidedDash=(firstDash||repeating)&&this.time>=this.dashRetryAfter;
       const guidedType=firstDash?firstDashType:repeating?repeatType:null;
       // NEVER replace a pending Echo Spire or a pending ordinary pattern:
@@ -211,7 +216,8 @@
       if(next.type==='dash-jump'||next.type==='dash-duck'){
         const used=next.type==='dash-jump'?this.dashIntroduced.air:this.dashIntroduced.ground;
         if(context.hp<=50||this.stress>=.42||context.gravityPending||
-           (!used&&((context.surface||'floor')!=='floor'||
+           (!used&&(context.surface!=='floor'||
+             !this.echoIntroduced||
              this.time<this.movement.recoveryUntil))){
           // A first lesson is never left queued into a ceiling transition.
           // It will be reconsidered in a later safe floor section.

@@ -801,6 +801,7 @@
     const phaseBefore=director.phase;
     terrainDirector.tick(dt,{zone,speed,hp,distance,spawnX:W+90,
       spawnXFor,playerX:player.x,
+      zoneElapsed:time-(zone-1)*GAME.zoneSeconds,
       surface:gravityShift.ceiling?'ceiling':'floor',
       gravityPending:gravityShift.pending||gravityShift.shifting||
         gravityShift.protected},spawn);

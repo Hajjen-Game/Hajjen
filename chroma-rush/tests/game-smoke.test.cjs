@@ -205,7 +205,7 @@ test('zone 1: real touch taps trigger ground and air dashes, and audit records b
   assert.ok(g.dash.travel>before);
   assert.equal(g.runAudit.summary.movement.airDashes,1);
   assert.equal(g.runAudit.summary.movement.echoJumps,0);
-  assert.equal(g.runAudit.snapshot().build,'dash-reliability-1.2');
+  assert.equal(g.runAudit.snapshot().build,'dash-gameplay-polish-2.0');
 });
 
 test('fast double-tap is buffered, then truly launches the second impulse',()=>{
@@ -340,6 +340,9 @@ test('Two deliberate duck presses unlock Ground Slip Gate without altering hitbo
   const second=h.press();h.release(second);
   assert.equal(g.dash.mode,'ground');
   assert.equal(o.dashSatisfied,true,'second physical press near seal charges it');
+  assert.ok(o.chargeFlash>0,'charged seal has brief local confirmation');
+  assert.equal(g.runAudit.summary.dashHazards.charged.ground,1);
+  assert.equal(g.runAudit.events.filter(e=>e.type==='dash_hazard_charge').length,1);
   assert.deepEqual(JSON.parse(JSON.stringify(geometry.playerBox(p))),
     JSON.parse(JSON.stringify(boxBefore)),'Dash never enlarges physical duck collider');
   h.advance(28);
@@ -361,6 +364,7 @@ test('Air Vault needs Air Dash even with a high enough jump',()=>{
   g.hurdles().push(o);h.advance(34);
   assert.equal(o.hit,true,'being above a long barrier alone does not break its seal');
   assert.equal(g.runAudit.summary.dashHazards.missed.air,1);
+  assert.equal(g.runAudit.summary.dashHazards.charged.air,0);
 });
 
 test('Airborne Dash near the Air Vault breaks the seal and clears the real collider',()=>{
@@ -376,6 +380,7 @@ test('Airborne Dash near the Air Vault breaks the seal and clears the real colli
   const press=h.press();h.release(press);
   assert.equal(g.dash.mode,'air');
   assert.equal(o.dashSatisfied,true);
+  assert.equal(g.runAudit.summary.dashHazards.charged.air,1);
   h.advance(29);
   assert.equal(o.hit,false);
   assert.equal(g.hp(),100);
@@ -829,4 +834,34 @@ test('REAL arcade generation places both grounded Dash lessons and a repeat on p
   assert.ok(dash[0].zone>=5&&dash[1].zone>=5);
   assert.ok(dash.some(x=>x.type==='dash-jump'&&x.at>dash[1].at),
     'Air Dash must return again after Ground Dash lesson');
+});
+
+test('a blocked ordinary obstacle cannot starve the first-floor Dash lesson',()=>{
+  const d=new director.AdaptiveRushDirector(()=>.5);
+  d.phase='BUILD';d.phaseDuration=40;d.echoIntroduced=true;
+  d.pending=[{type:'jump',pattern:'single-jump',step:1}];d.spawnCountdown=0;
+  const attempted=[],defers=[];
+  const context={zone:5,zoneElapsed:5,surface:'floor',gravityPending:false,
+    hp:100,speed:620,playerX:300,spawnX:1750,
+    noteDashDefer:(reason,type)=>defers.push({reason,type})};
+  for(let i=0;i<240&&!d.dashIntroduced.air;i++){
+    d.tick(1/60,context,step=>{
+      attempted.push(step.type);
+      return step.type==='jump'?false:true;
+    });
+  }
+  assert.equal(d.dashIntroduced.air,true);
+  assert.equal(d.totalSpawned,1,'unspawned ordinary hurdles never count as spawned');
+  assert.ok(attempted.includes('dash-jump'));
+  assert.ok(defers.some(d=>d.reason==='stalled_ordinary_pattern'));
+});
+
+test('Dash seal charge is counted separately from a physical clear',()=>{
+  const audit=new runAudit.RoundAudit();
+  audit.record('spawn',{zone:5},{obstacle:'dash-jump'});
+  audit.record('dash_hazard_charge',{zone:5},{obstacle:'dash-jump',mode:'air',source:'press'});
+  audit.record('dash_hazard_clear',{zone:5},{obstacle:'dash-jump'});
+  assert.deepEqual(JSON.parse(JSON.stringify(audit.summary.dashHazards.charged)),{air:1,ground:0});
+  assert.equal(audit.summary.dashHazards.cleared.air,1);
+  assert.equal(audit.summary.obstaclesCleared,0,'charge is not a phantom clear');
 });

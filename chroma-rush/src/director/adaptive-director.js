@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Adaptive Rush Director 2.1 + Dash Recurrence & Ground-first Intro 1.1.
+/* CHROMA RUSH — Adaptive Rush Director 2.1 + Dash Opportunity Queue & Ground-first Intro 2.0.
  * Short authored motifs, player-friction awareness and four-phase pacing.
  * Uses seconds rather than raw pixels so existing actions remain physically feasible.
  * No ML, random difficulty spikes, online dependencies, or input manipulation.
@@ -40,6 +40,8 @@
       this.dashHazardRepeats=0;
       this.dashRetryAfter=0;
       this.dashPlacementFailures=0;
+      this.pendingBlockedSince=null;
+      this.pendingBlockedType=null;
       this.comboInsight={total:0,best:0,lastAt:-Infinity};
       this.movement.reset();
     }
@@ -279,12 +281,31 @@
       // Keep the pending action and retry later, rather than counting a fake
       // obstacle or popping an impossible pattern step.
       if(spawn({...next,phase:this.phase})===false){
+        // An unplaceable ordinary obstacle must not monopolize the queue
+        // through the entire safe floor window for a first Dash lesson.
+        // Never delete spawned hazards or preempt the first Echo Spire.
+        if(this.pendingBlockedType!==next.type){
+          this.pendingBlockedType=next.type;
+          this.pendingBlockedSince=this.time;
+        }
+        if(firstDash&&!next.guided&&next.type!=='echo'&&
+           this.time-this.pendingBlockedSince>=1.5){
+          this.pending=[];
+          this.pendingBlockedSince=null;
+          this.pendingBlockedType=null;
+          this.spawnCountdown=.08;
+          context.noteDashDefer?.('stalled_ordinary_pattern',firstDashType);
+          this.movement.deferredPatterns++;
+          return;
+        }
         if(next.guided&&(next.type==='dash-jump'||next.type==='dash-duck')){
           this.dashPlacementFailures++;
           if(this.dashPlacementFailures>=4){
             // A long gap/sloped section must never freeze the hazard queue
             // while waiting for one rare Dash opportunity.
             this.pending.shift();
+            this.pendingBlockedSince=null;
+            this.pendingBlockedType=null;
             this.dashPlacementFailures=0;
             this.dashRetryAfter=this.time+2.2;
             this.spawnCountdown=.30;
@@ -296,6 +317,8 @@
         return;
       }
       this.dashPlacementFailures=0;
+      this.pendingBlockedSince=null;
+      this.pendingBlockedType=null;
       this.pending.shift();
       this.movement.onSpawn(next.type,this.time);
       if(next.type==='echo')this.echoIntroduced=true;

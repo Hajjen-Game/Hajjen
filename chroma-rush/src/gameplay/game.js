@@ -417,6 +417,16 @@
     if(velocity>650)shake=Math.max(shake,2.0);
     sound('land');
   }
+  function chargeDashHazard(o,action,source){
+    if(!DASH_HAZARDS.mayCharge(o,{action,playerWorld:distance+player.x,
+      speed,airborne:!player.landed,ducking:player.duck}))return false;
+    // A local confirmation, never invulnerability or a free obstacle clear.
+    o.dashSatisfied=true;
+    o.chargeFlash=.38;
+    runAudit.record('dash_hazard_charge',auditState(),{
+      obstacle:o.type,mode:action,source});
+    return true;
+  }
   function pressDuckDash(){
     if(status!=='running')return;
     // A second physical press while ducking or a new press in midair is Dash.
@@ -446,12 +456,7 @@
     $.duck.classList.add('dash-active');
     // A Dash must be started NEAR the visible seal, with the correct form.
     // The entire rest of the course retains normal collision and damage.
-    for(const o of hurdles){
-      if(DASH_HAZARDS.mayCharge(o,{action,
-        playerWorld:distance+player.x,speed,
-        airborne:!player.landed,ducking:player.duck}))
-        o.dashSatisfied=true;
-    }
+    for(const o of hurdles)chargeDashHazard(o,action,'press');
     director.noteDash(action);
     runAudit.record(action==='air'?'air_dash':'ground_dash',auditState(),
       {extraSpeedFactor:DASH.bonusFactor,grounded:player.landed,
@@ -676,7 +681,7 @@
     }
     hurdles.push({type:data.type,x,worldX,groundY,width,height,hit:false,cleared:false,
       closestClearance:Infinity,entryDuckTime:null,
-      dashSatisfied:false,sealPassed:false,
+      dashSatisfied:false,sealPassed:false,chargeFlash:0,
       mechanicIntro:Boolean(firstEcho||firstDash),
       phase:data.phase,pulse:Math.random()*Math.PI*2});
     if(isDashChallenge){
@@ -1011,13 +1016,11 @@
     for(const o of hurdles){
       const priorX=o.x;
       o.x-=worldStep;
+      if(o.chargeFlash>0)o.chargeFlash=Math.max(0,o.chargeFlash-dt);
       const b=GEO.obstacleBox(o,o.groundY);
       const sealed=DASH_HAZARDS.isDashHazard(o.type);
-      if(sealed&&!o.dashSatisfied&&dash.active&&
-        DASH_HAZARDS.mayCharge(o,{action:dash.mode,
-          playerWorld:distance+player.x,speed,
-          airborne:!player.landed,ducking:player.duck}))
-        o.dashSatisfied=true;
+      if(sealed&&!o.dashSatisfied&&dash.active)
+        chargeDashHazard(o,dash.mode,'active');
       // Swept X check prevents skipping a narrow obstacle on a slow phone.
       const sweptX=GEO.sweptXOverlap(p,priorX,o);
       const yOverlap=GEO.verticalOverlap(p,b);
@@ -1276,9 +1279,9 @@
       const charged=o.dashSatisfied;
       const sealColor=charged?'#87ffcf':'#f5feff';
       ctx.save();
-      ctx.globalAlpha=charged?.20:(reducedMotion?.76:.70+
+      ctx.globalAlpha=charged?.36:(reducedMotion?.76:.70+
         Math.sin(worldTime*11+o.pulse)**2*.20);
-      ctx.shadowColor=sealColor;ctx.shadowBlur=charged?3:12*quality.profile.glow;
+      ctx.shadowColor=sealColor;ctx.shadowBlur=charged?5*quality.profile.glow:12*quality.profile.glow;
       ctx.lineWidth=2.3;ctx.strokeStyle=sealColor;
       ctx.beginPath();ctx.moveTo(sealX,top);ctx.lineTo(sealX,bottom);ctx.stroke();
       ctx.shadowBlur=0;
@@ -1288,6 +1291,20 @@
         if(yy>o.groundY-6)break;
         ctx.beginPath();ctx.moveTo(sealX-10,yy-5);
         ctx.lineTo(sealX-4,yy);ctx.lineTo(sealX-10,yy+5);ctx.stroke();
+      }
+      if(charged&&o.chargeFlash>0&&!reducedMotion){
+        // Two delicate fracture strokes, embedded in the seal (no rings).
+        const flash=Math.min(1,o.chargeFlash/.38);
+        const mid=(top+bottom)*.5;
+        ctx.globalAlpha=.78*flash;
+        ctx.strokeStyle='#bdffe8';
+        ctx.lineWidth=1.8;
+        ctx.shadowColor='#75ffda';
+        ctx.shadowBlur=8*quality.profile.glow;
+        ctx.beginPath();
+        ctx.moveTo(sealX-15,mid-10);ctx.lineTo(sealX+5,mid+1);
+        ctx.moveTo(sealX-5,mid+3);ctx.lineTo(sealX+13,mid+13);
+        ctx.stroke();
       }
       ctx.restore();
       // No in-world text, floating arrows or detached icons: the existing

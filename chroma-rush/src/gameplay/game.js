@@ -1092,7 +1092,7 @@
     const shape=motion.sample({landed:player.landed,duck:player.duck,vy:player.vy});
     const rw=b.w*shape.scaleX*beat, rh=b.h*shape.scaleY*beat;
     const rx=player.x-rw/2,ry=player.feet-rh;
-    const morph=shape.dash>.12, dashAmount=morph?shape.dash:0;
+    const dashAmount=shape.dash||0;
     if(dash.active&&!reducedMotion){
       // Side-view speed wake; brighter and longer than 2.1, but always
       // BEHIND the runner. Rendered at most 4 strokes, 2 on older phones.
@@ -1110,26 +1110,26 @@
     chromaVfx.drawBehindPlayer(ctx,{x:player.x,y:player.feet,width:rw,height:rh,
       duck:player.duck,primary:pc1,secondary:pc2,speed,
       quality:quality.profile,reducedMotion});
+    // Restore the familiar soft, rounded cube. During Dash only the
+    // RENDERED body leans forward (air more than the compact ground duck).
+    // This small course-space rotation naturally mirrors on ceiling runs;
+    // GEO.playerBox and collision timing remain exactly unchanged.
+    ctx.save();
+    if(shape.tilt){
+      const cy=ry+rh*.5;
+      ctx.translate(player.x,cy);
+      ctx.rotate(reducedMotion?shape.tilt*.25:shape.tilt);
+      ctx.translate(-player.x,-cy);
+    }
     ctx.shadowColor=pc1;ctx.shadowBlur=(31+shape.glow*17)*Math.max(.45,quality.profile.glow);
-    // Distinct change of SHAPE: pointed aerial glider or low ground-skid
-    // polygon. Geometry collision remains GEO.playerBox(player), not this art.
-    if(morph)window.ChromaMotion.dashBodyPath(ctx,rx,ry,rw,rh,player.duck?'ground':'air');
-    else roundRectPath(rx,ry,rw,rh,8);
-    ctx.fillStyle='#f3fcff';ctx.fill();
-    ctx.shadowBlur=9*quality.profile.glow;ctx.lineWidth=morph?2.8:2;
+    roundRectPath(rx,ry,rw,rh,8);ctx.fillStyle='#f3fcff';ctx.fill();
+    ctx.shadowBlur=9*quality.profile.glow;ctx.lineWidth=2.1;
     ctx.strokeStyle=pc1;ctx.stroke();
     const shading=ctx.createLinearGradient(rx,ry,rx+rw,ry+rh);
     shading.addColorStop(0,'rgba(255,255,255,.9)');shading.addColorStop(.6,'rgba(247,251,255,.08)');shading.addColorStop(1,rgba(pc1,.34));
-    ctx.fillStyle=shading;
-    if(morph)window.ChromaMotion.dashBodyPath(ctx,rx+4,ry+3,rw-8,rh-6,player.duck?'ground':'air');
-    else roundRectPath(rx+5,ry+4,rw-10,rh-8,5);
-    ctx.fill();
-    if(morph){
-      // Asymmetric energy spine, emphasizing that the square is a fast,
-      // forward-facing wedge instead of a larger square.
-      glowLine(rx+rw*.25,ry+rh*.32,rx+rw*.80,ry+rh*.50,'#fff',2.3,8,.84);
-      glowLine(rx+rw*.31,ry+rh*.72,rx+rw*.79,ry+rh*.53,pc2,1.8,7,.74);
-    }else glowLine(rx+6,ry+6,rx+rw*.6,ry+6,'#fff',2,6,.7);
+    ctx.fillStyle=shading;roundRectPath(rx+5,ry+4,rw-10,rh-8,5);ctx.fill();
+    glowLine(rx+6,ry+6,rx+rw*.63,ry+6,'#fff',2,6,.7);
+    ctx.restore();
     if(player.duck){
       const n=Math.max(1,Math.round(3*quality.profile.particles));
       for(let i=0;i<n;i++){

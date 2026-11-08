@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Dash Morph 2.2 / Jump & Duck Motion 1.0
+/* CHROMA RUSH — Soft Lean Dash 2.3 / Jump & Duck Motion 1.0
  * Pure visual deformation. Collision shapes come only from core/geometry.js.
  */
 (function(root,factory){
@@ -10,34 +10,13 @@
   'use strict';
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
   const dashDuration=DASH?.duration||.30;
-  // Draws a tapered forward-facing 2D silhouette, not a larger hitbox.
-  // In the mirrored ceiling camera the path automatically mirrors with the board.
-  function dashBodyPath(ctx,x,y,w,h,mode='air'){
-    ctx.beginPath();
-    if(mode==='ground'){
-      ctx.moveTo(x+w*.04,y+h*.26);
-      ctx.lineTo(x+w*.17,y+h*.06);
-      ctx.lineTo(x+w*.73,y+h*.06);
-      ctx.lineTo(x+w,y+h*.46);
-      ctx.lineTo(x+w*.92,y+h*.86);
-      ctx.lineTo(x+w*.76,y+h*.98);
-      ctx.lineTo(x+w*.15,y+h*.98);
-      ctx.lineTo(x,y+h*.71);
-    }else{
-      ctx.moveTo(x,y+h*.25);
-      ctx.lineTo(x+w*.19,y+h*.05);
-      ctx.lineTo(x+w*.66,y+h*.05);
-      ctx.lineTo(x+w,y+h*.50);
-      ctx.lineTo(x+w*.66,y+h*.95);
-      ctx.lineTo(x+w*.19,y+h*.95);
-      ctx.lineTo(x,y+h*.75);
-      ctx.lineTo(x+w*.07,y+h*.50);
-    }
-    ctx.closePath();
-  }
+  // The cube stays a ROUNDED CUBE. Dash blends a natural clockwise lean
+  // (forward is +x in course space) with tiny squash/stretch. The normal
+  // jump/duck silhouettes stay intact and gameplay hitboxes are unchanged.
   function dashStrength(remaining){
     if(!(remaining>0))return 0;
-    return clamp(Math.min((dashDuration-remaining)/.035,remaining/.09,1),0,1);
+    const t=clamp(Math.min((dashDuration-remaining)/.055,remaining/.095,1),0,1);
+    return t*t*(3-2*t); // smoothstep: no hard angular snaps
   }
   class PlayerMotion {
     constructor(rules=RULES){this.rules=rules;this.reset();}
@@ -70,8 +49,12 @@
         const t=1-this.duckEntry/.105;
         const settle=Math.pow(Math.max(0,1-t),2);
         const dash=dashStrength(this.dashTime);
-        return {scaleX:1.045+.16*settle+.62*dash,scaleY:1-.19*settle-.18*dash,
-          glow:.16+.14*settle+.85*dash,dash,dashMode:'ground'};
+        // Ground Dash stays compact: slight forward lean, not a stretched
+        // projectile. The underlying duck collision box is unchanged.
+        return {scaleX:1.045+.16*settle+.075*dash,
+          scaleY:1-.19*settle-.025*dash,
+          glow:.16+.14*settle+.85*dash,
+          dash,tilt:.052*dash,dashMode:dash>0?'ground':null};
       }
       if(landed&&this.duckExit>0){
         // Springing upright is visual only; the normal hitbox is active now.
@@ -103,12 +86,12 @@
         glow=(1-t)*.42*this.impact;
       }
       const dash=dashStrength(this.dashTime);
-      // A forward glider in the air, a low skid-body on the ground.
-      // Physics and vertical velocity remain untouched.
-      return {scaleX:1/clamp(scaleY,.7,1.3)+.65*dash,
-        scaleY:scaleY-.18*dash,glow:glow+.90*dash,
-        dash,dashMode:dash>0?'air':null};
+      // Air Dash feels dynamic through a graceful forward rotation and a
+      // touch of horizontal stretch: no pointed polygon or hard edges.
+      return {scaleX:1/clamp(scaleY,.7,1.3)+.13*dash,
+        scaleY:scaleY-.045*dash,glow:glow+.90*dash,
+        dash,tilt:.215*dash,dashMode:dash>0?'air':null};
     }
   }
-  return {PlayerMotion,dashBodyPath,dashStrength};
+  return {PlayerMotion,dashStrength};
 });

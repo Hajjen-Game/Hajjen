@@ -46,7 +46,7 @@ function harness(){
   }return elements.get(id);
  }
  const noop=()=>{},gradient=()=>({addColorStop:noop});
- const draw={setTransform:noop,save:noop,restore:noop,translate:noop,scale:noop,
+ const draw={setTransform:noop,save:noop,restore:noop,translate:noop,rotate:noop,scale:noop,
   fillRect:noop,strokeRect:noop,clip:noop,beginPath:noop,moveTo:noop,lineTo:noop,arcTo:noop,
   closePath:noop,fill:noop,stroke:noop,arc:noop,ellipse:noop,fillText:noop,
   createLinearGradient:gradient,createRadialGradient:gradient};

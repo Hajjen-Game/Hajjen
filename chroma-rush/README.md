@@ -1,8 +1,17 @@
-# CHROMA RUSH — Dash Impact & Morph 2.2
+# CHROMA RUSH — Dash Soft Lean 2.3
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Dash Soft Lean 2.3 (2026-11-08)
+
+- **Return to the original character:** the pointed arrow/polygon cube is gone. Air Dash and Ground Dash both retain the player's established soft round-rectangle ink, white surface shading, neon edge and jump/duck squash/stretch.
+- **Air Dash lean:** smooth clockwise rotation of the body by up to **0.215 radians (~12.3°)** around its visual center, plus only **13%** extra horizontal stretch and ~4.5% extra compression. Its direction still reads rightward in the normal side-on course camera.
+- **Ground Dash lean:** small **0.052 radians (~3.0°)** tilt and just **7.5%** extra stretch. The body remains a compact crouched cube, not a spear or a flattened glider.
+- **Continuous motion:** smoothstep-in and smoothstep-out tied to the existing 0.30s Dash. No sudden shape swap, extra object or temporary alternate sprite. Reduced-motion mode scales the visual tilt down to 25% without changing the hitbox or movement.
+- **Same Dash power:** the stronger 2.2 travel impulse, dash duration, sound, speed trails, Director, jump/duck inputs and zone-1 availability remain untouched. Existing course transform mirrors the body's rotation for ceiling runs; world geometry is not rotated.
+- **QA:** explicit regression tests for soft silhouette, lean limits, no arrow path, original collision geometry and all release asset versions. Dash-only obstacles are still deliberately a separate fairness/balance step after movement feel is accepted.
 
 ## Dash Impact & Morph 2.2 (2026-11-08)
 

@@ -50,7 +50,7 @@ function run(mode){
  };
  const noop=()=>{};const grad=()=>({addColorStop:noop});
  el('game').getContext=()=>({fillRect:noop,strokeRect:noop,setTransform:noop,save:noop,restore:noop,
-  translate:noop,scale:noop,beginPath:noop,clip:noop,moveTo:noop,lineTo:noop,arcTo:noop,closePath:noop,
+  translate:noop,rotate:noop,scale:noop,beginPath:noop,clip:noop,moveTo:noop,lineTo:noop,arcTo:noop,closePath:noop,
   fill:noop,stroke:noop,arc:noop,ellipse:noop,fillText:noop,
   createLinearGradient:grad,createRadialGradient:grad});
  let raf;

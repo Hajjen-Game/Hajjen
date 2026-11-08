@@ -47,7 +47,8 @@ function setup(initialStorage={}) {
     }
     return objects.get(id);
   }
-  const draw={fillRect(){},strokeRect(){},setTransform(){},save(){},restore(){},translate(){},scale(){},
+  const rotations=[];
+  const draw={fillRect(){},strokeRect(){},setTransform(){},save(){},restore(){},translate(){},rotate(angle){rotations.push(angle)},scale(){},
     beginPath(){},clip(){},moveTo(){},lineTo(){},arcTo(){},closePath(){},fill(){},stroke(){},arc(){},ellipse(){},fillText(){},
     createLinearGradient(){return {addColorStop(){}}},createRadialGradient(){return {addColorStop(){}}}};
   get('game').getContext=()=>draw;
@@ -66,7 +67,7 @@ function setup(initialStorage={}) {
   vm.runInContext(gameCode.replace(ending,
     "  window.__gravityHarness={gravityShift,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,dash,runAudit,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,hp:()=>hp,player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
     context,{filename:'game.js'});
-  return {get,local,step:(time)=>{assert.ok(requested);requested(time)},context,
+  return {get,local,rotations,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
 }
 
@@ -236,6 +237,33 @@ test('global pointer release clears stale touch capture before rapid second pres
   assert.equal(g.dash.groundCount,1);
   h.game.fireWindow('pointercancel',{pointerId:second});
   assert.equal(g.runAudit.summary.movement.duckPresses,2);
+});
+
+test('Dash 2.3 tilts the actual rounded cube softly: air visibly, duck subtly',()=>{
+  const h=duckHarness(),g=h.game.context.window.__gravityHarness;
+  // First ground press ducks; second press activates the compact dash pose.
+  const first=h.press();h.release(first);h.advance(3);
+  const second=h.press();h.release(second);
+  h.game.rotations.length=0;h.advance(8);
+  assert.ok(h.game.rotations.some(angle=>angle>.035&&angle<.06),
+    'ground Dash should rotate only about 3 degrees');
+  // After duck release and recovery, launch Air Dash in zone 1.
+  h.advance(60);
+  const jump=h.game.get('jump-btn');
+  const click={pointerId:876,preventDefault(){}};
+  for(const fn of jump.events.pointerdown??[])fn(click);
+  for(const fn of jump.events.pointerup??[])fn(click);
+  h.advance(3);
+  const air=h.press();h.release(air);
+  h.game.rotations.length=0;h.advance(9);
+  assert.ok(h.game.rotations.some(angle=>angle>.17&&angle<.22),
+    'air Dash should rotate the rounded cube noticeably more than duck');
+  assert.equal(g.dash.airCount,1);
+  assert.equal(g.dash.groundCount,1);
+  assert.equal(g.runAudit.summary.movement.airDashes,1);
+  h.game.rotations.length=0;h.advance(25);
+  assert.equal(g.motion.dashTime,0,'lean ends with dash, no permanent rotation');
+  assert.equal(h.game.rotations.length,0,'normal jump and recovery stay upright');
 });
 
 test('sound toggle works during play and pause without an AudioContext',()=>{

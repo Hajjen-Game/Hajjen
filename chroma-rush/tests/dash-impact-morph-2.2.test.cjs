@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const {GAME,DASH,JUMP_FEEL,ECHO_SPIRE}=require('../src/core/config.js');
 const {ContextualDash}=require('../src/gameplay/contextual-dash.js');
-const {PlayerMotion,dashBodyPath,dashStrength}=require('../src/render/player-motion.js');
+const {PlayerMotion,dashStrength}=require('../src/render/player-motion.js');
 const {playerBox}=require('../src/core/geometry.js');
 
 function distanceFor(speed){
@@ -36,7 +36,7 @@ test('2.2 Dash delivers a clearly stronger finite surge on both early and later 
   assert.ok(d.tick(1/60,370)>7);
   assert.equal(d.request({zone:1,grounded:true,ducking:true}),null);
 });
-test('air dash morphs cube dramatically and ends without affecting hitbox',()=>{
+test('air dash uses a rounded cube with soft forward lean, never a pointed glider',()=>{
   const m=new PlayerMotion();
   const p={x:330,feet:515,vy:-200,landed:false,duck:false};
   const box=playerBox(p);
@@ -45,56 +45,66 @@ test('air dash morphs cube dramatically and ends without affecting hitbox',()=>{
   m.tick(.08);
   const active=m.sample(p);
   assert.ok(active.dash>.95);
-  assert.ok(active.scaleX>before.scaleX+.48,'air body stretches visibly');
-  assert.ok(active.scaleY<before.scaleY-.10,'body becomes lower and faster');
+  assert.ok(active.scaleX>before.scaleX+.10&&active.scaleX<before.scaleX+.20,
+    'air stretches gently, not into an arrow');
+  assert.ok(active.scaleY<before.scaleY-.03&&active.scaleY>before.scaleY-.08,
+    'air keeps the original squash/stretch scale');
+  assert.ok(active.tilt>.20&&active.tilt<.22,'air gently leans about 12 degrees');
   assert.ok(active.glow>before.glow+.65);
   assert.equal(active.dashMode,'air');
   assert.deepEqual(playerBox(p),box,'morph never widens the collider');
   m.tick(.27);
   assert.equal(m.sample(p).dash,0);
 });
-test('ground dash becomes a distinct low skid-body, cancels at duck release',()=>{
+test('ground dash keeps compact duck silhouette and only a small forward lean',()=>{
   const m=new PlayerMotion();
   m.duckStart();
   m.dashStart(true);
   m.tick(.09);
   const pose=m.sample({landed:true,duck:true,vy:0});
-  assert.ok(pose.scaleX>1.6);
-  assert.ok(pose.scaleY<.9);
+  assert.ok(pose.scaleX>1.1&&pose.scaleX<1.25,
+    'ground Dash stays almost the same width as duck');
+  assert.ok(pose.scaleY>.9&&pose.scaleY<=1,
+    'ground Dash stays compact instead of becoming a low arrow');
+  assert.ok(pose.tilt>.049&&pose.tilt<.054,'duck has only about 3 degrees lean');
   assert.equal(pose.dashMode,'ground');
   assert.ok(dashStrength(.15)>.99);
   m.duckRelease();
   assert.equal(m.sample({landed:true,duck:false}).dash,undefined);
   assert.equal(m.dashTime,0);
 });
-test('air and ground polygon contours have different forward-facing geometry',()=>{
-  function record(mode){
-    const points=[];
-    const ctx={beginPath(){points.push(['begin'])},moveTo(x,y){points.push(['M',x,y])},
-      lineTo(x,y){points.push(['L',x,y])},closePath(){points.push(['close'])}};
-    dashBodyPath(ctx,100,50,70,30,mode);
-    return points;
-  }
-  const a=record('air'),g=record('ground');
-  assert.ok(a.length>=10&&g.length>=9);
-  assert.notDeepEqual(a,g,'dash must not just be a scaled rounded rectangle');
-  for(const [type,x,y] of a.concat(g)){
-    if(type==='M'||type==='L'){
-      assert.ok(x>=100&&x<=170);
-      assert.ok(y>=50&&y<=80);
-    }
-  }
-  assert.deepEqual(a.find(([type,x])=>type==='L'&&x===170),['L',170,65]);
-  assert.notEqual(g.find(([type,x])=>type==='L'&&x===170)[2],65);
+test('dash lean fades smoothly in and out; normal movement stays upright',()=>{
+  assert.equal(dashStrength(0),0);
+  assert.equal(dashStrength(.30),0);
+  assert.ok(dashStrength(.29)>0&&dashStrength(.29)<.5);
+  assert.ok(dashStrength(.27)>dashStrength(.29));
+  assert.equal(dashStrength(.20),1);
+  assert.ok(dashStrength(.05)>0&&dashStrength(.05)<1);
+  const motion=new PlayerMotion();
+  assert.equal(motion.sample({landed:false,vy:-330}).tilt,0);
+  assert.equal(motion.sample({landed:true,duck:true}).tilt,0);
+  motion.dashStart(false);
+  motion.tick(.1);
+  const air=motion.sample({landed:false,vy:-330});
+  motion.duckStart();
+  motion.dashStart(true);
+  motion.tick(.1);
+  const ground=motion.sample({landed:true,duck:true});
+  assert.ok(air.tilt>ground.tilt*3.5,
+    'air lean should be prominent while ground lean is subtle');
+  motion.duckCancel();
+  assert.equal(motion.sample({landed:true,duck:true}).tilt,0);
 });
-test('release includes versioned assets and a real non-circular silhouette pass',()=>{
+test('release renders original rounded cube with rotation, no arrow path',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
-  assert.match(html,/LATEST UPDATE · DASH IMPACT & MORPH 2\.2/);
+  assert.match(html,/LATEST UPDATE · DASH SOFT LEAN 2\.3/);
   assert.match(html,/contextual-dash\.js\?v=contextual-dash-2\.2/);
-  assert.match(html,/player-motion\.js\?v=duck-effects-1\.0-movement-1\.0-dash-morph-2\.2/);
+  assert.match(html,/player-motion\.js\?v=duck-effects-1\.0-movement-1\.0-dash-soft-lean-2\.3/);
   assert.match(html,/ALL MOVES AVAILABLE FROM ZONE 01/);
-  assert.match(game,/window\.ChromaMotion\.dashBodyPath\(ctx,rx,ry,rw,rh/);
+  assert.match(game,/ctx\.rotate\(reducedMotion\?shape\.tilt\*\.25:shape\.tilt\)/);
+  assert.match(game,/roundRectPath\(rx,ry,rw,rh,8\)/);
+  assert.doesNotMatch(game,/dashBodyPath|pointed aerial glider|forward-facing wedge/);
   assert.match(game,/const worldStep=speed\*dt\+dash\.tick\(dt,speed\)/);
   assert.match(game,/o\.x-=worldStep/);
 });

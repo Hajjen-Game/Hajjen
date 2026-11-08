@@ -58,7 +58,8 @@ test('air and duck motion stretch visually without modifying hitbox or gravity',
   assert.equal(GAME.gravity,2140);
   m.duckStart();m.dashStart(true);m.tick(.12);
   const crouch=m.sample({landed:true,duck:true});
-  assert.ok(crouch.scaleX>1.1);
+  assert.ok(crouch.scaleX>1.065&&crouch.scaleX<1.14);
+  assert.ok(crouch.shear>1,'Ground Dash is mainly a forward top-edge bend');
   assert.ok(crouch.glow>.35);
 });
 test('the Director observes dash as player intent without forcing an obstacle',()=>{

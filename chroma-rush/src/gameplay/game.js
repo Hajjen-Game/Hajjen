@@ -1094,7 +1094,6 @@
     const rx=player.x-rw/2,ry=player.feet-rh;
     const dashAmount=shape.dash||0;
     if(dash.active&&!reducedMotion&&shape.shear>0){
-      // Wait for the bent top to spring forward before drawing the speed wake.
       // Side-view speed wake; brighter and longer than 2.1, but always
       // BEHIND the runner. Rendered at most 4 strokes, 2 on older phones.
       const density=quality.profile.density;
@@ -1111,26 +1110,30 @@
     chromaVfx.drawBehindPlayer(ctx,{x:player.x,y:player.feet,width:rw,height:rh,
       duck:player.duck,primary:pc1,secondary:pc2,speed,
       quality:quality.profile,reducedMotion});
-    // Restore the familiar soft, rounded cube. During Dash only the
-    // RENDERED body leans forward (air more than the compact ground duck).
-    // This small course-space rotation naturally mirrors on ceiling runs;
-    // GEO.playerBox and collision timing remain exactly unchanged.
-    ctx.save();
-    if(shape.tilt){
-      const cy=ry+rh*.5;
-      ctx.translate(player.x,cy);
-      ctx.rotate(reducedMotion?shape.tilt*.25:shape.tilt);
-      ctx.translate(-player.x,-cy);
-    }
+    // Elastic Dash 2.4: the upper edge bends backwards for anticipation,
+    // then springs ~28% further FORWARD. Lower edge stays at player.feet.
+    // Same soft round corners as Jump/Duck, never a rotated square or arrow.
+    // Ceiling mode mirrors this naturally via the existing course transform.
+    const bend=(shape.shear||0)*(player.duck?b.w*.065:b.w*.35)*
+      (reducedMotion?.55:1);
+    const deformed=Math.abs(bend)>.04;
+    const playerPath=(x,y,w,h,r,offset)=>{
+      if(deformed)window.ChromaMotion.elasticBodyPath(ctx,x,y,w,h,offset,r);
+      else roundRectPath(x,y,w,h,r);
+    };
     ctx.shadowColor=pc1;ctx.shadowBlur=(31+shape.glow*17)*Math.max(.45,quality.profile.glow);
-    roundRectPath(rx,ry,rw,rh,8);ctx.fillStyle='#f3fcff';ctx.fill();
+    playerPath(rx,ry,rw,rh,8,bend);
+    ctx.fillStyle='#f3fcff';ctx.fill();
     ctx.shadowBlur=9*quality.profile.glow;ctx.lineWidth=2.1;
     ctx.strokeStyle=pc1;ctx.stroke();
     const shading=ctx.createLinearGradient(rx,ry,rx+rw,ry+rh);
-    shading.addColorStop(0,'rgba(255,255,255,.9)');shading.addColorStop(.6,'rgba(247,251,255,.08)');shading.addColorStop(1,rgba(pc1,.34));
-    ctx.fillStyle=shading;roundRectPath(rx+5,ry+4,rw-10,rh-8,5);ctx.fill();
-    glowLine(rx+6,ry+6,rx+rw*.63,ry+6,'#fff',2,6,.7);
-    ctx.restore();
+    shading.addColorStop(0,'rgba(255,255,255,.9)');
+    shading.addColorStop(.6,'rgba(247,251,255,.08)');
+    shading.addColorStop(1,rgba(pc1,.34));
+    ctx.fillStyle=shading;
+    playerPath(rx+5,ry+4,rw-10,rh-8,5,bend*.82);
+    ctx.fill();
+    glowLine(rx+bend+6,ry+6,rx+bend+rw*.63,ry+6,'#fff',2,6,.7);
     if(player.duck){
       const n=Math.max(1,Math.round(3*quality.profile.particles));
       for(let i=0;i<n;i++){

@@ -20,7 +20,7 @@
     const t=clamp(dashDuration-remaining,0,dashDuration);
     // 0–45ms wind-up backwards, 45–100ms drive forwards, 100–205ms hold,
     // then an understated elastic recoil and return by the 300ms mark.
-    if(t<=.045)return -smooth(t/.045);
+    if(t<=.045)return t===0?0:-smooth(t/.045);
     if(t<=.100)return -1+(1+FRONT_BEND_RATIO)*smooth((t-.045)/.055);
     if(t<=.205)return FRONT_BEND_RATIO-.08*smooth((t-.100)/.105);
     if(t<=.270)return 1.20-1.26*smooth((t-.205)/.065);

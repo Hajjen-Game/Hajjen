@@ -62,7 +62,11 @@
       const gapTime=peak ? (gentle?.30:.35) : .29;
       const safeArrival=permitGap && future.remaining>=gapTime+.48;
       const gapChance=safeArrival?(peak?(gentle?.13:.29):.065):0;
-      const slopeChance=({BUILD:.52,PEAK:.36,FADE:.24,RELAX:.10})[future.phase]||.2;
+      // Keep the first zone-2 double-jump lesson on a predictable level
+      // runway. Normal hills resume once the first Spire is introduced.
+      const teachingEcho=zone===2&&!this.director.echoIntroduced;
+      const slopeChance=teachingEcho?0:
+        (({BUILD:.52,PEAK:.36,FADE:.24,RELAX:.10})[future.phase]||.2);
       const maxHeightChange=({BUILD:62,PEAK:58,FADE:38,RELAX:23})[future.phase]||40;
       // Echo Gaps occur only in healthy, confident PEAK sections with
       // enough time remaining for takeoff, two jumps and a safe landing.

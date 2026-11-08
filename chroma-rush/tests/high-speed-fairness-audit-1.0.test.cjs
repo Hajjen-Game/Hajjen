@@ -146,7 +146,7 @@ test('strain simulation still has recovery phases and does not block all hazards
 });
 test('scripts load before gameplay and exact fair hazard positions feed the Director',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  const fairness=html.indexOf('src/director/high-speed-fairness.js?v=high-speed-fairness-1.0');
+  const fairness=html.indexOf('src/director/high-speed-fairness.js?v=high-speed-fairness-1.0-dash-hazards-1.0');
   const game=html.indexOf('src/gameplay/game.js?v=');
   assert.ok(fairness>0&&fairness<game);
   const s=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');

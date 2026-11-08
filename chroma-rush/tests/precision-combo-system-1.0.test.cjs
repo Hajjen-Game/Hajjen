@@ -194,7 +194,7 @@ test('the existing Flow HUD slot briefly displays a chain without more panels',(
   assert.match(src,/CHAIN ×/);
   assert.doesNotMatch(src,/document\.createElement/);
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  assert.ok(html.includes('src/gameplay/precision-combo.js?v=precision-combo-1.0'));
+  assert.ok(html.includes('src/gameplay/precision-combo.js?v=precision-combo-1.0-dash-hazards-1.0'));
   assert.ok(html.indexOf('src/gameplay/flow.js?v=')<html.indexOf('src/gameplay/precision-combo.js?v='));
   assert.ok(html.indexOf('src/gameplay/precision-combo.js?v=')<html.indexOf('src/gameplay/game.js?v='));
   assert.ok(!html.includes('id="dash-btn"'));

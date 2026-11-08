@@ -16,6 +16,8 @@
     jump:Object.freeze({commit:Math.abs(2*GAME.jumpVelocity/GAME.gravity),effort:1.0}),
     duck:Object.freeze({commit:GAME.duckDuration+GAME.duckRecovery,effort:1.05}),
     echo:Object.freeze({commit:1.25,effort:2.45}),
+    'dash-jump':Object.freeze({commit:1.18,effort:2.50}),
+    'dash-duck':Object.freeze({commit:1.10,effort:2.35}),
     gap:Object.freeze({commit:1.05,effort:1.4}),
     'echo-gap':Object.freeze({commit:1.35,effort:2.55})
   });
@@ -23,6 +25,8 @@
   // is speed * seconds. Existing jump/duck safety minima are retained.
   function minimumGap(previous,next,speed,obstacleWidth=70){
     const travel=(obstacleWidth+44)/Math.max(300,speed);
+    if(previous==='dash-jump'||previous==='dash-duck'||
+      next==='dash-jump'||next==='dash-duck')return 1.65+travel;
     if(previous==='echo')return 1.47+travel;
     if(next==='echo')return (previous==='duck'?1.14:1.09)+travel;
     if(previous==='jump')return .88+travel;
@@ -60,8 +64,8 @@
     onSpawn(action,now){
       this.executed[action]=(this.executed[action]||0)+1;
       this.lastAction=action;
-      if(action==='echo'){
-        this.pressure=Math.min(4.8,this.pressure+1.55);
+      if(action==='echo'||action==='dash-jump'||action==='dash-duck'){
+        this.pressure=Math.min(4.8,this.pressure+(action==='echo'?1.55:1.25));
         this.lastEchoTime=now;
         this.consecutiveHard++;
       }else{
@@ -70,7 +74,9 @@
       }
     }
     onClear(action,now){
-      if(action==='echo'){
+      if(action==='dash-jump'||action==='dash-duck'){
+        this.recoveryUntil=Math.max(this.recoveryUntil,now+.85);
+      }else if(action==='echo'){
         this.echoClears++;
         this.recoveryUntil=Math.max(this.recoveryUntil,now+.8);
       }else if(action==='echo-gap'){
@@ -131,6 +137,10 @@
       const steps=pattern.steps||[];
       const hasEcho=steps.includes('echo');
       if(hasEcho&&!this.echoReady({...context},now,firstEcho))return false;
+      if(steps.some(s=>s==='dash-jump'||s==='dash-duck')){
+        if(steps.length>1||context.hp<=50||context.stress>=.42||
+           context.gravityPending||now<this.recoveryUntil)return false;
+      }
       if(hasEcho&&steps.length>1&&this.echoClears<1)return false;
       if(steps.length>2&&this.pressure>=2.5)return false;
       if(firstEcho&&pattern.id==='single-echo')return true;
@@ -141,6 +151,7 @@
       const actions=pattern.steps;
       if(this.lastAction&&actions[0]===this.lastAction)w*=.78;
       if(actions.includes('echo'))w*=.70; // Echo remains a distinct event.
+      if(actions.some(a=>a==='dash-jump'||a==='dash-duck'))w*=.60;
       if(this.pressure>1.2&&actions.length===1)w*=1.35;
       if(context.phase==='PEAK'&&this.pressure<.6&&actions.length>1)w*=1.14;
       return w;

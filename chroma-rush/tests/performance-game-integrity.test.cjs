@@ -20,6 +20,7 @@ const modules={
  ChromaJump:require('../src/gameplay/jump-controller.js'),
  ChromaDash:require('../src/gameplay/contextual-dash.js'),
  ChromaShieldCore:require('../src/gameplay/shield-core.js'),
+ ChromaDashHazards:require('../src/gameplay/dash-hazards.js'),
  ChromaShieldCoreRender:require('../src/render/shield-core-renderer.js'),
  ChromaMotion:require('../src/render/player-motion.js'),
  ChromaEffects:require('../src/render/effect-language.js'),

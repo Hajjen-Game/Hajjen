@@ -1,8 +1,18 @@
-# CHROMA RUSH — Shield Core 1.0 — Collectible Recovery & Pickup Feel
+# CHROMA RUSH — Dash Challenge Obstacles 1.0 — Air Vault & Ground Slip Gate
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Dash Challenge Obstacles 1.0 — Air Vault & Ground Slip Gate (2026-11-08)
+
+- **Air Vault (dash-jump):** an extended, low jump barrier with a visible, slender vertical momentum seal. First introduced from zone 3, one by itself; clear by jumping and starting Air Dash near its white dash seal. Ordinary Jump, Double Jump, and Dash too far away cannot open the seal.
+- **Ground Slip Gate (dash-duck):** an extended version of the existing overhead Duck Gate, with a visible energy membrane inside its low passage. First introduced from zone 4. Duck first, then physically press Duck again to Ground Dash through the seal. Neither a single crouch nor Air Dash breaks it.
+- **Not invulnerability:** players still need to clear the actual jump or duck collider; failed height or mistimed posture still takes ordinary shield damage. Both are obstacles, not rewards or scenery. Unlocking a seal doesn't skip collision checks or guarantee a clear.
+- **Director:** two low-weight single-action micro-patterns, taught separately and held back for low shield / high stress / flip transitions. Special challenges reserve significantly more safe terrain and obstacle spacing. Their minimum reaction lead is 1.25s Air / 1.18s Ground, with the existing high-speed ahead-of-screen warning. Both fully support ceiling mirroring.
+- **Visual:** consistent existing beveled jump/duck architecture, thin luminous seal, integrated short chevrons, and small local AIR DASH / GROUND DASH labels that remain upright on the ceiling. Charged seals soften to mint. No distracting rectangular arrival marker or halo/ring.
+- **Scoring/analytics:** regular real obstacle-clear Flow and score, one damage event on a missed seal, subtle chime on successful breakthrough, audit logs for separate Air / Ground clears and misses. The existing combo classification treats them as jump and duck. Controls, dash impulse and hitboxes unchanged.
+- **Regression:** test real active Dash mode + proximity + posture, ordinary-action failure, ceiling/terrain fairness, intro pacing and browser/phone performance. Final tuning to be informed by actual Android playtests.
 
 ## Shield Core 1.0 — Collectible Recovery & Pickup Feel (2026-11-08)
 

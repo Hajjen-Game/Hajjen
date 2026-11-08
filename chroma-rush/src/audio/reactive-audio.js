@@ -209,6 +209,10 @@
           fx(145,.09,.140,'triangle',310);
           fx(290,.20,.103,'sawtooth',655,.010);
           fx(600,.21,.049,'sine',770,.065);break;
+        case 'dash-seal':
+          // Narrow two-layer electric unlock snap, below damage volume.
+          fx(410,.085,.071,'triangle',690);
+          fx(850,.13,.045,'sine',1100,.033);break;
         case 'shield-core':
           // Distinct two-step ascending collectible chime, not a hazard cue.
           fx(560,.115,.078,'triangle',790);

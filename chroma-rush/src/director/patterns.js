@@ -15,6 +15,9 @@
     {id:'twin-duck',steps:['duck','duck'],tier:1,minZone:1,weight:1.1},
     // The first tall pillar is taught as one isolated action, not a combo.
     {id:'single-echo',steps:['echo'],tier:1,minZone:2,weight:1.5},
+    // Each Dash seal is taught alone before being mixed with other inputs.
+    {id:'single-dash-jump',steps:['dash-jump'],tier:1,minZone:3,weight:.95},
+    {id:'single-dash-duck',steps:['dash-duck'],tier:1,minZone:4,weight:.95},
     // Advanced phrases appear only after the player has had time to practice.
     {id:'echo-then-jump',steps:['echo','jump'],tier:2,minZone:6,weight:.8},
     {id:'jump-then-echo',steps:['jump','echo'],tier:3,minZone:8,weight:.7},

@@ -16,7 +16,8 @@
     'invulnerable_contact','gap_clear','gap_miss','perfect_zone','flow_tier','combo','run_end',
     'jump_input','duck_input','echo_jump','air_dash','ground_dash','dash_blocked',
     'echo_unlocked','dash_unlocked','gravity_warning','gravity_shift_begin','gravity_shift_complete',
-    'shield_core_spawn','shield_core_pickup','shield_core_miss']);
+    'shield_core_spawn','shield_core_pickup','shield_core_miss',
+    'dash_hazard_clear','dash_hazard_miss']);
   const number=(n)=>Number.isFinite(Number(n))?Math.round(Number(n)*100)/100:0;
   const snap=(input={})=>({
     time:number(input.time),zone:Math.max(1,number(input.zone)||1),
@@ -27,6 +28,7 @@
   const stats=()=>({obstaclesSpawned:0,obstaclesCleared:0,obstacleHits:0,invulnerableContacts:0,
     gapsCleared:0,gapsMissed:0,perfectZones:0,terrainSlopes:0,terrainGaps:0,
      shieldCores:{spawned:0,collected:0,missed:0,shieldRestored:0},
+     dashHazards:{cleared:{air:0,ground:0},missed:{air:0,ground:0}},
     maxFlow:0,chromaSeconds:0,flowAbove65Seconds:0,highestStreak:0,
     precisionClears:0,masterClears:0,
     movement:{jumpPresses:0,duckPresses:0,echoJumps:0,
@@ -70,6 +72,16 @@
           this.summary.shieldCores.shieldRestored+=Math.max(0,number(data.amount));
           break;
         case 'shield_core_miss':this.summary.shieldCores.missed++;break;
+        case 'dash_hazard_clear':{
+          const mode=data.obstacle==='dash-jump'?'air':data.obstacle==='dash-duck'?'ground':null;
+          if(mode)this.summary.dashHazards.cleared[mode]++;
+          break;
+        }
+        case 'dash_hazard_miss':{
+          const mode=data.obstacle==='dash-jump'?'air':data.obstacle==='dash-duck'?'ground':null;
+          if(mode)this.summary.dashHazards.missed[mode]++;
+          break;
+        }
         case 'spawn':{
           this.summary.obstaclesSpawned++;
           // Source: true obstacle spawn position in the actual game loop.
@@ -174,7 +186,7 @@
         reaction:{...this.summary.reaction,byAction:Object.fromEntries(
           Object.entries(this.summary.reaction.byAction).map(([k,v])=>[k,{...v}]))}};
       return {format:'chroma-rush-round-audit',version:2,mode:this.mode,
-        build:'shield-core-1.0',
+        build:'dash-hazards-1.0',
         startingZone:this.startingZone,durationSeconds:duration,summary:sum,
         finalState:this.finalState||snap(context),events:this.events.map(e=>({...e})),
         samples:this.samples.map(s=>({...s})),truncatedEvents:this.overflow,

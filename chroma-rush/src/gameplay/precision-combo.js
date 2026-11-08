@@ -12,7 +12,7 @@
   const MAX_CHAIN=4;
   const FAMILY=Object.freeze({
     jump:'jump',gap:'jump',
-    duck:'duck',
+    duck:'duck','dash-jump':'jump','dash-duck':'duck',
     echo:'echo','echo-gap':'echo'
   });
   // Preserve the existing precision windows exactly; their observable

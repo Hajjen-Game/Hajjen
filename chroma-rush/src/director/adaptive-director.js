@@ -29,6 +29,7 @@
       this.cycle=0;this.streak=0;this.confidence=.32;this.stress=0;
       this.lastDamageAt=-999;this.lastNearMissAt=-999;
       this.lastPatternId=null;this.patternHistory=[];this.echoIntroduced=false;
+      this.dashIntroduced={air:false,ground:false};
       this.comboInsight={total:0,best:0,lastAt:-Infinity};
       this.movement.reset();
     }
@@ -48,7 +49,8 @@
     }
     registerClear({action=null}={}){
       this.totalCleared++;this.streak++;
-      if(action==='echo')this.movement.onClear(action,this.time);
+      if(action==='echo'||action==='dash-jump'||action==='dash-duck')
+        this.movement.onClear(action,this.time);
       this.confidence=clamp(this.confidence+.024,0,1);
     }
     durationFor(phase,context){
@@ -98,8 +100,20 @@
       // heavy combos are only offered after a successful solo Echo clear.
       const intro=firstEcho&&echoReady&&
         (this.phase===PHASE.PEAK||context.zone===2);
-      const safe=options.filter(p=>this.movement.allowPattern(p,readiness,this.time,
-        {firstEcho:intro&&p.id==='single-echo'}));
+      const safe=options.filter(p=>{
+        const type=p.steps[0];
+        if(type==='dash-jump'||type==='dash-duck'){
+          const floor=type==='dash-jump'?3:4;
+          const used=type==='dash-jump'?this.dashIntroduced.air:this.dashIntroduced.ground;
+          if(context.zone<floor||context.gravityPending||context.hp<=50||
+            this.stress>=.42||(!used&&this.time<this.movement.recoveryUntil)||
+            (!used&&(context.zoneElapsed??0)<3)||
+            (type==='dash-duck'&&!this.dashIntroduced.air))return false;
+          if(used&&this.confidence<.42)return false;
+        }
+        return this.movement.allowPattern(p,readiness,this.time,
+          {firstEcho:intro&&p.id==='single-echo'});
+      });
       this.movement.deferredPatterns+=options.length-safe.length;
       const weighted=safe.map(p=>({...p,weight:this.movement.adjustedWeight(p,readiness)}));
       const chosen=(intro?weighted.find(p=>p.id==='single-echo'):null)||
@@ -141,7 +155,20 @@
           this.spawnCountdown=Math.min(this.spawnCountdown,.10);
         }
       }
-      if(this.phase===PHASE.RELAX&&!guidedEcho){
+      // Introduce Air Dash in zone 3 and Ground Dash in zone 4 (or as soon
+      // as a safe recovery slot opens later). Never stack their first lessons.
+      const firstDashType=!this.dashIntroduced.air&&context.zone>=3?'dash-jump':
+        !this.dashIntroduced.ground&&context.zone>=4?'dash-duck':null;
+      const guidedDash=Boolean(firstDashType&&!guidedEcho&&
+        context.zoneElapsed>=3&&context.zoneElapsed<=9.5&&
+        context.hp>50&&this.stress<.42&&!context.gravityPending&&
+        this.time>=this.movement.recoveryUntil&&
+        this.movement.pressure<1.20);
+      if(guidedDash&&this.pending[0]?.type!==firstDashType){
+        this.pending=[{type:firstDashType,pattern:'single-'+firstDashType,step:1}];
+        this.spawnCountdown=Math.min(this.spawnCountdown,.12);
+      }
+      if(this.phase===PHASE.RELAX&&!guidedEcho&&!guidedDash){
         this.spawnCountdown=Math.max(this.spawnCountdown,.16);
         return;
       }
@@ -152,6 +179,14 @@
         this.pending=motif.steps.map((type,index)=>({type,pattern:motif.id,step:index+1}));
       }
       const next=this.pending[0];
+      if(next.type==='dash-jump'||next.type==='dash-duck'){
+        const used=next.type==='dash-jump'?this.dashIntroduced.air:this.dashIntroduced.ground;
+        if(context.hp<=50||this.stress>=.42||context.gravityPending||
+           (!used&&this.time<this.movement.recoveryUntil)){
+          this.pending=[];this.spawnCountdown=.35;
+          this.movement.deferredPatterns++;return;
+        }
+      }
       // If an unlucky stretch of collisions/terrain has blocked the lesson,
       // do NOT introduce it seconds before the next ceiling transition.
       // It can safely retry in a later floor section.
@@ -212,6 +247,8 @@
       this.pending.shift();
       this.movement.onSpawn(next.type,this.time);
       if(next.type==='echo')this.echoIntroduced=true;
+      if(next.type==='dash-jump')this.dashIntroduced.air=true;
+      if(next.type==='dash-duck')this.dashIntroduced.ground=true;
       this.totalSpawned++;this.lastSpawnTime=this.time;
       this.lastSpawnLead=nextLead;
       const following=this.pending[0]?.type||null;

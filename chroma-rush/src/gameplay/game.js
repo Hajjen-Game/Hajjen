@@ -7,7 +7,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo || !window.ChromaShieldCore || !window.ChromaShieldCoreRender) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo || !window.ChromaShieldCore || !window.ChromaShieldCoreRender || !window.ChromaDashHazards) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -30,6 +30,7 @@
   const GAME = window.ChromaConfig.GAME;
   const GEO = window.ChromaGeometry;
   const FAIR = window.ChromaHighSpeedFairness;
+  const DASH_HAZARDS = window.ChromaDashHazards;
   const terrain = new window.ChromaTerrain.TerrainSystem();
   const terrainDirector = new window.ChromaUnifiedTerrainDirector.UnifiedTerrainDirector({terrain,director});
   const jumpControl = new window.ChromaJump.JumpController();
@@ -441,6 +442,14 @@
     dashReleasePending=action;
     sound('dash-charge');vib(6);
     $.duck.classList.add('dash-active');
+    // A Dash must be started NEAR the visible seal, with the correct form.
+    // The entire rest of the course retains normal collision and damage.
+    for(const o of hurdles){
+      if(DASH_HAZARDS.mayCharge(o,{action,
+        playerWorld:distance+player.x,speed,
+        airborne:!player.landed,ducking:player.duck}))
+        o.dashSatisfied=true;
+    }
     director.noteDash(action);
     runAudit.record(action==='air'?'air_dash':'ground_dash',auditState(),
       {extraSpeedFactor:DASH.bonusFactor,grounded:player.landed,
@@ -578,22 +587,45 @@
     // hazards finish their normal course; no artificial clears are awarded.
     if(gravityShift.pending||gravityShift.shifting)return false;
     const spire=window.ChromaConfig.ECHO_SPIRE;
+    const isDashChallenge=DASH_HAZARDS.isDashHazard(data.type);
+    const dashMode=DASH_HAZARDS.requiredMode(data.type);
+    const firstDash=isDashChallenge&&!director.dashIntroduced[dashMode];
+    if(isDashChallenge&&!DASH_HAZARDS.safeToSpawn(data.type,{
+      zone,hp,stress:director.stress,confidence:director.confidence,
+      gravityBusy:gravityShift.pending||gravityShift.shifting||gravityShift.protected,
+      first:firstDash}))return false;
     const firstEcho=data.type==='echo'&&!director.echoIntroduced;
     if(data.type==='echo'&&(zone<spire.firstZone||hp<=50||director.stress>=.42))return false;
     if(firstEcho&&(gravityShift.ceiling||gravityShift.pending||
       gravityShift.shifting||gravityShift.protected))return false;
-    const width=data.type==='echo'?
-      rand(firstEcho?spire.introMinWidth:spire.minWidth,
-        firstEcho?spire.introMaxWidth:spire.maxWidth):
-      data.type==='jump'?rand(43,58):rand(54,71);
-    const height=data.type==='echo'?
-      rand(firstEcho?spire.introMinHeight:spire.minHeight,
-        firstEcho?spire.introMaxHeight:spire.maxHeight):
-      data.type==='jump'?rand(53,66):rand(115,158);
+    const width=isDashChallenge?DASH_HAZARDS.widthFor(data.type,speed):
+      data.type==='echo'?
+        rand(firstEcho?spire.introMinWidth:spire.minWidth,
+          firstEcho?spire.introMaxWidth:spire.maxWidth):
+        data.type==='jump'?rand(43,58):rand(54,71);
+    const height=isDashChallenge?DASH_HAZARDS.heightFor(data.type):
+      data.type==='echo'?
+        rand(firstEcho?spire.introMinHeight:spire.minHeight,
+          firstEcho?spire.introMaxHeight:spire.maxHeight):
+        data.type==='jump'?rand(53,66):rand(115,158);
     const x=spawnXFor(data.type),worldX=distance+x;
     // Shield Core reserves an optional, obstruction-free double-jump corridor.
     if(shieldCores.blocksHazard(worldX,width,speed))return false;
     if(!terrain.canSpawnObstacle(worldX,width,speed))return false;
+    if(isDashChallenge){
+      // Demanding actions are always isolated on a flat approach/landing,
+      // safely away from earlier hurdles and planned terrain gaps.
+      const pad=Math.max(450,speed*1.45);
+      const approachY=terrain.groundAt(worldX-speed*.90);
+      const landingY=terrain.groundAt(worldX+width+speed*.90);
+      const baseline=terrain.groundAt(worldX+width*.5);
+      if(baseline===null||approachY===null||landingY===null||
+        Math.abs(approachY-baseline)>8||Math.abs(landingY-baseline)>8||
+        terrain.visibleGaps(worldX-pad,worldX+width+pad).length>0||
+        hurdles.some(o=>!o.hit&&!o.cleared&&
+          o.worldX+o.width>=worldX-pad&&o.worldX<=worldX+width+pad))
+        return false;
+    }
     const groundY=terrain.groundAt(worldX+width*.5);
     if(groundY===null)return false;
     if(data.type==='echo'){
@@ -608,11 +640,17 @@
         Math.abs(launchY-groundY)>8||Math.abs(landY-groundY)>8)return false;
     }
     hurdles.push({type:data.type,x,worldX,groundY,width,height,hit:false,cleared:false,
-      closestClearance:Infinity,entryDuckTime:null,phase:data.phase,pulse:Math.random()*Math.PI*2});
+      closestClearance:Infinity,entryDuckTime:null,
+      dashSatisfied:false,sealPassed:false,
+      phase:data.phase,pulse:Math.random()*Math.PI*2});
+    if(isDashChallenge){
+      terrainDirector.noGapsBefore=Math.max(terrainDirector.noGapsBefore,
+        worldX+width+speed*1.2);
+    }
     const fairness=FAIR.metrics(data.type,
       {x,playerX:player.x,viewportWidth:W,speed});
     runAudit.record('spawn',auditState(),{obstacle:data.type,pattern:data.pattern||'',worldX,
-      surface:gravityShift.ceiling?'ceiling':'floor',intro:firstEcho,
+      surface:gravityShift.ceiling?'ceiling':'floor',intro:firstEcho||firstDash,
       leadSeconds:fairness.leadSeconds,requiredSeconds:fairness.requiredSeconds,
       visibleSeconds:fairness.visibleSeconds,earlyCueSeconds:fairness.earlyCueSeconds,
       fair:fairness.fair,needsCue:fairness.needsCue});
@@ -691,6 +729,9 @@
       return;
     }
     o.hit=true;
+    if(DASH_HAZARDS.isDashHazard(o.type))
+      runAudit.record('dash_hazard_miss',auditState(),{
+        obstacle:o.type,sealBroken:Boolean(o.dashSatisfied)});
     combo.breakChain();
     if(player.invulnerable>0){
       flow.registerCollision();runAudit.record('invulnerable_contact',auditState(),{obstacle:o.type});return;
@@ -772,7 +813,9 @@
     const lastTerrainWorld=terrain.generated;
     // The generator must cover the farthest possible action-specific spawn,
     // including an offscreen Echo Spire with a full second of warning.
-    const farthestSpawn=spawnXFor('echo');
+    const farthestSpawn=Math.max(spawnXFor('echo'),
+      zone>=DASH_HAZARDS.FIRST_AIR_ZONE?spawnXFor('dash-jump'):0,
+      zone>=DASH_HAZARDS.FIRST_GROUND_ZONE?spawnXFor('dash-duck'):0);
     // When a rare recovery opportunity is due, ask the EXISTING terrain
     // planner for enough known runway to verify launch and landing. This
     // never inserts obstacles or consumes a new gameplay RNG stream.
@@ -780,7 +823,7 @@
       hp<=window.ChromaConfig.SHIELD_CORE.spawnAtOrBelow&&
       !shieldCores.visible&&time>=shieldCores.nextAt-.7?
       player.x+Math.max(300,speed)*2.65:0;
-    terrainDirector.prepare({right:distance+Math.max(W+800,farthestSpawn+speed*.48,shieldPlanAhead),
+    terrainDirector.prepare({right:distance+Math.max(W+800,farthestSpawn+speed*1.9+330,shieldPlanAhead),
       playerWorld:distance+player.x,zone,speed,hp});
     for(const feature of terrain.segments){
       if(feature.start>=lastTerrainWorld&&('gap'===feature.type||'slope'===feature.type))
@@ -918,21 +961,39 @@
       const priorX=o.x;
       o.x-=worldStep;
       const b=GEO.obstacleBox(o,o.groundY);
+      const sealed=DASH_HAZARDS.isDashHazard(o.type);
+      if(sealed&&!o.dashSatisfied&&dash.active&&
+        DASH_HAZARDS.mayCharge(o,{action:dash.mode,
+          playerWorld:distance+player.x,speed,
+          airborne:!player.landed,ducking:player.duck}))
+        o.dashSatisfied=true;
       // Swept X check prevents skipping a narrow obstacle on a slow phone.
       const sweptX=GEO.sweptXOverlap(p,priorX,o);
       const yOverlap=GEO.verticalOverlap(p,b);
       if(sweptX && !yOverlap && !o.hit){
         // A real narrow jump clearance or well-timed duck is a precision pass.
-        if((o.type==='jump'||o.type==='echo') && p.y+p.h<=b.y){
+        if((o.type==='jump'||o.type==='echo'||o.type==='dash-jump') && p.y+p.h<=b.y){
           o.closestClearance=Math.min(o.closestClearance,b.y-(p.y+p.h));
-        }else if(o.type==='duck' && player.duck && o.entryDuckTime===null){
+        }else if((o.type==='duck'||o.type==='dash-duck') && player.duck &&
+          o.entryDuckTime===null){
           o.entryDuckTime=player.duckTime;
         }
       }
       if(sweptX&&yOverlap)onHit(o);
+      // The luminous seal is a real second hazard condition. A perfectly
+      // timed ordinary jump/duck (or Echo Jump) cannot bypass the Dash
+      // challenge; the matching Dash must have charged the seal locally.
+      if(sealed&&!o.hit&&!o.sealPassed&&
+        DASH_HAZARDS.reachedSeal(o,{priorX,playerFront:p.x+p.w})){
+        o.sealPassed=true;
+        if(!o.dashSatisfied)onHit(o);
+      }
       if(!o.cleared&&o.x+o.width<p.x){
         o.cleared=true;
         if(!o.hit){
+          // A very large world step may cross the entire seal in one update.
+          // Never award a false clear to a player who never used Dash.
+          if(sealed&&!o.dashSatisfied){onHit(o);continue;}
           const traverse=(o.width+66)/Math.max(300,speed);
           const graded=gradePrecision({action:o.type,
             closestClearance:o.closestClearance,entryDuckTime:o.entryDuckTime,
@@ -949,6 +1010,13 @@
           runAudit.record('obstacle_clear',auditState(),
             {obstacle:o.type,precision,master:graded.master,
               precisionMargin:graded.margin===null?-1:graded.margin});
+          if(sealed){
+            runAudit.record('dash_hazard_clear',auditState(),{
+              obstacle:o.type,requiredDash:DASH_HAZARDS.requiredMode(o.type)});
+            effects.cue('precision',player.x,player.feet-22,c1,c2,
+              {speed,reducedMotion,strength:.7});
+            sound('dash-seal');
+          }
           if(o.type==='echo'){
             // Compact clean-clear reward for a real double-jump barrier.
             // Doesn't mask the next obstacle or change the scoring contract.
@@ -1063,7 +1131,8 @@
       tide:spectralWave.active?spectralWave:null});
   }
   function drawObstacle(o){
-    const b=GEO.obstacleBox(o,o.groundY),isLow=o.type==='jump',isEcho=o.type==='echo';
+    const b=GEO.obstacleBox(o,o.groundY),
+      isLow=o.type==='jump'||o.type==='dash-jump',isEcho=o.type==='echo';
     const core=(isLow||isEcho)?b:GEO.duckGateCoreBox(o,o.groundY);
     const color=spectralWave.colorAt(o.x,(isLow||isEcho)?'secondary':'primary',core.y+core.h*.5,H);
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
@@ -1145,6 +1214,41 @@
         glowLine(x,core.y+12,x,by-12,color,1,0,.36);
       }
       glowLine(core.x,core.y,core.x+core.w,core.y,'#ffffff',1,8,.45);
+    }
+    if(DASH_HAZARDS.isDashHazard(o.type)){
+      // The luminous, hairline momentum seal is NOT another rectangular
+      // obstacle. It visually spans the airborne route (Air Dash) or the
+      // 28px duck passage (Ground Dash). No camera rings or blocking UI.
+      const sealX=DASH_HAZARDS.sealX(o);
+      const top=isLow?b.y-167:b.y+b.h-23;
+      const bottom=isLow?b.y+5:o.groundY-3;
+      const charged=o.dashSatisfied;
+      const sealColor=charged?'#87ffcf':'#f5feff';
+      ctx.save();
+      ctx.globalAlpha=charged?.20:(reducedMotion?.76:.70+
+        Math.sin(worldTime*11+o.pulse)**2*.20);
+      ctx.shadowColor=sealColor;ctx.shadowBlur=charged?3:12*quality.profile.glow;
+      ctx.lineWidth=2.3;ctx.strokeStyle=sealColor;
+      ctx.beginPath();ctx.moveTo(sealX,top);ctx.lineTo(sealX,bottom);ctx.stroke();
+      ctx.shadowBlur=0;
+      // Three chevrons embedded inside the existing barrier material.
+      for(let k=0;k<3;k++){
+        const yy=isLow?b.y+13+k*14:core.y+30+k*29;
+        if(yy>o.groundY-6)break;
+        ctx.beginPath();ctx.moveTo(sealX-10,yy-5);
+        ctx.lineTo(sealX-4,yy);ctx.lineTo(sealX-10,yy+5);ctx.stroke();
+      }
+      ctx.restore();
+      // One integrated action label: first-time readable, not a fake warning
+      // block. The ceiling course mirrors but the tiny letters remain upright.
+      ctx.save();
+      ctx.translate(sealX,isLow?top-11:core.y+16);
+      if(gravityShift.mix>.5)ctx.scale(1,-1);
+      ctx.font='900 12px system-ui';ctx.textAlign='center';
+      ctx.fillStyle=charged?'#8efad0':'#e7fdff';
+      ctx.shadowColor=color;ctx.shadowBlur=4*quality.profile.glow;
+      ctx.fillText(isLow?'AIR DASH':'GROUND DASH',0,0);
+      ctx.restore();
     }
     ctx.restore();
   }

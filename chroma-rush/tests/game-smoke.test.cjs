@@ -19,6 +19,7 @@ const terrain = require('../src/terrain/terrain-system.js');
 const jump = require('../src/gameplay/jump-controller.js');
 const dashModule = require('../src/gameplay/contextual-dash.js');
 const shieldCore = require('../src/gameplay/shield-core.js');
+const dashHazards=require('../src/gameplay/dash-hazards.js');
 const shieldCoreRender = require('../src/render/shield-core-renderer.js');
 const motion = require('../src/render/player-motion.js');
 const effects = require('../src/render/effect-language.js');
@@ -58,7 +59,7 @@ function setup(initialStorage={}) {
   let requested;
   const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaMovementAwareness:movementAwareness,ChromaHighSpeedFairness:highSpeedFairness,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaPrecisionCombo:precisionCombo,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaDash:dashModule,ChromaShieldCore:shieldCore,ChromaShieldCoreRender:shieldCoreRender,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaSpectralWave:spectralWave,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaGravityShift:gravityShift,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaMovementAwareness:movementAwareness,ChromaHighSpeedFairness:highSpeedFairness,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaPrecisionCombo:precisionCombo,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaDash:dashModule,ChromaShieldCore:shieldCore,ChromaShieldCoreRender:shieldCoreRender,ChromaDashHazards:dashHazards,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaSpectralWave:spectralWave,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaGravityShift:gravityShift,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
@@ -68,7 +69,7 @@ function setup(initialStorage={}) {
   const ending='  requestAnimationFrame(frame);\n})();';
   assert.ok(gameCode.includes(ending));
   vm.runInContext(gameCode.replace(ending,
-    "  window.__gravityHarness={gravityShift,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,dash,shieldCores,runAudit,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,hp:()=>hp,setHP:n=>{hp=n},player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
+    "  window.__gravityHarness={gravityShift,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,dash,shieldCores,DASH_HAZARDS,runAudit,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,hp:()=>hp,setHP:n=>{hp=n},player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
     context,{filename:'game.js'});
   return {get,local,rotations,bends,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
@@ -204,7 +205,7 @@ test('zone 1: real touch taps trigger ground and air dashes, and audit records b
   assert.ok(g.dash.travel>before);
   assert.equal(g.runAudit.summary.movement.airDashes,1);
   assert.equal(g.runAudit.summary.movement.echoJumps,0);
-  assert.equal(g.runAudit.snapshot().build,'shield-core-1.0');
+  assert.equal(g.runAudit.snapshot().build,'dash-hazards-1.0');
 });
 
 test('fast double-tap is buffered, then truly launches the second impulse',()=>{
@@ -306,6 +307,79 @@ test('Shield Core pickup integrates with real game physics, audit and HUD withou
   h.advance(70);
   assert.equal(h.game.get('shield-gain').classList.contains('hidden'),true,
     'shield feedback fades without a second action');
+});
+
+
+test('Ground Slip Gate hits a correctly ducked player who never Ground Dashes',()=>{
+  const h=duckHarness(),g=h.game.context.window.__gravityHarness;
+  g.director.tick=()=>{};g.gravityShift.requestForZone=()=>false;
+  g.forceZone(4);h.advance(1);
+  const p=g.player();p.duck=true;p.duckTime=4;
+  const w=180,x=p.x+70;
+  const o={type:'dash-duck',x,worldX:g.distance()+x,groundY:515,
+    width:w,height:146,hit:false,cleared:false,closestClearance:Infinity,
+    entryDuckTime:null,dashSatisfied:false,sealPassed:false,pulse:0};
+  g.hurdles().push(o);h.advance(38);
+  assert.equal(o.hit,true,'no Ground Dash cannot pass the visible momentum seal');
+  assert.equal(g.hp(),75,'ordinary shield damage, no special extra penalty');
+  assert.equal(g.runAudit.summary.dashHazards.missed.ground,1);
+  assert.equal(g.runAudit.summary.dashHazards.cleared.ground,0);
+});
+
+test('Two deliberate duck presses unlock Ground Slip Gate without altering hitbox',()=>{
+  const h=duckHarness(),g=h.game.context.window.__gravityHarness;
+  g.director.tick=()=>{};g.gravityShift.requestForZone=()=>false;
+  g.forceZone(4);h.advance(1);
+  const p=g.player(),first=h.press();h.release(first);
+  const boxBefore=geometry.playerBox(p);
+  const w=190,x=p.x+24;
+  const o={type:'dash-duck',x,worldX:g.distance()+x,groundY:515,
+    width:w,height:146,hit:false,cleared:false,closestClearance:Infinity,
+    entryDuckTime:null,dashSatisfied:false,sealPassed:false,pulse:0};
+  g.hurdles().push(o);h.advance(2);
+  const second=h.press();h.release(second);
+  assert.equal(g.dash.mode,'ground');
+  assert.equal(o.dashSatisfied,true,'second physical press near seal charges it');
+  assert.deepEqual(JSON.parse(JSON.stringify(geometry.playerBox(p))),
+    JSON.parse(JSON.stringify(boxBefore)),'Dash never enlarges physical duck collider');
+  h.advance(28);
+  assert.equal(g.hp(),100);
+  assert.equal(o.hit,false);
+  assert.equal(g.runAudit.summary.dashHazards.cleared.ground,1);
+  assert.equal(g.runAudit.summary.dashHazards.missed.ground,0);
+});
+
+test('Air Vault needs Air Dash even with a high enough jump',()=>{
+  const h=duckHarness(),g=h.game.context.window.__gravityHarness;
+  g.director.tick=()=>{};g.gravityShift.requestForZone=()=>false;
+  g.forceZone(4);h.advance(1);
+  const p=g.player();p.landed=false;p.feet=260;p.vy=-250;
+  const w=210,x=p.x+75;
+  const o={type:'dash-jump',x,worldX:g.distance()+x,groundY:515,
+    width:w,height:62,hit:false,cleared:false,closestClearance:Infinity,
+    entryDuckTime:null,dashSatisfied:false,sealPassed:false,pulse:0};
+  g.hurdles().push(o);h.advance(34);
+  assert.equal(o.hit,true,'being above a long barrier alone does not break its seal');
+  assert.equal(g.runAudit.summary.dashHazards.missed.air,1);
+});
+
+test('Airborne Dash near the Air Vault breaks the seal and clears the real collider',()=>{
+  const h=duckHarness(),g=h.game.context.window.__gravityHarness;
+  g.director.tick=()=>{};g.gravityShift.requestForZone=()=>false;
+  g.forceZone(4);h.advance(1);
+  const p=g.player();p.landed=false;p.feet=310;p.vy=-300;
+  const w=210,x=p.x+70;
+  const o={type:'dash-jump',x,worldX:g.distance()+x,groundY:515,
+    width:w,height:62,hit:false,cleared:false,closestClearance:Infinity,
+    entryDuckTime:null,dashSatisfied:false,sealPassed:false,pulse:0};
+  g.hurdles().push(o);
+  const press=h.press();h.release(press);
+  assert.equal(g.dash.mode,'air');
+  assert.equal(o.dashSatisfied,true);
+  h.advance(29);
+  assert.equal(o.hit,false);
+  assert.equal(g.hp(),100);
+  assert.equal(g.runAudit.summary.dashHazards.cleared.air,1);
 });
 
 test('sound toggle works during play and pause without an AudioContext',()=>{

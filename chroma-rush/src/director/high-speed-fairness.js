@@ -21,7 +21,9 @@
     duck:Object.freeze({lead:.56,label:'DUCK',mark:'↓',cost:1}),
     echo:Object.freeze({lead:1.00,label:'2× JUMP',mark:'↑↑',cost:3}),
     gap:Object.freeze({lead:.66,label:'GAP',mark:'↑',cost:2}),
-    'echo-gap':Object.freeze({lead:1.10,label:'2× GAP',mark:'↑↑',cost:3})
+    'echo-gap':Object.freeze({lead:1.10,label:'2× GAP',mark:'↑↑',cost:3}),
+    'dash-jump':Object.freeze({lead:1.25,label:'AIR DASH',mark:'↑+',cost:3}),
+    'dash-duck':Object.freeze({lead:1.18,label:'GROUND DASH',mark:'↓+',cost:3})
   });
   function rule(type){return ACTIONS[type]||ACTIONS.jump;}
   function horizonFor(type,{speed=370,playerX=300,viewportWidth=1280}={}){

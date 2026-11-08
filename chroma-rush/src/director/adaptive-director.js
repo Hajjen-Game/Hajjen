@@ -96,7 +96,8 @@
       // Build short, playable phrases from actual movement requirements.
       // Repeated Echo checks after a miss are replaced by a calm phrase;
       // heavy combos are only offered after a successful solo Echo clear.
-      const intro=firstEcho&&echoReady&&this.phase===PHASE.PEAK;
+      const intro=firstEcho&&echoReady&&
+        (this.phase===PHASE.PEAK||context.zone===2);
       const safe=options.filter(p=>this.movement.allowPattern(p,readiness,this.time,
         {firstEcho:intro&&p.id==='single-echo'}));
       this.movement.deferredPatterns+=options.length-safe.length;
@@ -126,7 +127,21 @@
       // A single phase transition is sufficient with the gameplay fixed-step frame cap.
       if(this.phaseElapsed>=this.phaseDuration)this.advance(context);
       this.spawnCountdown-=dt;
-      if(this.phase===PHASE.RELAX){
+      // Zone 2 is where the second jump UNLOCKS. Do not leave the first
+      // real double-jump obstacle to random PEAK timing (often zone 3).
+      // Reserve one isolated floor Spire ~1.5s after the zone transition;
+      // its ~2s approach means it arrives while the on-screen hint is fresh.
+      const guidedEcho=!this.echoIntroduced&&context.zone===2&&
+        context.zoneElapsed>=1.5&&context.zoneElapsed<=8.4&&
+        this.movement.echoReady({...context,phase:this.phase,
+          stress:this.stress,confidence:this.confidence},this.time,true);
+      if(guidedEcho){
+        if(this.pending[0]?.type!=='echo'){
+          this.pending=[{type:'echo',pattern:'single-echo',step:1}];
+          this.spawnCountdown=Math.min(this.spawnCountdown,.10);
+        }
+      }
+      if(this.phase===PHASE.RELAX&&!guidedEcho){
         this.spawnCountdown=Math.max(this.spawnCountdown,.16);
         return;
       }

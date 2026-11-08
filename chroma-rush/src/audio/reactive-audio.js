@@ -207,7 +207,12 @@
         case 'zone-charge':
           // Soft original rising sub-pulse, kept quieter than damage/perfect.
           fx(190,.18,.053,'sine',310);fx(390,.17,.038,'triangle',570,.075);break;
-        case 'zone': fx(350,.18,.12,'triangle',620);fx(520,.20,.09,'sine',860,.10);break;
+        case 'zone':
+          // Crossing crest + a quiet resolving high note. The airy tail
+          // follows the actual spatial player crossing, never the early charge.
+          fx(350,.18,.12,'triangle',620);
+          fx(520,.20,.09,'sine',860,.10);
+          fx(740,.32,.047,'sine',540,.17);break;
         case 'score': fx(720,.055,.041,'sine',920);break;
         case 'flow': fx(600,.14,.10,'triangle',830);fx(860,.14,.06,'sine',1060,.065);break;
         case 'combo': fx(660,.11,.07,'triangle',940);

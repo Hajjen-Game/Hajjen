@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Terrain Render Seam Fix 1.1
+/* CHROMA RUSH — Terrain Render Seam Fix 1.1 / Tide Spectacle 1.0
  * A single continuous surface mask and one world-space grid for all solid terrain.
  * Gaps have NO foreground fill, leaving the real parallax background visible.
  * Pure presentation module: never modifies physics, terrain or scoring.
@@ -88,7 +88,10 @@
       const s=terrain.segments.find(p=>p.type!=='gap'&&x>=p.start&&x<p.end);
       if(!s)continue;
       const sx=x-distance,sy=surface(s,x);
-      glowLine(sx,sy+2,sx-72,height,colorAt(sx,'secondary',sy),1,1,.17);
+      // Existing grid only: briefly amplify lines behind the real front.
+      const accent=tide?.accentAt?.(sx,sy,height)||0;
+      glowLine(sx,sy+2,sx-72,height,colorAt(sx,'secondary',sy),1,1,
+        .17+.36*accent*clamp(quality.glow??1,.15,1));
     }
     for(const depth of [32,76,126]){
       ctx.beginPath();
@@ -108,6 +111,30 @@
     ctx.lineWidth=2.8;ctx.globalAlpha=.92;
     ctx.shadowColor=groundPrimary;ctx.shadowBlur=(21+clamp(flow,0,100)*.12)*quality.glow;
     ctx.stroke();ctx.restore();
+
+    // One extra localized luminous SURFACE pass near the moving tide.
+    // Uses exactly the same existing geometry and true gap boundaries:
+    // no fake line bridge, new object or double terrain/background redraw.
+    if(tide?.active&&!tide.charging){
+      const head=tide.frontAt(baseY,height);
+      if(head>-200&&head<width+45){
+        const g=ctx.createLinearGradient(0,0,width,0);
+        const norm=x=>clamp(x/width,0,1);
+        g.addColorStop(0,rgba(primary,0));
+        g.addColorStop(norm(head-58),rgba(primary,0));
+        g.addColorStop(norm(head+20),rgba(secondary,.58));
+        g.addColorStop(norm(head+75),rgba(primary,.38));
+        g.addColorStop(norm(head+210),rgba(primary,0));
+        g.addColorStop(1,rgba(primary,0));
+        ctx.save();ctx.beginPath();
+        for(const run of runs)traceSurface(ctx,run,distance,0,false,quality.terrainStep);
+        ctx.strokeStyle=g;ctx.lineWidth=7;
+        ctx.globalAlpha=.84*clamp(quality.glow??1,.15,1);
+        ctx.shadowColor=secondary;
+        ctx.shadowBlur=20*clamp(quality.glow??1,.15,1);
+        ctx.stroke();ctx.restore();
+      }
+    }
 
     // Only edge markers are drawn over the background of each gap.
     for(const gap of terrain.segments){

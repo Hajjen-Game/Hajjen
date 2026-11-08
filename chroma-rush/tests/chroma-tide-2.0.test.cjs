@@ -108,7 +108,7 @@ test('the wave itself uses a fixed low-cost glow budget even in forced High',()=
   h.wave.draw(low.ctx,{width:1280,height:720,groundY:515,quality:{density:.36,glow:.24}});
   assert.ok(high.calls.strokes>low.calls.strokes);
   assert.ok(high.calls.strokes<=16,'bounded front draw calls in High');
-  assert.ok(high.calls.fills<=1,'one soft front veil, no overlays across whole frame');
+  assert.ok(high.calls.fills<=2,'two localized translucent front veils, no full-screen flash');
   assert.equal(high.calls.clips,0,'no expensive duplicated scene clip');
   assert.equal(high.calls.texts,0,'never write a floating JUMP-like label');
 });
@@ -119,7 +119,8 @@ test('crossing triggers exactly one music cue and short linear resonance with no
   assert.equal(hits,1);
   assert.equal(w.playerCrossed,true);
   assert.equal(w.active,false);
-  assert.equal(w.resonance,0,'no hanging afterglow after the tide ends');
+  assert.ok(w.afterglow>0,'brief bounded afterglow now follows the completed tide');
+  w.tick(.9);assert.equal(w.afterglow,0,'afterglow always expires');
   assert.equal(GAME.zoneSeconds,12);
 });
 test('reduced-motion bypasses all visual tide rendering, not zone rules',()=>{

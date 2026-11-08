@@ -127,7 +127,11 @@ test('delayed color front still crosses player once at either frame rate',()=>{
   assert.equal(fine.playerCrossed,true);
   const {ctx,calls}=mockCanvas();
   fine.draw(ctx,{width:1000,height:720,groundY:515});
-  assert.equal(calls.stroke,0,'all pulse strokes must stop after completion');
+  assert.ok(calls.stroke>0,'Spectacle leaves a short finite visual afterglow');
+  fine.tick(.9);
+  const ended=mockCanvas();
+  fine.draw(ended.ctx,{width:1000,height:720,groundY:515});
+  assert.equal(ended.calls.stroke,0,'afterglow expires instead of persisting forever');
 });
 
 test('reduced motion disables the pre-pulse, just as it disables the wave',()=>{
@@ -176,5 +180,5 @@ test('release HTML loads spectral module before game and advertises its build',(
   const game=html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
   assert.ok(wave>0&&game>wave);
   assert.match(html,/<meta name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0-duck-gate-1\.0-echo-spire-1\.0-aware-1\.0-fairness-1\.0-jump-visual-1\.0-combo-1\.0-speed-curve-2\.0-echo-polish-1\.1-echo-zone2-1\.2-no-scout-1\.1-tide-2\.0"/);
-  assert.match(html,/ORIGINAL BACKGROUND RESTORED/);
+  assert.match(html,/LATEST UPDATE · CHROMA TIDE SPECTACLE 1\.0/);
 });

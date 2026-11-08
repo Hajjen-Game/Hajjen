@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Chroma Tide 2.0
+/* CHROMA RUSH — Chroma Tide Spectacle 1.0
  * One full-height, spatially advancing color tide with a soft awakening,
  * prismatic leading edge and brief linear resonance. Absolutely no separate
  * scout/box, radial burst, screen-flash or gameplay interaction.
@@ -56,6 +56,7 @@
     }).join('');
   };
   const STEPS=64;
+  const AFTERGLOW_SECONDS=.78,RESONANCE_SECONDS=.48;
   const ramp=(from,to)=>{
     const a=toOKLab(from),b=toOKLab(to);
     const r=Array.from({length:STEPS+1},(_,i)=>{
@@ -70,7 +71,7 @@
     reset(){
       this.active=false;this.elapsed=0;this.duration=.9;this.chargeDuration=0;this.width=1280;
       this.from=null;this.to=null;this.playerCrossed=false;
-      this.ramps=null;this.resonanceAge=Infinity;this.crossX=300;
+      this.ramps=null;this.resonanceAge=Infinity;this.completionAge=Infinity;this.crossX=300;
     }
     start({from,to,width=1280,duration=.9,chargeDuration=0,reducedMotion=false}={}){
       this.reset();
@@ -88,8 +89,10 @@
     get progress(){return this.active?clamp((this.elapsed-this.chargeDuration)/this.duration,0,1):1}
     get charging(){return this.active&&this.chargeDuration>0&&this.elapsed<this.chargeDuration}
     get chargeLevel(){return this.charging?smooth(this.elapsed/this.chargeDuration):0}
-    get resonance(){return this.active&&this.resonanceAge<.27?
-      1-smooth(this.resonanceAge/.27):0}
+    get resonance(){return this.resonanceAge<RESONANCE_SECONDS?
+      1-smooth(this.resonanceAge/RESONANCE_SECONDS):0}
+    get afterglow(){return this.completionAge<AFTERGLOW_SECONDS?
+      1-smooth(this.completionAge/AFTERGLOW_SECONDS):0}
     // Global atmosphere evolves gradually across the entire tide duration.
     // Individual architecture/terrain lights still change locally at frontAt.
     // Prevents the base sky from snapping when the front hits screen center.
@@ -119,8 +122,20 @@
       return t<=0?previous:t>=1?next:
         (this.ramps?.[channel]?.[Math.round(t*STEPS)]||blendHex(previous,next,t));
     }
+    // The first 180px BEHIND the real front are briefly energized.
+    // Used by existing surface/grid geometry, never creates a new obstacle.
+    accentAt(x,y=360,height=720){
+      if(!this.active||this.charging)return 0;
+      const behind=x-this.frontAt(y,height);
+      return smooth((behind+50)/95)*(1-smooth((behind-18)/180));
+    }
     tick(dt,{playerX=300,playerY=500,height=720}={}){
-      if(!this.active||!(dt>0))return false;
+      if(!(dt>0))return false;
+      if(!this.active){
+        if(this.resonanceAge<RESONANCE_SECONDS)this.resonanceAge+=dt;
+        if(this.completionAge<AFTERGLOW_SECONDS)this.completionAge+=dt;
+        return false;
+      }
       const before=this.frontAt(playerY,height);
       const total=this.chargeDuration+this.duration;
       this.elapsed=Math.min(total,this.elapsed+dt);
@@ -129,7 +144,7 @@
       const crossed=!this.playerCrossed&&before>=playerX&&after<=playerX;
       if(crossed){this.playerCrossed=true;this.resonanceAge=0;this.crossX=playerX;}
       else if(this.playerCrossed)this.resonanceAge+=dt;
-      if(this.elapsed>=total)this.active=false;
+      if(this.elapsed>=total){this.active=false;this.completionAge=0;}
       return crossed;
     }
     // Horizontal color field used by a SINGLE scene/terrain paint.
@@ -174,77 +189,108 @@
       ctx.save();this.clipSide(ctx,width,height,'old');drawOld();ctx.restore();
       ctx.save();this.clipSide(ctx,width,height,'new');drawNew();ctx.restore();
     }
-    // No separate pre-wave marker. The retired mark-aligned scout could
-    // be mistaken for a JUMP obstacle. Keep anticipation in the soundtrack
-    // and let the actual full-height chromatic front carry the color change.
+    // Spectacle is attached to the SAME full-height front as the spatial
+    // palette. No scout object, no radial burst, no full-screen flash.
+    // The two thin colored veils are the only new fills during the pass.
     draw(ctx,{width,height,groundY=height*.715,quality={density:1,glow:1}}={}){
-      if(!this.active||this.charging||!(width>0)||!(height>0))return;
-      const head=this.frontAt(height*.50,height);
-      const intensity=clamp(quality.density??1,.30,1);
-      // Fixed inexpensive quality budget: even forced HIGH draws just one
-      // backdrop, one terrain and up to THREE glow paths in the tide itself.
-      const glow=Math.min(.70,clamp(quality.glow??1,.15,1));
+      if(!(width>0)||!(height>0)||(!this.active&&this.afterglow<=0&&this.resonance<=0))return;
+      const intensity=clamp(quality.density??1,.3,1);
+      const glow=clamp(quality.glow??1,.15,1);
       const primary=this.to?.primary||'#3feeff';
       const secondary=this.to?.secondary||primary;
       ctx.save();
-      if(head>=-110&&head<=width+110){
-        // Three overlapping wavelengths travel as one FULL-HEIGHT front.
-        // A soft trailing veil creates depth without covering obstacle art.
-        const veil=ctx.createLinearGradient(head-105,0,head+82,0);
-        veil.addColorStop(0,rgba(secondary,0));
-        veil.addColorStop(.24,rgba(secondary,.055*intensity));
-        veil.addColorStop(.53,rgba(primary,.16*intensity));
-        veil.addColorStop(.61,rgba('#ffffff',.095*intensity));
-        veil.addColorStop(.83,rgba(secondary,.065*intensity));
-        veil.addColorStop(1,rgba(primary,0));
-        const left=Math.max(0,head-110),right=Math.min(width,head+88);
-        if(right>left){ctx.fillStyle=veil;ctx.fillRect(left,0,right-left,height);}
-        const trace=(offset,alpha,lineWidth,blur,color)=>{
-          ctx.beginPath();
-          const segments=intensity<.5?8:12;
-          for(let i=0;i<=segments;i++){
-            const y=height*i/segments,x=this.frontAt(y,height)+offset;
-            if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+      if(this.active&&!this.charging){
+        const head=this.frontAt(height*.5,height);
+        if(head>=-210&&head<=width+150){
+          // BROAD chromatic depth, then a narrow prismatic core: both taper
+          // to transparency, never a rectangular barrier or a screen flash.
+          const veil=ctx.createLinearGradient(head-130,0,head+195,0);
+          veil.addColorStop(0,rgba(secondary,0));
+          veil.addColorStop(.22,rgba(secondary,.075*intensity));
+          veil.addColorStop(.44,rgba(primary,.24*intensity));
+          veil.addColorStop(.53,rgba('#ffffff',.10*intensity));
+          veil.addColorStop(.71,rgba(primary,.23*intensity));
+          veil.addColorStop(1,rgba(secondary,0));
+          const left=Math.max(0,head-135),right=Math.min(width,head+200);
+          if(right>left){ctx.fillStyle=veil;ctx.fillRect(left,0,right-left,height);}
+          const core=ctx.createLinearGradient(head-35,0,head+60,0);
+          core.addColorStop(0,rgba(primary,0));
+          core.addColorStop(.40,rgba(secondary,.11*intensity));
+          core.addColorStop(.55,rgba('#ffffff',.16*intensity));
+          core.addColorStop(.76,rgba(primary,.12*intensity));
+          core.addColorStop(1,rgba(primary,0));
+          const coreLeft=Math.max(0,head-36),coreRight=Math.min(width,head+62);
+          if(coreRight>coreLeft){ctx.fillStyle=core;ctx.fillRect(coreLeft,0,coreRight-coreLeft,height);}
+          // Layered travelling light filaments. Fixed density budget by tier,
+          // drawn with the exact warped spatial boundary, never ahead of it.
+          const trace=(offset,alpha,lineWidth,blur,color)=>{
+            const segments=intensity<.5?8:12;
+            ctx.beginPath();
+            for(let i=0;i<=segments;i++){
+              const y=height*i/segments,x=this.frontAt(y,height)+offset;
+              if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+            }
+            ctx.globalAlpha=alpha*intensity;
+            ctx.strokeStyle=color;ctx.lineWidth=lineWidth;
+            ctx.shadowColor=color;ctx.shadowBlur=blur*glow;
+            ctx.stroke();
+          };
+          trace(-19,.38,4.4,15,secondary);
+          trace(0,.91,3.6,18,'#ffffff');
+          if(intensity>=.55)trace(12,.49,3.2,15,primary);
+          // Horizontal refracted light trails lie BEHIND the front, to its
+          // right as it sweeps left; no detached pre-wave boxes or arrows.
+          const count=intensity<.5?3:intensity<.8?5:8;
+          ctx.shadowBlur=4*glow;ctx.strokeStyle=secondary;
+          for(let i=0;i<count;i++){
+            const y=height*(i+.38)/count;
+            const x=this.frontAt(y,height);
+            const span=26+(i%4)*17;
+            ctx.lineWidth=i%3===0?1.8:1.2;
+            ctx.globalAlpha=(.19+.09*(.5+.5*Math.sin(this.elapsed*13+i)))*intensity;
+            ctx.beginPath();ctx.moveTo(x+8,y);
+            ctx.lineTo(x+span,y-1.5);ctx.stroke();
           }
-          ctx.globalAlpha=alpha*intensity;
-          ctx.strokeStyle=color;ctx.lineWidth=lineWidth;
-          ctx.shadowColor=color;ctx.shadowBlur=blur*glow;
-          ctx.stroke();
-        };
-        trace(-16,.21,3.2,9,secondary);
-        trace(0,.76,2.5,14,'#ffffff');
-        if(intensity>=.55)trace(9,.28,2.0,9,primary);
-        // Short refraction flecks belong to the moving FRONT only.
-        // Never create a detached object travelling ahead of it.
-        const count=intensity<.5?3:intensity<.8?5:8;
-        ctx.shadowBlur=0;ctx.lineWidth=1.3;ctx.strokeStyle=secondary;
-        for(let i=0;i<count;i++){
-          const y=height*(i+.42)/count;
-          const x=this.frontAt(y,height);
-          const length=18+(i%3)*13;
-          ctx.globalAlpha=(.14+.08*Math.sin(this.elapsed*16+i)) *intensity;
-          ctx.beginPath();ctx.moveTo(x-13,y);
-          ctx.lineTo(x-13-length,y);ctx.stroke();
+          // Two short streak cuts give a tangible moment of acceleration
+          // without flashing across the HUD or obscuring player/hazards.
+          ctx.shadowBlur=8*glow;ctx.strokeStyle=primary;ctx.lineWidth=1.8;
+          ctx.globalAlpha=.35*intensity;
+          ctx.beginPath();ctx.moveTo(head+14,groundY-27);
+          ctx.lineTo(head+100,groundY-27);ctx.stroke();
+          if(intensity>.55){
+            ctx.globalAlpha=.24*intensity;ctx.lineWidth=1.2;
+            ctx.beginPath();ctx.moveTo(head+20,height*.33);
+            ctx.lineTo(head+85,height*.33);ctx.stroke();
+          }
         }
-        // Track illumination is glued TO the real color front, never ahead.
-        const floor=this.frontAt(groundY,height);
-        ctx.globalAlpha=.35*intensity;ctx.strokeStyle=primary;
-        ctx.lineWidth=2;ctx.beginPath();
-        ctx.moveTo(floor-22,groundY+2);ctx.lineTo(floor+22,groundY+2);ctx.stroke();
       }
-      // Residual brightness follows the player's crossing for .27 seconds,
-      // registered only once; subtle linear rails, no white flash or rings.
-      const resonance=this.resonance;
-      if(resonance>0){
-        ctx.shadowBlur=0;
-        for(let i=0;i<2;i++){
-          const y=i===0?height*.47:groundY+3;
-          ctx.globalAlpha=resonance*(i===0?.13:.25)*intensity;
-          ctx.strokeStyle=i===0?secondary:primary;
-          ctx.lineWidth=i===0?1.4:2.3;
-          ctx.beginPath();
-          ctx.moveTo(Math.max(0,this.crossX-175),y);
-          ctx.lineTo(Math.min(width,this.crossX+40),y);ctx.stroke();
+      // Player-crossing resonance stays local and linear, including ceilings
+      // (the caller mirrors this draw with the course). Never a camera flash.
+      if(this.resonance>0){
+        const strength=this.resonance*intensity;
+        ctx.shadowBlur=8*glow;ctx.lineWidth=2.2;
+        for(let i=0;i<3;i++){
+          const y=i===0?height*.43:groundY+3+i*7;
+          const length=155+i*45;
+          ctx.globalAlpha=strength*(i===0?.26:.42);
+          ctx.strokeStyle=i%2===0?primary:secondary;
+          ctx.beginPath();ctx.moveTo(Math.max(0,this.crossX-length),y);
+          ctx.lineTo(Math.min(width,this.crossX+45+i*17),y);ctx.stroke();
+        }
+      }
+      // Unlike Tide 2.0, the zone leaves a brief visible AFTERGLOW after the
+      // front clears the screen. Three soft light rails decay deterministically.
+      if(!this.active&&this.afterglow>0){
+        const fade=this.afterglow*intensity;
+        ctx.shadowBlur=14*glow;
+        for(let i=0;i<3;i++){
+          const y=i===0?height*.46:groundY+5+(i-1)*13;
+          const span=90+i*47;
+          ctx.strokeStyle=i===1?primary:secondary;
+          ctx.lineWidth=i===1?3.2:1.5;
+          ctx.globalAlpha=fade*(i===1?.40:.23);
+          ctx.beginPath();ctx.moveTo(Math.max(0,this.crossX-span),y);
+          ctx.lineTo(Math.min(width,this.crossX+70+i*30),y);ctx.stroke();
         }
       }
       ctx.restore();

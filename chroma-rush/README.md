@@ -1,8 +1,17 @@
-# CHROMA RUSH — Chroma Tide 2.0
+# CHROMA RUSH — Chroma Tide Spectacle 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Chroma Tide Spectacle 1.0 — The Visible Impact Pass (2026-11-08)
+
+- **Stronger, still legible wave:** two carefully bounded translucent prismatic veils, a brighter central filament, colored flank filaments, trailing refracted shards and short speed cuts. Every stroke remains physically tied to the existing full-height wave; no scout/pseudo-obstacle, circle, screen-wide white flash or strobing.
+- **Living track and parallax:** the *existing* perspective grid becomes brighter for an instant as the front passes. One additional small highlight follows the exact terrain surface, stopping at real gaps and tracking slopes/ceiling inversion. The original background's horizon receives one narrow traveling depth shimmer. Background and terrain continue to be drawn **once each**.
+- **Afterglow you can notice:** the crossing resonates for 0.48s, and after the front exits the viewport, three small local horizontal light rails decay for 0.78s. This is a finite deterministic trail (no persistent shader state or particles), and remains independent of hazards, scoring and RNG.
+- **Sound lock:** the established zone-change cue lands on the actual player crossing, with one extra quiet harmonic tail; zone-charge remains a separate, softer warning. Audio settings and reduced-motion behavior are unchanged.
+- **Mobile budget:** bounded draw calls scale with High/Balanced/Performance density and glow. No extra textures, full-scene re-renders, cameras, offscreen canvases, motion blur or new asset requests. Local UI now shows the latest build as “CHROMA TIDE SPECTACLE 1.0”.
+- **QA:** automated tests for front integration, afterglow decay, reduced-motion, bounded rendering and unchanged one-pass world/terrain. Manual review of zones 1→2 and 2→3 at High and Balanced on an older phone is still needed before calling the visual balance final.
 
 ## Chroma Tide 2.0 — Premium Color-Zone Transitions (2026-11-08)
 

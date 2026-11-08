@@ -104,6 +104,22 @@
     // Distant horizon is a scene detail, NOT an end of the background layer.
     const horizon=H*.47;
     glowLine(0,horizon,W,horizon,midPrimary,1,9,.15);
+    // A short depth-plane shimmer tracks the SAME front at the distant
+    // horizon. One small transparent strip, no fullscreen atmosphere pass.
+    if(tide?.active&&!tide.charging){
+      const x=tide.frontAt(horizon,H);
+      if(x>-165&&x<W+65){
+        const haze=ctx.createLinearGradient(x-55,0,x+175,0);
+        haze.addColorStop(0,rgba(midSecondary,0));
+        haze.addColorStop(.33,rgba(tide.to.secondary,.16*(quality.density??1)));
+        haze.addColorStop(.52,rgba(tide.to.primary,.30*(quality.density??1)));
+        haze.addColorStop(1,rgba(tide.to.secondary,0));
+        ctx.save();ctx.fillStyle=haze;
+        ctx.fillRect(Math.max(0,x-55),horizon-7,
+          Math.max(0,Math.min(W,x+175)-Math.max(0,x-55)),14);
+        ctx.restore();
+      }
+    }
     for(let i=0;i<Math.ceil(W/135)+2;i+=quality.density<.5?2:1){
       const x=wrap(i*135-t*speed*.56,W+135);
       glowLine(x,horizon-3,x,horizon+14,colorAt(x,i%2?'secondary':'primary',horizon),2,7,.21);

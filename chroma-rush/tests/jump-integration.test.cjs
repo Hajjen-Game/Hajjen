@@ -104,6 +104,10 @@ test('tapping jump just before landing buffers and immediately launches a second
  const h=harness(),{state}=h.start();
  h.jump();h.advance(47);
  assert.equal(state.player().landed,false);
+ // Echo Jump is now available from zone 1. Exhaust it for this dedicated
+ // test of the separate landing-buffer behavior.
+ state.jumpControl.echoAvailable=false;
+ state.jumpControl.echoUsed=true;
  h.jump();
  assert.ok(state.jumpControl.buffer>0);
  h.advance(4);

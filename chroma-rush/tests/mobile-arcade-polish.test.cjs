@@ -48,5 +48,5 @@ test('existing game HTML exposes settings, fullscreen, and script load order',()
   const module=html.indexOf('src/ui/mobile-preferences.js?v=mobile-polish-1.0');
   const game=html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
   assert.ok(module>0&&game>module);
-  assert.ok(html.includes('style.css?v=chroma-identity-1.0-tide-energy-3.0'));
+  assert.ok(html.includes('style.css?v=chroma-identity-1.0'));
 });

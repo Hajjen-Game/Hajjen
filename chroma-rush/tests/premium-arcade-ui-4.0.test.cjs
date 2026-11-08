@@ -28,7 +28,7 @@ test('one primary launch with calm records and accessible secondary navigation',
   assert.ok(menu.includes('id="'+id+'"'),id);
  assert.match(css,/#menu \.menu-eyebrow\{display:none;\}/);
  assert.match(css,/#menu \.version\{display:none;\}/);
- assert.match(html,/style\.css\?v=premium-arcade-ui-4\.0/);
+ assert.match(html,/style\.css\?v=premium-arcade-ui-4\.0-hud-anchor-4\.1/);
 });
 test('Run Complete has one replay CTA, compact stats, and export only in details',()=>{
  const results=html.slice(html.indexOf('<section id="gameover"'),html.indexOf('<div id="portrait-tip"'));
@@ -84,4 +84,18 @@ test('landscape responsive CTA, reduced motion, and controls are retained',()=>{
   'effects-enabled','effects-volume','haptics-enabled','fullscreen-btn'])
   assert.ok(html.includes('id="'+id+'"'),id);
  assert.match(html,/PREMIUM ARCADE UI 4\.0/);
+});
+
+test('HUD Anchor 4.1 explicitly corrects the old asymmetric layout',()=>{
+  assert.match(css,/#hud\{\s*right:max\(24px,env\(safe-area-inset-right\)\);\s*display:block;/);
+  assert.match(css,/#hud \.hud-center\{\s*position:absolute;top:0;left:50%;\s*transform:translateX\(-50%\);/);
+  assert.match(css,/#hud \.hud-right\{\s*position:absolute;top:0;\s*right:clamp\(144px,12vw,200px\);/);
+  assert.match(css,/@media\(max-width:650px\) and \(orientation:landscape\)/);
+  assert.match(css,/@media\(max-width:580px\) and \(orientation:landscape\)/);
+  assert.ok(css.indexOf('/* HUD Anchor Alignment 4.1')>
+    css.indexOf('/* PREMIUM ARCADE UI & FINAL COHESION 4.0'),
+    'anchoring must override the older flex and 166px HUD inset');
+  assert.match(html,/id="top-actions"/);
+  assert.match(html,/id="zone-display"/);
+  assert.match(html,/id="score-display"/);
 });

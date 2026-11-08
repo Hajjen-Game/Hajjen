@@ -385,6 +385,23 @@ def main():
             assert diff <= 3, f'Gap hides background at {vw}x{vh}: diff={diff} {colors}'
             land_vs_void = max(abs(a-b) for a, b in zip(colors['flat'], colors['gap']))
             assert land_vs_void >= 8, f'Solid floor not distinguishable from gap at {vw}x{vh}'
+            # HUD Anchor 4.1: the zone belongs to the physical screen midpoint,
+            # not the midpoint of a HUD shortened by 166px. Score is the
+            # right-hand column but must never cover the action buttons.
+            zone_box=page.locator('#zone-display').bounding_box()
+            score_box=page.locator('#score-display').bounding_box()
+            sound_box=page.locator('#sound-btn').bounding_box()
+            assert zone_box and score_box and sound_box, (
+                f'HUD blocks missing at {vw}x{vh}')
+            zone_middle=zone_box['x']+zone_box['width']/2
+            assert abs(zone_middle-vw/2)<=2.5, (
+                f'Zone not centered in viewport at {vw}x{vh}: center={zone_middle}')
+            assert score_box['x'] >= zone_box['x']+zone_box['width']+3, (
+                f'Score encroaches on Zone at {vw}x{vh}: '
+                f'{score_box} vs {zone_box}')
+            assert score_box['x']+score_box['width']+12 <= sound_box['x'], (
+                f'Score overlaps audio/pause area at {vw}x{vh}: '
+                f'{score_box} vs {sound_box}')
             # Running/pause controls must remain reachable, with no horizontal scrolling.
             btn = page.locator('#jump-btn').bounding_box()
             assert btn and btn['x'] >= 0 and btn['y'] >= 0 and btn['y'] + btn['height'] <= vh

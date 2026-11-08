@@ -4,6 +4,14 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
 
+## HUD Anchor Alignment 4.1 (2026-11-08)
+
+- Corrected legacy 166px right inset that previously made the center of the HUD visually drift left.
+- Zone stays at the true midpoint of the viewport independently of how wide Shield, Flow and Score are.
+- Score, Speed and the PB tracker are pinned to the right side, with a dedicated safe area for the sound and pause controls.
+- Narrow landscape viewports use slightly smaller score/zone text and shorter widths, preserving separation without scrolling.
+- CSS-only: no changes to HUD values, score logic, layout of on-screen buttons, canvas, renderer, Director, gameplay or quality profiles.
+
 ## Premium Arcade UI & Final Cohesion 4.0 (2026-11-08)
 
 - **Main Menu simplification:** one centered CHROMA RUSH identity, a short tagline, a single dominant START RUN action, condensed personal bests and quiet navigation to Practice, Milestones and How to Play. Release metadata is still accessible in the DOM but no longer competes visually.

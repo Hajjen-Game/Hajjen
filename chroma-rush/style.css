@@ -358,3 +358,29 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
 @media(max-height:420px){
   #echo-hint{top:20%;font-size:clamp(9px,1vw,12px);}
 }
+
+/* Movement Evolution 2.0: equally wide touch targets, smaller secondary
+ * guidance and identical controls in floor / mirrored ceiling mode. */
+#controls .control {width:clamp(124px,17vw,188px);height:clamp(80px,10.5vw,112px);
+  border-radius:22px;gap:0;}
+#controls .control::before {border-radius:19px;}
+#controls .control span {font-size:clamp(10px,1.15vw,13px);font-weight:900;letter-spacing:.12em;white-space:nowrap;}
+#controls .control svg {width:clamp(24px,3.2vw,35px);height:clamp(24px,3.2vw,35px);}
+#controls .control-subtitle {font-size:clamp(8px,.8vw,10px);font-weight:750;
+  letter-spacing:.035em;white-space:nowrap;opacity:.86;line-height:1.25;}
+#dash-hint {position:absolute;z-index:5;pointer-events:none;left:50%;top:17%;
+  transform:translateX(-50%);text-align:center;max-width:84vw;white-space:nowrap;
+  color:#ffe1f2;font-size:clamp(10px,1.15vw,15px);font-weight:900;
+  letter-spacing:.10em;text-shadow:0 0 13px rgba(245,92,195,.5),0 2px 9px #071125;}
+#dash-hint span {color:#ffd4ea;font-weight:750;letter-spacing:.035em;}
+@media(max-height:420px){
+  #controls .control{width:clamp(116px,18vw,156px);height:80px;bottom:max(8px,env(safe-area-inset-bottom));}
+  #controls .control svg{width:24px;height:24px;}
+  #controls .control span{font-size:10px;}
+  #controls .control-subtitle{font-size:8px;}
+  #dash-hint{top:20%;font-size:clamp(9px,1vw,12px);}
+}
+@media(max-width:600px) and (orientation:landscape){
+  #controls .control{width:114px;}
+  #controls .control-subtitle{font-size:7px;}
+}

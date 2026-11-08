@@ -17,6 +17,7 @@ const progression = require('../src/progression/arcade-progress.js');
 const arcadeUI = require('../src/ui/arcade-ui.js');
 const terrain = require('../src/terrain/terrain-system.js');
 const jump = require('../src/gameplay/jump-controller.js');
+const dashModule = require('../src/gameplay/contextual-dash.js');
 const motion = require('../src/render/player-motion.js');
 const effects = require('../src/render/effect-language.js');
 const terrainRender = require('../src/render/terrain-renderer.js');
@@ -53,7 +54,7 @@ function setup(initialStorage={}) {
   let requested;
   const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaMovementAwareness:movementAwareness,ChromaHighSpeedFairness:highSpeedFairness,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaPrecisionCombo:precisionCombo,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaSpectralWave:spectralWave,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaGravityShift:gravityShift,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaMovementAwareness:movementAwareness,ChromaHighSpeedFairness:highSpeedFairness,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaPrecisionCombo:precisionCombo,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaDash:dashModule,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaSpectralWave:spectralWave,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaGravityShift:gravityShift,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
@@ -63,7 +64,7 @@ function setup(initialStorage={}) {
   const ending='  requestAnimationFrame(frame);\n})();';
   assert.ok(gameCode.includes(ending));
   vm.runInContext(gameCode.replace(ending,
-    "  window.__gravityHarness={gravityShift,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,hurdles:()=>hurdles,hp:()=>hp,player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
+    "  window.__gravityHarness={gravityShift,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,dash,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,hp:()=>hp,player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
     context,{filename:'game.js'});
   return {get,local,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
@@ -134,6 +135,47 @@ test('airborne duck input is not queued for landing',()=>{
   h.release(p);
   const p2=h.press();assert.equal(h.active(),true);
   h.release(p2);
+});
+
+
+test('contextual dash consumes one distinct press and actually moves world further',()=>{
+  const h=duckHarness(),g=h.game.context.window.__gravityHarness;
+  g.forceZone(4);
+  // Ground: first press ducks, second press during the pulse dashes forward.
+  const first=h.press();h.release(first);h.advance(5);
+  assert.equal(g.dash.groundCount,0);
+  const second=h.press();h.release(second);
+  assert.equal(g.dash.groundCount,1);
+  const before=g.distance();h.advance(6);
+  assert.ok(g.distance()-before>6*370/60,'dash adds world-space displacement');
+  assert.equal(g.dash.groundCount,1);
+  // Let the duck and recovery finish, then launch into a safe air dash.
+  h.advance(55);
+  const jump=h.game.get('jump-btn');
+  const jpress={pointerId:971,preventDefault(){}};
+  for(const cb of jump.events.pointerdown??[])cb(jpress);
+  for(const cb of jump.events.pointerup??[])cb(jpress);
+  h.advance(5);
+  assert.equal(g.player().landed,false);
+  const air=h.press();h.release(air);
+  assert.equal(g.dash.airCount,1);
+  const repeated=h.press();h.release(repeated);
+  assert.equal(g.dash.airCount,1,'cannot gain a second dash in one flight');
+});
+
+test('dash is cancelled on pause and never extends a held duck automatically',()=>{
+  const h=duckHarness(),g=h.game.context.window.__gravityHarness;
+  g.forceZone(4);
+  const first=h.press();h.release(first);const second=h.press();
+  assert.equal(g.dash.groundCount,1);
+  h.advance(25);
+  assert.equal(g.dash.groundCount,1);
+  h.game.get('pause-btn').click();
+  assert.equal(g.dash.active,false);
+  h.release(second);
+  h.game.get('resume-btn').click();
+  h.advance(15);
+  assert.equal(g.dash.groundCount,1);
 });
 
 test('sound toggle works during play and pause without an AudioContext',()=>{

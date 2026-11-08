@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
   <meta name="theme-color" content="#080b19" />
-  <meta name="chroma-build" content="original-background-restored-1.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0-duck-gate-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-jump-visual-1.0-combo-1.0-speed-curve-2.0-echo-polish-1.1-echo-zone2-1.2-no-scout-1.1-tide-2.0-spectacle-1.0" />
+  <meta name="chroma-build" content="original-background-restored-1.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0-duck-gate-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-jump-visual-1.0-combo-1.0-speed-curve-2.0-echo-polish-1.1-echo-zone2-1.2-no-scout-1.1-tide-2.0-spectacle-1.0-dash-2.0" />
   <meta name="description" content="CHROMA RUSH — a neon speed-survival arcade prototype." />
-  <title>CHROMA RUSH | Chroma Tide Spectacle 1.0</title>
+  <title>CHROMA RUSH | Movement Evolution 2.0</title>
   <link rel="stylesheet" href="style.css?v=flow-multiplier-1.0-movement-1.0" />
 </head>
 <body>
@@ -27,15 +27,16 @@
     </header>
     <div id="danger-indicator" aria-hidden="true">CRITICAL SHIELD</div>
     <div id="echo-hint" class="hidden" aria-live="polite">ECHO JUMP <span>· TAP JUMP AGAIN IN THE AIR</span></div>
+    <div id="dash-hint" class="hidden" aria-live="polite">DASH UNLOCKED <span>· AIR: DUCK / GROUND: DUCK AGAIN</span></div>
     <div id="replay-toast" class="hidden" aria-live="polite"></div>
     <div id="milestone-toast" class="hidden" aria-live="polite"><span>MILESTONE UNLOCKED</span><strong id="milestone-toast-name"></strong></div>
     <div id="zone-callout" class="hidden" aria-hidden="true"><span id="zone-callout-tag">ZONE 02</span><strong id="zone-callout-name">VIOLET</strong><span id="zone-perfect" class="hidden">PERFECT ZONE</span></div>
     <div id="controls" class="hidden">
       <button id="jump-btn" class="control control-jump" type="button" aria-label="Jump">
-        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 35V11m-12 12 12-12 12 12"/></svg><span>JUMP</span>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 35V11m-12 12 12-12 12 12"/></svg><span>JUMP</span><small class="control-subtitle">×2 DOUBLE JUMP</small>
       </button>
       <button id="duck-btn" class="control control-duck" type="button" aria-label="Duck (tap)">
-        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 13v24m-12-12 12 12 12-12"/></svg><span>DUCK</span>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 13v24m-12-12 12 12 12-12"/></svg><span>DUCK / DASH</span><small class="control-subtitle">×2 GROUND DASH</small>
       </button>
     </div>
     <div id="top-actions"><button id="graphics-btn" class="icon-button" type="button" title="Game settings" aria-label="Game settings" aria-expanded="false" aria-controls="graphics-panel">⚙</button><button id="sound-btn" class="icon-button" type="button" aria-label="Mute all sound" title="Mute all sound">♫</button><span id="audio-hint" class="audio-hint hidden" aria-live="polite"></span><button id="pause-btn" class="icon-button hidden" aria-label="Pause" title="Pause">Ⅱ</button></div>
@@ -75,8 +76,8 @@
       <div class="arcade-milestones"><button id="milestone-view-btn" type="button" aria-haspopup="dialog"><span id="milestone-progress">MILESTONES 0/6</span> <span aria-hidden="true">›</span></button><span id="milestone-next">NEXT: IGNITION</span></div>
       <div class="practice-controls"><select id="practice-zone" aria-label="Practice starting zone" disabled><option>ZONE 02</option></select><button type="button" id="practice-start-btn" disabled>TRAIN ZONE</button></div>
       <div id="practice-hint" class="practice-hint">REACH ZONE 02 TO UNLOCK PRACTICE</div>
-      <p class="help-text">LEFT THUMB: JUMP &nbsp;•&nbsp; RIGHT THUMB: DUCK<br/>ECHO JUMP: TAP JUMP AGAIN IN AIR (ZONE 02+)<br/>KEYBOARD: ↑ / SPACE &nbsp;•&nbsp; ↓ / S</p>
-      <div class="version" id="latest-update">LATEST UPDATE · CHROMA TIDE SPECTACLE 1.0</div>
+      <p class="help-text">LEFT: JUMP / ×2 DOUBLE JUMP &nbsp;•&nbsp; RIGHT: DUCK / DASH<br/>DASH (ZONE 04+): IN AIR TAP RIGHT · WHILE DUCKING TAP RIGHT AGAIN<br/>KEYBOARD: ↑ / SPACE &nbsp;•&nbsp; ↓ / S</p>
+      <div class="version" id="latest-update">LATEST UPDATE · MOVEMENT EVOLUTION 2.0</div>
     </section>
     <section id="milestone-panel" class="screen-panel hidden" role="dialog" aria-modal="true" aria-label="Arcade milestones">
       <div class="menu-eyebrow">YOUR ARCADE JOURNEY</div><h2>MILESTONES</h2>
@@ -105,22 +106,23 @@
   <script src="src/core/config.js?v=flow-1.2-movement-1.0-echo-spire-1.0-combo-1.0-speed-curve-2.0-echo-polish-1.1-echo-zone2-1.2"></script>
   <script src="src/core/geometry.js?v=2.0-duck-gate-1.0-echo-spire-1.0"></script>
   <script src="src/director/patterns.js?v=2.0-echo-spire-1.0-echo-polish-1.1-echo-zone2-1.2"></script>
-  <script src="src/director/movement-awareness.js?v=movement-aware-1.0-echo-polish-1.1-echo-zone2-1.2"></script>
+  <script src="src/director/movement-awareness.js?v=movement-aware-1.0-echo-polish-1.1-echo-zone2-1.2-dash-2.0"></script>
   <script src="src/director/high-speed-fairness.js?v=high-speed-fairness-1.0"></script>
-  <script src="src/director/adaptive-director.js?v=terrain-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-combo-1.0-echo-polish-1.1-echo-zone2-1.2"></script>
+  <script src="src/director/adaptive-director.js?v=terrain-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-combo-1.0-echo-polish-1.1-echo-zone2-1.2-dash-2.0"></script>
   <script src="src/terrain/terrain-system.js?v=unified-3.0-movement-1.0"></script>
   <script src="src/director/unified-terrain-director.js?v=unified-3.0-movement-1.0-aware-1.0-fairness-1.0-echo-polish-1.1-echo-zone2-1.2"></script>
   <script src="src/gameplay/flow.js?v=flow-1.2-combo-1.0"></script>
   <script src="src/gameplay/precision-combo.js?v=precision-combo-1.0"></script>
   <script src="src/ui/hud.js?v=flow-multiplier-1.0-combo-1.0"></script>
   <script src="src/ui/mobile-preferences.js?v=mobile-polish-1.0"></script>
-  <script src="src/audio/reactive-audio.js?v=chroma-state-2.0-chroma-pulse-1.0-gravity-1.0-movement-1.0-combo-1.0-spectacle-1.0"></script>
+  <script src="src/audio/reactive-audio.js?v=chroma-state-2.0-chroma-pulse-1.0-gravity-1.0-movement-1.0-combo-1.0-spectacle-1.0-dash-2.0"></script>
   <script src="src/progression/arcade-progress.js?v=arcade-1.0"></script>
   <script src="src/ui/arcade-ui.js?v=arcade-1.0"></script>
   <script src="src/progression/replay-challenge.js?v=replay-1.0"></script>
   <script src="src/ui/replay-ui.js?v=replay-1.0"></script>
   <script src="src/gameplay/jump-controller.js?v=jump-1.0-movement-1.0"></script>
-  <script src="src/render/player-motion.js?v=duck-effects-1.0-movement-1.0"></script>
+  <script src="src/gameplay/contextual-dash.js?v=contextual-dash-2.0"></script>
+  <script src="src/render/player-motion.js?v=duck-effects-1.0-movement-1.0-dash-2.0"></script>
   <script src="src/render/effect-language.js?v=arcade-animation-2.0-movement-1.0-combo-1.0"></script>
   <script src="src/render/terrain-renderer.js?v=terrain-visual-1.2-movement-1.0-tide-2.0-spectacle-1.0"></script>
   <script src="src/render/world-background.js?v=original-background-restored-1.0-tide-2.0-spectacle-1.0"></script>
@@ -131,7 +133,7 @@
   <script src="src/performance/quality-manager.js?v=performance-1.0"></script>
   <script src="src/performance/frame-clock.js?v=performance-1.0"></script>
   <script src="src/gameplay/gravity-shift.js?v=gravity-1.0"></script>
-  <script src="src/gameplay/game.js?v=arcade-animation-2.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0-duck-gate-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-jump-visual-1.0-combo-1.0-echo-polish-1.1-echo-zone2-1.2-tide-2.0"></script>
+  <script src="src/gameplay/game.js?v=arcade-animation-2.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0-duck-gate-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-jump-visual-1.0-combo-1.0-echo-polish-1.1-echo-zone2-1.2-tide-2.0-dash-2.0"></script>
   <script src="src/ui/build-freshness.js?v=pages-recovery-1.0"></script>
 </body>
 </html>

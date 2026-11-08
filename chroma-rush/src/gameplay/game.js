@@ -1,5 +1,5 @@
 /* CHROMA RUSH — Gravity Shift / Ceiling Run 1.0 on Original Background Restored
-   Movement Evolution 1.0 — Echo Jump, angular air VFX and adaptive Echo Gaps.
+   Movement Evolution 2.0 — Contextual Air & Ground Dash; Echo Jump retained.
    Standalone, offline-capable HTML5 Canvas 2D game. No third-party assets or dependencies.
    All dimensions are logical world units, scaled to landscape viewport height.
 */
@@ -7,7 +7,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -33,6 +33,7 @@
   const terrain = new window.ChromaTerrain.TerrainSystem();
   const terrainDirector = new window.ChromaUnifiedTerrainDirector.UnifiedTerrainDirector({terrain,director});
   const jumpControl = new window.ChromaJump.JumpController();
+  const dash = new window.ChromaDash.ContextualDash();
   const motion = new window.ChromaMotion.PlayerMotion();
   const effects = new window.ChromaEffects.EffectLanguage();
   const terrainRender = window.ChromaTerrainRender;
@@ -50,7 +51,7 @@
   const $ = {
     menu:el('menu'), hud:el('hud'), controls:el('controls'), gameover:el('gameover'),
     pauseMenu:el('pause-menu'), pauseBtn:el('pause-btn'), jump:el('jump-btn'), duck:el('duck-btn'),
-    echoHint:el('echo-hint'),
+    echoHint:el('echo-hint'),dashHint:el('dash-hint'),
     hp:el('hp-inner'), hpNumber:el('hp-number'), zone:el('zone-display'), phase:el('phase-display'),
     score:el('score-display'), speed:el('speed-display'), critical:el('danger-indicator'),
     zoneCallout:el('zone-callout'), zoneCalloutTag:el('zone-callout-tag'), zoneCalloutName:el('zone-callout-name'),
@@ -100,7 +101,7 @@
   let status='ready', time=0, worldTime=0, zone=1, lastTs=0, shake=0, hitFlash=0, lastZoneCallout=0;
   let speed=GAME.baseSpeed, hp=GAME.startingHP, score=0, best=progression.bestScore, hurdles=[], motes=[], streaks=[];
   let runMode='arcade', startZone=1, milestoneTime=0, unlockedThisRun=[];
-  let peakFlow=0,replayToastTime=0,zoneSoundAtCrossing=false,echoHintTime=0;
+  let peakFlow=0,replayToastTime=0,zoneSoundAtCrossing=false,echoHintTime=0,dashHintTime=0;
   // Absolute travelled distance: terrain and obstacles share this world axis.
   let distance=0,gapRecovery=null;
   let c1=PALETTES[0].primary, c2=PALETTES[0].secondary, c3=PALETTES[0].shadow;
@@ -109,13 +110,15 @@
   // Each new press triggers a fixed duck pulse. Holding never extends or repeats it.
   const DUCK_DURATION=GAME.duckDuration;
   const DUCK_RECOVERY=GAME.duckRecovery;
+  const DASH=window.ChromaConfig.DASH;
   const SPEED_MARKS=Object.freeze([1.5,2,3,4,6,8]);
   let nextSpeedMark=0;
   function auditState(){return {time:worldTime,zone,hp,score,flow:flow.value,speed,distance,
     phase:director.phase,streak:flow.streak,chromaActive:flow.tier===3,
     gravityMode:gravityShift.ceiling?'ceiling':'floor',gravityPhase:gravityShift.phase,
     movementPressure:director.movement.pressure,
-    comboChain:combo.chain.length};}
+    comboChain:combo.chain.length,dashMode:dash.mode||'none',
+    dashActive:dash.active};}
   function exportRound(){
     if(status!=='dead')return;
     const exported=runAudit.snapshot(auditState());
@@ -258,10 +261,11 @@
     chromaVfx.reset();speedTrails.reset();gravityShift.reset();
     zoneSoundAtCrossing=false;
     hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();combo.reset();flow.currentZone=zone;
-    distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();motion.reset();
+    distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();dash.reset();motion.reset();
     peakFlow=0;replayToastTime=0;
-    echoHintTime=startZone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone?3.9:0;
-    $.echoHint.classList.add('hidden');
+    echoHintTime=startZone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone&&startZone<DASH.unlockZone?3.9:0;
+    dashHintTime=startZone>=DASH.unlockZone?DASH.hintSeconds:0;
+    $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');
     replay.start({practice:runMode==='practice',bestScore:progression.bestScore,bestZone:progression.bestZone});
     // Practice retains the chosen zone/difficulty but starts on a fresh,
     // safe runway, rather than loading a nonexistent alternate level.
@@ -278,7 +282,9 @@
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');$.milestoneToast.classList.add('hidden');
     $.replayToast.classList.add('hidden');
     $.jump.setAttribute('aria-label',startZone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone?
-      'Jump; tap again in the air for Echo Jump':'Jump');
+      'Jump; tap again in the air for Double Jump':'Jump');
+    $.duck.setAttribute('aria-label',startZone>=DASH.unlockZone?
+      'Duck or Dash: tap while airborne for Air Dash, or tap again during Duck for Ground Dash':'Duck');
     arcadeUI.hud($,runMode==='practice');
     // Decorative GO cue runs while the usual safe runway begins, without
     // freezing or delaying physics, input or the procedural Director.
@@ -296,8 +302,8 @@
   }
   function showMenu(){
     if(status==='running'||status==='paused')audio.stop();
-    status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;echoHintTime=0;
-    $.echoHint.classList.add('hidden');
+    status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;echoHintTime=0;dashHintTime=0;
+    $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');dash.reset();
     spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();effects.reset();combo.reset();zoneSoundAtCrossing=false;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
@@ -305,11 +311,11 @@
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');
     $.menu.classList.remove('hidden');$.graphicsButton.classList.remove('hidden');$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');syncSoundButton(true);arcadeUI.menu($,progression);replayUI.menu($,replay);
   }
-  function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
+  function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');dash.cancel();dash.onDuckEnd();player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
   function resume(){if(status!=='paused')return;status='running';$.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();frameClock.reset(lastTs);audio.resume();syncSoundButton(true);}
   function endRun(){
     if(status!=='running')return;
-    status='dead';speedTrails.reset();effects.reset();$.echoHint.classList.add('hidden');$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
+    status='dead';dash.cancel();speedTrails.reset();effects.reset();$.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
     runAudit.finish(auditState());
     const total=Math.floor(score),previousBest=progression.bestScore;
     replayToastTime=0;$.replayToast.classList.add('hidden');
@@ -337,7 +343,7 @@
   }
   function launchJump(){
     // Launch velocity and the hitbox remain identical to Terrain 1.0.
-    player.vy=GAME.jumpVelocity;player.landed=false;motion.jump();
+    player.vy=GAME.jumpVelocity;player.landed=false;dash.onLeaveGround();motion.jump();
     groundPulse(player.x,player.feet-3,c1,18,.85);
     effects.cue('jump',player.x,player.feet-2,c1,c2,{speed,reducedMotion});
     for(let i=0;i<Math.max(3,Math.round(8*quality.profile.particles));i++){
@@ -397,9 +403,37 @@
     if(velocity>650)shake=Math.max(shake,2.0);
     sound('land');
   }
+  function pressDuckDash(){
+    if(status!=='running')return;
+    // A second physical press while ducking or a new press in midair is Dash.
+    // A first press on the ground remains the exact legacy duck.
+    const action=dash.request({zone,grounded:player.landed,ducking:player.duck,
+      recovering:Boolean(gapRecovery),shifting:gravityShift.shifting||gravityShift.protected});
+    if(!action){startDuck();return;}
+    if(action==='ground')player.duckTime=Math.max(player.duckTime,DASH.groundDuckMinRemaining);
+    motion.dashStart(action==='ground');
+    const color=action==='ground'?c2:c1;
+    if(!reducedMotion){
+      frameEcho(player.x-14,player.feet-(action==='ground'?10:26),color,30,.82);
+      // Horizontal linear slashes are readable with this flat 2D camera.
+      for(let i=0;i<Math.max(2,Math.round(6*quality.profile.particles));i++){
+        motes.push(makeMote(player.x-24-fxRand(0,18),
+          player.feet-fxRand(action==='ground'?3:10,action==='ground'?18:46),i%2?c1:c2,
+          {vx:fxRand(-310,-145),vy:fxRand(-25,25),life:fxRand(.12,.30),r:fxRand(.8,1.9)}));
+      }
+      if(motes.length>180)motes.splice(0,motes.length-180);
+    }
+    director.noteDash(action);
+    runAudit.record(action==='air'?'air_dash':'ground_dash',auditState(),
+      {extraSpeedFactor:DASH.bonusFactor,grounded:player.landed,
+        ceiling:gravityShift.ceiling,remainingDuck:player.duckTime});
+    sound(action==='air'?'dash-air':'dash-ground');
+    vib(11);
+  }
   function startDuck(){
     if(status!=='running'||gravityShift.shifting||!player.landed||player.duck||player.duckRecovery>0)return;
     player.duck=true;
+    dash.onDuckStart();
     player.duckTime=DUCK_DURATION;
     motion.duckStart();
     groundPulse(player.x,player.feet-2,c2,18,.82);
@@ -416,6 +450,7 @@
       player.duckTime=Math.max(0,player.duckTime-dt);
       if(player.duckTime===0){
         player.duck=false;
+        dash.onDuckEnd();
         player.duckRecovery=DUCK_RECOVERY;
         motion.duckRelease();
         groundPulse(player.x,player.feet-2,c1,12,.52);
@@ -447,7 +482,7 @@
       const freshPress=input.duckKeys.size===0;
       input.duckPointer=e.pointerId;
       try{$.duck.setPointerCapture(e.pointerId)}catch(_){}
-      if(freshPress)startDuck();
+      if(freshPress)pressDuckDash();
     });
     const duckRelease=e=>{if(input.duckPointer===e.pointerId)input.duckPointer=null;};
     $.duck.addEventListener('pointerup',duckRelease);$.duck.addEventListener('pointercancel',duckRelease);
@@ -458,7 +493,7 @@
       if((k==='Space'||k==='ArrowUp'||k==='KeyW')&&!e.repeat){if(status==='ready'||status==='dead')startRun('arcade');else jump();}
       if((k==='ArrowDown'||k==='KeyS')&&!e.repeat&&!input.duckKeys.has(k)){
         const freshPress=input.duckKeys.size===0&&input.duckPointer===null;
-        input.duckKeys.add(k);if(freshPress)startDuck();
+        input.duckKeys.add(k);if(freshPress)pressDuckDash();
       }
       if(k==='Escape'&&!$.graphicsPanel.classList.contains('hidden')){$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');return}
       if(k==='Escape'&&!$.milestonePanel.classList.contains('hidden')){closeMilestones();return}
@@ -562,8 +597,14 @@
     if(!animated&&!reward?.perfect)sound('zone');
     if(zone===window.ChromaConfig.JUMP_FEEL.echoUnlockZone){
       echoHintTime=4.1;
-      $.jump.setAttribute('aria-label','Jump; tap again in the air for Echo Jump');
+      $.jump.setAttribute('aria-label','Jump; tap again in the air for Double Jump');
       runAudit.record('echo_unlocked',auditState(),{zone});
+    }
+    if(zone===DASH.unlockZone){
+      dashHintTime=DASH.hintSeconds;
+      $.duck.setAttribute('aria-label',
+        'Duck or Dash: tap while airborne for Air Dash, or tap again during Duck for Ground Dash');
+      runAudit.record('dash_unlocked',auditState(),{zone});
     }
     if(gravityShift.requestForZone(zone)){
       // Schedule a breathing space; generated gaps already ahead are respected
@@ -619,7 +660,7 @@
   }
   function failGap(gap){
     if(!terrain.markGap(gap,true))return;
-    gapRecovery=gap;jumpControl.cancel();motion.reset();combo.breakChain();
+    gapRecovery=gap;jumpControl.cancel();dash.cancel();motion.reset();combo.breakChain();
     terrainDirector.noteGapOutcome({missed:true,echo:Boolean(gap.echoChallenge),
       worldX:distance+player.x,speed});
     // Match regular obstacle invulnerability: the gap still counts as a
@@ -681,7 +722,11 @@
       effects.cue('speed',player.x,player.feet-3,c1,c2,{speed,reducedMotion});
       nextSpeedMark++;
     }
-    distance+=speed*dt;
+    // Gameplay time and base acceleration remain unchanged. Dash only adds
+    // a short, bounded extra world-distance step. Terrain, obstacles and gap
+    // collision all consume this SAME displacement (no teleport/tunnelling).
+    const worldStep=speed*dt+dash.tick(dt,speed);
+    distance+=worldStep;
     const lastTerrainWorld=terrain.generated;
     // The generator must cover the farthest possible action-specific spawn,
     // including an offscreen Echo Spire with a full second of warning.
@@ -717,7 +762,9 @@
     if(milestoneTime>0){milestoneTime-=dt;if(milestoneTime<=0)$.milestoneToast.classList.add('hidden')}
     if(replayToastTime>0){replayToastTime-=dt;if(replayToastTime<=0)$.replayToast.classList.add('hidden')}
     if(echoHintTime>0)echoHintTime=Math.max(0,echoHintTime-dt);
+    if(dashHintTime>0)dashHintTime=Math.max(0,dashHintTime-dt);
     $.echoHint.classList.toggle('hidden',echoHintTime<=0||lastZoneCallout>0||status!=='running');
+    $.dashHint.classList.toggle('hidden',dashHintTime<=0||lastZoneCallout>0||status!=='running');
     const playerWorld=distance+player.x;
     // The upcoming runway must have no gaps or hazards around the runner.
     // Every threshold is measured in travel seconds, independent of FPS.
@@ -728,7 +775,7 @@
     const gravityEvent=gravityShift.tick(dt,{safe:safeShift,reducedMotion});
     if(gravityEvent==='begin'){
       player.invulnerable=Math.max(player.invulnerable,.58+.28);
-      jumpControl.cancel();speedTrails.reset();combo.breakChain();
+      jumpControl.cancel();dash.cancel();speedTrails.reset();combo.breakChain();
       if(!reducedMotion){
         groundPulse(player.x,player.feet-2,c2,33,1.1);
         frameEcho(player.x,player.feet-23,c1,36,1);
@@ -751,7 +798,7 @@
       player.feet=Math.min(player.feet,terrain.baseY-45);
       if(ground!==null&&playerWorld>=gapRecovery.end+24){
         player.feet=ground;player.landed=true;gapRecovery=null;
-        jumpControl.onLand({recovering:true});motion.land(300);sound('land');
+        jumpControl.onLand({recovering:true});dash.onLand();motion.land(300);sound('land');
       }
     }else if(player.landed){
       if(ground===null){
@@ -768,7 +815,7 @@
       if(ground!==null&&player.vy>=0&&previousFeet<=ground+5&&player.feet>=ground){
         const impact=player.vy;
         player.feet=ground;player.vy=0;player.landed=true;
-        landingImpact(ground,impact);
+        dash.onLand();landingImpact(ground,impact);
         // A valid touchdown on the far side completes a gap even if the player
         // has buffered another immediate jump. Otherwise the next jump could
         // hide the grounded frame required by the original gap-clear logic.
@@ -810,7 +857,7 @@
     const p=GEO.playerBox(player);
     for(const o of hurdles){
       const priorX=o.x;
-      o.x-=speed*dt;
+      o.x-=worldStep;
       const b=GEO.obstacleBox(o,o.groundY);
       // Swept X check prevents skipping a narrow obstacle on a slow phone.
       const sweptX=GEO.sweptXOverlap(p,priorX,o);
@@ -883,7 +930,7 @@
     const hitbox=GEO.playerBox(player);
     speedTrails.tick(dt,{playerX:player.x,feet:player.feet,
       width:hitbox.w*trailPose.scaleX,height:hitbox.h*trailPose.scaleY,
-      distance,speed,flow:flow.value,chromaActive:flow.tier===3,
+      distance,speed:speed+dash.bonusSpeed,flow:flow.value,chromaActive:flow.tier===3,
       primary:spectralWave.colorAt(player.x,'primary',player.feet,H),
       secondary:spectralWave.colorAt(player.x,'secondary',player.feet,H),
       quality:quality.profile,reducedMotion});
@@ -1017,6 +1064,15 @@
     const shape=motion.sample({landed:player.landed,duck:player.duck,vy:player.vy});
     const rw=b.w*shape.scaleX*beat, rh=b.h*shape.scaleY*beat;
     const rx=player.x-rw/2,ry=player.feet-rh;
+    if(dash.active&&!reducedMotion){
+      // Three bounded horizontal ribbons in the existing course transform.
+      // No circular bursts, screen shake or duplicate player hitbox.
+      for(let i=0;i<(quality.profile.density<.5?1:quality.profile.density<.8?2:3);i++){
+        const y=ry+rh*(.22+i*.25);
+        glowLine(rx-24-i*14,y,rx-65-i*32,y,i%2?pc2:pc1,
+          1.8-i*.25,10,.54-i*.10);
+      }
+    }
     chromaVfx.drawBehindPlayer(ctx,{x:player.x,y:player.feet,width:rw,height:rh,
       duck:player.duck,primary:pc1,secondary:pc2,speed,
       quality:quality.profile,reducedMotion});

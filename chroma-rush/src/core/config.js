@@ -101,6 +101,14 @@
     minGapSeparation:1250,
     fallThreshold:125
   });
+  // Contextual Dash 2.0 — fixed-step additive world travel, no invulnerability.
+  // Air dash adds reach without altering the existing jump impulse.
+  // Ground dash briefly extends an already active duck, not a hold-to-duck.
+  const DASH=Object.freeze({
+    unlockZone:4,duration:.24,bonusFactor:.72,
+    minBonusSpeed:270,maxBonusSpeed:560,
+    groundDuckMinRemaining:.55,hintSeconds:5.2
+  });
   const JUMP_FEEL=Object.freeze({
     coyoteSeconds:.080,
     maxCoyoteDistance:48,
@@ -109,5 +117,5 @@
     echoUnlockZone:2,
     echoMinAirSeconds:.095
   });
-  return {PALETTES,GAME,FLOW,AUDIO,TERRAIN,JUMP_FEEL,ECHO_SPIRE};
+  return {PALETTES,GAME,FLOW,AUDIO,TERRAIN,JUMP_FEEL,ECHO_SPIRE,DASH};
 });

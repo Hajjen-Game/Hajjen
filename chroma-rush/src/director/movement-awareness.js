@@ -52,6 +52,7 @@
       this.consecutiveHard=0;
       this.deferredPatterns=0;
       this.executed={jump:0,duck:0,echo:0};
+      this.dashUses={air:0,ground:0};this.lastDashTime=-Infinity;
     }
     tick(dt){
       if(dt>0)this.pressure=Math.max(0,this.pressure-dt*.42);
@@ -91,6 +92,14 @@
       this.lastGapTime=now;
       this.pressure=Math.min(4.8,this.pressure+(missed?1.4:echo?1.1:.35));
       this.recoveryUntil=Math.max(this.recoveryUntil,now+(missed?2.6:echo?1.55:.85));
+    }
+    onDash(mode,now){
+      if(mode!=='air'&&mode!=='ground')return;
+      this.dashUses[mode]++;
+      this.lastDashTime=now;
+      // A short breathing buffer for future complex patterns. No existing
+      // obstacle is deleted and no hazard is auto-cleared by a dash.
+      this.recoveryUntil=Math.max(this.recoveryUntil,now+(mode==='air'?.55:.38));
     }
     onGravityShift(now){
       this.recoveryUntil=Math.max(this.recoveryUntil,now+1.35);
@@ -139,7 +148,8 @@
     get insight(){return {pressure:Number(this.pressure.toFixed(2)),
       lastAction:this.lastAction,echoClears:this.echoClears,
       echoMisses:this.echoMisses,recoveryUntil:this.recoveryUntil,
-      deferredPatterns:this.deferredPatterns,executed:{...this.executed}};}
+      deferredPatterns:this.deferredPatterns,executed:{...this.executed},
+      dashUses:{...this.dashUses},lastDashTime:this.lastDashTime};}
   }
   return {MovementAwareness,PROFILES,minimumGap,patternDemand};
 });

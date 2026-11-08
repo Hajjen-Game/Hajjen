@@ -220,6 +220,7 @@
       this.spawnCountdown=Math.max(safety,this.gapFor(context));
       this.previousType=next.type;
     }
+    noteDash(mode){this.movement.onDash(mode,this.time);}
     noteGapOutcome(data={}){this.movement.onGapOutcome({...data,now:this.time});}
     noteGravityShift(){this.movement.onGravityShift(this.time);}
     noteCombo({length=0}={}){

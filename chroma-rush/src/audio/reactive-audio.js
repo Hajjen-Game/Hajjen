@@ -194,6 +194,10 @@
           fx(390,.12,.11,'triangle',740);
           fx(730,.19,.082,'sine',1050,.065);break;
         case 'duck': fx(280,.105,.13,'sine',146);break;
+        case 'dash-air':
+          fx(330,.11,.115,'triangle',920);fx(670,.17,.065,'sine',1080,.045);break;
+        case 'dash-ground':
+          fx(225,.14,.125,'triangle',510);fx(440,.16,.063,'sine',680,.060);break;
         case 'land': fx(155,.09,.08,'sine',100);break;
         case 'hit': fx(210,.21,.28,'sawtooth',62);fx(85,.22,.12,'sine',45,.055);break;
         case 'gravity-warning':

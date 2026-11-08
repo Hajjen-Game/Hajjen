@@ -11,12 +11,13 @@
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
   class PlayerMotion {
     constructor(rules=RULES){this.rules=rules;this.reset();}
-    reset(){this.launchTime=0;this.echoTime=0;this.landTime=0;this.impact=0;this.duckEntry=0;this.duckExit=0;}
+    reset(){this.launchTime=0;this.echoTime=0;this.landTime=0;this.impact=0;this.duckEntry=0;this.duckExit=0;this.dashTime=0;this.dashGround=false;}
     jump(){this.launchTime=0.13;this.echoTime=0;this.landTime=0;this.duckEntry=0;this.duckExit=0;}
     echoJump(){this.echoTime=.19;this.launchTime=0;this.landTime=0;this.duckEntry=0;this.duckExit=0;}
     duckStart(){this.duckEntry=.105;this.duckExit=0;this.landTime=0;}
     duckRelease(){this.duckEntry=0;this.duckExit=.12;}
-    duckCancel(){this.duckEntry=0;this.duckExit=0;}
+    duckCancel(){this.duckEntry=0;this.duckExit=0;this.dashTime=0;}
+    dashStart(ground=false){this.dashTime=.24;this.dashGround=Boolean(ground);}
 
     land(velocity=0){
       this.landTime=this.rules.landingAnimationSeconds;
@@ -30,6 +31,7 @@
       this.landTime=Math.max(0,this.landTime-dt);
       this.duckEntry=Math.max(0,this.duckEntry-dt);
       this.duckExit=Math.max(0,this.duckExit-dt);
+      this.dashTime=Math.max(0,this.dashTime-dt);
     }
     sample({landed=true,duck=false,vy=0}={}){
       // Duck uses the existing SHORT collision box from core/geometry.js.
@@ -37,8 +39,9 @@
       if(duck){
         const t=1-this.duckEntry/.105;
         const settle=Math.pow(Math.max(0,1-t),2);
-        return {scaleX:1.045+.16*settle,scaleY:1-.19*settle,
-          glow:.16+.14*settle};
+        const dash=this.dashTime>0?Math.sin(Math.PI*this.dashTime/.24):0;
+        return {scaleX:1.045+.16*settle+.19*dash,scaleY:1-.19*settle-.11*dash,
+          glow:.16+.14*settle+.50*dash};
       }
       if(landed&&this.duckExit>0){
         // Springing upright is visual only; the normal hitbox is active now.
@@ -69,7 +72,11 @@
         else{scaleY+=.042*this.impact*Math.sin((t-.45)/.55*Math.PI);}
         glow=(1-t)*.42*this.impact;
       }
-      return {scaleX:1/clamp(scaleY,.7,1.3),scaleY,glow};
+      const dash=this.dashTime>0?Math.sin(Math.PI*this.dashTime/.24):0;
+      // A brisk horizontal streak silhouette, purely cosmetic: hitboxes
+      // remain fixed and air dash never adds height or vertical velocity.
+      return {scaleX:1/clamp(scaleY,.7,1.3)+.22*dash,
+        scaleY:scaleY-.06*dash,glow:glow+.55*dash};
     }
   }
   return {PlayerMotion};

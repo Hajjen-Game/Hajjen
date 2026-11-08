@@ -1,8 +1,18 @@
-# CHROMA RUSH — Chroma Tide Spectacle 1.0
+# CHROMA RUSH — Movement Evolution 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Movement Evolution 2.0 — Contextual Dash (2026-11-08)
+
+- **Two controls only:** the existing left **JUMP** button is widened and labelled `×2 DOUBLE JUMP`; the right is equally wide and labelled **DUCK / DASH** with `×2 GROUND DASH`. On the keyboard, Space/Up stays Jump and Down/S remains context-sensitive. Every dash needs a *new* physical press; holding a key/pointer never repeats it.
+- **Air Dash:** starting in **zone 4**, one tap of Duck/Dash while airborne adds `0.24 s` of bounded forward travel. It can be used before or after Echo Jump in the same flight, but **at most once per landing interval**. Dash never changes vertical velocity, gravity, collision geometry, or provides invulnerability.
+- **Ground Dash:** tap Duck once to begin the existing `0.55 s` crouch, release then tap again **before the crouch ends** to dash while still crouched. The second tap guarantees at least `0.55 s` of remaining crouch time. A new duck cannot begin during the original `0.12 s` duck recovery. No continuous holding.
+- **World-space, fixed-step mechanics:** the runner stays at its canonical screen position. For the dash's `0.24 s` duration, the same `worldStep = speed × dt + dashExtra` is used for **player world position, gap/terrain sampling and all obstacle motion**. Additive dash speed is `clamp(0.72 × currentSpeed, 270, 560)` logical units/s. No teleport, no extra dash jumps, no modified zone speed curve.
+- **Presentation and accessibility:** a restrained horizontal stretch, side-on neon wake, small procedural sound cue and short optional haptic pulse distinguish Air/Ground Dash. The entire course and effects mirror correctly during Ceiling Run. Reduced-motion suppresses cosmetic particle bursts and ribbons, but gameplay is identical. The main menu exposes the current build and a zone-4 onboarding hint explains the combination.
+- **Adaptive Director integration:** successful dash presses are recorded as player intent and add a small recovery buffer to *future* complex patterns. All existing hazards remain physical; dashing **does not clear** them or grant damage protection. No new mandatory dash-only hazards or wider gaps are introduced until the mechanic is tested on real devices; those require a dedicated fairness and difficulty audit.
+- **QA:** `tests/movement-evolution-2.0.test.cjs` checks one-air-use, double-tap ground gating, exact finite travel, Director insight, hitbox invariants and build wiring. `tests/game-smoke.test.cjs` exercises actual controls and world traversal in the live simulation. Playtest zone 4+ on both floor and ceiling, with High/Balanced graphics.
 
 ## Chroma Tide Spectacle 1.0 — The Visible Impact Pass (2026-11-08)
 

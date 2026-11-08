@@ -137,6 +137,14 @@
         this.pending=motif.steps.map((type,index)=>({type,pattern:motif.id,step:index+1}));
       }
       const next=this.pending[0];
+      // Never drag the very first Echo Spire into the ceiling section.
+      // Cancel the queued lesson and allow normal motifs to continue while
+      // we wait for the safe floor return, rather than blocking the queue.
+      if(next.type==='echo'&&!this.echoIntroduced&&
+        (context.surface==='ceiling'||context.gravityPending)){
+        this.pending=[];this.spawnCountdown=.32;this.movement.deferredPatterns++;
+        return;
+      }
       const actionX=typeof context.spawnXFor==='function'?context.spawnXFor(next.type):context.spawnX;
       if(next.type==='echo'&&actionX!=null&&
         (actionX-(context.playerX??300))/Math.max(300,context.speed||370)<.78){

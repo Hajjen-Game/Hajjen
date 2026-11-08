@@ -29,39 +29,47 @@
     const midPrimary=tide?.active?tide.ambientColor('primary'):c1;
     const midSecondary=tide?.active?tide.ambientColor('secondary'):c2;
     const midShadow=tide?.active?tide.ambientColor('shadow'):c3;
-    // Base paints ALL pixels, including those behind holes and below slopes.
-    ctx.fillStyle='#070b17';ctx.fillRect(0,0,W,H);
-    const sky=ctx.createLinearGradient(0,0,0,H);
-    sky.addColorStop(0,'#060b19');
-    sky.addColorStop(.40,rgba(midShadow,.92));
-    sky.addColorStop(.70,rgba(midShadow,.82));
-    sky.addColorStop(1,rgba(midShadow,.60));
-    ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
-    // Both glows paint the ENTIRE viewport; no hard rectangle at floorY.
-    const glow=ctx.createRadialGradient(W*.62,H*.49,20,W*.62,H*.56,Math.max(W*.62,H*.78));
-    glow.addColorStop(0,rgba(midPrimary,.13+flowCharge*.11));
-    glow.addColorStop(.52,rgba(midSecondary,.055));
-    glow.addColorStop(1,rgba(midPrimary,0));
-    ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
-    const lower=ctx.createRadialGradient(W*.64,H*.84,16,W*.64,H*.84,Math.max(W*.72,H*.93));
-    lower.addColorStop(0,rgba(midPrimary,.16+flowCharge*.028));
-    lower.addColorStop(.60,rgba(midSecondary,.069));
-    lower.addColorStop(1,rgba(midPrimary,0));
-    ctx.fillStyle=lower;ctx.fillRect(0,0,W,H);
-    // A single screen-wide chromatic tint smoothly distinguishes incoming
-    // and outgoing worlds. Atmospheric charge gently previews the NEXT hue
-    // without a rectangle, scout or obstacle-like shape.
-    if(tide?.active){
-      ctx.save();
-      if(tide.charging){
-        ctx.globalAlpha=.12*tide.chargeLevel*(quality.density??1);
-        ctx.fillStyle=tide.to?.primary||c1;
-      }else{
-        ctx.globalAlpha=.32*(quality.density??1);
-        ctx.fillStyle=tide.gradient(ctx,W,'primary',H*.48,H);
-      }
-      ctx.fillRect(0,0,W,H);
+    // The four original sky/haze fills are deliberately unchanged. During
+    // the tide only the atmospheric PAINT is clipped into spatial old/new
+    // halves; the scrolling columns, stars and streaks below draw ONCE.
+    // This avoids full-scene duplication while keeping the old left side
+    // and new right side pixel-faithful until the wave crosses each region.
+    const paintAtmosphere=(primary,secondary,shadow)=>{
+      ctx.fillStyle='#070b17';ctx.fillRect(0,0,W,H);
+      const sky=ctx.createLinearGradient(0,0,0,H);
+      sky.addColorStop(0,'#060b19');
+      sky.addColorStop(.40,rgba(shadow,.92));
+      sky.addColorStop(.70,rgba(shadow,.82));
+      sky.addColorStop(1,rgba(shadow,.60));
+      ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+      const glow=ctx.createRadialGradient(W*.62,H*.49,20,W*.62,H*.56,Math.max(W*.62,H*.78));
+      glow.addColorStop(0,rgba(primary,.13+flowCharge*.11));
+      glow.addColorStop(.52,rgba(secondary,.055));
+      glow.addColorStop(1,rgba(primary,0));
+      ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
+      const lower=ctx.createRadialGradient(W*.64,H*.84,16,W*.64,H*.84,Math.max(W*.72,H*.93));
+      lower.addColorStop(0,rgba(primary,.16+flowCharge*.028));
+      lower.addColorStop(.60,rgba(secondary,.069));
+      lower.addColorStop(1,rgba(primary,0));
+      ctx.fillStyle=lower;ctx.fillRect(0,0,W,H);
+    };
+    if(tide?.active&&!tide.charging){
+      ctx.save();tide.clipSide(ctx,W,H,'old');
+      paintAtmosphere(tide.from.primary,tide.from.secondary,tide.from.shadow);
       ctx.restore();
+      ctx.save();tide.clipSide(ctx,W,H,'new');
+      paintAtmosphere(tide.to.primary,tide.to.secondary,tide.to.shadow);
+      ctx.restore();
+    }else{
+      const p=tide?.active?tide.from:{primary:c1,secondary:c2,shadow:c3};
+      paintAtmosphere(p.primary,p.secondary,p.shadow);
+      // Barely perceptible whole-sky awakening — no separate bright marker.
+      if(tide?.charging){
+        ctx.save();ctx.globalAlpha=.025*tide.chargeLevel*(quality.density??1);
+        ctx.fillStyle=tide.to?.primary||c1;
+        ctx.fillRect(0,0,W,H);
+        ctx.restore();
+      }
     }
     // Receding architectural silhouettes continue below the nominal track.
     // A shared vertical fade prevents them from ending on a straight cut-off.

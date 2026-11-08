@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Movement Evolution 2.0 / Contextual Dash.
+/* CHROMA RUSH — Movement Evolution 2.2 / Dash Impact.
  * Pure fixed-step world-space dash; no camera teleport, immunity or RNG.
  * A new down press while airborne = Air Dash.
  * A second distinct down press during an active duck = Ground Dash.
@@ -17,7 +17,7 @@
       // Old config.js may be cached independently on GitHub Pages. Fail
       // predictably rather than making ALL duck presses throw TypeError.
       this.rules=rules&&Number.isFinite(rules.unlockZone)?rules:{
-        unlockZone:1,duration:.24,bonusFactor:.72,minBonusSpeed:270,maxBonusSpeed:560};
+        unlockZone:1,duration:.30,bonusFactor:1.05,minBonusSpeed:400,maxBonusSpeed:760};
       this.reset();
     }
     reset(){
@@ -51,9 +51,13 @@
       const actual=Math.min(dt,this.remaining);
       const bonus=clamp(Math.max(0,speed)*this.rules.bonusFactor,
         this.rules.minBonusSpeed,this.rules.maxBonusSpeed);
-      const extra=actual*bonus;
+      // Front-loaded thrust that relaxes smoothly; one shared world step.
+      const t=clamp(1-this.remaining/this.rules.duration,0,1);
+      const drive=.84+.40*(1-t)*(1-t);
+      const boosted=bonus*drive;
+      const extra=actual*boosted;
       this.travel+=extra;this.remaining=Math.max(0,this.remaining-actual);
-      this.lastBonusSpeed=this.active?bonus:0;
+      this.lastBonusSpeed=this.active?boosted:0;
       if(!this.active)this.mode=null;
       return extra;
     }

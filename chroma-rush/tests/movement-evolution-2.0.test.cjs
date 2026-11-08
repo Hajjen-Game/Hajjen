@@ -18,7 +18,7 @@ test('air dash is gated, one per airborne interval, and never teleports',()=>{
   assert.equal(d.request({zone:4,grounded:false}),null);
   let extra=step;
   for(let i=0;i<30;i++)extra+=d.tick(1/60,500);
-  assert.ok(extra>55&&extra<150,'bounded additive travel, no teleport');
+  assert.ok(extra>135&&extra<190,'Dash 2.2 has a noticeable but finite forward surge');
   assert.equal(d.request({zone:4,grounded:false}),null,'cannot farm two air dashes');
   d.onLand();
   assert.equal(d.request({zone:4,grounded:false}),'air','fresh landing restores air dash');
@@ -76,7 +76,7 @@ test('two large thumb targets, canonical scripts, and one world step for terrain
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   const css=fs.readFileSync(path.join(__dirname,'../style.css'),'utf8');
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
-  assert.match(html,/src\/gameplay\/contextual-dash\.js\?v=contextual-dash-2\.1/);
+  assert.match(html,/src\/gameplay\/contextual-dash\.js\?v=contextual-dash-2\.2/);
   assert.match(html,/DUCK \/ DASH/);
   assert.match(html,/×2 DOUBLE JUMP/);
   assert.match(css,/#controls \.control \{width:clamp\(124px,17vw,188px\)/);
@@ -85,5 +85,5 @@ test('two large thumb targets, canonical scripts, and one world step for terrain
   assert.match(game,/o\.x-=worldStep/);
   assert.match(game,/dash\.onLand\(\)/);
   assert.match(game,/sound\(action==='air'\?'dash-air':'dash-ground'\)/);
-  assert.match(html,/LATEST UPDATE · MOVEMENT EVOLUTION 2\.1 — CONTROL FIX/);
+  assert.match(html,/LATEST UPDATE · DASH IMPACT & MORPH 2\.2/);
 });

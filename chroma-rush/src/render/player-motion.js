@@ -1,27 +1,57 @@
-/* CHROMA RUSH — Jump & Duck Motion 1.0
+/* CHROMA RUSH — Dash Morph 2.2 / Jump & Duck Motion 1.0
  * Pure visual deformation. Collision shapes come only from core/geometry.js.
  */
 (function(root,factory){
   const config=typeof module!=='undefined'&&module.exports?require('../core/config.js'):(root&&root.ChromaConfig);
-  const api=factory(config.JUMP_FEEL);
+  const api=factory(config.JUMP_FEEL,config.DASH);
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(root)root.ChromaMotion=api;
-})(typeof window!=='undefined'?window:null,function(RULES){
+})(typeof window!=='undefined'?window:null,function(RULES,DASH){
   'use strict';
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+  const dashDuration=DASH?.duration||.30;
+  // Draws a tapered forward-facing 2D silhouette, not a larger hitbox.
+  // In the mirrored ceiling camera the path automatically mirrors with the board.
+  function dashBodyPath(ctx,x,y,w,h,mode='air'){
+    ctx.beginPath();
+    if(mode==='ground'){
+      ctx.moveTo(x+w*.04,y+h*.26);
+      ctx.lineTo(x+w*.17,y+h*.06);
+      ctx.lineTo(x+w*.73,y+h*.06);
+      ctx.lineTo(x+w,y+h*.46);
+      ctx.lineTo(x+w*.92,y+h*.86);
+      ctx.lineTo(x+w*.76,y+h*.98);
+      ctx.lineTo(x+w*.15,y+h*.98);
+      ctx.lineTo(x,y+h*.71);
+    }else{
+      ctx.moveTo(x,y+h*.25);
+      ctx.lineTo(x+w*.19,y+h*.05);
+      ctx.lineTo(x+w*.66,y+h*.05);
+      ctx.lineTo(x+w,y+h*.50);
+      ctx.lineTo(x+w*.66,y+h*.95);
+      ctx.lineTo(x+w*.19,y+h*.95);
+      ctx.lineTo(x,y+h*.75);
+      ctx.lineTo(x+w*.07,y+h*.50);
+    }
+    ctx.closePath();
+  }
+  function dashStrength(remaining){
+    if(!(remaining>0))return 0;
+    return clamp(Math.min((dashDuration-remaining)/.035,remaining/.09,1),0,1);
+  }
   class PlayerMotion {
     constructor(rules=RULES){this.rules=rules;this.reset();}
     reset(){this.launchTime=0;this.echoTime=0;this.landTime=0;this.impact=0;this.duckEntry=0;this.duckExit=0;this.dashTime=0;this.dashGround=false;}
     jump(){this.launchTime=0.13;this.echoTime=0;this.landTime=0;this.duckEntry=0;this.duckExit=0;}
     echoJump(){this.echoTime=.19;this.launchTime=0;this.landTime=0;this.duckEntry=0;this.duckExit=0;}
     duckStart(){this.duckEntry=.105;this.duckExit=0;this.landTime=0;}
-    duckRelease(){this.duckEntry=0;this.duckExit=.12;}
+    duckRelease(){this.duckEntry=0;this.duckExit=.12;this.dashTime=0;}
     duckCancel(){this.duckEntry=0;this.duckExit=0;this.dashTime=0;}
-    dashStart(ground=false){this.dashTime=.24;this.dashGround=Boolean(ground);}
+    dashStart(ground=false){this.dashTime=dashDuration;this.dashGround=Boolean(ground);}
 
     land(velocity=0){
       this.landTime=this.rules.landingAnimationSeconds;
-      this.launchTime=0;this.echoTime=0;
+      this.launchTime=0;this.echoTime=0;this.dashTime=0;
       this.impact=clamp((Math.abs(velocity)-220)/750,.45,1);
       return this.impact;
     }
@@ -39,9 +69,9 @@
       if(duck){
         const t=1-this.duckEntry/.105;
         const settle=Math.pow(Math.max(0,1-t),2);
-        const dash=this.dashTime>0?Math.sin(Math.PI*this.dashTime/.24):0;
-        return {scaleX:1.045+.16*settle+.19*dash,scaleY:1-.19*settle-.11*dash,
-          glow:.16+.14*settle+.50*dash};
+        const dash=dashStrength(this.dashTime);
+        return {scaleX:1.045+.16*settle+.62*dash,scaleY:1-.19*settle-.18*dash,
+          glow:.16+.14*settle+.85*dash,dash,dashMode:'ground'};
       }
       if(landed&&this.duckExit>0){
         // Springing upright is visual only; the normal hitbox is active now.
@@ -72,12 +102,13 @@
         else{scaleY+=.042*this.impact*Math.sin((t-.45)/.55*Math.PI);}
         glow=(1-t)*.42*this.impact;
       }
-      const dash=this.dashTime>0?Math.sin(Math.PI*this.dashTime/.24):0;
-      // A brisk horizontal streak silhouette, purely cosmetic: hitboxes
-      // remain fixed and air dash never adds height or vertical velocity.
-      return {scaleX:1/clamp(scaleY,.7,1.3)+.22*dash,
-        scaleY:scaleY-.06*dash,glow:glow+.55*dash};
+      const dash=dashStrength(this.dashTime);
+      // A forward glider in the air, a low skid-body on the ground.
+      // Physics and vertical velocity remain untouched.
+      return {scaleX:1/clamp(scaleY,.7,1.3)+.65*dash,
+        scaleY:scaleY-.18*dash,glow:glow+.90*dash,
+        dash,dashMode:dash>0?'air':null};
     }
   }
-  return {PlayerMotion};
+  return {PlayerMotion,dashBodyPath,dashStrength};
 });

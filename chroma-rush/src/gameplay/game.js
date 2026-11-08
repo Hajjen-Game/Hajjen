@@ -110,8 +110,8 @@
   // Each new press triggers a fixed duck pulse. Holding never extends or repeats it.
   const DUCK_DURATION=GAME.duckDuration;
   const DUCK_RECOVERY=GAME.duckRecovery;
-  const DASH=window.ChromaConfig.DASH||{unlockZone:1,duration:.24,bonusFactor:.72,
-    minBonusSpeed:270,maxBonusSpeed:560,groundDuckMinRemaining:.55,hintSeconds:5.2};
+  const DASH=window.ChromaConfig.DASH||{unlockZone:1,duration:.30,bonusFactor:1.05,
+    minBonusSpeed:400,maxBonusSpeed:760,groundDuckMinRemaining:.62,hintSeconds:5.2};
   const SPEED_MARKS=Object.freeze([1.5,2,3,4,6,8]);
   let nextSpeedMark=0;
   function auditState(){return {time:worldTime,zone,hp,score,flow:flow.value,speed,distance,
@@ -264,8 +264,10 @@
     hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();combo.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();dash.reset();motion.reset();
     peakFlow=0;replayToastTime=0;
-    echoHintTime=startZone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone?3.9:0;
-    dashHintTime=startZone>=DASH.unlockZone?DASH.hintSeconds:0;
+    // All moves are usable immediately. Explain dash first; save the Echo
+    // tip for its first tall Spire in zone 2, without overlapping callouts.
+    echoHintTime=startZone>=2?3.9:0;
+    dashHintTime=startZone===1?DASH.hintSeconds:0;
     $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');
     replay.start({practice:runMode==='practice',bestScore:progression.bestScore,bestZone:progression.bestZone});
     // Practice retains the chosen zone/difficulty but starts on a fresh,
@@ -432,7 +434,7 @@
     if(!reducedMotion){
       frameEcho(player.x-14,player.feet-(action==='ground'?10:26),color,30,.82);
       // Horizontal linear slashes are readable with this flat 2D camera.
-      for(let i=0;i<Math.max(2,Math.round(6*quality.profile.particles));i++){
+      for(let i=0;i<Math.max(3,Math.round(9*quality.profile.particles));i++){
         motes.push(makeMote(player.x-24-fxRand(0,18),
           player.feet-fxRand(action==='ground'?3:10,action==='ground'?18:46),i%2?c1:c2,
           {vx:fxRand(-310,-145),vy:fxRand(-25,25),life:fxRand(.12,.30),r:fxRand(.8,1.9)}));
@@ -445,7 +447,7 @@
       {extraSpeedFactor:DASH.bonusFactor,grounded:player.landed,
         ceiling:gravityShift.ceiling,remainingDuck:player.duckTime});
     sound(action==='air'?'dash-air':'dash-ground');
-    vib(11);
+    vib(18);
   }
   function startDuck(){
     if(status!=='running'||gravityShift.shifting||!player.landed||player.duck||player.duckRecovery>0)return;
@@ -619,7 +621,7 @@
     // lands once, at the runner crossing. Perfect Zone has its own reward cue.
     if(animated&&!reward?.perfect)sound('zone-charge');
     if(!animated&&!reward?.perfect)sound('zone');
-    if(zone===window.ChromaConfig.JUMP_FEEL.echoUnlockZone){
+    if(zone===window.ChromaConfig.ECHO_SPIRE.firstZone){
       echoHintTime=4.1;
       $.jump.setAttribute('aria-label','Jump; tap again in the air for Double Jump');
       runAudit.record('echo_unlocked',auditState(),{zone});
@@ -1090,25 +1092,44 @@
     const shape=motion.sample({landed:player.landed,duck:player.duck,vy:player.vy});
     const rw=b.w*shape.scaleX*beat, rh=b.h*shape.scaleY*beat;
     const rx=player.x-rw/2,ry=player.feet-rh;
+    const morph=shape.dash>.12, dashAmount=morph?shape.dash:0;
     if(dash.active&&!reducedMotion){
-      // Three bounded horizontal ribbons in the existing course transform.
-      // No circular bursts, screen shake or duplicate player hitbox.
-      for(let i=0;i<(quality.profile.density<.5?1:quality.profile.density<.8?2:3);i++){
-        const y=ry+rh*(.22+i*.25);
-        glowLine(rx-24-i*14,y,rx-65-i*32,y,i%2?pc2:pc1,
-          1.8-i*.25,10,.54-i*.10);
+      // Side-view speed wake; brighter and longer than 2.1, but always
+      // BEHIND the runner. Rendered at most 4 strokes, 2 on older phones.
+      const density=quality.profile.density;
+      const count=density<.5?2:density<.8?3:4;
+      for(let i=0;i<count;i++){
+        const y=ry+rh*(.18+i*.21);
+        glowLine(rx-8-i*8,y,rx-102-i*26,y,i%2?pc2:pc1,
+          (2.8-i*.35)*(.7+.3*dashAmount),13,Math.max(.22,.72-i*.12));
       }
+      // A single crisp strike line tells the eye the runner surged forward.
+      glowLine(rx+rw*.67,ry+rh*.50,rx+rw+12,ry+rh*.50,
+        '#fff',2.1,11,.62*dashAmount);
     }
     chromaVfx.drawBehindPlayer(ctx,{x:player.x,y:player.feet,width:rw,height:rh,
       duck:player.duck,primary:pc1,secondary:pc2,speed,
       quality:quality.profile,reducedMotion});
     ctx.shadowColor=pc1;ctx.shadowBlur=(31+shape.glow*17)*Math.max(.45,quality.profile.glow);
-    roundRectPath(rx,ry,rw,rh,player.duck?8:8);ctx.fillStyle='#f3fcff';ctx.fill();
-    ctx.shadowBlur=9*quality.profile.glow;ctx.lineWidth=2;ctx.strokeStyle=pc1;ctx.stroke();
+    // Distinct change of SHAPE: pointed aerial glider or low ground-skid
+    // polygon. Geometry collision remains GEO.playerBox(player), not this art.
+    if(morph)window.ChromaMotion.dashBodyPath(ctx,rx,ry,rw,rh,player.duck?'ground':'air');
+    else roundRectPath(rx,ry,rw,rh,8);
+    ctx.fillStyle='#f3fcff';ctx.fill();
+    ctx.shadowBlur=9*quality.profile.glow;ctx.lineWidth=morph?2.8:2;
+    ctx.strokeStyle=pc1;ctx.stroke();
     const shading=ctx.createLinearGradient(rx,ry,rx+rw,ry+rh);
     shading.addColorStop(0,'rgba(255,255,255,.9)');shading.addColorStop(.6,'rgba(247,251,255,.08)');shading.addColorStop(1,rgba(pc1,.34));
-    ctx.fillStyle=shading;roundRectPath(rx+5,ry+4,rw-10,rh-8,5);ctx.fill();
-    glowLine(rx+6,ry+6,rx+rw*.6,ry+6,'#fff',2,6,.7);
+    ctx.fillStyle=shading;
+    if(morph)window.ChromaMotion.dashBodyPath(ctx,rx+4,ry+3,rw-8,rh-6,player.duck?'ground':'air');
+    else roundRectPath(rx+5,ry+4,rw-10,rh-8,5);
+    ctx.fill();
+    if(morph){
+      // Asymmetric energy spine, emphasizing that the square is a fast,
+      // forward-facing wedge instead of a larger square.
+      glowLine(rx+rw*.25,ry+rh*.32,rx+rw*.80,ry+rh*.50,'#fff',2.3,8,.84);
+      glowLine(rx+rw*.31,ry+rh*.72,rx+rw*.79,ry+rh*.53,pc2,1.8,7,.74);
+    }else glowLine(rx+6,ry+6,rx+rw*.6,ry+6,'#fff',2,6,.7);
     if(player.duck){
       const n=Math.max(1,Math.round(3*quality.profile.particles));
       for(let i=0;i<n;i++){

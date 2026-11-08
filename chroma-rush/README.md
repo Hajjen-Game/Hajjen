@@ -1,8 +1,17 @@
-# CHROMA RUSH — Movement Evolution 2.1 — Control Reliability Fix
+# CHROMA RUSH — Dash Impact & Morph 2.2
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Dash Impact & Morph 2.2 (2026-11-08)
+
+- **Immediate stronger thrust:** Dash now lasts 0.30s (was 0.24s) with bonus world velocity `clamp(1.05 × speed, 400, 760)`, modulated by a quick launch kick and smooth taper. Both terrain-distance and obstacle screen positions continue to use one fixed-step world displacement; no teleport, camera whiplash, extra health or changed hitboxes.
+- **The cube transforms, not just glows:** In the air, it becomes a long pointed glider; on the ground, a flat forward-leaning skid shape. A sharp energy spine, brighter 2–4 trailing horizontal rails and a small wake make the action perceptible even at Performance quality. The base jump and duck silhouettes are unchanged when Dash is inactive. Ceiling Run mirrors the same art.
+- **Audio & feel:** stronger two-layer thrust plus a resolving overtone for each Dash type, and a slightly longer optional haptic tap; still respects the existing sound and reduced-motion settings.
+- **All movement from zone 1:** Air/Ground Dash, Jump and Double Jump can all be performed immediately. The *first mandatory Echo Spire* remains in zone 2 to teach precision later without locking the ability. Dash teaching appears at run start, with the Echo hint reserved for zone 2; they do not overlap.
+- **Next step, not bundled:** introduce Dash-dependent barriers and longer gaps only after the new dash movement is playtested, and audit reachability, compulsory spacing, slope/ceiling variants, inputs at 30fps and Director pacing. Avoid introducing a required Dash obstacle before onboarding.
+- **Versioned release:** changes to configuration, dash physics, motion rendering, audio, game logic and menu all get fresh URLs and automated tests for movement strength, morph geometry, collision invariants and browser layout.
 
 ## Movement Evolution 2.1 — Control Reliability Fix (2026-11-08)
 

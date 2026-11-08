@@ -195,9 +195,16 @@
           fx(730,.19,.082,'sine',1050,.065);break;
         case 'duck': fx(280,.105,.13,'sine',146);break;
         case 'dash-air':
-          fx(330,.11,.115,'triangle',920);fx(670,.17,.065,'sine',1080,.045);break;
+          // Distinct launch snap + bright swept air tail. Kept below damage
+          // and perfect-zone peaks, using the existing effects volume bus.
+          fx(225,.085,.135,'triangle',540);
+          fx(420,.22,.120,'sawtooth',1040,.015);
+          fx(820,.28,.062,'sine',1160,.075);break;
         case 'dash-ground':
-          fx(225,.14,.125,'triangle',510);fx(440,.16,.063,'sine',680,.060);break;
+          // Low contact punch and skidding after-tone, not a second jump.
+          fx(125,.10,.145,'triangle',245);
+          fx(290,.24,.125,'sawtooth',610,.018);
+          fx(610,.25,.053,'sine',760,.070);break;
         case 'land': fx(155,.09,.08,'sine',100);break;
         case 'hit': fx(210,.21,.28,'sawtooth',62);fx(85,.22,.12,'sine',45,.055);break;
         case 'gravity-warning':

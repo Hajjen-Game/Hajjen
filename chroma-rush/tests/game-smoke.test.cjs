@@ -390,7 +390,9 @@ test('real zone-4 PEAK introduces a standalone Echo Spire: single jump fails, Ec
     // same physical test: one jump fails, two correctly timed jumps clear.
     const speed=config.GAME.speedAt(3*config.GAME.zoneSeconds,4);
     const untilContact=(first.x-state.player().x-22)/speed;
-    const launchFrame=Math.max(3,Math.round((untilContact-.70)*60));
+    // Slower movement means the wide pillar overlaps the player longer;
+    // place contact near the broad Echo apex, not near descent.
+    const launchFrame=Math.max(3,Math.round((untilContact-.60)*60));
     const echoFrame=launchFrame+20;
     const finishFrame=Math.max(114,Math.ceil((untilContact+.30)*60));
     for(let i=2;i<=finishFrame;i++){

@@ -78,11 +78,12 @@
     masterGain:.76,musicGain:.58,effectsGain:.40
   });
   const ECHO_SPIRE=Object.freeze({
-    firstZone:4,
-    minWidth:49,maxWidth:58,
-    // At g=2140 and launch v=-870 the standard jump rises ~177px.
-    // These pillars require an intentional second airborne impulse.
-    minHeight:204,maxHeight:216
+    // First guided Echo obstacle comes after the first ceiling section.
+    firstZone:5,
+    minWidth:46,maxWidth:52,
+    minHeight:190,maxHeight:200,
+    introMinWidth:46,introMaxWidth:49,
+    introMinHeight:190,introMaxHeight:194
   });
   const TERRAIN=Object.freeze({
     slopeFromZone:2,

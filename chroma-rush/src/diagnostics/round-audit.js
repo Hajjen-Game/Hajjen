@@ -17,7 +17,7 @@
     'jump_input','duck_input','echo_jump','air_dash','ground_dash','dash_blocked',
     'echo_unlocked','dash_unlocked','gravity_warning','gravity_shift_begin','gravity_shift_complete',
     'shield_core_spawn','shield_core_pickup','shield_core_miss',
-    'dash_hazard_clear','dash_hazard_miss']);
+    'dash_hazard_clear','dash_hazard_miss','dash_hazard_defer']);
   const number=(n)=>Number.isFinite(Number(n))?Math.round(Number(n)*100)/100:0;
   const snap=(input={})=>({
     time:number(input.time),zone:Math.max(1,number(input.zone)||1),
@@ -28,7 +28,8 @@
   const stats=()=>({obstaclesSpawned:0,obstaclesCleared:0,obstacleHits:0,invulnerableContacts:0,
     gapsCleared:0,gapsMissed:0,perfectZones:0,terrainSlopes:0,terrainGaps:0,
      shieldCores:{spawned:0,collected:0,missed:0,shieldRestored:0},
-     dashHazards:{cleared:{air:0,ground:0},missed:{air:0,ground:0}},
+     dashHazards:{spawned:{air:0,ground:0},cleared:{air:0,ground:0},
+        missed:{air:0,ground:0},deferred:{total:0,byReason:{}}},
     maxFlow:0,chromaSeconds:0,flowAbove65Seconds:0,highestStreak:0,
     precisionClears:0,masterClears:0,
     movement:{jumpPresses:0,duckPresses:0,echoJumps:0,
@@ -57,9 +58,21 @@
         else if(typeof value==='string'&&value.length<100)payload[key]=value;
         else if(typeof value==='boolean')payload[key]=value;
       }
-      if(this.events.length<MAX_EVENTS)this.events.push({type,...state,...payload});
-      else this.overflow++;
+      // A rejected guided Dash can retry many times while a safe flat
+      // corridor approaches. Aggregate reason counters rather than
+      // flooding the exported event timeline or increasing file size.
+      if(type!=='dash_hazard_defer'){
+        if(this.events.length<MAX_EVENTS)this.events.push({type,...state,...payload});
+        else this.overflow++;
+      }
       switch(type){
+        case 'dash_hazard_defer':{
+          const row=this.summary.dashHazards.deferred;
+          const reason=typeof payload.reason==='string'?payload.reason:'unknown';
+          row.total++;
+          row.byReason[reason]=(row.byReason[reason]||0)+1;
+          break;
+        }
         case 'jump_input':this.summary.movement.jumpPresses++;break;
         case 'duck_input':this.summary.movement.duckPresses++;break;
         case 'echo_jump':this.summary.movement.echoJumps++;break;
@@ -84,6 +97,8 @@
         }
         case 'spawn':{
           this.summary.obstaclesSpawned++;
+          if(data.obstacle==='dash-jump')this.summary.dashHazards.spawned.air++;
+          if(data.obstacle==='dash-duck')this.summary.dashHazards.spawned.ground++;
           // Source: true obstacle spawn position in the actual game loop.
           // No player identifiers, touch coordinates or external logging.
           const reaction=this.summary.reaction;
@@ -186,7 +201,7 @@
         reaction:{...this.summary.reaction,byAction:Object.fromEntries(
           Object.entries(this.summary.reaction.byAction).map(([k,v])=>[k,{...v}]))}};
       return {format:'chroma-rush-round-audit',version:2,mode:this.mode,
-        build:'dash-pacing-1.1',
+        build:'dash-reliability-1.2',
         startingZone:this.startingZone,durationSeconds:duration,summary:sum,
         finalState:this.finalState||snap(context),events:this.events.map(e=>({...e})),
         samples:this.samples.map(s=>({...s})),truncatedEvents:this.overflow,

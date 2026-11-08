@@ -759,3 +759,74 @@ test('real game frames draw ONE background and ONE terrain during Chroma Tide 2.
     terrainRender.drawTerrain=oldTerrain;
   }
 });
+
+test('UI Calm keeps a one-tap primary run and accessible optional menus',()=>{
+  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  assert.match(html,/id="menu-practice" class="menu-drawer hidden"/);
+  assert.match(html,/id="menu-controls" class="menu-drawer hidden"/);
+  assert.match(html,/id="result-details" class="result-details hidden"/);
+  assert.match(html,/id="record-score"/);
+  assert.match(html,/id="record-zone"/);
+  assert.match(html,/id="final-score"/);
+  assert.match(html,/id="final-best"/);
+  assert.match(html,/id="final-perfect"/);
+  assert.match(html,/id="final-distance"/);
+  assert.match(html,/id="export-run-btn"/);
+  const g=setup({chromaRushArcadeV1:JSON.stringify({bestZone:6,bestScore:8000})});
+  g.step(0);
+  assert.equal(g.get('menu-practice').classList.contains('hidden'),true);
+  assert.equal(g.get('menu-controls').classList.contains('hidden'),true);
+  g.get('practice-toggle-btn').click();
+  assert.equal(g.get('menu-practice').classList.contains('hidden'),false);
+  assert.equal(g.get('practice-toggle-btn')['aria-expanded'],'true');
+  g.get('help-toggle-btn').click();
+  assert.equal(g.get('menu-controls').classList.contains('hidden'),false);
+  assert.equal(g.get('menu-practice').classList.contains('hidden'),true);
+  g.get('help-toggle-btn').click();
+  assert.equal(g.get('menu-controls').classList.contains('hidden'),true);
+  g.get('result-details-btn').click();
+  assert.equal(g.get('result-details').classList.contains('hidden'),false);
+  assert.equal(g.get('result-details-btn').textContent,'HIDE DETAILS');
+  g.get('start-btn').click();
+  assert.equal(g.get('result-details').classList.contains('hidden'),false,
+    'run start must not remove the actual results data');
+  g.get('result-details-btn').click();
+  assert.equal(g.get('result-details').classList.contains('hidden'),true);
+});
+
+test('REAL arcade generation places both grounded Dash lessons and a repeat on procedural terrain',()=>{
+  // The previous pure-Director simulation passed while 3 human runs reached
+  // zone 12 without one Dash hazard. This uses the FULL actual game frame,
+  // terrain generator, safety vetoes and arrival/flip system.
+  const g=setup();
+  g.step(0);g.get('start-btn').click();
+  const st=g.context.window.__gravityHarness;
+  let seed=20261108;
+  const rng=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
+  st.terrain.random=rng;
+  st.director.random=rng;
+  const known=new Set(),dash=[];
+  for(let i=1;i<=60*150;i++){
+    // Focus this simulation on generator reachability, not human reflexes.
+    // No obstacle is auto-cleared or new hazard invented by the test.
+    st.player().invulnerable=5;
+    st.setHP(100);
+    g.step(i*1000/60);
+    for(const o of st.hurdles()){
+      if(known.has(o.worldX))continue;
+      known.add(o.worldX);
+      if(o.type==='dash-jump'||o.type==='dash-duck'){
+        dash.push({type:o.type,zone:st.zone(),ceiling:st.gravityShift.ceiling,at:i/60});
+      }
+    }
+    if(dash.length>=4)break;
+  }
+  assert.ok(dash.length>=3,'real terrain should not starve guided Dash spawns: '+JSON.stringify(dash));
+  assert.equal(dash[0].type,'dash-jump');
+  assert.equal(dash[0].ceiling,false,'first Air Dash lesson must be on floor');
+  assert.equal(dash[1].type,'dash-duck');
+  assert.equal(dash[1].ceiling,false,'first Ground Dash lesson must be on floor');
+  assert.ok(dash[0].zone>=5&&dash[1].zone>=5);
+  assert.ok(dash.some(x=>x.type==='dash-jump'&&x.at>dash[1].at),
+    'Air Dash must return again after Ground Dash lesson');
+});

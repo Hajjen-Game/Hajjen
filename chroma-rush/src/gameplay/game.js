@@ -319,6 +319,7 @@
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
     $.controls.classList.add('hidden');$.hud.classList.add('hidden');$.pauseBtn.classList.add('hidden');
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');
+    closeMenuDrawers();closeResultDetails();
     $.menu.classList.remove('hidden');$.graphicsButton.classList.remove('hidden');$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');syncSoundButton(true);arcadeUI.menu($,progression);replayUI.menu($,replay);
   }
   function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');dash.cancel();dashReleasePending=null;dash.onDuckEnd();$.duck.classList.remove('dash-active');player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
@@ -341,6 +342,7 @@
       earned:unlockedThisRun});
     replayUI.results($,{practice:runMode==='practice',score:total,distance:Math.floor(distance),...replayResult});
     arcadeUI.menu($,progression);replayUI.menu($,replay);
+    closeResultDetails();
     $.milestoneToast.classList.add('hidden');$.gameover.classList.remove('hidden');
   }
   function openMilestones(){
@@ -575,6 +577,36 @@
     document.addEventListener('contextmenu',e=>e.preventDefault());
   }
   registerControls();
+  // UI Calm 1.0 — secondary options live in explicit disclosure drawers.
+  // No game settings, achievements, training, statistics or export removed.
+  const practiceToggle=el('practice-toggle-btn'),helpToggle=el('help-toggle-btn');
+  const practiceDrawer=el('menu-practice'),helpDrawer=el('menu-controls');
+  const detailsToggle=el('result-details-btn'),detailsDrawer=el('result-details');
+  const closeMenuDrawers=()=>{
+    for(const [button,drawer] of [[practiceToggle,practiceDrawer],[helpToggle,helpDrawer]]){
+      drawer.classList.add('hidden');
+      button.setAttribute('aria-expanded','false');
+    }
+  };
+  for(const [button,drawer] of [[practiceToggle,practiceDrawer],[helpToggle,helpDrawer]]){
+    button.addEventListener('click',()=>{
+      const opening=drawer.classList.contains('hidden');
+      closeMenuDrawers();
+      drawer.classList.toggle('hidden',!opening);
+      button.setAttribute('aria-expanded',String(opening));
+    });
+  }
+  const closeResultDetails=()=>{
+    detailsDrawer.classList.add('hidden');
+    detailsToggle.setAttribute('aria-expanded','false');
+    detailsToggle.textContent='RUN DETAILS';
+  };
+  detailsToggle.addEventListener('click',()=>{
+    const opening=detailsDrawer.classList.contains('hidden');
+    detailsDrawer.classList.toggle('hidden',!opening);
+    detailsToggle.setAttribute('aria-expanded',String(opening));
+    detailsToggle.textContent=opening?'HIDE DETAILS':'RUN DETAILS';
+  });
   arcadeUI.menu($,progression);replayUI.menu($,replay);
 
   // Response windows follow the ACTION'S physical demand. Place high-speed
@@ -583,18 +615,23 @@
   const spawnXFor=type=>FAIR.horizonFor(type,
     {speed,playerX:player.x,viewportWidth:W});
   function spawn(data){
-    // Hold new hazards while the arena safely changes orientation. Existing
-    // hazards finish their normal course; no artificial clears are awarded.
-    if(gravityShift.pending||gravityShift.shifting)return false;
-    const spire=window.ChromaConfig.ECHO_SPIRE;
     const isDashChallenge=DASH_HAZARDS.isDashHazard(data.type);
     const dashMode=DASH_HAZARDS.requiredMode(data.type);
+    const deferDash=reason=>{
+      if(isDashChallenge)runAudit.record('dash_hazard_defer',auditState(),{
+        obstacle:data.type,reason});
+      return false;
+    };
+    // Hold new hazards while the arena safely changes orientation. Existing
+    // hazards finish their normal course; no artificial clears are awarded.
+    if(gravityShift.pending||gravityShift.shifting)return deferDash('gravity_transition');
+    const spire=window.ChromaConfig.ECHO_SPIRE;
     const firstDash=isDashChallenge&&!director.dashIntroduced[dashMode];
     if(isDashChallenge&&!DASH_HAZARDS.safeToSpawn(data.type,{
       zone,hp,stress:director.stress,confidence:director.confidence,
       gravityBusy:gravityShift.pending||gravityShift.shifting||gravityShift.protected,
       surface:gravityShift.ceiling?'ceiling':'floor',
-      first:firstDash,guided:Boolean(data.guided)}))return false;
+      first:firstDash,guided:Boolean(data.guided)}))return deferDash('readiness');
     const firstEcho=data.type==='echo'&&!director.echoIntroduced;
     if(data.type==='echo'&&(zone<spire.firstZone||hp<=50||director.stress>=.42))return false;
     if(firstEcho&&(gravityShift.ceiling||gravityShift.pending||
@@ -611,24 +648,21 @@
         data.type==='jump'?rand(53,66):rand(115,158);
     const x=spawnXFor(data.type),worldX=distance+x;
     // Shield Core reserves an optional, obstruction-free double-jump corridor.
-    if(shieldCores.blocksHazard(worldX,width,speed))return false;
-    if(!terrain.canSpawnObstacle(worldX,width,speed))return false;
+    if(shieldCores.blocksHazard(worldX,width,speed))return deferDash('shield_lane');
+    if(!terrain.canSpawnObstacle(worldX,width,speed))return deferDash('terrain_flat');
     if(isDashChallenge){
-      // Demanding actions are always isolated on a flat approach/landing,
-      // safely away from earlier hurdles and planned terrain gaps.
-      const pad=Math.max(450,speed*1.45);
-      const approachY=terrain.groundAt(worldX-speed*.90);
-      const landingY=terrain.groundAt(worldX+width+speed*.90);
-      const baseline=terrain.groundAt(worldX+width*.5);
-      if(baseline===null||approachY===null||landingY===null||
-        Math.abs(approachY-baseline)>8||Math.abs(landingY-baseline)>8||
-        terrain.visibleGaps(worldX-pad,worldX+width+pad).length>0||
-        hurdles.some(o=>!o.hit&&!o.cleared&&
-          o.worldX+o.width>=worldX-pad&&o.worldX<=worldX+width+pad))
-        return false;
+      // The REAL physics rule (terrain.canSpawnObstacle) already ensures a
+      // flat collider and clear takeoff/landing across ~1.65s of runway.
+      // Requiring the ground to be at precisely the same elevation another
+      // ~2 seconds away vetoed practically every guided Dash in live runs.
+      // A distant gentle slope is fine; gaps/nearby hazards are NOT.
+      const localPad=Math.max(240,speed*.72);
+      if(hurdles.some(o=>!o.hit&&!o.cleared&&
+        o.worldX+o.width>=worldX-localPad&&
+        o.worldX<=worldX+width+localPad))return deferDash('neighbor_hazard');
     }
     const groundY=terrain.groundAt(worldX+width*.5);
-    if(groundY===null)return false;
+    if(groundY===null)return deferDash('terrain_gap');
     if(data.type==='echo'){
       // Double-jump barriers need a readable run-up and a predictable
       // takeoff. Wide elevation changes or a late visible approach are vetoed.
@@ -835,7 +869,8 @@
       !shieldCores.visible&&time>=shieldCores.nextAt-.7?
       player.x+Math.max(300,speed)*2.65:0;
     terrainDirector.prepare({right:distance+Math.max(W+800,farthestSpawn+speed*1.9+330,shieldPlanAhead),
-      playerWorld:distance+player.x,zone,speed,hp});
+      playerWorld:distance+player.x,zone,speed,hp,
+      surface:gravityShift.ceiling?'ceiling':'floor'});
     for(const feature of terrain.segments){
       if(feature.start>=lastTerrainWorld&&('gap'===feature.type||'slope'===feature.type))
         runAudit.record('terrain',auditState(),{feature:feature.echoChallenge?'echo-gap':feature.type,
@@ -967,7 +1002,9 @@
       zoneElapsed:time-(zone-1)*GAME.zoneSeconds,
       surface:gravityShift.ceiling?'ceiling':'floor',
       gravityPending:gravityShift.pending||gravityShift.shifting||
-        gravityShift.protected},spawn);
+        gravityShift.protected,
+      noteDashDefer:(reason,type)=>runAudit.record('dash_hazard_defer',auditState(),{
+        obstacle:type,reason})},spawn);
     if(phaseBefore!==director.phase)runAudit.record('phase',auditState(),
       {from:phaseBefore,to:director.phase,movement:director.movement.insight});
     const p=GEO.playerBox(player);

@@ -45,7 +45,7 @@
       }
       return {phase,remaining:0};
     }
-    policyAt(start,{playerWorld=0,zone=1,speed=370,hp=100}={}){
+    policyAt(start,{playerWorld=0,zone=1,speed=370,hp=100,surface=null}={}){
       const safeSpeed=Math.max(300,speed);
       const lead=Math.max(0,(start-playerWorld)/safeSpeed);
       const future=this.projectedPhase(lead);
@@ -55,8 +55,17 @@
       // No gaps in the early tutorial. A low-shield player receives a more
       // forgiving terrain phrase without slowing the world itself.
       const gentle=hp<=50||stress>=.40;
+      // Dash lessons are an explicit gameplay objective. Real player logs
+      // showed that free-running terrain could lack *any* eligible flat
+      // collider in a complete floor cycle. Temporarily author a calm
+      // flat corridor, then restore the original procedural palette once
+      // BOTH advanced actions have been encountered on the floor.
+      const dashLearningRunway=surface==='floor'&&zone>=5&&
+        this.director.echoIntroduced&&hp>50&&
+        (!this.director.dashIntroduced.air||
+         !this.director.dashIntroduced.ground);
       const peak=future.phase==='PEAK';
-      const permitGap=zone>=3 && !vulnerable &&
+      const permitGap=zone>=3 && !vulnerable && !dashLearningRunway &&
         start>=this.noGapsBefore &&
         (peak || (future.phase==='BUILD'&&zone>=5&&confidence>=.70));
       const gapTime=peak ? (gentle?.30:.35) : .29;
@@ -65,7 +74,7 @@
       // Keep the first zone-2 double-jump lesson on a predictable level
       // runway. Normal hills resume once the first Spire is introduced.
       const teachingEcho=zone===2&&!this.director.echoIntroduced;
-      const slopeChance=teachingEcho?0:
+      const slopeChance=teachingEcho||dashLearningRunway?0:
         (({BUILD:.52,PEAK:.36,FADE:.24,RELAX:.10})[future.phase]||.2);
       const maxHeightChange=({BUILD:62,PEAK:58,FADE:38,RELAX:23})[future.phase]||40;
       // Echo Gaps occur only in healthy, confident PEAK sections with
@@ -89,12 +98,12 @@
         gapSecondsMin:peak?.30:.27,gapSecondsMax:gapTime,
         echoGapChance:echoSafe?.30:0,
         echoGapSecondsMin:.92,echoGapSecondsMax:1.015,
-        noGapBefore:this.noGapsBefore};
+        noGapBefore:this.noGapsBefore,dashLearningRunway};
       this.lastPolicy=policy;
       return policy;
     }
-    prepare({right,playerWorld,zone,speed,hp}={}){
-      const context={playerWorld,zone,speed,hp};
+    prepare({right,playerWorld,zone,speed,hp,surface}={}){
+      const context={playerWorld,zone,speed,hp,surface};
       const added=this.terrain.ensure(right,zone,speed,start=>this.policyAt(start,context));
       for(const s of added){
         if(s.type==='gap')this.gapsPlanned++;
@@ -112,7 +121,12 @@
         const spawnX=typeof context.spawnXFor==='function'?
           context.spawnXFor(step.type):context.spawnX||0;
         const spawnWorld=(context.distance||0)+spawnX;
-        if(spawnWorld<this.noHazardsBefore){this.spawnsDeferred++;return false;}
+        const dashAction=step.type==='dash-jump'||step.type==='dash-duck';
+        if(spawnWorld<this.noHazardsBefore){
+          this.spawnsDeferred++;
+          if(dashAction)context.noteDashDefer?.('recovery_zone',step.type);
+          return false;
+        }
         // Wider than the basic collision veto: allow the player to finish a
         // gap landing before the next obstacle needs a reaction.
         const echo=step.type==='echo';
@@ -125,7 +139,11 @@
           return g.end>=spawnWorld-speed*seconds&&
             g.start<=spawnWorld+speed*seconds;
         });
-        if(overloaded){this.spawnsDeferred++;return false;}
+        if(overloaded){
+          this.spawnsDeferred++;
+          if(dashAction)context.noteDashDefer?.('near_gap',step.type);
+          return false;
+        }
         const created=spawn(step);
         if(created===false)this.spawnsDeferred++;
         return created;

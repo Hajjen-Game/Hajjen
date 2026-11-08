@@ -1,8 +1,17 @@
-# CHROMA RUSH — Dash Pacing 1.1 + Chroma Spectrum 2.0
+# CHROMA RUSH — Dash Reliability 1.2 + UI Calm 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Dash Reliability 1.2 + UI Calm 1.0 (2026-11-08)
+
+- **What failed in live play:** three uploaded arcade audit logs (zones 9, 12, 12) contained **172 real obstacle spawns, zero Dash obstacles**. The prior pure-Director 370-test run had not exercised the real terrain+gap+obstacle veto stack. This was not unlucky RNG.
+- **Corrected physical safety:** the normal terrain collider validator already guarantees an obstacle on flat ground with a clear launch/landing window. The Dash-specific validator incorrectly demanded *identical* elevation almost two seconds before/after the obstacle, plus faraway exclusions, so hilly late zones almost always rejected it. We now let gentle distant slopes coexist with Dash but preserve the local flat collider, no-gap corridor, collision geometry, true reaction lead, shield/gap constraints and collision-based spacing.
+- **Guided flat runway:** while teaching the two *first* Dash obstacles, Unified Terrain Director briefly generates floor-run training sections without slopes/gaps, only after the Echo Spire has been introduced; as soon as both Dash lessons spawn, ordinary procedural terrain resumes. Ceiling teaching is still forbidden, and normal Dash repeats may still occur on the ceiling.
+- **Diagnostics:** audit summary now records actual Dash spawns and a compact rejected-attempt count grouped by reason (rather than flooding event lists). This makes it possible to diagnose a real run directly instead of relying on isolated pattern simulation.
+- **UI Calm:** main menu focuses on the logo, START RUN, Best Score and Best Zone. Practice, Milestones and How to Play remain one tap away through compact secondary actions; full controls and training selectors do not crowd the default viewport. Run Complete puts the run score first, zone and personal best second, RUN AGAIN next; precision/streak/distance/comparison/challenge details are behind RUN DETAILS. Export Log remains one tap away for debugging. No settings, modes or records are removed.
+- **QA:** adds a **real game-frame integration test with actual terrain, obstacle spawning and gravity flipping through the late zones**, plus tests for the menu/results disclosure behavior. The old pure-Director test remains for pattern fairness.
 
 ## Dash Pacing 1.1 + Chroma Spectrum 2.0 (2026-11-08)
 

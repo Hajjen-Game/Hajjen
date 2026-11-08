@@ -27,6 +27,9 @@ function renderObstacle(type,{glow=.8,density=.8}={}){
     height:type==='echo'?194:type==='duck'?135:60,groundY:515,pulse:1};
   const lines=[];
   const env={ctx,GEO,DASH_HAZARDS,W:1280,H:720,worldTime:1.75,
+    // This legacy silhouette regression isolates pre-existing obstacle geometry.
+    // The separately-tested cosmetic engraving never changes its bounds.
+    identity:{drawHazardMark(){}},
     quality:{profile:{glow,density}},
     spectralWave:{colorAt:()=> '#53b5ff'},
     rgba:(hex,alpha)=>hex,

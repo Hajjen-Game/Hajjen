@@ -144,7 +144,7 @@ test('Momentum-seal feedback is audible but never grants invulnerability',()=>{
 test('Build scripts, visible unobtrusive seal labels and action cues are connected',()=>{
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const game=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');
-  const meta=html.indexOf('PERFORMANCE STABILITY 2.0');
+  const meta=html.indexOf('CHROMA IDENTITY 1.0');
   const dash=html.indexOf('src/gameplay/dash-hazards.js?v=dash-hazards-1.0');
   const engine=html.indexOf('src/gameplay/game.js?v=');
   assert.ok(meta>0&&dash>0&&engine>dash);

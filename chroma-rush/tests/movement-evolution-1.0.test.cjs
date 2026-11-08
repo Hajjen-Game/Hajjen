@@ -19,12 +19,13 @@ test('Echo Jump unlocks in zone 2, with a weaker second impulse and fixed gravit
   assert.equal(GAME.jumpVelocity,-870);
 });
 
-test('one second beat per deliberate airborne jump; rapid double-taps are filtered',()=>{
+test('one second beat per deliberate airborne jump; rapid distinct double-taps work',()=>{
   const c=new JumpController();
   assert.equal(jump(c,{grounded:true}),'jump');
-  assert.equal(jump(c),'ignored');
-  c.tick(JUMP_FEEL.echoMinAirSeconds+.004,300);
-  assert.equal(jump(c),'echo');
+  assert.equal(jump(c),'echo-buffered','a genuine fast second press must not be discarded');
+  assert.equal(c.tick(JUMP_FEEL.echoMinAirSeconds+.004,300),'echo',
+    'the buffered second impulse is delivered as soon as it can add real lift');
+  assert.equal(jump(c),'buffered','a third press never gives another echo');
   assert.equal(c.echoUsed,true);
   assert.equal(c.echoAvailable,false);
   assert.equal(jump(c),'buffered');

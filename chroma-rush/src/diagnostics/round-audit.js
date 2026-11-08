@@ -10,8 +10,12 @@
   'use strict';
   const MAX_EVENTS=600;
   const PHASES=['BUILD','PEAK','FADE','RELAX'];
+  // Movement events are intentionally local and minimal: no touch positions,
+  // pointer identifiers, key codes or device identifiers are stored.
   const TYPES=new Set(['start','phase','zone','terrain','spawn','obstacle_clear','obstacle_hit',
-    'invulnerable_contact','gap_clear','gap_miss','perfect_zone','flow_tier','combo','run_end']);
+    'invulnerable_contact','gap_clear','gap_miss','perfect_zone','flow_tier','combo','run_end',
+    'jump_input','duck_input','echo_jump','air_dash','ground_dash','dash_blocked',
+    'echo_unlocked','dash_unlocked','gravity_warning','gravity_shift_begin','gravity_shift_complete']);
   const number=(n)=>Number.isFinite(Number(n))?Math.round(Number(n)*100)/100:0;
   const snap=(input={})=>({
     time:number(input.time),zone:Math.max(1,number(input.zone)||1),
@@ -23,6 +27,8 @@
     gapsCleared:0,gapsMissed:0,perfectZones:0,terrainSlopes:0,terrainGaps:0,
     maxFlow:0,chromaSeconds:0,flowAbove65Seconds:0,highestStreak:0,
     precisionClears:0,masterClears:0,
+    movement:{jumpPresses:0,duckPresses:0,echoJumps:0,
+      airDashes:0,groundDashes:0,dashBlocked:0},
     combos:{count:0,bestChain:0,bonusPoints:0,bonusFlow:0,byLength:{2:0,3:0,4:0}},
     peakStress:0,peakConfidence:0,phaseSeconds:{BUILD:0,PEAK:0,FADE:0,RELAX:0},
     reaction:{measured:0,earlyCues:0,underBudget:0,
@@ -50,6 +56,12 @@
       if(this.events.length<MAX_EVENTS)this.events.push({type,...state,...payload});
       else this.overflow++;
       switch(type){
+        case 'jump_input':this.summary.movement.jumpPresses++;break;
+        case 'duck_input':this.summary.movement.duckPresses++;break;
+        case 'echo_jump':this.summary.movement.echoJumps++;break;
+        case 'air_dash':this.summary.movement.airDashes++;break;
+        case 'ground_dash':this.summary.movement.groundDashes++;break;
+        case 'dash_blocked':this.summary.movement.dashBlocked++;break;
         case 'spawn':{
           this.summary.obstaclesSpawned++;
           // Source: true obstacle spawn position in the actual game loop.
@@ -153,7 +165,8 @@
         combos:{...this.summary.combos,byLength:{...this.summary.combos.byLength}},
         reaction:{...this.summary.reaction,byAction:Object.fromEntries(
           Object.entries(this.summary.reaction.byAction).map(([k,v])=>[k,{...v}]))}};
-      return {format:'chroma-rush-round-audit',version:1,mode:this.mode,
+      return {format:'chroma-rush-round-audit',version:2,mode:this.mode,
+        build:'movement-evolution-2.1',
         startingZone:this.startingZone,durationSeconds:duration,summary:sum,
         finalState:this.finalState||snap(context),events:this.events.map(e=>({...e})),
         samples:this.samples.map(s=>({...s})),truncatedEvents:this.overflow,

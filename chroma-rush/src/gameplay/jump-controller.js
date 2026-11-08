@@ -12,11 +12,11 @@
   class JumpController {
     constructor(rules=DEFAULT_RULES){this.rules=rules;this.reset()}
     reset(){this.coyote=0;this.edgeX=-Infinity;this.buffer=0;this.graceUsed=false;
-      this.echoAvailable=false;this.echoUsed=false;this.airAge=0;}
+      this.echoAvailable=false;this.echoUsed=false;this.airAge=0;this.pendingEcho=false;}
     leaveLedge(edgeX){
       if(!Number.isFinite(edgeX))return;
       this.coyote=this.rules.coyoteSeconds;
-      this.edgeX=edgeX;this.graceUsed=false;this.echoAvailable=false;this.echoUsed=false;
+      this.edgeX=edgeX;this.graceUsed=false;this.echoAvailable=false;this.echoUsed=false;this.pendingEcho=false;
     }
     tick(dt,worldX){
       if(!(dt>0))return;
@@ -24,6 +24,15 @@
       this.buffer=Math.max(0,this.buffer-dt);
       if(this.echoAvailable)this.airAge+=dt;
       if(worldX-this.edgeX>this.rules.maxCoyoteDistance)this.coyote=0;
+      // A rapid SECOND tap is an explicit player command, not an accidental
+      // hold. Defer it until an impulse will actually extend the flight.
+      // This also survives a 30fps mobile frame between press/release.
+      if(this.pendingEcho&&this.echoAvailable&&!this.echoUsed&&
+        this.airAge>=(this.rules.echoMinAirSeconds??.095)){
+        this.consumeEcho();
+        return 'echo';
+      }
+      return null;
     }
     request({grounded=false,ducking=false,recovering=false,worldX=0,echoEnabled=false}={}){
       // During duck and spectral gap recovery, input must not queue up a surprise jump.
@@ -37,20 +46,30 @@
       // The first few frames are guarded against accidental rapid double taps.
       // Holding input does not count as a new press; that is enforced by the UI.
       if(echoEnabled&&this.echoAvailable&&!this.echoUsed){
-        if(this.airAge<(this.rules.echoMinAirSeconds??.095))return 'ignored';
-        this.echoUsed=true;this.echoAvailable=false;this.buffer=0;this.coyote=0;
+        // Never discard a fast new second tap: buffer it for a moment rather
+        // than applying the second impulse while vy is still at jumpVelocity
+        // (which would produce no extra lift).
+        if(this.airAge<(this.rules.echoMinAirSeconds??.095)){
+          this.pendingEcho=true;
+          return 'echo-buffered';
+        }
+        this.consumeEcho();
         return 'echo';
       }
       this.buffer=this.rules.bufferSeconds;
       return 'buffered';
     }
+    consumeEcho(){
+      this.echoUsed=true;this.echoAvailable=false;
+      this.pendingEcho=false;this.buffer=0;this.coyote=0;
+    }
     consumeJump(){this.coyote=0;this.buffer=0;this.graceUsed=true;
-      this.echoAvailable=true;this.echoUsed=false;this.airAge=0;}
+      this.echoAvailable=true;this.echoUsed=false;this.airAge=0;this.pendingEcho=false;}
     onLand({ducking=false,recovering=false}={}){
       this.coyote=0;
       this.edgeX=-Infinity;
       this.graceUsed=false;
-      this.echoAvailable=false;this.echoUsed=false;this.airAge=0;
+      this.echoAvailable=false;this.echoUsed=false;this.airAge=0;this.pendingEcho=false;
       if(recovering||ducking){this.buffer=0;return false;}
       const jump=this.buffer>0;
       this.buffer=0;

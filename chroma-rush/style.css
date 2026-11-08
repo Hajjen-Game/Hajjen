@@ -384,3 +384,16 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
   #controls .control{width:114px;}
   #controls .control-subtitle{font-size:7px;}
 }
+
+/* Movement Evolution 2.1: visible confirmation of the CONTEXTUAL DASH, even
+ * when fingers lift before the next animation frame on slower Android phones. */
+#controls .control-duck.dash-active::before {
+  background:rgba(243,64,174,.34);border-color:rgba(255,208,238,.96);
+  box-shadow:0 0 24px rgba(255,67,189,.72),inset 0 0 18px rgba(255,172,228,.34);
+}
+#controls .control-duck.dash-active .control-subtitle {
+  color:#fff;opacity:1;text-shadow:0 0 10px rgba(255,101,192,.8);
+}
+@media(prefers-reduced-motion:reduce) {
+  #controls .control-duck.dash-active::before {box-shadow:none;}
+}

@@ -1,8 +1,17 @@
-# CHROMA RUSH — Movement Evolution 2.0
+# CHROMA RUSH — Movement Evolution 2.1 — Control Reliability Fix
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Movement Evolution 2.1 — Control Reliability Fix (2026-11-08)
+
+- **Fix rapid Double Jump:** the 95ms no-input period that silently ignored a legitimate second press is removed. Each independently released/repressed jump now works immediately as soon as Double Jump unlocks in zone 2; holding a pointer or key still cannot auto-repeat.
+- **Dash available from the start:** rather than hiding it until zone 4 / higher speed, contextual Dash now works in zone 1. The onboarding prompt appears immediately and the existing instruction text reflects actual availability. One Air Dash per flight, and one Ground Dash per new duck sequence remain the rules.
+- **Correct stale asset risk:** `config.js`, `game.js`, `jump-controller.js`, `contextual-dash.js`, `style.css`, and `round-audit.js` all have fresh versioned URLs. The dash module and game also gracefully tolerate an unexpectedly older cached config.
+- **Touch robustness:** pointer-up/cancel on window clears stale captures if Android delivers the release outside the original button. A brief high-contrast DASH confirmation appears on the right button during the active dash.
+- **Action-level diagnostics:** round audit version 2 now retains input decisions, successful Double Jump/Air Dash/Ground Dash and rejected dash attempts with reason codes; no touch coordinates or personal identifiers. New per-run counters let real mobile reports conclusively distinguish presses not reaching the game from physics decisions.
+- **Fairness unchanged:** no new required dash hazards; gravity, damage, hitboxes and procedurally authored levels remain intact. Performance and mobile visual checks still required in the CI.
 
 ## Movement Evolution 2.0 — Contextual Dash (2026-11-08)
 

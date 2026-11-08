@@ -105,7 +105,7 @@
   // Air dash adds reach without altering the existing jump impulse.
   // Ground dash briefly extends an already active duck, not a hold-to-duck.
   const DASH=Object.freeze({
-    unlockZone:4,duration:.24,bonusFactor:.72,
+    unlockZone:1,duration:.24,bonusFactor:.72,
     minBonusSpeed:270,maxBonusSpeed:560,
     groundDuckMinRemaining:.55,hintSeconds:5.2
   });

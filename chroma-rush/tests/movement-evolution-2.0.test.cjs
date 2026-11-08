@@ -9,9 +9,10 @@ const {AdaptiveRushDirector}=require('../src/director/adaptive-director.js');
 const {playerBox}=require('../src/core/geometry.js');
 test('air dash is gated, one per airborne interval, and never teleports',()=>{
   const d=new ContextualDash();
-  assert.equal(d.request({zone:3,grounded:false}),null);
+  assert.equal(d.request({zone:1,grounded:true}),null);
+  assert.equal(DASH.unlockZone,1,'Dash is available immediately for real-device testing');
   assert.equal(d.request({zone:4,grounded:true}),null);
-  assert.equal(d.request({zone:4,grounded:false}), 'air');
+  assert.equal(d.request({zone:1,grounded:false}), 'air');
   const step=d.tick(1/60,500);
   assert.ok(step>0&&step<20);
   assert.equal(d.request({zone:4,grounded:false}),null);
@@ -75,7 +76,7 @@ test('two large thumb targets, canonical scripts, and one world step for terrain
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   const css=fs.readFileSync(path.join(__dirname,'../style.css'),'utf8');
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
-  assert.match(html,/src\/gameplay\/contextual-dash\.js\?v=contextual-dash-2\.0/);
+  assert.match(html,/src\/gameplay\/contextual-dash\.js\?v=contextual-dash-2\.1/);
   assert.match(html,/DUCK \/ DASH/);
   assert.match(html,/×2 DOUBLE JUMP/);
   assert.match(css,/#controls \.control \{width:clamp\(124px,17vw,188px\)/);
@@ -84,5 +85,5 @@ test('two large thumb targets, canonical scripts, and one world step for terrain
   assert.match(game,/o\.x-=worldStep/);
   assert.match(game,/dash\.onLand\(\)/);
   assert.match(game,/sound\(action==='air'\?'dash-air':'dash-ground'\)/);
-  assert.match(html,/LATEST UPDATE · MOVEMENT EVOLUTION 2\.0/);
+  assert.match(html,/LATEST UPDATE · MOVEMENT EVOLUTION 2\.1 — CONTROL FIX/);
 });

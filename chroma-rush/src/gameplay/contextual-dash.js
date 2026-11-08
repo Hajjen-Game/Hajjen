@@ -13,7 +13,13 @@
   'use strict';
   const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
   class ContextualDash{
-    constructor(rules=RULES){this.rules=rules;this.reset();}
+    constructor(rules=RULES){
+      // Old config.js may be cached independently on GitHub Pages. Fail
+      // predictably rather than making ALL duck presses throw TypeError.
+      this.rules=rules&&Number.isFinite(rules.unlockZone)?rules:{
+        unlockZone:1,duration:.24,bonusFactor:.72,minBonusSpeed:270,maxBonusSpeed:560};
+      this.reset();
+    }
     reset(){
       this.remaining=0;this.mode=null;this.usedAir=false;
       this.usedDuck=false;this.duckWindow=false;

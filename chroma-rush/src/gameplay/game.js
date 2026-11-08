@@ -110,7 +110,8 @@
   // Each new press triggers a fixed duck pulse. Holding never extends or repeats it.
   const DUCK_DURATION=GAME.duckDuration;
   const DUCK_RECOVERY=GAME.duckRecovery;
-  const DASH=window.ChromaConfig.DASH;
+  const DASH=window.ChromaConfig.DASH||{unlockZone:1,duration:.24,bonusFactor:.72,
+    minBonusSpeed:270,maxBonusSpeed:560,groundDuckMinRemaining:.55,hintSeconds:5.2};
   const SPEED_MARKS=Object.freeze([1.5,2,3,4,6,8]);
   let nextSpeedMark=0;
   function auditState(){return {time:worldTime,zone,hp,score,flow:flow.value,speed,distance,
@@ -263,7 +264,7 @@
     hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();combo.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();dash.reset();motion.reset();
     peakFlow=0;replayToastTime=0;
-    echoHintTime=startZone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone&&startZone<DASH.unlockZone?3.9:0;
+    echoHintTime=startZone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone?3.9:0;
     dashHintTime=startZone>=DASH.unlockZone?DASH.hintSeconds:0;
     $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');
     replay.start({practice:runMode==='practice',bestScore:progression.bestScore,bestZone:progression.bestZone});
@@ -272,10 +273,11 @@
     terrainDirector.prepare({right:W+1000,playerWorld:player.x,zone,speed,hp});
     runAudit.reset({mode:runMode,startingZone:startZone});
     runAudit.record('start',auditState(),{startingZone:startZone});
+    if(startZone>=DASH.unlockZone)runAudit.record('dash_unlocked',auditState(),{zone:startZone});
     $.exportRun.textContent='EXPORT RUN LOG';
     milestoneTime=0;unlockedThisRun=[];
     player={x:W*.265,feet:floorY,vy:0,landed:true,duck:false,duckTime:0,duckRecovery:0,wasAirborne:false,invulnerable:0,stretch:0};
-    input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');$.duck.classList.remove('is-down');
+    input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');$.duck.classList.remove('is-down','dash-active');
     $.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');
     $.menu.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.gameover.classList.add('hidden');$.pauseMenu.classList.add('hidden');
     $.hud.classList.remove('hidden');$.controls.classList.remove('hidden');$.pauseBtn.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';
@@ -283,8 +285,8 @@
     $.replayToast.classList.add('hidden');
     $.jump.setAttribute('aria-label',startZone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone?
       'Jump; tap again in the air for Double Jump':'Jump');
-    $.duck.setAttribute('aria-label',startZone>=DASH.unlockZone?
-      'Duck or Dash: tap while airborne for Air Dash, or tap again during Duck for Ground Dash':'Duck');
+    $.duck.setAttribute('aria-label',
+      'Duck or Dash: tap while airborne for Air Dash, or tap again during Duck for Ground Dash');
     arcadeUI.hud($,runMode==='practice');
     // Decorative GO cue runs while the usual safe runway begins, without
     // freezing or delaying physics, input or the procedural Director.
@@ -303,7 +305,7 @@
   function showMenu(){
     if(status==='running'||status==='paused')audio.stop();
     status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;echoHintTime=0;dashHintTime=0;
-    $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');dash.reset();
+    $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');dash.reset();$.duck.classList.remove('dash-active');
     spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();effects.reset();combo.reset();zoneSoundAtCrossing=false;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
@@ -311,11 +313,11 @@
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');
     $.menu.classList.remove('hidden');$.graphicsButton.classList.remove('hidden');$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');syncSoundButton(true);arcadeUI.menu($,progression);replayUI.menu($,replay);
   }
-  function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');dash.cancel();dash.onDuckEnd();player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
+  function pause(){if(status!=='running')return;status='paused';$.graphicsButton.classList.remove('hidden');$.pauseMenu.classList.remove('hidden');$.controls.classList.add('hidden');$.pauseBtn.textContent='▶';input.duckKeys.clear();input.duckPointer=null;input.jumpPointer=null;$.jump.classList.remove('is-down');dash.cancel();dash.onDuckEnd();$.duck.classList.remove('dash-active');player.duck=false;player.duckTime=0;player.duckRecovery=0;motion.duckCancel();$.duck.classList.remove('is-down');audio.pause();syncSoundButton(true);}
   function resume(){if(status!=='paused')return;status='running';$.graphicsButton.classList.add('hidden');$.graphicsPanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.controls.classList.remove('hidden');$.pauseBtn.textContent='Ⅱ';lastTs=performance.now();frameClock.reset(lastTs);audio.resume();syncSoundButton(true);}
   function endRun(){
     if(status!=='running')return;
-    status='dead';dash.cancel();speedTrails.reset();effects.reset();$.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
+    status='dead';dash.cancel();$.duck.classList.remove('dash-active');speedTrails.reset();effects.reset();$.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
     runAudit.finish(auditState());
     const total=Math.floor(score),previousBest=progression.bestScore;
     replayToastTime=0;$.replayToast.classList.add('hidden');
@@ -358,6 +360,8 @@
     const action=jumpControl.request({grounded:player.landed,ducking:player.duck,
       recovering:Boolean(gapRecovery),worldX:distance+player.x,
       echoEnabled:zone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone});
+    runAudit.record('jump_input',auditState(),{action,grounded:player.landed,
+      echoAvailable:jumpControl.echoAvailable});
     if(action==='jump'||action==='coyote')launchJump();
     else if(action==='echo')launchEcho();
   }
@@ -407,9 +411,21 @@
     if(status!=='running')return;
     // A second physical press while ducking or a new press in midair is Dash.
     // A first press on the ground remains the exact legacy duck.
+    const desired=player.duck?'ground':!player.landed?'air':'duck';
+    runAudit.record('duck_input',auditState(),{desired,grounded:player.landed,
+      ducking:player.duck});
     const action=dash.request({zone,grounded:player.landed,ducking:player.duck,
       recovering:Boolean(gapRecovery),shifting:gravityShift.shifting||gravityShift.protected});
-    if(!action){startDuck();return;}
+    if(!action){
+      if(desired!=='duck'){
+        const reason=gapRecovery?'gap_recovery':gravityShift.shifting||gravityShift.protected?
+          'gravity_shift':dash.active?'dash_active':desired==='air'&&dash.usedAir?
+          'air_spent':desired==='ground'&&dash.usedDuck?'ground_spent':
+          zone<DASH.unlockZone?'zone_locked':'not_ready';
+        runAudit.record('dash_blocked',auditState(),{desired,reason});
+      }
+      startDuck();return;
+    }
     if(action==='ground')player.duckTime=Math.max(player.duckTime,DASH.groundDuckMinRemaining);
     motion.dashStart(action==='ground');
     const color=action==='ground'?c2:c1;
@@ -423,6 +439,7 @@
       }
       if(motes.length>180)motes.splice(0,motes.length-180);
     }
+    $.duck.classList.add('dash-active');
     director.noteDash(action);
     runAudit.record(action==='air'?'air_dash':'ground_dash',auditState(),
       {extraSpeedFactor:DASH.bonusFactor,grounded:player.landed,
@@ -446,6 +463,7 @@
         {vx:fxRand(-205,-80),vy:fxRand(-12,5),life:fxRand(.12,.28),r:fxRand(.9,1.7)}));
   }
   function updateDuck(dt){
+    if(!dash.active)$.duck.classList.remove('dash-active');
     if(player.duck){
       player.duckTime=Math.max(0,player.duckTime-dt);
       if(player.duckTime===0){
@@ -477,6 +495,10 @@
     $.jump.addEventListener('pointerup',jumpRelease);
     $.jump.addEventListener('pointercancel',jumpRelease);
     $.jump.addEventListener('lostpointercapture',jumpRelease);
+    // Some Android browsers can deliver a release outside the captured
+    // element; clearing the matching pointer avoids stuck controls.
+    window.addEventListener('pointerup',jumpRelease);
+    window.addEventListener('pointercancel',jumpRelease);
     $.duck.addEventListener('pointerdown',e=>{e.preventDefault();
       if(input.duckPointer!==null)return;
       const freshPress=input.duckKeys.size===0;
@@ -487,6 +509,8 @@
     const duckRelease=e=>{if(input.duckPointer===e.pointerId)input.duckPointer=null;};
     $.duck.addEventListener('pointerup',duckRelease);$.duck.addEventListener('pointercancel',duckRelease);
     $.duck.addEventListener('lostpointercapture',duckRelease);
+    window.addEventListener('pointerup',duckRelease);
+    window.addEventListener('pointercancel',duckRelease);
     window.addEventListener('keydown',e=>{
       const k=e.code;
       if(['Space','ArrowUp','KeyW','ArrowDown','KeyS','Escape','KeyP'].includes(k))e.preventDefault();
@@ -600,7 +624,7 @@
       $.jump.setAttribute('aria-label','Jump; tap again in the air for Double Jump');
       runAudit.record('echo_unlocked',auditState(),{zone});
     }
-    if(zone===DASH.unlockZone){
+    if(zone===DASH.unlockZone&&zone!==1){
       dashHintTime=DASH.hintSeconds;
       $.duck.setAttribute('aria-label',
         'Duck or Dash: tap while airborne for Air Dash, or tap again during Duck for Ground Dash');
@@ -756,7 +780,9 @@
     flow.tick(dt,{phase:director.phase});
     combo.tick(dt);
     player.invulnerable=Math.max(0,player.invulnerable-dt);
-    jumpControl.tick(dt,distance+player.x);motion.tick(dt);
+    const bufferedEcho=jumpControl.tick(dt,distance+player.x);
+    if(bufferedEcho==='echo'&&!player.landed&&!gapRecovery&&!gravityShift.shifting)launchEcho();
+    motion.tick(dt);
     shake=Math.max(0,shake-dt*36);hitFlash=Math.max(0,hitFlash-dt);
     if(lastZoneCallout>0){lastZoneCallout-=dt;if(lastZoneCallout<=0)$.zoneCallout.classList.add('hidden')}
     if(milestoneTime>0){milestoneTime-=dt;if(milestoneTime<=0)$.milestoneToast.classList.add('hidden')}
@@ -802,7 +828,7 @@
       }
     }else if(player.landed){
       if(ground===null){
-        player.landed=false;player.vy=0;
+        player.landed=false;player.vy=0;dash.onLeaveGround();
         if(currentGap)jumpControl.leaveLedge(currentGap.start);
       }else{
         // Running follows the true slope while preserving horizontal speed.

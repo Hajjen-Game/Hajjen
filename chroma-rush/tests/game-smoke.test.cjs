@@ -64,7 +64,7 @@ function setup(initialStorage={}) {
   const ending='  requestAnimationFrame(frame);\n})();';
   assert.ok(gameCode.includes(ending));
   vm.runInContext(gameCode.replace(ending,
-    "  window.__gravityHarness={gravityShift,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,dash,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,hp:()=>hp,player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
+    "  window.__gravityHarness={gravityShift,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,dash,runAudit,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,hp:()=>hp,player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
     context,{filename:'game.js'});
   return {get,local,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
@@ -176,6 +176,66 @@ test('dash is cancelled on pause and never extends a held duck automatically',()
   h.game.get('resume-btn').click();
   h.advance(15);
   assert.equal(g.dash.groundCount,1);
+});
+
+
+test('zone 1: real touch taps trigger ground and air dashes, and audit records both',()=>{
+  const h=duckHarness(),g=h.game.context.window.__gravityHarness;
+  // No artificial zone advance: these interactions MUST work from launch.
+  const first=h.press();h.release(first);
+  assert.equal(g.player().duck,true);
+  const second=h.press();h.release(second);
+  assert.equal(g.dash.groundCount,1);
+  assert.equal(g.runAudit.summary.movement.groundDashes,1);
+  assert.equal(g.runAudit.summary.movement.duckPresses,2);
+  h.advance(65);
+  const before=g.dash.travel;
+  const jump=h.game.get('jump-btn');
+  for(const fn of jump.events.pointerdown??[])fn({pointerId:701,preventDefault(){}});
+  for(const fn of jump.events.pointerup??[])fn({pointerId:701});
+  assert.equal(g.player().landed,false);
+  const air=h.press();h.release(air);
+  assert.equal(g.dash.airCount,1);
+  h.advance(8);
+  assert.ok(g.dash.travel>before);
+  assert.equal(g.runAudit.summary.movement.airDashes,1);
+  assert.equal(g.runAudit.summary.movement.echoJumps,0);
+  assert.equal(g.runAudit.snapshot().build,'movement-evolution-2.1');
+});
+
+test('fast double-tap is buffered, then truly launches the second impulse',()=>{
+  const h=duckHarness(),g=h.game.context.window.__gravityHarness;
+  g.forceZone(2);
+  const jump=h.game.get('jump-btn');
+  const tap=id=>{
+    for(const fn of jump.events.pointerdown??[])fn({pointerId:id,preventDefault(){}});
+    for(const fn of jump.events.pointerup??[])fn({pointerId:id});
+  };
+  tap(711);
+  assert.equal(g.player().vy,-870);
+  tap(712); // same simulation frame; previously was silently ignored
+  assert.equal(g.jumpControl.pendingEcho,true);
+  assert.equal(g.runAudit.summary.movement.echoJumps,0);
+  h.advance(7);
+  assert.equal(g.jumpControl.echoUsed,true);
+  assert.equal(g.jumpControl.pendingEcho,false);
+  assert.equal(g.runAudit.summary.movement.echoJumps,1);
+  assert.ok(g.player().vy<-650,'buffered second beat creates a REAL upward impulse');
+  const jumps=g.runAudit.events.filter(x=>x.type==='jump_input');
+  assert.equal(jumps[0].action,'jump');
+  assert.equal(jumps[1].action,'echo-buffered');
+  tap(713);
+  assert.equal(g.runAudit.summary.movement.echoJumps,1,'third tap cannot add Echo');
+});
+
+test('global pointer release clears stale touch capture before rapid second press',()=>{
+  const h=duckHarness(),g=h.game.context.window.__gravityHarness;
+  const first=h.press();
+  h.game.fireWindow('pointerup',{pointerId:first});
+  const second=h.press();
+  assert.equal(g.dash.groundCount,1);
+  h.game.fireWindow('pointercancel',{pointerId:second});
+  assert.equal(g.runAudit.summary.movement.duckPresses,2);
 });
 
 test('sound toggle works during play and pause without an AudioContext',()=>{

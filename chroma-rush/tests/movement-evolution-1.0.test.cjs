@@ -106,12 +106,17 @@ test('Echo Jump increases flight time enough for marked gaps without changing ru
 
 test('Director authorizes rare Echo Gaps only for confident healthy PEAKs',()=>{
   const terrain=new TerrainSystem({random:()=>.5});
-  const director={phase:'PEAK',phaseDuration:5,phaseElapsed:0,stress:0,confidence:.85};
+  const director={phase:'PEAK',phaseDuration:5,phaseElapsed:0,stress:0,confidence:.85,
+    movement:{echoClears:1,pressure:0,lastEchoTime:-Infinity,recoveryUntil:0}};
   const system=new UnifiedTerrainDirector({terrain,director});
   const ctx={playerWorld:2000,zone:5,speed:1000,hp:100};
   const safe=system.policyAt(3000,ctx);
   assert.equal(safe.allowGap,true);
   assert.ok(safe.echoGapChance>0);
+  director.movement.echoClears=0;
+  assert.equal(system.policyAt(3000,ctx).echoGapChance,0,
+    'first double-jump encounter should be a cleared floor Spire, not a gap');
+  director.movement.echoClears=1;
   assert.equal(system.policyAt(3000,{...ctx,hp:25}).echoGapChance,0);
   assert.equal(system.policyAt(3000,{...ctx,zone:4}).echoGapChance,0);
   director.stress=.55;

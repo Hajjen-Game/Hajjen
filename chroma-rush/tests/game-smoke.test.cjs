@@ -365,17 +365,24 @@ test('real arcade loop introduces Echo Jump in zone 2, allows one new press and 
   assert.doesNotThrow(()=>state.render());
 });
 
-test('real zone-4 PEAK introduces a standalone Echo Spire: single jump fails, Echo Jump clears',()=>{
+test('first floor Echo lesson in zone 5: one jump fails, Echo clears, later ceiling remains playable',()=>{
   function play({secondJump=false,ceiling=false}={}){
     const g=setup({chromaRushArcadeV1:JSON.stringify({bestZone:6,bestScore:1800})});
-    g.step(0);g.get('practice-zone').value='4';g.get('practice-start-btn').click();
+    g.step(0);g.get('practice-zone').value='5';g.get('practice-start-btn').click();
     const state=g.context.window.__gravityHarness;
-    assert.equal(state.zone(),4);
+    assert.equal(state.zone(),5);
     state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
     state.terrain.gaps=[];state.terrain.generated=10000000;
     state.director.phase='PEAK';state.director.phaseDuration=6;state.director.phaseElapsed=0;
     state.director.spawnCountdown=0;state.director.stress=0;state.director.confidence=.85;
-    if(ceiling)state.gravityShift.ceiling=true;
+    if(ceiling){
+      // The real first lesson must be FLOOR-only. Simulate a *later* Echo
+      // encounter once the player has already cleared the floor tutorial.
+      state.gravityShift.ceiling=true;
+      state.director.echoIntroduced=true;
+      state.director.movement.echoClears=1;
+      state.director.pending=[{type:'echo',pattern:'single-echo',step:1}];
+    }
     g.step(1000/60);
     const first=state.hurdles()[0];
     assert.ok(first,'Director must introduce a visible obstacle');
@@ -388,7 +395,7 @@ test('real zone-4 PEAK introduces a standalone Echo Spire: single jump fails, Ec
     // Time the input relative to the ACTUAL obstacle's arrival, not a
     // constant calibrated to Speed Curve 1.0. Both curves must satisfy the
     // same physical test: one jump fails, two correctly timed jumps clear.
-    const speed=config.GAME.speedAt(3*config.GAME.zoneSeconds,4);
+    const speed=config.GAME.speedAt(4*config.GAME.zoneSeconds,5);
     const untilContact=(first.x-state.player().x-22)/speed;
     // Slower movement means the wide pillar overlaps the player longer;
     // place contact near the broad Echo apex, not near descent.

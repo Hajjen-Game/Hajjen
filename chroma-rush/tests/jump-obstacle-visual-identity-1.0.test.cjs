@@ -22,8 +22,8 @@ function renderObstacle(type,{glow=.8,density=.8}={}){
     fillRect(x,y,w,h){events.push(['fillRect',x,y,w,h])},
     fillText(text,x,y){events.push(['fillText',text,x,y])}
   };
-  const obstacle={type,x:300,width:type==='echo'?54:type==='duck'?62:52,
-    height:type==='echo'?210:type==='duck'?135:60,groundY:515,pulse:1};
+  const obstacle={type,x:300,width:type==='echo'?49:type==='duck'?62:52,
+    height:type==='echo'?194:type==='duck'?135:60,groundY:515,pulse:1};
   const lines=[];
   const env={ctx,GEO,H:720,worldTime:1.75,
     quality:{profile:{glow,density}},
@@ -100,13 +100,15 @@ test('duck gate preserves continuous sky energy field, its clear slot and core',
 
 test('Echo Spire retains a special two-chamber silhouette without text arrows',()=>{
   const run=renderObstacle('echo'),b=run.box;
-  assert.deepEqual(b,{x:300,y:515-210,w:54,h:210});
+  assert.deepEqual(b,{x:300,y:515-194,w:49,h:194});
   assert.equal(run.events.filter(e=>e[0]==='fillRect'&&e[4]===18).length,2,
     'two distinct luminous horizontal chambers replace floating instructions');
   assert.ok(run.lines.length>=6);
   assert.doesNotMatch(sourceCode,/ctx\.moveTo\(cx-13,yy\+10\)/);
-  assert.equal(ECHO_SPIRE.minHeight,204);
-  assert.equal(ECHO_SPIRE.maxHeight,216);
+  assert.equal(ECHO_SPIRE.minHeight,190);
+  assert.equal(ECHO_SPIRE.maxHeight,200);
+  assert.equal(ECHO_SPIRE.introMinHeight,190);
+  assert.equal(ECHO_SPIRE.introMaxHeight,194);
 });
 
 test('Performance settings and ceiling reflection leave geometry unaffected',()=>{
@@ -132,4 +134,23 @@ test('spawn sizes and all action-specific fairness planning are unchanged',()=>{
   assert.match(original,/data\.type==='jump'\?rand\(53,66\):rand\(115,158\)/);
   assert.match(original,/const x=spawnXFor\(data\.type\)/);
   assert.match(original,/FAIR\.metrics\(data\.type/);
+});
+
+test('Echo uses precisely the same shell silhouette as Jump, with two added energy chambers',()=>{
+  const jump=renderObstacle('jump'),echo=renderObstacle('echo');
+  for(const run of [jump,echo]){
+    const b=run.box;
+    assert.ok(run.events.some(e=>e[0]==='close'),'shared beveled course housing');
+    assert.ok(run.lines.some(l=>l.y1===b.y+5),'same bright top cap');
+    assert.ok(run.lines.some(l=>l.y1===b.y+b.h-3),'same bright bottom plinth');
+    assert.ok(run.events.some(e=>e[0]==='fillRect'&&e[2]===b.y+b.h-12&&e[4]===10),
+      'identical grounded foot rail');
+    const solid=run.events.filter(e=>e[0]==='fillRect');
+    for(const e of solid){
+      assert.ok(e[1]>=b.x&&e[1]+e[3]<=b.x+b.w);
+      assert.ok(e[2]>=b.y&&e[2]+e[4]<=b.y+b.h);
+    }
+  }
+  assert.equal(jump.events.filter(e=>e[0]==='fillRect'&&e[4]===18).length,0);
+  assert.equal(echo.events.filter(e=>e[0]==='fillRect'&&e[4]===18).length,2);
 });

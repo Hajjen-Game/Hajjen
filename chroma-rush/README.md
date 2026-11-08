@@ -1,8 +1,16 @@
-# CHROMA RUSH — Speed Curve 2.0
+# CHROMA RUSH — Echo Spire 1.1
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Echo Spire 1.1 — Shared Barrier Style & First Floor Lesson (2026-11-08)
+
+- **Shared design language:** the tall Echo Spire and ordinary Low Neon Barrier now use the SAME beveled housing, recessed front, white top rail, side structure and illuminated floor plinth. The Spire retains two distinct integral energy chambers, but no text, detached arrows or floating instruction icons. Duck Gates retain their established design.
+- **More forgiving after Speed Curve 2.0:** ordinary Spires are **190–200** world units high and **46–52** units wide; the very first lesson is only **190–194** high and **46–49** wide. The canonical single-jump apex remains ~**177** world units, so one jump is still insufficient, while the double-jump now has a broader vertical and horizontal timing window at low speed.
+- **Grounded first lesson:** starts from **zone 5** (following the first Ceiling Run in zones 3–4). The Director and the real spawn function both require the *actual floor orientation* for the first Echo Spire, with no pending/in-progress gravity flip. The first hard gap demanding double jump is withheld until a Spire has been **really cleared**, so the first mandatory double-jump challenge is never an Echo Gap in the ceiling. Later Echo Spires are still possible on either surface.
+- **No terrain loophole:** Spires require a nearly level takeoff and landing (within 8 world units of the obstacle base), preventing a first-jump bypass from a much higher slope. No changes to player jump impulses, speed acceleration, Flow scoring, HP, obstacle controls, or normal JUMP/DUCK/regular gap balance.
+- [Updated Echo physics/Director tests](tests/echo-spire-1.0.test.cjs) cover single-vs-double-jump at slower speeds, genuine early-floor introduction, deferred ceiling spawns, and later ceiling support. [Visual render tests](tests/jump-obstacle-visual-identity-1.0.test.cjs) compare the shared shell under both Low and High graphics settings.
 
 ## Speed Curve 2.0 (2026-11-08)
 
@@ -37,7 +45,7 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 - **Low Neon Barrier:** the normal JUMP obstacle now reads as a physical grounded barrier with a full-footprint beveled shell, continuous top rail, recessed panel, vertical chassis supports and a broad luminous base. It uses the existing palette-linked colors and the same lightweight canvas drawing language as Duck Gates, without copying their tall silhouette.
 - **No in-world direction labels:** the old floating `↑ JUMP` / `↓ DUCK` text and arrows are removed from regular obstacles. The Echo Spire also drops the floating `2× JUMP` instruction and replaces its arrow-shaped inner chevrons with two integrated energy chambers. The tall DUCK energy field and crawl clearance are unchanged.
-- **All collision footprints are unchanged:** normal JUMP widths 43–58 and heights 53–66, the DUCK gate's 28 logical-unit slot, and the Echo Spire's double-jump height remain exactly the same. The normal barrier's solid artwork stays entirely within its original hitbox; no invisible solid decorative wings or altered timing are introduced.
+- **All collision footprints are unchanged:** normal JUMP widths 43–58 and heights 53–66, the DUCK gate's 28 logical-unit slot, and the Echo Spire height is revised in 1.1 (see above). The normal barrier's solid artwork stays entirely within its original hitbox; no invisible solid decorative wings or altered timing are introduced.
 - Gameplay buttons, Gravity Shift world reflection, scoring, procedural Director, high-speed fairness budgets and offscreen reaction-time HUD remain untouched. **The high-speed offscreen cue is a separate accessibility/fairness system, not text floating on an obstacle.**
 - [Regression tests](tests/jump-obstacle-visual-identity-1.0.test.cjs) render all three live obstacle branches under normal and Low graphics settings and assert text removal, integrated shape, geometric footprint integrity and ceiling symmetry. Manual visual review on mobile is still recommended.
 
@@ -54,7 +62,7 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 - Adds a **pure, testable movement intelligence layer** (`src/director/movement-awareness.js`) alongside Adaptive Rush Director 2.0 and Unified Terrain Director 3.0. It models regular jumps, duck, Echo Jump, ordinary gaps and long Echo Gaps using **real control-commitment windows**, skill demand and recovery costs, without changing the input, physics, score or auto-run speed.
 - Director composes short, **physically playable action phrases** (jump → duck, duck → jump, solo Echo, and later Echo combinations). Motif costs and dynamic effort budgets screen out overly hard strings after damage, recent heavy moves or low confidence; phase transitions still create genuine no-hazard breathing room.
-- **Echo Spire difficulty is intentionally moderated.** The initial Spire remains a solitary, clearly labeled lesson after zone 4 during a healthy PEAK. More complex Echo phrases are only eligible after **at least one actual Echo Spire clear**. Echo spawns are separated by at least 7.2 seconds and refused when the visible approach becomes too short at extreme speed, avoiding impossible late prompts and stalled spawn queues.
+- **Echo Spire difficulty is intentionally moderated.** The initial Spire is an unlabelled, isolated floor lesson from zone 5 during a healthy PEAK. More complex Echo phrases are only eligible after **at least one actual Echo Spire clear**. Echo spawns are separated by at least 7.2 seconds and refused when the visible approach becomes too short at extreme speed, avoiding impossible late prompts and stalled spawn queues.
 - **Gap and obstacle Directors cooperate:** full aerial-recovery distance prevents an Echo Spire from immediately following a chasm or an Echo Gap from piling onto a recent Spire. Successful / missed gaps, real collision damage, genuine obstacle clears and gravity shifts feed measured movement pressure and future recovery windows. A terrain veto postpones unsafe obstacles rather than faking successful clears.
 - Terrain generation and player physics remain canonical, so ceiling running mirrors the same collision/reaction windows. No Dash, extra buttons, physics alterations, scripted fixed levels or monetization.
 - Run diagnostics include movement pressure at each recorded event and a Director insight snapshot with demand/cooldown state. New [movement-aware tests](tests/movement-aware-director-1.0.test.cjs) cover real jump durations, phrase effort, cooldowns, low-HP fallback, gap coordination, gravity recovery and high-speed lead-time safety.
@@ -62,9 +70,9 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 ## Echo Spire 1.0 — True Double-Jump Hazards (2026-11-07)
 
-- Adds **Echo Spire**, a grounded, tall neon obstacle with a distinctive split-chevron body and a clear **2× JUMP** label, readable on Low graphics. It is not a stretched duck gate and cannot be crouched under.
-- Height: **204–216 logical pixels**. The regular first-jump apex is about **177 pixels**, making a single jump physically insufficient; a reasonably timed Echo Jump clears comfortably. The hitbox ends at the visible top and matches the drawn body exactly.
-- Introduced starting **zone 4**, after the zone 2 Echo Jump onboarding. The Adaptive Director places a **single isolated introductory Spire** at the first healthy, confident PEAK opportunity and defers it if the ground is unsafe. After introduction it may appear in BUILD/PEAK phrases, with later zone 6+/8+ optional multi-action motifs.
+- Adds **Echo Spire**, a grounded, tall neon obstacle with a distinctive tall two-chamber body with no floating instruction label, readable on Low graphics. It is not a stretched duck gate and cannot be crouched under.
+- Original 1.0 height: **204–216 logical pixels**, replaced by **190–200** in 1.1. The regular first-jump apex is about **177 pixels**, making a single jump physically insufficient; a reasonably timed Echo Jump clears comfortably. The hitbox ends at the visible top and matches the drawn body exactly.
+- Originally started at **zone 4**, moved to **zone 5 on the floor** in 1.1, after the zone 2 Echo Jump onboarding. The Adaptive Director places a **single isolated introductory Spire** at the first healthy, confident PEAK opportunity and defers it if the ground is unsafe. After introduction it may appear in BUILD/PEAK phrases, with later zone 6+/8+ optional multi-action motifs.
 - Director spacing accounts for Echo flight and landing recovery. No Spires during low HP, high friction, early tutorial, FADE/RELAX or the unsafe portion of Gravity Shift. The existing terrain safety veto ensures no gaps or unsuitable slopes near the takeoff/landing.
 - Normal jumps, duck gates, two-button controls, normal and Echo Gaps, physics, speed progression, score rules and original atmosphere remain intact. All obstacle coordinates are inverted with the course during ceiling running.
 - A genuine Echo Spire clear receives a compact angular/particle flourish and an audit event. New regression tests simulate normal-vs-double-jump collision across speeds and verify Director sequencing, low-HP exclusions and the real arcade loop on both surfaces.
@@ -83,7 +91,7 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 - Normal jump, coyote time, 110ms landing buffer, recovery safety, gravity transitions and collision hitboxes are retained. Echo Jump does not alter horizontal speed, score or the Director's obstacle timing.
 - The secondary beat has a distinct fast squash-then-stretch, layered angular light cuts, a small glow trail, procedural two-part sound and short vibration. Effects are drawn in the canonical player world, so ceiling mode mirrors them correctly. Reduced-motion and Low Graphics remain respected.
 - A brief in-run cue teaches **TAP JUMP AGAIN IN THE AIR** at zone 2. A two-pronged accent follows the cube when the airborne second jump is available. Practice runs starting in later zones have it immediately.
-- **Echo Gaps** are rare, opt-in longer chasms beginning zone 5, labelled **2× JUMP**. The Unified Terrain Director permits these only in healthy, confident PEAK segments with enough time to land. Regular gaps keep their previous sizes and generation rates.
+- **Echo Gaps** are rare, opt-in longer chasms from zone 5, now unlocked only after a real Echo Spire clear, labelled **2× JUMP**. The Unified Terrain Director permits these only in healthy, confident PEAK segments with enough time to land. Regular gaps keep their previous sizes and generation rates.
 - Run audit records Echo Jump uses and whether each gap was an Echo challenge. The new [movement tests](tests/movement-evolution-1.0.test.cjs) cover controller state, physical flight reachability, Director policy, marker generation and mobile input.
 - Initial tuning proposal: playtest the second impulse and long-gap frequency; the current values are not yet declared final.
 

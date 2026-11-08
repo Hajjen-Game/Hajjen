@@ -7,7 +7,7 @@ const {AdaptiveRushDirector,PHASE}=require('../src/director/adaptive-director.js
 const {PATTERNS,candidates}=require('../src/director/patterns.js');
 const {UnifiedTerrainDirector}=require('../src/director/unified-terrain-director.js');
 
-const ready={zone:8,hp:100,stress:0,confidence:.85,phase:'PEAK',speed:950};
+const ready={zone:8,hp:100,stress:0,confidence:.85,phase:'PEAK',speed:950,surface:'floor'};
 test('movement envelopes track actual jump, duck and Echo commitments',()=>{
   const flight=2*Math.abs(GAME.jumpVelocity)/GAME.gravity;
   assert.ok(Math.abs(PROFILES.jump.commit-flight)<.00001);
@@ -31,7 +31,7 @@ test('time-based transition spacing remains safe and adapts to varying speed',()
 test('initial Echo Spire is isolated; combos require demonstrated success',()=>{
   const d=new AdaptiveRushDirector(()=>.5);
   d.phase=PHASE.PEAK;d.confidence=.85;d.time=20;
-  assert.equal(d.selectPattern({zone:4,hp:100,speed:800}).id,'single-echo');
+  assert.equal(d.selectPattern({zone:5,hp:100,speed:800,surface:'floor'}).id,'single-echo');
   d.echoIntroduced=true;
   const choices=candidates('PEAK',8,3).filter(p=>d.movement.allowPattern(p,ready,20));
   assert.ok(choices.some(p=>p.id==='single-echo'));
@@ -96,7 +96,7 @@ test('terrain veto keeps an Echo Spire queued and forbids crowding an Echo Gap',
   const d=new AdaptiveRushDirector(()=>.5),u=new UnifiedTerrainDirector({terrain,director:d});
   d.phase='PEAK';d.phaseDuration=5;d.confidence=.85;d.spawnCountdown=0;
   let calls=0;
-  const ctx={zone:4,hp:100,speed:900,playerX:300,distance:1300,spawnX:1370};
+  const ctx={zone:5,hp:100,speed:900,playerX:300,distance:1300,spawnX:1370,surface:'floor'};
   u.tick(.016,ctx,()=>{calls++;return true});
   assert.equal(calls,0);
   assert.equal(d.echoIntroduced,false);
@@ -133,7 +133,7 @@ test('no Echo is introduced during low shield, relax, recovery or after gravity 
 });
 test('browser loads movement model before Director, and game reports movement state',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  const first=html.indexOf('src/director/movement-awareness.js?v=movement-aware-1.0');
+  const first=html.indexOf('src/director/movement-awareness.js?v=movement-aware-1.0-echo-polish-1.1');
   const next=html.indexOf('src/director/adaptive-director.js?v=');
   const game=html.indexOf('src/gameplay/game.js?v=');
   assert.ok(first>0&&first<next&&next<game);

@@ -73,8 +73,13 @@
       const arrival=(this.director.time||0)+lead;
       const movementSafe=!movement || (movement.pressure<1.6&&
         arrival-movement.lastEchoTime>3.3&&arrival>=movement.recoveryUntil+.6);
-      const echoSafe=zone>=5&&safeArrival&&peak&&future.remaining>=1.58&&
-        !gentle&&stress<.33&&confidence>=.53&&hp>50&&movementSafe;
+      // Teach the FIRST required double jump via a single Spire on the
+      // floor. Echo Gaps are not allowed to appear first by accident during
+      // terrain lookahead; they unlock after a REAL successful Spire clear.
+      const echoSkillLearned=(movement?.echoClears||0)>0;
+      const echoSafe=zone>=5&&echoSkillLearned&&safeArrival&&peak&&
+        future.remaining>=1.58&&!gentle&&stress<.33&&
+        confidence>=.53&&hp>50&&movementSafe;
       const policy={phase:future.phase,leadSeconds:lead,allowGap:safeArrival,
         gapChance,slopeChance,maxHeightChange:gentle?Math.min(40,maxHeightChange):maxHeightChange,
         gapSecondsMin:peak?.30:.27,gapSecondsMax:gapTime,

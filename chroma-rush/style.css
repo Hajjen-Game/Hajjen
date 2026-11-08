@@ -613,3 +613,242 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
   #gameover .result-score::after{margin-top:2px;}
 }
 @media(prefers-reduced-motion:reduce){#menu .primary-btn,#gameover .primary-btn{transition:none;}}
+
+/* PREMIUM ARCADE UI & FINAL COHESION 4.0
+ * Content-first hierarchy, low-cost light geometry, no running animations,
+ * no blur/filter layers, no new canvas work. The original background remains.
+ * Compact 16:9 mobile layouts keep primary actions accessible without scroll.
+ */
+:root{
+  --arcade-silver:#ecf8ff;
+  --arcade-secondary:#9ab6d0;
+  --arcade-line:rgba(136,224,255,.17);
+  --arcade-surface:rgba(7,14,32,.69);
+}
+#menu.screen-panel,#gameover.screen-panel{
+  width:min(700px,95%);
+  padding:clamp(10px,2vh,24px) 18px;
+  max-height:calc(100dvh - 16px);
+  overflow-y:auto;overscroll-behavior:contain;
+  gap:0;
+}
+#menu.screen-panel::before,#gameover.screen-panel::before{
+  inset:-34px -28px;
+  border-radius:24px;
+  background:radial-gradient(ellipse 62% 74% at 50% 48%,
+    rgba(5,12,29,.91) 14%,rgba(5,12,29,.77) 56%,rgba(5,12,29,0) 100%);
+  box-shadow:none;
+}
+#menu .menu-eyebrow{display:none;}
+#menu h1{
+  margin:0;font-size:clamp(47px,7.1vw,94px);line-height:1.03;
+  letter-spacing:-.073em;white-space:nowrap;
+  text-shadow:none;
+}
+#menu h1::after{
+  bottom:-9px;height:2px;left:29%;width:42%;opacity:.75;
+}
+#menu .menu-tagline{
+  margin:20px 0 0;color:#a7bfd4;letter-spacing:.28em;
+  font-size:clamp(9px,.85vw,12px);font-weight:750;
+}
+#menu .primary-btn,#gameover .primary-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:min(350px,85%);max-width:350px;
+  min-height:55px;padding:12px 24px;margin-top:19px;
+  border-radius:11px;border:1px solid rgba(227,253,255,.91);
+  background:linear-gradient(106deg,#bdfcff 0%,#79f1ff 53%,#68d8fa 100%);
+  color:#06182a;box-shadow:0 8px 28px rgba(32,225,250,.20),
+    inset 0 1px rgba(255,255,255,.82);
+  font-size:clamp(14px,1.22vw,17px);
+  letter-spacing:.15em;font-weight:900;
+}
+#menu .primary-btn::before,#gameover .primary-btn::before{
+  left:14px;top:50%;height:14px;width:2px;opacity:.32;
+}
+#menu .primary-btn span,#gameover .primary-btn span{
+  position:absolute;right:18px;margin:0;
+  font-size:21px;font-weight:600;
+}
+#menu .primary-btn:hover,#gameover .primary-btn:hover{
+  box-shadow:0 9px 32px rgba(38,222,248,.32),inset 0 1px rgba(255,255,255,.9);
+}
+#menu .menu-highlights{
+  display:grid;grid-template-columns:1fr 1fr;
+  align-items:center;width:min(340px,85%);
+  margin-top:17px;padding:11px 0 10px;
+  border-top:1px solid var(--arcade-line);
+  border-bottom:1px solid var(--arcade-line);
+  background:transparent;
+}
+#menu .menu-highlights>div{gap:4px;}
+#menu .menu-highlights>div+div{border-left:1px solid var(--arcade-line);}
+#menu .menu-highlights span,#gameover .result-highlights span{
+  font-size:clamp(9px,.72vw,10px);
+  letter-spacing:.13em;color:var(--arcade-secondary);
+}
+#menu .menu-highlights strong{
+  font-size:clamp(21px,2.1vw,28px);line-height:1.04;
+  color:var(--arcade-silver);font-variant-numeric:tabular-nums;
+}
+#menu .menu-quick-actions{
+  display:flex;flex-wrap:nowrap;align-items:center;
+  width:min(420px,100%);gap:0;justify-content:space-between;
+  margin-top:12px;
+}
+#menu .menu-quick-actions button{
+  font-size:clamp(9px,.78vw,11px);letter-spacing:.06em;
+  color:#b5cadf;padding:9px 8px;min-height:35px;
+  border-bottom:1px solid transparent;white-space:nowrap;
+}
+#menu .menu-quick-actions button span{
+  font-size:1em;color:inherit;letter-spacing:.035em;
+}
+#menu .menu-quick-actions button:focus-visible,
+#menu .menu-quick-actions button[aria-expanded="true"]{
+  color:#e3faff;border-bottom-color:#65eaff;
+}
+#menu .menu-drawer{
+  width:min(470px,95%);padding:10px 13px;margin-top:7px;
+  background:var(--arcade-surface);border:1px solid var(--arcade-line);
+}
+#menu .version{display:none;}
+/* End-of-run: score first; zone and PB second; actions third. */
+#gameover h2{
+  font-size:clamp(32px,4vw,52px);line-height:1.05;
+  letter-spacing:-.05em;margin:0 0 6px;
+}
+#gameover #final-mode{
+  color:#a5bed2;font-size:clamp(9px,.75vw,11px);
+  letter-spacing:.17em;margin-bottom:5px;
+}
+#gameover:not(.is-practice) #final-mode{display:none;}
+#gameover .result-score{
+  width:100%;gap:3px;
+}
+#gameover .result-score span{
+  font-size:clamp(9px,.76vw,11px);letter-spacing:.26em;
+  color:#97b9d2;
+}
+#gameover .result-score strong{
+  font-size:clamp(50px,6.2vw,82px);
+  line-height:1;letter-spacing:-.012em;
+  color:#f0fcff;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 18px rgba(80,239,255,.20);
+}
+#gameover .result-score::after{
+  width:min(250px,43%);margin-top:9px;height:2px;opacity:.64;
+}
+#gameover .result-highlights{
+  display:grid;grid-template-columns:1fr 1fr;
+  width:min(340px,83%);margin-top:9px;padding:9px 0;
+  border-top:none;border-bottom:1px solid var(--arcade-line);
+}
+#gameover .result-highlights>div{gap:4px;}
+#gameover .result-highlights>div+div{border-left:1px solid var(--arcade-line);}
+#gameover .result-highlights strong{
+  font-size:clamp(19px,1.95vw,25px);
+  color:#e8faff;
+}
+#gameover .final-record{
+  margin-top:8px;color:#9fefff;
+  font-size:clamp(9px,.75vw,11px);letter-spacing:.15em;
+}
+#gameover .final-record:not(.new-record){display:none;}
+#gameover.is-new-best .result-score strong{
+  color:#fff5ff;text-shadow:0 0 24px rgba(255,110,213,.35);
+}
+#gameover.is-new-best .result-score::after{
+  background:linear-gradient(90deg,transparent,#ff8fdb,#e8fbff,transparent);
+}
+#gameover .primary-btn{margin-top:15px;}
+#gameover .result-links{
+  margin-top:8px;width:min(350px,88%);
+  display:flex;flex-wrap:nowrap;justify-content:space-around;
+  gap:8px;
+}
+#gameover .result-links button{
+  padding:8px 12px;min-height:34px;
+  color:#b2cce1;font-size:clamp(9px,.75vw,11px);
+  letter-spacing:.09em;
+}
+#gameover .result-details{
+  width:min(480px,94%);padding:11px 14px;
+  max-height:min(37dvh,210px);margin-top:6px;
+  background:var(--arcade-surface);border:1px solid var(--arcade-line);
+  border-radius:12px;
+}
+#gameover #export-run-btn{
+  margin:10px 0 0;padding:6px 8px;border:0;
+  border-top:1px solid var(--arcade-line);
+  background:none;box-shadow:none;width:100%;
+  color:#9abbd4;font-size:10px;letter-spacing:.1em;
+  text-align:center;font-weight:700;min-height:30px;
+}
+#gameover #export-run-btn:hover,#gameover #export-run-btn:focus-visible{
+  color:#e4faff;
+}
+/* HUD: one glance for shield/Flow, zone and score; Director telemetry stays
+ * in the DOM for tests but no longer competes visually with gameplay. */
+#hud{gap:clamp(9px,2vw,24px);}
+#hud .hud-left{width:clamp(130px,19vw,210px);}
+#hud .hud-center{min-width:130px;}
+#hud .hud-center .small-label{display:none;}
+#hud #phase-display{display:none;}
+#hud #zone-display{
+  margin-top:3px;line-height:1;
+  font-size:clamp(22px,2.35vw,31px);
+  letter-spacing:.12em;
+}
+#hud #score-display{
+  font-size:clamp(21px,2.4vw,31px);
+  letter-spacing:.055em;line-height:1.1;
+}
+#hud .hud-right{padding-right:clamp(70px,10vw,116px);}
+#hud .tiny-label{font-size:clamp(9px,.75vw,11px);opacity:.78;}
+#hud .flow-status{opacity:.77;}
+#hud #flow-outer,#hud .hp-outer{
+  height:5px;border-radius:3px;
+  background:rgba(144,193,226,.15);
+}
+#hud #flow-inner,#hud #hp-inner{border-radius:2px;}
+/* Compact landscape phones: make the CTA usable without zoom/scroll. */
+@media(max-height:440px) and (orientation:landscape){
+  #menu.screen-panel,#gameover.screen-panel{padding:5px 12px;max-height:calc(100dvh - 8px);}
+  #menu h1{font-size:clamp(36px,6.9vw,72px);line-height:1;}
+  #menu h1::after{bottom:-5px;height:2px;}
+  #menu .menu-tagline{margin-top:11px;font-size:9px;}
+  #menu .primary-btn,#gameover .primary-btn{
+    min-height:42px;padding:8px 20px;margin-top:9px;
+    font-size:13px;width:min(330px,84%);
+  }
+  #menu .menu-highlights{margin-top:8px;padding:6px 0;}
+  #menu .menu-highlights strong{font-size:19px;}
+  #menu .menu-quick-actions{margin-top:3px;}
+  #menu .menu-quick-actions button{padding:5px 6px;min-height:30px;font-size:9px;}
+  #menu .menu-drawer{margin-top:4px;padding:7px 10px;}
+  #gameover h2{font-size:clamp(28px,3.8vw,42px);margin-bottom:3px;}
+  #gameover .result-score strong{font-size:clamp(41px,5vw,58px);}
+  #gameover .result-score::after{margin-top:4px;}
+  #gameover .result-highlights{margin-top:4px;padding:5px 0;}
+  #gameover .result-highlights strong{font-size:18px;}
+  #gameover .final-record{margin-top:3px;}
+  #gameover .result-links{margin-top:3px;}
+  #gameover .result-links button{min-height:29px;padding:5px 9px;}
+  #gameover .result-details{max-height:30dvh;margin-top:4px;}
+  #hud .hud-center{min-width:112px;}
+  #hud #zone-display{font-size:clamp(19px,2.2vw,26px);}
+}
+@media(max-width:650px) and (orientation:landscape){
+  #menu h1{font-size:clamp(34px,7vw,51px);}
+  #menu .menu-quick-actions{gap:0;}
+  #menu .menu-quick-actions button{font-size:8.5px;padding-left:4px;padding-right:4px;}
+  #hud .hud-center{min-width:96px;}
+  #hud #zone-display{font-size:18px;}
+  #hud .hud-right{padding-right:68px;min-width:105px;}
+  #hud .flow-status{display:none;}
+}
+@media(prefers-reduced-motion:reduce){
+  #menu .primary-btn,#gameover .primary-btn{transition:none;}
+}

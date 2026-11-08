@@ -1,8 +1,19 @@
-# CHROMA RUSH — Chroma Tide & Energy Identity 3.0
+# CHROMA RUSH — Premium Arcade UI & Final Cohesion 4.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Premium Arcade UI & Final Cohesion 4.0 (2026-11-08)
+
+- **Main Menu simplification:** one centered CHROMA RUSH identity, a short tagline, a single dominant START RUN action, condensed personal bests and quiet navigation to Practice, Milestones and How to Play. Release metadata is still accessible in the DOM but no longer competes visually.
+- **Run Complete clarity:** score is the focal point, with only zone and best score immediately beneath it; replay is the primary CTA, while Main Menu / Run Details are secondary. The private export action lives inside Run Details, not in the primary choice row.
+- **Preserved complete results:** perfect zones, best streak, distance, comparison, next challenge, earned milestones, and export remain fully functional in the expandable details drawer.
+- **Record and practice clarity:** new high scores receive a distinct restrained pink accent; Practice continues to say it is unranked, while ranked mode drops redundant labels.
+- **HUD simplification:** shield, Flow, zone and score are visually dominant; Director phase and duplicate logo labels remain available to JS/tests but are hidden from the live HUD. Existing HP alerts, combo, dash/echo cues, score, replay tracker and speed continue updating normally.
+- **Mobile and performance:** short landscape viewports have a compact responsive layout with large primary buttons; CSS-only decorations add no animation loops, canvas passes or expensive fullscreen blur. No mechanics, Director logic, hitboxes, original background, Chroma Tide, or High preset changes.
+- **Accessibility:** explicit menu navigation names, retained semantic buttons and drawers, preserved status accessibility and focus-visible styles.
+- **Verification:** regression checks cover primary actions, details/export retention, practice presentation, HUD updates and DOM structure; Playwright GitHub Actions checks validate mobile landscape and screen layout.
 
 ## Chroma Tide & Energy Identity 3.0 (2026-11-08)
 

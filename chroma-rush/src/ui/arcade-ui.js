@@ -37,6 +37,10 @@
     elements.finalRecord.textContent=practice?'TRAINING DOES NOT SAVE RECORDS'
       :recordScore?'NEW HIGH SCORE':'KEEP PUSHING YOUR RECORD';
     elements.finalRecord.classList.toggle('new-record',!practice&&recordScore);
+    // Pure presentation state: practice is visibly identified and a new PB
+    // earns a small accent without altering rewards or saved records.
+    elements.gameover?.classList.toggle('is-practice',Boolean(practice));
+    elements.gameover?.classList.toggle('is-new-best',Boolean(!practice&&recordScore));
     elements.finalMilestones.textContent=practice?'RANKED MILESTONES PAUSED'
       :earned.length?`NEW: ${earned.map(m=>m.name).join(' · ')}`:'MILESTONES EARNED IN ARCADE MODE';
   }

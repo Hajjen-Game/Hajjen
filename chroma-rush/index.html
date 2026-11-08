@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
   <meta name="theme-color" content="#080b19" />
-  <meta name="chroma-build" content="original-background-restored-1.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0-duck-gate-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-jump-visual-1.0-combo-1.0-speed-curve-2.0-echo-polish-1.1-echo-zone2-1.2-no-scout-1.1-tide-2.0-spectacle-1.0-dash-2.5-shield-core-1.0-dash-hazards-1.0-dash-pacing-1.1-spectrum-2.0-dash-reliability-1.2-ui-calm-1.0-dash-polish-2.0-director-flow-2.0-performance-stability-2.0-chroma-identity-visual-polish-1.0-player-identity-2.0-chroma-tide-energy-3.0" />
+  <meta name="chroma-build" content="original-background-restored-1.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0-duck-gate-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-jump-visual-1.0-combo-1.0-speed-curve-2.0-echo-polish-1.1-echo-zone2-1.2-no-scout-1.1-tide-2.0-spectacle-1.0-dash-2.5-shield-core-1.0-dash-hazards-1.0-dash-pacing-1.1-spectrum-2.0-dash-reliability-1.2-ui-calm-1.0-dash-polish-2.0-director-flow-2.0-performance-stability-2.0-chroma-identity-visual-polish-1.0-player-identity-2.0-chroma-tide-energy-3.0-premium-arcade-ui-4.0" />
   <meta name="description" content="CHROMA RUSH — a neon speed-survival arcade prototype." />
-  <title>CHROMA RUSH | Chroma Tide & Energy Identity 3.0</title>
-  <link rel="stylesheet" href="style.css?v=chroma-identity-1.0" />
+  <title>CHROMA RUSH | Premium Arcade UI & Final Cohesion 4.0</title>
+  <link rel="stylesheet" href="style.css?v=premium-arcade-ui-4.0" />
 </head>
 <body>
   <main id="game-shell" aria-label="CHROMA RUSH arcade game">
@@ -63,15 +63,15 @@
     </section>
     <output id="perf-overlay" class="perf-overlay hidden" aria-label="Render performance metrics"></output>
     <section id="menu" class="screen-panel" aria-live="polite">
-      <div class="menu-eyebrow">NEON SPEED SURVIVAL</div>
+      <div class="menu-eyebrow" aria-hidden="true">NEON SPEED SURVIVAL</div>
       <h1><span>CHROMA</span> <em>RUSH</em></h1>
-      <p class="menu-tagline">JUMP. DUCK. DASH. SURVIVE.</p>
-      <button id="start-btn" class="primary-btn" type="button">START RUN <span>→</span></button>
+      <p class="menu-tagline">ONE RUN. EVERY COLOR.</p>
+      <button id="start-btn" class="primary-btn" type="button">START RUN <span aria-hidden="true">→</span></button>
       <div class="menu-highlights" aria-label="Your personal bests">
         <div><span>BEST SCORE</span><strong id="record-score">0</strong></div>
         <div><span>BEST ZONE</span><strong id="record-zone">01</strong></div>
       </div>
-      <nav class="menu-quick-actions" aria-label="Other game options">
+      <nav class="menu-quick-actions" aria-label="Practice, milestones and help">
         <button id="practice-toggle-btn" type="button" aria-expanded="false" aria-controls="menu-practice">PRACTICE</button>
         <button id="milestone-view-btn" type="button" aria-haspopup="dialog"><span id="milestone-progress">MILESTONES 0/6</span></button>
         <button id="help-toggle-btn" type="button" aria-expanded="false" aria-controls="menu-controls">HOW TO PLAY</button>
@@ -88,7 +88,7 @@
         <strong id="record-streak">0</strong><strong id="record-distance">0</strong>
         <span id="milestone-next">NEXT: IGNITION</span>
       </div>
-      <div class="version" id="latest-update">LATEST UPDATE · CHROMA TIDE 3.0</div>
+      <div class="version" id="latest-update" aria-hidden="true">LATEST UPDATE · PREMIUM ARCADE UI 4.0</div>
     </section>
     <section id="milestone-panel" class="screen-panel hidden" role="dialog" aria-modal="true" aria-label="Arcade milestones">
       <div class="menu-eyebrow">YOUR ARCADE JOURNEY</div><h2>MILESTONES</h2>
@@ -104,17 +104,16 @@
     <section id="gameover" class="screen-panel hidden" aria-live="polite">
       <div class="menu-eyebrow" id="final-mode">ARCADE RUN · RANKED</div>
       <h2>RUN COMPLETE</h2>
-      <div class="result-score"><span>YOUR SCORE</span><strong id="final-score">0</strong></div>
+      <div class="result-score"><span>SCORE</span><strong id="final-score">0</strong></div>
       <div class="result-highlights">
-        <div><span>ZONE REACHED</span><strong id="final-zone">01</strong></div>
-        <div><span>PERSONAL BEST</span><strong id="final-best">0</strong></div>
+        <div><span>ZONE</span><strong id="final-zone">01</strong></div>
+        <div><span>BEST SCORE</span><strong id="final-best">0</strong></div>
       </div>
       <div class="final-record" id="final-record">KEEP PUSHING YOUR RECORD</div>
-      <button id="retry-btn" class="primary-btn" type="button">RUN AGAIN <span>→</span></button>
+      <button id="retry-btn" class="primary-btn" type="button">RUN AGAIN <span aria-hidden="true">→</span></button>
       <div class="result-links">
         <button id="menu-result-btn" type="button">MAIN MENU</button>
         <button id="result-details-btn" type="button" aria-expanded="false" aria-controls="result-details">RUN DETAILS</button>
-        <button id="export-run-btn" class="audit-export-btn" type="button" title="Download private run diagnostics">EXPORT LOG</button>
       </div>
       <div id="result-details" class="result-details hidden">
         <div class="result-extra-stats">
@@ -125,6 +124,7 @@
         <div id="final-comparison" class="final-comparison">PREVIOUS RECORDS</div>
         <div id="final-challenge" class="final-challenge">NEXT RUN · REACH ZONE 03</div>
         <div class="final-milestones" id="final-milestones">MILESTONES EARNED IN ARCADE MODE</div>
+        <button id="export-run-btn" class="audit-export-btn" type="button" title="Download private run diagnostics">EXPORT LOG</button>
       </div>
     </section>
     <div id="portrait-tip" aria-live="polite"><div class="rotate-icon">▭ ↻</div><strong>ROTATE YOUR DEVICE</strong><span>CHROMA RUSH is built for landscape play.</span></div>

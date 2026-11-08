@@ -133,7 +133,7 @@ test('no Echo is introduced during low shield, relax, recovery or after gravity 
 });
 test('browser loads movement model before Director, and game reports movement state',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  const first=html.indexOf('src/director/movement-awareness.js?v=movement-aware-1.0');
+  const first=html.indexOf('src/director/movement-awareness.js?v=movement-aware-1.0-echo-polish-1.1');
   const next=html.indexOf('src/director/adaptive-director.js?v=');
   const game=html.indexOf('src/gameplay/game.js?v=');
   assert.ok(first>0&&first<next&&next<game);

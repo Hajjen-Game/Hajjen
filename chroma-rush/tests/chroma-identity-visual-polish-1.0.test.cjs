@@ -18,7 +18,7 @@ test('Pass 2 removes every interior player/hazard glyph and chevron',()=>{
   const identity=fs.readFileSync(path.join(root,'src/render/chroma-identity.js'),'utf8');
   assert.doesNotMatch(game,/identity\.draw(?:PlayerMark|HazardMark)\(/);
   assert.doesNotMatch(game,/Three chevrons embedded/);
-  assert.doesNotMatch(game,/ctx\.lineTo\(sealX-4,yy\\)/);
+  assert.ok(!game.includes('ctx.lineTo(sealX-4,yy)'), 'no inset Dash arrows');
   assert.doesNotMatch(identity,/drawPlayerMark|drawHazardMark/);
   assert.doesNotMatch(identity,/ctx\.(?:moveTo|lineTo|fillText)\(/);
 });
@@ -70,4 +70,17 @@ test('new asset versions protect background and avoid stale legacy glyphs',()=>{
  assert.match(game,/identity\.paintPlayer\(ctx/);
  assert.match(game,/identity\.drawContact\(ctx/);
  assert.doesNotMatch(game,/identity\.(?:update|tick|collide|spawn)\(/);
+});
+
+test('more expressive motion squash is bounded and deterministic',()=>{
+  const m=new PlayerMotion();
+  m.duckStart();const duck=m.sample({landed:true,duck:true});
+  assert.ok(duck.scaleX>1.23 && duck.scaleY<.8);
+  m.duckCancel();m.land(1000);
+  const land=m.sample({landed:true});
+  assert.ok(land.scaleY<.84 && land.scaleY>.78);
+  m.tick(m.rules.landingAnimationSeconds*.7);
+  assert.ok(m.sample({landed:true}).scaleY>1);
+  m.tick(.5);
+  assert.equal(m.sample({landed:true}).scaleY,1);
 });

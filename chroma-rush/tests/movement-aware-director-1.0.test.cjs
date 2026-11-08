@@ -31,7 +31,7 @@ test('time-based transition spacing remains safe and adapts to varying speed',()
 test('initial Echo Spire is isolated; combos require demonstrated success',()=>{
   const d=new AdaptiveRushDirector(()=>.5);
   d.phase=PHASE.PEAK;d.confidence=.85;d.time=20;
-  assert.equal(d.selectPattern({zone:5,hp:100,speed:800,surface:'floor'}).id,'single-echo');
+  assert.equal(d.selectPattern({zone:2,hp:100,speed:480,surface:'floor',zoneElapsed:2}).id,'single-echo');
   d.echoIntroduced=true;
   const choices=candidates('PEAK',8,3).filter(p=>d.movement.allowPattern(p,ready,20));
   assert.ok(choices.some(p=>p.id==='single-echo'));

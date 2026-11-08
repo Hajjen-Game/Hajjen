@@ -146,7 +146,7 @@ test('Build loads collectible system before game and shows a compact HUD feedbac
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const game=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');
   const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
-  assert.match(html,/LATEST UPDATE · DASH RELIABILITY 1\.2 · UI CALM 1\.0/);
+  assert.match(html,/LATEST UPDATE · DASH GAMEPLAY POLISH 2\.0/);
   assert.match(html,/id="shield-gain" class="shield-gain hidden"/);
   const logic=html.indexOf('src/gameplay/shield-core.js?v=shield-core-1.0');
   const render=html.indexOf('src/render/shield-core-renderer.js?v=shield-core-renderer-1.0');

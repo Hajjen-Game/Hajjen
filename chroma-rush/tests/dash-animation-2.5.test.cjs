@@ -125,7 +125,7 @@ test('Audio separates the short charge from the dash whoosh; existing music unaf
 test('Release VFX is synchronized to elastic forward motion, and versioned assets are fresh',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
-  assert.match(html,/LATEST UPDATE · DASH RELIABILITY 1\.2 · UI CALM 1\.0/);
+  assert.match(html,/LATEST UPDATE · DASH GAMEPLAY POLISH 2\.0/);
   assert.match(html,/player-motion\.js\?v=duck-effects-1\.0-movement-1\.0-dash-squash-stretch-2\.5/);
   assert.match(html,/speed-trails\.js\?v=speed-trails-2\.5-dash-echoes/);
   assert.match(game,/dashReleasePending=action/);

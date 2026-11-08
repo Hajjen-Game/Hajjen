@@ -1293,7 +1293,7 @@
         ctx.lineTo(sealX-4,yy);ctx.lineTo(sealX-10,yy+5);ctx.stroke();
       }
       if(charged&&o.chargeFlash>0&&!reducedMotion){
-        // Two delicate fracture strokes, embedded in the seal (no rings).
+        // Two delicate fracture strokes, embedded in the seal (no circular overlays).
         const flash=Math.min(1,o.chargeFlash/.38);
         const mid=(top+bottom)*.5;
         ctx.globalAlpha=.78*flash;

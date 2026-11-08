@@ -161,5 +161,5 @@ test('game composition attaches all layers behind the hazards and keeps existing
   assert.ok(env>=0&&obstacles>env,'ambient effects cannot cover incoming hazards');
   assert.ok(html.indexOf('src/render/chroma-state-vfx.js?v=speed-trails-2.0')<
     html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0'));
-  assert.match(html,/LATEST UPDATE · DASH RELIABILITY 1\.2 · UI CALM 1\.0/);
+  assert.match(html,/LATEST UPDATE · DASH GAMEPLAY POLISH 2\.0/);
 });

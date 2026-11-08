@@ -122,7 +122,8 @@ test('echo intro is deferred rather than fabricated if terrain vetoes the spawn'
 
 test('Echo has twin chambers inside the shared Low Neon Barrier visual shell',()=>{
   const s=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
-  assert.match(s,/data\.type==='echo'\?rand\(spire\.minHeight,spire\.maxHeight\)/);
+  assert.match(s,/data\.type==='echo'\?/);
+  assert.match(s,/firstEcho\?spire\.introMinHeight:spire\.minHeight/);
   assert.match(s,/const b=GEO\.obstacleBox\(o,o\.groundY\)/);
   assert.match(s,/if\(isEcho\)/);
   assert.doesNotMatch(s,/ctx\.fillText\('2× JUMP',cx,b\.y-20\)/);

@@ -18,8 +18,13 @@
   const GAME=Object.freeze({
     floorRatio:.715,
     baseSpeed:370,
-    acceleration:11.5,
-    zoneSpeedBonus:12,
+    // Speed Curve 2.0: preserve the 370-unit arcade launch but give
+    // increasingly complex mechanics room to breathe. The course never
+    // slows, and the late segment is continuous at the 120s breakpoint.
+    acceleration:7,
+    lateAcceleration:4.5,
+    lateAccelerationAfterSeconds:120,
+    zoneSpeedBonus:7,
     zoneSeconds:12,
     jumpVelocity:-870,
     // Echo Jump is deliberately weaker and can be used only once per flight.
@@ -31,7 +36,13 @@
     duckRecovery:.12,
     startingHP:100,
     damagePerHit:25,
-    speedAt(time,zone){return this.baseSpeed+time*this.acceleration+Math.max(0,zone-1)*this.zoneSpeedBonus}
+    speedAt(time,zone){
+      const elapsed=Math.max(0,time);
+      const early=Math.min(elapsed,this.lateAccelerationAfterSeconds);
+      const late=Math.max(0,elapsed-this.lateAccelerationAfterSeconds);
+      return this.baseSpeed+early*this.acceleration+late*this.lateAcceleration+
+        Math.max(0,zone-1)*this.zoneSpeedBonus;
+    }
   });
   const FLOW=Object.freeze({
     thresholds:Object.freeze([30,65,90]),

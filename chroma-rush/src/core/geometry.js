@@ -30,10 +30,19 @@
     // the overhead gate rather than leaving a bypass above its short core.
     return {x:obstacle.x,y:DUCK_GATE_TOP,w:obstacle.width,h:lower-DUCK_GATE_TOP};
   }
+  function obstacleBoxes(obstacle,floorY){
+    if(obstacle.type!=='dash-jump')return [obstacleBox(obstacle,floorY)];
+    // An Energy Bridge is NOT a long invisible box. Only two separate
+    // visible plinths are solid; the luminous vertical midpoint has its
+    // own mandatory Dash condition in the gameplay loop.
+    const w=Math.min(50,obstacle.width*.5),y=floorY-obstacle.height;
+    return [{x:obstacle.x,y,w,h:obstacle.height},
+      {x:obstacle.x+obstacle.width-w,y,w,h:obstacle.height}];
+  }
   function sweptXOverlap(player,priorX,obstacle){
     return priorX<player.x+player.w && obstacle.x+obstacle.width>player.x;
   }
   function verticalOverlap(a,b){return a.y<b.y+b.h&&a.y+a.h>b.y;}
-  return {playerBox,obstacleBox,duckGateCoreBox,DUCK_GATE_TOP,DUCK_CLEARANCE,
-    sweptXOverlap,verticalOverlap};
+  return {playerBox,obstacleBox,obstacleBoxes,duckGateCoreBox,
+    DUCK_GATE_TOP,DUCK_CLEARANCE,sweptXOverlap,verticalOverlap};
 });

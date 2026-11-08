@@ -1,8 +1,9 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
-const {AIR,GROUND,isDashHazard,requiredMode,baseType,unlockZone,widthFor,
-  heightFor,sealX,sealWorldX,mayCharge,reachedSeal,safeToSpawn}=require('../src/gameplay/dash-hazards.js');
+const {AIR,GROUND,AIR_BOX_WIDTH,bridgeGapFor,isDashHazard,requiredMode,
+  baseType,unlockZone,widthFor,heightFor,sealX,sealWorldX,mayCharge,
+  reachedSeal,safeToSpawn}=require('../src/gameplay/dash-hazards.js');
 const {GAME,DASH}=require('../src/core/config.js');
 const GEO=require('../src/core/geometry.js');
 const {AdaptiveRushDirector}=require('../src/director/adaptive-director.js');
@@ -28,9 +29,9 @@ test('Both are distinct real obstacles requiring the correct dash action',()=>{
   assert.equal(GAME.duckDuration,.55);
   for(const speed of [370,530,890,1800]){
     const airW=widthFor(AIR,speed),groundW=widthFor(GROUND,speed);
-    assert.ok(airW>=180&&airW<=290);
+    assert.equal(airW,AIR_BOX_WIDTH*2+bridgeGapFor(speed));
+    assert.ok(airW>200);
     assert.ok(groundW>=200&&groundW<=320);
-    assert.ok(airW<groundW+1);
   }
   assert.equal(heightFor(AIR),62);
   assert.equal(heightFor(GROUND),146);
@@ -44,8 +45,8 @@ test('Both are distinct real obstacles requiring the correct dash action',()=>{
 });
 test('Seal requires a local AIR Dash during an actual airborne jump',()=>{
   const seal=sealWorldX(vault),pose={action:'air',speed:520,airborne:true,ducking:false};
-  assert.equal(sealX(vault),vault.x+vault.width*.55);
-  assert.equal(seal,1681);
+  assert.equal(sealX(vault),vault.x+vault.width*.5);
+  assert.equal(seal,1670);
   assert.equal(mayCharge(vault,{...pose,playerWorld:seal-145}),true);
   assert.equal(mayCharge(vault,{...pose,playerWorld:seal-450}),false);
   assert.equal(mayCharge(vault,{...pose,playerWorld:seal+40}),false);

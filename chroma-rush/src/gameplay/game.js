@@ -1039,12 +1039,17 @@
       o.x-=worldStep;
       if(o.chargeFlash>0)o.chargeFlash=Math.max(0,o.chargeFlash-dt);
       const b=GEO.obstacleBox(o,o.groundY);
+      const hitBoxes=GEO.obstacleBoxes(o,o.groundY);
       const sealed=DASH_HAZARDS.isDashHazard(o.type);
       if(sealed&&!o.dashSatisfied&&dash.active)
         chargeDashHazard(o,dash.mode,'active');
       // Swept X check prevents skipping a narrow obstacle on a slow phone.
-      const sweptX=GEO.sweptXOverlap(p,priorX,o);
-      const yOverlap=GEO.verticalOverlap(p,b);
+      // Physically sweep EACH real plinth independently. The center of an
+      // uncharged bridge is energy, not a hidden 900-unit solid box.
+      const overlapsX=box=>GEO.sweptXOverlap(p,priorX+(box.x-o.x),
+        {x:box.x,width:box.w});
+      const sweptX=hitBoxes.some(overlapsX);
+      const yOverlap=hitBoxes.some(box=>overlapsX(box)&&GEO.verticalOverlap(p,box));
       if(sweptX && !yOverlap && !o.hit){
         // A real narrow jump clearance or well-timed duck is a precision pass.
         if((o.type==='jump'||o.type==='echo'||o.type==='dash-jump') && p.y+p.h<=b.y){
@@ -1222,7 +1227,11 @@
       // Echo is a TALL two-chamber sibling; the actual body, inset face,
       // bevel, white cap, vertical cheeks and floor plinth are identical.
       // Every structural stroke fits the same physical obstacle footprint.
-      const x=b.x,y=b.y,w=b.w,h=b.h,bevel=Math.min(8,w*.16);
+      // Dash Energy Bridge uses two true standard-size low boxes; normal
+      // jump and Echo use the same existing single-body renderer.
+      const chunks=o.type==='dash-jump'?GEO.obstacleBoxes(o,o.groundY):[b];
+      for(const body of chunks){
+      const x=body.x,y=body.y,w=body.w,h=body.h,bevel=Math.min(8,w*.16);
       ctx.globalAlpha=twinkle;
       ctx.shadowColor=color;ctx.shadowBlur=19*quality.profile.glow;
       ctx.beginPath();
@@ -1262,6 +1271,7 @@
       ctx.fillRect(x+2,y+h-12,w-4,10);
       glowLine(x+3,y+h-12,x+w-3,y+h-12,color,2.3,8,.91);
       glowLine(x+4,y+h-3,x+w-4,y+h-3,'#ffffff',1.5,6,.55);
+      }
     }else{
       // This is one continuous, visible overhead energy gate. Its sparse,
       // low-opacity field extends beyond the top of the camera so a second
@@ -1295,12 +1305,46 @@
       }
       glowLine(core.x,core.y,core.x+core.w,core.y,'#ffffff',1,8,.45);
     }
+    if(o.type==='dash-jump'){
+      // A legible zigzag flowing between the two *ordinary* jump boxes.
+      // Each luminous strand is welded to the actual bridge gap, so the
+      // design never resembles a long solid crate or a detached arrow.
+      const boxes=GEO.obstacleBoxes(o,o.groundY);
+      const start=boxes[0].x+boxes[0].w,end=boxes[1].x,gap=end-start;
+      const top=boxes[0].y,charged=o.dashSatisfied;
+      if(gap>2){
+        const steps=Math.max(4,Math.min(22,Math.round(gap/56)));
+        ctx.save();ctx.lineJoin='bevel';ctx.lineCap='round';
+        // Performance draws one bright strand; High adds a faint second.
+        const layers=quality.profile.density>=.60?2:1;
+        for(let layer=0;layer<layers;layer++){
+          const yy=top-(layer?88:15);
+          ctx.globalAlpha=(charged?.15:layer?.28:.83)*
+            (reducedMotion?1:.90+.10*Math.sin(worldTime*9+o.pulse)**2);
+          ctx.strokeStyle=charged?'#89ffe2':layer?color:'#f4ffff';
+          ctx.lineWidth=layer?1.5:2.8;
+          ctx.shadowColor=charged?'#89ffe2':color;
+          ctx.shadowBlur=(layer?7:15)*quality.profile.glow;
+          ctx.beginPath();ctx.moveTo(start,top+5);
+          for(let i=1;i<steps;i++){
+            const x=start+gap*i/steps;
+            const y=yy+((i%2)*2-1)*(layer?12:23);
+            ctx.lineTo(x,y);
+          }
+          ctx.lineTo(end,top+5);ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
     if(DASH_HAZARDS.isDashHazard(o.type)){
       // The luminous, hairline momentum seal is NOT another rectangular
       // obstacle. It visually spans the airborne route (Air Dash) or the
       // 28px duck passage (Ground Dash). No circular overlays or blocking UI.
       const sealX=DASH_HAZARDS.sealX(o);
-      const top=isLow?b.y-167:b.y+b.h-23;
+      // Echo can rise ~275 units above the ground. The air bridge's
+      // upright center energy therefore reaches the TOP of the playable
+      // space: double jump cannot pass an invisible/short seal above it.
+      const top=o.type==='dash-jump'?0:isLow?b.y-167:b.y+b.h-23;
       const bottom=isLow?b.y+5:o.groundY-3;
       const charged=o.dashSatisfied;
       const sealColor=charged?'#87ffcf':'#f5feff';
@@ -1311,8 +1355,8 @@
       ctx.lineWidth=2.3;ctx.strokeStyle=sealColor;
       ctx.beginPath();ctx.moveTo(sealX,top);ctx.lineTo(sealX,bottom);ctx.stroke();
       ctx.shadowBlur=0;
-      // No chevron or arrow marks; the continuous in-place energy seal
-      // and its success fracture communicate the Dash challenge alone.
+      // No chevron or arrow marks; the fully visible vertical seam is
+      // precisely the gameplay Dash checkpoint, even at Echo Jump altitude.
       if(charged&&o.chargeFlash>0&&!reducedMotion){
         // Two delicate fracture strokes, embedded in the seal (no circular overlays).
         const flash=Math.min(1,o.chargeFlash/.38);

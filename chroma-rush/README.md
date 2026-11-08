@@ -1,8 +1,18 @@
-# CHROMA RUSH — Premium Arcade UI & Final Cohesion 4.0
+# CHROMA RUSH — Dash Energy Bridge 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Dash Energy Bridge 1.0 (2026-11-08)
+
+- Replaces the single wide Air Dash rectangle with **two real 50-unit normal Jump box collision bodies**, spaced by approximately 0.42 seconds of running distance. The gap has **no invisible solid collider**.
+- A legible double-strand zigzag energy connection is rendered between the two boxes, including a visible center energy seam reaching to the top of the playfield.
+- Echo Jump can travel longer than both boxes, but **cannot bypass the center Dash seal**. The matching Air Dash must be activated locally. Charge fades the bridge to mint, with the existing strike confirmation.
+- Air Dash proximity scales with speed (~0.35 seconds rather than a 280-unit cap), unlike the unchanged Ground Dash proximity; the 0.30-second Dash duration and jump/echo physics remain intact.
+- Compound boxes use swept collision checks independently (including at low mobile frame rates). Checkpoint crossing remains frame-safe; clearance only rewards an actually charged seal.
+- Existing floor-first introduction, gravity inversion, terrain/Director safety vetoes and reaction-time warnings are retained. No fonts, icons or arrows in the hazard.
+- New source-matched Echo-vs-Dash distance budget and high-speed/collision tests cover early and late zones.
 
 ## HUD Anchor Alignment 4.1 (2026-11-08)
 

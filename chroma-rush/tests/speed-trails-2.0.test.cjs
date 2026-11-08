@@ -146,7 +146,7 @@ test('no randomness in the visual module; deterministic positions at same fixed-
 });
 test('HTML loads speed trails before game, with isolated cache versions',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  assert.match(html,/<meta name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0-duck-gate-1\.0-echo-spire-1\.0-aware-1\.0-fairness-1\.0-jump-visual-1\.0-combo-1\.0-speed-curve-2\.0"/);
+  assert.match(html,/<meta name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0-duck-gate-1\.0-echo-spire-1\.0-aware-1\.0-fairness-1\.0-jump-visual-1\.0-combo-1\.0-speed-curve-2\.0-echo-polish-1\.1"/);
   const trail=html.indexOf('src/render/speed-trails.js?v=speed-trails-2.0');
   const game=html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
   assert.ok(trail>0&&game>trail);

@@ -165,7 +165,8 @@ test('colors preserve gamut endpoints and the wave leaves game rules untouched',
   assert.equal(GAME.baseSpeed,370);
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
   assert.match(game,/spectralWave\.tick\(dt/);
-  assert.match(game,/spectralWave\.drawLayer\(/);
+  assert.doesNotMatch(game,/spectralWave\.drawLayer\(/,
+    'Chroma Tide 2.0 renders each world/terrain layer once');
   assert.match(game,/spectralWave\.colorAt\(/);
   assert.match(game,/spectralWave\.draw\(ctx/);
 });

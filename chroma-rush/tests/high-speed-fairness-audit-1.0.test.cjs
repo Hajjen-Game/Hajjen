@@ -118,12 +118,24 @@ test('twenty-four deterministic three-minute sweeps cover fast phones, narrow vi
   assert.equal(report.cuesChecked,report.warnings);
   assert.ok(report.warnings>0);
   assert.ok(report.results.every(r=>r.gravityFlips>0));
-  assert.ok(report.results.every(r=>r.finalSpeed>2300));
+  // Speed Curve 2.0 deliberately caps acceleration (not speed). Every
+  // zone-one three-minute reference run now ends near 1,585 rather than 2,620.
+  assert.ok(report.results.every(r=>r.finalSpeed===GAME.speedAt(180,16)));
+  assert.ok(report.results.every(r=>r.finalSpeed===1585));
   console.log('high-speed-fairness audit summary: '+JSON.stringify({
     runs:report.runs,simulatedSeconds:report.totalSeconds,
     obstacles:report.obstacles,offscreenCues:report.warnings,
     gapRiskCount:report.lateGaps,belowReactionBudget:report.underBudget,
     unsafeTransitions:report.transitionViolations}));
+});
+test('late-zone practice still exercises high-speed fairness with the new curve',()=>{
+  const r=simulate({seed:42,seconds:180,startingZone:12,viewportWidth:900,damageEvery:17});
+  assert.ok(r.finalSpeed>2000,'higher-zone practice remains fast');
+  assert.ok(r.finalSpeed<GAME.speedAt(300,26)+300);
+  assert.ok(r.cleared>10);
+  assert.equal(r.underBudget,0);
+  assert.equal(r.lateGaps,0);
+  assert.equal(r.transitionViolations,0);
 });
 test('strain simulation still has recovery phases and does not block all hazards',()=>{
   const r=simulate({seed:101,seconds:180,viewportWidth:900,damageEvery:17});

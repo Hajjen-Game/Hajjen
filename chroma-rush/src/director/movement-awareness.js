@@ -64,9 +64,14 @@
     onSpawn(action,now){
       this.executed[action]=(this.executed[action]||0)+1;
       this.lastAction=action;
-      if(action==='echo'||action==='dash-jump'||action==='dash-duck'){
-        this.pressure=Math.min(4.8,this.pressure+(action==='echo'?1.55:1.25));
+      if(action==='echo'){
+        this.pressure=Math.min(4.8,this.pressure+1.55);
         this.lastEchoTime=now;
+        this.consecutiveHard++;
+      }else if(action==='dash-jump'||action==='dash-duck'){
+        // Dash barriers have their OWN cooldown; don't masquerade as Echo
+        // and accidentally suppress the Double Jump mechanics for 7 seconds.
+        this.pressure=Math.min(4.8,this.pressure+.85);
         this.consecutiveHard++;
       }else{
         this.pressure=Math.min(4.8,this.pressure+.10);

@@ -593,7 +593,8 @@
     if(isDashChallenge&&!DASH_HAZARDS.safeToSpawn(data.type,{
       zone,hp,stress:director.stress,confidence:director.confidence,
       gravityBusy:gravityShift.pending||gravityShift.shifting||gravityShift.protected,
-      first:firstDash}))return false;
+      surface:gravityShift.ceiling?'ceiling':'floor',
+      first:firstDash,guided:Boolean(data.guided)}))return false;
     const firstEcho=data.type==='echo'&&!director.echoIntroduced;
     if(data.type==='echo'&&(zone<spire.firstZone||hp<=50||director.stress>=.42))return false;
     if(firstEcho&&(gravityShift.ceiling||gravityShift.pending||
@@ -642,6 +643,7 @@
     hurdles.push({type:data.type,x,worldX,groundY,width,height,hit:false,cleared:false,
       closestClearance:Infinity,entryDuckTime:null,
       dashSatisfied:false,sealPassed:false,
+      mechanicIntro:Boolean(firstEcho||firstDash),
       phase:data.phase,pulse:Math.random()*Math.PI*2});
     if(isDashChallenge){
       terrainDirector.noGapsBefore=Math.max(terrainDirector.noGapsBefore,
@@ -881,6 +883,9 @@
     // Every threshold is measured in travel seconds, independent of FPS.
     const safeShift=player.landed&&!player.duck&&!gapRecovery &&
       terrain.visibleGaps(playerWorld-speed*.35,playerWorld+speed*1.55).length===0 &&
+      // A brand-new mechanic MUST be experienced on the floor, not flipped
+      // after its spawn but before the player can react to it.
+      !hurdles.some(o=>o.mechanicIntro&&!o.hit&&!o.cleared) &&
       hurdles.every(o=>o.hit||o.cleared||
         o.x+o.width<player.x-speed*.35||o.x>player.x+speed*1.55);
     const gravityEvent=gravityShift.tick(dt,{safe:safeShift,reducedMotion});

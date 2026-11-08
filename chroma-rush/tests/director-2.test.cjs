@@ -82,7 +82,7 @@ test('pattern choice avoids immediate identical repeats when alternatives exist'
 });
 
 test('shared config and geometry match the original gameplay rules',()=>{
-  assert.equal(PALETTES.length,8);
+  assert.equal(PALETTES.length,24);
   assert.equal(GAME.speedAt(0,1),370);
   assert.ok(GAME.speedAt(180,16)>GAME.speedAt(60,6));
   const player={x:300,feet:515,landed:true,duck:false};

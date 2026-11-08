@@ -126,11 +126,11 @@ test('game triggers on real physics, timing and obstacle-clear events, not simul
 });
 test('engine effects module loads before game, uses new version marker and no RNG',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  assert.match(html,/name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0-duck-gate-1\.0-echo-spire-1\.0-aware-1\.0-fairness-1\.0-jump-visual-1\.0-combo-1\.0-speed-curve-2\.0-echo-polish-1\.1-echo-zone2-1\.2-no-scout-1\.1-tide-2\.0-spectacle-1\.0-dash-2\.5-shield-core-1\.0-dash-hazards-1\.0"/);
+  assert.match(html,/name="chroma-build" content="original-background-restored-1\.0-chroma-pulse-1\.0-gravity-1\.0-ceiling-sync-1\.0-movement-1\.0-duck-gate-1\.0-echo-spire-1\.0-aware-1\.0-fairness-1\.0-jump-visual-1\.0-combo-1\.0-speed-curve-2\.0-echo-polish-1\.1-echo-zone2-1\.2-no-scout-1\.1-tide-2\.0-spectacle-1\.0-dash-2\.5-shield-core-1\.0-dash-hazards-1\.0-dash-pacing-1\.1-spectrum-2\.0"/);
   const i=html.indexOf('src/render/effect-language.js?v=arcade-animation-2.0');
   const j=html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
   assert.ok(i>=0&&j>i);
-  assert.match(html,/LATEST UPDATE · DASH CHALLENGE 1\.0/);
+  assert.match(html,/LATEST UPDATE · DASH PACING & SPECTRUM 1\.1/);
   const s=fs.readFileSync(path.join(__dirname,'../src/render/effect-language.js'),'utf8');
   assert.doesNotMatch(s,/Math\.random|setTimeout|setInterval|createRadialGradient|ellipse\(/);
 });

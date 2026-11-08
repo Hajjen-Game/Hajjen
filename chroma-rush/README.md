@@ -1,8 +1,17 @@
-# CHROMA RUSH — Dash Challenge Obstacles 1.0 — Air Vault & Ground Slip Gate
+# CHROMA RUSH — Dash Pacing 1.1 + Chroma Spectrum 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Dash Pacing 1.1 + Chroma Spectrum 2.0 (2026-11-08)
+
+- **Floor-first teaching is universal for new obstacle mechanics:** the initial Echo Spire, Air Vault and Ground Slip Gate must first appear during ordinary floor running, NEVER in a ceiling section or during a flip. Dash abilities still unlock on their original zones; an *obstacle lesson* waits for a safe floor even if the player is already in zone 5 or later. The gravity shift waits for a first-lesson obstacle to pass before flipping.
+- **Recurrent challenges after the introductions:** after both Dash types have been safely introduced, the Director explicitly considers a single Dash obstacle around every 24 seconds of safe play, alternating Air and Ground. It can appear on either surface only after being learned on floor. This is a minimum spacing, not a rigid time obligation: low HP (50 or less), stress, inappropriate phases, gravity transitions, recovery awareness, existing hazards and unsafe terrain still postpone it. Random selection is no longer required for useful recurrence.
+- **Director integrity:** the Dash spawn pressure is no longer recorded as an Echo Spire spawn; existing Echo cooldown remains meaningful. Every Dash repeat remains a single step in the regular Director, never a mandatory stacked pattern, and records diagnostic counts for actual spawned repeats.
+- **24 curated neon zones:** keep the original first eight palettes *identical and in the same order*; add 16 new premium high-contrast chromatic combinations for zones 9 through 24. Existing Chroma Tide wave and one-pass rendering are reused, with no extra shader layers, textures, particles, CPU color computations or changes to gameplay balance. Colors only begin repeating at zone 25.
+- **Unchanged pending design choice:** Air Vault / Ground Slip Gate width, dash seal collision requirement, art, player controls, movement, physics and hitbox remain unchanged. Widening hurdles instead of an energy seal is explicitly deferred until real player feedback decides.
+- **Verification:** simulate grounded first introductions with the actual ceiling cadence and recurring encounters through zone 14, pause repeats for low shield, preserve spacing, check all 24 palette names and cache versions, rerun browser + node checks.
 
 ## Dash Challenge Obstacles 1.0 — Air Vault & Ground Slip Gate (2026-11-08)
 

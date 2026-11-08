@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Dash Challenge Obstacles 1.0.
+/* CHROMA RUSH — Dash Challenge Obstacles 1.1 (floor-first, recurring).
  * Two isolated action-gated variants of the existing jump/duck families.
  * The extra seal is visible and only unlocked by the matching Dash near
  * the actual obstacle. Dash never grants invulnerability or a teleport.
@@ -45,11 +45,16 @@
     return old>=playerFront&&now<=playerFront;
   }
   function safeToSpawn(type,{zone=1,hp=100,stress=0,
-    gravityBusy=false,confidence=0,first=false}={}){
-    if(!isDashHazard(type)||zone<unlockZone(type)||hp<=50||stress>=.42||gravityBusy)return false;
-    // First isolated lesson can be shown at neutral confidence after a
-    // safe zone transition. Repeats require the player to feel competent.
-    return first||confidence>=.42;
+    gravityBusy=false,confidence=0,first=false,guided=false,
+    surface='floor'}={}){
+    if(!isDashHazard(type)||zone<unlockZone(type)||hp<=50||
+       stress>=.42||gravityBusy)return false;
+    // First appearance of ANY new mechanic must be upright. The unlock zone
+    // can coincide with a ceiling run, so WAIT for a safe floor segment.
+    if(first&&surface!=='floor')return false;
+    // Director-guided repeat opportunities are bounded by time / stress /
+    // phase already; they must not disappear due to a strict confidence gate.
+    return first||guided||confidence>=.42;
   }
   return {AIR,GROUND,TYPES,FIRST_AIR_ZONE,FIRST_GROUND_ZONE,
     isDashHazard,requiredMode,baseType,unlockZone,widthFor,heightFor,

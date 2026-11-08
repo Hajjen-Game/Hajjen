@@ -13,7 +13,26 @@
     {name:'AMBER',primary:'#ffc25d',secondary:'#ff5d7e',shadow:'#32200f'},
     {name:'ELECTRIC',primary:'#6078ff',secondary:'#30fdce',shadow:'#111335'},
     {name:'REDLINE',primary:'#ff466c',secondary:'#ffb151',shadow:'#330d1a'},
-    {name:'WHITEOUT',primary:'#f1fbff',secondary:'#72dfff',shadow:'#0d2133'}
+    {name:'WHITEOUT',primary:'#f1fbff',secondary:'#72dfff',shadow:'#0d2133'},
+    // Chroma Spectrum 2.0: curated new zones 9–24, not a modulo replay
+    // of the eight launch palettes. Keep each pair luminous against deep
+    // backgrounds for readable barriers at high speed and on older phones.
+    {name:'ROSESHIFT',primary:'#ff789f',secondary:'#a858ff',shadow:'#2c1235'},
+    {name:'SOLAR',primary:'#ffe067',secondary:'#ff814c',shadow:'#30210c'},
+    {name:'AQUAFLARE',primary:'#39ffc8',secondary:'#2f91ff',shadow:'#082c28'},
+    {name:'COBALT',primary:'#3c9aff',secondary:'#a0d7ff',shadow:'#071b3d'},
+    {name:'HOTPINK',primary:'#ff4fce',secondary:'#ffd0f2',shadow:'#300b2c'},
+    {name:'JADE',primary:'#58ffa8',secondary:'#d4ff68',shadow:'#0c3020'},
+    {name:'ULTRAVIOLET',primary:'#ba55ff',secondary:'#68a0ff',shadow:'#1b1034'},
+    {name:'COPPER',primary:'#ff9a53',secondary:'#ffc37d',shadow:'#2e170d'},
+    {name:'ICEBLUE',primary:'#77e9ff',secondary:'#bbfaff',shadow:'#0a2935'},
+    {name:'SCARLET',primary:'#ff5262',secondary:'#fc82c2',shadow:'#300d21'},
+    {name:'CITRUS',primary:'#ecff5d',secondary:'#ffbb49',shadow:'#2a2709'},
+    {name:'NOVA',primary:'#b7afff',secondary:'#58c9ff',shadow:'#17113b'},
+    {name:'FUCHSIA',primary:'#ff3cb5',secondary:'#ff7077',shadow:'#320d23'},
+    {name:'CERULEAN',primary:'#45b5ff',secondary:'#72f2df',shadow:'#08263b'},
+    {name:'VERDANT',primary:'#81ff69',secondary:'#35ffc0',shadow:'#123010'},
+    {name:'PLASMA',primary:'#aa64ff',secondary:'#ffac6e',shadow:'#241331'}
   ].map(p=>Object.freeze(p)));
   const GAME=Object.freeze({
     floorRatio:.715,

@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Adaptive Rush Director 2.0 + Movement-Aware Director 1.0.
+/* CHROMA RUSH — Adaptive Rush Director 2.1 + Dash Recurrence & Ground-first Intro 1.1.
  * Short authored motifs, player-friction awareness and four-phase pacing.
  * Uses seconds rather than raw pixels so existing actions remain physically feasible.
  * No ML, random difficulty spikes, online dependencies, or input manipulation.
@@ -16,6 +16,11 @@
   const ORDER=Object.values(PHASE);
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   const minimumGap=movement.minimumGap;
+  // Opportunity spacing, not a forced hazard frequency. If a course is
+  // unsafe or the player struggles, postpone the next challenge.
+  const DASH_REPEAT_SECONDS=24;
+  const DASH_INTRO_ZONE_ELAPSED=1.8;
+  const DASH_PRESSURE_LIMIT=1.55;
 
   class AdaptiveRushDirector{
     constructor(random=Math.random){
@@ -30,6 +35,9 @@
       this.lastDamageAt=-999;this.lastNearMissAt=-999;
       this.lastPatternId=null;this.patternHistory=[];this.echoIntroduced=false;
       this.dashIntroduced={air:false,ground:false};
+      this.lastDashHazardAt=-Infinity;
+      this.lastDashHazardType=null;
+      this.dashHazardRepeats=0;
       this.comboInsight={total:0,best:0,lastAt:-Infinity};
       this.movement.reset();
     }
@@ -105,11 +113,14 @@
         if(type==='dash-jump'||type==='dash-duck'){
           const floor=type==='dash-jump'?3:4;
           const used=type==='dash-jump'?this.dashIntroduced.air:this.dashIntroduced.ground;
-          if(context.zone<floor||context.gravityPending||context.hp<=50||
-            this.stress>=.42||(!used&&this.time<this.movement.recoveryUntil)||
-            (!used&&(context.zoneElapsed??0)<3)||
-            (type==='dash-duck'&&!this.dashIntroduced.air))return false;
-          if(used&&this.confidence<.42)return false;
+          // First encounter is NEVER a random ceiling spawn. The guided
+          // lesson decides when a safe FLOOR section is ready.
+          if(!used)return false;
+          if(!this.dashIntroduced.air||!this.dashIntroduced.ground||
+            context.zone<floor||context.gravityPending||context.hp<=50||
+            this.stress>=.42||this.confidence<.42||
+            type===this.lastDashHazardType||
+            this.time-this.lastDashHazardAt<DASH_REPEAT_SECONDS)return false;
         }
         return this.movement.allowPattern(p,readiness,this.time,
           {firstEcho:intro&&p.id==='single-echo'});
@@ -155,17 +166,30 @@
           this.spawnCountdown=Math.min(this.spawnCountdown,.10);
         }
       }
-      // Introduce Air Dash in zone 3 and Ground Dash in zone 4 (or as soon
-      // as a safe recovery slot opens later). Never stack their first lessons.
+      // The ceiling cycle starts in zone 3. A new mechanic MUST first
+      // appear on the FLOOR, even if its unlock zone happened in the sky.
+      // Delay rather than introduce in a confusing mirrored orientation.
       const firstDashType=!this.dashIntroduced.air&&context.zone>=3?'dash-jump':
-        !this.dashIntroduced.ground&&context.zone>=4?'dash-duck':null;
-      const guidedDash=Boolean(firstDashType&&!guidedEcho&&
-        context.zoneElapsed>=3&&context.zoneElapsed<=9.5&&
-        context.hp>50&&this.stress<.42&&!context.gravityPending&&
+        !this.dashIntroduced.ground&&this.dashIntroduced.air&&
+          context.zone>=4?'dash-duck':null;
+      const floorLesson=(context.surface||'floor')==='floor';
+      const calm=context.hp>50&&this.stress<.42&&!context.gravityPending&&
         this.time>=this.movement.recoveryUntil&&
-        this.movement.pressure<1.20);
-      if(guidedDash&&this.pending[0]?.type!==firstDashType){
-        this.pending=[{type:firstDashType,pattern:'single-'+firstDashType,step:1}];
+        this.movement.pressure<DASH_PRESSURE_LIMIT;
+      const teachWindow=(context.zoneElapsed??3)>=DASH_INTRO_ZONE_ELAPSED;
+      const activePhase=this.phase===PHASE.BUILD||this.phase===PHASE.PEAK;
+      const firstDash=Boolean(firstDashType&&!guidedEcho&&floorLesson&&
+        calm&&teachWindow&&activePhase);
+      // Once both families have been taught, surface type does not restrict
+      // their return. Alternate actions every ~24s on *safe* BUILD/PEAK
+      // sections rather than hoping a tiny random pattern weight hits.
+      const repeatType=this.lastDashHazardType==='dash-jump'?'dash-duck':'dash-jump';
+      const repeating=Boolean(!firstDashType&&!guidedEcho&&calm&&
+        activePhase&&this.time-this.lastDashHazardAt>=DASH_REPEAT_SECONDS);
+      const guidedDash=firstDash||repeating;
+      const guidedType=firstDash?firstDashType:repeating?repeatType:null;
+      if(guidedDash&&this.pending[0]?.type!==guidedType){
+        this.pending=[{type:guidedType,pattern:'single-'+guidedType,step:1,guided:true}];
         this.spawnCountdown=Math.min(this.spawnCountdown,.12);
       }
       if(this.phase===PHASE.RELAX&&!guidedEcho&&!guidedDash){
@@ -182,7 +206,10 @@
       if(next.type==='dash-jump'||next.type==='dash-duck'){
         const used=next.type==='dash-jump'?this.dashIntroduced.air:this.dashIntroduced.ground;
         if(context.hp<=50||this.stress>=.42||context.gravityPending||
-           (!used&&this.time<this.movement.recoveryUntil)){
+           (!used&&((context.surface||'floor')!=='floor'||
+             this.time<this.movement.recoveryUntil))){
+          // A first lesson is never left queued into a ceiling transition.
+          // It will be reconsidered in a later safe floor section.
           this.pending=[];this.spawnCountdown=.35;
           this.movement.deferredPatterns++;return;
         }
@@ -247,8 +274,15 @@
       this.pending.shift();
       this.movement.onSpawn(next.type,this.time);
       if(next.type==='echo')this.echoIntroduced=true;
-      if(next.type==='dash-jump')this.dashIntroduced.air=true;
-      if(next.type==='dash-duck')this.dashIntroduced.ground=true;
+      if(next.type==='dash-jump'||next.type==='dash-duck'){
+        const wasIntroduced=next.type==='dash-jump'?this.dashIntroduced.air:
+          this.dashIntroduced.ground;
+        if(wasIntroduced)this.dashHazardRepeats++;
+        this.lastDashHazardAt=this.time;
+        this.lastDashHazardType=next.type;
+        if(next.type==='dash-jump')this.dashIntroduced.air=true;
+        else this.dashIntroduced.ground=true;
+      }
       this.totalSpawned++;this.lastSpawnTime=this.time;
       this.lastSpawnLead=nextLead;
       const following=this.pending[0]?.type||null;
@@ -271,8 +305,12 @@
     get label(){return ({BUILD:'BUILDING',PEAK:'INTENSE',FADE:'EASING',RELAX:'BREATHE'})[this.phase];}
     get insight(){return {phase:this.phase,stress:this.stress,confidence:this.confidence,streak:this.streak,
       totalSpawned:this.totalSpawned,totalCleared:this.totalCleared,pattern:this.lastPatternId,
+      dashHazards:{introduced:{...this.dashIntroduced},
+        lastAt:this.lastDashHazardAt,lastType:this.lastDashHazardType,
+        repeats:this.dashHazardRepeats},
       movement:this.movement.insight,combo:{...this.comboInsight}};}
   }
   // Keep the legacy exported constructor name for tests/integrations.
-  return {PHASE,AdaptiveRushDirector,AdaptiveFlowDirector:AdaptiveRushDirector,minimumGap};
+  return {PHASE,DASH_REPEAT_SECONDS,AdaptiveRushDirector,
+    AdaptiveFlowDirector:AdaptiveRushDirector,minimumGap};
 });

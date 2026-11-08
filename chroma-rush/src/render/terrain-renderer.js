@@ -82,6 +82,22 @@
       ctx.restore();
     }
 
+    // The wave also excites the EXISTING solid ground material beneath the
+    // surface line. This is inside the true terrain clip, so gaps remain
+    // empty and hills never sprout a false ledge. Performance skips it.
+    if(tide?.active&&!tide.charging&&(quality.density??1)>=.55){
+      const head=tide.frontAt(baseY,height),density=clamp(quality.density,0,1);
+      if(head>-245&&head<width+205){
+        const wash=ctx.createLinearGradient(head-155,0,head+270,0);
+        wash.addColorStop(0,rgba(secondary,0));
+        wash.addColorStop(.33,rgba(secondary,.12*density));
+        wash.addColorStop(.56,rgba(primary,.18*density));
+        wash.addColorStop(.76,rgba(secondary,.08*density));
+        wash.addColorStop(1,rgba(primary,0));
+        const x=Math.max(0,head-155),end=Math.min(width,head+270);
+        if(end>x){ctx.save();ctx.fillStyle=wash;ctx.fillRect(x,0,end-x,height+8);ctx.restore();}
+      }
+    }
     // A single world-aligned perspective grid, shared across all segments.
     // Clipping automatically prevents lines from painting the gap or the sky.
     for(let x=Math.ceil(left/quality.gridStep)*quality.gridStep;x<=right;x+=quality.gridStep){
@@ -133,6 +149,21 @@
         ctx.shadowColor=secondary;
         ctx.shadowBlur=20*clamp(quality.glow??1,.15,1);
         ctx.stroke();ctx.restore();
+        // High quality: one hairline of optical refraction hugs exactly the
+        // same surface path, respecting each real gap, not the screen floor.
+        if((quality.density??1)>=.78){
+          const edge=ctx.createLinearGradient(head-120,0,head+180,0);
+          edge.addColorStop(0,rgba(secondary,0));
+          edge.addColorStop(.4,rgba(secondary,.35));
+          edge.addColorStop(.57,rgba('#ffffff',.72));
+          edge.addColorStop(.78,rgba(primary,.31));
+          edge.addColorStop(1,rgba(primary,0));
+          ctx.save();ctx.beginPath();
+          for(const run of runs)traceSurface(ctx,run,distance,0,false,quality.terrainStep);
+          ctx.strokeStyle=edge;ctx.lineWidth=2.2;
+          ctx.globalAlpha=.80;ctx.shadowBlur=6*clamp(quality.glow??1,.15,1);
+          ctx.shadowColor=secondary;ctx.stroke();ctx.restore();
+        }
       }
     }
 

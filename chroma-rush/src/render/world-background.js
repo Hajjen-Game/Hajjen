@@ -71,6 +71,35 @@
         ctx.restore();
       }
     }
+    // Energy Identity 3.0: the *existing* chromatic boundary lights the
+    // distant atmosphere in depth. Radial LIGHT is not a circular sprite:
+    // its opaque center never has a rim and it fades to zero in every direction.
+    // High/Balanced only; Performance does not allocate another gradient.
+    const tideDensity=clamp(quality.density??1,.3,1);
+    if(tide?.active&&!tide.charging&&tideDensity>=.55){
+      const sy=H*.45,head=tide.frontAt(sy,H);
+      const radius=clamp(H*.52,220,390),cx=head+radius*.16;
+      if(cx>-radius&&cx<W+radius){
+        const ambient=ctx.createRadialGradient(cx,sy,radius*.075,cx,sy,radius);
+        ambient.addColorStop(0,rgba(tide.to.primary,.235*tideDensity));
+        ambient.addColorStop(.34,rgba(tide.to.secondary,.14*tideDensity));
+        ambient.addColorStop(.72,rgba(tide.from.primary,.038*tideDensity));
+        ambient.addColorStop(1,rgba(tide.to.primary,0));
+        const left=Math.max(0,cx-radius),right=Math.min(W,cx+radius);
+        const top=Math.max(0,sy-radius),bottom=Math.min(H,sy+radius);
+        if(right>left&&bottom>top){
+          ctx.save();ctx.fillStyle=ambient;ctx.fillRect(left,top,right-left,bottom-top);ctx.restore();
+        }
+      }
+    }else if(!tide?.active&&tide?.afterglow>.04&&tideDensity>=.75){
+      // After the front exits, a quiet, finite horizon glow makes the
+      // new color feel settled. Never a full-screen flash or a gameplay cue.
+      const settle=ctx.createLinearGradient(0,H*.34,0,H*.65);
+      settle.addColorStop(0,rgba(tide.to.primary,0));
+      settle.addColorStop(.55,rgba(tide.to.secondary,.095*tide.afterglow*tideDensity));
+      settle.addColorStop(1,rgba(tide.to.primary,0));
+      ctx.save();ctx.fillStyle=settle;ctx.fillRect(0,H*.34,W,H*.31);ctx.restore();
+    }
     // Receding architectural silhouettes continue below the nominal track.
     // A shared vertical fade prevents them from ending on a straight cut-off.
     const facade=ctx.createLinearGradient(0,H*.36,0,H);

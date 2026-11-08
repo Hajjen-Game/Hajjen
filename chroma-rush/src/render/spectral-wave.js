@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Chroma Tide Spectacle 1.0
+/* CHROMA RUSH — Chroma Tide & Energy Identity 3.0
  * One full-height, spatially advancing color tide with a soft awakening,
  * prismatic leading edge and brief linear resonance. Absolutely no separate
  * scout/box, radial burst, screen-flash or gameplay interaction.
@@ -56,7 +56,7 @@
     }).join('');
   };
   const STEPS=64;
-  const AFTERGLOW_SECONDS=.78,RESONANCE_SECONDS=.48;
+  const AFTERGLOW_SECONDS=.92,RESONANCE_SECONDS=.58;
   const ramp=(from,to)=>{
     const a=toOKLab(from),b=toOKLab(to);
     const r=Array.from({length:STEPS+1},(_,i)=>{
@@ -202,24 +202,25 @@
       if(this.active&&!this.charging){
         const head=this.frontAt(height*.5,height);
         if(head>=-210&&head<=width+150){
-          // BROAD chromatic depth, then a narrow prismatic core: both taper
-          // to transparency, never a rectangular barrier or a screen flash.
-          const veil=ctx.createLinearGradient(head-130,0,head+195,0);
+          // Chromatic refraction, not an extra obstacle: two continuous,
+          // tapered light fields spread either side of the REAL moving
+          // palette seam. No hard-edged flash, no extra world redraw.
+          const veil=ctx.createLinearGradient(head-235,0,head+300,0);
           veil.addColorStop(0,rgba(secondary,0));
-          veil.addColorStop(.22,rgba(secondary,.075*intensity));
-          veil.addColorStop(.44,rgba(primary,.24*intensity));
-          veil.addColorStop(.53,rgba('#ffffff',.10*intensity));
-          veil.addColorStop(.71,rgba(primary,.23*intensity));
+          veil.addColorStop(.23,rgba(secondary,.085*intensity));
+          veil.addColorStop(.45,rgba(primary,.26*intensity));
+          veil.addColorStop(.53,rgba('#ffffff',.12*intensity));
+          veil.addColorStop(.76,rgba(primary,.245*intensity));
           veil.addColorStop(1,rgba(secondary,0));
-          const left=Math.max(0,head-135),right=Math.min(width,head+200);
+          const left=Math.max(0,head-235),right=Math.min(width,head+300);
           if(right>left){ctx.fillStyle=veil;ctx.fillRect(left,0,right-left,height);}
-          const core=ctx.createLinearGradient(head-35,0,head+60,0);
+          const core=ctx.createLinearGradient(head-62,0,head+110,0);
           core.addColorStop(0,rgba(primary,0));
-          core.addColorStop(.40,rgba(secondary,.11*intensity));
-          core.addColorStop(.55,rgba('#ffffff',.16*intensity));
-          core.addColorStop(.76,rgba(primary,.12*intensity));
+          core.addColorStop(.31,rgba(secondary,.13*intensity));
+          core.addColorStop(.52,rgba('#ffffff',.19*intensity));
+          core.addColorStop(.7,rgba(primary,.19*intensity));
           core.addColorStop(1,rgba(primary,0));
-          const coreLeft=Math.max(0,head-36),coreRight=Math.min(width,head+62);
+          const coreLeft=Math.max(0,head-62),coreRight=Math.min(width,head+110);
           if(coreRight>coreLeft){ctx.fillStyle=core;ctx.fillRect(coreLeft,0,coreRight-coreLeft,height);}
           // Layered travelling light filaments. Fixed density budget by tier,
           // drawn with the exact warped spatial boundary, never ahead of it.
@@ -235,9 +236,11 @@
             ctx.shadowColor=color;ctx.shadowBlur=blur*glow;
             ctx.stroke();
           };
-          trace(-19,.38,4.4,15,secondary);
-          trace(0,.91,3.6,18,'#ffffff');
-          if(intensity>=.55)trace(12,.49,3.2,15,primary);
+          trace(-27,.30,4.5,16,secondary);
+          trace(0,.75,3.25,19,'#ffffff');
+          if(intensity>=.55)trace(18,.40,3.4,16,primary);
+          // The soft ambient and terrain reflections in companion renderers
+          // are synchronized with this same frontAt() position.
           // Horizontal refracted light trails lie BEHIND the front, to its
           // right as it sweeps left; no detached pre-wave boxes or arrows.
           const count=intensity<.5?3:intensity<.8?5:8;
@@ -254,13 +257,14 @@
           // High-tier boundary shear; attached to the REAL palette wave.
           // Performance adds zero strokes. No detached scout or fake obstacle.
           if(intensity>=.8){
-            ctx.shadowBlur=3*glow;ctx.lineWidth=1.2;
+            ctx.shadowBlur=3*glow;ctx.lineWidth=1.25;
             for(let i=0;i<3;i++){
-              const y=height*(.22+i*.28),front=this.frontAt(y,height);
-              ctx.globalAlpha=(.19+.07*Math.sin(this.elapsed*12+i)**2)*intensity;
+              const y=height*(.19+i*.28),front=this.frontAt(y,height);
+              const spread=46+i*12,phase=Math.sin(this.elapsed*10+i)*3;
+              ctx.globalAlpha=(.24+.09*Math.sin(this.elapsed*12+i)**2)*intensity;
               ctx.strokeStyle=i===1?secondary:primary;
-              ctx.beginPath();ctx.moveTo(front+16,y-6);
-              ctx.lineTo(front+54+i*10,y-10);ctx.stroke();
+              ctx.beginPath();ctx.moveTo(front+14,y-5);
+              ctx.lineTo(front+spread,y-9+phase);ctx.stroke();
             }
           }
           // Two short streak cuts give a tangible moment of acceleration

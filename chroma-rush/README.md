@@ -1,8 +1,17 @@
-# CHROMA RUSH — Player & Movement Identity 2.0
+# CHROMA RUSH — Chroma Tide & Energy Identity 3.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Chroma Tide & Energy Identity 3.0 (2026-11-08)
+
+- **Phase light in original sky:** a wide, soft atmosphere reflection follows the true moving color boundary (no rings, boxes, scouts or stage geometry). Balanced/High only; no additional radial light in Performance.
+- **Ground illumination on true terrain:** the arriving palette briefly refracts the existing solid ground material inside its clip, so gaps remain completely open. On High an extra fine, gradient-tinted edge hugs actual slopes and ledges.
+- **Refined Chroma Tide:** wider feathered color refraction replaces the narrow glow impression; the moving seam remains naturally warped, not a hard fake barrier, while the original spatial color masks still recolor the world once.
+- **Player contact:** the moment the real wave crosses the player activates a short glow/material response on the clean, unmarked cube and its true contact line. The existing zone sound remains synchronized to that crossing; no new timer, hazard or random state.
+- **Afterglow and reduced motion:** brief fading horizon energy after transition, then no leftover effects. Reduced motion still skips the wave; quality tiers bound sky/ground work. No physics, collision, Director, speed, inputs, original background geometry or High preset changes.
+- **Tests:** release metadata, bounded reflections, gap-safe terrain and previous Chroma Tide / Player Identity expectations are verified in CI.
 
 ## Player & Movement Identity 2.0 (2026-11-08)
 

@@ -28,7 +28,7 @@ test('the visible front has two bounded veils, more streaks on High and no false
   w.draw(high.ctx,{width:1280,height:720,groundY:515,quality:{density:1,glow:1}});
   w.draw(low.ctx,{width:1280,height:720,groundY:515,quality:{density:.36,glow:.24}});
   assert.equal(high.calls.fills.length,2);
-  assert.ok(high.calls.fills.every(fill=>fill.w>0&&fill.w<350));
+  assert.ok(high.calls.fills.every(fill=>fill.w>0&&fill.w<=600));
   assert.ok(high.calls.strokes.length>low.calls.strokes.length);
   assert.ok(high.calls.strokes.length<=16);
   assert.ok(low.calls.strokes.length<=9);
@@ -52,7 +52,7 @@ test('resonance and afterglow persist briefly AFTER wave exit, then fully expire
   const lingering=canvas();w.draw(lingering.ctx,{width:1280,height:720,groundY:515});
   assert.ok(lingering.calls.strokes.length>=3);
   assert.equal(lingering.calls.fills.length,0,'afterglow never paints a screen fade');
-  w.tick(.85);
+  w.tick(.95);
   assert.equal(w.afterglow,0);
   assert.equal(w.resonance,0);
   const done=canvas();w.draw(done.ctx,{width:1280,height:720,groundY:515});
@@ -74,8 +74,8 @@ test('a new tide resets the previous trail and reduced motion never draws it',()
 });
 test('release label and versioned assets expose the actual Spectacle build',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  assert.match(html,/LATEST UPDATE · PLAYER IDENTITY 2\.0/);
-  assert.match(html,/name="chroma-build" content="[^"]*tide-2\.0-spectacle-1\.0-dash-2\.5-shield-core-1\.0-dash-hazards-1\.0-dash-pacing-1\.1-spectrum-2\.0-dash-reliability-1\.2-ui-calm-1\.0-dash-polish-2\.0-director-flow-2\.0-performance-stability-2\.0-chroma-identity-visual-polish-1\.0-player-identity-2\.0"/);
+  assert.match(html,/LATEST UPDATE · CHROMA TIDE 3\.0/);
+  assert.match(html,/name="chroma-build" content="[^"]*tide-2\.0-spectacle-1\.0-dash-2\.5-shield-core-1\.0-dash-hazards-1\.0-dash-pacing-1\.1-spectrum-2\.0-dash-reliability-1\.2-ui-calm-1\.0-dash-polish-2\.0-director-flow-2\.0-performance-stability-2\.0-chroma-identity-visual-polish-1\.0-player-identity-2\.0-chroma-tide-energy-3\.0"/);
   for(const file of ['spectral-wave','terrain-renderer','world-background'])
     assert.match(html,new RegExp('src/render/'+file+'\\.js\\?v=[^"]*spectacle-1\\.0'));
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');

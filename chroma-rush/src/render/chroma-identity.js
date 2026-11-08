@@ -46,25 +46,28 @@
   // arrowheads, stripes, floating objects or double render passes of the world.
   function paintPlayer(ctx,{x,y,w,h,topShift=0,primary='#4bf0ff',
     secondary='#fa49b2',pose={},motion={},quality={},reducedMotion=false,
-    bodyPath}={}){
+    tideResonance=0,bodyPath}={}){
     if(typeof bodyPath!=='function'||!(w>0&&h>0))return;
     const p=expression(motion,reducedMotion),q=budget(quality);
-    const burst=clamp(p.echo*.7+p.dash*.8+p.landing*.65+p.launch*.35,0,1);
-    const drive=clamp(p.dash*.52+p.echo*.27+p.duck*.12,0,.7);
+    // Chroma Tide ignites the existing cube surface at the exact moment
+    // the REAL palette front crosses the runner. No independent timer.
+    const tide=reducedMotion?0:clamp(tideResonance,0,1);
+    const burst=clamp(p.echo*.7+p.dash*.8+p.landing*.65+p.launch*.35+tide*.85,0,1);
+    const drive=clamp(p.dash*.52+p.echo*.27+p.duck*.12+tide*.32,0,.7);
     ctx.save();
     // The glow is welded to the actual moving silhouette; no halo ring.
-    ctx.shadowColor=burst>.28?secondary:primary;
-    ctx.shadowBlur=(22+Math.min(16,(pose.glow||0)*12+burst*11))*q.glow;
+    ctx.shadowColor=tide>.25?'#ffffff':burst>.28?secondary:primary;
+    ctx.shadowBlur=(22+Math.min(21,(pose.glow||0)*12+burst*11+tide*6))*q.glow;
     const shell=ctx.createLinearGradient(x+topShift*.35,y,x+w,y+h);
     shell.addColorStop(0,'#ffffff');
     shell.addColorStop(.23,burst>.4?'#ffffff':'#f7fcff');
-    shell.addColorStop(.66,tint('#f4faff',primary,.12+p.launch*.14+p.landing*.07));
-    shell.addColorStop(1,tint('#e2effc',secondary,.16+drive*.28));
+    shell.addColorStop(.66,tint('#f4faff',primary,.12+p.launch*.14+p.landing*.07+tide*.18));
+    shell.addColorStop(1,tint('#e2effc',secondary,.16+drive*.28+tide*.13));
     ctx.fillStyle=shell;
     bodyPath(x,y,w,h,8,topShift);ctx.fill();
     ctx.shadowBlur=(7+burst*8)*q.glow;
-    ctx.strokeStyle=burst>.4?secondary:primary;
-    ctx.lineWidth=2.1+Math.min(.65,burst*.65);
+    ctx.strokeStyle=tide>.28?'#f6fdff':burst>.4?secondary:primary;
+    ctx.lineWidth=2.1+Math.min(.9,burst*.65+tide*.26);
     ctx.stroke();
     if(q.premium){
       // One broad optical coating, not an inset icon or an engraved line.
@@ -72,7 +75,7 @@
       const sheen=ctx.createLinearGradient(x,y+h*.1,x+w,y+h*.9);
       sheen.addColorStop(0,'rgba(255,255,255,.38)');
       sheen.addColorStop(.48,'rgba(255,255,255,.06)');
-      sheen.addColorStop(1,rgba(primary,.11+burst*.08));
+      sheen.addColorStop(1,rgba(primary,.11+burst*.08+tide*.07));
       ctx.fillStyle=sheen;ctx.shadowBlur=0;
       bodyPath(x+2,y+2,w-4,h-4,5,topShift*.78);
       ctx.fill();
@@ -82,10 +85,11 @@
   // Short contact glow expands WITH the landing / duck compression.
   // It stays on the real surface, including when the course is inverted.
   function drawContact(ctx,{x,surface,width=44,primary='#4bf0ff',
-    secondary='#fa49b2',motion={},quality={},reducedMotion=false}={}){
+    secondary='#fa49b2',motion={},quality={},reducedMotion=false,tideResonance=0}={}){
     if(!Number.isFinite(surface))return;
     const p=expression(motion,reducedMotion),q=budget(quality);
-    const impulse=clamp(p.landing*.8+p.duck*.35+p.release*.18,0,1);
+    const tide=reducedMotion?0:clamp(tideResonance,0,1);
+    const impulse=clamp(p.landing*.8+p.duck*.35+p.release*.18+tide*.40,0,1);
     const w=clamp(width*(1+impulse*.38),16,90);
     ctx.save();ctx.shadowBlur=0;
     ctx.fillStyle=rgba(impulse>.35?secondary:primary,.15+impulse*.35);

@@ -100,5 +100,5 @@ test('run export is wired to the same on-device Director and Flow diagnostics',(
   assert.match(source,/exported\.flowBalance=flow\.insight/);
   assert.match(source,/flow\.tick\(dt,\{phase:director\.phase\}\)/);
   const audit=require('../src/diagnostics/round-audit.js');
-  assert.equal(new audit.RoundAudit().snapshot().build,'player-movement-identity-2.0');
+  assert.equal(new audit.RoundAudit().snapshot().build,'chroma-tide-energy-3.0');
 });

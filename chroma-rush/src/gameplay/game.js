@@ -1383,7 +1383,8 @@
     // The approved squash/stretch path is kept, as are all collision boxes.
     identity.paintPlayer(ctx,{x:rx,y:ry,w:rw,h:rh,topShift:bend,
       primary:pc1,secondary:pc2,pose:shape,motion,
-      quality:quality.profile,reducedMotion,bodyPath:playerPath});
+      quality:quality.profile,reducedMotion,tideResonance:spectralWave.resonance,
+      bodyPath:playerPath});
     if(player.duck){
       const n=Math.max(1,Math.round(3*quality.profile.particles));
       for(let i=0;i<n;i++){
@@ -1415,7 +1416,8 @@
       // Side-view contact glow: thin horizontal strip instead of a floor oval.
       const height=clamp((surface-player.feet)*.16,0,80),w=clamp(44-height*.36,18,44);
       identity.drawContact(ctx,{x:player.x,surface,width:w,primary:pc1,
-        secondary:pc2,motion,quality:quality.profile,reducedMotion});
+        secondary:pc2,motion,quality:quality.profile,reducedMotion,
+        tideResonance:spectralWave.resonance});
     }
   }
   function drawFx(dt){

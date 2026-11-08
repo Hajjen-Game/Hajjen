@@ -261,8 +261,10 @@ test('Dash 2.3 tilts the actual rounded cube softly: air visibly, duck subtly',(
   assert.equal(g.dash.airCount,1);
   assert.equal(g.dash.groundCount,1);
   assert.equal(g.runAudit.summary.movement.airDashes,1);
-  h.game.rotations.length=0;h.advance(25);
+  h.advance(25);
   assert.equal(g.motion.dashTime,0,'lean ends with dash, no permanent rotation');
+  h.game.rotations.length=0;
+  h.advance(4);
   assert.equal(h.game.rotations.length,0,'normal jump and recovery stay upright');
 });
 

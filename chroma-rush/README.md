@@ -1,8 +1,16 @@
-# CHROMA RUSH — Performance Stability 2.0
+# CHROMA RUSH — Chroma Identity & Visual Polish 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Chroma Identity & Visual Polish 1.0 (2026-11-08)
+
+- New dedicated **Canvas-only visual identity module** supplies palette-aware channel cuts within the original runner silhouette and inset hazard marks across Jump, Duck, Echo and Dash.
+- **Premium Chroma Tide:** a trio of boundary-locked light shear traces on higher-quality devices only; Performance graphics receives no additional strokes or overhead.
+- **Clean arcade typography:** dual-color logo rail, score hierarchy, compact HUD progress rails, and deliberate call-to-action styling for Main Menu and Run Complete.
+- **Strict protections:** original restored background, collision dimensions, 60Hz physics, Director, Flow, terrain, inputs, and HIGH quality profile unchanged. New module is optional on staged/cached HTML loads.
+- **Verification:** dedicated visual mark geometry tests and complete GitHub Actions unit/browser suites.
 
 ## Performance Stability 2.0 (2026-11-08)
 

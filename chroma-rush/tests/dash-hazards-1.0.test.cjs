@@ -125,7 +125,7 @@ test('Audit logs successful and failed seals without inventing ordinary clears',
   log.record('dash_hazard_miss',{zone:5,hp:75},{obstacle:GROUND,sealBroken:false});
   assert.deepEqual(log.summary.dashHazards,{spawned:{air:0,ground:0},charged:{air:0,ground:0},cleared:{air:1,ground:1},missed:{air:0,ground:1},deferred:{total:0,byReason:{}}});
   assert.equal(log.summary.obstaclesCleared,0);
-  assert.equal(log.snapshot().build,'performance-stability-2.0');
+  assert.equal(log.snapshot().build,'chroma-identity-visual-polish-1.0');
 });
 test('Momentum-seal feedback is audible but never grants invulnerability',()=>{
   const a=new ReactiveAudioSystem({scope:{},enabled:false}),notes=[];

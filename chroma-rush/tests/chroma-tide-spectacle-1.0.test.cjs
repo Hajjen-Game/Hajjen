@@ -74,8 +74,8 @@ test('a new tide resets the previous trail and reduced motion never draws it',()
 });
 test('release label and versioned assets expose the actual Spectacle build',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
-  assert.match(html,/LATEST UPDATE · PERFORMANCE STABILITY 2\.0/);
-  assert.match(html,/name="chroma-build" content="[^"]*tide-2\.0-spectacle-1\.0-dash-2\.5-shield-core-1\.0-dash-hazards-1\.0-dash-pacing-1\.1-spectrum-2\.0-dash-reliability-1\.2-ui-calm-1\.0-dash-polish-2\.0-director-flow-2\.0-performance-stability-2\.0"/);
+  assert.match(html,/LATEST UPDATE · CHROMA IDENTITY 1\.0/);
+  assert.match(html,/name="chroma-build" content="[^"]*tide-2\.0-spectacle-1\.0-dash-2\.5-shield-core-1\.0-dash-hazards-1\.0-dash-pacing-1\.1-spectrum-2\.0-dash-reliability-1\.2-ui-calm-1\.0-dash-polish-2\.0-director-flow-2\.0-performance-stability-2\.0-chroma-identity-visual-polish-1\.0"/);
   for(const file of ['spectral-wave','terrain-renderer','world-background'])
     assert.match(html,new RegExp('src/render/'+file+'\\.js\\?v=[^"]*spectacle-1\\.0'));
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');

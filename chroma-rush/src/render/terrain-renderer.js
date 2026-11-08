@@ -52,7 +52,7 @@
     if(!runs.length)return;
     const colorAt=(x,channel,y)=>tide?.active?tide.colorAt(x,channel,y,height):
       (channel==='primary'?primary:secondary);
-    const groundPrimary=colorAt(width*.5,'primary',baseY);
+    const groundPrimary=tide?.active?tide.ambientColor('primary'):primary;
 
     // Build one compound clip mask for all solid track. The floor, gradients and
     // grid are all clipped to it: the gap is literal transparency over the world.

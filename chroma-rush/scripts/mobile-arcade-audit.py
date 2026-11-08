@@ -69,16 +69,26 @@ def main():
             rect=page.locator('#'+name).bounding_box()
             assert rect and rect['width']>=79 and rect['height']>=79,(name,rect)
             assert rect['x']>=0 and rect['x']+rect['width']<=width
-          hud=page.locator('#hud').bounding_box()
+          # HUD Anchor 4.1: the parent now spans the symmetric viewport.
+          # Measure the VISIBLE columns, not its intentionally full-width box.
+          zone=page.locator('#zone-display').bounding_box()
+          score=page.locator('#score-display').bounding_box()
           actions=page.locator('#top-actions').bounding_box()
-          assert hud['x']+hud['width']<=actions['x']+2, f'HUD overlaps actions: {hud} {actions}'
+          sound=page.locator('#sound-btn').bounding_box()
+          assert zone and score and actions and sound, 'Missing HUD or actions'
+          assert abs((zone['x']+zone['width']/2)-width/2)<=2.5, (
+            f'Zone is not centered at {width}x{height}: {zone}')
+          assert score['x']>=zone['x']+zone['width']+3, (
+            f'Score overlaps Zone at {width}x{height}: {zone} {score}')
+          assert score['x']+score['width']+10<=sound['x'], (
+            f'Score overlaps music/pause at {width}x{height}: {score} {sound}')
           assert page.evaluate('document.documentElement.scrollWidth')<=width+1
           page.screenshot(path=str(OUT/f'game-{width}x{height}.png'))
           print('PAUSE',width,flush=True)
           page.locator('#pause-btn').click(force=True)
           assert page.locator('#pause-menu').is_visible()
           page.screenshot(path=str(OUT/f'pause-{width}x{height}.png'))
-          results.append({'viewport':f'{width}x{height}','settingsPanel':panel,'touchWidth':rect['width'],'hudRight':hud['x']+hud['width'],'actionsLeft':actions['x']})
+          results.append({'viewport':f'{width}x{height}','settingsPanel':panel,'touchWidth':rect['width'] ,'zoneCenter':zone['x']+zone['width']/2,'scoreRight':score['x']+score['width'],'actionsLeft':actions['x']})
           page.close()
         browser.close()
     finally:

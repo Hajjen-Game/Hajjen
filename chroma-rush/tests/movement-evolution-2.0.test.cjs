@@ -86,5 +86,5 @@ test('two large thumb targets, canonical scripts, and one world step for terrain
   assert.match(game,/o\.x-=worldStep/);
   assert.match(game,/dash\.onLand\(\)/);
   assert.match(game,/sound\(action==='air'\?'dash-air':'dash-ground'\)/);
-  assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1)/);
+  assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0)/);
 });

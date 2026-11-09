@@ -719,9 +719,10 @@
         // Teach the new pair of controls only ONCE per mode, after its
         // opening safe spawn. Reuse the existing short HUD helper; never put
         // labels or detached icons on the obstacle itself.
+        const demanding=DASH_HAZARDS.needsDashFor(data.type,speed);
         $.dashHint.textContent=dashMode==='air'?
-          'TWIN VAULT · AIR DASH OPTIONAL':
-          'LONG GATE · GROUND DASH OPTIONAL';
+          demanding?'TWIN VAULT · DOUBLE JUMP + AIR DASH':'TWIN VAULT · JUMP / DASH':
+          demanding?'LONG GATE · DUCK + GROUND DASH':'LONG GATE · DUCK / DASH';
         dashHintTime=Math.max(dashHintTime,5.0);
       }
     }
@@ -731,7 +732,8 @@
       surface:gravityShift.ceiling?'ceiling':'floor',intro:firstEcho||firstDash,
       leadSeconds:fairness.leadSeconds,requiredSeconds:fairness.requiredSeconds,
       visibleSeconds:fairness.visibleSeconds,earlyCueSeconds:fairness.earlyCueSeconds,
-      fair:fairness.fair,needsCue:fairness.needsCue});
+      fair:fairness.fair,needsCue:fairness.needsCue,
+      dashNeededByGeometry:isDashChallenge&&DASH_HAZARDS.needsDashFor(data.type,speed)});
     return true;
   }
   function updateHud(){
@@ -1051,9 +1053,9 @@
       const shaped=DASH_HAZARDS.isDashHazard(o.type);
       if(shaped&&!o.dashAssisted&&dash.active)
         noteDashAssist(o,dash.mode,'active');
-      // Swept X prevents narrow obstacle skips on a slow mobile frame.
-      // Only the two actual low boxes collide. Their intervening gap is
-      // entirely empty, including for ordinary and double jump.
+      // Swept X protects narrow shapes on a slow mobile frame. The
+      // between-box zigzag is a REAL low physical collider: landing inside
+      // the energy bridge is dangerous, but no arbitrary input gate exists.
       const overlapsX=box=>GEO.sweptXOverlap(p,priorX+(box.x-o.x),
         {x:box.x,width:box.w});
       const sweptX=hitBoxes.some(overlapsX);
@@ -1236,9 +1238,11 @@
       // Echo is a TALL two-chamber sibling; the actual body, inset face,
       // bevel, white cap, vertical cheeks and floor plinth are identical.
       // Every structural stroke fits the same physical obstacle footprint.
-      // Pure Geometry: two real short boxes with an unobstructed open gap.
-      // A regular/echo jump or well-timed Dash can carry over them.
-      const chunks=o.type==='dash-jump'?GEO.obstacleBoxes(o,o.groundY):[b];
+      // Twin Vault: draw two standard plinths. The separate low energy
+      // collision strip between them is drawn immediately below, never
+      // as an oversized opaque box.
+      const chunks=o.type==='dash-jump'?
+        GEO.obstacleBoxes(o,o.groundY).filter((_,i)=>i!==1):[b];
       for(const body of chunks){
       const x=body.x,y=body.y,w=body.w,h=body.h,bevel=Math.min(8,w*.16);
       ctx.globalAlpha=twinkle;
@@ -1281,6 +1285,53 @@
       glowLine(x+3,y+h-12,x+w-3,y+h-12,color,2.3,8,.91);
       glowLine(x+4,y+h-3,x+w-4,y+h-3,'#ffffff',1.5,6,.55);
       }
+      if(o.type==='dash-jump'){
+        // The restored zigzag is the VISIBLE danger surface, not a
+        // free-floating guide. Its full 36px-tall envelope is the actual
+        // middle collision shape: no safe landing between either box.
+        const wire=GEO.obstacleBoxes(o,o.groundY)[1];
+        const start=wire.x,end=wire.x+wire.w,span=wire.w;
+        const colorAtMid=spectralWave.colorAt(
+          camera.screenX(start+span*.5,player.x),'secondary',
+          camera.screenY(wire.y+wire.h*.5,floorY),H);
+        const flash=reducedMotion?1:.88+.12*Math.sin(worldTime*7+o.pulse)**2;
+        ctx.save();
+        // The translucent 36px energy bed exactly fills the physical
+        // collider. No inaccessible/hidden extra collision volume.
+        ctx.globalAlpha=.72*flash;
+        ctx.fillStyle=rgba(colorAtMid,.21);
+        ctx.fillRect(start,wire.y,span,wire.h);
+        glowLine(start,wire.y+3,end,wire.y+3,colorAtMid,1.7,
+          8*quality.profile.glow,.48);
+        const steps=Math.max(6,Math.min(30,Math.round(span/43)));
+        const layers=quality.profile.density>=.60?2:1;
+        for(let layer=0;layer<layers;layer++){
+          ctx.beginPath();
+          ctx.lineJoin='bevel';ctx.lineCap='round';
+          ctx.strokeStyle=layer?colorAtMid:'#f4ffff';
+          ctx.lineWidth=layer?1.7:2.8;
+          ctx.globalAlpha=flash*(layer?.42:.96);
+          ctx.shadowColor=colorAtMid;
+          ctx.shadowBlur=(layer?10:19)*quality.profile.glow;
+          for(let i=0;i<=steps;i++){
+            const xx=start+span*i/steps;
+            // Angular, low zigzag fully contained INSIDE its collision bed.
+            const yy=wire.y+(layer?19:16)+
+              (i%2===0?-7:7)+(layer?4:0);
+            if(i===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
+          }
+          ctx.stroke();
+        }
+        ctx.shadowBlur=0;
+        // One restrained moving highlight, no rings or separate hazard icon.
+        if(!reducedMotion){
+          const travel=((worldTime*.62+o.pulse/(2*Math.PI))%1)*span;
+          glowLine(start+travel,wire.y+12,
+            Math.min(end,start+travel+Math.min(52,span*.09)),wire.y+12,
+            '#ffffff',1.3,8*quality.profile.glow,.60);
+        }
+        ctx.restore();
+      }
     }else{
       // The long duck variant reads as a structural overhead canopy,
       // with its full-width duck passage aligned to the collision shape.
@@ -1319,9 +1370,25 @@
         glowLine(x,core.y+12,x,by-12,color,1,0,.36);
       }
       glowLine(core.x,core.y,core.x+core.w,core.y,'#ffffff',1,8,.45);
+      if(extended){
+        // The Long Gate also gets a crisp zigzag ENGRAVED IN its damaging
+        // lower edge. Never let glow hang into the safe ducking passage.
+        const steps=Math.max(6,Math.min(22,Math.round(b.w/34)));
+        ctx.save();
+        ctx.lineJoin='bevel';ctx.lineCap='round';
+        ctx.beginPath();
+        for(let i=0;i<=steps;i++){
+          const xx=b.x+7+(b.w-14)*i/steps;
+          const yy=by-11+(i%2===0?-5:5);
+          if(i===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
+        }
+        ctx.strokeStyle='#ffffff';ctx.lineWidth=2.5;
+        ctx.shadowColor=color;ctx.shadowBlur=15*quality.profile.glow;
+        ctx.globalAlpha=.87;ctx.stroke();ctx.restore();
+      }
     }
-    // No energy ribbon, vertical seal or extra checkpoint. Every visible
-    // advanced obstacle is precisely its physical jump/duck shape.
+    // Every glowing segment maps to actual geometry. No detached seal
+    // checkpoint, no free mid-bridge landing and no forced action key.
     ctx.restore();
   }
   function drawPlayer(){

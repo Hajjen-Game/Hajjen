@@ -32,11 +32,15 @@
   }
   function obstacleBoxes(obstacle,floorY){
     if(obstacle.type!=='dash-jump')return [obstacleBox(obstacle,floorY)];
-    // Pure Geometry 2.0: two visible, standard-sized solids and nothing
-    // between. No central field, collision, mandatory dash or hidden seal.
-    // Echo Jump and ordinary jump are both legitimate physical solutions.
+    // Zigzag Energy Geometry 2.1: the two normal 50px plinths CONNECT to
+    // a clearly rendered 36px-tall floor-energy strip. Landing between
+    // boxes is hazardous, and the collision strip precisely matches the
+    // visible glow silhouette. No invisible checkpoint or Dash action gate.
     const w=Math.min(50,obstacle.width*.5),y=floorY-obstacle.height;
+    const span=Math.max(0,obstacle.width-2*w);
+    const AIR_BRIDGE_HEIGHT=36;
     return [{x:obstacle.x,y,w,h:obstacle.height},
+      {x:obstacle.x+w,y:floorY-AIR_BRIDGE_HEIGHT,w:span,h:AIR_BRIDGE_HEIGHT},
       {x:obstacle.x+obstacle.width-w,y,w,h:obstacle.height}];
   }
   function sweptXOverlap(player,priorX,obstacle){

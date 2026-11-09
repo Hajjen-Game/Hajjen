@@ -22,8 +22,10 @@
     echo:Object.freeze({lead:1.00,label:'2× JUMP',mark:'↑↑',cost:3}),
     gap:Object.freeze({lead:.66,label:'GAP',mark:'↑',cost:2}),
     'echo-gap':Object.freeze({lead:1.10,label:'2× GAP',mark:'↑↑',cost:3}),
-    'dash-jump':Object.freeze({lead:1.25,label:'AIR DASH',mark:'↑+',cost:3}),
-    'dash-duck':Object.freeze({lead:1.18,label:'GROUND DASH',mark:'↓+',cost:3})
+    // Early energy structures demand a deliberate multi-input combo.
+    // This is a visual/decision budget; no hidden action rule is applied.
+    'dash-jump':Object.freeze({lead:1.65,label:'TWIN VAULT',mark:'↑↑+',cost:4}),
+    'dash-duck':Object.freeze({lead:1.38,label:'LONG GATE',mark:'↓↓+',cost:3})
   });
   function rule(type){return ACTIONS[type]||ACTIONS.jump;}
   function horizonFor(type,{speed=370,playerX=300,viewportWidth=1280}={}){

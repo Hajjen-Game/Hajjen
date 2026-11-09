@@ -1,7 +1,8 @@
-/* CHROMA RUSH — Dash Hazard Redesign 2.0: Pure Geometry.
- * Advanced jump/duck silhouettes with ONLY visible physical collisions.
- * Dash is an optional movement/Flow aid, never a key to pass a checkpoint.
- * No floating energy ribbon, dash seal, immunity or invisible bridge hitbox.
+/* CHROMA RUSH — Dash Hazard Redesign 2.1: Zigzag Energy Geometry.
+ * The bridge is genuinely dangerous to land on: its glowing zigzag is a
+ * *visible physical* floor-energy strip, NOT an invisible action/seal gate.
+ * Long early spans favor Echo Jump + Air Dash; an extended overhead gate
+ * favors Duck + Ground Dash. At high speed, Dash becomes optional again.
  */
 (function(root,factory){
   const api=factory();
@@ -13,24 +14,34 @@
   const FIRST_AIR_ZONE=3,FIRST_GROUND_ZONE=4;
   const TYPES=Object.freeze([AIR,GROUND]);
   const AIR_BOX_WIDTH=50;
-  const AIR_SPACING_SECONDS=.42;
-  // Two entirely independent low boxes. The open gap is real empty world,
-  // and *both* ordinary jump and Echo can clear them with correct timing.
-  // Dash may gain distance, but is never required for a successful clear.
-  const boxGapFor=speed=>Math.round(Math.max(300,speed)*AIR_SPACING_SECONDS/10)*10;
+  const AIR_BRIDGE_HEIGHT=36;
+  // Echo's physical clearance over 62-unit endboxes is ~1.26s. Tune the
+  // opening bridge for ~1.36s of world travel, so Echo *alone* cannot span
+  // it; Echo + a well-timed Air Dash can. A strict world-width cap makes
+  // the same geometry naturally easier when the world accelerates.
+  const AIR_CHALLENGE_SECONDS=1.36,AIR_MAX_WIDTH=1200;
+  const GROUND_CHALLENGE_SECONDS=.68,GROUND_MAX_WIDTH=530;
+  const widthFor=(type,speed=370)=>{
+    const v=Math.max(300,speed);
+    if(type===AIR)return Math.min(AIR_MAX_WIDTH,
+      Math.max(280,Math.round((v*AIR_CHALLENGE_SECONDS-36)/10)*10));
+    if(type===GROUND)return Math.min(GROUND_MAX_WIDTH,
+      Math.max(160,Math.round((v*GROUND_CHALLENGE_SECONDS-66)/10)*10));
+    return 0;
+  };
+  const boxGapFor=speed=>widthFor(AIR,speed)-AIR_BOX_WIDTH*2;
+  // Estimates describe the expected INPUT requirement; the actual game
+  // applies normal, swept collision against the visible physical bodies.
+  const needsDashFor=(type,speed=370)=>{
+    const v=Math.max(300,speed);
+    if(type===AIR)return (widthFor(AIR,v)+36)/v>1.259;
+    if(type===GROUND)return (widthFor(GROUND,v)+66)/v>.55;
+    return false;
+  };
   const isDashHazard=t=>t===AIR||t===GROUND;
   const requiredMode=t=>t===AIR?'air':t===GROUND?'ground':null;
   const baseType=t=>t===AIR?'jump':t===GROUND?'duck':t;
   const unlockZone=t=>t===AIR?FIRST_AIR_ZONE:t===GROUND?FIRST_GROUND_ZONE:1;
-  const widthFor=(type,speed=370)=>{
-    const v=Math.max(300,speed);
-    if(type===AIR)return AIR_BOX_WIDTH*2+boxGapFor(v);
-    // Long overhead geometry. A clean ordinary duck must be sufficient at
-    // ALL speeds, not merely if a special Dash extends the duck window.
-    // Includes the 66px ducking-player body and leaves ~90ms of slack.
-    if(type===GROUND)return Math.max(74,Math.min(300,110+v*.18,v*.46-66));
-    return 0;
-  };
   const heightFor=t=>t===AIR?62:t===GROUND?146:0;
   // Only analytics/feedback. A locally used Dash may be acknowledged as
   // helpful, but a player using no Dash still clears via the same geometry.
@@ -55,6 +66,8 @@
     return first||guided||confidence>=.42;
   }
   return {AIR,GROUND,TYPES,FIRST_AIR_ZONE,FIRST_GROUND_ZONE,
-    AIR_BOX_WIDTH,AIR_SPACING_SECONDS,boxGapFor,isDashHazard,requiredMode,
+    AIR_BOX_WIDTH,AIR_BRIDGE_HEIGHT,AIR_CHALLENGE_SECONDS,AIR_MAX_WIDTH,
+    GROUND_CHALLENGE_SECONDS,GROUND_MAX_WIDTH,boxGapFor,needsDashFor,
+    isDashHazard,requiredMode,
     baseType,unlockZone,widthFor,heightFor,mayAssist,safeToSpawn};
 });

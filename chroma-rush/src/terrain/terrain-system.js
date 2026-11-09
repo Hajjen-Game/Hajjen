@@ -66,6 +66,13 @@
         const delta=this._random(-change,change);
         const nextY=clamp(prev.y1+delta,this.baseY-r.maxOffset,this.baseY+r.maxOffset);
         segment=this._append('slope',this._random(r.minSlopeWidth,r.maxSlopeWidth),nextY);
+      }else if(policy?.dashLearningRunway){
+        // Long advanced Dash shapes must actually spawn in the tutorial.
+        // Only during the original FLOOR-ONLY first lesson, author a calm
+        // contiguous flat runway wide enough for a 1.36-second energy
+        // bridge plus the normal takeoff/landing safety margins. This
+        // changes terrain generation, never existing terrain/collisions.
+        segment=this._append('flat',Math.max(2700,Math.min(3900,speed*3.2)));
       }else segment=this._append('flat',this._random(400,740));
       if(policy){segment.plannedPhase=policy.phase;segment.lookaheadSeconds=policy.leadSeconds;}
       return segment;

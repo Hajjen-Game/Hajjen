@@ -1,8 +1,20 @@
-# CHROMA RUSH — Dash Hazard Redesign 2.0 – Pure Geometry
+# CHROMA RUSH — Dash Hazard Redesign 2.1 – Zigzag Energy Geometry
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Dash Hazard Redesign 2.1 – Zigzag Energy Geometry (2026-11-09)
+
+**Player playtest correction:** The Zigzag Energy Bridge was visually valuable and needed glow polish, not removal. Also the long advanced obstacles should require **Dash at lower speed**, while allowing dash-free traversal after acceleration increases. Dash itself is fun to use freely—never restrict the ability or tie activation to a special obstacle.
+
+- **Twin Vault** retains two ordinary 50-unit low endboxes but reconnects them with a **visibly glowing, 36-unit-high floor-energy strip** with an angular sicksack lightning pattern, soft blue/cyan glow, one restrained moving glint, and an optional second visual layer on higher graphics profiles. The visible energy bed IS the middle physical collider: **landing there hurts**. No invisible checkpoint, action-specific immunity, mandatory seal flag, huge opaque box or extra arrow.
+- The long Air layout uses an early-world distance of roughly **1.36 seconds of travel**, capped at **1,200 logical units**. With real Jump/Echo/Dash physics, early runs near speeds 570–900 demand **double jump + Air Dash**, confirmed by a step simulation against all three actual collider shapes. As speed increases past ~1,100 an Echo Jump can suffice; near ~1,800 even a correctly timed **single Jump + Air Dash** becomes viable. This is true physical reach, not a scripted Dash-only command.
+- **Long Gate** grows with speed to roughly **0.68 seconds of ordinary travel** (maximum width 530), exceeding the .55s standard Duck early. **Duck + Ground Dash** makes an actual physically viable traversal. At higher speed the width cap naturally makes **Duck alone** sufficient. The gate has a newly strengthened angular white glow integrated inside its full-length underside; the 28px ducking passage is always visibly open.
+- Director first introductions remain floor-only, isolated and low-stress. The terrain generator provides a calm **long flat runway only while the two first floor lessons remain untaught**, so these longer hazards can actually spawn; normal randomized hills and gaps resume after the lesson. Dash-attributed clears and no-Dash clears remain differentiated in audit schema 3, with corrected version label `dash-hazard-zigzag-geometry-2.1`.
+- High-speed readability budgets for the three-input Twin Vault and two-press Long Gate are lengthened, including offscreen warnings when required. Speed Curve 3.2, Camera Horizon 1.1, controls, Dash thrust, input timings, Flow/HP rules, random Director choice and original background remain unchanged.
+- **Design note:** the long *early* layout requires Echo+Dash. Single Jump+Dash is feasible on the same shape later once speed is sufficiently high; there is no hidden anti-Echo rule. This distinction is preferable to faking a forced Dash with invisible damage.
+- See [design, calculations and test checklist](docs/dash-hazard-zigzag-geometry-2.1.md) and [step-physics tests](tests/dash-energy-geometry-2.1.test.cjs). The Pure Geometry 2.0 notes below are retained as historical material.
 
 ## Dash Hazard Redesign 2.0 – Pure Geometry (2026-11-09)
 

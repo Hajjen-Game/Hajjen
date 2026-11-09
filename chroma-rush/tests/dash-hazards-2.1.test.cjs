@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path');
 const DASH_H=require('../src/gameplay/dash-hazards.js');
 const {AIR,GROUND,AIR_BOX_WIDTH,boxGapFor,isDashHazard,requiredMode,
   baseType,unlockZone,widthFor,heightFor,mayAssist,
-  safeToSpawn}=DASH_H;
+  needsDashFor,safeToSpawn}=DASH_H;
 const {GAME,DASH}=require('../src/core/config.js');
 const GEO=require('../src/core/geometry.js');
 const {AdaptiveRushDirector}=require('../src/director/adaptive-director.js');
@@ -34,12 +34,17 @@ test('Air and Ground advanced families are fully physical, never Dash-gated',()=
   const v=GAME.speedAt(36,4);
   const air={type:AIR,x:560,width:widthFor(AIR,v),height:62};
   const low=GEO.obstacleBoxes(air,515);
-  assert.equal(low.length,2);
-  assert.ok(low.every(b=>b.w===AIR_BOX_WIDTH));
-  assert.equal(low[1].x-low[0].x-low[0].w,boxGapFor(v));
-  const between={x:low[0].x+AIR_BOX_WIDTH+30,y:480,w:36,h:30};
-  assert.ok(low.every(b=>between.x+between.w<=b.x||
-    between.x>=b.x+b.w),'physical gap has no phantom box');
+  assert.equal(low.length,3);
+  assert.equal(low[0].w,AIR_BOX_WIDTH);
+  assert.equal(low[2].w,AIR_BOX_WIDTH);
+  assert.equal(low[1].w,boxGapFor(v));
+  assert.equal(low[1].x,low[0].x+AIR_BOX_WIDTH);
+  assert.equal(low[2].x,low[1].x+low[1].w);
+  assert.equal(low[1].h,DASH_H.AIR_BRIDGE_HEIGHT);
+  assert.ok(low[1].h<low[0].h,'zigzag bed is low but physically dangerous');
+  const between={x:low[1].x+30,y:480,w:36,h:30};
+  assert.ok(GEO.verticalOverlap(between,low[1]),
+    'landing on the visible low-energy floor is a real collision');
   const gate={type:GROUND,x:300,width:widthFor(GROUND,v),height:146};
   const duck=GEO.obstacleBox(gate,515);
   assert.equal(duck.y,GEO.DUCK_GATE_TOP);
@@ -47,31 +52,33 @@ test('Air and Ground advanced families are fully physical, never Dash-gated',()=
   assert.equal(GEO.verticalOverlap({x:310,y:494,w:66,h:21},duck),false);
 });
 
-test('Ground canopy ALWAYS fits within ordinary 0.55s duck duration at unlocked speeds',()=>{
+test('long ground gate needs Dash at low speed, becomes plain-duckable as speed rises',()=>{
   for(const z of [4,5,6,8,12,16,20,25,35,45,65]){
     const speed=GAME.speedAt((z-1)*GAME.zoneSeconds,z);
     const groundW=widthFor(GROUND,speed);
-    const crossing=(groundW+66)/speed; // whole ducking player clears the gate
-    assert.ok(groundW>70&&groundW<=300,JSON.stringify({z,groundW}));
-    assert.ok(crossing<=.47,JSON.stringify({z,crossing}),
-      'must have ~80ms or more input slack without Ground Dash');
+    const crossing=(groundW+66)/speed;
+    assert.ok(groundW>=160&&groundW<=DASH_H.GROUND_MAX_WIDTH,JSON.stringify({z,groundW}));
+    assert.equal(needsDashFor(GROUND,speed),crossing>GAME.duckDuration);
+    if(z<=5)assert.ok(needsDashFor(GROUND,speed));
+    if(z>=16)assert.equal(needsDashFor(GROUND,speed),false);
   }
-  assert.equal(widthFor(GROUND,4000),300);
+  assert.equal(widthFor(GROUND,4000),DASH_H.GROUND_MAX_WIDTH);
 });
 
-test('Air Jump is two separated ordinary boxes with speed-proportional empty spacing',()=>{
+test('two Air plinths are connected by a visible colliding zigzag bed',()=>{
   for(const z of [3,5,8,12,16,20,24,30,40]){
     const speed=GAME.speedAt((z-1)*GAME.zoneSeconds,z);
     const width=widthFor(AIR,speed),gap=boxGapFor(speed);
     assert.equal(width,100+gap);
-    assert.ok(Math.abs(gap/speed-.42)<.011,JSON.stringify({speed,gap}));
+    assert.ok(gap>=180&&gap<=1100,JSON.stringify({speed,gap}));
     const o={type:AIR,x:460,width,height:62};
     const boxes=GEO.obstacleBoxes(o,515);
+    assert.equal(boxes.length,3);
     assert.equal(boxes[0].x,460);
-    assert.equal(boxes[1].x,460+AIR_BOX_WIDTH+gap);
-    assert.equal(boxes[1].x-(boxes[0].x+boxes[0].w),gap);
-    const between=boxes[0].x+AIR_BOX_WIDTH+gap/2;
-    assert.ok(boxes.every(b=>!(between>=b.x&&between<b.x+b.w)));
+    assert.equal(boxes[1].x,460+AIR_BOX_WIDTH);
+    assert.equal(boxes[2].x,460+AIR_BOX_WIDTH+gap);
+    assert.equal(boxes[1].w,gap);
+    assert.equal(boxes[1].y,515-DASH_H.AIR_BRIDGE_HEIGHT);
     const right=1280;
     const x=FAIR.horizonFor(AIR,{speed,viewportWidth:right,playerX:339});
     assert.ok(FAIR.metrics(AIR,{x,speed,viewportWidth:right,playerX:339}).fair);
@@ -161,9 +168,11 @@ test('game uses only physical swept collision with no seal checkpoint',()=>{
   assert.match(game,/terrain\.canSpawnObstacle\(worldX,width,speed\)/);
   assert.match(game,/shieldCores\.blocksHazard/);
   assert.match(game,/gravityShift\.mix>\.5/);
-  assert.match(html,/src\/gameplay\/dash-hazards\.js\?v=[^"]*pure-geometry-2\.0/);
+  assert.match(html,/src\/gameplay\/dash-hazards\.js\?v=[^"]*zigzag-geometry-2\.1/);
   const body=game.slice(game.indexOf('  function drawObstacle(o){'),
     game.indexOf('  function drawPlayer(){'));
   assert.doesNotMatch(body,/fillText\s*\(/,'no instructions on the obstacle itself');
-  assert.doesNotMatch(body,/zigzag|sealX\(|strand|momentum seal|charged/);
+  assert.match(body,/zigzag/);
+  assert.match(body,/const wire=GEO\.obstacleBoxes\(o,o\.groundY\)\[1\]/);
+  assert.doesNotMatch(body,/sealX\(|momentum seal|charged/);
 });

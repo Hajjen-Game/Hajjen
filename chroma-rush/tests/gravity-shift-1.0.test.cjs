@@ -1,7 +1,8 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
-const {GravityShift,START_ZONE,INTERVAL_ZONES,WARNING_SECONDS,SHIFT_SECONDS,GRACE_SECONDS}=
+const {GravityShift,START_ZONE,INTERVAL_ZONES,WARNING_SECONDS,SHIFT_SECONDS,GRACE_SECONDS,
+  CEILING_HOLD_SECONDS}=
   require('../src/gameplay/gravity-shift.js');
 const {playerBox,obstacleBox,verticalOverlap}=require('../src/core/geometry.js');
 
@@ -12,18 +13,40 @@ function toCeiling(controller){
   assert.equal(controller.tick(SHIFT_SECONDS+.01),'complete');
 }
 
-test('first ceiling run happens in zone 8, repeats every eight zones and alternates',()=>{
+test('zone 8 triggers a short ceiling excursion then auto-returns before zone 16',()=>{
   const g=new GravityShift();
   assert.equal(START_ZONE,8);assert.equal(INTERVAL_ZONES,8);
+  assert.equal(CEILING_HOLD_SECONDS,16);
   assert.equal(g.requestForZone(1),false);
   assert.equal(g.requestForZone(2),false);
   toCeiling(g);
   assert.equal(g.ceiling,true);assert.equal(g.mix,1);assert.equal(g.count,1);
-  assert.equal(g.requestForZone(4),false);
-  assert.equal(g.requestForZone(16),true);
-  g.tick(WARNING_SECONDS,{safe:true});
-  g.tick(SHIFT_SECONDS);
+  assert.equal(g.tick(CEILING_HOLD_SECONDS-.1,{safe:true}),null);
+  assert.equal(g.ceiling,true);
+  assert.equal(g.tick(.11,{safe:true}),'return_warning');
+  assert.equal(g.pending,true);assert.equal(g.targetCeiling,false);
+  assert.equal(g.requestForZone(16),false,'return cannot overlap a scheduled shift');
+  assert.equal(g.tick(WARNING_SECONDS,{safe:false}),null);
+  assert.equal(g.tick(.3,{safe:false}),null,'never flip before the runway is safe');
+  assert.equal(g.tick(.016,{safe:true}),'begin');
+  assert.equal(g.tick(SHIFT_SECONDS,{safe:true}),'complete');
   assert.equal(g.ceiling,false);assert.equal(g.mix,0);assert.equal(g.count,2);
+  assert.equal(g.requestForZone(16),true,'next zone-16 set-piece can begin on floor');
+  g.tick(WARNING_SECONDS,{safe:true});g.tick(SHIFT_SECONDS);
+  assert.equal(g.ceiling,true);assert.equal(g.count,3);
+});
+
+test('automatic floor return also respects reduced motion and pause-safe dt',()=>{
+  const g=new GravityShift();g.requestForZone(8);
+  assert.equal(g.tick(WARNING_SECONDS,{safe:true,reducedMotion:true}),'complete');
+  assert.equal(g.ceiling,true);
+  g.tick(7);g.tick(0);g.tick(-3);
+  assert.equal(g.ceilingAge,7,'paused clock never advances the ceiling timer');
+  assert.equal(g.tick(9),'return_warning');
+  assert.equal(g.tick(WARNING_SECONDS,{safe:false,reducedMotion:true}),null);
+  assert.equal(g.ceiling,true);
+  assert.equal(g.tick(.01,{safe:true,reducedMotion:true}),'complete');
+  assert.equal(g.ceiling,false);assert.equal(g.count,2);
 });
 
 test('warning holds indefinitely until the *physical* runway is safe',()=>{
@@ -106,6 +129,8 @@ test('arcade integration keeps hazard physics canonical and visual course mirror
   assert.match(game,/gravityShift\.drawOverlay\(ctx/);
   assert.match(game,/gravityShift\.protected/);
   assert.match(game,/gravity_shift_begin/);
+  assert.match(game,/gravityEvent==='return_warning'/);
+  assert.match(game,/reason:'ceiling_excursion_end'/);
   const sky=game.indexOf('drawWorld(worldTime);');
   const flip=game.indexOf('gravityShift.applyCourseTransform(ctx,H)');
   const ground=game.indexOf('drawTerrain();',flip);

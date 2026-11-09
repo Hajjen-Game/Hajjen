@@ -1259,30 +1259,41 @@
       // translucent energy curtain and luminous cap. Physics is unchanged.
       // Jump uses the palette's secondary hue; Duck uses its primary hue.
       const cap={x:b.x,y:b.y,w:b.w,h:Math.min(30,Math.max(23,b.h*.45))};
-      const by=b.y+b.h;
+      const by=b.y+b.h,energyTop=cap.y+cap.h;
       ctx.shadowBlur=0;ctx.globalAlpha=twinkle;
-      ctx.fillStyle=rgba(color,.105);
+      ctx.fillStyle=rgba(color,.11);
       ctx.fillRect(b.x,b.y,b.w,b.h);
       ctx.strokeStyle=rgba(color,.68);ctx.lineWidth=1.9;
       ctx.beginPath();
       ctx.moveTo(b.x+1,b.y);ctx.lineTo(b.x+1,by);
       ctx.moveTo(b.x+b.w-1,b.y);ctx.lineTo(b.x+b.w-1,by);
       ctx.stroke();
+      // Jump Gate Polish 1.1: ONLY vertical fine ribs in the energy veil.
+      // They stop below the solid housing and above the track; no crossbars.
       ctx.lineWidth=1;ctx.strokeStyle=rgba(color,.36);
-      for(let y=cap.y+cap.h+10;y<by-6;y+=18){
-        ctx.beginPath();ctx.moveTo(b.x+7,y);ctx.lineTo(b.x+b.w-7,y);ctx.stroke();
+      ctx.beginPath();
+      const strands=Math.max(5,Math.min(9,Math.round(b.w/16)));
+      for(let k=1;k<strands;k++){
+        const x=b.x+6+(b.w-12)*k/strands;
+        ctx.moveTo(x,energyTop+5);
+        ctx.lineTo(x,by-6);
       }
+      ctx.stroke();
+      // Match the Duck core's visual weight (+~13% shell, subtle inner fill).
+      // Only Jump's cosmetics change: unchanged hitbox and exterior contour.
       ctx.shadowColor=color;ctx.shadowBlur=21*quality.profile.glow;
       roundRectPath(cap.x,cap.y,cap.w,cap.h,4);
-      ctx.fillStyle=rgba(color,.30);ctx.fill();
+      ctx.fillStyle=rgba(color,.34);ctx.fill();
       ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
       ctx.shadowBlur=0;ctx.globalAlpha=1;
-      ctx.fillStyle=rgba(color,.18);
+      ctx.fillStyle=rgba(color,.20);
       roundRectPath(cap.x+6,cap.y+8,cap.w-12,cap.h-15,2);ctx.fill();
       glowLine(b.x-7,b.y,b.x+b.w+7,b.y,color,5,14,1);
-      for(let k=0;k<4;k++){
-        const x=cap.x+10+k*(cap.w-20)/3;
-        glowLine(x,cap.y+12,x,by-7,color,1,0,.36);
+      // Two understated HORIZONTAL engravings live entirely inside the
+      // solid cap (the opposite orientation of the energy-field ribs).
+      for(let k=0;k<2;k++){
+        const y=cap.y+cap.h*(.42+k*.25);
+        glowLine(cap.x+8,y,cap.x+cap.w-8,y,color,1,0,.36);
       }
       glowLine(cap.x,cap.y,cap.x+cap.w,cap.y,'#ffffff',1,8,.45);
     }else if(isEcho||isLow){

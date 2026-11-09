@@ -21,6 +21,20 @@
   const DASH_REPEAT_SECONDS=24;
   const DASH_INTRO_ZONE_ELAPSED=1.8;
   const DASH_PRESSURE_LIMIT=1.55;
+  // Endurance Mastery 4.0 — zone creates a soft opportunity to play more
+  // complex, denser phrases; current health/stress/confidence decide HOW MUCH.
+  // Never increases movement speed, overrides hit safety or mandates Dash.
+  const lateRamp=zone=>{
+    const t=clamp((Math.max(1,zone)-24)/26,0,1);
+    return t*t*(3-2*t);
+  };
+  function enduranceIntensity({zone=1,hp=100,stress=0,confidence=0}={}){
+    const ramp=lateRamp(zone);
+    const mastery=clamp((confidence-.40)/.45,0,1);
+    const shield=hp<=25?.38:hp<=50?.52:hp<=75?.76:1;
+    const strain=stress>=.65?.4:stress>=.40?.62:stress>=.25?.82:1;
+    return ramp*mastery*shield*strain;
+  }
   // Director Variety 3.0: only REAL spawns establish an action chain.
   const MAX_SIMPLE_CHAIN=3;
   function violatesSimpleChain(steps,history,maxChain=MAX_SIMPLE_CHAIN){
@@ -36,7 +50,8 @@
     return false;
   }
   function varietyMultiplier(pattern,{spawns=[],patterns:history=[],time=0,
-    lastEchoTime=-Infinity,phase='BUILD',zone=1,pressure=0}={}){
+    lastEchoTime=-Infinity,phase='BUILD',zone=1,pressure=0,
+    endurance=0}={}){
     let multiplier=1;
     const uses=history.slice(-7).filter(id=>id===pattern.id).length;
     multiplier*=Math.max(.38,1-.22*uses);
@@ -53,6 +68,10 @@
     }
     if(phase==='PEAK'&&zone>=6&&pressure<1.2&&pattern.steps.length>=2)
       multiplier*=1.24;
+    // Late-game excellence deserves more two/three-step movement phrases,
+    // not more single taps. These are only weights for ALREADY safe patterns.
+    if((phase==='PEAK'||phase==='BUILD')&&pattern.steps.length>=2)
+      multiplier*=1+endurance*(pattern.steps.length>=3?.95:.38);
     return multiplier;
   }
 
@@ -66,6 +85,7 @@
       this.pending=[];this.time=0;this.lastSpawnTime=-999;this.lastSpawnLead=0;
       this.totalSpawned=0;this.totalCleared=0;
       this.cycle=0;this.streak=0;this.confidence=.32;this.stress=0;
+      this.lastZone=1;this.lastHP=100;
       this.lastDamageAt=-999;this.lastNearMissAt=-999;
       this.lastPatternId=null;this.patternHistory=[];this.echoIntroduced=false;
       this.recentSpawns=[];this.successfulPatternHistory=[];
@@ -119,7 +139,9 @@
       const zone=Math.max(1,context.zone||1);
       switch(phase){
         case PHASE.BUILD:return clamp(6.4+this.random()*1.6-zone*.04+this.stress*.8,5.4,8.7);
-        case PHASE.PEAK:return clamp(4.5+this.random()*1.4-zone*.035-this.stress*1.5,2.8,6.0);
+        case PHASE.PEAK:return clamp(
+          4.5+this.random()*1.4-zone*.035-this.stress*1.5+
+          1.40*this.enduranceFor(context),2.8,6.8);
         case PHASE.FADE:return 2.1+this.stress*.45;
         default:return 2.1+this.stress*1.15+(context.hp<=25?.85:context.hp<=50?.3:0);
       }
@@ -135,6 +157,8 @@
         this.cycle++;this.spawnCountdown=Math.max(this.spawnCountdown,.48);
       }
     }
+    enduranceFor(context){return enduranceIntensity({
+      ...context,stress:this.stress,confidence:this.confidence});}
     tierFor(context){
       const zone=Math.max(1,context.zone||1);
       let tier=zone>=6?3:zone>=3?2:1;
@@ -145,7 +169,9 @@
       return tier;
     }
     selectPattern(context){
-      const readiness={...context,phase:this.phase,stress:this.stress,confidence:this.confidence};
+      const endurance=this.enduranceFor(context);
+      const readiness={...context,phase:this.phase,stress:this.stress,
+        confidence:this.confidence,enduranceIntensity:endurance};
       const firstEcho=!this.echoIntroduced;
       // The broad, low Echo Rail still rewards two deliberate jump presses.
       // At extreme speed its entire visible approach can become too short.
@@ -156,7 +182,8 @@
       const echoReady=approach>=.78 &&
         this.movement.echoReady(readiness,this.time,firstEcho);
       const options=patterns.candidates(this.phase,context.zone||1,
-        this.tierFor(context),{allowEcho:echoReady});
+        this.tierFor(context),{allowEcho:echoReady,
+          buildTier:endurance>=.32?2:1});
       // Build short, playable phrases from actual movement requirements.
       // Repeated Echo checks after a miss are replaced by a calm phrase;
       // heavy combos are only offered after a successful solo Echo clear.
@@ -191,7 +218,8 @@
         varietyMultiplier(p,{spawns:this.recentSpawns,
           patterns:this.successfulPatternHistory,time:this.time,
           lastEchoTime:this.movement.lastEchoTime,phase:this.phase,
-          zone:context.zone,pressure:this.movement.pressure})}));
+          zone:context.zone,pressure:this.movement.pressure,
+          endurance})}));
       const chosen=(intro?weighted.find(p=>p.id==='single-echo'):null)||
         patterns.chooseWeighted(weighted,this.random,this.previousPattern);
       if(!chosen)return null;
@@ -204,13 +232,19 @@
       const zone=Math.max(1,context.zone||1);
       const base=this.phase===PHASE.PEAK?1.13:this.phase===PHASE.FADE?1.56:1.48;
       const zoneReduction=clamp((zone-1)*.046,0,.27);
+      // The old curve stopped increasing difficulty around zone 7.
+      // Late density grows only after zone 24, with health-based relief.
+      const masteryReduction=.29*this.enduranceFor(context);
       const hpBonus=context.hp<=25?.23:context.hp<=50?.10:0;
       const breath=Math.min(.35,this.movement.pressure*.075);
-      return clamp(base-zoneReduction+this.stress*.28+hpBonus+breath+
-        (this.random()-.5)*.17,.84,2.4);
+      return clamp(base-zoneReduction-masteryReduction+
+        this.stress*.28+hpBonus+breath+
+        (this.random()-.5)*.17,.78,2.4);
     }
     tick(dt,context,spawn){
       if(!(dt>0))return;
+      this.lastZone=Math.max(1,context.zone||this.lastZone);
+      this.lastHP=Number.isFinite(context.hp)?context.hp:this.lastHP;
       this.time+=dt;this.phaseElapsed+=dt;
       this.movement.tick(dt);
       this.stress=Math.max(0,this.stress-dt*.024);
@@ -432,10 +466,14 @@
       movement:this.movement.insight,combo:{...this.comboInsight},
       variety:{recentActions:this.recentSpawns.slice(-12).map(e=>e.type),
         recentPatterns:this.successfulPatternHistory.slice(-8),
-        rejected:this.varietyRejected,maxSimpleChain:MAX_SIMPLE_CHAIN}};}
+        rejected:this.varietyRejected,maxSimpleChain:MAX_SIMPLE_CHAIN},
+      endurance:{intensity:Number(this.enduranceFor({
+        zone:this.lastZone,hp:this.lastHP}).toFixed(3)),
+        lateRamp:Number(lateRamp(this.lastZone).toFixed(3)),
+        zone:this.lastZone,shield:this.lastHP}};}
   }
   // Keep the legacy exported constructor name for tests/integrations.
   return {PHASE,DASH_REPEAT_SECONDS,MAX_SIMPLE_CHAIN,
-    violatesSimpleChain,varietyMultiplier,AdaptiveRushDirector,
+    lateRamp,enduranceIntensity,violatesSimpleChain,varietyMultiplier,AdaptiveRushDirector,
     AdaptiveFlowDirector:AdaptiveRushDirector,minimumGap};
 });

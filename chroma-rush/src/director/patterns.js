@@ -32,8 +32,8 @@
     {id:'switchback',steps:['jump','duck','jump','duck'],tier:3,minZone:6,weight:.8},
     {id:'reverse-switchback',steps:['duck','jump','duck','jump'],tier:3,minZone:6,weight:.8}
   ].map(p=>Object.freeze({...p,steps:Object.freeze(p.steps)})));
-  function candidates(phase,zone,maxTier,{allowEcho=true}={}){
-    const allowed=phase==='FADE'?0:phase==='BUILD'?Math.min(1,maxTier):maxTier;
+  function candidates(phase,zone,maxTier,{allowEcho=true,buildTier=1}={}){
+    const allowed=phase==='FADE'?0:phase==='BUILD'?Math.min(buildTier,maxTier):maxTier;
     return PATTERNS.filter(p=>p.minZone<=zone&&p.tier<=allowed&&
       (allowEcho||!p.steps.includes('echo')));
   }

@@ -64,6 +64,13 @@
         this.director.echoIntroduced&&hp>50&&
         (!this.director.dashIntroduced.air||
          !this.director.dashIntroduced.ground);
+      // Real high-speed obstacle space needs long, uninterrupted flats.
+      // Late challenge runways ease terrain vetoes but retain hills/gaps.
+      const endurance=this.director.enduranceFor?.({zone,hp})||0;
+      const challengeRunway=zone>=25&&endurance>=.20&&
+        hp>50&&stress<.40&&confidence>=.65&&
+        (future.phase==='BUILD'||future.phase==='PEAK')&&
+        !dashLearningRunway;
       const peak=future.phase==='PEAK';
       const permitGap=zone>=3 && !vulnerable && !dashLearningRunway &&
         start>=this.noGapsBefore &&
@@ -75,7 +82,8 @@
       // Normal hills resume once the first Rail is introduced.
       const teachingEcho=zone===2&&!this.director.echoIntroduced;
       const slopeChance=teachingEcho||dashLearningRunway?0:
-        (({BUILD:.52,PEAK:.36,FADE:.24,RELAX:.10})[future.phase]||.2);
+        (({BUILD:.52,PEAK:.36,FADE:.24,RELAX:.10})[future.phase]||.2)*
+        (challengeRunway?1-.36*endurance:1);
       const maxHeightChange=({BUILD:62,PEAK:58,FADE:38,RELAX:23})[future.phase]||40;
       // Echo Gaps occur only in healthy, confident PEAK sections with
       // enough time remaining for takeoff, two jumps and a safe landing.
@@ -98,7 +106,8 @@
         gapSecondsMin:peak?.30:.27,gapSecondsMax:gapTime,
         echoGapChance:echoSafe?.30:0,
         echoGapSecondsMin:.92,echoGapSecondsMax:1.015,
-        noGapBefore:this.noGapsBefore,dashLearningRunway};
+        noGapBefore:this.noGapsBefore,dashLearningRunway,
+        challengeRunway,endurance};
       this.lastPolicy=policy;
       return policy;
     }

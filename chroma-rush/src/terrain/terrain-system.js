@@ -73,6 +73,12 @@
         // bridge plus the normal takeoff/landing safety margins. This
         // changes terrain generation, never existing terrain/collisions.
         segment=this._append('flat',Math.max(2700,Math.min(3900,speed*3.2)));
+      }else if(policy?.challengeRunway){
+        // Late mastered sections: occasional 3.0–3.6-second flat
+        // lanes with physically valid runway for several obstacles.
+        const laneSeconds=2.95+0.60*clamp(policy.endurance||0,0,1);
+        segment=this._append('flat',Math.min(7800,
+          Math.max(1900,speed*laneSeconds)));
       }else segment=this._append('flat',this._random(400,740));
       if(policy){segment.plannedPhase=policy.phase;segment.lookaheadSeconds=policy.leadSeconds;}
       return segment;

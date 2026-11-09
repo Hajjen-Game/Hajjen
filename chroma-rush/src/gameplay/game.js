@@ -7,7 +7,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo || !window.ChromaShieldCore || !window.ChromaShieldCoreRender || !window.ChromaDashHazards || !window.ChromaAdaptiveCamera) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo || !window.ChromaShieldCore || !window.ChromaShieldCoreRender || !window.ChromaDashHazards || !window.ChromaObstacleBalance || !window.ChromaAdaptiveCamera) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -31,6 +31,7 @@
   const GEO = window.ChromaGeometry;
   const FAIR = window.ChromaHighSpeedFairness;
   const DASH_HAZARDS = window.ChromaDashHazards;
+  const OBSTACLE_BALANCE = window.ChromaObstacleBalance;
   const terrain = new window.ChromaTerrain.TerrainSystem();
   const terrainDirector = new window.ChromaUnifiedTerrainDirector.UnifiedTerrainDirector({terrain,director});
   const jumpControl = new window.ChromaJump.JumpController();
@@ -673,16 +674,15 @@
     if(data.type==='echo'&&(zone<spire.firstZone||hp<=50||director.stress>=.42))return false;
     if(firstEcho&&(gravityShift.ceiling||gravityShift.pending||
       gravityShift.shifting||gravityShift.protected))return false;
-    const width=isDashChallenge?DASH_HAZARDS.widthFor(data.type,speed):
-      data.type==='echo'?
-        rand(firstEcho?spire.introMinWidth:spire.minWidth,
-          firstEcho?spire.introMaxWidth:spire.maxWidth):
-        data.type==='jump'?rand(43,58):rand(54,71);
-    const height=isDashChallenge?DASH_HAZARDS.heightFor(data.type):
-      data.type==='echo'?
-        rand(firstEcho?spire.introMinHeight:spire.minHeight,
-          firstEcho?spire.introMaxHeight:spire.maxHeight):
-        data.type==='jump'?rand(53,66):rand(115,158);
+    // One speed-indexed obstacle sizing contract for Jump, Duck and Echo.
+    // Intro Echo retains its exact zone-2 geometry; long advanced Dash
+    // families retain their separately playtested physical width curves.
+    const sized=isDashChallenge?{
+      width:DASH_HAZARDS.widthFor(data.type,speed),
+      height:DASH_HAZARDS.heightFor(data.type)}:
+      OBSTACLE_BALANCE.dimensionsFor(data.type,{
+        speed,intro:firstEcho,random:Math.random});
+    const {width,height}=sized;
     const x=spawnXFor(data.type),worldX=distance+x;
     // Compare END of the previous physical shape with START of this one,
     // not just the time since the previous spawn. The first guided Twin
@@ -745,7 +745,7 @@
       {x,playerX:player.x,viewportWidth:camera.visibleRight(W,player.x),speed});
     runAudit.record('spawn',auditState(),{obstacle:data.type,pattern:data.pattern||'',worldX,
       width,height,expectedTraverseSeconds:Number(
-        ((width+(data.type==='dash-duck'?66:36))/Math.max(300,speed)).toFixed(3)),
+        OBSTACLE_BALANCE.traverseSeconds(data.type,{speed,width}).toFixed(3)),
       surface:gravityShift.ceiling?'ceiling':'floor',intro:firstEcho||firstDash,
       leadSeconds:fairness.leadSeconds,requiredSeconds:fairness.requiredSeconds,
       visibleSeconds:fairness.visibleSeconds,earlyCueSeconds:fairness.earlyCueSeconds,

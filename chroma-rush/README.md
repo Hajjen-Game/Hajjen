@@ -1,8 +1,20 @@
-# CHROMA RUSH — Echo Borders & Duck Gate Unification 1.3
+# CHROMA RUSH — Obstacle & Director Balance 3.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Obstacle & Director Balance 3.0 (2026-11-09)
+
+After multiple player sessions and speed/obstacle changes, audited all six physical hazard families (ordinary Jump/Duck, broad Echo Rail, Twin Vault, Long Duck Gate and ordinary/Echo Gaps) against Speed Curve 3.2, jump/duck/Dash timing, camera zoom, terrain safety and the adaptive Director. Four older player logs confirm >86% ordinary Jump/Duck in retained events and at least one run with five consecutive identical normal obstacles. These logs span differing builds and are **not** treated as controlled difficulty evidence.
+
+- **One shared speed-aware physical-sizing module:** [Obstacle Balance 3.0](src/gameplay/obstacle-balance.js), used at runtime by `spawn()`. Normal Jump expands smoothly from **43–58** near the start to **87–105** at speed 2200; standard Duck grows from **54–71** to **184–221**; repeated Echo Rail from **300–385** to **475–560**. All ranges have hard bounds and remain clearly smaller than advanced Dash silhouettes; normal Duck never becomes Ground-Dash-only.
+- **All starting lesson semantics retained:** first Echo Rail in zone 2 remains exactly **265–280 wide × 70–76 high**; heights remain unchanged; Twin Vault's forgiving ~1.02-second early run and 1200-unit later maximum remain untouched; Long Duck Gate stays on its original physical curve, with identical Duck visuals and the 2.2 world-end recovery.
+- **Gap audit:** the normal, safe 0.30–0.35-second gap generation was unintentionally capped at 500 world units; cap is now **850** so normal gaps remain consistent at high speeds (early gaps and separate Echo gaps are unchanged). Terrain takeoff/landing, low-HP and phase gates are not loosened.
+- **Director Variety 3.0:** real successful spawn/action history rather than only previous pattern selection; blocks any fourth consecutive simple Jump or Duck, even across pattern boundaries; modest repetition/rolling-family penalties; softly boosts long-unseen *safe* Echo opportunities and healthy short multi-input PEAK phrases. Never bypass HP, stress, Echo/Dash cooldown, floor-only introductions, terrain veto or recovery.
+- **New audit visibility:** `directorExperience.variety.recentActions / recentPatterns / rejected` and existing per-obstacle `width,height,expectedTraverseSeconds`. New `build` marker: `obstacle-director-balance-3.0`.
+- All changes are deterministic or seeded-testable; [sizing, physics and 6-minute multi-seed Director tests](tests/obstacle-director-balance-3.0.test.cjs). For full calculations, source-derived findings, constraints, caveats and player test plan see the [Obstacle & Director Balance Audit 3.0](docs/obstacle-director-balance-audit-3.0.md).
+- **Unchanged:** Speed Curve 3.2, camera zoom curve, both Dash buttons, jump impulses, HP/shield, score and Flow, gravity inversion, Chroma Tide, original background, existing 3.2 advanced recovery buffers, and all obstacle graphics.
 
 ## Echo Borders & Duck Gate Unification 1.3 (2026-11-09)
 

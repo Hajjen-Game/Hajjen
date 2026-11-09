@@ -176,9 +176,9 @@ test('Performance settings and ceiling reflection leave geometry unaffected',()=
   assert.equal(GAME.gravity,2140);
 });
 
-test('spawn sizes and all action-specific fairness planning are unchanged',()=>{
-  assert.match(original,/data\.type==='jump'\?rand\(43,58\):rand\(54,71\)/);
-  assert.match(original,/data\.type==='jump'\?rand\(53,66\):rand\(115,158\)/);
+test('spawn sizes are centralised while action-specific fairness stays unchanged',()=>{
+  assert.match(original,/OBSTACLE_BALANCE\.dimensionsFor\(data\.type/);
+  assert.match(original,/const \{width,height\}=sized/);
   assert.match(original,/const x=spawnXFor\(data\.type\)/);
   assert.match(original,/FAIR\.metrics\(data\.type/);
 });

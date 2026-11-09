@@ -126,8 +126,8 @@ test('static entry point loads Flow before HUD and engine with cache-busted shar
   const fs=require('node:fs');const path=require('node:path');
   const root=path.join(__dirname,'..');const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const refs=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
-  assert.ok(refs.indexOf('src/core/config.js?v=flow-1.2-movement-1.0-echo-spire-1.0-combo-1.0-speed-curve-3.2-echo-polish-1.1-echo-zone2-1.2-dash-impact-2.2-shield-core-1.0-palette-24-2.0-director-flow-2.0-echo-rail-1.0')>=0);
-  assert.ok(refs.indexOf('src/gameplay/flow.js?v=flow-1.2-combo-1.0-director-flow-2.0')>refs.indexOf('src/core/config.js?v=flow-1.2-movement-1.0-echo-spire-1.0-combo-1.0-speed-curve-3.2-echo-polish-1.1-echo-zone2-1.2-dash-impact-2.2-shield-core-1.0-palette-24-2.0-director-flow-2.0-echo-rail-1.0'));
+  assert.ok(refs.indexOf('src/core/config.js?v=flow-1.2-movement-1.0-echo-spire-1.0-combo-1.0-speed-curve-3.2-echo-polish-1.1-echo-zone2-1.2-dash-impact-2.2-shield-core-1.0-palette-24-2.0-director-flow-2.0-echo-rail-1.0-obstacle-balance-3.0')>=0);
+  assert.ok(refs.indexOf('src/gameplay/flow.js?v=flow-1.2-combo-1.0-director-flow-2.0')>refs.indexOf('src/core/config.js?v=flow-1.2-movement-1.0-echo-spire-1.0-combo-1.0-speed-curve-3.2-echo-polish-1.1-echo-zone2-1.2-dash-impact-2.2-shield-core-1.0-palette-24-2.0-director-flow-2.0-echo-rail-1.0-obstacle-balance-3.0'));
   assert.ok(refs.indexOf('src/ui/hud.js?v=flow-multiplier-1.0-combo-1.0')>refs.indexOf('src/gameplay/flow.js?v=flow-1.2-combo-1.0-director-flow-2.0'));
   assert.ok(refs.findIndex(src=>src.startsWith('src/gameplay/game.js?v='))>refs.indexOf('src/ui/hud.js?v=flow-multiplier-1.0-combo-1.0'));
   for(const src of refs) assert.ok(fs.existsSync(path.join(root,src.split('?')[0])),`missing script ${src}`);

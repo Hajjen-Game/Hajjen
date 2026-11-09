@@ -121,7 +121,10 @@
     maxSlopeWidth:570,
     minLandingFlat:680,
     minGapWidth:132,
-    maxGapWidth:500,
+    // At high speed ordinary gaps still represent ~0.30-0.35s of
+    // course travel; the old fixed 500px cap shrank them to ~0.23s.
+    // Echo gaps use their separate challenge sizing and are unchanged.
+    maxGapWidth:850,
     minGapSeparation:1250,
     fallThreshold:125
   });

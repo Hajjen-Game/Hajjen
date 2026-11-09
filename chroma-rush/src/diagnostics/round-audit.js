@@ -215,7 +215,7 @@
         reaction:{...this.summary.reaction,byAction:Object.fromEntries(
           Object.entries(this.summary.reaction.byAction).map(([k,v])=>[k,{...v}]))}};
       return {format:'chroma-rush-round-audit',version:3,mode:this.mode,
-        build:'echo-rail-1.0-twin-vault-2.3',
+        build:'obstacle-director-balance-3.0',
         startingZone:this.startingZone,durationSeconds:duration,summary:sum,
         finalState:this.finalState||snap(context),events:this.events.map(e=>({...e})),
         samples:this.samples.map(s=>({...s})),truncatedEvents:this.overflow,

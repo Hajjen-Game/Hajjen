@@ -21,6 +21,40 @@
   const DASH_REPEAT_SECONDS=24;
   const DASH_INTRO_ZONE_ELAPSED=1.8;
   const DASH_PRESSURE_LIMIT=1.55;
+  // Director Variety 3.0: only REAL spawns establish an action chain.
+  const MAX_SIMPLE_CHAIN=3;
+  function violatesSimpleChain(steps,history,maxChain=MAX_SIMPLE_CHAIN){
+    if(!steps?.length||!history?.length)return false;
+    const latest=history[history.length-1].type;
+    if(latest!=='jump'&&latest!=='duck')return false;
+    let chain=0;
+    for(let i=history.length-1;i>=0&&history[i].type===latest;i--)chain++;
+    for(const type of steps){
+      if(type!==latest)break;
+      if(++chain>maxChain)return true;
+    }
+    return false;
+  }
+  function varietyMultiplier(pattern,{spawns=[],patterns:history=[],time=0,
+    lastEchoTime=-Infinity,phase='BUILD',zone=1,pressure=0}={}){
+    let multiplier=1;
+    const uses=history.slice(-7).filter(id=>id===pattern.id).length;
+    multiplier*=Math.max(.38,1-.22*uses);
+    const recent=spawns.slice(-12);
+    const jumps=recent.filter(e=>e.type==='jump').length;
+    const ducks=recent.filter(e=>e.type==='duck').length;
+    if(pattern.steps[0]==='jump'&&jumps>ducks+3)multiplier*=.48;
+    if(pattern.steps[0]==='duck'&&ducks>jumps+3)multiplier*=.48;
+    // An eligible Echo can interrupt a long basic-hazard run, but must
+    // still pass the existing physical, HP, stress and cooldown checks.
+    if(pattern.steps.includes('echo')&&zone>=3){
+      const absent=time-Math.max(0,Number.isFinite(lastEchoTime)?lastEchoTime:0);
+      if(absent>=18)multiplier*=1.4+Math.min(2,Math.max(0,(absent-18)/19));
+    }
+    if(phase==='PEAK'&&zone>=6&&pressure<1.2&&pattern.steps.length>=2)
+      multiplier*=1.24;
+    return multiplier;
+  }
 
   class AdaptiveRushDirector{
     constructor(random=Math.random){
@@ -34,6 +68,8 @@
       this.cycle=0;this.streak=0;this.confidence=.32;this.stress=0;
       this.lastDamageAt=-999;this.lastNearMissAt=-999;
       this.lastPatternId=null;this.patternHistory=[];this.echoIntroduced=false;
+      this.recentSpawns=[];this.successfulPatternHistory=[];
+      this.varietyRejected=0;
       this.dashIntroduced={air:false,ground:false};
       this.lastDashHazardAt=-Infinity;
       this.lastDashHazardType=null;
@@ -140,11 +176,22 @@
             type===this.lastDashHazardType||
             this.time-this.lastDashHazardAt<DASH_REPEAT_SECONDS)return false;
         }
-        return this.movement.allowPattern(p,readiness,this.time,
-          {firstEcho:intro&&p.id==='single-echo'});
+        if(!this.movement.allowPattern(p,readiness,this.time,
+          {firstEcho:intro&&p.id==='single-echo'}))return false;
+        // Never allow a full proposed motif to create a fourth identical
+        // basic Jump or Duck. Special actions naturally break the chain.
+        if(violatesSimpleChain(p.steps,this.recentSpawns)){
+          this.varietyRejected++;return false;
+        }
+        return true;
       });
       this.movement.deferredPatterns+=options.length-safe.length;
-      const weighted=safe.map(p=>({...p,weight:this.movement.adjustedWeight(p,readiness)}));
+      const weighted=safe.map(p=>({...p,weight:
+        this.movement.adjustedWeight(p,readiness)*
+        varietyMultiplier(p,{spawns:this.recentSpawns,
+          patterns:this.successfulPatternHistory,time:this.time,
+          lastEchoTime:this.movement.lastEchoTime,phase:this.phase,
+          zone:context.zone,pressure:this.movement.pressure})}));
       const chosen=(intro?weighted.find(p=>p.id==='single-echo'):null)||
         patterns.chooseWeighted(weighted,this.random,this.previousPattern);
       if(!chosen)return null;
@@ -334,6 +381,14 @@
       this.pendingBlockedSince=null;
       this.pendingBlockedType=null;
       this.pending.shift();
+      this.recentSpawns.push({type:next.type,time:this.time,pattern:next.pattern});
+      if(this.recentSpawns.length>16)this.recentSpawns.shift();
+      // Rejected patterns do not fill this memory or distort subsequent
+      // variety: only successfully spawned first steps count.
+      if(next.step===1){
+        this.successfulPatternHistory.push(next.pattern);
+        if(this.successfulPatternHistory.length>24)this.successfulPatternHistory.shift();
+      }
       this.movement.onSpawn(next.type,this.time);
       if(next.type==='echo')this.echoIntroduced=true;
       if(next.type==='dash-jump'||next.type==='dash-duck'){
@@ -374,9 +429,13 @@
       dashHazards:{introduced:{...this.dashIntroduced},
         lastAt:this.lastDashHazardAt,lastType:this.lastDashHazardType,
         repeats:this.dashHazardRepeats},
-      movement:this.movement.insight,combo:{...this.comboInsight}};}
+      movement:this.movement.insight,combo:{...this.comboInsight},
+      variety:{recentActions:this.recentSpawns.slice(-12).map(e=>e.type),
+        recentPatterns:this.successfulPatternHistory.slice(-8),
+        rejected:this.varietyRejected,maxSimpleChain:MAX_SIMPLE_CHAIN}};}
   }
   // Keep the legacy exported constructor name for tests/integrations.
-  return {PHASE,DASH_REPEAT_SECONDS,AdaptiveRushDirector,
+  return {PHASE,DASH_REPEAT_SECONDS,MAX_SIMPLE_CHAIN,
+    violatesSimpleChain,varietyMultiplier,AdaptiveRushDirector,
     AdaptiveFlowDirector:AdaptiveRushDirector,minimumGap};
 });

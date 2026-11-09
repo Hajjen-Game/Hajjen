@@ -152,7 +152,7 @@
     exported.directorExperience=director.insight;
     exported.flowBalance=flow.insight;
     // Separate visible-horizon evidence from the unchanged physics audit.
-    exported.camera={version:'Adaptive Camera Horizon 1.0',
+    exported.camera={version:'Adaptive Camera Horizon 1.1',
       finalZoom:Number(camera.zoom.toFixed(4)),
       minimumZoom:Number(camera.lowestZoom.toFixed(4)),
       worldViewportRight:Number(camera.visibleRight(W,player.x).toFixed(1)),
@@ -447,13 +447,12 @@
     if(velocity>650)shake=Math.max(shake,2.0);
     sound('land');
   }
-  function chargeDashHazard(o,action,source){
-    if(!DASH_HAZARDS.mayCharge(o,{action,playerWorld:distance+player.x,
+  function noteDashAssist(o,action,source){
+    if(!DASH_HAZARDS.mayAssist(o,{action,playerWorld:distance+player.x,
       speed,airborne:!player.landed,ducking:player.duck}))return false;
-    // A local confirmation, never invulnerability or a free obstacle clear.
-    o.dashSatisfied=true;
-    o.chargeFlash=.38;
-    runAudit.record('dash_hazard_charge',auditState(),{
+    // Telemetry only. Every physical obstacle is passable WITHOUT Dash.
+    o.dashAssisted=true;
+    runAudit.record('dash_hazard_assist',auditState(),{
       obstacle:o.type,mode:action,source});
     return true;
   }
@@ -484,9 +483,8 @@
     dashReleasePending=action;
     sound('dash-charge');vib(6);
     $.duck.classList.add('dash-active');
-    // A Dash must be started NEAR the visible seal, with the correct form.
-    // The entire rest of the course retains normal collision and damage.
-    for(const o of hurdles)chargeDashHazard(o,action,'press');
+    // Attribute nearby Dash for analytics, never for collision or clearance.
+    for(const o of hurdles)noteDashAssist(o,action,'press');
     director.noteDash(action);
     runAudit.record(action==='air'?'air_dash':'ground_dash',auditState(),
       {extraSpeedFactor:DASH.bonusFactor,grounded:player.landed,
@@ -711,7 +709,7 @@
     }
     hurdles.push({type:data.type,x,worldX,groundY,width,height,hit:false,cleared:false,
       closestClearance:Infinity,entryDuckTime:null,
-      dashSatisfied:false,sealPassed:false,chargeFlash:0,
+      dashAssisted:false,
       mechanicIntro:Boolean(firstEcho||firstDash),
       phase:data.phase,pulse:Math.random()*Math.PI*2});
     if(isDashChallenge){
@@ -722,8 +720,8 @@
         // opening safe spawn. Reuse the existing short HUD helper; never put
         // labels or detached icons on the obstacle itself.
         $.dashHint.textContent=dashMode==='air'?
-          'AIR DASH · JUMP THEN TAP DUCK':
-          'GROUND DASH · TAP DUCK TWICE';
+          'TWIN VAULT · AIR DASH OPTIONAL':
+          'LONG GATE · GROUND DASH OPTIONAL';
         dashHintTime=Math.max(dashHintTime,5.0);
       }
     }
@@ -811,7 +809,7 @@
     o.hit=true;
     if(DASH_HAZARDS.isDashHazard(o.type))
       runAudit.record('dash_hazard_miss',auditState(),{
-        obstacle:o.type,sealBroken:Boolean(o.dashSatisfied)});
+        obstacle:o.type,assisted:Boolean(o.dashAssisted)});
     combo.breakChain();
     if(player.invulnerable>0){
       flow.registerCollision();runAudit.record('invulnerable_contact',auditState(),{obstacle:o.type});return;
@@ -1048,15 +1046,14 @@
     for(const o of hurdles){
       const priorX=o.x;
       o.x-=worldStep;
-      if(o.chargeFlash>0)o.chargeFlash=Math.max(0,o.chargeFlash-dt);
       const b=GEO.obstacleBox(o,o.groundY);
       const hitBoxes=GEO.obstacleBoxes(o,o.groundY);
-      const sealed=DASH_HAZARDS.isDashHazard(o.type);
-      if(sealed&&!o.dashSatisfied&&dash.active)
-        chargeDashHazard(o,dash.mode,'active');
-      // Swept X check prevents skipping a narrow obstacle on a slow phone.
-      // Physically sweep EACH real plinth independently. The center of an
-      // uncharged bridge is energy, not a hidden 900-unit solid box.
+      const shaped=DASH_HAZARDS.isDashHazard(o.type);
+      if(shaped&&!o.dashAssisted&&dash.active)
+        noteDashAssist(o,dash.mode,'active');
+      // Swept X prevents narrow obstacle skips on a slow mobile frame.
+      // Only the two actual low boxes collide. Their intervening gap is
+      // entirely empty, including for ordinary and double jump.
       const overlapsX=box=>GEO.sweptXOverlap(p,priorX+(box.x-o.x),
         {x:box.x,width:box.w});
       const sweptX=hitBoxes.some(overlapsX);
@@ -1071,20 +1068,9 @@
         }
       }
       if(sweptX&&yOverlap)onHit(o);
-      // The luminous seal is a real second hazard condition. A perfectly
-      // timed ordinary jump/duck (or Echo Jump) cannot bypass the Dash
-      // challenge; the matching Dash must have charged the seal locally.
-      if(sealed&&!o.hit&&!o.sealPassed&&
-        DASH_HAZARDS.reachedSeal(o,{priorX,playerFront:p.x+p.w})){
-        o.sealPassed=true;
-        if(!o.dashSatisfied)onHit(o);
-      }
       if(!o.cleared&&o.x+o.width<p.x){
         o.cleared=true;
         if(!o.hit){
-          // A very large world step may cross the entire seal in one update.
-          // Never award a false clear to a player who never used Dash.
-          if(sealed&&!o.dashSatisfied){onHit(o);continue;}
           const traverse=(o.width+66)/Math.max(300,speed);
           const graded=gradePrecision({action:o.type,
             closestClearance:o.closestClearance,entryDuckTime:o.entryDuckTime,
@@ -1101,12 +1087,15 @@
           runAudit.record('obstacle_clear',auditState(),
             {obstacle:o.type,precision,master:graded.master,
               precisionMargin:graded.margin===null?-1:graded.margin});
-          if(sealed){
+          if(shaped){
+            // Equal score for pure geometry and Dash-assisted success.
             runAudit.record('dash_hazard_clear',auditState(),{
-              obstacle:o.type,requiredDash:DASH_HAZARDS.requiredMode(o.type)});
-            effects.cue('precision',player.x,player.feet-22,c1,c2,
-              {speed,reducedMotion,strength:.7});
-            sound('dash-seal');
+              obstacle:o.type,method:o.dashAssisted?'dash-assisted':'geometry'});
+            if(o.dashAssisted){
+              effects.cue('precision',player.x,player.feet-22,c1,c2,
+                {speed,reducedMotion,strength:.7});
+              sound('dash-seal');
+            }
           }
           if(o.type==='echo'){
             // Compact clean-clear reward for a real double-jump barrier.
@@ -1247,8 +1236,8 @@
       // Echo is a TALL two-chamber sibling; the actual body, inset face,
       // bevel, white cap, vertical cheeks and floor plinth are identical.
       // Every structural stroke fits the same physical obstacle footprint.
-      // Dash Energy Bridge uses two true standard-size low boxes; normal
-      // jump and Echo use the same existing single-body renderer.
+      // Pure Geometry: two real short boxes with an unobstructed open gap.
+      // A regular/echo jump or well-timed Dash can carry over them.
       const chunks=o.type==='dash-jump'?GEO.obstacleBoxes(o,o.groundY):[b];
       for(const body of chunks){
       const x=body.x,y=body.y,w=body.w,h=body.h,bevel=Math.min(8,w*.16);
@@ -1293,23 +1282,29 @@
       glowLine(x+4,y+h-3,x+w-4,y+h-3,'#ffffff',1.5,6,.55);
       }
     }else{
-      // This is one continuous, visible overhead energy gate. Its sparse,
-      // low-opacity field extends beyond the top of the camera so a second
-      // jump cannot escape over the old short hanging beam.
-      // The collider matches the entire field; no invisible ceiling wall.
-      const by=b.y+b.h,top=Math.max(0,b.y);
+      // The long duck variant reads as a structural overhead canopy,
+      // with its full-width duck passage aligned to the collision shape.
+      const extended=o.type==='dash-duck',by=b.y+b.h,top=Math.max(0,b.y);
       ctx.shadowBlur=0;ctx.globalAlpha=twinkle;
-      ctx.fillStyle=rgba(color,.105);ctx.fillRect(b.x,b.y,b.w,b.h);
+      ctx.fillStyle=rgba(color,extended?.20:.105);
+      ctx.fillRect(b.x,b.y,b.w,b.h);
       ctx.strokeStyle=rgba(color,.68);ctx.lineWidth=1.9;
       ctx.beginPath();
       ctx.moveTo(b.x+1,b.y);ctx.lineTo(b.x+1,by);
       ctx.moveTo(b.x+b.w-1,b.y);ctx.lineTo(b.x+b.w-1,by);
       ctx.stroke();
-      // Repeating narrow crossbars make the full damaging column clearly
-      // readable without turning the sky into a solid saturated rectangle.
-      ctx.lineWidth=1;ctx.strokeStyle=rgba(color,.36);
-      for(let y=top+20;y<core.y-4;y+=43){
+      // Simple structural ribs, no floating energy checkpoints.
+      // The extended canopy keeps a clear silhouette even with 60% zoom.
+      ctx.lineWidth=extended?1.6:1;ctx.strokeStyle=rgba(color,extended?.58:.36);
+      for(let y=top+20;y<core.y-4;y+=extended?62:43){
         ctx.beginPath();ctx.moveTo(b.x+7,y);ctx.lineTo(b.x+b.w-7,y);ctx.stroke();
+      }
+      if(extended){
+        const ribs=Math.max(2,Math.round(b.w/78));
+        for(let k=1;k<ribs;k++){
+          const rx=b.x+b.w*k/ribs;
+          ctx.beginPath();ctx.moveTo(rx,b.y);ctx.lineTo(rx,by);ctx.stroke();
+        }
       }
       ctx.shadowColor=color;ctx.shadowBlur=21*quality.profile.glow;
       roundRectPath(core.x,core.y,core.w,core.h,4);
@@ -1325,77 +1320,8 @@
       }
       glowLine(core.x,core.y,core.x+core.w,core.y,'#ffffff',1,8,.45);
     }
-    if(o.type==='dash-jump'){
-      // A legible zigzag flowing between the two *ordinary* jump boxes.
-      // Each luminous strand is welded to the actual bridge gap, so the
-      // design never resembles a long solid crate or a detached arrow.
-      const boxes=GEO.obstacleBoxes(o,o.groundY);
-      const start=boxes[0].x+boxes[0].w,end=boxes[1].x,gap=end-start;
-      const top=boxes[0].y,charged=o.dashSatisfied;
-      if(gap>2){
-        const steps=Math.max(4,Math.min(22,Math.round(gap/56)));
-        ctx.save();ctx.lineJoin='bevel';ctx.lineCap='round';
-        // Performance draws one bright strand; High adds a faint second.
-        const layers=quality.profile.density>=.60?2:1;
-        for(let layer=0;layer<layers;layer++){
-          const yy=top-(layer?88:15);
-          ctx.globalAlpha=(charged?.15:layer?.28:.83)*
-            (reducedMotion?1:.90+.10*Math.sin(worldTime*9+o.pulse)**2);
-          ctx.strokeStyle=charged?'#89ffe2':layer?color:'#f4ffff';
-          ctx.lineWidth=layer?1.5:2.8;
-          ctx.shadowColor=charged?'#89ffe2':color;
-          ctx.shadowBlur=(layer?7:15)*quality.profile.glow;
-          ctx.beginPath();ctx.moveTo(start,top+5);
-          for(let i=1;i<steps;i++){
-            const x=start+gap*i/steps;
-            const y=yy+((i%2)*2-1)*(layer?12:23);
-            ctx.lineTo(x,y);
-          }
-          ctx.lineTo(end,top+5);ctx.stroke();
-        }
-        ctx.restore();
-      }
-    }
-    if(DASH_HAZARDS.isDashHazard(o.type)){
-      // The luminous, hairline momentum seal is NOT another rectangular
-      // obstacle. It visually spans the airborne route (Air Dash) or the
-      // 28px duck passage (Ground Dash). No circular overlays or blocking UI.
-      const sealX=DASH_HAZARDS.sealX(o);
-      // Echo can rise ~275 units above the ground. The air bridge's
-      // upright center energy therefore reaches the TOP of the playable
-      // space: double jump cannot pass an invisible/short seal above it.
-      const top=o.type==='dash-jump'?0:isLow?b.y-167:b.y+b.h-23;
-      const bottom=isLow?b.y+5:o.groundY-3;
-      const charged=o.dashSatisfied;
-      const sealColor=charged?'#87ffcf':'#f5feff';
-      ctx.save();
-      ctx.globalAlpha=charged?.36:(reducedMotion?.76:.70+
-        Math.sin(worldTime*11+o.pulse)**2*.20);
-      ctx.shadowColor=sealColor;ctx.shadowBlur=charged?5*quality.profile.glow:12*quality.profile.glow;
-      ctx.lineWidth=2.3;ctx.strokeStyle=sealColor;
-      ctx.beginPath();ctx.moveTo(sealX,top);ctx.lineTo(sealX,bottom);ctx.stroke();
-      ctx.shadowBlur=0;
-      // No chevron or arrow marks; the fully visible vertical seam is
-      // precisely the gameplay Dash checkpoint, even at Echo Jump altitude.
-      if(charged&&o.chargeFlash>0&&!reducedMotion){
-        // Two delicate fracture strokes, embedded in the seal (no circular overlays).
-        const flash=Math.min(1,o.chargeFlash/.38);
-        const mid=(top+bottom)*.5;
-        ctx.globalAlpha=.78*flash;
-        ctx.strokeStyle='#bdffe8';
-        ctx.lineWidth=1.8;
-        ctx.shadowColor='#75ffda';
-        ctx.shadowBlur=8*quality.profile.glow;
-        ctx.beginPath();
-        ctx.moveTo(sealX-15,mid-10);ctx.lineTo(sealX+5,mid+1);
-        ctx.moveTo(sealX-5,mid+3);ctx.lineTo(sealX+13,mid+13);
-        ctx.stroke();
-      }
-      ctx.restore();
-      // No in-world text, floating arrows or detached icons: the existing
-      // obstacle architecture + integrated luminous seam carries the cue.
-      // A readable lesson appears in the existing Dash HUD hint instead.
-    }
+    // No energy ribbon, vertical seal or extra checkpoint. Every visible
+    // advanced obstacle is precisely its physical jump/duck shape.
     ctx.restore();
   }
   function drawPlayer(){

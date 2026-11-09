@@ -312,7 +312,7 @@ test('Shield Core pickup integrates with real game physics, audit and HUD withou
 });
 
 
-test('Ground Slip Gate hits a correctly ducked player who never Ground Dashes',()=>{
+test('long overhead gate can be cleared by ordinary Duck without Ground Dash',()=>{
   const h=duckHarness(),g=h.game.context.window.__gravityHarness;
   g.director.tick=()=>{};g.gravityShift.requestForZone=()=>false;
   g.forceZone(4);h.advance(1);
@@ -320,15 +320,19 @@ test('Ground Slip Gate hits a correctly ducked player who never Ground Dashes',(
   const w=180,x=p.x+70;
   const o={type:'dash-duck',x,worldX:g.distance()+x,groundY:515,
     width:w,height:146,hit:false,cleared:false,closestClearance:Infinity,
-    entryDuckTime:null,dashSatisfied:false,sealPassed:false,pulse:0};
+    entryDuckTime:null,dashAssisted:false,pulse:0};
   g.hurdles().push(o);h.advance(38);
-  assert.equal(o.hit,true,'no Ground Dash cannot pass the visible momentum seal');
-  assert.equal(g.hp(),75,'ordinary shield damage, no special extra penalty');
-  assert.equal(g.runAudit.summary.dashHazards.missed.ground,1);
-  assert.equal(g.runAudit.summary.dashHazards.cleared.ground,0);
+  assert.equal(o.hit,false,'a valid plain Duck clears the entire physical gate');
+  assert.equal(o.cleared,true);
+  assert.equal(g.hp(),100);
+  assert.equal(g.runAudit.summary.dashHazards.missed.ground,0);
+  assert.equal(g.runAudit.summary.dashHazards.cleared.ground,1);
+  assert.equal(g.runAudit.summary.dashHazards.assisted.ground,0);
+  const clear=g.runAudit.events.find(e=>e.type==='dash_hazard_clear');
+  assert.equal(clear.method,'geometry');
 });
 
-test('Two deliberate duck presses unlock Ground Slip Gate without altering hitbox',()=>{
+test('Ground Dash optionally assists the exact same long gate, never unlocking it',()=>{
   const h=duckHarness(),g=h.game.context.window.__gravityHarness;
   g.director.tick=()=>{};g.gravityShift.requestForZone=()=>false;
   g.forceZone(4);h.advance(1);
@@ -337,24 +341,25 @@ test('Two deliberate duck presses unlock Ground Slip Gate without altering hitbo
   const w=190,x=p.x+24;
   const o={type:'dash-duck',x,worldX:g.distance()+x,groundY:515,
     width:w,height:146,hit:false,cleared:false,closestClearance:Infinity,
-    entryDuckTime:null,dashSatisfied:false,sealPassed:false,pulse:0};
+    entryDuckTime:null,dashAssisted:false,pulse:0};
   g.hurdles().push(o);h.advance(2);
   const second=h.press();h.release(second);
   assert.equal(g.dash.mode,'ground');
-  assert.equal(o.dashSatisfied,true,'second physical press near seal charges it');
-  assert.ok(o.chargeFlash>0,'charged seal has brief local confirmation');
-  assert.equal(g.runAudit.summary.dashHazards.charged.ground,1);
-  assert.equal(g.runAudit.events.filter(e=>e.type==='dash_hazard_charge').length,1);
+  assert.equal(o.dashAssisted,true,'a local Ground Dash is attributed as optional aid');
+  assert.equal(g.runAudit.summary.dashHazards.assisted.ground,1);
+  assert.equal(g.runAudit.events.filter(e=>e.type==='dash_hazard_assist').length,1);
   assert.deepEqual(JSON.parse(JSON.stringify(geometry.playerBox(p))),
-    JSON.parse(JSON.stringify(boxBefore)),'Dash never enlarges physical duck collider');
+    JSON.parse(JSON.stringify(boxBefore)),'Dash never changes the physical collider');
   h.advance(28);
   assert.equal(g.hp(),100);
   assert.equal(o.hit,false);
   assert.equal(g.runAudit.summary.dashHazards.cleared.ground,1);
   assert.equal(g.runAudit.summary.dashHazards.missed.ground,0);
+  assert.equal(g.runAudit.events.find(e=>e.type==='dash_hazard_clear').method,
+    'dash-assisted');
 });
 
-test('Air Vault needs Air Dash even with a high enough jump',()=>{
+test('Echo-level height clears both separate low boxes WITHOUT Air Dash',()=>{
   const h=duckHarness(),g=h.game.context.window.__gravityHarness;
   g.director.tick=()=>{};g.gravityShift.requestForZone=()=>false;
   g.forceZone(4);h.advance(1);
@@ -362,14 +367,17 @@ test('Air Vault needs Air Dash even with a high enough jump',()=>{
   const w=210,x=p.x+75;
   const o={type:'dash-jump',x,worldX:g.distance()+x,groundY:515,
     width:w,height:62,hit:false,cleared:false,closestClearance:Infinity,
-    entryDuckTime:null,dashSatisfied:false,sealPassed:false,pulse:0};
+    entryDuckTime:null,dashAssisted:false,pulse:0};
   g.hurdles().push(o);h.advance(34);
-  assert.equal(o.hit,true,'being above a long barrier alone does not break its seal');
-  assert.equal(g.runAudit.summary.dashHazards.missed.air,1);
-  assert.equal(g.runAudit.summary.dashHazards.charged.air,0);
+  assert.equal(o.hit,false,'height above both physical boxes is a valid clear');
+  assert.equal(o.cleared,true);
+  assert.equal(g.hp(),100);
+  assert.equal(g.runAudit.summary.dashHazards.missed.air,0);
+  assert.equal(g.runAudit.summary.dashHazards.assisted.air,0);
+  assert.equal(g.runAudit.summary.dashHazards.cleared.air,1);
 });
 
-test('Airborne Dash near the Air Vault breaks the seal and clears the real collider',()=>{
+test('Air Dash may assist the two-box vault, with identical physical collision',()=>{
   const h=duckHarness(),g=h.game.context.window.__gravityHarness;
   g.director.tick=()=>{};g.gravityShift.requestForZone=()=>false;
   g.forceZone(4);h.advance(1);
@@ -377,16 +385,18 @@ test('Airborne Dash near the Air Vault breaks the seal and clears the real colli
   const w=210,x=p.x+70;
   const o={type:'dash-jump',x,worldX:g.distance()+x,groundY:515,
     width:w,height:62,hit:false,cleared:false,closestClearance:Infinity,
-    entryDuckTime:null,dashSatisfied:false,sealPassed:false,pulse:0};
+    entryDuckTime:null,dashAssisted:false,pulse:0};
   g.hurdles().push(o);
   const press=h.press();h.release(press);
   assert.equal(g.dash.mode,'air');
-  assert.equal(o.dashSatisfied,true);
-  assert.equal(g.runAudit.summary.dashHazards.charged.air,1);
+  assert.equal(o.dashAssisted,true);
+  assert.equal(g.runAudit.summary.dashHazards.assisted.air,1);
   h.advance(29);
   assert.equal(o.hit,false);
   assert.equal(g.hp(),100);
   assert.equal(g.runAudit.summary.dashHazards.cleared.air,1);
+  assert.equal(g.runAudit.events.find(e=>e.type==='dash_hazard_clear').method,
+    'dash-assisted');
 });
 
 test('sound toggle works during play and pause without an AudioContext',()=>{
@@ -858,14 +868,15 @@ test('a blocked ordinary obstacle cannot starve the first-floor Dash lesson',()=
   assert.ok(defers.some(d=>d.reason==='stalled_ordinary_pattern'));
 });
 
-test('Dash seal charge is counted separately from a physical clear',()=>{
+test('optional Dash assist is counted separately from an ordinary physical clear',()=>{
   const audit=new runAudit.RoundAudit();
   audit.record('spawn',{zone:5},{obstacle:'dash-jump'});
-  audit.record('dash_hazard_charge',{zone:5},{obstacle:'dash-jump',mode:'air',source:'press'});
-  audit.record('dash_hazard_clear',{zone:5},{obstacle:'dash-jump'});
-  assert.deepEqual(JSON.parse(JSON.stringify(audit.summary.dashHazards.charged)),{air:1,ground:0});
+  audit.record('dash_hazard_assist',{zone:5},{obstacle:'dash-jump',mode:'air',source:'press'});
+  audit.record('dash_hazard_clear',{zone:5},{obstacle:'dash-jump',method:'dash-assisted'});
+  assert.deepEqual(JSON.parse(JSON.stringify(audit.summary.dashHazards.assisted)),
+    {air:1,ground:0});
   assert.equal(audit.summary.dashHazards.cleared.air,1);
-  assert.equal(audit.summary.obstaclesCleared,0,'charge is not a phantom clear');
+  assert.equal(audit.summary.obstaclesCleared,0,'assist is not a phantom clear');
 });
 
 test('adaptive camera responds to a later practice-speed timeline while physics player X stays anchored',()=>{

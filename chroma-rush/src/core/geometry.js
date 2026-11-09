@@ -32,9 +32,9 @@
   }
   function obstacleBoxes(obstacle,floorY){
     if(obstacle.type!=='dash-jump')return [obstacleBox(obstacle,floorY)];
-    // An Energy Bridge is NOT a long invisible box. Only two separate
-    // visible plinths are solid; the luminous vertical midpoint has its
-    // own mandatory Dash condition in the gameplay loop.
+    // Pure Geometry 2.0: two visible, standard-sized solids and nothing
+    // between. No central field, collision, mandatory dash or hidden seal.
+    // Echo Jump and ordinary jump are both legitimate physical solutions.
     const w=Math.min(50,obstacle.width*.5),y=floorY-obstacle.height;
     return [{x:obstacle.x,y,w,h:obstacle.height},
       {x:obstacle.x+obstacle.width-w,y,w,h:obstacle.height}];

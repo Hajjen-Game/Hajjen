@@ -1,8 +1,18 @@
-# CHROMA RUSH — Adaptive Camera Horizon 1.1
+# CHROMA RUSH — Dash Hazard Redesign 2.0 – Pure Geometry
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Dash Hazard Redesign 2.0 – Pure Geometry (2026-11-09)
+
+- **Removed compulsory Dash seal logic and both Air Bridge zigzag strands:** no glowing vertical checkpoints, energy ribbons, invisible blockers or action-locked damage. An ordinary Jump, correctly timed Echo Jump or Duck can legitimately clear **visible collision geometry**. Air Dash / Ground Dash remain powerful **optional** movement techniques with the same two touch controls, same durations, same speed thrust and no invulnerability.
+- **Twin Vault (old dash-jump):** two separately drawn and independently colliding standard-width (50-unit) low Jump boxes; their middle is empty and gap length tracks speed at about 0.42 s of travel. A timed Echo Jump can clear both early; at sufficiently high speeds, one clean ordinary jump may also suffice. Optional Air Dash helps cover distance but is never required.
+- **Long Gate (old dash-duck):** a clearly visible structural overhead canopy with the existing 28px duck passage. The width is deliberately clamped by the actual 0.55s Duck duration: accounting for the 66px crouched player, even at slower introduction speeds there is **at least ~80ms of geometric slack** for ordinary Duck. Optional Ground Dash adds safer reach/duck duration. No invisible second condition.
+- Preserves **ground-only first introductions** (zones 3/4 only when floor returns), later ceiling repeats, Director cooldowns/recovery, terrain gap shielding, gravity inversion, 12-second zones, Speed Curve 3.2, Adaptive Camera Horizon 1.1 (60% late minimum), HP and Shield Core recovery. Existing advanced-hazard early-warning rules remain conservative.
+- Improved [run export](src/diagnostics/round-audit.js) to **version 3** with `dashHazards.assisted` and `dashHazards.clearedByMethod.geometry / .dashAssisted`, plus clear `method` events; formerly ambiguous `charged` and seal-break events are no longer emitted. The camera export label is corrected to Horizon 1.1 without changing camera behavior.
+- Source-matched [collision/Director regression](tests/dash-hazards-2.0.test.cjs) and [jump/echo/duck geometry tests](tests/dash-pure-geometry-2.0.test.cjs) replace the seal tests; [Game smoke](tests/game-smoke.test.cjs) verifies real no-Dash clears and optional Dash-assisted clears.
+- Read the [Pure Geometry design, spacing calculations and test checklist](docs/dash-hazard-redesign-2.0.md). Old Dash Energy Bridge 1.0 sections below are **historical only** and not part of the current build.
 
 ## Adaptive Camera Horizon 1.1 — Extended Late-Game Horizon (2026-11-09)
 

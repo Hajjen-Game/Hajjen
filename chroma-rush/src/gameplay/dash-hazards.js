@@ -1,8 +1,7 @@
-/* CHROMA RUSH — Dash Energy Bridge 1.0 (Echo-safe, speed-adaptive).
- * Two isolated action-gated variants of the existing jump/duck families.
- * The extra seal is visible and only unlocked by the matching Dash near
- * the actual obstacle. Dash never grants invulnerability or a teleport.
- * Pure geometry, independent of Director RNG, physics and frame rate.
+/* CHROMA RUSH — Dash Hazard Redesign 2.0: Pure Geometry.
+ * Advanced jump/duck silhouettes with ONLY visible physical collisions.
+ * Dash is an optional movement/Flow aid, never a key to pass a checkpoint.
+ * No floating energy ribbon, dash seal, immunity or invisible bridge hitbox.
  */
 (function(root,factory){
   const api=factory();
@@ -14,61 +13,48 @@
   const FIRST_AIR_ZONE=3,FIRST_GROUND_ZONE=4;
   const TYPES=Object.freeze([AIR,GROUND]);
   const AIR_BOX_WIDTH=50;
-  // About 0.42s between the two compact hop boxes at ANY normal speed.
-  // A high-speed Echo Jump can clear both blocks, so the mandatory central
-  // visible Dash seal is a distinct condition; never rely on span alone.
-  const bridgeGapFor=speed=>Math.round(Math.max(300,speed)*.42/10)*10;
+  const AIR_SPACING_SECONDS=.42;
+  // Two entirely independent low boxes. The open gap is real empty world,
+  // and *both* ordinary jump and Echo can clear them with correct timing.
+  // Dash may gain distance, but is never required for a successful clear.
+  const boxGapFor=speed=>Math.round(Math.max(300,speed)*AIR_SPACING_SECONDS/10)*10;
   const isDashHazard=t=>t===AIR||t===GROUND;
   const requiredMode=t=>t===AIR?'air':t===GROUND?'ground':null;
   const baseType=t=>t===AIR?'jump':t===GROUND?'duck':t;
   const unlockZone=t=>t===AIR?FIRST_AIR_ZONE:t===GROUND?FIRST_GROUND_ZONE:1;
   const widthFor=(type,speed=370)=>{
     const v=Math.max(300,speed);
-    // Dash Jump is now two real 50-unit boxes and a speed-scaled
-    // energy bridge. Dash Duck retains its original overhead gate.
-    return type===AIR?AIR_BOX_WIDTH*2+bridgeGapFor(v):
-      type===GROUND?Math.min(320,125+v*.22):0;
+    if(type===AIR)return AIR_BOX_WIDTH*2+boxGapFor(v);
+    // Long overhead geometry. A clean ordinary duck must be sufficient at
+    // ALL speeds, not merely if a special Dash extends the duck window.
+    // Includes the 66px ducking-player body and leaves ~90ms of slack.
+    if(type===GROUND)return Math.max(74,Math.min(300,110+v*.18,v*.46-66));
+    return 0;
   };
   const heightFor=t=>t===AIR?62:t===GROUND?146:0;
-  const sealFraction=o=>o.type===AIR?.5:.55;
-  const sealX=o=>o.x+o.width*sealFraction(o);
-  const sealWorldX=o=>o.worldX+o.width*sealFraction(o);
-  function mayCharge(o,{action,playerWorld=0,speed=370,airborne=false,ducking=false}={}){
-    if(!isDashHazard(o.type)||o.hit||o.cleared||o.dashSatisfied||
+  // Only analytics/feedback. A locally used Dash may be acknowledged as
+  // helpful, but a player using no Dash still clears via the same geometry.
+  function mayAssist(o,{action,playerWorld=0,speed=370,
+    airborne=false,ducking=false}={}){
+    if(!o||!isDashHazard(o.type)||o.hit||o.cleared||o.dashAssisted||
       action!==requiredMode(o.type))return false;
     if(action==='air'&&!airborne)return false;
     if(action==='ground'&&!ducking)return false;
-    // Begin a Dash just ahead of (or inside) the luminous seal. Requiring a
-    // recent, local action removes a free clearance from an old distant dash.
-    const ahead=sealWorldX(o)-playerWorld;
-    // Allow an Air Dash before the FIRST physical box even at the slower
-    // early-zone speeds of Speed Curve 3.0. Geometry, not a fixed time
-    // alone, sets the minimum reach; late-zone timing remains ~0.35s.
-    // Ground Dash retains its existing local double-duck timing.
-    const tolerance=o.type===AIR?
-      Math.max(160,Math.max(300,speed)*.35,o.width*.5+44):
-      Math.max(125,Math.min(280,speed*.30));
-    return ahead>=-28&&ahead<=tolerance;
-  }
-  function reachedSeal(o,{priorX,playerFront}={}){
-    const old=priorX+o.width*sealFraction(o);
-    const now=sealX(o);
-    return old>=playerFront&&now<=playerFront;
+    const v=Math.max(300,speed),ahead=o.worldX-playerWorld;
+    // Allow a dash just BEFORE the first shape, within the structure, or
+    // approaching the last shape. A distant dash is not an "assist".
+    return ahead<=Math.max(220,v*.48)&&ahead>=-o.width-Math.max(80,v*.08);
   }
   function safeToSpawn(type,{zone=1,hp=100,stress=0,
     gravityBusy=false,confidence=0,first=false,guided=false,
     surface='floor'}={}){
     if(!isDashHazard(type)||zone<unlockZone(type)||hp<=50||
-       stress>=.42||gravityBusy)return false;
-    // First appearance of ANY new mechanic must be upright. The unlock zone
-    // can coincide with a ceiling run, so WAIT for a safe floor segment.
+      stress>=.42||gravityBusy)return false;
+    // No new mechanic is taught in ceiling orientation.
     if(first&&surface!=='floor')return false;
-    // Director-guided repeat opportunities are bounded by time / stress /
-    // phase already; they must not disappear due to a strict confidence gate.
     return first||guided||confidence>=.42;
   }
   return {AIR,GROUND,TYPES,FIRST_AIR_ZONE,FIRST_GROUND_ZONE,
-    AIR_BOX_WIDTH,bridgeGapFor,isDashHazard,requiredMode,baseType,
-    unlockZone,widthFor,heightFor,sealX,sealWorldX,
-    mayCharge,reachedSeal,safeToSpawn};
+    AIR_BOX_WIDTH,AIR_SPACING_SECONDS,boxGapFor,isDashHazard,requiredMode,
+    baseType,unlockZone,widthFor,heightFor,mayAssist,safeToSpawn};
 });

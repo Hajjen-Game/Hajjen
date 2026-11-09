@@ -1,8 +1,14 @@
-# CHROMA RUSH — Core Gameplay Excellence 1.0 (Phase 1 audit underway)
+# CHROMA RUSH — Core Pace & Gravity Rebalance 1.1 (Phase 1)
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Core Pace & Gravity Rebalance 1.1 — 3–4 minute urgency (2026-11-09)
+
+Analysis of three player rounds (2:16, 2:52 and 5:17) identified an overly gentle long-run speed ramp and ceiling runs lasting about 96 seconds. The first 45 seconds remain unchanged, but a smooth extra +460 world units/s builds through 225 seconds; approximately 1,800 at 3 minutes and 2,067 at 4 minutes. **This is a difficulty target, not a forced time limit.** Adaptive Camera Horizon and all Jump/Duck/Dash geometry and physics remain unchanged.
+
+Gravity Shift stays a rare event introduced at zone 8 and then every eight zones, but each ceiling excursion is now a brief 16-second hold, followed by a safeguarded automatic return to the floor (with an additional warning and safe-runway wait). [Evidence, implementation and validation plan](docs/core-pace-gravity-rebalance-1.1.md).
 
 ## Core Gameplay Excellence 1.0 — baseline audit (2026-11-09)
 

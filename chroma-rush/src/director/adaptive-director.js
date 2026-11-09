@@ -241,7 +241,7 @@
       if(this.phaseElapsed>=this.phaseDuration)this.advance(context);
       this.spawnCountdown-=dt;
       // Double-jump is trained with terrain gaps, never a long raised rail.
-      // The ceiling cycle starts in zone 7. A new mechanic MUST first
+      // The ceiling cycle starts in zone 8. A new mechanic MUST first
       // appear on the FLOOR, even if its unlock zone happened in the sky.
       // Delay rather than introduce in a confusing mirrored orientation.
       const firstDashType=!this.dashIntroduced.ground&&context.zone>=4?'dash-duck':null;

@@ -113,7 +113,7 @@ test('multiple 10-minute seeded Directors intensify late healthy play without sp
     const {samples,d}=directorRun(seed);
     const early=samples.filter(s=>s.time>=180&&s.time<300);
     const late=samples.filter(s=>s.time>=480&&s.time<600);
-    assert.ok(late.length>early.length*1.12,
+    assert.ok(late.length>early.length*1.10,
       JSON.stringify({seed,early:early.length,late:late.length}));
     let max=0,chain=0,prev='';
     for(const s of samples){

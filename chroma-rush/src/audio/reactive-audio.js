@@ -23,7 +23,7 @@
       this.musicEnabled=true;this.effectsEnabled=true;this.effectsVolume=1;
       this.context=null;this.musicBus=null;this.effectsBus=null;this.master=null;
       this.phase='BUILD';this.speed=370;this.zone=1;this.flow=0;this.hp=100;
-      this.chromaActive=false;
+      this.chromaActive=false;this.surgeActive=false;
       this.stepIndex=0;this.nextStepAt=0;this.scheduledSteps=0;
     }
     get available(){return Boolean(this.scope.AudioContext||this.scope.webkitAudioContext)}
@@ -38,7 +38,10 @@
     get bpm(){return clamp(AUDIO.startBpm+(this.speed-370)*AUDIO.bpmPerSpeed,AUDIO.startBpm,AUDIO.maxBpm)}
     get layerMix(){
       const flow=clamp(this.flow,0,100)/100;
-      return clamp((PHASE_MIX[this.phase]??.7)*(.78+flow*.22)*(this.chromaActive?1.055:1),.15,1);
+      const base=(PHASE_MIX[this.phase]??.7)*(.78+flow*.22)*(this.chromaActive?1.055:1);
+      // A brief Chroma Surge raises the musical floor, without speeding
+      // playback up or changing the shared Director's PEAK/RELAX schedule.
+      return clamp(this.surgeActive?Math.max(.82,base):base,.15,1);
     }
     init(){
       if(this.context)return true;
@@ -80,7 +83,7 @@
     }
     start(){
       this.playing=true;this.phase='BUILD';this.speed=370;this.zone=1;this.flow=0;this.hp=100;
-      this.chromaActive=false;
+      this.chromaActive=false;this.surgeActive=false;
       this.stepIndex=0;this.scheduledSteps=0;
       this.unlock();this.nextStepAt=this.context?this.context.currentTime+.04:0;
       this._updateMix();
@@ -115,10 +118,12 @@
       this.effectsVolume=clamp(Number.isFinite(value)?value:1,0,1);
       this._updateMix();return this.effectsVolume;
     }
-    tick({phase='BUILD',speed=370,flow=0,chromaActive=null,zone=1,hp=100}={}){
+    tick({phase='BUILD',speed=370,flow=0,chromaActive=null,
+      surgeActive=false,zone=1,hp=100}={}){
       this.phase=phase;this.speed=Number.isFinite(speed)?speed:370;
       this.flow=clamp(Number.isFinite(flow)?flow:0,0,100);
       this.chromaActive=typeof chromaActive==='boolean'?chromaActive:this.flow>=90;
+      this.surgeActive=Boolean(surgeActive);
       this.zone=Math.max(1,Math.floor(Number.isFinite(zone)?zone:1));
       this.hp=hp;
       if(!this.enabled||!this.musicEnabled||!this.playing||!this.context||this.context.state!=='running')return;
@@ -181,6 +186,17 @@
       if(this.chromaActive&&!relax&&(beat===3||beat===7)){
         this._voice(root+48+MELODY[index],at+.02,eighth*.55,peak?.045:.031,'sine');
       }
+      // Original, beat-locked Chroma Surge overtone: every second 8th
+      // gets a bright 5th or octave accent. The light syncs to the real
+      // music grid; the game simulation NEVER waits for a beat.
+      if(this.surgeActive){
+        if(beat%2===0){
+          this._voice(root+43+MELODY[index],at+.014,eighth*.64,.095,'triangle');
+          this._voice({hz:880+(beat/2)*115},at+.035,.045,.055,'sine');
+        }else if(beat===3||beat===7){
+          this._voice(root+55,at+.028,eighth*.43,.045,'sine');
+        }
+      }
     }
     effect(kind){
       if(!this.enabled||!this.effectsEnabled||this.effectsVolume<=0||!this.context||this.context.state!=='running')return;
@@ -227,6 +243,15 @@
           // Original mirrored-frequency sweep, never a prolonged alarm.
           fx(760,.28,.11,'sine',170);
           fx(250,.32,.075,'triangle',630,.12);break;
+        case 'surge-start':
+          // A compact two-voice arrival punch with a delayed crystalline
+          // high resolves the original Tide; no samples or long alarm.
+          fx(265,.13,.115,'triangle',570);
+          fx(520,.22,.085,'sine',860,.07);
+          fx(1040,.29,.050,'triangle',1370,.14);break;
+        case 'surge-clear':
+          fx(640,.10,.077,'triangle',1020);
+          fx(980,.17,.052,'sine',1390,.043);break;
         case 'zone-charge':
           // Soft original rising sub-pulse, kept quieter than damage/perfect.
           fx(190,.18,.053,'sine',310);fx(390,.17,.038,'triangle',570,.075);break;

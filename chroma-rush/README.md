@@ -1,8 +1,16 @@
-# CHROMA RUSH — Endurance Mastery 4.0
+# CHROMA RUSH — Arcade Simplification 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Arcade Simplification 1.0 — current gameplay (2026-11-09)
+
+The current design removes the **wide Echo Rail** and **Twin Vault / Energy Bridge** from active spawning. The physically wider **Long Duck Gate** remains. The short Jump now shares the same neon housing, side rails and energy-field language as Duck, inverted from the ground and given its own secondary color. Ordinary and double-jump gaps are more common and use the established terrain safety budget. The first double-jump chasm is introduced on the floor after a completed ordinary gap.
+
+A palette now lasts **two zones**, so Chroma Tide is reserved for genuine color changes. Gravity Shift first occurs at **zone 8** and then at **16, 24, 32…**: its even-zone timing avoids launching simultaneously with a color transition. Movement controls, standard collision boxes, Speed Curve 3.2, camera, Flow and late endurance density are preserved. See [Arcade Simplification 1.0 implementation and QA](docs/arcade-simplification-1.0.md).
+
+**The sections below document earlier design passes. References to active Echo Rail/Twin Vault introductions describe historical versions and are superseded by this pass.**
 
 ## Endurance Mastery 4.0 — late-game intensity (2026-11-09)
 

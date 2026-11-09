@@ -133,7 +133,7 @@ test('engine effects module loads before game, uses new version marker and no RN
   const i=html.indexOf('src/render/effect-language.js?v=arcade-animation-2.0');
   const j=html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
   assert.ok(i>=0&&j>i);
-  assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0)/);
+  assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1)/);
   const s=fs.readFileSync(path.join(__dirname,'../src/render/effect-language.js'),'utf8');
   assert.doesNotMatch(s,/Math\.random|setTimeout|setInterval|createRadialGradient|ellipse\(/);
 });

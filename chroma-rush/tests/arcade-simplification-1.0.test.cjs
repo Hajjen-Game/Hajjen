@@ -25,7 +25,7 @@ test('Director cannot select either retired long jump obstacle',()=>{
   assert.ok(PATTERNS.some(p=>p.steps.length>=3),'late precision patterns stay');
 });
 
-test('Gravity Shift is a rare eight-zone event, not every other zone',()=>{
+test('Gravity Shift repeats at eight-zone intervals with short safe floor returns',()=>{
   assert.equal(START_ZONE,8);assert.equal(INTERVAL_ZONES,8);
   const g=new GravityShift();
   for(let z=1;z<8;z++)assert.equal(g.requestForZone(z),false);
@@ -33,7 +33,11 @@ test('Gravity Shift is a rare eight-zone event, not every other zone',()=>{
   assert.equal(g.tick(WARNING_SECONDS,{safe:true}),'begin');
   assert.equal(g.tick(SHIFT_SECONDS+.01),'complete');
   assert.equal(g.ceiling,true);
+  assert.equal(g.tick(16.01),'return_warning');
   for(let z=9;z<16;z++)assert.equal(g.requestForZone(z),false);
+  assert.equal(g.tick(WARNING_SECONDS,{safe:true}),'begin');
+  assert.equal(g.tick(SHIFT_SECONDS+.01),'complete');
+  assert.equal(g.ceiling,false);
   assert.equal(g.requestForZone(16),true);
 });
 

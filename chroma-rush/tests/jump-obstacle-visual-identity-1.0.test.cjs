@@ -28,7 +28,7 @@ function renderObstacle(type,{glow=.8,density=.8}={}){
   const lines=[];
   const camera={visibleRight:w=>w,visibleLeft:()=>0,screenX:x=>x,screenY:y=>y};
   const player={x:339};
-  const env={ctx,camera,player,GEO,DASH_HAZARDS,W:1280,H:720,worldTime:1.75,
+  const env={ctx,camera,player,GEO,DASH_HAZARDS,W:1280,H:720,floorY:515,worldTime:1.75,
     // This legacy silhouette regression isolates pre-existing obstacle geometry.
     // The separately-tested cosmetic engraving never changes its bounds.
     identity:{drawHazardMark(){}},

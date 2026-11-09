@@ -1251,6 +1251,7 @@
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
     ctx.save();
     if(isEcho||isLow){
+      // Low Neon Barrier: an ordinary Jump shell, raised and stretched.
       // Echo Rail: a LONG STANDARD JUMP BARRIER raised off the track.
       // Its light underbody veil inverts the suspended Duck Gate field:
       // pale tint + fine vertical ribs, with NO thick line at track level.

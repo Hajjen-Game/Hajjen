@@ -116,7 +116,8 @@ test('new Echo Rail is low and broad with visually integrated underbody energy',
     'the bright bottom plinth belongs to the raised normal jump beam');
   assert.ok(!run.lines.some(l=>l.width>1.5&&l.y1===b.y+b.h-3),
     'no thick glowing line at the track level');
-  assert.ok(run.lines.length>=6);
+  assert.ok(run.lines.length>=5,
+    'raised Echo uses the same five essential neon edges as a normal Jump');
   assert.ok(ECHO_SPIRE.maxHeight<=90);
   assert.ok(ECHO_SPIRE.minWidth>=300);
   assert.equal(ECHO_SPIRE.introMinHeight,70);

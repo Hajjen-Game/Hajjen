@@ -1,8 +1,16 @@
-# CHROMA RUSH — Echo Rail Raised Jump 1.2
+# CHROMA RUSH — Echo Borders & Duck Gate Unification 1.3
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Echo Borders & Duck Gate Unification 1.3 (2026-11-09)
+
+Player visual corrections based on annotated screenshots:
+- **Echo Rail:** Keep exactly the original raised, stretched standard Jump shell with its thin Duck-style underbody curtain. Restore clear **left and right** bright vertical boundaries along the underbody curtain, from directly below the solid beam to the track. Each outer rail is ~2.1 world units wide with modest quality-scaled glow. Interior strands remain ~1px, the field low-opacity, and **no bold bar is added at ground level**. Width/height, collider and doubled-Jump requirements are unchanged.
+- **Long Duck Gate (dash-duck):** Eliminate its own visual variant entirely. Both `duck` and `dash-duck` share the **identical standard Duck Gate Canvas draw path**: same transparent upper field (opacity .105), side outlines, unobtrusive horizontal field ribs, lower solid core, glow weights and bottom bright bar. **Only the width** changes. Remove the bespoke long-only zigzag engraving, reinforced rib grid, extra vertical bars and increased background opacity.
+- No new image assets, new mechanics or physics changes. No edits to Dash Energy Bridge / Twin Vault zigzag, Speed Curve 3.2, camera, motion or Director spacing.
+- Render regression compares the two Duck versions' actual canvas call sequences and glow widths and verifies the two Echo energy-field vertical outer rails.
 
 ## Echo Rail Raised Jump 1.2 (2026-11-09)
 

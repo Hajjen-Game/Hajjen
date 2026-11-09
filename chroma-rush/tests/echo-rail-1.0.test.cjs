@@ -148,8 +148,12 @@ test('renderer gives the low Echo Rail a solid top and visible underside energy 
     render.indexOf('// Exact same low-barrier shell'));
   assert.match(veil,/ctx\.moveTo\(rx,energyTop\+1\)/);
   assert.match(veil,/ctx\.lineTo\(rx,energyBottom-1\)/);
-  assert.doesNotMatch(veil,/k%2===0|ctx\.lineTo\(xx,yy\)|glowLine\(/,
-    'no zigzag or thick luminous baseline in the underbody veil');
+  assert.doesNotMatch(veil,/k%2===0|ctx\.lineTo\(xx,yy\)/,
+    'no zigzag, waves or diagonal segments inside the underbody veil');
+  assert.match(veil,/glowLine\(b\.x\+2,energyTop\+1,b\.x\+2,energyBottom-1,color,/,
+    'visible LEFT curtain boundary must continue from the raised beam to the track');
+  assert.match(veil,/glowLine\(b\.x\+b\.w-2,energyTop\+1,b\.x\+b\.w-2,energyBottom-1,color,/,
+    'visible RIGHT curtain boundary must continue from the raised beam to the track');
   assert.match(render,/\[isEcho\?echoBeam:b\]/);
   assert.match(render,/ctx\.fillRect\(x\+2,y\+h-12,w-4,10\)/,
     'raised beam shares the ordinary jump plinth');

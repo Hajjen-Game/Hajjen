@@ -169,7 +169,10 @@ test('rendered glow follows exactly the three physical boxes; no invisible actio
   assert.match(renderer,/ctx\.fillRect\(start,wire\.y,span,wire\.h\)/);
   assert.match(renderer,/const layers=quality\.profile\.density>=\.60\?2:1/);
   assert.match(renderer,/ctx\.shadowBlur=\(layer\?10:19\)\*quality\.profile\.glow/);
-  assert.match(renderer,/const extended=o\.type==='dash-duck'/);
+  assert.match(renderer,/Standard Duck Gate renderer for BOTH duck and dash-duck/);
+  assert.doesNotMatch(renderer,/const extended=o\.type==='dash-duck'/);
+  assert.doesNotMatch(renderer,/if\(extended\)/,
+    'long duck obstacles must use the same standard duck shape');
   assert.doesNotMatch(renderer,/sealX\(|o\.dashSatisfied|chargeFlash|fillText\s*\(/);
   assert.match(geo,/AIR_BRIDGE_HEIGHT=36/);
   assert.match(game,/method:o\.dashAssisted\?'dash-assisted':'geometry'/);

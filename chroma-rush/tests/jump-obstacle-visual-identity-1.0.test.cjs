@@ -23,8 +23,9 @@ function renderObstacle(type,{glow=.8,density=.8}={}){
     fillRect(x,y,w,h){events.push(['fillRect',x,y,w,h])},
     fillText(text,x,y){events.push(['fillText',text,x,y])}
   };
-  const obstacle={type,x:300,width:type==='echo'?273:type==='duck'?62:52,
-    height:type==='echo'?74:type==='duck'?135:60,groundY:515,pulse:1};
+  const isDuck=type==='duck'||type==='dash-duck';
+  const obstacle={type,x:300,width:type==='echo'?273:type==='dash-duck'?470:isDuck?62:52,
+    height:type==='echo'?74:isDuck?135:60,groundY:515,pulse:1};
   const lines=[];
   const camera={visibleRight:w=>w,visibleLeft:()=>0,screenX:x=>x,screenY:y=>y};
   const player={x:339};
@@ -104,6 +105,28 @@ test('duck gate preserves continuous sky energy field, its clear slot and core',
   assert.equal(GEO.verticalOverlap(running,b),true);
 });
 
+test('long dash-duck uses EXACT standard duck rendering, just with larger width',()=>{
+  const short=renderObstacle('duck'),long=renderObstacle('dash-duck');
+  assert.equal(short.box.y,long.box.y);
+  assert.equal(short.box.h,long.box.h);
+  assert.equal(short.box.y+short.box.h,515-GEO.DUCK_CLEARANCE);
+  assert.ok(long.box.w>short.box.w*5);
+  // Same draw calls, stroke counts, layer density and glow weights: only
+  // the lateral coordinates/width differ. No long-only ornament allowed.
+  assert.deepEqual(long.events.map(e=>e[0]),short.events.map(e=>e[0]));
+  assert.deepEqual(long.lines.map(({width,shadow,alpha,y1,y2})=>
+    ({width,shadow,alpha,y1,y2})),
+    short.lines.map(({width,shadow,alpha,y1,y2})=>
+      ({width,shadow,alpha,y1,y2})));
+  const bottom=515-GEO.DUCK_CLEARANCE;
+  assert.ok(long.lines.some(l=>l.y1===bottom&&l.y2===bottom&&l.width===5),
+    'standard duck underside and clearance preserved at full long width');
+  const duckSection=sourceCode.slice(sourceCode.indexOf('    }else{\n      // Standard Duck Gate renderer'),
+    sourceCode.indexOf('    // Every glowing segment'));
+  assert.doesNotMatch(duckSection,/if\(extended\)|extended\?|k%2===0|Math\.sin\(/,
+    'no alternate pattern or long-only decoration in the duck renderer');
+});
+
 test('new Echo Rail is low and broad with visually integrated underbody energy',()=>{
   const run=renderObstacle('echo'),b=run.box;
   assert.deepEqual(b,{x:300,y:515-74,w:273,h:74});
@@ -116,8 +139,17 @@ test('new Echo Rail is low and broad with visually integrated underbody energy',
     'the bright bottom plinth belongs to the raised normal jump beam');
   assert.ok(!run.lines.some(l=>l.width>1.5&&l.y1===b.y+b.h-3),
     'no thick glowing line at the track level');
-  assert.ok(run.lines.length>=5,
-    'raised Echo uses the same five essential neon edges as a normal Jump');
+  assert.ok(run.lines.length>=7,
+    'raised Echo also has two illuminated vertical energy borders');
+  const veilBottom=b.y+b.h,veilTop=split;
+  const edgeLines=run.lines.filter(l=>l.width===2.1&&
+    l.y1===veilTop+1&&l.y2===veilBottom-1);
+  assert.equal(edgeLines.length,2,
+    'matching left and right energy field boundaries');
+  assert.deepEqual(edgeLines.map(l=>l.x1).sort((a,b)=>a-b),
+    [b.x+2,b.x+b.w-2]);
+  assert.ok(!run.lines.some(l=>l.width>=2&&l.y1===veilBottom&&l.y2===veilBottom),
+    'no extra thick bottom line across the track');
   assert.ok(ECHO_SPIRE.maxHeight<=90);
   assert.ok(ECHO_SPIRE.minWidth>=300);
   assert.equal(ECHO_SPIRE.introMinHeight,70);

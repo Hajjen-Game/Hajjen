@@ -1277,7 +1277,14 @@
           ctx.lineTo(rx,energyBottom-1);
         }
         ctx.stroke();
+        // Match the visible outer rails of the regular Duck Gate's energy
+        // field: brighter side borders, but NO heavy line along the floor.
+        // On the Echo Rail they start exactly below the solid raised beam.
         ctx.globalAlpha=1;
+        glowLine(b.x+2,energyTop+1,b.x+2,energyBottom-1,color,
+          2.1,8*quality.profile.glow,.73);
+        glowLine(b.x+b.w-2,energyTop+1,b.x+b.w-2,energyBottom-1,color,
+          2.1,8*quality.profile.glow,.73);
       }
       // Exact same low-barrier shell as an ordinary Jump. For Twin Vault
       // the two separate plinths remain unchanged, including its zigzag.
@@ -1364,29 +1371,23 @@
         ctx.restore();
       }
     }else{
-      // The long duck variant reads as a structural overhead canopy,
-      // with its full-width duck passage aligned to the collision shape.
-      const extended=o.type==='dash-duck',by=b.y+b.h,top=Math.max(0,b.y);
+      // Standard Duck Gate renderer for BOTH duck and dash-duck.
+      // The long version is physically wider, not a separate design.
+      // Keep the same open energy field, core, crossbars and corner glow;
+      // do not add a zigzag, extra ribs, brighter fill or different timing.
+      const by=b.y+b.h,top=Math.max(0,b.y);
       ctx.shadowBlur=0;ctx.globalAlpha=twinkle;
-      ctx.fillStyle=rgba(color,extended?.20:.105);
+      ctx.fillStyle=rgba(color,.105);
       ctx.fillRect(b.x,b.y,b.w,b.h);
       ctx.strokeStyle=rgba(color,.68);ctx.lineWidth=1.9;
       ctx.beginPath();
       ctx.moveTo(b.x+1,b.y);ctx.lineTo(b.x+1,by);
       ctx.moveTo(b.x+b.w-1,b.y);ctx.lineTo(b.x+b.w-1,by);
       ctx.stroke();
-      // Simple structural ribs, no floating energy checkpoints.
-      // The extended canopy keeps a clear silhouette even with 60% zoom.
-      ctx.lineWidth=extended?1.6:1;ctx.strokeStyle=rgba(color,extended?.58:.36);
-      for(let y=top+20;y<core.y-4;y+=extended?62:43){
+      // Identical horizontal field ribs regardless of gate length.
+      ctx.lineWidth=1;ctx.strokeStyle=rgba(color,.36);
+      for(let y=top+20;y<core.y-4;y+=43){
         ctx.beginPath();ctx.moveTo(b.x+7,y);ctx.lineTo(b.x+b.w-7,y);ctx.stroke();
-      }
-      if(extended){
-        const ribs=Math.max(2,Math.round(b.w/78));
-        for(let k=1;k<ribs;k++){
-          const rx=b.x+b.w*k/ribs;
-          ctx.beginPath();ctx.moveTo(rx,b.y);ctx.lineTo(rx,by);ctx.stroke();
-        }
       }
       ctx.shadowColor=color;ctx.shadowBlur=21*quality.profile.glow;
       roundRectPath(core.x,core.y,core.w,core.h,4);
@@ -1401,22 +1402,6 @@
         glowLine(x,core.y+12,x,by-12,color,1,0,.36);
       }
       glowLine(core.x,core.y,core.x+core.w,core.y,'#ffffff',1,8,.45);
-      if(extended){
-        // The Long Gate also gets a crisp zigzag ENGRAVED IN its damaging
-        // lower edge. Never let glow hang into the safe ducking passage.
-        const steps=Math.max(6,Math.min(22,Math.round(b.w/34)));
-        ctx.save();
-        ctx.lineJoin='bevel';ctx.lineCap='round';
-        ctx.beginPath();
-        for(let i=0;i<=steps;i++){
-          const xx=b.x+7+(b.w-14)*i/steps;
-          const yy=by-11+(i%2===0?-5:5);
-          if(i===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
-        }
-        ctx.strokeStyle='#ffffff';ctx.lineWidth=2.5;
-        ctx.shadowColor=color;ctx.shadowBlur=15*quality.profile.glow;
-        ctx.globalAlpha=.87;ctx.stroke();ctx.restore();
-      }
     }
     // Every glowing segment maps to actual geometry. No detached seal
     // checkpoint, no free mid-bridge landing and no forced action key.

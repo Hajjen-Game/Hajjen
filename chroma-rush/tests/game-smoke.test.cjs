@@ -670,7 +670,10 @@ test('first floor Echo lesson in zone 2: one jump fails, Echo clears, later ceil
       if(i===echoFrame&&secondJump)tap(62);
       g.step(i*1000/60);
     }
-    assert.equal(first.cleared,true);
+    assert.equal(first.cleared,true,JSON.stringify({
+      x:first.x,width:first.width,height:first.height,
+      distance:state.distance(),zone:state.zone(),hp:state.hp(),
+      finishFrame,untilContact}));
     return {hit:first.hit,hp:state.hp(),echoUsed:state.jumpControl.echoUsed,
       introduced:state.director.echoIntroduced};
   }

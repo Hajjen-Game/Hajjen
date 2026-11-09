@@ -1251,8 +1251,8 @@
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
     ctx.save();
     if(isEcho||isLow){
-      // All jumping hazards share the same readable beveled housing.
-      // Echo Rail replaces the tall double-jump Spire with one LOW,
+      // Shared Low Neon Barrier: all jump hazards use the same housing.
+      // Echo Rail replaces the old high-wall challenge with one LOW,
       // WIDE module: solid upper deck + translucent, collidable energy
       // layer UNDER the deck. No tall pillar, no invisible collision.
       // Twin Vault: draw two standard plinths. The separate low energy

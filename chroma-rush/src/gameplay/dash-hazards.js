@@ -15,16 +15,30 @@
   const TYPES=Object.freeze([AIR,GROUND]);
   const AIR_BOX_WIDTH=50;
   const AIR_BRIDGE_HEIGHT=36;
-  // Echo's physical clearance over 62-unit endboxes is ~1.26s. Tune the
-  // opening bridge for ~1.36s of world travel, so Echo *alone* cannot span
-  // it; Echo + a well-timed Air Dash can. A strict world-width cap makes
-  // the same geometry naturally easier when the world accelerates.
+  // Zone 5–7 playtests: roughly 2/8 clears of the old 1.36-second
+  // bridge. Make the EARLY full-body traversal about 1.02 seconds,
+  // while restoring the existing 1200-unit length smoothly by speed 1200.
+  // This retains the genuine collidable zigzag, optional Dash, the 2.2
+  // recovery gap and a dramatic late-game silhouette.
+  const AIR_INTRO_CROSSING_SECONDS=1.02;
+  const AIR_EXPAND_START_SPEED=950,AIR_FULL_LENGTH_SPEED=1200;
   const AIR_MAX_WIDTH=1200;
   const GROUND_CHALLENGE_SECONDS=.68,GROUND_MAX_WIDTH=530;
+  const smooth=t=>{
+    const v=Math.max(0,Math.min(1,t));
+    return v*v*(3-2*v);
+  };
+  const airWidthFor=v=>{
+    const early=Math.max(330,Math.round(
+      (v*AIR_INTRO_CROSSING_SECONDS-36)/10)*10);
+    const expand=smooth((v-AIR_EXPAND_START_SPEED)/
+      (AIR_FULL_LENGTH_SPEED-AIR_EXPAND_START_SPEED));
+    return Math.min(AIR_MAX_WIDTH,Math.round(
+      (early+(AIR_MAX_WIDTH-early)*expand)/10)*10);
+  };
   const widthFor=(type,speed=370)=>{
     const v=Math.max(300,speed);
-    if(type===AIR)return Math.min(AIR_MAX_WIDTH,
-      Math.max(280,Math.round((v*AIR_CHALLENGE_SECONDS-36)/10)*10));
+    if(type===AIR)return airWidthFor(v);
     if(type===GROUND)return Math.min(GROUND_MAX_WIDTH,
       Math.max(160,Math.round((v*GROUND_CHALLENGE_SECONDS-66)/10)*10));
     return 0;
@@ -92,6 +106,7 @@
   }
   return {AIR,GROUND,TYPES,FIRST_AIR_ZONE,FIRST_GROUND_ZONE,
     AIR_BOX_WIDTH,AIR_BRIDGE_HEIGHT,AIR_MAX_WIDTH,
+    AIR_INTRO_CROSSING_SECONDS,AIR_EXPAND_START_SPEED,AIR_FULL_LENGTH_SPEED,
     GROUND_CHALLENGE_SECONDS,GROUND_MAX_WIDTH,boxGapFor,needsDashFor,
     isDashHazard,recoveryAfter,placementAfter,requiredMode,
     baseType,unlockZone,widthFor,heightFor,mayAssist,safeToSpawn};

@@ -30,6 +30,7 @@ const chromaVfx = require('../src/render/chroma-state-vfx.js');
 const speedTrails = require('../src/render/speed-trails.js');
 const identity = require('../src/render/chroma-identity.js');
 const gravityShift = require('../src/gameplay/gravity-shift.js');
+const adaptiveCamera = require('../src/camera/adaptive-camera.js');
 const runAudit = require('../src/diagnostics/round-audit.js');
 const unified = require('../src/director/unified-terrain-director.js');
 const perf = require('../src/performance/quality-manager.js');
@@ -60,7 +61,7 @@ function setup(initialStorage={}) {
   let requested;
   const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaMovementAwareness:movementAwareness,ChromaHighSpeedFairness:highSpeedFairness,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaPrecisionCombo:precisionCombo,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaDash:dashModule,ChromaShieldCore:shieldCore,ChromaShieldCoreRender:shieldCoreRender,ChromaDashHazards:dashHazards,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaSpectralWave:spectralWave,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaIdentity:identity,ChromaGravityShift:gravityShift,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaMovementAwareness:movementAwareness,ChromaHighSpeedFairness:highSpeedFairness,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaPrecisionCombo:precisionCombo,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaDash:dashModule,ChromaShieldCore:shieldCore,ChromaShieldCoreRender:shieldCoreRender,ChromaDashHazards:dashHazards,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaSpectralWave:spectralWave,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaIdentity:identity,ChromaGravityShift:gravityShift,ChromaAdaptiveCamera:adaptiveCamera,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
@@ -70,7 +71,7 @@ function setup(initialStorage={}) {
   const ending='  requestAnimationFrame(frame);\n})();';
   assert.ok(gameCode.includes(ending));
   vm.runInContext(gameCode.replace(ending,
-    "  window.__gravityHarness={gravityShift,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,dash,shieldCores,DASH_HAZARDS,runAudit,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,hp:()=>hp,setHP:n=>{hp=n},player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
+    "  window.__gravityHarness={gravityShift,camera,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,dash,shieldCores,DASH_HAZARDS,runAudit,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,hp:()=>hp,setHP:n=>{hp=n},player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
     context,{filename:'game.js'});
   return {get,local,rotations,bends,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
@@ -865,4 +866,18 @@ test('Dash seal charge is counted separately from a physical clear',()=>{
   assert.deepEqual(JSON.parse(JSON.stringify(audit.summary.dashHazards.charged)),{air:1,ground:0});
   assert.equal(audit.summary.dashHazards.cleared.air,1);
   assert.equal(audit.summary.obstaclesCleared,0,'charge is not a phantom clear');
+});
+
+test('adaptive camera responds to a later practice-speed timeline while physics player X stays anchored',()=>{
+  const g=setup();
+  g.step(0);g.get('start-btn').click();
+  const harness=g.context.window.__gravityHarness;
+  const px=harness.player().x;
+  assert.equal(harness.camera.zoom,1);
+  harness.forceZone(16);
+  for(let i=1;i<=45;i++)g.step(i*1000/60);
+  assert.ok(harness.camera.zoom<1,'zoom must start helping in the challenging zones');
+  assert.equal(harness.player().x,px,'zoom must not modify runner physics coordinates');
+  assert.ok(harness.camera.visibleRight(1280,px)>1280);
+  assert.ok(harness.camera.lowestZoom<=harness.camera.zoom);
 });

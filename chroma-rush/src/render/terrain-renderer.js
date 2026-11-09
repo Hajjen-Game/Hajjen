@@ -45,10 +45,21 @@
       ctx.lineTo(hi-distance,surface(s,hi)+depth);
     }
   }
-  function drawTerrain({ctx,terrain,distance,width,height,baseY,primary,secondary,flow=0,glowLine,quality={glow:1,terrainStep:16,gridStep:105},tide=null}){
+  function drawTerrain({ctx,terrain,distance,width,height,baseY,primary,secondary,flow=0,glowLine,quality={glow:1,terrainStep:16,gridStep:105},tide=null,cameraView=null}){
     if(!ctx||!terrain||!terrain.segments)return;
-    const left=Math.max(0,distance-36),right=distance+width+36;
+    const viewLeft=Math.min(0,cameraView?.left??0);
+    const viewRight=Math.max(width,cameraView?.right??width);
+    // Preserve the real bottom edge under zoom: ground must cover the whole
+    // screen even after the gravity mirror maps it onto the ceiling.
+    const bottom=Math.max(height,cameraView?.bottom??height);
+    const left=distance+viewLeft-36,right=distance+viewRight+36;
     const runs=visibleRuns(terrain.segments,left,right);
+    // The high-zone PRACTICE camera already sees a little behind world zero.
+    // Fill that opening with the existing start-run flat, not a new collider.
+    if(left<0&&runs[0]?.[0]?.lo===0&&terrain.segments[0]?.type==='flat'){
+      const s={type:'flat',start:left,end:0,y0:terrain.baseY,y1:terrain.baseY};
+      runs[0].unshift({s,lo:left,hi:0});
+    }
     if(!runs.length)return;
     const colorAt=(x,channel,y)=>tide?.active?tide.colorAt(x,channel,y,height):
       (channel==='primary'?primary:secondary);
@@ -59,26 +70,26 @@
     ctx.save();ctx.beginPath();
     for(const run of runs){
       const start=run[0].lo-distance,end=run[run.length-1].hi-distance;
-      ctx.moveTo(start,height+8);
+      ctx.moveTo(start,bottom+8);
       traceSurface(ctx,run,distance,0,true,quality.terrainStep);
-      ctx.lineTo(end,height+8);ctx.closePath();
+      ctx.lineTo(end,bottom+8);ctx.closePath();
     }
     ctx.clip();
     // One gradient anchored to the SCREEN instead of segment-local starts.
     // Resetting the gradient at every new slope was the visible dark seam.
-    const ground=ctx.createLinearGradient(0,baseY-25,0,height);
+    const ground=ctx.createLinearGradient(0,baseY-25,0,bottom);
     ground.addColorStop(0,rgba(groundPrimary,.15+clamp(flow,0,100)*.0008));
     ground.addColorStop(.55,'#0b1224');
     ground.addColorStop(1,'#050812');
     ctx.fillStyle=ground;
-    ctx.fillRect(-36,0,width+72,height+8);
+    ctx.fillRect(viewLeft-36,0,viewRight-viewLeft+72,bottom+8);
     // Very light ground tint within the EXISTING clip: the actual terrain
     // material responds as the tide crosses, with no duplicate geometry.
     if(tide?.active&&!tide.charging){
       ctx.save();
       ctx.globalAlpha=.085*Math.min(1,quality.glow??1);
       ctx.fillStyle=tide.gradient(ctx,width,'primary',baseY,height);
-      ctx.fillRect(-36,0,width+72,height+8);
+      ctx.fillRect(viewLeft-36,0,viewRight-viewLeft+72,bottom+8);
       ctx.restore();
     }
 
@@ -87,15 +98,15 @@
     // empty and hills never sprout a false ledge. Performance skips it.
     if(tide?.active&&!tide.charging&&(quality.density??1)>=.55){
       const head=tide.frontAt(baseY,height),density=clamp(quality.density,0,1);
-      if(head>-245&&head<width+205){
+      if(head>viewLeft-245&&head<viewRight+205){
         const wash=ctx.createLinearGradient(head-155,0,head+270,0);
         wash.addColorStop(0,rgba(secondary,0));
         wash.addColorStop(.33,rgba(secondary,.12*density));
         wash.addColorStop(.56,rgba(primary,.18*density));
         wash.addColorStop(.76,rgba(secondary,.08*density));
         wash.addColorStop(1,rgba(primary,0));
-        const x=Math.max(0,head-155),end=Math.min(width,head+270);
-        if(end>x){ctx.save();ctx.fillStyle=wash;ctx.fillRect(x,0,end-x,height+8);ctx.restore();}
+        const x=Math.max(viewLeft,head-155),end=Math.min(viewRight,head+270);
+        if(end>x){ctx.save();ctx.fillStyle=wash;ctx.fillRect(x,0,end-x,bottom+8);ctx.restore();}
       }
     }
     // A single world-aligned perspective grid, shared across all segments.
@@ -106,7 +117,7 @@
       const sx=x-distance,sy=surface(s,x);
       // Existing grid only: briefly amplify lines behind the real front.
       const accent=tide?.accentAt?.(sx,sy,height)||0;
-      glowLine(sx,sy+2,sx-72,height,colorAt(sx,'secondary',sy),1,1,
+      glowLine(sx,sy+2,sx-72,bottom,colorAt(sx,'secondary',sy),1,1,
         .17+.36*accent*clamp(quality.glow??1,.15,1));
     }
     for(const depth of [32,76,126]){
@@ -133,9 +144,9 @@
     // no fake line bridge, new object or double terrain/background redraw.
     if(tide?.active&&!tide.charging){
       const head=tide.frontAt(baseY,height);
-      if(head>-200&&head<width+45){
-        const g=ctx.createLinearGradient(0,0,width,0);
-        const norm=x=>clamp(x/width,0,1);
+      if(head>viewLeft-200&&head<viewRight+45){
+        const g=ctx.createLinearGradient(viewLeft,0,viewRight,0);
+        const norm=x=>clamp((x-viewLeft)/(viewRight-viewLeft),0,1);
         g.addColorStop(0,rgba(primary,0));
         g.addColorStop(norm(head-58),rgba(primary,0));
         g.addColorStop(norm(head+20),rgba(secondary,.58));
@@ -172,12 +183,12 @@
       if(gap.type!=='gap'||gap.end<=left||gap.start>=right)continue;
       for(const edge of [gap.start,gap.end]){
         const x=edge-distance;
-        if(x<-20||x>width+20)continue;
+        if(x<viewLeft-20||x>viewRight+20)continue;
         glowLine(x,gap.y0-2,x,gap.y0+53,colorAt(x,'secondary',gap.y0),3,17,.85);
         glowLine(x-5,gap.y0,x+5,gap.y0,'#ffffff',2,10,.64);
       }
       const cue=gap.start-distance;
-      if(cue>-110&&cue<width){
+      if(cue>viewLeft-110&&cue<viewRight){
         ctx.save();
         ctx.fillStyle=gap.echoChallenge?'#ffffff':colorAt(cue,'secondary',gap.y0);
         ctx.font=gap.echoChallenge?'850 13px system-ui':'800 13px system-ui';
@@ -188,7 +199,7 @@
         ctx.fillText(gap.echoChallenge?'2× JUMP':'↑',cue-(gap.echoChallenge?54:32),gap.y0-35);
         ctx.restore();
       }
-      if(gap.echoChallenge&&cue>-55&&cue<width+55){
+      if(gap.echoChallenge&&cue>viewLeft-55&&cue<viewRight+55){
         for(let i=0;i<2;i++){
           const x=cue-14-i*10;
           glowLine(x,gap.y0-5,x-5,gap.y0-15,colorAt(x,'secondary',gap.y0),1.8,6,.75);

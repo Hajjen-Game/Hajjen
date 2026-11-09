@@ -1,8 +1,19 @@
-# CHROMA RUSH — Speed Curve 3.2
+# CHROMA RUSH — Adaptive Camera Horizon 1.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Adaptive Camera Horizon 1.0 — Real Lookahead (2026-11-09)
+
+- **Speed Curve 3.2 is locked/unchanged** after the latest iPhone playtest. The player reported a good difficulty increase around zone 15.
+- New [adaptive camera module](src/camera/adaptive-camera.js) zooms the WORLD course out smoothly based on actual current speed: **100% through speed 650**, easing to **80% by speed 1,850** and staying at that minimum thereafter. No abrupt jumps on color-zone changes. The on-screen player position, ground anchor, HUD and touch controls remain stable.
+- At 80% zoom and a standard 1,280-unit landscape, the right world horizon increases from **1,280 to about 1,515 units**, with the runner staying at its original x position. This is real extra visibility, not simply rendering small objects inside the old obstacle-spawn boundary.
+- Terrain renderer now fills the widened view **including below the physical bottom** (also correct when mirrored onto the ceiling) and fills the negative-world sliver at the start of high-zone practice. No fake ground over any existing gap.
+- Director spawn positions, reaction-time metrics, offscreen prompts, terrain generation and Shield Core positioning use the enlarged visible world-right boundary. Echo, Dash and gap safety budgets remain unchanged. No obstacle teleports or collision adjustments.
+- The original parallax/background and Chroma Tide remain screen-anchored; a tiny world-to-screen color adapter keeps the ground and obstacles synchronized to the same travelling palette front. The original palette-wave overlay, graphics quality and screen-space damage flash remain unchanged.
+- No added render passes or offscreen buffers; the zoom uses a regular Canvas 2D transform around the player. Both floor and ceiling modes share one transformed course; HUD, orientation cues and warning labels remain upright and unzoomed. Reduced Motion bypasses camera-easing animation.
+- Exported run logs now include final camera zoom, minimum zoom and added visible reaction distance. [Camera tests](tests/adaptive-camera-horizon-1.0.test.cjs) and [design/QA notes](docs/adaptive-camera-horizon-1.0.md) cover rendering, tide alignment, correct gap coverage, spawn safety and mobile expectations.
 
 ## Speed Curve 3.2 — Faster Momentum (2026-11-09)
 
@@ -11,7 +22,7 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 - Continues upward indefinitely, with gradually tapering acceleration. All 12-second zone transitions remain visually significant but add **no instantaneous speed step**.
 - **Only speed balance is changed:** Jump, Duck, Echo Jump, Dash geometry and seals, movement physics, Director, HP/Shield restoration, color zones, original background and fixed camera stay as before.
 - Includes [Speed Curve 3.2 tests](tests/speed-curve-3.2.test.cjs) for continuous speed, exact 1/2/3/5/7-minute targets, 10/20-minute robustness, practice alignment, Dash and Echo reaction budgets and seeded seven-minute safety.
-- The next independent feature pass is **Adaptive Camera Horizon 1.0**: a subtle progressive zoom-out, with correct world-space lookahead, gravity flip, UI isolation and mobile performance checks. It is deliberately **not** included in Speed Curve 3.2.
+- The next independent feature pass, **Adaptive Camera Horizon 1.0**, has now been implemented and is documented above.
 - Read [Speed Curve 3.2 balance notes](docs/speed-curve-3.2.md). No force-death timer and no promise of a specific human run duration.
 
 ## Speed Curve 3.0 — Long-Run Progression (2026-11-09)

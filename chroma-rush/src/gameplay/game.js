@@ -7,7 +7,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo || !window.ChromaShieldCore || !window.ChromaShieldCoreRender || !window.ChromaDashHazards) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo || !window.ChromaShieldCore || !window.ChromaShieldCoreRender || !window.ChromaDashHazards || !window.ChromaAdaptiveCamera) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -57,6 +57,7 @@
   const worldBackground = window.ChromaWorldBackground;
   const spectralWave = new window.ChromaSpectralWave.SpectralWave();
   const gravityShift = new window.ChromaGravityShift.GravityShift();
+  const camera = new window.ChromaAdaptiveCamera.AdaptiveCamera();
   const chromaVfx = new window.ChromaStateVFX.ChromaStateVisuals();
   const speedTrails = new window.ChromaSpeedTrails.SpeedTrails();
   const reducedMotion=Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
@@ -150,6 +151,14 @@
     // gameplay or collecting device/user identifiers.
     exported.directorExperience=director.insight;
     exported.flowBalance=flow.insight;
+    // Separate visible-horizon evidence from the unchanged physics audit.
+    exported.camera={version:'Adaptive Camera Horizon 1.0',
+      finalZoom:Number(camera.zoom.toFixed(4)),
+      minimumZoom:Number(camera.lowestZoom.toFixed(4)),
+      worldViewportRight:Number(camera.visibleRight(W,player.x).toFixed(1)),
+      worldViewportLeft:Number(camera.visibleLeft(W,player.x).toFixed(1)),
+      extraAheadSeconds:Number(((camera.visibleRight(W,player.x)-W)/
+        Math.max(300,speed)).toFixed(3))};
     const contents=JSON.stringify(exported,null,2);
     const filename=`chroma-rush-zone-${String(zone).padStart(2,'0')}-${runMode}-audit.json`;
     try{
@@ -277,7 +286,7 @@
     runMode=requestedMode==='practice'&&progression.canPracticeZone(selected)?'practice':'arcade';
     startZone=runMode==='practice'?selected:1;
     time=(startZone-1)*GAME.zoneSeconds;worldTime=0;zone=startZone;
-    hp=GAME.startingHP;speed=GAME.speedAt(time,zone);score=0;shake=0;hitFlash=0;
+    hp=GAME.startingHP;speed=GAME.speedAt(time,zone);camera.reset(speed);score=0;shake=0;hitFlash=0;
     // Starting practice at later zones must never spam past speed milestones.
     nextSpeedMark=SPEED_MARKS.findIndex(mark=>speed/GAME.baseSpeed<mark);
     if(nextSpeedMark<0)nextSpeedMark=SPEED_MARKS.length;
@@ -298,7 +307,7 @@
     replay.start({practice:runMode==='practice',bestScore:progression.bestScore,bestZone:progression.bestZone});
     // Practice retains the chosen zone/difficulty but starts on a fresh,
     // safe runway, rather than loading a nonexistent alternate level.
-    terrainDirector.prepare({right:W+1000,playerWorld:player.x,zone,speed,hp});
+    terrainDirector.prepare({right:camera.visibleRight(W,player.x)+1000,playerWorld:player.x,zone,speed,hp});
     runAudit.reset({mode:runMode,startingZone:startZone});
     runAudit.record('start',auditState(),{startingZone:startZone});
     if(startZone>=DASH.unlockZone)runAudit.record('dash_unlocked',auditState(),{zone:startZone});
@@ -639,7 +648,7 @@
   // hazards farther outside the view, with an upright early visual warning.
   // Never reduce track speed or alter collision geometry.
   const spawnXFor=type=>FAIR.horizonFor(type,
-    {speed,playerX:player.x,viewportWidth:W});
+    {speed,playerX:player.x,viewportWidth:camera.visibleRight(W,player.x)});
   function spawn(data){
     const isDashChallenge=DASH_HAZARDS.isDashHazard(data.type);
     const dashMode=DASH_HAZARDS.requiredMode(data.type);
@@ -719,7 +728,7 @@
       }
     }
     const fairness=FAIR.metrics(data.type,
-      {x,playerX:player.x,viewportWidth:W,speed});
+      {x,playerX:player.x,viewportWidth:camera.visibleRight(W,player.x),speed});
     runAudit.record('spawn',auditState(),{obstacle:data.type,pattern:data.pattern||'',worldX,
       surface:gravityShift.ceiling?'ceiling':'floor',intro:firstEcho||firstDash,
       leadSeconds:fairness.leadSeconds,requiredSeconds:fairness.requiredSeconds,
@@ -761,9 +770,9 @@
       // Schedule a breathing space; generated gaps already ahead are respected
       // and the shift waits until the actual visible runway is safe.
       terrainDirector.noHazardsBefore=Math.max(terrainDirector.noHazardsBefore,
-        distance+W+speed*1.5);
+        distance+camera.visibleRight(W,player.x)+speed*1.5);
       terrainDirector.noGapsBefore=Math.max(terrainDirector.noGapsBefore,
-        distance+W+speed*1.8);
+        distance+camera.visibleRight(W,player.x)+speed*1.8);
       runAudit.record('gravity_warning',auditState(),{target:gravityShift.targetCeiling?'ceiling':'floor'});
       sound('gravity-warning');
     }
@@ -870,6 +879,7 @@
       nextZone(reward);
     }
     speed=GAME.speedAt(time,zone);
+    camera.tick(dt,speed,{reducedMotion});
     // First-crossing-only celebrations at spaced speed milestones.
     // They do not change speed, scoring, collision or Director pacing.
     if(nextSpeedMark<SPEED_MARKS.length&&speed>=GAME.baseSpeed*SPEED_MARKS[nextSpeedMark]){
@@ -894,7 +904,8 @@
       hp<=window.ChromaConfig.SHIELD_CORE.spawnAtOrBelow&&
       !shieldCores.visible&&time>=shieldCores.nextAt-.7?
       player.x+Math.max(300,speed)*2.65:0;
-    terrainDirector.prepare({right:distance+Math.max(W+800,farthestSpawn+speed*1.9+330,shieldPlanAhead),
+    terrainDirector.prepare({right:distance+Math.max(camera.visibleRight(W,player.x)+800,
+      farthestSpawn+speed*1.9+330,shieldPlanAhead),
       playerWorld:distance+player.x,zone,speed,hp,
       surface:gravityShift.ceiling?'ceiling':'floor'});
     for(const feature of terrain.segments){
@@ -909,7 +920,7 @@
     c1=current.primary;c2=current.secondary;c3=current.shadow;
     // Presentation-only transition: no change to speed, terrain, Director
     // pacing, colliders, Flow, score, or seeded obstacle generation.
-    if(spectralWave.tick(dt,{playerX:player.x,playerY:player.feet,height:H})){
+    if(spectralWave.tick(dt,{playerX:player.x,playerY:camera.screenY(player.feet,floorY),height:H})){
       // One small lateral light accent when the spectral front crosses the runner.
       groundPulse(player.x,player.feet-2,c2,23,.88);
       frameEcho(player.x,player.feet-24,c1,24,.65);
@@ -1023,7 +1034,7 @@
     }
     if(!player.landed&&visualRandom()<.7*quality.profile.particles)motes.push(makeMote(player.x+fxRand(-14,14),player.feet-8,c1,{vx:fxRand(-170,-20),vy:fxRand(10,70),life:.32,r:fxRand(1,3)}));
     const phaseBefore=director.phase;
-    terrainDirector.tick(dt,{zone,speed,hp,distance,spawnX:W+90,
+    terrainDirector.tick(dt,{zone,speed,hp,distance,spawnX:camera.visibleRight(W,player.x)+90,
       spawnXFor,playerX:player.x,
       zoneElapsed:time-(zone-1)*GAME.zoneSeconds,
       surface:gravityShift.ceiling?'ceiling':'floor',
@@ -1140,8 +1151,8 @@
       distance,speed:speed+dash.bonusSpeed,flow:flow.value,chromaActive:flow.tier===3,
       dashPose:dash.active&&trailPose.dashFeel?.burst?
         {shear:trailPose.shear,mode:player.duck?'ground':'air'}:null,
-      primary:spectralWave.colorAt(player.x,'primary',player.feet,H),
-      secondary:spectralWave.colorAt(player.x,'secondary',player.feet,H),
+      primary:spectralWave.colorAt(player.x,'primary',camera.screenY(player.feet,floorY),H),
+      secondary:spectralWave.colorAt(player.x,'secondary',camera.screenY(player.feet,floorY),H),
       quality:quality.profile,reducedMotion});
     // Optional reward lane. No extra game randomness, knockback or bonus
     // score: the collectible restores only the existing HP/shield bar.
@@ -1149,7 +1160,7 @@
       playerWorld:distance+player.x,playerBox:GEO.playerBox(player),
       echoUsed:jumpControl.echoUsed,landed:player.landed,
       terrain,hurdles,speed,distance,playerX:player.x,
-      viewportWidth:W,gravityBusy:gravityShift.pending||
+      viewportWidth:camera.visibleRight(W,player.x),gravityBusy:gravityShift.pending||
         gravityShift.shifting||gravityShift.protected});
     if(shieldEvents.spawned){
       runAudit.record('shield_core_spawn',auditState(),{worldX:shieldEvents.spawned.worldX,
@@ -1160,7 +1171,8 @@
     if(shieldEvents.picked){
       const reward=shieldEvents.picked;
       hp=Math.min(GAME.startingHP,hp+reward.restored);
-      shieldCores.startFlight(reward.x,gravityShift.screenY(reward.y,H),reward.restored);
+      shieldCores.startFlight(camera.screenX(reward.x,player.x),
+        gravityShift.screenY(camera.screenY(reward.y,floorY),H),reward.restored);
       shieldGainLeft=.9;
       $.shieldGain.textContent='+'+reward.restored;
       $.shieldGain.classList.remove('hidden');
@@ -1207,19 +1219,27 @@
   function drawTerrain(){
     // One clipped terrain geometry pass, tinted in-place by the same front.
     // Ground gaps, sloped collider geometry and visual spacing are unchanged.
+    // Extend all solid ground to the true zoomed viewport edge. The tide
+    // adapter projects the screen-space color wave onto terrain world points.
+    const projected=spectralWave.active?camera.setTide(spectralWave,{
+      width:W,anchorX:player.x,anchorY:floorY}):null;
     terrainRender.drawTerrain({ctx,terrain,distance,width:W,height:H,baseY:floorY,
+      cameraView:camera.view(W,H,player.x,floorY),
       primary:c1,secondary:c2,flow:flow.value,glowLine,quality:quality.profile,
-      tide:spectralWave.active?spectralWave:null});
+      tide:projected});
   }
   function drawObstacle(o){
     // Off-screen advanced hazards need fair lead time, not off-screen
     // gradients/shadows. Pad past the maximum visible glow; do not change
     // any physics, spawn/collision or authored visual geometry.
-    if(o.x>W+100||o.x+o.width<-100)return;
+    if(o.x>camera.visibleRight(W,player.x)+100||
+      o.x+o.width<camera.visibleLeft(W,player.x)-100)return;
     const b=GEO.obstacleBox(o,o.groundY),
       isLow=o.type==='jump'||o.type==='dash-jump',isEcho=o.type==='echo';
     const core=(isLow||isEcho)?b:GEO.duckGateCoreBox(o,o.groundY);
-    const color=spectralWave.colorAt(o.x,(isLow||isEcho)?'secondary':'primary',core.y+core.h*.5,H);
+    const color=spectralWave.colorAt(camera.screenX(o.x,player.x),
+      (isLow||isEcho)?'secondary':'primary',
+      camera.screenY(core.y+core.h*.5,floorY),H);
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
     ctx.save();
     if(isEcho||isLow){
@@ -1380,8 +1400,8 @@
   }
   function drawPlayer(){
     const b=GEO.playerBox(player),beat=1+Math.sin(worldTime*14)*.025;
-    const pc1=spectralWave.colorAt(player.x,'primary',player.feet,H);
-    const pc2=spectralWave.colorAt(player.x,'secondary',player.feet,H);
+    const pc1=spectralWave.colorAt(player.x,'primary',camera.screenY(player.feet,floorY),H);
+    const pc2=spectralWave.colorAt(player.x,'secondary',camera.screenY(player.feet,floorY),H);
     ctx.save();
     if(player.invulnerable>0&&Math.floor(worldTime*16)%2===0)ctx.globalAlpha=.32;
     // Speed Trails 2.0 renders historical poses separately *behind* hazards.
@@ -1474,6 +1494,9 @@
     ctx.globalAlpha=1;ctx.shadowBlur=0;
     effects.draw(ctx,{glow:quality.profile.glow,density:quality.profile.density,reducedMotion});
     ctx.globalAlpha=1;ctx.shadowBlur=0;
+  }
+  function drawScreenDamage(){
+    // Full-viewport feedback must NOT shrink to the course camera's bounds.
     if(hitFlash>0){ctx.fillStyle=`rgba(255,25,80,${hitFlash*.23})`;ctx.fillRect(0,0,W,H)}
     if(hp<=25&&status==='running'){
       const a=.08+.07*Math.pow(Math.sin(worldTime*5),2);
@@ -1495,10 +1518,14 @@
     chromaVfx.drawEnvironment(ctx,{width:W,height:H,groundY:floorY,
       primary:c1,secondary:c2,quality:quality.profile,reducedMotion});
     const background=performance.now();
+    ctx.save();camera.apply(ctx,player.x,floorY);
     drawTerrain();
+    ctx.restore();
     const terrainDone=performance.now();
-    // Overlay stays beneath all hazards and the player for clear silhouettes.
+    // The chromatic front stays screen-anchored and perfectly synchronized
+    // with the original background, even as the WORLD course zooms out.
     spectralWave.draw(ctx,{width:W,height:H,groundY:floorY,quality:quality.profile});
+    ctx.save();camera.apply(ctx,player.x,floorY);
     // Trails stay under hazards so a high-speed afterimage never masks a jump or duck cue.
     speedTrails.draw(ctx,{quality:quality.profile,reducedMotion,
       dashPath:window.ChromaMotion.elasticBodyPath});
@@ -1509,7 +1536,9 @@
     drawPlayer();
     const actorsDone=performance.now();
     drawFx();
-    ctx.restore();
+    ctx.restore(); // Unzoom the actors without undoing gravity mirroring.
+    drawScreenDamage();
+    ctx.restore(); // HUD and warnings are upright, with fixed screen size.
     // The collectible flies to the UPRIGHT HUD; the course may be inverted.
     if(shieldCores.flight)shieldCoreRender.drawTransfer(ctx,shieldCores.flight,
       {width:W,quality:quality.profile,reducedMotion});
@@ -1519,7 +1548,7 @@
     // Upright, minimal warning only while the real course feature is
     // offscreen; unaffected by gravity and visible in Performance graphics.
     const cue=FAIR.warning({hurdles,gaps:terrain.gaps,distance,
-      playerX:player.x,viewportWidth:W,speed});
+      playerX:player.x,viewportWidth:camera.visibleRight(W,player.x),speed});
     FAIR.drawWarning(ctx,cue,{width:W,height:H,primary:c1,
       glow:quality.profile.glow,reducedMotion});
     ctx.restore();

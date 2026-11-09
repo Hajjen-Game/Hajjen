@@ -35,6 +35,10 @@
         deferred:{total:0,byReason:{}}},
     maxFlow:0,chromaSeconds:0,flowAbove65Seconds:0,highestStreak:0,
     precisionClears:0,masterClears:0,
+    // Keep a full-run 30-second obstacle mix even when the detailed
+    // event log is capped at 600 entries on older phones.
+    variety:{spawnedByType:{jump:0,duck:0,echo:0,'dash-jump':0,'dash-duck':0},
+      maxBasicStreak:0,windows:[]},
     movement:{jumpPresses:0,duckPresses:0,echoJumps:0,
       airDashes:0,groundDashes:0,dashBlocked:0},
     combos:{count:0,bestChain:0,bonusPoints:0,bonusFlow:0,byLength:{2:0,3:0,4:0}},
@@ -48,6 +52,7 @@
       this.startingZone=Math.max(1,Math.floor(Number(startingZone)||1));
       this.events=[];this.overflow=0;this.elapsed=0;this.sampleAccumulator=0;
       this.samples=[];this.summary=stats();this.finished=false;
+      this._lastBasicType=null;this._basicStreak=0;
       this.finalState=null;
       this.frameFairness={samples:0,slowFrames:0,stalls:0,
         longestFrameMs:0,droppedSimulationSeconds:0};
@@ -111,6 +116,28 @@
         }
         case 'spawn':{
           this.summary.obstaclesSpawned++;
+          const action=payload.obstacle;
+          const v=this.summary.variety;
+          if(Object.prototype.hasOwnProperty.call(v.spawnedByType,action)){
+            v.spawnedByType[action]++;
+            // Aggregate complete-run distribution regardless of event cap;
+            // never store player input timing, device IDs or touch locations.
+            const slot=Math.min(59,Math.floor(this.elapsed/30));
+            let window=v.windows[slot];
+            if(!window){
+              window={startSeconds:slot*30,
+                counts:{jump:0,duck:0,echo:0,'dash-jump':0,'dash-duck':0}};
+              v.windows[slot]=window;
+            }
+            window.counts[action]++;
+            if(action==='jump'||action==='duck'){
+              this._basicStreak=action===this._lastBasicType?this._basicStreak+1:1;
+              this._lastBasicType=action;
+              v.maxBasicStreak=Math.max(v.maxBasicStreak,this._basicStreak);
+            }else{
+              this._lastBasicType=null;this._basicStreak=0;
+            }
+          }
           if(data.obstacle==='dash-jump')this.summary.dashHazards.spawned.air++;
           if(data.obstacle==='dash-duck')this.summary.dashHazards.spawned.ground++;
           // Source: true obstacle spawn position in the actual game loop.
@@ -212,6 +239,10 @@
         chromaSeconds:number(this.summary.chromaSeconds),
         flowAbove65Seconds:number(this.summary.flowAbove65Seconds),
         combos:{...this.summary.combos,byLength:{...this.summary.combos.byLength}},
+        variety:{...this.summary.variety,
+          spawnedByType:{...this.summary.variety.spawnedByType},
+          windows:this.summary.variety.windows.filter(Boolean)
+            .map(w=>({startSeconds:w.startSeconds,counts:{...w.counts}}))},
         reaction:{...this.summary.reaction,byAction:Object.fromEntries(
           Object.entries(this.summary.reaction.byAction).map(([k,v])=>[k,{...v}]))}};
       return {format:'chroma-rush-round-audit',version:3,mode:this.mode,

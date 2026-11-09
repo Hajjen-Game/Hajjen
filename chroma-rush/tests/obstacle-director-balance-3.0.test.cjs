@@ -176,6 +176,29 @@ test('weak HP/stress still override variety; no artificial forced advanced obsta
     'variety may request a different BASIC action but never escalate HP risk');
 });
 
+test('full-run 30s obstacle-mix summary survives the 600-event export cap',()=>{
+  const {RoundAudit,MAX_EVENTS}=require('../src/diagnostics/round-audit.js');
+  const d=new RoundAudit();
+  assert.equal(MAX_EVENTS,600);
+  for(let i=0;i<950;i++){
+    const action=i%17===0?'dash-jump':i%11===0?'echo':
+      i%7===0?'dash-duck':i%4<2?'jump':'duck';
+    d.record('spawn',{time:i*.47,zone:Math.floor(i*.47/12)+1},
+      {obstacle:action,width:70,height:60});
+    d.tick(.47,{time:i*.47,zone:Math.floor(i*.47/12)+1});
+  }
+  const summary=d.snapshot().summary;
+  assert.equal(d.events.length,MAX_EVENTS);
+  assert.ok(d.overflow>0);
+  assert.equal(Object.values(summary.variety.spawnedByType)
+    .reduce((a,b)=>a+b,0),950,'complete distribution is NOT truncated');
+  assert.ok(summary.variety.windows.length>=14);
+  assert.equal(summary.variety.windows[0].startSeconds,0);
+  assert.ok(summary.variety.windows.at(-1).startSeconds>=420);
+  assert.ok(summary.variety.maxBasicStreak>=1);
+  assert.ok(summary.variety.maxBasicStreak<10);
+});
+
 test('actual gameplay loads shared size contract and audit exposes real dimensions',()=>{
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const game=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');

@@ -663,8 +663,13 @@ test('first floor Echo lesson in zone 2: one jump fails, Echo clears, later ceil
     // The NEW low 265–280px rail needs an early, forgiving Echo takeoff.
     // Follow the entire wide collider past the anchored player before
     // judging a clean clear, not just its former narrow 49px silhouette.
-    const launchFrame=Math.max(3,Math.round((untilContact-.35)*60));
-    const echoFrame=launchFrame+20;
+    // Repeated Echo Rails are intentionally wider than the first lesson.
+    // They need a slightly later takeoff and a later second impulse;
+    // both floor and ceiling use the SAME canonical collision physics.
+    const repeatRail=first.width>=300;
+    const launchFrame=Math.max(3,Math.round(
+      (untilContact-(repeatRail?.23:.35))*60));
+    const echoFrame=launchFrame+(repeatRail?25:20);
     const finishFrame=Math.max(114,Math.ceil(
       (untilContact+(first.width+36)/speed+.40)*60));
     for(let i=2;i<=finishFrame;i++){

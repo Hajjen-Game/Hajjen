@@ -294,7 +294,7 @@
     // Starting practice at later zones must never spam past speed milestones.
     nextSpeedMark=SPEED_MARKS.findIndex(mark=>speed/GAME.baseSpeed<mark);
     if(nextSpeedMark<0)nextSpeedMark=SPEED_MARKS.length;
-    const palette=PALETTES[(zone-1)%PALETTES.length];
+    const palette=window.ChromaConfig.paletteForZone(zone);
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
     spectralWave.start({from:palette,to:palette,width:W,reducedMotion:true});
     chromaVfx.reset();speedTrails.reset();gravityShift.reset();
@@ -653,6 +653,8 @@
   const spawnXFor=type=>FAIR.horizonFor(type,
     {speed,playerX:player.x,viewportWidth:camera.visibleRight(W,player.x)});
   function spawn(data){
+    // Legacy wide jump families are retired: do not spawn them even from a stale queue.
+    if(data.type==='echo'||data.type==='dash-jump')return false;
     const isDashChallenge=DASH_HAZARDS.isDashHazard(data.type);
     const dashMode=DASH_HAZARDS.requiredMode(data.type);
     const deferDash=reason=>{
@@ -759,9 +761,11 @@
     replayUI.hud($,{practice:runMode==='practice',score,previousScore:replay.previousScore});
   }
   function nextZone(reward=null){
-    const incoming=PALETTES[(zone-1)%PALETTES.length];
-    const outgoing=PALETTES[(zone-2+PALETTES.length)%PALETTES.length];
-    const animated=spectralWave.start({from:outgoing,to:incoming,width:W,
+    const incoming=window.ChromaConfig.paletteForZone(zone);
+    const outgoing=window.ChromaConfig.paletteForZone(zone-1);
+    // Zone scoring and progression still happen every zone. A Chroma Tide
+    // happens only when the two-zone color chapter actually changes.
+    const animated=incoming!==outgoing&&spectralWave.start({from:outgoing,to:incoming,width:W,
       duration:.86,chargeDuration:.19,reducedMotion});
     // The panel peaks as the wave reaches the player's horizontal position.
     lastZoneCallout=1.6;
@@ -933,7 +937,7 @@
           plannedPhase:feature.plannedPhase||'LEGACY'});
     }
     terrain.prune(distance+player.x,speed);
-    const current=PALETTES[(zone-1)%PALETTES.length];
+    const current=window.ChromaConfig.paletteForZone(zone);
     c1=current.primary;c2=current.secondary;c3=current.shadow;
     // Presentation-only transition: no change to speed, terrain, Director
     // pacing, colliders, Flow, score, or seeded obstacle generation.
@@ -1250,7 +1254,38 @@
       camera.screenY(core.y+core.h*.5,floorY),H);
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
     ctx.save();
-    if(isEcho||isLow){
+    if(o.type==='jump'){
+      // A grounded, vertically mirrored DUCK GATE: same housing, side rails,
+      // translucent energy curtain and luminous cap. Physics is unchanged.
+      // Jump uses the palette's secondary hue; Duck uses its primary hue.
+      const cap={x:b.x,y:b.y,w:b.w,h:Math.min(30,Math.max(23,b.h*.45))};
+      const by=b.y+b.h;
+      ctx.shadowBlur=0;ctx.globalAlpha=twinkle;
+      ctx.fillStyle=rgba(color,.105);
+      ctx.fillRect(b.x,b.y,b.w,b.h);
+      ctx.strokeStyle=rgba(color,.68);ctx.lineWidth=1.9;
+      ctx.beginPath();
+      ctx.moveTo(b.x+1,b.y);ctx.lineTo(b.x+1,by);
+      ctx.moveTo(b.x+b.w-1,b.y);ctx.lineTo(b.x+b.w-1,by);
+      ctx.stroke();
+      ctx.lineWidth=1;ctx.strokeStyle=rgba(color,.36);
+      for(let y=cap.y+cap.h+10;y<by-6;y+=18){
+        ctx.beginPath();ctx.moveTo(b.x+7,y);ctx.lineTo(b.x+b.w-7,y);ctx.stroke();
+      }
+      ctx.shadowColor=color;ctx.shadowBlur=21*quality.profile.glow;
+      roundRectPath(cap.x,cap.y,cap.w,cap.h,4);
+      ctx.fillStyle=rgba(color,.30);ctx.fill();
+      ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
+      ctx.shadowBlur=0;ctx.globalAlpha=1;
+      ctx.fillStyle=rgba(color,.18);
+      roundRectPath(cap.x+6,cap.y+8,cap.w-12,cap.h-15,2);ctx.fill();
+      glowLine(b.x-7,b.y,b.x+b.w+7,b.y,color,5,14,1);
+      for(let k=0;k<4;k++){
+        const x=cap.x+10+k*(cap.w-20)/3;
+        glowLine(x,cap.y+12,x,by-7,color,1,0,.36);
+      }
+      glowLine(cap.x,cap.y,cap.x+cap.w,cap.y,'#ffffff',1,8,.45);
+    }else if(isEcho||isLow){
       // Low Neon Barrier: an ordinary Jump shell, raised and stretched.
       // Echo Rail: a LONG STANDARD JUMP BARRIER raised off the track.
       // Its light underbody veil inverts the suspended Duck Gate field:

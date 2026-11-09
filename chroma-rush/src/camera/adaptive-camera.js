@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Adaptive Camera Horizon 1.0
+/* CHROMA RUSH — Adaptive Camera Horizon 1.1
  * A presentation-only, player-anchored camera with real world-space lookahead.
  * Physics, terrain RNG, speed, gravity and HUD are never transformed.
  * Supports the existing screen-space Chroma Tide via a projected color adapter.
@@ -11,7 +11,11 @@
   'use strict';
   const clamp=(x,lo,hi)=>Math.max(lo,Math.min(hi,x));
   const smooth=t=>{const v=clamp(t,0,1);return v*v*(3-2*v)};
-  const MIN_ZOOM=.8,START_SPEED=650,FULL_ZOOM_SPEED=1850;
+  // Two overlapping eased ramps. Keep the original curve exactly as-is
+  // through zone ~15 (~speed 1,414), where player testing feels good.
+  // Extend gradually toward 60% only in the genuinely fast late game.
+  const MIN_ZOOM=.6,MID_ZOOM=.8,START_SPEED=650;
+  const FIRST_STAGE_END_SPEED=1850,LATE_STAGE_START_SPEED=1450,FULL_ZOOM_SPEED=2200;
   const SETTLE_SECONDS=1.15;
   class AdaptiveCamera {
     constructor(){
@@ -57,9 +61,12 @@
       };
     }
     targetForSpeed(speed){
-      const progress=smooth((Math.max(0,Number(speed)||0)-START_SPEED)/
-        (FULL_ZOOM_SPEED-START_SPEED));
-      return 1-(1-MIN_ZOOM)*progress;
+      const v=Math.max(0,Number(speed)||0);
+      const early=smooth((v-START_SPEED)/(FIRST_STAGE_END_SPEED-START_SPEED));
+      const late=smooth((v-LATE_STAGE_START_SPEED)/(FULL_ZOOM_SPEED-LATE_STAGE_START_SPEED));
+      // Overlap removes the unnatural "hold at 80%" plateau. Both eased
+      // ramps have zero slope at their endpoints, so zoom remains C1-smooth.
+      return 1-(1-MID_ZOOM)*early-(MID_ZOOM-MIN_ZOOM)*late;
     }
     reset(speed=370){
       this.zoom=this.targetForSpeed(speed);
@@ -100,5 +107,6 @@
     }
     get extraVisibleFraction(){return 1/this.zoom-1}
   }
-  return {AdaptiveCamera,MIN_ZOOM,START_SPEED,FULL_ZOOM_SPEED,SETTLE_SECONDS};
+  return {AdaptiveCamera,MIN_ZOOM,MID_ZOOM,START_SPEED,FIRST_STAGE_END_SPEED,
+    LATE_STAGE_START_SPEED,FULL_ZOOM_SPEED,SETTLE_SECONDS};
 });

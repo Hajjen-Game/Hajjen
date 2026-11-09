@@ -1,8 +1,18 @@
-# CHROMA RUSH — Adaptive Camera Horizon 1.0
+# CHROMA RUSH — Adaptive Camera Horizon 1.1
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Adaptive Camera Horizon 1.1 — Extended Late-Game Horizon (2026-11-09)
+
+- iPhone playtesting found the first adaptive camera pleasantly subtle, but suggested **up to 60% world scale at genuinely high speed**, rather than the old 80% limit.
+- **The entire camera response up to world speed 1,450 is preserved exactly**, keeping the approved difficulty and readability around zone 15 unchanged. After that the 80%-bound zoom curve continues smoothly into a second overlapping zoom stage, reaching **60% at speed 2,200** (~10 minutes on Speed Curve 3.2).
+- Two additive cubic-smoothstep ramps: `z = 1 - 0.2*smooth((v-650)/1200) - 0.2*smooth((v-1450)/750)`, clamped by their individual smooth steps. That means **~86% at 3m**, **~73% at 5m**, **~64% at 7m**, **60% around 10m**. These are target zoom values; the camera eases to them over time.
+- At the maximum zoom-out, the player remains fixed on screen and a 1,280-unit landscape displays ~**1,907 world units** to the right (vs 1,280 before camera zoom, ~1,515 with Camera 1.0): **~627 extra world units ahead**, about 66.7% more horizontal world span overall.
+- **No speed, obstacle, terrain physics, double jump, Dash, HP, Shield, Director pacing, Chroma Tide or HUD changes.** The already-integrated viewport-aware spawn, terrain fill, warning, gravity mirror and color adapter expand automatically with the extra horizon.
+- **Readability trade-off:** a 44-unit player square appears ~26 logical units tall at 60%. This can become small on a physical iPhone display. Verify by playing longer and check actual UI contrast; 60% is an experimental *upper bound on zoom-out*, not a demand that short runs shrink this far.
+- Validation in [Adaptive Camera Horizon 1.1 regressions](tests/adaptive-camera-horizon-1.1.test.cjs); [new design notes](docs/adaptive-camera-horizon-1.1.md). Historical [1.0 notes](docs/adaptive-camera-horizon-1.0.md) retained.
 
 ## Adaptive Camera Horizon 1.0 — Real Lookahead (2026-11-09)
 

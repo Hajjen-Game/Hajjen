@@ -12,11 +12,15 @@
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
   const START_ZONE=8,INTERVAL_ZONES=8,WARNING_SECONDS=.9,SHIFT_SECONDS=.58,GRACE_SECONDS=.28;
+  // Short excursions: the old zone-8 to zone-16 inversion lasted ~96 seconds.
+  // Ceiling time is now a brief set-piece, with a protected safe return.
+  const CEILING_HOLD_SECONDS=16;
   class GravityShift {
     constructor(){this.reset()}
     reset(){
       this.ceiling=false;this.targetCeiling=false;this.phase='idle';
       this.warningLeft=0;this.shiftAge=0;this.grace=0;this.count=0;
+      this.ceilingAge=0;
     }
     requestForZone(zone){
       const z=Math.floor(Number(zone)||0);
@@ -28,11 +32,22 @@
     tick(dt,{safe=false,reducedMotion=false}={}){
       if(!(dt>0))return null;
       this.grace=Math.max(0,this.grace-dt);
+      if(this.phase==='idle'&&this.ceiling){
+        this.ceilingAge+=dt;
+        if(this.ceilingAge>=CEILING_HOLD_SECONDS){
+          // Return requires the exact same safe-runway clearance as entry.
+          // A distinct event lets the arcade reserve room before the flip.
+          this.targetCeiling=false;this.phase='warning';
+          this.warningLeft=WARNING_SECONDS;this.ceilingAge=0;
+          return 'return_warning';
+        }
+      }
       if(this.phase==='warning'){
         this.warningLeft=Math.max(0,this.warningLeft-dt);
         if(this.warningLeft===0&&safe){
           if(reducedMotion){
             this.ceiling=this.targetCeiling;this.phase='idle';this.grace=GRACE_SECONDS;this.count++;
+            this.ceilingAge=0;
             return 'complete';
           }
           this.phase='shifting';this.shiftAge=0;
@@ -42,7 +57,7 @@
         this.shiftAge=Math.min(SHIFT_SECONDS,this.shiftAge+dt);
         if(this.shiftAge>=SHIFT_SECONDS){
           this.ceiling=this.targetCeiling;this.phase='idle';
-          this.grace=GRACE_SECONDS;this.count++;
+          this.grace=GRACE_SECONDS;this.count++;this.ceilingAge=0;
           return 'complete';
         }
       }
@@ -111,5 +126,6 @@
       ctx.restore();
     }
   }
-  return {GravityShift,START_ZONE,INTERVAL_ZONES,WARNING_SECONDS,SHIFT_SECONDS,GRACE_SECONDS};
+  return {GravityShift,START_ZONE,INTERVAL_ZONES,WARNING_SECONDS,
+    SHIFT_SECONDS,GRACE_SECONDS,CEILING_HOLD_SECONDS};
 });

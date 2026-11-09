@@ -12,7 +12,7 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 - Zone changes still trigger visual/color milestones and progression, but no extra speed jump; later-zone practice starts at the same corresponding time-derived speed.
 - No changes to Director decisions, movement, HP/Flow, obstacle physics, original camera/background, graphics quality or gap collision. The **existing Dash Energy Bridge is still present**; the seal-less geometry and dynamic camera are separate future passes.
 - Previously saved scores, PBs and milestones remain; older scores may not be directly comparable with the new speed curve.
-- [Speed Curve 3.0 regression tests](tests/speed-curve-3.0.test.cjs) include long-run speed integrity and seven-minute fairness auditing; see [design notes](docs/speed-curve-3.0.md).
+- [original Speed Curve 3.0 design notes](docs/speed-curve-3.0.md) include long-run speed integrity and seven-minute fairness auditing; see [design notes](docs/speed-curve-3.0.md).
 
 ## Dash Energy Bridge 1.0 (2026-11-08)
 

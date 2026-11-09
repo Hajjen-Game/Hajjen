@@ -1,0 +1,17 @@
+{
+  "source": "User-supplied CHROMA RUSH arcade round audit, 2026-11-09",
+  "elapsedSeconds": 413.2,
+  "finalZone": 35,
+  "observedSpeed": 1154.84,
+  "spawned": 183,
+  "cleared": 169,
+  "obstacleHits": 14,
+  "gapsCleared": 26,
+  "perfectZones": 23,
+  "shieldRestored": 150,
+  "underBudget": 0,
+  "fps": 27.5,
+  "slowFrames": 3217,
+  "stalls": 172,
+  "note": "Aggregate only; not a replay or complete source log."
+}

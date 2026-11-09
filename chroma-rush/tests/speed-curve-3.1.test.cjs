@@ -5,14 +5,15 @@ const {GAME,DASH,ECHO_SPIRE}=require('../src/core/config.js');
 const FAIR=require('../src/director/high-speed-fairness.js');
 const {simulate}=require('../scripts/high-speed-fairness-audit.cjs');
 const zoneAt=t=>1+Math.floor(t/GAME.zoneSeconds);
+const speedV3=t=>370+620*(1-Math.exp(-t/180))+.55*t;
 const speedV2=(t,z)=>370+Math.min(t,120)*7+Math.max(0,t-120)*4.5+7*(z-1);
 
-test('Speed Curve 3.0 retains launch speed and zone cadence but not instant zone boosts',()=>{
+test('Speed Curve 3.1 retains launch speed and zone cadence but not instant zone boosts',()=>{
   assert.equal(GAME.baseSpeed,370);
   assert.equal(GAME.zoneSeconds,12);
-  assert.equal(GAME.speedRise,620);
+  assert.equal(GAME.speedRise,1000);
   assert.equal(GAME.speedEaseSeconds,180);
-  assert.equal(GAME.cruiseAcceleration,.55);
+  assert.equal(GAME.cruiseAcceleration,.75);
   assert.equal(GAME.zoneSpeedBonus,0);
   assert.equal(GAME.speedAt(0,1),370);
   assert.equal(GAME.speedAt(-10,1),370);
@@ -20,13 +21,16 @@ test('Speed Curve 3.0 retains launch speed and zone cadence but not instant zone
 
 test('checkpoints from launch through ten minutes match the long-run plan',()=>{
   const checkpoints=[
-    [0,370],[12,417],[30,482],[60,579],[90,663],[120,738],
-    [180,861],[240,959],[300,1038],[360,1104],[420,1161],[600,1298]
+    [0,370],[12,443],[30,546],[60,698],[90,831],[120,947],
+    [180,1137],[240,1286],[300,1406],[360,1505],[420,1588],[600,1784]
   ];
   for(const [t,expected] of checkpoints){
     const got=GAME.speedAt(t,zoneAt(t));
     assert.equal(Math.round(got),expected,'wrong speed at t='+t);
-    if(t)assert.ok(got<speedV2(t,zoneAt(t)),'not slowed vs v2 at t='+t);
+    if(t){
+      assert.ok(got>speedV3(t),'the new curve must feel faster than v3.0 at t='+t);
+      assert.ok(got<speedV2(t,zoneAt(t)),'the new curve must remain gentler than v2.0 at t='+t);
+    }
   }
 });
 
@@ -34,8 +38,8 @@ test('smooth taper: acceleration decreases without speed drops or two-minute sea
   const slope=t=>(GAME.speedAt(t+.01,zoneAt(t))-GAME.speedAt(t,zoneAt(t)))/.01;
   const derivs=[0,60,120,180,300,420,600].map(slope);
   for(let i=1;i<derivs.length;i++)assert.ok(derivs[i]<derivs[i-1]);
-  assert.ok(derivs[0]>3.9&&derivs[0]<4.1);
-  assert.ok(derivs.at(-1)>.55&&derivs.at(-1)<.75);
+  assert.ok(derivs[0]>6.25&&derivs[0]<6.35);
+  assert.ok(derivs.at(-1)>.9&&derivs.at(-1)<1.0);
   for(const t of [12,60,120,180,300,420,600]){
     const left=(GAME.speedAt(t,zoneAt(t))-GAME.speedAt(t-.001,zoneAt(t-.001)))/.001;
     const right=(GAME.speedAt(t+.001,zoneAt(t+.001))-GAME.speedAt(t,zoneAt(t)))/.001;
@@ -102,9 +106,21 @@ test('movement and two-thumb controls are unchanged in this pass',()=>{
 
 test('seven-minute deterministic narrow-screen run respects Director fairness invariants',()=>{
   const run=simulate({seed:42,seconds:420,viewportWidth:900,damageEvery:17});
-  assert.equal(Math.round(run.finalSpeed),1161);
+  assert.equal(Math.round(run.finalSpeed),1588);
   assert.ok(run.cleared>10);
   assert.equal(run.underBudget,0);
   assert.equal(run.lateGaps,0);
   assert.equal(run.transitionViolations,0);
+});
+
+test('speed target is supported by player log without scripting a six-minute death',()=>{
+  const log=JSON.parse(fs.readFileSync(
+    path.join(__dirname,'../docs/speed-curve-3.1-player-audit.json'),'utf8'));
+  assert.equal(log.elapsedSeconds,413.2);
+  assert.equal(log.finalZone,35);
+  assert.ok(Math.abs(log.observedSpeed-1154.84)<.1);
+  const revised=GAME.speedAt(log.elapsedSeconds,log.finalZone);
+  assert.ok(revised>1500&&revised<1650,
+    'revised 6m53 pace should be dramatically quicker but not near the old 2.0 velocity');
+  assert.ok(revised<speedV2(log.elapsedSeconds,log.finalZone));
 });

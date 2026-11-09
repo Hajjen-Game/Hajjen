@@ -37,11 +37,11 @@
   const GAME=Object.freeze({
     floorRatio:.715,
     baseSpeed:370,
-    // Speed Curve 3.0: gentle long-run progression, no abrupt zone speed boost.
-    // Always increasing with a diminishing acceleration and positive late slope.
-    speedRise:620,
+    // Speed Curve 3.1: livelier progression grounded in a 6m53 player audit.
+    // Keep smooth decaying acceleration and an endless positive cruise slope.
+    speedRise:1000,
     speedEaseSeconds:180,
-    cruiseAcceleration:.55,
+    cruiseAcceleration:.75,
     zoneSpeedBonus:0,
     zoneSeconds:12,
     jumpVelocity:-870,

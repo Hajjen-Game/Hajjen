@@ -18,7 +18,7 @@
   const minimumGap=movement.minimumGap;
   // Opportunity spacing, not a forced hazard frequency. If a course is
   // unsafe or the player struggles, postpone the next challenge.
-  const DASH_REPEAT_SECONDS=24;
+  const DASH_REPEAT_SECONDS=34;
   const DASH_INTRO_ZONE_ELAPSED=1.8;
   const DASH_PRESSURE_LIMIT=1.55;
   // Endurance Mastery 4.0 — zone creates a soft opportunity to play more
@@ -183,39 +183,18 @@
       const endurance=this.enduranceFor(context);
       const readiness={...context,phase:this.phase,stress:this.stress,
         confidence:this.confidence,enduranceIntensity:endurance};
-      const firstEcho=!this.echoIntroduced;
-      // The broad, low Echo Rail still rewards two deliberate jump presses.
-      // At extreme speed its entire visible approach can become too short.
-      // Prefer simpler actions rather than a hidden, physically unfair cue.
-      const echoX=typeof context.spawnXFor==='function'?context.spawnXFor('echo'):context.spawnX;
-      const approach=echoX==null?Infinity:
-        (echoX-(context.playerX??300))/Math.max(300,context.speed||370);
-      const echoReady=approach>=.78 &&
-        this.movement.echoReady(readiness,this.time,firstEcho);
+      // No long jump/energy-bridge families: surface challenges now live in terrain.
       const options=patterns.candidates(this.phase,context.zone||1,
-        this.tierFor(context),{allowEcho:echoReady,
-          buildTier:endurance>=.32?2:1});
-      // Build short, playable phrases from actual movement requirements.
-      // Repeated Echo checks after a miss are replaced by a calm phrase;
-      // heavy combos are only offered after a successful solo Echo clear.
-      const intro=firstEcho&&echoReady&&
-        (this.phase===PHASE.PEAK||context.zone===2);
+        this.tierFor(context),{allowEcho:false,buildTier:endurance>=.32?2:1});
+      // Only actual playable obstacle families participate in variety weighting.
       const safe=options.filter(p=>{
         const type=p.steps[0];
-        if(type==='dash-jump'||type==='dash-duck'){
-          const floor=type==='dash-jump'?3:4;
-          const used=type==='dash-jump'?this.dashIntroduced.air:this.dashIntroduced.ground;
-          // First encounter is NEVER a random ceiling spawn. The guided
-          // lesson decides when a safe FLOOR section is ready.
-          if(!used)return false;
-          if(!this.dashIntroduced.air||!this.dashIntroduced.ground||
-            context.zone<floor||context.gravityPending||context.hp<=50||
-            this.stress>=.42||this.confidence<.42||
-            type===this.lastDashHazardType||
+        if(type==='dash-duck'){
+          if(!this.dashIntroduced.ground||context.zone<4||context.gravityPending||
+            context.hp<=50||this.stress>=.42||this.confidence<.42||
             this.time-this.lastDashHazardAt<DASH_REPEAT_SECONDS)return false;
         }
-        if(!this.movement.allowPattern(p,readiness,this.time,
-          {firstEcho:intro&&p.id==='single-echo'}))return false;
+        if(!this.movement.allowPattern(p,readiness,this.time))return false;
         // Never allow a full proposed motif to create a fourth identical
         // basic Jump or Duck. Special actions naturally break the chain.
         if(violatesSimpleChain(p.steps,this.recentSpawns)){
@@ -231,8 +210,7 @@
           lastEchoTime:this.movement.lastEchoTime,phase:this.phase,
           zone:context.zone,pressure:this.movement.pressure,
           endurance})}));
-      const chosen=(intro?weighted.find(p=>p.id==='single-echo'):null)||
-        patterns.chooseWeighted(weighted,this.random,this.previousPattern);
+      const chosen=patterns.chooseWeighted(weighted,this.random,this.previousPattern);
       if(!chosen)return null;
       this.previousPattern=chosen.id;this.lastPatternId=chosen.id;
       this.patternHistory.push(chosen.id);
@@ -262,26 +240,11 @@
       // A single phase transition is sufficient with the gameplay fixed-step frame cap.
       if(this.phaseElapsed>=this.phaseDuration)this.advance(context);
       this.spawnCountdown-=dt;
-      // Zone 2 is where the second jump UNLOCKS. Do not leave the first
-      // real double-jump obstacle to random PEAK timing (often zone 3).
-      // Reserve one isolated floor Echo Rail ~1.5s after the zone transition;
-      // its ~2s approach means it arrives while the on-screen hint is fresh.
-      const guidedEcho=!this.echoIntroduced&&context.zone===2&&
-        context.zoneElapsed>=1.5&&context.zoneElapsed<=8.4&&
-        this.movement.echoReady({...context,phase:this.phase,
-          stress:this.stress,confidence:this.confidence},this.time,true);
-      if(guidedEcho){
-        if(this.pending[0]?.type!=='echo'){
-          this.pending=[{type:'echo',pattern:'single-echo',step:1}];
-          this.spawnCountdown=Math.min(this.spawnCountdown,.10);
-        }
-      }
-      // The ceiling cycle starts in zone 3. A new mechanic MUST first
+      // Double-jump is trained with terrain gaps, never a long raised rail.
+      // The ceiling cycle starts in zone 7. A new mechanic MUST first
       // appear on the FLOOR, even if its unlock zone happened in the sky.
       // Delay rather than introduce in a confusing mirrored orientation.
-      const firstDashType=!this.dashIntroduced.air&&context.zone>=3?'dash-jump':
-        !this.dashIntroduced.ground&&this.dashIntroduced.air&&
-          context.zone>=4?'dash-duck':null;
+      const firstDashType=!this.dashIntroduced.ground&&context.zone>=4?'dash-duck':null;
       // Unknown surface is NOT assumed to be floor: legacy offline audits
       // intentionally omit course orientation and must not fabricate a
       // tutorial whose real-world orientation they cannot validate.
@@ -291,16 +254,15 @@
         this.movement.pressure<DASH_PRESSURE_LIMIT;
       const teachWindow=(context.zoneElapsed??3)>=DASH_INTRO_ZONE_ELAPSED;
       const activePhase=this.phase===PHASE.BUILD||this.phase===PHASE.PEAK;
-      const firstDash=Boolean(firstDashType&&this.echoIntroduced&&
-        !guidedEcho&&floorLesson&&calm&&teachWindow&&activePhase);
+      const firstDash=Boolean(firstDashType&&floorLesson&&calm&&teachWindow&&activePhase);
       // Once both families have been taught, surface type does not restrict
       // their return. Alternate actions every ~24s on *safe* BUILD/PEAK
       // sections rather than hoping a tiny random pattern weight hits.
-      const repeatType=this.lastDashHazardType==='dash-jump'?'dash-duck':'dash-jump';
-      const repeating=Boolean(this.dashIntroduced.air&&this.dashIntroduced.ground&&
+      const repeatType='dash-duck';
+      const repeating=Boolean(this.dashIntroduced.ground&&
         Number.isFinite(this.lastDashHazardAt)&&
         (context.surface==='floor'||context.surface==='ceiling')&&
-        !guidedEcho&&calm&&activePhase&&
+        calm&&activePhase&&
         this.time-this.lastDashHazardAt>=DASH_REPEAT_SECONDS);
       const guidedDash=(firstDash||repeating)&&this.time>=this.dashRetryAfter;
       const guidedType=firstDash?firstDashType:repeating?repeatType:null;
@@ -310,7 +272,7 @@
         this.pending=[{type:guidedType,pattern:'single-'+guidedType,step:1,guided:true}];
         this.spawnCountdown=Math.min(this.spawnCountdown,.12);
       }
-      if(this.phase===PHASE.RELAX&&!guidedEcho&&!guidedDash){
+      if(this.phase===PHASE.RELAX&&!guidedDash){
         this.spawnCountdown=Math.max(this.spawnCountdown,.16);
         return;
       }
@@ -325,7 +287,6 @@
         const used=next.type==='dash-jump'?this.dashIntroduced.air:this.dashIntroduced.ground;
         if(context.hp<=50||this.stress>=.42||context.gravityPending||
            (!used&&(context.surface!=='floor'||
-             !this.echoIntroduced||
              this.time<this.movement.recoveryUntil))){
           // A first lesson is never left queued into a ceiling transition.
           // It will be reconsidered in a later safe floor section.

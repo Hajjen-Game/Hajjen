@@ -64,21 +64,37 @@ function reachable(v,mode){
   return false;
 }
 
-test('slow Twin Vault needs Echo + Air Dash; fast vault allows optional movement',()=>{
-  for(const v of [570,745,800,900]){
-    assert.equal(reachable(v,'solo'),false,'slow single-jump must be insufficient: '+v);
-    assert.equal(reachable(v,'echo'),false,'slow Echo alone must be insufficient: '+v);
-    assert.equal(reachable(v,'jump-dash'),false,'slow normal jump+dash not enough for long variant: '+v);
-    assert.equal(reachable(v,'echo-dash'),true,'slow Echo + Air Dash must be physically POSSIBLE: '+v);
-    assert.equal(H.needsDashFor(H.AIR,v),true);
+test('zone 5–7 Twin Vault is shorter and fully solvable without forcing a perfect Dash',()=>{
+  for(const v of [570,745,800,900,950]){
+    const width=H.widthFor(H.AIR,v);
+    const crossing=(width+36)/v;
+    assert.ok(crossing<=1.045&&crossing>=.99,
+      JSON.stringify({v,width,crossing}));
+    assert.equal(reachable(v,'solo'),false,
+      'two low boxes plus live zigzag should still be a real movement challenge at '+v);
+    assert.equal(reachable(v,'echo'),true,
+      'Echo Jump must now have a realistic no-Dash solution at '+v);
+    assert.equal(reachable(v,'echo-dash'),true,
+      'Air Dash must remain a fast, fun alternate solution at '+v);
+    assert.equal(H.needsDashFor(H.AIR,v),false,
+      'do not lie to the player about a mandatory Dash');
   }
-  assert.equal(reachable(1100,'echo'),true);
+  const oldSpan=(v)=>Math.min(1200,
+    Math.max(280,Math.round((v*1.36-36)/10)*10));
+  for(const v of [745,800,900]){
+    assert.ok(H.widthFor(H.AIR,v)<=oldSpan(v)*.78,
+      'early shape must shrink by roughly 22–30% at '+v);
+  }
+});
+
+test('higher speed restores the 1200px spectacle without adding hidden rules',()=>{
+  assert.equal(H.widthFor(H.AIR,1200),H.AIR_MAX_WIDTH);
+  assert.equal(H.widthFor(H.AIR,1450),H.AIR_MAX_WIDTH);
   assert.equal(reachable(1812,'echo'),true);
-  assert.equal(reachable(1812,'jump-dash'),true,
-    'high speed opens the valid ordinary Jump + Dash solution');
-  assert.equal(H.needsDashFor(H.AIR,1812),false);
-  assert.equal(reachable(1812,'solo'),false,
-    'the advanced vault still rewards advanced movement at zone 28');
+  assert.equal(reachable(1812,'jump-dash'),true);
+  assert.equal(reachable(1812,'solo'),false);
+  assert.equal(reachable(2500,'solo'),true,
+    'very high speed can clear through normal flight, as originally agreed');
 });
 
 test('ground gate explicitly exceeds 0.55s Duck early; physical Ground Dash covers it',()=>{

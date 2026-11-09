@@ -111,7 +111,7 @@
     selectPattern(context){
       const readiness={...context,phase:this.phase,stress:this.stress,confidence:this.confidence};
       const firstEcho=!this.echoIntroduced;
-      // A tall Echo Spire needs time for two presses AND the second apex.
+      // The broad, low Echo Rail still rewards two deliberate jump presses.
       // At extreme speed its entire visible approach can become too short.
       // Prefer simpler actions rather than a hidden, physically unfair cue.
       const echoX=typeof context.spawnXFor==='function'?context.spawnXFor('echo'):context.spawnX;
@@ -172,7 +172,7 @@
       this.spawnCountdown-=dt;
       // Zone 2 is where the second jump UNLOCKS. Do not leave the first
       // real double-jump obstacle to random PEAK timing (often zone 3).
-      // Reserve one isolated floor Spire ~1.5s after the zone transition;
+      // Reserve one isolated floor Echo Rail ~1.5s after the zone transition;
       // its ~2s approach means it arrives while the on-screen hint is fresh.
       const guidedEcho=!this.echoIntroduced&&context.zone===2&&
         context.zoneElapsed>=1.5&&context.zoneElapsed<=8.4&&
@@ -212,7 +212,7 @@
         this.time-this.lastDashHazardAt>=DASH_REPEAT_SECONDS);
       const guidedDash=(firstDash||repeating)&&this.time>=this.dashRetryAfter;
       const guidedType=firstDash?firstDashType:repeating?repeatType:null;
-      // NEVER replace a pending Echo Spire or a pending ordinary pattern:
+      // NEVER replace a pending Echo Rail or a pending ordinary pattern:
       // finish its physical commitment before offering a new Dash lesson.
       if(guidedDash&&!this.pending.length){
         this.pending=[{type:guidedType,pattern:'single-'+guidedType,step:1,guided:true}];
@@ -249,7 +249,7 @@
         this.pending=[];this.spawnCountdown=.3;this.movement.deferredPatterns++;
         return;
       }
-      // Never drag the very first Echo Spire into the ceiling section.
+      // Never drag the very first Echo Rail into the ceiling section.
       // Cancel the queued lesson and allow normal motifs to continue while
       // we wait for the safe floor return, rather than blocking the queue.
       if(next.type==='echo'&&!this.echoIntroduced&&

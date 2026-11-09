@@ -1,8 +1,18 @@
-# CHROMA RUSH — Dash Hazard Spacing & Recovery 2.2
+# CHROMA RUSH — Echo Rail 1.0 + Twin Vault Intro Rebalance 2.3
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Echo Rail 1.0 + Twin Vault Intro Rebalance 2.3 (2026-11-09)
+
+**Player feedback:** only ~2/8 early long Twin Vault crossings succeeded, mainly zones 5–7; the old narrow Echo Spire was also repeatedly frustrating. This update changes their **actual world geometry**, not invisible input conditions or the speed curve.
+
+- **Early Twin Vaults shortened ~25–30%** using a 1.02-second full-body travel target (including the player). Around zone 5 at world speed 745: **980 → 720 world units**. At 900: **1190 → 880**. A gentle width ramp reinstates the full **1,200-unit** late silhouette by world speed 1200. The twin neon boxes and brightly glowing, genuinely colliding zigzag energy between them are unchanged; the shorter early gap is comfortable with a well-timed Echo Jump, while Air Dash remains a useful and fun optional boost. First-time hint now says “DOUBLE JUMP · DASH HELPS” rather than implying a mandatory move.
+- **Tall Echo Spire replaced completely** with the **Echo Rail**: one broad, low horizontal barrier with a solid neon deck and a visible, electric underside (underneath the beam, as the inverse of the ordinary hanging Duck Gate's energy field). Intro geometry becomes **265–280 wide × 70–76 high** instead of a 46–49 wide × 190–194 high tower. Later versions are **300–385 wide × 78–86 high**. All glow remains inside actual collision geometry. The first safe Echo lesson still happens on the floor in **zone 2**, with a much more forgiving double-jump window. Higher speed can allow an ordinary well-timed jump.
+- Round log `spawn` events now record **width, height and estimated pass time** for direct checks in zone 5–7 exports. Internally `type:'echo'` and old audit keys remain stable for continuity; no old tall Spire is left rendered or spawned.
+- **Unchanged:** Spacing & Recovery 2.2 between advanced obstacles, Director pacing, Dash controls/thrust, gravity inversion, Echo ability, original background, Speed Curve 3.2, adaptive camera and HP/Flow.
+- [Design calculations, honest physics constraints and testing checklist](docs/twin-vault-intro-balance-2.3-echo-rail-1.0.md). Old Echo Spire and Twin Vault 2.1 notes below are historical only.
 
 ## Dash Hazard Spacing & Recovery 2.2 (2026-11-09)
 

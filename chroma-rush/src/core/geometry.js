@@ -21,8 +21,9 @@
       w:obstacle.width,h:obstacle.height};
   }
   function obstacleBox(obstacle,floorY){
-    // Echo Spires, like ordinary jump barriers, are firmly attached to the
-    // track. Unlike the suspended duck gates they cannot be crawled under.
+    // Echo Rails, like standard Jump barriers, fill their full low
+    // silhouette from solid upper deck through the glowing lower bed.
+    // Unlike hanging Duck gates they cannot be crawled underneath.
     if(obstacle.type==='jump'||obstacle.type==='echo'||obstacle.type==='dash-jump')
       return {x:obstacle.x,y:floorY-obstacle.height,w:obstacle.width,h:obstacle.height};
     const lower=floorY-DUCK_CLEARANCE;

@@ -1,8 +1,8 @@
-/* CHROMA RUSH — Dash Hazard Redesign 2.1: Zigzag Energy Geometry.
- * The bridge is genuinely dangerous to land on: its glowing zigzag is a
- * *visible physical* floor-energy strip, NOT an invisible action/seal gate.
- * Long early spans favor Echo Jump + Air Dash; an extended overhead gate
- * favors Duck + Ground Dash. At high speed, Dash becomes optional again.
+/* CHROMA RUSH — Twin Vault Intro Rebalance 2.3 + Zigzag Geometry 2.1.
+ * The visible zigzag remains a real colliding floor-energy bed.
+ * The early vault is now a forgiving Echo-sized crossing (Dash still fun);
+ * at high speed the same energy bridge returns to its 1200-unit maximum.
+ * Ground Dash Gate geometry and world-edge recovery rules are unchanged.
  */
 (function(root,factory){
   const api=factory();
@@ -19,7 +19,7 @@
   // opening bridge for ~1.36s of world travel, so Echo *alone* cannot span
   // it; Echo + a well-timed Air Dash can. A strict world-width cap makes
   // the same geometry naturally easier when the world accelerates.
-  const AIR_CHALLENGE_SECONDS=1.36,AIR_MAX_WIDTH=1200;
+  const AIR_MAX_WIDTH=1200;
   const GROUND_CHALLENGE_SECONDS=.68,GROUND_MAX_WIDTH=530;
   const widthFor=(type,speed=370)=>{
     const v=Math.max(300,speed);
@@ -91,7 +91,7 @@
     return first||guided||confidence>=.42;
   }
   return {AIR,GROUND,TYPES,FIRST_AIR_ZONE,FIRST_GROUND_ZONE,
-    AIR_BOX_WIDTH,AIR_BRIDGE_HEIGHT,AIR_CHALLENGE_SECONDS,AIR_MAX_WIDTH,
+    AIR_BOX_WIDTH,AIR_BRIDGE_HEIGHT,AIR_MAX_WIDTH,
     GROUND_CHALLENGE_SECONDS,GROUND_MAX_WIDTH,boxGapFor,needsDashFor,
     isDashHazard,recoveryAfter,placementAfter,requiredMode,
     baseType,unlockZone,widthFor,heightFor,mayAssist,safeToSpawn};

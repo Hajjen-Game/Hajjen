@@ -71,8 +71,8 @@
       const gapTime=peak ? (gentle?.30:.35) : .29;
       const safeArrival=permitGap && future.remaining>=gapTime+.48;
       const gapChance=safeArrival?(peak?(gentle?.13:.29):.065):0;
-      // Keep the first zone-2 double-jump lesson on a predictable level
-      // runway. Normal hills resume once the first Spire is introduced.
+      // Keep the first low Echo Rail lesson on a predictable level runway.
+      // Normal hills resume once the first Rail is introduced.
       const teachingEcho=zone===2&&!this.director.echoIntroduced;
       const slopeChance=teachingEcho||dashLearningRunway?0:
         (({BUILD:.52,PEAK:.36,FADE:.24,RELAX:.10})[future.phase]||.2);
@@ -86,9 +86,9 @@
       const arrival=(this.director.time||0)+lead;
       const movementSafe=!movement || (movement.pressure<1.6&&
         arrival-movement.lastEchoTime>3.3&&arrival>=movement.recoveryUntil+.6);
-      // Teach the FIRST required double jump via a single Spire on the
+      // Teach the FIRST double jump via one broad low Echo Rail on the
       // floor. Echo Gaps are not allowed to appear first by accident during
-      // terrain lookahead; they unlock after a REAL successful Spire clear.
+      // terrain lookahead; unlock them after a REAL successful Rail clear.
       const echoSkillLearned=(movement?.echoClears||0)>0;
       const echoSafe=zone>=5&&echoSkillLearned&&safeArrival&&peak&&
         future.remaining>=1.58&&!gentle&&stress<.33&&

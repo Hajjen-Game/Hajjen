@@ -13,10 +13,11 @@
     {id:'single-duck',steps:['duck'],tier:0,minZone:1,weight:3.0},
     {id:'twin-jump',steps:['jump','jump'],tier:1,minZone:1,weight:1.4},
     {id:'twin-duck',steps:['duck','duck'],tier:1,minZone:1,weight:1.1},
-    // The first tall pillar is taught as one isolated action, not a combo.
+    // The first low, wide Echo Rail is taught alone in zone 2, not a combo.
     {id:'single-echo',steps:['echo'],tier:1,minZone:2,weight:1.5},
-    // The two pure-geometry advanced shapes debut alone on a safe floor;
-    // both can be cleared with ordinary jump/duck, Dash is optional.
+    // The advanced long energy structures debut alone on a safe floor;
+    // the first Twin Vault is now approachable via Echo with a useful Dash
+    // boost; the long Duck Gate still benefits from Ground Dash early.
     {id:'single-dash-jump',steps:['dash-jump'],tier:1,minZone:3,weight:.95},
     {id:'single-dash-duck',steps:['dash-duck'],tier:1,minZone:4,weight:.95},
     // Advanced phrases appear only after the player has had time to practice.

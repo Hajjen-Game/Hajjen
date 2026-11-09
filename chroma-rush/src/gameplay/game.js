@@ -713,8 +713,8 @@
       const approach=(x-player.x)/Math.max(300,speed);
       const launchY=terrain.groundAt(worldX-speed*.55);
       const landY=terrain.groundAt(worldX+width+speed*.20);
-      // Keep the takeoff and landing on nearly the same level: a launch
-      // from much higher ground could let ONE jump clear a lower Spire.
+      // Keep takeoff and landing on nearly the same level: no unnatural
+      // slope shortcut beneath the now-low, wide Echo Rail.
       if(approach<.78||launchY===null||landY===null||
         Math.abs(launchY-groundY)>8||Math.abs(landY-groundY)>8)return false;
     }
@@ -736,7 +736,7 @@
         // labels or detached icons on the obstacle itself.
         const demanding=DASH_HAZARDS.needsDashFor(data.type,speed);
         $.dashHint.textContent=dashMode==='air'?
-          demanding?'TWIN VAULT · DOUBLE JUMP + AIR DASH':'TWIN VAULT · JUMP / DASH':
+          demanding?'TWIN VAULT · DOUBLE JUMP + AIR DASH':'TWIN VAULT · DOUBLE JUMP · DASH HELPS':
           demanding?'LONG GATE · DUCK + GROUND DASH':'LONG GATE · DUCK / DASH';
         dashHintTime=Math.max(dashHintTime,5.0);
       }
@@ -744,6 +744,8 @@
     const fairness=FAIR.metrics(data.type,
       {x,playerX:player.x,viewportWidth:camera.visibleRight(W,player.x),speed});
     runAudit.record('spawn',auditState(),{obstacle:data.type,pattern:data.pattern||'',worldX,
+      width,height,expectedTraverseSeconds:Number(
+        ((width+(data.type==='dash-duck'?66:36))/Math.max(300,speed)).toFixed(3)),
       surface:gravityShift.ceiling?'ceiling':'floor',intro:firstEcho||firstDash,
       leadSeconds:fairness.leadSeconds,requiredSeconds:fairness.requiredSeconds,
       visibleSeconds:fairness.visibleSeconds,earlyCueSeconds:fairness.earlyCueSeconds,
@@ -908,7 +910,7 @@
     distance+=worldStep;
     const lastTerrainWorld=terrain.generated;
     // The generator must cover the farthest possible action-specific spawn,
-    // including an offscreen Echo Spire with a full second of warning.
+    // including an offscreen Echo Rail with a full second of warning.
     const farthestSpawn=Math.max(spawnXFor('echo'),
       zone>=DASH_HAZARDS.FIRST_AIR_ZONE?spawnXFor('dash-jump'):0,
       zone>=DASH_HAZARDS.FIRST_GROUND_ZONE?spawnXFor('dash-duck'):0);
@@ -1115,7 +1117,7 @@
             }
           }
           if(o.type==='echo'){
-            // Compact clean-clear reward for a real double-jump barrier.
+            // Compact clean-clear reward for the new low Echo Rail.
             // Doesn't mask the next obstacle or change the scoring contract.
             frameEcho(player.x,player.feet-22,c2,24,.7);
             burst(o.x+o.width*.5,o.groundY-o.height*.35,7,c2,.62);
@@ -1249,10 +1251,10 @@
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
     ctx.save();
     if(isEcho||isLow){
-      // Shared Low Neon Barrier architecture for both jump families.
-      // Echo is a TALL two-chamber sibling; the actual body, inset face,
-      // bevel, white cap, vertical cheeks and floor plinth are identical.
-      // Every structural stroke fits the same physical obstacle footprint.
+      // All jumping hazards share the same readable beveled housing.
+      // Echo Rail replaces the tall double-jump Spire with one LOW,
+      // WIDE module: solid upper deck + translucent, collidable energy
+      // layer UNDER the deck. No tall pillar, no invisible collision.
       // Twin Vault: draw two standard plinths. The separate low energy
       // collision strip between them is drawn immediately below, never
       // as an oversized opaque box.
@@ -1277,16 +1279,31 @@
       ctx.fillStyle=rgba(color,isEcho ? .12 : .17);
       ctx.fillRect(x+6,y+bevel+8,w-12,h-bevel-22);
       if(isEcho){
-        // The double-jump Spire belongs to the SAME obstacle family,
-        // distinguished only by its height and two integrated energy
-        // chambers. No floating instructional icons, arrows or labels.
-        for(let k=0;k<2;k++){
-          const yy=y+h*(.23+k*.40);
-          ctx.fillStyle=rgba(k===0?'#ffffff':color,.25);
-          ctx.fillRect(x+8,yy-2,w-16,18);
-          glowLine(x+8,yy+17,x+w-8,yy+17,color,2.4,8,.88);
-          glowLine(x+12,yy+2,x+w-12,yy+2,'#ffffff',1.3,4,.56);
+        // Wide Echo Rail: the top is a legible, sturdy low platform.
+        // Its entire lower compartment is a visible glowing floor field
+        // INSIDE the same box collider. Mirroring works in ceiling mode.
+        const energyTop=y+Math.floor(h*.54);
+        const energyBottom=y+h-4;
+        const energyHeight=Math.max(12,energyBottom-energyTop);
+        ctx.fillStyle=rgba(color,.53);
+        ctx.fillRect(x+7,y+9,w-14,Math.max(14,energyTop-y-11));
+        glowLine(x+9,y+11,x+w-9,y+11,'#ffffff',2.3,9,.68);
+        ctx.fillStyle=rgba(color,.24);
+        ctx.fillRect(x+5,energyTop,w-10,energyHeight);
+        glowLine(x+5,energyTop,x+w-5,energyTop,'#ffffff',2.6,
+          13*quality.profile.glow,.96);
+        const units=Math.max(8,Math.min(24,Math.round(w/22)));
+        ctx.beginPath();ctx.lineJoin='bevel';ctx.lineCap='round';
+        for(let k=0;k<=units;k++){
+          const xx=x+7+(w-14)*k/units;
+          const yy=energyTop+energyHeight*(k%2===0?.25:.68);
+          if(k===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
         }
+        ctx.shadowColor=color;ctx.shadowBlur=12*quality.profile.glow;
+        ctx.strokeStyle=rgba('#ffffff',.84);ctx.lineWidth=1.8;ctx.stroke();
+        ctx.shadowBlur=0;
+        glowLine(x+8,energyBottom-1,x+w-8,energyBottom-1,color,
+          2.2,10*quality.profile.glow,.8);
       }else{
         // Lower single-jump barrier keeps the quiet recessed face.
         ctx.strokeStyle=rgba('#ffffff',.27);ctx.lineWidth=1;

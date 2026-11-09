@@ -98,12 +98,16 @@
     masterGain:.76,musicGain:.58,effectsGain:.40
   });
   const ECHO_SPIRE=Object.freeze({
-    // Teach double-jump as soon as it unlocks, BEFORE the first ceiling run.
+    // Echo Rail 1.0 replaces the tall 190–200 unit Spire entirely.
+    // A wide low block plus its visible underbody energy field teaches
+    // double jump in zone 2 with a MUCH bigger height/timing margin.
+    // Keep the ECHO_SPIRE key for save/audit and Director compatibility.
     firstZone:2,
-    minWidth:46,maxWidth:52,
-    minHeight:190,maxHeight:200,
-    introMinWidth:46,introMaxWidth:49,
-    introMinHeight:190,introMaxHeight:194
+    minWidth:300,maxWidth:385,
+    minHeight:78,maxHeight:86,
+    introMinWidth:265,introMaxWidth:280,
+    introMinHeight:70,introMaxHeight:76,
+    energyHeightRatio:.46
   });
   const TERRAIN=Object.freeze({
     slopeFromZone:2,

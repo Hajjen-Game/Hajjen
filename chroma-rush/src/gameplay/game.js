@@ -120,6 +120,9 @@
   if(diagnosticsOn)$.perfOverlay.classList.remove('hidden');
   let status='ready', time=0, worldTime=0, zone=1, lastTs=0, shake=0, hitFlash=0, lastZoneCallout=0;
   let speed=GAME.baseSpeed, hp=GAME.startingHP, score=0, best=progression.bestScore, hurdles=[], motes=[], streaks=[];
+  // Persistent world-space hazard edge, even after older hazards are pruned.
+  // It is reset with each new run and is never affected by camera zoom.
+  let lastPlacedHazard=null;
   let runMode='arcade', startZone=1, milestoneTime=0, unlockedThisRun=[];
   let peakFlow=0,replayToastTime=0,zoneSoundAtCrossing=false,echoHintTime=0,dashHintTime=0;
   let dashReleasePending=null; // audio and particles follow the curved cube's thrust phase
@@ -295,7 +298,8 @@
     spectralWave.start({from:palette,to:palette,width:W,reducedMotion:true});
     chromaVfx.reset();speedTrails.reset();gravityShift.reset();
     zoneSoundAtCrossing=false;
-    hurdles=[];motes=[];streaks=[];effects.reset();director.reset();terrainDirector.reset();flow.reset();combo.reset();flow.currentZone=zone;
+    hurdles=[];motes=[];streaks=[];lastPlacedHazard=null;
+    effects.reset();director.reset();terrainDirector.reset();flow.reset();combo.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();dash.reset();motion.reset();dashReleasePending=null;
     shieldCores.reset();shieldGainLeft=0;$.shieldGain.classList.add('hidden');$.hud.classList.remove('shield-recharged');
     peakFlow=0;replayToastTime=0;
@@ -680,6 +684,13 @@
           firstEcho?spire.introMaxHeight:spire.maxHeight):
         data.type==='jump'?rand(53,66):rand(115,158);
     const x=spawnXFor(data.type),worldX=distance+x;
+    // Compare END of the previous physical shape with START of this one,
+    // not just the time since the previous spawn. The first guided Twin
+    // Vault / Long Gate lessons get a generous extra recovery lane.
+    // Applies to ALL next obstacle types after an advanced challenge.
+    const recovery=DASH_HAZARDS.placementAfter(lastPlacedHazard,data.type,{
+      speed,worldX,intro:firstDash});
+    if(!recovery.allowed)return deferDash('advanced_recovery');
     // Shield Core reserves an optional, obstruction-free double-jump corridor.
     if(shieldCores.blocksHazard(worldX,width,speed))return deferDash('shield_lane');
     if(!terrain.canSpawnObstacle(worldX,width,speed))return deferDash('terrain_flat');
@@ -712,6 +723,10 @@
       dashAssisted:false,
       mechanicIntro:Boolean(firstEcho||firstDash),
       phase:data.phase,pulse:Math.random()*Math.PI*2});
+    // Commit only after a REAL successful spawn. Rejected attempts do not
+    // advance history, and old pruned obstacles still reserve their space.
+    lastPlacedHazard={type:data.type,endWorld:worldX+width,
+      intro:Boolean(firstEcho||firstDash)};
     if(isDashChallenge){
       terrainDirector.noGapsBefore=Math.max(terrainDirector.noGapsBefore,
         worldX+width+speed*1.2);

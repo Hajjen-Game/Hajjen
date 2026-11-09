@@ -71,7 +71,8 @@ function setup(initialStorage={}) {
   const ending='  requestAnimationFrame(frame);\n})();';
   assert.ok(gameCode.includes(ending));
   vm.runInContext(gameCode.replace(ending,
-    "  window.__gravityHarness={gravityShift,camera,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,dash,shieldCores,DASH_HAZARDS,runAudit,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,hp:()=>hp,setHP:n=>{hp=n},player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
+    "  window.__gravityHarness={gravityShift,camera,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,dash,shieldCores,DASH_HAZARDS,runAudit,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,testSpawn:spawn,lastPlaced:()=>lastPlacedHazard,
+      speed:()=>speed,hp:()=>hp,setHP:n=>{hp=n},player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
     context,{filename:'game.js'});
   return {get,local,rotations,bends,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
@@ -866,6 +867,56 @@ test('a blocked ordinary obstacle cannot starve the first-floor Dash lesson',()=
   assert.equal(d.totalSpawned,1,'unspawned ordinary hurdles never count as spawned');
   assert.ok(attempted.includes('dash-jump'));
   assert.ok(defers.some(d=>d.reason==='stalled_ordinary_pattern'));
+});
+
+test('guided long Twin Vault then Long Gate require actual recovery AFTER vault end',()=>{
+  const h=duckHarness(),g=h.game.context.window.__gravityHarness;
+  g.director.tick=()=>{};g.gravityShift.requestForZone=()=>false;
+  h.advance(1);g.forceZone(5);
+  g.director.echoIntroduced=true;
+  g.director.stress=0;g.director.confidence=.9;
+  g.terrain.canSpawnObstacle=()=>true;
+  g.terrain.groundAt=()=>515;
+  g.terrainDirector.prepare=()=>[];
+  g.shieldCores.blocksHazard=()=>false;
+  assert.equal(g.testSpawn({type:'dash-jump',guided:true}),true);
+  const first={...g.lastPlaced()};
+  assert.equal(first.type,'dash-jump');
+  assert.equal(first.intro,true);
+  g.director.dashIntroduced.air=true; // mimic accepted guided spawn
+  assert.equal(g.testSpawn({type:'dash-duck',guided:true}),false,
+    'a second long mechanic cannot start before the first ends');
+  const second= g.lastPlaced();
+  assert.deepEqual(JSON.parse(JSON.stringify(second)),
+    JSON.parse(JSON.stringify(first)),'denied attempt never updates placement history');
+  assert.equal(g.runAudit.summary.dashHazards.deferred.byReason.advanced_recovery,1);
+  // Remove actual obstacle to isolate the permanent world-edge safety
+  // from the renderer/pruning lifetime; spacing must still hold.
+  g.hurdles().length=0;
+  h.advance(90);
+  assert.equal(g.testSpawn({type:'dash-duck',guided:true}),false,
+    '1.5 seconds is still too tight after the full length of Twin Vault');
+  // Allow the Director's real pending placement to retry on a clean runway.
+  let made=false;
+  for(let i=0;i<460&&!made;i++){
+    h.advance(1);
+    made=g.testSpawn({type:'dash-duck',guided:true})===true;
+  }
+  assert.equal(made,true,'the longer recovery must delay, not permanently delete, the lesson');
+  const later={...g.lastPlaced()};
+  // Check actual start-to-prior-END gap directly, not a spawn timer.
+  const target=dashHazards.recoveryAfter('dash-jump','dash-duck',
+    {prevIntro:true,nextIntro:true});
+  assert.equal(target,3.2);
+  assert.ok(later.endWorld>first.endWorld,'new challenge is beyond the prior end');
+  const secondPlaced=g.hurdles().find(o=>o.type==='dash-duck');
+  assert.ok(secondPlaced,'real accepted advanced shape is in the world');
+  const check=dashHazards.placementAfter(first,'dash-duck',{
+    worldX:secondPlaced.worldX,speed:g.speed(),intro:true});
+  assert.equal(check.allowed,true);
+  assert.ok(check.actualWorldGap>=check.requiredWorldGap);
+  assert.ok(check.actualWorldGap/g.speed()>=3.2,
+    'player has a full multi-second recovery beyond the previous end');
 });
 
 test('optional Dash assist is counted separately from an ordinary physical clear',()=>{

@@ -1,8 +1,19 @@
-# CHROMA RUSH — Dash Hazard Redesign 2.1 – Zigzag Energy Geometry
+# CHROMA RUSH — Dash Hazard Spacing & Recovery 2.2
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Dash Hazard Spacing & Recovery 2.2 (2026-11-09)
+
+- **Player issue:** a long Twin Vault and a long Ground Dash Gate could appear directly after each other. Director's historical safety gap largely measured **spawn-to-spawn time**, but the Twin Vault itself occupies ~1.36s worth of travel; the next advanced challenge could begin before the previous complete traversal and recovery.
+- **Authoritative world-edge spacing:** the game now retains the `endWorld` of the **last actually spawned** obstacle even after the off-screen obstacle list is pruned. Before spawning a new obstacle, `DASH_HAZARDS.placementAfter(...)` checks the **world-space start of the next collider against the previous collider's full end plus a recovery corridor**. Rejected attempts never overwrite this history.
+- **Dedicated recovery in actual travel time:** two advanced hurdles: **3.2s after the first shape ends** for either introductory lesson, **2.6s** for subsequent pairings. Following any advanced hazard with a normal Jump/Duck: **2.1s for the first guided lesson, 1.7s afterward**. Immediately before an advanced shape, normal hurdles must leave **1.6s for the first introduction or 1.25s later**. Add ~0.15 speed-seconds of space as a margin against Dash thrust and mobile frame jitter.
+- **Director coordination:** `MovementAwareness.minimumGap` now accounts for the physical **length of advanced spans** when calculating spawn/arrival safety (instead of treating the long advanced hazards as ordinary narrow obstacles). The actual game-world edge guard is the final authority, including variable camera warning lead, changing speed and pruned hazards.
+- **No forced double-long combos:** normal motifs are unchanged, but guided tutorials can no longer be physically compressed. A postponed obstacle stays pending or is retried later, not teleported closer and not falsely cleared.
+- No change to Twin Vault/Long Gate silhouettes, zigzag glow, damage/HP, move timings, free Air/Ground Dash, physics, adaptive camera, Speed Curve 3.2 or UI.
+- [Regression tests](tests/dash-hazard-spacing-2.2.test.cjs) include both advanced orders, all speed ranges, late pruned shapes, and an [actual game smoke check](tests/game-smoke.test.cjs) for the first long pair.
+- [Technical explanation and playtest checklist](docs/dash-hazard-spacing-recovery-2.2.md).
 
 ## Dash Hazard Redesign 2.1 – Zigzag Energy Geometry (2026-11-09)
 

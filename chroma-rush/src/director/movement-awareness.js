@@ -21,12 +21,20 @@
     gap:Object.freeze({commit:1.05,effort:1.4}),
     'echo-gap':Object.freeze({commit:1.35,effort:2.55})
   });
-  // Minimum time from one hazard SPAWN to the next; the horizontal distance
-  // is speed * seconds. Existing jump/duck safety minima are retained.
+  // The standard spawn/arrival cadence also accounts for the physical
+  // LENGTH of advanced obstacles, not just the first end-plinth. The actual
+  // game-layer world-edge rule enforces the FINAL spacing independently of
+  // dynamic camera lookahead or speed changes (including first lessons).
   function minimumGap(previous,next,speed,obstacleWidth=70){
-    const travel=(obstacleWidth+44)/Math.max(300,speed);
-    if(previous==='dash-jump'||previous==='dash-duck'||
-      next==='dash-jump'||next==='dash-duck')return 1.65+travel;
+    const v=Math.max(300,speed);
+    const travel=(obstacleWidth+44)/v;
+    const previousAdvanced=previous==='dash-jump'||previous==='dash-duck';
+    const nextAdvanced=next==='dash-jump'||next==='dash-duck';
+    const priorSpan=previous==='dash-jump'?Math.min(1200/v,1.36):
+      previous==='dash-duck'?Math.min(530/v,.68):0;
+    if(previousAdvanced&&nextAdvanced)return priorSpan+2.6+travel;
+    if(previousAdvanced)return priorSpan+1.7+travel;
+    if(nextAdvanced)return 1.25+travel;
     if(previous==='echo')return 1.47+travel;
     if(next==='echo')return (previous==='duck'?1.14:1.09)+travel;
     if(previous==='jump')return .88+travel;

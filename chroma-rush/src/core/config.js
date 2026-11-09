@@ -44,6 +44,12 @@
     speedRise:1350,
     speedEaseSeconds:170,
     cruiseAcceleration:.9,
+    // Core Pace 1.1: keep first 45 seconds as taught, then restore arcade
+    // urgency through minutes 2–4. Smoothstep has no onset/exit spike.
+    // This is a higher skill ceiling, NOT a time-limit or forced game over.
+    midgameSpeedStart:45,
+    midgameSpeedFull:225,
+    midgameSpeedGain:460,
     zoneSpeedBonus:0,
     zoneSeconds:12,
     jumpVelocity:-870,
@@ -60,8 +66,11 @@
       const elapsed=Math.max(0,time);
       // Public time/zone API retained for arcade and practice. Velocity is
       // continuous in elapsed time; zones trigger visuals, not speed steps.
+      const t=Math.max(0,Math.min(1,(elapsed-this.midgameSpeedStart)/
+        (this.midgameSpeedFull-this.midgameSpeedStart)));
+      const midgameBoost=this.midgameSpeedGain*t*t*(3-2*t);
       return this.baseSpeed+this.speedRise*(1-Math.exp(-elapsed/this.speedEaseSeconds))+
-        elapsed*this.cruiseAcceleration;
+        elapsed*this.cruiseAcceleration+midgameBoost;
     }
   });
   const FLOW=Object.freeze({

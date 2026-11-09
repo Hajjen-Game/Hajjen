@@ -83,6 +83,33 @@ test('short Jump inherits Duck Gate visual grammar with unchanged collider',()=>
   assert.equal(jump.events.filter(e=>e[0]==='fillText').length,0);
 });
 
+
+test('Jump Gate Polish 1.1: vertical veil ribs and horizontal cap engravings stay in their own zones',()=>{
+  const jump=renderObstacle('jump'),duck=renderObstacle('duck');
+  const b=jump.box,capHeight=Math.min(30,Math.max(23,b.h*.45));
+  const energyTop=b.y+capHeight,by=b.y+b.h;
+  const segments=[];
+  for(let i=0;i<jump.events.length-1;i++){
+    const a=jump.events[i],next=jump.events[i+1];
+    if(a[0]==='moveTo'&&next[0]==='lineTo')
+      segments.push({x1:a[1],y1:a[2],x2:next[1],y2:next[2]});
+  }
+  const field=segments.filter(l=>l.y1>=energyTop+4&&l.y2<=by-5);
+  assert.ok(field.length>=4,'at least four visible ribs in the energy veil');
+  assert.ok(field.every(l=>l.x1===l.x2&&l.y2>l.y1),
+    'every interior energy rib must be vertical, never a horizontal crossbar');
+  const grooves=jump.lines.filter(l=>l.y1===l.y2&&l.y1>b.y+5&&
+    l.y1<energyTop-2&&l.x1>=b.x&&l.x2<=b.x+b.w);
+  assert.equal(grooves.length,2,'exactly two horizontal grooves inside the solid cap');
+  assert.ok(jump.lines.every(l=>!(l.y1===l.y2&&l.y1>energyTop&&l.y1<by)),
+    'no horizontal glow line may appear in the energy field');
+  const jumpBranch=sourceCode.split("if(o.type==='jump'){")[1].split('}else if(isEcho||isLow){')[0];
+  assert.match(jumpBranch,/rgba\(color,\.34\)/,'solid cap has richer 1.1 fill');
+  assert.match(jumpBranch,/rgba\(color,\.20\)/,'inner cap fill is enhanced');
+  assert.ok(duck.events.some(e=>e[0]==='roundRectPath'),
+    'Duck visuals remain the established visual reference');
+});
+
 test('duck gate preserves continuous sky energy field, its clear slot and core',()=>{
   const run=renderObstacle('duck'),b=run.box;
   assert.equal(b.y,GEO.DUCK_GATE_TOP);

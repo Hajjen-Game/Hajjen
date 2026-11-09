@@ -59,35 +59,28 @@ test('Jump Visual Identity 1.0 has NO words, arrows or detached gameplay icons',
   }
 });
 
-test('low barrier is visually integrated but entirely inside old physical hitbox',()=>{
-  for(const width of [43,58]){
-    for(const height of [53,66]){
-      const run=renderObstacle('jump');
-      const obstacle={...run.obstacle,width,height};
-      // Geometry remains exactly what previous versions used.
-      const b=GEO.obstacleBox(obstacle,515);
-      assert.deepEqual(b,{x:300,y:515-height,w:width,h:height});
-    }
+test('short Jump inherits Duck Gate visual grammar with unchanged collider',()=>{
+  for(const width of [43,58])for(const height of [53,66]){
+    const run=renderObstacle('jump');
+    const obstacle={...run.obstacle,width,height};
+    const b=GEO.obstacleBox(obstacle,515);
+    assert.deepEqual(b,{x:300,y:515-height,w:width,h:height});
   }
-  const run=renderObstacle('jump'),b=run.box;
-  assert.ok(run.events.some(e=>e[0]==='close'),
-    'new solid form has an architectural closed/beveled perimeter');
-  const points=run.events.filter(e=>e[0]==='moveTo'||e[0]==='lineTo');
-  assert.ok(points.length>=12,'bevel, inset ribs and face give shape identity');
-  for(const e of points){
-    assert.ok(e[1]>=b.x-.001&&e[1]<=b.x+b.w+.001,'body x remains inside collider');
-    assert.ok(e[2]>=b.y-.001&&e[2]<=b.y+b.h+.001,'body y remains inside collider');
-  }
-  const fills=run.events.filter(e=>e[0]==='fillRect');
-  assert.ok(fills.length>=2,'the broad contact plinth and inset face are present');
+  const jump=renderObstacle('jump'),duck=renderObstacle('duck'),b=jump.box;
+  assert.ok(jump.events.some(e=>e[0]==='roundRectPath'),
+    'Jump uses the same soft-corner beam housing as Duck');
+  assert.ok(duck.events.some(e=>e[0]==='roundRectPath'));
+  const fills=jump.events.filter(e=>e[0]==='fillRect');
+  assert.ok(fills.length>=1,'Jump retains its translucent energy field');
   for(const e of fills){
     assert.ok(e[1]>=b.x&&e[1]+e[3]<=b.x+b.w+1e-6);
     assert.ok(e[2]>=b.y&&e[2]+e[4]<=b.y+b.h+1e-6);
   }
-  assert.ok(run.lines.some(l=>l.y1===b.y+5),
-    'a single integrated bright cap replaces floating direction labels');
-  assert.ok(run.lines.some(l=>l.y1===b.y+b.h-3),
-    'contact rail grounds the barrier in the track');
+  assert.ok(jump.lines.some(l=>l.y1===b.y),
+    'Jump structural bar is anchored to its top');
+  assert.ok(duck.lines.some(l=>l.y1===duck.box.y+duck.box.h),
+    'hanging Duck Gate retains its original lower bar');
+  assert.equal(jump.events.filter(e=>e[0]==='fillText').length,0);
 });
 
 test('duck gate preserves continuous sky energy field, its clear slot and core',()=>{
@@ -183,40 +176,12 @@ test('spawn sizes are centralised while action-specific fairness stays unchanged
   assert.match(original,/FAIR\.metrics\(data\.type/);
 });
 
-test('Echo uses the same beveled jump housing, with a distinct wide lower energy field',()=>{
-  const jump=renderObstacle('jump'),echo=renderObstacle('echo');
-  for(const run of [jump,echo]){
-    const b=run.box;
-    assert.ok(run.events.some(e=>e[0]==='close'),'shared beveled course housing');
-    assert.ok(run.lines.some(l=>l.y1===b.y+5),'shared bright top cap');
-    const beamBottom=run.obstacle.type==='echo'?
-      b.y+Math.max(44,Math.min(58,Math.round(b.h*.65))):b.y+b.h;
-    assert.ok(run.lines.some(l=>l.y1===beamBottom-3),
-      'same bright bottom edge in normal and raised jump beam');
-    assert.ok(run.events.some(e=>e[0]==='fillRect'&&
-      e[2]===beamBottom-12&&e[4]===10),
-      'Echo and ordinary Jump use the SAME solid barrier foot rail');
-    if(run.obstacle.type==='echo'){
-      assert.ok(!run.events.some(e=>e[0]==='fillRect'&&
-        e[2]===b.y+b.h-12&&e[4]===10),
-        'never draw an opaque foot rail at the bottom of the energy veil');
-    }
-    const solid=run.events.filter(e=>e[0]==='fillRect');
-    for(const e of solid){
-      assert.ok(e[1]>=b.x&&e[1]+e[3]<=b.x+b.w+1e-6);
-      assert.ok(e[2]>=b.y&&e[2]+e[4]<=b.y+b.h+1e-6);
-    }
-  }
-  const rail=echo.box;
-  const beamHeight=Math.max(44,Math.min(58,Math.round(rail.h*.65)));
-  const veilTop=rail.y+beamHeight,veilBottom=rail.y+rail.h;
-  assert.ok(echo.events.some(e=>e[0]==='fillRect'&&
-    e[2]===veilTop&&e[4]===rail.h-beamHeight));
-  const verticalSegments=echo.events.filter((e,i,all)=>e[0]==='moveTo'&&
-    all[i+1]?.[0]==='lineTo'&&all[i+1][1]===e[1]&&
-    e[2]===veilTop+1&&all[i+1][2]===veilBottom-1);
-  assert.ok(verticalSegments.length>=5,
-    'Echo underside shows multiple VERTICAL fine lines, not a wave');
-  assert.ok(!jump.events.some(e=>e[0]==='fillRect'&&e[3]>200),
-    'ordinary Jump is not accidentally widened');
+test('former Echo Rail keeps historical visual geometry but cannot spawn in active arcade',()=>{
+  const echo=renderObstacle('echo'),b=echo.box;
+  assert.ok(echo.events.some(e=>e[0]==='close'),
+    'legacy Echo Rail visual remains readable in archived diagnostics');
+  assert.ok(echo.events.some(e=>e[0]==='fillRect'&&e[3]>200));
+  assert.match(original,/if\(data\.type==='echo'\|\|data\.type==='dash-jump'\)return false/);
+  const jump=renderObstacle('jump');
+  assert.ok(jump.events.some(e=>e[0]==='roundRectPath'));
 });

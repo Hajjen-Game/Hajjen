@@ -92,44 +92,31 @@ test('mirrored ceiling mode uses precisely the same visible low hitbox',()=>{
   assert.equal(reflect(b).y,720-515);
 });
 
-test('Director still teaches the first Echo Rail ALONE, on the floor in zone 2',()=>{
-  assert.ok(PATTERNS.some(p=>p.id==='single-echo'));
-  assert.ok(candidates('PEAK',1,3).every(p=>!p.steps.includes('echo')));
-  assert.ok(candidates('PEAK',8,3,{allowEcho:false})
-    .every(p=>!p.steps.includes('echo')));
+test('Arcade Simplification retires the former Echo Rail from active Director patterns',()=>{
+  assert.ok(PATTERNS.every(p=>!p.steps.includes('echo')));
+  assert.ok(candidates('PEAK',8,3).every(p=>!p.steps.includes('echo')));
   const d=new AdaptiveRushDirector(()=>.5);
   d.phase='PEAK';d.phaseElapsed=0;d.phaseDuration=6;d.spawnCountdown=0;
   d.confidence=.8;
-  const context={zone:2,hp:100,speed:480,surface:'floor',zoneElapsed:2};
-  assert.equal(d.selectPattern(context).id,'single-echo');
-  assert.equal(d.echoIntroduced,false);
+  const ctx={zone:2,hp:100,speed:480,surface:'floor',zoneElapsed:2};
+  assert.notEqual(d.selectPattern(ctx).id,'single-echo');
   let type;
-  d.tick(1/60,context,step=>{type=step.type;return true;});
-  assert.equal(type,'echo');
-  assert.equal(d.echoIntroduced,true);
-  assert.ok(minimumGap('echo','jump',820)>1.5);
-  assert.ok(minimumGap('duck','echo',820)>1.1);
+  d.tick(1/60,ctx,step=>{type=step.type;return true;});
+  assert.ok(type==='jump'||type==='duck');
+  assert.equal(d.echoIntroduced,false);
 });
 
-test('unplaceable Echo lesson retries; ceiling and gravity transitions cannot introduce it',()=>{
+test('legacy Echo Rail geometry remains testable but is not generated',()=>{
+  assert.ok(minimumGap('echo','jump',820)>1.5);
+  assert.ok(minimumGap('duck','echo',820)>1.1);
   const d=new AdaptiveRushDirector(()=>.5);
   d.phase='PEAK';d.phaseDuration=7;d.spawnCountdown=0;d.confidence=.8;
-  const floor={zone:2,hp:100,speed:480,surface:'floor',zoneElapsed:2};
-  const ceiling={...floor,surface:'ceiling'};
-  d.tick(1/60,floor,()=>false);
-  assert.equal(d.totalSpawned,0);assert.equal(d.echoIntroduced,false);
-  assert.equal(d.pending[0]?.type,'echo');
-  d.spawnCountdown=0;
-  d.tick(1/60,ceiling,()=>true);
-  assert.equal(d.echoIntroduced,false);
-  d.pending=[{type:'echo',pattern:'single-echo',step:1}];
-  d.spawnCountdown=0;
-  d.tick(1/60,{...floor,gravityPending:true},()=>true);
-  assert.equal(d.echoIntroduced,false);
-  d.pending=[{type:'echo',pattern:'single-echo',step:1}];
-  d.spawnCountdown=0;
-  d.tick(1/60,floor,()=>true);
-  assert.equal(d.echoIntroduced,true);
+  const spawned=[];
+  for(let i=0;i<120;i++)d.tick(.10,{zone:5,hp:100,speed:620,
+    surface:i%2?'floor':'ceiling',zoneElapsed:4},step=>{
+      spawned.push(step.type);return true;
+    });
+  assert.ok(spawned.every(t=>t!=='echo'&&t!=='dash-jump'));
 });
 
 test('renderer gives the low Echo Rail a solid top and visible underside energy only',()=>{

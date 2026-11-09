@@ -8,9 +8,8 @@ const {MovementAwareness}=require('../src/director/movement-awareness.js');
 const root=path.join(__dirname,'..');
 
 function floorAt(zone){
-  // Gravity Shift begins at zone 3 and changes every two zones:
-  // 1–2 floor, 3–4 ceiling, 5–6 floor, 7–8 ceiling, etc.
-  return zone<3||Math.floor((zone-3)/2)%2===1;
+  // Gravity Shift now begins in zone 8 and returns every eight zones.
+  return zone<8||Math.floor((zone-8)/8)%2===1;
 }
 function simulate(untilSeconds=14*GAME.zoneSeconds,{hpAt=()=>100,stressAt=()=>0}={}){
   const d=new AdaptiveRushDirector(()=>.47),spawns=[],dt=.05;
@@ -57,81 +56,55 @@ test('long playtime alone never emits Dash before either family is taught',()=>{
   assert.equal(d.dashIntroduced.ground,false);
 });
 
-test('new Dash scheduler never displaces a queued Echo lesson',()=>{
+test('new Ground Dash scheduling never displaces a queued ordinary Jump',()=>{
   const d=new AdaptiveRushDirector(()=>.45),seen=[];
   d.phase='PEAK';d.phaseDuration=100;d.confidence=.9;d.spawnCountdown=0;
-  d.pending=[{type:'echo',pattern:'single-echo',step:1}];
+  d.pending=[{type:'jump',pattern:'single-jump',step:1}];
   d.tick(.05,{zone:5,zoneElapsed:4,hp:100,speed:900,playerX:300,
     spawnX:1370,surface:'floor',gravityPending:false},
     step=>{seen.push(step.type);return true});
-  assert.deepEqual(seen,['echo']);
-  assert.equal(d.echoIntroduced,true);
-  assert.equal(d.dashIntroduced.air,false);
+  assert.deepEqual(seen,['jump']);
+  assert.equal(d.dashIntroduced.ground,false);
 });
 
-test('unavailable Dash terrain yields the queue back to regular obstacles',()=>{
+test('unavailable long Duck Gate terrain yields the queue back to regular obstacles',()=>{
   const d=new AdaptiveRushDirector(()=>.47),attempts=[];
-  d.echoIntroduced=true;
   d.phase='PEAK';d.phaseDuration=100;d.confidence=.88;d.spawnCountdown=0;
   const ctx={zone:5,zoneElapsed:4,hp:100,speed:700,playerX:300,
     spawnX:1450,surface:'floor',gravityPending:false};
-  for(let i=0;i<12;i++){
-    d.tick(.28,ctx,step=>{
-      attempts.push(step.type);
-      return step.type!==AIR;
-    });
-  }
-  assert.ok(attempts.includes(AIR),'attempt a first safe lesson');
-  assert.ok(d.dashRetryAfter>0,'suspend after repeated safety vetoes');
-  assert.ok(attempts.some(t=>t!==AIR),'ordinary actions continue while deferred');
-  assert.equal(d.dashIntroduced.air,false,'never invent a successful lesson');
+  for(let i=0;i<25;i++)d.tick(.28,ctx,step=>{
+    attempts.push(step.type);return step.type!==GROUND;
+  });
+  assert.ok(attempts.includes(GROUND),'attempt a first safe Ground Dash lesson');
+  assert.ok(d.dashRetryAfter>0,'temporarily suspend repeated blocked attempts');
+  assert.ok(attempts.some(t=>t!==GROUND),'ordinary actions continue while deferred');
+  assert.equal(d.dashIntroduced.ground,false,'do not fake a successful lesson');
 });
 
-test('a queued first-lesson is withdrawn if the course is now in ceiling mode',()=>{
+test('a queued first long Duck lesson is withdrawn if the course turns upside down',()=>{
   const d=new AdaptiveRushDirector(()=>.47),spawned=[];
-  d.pending=[{type:AIR,pattern:'single-dash-jump',step:1,guided:true}];
-  d.spawnCountdown=0;
-  d.phase='PEAK';
-  d.tick(.12,{zone:5,zoneElapsed:5,surface:'ceiling',
+  d.pending=[{type:GROUND,pattern:'single-dash-duck',step:1,guided:true}];
+  d.spawnCountdown=0;d.phase='PEAK';
+  d.tick(.12,{zone:8,zoneElapsed:5,surface:'ceiling',
     hp:100,speed:600,gravityPending:false},x=>{spawned.push(x.type);return true});
   assert.equal(spawned.length,0);
+  assert.equal(d.dashIntroduced.ground,false);
+  assert.equal(d.pending.some(x=>x.type===GROUND),false);
+});
+
+test('the retained long Duck Gate is taught on the floor and recurs without spamming',()=>{
+  const {dash,d}=simulate();
+  assert.ok(dash.length>=2,JSON.stringify(dash));
+  assert.ok(dash.every(x=>x.type===GROUND),'retired Twin Vault never generated');
+  assert.equal(dash[0].surface,'floor');
+  assert.ok(dash[0].zone>=4);
   assert.equal(d.dashIntroduced.air,false);
-  assert.equal(d.pending.some(s=>s.type===AIR),false);
-});
-
-test('first lessons are postponed from zones 3–4 and introduced separately on floor',()=>{
-  const {dash,d}=simulate();
-  assert.ok(dash.length>=4,'Dash must recur several times by zone 14');
-  const air=dash.find(s=>s.type===AIR);
-  const ground=dash.find(s=>s.type===GROUND);
-  assert.ok(air&&ground,'both variants must be encountered');
-  assert.equal(air.surface,'floor');
-  assert.equal(ground.surface,'floor');
-  assert.ok(air.zone>=5,'Air Dash must wait for a safe floor after zone 3 ceiling');
-  assert.ok(ground.zone>=5,'Ground Dash must wait for a safe floor after zone 4 ceiling');
-  assert.ok(ground.time>air.time,'Ground Dash is introduced after Air Dash');
-  assert.ok(d.dashIntroduced.air&&d.dashIntroduced.ground);
-});
-
-test('Dash returns after the lessons, alternating on safe 24s+ opportunities',()=>{
-  const {dash,d}=simulate();
-  const firstAir=dash.findIndex(s=>s.type===AIR);
-  const firstGround=dash.findIndex(s=>s.type===GROUND);
-  assert.ok(firstGround>firstAir);
-  const repeats=dash.slice(firstGround+1);
-  assert.ok(repeats.length>=2,JSON.stringify(dash));
-  assert.ok(repeats.some(s=>s.type===AIR)&&repeats.some(s=>s.type===GROUND),
-    'both Air Dash and Ground Dash should return before zone 14');
-  let prior=dash[firstGround];
-  for(const next of repeats){
-    assert.ok(next.time-prior.time>=DASH_REPEAT_SECONDS-.05,
-      'do not spam an advanced hazard just after another');
-    assert.notEqual(next.type,prior.type,'alternate action families');
-    assert.equal(next.hp,100);
-    prior=next;
+  assert.equal(d.dashIntroduced.ground,true);
+  for(let i=1;i<dash.length;i++){
+    assert.ok(dash[i].time-dash[i-1].time>=DASH_REPEAT_SECONDS-.05);
+    assert.equal(dash[i].hp,100);
   }
-  assert.equal(d.dashHazardRepeats,repeats.length);
-  assert.equal(d.insight.dashHazards.repeats,repeats.length);
+  assert.equal(d.dashHazardRepeats,dash.length-1);
 });
 
 test('a vulnerable player gets a pause, then can still see Dash later',()=>{
@@ -178,8 +151,8 @@ test('Chroma Spectrum 2.0 has 24 hand-picked nonrepeating zone identities',()=>{
 test('palette lookup is still constant-time and the old eight colors remain in order',()=>{
   const game=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-  assert.match(game,/PALETTES\[\(zone-1\)%PALETTES\.length\]/);
-  assert.match(html,/LATEST UPDATE · PREMIUM ARCADE UI 4\.0/);
+  assert.match(game,/window\.ChromaConfig\.paletteForZone\(zone\)/);
+  assert.match(html,/LATEST UPDATE · ARCADE SIMPLIFICATION 1\.0/);
   assert.match(html,/palette-24-2\.0/);
   assert.match(game,/!hurdles\.some\(o=>o\.mechanicIntro&&!o\.hit&&!o\.cleared\)/);
   assert.match(game,/surface:gravityShift\.ceiling\?'ceiling':'floor'/);

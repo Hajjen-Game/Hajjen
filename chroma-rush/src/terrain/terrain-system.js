@@ -48,7 +48,7 @@
       if(gapAllowed&&roll<gapChance){
         // Rare Echo Gaps are a distinct movement challenge, not a hidden
         // widening of normal gaps. The Director gates them by player readiness.
-        const echo=zone>=5&&(policy?.echoGapChance??0)>0&&
+        const echo=zone>=4&&(policy?.echoGapChance??0)>0&&
           this.random()<policy.echoGapChance;
         const minSeconds=echo?(policy.echoGapSecondsMin??.92):(policy?.gapSecondsMin??.30);
         const maxSeconds=echo?(policy.echoGapSecondsMax??1.015):(policy?.gapSecondsMax??.37);
@@ -67,11 +67,8 @@
         const nextY=clamp(prev.y1+delta,this.baseY-r.maxOffset,this.baseY+r.maxOffset);
         segment=this._append('slope',this._random(r.minSlopeWidth,r.maxSlopeWidth),nextY);
       }else if(policy?.dashLearningRunway){
-        // Long advanced Dash shapes must actually spawn in the tutorial.
-        // Only during the original FLOOR-ONLY first lesson, author a calm
-        // contiguous flat runway wide enough for a 1.36-second energy
-        // bridge plus the normal takeoff/landing safety margins. This
-        // changes terrain generation, never existing terrain/collisions.
+        // A first long Duck Gate needs a flat approach on the floor.
+        // The retired jump bridge no longer reserves these corridors.
         segment=this._append('flat',Math.max(2700,Math.min(3900,speed*3.2)));
       }else if(policy?.challengeRunway){
         // Late mastered sections: occasional 3.0–3.6-second flat

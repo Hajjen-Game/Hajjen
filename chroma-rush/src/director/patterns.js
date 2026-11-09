@@ -8,21 +8,15 @@
   if(root)root.ChromaPatterns=api;
 })(typeof window!=='undefined'?window:null,function(){
   'use strict';
+  // Arcade Simplification 1.0: one Jump, one Duck, their combinations,
+  // and the wider Duck Gate. Echo Rail and Twin Vault are retired from play.
+  // Double-jump challenges now come from the terrain's Echo Gaps.
   const PATTERNS=Object.freeze([
     {id:'single-jump',steps:['jump'],tier:0,minZone:1,weight:3.0},
     {id:'single-duck',steps:['duck'],tier:0,minZone:1,weight:3.0},
     {id:'twin-jump',steps:['jump','jump'],tier:1,minZone:1,weight:1.4},
     {id:'twin-duck',steps:['duck','duck'],tier:1,minZone:1,weight:1.1},
-    // The first low, wide Echo Rail is taught alone in zone 2, not a combo.
-    {id:'single-echo',steps:['echo'],tier:1,minZone:2,weight:1.5},
-    // The advanced long energy structures debut alone on a safe floor;
-    // the first Twin Vault is now approachable via Echo with a useful Dash
-    // boost; the long Duck Gate still benefits from Ground Dash early.
-    {id:'single-dash-jump',steps:['dash-jump'],tier:1,minZone:3,weight:.95},
-    {id:'single-dash-duck',steps:['dash-duck'],tier:1,minZone:4,weight:.95},
-    // Advanced phrases appear only after the player has had time to practice.
-    {id:'echo-then-jump',steps:['echo','jump'],tier:2,minZone:6,weight:.8},
-    {id:'jump-then-echo',steps:['jump','echo'],tier:3,minZone:8,weight:.7},
+    {id:'single-dash-duck',steps:['dash-duck'],tier:1,minZone:4,weight:.85},
     {id:'up-down',steps:['jump','duck'],tier:1,minZone:2,weight:2.0},
     {id:'down-up',steps:['duck','jump'],tier:1,minZone:2,weight:2.0},
     {id:'up-down-up',steps:['jump','duck','jump'],tier:2,minZone:3,weight:1.2},

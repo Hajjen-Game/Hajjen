@@ -101,39 +101,28 @@ test('Dash assistance is optional, local and NEVER a pass requirement',()=>{
   assert.equal(mayAssist(ground,{action:'air',playerWorld:1400,speed,ducking:true}),false);
 });
 
-test('ground-first introductions, Director cooldown and gravity safeguards remain',()=>{
-  assert.equal(safeToSpawn(AIR,{zone:2,first:true}),false);
+test('retained long Duck Gate has floor-first introduction and respects health safety',()=>{
   assert.equal(safeToSpawn(GROUND,{zone:3,first:true}),false);
-  assert.equal(safeToSpawn(AIR,{zone:3,first:true,surface:'ceiling'}),false);
-  assert.equal(safeToSpawn(AIR,{zone:3,first:true,surface:'floor'}),true);
   assert.equal(safeToSpawn(GROUND,{zone:4,first:true,surface:'floor'}),true);
+  assert.equal(safeToSpawn(GROUND,{zone:4,first:true,surface:'ceiling'}),false);
   assert.equal(safeToSpawn(GROUND,{zone:4,first:true,hp:50}),false);
   assert.equal(safeToSpawn(GROUND,{zone:4,first:true,stress:.5}),false);
   assert.equal(safeToSpawn(GROUND,{zone:4,first:true,gravityBusy:true}),false);
-  assert.equal(safeToSpawn(GROUND,{zone:4,confidence:.3}),false);
-  assert.equal(safeToSpawn(GROUND,{zone:4,confidence:.6}),true);
-  assert.ok(PATTERNS.some(p=>p.steps.length===1&&p.steps[0]===AIR));
   assert.ok(PATTERNS.some(p=>p.steps.length===1&&p.steps[0]===GROUND));
-  assert.ok(PROFILES[AIR].effort>2);
-  assert.ok(minimumGap(AIR,'jump',800)>=1.7);
+  assert.ok(PATTERNS.every(p=>!p.steps.includes(AIR)),'retired Twin Vault not active');
+  assert.ok(PROFILES[GROUND].effort>2);
   assert.ok(minimumGap('duck',GROUND,800)>=1.7);
   const d=new AdaptiveRushDirector(()=>.5);
-  d.echoIntroduced=true;
-  const ctx={zone:3,zoneElapsed:4,hp:100,speed:550,
-    confidence:.55,stress:0,playerX:330,gravityPending:false,surface:'floor'};
+  const ctx={zone:4,zoneElapsed:4,hp:100,speed:550,
+    playerX:330,gravityPending:false,surface:'floor'};
   const seen=[];
-  for(let i=0;i<16&&!seen.length;i++)d.tick(.1,ctx,o=>{seen.push(o.type);return true});
-  assert.deepEqual(seen,[AIR]);
-  assert.equal(d.dashIntroduced.air,true);
-  const next=new AdaptiveRushDirector(()=>.5);
-  next.echoIntroduced=true;next.dashIntroduced.air=true;
-  const seen2=[];
-  for(let i=0;i<16&&!seen2.length;i++)next.tick(.1,{...ctx,zone:4},o=>{seen2.push(o.type);return true});
-  assert.deepEqual(seen2,[GROUND]);
-  assert.equal(next.dashIntroduced.ground,true);
+  for(let i=0;i<16&&!seen.length;i++)d.tick(.1,ctx,x=>{seen.push(x.type);return true});
+  assert.deepEqual(seen,[GROUND]);
+  assert.equal(d.dashIntroduced.air,false);
+  assert.equal(d.dashIntroduced.ground,true);
   assert.equal(FAMILY[AIR],'jump');assert.equal(FAMILY[GROUND],'duck');
   const chain=new PrecisionComboSystem();
-  assert.equal(chain.onClear({action:AIR,time:1}),null);
+  assert.equal(chain.onClear({action:'jump',time:1}),null);
   assert.equal(chain.onClear({action:GROUND,time:2}).length,2);
 });
 

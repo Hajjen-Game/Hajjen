@@ -24,6 +24,7 @@
       this.noGapsBefore=0;
       this.noHazardsBefore=0;
       this.gapsPlanned=0;
+      this.echoGapsPlanned=0;
       this.slopesPlanned=0;
       this.spawnsDeferred=0;
       this.gapFails=0;
@@ -55,15 +56,10 @@
       // No gaps in the early tutorial. A low-shield player receives a more
       // forgiving terrain phrase without slowing the world itself.
       const gentle=hp<=50||stress>=.40;
-      // Dash lessons are an explicit gameplay objective. Real player logs
-      // showed that free-running terrain could lack *any* eligible flat
-      // collider in a complete floor cycle. Temporarily author a calm
-      // flat corridor, then restore the original procedural palette once
-      // BOTH advanced actions have been encountered on the floor.
-      const dashLearningRunway=surface==='floor'&&zone>=5&&
-        this.director.echoIntroduced&&hp>50&&
-        (!this.director.dashIntroduced.air||
-         !this.director.dashIntroduced.ground);
+      // Only the retained long Duck Gate needs a guided floor runway.
+      // Never suppress gap play after that one first encounter.
+      const dashLearningRunway=surface==='floor'&&zone>=4&&zone<=9&&
+        hp>50&&!this.director.dashIntroduced.ground;
       // Real high-speed obstacle space needs long, uninterrupted flats.
       // Late challenge runways ease terrain vetoes but retain hills/gaps.
       const endurance=this.director.enduranceFor?.({zone,hp})||0;
@@ -81,34 +77,28 @@
         (peak || (future.phase==='BUILD'&&zone>=5&&confidence>=.70));
       const gapTime=peak ? (gentle?.30:.35) : .29;
       const safeArrival=permitGap && future.remaining>=gapTime+.48;
-      const gapChance=safeArrival?(peak?(gentle?.13:.29):.065):0;
-      // Keep the first low Echo Rail lesson on a predictable level runway.
-      // Normal hills resume once the first Rail is introduced.
-      const teachingEcho=zone===2&&!this.director.echoIntroduced;
-      const slopeChance=teachingEcho||dashLearningRunway?0:
-        (({BUILD:.52,PEAK:.36,FADE:.24,RELAX:.10})[future.phase]||.2)*
+      const gapChance=safeArrival?(peak?(gentle?.19:.42):.14):0;
+      // Zone 2 remains a calm, flat section for basic jump and duck timing.
+      const teachingBasics=zone===2;
+      const slopeChance=teachingBasics||dashLearningRunway?0:
+        (({BUILD:.45,PEAK:.26,FADE:.22,RELAX:.10})[future.phase]||.2)*
         (challengeRunway?1-.36*density:1);
       const maxHeightChange=({BUILD:62,PEAK:58,FADE:38,RELAX:23})[future.phase]||40;
-      // Echo Gaps occur only in healthy, confident PEAK sections with
-      // enough time remaining for takeoff, two jumps and a safe landing.
-      // The same movement budget governs obstacle phrases AND big jumps.
-      // A planned Echo Gap must not demand another intense input immediately
-      // after an Echo Spire, a miss, or a recent gravity transition.
+      // Double-jump mastery now comes from real chasms, not the retired
+      // wide Echo Rail. First teach an ordinary gap, then introduce a broad
+      // Echo Gap on the floor in a calm, healthy PEAK window.
       const movement=this.director.movement;
       const arrival=(this.director.time||0)+lead;
-      const movementSafe=!movement || (movement.pressure<1.6&&
+      const movementSafe=!movement||(movement.pressure<1.6&&
         arrival-movement.lastEchoTime>3.3&&arrival>=movement.recoveryUntil+.6);
-      // Teach the FIRST double jump via one broad low Echo Rail on the
-      // floor. Echo Gaps are not allowed to appear first by accident during
-      // terrain lookahead; unlock them after a REAL successful Rail clear.
-      const echoSkillLearned=(movement?.echoClears||0)>0;
-      const echoSafe=zone>=5&&echoSkillLearned&&safeArrival&&peak&&
-        future.remaining>=1.58&&!gentle&&stress<.33&&
-        confidence>=.53&&hp>50&&movementSafe;
+      const echoSafe=zone>=4&&this.gapSuccesses>0&&safeArrival&&peak&&
+        future.remaining>=1.58&&!gentle&&stress<.36&&
+        confidence>=.50&&hp>50&&movementSafe&&
+        (surface==='floor'||this.echoGapsPlanned>0);
       const policy={phase:future.phase,leadSeconds:lead,allowGap:safeArrival,
         gapChance,slopeChance,maxHeightChange:gentle?Math.min(40,maxHeightChange):maxHeightChange,
         gapSecondsMin:peak?.30:.27,gapSecondsMax:gapTime,
-        echoGapChance:echoSafe?.30:0,
+        echoGapChance:echoSafe?.44:0,
         echoGapSecondsMin:.92,echoGapSecondsMax:1.015,
         noGapBefore:this.noGapsBefore,dashLearningRunway,
         challengeRunway,endurance,density};
@@ -119,7 +109,10 @@
       const context={playerWorld,zone,speed,hp,surface};
       const added=this.terrain.ensure(right,zone,speed,start=>this.policyAt(start,context));
       for(const s of added){
-        if(s.type==='gap')this.gapsPlanned++;
+        if(s.type==='gap'){
+          this.gapsPlanned++;
+          if(s.echoChallenge)this.echoGapsPlanned++;
+        }
         if(s.type==='slope')this.slopesPlanned++;
       }
       return added;
@@ -174,7 +167,8 @@
       }else this.gapSuccesses++;
     }
     get insight(){return {
-      gapsPlanned:this.gapsPlanned,slopesPlanned:this.slopesPlanned,
+      gapsPlanned:this.gapsPlanned,echoGapsPlanned:this.echoGapsPlanned,
+      slopesPlanned:this.slopesPlanned,
       spawnsDeferred:this.spawnsDeferred,gapFails:this.gapFails,
       gapSuccesses:this.gapSuccesses,phase:this.director.phase,
       lastPlannedPhase:this.lastPolicy?.phase||'BUILD'

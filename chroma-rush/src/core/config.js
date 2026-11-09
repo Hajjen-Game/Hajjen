@@ -34,6 +34,8 @@
     {name:'VERDANT',primary:'#81ff69',secondary:'#35ffc0',shadow:'#123010'},
     {name:'PLASMA',primary:'#aa64ff',secondary:'#ffac6e',shadow:'#241331'}
   ].map(p=>Object.freeze(p)));
+  // One curated palette lives for TWO gameplay zones; zones still advance every 12s.
+  const paletteForZone=zone=>PALETTES[Math.floor(Math.max(0,(Number(zone)||1)-1)/2)%PALETTES.length];
   const GAME=Object.freeze({
     floorRatio:.715,
     baseSpeed:370,
@@ -113,7 +115,7 @@
     slopeFromZone:2,
     gapFromZone:3,
     firstGapWorld:2600,
-    gapChance:.23,
+    gapChance:.34,
     slopeChance:.62,
     maxHeightChange:65,
     maxOffset:70,
@@ -151,5 +153,5 @@
     echoUnlockZone:1,
     echoMinAirSeconds:.095
   });
-  return {PALETTES,GAME,FLOW,AUDIO,TERRAIN,JUMP_FEEL,ECHO_SPIRE,DASH,SHIELD_CORE};
+  return {PALETTES,paletteForZone,GAME,FLOW,AUDIO,TERRAIN,JUMP_FEEL,ECHO_SPIRE,DASH,SHIELD_CORE};
 });

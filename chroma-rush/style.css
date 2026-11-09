@@ -903,3 +903,25 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
   #hud #score-display{font-size:15px;}
   #hud #zone-display{font-size:15px;}
 }
+
+/* PHASE 2 — CHROMA SURGE 1.0: only visible for the live 4.8s skill window.
+   Lives in the existing center HUD column; never floats over hazard lanes. */
+#hud .surge-indicator:not(.hidden){
+  display:block;
+  margin:3px auto 0;
+  color:#e9fbff;
+  font-weight:850;
+  font-size:clamp(9px,.83vw,12px);
+  line-height:1.15;
+  white-space:nowrap;
+  letter-spacing:.12em;
+  text-shadow:0 0 8px var(--cyan),0 0 17px var(--cyan);
+  animation:surgeHudPulse .65s ease-in-out infinite alternate;
+}
+@keyframes surgeHudPulse{
+  from{opacity:.8;filter:brightness(1);}
+  to{opacity:1;filter:brightness(1.18);}
+}
+@media(prefers-reduced-motion:reduce){
+  #hud .surge-indicator:not(.hidden){animation:none;}
+}

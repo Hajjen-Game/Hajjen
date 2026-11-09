@@ -152,7 +152,7 @@ test('palette lookup is still constant-time and the old eight colors remain in o
   const game=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   assert.match(game,/window\.ChromaConfig\.paletteForZone\(zone\)/);
-  assert.match(html,/LATEST UPDATE · ARCADE SIMPLIFICATION 1\.0/);
+  assert.match(html,/LATEST UPDATE · (?:ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1)/);
   assert.match(html,/palette-24-2\.0/);
   assert.match(game,/!hurdles\.some\(o=>o\.mechanicIntro&&!o\.hit&&!o\.cleared\)/);
   assert.match(game,/surface:gravityShift\.ceiling\?'ceiling':'floor'/);

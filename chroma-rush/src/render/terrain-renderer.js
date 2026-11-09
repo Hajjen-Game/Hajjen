@@ -56,8 +56,10 @@
     const runs=visibleRuns(terrain.segments,left,right);
     // The high-zone PRACTICE camera already sees a little behind world zero.
     // Fill that opening with the existing start-run flat, not a new collider.
-    if(left<0&&runs[0]?.[0]?.lo===0&&terrain.segments[0]?.type==='flat'){
-      const s={type:'flat',start:left,end:0,y0:terrain.baseY,y1:terrain.baseY};
+    if(cameraView&&viewLeft<-.01&&left<0&&
+      runs[0]?.[0]?.lo===0&&terrain.segments[0]?.type==='flat'){
+      const y=Number.isFinite(terrain.baseY)?terrain.baseY:runs[0][0].s.y0;
+      const s={type:'flat',start:left,end:0,y0:y,y1:y};
       runs[0].unshift({s,lo:left,hi:0});
     }
     if(!runs.length)return;

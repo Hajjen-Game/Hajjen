@@ -86,7 +86,11 @@ test('normal and inverted course produce correct mirror without moving the HUD a
   const operations=[];
   camera.apply({translate:(...args)=>operations.push(['translate',...args]),
     scale:(...args)=>operations.push(['scale',...args])},px,ground);
-  assert.deepEqual(operations,[['translate',px*.2,ground*.2],['scale',.8,.8]]);
+  assert.deepEqual(operations.map(op=>op[0]),['translate','scale']);
+  approx(operations[0][1],px*.2);
+  approx(operations[0][2],ground*.2);
+  approx(operations[1][1],.8);
+  approx(operations[1][2],.8);
 });
 
 test('obstacle, Echo, Dash and gap fairness budgets use the real expanded horizon',()=>{

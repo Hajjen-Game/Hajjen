@@ -30,6 +30,7 @@ const modules={
  ChromaStateVFX:require('../src/render/chroma-state-vfx.js'),
  ChromaSpeedTrails:require('../src/render/speed-trails.js'),
  ChromaGravityShift:require('../src/gameplay/gravity-shift.js'),
+ ChromaAdaptiveCamera:require('../src/camera/adaptive-camera.js'),
  ChromaRoundAudit:require('../src/diagnostics/round-audit.js'),
  ChromaUnifiedTerrainDirector:require('../src/director/unified-terrain-director.js'),
  ChromaQuality:require('../src/performance/quality-manager.js'),

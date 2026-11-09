@@ -93,6 +93,6 @@ test('rendering defers HUD updates until a completed physics frame and skips off
   assert.doesNotMatch(update,/\n    updateHud\(\);/);
   assert.doesNotMatch(update,/\n    syncSoundButton\(\);/);
   assert.match(game,/if\(status==='running'&&timing\.steps>0\)\{[\s\S]*?updateHud\(\);[\s\S]*?syncSoundButton\(\);/);
-  assert.match(game,/if\(o\.x>W\+100\|\|o\.x\+o\.width<-100\)return;/);
+  assert.match(game,/if\(o\.x>camera\.visibleRight\(W,player\.x\)\+100\|\|[\s\S]*?o\.x\+o\.width<camera\.visibleLeft\(W,player\.x\)-100\)return;/);
   assert.equal(GAME.baseSpeed,370);
 });

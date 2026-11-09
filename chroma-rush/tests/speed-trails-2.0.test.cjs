@@ -150,7 +150,7 @@ test('HTML loads speed trails before game, with isolated cache versions',()=>{
   const trail=html.indexOf('src/render/speed-trails.js?v=speed-trails-2.5-dash-echoes');
   const game=html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0');
   assert.ok(trail>0&&game>trail);
-  assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0)/);
+  assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1)/);
   const source=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
   assert.match(source,/speedTrails\.tick\(dt,/);
   assert.match(source,/speedTrails\.draw\(ctx,/);

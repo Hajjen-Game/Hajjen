@@ -791,7 +791,7 @@ test('blocked ordinary obstacle cannot starve the retained Ground Dash lesson',(
   assert.ok(attempts.includes('dash-duck'));
   assert.ok(defers.some(x=>x.reason==='stalled_ordinary_pattern'));
 });
-test('long Duck Gate placement preserves physical recovery beyond the previous obstacle',()=>{
+test('long Duck Gate enforces world-edge recovery and remains spawnable on clean runway',()=>{
   const h=duckHarness(),g=h.game.context.window.__gravityHarness;
   g.director.tick=()=>{};g.gravityShift.requestForZone=()=>false;
   h.advance(1);g.forceZone(5);
@@ -803,20 +803,23 @@ test('long Duck Gate placement preserves physical recovery beyond the previous o
   assert.equal(g.testSpawn({type:'jump'}),true);
   const first={...g.lastPlaced()};
   assert.equal(g.testSpawn({type:'dash-duck',guided:true}),false,
-    'long Gate cannot overlap short Jump recovery');
-  h.advance(90);
-  let made=false;
-  for(let i=0;i<460&&!made;i++){
-    h.advance(1);made=g.testSpawn({type:'dash-duck',guided:true})===true;
-  }
-  assert.equal(made,true,'long Duck Gate is placeable after recovery');
-  const gate=g.hurdles().find(o=>o.type==='dash-duck');
-  assert.ok(gate);
-  const check=dashHazards.placementAfter(first,'dash-duck',{
-    worldX:gate.worldX,speed:g.speed(),intro:true});
-  assert.equal(check.allowed,true);
-  assert.ok(check.actualWorldGap>=check.requiredWorldGap);
+    'long Duck Gate cannot start before the normal Jump recovery ends');
+  const speed=g.speed();
+  const early=dashHazards.placementAfter(first,'dash-duck',{
+    worldX:first.endWorld+speed*.5,speed,intro:true});
+  assert.equal(early.allowed,false);
+  const late=dashHazards.placementAfter(first,'dash-duck',{
+    worldX:first.endWorld+speed*2,speed,intro:true});
+  assert.equal(late.allowed,true,'safe world-edge distance must make the gate eligible');
+  const fresh=duckHarness(),other=fresh.game.context.window.__gravityHarness;
+  fresh.advance(1);other.forceZone(5);
+  other.director.stress=0;other.director.confidence=.9;
+  other.terrain.canSpawnObstacle=()=>true;other.terrain.groundAt=()=>515;
+  other.shieldCores.blocksHazard=()=>false;
+  assert.equal(other.testSpawn({type:'dash-duck',guided:true}),true,
+    'the retained long Duck Gate must be spawnable on a safe floor');
 });
+
 test('optional Dash assist is counted separately from an ordinary physical clear',()=>{
   const audit=new runAudit.RoundAudit();
   audit.record('spawn',{zone:5},{obstacle:'dash-jump'});

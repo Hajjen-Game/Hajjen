@@ -118,9 +118,9 @@ test('twenty-four deterministic three-minute sweeps cover fast phones, narrow vi
   assert.equal(report.cuesChecked,report.warnings);
   assert.ok(report.warnings>0);
   assert.ok(report.results.every(r=>r.gravityFlips>0));
-  // Speed Curve 3.2 reaches approximately 1,414 units/s at 3m.
+  // Core Pace 1.1 reaches about 1,802 units/s at 3 minutes.
   assert.ok(report.results.every(r=>r.finalSpeed===GAME.speedAt(180,16)));
-  assert.ok(report.results.every(r=>Math.round(r.finalSpeed)===1414));
+  assert.ok(report.results.every(r=>Math.round(r.finalSpeed)===1802));
   console.log('high-speed-fairness audit summary: '+JSON.stringify({
     runs:report.runs,simulatedSeconds:report.totalSeconds,
     obstacles:report.obstacles,offscreenCues:report.warnings,

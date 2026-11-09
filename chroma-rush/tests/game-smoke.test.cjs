@@ -71,8 +71,7 @@ function setup(initialStorage={}) {
   const ending='  requestAnimationFrame(frame);\n})();';
   assert.ok(gameCode.includes(ending));
   vm.runInContext(gameCode.replace(ending,
-    "  window.__gravityHarness={gravityShift,camera,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,dash,shieldCores,DASH_HAZARDS,runAudit,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,testSpawn:spawn,lastPlaced:()=>lastPlacedHazard,
-      speed:()=>speed,hp:()=>hp,setHP:n=>{hp=n},player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
+    "  window.__gravityHarness={gravityShift,camera,terrain,terrainDirector,director,chromaVfx,effects,jumpControl,dash,shieldCores,DASH_HAZARDS,runAudit,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,testSpawn:spawn,lastPlaced:()=>lastPlacedHazard,speed:()=>speed,hp:()=>hp,setHP:n=>{hp=n},player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
     context,{filename:'game.js'});
   return {get,local,rotations,bends,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};

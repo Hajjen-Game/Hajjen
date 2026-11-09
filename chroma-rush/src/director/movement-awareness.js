@@ -34,7 +34,7 @@
       previous==='dash-duck'?Math.min(530/v,.68):0;
     if(previousAdvanced&&nextAdvanced)return priorSpan+2.6+travel;
     if(previousAdvanced)return priorSpan+1.7+travel;
-    if(nextAdvanced)return 1.25+travel;
+    if(nextAdvanced)return 1.6+travel;
     if(previous==='echo')return 1.47+travel;
     if(next==='echo')return (previous==='duck'?1.14:1.09)+travel;
     if(previous==='jump')return .88+travel;

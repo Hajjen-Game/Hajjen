@@ -28,7 +28,7 @@ test('authored patterns are supported, unique and short',()=>{
   assert.ok(candidates(PHASE.BUILD,1,1).every(p=>p.tier<=1));
   assert.ok(candidates(PHASE.FADE,12,3).every(p=>p.tier===0));
   assert.ok(candidates(PHASE.PEAK,1,3).every(p=>!p.steps.includes('echo')));
-  assert.ok(candidates(PHASE.PEAK,2,3).some(p=>p.id==='single-echo'));
+  assert.ok(candidates(PHASE.PEAK,2,3).every(p=>p.steps.every(s=>s==='jump'||s==='duck')));
   assert.ok(candidates(PHASE.PEAK,8,3,{allowEcho:false}).every(p=>!p.steps.includes('echo')));
 });
 

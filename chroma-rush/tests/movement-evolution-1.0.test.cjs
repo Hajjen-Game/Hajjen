@@ -105,21 +105,24 @@ test('Echo Jump increases flight time enough for marked gaps without changing ru
   assert.ok(echo-single>.3);
 });
 
-test('Director authorizes rare Echo Gaps only for confident healthy PEAKs',()=>{
+test('Director introduces double-jump gaps after ordinary gap mastery on the floor',()=>{
   const terrain=new TerrainSystem({random:()=>.5});
   const director={phase:'PEAK',phaseDuration:5,phaseElapsed:0,stress:0,confidence:.85,
-    movement:{echoClears:1,pressure:0,lastEchoTime:-Infinity,recoveryUntil:0}};
+    movement:{pressure:0,lastEchoTime:-Infinity,recoveryUntil:0},
+    dashIntroduced:{ground:true}};
   const system=new UnifiedTerrainDirector({terrain,director});
-  const ctx={playerWorld:2000,zone:5,speed:1000,hp:100};
+  const ctx={playerWorld:2000,zone:5,speed:1000,hp:100,surface:'floor'};
+  assert.equal(system.policyAt(3000,ctx).echoGapChance,0,
+    'a normal gap must be cleared before the broad double-jump gap');
+  system.gapSuccesses=1;
   const safe=system.policyAt(3000,ctx);
   assert.equal(safe.allowGap,true);
   assert.ok(safe.echoGapChance>0);
-  director.movement.echoClears=0;
-  assert.equal(system.policyAt(3000,ctx).echoGapChance,0,
-    'first double-jump encounter should be a cleared floor Spire, not a gap');
-  director.movement.echoClears=1;
+  assert.equal(system.policyAt(3000,{...ctx,surface:'ceiling'}).echoGapChance,0,
+    'first advanced gap is taught only on the floor');
+  system.echoGapsPlanned=1;
+  assert.ok(system.policyAt(3000,{...ctx,surface:'ceiling'}).echoGapChance>0);
   assert.equal(system.policyAt(3000,{...ctx,hp:25}).echoGapChance,0);
-  assert.equal(system.policyAt(3000,{...ctx,zone:4}).echoGapChance,0);
   director.stress=.55;
   assert.equal(system.policyAt(3000,ctx).echoGapChance,0);
   director.stress=0;director.confidence=.3;

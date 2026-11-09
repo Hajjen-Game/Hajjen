@@ -461,6 +461,33 @@
       obstacle:o.type,mode:action,source});
     return true;
   }
+  // Dash is a skillful timing correction, not a mandatory input gate.
+  // Record only *proximity* to real world hazards. A later pass/fail is
+  // associated with this target; neither proves Dash was necessary.
+  function dashTimingTarget(mode){
+    const at=distance+player.x,v=Math.max(300,speed);
+    const far=at+v*1.35,behind=at-v*.12;
+    let closest=null;
+    const consider=(kind,worldX,startWorld)=>{
+      if(!(startWorld<=far&&worldX>=behind))return;
+      const seconds=Math.max(0,(startWorld-at)/v);
+      if(!closest||seconds<closest.secondsToChallenge)
+        closest={targetKind:kind,targetWorld:worldX,secondsToChallenge:seconds};
+    };
+    for(const o of hurdles){
+      if(o.hit||o.cleared)continue;
+      if(mode==='air'&&o.type!=='jump')continue;
+      if(mode==='ground'&&o.type!=='duck'&&o.type!=='dash-duck')continue;
+      consider(o.type,o.worldX,o.worldX);
+    }
+    if(mode==='air'){
+      for(const g of terrain.visibleGaps(behind,far)){
+        if(g.resolved)continue;
+        consider(g.echoChallenge?'echo-gap':'gap',g.end,g.start);
+      }
+    }
+    return closest||{targetKind:'none'};
+  }
   function pressDuckDash(){
     if(status!=='running')return;
     // A second physical press while ducking or a new press in midair is Dash.
@@ -494,6 +521,7 @@
     runAudit.record(action==='air'?'air_dash':'ground_dash',auditState(),
       {extraSpeedFactor:DASH.bonusFactor,grounded:player.landed,
         ceiling:gravityShift.ceiling,remainingDuck:player.duckTime});
+    runAudit.noteDashTiming({mode:action,...dashTimingTarget(action)},auditState());
   }
   function dashThrustRelease(action){
     // Release timing is driven by PlayerMotion.dashFeel, never a second
@@ -830,6 +858,8 @@
       return;
     }
     o.hit=true;
+    runAudit.noteChallengeOutcome({
+      targetKind:o.type,targetWorld:o.worldX,cleared:false},auditState());
     if(DASH_HAZARDS.isDashHazard(o.type))
       runAudit.record('dash_hazard_miss',auditState(),{
         obstacle:o.type,assisted:Boolean(o.dashAssisted)});
@@ -844,6 +874,8 @@
   }
   function failGap(gap){
     if(!terrain.markGap(gap,true))return;
+    runAudit.noteChallengeOutcome({targetKind:gap.echoChallenge?'echo-gap':'gap',
+      targetWorld:gap.end,cleared:false},auditState());
     gapRecovery=gap;jumpControl.cancel();dash.cancel();dashReleasePending=null;motion.reset();combo.breakChain();
     terrainDirector.noteGapOutcome({missed:true,echo:Boolean(gap.echoChallenge),
       worldX:distance+player.x,speed});
@@ -865,6 +897,8 @@
   }
   function clearGap(gap){
     if(!terrain.markGap(gap,false))return;
+    runAudit.noteChallengeOutcome({targetKind:gap.echoChallenge?'echo-gap':'gap',
+      targetWorld:gap.end,cleared:true},auditState());
     terrainDirector.noteGapOutcome({missed:false,echo:Boolean(gap.echoChallenge),
       worldX:distance+player.x,speed});
     director.registerClear({action:gap.echoChallenge?'echo-gap':'gap'});
@@ -1094,6 +1128,8 @@
       if(!o.cleared&&o.x+o.width<p.x){
         o.cleared=true;
         if(!o.hit){
+          runAudit.noteChallengeOutcome({targetKind:o.type,
+            targetWorld:o.worldX,cleared:true},auditState());
           const traverse=(o.width+66)/Math.max(300,speed);
           const graded=gradePrecision({action:o.type,
             closestClearance:o.closestClearance,entryDuckTime:o.entryDuckTime,

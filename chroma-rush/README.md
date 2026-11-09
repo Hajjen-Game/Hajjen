@@ -1,8 +1,15 @@
-# CHROMA RUSH — Arcade Simplification 1.0
+# CHROMA RUSH — Core Gameplay Excellence 1.0 (Phase 1 audit underway)
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Core Gameplay Excellence 1.0 — baseline audit (2026-11-09)
+
+- **Phase 1 has begun; gameplay balance and physics are deliberately unchanged.** The first 60 seconds are summarized in four 15-second windows in the existing locally exported round log.
+- **Air Dash and Ground Dash remain.** They may help recover from early Jump or Duck inputs even without a compulsory Dash obstacle. New diagnostics correlate proximity and later clear/hit without falsely claiming Dash caused a rescue.
+- **Evidence next:** observe 15–20 first-time players, compare Dash correction use under matched conditions, audit high-speed legibility and low-end mobile performance. No claim of D1/D7 retention is made from local per-round logs.
+- [Audit methodology, fields and Phase 1 decision gates](docs/core-gameplay-excellence-1.0.md).
 
 ## Arcade Simplification 1.0 — current gameplay (2026-11-09)
 

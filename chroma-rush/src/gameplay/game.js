@@ -1323,7 +1323,7 @@
           ctx.stroke();
         }
         ctx.shadowBlur=0;
-        // One restrained moving highlight, no rings or separate hazard icon.
+        // One restrained moving highlight, no circular overlays or separate hazard icon.
         if(!reducedMotion){
           const travel=((worldTime*.62+o.pulse/(2*Math.PI))%1)*span;
           glowLine(start+travel,wire.y+12,

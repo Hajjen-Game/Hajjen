@@ -17,7 +17,8 @@
     'jump_input','duck_input','echo_jump','air_dash','ground_dash','dash_blocked',
     'echo_unlocked','dash_unlocked','gravity_warning','gravity_shift_begin','gravity_shift_complete',
     'shield_core_spawn','shield_core_pickup','shield_core_miss',
-    'dash_hazard_clear','dash_hazard_miss','dash_hazard_defer','dash_hazard_assist']);
+    'dash_hazard_clear','dash_hazard_miss','dash_hazard_defer','dash_hazard_assist',
+    'dash_timing','dash_followthrough']);
   const number=(n)=>Number.isFinite(Number(n))?Math.round(Number(n)*100)/100:0;
   const snap=(input={})=>({
     time:number(input.time),zone:Math.max(1,number(input.zone)||1),
@@ -41,6 +42,18 @@
       maxBasicStreak:0,windows:[]},
     movement:{jumpPresses:0,duckPresses:0,echoJumps:0,
       airDashes:0,groundDashes:0,dashBlocked:0},
+    // First 60 seconds are the critical onboarding window. Spawns are
+    // generated hazards, not yet encounters; clears/hits reflect outcomes.
+    firstMinute:{firstInputSeconds:null,firstClearSeconds:null,
+      firstDamageSeconds:null,firstDashSeconds:null,
+      windows:Array.from({length:4},(_,i)=>({
+        fromSeconds:i*15,toSeconds:(i+1)*15,
+        inputs:0,spawns:0,clears:0,hits:0,gapClears:0,gapMisses:0,
+        dashActions:0,blockedDashes:0}))},
+    // Proximity + subsequent clearance, NEVER a causal claim that Dash
+    // saved the player. Nonmatching actions are not counted as failures.
+    dashTiming:{air:{nearby:0,noNearby:0,cleared:0,hit:0},
+      ground:{nearby:0,noNearby:0,cleared:0,hit:0}},
     combos:{count:0,bestChain:0,bonusPoints:0,bonusFlow:0,byLength:{2:0,3:0,4:0}},
     peakStress:0,peakConfidence:0,phaseSeconds:{BUILD:0,PEAK:0,FADE:0,RELAX:0},
     reaction:{measured:0,earlyCues:0,underBudget:0,
@@ -53,9 +66,47 @@
       this.events=[];this.overflow=0;this.elapsed=0;this.sampleAccumulator=0;
       this.samples=[];this.summary=stats();this.finished=false;
       this._lastBasicType=null;this._basicStreak=0;
+      this._pendingDashTiming=[];
       this.finalState=null;
       this.frameFairness={samples:0,slowFrames:0,stalls:0,
         longestFrameMs:0,droppedSimulationSeconds:0};
+    }
+    // Called on actual accepted Dash inputs. This is a contextual
+    // observation, NOT an assertion that the move was necessary.
+    noteDashTiming({mode,targetKind='none',targetWorld=null,
+      secondsToChallenge=null}={},context={}){
+      if(this.finished||!['air','ground'].includes(mode))return false;
+      const row=this.summary.dashTiming[mode];
+      const supported=['jump','duck','dash-duck','gap','echo-gap'];
+      const near=supported.includes(targetKind)&&Number.isFinite(targetWorld);
+      this.record('dash_timing',context,{
+        mode,target:near?targetKind:'none',
+        secondsToChallenge:Number.isFinite(secondsToChallenge)?
+          Math.max(0,secondsToChallenge):0});
+      if(!near){row.noNearby++;return false}
+      row.nearby++;
+      // Multiple Dash presses near one target remain separately visible,
+      // while a bounded queue avoids growth during unusually long runs.
+      this._pendingDashTiming=this._pendingDashTiming.filter(t=>
+        this.elapsed-t.at<=3.2).slice(-15);
+      this._pendingDashTiming.push({
+        mode,targetKind,targetWorld,at:this.elapsed});
+      return true;
+    }
+    noteChallengeOutcome({targetKind,targetWorld,cleared=false}={},context={}){
+      if(this.finished||!Number.isFinite(targetWorld))return 0;
+      const found=this._pendingDashTiming.filter(t=>
+        t.targetKind===targetKind&&
+        Math.abs(t.targetWorld-targetWorld)<1&&
+        this.elapsed-t.at<=3.2);
+      if(!found.length)return 0;
+      this._pendingDashTiming=this._pendingDashTiming.filter(t=>!found.includes(t));
+      for(const t of found){
+        this.summary.dashTiming[t.mode][cleared?'cleared':'hit']++;
+        this.record('dash_followthrough',context,{mode:t.mode,
+          target:targetKind,outcome:cleared?'cleared':'hit'});
+      }
+      return found.length;
     }
     record(type,context={},data={}){
       if(this.finished||!TYPES.has(type))return;
@@ -72,6 +123,32 @@
       if(type!=='dash_hazard_defer'){
         if(this.events.length<MAX_EVENTS)this.events.push({type,...state,...payload});
         else this.overflow++;
+      }
+      // Non-invasive first-minute funnel; no inputs, coordinates or device
+      // identity are persisted beyond the existing bounded event log.
+      if(state.time>=0&&state.time<60){
+        const first=this.summary.firstMinute;
+        const w=first.windows[Math.min(3,Math.floor(state.time/15))];
+        if(type==='jump_input'||type==='duck_input'){
+          w.inputs++;
+          if(first.firstInputSeconds===null)first.firstInputSeconds=state.time;
+        }
+        if(type==='spawn')w.spawns++;
+        if(type==='obstacle_clear'||type==='gap_clear'){
+          w.clears++;
+          if(type==='gap_clear')w.gapClears++;
+          if(first.firstClearSeconds===null)first.firstClearSeconds=state.time;
+        }
+        if(type==='obstacle_hit'||type==='gap_miss'){
+          w.hits++;
+          if(type==='gap_miss')w.gapMisses++;
+          if(first.firstDamageSeconds===null)first.firstDamageSeconds=state.time;
+        }
+        if(type==='air_dash'||type==='ground_dash'){
+          w.dashActions++;
+          if(first.firstDashSeconds===null)first.firstDashSeconds=state.time;
+        }
+        if(type==='dash_blocked')w.blockedDashes++;
       }
       switch(type){
         case 'dash_hazard_defer':{
@@ -234,7 +311,16 @@
     }
     snapshot(context={}){
       const duration=Math.round(this.elapsed*100)/100;
-      const sum={...this.summary,phaseSeconds:Object.fromEntries(
+      const sum={...this.summary,
+        firstMinute:{...this.summary.firstMinute,
+          observedSeconds:number(Math.min(60,this.elapsed)),
+          survivedFirstMinute:this.elapsed>=60,
+          endedBeforeFirstMinute:this.finished&&this.elapsed<60,
+          windows:this.summary.firstMinute.windows.map(w=>({...w}))},
+        dashTiming:Object.fromEntries(Object.entries(this.summary.dashTiming)
+          .map(([mode,row])=>[mode,{...row,
+            unresolved:Math.max(0,row.nearby-row.cleared-row.hit)}])),
+        phaseSeconds:Object.fromEntries(
         Object.entries(this.summary.phaseSeconds).map(([phase,seconds])=>[phase,number(seconds)])),
         chromaSeconds:number(this.summary.chromaSeconds),
         flowAbove65Seconds:number(this.summary.flowAbove65Seconds),

@@ -18,7 +18,8 @@
     'echo_unlocked','dash_unlocked','gravity_warning','gravity_shift_begin','gravity_shift_complete',
     'shield_core_spawn','shield_core_pickup','shield_core_miss',
     'dash_hazard_clear','dash_hazard_miss','dash_hazard_defer','dash_hazard_assist',
-    'dash_timing','dash_followthrough']);
+    'dash_timing','dash_followthrough',
+    'surge_start','surge_clear','surge_break','surge_end']);
   const number=(n)=>Number.isFinite(Number(n))?Math.round(Number(n)*100)/100:0;
   const snap=(input={})=>({
     time:number(input.time),zone:Math.max(1,number(input.zone)||1),
@@ -35,6 +36,8 @@
           dashAssisted:{air:0,ground:0}},
         deferred:{total:0,byReason:{}}},
     maxFlow:0,chromaSeconds:0,flowAbove65Seconds:0,highestStreak:0,
+    surge:{started:0,completed:0,interrupted:0,clears:0,bonusPoints:0,
+      breaks:0,bestChain:0,activeSeconds:0},
     precisionClears:0,masterClears:0,
     // Keep a full-run 30-second obstacle mix even when the detailed
     // event log is capped at 600 entries on older phones.
@@ -151,6 +154,18 @@
         if(type==='dash_blocked')w.blockedDashes++;
       }
       switch(type){
+        case 'surge_start':this.summary.surge.started++;break;
+        case 'surge_end':
+          if(data.interrupted===true)this.summary.surge.interrupted++;
+          else this.summary.surge.completed++;
+          break;
+        case 'surge_clear':
+          this.summary.surge.clears++;
+          this.summary.surge.bonusPoints+=Math.max(0,number(data.bonusPoints));
+          this.summary.surge.bestChain=Math.max(this.summary.surge.bestChain,
+            Math.max(0,Math.floor(number(data.chain))));
+          break;
+        case 'surge_break':this.summary.surge.breaks++;break;
         case 'dash_hazard_defer':{
           const row=this.summary.dashHazards.deferred;
           const reason=typeof payload.reason==='string'?payload.reason:'unknown';
@@ -284,6 +299,7 @@
       // Hysteresis can keep CHROMA active briefly below 90%; measure the actual tier.
       const chromaActive=typeof context.chromaActive==='boolean'?context.chromaActive:state.flow>=90;
       if(chromaActive)s.chromaSeconds+=dt;
+      if(context.surgeActive===true)s.surge.activeSeconds+=dt;
       if(state.flow>=65)s.flowAbove65Seconds+=dt;
       if(PHASES.includes(state.phase))s.phaseSeconds[state.phase]+=dt;
       this.sampleAccumulator+=dt;
@@ -332,7 +348,7 @@
         reaction:{...this.summary.reaction,byAction:Object.fromEntries(
           Object.entries(this.summary.reaction.byAction).map(([k,v])=>[k,{...v}]))}};
       return {format:'chroma-rush-round-audit',version:3,mode:this.mode,
-        build:'core-pace-gravity-1.1',
+        build:'phase-2-chroma-surge-1.0',
         startingZone:this.startingZone,durationSeconds:duration,summary:sum,
         finalState:this.finalState||snap(context),events:this.events.map(e=>({...e})),
         samples:this.samples.map(s=>({...s})),truncatedEvents:this.overflow,

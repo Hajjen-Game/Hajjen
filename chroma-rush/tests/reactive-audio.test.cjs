@@ -107,7 +107,7 @@ test('entry point loads independent audio module before the gameplay engine',()=
   const root=path.join(__dirname,'..');
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const scripts=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
-  const audio=scripts.indexOf('src/audio/reactive-audio.js?v=chroma-state-2.0-chroma-pulse-1.0-gravity-1.0-movement-1.0-combo-1.0-spectacle-1.0-dash-sound-2.5-shield-core-1.0-dash-hazards-1.0');
+  const audio=scripts.findIndex(src=>src.startsWith('src/audio/reactive-audio.js?v=chroma-state-2.0-chroma-pulse-1.0-gravity-1.0-movement-1.0-combo-1.0-spectacle-1.0-dash-sound-2.5-shield-core-1.0-dash-hazards-1.0')&&src.endsWith('-phase-2-chroma-surge-1.0'));
   const engine=scripts.findIndex(src=>src.startsWith('src/gameplay/game.js?v='));
   assert.ok(audio>0 && engine>audio);
   assert.ok(scripts.every(src=>fs.existsSync(path.join(root,src.split('?')[0]))));

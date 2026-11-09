@@ -83,7 +83,7 @@ test('landscape responsive CTA, reduced motion, and controls are retained',()=>{
  for(const id of ['jump-btn','duck-btn','graphics-mode','music-enabled',
   'effects-enabled','effects-volume','haptics-enabled','fullscreen-btn'])
   assert.ok(html.includes('id="'+id+'"'),id);
- assert.match(html,/(?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1)/);
+ assert.match(html,/(?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0)/);
 });
 
 test('HUD Anchor 4.1 explicitly corrects the old asymmetric layout',()=>{

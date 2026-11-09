@@ -7,7 +7,7 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
-  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo || !window.ChromaShieldCore || !window.ChromaShieldCoreRender || !window.ChromaDashHazards || !window.ChromaObstacleBalance || !window.ChromaAdaptiveCamera) {
+  if (!ctx || !window.ChromaDirector || !window.ChromaConfig || !window.ChromaGeometry || !window.ChromaHud || !window.ChromaFlow || !window.ChromaAudio || !window.ChromaProgress || !window.ChromaArcadeUI || !window.ChromaTerrain || !window.ChromaJump || !window.ChromaDash || !window.ChromaMotion || !window.ChromaWorldBackground || !window.ChromaTerrainRender || !window.ChromaRoundAudit || !window.ChromaUnifiedTerrainDirector || !window.ChromaQuality || !window.ChromaFrameClock || !window.ChromaEffects || !window.ChromaMobilePreferences || !window.ChromaReplay || !window.ChromaReplayUI || !window.ChromaSpectralWave || !window.ChromaStateVFX || !window.ChromaSpeedTrails || !window.ChromaGravityShift || !window.ChromaMovementAwareness || !window.ChromaHighSpeedFairness || !window.ChromaPrecisionCombo || !window.ChromaShieldCore || !window.ChromaShieldCoreRender || !window.ChromaDashHazards || !window.ChromaObstacleBalance || !window.ChromaAdaptiveCamera || !window.ChromaSurge) {
     document.getElementById('menu').innerHTML = '<h2>Canvas 2D is required.</h2>';
     return;
   }
@@ -57,6 +57,7 @@
   const terrainRender = window.ChromaTerrainRender;
   const worldBackground = window.ChromaWorldBackground;
   const spectralWave = new window.ChromaSpectralWave.SpectralWave();
+  const surge = new window.ChromaSurge.ChromaSurge();
   const gravityShift = new window.ChromaGravityShift.GravityShift();
   const camera = new window.ChromaAdaptiveCamera.AdaptiveCamera();
   const chromaVfx = new window.ChromaStateVFX.ChromaStateVisuals();
@@ -74,6 +75,7 @@
     hp:el('hp-inner'), hpNumber:el('hp-number'), shieldGain:el('shield-gain'), zone:el('zone-display'), phase:el('phase-display'),
     score:el('score-display'), speed:el('speed-display'), critical:el('danger-indicator'),
     zoneCallout:el('zone-callout'), zoneCalloutTag:el('zone-callout-tag'), zoneCalloutName:el('zone-callout-name'),
+    surgeIndicator:el('surge-indicator'),
     sound:el('sound-btn'), audioHint:el('audio-hint'), finalScore:el('final-score'), finalZone:el('final-zone'), finalBest:el('final-best'),
     finalPerfect:el('final-perfect'), zonePerfect:el('zone-perfect'),
     flowNumber:el('flow-number'),flowBar:el('flow-inner'),flowOuter:el('flow-outer'),
@@ -145,7 +147,7 @@
     gravityMode:gravityShift.ceiling?'ceiling':'floor',gravityPhase:gravityShift.phase,
     movementPressure:director.movement.pressure,
     comboChain:combo.chain.length,dashMode:dash.mode||'none',
-    dashActive:dash.active};}
+    dashActive:dash.active,surgeActive:surge.active,surgeChain:surge.chain};}
   function exportRound(){
     if(status!=='dead')return;
     const exported=runAudit.snapshot(auditState());
@@ -297,7 +299,7 @@
     const palette=window.ChromaConfig.paletteForZone(zone);
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
     spectralWave.start({from:palette,to:palette,width:W,reducedMotion:true});
-    chromaVfx.reset();speedTrails.reset();gravityShift.reset();
+    chromaVfx.reset();speedTrails.reset();gravityShift.reset();surge.reset();
     zoneSoundAtCrossing=false;
     hurdles=[];motes=[];streaks=[];lastPlacedHazard=null;
     effects.reset();director.reset();terrainDirector.reset();flow.reset();combo.reset();flow.currentZone=zone;
@@ -349,7 +351,7 @@
     if(status==='running'||status==='paused')audio.stop();
     status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;echoHintTime=0;dashHintTime=0;
     $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');dash.reset();dashReleasePending=null;shieldCores.reset();shieldGainLeft=0;$.shieldGain.classList.add('hidden');$.hud.classList.remove('shield-recharged');$.duck.classList.remove('dash-active');
-    spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();effects.reset();combo.reset();zoneSoundAtCrossing=false;
+    spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();surge.reset();effects.reset();combo.reset();zoneSoundAtCrossing=false;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
     $.controls.classList.add('hidden');$.hud.classList.add('hidden');$.pauseBtn.classList.add('hidden');
@@ -362,6 +364,8 @@
   function endRun(){
     if(status!=='running')return;
     status='dead';dash.cancel();dashReleasePending=null;shieldCores.reset();shieldGainLeft=0;$.shieldGain.classList.add('hidden');$.hud.classList.remove('shield-recharged');$.duck.classList.remove('dash-active');speedTrails.reset();effects.reset();$.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');$.graphicsButton.classList.remove('hidden');audio.stop();syncSoundButton(true);sound('gameover');$.controls.classList.add('hidden');$.pauseBtn.classList.add('hidden');$.critical.classList.remove('active');
+    if(surge.active)runAudit.record('surge_end',auditState(),{zone:surge.zone,
+      totalPoints:surge.points,clears:surge.clears,interrupted:true});
     runAudit.finish(auditState());
     const total=Math.floor(score),previousBest=progression.bestScore;
     replayToastTime=0;$.replayToast.classList.add('hidden');
@@ -787,6 +791,36 @@
     HUD.update($,{hp,zone,color:c1,phase:director.label,score,speed,
       baseSpeed:GAME.baseSpeed,status,flow,combo});
     replayUI.hud($,{practice:runMode==='practice',score,previousScore:replay.previousScore});
+    $.surgeIndicator.classList.toggle('hidden',!surge.active);
+    if(surge.active){
+      $.surgeIndicator.textContent=surge.chain>0?
+        'SURGE · '+surge.chain+' CHAIN':'CHROMA SURGE';
+    }
+  }
+  function startSurge(){
+    if(!surge.activate())return false;
+    runAudit.record('surge_start',auditState(),{
+      zone:surge.zone,duration:window.ChromaSurge.WINDOW_SECONDS});
+    sound('surge-start');
+    if(!reducedMotion){
+      // Existing geometric accent language; never a screen flash or new
+      // obstacle marker in front of the wave.
+      groundPulse(player.x,player.feet-3,c2,32,1.1);
+      frameEcho(player.x,player.feet-22,c1,34,1.0);
+    }
+    return true;
+  }
+  function awardSurge(kind,{precision=false,master=false}={}){
+    // No credit for protected, invulnerable, or cosmetic clear paths.
+    if(player.invulnerable>0)return;
+    const outcome=surge.onClear({kind,precision,master});
+    if(!outcome)return;
+    score+=outcome.points;
+    runAudit.record('surge_clear',auditState(),{
+      kind,chain:outcome.chain,bonusPoints:outcome.points,precision});
+    // The musical accent celebrates the skill event; the soundtrack's
+    // rhythmic Surge layer itself is scheduled on the existing beat grid.
+    if(outcome.chain===2||outcome.chain===4)sound('surge-clear');
   }
   function nextZone(reward=null){
     const incoming=window.ChromaConfig.paletteForZone(zone);
@@ -800,6 +834,12 @@
     HUD.showZoneCallout($,{zone,name:incoming.name,
       color:incoming.primary,perfectReward:reward?.perfect?reward:null});
     zoneSoundAtCrossing=animated&&!reward?.perfect;
+    if(incoming!==outgoing){
+      surge.arm({zone});
+      // Accessibility: reduced-motion skips the travelling front, but the
+      // skill window still begins at the palette change without penalty.
+      if(!animated)startSurge();
+    }
     // Charge cue precedes the color wave; the established zone sound still
     // lands once, at the runner crossing. Perfect Zone has its own reward cue.
     if(animated&&!reward?.perfect)sound('zone-charge');
@@ -864,6 +904,7 @@
       runAudit.record('dash_hazard_miss',auditState(),{
         obstacle:o.type,assisted:Boolean(o.dashAssisted)});
     combo.breakChain();
+    if(surge.onHit())runAudit.record('surge_break',auditState(),{cause:o.type});
     if(player.invulnerable>0){
       flow.registerCollision();runAudit.record('invulnerable_contact',auditState(),{obstacle:o.type});return;
     }
@@ -877,6 +918,7 @@
     runAudit.noteChallengeOutcome({targetKind:gap.echoChallenge?'echo-gap':'gap',
       targetWorld:gap.end,cleared:false},auditState());
     gapRecovery=gap;jumpControl.cancel();dash.cancel();dashReleasePending=null;motion.reset();combo.breakChain();
+    if(surge.onHit())runAudit.record('surge_break',auditState(),{cause:gap.echoChallenge?'echo-gap':'gap'});
     terrainDirector.noteGapOutcome({missed:true,echo:Boolean(gap.echoChallenge),
       worldX:distance+player.x,speed});
     // Match regular obstacle invulnerability: the gap still counts as a
@@ -905,6 +947,7 @@
     const reward=flow.registerClear({precision:false});
     score+=reward.earnedPoints;
     awardCombo(gap.echoChallenge?'echo-gap':'gap');
+    awardSurge(gap.echoChallenge?'echo-gap':'gap');
     runAudit.record('gap_clear',auditState(),{width:gap.end-gap.start,
       echoChallenge:Boolean(gap.echoChallenge),variant:gap.echoVariant||''});
     if(runMode==='arcade')earnedMilestones(progression.reachedStreak(flow.streak).earned);
@@ -980,8 +1023,12 @@
       groundPulse(player.x,player.feet-2,c2,23,.88);
       frameEcho(player.x,player.feet-24,c1,24,.65);
       burst(player.x,player.feet-18,9,c1,.52);
-      if(zoneSoundAtCrossing)sound('zone');
+      if(!startSurge()&&zoneSoundAtCrossing)sound('zone');
       zoneSoundAtCrossing=false;
+    }
+    if(surge.tick(dt)==='complete'){
+      runAudit.record('surge_end',auditState(),{zone:surge.zone,
+        totalPoints:surge.points,clears:surge.clears,interrupted:false});
     }
     flow.tick(dt,{phase:director.phase});
     combo.tick(dt);
@@ -1154,6 +1201,7 @@
           const gained=flow.registerClear({precision});
           score+=gained.earnedPoints;
           awardCombo(o.type,{precision,master:graded.master});
+          awardSurge(o.type,{precision,master:graded.master});
           runAudit.record('obstacle_clear',auditState(),
             {obstacle:o.type,precision,master:graded.master,
               precisionMargin:graded.margin===null?-1:graded.margin});
@@ -1249,7 +1297,8 @@
         $.hud.classList.remove('shield-recharged');}
     }
     if(hp>0&&hp<=25&&Math.floor(worldTime*1.5)!==Math.floor((worldTime-dt)*1.5))sound('warning');
-    audio.tick({phase:director.phase,speed,flow:flow.value,chromaActive:flow.tier===3,zone,hp});
+    audio.tick({phase:director.phase,speed,flow:flow.value,
+      chromaActive:flow.tier===3,surgeActive:surge.active,zone,hp});
     runAudit.tick(dt,auditState(),director.insight);
     // HUD and sound button DOM are presentation, not simulation. At slow
     // refresh rates the clock may run 2–6 deterministic physics steps before
@@ -1627,6 +1676,8 @@
     // The chromatic front stays screen-anchored and perfectly synchronized
     // with the original background, even as the WORLD course zooms out.
     spectralWave.draw(ctx,{width:W,height:H,groundY:floorY,quality:quality.profile});
+    surge.draw(ctx,{width:W,height:H,groundY:floorY,playerX:player.x,
+      primary:c1,secondary:c2,quality:quality.profile,reducedMotion});
     ctx.save();camera.apply(ctx,player.x,floorY);
     // Trails stay under hazards so a high-speed afterimage never masks a jump or duck cue.
     speedTrails.draw(ctx,{quality:quality.profile,reducedMotion,

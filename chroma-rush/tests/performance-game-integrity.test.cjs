@@ -28,6 +28,7 @@ const modules={
  ChromaTerrainRender:require('../src/render/terrain-renderer.js'),
  ChromaWorldBackground:require('../src/render/world-background.js'),
  ChromaSpectralWave:require('../src/render/spectral-wave.js'),
+ ChromaSurge:require('../src/gameplay/chroma-surge.js'),
  ChromaStateVFX:require('../src/render/chroma-state-vfx.js'),
  ChromaSpeedTrails:require('../src/render/speed-trails.js'),
  ChromaGravityShift:require('../src/gameplay/gravity-shift.js'),

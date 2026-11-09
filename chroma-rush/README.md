@@ -1,8 +1,14 @@
-# CHROMA RUSH — Core Pace & Gravity Rebalance 1.1 (Phase 1)
+# CHROMA RUSH — Phase 2: Chroma Surge 1.0 (Signature Experience)
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Phase 2 — Chroma Surge 1.0 · Signature Experience
+
+Chroma Tide's color-changing wave now initiates a short **4.8-second skill window** when it reaches the runner. Every genuine obstacle or gap clear increases a bounded Surge chain and earns a bonus; hits break the Surge chain without adding damage. Original beat-synced procedural music and layered neon visuals emphasize the event. The live chain occupies only a small temporary part of the HUD.
+
+The existing Core Pace 1.1, safe short Gravity Shift, Adaptive Camera Horizon, player movements, Director, terrain and hitboxes are unchanged. HIGH visual settings prioritize modern devices; simplified graphics and reduced-motion remain supported without changing game rules. The local round audit records Surge performance without remote analytics. [Full implementation and validation plan](docs/signature-experience-chroma-surge-1.0.md).
 
 ## Core Pace & Gravity Rebalance 1.1 — 3–4 minute urgency (2026-11-09)
 

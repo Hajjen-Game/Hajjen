@@ -78,10 +78,9 @@
       const gapTime=peak ? (gentle?.30:.35) : .29;
       const safeArrival=permitGap && future.remaining>=gapTime+.48;
       const gapChance=safeArrival?(peak?(gentle?.19:.42):.14):0;
-      // Keep the first low Echo Rail lesson on a predictable level runway.
-      // Normal hills resume once the first Rail is introduced.
-      const teachingEcho=zone===2&&!this.director.echoIntroduced;
-      const slopeChance=teachingEcho||dashLearningRunway?0:
+      // Zone 2 remains a calm, flat section for basic jump and duck timing.
+      const teachingBasics=zone===2;
+      const slopeChance=teachingBasics||dashLearningRunway?0:
         (({BUILD:.45,PEAK:.26,FADE:.22,RELAX:.10})[future.phase]||.2)*
         (challengeRunway?1-.36*density:1);
       const maxHeightChange=({BUILD:62,PEAK:58,FADE:38,RELAX:23})[future.phase]||40;

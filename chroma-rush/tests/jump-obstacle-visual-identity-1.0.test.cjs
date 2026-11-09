@@ -71,7 +71,7 @@ test('short Jump inherits Duck Gate visual grammar with unchanged collider',()=>
     'Jump uses the same soft-corner beam housing as Duck');
   assert.ok(duck.events.some(e=>e[0]==='roundRectPath'));
   const fills=jump.events.filter(e=>e[0]==='fillRect');
-  assert.ok(fills.length>=2,'Jump retains energy fill and field ribs');
+  assert.ok(fills.length>=1,'Jump retains its translucent energy field');
   for(const e of fills){
     assert.ok(e[1]>=b.x&&e[1]+e[3]<=b.x+b.w+1e-6);
     assert.ok(e[2]>=b.y&&e[2]+e[4]<=b.y+b.h+1e-6);

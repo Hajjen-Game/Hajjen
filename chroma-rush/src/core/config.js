@@ -37,11 +37,11 @@
   const GAME=Object.freeze({
     floorRatio:.715,
     baseSpeed:370,
-    // Speed Curve 3.1: livelier progression grounded in a 6m53 player audit.
-    // Keep smooth decaying acceleration and an endless positive cruise slope.
-    speedRise:1000,
-    speedEaseSeconds:180,
-    cruiseAcceleration:.75,
+    // Speed Curve 3.2: faster early momentum based on consecutive player audits.
+    // Smoothly decaying acceleration; strictly rising speed with no zone spikes.
+    speedRise:1350,
+    speedEaseSeconds:170,
+    cruiseAcceleration:.9,
     zoneSpeedBonus:0,
     zoneSeconds:12,
     jumpVelocity:-870,

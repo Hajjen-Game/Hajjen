@@ -1,8 +1,18 @@
-# CHROMA RUSH — Speed Curve 3.0
+# CHROMA RUSH — Speed Curve 3.2
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Speed Curve 3.2 — Faster Momentum (2026-11-09)
+
+- Built from two playtests: Curve 3.0 ended at **6:53 / zone 35 / ~1,155 speed**; Curve 3.1 ended at **4:29.7 / zone 23 / ~1,349 speed**. Despite the shorter run, the player still felt the acceleration was too slow.
+- Formula: `370 + 1350 * (1 − exp(−t/170)) + .9 * t`, t=elapsed seconds. Starts at 370; reaches **825** at 1m, **1,162** at 2m, **1,414** at 3m, **1,759** at 5m, **1,984** at 7m. These are rounded world units/s.
+- Continues upward indefinitely, with gradually tapering acceleration. All 12-second zone transitions remain visually significant but add **no instantaneous speed step**.
+- **Only speed balance is changed:** Jump, Duck, Echo Jump, Dash geometry and seals, movement physics, Director, HP/Shield restoration, color zones, original background and fixed camera stay as before.
+- Includes [Speed Curve 3.2 tests](tests/speed-curve-3.2.test.cjs) for continuous speed, exact 1/2/3/5/7-minute targets, 10/20-minute robustness, practice alignment, Dash and Echo reaction budgets and seeded seven-minute safety.
+- The next independent feature pass is **Adaptive Camera Horizon 1.0**: a subtle progressive zoom-out, with correct world-space lookahead, gravity flip, UI isolation and mobile performance checks. It is deliberately **not** included in Speed Curve 3.2.
+- Read [Speed Curve 3.2 balance notes](docs/speed-curve-3.2.md). No force-death timer and no promise of a specific human run duration.
 
 ## Speed Curve 3.0 — Long-Run Progression (2026-11-09)
 
@@ -12,7 +22,7 @@ A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 - Zone changes still trigger visual/color milestones and progression, but no extra speed jump; later-zone practice starts at the same corresponding time-derived speed.
 - No changes to Director decisions, movement, HP/Flow, obstacle physics, original camera/background, graphics quality or gap collision. The **existing Dash Energy Bridge is still present**; the seal-less geometry and dynamic camera are separate future passes.
 - Previously saved scores, PBs and milestones remain; older scores may not be directly comparable with the new speed curve.
-- [original Speed Curve 3.0 design notes](docs/speed-curve-3.0.md) include long-run speed integrity and seven-minute fairness auditing; see [design notes](docs/speed-curve-3.0.md).
+- Historical implementation details remain in the [Speed Curve 3.0 notes](docs/speed-curve-3.0.md).
 
 ## Dash Energy Bridge 1.0 (2026-11-08)
 

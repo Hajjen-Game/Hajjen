@@ -138,16 +138,23 @@ test('renderer gives the low Echo Rail a solid top and visible underside energy 
   const render=game.slice(game.indexOf('  function drawObstacle(o){'),
     game.indexOf('  function drawPlayer(){'));
   assert.match(render,/if\(isEcho\)/);
-  assert.match(render,/const energyTop=y\+Math\.floor\(h\*\.54\)/);
-  assert.match(render,/ctx\.fillRect\(x\+3,energyTop,w-6,energyHeight\)/);
-  assert.match(render,/ctx\.fillStyle=rgba\(color,\.095\)/);
-  assert.match(render,/glowLine\(x\+4,energyTop,x\+w-4,energyTop/);
-  const curtain=render.slice(render.indexOf('if(isEcho){'),
-    render.indexOf('}else{',render.indexOf('if(isEcho){')));
-  assert.match(curtain,/ctx\.moveTo\(rx,energyTop\+3\)/);
-  assert.match(curtain,/ctx\.lineTo\(rx,energyBottom-2\)/);
-  assert.doesNotMatch(curtain,/k%2===0|ctx\.lineTo\(xx,yy\)/,
-    'the underside veil must have no wavy lightning / zigzag');
+  assert.match(render,/const echoBeam=isEcho\?\{x:b\.x,y:b\.y,w:b\.w,/);
+  assert.match(render,/h:Math\.max\(44,Math\.min\(58,Math\.round\(b\.h\*\.65\)\)\)/);
+  assert.match(render,/const energyTop=echoBeam\.y\+echoBeam\.h/);
+  assert.match(render,/const energyBottom=b\.y\+b\.h/);
+  assert.match(render,/ctx\.fillRect\(b\.x\+3,energyTop,b\.w-6,energyHeight\)/);
+  assert.match(render,/ctx\.fillStyle=rgba\(color,\.10\)/);
+  const veil=render.slice(render.indexOf('if(isEcho){'),
+    render.indexOf('// Exact same low-barrier shell'));
+  assert.match(veil,/ctx\.moveTo\(rx,energyTop\+1\)/);
+  assert.match(veil,/ctx\.lineTo\(rx,energyBottom-1\)/);
+  assert.doesNotMatch(veil,/k%2===0|ctx\.lineTo\(xx,yy\)|glowLine\(/,
+    'no zigzag or thick luminous baseline in the underbody veil');
+  assert.match(render,/\[isEcho\?echoBeam:b\]/);
+  assert.match(render,/ctx\.fillRect\(x\+2,y\+h-12,w-4,10\)/,
+    'raised beam shares the ordinary jump plinth');
+  assert.doesNotMatch(render,/glowLine\(b\.x,energyBottom/,
+    'the veil has no extra ground-level glow');
   assert.doesNotMatch(render,/TALL two-chamber|double-jump Spire/);
   assert.doesNotMatch(render,/fillText\s*\(/);
   assert.match(html,/id="jump-btn"/);

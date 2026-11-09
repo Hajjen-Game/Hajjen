@@ -1,8 +1,18 @@
-# CHROMA RUSH — Echo Rail Energy Veil 1.1
+# CHROMA RUSH — Echo Rail Raised Jump 1.2
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Echo Rail Raised Jump 1.2 (2026-11-09)
+
+**Player correction:** The 1.1 rail still looked like a single thick purple box with strong ground-level lines. The desired structure is literally **the ordinary Jump obstacle, extended horizontally and suspended above the track**, connected downward only by the **same faint translucent energy curtain as the normal Duck Gate has above its central body**.
+
+- Draw the **real standard beveled Jump barrier** at the top of the existing Echo collider (height ~44–58 units, depending on existing total 70–86 height). It shares the same inset face, side ribs, bright cap and **underside of the raised solid** as the standard Jump. No bespoke Echo stripe or massive separate lower block.
+- Underneath, draw a low-opacity (`rgba(color,.10)`) uninterrupted energy field filling the remaining ~24–30 units **down to the track**, with low-opacity 1px **vertical strands**, never a wave or zigzag.
+- **Remove all heavy ground-level base lines and neon plinths** from the Echo energy curtain. The only bold underside belongs to the raised standard Jump barrier itself. The global track line remains as before.
+- Physically it remains one and the same full collision rectangle, with no hidden gap/extra hazard. The code reuses the regular obstacle renderer on a visual sub-body, while gravity mirror, zone-2 introduction, speed, Dash and Director remain unchanged.
+- Regression tests verify that the Echo's visually solid plinth is **raised**, its energy strands descend straight to the track without a thick foot line, and ordinary jump/duck silhouettes remain unchanged.
 
 ## Echo Rail Energy Veil 1.1 (2026-11-09)
 

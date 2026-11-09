@@ -1251,15 +1251,38 @@
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
     ctx.save();
     if(isEcho||isLow){
-      // Shared Low Neon Barrier: all jump hazards use the same housing.
-      // Echo Rail replaces the old high-wall challenge with one LOW,
-      // WIDE module: solid upper deck + translucent, collidable energy
-      // layer UNDER the deck. No tall pillar, no invisible collision.
-      // Twin Vault: draw two standard plinths. The separate low energy
-      // collision strip between them is drawn immediately below, never
-      // as an oversized opaque box.
+      // Echo Rail: a LONG STANDARD JUMP BARRIER raised off the track.
+      // Its light underbody veil inverts the suspended Duck Gate field:
+      // pale tint + fine vertical ribs, with NO thick line at track level.
+      // Both the raised housing and curtain sit inside the unchanged
+      // full-size collision box, so the visible danger remains honest.
+      const echoBeam=isEcho?{x:b.x,y:b.y,w:b.w,
+        h:Math.max(44,Math.min(58,Math.round(b.h*.65)))}:null;
+      if(isEcho){
+        const energyTop=echoBeam.y+echoBeam.h;
+        const energyBottom=b.y+b.h;
+        const energyHeight=energyBottom-energyTop;
+        ctx.globalAlpha=twinkle;
+        ctx.shadowBlur=0;
+        ctx.fillStyle=rgba(color,.10);
+        ctx.fillRect(b.x+3,energyTop,b.w-6,energyHeight);
+        ctx.lineWidth=1;
+        ctx.strokeStyle=rgba(color,.28);
+        ctx.beginPath();
+        const strands=Math.max(5,Math.min(18,Math.round(b.w/26)));
+        for(let k=1;k<strands;k++){
+          const rx=b.x+3+(b.w-6)*k/strands;
+          ctx.moveTo(rx,energyTop+1);
+          ctx.lineTo(rx,energyBottom-1);
+        }
+        ctx.stroke();
+        ctx.globalAlpha=1;
+      }
+      // Exact same low-barrier shell as an ordinary Jump. For Twin Vault
+      // the two separate plinths remain unchanged, including its zigzag.
       const chunks=o.type==='dash-jump'?
-        GEO.obstacleBoxes(o,o.groundY).filter((_,i)=>i!==1):[b];
+        GEO.obstacleBoxes(o,o.groundY).filter((_,i)=>i!==1):
+        [isEcho?echoBeam:b];
       for(const body of chunks){
       const x=body.x,y=body.y,w=body.w,h=body.h,bevel=Math.min(8,w*.16);
       ctx.globalAlpha=twinkle;
@@ -1270,65 +1293,27 @@
       ctx.lineTo(x+w-4,y+h-1);ctx.lineTo(x+4,y+h-1);
       ctx.lineTo(x+1,y+h-3);ctx.lineTo(x+1,y+bevel);
       ctx.closePath();
-      // Echo is a suspended neon beam with a LIGHT energy curtain below.
-      // Its lower section stays translucent like the sky above Duck gates,
-      // rather than looking like a second filled-in block.
-      ctx.fillStyle=rgba(color,isEcho?.085:.30);ctx.fill();
-      ctx.lineWidth=isEcho?1.7:2.6;
-      ctx.strokeStyle=isEcho?rgba(color,.58):color;ctx.stroke();
+      ctx.fillStyle=rgba(color,.30);ctx.fill();
+      ctx.lineWidth=2.6;ctx.strokeStyle=color;ctx.stroke();
       ctx.shadowBlur=0;ctx.globalAlpha=1;
       glowLine(x+bevel+1,y+5,x+w-bevel-1,y+5,'#ffffff',2.6,11,.90);
       glowLine(x+3,y+bevel+2,x+3,y+h-11,color,1.7,6,.72);
       glowLine(x+w-3,y+bevel+2,x+w-3,y+h-11,color,1.7,6,.72);
-      if(isEcho){
-        // Echo Rail Energy Veil 1.1 — invert the regular Duck Gate:
-        // a solid neon beam ABOVE a thin, semi-transparent energy curtain
-        // with only quiet VERTICAL strands, never a zigzag/lightning pattern.
-        // Both halves remain inside the existing physical obstacle box.
-        const energyTop=y+Math.floor(h*.54);
-        const energyBottom=y+h-3;
-        const energyHeight=energyBottom-energyTop;
-        // Solid readable upper beam, like the lower core of a Duck gate.
-        ctx.fillStyle=rgba(color,.56);
-        ctx.fillRect(x+6,y+7,w-12,energyTop-y-9);
-        glowLine(x+9,y+11,x+w-9,y+11,'#ffffff',2.3,9,.77);
-        // The lower veil resembles the open, translucent vertical field
-        // ABOVE a normal Duck gate; here it points down toward the track.
-        ctx.fillStyle=rgba(color,.095);
-        ctx.fillRect(x+3,energyTop,w-6,energyHeight);
-        glowLine(x+4,energyTop,x+w-4,energyTop,color,2.7,
-          12*quality.profile.glow,.90);
-        ctx.beginPath();ctx.lineWidth=1.15;
-        ctx.strokeStyle=rgba(color,.32);
-        const strands=Math.max(5,Math.min(18,Math.round(w/24)));
-        for(let k=1;k<strands;k++){
-          const rx=x+4+(w-8)*k/strands;
-          ctx.moveTo(rx,energyTop+3);
-          ctx.lineTo(rx,energyBottom-2);
-        }
-        ctx.stroke();
-        glowLine(x+4,energyBottom-1,x+w-4,energyBottom-1,color,
-          1.2,5*quality.profile.glow,.47);
-      }else{
-        ctx.fillStyle=rgba(color,.17);
-        ctx.fillRect(x+6,y+bevel+8,w-12,h-bevel-22);
-        // Lower single-jump barrier keeps the quiet recessed face.
-        ctx.strokeStyle=rgba('#ffffff',.27);ctx.lineWidth=1;
-        ctx.beginPath();
-        ctx.moveTo(x+10,y+bevel+12);ctx.lineTo(x+10,y+h-14);
-        ctx.moveTo(x+w-10,y+bevel+12);ctx.lineTo(x+w-10,y+h-14);
-        ctx.stroke();
-      }
-      if(!isEcho){
-        ctx.fillStyle=rgba(color,.38);
-        ctx.fillRect(x+2,y+h-12,w-4,10);
-        glowLine(x+3,y+h-12,x+w-3,y+h-12,color,2.3,8,.91);
-        glowLine(x+4,y+h-3,x+w-4,y+h-3,'#ffffff',1.5,6,.55);
-      }else{
-        // No opaque 10px floor plinth: the veil must read as light, not
-        // as another solid platform or zigzag bridge.
-        glowLine(x+4,y+h-3,x+w-4,y+h-3,color,1,4,.34);
-      }
+      // Shared recessed face and two straight side ribs; identical to the
+      // short ordinary Jump barrier, just stretched horizontally.
+      ctx.fillStyle=rgba(color,.17);
+      ctx.fillRect(x+6,y+bevel+8,w-12,h-bevel-22);
+      ctx.strokeStyle=rgba('#ffffff',.27);ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.moveTo(x+10,y+bevel+12);ctx.lineTo(x+10,y+h-14);
+      ctx.moveTo(x+w-10,y+bevel+12);ctx.lineTo(x+w-10,y+h-14);
+      ctx.stroke();
+      // The bright base belongs to the RAISED solid obstacle, not to the
+      // ground. The energy curtain below has no glowing floor edge.
+      ctx.fillStyle=rgba(color,.38);
+      ctx.fillRect(x+2,y+h-12,w-4,10);
+      glowLine(x+3,y+h-12,x+w-3,y+h-12,color,2.3,8,.91);
+      glowLine(x+4,y+h-3,x+w-4,y+h-3,'#ffffff',1.5,6,.55);
       }
       if(o.type==='dash-jump'){
         // The restored zigzag is the VISIBLE danger surface, not a

@@ -107,11 +107,15 @@ test('duck gate preserves continuous sky energy field, its clear slot and core',
 test('new Echo Rail is low and broad with visually integrated underbody energy',()=>{
   const run=renderObstacle('echo'),b=run.box;
   assert.deepEqual(b,{x:300,y:515-74,w:273,h:74});
-  const split=b.y+Math.floor(b.h*.54);
+  const beamHeight=Math.max(44,Math.min(58,Math.round(b.h*.65)));
+  const split=b.y+beamHeight;
   assert.ok(run.events.some(e=>e[0]==='fillRect'&&e[1]===b.x+3&&
-    e[2]===split&&e[3]===b.w-6),'light, translucent lower veil fills the collider');
-  assert.ok(run.lines.some(l=>l.y1===split&&l.y2===split),
-    'glowing energy divider is part of the real silhouette');
+    e[2]===split&&e[3]===b.w-6&&e[4]===b.h-beamHeight),
+    'translucent Duck-style energy begins BELOW the raised jump beam');
+  assert.ok(run.lines.some(l=>l.y1===split-3&&l.y2===split-3),
+    'the bright bottom plinth belongs to the raised normal jump beam');
+  assert.ok(!run.lines.some(l=>l.width>1.5&&l.y1===b.y+b.h-3),
+    'no thick glowing line at the track level');
   assert.ok(run.lines.length>=6);
   assert.ok(ECHO_SPIRE.maxHeight<=90);
   assert.ok(ECHO_SPIRE.minWidth>=300);
@@ -152,14 +156,17 @@ test('Echo uses the same beveled jump housing, with a distinct wide lower energy
     const b=run.box;
     assert.ok(run.events.some(e=>e[0]==='close'),'shared beveled course housing');
     assert.ok(run.lines.some(l=>l.y1===b.y+5),'shared bright top cap');
-    assert.ok(run.lines.some(l=>l.y1===b.y+b.h-3),'subtle grounded edge');
-    if(run.obstacle.type==='jump'){
-      assert.ok(run.events.some(e=>e[0]==='fillRect'&&e[2]===b.y+b.h-12&&e[4]===10),
-        'ordinary jump keeps its grounded foot rail');
-    }else{
+    const beamBottom=run.obstacle.type==='echo'?
+      b.y+Math.max(44,Math.min(58,Math.round(b.h*.65))):b.y+b.h;
+    assert.ok(run.lines.some(l=>l.y1===beamBottom-3),
+      'same bright bottom edge in normal and raised jump beam');
+    assert.ok(run.events.some(e=>e[0]==='fillRect'&&
+      e[2]===beamBottom-12&&e[4]===10),
+      'Echo and ordinary Jump use the SAME solid barrier foot rail');
+    if(run.obstacle.type==='echo'){
       assert.ok(!run.events.some(e=>e[0]==='fillRect'&&
         e[2]===b.y+b.h-12&&e[4]===10),
-        'Echo veil must have NO opaque floor plinth');
+        'never draw an opaque foot rail at the bottom of the energy veil');
     }
     const solid=run.events.filter(e=>e[0]==='fillRect');
     for(const e of solid){
@@ -168,12 +175,13 @@ test('Echo uses the same beveled jump housing, with a distinct wide lower energy
     }
   }
   const rail=echo.box;
+  const beamHeight=Math.max(44,Math.min(58,Math.round(rail.h*.65)));
+  const veilTop=rail.y+beamHeight,veilBottom=rail.y+rail.h;
   assert.ok(echo.events.some(e=>e[0]==='fillRect'&&
-    e[2]===rail.y+Math.floor(rail.h*.54)&&e[4]>20));
-  const veilTop=rail.y+Math.floor(rail.h*.54),veilBottom=rail.y+rail.h-3;
+    e[2]===veilTop&&e[4]===rail.h-beamHeight));
   const verticalSegments=echo.events.filter((e,i,all)=>e[0]==='moveTo'&&
     all[i+1]?.[0]==='lineTo'&&all[i+1][1]===e[1]&&
-    e[2]===veilTop+3&&all[i+1][2]===veilBottom-2);
+    e[2]===veilTop+1&&all[i+1][2]===veilBottom-1);
   assert.ok(verticalSegments.length>=5,
     'Echo underside shows multiple VERTICAL fine lines, not a wave');
   assert.ok(!jump.events.some(e=>e[0]==='fillRect'&&e[3]>200),

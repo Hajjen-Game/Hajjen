@@ -28,36 +28,28 @@ test('time-based transition spacing remains safe and adapts to varying speed',()
   }
   assert.ok(minimumGap('echo','jump',370)>minimumGap('echo','jump',2500));
 });
-test('initial Echo Spire is isolated; combos require demonstrated success',()=>{
+test('simplified Director patterns never require the retired raised rail',()=>{
   const d=new AdaptiveRushDirector(()=>.5);
   d.phase=PHASE.PEAK;d.confidence=.85;d.time=20;
-  assert.equal(d.selectPattern({zone:2,hp:100,speed:480,surface:'floor',zoneElapsed:2}).id,'single-echo');
-  d.echoIntroduced=true;
-  const choices=candidates('PEAK',8,3).filter(p=>d.movement.allowPattern(p,ready,20));
-  assert.ok(choices.some(p=>p.id==='single-echo'));
-  assert.ok(choices.every(p=>!p.steps.includes('echo')||p.steps.length===1),
-    'first advanced Echo combo must wait until player clears a Spire');
-  d.movement.onClear('echo',20);
-  const advanced=candidates('PEAK',8,3).filter(p=>d.movement.allowPattern(p,ready,22));
-  assert.ok(advanced.some(p=>p.id==='echo-then-jump'));
-  assert.ok(advanced.some(p=>p.id==='jump-then-echo'));
+  const first=d.selectPattern({zone:2,hp:100,speed:480,surface:'floor',zoneElapsed:2});
+  assert.ok(first&&first.steps.every(s=>s==='jump'||s==='duck'));
+  assert.ok(candidates('PEAK',8,3).every(p=>!p.steps.includes('echo')));
+  assert.ok(candidates('PEAK',8,3).some(p=>p.steps.length===3),
+    'higher zones retain rhythm complexity without wide raised jumps');
 });
-test('pressure creates easier phrases and decays without slowing the game',()=>{
+test('pressure makes active Jump/Duck motifs gentler without slowing the game',()=>{
   const m=new MovementAwareness(),normal=GAME.speedAt(72,7);
-  const heavy=PATTERNS.find(p=>p.id==='echo-then-jump');
-  // A multi-action Echo combo needs one completed Echo to be eligible.
-  assert.equal(m.allowPattern(heavy,ready,10),false);
-  m.onClear('echo',0);
+  const heavy=PATTERNS.find(p=>p.id==='up-down-up');
+  assert.ok(heavy);
   assert.equal(m.allowPattern(heavy,ready,10),true);
-  m.onSpawn('echo',10);
-  assert.ok(m.pressure>1.4);
-  assert.equal(m.allowPattern(heavy,ready,11),false,'Echo cooldown');
-  m.onDamage(11,'echo');
-  assert.ok(m.echoMisses>0);
-  assert.equal(m.allowPattern(heavy,ready,12),false);
-  const p=m.pressure;m.tick(5);
-  assert.ok(m.pressure<p);
-  assert.equal(GAME.speedAt(72,7),normal,'movement intelligence never modifies speed');
+  m.onSpawn('duck',10);
+  const prior=m.pressure;
+  assert.ok(prior>0);
+  m.onDamage(11,'duck');
+  assert.equal(m.allowPattern(heavy,{...ready,hp:25},12),false);
+  const after=m.pressure;m.tick(5);
+  assert.ok(m.pressure<after);
+  assert.equal(GAME.speedAt(72,7),normal);
   assert.ok(m.maxEffort({...ready,hp:25})<m.maxEffort(ready));
 });
 test('Echo cooldown stops successive heavy barriers but not jump/duck recovery',()=>{
@@ -88,24 +80,23 @@ test('gap outcome informs BOTH Directors and postpones heavy hazards after misse
   unified.noteGapOutcome({missed:false,echo:false,worldX:4000,speed:900});
   assert.ok(unified.gapSuccesses>0);
 });
-test('terrain veto keeps an Echo Spire queued and forbids crowding an Echo Gap',()=>{
-  const terrain={visibleGaps:(from,to)=> {
+test('terrain veto keeps an ordinary hazard queued beside an advanced chasm',()=>{
+  const terrain={visibleGaps:(from,to)=>{
     const gap={start:2900,end:3400,echoChallenge:true};
     return gap.start<=to&&gap.end>=from?[gap]:[];
   }};
   const d=new AdaptiveRushDirector(()=>.5),u=new UnifiedTerrainDirector({terrain,director:d});
   d.phase='PEAK';d.phaseDuration=5;d.confidence=.85;d.spawnCountdown=0;
+  d.pending=[{type:'jump',pattern:'single-jump',step:1}];
   let calls=0;
   const ctx={zone:5,hp:100,speed:900,playerX:300,distance:1300,spawnX:1370,surface:'floor'};
   u.tick(.016,ctx,()=>{calls++;return true});
   assert.equal(calls,0);
-  assert.equal(d.echoIntroduced,false);
-  assert.equal(d.pending[0].type,'echo');
+  assert.equal(d.pending[0].type,'jump');
   assert.ok(u.spawnsDeferred>=1);
   d.spawnCountdown=0;
   u.tick(.016,{...ctx,distance:4800},()=>{calls++;return true});
   assert.equal(calls,1);
-  assert.equal(d.echoIntroduced,true);
 });
 test('at extreme speed Director substitutes fair hazards instead of starving on Echo',()=>{
   const d=new AdaptiveRushDirector(()=>.5);

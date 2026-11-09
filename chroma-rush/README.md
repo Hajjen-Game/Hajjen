@@ -1,8 +1,18 @@
-# CHROMA RUSH — Echo Rail 1.0 + Twin Vault Intro Rebalance 2.3
+# CHROMA RUSH — Echo Rail Energy Veil 1.1
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Echo Rail Energy Veil 1.1 (2026-11-09)
+
+**Player visual correction:** The intended reference was the subtle, translucent electric column **above the regular Duck Gate** (highlighted by the player's white arrow), but reversed **below the low Echo Rail**. The previous patterned zigzag compartment was not intended for this family.
+
+- Keep the low, wide, solid purple/cyan **upper neon beam**.
+- The underside is a **thin, pale, semi-transparent energy veil** like the ordinary Duck Gate's open field, with fine **VERTICAL** light strands instead of horizontal crossbars. **No zigzag wave / lightning** in this Echo Rail.
+- Remove the old opaque lower foot/plinth so the field reads as light rather than a second solid slab. Keep a modest contact glow at the floor and a clear separation glow where it meets the beam.
+- All geometry, dimensions, 2D collision, floor/ceiling mirroring, Echo Jump controls, Twin Vault zigzag bridge, Director and Speed Curve 3.2 are unchanged.
+- Visual source is drawn in the existing Canvas obstacle renderer; **no generated image assets**. Updated render regression tests check that the actual emitted strands are vertical, translucent and within the same physical bounds.
 
 ## Echo Rail 1.0 + Twin Vault Intro Rebalance 2.3 (2026-11-09)
 

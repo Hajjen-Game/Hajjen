@@ -108,8 +108,8 @@ test('new Echo Rail is low and broad with visually integrated underbody energy',
   const run=renderObstacle('echo'),b=run.box;
   assert.deepEqual(b,{x:300,y:515-74,w:273,h:74});
   const split=b.y+Math.floor(b.h*.54);
-  assert.ok(run.events.some(e=>e[0]==='fillRect'&&e[1]===b.x+5&&
-    e[2]===split&&e[3]===b.w-10),'visible lower energy fills the collidable compartment');
+  assert.ok(run.events.some(e=>e[0]==='fillRect'&&e[1]===b.x+3&&
+    e[2]===split&&e[3]===b.w-6),'light, translucent lower veil fills the collider');
   assert.ok(run.lines.some(l=>l.y1===split&&l.y2===split),
     'glowing energy divider is part of the real silhouette');
   assert.ok(run.lines.length>=6);
@@ -152,9 +152,15 @@ test('Echo uses the same beveled jump housing, with a distinct wide lower energy
     const b=run.box;
     assert.ok(run.events.some(e=>e[0]==='close'),'shared beveled course housing');
     assert.ok(run.lines.some(l=>l.y1===b.y+5),'shared bright top cap');
-    assert.ok(run.lines.some(l=>l.y1===b.y+b.h-3),'shared bright bottom plinth');
-    assert.ok(run.events.some(e=>e[0]==='fillRect'&&e[2]===b.y+b.h-12&&e[4]===10),
-      'identical grounded foot rail');
+    assert.ok(run.lines.some(l=>l.y1===b.y+b.h-3),'subtle grounded edge');
+    if(run.obstacle.type==='jump'){
+      assert.ok(run.events.some(e=>e[0]==='fillRect'&&e[2]===b.y+b.h-12&&e[4]===10),
+        'ordinary jump keeps its grounded foot rail');
+    }else{
+      assert.ok(!run.events.some(e=>e[0]==='fillRect'&&
+        e[2]===b.y+b.h-12&&e[4]===10),
+        'Echo veil must have NO opaque floor plinth');
+    }
     const solid=run.events.filter(e=>e[0]==='fillRect');
     for(const e of solid){
       assert.ok(e[1]>=b.x&&e[1]+e[3]<=b.x+b.w+1e-6);
@@ -164,6 +170,12 @@ test('Echo uses the same beveled jump housing, with a distinct wide lower energy
   const rail=echo.box;
   assert.ok(echo.events.some(e=>e[0]==='fillRect'&&
     e[2]===rail.y+Math.floor(rail.h*.54)&&e[4]>20));
+  const veilTop=rail.y+Math.floor(rail.h*.54),veilBottom=rail.y+rail.h-3;
+  const verticalSegments=echo.events.filter((e,i,all)=>e[0]==='moveTo'&&
+    all[i+1]?.[0]==='lineTo'&&all[i+1][1]===e[1]&&
+    e[2]===veilTop+3&&all[i+1][2]===veilBottom-2);
+  assert.ok(verticalSegments.length>=5,
+    'Echo underside shows multiple VERTICAL fine lines, not a wave');
   assert.ok(!jump.events.some(e=>e[0]==='fillRect'&&e[3]>200),
     'ordinary Jump is not accidentally widened');
 });

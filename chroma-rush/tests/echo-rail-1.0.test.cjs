@@ -139,8 +139,15 @@ test('renderer gives the low Echo Rail a solid top and visible underside energy 
     game.indexOf('  function drawPlayer(){'));
   assert.match(render,/if\(isEcho\)/);
   assert.match(render,/const energyTop=y\+Math\.floor\(h\*\.54\)/);
-  assert.match(render,/ctx\.fillRect\(x\+5,energyTop,w-10,energyHeight\)/);
-  assert.match(render,/glowLine\(x\+5,energyTop,x\+w-5,energyTop/);
+  assert.match(render,/ctx\.fillRect\(x\+3,energyTop,w-6,energyHeight\)/);
+  assert.match(render,/ctx\.fillStyle=rgba\(color,\.095\)/);
+  assert.match(render,/glowLine\(x\+4,energyTop,x\+w-4,energyTop/);
+  const curtain=render.slice(render.indexOf('if(isEcho){'),
+    render.indexOf('}else{',render.indexOf('if(isEcho){')));
+  assert.match(curtain,/ctx\.moveTo\(rx,energyTop\+3\)/);
+  assert.match(curtain,/ctx\.lineTo\(rx,energyBottom-2\)/);
+  assert.doesNotMatch(curtain,/k%2===0|ctx\.lineTo\(xx,yy\)/,
+    'the underside veil must have no wavy lightning / zigzag');
   assert.doesNotMatch(render,/TALL two-chamber|double-jump Spire/);
   assert.doesNotMatch(render,/fillText\s*\(/);
   assert.match(html,/id="jump-btn"/);

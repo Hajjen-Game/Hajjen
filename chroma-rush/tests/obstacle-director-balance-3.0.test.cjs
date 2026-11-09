@@ -97,19 +97,16 @@ test('variety guard looks at the WHOLE new motif and real action history',()=>{
   assert.equal(violatesSimpleChain(['jump'],[{type:'dash-jump'}]),false);
 });
 
-test('recent successful patterns lose weight, stale safe Echo gains opportunity',()=>{
-  const echo=P.PATTERNS.find(p=>p.id==='single-echo');
+test('active motifs lose weight after repetition, while safe combinations stay varied',()=>{
   const ordinary=P.PATTERNS.find(p=>p.id==='single-jump');
-  const base=varietyMultiplier(echo,{time:20,lastEchoTime:18,zone:8});
-  const need=varietyMultiplier(echo,{time:60,lastEchoTime:10,zone:8});
-  assert.ok(need>base*2,'long-unseen Echo receives a soft priority boost');
   const rare=varietyMultiplier(ordinary,{patterns:[],spawns:[]});
   const repeated=varietyMultiplier(ordinary,{
     patterns:Array(6).fill('single-jump'),
     spawns:Array(8).fill({type:'jump'})});
-  assert.ok(repeated<rare*.25,'same repeated simple motif should quickly lose weight');
+  assert.ok(repeated<rare*.25,'same basic motif should rapidly lose weight');
   assert.ok(varietyMultiplier(P.PATTERNS.find(p=>p.id==='up-down'),{
     phase:'PEAK',zone:12,pressure:.2})>1);
+  assert.ok(P.PATTERNS.every(p=>!p.steps.includes('echo')&&!p.steps.includes('dash-jump')));
 });
 
 function seeded(seed){
@@ -151,13 +148,11 @@ test('multiple 6-minute seeded Director simulations avoid 4+ identical simple ha
       last=e.type;max=Math.max(max,streak);
     }
     assert.ok(max<=MAX_SIMPLE_CHAIN,JSON.stringify({seed,max}));
-    assert.ok(new Set(seen.map(e=>e.type)).size>=5,
-      'long healthy run must access the full five-action vocabulary');
-    assert.ok(seen.filter(e=>e.type==='echo').length>=2,
-      'Echo cannot silently disappear from healthy long sessions');
-    assert.ok(seen.some(e=>e.type==='dash-jump')&&
-      seen.some(e=>e.type==='dash-duck'),
-      'both advanced families get opportunities on safe terrain');
+    assert.ok(new Set(seen.map(e=>e.type)).size>=3,
+      'healthy runs must include Jump, Duck and the retained long Duck Gate');
+    assert.ok(seen.every(e=>e.type!=='echo'&&e.type!=='dash-jump'));
+    assert.ok(seen.some(e=>e.type==='dash-duck'),
+      'the retained long Duck Gate still gets safe opportunities');
     assert.ok(director.insight.variety.recentActions.length<=12);
     assert.ok(director.insight.variety.recentPatterns.length<=8);
     assert.ok(director.insight.variety.rejected>=0);

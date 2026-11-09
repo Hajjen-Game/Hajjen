@@ -531,24 +531,20 @@ test('replay PB HUD survives a paused restart without writing stats',()=>{
 });
 
 
-test('actual zone 3 turns the course onto the ceiling and zone 5 restores the floor',()=>{
+test('actual zone 8 turns the course onto ceiling and zone 16 restores floor',()=>{
   const g=setup();g.step(0);g.get('start-btn').click();
   const state=g.context.window.__gravityHarness;
-  assert.ok(state);
-  // No random hazards/gaps: isolate gravity timing in the real game loop.
   state.director.tick=()=>{};
   state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
   state.terrain.gaps=[];state.terrain.generated=10000000;
-  for(let i=1;i<=1620;i++)g.step(i*1000/60);
-  assert.equal(state.zone(),3);
-  assert.equal(state.gravityShift.ceiling,true,'zone 3 must be a real ceiling run');
-  assert.equal(state.gravityShift.phase,'idle');
-  for(let i=1621;i<=3150;i++)g.step(i*1000/60);
-  assert.equal(state.zone(),5);
-  assert.equal(state.gravityShift.ceiling,false,'zone 5 must return to floor');
+  for(let i=1;i<=60*12*8+90;i++)g.step(i*1000/60);
+  assert.ok(state.zone()>=8);
+  assert.equal(state.gravityShift.ceiling,true,'first shift is zone 8');
+  for(let i=60*12*8+91;i<=60*12*16+90;i++)g.step(i*1000/60);
+  assert.ok(state.zone()>=16);
+  assert.equal(state.gravityShift.ceiling,false,'second shift returns to floor in zone 16');
   assert.equal(state.gravityShift.count,2);
 });
-
 test('ceiling Chroma State retains one canvas mirror for cube, corner FX, dust and ground contact',()=>{
   const g=setup(),state=g.context.window.__gravityHarness;
   g.step(0);g.get('start-btn').click();
@@ -629,71 +625,22 @@ test('real arcade loop introduces Echo Jump in zone 2, allows one new press and 
   assert.doesNotThrow(()=>state.render());
 });
 
-test('first floor Echo lesson in zone 2: one jump fails, Echo clears, later ceiling remains playable',()=>{
-  function play({secondJump=false,ceiling=false}={}){
-    const g=setup({chromaRushArcadeV1:JSON.stringify({bestZone:6,bestScore:1800})});
-    g.step(0);g.get('practice-zone').value='2';g.get('practice-start-btn').click();
-    const state=g.context.window.__gravityHarness;
-    assert.equal(state.zone(),2);
-    state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
-    state.terrain.gaps=[];state.terrain.generated=10000000;
-    state.director.phase='PEAK';state.director.phaseDuration=6;state.director.phaseElapsed=0;
-    state.director.spawnCountdown=0;state.director.stress=0;state.director.confidence=.85;
-    if(ceiling){
-      // The real first lesson must be FLOOR-only. Simulate a *later* Echo
-      // encounter once the player has already cleared the floor tutorial.
-      state.gravityShift.ceiling=true;
-      state.director.echoIntroduced=true;
-      state.director.movement.echoClears=1;
-      state.director.pending=[{type:'echo',pattern:'single-echo',step:1}];
-    }
-    g.step(1000/60);
-    const first=state.hurdles()[0];
-    assert.ok(first,'Director must introduce a visible obstacle');
-    assert.equal(first.type,'echo','safe first encounter is the low Echo Rail');
-    assert.equal(state.director.echoIntroduced,true);
-    const tap=id=>{
-      for(const fn of g.get('jump-btn').events.pointerdown??[])fn({pointerId:id,preventDefault(){}});
-      for(const fn of g.get('jump-btn').events.pointerup??[])fn({pointerId:id});
-    };
-    // Time the input relative to the ACTUAL obstacle's arrival, not a
-    // constant calibrated to Speed Curve 1.0. Both curves must satisfy the
-    // same physical test: one jump fails, two correctly timed jumps clear.
-    const speed=config.GAME.speedAt(config.GAME.zoneSeconds,2);
-    const untilContact=(first.x-state.player().x-22)/speed;
-    // The NEW low 265–280px rail needs an early, forgiving Echo takeoff.
-    // Follow the entire wide collider past the anchored player before
-    // judging a clean clear, not just its former narrow 49px silhouette.
-    // Repeated Echo Rails are intentionally wider than the first lesson.
-    // They need a slightly later takeoff and a later second impulse;
-    // both floor and ceiling use the SAME canonical collision physics.
-    const repeatRail=first.width>=300;
-    const launchFrame=Math.max(3,Math.round(
-      (untilContact-(repeatRail?.23:.35))*60));
-    const echoFrame=launchFrame+(repeatRail?25:20);
-    const finishFrame=Math.max(114,Math.ceil(
-      (untilContact+(first.width+36)/speed+.40)*60));
-    for(let i=2;i<=finishFrame;i++){
-      if(i===launchFrame)tap(61);
-      if(i===echoFrame&&secondJump)tap(62);
-      g.step(i*1000/60);
-    }
-    assert.equal(first.cleared,true,JSON.stringify({
-      x:first.x,width:first.width,height:first.height,
-      distance:state.distance(),zone:state.zone(),hp:state.hp(),
-      finishFrame,untilContact}));
-    return {hit:first.hit,hp:state.hp(),echoUsed:state.jumpControl.echoUsed,
-      introduced:state.director.echoIntroduced};
-  }
-  const ordinary=play(),echo=play({secondJump:true}),ceiling=play({secondJump:true,ceiling:true});
-  assert.equal(ordinary.hit,true,'a normal Jump cannot cross the early broad Echo Rail');
-  assert.ok(ordinary.hp<100);
-  assert.equal(echo.hit,false,'two correctly timed jumps must clear');
-  assert.equal(echo.hp,100);
-  assert.equal(ceiling.hit,false,'same valid double jump works under inverted gravity');
-  assert.equal(ceiling.hp,100);
+test('simplified arcade uses short Jump instead of a raised Echo lesson',()=>{
+  const g=setup({chromaRushArcadeV1:JSON.stringify({bestZone:6,bestScore:1800})});
+  g.step(0);g.get('practice-zone').value='2';g.get('practice-start-btn').click();
+  const state=g.context.window.__gravityHarness;
+  state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
+  state.terrain.gaps=[];state.terrain.generated=10000000;
+  state.director.tick=()=>{};
+  assert.equal(state.testSpawn({type:'echo'}),false);
+  assert.equal(state.testSpawn({type:'dash-jump'}),false);
+  assert.equal(state.hurdles().length,0);
+  assert.equal(state.testSpawn({type:'jump'}),true);
+  assert.equal(state.hurdles()[0].type,'jump');
+  assert.doesNotThrow(()=>state.render());
+  state.gravityShift.ceiling=true;
+  assert.doesNotThrow(()=>state.render(),'short Jump geometry remains valid upside down');
 });
-
 test('live arcade Flow integration awards only verified alternating clear chains',()=>{
   const g=setup(),state=()=>g.context.window.__gravityHarness;
   g.step(0);g.get('start-btn').click();
@@ -726,38 +673,21 @@ test('live arcade Flow integration awards only verified alternating clear chains
   assert.match(g.get('flow-streak').textContent,/3 STREAK/);
 });
 
-test('normal arcade run introduces its first low Echo Rail IN zone 2 on the floor',()=>{
+test('first arcade zones generate no retired Echo Rail or Twin Vault',()=>{
   const g=setup();g.step(0);g.get('start-btn').click();
   const state=g.context.window.__gravityHarness;
-  const seen=new Set();let first=null,phaseAtSpawn=null;
-  for(let i=1;i<=60*23;i++){
-    // The test does not simulate human taps. Temporary invulnerability
-    // prevents unrelated early hazards from interrupting the onboarding.
+  const seen=new Set(),types=[];
+  for(let i=1;i<=60*34;i++){
     state.player().invulnerable=4;
     g.step(i*1000/60);
-    for(const o of state.hurdles()){
-      if(seen.has(o.worldX))continue;
-      seen.add(o.worldX);
-      if(o.type!=='echo')continue;
-      first={zone:state.zone(),onCeiling:state.gravityShift.ceiling,
-        height:o.height,width:o.width,worldX:o.worldX,
-        frame:i,firstWasIntroduced:state.director.echoIntroduced};
-      phaseAtSpawn=state.director.phase;
-      break;
+    for(const o of state.hurdles())if(!seen.has(o.worldX)){
+      seen.add(o.worldX);types.push({type:o.type,zone:state.zone()});
     }
-    if(first)break;
   }
-  assert.ok(first,'the early guided lesson must really spawn during zone 2');
-  assert.equal(first.zone,2,'first double jump cannot wait until the ceiling run');
-  assert.equal(first.onCeiling,false);
-  assert.equal(first.firstWasIntroduced,true);
-  assert.ok(first.height>=config.ECHO_SPIRE.introMinHeight);
-  assert.ok(first.height<=config.ECHO_SPIRE.introMaxHeight);
-  assert.ok(first.width<=config.ECHO_SPIRE.introMaxWidth);
-  assert.ok(first.frame<60*22,'the obstacle must be introduced well before zone 3');
-  assert.ok(phaseAtSpawn);
+  assert.ok(types.length>=3,'real Director continues generating normal hazards');
+  assert.ok(types.every(x=>x.type!=='echo'&&x.type!=='dash-jump'));
+  assert.ok(types.filter(x=>x.zone===2).every(x=>x.type==='jump'||x.type==='duck'));
 });
-
 test('real game frames draw ONE background and ONE terrain during Chroma Tide 2.0',()=>{
   const g=setup();
   g.step(0);g.get('start-btn').click();
@@ -768,7 +698,7 @@ test('real game frames draw ONE background and ONE terrain during Chroma Tide 2.
   state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
   state.terrain.gaps=[];state.terrain.generated=10000000;
   let timestamp=0;
-  for(let i=1;i<=60*13;i++){
+  for(let i=1;i<=60*25;i++){
     state.player().invulnerable=9;
     timestamp=i*1000/60;g.step(timestamp);
     if(state.spectralWave.active&&!state.spectralWave.charging)break;
@@ -822,113 +752,71 @@ test('UI Calm keeps a one-tap primary run and accessible optional menus',()=>{
   assert.equal(g.get('result-details').classList.contains('hidden'),true);
 });
 
-test('REAL arcade generation places both grounded Dash lessons and a repeat on procedural terrain',()=>{
-  // The previous pure-Director simulation passed while 3 human runs reached
-  // zone 12 without one Dash hazard. This uses the FULL actual game frame,
-  // terrain generator, safety vetoes and arrival/flip system.
-  const g=setup();
-  g.step(0);g.get('start-btn').click();
+test('REAL arcade generation produces long Duck Gates and never Twin Vaults',()=>{
+  const g=setup();g.step(0);g.get('start-btn').click();
   const st=g.context.window.__gravityHarness;
   let seed=20261108;
   const rng=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
-  st.terrain.random=rng;
-  st.director.random=rng;
+  st.terrain.random=rng;st.director.random=rng;
   const known=new Set(),dash=[];
   for(let i=1;i<=60*150;i++){
-    // Focus this simulation on generator reachability, not human reflexes.
-    // No obstacle is auto-cleared or new hazard invented by the test.
-    st.player().invulnerable=5;
-    st.setHP(100);
+    st.player().invulnerable=5;st.setHP(100);
     g.step(i*1000/60);
-    for(const o of st.hurdles()){
-      if(known.has(o.worldX))continue;
+    for(const o of st.hurdles())if(!known.has(o.worldX)){
       known.add(o.worldX);
-      if(o.type==='dash-jump'||o.type==='dash-duck'){
+      if(o.type==='dash-jump'||o.type==='dash-duck')
         dash.push({type:o.type,zone:st.zone(),ceiling:st.gravityShift.ceiling,at:i/60});
-      }
     }
-    if(dash.length>=4)break;
+    if(dash.length>=3)break;
   }
-  assert.ok(dash.length>=3,'real terrain should not starve guided Dash spawns: '+JSON.stringify(dash));
-  assert.equal(dash[0].type,'dash-jump');
-  assert.equal(dash[0].ceiling,false,'first Air Dash lesson must be on floor');
-  assert.equal(dash[1].type,'dash-duck');
-  assert.equal(dash[1].ceiling,false,'first Ground Dash lesson must be on floor');
-  assert.ok(dash[0].zone>=5&&dash[1].zone>=5);
-  assert.ok(dash.some(x=>x.type==='dash-jump'&&x.at>dash[1].at),
-    'Air Dash must return again after Ground Dash lesson');
+  assert.ok(dash.length>=2,'long Duck Gate should recur: '+JSON.stringify(dash));
+  assert.ok(dash.every(x=>x.type==='dash-duck'));
+  assert.equal(dash[0].ceiling,false,'first long Duck Gate taught on floor');
+  assert.ok(dash[0].zone>=4);
+  assert.ok(dash[1].at-dash[0].at>=20,'advanced gates should not spam');
 });
-
-test('a blocked ordinary obstacle cannot starve the first-floor Dash lesson',()=>{
+test('blocked ordinary obstacle cannot starve the retained Ground Dash lesson',()=>{
   const d=new director.AdaptiveRushDirector(()=>.5);
-  d.phase='BUILD';d.phaseDuration=40;d.echoIntroduced=true;
+  d.phase='BUILD';d.phaseDuration=40;
   d.pending=[{type:'jump',pattern:'single-jump',step:1}];d.spawnCountdown=0;
-  const attempted=[],defers=[];
+  const attempts=[],defers=[];
   const context={zone:5,zoneElapsed:5,surface:'floor',gravityPending:false,
     hp:100,speed:620,playerX:300,spawnX:1750,
     noteDashDefer:(reason,type)=>defers.push({reason,type})};
-  for(let i=0;i<240&&!d.dashIntroduced.air;i++){
-    d.tick(1/60,context,step=>{
-      attempted.push(step.type);
-      return step.type==='jump'?false:true;
-    });
-  }
-  assert.equal(d.dashIntroduced.air,true);
-  assert.equal(d.totalSpawned,1,'unspawned ordinary hurdles never count as spawned');
-  assert.ok(attempted.includes('dash-jump'));
-  assert.ok(defers.some(d=>d.reason==='stalled_ordinary_pattern'));
+  for(let i=0;i<240&&!d.dashIntroduced.ground;i++)d.tick(1/60,context,step=>{
+    attempts.push(step.type);return step.type!=='jump';
+  });
+  assert.equal(d.dashIntroduced.ground,true);
+  assert.equal(d.totalSpawned,1);
+  assert.ok(attempts.includes('dash-duck'));
+  assert.ok(defers.some(x=>x.reason==='stalled_ordinary_pattern'));
 });
-
-test('guided long Twin Vault then Long Gate require actual recovery AFTER vault end',()=>{
+test('long Duck Gate placement preserves physical recovery beyond the previous obstacle',()=>{
   const h=duckHarness(),g=h.game.context.window.__gravityHarness;
   g.director.tick=()=>{};g.gravityShift.requestForZone=()=>false;
   h.advance(1);g.forceZone(5);
-  g.director.echoIntroduced=true;
   g.director.stress=0;g.director.confidence=.9;
   g.terrain.canSpawnObstacle=()=>true;
   g.terrain.groundAt=()=>515;
   g.terrainDirector.prepare=()=>[];
   g.shieldCores.blocksHazard=()=>false;
-  assert.equal(g.testSpawn({type:'dash-jump',guided:true}),true);
+  assert.equal(g.testSpawn({type:'jump'}),true);
   const first={...g.lastPlaced()};
-  assert.equal(first.type,'dash-jump');
-  assert.equal(first.intro,true);
-  g.director.dashIntroduced.air=true; // mimic accepted guided spawn
   assert.equal(g.testSpawn({type:'dash-duck',guided:true}),false,
-    'a second long mechanic cannot start before the first ends');
-  const second= g.lastPlaced();
-  assert.deepEqual(JSON.parse(JSON.stringify(second)),
-    JSON.parse(JSON.stringify(first)),'denied attempt never updates placement history');
-  assert.equal(g.runAudit.summary.dashHazards.deferred.byReason.advanced_recovery,1);
-  // Remove actual obstacle to isolate the permanent world-edge safety
-  // from the renderer/pruning lifetime; spacing must still hold.
-  g.hurdles().length=0;
+    'long Gate cannot overlap short Jump recovery');
   h.advance(90);
-  assert.equal(g.testSpawn({type:'dash-duck',guided:true}),false,
-    '1.5 seconds is still too tight after the full length of Twin Vault');
-  // Allow the Director's real pending placement to retry on a clean runway.
   let made=false;
   for(let i=0;i<460&&!made;i++){
-    h.advance(1);
-    made=g.testSpawn({type:'dash-duck',guided:true})===true;
+    h.advance(1);made=g.testSpawn({type:'dash-duck',guided:true})===true;
   }
-  assert.equal(made,true,'the longer recovery must delay, not permanently delete, the lesson');
-  const later={...g.lastPlaced()};
-  // Check actual start-to-prior-END gap directly, not a spawn timer.
-  const target=dashHazards.recoveryAfter('dash-jump','dash-duck',
-    {prevIntro:true,nextIntro:true});
-  assert.equal(target,3.2);
-  assert.ok(later.endWorld>first.endWorld,'new challenge is beyond the prior end');
-  const secondPlaced=g.hurdles().find(o=>o.type==='dash-duck');
-  assert.ok(secondPlaced,'real accepted advanced shape is in the world');
+  assert.equal(made,true,'long Duck Gate is placeable after recovery');
+  const gate=g.hurdles().find(o=>o.type==='dash-duck');
+  assert.ok(gate);
   const check=dashHazards.placementAfter(first,'dash-duck',{
-    worldX:secondPlaced.worldX,speed:g.speed(),intro:true});
+    worldX:gate.worldX,speed:g.speed(),intro:true});
   assert.equal(check.allowed,true);
   assert.ok(check.actualWorldGap>=check.requiredWorldGap);
-  assert.ok(check.actualWorldGap/g.speed()>=3.2,
-    'player has a full multi-second recovery beyond the previous end');
 });
-
 test('optional Dash assist is counted separately from an ordinary physical clear',()=>{
   const audit=new runAudit.RoundAudit();
   audit.record('spawn',{zone:5},{obstacle:'dash-jump'});

@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const {GAME}=require('../src/core/config.js');
-const {AdaptiveRushDirector,PHASE,lateRamp,enduranceIntensity,
+const {AdaptiveRushDirector,PHASE,lateRamp,enduranceIntensity,enduranceDensity,
   MAX_SIMPLE_CHAIN}=require('../src/director/adaptive-director.js');
 const {PATTERNS,candidates}=require('../src/director/patterns.js');
 const {MovementAwareness,minimumGap}=require('../src/director/movement-awareness.js');
@@ -20,6 +20,9 @@ test('late intensity ramps AFTER zone 24 and NEVER increases locked speed',()=>{
   assert.equal(enduranceIntensity({zone:15,...full}),0);
   assert.ok(enduranceIntensity({zone:50,hp:20,stress:.65,confidence:1})<
     enduranceIntensity({zone:50,...full})*.20);
+  assert.ok(enduranceDensity({zone:50,hp:20,stress:.65,confidence:1})>
+    enduranceIntensity({zone:50,hp:20,stress:.65,confidence:1})*2,
+    'late basic-action density survives low HP; advanced eligibility stays gated');
   assert.ok(enduranceIntensity({zone:50,hp:75,stress:.2,confidence:.75})<
     enduranceIntensity({zone:50,...full}));
   assert.equal(GAME.speedAt(604),370+1350*(1-Math.exp(-604/170))+604*.9);
@@ -45,8 +48,10 @@ test('late confident BUILD gets denser spacing and wider combinations; low HP re
   assert.equal(effort.allowPattern(allowed,readiness,200),true);
   assert.equal(effort.allowPattern(allowed,{...readiness,hp:25,stress:.65},200),false);
   d.stress=.65;
-  assert.ok(d.gapFor({zone:50,hp:25,speed:2200})>
-    late,'a wounded runner still receives longer physical recovery');
+  const woundedLate=d.gapFor({zone:50,hp:25,speed:2200});
+  assert.ok(woundedLate>late,'a wounded runner still receives longer recovery');
+  assert.ok(woundedLate<d.gapFor({zone:24,hp:25,speed:2200})-.08,
+    'wounded zone-50 basic actions stay denser than wounded zone-24 play');
   d.stress=0;
   assert.equal(d.gapFor({zone:18,hp:100,speed:1300}),
     d.gapFor({zone:18,hp:100,speed:1300}));
@@ -74,7 +79,15 @@ test('terrain gives masters genuine high-speed safe flats without erasing all hi
   assert.ok(late.slopeChance<.52,'some high-speed terrain makes room for hazards');
   assert.ok(late.gapChance>=0,'gaps remain governed by existing safety');
   assert.equal(u.policyAt(ctx.playerWorld+2000,{...ctx,zone:24}).challengeRunway,false);
-  assert.equal(u.policyAt(ctx.playerWorld+2000,{...ctx,hp:20}).challengeRunway,false);
+  const wounded=u.policyAt(ctx.playerWorld+2000,{...ctx,hp:20});
+  assert.equal(wounded.challengeRunway,true,
+    'a skilled wounded player still gets flat corridors for basic inputs');
+  assert.equal(wounded.gapChance,0,
+    'low HP does NOT re-enable dangerous gaps');
+  d.stress=.9;
+  assert.equal(u.policyAt(ctx.playerWorld+2000,{...ctx,hp:20}).challengeRunway,false,
+    'severe stress still disables density corridors');
+  d.stress=0;
   const created=t._choose(50,2200,{...late,gapChance:0,slopeChance:0,allowGap:false});
   assert.equal(created.type,'flat');
   assert.ok(created.end-created.start>=7000);
@@ -123,6 +136,7 @@ test('multiple 10-minute seeded Directors intensify late healthy play without sp
     assert.ok(max<=MAX_SIMPLE_CHAIN,{seed,max});
     assert.ok(d.insight.endurance.zone>=50);
     assert.ok(d.insight.endurance.intensity>=.99);
+    assert.ok(d.insight.endurance.density>=.99);
     assert.equal(d.insight.endurance.shield,100);
   }
 });

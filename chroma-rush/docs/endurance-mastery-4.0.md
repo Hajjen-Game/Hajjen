@@ -37,18 +37,18 @@ strain = stress >= .65 ? .40 : stress >= .40 ? .62 : stress >= .25 ? .82 : 1
 intensity = r * mastery * shield * strain
 ```
 
-The curve is **zero through zone 24** and increases smoothly to zone 50. Low HP and stress suppress it without allowing a completely plateaued late run. Player inputs, physics, camera, obstacle shapes and all on-hit recovery are unchanged.
+The complex-pattern curve is **zero through zone 24** and increases smoothly to zone 50. Separately, simple-action density uses the same ramp but a less restrictive HP/stress factor, so a skilled runner with only 10–25 HP can still encounter more ordinary obstacles without re-enabling Echo/Dash, difficult combinations or unsafe gaps. Player inputs, physics, camera, obstacle shapes and all post-hit cooldowns are unchanged.
 
 ### Director
 
-- Healthy late BUILD: reduce the nominal gap between spawn **attempts** by up to **0.29s**. Final execution must still satisfy `minimumGap`, arrival interval, obstacle geometry, slope/gap veto, and damage recovery.
+- Late BUILD, including controlled low-HP play: reduce the nominal gap between spawn **attempts** by up to **0.29s** for the healthiest confident player, with a reduced but nonzero effect for skilled, wounded runners. Final execution must still satisfy `minimumGap`, arrival interval, obstacle geometry, slope/gap veto, and damage recovery.
 - Healthy late PEAK: extend phase by up to **1.40s** versus its old formula; FADE and RELAX remain unchanged.
 - From sufficient late mastery onward, BUILD can use tier-2 motifs (previously tier 1). Widen the max effort envelope by up to **0.90** so physically safe three-input patterns can be selected, and softly favor safe multi-input motifs. This is not a forced schedule; the existing Movement Awareness checks remain authoritative.
-- `directorExperience.endurance` exports last-zone intensity, shield and the zone-only ramp for analysis, alongside historical real-spawn variety telemetry.
+- `directorExperience.endurance` exports last-zone advanced intensity, basic-density modifier, actual shield and the zone-only ramp for analysis, alongside historical real-spawn variety telemetry.
 
 ### Unified terrain
 
-- For mastered, healthy zone-25+ BUILD and PEAK, reduce the likelihood of a slope **only within eligible sections**, leaving slope and gap mechanics enabled.
+- For mastered zone-25+ BUILD and PEAK, reduce the likelihood of a slope **only within eligible sections**, leaving slope and gap mechanics enabled. At low HP, these predictable flat lanes remain possible for a skilled player who is not under critical stress, but high-risk gaps and special hurdles remain vetoed.
 - When the existing random generator chooses flat in a healthy late challenge section, extend it to roughly **2.95–3.55 seconds of current-world-speed runway** (max 7,800 world units). This permits more than one safe obstacle without violating real takeoff/landing requirements.
 - Flat corridors do **not** override procedural gaps, terrain phase gating, shield-core lanes, gravity shift, low HP, event ordering or any world-edge recovery checks.
 - First lesson runways, early-zone terrain, input tutorial order and high-speed fairness reaction horizons remain unchanged.

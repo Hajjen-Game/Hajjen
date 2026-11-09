@@ -35,6 +35,15 @@
     const strain=stress>=.65?.4:stress>=.40?.62:stress>=.25?.82:1;
     return ramp*mastery*shield*strain;
   }
+  // Simple-action rhythm must not vanish when a strong late runner
+  // drops to low HP: only complex patterns need the stricter gate.
+  // Physical separation and post-hit cooldown remain unchanged.
+  function enduranceDensity({zone=1,hp=100,stress=0,confidence=0}={}){
+    const mastery=clamp((confidence-.35)/.5,0,1);
+    const shield=hp<=25?.70:hp<=50?.80:hp<=75?.90:1;
+    const strain=stress>=.65?.75:stress>=.40?.86:1;
+    return lateRamp(zone)*mastery*shield*strain;
+  }
   // Director Variety 3.0: only REAL spawns establish an action chain.
   const MAX_SIMPLE_CHAIN=3;
   function violatesSimpleChain(steps,history,maxChain=MAX_SIMPLE_CHAIN){
@@ -159,6 +168,8 @@
     }
     enduranceFor(context){return enduranceIntensity({
       ...context,stress:this.stress,confidence:this.confidence});}
+    densityFor(context){return enduranceDensity({
+      ...context,stress:this.stress,confidence:this.confidence});}
     tierFor(context){
       const zone=Math.max(1,context.zone||1);
       let tier=zone>=6?3:zone>=3?2:1;
@@ -234,7 +245,7 @@
       const zoneReduction=clamp((zone-1)*.046,0,.27);
       // The old curve stopped increasing difficulty around zone 7.
       // Late density grows only after zone 24, with health-based relief.
-      const masteryReduction=.29*this.enduranceFor(context);
+      const masteryReduction=.29*this.densityFor(context);
       const hpBonus=context.hp<=25?.23:context.hp<=50?.10:0;
       const breath=Math.min(.35,this.movement.pressure*.075);
       return clamp(base-zoneReduction-masteryReduction+
@@ -469,11 +480,14 @@
         rejected:this.varietyRejected,maxSimpleChain:MAX_SIMPLE_CHAIN},
       endurance:{intensity:Number(this.enduranceFor({
         zone:this.lastZone,hp:this.lastHP}).toFixed(3)),
+        density:Number(this.densityFor({
+          zone:this.lastZone,hp:this.lastHP}).toFixed(3)),
         lateRamp:Number(lateRamp(this.lastZone).toFixed(3)),
         zone:this.lastZone,shield:this.lastHP}};}
   }
   // Keep the legacy exported constructor name for tests/integrations.
   return {PHASE,DASH_REPEAT_SECONDS,MAX_SIMPLE_CHAIN,
-    lateRamp,enduranceIntensity,violatesSimpleChain,varietyMultiplier,AdaptiveRushDirector,
+    lateRamp,enduranceIntensity,enduranceDensity,
+    violatesSimpleChain,varietyMultiplier,AdaptiveRushDirector,
     AdaptiveFlowDirector:AdaptiveRushDirector,minimumGap};
 });

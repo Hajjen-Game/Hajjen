@@ -53,7 +53,7 @@ test('movement audit keeps real inputs, successful actions and reason-coded deni
   a.record('dash_blocked',state,{reason:'air_spent',desired:'air'});
   const d=a.snapshot();
   assert.equal(d.version,3);
-  assert.equal(d.build,'core-pace-gravity-1.1');
+  assert.equal(d.build,'phase-2-chroma-surge-1.0');
   assert.deepEqual(d.summary.movement,{
     jumpPresses:2,duckPresses:2,echoJumps:1,airDashes:1,groundDashes:1,dashBlocked:1
   });

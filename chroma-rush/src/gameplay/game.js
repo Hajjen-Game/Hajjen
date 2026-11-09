@@ -1016,6 +1016,17 @@
       hurdles.every(o=>o.hit||o.cleared||
         o.x+o.width<player.x-speed*.35||o.x>player.x+speed*1.55);
     const gravityEvent=gravityShift.tick(dt,{safe:safeShift,reducedMotion});
+    if(gravityEvent==='return_warning'){
+      // A short ceiling excursion has expired. Reserve the same clear
+      // runway as a zone-triggered shift; NEVER force an unsafe inversion.
+      terrainDirector.noHazardsBefore=Math.max(terrainDirector.noHazardsBefore,
+        distance+camera.visibleRight(W,player.x)+speed*1.5);
+      terrainDirector.noGapsBefore=Math.max(terrainDirector.noGapsBefore,
+        distance+camera.visibleRight(W,player.x)+speed*1.8);
+      runAudit.record('gravity_warning',auditState(),{
+        target:'floor',automatic:true,reason:'ceiling_excursion_end'});
+      sound('gravity-warning');
+    }
     if(gravityEvent==='begin'){
       player.invulnerable=Math.max(player.invulnerable,.58+.28);
       jumpControl.cancel();dash.cancel();dashReleasePending=null;motion.reset();speedTrails.reset();combo.breakChain();

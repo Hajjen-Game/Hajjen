@@ -72,7 +72,8 @@ test('drawing deformation does not change geometry hitbox for any motion state',
 test('module order and cache versions include both new independent modules',()=>{
  const fs=require('node:fs'),path=require('node:path');
  const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- const sources=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].replace('-arcade-simplification-1.0',''));
+ const sources=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].replace('-arcade-simplification-1.0','')
+   .replace('-core-gameplay-excellence-1.0','').replace('-core-pace-gravity-1.1',''));
  const ctrl=sources.indexOf('src/gameplay/jump-controller.js?v=jump-1.0-movement-1.0-echo-fix-2.1');
  const motion=sources.findIndex(src=>src.startsWith('src/render/player-motion.js?v=duck-effects-1.0-movement-1.0-dash-squash-stretch-2.5'));
  const game=sources.findIndex(src=>src.startsWith('src/gameplay/game.js?v='));

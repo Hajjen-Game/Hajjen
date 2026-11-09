@@ -208,7 +208,7 @@ test('zone 1: real touch taps trigger ground and air dashes, and audit records b
   assert.ok(g.dash.travel>before);
   assert.equal(g.runAudit.summary.movement.airDashes,1);
   assert.equal(g.runAudit.summary.movement.echoJumps,0);
-  assert.equal(g.runAudit.snapshot().build,'obstacle-director-balance-3.0');
+  assert.equal(g.runAudit.snapshot().build,'core-pace-gravity-1.1');
 });
 
 test('fast double-tap is buffered, then truly launches the second impulse',()=>{
@@ -531,20 +531,24 @@ test('replay PB HUD survives a paused restart without writing stats',()=>{
 });
 
 
-test('actual zone 8 turns the course onto ceiling and zone 16 restores floor',()=>{
+test('real game makes the zone-8 ceiling set-piece short and safely returns to floor',()=>{
   const g=setup();g.step(0);g.get('start-btn').click();
   const state=g.context.window.__gravityHarness;
   state.director.tick=()=>{};
   state.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
   state.terrain.gaps=[];state.terrain.generated=10000000;
-  for(let i=1;i<=60*12*8+90;i++)g.step(i*1000/60);
+  for(let i=1;i<=60*97;i++)g.step(i*1000/60);
   assert.ok(state.zone()>=8);
-  assert.equal(state.gravityShift.ceiling,true,'first shift is zone 8');
-  for(let i=60*12*8+91;i<=60*12*16+90;i++)g.step(i*1000/60);
-  assert.ok(state.zone()>=16);
-  assert.equal(state.gravityShift.ceiling,false,'second shift returns to floor in zone 16');
-  assert.equal(state.gravityShift.count,2);
+  assert.equal(state.gravityShift.ceiling,true,'first zone-8 shift reached ceiling');
+  assert.equal(state.gravityShift.count,1);
+  for(let i=60*97+1;i<=60*125;i++)g.step(i*1000/60);
+  assert.equal(state.gravityShift.ceiling,false,'auto-return must finish well before zone 16');
+  assert.equal(state.gravityShift.count,2,'entry and return are distinct safe shifts');
+  for(let i=60*125+1;i<=60*193;i++)g.step(i*1000/60);
+  assert.equal(state.gravityShift.ceiling,true,'next ceiling event begins at zone 16');
+  assert.equal(state.gravityShift.count,3);
 });
+
 test('ceiling Chroma State retains one canvas mirror for cube, corner FX, dust and ground contact',()=>{
   const g=setup(),state=g.context.window.__gravityHarness;
   g.step(0);g.get('start-btn').click();

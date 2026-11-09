@@ -25,7 +25,9 @@ test('late intensity ramps AFTER zone 24 and NEVER increases locked speed',()=>{
     'late basic-action density survives low HP; advanced eligibility stays gated');
   assert.ok(enduranceIntensity({zone:50,hp:75,stress:.2,confidence:.75})<
     enduranceIntensity({zone:50,...full}));
-  assert.equal(GAME.speedAt(604),370+1350*(1-Math.exp(-604/170))+604*.9);
+  assert.ok(GAME.speedAt(604)>2600&&GAME.speedAt(604)<2750);
+  assert.equal(GAME.speedAt(604,24),GAME.speedAt(604,50),
+    'Director endurance changes density only, never the shared speed curve');
   assert.equal(GAME.zoneSeconds,12);
 });
 

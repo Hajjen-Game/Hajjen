@@ -19,33 +19,38 @@ test('Speed Curve 3.2 retains launch speed and zone cadence but not instant zone
   assert.equal(GAME.speedAt(-10,1),370);
 });
 
-test('checkpoints from launch through ten minutes match the long-run plan',()=>{
+test('Core Pace 1.1 retains the 45-second introduction then escalates toward 3–4 minute mastery',()=>{
   const checkpoints=[
-    [0,370],[12,473],[30,615],[60,825],[90,1006],[120,1162],
-    [180,1414],[240,1607],[300,1759],[360,1882],[420,1984],[600,2220]
+    [0,370],[12,473],[30,615],[45,724],[60,835],[90,1078],
+    [120,1335],[180,1802],[225,2023],[240,2067],
+    [300,2219],[360,2342],[420,2444],[600,2680]
   ];
   for(const [t,expected] of checkpoints){
     const got=GAME.speedAt(t,zoneAt(t));
     assert.equal(Math.round(got),expected,'wrong speed at t='+t);
-    if(t){
-      assert.ok(got>speedV31(t),'v3.2 must be faster than the v3.1 player-tested curve at t='+t);
-      if(t===60)assert.ok(Math.abs(got-speedV2(t,zoneAt(t)))<2,'one-minute speed near original 2.0');
-      if(t>=90)assert.ok(got<speedV2(t,zoneAt(t)),'v3.2 must remain gentler than v2.0 after 90s');
-    }
   }
+  const original=t=>GAME.baseSpeed+GAME.speedRise*(1-Math.exp(-t/GAME.speedEaseSeconds))+
+    t*GAME.cruiseAcceleration;
+  for(const t of [0,12,30,45])assert.ok(Math.abs(GAME.speedAt(t)-original(t))<1e-9,
+    'the first 45 seconds must stay unchanged');
+  assert.ok(GAME.speedAt(180)-original(180)>380);
+  assert.ok(GAME.speedAt(240)-original(240)>450);
+  assert.ok(GAME.speedAt(240)>2000&&GAME.speedAt(240)<2200);
 });
 
-test('smooth taper: acceleration decreases without speed drops or two-minute seam',()=>{
-  const slope=t=>(GAME.speedAt(t+.01,zoneAt(t))-GAME.speedAt(t,zoneAt(t)))/.01;
-  const derivs=[0,60,120,180,300,420,600].map(slope);
-  for(let i=1;i<derivs.length;i++)assert.ok(derivs[i]<derivs[i-1]);
-  assert.ok(derivs[0]>8.8&&derivs[0]<8.9);
-  assert.ok(derivs.at(-1)>1.1&&derivs.at(-1)<1.2);
-  for(const t of [12,60,120,180,300,420,600]){
-    const left=(GAME.speedAt(t,zoneAt(t))-GAME.speedAt(t-.001,zoneAt(t-.001)))/.001;
-    const right=(GAME.speedAt(t+.001,zoneAt(t+.001))-GAME.speedAt(t,zoneAt(t)))/.001;
+test('pace boost is monotonic and has no acceleration seam at 45s or 225s',()=>{
+  const slope=t=>(GAME.speedAt(t+.001)-GAME.speedAt(t))/.001;
+  for(const t of [0,30,44.9,45,45.1,60,120,180,224.9,225,225.1,300,420,600]){
+    assert.ok(slope(t)>0&&slope(t)<10,'unfair acceleration at '+t);
+  }
+  for(const t of [12,45,60,120,180,225,240,420]){
+    const left=(GAME.speedAt(t)-GAME.speedAt(t-.001))/.001;
+    const right=(GAME.speedAt(t+.001)-GAME.speedAt(t))/.001;
     assert.ok(Math.abs(left-right)<.001,'acceleration seam at t='+t);
   }
+  assert.equal(GAME.midgameSpeedStart,45);
+  assert.equal(GAME.midgameSpeedFull,225);
+  assert.equal(GAME.midgameSpeedGain,460);
 });
 
 test('zone boundaries never add extra speed steps',()=>{
@@ -105,9 +110,9 @@ test('movement and two-thumb controls are unchanged in this pass',()=>{
   assert.doesNotMatch(html,/id="dash-btn"/);
 });
 
-test('seven-minute deterministic narrow-screen run respects Director fairness invariants',()=>{
+test('seven-minute deterministic narrow-screen run respects Director safety under restored pace',()=>{
   const run=simulate({seed:42,seconds:420,viewportWidth:900,damageEvery:17});
-  assert.equal(Math.round(run.finalSpeed),1984);
+  assert.equal(Math.round(run.finalSpeed),2444);
   assert.ok(run.cleared>10);
   assert.equal(run.underBudget,0);
   assert.equal(run.lateGaps,0);
@@ -121,18 +126,17 @@ test('speed target is supported by player log without scripting a six-minute dea
   assert.equal(log.finalZone,35);
   assert.ok(Math.abs(log.observedSpeed-1154.84)<.1);
   const revised=GAME.speedAt(log.elapsedSeconds,log.finalZone);
-  assert.ok(revised>1900&&revised<2050,
-    'v3.2 should substantially raise late speed without approaching v2.0 extremes');
-  assert.ok(revised<speedV2(log.elapsedSeconds,log.finalZone));
+  assert.ok(revised>2380&&revised<2500,
+    'Core Pace 1.1 restores a fast late challenge while preserving smooth acceleration');
 });
 
-test('recent 4m29.68 player run produces the approved 3.2 speed gain',()=>{
+test('historic 4m29.68 player log anchors the new faster Core Pace curve',()=>{
   // Logged Speed Curve 3.1 result: 269.68 seconds, zone 23, 1348.77 world units/s.
   const elapsed=269.68,zone=23,observed=1348.77;
   assert.equal(zoneAt(elapsed),zone);
   assert.ok(Math.abs(speedV31(elapsed)-observed)<.1);
   const upgraded=GAME.speedAt(elapsed,zone);
-  assert.ok(upgraded>1670&&upgraded<1700);
-  assert.ok(upgraded/observed>1.24&&upgraded/observed<1.27);
+  assert.ok(upgraded>2120&&upgraded<2170);
+  assert.ok(upgraded/observed>1.57&&upgraded/observed<1.62);
   // A faster speed at the *same time* is not a claim about human survival time.
 });

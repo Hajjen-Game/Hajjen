@@ -11,7 +11,7 @@
   'use strict';
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
-  const START_ZONE=7,INTERVAL_ZONES=7,WARNING_SECONDS=.9,SHIFT_SECONDS=.58,GRACE_SECONDS=.28;
+  const START_ZONE=8,INTERVAL_ZONES=8,WARNING_SECONDS=.9,SHIFT_SECONDS=.58,GRACE_SECONDS=.28;
   class GravityShift {
     constructor(){this.reset()}
     reset(){

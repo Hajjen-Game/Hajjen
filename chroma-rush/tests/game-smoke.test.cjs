@@ -649,7 +649,7 @@ test('first floor Echo lesson in zone 2: one jump fails, Echo clears, later ceil
     g.step(1000/60);
     const first=state.hurdles()[0];
     assert.ok(first,'Director must introduce a visible obstacle');
-    assert.equal(first.type,'echo','safe first encounter is a double-jump pillar');
+    assert.equal(first.type,'echo','safe first encounter is the low Echo Rail');
     assert.equal(state.director.echoIntroduced,true);
     const tap=id=>{
       for(const fn of g.get('jump-btn').events.pointerdown??[])fn({pointerId:id,preventDefault(){}});
@@ -660,11 +660,13 @@ test('first floor Echo lesson in zone 2: one jump fails, Echo clears, later ceil
     // same physical test: one jump fails, two correctly timed jumps clear.
     const speed=config.GAME.speedAt(config.GAME.zoneSeconds,2);
     const untilContact=(first.x-state.player().x-22)/speed;
-    // Slower movement means the wide pillar overlaps the player longer;
-    // place contact near the broad Echo apex, not near descent.
-    const launchFrame=Math.max(3,Math.round((untilContact-.60)*60));
+    // The NEW low 265–280px rail needs an early, forgiving Echo takeoff.
+    // Follow the entire wide collider past the anchored player before
+    // judging a clean clear, not just its former narrow 49px silhouette.
+    const launchFrame=Math.max(3,Math.round((untilContact-.35)*60));
     const echoFrame=launchFrame+20;
-    const finishFrame=Math.max(114,Math.ceil((untilContact+.30)*60));
+    const finishFrame=Math.max(114,Math.ceil(
+      (untilContact+(first.width+36)/speed+.40)*60));
     for(let i=2;i<=finishFrame;i++){
       if(i===launchFrame)tap(61);
       if(i===echoFrame&&secondJump)tap(62);
@@ -678,7 +680,7 @@ test('first floor Echo lesson in zone 2: one jump fails, Echo clears, later ceil
       introduced:state.director.echoIntroduced};
   }
   const ordinary=play(),echo=play({secondJump:true}),ceiling=play({secondJump:true,ceiling:true});
-  assert.equal(ordinary.hit,true,'one jump cannot cross a real Echo Spire');
+  assert.equal(ordinary.hit,true,'a normal Jump cannot cross the early broad Echo Rail');
   assert.ok(ordinary.hp<100);
   assert.equal(echo.hit,false,'two correctly timed jumps must clear');
   assert.equal(echo.hp,100);
@@ -718,7 +720,7 @@ test('live arcade Flow integration awards only verified alternating clear chains
   assert.match(g.get('flow-streak').textContent,/3 STREAK/);
 });
 
-test('normal arcade run introduces its first real Echo Spire IN zone 2 on the floor',()=>{
+test('normal arcade run introduces its first low Echo Rail IN zone 2 on the floor',()=>{
   const g=setup();g.step(0);g.get('start-btn').click();
   const state=g.context.window.__gravityHarness;
   const seen=new Set();let first=null,phaseAtSpawn=null;

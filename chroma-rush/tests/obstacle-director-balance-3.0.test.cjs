@@ -11,9 +11,10 @@ const P=require('../src/director/patterns.js');
 const root=path.join(__dirname,'..');
 const speed=z=>GAME.speedAt((z-1)*GAME.zoneSeconds,z);
 
-test('Jump and Duck share the same width growth profile at every speed',()=>{
-  assert.deepEqual(B.widthRangeFor('jump',{speed:370}),{min:54,max:71});
-  assert.deepEqual(B.widthRangeFor('duck',{speed:370}),{min:54,max:71});
+test('Jump and Duck share one fixed width at each speed tier, starting at 71',()=>{
+  assert.deepEqual(B.widthRangeFor('jump',{speed:370}),{min:71,max:71});
+  assert.deepEqual(B.widthRangeFor('duck',{speed:370}),{min:71,max:71});
+  assert.equal(B.STANDARD_WIDTH_STEPS,10);
   for(const type of ['jump','duck','echo']){
     const a=B.widthRangeFor(type,{speed:370});
     const b=B.widthRangeFor(type,{speed:2200});
@@ -21,7 +22,9 @@ test('Jump and Duck share the same width growth profile at every speed',()=>{
     if(type==='jump')assert.deepEqual(a,B.widthRangeFor('duck',{speed:370}));
     for(const z of [1,2,3,5,7,10,15,20,25,30,40,50]){
       const v=speed(z),x=B.widthRangeFor(type,{speed:v});
-      assert.ok(x.min>0&&x.max>x.min,{type,z,x});
+      assert.ok(x.min>0&&x.max>=x.min,{type,z,x});
+      if(type==='echo')assert.ok(x.max>x.min,'legacy Echo may retain its width range');
+      else assert.equal(x.min,x.max,'standard Jump/Duck have no random width');
       assert.ok(Number.isFinite(B.widthFor(type,{speed:v,random:()=>.4})));
       if(type==='jump'){
         assert.deepEqual(x,B.widthRangeFor('duck',{speed:v}),
@@ -47,6 +50,50 @@ test('Jump and Duck share the same width growth profile at every speed',()=>{
     'short jump must remain visible at the 60% camera zoom');
 });
 
+
+test('all ordinary gate rolls at the same speed match regardless of type, RNG or sequence',()=>{
+  const rng=[()=>0,()=>.01,()=>.25,()=>.5,()=>.75,()=>.999999,()=>1];
+  const speeds=[370,450,549,550,600,750,1000,1275,1550,1800,2000,2199,2200,2500,5000];
+  for(const speed of speeds){
+    const w=B.widthRangeFor('jump',{speed});
+    assert.deepEqual(B.widthRangeFor('duck',{speed}),w);
+    assert.equal(w.min,w.max,'a speed tier must have exactly one rendered width');
+    for(const type of ['jump','duck']){
+      for(const random of rng){
+        assert.equal(B.widthFor(type,{speed,random}),w.max,
+          'random selection may not bring back thin gates');
+        assert.equal(B.dimensionsFor(type,{speed,random}).width,w.max,
+          'actual gameplay spawn geometry must be uniform');
+      }
+    }
+  }
+  for(const speed of [370,450,549,550])assert.equal(
+    B.widthFor('jump',{speed,random:()=>0}),71,
+    'the previous widest starting gate becomes the only starting gate');
+  assert.equal(B.widthFor('jump',{speed:2200,random:()=>0}),221);
+  assert.equal(B.widthFor('duck',{speed:2200,random:()=>1}),221);
+});
+
+test('shared width grows together in readable plateaus, without shrinking',()=>{
+  let previous=0,changes=0;
+  const seen=new Set();
+  for(let speed=370;speed<=2500;speed+=5){
+    const jump=B.widthFor('jump',{speed,random:()=>0});
+    const duck=B.widthFor('duck',{speed,random:()=>1});
+    assert.equal(jump,duck);
+    assert.ok(jump>=previous,'width never shrinks as speed rises');
+    if(jump>previous)changes++;
+    previous=jump;seen.add(jump);
+  }
+  assert.equal(seen.size,B.STANDARD_WIDTH_STEPS+1);
+  assert.equal(changes,B.STANDARD_WIDTH_STEPS+1);
+  assert.equal(Math.min(...seen),71);
+  assert.equal(Math.max(...seen),221);
+  const fixed=B.dimensionsFor('jump',{speed:370,random:()=>0});
+  const tall=B.dimensionsFor('jump',{speed:370,random:()=>1});
+  assert.equal(fixed.width,tall.width,'width is fixed even with different heights');
+  assert.ok(tall.height>fixed.height,'existing height variation remains intact');
+});
 test('intro Echo and ALL jump/duck heights are protected by original controls',()=>{
   for(const z of [2,5,10,30,50]){
     assert.deepEqual(B.widthRangeFor('echo',{speed:speed(z),intro:true}),

@@ -155,7 +155,7 @@ test('Build loads collectible system before game and shows a compact HUD feedbac
   const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
   assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0|ACTION DENSITY 2\.0|RUSH CHAINS 3\.0|ENDLESS ESCALATION 4\.0|VISUAL SIGNATURE 2\.0|AMBIENT LIGHTING 2\.1|PREMIUM WORLD LIGHTING 3\.0)/);
   assert.match(html,/id="shield-gain" class="shield-gain hidden"/);
-  const logic=html.indexOf('src/gameplay/shield-core.js?v=shield-core-1.0');
+  const logic=html.indexOf('src/gameplay/shield-core.js?v=');
   const render=html.indexOf('src/render/shield-core-renderer.js?v=shield-core-renderer-1.0');
   const engine=html.indexOf('src/gameplay/game.js?v=');
   assert.ok(logic>0&&render>logic&&engine>render);

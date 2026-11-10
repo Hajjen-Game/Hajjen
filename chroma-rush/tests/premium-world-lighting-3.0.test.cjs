@@ -124,7 +124,7 @@ test('all obstacle families share one body material without introducing new haza
   assert.match(section,/const color=spectralWave\.colorAt/);
   assert.match(section,/GEO\.obstacleBox\(o,o\.groundY\)/);
   assert.doesNotMatch(section,/o\.width\s*=|o\.groundY\s*=|GEO\.obstacleBox\s*=/);
-  assert.equal((section.match(/const material=lightRig\?\.hazard/g)||[]).length,1);
+  assert.equal((section.match(/const material=typeof frameLighting/g)||[]).length,1);
 });
 
 test('game evaluates one shared rig per frame for sky, real track, hazards and runner',()=>{

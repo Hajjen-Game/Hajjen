@@ -1540,7 +1540,7 @@
       ctx.shadowBlur=0;ctx.globalAlpha=twinkle;
       ctx.fillStyle=rgba(color,material?.veil??.105);
       ctx.fillRect(b.x,b.y,b.w,b.h);
-      ctx.strokeStyle=rgba(color,.68);ctx.lineWidth=1.9;
+      ctx.strokeStyle=rgba(color,material?.border??.68);ctx.lineWidth=1.9;
       ctx.beginPath();
       ctx.moveTo(b.x+1,b.y);ctx.lineTo(b.x+1,by);
       ctx.moveTo(b.x+b.w-1,b.y);ctx.lineTo(b.x+b.w-1,by);

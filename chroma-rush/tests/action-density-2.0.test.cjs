@@ -28,7 +28,8 @@ test('real PEAK lasts longer from midgame while physical damage recovery stays l
   const early=d.durationFor(PHASE.PEAK,{zone:6,hp:100});
   const mid=d.durationFor(PHASE.PEAK,{zone:19,hp:100});
   assert.ok(mid>=early+2.4,JSON.stringify({early,mid}));
-  assert.ok(mid>=7.3&&mid<8.6,mid);
+  assert.ok(mid>=12&&mid<=13.8,mid);
+  assert.ok(mid>early+4,'Rush Chain phase must exceed prior phase duration, not just rename it');
   assert.ok(d.durationFor(PHASE.BUILD,{zone:19,hp:100})<
     d.durationFor(PHASE.BUILD,{zone:6,hp:100})-.7);
   assert.ok(d.durationFor(PHASE.RELAX,{zone:19,hp:100})<=1.65);

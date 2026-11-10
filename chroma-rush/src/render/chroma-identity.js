@@ -46,23 +46,27 @@
   // arrowheads, stripes, floating objects or double render passes of the world.
   function paintPlayer(ctx,{x,y,w,h,topShift=0,primary='#4bf0ff',
     secondary='#fa49b2',pose={},motion={},quality={},reducedMotion=false,
-    tideResonance=0,bodyPath}={}){
+    tideResonance=0,ambientLight=0,bodyPath}={}){
     if(typeof bodyPath!=='function'||!(w>0&&h>0))return;
     const p=expression(motion,reducedMotion),q=budget(quality);
     // Chroma Tide ignites the existing cube surface at the exact moment
     // the REAL palette front crosses the runner. No independent timer.
     const tide=reducedMotion?0:clamp(tideResonance,0,1);
+    // The cube stays the same approved silhouette: only existing light
+    // and full-surface glass pigments answer the environment's palette.
+    const sceneLight=clamp(ambientLight,0,1)*q.glow;
     const burst=clamp(p.echo*.7+p.dash*.8+p.landing*.65+p.launch*.35+tide*.85,0,1);
     const drive=clamp(p.dash*.52+p.echo*.27+p.duck*.12+tide*.32,0,.7);
     ctx.save();
     // The glow is welded to the actual moving silhouette; no halo ring.
     ctx.shadowColor=tide>.25?'#ffffff':burst>.28?secondary:primary;
-    ctx.shadowBlur=(22+Math.min(21,(pose.glow||0)*12+burst*11+tide*6))*q.glow;
+    ctx.shadowBlur=(22+Math.min(21,(pose.glow||0)*12+burst*11+tide*6)+
+      sceneLight*6)*q.glow;
     const shell=ctx.createLinearGradient(x+topShift*.35,y,x+w,y+h);
     shell.addColorStop(0,'#ffffff');
     shell.addColorStop(.23,burst>.4?'#ffffff':'#f7fcff');
-    shell.addColorStop(.66,tint('#f4faff',primary,.12+p.launch*.14+p.landing*.07+tide*.18));
-    shell.addColorStop(1,tint('#e2effc',secondary,.16+drive*.28+tide*.13));
+    shell.addColorStop(.66,tint('#f4faff',primary,.12+p.launch*.14+p.landing*.07+tide*.18+sceneLight*.08));
+    shell.addColorStop(1,tint('#e2effc',secondary,.16+drive*.28+tide*.13+sceneLight*.09));
     ctx.fillStyle=shell;
     bodyPath(x,y,w,h,8,topShift);ctx.fill();
     ctx.shadowBlur=(7+burst*8)*q.glow;

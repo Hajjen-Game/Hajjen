@@ -11,8 +11,8 @@ const P=require('../src/director/patterns.js');
 const root=path.join(__dirname,'..');
 const speed=z=>GAME.speedAt((z-1)*GAME.zoneSeconds,z);
 
-test('speed-aware standard obstacles preserve starting sizes and improve late zoom readability',()=>{
-  assert.deepEqual(B.widthRangeFor('jump',{speed:370}),{min:43,max:58});
+test('speed-aware standard obstacles preserve readability with chunkier Jump and safe late zoom',()=>{
+  assert.deepEqual(B.widthRangeFor('jump',{speed:370}),{min:50,max:66});
   assert.deepEqual(B.widthRangeFor('duck',{speed:370}),{min:54,max:71});
   for(const type of ['jump','duck','echo']){
     const a=B.widthRangeFor(type,{speed:370});
@@ -22,7 +22,11 @@ test('speed-aware standard obstacles preserve starting sizes and improve late zo
       const v=speed(z),x=B.widthRangeFor(type,{speed:v});
       assert.ok(x.min>0&&x.max>x.min,{type,z,x});
       assert.ok(Number.isFinite(B.widthFor(type,{speed:v,random:()=>.4})));
-      if(type==='jump')assert.ok(x.max<=105);
+      if(type==='jump'){
+        assert.ok(x.max<=113,'standard Jump stays distinct from long Dash geometry');
+        assert.ok(B.traverseSeconds('jump',{speed:v,width:x.max})<.30,
+          'chunkier Jump remains a normal single-jump obstacle');
+      }
       if(type==='duck'){
         assert.ok(x.max<=221);
         assert.ok(B.traverseSeconds('duck',{speed:v,width:x.max})<GAME.duckDuration,
@@ -42,7 +46,7 @@ test('intro Echo and ALL jump/duck heights are protected by original controls',(
     assert.deepEqual(B.heightRangeFor('echo',{intro:true}),
       {min:70,max:76});
     assert.deepEqual(B.heightRangeFor('echo'),{min:78,max:86});
-    assert.deepEqual(B.heightRangeFor('jump'),{min:53,max:66});
+    assert.deepEqual(B.heightRangeFor('jump'),{min:59,max:73});
     assert.deepEqual(B.heightRangeFor('duck'),{min:115,max:158});
   }
   const intro=B.dimensionsFor('echo',{speed:2200,intro:true,random:()=>.5});
@@ -208,4 +212,17 @@ test('actual gameplay loads shared size contract and audit exposes real dimensio
   assert.match(html,/obstacle-director-balance-3\.0/);
   const audit=require('../src/diagnostics/round-audit.js');
   assert.equal(new audit.RoundAudit().snapshot().build,'premium-world-lighting-3.0');
+});
+
+test('Jump cleanup removes only the in-air twin-angles availability marker',()=>{
+  const game=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');
+  const player=game.slice(game.indexOf('  function drawPlayer(){'),
+    game.indexOf('  function drawFx(',game.indexOf('  function drawPlayer(){')));
+  assert.ok(player.length>2500);
+  assert.equal(player.includes('jumpControl.echoAvailable'),false);
+  assert.equal(player.includes('const cx=rx+rw+7'),false);
+  assert.ok(player.includes('motion.sample('),'jump stretch/squash stays');
+  assert.ok(player.includes('chromaVfx.drawAfterPlayer('),'existing Chroma effects stay');
+  assert.ok(game.includes("else if(action==='echo')launchEcho();"),
+    'actual double jump controls must remain functional');
 });

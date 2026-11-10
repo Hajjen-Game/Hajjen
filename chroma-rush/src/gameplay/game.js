@@ -1633,19 +1633,6 @@
         glowLine(x,y,x-12-speed/110,y,pc2,1.1,5,.34-i*.065);
       }
     }
-    // A tiny angular availability marker follows the player's actual body.
-    // It is visually subdued and disappears as soon as Echo Jump is spent.
-    if(!player.landed&&zone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone&&
-      jumpControl.echoAvailable&&!gravityShift.shifting){
-      ctx.save();
-      ctx.globalAlpha=.68;ctx.shadowColor=pc2;ctx.shadowBlur=5*quality.profile.glow;
-      ctx.strokeStyle=pc2;ctx.lineWidth=1.8;
-      ctx.beginPath();
-      const cx=rx+rw+7,cy=ry+rh*.5;
-      ctx.moveTo(cx,cy-8);ctx.lineTo(cx+5,cy-8);ctx.lineTo(cx+5,cy);
-      ctx.moveTo(cx+8,cy-3);ctx.lineTo(cx+13,cy-3);ctx.lineTo(cx+13,cy+5);
-      ctx.stroke();ctx.restore();
-    }
     ctx.restore();
     // Transformed mode keeps the same clear square silhouette.
     // Post-player neon brackets follow the ACTUAL deformed pose, including

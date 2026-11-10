@@ -18,7 +18,9 @@
   const growthFor=speed=>smooth((Math.max(300,speed)-FIRST_GROW_SPEED)/
     (FINAL_GROW_SPEED-FIRST_GROW_SPEED));
   const WIDTH_LIMITS=Object.freeze({
-    jump:Object.freeze({min:43,max:58,growthMin:44,growthMax:47}),
+    // Chunkier ordinary Jump: only dimensions change, not the gate artwork.
+    // Keep speed growth and distinct long Dash obstacles unchanged.
+    jump:Object.freeze({min:50,max:66,growthMin:44,growthMax:47}),
     duck:Object.freeze({min:54,max:71,growthMin:130,growthMax:150}),
     echo:Object.freeze({growthMin:175,growthMax:175})
   });
@@ -45,7 +47,7 @@
     if(type==='echo')return intro?
       {min:ECHO.introMinHeight,max:ECHO.introMaxHeight}:
       {min:ECHO.minHeight,max:ECHO.maxHeight};
-    if(type==='jump')return {min:53,max:66};
+    if(type==='jump')return {min:59,max:73};
     if(type==='duck')return {min:115,max:158};
     return null;
   }

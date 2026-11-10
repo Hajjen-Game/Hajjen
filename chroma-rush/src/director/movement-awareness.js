@@ -154,17 +154,16 @@
     allowPattern(pattern,context,now,{firstEcho=false}={}){
       if(!pattern)return false;
       const steps=pattern.steps||[];
-      // A Rush is scored as sustained *simple* inputs, not as one impossible
-      // 11-input simultaneous effort. Every subsequent obstacle is still
-      // checked by the unchanged minimumGap, arrival, terrain and world rules.
+      // Endless Escalation: health or momentary confidence must NEVER
+      // permanently lower the difficulty floor. On damage, the existing
+      // timed recoveryUntil veto protects the next few seconds; afterwards
+      // ordinary Jump/Duck rushes resume regardless of shield percentage.
       if(pattern.rush){
         return context.phase==='PEAK'&&context.zone>=8&&
-          context.hp>50&&context.stress<.38&&context.confidence>=.64&&
           !context.gravityPending&&
           (context.surface==='floor'||context.surface==='ceiling')&&
-          now>=this.recoveryUntil&&this.pressure<2.3&&
-          steps.length>=9&&steps.length<=12&&
-          steps.every(type=>type==='jump'||type==='duck');
+          now>=this.recoveryUntil&&this.pressure<2.8&&
+          steps.length>=2&&steps.every(type=>type==='jump'||type==='duck');
       }
       const hasEcho=steps.includes('echo');
       if(hasEcho&&!this.echoReady({...context},now,firstEcho))return false;

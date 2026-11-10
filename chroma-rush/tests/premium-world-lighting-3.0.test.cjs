@@ -114,7 +114,7 @@ test('all obstacle families share one body material without introducing new haza
   const section=game.slice(game.indexOf('  function drawObstacle('),
     game.indexOf('  function drawPlayer('));
   assert.ok(section.length>2000);
-  assert.match(section,/const material=frameLighting\?\.hazard/);
+  assert.match(section,/const material=typeof frameLighting==='undefined'\?null:frameLighting\?\.hazard/);
   assert.match(section,/worldLighting\.shellGradient\(ctx,color,y,h,frameLighting\)/);
   assert.match(section,/shell\(cap\.y,cap\.h,\.34\)/,'jump cap gets lit');
   assert.match(section,/shell\(y,h,\.30\)/,'large jump body gets lit');

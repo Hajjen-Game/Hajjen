@@ -313,10 +313,10 @@
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();dash.reset();motion.reset();dashReleasePending=null;
     shieldCores.reset();shieldGainLeft=0;$.shieldGain.classList.add('hidden');$.hud.classList.remove('shield-recharged');
     peakFlow=0;replayToastTime=0;
-    // All moves are usable immediately. Explain dash first; save the Echo
-    // tip for its first tall Spire in zone 2, without overlapping callouts.
+    // All Dash actions remain available; remove the default DASH READY banner.
+    // Context-sensitive introduction for the first advanced gate is retained.
     echoHintTime=startZone>=2?3.9:0;
-    dashHintTime=startZone===1?DASH.hintSeconds:0;
+    dashHintTime=0;
     $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');
     replay.start({practice:runMode==='practice',bestScore:progression.bestScore,bestZone:progression.bestZone});
     // Practice retains the chosen zone/difficulty but starts on a fresh,
@@ -1377,41 +1377,24 @@
       worldLighting.shellGradient(ctx,color,y,h,frameLighting):rgba(color,fallback);
     ctx.save();
     if(o.type==='jump'){
-      // Visual experiment: REMOVE the translucent energy field below the cap.
-      // The same soft neon housing now forms an opaque, grounded solid block,
-      // filling the ENTIRE original collider. No invisible danger region.
-      // Keep the existing secondary palette color, cap and two engravings.
-      const cap={x:b.x,y:b.y,w:b.w,h:Math.min(30,Math.max(23,b.h*.45))};
-      const by=b.y+b.h;
-      // Full-height opaque foundation with the shared World Lighting shell:
-      // do not leave an empty/transparent strip under the original cap.
+      // Single-Piece Jump 2.0: one grounded neon slab matching the full
+      // existing collider. NO stacked cap, lower box, curtain or energy ribs.
       ctx.globalAlpha=1;
+      ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
       roundRectPath(b.x,b.y,b.w,b.h,4);
-      ctx.fillStyle='#081724';ctx.fill();
+      ctx.fillStyle='#123545';ctx.fill();
       ctx.globalAlpha=twinkle;
-      ctx.fillStyle=shell(b.y,b.h,.30);ctx.fill();
-      ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
-      ctx.lineWidth=2.6;ctx.strokeStyle=color;ctx.stroke();
-      // Recessed lower solid panel, not a veil: no vertical energy strands,
-      // glowing interior grid, or independent floating plate.
-      ctx.shadowBlur=0;ctx.globalAlpha=1;
-      roundRectPath(b.x+6,cap.y+cap.h+3,b.w-12,by-(cap.y+cap.h)-9,2);
-      ctx.fillStyle=rgba(color,material?.inset??.20);ctx.fill();
-      // Preserve the established upper housing and its luminous edge.
-      ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
-      roundRectPath(cap.x,cap.y,cap.w,cap.h,4);
-      ctx.fillStyle=shell(cap.y,cap.h,.34);ctx.fill();
-      ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
-      ctx.shadowBlur=0;ctx.globalAlpha=1;
-      ctx.fillStyle=rgba(color,material?.inset??.20);
-      roundRectPath(cap.x+6,cap.y+8,cap.w-12,cap.h-15,2);ctx.fill();
+      ctx.fillStyle=shell(b.y,b.h,.34);ctx.fill();
+      ctx.globalAlpha=1;ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
+      ctx.shadowBlur=0;
+      // Same neon language: one bright top, two restrained engravings.
+      // Crucially NO separate panel or line under a raised cap.
       glowLine(b.x-7,b.y,b.x+b.w+7,b.y,color,5,14,1);
-      // Exactly the previous two horizontal engravings in the same cap.
       for(let k=0;k<2;k++){
-        const y=cap.y+cap.h*(.42+k*.25);
-        glowLine(cap.x+8,y,cap.x+cap.w-8,y,color,1,0,.36);
+        const y=b.y+Math.min(b.h*.30,12)+k*6;
+        glowLine(b.x+8,y,b.x+b.w-8,y,color,1,0,.36);
       }
-      glowLine(cap.x,cap.y,cap.x+cap.w,cap.y,'#ffffff',1,8,.45);
+      glowLine(b.x,b.y,b.x+b.w,b.y,'#ffffff',1,8,.45);
     }else if(isEcho||isLow){
       // Low Neon Barrier: an ordinary Jump shell, raised and stretched.
       // Echo Rail: a LONG STANDARD JUMP BARRIER raised off the track.

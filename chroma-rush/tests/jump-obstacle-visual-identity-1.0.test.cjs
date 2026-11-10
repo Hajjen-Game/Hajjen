@@ -85,42 +85,30 @@ test('short Jump inherits Duck Gate visual grammar with unchanged collider',()=>
 });
 
 
-test('Jump Solid Body Trial 1.0 removes the veil but retains cap, lighting and collision',()=>{
+test('Jump 2.0 is a single slab with no secondary underbody and original collider',()=>{
   const jump=renderObstacle('jump'),duck=renderObstacle('duck'),b=jump.box;
-  const capHeight=Math.min(30,Math.max(23,b.h*.45));
-  assert.equal(jump.events.filter(e=>e[0]==='fillRect').length,0);
-  // One full-body shell (exact hitbox) plus a lower inset and original cap.
-  const shells=jump.events.filter(e=>e[0]==='roundRectPath');
-  assert.ok(shells.some(e=>e[1]===b.x&&e[2]===b.y&&e[3]===b.w&&e[4]===b.h));
-  assert.ok(shells.some(e=>e[1]===b.x&&e[2]===b.y&&e[3]===b.w&&
-    Math.abs(e[4]-capHeight)<.001));
-  assert.ok(shells.some(e=>e[1]===b.x+6&&e[2]===b.y+capHeight+3),
-    'opaque body includes a recessed lower face');
-  const segments=[];
-  for(let i=0;i<jump.events.length-1;i++){
-    const a=jump.events[i],next=jump.events[i+1];
-    if(a[0]==='moveTo'&&next[0]==='lineTo')
-      segments.push({x1:a[1],y1:a[2],x2:next[1],y2:next[2]});
-  }
-  assert.equal(segments.filter(l=>l.y1>b.y+capHeight+4&&
-    l.y2<=b.y+b.h-5&&l.x1===l.x2).length,0,
-    'no vertical energy ribs below the cap');
-  const grooves=jump.lines.filter(l=>l.y1===l.y2&&l.y1>b.y+5&&
-    l.y1<b.y+capHeight-2&&l.x1>=b.x&&l.x2<=b.x+b.w);
-  assert.equal(grooves.length,2,'the existing two cap engravings survive');
-  const jumpBranch=sourceCode.split("if(o.type==='jump'){")[1].split('}else if(isEcho||isLow){')[0];
-  assert.match(jumpBranch,/ctx\.globalAlpha=1;\s*roundRectPath\(b\.x,b\.y,b\.w,b\.h,4\)/,
-    'the solid block starts with a fully opaque foundation');
-  assert.match(jumpBranch,/ctx\.fillStyle='#081724';ctx\.fill\(\)/);
-  assert.match(jumpBranch,/shell\(b\.y,b\.h,\.30\)/);
-  assert.match(jumpBranch,/shell\(cap\.y,cap\.h,\.34\)/);
-  assert.match(jumpBranch,/material\?\.inset\?\?\.20/);
-  assert.ok(duck.events.some(e=>e[0]==='fillRect'),
-    'Duck energy field remains unchanged');
-  assert.deepEqual(GEO.obstacleBox(jump.obstacle,515),b,
-    'Jump hitbox is untouched by the visual experiment');
+  assert.equal(jump.events.filter(e=>e[0]==='fillRect').length,0,
+    'no rectangular energy field or dark lower inset');
+  const shapes=jump.events.filter(e=>e[0]==='roundRectPath');
+  assert.equal(shapes.length,1,'single exterior rather than two stacked bodies');
+  assert.deepEqual(shapes[0],['roundRectPath',b.x,b.y,b.w,b.h,4]);
+  const branch=sourceCode.split("if(o.type==='jump'){")[1].split('}else if(isEcho||isLow){')[0];
+  assert.doesNotMatch(branch,/const cap=|energyTop|Recessed lower|strands|ctx\.fillRect/);
+  assert.match(branch,/shell\(b\.y,b\.h,\.34\)/);
+  assert.match(branch,/ctx\.fillStyle='#123545';ctx\.fill\(\)/);
+  assert.equal(jump.lines.length,4,'existing top-line and engravings survive');
+  assert.ok(jump.lines.every(l=>l.y1===l.y2),'no vertical underbody rails');
+  assert.ok(duck.events.some(e=>e[0]==='fillRect'),'Duck gate remains unchanged');
+  assert.deepEqual(GEO.obstacleBox(jump.obstacle,515),b);
 });
-
+test('opening DASH READY banner is removed without disabling Dash tutorial',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+  assert.doesNotMatch(html,/DASH READY|AIR: DUCK \/ GROUND: DUCK AGAIN/);
+  assert.match(html,/<div id="dash-hint" class="hidden" aria-live="polite"><\/div>/);
+  assert.match(original,/dashHintTime=0;/);
+  assert.match(original,/dashHintTime=Math\.max\(dashHintTime,5\.0\)/);
+  assert.match(html,/<meta name="chroma-build" content="[^"]*jump-single-piece-2\.0/);
+});
 test('duck gate preserves continuous sky energy field, its clear slot and core',()=>{
   const run=renderObstacle('duck'),b=run.box;
   assert.equal(b.y,GEO.DUCK_GATE_TOP);

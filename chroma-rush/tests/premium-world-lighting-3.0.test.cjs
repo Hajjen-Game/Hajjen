@@ -116,7 +116,7 @@ test('all obstacle families share one body material without introducing new haza
   assert.ok(section.length>2000);
   assert.match(section,/const material=typeof frameLighting==='undefined'\?null:frameLighting\?\.hazard/);
   assert.match(section,/worldLighting\.shellGradient\(ctx,color,y,h,frameLighting\)/);
-  assert.match(section,/shell\(cap\.y,cap\.h,\.34\)/,'jump cap gets lit');
+  assert.match(section,/shell\(b\.y,b\.h,\.34\)/,'single-piece Jump body gets lit');
   assert.match(section,/shell\(y,h,\.30\)/,'large jump body gets lit');
   assert.match(section,/shell\(core\.y,core\.h,\.30\)/,'duck and long duck share the same light');
   assert.match(section,/material\?\.border\?\?\.68/);

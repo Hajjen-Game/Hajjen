@@ -1,5 +1,5 @@
-/* CHROMA RUSH — Chroma Trials 1.0.
- * One hand-reviewed 90-second course, deterministic from a fixed seed.
+/* CHROMA RUSH — Chroma Trials 1.1: Mastery Course.
+ * A six-phase, hand-reviewed 90-second course, deterministic from a fixed seed.
  * Course world positions never consult adaptive skill/HP, input or graphics.
  * Arcade/Practice directors and saves are not touched by this module.
  */
@@ -12,17 +12,29 @@
 })(typeof window!=='undefined'?window:null,function(GAME){
   'use strict';
   const ID='001',SEED=0xC80A2026,DURATION=90;
-  const KEY='chromaRushTrialsV1';
-  const ACTIONS=Object.freeze([
-    [5.4,'jump'],[8.4,'duck'],[11.2,'jump'],[14.0,'duck'],
-    [16.8,'jump'],[19.6,'jump'],[22.4,'duck'],[25.2,'jump'],
-    [28.0,'duck'],[30.8,'jump'],[35.5,'duck'],[38.3,'jump'],
-    [41.1,'duck'],[43.9,'jump'],[46.7,'jump'],[49.5,'duck'],
-    [54.1,'jump'],[56.9,'duck'],[59.7,'jump'],[62.5,'duck'],
-    [65.3,'jump'],[68.1,'duck'],[70.9,'jump'],[73.7,'jump'],
-    [78.2,'duck'],[81.0,'jump'],[83.8,'duck'],[86.5,'jump']
-  ].map(x=>Object.freeze(x)));
-  const GAP_TIMES=Object.freeze([33.3,51.8,76.0]);
+  // Course revision 2 deliberately starts a NEW Trial PB. It would be unfair
+  // to rank scores from the much easier 28-obstacle layout alongside these.
+  // Old Trial 1.0 records remain intact under chromaRushTrialsV1.
+  const COURSE_REVISION=2,KEY='chromaRushTrialsV2';
+  // Authored six phrases, not periodic Jump/Duck alternation. Long attacks
+  // accelerate over the run; each gap provides a short, intentional breather.
+  // J=Jump, D=Duck. Intervals are INPUT/ARRIVAL cadence in course time.
+  const PHRASES=Object.freeze([
+    Object.freeze({start:4.4,cadence:1.65,actions:'JDJJDJD'}),
+    Object.freeze({start:16.0,cadence:1.35,actions:'JJJDJDD'}),
+    Object.freeze({start:28.0,cadence:1.28,actions:'DJJJDDJJJJ'}),
+    Object.freeze({start:43.4,cadence:1.25,actions:'JJDDJJJJDDJJJ'}),
+    Object.freeze({start:62.55,cadence:1.20,actions:'DJJJDDJDJJJDD'}),
+    Object.freeze({start:80.85,cadence:1.14,actions:'JJJDJDJ'})
+  ]);
+  const ACTIONS=Object.freeze(PHRASES.flatMap(phrase=>
+    [...phrase.actions].map((action,index)=>Object.freeze([
+      Number((phrase.start+index*phrase.cadence).toFixed(3)),
+      action==='J'?'jump':'duck'
+    ]))));
+  // Four real gaps are timed AFTER phrase endings, not spliced into a
+  // live Director. 1.8–2.1s recoveries around gaps avoid hidden cheap hits.
+  const GAP_TIMES=Object.freeze([26.2,41.5,60.45,78.9]);
   const clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
   const integer=(n,hi=1e9)=>Number.isFinite(Number(n))?
     clamp(Math.floor(Number(n)),0,hi):0;
@@ -59,33 +71,57 @@
     });
     const gaps=GAP_TIMES.map((time,i)=>{
       const speed=GAME.speedAt(time,Math.floor(time/GAME.zoneSeconds)+1);
+      // 0.38–0.42 seconds of travel: longer than Trial 1.0 but still
+      // comfortably within the unassisted single-jump flight envelope.
+      const seconds=[.38,.40,.42,.39][i];
       return Object.freeze({id:i+1,time,start:Math.round(offset+at(time)),
-        width:Math.round(speed*(.29+i*.01))});
+        width:Math.round(speed*seconds)});
     });
     const finish=Math.ceil(offset+at(DURATION)+GAME.speedAt(DURATION,8)*3);
     const signature=obstacles.map(o=>[o.time,o.type,o.worldX,o.width,o.height].join(':'))
       .concat(gaps.map(g=>[g.time,g.start,g.width].join(':'))).join('|');
-    return Object.freeze({id:ID,seed:integer(seed,0xffffffff),duration:DURATION,
+    return Object.freeze({id:ID,revision:COURSE_REVISION,
+      seed:integer(seed,0xffffffff),duration:DURATION,
       obstacles:Object.freeze(obstacles),gaps:Object.freeze(gaps),finish,signature});
   }
   function validatePlan(plan){
-    if(!plan||plan.duration!==DURATION||plan.obstacles.length!==ACTIONS.length||
-      plan.gaps.length!==GAP_TIMES.length)return false;
+    if(!plan||plan.duration!==DURATION||plan.revision!==COURSE_REVISION||
+      plan.obstacles.length!==ACTIONS.length||plan.gaps.length!==GAP_TIMES.length)return false;
     const events=plan.obstacles;
+    const flight=Math.abs(2*GAME.jumpVelocity/GAME.gravity);
+    const duckCommit=GAME.duckDuration+GAME.duckRecovery;
     for(let i=0;i<events.length;i++){
       const e=events[i],previous=events[i-1];
+      const speed=GAME.speedAt(e.time,Math.floor(e.time/GAME.zoneSeconds)+1);
       if(!['jump','duck'].includes(e.type)||e.width<71||e.width>221||
-        e.height<=0||e.time<4||e.time>88||!Number.isFinite(e.worldX)||
-        (previous&&(e.time-previous.time<2.5||
-        e.worldX<=previous.worldX+previous.width)))return false;
+        e.height<=0||e.time<4||e.time>88||!Number.isFinite(e.worldX))return false;
+      if(previous){
+        // A full previous move, its physical pass width and a real manual
+        // input recovery margin. No mandatory double-jump or dash.
+        const priorSpeed=GAME.speedAt(previous.time,1);
+        const commit=previous.type==='jump'?flight:duckCommit;
+        const minSeconds=Math.max(1.03,commit+
+          (previous.width+36)/Math.max(300,priorSpeed)+.15);
+        if(e.time-previous.time+1e-6<minSeconds||
+          e.worldX<=previous.worldX+previous.width)return false;
+      }
     }
     for(let i=0;i<plan.gaps.length;i++){
       const gap=plan.gaps[i],prev=plan.gaps[i-1];
       const speed=GAME.speedAt(gap.time,1);
-      if(!(gap.width/speed>=.28&&gap.width/speed<=.34)||
+      const seconds=gap.width/speed;
+      if(!Number.isFinite(gap.start)||!(seconds>=.37&&seconds<=.43)||
         (prev&&gap.start<=prev.start+prev.width+speed*2.2))return false;
-      // No obstacle can threaten the takeoff, landing or early recovery.
-      if(events.some(o=>Math.abs(o.time-gap.time)<1.6))return false;
+      // In addition to event-time recovery, check physical takeoff/landing
+      // corridors against the obstacles' actual world-space widths.
+      for(const o of events){
+        if(Math.abs(o.time-gap.time)<1.72)return false;
+        const before=gap.start-(o.worldX+o.width);
+        const after=o.worldX-(gap.start+gap.width);
+        if(before>=0&&before<speed*1.10)return false;
+        if(after>=0&&after<speed*1.10)return false;
+        if(before<0&&after<0)return false;
+      }
     }
     return true;
   }
@@ -132,6 +168,6 @@
         attempts:this.data.attempts,completions:this.data.completions};
     }
   }
-  return {ID,SEED,DURATION,KEY,ACTIONS,GAP_TIMES,createPlan,validatePlan,
+  return {ID,SEED,DURATION,COURSE_REVISION,KEY,PHRASES,ACTIONS,GAP_TIMES,createPlan,validatePlan,
     installTerrain,TrialRecords};
 });

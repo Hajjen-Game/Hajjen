@@ -888,8 +888,10 @@ test('Chroma Trial launches a fixed physical course without starting adaptive te
   assert.equal(state.mode,'trial');
   assert.equal(state.plan.duration,90);
   assert.ok(trials.validatePlan(state.plan));
-  assert.equal(c.terrain.segments.length,7);
-  assert.equal(c.terrain.gaps.length,3);
+  assert.equal(c.terrain.segments.length,9);
+  assert.equal(c.terrain.gaps.length,4);
+  assert.equal(state.plan.revision,2);
+  assert.equal(state.plan.obstacles.length,57);
   assert.ok(g.get('trial-timer').classList.contains('hidden')===false);
   assert.equal(g.get('mode-indicator').textContent,'CHROMA TRIAL 001 · FIXED COURSE');
   const scheduled=state.plan.obstacles.map(o=>o.worldX);
@@ -904,7 +906,8 @@ test('Chroma Trial launches a fixed physical course without starting adaptive te
   assert.ok(!g.get('trial-timer').classList.contains('hidden'));
   assert.match(g.get('trial-timer').textContent,/^\d+s$/);
   assert.equal(g.local.chromaRushArcadeV1,undefined);
-  assert.equal(g.local.chromaRushTrialsV1,undefined,'a running Trial never writes an unfinished PB');
+  assert.equal(g.local.chromaRushTrialsV1,undefined,'old Trial 1.0 records stay intact');
+  assert.equal(g.local.chromaRushTrialsV2,undefined,'a running Mastery Trial never writes an unfinished PB');
 });
 
 test('Arcade still uses adaptive terrain/Director with Trials connected',()=>{

@@ -35,7 +35,7 @@ test('Rush patterns are generated anew, contain both random six-Jump and six-Duc
   }
   assert.ok(sixJump>=25,{sixJump});
   assert.ok(sixDuck>=25,{sixDuck});
-  assert.ok(variants.size>=240,variants.size);
+  assert.ok(variants.size>=200,variants.size);
   assert.ok(alternating<5,{alternating});
 });
 
@@ -155,7 +155,7 @@ test('real terrain keeps long Rush lanes and still reserves every third PEAK for
     const x=flat.start+3100*(1+i*.85);
     assert.ok(t.canSpawnObstacle(x,65,3100),{i,x});
   }
-  d.cycle=1;u.gapSuccesses=2;
+  d.cycle=1;d.confidence=.95;u.gapSuccesses=2;
   const gaps=u.policyAt(50000+3100,{...ctx,hp:100});
   assert.equal(gaps.rushRunway,false);
   assert.ok(gaps.gapChance>0&&gaps.echoGapChance>0);

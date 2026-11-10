@@ -1,8 +1,20 @@
-# CHROMA RUSH — Phase 2: Visual Signature 2.0
+# CHROMA RUSH — Ambient Lighting 2.1 (Phase 2 correction)
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Ambient Lighting 2.1 — player-led visual correction (2026-11-10)
+
+The established Chroma Tide wave already looked good; Visual Signature 2.0 mainly added a soundtrack layer, score HUD, and canvas streaks. Player testing showed **the added streaks around/behind the cube looked worse**, without a meaningful visual leap. Accordingly, **all Phase 2 Surge-only streak layers have been removed**.
+
+The change instead comes from the existing world lighting: palette-aware **diffuse sky illumination**, softer colored **terrain bounce** that obeys true physical gap clipping, and gentle **cube glass reflection** using its original material. No new sprites, pseudo-hazards, ringing flashes, additional lines or HUD clutter. Seven-second scoring/timer functionality is retained.
+
+The original spectral-wave implementation is unchanged, as are all aspects of Endless Escalation Director 4.0, speed, obstacle placement, physics, camera and Gravity Shift.
+
+[Implementation detail and validation](docs/ambient-lighting-2.1.md).
+
+*The Visual Signature 2.0 section below is historical; its Surge streak effects have now been retired.*
 
 ## Phase 2 — Visual Signature 2.0 · Silent-first Chroma Surge (2026-11-10)
 

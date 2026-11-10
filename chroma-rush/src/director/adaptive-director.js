@@ -333,7 +333,9 @@
       // an explicit short recoveryUntil and phase break, but ordinary
       // spacing resumes at the stronger stage reached before the hit.
       if(zone>=8){
-        return clamp(base-.12*this.escalation.floor-
+        const permanent=Math.max(this.escalation.floor,
+          escalationFloor(zone,this.escalation.attacks));
+        return clamp(base-.12*permanent-
           (this.phase===PHASE.PEAK?.20:.11)+
           (this.random()-.5)*.10,.62,2.0);
       }

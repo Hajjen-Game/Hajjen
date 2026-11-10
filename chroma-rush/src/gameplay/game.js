@@ -1596,9 +1596,6 @@
       glowLine(rx+rw*.67,ry+rh*.50,rx+rw+12,ry+rh*.50,
         '#fff',2.1,11,.62*dashAmount);
     }
-    surge.drawRunner(ctx,{x:player.x,feet:player.feet,
-      bodyWidth:rw,bodyHeight:rh,primary:pc1,secondary:pc2,
-      quality:quality.profile,reducedMotion});
     chromaVfx.drawBehindPlayer(ctx,{x:player.x,y:player.feet,width:rw,height:rh,
       duck:player.duck,primary:pc1,secondary:pc2,speed,
       quality:quality.profile,reducedMotion});
@@ -1698,6 +1695,12 @@
     surge.draw(ctx,{width:W,height:H,groundY:floorY,playerX:player.x,
       primary:c1,secondary:c2,quality:quality.profile,reducedMotion});
     ctx.save();camera.apply(ctx,player.x,floorY);
+    // The Surge afterimage belongs to the ACTUAL runner but sits strictly
+    // behind every obstacle, including at high camera zoom-out and ceilings.
+    const wakeBox=GEO.playerBox(player);
+    surge.drawRunner(ctx,{x:player.x,feet:player.feet,
+      bodyWidth:wakeBox.w,bodyHeight:wakeBox.h,primary:c1,secondary:c2,
+      quality:quality.profile,reducedMotion});
     // Trails stay under hazards so a high-speed afterimage never masks a jump or duck cue.
     speedTrails.draw(ctx,{quality:quality.profile,reducedMotion,
       dashPath:window.ChromaMotion.elasticBodyPath});

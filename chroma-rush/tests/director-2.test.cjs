@@ -17,11 +17,12 @@ function simulate({duration=180,hp=100,zone=8,random=()=>.39}={}){
   return {director,spawns,phases};
 }
 
-test('authored patterns are supported, unique and short',()=>{
+test('authored motifs stay short while dedicated mastered Rush patterns support sustained chains',()=>{
   assert.ok(PATTERNS.length>=10);
   assert.equal(new Set(PATTERNS.map(p=>p.id)).size,PATTERNS.length);
   for(const p of PATTERNS){
-    assert.ok(p.steps.length>=1 && p.steps.length<=4);
+    assert.ok(p.rush?(p.steps.length>=9&&p.steps.length<=12):
+      (p.steps.length>=1&&p.steps.length<=4));
     assert.ok(p.steps.every(s=>['jump','duck','echo','dash-jump','dash-duck'].includes(s)));
     assert.ok(p.weight>0 && p.minZone>=1);
   }

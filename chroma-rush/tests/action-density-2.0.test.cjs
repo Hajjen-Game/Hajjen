@@ -70,8 +70,9 @@ test('terrain leaves more physically valid obstacle lanes without removing hills
   assert.ok(after.slopeChance>.1,'the background must still have terrain variation');
   assert.ok(after.gapChance>0,'dangerous gaps are not disabled globally');
   assert.equal(after.actionPressure,1);
-  assert.ok(terrain.canSpawnObstacle(101000,90,1450)===false,
-    'a missing/unsafe terrain segment is still vetoed');
+  terrain.segments=[{type:'gap',start:100000,end:103000,y0:515,y1:515}];
+  assert.equal(terrain.canSpawnObstacle(101000,90,1450),false,
+    'a real gap still blocks any obstacle or unsafe takeoff');
 });
 
 test('multiple seeded arcade simulations spend substantially more midgame time in actual PEAK',()=>{

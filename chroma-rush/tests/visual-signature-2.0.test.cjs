@@ -12,7 +12,7 @@ function canvas(){
   const ctx={
     save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},
     closePath(){},clip(){trace.clips++},stroke(){trace.strokes++},
-    fill(){trace.fills++},fillRect(){trace.rects++},
+    fill(){trace.fills++},fillRect(){trace.rects++},fillText(){},
     createRadialGradient(...args){
       const g={type:'radial',args,stops:[]};trace.gradients.push(g);
       return {addColorStop(offset,color){g.stops.push([offset,color])}};

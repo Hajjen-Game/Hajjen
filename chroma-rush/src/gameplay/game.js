@@ -1398,9 +1398,30 @@
       // +.10 tint. The restored veil behind it supplies the missing depth.
       ctx.fillStyle=rgba(color,material?.inset??.18);
       roundRectPath(b.x+6,b.y+8,b.w-12,b.h-15,2);ctx.fill();
+      // Jump Premium Cap Parity 1.0: replicate the *readable junction*
+      // where the Duck energy shaft meets its solid core. Jump has no shaft,
+      // so its shoulder is a softly tinted band INSIDE the one existing
+      // collider-sized housing, with a distinct lower seam and upper glint.
+      // No cap overhang, floating bridge, underbody or extra obstacle shape.
+      const capDepth=Math.min(17,Math.max(13,b.h*.235));
+      ctx.shadowBlur=0;
+      ctx.fillStyle=rgba(color,Math.min(.29,(material?.shell??.30)*.62));
+      ctx.beginPath();
+      ctx.moveTo(b.x+4,b.y+3);
+      ctx.lineTo(b.x+b.w-4,b.y+3);
+      ctx.lineTo(b.x+b.w-6,b.y+capDepth);
+      ctx.lineTo(b.x+6,b.y+capDepth);
+      ctx.fill(); // Canvas closes the path inside the actual core
+      // Duck's lower rail becomes Jump's illuminated upper shoulder.
+      // The second internal seam keeps the cap readable at 60% camera zoom.
       glowLine(b.x-7,b.y,b.x+b.w+7,b.y,color,5,14,1);
+      glowLine(b.x+6,b.y+capDepth,b.x+b.w-6,b.y+capDepth,
+        color,2.2,8*quality.profile.glow,.77);
+      glowLine(b.x+8,b.y+4,b.x+b.w-8,b.y+4,
+        '#ffffff',1.5,5*quality.profile.glow,.56);
       for(let k=0;k<4;k++){
-        const y=b.y+10+k*(b.h-20)/3;
+        // Keep the four horizontal engravings in the FACE below the cap.
+        const y=b.y+capDepth+8+k*(b.h-capDepth-19)/3;
         glowLine(b.x+12,y,b.x+b.w-12,y,color,1,0,.36);
       }
       glowLine(b.x,b.y,b.x+b.w,b.y,'#ffffff',1,8,.45);

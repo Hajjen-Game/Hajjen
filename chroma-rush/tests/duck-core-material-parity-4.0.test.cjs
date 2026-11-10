@@ -87,6 +87,10 @@ test('real Duck and Jump core materials use identical tint, gradient and inset',
     assert.equal(J.fills[2].style,D.fills[1].style,
       'the recessed inner face is now the EXACT Duck inset, no extra Jump tint');
     assert.equal(J.fills[1].shadowBlur,D.fills[0].shadowBlur);
+    assert.equal(J.fills.length,4,'Jump adds only an in-core cap coating over the shared three-layer material');
+    assert.equal(J.fills[3].shadowBlur,0,'cap band is a low-cost, unshadowed material detail');
+    assert.equal(J.fills[3].path[0],'lines','cap is a small trapezoid within the existing silhouette');
+    assert.equal(J.gradients.length,1,'Jump cap never allocates an extra canvas gradient');
     assert.equal(J.rounds[0][3],D.rounds[0][3],'same housing width');
     assert.equal(J.rounds[0][5],D.rounds[0][5],'same corner radius');
   }

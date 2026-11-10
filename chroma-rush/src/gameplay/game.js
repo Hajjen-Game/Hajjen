@@ -1352,7 +1352,7 @@
     terrainRender.drawTerrain({ctx,terrain,distance,width:W,height:H,baseY:floorY,
       cameraView:camera.view(W,H,player.x,floorY),
       primary:c1,secondary:c2,flow:flow.value,
-      lighting:surge.intensity,lightRig,glowLine,quality:quality.profile,
+      lighting:surge.intensity,lightRig:frameLighting,glowLine,quality:quality.profile,
       tide:projected});
   }
   function drawObstacle(o){
@@ -1368,7 +1368,10 @@
       (isLow||isEcho)?'secondary':'primary',
       camera.screenY(core.y+core.h*.5,floorY),H);
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
-    const material=frameLighting?.hazard;
+    // The obstacle renderer is also exercised as a standalone legacy
+    // function in tests. Fall back to its exact old flat material when
+    // there is no shared frame rig in that isolated context.
+    const material=typeof frameLighting==='undefined'?null:frameLighting?.hazard;
     const shell=(y,h,fallback)=>material&&worldLighting?
       worldLighting.shellGradient(ctx,color,y,h,frameLighting):rgba(color,fallback);
     ctx.save();

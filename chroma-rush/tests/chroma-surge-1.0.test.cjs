@@ -43,23 +43,15 @@ test('hit resets only Surge streak and the seven-second window never advances wh
   s.reset();assert.equal(s.count,0);
 });
 
-test('HIGH draws more layered lines and reduced motion draws none, with no opaque flash',()=>{
+test('Surge is now a pure scoring window with zero extra canvas line emitters',()=>{
   const s=new ChromaSurge();s.arm({zone:3});s.activate();s.tick(.4);
-  const draw=()=>{
-    const calls=[];const ctx={save(){calls.push('save')},restore(){calls.push('restore')},
-      beginPath(){},moveTo(){},lineTo(){},stroke(){calls.push('stroke')},
-      fillRect(){throw Error('no fill')},arc(){throw Error('no rings')}};
-    return {calls,ctx};
-  };
-  const hi=draw(),lo=draw(),reduce=draw();
-  s.draw(hi.ctx,{quality:{density:1,glow:1}});
-  s.draw(lo.ctx,{quality:{density:.3,glow:.15}});
-  s.draw(reduce.ctx,{quality:{density:1,glow:1},reducedMotion:true});
-  assert.ok(hi.calls.filter(x=>x==='stroke').length>lo.calls.filter(x=>x==='stroke').length);
-  assert.equal(hi.calls[0],'save');assert.equal(hi.calls.at(-1),'restore');
-  assert.deepEqual(reduce.calls,[]);
+  assert.equal(typeof s.draw,'undefined');
+  assert.equal(typeof s.drawRunner,'undefined');
+  assert.equal(s.onClear({kind:'jump'}).points,95);
+  assert.equal(s.onHit(),true);
+  const game=src('src/gameplay/game.js');
+  assert.doesNotMatch(game,/surge\.draw\(|surge\.drawRunner\(/);
 });
-
 test('new original beat accents lift Surge music but cannot change speed or BPM',()=>{
   const a=new ReactiveAudioSystem({scope:{}});
   const calls=[];a._voice=(...args)=>calls.push(args);
@@ -91,18 +83,19 @@ test('audit reports local surge statistics and stays in v3 format',()=>{
   assert.equal(out.summary.surge.bonusPoints,260);
   assert.equal(out.summary.surge.breaks,1);
   assert.equal(out.summary.surge.bestChain,2);
-  assert.equal(out.build,'phase-2-visual-signature-2.0');
+  assert.equal(out.build,'phase-2-ambient-lighting-2.1');
 });
 
 test('actual game wires Surge to player-crossing and real clears only',()=>{
   const game=src('src/gameplay/game.js'),html=src('index.html');
-  assert.match(html,/chroma-surge\.js\?v=phase-2-chroma-surge-1\.0-visual-signature-2\.0/);
+  assert.match(html,/chroma-surge\.js\?v=phase-2-chroma-surge-1\.0-visual-signature-2\.0-ambient-lighting-2\.1/);
   assert.match(html,/id="surge-indicator"/);
   assert.match(game,/if\(incoming!==outgoing\)\{\s*surge\.arm\(\{zone\}\)/);
   assert.match(game,/if\(!animated\)startSurge\(\)/);
   assert.match(game,/spectralWave\.tick\(dt,[\s\S]+?if\(!startSurge\(\)/);
   assert.match(game,/awardSurge\(o\.type,\{precision,master:graded\.master\}\)/);
   assert.match(game,/awardSurge\(gap\.echoChallenge\?'echo-gap':'gap'\)/);
-  assert.match(game,/surge\.draw\(ctx/);
+  assert.doesNotMatch(game,/surge\.draw\(ctx/);
+  assert.match(game,/lighting:surge\.intensity/);
   assert.doesNotMatch(game,/surge\.spawn\(/);
 });

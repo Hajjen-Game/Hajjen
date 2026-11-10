@@ -815,12 +815,8 @@
       zone:surge.zone,duration:window.ChromaSurge.WINDOW_SECONDS});
     sound('surge-start');
     vib(9);
-    if(!reducedMotion){
-      // Existing geometric accent language; never a screen flash or new
-      // obstacle marker in front of the wave.
-      groundPulse(player.x,player.feet-3,c2,32,1.1);
-      frameEcho(player.x,player.feet-22,c1,34,1.0);
-    }
+    // Surge no longer spawns any extra line/halo effects on the player.
+    // Atmosphere and terrain illumination use the existing spatial palette.
     return true;
   }
   function awardSurge(kind,{precision=false,master=false}={}){
@@ -1338,7 +1334,8 @@
     // spatial palette, eliminating two full expensive clipped redraws.
     worldBackground.drawBackground({ctx,width:W,height:H,time:t,speed,
       primary:c1,secondary:c2,shadow:c3,flow:flow.value,
-      glowLine,quality:quality.profile,tide:spectralWave.active?spectralWave:null});
+      lighting:surge.intensity,glowLine,quality:quality.profile,
+      tide:spectralWave.active?spectralWave:null});
   }
   function drawTerrain(){
     // One clipped terrain geometry pass, tinted in-place by the same front.
@@ -1349,7 +1346,8 @@
       width:W,anchorX:player.x,anchorY:floorY}):null;
     terrainRender.drawTerrain({ctx,terrain,distance,width:W,height:H,baseY:floorY,
       cameraView:camera.view(W,H,player.x,floorY),
-      primary:c1,secondary:c2,flow:flow.value,glowLine,quality:quality.profile,
+      primary:c1,secondary:c2,flow:flow.value,
+      lighting:surge.intensity,glowLine,quality:quality.profile,
       tide:projected});
   }
   function drawObstacle(o){
@@ -1614,7 +1612,8 @@
     // The approved squash/stretch path is kept, as are all collision boxes.
     identity.paintPlayer(ctx,{x:rx,y:ry,w:rw,h:rh,topShift:bend,
       primary:pc1,secondary:pc2,pose:shape,motion,
-      quality:quality.profile,reducedMotion,tideResonance:spectralWave.resonance,
+      quality:quality.profile,reducedMotion,
+      tideResonance:spectralWave.resonance,ambientLight:surge.intensity,
       bodyPath:playerPath});
     if(player.duck){
       const n=Math.max(1,Math.round(3*quality.profile.particles));
@@ -1692,15 +1691,7 @@
     // The chromatic front stays screen-anchored and perfectly synchronized
     // with the original background, even as the WORLD course zooms out.
     spectralWave.draw(ctx,{width:W,height:H,groundY:floorY,quality:quality.profile});
-    surge.draw(ctx,{width:W,height:H,groundY:floorY,playerX:player.x,
-      primary:c1,secondary:c2,quality:quality.profile,reducedMotion});
     ctx.save();camera.apply(ctx,player.x,floorY);
-    // The Surge afterimage belongs to the ACTUAL runner but sits strictly
-    // behind every obstacle, including at high camera zoom-out and ceilings.
-    const wakeBox=GEO.playerBox(player);
-    surge.drawRunner(ctx,{x:player.x,feet:player.feet,
-      bodyWidth:wakeBox.w,bodyHeight:wakeBox.h,primary:c1,secondary:c2,
-      quality:quality.profile,reducedMotion});
     // Trails stay under hazards so a high-speed afterimage never masks a jump or duck cue.
     speedTrails.draw(ctx,{quality:quality.profile,reducedMotion,
       dashPath:window.ChromaMotion.elasticBodyPath});

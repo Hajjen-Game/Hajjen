@@ -114,8 +114,8 @@ test('all obstacle families share one body material without introducing new haza
   const section=game.slice(game.indexOf('  function drawObstacle('),
     game.indexOf('  function drawPlayer('));
   assert.ok(section.length>2000);
-  assert.match(section,/const material=lightRig\?\.hazard/);
-  assert.match(section,/worldLighting\.shellGradient\(ctx,color,y,h,lightRig\)/);
+  assert.match(section,/const material=frameLighting\?\.hazard/);
+  assert.match(section,/worldLighting\.shellGradient\(ctx,color,y,h,frameLighting\)/);
   assert.match(section,/shell\(cap\.y,cap\.h,\.34\)/,'jump cap gets lit');
   assert.match(section,/shell\(y,h,\.30\)/,'large jump body gets lit');
   assert.match(section,/shell\(core\.y,core\.h,\.30\)/,'duck and long duck share the same light');
@@ -129,12 +129,12 @@ test('all obstacle families share one body material without introducing new haza
 
 test('game evaluates one shared rig per frame for sky, real track, hazards and runner',()=>{
   const game=src('src/gameplay/game.js'),html=src('index.html');
-  assert.match(game,/const lightRig=worldLighting\?\.evaluate\(/);
-  assert.match(game,/drawWorld\(worldTime,lightRig\)/);
-  assert.match(game,/drawTerrain\(lightRig\)/);
-  assert.match(game,/for\(const o of hurdles\)drawObstacle\(o,lightRig\)/);
-  assert.match(game,/drawPlayer\(lightRig\)/);
-  assert.match(game,/lightRig,bodyPath:playerPath/);
+  assert.match(game,/frameLighting=worldLighting\?\.evaluate\(/);
+  assert.match(game,/drawWorld\(worldTime\)/);
+  assert.match(game,/drawTerrain\(\)/);
+  assert.match(game,/for\(const o of hurdles\)drawObstacle\(o\)/);
+  assert.match(game,/drawPlayer\(\)/);
+  assert.match(game,/lightRig:frameLighting,bodyPath:playerPath/);
   assert.match(html,/src\/render\/world-lighting\.js\?v=premium-world-lighting-3\.0/);
   assert.match(html,/LATEST UPDATE · PREMIUM WORLD LIGHTING 3\.0/);
   assert.ok(html.indexOf('src/render/world-lighting.js')<

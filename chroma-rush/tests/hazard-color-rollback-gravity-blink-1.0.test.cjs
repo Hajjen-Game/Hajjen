@@ -37,8 +37,10 @@ test('restore all 24 previously approved Jump/Duck theme colors, not the new cus
   assert.match(draw,/\(isLow\|\|isEcho\)\?'secondary':'primary'/,
     'ordinary Jump restores secondary and Duck restores primary');
   assert.doesNotMatch(draw,/'hazardJump'|'hazardDuck'/);
-  assert.match(draw,/const jumpInset=Math\.min\(\.34,\(material\?\.inset\?\?\.18\)\+\.10\)/,
-    'KEEP the user-approved richer Jump inner fill');
+  assert.match(draw,/ctx\.fillStyle=rgba\(color,material\?\.veil\?\?\.105\);ctx\.fill\(\)/,
+    'Jump restores the Duck-style undercoat inside its existing shape');
+  assert.match(draw,/ctx\.fillStyle=rgba\(color,material\?\.inset\?\?\.18\)/,
+    'Jump now uses the Duck inner-panel fill instead of the stronger custom tint');
 });
 
 test('Chroma Tide returns to three original channels, with smooth color transitions',()=>{

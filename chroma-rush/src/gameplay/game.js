@@ -1380,20 +1380,23 @@
       worldLighting.shellGradient(ctx,color,y,h,frameLighting):rgba(color,fallback);
     ctx.save();
     if(o.type==='jump'){
-      // Jump Gate Core Parity 3.0: the SAME luminous housing as Duck,
-      // floor mounted. Only its four engraved stripes rotate horizontally.
-      // No separate lower panel, energy curtain or extra collision field.
+      // Duck Material Parity 4.0: the SAME veil -> gradient shell -> inset
+      // composite as Duck's solid core. Duck already has its veil underneath
+      // the core; Jump lacked it and its translucent gradient looked flat
+      // against the fully opaque track.
+      // Paint that veil ONLY inside the existing rounded Jump silhouette:
+      // no detached lower panel, hanging curtain, new collider or geometry.
       ctx.globalAlpha=1;
-      ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
+      ctx.shadowBlur=0;
       roundRectPath(b.x,b.y,b.w,b.h,4);
+      ctx.fillStyle=rgba(color,material?.veil??.105);ctx.fill();
+      ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
       ctx.fillStyle=shell(b.y,b.h,.30);ctx.fill();
       ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
       ctx.shadowBlur=0;ctx.globalAlpha=1;
-      // Jump shares Duck's shell, 3px border and identical inset geometry.
-      // Duck's suspended field looks intrinsically brighter, so strengthen
-      // Jump's recessed face without adding an energy veil or new shape.
-      const jumpInset=Math.min(.34,(material?.inset??.18)+.10);
-      ctx.fillStyle=rgba(color,jumpInset);
+      // Exact Duck inset contour and opacity, not the former Jump-only
+      // +.10 tint. The restored veil behind it supplies the missing depth.
+      ctx.fillStyle=rgba(color,material?.inset??.18);
       roundRectPath(b.x+6,b.y+8,b.w-12,b.h-15,2);ctx.fill();
       glowLine(b.x-7,b.y,b.x+b.w+7,b.y,color,5,14,1);
       for(let k=0;k<4;k++){

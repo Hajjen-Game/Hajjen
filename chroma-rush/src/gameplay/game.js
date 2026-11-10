@@ -136,7 +136,7 @@
   let runMode='arcade', startZone=1, milestoneTime=0, unlockedThisRun=[];
   let peakFlow=0,replayToastTime=0,zoneSoundAtCrossing=false,echoHintTime=0,dashHintTime=0;
   let dashReleasePending=null; // audio and particles follow the curved cube's thrust phase
-  let shieldGainLeft=0;
+  let shieldGainLeft=0,damageBlinkRemaining=0; // Actual impacts only; Gravity Shift immunity must not flash
   // Absolute travelled distance: terrain and obstacles share this world axis.
   let distance=0,gapRecovery=null;
   let c1=PALETTES[0].primary, c2=PALETTES[0].secondary, c3=PALETTES[0].shadow;
@@ -299,7 +299,7 @@
     runMode=requestedMode==='practice'&&progression.canPracticeZone(selected)?'practice':'arcade';
     startZone=runMode==='practice'?selected:1;
     time=(startZone-1)*GAME.zoneSeconds;worldTime=0;zone=startZone;
-    hp=GAME.startingHP;speed=GAME.speedAt(time,zone);camera.reset(speed);score=0;shake=0;hitFlash=0;
+    hp=GAME.startingHP;speed=GAME.speedAt(time,zone);camera.reset(speed);score=0;shake=0;hitFlash=0;damageBlinkRemaining=0;
     // Starting practice at later zones must never spam past speed milestones.
     nextSpeedMark=SPEED_MARKS.findIndex(mark=>speed/GAME.baseSpeed<mark);
     if(nextSpeedMark<0)nextSpeedMark=SPEED_MARKS.length;
@@ -358,7 +358,7 @@
     if(status==='running'||status==='paused')audio.stop();
     status='ready';runMode='arcade';milestoneTime=0;replayToastTime=0;echoHintTime=0;dashHintTime=0;
     $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');dash.reset();dashReleasePending=null;shieldCores.reset();shieldGainLeft=0;$.shieldGain.classList.add('hidden');$.hud.classList.remove('shield-recharged');$.duck.classList.remove('dash-active');
-    spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();surge.reset();effects.reset();combo.reset();zoneSoundAtCrossing=false;
+    spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();surge.reset();effects.reset();combo.reset();zoneSoundAtCrossing=false;damageBlinkRemaining=0;
     $.replayToast.classList.add('hidden');
     $.milestoneToast.classList.add('hidden');$.milestonePanel.classList.add('hidden');$.pauseMenu.classList.add('hidden');$.gameover.classList.add('hidden');
     $.controls.classList.add('hidden');$.hud.classList.add('hidden');$.pauseBtn.classList.add('hidden');
@@ -926,7 +926,7 @@
       flow.registerCollision();runAudit.record('invulnerable_contact',auditState(),{obstacle:o.type});return;
     }
     hp=Math.max(0,hp-GAME.damagePerHit);
-    runAudit.record('obstacle_hit',auditState(),{obstacle:o.type});player.invulnerable=.96;shake=12;hitFlash=.38;
+    runAudit.record('obstacle_hit',auditState(),{obstacle:o.type});player.invulnerable=.96;damageBlinkRemaining=.96;shake=12;hitFlash=.38;
     director.registerDamage({action:o.type});flow.registerDamage();speedTrails.disrupt();burst(player.x,player.feet-30,'#ff506d',30,1.4);frameEcho(player.x,player.feet-26,'#ff596e',29,1.1);
     vib([25,40,30]);sound('hit');if(hp===0)endRun();
   }
@@ -949,7 +949,7 @@
     }
     runAudit.record('gap_miss',auditState(),{width:gap.end-gap.start,shieldCharged:!absorbed,
       echoChallenge:Boolean(gap.echoChallenge)});
-    player.invulnerable=Math.max(player.invulnerable,1.15);shake=13;hitFlash=.42;
+    player.invulnerable=Math.max(player.invulnerable,1.15);damageBlinkRemaining=Math.max(damageBlinkRemaining,1.15);shake=13;hitFlash=.42;
     burst(player.x,player.feet-12,'#ff5998',26,1.3);frameEcho(player.x,player.feet-18,c2,28);
     sound('hit');vib([30,45,30]);
     if(hp===0)endRun();
@@ -1050,6 +1050,7 @@
     flow.tick(dt,{phase:director.phase});
     combo.tick(dt);
     player.invulnerable=Math.max(0,player.invulnerable-dt);
+    damageBlinkRemaining=Math.max(0,damageBlinkRemaining-dt);
     const bufferedEcho=jumpControl.tick(dt,distance+player.x);
     if(bufferedEcho==='echo'&&!player.landed&&!gapRecovery&&!gravityShift.shifting)launchEcho();
     motion.tick(dt);
@@ -1365,10 +1366,10 @@
     const b=GEO.obstacleBox(o,o.groundY),
       isLow=o.type==='jump'||o.type==='dash-jump',isEcho=o.type==='echo';
     const core=(isLow||isEcho)?b:GEO.duckGateCoreBox(o,o.groundY);
-    // Dedicated, high-contrast action colors in every theme. Both channels
-    // crossfade spatially via the same existing Chroma Tide front.
+    // Original mapping restored: Jump uses secondary, Duck uses primary.
+    // Keep world palette choices intact until individually approved.
     const color=spectralWave.colorAt(camera.screenX(o.x,player.x),
-      (isLow||isEcho)?'hazardJump':'hazardDuck',
+      (isLow||isEcho)?'secondary':'primary',
       camera.screenY(core.y+core.h*.5,floorY),H);
     // Stable obstacle silhouette: no per-frame alpha pulse or sine work.
     // The obstacle renderer is also exercised as a standalone legacy
@@ -1562,7 +1563,9 @@
     const pc1=spectralWave.colorAt(player.x,'primary',camera.screenY(player.feet,floorY),H);
     const pc2=spectralWave.colorAt(player.x,'secondary',camera.screenY(player.feet,floorY),H);
     ctx.save();
-    if(player.invulnerable>0&&Math.floor(worldTime*16)%2===0)ctx.globalAlpha=.32;
+    // Gravity Shift grants collision safety WITHOUT implying damage.
+    // Blink exclusively for a real hazard hit or gap miss.
+    if(damageBlinkRemaining>0&&Math.floor(worldTime*16)%2===0)ctx.globalAlpha=.32;
     // Speed Trails 2.0 renders historical poses separately *behind* hazards.
     // The old per-frame fake copies of the current pose are retired.
     const shape=motion.sample({landed:player.landed,duck:player.duck,vy:player.vy});

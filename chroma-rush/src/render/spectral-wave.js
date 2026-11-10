@@ -81,13 +81,8 @@
       this.chargeDuration=clamp(Number(chargeDuration)||0,0,.35);
       this.active=Boolean(this.from&&this.to&&!reducedMotion);
       if(this.active){
-        // Precompute both action-hazard channels on zone changes too. Both
-        // share the existing Chroma Tide front; no per-frame OKLab work.
-        // The filter preserves compatibility with legacy 3-color palettes.
-        this.ramps=Object.fromEntries(
-          ['primary','secondary','shadow','hazardDuck','hazardJump']
-            .filter(channel=>this.from[channel]&&this.to[channel])
-            .map(channel=>[channel,ramp(this.from[channel],this.to[channel])]));
+        this.ramps=Object.fromEntries(['primary','secondary','shadow'].map(channel=>
+          [channel,ramp(this.from[channel],this.to[channel])]));
       }
       return this.active;
     }

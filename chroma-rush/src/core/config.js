@@ -5,34 +5,6 @@
   if(root)root.ChromaConfig=api;
 })(typeof window!=='undefined'?window:null,function(){
   'use strict';
-  // Hazard Contrast Palette 1.0: curated Jump/Duck action colors for the
-  // 24 existing world themes. Environment primary/secondary/shadow unchanged.
-  const HAZARD_PAIRS=Object.freeze([
-    ['#3feeff','#ffb34d'], // CYAN
-    ['#a06bff','#c7ff53'], // VIOLET
-    ['#ff4aa2','#56f4ff'], // MAGENTA
-    ['#ff5f9e','#b6ff4e'], // LIME
-    ['#ffc25d','#5b87ff'], // AMBER
-    ['#ff649a','#55dfff'], // ELECTRIC
-    ['#ff466c','#ffe25b'], // REDLINE
-    ['#ff6689','#79eaff'], // WHITEOUT
-    ['#ff789f','#74e9ff'], // ROSESHIFT
-    ['#ff914f','#9984ff'], // SOLAR
-    ['#ff6798','#39ffc8'], // AQUAFLARE
-    ['#ffd36b','#3c9aff'], // COBALT
-    ['#ff4fce','#70ff77'], // HOTPINK
-    ['#ffab55','#58ffa8'], // JADE
-    ['#fa62cf','#f9ee65'], // ULTRAVIOLET
-    ['#ff9a53','#69e8ff'], // COPPER
-    ['#ff6b86','#77e9ff'], // ICEBLUE
-    ['#ff5262','#71e5ff'], // SCARLET
-    ['#b777ff','#ecff5d'], // CITRUS
-    ['#b7afff','#ffc064'], // NOVA
-    ['#ff3cb5','#57e9ff'], // FUCHSIA
-    ['#ffe365','#45b5ff'], // CERULEAN
-    ['#ff73be','#81ff69'], // VERDANT
-    ['#aa64ff','#ffdb66'], // PLASMA
-  ].map(([duck,jump])=>Object.freeze({duck,jump})));
   const PALETTES=Object.freeze([
     {name:'CYAN', primary:'#3feeff', secondary:'#53b5ff', shadow:'#061a30'},
     {name:'VIOLET', primary:'#a06bff',secondary:'#e265ff',shadow:'#1b0d39'},
@@ -61,8 +33,7 @@
     {name:'CERULEAN',primary:'#45b5ff',secondary:'#72f2df',shadow:'#08263b'},
     {name:'VERDANT',primary:'#81ff69',secondary:'#35ffc0',shadow:'#123010'},
     {name:'PLASMA',primary:'#aa64ff',secondary:'#ffac6e',shadow:'#241331'}
-  ].map((p,i)=>Object.freeze({...p,
-    hazardDuck:HAZARD_PAIRS[i].duck,hazardJump:HAZARD_PAIRS[i].jump})));
+  ].map(p=>Object.freeze(p)));
   // One curated palette lives for TWO gameplay zones; zones still advance every 12s.
   const paletteForZone=zone=>PALETTES[Math.floor(Math.max(0,(Number(zone)||1)-1)/2)%PALETTES.length];
   const GAME=Object.freeze({

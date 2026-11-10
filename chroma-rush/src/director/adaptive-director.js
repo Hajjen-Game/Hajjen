@@ -244,7 +244,10 @@
             context.hp<=50||this.stress>=.42||this.confidence<.42||
             this.time-this.lastDashHazardAt<DASH_REPEAT_SECONDS)return false;
         }
-        if(p.rush&&this.phaseDuration-this.phaseElapsed<9.1)return false;
+        // One in three PEAK cycles remains available for gap/echo-gap
+        // challenges; Rush Chains must never erase those core mechanics.
+        if(p.rush&&(this.cycle%3===1||
+          this.phaseDuration-this.phaseElapsed<9.1))return false;
         if(!this.movement.allowPattern(p,readiness,this.time))return false;
         // Never allow a full proposed motif to create a fourth identical
         // basic Jump or Duck. Special actions naturally break the chain.

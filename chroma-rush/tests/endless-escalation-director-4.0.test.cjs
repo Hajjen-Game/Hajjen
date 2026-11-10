@@ -72,11 +72,11 @@ test('challenge floor and attack lengths keep growing independently of HP and re
 
 test('damage only pauses an active phrase; it does not reset a reached attack floor',()=>{
   const d=new AdaptiveRushDirector(()=>.5);
-  d.escalation.attacks=20;d.escalation.floor=12;
+  d.escalation.attacks=20;d.escalation.floor=7;
   d.phase=PHASE.PEAK;d.phaseElapsed=5;d.phaseDuration=20;
   d.registerDamage();
   assert.ok(d.phaseDuration<=6.8);
-  assert.equal(d.escalation.floor,12);
+  assert.equal(d.escalation.floor,7);
   assert.equal(d.escalation.attacks,20);
   d.phase=PHASE.RELAX;d.phaseElapsed=d.phaseDuration=1;
   d.advance({zone:55,hp:25});
@@ -84,7 +84,7 @@ test('damage only pauses an active phrase; it does not reset a reached attack fl
   d.advance({zone:55,hp:25});
   assert.equal(d.phase,PHASE.PEAK);
   assert.equal(d.escalation.attacks,21);
-  assert.ok(d.escalation.floor>12);
+  assert.ok(d.escalation.floor>7);
   assert.equal(d.durationFor(PHASE.PEAK,{zone:55,hp:25}),
     d.durationFor(PHASE.PEAK,{zone:55,hp:100}));
 });

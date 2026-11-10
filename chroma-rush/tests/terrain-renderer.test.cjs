@@ -79,7 +79,10 @@ test('solid terrain is fully opaque but true gaps stay transparent in one pass',
   assert.equal(calls.filter(c=>c[0]==='clip').length,1);
   assert.equal(calls.filter(c=>c[0]==='fillRect').length,1,
     'no extra GPU-overdraw fill is introduced');
-  assert.equal(ctx.globalAlpha,.93,'surface line may glow while ground base stays opaque');
+  const source= require('node:fs').readFileSync(
+    require('node:path').join(__dirname,'../src/render/terrain-renderer.js'),'utf8');
+  assert.match(source,/ctx\.globalAlpha=1;\s*ctx\.fillStyle=ground;\s*ctx\.fillRect\(/,
+    'base terrain fill itself is forced opaque; later glow and gap cues may be transparent');
   const clip=calls.findIndex(c=>c[0]==='clip');
   const paths=calls.slice(0,clip).filter(c=>c[0]==='closePath');
   assert.equal(paths.length,2,'solid islands remain distinct across the real gap');

@@ -70,12 +70,13 @@ test('short Jump inherits Duck Gate visual grammar with unchanged collider',()=>
   assert.ok(jump.events.some(e=>e[0]==='roundRectPath'),
     'Jump uses the same soft-corner beam housing as Duck');
   assert.ok(duck.events.some(e=>e[0]==='roundRectPath'));
-  const fills=jump.events.filter(e=>e[0]==='fillRect');
-  assert.ok(fills.length>=1,'Jump retains its translucent energy field');
-  for(const e of fills){
-    assert.ok(e[1]>=b.x&&e[1]+e[3]<=b.x+b.w+1e-6);
-    assert.ok(e[2]>=b.y&&e[2]+e[4]<=b.y+b.h+1e-6);
-  }
+  // The former energy curtain is replaced by an opaque full-height block.
+  // Its physical extent stays identical; no invisible area is left below.
+  assert.equal(jump.events.filter(e=>e[0]==='fillRect').length,0,
+    'Jump has no old translucent rectangular energy field');
+  assert.ok(jump.events.some(e=>e[0]==='roundRectPath'&&
+    e[1]===b.x&&e[2]===b.y&&e[3]===b.w&&e[4]===b.h),
+    'Jump paints a complete solid body matching its collider');
   assert.ok(jump.lines.some(l=>l.y1===b.y),
     'Jump structural bar is anchored to its top');
   assert.ok(duck.lines.some(l=>l.y1===duck.box.y+duck.box.h),
@@ -84,32 +85,40 @@ test('short Jump inherits Duck Gate visual grammar with unchanged collider',()=>
 });
 
 
-test('Jump Gate Polish 1.1: vertical veil ribs and horizontal cap engravings stay in their own zones',()=>{
-  const jump=renderObstacle('jump'),duck=renderObstacle('duck');
-  const b=jump.box,capHeight=Math.min(30,Math.max(23,b.h*.45));
-  const energyTop=b.y+capHeight,by=b.y+b.h;
+test('Jump Solid Body Trial 1.0 removes the veil but retains cap, lighting and collision',()=>{
+  const jump=renderObstacle('jump'),duck=renderObstacle('duck'),b=jump.box;
+  const capHeight=Math.min(30,Math.max(23,b.h*.45));
+  assert.equal(jump.events.filter(e=>e[0]==='fillRect').length,0);
+  // One full-body shell (exact hitbox) plus a lower inset and original cap.
+  const shells=jump.events.filter(e=>e[0]==='roundRectPath');
+  assert.ok(shells.some(e=>e[1]===b.x&&e[2]===b.y&&e[3]===b.w&&e[4]===b.h));
+  assert.ok(shells.some(e=>e[1]===b.x&&e[2]===b.y&&e[3]===b.w&&
+    Math.abs(e[4]-capHeight)<.001));
+  assert.ok(shells.some(e=>e[1]===b.x+6&&e[2]===b.y+capHeight+3),
+    'opaque body includes a recessed lower face');
   const segments=[];
   for(let i=0;i<jump.events.length-1;i++){
     const a=jump.events[i],next=jump.events[i+1];
     if(a[0]==='moveTo'&&next[0]==='lineTo')
       segments.push({x1:a[1],y1:a[2],x2:next[1],y2:next[2]});
   }
-  const field=segments.filter(l=>l.y1>=energyTop+4&&l.y2<=by-5);
-  assert.ok(field.length>=4,'at least four visible ribs in the energy veil');
-  assert.ok(field.every(l=>l.x1===l.x2&&l.y2>l.y1),
-    'every interior energy rib must be vertical, never a horizontal crossbar');
+  assert.equal(segments.filter(l=>l.y1>b.y+capHeight+4&&
+    l.y2<=b.y+b.h-5&&l.x1===l.x2).length,0,
+    'no vertical energy ribs below the cap');
   const grooves=jump.lines.filter(l=>l.y1===l.y2&&l.y1>b.y+5&&
-    l.y1<energyTop-2&&l.x1>=b.x&&l.x2<=b.x+b.w);
-  assert.equal(grooves.length,2,'exactly two horizontal grooves inside the solid cap');
-  assert.ok(jump.lines.every(l=>!(l.y1===l.y2&&l.y1>energyTop&&l.y1<by)),
-    'no horizontal glow line may appear in the energy field');
+    l.y1<b.y+capHeight-2&&l.x1>=b.x&&l.x2<=b.x+b.w);
+  assert.equal(grooves.length,2,'the existing two cap engravings survive');
   const jumpBranch=sourceCode.split("if(o.type==='jump'){")[1].split('}else if(isEcho||isLow){')[0];
-  assert.match(jumpBranch,/shell\(cap\.y,cap\.h,\.34\)/,
-    'the existing jump cap keeps its original fill in fallback and uses the shared material on newer builds');
-  assert.match(jumpBranch,/material\?\.inset\?\?\.20/,
-    'the existing inset still uses the original 0.20 fallback opacity');
-  assert.ok(duck.events.some(e=>e[0]==='roundRectPath'),
-    'Duck visuals remain the established visual reference');
+  assert.match(jumpBranch,/ctx\.globalAlpha=1;\s*roundRectPath\(b\.x,b\.y,b\.w,b\.h,4\)/,
+    'the solid block starts with a fully opaque foundation');
+  assert.match(jumpBranch,/ctx\.fillStyle='#081724';ctx\.fill\(\)/);
+  assert.match(jumpBranch,/shell\(b\.y,b\.h,\.30\)/);
+  assert.match(jumpBranch,/shell\(cap\.y,cap\.h,\.34\)/);
+  assert.match(jumpBranch,/material\?\.inset\?\?\.20/);
+  assert.ok(duck.events.some(e=>e[0]==='fillRect'),
+    'Duck energy field remains unchanged');
+  assert.deepEqual(GEO.obstacleBox(jump.obstacle,515),b,
+    'Jump hitbox is untouched by the visual experiment');
 });
 
 test('duck gate preserves continuous sky energy field, its clear slot and core',()=>{

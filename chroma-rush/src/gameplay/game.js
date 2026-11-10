@@ -1377,32 +1377,27 @@
       worldLighting.shellGradient(ctx,color,y,h,frameLighting):rgba(color,fallback);
     ctx.save();
     if(o.type==='jump'){
-      // A grounded, vertically mirrored DUCK GATE: same housing, side rails,
-      // translucent energy curtain and luminous cap. Physics is unchanged.
-      // Jump uses the palette's secondary hue; Duck uses its primary hue.
+      // Visual experiment: REMOVE the translucent energy field below the cap.
+      // The same soft neon housing now forms an opaque, grounded solid block,
+      // filling the ENTIRE original collider. No invisible danger region.
+      // Keep the existing secondary palette color, cap and two engravings.
       const cap={x:b.x,y:b.y,w:b.w,h:Math.min(30,Math.max(23,b.h*.45))};
-      const by=b.y+b.h,energyTop=cap.y+cap.h;
-      ctx.shadowBlur=0;ctx.globalAlpha=twinkle;
-      ctx.fillStyle=rgba(color,material?.veil??.11);
-      ctx.fillRect(b.x,b.y,b.w,b.h);
-      ctx.strokeStyle=rgba(color,material?.border??.68);ctx.lineWidth=1.9;
-      ctx.beginPath();
-      ctx.moveTo(b.x+1,b.y);ctx.lineTo(b.x+1,by);
-      ctx.moveTo(b.x+b.w-1,b.y);ctx.lineTo(b.x+b.w-1,by);
-      ctx.stroke();
-      // Jump Gate Polish 1.1: ONLY vertical fine ribs in the energy veil.
-      // They stop below the solid housing and above the track; no crossbars.
-      ctx.lineWidth=1;ctx.strokeStyle=rgba(color,.36);
-      ctx.beginPath();
-      const strands=Math.max(5,Math.min(9,Math.round(b.w/16)));
-      for(let k=1;k<strands;k++){
-        const x=b.x+6+(b.w-12)*k/strands;
-        ctx.moveTo(x,energyTop+5);
-        ctx.lineTo(x,by-6);
-      }
-      ctx.stroke();
-      // Match the Duck core's visual weight (+~13% shell, subtle inner fill).
-      // Only Jump's cosmetics change: unchanged hitbox and exterior contour.
+      const by=b.y+b.h;
+      // Full-height opaque foundation with the shared World Lighting shell:
+      // do not leave an empty/transparent strip under the original cap.
+      ctx.globalAlpha=1;
+      roundRectPath(b.x,b.y,b.w,b.h,4);
+      ctx.fillStyle='#081724';ctx.fill();
+      ctx.globalAlpha=twinkle;
+      ctx.fillStyle=shell(b.y,b.h,.30);ctx.fill();
+      ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
+      ctx.lineWidth=2.6;ctx.strokeStyle=color;ctx.stroke();
+      // Recessed lower solid panel, not a veil: no vertical energy strands,
+      // glowing interior grid, or independent floating plate.
+      ctx.shadowBlur=0;ctx.globalAlpha=1;
+      roundRectPath(b.x+6,cap.y+cap.h+3,b.w-12,by-(cap.y+cap.h)-9,2);
+      ctx.fillStyle=rgba(color,material?.inset??.20);ctx.fill();
+      // Preserve the established upper housing and its luminous edge.
       ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
       roundRectPath(cap.x,cap.y,cap.w,cap.h,4);
       ctx.fillStyle=shell(cap.y,cap.h,.34);ctx.fill();
@@ -1411,8 +1406,7 @@
       ctx.fillStyle=rgba(color,material?.inset??.20);
       roundRectPath(cap.x+6,cap.y+8,cap.w-12,cap.h-15,2);ctx.fill();
       glowLine(b.x-7,b.y,b.x+b.w+7,b.y,color,5,14,1);
-      // Two understated HORIZONTAL engravings live entirely inside the
-      // solid cap (the opposite orientation of the energy-field ribs).
+      // Exactly the previous two horizontal engravings in the same cap.
       for(let k=0;k<2;k++){
         const y=cap.y+cap.h*(.42+k*.25);
         glowLine(cap.x+8,y,cap.x+cap.w-8,y,color,1,0,.36);

@@ -78,7 +78,7 @@ test('module order and cache versions include both new independent modules',()=>
  const ctrl=sources.indexOf('src/gameplay/jump-controller.js?v=jump-1.0-movement-1.0-echo-fix-2.1');
  const motion=sources.findIndex(src=>src.startsWith('src/render/player-motion.js?v=duck-effects-1.0-movement-1.0-dash-squash-stretch-2.5'));
  const game=sources.findIndex(src=>src.startsWith('src/gameplay/game.js?v='));
- const config=sources.indexOf('src/core/config.js?v=flow-1.2-movement-1.0-echo-spire-1.0-combo-1.0-speed-curve-3.2-echo-polish-1.1-echo-zone2-1.2-dash-impact-2.2-shield-core-1.0-palette-24-2.0-director-flow-2.0-echo-rail-1.0-obstacle-balance-3.0');
+ const config=sources.findIndex(src=>src.startsWith('src/core/config.js?v=flow-1.2-movement-1.0-echo-spire-1.0-combo-1.0-speed-curve-3.2-echo-polish-1.1-echo-zone2-1.2-dash-impact-2.2-shield-core-1.0-palette-24-2.0-director-flow-2.0-echo-rail-1.0-obstacle-balance-3.0'));
  assert.ok(config>=0&&ctrl>config&&motion>ctrl&&game>motion);
  for(const src of sources)assert.ok(fs.existsSync(path.join(root,src.split('?')[0])),src);
 });

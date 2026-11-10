@@ -113,7 +113,7 @@ test('HUD bonus and Endless Escalation remain intact; original wave is not edite
   const html=read('index.html'),game=read('src/gameplay/game.js');
   for(const id of ['surge-indicator','surge-label','surge-bonus','surge-meter','surge-meter-fill'])
     assert.ok(html.includes('id="'+id+'"'));
-  assert.match(html,/LATEST UPDATE · AMBIENT LIGHTING 2\.1/);
+  assert.match(html,/LATEST UPDATE · PREMIUM WORLD LIGHTING 3\.0/);
   assert.match(game,/lighting:surge\.intensity/);
   assert.match(game,/surge\.progress\*100/);
   assert.match(game,/surge\.arm\(\{zone\}\)/);

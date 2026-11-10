@@ -10,7 +10,7 @@
 })(typeof window!=='undefined'?window:null,function(){
   'use strict';
   const ORDER=['BUILD','PEAK','FADE','RELAX'];
-  const ESTIMATES={BUILD:6.0,PEAK:7.6,FADE:1.8,RELAX:1.8};
+  const ESTIMATES={BUILD:6.0,PEAK:12.1,FADE:1.8,RELAX:1.8};
   const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 
   class UnifiedTerrainDirector{
@@ -73,12 +73,20 @@
         (future.phase==='BUILD'||future.phase==='PEAK')&&
         !dashLearningRunway;
       const peak=future.phase==='PEAK';
+      // Reserve a long FLAT sequence before the rush arrives, not after
+      // several queued obstacles have already been vetoed by hills/gaps.
+      // Only skilled, healthy runs get this: ordinary terrain continues
+      // during teaching, recovery, BUILD and later non-rush phases.
+      const rushRunway=zone>=8&&peak&&future.remaining>=2&&
+        hp>50&&stress<.38&&confidence>=.64&&
+        !dashLearningRunway;
       const permitGap=zone>=3 && !vulnerable && !dashLearningRunway &&
         start>=this.noGapsBefore &&
         (peak || (future.phase==='BUILD'&&zone>=5&&confidence>=.70));
       const gapTime=peak ? (gentle?.30:.35) : .29;
       const safeArrival=permitGap && future.remaining>=gapTime+.48;
-      const gapChance=safeArrival?(peak?(gentle?.19:.42):.14):0;
+      const gapChance=rushRunway?0:
+        safeArrival?(peak?(gentle?.19:.42):.14):0;
       // Zone 2 remains a calm, flat section for basic jump and duck timing.
       const teachingBasics=zone===2;
       // Denser *valid* hurdle corridors: keep terrain visually varied, but
@@ -86,7 +94,7 @@
       // Real gap/landing/slope vetoes remain fully authoritative.
       const actionFlat=1-(future.phase==='PEAK'?.31:
         future.phase==='BUILD'?.21:.04)*action;
-      const slopeChance=teachingBasics||dashLearningRunway?0:
+      const slopeChance=teachingBasics||dashLearningRunway||rushRunway?0:
         (({BUILD:.45,PEAK:.26,FADE:.22,RELAX:.10})[future.phase]||.2)*
         (challengeRunway?1-.36*density:1)*actionFlat;
       const maxHeightChange=({BUILD:62,PEAK:58,FADE:38,RELAX:23})[future.phase]||40;
@@ -106,7 +114,7 @@
         gapSecondsMin:peak?.30:.27,gapSecondsMax:gapTime,
         echoGapChance:echoSafe?.44:0,
         echoGapSecondsMin:.92,echoGapSecondsMax:1.015,
-        noGapBefore:this.noGapsBefore,dashLearningRunway,
+        noGapBefore:this.noGapsBefore,dashLearningRunway,rushRunway,
         challengeRunway,endurance,density,actionPressure:action};
       this.lastPolicy=policy;
       return policy;

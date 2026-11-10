@@ -45,7 +45,7 @@
       ctx.lineTo(hi-distance,surface(s,hi)+depth);
     }
   }
-  function drawTerrain({ctx,terrain,distance,width,height,baseY,primary,secondary,flow=0,glowLine,quality={glow:1,terrainStep:16,gridStep:105},tide=null,cameraView=null}){
+  function drawTerrain({ctx,terrain,distance,width,height,baseY,primary,secondary,flow=0,lighting=0,glowLine,quality={glow:1,terrainStep:16,gridStep:105},tide=null,cameraView=null}){
     if(!ctx||!terrain||!terrain.segments)return;
     const viewLeft=Math.min(0,cameraView?.left??0);
     const viewRight=Math.max(width,cameraView?.right??width);
@@ -66,6 +66,9 @@
     const colorAt=(x,channel,y)=>tide?.active?tide.colorAt(x,channel,y,height):
       (channel==='primary'?primary:secondary);
     const groundPrimary=tide?.active?tide.ambientColor('primary'):primary;
+    const groundSecondary=tide?.active?tide.ambientColor('secondary'):secondary;
+    const ambientGlow=clamp(quality.glow??1,.15,1);
+    const illuminate=clamp(lighting,0,1)*ambientGlow;
 
     // Build one compound clip mask for all solid track. The floor, gradients and
     // grid are all clipped to it: the gap is literal transparency over the world.
@@ -80,7 +83,12 @@
     // One gradient anchored to the SCREEN instead of segment-local starts.
     // Resetting the gradient at every new slope was the visible dark seam.
     const ground=ctx.createLinearGradient(0,baseY-25,0,bottom);
-    ground.addColorStop(0,rgba(groundPrimary,.15+clamp(flow,0,100)*.0008));
+    // Actual ground material receives a restrained colored bounce light.
+    // Everything remains within the SAME solid-terrain clip, so no glow
+    // paints a bridge across a real gap or changes a collision silhouette.
+    ground.addColorStop(0,rgba(groundPrimary,
+      .22+clamp(flow,0,100)*.0008+illuminate*.09));
+    ground.addColorStop(.18,rgba(groundSecondary,.10+illuminate*.035));
     ground.addColorStop(.55,'#0b1224');
     ground.addColorStop(1,'#050812');
     ctx.fillStyle=ground;
@@ -137,8 +145,9 @@
     ctx.save();ctx.beginPath();
     for(const run of runs)traceSurface(ctx,run,distance,0,false,quality.terrainStep);
     ctx.strokeStyle=tide?.active?tide.gradient(ctx,width,'primary',baseY,height):primary;
-    ctx.lineWidth=2.8;ctx.globalAlpha=.92;
-    ctx.shadowColor=groundPrimary;ctx.shadowBlur=(21+clamp(flow,0,100)*.12)*quality.glow;
+    ctx.lineWidth=2.8;ctx.globalAlpha=.93;
+    ctx.shadowColor=groundPrimary;
+    ctx.shadowBlur=(26+clamp(flow,0,100)*.12+illuminate*10)*ambientGlow;
     ctx.stroke();ctx.restore();
 
     // One extra localized luminous SURFACE pass near the moving tide.

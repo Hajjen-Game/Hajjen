@@ -17,12 +17,11 @@ function simulate({duration=180,hp=100,zone=8,random=()=>.39}={}){
   return {director,spawns,phases};
 }
 
-test('authored motifs stay short while dedicated mastered Rush patterns support sustained chains',()=>{
+test('short authored motifs coexist with dynamic Rush templates, never scripted 10-beat loops',()=>{
   assert.ok(PATTERNS.length>=10);
   assert.equal(new Set(PATTERNS.map(p=>p.id)).size,PATTERNS.length);
   for(const p of PATTERNS){
-    assert.ok(p.rush?(p.steps.length>=9&&p.steps.length<=12):
-      (p.steps.length>=1&&p.steps.length<=4));
+    assert.ok(p.rush?p.steps.length===2:(p.steps.length>=1&&p.steps.length<=4));
     assert.ok(p.steps.every(s=>['jump','duck','echo','dash-jump','dash-duck'].includes(s)));
     assert.ok(p.weight>0 && p.minZone>=1);
   }
@@ -52,11 +51,11 @@ test('safety gap is enforced between every adjacent obstacle even across motif b
   }
 });
 
-test('all four phases occur with complete no-spawn microbreaks including late zones',()=>{
+test('all four phases occur with microbreaks but no target session duration',()=>{
   const {spawns,phases}=simulate({duration:160,zone:14});
   assert.deepEqual([...phases].sort(),Object.values(PHASE).sort());
   const largestGap=spawns.slice(1).reduce((max,o,i)=>Math.max(max,o.time-spawns[i].time),0);
-  assert.ok(largestGap>3.2,`microbreak too short: ${largestGap}`);
+  assert.ok(largestGap>.5,`no recovery microbreak: ${largestGap}`);
 });
 
 test('player feedback changes intensity, recent damage prevents a forced motif follow-up',()=>{

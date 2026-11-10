@@ -19,11 +19,11 @@ test('Speed Curve 3.2 retains launch speed and zone cadence but not instant zone
   assert.equal(GAME.speedAt(-10,1),370);
 });
 
-test('Core Pace 1.1 retains the 45-second introduction then escalates toward 3–4 minute mastery',()=>{
+test('Endless 4.0 retains Core Pace early but continues accelerating after four minutes',()=>{
   const checkpoints=[
     [0,370],[12,473],[30,615],[45,724],[60,835],[90,1078],
     [120,1335],[180,1802],[225,2023],[240,2067],
-    [300,2219],[360,2342],[420,2444],[600,2680]
+    [300,2256],[360,2465],[420,2679],[600,3305]
   ];
   for(const [t,expected] of checkpoints){
     const got=GAME.speedAt(t,zoneAt(t));
@@ -112,7 +112,7 @@ test('movement and two-thumb controls are unchanged in this pass',()=>{
 
 test('seven-minute deterministic narrow-screen run respects Director safety under restored pace',()=>{
   const run=simulate({seed:42,seconds:420,viewportWidth:900,damageEvery:17});
-  assert.equal(Math.round(run.finalSpeed),2444);
+  assert.equal(Math.round(run.finalSpeed),2679);
   assert.ok(run.cleared>10);
   assert.equal(run.underBudget,0);
   assert.equal(run.lateGaps,0);
@@ -126,8 +126,8 @@ test('speed target is supported by player log without scripting a six-minute dea
   assert.equal(log.finalZone,35);
   assert.ok(Math.abs(log.observedSpeed-1154.84)<.1);
   const revised=GAME.speedAt(log.elapsedSeconds,log.finalZone);
-  assert.ok(revised>2380&&revised<2500,
-    'Core Pace 1.1 restores a fast late challenge while preserving smooth acceleration');
+  assert.ok(revised>2600&&revised<2700,
+    'Endless 4.0 keeps adding speed without setting a death clock');
 });
 
 test('historic 4m29.68 player log anchors the new faster Core Pace curve',()=>{

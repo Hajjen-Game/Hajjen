@@ -50,6 +50,11 @@
     midgameSpeedStart:45,
     midgameSpeedFull:225,
     midgameSpeedGain:460,
+    // No session-length objective: extra *positive* late acceleration
+    // begins smoothly after 4m and continues for as long as skill permits.
+    lateSpeedStart:240,
+    lateSpeedEaseSeconds:90,
+    lateAcceleration:2.3,
     zoneSpeedBonus:0,
     zoneSeconds:12,
     jumpVelocity:-870,
@@ -69,8 +74,13 @@
       const t=Math.max(0,Math.min(1,(elapsed-this.midgameSpeedStart)/
         (this.midgameSpeedFull-this.midgameSpeedStart)));
       const midgameBoost=this.midgameSpeedGain*t*t*(3-2*t);
+      const late=Math.max(0,elapsed-this.lateSpeedStart);
+      // Integral of a smooth acceleration ramp: no velocity or
+      // acceleration jump, no soft cap after the 3–4 minute window.
+      const lateSpeed=this.lateAcceleration*(late-
+        this.lateSpeedEaseSeconds*(1-Math.exp(-late/this.lateSpeedEaseSeconds)));
       return this.baseSpeed+this.speedRise*(1-Math.exp(-elapsed/this.speedEaseSeconds))+
-        elapsed*this.cruiseAcceleration+midgameBoost;
+        elapsed*this.cruiseAcceleration+midgameBoost+lateSpeed;
     }
   });
   const FLOW=Object.freeze({

@@ -25,7 +25,7 @@ test('late intensity ramps AFTER zone 24 and NEVER increases locked speed',()=>{
     'late basic-action density survives low HP; advanced eligibility stays gated');
   assert.ok(enduranceIntensity({zone:50,hp:75,stress:.2,confidence:.75})<
     enduranceIntensity({zone:50,...full}));
-  assert.ok(GAME.speedAt(604)>2600&&GAME.speedAt(604)<2750);
+  assert.ok(GAME.speedAt(604)>3200&&GAME.speedAt(604)<3500);
   assert.equal(GAME.speedAt(604,24),GAME.speedAt(604,50),
     'Director endurance changes density only, never the shared speed curve');
   assert.equal(GAME.zoneSeconds,12);
@@ -51,7 +51,8 @@ test('late confident BUILD gets denser spacing and wider combinations; low HP re
   assert.equal(effort.allowPattern(allowed,{...readiness,hp:25,stress:.65},200),false);
   d.stress=.65;
   const woundedLate=d.gapFor({zone:50,hp:25,speed:2200});
-  assert.ok(woundedLate>late,'a wounded runner still receives longer recovery');
+  assert.ok(Math.abs(woundedLate-late)<.06,
+    'HP does not roll the permanent challenge floor back after recovery');
   assert.ok(woundedLate<d.gapFor({zone:24,hp:25,speed:2200})-.08,
     'wounded zone-50 basic actions stay denser than wounded zone-24 play');
   d.stress=0;
@@ -65,8 +66,9 @@ test('PEAK duration gets a bounded late mastery extension, never a no-spawn remo
   const before=d.durationFor(PHASE.PEAK,{zone:24,hp:100});
   const after=d.durationFor(PHASE.PEAK,{zone:50,hp:100});
   assert.ok(after>before+.4,{before,after});
-  assert.equal(d.durationFor(PHASE.RELAX,{zone:50,hp:100}),
-    d.durationFor(PHASE.RELAX,{zone:24,hp:100}));
+  assert.ok(d.durationFor(PHASE.RELAX,{zone:50,hp:100})<
+    d.durationFor(PHASE.RELAX,{zone:24,hp:100}),
+    'microbreaks shrink as escalation continues');
 });
 
 test('terrain gives masters genuine high-speed safe flats without erasing all hills/gaps',()=>{

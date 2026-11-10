@@ -85,13 +85,14 @@ test('ordinary gaps retain their original time budget beyond the old 500px cap',
 });
 
 test('variety guard looks at the WHOLE new motif and real action history',()=>{
-  assert.equal(MAX_SIMPLE_CHAIN,3);
-  const past=['jump','jump','jump'].map(type=>({type}));
+  assert.equal(MAX_SIMPLE_CHAIN,6);
+  const past=Array(6).fill('jump').map(type=>({type}));
   assert.equal(violatesSimpleChain(['jump'],past),true);
   assert.equal(violatesSimpleChain(['jump','duck'],past),true);
   assert.equal(violatesSimpleChain(['duck','jump'],past),false);
   assert.equal(violatesSimpleChain(['echo'],past),false);
-  assert.equal(violatesSimpleChain(['jump','jump'],past.slice(-2)),true);
+  assert.equal(violatesSimpleChain(['jump','jump'],past.slice(-2)),false);
+  assert.equal(violatesSimpleChain(Array(7).fill('jump'),[]),true);
   assert.equal(violatesSimpleChain(['duck','duck'],past.slice(-2)),false);
   assert.equal(violatesSimpleChain(['duck'],[]),false);
   assert.equal(violatesSimpleChain(['jump'],[{type:'dash-jump'}]),false);
@@ -206,5 +207,5 @@ test('actual gameplay loads shared size contract and audit exposes real dimensio
   assert.match(game,/window\.ChromaObstacleBalance/);
   assert.match(html,/obstacle-director-balance-3\.0/);
   const audit=require('../src/diagnostics/round-audit.js');
-  assert.equal(new audit.RoundAudit().snapshot().build,'phase-3-rush-chains-3.0');
+  assert.equal(new audit.RoundAudit().snapshot().build,'endless-escalation-director-4.0');
 });

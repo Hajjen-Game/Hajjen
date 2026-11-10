@@ -28,16 +28,17 @@ test('real PEAK lasts longer from midgame while physical damage recovery stays l
   const early=d.durationFor(PHASE.PEAK,{zone:6,hp:100});
   const mid=d.durationFor(PHASE.PEAK,{zone:19,hp:100});
   assert.ok(mid>=early+2.4,JSON.stringify({early,mid}));
-  assert.ok(mid>=12&&mid<=13.8,mid);
+  assert.ok(mid>=13.5&&mid<=14.1,mid);
   assert.ok(mid>early+4,'Rush Chain phase must exceed prior phase duration, not just rename it');
   assert.ok(d.durationFor(PHASE.BUILD,{zone:19,hp:100})<
     d.durationFor(PHASE.BUILD,{zone:6,hp:100})-.7);
   assert.ok(d.durationFor(PHASE.RELAX,{zone:19,hp:100})<=1.65);
   d.stress=.70;
   const stressed=d.durationFor(PHASE.PEAK,{zone:19,hp:20});
-  assert.ok(stressed<mid-2,'injured and stressed player gets shorter intense periods');
-  assert.ok(d.durationFor(PHASE.RELAX,{zone:19,hp:20})>2.9,
-    'a critical-shield player gets additional genuine breathing time');
+  assert.equal(stressed,mid,
+    'after a brief recovery the permanent attack difficulty does not roll back');
+  assert.ok(d.durationFor(PHASE.RELAX,{zone:19,hp:20})<=1.2,
+    'a low shield never turns every phase into an extended breather');
 });
 
 test('densification respects previous action travel envelopes and still admits safe multi-input motifs',()=>{
@@ -73,9 +74,13 @@ test('terrain leaves more physically valid obstacle lanes without removing hills
   assert.equal(after.slopeChance,0);
   assert.equal(after.gapChance,0);
   const outsideRush=u.policyAt(100800,{...base,zone:19,hp:20});
-  assert.equal(outsideRush.rushRunway,false);
-  assert.ok(outsideRush.slopeChance>0,
-    'terrain remains varied for recovery, health and ordinary sections');
+  assert.equal(outsideRush.rushRunway,true,
+    'low HP no longer disables ordinary Rush once timed recovery ends');
+  d.cycle=1;
+  const varied=u.policyAt(100800,{...base,zone:19,hp:100});
+  assert.equal(varied.rushRunway,false);
+  assert.ok(varied.slopeChance>0,
+    'one out of three PEAK cycles retains varied terrain');
   assert.equal(after.actionPressure,1);
   terrain.segments=[{type:'gap',start:100000,end:103000,y0:515,y1:515}];
   assert.equal(terrain.canSpawnObstacle(101000,90,1450),false,
@@ -100,7 +105,7 @@ test('multiple seeded arcade simulations spend substantially more midgame time i
     assert.ok(intense/elapsed>.37,
       JSON.stringify({seed,peakShare:intense/elapsed,actions}));
     assert.ok(lateActions>80,{seed,lateActions});
-    assert.equal(d.insight.variety.maxSimpleChain,3);
+    assert.equal(d.insight.variety.maxSimpleChain,6);
   }
 });
 

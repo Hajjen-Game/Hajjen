@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const {GAME}=require('../src/core/config.js');
 const {AdaptiveRushDirector,PHASE,MAX_SIMPLE_CHAIN,
   violatesSimpleChain}=require('../src/director/adaptive-director.js');
-const {PATTERNS}=require('../src/director/patterns.js');
+const {PATTERNS,composeRush}=require('../src/director/patterns.js');
 const {MovementAwareness,minimumGap}=require('../src/director/movement-awareness.js');
 const {TerrainSystem}=require('../src/terrain/terrain-system.js');
 const {UnifiedTerrainDirector}=require('../src/director/unified-terrain-director.js');
@@ -12,36 +12,36 @@ const rush=PATTERNS.filter(p=>p.rush);
 const rng=seed=>{let x=seed>>>0;return ()=>((x=(Math.imul(x,1664525)+1013904223)>>>0)/4294967296)};
 const prepared={zone:18,hp:100,stress:0,confidence:1,phase:'PEAK',
   gravityPending:false,surface:'floor'};
-test('rush variants really carry 9–12 alternating ordinary physical actions, never retired families',()=>{
-  assert.ok(rush.length>=3);
-  assert.ok(rush.every(p=>p.minZone>=8&&p.steps.length>=9&&
-    p.steps.length<=12&&p.steps.every(x=>x==='jump'||x==='duck')));
-  assert.ok(rush.every(p=>!p.steps.some((t,i)=>i>=3&&
-    t===p.steps[i-1]&&t===p.steps[i-2]&&t===p.steps[i-3])));
-  assert.ok(rush.every(p=>!violatesSimpleChain(p.steps,[])));
-  assert.equal(MAX_SIMPLE_CHAIN,3);
+test('old Rush templates are now stochastic inputs, allowing six-action volleys',()=>{
+  assert.equal(rush.length,3);
+  assert.ok(rush.every(p=>p.minZone>=8&&p.steps.length===2));
+  const phrase=composeRush(rng(13),{zone:35,attack:15,maxActions:20});
+  assert.ok(phrase.length>=9&&phrase.length<=20);
+  assert.ok(!violatesSimpleChain(phrase,[]));
+  assert.equal(MAX_SIMPLE_CHAIN,6);
 });
-test('healthy PEAK admits real Rush, but tutorial, damage, stress, ceiling transition and recovery forbid it',()=>{
+test('PEAK allows normal Rush even at low shield; only real timed recovery vetoes it',()=>{
   const m=new MovementAwareness(),p=rush[0];
   assert.equal(m.allowPattern(p,prepared,30),true);
-  for(const changed of [
-    {zone:7},{hp:25},{hp:50},{stress:.45},{confidence:.5},
-    {phase:'BUILD'},{phase:'FADE'},{gravityPending:true},{surface:'unknown'}]){
-    assert.equal(m.allowPattern(p,{...prepared,...changed},30),false,
-      JSON.stringify(changed));
-  }
+  for(const changed of [{zone:7},{phase:'BUILD'},{phase:'FADE'},
+    {gravityPending:true},{surface:'unknown'}])
+    assert.equal(m.allowPattern(p,{...prepared,...changed},30),false);
+  for(const changed of [{hp:25},{hp:50},{stress:.45},{confidence:.5}])
+    assert.equal(m.allowPattern(p,{...prepared,...changed},30),true);
   m.onDamage(29);
-  assert.equal(m.allowPattern(p,prepared,30),false,'actual damage recovery gate');
+  assert.equal(m.allowPattern(p,prepared,30),false,'real timed damage veto');
+  assert.equal(m.allowPattern(p,{...prepared,hp:25},35),true,
+    'after recovery, low health cannot make the game permanently easy');
 });
 test('skilled PEAK lasts long enough for a sustained 10+ beat riff and damage shortens it',()=>{
   const d=new AdaptiveRushDirector(()=>.5);d.confidence=1;
   const healthy=d.durationFor(PHASE.PEAK,{zone:19,hp:100});
-  assert.ok(healthy>=12.8&&healthy<=13.8,healthy);
+  assert.ok(healthy>=13.5&&healthy<=14.1,healthy);
   d.phase=PHASE.PEAK;d.phaseElapsed=4;d.phaseDuration=healthy;
   d.registerDamage();
   assert.ok(d.phaseDuration<=5.8,'real damage exits the extended attack');
   const injured=d.durationFor(PHASE.PEAK,{zone:19,hp:25});
-  assert.ok(injured<8,'wounded runner has no compulsory long rush');
+  assert.equal(injured,healthy,'wounded runner eventually faces the same stage');
 });
 test('long PEAK flat lanes truly permit many independent fair obstacles, while other terrain still exists',()=>{
   const d=new AdaptiveRushDirector(()=>.5);d.phase=PHASE.PEAK;
@@ -61,7 +61,7 @@ test('long PEAK flat lanes truly permit many independent fair obstacles, while o
     assert.equal(t.canSpawnObstacle(world,95,1550),true,
       'each rapid action has independent physical takeoff and landing clearance');
   }
-  assert.equal(u.policyAt(ctx.playerWorld+1550,{...ctx,hp:20}).rushRunway,false);
+  assert.equal(u.policyAt(ctx.playerWorld+1550,{...ctx,hp:20}).rushRunway,true);
   // Every third PEAK protects ordinary and double-jump gap variety.
   d.cycle=1;u.gapSuccesses=1;
   const gapPeak=u.policyAt(ctx.playerWorld+1550,ctx);

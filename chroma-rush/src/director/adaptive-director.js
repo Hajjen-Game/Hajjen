@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Rush Chains 3.0 + Action Density 2.0 + Adaptive Rush Director.
+/* CHROMA RUSH — Endless Escalation Director 4.0 + adaptive physical safety.
  * Short authored motifs, player-friction awareness and four-phase pacing.
  * Uses seconds rather than raw pixels so existing actions remain physically feasible.
  * No ML, random difficulty spikes, online dependencies, or input manipulation.
@@ -55,18 +55,25 @@
     return lateRamp(zone)*mastery*shield*strain;
   }
   // Director Variety 3.0: only REAL spawns establish an action chain.
-  const MAX_SIMPLE_CHAIN=3;
-  function violatesSimpleChain(steps,history,maxChain=MAX_SIMPLE_CHAIN){
-    if(!steps?.length||!history?.length)return false;
-    const latest=history[history.length-1].type;
-    if(latest!=='jump'&&latest!=='duck')return false;
-    let chain=0;
-    for(let i=history.length-1;i>=0&&history[i].type===latest;i--)chain++;
-    for(const type of steps){
-      if(type!==latest)break;
-      if(++chain>maxChain)return true;
+  const MAX_SIMPLE_CHAIN=6;
+  // The *difficulty floor* only goes up. Neither a mistake, low HP nor a
+  // recovery phase may erase reached skill pressure. This is not a timer
+  // aimed at a specific run duration: it stays increasing at any zone.
+  function escalationFloor(zone=1,attacks=0){
+    return Math.max(0,(Math.max(1,zone)-1)*.105+Math.max(0,attacks)*.22);
+  }
+  function violatesSimpleChain(steps,history=[],maxChain=MAX_SIMPLE_CHAIN){
+    let last=null,streak=0;
+    const examine=type=>{
+      if(type!=='jump'&&type!=='duck'){last=null;streak=0;return false;}
+      streak=type===last?streak+1:1;last=type;
+      return streak>maxChain;
+    };
+    // Only the tail matters, but do not forget a run crossing patterns.
+    for(const item of history.slice(-maxChain)){
+      examine(typeof item==='string'?item:item.type);
     }
-    return false;
+    return (steps||[]).some(examine);
   }
   function varietyMultiplier(pattern,{spawns=[],patterns:history=[],time=0,
     lastEchoTime=-Infinity,phase='BUILD',zone=1,pressure=0,
@@ -122,6 +129,8 @@
       this.precisionStressRelief=0;
       this.rush={started:0,completed:0,interrupted:0,actions:0,longest:0};
       this.rushActiveActions=0;
+      this.escalation={attacks:0,floor:0,lastPeakFloor:0,restStarts:0,
+        nextAttackFloor:0,highestStage:0};
       this.movement.reset();
     }
     registerDamage({action=null}={}){
@@ -170,6 +179,19 @@
     }
     durationFor(phase,context){
       const zone=Math.max(1,context.zone||1);
+      // Escalation is run-wide and irreversible. After onboarding the arc
+      // is built around long attacks with genuinely brief recovery.
+      if(zone>=8){
+        const mastery=this.escalation.attacks;
+        switch(phase){
+          case PHASE.BUILD:return Math.max(1.05,2.50-.026*(zone-8)-.025*mastery);
+          case PHASE.PEAK:return Math.min(36,
+            12.2+.155*(zone-8)+.155*mastery);
+          case PHASE.FADE:return .35;
+          default:return Math.max(.60,1.12-.013*(zone-8))+
+            (this.time-this.lastDamageAt<3.0?.65:0);
+        }
+      }
       const pressure=this.actionPressureFor(context);
       switch(phase){
         // Confident veterans reach the action sooner; new players retain
@@ -200,14 +222,28 @@
     advance(context){
       const i=ORDER.indexOf(this.phase);
       this.phase=ORDER[(i+1)%ORDER.length];this.phaseElapsed=0;
+      if(this.phase===PHASE.PEAK){
+        this.escalation.attacks++;
+        this.escalation.floor=Math.max(this.escalation.floor,
+          escalationFloor(context.zone,this.escalation.attacks));
+        this.escalation.lastPeakFloor=this.escalation.floor;
+        this.escalation.highestStage=Math.max(this.escalation.highestStage,
+          this.escalation.floor);
+      }
       this.phaseDuration=this.durationFor(this.phase,context);
       if(this.phase===PHASE.FADE||this.phase===PHASE.RELAX){
         this.interruptRush();this.pending=[];
       }
       if(this.phase===PHASE.RELAX){
-        this.spawnCountdown=Math.max(this.spawnCountdown,this.phaseDuration+.65);
+        this.escalation.restStarts++;
+        this.escalation.nextAttackFloor=escalationFloor(
+          context.zone,this.escalation.attacks+1);
+        this.spawnCountdown=Math.max(this.spawnCountdown,
+          this.phaseDuration+(context.zone>=8?.12:.65));
       }else if(this.phase===PHASE.BUILD){
-        this.cycle++;this.spawnCountdown=Math.max(this.spawnCountdown,.48);
+        this.cycle++;
+        this.spawnCountdown=Math.max(this.spawnCountdown,
+          context.zone>=8?.10:.48);
       }
     }
     enduranceFor(context){return enduranceIntensity({
@@ -233,7 +269,8 @@
         actionPressure:action};
       // No long jump/energy-bridge families: surface challenges now live in terrain.
       const options=patterns.candidates(this.phase,context.zone||1,
-        this.tierFor(context),{allowEcho:false,
+        this.phase===PHASE.PEAK&&context.zone>=8?
+          Math.max(3,this.tierFor(context)):this.tierFor(context),{allowEcho:false,
           buildTier:endurance>=.32||(action>=.64&&this.stress<.32&&
             this.confidence>=.60&&context.hp>50)?2:1});
       // Only actual playable obstacle families participate in variety weighting.
@@ -244,8 +281,9 @@
             context.hp<=50||this.stress>=.42||this.confidence<.42||
             this.time-this.lastDashHazardAt<DASH_REPEAT_SECONDS)return false;
         }
-        // One in three PEAK cycles remains available for gap/echo-gap
-        // challenges; Rush Chains must never erase those core mechanics.
+        // One in three PEAK cycles remains reserved for gaps and double
+        // jumps. Unlike a health-based difficulty governor, all remaining
+        // PEAKs can host a Rush once timed recovery checks permit.
         if(p.rush&&(this.cycle%3===1||
           this.phaseDuration-this.phaseElapsed<9.1))return false;
         if(!this.movement.allowPattern(p,readiness,this.time))return false;
@@ -264,8 +302,18 @@
           lastEchoTime:this.movement.lastEchoTime,phase:this.phase,
           zone:context.zone,pressure:this.movement.pressure,
           endurance:clamp(endurance+action*.52,0,1)})}));
-      const chosen=patterns.chooseWeighted(weighted,this.random,this.previousPattern);
+      let chosen=patterns.chooseWeighted(weighted,this.random,this.previousPattern);
       if(!chosen)return null;
+      if(chosen.rush){
+        const remaining=this.phaseDuration-this.phaseElapsed;
+        const steps=patterns.composeRush(this.random,{
+          zone:context.zone,attack:this.escalation.attacks,
+          history:this.recentSpawns,style:chosen.id,
+          maxActions:Math.floor((remaining-.25)/.95)});
+        if(steps.length<8||violatesSimpleChain(steps,this.recentSpawns))
+          return null;
+        chosen={...chosen,steps};
+      }
       this.previousPattern=chosen.id;this.lastPatternId=chosen.id;
       this.patternHistory.push(chosen.id);
       if(this.patternHistory.length>25)this.patternHistory.shift();
@@ -281,6 +329,16 @@
       const actionReduction=this.actionPressureFor(context)*
         (this.phase===PHASE.PEAK?.13:this.phase===PHASE.BUILD?
           .23+.10*lateRamp(zone):.06);
+      // Permanent floor wins over HP-based softening. Injuries still get
+      // an explicit short recoveryUntil and phase break, but ordinary
+      // spacing resumes at the stronger stage reached before the hit.
+      if(zone>=8){
+        const permanent=Math.max(this.escalation.floor,
+          escalationFloor(zone,this.escalation.attacks));
+        return clamp(base-.12*permanent-
+          (this.phase===PHASE.PEAK?.20:.11)+
+          (this.random()-.5)*.10,.62,2.0);
+      }
       const hpBonus=context.hp<=25?.23:context.hp<=50?.10:0;
       const breath=Math.min(.35,this.movement.pressure*.075);
       return clamp(base-zoneReduction-masteryReduction-actionReduction+
@@ -291,6 +349,10 @@
       if(!(dt>0))return;
       this.lastZone=Math.max(1,context.zone||this.lastZone);
       this.lastHP=Number.isFinite(context.hp)?context.hp:this.lastHP;
+      this.escalation.floor=Math.max(this.escalation.floor,
+        escalationFloor(this.lastZone,this.escalation.attacks));
+      this.escalation.highestStage=Math.max(this.escalation.highestStage,
+        this.escalation.floor);
       this.time+=dt;this.phaseElapsed+=dt;
       this.movement.tick(dt);
       this.stress=Math.max(0,this.stress-dt*.024);
@@ -299,8 +361,8 @@
       // Never carry an unfinished Rush across damage, gravity transition,
       // or a vulnerable stretch. Already spawned hazards stay untouched.
       if(this.pending[0]?.rush&&
-        (this.phase!==PHASE.PEAK||context.gravityPending||context.hp<=50||
-          this.stress>=.48)){
+        (this.phase!==PHASE.PEAK||context.gravityPending||
+          this.time<this.movement.recoveryUntil)){
         this.interruptRush();this.pending=[];
         this.spawnCountdown=Math.max(this.spawnCountdown,.4);
       }
@@ -524,6 +586,10 @@
         lastAt:this.lastDashHazardAt,lastType:this.lastDashHazardType,
         repeats:this.dashHazardRepeats},
       movement:this.movement.insight,combo:{...this.comboInsight},
+      escalation:{...this.escalation,
+        floor:Number(this.escalation.floor.toFixed(3)),
+        nextAttackFloor:Number(escalationFloor(this.lastZone,
+          this.escalation.attacks+1).toFixed(3))},
       rush:{...this.rush,activeActions:this.rushActiveActions,
         pendingActions:this.pending.filter(step=>step.rush).length},
       variety:{recentActions:this.recentSpawns.slice(-12).map(e=>e.type),
@@ -542,6 +608,7 @@
   // Keep the legacy exported constructor name for tests/integrations.
   return {PHASE,DASH_REPEAT_SECONDS,MAX_SIMPLE_CHAIN,
     lateRamp,actionRamp,actionPressure,enduranceIntensity,enduranceDensity,
+    escalationFloor,
     violatesSimpleChain,varietyMultiplier,AdaptiveRushDirector,
     AdaptiveFlowDirector:AdaptiveRushDirector,minimumGap};
 });

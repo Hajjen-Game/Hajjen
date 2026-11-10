@@ -121,7 +121,7 @@ test('Elastic Canvas geometry has curved sides and fixed lower corners',()=>{
 test('reduced motion, Ceiling Run and asset versions do not affect gameplay',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
-  assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0|ACTION DENSITY 2\.0|RUSH CHAINS 3\.0)/);
+  assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0|ACTION DENSITY 2\.0|RUSH CHAINS 3\.0|ENDLESS ESCALATION 4\.0)/);
   assert.match(html,/player-motion\.js\?v=duck-effects-1\.0-movement-1\.0-dash-squash-stretch-2\.5/);
   assert.match(game,/window\.ChromaMotion\.elasticBodyPath/);
   assert.doesNotMatch(game,/ctx\.rotate\(|dashBodyPath|shape\.tilt/);

@@ -10,7 +10,9 @@
 })(typeof window!=='undefined'?window:null,function(){
   'use strict';
   const ORDER=['BUILD','PEAK','FADE','RELAX'];
-  const ESTIMATES={BUILD:6.0,PEAK:12.1,FADE:1.8,RELAX:1.8};
+  // Future-phase estimates match the short-breather, long-attack model.
+  const ESTIMATES={BUILD:1.8,PEAK:17.0,FADE:.35,RELAX:.85};
+  const EARLY_ESTIMATES={BUILD:6.6,PEAK:5.4,FADE:2.1,RELAX:2.5};
   const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 
   class UnifiedTerrainDirector{
@@ -33,23 +35,24 @@
     }
     // Landforms are generated ahead of the player. Forecast their ARRIVAL
     // phase so a chasm planned at the tail of PEAK does not land in RELAX.
-    projectedPhase(secondsAhead){
+    projectedPhase(secondsAhead,zone=1){
+      const estimates=zone>=8?ESTIMATES:EARLY_ESTIMATES;
       let phase=ORDER.includes(this.director.phase)?this.director.phase:'BUILD';
-      let remaining=Math.max(0,(this.director.phaseDuration||ESTIMATES[phase])-
+      let remaining=Math.max(0,(this.director.phaseDuration||estimates[phase])-
         (this.director.phaseElapsed||0));
       let ahead=clamp(Number(secondsAhead)||0,0,40);
       for(let i=0;i<15;i++){
         if(ahead<remaining)return {phase,remaining:remaining-ahead};
         ahead-=remaining;
         phase=ORDER[(ORDER.indexOf(phase)+1)%ORDER.length];
-        remaining=ESTIMATES[phase];
+        remaining=estimates[phase];
       }
       return {phase,remaining:0};
     }
     policyAt(start,{playerWorld=0,zone=1,speed=370,hp=100,surface=null}={}){
       const safeSpeed=Math.max(300,speed);
       const lead=Math.max(0,(start-playerWorld)/safeSpeed);
-      const future=this.projectedPhase(lead);
+      const future=this.projectedPhase(lead,zone);
       const stress=clamp(this.director.stress||0,0,1);
       const confidence=clamp(this.director.confidence||0,0,1);
       const vulnerable=hp<=25||stress>=.64;
@@ -75,11 +78,14 @@
       const peak=future.phase==='PEAK';
       // Reserve a long FLAT sequence before the rush arrives, not after
       // several queued obstacles have already been vetoed by hills/gaps.
-      // Only skilled, healthy runs get this: ordinary terrain continues
-      // during teaching, recovery, BUILD and later non-rush phases.
-      const rushRunway=zone>=8&&peak&&future.remaining>=2&&
-        hp>50&&stress<.38&&confidence>=.64&&
-        (this.director.cycle%3!==1)&&!dashLearningRunway;
+      // An ordinary Jump/Duck attack is never permanently disabled by
+      // HP or a confidence threshold. Only the brief damage window and
+      // mechanic/terrain transition safety may postpone it.
+      const recentlyHit=(this.director.time||0)-
+        (this.director.lastDamageAt??-999)<1.5;
+      const rushRunway=zone>=8&&peak&&future.remaining>=1.5&&
+        !recentlyHit&&(this.director.cycle%3!==1)&&
+        !dashLearningRunway;
       const permitGap=zone>=3 && !vulnerable && !dashLearningRunway &&
         start>=this.noGapsBefore &&
         (peak || (future.phase==='BUILD'&&zone>=5&&confidence>=.70));

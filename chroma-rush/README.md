@@ -1,8 +1,23 @@
-# CHROMA RUSH — Phase 3: Rush Chains 3.0
+# CHROMA RUSH — Endless Escalation Director 4.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Endless Escalation Director 4.0 — current design (2026-11-10)
+
+CHROMA RUSH is an **endless escalating reaction game**, not a 3–4-minute session target. The previous target has been retired: an elite runner can continue indefinitely, and escalating challenge (not an internal death clock) eventually defeats players.
+
+- **Procedural Streak Composer:** genuinely random Jump/Duck runs, including up to six successive Jumps *or* six successive Ducks. No preauthored 11-step alternating script; new sequences are composed each time from stochastic 1–6 action streaks.
+- **Escalating challenge floor:** permanent progression increases with every zone and PEAK attack. Recoveries temporarily protect the player but **cannot erase the already achieved attack difficulty**, even at low HP.
+- **Extended attacks and microbreathers:** after early training, the Director keeps sustained Rush windows while reducing FADE/RELAX to small breaks, then returns at a higher challenge floor. Regular and Echo Gaps remain possible between selected attack windows.
+- **Uncapped late acceleration:** the original speed curve is unchanged through 240s, then additional acceleration rises smoothly and remains positive indefinitely. Camera zoom and physics safety rules remain unchanged.
+- **Real safe terrain corridors:** the long flat sections scale with both speed and escalation rather than hitting the previous 36k-unit cutoff.
+- **Local audit:** directorExperience.escalation tracks the irreversible challenge floor, attack count and next attack; directorExperience.rush continues to count actual completed phrases.
+
+[Full design and regression strategy](docs/endless-escalation-director-4.0.md).
+
+*Sections below document historical passes and some now-superseded 3–4-minute tuning decisions. Endless Escalation 4.0 is the authoritative current direction.*
 
 ## Phase 3 — Rush Chains 3.0 · Continuous skill sections (2026-11-10)
 

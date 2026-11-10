@@ -206,5 +206,5 @@ test('actual gameplay loads shared size contract and audit exposes real dimensio
   assert.match(game,/window\.ChromaObstacleBalance/);
   assert.match(html,/obstacle-director-balance-3\.0/);
   const audit=require('../src/diagnostics/round-audit.js');
-  assert.equal(new audit.RoundAudit().snapshot().build,'phase-3-rush-chains-3.0');
+  assert.equal(new audit.RoundAudit().snapshot().build,'endless-escalation-director-4.0');
 });

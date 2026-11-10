@@ -138,12 +138,13 @@
       return true;
     }
     maxEffort({zone=1,hp=100,stress=0,confidence=0,phase='BUILD',
-      enduranceIntensity=0}={}){
+      enduranceIntensity=0,actionPressure=0}={}){
       let allowed=phase==='PEAK'?zone>=8?5.6:zone>=6?4.5:3.8:3.25;
       // High-mastery BUILD at late zones may use a real triple phrase;
       // physical recovery remains the final authority.
       if(phase==='BUILD'&&hp>50&&stress<.38&&confidence>=.55)
-        allowed+=.90*clamp(enduranceIntensity,0,1);
+        allowed+=.90*clamp(enduranceIntensity,0,1)+
+          .52*clamp(actionPressure,0,1);
       if(hp<=50||stress>=.38)allowed=Math.min(allowed,2.35);
       else if(confidence<.43)allowed=Math.min(allowed,3.25);
       // After a hard challenge, choose a simpler phrase to create a real

@@ -72,7 +72,7 @@ test('Mastery course fairness rejects unsafe physics timing and preserves recove
   }
   const corrupted={...plan,gaps:[{...plan.gaps[0],width:2000},...plan.gaps.slice(1)]};
   assert.equal(validatePlan(corrupted),false,'unsafe gap width must fail validation');
-  const jammed={...plan,obstacles:[plan.obstacles[0],{...plan.obstacles[1],time:5.8},...plan.obstacles.slice(2)]};
+  const jammed={...plan,obstacles:[plan.obstacles[0],{...plan.obstacles[1],time:plan.obstacles[0].time+.2},...plan.obstacles.slice(2)]};
   assert.equal(validatePlan(jammed),false,'clustered obstacles must fail validation');
 });
 
@@ -145,7 +145,7 @@ test('Trial is integrated into the existing UI/physics without changing Arcade d
   assert.match(html,/id="menu-trials"/);
   assert.match(html,/id="trial-start-btn"/);
   assert.match(html,/id="trial-result-stats"/);
-  assert.match(html,/src\/gameplay\/chroma-trials\.js\?v=chroma-trials-1\.0/);
+  assert.match(html,/src\/gameplay\/chroma-trials\.js\?v=chroma-trials-1\.1-mastery/);
   assert.ok(html.indexOf('src/gameplay/chroma-trials.js')<
     html.indexOf('src/gameplay/game.js'));
   assert.match(html,/chroma-trials-1\.0/);

@@ -109,3 +109,45 @@ test('seeded gameplay makes actual completed 9+ input chains at rapid but physic
   assert.ok(longest>=10,{longest});
   assert.ok(rapidIntervals>=35,{rapidIntervals});
 });
+
+test('real terrain veto + projected lane still produce completed Rush phrases on multiple seeds',()=>{
+  for(const seed of [7,23,184]){
+    const d=new AdaptiveRushDirector(rng(seed));
+    d.confidence=1;d.dashIntroduced.ground=true;
+    // This integration audit intentionally isolates the ordinary Jump/Duck
+    // sequence from rare Dash gates, which keep their own independent QA.
+    d.lastDashHazardAt=1e9;
+    const terrain=new TerrainSystem({random:rng(seed+909)});
+    const unified=new UnifiedTerrainDirector({terrain,director:d});
+    const dt=1/30;let distance=0;
+    const successes=[],failed=[];
+    for(let frame=0;frame<300*30;frame++){
+      const now=frame*dt,zone=Math.floor(now/12)+1;
+      const speed=GAME.speedAt(now,zone);
+      distance+=speed*dt;
+      const playerX=340,spawnX=playerX+speed*2.1;
+      unified.prepare({right:distance+spawnX+speed*2.1+400,
+        playerWorld:distance+playerX,zone,speed,hp:100,surface:'floor'});
+      unified.tick(dt,{zone,hp:100,speed,distance,playerX,
+        spawnXFor:()=>spawnX,zoneElapsed:now%12,
+        gravityPending:false,surface:'floor'},step=>{
+        const world=distance+spawnX;
+        if(!terrain.canSpawnObstacle(world,68,speed)){
+          if(step.rush)failed.push({time:now,pattern:step.pattern});
+          return false;
+        }
+        successes.push({time:now,pattern:step.pattern,rush:step.rush,
+          phase:d.phase,type:step.type});
+        d.registerClear({action:step.type});
+        return true;
+      });
+      terrain.prune(distance+playerX,speed);
+    }
+    assert.ok(d.rush.started>=2,{seed,rush:d.rush,
+      spawns:successes.length,failed:failed.length});
+    assert.ok(d.rush.completed>=1,{seed,rush:d.rush,
+      spawns:successes.length,failed:failed.length});
+    assert.ok(d.rush.actions>=10,{seed,rush:d.rush,
+      spawns:successes.length,failed:failed.length});
+  }
+});

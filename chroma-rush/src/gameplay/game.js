@@ -75,7 +75,9 @@
     hp:el('hp-inner'), hpNumber:el('hp-number'), shieldGain:el('shield-gain'), zone:el('zone-display'), phase:el('phase-display'),
     score:el('score-display'), speed:el('speed-display'), critical:el('danger-indicator'),
     zoneCallout:el('zone-callout'), zoneCalloutTag:el('zone-callout-tag'), zoneCalloutName:el('zone-callout-name'),
-    surgeIndicator:el('surge-indicator'),
+    surgeIndicator:el('surge-indicator'),surgeLabel:el('surge-label'),
+    surgeBonus:el('surge-bonus'),surgeMeter:el('surge-meter'),
+    surgeFill:el('surge-meter-fill'),
     sound:el('sound-btn'), audioHint:el('audio-hint'), finalScore:el('final-score'), finalZone:el('final-zone'), finalBest:el('final-best'),
     finalPerfect:el('final-perfect'), zonePerfect:el('zone-perfect'),
     flowNumber:el('flow-number'),flowBar:el('flow-inner'),flowOuter:el('flow-outer'),
@@ -792,9 +794,19 @@
       baseSpeed:GAME.baseSpeed,status,flow,combo});
     replayUI.hud($,{practice:runMode==='practice',score,previousScore:replay.previousScore});
     $.surgeIndicator.classList.toggle('hidden',!surge.active);
+    $.surgeIndicator.classList.toggle('surge-master',surge.active&&surge.chain>=4);
     if(surge.active){
-      $.surgeIndicator.textContent=surge.chain>0?
-        'SURGE · '+surge.chain+' CHAIN':'CHROMA SURGE';
+      // The time-to-react and earned score stay legible with ALL sound off.
+      // A compact meter directly below ZONE replaces the old tiny text-only
+      // notification; it never competes with the hazard lane or controls.
+      $.surgeLabel.textContent=surge.chain?
+        'SURGE ×'+surge.chain:'CHROMA SURGE';
+      $.surgeBonus.textContent=surge.points>0?'+'+surge.points:'';
+      const percent=Math.round(surge.progress*100);
+      $.surgeMeter.setAttribute('aria-valuenow',String(percent));
+      $.surgeFill.style.width=percent+'%';
+      $.surgeFill.style.background=
+        'linear-gradient(90deg,'+c2+','+c1+')';
     }
   }
   function startSurge(){
@@ -802,6 +814,7 @@
     runAudit.record('surge_start',auditState(),{
       zone:surge.zone,duration:window.ChromaSurge.WINDOW_SECONDS});
     sound('surge-start');
+    vib(9);
     if(!reducedMotion){
       // Existing geometric accent language; never a screen flash or new
       // obstacle marker in front of the wave.
@@ -820,7 +833,10 @@
       kind,chain:outcome.chain,bonusPoints:outcome.points,precision});
     // The musical accent celebrates the skill event; the soundtrack's
     // rhythmic Surge layer itself is scheduled on the existing beat grid.
-    if(outcome.chain===2||outcome.chain===4)sound('surge-clear');
+    if(outcome.chain===2||outcome.chain===4){
+      sound('surge-clear');
+      vib(outcome.chain===4?13:7);
+    }
   }
   function nextZone(reward=null){
     const incoming=window.ChromaConfig.paletteForZone(zone);
@@ -1679,6 +1695,12 @@
     surge.draw(ctx,{width:W,height:H,groundY:floorY,playerX:player.x,
       primary:c1,secondary:c2,quality:quality.profile,reducedMotion});
     ctx.save();camera.apply(ctx,player.x,floorY);
+    // The Surge afterimage belongs to the ACTUAL runner but sits strictly
+    // behind every obstacle, including at high camera zoom-out and ceilings.
+    const wakeBox=GEO.playerBox(player);
+    surge.drawRunner(ctx,{x:player.x,feet:player.feet,
+      bodyWidth:wakeBox.w,bodyHeight:wakeBox.h,primary:c1,secondary:c2,
+      quality:quality.profile,reducedMotion});
     // Trails stay under hazards so a high-speed afterimage never masks a jump or duck cue.
     speedTrails.draw(ctx,{quality:quality.profile,reducedMotion,
       dashPath:window.ChromaMotion.elasticBodyPath});

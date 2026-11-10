@@ -9,7 +9,7 @@ const src=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 
 test('Surge waits for the real palette crossing, not the early zone charge',()=>{
   const s=new ChromaSurge();
-  assert.equal(WINDOW_SECONDS,4.8);
+  assert.equal(WINDOW_SECONDS,7);
   assert.equal(s.onClear({kind:'jump'}),null);
   s.arm({zone:3});
   s.tick(.8);assert.equal(s.active,false);
@@ -31,7 +31,7 @@ test('real successful movement earns bounded Surge chains; decorative clears do 
   assert.equal(s.onClear({kind:'jump',protectedClear:true}),null);
 });
 
-test('hit resets only Surge streak and the 4.8s timer never advances when paused',()=>{
+test('hit resets only Surge streak and the seven-second window never advances when paused',()=>{
   const s=new ChromaSurge();s.arm({zone:5});s.activate();
   s.onClear({kind:'jump'});s.onClear({kind:'duck'});
   assert.equal(s.onHit(),true);assert.equal(s.chain,0);
@@ -91,12 +91,12 @@ test('audit reports local surge statistics and stays in v3 format',()=>{
   assert.equal(out.summary.surge.bonusPoints,260);
   assert.equal(out.summary.surge.breaks,1);
   assert.equal(out.summary.surge.bestChain,2);
-  assert.equal(out.build,'endless-escalation-director-4.0');
+  assert.equal(out.build,'phase-2-visual-signature-2.0');
 });
 
 test('actual game wires Surge to player-crossing and real clears only',()=>{
   const game=src('src/gameplay/game.js'),html=src('index.html');
-  assert.match(html,/chroma-surge\.js\?v=phase-2-chroma-surge-1\.0/);
+  assert.match(html,/chroma-surge\.js\?v=phase-2-chroma-surge-1\.0-visual-signature-2\.0/);
   assert.match(html,/id="surge-indicator"/);
   assert.match(game,/if\(incoming!==outgoing\)\{\s*surge\.arm\(\{zone\}\)/);
   assert.match(game,/if\(!animated\)startSurge\(\)/);

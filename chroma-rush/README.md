@@ -1,8 +1,18 @@
-# CHROMA RUSH — Endless Escalation Director 4.0
+# CHROMA RUSH — Phase 2: Visual Signature 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Phase 2 — Visual Signature 2.0 · Silent-first Chroma Surge (2026-11-10)
+
+Endless Escalation 4.0 remains the live Director. This follow-up **only changes the signature visual experience** after user feedback that Chroma Surge was barely noticeable without music.
+
+Chroma Surge now lasts **7 seconds** after the real color wave crosses the runner, while keeping the same proven actual-clear-only score formula and four-stage mastery. High-tier players see a more expressive, palette-colored **horizontal energy wake attached to the runner**; clears make it briefly brighten. The wake is rendered **behind hazards** and automatically follows the existing jump, duck and inverted-ceiling transforms. The center HUD displays a small **SURGE ×chain / +points / remaining-time meter** without adding a large competing panel or obstructing the course. Haptics respect existing settings. No soundtrack is required.
+
+This pass does **not** alter speed, Endless Escalation Director difficulty, terrain, hazard placement, HP, controls, camera, Gravity Shift or game physics. Rendering respects existing graphics tiers and reduced-motion preferences. Logs carry their own visual-signature-2.0 build identifier.
+
+[Design constraints and test plan](docs/visual-signature-2.0.md).
 
 ## Endless Escalation Director 4.0 — current design (2026-11-10)
 

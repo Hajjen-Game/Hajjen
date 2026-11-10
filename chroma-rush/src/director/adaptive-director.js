@@ -188,8 +188,9 @@
           // arrival runway + safe per-action cadence supply real density.
           const mastered=zone>=8&&context.hp>50&&this.stress<.38&&
             this.confidence>=.64;
-          return clamp(mastered?Math.max(standard,11.8+1.2*pressure):standard,
-            2.8,13.8);
+          return clamp(mastered?Math.max(standard,
+            11.8+1.2*pressure+.88*lateRamp(zone)):standard,
+            2.8,14.2);
         }
         case PHASE.FADE:return Math.max(1.5,2.1+this.stress*.45-.35*pressure);
         default:return Math.max(1.45,2.1+this.stress*1.15+

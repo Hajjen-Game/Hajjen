@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Action Density & Extended Peaks 2.0 + Adaptive Rush Director.
+/* CHROMA RUSH — Rush Chains 3.0 + Action Density 2.0 + Adaptive Rush Director.
  * Short authored motifs, player-friction awareness and four-phase pacing.
  * Uses seconds rather than raw pixels so existing actions remain physically feasible.
  * No ML, random difficulty spikes, online dependencies, or input manipulation.
@@ -120,6 +120,8 @@
       this.comboInsight={total:0,best:0,lastAt:-Infinity};
       this.precisionClears=0;
       this.precisionStressRelief=0;
+      this.rush={started:0,completed:0,interrupted:0,actions:0,longest:0};
+      this.rushActiveActions=0;
       this.movement.reset();
     }
     registerDamage({action=null}={}){
@@ -129,9 +131,21 @@
       this.confidence=clamp(this.confidence-.17,0,1);
       this.streak=0;
       // Existing in-flight obstacles remain. Only future motif steps are cancelled.
+      this.interruptRush();
       this.pending=[];
+      // End a skilled PEAK early on damage; do not punish a struggling
+      // player with the remaining extended challenge window.
+      if(this.phase===PHASE.PEAK)
+        this.phaseDuration=Math.min(this.phaseDuration,this.phaseElapsed+1.8);
       this.pendingBlockedSince=null;this.pendingBlockedType=null;
       this.spawnCountdown=Math.max(this.spawnCountdown,.65);
+    }
+    interruptRush(){
+      if(this.rushActiveActions>0){
+        this.rush.interrupted++;
+        this.rush.longest=Math.max(this.rush.longest,this.rushActiveActions);
+      }
+      this.rushActiveActions=0;
     }
     registerNearMiss(){
       // Reserve danger pressure for real threatening events, not for skill.
@@ -165,10 +179,18 @@
           .72*pressure-.20*lateRamp(zone)*pressure,5.0,8.7);
         // A true sustained PEAK: ~7-8s by the mid-game, with health/stress
         // still shortening extreme exposure after a hit.
-        case PHASE.PEAK:return clamp(
-          4.5+this.random()*1.4-zone*.035-this.stress*1.5+
-          1.40*this.enduranceFor(context)+3.05*pressure+
-          1.05*lateRamp(zone)*pressure,2.8,9.2);
+        case PHASE.PEAK:{
+          const standard=4.5+this.random()*1.4-zone*.035-this.stress*1.5+
+            1.40*this.enduranceFor(context)+3.05*pressure+
+            1.05*lateRamp(zone)*pressure;
+          // A 10–11-tap phrase needs a genuinely long *playable* window.
+          // Duration alone is insufficient: dedicated Rush motif + flat
+          // arrival runway + safe per-action cadence supply real density.
+          const mastered=zone>=8&&context.hp>50&&this.stress<.38&&
+            this.confidence>=.64;
+          return clamp(mastered?Math.max(standard,11.8+1.2*pressure):standard,
+            2.8,13.8);
+        }
         case PHASE.FADE:return Math.max(1.5,2.1+this.stress*.45-.35*pressure);
         default:return Math.max(1.45,2.1+this.stress*1.15+
           (context.hp<=25?.85:context.hp<=50?.3:0)-.52*pressure);
@@ -178,7 +200,9 @@
       const i=ORDER.indexOf(this.phase);
       this.phase=ORDER[(i+1)%ORDER.length];this.phaseElapsed=0;
       this.phaseDuration=this.durationFor(this.phase,context);
-      if(this.phase===PHASE.FADE||this.phase===PHASE.RELAX)this.pending=[];
+      if(this.phase===PHASE.FADE||this.phase===PHASE.RELAX){
+        this.interruptRush();this.pending=[];
+      }
       if(this.phase===PHASE.RELAX){
         this.spawnCountdown=Math.max(this.spawnCountdown,this.phaseDuration+.65);
       }else if(this.phase===PHASE.BUILD){
@@ -219,6 +243,7 @@
             context.hp<=50||this.stress>=.42||this.confidence<.42||
             this.time-this.lastDashHazardAt<DASH_REPEAT_SECONDS)return false;
         }
+        if(p.rush&&this.phaseDuration-this.phaseElapsed<9.1)return false;
         if(!this.movement.allowPattern(p,readiness,this.time))return false;
         // Never allow a full proposed motif to create a fourth identical
         // basic Jump or Duck. Special actions naturally break the chain.
@@ -267,6 +292,14 @@
       this.stress=Math.max(0,this.stress-dt*.024);
       // A single phase transition is sufficient with the gameplay fixed-step frame cap.
       if(this.phaseElapsed>=this.phaseDuration)this.advance(context);
+      // Never carry an unfinished Rush across damage, gravity transition,
+      // or a vulnerable stretch. Already spawned hazards stay untouched.
+      if(this.pending[0]?.rush&&
+        (this.phase!==PHASE.PEAK||context.gravityPending||context.hp<=50||
+          this.stress>=.48)){
+        this.interruptRush();this.pending=[];
+        this.spawnCountdown=Math.max(this.spawnCountdown,.4);
+      }
       this.spawnCountdown-=dt;
       // Double-jump is trained with terrain gaps, never a long raised rail.
       // The ceiling cycle starts in zone 8. A new mechanic MUST first
@@ -308,7 +341,8 @@
       if(!this.pending.length){
         const motif=this.selectPattern(context);
         if(!motif){this.spawnCountdown=.6;return;}
-        this.pending=motif.steps.map((type,index)=>({type,pattern:motif.id,step:index+1}));
+        this.pending=motif.steps.map((type,index)=>({type,pattern:motif.id,
+          step:index+1,rush:Boolean(motif.rush)}));
       }
       const next=this.pending[0];
       if(next.type==='dash-jump'||next.type==='dash-duck'){
@@ -383,6 +417,14 @@
           this.pendingBlockedType=next.type;
           this.pendingBlockedSince=this.time;
         }
+        // Missing runway or a nearby gap interrupts a Rush rather than
+        // repeatedly placing increasingly delayed obstacles in its wake.
+        if(next.rush&&this.time-this.pendingBlockedSince>=.65){
+          this.interruptRush();this.pending=[];
+          this.pendingBlockedSince=null;this.pendingBlockedType=null;
+          this.spawnCountdown=.28;
+          this.movement.deferredPatterns++;return;
+        }
         if(firstDash&&!next.guided&&next.type!=='echo'&&
            this.time-this.pendingBlockedSince>=1.5){
           this.pending=[];
@@ -415,6 +457,15 @@
       this.pendingBlockedSince=null;
       this.pendingBlockedType=null;
       this.pending.shift();
+      if(next.rush){
+        if(next.step===1){this.rush.started++;this.rushActiveActions=0;}
+        this.rush.actions++;this.rushActiveActions++;
+        if(!this.pending.length){
+          this.rush.completed++;
+          this.rush.longest=Math.max(this.rush.longest,this.rushActiveActions);
+          this.rushActiveActions=0;
+        }
+      }
       this.recentSpawns.push({type:next.type,time:this.time,pattern:next.pattern});
       if(this.recentSpawns.length>16)this.recentSpawns.shift();
       // Rejected patterns do not fill this memory or distort subsequent
@@ -439,8 +490,13 @@
       this.lastSpawnLead=nextLead;
       const following=this.pending[0]?.type||null;
       const safety=following?minimumGap(next.type,following,context.speed):0;
-      // Pattern gaps are physically checked; an authored motif cannot force an impossible combo.
-      this.spawnCountdown=Math.max(safety,this.gapFor(context));
+      // Rush follow-ups use the PHYSICAL action envelope itself as the
+      // cadence (about 0.74–0.96s at high speed), not the old >=0.72s
+      // arbitrary Director gap layered on top. All fairness vetoes win.
+      const rushFollowing=this.pending[0]?.rush&&this.phase===PHASE.PEAK;
+      this.spawnCountdown=rushFollowing?
+        Math.max(safety,.74+this.random()*.035):
+        Math.max(safety,this.gapFor(context));
       this.previousType=next.type;
     }
     noteDash(mode){this.movement.onDash(mode,this.time);}
@@ -464,6 +520,8 @@
         lastAt:this.lastDashHazardAt,lastType:this.lastDashHazardType,
         repeats:this.dashHazardRepeats},
       movement:this.movement.insight,combo:{...this.comboInsight},
+      rush:{...this.rush,activeActions:this.rushActiveActions,
+        pendingActions:this.pending.filter(step=>step.rush).length},
       variety:{recentActions:this.recentSpawns.slice(-12).map(e=>e.type),
         recentPatterns:this.successfulPatternHistory.slice(-8),
         rejected:this.varietyRejected,maxSimpleChain:MAX_SIMPLE_CHAIN},

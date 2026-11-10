@@ -70,6 +70,12 @@
         // A first long Duck Gate needs a flat approach on the floor.
         // The retired jump bridge no longer reserves these corridors.
         segment=this._append('flat',Math.max(2700,Math.min(3900,speed*3.2)));
+      }else if(policy?.rushRunway){
+        // A real 10+ input run needs a complete safe lane at current
+        // high speed. The game still independently checks EACH hurdle's
+        // actual runway and neighboring gap at spawn time.
+        segment=this._append('flat',Math.min(36000,
+          Math.max(6400,speed*(12.6+1.4*clamp(policy.actionPressure??0,0,1)))));
       }else if(policy?.challengeRunway){
         // Late mastered sections: occasional 3.0–3.6-second flat
         // lanes with physically valid runway for several obstacles.

@@ -302,7 +302,7 @@
           lastEchoTime:this.movement.lastEchoTime,phase:this.phase,
           zone:context.zone,pressure:this.movement.pressure,
           endurance:clamp(endurance+action*.52,0,1)})}));
-      const chosen=patterns.chooseWeighted(weighted,this.random,this.previousPattern);
+      let chosen=patterns.chooseWeighted(weighted,this.random,this.previousPattern);
       if(!chosen)return null;
       if(chosen.rush){
         const remaining=this.phaseDuration-this.phaseElapsed;

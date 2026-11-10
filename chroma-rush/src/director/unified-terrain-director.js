@@ -10,7 +10,7 @@
 })(typeof window!=='undefined'?window:null,function(){
   'use strict';
   const ORDER=['BUILD','PEAK','FADE','RELAX'];
-  const ESTIMATES={BUILD:7.1,PEAK:5.1,FADE:2.3,RELAX:2.7};
+  const ESTIMATES={BUILD:6.0,PEAK:7.6,FADE:1.8,RELAX:1.8};
   const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 
   class UnifiedTerrainDirector{
@@ -64,6 +64,7 @@
       // Late challenge runways ease terrain vetoes but retain hills/gaps.
       const endurance=this.director.enduranceFor?.({zone,hp})||0;
       const density=this.director.densityFor?.({zone,hp})||endurance;
+      const action=this.director.actionPressureFor?.({zone,hp})||0;
       // A controlled late basic-action runway is useful even at low HP.
       // It does NOT re-enable the Echo/Dash hazards or hazardous gaps:
       // those keep their independent HP and damage recovery vetoes.
@@ -80,9 +81,14 @@
       const gapChance=safeArrival?(peak?(gentle?.19:.42):.14):0;
       // Zone 2 remains a calm, flat section for basic jump and duck timing.
       const teachingBasics=zone===2;
+      // Denser *valid* hurdle corridors: keep terrain visually varied, but
+      // modestly reduce hills exactly where a sustained skill run is due.
+      // Real gap/landing/slope vetoes remain fully authoritative.
+      const actionFlat=1-(future.phase==='PEAK'?.31:
+        future.phase==='BUILD'?.21:.04)*action;
       const slopeChance=teachingBasics||dashLearningRunway?0:
         (({BUILD:.45,PEAK:.26,FADE:.22,RELAX:.10})[future.phase]||.2)*
-        (challengeRunway?1-.36*density:1);
+        (challengeRunway?1-.36*density:1)*actionFlat;
       const maxHeightChange=({BUILD:62,PEAK:58,FADE:38,RELAX:23})[future.phase]||40;
       // Double-jump mastery now comes from real chasms, not the retired
       // wide Echo Rail. First teach an ordinary gap, then introduce a broad
@@ -101,7 +107,7 @@
         echoGapChance:echoSafe?.44:0,
         echoGapSecondsMin:.92,echoGapSecondsMax:1.015,
         noGapBefore:this.noGapsBefore,dashLearningRunway,
-        challengeRunway,endurance,density};
+        challengeRunway,endurance,density,actionPressure:action};
       this.lastPolicy=policy;
       return policy;
     }

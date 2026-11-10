@@ -202,7 +202,8 @@
       const endurance=this.enduranceFor(context);
       const action=this.actionPressureFor(context);
       const readiness={...context,phase:this.phase,stress:this.stress,
-        confidence:this.confidence,enduranceIntensity:endurance};
+        confidence:this.confidence,enduranceIntensity:endurance,
+        actionPressure:action};
       // No long jump/energy-bridge families: surface challenges now live in terrain.
       const options=patterns.candidates(this.phase,context.zone||1,
         this.tierFor(context),{allowEcho:false,

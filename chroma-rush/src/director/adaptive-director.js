@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Adaptive Rush Director 2.3 + Experience-Aware Precision & Dash Opportunity Queue & Ground-first Intro 2.0.
+/* CHROMA RUSH — Action Density & Extended Peaks 2.0 + Adaptive Rush Director.
  * Short authored motifs, player-friction awareness and four-phase pacing.
  * Uses seconds rather than raw pixels so existing actions remain physically feasible.
  * No ML, random difficulty spikes, online dependencies, or input manipulation.
@@ -24,6 +24,16 @@
   // Endurance Mastery 4.0 — zone creates a soft opportunity to play more
   // complex, denser phrases; current health/stress/confidence decide HOW MUCH.
   // Never increases movement speed, overrides hit safety or mandates Dash.
+  // Action Density 2.0 ramps from zone 6 to 19, rather than waiting for
+  // the very late Endurance Mastery curve (which starts only after zone 24).
+  // It never changes velocity, colliders or the physical minimum action gap.
+  const actionRamp=zone=>clamp((Math.max(1,zone)-6)/13,0,1);
+  function actionPressure({zone=1,hp=100,stress=0,confidence=0}={}){
+    const readiness=.58+.42*clamp((confidence-.38)/.42,0,1);
+    const shield=hp<=25?.72:hp<=50?.83:hp<=75?.92:1;
+    const strain=stress>=.65?.70:stress>=.40?.86:1;
+    return actionRamp(zone)*readiness*shield*strain;
+  }
   const lateRamp=zone=>{
     const t=clamp((Math.max(1,zone)-24)/26,0,1);
     return t*t*(3-2*t);
@@ -146,13 +156,22 @@
     }
     durationFor(phase,context){
       const zone=Math.max(1,context.zone||1);
+      const pressure=this.actionPressureFor(context);
       switch(phase){
-        case PHASE.BUILD:return clamp(6.4+this.random()*1.6-zone*.04+this.stress*.8,5.4,8.7);
+        // Confident veterans reach the action sooner; new players retain
+        // the same gentle zone-1 tutorial and recovery safety.
+        case PHASE.BUILD:return clamp(
+          6.4+this.random()*1.6-zone*.04+this.stress*.8-
+          .72*pressure-.20*lateRamp(zone)*pressure,5.0,8.7);
+        // A true sustained PEAK: ~7-8s by the mid-game, with health/stress
+        // still shortening extreme exposure after a hit.
         case PHASE.PEAK:return clamp(
           4.5+this.random()*1.4-zone*.035-this.stress*1.5+
-          1.40*this.enduranceFor(context),2.8,6.8);
-        case PHASE.FADE:return 2.1+this.stress*.45;
-        default:return 2.1+this.stress*1.15+(context.hp<=25?.85:context.hp<=50?.3:0);
+          1.40*this.enduranceFor(context)+3.05*pressure+
+          1.05*lateRamp(zone)*pressure,2.8,9.2);
+        case PHASE.FADE:return Math.max(1.5,2.1+this.stress*.45-.35*pressure);
+        default:return Math.max(1.45,2.1+this.stress*1.15+
+          (context.hp<=25?.85:context.hp<=50?.3:0)-.52*pressure);
       }
     }
     advance(context){
@@ -170,6 +189,8 @@
       ...context,stress:this.stress,confidence:this.confidence});}
     densityFor(context){return enduranceDensity({
       ...context,stress:this.stress,confidence:this.confidence});}
+    actionPressureFor(context){return actionPressure({
+      ...context,stress:this.stress,confidence:this.confidence});}
     tierFor(context){
       const zone=Math.max(1,context.zone||1);
       let tier=zone>=6?3:zone>=3?2:1;
@@ -181,11 +202,15 @@
     }
     selectPattern(context){
       const endurance=this.enduranceFor(context);
+      const action=this.actionPressureFor(context);
       const readiness={...context,phase:this.phase,stress:this.stress,
-        confidence:this.confidence,enduranceIntensity:endurance};
+        confidence:this.confidence,enduranceIntensity:endurance,
+        actionPressure:action};
       // No long jump/energy-bridge families: surface challenges now live in terrain.
       const options=patterns.candidates(this.phase,context.zone||1,
-        this.tierFor(context),{allowEcho:false,buildTier:endurance>=.32?2:1});
+        this.tierFor(context),{allowEcho:false,
+          buildTier:endurance>=.32||(action>=.64&&this.stress<.32&&
+            this.confidence>=.60&&context.hp>50)?2:1});
       // Only actual playable obstacle families participate in variety weighting.
       const safe=options.filter(p=>{
         const type=p.steps[0];
@@ -209,7 +234,7 @@
           patterns:this.successfulPatternHistory,time:this.time,
           lastEchoTime:this.movement.lastEchoTime,phase:this.phase,
           zone:context.zone,pressure:this.movement.pressure,
-          endurance})}));
+          endurance:clamp(endurance+action*.52,0,1)})}));
       const chosen=patterns.chooseWeighted(weighted,this.random,this.previousPattern);
       if(!chosen)return null;
       this.previousPattern=chosen.id;this.lastPatternId=chosen.id;
@@ -224,11 +249,14 @@
       // The old curve stopped increasing difficulty around zone 7.
       // Late density grows only after zone 24, with health-based relief.
       const masteryReduction=.29*this.densityFor(context);
+      const actionReduction=this.actionPressureFor(context)*
+        (this.phase===PHASE.PEAK?.13:this.phase===PHASE.BUILD?
+          .23+.10*lateRamp(zone):.06);
       const hpBonus=context.hp<=25?.23:context.hp<=50?.10:0;
       const breath=Math.min(.35,this.movement.pressure*.075);
-      return clamp(base-zoneReduction-masteryReduction+
+      return clamp(base-zoneReduction-masteryReduction-actionReduction+
         this.stress*.28+hpBonus+breath+
-        (this.random()-.5)*.17,.78,2.4);
+        (this.random()-.5)*.17,.72,2.4);
     }
     tick(dt,context,spawn){
       if(!(dt>0))return;
@@ -439,6 +467,9 @@
       variety:{recentActions:this.recentSpawns.slice(-12).map(e=>e.type),
         recentPatterns:this.successfulPatternHistory.slice(-8),
         rejected:this.varietyRejected,maxSimpleChain:MAX_SIMPLE_CHAIN},
+      actionDensity:{pressure:Number(this.actionPressureFor({
+        zone:this.lastZone,hp:this.lastHP}).toFixed(3)),
+        ramp:Number(actionRamp(this.lastZone).toFixed(3))},
       endurance:{intensity:Number(this.enduranceFor({
         zone:this.lastZone,hp:this.lastHP}).toFixed(3)),
         density:Number(this.densityFor({
@@ -448,7 +479,7 @@
   }
   // Keep the legacy exported constructor name for tests/integrations.
   return {PHASE,DASH_REPEAT_SECONDS,MAX_SIMPLE_CHAIN,
-    lateRamp,enduranceIntensity,enduranceDensity,
+    lateRamp,actionRamp,actionPressure,enduranceIntensity,enduranceDensity,
     violatesSimpleChain,varietyMultiplier,AdaptiveRushDirector,
     AdaptiveFlowDirector:AdaptiveRushDirector,minimumGap};
 });

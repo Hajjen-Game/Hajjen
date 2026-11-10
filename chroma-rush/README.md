@@ -1,8 +1,16 @@
-# CHROMA RUSH — Phase 2: Chroma Surge 1.0 (Signature Experience)
+# CHROMA RUSH — Phase 2: Action Density & Extended Peaks 2.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Phase 2 — Action Density & Extended Peaks 2.0 · Real-play correction
+
+A real 6:54 / zone-35 run contained 183 spawned obstacles (26.5 per minute) and 24 perfect zones. **Only 27.7% of gameplay occurred in PEAK**, despite the player's request for sustained, denser action. New Chroma Surge effects and original music were not enough to alter the player's perceived challenge; difficulty must be grounded in gameplay, even with sound muted.
+
+The Action Pressure Director now gradually increases basic Jump/Duck rhythm from zone **6–19**, instead of relying only on the old post-zone-24 endurance curve. Healthy players experience longer sustained intense sections, shorter midgame downtime, and more opportunities for varied action phrases. The terrain planner leaves more usable flat lanes during peaks while retaining slopes, gaps, double-jump terrain, gravity-shift breathing windows, and the original minimum safe physical spacing. Low shield or high stress still provides protective recovery.
+
+The existing 3–4 minute *target*, actual speed curve, Adaptive Camera zoom, movement physics, sound and all visuals are unchanged. The exported round log now exposes `directorExperience.actionDensity`. [Full zone-35 audit and safety plan](docs/action-density-extended-peaks-2.0.md).
 
 ## Phase 2 — Chroma Surge 1.0 · Signature Experience
 

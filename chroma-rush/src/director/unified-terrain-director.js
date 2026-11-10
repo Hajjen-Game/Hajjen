@@ -79,7 +79,7 @@
       // during teaching, recovery, BUILD and later non-rush phases.
       const rushRunway=zone>=8&&peak&&future.remaining>=2&&
         hp>50&&stress<.38&&confidence>=.64&&
-        !dashLearningRunway;
+        (this.director.cycle%3!==1)&&!dashLearningRunway;
       const permitGap=zone>=3 && !vulnerable && !dashLearningRunway &&
         start>=this.noGapsBefore &&
         (peak || (future.phase==='BUILD'&&zone>=5&&confidence>=.70));

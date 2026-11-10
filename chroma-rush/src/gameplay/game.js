@@ -1377,22 +1377,21 @@
       worldLighting.shellGradient(ctx,color,y,h,frameLighting):rgba(color,fallback);
     ctx.save();
     if(o.type==='jump'){
-      // Single-Piece Jump 2.0: one grounded neon slab matching the full
-      // existing collider. NO stacked cap, lower box, curtain or energy ribs.
-      ctx.globalAlpha=1;
+      // Jump Gate Core Parity 3.0: the SAME luminous housing as Duck,
+      // floor mounted. Only its four engraved stripes rotate horizontally.
+      // No separate lower panel, energy curtain or extra collision field.
+      ctx.globalAlpha=twinkle;
       ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
       roundRectPath(b.x,b.y,b.w,b.h,4);
-      ctx.fillStyle='#123545';ctx.fill();
-      ctx.globalAlpha=twinkle;
-      ctx.fillStyle=shell(b.y,b.h,.34);ctx.fill();
-      ctx.globalAlpha=1;ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
-      ctx.shadowBlur=0;
-      // Same neon language: one bright top, two restrained engravings.
-      // Crucially NO separate panel or line under a raised cap.
+      ctx.fillStyle=shell(b.y,b.h,.30);ctx.fill();
+      ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
+      ctx.shadowBlur=0;ctx.globalAlpha=1;
+      ctx.fillStyle=rgba(color,material?.inset??.18);
+      roundRectPath(b.x+6,b.y+8,b.w-12,b.h-15,2);ctx.fill();
       glowLine(b.x-7,b.y,b.x+b.w+7,b.y,color,5,14,1);
-      for(let k=0;k<2;k++){
-        const y=b.y+Math.min(b.h*.30,12)+k*6;
-        glowLine(b.x+8,y,b.x+b.w-8,y,color,1,0,.36);
+      for(let k=0;k<4;k++){
+        const y=b.y+10+k*(b.h-20)/3;
+        glowLine(b.x+12,y,b.x+b.w-12,y,color,1,0,.36);
       }
       glowLine(b.x,b.y,b.x+b.w,b.y,'#ffffff',1,8,.45);
     }else if(isEcho||isLow){

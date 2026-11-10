@@ -71,8 +71,7 @@ test('short Jump inherits Duck Gate visual grammar with unchanged collider',()=>
   assert.ok(jump.events.some(e=>e[0]==='roundRectPath'),
     'Jump uses the same soft-corner beam housing as Duck');
   assert.ok(duck.events.some(e=>e[0]==='roundRectPath'));
-  // The former energy curtain is replaced by an opaque full-height block.
-  // Its physical extent stays identical; no invisible area is left below.
+  // Only the glowing Duck-style core is mirrored, with horizontal engraving.
   assert.equal(jump.events.filter(e=>e[0]==='fillRect').length,0,
     'Jump has no old translucent rectangular energy field');
   assert.ok(jump.events.some(e=>e[0]==='roundRectPath'&&
@@ -86,20 +85,35 @@ test('short Jump inherits Duck Gate visual grammar with unchanged collider',()=>
 });
 
 
-test('Jump 2.0 is a single slab with no secondary underbody and original collider',()=>{
+test('Jump Gate Core Parity 3.0 copies Duck housing and rotates interior stripes',()=>{
   const jump=renderObstacle('jump'),duck=renderObstacle('duck'),b=jump.box;
-  assert.equal(jump.events.filter(e=>e[0]==='fillRect').length,0,
-    'no rectangular energy field or dark lower inset');
-  const shapes=jump.events.filter(e=>e[0]==='roundRectPath');
-  assert.equal(shapes.length,1,'single exterior rather than two stacked bodies');
-  assert.deepEqual(shapes[0],['roundRectPath',b.x,b.y,b.w,b.h,4]);
   const branch=sourceCode.split("if(o.type==='jump'){")[1].split('}else if(isEcho||isLow){')[0];
-  assert.doesNotMatch(branch,/const cap=|energyTop|Recessed lower|strands|ctx\.fillRect/);
-  assert.match(branch,/shell\(b\.y,b\.h,\.34\)/);
-  assert.match(branch,/ctx\.fillStyle='#123545';ctx\.fill\(\)/);
-  assert.equal(jump.lines.length,4,'existing top-line and engravings survive');
-  assert.ok(jump.lines.every(l=>l.y1===l.y2),'no vertical underbody rails');
-  assert.ok(duck.events.some(e=>e[0]==='fillRect'),'Duck gate remains unchanged');
+  // Same solid main shell AND inside recess as Duck, with no lower sub-box.
+  assert.match(branch,/roundRectPath\(b\.x,b\.y,b\.w,b\.h,4\)/);
+  assert.match(branch,/roundRectPath\(b\.x\+6,b\.y\+8,b\.w-12,b\.h-15,2\)/);
+  assert.match(branch,/shell\(b\.y,b\.h,\.30\)/);
+  assert.match(branch,/material\?\.inset\?\?\.18/);
+  assert.match(branch,/material\?\.bloom\?\?21\*quality\.profile\.glow/);
+  assert.match(branch,/ctx\.lineWidth=3;ctx\.strokeStyle=color;ctx\.stroke\(\)/);
+  const jumpShapes=jump.events.filter(e=>e[0]==='roundRectPath');
+  assert.deepEqual(jumpShapes,[
+    ['roundRectPath',b.x,b.y,b.w,b.h,4],
+    ['roundRectPath',b.x+6,b.y+8,b.w-12,b.h-15,2]
+  ],'one main Duck-style shell and ONE inset; no lower piece');
+  assert.equal(jump.events.filter(e=>e[0]==='fillRect').length,0,
+    'no energy curtain, dark lower box or rectangular underbody');
+  assert.doesNotMatch(branch,/energyTop|const cap=|strands|fillRect/);
+  const stripes=jump.lines.filter(x=>x.width===1&&x.alpha===.36);
+  const duckStripes=duck.lines.filter(x=>x.width===1&&x.alpha===.36);
+  assert.equal(stripes.length,4);
+  assert.equal(duckStripes.length,4);
+  assert.ok(stripes.every(x=>x.x1<x.x2&&x.y1===x.y2),
+    'Jump interior: four HORIZONTAL lines');
+  assert.ok(duckStripes.every(x=>x.x1===x.x2&&x.y1<x.y2),
+    'Duck interior: four VERTICAL lines');
+  assert.equal(jump.lines.length,6);
+  assert.ok(jump.lines.some(x=>x.width===5&&x.y1===b.y&&x.y2===b.y),
+    'Jump light rail on top, mirroring the underside of Duck');
   assert.deepEqual(GEO.obstacleBox(jump.obstacle,515),b);
 });
 test('opening DASH READY banner is removed without disabling Dash tutorial',()=>{

@@ -348,7 +348,7 @@
         reaction:{...this.summary.reaction,byAction:Object.fromEntries(
           Object.entries(this.summary.reaction.byAction).map(([k,v])=>[k,{...v}]))}};
       return {format:'chroma-rush-round-audit',version:3,mode:this.mode,
-        build:'phase-3-rush-chains-3.0',
+        build:'endless-escalation-director-4.0',
         startingZone:this.startingZone,durationSeconds:duration,summary:sum,
         finalState:this.finalState||snap(context),events:this.events.map(e=>({...e})),
         samples:this.samples.map(s=>({...s})),truncatedEvents:this.overflow,

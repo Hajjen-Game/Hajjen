@@ -62,6 +62,13 @@ test('long PEAK flat lanes truly permit many independent fair obstacles, while o
       'each rapid action has independent physical takeoff and landing clearance');
   }
   assert.equal(u.policyAt(ctx.playerWorld+1550,{...ctx,hp:20}).rushRunway,false);
+  // Every third PEAK protects ordinary and double-jump gap variety.
+  d.cycle=1;u.gapSuccesses=1;
+  const gapPeak=u.policyAt(ctx.playerWorld+1550,ctx);
+  assert.equal(gapPeak.rushRunway,false);
+  assert.ok(gapPeak.gapChance>0);
+  assert.ok(gapPeak.echoGapChance>0);
+  d.cycle=0;
   d.phase=PHASE.BUILD;d.phaseDuration=6;d.phaseElapsed=0;
   assert.equal(u.policyAt(ctx.playerWorld+1550,ctx).rushRunway,false);
 });

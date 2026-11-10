@@ -74,8 +74,13 @@
         // A real 10+ input run needs a complete safe lane at current
         // high speed. The game still independently checks EACH hurdle's
         // actual runway and neighboring gap at spawn time.
-        segment=this._append('flat',Math.min(36000,
-          Math.max(6400,speed*(12.6+1.4*clamp(policy.actionPressure??0,0,1)))));
+        // World-distance lane length must scale with increasing speed and
+        // attack duration. The former 36,000u cap eventually shortened
+        // every Rush into an unplaceable, high-speed partial phrase.
+        const rushSeconds=Math.min(36,
+          14.5+Math.max(0,zone-8)*.16);
+        segment=this._append('flat',Math.min(250000,
+          Math.max(6400,speed*rushSeconds)));
       }else if(policy?.challengeRunway){
         // Late mastered sections: occasional 3.0–3.6-second flat
         // lanes with physically valid runway for several obstacles.

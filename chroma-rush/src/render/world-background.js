@@ -15,9 +15,11 @@
     return 'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+clamp(alpha,0,1)+')';
   };
   const wrap=(value,length)=>(value%length+length)%length;
-  function drawBackground({ctx,width:W,height:H,time:t=0,speed=370,primary:c1,secondary:c2,shadow:c3,flow=0,glowLine,quality={density:1},tide=null}){
+  function drawBackground({ctx,width:W,height:H,time:t=0,speed=370,primary:c1,secondary:c2,shadow:c3,flow=0,lighting=0,glowLine,quality={density:1},tide=null}){
     if(!ctx||!(W>0)||!(H>0))return;
     const flowCharge=clamp(flow,0,100)/100;
+    const ambientGlow=clamp(quality.glow??1,.15,1);
+    const illuminate=clamp(lighting,0,1)*ambientGlow;
     // One original background draw per frame, even DURING zone transition.
     // Far scenery samples the spatial tide in place, not an old/new double
     // paint. No architecture or parallax layout changes.
@@ -42,14 +44,17 @@
       sky.addColorStop(.70,rgba(shadow,.82));
       sky.addColorStop(1,rgba(shadow,.60));
       ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
-      const glow=ctx.createRadialGradient(W*.62,H*.49,20,W*.62,H*.56,Math.max(W*.62,H*.78));
-      glow.addColorStop(0,rgba(primary,.13+flowCharge*.11));
-      glow.addColorStop(.52,rgba(secondary,.055));
+      // Large, diffuse colored illumination behind the ACTUAL runner lane
+      // replaces fake speed lines. It belongs to the existing sky paint,
+      // and the unchanged palette wave clips it in precisely the same way.
+      const glow=ctx.createRadialGradient(W*.33,H*.51,0,W*.33,H*.53,Math.max(W*.55,H*.83));
+      glow.addColorStop(0,rgba(primary,(.20+flowCharge*.075+illuminate*.075)*ambientGlow));
+      glow.addColorStop(.42,rgba(secondary,(.10+illuminate*.042)*ambientGlow));
       glow.addColorStop(1,rgba(primary,0));
       ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
-      const lower=ctx.createRadialGradient(W*.64,H*.84,16,W*.64,H*.84,Math.max(W*.72,H*.93));
-      lower.addColorStop(0,rgba(primary,.16+flowCharge*.028));
-      lower.addColorStop(.60,rgba(secondary,.069));
+      const lower=ctx.createRadialGradient(W*.72,H*.83,0,W*.72,H*.83,Math.max(W*.72,H*.88));
+      lower.addColorStop(0,rgba(secondary,(.18+illuminate*.055)*ambientGlow));
+      lower.addColorStop(.56,rgba(primary,(.09+flowCharge*.025)*ambientGlow));
       lower.addColorStop(1,rgba(primary,0));
       ctx.fillStyle=lower;ctx.fillRect(0,0,W,H);
     };

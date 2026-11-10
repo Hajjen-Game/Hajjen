@@ -12,7 +12,7 @@
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
   const DEFAULT=Object.freeze({
     firstZone:2,firstTime:16,restore:25,maxShield:100,spawnAtOrBelow:75,
-    rise:268,radius:12,magnetDistance:35,magnetPull:9,
+    rise:252,radius:12,magnetDistance:35,magnetPull:9,
     visibleLeadSeconds:1.65,minCooldown:25,maxCooldown:35
   });
   const R=RULES||DEFAULT;
@@ -20,6 +20,14 @@
   const distToRect=(x,y,box)=>{
     const dx=x-clamp(x,box.x,box.x+box.w);
     const dy=y-clamp(y,box.y,box.y+box.h);
+    return Math.hypot(dx,dy);
+  };
+  // Sweep the gem's horizontal travel between fixed-step updates. Otherwise
+  // high-speed play can tunnel past a correctly timed Echo Jump pickup.
+  const sweptDistToRect=(fromX,toX,y,box)=>{
+    const lo=Math.min(fromX,toX),hi=Math.max(fromX,toX);
+    const dx=Math.max(0,box.x-hi,lo-(box.x+box.w));
+    const dy=Math.max(0,box.y-y,y-(box.y+box.h));
     return Math.hypot(dx,dy);
   };
   class ShieldCoreSystem{
@@ -64,7 +72,7 @@
     }
     tick(dt,{time=0,zone=1,hp=100,playerWorld=0,playerBox=null,
       echoUsed=false,landed=true,terrain=null,hurdles=[],speed=370,
-      distance=0,playerX=300,viewportWidth=1280,gravityBusy=false,
+      distance=0,playerX=300,viewportWidth=1280,viewportLeft=0,gravityBusy=false,
       playerFeet=0}={}){
       const events={spawned:null,picked:null,missed:null};
       if(!(dt>0))return events;
@@ -77,7 +85,10 @@
         if(hp>=this.rules.maxShield){
           // Don't leave a worthless crystal on screen after Perfect Zone.
           this.active=null;
-        }else if(playerWorld>core.worldX+Math.max(80,speed*.2)){
+        }else if(core.worldX+this.rules.radius<distance+viewportLeft-18){
+          // Miss only AFTER the crystal has left the camera's actual left edge.
+          // A player-distance threshold removed still-visible pickups,
+          // especially when Adaptive Camera zooms the course out.
           this.active=null;this.missed++;events.missed={worldX:core.worldX};
         }else{
           core.age+=dt;
@@ -86,6 +97,7 @@
           // Physics are based on its displayed location with <=9px pull.
           // A first jump never activates either magnetic movement or pickup.
           let x=core.worldX-distance,y=core.y;
+          const previousX=Number.isFinite(core.x)?core.x:x;
           if(box&&echoUsed&&!landed){
             const distanceToPlayer=distToRect(x,y,box);
             const n=clamp((this.rules.magnetDistance-distanceToPlayer)/
@@ -98,7 +110,8 @@
               y+=((midY-y)/length)*pull;
             }
             // Real rectangle-to-circle overlap, not a proximity-only reward.
-            if(distToRect(x,y,box)<=this.rules.radius){
+            if(Math.min(distToRect(x,y,box),
+              sweptDistToRect(previousX,x,y,box))<=this.rules.radius){
               const restored=Math.min(this.rules.restore,
                 Math.max(0,this.rules.maxShield-hp));
               this.active=null;
@@ -141,5 +154,5 @@
     snapshot(){return {active:this.active?{worldX:this.active.worldX,y:this.active.y}:null,
       nextAt:this.nextAt,spawnCount:this.spawnCount,picked:this.picked,missed:this.missed};}
   }
-  return {ShieldCoreSystem,distToRect,DEFAULT};
+  return {ShieldCoreSystem,distToRect,sweptDistToRect,DEFAULT};
 });

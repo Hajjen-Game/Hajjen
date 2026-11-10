@@ -11,21 +11,29 @@ const P=require('../src/director/patterns.js');
 const root=path.join(__dirname,'..');
 const speed=z=>GAME.speedAt((z-1)*GAME.zoneSeconds,z);
 
-test('speed-aware standard obstacles preserve readability with chunkier Jump and safe late zoom',()=>{
-  assert.deepEqual(B.widthRangeFor('jump',{speed:370}),{min:50,max:66});
+test('Jump and Duck share the same width growth profile at every speed',()=>{
+  assert.deepEqual(B.widthRangeFor('jump',{speed:370}),{min:54,max:71});
   assert.deepEqual(B.widthRangeFor('duck',{speed:370}),{min:54,max:71});
   for(const type of ['jump','duck','echo']){
     const a=B.widthRangeFor(type,{speed:370});
     const b=B.widthRangeFor(type,{speed:2200});
     assert.ok(b.min>=a.min&&b.max>a.max,{type,a,b});
+    if(type==='jump')assert.deepEqual(a,B.widthRangeFor('duck',{speed:370}));
     for(const z of [1,2,3,5,7,10,15,20,25,30,40,50]){
       const v=speed(z),x=B.widthRangeFor(type,{speed:v});
       assert.ok(x.min>0&&x.max>x.min,{type,z,x});
       assert.ok(Number.isFinite(B.widthFor(type,{speed:v,random:()=>.4})));
       if(type==='jump'){
-        assert.ok(x.max<=113,'standard Jump stays distinct from long Dash geometry');
-        assert.ok(B.traverseSeconds('jump',{speed:v,width:x.max})<.30,
-          'chunkier Jump remains a normal single-jump obstacle');
+        assert.deepEqual(x,B.widthRangeFor('duck',{speed:v}),
+          'Jump and Duck must grow identically, including at late zoom');
+        assert.ok(x.max<=221,'standard Jump stays within normal Duck width');
+        // A standard jump clears the full obstacle within the airtime
+        // when the player's feet are safely above the tallest Jump.
+        const h=B.heightRangeFor('jump').max;
+        const clearanceSeconds=2*Math.sqrt(GAME.jumpVelocity**2-
+          2*GAME.gravity*h)/GAME.gravity;
+        assert.ok(B.traverseSeconds('jump',{speed:v,width:x.max})<clearanceSeconds,
+          'standard Jump remains clearable without Echo/Dash');
       }
       if(type==='duck'){
         assert.ok(x.max<=221);

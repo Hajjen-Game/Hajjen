@@ -2,7 +2,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const {GAME,SHIELD_CORE,JUMP_FEEL}=require('../src/core/config.js');
-const {ShieldCoreSystem,distToRect}=require('../src/gameplay/shield-core.js');
+const {ShieldCoreSystem,distToRect,sweptDistToRect}=require('../src/gameplay/shield-core.js');
 const {drawCore,drawTransfer}=require('../src/render/shield-core-renderer.js');
 const {RoundAudit}=require('../src/diagnostics/round-audit.js');
 const {ReactiveAudioSystem}=require('../src/audio/reactive-audio.js');
@@ -23,7 +23,7 @@ test('Shield Core opportunity starts only from zone 2 and below 75 shield',()=>{
   assert.equal(SHIELD_CORE.firstZone,2);
   assert.equal(SHIELD_CORE.restore,25);
   assert.equal(SHIELD_CORE.maxShield,100);
-  assert.equal(SHIELD_CORE.rise,268);
+  assert.equal(SHIELD_CORE.rise,252);
   assert.equal(GAME.damagePerHit,25);
   const m=new ShieldCoreSystem();
   assert.equal(m.tick(1/60,context({time:11,zone:1})).spawned,null);
@@ -95,7 +95,14 @@ test('Active Shield Core blocks NEW hurdles, but never changes a seeded Director
   assert.equal(m.blocksHazard(at+1050,45,410),false);
   const source=fs.readFileSync(path.join(root,'src/gameplay/shield-core.js'),'utf8');
   assert.doesNotMatch(source,/Math\.random\(|director\.tick|director\.register/);
-  m.tick(1/60,context({time:19,playerWorld:at+150,distance:at-150}));
+  const stillOnscreen=m.tick(1/60,context({time:19,speed:2200,
+    playerWorld:at+450,distance:at+150,viewportLeft:-200}));
+  assert.equal(stillOnscreen.missed,null,
+    'a missed gem still 30 screen px inside the camera must remain visible');
+  assert.equal(m.visible,true);
+  const fullyOffscreen=m.tick(1/60,context({time:19.1,speed:2200,
+    playerWorld:at+550,distance:at+250,viewportLeft:-200}));
+  assert.ok(fullyOffscreen.missed);
   assert.equal(m.missed,1);
   assert.equal(m.blocksHazard(at,45,410),false);
 });
@@ -156,4 +163,47 @@ test('Build loads collectible system before game and shows a compact HUD feedbac
   assert.match(game,/shieldCores\.startFlight\(/);
   assert.match(game,/echoUsed:jumpControl\.echoUsed/);
   assert.match(css,/\.shield-gain\.hidden \{display:none!important\}/);
+});
+
+test('High-speed Shield Core sweep catches a real double-jump crossing, never a single jump',()=>{
+  const box={x:280,y:246,w:36,h:52};
+  assert.ok(distToRect(345,260,box)>SHIELD_CORE.radius);
+  assert.ok(distToRect(245,260,box)>SHIELD_CORE.radius);
+  assert.equal(sweptDistToRect(345,245,260,box),0);
+  assert.ok(sweptDistToRect(345,245,205,box)>SHIELD_CORE.radius,
+    'the sweep must not award a gem from the wrong vertical lane');
+  const highSpeed=context({time:18,speed:2400,viewportWidth:2050,viewportLeft:-200});
+  const m=new ShieldCoreSystem();
+  m.tick(1/60,highSpeed);
+  const at=m.active.worldX,y=m.active.y;
+  const playerBox={x:280,y:y-14,w:36,h:52};
+  // Prime the prior position outside the collision window.
+  const before=m.tick(1/60,{...highSpeed,distance:at-345,
+    playerWorld:at-45,playerBox,landed:false,echoUsed:true});
+  assert.equal(before.picked,null);
+  // A 100px update crosses the player between samples; the center is
+  // outside the normal 12px pickup radius on BOTH endpoints.
+  const across=m.tick(1/60,{...highSpeed,distance:at-245,
+    playerWorld:at+55,playerBox,landed:false,echoUsed:true});
+  assert.equal(across.picked?.restored,SHIELD_CORE.restore);
+  const single=new ShieldCoreSystem();
+  single.tick(1/60,highSpeed);
+  const same=single.active.worldX;
+  single.tick(1/60,{...highSpeed,distance:same-345,
+    playerWorld:same-45,playerBox,landed:false,echoUsed:false});
+  assert.equal(single.tick(1/60,{...highSpeed,distance:same-245,
+    playerWorld:same+55,playerBox,landed:false,echoUsed:false}).picked,null,
+    'swept pickup is forbidden before the second jump is consumed');
+});
+
+test('Lowered crystal stays physically above a one-jump reach envelope',()=>{
+  const maxLift=GAME.jumpVelocity**2/(2*GAME.gravity);
+  const airborneHeight=52;
+  const oneJumpTop=515-maxLift-airborneHeight;
+  const gemBottom=515-SHIELD_CORE.rise+SHIELD_CORE.radius;
+  assert.ok(gemBottom+8<oneJumpTop,'keep a real physical gap above one-jump apex');
+  assert.ok(268-SHIELD_CORE.rise>=12,'small but visible downward adjustment');
+  const game=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');
+  assert.ok(game.includes('viewportLeft:camera.visibleLeft(W,player.x)'),
+    'miss logic must use the zoom-adjusted actual left camera boundary');
 });

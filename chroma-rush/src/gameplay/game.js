@@ -1284,7 +1284,8 @@
       playerWorld:distance+player.x,playerBox:GEO.playerBox(player),
       echoUsed:jumpControl.echoUsed,landed:player.landed,
       terrain,hurdles,speed,distance,playerX:player.x,
-      viewportWidth:camera.visibleRight(W,player.x),gravityBusy:gravityShift.pending||
+      viewportWidth:camera.visibleRight(W,player.x),
+      viewportLeft:camera.visibleLeft(W,player.x),gravityBusy:gravityShift.pending||
         gravityShift.shifting||gravityShift.protected});
     if(shieldEvents.spawned){
       runAudit.record('shield_core_spawn',auditState(),{worldX:shieldEvents.spawned.worldX,

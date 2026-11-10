@@ -17,11 +17,12 @@
   const FIRST_GROW_SPEED=550,FINAL_GROW_SPEED=2200;
   const growthFor=speed=>smooth((Math.max(300,speed)-FIRST_GROW_SPEED)/
     (FINAL_GROW_SPEED-FIRST_GROW_SPEED));
+  // Jump and Duck have the exact same speed-dependent WIDTH contract.
+  // Their heights, collision types and visual designs remain independent.
+  const STANDARD_WIDTH=Object.freeze({min:54,max:71,growthMin:130,growthMax:150});
   const WIDTH_LIMITS=Object.freeze({
-    // Chunkier ordinary Jump: only dimensions change, not the gate artwork.
-    // Keep speed growth and distinct long Dash obstacles unchanged.
-    jump:Object.freeze({min:50,max:66,growthMin:44,growthMax:47}),
-    duck:Object.freeze({min:54,max:71,growthMin:130,growthMax:150}),
+    jump:STANDARD_WIDTH,
+    duck:STANDARD_WIDTH,
     echo:Object.freeze({growthMin:175,growthMax:175})
   });
   function widthRangeFor(type,{speed=GAME.baseSpeed,intro=false}={}){

@@ -1,6 +1,6 @@
-/* CHROMA RUSH — authored micro-patterns, not hardcoded levels.
- * All gaps are resolved against physical recovery by Adaptive Rush Director 2.0.
- * Each pattern is deliberately short so the Director can fade and relax gracefully.
+/* CHROMA RUSH — authored arcade phrases + Rush Chains 3.0.
+ * Ordinary motifs stay brief; dedicated Rush phrases deliver extended
+ * alternating inputs on physically safe, preplanned terrain corridors.
  */
 (function(root,factory){
   const api=factory();
@@ -24,7 +24,13 @@
     {id:'double-up-down',steps:['jump','jump','duck'],tier:2,minZone:4,weight:1.0},
     {id:'double-down-up',steps:['duck','duck','jump'],tier:2,minZone:4,weight:1.0},
     {id:'switchback',steps:['jump','duck','jump','duck'],tier:3,minZone:6,weight:.8},
-    {id:'reverse-switchback',steps:['duck','jump','duck','jump'],tier:3,minZone:6,weight:.8}
+    {id:'reverse-switchback',steps:['duck','jump','duck','jump'],tier:3,minZone:6,weight:.8},
+    // Sustained 9–12-input sequences are CHALLENGE PHRASES, not a fourth
+    // obstacle family. They use the exact same physical Jump and Duck gates.
+    // The movement gate authorizes them only for mastered PEAK windows.
+    {id:'rush-crossfire',rush:true,steps:['jump','duck','jump','duck','jump','duck','jump','duck','jump','duck','jump'],tier:3,minZone:8,weight:13},
+    {id:'rush-switchback',rush:true,steps:['duck','jump','duck','jump','duck','jump','duck','jump','duck','jump','duck'],tier:3,minZone:8,weight:13},
+    {id:'rush-syncopation',rush:true,steps:['jump','duck','duck','jump','duck','jump','jump','duck','jump','duck'],tier:3,minZone:10,weight:11}
   ].map(p=>Object.freeze({...p,steps:Object.freeze(p.steps)})));
   function candidates(phase,zone,maxTier,{allowEcho=true,buildTier=1}={}){
     const allowed=phase==='FADE'?0:phase==='BUILD'?Math.min(buildTier,maxTier):maxTier;

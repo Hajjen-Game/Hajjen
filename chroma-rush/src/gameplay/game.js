@@ -1365,8 +1365,10 @@
     const b=GEO.obstacleBox(o,o.groundY),
       isLow=o.type==='jump'||o.type==='dash-jump',isEcho=o.type==='echo';
     const core=(isLow||isEcho)?b:GEO.duckGateCoreBox(o,o.groundY);
+    // Dedicated, high-contrast action colors in every theme. Both channels
+    // crossfade spatially via the same existing Chroma Tide front.
     const color=spectralWave.colorAt(camera.screenX(o.x,player.x),
-      (isLow||isEcho)?'secondary':'primary',
+      (isLow||isEcho)?'hazardJump':'hazardDuck',
       camera.screenY(core.y+core.h*.5,floorY),H);
     // Stable obstacle silhouette: no per-frame alpha pulse or sine work.
     // The obstacle renderer is also exercised as a standalone legacy
@@ -1386,7 +1388,11 @@
       ctx.fillStyle=shell(b.y,b.h,.30);ctx.fill();
       ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
       ctx.shadowBlur=0;ctx.globalAlpha=1;
-      ctx.fillStyle=rgba(color,material?.inset??.18);
+      // Jump shares Duck's shell, 3px border and identical inset geometry.
+      // Duck's suspended field looks intrinsically brighter, so strengthen
+      // Jump's recessed face without adding an energy veil or new shape.
+      const jumpInset=Math.min(.34,(material?.inset??.18)+.10);
+      ctx.fillStyle=rgba(color,jumpInset);
       roundRectPath(b.x+6,b.y+8,b.w-12,b.h-15,2);ctx.fill();
       glowLine(b.x-7,b.y,b.x+b.w+7,b.y,color,5,14,1);
       for(let k=0;k<4;k++){

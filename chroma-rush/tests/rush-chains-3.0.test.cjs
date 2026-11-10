@@ -145,9 +145,9 @@ test('real terrain veto + projected lane still produce completed Rush phrases on
     }
     assert.ok(d.rush.started>=2,{seed,rush:d.rush,
       spawns:successes.length,failed:failed.length});
-    assert.ok(d.rush.completed>=1,{seed,rush:d.rush,
+    assert.ok(d.rush.completed>=2,{seed,rush:d.rush,
       spawns:successes.length,failed:failed.length});
-    assert.ok(d.rush.actions>=10,{seed,rush:d.rush,
+    assert.ok(d.rush.actions>=20,{seed,rush:d.rush,
       spawns:successes.length,failed:failed.length});
   }
 });

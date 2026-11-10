@@ -1,8 +1,18 @@
-# CHROMA RUSH — Phase 2: Action Density & Extended Peaks 2.0
+# CHROMA RUSH — Phase 3: Rush Chains 3.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Phase 3 — Rush Chains 3.0 · Continuous skill sections (2026-11-10)
+
+A second player audit (6:29 / zone 33) showed **169 obstacles (26.1/min)** versus the prior 183 / 6:54 (26.5/min). Despite increasing PEAK exposure from **27.7% to 39.9%**, raw obstacle density barely changed. At 28 perfect zones and only 5 normal obstacle hits, the user explicitly requested *long near-back-to-back Jump/Duck runs*, not a longer endurance session.
+
+New genuine **10–11-action Rush Chains** start only in safe, confident PEAK windows from zone 8, using the ordinary Jump and Duck hazards with the existing physical minimum arrival interval as their cadence (~0.74–0.96s when speed is high). No new controls. The terrain planner reserves approximately 12.6–14 seconds of safe flat runway at the future arrival point on two out of three eligible PEAK cycles, while independently preserving landing/takeoff and gap checks on every hurdle. Every third PEAK retains Echo Gap and ordinary gap opportunities. An unsafe terrain veto, hit, severe stress, low shield or gravity transition cancels the *remaining* sequence without deleting anything already in flight.
+
+Healthy advanced PEAKs can last ~12–13 seconds to fit a full riff; actual completed chains and successful individual Rush actions are recorded in `directorExperience.rush` for the next on-device export. Ordinary terrain gaps, slopes, Echo Gaps and Dash Duck remain available outside these dedicated bursts. The base speed curve, camera, jump/duck/dash physics, obstacle hitboxes, music, graphics and existing variety guard remain unchanged.
+
+[Audit, design and validation](docs/rush-chains-3.0.md).
 
 ## Phase 2 — Action Density & Extended Peaks 2.0 · Real-play correction
 

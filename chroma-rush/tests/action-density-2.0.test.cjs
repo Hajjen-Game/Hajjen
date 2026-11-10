@@ -28,7 +28,8 @@ test('real PEAK lasts longer from midgame while physical damage recovery stays l
   const early=d.durationFor(PHASE.PEAK,{zone:6,hp:100});
   const mid=d.durationFor(PHASE.PEAK,{zone:19,hp:100});
   assert.ok(mid>=early+2.4,JSON.stringify({early,mid}));
-  assert.ok(mid>=7.3&&mid<8.6,mid);
+  assert.ok(mid>=12&&mid<=13.8,mid);
+  assert.ok(mid>early+4,'Rush Chain phase must exceed prior phase duration, not just rename it');
   assert.ok(d.durationFor(PHASE.BUILD,{zone:19,hp:100})<
     d.durationFor(PHASE.BUILD,{zone:6,hp:100})-.7);
   assert.ok(d.durationFor(PHASE.RELAX,{zone:19,hp:100})<=1.65);
@@ -67,8 +68,14 @@ test('terrain leaves more physically valid obstacle lanes without removing hills
   const after=u.policyAt(100800,{...base,zone:19});
   assert.ok(after.slopeChance<before.slopeChance*.8,
     JSON.stringify({before:before.slopeChance,after:after.slopeChance}));
-  assert.ok(after.slopeChance>.1,'the background must still have terrain variation');
-  assert.ok(after.gapChance>0,'dangerous gaps are not disabled globally');
+  assert.equal(after.rushRunway,true,
+    'advanced PEAK now reserves real action space for continuous Rush sequences');
+  assert.equal(after.slopeChance,0);
+  assert.equal(after.gapChance,0);
+  const outsideRush=u.policyAt(100800,{...base,zone:19,hp:20});
+  assert.equal(outsideRush.rushRunway,false);
+  assert.ok(outsideRush.slopeChance>0,
+    'terrain remains varied for recovery, health and ordinary sections');
   assert.equal(after.actionPressure,1);
   terrain.segments=[{type:'gap',start:100000,end:103000,y0:515,y1:515}];
   assert.equal(terrain.canSpawnObstacle(101000,90,1450),false,

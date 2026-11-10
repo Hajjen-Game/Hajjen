@@ -66,7 +66,7 @@ test('new asset versions protect background and avoid stale legacy glyphs',()=>{
  const game=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');
  assert.match(html,/chroma-identity\.js\?v=player-movement-identity-2\.0/);
  assert.match(html,/world-background\.js\?v=original-background-restored-1\.0/);
- assert.match(html,/(?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0|ACTION DENSITY 2\.0)/);
+ assert.match(html,/(?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0|ACTION DENSITY 2\.0|RUSH CHAINS 3\.0)/);
  assert.match(game,/identity\.paintPlayer\(ctx/);
  assert.match(game,/identity\.drawContact\(ctx/);
  assert.doesNotMatch(game,/identity\.(?:update|tick|collide|spawn)\(/);

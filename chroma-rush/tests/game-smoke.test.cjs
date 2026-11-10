@@ -41,6 +41,7 @@ const clock = require('../src/performance/frame-clock.js');
 const mobilePreferences = require('../src/ui/mobile-preferences.js');
 const replay = require('../src/progression/replay-challenge.js');
 const replayUI = require('../src/ui/replay-ui.js');
+const trials = require('../src/gameplay/chroma-trials.js');
 
 function setup(initialStorage={}) {
   const objects=new Map();
@@ -64,7 +65,7 @@ function setup(initialStorage={}) {
   let requested;
   const local={...initialStorage};
   const windowEvents={};
-  const world={ChromaDirector:director,ChromaMovementAwareness:movementAwareness,ChromaHighSpeedFairness:highSpeedFairness,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaPrecisionCombo:precisionCombo,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaDash:dashModule,ChromaShieldCore:shieldCore,ChromaShieldCoreRender:shieldCoreRender,ChromaDashHazards:dashHazards,ChromaObstacleBalance:obstacleBalance,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaWorldLighting:worldLighting,ChromaSpectralWave:spectralWave,ChromaSurge:chromaSurge,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaIdentity:identity,ChromaGravityShift:gravityShift,ChromaAdaptiveCamera:adaptiveCamera,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,devicePixelRatio:1,
+  const world={ChromaDirector:director,ChromaMovementAwareness:movementAwareness,ChromaHighSpeedFairness:highSpeedFairness,ChromaConfig:config,ChromaGeometry:geometry,ChromaHud:hud,ChromaFlow:flow,ChromaPrecisionCombo:precisionCombo,ChromaAudio:audio,ChromaProgress:progression,ChromaArcadeUI:arcadeUI,ChromaTerrain:terrain,ChromaJump:jump,ChromaDash:dashModule,ChromaShieldCore:shieldCore,ChromaShieldCoreRender:shieldCoreRender,ChromaDashHazards:dashHazards,ChromaObstacleBalance:obstacleBalance,ChromaMotion:motion,ChromaEffects:effects,ChromaTerrainRender:terrainRender,ChromaWorldBackground:worldBackground,ChromaWorldLighting:worldLighting,ChromaSpectralWave:spectralWave,ChromaSurge:chromaSurge,ChromaStateVFX:chromaVfx,ChromaSpeedTrails:speedTrails,ChromaIdentity:identity,ChromaGravityShift:gravityShift,ChromaAdaptiveCamera:adaptiveCamera,ChromaRoundAudit:runAudit,ChromaUnifiedTerrainDirector:unified,ChromaQuality:perf,ChromaFrameClock:clock,ChromaMobilePreferences:mobilePreferences,ChromaReplay:replay,ChromaReplayUI:replayUI,ChromaTrials:trials,devicePixelRatio:1,
     addEventListener:(name,fn)=>{(windowEvents[name]??=[]).push(fn)},setTimeout(){},
     AudioContext:undefined};
   const document={getElementById:get,addEventListener(){},hidden:false};
@@ -74,7 +75,7 @@ function setup(initialStorage={}) {
   const ending='  requestAnimationFrame(frame);\n})();';
   assert.ok(gameCode.includes(ending));
   vm.runInContext(gameCode.replace(ending,
-    "  window.__gravityHarness={gravityShift,camera,terrain,terrainDirector,director,surge,chromaVfx,effects,jumpControl,dash,shieldCores,DASH_HAZARDS,runAudit,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,testSpawn:spawn,lastPlaced:()=>lastPlacedHazard,speed:()=>speed,hp:()=>hp,setHP:n=>{hp=n},player:()=>player,render:draw,zone:()=>zone};\\n".replace('\\n','\n')+ending),
+    "  window.__gravityHarness={gravityShift,camera,terrain,terrainDirector,director,surge,chromaVfx,effects,jumpControl,dash,shieldCores,DASH_HAZARDS,runAudit,motion,spectralWave,combo,flow,comboAward:awardCombo,score:()=>score,distance:()=>distance,forceZone:z=>{zone=z;time=(z-1)*GAME.zoneSeconds},hurdles:()=>hurdles,testSpawn:spawn,lastPlaced:()=>lastPlacedHazard,speed:()=>speed,hp:()=>hp,setHP:n=>{hp=n},player:()=>player,render:draw,zone:()=>zone,trial:()=>({mode:runMode,plan:trialPlan,cursor:trialCursor,hits:trialHits})};\\n".replace('\\n','\n')+ending),
     context,{filename:'game.js'});
   return {get,local,rotations,bends,step:(time)=>{assert.ok(requested);requested(time)},context,
     fireWindow:(type,event)=>{for(const fn of windowEvents[type]??[])fn(event)}};
@@ -876,4 +877,45 @@ test('muted real game displays chromatic HUD and timed Surge after actual zone-3
   assert.equal(h.surge.active,false,'7-second interval actually ends');
   assert.equal(g.get('surge-indicator').classList.contains('hidden'),true,
     'no lingering HUD clutter between palette transitions');
+});
+
+test('Chroma Trial launches a fixed physical course without starting adaptive terrain',()=>{
+  const g=setup();
+  g.step(0);
+  const c=g.context.window.__gravityHarness;
+  g.get('trial-start-btn').click();
+  const state=c.trial();
+  assert.equal(state.mode,'trial');
+  assert.equal(state.plan.duration,90);
+  assert.ok(trials.validatePlan(state.plan));
+  assert.equal(c.terrain.segments.length,7);
+  assert.equal(c.terrain.gaps.length,3);
+  assert.ok(g.get('trial-timer').classList.contains('hidden')===false);
+  assert.equal(g.get('mode-indicator').textContent,'CHROMA TRIAL 001 · FIXED COURSE');
+  const scheduled=state.plan.obstacles.map(o=>o.worldX);
+  for(let i=1;i<=260;i++)g.step(i*16.667);
+  const staged=c.hurdles();
+  assert.ok(staged.length>=1,'the fixed authored hazards are staged ahead of the player');
+  assert.ok(staged.every(o=>scheduled.includes(o.worldX)));
+  assert.ok(staged.every(o=>o.type==='jump'||o.type==='duck'));
+  assert.equal(c.director.time,0,'the adaptive Director never ticked in Trial');
+  assert.equal(c.terrain.generated,state.plan.finish,'procedural terrain never extended the course');
+  assert.equal(c.gravityShift.phase,'idle','Trial has no player-dependent Gravity Shift');
+  assert.ok(!g.get('trial-timer').classList.contains('hidden'));
+  assert.match(g.get('trial-timer').textContent,/^\d+s$/);
+  assert.equal(g.local.chromaRushArcadeV1,undefined);
+  assert.equal(g.local.chromaRushTrialsV1,undefined,'a running Trial never writes an unfinished PB');
+});
+
+test('Arcade still uses adaptive terrain/Director with Trials connected',()=>{
+  const g=setup();
+  g.step(0);
+  g.get('start-btn').click();
+  const c=g.context.window.__gravityHarness;
+  assert.equal(c.trial().mode,'arcade');
+  assert.equal(c.trial().plan,null);
+  for(let i=1;i<=200;i++)g.step(i*16.667);
+  assert.ok(c.director.time>0,'Arcade adaptive Director still advances');
+  assert.ok(c.terrain.generated>1900,'Arcade procedural terrain still extends');
+  assert.ok(g.get('trial-timer').classList.contains('hidden'));
 });

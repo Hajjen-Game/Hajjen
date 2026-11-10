@@ -964,3 +964,32 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
   #hud .surge-indicator,
   #hud #surge-meter-fill{animation:none!important;transition:none!important;}
 }
+
+/* Phase 3 — Chroma Trials 1.0: compact opt-in challenge, NOT a second main CTA. */
+#menu #menu-trials{display:flex;flex-direction:column;align-items:center;gap:6px;}
+#menu #menu-trials.hidden{display:none;}
+#menu .trial-title{font-size:clamp(10px,1.05vw,14px);letter-spacing:.17em;color:#e8f9ff;}
+#menu .trial-description,#menu .trial-best{
+  font-size:clamp(9px,.76vw,11px);letter-spacing:.10em;font-weight:800;color:#9ac3da;}
+#menu .trial-best{color:#8dffe0;}
+#menu .trial-launch{
+  margin-top:5px;min-height:37px;padding:7px 20px;border-radius:9px;
+  border:1px solid rgba(103,242,255,.65);background:rgba(38,147,173,.17);
+  color:#bafffa;font-weight:850;letter-spacing:.12em;font-size:clamp(10px,.88vw,12px);}
+#menu .trial-launch:active{transform:scale(.97);}
+#menu #trial-toggle-btn:disabled{opacity:.4;cursor:default;}
+#trial-timer{margin-top:5px;font-weight:900;letter-spacing:.1em;
+  font-size:clamp(12px,1.4vw,19px);font-variant-numeric:tabular-nums;
+  color:#83ffe9;text-shadow:0 0 14px rgba(83,244,235,.4);}
+#gameover .trial-result-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;width:min(325px,90%);margin-top:8px;}
+#gameover .trial-result-stats>div{display:flex;flex-direction:column;align-items:center;gap:3px;}
+#gameover .trial-result-stats span{color:#85a6be;font-size:clamp(8px,.72vw,10px);
+  font-weight:850;letter-spacing:.08em;}
+#gameover .trial-result-stats strong{color:#dcfbff;font-variant-numeric:tabular-nums;
+  font-size:clamp(16px,1.75vw,24px);}
+@media(max-height:440px) and (orientation:landscape){
+  #menu #menu-trials{gap:3px;}
+  #menu .trial-launch{min-height:29px;padding:4px 14px;}
+  #gameover .trial-result-stats{margin-top:4px;gap:6px;}}
+@media(prefers-reduced-motion:reduce){#menu .trial-launch{transition:none!important;}}

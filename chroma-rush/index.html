@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" />
   <meta name="theme-color" content="#080b19" />
-  <meta name="chroma-build" content="original-background-restored-1.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0-duck-gate-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-jump-visual-1.0-combo-1.0-speed-curve-3.2-echo-polish-1.1-echo-zone2-1.2-no-scout-1.1-tide-2.0-spectacle-1.0-dash-2.5-shield-core-1.0-dash-hazards-1.0-dash-pacing-1.1-spectrum-2.0-dash-reliability-1.2-ui-calm-1.0-dash-polish-2.0-director-flow-2.0-performance-stability-2.0-chroma-identity-visual-polish-1.0-player-identity-2.0-chroma-tide-energy-3.0-premium-arcade-ui-4.0-dash-hazard-zigzag-geometry-2.1-adaptive-camera-horizon-1.1-advanced-spacing-2.2-echo-rail-1.0-twin-vault-2.3-energy-veil-1.1-raised-jump-1.2-gate-unification-1.3-obstacle-director-balance-3.0-endurance-mastery-4.0-arcade-simplification-1.0-core-gameplay-excellence-1.0-core-pace-gravity-1.1-phase-2-chroma-surge-1.0-action-density-2.0-rush-chains-3.0-endless-escalation-4.0-visual-signature-2.0-ambient-lighting-2.1-premium-world-lighting-3.0-jump-duck-width-parity-1.0-shield-core-fairness-1.1-jump-solid-body-trial-1.0-jump-single-piece-2.0-dash-banner-cleanup-1.0-jump-gate-core-parity-3.0-uniform-gate-width-1.0-steady-hazards-1.0-opaque-ground-1.0-hazard-contrast-1.0-jump-material-1.1-hazard-color-rollback-1.0-gravity-blink-fix-1.0-duck-core-material-parity-4.0-jump-premium-cap-parity-1.0-shared-gate-core-1.0" />
+  <meta name="chroma-build" content="original-background-restored-1.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0-duck-gate-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-jump-visual-1.0-combo-1.0-speed-curve-3.2-echo-polish-1.1-echo-zone2-1.2-no-scout-1.1-tide-2.0-spectacle-1.0-dash-2.5-shield-core-1.0-dash-hazards-1.0-dash-pacing-1.1-spectrum-2.0-dash-reliability-1.2-ui-calm-1.0-dash-polish-2.0-director-flow-2.0-performance-stability-2.0-chroma-identity-visual-polish-1.0-player-identity-2.0-chroma-tide-energy-3.0-premium-arcade-ui-4.0-dash-hazard-zigzag-geometry-2.1-adaptive-camera-horizon-1.1-advanced-spacing-2.2-echo-rail-1.0-twin-vault-2.3-energy-veil-1.1-raised-jump-1.2-gate-unification-1.3-obstacle-director-balance-3.0-endurance-mastery-4.0-arcade-simplification-1.0-core-gameplay-excellence-1.0-core-pace-gravity-1.1-phase-2-chroma-surge-1.0-action-density-2.0-rush-chains-3.0-endless-escalation-4.0-visual-signature-2.0-ambient-lighting-2.1-premium-world-lighting-3.0-jump-duck-width-parity-1.0-shield-core-fairness-1.1-jump-solid-body-trial-1.0-jump-single-piece-2.0-dash-banner-cleanup-1.0-jump-gate-core-parity-3.0-uniform-gate-width-1.0-steady-hazards-1.0-opaque-ground-1.0-hazard-contrast-1.0-jump-material-1.1-hazard-color-rollback-1.0-gravity-blink-fix-1.0-duck-core-material-parity-4.0-jump-premium-cap-parity-1.0-shared-gate-core-1.0-chroma-trials-1.0" />
   <meta name="description" content="CHROMA RUSH — a neon speed-survival arcade prototype." />
   <title>CHROMA RUSH | Premium Arcade UI & Final Cohesion 4.0</title>
-  <link rel="stylesheet" href="style.css?v=premium-arcade-ui-4.0-hud-anchor-4.1-chroma-surge-1.0-visual-signature-2.0" />
+  <link rel="stylesheet" href="style.css?v=premium-arcade-ui-4.0-hud-anchor-4.1-chroma-surge-1.0-visual-signature-2.0-chroma-trials-1.0" />
 </head>
 <body>
   <main id="game-shell" aria-label="CHROMA RUSH arcade game">
@@ -22,7 +22,7 @@
         <div id="flow-outer" class="flow-outer" role="progressbar" aria-label="Chroma Flow" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="flow-inner"></div></div>
         <div class="flow-status"><span id="flow-state">LOW FLOW</span><span id="flow-streak">0 STREAK</span></div>
       </div>
-      <div class="hud-center"><div class="small-label">CHROMA <b>RUSH</b></div><div id="zone-display">ZONE 01</div><div id="surge-indicator" class="surge-indicator hidden" aria-live="off">
+      <div class="hud-center"><div class="small-label">CHROMA <b>RUSH</b></div><div id="zone-display">ZONE 01</div><div id="trial-timer" class="hidden" role="timer" aria-live="off">90s</div><div id="surge-indicator" class="surge-indicator hidden" aria-live="off">
           <div class="surge-copy"><span id="surge-label">CHROMA SURGE</span><span id="surge-bonus"></span></div>
           <div id="surge-meter" class="surge-meter" role="progressbar" aria-label="Chroma Surge remaining" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div id="surge-meter-fill"></div></div>
         </div><div id="phase-display">BUILDING</div><div id="mode-indicator" class="hidden">PRACTICE · NO RECORDS</div></div>
@@ -76,12 +76,19 @@
       </div>
       <nav class="menu-quick-actions" aria-label="Practice, milestones and help">
         <button id="practice-toggle-btn" type="button" aria-expanded="false" aria-controls="menu-practice">PRACTICE</button>
+        <button id="trial-toggle-btn" type="button" aria-expanded="false" aria-controls="menu-trials">TRIALS</button>
         <button id="milestone-view-btn" type="button" aria-haspopup="dialog"><span id="milestone-progress">MILESTONES 0/6</span></button>
         <button id="help-toggle-btn" type="button" aria-expanded="false" aria-controls="menu-controls">HOW TO PLAY</button>
       </nav>
       <div id="menu-practice" class="menu-drawer hidden" aria-label="Practice mode">
         <div class="practice-controls"><select id="practice-zone" aria-label="Practice starting zone" disabled><option>ZONE 02</option></select><button type="button" id="practice-start-btn" disabled>TRAIN ZONE</button></div>
         <div id="practice-hint" class="practice-hint">REACH ZONE 02 TO UNLOCK PRACTICE</div>
+      </div>
+      <div id="menu-trials" class="menu-drawer hidden" aria-label="Chroma Trials">
+        <strong class="trial-title">CHROMA TRIAL 001 · 90 SEC</strong>
+        <span class="trial-description">ONE COURSE · SAME HAZARDS · BEAT YOUR BEST</span>
+        <span id="trial-best" class="trial-best">NO COMPLETED TRIAL YET</span>
+        <button id="trial-start-btn" type="button" class="trial-launch">PLAY TRIAL →</button>
       </div>
       <div id="menu-controls" class="menu-drawer hidden" aria-label="How to play">
         <div class="menu-controls-grid"><div><b>LEFT · JUMP</b><span>Tap again in mid-air to double jump.</span></div><div><b>RIGHT · DUCK / DASH</b><span>Air: tap while jumping. Ground: tap twice to Dash.</span></div></div>
@@ -106,13 +113,18 @@
     </section>
     <section id="gameover" class="screen-panel hidden" aria-live="polite">
       <div class="menu-eyebrow" id="final-mode">ARCADE RUN · RANKED</div>
-      <h2>RUN COMPLETE</h2>
+      <h2 id="gameover-title">RUN COMPLETE</h2>
       <div class="result-score"><span>SCORE</span><strong id="final-score">0</strong></div>
       <div class="result-highlights">
-        <div><span>ZONE</span><strong id="final-zone">01</strong></div>
-        <div><span>BEST SCORE</span><strong id="final-best">0</strong></div>
+        <div><span id="final-zone-label">ZONE</span><strong id="final-zone">01</strong></div>
+        <div><span id="final-best-label">BEST SCORE</span><strong id="final-best">0</strong></div>
       </div>
       <div class="final-record" id="final-record">KEEP PUSHING YOUR RECORD</div>
+      <div id="trial-result-stats" class="trial-result-stats hidden" aria-label="Trial statistics">
+        <div><span>DURATION</span><strong id="trial-result-time">0s</strong></div>
+        <div><span>HITS</span><strong id="trial-result-hits">0</strong></div>
+        <div><span>MAX COMBO</span><strong id="trial-result-combo">0</strong></div>
+      </div>
       <button id="retry-btn" class="primary-btn" type="button">RUN AGAIN <span aria-hidden="true">→</span></button>
       <div class="result-links">
         <button id="menu-result-btn" type="button">MAIN MENU</button>
@@ -150,6 +162,7 @@
   <script src="src/ui/arcade-ui.js?v=arcade-1.0"></script>
   <script src="src/progression/replay-challenge.js?v=replay-1.0"></script>
   <script src="src/ui/replay-ui.js?v=replay-1.0"></script>
+  <script src="src/gameplay/chroma-trials.js?v=chroma-trials-1.0"></script>
   <script src="src/gameplay/jump-controller.js?v=jump-1.0-movement-1.0-echo-fix-2.1"></script>
   <script src="src/gameplay/contextual-dash.js?v=contextual-dash-2.2"></script>
   <script src="src/render/world-lighting.js?v=premium-world-lighting-3.0"></script>
@@ -170,7 +183,7 @@
   <script src="src/performance/frame-clock.js?v=performance-1.0"></script>
   <script src="src/gameplay/gravity-shift.js?v=gravity-1.0-arcade-simplification-1.0-core-pace-gravity-1.1"></script>
   <script src="src/camera/adaptive-camera.js?v=adaptive-camera-horizon-1.1"></script>
-  <script src="src/gameplay/game.js?v=arcade-animation-2.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0-duck-gate-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-jump-visual-1.0-combo-1.0-echo-polish-1.1-echo-zone2-1.2-tide-2.0-dash-2.5-shield-core-1.0-dash-hazards-1.0-dash-pacing-1.1-spectrum-2.0-dash-reliability-1.2-ui-calm-1.0-dash-polish-2.0-director-flow-2.0-performance-stability-2.0-chroma-identity-1.0-tide-energy-3.0-dash-energy-bridge-1.0-adaptive-camera-horizon-1.1-advanced-spacing-2.2-echo-rail-1.0-twin-vault-2.3-energy-veil-1.1-raised-jump-1.2-gate-unification-1.3-obstacle-director-balance-3.0-arcade-simplification-1.0-jump-gate-polish-1.1-core-gameplay-excellence-1.0-core-pace-gravity-1.1-phase-2-chroma-surge-1.0-visual-signature-2.0-ambient-lighting-2.1-premium-world-lighting-3.0-jump-readability-1.0-shield-core-camera-1.1-jump-solid-body-trial-1.0-jump-single-piece-2.0-dash-banner-cleanup-1.0-jump-gate-core-parity-3.0-steady-hazards-1.0-hazard-contrast-1.0-jump-material-1.1-hazard-color-rollback-1.0-gravity-blink-fix-1.0-duck-core-material-parity-4.0-jump-premium-cap-parity-1.0-shared-gate-core-1.0"></script>
+  <script src="src/gameplay/game.js?v=arcade-animation-2.0-chroma-pulse-1.0-gravity-1.0-ceiling-sync-1.0-movement-1.0-duck-gate-1.0-echo-spire-1.0-aware-1.0-fairness-1.0-jump-visual-1.0-combo-1.0-echo-polish-1.1-echo-zone2-1.2-tide-2.0-dash-2.5-shield-core-1.0-dash-hazards-1.0-dash-pacing-1.1-spectrum-2.0-dash-reliability-1.2-ui-calm-1.0-dash-polish-2.0-director-flow-2.0-performance-stability-2.0-chroma-identity-1.0-tide-energy-3.0-dash-energy-bridge-1.0-adaptive-camera-horizon-1.1-advanced-spacing-2.2-echo-rail-1.0-twin-vault-2.3-energy-veil-1.1-raised-jump-1.2-gate-unification-1.3-obstacle-director-balance-3.0-arcade-simplification-1.0-jump-gate-polish-1.1-core-gameplay-excellence-1.0-core-pace-gravity-1.1-phase-2-chroma-surge-1.0-visual-signature-2.0-ambient-lighting-2.1-premium-world-lighting-3.0-jump-readability-1.0-shield-core-camera-1.1-jump-solid-body-trial-1.0-jump-single-piece-2.0-dash-banner-cleanup-1.0-jump-gate-core-parity-3.0-steady-hazards-1.0-hazard-contrast-1.0-jump-material-1.1-hazard-color-rollback-1.0-gravity-blink-fix-1.0-duck-core-material-parity-4.0-jump-premium-cap-parity-1.0-shared-gate-core-1.0-chroma-trials-1.0"></script>
   <script src="src/ui/build-freshness.js?v=pages-recovery-1.0"></script>
 </body>
 </html>

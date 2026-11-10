@@ -85,37 +85,44 @@ test('short Jump inherits Duck Gate visual grammar with unchanged collider',()=>
 });
 
 
-test('Jump Gate Core Parity 3.0 copies Duck housing and rotates interior stripes',()=>{
-  const jump=renderObstacle('jump'),duck=renderObstacle('duck'),b=jump.box;
-  const branch=sourceCode.split("if(o.type==='jump'){")[1].split('}else if(isEcho||isLow){')[0];
-  // Same solid main shell AND inside recess as Duck, with no lower sub-box.
-  assert.match(branch,/roundRectPath\(b\.x,b\.y,b\.w,b\.h,4\)/);
-  assert.match(branch,/roundRectPath\(b\.x\+6,b\.y\+8,b\.w-12,b\.h-15,2\)/);
-  assert.match(branch,/shell\(b\.y,b\.h,\.30\)/);
-  assert.match(branch,/material\?\.inset\?\?\.18/);
-  assert.match(branch,/material\?\.bloom\?\?21\*quality\.profile\.glow/);
-  assert.match(branch,/ctx\.lineWidth=3;ctx\.strokeStyle=color;ctx\.stroke\(\)/);
-  const jumpShapes=jump.events.filter(e=>e[0]==='roundRectPath');
-  assert.deepEqual(jumpShapes,[
+test('Jump and Duck call ONE shared Duck-derived core renderer with only directional variation',()=>{
+  const j=renderObstacle('jump'),d=renderObstacle('duck'),b=j.box;
+  const jumpBranch=sourceCode.split("if(o.type==='jump'){")[1].split('}else if(isEcho||isLow){')[0];
+  const duckBranch=sourceCode.slice(sourceCode.indexOf('    }else{\n      // Standard Duck Gate renderer'),
+    sourceCode.indexOf('    // Every glowing segment'));
+  assert.match(jumpBranch,/paintGateCore\(b,true\)/);
+  assert.match(duckBranch,/paintGateCore\(core,false\)/);
+  assert.equal((sourceCode.match(/const paintGateCore=/g)||[]).length,1,
+    'one shared code path is authoritative for all core material and edges');
+  const shared=sourceCode.slice(sourceCode.indexOf('    const paintGateCore='),
+    sourceCode.indexOf('    ctx.save();',sourceCode.indexOf('    const paintGateCore=')));
+  assert.match(shared,/roundRectPath\(x,y,w,h,4\)/);
+  assert.match(shared,/ctx\.fillStyle=shell\(y,h,\.30\);ctx\.fill\(\)/);
+  assert.match(shared,/ctx\.lineWidth=3;ctx\.strokeStyle=color;ctx\.stroke\(\)/);
+  assert.match(shared,/material\?\.inset\?\?\.18/);
+  assert.match(shared,/roundRectPath\(x\+6,y\+8,w-12,h-15,2\)/);
+  assert.match(shared,/material\?\.bloom\?\?21\*quality\.profile\.glow/);
+  assert.doesNotMatch(jumpBranch,/capDepth|const cap=|ctx\.fillRect|energyTop|strands/,
+    'previous extra cap and all underbodies must be completely gone');
+  assert.equal(j.events.filter(e=>e[0]==='fillRect').length,0);
+  const rounds=j.events.filter(e=>e[0]==='roundRectPath');
+  assert.deepEqual(rounds,[
+    ['roundRectPath',b.x,b.y,b.w,b.h,4],
     ['roundRectPath',b.x,b.y,b.w,b.h,4],
     ['roundRectPath',b.x+6,b.y+8,b.w-12,b.h-15,2]
-  ],'one main Duck-style shell and ONE inset; no lower piece');
-  assert.equal(jump.events.filter(e=>e[0]==='fillRect').length,0,
-    'no energy curtain, dark lower box or rectangular underbody');
-  assert.doesNotMatch(branch,/energyTop|const cap=|strands|fillRect/);
-  const stripes=jump.lines.filter(x=>x.width===1&&x.alpha===.36);
-  const duckStripes=duck.lines.filter(x=>x.width===1&&x.alpha===.36);
-  assert.equal(stripes.length,4);
-  assert.equal(duckStripes.length,4);
-  assert.ok(stripes.every(x=>x.x1<x.x2&&x.y1===x.y2),
-    'Jump interior: four HORIZONTAL lines');
-  assert.ok(duckStripes.every(x=>x.x1===x.x2&&x.y1<x.y2),
-    'Duck interior: four VERTICAL lines');
-  assert.equal(jump.lines.length,8,'Jump gains a cap seam and tiny upper glint, not extra stripes');
-  assert.ok(jump.lines.some(x=>x.width===5&&x.y1===b.y&&x.y2===b.y),
-    'Jump light rail on top, mirroring the underside of Duck');
-  assert.deepEqual(GEO.obstacleBox(jump.obstacle,515),b);
+  ],'one undercoat and one shell share the exact outline, plus ONE inset');
+  assert.equal(j.lines.length,6,'no double seam/cap on Jump');
+  assert.equal(d.lines.length,6,'Duck has its same old six luminous lines');
+  const horizontal=j.lines.filter(l=>l.width===1&&l.alpha===.36);
+  const vertical=d.lines.filter(l=>l.width===1&&l.alpha===.36);
+  assert.equal(horizontal.length,4);assert.equal(vertical.length,4);
+  assert.ok(horizontal.every(l=>l.x1<l.x2&&l.y1===l.y2));
+  assert.ok(vertical.every(l=>l.x1===l.x2&&l.y1<l.y2));
+  assert.ok(j.lines.some(l=>l.width===5&&l.y1===b.y&&l.y2===b.y));
+  assert.ok(d.lines.some(l=>l.width===5&&l.y1===515-28));
+  assert.deepEqual(GEO.obstacleBox(j.obstacle,515),b);
 });
+
 test('opening DASH READY banner is removed without disabling Dash tutorial',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   assert.doesNotMatch(html,/DASH READY|AIR: DUCK \/ GROUND: DUCK AGAIN/);
@@ -246,40 +253,3 @@ test('ordinary and advanced obstacle bodies have NO animated opacity pulse',()=>
   }
 });
 
-test('Jump premium cap stays inside collider at ALL standard heights and does not copy Duck curtain',()=>{
-  const block=sourceCode.split("if(o.type==='jump'){")[1].split('}else if(isEcho||isLow){')[0];
-  assert.match(block,/const capDepth=Math\.min\(17,Math\.max\(13,b\.h\*\.235\)\)/);
-  assert.match(block,/ctx\.fillStyle=rgba\(color,Math\.min\(\.29,\(material\?\.shell\?\?\.30\)\*\.62\)\)/);
-  assert.match(block,/ctx\.moveTo\(b\.x\+4,b\.y\+3\)/);
-  assert.match(block,/ctx\.lineTo\(b\.x\+b\.w-6,b\.y\+capDepth\)/);
-  assert.doesNotMatch(block,/ctx\.fillRect\(|energyTop|const cap=/);
-  for(const height of [59,62,66,70,73]){
-    const width=71,b={x:300,y:515-height,w:width,h:height};
-    const depth=Math.min(17,Math.max(13,height*.235));
-    assert.ok(depth>=13&&depth<=17);
-    const roof=[[b.x+4,b.y+3],[b.x+b.w-4,b.y+3],
-      [b.x+b.w-6,b.y+depth],[b.x+6,b.y+depth]];
-    assert.ok(roof.every(([x,y])=>x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h));
-    for(let k=0;k<4;k++){
-      const y=b.y+depth+8+k*(b.h-depth-19)/3;
-      assert.ok(y>b.y+depth&&y<b.y+b.h-10,'horizontal engravings stay under the cap');
-    }
-  }
-  const j=renderObstacle('jump'),d=renderObstacle('duck'),b=j.box;
-  const calls=j.events;
-  const upper=calls.findIndex((x,i)=>x[0]==='moveTo'&&x[1]===b.x+4&&x[2]===b.y+3);
-  assert.ok(upper>=0,'the Jump cap coating is drawn in its actual silhouette');
-  assert.ok(calls.slice(upper,upper+4).every(x=>['moveTo','lineTo'].includes(x[0])),
-    'cap contour is a four-vertex trapezoid, not a detached rectangle');
-  assert.equal(j.events.filter(x=>x[0]==='roundRectPath').length,2,
-    'Jump keeps EXACTLY one outer shell and one inset');
-  assert.equal(j.events.filter(x=>x[0]==='fillRect').length,0,
-    'NO underbody, floor energy curtain or extra collision silhouette');
-  assert.equal(j.lines.filter(x=>x.width===1&&x.alpha===.36).length,4);
-  assert.equal(d.lines.filter(x=>x.width===1&&x.alpha===.36).length,4);
-  const seam=j.lines.find(x=>x.width===2.2&&x.alpha===.77);
-  assert.ok(seam&&seam.y1===seam.y2&&seam.y1>b.y&&seam.y1<b.y+b.h,
-    'Duck-like shoulder seam stays distinctly INSIDE Jump');
-  assert.ok(j.lines.some(x=>x.width===1.5&&x.alpha===.56),
-    'cap receives the slim white glint to match Duck premium top rim');
-});

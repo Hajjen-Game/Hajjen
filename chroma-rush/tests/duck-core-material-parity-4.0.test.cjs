@@ -87,10 +87,13 @@ test('real Duck and Jump core materials use identical tint, gradient and inset',
     assert.equal(J.fills[2].style,D.fills[1].style,
       'the recessed inner face is now the EXACT Duck inset, no extra Jump tint');
     assert.equal(J.fills[1].shadowBlur,D.fills[0].shadowBlur);
-    assert.equal(J.fills.length,4,'Jump adds only an in-core cap coating over the shared three-layer material');
-    assert.equal(J.fills[3].shadowBlur,0,'cap band is a low-cost, unshadowed material detail');
-    assert.equal(J.fills[3].path[0],'lines','cap is a small trapezoid within the existing silhouette');
-    assert.equal(J.gradients.length,1,'Jump cap never allocates an extra canvas gradient');
+    assert.equal(J.fills.length,3,'Jump uses ONLY Duck pigment, gradient, and inset');
+    assert.equal(D.fills.length,2,'Duck keeps the same gradient and inset');
+    assert.equal(J.gradients.length,1,'Jump allocates exactly the Duck core gradient');
+    assert.equal(D.gradients.length,1,'Duck allocates exactly the same one gradient');
+    assert.equal(J.strokes.find(s=>s.width===3).shadowBlur,
+      D.strokes.find(s=>s.width===3).shadowBlur,'core neon border is identical');
+    assert.equal(J.lines.length,D.lines.length,'no extra cap seams on Jump');
     assert.equal(J.rounds[0][3],D.rounds[0][3],'same housing width');
     assert.equal(J.rounds[0][5],D.rounds[0][5],'same corner radius');
   }
@@ -126,9 +129,11 @@ test('original hazard colors and existing renderer geometry stay unchanged',()=>
     .split("}else if(isEcho||isLow){")[0];
   assert.match(renderSource,/\(isLow\|\|isEcho\)\?'secondary':'primary'/);
   assert.match(branch,/ctx\.fillStyle=rgba\(color,material\?\.veil\?\?\.105\);ctx\.fill\(\)/);
-  assert.match(branch,/ctx\.fillStyle=shell\(b\.y,b\.h,\.30\);ctx\.fill\(\)/);
-  assert.match(branch,/ctx\.fillStyle=rgba\(color,material\?\.inset\?\?\.18\)/);
-  assert.doesNotMatch(branch,/jumpInset|const cap=|energyTop|fillRect\(/);
-  assert.match(renderSource,/roundRectPath\(core\.x,core\.y,core\.w,core\.h,4\)/);
+  assert.match(branch,/paintGateCore\(b,true\)/);
+  assert.match(renderSource,/paintGateCore\(core,false\)/);
+  assert.match(renderSource,/ctx\.fillStyle=shell\(y,h,\.30\);ctx\.fill\(\)/);
+  assert.match(renderSource,/ctx\.fillStyle=rgba\(color,material\?\.inset\?\?\.18\)/);
+  assert.doesNotMatch(branch,/jumpInset|capDepth|const cap=|energyTop|fillRect\(/);
+  assert.match(renderSource,/roundRectPath\(x,y,w,h,4\)/);
   assert.match(renderSource,/roundRectPath\(b\.x,b\.y,b\.w,b\.h,4\)/);
 });

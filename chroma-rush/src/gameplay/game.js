@@ -1378,53 +1378,44 @@
     const material=typeof frameLighting==='undefined'?null:frameLighting?.hazard;
     const shell=(y,h,fallback)=>material&&worldLighting?
       worldLighting.shellGradient(ctx,color,y,h,frameLighting):rgba(color,fallback);
-    ctx.save();
-    if(o.type==='jump'){
-      // Duck Material Parity 4.0: the SAME veil -> gradient shell -> inset
-      // composite as Duck's solid core. Duck already has its veil underneath
-      // the core; Jump lacked it and its translucent gradient looked flat
-      // against the fully opaque track.
-      // Paint that veil ONLY inside the existing rounded Jump silhouette:
-      // no detached lower panel, hanging curtain, new collider or geometry.
+    // One authoritative solid gate core for BOTH Jump and Duck.
+    // Same path, World Lighting gradient, inset, bevel, glow and edge language.
+    // Only face engravings and the position of the strong rail are mirrored.
+    // This prevents Jump-specific "premium" patches drifting from Duck.
+    const paintGateCore=(box,floorMounted)=>{
+      const x=box.x,y=box.y,w=box.w,h=box.h;
       ctx.globalAlpha=1;
-      ctx.shadowBlur=0;
-      roundRectPath(b.x,b.y,b.w,b.h,4);
-      ctx.fillStyle=rgba(color,material?.veil??.105);ctx.fill();
       ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
-      ctx.fillStyle=shell(b.y,b.h,.30);ctx.fill();
+      roundRectPath(x,y,w,h,4);
+      ctx.fillStyle=shell(y,h,.30);ctx.fill();
       ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
       ctx.shadowBlur=0;ctx.globalAlpha=1;
-      // Exact Duck inset contour and opacity, not the former Jump-only
-      // +.10 tint. The restored veil behind it supplies the missing depth.
       ctx.fillStyle=rgba(color,material?.inset??.18);
-      roundRectPath(b.x+6,b.y+8,b.w-12,b.h-15,2);ctx.fill();
-      // Jump Premium Cap Parity 1.0: replicate the *readable junction*
-      // where the Duck energy shaft meets its solid core. Jump has no shaft,
-      // so its shoulder is a softly tinted band INSIDE the one existing
-      // collider-sized housing, with a distinct lower seam and upper glint.
-      // No cap overhang, floating bridge, underbody or extra obstacle shape.
-      const capDepth=Math.min(17,Math.max(13,b.h*.235));
-      ctx.shadowBlur=0;
-      ctx.fillStyle=rgba(color,Math.min(.29,(material?.shell??.30)*.62));
-      ctx.beginPath();
-      ctx.moveTo(b.x+4,b.y+3);
-      ctx.lineTo(b.x+b.w-4,b.y+3);
-      ctx.lineTo(b.x+b.w-6,b.y+capDepth);
-      ctx.lineTo(b.x+6,b.y+capDepth);
-      ctx.fill(); // Canvas closes the path inside the actual core
-      // Duck's lower rail becomes Jump's illuminated upper shoulder.
-      // The second internal seam keeps the cap readable at 60% camera zoom.
-      glowLine(b.x-7,b.y,b.x+b.w+7,b.y,color,5,14,1);
-      glowLine(b.x+6,b.y+capDepth,b.x+b.w-6,b.y+capDepth,
-        color,2.2,8*quality.profile.glow,.77);
-      glowLine(b.x+8,b.y+4,b.x+b.w-8,b.y+4,
-        '#ffffff',1.5,5*quality.profile.glow,.56);
+      roundRectPath(x+6,y+8,w-12,h-15,2);ctx.fill();
+      // Duck's illuminated bottom lip becomes Jump's illuminated top lip.
+      // No additional cap or shoulder: the original Duck housing IS the cap.
+      const railY=floorMounted?y:y+h;
+      glowLine(x-7,railY,x+w+7,railY,color,5,14,1);
       for(let k=0;k<4;k++){
-        // Keep the four horizontal engravings in the FACE below the cap.
-        const y=b.y+capDepth+8+k*(b.h-capDepth-19)/3;
-        glowLine(b.x+12,y,b.x+b.w-12,y,color,1,0,.36);
+        if(floorMounted){
+          const stripeY=y+10+k*(h-20)/3;
+          glowLine(x+12,stripeY,x+w-12,stripeY,color,1,0,.36);
+        }else{
+          const stripeX=x+10+k*(w-20)/3;
+          glowLine(stripeX,y+12,stripeX,y+h-12,color,1,0,.36);
+        }
       }
-      glowLine(b.x,b.y,b.x+b.w,b.y,'#ffffff',1,8,.45);
+      glowLine(x,y,x+w,y,'#ffffff',1,8,.45);
+    };
+    ctx.save();
+    if(o.type==='jump'){
+      // Draw the SAME Duck housing at ground level. A local tint beneath
+      // this collider-sized rounded body reproduces the background pigment
+      // of Duck's overhead field without drawing a separate energy curtain.
+      ctx.globalAlpha=1;ctx.shadowBlur=0;
+      roundRectPath(b.x,b.y,b.w,b.h,4);
+      ctx.fillStyle=rgba(color,material?.veil??.105);ctx.fill();
+      paintGateCore(b,true);
     }else if(isEcho||isLow){
       // Low Neon Barrier: an ordinary Jump shell, raised and stretched.
       // Echo Rail: a LONG STANDARD JUMP BARRIER raised off the track.
@@ -1564,19 +1555,9 @@
       for(let y=top+20;y<core.y-4;y+=43){
         ctx.beginPath();ctx.moveTo(b.x+7,y);ctx.lineTo(b.x+b.w-7,y);ctx.stroke();
       }
-      ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
-      roundRectPath(core.x,core.y,core.w,core.h,4);
-      ctx.fillStyle=shell(core.y,core.h,.30);ctx.fill();
-      ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
-      ctx.shadowBlur=0;ctx.globalAlpha=1;
-      ctx.fillStyle=rgba(color,material?.inset??.18);
-      roundRectPath(core.x+6,core.y+8,core.w-12,core.h-15,2);ctx.fill();
-      glowLine(b.x-7,by,b.x+b.w+7,by,color,5,14,1);
-      for(let k=0;k<4;k++){
-        const x=core.x+10+k*(core.w-20)/3;
-        glowLine(x,core.y+12,x,by-12,color,1,0,.36);
-      }
-      glowLine(core.x,core.y,core.x+core.w,core.y,'#ffffff',1,8,.45);
+      // The original Duck energy field remains untouched. Its solid core
+      // now goes through the EXACT SAME material renderer as Jump.
+      paintGateCore(core,false);
     }
     // Every glowing segment maps to actual geometry. No detached seal
     // checkpoint, no free mid-bridge landing and no forced action key.

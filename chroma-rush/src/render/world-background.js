@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Full Background Continuity 1.0.
+/* CHROMA RUSH — Full Background Continuity 1.0 / World Lighting 3.0.
  * Full-canvas atmospheric and parallax background. The foreground ground height
  * (and the terrain's holes) never determines what is painted here.
  * All positions are viewport-relative, not anchored to the terrain surface.
@@ -15,11 +15,12 @@
     return 'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+clamp(alpha,0,1)+')';
   };
   const wrap=(value,length)=>(value%length+length)%length;
-  function drawBackground({ctx,width:W,height:H,time:t=0,speed=370,primary:c1,secondary:c2,shadow:c3,flow=0,lighting=0,glowLine,quality={density:1},tide=null}){
+  function drawBackground({ctx,width:W,height:H,time:t=0,speed=370,primary:c1,secondary:c2,shadow:c3,flow=0,lighting=0,glowLine,quality={density:1},tide=null,lightRig=null}){
     if(!ctx||!(W>0)||!(H>0))return;
     const flowCharge=clamp(flow,0,100)/100;
     const ambientGlow=clamp(quality.glow??1,.15,1);
     const illuminate=clamp(lighting,0,1)*ambientGlow;
+    const skyLight=lightRig?.sky;
     // One original background draw per frame, even DURING zone transition.
     // Far scenery samples the spatial tide in place, not an old/new double
     // paint. No architecture or parallax layout changes.
@@ -48,13 +49,17 @@
       // replaces fake speed lines. It belongs to the existing sky paint,
       // and the unchanged palette wave clips it in precisely the same way.
       const glow=ctx.createRadialGradient(W*.33,H*.51,0,W*.33,H*.53,Math.max(W*.55,H*.83));
-      glow.addColorStop(0,rgba(primary,(.20+flowCharge*.075+illuminate*.075)*ambientGlow));
-      glow.addColorStop(.42,rgba(secondary,(.10+illuminate*.042)*ambientGlow));
+      glow.addColorStop(0,rgba(primary,skyLight?
+        skyLight.key:(.20+flowCharge*.075+illuminate*.075)*ambientGlow));
+      glow.addColorStop(.42,rgba(secondary,skyLight?
+        skyLight.bounce:(.10+illuminate*.042)*ambientGlow));
       glow.addColorStop(1,rgba(primary,0));
       ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
       const lower=ctx.createRadialGradient(W*.72,H*.83,0,W*.72,H*.83,Math.max(W*.72,H*.88));
-      lower.addColorStop(0,rgba(secondary,(.18+illuminate*.055)*ambientGlow));
-      lower.addColorStop(.56,rgba(primary,(.09+flowCharge*.025)*ambientGlow));
+      lower.addColorStop(0,rgba(secondary,skyLight?
+        skyLight.key*.79:(.18+illuminate*.055)*ambientGlow));
+      lower.addColorStop(.56,rgba(primary,skyLight?
+        skyLight.bounce*.80:(.09+flowCharge*.025)*ambientGlow));
       lower.addColorStop(1,rgba(primary,0));
       ctx.fillStyle=lower;ctx.fillRect(0,0,W,H);
     };
@@ -137,7 +142,8 @@
     }
     // Distant horizon is a scene detail, NOT an end of the background layer.
     const horizon=H*.47;
-    glowLine(0,horizon,W,horizon,midPrimary,1,9,.15);
+    glowLine(0,horizon,W,horizon,midPrimary,1,9,
+      skyLight?skyLight.horizon:.15);
     // A short depth-plane shimmer tracks the SAME front at the distant
     // horizon. One small transparent strip, no fullscreen atmosphere pass.
     if(tide?.active&&!tide.charging){

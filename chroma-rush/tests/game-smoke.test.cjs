@@ -849,3 +849,30 @@ test('adaptive camera responds to a later practice-speed timeline while physics 
   assert.ok(harness.camera.visibleRight(1280,px)>1280);
   assert.ok(harness.camera.lowestZoom<=harness.camera.zoom);
 });
+
+test('muted real game displays chromatic HUD and timed Surge after actual zone-3 palette crossing',()=>{
+  // Never require an audio context or music to see a signature gameplay cue.
+  const g=setup({chromaRushSoundOff:'true'});
+  g.step(0);g.get('start-btn').click();
+  const h=g.context.window.__gravityHarness;
+  h.director.tick=()=>{};
+  h.terrain.segments=[{type:'flat',start:0,end:10000000,y0:515,y1:515}];
+  h.terrain.gaps=[];h.terrain.generated=10000000;
+  for(let i=1;i<=60*27;i++)g.step(i*1000/60);
+  assert.equal(h.surge.active,true,
+    'the real palette wave must have passed the player at zone 3');
+  assert.equal(g.get('surge-indicator').classList.contains('hidden'),false);
+  assert.match(g.get('surge-label').textContent,/SURGE/);
+  assert.ok(g.get('surge-meter-fill').style.width.endsWith('%'));
+  const pct=Number(g.get('surge-meter-fill').style.width.slice(0,-1));
+  assert.ok(pct>=0&&pct<=100,{pct});
+  const award=h.surge.onClear({kind:'jump'});
+  assert.equal(award.points,95);
+  g.step((60*27+1)*1000/60);
+  assert.equal(g.get('surge-label').textContent,'SURGE ×1');
+  assert.equal(g.get('surge-bonus').textContent,'+95');
+  for(let i=60*27+2;i<=60*34;i++)g.step(i*1000/60);
+  assert.equal(h.surge.active,false,'7-second interval actually ends');
+  assert.equal(g.get('surge-indicator').classList.contains('hidden'),true,
+    'no lingering HUD clutter between palette transitions');
+});

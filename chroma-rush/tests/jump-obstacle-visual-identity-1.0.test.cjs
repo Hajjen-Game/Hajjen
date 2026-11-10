@@ -227,3 +227,21 @@ test('former Echo Rail keeps historical visual geometry but cannot spawn in acti
   const jump=renderObstacle('jump');
   assert.ok(jump.events.some(e=>e[0]==='roundRectPath'));
 });
+
+test('ordinary and advanced obstacle bodies have NO animated opacity pulse',()=>{
+  const src=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
+  const start=src.indexOf('  function drawObstacle(o){');
+  const end=src.indexOf('  function drawPlayer(){',start);
+  const render=src.slice(start,end);
+  assert.doesNotMatch(render,/twinkle|o\.pulse|Math\.sin\(/,
+    'all obstacle drawing removes the old random-phase twinkle');
+  assert.doesNotMatch(src,/pulse:Math\.random\(\)\*Math\.PI\*2/,
+    'spawning normal hurdles no longer spends RNG on an unused blink phase');
+  assert.match(render,/ctx\.globalAlpha=1/,
+    'luminous obstacle housings always have stable opacity');
+  for(const type of ['jump','duck','dash-duck']){
+    const a=renderObstacle(type),b=renderObstacle(type,{glow:1,density:1});
+    assert.deepEqual(a.events.map(e=>e[0]),b.events.map(e=>e[0]),
+      'High graphics must not bring back a pulsing obstacle layer');
+  }
+});

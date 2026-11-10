@@ -65,3 +65,22 @@ test('scrolling ground mask remains bottom-anchored after a camera offset',()=>{
  assert.ok(path[1][2]>=460&&path[1][2]<515);
  assert.equal(path.filter(c=>c[0]==='moveTo').length,2);
 });
+
+test('solid terrain is fully opaque but true gaps stay transparent in one pass',()=>{
+  const {ctx,calls}=fake();
+  drawTerrain({...opts(ctx),quality:{density:.4,glow:.3,gridStep:105,terrainStep:16}});
+  const stops=calls.filter(c=>c[0]==='addColorStop');
+  assert.equal(stops.length,4,'the single original ground gradient remains');
+  assert.deepEqual(stops.map(s=>s[1]),[0,.18,.55,1]);
+  for(const [,position,color] of stops){
+    assert.match(color,/^(?:#[0-9a-fA-F]{6}|rgb\(\d+,\d+,\d+\))$/,
+      'ground gradient stop '+position+' is fully opaque, never rgba(alpha<1)');
+  }
+  assert.equal(calls.filter(c=>c[0]==='clip').length,1);
+  assert.equal(calls.filter(c=>c[0]==='fillRect').length,1,
+    'no extra GPU-overdraw fill is introduced');
+  assert.equal(ctx.globalAlpha,.93,'surface line may glow while ground base stays opaque');
+  const clip=calls.findIndex(c=>c[0]==='clip');
+  const paths=calls.slice(0,clip).filter(c=>c[0]==='closePath');
+  assert.equal(paths.length,2,'solid islands remain distinct across the real gap');
+});

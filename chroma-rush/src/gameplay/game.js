@@ -763,7 +763,7 @@
       closestClearance:Infinity,entryDuckTime:null,
       dashAssisted:false,
       mechanicIntro:Boolean(firstEcho||firstDash),
-      phase:data.phase,pulse:Math.random()*Math.PI*2});
+      phase:data.phase});
     // Commit only after a REAL successful spawn. Rejected attempts do not
     // advance history, and old pruned obstacles still reserve their space.
     lastPlacedHazard={type:data.type,endWorld:worldX+width,
@@ -1368,7 +1368,7 @@
     const color=spectralWave.colorAt(camera.screenX(o.x,player.x),
       (isLow||isEcho)?'secondary':'primary',
       camera.screenY(core.y+core.h*.5,floorY),H);
-    const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
+    // Stable obstacle silhouette: no per-frame alpha pulse or sine work.
     // The obstacle renderer is also exercised as a standalone legacy
     // function in tests. Fall back to its exact old flat material when
     // there is no shared frame rig in that isolated context.
@@ -1380,7 +1380,7 @@
       // Jump Gate Core Parity 3.0: the SAME luminous housing as Duck,
       // floor mounted. Only its four engraved stripes rotate horizontally.
       // No separate lower panel, energy curtain or extra collision field.
-      ctx.globalAlpha=twinkle;
+      ctx.globalAlpha=1;
       ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
       roundRectPath(b.x,b.y,b.w,b.h,4);
       ctx.fillStyle=shell(b.y,b.h,.30);ctx.fill();
@@ -1407,7 +1407,7 @@
         const energyTop=echoBeam.y+echoBeam.h;
         const energyBottom=b.y+b.h;
         const energyHeight=energyBottom-energyTop;
-        ctx.globalAlpha=twinkle;
+        ctx.globalAlpha=1;
         ctx.shadowBlur=0;
         ctx.fillStyle=rgba(color,material?.veil??.10);
         ctx.fillRect(b.x+3,energyTop,b.w-6,energyHeight);
@@ -1437,7 +1437,7 @@
         [isEcho?echoBeam:b];
       for(const body of chunks){
       const x=body.x,y=body.y,w=body.w,h=body.h,bevel=Math.min(8,w*.16);
-      ctx.globalAlpha=twinkle;
+      ctx.globalAlpha=1;
       ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??19*quality.profile.glow;
       ctx.beginPath();
       ctx.moveTo(x+bevel,y+1);ctx.lineTo(x+w-bevel,y+1);
@@ -1476,7 +1476,7 @@
         const colorAtMid=spectralWave.colorAt(
           camera.screenX(start+span*.5,player.x),'secondary',
           camera.screenY(wire.y+wire.h*.5,floorY),H);
-        const flash=reducedMotion?1:.88+.12*Math.sin(worldTime*7+o.pulse)**2;
+        const flash=1; // Legacy dash-jump geometry also keeps steady brightness.
         ctx.save();
         // The translucent 36px energy bed exactly fills the physical
         // collider. No inaccessible/hidden extra collision volume.
@@ -1507,7 +1507,7 @@
         ctx.shadowBlur=0;
         // One restrained moving highlight, no circular overlays or separate hazard icon.
         if(!reducedMotion){
-          const travel=((worldTime*.62+o.pulse/(2*Math.PI))%1)*span;
+          const travel=(worldTime*.62%1)*span;
           glowLine(start+travel,wire.y+12,
             Math.min(end,start+travel+Math.min(52,span*.09)),wire.y+12,
             '#ffffff',1.3,8*quality.profile.glow,.60);
@@ -1520,7 +1520,7 @@
       // Keep the same open energy field, core, crossbars and corner glow;
       // do not add a zigzag, extra ribs, brighter fill or different timing.
       const by=b.y+b.h,top=Math.max(0,b.y);
-      ctx.shadowBlur=0;ctx.globalAlpha=twinkle;
+      ctx.shadowBlur=0;ctx.globalAlpha=1;
       ctx.fillStyle=rgba(color,material?.veil??.105);
       ctx.fillRect(b.x,b.y,b.w,b.h);
       ctx.strokeStyle=rgba(color,material?.border??.68);ctx.lineWidth=1.9;

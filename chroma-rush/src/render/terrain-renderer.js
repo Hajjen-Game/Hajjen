@@ -15,6 +15,15 @@
     const n=parseInt(hex.slice(1),16);
     return `rgba(${n>>16},${(n>>8)&255},${n&255},${a})`;
   };
+  // Mix the SAME existing colored bounce into a fixed dark track substrate,
+  // yielding an opaque color for the ground gradient in a SINGLE fill pass.
+  // This prevents distant background columns showing through solid ground.
+  const opaqueMix=(foreground,substrate,amount)=>{
+    const a=clamp(amount,0,1);
+    const fg=parseInt(foreground.slice(1),16),bg=parseInt(substrate.slice(1),16);
+    const channel=shift=>Math.round(((fg>>shift)&255)*a+((bg>>shift)&255)*(1-a));
+    return `rgb(${channel(16)},${channel(8)},${channel(0)})`;
+  };
   function surface(s,x){
     if(s.type!=='slope')return s.y1;
     return s.y0+(s.y1-s.y0)*smooth((x-s.start)/(s.end-s.start));
@@ -81,18 +90,18 @@
       ctx.lineTo(end,bottom+8);ctx.closePath();
     }
     ctx.clip();
-    // One gradient anchored to the SCREEN instead of segment-local starts.
-    // Resetting the gradient at every new slope was the visible dark seam.
+    // The SAME one-pass, screen-anchored gradient now has fully OPAQUE
+    // foreground stops. The earlier two rgba() stops leaked distant scenery
+    // through solid track. The tinted material still responds to World
+    // Lighting / Chroma Tide, with no extra draw pass or extra clipping.
     const ground=ctx.createLinearGradient(0,baseY-25,0,bottom);
-    // Actual ground material receives a restrained colored bounce light.
-    // Everything remains within the SAME solid-terrain clip, so no glow
-    // paints a bridge across a real gap or changes a collision silhouette.
-    ground.addColorStop(0,rgba(groundPrimary,bounced?
+    ground.addColorStop(0,opaqueMix(groundPrimary,'#102b3e',bounced?
       bounced.surface:.22+clamp(flow,0,100)*.0008+illuminate*.09));
-    ground.addColorStop(.18,rgba(groundSecondary,bounced?
+    ground.addColorStop(.18,opaqueMix(groundSecondary,'#0b2034',bounced?
       bounced.bounce:.10+illuminate*.035));
     ground.addColorStop(.55,'#0b1224');
     ground.addColorStop(1,'#050812');
+    ctx.globalAlpha=1;
     ctx.fillStyle=ground;
     ctx.fillRect(viewLeft-36,0,viewRight-viewLeft+72,bottom+8);
     // Very light ground tint within the EXISTING clip: the actual terrain

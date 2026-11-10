@@ -58,6 +58,9 @@
   const worldBackground = window.ChromaWorldBackground;
   // Purely cosmetic rig; optional while cached Pages HTML refreshes.
   const worldLighting = window.ChromaWorldLighting || null;
+  // Render-only shared snapshot, sampled exactly once per draw(). Existing
+  // drawWorld/terrain/obstacle/player call signatures and ordering stay intact.
+  let frameLighting=null;
   const spectralWave = new window.ChromaSpectralWave.SpectralWave();
   const surge = new window.ChromaSurge.ChromaSurge();
   const gravityShift = new window.ChromaGravityShift.GravityShift();
@@ -1330,16 +1333,16 @@
     ctx.shadowColor=color;ctx.shadowBlur=blur*quality.profile.glow;
     ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();
   }
-  function drawWorld(t,lightRig){
+  function drawWorld(t){
     // Chroma Tide 2.0 draws the ORIGINAL background ONCE, even while
     // the chromatic boundary is in flight. Distant scenery samples the
     // spatial palette, eliminating two full expensive clipped redraws.
     worldBackground.drawBackground({ctx,width:W,height:H,time:t,speed,
       primary:c1,secondary:c2,shadow:c3,flow:flow.value,
-      lighting:surge.intensity,lightRig,glowLine,quality:quality.profile,
+      lighting:surge.intensity,lightRig:frameLighting,glowLine,quality:quality.profile,
       tide:spectralWave.active?spectralWave:null});
   }
-  function drawTerrain(lightRig){
+  function drawTerrain(){
     // One clipped terrain geometry pass, tinted in-place by the same front.
     // Ground gaps, sloped collider geometry and visual spacing are unchanged.
     // Extend all solid ground to the true zoomed viewport edge. The tide
@@ -1352,7 +1355,7 @@
       lighting:surge.intensity,lightRig,glowLine,quality:quality.profile,
       tide:projected});
   }
-  function drawObstacle(o,lightRig){
+  function drawObstacle(o){
     // Off-screen advanced hazards need fair lead time, not off-screen
     // gradients/shadows. Pad past the maximum visible glow; do not change
     // any physics, spawn/collision or authored visual geometry.
@@ -1365,9 +1368,9 @@
       (isLow||isEcho)?'secondary':'primary',
       camera.screenY(core.y+core.h*.5,floorY),H);
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
-    const material=lightRig?.hazard;
+    const material=frameLighting?.hazard;
     const shell=(y,h,fallback)=>material&&worldLighting?
-      worldLighting.shellGradient(ctx,color,y,h,lightRig):rgba(color,fallback);
+      worldLighting.shellGradient(ctx,color,y,h,frameLighting):rgba(color,fallback);
     ctx.save();
     if(o.type==='jump'){
       // A grounded, vertically mirrored DUCK GATE: same housing, side rails,
@@ -1568,7 +1571,7 @@
     // checkpoint, no free mid-bridge landing and no forced action key.
     ctx.restore();
   }
-  function drawPlayer(lightRig){
+  function drawPlayer(){
     const b=GEO.playerBox(player),beat=1+Math.sin(worldTime*14)*.025;
     const pc1=spectralWave.colorAt(player.x,'primary',camera.screenY(player.feet,floorY),H);
     const pc2=spectralWave.colorAt(player.x,'secondary',camera.screenY(player.feet,floorY),H);
@@ -1619,7 +1622,7 @@
       primary:pc1,secondary:pc2,pose:shape,motion,
       quality:quality.profile,reducedMotion,
       tideResonance:spectralWave.resonance,ambientLight:surge.intensity,
-      lightRig,bodyPath:playerPath});
+      lightRig:frameLighting,bodyPath:playerPath});
     if(player.duck){
       const n=Math.max(1,Math.round(3*quality.profile.particles));
       for(let i=0;i<n;i++){
@@ -1682,9 +1685,9 @@
     ctx.setTransform(sx,0,0,sy,0,0);
     ctx.save();
     if(shake>0&&status==='running')ctx.translate(fxRand(-shake,shake)*.4,fxRand(-shake,shake)*.35);
-    const lightRig=worldLighting?.evaluate({flow:flow.value,
+    frameLighting=worldLighting?.evaluate({flow:flow.value,
       surge:surge.intensity,quality:quality.profile})||null;
-    drawWorld(worldTime,lightRig);
+    drawWorld(worldTime);
     // Only the course flips: the original atmospheric background and DOM HUD
     // stay upright. All gameplay sprites, gaps and trails share one transform.
     ctx.save();gravityShift.applyCourseTransform(ctx,H);
@@ -1692,7 +1695,7 @@
       primary:c1,secondary:c2,quality:quality.profile,reducedMotion});
     const background=performance.now();
     ctx.save();camera.apply(ctx,player.x,floorY);
-    drawTerrain(lightRig);
+    drawTerrain();
     ctx.restore();
     const terrainDone=performance.now();
     // The chromatic front stays screen-anchored and perfectly synchronized
@@ -1705,8 +1708,8 @@
     if(shieldCores.active)shieldCoreRender.drawCore(ctx,shieldCores.active,
       {time:worldTime,quality:quality.profile,reducedMotion,
         ceiling:gravityShift.mix>.5});
-    for(const o of hurdles)drawObstacle(o,lightRig);
-    drawPlayer(lightRig);
+    for(const o of hurdles)drawObstacle(o);
+    drawPlayer();
     const actorsDone=performance.now();
     drawFx();
     ctx.restore(); // Unzoom the actors without undoing gravity mirroring.

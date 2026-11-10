@@ -72,7 +72,7 @@ test('real Duck and Jump core materials use identical tint, gradient and inset',
     assert.deepEqual(J.fills[0].path,J.rounds[0],
       'the undercoat is clipped to the ONE existing rounded body');
     assert.equal(J.fills[0].alpha,1);
-    assert.equal(J.rounds.length,2);
+    assert.equal(J.rounds.length,3,'Jump reuses its outer silhouette for the tinted undercoat, then shared shell and inset');
     assert.equal(D.rounds.length,2);
     assert.equal(J.gradients.length,1);
     assert.equal(D.gradients.length,1);
@@ -94,8 +94,8 @@ test('real Duck and Jump core materials use identical tint, gradient and inset',
     assert.equal(J.strokes.find(s=>s.width===3).shadowBlur,
       D.strokes.find(s=>s.width===3).shadowBlur,'core neon border is identical');
     assert.equal(J.lines.length,D.lines.length,'no extra cap seams on Jump');
-    assert.equal(J.rounds[0][3],D.rounds[0][3],'same housing width');
-    assert.equal(J.rounds[0][5],D.rounds[0][5],'same corner radius');
+    assert.equal(J.rounds[1][3],D.rounds[0][3],'same housing width');
+    assert.equal(J.rounds[1][5],D.rounds[0][5],'same corner radius');
   }
 });
 
@@ -105,8 +105,10 @@ test('the two obstacle silhouettes preserve intentional directional differences'
   // Their physical collision outlines have different heights/actions by design.
   assert.equal(J.rounds[0][3],D.rounds[0][3]);
   assert.equal(J.rounds[0][5],D.rounds[0][5]);
-  assert.equal(J.rounds[1][3],D.rounds[1][3]);
-  assert.equal(J.rounds[1][5],D.rounds[1][5]);
+  assert.equal(J.rounds[1][3],D.rounds[0][3]);
+  assert.equal(J.rounds[1][5],D.rounds[0][5]);
+  assert.equal(J.rounds[2][3],D.rounds[1][3]);
+  assert.equal(J.rounds[2][5],D.rounds[1][5]);
   assert.equal(J.strokes[0].width,3);
   const duckCoreStroke=D.strokes.find(s=>s.width===3);
   assert.ok(duckCoreStroke);

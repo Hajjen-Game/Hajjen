@@ -104,7 +104,7 @@ test('source wiring protects original world and makes audit version traceable',(
  const game=fs.readFileSync(path.join(root,'src/gameplay/game.js'),'utf8');
  const background=fs.readFileSync(path.join(root,'src/render/world-background.js'),'utf8');
  const terrain=fs.readFileSync(path.join(root,'src/render/terrain-renderer.js'),'utf8');
- assert.match(html,/(?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0|ACTION DENSITY 2\.0)/);
+ assert.match(html,/(?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0|ACTION DENSITY 2\.0|RUSH CHAINS 3\.0)/);
  assert.match(html,/original-background-restored-1\.0/);
  assert.match(html,/spectral-wave\.js\?v=[^"]*energy-3\.0/);
  assert.match(game,/tideResonance:spectralWave\.resonance/);

@@ -125,7 +125,7 @@ test('Audio separates the short charge from the dash whoosh; existing music unaf
 test('Release VFX is synchronized to elastic forward motion, and versioned assets are fresh',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   const game=fs.readFileSync(path.join(__dirname,'../src/gameplay/game.js'),'utf8');
-  assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0|ACTION DENSITY 2\.0|RUSH CHAINS 3\.0|ENDLESS ESCALATION 4\.0|VISUAL SIGNATURE 2\.0|AMBIENT LIGHTING 2\.1)/);
+  assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0|ACTION DENSITY 2\.0|RUSH CHAINS 3\.0|ENDLESS ESCALATION 4\.0|VISUAL SIGNATURE 2\.0|AMBIENT LIGHTING 2\.1|PREMIUM WORLD LIGHTING 3\.0)/);
   assert.match(html,/player-motion\.js\?v=duck-effects-1\.0-movement-1\.0-dash-squash-stretch-2\.5/);
   assert.match(html,/speed-trails\.js\?v=speed-trails-2\.5-dash-echoes/);
   assert.match(game,/dashReleasePending=action/);

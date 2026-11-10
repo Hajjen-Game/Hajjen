@@ -56,6 +56,11 @@
   };
   const terrainRender = window.ChromaTerrainRender;
   const worldBackground = window.ChromaWorldBackground;
+  // Purely cosmetic rig; optional while cached Pages HTML refreshes.
+  const worldLighting = window.ChromaWorldLighting || null;
+  // Render-only shared snapshot, sampled exactly once per draw(). Existing
+  // drawWorld/terrain/obstacle/player call signatures and ordering stay intact.
+  let frameLighting=null;
   const spectralWave = new window.ChromaSpectralWave.SpectralWave();
   const surge = new window.ChromaSurge.ChromaSurge();
   const gravityShift = new window.ChromaGravityShift.GravityShift();
@@ -1334,7 +1339,7 @@
     // spatial palette, eliminating two full expensive clipped redraws.
     worldBackground.drawBackground({ctx,width:W,height:H,time:t,speed,
       primary:c1,secondary:c2,shadow:c3,flow:flow.value,
-      lighting:surge.intensity,glowLine,quality:quality.profile,
+      lighting:surge.intensity,lightRig:frameLighting,glowLine,quality:quality.profile,
       tide:spectralWave.active?spectralWave:null});
   }
   function drawTerrain(){
@@ -1347,7 +1352,7 @@
     terrainRender.drawTerrain({ctx,terrain,distance,width:W,height:H,baseY:floorY,
       cameraView:camera.view(W,H,player.x,floorY),
       primary:c1,secondary:c2,flow:flow.value,
-      lighting:surge.intensity,glowLine,quality:quality.profile,
+      lighting:surge.intensity,lightRig:frameLighting,glowLine,quality:quality.profile,
       tide:projected});
   }
   function drawObstacle(o){
@@ -1363,6 +1368,12 @@
       (isLow||isEcho)?'secondary':'primary',
       camera.screenY(core.y+core.h*.5,floorY),H);
     const cx=o.x+b.w/2,twinkle=.76+Math.sin(worldTime*6+o.pulse)*.14;
+    // The obstacle renderer is also exercised as a standalone legacy
+    // function in tests. Fall back to its exact old flat material when
+    // there is no shared frame rig in that isolated context.
+    const material=typeof frameLighting==='undefined'?null:frameLighting?.hazard;
+    const shell=(y,h,fallback)=>material&&worldLighting?
+      worldLighting.shellGradient(ctx,color,y,h,frameLighting):rgba(color,fallback);
     ctx.save();
     if(o.type==='jump'){
       // A grounded, vertically mirrored DUCK GATE: same housing, side rails,
@@ -1371,9 +1382,9 @@
       const cap={x:b.x,y:b.y,w:b.w,h:Math.min(30,Math.max(23,b.h*.45))};
       const by=b.y+b.h,energyTop=cap.y+cap.h;
       ctx.shadowBlur=0;ctx.globalAlpha=twinkle;
-      ctx.fillStyle=rgba(color,.11);
+      ctx.fillStyle=rgba(color,material?.veil??.11);
       ctx.fillRect(b.x,b.y,b.w,b.h);
-      ctx.strokeStyle=rgba(color,.68);ctx.lineWidth=1.9;
+      ctx.strokeStyle=rgba(color,material?.border??.68);ctx.lineWidth=1.9;
       ctx.beginPath();
       ctx.moveTo(b.x+1,b.y);ctx.lineTo(b.x+1,by);
       ctx.moveTo(b.x+b.w-1,b.y);ctx.lineTo(b.x+b.w-1,by);
@@ -1391,12 +1402,12 @@
       ctx.stroke();
       // Match the Duck core's visual weight (+~13% shell, subtle inner fill).
       // Only Jump's cosmetics change: unchanged hitbox and exterior contour.
-      ctx.shadowColor=color;ctx.shadowBlur=21*quality.profile.glow;
+      ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
       roundRectPath(cap.x,cap.y,cap.w,cap.h,4);
-      ctx.fillStyle=rgba(color,.34);ctx.fill();
+      ctx.fillStyle=shell(cap.y,cap.h,.34);ctx.fill();
       ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
       ctx.shadowBlur=0;ctx.globalAlpha=1;
-      ctx.fillStyle=rgba(color,.20);
+      ctx.fillStyle=rgba(color,material?.inset??.20);
       roundRectPath(cap.x+6,cap.y+8,cap.w-12,cap.h-15,2);ctx.fill();
       glowLine(b.x-7,b.y,b.x+b.w+7,b.y,color,5,14,1);
       // Two understated HORIZONTAL engravings live entirely inside the
@@ -1421,7 +1432,7 @@
         const energyHeight=energyBottom-energyTop;
         ctx.globalAlpha=twinkle;
         ctx.shadowBlur=0;
-        ctx.fillStyle=rgba(color,.10);
+        ctx.fillStyle=rgba(color,material?.veil??.10);
         ctx.fillRect(b.x+3,energyTop,b.w-6,energyHeight);
         ctx.lineWidth=1;
         ctx.strokeStyle=rgba(color,.28);
@@ -1450,14 +1461,14 @@
       for(const body of chunks){
       const x=body.x,y=body.y,w=body.w,h=body.h,bevel=Math.min(8,w*.16);
       ctx.globalAlpha=twinkle;
-      ctx.shadowColor=color;ctx.shadowBlur=19*quality.profile.glow;
+      ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??19*quality.profile.glow;
       ctx.beginPath();
       ctx.moveTo(x+bevel,y+1);ctx.lineTo(x+w-bevel,y+1);
       ctx.lineTo(x+w-1,y+bevel);ctx.lineTo(x+w-1,y+h-3);
       ctx.lineTo(x+w-4,y+h-1);ctx.lineTo(x+4,y+h-1);
       ctx.lineTo(x+1,y+h-3);ctx.lineTo(x+1,y+bevel);
       ctx.closePath();
-      ctx.fillStyle=rgba(color,.30);ctx.fill();
+      ctx.fillStyle=shell(y,h,.30);ctx.fill();
       ctx.lineWidth=2.6;ctx.strokeStyle=color;ctx.stroke();
       ctx.shadowBlur=0;ctx.globalAlpha=1;
       glowLine(x+bevel+1,y+5,x+w-bevel-1,y+5,'#ffffff',2.6,11,.90);
@@ -1465,7 +1476,7 @@
       glowLine(x+w-3,y+bevel+2,x+w-3,y+h-11,color,1.7,6,.72);
       // Shared recessed face and two straight side ribs; identical to the
       // short ordinary Jump barrier, just stretched horizontally.
-      ctx.fillStyle=rgba(color,.17);
+      ctx.fillStyle=rgba(color,material?.inset??.17);
       ctx.fillRect(x+6,y+bevel+8,w-12,h-bevel-22);
       ctx.strokeStyle=rgba('#ffffff',.27);ctx.lineWidth=1;
       ctx.beginPath();
@@ -1533,9 +1544,9 @@
       // do not add a zigzag, extra ribs, brighter fill or different timing.
       const by=b.y+b.h,top=Math.max(0,b.y);
       ctx.shadowBlur=0;ctx.globalAlpha=twinkle;
-      ctx.fillStyle=rgba(color,.105);
+      ctx.fillStyle=rgba(color,material?.veil??.105);
       ctx.fillRect(b.x,b.y,b.w,b.h);
-      ctx.strokeStyle=rgba(color,.68);ctx.lineWidth=1.9;
+      ctx.strokeStyle=rgba(color,material?.border??.68);ctx.lineWidth=1.9;
       ctx.beginPath();
       ctx.moveTo(b.x+1,b.y);ctx.lineTo(b.x+1,by);
       ctx.moveTo(b.x+b.w-1,b.y);ctx.lineTo(b.x+b.w-1,by);
@@ -1545,12 +1556,12 @@
       for(let y=top+20;y<core.y-4;y+=43){
         ctx.beginPath();ctx.moveTo(b.x+7,y);ctx.lineTo(b.x+b.w-7,y);ctx.stroke();
       }
-      ctx.shadowColor=color;ctx.shadowBlur=21*quality.profile.glow;
+      ctx.shadowColor=color;ctx.shadowBlur=material?.bloom??21*quality.profile.glow;
       roundRectPath(core.x,core.y,core.w,core.h,4);
-      ctx.fillStyle=rgba(color,.30);ctx.fill();
+      ctx.fillStyle=shell(core.y,core.h,.30);ctx.fill();
       ctx.lineWidth=3;ctx.strokeStyle=color;ctx.stroke();
       ctx.shadowBlur=0;ctx.globalAlpha=1;
-      ctx.fillStyle=rgba(color,.18);
+      ctx.fillStyle=rgba(color,material?.inset??.18);
       roundRectPath(core.x+6,core.y+8,core.w-12,core.h-15,2);ctx.fill();
       glowLine(b.x-7,by,b.x+b.w+7,by,color,5,14,1);
       for(let k=0;k<4;k++){
@@ -1614,7 +1625,7 @@
       primary:pc1,secondary:pc2,pose:shape,motion,
       quality:quality.profile,reducedMotion,
       tideResonance:spectralWave.resonance,ambientLight:surge.intensity,
-      bodyPath:playerPath});
+      lightRig:frameLighting,bodyPath:playerPath});
     if(player.duck){
       const n=Math.max(1,Math.round(3*quality.profile.particles));
       for(let i=0;i<n;i++){
@@ -1677,6 +1688,8 @@
     ctx.setTransform(sx,0,0,sy,0,0);
     ctx.save();
     if(shake>0&&status==='running')ctx.translate(fxRand(-shake,shake)*.4,fxRand(-shake,shake)*.35);
+    frameLighting=worldLighting?.evaluate({flow:flow.value,
+      surge:surge.intensity,quality:quality.profile})||null;
     drawWorld(worldTime);
     // Only the course flips: the original atmospheric background and DOM HUD
     // stay upright. All gameplay sprites, gaps and trails share one transform.

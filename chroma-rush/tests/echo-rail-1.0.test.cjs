@@ -130,7 +130,8 @@ test('renderer gives the low Echo Rail a solid top and visible underside energy 
   assert.match(render,/const energyTop=echoBeam\.y\+echoBeam\.h/);
   assert.match(render,/const energyBottom=b\.y\+b\.h/);
   assert.match(render,/ctx\.fillRect\(b\.x\+3,energyTop,b\.w-6,energyHeight\)/);
-  assert.match(render,/ctx\.fillStyle=rgba\(color,\.10\)/);
+  assert.match(render,/ctx\.fillStyle=rgba\(color,material\?\.veil\?\?\.10\)/,
+    'Echo curtain stays the same physical translucent veil, now sharing the ambient light budget');
   const veil=render.slice(render.indexOf('if(isEcho){'),
     render.indexOf('// Exact same low-barrier shell'));
   assert.match(veil,/ctx\.moveTo\(rx,energyTop\+1\)/);

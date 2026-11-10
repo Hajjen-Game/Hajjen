@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Terrain Render Seam Fix 1.1 / Tide Spectacle 1.0
+/* CHROMA RUSH — Terrain Seam Fix / Tide Spectacle / World Lighting 3.0
  * A single continuous surface mask and one world-space grid for all solid terrain.
  * Gaps have NO foreground fill, leaving the real parallax background visible.
  * Pure presentation module: never modifies physics, terrain or scoring.
@@ -45,7 +45,7 @@
       ctx.lineTo(hi-distance,surface(s,hi)+depth);
     }
   }
-  function drawTerrain({ctx,terrain,distance,width,height,baseY,primary,secondary,flow=0,lighting=0,glowLine,quality={glow:1,terrainStep:16,gridStep:105},tide=null,cameraView=null}){
+  function drawTerrain({ctx,terrain,distance,width,height,baseY,primary,secondary,flow=0,lighting=0,glowLine,quality={glow:1,terrainStep:16,gridStep:105},tide=null,cameraView=null,lightRig=null}){
     if(!ctx||!terrain||!terrain.segments)return;
     const viewLeft=Math.min(0,cameraView?.left??0);
     const viewRight=Math.max(width,cameraView?.right??width);
@@ -69,6 +69,7 @@
     const groundSecondary=tide?.active?tide.ambientColor('secondary'):secondary;
     const ambientGlow=clamp(quality.glow??1,.15,1);
     const illuminate=clamp(lighting,0,1)*ambientGlow;
+    const bounced=lightRig?.terrain;
 
     // Build one compound clip mask for all solid track. The floor, gradients and
     // grid are all clipped to it: the gap is literal transparency over the world.
@@ -86,9 +87,10 @@
     // Actual ground material receives a restrained colored bounce light.
     // Everything remains within the SAME solid-terrain clip, so no glow
     // paints a bridge across a real gap or changes a collision silhouette.
-    ground.addColorStop(0,rgba(groundPrimary,
-      .22+clamp(flow,0,100)*.0008+illuminate*.09));
-    ground.addColorStop(.18,rgba(groundSecondary,.10+illuminate*.035));
+    ground.addColorStop(0,rgba(groundPrimary,bounced?
+      bounced.surface:.22+clamp(flow,0,100)*.0008+illuminate*.09));
+    ground.addColorStop(.18,rgba(groundSecondary,bounced?
+      bounced.bounce:.10+illuminate*.035));
     ground.addColorStop(.55,'#0b1224');
     ground.addColorStop(1,'#050812');
     ctx.fillStyle=ground;
@@ -147,7 +149,8 @@
     ctx.strokeStyle=tide?.active?tide.gradient(ctx,width,'primary',baseY,height):primary;
     ctx.lineWidth=2.8;ctx.globalAlpha=.93;
     ctx.shadowColor=groundPrimary;
-    ctx.shadowBlur=(26+clamp(flow,0,100)*.12+illuminate*10)*ambientGlow;
+    ctx.shadowBlur=bounced?bounced.edgeGlow:
+      (26+clamp(flow,0,100)*.12+illuminate*10)*ambientGlow;
     ctx.stroke();ctx.restore();
 
     // One extra localized luminous SURFACE pass near the moving tide.

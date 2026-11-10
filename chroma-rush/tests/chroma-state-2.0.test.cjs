@@ -161,5 +161,5 @@ test('game composition attaches all layers behind the hazards and keeps existing
   assert.ok(env>=0&&obstacles>env,'ambient effects cannot cover incoming hazards');
   assert.ok(html.indexOf('src/render/chroma-state-vfx.js?v=speed-trails-2.0')<
     html.indexOf('src/gameplay/game.js?v=arcade-animation-2.0'));
-  assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0|ACTION DENSITY 2\.0|RUSH CHAINS 3\.0|ENDLESS ESCALATION 4\.0|VISUAL SIGNATURE 2\.0|AMBIENT LIGHTING 2\.1)/);
+  assert.match(html,/LATEST UPDATE · (?:PREMIUM ARCADE UI 4\.0|ARCADE SIMPLIFICATION 1\.0|CORE PACE 1\.1|CHROMA SURGE 1\.0|ACTION DENSITY 2\.0|RUSH CHAINS 3\.0|ENDLESS ESCALATION 4\.0|VISUAL SIGNATURE 2\.0|AMBIENT LIGHTING 2\.1|PREMIUM WORLD LIGHTING 3\.0)/);
 });

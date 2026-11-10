@@ -104,8 +104,10 @@ test('Jump Gate Polish 1.1: vertical veil ribs and horizontal cap engravings sta
   assert.ok(jump.lines.every(l=>!(l.y1===l.y2&&l.y1>energyTop&&l.y1<by)),
     'no horizontal glow line may appear in the energy field');
   const jumpBranch=sourceCode.split("if(o.type==='jump'){")[1].split('}else if(isEcho||isLow){')[0];
-  assert.match(jumpBranch,/rgba\(color,\.34\)/,'solid cap has richer 1.1 fill');
-  assert.match(jumpBranch,/rgba\(color,\.20\)/,'inner cap fill is enhanced');
+  assert.match(jumpBranch,/shell\(cap\.y,cap\.h,\.34\)/,
+    'the existing jump cap keeps its original fill in fallback and uses the shared material on newer builds');
+  assert.match(jumpBranch,/material\?\.inset\?\?\.20/,
+    'the existing inset still uses the original 0.20 fallback opacity');
   assert.ok(duck.events.some(e=>e[0]==='roundRectPath'),
     'Duck visuals remain the established visual reference');
 });

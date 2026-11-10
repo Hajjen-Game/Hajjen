@@ -1,8 +1,16 @@
-# CHROMA RUSH — Ambient Lighting 2.1 (Phase 2 correction)
+# CHROMA RUSH — Premium World Lighting & Cohesion 3.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.
 
 **Play:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+## Premium World Lighting & Cohesion 3.0 — shared illuminated world (2026-11-10)
+
+One synchronized neon lighting rig now feeds the **existing** background sky and horizon, the clipped track material, the cube's original glass shader and the **same obstacle shells** for ordinary Jump and short/wide Duck Gate. The original two background light gradients and actual physical ground edges remain; obstacles gain a restrained white-to-palette shell illumination with their **existing hitboxes and exterior contours**. HIGH graphic quality receives richer bloom, while Performance still preserves the critical hazard silhouettes.
+
+The new rig is evaluated **once per render frame** and does not produce new speed trails, decorative lines, buildings, rings, overlays or faux obstacles. The exact player-approved Chroma Tide source is unchanged. Endless Escalation Director 4.0, speed, gravity, input, collision, terrain generation and all audio preferences remain untouched.
+
+[Implementation and regression invariants](docs/premium-world-lighting-cohesion-3.0.md).
 
 ## Ambient Lighting 2.1 — player-led visual correction (2026-11-10)
 

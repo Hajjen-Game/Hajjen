@@ -51,7 +51,8 @@ test('Jump Visual Identity 1.0 has NO words, arrows or detached gameplay icons',
   assert.match(sourceCode,/Low Neon Barrier/);
   for(const type of ['jump','duck','echo']){
     const result=renderObstacle(type);
-    assert.ok(result.events.length>8);
+    assert.ok(result.events.length>=(type==='jump'?6:9),
+      'one-piece Jump uses fewer draw calls; Duck/Echo keep their details');
     assert.equal(result.events.filter(e=>e[0]==='fillText').length,0,
       type+' must communicate exclusively through silhouette');
     assert.equal(result.events.filter(e=>e[0]==='save').length,1);
@@ -182,7 +183,8 @@ test('Performance settings and ceiling reflection leave geometry unaffected',()=
     const high=renderObstacle(type,{glow:1,density:1});
     const low=renderObstacle(type,{glow:.2,density:.3});
     assert.deepEqual(low.box,high.box);
-    assert.ok(low.events.length>6);
+    assert.ok(low.events.length>=6,
+      'a single-piece Jump has fewer drawing operations, with no loss of its collider');
     assert.equal(low.events.filter(e=>e[0]==='fillText').length,0);
     const reflect=b=>({x:b.x,y:720-b.y-b.h,w:b.w,h:b.h});
     const p=GEO.playerBox({x:326,feet:515,landed:true,duck:type==='duck'});

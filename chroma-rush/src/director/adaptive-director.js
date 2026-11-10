@@ -161,12 +161,14 @@
         // Confident veterans reach the action sooner; new players retain
         // the same gentle zone-1 tutorial and recovery safety.
         case PHASE.BUILD:return clamp(
-          6.4+this.random()*1.6-zone*.04+this.stress*.8-.72*pressure,5.0,8.7);
+          6.4+this.random()*1.6-zone*.04+this.stress*.8-
+          .72*pressure-.20*lateRamp(zone)*pressure,5.0,8.7);
         // A true sustained PEAK: ~7-8s by the mid-game, with health/stress
         // still shortening extreme exposure after a hit.
         case PHASE.PEAK:return clamp(
           4.5+this.random()*1.4-zone*.035-this.stress*1.5+
-          1.40*this.enduranceFor(context)+3.05*pressure,2.8,9.2);
+          1.40*this.enduranceFor(context)+3.05*pressure+
+          1.05*lateRamp(zone)*pressure,2.8,9.2);
         case PHASE.FADE:return Math.max(1.5,2.1+this.stress*.45-.35*pressure);
         default:return Math.max(1.45,2.1+this.stress*1.15+
           (context.hp<=25?.85:context.hp<=50?.3:0)-.52*pressure);
@@ -248,7 +250,8 @@
       // Late density grows only after zone 24, with health-based relief.
       const masteryReduction=.29*this.densityFor(context);
       const actionReduction=this.actionPressureFor(context)*
-        (this.phase===PHASE.PEAK?.13:this.phase===PHASE.BUILD?.23:.06);
+        (this.phase===PHASE.PEAK?.13:this.phase===PHASE.BUILD?
+          .23+.10*lateRamp(zone):.06);
       const hpBonus=context.hp<=25?.23:context.hp<=50?.10:0;
       const breath=Math.min(.35,this.movement.pressure*.075);
       return clamp(base-zoneReduction-masteryReduction-actionReduction+

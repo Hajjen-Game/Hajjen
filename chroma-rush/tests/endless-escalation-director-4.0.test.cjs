@@ -160,3 +160,45 @@ test('real terrain keeps long Rush lanes and still reserves every third PEAK for
   assert.equal(gaps.rushRunway,false);
   assert.ok(gaps.gapChance>0&&gaps.echoGapChance>0);
 });
+
+test('ten-minute real procedural terrain course still completes Rush chains above zone 40',()=>{
+  for(const seed of [19,71]){
+    const d=new AdaptiveRushDirector(rng(seed));
+    d.dashIntroduced.ground=true;d.lastDashHazardAt=1e9;
+    const terrain=new TerrainSystem({random:rng(seed+900)});
+    const course=new UnifiedTerrainDirector({terrain,director:d});
+    const dt=1/30;let distance=0,lateActions=0,lateRush=0,lateVeto=0;
+    const arrivals=[];
+    for(let frame=0;frame<640*30;frame++){
+      const now=frame*dt,zone=Math.floor(now/12)+1;
+      const speed=GAME.speedAt(now,zone);
+      distance+=speed*dt;
+      const playerX=340,spawnX=playerX+speed*2.1;
+      course.prepare({right:distance+spawnX+speed*2.1+400,
+        playerWorld:distance+playerX,zone,speed,hp:100,surface:'floor'});
+      course.tick(dt,{zone,hp:100,speed,distance,playerX,
+        zoneElapsed:now%12,gravityPending:false,surface:'floor',
+        spawnXFor:()=>spawnX},step=>{
+        const world=distance+spawnX;
+        if(!terrain.canSpawnObstacle(world,68,speed)){
+          if(now>=480&&step.rush)lateVeto++;
+          return false;
+        }
+        if(now>=480){lateActions++;if(step.rush)lateRush++;}
+        arrivals.push({now,type:step.type,speed,world,rush:step.rush});
+        d.registerClear({action:step.type});
+        return true;
+      });
+      terrain.prune(distance+playerX,speed);
+    }
+    assert.ok(d.rush.completed>=4,{seed,rush:d.rush,lateActions,lateRush});
+    assert.ok(lateActions>=45,{seed,lateActions,lateRush,lateVeto});
+    assert.ok(lateRush>=12,{seed,lateRush,lateVeto});
+    assert.ok(d.insight.escalation.floor>10);
+    for(let i=1;i<arrivals.length;i++){
+      const a=arrivals[i-1],b=arrivals[i];
+      assert.ok(b.now-a.now>=minimumGap(a.type,b.type,b.speed)-.066,
+        {seed,previous:a,current:b});
+    }
+  }
+});

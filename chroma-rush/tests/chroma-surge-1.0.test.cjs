@@ -91,7 +91,7 @@ test('audit reports local surge statistics and stays in v3 format',()=>{
   assert.equal(out.summary.surge.bonusPoints,260);
   assert.equal(out.summary.surge.breaks,1);
   assert.equal(out.summary.surge.bestChain,2);
-  assert.equal(out.build,'phase-2-chroma-surge-1.0');
+  assert.equal(out.build,'phase-2-action-density-2.0');
 });
 
 test('actual game wires Surge to player-crossing and real clears only',()=>{

@@ -367,7 +367,7 @@
     arcadeUI.hud($,runMode==='practice');
     $.modeIndicator.classList.toggle('hidden',runMode==='arcade');
     if(runMode==='trial')$.modeIndicator.textContent='CHROMA TRIAL 001 · FIXED COURSE';
-    if(runMode==='reality')$.modeIndicator.textContent='REALITY 2.2 · OVERDRIVE + SENTINEL';
+    if(runMode==='reality')$.modeIndicator.textContent='REALITY 2.3 · FOLD / SENTINEL';
     $.trialTimer.classList.toggle('hidden',!fixedCourse());
     $.realityExport.classList.add('hidden');
     $.trialResultStats.classList.add('hidden');
@@ -422,7 +422,7 @@
       const result=records.finish({score:total,
         completed:time>=module.DURATION-1e-6&&hp>0});
       $.gameoverTitle.textContent=result.completed?'TRIAL COMPLETE':'TRIAL FAILED';
-      $.finalMode.textContent=isReality?'REALITY 2.2 · OVERDRIVE + SENTINEL':'CHROMA TRIAL 001 · 90 SECONDS';
+      $.finalMode.textContent=isReality?'REALITY 2.3 · SENTINEL REBIRTH':'CHROMA TRIAL 001 · 90 SECONDS';
       $.finalScore.textContent=total.toLocaleString('en-US');
       $.finalZoneLabel.textContent='TIME';$.finalZone.textContent=Math.min(module.DURATION,time).toFixed(1)+'s';
       $.finalBestLabel.textContent='TRIAL BEST';
@@ -1187,10 +1187,15 @@
       reality.tick(dt,{time,plan:trialPlan,
         playerWorld:distance+player.x,baseY:terrain.baseY,
         playerX:player.x,
-        spawnX:camera.worldX(W*.80,player.x),speed}):null;
+        spawnX:camera.worldX(W*.80,player.x),
+        // Inverse-project the exact screen-space core position back into
+        // collision world coordinates. Shots now originate INSIDE Sentinel.
+        bossY:camera.worldY(H*.31,floorY),speed}):null;
     if(realityEvent){
       runAudit.record('reality_'+realityEvent.type,auditState(),realityEvent);
       if(realityEvent.type==='route_selected'){
+        $.modeIndicator.textContent=realityEvent.route==='upper'?
+          'REALITY · UPPER OVERDRIVE ×2':'REALITY · LOWER FLOW';
         sound('zone');vib([12,24,18]);
         if(realityEvent.route==='upper'){
           // Distinct visual feedback only on an actual upper-deck landing.
@@ -1207,6 +1212,7 @@
         sound('perfect');vib([16,20,16]);
         if(!reducedMotion)frameEcho(player.x,player.feet-24,c2,46,1.2);
       }else if(realityEvent.type==='boss_phase'){
+        $.modeIndicator.textContent='REALITY · SENTINEL '+realityEvent.phase+'/3';
         sound('gravity-warning');vib(16);
       }else if(realityEvent.type==='boss_shot'){
         sound('dash-seal');

@@ -38,6 +38,8 @@ jobs:
         run: python chroma-rush/scripts/mobile-performance-audit.py
       - name: Validate mobile arcade settings, touch targets and HUD
         run: python chroma-rush/scripts/mobile-arcade-audit.py
+      - name: Capture real World Fold route and Sentinel attack browser scenes
+        run: python chroma-rush/scripts/reality-2.0-browser-audit.py
       - name: Retain performance audit captures
         if: always()
         uses: actions/upload-artifact@v4
@@ -51,6 +53,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: chroma-visual-audit
-          path: chroma-rush/artifacts/visual-audit/
+          path: |
+            chroma-rush/artifacts/visual-audit/
+            chroma-rush/artifacts/reality-audit/
           if-no-files-found: warn
           retention-days: 7

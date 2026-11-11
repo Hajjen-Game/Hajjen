@@ -131,7 +131,7 @@ function seededRace(seed=20261111){
       lineSeconds:0,flow:0,bestFlow:0,edgeCooldown:0,
       aiLane:id===0?lane[id]:lane[id]+(random()-.5)*9,
       aiTempo:id===0?1:.90+id*.022+(random()-.5)*.06,
-      contactFlash:0,impactCooldown:0,impulseX:0,impulseY:0,
+      contactFlash:0,gatePasses:0,lastGateTime:null,impactCooldown:0,impulseX:0,impulseY:0,
       knockSeconds:0,falls:0,knockouts:0,fallTimer:0,
       respawns:0,invulnerable:0,lastAttacker:null,unsafeImpact:false};
   });
@@ -161,36 +161,69 @@ function raceRanking(m){
 }
 function currentPosition(m,id=0){return raceRanking(m).indexOf(id)+1}
 function lapProgress(p,track=TRACK){
-  return {lap:Math.max(0,Math.floor(p.progress/track.length)+1),
-    fraction:mod(p.progress,track.length)/track.length,
+  return {lap:Math.max(1,p.laps+1),
+    fraction:clamp((p.progress-p.laps*track.length)/track.length,0,1),
     total:p.progress/track.length};
 }
-function updateProgress(m,p,nearest,dt){
-  const length=TRACK.length,old=mod(p.progress,length);
-  let delta=nearest.s-old;
-  if(delta>length/2)delta-=length;
-  if(delta<-length/2)delta+=length;
-  // No reverse laps and no teleport shortcut: progress is limited by
-  // physical forward movement in a single deterministic physics tick.
-  if(delta<-.6||delta>Math.max(8,p.speed*dt*2.3+4))return;
-  const before=p.progress;
-  p.progress+=Math.max(0,delta);
-  const lapBefore=Math.max(0,Math.floor(before/length));
-  const lapAfter=Math.max(0,Math.floor(p.progress/length));
-  if(lapAfter>lapBefore){
-    p.laps=lapAfter;
-    const lapTime=+(m.elapsed-p.lastLapStart).toFixed(3);
-    p.lapTimes.push(lapTime);
-    p.lastLapStart=m.elapsed;
-    log(m,'lap',{player:p.id,lap:p.laps,seconds:lapTime});
-    if(p.id===0){
-      m.announcement='LAP '+Math.min(p.laps+1,LAPS_TO_WIN)+' / '+LAPS_TO_WIN;
-      m.announcementTime=m.elapsed+1.1;
+const GATES=[0,.25,.5,.75].map(v=>pointAt(TRACK.length*v));
+function gateCrossed(from,to,gate,width=TRACK_HALF+PLAYER_RADIUS){
+  const tx=gate.tx,ty=gate.ty;
+  const before=(from.x-gate.x)*tx+(from.y-gate.y)*ty;
+  const after=(to.x-gate.x)*tx+(to.y-gate.y)*ty;
+  if(!(before<-.00001&&after>=0))return false;
+  const factor=-before/(after-before);
+  if(factor<0||factor>1)return false;
+  const crossingX=from.x+(to.x-from.x)*factor;
+  const crossingY=from.y+(to.y-from.y)*factor;
+  const lane=(crossingX-gate.x)*gate.nx+(crossingY-gate.y)*gate.ny;
+  return Math.abs(lane)<=width;
+}
+function updateProgress(m,p,from,nearest,dt){
+  const length=TRACK.length,quarter=length/4;
+  // Credit an actual lap ONLY after passing four ordered physical gates
+  // around the complete closed road. This never uses a projected progress
+  // delta: a 1.0 projection mismatch used to permanently lock progress
+  // until another entire circuit, silently throwing away physical laps.
+  const expected=p.gatePasses%4,gate=GATES[expected];
+  const to={x:p.x,y:p.y};
+  if(gateCrossed(from,to,gate)){
+    p.gatePasses++;
+    p.lastGateTime=m.elapsed;
+    log(m,'checkpoint',{player:p.id,gate:expected,passed:p.gatePasses,
+      projected:+nearest.s.toFixed(1)});
+    if(expected===0&&p.gatePasses>1){
+      p.laps++;
+      const lapTime=+(m.elapsed-p.lastLapStart).toFixed(3);
+      p.lapTimes.push(lapTime);
+      p.lastLapStart=m.elapsed;
+      log(m,'lap',{player:p.id,lap:p.laps,seconds:lapTime,
+        validatedBy:'physical-checkpoints'});
+      if(p.id===0){
+        m.announcement='LAP '+Math.min(p.laps+1,LAPS_TO_WIN)+' / '+LAPS_TO_WIN;
+        m.announcementTime=m.elapsed+1.1;
+      }
+      if(p.laps>=LAPS_TO_WIN){
+        p.finished=true;p.finishTime=m.elapsed;
+        log(m,'finish',{player:p.id,time:+m.elapsed.toFixed(3)});
+      }
     }
-    if(p.laps>=LAPS_TO_WIN){
-      p.finished=true;p.finishTime=m.elapsed;
-      log(m,'finish',{player:p.id,time:+m.elapsed.toFixed(3)});
-    }
+  }
+  // The nearest-road projection may jump when a cube scrapes an inside
+  // corner. Ranking/guide progress is bounded by the physical checkpoint
+  // interval; it cannot freeze forever and never invents a completed lap.
+  if(p.gatePasses===0){
+    p.progress=clamp(nearest.s-length,-Math.max(110,length*.18),0);
+  }else{
+    const start=(p.gatePasses-1)*quarter;
+    const qIndex=(p.gatePasses-1)%4;
+    const baseLap=Math.floor((p.gatePasses-1)/4);
+    let raw=nearest.s-qIndex*quarter;
+    if(qIndex===0&&nearest.s>length*.75)raw=-1;
+    else if(qIndex===3&&nearest.s<length*.20)raw=quarter;
+    p.progress=clamp(start+raw,start,start+quarter);
+    // p.laps is authoritative for HUD/results and never inferred from
+    // an unreliable local projection.
+    if(p.finished)p.progress=Math.max(p.progress,p.laps*length);
   }
 }
 function desiredAI(m,p){
@@ -316,8 +349,9 @@ function moveRacer(m,p,input,dt){
     }
     nearest=closest(proposed.x,proposed.y);
   }
+  const previous={x:p.x,y:p.y};
   p.x=proposed.x;p.y=proposed.y;
-  updateProgress(m,p,nearest,dt);
+  updateProgress(m,p,previous,nearest,dt);
   if(p.id===0){
     if(nearest.dist<24&&!brake){
       p.flow=clamp(p.flow+dt*.34,0,1);
@@ -421,6 +455,7 @@ function audit(m){
   return {schema:'neon-circuit-run-audit/1.1',build:'neon-circuit-1.1',
     seed:m.seed,status:m.finished?'completed':'in_progress',
     summary:{durationSeconds:+m.elapsed.toFixed(3),highestZone:m.zone+1,
+      lapValidation:'four-ordered-physical-gates',
       finishPlace:m.finishPlace,lapsCompleted:p.laps,
       lapFraction:+lapProgress(p).fraction.toFixed(3),
       lapTimes:p.lapTimes.slice(),speed:Math.round(p.speed),
@@ -431,6 +466,7 @@ function audit(m){
       finishCompleted:p.finished,performance:{...m.performance}},
     racers:m.racers.map(r=>({
       id:r.id,finished:r.finished,laps:r.laps,
+      gatePasses:r.gatePasses,
       finishTime:r.finishTime,edgeHits:r.edgeHits,contacts:r.contacts,
       dashes:r.dashes,falls:r.falls,respawns:r.respawns,
       knockouts:r.knockouts,lapTimes:r.lapTimes.slice()})),
@@ -441,6 +477,6 @@ function audit(m){
 return {WIDTH,HEIGHT,CX,CY,COLORS,NAMES,NODES,TRACK,TRACK_SHAPE,
   TRACK_HALF,PLAYER_RADIUS,RAMP_START,FALL_SECONDS,RESPAWN_GRACE,
   READY_SECONDS,ZONE_SECONDS,LAPS_TO_WIN,DASH_TIME,DASH_COOLDOWN,STEP,zoneAt,zoneSpeed,
-  angleDelta,makeTrack,pointAt,closest,directionAt,seededRace,
+  angleDelta,makeTrack,pointAt,closest,directionAt,gateCrossed,GATES,seededRace,
   tick,currentPosition,lapProgress,raceRanking,audit,desiredAI};
 });

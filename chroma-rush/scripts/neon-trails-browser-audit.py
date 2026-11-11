@@ -3,6 +3,7 @@
 from __future__ import annotations
 import json
 import os
+import re
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
@@ -57,8 +58,8 @@ def main():
             page.mouse.move(x+box["width"]*.25,y-box["height"]*.15,steps=4)
             assert "calc(" in (page.locator("#trails-stick").get_attribute("style") or "")
             page.mouse.up()
-            assert "translate(-50%,-50%)" in (
-                page.locator("#trails-stick").get_attribute("style") or "")
+            neutral=page.locator("#trails-stick").get_attribute("style") or ""
+            assert re.search(r"translate\(-50%,\s*-50%\)",neutral), neutral
             page.locator("#trails-boost").click()
             page.wait_for_timeout(65)
             assert page.locator("#trails-boost").is_disabled(), "Boost must cool down"

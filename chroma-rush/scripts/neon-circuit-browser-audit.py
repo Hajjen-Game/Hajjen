@@ -104,7 +104,7 @@ def main():
                 assert first["world"]==after["world"],(first,after)
                 road_delta=sum(abs(a-b) for a,b in
                                zip(first["road"],after["road"]))
-                assert road_delta>15,(road_delta,first,after)
+                assert road_delta>35,(road_delta,first,after)
                 page.screenshot(path=str(OUT/"circuit-track-tide-complete.png"))
             page.locator("#circuit-pause").click()
             assert page.locator("#circuit-pause-menu").is_visible()

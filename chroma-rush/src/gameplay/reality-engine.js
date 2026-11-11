@@ -163,13 +163,13 @@
       this.successfulClears++;
       if(time>=SENTINEL.start&&time<=SENTINEL.end)this.sentinelClears++;
       // Real clear -> atmosphere; no phantom combo, colliders, or score.
-      this.resonance=clamp(this.resonance+(master?.32:precision?.25:.14),0,1);
+      this.resonance=clamp(this.resonance+(master ? .32 : precision ? .25 : .14),0,1);
     }
     get snapshot(){return {foldWarnings:this.foldWarnings,
       foldsCompleted:this.foldsCompleted,clears:this.successfulClears,
       sentinelClears:this.sentinelClears};}
     drawBackdrop(ctx,{time=0,width=1280,height=720,primary='#3feeff',
-      secondary='#e265ff',quality={},reducedMotion=false}={}){
+      secondary='#e265ff',quality={},reducedMotion=false,gravity=null}={}){
       const density=clamp(quality.density??1,.3,1);
       ctx.save();
       // World Symphony: only translucent atmospheric bars high above the
@@ -184,16 +184,33 @@
           ctx.fillRect(width*.05,y,width*(.25+.11*i),2+i%2);
         }
       }
+      // A non-solid curved contour signals the two worlds bending into one.
+      // It stays in the background and is never represented as real ground.
+      if(gravity?.shifting&&!reducedMotion){
+        const foldStrength=Math.sin(Math.PI*gravity.shiftAge/.58)*density;
+        for(let i=0;i<3;i++){
+          ctx.globalAlpha=foldStrength*(.13-i*.03);
+          ctx.strokeStyle=i===1?secondary:primary;ctx.lineWidth=2-i*.35;
+          const rise=height*(.14+i*.035);
+          ctx.beginPath();ctx.moveTo(width*.14,height*.62+rise);
+          ctx.bezierCurveTo(width*.39,height*.62+rise,
+            width*.53,height*.38-rise,width*.84,height*.38-rise);
+          ctx.stroke();
+        }
+      }
       // Sentinel is scenery, NOT a collider or projectile. Keep it in the
       // upper-right SKY and behind actual terrain/obstacles and HUD.
       const fade=clamp((time-SENTINEL.start)/1.4,0,1)*
         clamp((SENTINEL.end+1.5-time)/1.5,0,1);
       if(fade>0){
+        // Core anticipates the next REAL authored attack; it creates no hazard.
+        const nextAttack=ACTIONS.find(([at])=>at>=time&&at<=SENTINEL.end);
+        const anticipation=nextAttack?clamp(1-(nextAttack[0]-time)/.85,0,1):0;
         const x=width*.78,y=height*.30,r=Math.min(width,height)*.087;
         ctx.translate(x,y);
         const pulse=reducedMotion?1:1+.025*Math.sin(time*4);
         ctx.scale(r*pulse,r*pulse);
-        ctx.globalAlpha=fade*(.40+.17*power);
+        ctx.globalAlpha=fade*(.40+.17*power+.14*anticipation);
         ctx.strokeStyle=secondary;ctx.lineWidth=.058;
         ctx.fillStyle='#151731';
         ctx.beginPath();

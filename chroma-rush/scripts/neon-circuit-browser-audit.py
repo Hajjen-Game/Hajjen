@@ -33,10 +33,15 @@ def main():
                 return {closed:Math.hypot(pts[0].x-pts.at(-1).x,
                     pts[0].y-pts.at(-1).y),length:c.TRACK.length,
                     points:pts.length,geometryFinite:check,
-                    racerCount:r.racers.length,zoneSeconds:c.ZONE_SECONDS};
+                    racerCount:r.racers.length,zoneSeconds:c.ZONE_SECONDS,
+                    courses:c.TRACKS.map(t=>({id:t.courseId,length:t.length,
+                      name:t.name,closed:Math.hypot(t.samples[0].x-t.samples.at(-1).x,
+                        t.samples[0].y-t.samples.at(-1).y)}))};
             }""")
             assert geometry["closed"]<.01 and geometry["geometryFinite"],geometry
             assert geometry["length"]>1200 and geometry["racerCount"]==4,geometry
+            assert len(geometry["courses"])==3,geometry
+            assert all(t["closed"]<.01 for t in geometry["courses"]),geometry
             page.locator("#circuit-start").click()
             page.wait_for_timeout(300)
             assert page.locator("#circuit-joystick").is_visible()
@@ -77,6 +82,30 @@ def main():
             page.wait_for_timeout(100)
             assert page.locator("#circuit-dash").is_disabled(),"Dash cooldown missing"
             page.screenshot(path=str(OUT/f"circuit-race-{w}.png"))
+            if w==960:
+                # Pixel regression: the color wave MUST repaint the asphalt
+                # while the inner-circuit background remains byte-identical.
+                def colors():
+                    return page.evaluate("""() => {
+                      const c=document.getElementById('circuit-canvas'),
+                        g=c.getContext('2d');
+                      const at=(x,y)=>Array.from(g.getImageData(
+                        Math.round(x),Math.round(y),1,1).data);
+                      return {world:at(480,270),road:at(550,119)};
+                    }""")
+                first=colors()
+                page.wait_for_function(
+                    "() => document.getElementById('circuit-zone').textContent === 'ZONE 02'",
+                    timeout=22000)
+                page.wait_for_timeout(550)
+                page.screenshot(path=str(OUT/"circuit-track-tide-mid.png"))
+                page.wait_for_timeout(1100)
+                after=colors()
+                assert first["world"]==after["world"],(first,after)
+                road_delta=sum(abs(a-b) for a,b in
+                               zip(first["road"],after["road"]))
+                assert road_delta>15,(road_delta,first,after)
+                page.screenshot(path=str(OUT/"circuit-track-tide-complete.png"))
             page.locator("#circuit-pause").click()
             assert page.locator("#circuit-pause-menu").is_visible()
             with page.expect_download() as waiter:
@@ -86,7 +115,9 @@ def main():
             destination=OUT/f"circuit-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/1.1",log
+            assert log["schema"]=="neon-circuit-run-audit/1.2",log
+            assert log["summary"]["waveMode"]=="forward-track-only",log
+            assert log["courseId"]==geometry["courses"][0]["id"],log
             assert log["status"]=="in_progress",log
             assert log["summary"]["dashes"]==1,log
             page.locator("#circuit-resume").click()
@@ -113,11 +144,26 @@ def main():
               c.tick(m,{x:at.tx,y:at.ty},1/30);
               result.completed=racer.finished;result.place=m.finishPlace;
               result.laps=racer.laps;
+              const w=c.waveState(m);
+              result.waveScope=w.scope;result.waveDirection=w.direction;
+              result.waveProgress=w.progress;
               return result;
             }""")
             assert logic["zone"]==1 and logic["tide"]>0,logic
             assert logic["speed"]==130 and logic["completed"],logic
             assert logic["laps"]==3,logic
+            assert (logic["waveScope"]=="track-only" and
+                    logic["waveDirection"]=="forward"),logic
+            # Each new race changes the course rather than repeating an
+            # identical oval. The HUD names the new route at countdown.
+            page.locator("#circuit-pause").click()
+            page.locator("#circuit-restart").click()
+            assert "SPECTRAL STRAIGHTS" in page.locator("#circuit-announce").inner_text()
+            page.screenshot(path=str(OUT/f"circuit-course-2-{w}.png"))
+            page.locator("#circuit-pause").click()
+            page.locator("#circuit-restart").click()
+            assert "APEX SWITCHBACK" in page.locator("#circuit-announce").inner_text()
+            page.screenshot(path=str(OUT/f"circuit-course-3-{w}.png"))
             assert not errors,errors
             all_checks.append({"viewport":[w,h],"track":geometry,
                 "pixels":pixels,"raceRules":logic,

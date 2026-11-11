@@ -1,7 +1,7 @@
-/* CHROMA RUSH — NEON CIRCUIT 1.1: Track & Impact Rebuild
- * Real rounded-straight circuit, consistent actual laps, steering recovery,
- * high-energy bumper collisions, ramp ejection & fair timed respawns.
- * Shared speed/tide progression. Pure deterministic physics + event audit.
+/* CHROMA RUSH — NEON CIRCUIT 1.2: Course Variety & Track Tide
+ * Three hand-curated readable circuits with long straights and gentle
+ * chicanes. Physical lap gates and AI use each race's own geometry.
+ * A directional zone wave repaints only the race track, not the world.
  */
 (function(root,factory){
   const api=factory();
@@ -15,6 +15,7 @@ const RAMP_START=TRACK_HALF-PLAYER_RADIUS-1;
 const FALL_SECONDS=.72,RESPAWN_GRACE=1.22;
 const IMPACT_COOLDOWN=.64,IMPACT_FRICTION=.855;
 const ZONE_SECONDS=10,LAPS_TO_WIN=3,READY_SECONDS=2.4,STEP=1/60;
+const COLOR_WAVE_SECONDS=1.45;
 const COLORS=['#60ecff','#ff71ac','#ffe26a','#9f8aff'];
 const NAMES=['YOU','NOVA','VOLT','HEX'];
 const DASH_TIME=.34,DASH_COOLDOWN=5.4;
@@ -25,6 +26,8 @@ const NODES=[
   [388,119],[675,119],[777,221],[777,319],
   [675,421],[286,421],[184,319],[184,221]
 ];
+const COURSE_NAMES=['CHROMA CHICANE','SPECTRAL STRAIGHTS','APEX SWITCHBACK'];
+const COURSE_IDS=['chroma-chicane','spectral-straights','apex-switchback'];
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,Number.isFinite(n)?n:a));
 const hypot=Math.hypot;
 const mod=(x,n)=>(x%n+n)%n;
@@ -34,7 +37,7 @@ const zoneSpeed=z=>Math.min(187,118+12*Math.max(0,z));
 const rand=seed=>{let n=(seed>>>0)||0x6e624eb7;
   return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296};
 };
-function makeTrack(shape=TRACK_SHAPE,steps=20){
+function makeTrack(shape=TRACK_SHAPE,steps=20,variant=0){
   const {left:L,right:R,top:T,bottom:B,radius:r}=shape;
   if(!(r>0&&R-L>r*2&&B-T>r*2))throw Error('Invalid Circuit shape');
   const samples=[];
@@ -68,6 +71,43 @@ function makeTrack(shape=TRACK_SHAPE,steps=20){
   line(L,B-r,L,T+r);
   arc(L+r,T+r,Math.PI,Math.PI*1.5);
   line(L+r,T,sx,T);
+  // Gentle continuous changes to selected straight sectors. These are
+  // fixed curated courses, not randomized turns. Endpoints have zero
+  // slope displacement, preserving smooth tangent joins with the bends.
+  const upperA=L+r+18,upperB=R-r-18;
+  const lowerA=L+r+18,lowerB=R-r-18;
+  const influence=(x,a,b)=>{
+    const u=clamp((x-a)/(b-a),0,1);
+    return {u,e:Math.sin(Math.PI*u)**2};
+  };
+  for(const p of samples){
+    if(variant===0 && Math.abs(p.y-B)<.00001){
+      const {u,e}=influence(p.x,lowerA,lowerB);
+      p.y-=36*Math.sin(2*Math.PI*u)*e;
+    }else if(variant===1){
+      if(Math.abs(p.y-T)<.00001){
+        const {u,e}=influence(p.x,upperA,upperB);
+        p.y+=32*Math.sin(2*Math.PI*u)*e;
+      }else if(Math.abs(p.y-B)<.00001){
+        const {u,e}=influence(p.x,lowerA,lowerB);
+        p.y-=21*e;
+      }
+    }else if(variant===2){
+      if(Math.abs(p.y-B)<.00001){
+        const {u,e}=influence(p.x,lowerA,lowerB);
+        p.y-=38*e;
+      }else if(Math.abs(p.y-T)<.00001){
+        const {u,e}=influence(p.x,upperA,upperB);
+        p.y+=20*e;
+      }else if(Math.abs(p.x-L)<.00001){
+        const {u,e}=influence(p.y,T+r+10,B-r-10);
+        p.x+=25*e;
+      }else if(Math.abs(p.x-R)<.00001){
+        const {u,e}=influence(p.y,T+r+10,B-r-10);
+        p.x-=25*e;
+      }
+    }
+  }
   let total=0;samples[0].s=0;
   for(let i=1;i<samples.length;i++){
     total+=hypot(samples[i].x-samples[i-1].x,
@@ -76,9 +116,12 @@ function makeTrack(shape=TRACK_SHAPE,steps=20){
   }
   return {samples,length:total,half:TRACK_HALF,
     pointCount:samples.length,shape:{...shape},
-    layout:'straight-arc',segmentKinds:['straight','quarter-arc']};
+    variant,courseId:COURSE_IDS[variant]||COURSE_IDS[0],
+    name:COURSE_NAMES[variant]||COURSE_NAMES[0],
+    layout:'straight-arc',segmentKinds:['straight','quarter-arc','soft-chicane']};
 }
-const TRACK=makeTrack();
+const TRACKS=COURSE_NAMES.map((_,index)=>makeTrack(TRACK_SHAPE,20,index));
+const TRACK=TRACKS[0];
 function pointAt(s,track=TRACK){
   const distance=mod(s,track.length),list=track.samples;
   let lo=0,hi=list.length-1;
@@ -115,14 +158,17 @@ function directionAt(s,lead=68,track=TRACK){
   const a=pointAt(s,track),b=pointAt(s+lead,track);
   return Math.atan2(b.y-a.y,b.x-a.x);
 }
-function seededRace(seed=20261111){
+function seededRace(seed=20261111,courseId=0){
   const random=rand(seed);
+  const courseIndex=mod(Math.floor(courseId),TRACKS.length);
+  const track=TRACKS[courseIndex];
+  const gates=[0,.25,.5,.75].map(v=>pointAt(track.length*v,track));
   // The player begins third: overtaking is visible from the first lap,
   // without forcing all four racers into repeated front-to-back contacts.
   const grid=[-56,-84,-28,-12];
   const lane=[-13,13,-13,13];
   const racers=grid.map((distance,id)=>{
-    const p=pointAt(distance),off=lane[id];
+    const p=pointAt(distance,track),off=lane[id];
     return {id,name:NAMES[id],color:COLORS[id],
       x:p.x+p.nx*off,y:p.y+p.ny*off,angle:p.angle,
       speed:0,progress:distance,laps:0,finished:false,finishTime:null,
@@ -135,16 +181,18 @@ function seededRace(seed=20261111){
       knockSeconds:0,falls:0,knockouts:0,fallTimer:0,
       respawns:0,invulnerable:0,lastAttacker:null,unsafeImpact:false};
   });
-  const race={seed,random,racers,ready:READY_SECONDS,elapsed:0,
-    zone:0,tide:0,phase:'ready',finished:false,finishPlace:null,
+  const race={seed,random,racers,track,gates,courseIndex,
+    ready:READY_SECONDS,elapsed:0,
+    zone:0,tide:0,waveStartS:0,phase:'ready',finished:false,finishPlace:null,
     winner:null,announcement:'READY',announcementTime:0,
     events:[],overflow:0,maxEvents:450,
     impacts:[],contactPairs:{},performance:{
       frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     quality:'auto'};
-  log(race,'race_start',{mode:'neon-circuit-1.1',laps:LAPS_TO_WIN,
-    trackLength:Math.round(TRACK.length),track:'rounded-straights',
-    impact:'ejection-and-respawn'});
+  log(race,'race_start',{mode:'neon-circuit-1.2',laps:LAPS_TO_WIN,
+    trackLength:Math.round(track.length),track:track.courseId,
+    course:track.name,impact:'ejection-and-respawn',
+    zoneWave:'forward-track-only'});
   return race;
 }
 function log(m,type,detail={}){
@@ -179,12 +227,12 @@ function gateCrossed(from,to,gate,width=TRACK_HALF+PLAYER_RADIUS){
   return Math.abs(lane)<=width;
 }
 function updateProgress(m,p,from,nearest,dt){
-  const length=TRACK.length,quarter=length/4;
+  const length=m.track.length,quarter=length/4;
   // Credit an actual lap ONLY after passing four ordered physical gates
   // around the complete closed road. This never uses a projected progress
   // delta: a 1.0 projection mismatch used to permanently lock progress
   // until another entire circuit, silently throwing away physical laps.
-  const expected=p.gatePasses%4,gate=GATES[expected];
+  const expected=p.gatePasses%4,gate=m.gates[expected];
   const to={x:p.x,y:p.y};
   if(gateCrossed(from,to,gate)){
     p.gatePasses++;
@@ -227,13 +275,13 @@ function updateProgress(m,p,from,nearest,dt){
   }
 }
 function desiredAI(m,p){
-  const s=closest(p.x,p.y).s;
+  const s=closest(p.x,p.y,m.track).s;
   const look=clamp(p.speed*.53,59,103);
-  const ahead=pointAt(s+look);
+  const ahead=pointAt(s+look,m.track);
   const lane=p.aiLane*(.68+.08*Math.sin(m.elapsed*.7+p.id));
   const tx=ahead.x+ahead.nx*lane,ty=ahead.y+ahead.ny*lane;
   const angle=Math.atan2(ty-p.y,tx-p.x);
-  const near=pointAt(s+28),future=pointAt(s+120);
+  const near=pointAt(s+28,m.track),future=pointAt(s+120,m.track);
   const curve=Math.abs(angleDelta(near.angle,future.angle));
   return {angle,brake:curve>.57&&p.speed>115,
     line:s,curvature:curve};
@@ -257,7 +305,7 @@ function fallOff(m,p){
 function respawn(m,p){
   // The racing clock never resets. The cube appears safely near its last
   // validated position. A small setback costs time, not a whole lap.
-  const target=pointAt(p.progress-27),offset=p.id%2?6:-6;
+  const target=pointAt(p.progress-27,m.track),offset=p.id%2?6:-6;
   p.x=target.x+target.nx*offset;
   p.y=target.y+target.ny*offset;
   p.angle=target.angle;
@@ -284,12 +332,12 @@ function moveRacer(m,p,input,dt){
   p.knockSeconds=Math.max(0,p.knockSeconds-dt);
   p.contactFlash=Math.max(0,p.contactFlash-dt);
   let brake=false,desired=p.angle;
-  const now=closest(p.x,p.y);
+  const now=closest(p.x,p.y,m.track);
   if(p.id===0){
     brake=!!input.brake;
     const x=Number.isFinite(input.x)?input.x:0;
     const y=Number.isFinite(input.y)?input.y:0;
-    const guide=pointAt(now.s+clamp(p.speed*.35,33,58));
+    const guide=pointAt(now.s+clamp(p.speed*.35,33,58),m.track);
     const trackGuide=Math.atan2(guide.y-p.y,guide.x-p.x);
     if(hypot(x,y)>.13){
       desired=Math.atan2(y,x);
@@ -323,7 +371,7 @@ function moveRacer(m,p,input,dt){
   // collisions and allowing a strong impact to carry racers over the lip.
   p.impulseX*=Math.pow(IMPACT_FRICTION,dt*60);
   p.impulseY*=Math.pow(IMPACT_FRICTION,dt*60);
-  let nearest=closest(proposed.x,proposed.y);
+  let nearest=closest(proposed.x,proposed.y,m.track);
   const limit=RAMP_START;
   if(nearest.dist>limit){
     if(p.unsafeImpact&&p.knockSeconds>.05&&p.invulnerable<=0&&
@@ -337,7 +385,7 @@ function moveRacer(m,p,input,dt){
     proposed.y=nearest.y+(proposed.y-nearest.y)*factor;
     // No more repeated 45% losses and near-zero "speed 5" stalls.
     p.speed=Math.max(zoneSpeed(m.zone)*.69,p.speed*.86);
-    const inward=pointAt(nearest.s+52);
+    const inward=pointAt(nearest.s+52,m.track);
     const escape=Math.atan2(inward.y-proposed.y,inward.x-proposed.x);
     p.angle+=angleDelta(p.angle,escape)*.72;
     p.impulseX*=.35;p.impulseY*=.35;
@@ -347,7 +395,7 @@ function moveRacer(m,p,input,dt){
       log(m,'edge_scrape',{player:p.id,lap:p.laps+1,zone:m.zone+1,
         speed:Math.round(p.speed)});
     }
-    nearest=closest(proposed.x,proposed.y);
+    nearest=closest(proposed.x,proposed.y,m.track);
   }
   const previous={x:p.x,y:p.y};
   p.x=proposed.x;p.y=proposed.y;
@@ -431,10 +479,17 @@ function tick(m,input={},dt=STEP){
   m.elapsed+=step;
   m.zone=zoneAt(m.elapsed);
   if(m.zone!==oldZone){
-    m.tide=1.12;
+    m.tide=COLOR_WAVE_SECONDS;
+    // At the zone boundary the pigment begins just behind the player,
+    // then travels *forward* along this track's arc-length geometry.
+    m.waveStartS=mod(closest(m.racers[0].x,m.racers[0].y,m.track).s-92,
+      m.track.length);
     m.announcement='ZONE '+String(m.zone+1).padStart(2,'0')+' · SPEED UP';
     m.announcementTime=m.elapsed+1.2;
-    log(m,'zone',{zone:m.zone+1,speed:zoneSpeed(m.zone)});
+    log(m,'zone',{zone:m.zone+1,speed:zoneSpeed(m.zone),
+      waveStart:+m.waveStartS.toFixed(1),
+      waveDirection:'forward',waveScope:'track-only',
+      waveSeconds:COLOR_WAVE_SECONDS});
   }
   m.tide=Math.max(0,m.tide-step);
   for(const p of m.racers)moveRacer(m,p,input,step);
@@ -450,12 +505,25 @@ function tick(m,input={},dt=STEP){
   }
   return m;
 }
+function waveState(m){
+  const progress=clamp(1-m.tide/COLOR_WAVE_SECONDS,0,1);
+  const start=mod(m.waveStartS||0,m.track.length);
+  return {progress,start,length:m.track.length,
+    reach:m.track.length*progress,
+    frontS:mod(start+m.track.length*progress,m.track.length),
+    active:m.zone>0&&m.tide>0,
+    direction:'forward',scope:'track-only'};
+}
 function audit(m){
   const p=m.racers[0];
-  return {schema:'neon-circuit-run-audit/1.1',build:'neon-circuit-1.1',
+  return {schema:'neon-circuit-run-audit/1.2',build:'neon-circuit-1.2',
     seed:m.seed,status:m.finished?'completed':'in_progress',
+    courseId:m.track.courseId,courseName:m.track.name,
+    trackLength:+m.track.length.toFixed(1),
     summary:{durationSeconds:+m.elapsed.toFixed(3),highestZone:m.zone+1,
       lapValidation:'four-ordered-physical-gates',
+      waveMode:'forward-track-only',
+      waveTransitions:m.events.filter(e=>e.type==='zone').length,
       finishPlace:m.finishPlace,lapsCompleted:p.laps,
       lapFraction:+lapProgress(p).fraction.toFixed(3),
       lapTimes:p.lapTimes.slice(),speed:Math.round(p.speed),
@@ -474,9 +542,11 @@ function audit(m){
     limits:{maxEvents:m.maxEvents,droppedEvents:m.overflow},
     privacy:'Local export only; no raw joystick, device identifiers or network telemetry'};
 }
-return {WIDTH,HEIGHT,CX,CY,COLORS,NAMES,NODES,TRACK,TRACK_SHAPE,
+return {WIDTH,HEIGHT,CX,CY,COLORS,NAMES,NODES,TRACK,TRACKS,TRACK_SHAPE,
+  COURSE_NAMES,COURSE_IDS,COLOR_WAVE_SECONDS,
   TRACK_HALF,PLAYER_RADIUS,RAMP_START,FALL_SECONDS,RESPAWN_GRACE,
   READY_SECONDS,ZONE_SECONDS,LAPS_TO_WIN,DASH_TIME,DASH_COOLDOWN,STEP,zoneAt,zoneSpeed,
-  angleDelta,makeTrack,pointAt,closest,directionAt,gateCrossed,GATES,seededRace,
+  angleDelta,makeTrack,pointAt,closest,directionAt,gateCrossed,GATES,
+  waveState,seededRace,
   tick,currentPosition,lapProgress,raceRanking,audit,desiredAI};
 });

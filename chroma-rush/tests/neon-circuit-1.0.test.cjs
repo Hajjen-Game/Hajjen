@@ -119,14 +119,14 @@ test('Circuit visual palette affects road only; atmosphere is static across zone
   const js=read('src/gameplay/neon-circuit.js');
   const bg=js.slice(js.indexOf('function drawStatic('),
     js.indexOf('// Cached atmosphere and road:'));
-  assert.match(bg,/sky.addColorStop\\(\\.46,'#10263b'\\)/);
-  assert.match(bg,/haze.addColorStop\\(0,rgb\\('#307caf'/);
-  assert.doesNotMatch(bg,/rgb\\(primary/);
-  assert.doesNotMatch(bg,/rgb\\(secondary/);
-  assert.doesNotMatch(bg,/mix\\('#0a1828',shadow/);
-  assert.match(js,/appendRoadSlice/);
-  assert.match(js,/drawWaveFront/);
-  assert.match(js,/getStatic\\(z-1,track\\)/);
+  assert.ok(bg.includes("sky.addColorStop(.46,'#10263b')"));
+  assert.ok(bg.includes("haze.addColorStop(0,rgb('#307caf'"));
+  assert.ok(!bg.includes('rgb(primary'));
+  assert.ok(!bg.includes('rgb(secondary'));
+  assert.ok(!bg.includes("mix('#0a1828',shadow"));
+  assert.ok(js.includes('appendRoadSlice'));
+  assert.ok(js.includes('drawWaveFront'));
+  assert.ok(js.includes('getStatic(z-1,track)'));
 });
 test('Countdown starts safely and 10-second color zones increase real racing speed',()=>{
   const m=c.seededRace(123),p=m.racers[0];

@@ -400,22 +400,64 @@ function drawImpacts(r){
     ctx.restore();
   }
 }
+// A world-space ribbon follows the circuit in POSITIVE driving direction.
+// Two ribbons cover wraparound with no diagonal through the center.
+function appendRoadSlice(g,track,from,to,half){
+  if(to<=from+.0001)return;
+  const count=Math.max(2,Math.ceil((to-from)/13));
+  for(let i=0;i<=count;i++){
+    const p=CORE.pointAt(from+(to-from)*i/count,track);
+    const x=p.x+p.nx*half,y=p.y+p.ny*half;
+    if(i===0)g.moveTo(x,y);else g.lineTo(x,y);
+  }
+  for(let i=count;i>=0;i--){
+    const p=CORE.pointAt(from+(to-from)*i/count,track);
+    g.lineTo(p.x-p.nx*half,p.y-p.ny*half);
+  }
+  g.closePath();
+}
+function clipWaveRepaint(g,track,wave){
+  const end=wave.start+wave.reach,L=track.length;
+  g.beginPath();
+  if(end>L){
+    appendRoadSlice(g,track,wave.start,L,69);
+    appendRoadSlice(g,track,0,end-L,69);
+  }else appendRoadSlice(g,track,wave.start,end,69);
+  g.clip();
+}
+function drawWaveFront(g,track,wave,color){
+  if(reduced()||!wave.active)return;
+  const lead=wave.start+wave.reach;
+  // Following the road edges instead of drawing a full-width bar:
+  // this reads as pigment movement, not as a new physical obstacle.
+  g.save();g.lineJoin='round';g.lineCap='round';
+  for(const side of [-1,1]){
+    g.beginPath();
+    for(let i=0;i<=10;i++){
+      const p=CORE.pointAt(lead-95+104*i/10,track);
+      const x=p.x+p.nx*45*side,y=p.y+p.ny*45*side;
+      if(i===0)g.moveTo(x,y);else g.lineTo(x,y);
+    }
+    g.globalAlpha=.17;g.strokeStyle=color;g.lineWidth=7;g.stroke();
+    g.globalAlpha=.72;g.strokeStyle=mix(color,'#ffffff',.62);
+    g.lineWidth=1.7;g.stroke();
+  }
+  g.restore();
+}
 function paint(){
-  const m=race||preview;
+  const m=race||preview,track=m.track||TRACK;
   ctx.setTransform(CANVAS.width/viewW,0,0,CANVAS.height/viewH,0,0);
   ctx.clearRect(0,0,viewW,viewH);
   ctx.translate(ox,oy);ctx.scale(scale,scale);
   const z=m.zone;
-  const current=getStatic(z);
-  if(m.tide>0&&z>0&&TIDE&&!reduced()){
-    const previous=getStatic(z-1),progress=1-m.tide/1.12;
+  const current=getStatic(z,track);
+  if(m.tide>0&&z>0){
+    const previous=getStatic(z-1,track),wave=CORE.waveState(m);
     ctx.drawImage(previous,panoLeft,0,panoWidth,HEIGHT);
-    ctx.save();TIDE.clipNewColor(ctx,
-      {x:panoLeft,y:0,w:panoWidth,h:HEIGHT},progress);
+    ctx.save();clipWaveRepaint(ctx,track,wave);
     ctx.drawImage(current,panoLeft,0,panoWidth,HEIGHT);
-    ctx.restore();TIDE.drawFront(ctx,
-      {x:panoLeft,y:0,w:panoWidth,h:HEIGHT},
-      progress,PALETTES[z%PALETTES.length].primary,.65);
+    ctx.restore();
+    drawWaveFront(ctx,track,wave,PALETTES[z%PALETTES.length].primary);
   }else ctx.drawImage(current,panoLeft,0,panoWidth,HEIGHT);
   drawImpacts(m);drawRacers(m);
 }

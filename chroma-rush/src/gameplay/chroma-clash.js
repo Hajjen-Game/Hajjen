@@ -362,8 +362,13 @@
 
   const $ = id => document.getElementById(id);
   const canvas = $('clash-canvas');
-  const ctx = canvas.getContext('2d');
+  // The visible context is never swapped inside the animation frame. An
+  // isolated low-resolution cache is created only at zone boundaries.
+  let ctx = canvas.getContext('2d');
   if (!ctx) { $('clash-menu').innerHTML = '<h2>Canvas 2D is required.</h2>'; return; }
+  const screenCtx = ctx;
+  let tideCacheCanvas = null, tideCacheZone = -1, tideCacheStage = -1;
+  let tideCacheHalf = -1, tideDisabled = false, tideSlowFrames = 0;
   const joystick = $('clash-joystick'), stick = $('clash-stick');
   const keys = new Set();
   let match = null, preview = createMatch(1337), mode = 'menu';
@@ -453,6 +458,10 @@
   });
   function startGame() {
     match = createMatch((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+    // New rounds always attempt the optimized wave again; only a proven slow
+    // session triggers adaptive fallback.
+    tideDisabled = false; tideSlowFrames = 0;
+    tideCacheCanvas = null; tideCacheZone = -1; tideCacheStage = -1;
     mode = 'running'; keys.clear(); resetStick(); lastEventId = 0; accumulator = 0;
     setScreen(mode); showAnnounce('LAST CUBE STANDING', 1.2);
     updateHUD();
@@ -719,67 +728,121 @@
     }
     ctx.restore();
   }
+  function ensureOldSceneCache(active, time) {
+    if (tideDisabled || !TIDE) return false;
+    // Canvas allocated only on the first actual color swap. A 960x540 cache
+    // is ~2MB regardless of device DPR (vs two full-DPR world renders).
+    if (!tideCacheCanvas) {
+      tideCacheCanvas = document.createElement('canvas');
+      tideCacheCanvas.width = WIDTH;
+      tideCacheCanvas.height = HEIGHT;
+    }
+    if (tideCacheZone === active.zone &&
+        tideCacheStage === active.stage && tideCacheHalf === active.half) return true;
+    const buffer = tideCacheCanvas.getContext('2d', { alpha: false });
+    if (!buffer) return false;
+    const prior = ctx;
+    try {
+      ctx = buffer;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      // Only one expensive world render for the old phase across the entire
+      // 1.55-second transition, not every frame.
+      drawArena(active, time, paletteForZone(active.zone - 1));
+      tideCacheZone = active.zone;
+      tideCacheStage = active.stage;
+      tideCacheHalf = active.half;
+      return true;
+    } finally {
+      ctx = prior;
+    }
+  }
+  function drawActiveEdgeWarning(active, time) {
+    // The cached old color scene was captured before the warning began.
+    // Draw the safe boundary OVER the complete transition so its lead time
+    // stays correct even while colors sweep under the player's feet.
+    if (!active.warning || active.stage >= COLLAPSES.length) return;
+    const h = active.half, inner = HALVES[active.stage + 1];
+    ctx.save();
+    ctx.beginPath(); squarePath(h); ctx.clip();
+    ctx.beginPath(); squarePath(inner);
+    ctx.setLineDash([12, 8]);
+    ctx.lineWidth = 2.4; ctx.strokeStyle = '#ffd89b';
+    ctx.globalAlpha = .70 + Math.sin(time * 8) * .21;
+    ctx.stroke(); ctx.restore();
+  }
   function drawCornerTransition(active, time) {
     const to = paletteForZone(active.zone);
-    const from = paletteForZone(active.zone - 1);
     const progress = 1 - active.paletteFade / COLOR_FADE_SECONDS;
     const screen = { x: 0, y: 0, w: WIDTH, h: HEIGHT };
-    const floor = { x: CX - active.half, y: CY - active.half,
-      w: active.half * 2, h: active.half * 2 };
-    // Preserve true old and new world colors on each side of the moving
-    // fronts. This is NOT a transparent full-screen tint cross-fade.
-    drawArena(active, time, from);
+    if (!ensureOldSceneCache(active, time)) {
+      drawArena(active, time, to);
+      return;
+    }
+    // ONE cached background image + ONE live world render clipped by a single
+    // four-corner union. No per-frame double full-world redraw, no second
+    // stage-floor clip, no nested even-odd masks or additional radial bloom.
+    ctx.drawImage(tideCacheCanvas, 0, 0, WIDTH, HEIGHT);
     ctx.save();
-    // Paint only the backdrop outside the physical rounded-square floor.
-    ctx.beginPath();
-    ctx.rect(0, 0, WIDTH, HEIGHT);
-    squarePath(active.half);
-    ctx.clip('evenodd');
     TIDE.clipNewColor(ctx, screen, progress);
-    drawBackground(time, to);
-    ctx.restore();
-    ctx.save();
-    ctx.beginPath(); squarePath(active.half); ctx.clip();
-    TIDE.clipNewColor(ctx, floor, progress);
-    drawArena(active, time, to, true);
+    drawArena(active, time, to);
     ctx.restore();
 
-    // Independent four-corner fronts in the environment and platform.
-    // Edges look like moving chroma lighting, not extra obstacles.
-    ctx.save();
-    ctx.beginPath(); ctx.rect(0, 0, WIDTH, HEIGHT); squarePath(active.half);
-    ctx.clip('evenodd');
-    TIDE.drawFront(ctx, screen, progress, to[0], .88);
-    ctx.restore();
-    ctx.save();
-    ctx.beginPath(); squarePath(active.half); ctx.clip();
-    TIDE.drawFront(ctx, floor, progress, to[0], 1.32);
-    ctx.restore();
-    if (progress > .82) {
-      const pulse = Math.sin(Math.PI * (progress - .82) / .18);
-      const glow = ctx.createRadialGradient(CX, CY, 8, CX, CY, active.half * 1.05);
-      glow.addColorStop(0, 'rgba(218,249,255,' + (Math.max(0, pulse) * .19).toFixed(3) + ')');
-      glow.addColorStop(1, 'rgba(218,249,255,0)');
-      ctx.save();
-      ctx.beginPath(); squarePath(active.half); ctx.clip();
-      ctx.fillStyle = glow;
-      ctx.fillRect(floor.x, floor.y, floor.w, floor.h);
-      ctx.restore();
+    // One thin luminous front around the current real scene, never multiple
+    // blur-heavy overlapping wave passes that can stall mobile GPU drivers.
+    if (progress > .035 && progress < .965) {
+      TIDE.drawFront(ctx, screen, progress, to[0], .55);
     }
+    drawActiveEdgeWarning(active, time);
   }
   function render(time) {
     const active = match || preview;
-    ctx.setTransform(canvas.width / viewWidth, 0, 0, canvas.height / viewHeight, 0, 0);
-    ctx.clearRect(0, 0, viewWidth, viewHeight);
-    ctx.translate(ox, oy); ctx.scale(scale, scale);
-    if (active.paletteFade > 0 && TIDE) drawCornerTransition(active, time);
-    else drawArena(active, time, paletteForZone(active.zone));
+    // Guard the world renderer. Even if the device's Canvas path fails, draw
+    // the four players after the fallback rather than leaving an empty arena.
+    screenCtx.setTransform(canvas.width / viewWidth, 0, 0,
+      canvas.height / viewHeight, 0, 0);
+    screenCtx.clearRect(0, 0, viewWidth, viewHeight);
+    screenCtx.translate(ox, oy); screenCtx.scale(scale, scale);
+    try {
+      if (active.paletteFade > 0 && TIDE && !tideDisabled && active.elapsed <= 81)
+        drawCornerTransition(active, time);
+      else drawArena(active, time, paletteForZone(active.zone));
+    } catch (error) {
+      tideDisabled = true; tideCacheCanvas = null;
+      ctx = screenCtx;
+      // Reset state after any failed clipping context so sprites never remain
+      // hidden behind a clip left active by an exceptional graphics call.
+      screenCtx.setTransform(1, 0, 0, 1, 0, 0);
+      // Canvas reset clears any unexpected clip state in older WebKit builds.
+      canvas.width = canvas.width;
+      screenCtx.setTransform(canvas.width / viewWidth, 0, 0,
+        canvas.height / viewHeight, 0, 0);
+      screenCtx.translate(ox, oy); screenCtx.scale(scale, scale);
+      drawArena(active, time, paletteForZone(active.zone));
+      if (match && match.audit) match.audit.noteGraphicsFallback(match.elapsed,
+        String(error && error.message || error).slice(0, 90), false);
+    }
+    // Sprites are drawn AFTER the world wave and no longer depend on color
+    // masks. Color changes can never hide players behind an unfinished pass.
     active.cubes.forEach(c => drawCube(c, time));
     active.impacts.forEach(drawImpact);
   }
   function frame(timestamp) {
-    const dt = previous ? Math.min(.05, Math.max(0, (timestamp - previous) / 1000)) : 0;
+    const frameMs = previous ? Math.max(0, timestamp - previous) : 0;
+    const dt = Math.min(.05, frameMs / 1000);
     previous = timestamp;
+    // If a low-end device cannot keep a responsive joystick while the wave
+    // sweeps, disable only the transient chroma FX. Color/speed progression,
+    // visible cube sprites and gameplay all continue unchanged.
+    if (mode === 'running' && match && match.paletteFade > 0 && !tideDisabled) {
+      if (frameMs > 65) tideSlowFrames++;
+      else tideSlowFrames = Math.max(0, tideSlowFrames - 1);
+      if (tideSlowFrames >= 3) {
+        tideDisabled = true; tideCacheCanvas = null;
+        match.audit.noteGraphicsFallback(match.elapsed,
+          'repeated frame intervals above 65ms during Chroma Tide', true);
+      }
+    } else tideSlowFrames = 0;
     if (mode === 'running' && match) {
       accumulator = Math.min(.08, accumulator + dt);
       let iterations = 0;
@@ -802,7 +865,11 @@
       announceTimer -= dt;
       if (announceTimer <= 0) $('clash-announce').classList.add('hidden');
     }
+    const renderStart = performance.now();
     render(timestamp / 1000);
+    if (mode === 'running' && match && match.audit) {
+      match.audit.noteFrame(frameMs, performance.now() - renderStart);
+    }
     window.requestAnimationFrame(frame);
   }
   setScreen('menu');

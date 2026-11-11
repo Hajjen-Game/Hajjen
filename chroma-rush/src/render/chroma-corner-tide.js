@@ -48,7 +48,10 @@
     ctx.lineCap = 'round';
     ctx.globalAlpha = 0.40 * opacity * intensity;
     ctx.shadowColor = color;
-    ctx.shadowBlur = 22;
+    // Blur over four full-screen giant circles was GPU-expensive on older
+    // Android devices. A tight glow preserves the neon front without the
+    // massive intermediate shadow surfaces.
+    ctx.shadowBlur = 6;
     ctx.lineWidth = 4.2;
     for (const c of corners(rect.x, rect.y, rect.w, rect.h)) {
       ctx.beginPath();

@@ -33,12 +33,12 @@ def inline_wave_scene():
             anchor = "  setScreen('menu');\n  window.requestAnimationFrame(frame);"
             hook = """
   // Test-only renderer seam; it does not exist in the deployed game.
-  window.__clashWaveCapture=function(progress){
+  window.__clashWaveCapture=function(progress, hideCubes=true){
     match=createMatch(123);
     match.zone=1;
     match.elapsed=10.2;
     match.paletteFade=COLOR_FADE_SECONDS*(1-progress);
-    match.cubes.forEach(c=>{c.fall=1.2;});
+    if(hideCubes) match.cubes.forEach(c=>{c.fall=1.2;});
     setScreen('running');
     updateHUD();
     render(4.25);
@@ -46,6 +46,8 @@ def inline_wave_scene():
     return {
       corner:rgb(316,106),
       center:rgb(CX,CY),
+      player:rgb(CX-86,CY-79),
+      besidePlayer:rgb(CX-125,CY-79),
       zone:match.zone,
       wave:match.paletteFade
     };
@@ -163,13 +165,27 @@ def main():
         new = visual.evaluate('window.__clashWaveCapture(1)')
         visual.evaluate('window.__clashWaveCapture(.55)')
         visual.screenshot(path=str(OUT / 'clash-four-corner-tide-55pct.png'))
+        with_players = visual.evaluate('window.__clashWaveCapture(.02,false)')
         def delta(a, b):
             return sum(abs(u-v) for u, v in zip(a, b))
         assert delta(old['corner'], new['corner']) > 12, (old, new)
         assert delta(old['center'], new['center']) > 12, (old, new)
         assert delta(mid['corner'], new['corner']) <= 3, (old, mid, new)
         assert delta(mid['center'], old['center']) <= 3, (old, mid, new)
+        assert delta(with_players['player'], with_players['besidePlayer']) > 30, with_players
+        timings = visual.evaluate("""() => {
+          const started=performance.now(), durations=[];
+          for(let i=0;i<35;i++){
+            const t=performance.now();
+            window.__clashWaveCapture(.04+i/40);
+            durations.push(performance.now()-t);
+          }
+          return {totalMs:performance.now()-started,
+                  worstMs:Math.max(...durations)};
+        }""")
+        assert timings['totalMs'] < 3500, timings
         captures.append({'canvasWorld': 'real corner-tide composite',
+                         'performance': timings, 'playersVisibleAtZoneChange': True,
                          'oldColors': old, 'midTransition': mid, 'newColors': new})
         visual.close()
         browser.close()

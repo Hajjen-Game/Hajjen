@@ -437,44 +437,6 @@ function rounded(x,y,w,h,r){
   ctx.lineTo(x+rr,y+h);ctx.arcTo(x,y+h,x,y+h-rr,rr);
   ctx.lineTo(x,y+rr);ctx.arcTo(x,y,x+rr,y,rr);ctx.closePath();
 }
-function paintWorld(palette,stage){
-  const [primary,shadow,secondary]=palette,arena=arenaAt(stage*2);
-  const sky=ctx.createLinearGradient(0,0,0,HEIGHT);
-  sky.addColorStop(0,'#060b19');
-  sky.addColorStop(.5,mix('#081525',shadow,.65));
-  sky.addColorStop(1,mix('#071425',shadow,.4));
-  ctx.fillStyle=sky;ctx.fillRect(panoLeft,0,panoWidth,HEIGHT);
-  const glow=ctx.createRadialGradient(CX,CY,0,CX,CY,520);
-  glow.addColorStop(0,hexAlpha(primary,.2));glow.addColorStop(.58,hexAlpha(secondary,.07));
-  glow.addColorStop(1,hexAlpha(primary,0));
-  ctx.fillStyle=glow;ctx.fillRect(panoLeft,0,panoWidth,HEIGHT);
-  for(let x=-1000;x<panoLeft+panoWidth+100;x+=74){
-    const y=185+(Math.abs(x*41)%170);
-    ctx.fillStyle=hexAlpha(secondary,.035);
-    ctx.fillRect(x,y,18+(Math.abs(x*7)%15),HEIGHT-y);
-  }
-  ctx.fillStyle='#08172a';
-  rounded(arena.left,arena.top,arena.right-arena.left,arena.bottom-arena.top,24);ctx.fill();
-  const surface=ctx.createLinearGradient(arena.left,arena.top,arena.right,arena.bottom);
-  surface.addColorStop(0,mix('#101c36',primary,.12));
-  surface.addColorStop(.54,mix('#0a1629',shadow,.45));
-  surface.addColorStop(1,mix('#0a1625',secondary,.18));
-  ctx.fillStyle=surface;ctx.fill();
-  ctx.save();ctx.clip();
-  ctx.strokeStyle=hexAlpha(primary,.08);ctx.lineWidth=1;
-  for(let x=arena.left+46;x<arena.right;x+=55){
-    ctx.beginPath();ctx.moveTo(x,arena.top);ctx.lineTo(x,arena.bottom);ctx.stroke();
-  }
-  for(let y=arena.top+42;y<arena.bottom;y+=55){
-    ctx.beginPath();ctx.moveTo(arena.left,y);ctx.lineTo(arena.right,y);ctx.stroke();
-  }
-  ctx.restore();
-  ctx.strokeStyle=hexAlpha(primary,.66);ctx.lineWidth=3;
-  rounded(arena.left,arena.top,arena.right-arena.left,arena.bottom-arena.top,24);ctx.stroke();
-  ctx.strokeStyle='rgba(227,252,255,.45)';ctx.lineWidth=1;
-  rounded(arena.left+4,arena.top+4,arena.right-arena.left-8,
-    arena.bottom-arena.top-8,20);ctx.stroke();
-}
 function getScene(zone,stage){
   const key=zone+':'+stage+':'+panoWidth;
   let slot=sceneSlots.find(s=>s.key===key&&s.canvas);
@@ -483,20 +445,13 @@ function getScene(zone,stage){
   if(!slot.canvas)slot.canvas=document.createElement('canvas');
   slot.canvas.width=panoWidth;slot.canvas.height=HEIGHT;
   const buffer=slot.canvas.getContext('2d',{alpha:false});
-  const previous=ctx,render=buffer;
-  // Raster operations below close over ctx; switch it only in this one-shot
-  // render and restore immediately (identical cache architecture to Clash).
-  try{
-    contextHolder.current=render;
-    render.setTransform(1,0,0,1,-panoLeft,0);
-    paintWorldCached(render,PALETTES[zone%PALETTES.length],stage);
-    slot.key=key;
-  }finally{contextHolder.current=previous;}
+  // One static background and floor render per zone/size. The visible
+  // context is never swapped or mutated by the cache renderer.
+  buffer.setTransform(1,0,0,1,-panoLeft,0);
+  paintWorldCached(buffer,PALETTES[zone%PALETTES.length],stage);
+  slot.key=key;
   return slot.canvas;
 }
-// The active painter is isolated from the visible screen context, which
-// prevents expensive gradients being recomputed at 60fps.
-const contextHolder={current:ctx};
 function paintWorldCached(buffer,palette,stage){
   // Preserve the same world painter and path code while temporarily
   // redirecting the variable through a scope-local 2D proxy-like wrapper:

@@ -134,7 +134,7 @@ test('Trial is integrated into the existing UI/physics without changing Arcade d
   assert.match(game,/courseModule\(\)\.installTerrain\(terrain,trialPlan,floorY\)/);
   assert.match(game,/if\(!trialPlan\)terrainDirector\.prepare/);
   assert.match(game,/}else terrainDirector\.tick\(dt,/);
-  assert.match(game,/runMode==='trial'\?null:gravityShift\.tick/);
+  assert.match(game,/const gravityEvent=fixedCourse\(\)\?null:\s*gravityShift\.tick/);
   assert.match(game,/if\(!fixedCourse\(\)&&gravityShift\.requestForZone\(zone\)\)/);
   assert.match(game,/const shieldEvents=fixedCourse\(\)\?\{\}:shieldCores\.tick/);
   assert.match(game,/if\(fixedCourse\(\)&&time>=courseModule\(\)\.DURATION-1e-6&&status==='running'\)endRun\(\)/);

@@ -134,3 +134,75 @@ font-weight:850;letter-spacing:.12em}
   #clash-zone{font-size:clamp(22px,3vw,32px)}
   .announce{top:20%;font-size:clamp(10px,1.3vw,15px)}
 }
+
+
+/* Chroma Clash 1.1 — real fullscreen, panorama and calm HUD spacing */
+#clash-shell:fullscreen{
+  width:100%;height:100%;min-height:100%;max-height:none;
+  background:#070b17;
+}
+#clash-shell:-webkit-full-screen{width:100%;height:100%;background:#070b17}
+.hud{
+  padding-top:max(clamp(9px,1.7vh,18px),env(safe-area-inset-top));
+  padding-left:max(clamp(14px,3.3vw,52px),env(safe-area-inset-left));
+  padding-right:max(clamp(14px,3.3vw,52px),env(safe-area-inset-right));
+}
+.hud-center{
+  top:max(clamp(9px,1.7vh,18px),env(safe-area-inset-top));
+}
+.hud-right{gap:3px}
+#clash-count{font-size:clamp(12px,1.3vw,17px)}
+#clash-clock{font-size:clamp(10px,1.05vw,13px)}
+.hud-actions{
+  display:flex;align-items:center;justify-content:flex-end;
+  gap:8px;margin-top:7px;pointer-events:none;
+}
+.hud-actions .icon-button{
+  margin-top:0;min-width:42px;min-height:42px;max-height:46px;
+  font-size:20px;line-height:1;display:grid;place-items:center;
+  padding:6px;pointer-events:auto;
+}
+.hud-actions .fullscreen-button{font-size:24px;font-weight:400}
+.menu-fullscreen{
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid rgba(90,169,204,.36);
+  border-radius:10px;background:rgba(8,22,40,.5);
+  color:#b5dbe9;min-height:36px;
+  padding:7px 17px;
+  font-size:clamp(9px,1.1vw,12px);font-weight:800;
+  letter-spacing:.13em;line-height:1.2;
+  cursor:pointer;
+}
+.menu-fullscreen:focus-visible{outline:2px solid #a1f9ff;outline-offset:3px}
+.fullscreen-status{
+  position:absolute;bottom:max(16px,env(safe-area-inset-bottom));
+  left:50%;transform:translateX(-50%);
+  z-index:25;max-width:min(430px,85vw);
+  text-align:center;pointer-events:none;
+  padding:9px 15px;border-radius:11px;
+  font-size:12px;font-weight:700;letter-spacing:.04em;
+  color:#e8faff;border:1px solid rgba(114,219,243,.25);
+  background:rgba(5,17,35,.94);
+  box-shadow:0 7px 26px rgba(0,0,0,.28);
+}
+/* Status announcements belong in the quiet right gutter, not across
+   the arena where they obscure cubes and the edge-collapse warnings. */
+.announce{
+  left:auto;right:max(clamp(14px,3.3vw,52px),env(safe-area-inset-right));
+  top:max(clamp(112px,19vh,144px),calc(env(safe-area-inset-top) + 94px));
+  transform:none;text-align:right;
+  font-size:clamp(9px,1vw,13px);letter-spacing:.13em;
+  max-width:min(27vw,220px);white-space:normal;line-height:1.55;
+  text-shadow:0 1px 13px rgba(63,238,255,.16);
+}
+@media(max-height:450px){
+  .hud-actions{margin-top:4px;gap:6px}
+  .hud-actions .icon-button{min-width:38px;min-height:38px;font-size:19px}
+  .announce{top:max(100px,27vh)}
+  .menu-fullscreen{min-height:30px;padding:4px 13px}
+}
+@media(max-width:700px){
+  .hud-center{top:max(8px,env(safe-area-inset-top))}
+  #clash-zone{font-size:clamp(20px,4vw,27px)}
+  #clash-phase{font-size:9px}
+}

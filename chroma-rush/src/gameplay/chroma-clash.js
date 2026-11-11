@@ -367,8 +367,15 @@
   let ctx = canvas.getContext('2d');
   if (!ctx) { $('clash-menu').innerHTML = '<h2>Canvas 2D is required.</h2>'; return; }
   const screenCtx = ctx;
-  let tideCacheCanvas = null, tideCacheZone = -1, tideCacheStage = -1;
-  let tideCacheHalf = -1, tideDisabled = false, tideSlowFrames = 0;
+  // Render performance 1.4: stationary arena/background art is generated
+  // only when the zone or platform changes. Normal frames draw two cached
+  // images at most, plus the four actors and lightweight impact effects.
+  const sceneSlots = [{ key: '', canvas: null }, { key: '', canvas: null }];
+  let sceneReplacement = 0, sceneBuilds = 0, tideDisabled = false;
+  let tideSlowFrames = 0, slowFrameStreak = 0, renderQuality = 1;
+  let pixelsPerCss = 1;
+  const BASE_PIXEL_BUDGET = 750000;
+  const spriteCache = Object.create(null);
   const joystick = $('clash-joystick'), stick = $('clash-stick');
   const keys = new Set();
   let match = null, preview = createMatch(1337), mode = 'menu';
@@ -383,9 +390,15 @@
   } catch (_) { /* storage is optional in private mode */ }
   function resize() {
     viewWidth = window.innerWidth; viewHeight = window.innerHeight;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.max(1, Math.floor(viewWidth * dpr));
-    canvas.height = Math.max(1, Math.floor(viewHeight * dpr));
+    // This used to render 2x device pixel ratio on phones: a 1.4k × 700
+    // CSS viewport could consume over 3.9 million GPU pixels per frame.
+    // The game sprites are vector/Canvas art, and the DOM HUD stays crisp.
+    pixelsPerCss = Math.min(1, Math.sqrt(BASE_PIXEL_BUDGET /
+      Math.max(1, viewWidth * viewHeight))) * renderQuality;
+    const targetWidth = Math.max(1, Math.round(viewWidth * pixelsPerCss));
+    const targetHeight = Math.max(1, Math.round(viewHeight * pixelsPerCss));
+    if (canvas.width !== targetWidth) canvas.width = targetWidth;
+    if (canvas.height !== targetHeight) canvas.height = targetHeight;
     scale = Math.min(viewWidth / WIDTH, viewHeight / HEIGHT);
     ox = (viewWidth - WIDTH * scale) / 2;
     oy = (viewHeight - HEIGHT * scale) / 2;
@@ -458,10 +471,8 @@
   });
   function startGame() {
     match = createMatch((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
-    // New rounds always attempt the optimized wave again; only a proven slow
-    // session triggers adaptive fallback.
-    tideDisabled = false; tideSlowFrames = 0;
-    tideCacheCanvas = null; tideCacheZone = -1; tideCacheStage = -1;
+    tideDisabled = false; tideSlowFrames = 0; slowFrameStreak = 0;
+    renderQuality = 1; resize();
     mode = 'running'; keys.clear(); resetStick(); lastEventId = 0; accumulator = 0;
     setScreen(mode); showAnnounce('LAST CUBE STANDING', 1.2);
     updateHUD();

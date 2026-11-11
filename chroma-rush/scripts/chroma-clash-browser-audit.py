@@ -15,6 +15,50 @@ OUT.mkdir(parents=True, exist_ok=True)
 URL = (ROOT / 'clash.html').as_uri()
 
 
+def inline_wave_scene():
+    """Render the REAL game Canvas at fixed wave stages (test-only injection)."""
+    html = (ROOT / 'clash.html').read_text(encoding='utf-8')
+    css = (ROOT / 'clash.css').read_text(encoding='utf-8')
+    html, n = re.subn(r'<link rel="stylesheet" href="clash.css\?v=[^"]+">',
+                       lambda _: '<style>' + css + '</style>', html)
+    assert n == 1, 'CSS cannot be inlined'
+    paths = (
+        'src/diagnostics/chroma-clash-audit.js',
+        'src/render/chroma-corner-tide.js',
+        'src/gameplay/chroma-clash.js',
+    )
+    for source_path in paths:
+        source = (ROOT / source_path).read_text(encoding='utf-8')
+        if source_path.endswith('/chroma-clash.js'):
+            anchor = "  setScreen('menu');\n  window.requestAnimationFrame(frame);"
+            hook = """
+  // Test-only renderer seam; it does not exist in the deployed game.
+  window.__clashWaveCapture=function(progress){
+    match=createMatch(123);
+    match.zone=1;
+    match.elapsed=10.2;
+    match.paletteFade=COLOR_FADE_SECONDS*(1-progress);
+    match.cubes.forEach(c=>{c.fall=1.2;});
+    setScreen('running');
+    updateHUD();
+    render(4.25);
+    const rgb=(x,y)=>Array.from(ctx.getImageData(x,y,1,1).data).slice(0,3);
+    return {
+      corner:rgb(316,106),
+      center:rgb(CX,CY),
+      zone:match.zone,
+      wave:match.paletteFade
+    };
+  };
+"""
+            assert source.count(anchor) == 1, 'Could not insert fixed-wave snapshot hook'
+            source = source.replace(anchor, hook + anchor)
+        pattern = r'<script src="' + re.escape(source_path) + r'\?v=[^"]+"></script>'
+        html, n = re.subn(pattern, lambda _: '<script>' + source + '</script>', html)
+        assert n == 1, 'Could not inline '+source_path
+    return html
+
+
 def main():
     captures = []
     failures = []
@@ -107,6 +151,26 @@ def main():
                              'collapse': collapse, 'tenSecondZone': timing['first'],
                              'fourCornerWave': transition, 'runLogDownloaded': True})
             page.close()
+        # Exercise real in-game two-layer compositing, not just the isolated
+        # geometry helper: corners must visibly recolor BEFORE the arena center.
+        visual = browser.new_page(viewport={'width': 960, 'height': 540},
+                                  device_scale_factor=1)
+        visual.on('pageerror', lambda error: failures.append(str(error)))
+        visual.set_content(inline_wave_scene(), wait_until='load')
+        visual.evaluate('window.requestAnimationFrame=()=>0')
+        old = visual.evaluate('window.__clashWaveCapture(0)')
+        mid = visual.evaluate('window.__clashWaveCapture(.55)')
+        new = visual.evaluate('window.__clashWaveCapture(1)')
+        visual.screenshot(path=str(OUT / 'clash-four-corner-tide-55pct.png'))
+        def delta(a, b):
+            return sum(abs(u-v) for u, v in zip(a, b))
+        assert delta(old['corner'], new['corner']) > 12, (old, new)
+        assert delta(old['center'], new['center']) > 12, (old, new)
+        assert delta(mid['corner'], new['corner']) <= 3, (old, mid, new)
+        assert delta(mid['center'], old['center']) <= 3, (old, mid, new)
+        captures.append({'canvasWorld': 'real corner-tide composite',
+                         'oldColors': old, 'midTransition': mid, 'newColors': new})
+        visual.close()
         browser.close()
     report = {'screens': captures, 'pageErrors': failures}
     (OUT / 'report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')

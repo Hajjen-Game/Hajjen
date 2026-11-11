@@ -302,7 +302,7 @@ const joystick=$('trails-joystick'),stick=$('trails-stick');
 const sceneSlots=[{key:'',canvas:null},{key:'',canvas:null}];
 const sprites=Object.create(null);
 let sceneIndex=0,game=null,mode='menu',keys=new Set(),pointer=null,
-  joyX=0,joyY=0,boostPending=false,pressedBoost=false,
+  joyX=0,joyY=0,dashPending=false,
   prevTimestamp=0,accum=0,lastZone=-1,lastStage=-1,
   viewW=960,viewH=540,scale=1,ox=0,oy=0,panoWidth=WIDTH,panoLeft=0,
   quality=1,slowFrames=0,noticeUntil=0,notification='';
@@ -330,19 +330,19 @@ function setScreen(name){
   $('trails-finish').classList.toggle('hidden',name!=='result');
   $('trails-hud').classList.toggle('hidden',name==='menu');
   joystick.classList.toggle('hidden',name!=='running');
-  $('trails-boost').classList.toggle('hidden',name!=='running');
+  $('trails-dash').classList.toggle('hidden',name!=='running');
   $('trails-input-help').classList.toggle('hidden',name!=='running');
 }
 function start(){
   game=createGame((Date.now()^Math.floor(Math.random()*0x7fffffff))>>>0);
   quality=1;slowFrames=0;resize();prevTimestamp=0;accum=0;
-  mode='running';keys.clear();resetStick();boostPending=false;pressedBoost=false;
+  mode='running';keys.clear();resetStick();dashPending=false;
   notification='STEER · AVOID LIGHT TRAILS';noticeUntil=2.4;
   setScreen('running');updateHud();
 }
 function pause(){
   if(mode!=='running')return;
-  mode='paused';resetStick();boostPending=false;setScreen('paused');
+  mode='paused';resetStick();dashPending=false;setScreen('paused');
 }
 function resume(){
   if(mode!=='paused')return;
@@ -396,18 +396,16 @@ function release(e){if(e.pointerId===pointer)resetStick();}
 joystick.addEventListener('pointerup',release);
 joystick.addEventListener('pointercancel',release);
 joystick.addEventListener('lostpointercapture',release);
-$('trails-boost').addEventListener('pointerdown',e=>{
+$('trails-dash').addEventListener('pointerdown',e=>{
   if(mode!=='running')return;
-  e.preventDefault();boostPending=true;pressedBoost=true;
+  e.preventDefault();dashPending=true;
 });
-$('trails-boost').addEventListener('pointerup',()=>{pressedBoost=false;});
-$('trails-boost').addEventListener('pointercancel',()=>{pressedBoost=false;});
 window.addEventListener('keydown',e=>{
   const key=e.key.length===1?e.key.toLowerCase():e.key;
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Escape'].includes(key))
     e.preventDefault();
   keys.add(key);
-  if(key===' '&&!e.repeat)boostPending=true;
+  if(key===' '&&!e.repeat)dashPending=true;
   if(key==='Escape'){if(mode==='running')pause();else if(mode==='paused')resume();}
 });
 window.addEventListener('keyup',e=>keys.delete(e.key.length===1?e.key.toLowerCase():e.key));
@@ -437,9 +435,9 @@ function updateHud(){
   setText('trails-count',game.players.filter(p=>p.alive).length+' ALIVE');
   setText('trails-clock',clock(game.elapsed));
   const remaining=game.players[0].cooldown;
-  setText('trails-boost',remaining>0?remaining.toFixed(1)+'s':'BOOST');
-  $('trails-boost').classList.toggle('recharging',remaining>0);
-  $('trails-boost').disabled=remaining>0;
+  setText('trails-dash',remaining>0?remaining.toFixed(1)+'s':'DASH');
+  $('trails-dash').classList.toggle('recharging',remaining>0);
+  $('trails-dash').disabled=remaining>0;
   const note=game.announced&&game.elapsed<noticeUntil?game.announced:notification;
   if(game.announced){
     notification=game.announced;noticeUntil=game.elapsed+1.45;game.announced=null;
@@ -575,25 +573,40 @@ function drawTrails(){
   // Canvas strokes (4 cubes × 3 buckets × 3 coats), not 3 strokes PER segment.
   // This is important to retain Clash 1.4's mobile frame pacing.
   const now=game.elapsed,ttl=trailLife(game.zone);
-  ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
+  ctx.save();ctx.lineJoin='round';ctx.lineCap='butt';
   for(const p of game.players){
     for(let band=0;band<3;band++){
       let count=0;
       ctx.beginPath();
+      const newest=p.trail[p.trail.length-1];
       for(const seg of p.trail){
         const remaining=clamp((ttl-(now-seg.at))/ttl,0,1);
         if(remaining<=0||Math.min(2,Math.floor(remaining*3))!==band)continue;
+        // A line ends BEHIND the moving cube. The old 'nose tick' looked
+        // like a fragment of the dangerous trail projecting forward.
+        let x2=seg.x2,y2=seg.y2;
+        if(p.alive && seg===newest){
+          const dx=x2-seg.x1,dy=y2-seg.y1,len=hypot(dx,dy);
+          const forward=hypot(p.x-x2,p.y-y2);
+          if(len>1 && forward<14){
+            const trim=Math.min(len,(14-forward));
+            x2-=dx/len*trim;y2-=dy/len*trim;
+          }
+        }
         ctx.moveTo(seg.x1,seg.y1);
-        ctx.lineTo(seg.x2,seg.y2);
+        ctx.lineTo(x2,y2);
         count++;
       }
       if(!count)continue;
-      const fade=[.22,.55,1][band];
-      ctx.strokeStyle=p.color;ctx.globalAlpha=.13*fade;ctx.lineWidth=8;
+      const fade=[.26,.62,1][band];
+      // Tiny traveling brightness modulation creates neon flow with only
+      // three shared strokes per age band, not hundreds of shadow blurs.
+      const shimmer=.90+.10*Math.sin(now*5.6-p.id*1.7-band*.65);
+      ctx.strokeStyle=p.color;ctx.globalAlpha=.16*fade*shimmer;ctx.lineWidth=8.5;
       ctx.stroke();
-      ctx.globalAlpha=.79*fade;ctx.lineWidth=2.5;ctx.stroke();
-      ctx.strokeStyle='#f1fdff';ctx.globalAlpha=.27*fade;
-      ctx.lineWidth=.85;ctx.stroke();
+      ctx.globalAlpha=.79*fade*shimmer;ctx.lineWidth=2.65;ctx.stroke();
+      ctx.strokeStyle=mix(p.color,'#f7ffff',.68);
+      ctx.globalAlpha=.37*fade*shimmer;ctx.lineWidth=.85;ctx.stroke();
     }
   }
   ctx.restore();
@@ -603,9 +616,9 @@ function drawRunners(){
   for(const p of game.players){
     const alpha=p.alive?1:Math.max(0,1-(game.elapsed-(p.fallenAt||0))/.42);
     if(alpha<=0)continue;
-    const boosted=p.boost>0;
+    const dashing=p.dash>0;
     ctx.globalAlpha=alpha;
-    if(boosted&&!reduced()){
+    if(dashing&&!reduced()){
       const dx=Math.cos(p.angle),dy=Math.sin(p.angle);
       ctx.strokeStyle=p.color;ctx.lineWidth=3.2;ctx.globalAlpha=.5*alpha;
       ctx.beginPath();ctx.moveTo(p.x-dx*8,p.y-dy*8);
@@ -615,10 +628,8 @@ function drawRunners(){
     ctx.font='bold 11px system-ui,sans-serif';
     ctx.textAlign='center';ctx.fillStyle=p.id===0?'#f3ffff':p.color;
     ctx.fillText(p.name,p.x,p.y-24);
-    // Tiny directional tick outside the cube is explicit at high speed.
-    ctx.strokeStyle=p.color;ctx.globalAlpha=alpha*.6;ctx.lineWidth=1.6;
-    ctx.beginPath();ctx.moveTo(p.x+Math.cos(p.angle)*11,p.y+Math.sin(p.angle)*11);
-    ctx.lineTo(p.x+Math.cos(p.angle)*17,p.y+Math.sin(p.angle)*17);ctx.stroke();
+    // No forward-pointing tail marker: the cube face and backward dash
+    // streak already explain direction without looking like an obstacle.
   }
   ctx.restore();
 }
@@ -663,8 +674,8 @@ function loop(stamp){
     accum+=Math.min(delta/1000,.04);
     let ticks=0;
     while(accum>=FIXED_STEP&&ticks<3){
-      const v=input();v.boost=boostPending;
-      boostPending=false;
+      const v=input();v.dash=dashPending;
+      dashPending=false;
       tick(game,v,FIXED_STEP);
       accum-=FIXED_STEP;ticks++;
     }

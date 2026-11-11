@@ -676,39 +676,58 @@
     ctx.beginPath(); squarePath(Math.max(5, h - 7)); ctx.stroke();
     ctx.restore();
   }
+  function cubeSprite(color) {
+    if (spriteCache[color]) return spriteCache[color];
+    const image = document.createElement('canvas');
+    image.width = 72; image.height = 72;
+    const c = image.getContext('2d');
+    c.translate(36, 36);
+    const face = c.createLinearGradient(-12, -12, 12, 12);
+    face.addColorStop(0, '#efffff');
+    face.addColorStop(.17, color);
+    face.addColorStop(1, '#193656');
+    c.fillStyle = face;
+    c.shadowColor = color;
+    c.shadowBlur = 9; // rendered ONCE per colored cube, not 4x per frame
+    c.beginPath();
+    c.moveTo(-8.2, -12); c.lineTo(8.2, -12);
+    c.quadraticCurveTo(12, -12, 12, -8.2);
+    c.lineTo(12, 8.2); c.quadraticCurveTo(12, 12, 8.2, 12);
+    c.lineTo(-8.2, 12); c.quadraticCurveTo(-12, 12, -12, 8.2);
+    c.lineTo(-12, -8.2); c.quadraticCurveTo(-12, -12, -8.2, -12);
+    c.fill();
+    c.shadowBlur = 0;
+    c.lineWidth = 1.8;
+    c.strokeStyle = color; c.stroke();
+    c.fillStyle = 'rgba(255,255,255,.34)';
+    c.fillRect(-7.5, -7.7, 8, 2.9);
+    spriteCache[color] = image;
+    return image;
+  }
   function drawCube(cube, time) {
     const p = cube.fall;
-    const size = 24 * (1 - p * .62);
-    const color = cube.color;
+    if (p >= 1) return;
+    const sizeScale = 1 - p * .62;
     ctx.save();
     ctx.globalAlpha = Math.max(0, 1 - p * 1.05);
     ctx.translate(cube.x, cube.y + p * p * 100);
     ctx.rotate(((cube.vx + (cube.knockVx || 0)) * .0006) +
       ((cube.vy + (cube.knockVy || 0)) * .00035) + p * .7);
-    // Impact visibly compresses the cube, but keeps its recognizable square
-    // silhouette (the player specifically disliked arrow-shaped motion).
-    ctx.scale(1 + cube.squash * .27, 1 - cube.squash * .23);
-    ctx.fillStyle = 'rgba(0,0,0,.44)';
-    ctx.beginPath(); ctx.ellipse(0, 11 + p * 15, size * .82, size * .32, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowColor = color; ctx.shadowBlur = 17 + cube.squash * 16;
-    const face = ctx.createLinearGradient(-size / 2, -size / 2, size / 2, size / 2);
-    face.addColorStop(0, '#efffff');
-    face.addColorStop(.16, color);
-    face.addColorStop(1, '#193656');
-    ctx.fillStyle = face;
-    ctx.beginPath(); roundedRect(-size / 2, -size / 2, size, size, 3.8); ctx.fill();
-    ctx.lineWidth = cube.id === 0 ? 2.3 : 1.7;
-    ctx.strokeStyle = color; ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(255,255,255,.30)';
-    ctx.fillRect(-size * .31, -size * .32, size * .36, size * .12);
+    ctx.scale(sizeScale * (1 + cube.squash * .27),
+      sizeScale * (1 - cube.squash * .23));
+    ctx.fillStyle = 'rgba(0,0,0,.38)';
+    ctx.beginPath(); ctx.ellipse(0, 12, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.drawImage(cubeSprite(cube.color), -36, -36);
     ctx.restore();
-    if (p > 0.35) return;
+    if (p > .35) return;
+    // Text has no per-frame blur kernel. Fixed color names still identify
+    // each AI cube against any of the seven environment palettes.
     ctx.save();
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = (cube.id === 0 ? 'bold 13px ' : 'bold 11px ') + 'system-ui,sans-serif';
-    ctx.shadowColor = '#030713'; ctx.shadowBlur = 8;
-    ctx.fillStyle = cube.id === 0 ? '#effeff' : color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = (cube.id === 0 ? 'bold 13px ' : 'bold 11px ') +
+      'system-ui,sans-serif';
+    ctx.fillStyle = cube.id === 0 ? '#effeff' : cube.color;
     ctx.fillText(cube.name, cube.x, cube.y - 27);
     ctx.restore();
   }
@@ -716,25 +735,19 @@
     const a = clamp(impact.life / .38, 0, 1);
     const spread = (1 - a) * (22 + impact.power * 10);
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    ctx.globalAlpha = a * .83;
-    ctx.shadowColor = impact.color || '#c9f9ff';
-    ctx.shadowBlur = 15 + 11 * a;
-    ctx.strokeStyle = '#dcfbff';
-    ctx.lineWidth = 2.2 + a * 1.2;
-    ctx.beginPath();
-    ctx.arc(impact.x, impact.y, 8 + spread, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.lineWidth = 2;
+    ctx.globalAlpha = a * .8;
+    ctx.strokeStyle = impact.color || '#c9f9ff';
+    ctx.lineWidth = 2.8;
+    ctx.beginPath(); ctx.arc(impact.x, impact.y, 8 + spread, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = '#effcff';
+    ctx.lineWidth = 1.7;
     for (let i = 0; i < 8; i++) {
       const angle = i * Math.PI / 4 + Math.PI / 8;
-      const begin = 8 + spread * .65;
-      const end = 16 + spread;
       ctx.beginPath();
-      ctx.moveTo(impact.x + Math.cos(angle) * begin,
-        impact.y + Math.sin(angle) * begin);
-      ctx.lineTo(impact.x + Math.cos(angle) * end,
-        impact.y + Math.sin(angle) * end);
+      ctx.moveTo(impact.x + Math.cos(angle) * (8 + spread * .65),
+        impact.y + Math.sin(angle) * (8 + spread * .65));
+      ctx.lineTo(impact.x + Math.cos(angle) * (16 + spread),
+        impact.y + Math.sin(angle) * (16 + spread));
       ctx.stroke();
     }
     ctx.restore();

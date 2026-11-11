@@ -129,7 +129,7 @@ test('Pause/result UI exposes an explicit user-triggered log download and both n
   assert.match(html,/id="clash-export"/);
   assert.match(html,/id="clash-export-pause"/);
   assert.match(html,/src="src\/diagnostics\/chroma-clash-audit.js/);
-  assert.match(html,/src="src\/render\/chroma-corner-tide.js/);
+  assert.match(html,/src="src\/render\/chroma-center-pulse.js/);
   assert.match(game,/new Blob\(\[JSON.stringify\(payload/);
   assert.match(game,/URL\.createObjectURL/);
   assert.match(html,/chroma-clash-visual-cohesion-1\.0/);

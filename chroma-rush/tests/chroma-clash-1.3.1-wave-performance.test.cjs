@@ -68,9 +68,9 @@ test('Wave is disabled after repeated slow frames without disabling any match lo
 
 test('New page uses cache-busted 1.4 assets on mobile', () => {
   const html=fs.readFileSync(path.join(__dirname,'../clash.html'),'utf8');
-  assert.match(html,/chroma-clash\.js\?v=chroma-clash-arena-polish-1\.1/);
-  assert.match(html,/chroma-center-pulse\.js\?v=chroma-clash-arena-polish-1\.1/);
-  assert.match(html,/chroma-clash-audit\.js\?v=chroma-clash-arena-polish-1\.1/);
+  assert.match(html,/chroma-clash\.js\?v=chroma-clash-impact-depth-1\.2/);
+  assert.match(html,/chroma-center-pulse\.js\?v=chroma-clash-impact-depth-1\.2/);
+  assert.match(html,/chroma-clash-audit\.js\?v=chroma-clash-impact-depth-1\.2/);
   assert.match(html,/src\/core\/config\.js/);
   assert.match(html,/src\/render\/chroma-identity\.js/);
 });

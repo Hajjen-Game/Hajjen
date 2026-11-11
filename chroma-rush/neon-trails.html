@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#070b17">
+<meta name="description" content="NEON TRAILS — a CHROMA RUSH arcade duel of colored cubes and deadly light trails.">
+<title>CHROMA RUSH | Neon Trails 1.0</title>
+<link rel="stylesheet" href="clash.css?v=chroma-clash-impact-depth-1.2">
+<link rel="stylesheet" href="neon-trails.css?v=neon-trails-1.0">
+</head>
+<body>
+<main id="trails-shell" aria-label="NEON TRAILS arcade mini game">
+  <canvas id="trails-canvas" aria-label="Four neon cubes racing and leaving dangerous colored trails"></canvas>
+  <div id="trails-hud" class="hud hidden" aria-live="off">
+    <div class="hud-left"><span class="eyebrow">NEON <b>TRAILS</b></span></div>
+    <div class="hud-center"><strong id="trails-zone">ZONE 01</strong><span id="trails-phase">FLOW · SPEED 1.00×</span></div>
+    <div class="hud-right"><strong id="trails-count">4 ALIVE</strong><span id="trails-clock">0:00</span>
+      <div class="hud-actions">
+        <button id="trails-fullscreen" class="icon-button fullscreen-button" type="button" aria-label="Enter fullscreen" aria-pressed="false">⛶</button>
+        <button id="trails-pause" class="icon-button" type="button" aria-label="Pause game">Ⅱ</button>
+      </div>
+    </div>
+  </div>
+  <div id="trails-announce" class="announce hidden" aria-live="polite"></div>
+  <div id="trails-joystick" class="joystick hidden" role="application" aria-label="Steer your neon cube">
+    <div class="joystick-groove"></div><div id="trails-stick" class="stick"></div>
+  </div>
+  <button id="trails-boost" class="trails-boost hidden" type="button" aria-label="Temporary speed boost">BOOST</button>
+  <div id="trails-input-help" class="input-help hidden">DRAG TO STEER · SPACE TO BOOST</div>
+  <section id="trails-menu" class="overlay" aria-label="Neon Trails menu">
+    <div class="kicker">CHROMA RUSH · ARCADE MODE 02</div>
+    <h1>NEON <em>TRAILS</em></h1>
+    <p class="tagline">LEAVE A TRAIL. TRAP YOUR RIVALS.</p>
+    <div class="intro-line">
+      <span>JOYSTICK TO STEER</span><span>YOUR TRAIL IS DANGEROUS</span><span>BOOST TO BREAK AWAY</span>
+    </div>
+    <button id="trails-start" class="primary-btn" type="button">ENTER ARENA <span aria-hidden="true">→</span></button>
+    <p class="control-hint">JOYSTICK + BOOST · WASD / ARROWS + SPACE</p>
+    <button id="trails-fullscreen-menu" class="menu-fullscreen" type="button" aria-label="Enter fullscreen">⛶ FULLSCREEN</button>
+    <a class="return-link" href="./index.html">← BACK TO CHROMA RUSH</a>
+  </section>
+  <section id="trails-pause-menu" class="overlay hidden" aria-label="Game paused">
+    <div class="kicker">NEON TRAILS</div><h2>PAUSED</h2>
+    <button id="trails-resume" class="primary-btn" type="button">RESUME <span aria-hidden="true">→</span></button>
+    <button id="trails-restart" class="secondary-btn" type="button">RESTART MATCH</button>
+    <button id="trails-export-pause" class="audit-btn" type="button">EXPORT RUN LOG</button>
+    <a class="return-link" href="./index.html">← MAIN MENU</a>
+  </section>
+  <section id="trails-finish" class="overlay hidden" aria-label="Match result" aria-live="polite">
+    <div class="kicker">NEON TRAILS · RESULT</div>
+    <h2 id="trails-outcome">VICTORY</h2>
+    <p id="trails-summary" class="tagline">LAST CUBE RUNNING</p>
+    <div class="result-stats">
+      <div><small>ELIMINATIONS</small><strong id="trails-kos">0</strong></div>
+      <div><small>SURVIVED</small><strong id="trails-duration">0:00</strong></div>
+      <div><small>ZONE</small><strong id="trails-zone-end">01</strong></div>
+    </div>
+    <button id="trails-again" class="primary-btn" type="button">PLAY AGAIN <span aria-hidden="true">→</span></button>
+    <button id="trails-export" class="audit-btn" type="button">EXPORT RUN LOG</button>
+    <a class="return-link" href="./index.html">← MAIN MENU</a>
+  </section>
+  <div id="trails-fullscreen-status" class="fullscreen-status" role="status" aria-live="polite"></div>
+  <div id="trails-orientation" aria-live="polite"><div class="rotate-symbol">▭ ↻</div><strong>ROTATE YOUR DEVICE</strong><span>NEON TRAILS is designed for landscape play.</span></div>
+</main>
+<script src="src/core/config.js?v=neon-trails-1.0"></script>
+<script src="src/render/chroma-identity.js?v=neon-trails-1.0"></script>
+<script src="src/render/chroma-center-pulse.js?v=neon-trails-1.0"></script>
+<script src="src/gameplay/neon-trails.js?v=neon-trails-1.0"></script>
+</body>
+</html>

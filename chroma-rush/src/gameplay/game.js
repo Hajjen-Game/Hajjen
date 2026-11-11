@@ -1760,6 +1760,21 @@
       // The original Duck energy field remains untouched. Its solid core
       // now goes through the EXACT SAME material renderer as Jump.
       paintGateCore(core,false);
+      // Experimental dash-only lane cue: three small engraved chevrons
+      // INSIDE the long duck core. Ordinary Duck/Jump/Reality obstacles keep
+      // their clean silhouette, unchanged physics and no detached arrows.
+      if(o.type==='dash-duck'&&typeof runMode!=='undefined'&&runMode==='arcade'){
+        ctx.save();ctx.shadowBlur=0;
+        ctx.strokeStyle=rgba('#ffffff',.64);ctx.lineWidth=1.7;
+        ctx.beginPath();
+        const midY=core.y+Math.min(core.h-17,30),cx=core.x+core.w*.5;
+        for(let k=-1;k<=1;k++){
+          const xx=cx+k*17;
+          ctx.moveTo(xx-3,midY-6);ctx.lineTo(xx+3,midY);
+          ctx.lineTo(xx-3,midY+6);
+        }
+        ctx.stroke();ctx.restore();
+      }
     }
     // Every glowing segment maps to actual geometry. No detached seal
     // checkpoint, no free mid-bridge landing and no forced action key.

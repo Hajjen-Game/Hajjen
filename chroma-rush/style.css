@@ -1051,3 +1051,13 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
   #menu .arcade-mode-links{gap:1px 9px}
   #menu .arcade-mode-links .clash-mode-link{padding:2px 5px;font-size:9px}
 }
+
+/* CHROMA RUSH arcade family: three clear, lightweight mode links. */
+#menu #neon-circuit-link{color:#b8deff;border-color:rgba(110,175,243,.38)}
+#menu #neon-circuit-link:hover,#menu #neon-circuit-link:focus-visible{
+  color:#ffffff;border-color:#a6d6ff;
+}
+@media(max-height:420px){
+  #menu .arcade-mode-links{gap:0 8px;margin-top:1px}
+  #menu .arcade-mode-links .clash-mode-link{font-size:9px;padding:2px 4px}
+}

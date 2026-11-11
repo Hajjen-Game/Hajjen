@@ -23,7 +23,7 @@
     multiplier:2,cleanBonus:1800});
   const SHOT=Object.freeze({
     low:Object.freeze({width:64,height:24,offset:12,action:'JUMP'}),
-    high:Object.freeze({width:76,height:26,offset:49,action:'DUCK'})
+    high:Object.freeze({width:76,height:26,offset:42,action:'DUCK'})
   });
   const BASE_SHOTS=base.SHOTS;
   // Reuse the validated baseline terrain/gap planner. Replace ONLY the

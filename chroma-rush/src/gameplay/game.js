@@ -1219,8 +1219,10 @@
       }else if(realityEvent.type==='boss_armor_break'){
         sound('perfect');vib([18,26,18]);
         if(!reducedMotion){
-          burst(W*.78,H*.31,24,c2,1.05);
-          frameEcho(W*.78,H*.31,c2,60,1.15);
+          const coreX=camera.worldX(W*.80,player.x);
+          const coreY=camera.worldY(H*.31,floorY);
+          burst(coreX,coreY,24,c2,1.05);
+          frameEcho(coreX,coreY,c2,60,1.15);
         }
       }else if(realityEvent.type==='boss_defeated'){
         sound('chroma');vib([35,50,35]);

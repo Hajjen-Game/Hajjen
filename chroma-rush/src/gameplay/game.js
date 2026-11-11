@@ -31,6 +31,10 @@
   // launch Arcade normally while GitHub Pages publishes new scripts.
   const trialsModule=window.ChromaTrials||null;
   const trialRecords=trialsModule?new trialsModule.TrialRecords(profileStorage):null;
+  // Opt-in deterministic showcase, entirely separate from Arcade.
+  const realityModule=window.ChromaReality||null;
+  const realityRecords=realityModule?new realityModule.RealityRecords(profileStorage):null;
+  const reality=realityModule?new realityModule.RealityEngine():null;
   const GAME = window.ChromaConfig.GAME;
   const GEO = window.ChromaGeometry;
   const FAIR = window.ChromaHighSpeedFairness;
@@ -80,6 +84,7 @@
   const $ = {
     menu:el('menu'), hud:el('hud'), controls:el('controls'), gameover:el('gameover'),
     trialTimer:el('trial-timer'),trialBest:el('trial-best'),
+    realityBest:el('reality-best'),realityExport:el('reality-export-btn'),
     pauseMenu:el('pause-menu'), pauseBtn:el('pause-btn'), jump:el('jump-btn'), duck:el('duck-btn'),
     echoHint:el('echo-hint'),dashHint:el('dash-hint'),
     hp:el('hp-inner'), hpNumber:el('hp-number'), shieldGain:el('shield-gain'), zone:el('zone-display'), phase:el('phase-display'),
@@ -144,6 +149,8 @@
   // It is reset with each new run and is never affected by camera zoom.
   let lastPlacedHazard=null;
   let runMode='arcade', startZone=1, milestoneTime=0, unlockedThisRun=[];
+  const fixedCourse=()=>runMode==='trial'||runMode==='reality';
+  const courseModule=()=>runMode==='reality'?realityModule:trialsModule;
   let trialPlan=null,trialCursor=0,trialHits=0;
   let peakFlow=0,replayToastTime=0,zoneSoundAtCrossing=false,echoHintTime=0,dashHintTime=0;
   let dashReleasePending=null; // audio and particles follow the curved cube's thrust phase
@@ -165,7 +172,8 @@
     gravityMode:gravityShift.ceiling?'ceiling':'floor',gravityPhase:gravityShift.phase,
     movementPressure:director.movement.pressure,
     comboChain:combo.chain.length,dashMode:dash.mode||'none',
-    dashActive:dash.active,surgeActive:surge.active,surgeChain:surge.chain};}
+    dashActive:dash.active,surgeActive:surge.active,surgeChain:surge.chain,
+    reality:runMode==='reality'?reality?.snapshot:null};}
   function exportRound(){
     if(status!=='dead')return;
     const exported=runAudit.snapshot(auditState());
@@ -175,6 +183,7 @@
     // gameplay or collecting device/user identifiers.
     exported.directorExperience=director.insight;
     exported.flowBalance=flow.insight;
+    if(runMode==='reality')exported.realityEngine=reality.snapshot;
     // Separate visible-horizon evidence from the unchanged physics audit.
     exported.camera={version:'Adaptive Camera Horizon 1.1',
       finalZoom:Number(camera.zoom.toFixed(4)),
@@ -307,7 +316,8 @@
   function startRun(requestedMode='arcade',requestedZone=1){
     // A practice run can only begin in a zone already reached in real arcade play.
     const selected=Number(requestedZone);
-    runMode=requestedMode==='trial'&&trialsModule?'trial':
+    runMode=requestedMode==='reality'&&realityModule?'reality':
+      requestedMode==='trial'&&trialsModule?'trial':
       requestedMode==='practice'&&progression.canPracticeZone(selected)?'practice':'arcade';
     startZone=runMode==='practice'?selected:1;
     time=(startZone-1)*GAME.zoneSeconds;worldTime=0;zone=startZone;
@@ -318,15 +328,15 @@
     const palette=window.ChromaConfig.paletteForZone(zone);
     c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
     spectralWave.start({from:palette,to:palette,width:W,reducedMotion:true});
-    chromaVfx.reset();speedTrails.reset();gravityShift.reset();surge.reset();
+    chromaVfx.reset();speedTrails.reset();gravityShift.reset();surge.reset();reality?.reset();
     zoneSoundAtCrossing=false;
     hurdles=[];motes=[];streaks=[];lastPlacedHazard=null;
     effects.reset();director.reset();terrainDirector.reset();flow.reset();combo.reset();flow.currentZone=zone;
     distance=0;gapRecovery=null;terrain.reset(floorY);jumpControl.reset();dash.reset();motion.reset();dashReleasePending=null;
     // Authored world-space course once per Trial, no adaptive random edits.
-    trialPlan=runMode==='trial'?trialsModule.createPlan({playerX:W*.265}):null;
+    trialPlan=fixedCourse()?courseModule().createPlan({playerX:W*.265}):null;
     trialCursor=0;trialHits=0;
-    if(trialPlan)trialsModule.installTerrain(terrain,trialPlan,floorY);
+    if(trialPlan)courseModule().installTerrain(terrain,trialPlan,floorY);
     shieldCores.reset();shieldGainLeft=0;$.shieldGain.classList.add('hidden');$.hud.classList.remove('shield-recharged');
     peakFlow=0;replayToastTime=0;
     // All Dash actions remain available; remove the default DASH READY banner.
@@ -357,7 +367,9 @@
     arcadeUI.hud($,runMode==='practice');
     $.modeIndicator.classList.toggle('hidden',runMode==='arcade');
     if(runMode==='trial')$.modeIndicator.textContent='CHROMA TRIAL 001 · FIXED COURSE';
-    $.trialTimer.classList.toggle('hidden',runMode!=='trial');
+    if(runMode==='reality')$.modeIndicator.textContent='REALITY TRIAL · WORLD FOLD';
+    $.trialTimer.classList.toggle('hidden',!fixedCourse());
+    $.realityExport.classList.add('hidden');
     $.trialResultStats.classList.add('hidden');
     $.gameoverTitle.textContent='RUN COMPLETE';
     $.finalZoneLabel.textContent='ZONE';$.finalBestLabel.textContent='BEST SCORE';
@@ -380,7 +392,7 @@
   }
   function showMenu(){
     if(status==='running'||status==='paused')audio.stop();
-    status='ready';runMode='arcade';trialPlan=null;trialCursor=0;trialHits=0;
+    status='ready';runMode='arcade';trialPlan=null;trialCursor=0;trialHits=0;reality?.reset();
     milestoneTime=0;replayToastTime=0;echoHintTime=0;dashHintTime=0;
     $.echoHint.classList.add('hidden');$.dashHint.classList.add('hidden');dash.reset();dashReleasePending=null;shieldCores.reset();shieldGainLeft=0;$.shieldGain.classList.add('hidden');$.hud.classList.remove('shield-recharged');$.duck.classList.remove('dash-active');
     spectralWave.reset();chromaVfx.reset();speedTrails.reset();gravityShift.reset();surge.reset();effects.reset();combo.reset();zoneSoundAtCrossing=false;damageBlinkRemaining=0;
@@ -390,6 +402,7 @@
     $.critical.classList.remove('active');$.zoneCallout.classList.add('hidden');$.zonePerfect.classList.add('hidden');
     closeMenuDrawers();closeResultDetails();
     $.trialTimer.classList.add('hidden');$.trialResultStats.classList.add('hidden');
+    $.realityExport.classList.add('hidden');
     $.gameoverTitle.textContent='RUN COMPLETE';
     $.menu.classList.remove('hidden');$.graphicsButton.classList.remove('hidden');$.graphicsPanel.classList.add('hidden');$.graphicsButton.setAttribute('aria-expanded','false');syncSoundButton(true);arcadeUI.menu($,progression);replayUI.menu($,replay);updateTrialMenu();
   }
@@ -403,23 +416,26 @@
     runAudit.finish(auditState());
     const total=Math.floor(score),previousBest=progression.bestScore;
     replayToastTime=0;$.replayToast.classList.add('hidden');
-    if(runMode==='trial'){
-      const result=trialRecords.finish({score:total,
-        completed:time>=trialsModule.DURATION-1e-6&&hp>0});
+    if(fixedCourse()){
+      const isReality=runMode==='reality',module=courseModule();
+      const records=isReality?realityRecords:trialRecords;
+      const result=records.finish({score:total,
+        completed:time>=module.DURATION-1e-6&&hp>0});
       $.gameoverTitle.textContent=result.completed?'TRIAL COMPLETE':'TRIAL FAILED';
-      $.finalMode.textContent='CHROMA TRIAL 001 · 90 SECONDS';
+      $.finalMode.textContent=isReality?'REALITY TRIAL · FOLD + SENTINEL':'CHROMA TRIAL 001 · 90 SECONDS';
       $.finalScore.textContent=total.toLocaleString('en-US');
-      $.finalZoneLabel.textContent='TIME';$.finalZone.textContent=Math.min(trialsModule.DURATION,time).toFixed(1)+'s';
+      $.finalZoneLabel.textContent='TIME';$.finalZone.textContent=Math.min(module.DURATION,time).toFixed(1)+'s';
       $.finalBestLabel.textContent='TRIAL BEST';
       $.finalBest.textContent=result.bestScore.toLocaleString('en-US');
       $.finalRecord.textContent=result.newBest?'NEW TRIAL RECORD':
         result.completed?'COURSE CLEARED · BEAT YOUR SCORE':'COMPLETE ALL 90 SECONDS';
       $.finalRecord.classList.toggle('new-record',result.newBest);
-      $.trialResultTime.textContent=Math.min(trialsModule.DURATION,time).toFixed(1)+'s';
+      $.trialResultTime.textContent=Math.min(module.DURATION,time).toFixed(1)+'s';
       $.trialResultHits.textContent=String(trialHits);
       $.trialResultCombo.textContent=String(combo.bestChain);
       $.trialResultStats.classList.remove('hidden');
       $.retryButton.innerHTML='RETRY TRIAL <span aria-hidden="true">→</span>';
+      $.realityExport.classList.toggle('hidden',!isReality);
       $.resultDetailsButton.classList.add('hidden');
       $.gameover.classList.toggle('is-new-best',result.newBest);
       $.gameover.classList.remove('is-practice');
@@ -684,6 +700,8 @@
     document.addEventListener('visibilitychange',()=>{if(document.hidden&&status==='running')pause()});
     el('start-btn').addEventListener('click',()=>startRun('arcade'));
     el('trial-start-btn').addEventListener('click',()=>startRun('trial'));
+    el('reality-start-btn').addEventListener('click',()=>startRun('reality'));
+    $.realityExport.addEventListener('click',exportRound);
     el('retry-btn').addEventListener('click',()=>startRun(runMode,startZone));
     $.practiceButton.addEventListener('click',()=>startRun('practice',Number($.practiceSelect.value)));
     el('resume-btn').addEventListener('click',resume);
@@ -714,9 +732,12 @@
   const practiceDrawer=el('menu-practice'),helpDrawer=el('menu-controls'),
     trialDrawer=el('menu-trials');
   if(!trialsModule){trialToggle.disabled=true;el('trial-start-btn').disabled=true;}
+  if(!realityModule)el('reality-start-btn').disabled=true;
   function updateTrialMenu(){
     $.trialBest.textContent=trialRecords?.bestScore?
       'BEST '+trialRecords.bestScore.toLocaleString('en-US'):'NO COMPLETED TRIAL YET';
+    $.realityBest.textContent=realityRecords?.bestScore?
+      'BEST '+realityRecords.bestScore.toLocaleString('en-US'):'NO REALITY CLEAR YET';
   }
   const detailsToggle=el('result-details-btn'),detailsDrawer=el('result-details');
   const closeMenuDrawers=()=>{
@@ -855,10 +876,11 @@
     return true;
   }
   function updateHud(){
-    HUD.update($,{hp,zone,color:c1,phase:runMode==='trial'?'TRIAL':director.label,score,speed,
+    HUD.update($,{hp,zone,color:c1,
+      phase:runMode==='reality'?(time>=realityModule.SENTINEL.start&&time<=realityModule.SENTINEL.end?'SENTINEL':'REALITY'):runMode==='trial'?'TRIAL':director.label,score,speed,
       baseSpeed:GAME.baseSpeed,status,flow,combo});
     replayUI.hud($,{practice:runMode!=='arcade',score,previousScore:replay.previousScore});
-    if(runMode==='trial')$.trialTimer.textContent=Math.max(0,Math.ceil(trialsModule.DURATION-time))+'s';
+    if(fixedCourse())$.trialTimer.textContent=Math.max(0,Math.ceil(courseModule().DURATION-time))+'s';
     $.surgeIndicator.classList.toggle('hidden',!surge.active);
     $.surgeIndicator.classList.toggle('surge-master',surge.active&&surge.chain>=4);
     if(surge.active){
@@ -933,7 +955,7 @@
         'Duck or Dash: tap while airborne for Air Dash, or tap again during Duck for Ground Dash');
       runAudit.record('dash_unlocked',auditState(),{zone});
     }
-    if(runMode!=='trial'&&gravityShift.requestForZone(zone)){
+    if(!fixedCourse()&&gravityShift.requestForZone(zone)){
       // Schedule a breathing space; generated gaps already ahead are respected
       // and the shift waits until the actual visible runway is safe.
       terrainDirector.noHazardsBefore=Math.max(terrainDirector.noHazardsBefore,
@@ -987,7 +1009,7 @@
       flow.registerCollision();runAudit.record('invulnerable_contact',auditState(),{obstacle:o.type});return;
     }
     hp=Math.max(0,hp-GAME.damagePerHit);
-    if(runMode==='trial')trialHits++;
+    if(fixedCourse())trialHits++;
     runAudit.record('obstacle_hit',auditState(),{obstacle:o.type});player.invulnerable=.96;damageBlinkRemaining=.96;shake=12;hitFlash=.38;
     director.registerDamage({action:o.type});flow.registerDamage();speedTrails.disrupt();burst(player.x,player.feet-30,'#ff506d',30,1.4);frameEcho(player.x,player.feet-26,'#ff596e',29,1.1);
     vib([25,40,30]);sound('hit');if(hp===0)endRun();
@@ -1006,7 +1028,7 @@
     if(absorbed)flow.registerCollision();
     else{
       hp=Math.max(0,hp-GAME.damagePerHit);
-      if(runMode==='trial')trialHits++;
+      if(fixedCourse())trialHits++;
       director.registerDamage({action:gap.echoChallenge?'echo-gap':'gap'});
       flow.registerDamage();speedTrails.disrupt();
     }
@@ -1028,6 +1050,7 @@
     score+=reward.earnedPoints;
     awardCombo(gap.echoChallenge?'echo-gap':'gap');
     awardSurge(gap.echoChallenge?'echo-gap':'gap');
+    if(runMode==='reality'&&player.invulnerable===0)reality.onClear({time});
     runAudit.record('gap_clear',auditState(),{width:gap.end-gap.start,
       echoChallenge:Boolean(gap.echoChallenge),variant:gap.echoVariant||''});
     if(runMode==='arcade')earnedMilestones(progression.reachedStreak(flow.streak).earned);
@@ -1037,9 +1060,9 @@
     else if(!reward.tierUp)sound('score');
   }
   function update(dt){
-    if(runMode==='trial'){
-      if(time>=trialsModule.DURATION){endRun();return;}
-      dt=Math.min(dt,trialsModule.DURATION-time);
+    if(fixedCourse()){
+      if(time>=courseModule().DURATION){endRun();return;}
+      dt=Math.min(dt,courseModule().DURATION-time);
     }
     time+=dt;worldTime+=dt;
     const next=Math.floor(time/GAME.zoneSeconds)+1;
@@ -1086,7 +1109,7 @@
       hp<=window.ChromaConfig.SHIELD_CORE.spawnAtOrBelow&&
       !shieldCores.visible&&time>=shieldCores.nextAt-.7?
       player.x+Math.max(300,speed)*2.65:0;
-    if(runMode!=='trial')terrainDirector.prepare({right:distance+Math.max(camera.visibleRight(W,player.x)+800,
+    if(!fixedCourse())terrainDirector.prepare({right:distance+Math.max(camera.visibleRight(W,player.x)+800,
       farthestSpawn+speed*1.9+330,shieldPlanAhead),
       playerWorld:distance+player.x,zone,speed,hp,
       surface:gravityShift.ceiling?'ceiling':'floor'});
@@ -1147,7 +1170,18 @@
       !hurdles.some(o=>o.mechanicIntro&&!o.hit&&!o.cleared) &&
       hurdles.every(o=>o.hit||o.cleared||
         o.x+o.width<player.x-speed*.35||o.x>player.x+speed*1.55);
-    const gravityEvent=runMode==='trial'?null:gravityShift.tick(dt,{safe:safeShift,reducedMotion});
+    const realityEvent=runMode==='reality'?
+      reality.tick(dt,{time,gravity:gravityShift,safe:safeShift,reducedMotion}):null;
+    if(realityEvent==='fold_warning'){
+      runAudit.record('reality_fold_warning',auditState(),{
+        target:gravityShift.targetCeiling?'ceiling':'floor'});
+      sound('gravity-warning');
+    }else if(realityEvent==='sentinel_enter'){
+      runAudit.record('reality_sentinel_begin',auditState(),{time});
+    }
+    const gravityEvent=runMode==='reality'?
+      (realityEvent==='fold_begin'?'begin':realityEvent==='fold_complete'?'complete':null):
+      runMode==='trial'?null:gravityShift.tick(dt,{safe:safeShift,reducedMotion});
     if(gravityEvent==='return_warning'){
       // A short ceiling excursion has expired. Reserve the same clear
       // runway as a zone-triggered shift; NEVER force an unsafe inversion.
@@ -1232,7 +1266,7 @@
     }
     if(!player.landed&&visualRandom()<.7*quality.profile.particles)motes.push(makeMote(player.x+fxRand(-14,14),player.feet-8,c1,{vx:fxRand(-170,-20),vy:fxRand(10,70),life:.32,r:fxRand(1,3)}));
     const phaseBefore=director.phase;
-    if(runMode==='trial'){
+    if(fixedCourse()){
       // Fixed-world positions. Newly inserted objects get this step's
       // movement delta once; the shared collision loop then advances all.
       const visibleWorld=distance+camera.visibleRight(W,player.x)+speed*2.3;
@@ -1244,9 +1278,9 @@
           hit:false,cleared:false,closestClearance:Infinity,
           entryDuckTime:null,dashAssisted:false,mechanicIntro:false,phase:'TRIAL'});
         runAudit.record('spawn',auditState(),{
-          obstacle:fixed.type,pattern:'CHROMA_TRIAL_001',
+          obstacle:fixed.type,pattern:runMode==='reality'?'REALITY_ENGINE_001':'CHROMA_TRIAL_001',
           worldX:fixed.worldX,width:fixed.width,height:fixed.height,
-          surface:'floor',intro:false});
+          surface:gravityShift.ceiling?'ceiling':'floor',intro:false});
       }
     }else terrainDirector.tick(dt,{zone,speed,hp,distance,spawnX:camera.visibleRight(W,player.x)+90,
       spawnXFor,playerX:player.x,
@@ -1303,6 +1337,8 @@
           score+=gained.earnedPoints;
           awardCombo(o.type,{precision,master:graded.master});
           awardSurge(o.type,{precision,master:graded.master});
+          if(runMode==='reality'&&player.invulnerable===0)
+            reality.onClear({time,precision,master:graded.master});
           runAudit.record('obstacle_clear',auditState(),
             {obstacle:o.type,precision,master:graded.master,
               precisionMargin:graded.margin===null?-1:graded.margin});
@@ -1365,7 +1401,7 @@
     // Optional reward lane. No extra game randomness, knockback or bonus
     // score: the collectible restores only the existing HP/shield bar.
     // No hit-dependent shield pickup can change a fixed competitive course.
-    const shieldEvents=runMode==='trial'?{}:shieldCores.tick(dt,{time,zone,hp,
+    const shieldEvents=fixedCourse()?{}:shieldCores.tick(dt,{time,zone,hp,
       playerWorld:distance+player.x,playerBox:GEO.playerBox(player),
       echoUsed:jumpControl.echoUsed,landed:player.landed,
       terrain,hurdles,speed,distance,playerX:player.x,
@@ -1403,7 +1439,7 @@
     audio.tick({phase:director.phase,speed,flow:flow.value,
       chromaActive:flow.tier===3,surgeActive:surge.active,zone,hp});
     runAudit.tick(dt,auditState(),director.insight);
-    if(runMode==='trial'&&time>=trialsModule.DURATION-1e-6&&status==='running')endRun();
+    if(fixedCourse()&&time>=courseModule().DURATION-1e-6&&status==='running')endRun();
     // HUD and sound button DOM are presentation, not simulation. At slow
     // refresh rates the clock may run 2–6 deterministic physics steps before
     // ONE paint. Updating the DOM on every step multiplies layout work.
@@ -1752,8 +1788,11 @@
     ctx.save();
     if(shake>0&&status==='running')ctx.translate(fxRand(-shake,shake)*.4,fxRand(-shake,shake)*.35);
     frameLighting=worldLighting?.evaluate({flow:flow.value,
-      surge:surge.intensity,quality:quality.profile})||null;
+      surge:Math.max(surge.intensity,runMode==='reality'?(reality?.resonance||0)*.7:0),
+      quality:quality.profile})||null;
     drawWorld(worldTime);
+    if(runMode==='reality')reality.drawBackdrop(ctx,{time,width:W,height:H,
+      primary:c1,secondary:c2,quality:quality.profile,reducedMotion});
     // Only the course flips: the original atmospheric background and DOM HUD
     // stay upright. All gameplay sprites, gaps and trails share one transform.
     ctx.save();gravityShift.applyCourseTransform(ctx,H);
@@ -1786,7 +1825,8 @@
       {width:W,quality:quality.profile,reducedMotion});
     // Upright warning, shift energy and persistent ceiling-mode orientation.
     gravityShift.drawOverlay(ctx,{width:W,height:H,primary:c1,secondary:c2,
-      quality:quality.profile,reducedMotion});
+      quality:quality.profile,reducedMotion,scripted:runMode==='reality'});
+    if(runMode==='reality')reality.drawOverlay(ctx,{time,width:W,height:H,primary:c1});
     // Upright, minimal warning only while the real course feature is
     // offscreen; unaffected by gravity and visible in Performance graphics.
     const cue=FAIR.warning({hurdles,gaps:terrain.gaps,distance,

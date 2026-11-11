@@ -89,8 +89,9 @@ function record(m,type,fields={}){
 function createGame(seed=20261111){
   const random=rng(seed);
   const spawn=[
-    [CX-158,CY-112,0],[CX+158,CY-112,Math.PI],
-    [CX-158,CY+112,0],[CX+158,CY+112,Math.PI]
+    // Tangential starting directions avoid unavoidable head-on spawns.
+    [CX-158,CY-112,0],[CX+158,CY-112,Math.PI/2],
+    [CX-158,CY+112,-Math.PI/2],[CX+158,CY+112,Math.PI]
   ];
   const players=spawn.map((s,id)=>({
     id,name:NAMES[id],color:COLORS[id],x:s[0],y:s[1],

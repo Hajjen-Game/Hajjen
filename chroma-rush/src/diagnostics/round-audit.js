@@ -19,7 +19,14 @@
     'shield_core_spawn','shield_core_pickup','shield_core_miss',
     'dash_hazard_clear','dash_hazard_miss','dash_hazard_defer','dash_hazard_assist',
     'dash_timing','dash_followthrough',
-    'surge_start','surge_clear','surge_break','surge_end']);
+    'surge_start','surge_clear','surge_break','surge_end',
+    // Reality-exclusive local diagnostics: actual upper-branch choice,
+    // score bonus, Sentinel shot creation and physical hit/clear events.
+    'reality_route_selected','reality_upper_overdrive',
+    'reality_upper_route_bonus','reality_upper_route_clean',
+    'reality_upper_route_finish','reality_boss_phase','reality_boss_shot',
+    'reality_boss_armor_break','reality_boss_attack_survived',
+    'reality_boss_defeated','reality_projectile_hit','reality_projectile_clear']);
   const number=(n)=>Number.isFinite(Number(n))?Math.round(Number(n)*100)/100:0;
   const snap=(input={})=>({
     time:number(input.time),zone:Math.max(1,number(input.zone)||1),
@@ -348,7 +355,7 @@
         reaction:{...this.summary.reaction,byAction:Object.fromEntries(
           Object.entries(this.summary.reaction.byAction).map(([k,v])=>[k,{...v}]))}};
       return {format:'chroma-rush-round-audit',version:3,mode:this.mode,
-        build:this.mode==='reality'?'reality-engine-2.1':'premium-world-lighting-3.0',
+        build:this.mode==='reality'?'reality-engine-2.2':'premium-world-lighting-3.0',
         startingZone:this.startingZone,durationSeconds:duration,summary:sum,
         finalState:this.finalState||snap(context),events:this.events.map(e=>({...e})),
         samples:this.samples.map(s=>({...s})),truncatedEvents:this.overflow,

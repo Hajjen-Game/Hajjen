@@ -5,18 +5,21 @@ const path = require('node:path');
 const core = require('../src/gameplay/chroma-clash.js');
 const { ClashRunAudit } = require('../src/diagnostics/chroma-clash-audit.js');
 
-test('The new renderer uses a cached old scene and ONE live draw per transition frame', () => {
+test('1.4 renders cached world scenes with no live full-world paint per animation frame', () => {
   const src = fs.readFileSync(path.join(__dirname, '../src/gameplay/chroma-clash.js'), 'utf8');
-  const body = src.slice(src.indexOf('  function drawCornerTransition('),
+  const transition = src.slice(src.indexOf('  function drawCornerTransition('),
     src.indexOf('  function render(time)'));
-  assert.ok(body.includes('ctx.drawImage(tideCacheCanvas'), 'old scene must be cached');
-  assert.equal((body.match(/drawArena\(active,/g) || []).length, 2,
-    'one live draw plus an emergency scene fallback, not multiple full passes');
-  assert.doesNotMatch(body, /drawBackground\(time/);
-  assert.doesNotMatch(body, /floorOnly/);
-  assert.doesNotMatch(body, /ctx\.clip\('evenodd'\)/);
-  assert.ok(body.includes('TIDE.clipNewColor(ctx, screen, progress)'));
-  assert.ok(body.includes('drawActiveEdgeWarning'));
+  assert.ok(transition.includes('getStaticScene(active, Math.max(0, active.zone - 1))'));
+  assert.ok(transition.includes('getStaticScene(active, active.zone)'));
+  assert.ok(transition.includes('ctx.drawImage(from, 0, 0, WIDTH, HEIGHT)'));
+  assert.ok(transition.includes('ctx.drawImage(to, 0, 0, WIDTH, HEIGHT)'));
+  assert.equal((transition.match(/drawArena\(active,/g) || []).length, 1,
+    'a one-shot fallback is allowed; normal transition must not repaint');
+  assert.ok(transition.includes('TIDE.clipNewColor(ctx,'));
+  assert.ok(transition.includes('drawDynamicArena(active, time)'));
+  assert.ok(src.includes('const BASE_PIXEL_BUDGET = 750000'));
+  assert.ok(src.includes('const spriteCache = Object.create(null)'));
+  assert.ok(src.includes('function cubeSprite(color)'));
 });
 
 test('An accepted frame or rendering stall is visible in the next Run Log', () => {
@@ -30,7 +33,8 @@ test('An accepted frame or rendering stall is visible in the next Run Log', () =
   assert.deepEqual(report.summary.performance, {
     frames: 3, slowFrames50ms: 2, severeFrames100ms: 1,
     worstFrameMs: 124, renderSamples: 3, worstRenderMs: 80.15,
-    rendererFallbacks: 0, adaptiveTideDisables: 1
+    rendererFallbacks: 0, adaptiveTideDisables: 1,
+    qualityDrops: 0, sceneBuilds: 0, basePixelBudget: 750000
   });
   assert.ok(report.events.some(e=>e.type==='graphics_fallback' && e.adaptive));
 });
@@ -52,16 +56,17 @@ test('The change does not touch match physics, ten-second zone timing or collide
 
 test('Wave is disabled after repeated slow frames without disabling any match logic', () => {
   const src=fs.readFileSync(path.join(__dirname,'../src/gameplay/chroma-clash.js'),'utf8');
-  assert.ok(src.includes('if (tideSlowFrames >= 3)'));
-  assert.ok(src.includes('tideDisabled = true; tideCacheCanvas = null;'));
+  assert.ok(src.includes('if (tideSlowFrames >= 4)'));
+  assert.ok(src.includes('tideDisabled = true;'));
   assert.ok(src.includes("match.audit.noteGraphicsFallback(match.elapsed,"));
+  assert.ok(src.includes('if (slowFrameStreak >= 8 && renderQuality > .56)'));
   assert.ok(src.includes('active.cubes.forEach(c => drawCube(c, time))'));
   assert.ok(src.includes('match.audit.noteFrame(frameMs, performance.now() - renderStart)'));
 });
 
-test('New page uses cache-busted 1.3.1 assets on mobile', () => {
+test('New page uses cache-busted 1.4 assets on mobile', () => {
   const html=fs.readFileSync(path.join(__dirname,'../clash.html'),'utf8');
-  assert.match(html,/chroma-clash\.js\?v=chroma-clash-1\.3\.1-mobile-wave-stability/);
-  assert.match(html,/chroma-corner-tide\.js\?v=chroma-clash-1\.3\.1/);
-  assert.match(html,/chroma-clash-audit\.js\?v=chroma-clash-1\.3\.1/);
+  assert.match(html,/chroma-clash\.js\?v=chroma-clash-1\.4-rendering-flow/);
+  assert.match(html,/chroma-corner-tide\.js\?v=chroma-clash-1\.4/);
+  assert.match(html,/chroma-clash-audit\.js\?v=chroma-clash-1\.4/);
 });

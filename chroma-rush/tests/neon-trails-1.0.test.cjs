@@ -139,7 +139,7 @@ test('Neon trails have a softly moving highlight but never draw a nose streak',(
   assert.doesNotMatch(runners,/p\\.x\\+Math\\.cos\\(p\\.angle\\)\\*17/);
   assert.doesNotMatch(draw,/shadowBlur/);
   const html=read('neon-trails.html');
-  assert.match(html,/>DASH<\\/button>/);
+  assert.match(html,/>DASH<\/button>/);
   assert.doesNotMatch(html,/\\bBOOST\\b/);
 });
 test('Menu and source expose fullscreen, responsive joystick, dash, own log and shared Rush rendering',()=>{

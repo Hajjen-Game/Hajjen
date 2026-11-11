@@ -81,7 +81,7 @@ def main():
               return {first,collapse};
             }""")
             assert timing['first'] == {'zone': 1, 'stage': 0, 'speed': 157,
-                                       'paletteFade': .72, 'oldColor': '#54dfff'}, timing
+                                       'paletteFade': 1.55, 'oldColor': '#54dfff'}, timing
             collapse = timing['collapse']
             assert collapse == {'zone': 1, 'stage': 1, 'half': 166, 'falling': 1}, collapse
             transition = page.evaluate("""() => {

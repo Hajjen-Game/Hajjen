@@ -405,22 +405,34 @@
         }
       }
       ctx.stroke();
-      ctx.globalAlpha=.82;ctx.fillStyle='#ffe7ff';
-      ctx.font='900 13px system-ui';ctx.textAlign='center';
-      const label=obstacle.type==='jump'?'SLAM':'SWEEP';
-      ctx.fillText(label,x+w/2,y+Math.max(19,Math.min(h-11,40)));
+      // High-speed readability: the slash grammar is the boss signature.
+      // Avoid the JUMP/DUCK-style text stamped onto ordinary hazards.
       ctx.restore();
     }
     drawOverlay(ctx,{time=0,width=1280,height=720,
       primary='#3feeff',secondary='#e265ff'}={}){
       if(this.route==='undecided'&&time>=BRANCH.choiceStart-.75&&time<=BRANCH.choiceEnd){
         ctx.save();ctx.textAlign='center';
-        ctx.fillStyle='rgba(7,13,29,.83)';
-        ctx.fillRect(width*.5-210,height*.22-34,420,57);
-        ctx.font='800 18px system-ui';ctx.fillStyle='#f3eeff';
-        ctx.fillText('WORLD FOLD · CHOOSE YOUR ROUTE',width*.5,height*.22-10);
-        ctx.font='800 14px system-ui';ctx.fillStyle=secondary;
-        ctx.fillText('JUMP = UPPER  ·  STAY = LOWER',width*.5,height*.22+10);
+        const y=height*.19,x=width*.5;
+        ctx.fillStyle='rgba(7,13,29,.86)';
+        ctx.fillRect(x-205,y,410,112);
+        ctx.font='800 17px system-ui';ctx.fillStyle='#f3eeff';
+        ctx.fillText('WORLD FOLD · TWO REAL PATHS',x,y+24);
+        ctx.font='800 13px system-ui';ctx.fillStyle=secondary;
+        ctx.fillText('JUMP: UPPER  ·  KEEP RUNNING: LOWER',x,y+45);
+        // A tiny, clearly framed course PREVIEW. It is HUD, never a
+        // flashing or collider-like object near the playable ground.
+        ctx.beginPath();ctx.moveTo(x-122,y+92);
+        ctx.lineTo(x+120,y+92);ctx.strokeStyle=primary;
+        ctx.lineWidth=2;ctx.globalAlpha=.8;ctx.stroke();
+        ctx.beginPath();ctx.moveTo(x-122,y+92);
+        ctx.bezierCurveTo(x-82,y+92,x-72,y+63,x-28,y+63);
+        ctx.lineTo(x+26,y+63);
+        ctx.bezierCurveTo(x+70,y+63,x+80,y+92,x+120,y+92);
+        ctx.strokeStyle=secondary;ctx.lineWidth=2.6;ctx.stroke();
+        ctx.fillStyle='#f2d5ff';ctx.font='800 10px system-ui';
+        ctx.fillText('HIGH',x,y+59);
+        ctx.fillStyle='#9af6f0';ctx.fillText('LOW',x,y+106);
         ctx.restore();
       }else if(this.route!=='undecided'&&this.routeAt!==null&&time-this.routeAt<2.0){
         const alpha=clamp((this.routeAt+2-time)/.5,0,1);

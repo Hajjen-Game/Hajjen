@@ -8,7 +8,7 @@
   if (root) root.ChromaClashAudit = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const BUILD = 'chroma-clash-1.3-corner-tide-impact-audit';
+  const BUILD = 'chroma-clash-1.4-rendering-flow';
   const MAX_EVENTS = 600;
   const MAX_SAMPLES = 300;
   const num = x => Number.isFinite(x) ? Math.round(x * 1000) / 1000 : 0;
@@ -40,7 +40,8 @@
       this.performance = {
         frames: 0, slowFrames50ms: 0, severeFrames100ms: 0,
         worstFrameMs: 0, renderSamples: 0, worstRenderMs: 0,
-        rendererFallbacks: 0, adaptiveTideDisables: 0
+        rendererFallbacks: 0, adaptiveTideDisables: 0,
+        qualityDrops: 0, sceneBuilds: 0, basePixelBudget: 750000
       };
       this.eliminations = [];
       this.record('start', 0, { arenaHalf: 198, playerId: 0, opponents: 3 });

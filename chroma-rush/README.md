@@ -4,6 +4,16 @@
 
 **Play Chroma Clash:** https://hajjen-game.github.io/Hajjen/chroma-rush/clash.html
 
+**Play Neon Trails:** https://hajjen-game.github.io/Hajjen/chroma-rush/neon-trails.html
+
+## Arcade Modes: Clash 1.2 Impact & Depth + Neon Trails 1.0
+
+**Chroma Clash:** a four-cube sumo duel on a rounded square whose edges sink **straight down in world depth**. Collision effects now use Rush's short directional neon cuts, not circular shock rings. The fast 1.4 cached panoramic renderer, responsive joystick, fullscreen and JSON run audit remain.
+
+**Neon Trails:** a standalone Tailblazer-style mini-game. Four glowing glass cubes race across a top-down arena and leave deadly neon trails. Steer with the left thumb, use optional BOOST with the right, trap AI rivals and survive. Every ten seconds advances Rush's color palette and movement speed; the arena warns before contracting every 20 seconds. Includes local run log, fullscreen and mobile performance cap.
+
+See [Clash & Neon Trails design and playtest guide](docs/clash-impact-depth-neon-trails-1.0.md).
+
 ## Chroma Clash 1.3 — Corner Tide, Impact Physics & Run Audit (2026-11-11)
 
 Chroma Clash is a separate **top-down joystick-only** arcade battle between four neon cubes on a rounded-square platform that sheds outer sections. Color zones and movement speed change every ten seconds. The new **four-corner Chroma Tide** sweeps inward simultaneously across the backdrop and arena floor; collision knockbacks are now persistent, with responsive steering and fair AI. Paused and completed matches can download a local JSON audit with color, edge, impact, elimination, duration and position data.

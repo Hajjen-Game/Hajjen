@@ -161,6 +161,7 @@ def main():
         old = visual.evaluate('window.__clashWaveCapture(0)')
         mid = visual.evaluate('window.__clashWaveCapture(.55)')
         new = visual.evaluate('window.__clashWaveCapture(1)')
+        visual.evaluate('window.__clashWaveCapture(.55)')
         visual.screenshot(path=str(OUT / 'clash-four-corner-tide-55pct.png'))
         def delta(a, b):
             return sum(abs(u-v) for u, v in zip(a, b))

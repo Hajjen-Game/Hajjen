@@ -68,16 +68,23 @@ def main():
         browser = playwright.chromium.launch(
             headless=True, executable_path=os.environ.get('CHROMA_CHROMIUM_PATH') or None,
             args=['--no-sandbox'])
-        for width, height in ((960, 540), (812, 375)):
+        for width, height in ((960, 540), (812, 375), (1400, 700)):
             page = browser.new_page(
-                viewport={'width': width, 'height': height}, device_scale_factor=1,
-                is_mobile=width == 812, has_touch=width == 812, accept_downloads=True)
+                viewport={'width': width, 'height': height}, device_scale_factor=3,
+                is_mobile=width != 960, has_touch=width != 960, accept_downloads=True)
             page.on('pageerror', lambda error: failures.append(str(error)))
             page.goto(URL, wait_until='load')
             page.wait_for_timeout(140)
             assert page.locator('#clash-menu').is_visible(), 'Missing first menu'
             assert page.locator('#clash-start').is_visible(), 'Start button not visible'
             assert page.locator('#clash-canvas').is_visible(), 'Canvas missing'
+            canvas_size = page.evaluate("""() => {
+              const c=document.getElementById('clash-canvas');
+              return {w:c.width,h:c.height,cssW:innerWidth,cssH:innerHeight,dpr:devicePixelRatio};
+            }""")
+            assert canvas_size['w'] * canvas_size['h'] <= 750000 + 2000, canvas_size
+            assert canvas_size['w'] <= width, canvas_size
+            assert canvas_size['h'] <= height, canvas_size
             assert page.locator('#clash-mode-link').count() == 0, 'Runner menu leaked'
             page.screenshot(path=str(OUT / ('clash-menu-%s.png' % width)))
             page.locator('#clash-start').click()
@@ -148,7 +155,8 @@ def main():
             assert all(p[1] > 140 for p in transition['corners']), transition
             assert transition['center'][:3] == [18, 17, 34], transition
             assert transition['duration'] >= 1.4, transition
-            captures.append({'viewport': [width, height], 'rendered': True,
+            captures.append({'viewport': [width, height], 'canvas': canvas_size,
+                             'rendered': True,
                              'joystickMoved': True, 'pausedAndResumed': True,
                              'collapse': collapse, 'tenSecondZone': timing['first'],
                              'fourCornerWave': transition, 'runLogDownloaded': True})
@@ -184,8 +192,20 @@ def main():
                   worstMs:Math.max(...durations)};
         }""")
         assert timings['totalMs'] < 3500, timings
+        steady = visual.evaluate("""() => {
+          const times=[];
+          for(let i=0;i<120;i++){
+            const t=performance.now();
+            window.__clashWaveCapture(1);
+            times.push(performance.now()-t);
+          }
+          return {totalMs:times.reduce((a,b)=>a+b,0),
+                  maxMs:Math.max(...times)};
+        }""")
+        assert steady['totalMs'] < 3000, steady
         captures.append({'canvasWorld': 'real corner-tide composite',
-                         'performance': timings, 'playersVisibleAtZoneChange': True,
+                         'performance': timings, 'steadyState': steady,
+                         'playersVisibleAtZoneChange': True,
                          'oldColors': old, 'midTransition': mid, 'newColors': new})
         visual.close()
         browser.close()

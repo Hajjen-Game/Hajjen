@@ -165,7 +165,8 @@ test('simple Sentinel core renders without using legacy character body or gate a
     spawnX:900,speed:850});
   e.drawBackdrop(c,{time:64,width:1280,height:720,
     primary:'#3feeff',secondary:'#e265ff'});
-  assert.ok(calls.filter(x=>x==='stroke').length>2);
+  assert.ok(calls.filter(x=>x==='stroke').length>=2,
+    'two clean continuous energy contours, no multi-limb boss silhouette');
   assert.ok(calls.filter(x=>x==='rect').length>=5);
   e.drawProjectiles(c,{});
   assert.ok(calls.includes('fill'));

@@ -37,6 +37,11 @@
       this.takenById = [0, 0, 0, 0];
       this.ringBreaks = 0;
       this.zoneChanges = 0;
+      this.performance = {
+        frames: 0, slowFrames50ms: 0, severeFrames100ms: 0,
+        worstFrameMs: 0, renderSamples: 0, worstRenderMs: 0,
+        rendererFallbacks: 0, adaptiveTideDisables: 0
+      };
       this.eliminations = [];
       this.record('start', 0, { arenaHalf: 198, playerId: 0, opponents: 3 });
     }
@@ -45,6 +50,20 @@
       const event = { time: num(time), type, ...fields };
       if (this.events.length < MAX_EVENTS) this.events.push(event);
       else this.eventOverflow++;
+    }
+    noteFrame(frameMs, renderMs) {
+      const p = this.performance;
+      p.frames++;
+      if (frameMs > 50) p.slowFrames50ms++;
+      if (frameMs > 100) p.severeFrames100ms++;
+      p.worstFrameMs = Math.max(p.worstFrameMs, frameMs);
+      p.renderSamples++;
+      p.worstRenderMs = Math.max(p.worstRenderMs, renderMs);
+    }
+    noteGraphicsFallback(time, reason, adaptive) {
+      if (adaptive) this.performance.adaptiveTideDisables++;
+      else this.performance.rendererFallbacks++;
+      this.record('graphics_fallback', time, { adaptive: !!adaptive, reason });
     }
     noteContact(time, a, b, impulse, attacker, target, edgeDistance) {
       this.totalContacts++;
@@ -119,6 +138,11 @@
           impactsTakenByCube: this.takenById.slice(),
           eliminations: this.eliminations.map(e => ({ ...e })),
           zoneTransitions: this.zoneChanges,
+          performance: {
+            ...this.performance,
+            worstFrameMs: num(this.performance.worstFrameMs),
+            worstRenderMs: num(this.performance.worstRenderMs)
+          },
           playerKnockouts: match.cubes[0].knocks,
           players: match.cubes.map(c => ({ ...flat(c), color: c.color, knockouts: c.knocks }))
         },

@@ -420,6 +420,55 @@
   }
   window.addEventListener('resize', resize, { passive: true });
   resize();
+  const fullscreenShell = $('clash-shell');
+  const fullscreenButtons = [$('clash-fullscreen'), $('clash-fullscreen-menu')];
+  let fullscreenStatusTimer = null;
+  function showFullscreenMessage(message) {
+    const el = $('clash-fullscreen-status');
+    el.textContent = message;
+    el.classList.remove('hidden');
+    if (fullscreenStatusTimer != null) clearTimeout(fullscreenStatusTimer);
+    fullscreenStatusTimer = setTimeout(() => {
+      el.classList.add('hidden');
+      fullscreenStatusTimer = null;
+    }, 3200);
+  }
+  function syncFullscreenUI() {
+    const active = document.fullscreenElement === fullscreenShell;
+    fullscreenButtons.forEach(button => {
+      button.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Enter fullscreen');
+      button.setAttribute('aria-pressed', String(active));
+      button.title = active ? 'Exit fullscreen' : 'Fullscreen';
+    });
+    $('clash-fullscreen').textContent = active ? '⤡' : '⛶';
+    $('clash-fullscreen-menu').textContent = active ? '⤡ EXIT FULLSCREEN' : '⛶ FULLSCREEN';
+  }
+  function toggleFullscreen() {
+    // Native Fullscreen API requires an actual click/tap. Never attempt it
+    // from animation frames, resize handlers, or async startup effects.
+    const active = document.fullscreenElement === fullscreenShell;
+    try {
+      if (active && typeof document.exitFullscreen === 'function') {
+        const result = document.exitFullscreen();
+        if (result && result.catch) result.catch(() =>
+          showFullscreenMessage('Could not exit fullscreen. Use your browser controls.'));
+      } else if (!active && typeof fullscreenShell.requestFullscreen === 'function' &&
+                 document.fullscreenEnabled !== false) {
+        const result = fullscreenShell.requestFullscreen({ navigationUI: 'hide' });
+        if (result && result.catch) result.catch(() =>
+          showFullscreenMessage('Your browser blocked fullscreen mode.'));
+      } else {
+        showFullscreenMessage('Fullscreen is not supported in this browser.');
+      }
+    } catch (_) {
+      showFullscreenMessage('Fullscreen is not available here.');
+    }
+  }
+  fullscreenButtons.forEach(button => button.addEventListener('click', toggleFullscreen));
+  document.addEventListener('fullscreenchange', () => { syncFullscreenUI(); resize(); });
+  document.addEventListener('fullscreenerror', () =>
+    showFullscreenMessage('Your browser blocked fullscreen mode.'));
+  syncFullscreenUI();
   function setScreen(which) {
     $('clash-menu').classList.toggle('hidden', which !== 'menu');
     $('clash-pause-menu').classList.toggle('hidden', which !== 'paused');

@@ -1711,7 +1711,9 @@
     // Every glowing segment maps to actual geometry. No detached seal
     // checkpoint, no free mid-bridge landing and no forced action key.
     ctx.restore();
-    if(runMode==='reality'&&o.bossPhase)
+    // Keep the legacy standalone gate renderer pure. Only tagged boss
+    // colliders can draw a Reality accent; regular gates are untouched.
+    if(o.bossPhase&&typeof reality!=='undefined'&&reality)
       reality.drawAttack(ctx,{obstacle:o,box:b,quality:quality.profile});
   }
   function drawPlayer(){

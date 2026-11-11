@@ -83,7 +83,7 @@
     if(!plan.bridge||plan.bridge.type!==BRIDGE.type||
       plan.bridge.time!==BRIDGE.time||plan.bridge.worldX>=plan.markers.start)return false;
     if(!lower.every((o,i)=>o.time===
-      Number((LOWER.start+i*LOWER.cadence).toFixed(3))||
+      Number((LOWER.start+i*LOWER.cadence).toFixed(3))&&
       Number.isFinite(o.worldX)))return false;
     // Branch checks use the same real jump/duck commitment budget as Arcade.
     for(const route of ['lower','upper']){
@@ -237,7 +237,7 @@
       const x=width*.80,y=height*.31;
       const r=Math.min(width*.070,height*.14);
       const active=this.projectiles.some(s=>s.charging&&!s.finished);
-      const charge=active?.14:0;
+      const charge=active ? .14 : 0;
       const fire=this.lastMuzzle?
         clamp(1-(time-this.lastMuzzle.at)/.34,0,1):0;
       const oscillation=reducedMotion?0:Math.sin(time*5.5)*.025;

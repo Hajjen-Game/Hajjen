@@ -82,6 +82,30 @@ def main():
             page.wait_for_timeout(100)
             assert page.locator("#circuit-dash").is_disabled(),"Dash cooldown missing"
             page.screenshot(path=str(OUT/f"circuit-race-{w}.png"))
+            if w==960:
+                # Pixel regression: the color wave MUST repaint the asphalt
+                # while the inner-circuit background remains byte-identical.
+                def colors():
+                    return page.evaluate("""() => {
+                      const c=document.getElementById('circuit-canvas'),
+                        g=c.getContext('2d');
+                      const at=(x,y)=>Array.from(g.getImageData(
+                        Math.round(x),Math.round(y),1,1).data);
+                      return {world:at(480,270),road:at(550,119)};
+                    }""")
+                first=colors()
+                page.wait_for_function(
+                    "() => document.getElementById('circuit-zone').textContent === 'ZONE 02'",
+                    timeout=22000)
+                page.wait_for_timeout(550)
+                page.screenshot(path=str(OUT/"circuit-track-tide-mid.png"))
+                page.wait_for_timeout(1100)
+                after=colors()
+                assert first["world"]==after["world"],(first,after)
+                road_delta=sum(abs(a-b) for a,b in
+                               zip(first["road"],after["road"]))
+                assert road_delta>15,(road_delta,first,after)
+                page.screenshot(path=str(OUT/"circuit-track-tide-complete.png"))
             page.locator("#circuit-pause").click()
             assert page.locator("#circuit-pause-menu").is_visible()
             with page.expect_download() as waiter:

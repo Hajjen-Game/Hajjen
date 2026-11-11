@@ -91,6 +91,44 @@ test('a low shot requires Jump and a high shot requires Duck',()=>{
  assert.equal(result('high',stand),'hit');
  assert.equal(result('high',duck),'clear');
 });
+test('HIGH duck shot cannot be bypassed by single or double jump at any reachable height',()=>{
+ // Unlike Reality 2.3's old floating horizontal band, HIGH extends to the
+ // same upper world bound as the established hanging Duck gates.
+ const {DUCK_GATE_TOP,DUCK_CLEARANCE}=require('../src/core/geometry.js');
+ const y=515-R.SHOT.high.offset;
+ const shot={kind:'high',x:460,y,age:.43,charging:false,
+   previousX:460,speed:350,resolved:false,id:1,bossPhase:1};
+ const rect=R.projectileBox(shot);
+ assert.equal(rect.y,DUCK_GATE_TOP);
+ assert.equal(rect.y+rect.h,y+R.SHOT.high.height/2);
+ assert.ok(rect.y+rect.h<=515-DUCK_CLEARANCE,
+   'a ducked player always has an actual passage below the visible rail');
+ assert.ok(rect.h>400,
+   'high attack must visibly block the overhead escape corridor');
+ function encounter(pose){
+  const e=new R.RealityEngine();
+  e.projectiles=[{...shot,x:760,previousX:760,y,
+    worldX:760,hit:false}];
+  for(let frame=0;frame<90;frame++){
+    const result=e.tickProjectiles(1/60,{playerBox:playerBox({
+      x:340,...pose}),playerWorldX:40000,speed:850,leftBound:-100});
+    if(result.length)return result[0].type;
+  }
+  throw Error('projectile failed to reach player');
+ }
+ const duck={feet:515,landed:true,duck:true};
+ assert.equal(encounter(duck),'clear','duck MUST stay safe');
+ const jumpFeets=[510,490,470,435,390,330,275,200,115,40,0];
+ for(const feet of jumpFeets){
+  assert.equal(encounter({feet,landed:false,duck:false}),'hit',
+    'jumping over HIGH must fail even at feet='+feet);
+ }
+ assert.equal(encounter({feet:515,landed:true,duck:false}),'hit',
+   'standing must not bypass HIGH');
+ const low=R.projectileBox({kind:'low',x:460,y:515-R.SHOT.low.offset});
+ assert.ok(low.h<35,'LOW stays a low cutter safely jumpable');
+});
+
 test('avoided shot crosses the player and travels left offscreen',()=>{
  const e=new R.RealityEngine();
  const p=playerBox({x:340,feet:515,landed:true,duck:true});

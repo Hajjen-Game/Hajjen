@@ -9,7 +9,12 @@
   const CUBE_RADIUS = 15;
   // Responsive arcade steering: a committed thumb movement must be visible within 1–2 frames.
   // Collision impulses are still handled separately, preserving a sense of mass on impact.
-  const SPEED_LIMIT = 220;
+  const SPEED_LIMIT = 220; // Retained as a backwards-compatible standalone steering default.
+  const ZONE_SECONDS = 10;
+  const BASE_ZONE_SPEED = 145;
+  const ZONE_SPEED_STEP = 12;
+  const MAX_ZONE_SPEED = 277;
+  const COLOR_FADE_SECONDS = 0.72;
   const ACCELERATION = 3100;
   const DRAG_MOVING = 1.85;
   const DRAG_IDLE = 18;
@@ -22,6 +27,25 @@
     ['#ffffff', '#303854']
   ];
   const clamp = (x, low, high) => Math.min(high, Math.max(low, x));
+  // A color zone is a fixed ten-second clock phase, independent of collapsing
+  // platform rings. Color and speed change on the same simulation step.
+  const zoneForElapsed = elapsed => Math.floor(Math.max(0, elapsed + 1e-7) / ZONE_SECONDS);
+  const speedForZone = zone => Math.min(MAX_ZONE_SPEED, BASE_ZONE_SPEED + ZONE_SPEED_STEP * Math.max(0, zone | 0));
+  const paletteForZone = zone => PALETTES[Math.max(0, zone | 0) % PALETTES.length];
+  function mixColor(from, to, progress) {
+    const t = clamp(progress, 0, 1);
+    const a = parseInt(from.slice(1), 16), b = parseInt(to.slice(1), 16);
+    const rgb = [16, 8, 0].map(shift => Math.round(
+      ((a >> shift) & 255) * (1 - t) + ((b >> shift) & 255) * t));
+    return '#' + rgb.map(c => c.toString(16).padStart(2, '0')).join('');
+  }
+  function activePalette(match) {
+    const current = paletteForZone(match.zone);
+    if (!match.paletteFade) return current;
+    const old = paletteForZone(match.zone - 1);
+    const t = 1 - clamp(match.paletteFade / COLOR_FADE_SECONDS, 0, 1);
+    return [mixColor(old[0], current[0], t), mixColor(old[1], current[1], t)];
+  }
   const length = (x, y) => Math.hypot(x, y);
   function normalized(x, y) {
     const l = length(x, y);
@@ -33,7 +57,7 @@
     const v = clamp(Number.isFinite(strength) ? strength : 0, 0, 1);
     return v <= 0.08 ? 0 : Math.min(1, Math.pow((v - 0.08) / 0.92, 0.62) * 1.08);
   }
-  function steerCube(cube, intent, dt) {
+  function steerCube(cube, intent, dt, speedLimit = SPEED_LIMIT) {
     let mx = Number.isFinite(intent.x) ? intent.x : 0;
     let my = Number.isFinite(intent.y) ? intent.y : 0;
     const magnitude = length(mx, my);
@@ -43,7 +67,7 @@
     cube.vx += (mx * ACCELERATION - cube.vx * drag) * dt;
     cube.vy += (my * ACCELERATION - cube.vy * drag) * dt;
     const speed = length(cube.vx, cube.vy);
-    if (speed > SPEED_LIMIT) { cube.vx *= SPEED_LIMIT / speed; cube.vy *= SPEED_LIMIT / speed; }
+    if (speed > speedLimit) { cube.vx *= speedLimit / speed; cube.vy *= speedLimit / speed; }
     cube.x += cube.vx * dt;
     cube.y += cube.vy * dt;
     return cube;
@@ -79,7 +103,8 @@
     });
     return {
       seed: seed, random: random, cubes: cubes, half: HALVES[0], stage: 0,
-      elapsed: 0, warning: false, warningTime: 0, falling: [], impacts: [],
+      elapsed: 0, zone: 0, paletteFade: 0,
+      warning: false, warningTime: 0, falling: [], impacts: [],
       flash: 0, state: 'running', endingTime: 0, outcome: '', winner: null,
       lastElimination: null, event: null, eventId: 0
     };
@@ -190,12 +215,20 @@
     for (const spark of match.impacts) spark.life -= step;
     match.impacts = match.impacts.filter(s => s.life > 0);
     match.flash = Math.max(0, match.flash - step * 1.5);
+    match.paletteFade = Math.max(0, match.paletteFade - step);
     if (match.state === 'ending') {
       match.endingTime -= step;
       if (match.endingTime <= 0) match.state = 'finished';
       return match;
     }
     match.elapsed += step;
+    const nextZone = zoneForElapsed(match.elapsed);
+    if (nextZone !== match.zone) {
+      match.zone = nextZone;
+      match.paletteFade = COLOR_FADE_SECONDS;
+      match.event = 'ZONE ' + String(match.zone + 1).padStart(2, '0') + ' · SPEED UP';
+      match.eventId++;
+    }
     const nextCollapse = COLLAPSES[match.stage];
     match.warningTime = nextCollapse == null ? 0 : Math.max(0, nextCollapse - match.elapsed);
     match.warning = nextCollapse != null && match.warningTime <= WARNING_SECONDS;
@@ -210,7 +243,7 @@
     for (const cube of match.cubes) {
       if (!cube.alive) continue;
       const intent = cube.id === 0 ? user : chooseAI(match, cube);
-      steerCube(cube, intent, step);
+      steerCube(cube, intent, step, speedForZone(match.zone));
     }
     for (let round = 0; round < 2; round++) {
       for (let i = 0; i < match.cubes.length; i++) {
@@ -233,6 +266,8 @@
   }
   const core = { WIDTH, HEIGHT, CX, CY, HALVES, COLLAPSES, COLORS, NAMES,
     ZONE_NAMES, PALETTES, CUBE_RADIUS, SPEED_LIMIT, WARNING_SECONDS,
+    ZONE_SECONDS, BASE_ZONE_SPEED, ZONE_SPEED_STEP, MAX_ZONE_SPEED, COLOR_FADE_SECONDS,
+    zoneForElapsed, speedForZone, paletteForZone, activePalette,
     roundedSquareSDF, supported, joystickResponse, steerCube,
     createMatch, chooseAI, collide, updateMatch, beginCollapse, knockOut };
   if (typeof module !== 'undefined' && module.exports) module.exports = core;
@@ -373,9 +408,11 @@
   }
   function updateHUD() {
     if (!match) return;
-    $('clash-zone').textContent = 'ZONE ' + String(match.stage + 1).padStart(2, '0');
+    $('clash-zone').textContent = 'ZONE ' + String(match.zone + 1).padStart(2, '0');
     $('clash-phase').textContent = match.warning ?
-      'EDGE FALL · ' + Math.ceil(match.warningTime) + 'S' : ZONE_NAMES[match.stage];
+      'EDGE FALL · ' + Math.ceil(match.warningTime) + 'S' :
+      ZONE_NAMES[match.zone % ZONE_NAMES.length] + ' · SPEED ' +
+        (speedForZone(match.zone) / BASE_ZONE_SPEED).toFixed(2) + '×';
     const alive = match.cubes.filter(c => c.alive).length;
     $('clash-count').textContent = alive + ' ALIVE';
     $('clash-clock').textContent = clock(match.elapsed);
@@ -450,7 +487,7 @@
   }
   function drawArena(active, time) {
     const h = active.half;
-    const pal = PALETTES[active.stage];
+    const pal = activePalette(active);
     drawBackground(time, pal);
     ctx.save();
     ctx.translate(0, 12);

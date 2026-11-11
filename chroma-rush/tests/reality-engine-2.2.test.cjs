@@ -168,8 +168,10 @@ test('simple Sentinel core renders without using legacy character body or gate a
   assert.ok(calls.filter(x=>x==='stroke').length>=2,
     'two clean continuous energy contours, no multi-limb boss silhouette');
   assert.ok(calls.filter(x=>x==='rect').length>=5);
+  const priorRectCount=calls.filter(x=>x==='rect').length;
   e.drawProjectiles(c,{});
-  assert.ok(calls.includes('fill'));
+  assert.ok(calls.filter(x=>x==='rect').length>priorRectCount,
+    'the elevated sweep is a clean filled rectangular core, not a character');
   e.drawOverlay(c,{time:64,width:1280,height:720});
   assert.ok(calls.some(x=>x.includes?.('SENTINEL')));
   assert.ok(calls.some(x=>x.includes?.('LOW')||x.includes?.('HIGH')));

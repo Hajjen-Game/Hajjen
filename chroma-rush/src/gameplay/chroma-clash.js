@@ -512,10 +512,12 @@
   }
   function drawBackground(time, palette) {
     ctx.fillStyle = '#070d1d'; ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    let glow = ctx.createRadialGradient(CX, CY, 20, CX, CY, 470);
-    glow.addColorStop(0, palette[1]);
-    glow.addColorStop(.6, '#09162a');
-    glow.addColorStop(1, '#050914');
+    let glow = ctx.createRadialGradient(CX, CY, 12, CX, CY, 590);
+    // The earlier world had a nearly static deep-blue backdrop. A clear
+    // environmental hue change now reaches the full camera, not just the rim.
+    glow.addColorStop(0, mixColor(palette[1], palette[0], .42));
+    glow.addColorStop(.5, mixColor('#09162a', palette[0], .24));
+    glow.addColorStop(1, mixColor('#050914', palette[0], .09));
     ctx.fillStyle = glow; ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.save();
     ctx.globalAlpha = .17; ctx.strokeStyle = palette[0]; ctx.lineWidth = 1;
@@ -565,32 +567,34 @@
       });
     }
   }
-  function drawArena(active, time) {
+  function drawArena(active, time, pal = activePalette(active), floorOnly = false) {
     const h = active.half;
-    const pal = activePalette(active);
-    drawBackground(time, pal);
-    ctx.save();
-    ctx.translate(0, 12);
-    ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.filter = 'blur(22px)';
-    ctx.beginPath(); squarePath(h); ctx.fill();
-    ctx.restore();
-    drawFallenRims(active);
+    if (!floorOnly) {
+      drawBackground(time, pal);
+      ctx.save();
+      ctx.translate(0, 12);
+      ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.filter = 'blur(22px)';
+      ctx.beginPath(); squarePath(h); ctx.fill();
+      ctx.restore();
+      drawFallenRims(active);
+    }
     ctx.save();
     ctx.beginPath(); squarePath(h);
     const ground = ctx.createLinearGradient(CX - h, CY - h, CX + h, CY + h);
-    ground.addColorStop(0, '#23344e');
-    ground.addColorStop(.46, pal[1]);
-    ground.addColorStop(1, '#19263f');
+    ground.addColorStop(0, mixColor('#23344e', pal[0], .29));
+    ground.addColorStop(.46, mixColor(pal[1], pal[0], .24));
+    ground.addColorStop(1, mixColor('#19263f', pal[0], .21));
     ctx.fillStyle = ground; ctx.fill();
     ctx.save(); ctx.clip();
     const tile = Math.max(20, h / 4.3);
-    ctx.strokeStyle = 'rgba(165,213,244,.1)'; ctx.lineWidth = 1;
+    ctx.strokeStyle = mixColor('#29445c', pal[0], .52); ctx.globalAlpha = .35; ctx.lineWidth = 1;
     for (let x = CX - h; x < CX + h; x += tile) {
       ctx.beginPath(); ctx.moveTo(x, CY - h); ctx.lineTo(x, CY + h); ctx.stroke();
     }
     for (let y = CY - h; y < CY + h; y += tile) {
       ctx.beginPath(); ctx.moveTo(CX - h, y); ctx.lineTo(CX + h, y); ctx.stroke();
     }
+    ctx.globalAlpha = 1;
     const centerLight = ctx.createRadialGradient(CX, CY, 5, CX, CY, h);
     centerLight.addColorStop(0, 'rgba(122,221,255,.08)');
     centerLight.addColorStop(1, 'rgba(0,0,0,.26)');
@@ -633,8 +637,11 @@
     ctx.save();
     ctx.globalAlpha = Math.max(0, 1 - p * 1.05);
     ctx.translate(cube.x, cube.y + p * p * 100);
-    ctx.rotate((cube.vx * .0005) + (cube.vy * .0003) + p * .7);
-    ctx.scale(1 + cube.squash * .24, 1 - cube.squash * .18);
+    ctx.rotate(((cube.vx + (cube.knockVx || 0)) * .0006) +
+      ((cube.vy + (cube.knockVy || 0)) * .00035) + p * .7);
+    // Impact visibly compresses the cube, but keeps its recognizable square
+    // silhouette (the player specifically disliked arrow-shaped motion).
+    ctx.scale(1 + cube.squash * .27, 1 - cube.squash * .23);
     ctx.fillStyle = 'rgba(0,0,0,.44)';
     ctx.beginPath(); ctx.ellipse(0, 11 + p * 15, size * .82, size * .32, 0, 0, Math.PI * 2); ctx.fill();
     ctx.shadowColor = color; ctx.shadowBlur = 17 + cube.squash * 16;
@@ -660,27 +667,87 @@
     ctx.restore();
   }
   function drawImpact(impact) {
-    const a = impact.life / .26;
-    ctx.save(); ctx.globalAlpha = a;
-    const dist = (1 - a) * 24;
-    ctx.lineWidth = 2; ctx.strokeStyle = '#d1f9ff';
-    for (let i = 0; i < 4; i++) {
-      const angle = i * Math.PI / 2 + Math.PI / 4;
+    const a = clamp(impact.life / .38, 0, 1);
+    const spread = (1 - a) * (22 + impact.power * 10);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = a * .83;
+    ctx.shadowColor = impact.color || '#c9f9ff';
+    ctx.shadowBlur = 15 + 11 * a;
+    ctx.strokeStyle = '#dcfbff';
+    ctx.lineWidth = 2.2 + a * 1.2;
+    ctx.beginPath();
+    ctx.arc(impact.x, impact.y, 8 + spread, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 8; i++) {
+      const angle = i * Math.PI / 4 + Math.PI / 8;
+      const begin = 8 + spread * .65;
+      const end = 16 + spread;
       ctx.beginPath();
-      ctx.moveTo(impact.x + Math.cos(angle) * (6 + dist),
-        impact.y + Math.sin(angle) * (6 + dist));
-      ctx.lineTo(impact.x + Math.cos(angle) * (11 + dist),
-        impact.y + Math.sin(angle) * (11 + dist));
+      ctx.moveTo(impact.x + Math.cos(angle) * begin,
+        impact.y + Math.sin(angle) * begin);
+      ctx.lineTo(impact.x + Math.cos(angle) * end,
+        impact.y + Math.sin(angle) * end);
       ctx.stroke();
     }
     ctx.restore();
+  }
+  function drawCornerTransition(active, time) {
+    const to = paletteForZone(active.zone);
+    const from = paletteForZone(active.zone - 1);
+    const progress = 1 - active.paletteFade / COLOR_FADE_SECONDS;
+    const screen = { x: 0, y: 0, w: WIDTH, h: HEIGHT };
+    const floor = { x: CX - active.half, y: CY - active.half,
+      w: active.half * 2, h: active.half * 2 };
+    // Preserve true old and new world colors on each side of the moving
+    // fronts. This is NOT a transparent full-screen tint cross-fade.
+    drawArena(active, time, from);
+    ctx.save();
+    // Paint only the backdrop outside the physical rounded-square floor.
+    ctx.beginPath();
+    ctx.rect(0, 0, WIDTH, HEIGHT);
+    squarePath(active.half);
+    ctx.clip('evenodd');
+    TIDE.clipNewColor(ctx, screen, progress);
+    drawBackground(time, to);
+    ctx.restore();
+    ctx.save();
+    ctx.beginPath(); squarePath(active.half); ctx.clip();
+    TIDE.clipNewColor(ctx, floor, progress);
+    drawArena(active, time, to, true);
+    ctx.restore();
+
+    // Independent four-corner fronts in the environment and platform.
+    // Edges look like moving chroma lighting, not extra obstacles.
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, WIDTH, HEIGHT); squarePath(active.half);
+    ctx.clip('evenodd');
+    TIDE.drawFront(ctx, screen, progress, to[0], .88);
+    ctx.restore();
+    ctx.save();
+    ctx.beginPath(); squarePath(active.half); ctx.clip();
+    TIDE.drawFront(ctx, floor, progress, to[0], 1.32);
+    ctx.restore();
+    if (progress > .82) {
+      const pulse = Math.sin(Math.PI * (progress - .82) / .18);
+      const glow = ctx.createRadialGradient(CX, CY, 8, CX, CY, active.half * 1.05);
+      glow.addColorStop(0, 'rgba(218,249,255,' + (Math.max(0, pulse) * .19).toFixed(3) + ')');
+      glow.addColorStop(1, 'rgba(218,249,255,0)');
+      ctx.save();
+      ctx.beginPath(); squarePath(active.half); ctx.clip();
+      ctx.fillStyle = glow;
+      ctx.fillRect(floor.x, floor.y, floor.w, floor.h);
+      ctx.restore();
+    }
   }
   function render(time) {
     const active = match || preview;
     ctx.setTransform(canvas.width / viewWidth, 0, 0, canvas.height / viewHeight, 0, 0);
     ctx.clearRect(0, 0, viewWidth, viewHeight);
     ctx.translate(ox, oy); ctx.scale(scale, scale);
-    drawArena(active, time);
+    if (active.paletteFade > 0 && TIDE) drawCornerTransition(active, time);
+    else drawArena(active, time, paletteForZone(active.zone));
     active.cubes.forEach(c => drawCube(c, time));
     active.impacts.forEach(drawImpact);
   }

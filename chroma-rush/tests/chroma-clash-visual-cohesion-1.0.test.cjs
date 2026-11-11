@@ -83,5 +83,5 @@ test('Shared Rush hierarchy keeps centered Zone and restrained events across scr
   assert.match(css,/\.announce\{/);
   assert.match(css,/max-height:450px/);
   assert.match(css,/prefers-reduced-motion:reduce/);
-  assert.match(html,/chroma-clash\.js\?v=chroma-clash-arena-polish-1\.1/);
+  assert.match(html,/chroma-clash\.js\?v=chroma-clash-impact-depth-1\.2/);
 });

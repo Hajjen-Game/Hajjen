@@ -61,7 +61,7 @@ test('Chroma Tide returns to three original channels, with smooth color transiti
 test('Gravity Shift immunity does not cause fake damage blinking of the cube',()=>{
   // A flip still grants real collision immunity, without a visual damage cue.
   const begin=game.slice(game.indexOf("    if(gravityEvent==='begin'){"),
-    game.indexOf("    const ground=terrain.groundAt(playerWorld);"));
+    game.indexOf("    let ground=terrain.groundAt(playerWorld);"));
   assert.match(begin,/player\.invulnerable=Math\.max\(player\.invulnerable,\.58\+\.28\)/);
   assert.match(begin,/player\.invulnerable=Math\.max\(player\.invulnerable,\.28\)/);
   assert.doesNotMatch(begin,/damageBlinkRemaining|hitFlash=/);

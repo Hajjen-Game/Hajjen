@@ -54,7 +54,7 @@
     if (!match.paletteFade) return current;
     const old = paletteForZone(match.zone - 1);
     const t = 1 - clamp(match.paletteFade / COLOR_FADE_SECONDS, 0, 1);
-    return [mixColor(old[0], current[0], t), mixColor(old[1], current[1], t)];
+    return [0, 1, 2].map(i => mixColor(old[i], current[i], t));
   }
   const length = (x, y) => Math.hypot(x, y);
   function normalized(x, y) {
@@ -865,7 +865,7 @@
       ctx.restore();
     }
   }
-  function drawCornerTransition(active, time) {
+  function drawCenterPulseTransition(active, time) {
     const progress = 1 - active.paletteFade / COLOR_FADE_SECONDS;
     const from = getStaticScene(active, Math.max(0, active.zone - 1));
     const to = getStaticScene(active, active.zone);
@@ -894,7 +894,7 @@
     screenCtx.translate(ox, oy); screenCtx.scale(scale, scale);
     try {
       if (active.paletteFade > 0 && TIDE && !tideDisabled && active.elapsed <= 81) {
-        drawCornerTransition(active, time);
+        drawCenterPulseTransition(active, time);
       } else {
         const background = getStaticScene(active, active.zone);
         if (background) {

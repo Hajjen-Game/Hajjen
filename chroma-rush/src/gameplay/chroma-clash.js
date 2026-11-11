@@ -2,6 +2,8 @@
  * Fixed-step deterministic simulation; browser adapter below core can be tested in Node. */
 (function (root) {
   'use strict';
+  const AUDIT = root.ChromaClashAudit || (typeof require === 'function' ? require('../diagnostics/chroma-clash-audit.js') : null);
+  const TIDE = root.ChromaCornerTide || (typeof require === 'function' ? require('../render/chroma-corner-tide.js') : null);
   const WIDTH = 960, HEIGHT = 540, CX = WIDTH / 2, CY = HEIGHT / 2;
   const HALVES = Object.freeze([198, 166, 136, 108, 84, 62, 44]);
   const COLLAPSES = Object.freeze([14, 28, 41, 53, 64, 73]);
@@ -14,10 +16,14 @@
   const BASE_ZONE_SPEED = 145;
   const ZONE_SPEED_STEP = 12;
   const MAX_ZONE_SPEED = 277;
-  const COLOR_FADE_SECONDS = 0.72;
+  // A full four-corner convergence is visible over the entire environment.
+  const COLOR_FADE_SECONDS = 1.55;
   const ACCELERATION = 3100;
   const DRAG_MOVING = 1.85;
   const DRAG_IDLE = 18;
+  const IMPACT_DECAY = 3.6;
+  const IMPACT_COOLDOWN = 0.16;
+  const IMPACT_MIN_CLOSING_SPEED = 5;
   const COLORS = ['#60ecff', '#ff71ac', '#ffe26a', '#9f8aff'];
   const NAMES = ['YOU', 'NOVA', 'VOLT', 'HEX'];
   const ZONE_NAMES = ['FLOW', 'SURGE', 'PULSE', 'OVERDRIVE', 'FRENZY', 'CRITICAL', 'FINAL'];
@@ -68,8 +74,14 @@
     cube.vy += (my * ACCELERATION - cube.vy * drag) * dt;
     const speed = length(cube.vx, cube.vy);
     if (speed > speedLimit) { cube.vx *= speedLimit / speed; cube.vy *= speedLimit / speed; }
-    cube.x += cube.vx * dt;
-    cube.y += cube.vy * dt;
+    // Knockback is an external decaying impulse. Keep it OUTSIDE the
+    // joystick speed cap: otherwise every hit is erased on the next frame.
+    const kx = cube.knockVx || 0, ky = cube.knockVy || 0;
+    cube.x += (cube.vx + kx) * dt;
+    cube.y += (cube.vy + ky) * dt;
+    const decay = Math.exp(-IMPACT_DECAY * dt);
+    cube.knockVx = kx * decay;
+    cube.knockVy = ky * decay;
     return cube;
   }
   function rng(seed) {
@@ -96,13 +108,17 @@
     const cubes = locations.map(function (p, id) {
       return {
         id: id, name: NAMES[id], color: COLORS[id], x: CX + p[0], y: CY + p[1],
-        vx: 0, vy: 0, alive: true, fall: 0, knocks: 0, squash: 0, spark: 0,
+        vx: 0, vy: 0, knockVx: 0, knockVy: 0, alive: true, fall: 0, knocks: 0,
+        hitsTaken: 0, hitsLanded: 0, lastHitBy: null, lastHitAt: -Infinity,
+        squash: 0, spark: 0,
         aiX: 0, aiY: 0, aiNext: 0, personality: 0.82 + random() * 0.28,
         aggression: 0.76 + random() * 0.3, offset: (random() - 0.5) * 0.24
       };
     });
     return {
-      seed: seed, random: random, cubes: cubes, half: HALVES[0], stage: 0,
+      seed: seed, random: random, cubes: cubes, audit: new AUDIT.ClashRunAudit(seed),
+      hitCooldowns: Object.create(null),
+      half: HALVES[0], stage: 0,
       elapsed: 0, zone: 0, paletteFade: 0,
       warning: false, warningTime: 0, falling: [], impacts: [],
       flash: 0, state: 'running', endingTime: 0, outcome: '', winner: null,
@@ -147,28 +163,72 @@
     let dist = length(dx, dy);
     const minDist = CUBE_RADIUS * 2;
     if (dist >= minDist) return false;
-    if (dist < .001) { dx = (b.id - a.id) > 0 ? 1 : -1; dy = 0; dist = 1; }
+    if (dist < .001) { dx = b.id > a.id ? 1 : -1; dy = 0; dist = 1; }
     const nx = dx / dist, ny = dy / dist;
     const overlap = minDist - dist;
+    // Always resolve overlap. Heavy knockback is awarded only on a genuine
+    // closing contact, not by sitting still inside another cube.
     a.x -= nx * overlap * .5;
     a.y -= ny * overlap * .5;
     b.x += nx * overlap * .5;
     b.y += ny * overlap * .5;
-    const relative = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
-    if (relative < 0) {
-      const impulse = -relative * .75; // equal mass, restitution .50
-      a.vx -= impulse * nx;
-      a.vy -= impulse * ny;
-      b.vx += impulse * nx;
-      b.vy += impulse * ny;
-      const energy = Math.min(1, impulse / 115);
-      if (energy > .12) {
-        a.squash = Math.max(a.squash, energy);
-        b.squash = Math.max(b.squash, energy);
-        const now = match && match.elapsed || 0;
-        if (match && (match.lastImpactTime == null || now - match.lastImpactTime > .075)) {
-          match.impacts.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, life: .26, power: energy });
+    const aTotalX = a.vx + (a.knockVx || 0), aTotalY = a.vy + (a.knockVy || 0);
+    const bTotalX = b.vx + (b.knockVx || 0), bTotalY = b.vy + (b.knockVy || 0);
+    const closing = (bTotalX - aTotalX) * nx + (bTotalY - aTotalY) * ny;
+    const now = match ? match.elapsed : 0;
+    const key = Math.min(a.id, b.id) + '-' + Math.max(a.id, b.id);
+    const previous = match && match.hitCooldowns ? match.hitCooldowns[key] : undefined;
+    if (closing < -IMPACT_MIN_CLOSING_SPEED &&
+        (previous == null || now - previous >= IMPACT_COOLDOWN)) {
+      if (match && match.hitCooldowns) match.hitCooldowns[key] = now;
+      // An arcade shove has two parts: a smaller reaction in normal movement
+      // velocity plus a strong, short-lived independent knock velocity.
+      // Both use the SAME mass/force for human and AI opponents.
+      const impulse = clamp(52 + -closing * .86, 58, 320);
+      const kick = impulse * 1.27;
+      a.vx -= nx * impulse * .32;
+      a.vy -= ny * impulse * .32;
+      b.vx += nx * impulse * .32;
+      b.vy += ny * impulse * .32;
+      a.knockVx = (a.knockVx || 0) - nx * kick;
+      a.knockVy = (a.knockVy || 0) - ny * kick;
+      b.knockVx = (b.knockVx || 0) + nx * kick;
+      b.knockVy = (b.knockVy || 0) + ny * kick;
+      const power = clamp(impulse / 240, .22, 1.45);
+      a.squash = Math.max(a.squash, power);
+      b.squash = Math.max(b.squash, power);
+      a.spark = Math.max(a.spark || 0, power);
+      b.spark = Math.max(b.spark || 0, power);
+      // A real push is credited to the cube that approached with the greater
+      // positive velocity component along the contact normal.
+      const approachA = Math.max(0, aTotalX * nx + aTotalY * ny);
+      const approachB = Math.max(0, -(bTotalX * nx + bTotalY * ny));
+      const attacker = Math.abs(approachA - approachB) < 8 ? null :
+        approachA > approachB ? a.id : b.id;
+      const target = attacker == null ? null : attacker === a.id ? b.id : a.id;
+      if (attacker != null) {
+        const recipient = attacker === a.id ? b : a;
+        const hitter = attacker === a.id ? a : b;
+        recipient.lastHitBy = attacker;
+        recipient.lastHitAt = now;
+        recipient.hitsTaken = (recipient.hitsTaken || 0) + 1;
+        hitter.hitsLanded = (hitter.hitsLanded || 0) + 1;
+      }
+      if (match) {
+        // VFX are throttled per visual frame, while the log records all
+        // accepted impulses and preserves the per-cube hit identity.
+        if (match.lastImpactTime == null || now - match.lastImpactTime > .07) {
+          match.impacts.push({
+            x: (a.x + b.x) / 2, y: (a.y + b.y) / 2,
+            life: .38, power, color: a.color
+          });
           match.lastImpactTime = now;
+        }
+        if (match.audit) {
+          const nearEdge = Math.max(
+            roundedSquareSDF(a.x, a.y, match.half, Math.max(12, match.half * .16)),
+            roundedSquareSDF(b.x, b.y, match.half, Math.max(12, match.half * .16)));
+          match.audit.noteContact(now, a, b, impulse, attacker, target, nearEdge);
         }
       }
     }
@@ -182,6 +242,9 @@
     match.warningTime = 0;
     match.flash = .85;
     match.falling.push({ oldHalf: oldHalf, newHalf: match.half, age: 0 });
+    match.audit.ringBreaks++;
+    match.audit.record('edge_break', match.elapsed,
+      { stage: match.stage, fromHalf: oldHalf, toHalf: match.half });
     match.event = 'EDGE BREAK';
     match.eventId++;
   }
@@ -190,14 +253,18 @@
     cube.alive = false;
     cube.fall = 0;
     match.lastElimination = cube.id;
-    // Credit nearest surviving opponent when it was an actual recent contact.
-    let nearest = null, best = Infinity;
-    for (const other of match.cubes) {
-      if (!other.alive || other.id === cube.id) continue;
-      const d = length(other.x - cube.x, other.y - cube.y);
-      if (d < best) { best = d; nearest = other; }
+    // Do not fabricate KO credits from whichever opponent happens to be
+    // closest: only an actual recent directed contact can score.
+    const credit = Number.isInteger(cube.lastHitBy) &&
+      match.elapsed - cube.lastHitAt < 1.25 ? cube.lastHitBy : null;
+    if (credit != null && credit !== cube.id && match.cubes[credit]) {
+      match.cubes[credit].knocks++;
     }
-    if (nearest && best < 63) nearest.knocks++;
+    const edgeJustBroke = match.stage > 0 &&
+      match.elapsed - COLLAPSES[match.stage - 1] < .13;
+    const cause = edgeJustBroke ? 'edge_break' :
+      credit != null ? 'push' : 'edge_fall';
+    match.audit.noteElimination(match.elapsed, cube, credit, cause);
     match.event = cube.id === 0 ? 'YOU FELL' : cube.name + ' OUT';
     match.eventId++;
   }
@@ -226,12 +293,23 @@
     if (nextZone !== match.zone) {
       match.zone = nextZone;
       match.paletteFade = COLOR_FADE_SECONDS;
+      match.audit.zoneChanges++;
+      match.audit.record('zone_change', match.elapsed, {
+        zone: match.zone + 1, speedCap: speedForZone(match.zone),
+        palette: paletteForZone(match.zone)[0]
+      });
       match.event = 'ZONE ' + String(match.zone + 1).padStart(2, '0') + ' · SPEED UP';
       match.eventId++;
     }
     const nextCollapse = COLLAPSES[match.stage];
     match.warningTime = nextCollapse == null ? 0 : Math.max(0, nextCollapse - match.elapsed);
     match.warning = nextCollapse != null && match.warningTime <= WARNING_SECONDS;
+    if (match.warning && match.loggedWarningStage !== match.stage) {
+      match.loggedWarningStage = match.stage;
+      match.audit.record('edge_warning', match.elapsed, {
+        stage: match.stage + 1, secondsToBreak: match.warningTime
+      });
+    }
     if (nextCollapse != null && match.elapsed >= nextCollapse) beginCollapse(match);
     if (match.stage === COLLAPSES.length && match.elapsed > 81) {
       // Sudden-death floor consumes the final core; no fabricated timeout winner.
@@ -255,12 +333,14 @@
     for (const cube of match.cubes) {
       if (cube.alive && !supported(cube.x, cube.y, match.half)) knockOut(match, cube);
     }
+    match.audit.sample(match);
     const survivors = match.cubes.filter(c => c.alive);
     if (!match.cubes[0].alive || survivors.length < 2) {
       match.winner = survivors.length === 1 ? survivors[0].id : null;
       match.outcome = match.cubes[0].alive && survivors.length === 1 ? 'victory' : 'eliminated';
       match.state = 'ending';
       match.endingTime = .75;
+      match.audit.finish(match);
     }
     return match;
   }

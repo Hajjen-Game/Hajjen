@@ -993,3 +993,33 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
   #menu .trial-launch{min-height:29px;padding:4px 14px;}
   #gameover .trial-result-stats{margin-top:4px;gap:6px;}}
 @media(prefers-reduced-motion:reduce){#menu .trial-launch{transition:none!important;}}
+
+/* Reality Engine 1.0 — two equally quiet choices inside the existing drawer.
+ * No second main-menu CTA; compact enough for landscape phones.
+ */
+#menu .trial-choice-grid{
+  width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
+}
+#menu .trial-choice{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;min-width:0;padding:8px 5px;border:1px solid rgba(113,190,224,.20);
+  background:rgba(9,23,48,.27);border-radius:9px;text-align:center;
+}
+#menu .trial-choice .trial-title{font-size:clamp(9px,.89vw,12px);letter-spacing:.08em}
+#menu .trial-choice .trial-description,#menu .trial-choice .trial-best{
+  font-size:clamp(8px,.66vw,10px);letter-spacing:.02em;line-height:1.2;
+}
+#menu .trial-choice .trial-launch{margin-top:1px;min-height:31px;padding:5px 8px;font-size:10px}
+#menu .trial-choice .reality-launch{border-color:rgba(215,134,255,.67);
+  background:rgba(146,60,207,.17);color:#f0d8ff}
+#menu .trial-choice button:disabled{opacity:.35;cursor:default}
+#gameover #reality-export-btn{display:block;margin:5px auto 0;
+  padding:5px 12px;font-size:10px}
+#gameover #reality-export-btn.hidden{display:none}
+@media(max-height:440px) and (orientation:landscape){
+  #menu .trial-choice-grid{gap:5px}
+  #menu .trial-choice{gap:2px;padding:5px 4px}
+  #menu .trial-choice .trial-launch{min-height:27px;padding:3px 6px}
+  #menu .trial-choice .trial-description,#menu .trial-choice .trial-best{font-size:8px}
+  #gameover #reality-export-btn{margin-top:3px;padding:3px 9px}
+}

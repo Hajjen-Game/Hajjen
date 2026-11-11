@@ -7,7 +7,7 @@ const { ClashRunAudit } = require('../src/diagnostics/chroma-clash-audit.js');
 
 test('1.4 renders cached world scenes with no live full-world paint per animation frame', () => {
   const src = fs.readFileSync(path.join(__dirname, '../src/gameplay/chroma-clash.js'), 'utf8');
-  const transition = src.slice(src.indexOf('  function drawCornerTransition('),
+  const transition = src.slice(src.indexOf('  function drawCenterPulseTransition('),
     src.indexOf('  function render(time)'));
   assert.ok(transition.includes('getStaticScene(active, Math.max(0, active.zone - 1))'));
   assert.ok(transition.includes('getStaticScene(active, active.zone)'));
@@ -45,7 +45,7 @@ test('The change does not touch match physics, ten-second zone timing or collide
   core.updateMatch(match, {x:0,y:0}, 1/120);
   assert.equal(match.zone, 1);
   assert.equal(core.speedForZone(match.zone), 157);
-  assert.equal(core.COLOR_FADE_SECONDS, 1.55);
+  assert.equal(core.COLOR_FADE_SECONDS, 1.10);
   assert.equal(match.stage, 0);
   const a = match.cubes[0], b = match.cubes[1];
   a.x=460; a.y=270; b.x=485; b.y=270;
@@ -66,7 +66,9 @@ test('Wave is disabled after repeated slow frames without disabling any match lo
 
 test('New page uses cache-busted 1.4 assets on mobile', () => {
   const html=fs.readFileSync(path.join(__dirname,'../clash.html'),'utf8');
-  assert.match(html,/chroma-clash\.js\?v=chroma-clash-1\.4-rendering-flow/);
-  assert.match(html,/chroma-corner-tide\.js\?v=chroma-clash-1\.4/);
-  assert.match(html,/chroma-clash-audit\.js\?v=chroma-clash-1\.4/);
+  assert.match(html,/chroma-clash\.js\?v=chroma-clash-visual-cohesion-1\.0/);
+  assert.match(html,/chroma-center-pulse\.js\?v=chroma-clash-visual-cohesion-1\.0/);
+  assert.match(html,/chroma-clash-audit\.js\?v=chroma-clash-visual-cohesion-1\.0/);
+  assert.match(html,/src\/core\/config\.js/);
+  assert.match(html,/src\/render\/chroma-identity\.js/);
 });

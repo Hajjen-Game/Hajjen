@@ -225,7 +225,7 @@ function trackPath(g,track=TRACK){
 }
 function drawStatic(g,zone,track){
   const palette=PALETTES[zone%PALETTES.length];
-  const primary=palette.primary,secondary=palette.secondary,shadow=palette.shadow;
+  const primary=palette.primary,secondary=palette.secondary;
   // Identical neutral backdrop in every zone: only the track changes.
   const sky=g.createLinearGradient(0,0,0,HEIGHT);
   sky.addColorStop(0,'#060a18');
@@ -254,10 +254,15 @@ function drawStatic(g,zone,track){
   g.lineWidth=101;g.stroke();
   trackPath(g,track);g.strokeStyle='#09172b';
   g.lineWidth=96;g.stroke();
+  // The road body itself must visibly adopt each zone's color.
+  // Earlier 1.2 changed only a few RGB levels at the asphalt centre;
+  // the edge neon looked lively, but the ROAD still read as static navy.
+  // Keep a dark enough base for the glass cubes and lap stripe to stand out.
   const asphalt=g.createLinearGradient(170,140,772,408);
-  asphalt.addColorStop(0,mix('#1a2e46',primary,.2));
-  asphalt.addColorStop(.57,mix('#101b31',shadow,.23));
-  asphalt.addColorStop(1,mix('#1c2d46',secondary,.13));
+  asphalt.addColorStop(0,mix('#102038',primary,.33));
+  asphalt.addColorStop(.40,mix('#13213a',primary,.31));
+  asphalt.addColorStop(.70,mix('#131e35',secondary,.32));
+  asphalt.addColorStop(1,mix('#16243b',primary,.30));
   trackPath(g,track);g.strokeStyle=asphalt;g.lineWidth=89;g.stroke();
   // Thin interior shear line implies forward travel without looking like
   // isolated obstacle bars or a second track.

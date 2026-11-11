@@ -139,6 +139,6 @@ test('Pause/result UI exposes an explicit user-triggered log download and both n
   assert.match(html,/src="src\/render\/chroma-corner-tide.js/);
   assert.match(game,/new Blob\(\[JSON.stringify\(payload/);
   assert.match(game,/URL\.createObjectURL/);
-  assert.match(html,/chroma-clash-1\.3\.1-mobile-wave-stability/);
+  assert.match(html,/chroma-clash-1\.4-rendering-flow/);
   assert.doesNotMatch(html,/id="clash-(?:jump|dash)"/);
 });

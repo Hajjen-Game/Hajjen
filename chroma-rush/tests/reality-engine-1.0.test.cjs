@@ -131,7 +131,7 @@ test('Reality lives only in the opt-in Trials drawer, Arcade and Mastery retain 
   assert.match(game,/if\(!fixedCourse\(\)&&gravityShift\.requestForZone/);
   assert.match(game,/const shieldEvents=fixedCourse\(\)\?\{\}:shieldCores\.tick/);
   assert.match(game,/reality\.drawBackdrop\(ctx/);
-  assert.match(game,/reality\.onClear\(\{time,precision,master:graded\.master\}\)/);
+  assert.match(game,/reality\.onClear\(\{time,precision,master:graded\.master,/);
   assert.match(game,/runMode==='reality'\?\s*reality\.tick/);
   assert.match(gravity,/requestScripted\(ceiling\)/);
   assert.match(gravity,/autoReturn=true/);

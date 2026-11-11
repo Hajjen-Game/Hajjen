@@ -458,6 +458,10 @@
   });
   function startGame() {
     match = createMatch((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+    // New rounds always attempt the optimized wave again; only a proven slow
+    // session triggers adaptive fallback.
+    tideDisabled = false; tideSlowFrames = 0;
+    tideCacheCanvas = null; tideCacheZone = -1; tideCacheStage = -1;
     mode = 'running'; keys.clear(); resetStick(); lastEventId = 0; accumulator = 0;
     setScreen(mode); showAnnounce('LAST CUBE STANDING', 1.2);
     updateHUD();
@@ -815,8 +819,8 @@
         canvas.height / viewHeight, 0, 0);
       screenCtx.translate(ox, oy); screenCtx.scale(scale, scale);
       drawArena(active, time, paletteForZone(active.zone));
-      if (match && match.audit) match.audit.record('graphics_fallback', match.elapsed,
-        { reason: String(error && error.message || error).slice(0, 90) });
+      if (match && match.audit) match.audit.noteGraphicsFallback(match.elapsed,
+        String(error && error.message || error).slice(0, 90), false);
     }
     // Sprites are drawn AFTER the world wave and no longer depend on color
     // masks. Color changes can never hide players behind an unfinished pass.
@@ -824,8 +828,21 @@
     active.impacts.forEach(drawImpact);
   }
   function frame(timestamp) {
-    const dt = previous ? Math.min(.05, Math.max(0, (timestamp - previous) / 1000)) : 0;
+    const frameMs = previous ? Math.max(0, timestamp - previous) : 0;
+    const dt = Math.min(.05, frameMs / 1000);
     previous = timestamp;
+    // If a low-end device cannot keep a responsive joystick while the wave
+    // sweeps, disable only the transient chroma FX. Color/speed progression,
+    // visible cube sprites and gameplay all continue unchanged.
+    if (mode === 'running' && match && match.paletteFade > 0 && !tideDisabled) {
+      if (frameMs > 65) tideSlowFrames++;
+      else tideSlowFrames = Math.max(0, tideSlowFrames - 1);
+      if (tideSlowFrames >= 3) {
+        tideDisabled = true; tideCacheCanvas = null;
+        match.audit.noteGraphicsFallback(match.elapsed,
+          'repeated frame intervals above 65ms during Chroma Tide', true);
+      }
+    } else tideSlowFrames = 0;
     if (mode === 'running' && match) {
       accumulator = Math.min(.08, accumulator + dt);
       let iterations = 0;
@@ -848,7 +865,11 @@
       announceTimer -= dt;
       if (announceTimer <= 0) $('clash-announce').classList.add('hidden');
     }
+    const renderStart = performance.now();
     render(timestamp / 1000);
+    if (mode === 'running' && match && match.audit) {
+      match.audit.noteFrame(frameMs, performance.now() - renderStart);
+    }
     window.requestAnimationFrame(frame);
   }
   setScreen('menu');

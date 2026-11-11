@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#080d20">
+  <meta name="description" content="CHROMA CLASH — four neon cubes. One collapsing arena.">
+  <title>CHROMA RUSH | Chroma Clash 1.0</title>
+  <link rel="stylesheet" href="clash.css?v=chroma-clash-1.0">
+</head>
+<body>
+  <main id="clash-shell" aria-label="CHROMA CLASH arena game">
+    <canvas id="clash-canvas" aria-label="Four neon cubes battling on a shrinking square platform"></canvas>
+    <div id="clash-hud" class="hud hidden" aria-live="off">
+      <div class="hud-left"><span class="eyebrow">CHROMA <b>CLASH</b></span><strong id="clash-zone">ZONE 01</strong><span id="clash-phase">FLOW</span></div>
+      <div class="hud-right"><strong id="clash-count">4 ALIVE</strong><span id="clash-clock">0:00</span><button id="clash-pause" class="icon-button" type="button" aria-label="Pause game">Ⅱ</button></div>
+    </div>
+    <div id="clash-announce" class="announce hidden" aria-live="polite"></div>
+    <div id="clash-joystick" class="joystick hidden" role="application" aria-label="Movement joystick">
+      <div class="joystick-groove"></div><div id="clash-stick" class="stick"></div>
+    </div>
+    <div id="clash-input-help" class="input-help hidden">DRAG TO MOVE</div>
+    <section id="clash-menu" class="overlay" aria-label="Chroma Clash menu">
+      <div class="kicker">CHROMA RUSH · ARCADE PROTOTYPE 01</div>
+      <h1>CHROMA <em>CLASH</em></h1>
+      <p class="tagline">FOUR CUBES. ONE PLATFORM.</p>
+      <div class="intro-line">
+        <span>OUTPUSH YOUR RIVALS</span>
+        <span>SURVIVE THE FALLING EDGES</span>
+        <span>LAST CUBE WINS</span>
+      </div>
+      <button id="clash-start" class="primary-btn" type="button">ENTER ARENA <span aria-hidden="true">→</span></button>
+      <p class="control-hint">JOYSTICK ONLY · KEYBOARD WASD / ARROWS</p>
+      <a class="return-link" href="./index.html">← BACK TO CHROMA RUSH</a>
+    </section>
+    <section id="clash-pause-menu" class="overlay hidden" aria-label="Game paused">
+      <div class="kicker">CHROMA CLASH</div><h2>PAUSED</h2>
+      <button id="clash-resume" class="primary-btn" type="button">RESUME <span aria-hidden="true">→</span></button>
+      <button id="clash-restart-pause" class="secondary-btn" type="button">RESTART MATCH</button>
+      <a class="return-link" href="./index.html">← MAIN MENU</a>
+    </section>
+    <section id="clash-finish" class="overlay hidden" aria-live="polite" aria-label="Match result">
+      <div class="kicker">CHROMA CLASH · RESULT</div>
+      <h2 id="clash-outcome">VICTORY</h2>
+      <p id="clash-summary" class="tagline">LAST CUBE STANDING</p>
+      <div class="result-stats"><div><small>ELIMINATIONS</small><strong id="clash-kos">0</strong></div><div><small>SURVIVED</small><strong id="clash-duration">0:00</strong></div><div><small>BEST</small><strong id="clash-best">—</strong></div></div>
+      <button id="clash-again" class="primary-btn" type="button">PLAY AGAIN <span aria-hidden="true">→</span></button>
+      <a class="return-link" href="./index.html">← MAIN MENU</a>
+    </section>
+    <div id="clash-orientation" aria-live="polite"><div class="rotate-symbol">▭ ↻</div><strong>ROTATE YOUR DEVICE</strong><span>CHROMA CLASH is designed for landscape play.</span></div>
+  </main>
+  <script src="src/gameplay/chroma-clash.js?v=chroma-clash-1.0"></script>
+</body>
+</html>

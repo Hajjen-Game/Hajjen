@@ -367,7 +367,7 @@
     arcadeUI.hud($,runMode==='practice');
     $.modeIndicator.classList.toggle('hidden',runMode==='arcade');
     if(runMode==='trial')$.modeIndicator.textContent='CHROMA TRIAL 001 · FIXED COURSE';
-    if(runMode==='reality')$.modeIndicator.textContent='REALITY 002 · CHOOSE THE FOLD';
+    if(runMode==='reality')$.modeIndicator.textContent='REALITY · UPPER PLATFORM + SENTINEL';
     $.trialTimer.classList.toggle('hidden',!fixedCourse());
     $.realityExport.classList.add('hidden');
     $.trialResultStats.classList.add('hidden');
@@ -486,10 +486,8 @@
   }
   function jump(){
     if(status!=='running'||gravityShift.shifting)return;
-    // Reality 2.0: a normal grounded Jump during the shown choice window
-    // physically chooses the elevated course. Jump itself is unchanged.
-    if(runMode==='reality')reality.onJump({time,terrain,plan:trialPlan,
-      grounded:player.landed&&!player.duck&&!gapRecovery});
+    // Reality 2.1: the physically elevated platform can only be entered
+    // by LANDING on its top. A button press never teleports or locks a route.
     const action=jumpControl.request({grounded:player.landed,ducking:player.duck,
       recovering:Boolean(gapRecovery),worldX:distance+player.x,
       echoEnabled:zone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone});
@@ -1185,13 +1183,18 @@
     // Reality 2.0 no longer invokes Gravity Shift at all. It changes
     // real future terrain geometry via the player's route decision.
     const realityEvent=runMode==='reality'?
-      reality.tick(dt,{time,terrain,plan:trialPlan}):null;
+      reality.tick(dt,{time,plan:trialPlan,
+        playerWorld:distance+player.x,baseY:terrain.baseY,
+        playerX:player.x,
+        spawnX:camera.worldX(W*.80,player.x),speed}):null;
     if(realityEvent){
       runAudit.record('reality_'+realityEvent.type,auditState(),realityEvent);
       if(realityEvent.type==='route_selected'){
         sound('zone');vib(12);
       }else if(realityEvent.type==='boss_phase'){
         sound('gravity-warning');vib(16);
+      }else if(realityEvent.type==='boss_shot'){
+        sound('dash-seal');
       }else if(realityEvent.type==='boss_armor_break'){
         sound('perfect');vib([18,26,18]);
         if(!reducedMotion){
@@ -1230,8 +1233,12 @@
       runAudit.record('gravity_shift_complete',auditState(),{mode:gravityShift.ceiling?'ceiling':'floor'});
       if(reducedMotion)sound('gravity-shift');
     }
-    const ground=terrain.groundAt(playerWorld);
+    let ground=terrain.groundAt(playerWorld);
     const currentGap=terrain.gapAt(playerWorld);
+    const upperSurface=runMode==='reality'?
+      reality.upperSurfaceAt(playerWorld,trialPlan,terrain.baseY):null;
+    if(runMode==='reality'&&reality.route==='upper'&&upperSurface!==null)
+      ground=upperSurface;
     player.wasAirborne=!player.landed;
     if(gapRecovery){
       // Brief spectral recovery after a fall: prevents repeated invisible
@@ -1254,9 +1261,17 @@
       const previousFeet=player.feet;
       player.vy+=GAME.gravity*dt;
       player.feet+=player.vy*dt;
+      // Landing onto a higher, genuinely separate solid platform selects
+      // the upper route. Walking underneath cannot select it.
+      const catchUpper=runMode==='reality'&&
+        realityModule.canLandUpper({route:reality.route,plan:trialPlan,
+          worldX:playerWorld,baseY:terrain.baseY,previousFeet,
+          feet:player.feet,vy:player.vy,airborne:true});
+      if(catchUpper)ground=upperSurface;
       if(ground!==null&&player.vy>=0&&previousFeet<=ground+5&&player.feet>=ground){
         const impact=player.vy;
         player.feet=ground;player.vy=0;player.landed=true;
+        if(catchUpper)reality.captureUpper({time,worldX:playerWorld});
         dash.onLand();landingImpact(ground,impact);
         // A valid touchdown on the far side completes a gap even if the player
         // has buffered another immediate jump. Otherwise the next jump could
@@ -1281,6 +1296,35 @@
       }
     }
     updateDuck(dt);
+    if(runMode==='reality'){
+      // These are physical moving projectiles with topologically correct
+      // Jump/Duck hitboxes and swept X checks. NO prefabricated gate here.
+      const shots=reality.tickProjectiles(dt,{playerBox:GEO.playerBox(player),
+        playerWorldX:distance+player.x,baseY:terrain.baseY,
+        speed,invulnerable:player.invulnerable>0});
+      for(const result of shots){
+        const shot=result.shot;
+        if(result.type==='hit'){
+          runAudit.record('reality_projectile_hit',auditState(),
+            {kind:shot.kind,phase:shot.bossPhase,id:shot.id});
+          onHit(shot);
+        }else{
+          runAudit.record('reality_projectile_clear',auditState(),
+            {kind:shot.kind,phase:shot.bossPhase,id:shot.id,
+              protected:Boolean(result.protectedClear)});
+          if(!result.protectedClear){
+            reality.onClear({time,bossPhase:shot.bossPhase});
+            const gained=flow.registerClear({precision:false});
+            score+=gained.earnedPoints;
+            director.registerClear({action:shot.kind==='low'?'jump':'duck'});
+            awardCombo(shot.kind==='low'?'jump':'duck');
+            awardSurge(shot.kind==='low'?'jump':'duck');
+            if(!reducedMotion)frameEcho(player.x,player.feet-22,c2,23,.6);
+            sound('score');
+          }
+        }
+      }
+    }
     // Tiny, performance-bounded particles make high Flow visibly different.
     if(flow.tier>=1&&visualRandom()<dt*(flow.tier===3?19:flow.tier===2?11:5)*quality.profile.particles){
       motes.push(makeMote(player.x-25,player.feet-20,visualRandom()<.5?c1:c2,
@@ -1294,18 +1338,27 @@
       const visibleWorld=distance+camera.visibleRight(W,player.x)+speed*2.3;
       while(trialCursor<trialPlan.obstacles.length&&
         trialPlan.obstacles[trialCursor].worldX<=visibleWorld){
+        // Delay branch hazards until a PHYSICAL landing or passed entrance
+        // resolves the route. Never consume unchosen future obstacles early.
+        const upcoming=trialPlan.obstacles[trialCursor];
+        if(runMode==='reality'&&upcoming.route&&reality.route==='undecided')break;
         const fixed=trialPlan.obstacles[trialCursor++];
+        // The old Sentinel gates are retired. Their authored timings now
+        // drive genuine projectiles fired by the boss into the playfield.
+        if(runMode==='reality'&&fixed.bossPhase)continue;
         if(runMode==='reality'&&!reality.routeAllows(fixed.route))continue;
         hurdles.push({type:fixed.type,x:fixed.worldX-distance+worldStep,
           worldX:fixed.worldX,
-          groundY:runMode==='reality'?(terrain.groundAt(fixed.worldX)??floorY):floorY,
+          groundY:runMode==='reality'&&fixed.route==='upper'?
+            (reality.upperSurfaceAt(fixed.worldX,trialPlan,terrain.baseY)??floorY):
+            (terrain.groundAt(fixed.worldX)??floorY),
           width:fixed.width,height:fixed.height,
           bossPhase:fixed.bossPhase||0,route:fixed.route||'shared',
           hit:false,cleared:false,closestClearance:Infinity,
           entryDuckTime:null,dashAssisted:false,mechanicIntro:false,
           phase:fixed.phase||'TRIAL'});
         runAudit.record('spawn',auditState(),{
-          obstacle:fixed.type,pattern:runMode==='reality'?'REALITY_ENGINE_001':'CHROMA_TRIAL_001',
+          obstacle:fixed.type,pattern:runMode==='reality'?'REALITY_ENGINE_002':'CHROMA_TRIAL_001',
           worldX:fixed.worldX,width:fixed.width,height:fixed.height,
           surface:gravityShift.ceiling?'ceiling':'floor',intro:false});
       }
@@ -1713,6 +1766,7 @@
     ctx.restore();
     // Keep the legacy standalone gate renderer pure. Only tagged boss
     // colliders can draw a Reality accent; regular gates are untouched.
+    // Reality 2.1 intentionally has NO boss chevrons on normal gates.
     if(o.bossPhase&&typeof reality!=='undefined'&&reality)
       reality.drawAttack(ctx,{obstacle:o,box:b,quality:quality.profile});
   }
@@ -1834,8 +1888,8 @@
     ctx.save();camera.apply(ctx,player.x,floorY);
     drawTerrain();
     if(runMode==='reality')reality.drawRoute(ctx,{plan:trialPlan,distance,
-      time,width:W,height:H,baseY:floorY,primary:c1,secondary:c2,
-      reducedMotion});
+      time,width:camera.visibleRight(W,player.x),height:H,
+      baseY:floorY,primary:c1,secondary:c2,reducedMotion});
     ctx.restore();
     const terrainDone=performance.now();
     // The chromatic front stays screen-anchored and perfectly synchronized
@@ -1849,6 +1903,10 @@
       {time:worldTime,quality:quality.profile,reducedMotion,
         ceiling:gravityShift.mix>.5});
     for(const o of hurdles)drawObstacle(o);
+    if(runMode==='reality')reality.drawProjectiles(ctx,{
+      primary:c1,secondary:c2,
+      bossX:camera.worldX(W*.80,player.x),
+      bossY:camera.worldY(H*.31,floorY)});
     drawPlayer();
     const actorsDone=performance.now();
     drawFx();

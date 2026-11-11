@@ -8,7 +8,7 @@
   if (root) root.ChromaClashAudit = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const BUILD = 'chroma-clash-1.4-rendering-flow';
+  const BUILD = 'chroma-clash-visual-cohesion-1.0';
   const MAX_EVENTS = 600;
   const MAX_SAMPLES = 300;
   const num = x => Number.isFinite(x) ? Math.round(x * 1000) / 1000 : 0;

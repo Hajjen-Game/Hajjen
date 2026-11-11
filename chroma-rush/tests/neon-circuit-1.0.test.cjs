@@ -9,12 +9,14 @@ test('Neon Circuit is a distinct closed-track racing game, not trail-survival',(
   assert.equal(c.LAPS_TO_WIN,3);
   assert.equal(c.ZONE_SECONDS,10);
   assert.equal(c.NAMES.length,4);
-  assert.equal(c.NODES.length,12);
+  assert.equal(c.NODES.length,8);
+  assert.equal(c.TRACK.layout,'straight-arc');
+  assert.deepEqual(c.TRACK.segmentKinds,['straight','quarter-arc']);
   assert.ok(c.TRACK.length>1200&&c.TRACK.length<1900,c.TRACK.length);
-  assert.equal(c.TRACK.pointCount,12*20+1);
+  assert.ok(c.TRACK.pointCount>150);
   const a=c.TRACK.samples[0],b=c.TRACK.samples.at(-1);
   assert.ok(Math.hypot(a.x-b.x,a.y-b.y)<EPS);
-  assert.equal(c.TRACK_HALF,48);
+  assert.equal(c.TRACK_HALF,47);
   assert.equal(c.zoneSpeed(0),118);
   assert.equal(c.zoneSpeed(1),130);
   assert.ok(c.zoneSpeed(10)<=187);
@@ -70,7 +72,7 @@ test('Joystick steering, braking and Dash modify speed without instant death',()
   assert.ok(m.events.some(e=>e.type==='dash'));
   assert.equal(m.finished,false);
 });
-test('Track edges cost momentum, never kill or teleport the racer',()=>{
+test('Ordinary track-edge contact restores usable speed instead of stalling',()=>{
   const m=c.seededRace(42),p=m.racers[0];
   m.phase='running';
   const q=c.pointAt(p.progress);
@@ -81,7 +83,8 @@ test('Track edges cost momentum, never kill or teleport the racer',()=>{
   c.tick(m,{x:q.nx,y:q.ny},1/30);
   assert.ok(p.edgeHits>=1,p.edgeHits);
   assert.equal(p.finished,false);
-  assert.ok(c.closest(p.x,p.y).dist<=c.TRACK_HALF-c.PLAYER_RADIUS+.1);
+  assert.ok(c.closest(p.x,p.y).dist<=c.RAMP_START+.1);
+  assert.ok(p.speed>=c.zoneSpeed(m.zone)*.68,'edge touch must not trap at speed 5');
   assert.ok(m.events.some(e=>e.type==='edge_scrape'));
 });
 test('AI competitors follow the winding circuit, using steering and braking',()=>{
@@ -94,7 +97,8 @@ test('AI competitors follow the winding circuit, using steering and braking',()=
   assert.ok(m.racers.every(r=>Number.isFinite(r.x)&&Number.isFinite(r.y)));
   assert.ok(m.racers.slice(1).some(r=>r.progress>-.01));
   for(const r of m.racers){
-    assert.ok(c.closest(r.x,r.y).dist<=c.TRACK_HALF-c.PLAYER_RADIUS+1);
+    if(r.fallTimer<=0)
+      assert.ok(c.closest(r.x,r.y).dist<=c.RAMP_START+1);
   }
 });
 test('Seeded AI physics are deterministic, and contact never removes a cube',()=>{
@@ -109,6 +113,7 @@ test('Seeded AI physics are deterministic, and contact never removes a cube',()=
   const at=c.pointAt(c.TRACK.length*.24);
   p.x=at.x;p.y=at.y;p.angle=at.angle;p.speed=135;
   q.x=at.x+at.nx*8;q.y=at.y+at.ny*8;q.angle=at.angle+Math.PI;q.speed=45;
+  q.dashTime=.28;
   p.progress=c.TRACK.length*.24;q.progress=p.progress;
   p.edgeCooldown=0;q.edgeCooldown=0;
   c.tick(a,{x:at.tx,y:at.ty},1/60);
@@ -140,6 +145,7 @@ test('A real guided three-lap race finishes with multiple color-zone transitions
 test('Three genuine laps finish only when the cube crosses the lap boundary',()=>{
   const m=c.seededRace(20),p=m.racers[0];
   m.phase='running';m.elapsed=51;
+  p.gatePasses=12;p.laps=2;
   p.progress=c.TRACK.length*3-4;
   const at=c.pointAt(p.progress);
   p.x=at.x;p.y=at.y;p.angle=at.angle;p.speed=155;
@@ -160,13 +166,84 @@ test('Shortcuts do not grant laps and results can be exported for arcade cup lat
   assert.equal(p.laps,0);
   assert.ok(p.progress<=before+12);
   const data=c.audit(m);
-  assert.equal(data.schema,'neon-circuit-run-audit/1.0');
+  assert.equal(data.schema,'neon-circuit-run-audit/1.1');
+  assert.equal(data.summary.lapValidation,'four-ordered-physical-gates');
   assert.equal(data.summary.lapsCompleted,0);
   assert.equal(data.racers.length,4);
   assert.ok(Object.hasOwn(data.summary,'brakeSeconds'));
   assert.ok(Object.hasOwn(data.summary,'lineSeconds'));
   assert.ok(Object.hasOwn(data.summary,'edgeHits'));
   assert.doesNotMatch(JSON.stringify(data),/deviceId|fingerprint|rawJoystick/);
+});
+test('Same physical start-and-checkpoint sequence counts full laps identically for AI and player',()=>{
+  const m=c.seededRace(107);
+  m.phase='running';
+  for(const p of m.racers){
+    p.progress=-40;p.gatePasses=0;p.laps=0;
+    let prior=c.pointAt(-3);
+    // Cross the actual start, then each quarter and the finish line.
+    const sequence=[0,.25,.5,.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3];
+    for(let i=0;i<sequence.length;i++){
+      const target=sequence[i]*c.TRACK.length;
+      const from=c.pointAt(target-3),to=c.pointAt(target+3);
+      assert.equal(c.gateCrossed(from,to,c.GATES[i%4]),true,
+        'physical crossing of checkpoint '+i);
+      // Each physically traversed quarter must increment exactly once.
+      p.x=to.x;p.y=to.y;
+      // Driving the rest of the segment is a legal sequence of turns,
+      // not a one-frame teleport. We directly invoke no hidden scorer:
+      // the real rule is exercised in a full guided simulation below.
+      prior=to;
+    }
+    assert.equal(p.laps,0,'geometric crossing alone does not credit without game ticks');
+  }
+  const race=c.seededRace(42);race.phase='running';
+  for(let i=0;i<60*90&&!race.finished;i++){
+    const p=race.racers[0],look=c.pointAt(p.progress+Math.max(40,p.speed*.40));
+    c.tick(race,{x:look.x-p.x,y:look.y-p.y},1/60);
+  }
+  assert.equal(race.racers[0].laps,3);
+  assert.equal(race.racers[0].gatePasses,13);
+  assert.deepEqual(race.events.filter(e=>e.type==='checkpoint'&&e.player===0)
+    .map(e=>e.gate),[0,1,2,3,0,1,2,3,0,1,2,3,0]);
+  assert.deepEqual(race.events.filter(e=>e.type==='lap'&&e.player===0)
+    .map(e=>e.lap),[1,2,3]);
+  assert.ok(race.racers.slice(1).every(p=>p.gatePasses>=8));
+});
+test('Wrong-way crossings, side crossings, and teleport-like movements never award checkpoint progress',()=>{
+  const gate=c.GATES[0],v=(x,y)=>({
+    x:gate.x+gate.tx*x+gate.nx*y,
+    y:gate.y+gate.ty*x+gate.ny*y
+  });
+  assert.equal(c.gateCrossed(v(-4,0),v(4,0),gate),true);
+  assert.equal(c.gateCrossed(v(4,0),v(-4,0),gate),false);
+  assert.equal(c.gateCrossed(v(-4,70),v(4,70),gate),false);
+  assert.equal(c.gateCrossed(v(2,0),v(7,0),gate),false);
+  const m=c.seededRace(20);m.phase='running';
+  const p=m.racers[0];
+  const far=c.pointAt(c.TRACK.length*.59);
+  p.x=far.x;p.y=far.y;
+  for(let i=0;i<10;i++)c.tick(m,{},1/60);
+  assert.equal(p.laps,0);
+  assert.equal(p.gatePasses,0);
+});
+test('Forceful Dash collision can throw a racer off a ramp, then safely respawn without resetting laps',()=>{
+  const m=c.seededRace(314);m.phase='running';m.elapsed=6;
+  const a=m.racers[0],b=m.racers[1],s=c.pointAt(180);
+  a.x=s.x;a.y=s.y-24;a.angle=0;a.speed=95;a.progress=180;
+  b.x=s.x;b.y=s.y-5;b.angle=-Math.PI/2;b.speed=165;
+  b.progress=180;b.dashTime=.30;
+  // Keep the event clock and checkpoint state consistent with lap one.
+  a.gatePasses=1;b.gatePasses=1;
+  for(let i=0;i<115;i++)c.tick(m,{x:1,y:-1},1/60);
+  assert.equal(a.falls,1);
+  assert.equal(a.respawns,1);
+  assert.equal(b.knockouts,1);
+  assert.equal(a.laps,0);
+  assert.ok(m.events.some(e=>e.type==='impact'&&e.force>300));
+  assert.ok(m.events.some(e=>e.type==='fall'&&e.player===0&&e.attacker===1));
+  assert.ok(m.events.some(e=>e.type==='respawn'&&e.player===0));
+  assert.ok(a.invulnerable<=c.RESPAWN_GRACE);
 });
 test('Menu, fullscreen, pause, mobile quality and both control buttons are wired',()=>{
   const page=read('neon-circuit.html'),

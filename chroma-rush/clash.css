@@ -61,3 +61,76 @@ font-weight:850;letter-spacing:.12em}
  .input-help{bottom:8px}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+
+/* Chroma Clash Visual Cohesion 1.0 — same HUD hierarchy, materials and
+   color language as the existing Rush runner. Pure CSS; no Canvas passes. */
+:root{--rush-primary:#3feeff;--rush-ice:#d9f8ff;--rush-shadow:#061a30}
+#clash-shell{background:#070b17}
+#clash-shell:after{
+  background:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(3,8,20,.31) 100%);
+}
+.hud{padding:clamp(9px,1.9vh,22px) clamp(14px,3.6vw,58px)}
+.hud-left,.hud-right{gap:3px}
+.hud-center{
+  position:absolute;top:clamp(8px,1.55vh,19px);left:50%;
+  transform:translateX(-50%);display:flex;flex-direction:column;
+  gap:3px;align-items:center;text-align:center;
+  pointer-events:none;white-space:nowrap;
+  text-shadow:0 0 17px rgba(63,238,255,.2);
+}
+.eyebrow,.kicker{color:#a7bdd2;font-weight:800;letter-spacing:.22em}
+.eyebrow b{color:var(--rush-primary)}
+#clash-zone{
+  font-size:clamp(22px,3.15vw,36px);
+  font-weight:900;letter-spacing:.12em;
+  color:var(--rush-primary);line-height:1.07;
+  text-shadow:0 0 15px rgba(63,238,255,.38);
+}
+#clash-phase{
+  font-size:clamp(8px,.82vw,11px);letter-spacing:.18em;
+  font-weight:850;color:#90bdcb;line-height:1.35;
+  text-shadow:none;
+}
+#clash-count{font-size:clamp(12px,1.4vw,18px);letter-spacing:.13em}
+#clash-clock{color:#b9d5e6}
+.icon-button{
+  border:1px solid rgba(101,158,196,.45);
+  background:rgba(9,20,41,.88);
+  border-radius:16px;box-shadow:inset 0 1px rgba(215,250,255,.06)
+}
+.announce{
+  top:19.5%;font-size:clamp(11px,1.5vw,18px);
+  letter-spacing:.19em;font-weight:850;
+  color:#ebf9ff;text-shadow:0 0 14px rgba(63,238,255,.33);
+  max-width:65vw;white-space:normal;
+}
+.joystick{
+  border:1px solid rgba(93,178,216,.48);
+  background:radial-gradient(circle at center,rgba(28,77,113,.53),
+    rgba(7,23,45,.69) 57%,rgba(7,17,35,.83) 78%);
+  box-shadow:inset 0 1px rgba(183,236,255,.13),0 0 16px rgba(51,202,246,.12);
+}
+.joystick-groove{border:1px solid rgba(112,211,242,.25)}
+.stick{
+  background:radial-gradient(circle at 31% 23%,#f5ffff,#81dbec 30%,#3283ac 67%,#153f6b 100%);
+  box-shadow:inset -3px -5px 9px rgba(5,26,52,.55),0 0 14px rgba(68,218,255,.33);
+}
+.input-help{color:#85aabd;letter-spacing:.15em;font-size:clamp(8px,.85vw,11px)}
+.overlay{
+  background:radial-gradient(ellipse at 50% 44%,rgba(8,19,39,.97) 0%,
+    rgba(6,15,34,.90) 67%,rgba(4,11,25,.52) 92%,transparent 100%);
+}
+.overlay h1{color:#f7fbff;text-shadow:0 0 23px rgba(63,238,255,.2)}
+.overlay h1 em{color:var(--rush-primary)}
+.primary-btn{
+  background:linear-gradient(110deg,#53dcf4,#a7efff);
+  border:1px solid #c0fcff;
+  box-shadow:0 0 18px rgba(63,238,255,.15);
+}
+.secondary-btn{border-color:rgba(103,180,206,.5);background:rgba(7,27,46,.88)}
+@media(max-height:450px){
+  .hud-center{top:8px}
+  #clash-zone{font-size:clamp(22px,3vw,32px)}
+  .announce{top:20%;font-size:clamp(10px,1.3vw,15px)}
+}

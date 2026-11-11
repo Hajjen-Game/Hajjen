@@ -3,43 +3,36 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const core = require('../src/gameplay/chroma-clash.js');
-const tide = require('../src/render/chroma-corner-tide.js');
+const tide = require('../src/render/chroma-center-pulse.js');
 const audit = require('../src/diagnostics/chroma-clash-audit.js');
 
-test('Four-corner tide reaches all four corners first and converges at the arena center', () => {
+test('Center-out pulse recolors the middle first, not the platform corners', () => {
   const rect = { x: 282, y: 72, w: 396, h: 396 };
-  const points = tide.corners(rect.x, rect.y, rect.w, rect.h);
-  assert.equal(points.length, 4);
-  for (const [x, y] of points) assert.equal(tide.reached(x, y, rect, 0), true);
-  assert.equal(tide.reached(core.CX, core.CY, rect, .4), false);
-  assert.equal(tide.reached(core.CX, core.CY, rect, 1), true);
-  assert.equal(tide.reached(rect.x + 25, rect.y + 25, rect, .2), true);
-  assert.equal(tide.reached(rect.x + rect.w - 25, rect.y + rect.h - 25, rect, .2), true);
-  assert.ok(tide.radiusAt(.9, rect.w, rect.h) > tide.radiusAt(.4, rect.w, rect.h));
-  assert.ok(tide.radiusAt(1, rect.w, rect.h) >= Math.hypot(rect.w, rect.h) / 2);
+  assert.equal(tide.reached(core.CX, core.CY, rect, .2), true);
+  assert.equal(tide.reached(rect.x + 15, rect.y + 15, rect, .2), false);
+  assert.equal(tide.reached(rect.x + 15, rect.y + 15, rect, 1), true);
+  assert.ok(tide.radiusAt(.75, rect) > tide.radiusAt(.25, rect));
+  assert.ok(tide.radiusAt(1, rect) >= Math.hypot(rect.w, rect.h)/2);
+  assert.deepEqual(tide.center(rect), {x:core.CX,y:core.CY});
 });
-
-test('Corner tide works on the full viewport and the small rounded-square platform without touching physics', () => {
-  const screen = {x: 0, y: 0, w: core.WIDTH, h: core.HEIGHT};
-  const small = {x: core.CX - 44, y: core.CY - 44, w: 88, h: 88};
-  for (const rect of [screen, small]) {
-    for (const p of [0, .2, .5, .8]) {
-      assert.equal(tide.reached(rect.x + rect.w/2, rect.y + rect.h/2, rect, p), false);
-    }
-    assert.equal(tide.reached(rect.x + rect.w/2, rect.y + rect.h/2, rect, 1), true);
+test('Pulse uses the full viewport; visual-only palette changes never move the floor', () => {
+  const scene={x:0,y:0,w:core.WIDTH,h:core.HEIGHT};
+  const tiny={x:core.CX-44,y:core.CY-44,w:88,h:88};
+  for(const rect of [scene,tiny]){
+    const middle=tide.center(rect);
+    assert.equal(tide.reached(middle.x,middle.y,rect,.15),true);
+    assert.equal(tide.reached(rect.x,rect.y,rect,.15),false);
+    assert.equal(tide.reached(rect.x,rect.y,rect,1),true);
   }
-  const m = core.createMatch(23);
-  assert.equal(m.zone, 0);
-  assert.equal(m.paletteFade, 0);
-  assert.equal(m.half, 198);
-  m.elapsed = 9.995;
-  core.updateMatch(m,{x:0,y:0}, 1/120);
-  assert.equal(m.zone, 1);
-  assert.equal(m.paletteFade, core.COLOR_FADE_SECONDS);
-  assert.ok(core.COLOR_FADE_SECONDS > 1.2);
-  assert.equal(m.half, 198, 'color-only wave never changes the arena floor');
-  assert.equal(core.speedForZone(m.zone), 157);
-  assert.equal(m.cubes[0].color, core.COLORS[0], 'player identity must stay constant');
+  const m=core.createMatch(23);
+  m.elapsed=9.995;
+  core.updateMatch(m,{x:0,y:0},1/120);
+  assert.equal(m.zone,1);
+  assert.equal(m.paletteFade,core.COLOR_FADE_SECONDS);
+  assert.ok(core.COLOR_FADE_SECONDS>=1.0);
+  assert.equal(m.half,198);
+  assert.equal(core.speedForZone(m.zone),157);
+  assert.equal(m.cubes[0].color,core.COLORS[0]);
 });
 
 test('Arcade impact generates real decaying shove beyond ordinary movement cap', () => {
@@ -136,9 +129,9 @@ test('Pause/result UI exposes an explicit user-triggered log download and both n
   assert.match(html,/id="clash-export"/);
   assert.match(html,/id="clash-export-pause"/);
   assert.match(html,/src="src\/diagnostics\/chroma-clash-audit.js/);
-  assert.match(html,/src="src\/render\/chroma-corner-tide.js/);
+  assert.match(html,/src="src\/render\/chroma-center-pulse.js/);
   assert.match(game,/new Blob\(\[JSON.stringify\(payload/);
   assert.match(game,/URL\.createObjectURL/);
-  assert.match(html,/chroma-clash-1\.4-rendering-flow/);
+  assert.match(html,/chroma-clash-visual-cohesion-1\.0/);
   assert.doesNotMatch(html,/id="clash-(?:jump|dash)"/);
 });

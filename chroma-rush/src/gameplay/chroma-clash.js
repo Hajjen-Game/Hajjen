@@ -3,7 +3,11 @@
 (function (root) {
   'use strict';
   const AUDIT = root.ChromaClashAudit || (typeof require === 'function' ? require('../diagnostics/chroma-clash-audit.js') : null);
-  const TIDE = root.ChromaCornerTide || (typeof require === 'function' ? require('../render/chroma-corner-tide.js') : null);
+  const TIDE = root.ChromaCenterPulse || (typeof require === 'function' ? require('../render/chroma-center-pulse.js') : null);
+  // The runner is the source of truth for chromatic palettes AND the glass
+  // cube material. No independently invented Clash color identities.
+  const RUSH = root.ChromaConfig || (typeof require === 'function' ? require('../core/config.js') : null);
+  const IDENTITY = root.ChromaIdentity || (typeof require === 'function' ? require('../render/chroma-identity.js') : null);
   const WIDTH = 960, HEIGHT = 540, CX = WIDTH / 2, CY = HEIGHT / 2;
   const HALVES = Object.freeze([198, 166, 136, 108, 84, 62, 44]);
   const COLLAPSES = Object.freeze([14, 28, 41, 53, 64, 73]);
@@ -16,8 +20,8 @@
   const BASE_ZONE_SPEED = 145;
   const ZONE_SPEED_STEP = 12;
   const MAX_ZONE_SPEED = 277;
-  // A full four-corner convergence is visible over the entire environment.
-  const COLOR_FADE_SECONDS = 1.55;
+  // Center-origin pulse matches Rush's continuous, non-hazard Chroma Tide.
+  const COLOR_FADE_SECONDS = 1.10;
   const ACCELERATION = 3100;
   const DRAG_MOVING = 1.85;
   const DRAG_IDLE = 18;
@@ -27,11 +31,11 @@
   const COLORS = ['#60ecff', '#ff71ac', '#ffe26a', '#9f8aff'];
   const NAMES = ['YOU', 'NOVA', 'VOLT', 'HEX'];
   const ZONE_NAMES = ['FLOW', 'SURGE', 'PULSE', 'OVERDRIVE', 'FRENZY', 'CRITICAL', 'FINAL'];
-  const PALETTES = [
-    ['#54dfff', '#102947'], ['#e5c366', '#392b32'], ['#bb83ff', '#302449'],
-    ['#ff74b5', '#3b213d'], ['#85efbc', '#1b3c40'], ['#ff9a69', '#442e34'],
-    ['#ffffff', '#303854']
-  ];
+  // Share the exact pigments used by Rush. Keep the existing seven-zone
+  // palette cycle and ten-second gameplay clock for backward compatibility.
+  // [primary, shadow, secondary] is Clash's fast Canvas-facing format.
+  const PALETTES = Object.freeze(RUSH.PALETTES.slice(0, 7).map(p =>
+    Object.freeze([p.primary, p.shadow, p.secondary])));
   const clamp = (x, low, high) => Math.min(high, Math.max(low, x));
   // A color zone is a fixed ten-second clock phase, independent of collapsing
   // platform rings. Color and speed change on the same simulation step.
@@ -50,7 +54,7 @@
     if (!match.paletteFade) return current;
     const old = paletteForZone(match.zone - 1);
     const t = 1 - clamp(match.paletteFade / COLOR_FADE_SECONDS, 0, 1);
-    return [mixColor(old[0], current[0], t), mixColor(old[1], current[1], t)];
+    return [0, 1, 2].map(i => mixColor(old[i], current[i], t));
   }
   const length = (x, y) => Math.hypot(x, y);
   function normalized(x, y) {
@@ -474,7 +478,7 @@
     tideDisabled = false; tideSlowFrames = 0; slowFrameStreak = 0;
     renderQuality = 1; resize();
     mode = 'running'; keys.clear(); resetStick(); lastEventId = 0; accumulator = 0;
-    setScreen(mode); showAnnounce('LAST CUBE STANDING', 1.2);
+    setScreen(mode); showAnnounce('LAST CUBE STANDING', .82);
     updateHUD();
   }
   function pauseGame() {
@@ -562,34 +566,72 @@
     roundedRect(CX - half, CY - half, 2 * half, 2 * half, Math.max(12, half * .16));
   }
   function drawBackground(time, palette) {
-    ctx.fillStyle = '#070d1d'; ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    let glow = ctx.createRadialGradient(CX, CY, 12, CX, CY, 590);
-    // The earlier world had a nearly static deep-blue backdrop. A clear
-    // environmental hue change now reaches the full camera, not just the rim.
-    glow.addColorStop(0, mixColor(palette[1], palette[0], .42));
-    glow.addColorStop(.5, mixColor('#09162a', palette[0], .24));
-    glow.addColorStop(1, mixColor('#050914', palette[0], .09));
-    ctx.fillStyle = glow; ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    ctx.save();
-    ctx.globalAlpha = .17; ctx.strokeStyle = palette[0]; ctx.lineWidth = 1;
-    for (let i = -6; i <= 6; i++) {
-      const off = i * 84;
-      ctx.beginPath(); ctx.moveTo(CX + off - 400, 0); ctx.lineTo(CX + off + 370, HEIGHT); ctx.stroke();
+    // Visual Cohesion 1.0: same dark atmospheric sky / broad color bounce /
+    // restrained distant architecture as Rush, viewed from above. This
+    // complete scene is rasterized ONCE per color zone and platform stage.
+    const primary = palette[0], shadow = palette[1], secondary = palette[2];
+    ctx.fillStyle = '#070b17';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+    sky.addColorStop(0, '#060b19');
+    sky.addColorStop(.44, mixColor('#071324', shadow, .77));
+    sky.addColorStop(1, mixColor('#061021', shadow, .51));
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    // Same diffuse two-color illumination budget as the runner's world.
+    const centerGlow = ctx.createRadialGradient(CX, CY + 4, 0, CX, CY, 425);
+    centerGlow.addColorStop(0, hexAlpha(primary, .25));
+    centerGlow.addColorStop(.44, hexAlpha(secondary, .115));
+    centerGlow.addColorStop(1, hexAlpha(primary, 0));
+    ctx.fillStyle = centerGlow;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    const distanceGlow = ctx.createRadialGradient(WIDTH*.73, HEIGHT*.76, 0,
+      WIDTH*.73, HEIGHT*.76, 440);
+    distanceGlow.addColorStop(0, hexAlpha(secondary, .11));
+    distanceGlow.addColorStop(1, hexAlpha(secondary, 0));
+    ctx.fillStyle = distanceGlow;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    // The old diagonal wallpaper/grid was unrelated to Rush. Subtle depth
+    // silhouettes and a thin atmospheric horizon reuse its visual language.
+    const skyline = ctx.createLinearGradient(0, 150, 0, HEIGHT);
+    skyline.addColorStop(0, hexAlpha(primary, .013));
+    skyline.addColorStop(.65, hexAlpha(primary, .068));
+    skyline.addColorStop(1, hexAlpha(primary, .012));
+    for (let i = 0; i < 11; i++) {
+      const x = 19 + i * 92 + (i % 3) * 13;
+      const top = 154 + ((i * 37) % 128);
+      const width = 15 + (i % 4) * 8;
+      ctx.fillStyle = skyline;
+      ctx.fillRect(x, top, width, HEIGHT - top);
+      ctx.fillStyle = hexAlpha(secondary, .043);
+      ctx.fillRect(x + width * .68, top + 12, 1.3, Math.min(90, HEIGHT - top - 22));
     }
-    ctx.globalAlpha = .15; ctx.fillStyle = '#d9f3ff';
-    for (let n = 0; n < 47; n++) {
-      const x = (n * 183.73 + 39) % WIDTH;
-      const y = (n * 91.37 + 27) % HEIGHT;
-      ctx.fillRect(x, y, 1.1 + n % 3 * .35, 1.1 + n % 2);
+    // Horizontal light streaks, not full-screen wireframe diagonals.
+    for (let i = 0; i < 17; i++) {
+      const y = 36 + (i * 107 % 460);
+      const x = (i * 163 + 27) % WIDTH;
+      ctx.fillStyle = hexAlpha(i % 2 ? secondary : primary, .055 + i % 4 * .012);
+      ctx.fillRect(x, y, 21 + i % 5 * 17, i % 5 === 0 ? 1.5 : 1);
     }
-    ctx.restore();
-    ctx.save(); ctx.globalAlpha = .07 + .025 * Math.sin(time * .6);
-    ctx.strokeStyle = palette[0]; ctx.lineWidth = 1.3;
-    for (let i = 0; i < 3; i++) {
-      const inset = 24 + i * 21;
-      ctx.strokeRect(inset, inset, WIDTH - 2 * inset, HEIGHT - 2 * inset);
+    for (let i = 0; i < 39; i++) {
+      const x = (i * 237.3 + 31) % WIDTH;
+      const y = (i * 111.7 + 41) % HEIGHT;
+      ctx.fillStyle = hexAlpha(i % 4 ? '#c8e3f4' : secondary, .09 + (i % 3) * .022);
+      ctx.fillRect(x, y, i % 7 === 0 ? 2 : 1, 1);
     }
-    ctx.restore();
+    const horizon = HEIGHT * .575;
+    ctx.globalAlpha = .22;
+    ctx.strokeStyle = primary;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, horizon); ctx.lineTo(WIDTH, horizon);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  function hexAlpha(hex, alpha) {
+    const v = parseInt(hex.slice(1), 16);
+    return 'rgba(' + (v >> 16) + ',' + ((v >> 8) & 255) + ',' +
+      (v & 255) + ',' + alpha + ')';
   }
   function drawFallenRims(active) {
     for (const rim of active.falling) {
@@ -618,67 +660,62 @@
       });
     }
   }
-  function drawArena(active, time, pal = activePalette(active), floorOnly = false) {
+  function drawArena(active, time, pal = activePalette(active)) {
     const h = active.half;
-    if (!floorOnly) {
-      drawBackground(time, pal);
-      ctx.save();
-      ctx.translate(0, 12);
-      ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.filter = 'blur(22px)';
-      ctx.beginPath(); squarePath(h); ctx.fill();
-      ctx.restore();
-      drawFallenRims(active);
-    }
+    const primary = pal[0], shadow = pal[1], secondary = pal[2];
+    drawBackground(time, pal);
+    ctx.save();
+    // A solid floating glass platform, not a bright panel border over a grid.
+    // Ambient bounce and the thin rim reuse Rush's premium lighting materials.
+    ctx.translate(0, 10);
+    ctx.fillStyle = 'rgba(0, 0, 0, .45)';
+    ctx.filter = 'blur(14px)';
+    ctx.beginPath(); squarePath(h); ctx.fill();
+    ctx.restore();
     ctx.save();
     ctx.beginPath(); squarePath(h);
     const ground = ctx.createLinearGradient(CX - h, CY - h, CX + h, CY + h);
-    ground.addColorStop(0, mixColor('#23344e', pal[0], .29));
-    ground.addColorStop(.46, mixColor(pal[1], pal[0], .24));
-    ground.addColorStop(1, mixColor('#19263f', pal[0], .21));
+    ground.addColorStop(0, mixColor('#152942', primary, .17));
+    ground.addColorStop(.32, mixColor('#09172b', shadow, .47));
+    ground.addColorStop(.76, mixColor('#0b1a30', secondary, .16));
+    ground.addColorStop(1, mixColor('#081525', shadow, .52));
     ctx.fillStyle = ground; ctx.fill();
     ctx.save(); ctx.clip();
-    const tile = Math.max(20, h / 4.3);
-    ctx.strokeStyle = mixColor('#29445c', pal[0], .52); ctx.globalAlpha = .35; ctx.lineWidth = 1;
-    for (let x = CX - h; x < CX + h; x += tile) {
-      ctx.beginPath(); ctx.moveTo(x, CY - h); ctx.lineTo(x, CY + h); ctx.stroke();
+    const light = ctx.createRadialGradient(CX - h*.23, CY - h*.23, 1,
+      CX, CY, h * 1.45);
+    light.addColorStop(0, hexAlpha(primary, .15));
+    light.addColorStop(.55, hexAlpha(secondary, .056));
+    light.addColorStop(1, hexAlpha(primary, 0));
+    ctx.fillStyle = light;
+    ctx.fillRect(CX - h, CY - h, h * 2, h * 2);
+    // Rush's track uses a very sparse illuminated perspective. Use that
+    // visual rhythm rather than Clash's dense blue graph-paper grid.
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = hexAlpha(primary, .11);
+    const spacing = Math.max(44, h * .32);
+    for (let n = -2; n <= 2; n++) {
+      const x = CX + spacing*n;
+      ctx.beginPath(); ctx.moveTo(x, CY-h); ctx.lineTo(x, CY+h); ctx.stroke();
+      const y = CY + spacing*n;
+      ctx.beginPath(); ctx.moveTo(CX-h, y); ctx.lineTo(CX+h, y); ctx.stroke();
     }
-    for (let y = CY - h; y < CY + h; y += tile) {
-      ctx.beginPath(); ctx.moveTo(CX - h, y); ctx.lineTo(CX + h, y); ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-    const centerLight = ctx.createRadialGradient(CX, CY, 5, CX, CY, h);
-    centerLight.addColorStop(0, 'rgba(122,221,255,.08)');
-    centerLight.addColorStop(1, 'rgba(0,0,0,.26)');
-    ctx.fillStyle = centerLight; ctx.fillRect(CX - h, CY - h, 2 * h, 2 * h);
-    if (active.warning) {
-      const inner = HALVES[active.stage + 1];
-      ctx.beginPath(); squarePath(h); squarePath(inner);
-      ctx.fillStyle = Math.sin(time * 9) > 0 ? 'rgba(255,130,79,.25)' : 'rgba(255,130,79,.13)';
-      ctx.fill('evenodd');
-      ctx.beginPath(); squarePath(inner); ctx.setLineDash([13, 8]);
-      ctx.strokeStyle = '#ffcc83'; ctx.lineWidth = 2.3; ctx.stroke(); ctx.setLineDash([]);
-      // Eight break panels: the seams explain exactly what is about to detach.
-      ctx.strokeStyle = 'rgba(255,202,134,.4)'; ctx.lineWidth = 1.5;
-      [-1, 1].forEach(function (side) {
-        ctx.beginPath();
-        ctx.moveTo(CX - inner, CY + side * inner); ctx.lineTo(CX - inner, CY + side * h);
-        ctx.moveTo(CX + inner, CY + side * inner); ctx.lineTo(CX + inner, CY + side * h);
-        ctx.moveTo(CX + side * inner, CY - inner); ctx.lineTo(CX + side * h, CY - inner);
-        ctx.moveTo(CX + side * inner, CY + inner); ctx.lineTo(CX + side * h, CY + inner);
-        ctx.stroke();
-      });
-    }
-    if (active.flash > 0) {
-      ctx.fillStyle = 'rgba(192,245,255,' + (active.flash * .17).toFixed(3) + ')';
-      ctx.fillRect(CX - h, CY - h, h * 2, h * 2);
-    }
+    // Brightness remains on the playable material, never as a separate
+    // obstacle-shaped tile, arrow or pulse square.
+    const skin = ctx.createLinearGradient(0, CY-h, 0, CY+h);
+    skin.addColorStop(0, 'rgba(240,252,255,.10)');
+    skin.addColorStop(.21, 'rgba(240,252,255,.025)');
+    skin.addColorStop(1, 'rgba(0,0,0,.14)');
+    ctx.fillStyle = skin;
+    ctx.fillRect(CX-h, CY-h, h*2, h*2);
     ctx.restore();
-    ctx.strokeStyle = pal[0]; ctx.lineWidth = 2.6;
-    ctx.shadowColor = pal[0]; ctx.shadowBlur = 19;
+    ctx.shadowColor = primary; ctx.shadowBlur = 18;
+    ctx.strokeStyle = hexAlpha(primary, .66); ctx.lineWidth = 3.2;
     ctx.beginPath(); squarePath(h); ctx.stroke();
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(230,250,255,.16)'; ctx.lineWidth = 5;
-    ctx.beginPath(); squarePath(Math.max(5, h - 7)); ctx.stroke();
+    ctx.strokeStyle = 'rgba(230,250,255,.64)'; ctx.lineWidth = 1.1;
+    ctx.beginPath(); squarePath(Math.max(5, h-3)); ctx.stroke();
+    ctx.strokeStyle = hexAlpha(secondary, .22); ctx.lineWidth = 1.2;
+    ctx.beginPath(); squarePath(Math.max(5, h-11)); ctx.stroke();
     ctx.restore();
   }
   function cubeSprite(color) {
@@ -687,25 +724,39 @@
     image.width = 72; image.height = 72;
     const c = image.getContext('2d');
     c.translate(36, 36);
-    const face = c.createLinearGradient(-12, -12, 12, 12);
-    face.addColorStop(0, '#efffff');
-    face.addColorStop(.17, color);
-    face.addColorStop(1, '#193656');
-    c.fillStyle = face;
-    c.shadowColor = color;
-    c.shadowBlur = 9; // rendered ONCE per colored cube, not 4x per frame
-    c.beginPath();
-    c.moveTo(-8.2, -12); c.lineTo(8.2, -12);
-    c.quadraticCurveTo(12, -12, 12, -8.2);
-    c.lineTo(12, 8.2); c.quadraticCurveTo(12, 12, 8.2, 12);
-    c.lineTo(-8.2, 12); c.quadraticCurveTo(-12, 12, -12, 8.2);
-    c.lineTo(-12, -8.2); c.quadraticCurveTo(-12, -12, -8.2, -12);
+    const bodyPath = (x,y,w,h,r) => {
+      c.beginPath();
+      c.moveTo(x+r,y); c.lineTo(x+w-r,y);
+      c.quadraticCurveTo(x+w,y,x+w,y+r);
+      c.lineTo(x+w,y+h-r); c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+      c.lineTo(x+r,y+h); c.quadraticCurveTo(x,y+h,x,y+h-r);
+      c.lineTo(x,y+r); c.quadraticCurveTo(x,y,x+r,y);
+      c.closePath();
+    };
+    // A Rush cube is white-centered glass with a tinted, luminous edge.
+    // The AI retains its colored identifying rim, not a separate material.
+    c.save();
+    c.shadowColor = color; c.shadowBlur = 15;
+    c.fillStyle = hexAlpha(color,.42);
+    bodyPath(-12,-12,24,24,5);
     c.fill();
-    c.shadowBlur = 0;
-    c.lineWidth = 1.8;
-    c.strokeStyle = color; c.stroke();
-    c.fillStyle = 'rgba(255,255,255,.34)';
-    c.fillRect(-7.5, -7.7, 8, 2.9);
+    c.restore();
+    if (IDENTITY && typeof IDENTITY.paintPlayer === 'function') {
+      IDENTITY.paintPlayer(c, {
+        x:-12,y:-12,w:24,h:24,primary:color,
+        secondary:mixColor(color,'#f6fdff',.25),
+        quality:{density:1,glow:.72},
+        ambientLight:.65,
+        bodyPath
+      });
+    } else {
+      const face=c.createLinearGradient(-12,-12,12,12);
+      face.addColorStop(0,'#ffffff');
+      face.addColorStop(.65,mixColor('#f5fbff',color,.22));
+      face.addColorStop(1,mixColor('#c4e3f5',color,.35));
+      c.fillStyle=face; bodyPath(-12,-12,24,24,5);c.fill();
+      c.strokeStyle=color;c.lineWidth=2;c.stroke();
+    }
     spriteCache[color] = image;
     return image;
   }
@@ -814,7 +865,7 @@
       ctx.restore();
     }
   }
-  function drawCornerTransition(active, time) {
+  function drawCenterPulseTransition(active, time) {
     const progress = 1 - active.paletteFade / COLOR_FADE_SECONDS;
     const from = getStaticScene(active, Math.max(0, active.zone - 1));
     const to = getStaticScene(active, active.zone);
@@ -822,16 +873,16 @@
       drawArena(active, time, paletteForZone(active.zone));
       return;
     }
-    // No world rasterization in a normal frame: the incoming wave only
-    // clips a PRE-RENDERED image. The four-corner mask is pure Canvas 2D.
+    // Two pre-rendered worlds, one center-out color seam. No per-frame
+    // world gradients, extra geometry, gameplay collision or GPU blur.
     ctx.drawImage(from, 0, 0, WIDTH, HEIGHT);
     ctx.save();
     TIDE.clipNewColor(ctx, { x: 0, y: 0, w: WIDTH, h: HEIGHT }, progress);
     ctx.drawImage(to, 0, 0, WIDTH, HEIGHT);
     ctx.restore();
-    if (progress > .05 && progress < .95) {
+    if (progress > .015 && progress < .98) {
       TIDE.drawFront(ctx, { x: 0, y: 0, w: WIDTH, h: HEIGHT },
-        progress, paletteForZone(active.zone)[0], .38);
+        progress, paletteForZone(active.zone)[0], .85);
     }
     drawDynamicArena(active, time);
   }
@@ -843,7 +894,7 @@
     screenCtx.translate(ox, oy); screenCtx.scale(scale, scale);
     try {
       if (active.paletteFade > 0 && TIDE && !tideDisabled && active.elapsed <= 81) {
-        drawCornerTransition(active, time);
+        drawCenterPulseTransition(active, time);
       } else {
         const background = getStaticScene(active, active.zone);
         if (background) {
@@ -915,7 +966,8 @@
       }
       if (match.eventId !== lastEventId) {
         lastEventId = match.eventId;
-        showAnnounce(match.event, match.event && match.event.includes('SPEED UP') ? 1.25 : .72);
+        showAnnounce(match.event && match.event.includes('SPEED UP') ?
+          'SPEED UP' : match.event, match.event && match.event.includes('SPEED UP') ? .85 : .72);
       }
       if (match.warning && !match.warnedStage) {
         match.warnedStage = match.stage + 1;

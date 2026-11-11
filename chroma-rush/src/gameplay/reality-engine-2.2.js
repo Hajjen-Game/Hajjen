@@ -23,7 +23,7 @@
     multiplier:2,cleanBonus:1800});
   const SHOT=Object.freeze({
     low:Object.freeze({width:64,height:24,offset:12,action:'JUMP'}),
-    high:Object.freeze({width:76,height:26,offset:42,action:'DUCK'})
+    high:Object.freeze({width:76,height:26,offset:49,action:'DUCK'})
   });
   const BASE_SHOTS=base.SHOTS;
   // Reuse the validated baseline terrain/gap planner. Replace ONLY the
@@ -138,7 +138,17 @@
     tick(dt,props={}){
       if(!(dt>0))return null;
       this.routeFlash=Math.max(0,this.routeFlash-dt*.4);
+      const firedBefore=this.shotsFired;
       const event=super.tick(dt,props);
+      if(this.shotsFired>firedBefore){
+        // Position ALL newly fired shots on visibly separate HEIGHT LANES.
+        // 2.1 launched only 24px apart, explaining the ambiguous silhouette.
+        const newShots=this.projectiles.slice(-(this.shotsFired-firedBefore));
+        for(const shot of newShots)
+          shot.y=(props.baseY??515)-SHOT[shot.kind].offset;
+        const newest=newShots[newShots.length-1];
+        this.lastCue=newest.kind;this.lastCueAt=props.time||0;
+      }
       // 2.2 route completion is an EARNED reward, not unconditional.
       if(this.route==='upper'&&!this.routeRewarded&&props.plan&&
           Number.isFinite(props.playerWorld)&&
@@ -151,9 +161,6 @@
             clears:this.routeClears,hits:this.routeHits});
         }else this.emit('upper_route_finish',{clears:this.routeClears,
           hits:this.routeHits,bonus:0});
-      }
-      if(event?.type==='boss_shot'){
-        this.lastCue=event.kind;this.lastCueAt=props.time||0;
       }
       return event;
     }

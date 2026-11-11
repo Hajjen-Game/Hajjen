@@ -45,8 +45,8 @@ test('Rush world style comes from cached atmospheric artwork and shared glass cu
   assert.match(identity,/Motion-reactive translucent cube body/);
   assert.match(src,/const spriteCache = Object\.create\(null\)/);
   assert.match(src,/getStaticScene\(active, active\.zone\)/);
-  assert.match(src,/ctx\.drawImage\(from, 0, 0, WIDTH, HEIGHT\)/);
-  assert.match(src,/ctx\.drawImage\(to, 0, 0, WIDTH, HEIGHT\)/);
+  assert.match(src,/ctx\.drawImage\(from, panoramaLeft, 0, panoramaWidth, HEIGHT\)/);
+  assert.match(src,/ctx\.drawImage\(to, panoramaLeft, 0, panoramaWidth, HEIGHT\)/);
   assert.match(src,/drawDynamicArena\(active, time\)/);
   assert.match(src,/panoramaWidth = Math.max\(WIDTH,/);
   assert.match(src,/getStaticScene\(active, active.zone\)/);

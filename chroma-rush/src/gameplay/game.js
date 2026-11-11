@@ -367,7 +367,7 @@
     arcadeUI.hud($,runMode==='practice');
     $.modeIndicator.classList.toggle('hidden',runMode==='arcade');
     if(runMode==='trial')$.modeIndicator.textContent='CHROMA TRIAL 001 · FIXED COURSE';
-    if(runMode==='reality')$.modeIndicator.textContent='REALITY · UPPER PLATFORM + SENTINEL';
+    if(runMode==='reality')$.modeIndicator.textContent='REALITY 2.2 · OVERDRIVE + SENTINEL';
     $.trialTimer.classList.toggle('hidden',!fixedCourse());
     $.realityExport.classList.add('hidden');
     $.trialResultStats.classList.add('hidden');
@@ -422,7 +422,7 @@
       const result=records.finish({score:total,
         completed:time>=module.DURATION-1e-6&&hp>0});
       $.gameoverTitle.textContent=result.completed?'TRIAL COMPLETE':'TRIAL FAILED';
-      $.finalMode.textContent=isReality?'REALITY 002 · THE SENTINEL':'CHROMA TRIAL 001 · 90 SECONDS';
+      $.finalMode.textContent=isReality?'REALITY 2.2 · OVERDRIVE + SENTINEL':'CHROMA TRIAL 001 · 90 SECONDS';
       $.finalScore.textContent=total.toLocaleString('en-US');
       $.finalZoneLabel.textContent='TIME';$.finalZone.textContent=Math.min(module.DURATION,time).toFixed(1)+'s';
       $.finalBestLabel.textContent='TRIAL BEST';
@@ -1000,6 +1000,7 @@
     // An emitted Sentinel barrier is a real boss attack, not an old
     // background icon. A hit can prevent breaking its phase armor.
     if(runMode==='reality'&&o.bossPhase)reality.onBossHit(o.bossPhase);
+    if(runMode==='reality'&&o.route==='upper')reality.onRouteHit('upper');
     if(gravityShift.protected){
       // Absolute guarantee: a hazard that arrives during the flip cannot
       // cause hidden damage or count as a free precision clearance.
@@ -1190,7 +1191,21 @@
     if(realityEvent){
       runAudit.record('reality_'+realityEvent.type,auditState(),realityEvent);
       if(realityEvent.type==='route_selected'){
-        sound('zone');vib(12);
+        sound('zone');vib([12,24,18]);
+        if(realityEvent.route==='upper'){
+          // Distinct visual feedback only on an actual upper-deck landing.
+          groundPulse(player.x,player.feet-2,c2,42,1.2);
+          if(!reducedMotion){
+            frameEcho(player.x,player.feet-24,c2,36,1.2);
+            burst(player.x,player.feet-12,11,c2,.65);
+          }
+        }
+      }else if(realityEvent.type==='upper_route_clean'){
+        score+=realityEvent.points;
+        runAudit.record('reality_upper_route_bonus',auditState(),{
+          bonus:realityEvent.points,clears:realityEvent.clears});
+        sound('perfect');vib([16,20,16]);
+        if(!reducedMotion)frameEcho(player.x,player.feet-24,c2,46,1.2);
       }else if(realityEvent.type==='boss_phase'){
         sound('gravity-warning');vib(16);
       }else if(realityEvent.type==='boss_shot'){
@@ -1301,17 +1316,23 @@
       // Jump/Duck hitboxes and swept X checks. NO prefabricated gate here.
       const shots=reality.tickProjectiles(dt,{playerBox:GEO.playerBox(player),
         playerWorldX:distance+player.x,baseY:terrain.baseY,
-        speed,invulnerable:player.invulnerable>0});
+        speed,invulnerable:player.invulnerable>0,
+        leftBound:camera.visibleLeft(W,player.x)});
       for(const result of shots){
         const shot=result.shot;
         if(result.type==='hit'){
           runAudit.record('reality_projectile_hit',auditState(),
-            {kind:shot.kind,phase:shot.bossPhase,id:shot.id});
+            {kind:shot.kind,phase:shot.bossPhase,id:shot.id,
+              impactX:result.impactX,impactY:result.impactY});
+          // Both collision and fracture use the same swept cube contact.
+          if(!reducedMotion)frameEcho(result.impactX,result.impactY,
+            shot.kind==='low'?c2:c1,30,.9);
           onHit(shot);
         }else{
           runAudit.record('reality_projectile_clear',auditState(),
             {kind:shot.kind,phase:shot.bossPhase,id:shot.id,
-              protected:Boolean(result.protectedClear)});
+              protected:Boolean(result.protectedClear),
+              persistentUntilOffscreen:true});
           if(!result.protectedClear){
             reality.onClear({time,bossPhase:shot.bossPhase});
             const gained=flow.registerClear({precision:false});
@@ -1358,7 +1379,9 @@
           entryDuckTime:null,dashAssisted:false,mechanicIntro:false,
           phase:fixed.phase||'TRIAL'});
         runAudit.record('spawn',auditState(),{
-          obstacle:fixed.type,pattern:runMode==='reality'?'REALITY_ENGINE_002':'CHROMA_TRIAL_001',
+          obstacle:fixed.type,pattern:runMode==='reality'?
+            (fixed.route==='upper'?'REALITY_OVERDRIVE_2.2':'REALITY_ENGINE_2.2'):
+            'CHROMA_TRIAL_001',
           worldX:fixed.worldX,width:fixed.width,height:fixed.height,
           surface:gravityShift.ceiling?'ceiling':'floor',intro:false});
       }
@@ -1414,12 +1437,17 @@
             effects.cue('precision',player.x,player.feet-24,c1,c2,{speed,reducedMotion});
           }
           const gained=flow.registerClear({precision});
-          score+=gained.earnedPoints;
+          const routeMultiplier=runMode==='reality'&&o.route==='upper'?
+            realityModule.UPPER.multiplier:1;
+          score+=gained.earnedPoints*routeMultiplier;
+          if(routeMultiplier>1)runAudit.record('reality_upper_overdrive',auditState(),
+            {route:o.route,multiplier:routeMultiplier,bonus:
+              gained.earnedPoints*(routeMultiplier-1)});
           awardCombo(o.type,{precision,master:graded.master});
           awardSurge(o.type,{precision,master:graded.master});
           if(runMode==='reality'&&player.invulnerable===0)
             reality.onClear({time,precision,master:graded.master,
-              bossPhase:o.bossPhase||0});
+              route:o.route,bossPhase:o.bossPhase||0});
           runAudit.record('obstacle_clear',auditState(),
             {obstacle:o.type,precision,master:graded.master,
               precisionMargin:graded.margin===null?-1:graded.margin});

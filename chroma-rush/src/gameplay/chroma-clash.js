@@ -28,6 +28,18 @@
   const IMPACT_DECAY = 3.6;
   const IMPACT_COOLDOWN = 0.16;
   const IMPACT_MIN_CLOSING_SPEED = 5;
+  const IMPACT_VISUAL_LIFE = .27;
+  const DEPTH_FALL_SECONDS = 1.00;
+  function depthFall(age, index = 0) {
+    const t = clamp((Math.max(0, age) - index * .014) / DEPTH_FALL_SECONDS, 0, 1);
+    const eased = t * t * (3 - 2 * t);
+    // Orthographic top-down projection: a tile travels into the void, never
+    // down or sideways on the screen. The center of each tile stays fixed.
+    return { x: 0, y: 0, rotation: 0,
+      scale: 1 - .92 * eased,
+      opacity: Math.pow(1 - t, 1.35),
+      depth: eased };
+  }
   const COLORS = ['#60ecff', '#ff71ac', '#ffe26a', '#9f8aff'];
   const NAMES = ['YOU', 'NOVA', 'VOLT', 'HEX'];
   const ZONE_NAMES = ['FLOW', 'SURGE', 'PULSE', 'OVERDRIVE', 'FRENZY', 'CRITICAL', 'FINAL'];
@@ -226,8 +238,12 @@
         if (match.lastImpactTime == null || now - match.lastImpactTime > .07) {
           match.impacts.push({
             x: (a.x + b.x) / 2, y: (a.y + b.y) / 2,
-            life: .38, power, color: a.color
+            nx, ny, life: IMPACT_VISUAL_LIFE, power,
+            color: a.color, accent: b.color
           });
+          // Limit the number of on-screen hit bursts. It is the accepted
+          // physics contacts, not visual density, that drive knockback.
+          if (match.impacts.length > 10) match.impacts.shift();
           match.lastImpactTime = now;
         }
         if (match.audit) {
@@ -288,7 +304,7 @@
       if (!cube.alive) cube.fall = Math.min(1, cube.fall + step * 2.5);
     }
     for (const piece of match.falling) piece.age += step;
-    match.falling = match.falling.filter(p => p.age < 1.35);
+    match.falling = match.falling.filter(p => p.age < DEPTH_FALL_SECONDS + .11);
     for (const spark of match.impacts) spark.life -= step;
     match.impacts = match.impacts.filter(s => s.life > 0);
     match.flash = Math.max(0, match.flash - step * 1.5);
@@ -356,6 +372,7 @@
   }
   const core = { WIDTH, HEIGHT, CX, CY, HALVES, COLLAPSES, COLORS, NAMES,
     ZONE_NAMES, PALETTES, CUBE_RADIUS, SPEED_LIMIT, WARNING_SECONDS,
+    IMPACT_VISUAL_LIFE, DEPTH_FALL_SECONDS, depthFall,
     ZONE_SECONDS, BASE_ZONE_SPEED, ZONE_SPEED_STEP, MAX_ZONE_SPEED, COLOR_FADE_SECONDS,
     zoneForElapsed, speedForZone, paletteForZone, activePalette,
     roundedSquareSDF, supported, joystickResponse, steerCube,
@@ -701,26 +718,31 @@
       (v & 255) + ',' + alpha + ')';
   }
   function drawFallenRims(active) {
+    const palette = paletteForZone(active.zone);
     for (const rim of active.falling) {
-      const a = clamp(1 - rim.age / 1.35, 0, 1);
       const n = rim.newHalf, o = rim.oldHalf;
-      const side = o - n, drop = rim.age * rim.age * 82;
+      const side = o - n;
       const pieces = [
-        [-n, -o, n * 2, side, 0, -1], [-n, n, n * 2, side, 0, 1],
-        [-o, -n, side, n * 2, -1, 0], [n, -n, side, n * 2, 1, 0],
-        [-o, -o, side, side, -1, -1], [n, -o, side, side, 1, -1],
-        [-o, n, side, side, -1, 1], [n, n, side, side, 1, 1]
+        [-n, -o, n * 2, side], [-n, n, n * 2, side],
+        [-o, -n, side, n * 2], [n, -n, side, n * 2],
+        [-o, -o, side, side], [n, -o, side, side],
+        [-o, n, side, side], [n, n, side, side]
       ];
       pieces.forEach(function (p, i) {
-        const factor = clamp((rim.age - i * .035) / .9, 0, 1);
-        ctx.save(); ctx.globalAlpha = a * .8;
-        const px = CX + p[0] + p[4] * (rim.age * 26);
-        const py = CY + p[1] + p[5] * (rim.age * 24) + drop;
-        const centerX = px + p[2] / 2, centerY = py + p[3] / 2;
+        const fall = depthFall(rim.age, i);
+        if (fall.opacity <= 0) return;
+        const centerX = CX + p[0] + p[2] * .5;
+        const centerY = CY + p[1] + p[3] * .5;
+        ctx.save();
+        // No outward drift, no downward screen movement, no rotation:
+        // shrinking and dimming around a fixed world anchor indicates depth.
         ctx.translate(centerX, centerY);
-        ctx.rotate((i % 2 ? -1 : 1) * factor * .16);
-        ctx.scale(1 - factor * .22, 1 - factor * .22);
-        ctx.fillStyle = '#1e3550'; ctx.strokeStyle = '#6cb7e3'; ctx.lineWidth = 1.3;
+        ctx.scale(fall.scale, fall.scale);
+        ctx.globalAlpha = fall.opacity * .88;
+        const depthShade = mixColor('#223b58', '#050b17', fall.depth * .91);
+        ctx.fillStyle = depthShade;
+        ctx.strokeStyle = mixColor(palette[0], '#1c2738', fall.depth * .8);
+        ctx.lineWidth = 1.45;
         ctx.fillRect(-p[2] / 2, -p[3] / 2, p[2], p[3]);
         ctx.strokeRect(-p[2] / 2, -p[3] / 2, p[2], p[3]);
         ctx.restore();
@@ -855,23 +877,45 @@
     ctx.restore();
   }
   function drawImpact(impact) {
-    const a = clamp(impact.life / .38, 0, 1);
-    const spread = (1 - a) * (22 + impact.power * 10);
+    // Chroma Rush Arcade Animation Language: energetic straight cuts and a
+    // directional compression/expansion. NO 2D circular collision rings.
+    const a = clamp(impact.life / IMPACT_VISUAL_LIFE, 0, 1);
+    if (a <= 0) return;
+    const t = 1 - a, power = clamp(impact.power || .5, .22, 1.45);
+    const nx = Number.isFinite(impact.nx) ? impact.nx : 1;
+    const ny = Number.isFinite(impact.ny) ? impact.ny : 0;
+    const tx = -ny, ty = nx;
+    const spread = (9 + t * 31) * (.6 + power * .34);
+    const alpha = a * a;
     ctx.save();
-    ctx.globalAlpha = a * .8;
-    ctx.strokeStyle = impact.color || '#c9f9ff';
-    ctx.lineWidth = 2.8;
-    ctx.beginPath(); ctx.arc(impact.x, impact.y, 8 + spread, 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeStyle = '#effcff';
-    ctx.lineWidth = 1.7;
-    for (let i = 0; i < 8; i++) {
-      const angle = i * Math.PI / 4 + Math.PI / 8;
+    ctx.lineCap = 'square';
+    // A fast concentrated compression stripe at first contact.
+    if (t < .52) {
+      ctx.globalAlpha = (1 - t / .52) * .72;
+      ctx.strokeStyle = '#f2fdff';
+      ctx.lineWidth = 2.7;
       ctx.beginPath();
-      ctx.moveTo(impact.x + Math.cos(angle) * (8 + spread * .65),
-        impact.y + Math.sin(angle) * (8 + spread * .65));
-      ctx.lineTo(impact.x + Math.cos(angle) * (16 + spread),
-        impact.y + Math.sin(angle) * (16 + spread));
+      ctx.moveTo(impact.x - tx * (5 + spread*.34), impact.y - ty * (5 + spread*.34));
+      ctx.lineTo(impact.x + tx * (5 + spread*.34), impact.y + ty * (5 + spread*.34));
       ctx.stroke();
+    }
+    // Each side has a staggered 3-cut directional discharge. Palette colors
+    // echo the two colliding cubes; no random particles or GPU shadow blur.
+    for (const side of [-1, 1]) {
+      for (let i = 0; i < 3; i++) {
+        const lateral = (i - 1) * (6 + power * 3);
+        const start = 7 + t * 5 + i * 2;
+        const end = start + spread * (1.05 - i*.17);
+        const sx = impact.x + nx * start * side + tx * lateral;
+        const sy = impact.y + ny * start * side + ty * lateral;
+        const ex = impact.x + nx * end * side + tx * (lateral + side*(i-1)*4);
+        const ey = impact.y + ny * end * side + ty * (lateral + side*(i-1)*4);
+        ctx.globalAlpha = alpha * (.81 - i * .15);
+        ctx.lineWidth = i === 0 ? 2.3 : 1.25;
+        ctx.strokeStyle = side === 1 ? (impact.accent || '#e6faff') :
+          (impact.color || '#70e9ff');
+        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+      }
     }
     ctx.restore();
   }

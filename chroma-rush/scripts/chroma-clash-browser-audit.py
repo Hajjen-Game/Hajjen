@@ -57,17 +57,25 @@ def main():
             assert page.locator('#clash-pause-menu').is_visible(), 'Pause did not open'
             page.locator('#clash-resume').click()
             assert page.locator('#clash-joystick').is_visible(), 'Resume hid joystick'
-            collapse = page.evaluate("""() => {
+            timing = page.evaluate("""() => {
               const c=window.ChromaClashCore;
               const m=c.createMatch(43);
+              m.elapsed=9.995;
+              c.updateMatch(m,{x:0,y:0},1/120);
+              const first={zone:m.zone,stage:m.stage,speed:c.speedForZone(m.zone),
+                paletteFade:m.paletteFade,oldColor:c.activePalette(m)[0]};
               m.elapsed=c.COLLAPSES[0]-.01;
               c.updateMatch(m,{x:0,y:0},.02);
-              return {stage:m.stage,half:m.half,falling:m.falling.length};
+              const collapse={zone:m.zone,stage:m.stage,half:m.half,falling:m.falling.length};
+              return {first,collapse};
             }""")
-            assert collapse == {'stage': 1, 'half': 166, 'falling': 1}, collapse
+            assert timing['first'] == {'zone': 1, 'stage': 0, 'speed': 157,
+                                       'paletteFade': .72, 'oldColor': '#54dfff'}, timing
+            collapse = timing['collapse']
+            assert collapse == {'zone': 1, 'stage': 1, 'half': 166, 'falling': 1}, collapse
             captures.append({'viewport': [width, height], 'rendered': True,
                              'joystickMoved': True, 'pausedAndResumed': True,
-                             'collapse': collapse})
+                             'collapse': collapse, 'tenSecondZone': timing['first']})
             page.close()
         browser.close()
     report = {'screens': captures, 'pageErrors': failures}

@@ -281,8 +281,30 @@
         if(x<=m.descent)return top;
         return top+(baseY-top)*smooth((x-m.descent)/(m.end-m.descent));
       };
-      ctx.save();ctx.beginPath();
-      let seen=false;
+      ctx.save();
+      // On the HIGH route, open real-looking negative space beneath the
+      // elevated deck so the two paths are visually distinct. Collision is
+      // still ONLY the actual chosen TerrainSystem surface: this dark canyon
+      // is presentation, not a new gap or fake landing.
+      if(active==='upper'){
+        const from=Math.max(m.start,distance-80),to=Math.min(m.end,distance+width+250);
+        const xs=[];
+        for(let x=from;x<=to;x+=12){
+          if(baseY-yAt(x,'upper')>29)xs.push([x-distance,yAt(x,'upper')+13]);
+        }
+        if(xs.length>1){
+          ctx.beginPath();ctx.moveTo(xs[0][0],xs[0][1]);
+          for(const [x,y] of xs.slice(1))ctx.lineTo(x,y);
+          ctx.lineTo(xs[xs.length-1][0],baseY-9);
+          ctx.lineTo(xs[0][0],baseY-9);ctx.closePath();
+          ctx.fillStyle='rgba(5,11,28,.96)';ctx.fill();
+          ctx.strokeStyle=secondary;ctx.globalAlpha=.48;ctx.lineWidth=1.5;
+          ctx.beginPath();ctx.moveTo(xs[0][0],xs[0][1]);
+          for(const [x,y] of xs.slice(1))ctx.lineTo(x,y);
+          ctx.stroke();ctx.globalAlpha=1;
+        }
+      }
+      ctx.beginPath();let seen=false;
       // The line is physically registered to world coordinates and scrolls.
       // Never draw ahead of the visible viewport as a misleading obstacle.
       const lo=Math.max(m.start,distance-80),hi=Math.min(m.end,distance+width+250);

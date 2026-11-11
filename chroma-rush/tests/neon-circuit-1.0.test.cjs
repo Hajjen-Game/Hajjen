@@ -245,6 +245,42 @@ test('Forceful Dash collision can throw a racer off a ramp, then safely respawn 
   assert.ok(m.events.some(e=>e.type==='respawn'&&e.player===0));
   assert.ok(a.invulnerable<=c.RESPAWN_GRACE);
 });
+test('Physical laps survive a severe projection desync that lost full laps in 1.0',()=>{
+  const m=c.seededRace(27);m.phase='running';
+  let corrupted=false;
+  for(let i=0;i<60*90&&!m.finished;i++){
+    const p=m.racers[0],s=c.closest(p.x,p.y).s;
+    const ahead=c.pointAt(s+Math.max(40,p.speed*.38));
+    if(!corrupted&&m.elapsed>8){
+      // This was the 1.0 failure: a stale projection persisted across
+      // frames, causing valid real laps to be silently rejected.
+      p.progress-=350;corrupted=true;
+    }
+    c.tick(m,{x:ahead.x-p.x,y:ahead.y-p.y},1/60);
+  }
+  assert.equal(corrupted,true);
+  assert.equal(m.racers[0].laps,3,'all three driven laps must count');
+  assert.equal(m.racers[0].gatePasses,13,'start + three actual laps');
+  assert.deepEqual(m.racers[0].lapTimes.length,3);
+  assert.equal(m.phase,'result');
+});
+test('All AI share exactly the same start and physical lap gate rules',()=>{
+  for(const seed of [18,42,73]){
+    const m=c.seededRace(seed);m.phase='running';
+    // Keep the player safely unavailable so AI can drive to 3 laps.
+    m.racers[0].fallTimer=999;
+    for(let i=0;i<60*55;i++)c.tick(m,{},1/60);
+    for(const p of m.racers.slice(1)){
+      assert.equal(p.laps,3,'AI '+p.id+' with seed '+seed);
+      assert.equal(p.gatePasses,13,'four complete physical gates each lap');
+      assert.equal(p.lapTimes.length,3);
+      assert.ok(p.finishTime>0&&p.finishTime<55);
+    }
+  }
+  const m=c.seededRace(93);
+  assert.ok(m.racers.every(p=>p.progress<0),
+    'no racer begins on or after the physical start line');
+});
 test('Menu, fullscreen, pause, mobile quality and both control buttons are wired',()=>{
   const page=read('neon-circuit.html'),
     ui=read('src/gameplay/neon-circuit.js'),

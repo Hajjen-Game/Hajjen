@@ -156,7 +156,7 @@
         const yOverlap=r.y<playerBox.y+playerBox.h&&
           r.y+r.h>playerBox.y;
         if(xOverlap&&yOverlap){
-          shot.resolved=true;shot.hit=true;this.shotsHit++;
+          shot.resolved=true;this.shotsHit++;
           outcome.push({type:'hit',shot});
         }else if(shot.x+r.w*.5<playerBox.x){
           shot.resolved=true;this.shotsCleared++;

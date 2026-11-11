@@ -194,7 +194,9 @@
               playerBox.y+playerBox.h);
             shot.x=contactX;shot.y=contactY;
             shot.resolved=true;shot.impacted=true;shot.impactAge=0;
-            shot.hit=true;this.shotsHit++;
+            // The shared onHit() must mark hit and charge HP exactly once.
+            // Never pre-mark: onHit skips objects already marked hit.
+            this.shotsHit++;
             this.sentinelImpact={x:contactX,y:contactY,kind:shot.kind,id:shot.id};
             outcomes.push({type:'hit',shot,
               impactX:contactX,impactY:contactY,protected:invulnerable});

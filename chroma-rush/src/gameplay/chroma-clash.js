@@ -371,7 +371,7 @@
   // only when the zone or platform changes. Normal frames draw two cached
   // images at most, plus the four actors and lightweight impact effects.
   const sceneSlots = [{ key: '', canvas: null }, { key: '', canvas: null }];
-  let sceneReplacement = 0, sceneBuilds = 0, tideDisabled = false;
+  let sceneReplacement = 0, tideDisabled = false;
   let tideSlowFrames = 0, slowFrameStreak = 0, renderQuality = 1;
   let pixelsPerCss = 1;
   const BASE_PIXEL_BUDGET = 750000;
@@ -782,8 +782,7 @@
         warning: false, falling: [], flash: 0
       }, 0, paletteForZone(zone));
       slot.key = key;
-      sceneBuilds++;
-      if (match && match.audit) match.audit.performance.sceneBuilds = sceneBuilds;
+      if (match && match.audit) match.audit.performance.sceneBuilds++;
       return slot.canvas;
     } finally {
       ctx = previousCtx;

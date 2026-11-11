@@ -530,19 +530,29 @@ function sprite(color){
   return sprites[color]=c;
 }
 function drawTrails(){
+  // Fixed three-age buckets amortize hundreds of segments into at most 36
+  // Canvas strokes (4 cubes × 3 buckets × 3 coats), not 3 strokes PER segment.
+  // This is important to retain Clash 1.4's mobile frame pacing.
   const now=game.elapsed,ttl=trailLife(game.zone);
   ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
   for(const p of game.players){
-    for(const seg of p.trail){
-      const remaining=clamp((ttl-(now-seg.at))/ttl,0,1);
-      if(remaining<=0)continue;
-      const fade=Math.min(1,remaining*3);
-      ctx.strokeStyle=p.color;ctx.globalAlpha=.14*fade;ctx.lineWidth=9;
-      ctx.beginPath();ctx.moveTo(seg.x1,seg.y1);ctx.lineTo(seg.x2,seg.y2);ctx.stroke();
-      ctx.globalAlpha=.82*fade;ctx.lineWidth=2.6;
-      ctx.beginPath();ctx.moveTo(seg.x1,seg.y1);ctx.lineTo(seg.x2,seg.y2);ctx.stroke();
-      ctx.strokeStyle='#f3ffff';ctx.globalAlpha=.28*fade;ctx.lineWidth=.85;
-      ctx.beginPath();ctx.moveTo(seg.x1,seg.y1);ctx.lineTo(seg.x2,seg.y2);ctx.stroke();
+    for(let band=0;band<3;band++){
+      let count=0;
+      ctx.beginPath();
+      for(const seg of p.trail){
+        const remaining=clamp((ttl-(now-seg.at))/ttl,0,1);
+        if(remaining<=0||Math.min(2,Math.floor(remaining*3))!==band)continue;
+        ctx.moveTo(seg.x1,seg.y1);
+        ctx.lineTo(seg.x2,seg.y2);
+        count++;
+      }
+      if(!count)continue;
+      const fade=[.22,.55,1][band];
+      ctx.strokeStyle=p.color;ctx.globalAlpha=.13*fade;ctx.lineWidth=8;
+      ctx.stroke();
+      ctx.globalAlpha=.79*fade;ctx.lineWidth=2.5;ctx.stroke();
+      ctx.strokeStyle='#f1fdff';ctx.globalAlpha=.27*fade;
+      ctx.lineWidth=.85;ctx.stroke();
     }
   }
   ctx.restore();

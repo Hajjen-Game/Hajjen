@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reality Engine 2.1: physical platform, shot projectiles, real Chromium."""
+"""Reality Engine 2.3: physical paths, true Sentinel muzzle and Chromium."""
 from __future__ import annotations
 import importlib.util, json, os
 from pathlib import Path
@@ -30,9 +30,11 @@ EXTRA=r"""
       }else if(isBoss){
         time=65;worldTime=65;zone=6;speed=GAME.speedAt(time,zone);
         distance=30000;hurdles=[];
+        camera.reset(speed);
         reality.tick(.016,{time,plan:trialPlan,playerWorld:distance+player.x,
           baseY:floorY,playerX:player.x,
-          spawnX:camera.worldX(W*.80,player.x),speed});
+          spawnX:camera.worldX(W*.80,player.x),
+          bossY:camera.worldY(H*.31,floorY),speed});
       }else throw new Error('Unknown Reality scene');
       const palette=window.ChromaConfig.paletteForZone(zone);
       c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
@@ -63,6 +65,29 @@ EXTRA=r"""
       draw();
       return {route:reality.route,upperLandings:reality.upperLandings,
         time,feet:player.feet,entry,frames};
+    },
+    proveMuzzle(){
+      // A real model update supplies camera-inverse coordinates of boss.
+      // No manually drawn fake projectiles: test actual spawn and movement.
+      startRun('reality');
+      time=62;worldTime=62;zone=6;speed=GAME.speedAt(time,zone);
+      camera.reset(speed);
+      const spawnX=camera.worldX(W*.80,player.x);
+      const bossY=camera.worldY(H*.31,floorY);
+      reality.tick(.016,{time,plan:trialPlan,
+        playerWorld:distance+player.x,
+        baseY:floorY,playerX:player.x,spawnX,bossY,speed});
+      const shot=reality.projectiles[0];
+      if(!shot)throw Error('Sentinel failed to fire');
+      const x=camera.screenX(shot.x,player.x);
+      const y=camera.screenY(shot.y,floorY);
+      reality.tickProjectiles(.42,{playerBox:GEO.playerBox(player),
+        speed,leftBound:camera.visibleLeft(W,player.x)});
+      draw();
+      return {screenX:x,screenY:y,targetX:W*.80,targetY:H*.31,
+        movedX:shot.x,firstX:spawnX,movedY:shot.y,firstY:bossY,
+        laneY:shot.laneY,charged:shot.charging===false,
+        muzzleFires:reality.muzzleFires};
     }
   };
 """
@@ -104,6 +129,13 @@ def main():
                 f'Player could not physically jump onto upper deck: {landing}')
             assert landing['feet']<landing['entry']-100,landing
             page.screenshot(path=str(OUT/f'actual-landing-{width}x{height}.png'))
+            muzzle=page.evaluate('window.__realityAudit.proveMuzzle')
+            assert abs(muzzle['screenX']-muzzle['targetX'])<1, muzzle
+            assert abs(muzzle['screenY']-muzzle['targetY'])<1, muzzle
+            assert muzzle['movedX']<muzzle['firstX'], muzzle
+            assert muzzle['movedY']>muzzle['firstY'], muzzle
+            assert muzzle['charged'] and muzzle['muzzleFires']>=1, muzzle
+            page.screenshot(path=str(OUT/f'actual-muzzle-{width}x{height}.png'))
             captured={}
             for scene in ['lower','upper','boss']:
                 result=page.evaluate('window.__realityAudit.setScene',scene)
@@ -126,7 +158,7 @@ def main():
         browser.close()
     assert not errors,'Browser errors: '+repr(errors[:8])
     (OUT/'report.json').write_text(json.dumps({'status':'passed','results':results},indent=2))
-    print('PASS: Reality 2.1 physical upper deck, Sentinel shots and mobile Trials menu')
+    print('PASS: Reality 2.3 upper landing, core-origin muzzle shot, and mobile route/attack scenes')
 
 if __name__=='__main__':
     main()

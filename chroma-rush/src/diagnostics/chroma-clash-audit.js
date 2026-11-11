@@ -58,11 +58,22 @@
         cubes: [a.id, b.id],
         attacker, target,
         impulse: num(impulse),
+        point: { x: num((a.x + b.x) / 2), y: num((a.y + b.y) / 2) },
+        distanceToEdge: num(-edgeDistance),
         nearEdge: edgeDistance > -42
       });
     }
-    noteElimination(time, cube, credit, cause) {
-      const entry = { cubeId: cube.id, creditedTo: credit, cause };
+    noteElimination(time, cube, credit, cause, context = {}) {
+      const entry = {
+        cubeId: cube.id, creditedTo: credit, cause,
+        position: { x: num(cube.x), y: num(cube.y) },
+        totalVelocity: {
+          x: num(cube.vx + (cube.knockVx || 0)),
+          y: num(cube.vy + (cube.knockVy || 0))
+        },
+        zone: context.zone, stage: context.stage,
+        edgeDistance: num(context.edgeDistance), speedCap: context.speedCap
+      };
       this.eliminations.push({ time: num(time), ...entry });
       this.record('elimination', time, entry);
     }

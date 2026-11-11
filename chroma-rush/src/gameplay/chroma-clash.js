@@ -724,25 +724,39 @@
     image.width = 72; image.height = 72;
     const c = image.getContext('2d');
     c.translate(36, 36);
-    const face = c.createLinearGradient(-12, -12, 12, 12);
-    face.addColorStop(0, '#efffff');
-    face.addColorStop(.17, color);
-    face.addColorStop(1, '#193656');
-    c.fillStyle = face;
-    c.shadowColor = color;
-    c.shadowBlur = 9; // rendered ONCE per colored cube, not 4x per frame
-    c.beginPath();
-    c.moveTo(-8.2, -12); c.lineTo(8.2, -12);
-    c.quadraticCurveTo(12, -12, 12, -8.2);
-    c.lineTo(12, 8.2); c.quadraticCurveTo(12, 12, 8.2, 12);
-    c.lineTo(-8.2, 12); c.quadraticCurveTo(-12, 12, -12, 8.2);
-    c.lineTo(-12, -8.2); c.quadraticCurveTo(-12, -12, -8.2, -12);
+    const bodyPath = (x,y,w,h,r) => {
+      c.beginPath();
+      c.moveTo(x+r,y); c.lineTo(x+w-r,y);
+      c.quadraticCurveTo(x+w,y,x+w,y+r);
+      c.lineTo(x+w,y+h-r); c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+      c.lineTo(x+r,y+h); c.quadraticCurveTo(x,y+h,x,y+h-r);
+      c.lineTo(x,y+r); c.quadraticCurveTo(x,y,x+r,y);
+      c.closePath();
+    };
+    // A Rush cube is white-centered glass with a tinted, luminous edge.
+    // The AI retains its colored identifying rim, not a separate material.
+    c.save();
+    c.shadowColor = color; c.shadowBlur = 15;
+    c.fillStyle = hexAlpha(color,.42);
+    bodyPath(-12,-12,24,24,5);
     c.fill();
-    c.shadowBlur = 0;
-    c.lineWidth = 1.8;
-    c.strokeStyle = color; c.stroke();
-    c.fillStyle = 'rgba(255,255,255,.34)';
-    c.fillRect(-7.5, -7.7, 8, 2.9);
+    c.restore();
+    if (IDENTITY && typeof IDENTITY.paintPlayer === 'function') {
+      IDENTITY.paintPlayer(c, {
+        x:-12,y:-12,w:24,h:24,primary:color,
+        secondary:mixColor(color,'#f6fdff',.25),
+        quality:{density:1,glow:.72},
+        ambientLight:.65,
+        bodyPath
+      });
+    } else {
+      const face=c.createLinearGradient(-12,-12,12,12);
+      face.addColorStop(0,'#ffffff');
+      face.addColorStop(.65,mixColor('#f5fbff',color,.22));
+      face.addColorStop(1,mixColor('#c4e3f5',color,.35));
+      c.fillStyle=face; bodyPath(-12,-12,24,24,5);c.fill();
+      c.strokeStyle=color;c.lineWidth=2;c.stroke();
+    }
     spriteCache[color] = image;
     return image;
   }

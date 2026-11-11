@@ -119,7 +119,7 @@ function seededRace(seed=20261111){
   const random=rand(seed);
   // The player begins third: overtaking is visible from the first lap,
   // without forcing all four racers into repeated front-to-back contacts.
-  const grid=[-56,-84,-28,0];
+  const grid=[-56,-84,-28,-12];
   const lane=[-13,13,-13,13];
   const racers=grid.map((distance,id)=>{
     const p=pointAt(distance),off=lane[id];
@@ -170,7 +170,7 @@ function gateCrossed(from,to,gate,width=TRACK_HALF+PLAYER_RADIUS){
   const tx=gate.tx,ty=gate.ty;
   const before=(from.x-gate.x)*tx+(from.y-gate.y)*ty;
   const after=(to.x-gate.x)*tx+(to.y-gate.y)*ty;
-  if(!(before<-.00001&&after>=0))return false;
+  if(!(before<=0&&after>0))return false;
   const factor=-before/(after-before);
   if(factor<0||factor>1)return false;
   const crossingX=from.x+(to.x-from.x)*factor;

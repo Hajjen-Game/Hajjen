@@ -1,3 +1,17 @@
+# CHROMA RUSH — Arcade modes
+
+**Play Survival:** https://hajjen-game.github.io/Hajjen/chroma-rush/
+
+**Play Chroma Clash:** https://hajjen-game.github.io/Hajjen/chroma-rush/clash.html
+
+## Chroma Clash 1.3 — Corner Tide, Impact Physics & Run Audit (2026-11-11)
+
+Chroma Clash is a separate **top-down joystick-only** arcade battle between four neon cubes on a rounded-square platform that sheds outer sections. Color zones and movement speed change every ten seconds. The new **four-corner Chroma Tide** sweeps inward simultaneously across the backdrop and arena floor; collision knockbacks are now persistent, with responsive steering and fair AI. Paused and completed matches can download a local JSON audit with color, edge, impact, elimination, duration and position data.
+
+The existing Survival runner and Reality/Trials remain unchanged. See [Chroma Clash 1.3 design, implementation and QA](docs/chroma-clash-1.3-corner-tide-impact-audit.md).
+
+---
+
 # CHROMA RUSH — Premium World Lighting & Cohesion 3.0
 
 A landscape-first 2D neon auto-runner: Jump, Duck, and survive the acceleration.

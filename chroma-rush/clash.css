@@ -35,6 +35,11 @@ button:focus-visible,a:focus-visible{outline:2px solid #b6f9ff;outline-offset:4p
 .primary-btn{border:1px solid #b7fdff;background:linear-gradient(112deg,#5decff,#9dcaff);color:#07152a;box-shadow:0 0 25px #31deff30}
 .primary-btn span{margin-left:16px}
 .secondary-btn{background:#0f2843c9;color:#ddf6ff;border:1px solid #406a90}
+.audit-btn{font:inherit;cursor:pointer;min-height:32px;border:0;border-bottom:1px solid #4c8dac90;
+background:transparent;color:#96bfd3;padding:5px 12px;font-size:clamp(9px,1vw,12px);
+font-weight:850;letter-spacing:.12em}
+.audit-btn:hover,.audit-btn:focus-visible{color:#e6faff;border-color:#b0f2ff}
+
 .control-hint{font-size:clamp(8px,1vw,10px);font-weight:800;color:#839ab8;letter-spacing:.11em;margin:4px 0}
 .return-link{text-decoration:none;color:#a8bdd6;font-size:clamp(10px,1vw,13px);font-weight:750;letter-spacing:.1em;margin-top:6px;padding:5px}
 .return-link:hover{color:#82eeff}

@@ -1,6 +1,6 @@
-/* CHROMA RUSH — NEON CIRCUIT 1.1 Track & Impact Rebuild.
- * Long readable straights, rounded bends, striking ramp ejections,
- * darkening world-depth falls and short invulnerable respawns.
+/* CHROMA RUSH — NEON CIRCUIT 1.2: Track Tide & Course Variety.
+ * Three curated straight/chicane tracks. Zone pigment flows forward
+ * ALONG the road; the landscape remains a fixed dark backdrop.
  * Cached panoramas, shared glass sprites, 750k mobile pixel cap.
  */
 (function(root){
@@ -29,7 +29,7 @@ let viewW=960,viewH=540,scale=1,ox=0,oy=0,
   panoWidth=WIDTH,panoLeft=0,quality=1,slowStreak=0;
 const slots=[{key:'',canvas:null},{key:'',canvas:null}],sprites=Object.create(null);
 let slotCursor=0,mode='menu',race=null,preview=CORE.seededRace(103),
-  joyId=null,joyX=0,joyY=0,brakePressed=false,dashPending=false,
+  nextCourse=0,joyId=null,joyX=0,joyY=0,brakePressed=false,dashPending=false,
   keys=new Set(),frameBefore=0,accumulator=0,noticeUntil=0;
 function resize(){
   viewW=Math.max(1,SHELL.clientWidth||innerWidth);
@@ -59,7 +59,8 @@ function screen(next){
   $('circuit-input-help').classList.toggle('hidden',next!=='playing');
 }
 function begin(){
-  race=CORE.seededRace((Date.now()^Math.floor(Math.random()*0x7fffffff))>>>0);
+  const course=nextCourse++%CORE.TRACKS.length;
+  race=CORE.seededRace((Date.now()^Math.floor(Math.random()*0x7fffffff))>>>0,course);
   frameBefore=0;accumulator=0;quality=1;slowStreak=0;resize();
   keys.clear();resetStick();brakePressed=false;dashPending=false;
   screen('playing');noticeUntil=0;updateHud();
@@ -172,8 +173,7 @@ function getInput(){
 }
 function updateHud(){
   if(!race)return;
-  const me=race.racers[0],lap=Math.min(CORE.LAPS_TO_WIN,Math.max(1,
-    Math.floor(me.progress/TRACK.length)+1));
+  const me=race.racers[0],lap=Math.min(CORE.LAPS_TO_WIN,me.laps+1);
   text('circuit-zone','ZONE '+String(race.zone+1).padStart(2,'0'));
   text('circuit-phase',ZONE_NAMES[race.zone%ZONE_NAMES.length]+
     ' · SPEED '+(CORE.zoneSpeed(race.zone)/118).toFixed(2)+'×');
@@ -186,7 +186,7 @@ function updateHud(){
   dash.classList.toggle('recharging',dash.disabled);
   let label='',visible=false;
   if(race.phase==='ready'){
-    label='GET READY · '+Math.max(1,Math.ceil(race.ready));
+    label=race.track.name+' · GET READY '+Math.max(1,Math.ceil(race.ready));
     visible=true;
   }else if(race.announcement&&race.elapsed<race.announcementTime){
     label=race.announcement;visible=true;
@@ -217,60 +217,61 @@ function toggleFull(){
 buttons.forEach(b=>b.addEventListener('click',toggleFull));
 document.addEventListener('fullscreenchange',()=>{syncFull();resize()});
 syncFull();
-function trackPath(g){
-  const list=TRACK.samples;
+function trackPath(g,track=TRACK){
+  const list=track.samples;
   g.beginPath();g.moveTo(list[0].x,list[0].y);
   for(let i=1;i<list.length;i++)g.lineTo(list[i].x,list[i].y);
   g.closePath();
 }
-function drawStatic(g,zone){
+function drawStatic(g,zone,track){
   const palette=PALETTES[zone%PALETTES.length];
   const primary=palette.primary,secondary=palette.secondary,shadow=palette.shadow;
+  // Identical neutral backdrop in every zone: only the track changes.
   const sky=g.createLinearGradient(0,0,0,HEIGHT);
   sky.addColorStop(0,'#060a18');
-  sky.addColorStop(.46,mix('#0a1828',shadow,.7));
-  sky.addColorStop(1,mix('#061123',shadow,.52));
+  sky.addColorStop(.46,'#10263b');
+  sky.addColorStop(1,'#09162a');
   g.fillStyle=sky;g.fillRect(panoLeft,0,panoWidth,HEIGHT);
   const haze=g.createRadialGradient(CORE.CX,CORE.CY,25,CORE.CX,CORE.CY,530);
-  haze.addColorStop(0,rgb(primary,.21));
-  haze.addColorStop(.55,rgb(secondary,.07));
-  haze.addColorStop(1,rgb(primary,0));
+  haze.addColorStop(0,rgb('#307caf',.17));
+  haze.addColorStop(.55,rgb('#4386b4',.055));
+  haze.addColorStop(1,rgb('#307caf',0));
   g.fillStyle=haze;g.fillRect(panoLeft,0,panoWidth,HEIGHT);
   for(let x=-1200;x<panoLeft+panoWidth+100;x+=67){
     const top=153+Math.abs((x*37)%195);
-    g.fillStyle=rgb(secondary,.027);
+    g.fillStyle=rgb('#4a9dd5',.027);
     g.fillRect(x,top,18+(Math.abs(x*13)%19),HEIGHT-top);
   }
   // Cached atmosphere and road: one heavy paint per zone, never per frame.
   g.lineCap='round';g.lineJoin='round';
-  trackPath(g);g.strokeStyle='rgba(0,1,14,.55)';
+  trackPath(g,track);g.strokeStyle='rgba(0,1,14,.55)';
   g.lineWidth=132;g.stroke();
-  trackPath(g);g.strokeStyle=rgb(primary,.11);
+  trackPath(g,track);g.strokeStyle=rgb(primary,.11);
   g.lineWidth=120;g.stroke();
-  trackPath(g);g.strokeStyle=rgb(primary,.53);
+  trackPath(g,track);g.strokeStyle=rgb(primary,.53);
   g.lineWidth=104;g.stroke();
-  trackPath(g);g.strokeStyle=rgb('#bedfff',.24);
+  trackPath(g,track);g.strokeStyle=rgb('#bedfff',.24);
   g.lineWidth=101;g.stroke();
-  trackPath(g);g.strokeStyle='#09172b';
+  trackPath(g,track);g.strokeStyle='#09172b';
   g.lineWidth=96;g.stroke();
   const asphalt=g.createLinearGradient(170,140,772,408);
   asphalt.addColorStop(0,mix('#1a2e46',primary,.2));
   asphalt.addColorStop(.57,mix('#101b31',shadow,.23));
   asphalt.addColorStop(1,mix('#1c2d46',secondary,.13));
-  trackPath(g);g.strokeStyle=asphalt;g.lineWidth=89;g.stroke();
+  trackPath(g,track);g.strokeStyle=asphalt;g.lineWidth=89;g.stroke();
   // Thin interior shear line implies forward travel without looking like
   // isolated obstacle bars or a second track.
-  trackPath(g);g.strokeStyle=rgb(primary,.08);
+  trackPath(g,track);g.strokeStyle=rgb(primary,.08);
   g.lineWidth=1.1;g.setLineDash([16,15]);g.stroke();g.setLineDash([]);
   // Raised rim/ramp lips are readable without looking like separate
   // obstacles. These are cached world details, never frame-time effects.
-  trackPath(g);g.strokeStyle=rgb('#e0f4ff',.13);
+  trackPath(g,track);g.strokeStyle=rgb('#e0f4ff',.13);
   g.lineWidth=97.8;g.stroke();
-  trackPath(g);g.strokeStyle=rgb(primary,.30);
+  trackPath(g,track);g.strokeStyle=rgb(primary,.30);
   g.lineWidth=95.3;g.stroke();
-  trackPath(g);g.strokeStyle=asphalt;g.lineWidth=89;g.stroke();
-  for(let s=28;s<TRACK.length;s+=49){
-    const p=CORE.pointAt(s);
+  trackPath(g,track);g.strokeStyle=asphalt;g.lineWidth=89;g.stroke();
+  for(let s=28;s<track.length;s+=49){
+    const p=CORE.pointAt(s,track);
     for(const side of [-1,1]){
       const x=p.x+p.nx*side*CORE.TRACK_HALF;
       const y=p.y+p.ny*side*CORE.TRACK_HALF;
@@ -282,7 +283,7 @@ function drawStatic(g,zone){
   }
   // Tangential black-and-white start stripe, broad enough to read at
   // full mobile screen scale; crossings are based on actual lap progress.
-  const finish=CORE.pointAt(0);
+  const finish=CORE.pointAt(0,track);
   g.save();g.translate(finish.x,finish.y);g.rotate(finish.angle);
   for(let col=-4;col<4;col++){
     for(let row=0;row<2;row++){
@@ -294,8 +295,8 @@ function drawStatic(g,zone){
   }
   g.restore();
 }
-function getStatic(zone){
-  const key=zone+':'+panoWidth;
+function getStatic(zone,track=TRACK){
+  const key=track.courseId+':'+zone+':'+panoWidth;
   let slot=slots.find(s=>s.key===key&&s.canvas);
   if(slot)return slot.canvas;
   slot=slots[slotCursor];slotCursor=(slotCursor+1)%slots.length;
@@ -304,7 +305,7 @@ function getStatic(zone){
   if(slot.canvas.height!==HEIGHT)slot.canvas.height=HEIGHT;
   const g=slot.canvas.getContext('2d',{alpha:false});
   g.setTransform(1,0,0,1,-panoLeft,0);
-  drawStatic(g,zone);slot.key=key;
+  drawStatic(g,zone,track);slot.key=key;
   return slot.canvas;
 }
 function rounded(g,x,y,w,h,r){

@@ -39,16 +39,16 @@ test('Active trails eliminate other cubes, grace covers only very recent own tra
   hit=core.hitsTrail({x:315,y:145},{x:335,y:145},p,[p],2.2,0);
   assert.equal(hit.id,0);
 });
-test('Boost is optional, finite, on cooldown, and recorded without creating separate attack hitboxes',()=>{
+test('Dash is optional, finite, on cooldown, and recorded without creating separate attack hitboxes',()=>{
   const m=core.createGame(19),p=m.players[0];
-  core.tick(m,{x:1,y:0,boost:true},1/60);
-  assert.equal(p.boosts,1);
-  assert.ok(p.boost>0 && p.cooldown>0);
+  core.tick(m,{x:1,y:0,dash:true},1/60);
+  assert.equal(p.dashes,1);
+  assert.ok(p.dash>0 && p.cooldown>0);
   const d=p.distance;
-  core.tick(m,{x:1,y:0,boost:true},1/60);
-  assert.equal(p.boosts,1);
-  assert.ok(p.distance-d>core.speedAt(0)/60*1.2);
-  assert.equal(m.events.filter(e=>e.type==='boost').length,1);
+  core.tick(m,{x:1,y:0,dash:true},1/60);
+  assert.equal(p.dashes,1);
+  assert.ok(p.distance-d>core.speedAt(0)/60*1.5);
+  assert.equal(m.events.filter(e=>e.type==='dash').length,1);
 });
 test('Color-speed progression and playfield reduction share clear 10s zones',()=>{
   const m=core.createGame(27);
@@ -91,17 +91,62 @@ test('Elimination and match end report real cause and a deterministic result',()
   assert.ok(m.events.some(e=>e.type==='out'&&e.trailOwner===1));
   assert.ok(m.events.some(e=>e.type==='end'));
   const data=core.audit(m);
-  assert.equal(data.schema,'neon-trails-run-audit/1.0');
+  assert.equal(data.schema,'neon-trails-run-audit/1.1');
   assert.equal(data.status,'completed');
   assert.equal(data.players.length,4);
   assert.ok(JSON.parse(JSON.stringify(data)).events.length>=3);
   assert.doesNotMatch(JSON.stringify(data),/deviceId|fingerprints|touches/);
 });
-test('Menu and source expose fullscreen, responsive joystick, boost, own log and shared Rush rendering',()=>{
+
+test('Short tails expire in 3.3s and later zones retain a bounded lifespan',()=>{
+  assert.equal(core.trailLife(0),3.3);
+  assert.ok(core.trailLife(5)<3.3);
+  assert.ok(core.trailLife(25)>=2.15);
+  const m=core.createGame(19),p=m.players[0],q=m.players[1];
+  q.trail.push({x1:340,y1:200,x2:430,y2:200,at:.2});
+  m.elapsed=3.52;
+  assert.equal(core.hitsTrail({x:370,y:180},{x:370,y:220},p,m.players,m.elapsed,0),null);
+  q.trail.push({x1:340,y1:200,x2:430,y2:200,at:3});
+  const hit=core.hitsTrail({x:370,y:180},{x:370,y:220},p,m.players,m.elapsed,0);
+  assert.equal(hit.id,1);
+});
+test('All four wall edges rebound without eliminating the player',()=>{
+  const a=core.arenaAt(0);
+  for(const [x,y,angle,axis] of [
+    [a.right-11.2,core.CY,0,'x'],
+    [a.left+11.2,core.CY,Math.PI,'x'],
+    [core.CX,a.top+11.2,-Math.PI/2,'y'],
+    [core.CX,a.bottom-11.2,Math.PI/2,'y']
+  ]){
+    const m=core.createGame(29),p=m.players[0];
+    p.x=x;p.y=y;p.angle=angle;p.desiredAngle=angle;m.elapsed=4;
+    core.tick(m,{x:0,y:0},1/60);
+    assert.ok(p.alive);
+    assert.ok(p.x>=a.left+11 && p.x<=a.right-11);
+    assert.ok(p.y>=a.top+11 && p.y<=a.bottom-11);
+    assert.equal(p.wallBounces,1);
+    assert.equal(m.events.find(e=>e.type==='wall_bounce').axis,axis);
+    assert.ok(p.wallGrace>0);
+  }
+});
+test('Neon trails have a softly moving highlight but never draw a nose streak',()=>{
+  const body=read('src/gameplay/neon-trails.js');
+  const draw=body.slice(body.indexOf('function drawTrails(){'),body.indexOf('function drawRunners(){'));
+  const runners=body.slice(body.indexOf('function drawRunners(){'),body.indexOf('function render(){'));
+  assert.match(draw,/ctx.lineCap='butt'/);
+  assert.match(draw,/const shimmer=/);
+  assert.match(draw,/const trim=/);
+  assert.doesNotMatch(runners,/p\\.x\\+Math\\.cos\\(p\\.angle\\)\\*17/);
+  assert.doesNotMatch(draw,/shadowBlur/);
+  const html=read('neon-trails.html');
+  assert.match(html,/>DASH<\/button>/);
+  assert.doesNotMatch(html,/\\bBOOST\\b/);
+});
+test('Menu and source expose fullscreen, responsive joystick, dash, own log and shared Rush rendering',()=>{
   const html=read('neon-trails.html'),style=read('neon-trails.css'),
     src=read('src/gameplay/neon-trails.js'),index=read('index.html');
   for(const id of ['trails-start','trails-canvas','trails-joystick','trails-stick',
-    'trails-boost','trails-pause','trails-fullscreen','trails-export','trails-export-pause']){
+    'trails-dash','trails-pause','trails-fullscreen','trails-export','trails-export-pause']){
     assert.ok(html.includes('id="'+id+'"'),id);
   }
   assert.match(html,/src\/render\/chroma-identity\.js/);
@@ -111,7 +156,7 @@ test('Menu and source expose fullscreen, responsive joystick, boost, own log and
   assert.match(src,/MAX_TRAIL_SEGMENTS/);
   assert.match(src,/const PIXELS=750000/);
   assert.match(src,/new Blob\(\[JSON\.stringify\(audit\(game\)/);
-  assert.match(style,/\.trails-boost/);
+  assert.match(style,/\.trails-dash/);
   assert.match(index,/id="neon-trails-link"/);
   assert.match(index,/href="\.\/neon-trails\.html"/);
 });

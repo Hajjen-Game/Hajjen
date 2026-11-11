@@ -3,7 +3,11 @@
 (function (root) {
   'use strict';
   const AUDIT = root.ChromaClashAudit || (typeof require === 'function' ? require('../diagnostics/chroma-clash-audit.js') : null);
-  const TIDE = root.ChromaCornerTide || (typeof require === 'function' ? require('../render/chroma-corner-tide.js') : null);
+  const TIDE = root.ChromaCenterPulse || (typeof require === 'function' ? require('../render/chroma-center-pulse.js') : null);
+  // The runner is the source of truth for chromatic palettes AND the glass
+  // cube material. No independently invented Clash color identities.
+  const RUSH = root.ChromaConfig || (typeof require === 'function' ? require('../core/config.js') : null);
+  const IDENTITY = root.ChromaIdentity || (typeof require === 'function' ? require('../render/chroma-identity.js') : null);
   const WIDTH = 960, HEIGHT = 540, CX = WIDTH / 2, CY = HEIGHT / 2;
   const HALVES = Object.freeze([198, 166, 136, 108, 84, 62, 44]);
   const COLLAPSES = Object.freeze([14, 28, 41, 53, 64, 73]);
@@ -16,8 +20,8 @@
   const BASE_ZONE_SPEED = 145;
   const ZONE_SPEED_STEP = 12;
   const MAX_ZONE_SPEED = 277;
-  // A full four-corner convergence is visible over the entire environment.
-  const COLOR_FADE_SECONDS = 1.55;
+  // Center-origin pulse matches Rush's continuous, non-hazard Chroma Tide.
+  const COLOR_FADE_SECONDS = 1.10;
   const ACCELERATION = 3100;
   const DRAG_MOVING = 1.85;
   const DRAG_IDLE = 18;
@@ -27,11 +31,11 @@
   const COLORS = ['#60ecff', '#ff71ac', '#ffe26a', '#9f8aff'];
   const NAMES = ['YOU', 'NOVA', 'VOLT', 'HEX'];
   const ZONE_NAMES = ['FLOW', 'SURGE', 'PULSE', 'OVERDRIVE', 'FRENZY', 'CRITICAL', 'FINAL'];
-  const PALETTES = [
-    ['#54dfff', '#102947'], ['#e5c366', '#392b32'], ['#bb83ff', '#302449'],
-    ['#ff74b5', '#3b213d'], ['#85efbc', '#1b3c40'], ['#ff9a69', '#442e34'],
-    ['#ffffff', '#303854']
-  ];
+  // Share the exact pigments used by Rush. Keep the existing seven-zone
+  // palette cycle and ten-second gameplay clock for backward compatibility.
+  // [primary, shadow, secondary] is Clash's fast Canvas-facing format.
+  const PALETTES = Object.freeze(RUSH.PALETTES.slice(0, 7).map(p =>
+    Object.freeze([p.primary, p.shadow, p.secondary])));
   const clamp = (x, low, high) => Math.min(high, Math.max(low, x));
   // A color zone is a fixed ten-second clock phase, independent of collapsing
   // platform rings. Color and speed change on the same simulation step.
@@ -474,7 +478,7 @@
     tideDisabled = false; tideSlowFrames = 0; slowFrameStreak = 0;
     renderQuality = 1; resize();
     mode = 'running'; keys.clear(); resetStick(); lastEventId = 0; accumulator = 0;
-    setScreen(mode); showAnnounce('LAST CUBE STANDING', 1.2);
+    setScreen(mode); showAnnounce('LAST CUBE STANDING', .82);
     updateHUD();
   }
   function pauseGame() {
@@ -822,16 +826,16 @@
       drawArena(active, time, paletteForZone(active.zone));
       return;
     }
-    // No world rasterization in a normal frame: the incoming wave only
-    // clips a PRE-RENDERED image. The four-corner mask is pure Canvas 2D.
+    // Two pre-rendered worlds, one center-out color seam. No per-frame
+    // world gradients, extra geometry, gameplay collision or GPU blur.
     ctx.drawImage(from, 0, 0, WIDTH, HEIGHT);
     ctx.save();
     TIDE.clipNewColor(ctx, { x: 0, y: 0, w: WIDTH, h: HEIGHT }, progress);
     ctx.drawImage(to, 0, 0, WIDTH, HEIGHT);
     ctx.restore();
-    if (progress > .05 && progress < .95) {
+    if (progress > .015 && progress < .98) {
       TIDE.drawFront(ctx, { x: 0, y: 0, w: WIDTH, h: HEIGHT },
-        progress, paletteForZone(active.zone)[0], .38);
+        progress, paletteForZone(active.zone)[0], .85);
     }
     drawDynamicArena(active, time);
   }
@@ -915,7 +919,8 @@
       }
       if (match.eventId !== lastEventId) {
         lastEventId = match.eventId;
-        showAnnounce(match.event, match.event && match.event.includes('SPEED UP') ? 1.25 : .72);
+        showAnnounce(match.event && match.event.includes('SPEED UP') ?
+          'SPEED UP' : match.event, match.event && match.event.includes('SPEED UP') ? .85 : .72);
       }
       if (match.warning && !match.warnedStage) {
         match.warnedStage = match.stage + 1;

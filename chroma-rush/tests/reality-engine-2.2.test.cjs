@@ -68,8 +68,8 @@ test('projectile silhouettes have separate true collision bounds and matching vi
   assert.ok(R.SHOT.low.offset<R.SHOT.high.offset);
   assert.equal(R.SHOT.low.action,'JUMP');
   assert.equal(R.SHOT.high.action,'DUCK');
-  const low=R.projectileBox({x:450,y:500,kind:'low'});
-  const high=R.projectileBox({x:450,y:476,kind:'high'});
+  const low=R.projectileBox({x:450,y:503,kind:'low'});
+  const high=R.projectileBox({x:450,y:466,kind:'high'});
   assert.ok(low.y>high.y+high.h);
   assert.equal(low.w,R.SHOT.low.width);
   assert.equal(high.w,R.SHOT.high.width);
@@ -77,7 +77,7 @@ test('projectile silhouettes have separate true collision bounds and matching vi
 
 function shot(kind){
   return {id:1,kind,bossPhase:2,x:720,previousX:720,
-    y:515-(kind==='low'?15:39),age:.41,charging:false,
+    y:515-R.SHOT[kind].offset,age:.41,charging:false,
     resolved:false,speed:340,type:'sentinel-'+kind,
     worldX:720,hit:false};
 }

@@ -107,14 +107,35 @@ test('Seeded AI physics are deterministic, and contact never removes a cube',()=
   // Force a true on-road overlap. Positions from a previous free-running
   // tick could otherwise be clipped back to opposite track shoulders.
   const at=c.pointAt(c.TRACK.length*.24);
-  p.x=at.x;p.y=at.y;p.angle=at.angle;p.speed=0;
-  q.x=at.x+at.nx*8;q.y=at.y+at.ny*8;q.angle=at.angle;q.speed=0;
+  p.x=at.x;p.y=at.y;p.angle=at.angle;p.speed=135;
+  q.x=at.x+at.nx*8;q.y=at.y+at.ny*8;q.angle=at.angle+Math.PI;q.speed=45;
   p.progress=c.TRACK.length*.24;q.progress=p.progress;
   p.edgeCooldown=0;q.edgeCooldown=0;
   c.tick(a,{x:at.tx,y:at.ty},1/60);
   assert.ok(p.contacts>=1||q.contacts>=1);
   assert.equal(a.racers.length,4);
   assert.equal(a.finished,false);
+});
+test('A real guided three-lap race finishes with multiple color-zone transitions',()=>{
+  const m=c.seededRace(42);
+  m.phase='running';
+  for(let i=0;i<60*90&&!m.finished;i++){
+    const p=m.racers[0];
+    const ahead=c.pointAt(p.progress+Math.max(55,p.speed*.52));
+    const a=c.pointAt(p.progress+25),b=c.pointAt(p.progress+105);
+    const bend=Math.abs(c.angleDelta(a.angle,b.angle));
+    c.tick(m,{x:ahead.x-p.x,y:ahead.y-p.y,
+      brake:bend>.53&&p.speed>123,
+      dash:p.dashCooldown<=0&&bend<.14&&m.elapsed>3},1/60);
+  }
+  assert.equal(m.phase,'result');
+  assert.equal(m.racers[0].laps,3);
+  assert.equal(m.racers[0].lapTimes.length,3);
+  assert.ok(m.elapsed>25&&m.elapsed<85,m.elapsed);
+  assert.ok(m.zone>=2,'several 10-second zone changes should be experienced');
+  assert.ok(m.events.filter(e=>e.type==='zone').length>=2);
+  assert.ok(m.racers[0].bestFlow>.25);
+  assert.ok(m.finishPlace>=1&&m.finishPlace<=4);
 });
 test('Three genuine laps finish only when the cube crosses the lap boundary',()=>{
   const m=c.seededRace(20),p=m.racers[0];

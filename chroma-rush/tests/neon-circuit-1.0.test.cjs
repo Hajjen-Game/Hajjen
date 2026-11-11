@@ -11,7 +11,7 @@ test('Neon Circuit is a distinct closed-track racing game, not trail-survival',(
   assert.equal(c.NAMES.length,4);
   assert.equal(c.NODES.length,8);
   assert.equal(c.TRACK.layout,'straight-arc');
-  assert.deepEqual(c.TRACK.segmentKinds,['straight','quarter-arc']);
+  assert.deepEqual(c.TRACK.segmentKinds,['straight','quarter-arc','soft-chicane']);
   assert.ok(c.TRACK.length>1200&&c.TRACK.length<1900,c.TRACK.length);
   assert.ok(c.TRACK.pointCount>150);
   const a=c.TRACK.samples[0],b=c.TRACK.samples.at(-1);
@@ -24,7 +24,9 @@ test('Neon Circuit is a distinct closed-track racing game, not trail-survival',(
   const css=read('neon-circuit.css');
   const js=read('src/gameplay/neon-circuit.js');
   const html=read('neon-circuit.html');
-  assert.match(js,/TIDE\.clipNewColor/);
+  assert.match(js,/clipWaveRepaint/);
+  assert.match(js,/drawWaveFront/);
+  assert.doesNotMatch(js,/TIDE\.clipNewColor/);
   assert.match(js,/IDENTITY\.paintPlayer/);
   assert.match(css,/circuit-actions/);
   assert.match(html,/id="circuit-brake"/);
@@ -42,6 +44,89 @@ test('Route coordinates are continuous and nearest projection stays close',()=>{
     assert.ok(Math.hypot(p.x-next.x,p.y-next.y)>1);
   }
   assert.ok(c.angleDelta(3,-3)>0);
+});
+test('Three separate hand-designed circuits contain different gentle turns and remain geometrically safe',()=>{
+  assert.equal(c.TRACKS.length,3);
+  assert.equal(new Set(c.TRACKS.map(t=>t.courseId)).size,3);
+  const midpoints=[];
+  for(let k=0;k<3;k++){
+    const t=c.TRACKS[k],m=c.seededRace(115,k);
+    assert.equal(m.track,t);
+    assert.equal(m.gates.length,4);
+    assert.equal(m.track.name,c.COURSE_NAMES[k]);
+    assert.ok(t.length>1400&&t.length<1900,t.length);
+    assert.ok(Math.hypot(t.samples[0].x-t.samples.at(-1).x,
+      t.samples[0].y-t.samples.at(-1).y)<1e-5);
+    assert.ok(m.racers.every(p=>p.progress<0));
+    for(let j=0;j<24;j++){
+      const s=(j+.33)/24*t.length,p=c.pointAt(s,t);
+      const q=c.closest(p.x,p.y,t);
+      assert.ok(q.dist<.005,q.dist);
+      assert.ok(Math.abs(q.s-s)<1,s);
+    }
+    midpoints.push(c.pointAt(t.length*.42,t).y.toFixed(1));
+  }
+  assert.ok(new Set(midpoints).size>1,'tracks must differ beyond color themes');
+});
+test('All three courses complete three physical laps with identical gate rules',()=>{
+  for(let k=0;k<3;k++){
+    const m=c.seededRace(1234+k,k);
+    m.phase='running';
+    for(let i=0;i<60*85&&!m.finished;i++){
+      const p=m.racers[0],t=m.track,
+        s=c.closest(p.x,p.y,t).s,
+        ahead=c.pointAt(s+Math.max(45,p.speed*.4),t),
+        bend=Math.abs(c.angleDelta(c.pointAt(s+22,t).angle,
+          c.pointAt(s+110,t).angle));
+      c.tick(m,{x:ahead.x-p.x,y:ahead.y-p.y,
+        brake:bend>.66&&p.speed>140,
+        dash:p.dashCooldown<=0&&bend<.12&&m.elapsed>3},1/60);
+    }
+    assert.equal(m.racers[0].laps,3,'course '+k);
+    assert.equal(m.racers[0].gatePasses,13,'course '+k);
+    assert.equal(m.phase,'result');
+    assert.deepEqual(m.events.filter(e=>e.type==='checkpoint'&&e.player===0)
+      .map(e=>e.gate),[0,1,2,3,0,1,2,3,0,1,2,3,0]);
+    assert.equal(c.audit(m).courseId,m.track.courseId);
+  }
+});
+test('Track Tide travels clockwise/forward once per zone, preserving scene geometry',()=>{
+  const m=c.seededRace(817,2);m.phase='running';
+  m.elapsed=9.995;
+  c.tick(m,{x:1,y:0},1/60);
+  assert.equal(m.zone,1);
+  assert.equal(m.tide>1.4,true);
+  const initial=c.waveState(m);
+  assert.equal(initial.active,true);
+  assert.equal(initial.direction,'forward');
+  assert.equal(initial.scope,'track-only');
+  assert.ok(initial.progress>=0&&initial.progress<.1);
+  const firstStart=initial.start;
+  for(let i=0;i<43;i++)c.tick(m,{},1/60);
+  const mid=c.waveState(m);
+  assert.ok(mid.progress>.45&&mid.progress<.65,mid.progress);
+  assert.ok(mid.reach>initial.reach);
+  assert.equal(mid.start,firstStart);
+  const zone=m.events.find(e=>e.type==='zone');
+  assert.equal(zone.waveScope,'track-only');
+  assert.equal(zone.waveDirection,'forward');
+  for(let i=0;i<50;i++)c.tick(m,{},1/60);
+  const done=c.waveState(m);
+  assert.equal(done.active,false);
+  assert.equal(done.progress,1);
+});
+test('Circuit visual palette affects road only; atmosphere is static across zone art',()=>{
+  const js=read('src/gameplay/neon-circuit.js');
+  const bg=js.slice(js.indexOf('function drawStatic('),
+    js.indexOf('// Cached atmosphere and road:'));
+  assert.match(bg,/sky.addColorStop\\(\\.46,'#10263b'\\)/);
+  assert.match(bg,/haze.addColorStop\\(0,rgb\\('#307caf'/);
+  assert.doesNotMatch(bg,/rgb\\(primary/);
+  assert.doesNotMatch(bg,/rgb\\(secondary/);
+  assert.doesNotMatch(bg,/mix\\('#0a1828',shadow/);
+  assert.match(js,/appendRoadSlice/);
+  assert.match(js,/drawWaveFront/);
+  assert.match(js,/getStatic\\(z-1,track\\)/);
 });
 test('Countdown starts safely and 10-second color zones increase real racing speed',()=>{
   const m=c.seededRace(123),p=m.racers[0];

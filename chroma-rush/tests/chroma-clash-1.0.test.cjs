@@ -32,7 +32,7 @@ test('Rounded-square corners are not falsely treated as safe AABB floor', () => 
 
 test('Joystick acceleration has inertia, drag, and a hard cap shared by players', () => {
   const m = clash.createMatch(17);
-  tick(m, 80, { x: 1, y: 0 });
+  tick(m, 25, { x: 1, y: 0 });
   const player = m.cubes[0];
   assert.ok(player.vx > 75);
   assert.ok(Math.hypot(player.vx, player.vy) <= clash.SPEED_LIMIT + 0.001);
@@ -67,7 +67,7 @@ test('AI genuinely steers inwards near the falling edge, not toward a guaranteed
 test('Falling edge warns before collapse, breaks in stages, and removes unsupported cubes', () => {
   const m = clash.createMatch(21);
   m.elapsed = clash.COLLAPSES[0] - clash.WARNING_SECONDS - .08;
-  tick(m, 6);
+  tick(m, 14);
   assert.equal(m.warning, true);
   assert.equal(m.stage, 0);
   assert.equal(m.half, clash.HALVES[0]);

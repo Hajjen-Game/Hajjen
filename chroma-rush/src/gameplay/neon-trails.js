@@ -1,6 +1,6 @@
-/* CHROMA RUSH — NEON TRAILS 1.0
- * Standalone top-down trail-survival arena, four glass cubes, one joystick
- * and optional short BOOST. Core is pure/deterministic and testable in Node.
+/* CHROMA RUSH — NEON TRAILS 1.1
+ * Shorter tail / forgiving wall rebound / Rush Dash and controlled neon
+ * trail visuals. Deterministic physics and isolated mobile renderer.
  */
 (function (root) {
 'use strict';
@@ -16,15 +16,19 @@ const COLORS=['#60ecff','#ff71ac','#ffe26a','#9f8aff'];
 const NAMES=['YOU','NOVA','VOLT','HEX'];
 const PALETTES=RUSH.PALETTES.slice(0,7).map(p=>[p.primary,p.shadow,p.secondary]);
 const ZONE_NAMES=['FLOW','SURGE','PULSE','OVERDRIVE','FRENZY','CRITICAL','FINAL'];
-const BOOST_SECONDS=.65, BOOST_COOLDOWN=5.2;
-const TRAIL_SAMPLE=.068, MAX_TRAIL_SEGMENTS=135;
+const DASH_SECONDS=.33, DASH_COOLDOWN=4.6;
+const TRAIL_SAMPLE=.068, MAX_TRAIL_SEGMENTS=95;
+const TRAIL_START_GRACE=2.0, OWN_TAIL_GRACE=.72;
+const WALL_MARGIN=11, WALL_BOUNCE_GRACE=.26;
 const MAX_AUDIT_EVENTS=380;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const hypot=(x,y)=>Math.hypot(x,y);
 const angleDiff=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 const zoneAt=t=>Math.floor(Math.max(0,t+1e-8)/ZONE_SECONDS);
 const speedAt=zone=>Math.min(222,108+13*Math.max(0,zone));
-const trailLife=zone=>Math.max(4.8,9.4-.38*zone);
+// At Zone 01 the old 9.4s trail could exceed the usable arena's width.
+ // A 3.3s lifetime rewards trapping, but lets escapes reopen quickly.
+const trailLife=zone=>Math.max(2.15,3.3-.10*zone);
 const nextContraction=elapsed=>{
   const next=Math.ceil((Math.max(0,elapsed)+1e-6)/20)*20;
   return next<=140?Math.max(0,next-elapsed):Infinity;
@@ -62,7 +66,8 @@ function nearWall(x,y,arena,margin=0){
   return x<arena.left+margin||x>arena.right-margin||
     y<arena.top+margin||y>arena.bottom-margin;
 }
-function hitsTrail(from,to,player,players,time,zone,{radius=7,ignoreOwn=.38}={}){
+function hitsTrail(from,to,player,players,time,zone,
+  {radius=5.5,ignoreOwn=OWN_TAIL_GRACE}={}){
   const radSq=radius*radius,ageLimit=trailLife(zone);
   for(const owner of players){
     const trail=owner.trail;
@@ -95,8 +100,9 @@ function createGame(seed=20261111){
   ];
   const players=spawn.map((s,id)=>({
     id,name:NAMES[id],color:COLORS[id],x:s[0],y:s[1],
-    angle:s[2],desiredAngle:s[2],alive:true,boost:0,cooldown:0,
-    distance:0,boosts:0,eliminations:0,trail:[],sampleX:s[0],sampleY:s[1],
+    angle:s[2],desiredAngle:s[2],alive:true,dash:0,cooldown:0,
+    wallGrace:0,wallBounces:0,
+    distance:0,dashes:0,eliminations:0,trail:[],sampleX:s[0],sampleY:s[1],
     sampleAt:0,aiAt:0,fallenAt:null,fallCause:null
   }));
   const m={seed,random,players,elapsed:0,zone:0,stage:0,active:true,
@@ -104,7 +110,8 @@ function createGame(seed=20261111){
     paletteFade:0,announced:null,events:[],droppedEvents:0,eliminations:0,
     maxSpeed:108,performance:{frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     startedAt:null};
-  record(m,'start',{players:4,mode:'neon-trails-1.0'});
+  record(m,'start',{players:4,mode:'neon-trails-1.1',
+    trailLife:trailLife(0),wallBehavior:'soft_reflection',dash:true});
   return m;
 }
 function aiIntent(m,p){
@@ -122,14 +129,16 @@ function aiIntent(m,p){
     for(const dist of [36,67,104]){
       const x=p.x+ux*dist,y=p.y+uy*dist;
       const prev={x:p.x+ux*Math.max(0,dist-22),y:p.y+uy*Math.max(0,dist-22)};
-      if(nearWall(x,y,arena,12)){score-=160/(dist/36);safe=false;continue;}
-      const hit=hitsTrail(prev,{x,y},p,m.players,m.elapsed,zone,{radius:12,ignoreOwn:.47});
+      if(nearWall(x,y,arena,16)){score-=48/(dist/36);safe=false;continue;}
+      const hit=hitsTrail(prev,{x,y},p,m.players,m.elapsed,zone,
+        {radius:9,ignoreOwn:OWN_TAIL_GRACE});
       if(hit){score-=135/(dist/36);safe=false;}
       else score+=6;
     }
     // Favor graceful curves and occasional tactical interception of rivals.
-    score-=Math.abs(candidates[i])*3;
-    if(target&&safe){
+    score-=Math.abs(candidates[i])*2.1;
+    // In the opening zones prioritise staying alive over intercepting.
+    if(target&&safe&&m.elapsed>7){
       const theta=Math.atan2(target.y-p.y,target.x-p.x);
       score+=2.2*Math.cos(angleDiff(angle,theta));
       const intercept=hypot(target.x-(p.x+ux*68),target.y-(p.y+uy*68));
@@ -168,14 +177,15 @@ function tick(m,input={},dt=FIXED_STEP){
   }
   m.paletteFade=Math.max(0,m.paletteFade-step);
   const user=m.players[0];
-  if(input.boost&&user.alive&&user.cooldown<=0){
-    user.boost=BOOST_SECONDS;user.cooldown=BOOST_COOLDOWN;user.boosts++;
-    record(m,'boost',{player:0,zone:m.zone+1});
+  if(input.dash&&user.alive&&user.cooldown<=0){
+    user.dash=DASH_SECONDS;user.cooldown=DASH_COOLDOWN;user.dashes++;
+    record(m,'dash',{player:0,zone:m.zone+1});
   }
   for(const p of m.players){
     if(!p.alive)continue;
-    p.boost=Math.max(0,p.boost-step);
+    p.dash=Math.max(0,p.dash-step);
     p.cooldown=Math.max(0,p.cooldown-step);
+    p.wallGrace=Math.max(0,p.wallGrace-step);
     if(p.id===0){
       if(Number.isFinite(input.x)&&Number.isFinite(input.y)&&
          hypot(input.x,input.y)>.12)
@@ -188,23 +198,51 @@ function tick(m,input={},dt=FIXED_STEP){
       }
     }
     const diff=angleDiff(p.angle,p.desiredAngle);
-    const maxTurn=(p.boost>0?3.7:5.0)*step;
+    const maxTurn=(p.dash>0?3.7:5.0)*step;
     p.angle+=clamp(diff,-maxTurn,maxTurn);
-    const speed=m.maxSpeed*(p.boost>0?1.48:1);
-    const from={x:p.x,y:p.y},to={x:p.x+Math.cos(p.angle)*speed*step,
+    const speed=m.maxSpeed*(p.dash>0?1.8:1);
+    const from={x:p.x,y:p.y};
+    const to={x:p.x+Math.cos(p.angle)*speed*step,
       y:p.y+Math.sin(p.angle)*speed*step};
-    // Give players a short opening to see their orientation and steer.
-    const invuln=m.elapsed<.8;
-    if(!invuln && nearWall(to.x,to.y,arena,8)){
-      eliminate(m,p,'wall');
-      continue;
+    // The arena is a bumper, not instant death. Reflect only the axis
+    // crossed and keep the cube clearly inside its playable boundary.
+    const touchedX=to.x<arena.left+WALL_MARGIN||to.x>arena.right-WALL_MARGIN;
+    const touchedY=to.y<arena.top+WALL_MARGIN||to.y>arena.bottom-WALL_MARGIN;
+    let bounced=false;
+    if(touchedX||touchedY){
+      const vx=Math.cos(p.angle),vy=Math.sin(p.angle);
+      const nx=touchedX?-vx:vx,ny=touchedY?-vy:vy;
+      p.angle=Math.atan2(ny,nx);
+      p.desiredAngle=p.angle;
+      to.x=clamp(to.x,arena.left+WALL_MARGIN+.7,arena.right-WALL_MARGIN-.7);
+      to.y=clamp(to.y,arena.top+WALL_MARGIN+.7,arena.bottom-WALL_MARGIN-.7);
+      // A gentle nudge inward conveys rebound rather than hard sticking.
+      if(touchedX)to.x=clamp(to.x+Math.sign(nx)*2.5,
+        arena.left+WALL_MARGIN+.7,arena.right-WALL_MARGIN-.7);
+      if(touchedY)to.y=clamp(to.y+Math.sign(ny)*2.5,
+        arena.top+WALL_MARGIN+.7,arena.bottom-WALL_MARGIN-.7);
+      p.wallGrace=WALL_BOUNCE_GRACE;
+      p.wallBounces++;
+      bounced=true;
+      record(m,'wall_bounce',{player:p.id,zone:m.zone+1,
+        x:+to.x.toFixed(1),y:+to.y.toFixed(1),axis:touchedX&&touchedY?'both':touchedX?'x':'y'});
     }
-    const obstacle=!invuln?hitsTrail(from,to,p,m.players,m.elapsed,m.zone):null;
+    // Warm-up gives players time to learn steering and see the trails.
+    // A very brief grace after a rebound avoids accidental double-KO
+    // from the 1-2 trail pixels already touching that same wall.
+    const invuln=m.elapsed<TRAIL_START_GRACE||p.wallGrace>0;
+    const obstacle= !invuln ?
+      hitsTrail(from,to,p,m.players,m.elapsed,m.zone):null;
     if(obstacle){
       eliminate(m,p,'trail',obstacle.id);
       continue;
     }
-    p.x=to.x;p.y=to.y;p.distance+=speed*step;
+    p.x=to.x;p.y=to.y;p.distance+=hypot(to.x-from.x,to.y-from.y);
+    if(bounced){
+      // Start the new trail at the reflected cube, never bridge across
+      // the arena rim or draw a straight line through a wall.
+      p.sampleX=p.x;p.sampleY=p.y;p.sampleAt=m.elapsed;
+    }
     // Trail sampling uses real swept segments, not guessed sprites or a
     // gameplay-independent particle effect. Every segment is dangerous.
     const distance=hypot(p.x-p.sampleX,p.y-p.sampleY);
@@ -228,24 +266,27 @@ function tick(m,input={},dt=FIXED_STEP){
   return m;
 }
 function audit(m){
-  return {schema:'neon-trails-run-audit/1.0',build:'neon-trails-1.0',
+  return {schema:'neon-trails-run-audit/1.1',build:'neon-trails-1.1',
     seed:m.seed,status:m.state==='finished'?'completed':'in_progress',
     summary:{durationSeconds:+m.elapsed.toFixed(3),highestZone:m.zone+1,
       arenaStage:m.stage,speed:m.maxSpeed,alive:m.players.filter(p=>p.alive).length,
-      outcome:m.outcome,winner:m.winner,playerBoosts:m.players[0].boosts,
+      outcome:m.outcome,winner:m.winner,playerDashes:m.players[0].dashes,
+      wallBounces:m.players.map(p=>p.wallBounces),
+      trailLifetimeSeconds:+trailLife(m.zone).toFixed(2),
       playerEliminations:m.players[0].eliminations,
       playerDistance:+m.players[0].distance.toFixed(1),
       trailLengths:m.players.map(p=>p.trail.length),
       performance:{...m.performance}},
     players:m.players.map(p=>({id:p.id,alive:p.alive,color:p.color,
       eliminatedAt:p.fallenAt,cause:p.fallCause,
-      boosts:p.boosts,eliminations:p.eliminations})),
+      dashes:p.dashes,wallBounces:p.wallBounces,eliminations:p.eliminations})),
     events:m.events.map(e=>({...e})),
     limits:{maxEvents:MAX_AUDIT_EVENTS,droppedEvents:m.droppedEvents},
     privacy:'Local export only; no raw input, device IDs or network telemetry'};
 }
 const core={WIDTH,HEIGHT,CX,CY,COLORS,NAMES,ZONE_SECONDS,ZONE_NAMES,PALETTES,
-  BOOST_SECONDS,BOOST_COOLDOWN,TRAIL_SAMPLE,MAX_TRAIL_SEGMENTS,
+  DASH_SECONDS,DASH_COOLDOWN,TRAIL_SAMPLE,MAX_TRAIL_SEGMENTS,
+  TRAIL_START_GRACE,OWN_TAIL_GRACE,WALL_MARGIN,WALL_BOUNCE_GRACE,
   zoneAt,speedAt,trailLife,arenaAt,nextContraction,segmentDistanceSq,nearWall,hitsTrail,
   angleDiff,createGame,aiIntent,eliminate,tick,audit};
 if(typeof module!=='undefined'&&module.exports)module.exports=core;

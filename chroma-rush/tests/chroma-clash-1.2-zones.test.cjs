@@ -96,6 +96,12 @@ test('Chroma zone rules remain valid after all six outer rings have fallen', () 
   m.stage = 6;
   m.half = clash.HALVES[6];
   m.zone = 7;
+  // Put all four cubes safely on the final tiny platform: otherwise the
+  // normal elimination event intentionally supersedes the zone announcement.
+  m.cubes.forEach((c, i) => {
+    c.x = clash.CX + (i % 2 ? 18 : -18);
+    c.y = clash.CY + (i < 2 ? -18 : 18);
+  });
   step(m, 1 / 120);
   assert.equal(m.zone, 8);
   assert.equal(m.stage, 6);

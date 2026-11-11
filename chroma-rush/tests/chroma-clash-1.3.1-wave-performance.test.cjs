@@ -11,13 +11,15 @@ test('1.4 renders cached world scenes with no live full-world paint per animatio
     src.indexOf('  function render(time)'));
   assert.ok(transition.includes('getStaticScene(active, Math.max(0, active.zone - 1))'));
   assert.ok(transition.includes('getStaticScene(active, active.zone)'));
-  assert.ok(transition.includes('ctx.drawImage(from, 0, 0, WIDTH, HEIGHT)'));
-  assert.ok(transition.includes('ctx.drawImage(to, 0, 0, WIDTH, HEIGHT)'));
+  assert.ok(transition.includes('ctx.drawImage(from, panoramaLeft, 0, panoramaWidth, HEIGHT)'));
+  assert.ok(transition.includes('ctx.drawImage(to, panoramaLeft, 0, panoramaWidth, HEIGHT)'));
   assert.equal((transition.match(/drawArena\(active,/g) || []).length, 1,
     'a one-shot fallback is allowed; normal transition must not repaint');
   assert.ok(transition.includes('TIDE.clipNewColor(ctx,'));
   assert.ok(transition.includes('drawDynamicArena(active, time)'));
   assert.ok(src.includes('const BASE_PIXEL_BUDGET = 750000'));
+  assert.ok(src.includes('panoramaWidth = Math.max(WIDTH,'));
+  assert.ok(src.includes('ctx.setTransform(1, 0, 0, 1, -panoramaLeft, 0)'));
   assert.ok(src.includes('const spriteCache = Object.create(null)'));
   assert.ok(src.includes('function cubeSprite(color)'));
 });
@@ -66,9 +68,9 @@ test('Wave is disabled after repeated slow frames without disabling any match lo
 
 test('New page uses cache-busted 1.4 assets on mobile', () => {
   const html=fs.readFileSync(path.join(__dirname,'../clash.html'),'utf8');
-  assert.match(html,/chroma-clash\.js\?v=chroma-clash-visual-cohesion-1\.0/);
-  assert.match(html,/chroma-center-pulse\.js\?v=chroma-clash-visual-cohesion-1\.0/);
-  assert.match(html,/chroma-clash-audit\.js\?v=chroma-clash-visual-cohesion-1\.0/);
+  assert.match(html,/chroma-clash\.js\?v=chroma-clash-arena-polish-1\.1/);
+  assert.match(html,/chroma-center-pulse\.js\?v=chroma-clash-arena-polish-1\.1/);
+  assert.match(html,/chroma-clash-audit\.js\?v=chroma-clash-arena-polish-1\.1/);
   assert.match(html,/src\/core\/config\.js/);
   assert.match(html,/src\/render\/chroma-identity\.js/);
 });

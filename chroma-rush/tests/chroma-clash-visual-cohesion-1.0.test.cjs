@@ -45,9 +45,11 @@ test('Rush world style comes from cached atmospheric artwork and shared glass cu
   assert.match(identity,/Motion-reactive translucent cube body/);
   assert.match(src,/const spriteCache = Object\.create\(null\)/);
   assert.match(src,/getStaticScene\(active, active\.zone\)/);
-  assert.match(src,/ctx\.drawImage\(from, 0, 0, WIDTH, HEIGHT\)/);
-  assert.match(src,/ctx\.drawImage\(to, 0, 0, WIDTH, HEIGHT\)/);
+  assert.match(src,/ctx\.drawImage\(from, panoramaLeft, 0, panoramaWidth, HEIGHT\)/);
+  assert.match(src,/ctx\.drawImage\(to, panoramaLeft, 0, panoramaWidth, HEIGHT\)/);
   assert.match(src,/drawDynamicArena\(active, time\)/);
+  assert.match(src,/panoramaWidth = Math.max\(WIDTH,/);
+  assert.match(src,/getStaticScene\(active, active.zone\)/);
   assert.doesNotMatch(src,/TIDE\.drawFront[\s\S]*ctx\.filter\s*=\s*'blur/);
   assert.ok(!src.includes('const off = i * 84'),
     'the diagonal wallpaper from the prototype is gone');
@@ -81,5 +83,5 @@ test('Shared Rush hierarchy keeps centered Zone and restrained events across scr
   assert.match(css,/\.announce\{/);
   assert.match(css,/max-height:450px/);
   assert.match(css,/prefers-reduced-motion:reduce/);
-  assert.match(html,/chroma-clash\.js\?v=chroma-clash-visual-cohesion-1\.0/);
+  assert.match(html,/chroma-clash\.js\?v=chroma-clash-arena-polish-1\.1/);
 });

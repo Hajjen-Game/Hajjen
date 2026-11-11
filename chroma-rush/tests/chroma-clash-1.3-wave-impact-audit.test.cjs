@@ -132,6 +132,6 @@ test('Pause/result UI exposes an explicit user-triggered log download and both n
   assert.match(html,/src="src\/render\/chroma-center-pulse.js/);
   assert.match(game,/new Blob\(\[JSON.stringify\(payload/);
   assert.match(game,/URL\.createObjectURL/);
-  assert.match(html,/chroma-clash-visual-cohesion-1\.0/);
+  assert.match(html,/chroma-clash-arena-polish-1\.1/);
   assert.doesNotMatch(html,/id="clash-(?:jump|dash)"/);
 });

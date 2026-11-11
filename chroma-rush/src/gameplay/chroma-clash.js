@@ -385,6 +385,9 @@
   let match = null, preview = createMatch(1337), mode = 'menu';
   let pointer = null, joyX = 0, joyY = 0;
   let viewWidth = 1, viewHeight = 1, scale = 1, ox = 0, oy = 0, previous = 0, accumulator = 0;
+  // Keep square gameplay on a 960x540 camera while extending only the
+  // stationary SKY/arena world artwork to ultra-wide viewports.
+  let panoramaWidth = WIDTH, panoramaLeft = 0;
   let lastEventId = 0, announceTimer = 0, best = { wins: 0, eliminations: 0 };
   const storageKey = 'chroma-rush-clash-1.0-best';
   try {
@@ -393,7 +396,9 @@
     best.eliminations = Math.max(0, Math.floor(stored.eliminations || 0));
   } catch (_) { /* storage is optional in private mode */ }
   function resize() {
-    viewWidth = window.innerWidth; viewHeight = window.innerHeight;
+    const shell = $('clash-shell');
+    viewWidth = Math.max(1, shell.clientWidth || window.innerWidth);
+    viewHeight = Math.max(1, shell.clientHeight || window.innerHeight);
     // This used to render 2x device pixel ratio on phones: a 1.4k × 700
     // CSS viewport could consume over 3.9 million GPU pixels per frame.
     // The game sprites are vector/Canvas art, and the DOM HUD stays crisp.
@@ -406,10 +411,64 @@
     scale = Math.min(viewWidth / WIDTH, viewHeight / HEIGHT);
     ox = (viewWidth - WIDTH * scale) / 2;
     oy = (viewHeight - HEIGHT * scale) / 2;
+    // Artwork covers the entire actual screen. The arena, actors, physics,
+    // warning edges and joystick stay on the original centered camera.
+    // Four-unit overscan prevents sub-pixel seams at the viewport edges.
+    panoramaWidth = Math.max(WIDTH, Math.ceil((viewWidth / scale) / 4) * 4);
+    panoramaLeft = (WIDTH - panoramaWidth) / 2;
     if (viewHeight > viewWidth && mode === 'running') pauseGame();
   }
   window.addEventListener('resize', resize, { passive: true });
   resize();
+  const fullscreenShell = $('clash-shell');
+  const fullscreenButtons = [$('clash-fullscreen'), $('clash-fullscreen-menu')];
+  let fullscreenStatusTimer = null;
+  function showFullscreenMessage(message) {
+    const el = $('clash-fullscreen-status');
+    el.textContent = message;
+    el.classList.remove('hidden');
+    if (fullscreenStatusTimer != null) clearTimeout(fullscreenStatusTimer);
+    fullscreenStatusTimer = setTimeout(() => {
+      el.classList.add('hidden');
+      fullscreenStatusTimer = null;
+    }, 3200);
+  }
+  function syncFullscreenUI() {
+    const active = document.fullscreenElement === fullscreenShell;
+    fullscreenButtons.forEach(button => {
+      button.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Enter fullscreen');
+      button.setAttribute('aria-pressed', String(active));
+      button.title = active ? 'Exit fullscreen' : 'Fullscreen';
+    });
+    $('clash-fullscreen').textContent = active ? '⤡' : '⛶';
+    $('clash-fullscreen-menu').textContent = active ? '⤡ EXIT FULLSCREEN' : '⛶ FULLSCREEN';
+  }
+  function toggleFullscreen() {
+    // Native Fullscreen API requires an actual click/tap. Never attempt it
+    // from animation frames, resize handlers, or async startup effects.
+    const active = document.fullscreenElement === fullscreenShell;
+    try {
+      if (active && typeof document.exitFullscreen === 'function') {
+        const result = document.exitFullscreen();
+        if (result && result.catch) result.catch(() =>
+          showFullscreenMessage('Could not exit fullscreen. Use your browser controls.'));
+      } else if (!active && typeof fullscreenShell.requestFullscreen === 'function' &&
+                 document.fullscreenEnabled !== false) {
+        const result = fullscreenShell.requestFullscreen({ navigationUI: 'hide' });
+        if (result && result.catch) result.catch(() =>
+          showFullscreenMessage('Your browser blocked fullscreen mode.'));
+      } else {
+        showFullscreenMessage('Fullscreen is not supported in this browser.');
+      }
+    } catch (_) {
+      showFullscreenMessage('Fullscreen is not available here.');
+    }
+  }
+  fullscreenButtons.forEach(button => button.addEventListener('click', toggleFullscreen));
+  document.addEventListener('fullscreenchange', () => { syncFullscreenUI(); resize(); });
+  document.addEventListener('fullscreenerror', () =>
+    showFullscreenMessage('Your browser blocked fullscreen mode.'));
+  syncFullscreenUI();
   function setScreen(which) {
     $('clash-menu').classList.toggle('hidden', which !== 'menu');
     $('clash-pause-menu').classList.toggle('hidden', which !== 'paused');
@@ -566,39 +625,43 @@
     roundedRect(CX - half, CY - half, 2 * half, 2 * half, Math.max(12, half * .16));
   }
   function drawBackground(time, palette) {
+    // 1.1: render background across an extended WORLD-space panorama.
+    // This is cached at zone/stage boundaries, never repainted each frame.
+    const left = panoramaLeft, worldWidth = panoramaWidth;
     // Visual Cohesion 1.0: same dark atmospheric sky / broad color bounce /
     // restrained distant architecture as Rush, viewed from above. This
     // complete scene is rasterized ONCE per color zone and platform stage.
     const primary = palette[0], shadow = palette[1], secondary = palette[2];
     ctx.fillStyle = '#070b17';
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.fillRect(left, 0, worldWidth, HEIGHT);
     const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
     sky.addColorStop(0, '#060b19');
     sky.addColorStop(.44, mixColor('#071324', shadow, .77));
     sky.addColorStop(1, mixColor('#061021', shadow, .51));
     ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.fillRect(left, 0, worldWidth, HEIGHT);
     // Same diffuse two-color illumination budget as the runner's world.
     const centerGlow = ctx.createRadialGradient(CX, CY + 4, 0, CX, CY, 425);
     centerGlow.addColorStop(0, hexAlpha(primary, .25));
     centerGlow.addColorStop(.44, hexAlpha(secondary, .115));
     centerGlow.addColorStop(1, hexAlpha(primary, 0));
     ctx.fillStyle = centerGlow;
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.fillRect(left, 0, worldWidth, HEIGHT);
     const distanceGlow = ctx.createRadialGradient(WIDTH*.73, HEIGHT*.76, 0,
       WIDTH*.73, HEIGHT*.76, 440);
     distanceGlow.addColorStop(0, hexAlpha(secondary, .11));
     distanceGlow.addColorStop(1, hexAlpha(secondary, 0));
     ctx.fillStyle = distanceGlow;
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.fillRect(left, 0, worldWidth, HEIGHT);
     // The old diagonal wallpaper/grid was unrelated to Rush. Subtle depth
     // silhouettes and a thin atmospheric horizon reuse its visual language.
     const skyline = ctx.createLinearGradient(0, 150, 0, HEIGHT);
     skyline.addColorStop(0, hexAlpha(primary, .013));
     skyline.addColorStop(.65, hexAlpha(primary, .068));
     skyline.addColorStop(1, hexAlpha(primary, .012));
-    for (let i = 0; i < 11; i++) {
-      const x = 19 + i * 92 + (i % 3) * 13;
+    for (let i = -12; i < 24; i++) {
+      const x = 19 + i * 92 + ((i + 120) % 3) * 13;
+      if (x + 60 < left || x > left + worldWidth) continue;
       const top = 154 + ((i * 37) % 128);
       const width = 15 + (i % 4) * 8;
       ctx.fillStyle = skyline;
@@ -607,24 +670,28 @@
       ctx.fillRect(x + width * .68, top + 12, 1.3, Math.min(90, HEIGHT - top - 22));
     }
     // Horizontal light streaks, not full-screen wireframe diagonals.
-    for (let i = 0; i < 17; i++) {
-      const y = 36 + (i * 107 % 460);
-      const x = (i * 163 + 27) % WIDTH;
-      ctx.fillStyle = hexAlpha(i % 2 ? secondary : primary, .055 + i % 4 * .012);
-      ctx.fillRect(x, y, 21 + i % 5 * 17, i % 5 === 0 ? 1.5 : 1);
-    }
-    for (let i = 0; i < 39; i++) {
-      const x = (i * 237.3 + 31) % WIDTH;
-      const y = (i * 111.7 + 41) % HEIGHT;
-      ctx.fillStyle = hexAlpha(i % 4 ? '#c8e3f4' : secondary, .09 + (i % 3) * .022);
-      ctx.fillRect(x, y, i % 7 === 0 ? 2 : 1, 1);
+    for (let copy = -2; copy <= 2; copy++) {
+      for (let i = 0; i < 17; i++) {
+        const y = 36 + (i * 107 % 460);
+        const x = (i * 163 + 27) % WIDTH + copy * WIDTH;
+        if (x + 100 < left || x > left + worldWidth) continue;
+        ctx.fillStyle = hexAlpha(i % 2 ? secondary : primary, .055 + i % 4 * .012);
+        ctx.fillRect(x, y, 21 + i % 5 * 17, i % 5 === 0 ? 1.5 : 1);
+      }
+      for (let i = 0; i < 39; i++) {
+        const x = (i * 237.3 + 31) % WIDTH + copy * WIDTH;
+        const y = (i * 111.7 + 41) % HEIGHT;
+        if (x < left || x > left + worldWidth) continue;
+        ctx.fillStyle = hexAlpha(i % 4 ? '#c8e3f4' : secondary, .09 + (i % 3) * .022);
+        ctx.fillRect(x, y, i % 7 === 0 ? 2 : 1, 1);
+      }
     }
     const horizon = HEIGHT * .575;
     ctx.globalAlpha = .22;
     ctx.strokeStyle = primary;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(0, horizon); ctx.lineTo(WIDTH, horizon);
+    ctx.moveTo(left, horizon); ctx.lineTo(left + worldWidth, horizon);
     ctx.stroke();
     ctx.globalAlpha = 1;
   }
@@ -810,23 +877,21 @@
   }
   function getStaticScene(active, zone) {
     if (active.stage === COLLAPSES.length && active.elapsed > 81) return null;
-    const key = zone + ':' + active.stage + ':' + active.half;
+    const key = zone + ':' + active.stage + ':' + active.half + ':' + panoramaWidth;
     const found = sceneSlots.find(slot => slot.key === key);
     if (found && found.canvas) return found.canvas;
     const slot = sceneSlots[sceneReplacement];
     sceneReplacement = (sceneReplacement + 1) % sceneSlots.length;
-    if (!slot.canvas) {
-      slot.canvas = document.createElement('canvas');
-      slot.canvas.width = WIDTH;
-      slot.canvas.height = HEIGHT;
-    }
+    if (!slot.canvas) slot.canvas = document.createElement('canvas');
+    if (slot.canvas.width !== panoramaWidth) slot.canvas.width = panoramaWidth;
+    if (slot.canvas.height !== HEIGHT) slot.canvas.height = HEIGHT;
     const backing = slot.canvas.getContext('2d', { alpha: false });
     if (!backing) return null;
     const previousCtx = ctx;
     try {
       ctx = backing;
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      // Cache immutable world artwork only. Every frame replays the dynamic
+      ctx.setTransform(1, 0, 0, 1, -panoramaLeft, 0);
+      // Cache immutable wide-world artwork only. Every frame replays the dynamic
       // collapse/warning/impact over the cached scene, preserving gameplay.
       drawArena({
         half: active.half, stage: active.stage, elapsed: 0,
@@ -875,13 +940,13 @@
     }
     // Two pre-rendered worlds, one center-out color seam. No per-frame
     // world gradients, extra geometry, gameplay collision or GPU blur.
-    ctx.drawImage(from, 0, 0, WIDTH, HEIGHT);
+    ctx.drawImage(from, panoramaLeft, 0, panoramaWidth, HEIGHT);
     ctx.save();
-    TIDE.clipNewColor(ctx, { x: 0, y: 0, w: WIDTH, h: HEIGHT }, progress);
-    ctx.drawImage(to, 0, 0, WIDTH, HEIGHT);
+    TIDE.clipNewColor(ctx, { x: panoramaLeft, y: 0, w: panoramaWidth, h: HEIGHT }, progress);
+    ctx.drawImage(to, panoramaLeft, 0, panoramaWidth, HEIGHT);
     ctx.restore();
     if (progress > .015 && progress < .98) {
-      TIDE.drawFront(ctx, { x: 0, y: 0, w: WIDTH, h: HEIGHT },
+      TIDE.drawFront(ctx, { x: panoramaLeft, y: 0, w: panoramaWidth, h: HEIGHT },
         progress, paletteForZone(active.zone)[0], .85);
     }
     drawDynamicArena(active, time);
@@ -898,7 +963,7 @@
       } else {
         const background = getStaticScene(active, active.zone);
         if (background) {
-          ctx.drawImage(background, 0, 0, WIDTH, HEIGHT);
+          ctx.drawImage(background, panoramaLeft, 0, panoramaWidth, HEIGHT);
           drawDynamicArena(active, time);
         } else drawArena(active, time, paletteForZone(active.zone));
       }
@@ -912,7 +977,7 @@
         canvas.height / viewHeight, 0, 0);
       screenCtx.translate(ox, oy); screenCtx.scale(scale, scale);
       screenCtx.fillStyle = '#10243a';
-      screenCtx.fillRect(0, 0, WIDTH, HEIGHT);
+      screenCtx.fillRect(panoramaLeft, 0, panoramaWidth, HEIGHT);
       screenCtx.strokeStyle = '#6fd9ff';
       screenCtx.lineWidth = 3;
       screenCtx.strokeRect(CX - active.half, CY - active.half,

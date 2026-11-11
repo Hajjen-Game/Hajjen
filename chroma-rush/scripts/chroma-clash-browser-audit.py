@@ -95,6 +95,20 @@ def main():
             assert page.locator('#clash-joystick').is_visible(), 'Joystick hidden after start'
             assert page.locator('#clash-zone').inner_text() == 'ZONE 01', 'Invalid first zone'
             assert page.locator('#clash-count').inner_text() == '4 ALIVE', 'Missing AI cubes'
+            assert page.locator('#clash-fullscreen').is_visible(), 'HUD fullscreen button missing'
+            assert page.locator('#clash-zone').bounding_box()['x'] > width * .3, 'Zone not centered'
+            # The old contain-only renderer left transparent sidebars on wide
+            # mobile displays. Pixel samples must now be opaque and colored.
+            edges = page.evaluate("""() => {
+              const c=document.getElementById('clash-canvas'),g=c.getContext('2d');
+              const y=Math.floor(c.height*.48);
+              const get=x=>Array.from(g.getImageData(x,y,1,1).data);
+              return {left:get(Math.max(0,Math.floor(c.width*.01))),
+                      right:get(Math.min(c.width-1,Math.floor(c.width*.99))),
+                      width:c.width,height:c.height};
+            }""")
+            assert edges['left'][3] >= 250 and edges['right'][3] >= 250, edges
+            assert sum(edges['left'][:3]) > 15 and sum(edges['right'][:3]) > 15, edges
             box = page.locator('#clash-joystick').bounding_box()
             assert box is not None
             cx, cy = box['x'] + box['width'] / 2, box['y'] + box['height'] / 2
@@ -123,6 +137,24 @@ def main():
             assert log['events'][0]['type'] == 'start', log
             page.locator('#clash-resume').click()
             assert page.locator('#clash-joystick').is_visible(), 'Resume hid joystick'
+            # A direct button tap must request the native browser fullscreen
+            # state; unsupported browsers show an honest, readable fallback.
+            fullscreen_supported = page.evaluate("""() =>
+              document.fullscreenEnabled !== false &&
+              typeof document.getElementById('clash-shell').requestFullscreen === 'function'
+            """)
+            page.locator('#clash-fullscreen').click()
+            page.wait_for_timeout(180)
+            fullscreen_active = page.evaluate("""() =>
+              document.fullscreenElement === document.getElementById('clash-shell')
+            """)
+            if fullscreen_active:
+                assert page.locator('#clash-fullscreen').get_attribute('aria-pressed') == 'true'
+                page.locator('#clash-fullscreen').click()
+                page.wait_for_timeout(90)
+                assert page.evaluate("() => !document.fullscreenElement")
+            else:
+                assert not fullscreen_supported or page.locator('#clash-fullscreen-status').is_visible(), 'Fullscreen was silently denied'
             timing = page.evaluate("""() => {
               const c=window.ChromaClashCore;
               const m=c.createMatch(43);
@@ -161,7 +193,10 @@ def main():
                              'rendered': True,
                              'joystickMoved': True, 'pausedAndResumed': True,
                              'collapse': collapse, 'tenSecondZone': timing['first'],
-                             'centerPulse': transition, 'runLogDownloaded': True})
+                             'centerPulse': transition, 'edgePixels': edges,
+                             'fullscreenSupported': fullscreen_supported,
+                             'fullscreenActivated': fullscreen_active,
+                             'runLogDownloaded': True})
             page.close()
         # Exercise actual cached-world compositing, not just clip geometry:
         # the arena center must recolor BEFORE the outer playable corners.

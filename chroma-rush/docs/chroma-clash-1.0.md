@@ -2,6 +2,20 @@
 
 Status: first playable **single-player vs. 3 AI** prototype. Available from the CHROMA RUSH menu through the **CHROMA CLASH · NEW ARENA MODE** link, or at \`chroma-rush/clash.html\`. Existing runner/Trials/Reality remain untouched.
 
+## Input response correction 1.1 — mobile feel (2026-11-11)
+
+Initial mobile playtest showed the virtual joystick felt sluggish **even on a recent iPhone**. Source inspection revealed that the thumb's original analog input was linear, with 970 world units/s² acceleration and weak idle braking. A quarter-radius thumb motion therefore gave very little force, and returning or reversing the stick carried excessive inertia. The screenshot showed a correctly positioned stick and arena; this pass targets **gameplay response**, not visuals.
+
+- **Acceleration:** 970 → 3100 world units/s², with a speed cap of 193 → 220 world units/s. A full stick typically reaches ~149 world units/s in 50 ms and the cap in ~80 ms in collision-free simulation.
+- **Reversal:** Same physical acceleration applies to left/right, up/down, and all three AI cubes. No cheating, teleport or movement frame skipping.
+- **Neutral braking:** Idle drag rises from 5.4 → 18 per second, preserving a short skid while making release more responsive.
+- **Analog stick response:** 8% deadzone, then a non-linear `0.62` curve. Gentle finger displacement produces enough movement to feel active; physical thumb artwork still follows the finger exactly.
+- **Rendering:** No new GPU effects, textures, or trails. Fixed-step 120 Hz simulation, the same arena and impacts, and the current 2× DPR cap remain.
+- **Cache safety:** The Clash JavaScript URL now includes `?v=chroma-clash-1.1-responsive-input` to bypass stale mobile assets.
+- **Regression:** Added quantitative 8ms/50ms/100ms, reversal, thumb deflection, release, diagonal-cap and identical AI steering tests; existing Chromium joystick/collapse smoke remains.
+
+Device playtesting remains the authority for perceived comfort. This change deliberately does **not** add a Dash button or alter the runner.
+
 ## Intent / decisions
 
 - Top-down 2D **square** platform with softly rounded corners. Not a circular arena.

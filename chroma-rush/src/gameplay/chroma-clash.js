@@ -7,10 +7,12 @@
   const COLLAPSES = Object.freeze([14, 28, 41, 53, 64, 73]);
   const WARNING_SECONDS = 3.2;
   const CUBE_RADIUS = 15;
-  const SPEED_LIMIT = 193;
-  const ACCELERATION = 970;
-  const DRAG_MOVING = 1.75;
-  const DRAG_IDLE = 5.4;
+  // Responsive arcade steering: a committed thumb movement must be visible within 1–2 frames.
+  // Collision impulses are still handled separately, preserving a sense of mass on impact.
+  const SPEED_LIMIT = 220;
+  const ACCELERATION = 3100;
+  const DRAG_MOVING = 1.85;
+  const DRAG_IDLE = 18;
   const COLORS = ['#60ecff', '#ff71ac', '#ffe26a', '#9f8aff'];
   const NAMES = ['YOU', 'NOVA', 'VOLT', 'HEX'];
   const ZONE_NAMES = ['FLOW', 'SURGE', 'PULSE', 'OVERDRIVE', 'FRENZY', 'CRITICAL', 'FINAL'];
@@ -24,6 +26,27 @@
   function normalized(x, y) {
     const l = length(x, y);
     return l > 0.00001 ? { x: x / l, y: y / l } : { x: 0, y: 0 };
+  }
+  // Thumb travel and movement power are deliberately decoupled. A short thumb
+  // sweep should produce a useful command even on a small mobile joystick.
+  function joystickResponse(strength) {
+    const v = clamp(Number.isFinite(strength) ? strength : 0, 0, 1);
+    return v <= 0.08 ? 0 : Math.min(1, Math.pow((v - 0.08) / 0.92, 0.62) * 1.08);
+  }
+  function steerCube(cube, intent, dt) {
+    let mx = Number.isFinite(intent.x) ? intent.x : 0;
+    let my = Number.isFinite(intent.y) ? intent.y : 0;
+    const magnitude = length(mx, my);
+    if (magnitude > 1) { mx /= magnitude; my /= magnitude; }
+    const drag = magnitude < .04 ? DRAG_IDLE : DRAG_MOVING;
+    // High steering acceleration shortens turn/reverse latency; no teleportation.
+    cube.vx += (mx * ACCELERATION - cube.vx * drag) * dt;
+    cube.vy += (my * ACCELERATION - cube.vy * drag) * dt;
+    const speed = length(cube.vx, cube.vy);
+    if (speed > SPEED_LIMIT) { cube.vx *= SPEED_LIMIT / speed; cube.vy *= SPEED_LIMIT / speed; }
+    cube.x += cube.vx * dt;
+    cube.y += cube.vy * dt;
+    return cube;
   }
   function rng(seed) {
     let state = (seed >>> 0) || 0x4f13ab9;
@@ -187,17 +210,7 @@
     for (const cube of match.cubes) {
       if (!cube.alive) continue;
       const intent = cube.id === 0 ? user : chooseAI(match, cube);
-      let mx = Number.isFinite(intent.x) ? intent.x : 0;
-      let my = Number.isFinite(intent.y) ? intent.y : 0;
-      const mag = length(mx, my);
-      if (mag > 1) { mx /= mag; my /= mag; }
-      const drag = mag < .04 ? DRAG_IDLE : DRAG_MOVING;
-      cube.vx += (mx * ACCELERATION - cube.vx * drag) * step;
-      cube.vy += (my * ACCELERATION - cube.vy * drag) * step;
-      const speed = length(cube.vx, cube.vy);
-      if (speed > SPEED_LIMIT) { cube.vx *= SPEED_LIMIT / speed; cube.vy *= SPEED_LIMIT / speed; }
-      cube.x += cube.vx * step;
-      cube.y += cube.vy * step;
+      steerCube(cube, intent, step);
     }
     for (let round = 0; round < 2; round++) {
       for (let i = 0; i < match.cubes.length; i++) {
@@ -220,7 +233,8 @@
   }
   const core = { WIDTH, HEIGHT, CX, CY, HALVES, COLLAPSES, COLORS, NAMES,
     ZONE_NAMES, PALETTES, CUBE_RADIUS, SPEED_LIMIT, WARNING_SECONDS,
-    roundedSquareSDF, supported, createMatch, chooseAI, collide, updateMatch, beginCollapse, knockOut };
+    roundedSquareSDF, supported, joystickResponse, steerCube,
+    createMatch, chooseAI, collide, updateMatch, beginCollapse, knockOut };
   if (typeof module !== 'undefined' && module.exports) module.exports = core;
   root.ChromaClashCore = core;
   if (typeof document === 'undefined' || !document.getElementById('clash-canvas')) return;
@@ -275,12 +289,16 @@
     const dy = event.clientY - (rect.top + rect.height / 2);
     const max = rect.width * .38;
     const distance = length(dx, dy);
-    const amount = Math.min(max, distance);
-    joyX = distance > 0 ? dx / distance * amount / max : 0;
-    joyY = distance > 0 ? dy / distance * amount / max : 0;
-    if (length(joyX, joyY) < .12) { joyX = 0; joyY = 0; }
-    stick.style.transform = 'translate(calc(-50% + ' + (joyX * max).toFixed(1) +
-      'px),calc(-50% + ' + (joyY * max).toFixed(1) + 'px))';
+    const travel = Math.min(max, distance);
+    const power = joystickResponse(travel / max);
+    joyX = distance > 0 ? dx / distance * power : 0;
+    joyY = distance > 0 ? dy / distance * power : 0;
+    // The thumb follows the finger, while the analog command uses a curved
+    // response. Otherwise small movements appear visually delayed.
+    const thumbX = distance > 0 ? dx / distance * travel : 0;
+    const thumbY = distance > 0 ? dy / distance * travel : 0;
+    stick.style.transform = 'translate(calc(-50% + ' + thumbX.toFixed(1) +
+      'px),calc(-50% + ' + thumbY.toFixed(1) + 'px))';
   }
   function resetStick() {
     pointer = null; joyX = 0; joyY = 0;

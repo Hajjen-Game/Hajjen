@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#080d20">
   <meta name="description" content="CHROMA CLASH — four neon cubes. One collapsing arena.">
-  <title>CHROMA RUSH | Chroma Clash 1.2</title>
-  <link rel="stylesheet" href="clash.css?v=chroma-clash-1.0">
+  <title>CHROMA RUSH | Chroma Clash 1.3</title>
+  <link rel="stylesheet" href="clash.css?v=chroma-clash-1.3">
 </head>
 <body>
   <main id="clash-shell" aria-label="CHROMA CLASH arena game">
@@ -37,6 +37,7 @@
       <div class="kicker">CHROMA CLASH</div><h2>PAUSED</h2>
       <button id="clash-resume" class="primary-btn" type="button">RESUME <span aria-hidden="true">→</span></button>
       <button id="clash-restart-pause" class="secondary-btn" type="button">RESTART MATCH</button>
+      <button id="clash-export-pause" class="audit-btn" type="button">EXPORT RUN LOG</button>
       <a class="return-link" href="./index.html">← MAIN MENU</a>
     </section>
     <section id="clash-finish" class="overlay hidden" aria-live="polite" aria-label="Match result">
@@ -45,10 +46,13 @@
       <p id="clash-summary" class="tagline">LAST CUBE STANDING</p>
       <div class="result-stats"><div><small>ELIMINATIONS</small><strong id="clash-kos">0</strong></div><div><small>SURVIVED</small><strong id="clash-duration">0:00</strong></div><div><small>BEST</small><strong id="clash-best">—</strong></div></div>
       <button id="clash-again" class="primary-btn" type="button">PLAY AGAIN <span aria-hidden="true">→</span></button>
+      <button id="clash-export" class="audit-btn" type="button">EXPORT RUN LOG</button>
       <a class="return-link" href="./index.html">← MAIN MENU</a>
     </section>
     <div id="clash-orientation" aria-live="polite"><div class="rotate-symbol">▭ ↻</div><strong>ROTATE YOUR DEVICE</strong><span>CHROMA CLASH is designed for landscape play.</span></div>
   </main>
-  <script src="src/gameplay/chroma-clash.js?v=chroma-clash-1.2-ten-second-zones"></script>
+  <script src="src/diagnostics/chroma-clash-audit.js?v=chroma-clash-1.3"></script>
+  <script src="src/render/chroma-corner-tide.js?v=chroma-clash-1.3"></script>
+  <script src="src/gameplay/chroma-clash.js?v=chroma-clash-1.3-corner-tide-impact-audit"></script>
 </body>
 </html>

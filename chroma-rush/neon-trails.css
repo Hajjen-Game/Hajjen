@@ -1,4 +1,4 @@
-/* NEON TRAILS 1.0: shared Chroma Rush / Clash arcade language */
+/* NEON TRAILS 1.1: shared Chroma Rush / Clash arcade language */
 #trails-shell{
   position:relative;isolation:isolate;width:100vw;height:100vh;height:100dvh;
   overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;
@@ -27,7 +27,7 @@
 }
 #trails-joystick{z-index:7}
 #trails-input-help{left:clamp(142px,23vw,240px);z-index:5}
-.trails-boost{
+.trails-dash{
   position:absolute;bottom:clamp(22px,6vh,42px);
   right:max(clamp(20px,5vw,76px),env(safe-area-inset-right));
   z-index:8;width:clamp(96px,18vh,138px);
@@ -38,10 +38,10 @@
   color:#ffb2d5;font-weight:900;font-size:clamp(12px,1.6vw,19px);
   letter-spacing:.12em;touch-action:none;user-select:none;-webkit-user-select:none;
 }
-.trails-boost:active:not(:disabled){
+.trails-dash:active:not(:disabled){
   transform:scale(.95);background:rgba(255,111,166,.24);
 }
-.trails-boost.recharging{
+.trails-dash.recharging{
   opacity:.54;color:#c7a0b8;border-color:rgba(167,110,155,.35);
 }
 #trails-shell .overlay{z-index:12}
@@ -66,10 +66,10 @@
   #trails-orientation span{font-size:13px;color:#a1bdd9}
 }
 @media(max-height:450px){
-  .trails-boost{bottom:10px;width:clamp(100px,25vh,145px);
+  .trails-dash{bottom:10px;width:clamp(100px,25vh,145px);
     height:clamp(100px,25vh,145px);border-radius:28px}
   #trails-announce{top:max(104px,26vh)}
 }
 @media(prefers-reduced-motion:reduce){
-  .trails-boost{transition:none}
+  .trails-dash{transition:none}
 }

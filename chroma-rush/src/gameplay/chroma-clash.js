@@ -367,8 +367,15 @@
   let ctx = canvas.getContext('2d');
   if (!ctx) { $('clash-menu').innerHTML = '<h2>Canvas 2D is required.</h2>'; return; }
   const screenCtx = ctx;
-  let tideCacheCanvas = null, tideCacheZone = -1, tideCacheStage = -1;
-  let tideCacheHalf = -1, tideDisabled = false, tideSlowFrames = 0;
+  // Render performance 1.4: stationary arena/background art is generated
+  // only when the zone or platform changes. Normal frames draw two cached
+  // images at most, plus the four actors and lightweight impact effects.
+  const sceneSlots = [{ key: '', canvas: null }, { key: '', canvas: null }];
+  let sceneReplacement = 0, tideDisabled = false;
+  let tideSlowFrames = 0, slowFrameStreak = 0, renderQuality = 1;
+  let pixelsPerCss = 1;
+  const BASE_PIXEL_BUDGET = 750000;
+  const spriteCache = Object.create(null);
   const joystick = $('clash-joystick'), stick = $('clash-stick');
   const keys = new Set();
   let match = null, preview = createMatch(1337), mode = 'menu';
@@ -383,9 +390,15 @@
   } catch (_) { /* storage is optional in private mode */ }
   function resize() {
     viewWidth = window.innerWidth; viewHeight = window.innerHeight;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.max(1, Math.floor(viewWidth * dpr));
-    canvas.height = Math.max(1, Math.floor(viewHeight * dpr));
+    // This used to render 2x device pixel ratio on phones: a 1.4k × 700
+    // CSS viewport could consume over 3.9 million GPU pixels per frame.
+    // The game sprites are vector/Canvas art, and the DOM HUD stays crisp.
+    pixelsPerCss = Math.min(1, Math.sqrt(BASE_PIXEL_BUDGET /
+      Math.max(1, viewWidth * viewHeight))) * renderQuality;
+    const targetWidth = Math.max(1, Math.round(viewWidth * pixelsPerCss));
+    const targetHeight = Math.max(1, Math.round(viewHeight * pixelsPerCss));
+    if (canvas.width !== targetWidth) canvas.width = targetWidth;
+    if (canvas.height !== targetHeight) canvas.height = targetHeight;
     scale = Math.min(viewWidth / WIDTH, viewHeight / HEIGHT);
     ox = (viewWidth - WIDTH * scale) / 2;
     oy = (viewHeight - HEIGHT * scale) / 2;
@@ -458,10 +471,8 @@
   });
   function startGame() {
     match = createMatch((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
-    // New rounds always attempt the optimized wave again; only a proven slow
-    // session triggers adaptive fallback.
-    tideDisabled = false; tideSlowFrames = 0;
-    tideCacheCanvas = null; tideCacheZone = -1; tideCacheStage = -1;
+    tideDisabled = false; tideSlowFrames = 0; slowFrameStreak = 0;
+    renderQuality = 1; resize();
     mode = 'running'; keys.clear(); resetStick(); lastEventId = 0; accumulator = 0;
     setScreen(mode); showAnnounce('LAST CUBE STANDING', 1.2);
     updateHUD();
@@ -521,17 +532,22 @@
     el.textContent = text; el.classList.remove('hidden');
     announceTimer = seconds;
   }
+  function setText(id, value) {
+    const el = $(id);
+    if (el.textContent !== value) el.textContent = value;
+  }
   function updateHUD() {
     if (!match) return;
-    $('clash-zone').textContent = 'ZONE ' + String(match.zone + 1).padStart(2, '0');
-    $('clash-phase').textContent = match.warning ?
+    setText('clash-zone', 'ZONE ' + String(match.zone + 1).padStart(2, '0'));
+    setText('clash-phase', match.warning ?
       'EDGE FALL · ' + Math.ceil(match.warningTime) + 'S' :
       ZONE_NAMES[match.zone % ZONE_NAMES.length] + ' · SPEED ' +
-        (speedForZone(match.zone) / BASE_ZONE_SPEED).toFixed(2) + '×';
+        (speedForZone(match.zone) / BASE_ZONE_SPEED).toFixed(2) + '×');
     const alive = match.cubes.filter(c => c.alive).length;
-    $('clash-count').textContent = alive + ' ALIVE';
-    $('clash-clock').textContent = clock(match.elapsed);
-    $('clash-phase').style.color = match.warning ? '#ffcc7f' : '#83dcff';
+    setText('clash-count', alive + ' ALIVE');
+    setText('clash-clock', clock(match.elapsed));
+    const color = match.warning ? 'rgb(255, 204, 127)' : 'rgb(131, 220, 255)';
+    if ($('clash-phase').style.color !== color) $('clash-phase').style.color = color;
   }
   function roundedRect(x, y, w, h, r) {
     const rad = Math.min(r, w / 2, h / 2);
@@ -665,39 +681,58 @@
     ctx.beginPath(); squarePath(Math.max(5, h - 7)); ctx.stroke();
     ctx.restore();
   }
+  function cubeSprite(color) {
+    if (spriteCache[color]) return spriteCache[color];
+    const image = document.createElement('canvas');
+    image.width = 72; image.height = 72;
+    const c = image.getContext('2d');
+    c.translate(36, 36);
+    const face = c.createLinearGradient(-12, -12, 12, 12);
+    face.addColorStop(0, '#efffff');
+    face.addColorStop(.17, color);
+    face.addColorStop(1, '#193656');
+    c.fillStyle = face;
+    c.shadowColor = color;
+    c.shadowBlur = 9; // rendered ONCE per colored cube, not 4x per frame
+    c.beginPath();
+    c.moveTo(-8.2, -12); c.lineTo(8.2, -12);
+    c.quadraticCurveTo(12, -12, 12, -8.2);
+    c.lineTo(12, 8.2); c.quadraticCurveTo(12, 12, 8.2, 12);
+    c.lineTo(-8.2, 12); c.quadraticCurveTo(-12, 12, -12, 8.2);
+    c.lineTo(-12, -8.2); c.quadraticCurveTo(-12, -12, -8.2, -12);
+    c.fill();
+    c.shadowBlur = 0;
+    c.lineWidth = 1.8;
+    c.strokeStyle = color; c.stroke();
+    c.fillStyle = 'rgba(255,255,255,.34)';
+    c.fillRect(-7.5, -7.7, 8, 2.9);
+    spriteCache[color] = image;
+    return image;
+  }
   function drawCube(cube, time) {
     const p = cube.fall;
-    const size = 24 * (1 - p * .62);
-    const color = cube.color;
+    if (p >= 1) return;
+    const sizeScale = 1 - p * .62;
     ctx.save();
     ctx.globalAlpha = Math.max(0, 1 - p * 1.05);
     ctx.translate(cube.x, cube.y + p * p * 100);
     ctx.rotate(((cube.vx + (cube.knockVx || 0)) * .0006) +
       ((cube.vy + (cube.knockVy || 0)) * .00035) + p * .7);
-    // Impact visibly compresses the cube, but keeps its recognizable square
-    // silhouette (the player specifically disliked arrow-shaped motion).
-    ctx.scale(1 + cube.squash * .27, 1 - cube.squash * .23);
-    ctx.fillStyle = 'rgba(0,0,0,.44)';
-    ctx.beginPath(); ctx.ellipse(0, 11 + p * 15, size * .82, size * .32, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowColor = color; ctx.shadowBlur = 17 + cube.squash * 16;
-    const face = ctx.createLinearGradient(-size / 2, -size / 2, size / 2, size / 2);
-    face.addColorStop(0, '#efffff');
-    face.addColorStop(.16, color);
-    face.addColorStop(1, '#193656');
-    ctx.fillStyle = face;
-    ctx.beginPath(); roundedRect(-size / 2, -size / 2, size, size, 3.8); ctx.fill();
-    ctx.lineWidth = cube.id === 0 ? 2.3 : 1.7;
-    ctx.strokeStyle = color; ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(255,255,255,.30)';
-    ctx.fillRect(-size * .31, -size * .32, size * .36, size * .12);
+    ctx.scale(sizeScale * (1 + cube.squash * .27),
+      sizeScale * (1 - cube.squash * .23));
+    ctx.fillStyle = 'rgba(0,0,0,.38)';
+    ctx.beginPath(); ctx.ellipse(0, 12, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.drawImage(cubeSprite(cube.color), -36, -36);
     ctx.restore();
-    if (p > 0.35) return;
+    if (p > .35) return;
+    // Text has no per-frame blur kernel. Fixed color names still identify
+    // each AI cube against any of the seven environment palettes.
     ctx.save();
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = (cube.id === 0 ? 'bold 13px ' : 'bold 11px ') + 'system-ui,sans-serif';
-    ctx.shadowColor = '#030713'; ctx.shadowBlur = 8;
-    ctx.fillStyle = cube.id === 0 ? '#effeff' : color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = (cube.id === 0 ? 'bold 13px ' : 'bold 11px ') +
+      'system-ui,sans-serif';
+    ctx.fillStyle = cube.id === 0 ? '#effeff' : cube.color;
     ctx.fillText(cube.name, cube.x, cube.y - 27);
     ctx.restore();
   }
@@ -705,125 +740,136 @@
     const a = clamp(impact.life / .38, 0, 1);
     const spread = (1 - a) * (22 + impact.power * 10);
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    ctx.globalAlpha = a * .83;
-    ctx.shadowColor = impact.color || '#c9f9ff';
-    ctx.shadowBlur = 15 + 11 * a;
-    ctx.strokeStyle = '#dcfbff';
-    ctx.lineWidth = 2.2 + a * 1.2;
-    ctx.beginPath();
-    ctx.arc(impact.x, impact.y, 8 + spread, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.lineWidth = 2;
+    ctx.globalAlpha = a * .8;
+    ctx.strokeStyle = impact.color || '#c9f9ff';
+    ctx.lineWidth = 2.8;
+    ctx.beginPath(); ctx.arc(impact.x, impact.y, 8 + spread, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = '#effcff';
+    ctx.lineWidth = 1.7;
     for (let i = 0; i < 8; i++) {
       const angle = i * Math.PI / 4 + Math.PI / 8;
-      const begin = 8 + spread * .65;
-      const end = 16 + spread;
       ctx.beginPath();
-      ctx.moveTo(impact.x + Math.cos(angle) * begin,
-        impact.y + Math.sin(angle) * begin);
-      ctx.lineTo(impact.x + Math.cos(angle) * end,
-        impact.y + Math.sin(angle) * end);
+      ctx.moveTo(impact.x + Math.cos(angle) * (8 + spread * .65),
+        impact.y + Math.sin(angle) * (8 + spread * .65));
+      ctx.lineTo(impact.x + Math.cos(angle) * (16 + spread),
+        impact.y + Math.sin(angle) * (16 + spread));
       ctx.stroke();
     }
     ctx.restore();
   }
-  function ensureOldSceneCache(active, time) {
-    if (tideDisabled || !TIDE) return false;
-    // Canvas allocated only on the first actual color swap. A 960x540 cache
-    // is ~2MB regardless of device DPR (vs two full-DPR world renders).
-    if (!tideCacheCanvas) {
-      tideCacheCanvas = document.createElement('canvas');
-      tideCacheCanvas.width = WIDTH;
-      tideCacheCanvas.height = HEIGHT;
+  function getStaticScene(active, zone) {
+    if (active.stage === COLLAPSES.length && active.elapsed > 81) return null;
+    const key = zone + ':' + active.stage + ':' + active.half;
+    const found = sceneSlots.find(slot => slot.key === key);
+    if (found && found.canvas) return found.canvas;
+    const slot = sceneSlots[sceneReplacement];
+    sceneReplacement = (sceneReplacement + 1) % sceneSlots.length;
+    if (!slot.canvas) {
+      slot.canvas = document.createElement('canvas');
+      slot.canvas.width = WIDTH;
+      slot.canvas.height = HEIGHT;
     }
-    if (tideCacheZone === active.zone &&
-        tideCacheStage === active.stage && tideCacheHalf === active.half) return true;
-    const buffer = tideCacheCanvas.getContext('2d', { alpha: false });
-    if (!buffer) return false;
-    const prior = ctx;
+    const backing = slot.canvas.getContext('2d', { alpha: false });
+    if (!backing) return null;
+    const previousCtx = ctx;
     try {
-      ctx = buffer;
+      ctx = backing;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, WIDTH, HEIGHT);
-      // Only one expensive world render for the old phase across the entire
-      // 1.55-second transition, not every frame.
-      drawArena(active, time, paletteForZone(active.zone - 1));
-      tideCacheZone = active.zone;
-      tideCacheStage = active.stage;
-      tideCacheHalf = active.half;
-      return true;
+      // Cache immutable world artwork only. Every frame replays the dynamic
+      // collapse/warning/impact over the cached scene, preserving gameplay.
+      drawArena({
+        half: active.half, stage: active.stage, elapsed: 0,
+        warning: false, falling: [], flash: 0
+      }, 0, paletteForZone(zone));
+      slot.key = key;
+      if (match && match.audit) match.audit.performance.sceneBuilds++;
+      return slot.canvas;
     } finally {
-      ctx = prior;
+      ctx = previousCtx;
     }
   }
-  function drawActiveEdgeWarning(active, time) {
-    // The cached old color scene was captured before the warning began.
-    // Draw the safe boundary OVER the complete transition so its lead time
-    // stays correct even while colors sweep under the player's feet.
-    if (!active.warning || active.stage >= COLLAPSES.length) return;
-    const h = active.half, inner = HALVES[active.stage + 1];
-    ctx.save();
-    ctx.beginPath(); squarePath(h); ctx.clip();
-    ctx.beginPath(); squarePath(inner);
-    ctx.setLineDash([12, 8]);
-    ctx.lineWidth = 2.4; ctx.strokeStyle = '#ffd89b';
-    ctx.globalAlpha = .70 + Math.sin(time * 8) * .21;
-    ctx.stroke(); ctx.restore();
+  function drawDynamicArena(active, time) {
+    // Separating this from the costly background paint means collapsing edge
+    // pieces, danger warnings and ring break flash remain animated at 60fps.
+    if (active.falling.length) drawFallenRims(active);
+    if (active.warning && active.stage < COLLAPSES.length) {
+      const h = active.half, inner = HALVES[active.stage + 1];
+      ctx.save();
+      ctx.beginPath(); squarePath(h); ctx.clip();
+      // Thin translucent band shows exactly which outer tiles will detach.
+      ctx.beginPath(); squarePath(h); squarePath(inner);
+      ctx.fillStyle = Math.sin(time * 9) > 0 ? 'rgba(255,148,91,.27)' : 'rgba(255,148,91,.12)';
+      ctx.fill('evenodd');
+      ctx.beginPath(); squarePath(inner);
+      ctx.setLineDash([13, 8]);
+      ctx.lineWidth = 2.4; ctx.strokeStyle = '#ffd89b';
+      ctx.stroke(); ctx.setLineDash([]);
+      ctx.restore();
+    }
+    if (active.flash > 0) {
+      ctx.save();
+      ctx.beginPath(); squarePath(active.half); ctx.clip();
+      ctx.fillStyle = 'rgba(192,245,255,' + (active.flash * .16).toFixed(3) + ')';
+      ctx.fillRect(CX - active.half, CY - active.half, active.half * 2, active.half * 2);
+      ctx.restore();
+    }
   }
   function drawCornerTransition(active, time) {
-    const to = paletteForZone(active.zone);
     const progress = 1 - active.paletteFade / COLOR_FADE_SECONDS;
-    const screen = { x: 0, y: 0, w: WIDTH, h: HEIGHT };
-    if (!ensureOldSceneCache(active, time)) {
-      drawArena(active, time, to);
+    const from = getStaticScene(active, Math.max(0, active.zone - 1));
+    const to = getStaticScene(active, active.zone);
+    if (!from || !to) {
+      drawArena(active, time, paletteForZone(active.zone));
       return;
     }
-    // ONE cached background image + ONE live world render clipped by a single
-    // four-corner union. No per-frame double full-world redraw, no second
-    // stage-floor clip, no nested even-odd masks or additional radial bloom.
-    ctx.drawImage(tideCacheCanvas, 0, 0, WIDTH, HEIGHT);
+    // No world rasterization in a normal frame: the incoming wave only
+    // clips a PRE-RENDERED image. The four-corner mask is pure Canvas 2D.
+    ctx.drawImage(from, 0, 0, WIDTH, HEIGHT);
     ctx.save();
-    TIDE.clipNewColor(ctx, screen, progress);
-    drawArena(active, time, to);
+    TIDE.clipNewColor(ctx, { x: 0, y: 0, w: WIDTH, h: HEIGHT }, progress);
+    ctx.drawImage(to, 0, 0, WIDTH, HEIGHT);
     ctx.restore();
-
-    // One thin luminous front around the current real scene, never multiple
-    // blur-heavy overlapping wave passes that can stall mobile GPU drivers.
-    if (progress > .035 && progress < .965) {
-      TIDE.drawFront(ctx, screen, progress, to[0], .55);
+    if (progress > .05 && progress < .95) {
+      TIDE.drawFront(ctx, { x: 0, y: 0, w: WIDTH, h: HEIGHT },
+        progress, paletteForZone(active.zone)[0], .38);
     }
-    drawActiveEdgeWarning(active, time);
+    drawDynamicArena(active, time);
   }
   function render(time) {
     const active = match || preview;
-    // Guard the world renderer. Even if the device's Canvas path fails, draw
-    // the four players after the fallback rather than leaving an empty arena.
     screenCtx.setTransform(canvas.width / viewWidth, 0, 0,
       canvas.height / viewHeight, 0, 0);
     screenCtx.clearRect(0, 0, viewWidth, viewHeight);
     screenCtx.translate(ox, oy); screenCtx.scale(scale, scale);
     try {
-      if (active.paletteFade > 0 && TIDE && !tideDisabled && active.elapsed <= 81)
+      if (active.paletteFade > 0 && TIDE && !tideDisabled && active.elapsed <= 81) {
         drawCornerTransition(active, time);
-      else drawArena(active, time, paletteForZone(active.zone));
+      } else {
+        const background = getStaticScene(active, active.zone);
+        if (background) {
+          ctx.drawImage(background, 0, 0, WIDTH, HEIGHT);
+          drawDynamicArena(active, time);
+        } else drawArena(active, time, paletteForZone(active.zone));
+      }
     } catch (error) {
-      tideDisabled = true; tideCacheCanvas = null;
+      tideDisabled = true;
+      // Graphics error fallback is intentionally primitive and resilient:
+      // avoid retrying an already failing heavy render pipeline.
       ctx = screenCtx;
-      // Reset state after any failed clipping context so sprites never remain
-      // hidden behind a clip left active by an exceptional graphics call.
-      screenCtx.setTransform(1, 0, 0, 1, 0, 0);
-      // Canvas reset clears any unexpected clip state in older WebKit builds.
       canvas.width = canvas.width;
       screenCtx.setTransform(canvas.width / viewWidth, 0, 0,
         canvas.height / viewHeight, 0, 0);
       screenCtx.translate(ox, oy); screenCtx.scale(scale, scale);
-      drawArena(active, time, paletteForZone(active.zone));
+      screenCtx.fillStyle = '#10243a';
+      screenCtx.fillRect(0, 0, WIDTH, HEIGHT);
+      screenCtx.strokeStyle = '#6fd9ff';
+      screenCtx.lineWidth = 3;
+      screenCtx.strokeRect(CX - active.half, CY - active.half,
+        active.half * 2, active.half * 2);
       if (match && match.audit) match.audit.noteGraphicsFallback(match.elapsed,
         String(error && error.message || error).slice(0, 90), false);
     }
-    // Sprites are drawn AFTER the world wave and no longer depend on color
-    // masks. Color changes can never hide players behind an unfinished pass.
+    // Always ABOVE every environmental overlay and color mask.
     active.cubes.forEach(c => drawCube(c, time));
     active.impacts.forEach(drawImpact);
   }
@@ -834,15 +880,32 @@
     // If a low-end device cannot keep a responsive joystick while the wave
     // sweeps, disable only the transient chroma FX. Color/speed progression,
     // visible cube sprites and gameplay all continue unchanged.
-    if (mode === 'running' && match && match.paletteFade > 0 && !tideDisabled) {
-      if (frameMs > 65) tideSlowFrames++;
-      else tideSlowFrames = Math.max(0, tideSlowFrames - 1);
-      if (tideSlowFrames >= 3) {
-        tideDisabled = true; tideCacheCanvas = null;
-        match.audit.noteGraphicsFallback(match.elapsed,
-          'repeated frame intervals above 65ms during Chroma Tide', true);
+    if (mode === 'running' && match) {
+      // Unlike the previous version, quality adapts BEFORE the first color
+      // transition, too. Persistently long frames indicate renderer/GPU
+      // pressure whether or not the Chroma Tide is currently visible.
+      if (frameMs > 65) slowFrameStreak++;
+      else slowFrameStreak = Math.max(0, slowFrameStreak - 2);
+      if (slowFrameStreak >= 8 && renderQuality > .56) {
+        renderQuality = renderQuality > .85 ? .8 : .55;
+        slowFrameStreak = 0;
+        resize();
+        match.audit.performance.qualityDrops++;
+        match.audit.record('render_quality_drop', match.elapsed, {
+          quality: renderQuality, backingWidth: canvas.width,
+          backingHeight: canvas.height
+        });
       }
-    } else tideSlowFrames = 0;
+      if (match.paletteFade > 0 && !tideDisabled) {
+        if (frameMs > 75) tideSlowFrames++;
+        else tideSlowFrames = Math.max(0, tideSlowFrames - 1);
+        if (tideSlowFrames >= 4) {
+          tideDisabled = true;
+          match.audit.noteGraphicsFallback(match.elapsed,
+            'wave reduced after repeated >75ms frames', true);
+        }
+      } else tideSlowFrames = 0;
+    } else { slowFrameStreak = 0; tideSlowFrames = 0; }
     if (mode === 'running' && match) {
       accumulator = Math.min(.08, accumulator + dt);
       let iterations = 0;

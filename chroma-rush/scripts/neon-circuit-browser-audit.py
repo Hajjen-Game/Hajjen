@@ -86,7 +86,7 @@ def main():
             destination=OUT/f"circuit-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/1.0",log
+            assert log["schema"]=="neon-circuit-run-audit/1.1",log
             assert log["status"]=="in_progress",log
             assert log["summary"]["dashes"]==1,log
             page.locator("#circuit-resume").click()
@@ -106,7 +106,8 @@ def main():
               c.tick(m,{},1/60);
               const result={zone:m.zone,tide:m.tide,speed:c.zoneSpeed(m.zone)};
               const racer=m.racers[0];m.elapsed=55;m.zone=5;
-              racer.progress=c.TRACK.length*3-3;
+              racer.gatePasses=12;racer.laps=2;
+              racer.progress=c.TRACK.length*3-4;
               const at=c.pointAt(racer.progress);
               racer.x=at.x;racer.y=at.y;racer.angle=at.angle;racer.speed=155;
               c.tick(m,{x:at.tx,y:at.ty},1/30);

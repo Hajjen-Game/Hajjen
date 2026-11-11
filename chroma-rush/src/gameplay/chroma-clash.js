@@ -532,17 +532,22 @@
     el.textContent = text; el.classList.remove('hidden');
     announceTimer = seconds;
   }
+  function setText(id, value) {
+    const el = $(id);
+    if (el.textContent !== value) el.textContent = value;
+  }
   function updateHUD() {
     if (!match) return;
-    $('clash-zone').textContent = 'ZONE ' + String(match.zone + 1).padStart(2, '0');
-    $('clash-phase').textContent = match.warning ?
+    setText('clash-zone', 'ZONE ' + String(match.zone + 1).padStart(2, '0'));
+    setText('clash-phase', match.warning ?
       'EDGE FALL · ' + Math.ceil(match.warningTime) + 'S' :
       ZONE_NAMES[match.zone % ZONE_NAMES.length] + ' · SPEED ' +
-        (speedForZone(match.zone) / BASE_ZONE_SPEED).toFixed(2) + '×';
+        (speedForZone(match.zone) / BASE_ZONE_SPEED).toFixed(2) + '×');
     const alive = match.cubes.filter(c => c.alive).length;
-    $('clash-count').textContent = alive + ' ALIVE';
-    $('clash-clock').textContent = clock(match.elapsed);
-    $('clash-phase').style.color = match.warning ? '#ffcc7f' : '#83dcff';
+    setText('clash-count', alive + ' ALIVE');
+    setText('clash-clock', clock(match.elapsed));
+    const color = match.warning ? 'rgb(255, 204, 127)' : 'rgb(131, 220, 255)';
+    if ($('clash-phase').style.color !== color) $('clash-phase').style.color = color;
   }
   function roundedRect(x, y, w, h, r) {
     const rad = Math.min(r, w / 2, h / 2);
@@ -876,15 +881,32 @@
     // If a low-end device cannot keep a responsive joystick while the wave
     // sweeps, disable only the transient chroma FX. Color/speed progression,
     // visible cube sprites and gameplay all continue unchanged.
-    if (mode === 'running' && match && match.paletteFade > 0 && !tideDisabled) {
-      if (frameMs > 65) tideSlowFrames++;
-      else tideSlowFrames = Math.max(0, tideSlowFrames - 1);
-      if (tideSlowFrames >= 3) {
-        tideDisabled = true; tideCacheCanvas = null;
-        match.audit.noteGraphicsFallback(match.elapsed,
-          'repeated frame intervals above 65ms during Chroma Tide', true);
+    if (mode === 'running' && match) {
+      // Unlike the previous version, quality adapts BEFORE the first color
+      // transition, too. Persistently long frames indicate renderer/GPU
+      // pressure whether or not the Chroma Tide is currently visible.
+      if (frameMs > 65) slowFrameStreak++;
+      else slowFrameStreak = Math.max(0, slowFrameStreak - 2);
+      if (slowFrameStreak >= 8 && renderQuality > .56) {
+        renderQuality = renderQuality > .85 ? .8 : .55;
+        slowFrameStreak = 0;
+        resize();
+        match.audit.performance.qualityDrops++;
+        match.audit.record('render_quality_drop', match.elapsed, {
+          quality: renderQuality, backingWidth: canvas.width,
+          backingHeight: canvas.height
+        });
       }
-    } else tideSlowFrames = 0;
+      if (match.paletteFade > 0 && !tideDisabled) {
+        if (frameMs > 75) tideSlowFrames++;
+        else tideSlowFrames = Math.max(0, tideSlowFrames - 1);
+        if (tideSlowFrames >= 4) {
+          tideDisabled = true;
+          match.audit.noteGraphicsFallback(match.elapsed,
+            'wave reduced after repeated >75ms frames', true);
+        }
+      } else tideSlowFrames = 0;
+    } else { slowFrameStreak = 0; tideSlowFrames = 0; }
     if (mode === 'running' && match) {
       accumulator = Math.min(.08, accumulator + dt);
       let iterations = 0;

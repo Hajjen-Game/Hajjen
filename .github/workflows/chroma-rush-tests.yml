@@ -44,6 +44,8 @@ jobs:
         run: python chroma-rush/scripts/chroma-clash-browser-audit.py
       - name: Exercise Neon Trails AI duel, joystick, boost and fullscreen in Chromium
         run: python chroma-rush/scripts/neon-trails-browser-audit.py
+      - name: Exercise Neon Circuit four-cube racing, corner braking and Dash in Chromium
+        run: python chroma-rush/scripts/neon-circuit-browser-audit.py
       - name: Retain performance audit captures
         if: always()
         uses: actions/upload-artifact@v4
@@ -62,5 +64,6 @@ jobs:
             chroma-rush/artifacts/reality-audit/
             chroma-rush/artifacts/clash-audit/
             chroma-rush/artifacts/neon-trails-audit/
+            chroma-rush/artifacts/neon-circuit-audit/
           if-no-files-found: warn
           retention-days: 7

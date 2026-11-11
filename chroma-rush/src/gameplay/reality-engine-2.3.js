@@ -8,12 +8,15 @@
     require('./reality-engine-2.2.js'):root.ChromaReality;
   const config=typeof module!=='undefined'&&module.exports?
     require('../core/config.js'):root.ChromaConfig;
-  const api=factory(prior,config?.GAME);
+  const geometry=typeof module!=='undefined'&&module.exports?
+    require('../core/geometry.js'):root.ChromaGeometry;
+  const api=factory(prior,config?.GAME,geometry);
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(root)root.ChromaReality=api;
-})(typeof window!=='undefined'?window:null,function(base,GAME){
+})(typeof window!=='undefined'?window:null,function(base,GAME,geometry){
   'use strict';
-  if(!base?.RealityEngine||!GAME)throw Error('Reality 2.3 requires Reality 2.2');
+  if(!base?.RealityEngine||!GAME||!geometry)
+    throw Error('Reality 2.3 requires Reality 2.2 + physical geometry');
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
   const smooth=n=>{const t=clamp(n,0,1);return t*t*(3-2*t)};
   const KEY='chromaRushRealityV23';
@@ -22,6 +25,16 @@
   const BRIDGE=Object.freeze({time:31.38,type:'jump'});
   const MUZZLE_CHARGE=.40;
   const DEPART_FRACTION=.54;
+  // Matching the EXISTING full-height hanging Duck gate: there must be no
+  // unrendered "jump over the bar" air corridor in a high Sentinel shot.
+  // The collision shutter and its rendered side rails have identical bounds.
+  function projectileBox(shot){
+    const baseBox=base.projectileBox(shot);
+    if(shot.kind!=='high')return baseBox;
+    const top=geometry.DUCK_GATE_TOP;
+    return {x:baseBox.x,y:top,w:baseBox.w,
+      h:Math.max(0,baseBox.y+baseBox.h-top)};
+  }
   const PHASES=base.PHASES;
   function integrateSpeed(from,to){
     if(from===to)return 0;
@@ -198,7 +211,7 @@
           this.bossFlightTrails++;
         }
         shot.worldX=playerWorldX+(shot.x-playerBox.x);
-        const box=base.projectileBox(shot),half=box.w/2;
+        const box=projectileBox(shot),half=box.w/2;
         if(!shot.resolved){
           const left=Math.min(shot.previousX,shot.x)-half;
           const right=Math.max(shot.previousX,shot.x)+half;
@@ -316,7 +329,7 @@
           ctx.fillRect(shot.x-size/2,shot.y-size/2,size,size);
           ctx.restore();continue;
         }
-        const b=base.projectileBox(shot);
+        const b=projectileBox(shot);
         // A brief moving history shows the departure from the real muzzle,
         // but never paints an imaginary full-length barrier or fake hitbox.
         const trail=shot.trail||[];
@@ -340,9 +353,23 @@
           ctx.shadowBlur=0;ctx.globalAlpha=.8;ctx.fillStyle='#fff8ff';
           ctx.fillRect(b.x+16,b.y+7,b.w-32,3);
         }else{
-          ctx.fillRect(b.x,b.y+3,b.w,b.h-6);
-          ctx.shadowBlur=0;ctx.globalAlpha=.82;ctx.fillStyle='#ffffff';
-          ctx.fillRect(b.x+9,b.y+7,b.w-18,3);
+          // HIGH = full-height traveling duck shutter, not a floating bar.
+          // EXACTLY the same upper boundary as real hanging Duck gates.
+          // Airborne and Echo Jump collide with the VISIBLE vertical rail;
+          // only the 28px passage BELOW its lower edge is safe.
+          ctx.shadowBlur=0;
+          ctx.fillStyle='rgba(18,24,47,.64)';
+          ctx.fillRect(b.x,b.y,b.w,b.h);
+          ctx.globalAlpha=.65;ctx.strokeStyle=color;
+          ctx.lineWidth=2.8;
+          ctx.beginPath();
+          ctx.moveTo(b.x+2,b.y);ctx.lineTo(b.x+2,b.y+b.h);
+          ctx.moveTo(b.x+b.w-2,b.y);ctx.lineTo(b.x+b.w-2,b.y+b.h);
+          ctx.stroke();ctx.globalAlpha=1;
+          ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=13;
+          ctx.fillRect(b.x,b.y+b.h-23,b.w,23);
+          ctx.shadowBlur=0;ctx.fillStyle='#ffffff';ctx.globalAlpha=.82;
+          ctx.fillRect(b.x+9,b.y+b.h-18,b.w-18,3);
         }
         ctx.restore();
       }
@@ -363,5 +390,6 @@
     }
   }
   return {...base,KEY,VERSION,LOWER,BRIDGE,MUZZLE_CHARGE,
-    createPlan,validatePlan,installTerrain,RealityRecords,RealityEngine};
+    createPlan,validatePlan,installTerrain,projectileBox,
+    RealityRecords,RealityEngine};
 });

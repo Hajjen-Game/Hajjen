@@ -1036,3 +1036,18 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
 #menu .clash-mode-link span{font-size:.86em;color:#bbcadf;letter-spacing:.08em}
 #menu .clash-mode-link:hover,#menu .clash-mode-link:focus-visible{color:#fff;border-color:#a9f9ff}
 @media(max-height:420px){#menu .clash-mode-link{margin-top:4px;padding:2px 8px;font-size:10px}}
+
+/* Two equal-priority arcade alternatives without cluttering the runner CTA. */
+#menu .arcade-mode-links{
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+  column-gap:14px;row-gap:2px;max-width:96%;margin:3px auto 0;
+}
+#menu .arcade-mode-links .clash-mode-link{margin-top:3px;padding:3px 8px}
+#menu #neon-trails-link{color:#ffafd7;border-color:rgba(255,144,194,.35)}
+#menu #neon-trails-link:hover,#menu #neon-trails-link:focus-visible{
+  color:#ffe5f4;border-color:#ffc5e6;
+}
+@media(max-height:420px){
+  #menu .arcade-mode-links{gap:1px 9px}
+  #menu .arcade-mode-links .clash-mode-link{padding:2px 5px;font-size:9px}
+}

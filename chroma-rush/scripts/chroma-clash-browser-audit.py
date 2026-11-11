@@ -23,8 +23,10 @@ def inline_wave_scene():
                        lambda _: '<style>' + css + '</style>', html)
     assert n == 1, 'CSS cannot be inlined'
     paths = (
+        'src/core/config.js',
+        'src/render/chroma-identity.js',
         'src/diagnostics/chroma-clash-audit.js',
-        'src/render/chroma-corner-tide.js',
+        'src/render/chroma-center-pulse.js',
         'src/gameplay/chroma-clash.js',
     )
     for source_path in paths:
@@ -44,7 +46,7 @@ def inline_wave_scene():
     render(4.25);
     const rgb=(x,y)=>Array.from(ctx.getImageData(x,y,1,1).data).slice(0,3);
     return {
-      corner:rgb(316,106),
+      arenaCorner:rgb(CX-135,CY-135),
       center:rgb(CX,CY),
       player:rgb(CX-86,CY-79),
       besidePlayer:rgb(CX-125,CY-79),
@@ -134,11 +136,11 @@ def main():
               return {first,collapse};
             }""")
             assert timing['first'] == {'zone': 1, 'stage': 0, 'speed': 157,
-                                       'paletteFade': 1.55, 'oldColor': '#54dfff'}, timing
+                                       'paletteFade': 1.10, 'oldColor': '#3feeff'}, timing
             collapse = timing['collapse']
             assert collapse == {'zone': 1, 'stage': 1, 'half': 166, 'falling': 1}, collapse
             transition = page.evaluate("""() => {
-              const t=window.ChromaCornerTide;
+              const t=window.ChromaCenterPulse;
               const source=document.createElement('canvas');
               source.width=120;source.height=80;
               const cx=source.getContext('2d',{willReadFrequently:true});
@@ -152,34 +154,34 @@ def main():
               return {corners:[[0,0],[119,0],[0,79],[119,79]].map(p=>rgb(...p)),
                 center:rgb(60,40),duration:window.ChromaClashCore.COLOR_FADE_SECONDS};
             }""")
-            assert all(p[1] > 140 for p in transition['corners']), transition
-            assert transition['center'][:3] == [18, 17, 34], transition
-            assert transition['duration'] >= 1.4, transition
+            assert all(p == [18, 17, 34] for p in transition['corners']), transition
+            assert transition['center'][:3] == [51, 204, 170], transition
+            assert transition['duration'] == 1.10, transition
             captures.append({'viewport': [width, height], 'canvas': canvas_size,
                              'rendered': True,
                              'joystickMoved': True, 'pausedAndResumed': True,
                              'collapse': collapse, 'tenSecondZone': timing['first'],
-                             'fourCornerWave': transition, 'runLogDownloaded': True})
+                             'centerPulse': transition, 'runLogDownloaded': True})
             page.close()
-        # Exercise real in-game two-layer compositing, not just the isolated
-        # geometry helper: corners must visibly recolor BEFORE the arena center.
+        # Exercise actual cached-world compositing, not just clip geometry:
+        # the arena center must recolor BEFORE the outer playable corners.
         visual = browser.new_page(viewport={'width': 960, 'height': 540},
                                   device_scale_factor=1)
         visual.on('pageerror', lambda error: failures.append(str(error)))
         visual.set_content(inline_wave_scene(), wait_until='load')
         visual.evaluate('window.requestAnimationFrame=()=>0')
         old = visual.evaluate('window.__clashWaveCapture(0)')
-        mid = visual.evaluate('window.__clashWaveCapture(.55)')
+        mid = visual.evaluate('window.__clashWaveCapture(.25)')
         new = visual.evaluate('window.__clashWaveCapture(1)')
-        visual.evaluate('window.__clashWaveCapture(.55)')
-        visual.screenshot(path=str(OUT / 'clash-four-corner-tide-55pct.png'))
+        visual.evaluate('window.__clashWaveCapture(.25)')
+        visual.screenshot(path=str(OUT / 'clash-center-pulse-25pct.png'))
         with_players = visual.evaluate('window.__clashWaveCapture(.02,false)')
         def delta(a, b):
             return sum(abs(u-v) for u, v in zip(a, b))
-        assert delta(old['corner'], new['corner']) > 12, (old, new)
+        assert delta(old['arenaCorner'], new['arenaCorner']) > 12, (old, new)
         assert delta(old['center'], new['center']) > 12, (old, new)
-        assert delta(mid['corner'], new['corner']) <= 3, (old, mid, new)
-        assert delta(mid['center'], old['center']) <= 3, (old, mid, new)
+        assert delta(mid['arenaCorner'], old['arenaCorner']) <= 3, (old, mid, new)
+        assert delta(mid['center'], new['center']) <= 3, (old, mid, new)
         assert delta(with_players['player'], with_players['besidePlayer']) > 30, with_players
         timings = visual.evaluate("""() => {
           const started=performance.now(), durations=[];
@@ -203,7 +205,7 @@ def main():
                   maxMs:Math.max(...times)};
         }""")
         assert steady['totalMs'] < 3000, steady
-        captures.append({'canvasWorld': 'real corner-tide composite',
+        captures.append({'canvasWorld': 'Rush-style center-out Chroma Pulse, cached composite',
                          'performance': timings, 'steadyState': steady,
                          'playersVisibleAtZoneChange': True,
                          'oldColors': old, 'midTransition': mid, 'newColors': new})

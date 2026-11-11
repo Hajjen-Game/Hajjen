@@ -64,7 +64,7 @@
   class RoundAudit {
     constructor(){this.reset()}
     reset({mode='arcade',startingZone=1}={}){
-      this.mode=mode==='practice'?'practice':'arcade';
+      this.mode=['arcade','practice','trial','reality'].includes(mode)?mode:'arcade';
       this.startingZone=Math.max(1,Math.floor(Number(startingZone)||1));
       this.events=[];this.overflow=0;this.elapsed=0;this.sampleAccumulator=0;
       this.samples=[];this.summary=stats();this.finished=false;
@@ -348,7 +348,7 @@
         reaction:{...this.summary.reaction,byAction:Object.fromEntries(
           Object.entries(this.summary.reaction.byAction).map(([k,v])=>[k,{...v}]))}};
       return {format:'chroma-rush-round-audit',version:3,mode:this.mode,
-        build:'premium-world-lighting-3.0',
+        build:this.mode==='reality'?'reality-engine-2.1':'premium-world-lighting-3.0',
         startingZone:this.startingZone,durationSeconds:duration,summary:sum,
         finalState:this.finalState||snap(context),events:this.events.map(e=>({...e})),
         samples:this.samples.map(s=>({...s})),truncatedEvents:this.overflow,

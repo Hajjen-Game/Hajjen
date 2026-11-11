@@ -1792,7 +1792,7 @@
       quality:quality.profile})||null;
     drawWorld(worldTime);
     if(runMode==='reality')reality.drawBackdrop(ctx,{time,width:W,height:H,
-      primary:c1,secondary:c2,quality:quality.profile,reducedMotion});
+      primary:c1,secondary:c2,quality:quality.profile,reducedMotion,gravity:gravityShift});
     // Only the course flips: the original atmospheric background and DOM HUD
     // stay upright. All gameplay sprites, gaps and trails share one transform.
     ctx.save();gravityShift.applyCourseTransform(ctx,H);

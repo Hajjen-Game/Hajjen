@@ -1,6 +1,7 @@
-/* CHROMA RUSH — NEON CIRCUIT 1.0 browser presentation
- * A real winding road race, not a Trails reskin. Cached world art, shared
- * Rush glass cubes and color pulses. 750k-pixel mobile backing resolution.
+/* CHROMA RUSH — NEON CIRCUIT 1.1 Track & Impact Rebuild.
+ * Long readable straights, rounded bends, striking ramp ejections,
+ * darkening world-depth falls and short invulnerable respawns.
+ * Cached panoramas, shared glass sprites, 750k mobile pixel cap.
  */
 (function(root){
 'use strict';
@@ -261,13 +262,22 @@ function drawStatic(g,zone){
   // isolated obstacle bars or a second track.
   trackPath(g);g.strokeStyle=rgb(primary,.08);
   g.lineWidth=1.1;g.setLineDash([16,15]);g.stroke();g.setLineDash([]);
-  // Subtle paired edge reflectors at regular arc-length distances.
-  for(let s=110;s<TRACK.length;s+=76){
+  // Raised rim/ramp lips are readable without looking like separate
+  // obstacles. These are cached world details, never frame-time effects.
+  trackPath(g);g.strokeStyle=rgb('#e0f4ff',.13);
+  g.lineWidth=97.8;g.stroke();
+  trackPath(g);g.strokeStyle=rgb(primary,.30);
+  g.lineWidth=95.3;g.stroke();
+  trackPath(g);g.strokeStyle=asphalt;g.lineWidth=89;g.stroke();
+  for(let s=28;s<TRACK.length;s+=49){
     const p=CORE.pointAt(s);
     for(const side of [-1,1]){
-      const x=p.x+p.nx*side*45,y=p.y+p.ny*side*45;
-      g.fillStyle=rgb(s%3<1?secondary:primary,.27);
-      g.beginPath();g.arc(x,y,1.8,0,Math.PI*2);g.fill();
+      const x=p.x+p.nx*side*CORE.TRACK_HALF;
+      const y=p.y+p.ny*side*CORE.TRACK_HALF;
+      g.save();g.translate(x,y);g.rotate(p.angle);
+      g.fillStyle=rgb(s%3<1?secondary:primary,.43);
+      g.fillRect(-4,side===1?-3:0,9,3);
+      g.restore();
     }
   }
   // Tangential black-and-white start stripe, broad enough to read at
@@ -327,41 +337,63 @@ function sprite(color){
 }
 function drawRacers(r){
   for(const p of r.racers){
-    // A fast short wake BEHIND the cube, not a dangerous Trails tail.
-    const d=p.dashTime>0;
+    const falling=p.fallTimer>0;
+    const fallFraction=falling?clamp(p.fallTimer/CORE.FALL_SECONDS,0,1):1;
+    const spriteScale=falling?.13+.87*fallFraction:1;
     const vx=Math.cos(p.angle),vy=Math.sin(p.angle);
     ctx.save();
-    ctx.lineCap='round';
-    ctx.beginPath();ctx.moveTo(p.x-vx*11,p.y-vy*11);
-    ctx.lineTo(p.x-vx*(d?45:21),p.y-vy*(d?45:21));
-    ctx.strokeStyle=p.color;ctx.lineWidth=d?4:2;
-    ctx.globalAlpha=d?.52:.29;ctx.stroke();
-    ctx.globalAlpha=1;
-    ctx.drawImage(sprite(p.color),p.x-34,p.y-34);
-    ctx.textAlign='center';ctx.font='800 11px system-ui,sans-serif';
-    ctx.fillStyle=p.id===0?'#ffffff':p.color;
-    ctx.fillText(p.name,p.x,p.y-23);
-    if(p.contactFlash>0){
-      ctx.strokeStyle=p.color;ctx.globalAlpha=.32*(p.contactFlash/.16);
-      ctx.lineWidth=2;
-      ctx.strokeRect(p.x-15,p.y-15,30,30);
+    if(!falling&&!p.finished){
+      // A short REAR wake, not a deadly light trail or extra forward tick.
+      const d=p.dashTime>0;
+      ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(p.x-vx*11,p.y-vy*11);
+      ctx.lineTo(p.x-vx*(d?45:20),p.y-vy*(d?45:20));
+      ctx.strokeStyle=p.color;ctx.lineWidth=d?4:2;
+      ctx.globalAlpha=d?.52:.25;ctx.stroke();
     }
+    ctx.globalAlpha=falling?Math.max(.08,fallFraction*.76):
+      p.finished?.30:
+      p.invulnerable>0?.63+.28*Math.sin(r.elapsed*15):1;
+    // Simulate FALLING DOWN INTO DEPTH without sliding the image toward
+    // the bottom of the phone, matching the shared Clash design language.
+    ctx.translate(p.x,p.y);ctx.scale(spriteScale,spriteScale);
+    if(!falling&&p.contactFlash>0&&!reduced()){
+      ctx.globalAlpha*=clamp(p.contactFlash/.24,0,1)*.70;
+      ctx.strokeStyle=p.color;ctx.lineWidth=2;
+      ctx.strokeRect(-18,-18,36,36);
+      ctx.globalAlpha=1;
+    }
+    ctx.drawImage(sprite(p.color),-34,-34);
     ctx.restore();
+    if(!falling){
+      ctx.save();
+      ctx.textAlign='center';ctx.font='800 11px system-ui,sans-serif';
+      ctx.fillStyle=p.id===0?'#ffffff':p.color;
+      ctx.globalAlpha=p.finished?.4:1;
+      ctx.fillText(p.name,p.x,p.y-23);
+      ctx.restore();
+    }
   }
 }
 function drawImpacts(r){
   if(reduced())return;
   for(const v of r.impacts){
-    const alpha=clamp(v.life/.24,0,1);
-    const tx=-v.ny,ty=v.nx,span=12+(1-alpha)*17;
-    ctx.save();ctx.globalAlpha=alpha*.7;ctx.lineCap='square';
-    for(let i=0;i<3;i++){
-      const d=(i-1)*7;
-      ctx.lineWidth=2-i*.36;
-      ctx.strokeStyle=i===1?'#ffffff':i===0?v.colorA:v.colorB;
+    const alpha=clamp(v.life/.32,0,1);
+    const tx=-v.ny,ty=v.nx;
+    const blast=clamp((v.strength||190)/360,.45,1.35);
+    const span=(14+(1-alpha)*19)*blast;
+    ctx.save();
+    ctx.globalAlpha=alpha*.85;ctx.lineCap='square';
+    // A compressed white strike, flanked by each combatant's pigment.
+    // All lines are DIRECTIONAL. No ring-shaped particle hitbox.
+    for(let i=0;i<5;i++){
+      const offset=(i-2)*7.2;
+      ctx.lineWidth=i===2?3:1.8;
+      ctx.strokeStyle=i===2?'#ffffff':i<2?v.colorA:v.colorB;
+      const spread=span*(1-.12*Math.abs(i-2));
       ctx.beginPath();
-      ctx.moveTo(v.x+tx*(d-span),v.y+ty*(d-span));
-      ctx.lineTo(v.x+tx*(d+span),v.y+ty*(d+span));
+      ctx.moveTo(v.x+tx*(offset-spread),v.y+ty*(offset-spread));
+      ctx.lineTo(v.x+tx*(offset+spread),v.y+ty*(offset+spread));
       ctx.stroke();
     }
     ctx.restore();

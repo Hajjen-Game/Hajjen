@@ -1,4 +1,4 @@
-/* NEON CIRCUIT 1.0 — cohesive Chroma Rush premium arcade racing.
+/* NEON CIRCUIT 1.1 — cohesive Chroma Rush premium arcade racing.
  * The physical track is rendered in Canvas; CSS only touches UI/chrome. */
 #circuit-shell{
  position:relative;isolation:isolate;width:100vw;height:100vh;height:100dvh;

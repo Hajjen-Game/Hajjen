@@ -29,10 +29,18 @@
       this.phase='warning';this.warningLeft=WARNING_SECONDS;
       return true;
     }
-    tick(dt,{safe=false,reducedMotion=false}={}){
+    // Opt-in authored Trials can request a one-off orientation change.
+    // Regular zone scheduling and the Arcade auto-return remain unchanged.
+    requestScripted(ceiling){
+      if(this.phase!=='idle'||this.ceiling===Boolean(ceiling))return false;
+      this.targetCeiling=Boolean(ceiling);
+      this.phase='warning';this.warningLeft=WARNING_SECONDS;
+      return true;
+    }
+    tick(dt,{safe=false,reducedMotion=false,autoReturn=true}={}){
       if(!(dt>0))return null;
       this.grace=Math.max(0,this.grace-dt);
-      if(this.phase==='idle'&&this.ceiling){
+      if(autoReturn&&this.phase==='idle'&&this.ceiling){
         this.ceilingAge+=dt;
         if(this.ceilingAge>=CEILING_HOLD_SECONDS){
           // Return requires the exact same safe-runway clearance as entry.
@@ -85,14 +93,15 @@
       ctx.scale(1,scaleY);
     }
     drawOverlay(ctx,{width=1280,height=720,primary='#3feeff',secondary='#53b5ff',
-      quality={density:1,glow:1},reducedMotion=false}={}){
+      quality={density:1,glow:1},reducedMotion=false,scripted=false}={}){
       if(!ctx||!width||!height)return;
       const density=clamp(quality.density??1,.3,1);
       const glow=clamp(quality.glow??1,.15,1);
       ctx.save();
       if(this.pending){
         const y=height*.21,alpha=.75+.18*Math.sin(this.warningLeft*13)**2;
-        const text=this.targetCeiling?'GRAVITY SHIFT  ·  CEILING':'GRAVITY SHIFT  ·  FLOOR';
+        const text=scripted?(this.targetCeiling?'WORLD FOLD  ·  CEILING':'WORLD FOLD  ·  FLOOR'):
+          (this.targetCeiling?'GRAVITY SHIFT  ·  CEILING':'GRAVITY SHIFT  ·  FLOOR');
         ctx.textAlign='center';ctx.font='800 19px system-ui';
         ctx.fillStyle='rgba(5,10,28,.66)';ctx.fillRect(width*.5-190,y-30,380,50);
         ctx.fillStyle='#ffffff';ctx.globalAlpha=alpha;ctx.shadowColor=primary;

@@ -25,7 +25,7 @@ def main():
         for width, height in ((960, 540), (812, 375)):
             page = browser.new_page(
                 viewport={'width': width, 'height': height}, device_scale_factor=1,
-                is_mobile=width == 812, has_touch=width == 812)
+                is_mobile=width == 812, has_touch=width == 812, accept_downloads=True)
             page.on('pageerror', lambda error: failures.append(str(error)))
             page.goto(URL, wait_until='load')
             page.wait_for_timeout(140)
@@ -55,6 +55,17 @@ def main():
             page.screenshot(path=str(OUT / ('clash-play-%s.png' % width)))
             page.locator('#clash-pause').click()
             assert page.locator('#clash-pause-menu').is_visible(), 'Pause did not open'
+            with page.expect_download() as pending:
+                page.locator('#clash-export-pause').click()
+            download = pending.value
+            assert download.suggested_filename.startswith('chroma-clash-zone-'), download.suggested_filename
+            destination = OUT / ('clash-run-%s.json' % width)
+            download.save_as(str(destination))
+            log = json.loads(destination.read_text(encoding='utf-8'))
+            assert log['status'] == 'in_progress', log
+            assert log['summary']['highestZone'] == 1, log
+            assert log['schema'] == 'chroma-clash-run-audit/1.0', log
+            assert log['events'][0]['type'] == 'start', log
             page.locator('#clash-resume').click()
             assert page.locator('#clash-joystick').is_visible(), 'Resume hid joystick'
             timing = page.evaluate("""() => {
@@ -73,9 +84,28 @@ def main():
                                        'paletteFade': .72, 'oldColor': '#54dfff'}, timing
             collapse = timing['collapse']
             assert collapse == {'zone': 1, 'stage': 1, 'half': 166, 'falling': 1}, collapse
+            transition = page.evaluate("""() => {
+              const t=window.ChromaCornerTide;
+              const source=document.createElement('canvas');
+              source.width=120;source.height=80;
+              const cx=source.getContext('2d',{willReadFrequently:true});
+              cx.fillStyle='#121122';cx.fillRect(0,0,120,80);
+              cx.save();
+              t.clipNewColor(cx,{x:0,y:0,w:120,h:80},.4);
+              cx.fillStyle='#33ccaa';cx.fillRect(0,0,120,80);
+              cx.restore();
+              t.drawFront(cx,{x:0,y:0,w:120,h:80},.4,'#33ccaa');
+              const rgb=(x,y)=>Array.from(cx.getImageData(x,y,1,1).data).slice(0,3);
+              return {corners:[[0,0],[119,0],[0,79],[119,79]].map(p=>rgb(...p)),
+                center:rgb(60,40),duration:window.ChromaClashCore.COLOR_FADE_SECONDS};
+            }""")
+            assert all(p[1] > 140 for p in transition['corners']), transition
+            assert transition['center'][:3] == [18, 17, 34], transition
+            assert transition['duration'] >= 1.4, transition
             captures.append({'viewport': [width, height], 'rendered': True,
                              'joystickMoved': True, 'pausedAndResumed': True,
-                             'collapse': collapse, 'tenSecondZone': timing['first']})
+                             'collapse': collapse, 'tenSecondZone': timing['first'],
+                             'fourCornerWave': transition, 'runLogDownloaded': True})
             page.close()
         browser.close()
     report = {'screens': captures, 'pageErrors': failures}

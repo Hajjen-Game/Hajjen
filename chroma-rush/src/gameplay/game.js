@@ -367,7 +367,7 @@
     arcadeUI.hud($,runMode==='practice');
     $.modeIndicator.classList.toggle('hidden',runMode==='arcade');
     if(runMode==='trial')$.modeIndicator.textContent='CHROMA TRIAL 001 · FIXED COURSE';
-    if(runMode==='reality')$.modeIndicator.textContent='REALITY TRIAL · WORLD FOLD';
+    if(runMode==='reality')$.modeIndicator.textContent='REALITY 002 · CHOOSE THE FOLD';
     $.trialTimer.classList.toggle('hidden',!fixedCourse());
     $.realityExport.classList.add('hidden');
     $.trialResultStats.classList.add('hidden');
@@ -422,13 +422,18 @@
       const result=records.finish({score:total,
         completed:time>=module.DURATION-1e-6&&hp>0});
       $.gameoverTitle.textContent=result.completed?'TRIAL COMPLETE':'TRIAL FAILED';
-      $.finalMode.textContent=isReality?'REALITY TRIAL · FOLD + SENTINEL':'CHROMA TRIAL 001 · 90 SECONDS';
+      $.finalMode.textContent=isReality?'REALITY 002 · THE SENTINEL':'CHROMA TRIAL 001 · 90 SECONDS';
       $.finalScore.textContent=total.toLocaleString('en-US');
       $.finalZoneLabel.textContent='TIME';$.finalZone.textContent=Math.min(module.DURATION,time).toFixed(1)+'s';
       $.finalBestLabel.textContent='TRIAL BEST';
       $.finalBest.textContent=result.bestScore.toLocaleString('en-US');
-      $.finalRecord.textContent=result.newBest?'NEW TRIAL RECORD':
-        result.completed?'COURSE CLEARED · BEAT YOUR SCORE':'COMPLETE ALL 90 SECONDS';
+      $.finalRecord.textContent=isReality?
+        (result.completed?
+          (reality.bossDefeated?'SENTINEL SHATTERED · ALL 3 ARMOR PLATES':
+            'REALITY CLEARED · SENTINEL ARMOR '+reality.bossHealth+'/3'):
+          'REALITY FAILED · SENTINEL ARMOR '+reality.bossHealth+'/3'):
+        result.newBest?'NEW TRIAL RECORD':
+          result.completed?'COURSE CLEARED · BEAT YOUR SCORE':'COMPLETE ALL 90 SECONDS';
       $.finalRecord.classList.toggle('new-record',result.newBest);
       $.trialResultTime.textContent=Math.min(module.DURATION,time).toFixed(1)+'s';
       $.trialResultHits.textContent=String(trialHits);
@@ -481,6 +486,10 @@
   }
   function jump(){
     if(status!=='running'||gravityShift.shifting)return;
+    // Reality 2.0: a normal grounded Jump during the shown choice window
+    // physically chooses the elevated course. Jump itself is unchanged.
+    if(runMode==='reality')reality.onJump({time,terrain,plan:trialPlan,
+      grounded:player.landed&&!player.duck&&!gapRecovery});
     const action=jumpControl.request({grounded:player.landed,ducking:player.duck,
       recovering:Boolean(gapRecovery),worldX:distance+player.x,
       echoEnabled:zone>=window.ChromaConfig.JUMP_FEEL.echoUnlockZone});
@@ -877,7 +886,7 @@
   }
   function updateHud(){
     HUD.update($,{hp,zone,color:c1,
-      phase:runMode==='reality'?(time>=realityModule.SENTINEL.start&&time<=realityModule.SENTINEL.end?'SENTINEL':'REALITY'):runMode==='trial'?'TRIAL':director.label,score,speed,
+      phase:runMode==='reality'?(time>=realityModule.SENTINEL.start&&time<=realityModule.SENTINEL.end?'BOSS '+reality.bossPhase+'/3':'REALITY '+(reality.route==='upper'?'UPPER':reality.route==='lower'?'LOWER':'FOLD')):runMode==='trial'?'TRIAL':director.label,score,speed,
       baseSpeed:GAME.baseSpeed,status,flow,combo});
     replayUI.hud($,{practice:runMode!=='arcade',score,previousScore:replay.previousScore});
     if(fixedCourse())$.trialTimer.textContent=Math.max(0,Math.ceil(courseModule().DURATION-time))+'s';
@@ -990,6 +999,9 @@
   }
   function onHit(o){
     if(o.hit)return;
+    // An emitted Sentinel barrier is a real boss attack, not an old
+    // background icon. A hit can prevent breaking its phase armor.
+    if(runMode==='reality'&&o.bossPhase)reality.onBossHit(o.bossPhase);
     if(gravityShift.protected){
       // Absolute guarantee: a hazard that arrives during the flip cannot
       // cause hidden damage or count as a free precision clearance.
@@ -1170,18 +1182,28 @@
       !hurdles.some(o=>o.mechanicIntro&&!o.hit&&!o.cleared) &&
       hurdles.every(o=>o.hit||o.cleared||
         o.x+o.width<player.x-speed*.35||o.x>player.x+speed*1.55);
+    // Reality 2.0 no longer invokes Gravity Shift at all. It changes
+    // real future terrain geometry via the player's route decision.
     const realityEvent=runMode==='reality'?
-      reality.tick(dt,{time,gravity:gravityShift,safe:safeShift,reducedMotion}):null;
-    if(realityEvent==='fold_warning'){
-      runAudit.record('reality_fold_warning',auditState(),{
-        target:gravityShift.targetCeiling?'ceiling':'floor'});
-      sound('gravity-warning');
-    }else if(realityEvent==='sentinel_enter'){
-      runAudit.record('reality_sentinel_begin',auditState(),{time});
+      reality.tick(dt,{time,terrain,plan:trialPlan}):null;
+    if(realityEvent){
+      runAudit.record('reality_'+realityEvent.type,auditState(),realityEvent);
+      if(realityEvent.type==='route_selected'){
+        sound('zone');vib(12);
+      }else if(realityEvent.type==='boss_phase'){
+        sound('gravity-warning');vib(16);
+      }else if(realityEvent.type==='boss_armor_break'){
+        sound('perfect');vib([18,26,18]);
+        if(!reducedMotion){
+          burst(W*.78,H*.31,24,c2,1.05);
+          frameEcho(W*.78,H*.31,c2,60,1.15);
+        }
+      }else if(realityEvent.type==='boss_defeated'){
+        sound('chroma');vib([35,50,35]);
+      }
     }
-    const gravityEvent=runMode==='reality'?
-      (realityEvent==='fold_begin'?'begin':realityEvent==='fold_complete'?'complete':null):
-      runMode==='trial'?null:gravityShift.tick(dt,{safe:safeShift,reducedMotion});
+    const gravityEvent=fixedCourse()?null:
+      gravityShift.tick(dt,{safe:safeShift,reducedMotion});
     if(gravityEvent==='return_warning'){
       // A short ceiling excursion has expired. Reserve the same clear
       // runway as a zone-triggered shift; NEVER force an unsafe inversion.
@@ -1273,10 +1295,15 @@
       while(trialCursor<trialPlan.obstacles.length&&
         trialPlan.obstacles[trialCursor].worldX<=visibleWorld){
         const fixed=trialPlan.obstacles[trialCursor++];
+        if(runMode==='reality'&&!reality.routeAllows(fixed.route))continue;
         hurdles.push({type:fixed.type,x:fixed.worldX-distance+worldStep,
-          worldX:fixed.worldX,groundY:floorY,width:fixed.width,height:fixed.height,
+          worldX:fixed.worldX,
+          groundY:runMode==='reality'?(terrain.groundAt(fixed.worldX)??floorY):floorY,
+          width:fixed.width,height:fixed.height,
+          bossPhase:fixed.bossPhase||0,route:fixed.route||'shared',
           hit:false,cleared:false,closestClearance:Infinity,
-          entryDuckTime:null,dashAssisted:false,mechanicIntro:false,phase:'TRIAL'});
+          entryDuckTime:null,dashAssisted:false,mechanicIntro:false,
+          phase:fixed.phase||'TRIAL'});
         runAudit.record('spawn',auditState(),{
           obstacle:fixed.type,pattern:runMode==='reality'?'REALITY_ENGINE_001':'CHROMA_TRIAL_001',
           worldX:fixed.worldX,width:fixed.width,height:fixed.height,
@@ -1338,7 +1365,8 @@
           awardCombo(o.type,{precision,master:graded.master});
           awardSurge(o.type,{precision,master:graded.master});
           if(runMode==='reality'&&player.invulnerable===0)
-            reality.onClear({time,precision,master:graded.master});
+            reality.onClear({time,precision,master:graded.master,
+              bossPhase:o.bossPhase||0});
           runAudit.record('obstacle_clear',auditState(),
             {obstacle:o.type,precision,master:graded.master,
               precisionMargin:graded.margin===null?-1:graded.margin});
@@ -1683,6 +1711,8 @@
     // Every glowing segment maps to actual geometry. No detached seal
     // checkpoint, no free mid-bridge landing and no forced action key.
     ctx.restore();
+    if(runMode==='reality'&&o.bossPhase)
+      reality.drawAttack(ctx,{obstacle:o,box:b,quality:quality.profile});
   }
   function drawPlayer(){
     const b=GEO.playerBox(player),beat=1+Math.sin(worldTime*14)*.025;
@@ -1792,7 +1822,7 @@
       quality:quality.profile})||null;
     drawWorld(worldTime);
     if(runMode==='reality')reality.drawBackdrop(ctx,{time,width:W,height:H,
-      primary:c1,secondary:c2,quality:quality.profile,reducedMotion,gravity:gravityShift});
+      primary:c1,secondary:c2,quality:quality.profile,reducedMotion});
     // Only the course flips: the original atmospheric background and DOM HUD
     // stay upright. All gameplay sprites, gaps and trails share one transform.
     ctx.save();gravityShift.applyCourseTransform(ctx,H);
@@ -1801,6 +1831,9 @@
     const background=performance.now();
     ctx.save();camera.apply(ctx,player.x,floorY);
     drawTerrain();
+    if(runMode==='reality')reality.drawRoute(ctx,{plan:trialPlan,distance,
+      time,width:W,height:H,baseY:floorY,primary:c1,secondary:c2,
+      reducedMotion});
     ctx.restore();
     const terrainDone=performance.now();
     // The chromatic front stays screen-anchored and perfectly synchronized
@@ -1826,7 +1859,8 @@
     // Upright warning, shift energy and persistent ceiling-mode orientation.
     gravityShift.drawOverlay(ctx,{width:W,height:H,primary:c1,secondary:c2,
       quality:quality.profile,reducedMotion,scripted:runMode==='reality'});
-    if(runMode==='reality')reality.drawOverlay(ctx,{time,width:W,height:H,primary:c1});
+    if(runMode==='reality')reality.drawOverlay(ctx,{time,width:W,height:H,
+      primary:c1,secondary:c2});
     // Upright, minimal warning only while the real course feature is
     // offscreen; unaffected by gravity and visible in Performance graphics.
     const cue=FAIR.warning({hurdles,gaps:terrain.gaps,distance,

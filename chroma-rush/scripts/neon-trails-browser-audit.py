@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independent browser smoke and screenshot QA for NEON TRAILS 1.0."""
+"""Independent browser smoke and screenshot QA for NEON TRAILS 1.1."""
 from __future__ import annotations
 import json
 import os
@@ -32,7 +32,7 @@ def main():
             page.wait_for_timeout(120)
             assert page.locator("#trails-hud").is_visible()
             assert page.locator("#trails-joystick").is_visible()
-            assert page.locator("#trails-boost").is_visible()
+            assert page.locator("#trails-dash").is_visible()
             assert page.locator("#trails-zone").inner_text()=="ZONE 01"
             assert page.locator("#trails-count").inner_text()=="4 ALIVE"
             # Four colored glass cube sprites must actually draw. On ultrawide
@@ -60,9 +60,9 @@ def main():
             page.mouse.up()
             neutral=page.locator("#trails-stick").get_attribute("style") or ""
             assert re.search(r"translate\(-50%,\s*-50%\)",neutral), neutral
-            page.locator("#trails-boost").click()
+            page.locator("#trails-dash").click()
             page.wait_for_timeout(65)
-            assert page.locator("#trails-boost").is_disabled(), "Boost must cool down"
+            assert page.locator("#trails-dash").is_disabled(), "Dash must cool down"
             page.screenshot(path=str(OUT/f"neon-play-{width}.png"))
             page.locator("#trails-pause").click()
             assert page.locator("#trails-pause-menu").is_visible()
@@ -73,9 +73,9 @@ def main():
             path=OUT/f"neon-run-{width}.json"
             download.save_as(str(path))
             log=json.loads(path.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-trails-run-audit/1.0"
+            assert log["schema"]=="neon-trails-run-audit/1.1"
             assert log["status"]=="in_progress"
-            assert log["summary"]["playerBoosts"]==1, log
+            assert log["summary"]["playerDashes"]==1, log
             page.locator("#trails-resume").click()
             assert page.locator("#trails-joystick").is_visible()
             page.locator("#trails-fullscreen").click()
@@ -101,7 +101,7 @@ def main():
             assert simulation["pulse"]>0
             assert not errors, errors
             all_reports.append({"viewport":[width,height],"pixels":pixels,
-                "simulation":simulation,"boostWorks":True,"logDownloaded":True,
+                "simulation":simulation,"dashWorks":True,"logDownloaded":True,
                 "fullscreenActivated":fullscreen,"pageErrors":[]})
             page.close()
         browser.close()

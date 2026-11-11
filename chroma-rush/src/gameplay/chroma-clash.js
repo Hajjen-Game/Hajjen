@@ -660,67 +660,62 @@
       });
     }
   }
-  function drawArena(active, time, pal = activePalette(active), floorOnly = false) {
+  function drawArena(active, time, pal = activePalette(active)) {
     const h = active.half;
-    if (!floorOnly) {
-      drawBackground(time, pal);
-      ctx.save();
-      ctx.translate(0, 12);
-      ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.filter = 'blur(22px)';
-      ctx.beginPath(); squarePath(h); ctx.fill();
-      ctx.restore();
-      drawFallenRims(active);
-    }
+    const primary = pal[0], shadow = pal[1], secondary = pal[2];
+    drawBackground(time, pal);
+    ctx.save();
+    // A solid floating glass platform, not a bright panel border over a grid.
+    // Ambient bounce and the thin rim reuse Rush's premium lighting materials.
+    ctx.translate(0, 10);
+    ctx.fillStyle = 'rgba(0, 0, 0, .45)';
+    ctx.filter = 'blur(14px)';
+    ctx.beginPath(); squarePath(h); ctx.fill();
+    ctx.restore();
     ctx.save();
     ctx.beginPath(); squarePath(h);
     const ground = ctx.createLinearGradient(CX - h, CY - h, CX + h, CY + h);
-    ground.addColorStop(0, mixColor('#23344e', pal[0], .29));
-    ground.addColorStop(.46, mixColor(pal[1], pal[0], .24));
-    ground.addColorStop(1, mixColor('#19263f', pal[0], .21));
+    ground.addColorStop(0, mixColor('#152942', primary, .17));
+    ground.addColorStop(.32, mixColor('#09172b', shadow, .47));
+    ground.addColorStop(.76, mixColor('#0b1a30', secondary, .16));
+    ground.addColorStop(1, mixColor('#081525', shadow, .52));
     ctx.fillStyle = ground; ctx.fill();
     ctx.save(); ctx.clip();
-    const tile = Math.max(20, h / 4.3);
-    ctx.strokeStyle = mixColor('#29445c', pal[0], .52); ctx.globalAlpha = .35; ctx.lineWidth = 1;
-    for (let x = CX - h; x < CX + h; x += tile) {
-      ctx.beginPath(); ctx.moveTo(x, CY - h); ctx.lineTo(x, CY + h); ctx.stroke();
+    const light = ctx.createRadialGradient(CX - h*.23, CY - h*.23, 1,
+      CX, CY, h * 1.45);
+    light.addColorStop(0, hexAlpha(primary, .15));
+    light.addColorStop(.55, hexAlpha(secondary, .056));
+    light.addColorStop(1, hexAlpha(primary, 0));
+    ctx.fillStyle = light;
+    ctx.fillRect(CX - h, CY - h, h * 2, h * 2);
+    // Rush's track uses a very sparse illuminated perspective. Use that
+    // visual rhythm rather than Clash's dense blue graph-paper grid.
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = hexAlpha(primary, .11);
+    const spacing = Math.max(44, h * .32);
+    for (let n = -2; n <= 2; n++) {
+      const x = CX + spacing*n;
+      ctx.beginPath(); ctx.moveTo(x, CY-h); ctx.lineTo(x, CY+h); ctx.stroke();
+      const y = CY + spacing*n;
+      ctx.beginPath(); ctx.moveTo(CX-h, y); ctx.lineTo(CX+h, y); ctx.stroke();
     }
-    for (let y = CY - h; y < CY + h; y += tile) {
-      ctx.beginPath(); ctx.moveTo(CX - h, y); ctx.lineTo(CX + h, y); ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-    const centerLight = ctx.createRadialGradient(CX, CY, 5, CX, CY, h);
-    centerLight.addColorStop(0, 'rgba(122,221,255,.08)');
-    centerLight.addColorStop(1, 'rgba(0,0,0,.26)');
-    ctx.fillStyle = centerLight; ctx.fillRect(CX - h, CY - h, 2 * h, 2 * h);
-    if (active.warning) {
-      const inner = HALVES[active.stage + 1];
-      ctx.beginPath(); squarePath(h); squarePath(inner);
-      ctx.fillStyle = Math.sin(time * 9) > 0 ? 'rgba(255,130,79,.25)' : 'rgba(255,130,79,.13)';
-      ctx.fill('evenodd');
-      ctx.beginPath(); squarePath(inner); ctx.setLineDash([13, 8]);
-      ctx.strokeStyle = '#ffcc83'; ctx.lineWidth = 2.3; ctx.stroke(); ctx.setLineDash([]);
-      // Eight break panels: the seams explain exactly what is about to detach.
-      ctx.strokeStyle = 'rgba(255,202,134,.4)'; ctx.lineWidth = 1.5;
-      [-1, 1].forEach(function (side) {
-        ctx.beginPath();
-        ctx.moveTo(CX - inner, CY + side * inner); ctx.lineTo(CX - inner, CY + side * h);
-        ctx.moveTo(CX + inner, CY + side * inner); ctx.lineTo(CX + inner, CY + side * h);
-        ctx.moveTo(CX + side * inner, CY - inner); ctx.lineTo(CX + side * h, CY - inner);
-        ctx.moveTo(CX + side * inner, CY + inner); ctx.lineTo(CX + side * h, CY + inner);
-        ctx.stroke();
-      });
-    }
-    if (active.flash > 0) {
-      ctx.fillStyle = 'rgba(192,245,255,' + (active.flash * .17).toFixed(3) + ')';
-      ctx.fillRect(CX - h, CY - h, h * 2, h * 2);
-    }
+    // Brightness remains on the playable material, never as a separate
+    // obstacle-shaped tile, arrow or pulse square.
+    const skin = ctx.createLinearGradient(0, CY-h, 0, CY+h);
+    skin.addColorStop(0, 'rgba(240,252,255,.10)');
+    skin.addColorStop(.21, 'rgba(240,252,255,.025)');
+    skin.addColorStop(1, 'rgba(0,0,0,.14)');
+    ctx.fillStyle = skin;
+    ctx.fillRect(CX-h, CY-h, h*2, h*2);
     ctx.restore();
-    ctx.strokeStyle = pal[0]; ctx.lineWidth = 2.6;
-    ctx.shadowColor = pal[0]; ctx.shadowBlur = 19;
+    ctx.shadowColor = primary; ctx.shadowBlur = 18;
+    ctx.strokeStyle = hexAlpha(primary, .66); ctx.lineWidth = 3.2;
     ctx.beginPath(); squarePath(h); ctx.stroke();
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(230,250,255,.16)'; ctx.lineWidth = 5;
-    ctx.beginPath(); squarePath(Math.max(5, h - 7)); ctx.stroke();
+    ctx.strokeStyle = 'rgba(230,250,255,.64)'; ctx.lineWidth = 1.1;
+    ctx.beginPath(); squarePath(Math.max(5, h-3)); ctx.stroke();
+    ctx.strokeStyle = hexAlpha(secondary, .22); ctx.lineWidth = 1.2;
+    ctx.beginPath(); squarePath(Math.max(5, h-11)); ctx.stroke();
     ctx.restore();
   }
   function cubeSprite(color) {

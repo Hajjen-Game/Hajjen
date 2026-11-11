@@ -47,6 +47,22 @@ EXTRA=r"""
       return {mode:runMode,route:reality.route,feet:player.feet,
         bossPhase:reality.bossPhase,bossHealth:reality.bossHealth,
         projectiles:reality.projectiles.length,terrain:terrain.segments.length};
+    },
+    proveLanding(){
+      // Exercise REAL button handling and simulation stepping: not a direct
+      // route state mutation. The old Reality 2.0 shortcut would fail here.
+      startRun('reality');
+      time=34.55;worldTime=34.55;zone=3;speed=GAME.speedAt(time,zone);
+      distance=trialPlan.markers.start+speed*.53-player.x;
+      trialCursor=trialPlan.obstacles.length;
+      player.feet=floorY;player.landed=true;player.vy=0;player.duck=false;
+      const entry=player.feet;
+      jump();
+      let frames=0;
+      for(;frames<90&&reality.route==='undecided';frames++)update(1/60);
+      draw();
+      return {route:reality.route,upperLandings:reality.upperLandings,
+        time,feet:player.feet,entry,frames};
     }
   };
 """
@@ -81,6 +97,13 @@ def main():
             assert 'REALITY' in page.locator('#mode-indicator').text_content()
             assert page.locator('#trial-timer').is_visible()
             assert page.locator('#controls').is_visible()
+            # A grounded JUMP really lands onto the deck, including
+            # game-loop update and jump controller, on the actual canvas.
+            landing=page.evaluate('window.__realityAudit.proveLanding')
+            assert landing['route']=='upper' and landing['upperLandings']==1, (
+                f'Player could not physically jump onto upper deck: {landing}')
+            assert landing['feet']<landing['entry']-100,landing
+            page.screenshot(path=str(OUT/f'actual-landing-{width}x{height}.png'))
             captured={}
             for scene in ['lower','upper','boss']:
                 result=page.evaluate('window.__realityAudit.setScene',scene)

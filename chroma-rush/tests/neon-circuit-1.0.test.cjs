@@ -251,7 +251,7 @@ test('Shortcuts do not grant laps and results can be exported for arcade cup lat
   assert.equal(p.laps,0);
   assert.ok(p.progress<=before+12);
   const data=c.audit(m);
-  assert.equal(data.schema,'neon-circuit-run-audit/1.1');
+  assert.equal(data.schema,'neon-circuit-run-audit/1.2');
   assert.equal(data.summary.lapValidation,'four-ordered-physical-gates');
   assert.equal(data.summary.lapsCompleted,0);
   assert.equal(data.racers.length,4);

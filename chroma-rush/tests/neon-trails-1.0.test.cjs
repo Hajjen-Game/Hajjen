@@ -57,6 +57,9 @@ test('Color-speed progression and playfield reduction share clear 10s zones',()=
   assert.equal(later.stage,1);
   assert.ok(later.right-later.left<initial.right-initial.left);
   assert.ok(later.bottom-later.top<initial.bottom-initial.top);
+  assert.ok(core.nextContraction(17)>2.9&&core.nextContraction(17)<3.1);
+  assert.ok(core.nextContraction(19.5)<.6);
+  assert.ok(core.nextContraction(21)>18);
   for(const p of m.players){p.x=core.CX;p.y=core.CY;}
   m.elapsed=9.99;
   core.tick(m,{x:1,y:0},1/60);

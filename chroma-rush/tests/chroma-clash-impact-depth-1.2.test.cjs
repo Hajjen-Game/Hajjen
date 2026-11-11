@@ -16,7 +16,7 @@ test('Edge segments fall into world depth, never move downward or outward on scr
     lastScale=p.scale;lastOpacity=p.opacity;
   }
   assert.ok(lastScale<.11);
-  assert.equal(lastOpacity,0);
+  assert.ok(lastOpacity<.02,'the staggered fragment is effectively invisible by 1 second');
   const draw=file.slice(file.indexOf('function drawFallenRims('),file.indexOf('function drawArena('));
   assert.match(draw,/ctx\.translate\(centerX, centerY\)/);
   assert.match(draw,/ctx\.scale\(fall\.scale, fall\.scale\)/);

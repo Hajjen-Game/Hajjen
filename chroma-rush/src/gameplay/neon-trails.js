@@ -106,7 +106,7 @@ function createGame(seed=20261111){
     sampleAt:0,aiAt:0,fallenAt:null,fallCause:null
   }));
   const m={seed,random,players,elapsed:0,zone:0,stage:0,active:true,
-    state:'running',winner:null,outcome:null,boostReady:true,
+    state:'running',winner:null,outcome:null,
     paletteFade:0,announced:null,events:[],droppedEvents:0,eliminations:0,
     maxSpeed:108,performance:{frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     startedAt:null};

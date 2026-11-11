@@ -62,7 +62,7 @@ test('Joystick feel 1.1: diagonal input cannot exceed the same speed cap, AI use
   assert.equal(bot.vx, player.vx);
 });
 
-test('Joystick retains responsive feel after 1.2 zone pacing asset update', () => {
+test('Joystick retains responsive feel after 1.3 wave and audit asset update', () => {
   const html = fs.readFileSync(path.join(__dirname, '../clash.html'), 'utf8');
-  assert.match(html, /chroma-clash\.js\?v=chroma-clash-1\.2-ten-second-zones/);
+  assert.match(html, /chroma-clash\.js\?v=chroma-clash-1\.3-corner-tide-impact-audit/);
 });

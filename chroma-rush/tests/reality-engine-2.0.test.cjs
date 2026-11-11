@@ -162,7 +162,8 @@ test('Reality 002 no longer calls Gravity Shift in gameplay but leaves Arcade un
   assert.match(html,/src\/gameplay\/reality-engine-2\.0\.js\?v=reality-engine-2\.0/);
   assert.ok(html.indexOf('src/gameplay/reality-engine-2.0.js')<
     html.indexOf('src/gameplay/game.js'));
-  assert.match(game,/reality\.onJump\(/);
+  assert.match(game,/realityModule\.canLandUpper\(/);
+  assert.match(game,/reality\.captureUpper\(/);
   assert.match(game,/reality\.routeAllows\(fixed\.route\)/);
   assert.match(game,/terrain\.groundAt\(fixed\.worldX\)/);
   assert.match(game,/reality\.onBossHit\(o\.bossPhase\)/);

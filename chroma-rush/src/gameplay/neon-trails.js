@@ -25,6 +25,10 @@ const angleDiff=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 const zoneAt=t=>Math.floor(Math.max(0,t+1e-8)/ZONE_SECONDS);
 const speedAt=zone=>Math.min(222,108+13*Math.max(0,zone));
 const trailLife=zone=>Math.max(4.8,9.4-.38*zone);
+const nextContraction=elapsed=>{
+  const next=Math.ceil((Math.max(0,elapsed)+1e-6)/20)*20;
+  return next<=140?Math.max(0,next-elapsed):Infinity;
+};
 const arenaAt=zone=>{
   const step=Math.min(7,Math.floor(Math.max(0,zone)/2));
   return {left:CX-(306-13*step),right:CX+(306-13*step),
@@ -241,7 +245,7 @@ function audit(m){
 }
 const core={WIDTH,HEIGHT,CX,CY,COLORS,NAMES,ZONE_SECONDS,ZONE_NAMES,PALETTES,
   BOOST_SECONDS,BOOST_COOLDOWN,TRAIL_SAMPLE,MAX_TRAIL_SEGMENTS,
-  zoneAt,speedAt,trailLife,arenaAt,segmentDistanceSq,nearWall,hitsTrail,
+  zoneAt,speedAt,trailLife,arenaAt,nextContraction,segmentDistanceSq,nearWall,hitsTrail,
   angleDiff,createGame,aiIntent,eliminate,tick,audit};
 if(typeof module!=='undefined'&&module.exports)module.exports=core;
 root.ChromaNeonTrailsCore=core;
@@ -383,7 +387,10 @@ function clock(sec){
 function updateHud(){
   if(!game)return;
   setText('trails-zone','ZONE '+String(game.zone+1).padStart(2,'0'));
-  setText('trails-phase',ZONE_NAMES[game.zone%ZONE_NAMES.length]+
+  const countdown=nextContraction(game.elapsed);
+  setText('trails-phase',countdown<=3?
+    'ARENA CONTRACTS · '+Math.ceil(countdown)+'S':
+    ZONE_NAMES[game.zone%ZONE_NAMES.length]+
     ' · SPEED '+(speedAt(game.zone)/108).toFixed(2)+'×');
   setText('trails-count',game.players.filter(p=>p.alive).length+' ALIVE');
   setText('trails-clock',clock(game.elapsed));
@@ -580,6 +587,17 @@ function render(){
     ctx.restore();
     TIDE.drawFront(ctx,{x:panoLeft,y:0,w:panoWidth,h:HEIGHT},progress,palette[0],.63);
   }else ctx.drawImage(current,panoLeft,0,panoWidth,HEIGHT);
+  if(nextContraction(game.elapsed)<=3){
+    const next=arenaAt(game.zone+1);
+    ctx.save();
+    ctx.globalAlpha=.56;
+    ctx.strokeStyle='#ffc88c';
+    ctx.lineWidth=1.6;
+    ctx.setLineDash([9,8]);
+    rounded(next.left,next.top,next.right-next.left,next.bottom-next.top,23);
+    ctx.stroke();
+    ctx.restore();
+  }
   drawTrails();
   drawRunners();
 }

@@ -136,12 +136,14 @@
     const target = opponents[0];
     const danger = roundedSquareSDF(cube.x, cube.y, match.half, Math.max(12, match.half * 0.16));
     const predictedDanger = roundedSquareSDF(
-      cube.x + cube.vx * .35, cube.y + cube.vy * .35, match.half, Math.max(12, match.half * .16));
+      cube.x + (cube.vx + (cube.knockVx || 0)) * .35,
+      cube.y + (cube.vy + (cube.knockVy || 0)) * .35,
+      match.half, Math.max(12, match.half * .16));
     let dx, dy;
     if (predictedDanger > -31 || danger > -35) {
       // A bot must genuinely evade its own momentum; no teleport, speed bonus, or edge immunity.
-      dx = CX - cube.x - cube.vx * .30;
-      dy = CY - cube.y - cube.vy * .30;
+      dx = CX - cube.x - (cube.vx + (cube.knockVx || 0)) * .30;
+      dy = CY - cube.y - (cube.vy + (cube.knockVy || 0)) * .30;
     } else {
       const lead = cube.aggression * .16;
       dx = target.x + target.vx * lead - cube.x;
@@ -477,6 +479,26 @@
   $('clash-restart-pause').addEventListener('click', startGame);
   $('clash-resume').addEventListener('click', resumeGame);
   $('clash-pause').addEventListener('click', pauseGame);
+  function exportRunLog() {
+    if (!match || !match.audit) return;
+    const payload = match.audit.snapshot(match);
+    const filename = 'chroma-clash-zone-' + String(match.zone + 1).padStart(2, '0') +
+      '-run-audit.json';
+    // Explicit user action only. No upload, network request, tracking or
+    // automatic saving of movement history between sessions.
+    const data = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(data);
+    const download = document.createElement('a');
+    download.href = url;
+    download.download = filename;
+    download.style.display = 'none';
+    document.body.appendChild(download);
+    download.click();
+    download.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+  $('clash-export').addEventListener('click', exportRunLog);
+  $('clash-export-pause').addEventListener('click', exportRunLog);
   function clock(seconds) {
     const s = Math.floor(Math.max(0, seconds));
     return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
@@ -763,7 +785,7 @@
       }
       if (match.eventId !== lastEventId) {
         lastEventId = match.eventId;
-        showAnnounce(match.event, .72);
+        showAnnounce(match.event, match.event && match.event.includes('SPEED UP') ? 1.25 : .72);
       }
       if (match.warning && !match.warnedStage) {
         match.warnedStage = match.stage + 1;

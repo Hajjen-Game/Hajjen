@@ -111,7 +111,7 @@ function seededRace(seed=20261111){
       dashes:0,dashTime:0,dashCooldown:0,brakeSeconds:0,
       lineSeconds:0,flow:0,bestFlow:0,edgeCooldown:0,
       aiLane:id===0?lane[id]:lane[id]+(random()-.5)*9,
-      aiTempo:id===0?1:.91+id*.025+(random()-.5)*.045,
+      aiTempo:id===0?1:.90+id*.022+(random()-.5)*.06,
       contactFlash:0};
   });
   const race={seed,random,racers,ready:READY_SECONDS,elapsed:0,

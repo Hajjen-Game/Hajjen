@@ -266,7 +266,11 @@
       match.elapsed - COLLAPSES[match.stage - 1] < .13;
     const cause = edgeJustBroke ? 'edge_break' :
       credit != null ? 'push' : 'edge_fall';
-    match.audit.noteElimination(match.elapsed, cube, credit, cause);
+    match.audit.noteElimination(match.elapsed, cube, credit, cause, {
+      zone: match.zone + 1, stage: match.stage, speedCap: speedForZone(match.zone),
+      edgeDistance: roundedSquareSDF(cube.x, cube.y, match.half,
+        Math.max(12, match.half * .16))
+    });
     match.event = cube.id === 0 ? 'YOU FELL' : cube.name + ' OUT';
     match.eventId++;
   }

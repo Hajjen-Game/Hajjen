@@ -152,8 +152,8 @@ def main():
             assert logic["zone"]==1 and logic["tide"]>0,logic
             assert logic["speed"]==130 and logic["completed"],logic
             assert logic["laps"]==3,logic
-            assert logic["waveScope"]=="track-only" and
-                   logic["waveDirection"]=="forward",logic
+            assert (logic["waveScope"]=="track-only" and
+                    logic["waveDirection"]=="forward"),logic
             # Each new race changes the course rather than repeating an
             # identical oval. The HUD names the new route at countdown.
             page.locator("#circuit-pause").click()

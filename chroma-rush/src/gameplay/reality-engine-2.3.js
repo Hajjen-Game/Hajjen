@@ -162,7 +162,10 @@
           shot.fromCore=true;
           this.muzzleFires++;
           this.lastMuzzle={x:shot.originX,y:shot.originY,
-            kind:shot.kind,at:props.time||0};
+            kind:shot.kind,
+            // Recoil/flash happens when the charged bolt departs, NOT on
+            // its initial charge frame.
+            at:(props.time||0)+MUZZLE_CHARGE};
           this.coreCharge=1;this.coreRecoil=.65;
         }
       }
@@ -238,7 +241,7 @@
       const r=Math.min(width*.070,height*.14);
       const active=this.projectiles.some(s=>s.charging&&!s.finished);
       const charge=active ? .14 : 0;
-      const fire=this.lastMuzzle?
+      const fire=this.lastMuzzle&&time>=this.lastMuzzle.at?
         clamp(1-(time-this.lastMuzzle.at)/.34,0,1):0;
       const oscillation=reducedMotion?0:Math.sin(time*5.5)*.025;
       // This rendering is EXACTLY symmetric in both axes. All rings use

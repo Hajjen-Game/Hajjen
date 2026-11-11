@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -50,7 +51,7 @@ def main():
             assert 'calc(' in moved, 'Thumb did not react to real pointer movement'
             page.mouse.up()
             neutral = page.locator('#clash-stick').get_attribute('style') or ''
-            assert 'translate(-50%,-50%)' in neutral, 'Thumb did not recenter'
+            assert re.search(r'translate\(-50%,\s*-50%\)', neutral), 'Thumb did not recenter: %r' % neutral
             page.screenshot(path=str(OUT / ('clash-play-%s.png' % width)))
             page.locator('#clash-pause').click()
             assert page.locator('#clash-pause-menu').is_visible(), 'Pause did not open'

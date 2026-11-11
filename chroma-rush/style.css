@@ -1023,3 +1023,16 @@ h2 {font-size:clamp(35px,5vw,67px);line-height:1.1;font-weight:900;letter-spacin
   #menu .trial-choice .trial-description,#menu .trial-choice .trial-best{font-size:8px}
   #gameover #reality-export-btn{margin-top:3px;padding:3px 9px}
 }
+
+/* Chroma Clash 1.0: visible but intentionally compact arcade-mode entry. */
+#menu .clash-mode-link{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:7px;margin-top:9px;padding:4px 12px;
+  color:#9becff;text-decoration:none;
+  font-size:clamp(10px,.92vw,12px);font-weight:900;letter-spacing:.12em;
+  border-bottom:1px solid rgba(119,233,255,.42);
+  transition:color .15s ease,border-color .15s ease;
+}
+#menu .clash-mode-link span{font-size:.86em;color:#bbcadf;letter-spacing:.08em}
+#menu .clash-mode-link:hover,#menu .clash-mode-link:focus-visible{color:#fff;border-color:#a9f9ff}
+@media(max-height:420px){#menu .clash-mode-link{margin-top:4px;padding:2px 8px;font-size:10px}}

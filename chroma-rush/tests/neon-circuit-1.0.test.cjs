@@ -104,8 +104,14 @@ test('Seeded AI physics are deterministic, and contact never removes a cube',()=
   assert.deepEqual(a.racers.map(r=>[+r.x.toFixed(3),+r.y.toFixed(3),r.edgeHits]),
     b.racers.map(r=>[+r.x.toFixed(3),+r.y.toFixed(3),r.edgeHits]));
   const p=a.racers[0],q=a.racers[1];
-  q.x=p.x+6;q.y=p.y;p.edgeCooldown=0;q.edgeCooldown=0;
-  c.tick(a,{x:0,y:0},1/60);
+  // Force a true on-road overlap. Positions from a previous free-running
+  // tick could otherwise be clipped back to opposite track shoulders.
+  const at=c.pointAt(c.TRACK.length*.24);
+  p.x=at.x;p.y=at.y;p.angle=at.angle;p.speed=0;
+  q.x=at.x+at.nx*8;q.y=at.y+at.ny*8;q.angle=at.angle;q.speed=0;
+  p.progress=c.TRACK.length*.24;q.progress=p.progress;
+  p.edgeCooldown=0;q.edgeCooldown=0;
+  c.tick(a,{x:at.tx,y:at.ty},1/60);
   assert.ok(p.contacts>=1||q.contacts>=1);
   assert.equal(a.racers.length,4);
   assert.equal(a.finished,false);

@@ -128,8 +128,10 @@ test('route and boss visuals reflect actual state, preserve the hitbox-only rend
   e.drawRoute(ctx,{plan:p,distance:p.markers.crest-300,time:38,width:1280,baseY:515});
   assert.ok(calls.filter(x=>x==='stroke').length>=2);
   const enemy=p.obstacles.find(o=>o.bossPhase);
+  const before=calls.filter(x=>x==='stroke').length;
   e.drawAttack(ctx,{obstacle:{...enemy,groundY:515,x:500},box:{x:500,y:450,w:enemy.width,h:65}});
-  assert.ok(calls.some(x=>x==='SLAM'||x==='SWEEP'));
+  assert.ok(calls.filter(x=>x==='stroke').length>before,
+    'boss attacks have clear geometric signatures, not unreadable gate text');
   e.drawBackdrop(ctx,{time:65,width:1280,height:720,quality:{density:1}});
   assert.ok(calls.includes('fill'),'drawn enemy is larger than a mere text icon');
   e.drawOverlay(ctx,{time:65,width:1280,height:720});

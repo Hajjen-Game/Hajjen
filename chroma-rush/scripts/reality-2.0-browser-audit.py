@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reality Engine 2.0: real Chromium, real game canvas, no shipped debug hooks."""
+"""Reality Engine 2.1: physical platform, shot projectiles, real Chromium."""
 from __future__ import annotations
 import importlib.util, json, os
 from pathlib import Path
@@ -20,33 +20,33 @@ EXTRA=r"""
       startRun('reality');
       const isUpper=scene==='upper',isBoss=scene==='boss';
       if(isUpper||scene==='lower'){
-        const selected=isUpper?'upper':'lower';
-        const ok=reality.chooseRoute(selected,{time:30.5,terrain,plan:trialPlan,
-          grounded:true});
-        if(!ok)throw new Error('Could not select route '+selected);
+        const ok=isUpper?
+          reality.captureUpper({time:34.8,worldX:trialPlan.markers.start+350}):
+          reality.chooseRoute('lower',{time:38,plan:trialPlan,
+            playerWorld:trialPlan.markers.crest+200});
+        if(!ok)throw new Error('Could not enter route');
         time=40;worldTime=40;zone=4;speed=GAME.speedAt(time,zone);
         distance=trialPlan.markers.crest+speed*1.55-player.x;
       }else if(isBoss){
         time=65;worldTime=65;zone=6;speed=GAME.speedAt(time,zone);
-        const attack=trialPlan.obstacles.find(o=>o.bossPhase===1);
-        distance=attack.worldX-player.x-240;
-        hurdles=[{...attack,x:attack.worldX-distance,
-          groundY:terrain.groundAt(attack.worldX)??floorY,
-          hit:false,cleared:false,closestClearance:Infinity,
-          entryDuckTime:null,dashAssisted:false,mechanicIntro:false}];
-        reality.tick(.016,{time,terrain,plan:trialPlan});
+        distance=30000;hurdles=[];
+        reality.tick(.016,{time,plan:trialPlan,playerWorld:distance+player.x,
+          baseY:floorY,playerX:player.x,
+          spawnX:camera.worldX(W*.80,player.x),speed});
       }else throw new Error('Unknown Reality scene');
       const palette=window.ChromaConfig.paletteForZone(zone);
       c1=palette.primary;c2=palette.secondary;c3=palette.shadow;
       camera.reset(speed);spectralWave.start({from:palette,to:palette,width:W,reducedMotion:true});
-      player.feet=terrain.groundAt(distance+player.x)??floorY;
+      player.feet=runMode==='reality'&&reality.route==='upper'?
+        reality.upperSurfaceAt(distance+player.x,trialPlan,floorY):
+        terrain.groundAt(distance+player.x)??floorY;
       player.landed=true;player.vy=0;player.duck=false;
       $.menu.classList.add('hidden');$.hud.classList.remove('hidden');
       $.controls.classList.remove('hidden');$.modeIndicator.classList.remove('hidden');
       updateHud();draw();
       return {mode:runMode,route:reality.route,feet:player.feet,
         bossPhase:reality.bossPhase,bossHealth:reality.bossHealth,
-        obstacles:hurdles.length,terrain:terrain.segments.length};
+        projectiles:reality.projectiles.length,terrain:terrain.segments.length};
     }
   };
 """
@@ -90,10 +90,10 @@ def main():
                 assert result['mode']=='reality'
             lo,hi,boss=captured['lower'][0],captured['upper'][0],captured['boss'][0]
             assert lo['route']=='lower' and hi['route']=='upper'
-            assert 168<=lo['feet']-hi['feet']<=171, (lo,hi)
+            assert 137<=lo['feet']-hi['feet']<=145, (lo,hi)
             assert captured['lower'][1]!=captured['upper'][1], (
                 'World Fold visually identical for upper and lower routes')
-            assert boss['bossPhase']==1 and boss['obstacles']>0, boss
+            assert boss['bossPhase']==1 and boss['projectiles']>0, boss
             assert captured['boss'][1]!=captured['lower'][1], (
                 'Sentinel attack produces no distinct gameplay presentation')
             results.append({'viewport':f'{width}x{height}',
@@ -103,7 +103,7 @@ def main():
         browser.close()
     assert not errors,'Browser errors: '+repr(errors[:8])
     (OUT/'report.json').write_text(json.dumps({'status':'passed','results':results},indent=2))
-    print('PASS: Reality 2.0 branch geometries, boss collider and menu at both mobile viewports')
+    print('PASS: Reality 2.1 physical upper deck, Sentinel shots and mobile Trials menu')
 
 if __name__=='__main__':
     main()

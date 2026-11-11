@@ -566,34 +566,72 @@
     roundedRect(CX - half, CY - half, 2 * half, 2 * half, Math.max(12, half * .16));
   }
   function drawBackground(time, palette) {
-    ctx.fillStyle = '#070d1d'; ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    let glow = ctx.createRadialGradient(CX, CY, 12, CX, CY, 590);
-    // The earlier world had a nearly static deep-blue backdrop. A clear
-    // environmental hue change now reaches the full camera, not just the rim.
-    glow.addColorStop(0, mixColor(palette[1], palette[0], .42));
-    glow.addColorStop(.5, mixColor('#09162a', palette[0], .24));
-    glow.addColorStop(1, mixColor('#050914', palette[0], .09));
-    ctx.fillStyle = glow; ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    ctx.save();
-    ctx.globalAlpha = .17; ctx.strokeStyle = palette[0]; ctx.lineWidth = 1;
-    for (let i = -6; i <= 6; i++) {
-      const off = i * 84;
-      ctx.beginPath(); ctx.moveTo(CX + off - 400, 0); ctx.lineTo(CX + off + 370, HEIGHT); ctx.stroke();
+    // Visual Cohesion 1.0: same dark atmospheric sky / broad color bounce /
+    // restrained distant architecture as Rush, viewed from above. This
+    // complete scene is rasterized ONCE per color zone and platform stage.
+    const primary = palette[0], shadow = palette[1], secondary = palette[2];
+    ctx.fillStyle = '#070b17';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+    sky.addColorStop(0, '#060b19');
+    sky.addColorStop(.44, mixColor('#071324', shadow, .77));
+    sky.addColorStop(1, mixColor('#061021', shadow, .51));
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    // Same diffuse two-color illumination budget as the runner's world.
+    const centerGlow = ctx.createRadialGradient(CX, CY + 4, 0, CX, CY, 425);
+    centerGlow.addColorStop(0, hexAlpha(primary, .25));
+    centerGlow.addColorStop(.44, hexAlpha(secondary, .115));
+    centerGlow.addColorStop(1, hexAlpha(primary, 0));
+    ctx.fillStyle = centerGlow;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    const distanceGlow = ctx.createRadialGradient(WIDTH*.73, HEIGHT*.76, 0,
+      WIDTH*.73, HEIGHT*.76, 440);
+    distanceGlow.addColorStop(0, hexAlpha(secondary, .11));
+    distanceGlow.addColorStop(1, hexAlpha(secondary, 0));
+    ctx.fillStyle = distanceGlow;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    // The old diagonal wallpaper/grid was unrelated to Rush. Subtle depth
+    // silhouettes and a thin atmospheric horizon reuse its visual language.
+    const skyline = ctx.createLinearGradient(0, 150, 0, HEIGHT);
+    skyline.addColorStop(0, hexAlpha(primary, .013));
+    skyline.addColorStop(.65, hexAlpha(primary, .068));
+    skyline.addColorStop(1, hexAlpha(primary, .012));
+    for (let i = 0; i < 11; i++) {
+      const x = 19 + i * 92 + (i % 3) * 13;
+      const top = 154 + ((i * 37) % 128);
+      const width = 15 + (i % 4) * 8;
+      ctx.fillStyle = skyline;
+      ctx.fillRect(x, top, width, HEIGHT - top);
+      ctx.fillStyle = hexAlpha(secondary, .043);
+      ctx.fillRect(x + width * .68, top + 12, 1.3, Math.min(90, HEIGHT - top - 22));
     }
-    ctx.globalAlpha = .15; ctx.fillStyle = '#d9f3ff';
-    for (let n = 0; n < 47; n++) {
-      const x = (n * 183.73 + 39) % WIDTH;
-      const y = (n * 91.37 + 27) % HEIGHT;
-      ctx.fillRect(x, y, 1.1 + n % 3 * .35, 1.1 + n % 2);
+    // Horizontal light streaks, not full-screen wireframe diagonals.
+    for (let i = 0; i < 17; i++) {
+      const y = 36 + (i * 107 % 460);
+      const x = (i * 163 + 27) % WIDTH;
+      ctx.fillStyle = hexAlpha(i % 2 ? secondary : primary, .055 + i % 4 * .012);
+      ctx.fillRect(x, y, 21 + i % 5 * 17, i % 5 === 0 ? 1.5 : 1);
     }
-    ctx.restore();
-    ctx.save(); ctx.globalAlpha = .07 + .025 * Math.sin(time * .6);
-    ctx.strokeStyle = palette[0]; ctx.lineWidth = 1.3;
-    for (let i = 0; i < 3; i++) {
-      const inset = 24 + i * 21;
-      ctx.strokeRect(inset, inset, WIDTH - 2 * inset, HEIGHT - 2 * inset);
+    for (let i = 0; i < 39; i++) {
+      const x = (i * 237.3 + 31) % WIDTH;
+      const y = (i * 111.7 + 41) % HEIGHT;
+      ctx.fillStyle = hexAlpha(i % 4 ? '#c8e3f4' : secondary, .09 + (i % 3) * .022);
+      ctx.fillRect(x, y, i % 7 === 0 ? 2 : 1, 1);
     }
-    ctx.restore();
+    const horizon = HEIGHT * .575;
+    ctx.globalAlpha = .22;
+    ctx.strokeStyle = primary;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, horizon); ctx.lineTo(WIDTH, horizon);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  function hexAlpha(hex, alpha) {
+    const v = parseInt(hex.slice(1), 16);
+    return 'rgba(' + (v >> 16) + ',' + ((v >> 8) & 255) + ',' +
+      (v & 255) + ',' + alpha + ')';
   }
   function drawFallenRims(active) {
     for (const rim of active.falling) {

@@ -98,7 +98,9 @@ function directionAt(s,lead=68,track=TRACK){
 }
 function seededRace(seed=20261111){
   const random=rand(seed);
-  const grid=[-84,-56,-28,0];
+  // The player begins third: overtaking is visible from the first lap,
+  // without forcing all four racers into repeated front-to-back contacts.
+  const grid=[-56,-84,-28,0];
   const lane=[-13,13,-13,13];
   const racers=grid.map((distance,id)=>{
     const p=pointAt(distance),off=lane[id];
@@ -108,13 +110,16 @@ function seededRace(seed=20261111){
       lapTimes:[],lastLapStart:0,edgeHits:0,contacts:0,
       dashes:0,dashTime:0,dashCooldown:0,brakeSeconds:0,
       lineSeconds:0,flow:0,bestFlow:0,edgeCooldown:0,
-      aiLane:lane[id],contactFlash:0};
+      aiLane:id===0?lane[id]:lane[id]+(random()-.5)*9,
+      aiTempo:id===0?1:.91+id*.025+(random()-.5)*.045,
+      contactFlash:0};
   });
   const race={seed,random,racers,ready:READY_SECONDS,elapsed:0,
     zone:0,tide:0,phase:'ready',finished:false,finishPlace:null,
     winner:null,announcement:'READY',announcementTime:0,
     events:[],overflow:0,maxEvents:450,
-    impacts:[],performance:{frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
+    impacts:[],contactPairs:{},performance:{
+      frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     quality:'auto'};
   log(race,'race_start',{mode:'neon-circuit-1.0',laps:LAPS_TO_WIN,
     trackLength:Math.round(TRACK.length)});
@@ -202,7 +207,7 @@ function moveRacer(m,p,input,dt){
   p.angle+=clamp(angleDelta(p.angle,desired),-turnSpeed*dt,turnSpeed*dt);
   if(brake)p.brakeSeconds+=dt;
   const base=zoneSpeed(m.zone);
-  const aiSpeed=p.id===0?1:[0,.95,.97,1.005][p.id];
+  const aiSpeed=p.aiTempo;
   const dashFactor=p.dashTime>0?1.47:1;
   const flowFactor=p.id===0?1+.075*p.flow:1;
   const target=base*aiSpeed*(brake?.53:1)*dashFactor*flowFactor;
@@ -249,16 +254,21 @@ function bumpRacers(m){
       const push=(PLAYER_RADIUS*2.2-d)*.52;
       a.x-=nx*push;a.y-=ny*push;
       b.x+=nx*push;b.y+=ny*push;
-      // The contact is meaningful but never a death/teleport.
-      a.speed*=.86;b.speed*=.86;
-      a.contactFlash=.14;b.contactFlash=.14;
-      if(a.edgeCooldown<=0||b.edgeCooldown<=0){
+      // Cars sharing a lane should not be penalized EVERY FRAME for
+      // harmless bumper-to-bumper proximity. Only relative high-speed or
+      // significantly opposing contact generates an actual impact.
+      const relative=Math.abs(a.speed-b.speed);
+      const opposite=Math.abs(angleDelta(a.angle,b.angle))>.55;
+      const key=i+'-'+j;
+      if((relative>18||opposite)&&m.elapsed-(m.contactPairs[key]??-100)>.68){
+        m.contactPairs[key]=m.elapsed;
+        a.speed*=.84;b.speed*=.84;
+        a.contactFlash=.14;b.contactFlash=.14;
         a.contacts++;b.contacts++;
         m.impacts.push({x:(a.x+b.x)/2,y:(a.y+b.y)/2,nx,ny,life:.24,
           colorA:a.color,colorB:b.color});
         if(m.impacts.length>8)m.impacts.shift();
-        log(m,'contact',{a:a.id,b:b.id});
-        a.edgeCooldown=.32;b.edgeCooldown=.32;
+        log(m,'contact',{a:a.id,b:b.id,intensity:Math.round(relative)});
       }
       // Resolve against road after pushing to avoid persistent wall clipping.
       for(const p of [a,b]){

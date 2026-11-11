@@ -739,102 +739,120 @@
     }
     ctx.restore();
   }
-  function ensureOldSceneCache(active, time) {
-    if (tideDisabled || !TIDE) return false;
-    // Canvas allocated only on the first actual color swap. A 960x540 cache
-    // is ~2MB regardless of device DPR (vs two full-DPR world renders).
-    if (!tideCacheCanvas) {
-      tideCacheCanvas = document.createElement('canvas');
-      tideCacheCanvas.width = WIDTH;
-      tideCacheCanvas.height = HEIGHT;
+  function getStaticScene(active, zone) {
+    if (active.stage === COLLAPSES.length && active.elapsed > 81) return null;
+    const key = zone + ':' + active.stage + ':' + active.half;
+    const found = sceneSlots.find(slot => slot.key === key);
+    if (found && found.canvas) return found.canvas;
+    const slot = sceneSlots[sceneReplacement];
+    sceneReplacement = (sceneReplacement + 1) % sceneSlots.length;
+    if (!slot.canvas) {
+      slot.canvas = document.createElement('canvas');
+      slot.canvas.width = WIDTH;
+      slot.canvas.height = HEIGHT;
     }
-    if (tideCacheZone === active.zone &&
-        tideCacheStage === active.stage && tideCacheHalf === active.half) return true;
-    const buffer = tideCacheCanvas.getContext('2d', { alpha: false });
-    if (!buffer) return false;
-    const prior = ctx;
+    const backing = slot.canvas.getContext('2d', { alpha: false });
+    if (!backing) return null;
+    const previousCtx = ctx;
     try {
-      ctx = buffer;
+      ctx = backing;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, WIDTH, HEIGHT);
-      // Only one expensive world render for the old phase across the entire
-      // 1.55-second transition, not every frame.
-      drawArena(active, time, paletteForZone(active.zone - 1));
-      tideCacheZone = active.zone;
-      tideCacheStage = active.stage;
-      tideCacheHalf = active.half;
-      return true;
+      // Cache immutable world artwork only. Every frame replays the dynamic
+      // collapse/warning/impact over the cached scene, preserving gameplay.
+      drawArena({
+        half: active.half, stage: active.stage, elapsed: 0,
+        warning: false, falling: [], flash: 0
+      }, 0, paletteForZone(zone));
+      slot.key = key;
+      sceneBuilds++;
+      if (match && match.audit) match.audit.performance.sceneBuilds = sceneBuilds;
+      return slot.canvas;
     } finally {
-      ctx = prior;
+      ctx = previousCtx;
     }
   }
-  function drawActiveEdgeWarning(active, time) {
-    // The cached old color scene was captured before the warning began.
-    // Draw the safe boundary OVER the complete transition so its lead time
-    // stays correct even while colors sweep under the player's feet.
-    if (!active.warning || active.stage >= COLLAPSES.length) return;
-    const h = active.half, inner = HALVES[active.stage + 1];
-    ctx.save();
-    ctx.beginPath(); squarePath(h); ctx.clip();
-    ctx.beginPath(); squarePath(inner);
-    ctx.setLineDash([12, 8]);
-    ctx.lineWidth = 2.4; ctx.strokeStyle = '#ffd89b';
-    ctx.globalAlpha = .70 + Math.sin(time * 8) * .21;
-    ctx.stroke(); ctx.restore();
+  function drawDynamicArena(active, time) {
+    // Separating this from the costly background paint means collapsing edge
+    // pieces, danger warnings and ring break flash remain animated at 60fps.
+    if (active.falling.length) drawFallenRims(active);
+    if (active.warning && active.stage < COLLAPSES.length) {
+      const h = active.half, inner = HALVES[active.stage + 1];
+      ctx.save();
+      ctx.beginPath(); squarePath(h); ctx.clip();
+      // Thin translucent band shows exactly which outer tiles will detach.
+      ctx.beginPath(); squarePath(h); squarePath(inner);
+      ctx.fillStyle = Math.sin(time * 9) > 0 ? 'rgba(255,148,91,.27)' : 'rgba(255,148,91,.12)';
+      ctx.fill('evenodd');
+      ctx.beginPath(); squarePath(inner);
+      ctx.setLineDash([13, 8]);
+      ctx.lineWidth = 2.4; ctx.strokeStyle = '#ffd89b';
+      ctx.stroke(); ctx.setLineDash([]);
+      ctx.restore();
+    }
+    if (active.flash > 0) {
+      ctx.save();
+      ctx.beginPath(); squarePath(active.half); ctx.clip();
+      ctx.fillStyle = 'rgba(192,245,255,' + (active.flash * .16).toFixed(3) + ')';
+      ctx.fillRect(CX - active.half, CY - active.half, active.half * 2, active.half * 2);
+      ctx.restore();
+    }
   }
   function drawCornerTransition(active, time) {
-    const to = paletteForZone(active.zone);
     const progress = 1 - active.paletteFade / COLOR_FADE_SECONDS;
-    const screen = { x: 0, y: 0, w: WIDTH, h: HEIGHT };
-    if (!ensureOldSceneCache(active, time)) {
-      drawArena(active, time, to);
+    const from = getStaticScene(active, Math.max(0, active.zone - 1));
+    const to = getStaticScene(active, active.zone);
+    if (!from || !to) {
+      drawArena(active, time, paletteForZone(active.zone));
       return;
     }
-    // ONE cached background image + ONE live world render clipped by a single
-    // four-corner union. No per-frame double full-world redraw, no second
-    // stage-floor clip, no nested even-odd masks or additional radial bloom.
-    ctx.drawImage(tideCacheCanvas, 0, 0, WIDTH, HEIGHT);
+    // No world rasterization in a normal frame: the incoming wave only
+    // clips a PRE-RENDERED image. The four-corner mask is pure Canvas 2D.
+    ctx.drawImage(from, 0, 0, WIDTH, HEIGHT);
     ctx.save();
-    TIDE.clipNewColor(ctx, screen, progress);
-    drawArena(active, time, to);
+    TIDE.clipNewColor(ctx, { x: 0, y: 0, w: WIDTH, h: HEIGHT }, progress);
+    ctx.drawImage(to, 0, 0, WIDTH, HEIGHT);
     ctx.restore();
-
-    // One thin luminous front around the current real scene, never multiple
-    // blur-heavy overlapping wave passes that can stall mobile GPU drivers.
-    if (progress > .035 && progress < .965) {
-      TIDE.drawFront(ctx, screen, progress, to[0], .55);
+    if (progress > .05 && progress < .95) {
+      TIDE.drawFront(ctx, { x: 0, y: 0, w: WIDTH, h: HEIGHT },
+        progress, paletteForZone(active.zone)[0], .38);
     }
-    drawActiveEdgeWarning(active, time);
+    drawDynamicArena(active, time);
   }
   function render(time) {
     const active = match || preview;
-    // Guard the world renderer. Even if the device's Canvas path fails, draw
-    // the four players after the fallback rather than leaving an empty arena.
     screenCtx.setTransform(canvas.width / viewWidth, 0, 0,
       canvas.height / viewHeight, 0, 0);
     screenCtx.clearRect(0, 0, viewWidth, viewHeight);
     screenCtx.translate(ox, oy); screenCtx.scale(scale, scale);
     try {
-      if (active.paletteFade > 0 && TIDE && !tideDisabled && active.elapsed <= 81)
+      if (active.paletteFade > 0 && TIDE && !tideDisabled && active.elapsed <= 81) {
         drawCornerTransition(active, time);
-      else drawArena(active, time, paletteForZone(active.zone));
+      } else {
+        const background = getStaticScene(active, active.zone);
+        if (background) {
+          ctx.drawImage(background, 0, 0, WIDTH, HEIGHT);
+          drawDynamicArena(active, time);
+        } else drawArena(active, time, paletteForZone(active.zone));
+      }
     } catch (error) {
-      tideDisabled = true; tideCacheCanvas = null;
+      tideDisabled = true;
+      // Graphics error fallback is intentionally primitive and resilient:
+      // avoid retrying an already failing heavy render pipeline.
       ctx = screenCtx;
-      // Reset state after any failed clipping context so sprites never remain
-      // hidden behind a clip left active by an exceptional graphics call.
-      screenCtx.setTransform(1, 0, 0, 1, 0, 0);
-      // Canvas reset clears any unexpected clip state in older WebKit builds.
       canvas.width = canvas.width;
       screenCtx.setTransform(canvas.width / viewWidth, 0, 0,
         canvas.height / viewHeight, 0, 0);
       screenCtx.translate(ox, oy); screenCtx.scale(scale, scale);
-      drawArena(active, time, paletteForZone(active.zone));
+      screenCtx.fillStyle = '#10243a';
+      screenCtx.fillRect(0, 0, WIDTH, HEIGHT);
+      screenCtx.strokeStyle = '#6fd9ff';
+      screenCtx.lineWidth = 3;
+      screenCtx.strokeRect(CX - active.half, CY - active.half,
+        active.half * 2, active.half * 2);
       if (match && match.audit) match.audit.noteGraphicsFallback(match.elapsed,
         String(error && error.message || error).slice(0, 90), false);
     }
-    // Sprites are drawn AFTER the world wave and no longer depend on color
-    // masks. Color changes can never hide players behind an unfinished pass.
+    // Always ABOVE every environmental overlay and color mask.
     active.cubes.forEach(c => drawCube(c, time));
     active.impacts.forEach(drawImpact);
   }

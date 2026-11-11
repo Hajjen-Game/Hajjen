@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#080d20">
   <meta name="description" content="CHROMA CLASH — four neon cubes. One collapsing arena.">
-  <title>CHROMA RUSH | Chroma Clash Visual Cohesion 1.0</title>
-  <link rel="stylesheet" href="clash.css?v=chroma-clash-visual-cohesion-1.0">
+  <title>CHROMA RUSH | Chroma Clash Arena Polish 1.1</title>
+  <link rel="stylesheet" href="clash.css?v=chroma-clash-arena-polish-1.1">
 </head>
 <body>
   <main id="clash-shell" aria-label="CHROMA CLASH arena game">
@@ -14,7 +14,7 @@
     <div id="clash-hud" class="hud hidden" aria-live="off">
       <div class="hud-left"><span class="eyebrow">CHROMA <b>CLASH</b></span></div>
       <div class="hud-center"><strong id="clash-zone">ZONE 01</strong><span id="clash-phase">FLOW · SPEED 1.00×</span></div>
-      <div class="hud-right"><strong id="clash-count">4 ALIVE</strong><span id="clash-clock">0:00</span><button id="clash-pause" class="icon-button" type="button" aria-label="Pause game">Ⅱ</button></div>
+      <div class="hud-right"><strong id="clash-count">4 ALIVE</strong><span id="clash-clock">0:00</span><div class="hud-actions"><button id="clash-fullscreen" class="icon-button fullscreen-button" type="button" aria-label="Enter fullscreen" aria-pressed="false" title="Fullscreen">⛶</button><button id="clash-pause" class="icon-button" type="button" aria-label="Pause game">Ⅱ</button></div></div>
     </div>
     <div id="clash-announce" class="announce hidden" aria-live="polite"></div>
     <div id="clash-joystick" class="joystick hidden" role="application" aria-label="Movement joystick">
@@ -32,6 +32,7 @@
       </div>
       <button id="clash-start" class="primary-btn" type="button">ENTER ARENA <span aria-hidden="true">→</span></button>
       <p class="control-hint">JOYSTICK ONLY · KEYBOARD WASD / ARROWS</p>
+      <button id="clash-fullscreen-menu" class="menu-fullscreen" type="button" aria-label="Enter fullscreen">⛶ FULLSCREEN</button>
       <a class="return-link" href="./index.html">← BACK TO CHROMA RUSH</a>
     </section>
     <section id="clash-pause-menu" class="overlay hidden" aria-label="Game paused">
@@ -50,12 +51,13 @@
       <button id="clash-export" class="audit-btn" type="button">EXPORT RUN LOG</button>
       <a class="return-link" href="./index.html">← MAIN MENU</a>
     </section>
+    <div id="clash-fullscreen-status" class="fullscreen-status hidden" role="status" aria-live="polite"></div>
     <div id="clash-orientation" aria-live="polite"><div class="rotate-symbol">▭ ↻</div><strong>ROTATE YOUR DEVICE</strong><span>CHROMA CLASH is designed for landscape play.</span></div>
   </main>
-  <script src="src/core/config.js?v=chroma-clash-visual-cohesion-1.0"></script>
-  <script src="src/render/chroma-identity.js?v=chroma-clash-visual-cohesion-1.0"></script>
-  <script src="src/diagnostics/chroma-clash-audit.js?v=chroma-clash-visual-cohesion-1.0"></script>
-  <script src="src/render/chroma-center-pulse.js?v=chroma-clash-visual-cohesion-1.0"></script>
-  <script src="src/gameplay/chroma-clash.js?v=chroma-clash-visual-cohesion-1.0"></script>
+  <script src="src/core/config.js?v=chroma-clash-arena-polish-1.1"></script>
+  <script src="src/render/chroma-identity.js?v=chroma-clash-arena-polish-1.1"></script>
+  <script src="src/diagnostics/chroma-clash-audit.js?v=chroma-clash-arena-polish-1.1"></script>
+  <script src="src/render/chroma-center-pulse.js?v=chroma-clash-arena-polish-1.1"></script>
+  <script src="src/gameplay/chroma-clash.js?v=chroma-clash-arena-polish-1.1"></script>
 </body>
 </html>

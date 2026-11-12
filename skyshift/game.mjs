@@ -321,7 +321,7 @@ function step(dt) {
       state.vy=0;state.grounded=true;state.landings++;logEvent("land");
     }
   }
-  if(state.y<-17)fall();
+  if(state.y<surface.height-17)fall();
   if(state.mode==="playing" && state.distance>state.previousBest &&
      state.previousBest>100 && !state.bestToastShown) {
     state.bestToastShown=true;announce("NEW PERSONAL BEST");

@@ -26,7 +26,7 @@ const mix=(a,b,t)=>{
     ((y>>k)&255)*t).toString(16).padStart(2,'0')).join('');
 };
 let viewW=960,viewH=540,quality=1,slowStreak=0,camera=null;
-const TILE=448,TILE_PAD=10,TILE_LIMIT=36;
+const TILE=448,TILE_PAD=18,TILE_LIMIT=36;
 const tileCache=new Map(),sprites=Object.create(null);
 let tileBuilds=0,tileHits=0,mode='menu',race=null,preview=CORE.seededRace(103),
   nextCourse=0,joyId=null,joyX=0,joyY=0,brakePressed=false,dashPending=false,
@@ -532,6 +532,33 @@ function sprite(color){
   }
   return sprites[color]=surface;
 }
+function drawCombatOpportunity(r){
+  if(reduced())return;
+  const me=r.racers[0];
+  if(me.finished||me.fallTimer>0||me.dashCooldown>.08||me.speed<80)return;
+  const forwardX=Math.cos(me.angle),forwardY=Math.sin(me.angle);
+  const options=r.racers.slice(1).filter(p=>!p.finished&&p.fallTimer<=0)
+    .map(p=>{
+      const dx=p.x-me.x,dy=p.y-me.y;
+      return {p,distance:Math.hypot(dx,dy),
+        forward:dx*forwardX+dy*forwardY,
+        lateral:Math.abs(dx*forwardY-dy*forwardX)};
+    }).filter(v=>v.forward>7&&v.forward<106&&v.lateral<33)
+    .sort((a,b)=>a.distance-b.distance);
+  if(!options.length)return;
+  const target=options[0],t=clamp((106-target.forward)/106,0,1);
+  ctx.save();ctx.translate(target.p.x,target.p.y);
+  ctx.strokeStyle='#e9ffff';ctx.lineWidth=1.4;
+  ctx.globalAlpha=.30+.45*t;
+  ctx.lineCap='round';
+  // Four short brackets attached to the racer, never a standalone square.
+  for(const sx of [-1,1])for(const sy of [-1,1]){
+    ctx.beginPath();
+    ctx.moveTo(sx*16,sy*21);ctx.lineTo(sx*21,sy*21);
+    ctx.lineTo(sx*21,sy*16);ctx.stroke();
+  }
+  ctx.restore();
+}
 function drawRacers(r){
   for(const p of r.racers){
     const falling=p.fallTimer>0;
@@ -860,7 +887,7 @@ function paint(){
   drawVelocityRails(m,view);
   drawWorldSpectacles(m,view);
   if(m.tide>0&&z>0)drawWaveWorldHalo(m,view,CORE.waveState(m));
-  drawImpacts(m);drawRacers(m);
+  drawImpacts(m);drawRacers(m);drawCombatOpportunity(m);
   ctx.restore();
 }
 function loop(now){
@@ -911,6 +938,7 @@ root.ChromaCircuitViewDebug={
       targetZoom:camera.targetZoom,lookAhead:camera.lookAhead,
       updates:camera.updates}:null,
     tiles:tileCache.size,tileBuilds,tileHits,
+    spectacles:(race||preview).spectacles.length,
     course:(race||preview).track.courseId,
     player:(race||preview).racers[0]&&{
       x:(race||preview).racers[0].x,

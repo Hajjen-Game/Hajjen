@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Neon Circuit 2.7 Premium Motion & Visual Cohesion regression */
+/* CHROMA RUSH — Neon Circuit 2.8 Multi-Circuit Architecture & Track Diversity regression */
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -27,8 +27,8 @@ function run(seed=42,limit=145,damage=false){
   }
   return m;
 }
-test('2.1 replaces tiny arena with one physical multi-screen world course',()=>{
-  assert.equal(C.TRACKS.length,1);
+test('2.8 original world GP remains intact in the three-course architecture',()=>{
+  assert.equal(C.TRACKS.length,3);
   assert.equal(C.TRACK.layout,'multi-screen-world-track');
   assert.equal(C.TRACK.courseId,'spectral-highway');
   assert.ok(C.TRACK.length>4600&&C.TRACK.length<5500);
@@ -41,6 +41,124 @@ test('2.1 replaces tiny arena with one physical multi-screen world course',()=>{
   assert.ok(C.WORLD_BOUNDS.maxY>C.TRACK.bounds.maxY);
   assert.deepEqual(C.TRACK.segmentKinds,
     ['straight','constant-radius-arc','banked-hairpin']);
+});
+test('2.8 three distinctly authored world courses and configurable lap targets',()=>{
+  const [gp,skyline,canyon]=C.TRACKS;
+  assert.deepEqual(C.COURSE_IDS,
+    ['spectral-highway','skyline-rift','pulse-canyon']);
+  assert.deepEqual(C.TRACKS.map(t=>t.laps),[3,2,2]);
+  assert.ok(skyline.length>7500&&skyline.length<8500);
+  assert.ok(canyon.length>8000&&canyon.length<9000);
+  assert.ok(skyline.length>gp.length*1.4&&canyon.length>gp.length*1.5);
+  assert.ok(skyline.bounds.maxX-skyline.bounds.minX>3000);
+  assert.ok(canyon.bounds.maxY-canyon.bounds.minY>1600);
+  assert.deepEqual(C.TRACKS.map(t=>t.boosts.length),[3,4,4]);
+  for(const t of C.TRACKS){
+    assert.ok(t.worldBounds.minX<t.bounds.minX);
+    assert.ok(t.worldBounds.maxY>t.bounds.maxY);
+    assert.ok(t.samples.length>500);
+    assert.equal(t.samples[0].x,t.samples.at(-1).x);
+    assert.equal(t.samples[0].y,t.samples.at(-1).y);
+    assert.ok(t.sections.filter(p=>p.kind==='straight').length>=10);
+    assert.ok(t.sections.filter(p=>p.kind==='arc')
+      .every(p=>p.radius>150));
+  }
+});
+test('2.8 new circuit reserved launch areas never activate before 2.9',()=>{
+  const gp=C.TRACKS[0];
+  assert.equal(gp.jumpSites.length,0);
+  for(const t of C.TRACKS.slice(1)){
+    assert.equal(t.jumpSites.length,2);
+    for(const site of t.jumpSites){
+      const section=t.sections.find(p=>p.start<=site.entryS&&
+        site.landingS<=p.end);
+      assert.ok(section&&section.kind==='straight');
+      assert.ok(site.landingS-site.entryS>65);
+      assert.equal(site.active,false);
+    }
+    assert.ok(!t.sections.some(s=>s.kind==='jump'));
+  }
+});
+test('2.8 world tile indices cover nearby road, rim and studs exactly',()=>{
+  for(const t of C.TRACKS){
+    assert.ok(t.renderTileSegments.size>16);
+    assert.ok(t.renderTileRims.size>16);
+    assert.ok(t.renderTileStuds.size>16);
+    for(let i=1;i<t.samples.length;i+=17){
+      const a=t.samples[i-1],b=t.samples[i],x=(a.x+b.x)/2,
+        y=(a.y+b.y)/2;
+      const key=Math.floor(x/C.RENDER_TILE)+','+
+        Math.floor(y/C.RENDER_TILE);
+      assert.ok(t.renderTileSegments.get(key)?.includes(i),
+        'unindexed segment '+t.name+' '+i);
+    }
+    for(let i=0;i<t.rimSamples.length;i+=11){
+      const p=t.rimSamples[i];
+      const key=Math.floor(p.x/C.RENDER_TILE)+','+
+        Math.floor(p.y/C.RENDER_TILE);
+      assert.ok(t.renderTileRims.get(key)?.includes(i));
+    }
+    for(let i=0;i<t.studs.length;i+=7){
+      const p=t.studs[i];
+      const key=Math.floor(p.x/C.RENDER_TILE)+','+
+        Math.floor(p.y/C.RENDER_TILE);
+      assert.ok(t.renderTileStuds.get(key)?.includes(i));
+    }
+  }
+});
+test('2.8 longer courses have distinct banks and no crossing shortcuts',()=>{
+  for(const t of C.TRACKS){
+    const p=t.samples;let closest=Infinity;
+    for(let i=0;i<p.length-1;i+=4)for(let j=i+4;j<p.length-1;j+=4){
+      const along=Math.abs(p[i].s-p[j].s);
+      if(Math.min(along,t.length-along)<220)continue;
+      closest=Math.min(closest,Math.hypot(p[i].x-p[j].x,p[i].y-p[j].y));
+    }
+    assert.ok(closest>2*C.TRACK_HALF+65,
+      'track is self-adjacent or crosses: '+t.name+' '+closest);
+    assert.ok(Math.max(...t.sections.filter(s=>s.kind==='straight')
+      .map(s=>s.length))>650);
+  }
+});
+test('2.8 two-lap world circuits finish with nine ordered physical gates',()=>{
+  for(const course of ['skyline-rift','pulse-canyon']){
+    for(const seed of [19,42,77]){
+      const r=C.seededRace(seed,course);r.phase='running';
+      for(let i=0;i<140*60&&!r.finished;i++)
+        C.tick(r,guide(r),C.STEP);
+      const p=r.racers[0];
+      assert.equal(r.track.courseId,course);
+      assert.equal(r.lapsToWin,2);
+      assert.equal(p.laps,2,course+' seed '+seed+' laps '+p.laps);
+      assert.equal(p.gatePasses,9,course+' gate count');
+      assert.equal(p.lapTimes.length,2);
+      assert.equal(r.phase,'result');
+      assert.ok(r.elapsed>47&&r.elapsed<95,'bad duration '+r.elapsed);
+      const audit=C.audit(r);
+      assert.equal(audit.lapsTarget,2);
+      assert.equal(audit.courseId,course);
+      assert.equal(audit.jumpSectionsReserved,2);
+      assert.equal(audit.summary.boostPads,4);
+      assert.ok(audit.events.filter(e=>e.type==='checkpoint'&&
+        e.player===0).length>=9);
+    }
+  }
+});
+test('2.8 menu and camera use selected track without auto-cycling',()=>{
+  const js=read('src/gameplay/neon-circuit.js');
+  const html=read('neon-circuit.html');
+  const css=read('neon-circuit.css');
+  assert.ok(js.includes('const course=selectedCourse;'));
+  assert.ok(js.includes('CAMERA.create(race.track.worldBounds'));
+  assert.ok(js.includes('CAMERA.create(track.worldBounds'));
+  assert.ok(js.includes('const candidates=track.renderTileSegments.get(tileKey)'));
+  assert.ok(js.includes('track.renderTileRims.get(tileKey)'));
+  assert.ok(js.includes('track.renderTileStuds.get(tileKey)'));
+  assert.ok(!js.includes('nextCourse++'));
+  for(const id of [0,1,2])
+    assert.ok(html.includes('data-circuit-course="'+id+'"'));
+  assert.ok(html.includes('circuit-selected-description'));
+  assert.ok(css.includes('.circuit-course-picker'));
 });
 test('2.7 premium presentation is graphics-only and preserves auto throttle',()=>{
   const r=C.seededRace(45);r.phase='running';
@@ -674,7 +792,7 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
     'circuit-brake','circuit-dash','circuit-pause','circuit-fullscreen',
     'circuit-export','circuit-export-pause'])
       assert.ok(html.includes('id="'+id+'"'),id);
-  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.7'));
+  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.8'));
   assert.ok(html.includes('AUTO THROTTLE'));
   assert.ok(html.includes('ACCELERATION IS AUTOMATIC'));
   assert.ok(js.includes('dash.disabled=me.dashCooldown>.08||me.speed<45;'));
@@ -685,13 +803,14 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
 test('Run audit 2.3 includes falls, AI aggression and the spectral wave without private input history',()=>{
   const r=run(77);
   const a=C.audit(r);
-  assert.equal(a.schema,'neon-circuit-run-audit/2.7');
-  assert.equal(a.build,'neon-circuit-2.7');
+  assert.equal(a.schema,'neon-circuit-run-audit/2.8');
+  assert.equal(a.build,'neon-circuit-2.8');
   assert.equal(a.courseId,'spectral-highway');
   assert.ok(a.trackLength>4600);
   assert.equal(a.summary.cameraMode,'close-follow-damped-zoom');
   assert.equal(a.summary.edgeMode,'physical-cambered-bank-and-recoverable-ramp');
-  assert.equal(a.summary.trackArchitecture,'tangent-circular-arcs-straights');
+  assert.equal(a.summary.trackArchitecture,'multi-circuit-tangent-arcs-v2.8');
+  assert.equal(a.summary.renderIndex,'precomputed-course-tile-buckets');
   assert.equal(a.summary.boostPads,3);
   assert.deepEqual(a.summary.rivalStyles,['precision','aggressive','opportunist']);
   assert.equal(a.summary.spectacleMode,'premium-motion-impact-lap-2.7');

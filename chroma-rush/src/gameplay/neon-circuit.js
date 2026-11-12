@@ -181,7 +181,7 @@ function updateHud(){
   const me=race.racers[0],lap=Math.min(CORE.LAPS_TO_WIN,me.laps+1);
   text('circuit-zone','ZONE '+String(race.zone+1).padStart(2,'0'));
   text('circuit-phase',ZONE_NAMES[race.zone%ZONE_NAMES.length]+
-    ' · SPEED '+(CORE.zoneSpeed(race.zone)/118).toFixed(2)+'×');
+    ' · SPEED '+(CORE.zoneSpeed(race.zone)/CORE.zoneSpeed(0)).toFixed(2)+'×');
   text('circuit-lap','LAP '+lap+'/'+CORE.LAPS_TO_WIN);
   text('circuit-flow','LINE FLOW '+Math.round(me.flow*100)+'%');
   text('circuit-place',ordinal(CORE.currentPosition(race))+' / 4');
@@ -588,7 +588,16 @@ root.ChromaCircuitViewDebug={
       x:(race||preview).racers[0].x,
       y:(race||preview).racers[0].y},
     viewport:{width:viewW,height:viewH}
-  })
+  }),
+  sampleRoad:(zone,x,y)=>{
+    const track=(race||preview).track;
+    const ix=Math.floor(x/TILE),iy=Math.floor(y/TILE);
+    const tile=getTile(zone,track,ix,iy);
+    if(!tile)return [0,0,0,0];
+    return Array.from(tile.getContext('2d').getImageData(
+      Math.max(0,Math.min(tile.width-1,Math.floor(x-ix*TILE+TILE_PAD))),
+      Math.max(0,Math.min(tile.height-1,Math.floor(y-iy*TILE+TILE_PAD))),1,1).data);
+  }
 };
 screen('menu');
 root.requestAnimationFrame(loop);

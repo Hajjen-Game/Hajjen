@@ -758,7 +758,16 @@ function bumpRacers(m){
   }
 }
 function tick(m,input={},dt=STEP){
-  if(m.finished)return m;
+  // Freeze all race physics at the finish, but finish the short visual
+  // celebration before the result screen covers the circuit.
+  if(m.finished){
+    const frame=clamp(dt,0,1/30);
+    for(const fx of m.spectacles)fx.life-=frame;
+    m.spectacles=m.spectacles.filter(fx=>fx.life>0);
+    for(const hit of m.impacts)hit.life-=frame;
+    m.impacts=m.impacts.filter(hit=>hit.life>0);
+    return m;
+  }
   const step=clamp(dt,0,1/30);
   if(!step)return m;
   if(m.phase==='ready'){

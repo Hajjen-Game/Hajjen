@@ -244,6 +244,7 @@ def main():
               p.progress=r.track.length*3-4;
               const pos=c.pointAt(p.progress,r.track);
               p.x=pos.x;p.y=pos.y;p.angle=pos.angle;p.speed=230;
+               p.vx=pos.tx*p.speed;p.vy=pos.ty*p.speed;
               c.tick(r,{x:pos.tx,y:pos.ty},1/30);
               return {...zone,finished:p.finished,
                 laps:p.laps,place:r.finishPlace};

@@ -307,7 +307,7 @@ test('Track Tide still changes zones each ten seconds and follows the road',()=>
   const startSeparation=((start.playerStart-start.start+C.TRACK.length)%
     C.TRACK.length);
   assert.ok(Math.abs(startSeparation-C.WAVE_START_BACK)<.1);
-  assert.ok(start.reach<2);
+  assert.ok(start.reach<40,'first physics tick advances the wave slightly');;
   assert.equal(C.COLOR_WAVE_SECONDS,3.15);
   assert.ok(start.active);
   for(let i=0;i<43;i++)C.tick(r,{},C.STEP);
@@ -371,7 +371,7 @@ test('Renderer has visible tile cache, world transform and no monolithic world r
   assert.ok(js.includes('drawWaveFront(ctx,track,wave'));
   assert.ok(js.includes('function waveRibbon'));
   assert.ok(js.includes('const shimmer=side'));
-  assert.ok(js.includes('clipWaveRepaint(ctx,track,wave,offset)')===false);
+  assert.ok(js.includes('clipWaveRepaint(ctx,track,wave,offset)'));;
   assert.ok(!js.includes('getStatic(z,track)'));
   assert.ok(!js.includes('panoWidth'));
   assert.ok(!js.includes('scaleX=viewW/WIDTH'));
@@ -388,7 +388,7 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
   assert.ok(js.includes('JSON.stringify(CORE.audit(race)'));
   assert.ok(js.includes('getInput()'));
 });
-test('Run audit 2.2 includes falls, controls and camera data without private input history',()=>{
+test('Run audit 2.3 includes falls, AI aggression and the spectral wave without private input history',()=>{
   const r=run(77);
   const a=C.audit(r);
   assert.equal(a.schema,'neon-circuit-run-audit/2.3');

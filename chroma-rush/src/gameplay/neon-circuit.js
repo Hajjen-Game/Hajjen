@@ -692,39 +692,76 @@ function luminousPool(g,x,y,color,inner,outer,alpha){
 }
 function drawWorldSpectacles(m,view){
   if(reduced())return;
-  // Short, physically attached light events, not extra track obstacles.
+  // A short hierarchy: pad < hit < ejection < finish. No projectile shapes.
   for(const fx of m.spectacles||[]){
-    if(fx.x<view.minX-110||fx.x>view.maxX+110||
-      fx.y<view.minY-110||fx.y>view.maxY+110)continue;
-    const progress=1-fx.life/fx.duration;
-    const fade=Math.pow(1-progress,1.3);
+    if(fx.x<view.minX-130||fx.x>view.maxX+130||
+       fx.y<view.minY-130||fx.y>view.maxY+130)continue;
+    const age=clamp(1-fx.life/fx.duration,0,1);
+    const vanish=Math.pow(1-age,1.55);
     ctx.save();
+    ctx.translate(fx.x,fx.y);ctx.rotate(fx.angle);
     if(fx.kind==='boost'){
-      luminousPool(ctx,fx.x,fx.y,fx.color,5,92,fade*.27);
-      ctx.translate(fx.x,fx.y);ctx.rotate(fx.angle);
-      ctx.lineCap='round';ctx.lineJoin='round';
+      luminousPool(ctx,0,0,fx.color,5,92,vanish*.32);
       for(let k=0;k<3;k++){
-        const advance=-31+progress*90+k*19;
-        ctx.beginPath();
-        ctx.moveTo(advance-11,-12);ctx.lineTo(advance+1,0);
-        ctx.lineTo(advance-11,12);
+        const dx=-36+age*82+k*20;
+        ctx.beginPath();ctx.moveTo(dx-9,-11);ctx.lineTo(dx+3,0);
+        ctx.lineTo(dx-9,11);
         ctx.strokeStyle=k===1?'#ffffff':fx.color;
-        ctx.lineWidth=k===1?3.5:2.8;
-        ctx.globalAlpha=fade*(k===1?.80:.67);
+        ctx.lineWidth=k===1?3.6:2.5;
+        ctx.lineCap='round';ctx.lineJoin='round';
+        ctx.globalAlpha=vanish*(k===1?.83:.60);
         ctx.stroke();
       }
+      ctx.globalAlpha=vanish*.52;
+      ctx.strokeStyle=fx.color;ctx.lineWidth=1.3;
+      for(const y of [-21,21]){
+        ctx.beginPath();ctx.moveTo(-28+age*65,y);
+        ctx.lineTo(3+age*65,y);ctx.stroke();
+      }
     }else if(fx.kind==='eject'){
-      luminousPool(ctx,fx.x,fx.y,fx.color,2,58+progress*45,fade*.40);
-      ctx.translate(fx.x,fx.y);ctx.rotate(fx.angle);
-      for(let k=0;k<7;k++){
-        const theta=k*Math.PI*2/7+fx.owner*.39;
-        const dist=10+progress*42;
-        const xx=Math.cos(theta)*dist,yy=Math.sin(theta)*dist;
-        ctx.globalAlpha=fade*.73;
-        ctx.strokeStyle=k%2?'#ffffff':fx.color;
-        ctx.lineWidth=k%2?1.7:2.5;
+      luminousPool(ctx,0,0,fx.color,5,110,vanish*.28);
+      ctx.globalAlpha=vanish*.66;
+      ctx.strokeStyle=fx.color;ctx.lineWidth=2.6;
+      ctx.beginPath();ctx.ellipse(0,0,13+age*45,9+age*35,0,0,Math.PI*2);
+      ctx.stroke();
+      for(let k=0;k<8;k++){
+        const theta=k*Math.PI/4+fx.owner*.25;
+        const distance=12+age*46;
+        ctx.strokeStyle=k%2?'#e8ffff':fx.color;
+        ctx.lineWidth=k%2?1.4:2.2;
         ctx.beginPath();
-        ctx.moveTo(xx*.58,yy*.58);ctx.lineTo(xx,yy);ctx.stroke();
+        ctx.moveTo(Math.cos(theta)*distance*.70,
+          Math.sin(theta)*distance*.70);
+        ctx.lineTo(Math.cos(theta)*distance,
+          Math.sin(theta)*distance);ctx.stroke();
+      }
+    }else if(fx.kind==='respawn'){
+      // A soft reconstruction field anchored to the newly placed racer.
+      luminousPool(ctx,0,0,fx.color,3,76,vanish*.21);
+      ctx.globalAlpha=vanish*.63;
+      for(let k=0;k<2;k++){
+        const rad=15+age*28+k*12;
+        ctx.beginPath();ctx.arc(0,0,rad,
+          -Math.PI*.62+age*Math.PI*.5,
+          Math.PI*.64+age*Math.PI*.5);
+        ctx.strokeStyle=k===0?fx.color:'#e7ffff';
+        ctx.lineWidth=k===0?2.4:1;ctx.stroke();
+      }
+    }else if(fx.kind==='lap'||fx.kind==='finish'){
+      // One celebratory wave expands from the crossing point. Result panel
+      // follows only after the short finish moment has been seen.
+      const final=fx.kind==='finish';
+      luminousPool(ctx,0,0,fx.color,6,final?125:94,
+        vanish*(final?.39:.25));
+      ctx.globalAlpha=vanish*(final?.83:.58);
+      for(let k=0;k<(final?3:2);k++){
+        const rad=15+age*(final?70:42)+k*13;
+        ctx.beginPath();
+        ctx.arc(0,0,rad,
+          -Math.PI*.8+(age*.2+k*.19),
+          Math.PI*.85+age*.2+k*.19);
+        ctx.strokeStyle=k===1?'#ffffff':fx.color;
+        ctx.lineWidth=k===0?3.8:1.7;ctx.stroke();
       }
     }
     ctx.restore();
@@ -774,41 +811,46 @@ function drawImpacts(r){
   if(reduced())return;
   for(const v of r.impacts){
     const life=clamp(v.life/(v.lifeMax||.32),0,1),age=1-life;
-    const power=clamp((v.strength||190)/420,.45,1.5);
+    const force=clamp((v.strength||260)/720,.35,1);
+    const heavy=force>.68||v.charged;
     const angle=Math.atan2(v.ny,v.nx);
     ctx.save();ctx.translate(v.x,v.y);ctx.rotate(angle);
     ctx.globalCompositeOperation='screen';
-    luminousPool(ctx,0,0,'#ffffff',4,38+age*25,power*life*.36);
-    luminousPool(ctx,-10,0,v.colorA,2,28+age*23,life*.22);
-    luminousPool(ctx,10,0,v.colorB,2,28+age*23,life*.22);
+    luminousPool(ctx,0,0,'#ffffff',3,44+age*30,life*force*.40);
+    luminousPool(ctx,-8,0,v.colorA,2,39+age*18,life*.29);
+    luminousPool(ctx,8,0,v.colorB,2,39+age*18,life*.29);
     ctx.globalCompositeOperation='source-over';
-    ctx.lineCap='round';
-    // Compressed core, directional sparks and a quickly dissolving afterimage.
-    for(let i=0;i<7;i++){
-      const y=(i-3)*6.7;
-      const spread=(13+age*35)*(1-Math.abs(i-3)*.09)*power;
-      ctx.strokeStyle=i===3?'#ffffff':i<3?v.colorA:v.colorB;
-      ctx.lineWidth=i===3?3.2:1.55;
-      ctx.globalAlpha=life*(i===3?.92:.75);
+    // Compression is instantaneous; a coherent radial shock ring follows.
+    ctx.strokeStyle='#f4ffff';ctx.lineWidth=heavy?2.6:1.5;
+    ctx.globalAlpha=life*(heavy?.76:.48);
+    ctx.beginPath();
+    ctx.ellipse(0,0,9+age*(heavy?38:24),
+      7+age*(heavy?26:16),0,0,Math.PI*2);
+    ctx.stroke();
+    ctx.lineCap='round';ctx.lineJoin='round';
+    // Directional shards fly from collision normal, never from random screen
+    // positions and never persist as long streaks behind the racer.
+    for(let k=0;k<(heavy?9:5);k++){
+      const t=(k-(heavy?4:2))*.42;
+      const theta=(k%2?1:-1)*.18+t;
+      const spread=(11+age*(heavy?41:28))*(.74+.24*Math.abs(Math.sin(t)));
+      const x=Math.cos(theta)*spread;
+      const y=Math.sin(theta)*spread;
+      const sign=k%2?-1:1;
+      ctx.strokeStyle=k%3===0?'#ffffff':sign<0?v.colorA:v.colorB;
+      ctx.lineWidth=k%3===0?2.7:1.65;
+      ctx.globalAlpha=life*(heavy?.84:.53);
       ctx.beginPath();
-      ctx.moveTo(-spread,y);ctx.lineTo(spread,y);ctx.stroke();
+      ctx.moveTo(x*.62*sign,y*.62);
+      ctx.lineTo(x*sign,y);ctx.stroke();
     }
-    for(let k=0;k<8;k++){
-      const t=k*Math.PI*2/8+.35;
-      const dist=(9+age*32)*power;
-      const x=Math.cos(t)*dist,y=Math.sin(t)*dist*.65;
-      ctx.globalAlpha=life*.65;
-      ctx.strokeStyle=k%2?'#e5ffff':k<4?v.colorA:v.colorB;
-      ctx.lineWidth=1.6;
-      ctx.beginPath();ctx.moveTo(x*.70,y*.70);ctx.lineTo(x,y);
-      ctx.stroke();
-    }
+    // Brief bright contact core. Dash hits read as distinct energy clashes.
     if(v.charged){
-      ctx.globalAlpha=life*.65;
-      ctx.strokeStyle='#ffffff';ctx.lineWidth=1.7;
-      ctx.beginPath();
-      ctx.ellipse(0,0,17+age*31,10+age*24,0,0,Math.PI*2);
-      ctx.stroke();
+      ctx.globalAlpha=Math.pow(life,1.55)*.83;
+      ctx.strokeStyle='#ffffff';ctx.lineWidth=2.3;
+      ctx.beginPath();ctx.moveTo(-8,-8);ctx.lineTo(0,-13);
+      ctx.lineTo(8,-8);ctx.moveTo(-8,8);ctx.lineTo(0,13);
+      ctx.lineTo(8,8);ctx.stroke();
     }
     ctx.restore();
   }

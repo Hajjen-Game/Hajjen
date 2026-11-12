@@ -1,13 +1,13 @@
-/* CHROMA RUSH — NEON CIRCUIT 1.3: Full-Screen Track Rebuild.
- * Actual large-scale polyline racing circuits with straight sections and
- * rounded turns. Wide-landscape camera uses the entire screen instead of
- * leaving side gutters. Track Tide still recolors road ONLY in race direction.
+/* CHROMA RUSH — NEON CIRCUIT 2.0: World Track & Follow Camera.
+ * Camera follows the cube through a multi-screen neon racing world.
+ * The stable dark environment and road-only Track Tide render in visible
+ * cached world tiles (never one enormous offscreen track image).
  */
 (function(root){
 'use strict';
 const CORE=root.ChromaNeonCircuitCore,CONFIG=root.ChromaConfig,
-  IDENTITY=root.ChromaIdentity,TIDE=root.ChromaCenterPulse;
-if(!CORE||!CONFIG||!document.getElementById('circuit-canvas'))return;
+  IDENTITY=root.ChromaIdentity,CAMERA=root.ChromaCircuitCamera;
+if(!CORE||!CONFIG||!CAMERA||!document.getElementById('circuit-canvas'))return;
 const $=id=>document.getElementById(id);
 const WIDTH=CORE.WIDTH,HEIGHT=CORE.HEIGHT,TRACK=CORE.TRACK;
 const SHELL=$('circuit-shell'),CANVAS=$('circuit-canvas'),ctx=CANVAS.getContext('2d');
@@ -25,10 +25,10 @@ const mix=(a,b,t)=>{
   return '#'+[16,8,0].map(k=>Math.round(((x>>k)&255)*(1-t)+
     ((y>>k)&255)*t).toString(16).padStart(2,'0')).join('');
 };
-let viewW=960,viewH=540,scaleX=1,scaleY=1,ox=0,oy=0,
-  panoWidth=WIDTH,panoLeft=0,quality=1,slowStreak=0;
-const slots=[{key:'',canvas:null},{key:'',canvas:null}],sprites=Object.create(null);
-let slotCursor=0,mode='menu',race=null,preview=CORE.seededRace(103),
+let viewW=960,viewH=540,quality=1,slowStreak=0,camera=null;
+const TILE=448,TILE_PAD=10,TILE_LIMIT=36;
+const tileCache=new Map(),sprites=Object.create(null);
+let tileBuilds=0,tileHits=0,mode='menu',race=null,preview=CORE.seededRace(103),
   nextCourse=0,joyId=null,joyX=0,joyY=0,brakePressed=false,dashPending=false,
   keys=new Set(),frameBefore=0,accumulator=0,noticeUntil=0;
 function resize(){
@@ -38,12 +38,10 @@ function resize(){
   const cw=Math.max(1,Math.floor(viewW*ratio)),ch=Math.max(1,Math.floor(viewH*ratio));
   if(CANVAS.width!==cw)CANVAS.width=cw;
   if(CANVAS.height!==ch)CANVAS.height=ch;
-  // World-space terrain fills the *actual* mobile landscape viewport.
-  // The old aspect-fit letterboxed a 16:9 world on 20:9 phones, making
-  // the race course look small despite larger geometry.
-  scaleX=viewW/WIDTH;scaleY=viewH/HEIGHT;
-  ox=0;oy=0;
-  panoWidth=WIDTH;panoLeft=0;
+  // Camera uses a true 1:1 aspect transform; the visible world changes
+  // with device dimensions instead of distorting the road and the cubes.
+  if(camera)CAMERA.step(camera,(race||preview).racers[0],
+    {width:viewW,height:viewH},0,true);
   // Keep players safe when rotating the handset; no hidden game progress.
   if(viewH>viewW&&mode==='playing')pause();
 }
@@ -64,6 +62,9 @@ function begin(){
   const course=nextCourse++%CORE.TRACKS.length;
   race=CORE.seededRace((Date.now()^Math.floor(Math.random()*0x7fffffff))>>>0,course);
   frameBefore=0;accumulator=0;quality=1;slowStreak=0;resize();
+  camera=CAMERA.create(CORE.WORLD_BOUNDS,
+    {width:viewW,height:viewH},race.racers[0]);
+  tileCache.clear();tileBuilds=0;tileHits=0;
   keys.clear();resetStick();brakePressed=false;dashPending=false;
   screen('playing');noticeUntil=0;updateHud();
 }
@@ -169,9 +170,8 @@ function getInput(){
     y=Number(keys.has('ArrowDown')||keys.has('s'))-
       Number(keys.has('ArrowUp')||keys.has('w'));
   }
-  // Counteract the non-uniform panoramic scale when interpreting the
-  // joystick. A diagonal thumb gesture stays diagonal on the display.
-  x*=scaleY/scaleX;
+  // North-up follow camera: a thumb direction is the same world
+  // direction, so it needs no aspect or camera-rotation correction.
   const input={x,y,brake:brakePressed||keys.has('Shift'),dash:dashPending};
   dashPending=false;
   return input;
@@ -181,7 +181,7 @@ function updateHud(){
   const me=race.racers[0],lap=Math.min(CORE.LAPS_TO_WIN,me.laps+1);
   text('circuit-zone','ZONE '+String(race.zone+1).padStart(2,'0'));
   text('circuit-phase',ZONE_NAMES[race.zone%ZONE_NAMES.length]+
-    ' · SPEED '+(CORE.zoneSpeed(race.zone)/118).toFixed(2)+'×');
+    ' · SPEED '+(CORE.zoneSpeed(race.zone)/CORE.zoneSpeed(0)).toFixed(2)+'×');
   text('circuit-lap','LAP '+lap+'/'+CORE.LAPS_TO_WIN);
   text('circuit-flow','LINE FLOW '+Math.round(me.flow*100)+'%');
   text('circuit-place',ordinal(CORE.currentPosition(race))+' / 4');
@@ -222,101 +222,156 @@ function toggleFull(){
 buttons.forEach(b=>b.addEventListener('click',toggleFull));
 document.addEventListener('fullscreenchange',()=>{syncFull();resize()});
 syncFull();
-function trackPath(g,track=TRACK){
+function forVisibleSegments(g,track,rect){
   const list=track.samples;
-  g.beginPath();g.moveTo(list[0].x,list[0].y);
-  for(let i=1;i<list.length;i++)g.lineTo(list[i].x,list[i].y);
-  g.closePath();
+  let painting=false,found=false;
+  g.beginPath();
+  // Segments have global world coordinates; only nearby lines are emitted,
+  // so multi-screen courses never issue a full-track paint on every frame.
+  for(let i=1;i<list.length;i++){
+    const a=list[i-1],b=list[i];
+    const intersects=Math.max(a.x,b.x)>=rect.minX&&
+      Math.min(a.x,b.x)<=rect.maxX&&
+      Math.max(a.y,b.y)>=rect.minY&&Math.min(a.y,b.y)<=rect.maxY;
+    if(intersects){
+      if(!painting)g.moveTo(a.x,a.y);
+      g.lineTo(b.x,b.y);found=true;painting=true;
+    }else painting=false;
+  }
+  return found;
 }
-function drawStatic(g,zone,track){
+function tileHasRoad(track,rect){
+  const a=track.bounds;
+  if(a.minX>rect.maxX||a.maxX<rect.minX||
+      a.minY>rect.maxY||a.maxY<rect.minY)return false;
+  const list=track.samples;
+  for(let i=1;i<list.length;i++){
+    const p=list[i-1],q=list[i];
+    if(Math.max(p.x,q.x)>=rect.minX&&Math.min(p.x,q.x)<=rect.maxX&&
+      Math.max(p.y,q.y)>=rect.minY&&Math.min(p.y,q.y)<=rect.maxY)
+      return true;
+  }
+  return false;
+}
+function paintRoadTile(g,zone,track,tileX,tileY){
   const palette=PALETTES[zone%PALETTES.length];
   const primary=palette.primary,secondary=palette.secondary;
-  // Identical neutral backdrop in every zone: only the track changes.
-  const sky=g.createLinearGradient(0,0,0,HEIGHT);
-  sky.addColorStop(0,'#060a18');
-  sky.addColorStop(.46,'#10263b');
-  sky.addColorStop(1,'#09162a');
-  g.fillStyle=sky;g.fillRect(panoLeft,0,panoWidth,HEIGHT);
-  const haze=g.createRadialGradient(CORE.CX,CORE.CY,25,CORE.CX,CORE.CY,530);
-  haze.addColorStop(0,rgb('#307caf',.17));
-  haze.addColorStop(.55,rgb('#4386b4',.055));
-  haze.addColorStop(1,rgb('#307caf',0));
-  g.fillStyle=haze;g.fillRect(panoLeft,0,panoWidth,HEIGHT);
-  for(let x=-1200;x<panoLeft+panoWidth+100;x+=67){
-    const top=153+Math.abs((x*37)%195);
-    g.fillStyle=rgb('#4a9dd5',.027);
-    g.fillRect(x,top,18+(Math.abs(x*13)%19),HEIGHT-top);
-  }
-  // Cached atmosphere and road: one heavy paint per zone, never per frame.
+  const rect={minX:tileX*TILE-TILE_PAD-74,
+    maxX:(tileX+1)*TILE+TILE_PAD+74,
+    minY:tileY*TILE-TILE_PAD-74,
+    maxY:(tileY+1)*TILE+TILE_PAD+74};
+  if(!tileHasRoad(track,rect))return false;
+  g.save();g.translate(-tileX*TILE+TILE_PAD,-tileY*TILE+TILE_PAD);
   g.lineCap='round';g.lineJoin='round';
-  trackPath(g,track);g.strokeStyle='rgba(0,1,14,.55)';
-  g.lineWidth=132;g.stroke();
-  trackPath(g,track);g.strokeStyle=rgb(primary,.11);
-  g.lineWidth=120;g.stroke();
-  trackPath(g,track);g.strokeStyle=rgb(primary,.53);
-  g.lineWidth=104;g.stroke();
-  trackPath(g,track);g.strokeStyle=rgb('#bedfff',.24);
-  g.lineWidth=101;g.stroke();
-  trackPath(g,track);g.strokeStyle='#09172b';
-  g.lineWidth=96;g.stroke();
-  // The road body itself must visibly adopt each zone's color.
-  // Earlier 1.2 changed only a few RGB levels at the asphalt centre;
-  // the edge neon looked lively, but the ROAD still read as static navy.
-  // Keep a dark enough base for the glass cubes and lap stripe to stand out.
-  const asphalt=g.createLinearGradient(170,140,772,408);
+  const stroke=(width,color,dashed=false)=>{
+    const visible=forVisibleSegments(g,track,rect);
+    if(!visible)return;
+    g.lineWidth=width;g.strokeStyle=color;
+    if(dashed)g.setLineDash([16,15]);
+    g.stroke();
+    if(dashed)g.setLineDash([]);
+  };
+  // These geometries are RASTERIZED ONCE per visible tile per zone.
+  // No huge full-world canvases and no runtime per-frame glow blur.
+  stroke(132,'rgba(0,1,14,.68)');
+  stroke(120,rgb(primary,.10));
+  stroke(105,rgb(primary,.46));
+  stroke(101,rgb('#d0eeff',.22));
+  stroke(96,'#09172b');
+  // The actual ROAD pigment changes across zones, not just the rails.
+  const asphalt=g.createLinearGradient(
+    track.bounds.minX,track.bounds.minY,
+    track.bounds.maxX,track.bounds.maxY);
   asphalt.addColorStop(0,mix('#102038',primary,.33));
   asphalt.addColorStop(.40,mix('#13213a',primary,.31));
   asphalt.addColorStop(.70,mix('#131e35',secondary,.32));
   asphalt.addColorStop(1,mix('#16243b',primary,.30));
-  trackPath(g,track);g.strokeStyle=asphalt;g.lineWidth=89;g.stroke();
-  // Thin interior shear line implies forward travel without looking like
-  // isolated obstacle bars or a second track.
-  trackPath(g,track);g.strokeStyle=rgb(primary,.08);
-  g.lineWidth=1.1;g.setLineDash([16,15]);g.stroke();g.setLineDash([]);
-  // Raised rim/ramp lips are readable without looking like separate
-  // obstacles. These are cached world details, never frame-time effects.
-  trackPath(g,track);g.strokeStyle=rgb('#e0f4ff',.13);
-  g.lineWidth=97.8;g.stroke();
-  trackPath(g,track);g.strokeStyle=rgb(primary,.30);
-  g.lineWidth=95.3;g.stroke();
-  trackPath(g,track);g.strokeStyle=asphalt;g.lineWidth=89;g.stroke();
-  for(let s=28;s<track.length;s+=49){
-    const p=CORE.pointAt(s,track);
+  stroke(89,asphalt);
+  stroke(97,rgb('#d5faff',.10));
+  stroke(95.3,rgb(primary,.30));
+  stroke(89,asphalt);
+  stroke(1.1,rgb(primary,.08),true);
+  // Small light studs/curb marks. Skip markers outside the current tile.
+  for(let distance=28;distance<track.length;distance+=54){
+    const p=CORE.pointAt(distance,track);
+    if(p.x<rect.minX-10||p.x>rect.maxX+10||
+        p.y<rect.minY-10||p.y>rect.maxY+10)continue;
     for(const side of [-1,1]){
-      const x=p.x+p.nx*side*CORE.TRACK_HALF;
-      const y=p.y+p.ny*side*CORE.TRACK_HALF;
-      g.save();g.translate(x,y);g.rotate(p.angle);
-      g.fillStyle=rgb(s%3<1?secondary:primary,.43);
-      g.fillRect(-4,side===1?-3:0,9,3);
-      g.restore();
+      g.save();g.translate(p.x+p.nx*side*CORE.TRACK_HALF,
+        p.y+p.ny*side*CORE.TRACK_HALF);
+      g.rotate(p.angle);
+      g.fillStyle=rgb(primary,.42);
+      g.fillRect(-4,side===1?-3:0,9,3);g.restore();
     }
   }
-  // Tangential black-and-white start stripe, broad enough to read at
-  // full mobile screen scale; crossings are based on actual lap progress.
+  // A constant physical finish stripe for all viewports and zoom levels.
   const finish=CORE.pointAt(0,track);
-  g.save();g.translate(finish.x,finish.y);g.rotate(finish.angle);
-  for(let col=-4;col<4;col++){
-    for(let row=0;row<2;row++){
-      if((col+row)%2===0)g.fillStyle='#d9f6ff';
-      else g.fillStyle='#22435a';
-      g.globalAlpha=.86;
+  if(finish.x>rect.minX-30&&finish.x<rect.maxX+30&&
+      finish.y>rect.minY-65&&finish.y<rect.maxY+65){
+    g.save();g.translate(finish.x,finish.y);g.rotate(finish.angle);
+    g.globalAlpha=.88;
+    for(let col=-4;col<4;col++)for(let row=0;row<2;row++){
+      g.fillStyle=(col+row)%2===0?'#e2f6ff':'#25455c';
       g.fillRect(row*8-8,col*10,8,10);
     }
+    g.restore();
   }
   g.restore();
+  return true;
 }
-function getStatic(zone,track=TRACK){
-  const key=track.courseId+':'+zone+':'+panoWidth;
-  let slot=slots.find(s=>s.key===key&&s.canvas);
-  if(slot)return slot.canvas;
-  slot=slots[slotCursor];slotCursor=(slotCursor+1)%slots.length;
-  if(!slot.canvas)slot.canvas=document.createElement('canvas');
-  if(slot.canvas.width!==panoWidth)slot.canvas.width=panoWidth;
-  if(slot.canvas.height!==HEIGHT)slot.canvas.height=HEIGHT;
-  const g=slot.canvas.getContext('2d',{alpha:false});
-  g.setTransform(1,0,0,1,-panoLeft,0);
-  drawStatic(g,zone,track);slot.key=key;
-  return slot.canvas;
+function getTile(zone,track,ix,iy){
+  const key=track.courseId+':'+zone+':'+ix+':'+iy;
+  if(tileCache.has(key)){
+    const v=tileCache.get(key);
+    tileCache.delete(key);tileCache.set(key,v);
+    tileHits++;return v;
+  }
+  const surface=document.createElement('canvas');
+  surface.width=TILE+2*TILE_PAD;surface.height=TILE+2*TILE_PAD;
+  const g=surface.getContext('2d',{alpha:true});
+  const drawn=paintRoadTile(g,zone,track,ix,iy);
+  const value=drawn?surface:null;
+  tileCache.set(key,value);tileBuilds++;
+  if(tileCache.size>TILE_LIMIT)tileCache.delete(tileCache.keys().next().value);
+  return value;
+}
+function drawRoadTiles(g,zone,track,view){
+  const x0=Math.floor((view.minX-75)/TILE),x1=Math.floor((view.maxX+75)/TILE);
+  const y0=Math.floor((view.minY-75)/TILE),y1=Math.floor((view.maxY+75)/TILE);
+  for(let iy=y0;iy<=y1;iy++)for(let ix=x0;ix<=x1;ix++){
+    const tile=getTile(zone,track,ix,iy);
+    if(tile)g.drawImage(tile,ix*TILE-TILE_PAD,iy*TILE-TILE_PAD);
+  }
+}
+function drawWorldBackdrop(g,cam){
+  // Stable atmosphere is drawn screen-space; it NEVER changes with Zone.
+  const gradient=g.createLinearGradient(0,0,0,viewH);
+  gradient.addColorStop(0,'#060a18');
+  gradient.addColorStop(.48,'#10263b');
+  gradient.addColorStop(1,'#09162a');
+  g.fillStyle=gradient;g.fillRect(0,0,viewW,viewH);
+  const frame=CAMERA.viewBounds(cam,80);
+  // World-anchored quiet pillars contribute parallax without cities or
+  // moving colored shapes that can be mistaken for hazards.
+  g.save();
+  g.translate(viewW*.5,viewH*.5);g.scale(cam.zoom,cam.zoom);
+  g.translate(-cam.x,-cam.y);
+  const startX=Math.floor(frame.minX/140)*140;
+  const endX=Math.ceil(frame.maxX/140)*140;
+  for(let x=startX;x<=endX;x+=140){
+    const top=frame.minY+85+Math.abs((Math.floor(x/140)*37)%175);
+    g.fillStyle='rgba(63,133,185,.035)';
+    g.fillRect(x,top,23,frame.maxY-top);
+  }
+  g.strokeStyle='rgba(87,169,215,.045)';g.lineWidth=1;
+  g.beginPath();
+  for(let x=Math.floor(frame.minX/160)*160;x<frame.maxX;x+=160){
+    g.moveTo(x,frame.minY);g.lineTo(x,frame.maxY);
+  }
+  for(let y=Math.floor(frame.minY/160)*160;y<frame.maxY;y+=160){
+    g.moveTo(frame.minX,y);g.lineTo(frame.maxX,y);
+  }
+  g.stroke();g.restore();
 }
 function rounded(g,x,y,w,h,r){
   g.beginPath();g.moveTo(x+r,y);g.lineTo(x+w-r,y);
@@ -370,7 +425,7 @@ function drawRacers(r){
     ctx.translate(p.x,p.y);
     // Glass cubes remain visibly SQUARE on wide-screen phones even as
     // the roadway fills more horizontal space.
-    ctx.scale(spriteScale*scaleY/scaleX,spriteScale);
+    ctx.scale(spriteScale,spriteScale);
     if(!falling&&p.contactFlash>0&&!reduced()){
       ctx.globalAlpha*=clamp(p.contactFlash/.24,0,1)*.70;
       ctx.strokeStyle=p.color;ctx.lineWidth=2;
@@ -384,9 +439,7 @@ function drawRacers(r){
       ctx.textAlign='center';ctx.font='800 11px system-ui,sans-serif';
       ctx.fillStyle=p.id===0?'#ffffff':p.color;
       ctx.globalAlpha=p.finished?.4:1;
-      ctx.translate(p.x,p.y-23);
-      ctx.scale(scaleY/scaleX,1);
-      ctx.fillText(p.name,0,0);
+      ctx.fillText(p.name,p.x,p.y-23);
       ctx.restore();
     }
   }
@@ -461,20 +514,26 @@ function drawWaveFront(g,track,wave,color){
 }
 function paint(){
   const m=race||preview,track=m.track||TRACK;
+  if(!camera)camera=CAMERA.create(CORE.WORLD_BOUNDS,
+    {width:viewW,height:viewH},m.racers[0]);
   ctx.setTransform(CANVAS.width/viewW,0,0,CANVAS.height/viewH,0,0);
   ctx.clearRect(0,0,viewW,viewH);
-  ctx.translate(ox,oy);ctx.scale(scaleX,scaleY);
-  const z=m.zone;
-  const current=getStatic(z,track);
+  drawWorldBackdrop(ctx,camera);
+  ctx.save();
+  ctx.translate(viewW*.5,viewH*.5);
+  ctx.scale(camera.zoom,camera.zoom);
+  ctx.translate(-camera.x,-camera.y);
+  const z=m.zone,view=CAMERA.viewBounds(camera,12);
   if(m.tide>0&&z>0){
-    const previous=getStatic(z-1,track),wave=CORE.waveState(m);
-    ctx.drawImage(previous,panoLeft,0,panoWidth,HEIGHT);
+    const wave=CORE.waveState(m);
+    drawRoadTiles(ctx,z-1,track,view);
     ctx.save();clipWaveRepaint(ctx,track,wave);
-    ctx.drawImage(current,panoLeft,0,panoWidth,HEIGHT);
+    drawRoadTiles(ctx,z,track,view);
     ctx.restore();
     drawWaveFront(ctx,track,wave,PALETTES[z%PALETTES.length].primary);
-  }else ctx.drawImage(current,panoLeft,0,panoWidth,HEIGHT);
+  }else drawRoadTiles(ctx,z,track,view);
   drawImpacts(m);drawRacers(m);
+  ctx.restore();
 }
 function loop(now){
   const frameMs=frameBefore?Math.max(0,now-frameBefore):0;
@@ -494,6 +553,11 @@ function loop(now){
     if(race.finished)finish();
     updateHud();
   }
+  const m=race||preview;
+  if(camera&&m){
+    CAMERA.step(camera,m.racers[0],{width:viewW,height:viewH},
+      Math.min(frameMs/1000,.05),mode==='menu');
+  }
   const renderStart=performance.now();
   paint();
   if(mode==='playing'&&race){
@@ -502,9 +566,39 @@ function loop(now){
     race.performance.worstFrameMs=Math.max(race.performance.worstFrameMs,frameMs);
     race.performance.renderMaxMs=Math.max(race.performance.renderMaxMs,
       performance.now()-renderStart);
+    race.performance.cameraZoomMin=Math.min(
+      race.performance.cameraZoomMin??camera.zoom,camera.zoom);
+    race.performance.cameraZoomMax=Math.max(
+      race.performance.cameraZoomMax??camera.zoom,camera.zoom);
+    race.performance.tileBuilds=tileBuilds;
+    race.performance.tileHits=tileHits;
+    race.performance.cameraMaxDrift=+camera.maxDrift.toFixed(1);
   }
   root.requestAnimationFrame(loop);
 }
+// Read-only test hook, no raw input or device fingerprint recorded.
+root.ChromaCircuitViewDebug={
+  snapshot:()=>({
+    camera:camera?{x:camera.x,y:camera.y,zoom:camera.zoom,
+      targetZoom:camera.targetZoom,lookAhead:camera.lookAhead,
+      updates:camera.updates}:null,
+    tiles:tileCache.size,tileBuilds,tileHits,
+    course:(race||preview).track.courseId,
+    player:(race||preview).racers[0]&&{
+      x:(race||preview).racers[0].x,
+      y:(race||preview).racers[0].y},
+    viewport:{width:viewW,height:viewH}
+  }),
+  sampleRoad:(zone,x,y)=>{
+    const track=(race||preview).track;
+    const ix=Math.floor(x/TILE),iy=Math.floor(y/TILE);
+    const tile=getTile(zone,track,ix,iy);
+    if(!tile)return [0,0,0,0];
+    return Array.from(tile.getContext('2d').getImageData(
+      Math.max(0,Math.min(tile.width-1,Math.floor(x-ix*TILE+TILE_PAD))),
+      Math.max(0,Math.min(tile.height-1,Math.floor(y-iy*TILE+TILE_PAD))),1,1).data);
+  }
+};
 screen('menu');
 root.requestAnimationFrame(loop);
 })(typeof window!=='undefined'?window:null);

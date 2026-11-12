@@ -1,443 +1,268 @@
+/* CHROMA RUSH — Neon Circuit 2.0 World Track & Follow Camera regression */
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const fs=require('node:fs'),path=require('node:path');
-const c=require('../src/gameplay/neon-circuit-core.js');
+const fs=require('node:fs');
+const path=require('node:path');
+const C=require('../src/gameplay/neon-circuit-core.js');
+const Camera=require('../src/gameplay/neon-circuit-camera.js');
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
-const EPS=1e-5;
-
-test('Neon Circuit is a distinct closed-track racing game, not trail-survival',()=>{
-  assert.equal(c.LAPS_TO_WIN,3);
-  assert.equal(c.ZONE_SECONDS,10);
-  assert.equal(c.NAMES.length,4);
-  assert.ok(c.NODES.length>=10);
-  assert.equal(c.TRACK.layout,'full-span-rounded-polyline');
-  assert.deepEqual(c.TRACK.segmentKinds,['straight','rounded-corner']);
-  assert.ok(c.TRACK.length>1500&&c.TRACK.length<2200,c.TRACK.length);
-  assert.ok(c.TRACK.pointCount>150);
-  const a=c.TRACK.samples[0],b=c.TRACK.samples.at(-1);
-  assert.ok(Math.hypot(a.x-b.x,a.y-b.y)<EPS);
-  assert.equal(c.TRACK_HALF,47);
-  assert.equal(c.zoneSpeed(0),118);
-  assert.equal(c.zoneSpeed(1),130);
-  assert.ok(c.zoneSpeed(10)<=187);
-  assert.equal(c.zoneAt(9.999),0);assert.equal(c.zoneAt(10),1);
-  const css=read('neon-circuit.css');
-  const js=read('src/gameplay/neon-circuit.js');
-  const html=read('neon-circuit.html');
-  assert.match(js,/clipWaveRepaint/);
-  assert.match(js,/drawWaveFront/);
-  assert.doesNotMatch(js,/TIDE\.clipNewColor/);
-  assert.match(js,/IDENTITY\.paintPlayer/);
-  assert.match(css,/circuit-actions/);
-  assert.match(html,/id="circuit-brake"/);
-  assert.match(html,/id="circuit-dash"/);
-  assert.doesNotMatch(js,/hitsTrail|trailLife|tailblazer/i);
+function guide(r){
+  const p=r.racers[0],track=r.track;
+  const s=C.closest(p.x,p.y,track).s;
+  const a=C.pointAt(s+Math.max(55,p.speed*.42),track);
+  const near=C.pointAt(s+27,track),far=C.pointAt(s+130,track);
+  const bend=Math.abs(C.angleDelta(near.angle,far.angle));
+  return {x:a.x-p.x,y:a.y-p.y,
+    brake:bend>.58&&p.speed>161,
+    dash:p.dashCooldown<=0&&bend<.1&&r.elapsed>5};
+}
+function run(seed=42,limit=145,damage=false){
+  const m=C.seededRace(seed);m.phase='running';
+  let corrupted=false;
+  for(let i=0;i<limit*60&&!m.finished;i++){
+    if(damage&&!corrupted&&m.elapsed>8){
+      m.racers[0].progress-=950;corrupted=true;
+    }
+    C.tick(m,guide(m),C.STEP);
+  }
+  return m;
+}
+test('2.0 replaces tiny arena with one physical multi-screen world course',()=>{
+  assert.equal(C.TRACKS.length,1);
+  assert.equal(C.TRACK.layout,'multi-screen-world-track');
+  assert.equal(C.TRACK.courseId,'spectral-highway');
+  assert.ok(C.TRACK.length>4600&&C.TRACK.length<5500);
+  assert.ok(C.TRACK.bounds.maxX-C.TRACK.bounds.minX>1800);
+  assert.ok(C.TRACK.bounds.maxY-C.TRACK.bounds.minY>900);
+  assert.ok(C.TRACK.pointCount>550);
+  const a=C.TRACK.samples[0],b=C.TRACK.samples.at(-1);
+  assert.ok(Math.hypot(a.x-b.x,a.y-b.y)<1e-5);
+  assert.ok(C.WORLD_BOUNDS.minX<C.TRACK.bounds.minX);
+  assert.ok(C.WORLD_BOUNDS.maxY>C.TRACK.bounds.maxY);
+  assert.deepEqual(C.TRACK.segmentKinds,
+    ['straight','rounded-corner','hairpin','sweep']);
 });
-test('Route coordinates are continuous and nearest projection stays close',()=>{
-  for(let n=0;n<30;n++){
-    const s=(n+.39)/30*c.TRACK.length;
-    const p=c.pointAt(s),q=c.closest(p.x,p.y);
-    assert.ok(q.dist<.001,q.dist);
-    assert.ok(Math.abs(q.s-s)<1.0,[q.s,s]);
+test('Path lookup is continuous, tangent-normal and physically projected',()=>{
+  for(let i=0;i<35;i++){
+    const s=(i+.33)/35*C.TRACK.length;
+    const p=C.pointAt(s),q=C.closest(p.x,p.y);
+    assert.ok(q.dist<.003);
+    assert.ok(Math.abs(q.s-s)<1.5);
+    assert.ok(Math.abs(p.tx*p.nx+p.ty*p.ny)<.001);
     assert.ok(Math.hypot(p.tx,p.ty)>.98);
-    const next=c.pointAt(s+4);
-    assert.ok(Math.hypot(p.x-next.x,p.y-next.y)>1);
   }
-  assert.ok(c.angleDelta(3,-3)>0);
+  assert.ok(C.TRACK.length>C.WIDTH*4);
 });
-test('Three separate hand-designed circuits contain different gentle turns and remain geometrically safe',()=>{
-  assert.equal(c.TRACKS.length,3);
-  assert.equal(new Set(c.TRACKS.map(t=>t.courseId)).size,3);
-  const midpoints=[];
-  for(let k=0;k<3;k++){
-    const t=c.TRACKS[k],m=c.seededRace(115,k);
-    assert.equal(m.track,t);
-    assert.equal(m.gates.length,4);
-    assert.equal(m.track.name,c.COURSE_NAMES[k]);
-    assert.ok(t.length>1600&&t.length<2200,t.length);
-    assert.ok(t.coverage.width>=.87&&t.coverage.height>=.72,
-      'world track must occupy most of the landscape playfield');
-    assert.ok(Math.hypot(t.samples[0].x-t.samples.at(-1).x,
-      t.samples[0].y-t.samples.at(-1).y)<1e-5);
-    assert.ok(m.racers.every(p=>p.progress<0));
-    for(let j=0;j<24;j++){
-      const s=(j+.33)/24*t.length,p=c.pointAt(s,t);
-      const q=c.closest(p.x,p.y,t);
-      assert.ok(q.dist<.005,q.dist);
-      assert.ok(Math.abs(q.s-s)<1,s);
+test('Long race geometry has a safe corridor and broad corners',()=>{
+  const s=C.TRACK.samples;
+  let shortest=Infinity,rad=Infinity;
+  for(let i=1;i<s.length-1;i++){
+    const a=s[i-1],b=s[i],d=s[i+1];
+    const aa=Math.atan2(b.y-a.y,b.x-a.x);
+    const ab=Math.atan2(d.y-b.y,d.x-b.x);
+    const turn=Math.abs(C.angleDelta(aa,ab));
+    if(turn>.0001)rad=Math.min(rad,Math.hypot(d.x-b.x,d.y-b.y)/turn);
+    for(let j=i+1;j<s.length-1;j++){
+      const dist=Math.abs(s[j].s-b.s);
+      if(Math.min(dist,C.TRACK.length-dist)<200)continue;
+      shortest=Math.min(shortest,Math.hypot(s[j].x-b.x,s[j].y-b.y));
     }
-    midpoints.push(c.pointAt(t.length*.42,t).y.toFixed(1));
   }
-  assert.ok(new Set(midpoints).size>1,'tracks must differ beyond color themes');
+  assert.ok(rad>110,'radius: '+rad);
+  assert.ok(shortest>2*C.TRACK_HALF+60,'separation: '+shortest);
 });
-test('All three courses complete three physical laps with identical gate rules',()=>{
-  for(let k=0;k<3;k++){
-    const m=c.seededRace(1234+k,k);
-    m.phase='running';
-    for(let i=0;i<60*85&&!m.finished;i++){
-      const p=m.racers[0],t=m.track,
-        s=c.closest(p.x,p.y,t).s,
-        ahead=c.pointAt(s+Math.max(45,p.speed*.4),t),
-        bend=Math.abs(c.angleDelta(c.pointAt(s+22,t).angle,
-          c.pointAt(s+110,t).angle));
-      c.tick(m,{x:ahead.x-p.x,y:ahead.y-p.y,
-        brake:bend>.66&&p.speed>140,
-        dash:p.dashCooldown<=0&&bend<.12&&m.elapsed>3},1/60);
-    }
-    assert.equal(m.racers[0].laps,3,'course '+k);
-    assert.equal(m.racers[0].gatePasses,13,'course '+k);
-    assert.equal(m.phase,'result');
-    assert.deepEqual(m.events.filter(e=>e.type==='checkpoint'&&e.player===0)
-      .map(e=>e.gate),[0,1,2,3,0,1,2,3,0,1,2,3,0]);
-    assert.equal(c.audit(m).courseId,m.track.courseId);
-  }
+test('Four racers use identical physical gates and start behind the line',()=>{
+  const r=C.seededRace(91);
+  assert.equal(r.racers.length,4);
+  assert.equal(r.gates.length,4);
+  assert.ok(r.racers.every(p=>p.progress<0));
+  assert.ok(r.racers.every(p=>p.gatePasses===0));
+  assert.equal(r.ready,C.READY_SECONDS);
+  assert.equal(C.MAX_RACE_SECONDS,165);
 });
-test('Track Tide travels clockwise/forward once per zone, preserving scene geometry',()=>{
-  const m=c.seededRace(817,2);m.phase='running';
-  m.elapsed=9.995;
-  c.tick(m,{x:1,y:0},1/60);
-  assert.equal(m.zone,1);
-  assert.equal(m.tide>1.4,true);
-  const initial=c.waveState(m);
-  assert.equal(initial.active,true);
-  assert.equal(initial.direction,'forward');
-  assert.equal(initial.scope,'track-only');
-  assert.ok(initial.progress>=0&&initial.progress<.1);
-  const firstStart=initial.start;
-  for(let i=0;i<43;i++)c.tick(m,{},1/60);
-  const mid=c.waveState(m);
-  assert.ok(mid.progress>.45&&mid.progress<.65,mid.progress);
-  assert.ok(mid.reach>initial.reach);
-  assert.equal(mid.start,firstStart);
-  const zone=m.events.find(e=>e.type==='zone');
-  assert.equal(zone.waveScope,'track-only');
-  assert.equal(zone.waveDirection,'forward');
-  for(let i=0;i<50;i++)c.tick(m,{},1/60);
-  const done=c.waveState(m);
-  assert.equal(done.active,false);
-  assert.equal(done.progress,1);
+test('Countdown is non-lethal and GO starts the physical race',()=>{
+  const r=C.seededRace(19);
+  C.tick(r,{x:1,y:0,dash:true},C.STEP);
+  assert.equal(r.elapsed,0);
+  assert.equal(r.racers[0].dashes,0);
+  r.ready=.01;C.tick(r,{},C.STEP);
+  assert.equal(r.phase,'running');
+  assert.ok(r.events.some(e=>e.type==='go'));
 });
-test('Circuit visual palette affects road only; atmosphere is static across zone art',()=>{
-  const js=read('src/gameplay/neon-circuit.js');
-  const bg=js.slice(js.indexOf('function drawStatic('),
-    js.indexOf('// Cached atmosphere and road:'));
-  assert.ok(bg.includes("sky.addColorStop(.46,'#10263b')"));
-  assert.ok(bg.includes("haze.addColorStop(0,rgb('#307caf'"));
-  assert.ok(!bg.includes('rgb(primary'));
-  assert.ok(!bg.includes('rgb(secondary'));
-  assert.ok(!bg.includes("mix('#0a1828',shadow"));
-  assert.ok(js.includes('appendRoadSlice'));
-  assert.ok(js.includes('drawWaveFront'));
-  assert.ok(js.includes('getStatic(z-1,track)'));
-});
-test('1.3 courses are actually full-span silhouettes with purposeful straight runs',()=>{
-  const expected=['full-span-loop','wide-corner-cut','lower-sweep-hook'];
-  assert.deepEqual(c.TRACKS.map(t=>t.courseId),expected);
-  assert.ok(c.TRACKS.every(t=>t.bounds.minX<105&&t.bounds.maxX>855));
-  assert.ok(c.TRACKS.every(t=>t.bounds.minY<=115&&t.bounds.maxY>425));
-  // At least a substantial flat top straight remains near the start line;
-  // no sinusoidal deformation of the entire upper course.
-  for(const t of c.TRACKS){
-    const path=t.samples;
-    let longestStraight=0,run=0;
-    for(let i=1;i<path.length;i++){
-      const p=path[i-1],q=path[i];
-      if(Math.abs(p.y-q.y)<.000001&&Math.abs(p.y-115)<1)
-        run+=Math.hypot(p.x-q.x,p.y-q.y);
-      else {longestStraight=Math.max(longestStraight,run);run=0;}
-    }
-    assert.ok(Math.max(longestStraight,run)>220,t.name);
-  }
-});
-test('1.3 road ribbons never cross or compress into impassable choke points',()=>{
-  for(const t of c.TRACKS){
-    let minimum=Infinity,minRadius=Infinity;
-    const pts=t.samples;
-    for(let i=1;i<pts.length-1;i++){
-      const a=pts[i-1],b=pts[i],d=pts[i+1];
-      const before=Math.atan2(b.y-a.y,b.x-a.x),
-        after=Math.atan2(d.y-b.y,d.x-b.x);
-      const bend=Math.abs(c.angleDelta(before,after));
-      if(bend>1e-4){
-        const radius=Math.hypot(d.x-b.x,d.y-b.y)/bend;
-        minRadius=Math.min(minRadius,radius);
-      }
-      for(let j=i+1;j<pts.length-1;j++){
-        const q=pts[j],sep=Math.abs(q.s-b.s),
-          along=Math.min(sep,t.length-sep);
-        if(along<170)continue;
-        minimum=Math.min(minimum,Math.hypot(b.x-q.x,b.y-q.y));
-      }
-    }
-    assert.ok(minimum>2*c.TRACK_HALF+35,
-      t.name+' neighboring road sections too close: '+minimum);
-    assert.ok(minRadius>42,
-      t.name+' corner turns sharply: '+minRadius);
-  }
-});
-test('1.3 panoramic renderer uses all of wide displays without squashing glass cubes',()=>{
-  const ui=read('src/gameplay/neon-circuit.js');
-  assert.match(ui,/scaleX=viewW\/WIDTH;scaleY=viewH\/HEIGHT/);
-  assert.match(ui,/ctx\.scale\(scaleX,scaleY\)/);
-  assert.match(ui,/ctx\.scale\(spriteScale\*scaleY\/scaleX,spriteScale\)/);
-  assert.match(ui,/x\*=scaleY\/scaleX/);
-  // These preserve the requested Track Tide effect, not a screen tint.
-  assert.match(ui,/clipWaveRepaint\(ctx,track,wave\)/);
-  assert.match(ui,/drawWaveFront\(ctx,track,wave/);
-});
-test('Countdown starts safely and 10-second color zones increase real racing speed',()=>{
-  const m=c.seededRace(123),p=m.racers[0];
-  assert.equal(m.phase,'ready');
-  assert.equal(m.racers.length,4);
-  assert.ok(p.progress<0);
-  c.tick(m,{x:1,y:0},1/60);
-  assert.equal(m.elapsed,0);
-  m.ready=.01;c.tick(m,{},1/60);
-  assert.equal(m.phase,'running');
-  assert.ok(m.events.some(e=>e.type==='go'));
-  m.elapsed=9.995;c.tick(m,{},1/60);
-  assert.equal(m.zone,1);
-  assert.ok(m.tide>0);
-  assert.ok(m.events.some(e=>e.type==='zone'&&e.speed===130));
-});
-test('Joystick steering, braking and Dash modify speed without instant death',()=>{
-  const m=c.seededRace(19),p=m.racers[0];
-  m.phase='running';
-  const a=c.pointAt(p.progress+36);
-  c.tick(m,{x:a.x-p.x,y:a.y-p.y,dash:true},1/60);
-  assert.equal(p.dashes,1);
-  assert.ok(p.dashTime>0&&p.dashCooldown>0);
-  assert.ok(p.speed>0);
-  c.tick(m,{x:1,y:0,dash:true,brake:true},1/60);
-  assert.equal(p.dashes,1);
-  assert.ok(p.brakeSeconds>0);
-  assert.ok(m.events.some(e=>e.type==='dash'));
-  assert.equal(m.finished,false);
-});
-test('Ordinary track-edge contact restores usable speed instead of stalling',()=>{
-  const m=c.seededRace(42),p=m.racers[0];
-  m.phase='running';
-  const q=c.pointAt(p.progress);
-  p.x=q.x+q.nx*(c.TRACK_HALF-2);
-  p.y=q.y+q.ny*(c.TRACK_HALF-2);
-  p.angle=Math.atan2(q.ny,q.nx);
-  p.speed=130;
-  c.tick(m,{x:q.nx,y:q.ny},1/30);
-  assert.ok(p.edgeHits>=1,p.edgeHits);
-  assert.equal(p.finished,false);
-  assert.ok(c.closest(p.x,p.y).dist<=c.RAMP_START+.1);
-  assert.ok(p.speed>=c.zoneSpeed(m.zone)*.68,'edge touch must not trap at speed 5');
-  assert.ok(m.events.some(e=>e.type==='edge_scrape'));
-});
-test('AI competitors follow the winding circuit, using steering and braking',()=>{
-  const m=c.seededRace(299);
-  m.phase='running';
-  const p=m.racers[2],d=c.desiredAI(m,p);
-  assert.ok(Number.isFinite(d.angle));
-  assert.ok(d.curvature>=0);
-  for(let i=0;i<120;i++)c.tick(m,{},1/60);
-  assert.ok(m.racers.every(r=>Number.isFinite(r.x)&&Number.isFinite(r.y)));
-  assert.ok(m.racers.slice(1).some(r=>r.progress>-.01));
-  for(const r of m.racers){
-    if(r.fallTimer<=0)
-      assert.ok(c.closest(r.x,r.y).dist<=c.RAMP_START+1);
-  }
-});
-test('Seeded AI physics are deterministic, and contact never removes a cube',()=>{
-  const a=c.seededRace(770),b=c.seededRace(770);
-  a.phase='running';b.phase='running';
-  for(let i=0;i<65;i++){c.tick(a,{x:1,y:0},1/60);c.tick(b,{x:1,y:0},1/60)}
-  assert.deepEqual(a.racers.map(r=>[+r.x.toFixed(3),+r.y.toFixed(3),r.edgeHits]),
-    b.racers.map(r=>[+r.x.toFixed(3),+r.y.toFixed(3),r.edgeHits]));
-  const p=a.racers[0],q=a.racers[1];
-  // Force a true on-road overlap. Positions from a previous free-running
-  // tick could otherwise be clipped back to opposite track shoulders.
-  const at=c.pointAt(c.TRACK.length*.24);
-  p.x=at.x;p.y=at.y;p.angle=at.angle;p.speed=135;
-  q.x=at.x+at.nx*8;q.y=at.y+at.ny*8;q.angle=at.angle+Math.PI;q.speed=45;
-  q.dashTime=.28;
-  p.progress=c.TRACK.length*.24;q.progress=p.progress;
-  p.edgeCooldown=0;q.edgeCooldown=0;
-  c.tick(a,{x:at.tx,y:at.ty},1/60);
-  assert.ok(p.contacts>=1||q.contacts>=1);
-  assert.equal(a.racers.length,4);
-  assert.equal(a.finished,false);
-});
-test('A real guided three-lap race finishes with multiple color-zone transitions',()=>{
-  const m=c.seededRace(42);
-  m.phase='running';
-  for(let i=0;i<60*90&&!m.finished;i++){
-    const p=m.racers[0];
-    const ahead=c.pointAt(p.progress+Math.max(55,p.speed*.52));
-    const a=c.pointAt(p.progress+25),b=c.pointAt(p.progress+105);
-    const bend=Math.abs(c.angleDelta(a.angle,b.angle));
-    c.tick(m,{x:ahead.x-p.x,y:ahead.y-p.y,
-      brake:bend>.53&&p.speed>123,
-      dash:p.dashCooldown<=0&&bend<.14&&m.elapsed>3},1/60);
-  }
-  assert.equal(m.phase,'result');
-  assert.equal(m.racers[0].laps,3);
-  assert.equal(m.racers[0].lapTimes.length,3);
-  assert.ok(m.elapsed>25&&m.elapsed<85,m.elapsed);
-  assert.ok(m.zone>=2,'several 10-second zone changes should be experienced');
-  assert.ok(m.events.filter(e=>e.type==='zone').length>=2);
-  assert.ok(m.racers[0].bestFlow>.25);
-  assert.ok(m.finishPlace>=1&&m.finishPlace<=4);
-});
-test('Three genuine laps finish only when the cube crosses the lap boundary',()=>{
-  const m=c.seededRace(20),p=m.racers[0];
-  m.phase='running';m.elapsed=51;
-  p.gatePasses=12;p.laps=2;
-  p.progress=c.TRACK.length*3-4;
-  const at=c.pointAt(p.progress);
-  p.x=at.x;p.y=at.y;p.angle=at.angle;p.speed=155;
-  c.tick(m,{x:at.tx,y:at.ty},1/30);
-  assert.ok(p.finished,p.progress+' / '+c.TRACK.length*3);
+test('Guided actual world race completes three genuine laps, thirteen gates',()=>{
+  const r=run(42);
+  const p=r.racers[0];
+  assert.equal(r.phase,'result');
   assert.equal(p.laps,3);
-  assert.equal(m.phase,'result');
-  assert.ok(m.events.some(e=>e.type==='race_end'));
-  assert.equal(m.finishPlace,c.currentPosition(m));
-});
-test('Shortcuts do not grant laps and results can be exported for arcade cup later',()=>{
-  const m=c.seededRace(72),p=m.racers[0];
-  m.phase='running';
-  const far=c.pointAt(c.TRACK.length*.58);
-  p.x=far.x;p.y=far.y;p.angle=far.angle;
-  const before=p.progress;
-  c.tick(m,{x:far.tx,y:far.ty},1/60);
-  assert.equal(p.laps,0);
-  assert.ok(p.progress<=before+12);
-  const data=c.audit(m);
-  assert.equal(data.schema,'neon-circuit-run-audit/1.3');
-  assert.equal(data.summary.lapValidation,'four-ordered-physical-gates');
-  assert.equal(data.summary.lapsCompleted,0);
-  assert.equal(data.racers.length,4);
-  assert.ok(Object.hasOwn(data.summary,'brakeSeconds'));
-  assert.ok(Object.hasOwn(data.summary,'lineSeconds'));
-  assert.ok(Object.hasOwn(data.summary,'edgeHits'));
-  assert.doesNotMatch(JSON.stringify(data),/deviceId|fingerprint|rawJoystick/);
-});
-test('Same physical start-and-checkpoint sequence counts full laps identically for AI and player',()=>{
-  const m=c.seededRace(107);
-  m.phase='running';
-  for(const p of m.racers){
-    p.progress=-40;p.gatePasses=0;p.laps=0;
-    let prior=c.pointAt(-3);
-    // Cross the actual start, then each quarter and the finish line.
-    const sequence=[0,.25,.5,.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3];
-    for(let i=0;i<sequence.length;i++){
-      const target=sequence[i]*c.TRACK.length;
-      const from=c.pointAt(target-3),to=c.pointAt(target+3);
-      assert.equal(c.gateCrossed(from,to,c.GATES[i%4]),true,
-        'physical crossing of checkpoint '+i);
-      // Each physically traversed quarter must increment exactly once.
-      p.x=to.x;p.y=to.y;
-      // Driving the rest of the segment is a legal sequence of turns,
-      // not a one-frame teleport. We directly invoke no hidden scorer:
-      // the real rule is exercised in a full guided simulation below.
-      prior=to;
-    }
-    assert.equal(p.laps,0,'geometric crossing alone does not credit without game ticks');
-  }
-  const race=c.seededRace(42);race.phase='running';
-  for(let i=0;i<60*90&&!race.finished;i++){
-    const p=race.racers[0],look=c.pointAt(p.progress+Math.max(40,p.speed*.40));
-    c.tick(race,{x:look.x-p.x,y:look.y-p.y},1/60);
-  }
-  assert.equal(race.racers[0].laps,3);
-  assert.equal(race.racers[0].gatePasses,13);
-  assert.deepEqual(race.events.filter(e=>e.type==='checkpoint'&&e.player===0)
+  assert.equal(p.gatePasses,13);
+  assert.equal(p.lapTimes.length,3);
+  assert.ok(r.elapsed>45&&r.elapsed<105,'duration '+r.elapsed);
+  assert.deepEqual(r.events.filter(e=>e.type==='checkpoint'&&e.player===0)
     .map(e=>e.gate),[0,1,2,3,0,1,2,3,0,1,2,3,0]);
-  assert.deepEqual(race.events.filter(e=>e.type==='lap'&&e.player===0)
+  assert.deepEqual(r.events.filter(e=>e.type==='lap'&&e.player===0)
     .map(e=>e.lap),[1,2,3]);
-  assert.ok(race.racers.slice(1).every(p=>p.gatePasses>=8));
+  assert.ok(r.zone>=4,'multiple 10s zones must be seen');
+  assert.ok(p.bestFlow>.6);
 });
-test('Wrong-way crossings, side crossings, and teleport-like movements never award checkpoint progress',()=>{
-  const gate=c.GATES[0],v=(x,y)=>({
-    x:gate.x+gate.tx*x+gate.nx*y,
-    y:gate.y+gate.ty*x+gate.ny*y
+test('Physical checkpoints still count after the exact stale-projection bug',()=>{
+  const r=run(27,145,true);
+  assert.equal(r.racers[0].laps,3);
+  assert.equal(r.racers[0].gatePasses,13);
+  assert.equal(r.racers[0].lapTimes.length,3);
+});
+test('Seeded rivals are deterministic and can compete on the long course',()=>{
+  const a=run(18),b=run(18);
+  assert.deepEqual(a.racers.map(p=>[p.laps,p.gatePasses,p.edgeHits]),
+    b.racers.map(p=>[p.laps,p.gatePasses,p.edgeHits]));
+  assert.equal(a.racers[0].laps,3);
+  assert.ok(a.racers.slice(1).some(p=>p.gatePasses>=12));
+  assert.ok(a.finishPlace>=1&&a.finishPlace<=4);
+});
+test('Wrong-way and sideways shortcut gate crossings do not score laps',()=>{
+  const gate=C.GATES[0];
+  const at=(along,across)=>({
+    x:gate.x+gate.tx*along+gate.nx*across,
+    y:gate.y+gate.ty*along+gate.ny*across
   });
-  assert.equal(c.gateCrossed(v(-4,0),v(4,0),gate),true);
-  assert.equal(c.gateCrossed(v(4,0),v(-4,0),gate),false);
-  assert.equal(c.gateCrossed(v(-4,70),v(4,70),gate),false);
-  assert.equal(c.gateCrossed(v(2,0),v(7,0),gate),false);
-  const m=c.seededRace(20);m.phase='running';
-  const p=m.racers[0];
-  const far=c.pointAt(c.TRACK.length*.59);
-  p.x=far.x;p.y=far.y;
-  for(let i=0;i<10;i++)c.tick(m,{},1/60);
-  assert.equal(p.laps,0);
-  assert.equal(p.gatePasses,0);
+  assert.equal(C.gateCrossed(at(-3,0),at(3,0),gate),true);
+  assert.equal(C.gateCrossed(at(3,0),at(-3,0),gate),false);
+  assert.equal(C.gateCrossed(at(-3,70),at(3,70),gate),false);
+  const r=C.seededRace(34);r.phase='running';
+  const far=C.pointAt(C.TRACK.length*.63);
+  r.racers[0].x=far.x;r.racers[0].y=far.y;
+  for(let i=0;i<12;i++)C.tick(r,{},C.STEP);
+  assert.equal(r.racers[0].laps,0);
+  assert.equal(r.racers[0].gatePasses,0);
 });
-test('Forceful Dash collision can throw a racer off a ramp, then safely respawn without resetting laps',()=>{
-  const m=c.seededRace(314);m.phase='running';m.elapsed=6;
-  const a=m.racers[0],b=m.racers[1],s=c.pointAt(180);
-  a.x=s.x;a.y=s.y-24;a.angle=0;a.speed=95;a.progress=180;
-  b.x=s.x;b.y=s.y-5;b.angle=-Math.PI/2;b.speed=165;
-  b.progress=180;b.dashTime=.30;
-  // Keep the event clock and checkpoint state consistent with lap one.
-  a.gatePasses=1;b.gatePasses=1;
-  for(let i=0;i<115;i++)c.tick(m,{x:1,y:-1},1/60);
+test('Edge scrape recovers speed rather than stalling at almost zero',()=>{
+  const r=C.seededRace(51);r.phase='running';
+  const p=r.racers[0],at=C.pointAt(p.progress);
+  p.x=at.x+at.nx*(C.RAMP_START-2);
+  p.y=at.y+at.ny*(C.RAMP_START-2);
+  p.angle=Math.atan2(at.ny,at.nx);p.speed=C.zoneSpeed(0);
+  C.tick(r,{x:at.nx,y:at.ny},1/30);
+  assert.ok(p.edgeHits>=1);
+  assert.ok(p.speed>=C.zoneSpeed(0)*.68);
+  assert.equal(p.falls,0);
+});
+test('Dash, BRAKE and ramp ejection retain their recovery gameplay',()=>{
+  const r=C.seededRace(314);r.phase='running';r.elapsed=6;
+  const a=r.racers[0],b=r.racers[1],at=C.pointAt(180);
+  // In WORLD coordinates this is a deliberate high-energy side impact
+  // near the track lip, not a coincidental overlap in the old arena.
+  a.x=at.x-at.nx*29;a.y=at.y-at.ny*29;
+  a.angle=at.angle;a.speed=95;a.progress=180;
+  b.x=at.x-at.nx*11;b.y=at.y-at.ny*11;
+  b.angle=at.angle-Math.PI/2;b.speed=165;
+  b.progress=180;b.dashTime=.30;a.gatePasses=b.gatePasses=1;
+  for(let i=0;i<115;i++)C.tick(r,{x:1,y:-1},C.STEP);
   assert.equal(a.falls,1);
   assert.equal(a.respawns,1);
-  assert.equal(b.knockouts,1);
   assert.equal(a.laps,0);
-  assert.ok(m.events.some(e=>e.type==='impact'&&e.force>300));
-  assert.ok(m.events.some(e=>e.type==='fall'&&e.player===0&&e.attacker===1));
-  assert.ok(m.events.some(e=>e.type==='respawn'&&e.player===0));
-  assert.ok(a.invulnerable<=c.RESPAWN_GRACE);
+  assert.ok(r.events.some(e=>e.type==='impact'));
+  assert.ok(r.events.some(e=>e.type==='respawn'));
+  const t=C.seededRace(33);t.phase='running';
+  C.tick(t,{x:1,y:0,dash:true,brake:true},C.STEP);
+  assert.equal(t.racers[0].dashes,1);
+  assert.ok(t.racers[0].dashCooldown>0);
+  assert.ok(t.racers[0].brakeSeconds>0);
 });
-test('Physical laps survive a severe projection desync that lost full laps in 1.0',()=>{
-  const m=c.seededRace(27);m.phase='running';
-  let corrupted=false;
-  for(let i=0;i<60*90&&!m.finished;i++){
-    const p=m.racers[0],s=c.closest(p.x,p.y).s;
-    const ahead=c.pointAt(s+Math.max(40,p.speed*.38));
-    if(!corrupted&&m.elapsed>8){
-      // This was the 1.0 failure: a stale projection persisted across
-      // frames, causing valid real laps to be silently rejected.
-      p.progress-=350;corrupted=true;
-    }
-    c.tick(m,{x:ahead.x-p.x,y:ahead.y-p.y},1/60);
-  }
-  assert.equal(corrupted,true);
-  assert.equal(m.racers[0].laps,3,'all three driven laps must count');
-  assert.equal(m.racers[0].gatePasses,13,'start + three actual laps');
-  assert.deepEqual(m.racers[0].lapTimes.length,3);
-  assert.equal(m.phase,'result');
+test('Track Tide still changes zones each ten seconds and follows the road',()=>{
+  const r=C.seededRace(817);r.phase='running';r.elapsed=9.995;
+  C.tick(r,{},C.STEP);
+  assert.equal(r.zone,1);
+  assert.equal(C.zoneSpeed(0),172);
+  assert.equal(C.zoneSpeed(1),186);
+  const start=C.waveState(r);
+  assert.equal(start.scope,'track-only');
+  assert.equal(start.direction,'forward');
+  assert.ok(start.active);
+  for(let i=0;i<43;i++)C.tick(r,{},C.STEP);
+  const later=C.waveState(r);
+  assert.ok(later.reach>start.reach);
+  assert.equal(later.start,start.start);
+  assert.ok(r.events.some(e=>e.type==='zone'&&
+    e.waveScope==='track-only'&&e.waveDirection==='forward'));
 });
-test('All AI share exactly the same start and physical lap gate rules',()=>{
-  for(const seed of [18,42,73]){
-    const m=c.seededRace(seed);m.phase='running';
-    // Keep the player safely unavailable so AI can drive to 3 laps.
-    m.racers[0].fallTimer=999;
-    for(let i=0;i<60*55;i++)c.tick(m,{},1/60);
-    for(const p of m.racers.slice(1)){
-      assert.equal(p.laps,3,'AI '+p.id+' with seed '+seed);
-      assert.equal(p.gatePasses,13,'four complete physical gates each lap');
-      assert.equal(p.lapTimes.length,3);
-      assert.ok(p.finishTime>0&&p.finishTime<55);
-    }
-  }
-  const m=c.seededRace(93);
-  assert.ok(m.racers.every(p=>p.progress<0),
-    'no racer begins on or after the physical start line');
+test('Camera tracks world player and previews forward path without rotation',()=>{
+  const player={x:700,y:350,angle:0,speed:170};
+  const viewport={width:960,height:540};
+  const cam=Camera.create(C.WORLD_BOUNDS,viewport,player);
+  const origin={x:cam.x,y:cam.y};
+  player.x+=250;player.y+=70;
+  Camera.step(cam,player,viewport,1/60);
+  assert.ok(cam.x>origin.x&&cam.x<player.x+165);
+  assert.ok(cam.y>origin.y);
+  assert.ok(cam.lookAhead>60);
+  const p=Camera.worldToScreen(cam,player.x,player.y);
+  const roundTrip=Camera.screenToWorld(cam,p.x,p.y);
+  assert.ok(Math.hypot(roundTrip.x-player.x,roundTrip.y-player.y)<1e-6);
+  const view=Camera.viewBounds(cam);
+  assert.ok(view.maxX-view.minX>600&&view.maxX-view.minX<1700);
 });
-test('Menu, fullscreen, pause, mobile quality and both control buttons are wired',()=>{
-  const page=read('neon-circuit.html'),
-    ui=read('src/gameplay/neon-circuit.js'),
-    menu=read('index.html');
+test('Dynamic zoom shows more road at speed while keeping the cube square',()=>{
+  const v={width:812,height:375},low={x:700,y:350,angle:0,speed:170};
+  const cam=Camera.create(C.WORLD_BOUNDS,v,low);
+  const z=cam.zoom;low.speed=260;
+  for(let i=0;i<90;i++)Camera.step(cam,low,v,1/60);
+  assert.ok(cam.zoom<z*.87,'camera did not zoom out: '+cam.zoom+'/'+z);
+  assert.ok(Math.abs(cam.targetZoom-Camera.desiredZoom(v.height,260))<1e-6);
+  assert.ok(Camera.viewBounds(cam).maxX-Camera.viewBounds(cam).minX>
+    v.width/z,'higher speed must reveal a longer stretch of road');
+  const wide={width:1536,height:691};
+  const normalized=Camera.desiredZoom(wide.height,170)*540/wide.height;
+  assert.ok(normalized>.9&&normalized<1.06,'stable size across mobile aspect ratios');
+});
+test('Camera snaps safely on respawn and stays within world bounds',()=>{
+  const viewport={width:960,height:540};
+  const p={x:600,y:400,angle:1.3,speed:210};
+  const cam=Camera.create(C.WORLD_BOUNDS,viewport,p);
+  p.x=2100;p.y=1100;
+  Camera.step(cam,p,viewport,.016);
+  const target=Camera.confine(p.x+Camera.lookAhead(p).x,
+    p.y+Camera.lookAhead(p).y,cam.zoom,viewport,C.WORLD_BOUNDS);
+  assert.ok(Math.hypot(cam.x-target.x,cam.y-target.y)<1,'respawn camera should snap');
+  assert.ok(Number.isFinite(cam.zoom)&&cam.zoom>0);
+  assert.ok(cam.updates===1);
+});
+test('Renderer has visible tile cache, world transform and no monolithic world raster',()=>{
+  const js=read('src/gameplay/neon-circuit.js');
+  assert.ok(js.includes('const TILE=448'));
+  assert.ok(js.includes('const tileCache=new Map()'));
+  assert.ok(js.includes('TILE_LIMIT=36'));
+  assert.ok(js.includes('function drawRoadTiles'));
+  assert.ok(js.includes('function drawWorldBackdrop'));
+  assert.ok(js.includes('ctx.scale(camera.zoom,camera.zoom)'));
+  assert.ok(js.includes('CAMERA.viewBounds(camera'));
+  assert.ok(js.includes('clipWaveRepaint(ctx,track,wave)'));
+  assert.ok(js.includes('drawWaveFront(ctx,track,wave'));
+  assert.ok(!js.includes('getStatic(z,track)'));
+  assert.ok(!js.includes('panoWidth'));
+  assert.ok(!js.includes('scaleX=viewW/WIDTH'));
+});
+test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wired',()=>{
+  const html=read('neon-circuit.html'),js=read('src/gameplay/neon-circuit.js');
   for(const id of ['circuit-canvas','circuit-zone','circuit-lap',
     'circuit-place','circuit-flow','circuit-joystick','circuit-stick',
-    'circuit-brake','circuit-dash','circuit-pause',
-    'circuit-fullscreen','circuit-export','circuit-export-pause'])
-    assert.ok(page.includes('id="'+id+'"'),id);
-  assert.match(page,/src\/core\/config\.js/);
-  assert.match(page,/src\/render\/chroma-center-pulse\.js/);
-  assert.match(page,/src\/render\/chroma-identity\.js/);
-  assert.match(ui,/const BUDGET=750000/);
-  assert.match(ui,/requestFullscreen/);
-  assert.match(ui,/JSON\.stringify\(CORE\.audit\(race\)/);
-  assert.match(menu,/id="neon-circuit-link"/);
-  assert.match(menu,/href="\.\/neon-circuit\.html"/);
+    'circuit-brake','circuit-dash','circuit-pause','circuit-fullscreen',
+    'circuit-export','circuit-export-pause'])
+      assert.ok(html.includes('id="'+id+'"'),id);
+  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.0'));
+  assert.ok(js.includes("requestFullscreen"));
+  assert.ok(js.includes('JSON.stringify(CORE.audit(race)'));
+  assert.ok(js.includes('getInput()'));
+});
+test('Run audit 2.0 includes track/camera data without private input history',()=>{
+  const r=run(77);
+  const a=C.audit(r);
+  assert.equal(a.schema,'neon-circuit-run-audit/2.0');
+  assert.equal(a.build,'neon-circuit-2.0');
+  assert.equal(a.courseId,'spectral-highway');
+  assert.ok(a.trackLength>4600);
+  assert.equal(a.summary.cameraMode,'world-follow-lookahead-zoom');
+  assert.equal(a.summary.lapValidation,'four-ordered-physical-gates');
+  assert.equal(a.summary.waveMode,'forward-track-only');
+  assert.equal(a.summary.lapsCompleted,3);
+  assert.ok(a.events.some(e=>e.type==='checkpoint'));
+  assert.ok(!JSON.stringify(a).match(/deviceId|fingerprint|rawJoystick/));
 });

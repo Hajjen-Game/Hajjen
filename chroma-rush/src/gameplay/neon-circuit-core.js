@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.4: Authored GP Geometry & Banked Racing
+/* CHROMA RUSH — NEON CIRCUIT 2.5: Arcade Velocity & Rival Identity
  * Hold the joystick to drive and aim to steer. Releasing coasts instead
  * of falling back to invisible autopilot; AI remains track guided. */
 (function(root,factory){
@@ -42,7 +42,16 @@ const hypot=Math.hypot;
 const mod=(x,n)=>(x%n+n)%n;
 const angleDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 const zoneAt=t=>Math.floor(Math.max(0,t+1e-8)/ZONE_SECONDS);
-const zoneSpeed=z=>Math.min(268,172+14*Math.max(0,z));
+const zoneSpeed=z=>Math.min(300,191+15.5*Math.max(0,z));
+const AI_STYLES=Object.freeze([
+  null,
+  Object.freeze({name:'precision',attackCooldown:7.2,attackWindow:1.10,
+    targetLead:.19,attackRange:104,tempo:.985,turnLead:110,brakeCurve:.52}),
+  Object.freeze({name:'aggressive',attackCooldown:2.65,attackWindow:1.72,
+    targetLead:.18,attackRange:156,tempo:1.0,turnLead:82,brakeCurve:.75}),
+  Object.freeze({name:'opportunist',attackCooldown:4.15,attackWindow:1.35,
+    targetLead:.24,attackRange:126,tempo:.99,turnLead:96,brakeCurve:.65})
+]);
 const rand=seed=>{let n=(seed>>>0)||0x6e624eb7;
   return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296};
 };
@@ -130,7 +139,7 @@ function makeTrack(shape=TRACK_SHAPE,steps=20,variant=0){
   const boosts=candidates.map((part,id)=>({
     id,s:part.start+part.length*.57,halfLength:38,
     lane:[-16,15,0][id],halfWidth:14,
-    duration:1.05,factor:1.19,section:'straight'
+    duration:1.24,factor:1.34,section:'straight'
   }));
   return {samples,length:total,half:TRACK_HALF,
     sections,boosts,pointCount:samples.length,shape:{...shape},
@@ -233,7 +242,9 @@ function seededRace(seed=20261111,courseId=0){
       dashes:0,dashTime:0,dashCooldown:0,brakeSeconds:0,
       lineSeconds:0,flow:0,bestFlow:0,edgeCooldown:0,
       aiLane:id===0?lane[id]:lane[id]+(random()-.5)*9,
-      aiTempo:id===0?1:.97+id*.024+(random()-.5)*.06,
+      aiTempo:id===0?1:AI_STYLES[id].tempo+(random()-.5)*.035,
+      aiStyle:id===0?'player':AI_STYLES[id].name,
+      aiDefenses:0,aiDefendTime:0,aiDefenseCooldown:id*.37,
       contactFlash:0,gatePasses:0,lastGateTime:null,impactCooldown:0,impulseX:0,impulseY:0,
       knockSeconds:0,falls:0,knockouts:0,fallTimer:0,
       respawns:0,invulnerable:0,lastAttacker:null,lastImpactAt:-100,
@@ -242,7 +253,8 @@ function seededRace(seed=20261111,courseId=0){
       aiAttackTarget:null,aiAttackTime:0,aiAttackCooldown:id*.28,
       aiAttacks:0,aiHits:0,
       bankRides:0,bankSaves:0,bankHeight:0,boosts:0,
-      boostTime:0,boostPadId:-1,boostNextAt:0};
+      boostTime:0,boostFactor:1,boostPadId:-1,boostNextAt:0,
+      speedSamples:0,speedAccum:0,boostPeak:0};
   });
   const race={seed,random,racers,track,gates,courseIndex,
     ready:READY_SECONDS,elapsed:0,
@@ -252,7 +264,7 @@ function seededRace(seed=20261111,courseId=0){
     impacts:[],contactPairs:{},performance:{
       frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     quality:'auto'};
-  log(race,'race_start',{mode:'neon-circuit-2.4',laps:LAPS_TO_WIN,
+  log(race,'race_start',{mode:'neon-circuit-2.5',laps:LAPS_TO_WIN,
     trackLength:Math.round(track.length),track:track.courseId,
     course:track.name,impact:'ejection-and-respawn',
     zoneWave:'forward-track-only'});
@@ -426,7 +438,8 @@ function respawn(m,p){
   p.aiAttackTime=0;p.aiAttackTarget=null;p.aiAttackCooldown=2.3;
   p.invulnerable=RESPAWN_GRACE;
   p.edgeExposure=0;p.fallVX=0;p.fallVY=0;p.lastImpactAt=-100;
-  p.bankHeight=0;p.boostTime=0;
+  p.bankHeight=0;p.boostTime=0;p.boostFactor=1;
+  p.aiDefendTime=0;p.aiDefenseCooldown=1.1;
   p.respawns++;
   log(m,'respawn',{player:p.id,lap:p.laps+1,
     grace:RESPAWN_GRACE,setback:27});
@@ -448,6 +461,7 @@ function moveRacer(m,p,input,dt){
   p.knockSeconds=Math.max(0,p.knockSeconds-dt);
   p.contactFlash=Math.max(0,p.contactFlash-dt);
   p.boostTime=Math.max(0,p.boostTime-dt);
+  if(p.boostTime<=0)p.boostFactor=1;
   let brake=false,desired=p.angle,throttle=1,steering=true,
     aiPressure=false;
    const now=closest(p.x,p.y,m.track);
@@ -478,19 +492,21 @@ function moveRacer(m,p,input,dt){
      const ai=desiredAI(m,p,dt);
      desired=ai.angle;brake=ai.brake;aiPressure=ai.attacking;
    }
-   const turnSpeed=brake?5.25:4.35;
+   const turnSpeed=brake?5.85:4.35;
    if(steering)
      p.angle+=clamp(angleDelta(p.angle,desired),-turnSpeed*dt,turnSpeed*dt);
    if(brake)p.brakeSeconds+=dt;
    const base=zoneSpeed(m.zone);
    const aiSpeed=p.aiTempo;
-   const dashFactor=(p.dashTime>0?1.47:1)*(p.boostTime>0?1.19:1);
+   const dashFactor=Math.min(1.77,(p.dashTime>0?1.47:1)*
+     (p.boostTime>0?p.boostFactor:1));
    const flowFactor=p.id===0?1+.075*p.flow:1;
-   const target=base*aiSpeed*(aiPressure?1.18:1)*throttle*
-     (brake?.55:1)*dashFactor*flowFactor;
+   const target=base*aiSpeed*throttle*
+     (brake?.76:1)*dashFactor*flowFactor;
    // No input: coast to a stop in under a second; BRAKE is stronger.
-   const decel=p.id===0&&!steering?310:brake?330:185;
-   p.speed+=clamp(target-p.speed,-decel*dt,235*dt);
+   const decel=p.id===0&&!steering?340:brake?400:215;
+   const accel=p.boostTime>0?390:265;
+   p.speed+=clamp(target-p.speed,-decel*dt,accel*dt);
    if(p.speed<.5)p.speed=0;
   // Rolling momentum: changing heading does not instantly redirect movement.
   // Brake tightens the turn. Keep a quicker response for the track AI.
@@ -499,7 +515,7 @@ function moveRacer(m,p,input,dt){
   }
   const targetVX=Math.cos(p.angle)*p.speed;
   const targetVY=Math.sin(p.angle)*p.speed;
-  const blend=1-Math.exp(-(p.id===0?(brake?10:8.5):16)*dt);
+  const blend=1-Math.exp(-(p.id===0?(brake?15:8.5):16)*dt);
   p.vx+=(targetVX-p.vx)*blend;p.vy+=(targetVY-p.vy)*blend;
   const proposed={x:p.x+(p.vx+p.impulseX)*dt,
     y:p.y+(p.vy+p.impulseY)*dt};
@@ -549,13 +565,17 @@ function moveRacer(m,p,input,dt){
       if(Math.abs(delta)>pad.halfLength)continue;
       if(Math.abs(nearest.side-pad.lane)>pad.halfWidth)continue;
       p.boosts++;p.boostPadId=pad.id;p.boostNextAt=m.elapsed+2;
-      p.boostTime=pad.duration;
+      p.boostTime=pad.duration;p.boostFactor=pad.factor;
       // Immediate burst ensures the pad feels rewarding even if the
       // player is already at full speed; dash stacks, but is not required.
-      p.speed+=Math.min(38,zoneSpeed(m.zone)*.16);
-      p.vx+=Math.cos(p.angle)*22;p.vy+=Math.sin(p.angle)*22;
+      const impulse=Math.min(66,zoneSpeed(m.zone)*.29);
+      p.speed+=impulse;
+      p.vx+=Math.cos(p.angle)*impulse*.60;
+      p.vy+=Math.sin(p.angle)*impulse*.60;
+      p.boostPeak=Math.max(p.boostPeak,p.speed);
       p.contactFlash=.18;
-      log(m,'boost',{player:p.id,pad:pad.id,lap:p.laps+1});
+      log(m,'boost',{player:p.id,pad:pad.id,lap:p.laps+1,
+        speed:Math.round(p.speed),factor:pad.factor});
       if(p.id===0){
         m.announcement='BOOST · SPEED UP';
         m.announcementTime=m.elapsed+.58;
@@ -564,6 +584,7 @@ function moveRacer(m,p,input,dt){
     }
   }
   if(p.id===0){
+    p.speedSamples++;p.speedAccum+=p.speed;
     if(steering&&p.speed>45&&nearest.dist<24&&!brake){
       p.flow=clamp(p.flow+dt*.34,0,1);
       p.lineSeconds+=dt;
@@ -698,7 +719,7 @@ function waveState(m){
 }
 function audit(m){
   const p=m.racers[0];
-  return {schema:'neon-circuit-run-audit/2.4',build:'neon-circuit-2.4',
+  return {schema:'neon-circuit-run-audit/2.5',build:'neon-circuit-2.5',
     seed:m.seed,status:m.finished?'completed':'in_progress',
     courseId:m.track.courseId,courseName:m.track.name,
     trackLength:+m.track.length.toFixed(1),
@@ -710,13 +731,16 @@ function audit(m){
       trackArchitecture:'tangent-circular-arcs-straights',
       boostPads:m.track.boosts.length,
        controlMode:'hold-to-drive-manual-steering',
+      rivalStyles:m.racers.slice(1).map(p=>p.aiStyle),
       waveTransitions:m.events.filter(e=>e.type==='zone').length,
       finishPlace:m.finishPlace,lapsCompleted:p.laps,
       lapFraction:+lapProgress(p,m.track).fraction.toFixed(3),
       lapTimes:p.lapTimes.slice(),speed:Math.round(p.speed),
       edgeHits:p.edgeHits,contacts:p.contacts,dashes:p.dashes,
       falls:p.falls,respawns:p.respawns,knockouts:p.knockouts,
-      boosts:p.boosts,bankRides:+p.bankRides.toFixed(2),
+      boosts:p.boosts,boostPeak:Math.round(p.boostPeak),
+      averageSpeed:Math.round(p.speedAccum/Math.max(1,p.speedSamples)),
+      bankRides:+p.bankRides.toFixed(2),
       bankSaves:p.bankSaves,
       aiAttacks:m.racers.reduce((n,r)=>n+r.aiAttacks,0),
       aiHits:m.racers.reduce((n,r)=>n+r.aiHits,0),
@@ -733,6 +757,7 @@ function audit(m){
       dashes:r.dashes,falls:r.falls,respawns:r.respawns,
       knockouts:r.knockouts,aiAttacks:r.aiAttacks,aiHits:r.aiHits,
       boosts:r.boosts,bankSaves:r.bankSaves,
+      aiStyle:r.aiStyle,aiDefenses:r.aiDefenses,
       lapTimes:r.lapTimes.slice()})),
     events:m.events.map(v=>({...v})),
     limits:{maxEvents:m.maxEvents,droppedEvents:m.overflow},
@@ -742,6 +767,7 @@ return {WIDTH,HEIGHT,CX,CY,COLORS,NAMES,NODES,TRACK,TRACKS,TRACK_SHAPE,WORLD_BOU
   COURSE_NAMES,COURSE_IDS,COLOR_WAVE_SECONDS,WAVE_START_BACK,WAVE_FRONT_TRAVEL,
   TRACK_HALF,PLAYER_RADIUS,RAMP_START,FALL_EDGE,FALL_SECONDS,RESPAWN_GRACE,
   READY_SECONDS,ZONE_SECONDS,LAPS_TO_WIN,DASH_TIME,DASH_COOLDOWN,STEP,zoneAt,zoneSpeed,
+  AI_STYLES,
   angleDelta,makeTrack,pointAt,closest,directionAt,gateCrossed,GATES,
   bankingAt,edgeAt,
   waveState,seededRace,

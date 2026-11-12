@@ -263,11 +263,10 @@ function drawBankedEdges(g,track,rect,primary,secondary){
   const makePath=(side,lip)=>{
     let started=false;
     g.beginPath();
-    for(let s=0;s<=track.length+6;s+=10){
-      const pt=CORE.pointAt(Math.min(s,track.length-.001),track);
-      const b=CORE.edgeAt(pt.s,side,track);
-      const offset=lip?b.limit-3:CORE.TRACK_HALF+4;
-      const x=pt.x+pt.nx*offset*side,y=pt.y+pt.ny*offset*side;
+    for(const p of track.rimSamples){
+      const sidePoints=side<0?p.left:p.right;
+      const x=lip?sidePoints.ox:sidePoints.ix,
+        y=lip?sidePoints.oy:sidePoints.iy;
       const visible=x>=rect.minX-80&&x<=rect.maxX+80&&
         y>=rect.minY-80&&y<=rect.maxY+80;
       if(!visible){started=false;continue;}

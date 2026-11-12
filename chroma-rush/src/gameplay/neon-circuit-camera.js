@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Neon Circuit Camera 2.1.
+/* CHROMA RUSH — Neon Circuit Camera 2.2 — Closer Racing View.
  * Independent heading filter, gentle look-ahead, small positional dead zone
  * and damped speed-zoom. Fixed north: steering never rotates the screen.
  */
@@ -10,7 +10,8 @@
 'use strict';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const NOMINAL_HEIGHT=540;
-const MIN_ZOOM_FACTOR=.78,MAX_ZOOM_FACTOR=1.035;
+// ~50% tighter view at low and high speeds; preserves gradual zoom-out.
+const MIN_ZOOM_FACTOR=1.16,MAX_ZOOM_FACTOR=1.55;
 const fade=(rate,dt)=>1-Math.exp(-rate*Math.max(0,dt));
 function desiredZoom(height,speed){
   const h=Math.max(1,height);
@@ -40,7 +41,8 @@ function create(bounds,viewport,player){
   const p=confine(player.x+a.x,player.y+a.y,z,viewport,bounds);
   return {x:p.x,y:p.y,zoom:z,targetZoom:z,lookAhead:a.length,
     lookX:a.x,lookY:a.y,filteredSpeed:player.speed,
-    viewport:{...viewport},bounds:{...bounds},updates:0,maxDrift:0};
+    viewport:{...viewport},bounds:{...bounds},updates:0,maxDrift:0,
+    respawns:player.respawns||0};
 }
 function step(cam,player,viewport,dt,instant=false){
   cam.viewport.width=viewport.width;cam.viewport.height=viewport.height;
@@ -55,16 +57,23 @@ function step(cam,player,viewport,dt,instant=false){
   const directionAlpha=instant?1:fade(1.65,dt);
   cam.lookX+=(a.x-cam.lookX)*directionAlpha;
   cam.lookY+=(a.y-cam.lookY)*directionAlpha;
-  const target=confine(player.x+cam.lookX,player.y+cam.lookY,
+  // Let the falling cube move into the void while the camera stays with
+  // the last safe track position. Teleports on respawn snap to the racer.
+  const falling=player.fallTimer>0;
+  const focusX=falling?player.fallAnchorX:player.x;
+  const focusY=falling?player.fallAnchorY:player.y;
+  const target=confine(focusX+cam.lookX,focusY+cam.lookY,
     cam.zoom,viewport,cam.bounds);
   const dx=target.x-cam.x,dy=target.y-cam.y;
   const drift=Math.hypot(dx,dy);
   cam.maxDrift=Math.max(cam.maxDrift,drift);
   // A genuine respawn/teleport must snap; ordinary steering never should.
-  const snap=instant||drift>560;
+  const respawned=(player.respawns||0)!==cam.respawns;
+  const snap=instant||respawned||drift>560;
+  cam.respawns=player.respawns||0;
   if(snap){
     cam.lookX=a.x;cam.lookY=a.y;
-    const locked=confine(player.x+a.x,player.y+a.y,
+    const locked=confine(focusX+a.x,focusY+a.y,
       cam.zoom,viewport,cam.bounds);
     cam.x=locked.x;cam.y=locked.y;
   }

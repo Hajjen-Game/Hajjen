@@ -375,9 +375,12 @@ function desiredAI(m,p,dt=STEP){
   const ahead=pointAt(s+look,m.track);
   let lane=p.aiLane*(.68+.08*Math.sin(m.elapsed*.7+p.id));
   // AI uses boost lanes opportunistically while retaining overtaking AI.
+  const lap=Math.max(0,Math.floor(p.progress/m.track.length));
   const boost=m.track.boosts.find(pad=>{
     const ahead=mod(pad.s-s,m.track.length);
-    return ahead>0&&ahead<160;
+    // Rival AI takes selected boost routes, not every pad perfectly.
+    // This leaves meaningful opportunities for a skilled human driver.
+    return ahead>0&&ahead<160&&(pad.id+p.id+lap)%3===0;
   });
   if(boost)lane=boost.lane;
   return {angle:Math.atan2(ahead.y+ahead.ny*lane-p.y,

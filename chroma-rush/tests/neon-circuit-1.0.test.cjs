@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Neon Circuit 2.3 Rival Pressure & Spectral Track Tide regression */
+/* CHROMA RUSH — Neon Circuit 2.4 Track Architecture & Banked Racing regression */
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -40,7 +40,69 @@ test('2.1 replaces tiny arena with one physical multi-screen world course',()=>{
   assert.ok(C.WORLD_BOUNDS.minX<C.TRACK.bounds.minX);
   assert.ok(C.WORLD_BOUNDS.maxY>C.TRACK.bounds.maxY);
   assert.deepEqual(C.TRACK.segmentKinds,
-    ['straight','rounded-corner','hairpin','sweep']);
+    ['straight','constant-radius-arc','banked-hairpin']);
+});
+test('2.4 road has exact circular turns, an extended straight and no wobbling Bézier bends',()=>{
+  const t=C.TRACK;
+  const straights=t.sections.filter(s=>s.kind==='straight');
+  const arcs=t.sections.filter(s=>s.kind==='arc');
+  const straightDistance=straights.reduce((n,s)=>n+s.length,0);
+  assert.ok(straightDistance/t.length>.50,'not enough true straight road');
+  assert.ok(Math.max(...straights.map(s=>s.length))>680);
+  assert.ok(arcs.length>=7);
+  for(const arc of arcs){
+    assert.ok(Number.isFinite(arc.cx)&&Number.isFinite(arc.cy));
+    assert.ok(arc.radius>150);
+    const p=C.pointAt((arc.start+arc.end)*.5,t);
+    const radial=Math.hypot(p.x-arc.cx,p.y-arc.cy);
+    assert.ok(Math.abs(radial-arc.radius)<.11,
+      'arc has nonconstant radius: '+radial+' vs '+arc.radius);
+    assert.ok(Math.abs(arc.curvature-arc.sign/arc.radius)<1e-10);
+  }
+  assert.ok(t.rimSamples.length>350);
+});
+test('2.4 banked corners have a taller outer lip and recoverable ramp',()=>{
+  const sharp=C.TRACK.sections.find(s=>s.kind==='arc'&&s.radius<240);
+  assert.ok(sharp);
+  const mid=(sharp.start+sharp.end)*.5;
+  const outside=C.edgeAt(mid,-sharp.sign);
+  const inside=C.edgeAt(mid,sharp.sign);
+  assert.ok(outside.limit>inside.limit+5);
+  assert.ok(outside.limit>C.FALL_EDGE+8);
+  assert.ok(C.edgeAt(C.TRACK.sections[0].start+55,1).limit===C.FALL_EDGE);
+  const race=C.seededRace(54);race.phase='running';
+  for(const p of race.racers.slice(1))p.finished=true;
+  const me=race.racers[0],at=C.pointAt(mid),sign=-sharp.sign;
+  me.x=at.x+at.nx*sign*(C.FALL_EDGE-3);
+  me.y=at.y+at.ny*sign*(C.FALL_EDGE-3);
+  me.angle=at.angle;me.speed=120;
+  me.vx=at.tx*120;me.vy=at.ty*120;
+  for(let i=0;i<100;i++)C.tick(race,{
+    x:at.tx-at.nx*sign*.7,y:at.ty-at.ny*sign*.7},C.STEP);
+  assert.equal(me.falls,0,'a banked turn should permit recovery');
+  assert.ok(me.bankRides>.15);
+  assert.ok(me.bankSaves>=1);
+});
+test('2.4 three in-road boost pads trigger without collecting a power-up',()=>{
+  const pads=C.TRACK.boosts;
+  assert.equal(pads.length,3);
+  assert.deepEqual(pads.map(p=>p.id),[0,1,2]);
+  for(const pad of pads){
+    const section=C.TRACK.sections.find(s=>s.start<=pad.s&&s.end>=pad.s);
+    assert.equal(section.kind,'straight');
+    assert.ok(pad.halfWidth>=12&&pad.halfLength>=30);
+  }
+  const race=C.seededRace(94);race.phase='running';
+  for(const opponent of race.racers.slice(1))opponent.finished=true;
+  const me=race.racers[0],pad=pads[0],at=C.pointAt(pad.s-55);
+  me.x=at.x+at.nx*pad.lane;me.y=at.y+at.ny*pad.lane;
+  me.angle=at.angle;me.speed=185;
+  me.vx=at.tx*185;me.vy=at.ty*185;
+  for(let i=0;i<42;i++)C.tick(race,{x:at.tx,y:at.ty},C.STEP);
+  assert.equal(me.boosts,1);
+  assert.equal(me.boostPadId,0);
+  assert.ok(me.speed>185&&me.boostTime>0);
+  assert.ok(race.events.some(e=>e.type==='boost'&&e.pad===0&&e.player===0));
 });
 test('2.1 neutral joystick never secretly drives or steers the cube',()=>{
   const r=C.seededRace(42);r.phase='running';
@@ -370,6 +432,11 @@ test('Renderer has visible tile cache, world transform and no monolithic world r
   assert.ok(js.includes('clipWaveRepaint(ctx,track,wave)'));
   assert.ok(js.includes('drawWaveFront(ctx,track,wave'));
   assert.ok(js.includes('function waveRibbon'));
+  assert.ok(js.includes('function drawBankedEdges'));
+  assert.ok(js.includes('function drawBoostPads'));
+  assert.ok(js.includes('track.rimSamples'));
+  assert.ok(js.includes('boostTime>0'));
+  assert.ok(!js.includes('getStatic(z,track)'));
   assert.ok(js.includes('const shimmer=side'));
   assert.ok(js.includes('clipWaveRepaint(ctx,track,wave,offset)'));;
   assert.ok(!js.includes('getStatic(z,track)'));
@@ -383,7 +450,7 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
     'circuit-brake','circuit-dash','circuit-pause','circuit-fullscreen',
     'circuit-export','circuit-export-pause'])
       assert.ok(html.includes('id="'+id+'"'),id);
-  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.3'));
+  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.4'));
   assert.ok(js.includes("requestFullscreen"));
   assert.ok(js.includes('JSON.stringify(CORE.audit(race)'));
   assert.ok(js.includes('getInput()'));
@@ -391,12 +458,14 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
 test('Run audit 2.3 includes falls, AI aggression and the spectral wave without private input history',()=>{
   const r=run(77);
   const a=C.audit(r);
-  assert.equal(a.schema,'neon-circuit-run-audit/2.3');
-  assert.equal(a.build,'neon-circuit-2.3');
+  assert.equal(a.schema,'neon-circuit-run-audit/2.4');
+  assert.equal(a.build,'neon-circuit-2.4');
   assert.equal(a.courseId,'spectral-highway');
   assert.ok(a.trackLength>4600);
   assert.equal(a.summary.cameraMode,'close-follow-damped-zoom');
-  assert.equal(a.summary.edgeMode,'momentum-falls-without-autocorrect');
+  assert.equal(a.summary.edgeMode,'physical-cambered-bank-and-recoverable-ramp');
+  assert.equal(a.summary.trackArchitecture,'tangent-circular-arcs-straights');
+  assert.equal(a.summary.boostPads,3);
   assert.equal(a.summary.controlMode,'hold-to-drive-manual-steering');
   assert.ok(a.summary.driveSeconds>20);
   assert.equal(a.summary.lapValidation,'four-ordered-physical-gates');

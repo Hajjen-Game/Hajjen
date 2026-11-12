@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Neon Circuit 2.5 Arcade Velocity & Rival Identity regression */
+/* CHROMA RUSH — Neon Circuit 2.6 Spectral Arena & Impact Language regression */
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -41,6 +41,55 @@ test('2.1 replaces tiny arena with one physical multi-screen world course',()=>{
   assert.ok(C.WORLD_BOUNDS.maxY>C.TRACK.bounds.maxY);
   assert.deepEqual(C.TRACK.segmentKinds,
     ['straight','constant-radius-arc','banked-hairpin']);
+});
+test('2.6 rivals compete without baseline speed cheating or HEX defense spam',()=>{
+  const r=C.seededRace(4133670780);
+  assert.deepEqual(r.racers.slice(1).map(x=>x.aiStyle),
+    ['precision','aggressive','opportunist']);
+  for(const p of r.racers.slice(1)){
+    assert.ok(p.aiTempo>=.97&&p.aiTempo<1.06,
+      'rival has an outsized hidden speed bonus: '+p.aiTempo);
+  }
+  assert.ok(C.AI_STYLES[2].attackCooldown<C.AI_STYLES[3].attackCooldown);
+  const race=run(27,115);
+  assert.ok(race.racers[0].finished);
+  assert.ok(race.events.some(e=>e.type==='ai_defend'));
+  assert.ok(race.events.some(e=>e.type==='ai_attack'));
+  const hex=race.racers[3];
+  assert.ok(hex.aiDefenses<16,'HEX is repeatedly spamming evasive defense');
+});
+test('2.6 real boost triggers a single bounded world light event and expires',()=>{
+  const r=C.seededRace(94);r.phase='running';
+  for(const racer of r.racers.slice(1))racer.finished=true;
+  const p=r.racers[0],pad=r.track.boosts[0],at=C.pointAt(pad.s-55);
+  p.x=at.x+at.nx*pad.lane;p.y=at.y+at.ny*pad.lane;
+  p.angle=at.angle;p.speed=205;p.vx=at.tx*205;p.vy=at.ty*205;
+  for(let i=0;i<25;i++)C.tick(r,{x:at.tx,y:at.ty},C.STEP);
+  assert.equal(p.boosts,1);
+  assert.equal(r.spectacles.length,1);
+  const fx=r.spectacles[0];
+  assert.equal(fx.kind,'boost');
+  assert.equal(fx.owner,0);
+  assert.ok(fx.life>0&&fx.life<=fx.duration);
+  assert.ok(Number.isFinite(fx.x)&&Number.isFinite(fx.y));
+  for(let i=0;i<70;i++)C.tick(r,{x:at.tx,y:at.ty},C.STEP);
+  assert.equal(r.spectacles.length,0,'boost light should never persist');
+});
+test('2.6 successful player Dash registers a hit and eject light',()=>{
+  const r=C.seededRace(10);r.phase='running';r.elapsed=5;
+  for(const other of r.racers.slice(2))other.finished=true;
+  const a=r.racers[0],b=r.racers[1],road=C.pointAt(540);
+  a.x=road.x-road.nx*12;a.y=road.y-road.ny*12;
+  a.angle=Math.atan2(road.ny,road.nx);a.speed=210;a.dashTime=.3;
+  b.x=road.x+road.nx*9;b.y=road.y+road.ny*9;
+  b.angle=road.angle;b.speed=20;
+  for(let i=0;i<7;i++)C.tick(r,i<2?
+    {x:road.nx,y:road.ny}:{x:road.tx,y:road.ty},C.STEP);
+  assert.ok(a.dashHits>=1);
+  assert.ok(r.impacts.some(e=>e.charged&&e.strength>=400));
+  assert.ok(r.spectacles.some(e=>e.kind==='eject'&&e.owner===1));
+  assert.ok(r.events.some(e=>e.type==='impact'&&e.dash));
+  assert.equal(C.audit(r).summary.dashHits,a.dashHits);
 });
 test('2.5 fast opening pace, high-energy pads and lasting speed reward',()=>{
   assert.equal(C.zoneSpeed(0),191);
@@ -495,6 +544,15 @@ test('Renderer has visible tile cache, world transform and no monolithic world r
   assert.ok(js.includes('TILE_LIMIT=36'));
   assert.ok(js.includes('function drawRoadTiles'));
   assert.ok(js.includes('function drawWorldBackdrop'));
+  assert.ok(js.includes('function arenaLighting'));
+  assert.ok(js.includes('function drawWorldSpectacles'));
+  assert.ok(js.includes('function drawWaveWorldHalo'));
+  assert.ok(js.includes('function drawCombatOpportunity'));
+  assert.ok(js.includes('function luminousPool'));
+  assert.ok(js.includes("g.translate(0,15)"));
+  assert.ok(js.includes('drawWorldBackdrop(ctx,camera,m)'));
+  assert.ok(js.includes('drawVelocityRails(m,view)'));
+  assert.ok(js.includes("m.spectacles||[]"));
   assert.ok(js.includes('ctx.scale(camera.zoom,camera.zoom)'));
   assert.ok(js.includes('CAMERA.viewBounds(camera'));
   assert.ok(js.includes('clipWaveRepaint(ctx,track,wave)'));
@@ -521,7 +579,7 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
     'circuit-brake','circuit-dash','circuit-pause','circuit-fullscreen',
     'circuit-export','circuit-export-pause'])
       assert.ok(html.includes('id="'+id+'"'),id);
-  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.5'));
+  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.6'));
   assert.ok(js.includes("requestFullscreen"));
   assert.ok(js.includes('JSON.stringify(CORE.audit(race)'));
   assert.ok(js.includes('getInput()'));
@@ -529,8 +587,8 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
 test('Run audit 2.3 includes falls, AI aggression and the spectral wave without private input history',()=>{
   const r=run(77);
   const a=C.audit(r);
-  assert.equal(a.schema,'neon-circuit-run-audit/2.5');
-  assert.equal(a.build,'neon-circuit-2.5');
+  assert.equal(a.schema,'neon-circuit-run-audit/2.6');
+  assert.equal(a.build,'neon-circuit-2.6');
   assert.equal(a.courseId,'spectral-highway');
   assert.ok(a.trackLength>4600);
   assert.equal(a.summary.cameraMode,'close-follow-damped-zoom');
@@ -538,6 +596,7 @@ test('Run audit 2.3 includes falls, AI aggression and the spectral wave without 
   assert.equal(a.summary.trackArchitecture,'tangent-circular-arcs-straights');
   assert.equal(a.summary.boostPads,3);
   assert.deepEqual(a.summary.rivalStyles,['precision','aggressive','opportunist']);
+  assert.equal(a.summary.spectacleMode,'layered-world-lighting-impact-2.6');
   assert.ok(a.summary.boostPeak>=0);
   assert.equal(a.summary.controlMode,'hold-to-drive-manual-steering');
   assert.ok(a.summary.driveSeconds>20);

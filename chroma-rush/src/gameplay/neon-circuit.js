@@ -90,6 +90,15 @@ function begin(){
   screen('playing');noticeUntil=0;finishPendingAt=0;
   lastAnnouncement='';lastZone=-1;lastPlace='';updateHud();
 }
+function backToCourseMenu(){
+  race=null;preview=CORE.seededRace(103,selectedCourse);
+  camera=CAMERA.create(preview.track.worldBounds,
+    {width:viewW,height:viewH},preview.racers[0]);
+  keys.clear();resetStick();brakePressed=false;dashPending=false;
+  tileCache.clear();frameBefore=0;accumulator=0;finishPendingAt=0;
+  lastAnnouncement='';lastZone=-1;lastPlace='';
+  screen('menu');
+}
 function pause(){
   if(mode!=='playing')return;
   screen('paused');brakePressed=false;dashPending=false;resetStick();
@@ -127,6 +136,8 @@ function download(){
 }
 $('circuit-start').addEventListener('click',begin);
 $('circuit-again').addEventListener('click',begin);
+$('circuit-change-course').addEventListener('click',backToCourseMenu);
+$('circuit-change-course-pause').addEventListener('click',backToCourseMenu);
 $('circuit-pause').addEventListener('click',pause);
 $('circuit-resume').addEventListener('click',resume);
 $('circuit-restart').addEventListener('click',begin);

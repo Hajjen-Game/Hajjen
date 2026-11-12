@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Real Chromium mobile/desktop functional + screenshot audit: NEON CIRCUIT."""
+"""Neon Circuit 2.0 real Chromium: World Track, Follow Camera & Track Tide."""
 from __future__ import annotations
 import json
 import os
@@ -10,189 +10,182 @@ ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/"artifacts"/"neon-circuit-audit"
 OUT.mkdir(parents=True,exist_ok=True)
 
+
 def main():
-    all_checks=[]
+    checks=[]
     errors=[]
     with sync_playwright() as p:
-        browser=p.chromium.launch(headless=True,
+        browser=p.chromium.launch(
+            headless=True,
             executable_path=os.environ.get("CHROMA_CHROMIUM_PATH") or None,
             args=["--no-sandbox"])
         for w,h in [(960,540),(812,375),(1400,700)]:
-            page=browser.new_page(viewport={"width":w,"height":h},
-                device_scale_factor=3,is_mobile=w!=960,
-                has_touch=w!=960,accept_downloads=True)
-            page.on("pageerror",lambda e:errors.append(str(e)))
+            page=browser.new_page(
+                viewport={"width":w,"height":h},device_scale_factor=3,
+                is_mobile=w!=960,has_touch=w!=960,accept_downloads=True)
+            page.on("pageerror",lambda error:errors.append(str(error)))
             page.goto((ROOT/"neon-circuit.html").as_uri(),wait_until="load")
-            assert page.locator("#circuit-menu").is_visible(), "Race menu unavailable"
-            page.screenshot(path=str(OUT/f"circuit-menu-{w}.png"))
+            page.wait_for_function("() => !!window.ChromaCircuitViewDebug")
+            assert page.locator("#circuit-menu").is_visible()
+            page.screenshot(path=str(OUT/f"circuit-2-menu-{w}.png"))
             geometry=page.evaluate("""() => {
-                const c=window.ChromaNeonCircuitCore;
-                const pts=c.TRACK.samples;
-                const check=pts.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
-                const r=c.seededRace(21);
-                return {closed:Math.hypot(pts[0].x-pts.at(-1).x,
-                    pts[0].y-pts.at(-1).y),length:c.TRACK.length,
-                    points:pts.length,geometryFinite:check,
-                    racerCount:r.racers.length,zoneSeconds:c.ZONE_SECONDS,
-                    courses:c.TRACKS.map(t=>({id:t.courseId,length:t.length,
-                      name:t.name,coverage:t.coverage,bounds:t.bounds,
-                      layout:t.layout,closed:Math.hypot(t.samples[0].x-t.samples.at(-1).x,
-                        t.samples[0].y-t.samples.at(-1).y)}))};
+              const c=window.ChromaNeonCircuitCore,
+                cam=window.ChromaCircuitCamera,
+                t=c.TRACK,pts=t.samples,r=c.seededRace(26);
+              const vw=window.innerWidth,vh=window.innerHeight;
+              return {
+                length:t.length,geometryFinite:pts.every(s=>
+                  Number.isFinite(s.x)&&Number.isFinite(s.y)),
+                closed:Math.hypot(pts[0].x-pts.at(-1).x,
+                  pts[0].y-pts.at(-1).y),
+                layout:t.layout,courses:c.TRACKS.length,
+                bounds:t.bounds,name:t.name,racers:r.racers.length,
+                worldBounds:c.WORLD_BOUNDS,
+                cameraModule:typeof cam.step==="function",
+                speed:c.zoneSpeed(0),viewport:[vw,vh],
+                dynamicZoom:[cam.desiredZoom(vh,172),cam.desiredZoom(vh,265)]
+              };
             }""")
             assert geometry["closed"]<.01 and geometry["geometryFinite"],geometry
-            assert geometry["length"]>1200 and geometry["racerCount"]==4,geometry
-            assert len(geometry["courses"])==3,geometry
-            assert all(t["closed"]<.01 for t in geometry["courses"]),geometry
-            assert all(t["coverage"]["width"]>.87 and
-                t["coverage"]["height"]>.72 for t in geometry["courses"]),geometry
-            assert all(t["layout"]=="full-span-rounded-polyline"
-                for t in geometry["courses"]),geometry
+            assert geometry["length"]>4600 and geometry["courses"]==1,geometry
+            assert geometry["racers"]==4 and geometry["cameraModule"],geometry
+            assert geometry["speed"]==172,geometry
+            assert geometry["layout"]=="multi-screen-world-track",geometry
+            b=geometry["bounds"]
+            assert b["maxX"]-b["minX"]>1800 and b["maxY"]-b["minY"]>900,b
+            assert geometry["dynamicZoom"][1]<geometry["dynamicZoom"][0],geometry
+
             page.locator("#circuit-start").click()
-            page.wait_for_timeout(300)
-            assert page.locator("#circuit-joystick").is_visible()
-            assert page.locator("#circuit-brake").is_visible()
-            assert page.locator("#circuit-dash").is_visible()
+            page.wait_for_timeout(400)
+            for id in ["circuit-joystick","circuit-brake","circuit-dash","circuit-pause"]:
+                assert page.locator("#"+id).is_visible(),id
             assert page.locator("#circuit-lap").inner_text()=="LAP 1/3"
+            first=page.evaluate("() => window.ChromaCircuitViewDebug.snapshot()")
+            assert first["camera"] is not None,first
+            assert first["tiles"]>0 and first["tiles"]<=36,first
+            # A 2D follow camera reveals only a FRACTION of the road.
+            width_world=first["viewport"]["width"]/first["camera"]["zoom"]
+            height_world=first["viewport"]["height"]/first["camera"]["zoom"]
+            assert width_world<(b["maxX"]-b["minX"])*.85,(width_world,b)
+            assert height_world<(b["maxY"]-b["minY"])*.85,(height_world,b)
             pixels=page.evaluate("""() => {
-              const c=document.getElementById('circuit-canvas');
-              const g=c.getContext('2d');
-              const get=(x,y)=>Array.from(g.getImageData(
-                  Math.min(c.width-1,Math.floor(c.width*x)),
-                  Math.min(c.height-1,Math.floor(c.height*y)),1,1).data);
-              return {width:c.width,height:c.height,left:get(.01,.48),
-                right:get(.99,.48),road:get(.5,.22),center:get(.5,.5)};
+              const c=document.getElementById('circuit-canvas'),
+                g=c.getContext('2d'),
+                pixel=(x,y)=>Array.from(g.getImageData(
+                  Math.floor(c.width*x),Math.floor(c.height*y),1,1).data);
+              return {width:c.width,height:c.height,left:pixel(.01,.5),
+                right:pixel(.99,.5),center:pixel(.5,.5)};
             }""")
             assert pixels["width"]*pixels["height"]<=752000,pixels
-            # On panoramic landscape phones, previous 16:9 aspect-fit
-            # camera left large world side gutters. Full-span 1.3 must
-            # cover the actual canvas rather than a centered sub-rectangle.
-            assert min(t["coverage"]["width"] for t in geometry["courses"])>.87
-            camera=page.evaluate("""() => {
-              const c=document.getElementById('circuit-canvas'),g=c.getContext('2d'),
-                transform=g.getTransform(),w=c.width,h=c.height;
-              const xScreen=transform.a*960,yScreen=transform.d*540;
-              return {xScreen,yScreen,width:w,height:h};
+            assert all(col[3]>=250 for col in [pixels["left"],pixels["right"]]),pixels
+            # Compare a ROAD pixel in two cached zones, at precisely the
+            # SAME WORLD coordinate, avoiding camera motion artifacts.
+            pigmentation=page.evaluate("""() => {
+              const c=window.ChromaNeonCircuitCore,
+                debug=window.ChromaCircuitViewDebug,
+                p=c.pointAt(150);
+              return {old:debug.sampleRoad(0,p.x,p.y),
+                new:debug.sampleRoad(1,p.x,p.y)};
             }""")
-            assert abs(camera["xScreen"]-camera["width"])<3,camera
-            assert abs(camera["yScreen"]-camera["height"])<3,camera
-            assert all(col[3]>=250 and sum(col[:3])>13 for col in
-                (pixels["left"],pixels["right"])),pixels
+            delta=sum(abs(a-b) for a,b in zip(
+                pigmentation["old"][:3],pigmentation["new"][:3]))
+            assert pigmentation["old"][3]>245 and pigmentation["new"][3]>245,pigmentation
+            assert delta>35,(delta,pigmentation)
+            # Controls remain user-driven and responsive.
             box=page.locator("#circuit-joystick").bounding_box()
             assert box
             x,y=box["x"]+box["width"]*.5,box["y"]+box["height"]*.5
             page.mouse.move(x,y);page.mouse.down()
-            page.mouse.move(x+box["width"]*.25,y-box["height"]*.18,steps=5)
+            page.mouse.move(x+box["width"]*.24,y-box["height"]*.14,steps=4)
             assert "calc(" in (page.locator("#circuit-stick").get_attribute("style") or "")
             page.mouse.up()
             assert "translate(-50%," in (page.locator("#circuit-stick").get_attribute("style") or "")
-            # Hold BRAKE with a real pointer interaction.
-            b=page.locator("#circuit-brake").bounding_box()
-            assert b
-            page.mouse.move(b["x"]+b["width"]*.5,b["y"]+b["height"]*.5)
+            brake=page.locator("#circuit-brake").bounding_box()
+            assert brake
+            page.mouse.move(brake["x"]+brake["width"]*.5,
+                            brake["y"]+brake["height"]*.5)
             page.mouse.down()
             assert "pressed" in (page.locator("#circuit-brake").get_attribute("class") or "")
             page.mouse.up()
             assert "pressed" not in (page.locator("#circuit-brake").get_attribute("class") or "")
-            # Countdown is non-lethal, so wait for a real GO.
-            page.wait_for_timeout(2650)
+            page.wait_for_timeout(2600)
             page.locator("#circuit-dash").click()
-            page.wait_for_timeout(100)
-            assert page.locator("#circuit-dash").is_disabled(),"Dash cooldown missing"
-            page.screenshot(path=str(OUT/f"circuit-race-{w}.png"))
+            page.wait_for_timeout(450)
+            assert page.locator("#circuit-dash").is_disabled()
+            moved=page.evaluate("() => window.ChromaCircuitViewDebug.snapshot()")
+            assert moved["camera"]["updates"]>5,moved
+            assert moved["player"]["x"]>first["player"]["x"]+12,(first,moved)
+            assert moved["camera"]["x"]>first["camera"]["x"]+10,(first,moved)
+            assert moved["tiles"]<=36,moved
+            page.screenshot(path=str(OUT/f"circuit-2-world-race-{w}.png"))
             if w==960:
-                # Pixel regression: the color wave MUST repaint the asphalt
-                # while the inner-circuit background remains byte-identical.
-                def colors():
-                    return page.evaluate("""() => {
-                      const c=document.getElementById('circuit-canvas'),
-                        g=c.getContext('2d');
-                      const at=(x,y)=>Array.from(g.getImageData(
-                        Math.round(x),Math.round(y),1,1).data);
-                      return {world:at(480,270),road:at(550,119)};
-                    }""")
-                first=colors()
                 page.wait_for_function(
                     "() => document.getElementById('circuit-zone').textContent === 'ZONE 02'",
-                    timeout=22000)
-                page.wait_for_timeout(550)
-                page.screenshot(path=str(OUT/"circuit-track-tide-mid.png"))
-                page.wait_for_timeout(1100)
-                after=colors()
-                assert first["world"]==after["world"],(first,after)
-                road_delta=sum(abs(a-b) for a,b in
-                               zip(first["road"],after["road"]))
-                assert road_delta>35,(road_delta,first,after)
-                page.screenshot(path=str(OUT/"circuit-track-tide-complete.png"))
+                    timeout=24000)
+                page.wait_for_timeout(500)
+                page.screenshot(path=str(OUT/"circuit-2-track-tide-mid.png"))
+                page.wait_for_timeout(1150)
+                page.screenshot(path=str(OUT/"circuit-2-track-tide-complete.png"))
             page.locator("#circuit-pause").click()
             assert page.locator("#circuit-pause-menu").is_visible()
             with page.expect_download() as waiter:
                 page.locator("#circuit-export-pause").click()
             download=waiter.value
             assert download.suggested_filename.startswith("neon-circuit-zone-")
-            destination=OUT/f"circuit-run-{w}.json"
+            destination=OUT/f"circuit-2-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/1.3",log
-            assert log["summary"]["waveMode"]=="forward-track-only",log
-            assert log["courseId"]==geometry["courses"][0]["id"],log
-            assert log["status"]=="in_progress",log
+            assert log["schema"]=="neon-circuit-run-audit/2.0",log
+            assert log["summary"]["cameraMode"]=="world-follow-lookahead-zoom"
+            assert log["summary"]["waveMode"]=="forward-track-only"
+            assert log["courseId"]=="spectral-highway"
             assert log["summary"]["dashes"]==1,log
+            assert log["summary"]["performance"]["tileBuilds"]>0,log
             page.locator("#circuit-resume").click()
             assert page.locator("#circuit-dash").is_visible()
             page.locator("#circuit-fullscreen").click()
             page.wait_for_timeout(100)
-            active=page.evaluate("""() =>
+            fullscreen=page.evaluate("""() =>
               document.fullscreenElement===document.getElementById('circuit-shell')
             """)
-            if active:
+            if fullscreen:
                 assert page.locator("#circuit-fullscreen").get_attribute("aria-pressed")=="true"
                 page.locator("#circuit-fullscreen").click()
-            # Pure core: zone changes and real 3-lap completion from track motion.
-            logic=page.evaluate("""() => {
-              const c=window.ChromaNeonCircuitCore;
-              const m=c.seededRace(12);m.phase='running';m.elapsed=9.995;
-              c.tick(m,{},1/60);
-              const result={zone:m.zone,tide:m.tide,speed:c.zoneSpeed(m.zone)};
-              const racer=m.racers[0];m.elapsed=55;m.zone=5;
-              racer.gatePasses=12;racer.laps=2;
-              racer.progress=c.TRACK.length*3-4;
-              const at=c.pointAt(racer.progress);
-              racer.x=at.x;racer.y=at.y;racer.angle=at.angle;racer.speed=155;
-              c.tick(m,{x:at.tx,y:at.ty},1/30);
-              result.completed=racer.finished;result.place=m.finishPlace;
-              result.laps=racer.laps;
-              const w=c.waveState(m);
-              result.waveScope=w.scope;result.waveDirection=w.direction;
-              result.waveProgress=w.progress;
-              return result;
+            # Ensure AI and player share real physical finish gates.
+            rules=page.evaluate("""() => {
+              const c=window.ChromaNeonCircuitCore,
+                r=c.seededRace(12);r.phase='running';r.elapsed=9.995;
+              c.tick(r,{},c.STEP);
+              const zone={zone:r.zone,speed:c.zoneSpeed(r.zone),
+                wave:c.waveState(r).scope};
+              const p=r.racers[0];
+              r.elapsed=74;r.zone=6;p.gatePasses=12;p.laps=2;
+              p.progress=r.track.length*3-4;
+              const pos=c.pointAt(p.progress,r.track);
+              p.x=pos.x;p.y=pos.y;p.angle=pos.angle;p.speed=230;
+              c.tick(r,{x:pos.tx,y:pos.ty},1/30);
+              return {...zone,finished:p.finished,
+                laps:p.laps,place:r.finishPlace};
             }""")
-            assert logic["zone"]==1 and logic["tide"]>0,logic
-            assert logic["speed"]==130 and logic["completed"],logic
-            assert logic["laps"]==3,logic
-            assert (logic["waveScope"]=="track-only" and
-                    logic["waveDirection"]=="forward"),logic
-            # Each new race changes the course rather than repeating an
-            # identical oval. The HUD names the new route at countdown.
-            page.locator("#circuit-pause").click()
-            page.locator("#circuit-restart").click()
-            assert "WIDE CORNER CUT" in page.locator("#circuit-announce").inner_text()
-            page.screenshot(path=str(OUT/f"circuit-course-2-{w}.png"))
-            page.locator("#circuit-pause").click()
-            page.locator("#circuit-restart").click()
-            assert "LOWER SWEEP HOOK" in page.locator("#circuit-announce").inner_text()
-            page.screenshot(path=str(OUT/f"circuit-course-3-{w}.png"))
+            assert rules["zone"]==1 and rules["speed"]==186,rules
+            assert rules["wave"]=="track-only",rules
+            assert rules["finished"] and rules["laps"]==3,rules
             assert not errors,errors
-            all_checks.append({"viewport":[w,h],"track":geometry,
-                "pixels":pixels,"raceRules":logic,
-                "dashWorks":True,"brakeWorks":True,"logExported":True,
-                "fullscreenActivated":active,"pageErrors":[]})
+            checks.append({
+                "viewport":[w,h],"geometry":geometry,
+                "initialCamera":first["camera"],"movingCamera":moved["camera"],
+                "colorDelta":delta,"roadPixels":pigmentation,
+                "cameraWorldViewport":[width_world,height_world],
+                "screenPixels":pixels,"rules":rules,
+                "fullscreenActivated":fullscreen,"pageErrors":[]})
             page.close()
         browser.close()
     assert not errors,errors
     (OUT/"neon-circuit-browser-audit.json").write_text(
-        json.dumps({"checks":all_checks,"pageErrors":errors},indent=2),
+        json.dumps({"checks":checks,"pageErrors":errors},indent=2),
         encoding="utf-8")
-    print(json.dumps({"checks":all_checks,"pageErrors":errors}))
+    print(json.dumps({"checks":checks,"pageErrors":errors}))
+
 
 if __name__=="__main__":
     main()

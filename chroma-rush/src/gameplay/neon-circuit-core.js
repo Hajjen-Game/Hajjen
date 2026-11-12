@@ -644,6 +644,7 @@ function moveRacer(m,p,input,dt){
       break;
     }
   }
+  if(p.boostTime>0)p.boostPeak=Math.max(p.boostPeak,p.speed);
   if(p.id===0){
     p.speedSamples++;p.speedAccum+=p.speed;
     if(steering&&p.speed>45&&nearest.dist<24&&!brake){

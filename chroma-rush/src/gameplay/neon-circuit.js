@@ -284,47 +284,57 @@ function toggleFull(){
 buttons.forEach(b=>b.addEventListener('click',toggleFull));
 document.addEventListener('fullscreenchange',()=>{syncFull();resize()});
 syncFull();
-function forVisibleSegments(g,track,rect){
+function forVisibleSegments(g,track,rect,tileKey){
   const list=track.samples;
-  let painting=false,found=false;
+  const candidates=track.renderTileSegments.get(tileKey)||[];
+  let painting=false,found=false,previous=-2;
   g.beginPath();
-  // Segments have global world coordinates; only nearby lines are emitted,
-  // so multi-screen courses never issue a full-track paint on every frame.
-  for(let i=1;i<list.length;i++){
+  // Index lookup transforms painting cost from entire track geometry to only
+  // the few segments intersecting this 448-unit world tile.
+  for(const i of candidates){
     const a=list[i-1],b=list[i];
     const intersects=Math.max(a.x,b.x)>=rect.minX&&
       Math.min(a.x,b.x)<=rect.maxX&&
       Math.max(a.y,b.y)>=rect.minY&&Math.min(a.y,b.y)<=rect.maxY;
     if(intersects){
-      if(!painting)g.moveTo(a.x,a.y);
+      if(!painting||i!==previous+1)g.moveTo(a.x,a.y);
       g.lineTo(b.x,b.y);found=true;painting=true;
     }else painting=false;
+    previous=i;
   }
   return found;
 }
-function tileHasRoad(track,rect){
+function tileHasRoad(track,rect,tileKey){
   const a=track.bounds;
   if(a.minX>rect.maxX||a.maxX<rect.minX||
       a.minY>rect.maxY||a.maxY<rect.minY)return false;
   const list=track.samples;
-  for(let i=1;i<list.length;i++){
+  for(const i of track.renderTileSegments.get(tileKey)||[]){
     const p=list[i-1],q=list[i];
     if(Math.max(p.x,q.x)>=rect.minX&&Math.min(p.x,q.x)<=rect.maxX&&
-      Math.max(p.y,q.y)>=rect.minY&&Math.min(p.y,q.y)<=rect.maxY)
+       Math.max(p.y,q.y)>=rect.minY&&Math.min(p.y,q.y)<=rect.maxY)
       return true;
   }
   return false;
 }
 // Paint the physical ramp as a continuous shoulder, with taller light
 // banking on the OUTSIDE of circular turns. World-coordinates, tile-cached.
-function drawBankedEdges(g,track,rect,primary,secondary){
+function drawBankedEdges(g,track,rect,primary,secondary,tileKey){
   // Physically continuous shaded slopes instead of stacked neon outlines.
-  const runs=[];let current=[];
-  for(const p of track.rimSamples){
+  const runs=[];let current=[],lastIndex=-2;
+  for(const i of track.renderTileRims.get(tileKey)||[]){
+    const p=track.rimSamples[i];
     const visible=p.x>rect.minX-110&&p.x<rect.maxX+110&&
       p.y>rect.minY-110&&p.y<rect.maxY+110;
-    if(visible)current.push(p);
-    else if(current.length){if(current.length>1)runs.push(current);current=[];}
+    if(visible){
+      if(i!==lastIndex+1&&current.length>1)runs.push(current);
+      if(i!==lastIndex+1)current=[];
+      current.push(p);
+    }else if(current.length){
+      if(current.length>1)runs.push(current);
+      current=[];
+    }
+    lastIndex=i;
   }
   if(current.length>1)runs.push(current);
   const point=(p,side,t)=>{
@@ -402,11 +412,12 @@ function paintRoadTile(g,zone,track,tileX,tileY){
     maxX:(tileX+1)*TILE+TILE_PAD+74,
     minY:tileY*TILE-TILE_PAD-74,
     maxY:(tileY+1)*TILE+TILE_PAD+74};
-  if(!tileHasRoad(track,rect))return false;
+  const tileKey=tileX+','+tileY;
+  if(!tileHasRoad(track,rect,tileKey))return false;
   g.save();g.translate(-tileX*TILE+TILE_PAD,-tileY*TILE+TILE_PAD);
   g.lineCap='round';g.lineJoin='round';
   const stroke=(width,color,dashed=false)=>{
-    const visible=forVisibleSegments(g,track,rect);
+    const visible=forVisibleSegments(g,track,rect,tileKey);
     if(!visible)return;
     g.lineWidth=width;g.strokeStyle=color;
     if(dashed)g.setLineDash([16,15]);
@@ -453,7 +464,7 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   stroke(44,rgb(secondary,.035));
   stroke(41,asphalt);
   stroke(1.4,rgb('#d3f6ff',.18),true);
-  drawBankedEdges(g,track,rect,primary,secondary);
+  drawBankedEdges(g,track,rect,primary,secondary,tileKey);
   drawBoostPads(g,track,rect,primary,secondary);
   // Small light studs/curb marks. Skip markers outside the current tile.
   for(let distance=28;distance<track.length;distance+=34){

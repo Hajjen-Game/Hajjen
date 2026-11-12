@@ -156,6 +156,24 @@ function edgeAt(s,side=1,track=TRACK){
 }
 const TRACKS=COURSE_PROFILES.map((_,index)=>makeTrack(TRACK_SHAPE,20,index));
 const TRACK=TRACKS[0];
+ // Cache static bank rim geometry at boot; only tile painting reuses it.
+for(const track of TRACKS){
+  track.rimSamples=[];
+  for(let distance=0;distance<track.length;distance+=10){
+    const p=pointAt(distance,track);
+    const sample={s:distance,x:p.x,y:p.y};
+    for(const side of [-1,1]){
+      const edge=edgeAt(distance,side,track),inner=TRACK_HALF+4;
+      sample[side<0?'left':'right']={
+        ix:p.x+p.nx*inner*side,iy:p.y+p.ny*inner*side,
+        ox:p.x+p.nx*(edge.limit-3)*side,
+        oy:p.y+p.ny*(edge.limit-3)*side
+      };
+    }
+    track.rimSamples.push(sample);
+  }
+}
+
 const WORLD_BOUNDS=Object.freeze({
   minX:TRACK.bounds.minX-290,maxX:TRACK.bounds.maxX+290,
   minY:TRACK.bounds.minY-290,maxY:TRACK.bounds.maxY+290

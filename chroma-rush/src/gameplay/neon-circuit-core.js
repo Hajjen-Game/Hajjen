@@ -171,7 +171,7 @@ function seededRace(seed=20261111,courseId=0){
       contactFlash:0,gatePasses:0,lastGateTime:null,impactCooldown:0,impulseX:0,impulseY:0,
       knockSeconds:0,falls:0,knockouts:0,fallTimer:0,
       respawns:0,invulnerable:0,lastAttacker:null,lastImpactAt:-100,
-      unsafeImpact:false,fallVX:0,fallVY:0,fallAnchorX:0,
+      unsafeImpact:false,vx:0,vy:0,fallVX:0,fallVY:0,fallAnchorX:0,
       fallAnchorY:0,edgeExposure:0,driveSeconds:0,coastSeconds:0};
   });
   const race={seed,random,racers,track,gates,courseIndex,
@@ -281,8 +281,8 @@ function desiredAI(m,p){
 }
 function fallOff(m,p){
   if(p.fallTimer>0||p.finished||p.invulnerable>0)return;
-  p.fallVX=Math.cos(p.angle)*p.speed*.44+p.impulseX*.62;
-  p.fallVY=Math.sin(p.angle)*p.speed*.44+p.impulseY*.62;
+  p.fallVX=p.vx*.44+p.impulseX*.62;
+  p.fallVY=p.vy*.44+p.impulseY*.62;
   p.fallAnchorX=p.x;p.fallAnchorY=p.y;
   p.falls++;p.fallTimer=FALL_SECONDS;
   p.speed=0;p.dashTime=0;p.impulseX=0;p.impulseY=0;
@@ -311,6 +311,7 @@ function respawn(m,p){
   p.y=target.y+target.ny*offset;
   p.angle=target.angle;
   p.speed=p.id===0?0:zoneSpeed(m.zone)*.52;
+  p.vx=Math.cos(p.angle)*p.speed;p.vy=Math.sin(p.angle)*p.speed;
   p.impulseX=0;p.impulseY=0;p.knockSeconds=0;p.lastAttacker=null;
   p.impactCooldown=.55;p.edgeCooldown=.45;
   p.invulnerable=RESPAWN_GRACE;
@@ -377,8 +378,17 @@ function moveRacer(m,p,input,dt){
    const decel=p.id===0&&!steering?310:brake?330:185;
    p.speed+=clamp(target-p.speed,-decel*dt,235*dt);
    if(p.speed<.5)p.speed=0;
-  const proposed={x:p.x+(Math.cos(p.angle)*p.speed+p.impulseX)*dt,
-    y:p.y+(Math.sin(p.angle)*p.speed+p.impulseY)*dt};
+  // Rolling momentum: changing heading does not instantly redirect movement.
+  // Brake tightens the turn. Keep a quicker response for the track AI.
+  if(p.speed>40&&p.vx===0&&p.vy===0){
+    p.vx=Math.cos(p.angle)*p.speed;p.vy=Math.sin(p.angle)*p.speed;
+  }
+  const targetVX=Math.cos(p.angle)*p.speed;
+  const targetVY=Math.sin(p.angle)*p.speed;
+  const blend=1-Math.exp(-(p.id===0?(brake?10:8.5):16)*dt);
+  p.vx+=(targetVX-p.vx)*blend;p.vy+=(targetVY-p.vy)*blend;
+  const proposed={x:p.x+(p.vx+p.impulseX)*dt,
+    y:p.y+(p.vy+p.impulseY)*dt};
   // Keep the knock momentum alive for ~200ms, producing visibly larger
   // collisions and allowing a strong impact to carry racers over the lip.
   p.impulseX*=Math.pow(IMPACT_FRICTION,dt*60);
@@ -424,10 +434,10 @@ function bumpRacers(m){
       const push=(PLAYER_RADIUS*2.2-d)*.52;
       a.x-=nx*push;a.y-=ny*push;
       b.x+=nx*push;b.y+=ny*push;
-      const aVX=Math.cos(a.angle)*a.speed+a.impulseX;
-      const aVY=Math.sin(a.angle)*a.speed+a.impulseY;
-      const bVX=Math.cos(b.angle)*b.speed+b.impulseX;
-      const bVY=Math.sin(b.angle)*b.speed+b.impulseY;
+      const aVX=a.vx+a.impulseX;
+      const aVY=a.vy+a.impulseY;
+      const bVX=b.vx+b.impulseX;
+      const bVY=b.vy+b.impulseY;
       const closing=Math.max(0,(aVX-bVX)*nx+(aVY-bVY)*ny);
       const dashA=a.dashTime>0,dashB=b.dashTime>0;
       const key=i+'-'+j;

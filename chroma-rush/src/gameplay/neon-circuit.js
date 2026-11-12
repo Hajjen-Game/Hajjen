@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.0: World Track & Follow Camera.
+/* CHROMA RUSH — NEON CIRCUIT 2.1: Manual Racing & Track Identity.
  * Camera follows the cube through a multi-screen neon racing world.
  * The stable dark environment and road-only Track Tide render in visible
  * cached world tiles (never one enormous offscreen track image).
@@ -113,10 +113,12 @@ function setStick(e){
   const box=$('circuit-joystick').getBoundingClientRect();
   const dx=e.clientX-box.x-box.width*.5,dy=e.clientY-box.y-box.height*.5;
   const r=box.width*.39,len=Math.hypot(dx,dy);
-  joyX=len>4?dx/len:0;joyY=len>4?dy/len:0;
-  const mag=Math.min(len,r);
-  $('circuit-stick').style.transform='translate(calc(-50% + '+(joyX*mag).toFixed(1)+
-    'px),calc(-50% + '+(joyY*mag).toFixed(1)+'px))';
+  // Analog thumb travel: centered means no drive, full radius full power.
+  const strength=len>r*.13?Math.min(1,len/r):0;
+  joyX=len>0?dx/len*strength:0;
+  joyY=len>0?dy/len*strength:0;
+  $('circuit-stick').style.transform='translate(calc(-50% + '+(joyX*r).toFixed(1)+
+    'px),calc(-50% + '+(joyY*r).toFixed(1)+'px))';
 }
 function resetStick(){
   joyId=null;joyX=0;joyY=0;
@@ -181,13 +183,13 @@ function updateHud(){
   const me=race.racers[0],lap=Math.min(CORE.LAPS_TO_WIN,me.laps+1);
   text('circuit-zone','ZONE '+String(race.zone+1).padStart(2,'0'));
   text('circuit-phase',ZONE_NAMES[race.zone%ZONE_NAMES.length]+
-    ' · SPEED '+(CORE.zoneSpeed(race.zone)/CORE.zoneSpeed(0)).toFixed(2)+'×');
+    ' · SPEED '+Math.round(me.speed));
   text('circuit-lap','LAP '+lap+'/'+CORE.LAPS_TO_WIN);
   text('circuit-flow','LINE FLOW '+Math.round(me.flow*100)+'%');
   text('circuit-place',ordinal(CORE.currentPosition(race))+' / 4');
   text('circuit-clock',clock(race.elapsed));
   text('circuit-dash',me.dashCooldown>.08?me.dashCooldown.toFixed(1)+'s':'DASH');
-  dash.disabled=me.dashCooldown>.08;
+  dash.disabled=me.dashCooldown>.08||me.speed<18;
   dash.classList.toggle('recharging',dash.disabled);
   let label='',visible=false;
   if(race.phase==='ready'){
@@ -273,11 +275,13 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   };
   // These geometries are RASTERIZED ONCE per visible tile per zone.
   // No huge full-world canvases and no runtime per-frame glow blur.
-  stroke(132,'rgba(0,1,14,.68)');
-  stroke(120,rgb(primary,.10));
-  stroke(105,rgb(primary,.46));
-  stroke(101,rgb('#d0eeff',.22));
-  stroke(96,'#09172b');
+  // Dark shoulder, color-coded guard rail and precise bright cap.
+  stroke(136,'rgba(0,1,14,.72)');
+  stroke(124,rgb(secondary,.095));
+  stroke(114,rgb(primary,.16));
+  stroke(106,rgb(primary,.48));
+  stroke(103,rgb('#c8f5ff',.26));
+  stroke(98,'#071527');
   // The actual ROAD pigment changes across zones, not just the rails.
   const asphalt=g.createLinearGradient(
     track.bounds.minX,track.bounds.minY,
@@ -287,12 +291,17 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   asphalt.addColorStop(.70,mix('#131e35',secondary,.32));
   asphalt.addColorStop(1,mix('#16243b',primary,.30));
   stroke(89,asphalt);
-  stroke(97,rgb('#d5faff',.10));
-  stroke(95.3,rgb(primary,.30));
-  stroke(89,asphalt);
-  stroke(1.1,rgb(primary,.08),true);
+  stroke(97,rgb('#e3faff',.13));
+  stroke(95.5,rgb(primary,.39));
+  stroke(90,'#09192c');
+  stroke(88,asphalt);
+  // Subtle lane gloss adds depth without reading as an obstacle.
+  stroke(72,rgb('#dbf5ff',.032));
+  stroke(62,rgb(primary,.052));
+  stroke(52,asphalt);
+  stroke(1.4,rgb('#d3f6ff',.18),true);
   // Small light studs/curb marks. Skip markers outside the current tile.
-  for(let distance=28;distance<track.length;distance+=54){
+  for(let distance=28;distance<track.length;distance+=42){
     const p=CORE.pointAt(distance,track);
     if(p.x<rect.minX-10||p.x>rect.maxX+10||
         p.y<rect.minY-10||p.y>rect.maxY+10)continue;
@@ -300,8 +309,8 @@ function paintRoadTile(g,zone,track,tileX,tileY){
       g.save();g.translate(p.x+p.nx*side*CORE.TRACK_HALF,
         p.y+p.ny*side*CORE.TRACK_HALF);
       g.rotate(p.angle);
-      g.fillStyle=rgb(primary,.42);
-      g.fillRect(-4,side===1?-3:0,9,3);g.restore();
+      g.fillStyle=rgb((Math.floor(distance/84)%2)?primary:'#d5efff',.54);
+      g.fillRect(-5,side===1?-3:0,11,3);g.restore();
     }
   }
   // A constant physical finish stripe for all viewports and zoom levels.
@@ -371,7 +380,17 @@ function drawWorldBackdrop(g,cam){
   for(let y=Math.floor(frame.minY/160)*160;y<frame.maxY;y+=160){
     g.moveTo(frame.minX,y);g.lineTo(frame.maxX,y);
   }
-  g.stroke();g.restore();
+  g.stroke();
+  // Calm world-anchored landmarks: outside-road curves, never square hazards.
+  for(const [x,y,r] of [[1790,700,175],[730,1010,140],[1390,1210,125]]){
+    if(x+r<frame.minX||x-r>frame.maxX||
+        y+r<frame.minY||y-r>frame.maxY)continue;
+    g.strokeStyle='rgba(89,196,226,.055)';g.lineWidth=3;
+    g.beginPath();g.arc(x,y,r,-.9,2.15);g.stroke();
+    g.strokeStyle='rgba(244,130,190,.038)';g.lineWidth=1;
+    g.beginPath();g.arc(x,y,r+23,1.8,5.65);g.stroke();
+  }
+  g.restore();
 }
 function rounded(g,x,y,w,h,r){
   g.beginPath();g.moveTo(x+r,y);g.lineTo(x+w-r,y);
@@ -433,6 +452,11 @@ function drawRacers(r){
       ctx.globalAlpha=1;
     }
     ctx.drawImage(sprite(p.color),-34,-34);
+    // Small front lip shows heading, without an arrow or long streak.
+    ctx.rotate(p.angle+Math.PI/2);
+    ctx.fillStyle=p.id===0?'#f3ffff':'#e2e7ff';
+    ctx.globalAlpha*=.75;
+    ctx.fillRect(-6,-12,12,2.1);
     ctx.restore();
     if(!falling){
       ctx.save();

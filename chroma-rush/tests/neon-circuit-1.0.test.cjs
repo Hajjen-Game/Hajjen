@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Neon Circuit 2.0 World Track & Follow Camera regression */
+/* CHROMA RUSH — Neon Circuit 2.1 Manual Racing & Track Identity regression */
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -27,7 +27,7 @@ function run(seed=42,limit=145,damage=false){
   }
   return m;
 }
-test('2.0 replaces tiny arena with one physical multi-screen world course',()=>{
+test('2.1 replaces tiny arena with one physical multi-screen world course',()=>{
   assert.equal(C.TRACKS.length,1);
   assert.equal(C.TRACK.layout,'multi-screen-world-track');
   assert.equal(C.TRACK.courseId,'spectral-highway');
@@ -41,6 +41,36 @@ test('2.0 replaces tiny arena with one physical multi-screen world course',()=>{
   assert.ok(C.WORLD_BOUNDS.maxY>C.TRACK.bounds.maxY);
   assert.deepEqual(C.TRACK.segmentKinds,
     ['straight','rounded-corner','hairpin','sweep']);
+});
+test('2.1 neutral joystick never secretly drives or steers the cube',()=>{
+  const r=C.seededRace(42);r.phase='running';
+  const p=r.racers[0],x=p.x,y=p.y,heading=p.angle;
+  for(let i=0;i<120;i++)C.tick(r,{},C.STEP);
+  assert.equal(p.speed,0);
+  assert.ok(Math.hypot(p.x-x,p.y-y)<.01);
+  assert.equal(p.angle,heading);
+  assert.equal(p.gatePasses,0);
+  assert.ok(p.coastSeconds>1.9);
+  // Aiming right now provides all propulsion; release decelerates.
+  for(let i=0;i<60;i++)C.tick(r,{x:1,y:0},C.STEP);
+  assert.ok(p.speed>140,'hold-stick speed: '+p.speed);
+  assert.ok(p.x>x+50,'manual acceleration failed');
+  assert.ok(p.driveSeconds>.9);
+  const headingDriven=p.angle;
+  for(let i=0;i<65;i++)C.tick(r,{},C.STEP);
+  assert.equal(p.speed,0,'neutral must coast to a stop');
+  assert.equal(p.angle,headingDriven,'no invisible corner tracking');
+});
+test('2.1 player can turn against the line and cannot dash from rest',()=>{
+  const r=C.seededRace(54);r.phase='running';
+  const p=r.racers[0],start=p.angle;
+  C.tick(r,{dash:true},C.STEP);
+  assert.equal(p.dashes,0,'idle dash is not propulsion');
+  for(let i=0;i<30;i++)C.tick(r,{x:0,y:1},C.STEP);
+  assert.ok(C.angleDelta(start,p.angle)>1,'joystick controls heading');
+  assert.ok(p.speed>40);
+  C.tick(r,{x:0,y:1,dash:true},C.STEP);
+  assert.equal(p.dashes,1);
 });
 test('Path lookup is continuous, tangent-normal and physically projected',()=>{
   for(let i=0;i<35;i++){
@@ -206,7 +236,7 @@ test('Dynamic zoom shows more road at speed while keeping the cube square',()=>{
   const z=cam.zoom;low.speed=260;
   for(let i=0;i<90;i++)Camera.step(cam,low,v,1/60);
   assert.ok(cam.zoom<z*.87,'camera did not zoom out: '+cam.zoom+'/'+z);
-  assert.ok(Math.abs(cam.targetZoom-Camera.desiredZoom(v.height,260))<1e-6);
+  assert.ok(Math.abs(cam.targetZoom-Camera.desiredZoom(v.height,260))<.02);
   assert.ok(Camera.viewBounds(cam).maxX-Camera.viewBounds(cam).minX>
     v.width/z,'higher speed must reveal a longer stretch of road');
   const wide={width:1536,height:691};
@@ -247,19 +277,21 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
     'circuit-brake','circuit-dash','circuit-pause','circuit-fullscreen',
     'circuit-export','circuit-export-pause'])
       assert.ok(html.includes('id="'+id+'"'),id);
-  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.0'));
+  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.1'));
   assert.ok(js.includes("requestFullscreen"));
   assert.ok(js.includes('JSON.stringify(CORE.audit(race)'));
   assert.ok(js.includes('getInput()'));
 });
-test('Run audit 2.0 includes track/camera data without private input history',()=>{
+test('Run audit 2.1 includes controls and camera data without private input history',()=>{
   const r=run(77);
   const a=C.audit(r);
-  assert.equal(a.schema,'neon-circuit-run-audit/2.0');
-  assert.equal(a.build,'neon-circuit-2.0');
+  assert.equal(a.schema,'neon-circuit-run-audit/2.1');
+  assert.equal(a.build,'neon-circuit-2.1');
   assert.equal(a.courseId,'spectral-highway');
   assert.ok(a.trackLength>4600);
-  assert.equal(a.summary.cameraMode,'world-follow-lookahead-zoom');
+  assert.equal(a.summary.cameraMode,'damped-world-follow-lookahead-zoom');
+  assert.equal(a.summary.controlMode,'hold-to-drive-manual-steering');
+  assert.ok(a.summary.driveSeconds>20);
   assert.equal(a.summary.lapValidation,'four-ordered-physical-gates');
   assert.equal(a.summary.waveMode,'forward-track-only');
   assert.equal(a.summary.lapsCompleted,3);

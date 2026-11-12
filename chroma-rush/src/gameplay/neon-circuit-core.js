@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.5: Arcade Velocity & Rival Identity
+/* CHROMA RUSH — NEON CIRCUIT 2.6: Spectral Arena & Impact Language
  * Hold the joystick to drive and aim to steer. Releasing coasts instead
  * of falling back to invisible autopilot; AI remains track guided. */
 (function(root,factory){
@@ -45,12 +45,12 @@ const zoneAt=t=>Math.floor(Math.max(0,t+1e-8)/ZONE_SECONDS);
 const zoneSpeed=z=>Math.min(300,191+15.5*Math.max(0,z));
 const AI_STYLES=Object.freeze([
   null,
-  Object.freeze({name:'precision',attackCooldown:7.2,attackWindow:1.10,
-    targetLead:.19,attackRange:104,tempo:1.055,turnLead:110,brakeCurve:.52}),
-  Object.freeze({name:'aggressive',attackCooldown:2.65,attackWindow:1.72,
-    targetLead:.18,attackRange:156,tempo:1.070,turnLead:82,brakeCurve:.75}),
-  Object.freeze({name:'opportunist',attackCooldown:5.3,attackWindow:1.32,
-    targetLead:.24,attackRange:108,tempo:1.045,turnLead:96,brakeCurve:.65})
+  Object.freeze({name:'precision',attackCooldown:8.0,attackWindow:1.10,
+    targetLead:.19,attackRange:104,tempo:1.012,turnLead:110,brakeCurve:.52}),
+  Object.freeze({name:'aggressive',attackCooldown:3.45,attackWindow:1.72,
+    targetLead:.18,attackRange:156,tempo:1.028,turnLead:82,brakeCurve:.75}),
+  Object.freeze({name:'opportunist',attackCooldown:6.15,attackWindow:1.32,
+    targetLead:.24,attackRange:108,tempo:1.005,turnLead:96,brakeCurve:.65})
 ]);
 const rand=seed=>{let n=(seed>>>0)||0x6e624eb7;
   return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296};
@@ -272,7 +272,7 @@ function seededRace(seed=20261111,courseId=0){
       x:p.x+p.nx*off,y:p.y+p.ny*off,angle:p.angle,
       speed:0,progress:distance,laps:0,finished:false,finishTime:null,
       lapTimes:[],lastLapStart:0,edgeHits:0,contacts:0,
-      dashes:0,dashTime:0,dashCooldown:0,brakeSeconds:0,
+      dashes:0,dashHits:0,dashTime:0,dashCooldown:0,brakeSeconds:0,
       lineSeconds:0,flow:0,bestFlow:0,edgeCooldown:0,
       aiLane:id===0?lane[id]:lane[id]+(random()-.5)*9,
       aiTempo:id===0?1:AI_STYLES[id].tempo+(random()-.5)*.035,
@@ -294,10 +294,10 @@ function seededRace(seed=20261111,courseId=0){
     zone:0,tide:0,waveStartS:0,waveStartPlayerS:0,phase:'ready',finished:false,finishPlace:null,
     winner:null,announcement:'READY',announcementTime:0,
     events:[],overflow:0,maxEvents:450,
-    impacts:[],contactPairs:{},performance:{
+    impacts:[],spectacles:[],contactPairs:{},performance:{
       frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     quality:'auto'};
-  log(race,'race_start',{mode:'neon-circuit-2.5',laps:LAPS_TO_WIN,
+  log(race,'race_start',{mode:'neon-circuit-2.6',laps:LAPS_TO_WIN,
     trackLength:Math.round(track.length),track:track.courseId,
     course:track.name,impact:'ejection-and-respawn',
     zoneWave:'forward-track-only'});
@@ -402,7 +402,8 @@ function desiredAI(m,p,dt=STEP){
     (p.id!==2&&(t.racer.aiAttackTarget===p.id||t.dist<29)));
   if(threat&&p.aiDefendTime<=0&&p.aiDefenseCooldown<=0&&
      current.dist<26&&p.speed>85){
-    p.aiDefendTime=.47;p.aiDefenseCooldown=1.6+(p.id===1?.4:0);
+    p.aiDefendTime=p.id===3?.34:.47;
+    p.aiDefenseCooldown=2.35+(p.id===3?1.15:p.id===1?.4:0);
     p.aiDefenses++;
     log(m,'ai_defend',{player:p.id,against:threat.racer.id,
       style:style.name});
@@ -467,6 +468,9 @@ function fallOff(m,p){
   p.fallVY=p.vy*.44+p.impulseY*.62;
   p.fallAnchorX=p.x;p.fallAnchorY=p.y;
   p.falls++;p.fallTimer=FALL_SECONDS;
+  m.spectacles.push({kind:'eject',x:p.x,y:p.y,angle:p.angle,
+    color:p.color,life:.68,duration:.68,owner:p.id});
+  if(m.spectacles.length>12)m.spectacles.shift();
   p.speed=0;p.dashTime=0;p.impulseX=0;p.impulseY=0;
   p.knockSeconds=0;p.contactFlash=0;p.unsafeImpact=false;
   p.edgeExposure=0;
@@ -627,6 +631,13 @@ function moveRacer(m,p,input,dt){
       if(Math.abs(nearest.side-pad.lane)>pad.halfWidth)continue;
       p.boosts++;p.boostPadId=pad.id;p.boostNextAt=m.elapsed+2;
       p.boostTime=pad.duration;p.boostFactor=pad.factor;
+      const surface=pointAt(pad.s,m.track);
+      m.spectacles.push({kind:'boost',
+        x:surface.x+surface.nx*pad.lane,
+        y:surface.y+surface.ny*pad.lane,
+        angle:surface.angle,color:p.color,life:.65,duration:.65,
+        owner:p.id});
+      if(m.spectacles.length>12)m.spectacles.shift();
       // Immediate burst ensures the pad feels rewarding even if the
       // player is already at full speed; dash stacks, but is not required.
       const impulse=Math.min(66,zoneSpeed(m.zone)*.29);
@@ -707,12 +718,14 @@ function bumpRacers(m){
         a.speed*=aAttacks?.94:dashA?.90:.77;
         b.speed*=bAttacks?.94:dashB?.90:.77;
         a.contacts++;b.contacts++;
+        if(dashA&&aAttacks)a.dashHits++;
+        if(dashB&&bAttacks)b.dashHits++;
         if(intendedA){a.aiHits++;a.aiAttackTime=0;a.aiAttackTarget=null;}
         if(intendedB){b.aiHits++;b.aiAttackTime=0;b.aiAttackTarget=null;}
         a.contactFlash=.24;b.contactFlash=.24;
         m.impacts.push({x:(a.x+b.x)/2,y:(a.y+b.y)/2,
           nx,ny,life:.32,colorA:a.color,colorB:b.color,
-          strength:force});
+          strength:force,charged:dashA||dashB,lifeMax:.32});
         if(m.impacts.length>10)m.impacts.shift();
         log(m,'impact',{a:a.id,b:b.id,force:Math.round(force),
           dash:dashA||dashB,closing:Math.round(closing),
@@ -759,6 +772,8 @@ function tick(m,input={},dt=STEP){
   bumpRacers(m);
   for(const v of m.impacts)v.life-=step;
   m.impacts=m.impacts.filter(v=>v.life>0);
+  for(const fx of m.spectacles)fx.life-=step;
+  m.spectacles=m.spectacles.filter(fx=>fx.life>0);
   if(m.racers[0].finished||m.elapsed>=MAX_RACE_SECONDS){
     m.finished=true;m.phase='result';
     m.finishPlace=currentPosition(m);
@@ -781,7 +796,7 @@ function waveState(m){
 }
 function audit(m){
   const p=m.racers[0];
-  return {schema:'neon-circuit-run-audit/2.5',build:'neon-circuit-2.5',
+  return {schema:'neon-circuit-run-audit/2.6',build:'neon-circuit-2.6',
     seed:m.seed,status:m.finished?'completed':'in_progress',
     courseId:m.track.courseId,courseName:m.track.name,
     trackLength:+m.track.length.toFixed(1),
@@ -794,13 +809,14 @@ function audit(m){
       boostPads:m.track.boosts.length,
        controlMode:'hold-to-drive-manual-steering',
       rivalStyles:m.racers.slice(1).map(p=>p.aiStyle),
+      spectacleMode:'layered-world-lighting-impact-2.6',
       waveTransitions:m.events.filter(e=>e.type==='zone').length,
       finishPlace:m.finishPlace,lapsCompleted:p.laps,
       lapFraction:+lapProgress(p,m.track).fraction.toFixed(3),
       lapTimes:p.lapTimes.slice(),speed:Math.round(p.speed),
       edgeHits:p.edgeHits,contacts:p.contacts,dashes:p.dashes,
       falls:p.falls,respawns:p.respawns,knockouts:p.knockouts,
-      boosts:p.boosts,boostPeak:Math.round(p.boostPeak),
+      boosts:p.boosts,dashHits:p.dashHits,boostPeak:Math.round(p.boostPeak),
       averageSpeed:Math.round(p.speedAccum/Math.max(1,p.speedSamples)),
       bankRides:+p.bankRides.toFixed(2),
       bankSaves:p.bankSaves,
@@ -816,7 +832,7 @@ function audit(m){
       id:r.id,finished:r.finished,laps:r.laps,
       gatePasses:r.gatePasses,
       finishTime:r.finishTime,edgeHits:r.edgeHits,contacts:r.contacts,
-      dashes:r.dashes,falls:r.falls,respawns:r.respawns,
+      dashes:r.dashes,dashHits:r.dashHits,falls:r.falls,respawns:r.respawns,
       knockouts:r.knockouts,aiAttacks:r.aiAttacks,aiHits:r.aiHits,
       boosts:r.boosts,bankSaves:r.bankSaves,
       aiStyle:r.aiStyle,aiDefenses:r.aiDefenses,

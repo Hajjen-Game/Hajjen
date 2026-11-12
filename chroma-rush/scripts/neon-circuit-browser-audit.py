@@ -394,6 +394,12 @@ def main():
                         "() => window.ChromaCircuitViewDebug.snapshot()")
                     assert again["course"]==course_id,again
                     assert again["courseLaps"]==laps,again
+                    page.locator("#circuit-pause").click()
+                    page.locator("#circuit-change-course-pause").click()
+                    assert page.locator("#circuit-menu").is_visible()
+                    assert page.locator(
+                        f"[data-circuit-course='{idx}']").get_attribute(
+                            "aria-pressed")=="true"
             page.close()
         browser.close()
     assert not errors,errors

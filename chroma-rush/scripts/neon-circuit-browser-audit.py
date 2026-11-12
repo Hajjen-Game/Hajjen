@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Neon Circuit 2.6.1 real Chromium: auto throttle, manual steering & arena."""
+"""Neon Circuit 2.7 real Chromium: premium motion, track materials & race presentation."""
 from __future__ import annotations
 import json
 import os
@@ -75,6 +75,9 @@ def main():
             assert first["tiles"]>0 and first["tiles"]<=36,first
             assert first["arena"]["primary"].startswith("#"),first
             assert first["arena"]["charge"]==0,first
+            assert first["moment"]=="ready",first
+            assert "premiumMotion" in first,first
+            assert abs(first["premiumMotion"]["lean"])<=.2,first
             assert first["camera"]["zoom"]>1.4*h/540,first
             # A 2D follow camera reveals only a FRACTION of the road.
             width_world=first["viewport"]["width"]/first["camera"]["zoom"]
@@ -123,7 +126,7 @@ def main():
             }""")
             assert boosted["count"]==1 and boosted["time"]>0,boosted
             assert boosted["peak"]>220,boosted
-            assert boosted["spectacleMode"]=="layered-world-lighting-impact-2.6"
+            assert boosted["spectacleMode"]=="premium-motion-impact-lap-2.7"
             # Controls remain user-driven and responsive.
             box=page.locator("#circuit-joystick").bounding_box()
             assert box
@@ -185,6 +188,9 @@ def main():
             assert moved["player"]["x"]>first["player"]["x"]+12,(first,moved)
             assert moved["camera"]["x"]>first["camera"]["x"]+10,(first,moved)
             assert moved["tiles"]<=36,moved
+            assert 0.72<=moved["premiumMotion"]["squash"]<=1.40,moved
+            assert 0.72<=moved["premiumMotion"]["stretch"]<=1.40,moved
+            assert abs(moved["premiumMotion"]["lean"])<=.25,moved
             page.screenshot(path=str(OUT/f"circuit-2-world-race-{w}.png"))
             if w==960:
                 page.wait_for_function(
@@ -207,14 +213,33 @@ def main():
             destination=OUT/f"circuit-2-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/2.6.1",log
+            assert log["schema"]=="neon-circuit-run-audit/2.7",log
             assert log["summary"]["cameraMode"]=="close-follow-damped-zoom"
             assert log["summary"]["edgeMode"]=="physical-cambered-bank-and-recoverable-ramp"
             assert log["summary"]["trackArchitecture"]=="tangent-circular-arcs-straights"
             assert log["summary"]["boostPads"]==3
             assert log["summary"]["rivalStyles"]==["precision","aggressive","opportunist"]
-            assert log["summary"]["spectacleMode"]=="layered-world-lighting-impact-2.6"
+            assert log["summary"]["spectacleMode"]=="premium-motion-impact-lap-2.7"
             assert log["summary"]["controlMode"]=="auto-throttle-manual-steering"
+            # Premium presentation remains a lightweight Canvas/CSS layer:
+            # check DOM animation hooks, reduced-motion safety and no layout
+            # changes to gameplay buttons or the mobile canvas.
+            premium=page.evaluate("""() => {
+              const css=Array.from(document.styleSheets)
+                .filter(x=>x.href&&x.href.includes('neon-circuit.css'));
+              const el=document.querySelector('#circuit-announce');
+              return {
+                stylesheets:css.length,
+                motion:window.ChromaCircuitViewDebug.snapshot().premiumMotion,
+                announceKind:el.dataset.moment,
+                finishPresent:!!document.querySelector('#circuit-finish'),
+                canvasPixels:document.querySelector('#circuit-canvas').width*
+                  document.querySelector('#circuit-canvas').height
+              };
+            }""")
+            assert premium["stylesheets"]>=1,premium
+            assert premium["finishPresent"],premium
+            assert premium["canvasPixels"]<=752000,premium
             assert log["summary"]["neutralSteerSeconds"]>=0
             assert log["summary"]["driveSeconds"]>.5
             assert log["summary"]["waveMode"]=="spectral-feather-offscreen-origin"

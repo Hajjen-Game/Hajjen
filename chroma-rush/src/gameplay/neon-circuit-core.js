@@ -46,11 +46,11 @@ const zoneSpeed=z=>Math.min(300,191+15.5*Math.max(0,z));
 const AI_STYLES=Object.freeze([
   null,
   Object.freeze({name:'precision',attackCooldown:7.2,attackWindow:1.10,
-    targetLead:.19,attackRange:104,tempo:.985,turnLead:110,brakeCurve:.52}),
+    targetLead:.19,attackRange:104,tempo:1.055,turnLead:110,brakeCurve:.52}),
   Object.freeze({name:'aggressive',attackCooldown:2.65,attackWindow:1.72,
-    targetLead:.18,attackRange:156,tempo:1.0,turnLead:82,brakeCurve:.75}),
-  Object.freeze({name:'opportunist',attackCooldown:4.15,attackWindow:1.35,
-    targetLead:.24,attackRange:126,tempo:.99,turnLead:96,brakeCurve:.65})
+    targetLead:.18,attackRange:156,tempo:1.070,turnLead:82,brakeCurve:.75}),
+  Object.freeze({name:'opportunist',attackCooldown:5.3,attackWindow:1.32,
+    targetLead:.24,attackRange:108,tempo:1.045,turnLead:96,brakeCurve:.65})
 ]);
 const rand=seed=>{let n=(seed>>>0)||0x6e624eb7;
   return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296};
@@ -366,7 +366,7 @@ function desiredAI(m,p,dt=STEP){
     .sort((a,b)=>a.dist-b.dist);
   // A defender yields or blocks laterally; no artificial speed advantage.
   const threat=threats.find(t=>t.racer.dashTime>0||
-    t.racer.aiAttackTarget===p.id||t.dist<29);
+    (p.id!==2&&(t.racer.aiAttackTarget===p.id||t.dist<29)));
   if(threat&&p.aiDefendTime<=0&&p.aiDefenseCooldown<=0&&
      current.dist<26&&p.speed>85){
     p.aiDefendTime=.47;p.aiDefenseCooldown=1.6+(p.id===1?.4:0);
@@ -387,7 +387,8 @@ function desiredAI(m,p,dt=STEP){
       const edge=closest(v.x,v.y,m.track).dist;
       const vulnerability=edge>24?35:0;
       return {v,dist,gap,eligible:gap>-28&&gap<style.attackRange&&
-        dist<style.attackRange,
+        dist<style.attackRange&&
+        (p.id!==3||edge>18||dist<30),
         score:-dist*.44+clamp(gap,0,60)*.12+
          (p.id===3?vulnerability*2:p.id===2?20:-12)};
     }).filter(v=>v.eligible).sort((a,b)=>b.score-a.score);

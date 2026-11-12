@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Neon Circuit 2.0 real Chromium: World Track, Follow Camera & Track Tide."""
+"""Neon Circuit 2.1 real Chromium: Manual Drive, GP Track & Camera."""
 from __future__ import annotations
 import json
 import os
@@ -109,8 +109,19 @@ def main():
             page.mouse.up()
             assert "pressed" not in (page.locator("#circuit-brake").get_attribute("class") or "")
             page.wait_for_timeout(2600)
+            # The cube cannot automatically drive while the player is idle.
+            stationary=page.evaluate("() => window.ChromaCircuitViewDebug.snapshot()")
+            idle_distance=((stationary["player"]["x"]-first["player"]["x"])**2+
+                (stationary["player"]["y"]-first["player"]["y"])**2)**.5
+            assert idle_distance<10,("autopilot regression",idle_distance)
+            assert page.locator("#circuit-dash").is_disabled()
+            # Keyboard is a deterministic full-deflection joystick surrogate.
+            page.keyboard.down("ArrowRight")
+            page.wait_for_timeout(1600)
+            assert page.locator("#circuit-dash").is_enabled()
             page.locator("#circuit-dash").click()
             page.wait_for_timeout(450)
+            page.keyboard.up("ArrowRight")
             assert page.locator("#circuit-dash").is_disabled()
             moved=page.evaluate("() => window.ChromaCircuitViewDebug.snapshot()")
             assert moved["camera"]["updates"]>5,moved
@@ -135,8 +146,10 @@ def main():
             destination=OUT/f"circuit-2-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/2.0",log
-            assert log["summary"]["cameraMode"]=="world-follow-lookahead-zoom"
+            assert log["schema"]=="neon-circuit-run-audit/2.1",log
+            assert log["summary"]["cameraMode"]=="damped-world-follow-lookahead-zoom"
+            assert log["summary"]["controlMode"]=="hold-to-drive-manual-steering"
+            assert log["summary"]["driveSeconds"]>.5
             assert log["summary"]["waveMode"]=="forward-track-only"
             assert log["courseId"]=="spectral-highway"
             assert log["summary"]["dashes"]==1,log

@@ -1,8 +1,6 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.0: World Track & Follow Camera
- * One authored multi-screen road with long straightaways, a broad hairpin
- * and a sweeping S sector. Physical lap gates, AI, contacts and Track Tide
- * remain in world coordinates; the follow camera only changes the view.
- */
+/* CHROMA RUSH — NEON CIRCUIT 2.1: Player-Driven Racing
+ * Hold the joystick to drive and aim to steer. Releasing coasts instead
+ * of falling back to invisible autopilot; AI remains track guided. */
 (function(root,factory){
   const api=factory();
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
@@ -24,16 +22,17 @@ const DASH_TIME=.34,DASH_COOLDOWN=5.4;
 // Only a small fraction of this multi-screen world is visible at once.
 const TRACK_SHAPE=Object.freeze({left:240,right:2260,top:185,bottom:1300,radius:160});
 const COURSE_PROFILES=Object.freeze([
-  {id:'spectral-highway',name:'SPECTRAL HIGHWAY',cornerCut:180,
+  {id:'spectral-highway',name:'SPECTRAL GP',cornerCut:180,
     waypoints:[
-      [620,260],[1580,260],        // opening long straight
-      [1930,350],[2140,565],       // sweeping right turn
-      [2210,800],[2050,960],       // outside bank
-      [1800,935],[1600,790],       // smooth interior sweep
-      [1380,890],[1310,1120],      // deliberate S
-      [1050,1240],[710,1210],      // lower broad stretch
-      [470,1090],[280,880],        // generous left hairpin
-      [310,620],[430,460]         // climb to start
+      [640,260],[1470,260],        // full-throttle opening straight
+      [1740,240],[2010,400],       // offset entry and flowing right bend
+      [2260,510],[2350,760],       // wide outside hairpin
+      [2140,1020],[1880,1080],     // recovery straight
+      [1640,1020],[1410,810],      // broad technical S
+      [1150,830],[1010,1100],      // distinct infield chicane
+      [710,1300],[430,1250],      // lower acceleration zone
+      [250,1010],[250,730],       // left-hand climbing hairpin
+      [400,470]                   // forgiving run back to the grid
     ]}
 ]);
 const NODES=COURSE_PROFILES[0].waypoints;
@@ -170,7 +169,8 @@ function seededRace(seed=20261111,courseId=0){
       aiTempo:id===0?1:.97+id*.024+(random()-.5)*.06,
       contactFlash:0,gatePasses:0,lastGateTime:null,impactCooldown:0,impulseX:0,impulseY:0,
       knockSeconds:0,falls:0,knockouts:0,fallTimer:0,
-      respawns:0,invulnerable:0,lastAttacker:null,unsafeImpact:false};
+      respawns:0,invulnerable:0,lastAttacker:null,unsafeImpact:false,
+       driveSeconds:0,coastSeconds:0};
   });
   const race={seed,random,racers,track,gates,courseIndex,
     ready:READY_SECONDS,elapsed:0,
@@ -180,7 +180,7 @@ function seededRace(seed=20261111,courseId=0){
     impacts:[],contactPairs:{},performance:{
       frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     quality:'auto'};
-  log(race,'race_start',{mode:'neon-circuit-2.0',laps:LAPS_TO_WIN,
+  log(race,'race_start',{mode:'neon-circuit-2.1',laps:LAPS_TO_WIN,
     trackLength:Math.round(track.length),track:track.courseId,
     course:track.name,impact:'ejection-and-respawn',
     zoneWave:'forward-track-only'});
@@ -322,40 +322,48 @@ function moveRacer(m,p,input,dt){
   p.invulnerable=Math.max(0,p.invulnerable-dt);
   p.knockSeconds=Math.max(0,p.knockSeconds-dt);
   p.contactFlash=Math.max(0,p.contactFlash-dt);
-  let brake=false,desired=p.angle;
-  const now=closest(p.x,p.y,m.track);
-  if(p.id===0){
-    brake=!!input.brake;
-    const x=Number.isFinite(input.x)?input.x:0;
-    const y=Number.isFinite(input.y)?input.y:0;
-    const guide=pointAt(now.s+clamp(p.speed*.35,33,58),m.track);
-    const trackGuide=Math.atan2(guide.y-p.y,guide.x-p.x);
-    if(hypot(x,y)>.13){
-      desired=Math.atan2(y,x);
-      // Assist only near the outer ramp. The joystick still steers all
-      // normal overtakes. At the rim, it helps escape instead of sticking
-      // against the same edge for dozens of seconds.
-      const edge=clamp((now.dist-12)/(RAMP_START-12),0,1);
-      const assist=.12+.72*edge*edge;
-      desired+=angleDelta(desired,trackGuide)*assist;
-    }else desired=trackGuide;
-    if(input.dash&&p.dashCooldown<=0){
-      p.dashTime=DASH_TIME;p.dashCooldown=DASH_COOLDOWN;p.dashes++;
-      log(m,'dash',{player:p.id,lap:p.laps+1});
-    }
-  }else{
-    const ai=desiredAI(m,p);
-    desired=ai.angle;brake=ai.brake;
-  }
-  const turnSpeed=brake?5.35:4.15;
-  p.angle+=clamp(angleDelta(p.angle,desired),-turnSpeed*dt,turnSpeed*dt);
-  if(brake)p.brakeSeconds+=dt;
-  const base=zoneSpeed(m.zone);
-  const aiSpeed=p.aiTempo;
-  const dashFactor=p.dashTime>0?1.47:1;
-  const flowFactor=p.id===0?1+.075*p.flow:1;
-  const target=base*aiSpeed*(brake?.58:1)*dashFactor*flowFactor;
-  p.speed+=clamp(target-p.speed,-185*dt,235*dt);
+  let brake=false,desired=p.angle,throttle=1,steering=true;
+   const now=closest(p.x,p.y,m.track);
+   if(p.id===0){
+     brake=!!input.brake;
+     const x=Number.isFinite(input.x)?input.x:0;
+     const y=Number.isFinite(input.y)?input.y:0;
+     const mag=clamp(hypot(x,y),0,1);
+     steering=mag>.15;
+     // Full thumb deflection = full throttle; a centered stick never drives.
+     throttle=steering?clamp((mag-.1)/.9,0,1):0;
+     if(steering){
+       desired=Math.atan2(y,x);
+       // Only a last-resort rim correction. Normal racing is manual.
+       const edge=clamp((now.dist-(RAMP_START-8))/8,0,1);
+       if(edge>0){
+         const guide=pointAt(now.s+48,m.track);
+         const escape=Math.atan2(guide.y-p.y,guide.x-p.x);
+         desired+=angleDelta(desired,escape)*(.22*edge);
+       }
+       p.driveSeconds+=dt;
+     }else p.coastSeconds+=dt;
+     if(input.dash&&steering&&p.dashCooldown<=0){
+       p.dashTime=DASH_TIME;p.dashCooldown=DASH_COOLDOWN;p.dashes++;
+       log(m,'dash',{player:p.id,lap:p.laps+1});
+     }
+   }else{
+     const ai=desiredAI(m,p);
+     desired=ai.angle;brake=ai.brake;
+   }
+   const turnSpeed=brake?5.25:4.35;
+   if(steering)
+     p.angle+=clamp(angleDelta(p.angle,desired),-turnSpeed*dt,turnSpeed*dt);
+   if(brake)p.brakeSeconds+=dt;
+   const base=zoneSpeed(m.zone);
+   const aiSpeed=p.aiTempo;
+   const dashFactor=p.dashTime>0?1.47:1;
+   const flowFactor=p.id===0?1+.075*p.flow:1;
+   const target=base*aiSpeed*throttle*(brake?.55:1)*dashFactor*flowFactor;
+   // No input: coast to a stop in under a second; BRAKE is stronger.
+   const decel=p.id===0&&!steering?310:brake?330:185;
+   p.speed+=clamp(target-p.speed,-decel*dt,235*dt);
+   if(p.speed<.5)p.speed=0;
   const proposed={x:p.x+(Math.cos(p.angle)*p.speed+p.impulseX)*dt,
     y:p.y+(Math.sin(p.angle)*p.speed+p.impulseY)*dt};
   // Keep the knock momentum alive for ~200ms, producing visibly larger
@@ -392,7 +400,7 @@ function moveRacer(m,p,input,dt){
   p.x=proposed.x;p.y=proposed.y;
   updateProgress(m,p,previous,nearest,dt);
   if(p.id===0){
-    if(nearest.dist<24&&!brake){
+    if(steering&&p.speed>45&&nearest.dist<24&&!brake){
       p.flow=clamp(p.flow+dt*.34,0,1);
       p.lineSeconds+=dt;
     }else p.flow=clamp(p.flow-dt*.54,0,1);
@@ -507,14 +515,15 @@ function waveState(m){
 }
 function audit(m){
   const p=m.racers[0];
-  return {schema:'neon-circuit-run-audit/2.0',build:'neon-circuit-2.0',
+  return {schema:'neon-circuit-run-audit/2.1',build:'neon-circuit-2.1',
     seed:m.seed,status:m.finished?'completed':'in_progress',
     courseId:m.track.courseId,courseName:m.track.name,
     trackLength:+m.track.length.toFixed(1),
     summary:{durationSeconds:+m.elapsed.toFixed(3),highestZone:m.zone+1,
       lapValidation:'four-ordered-physical-gates',
       waveMode:'forward-track-only',
-      cameraMode:'world-follow-lookahead-zoom',worldTrack:true,
+      cameraMode:'damped-world-follow-lookahead-zoom',worldTrack:true,
+       controlMode:'hold-to-drive-manual-steering',
       waveTransitions:m.events.filter(e=>e.type==='zone').length,
       finishPlace:m.finishPlace,lapsCompleted:p.laps,
       lapFraction:+lapProgress(p,m.track).fraction.toFixed(3),
@@ -522,6 +531,8 @@ function audit(m){
       edgeHits:p.edgeHits,contacts:p.contacts,dashes:p.dashes,
       falls:p.falls,respawns:p.respawns,knockouts:p.knockouts,
       brakeSeconds:+p.brakeSeconds.toFixed(2),
+       driveSeconds:+p.driveSeconds.toFixed(2),
+       coastSeconds:+p.coastSeconds.toFixed(2),
       lineSeconds:+p.lineSeconds.toFixed(2),bestFlow:+p.bestFlow.toFixed(3),
       finishCompleted:p.finished,performance:{...m.performance}},
     racers:m.racers.map(r=>({

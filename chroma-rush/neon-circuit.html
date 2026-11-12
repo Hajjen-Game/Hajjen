@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#070b17">
-<meta name="description" content="NEON CIRCUIT — CHROMA RUSH Neon Circuit 2.0 — a genuine top-down, multi-screen road race with a smooth follow camera, lookahead and Track Tide.">
-<title>CHROMA RUSH | Neon Circuit 2.0</title>
+<meta name="description" content="NEON CIRCUIT — CHROMA RUSH Neon Circuit 2.1 — a player-driven top-down race with manual joystick throttle, calm camera, GP circuit and Track Tide.">
+<title>CHROMA RUSH | Neon Circuit 2.1</title>
 <link rel="stylesheet" href="clash.css?v=chroma-circuit-1.0">
-<link rel="stylesheet" href="neon-circuit.css?v=neon-circuit-2.0">
+<link rel="stylesheet" href="neon-circuit.css?v=neon-circuit-2.1">
 </head>
 <body>
 <main id="circuit-shell" aria-label="Neon Circuit racing mini game">
@@ -32,25 +32,25 @@
     </div>
   </div>
   <div id="circuit-announce" class="circuit-announce hidden" aria-live="polite"></div>
-  <div id="circuit-joystick" class="joystick hidden" role="application" aria-label="Point your racer in the direction to steer">
+  <div id="circuit-joystick" class="joystick hidden" role="application" aria-label="Hold and aim the joystick to drive and steer your racer">
     <div class="joystick-groove"></div><div id="circuit-stick" class="stick"></div>
   </div>
   <div id="circuit-actions" class="circuit-actions hidden">
     <button id="circuit-brake" type="button" aria-label="Hold to slow down and turn harder">BRAKE</button>
     <button id="circuit-dash" type="button" aria-label="Short speed dash">DASH</button>
   </div>
-  <div id="circuit-input-help" class="input-help hidden">STEER · BRAKE IN CORNERS · DASH ON STRAIGHTS</div>
+  <div id="circuit-input-help" class="input-help hidden">HOLD JOYSTICK TO DRIVE · BRAKE TO CORNER · DASH ON STRAIGHTS</div>
   <section id="circuit-menu" class="overlay" aria-label="Neon Circuit menu">
     <div class="kicker">CHROMA RUSH · ARCADE MODE 03</div>
     <h1>NEON <em>CIRCUIT</em></h1>
     <p class="tagline">RACE THE LINE. OWN THE CORNERS.</p>
     <div class="intro-line">
       <span>3 LAPS · 4 CUBES</span>
-      <span>FOLLOW CAMERA · WORLD TRACK</span>
+      <span>MANUAL DRIVING · GP TRACK</span>
       <span>BRAKE & DASH</span>
     </div>
     <button id="circuit-start" class="primary-btn" type="button">START RACE <span aria-hidden="true">→</span></button>
-    <p class="control-hint">JOYSTICK + BRAKE / DASH · ARROWS / WASD + SHIFT / SPACE</p>
+    <p class="control-hint">HOLD JOYSTICK TO DRIVE · BRAKE / DASH · WASD / ARROWS</p>
     <button id="circuit-fullscreen-menu" class="menu-fullscreen" type="button" aria-label="Enter fullscreen">⛶ FULLSCREEN</button>
     <a class="return-link" href="./index.html">← BACK TO CHROMA RUSH</a>
   </section>
@@ -77,11 +77,11 @@
   <div id="circuit-fullscreen-status" class="fullscreen-status" role="status" aria-live="polite"></div>
   <div id="circuit-orientation" aria-live="polite"><div class="rotate-symbol">▭ ↻</div><strong>ROTATE YOUR DEVICE</strong><span>NEON CIRCUIT is designed for landscape play.</span></div>
 </main>
-<script src="src/core/config.js?v=neon-circuit-2.0"></script>
-<script src="src/render/chroma-identity.js?v=neon-circuit-2.0"></script>
-<script src="src/render/chroma-center-pulse.js?v=neon-circuit-2.0"></script>
-<script src="src/gameplay/neon-circuit-core.js?v=neon-circuit-2.0"></script>
-<script src="src/gameplay/neon-circuit-camera.js?v=neon-circuit-2.0"></script>
-<script src="src/gameplay/neon-circuit.js?v=neon-circuit-2.0"></script>
+<script src="src/core/config.js?v=neon-circuit-2.1"></script>
+<script src="src/render/chroma-identity.js?v=neon-circuit-2.1"></script>
+<script src="src/render/chroma-center-pulse.js?v=neon-circuit-2.1"></script>
+<script src="src/gameplay/neon-circuit-core.js?v=neon-circuit-2.1"></script>
+<script src="src/gameplay/neon-circuit-camera.js?v=neon-circuit-2.1"></script>
+<script src="src/gameplay/neon-circuit.js?v=neon-circuit-2.1"></script>
 </body>
 </html>

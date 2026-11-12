@@ -167,7 +167,7 @@ function seededRace(seed=20261111,courseId=0){
       dashes:0,dashTime:0,dashCooldown:0,brakeSeconds:0,
       lineSeconds:0,flow:0,bestFlow:0,edgeCooldown:0,
       aiLane:id===0?lane[id]:lane[id]+(random()-.5)*9,
-      aiTempo:id===0?1:.90+id*.022+(random()-.5)*.06,
+      aiTempo:id===0?1:.97+id*.024+(random()-.5)*.06,
       contactFlash:0,gatePasses:0,lastGateTime:null,impactCooldown:0,impulseX:0,impulseY:0,
       knockSeconds:0,falls:0,knockouts:0,fallTimer:0,
       respawns:0,invulnerable:0,lastAttacker:null,unsafeImpact:false};
@@ -274,7 +274,7 @@ function desiredAI(m,p){
   const angle=Math.atan2(ty-p.y,tx-p.x);
   const near=pointAt(s+28,m.track),future=pointAt(s+120,m.track);
   const curve=Math.abs(angleDelta(near.angle,future.angle));
-  return {angle,brake:curve>.57&&p.speed>115,
+  return {angle,brake:curve>.84&&p.speed>200,
     line:s,curvature:curve};
 }
 function fallOff(m,p){
@@ -517,7 +517,7 @@ function audit(m){
       cameraMode:'world-follow-lookahead-zoom',worldTrack:true,
       waveTransitions:m.events.filter(e=>e.type==='zone').length,
       finishPlace:m.finishPlace,lapsCompleted:p.laps,
-      lapFraction:+lapProgress(p).fraction.toFixed(3),
+      lapFraction:+lapProgress(p,m.track).fraction.toFixed(3),
       lapTimes:p.lapTimes.slice(),speed:Math.round(p.speed),
       edgeHits:p.edgeHits,contacts:p.contacts,dashes:p.dashes,
       falls:p.falls,respawns:p.respawns,knockouts:p.knockouts,

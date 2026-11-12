@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Neon Circuit 2.3 real Chromium: Rival AI & Spectral Wave."""
+"""Neon Circuit 2.4 real Chromium: GP banks, boosters & spectral wave."""
 from __future__ import annotations
 import json
 import os
@@ -43,13 +43,23 @@ def main():
                 worldBounds:c.WORLD_BOUNDS,
                 cameraModule:typeof cam.step==="function",
                 speed:c.zoneSpeed(0),viewport:[vw,vh],
-                dynamicZoom:[cam.desiredZoom(vh,172),cam.desiredZoom(vh,265)]
+                dynamicZoom:[cam.desiredZoom(vh,172),cam.desiredZoom(vh,265)],
+                boostPads:t.boosts.length,
+                straightFraction:t.sections.filter(s=>s.kind==='straight')
+                  .reduce((n,s)=>n+s.length,0)/t.length,
+                minArcRadius:Math.min(...t.sections.filter(s=>s.kind==='arc')
+                  .map(s=>s.radius)),
+                bankedOutside:c.edgeAt(t.sections.find(s=>
+                  s.kind==='arc'&&s.radius<250).start+80,-1,t).limit
               };
             }""")
             assert geometry["closed"]<.01 and geometry["geometryFinite"],geometry
             assert geometry["length"]>4600 and geometry["courses"]==1,geometry
             assert geometry["racers"]==4 and geometry["cameraModule"],geometry
             assert geometry["speed"]==172,geometry
+            assert geometry["boostPads"]==3,geometry
+            assert geometry["straightFraction"]>.50,geometry
+            assert geometry["minArcRadius"]>150,geometry
             assert geometry["layout"]=="multi-screen-world-track",geometry
             b=geometry["bounds"]
             assert b["maxX"]-b["minX"]>1800 and b["maxY"]-b["minY"]>900,b
@@ -92,6 +102,23 @@ def main():
                 pigmentation["old"][:3],pigmentation["new"][:3]))
             assert pigmentation["old"][3]>245 and pigmentation["new"][3]>245,pigmentation
             assert delta>35,(delta,pigmentation)
+            # Real physics pad: drive through a tile-embedded chevron
+            # to receive a speed bonus; validate without scripted HUD text.
+            boosted=page.evaluate("""() => {
+              const c=window.ChromaNeonCircuitCore,r=c.seededRace(94);
+              r.phase='running';
+              r.racers.slice(1).forEach(p=>p.finished=true);
+              const p=r.racers[0],pad=c.TRACK.boosts[0],
+                start=c.pointAt(pad.s-55);
+              p.x=start.x+start.nx*pad.lane;p.y=start.y+start.ny*pad.lane;
+              p.angle=start.angle;p.speed=185;
+              p.vx=start.tx*185;p.vy=start.ty*185;
+              for(let i=0;i<42;i++)
+                c.tick(r,{x:start.tx,y:start.ty},c.STEP);
+              return {count:p.boosts,pad:p.boostPadId,
+                time:p.boostTime,speed:p.speed};
+            }""")
+            assert boosted["count"]==1 and boosted["time"]>0,boosted
             # Controls remain user-driven and responsive.
             box=page.locator("#circuit-joystick").bounding_box()
             assert box
@@ -149,9 +176,11 @@ def main():
             destination=OUT/f"circuit-2-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/2.3",log
+            assert log["schema"]=="neon-circuit-run-audit/2.4",log
             assert log["summary"]["cameraMode"]=="close-follow-damped-zoom"
-            assert log["summary"]["edgeMode"]=="momentum-falls-without-autocorrect"
+            assert log["summary"]["edgeMode"]=="physical-cambered-bank-and-recoverable-ramp"
+            assert log["summary"]["trackArchitecture"]=="tangent-circular-arcs-straights"
+            assert log["summary"]["boostPads"]==3
             assert log["summary"]["controlMode"]=="hold-to-drive-manual-steering"
             assert log["summary"]["driveSeconds"]>.5
             assert log["summary"]["waveMode"]=="spectral-feather-offscreen-origin"

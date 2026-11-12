@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Neon Circuit 2.4 real Chromium: GP banks, boosters & spectral wave."""
+"""Neon Circuit 2.5 real Chromium: velocity, boosted banks and rival identities."""
 from __future__ import annotations
 import json
 import os
@@ -56,7 +56,7 @@ def main():
             assert geometry["closed"]<.01 and geometry["geometryFinite"],geometry
             assert geometry["length"]>4600 and geometry["courses"]==1,geometry
             assert geometry["racers"]==4 and geometry["cameraModule"],geometry
-            assert geometry["speed"]==172,geometry
+            assert geometry["speed"]==191,geometry
             assert geometry["boostPads"]==3,geometry
             assert geometry["straightFraction"]>.50,geometry
             assert geometry["minArcRadius"]>150,geometry
@@ -116,9 +116,10 @@ def main():
               for(let i=0;i<42;i++)
                 c.tick(r,{x:start.tx,y:start.ty},c.STEP);
               return {count:p.boosts,pad:p.boostPadId,
-                time:p.boostTime,speed:p.speed};
+                time:p.boostTime,speed:p.speed,peak:p.boostPeak};
             }""")
             assert boosted["count"]==1 and boosted["time"]>0,boosted
+            assert boosted["peak"]>220,boosted
             # Controls remain user-driven and responsive.
             box=page.locator("#circuit-joystick").bounding_box()
             assert box
@@ -176,11 +177,12 @@ def main():
             destination=OUT/f"circuit-2-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/2.4",log
+            assert log["schema"]=="neon-circuit-run-audit/2.5",log
             assert log["summary"]["cameraMode"]=="close-follow-damped-zoom"
             assert log["summary"]["edgeMode"]=="physical-cambered-bank-and-recoverable-ramp"
             assert log["summary"]["trackArchitecture"]=="tangent-circular-arcs-straights"
             assert log["summary"]["boostPads"]==3
+            assert log["summary"]["rivalStyles"]==["precision","aggressive","opportunist"]
             assert log["summary"]["controlMode"]=="hold-to-drive-manual-steering"
             assert log["summary"]["driveSeconds"]>.5
             assert log["summary"]["waveMode"]=="spectral-feather-offscreen-origin"
@@ -214,7 +216,7 @@ def main():
               return {...zone,finished:p.finished,
                 laps:p.laps,place:r.finishPlace};
             }""")
-            assert rules["zone"]==1 and rules["speed"]==186,rules
+            assert rules["zone"]==1 and rules["speed"]==206.5,rules
             assert rules["wave"]=="track-only",rules
             assert rules["finished"] and rules["laps"]==3,rules
             # Deterministic browser proof: a momentum hit can push a rival
@@ -251,10 +253,13 @@ def main():
               const a=c.audit(r);
               return {attacks:a.summary.aiAttacks,
                 hits:a.summary.aiHits,aiAI:a.summary.aiAIContacts,
+                profiles:a.summary.rivalStyles,
+                defends:r.events.filter(e=>e.type==='ai_defend').length,
                 aiFalls:r.racers.slice(1).reduce((n,p)=>n+p.falls,0)};
             }""")
             assert rivalry["attacks"]>=3,rivalry
             assert rivalry["aiAI"]>=2,rivalry
+            assert rivalry["defends"]>=1,rivalry
             assert not errors,errors
             checks.append({
                 "viewport":[w,h],"geometry":geometry,

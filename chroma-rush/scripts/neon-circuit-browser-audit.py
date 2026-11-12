@@ -35,13 +35,18 @@ def main():
                     points:pts.length,geometryFinite:check,
                     racerCount:r.racers.length,zoneSeconds:c.ZONE_SECONDS,
                     courses:c.TRACKS.map(t=>({id:t.courseId,length:t.length,
-                      name:t.name,closed:Math.hypot(t.samples[0].x-t.samples.at(-1).x,
+                      name:t.name,coverage:t.coverage,bounds:t.bounds,
+                      layout:t.layout,closed:Math.hypot(t.samples[0].x-t.samples.at(-1).x,
                         t.samples[0].y-t.samples.at(-1).y)}))};
             }""")
             assert geometry["closed"]<.01 and geometry["geometryFinite"],geometry
             assert geometry["length"]>1200 and geometry["racerCount"]==4,geometry
             assert len(geometry["courses"])==3,geometry
             assert all(t["closed"]<.01 for t in geometry["courses"]),geometry
+            assert all(t["coverage"]["width"]>.87 and
+                t["coverage"]["height"]>.72 for t in geometry["courses"]),geometry
+            assert all(t["layout"]=="full-span-rounded-polyline"
+                for t in geometry["courses"]),geometry
             page.locator("#circuit-start").click()
             page.wait_for_timeout(300)
             assert page.locator("#circuit-joystick").is_visible()
@@ -58,6 +63,18 @@ def main():
                 right:get(.99,.48),road:get(.5,.22),center:get(.5,.5)};
             }""")
             assert pixels["width"]*pixels["height"]<=752000,pixels
+            # On panoramic landscape phones, previous 16:9 aspect-fit
+            # camera left large world side gutters. Full-span 1.3 must
+            # cover the actual canvas rather than a centered sub-rectangle.
+            assert min(t["coverage"]["width"] for t in geometry["courses"])>.87
+            camera=page.evaluate("""() => {
+              const c=document.getElementById('circuit-canvas'),g=c.getContext('2d'),
+                transform=g.getTransform(),w=c.width,h=c.height;
+              const xScreen=transform.a*960,yScreen=transform.d*540;
+              return {xScreen,yScreen,width:w,height:h};
+            }""")
+            assert abs(camera["xScreen"]-camera["width"])<3,camera
+            assert abs(camera["yScreen"]-camera["height"])<3,camera
             assert all(col[3]>=250 and sum(col[:3])>13 for col in
                 (pixels["left"],pixels["right"])),pixels
             box=page.locator("#circuit-joystick").bounding_box()
@@ -115,7 +132,7 @@ def main():
             destination=OUT/f"circuit-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/1.2",log
+            assert log["schema"]=="neon-circuit-run-audit/1.3",log
             assert log["summary"]["waveMode"]=="forward-track-only",log
             assert log["courseId"]==geometry["courses"][0]["id"],log
             assert log["status"]=="in_progress",log
@@ -158,11 +175,11 @@ def main():
             # identical oval. The HUD names the new route at countdown.
             page.locator("#circuit-pause").click()
             page.locator("#circuit-restart").click()
-            assert "SPECTRAL STRAIGHTS" in page.locator("#circuit-announce").inner_text()
+            assert "WIDE CORNER CUT" in page.locator("#circuit-announce").inner_text()
             page.screenshot(path=str(OUT/f"circuit-course-2-{w}.png"))
             page.locator("#circuit-pause").click()
             page.locator("#circuit-restart").click()
-            assert "APEX SWITCHBACK" in page.locator("#circuit-announce").inner_text()
+            assert "LOWER SWEEP HOOK" in page.locator("#circuit-announce").inner_text()
             page.screenshot(path=str(OUT/f"circuit-course-3-{w}.png"))
             assert not errors,errors
             all_checks.append({"viewport":[w,h],"track":geometry,

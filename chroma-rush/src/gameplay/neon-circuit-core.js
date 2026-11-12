@@ -718,8 +718,20 @@ function bumpRacers(m){
         a.speed*=aAttacks?.94:dashA?.90:.77;
         b.speed*=bAttacks?.94:dashB?.90:.77;
         a.contacts++;b.contacts++;
-        if(dashA&&aAttacks)a.dashHits++;
-        if(dashB&&bAttacks)b.dashHits++;
+        if(dashA&&aAttacks){
+          a.dashHits++;
+          if(a.id===0){
+            m.announcement='DIRECT HIT · '+b.name;
+            m.announcementTime=m.elapsed+.66;
+          }
+        }
+        if(dashB&&bAttacks){
+          b.dashHits++;
+          if(b.id===0){
+            m.announcement='DIRECT HIT · '+a.name;
+            m.announcementTime=m.elapsed+.66;
+          }
+        }
         if(intendedA){a.aiHits++;a.aiAttackTime=0;a.aiAttackTarget=null;}
         if(intendedB){b.aiHits++;b.aiAttackTime=0;b.aiAttackTarget=null;}
         a.contactFlash=.24;b.contactFlash=.24;

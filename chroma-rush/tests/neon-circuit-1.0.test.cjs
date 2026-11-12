@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Neon Circuit 2.6.1 Auto Throttle & Manual Steering regression */
+/* CHROMA RUSH — Neon Circuit 2.7 Premium Motion & Visual Cohesion regression */
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -41,6 +41,60 @@ test('2.1 replaces tiny arena with one physical multi-screen world course',()=>{
   assert.ok(C.WORLD_BOUNDS.maxY>C.TRACK.bounds.maxY);
   assert.deepEqual(C.TRACK.segmentKinds,
     ['straight','constant-radius-arc','banked-hairpin']);
+});
+test('2.7 premium presentation is graphics-only and preserves auto throttle',()=>{
+  const r=C.seededRace(45);r.phase='running';
+  const p=r.racers[0];
+  for(const q of r.racers.slice(1))q.finished=true;
+  for(let i=0;i<25;i++)C.tick(r,{},C.STEP);
+  const free=p.speed;
+  for(let i=0;i<10;i++)C.tick(r,{brake:true},C.STEP);
+  assert.equal(p.braking,true,'racer publishes brake state to renderer');
+  assert.ok(p.speed<free,'actual braking remains functional');
+  for(let i=0;i<10;i++)C.tick(r,{},C.STEP);
+  assert.equal(p.braking,false);
+  assert.equal(C.audit(r).summary.controlMode,'auto-throttle-manual-steering');
+});
+test('2.7 finish flare comes from physical validated finish line',()=>{
+  const r=C.seededRace(12);r.phase='running';
+  for(const other of r.racers.slice(1))other.finished=true;
+  const p=r.racers[0];r.elapsed=74;r.zone=6;
+  p.gatePasses=12;p.laps=2;p.progress=r.track.length*3-4;
+  const pos=C.pointAt(p.progress,r.track);
+  p.x=pos.x;p.y=pos.y;p.angle=pos.angle;p.speed=230;
+  p.vx=pos.tx*230;p.vy=pos.ty*230;
+  C.tick(r,{x:pos.tx,y:pos.ty},1/30);
+  assert.equal(p.finished,true);
+  assert.ok(r.spectacles.some(f=>f.kind==='finish'&&f.owner===0));
+  for(let i=0;i<60;i++){
+    // The race stops stepping after results; lifespan is a render-only value.
+    for(const fx of r.spectacles)fx.life-=C.STEP;
+    r.spectacles=r.spectacles.filter(fx=>fx.life>0);
+  }
+  assert.equal(r.spectacles.length,0,'all finish effects are time-bounded');
+});
+test('2.7 respawn flare is attached to recovered racer',()=>{
+  const r=C.seededRace(19);r.phase='running';
+  for(const other of r.racers.slice(1))other.finished=true;
+  const p=r.racers[0];
+  p.fallTimer=.005;p.falls=1;
+  C.tick(r,{},C.STEP);
+  assert.equal(p.respawns,1);
+  assert.ok(r.spectacles.some(f=>f.kind==='respawn'&&
+    f.owner===0&&Math.abs(f.x-p.x)<.01&&Math.abs(f.y-p.y)<.01));
+});
+test('2.7 premium UI is timed and reduced-motion safe',()=>{
+  const js=read('src/gameplay/neon-circuit.js');
+  const css=read('neon-circuit.css');
+  assert.ok(js.includes('const motionStates=new WeakMap()'));
+  assert.ok(js.includes('function motionPose(p,r)'));
+  assert.ok(js.includes('finishPendingAt=now+(reduced()?0:760)'));
+  assert.ok(js.includes('announce.dataset.moment=moment'));
+  assert.ok(js.includes('premiumMotion:motionSnapshot'));
+  assert.ok(css.includes('@keyframes circuit-moment-enter'));
+  assert.ok(css.includes('@keyframes circuit-zone-surge'));
+  assert.ok(css.includes('@keyframes circuit-result-arrive'));
+  assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'));
 });
 test('2.6 rivals compete without baseline speed cheating or HEX defense spam',()=>{
   const r=C.seededRace(4133670780);
@@ -592,7 +646,12 @@ test('Renderer has visible tile cache, world transform and no monolithic world r
   assert.ok(js.includes('function waveRibbon'));
   assert.ok(js.includes('function drawBankedEdges'));
   assert.ok(js.includes('function strip(run,side,inner,outer,color)'));
-  assert.ok(js.includes('p.boostTime>1.01'));
+  assert.ok(js.includes('function motionPose(p,r)'));
+  assert.ok(js.includes('ctx.drawImage(sprite(p.color),-45,-45)'));
+  assert.ok(js.includes('p.boostTime>0&&!reduced()'));
+  assert.ok(js.includes('function drawImpacts(r)'));
+  assert.ok(js.includes('fx.kind===\'respawn\''));
+  assert.ok(js.includes('fx.kind===\'lap\'||fx.kind===\'finish\''));
   assert.ok(js.includes('[[ -17')===false);
   assert.ok(js.includes('function drawBoostPads'));
   assert.ok(js.includes('track.rimSamples'));
@@ -611,7 +670,7 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
     'circuit-brake','circuit-dash','circuit-pause','circuit-fullscreen',
     'circuit-export','circuit-export-pause'])
       assert.ok(html.includes('id="'+id+'"'),id);
-  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.6.1'));
+  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.7'));
   assert.ok(html.includes('AUTO THROTTLE'));
   assert.ok(html.includes('ACCELERATION IS AUTOMATIC'));
   assert.ok(js.includes('dash.disabled=me.dashCooldown>.08||me.speed<45;'));
@@ -622,8 +681,8 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
 test('Run audit 2.3 includes falls, AI aggression and the spectral wave without private input history',()=>{
   const r=run(77);
   const a=C.audit(r);
-  assert.equal(a.schema,'neon-circuit-run-audit/2.6.1');
-  assert.equal(a.build,'neon-circuit-2.6.1');
+  assert.equal(a.schema,'neon-circuit-run-audit/2.7');
+  assert.equal(a.build,'neon-circuit-2.7');
   assert.equal(a.courseId,'spectral-highway');
   assert.ok(a.trackLength>4600);
   assert.equal(a.summary.cameraMode,'close-follow-damped-zoom');
@@ -631,7 +690,7 @@ test('Run audit 2.3 includes falls, AI aggression and the spectral wave without 
   assert.equal(a.summary.trackArchitecture,'tangent-circular-arcs-straights');
   assert.equal(a.summary.boostPads,3);
   assert.deepEqual(a.summary.rivalStyles,['precision','aggressive','opportunist']);
-  assert.equal(a.summary.spectacleMode,'layered-world-lighting-impact-2.6');
+  assert.equal(a.summary.spectacleMode,'premium-motion-impact-lap-2.7');
   assert.ok(a.summary.boostPeak>=0);
   assert.equal(a.summary.controlMode,'auto-throttle-manual-steering');
   assert.ok(a.summary.neutralSteerSeconds>=0);

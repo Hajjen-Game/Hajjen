@@ -16,5 +16,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Check browser module syntax
+        run: |
+          node --check skyshift/game.mjs
+          node --check skyshift/track.mjs
       - name: Verify SKYSHIFT deterministic track planner
         run: node --test skyshift/track.test.mjs

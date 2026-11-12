@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Neon Circuit 2.6 real Chromium: Spectral Arena and impact reactions."""
+"""Neon Circuit 2.6.1 real Chromium: auto throttle, manual steering & arena."""
 from __future__ import annotations
 import json
 import os
@@ -142,14 +142,36 @@ def main():
             page.mouse.up()
             assert "pressed" not in (page.locator("#circuit-brake").get_attribute("class") or "")
             page.wait_for_timeout(2600)
-            # The cube cannot automatically drive while the player is idle.
-            stationary=page.evaluate("() => window.ChromaCircuitViewDebug.snapshot()")
-            idle_distance=((stationary["player"]["x"]-first["player"]["x"])**2+
-                (stationary["player"]["y"]-first["player"]["y"])**2)**.5
-            assert stationary["player"]["speed"]<1,("neutral drive regression",stationary)
-            # With genuine bump physics AI may displace an idle player.
-            assert idle_distance<90,("unexpected idle displacement",idle_distance)
-            assert page.locator("#circuit-dash").is_disabled()
+            # The cube now automatically accelerates without joystick input.
+            # Verify the real racing model independently of incidental AI bumps.
+            auto_drive=page.evaluate("""() => {
+              const c=window.ChromaNeonCircuitCore,r=c.seededRace(42);
+              r.phase='running';
+              r.racers.slice(1).forEach(v=>v.finished=true);
+              const p=r.racers[0],at=c.pointAt(250);
+              p.x=at.x;p.y=at.y;p.angle=at.angle;p.speed=0;
+              p.vx=0;p.vy=0;
+              for(let i=0;i<42;i++)c.tick(r,{},c.STEP);
+              const neutral={speed:p.speed,heading:p.angle,
+                moved:Math.hypot(p.x-at.x,p.y-at.y)};
+              const before=p.speed;
+              for(let i=0;i<8;i++)c.tick(r,{brake:true},c.STEP);
+              const braked=p.speed;
+              c.tick(r,{dash:true},c.STEP);
+              return {neutral,braked,before,dashes:p.dashes,
+                mode:c.audit(r).summary.controlMode};
+            }""")
+            assert auto_drive["neutral"]["speed"]>95,auto_drive
+            assert auto_drive["neutral"]["moved"]>25,auto_drive
+            assert abs(auto_drive["neutral"]["heading"])<.001,auto_drive
+            assert auto_drive["braked"]<auto_drive["before"],auto_drive
+            assert auto_drive["dashes"]==1,auto_drive
+            assert auto_drive["mode"]=="auto-throttle-manual-steering",auto_drive
+            live=page.evaluate("() => window.ChromaCircuitViewDebug.snapshot()")
+            assert abs(live["player"]["angle"]-first["player"]["angle"])<.001,live
+            # Dash button reflects current speed/cooldown, even with no touch.
+            should_disable=live["player"]["speed"]<45
+            assert page.locator("#circuit-dash").is_disabled()==should_disable,live
             # Keyboard is a deterministic full-deflection joystick surrogate.
             page.keyboard.down("ArrowRight")
             page.wait_for_timeout(1600)
@@ -185,14 +207,15 @@ def main():
             destination=OUT/f"circuit-2-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/2.6",log
+            assert log["schema"]=="neon-circuit-run-audit/2.6.1",log
             assert log["summary"]["cameraMode"]=="close-follow-damped-zoom"
             assert log["summary"]["edgeMode"]=="physical-cambered-bank-and-recoverable-ramp"
             assert log["summary"]["trackArchitecture"]=="tangent-circular-arcs-straights"
             assert log["summary"]["boostPads"]==3
             assert log["summary"]["rivalStyles"]==["precision","aggressive","opportunist"]
             assert log["summary"]["spectacleMode"]=="layered-world-lighting-impact-2.6"
-            assert log["summary"]["controlMode"]=="hold-to-drive-manual-steering"
+            assert log["summary"]["controlMode"]=="auto-throttle-manual-steering"
+            assert log["summary"]["neutralSteerSeconds"]>=0
             assert log["summary"]["driveSeconds"]>.5
             assert log["summary"]["waveMode"]=="spectral-feather-offscreen-origin"
             assert log["summary"]["aiAttacks"]>=0

@@ -32,7 +32,8 @@ const motionStates=new WeakMap();
 let motionSnapshot={lean:0,squash:1,stretch:1,brake:0};
 let tileBuilds=0,tileHits=0,mode='menu',race=null,preview=CORE.seededRace(103),
   nextCourse=0,joyId=null,joyX=0,joyY=0,brakePressed=false,dashPending=false,
-  keys=new Set(),frameBefore=0,accumulator=0,noticeUntil=0;
+  keys=new Set(),frameBefore=0,accumulator=0,noticeUntil=0,
+  finishPendingAt=0,lastAnnouncement='',lastZone=-1,lastPlace='';
 function resize(){
   viewW=Math.max(1,SHELL.clientWidth||innerWidth);
   viewH=Math.max(1,SHELL.clientHeight||innerHeight);
@@ -68,7 +69,8 @@ function begin(){
     {width:viewW,height:viewH},race.racers[0]);
   tileCache.clear();tileBuilds=0;tileHits=0;
   keys.clear();resetStick();brakePressed=false;dashPending=false;
-  screen('playing');noticeUntil=0;updateHud();
+  screen('playing');noticeUntil=0;finishPendingAt=0;
+  lastAnnouncement='';lastZone=-1;lastPlace='';updateHud();
 }
 function pause(){
   if(mode!=='playing')return;
@@ -80,6 +82,7 @@ function resume(){
   screen('playing');frameBefore=0;accumulator=0;
 }
 function finish(){
+  finishPendingAt=0;
   screen('result');
   text('circuit-outcome',race.finishPlace===1?'1ST PLACE!':
     race.finishPlace===2?'2ND PLACE':race.finishPlace===3?'3RD PLACE':'RACE COMPLETE');
@@ -185,12 +188,29 @@ function getInput(){
 function updateHud(){
   if(!race)return;
   const me=race.racers[0],lap=Math.min(CORE.LAPS_TO_WIN,me.laps+1);
+  const zoneEl=$('circuit-zone');
   text('circuit-zone','ZONE '+String(race.zone+1).padStart(2,'0'));
+  if(lastZone!==race.zone){
+    if(lastZone>=0&&!reduced()){
+      zoneEl.classList.remove('zone-shift');void zoneEl.offsetWidth;
+      zoneEl.classList.add('zone-shift');
+    }
+    lastZone=race.zone;
+  }
   text('circuit-phase',ZONE_NAMES[race.zone%ZONE_NAMES.length]+
     ' · SPEED '+Math.round(me.speed));
   text('circuit-lap','LAP '+lap+'/'+CORE.LAPS_TO_WIN);
   text('circuit-flow','LINE FLOW '+Math.round(me.flow*100)+'%');
-  text('circuit-place',ordinal(CORE.currentPosition(race))+' / 4');
+  const placing=ordinal(CORE.currentPosition(race))+' / 4';
+  text('circuit-place',placing);
+  if(placing!==lastPlace){
+    const place=$('circuit-place');
+    if(lastPlace&&!reduced()){
+      place.classList.remove('place-swap');void place.offsetWidth;
+      place.classList.add('place-swap');
+    }
+    lastPlace=placing;
+  }
   text('circuit-clock',clock(race.elapsed));
   text('circuit-dash',me.dashCooldown>.08?me.dashCooldown.toFixed(1)+'s':'DASH');
   dash.disabled=me.dashCooldown>.08||me.speed<45;
@@ -203,7 +223,25 @@ function updateHud(){
     label=race.announcement;visible=true;
   }
   text('circuit-announce',label);
-  $('circuit-announce').classList.toggle('hidden',!visible);
+  const announce=$('circuit-announce');
+  announce.classList.toggle('hidden',!visible);
+  const moment=race.phase==='ready'?'ready':
+    label.startsWith('GO')?'go':
+    label.startsWith('LAP')?'lap':
+    label.startsWith('ZONE')?'zone':
+    label.includes('EJECTED')?'knockout':
+    label.includes('HIT')?'impact':
+    label.includes('FALL')?'fall':
+    label.includes('BOOST')?'boost':'neutral';
+  const key=visible?moment+':'+label:'';
+  if(key!==lastAnnouncement){
+    announce.dataset.moment=moment;
+    if(visible&&!reduced()){
+      announce.classList.remove('moment-enter');
+      void announce.offsetWidth;announce.classList.add('moment-enter');
+    }else announce.classList.remove('moment-enter');
+    lastAnnouncement=key;
+  }
 }
 const buttons=[$('circuit-fullscreen'),$('circuit-fullscreen-menu')];
 function syncFull(){
@@ -996,8 +1034,12 @@ function loop(now){
       CORE.tick(race,input,CORE.STEP);
       accumulator-=CORE.STEP;loops++;
     }
-    if(race.finished)finish();
-    updateHud();
+    if(race.finished){
+      // Show the physical finish flare before the result overlay.
+      if(!finishPendingAt)finishPendingAt=now+(reduced()?0:760);
+      if(now>=finishPendingAt)finish();
+    }
+    if(mode==='playing')updateHud();
   }
   const m=race||preview;
   if(camera&&m){
@@ -1030,6 +1072,8 @@ root.ChromaCircuitViewDebug={
       updates:camera.updates}:null,
     tiles:tileCache.size,tileBuilds,tileHits,
     premiumMotion:motionSnapshot,
+    finishPending:finishPendingAt>0,
+    moment:($('circuit-announce').dataset.moment||'neutral'),
     spectacles:(race||preview).spectacles.length,
     arena:arenaLighting(race||preview),
     course:(race||preview).track.courseId,

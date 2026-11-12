@@ -148,8 +148,12 @@ test('Edge scrape recovers speed rather than stalling at almost zero',()=>{
 test('Dash, BRAKE and ramp ejection retain their recovery gameplay',()=>{
   const r=C.seededRace(314);r.phase='running';r.elapsed=6;
   const a=r.racers[0],b=r.racers[1],at=C.pointAt(180);
-  a.x=at.x;a.y=at.y-24;a.angle=0;a.speed=95;a.progress=180;
-  b.x=at.x;b.y=at.y-5;b.angle=-Math.PI/2;b.speed=165;
+  // In WORLD coordinates this is a deliberate high-energy side impact
+  // near the track lip, not a coincidental overlap in the old arena.
+  a.x=at.x-at.nx*29;a.y=at.y-at.ny*29;
+  a.angle=at.angle;a.speed=95;a.progress=180;
+  b.x=at.x-at.nx*11;b.y=at.y-at.ny*11;
+  b.angle=at.angle-Math.PI/2;b.speed=165;
   b.progress=180;b.dashTime=.30;a.gatePasses=b.gatePasses=1;
   for(let i=0;i<115;i++)C.tick(r,{x:1,y:-1},C.STEP);
   assert.equal(a.falls,1);

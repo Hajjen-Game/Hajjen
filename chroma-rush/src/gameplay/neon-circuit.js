@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.3: Rival Pressure & Spectral Chroma Tide.
+/* CHROMA RUSH — NEON CIRCUIT 2.4: Track Architecture & Banked Racing.
  * Camera follows the cube through a multi-screen neon racing world.
  * The stable dark environment and road-only Track Tide render in visible
  * cached world tiles (never one enormous offscreen track image).
@@ -257,6 +257,78 @@ function tileHasRoad(track,rect){
   }
   return false;
 }
+// Paint the physical ramp as a continuous shoulder, with taller light
+// banking on the OUTSIDE of circular turns. World-coordinates, tile-cached.
+function drawBankedEdges(g,track,rect,primary,secondary){
+  const makePath=(side,lip)=>{
+    let started=false;
+    g.beginPath();
+    for(let s=0;s<=track.length+6;s+=10){
+      const pt=CORE.pointAt(Math.min(s,track.length-.001),track);
+      const b=CORE.edgeAt(pt.s,side,track);
+      const offset=lip?b.limit-3:CORE.TRACK_HALF+4;
+      const x=pt.x+pt.nx*offset*side,y=pt.y+pt.ny*offset*side;
+      const visible=x>=rect.minX-80&&x<=rect.maxX+80&&
+        y>=rect.minY-80&&y<=rect.maxY+80;
+      if(!visible){started=false;continue;}
+      if(!started)g.moveTo(x,y);else g.lineTo(x,y);
+      started=true;
+    }
+  };
+  for(const side of [-1,1]){
+    g.save();g.lineJoin='round';g.lineCap='round';
+    makePath(side,false);
+    g.strokeStyle=rgb(primary,.16);g.lineWidth=15;g.stroke();
+    makePath(side,true);
+    g.strokeStyle=rgb('#07101d',.88);g.lineWidth=6;g.stroke();
+    g.strokeStyle=rgb(secondary,.46);g.lineWidth=2.2;g.stroke();
+    g.restore();
+  }
+  // Additional elevated outside curbs for the large banked arcs.
+  for(const section of track.sections){
+    if(section.kind!=='arc'||section.radius>600)continue;
+    const side=-section.sign;
+    g.beginPath();let started=false;
+    for(let t=0;t<=1.001;t+=.04){
+      const pos=section.start+(section.end-section.start)*Math.min(t,1);
+      const pt=CORE.pointAt(pos,track);
+      const e=CORE.edgeAt(pos,side,track);
+      if(e.bank<.05){started=false;continue;}
+      const offset=e.limit-6,x=pt.x+pt.nx*offset*side,
+        y=pt.y+pt.ny*offset*side;
+      const visible=x>rect.minX-30&&x<rect.maxX+30&&
+        y>rect.minY-30&&y<rect.maxY+30;
+      if(!visible){started=false;continue;}
+      if(started)g.lineTo(x,y);else g.moveTo(x,y);
+      started=true;
+    }
+    g.strokeStyle=rgb(secondary,.42);g.lineWidth=5;g.stroke();
+    g.strokeStyle=rgb('#f0faff',.33);g.lineWidth=1.3;g.stroke();
+  }
+}
+function drawBoostPads(g,track,rect,primary,secondary){
+  for(const pad of track.boosts){
+    const p=CORE.pointAt(pad.s,track);
+    if(p.x<rect.minX-70||p.x>rect.maxX+70||
+       p.y<rect.minY-70||p.y>rect.maxY+70)continue;
+    g.save();
+    g.translate(p.x+p.nx*pad.lane,p.y+p.ny*pad.lane);
+    g.rotate(p.angle);
+    // Flush with the roadway: cyan chevrons are a BOOST, not a barrier.
+    g.fillStyle=rgb('#07192c',.38);
+    rounded(g,-43,-15,86,30,7);g.fill();
+    g.strokeStyle=rgb(secondary,.35);g.lineWidth=1.2;
+    rounded(g,-43,-15,86,30,7);g.stroke();
+    for(const x of [-23,0,23]){
+      g.beginPath();g.moveTo(x-8,-9);g.lineTo(x+5,0);
+      g.lineTo(x-8,9);
+      g.strokeStyle=rgb(primary,.8);g.lineWidth=4.8;
+      g.lineCap='round';g.lineJoin='round';g.stroke();
+      g.strokeStyle=rgb('#ecffff',.54);g.lineWidth=1.45;g.stroke();
+    }
+    g.restore();
+  }
+}
 function paintRoadTile(g,zone,track,tileX,tileY){
   const palette=PALETTES[zone%PALETTES.length];
   const primary=palette.primary,secondary=palette.secondary;
@@ -302,6 +374,8 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   stroke(62,rgb(primary,.052));
   stroke(52,asphalt);
   stroke(1.4,rgb('#d3f6ff',.18),true);
+  drawBankedEdges(g,track,rect,primary,secondary);
+  drawBoostPads(g,track,rect,primary,secondary);
   // Small light studs/curb marks. Skip markers outside the current tile.
   for(let distance=28;distance<track.length;distance+=42){
     const p=CORE.pointAt(distance,track);
@@ -447,6 +521,16 @@ function drawRacers(r){
     // Glass cubes remain visibly SQUARE on wide-screen phones even as
     // the roadway fills more horizontal space.
     ctx.scale(spriteScale,spriteScale);
+    if(!falling&&p.boostTime>0){
+      // A restrained squash/stretch from the existing glass sprite.
+      ctx.rotate(p.angle);
+      ctx.scale(1.10,.93);
+      ctx.rotate(-p.angle);
+    }
+    if(!falling&&p.bankHeight>0){
+      const tilt=(CORE.closest(p.x,p.y,r.track).side<0?1:-1)*p.bankHeight*.11;
+      ctx.rotate(tilt);
+    }
     if(!falling&&p.contactFlash>0&&!reduced()){
       ctx.globalAlpha*=clamp(p.contactFlash/.24,0,1)*.70;
       ctx.strokeStyle=p.color;ctx.lineWidth=2;

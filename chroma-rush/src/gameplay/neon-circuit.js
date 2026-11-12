@@ -514,20 +514,26 @@ function drawWaveFront(g,track,wave,color){
 }
 function paint(){
   const m=race||preview,track=m.track||TRACK;
+  if(!camera)camera=CAMERA.create(CORE.WORLD_BOUNDS,
+    {width:viewW,height:viewH},m.racers[0]);
   ctx.setTransform(CANVAS.width/viewW,0,0,CANVAS.height/viewH,0,0);
   ctx.clearRect(0,0,viewW,viewH);
-  ctx.translate(ox,oy);ctx.scale(scaleX,scaleY);
-  const z=m.zone;
-  const current=getStatic(z,track);
+  drawWorldBackdrop(ctx,camera);
+  ctx.save();
+  ctx.translate(viewW*.5,viewH*.5);
+  ctx.scale(camera.zoom,camera.zoom);
+  ctx.translate(-camera.x,-camera.y);
+  const z=m.zone,view=CAMERA.viewBounds(camera,12);
   if(m.tide>0&&z>0){
-    const previous=getStatic(z-1,track),wave=CORE.waveState(m);
-    ctx.drawImage(previous,panoLeft,0,panoWidth,HEIGHT);
+    const wave=CORE.waveState(m);
+    drawRoadTiles(ctx,z-1,track,view);
     ctx.save();clipWaveRepaint(ctx,track,wave);
-    ctx.drawImage(current,panoLeft,0,panoWidth,HEIGHT);
+    drawRoadTiles(ctx,z,track,view);
     ctx.restore();
     drawWaveFront(ctx,track,wave,PALETTES[z%PALETTES.length].primary);
-  }else ctx.drawImage(current,panoLeft,0,panoWidth,HEIGHT);
+  }else drawRoadTiles(ctx,z,track,view);
   drawImpacts(m);drawRacers(m);
+  ctx.restore();
 }
 function loop(now){
   const frameMs=frameBefore?Math.max(0,now-frameBefore):0;
@@ -547,6 +553,11 @@ function loop(now){
     if(race.finished)finish();
     updateHud();
   }
+  const m=race||preview;
+  if(camera&&m){
+    CAMERA.step(camera,m.racers[0],{width:viewW,height:viewH},
+      Math.min(frameMs/1000,.05),mode==='menu');
+  }
   const renderStart=performance.now();
   paint();
   if(mode==='playing'&&race){
@@ -555,9 +566,30 @@ function loop(now){
     race.performance.worstFrameMs=Math.max(race.performance.worstFrameMs,frameMs);
     race.performance.renderMaxMs=Math.max(race.performance.renderMaxMs,
       performance.now()-renderStart);
+    race.performance.cameraZoomMin=Math.min(
+      race.performance.cameraZoomMin??camera.zoom,camera.zoom);
+    race.performance.cameraZoomMax=Math.max(
+      race.performance.cameraZoomMax??camera.zoom,camera.zoom);
+    race.performance.tileBuilds=tileBuilds;
+    race.performance.tileHits=tileHits;
+    race.performance.cameraMaxDrift=+camera.maxDrift.toFixed(1);
   }
   root.requestAnimationFrame(loop);
 }
+// Read-only test hook, no raw input or device fingerprint recorded.
+root.ChromaCircuitViewDebug={
+  snapshot:()=>({
+    camera:camera?{x:camera.x,y:camera.y,zoom:camera.zoom,
+      targetZoom:camera.targetZoom,lookAhead:camera.lookAhead,
+      updates:camera.updates}:null,
+    tiles:tileCache.size,tileBuilds,tileHits,
+    course:(race||preview).track.courseId,
+    player:(race||preview).racers[0]&&{
+      x:(race||preview).racers[0].x,
+      y:(race||preview).racers[0].y},
+    viewport:{width:viewW,height:viewH}
+  })
+};
 screen('menu');
 root.requestAnimationFrame(loop);
 })(typeof window!=='undefined'?window:null);

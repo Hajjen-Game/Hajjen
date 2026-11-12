@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Neon Circuit 2.4 Track Architecture & Banked Racing regression */
+/* CHROMA RUSH — Neon Circuit 2.5 Arcade Velocity & Rival Identity regression */
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -41,6 +41,74 @@ test('2.1 replaces tiny arena with one physical multi-screen world course',()=>{
   assert.ok(C.WORLD_BOUNDS.maxY>C.TRACK.bounds.maxY);
   assert.deepEqual(C.TRACK.segmentKinds,
     ['straight','constant-radius-arc','banked-hairpin']);
+});
+test('2.5 fast opening pace, high-energy pads and lasting speed reward',()=>{
+  assert.equal(C.zoneSpeed(0),191);
+  assert.ok(C.zoneSpeed(6)>=275);
+  for(const pad of C.TRACK.boosts){
+    assert.equal(pad.factor,1.34);
+    assert.ok(pad.duration>=1.2);
+  }
+  const r=C.seededRace(94);r.phase='running';
+  r.racers.slice(1).forEach(p=>p.finished=true);
+  const p=r.racers[0],pad=C.TRACK.boosts[0],at=C.pointAt(pad.s-55);
+  p.x=at.x+at.nx*pad.lane;p.y=at.y+at.ny*pad.lane;
+  p.angle=at.angle;p.speed=205;p.vx=at.tx*205;p.vy=at.ty*205;
+  for(let i=0;i<35;i++)C.tick(r,{x:at.tx,y:at.ty},C.STEP);
+  assert.equal(p.boosts,1);
+  assert.equal(p.boostFactor,1.34);
+  assert.ok(p.boostTime>.5);
+  assert.ok(p.boostPeak>250,'boost punch should be immediately obvious');
+  assert.ok(r.events.some(e=>e.type==='boost'&&e.factor===1.34));
+});
+test('2.5 brake improves turning authority and lateral grip',()=>{
+  const simulate=brake=>{
+    const r=C.seededRace(33);r.phase='running';
+    for(const other of r.racers.slice(1))other.finished=true;
+    const p=r.racers[0],at=C.pointAt(460);
+    p.x=at.x;p.y=at.y;p.angle=at.angle;p.speed=225;
+    p.vx=at.tx*225;p.vy=at.ty*225;
+    for(let i=0;i<8;i++)C.tick(r,{x:0,y:1,brake},C.STEP);
+    return {heading:p.angle,speed:p.speed,vx:p.vx,vy:p.vy};
+  };
+  const normal=simulate(false),braked=simulate(true);
+  assert.ok(braked.heading>normal.heading+.10,
+    'brake should turn faster');
+  assert.ok(braked.speed<normal.speed,'brake should slow somewhat');
+  assert.ok(braked.speed>normal.speed*.72,'brake must remain useful');
+});
+test('2.5 three deterministic rivals have distinct combat and defense',()=>{
+  const m=C.seededRace(19);
+  assert.deepEqual(m.racers.map(p=>p.aiStyle),
+    ['player','precision','aggressive','opportunist']);
+  assert.ok(C.AI_STYLES[2].attackCooldown<C.AI_STYLES[1].attackCooldown);
+  assert.ok(C.AI_STYLES[3].attackCooldown>C.AI_STYLES[2].attackCooldown);
+  const race=run(18,110);
+  assert.ok(race.events.some(e=>e.type==='ai_attack'&&e.style));
+  assert.ok(race.events.some(e=>e.type==='ai_defend'));
+  assert.ok(race.racers.slice(1).some(p=>p.aiDefenses>0));
+});
+test('2.5 spatial road lookup matches brute force including off-track falls',()=>{
+  const track=C.TRACK;
+  assert.ok(track.spatialBuckets.size>45);
+  function brute(x,y){
+    let best=Infinity;
+    for(let i=0;i<track.samples.length-1;i++){
+      const a=track.samples[i],b=track.samples[i+1];
+      const dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy||1;
+      const t=Math.max(0,Math.min(1,((x-a.x)*dx+(y-a.y)*dy)/den));
+      best=Math.min(best,(x-a.x-dx*t)**2+(y-a.y-dy*t)**2);
+    }
+    return Math.sqrt(best);
+  }
+  for(let i=0;i<120;i++){
+    const at=C.pointAt(i*track.length/120);
+    for(const offset of [-105,-30,0,35,125]){
+      const x=at.x+at.nx*offset,y=at.y+at.ny*offset;
+      assert.ok(Math.abs(C.closest(x,y).dist-brute(x,y))<.001,
+        'nearest-road index error at '+i+', offset '+offset);
+    }
+  }
 });
 test('2.4 road has exact circular turns, an extended straight and no wobbling Bézier bends',()=>{
   const t=C.TRACK;
@@ -358,8 +426,8 @@ test('Track Tide still changes zones each ten seconds and follows the road',()=>
   const r=C.seededRace(817);r.phase='running';r.elapsed=9.995;
   C.tick(r,{},C.STEP);
   assert.equal(r.zone,1);
-  assert.equal(C.zoneSpeed(0),172);
-  assert.equal(C.zoneSpeed(1),186);
+  assert.equal(C.zoneSpeed(0),191);
+  assert.equal(C.zoneSpeed(1),206.5);
   const start=C.waveState(r);
   assert.equal(start.scope,'track-only');
   assert.equal(start.direction,'forward');
@@ -433,6 +501,9 @@ test('Renderer has visible tile cache, world transform and no monolithic world r
   assert.ok(js.includes('drawWaveFront(ctx,track,wave'));
   assert.ok(js.includes('function waveRibbon'));
   assert.ok(js.includes('function drawBankedEdges'));
+  assert.ok(js.includes('function strip(run,side,inner,outer,color)'));
+  assert.ok(js.includes('p.boostTime>1.01'));
+  assert.ok(js.includes('[[ -17')===false);
   assert.ok(js.includes('function drawBoostPads'));
   assert.ok(js.includes('track.rimSamples'));
   assert.ok(js.includes('boostTime>0'));
@@ -450,7 +521,7 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
     'circuit-brake','circuit-dash','circuit-pause','circuit-fullscreen',
     'circuit-export','circuit-export-pause'])
       assert.ok(html.includes('id="'+id+'"'),id);
-  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.4'));
+  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.5'));
   assert.ok(js.includes("requestFullscreen"));
   assert.ok(js.includes('JSON.stringify(CORE.audit(race)'));
   assert.ok(js.includes('getInput()'));
@@ -458,14 +529,16 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
 test('Run audit 2.3 includes falls, AI aggression and the spectral wave without private input history',()=>{
   const r=run(77);
   const a=C.audit(r);
-  assert.equal(a.schema,'neon-circuit-run-audit/2.4');
-  assert.equal(a.build,'neon-circuit-2.4');
+  assert.equal(a.schema,'neon-circuit-run-audit/2.5');
+  assert.equal(a.build,'neon-circuit-2.5');
   assert.equal(a.courseId,'spectral-highway');
   assert.ok(a.trackLength>4600);
   assert.equal(a.summary.cameraMode,'close-follow-damped-zoom');
   assert.equal(a.summary.edgeMode,'physical-cambered-bank-and-recoverable-ramp');
   assert.equal(a.summary.trackArchitecture,'tangent-circular-arcs-straights');
   assert.equal(a.summary.boostPads,3);
+  assert.deepEqual(a.summary.rivalStyles,['precision','aggressive','opportunist']);
+  assert.ok(a.summary.boostPeak>=0);
   assert.equal(a.summary.controlMode,'hold-to-drive-manual-steering');
   assert.ok(a.summary.driveSeconds>20);
   assert.equal(a.summary.lapValidation,'four-ordered-physical-gates');

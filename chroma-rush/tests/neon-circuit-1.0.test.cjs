@@ -47,10 +47,14 @@ test('2.7 premium presentation is graphics-only and preserves auto throttle',()=
   const p=r.racers[0];
   for(const q of r.racers.slice(1))q.finished=true;
   for(let i=0;i<25;i++)C.tick(r,{},C.STEP);
-  const free=p.speed;
+  const prior=p.speed;
+  p.speed=218;
+  p.vx=Math.cos(p.angle)*p.speed;
+  p.vy=Math.sin(p.angle)*p.speed;
   for(let i=0;i<10;i++)C.tick(r,{brake:true},C.STEP);
   assert.equal(p.braking,true,'racer publishes brake state to renderer');
-  assert.ok(p.speed<free,'actual braking remains functional');
+  assert.ok(p.speed<218,'actual braking remains functional');
+  assert.ok(prior>0,'auto throttle continues before braking');
   for(let i=0;i<10;i++)C.tick(r,{},C.STEP);
   assert.equal(p.braking,false);
   assert.equal(C.audit(r).summary.controlMode,'auto-throttle-manual-steering');

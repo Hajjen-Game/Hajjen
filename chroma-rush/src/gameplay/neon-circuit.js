@@ -939,6 +939,7 @@ root.ChromaCircuitViewDebug={
       updates:camera.updates}:null,
     tiles:tileCache.size,tileBuilds,tileHits,
     spectacles:(race||preview).spectacles.length,
+    arena:arenaLighting(race||preview),
     course:(race||preview).track.courseId,
     player:(race||preview).racers[0]&&{
       x:(race||preview).racers[0].x,

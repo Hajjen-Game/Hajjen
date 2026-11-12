@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.1: Manual Racing & Track Identity.
+/* CHROMA RUSH — NEON CIRCUIT 2.2: Close Racing, Edge Falls & Impacts.
  * Camera follows the cube through a multi-screen neon racing world.
  * The stable dark environment and road-only Track Tide render in visible
  * cached world tiles (never one enormous offscreen track image).
@@ -612,7 +612,10 @@ root.ChromaCircuitViewDebug={
     course:(race||preview).track.courseId,
     player:(race||preview).racers[0]&&{
       x:(race||preview).racers[0].x,
-      y:(race||preview).racers[0].y},
+      y:(race||preview).racers[0].y,
+      speed:(race||preview).racers[0].speed,
+      falls:(race||preview).racers[0].falls,
+      knockouts:(race||preview).racers[0].knockouts},
     viewport:{width:viewW,height:viewH}
   }),
   sampleRoad:(zone,x,y)=>{

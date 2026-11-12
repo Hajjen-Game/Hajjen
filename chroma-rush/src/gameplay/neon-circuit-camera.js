@@ -62,7 +62,12 @@ function step(cam,player,viewport,dt,instant=false){
   cam.maxDrift=Math.max(cam.maxDrift,drift);
   // A genuine respawn/teleport must snap; ordinary steering never should.
   const snap=instant||drift>560;
-  if(snap){cam.x=target.x;cam.y=target.y;cam.lookX=a.x;cam.lookY=a.y;}
+  if(snap){
+    cam.lookX=a.x;cam.lookY=a.y;
+    const locked=confine(player.x+a.x,player.y+a.y,
+      cam.zoom,viewport,cam.bounds);
+    cam.x=locked.x;cam.y=locked.y;
+  }
   else if(drift>14){
     const move=(drift-14)/drift*fade(4.3,dt);
     cam.x+=dx*move;cam.y+=dy*move;

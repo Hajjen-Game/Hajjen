@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#070b17">
-<meta name="description" content="NEON CIRCUIT — CHROMA RUSH Neon Circuit 1.3 — three full-screen arcade racing courses, straight sections and smooth bends with Track Tide.">
-<title>CHROMA RUSH | Neon Circuit 1.3</title>
+<meta name="description" content="NEON CIRCUIT — CHROMA RUSH Neon Circuit 2.0 — a genuine top-down, multi-screen road race with a smooth follow camera, lookahead and Track Tide.">
+<title>CHROMA RUSH | Neon Circuit 2.0</title>
 <link rel="stylesheet" href="clash.css?v=chroma-circuit-1.0">
-<link rel="stylesheet" href="neon-circuit.css?v=neon-circuit-1.3">
+<link rel="stylesheet" href="neon-circuit.css?v=neon-circuit-2.0">
 </head>
 <body>
 <main id="circuit-shell" aria-label="Neon Circuit racing mini game">
-  <canvas id="circuit-canvas" aria-label="Four glowing cubes race over three full-screen circuits with long straights, sweeping turns and drop-off ramps"></canvas>
+  <canvas id="circuit-canvas" aria-label="Four glowing cubes race through a large world-space neon highway, viewed through a smooth following camera"></canvas>
   <div id="circuit-hud" class="hud hidden" aria-live="off">
     <div class="hud-left">
       <span class="eyebrow">NEON <b>CIRCUIT</b></span>
@@ -45,8 +45,8 @@
     <h1>NEON <em>CIRCUIT</em></h1>
     <p class="tagline">RACE THE LINE. OWN THE CORNERS.</p>
     <div class="intro-line">
-      <span>FULL-SCREEN TRACKS · 4 CUBES</span>
-      <span>LONG STRAIGHTS · SMOOTH TURNS</span>
+      <span>3 LAPS · 4 CUBES</span>
+      <span>FOLLOW CAMERA · WORLD TRACK</span>
       <span>BRAKE & DASH</span>
     </div>
     <button id="circuit-start" class="primary-btn" type="button">START RACE <span aria-hidden="true">→</span></button>
@@ -77,10 +77,11 @@
   <div id="circuit-fullscreen-status" class="fullscreen-status" role="status" aria-live="polite"></div>
   <div id="circuit-orientation" aria-live="polite"><div class="rotate-symbol">▭ ↻</div><strong>ROTATE YOUR DEVICE</strong><span>NEON CIRCUIT is designed for landscape play.</span></div>
 </main>
-<script src="src/core/config.js?v=neon-circuit-1.3"></script>
-<script src="src/render/chroma-identity.js?v=neon-circuit-1.3"></script>
-<script src="src/render/chroma-center-pulse.js?v=neon-circuit-1.3"></script>
-<script src="src/gameplay/neon-circuit-core.js?v=neon-circuit-1.3"></script>
-<script src="src/gameplay/neon-circuit.js?v=neon-circuit-1.3"></script>
+<script src="src/core/config.js?v=neon-circuit-2.0"></script>
+<script src="src/render/chroma-identity.js?v=neon-circuit-2.0"></script>
+<script src="src/render/chroma-center-pulse.js?v=neon-circuit-2.0"></script>
+<script src="src/gameplay/neon-circuit-core.js?v=neon-circuit-2.0"></script>
+<script src="src/gameplay/neon-circuit-camera.js?v=neon-circuit-2.0"></script>
+<script src="src/gameplay/neon-circuit.js?v=neon-circuit-2.0"></script>
 </body>
 </html>

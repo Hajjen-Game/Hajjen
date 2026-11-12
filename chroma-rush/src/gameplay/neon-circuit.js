@@ -442,14 +442,17 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   stroke(106,rgb(primary,.48));
   stroke(103,rgb('#c8f5ff',.26));
   stroke(98,'#071527');
-  // The actual ROAD pigment changes across zones, not just the rails.
+  // Material tone follows the course identity without overriding the
+  // animated Wipeout-style spectral zone pigment on top of the track.
+  const material=track.terrain==='canyon'?'#211829':
+    track.terrain==='skyline'?'#0b2236':'#13213a';
   const asphalt=g.createLinearGradient(
     track.bounds.minX,track.bounds.minY,
     track.bounds.maxX,track.bounds.maxY);
-  asphalt.addColorStop(0,mix('#102038',primary,.33));
-  asphalt.addColorStop(.40,mix('#13213a',primary,.31));
-  asphalt.addColorStop(.70,mix('#131e35',secondary,.32));
-  asphalt.addColorStop(1,mix('#16243b',primary,.30));
+  asphalt.addColorStop(0,mix(material,primary,.34));
+  asphalt.addColorStop(.40,mix(material,primary,.29));
+  asphalt.addColorStop(.70,mix(material,secondary,.31));
+  asphalt.addColorStop(1,mix(material,primary,.29));
   stroke(89,asphalt);
   stroke(97,rgb('#e3faff',.13));
   stroke(95.5,rgb(primary,.39));
@@ -534,10 +537,12 @@ function arenaLighting(m){
 function drawWorldBackdrop(g,cam,m){
   // Spectral Arena lighting is intentionally WORLD-AGNOSTIC during a tide.
   // The palette breathes over the entire arena without a rear starting line.
-  const light=arenaLighting(m);
+  const light=arenaLighting(m),terrain=m.track.terrain;
+  const base=terrain==='skyline'?'#071b30':
+    terrain==='canyon'?'#171024':'#091527';
   const gradient=g.createLinearGradient(0,0,viewW*.16,viewH);
-  gradient.addColorStop(0,mix('#030916',light.primary,.075));
-  gradient.addColorStop(.52,mix('#0a172c',light.secondary,.105));
+  gradient.addColorStop(0,mix(base,light.primary,.075));
+  gradient.addColorStop(.52,mix(base,light.secondary,.105));
   gradient.addColorStop(1,mix('#030c1b',light.primary,.11));
   g.fillStyle=gradient;g.fillRect(0,0,viewW,viewH);
   const halo=g.createRadialGradient(viewW*.50,viewH*.49,viewH*.12,
@@ -552,7 +557,7 @@ function drawWorldBackdrop(g,cam,m){
   g.translate(-cam.x,-cam.y);
   // Large, restrained geometric terraces and ribs: calm depth beneath the
   // elevated roadway, never floating rectangular objects resembling hazards.
-  const cell=280;
+  const cell=terrain==='skyline'?350:terrain==='canyon'?325:280;
   const x0=Math.floor(frame.minX/cell)*cell;
   const y0=Math.floor(frame.minY/cell)*cell;
   const x1=Math.ceil(frame.maxX/cell)*cell;
@@ -561,6 +566,37 @@ function drawWorldBackdrop(g,cam,m){
   for(let x=x0;x<=x1;x+=cell)for(let y=y0;y<=y1;y+=cell){
     const code=Math.abs((Math.floor(x/cell)*37+Math.floor(y/cell)*53)%7);
     const rise=(code%3)*22;
+    // Different backdrop geometry for each authored course, all calm
+    // non-interactive forms beneath the physical track surface.
+    if(terrain==='skyline'){
+      g.beginPath();
+      g.moveTo(x-20,y+cell*.72+rise);
+      g.lineTo(x+cell*.43,y+cell*.20);
+      g.lineTo(x+cell+20,y+cell*.58+rise);
+      g.strokeStyle=rgb(light.secondary,.068);
+      g.lineWidth=2.2;g.stroke();
+      g.beginPath();
+      g.moveTo(x+cell*.05,y+cell*.95+rise);
+      g.lineTo(x+cell*.57,y+cell*.34);
+      g.lineTo(x+cell*.94,y+cell*.75+rise);
+      g.strokeStyle=rgb(light.primary,.042);
+      g.lineWidth=6;g.stroke();
+      continue;
+    }
+    if(terrain==='canyon'){
+      for(let j=0;j<3;j++){
+        g.beginPath();
+        const inset=21+j*23;
+        g.moveTo(x+inset,y+cell*.31+rise);
+        g.lineTo(x+cell*.49,y+inset);
+        g.lineTo(x+cell-inset,y+cell*.45+rise);
+        g.lineTo(x+cell*.52,y+cell-inset);
+        g.strokeStyle=rgb(j%2?light.primary:light.secondary,
+          .028+j*.013);
+        g.lineWidth=j===0?4.4:1.4;g.stroke();
+      }
+      continue;
+    }
     g.beginPath();
     g.moveTo(x+8,y+cell*.32+rise);
     g.lineTo(x+cell*.64,y+5);
@@ -576,8 +612,17 @@ function drawWorldBackdrop(g,cam,m){
     g.strokeStyle=rgb(light.secondary,code%2?.034:.056);
     g.lineWidth=1.4;g.stroke();
   }
-  // Sparse radial trenches communicate massive arena scale and continuity.
-  for(const [x,y,r] of [[1790,700,175],[730,1010,140],[1390,1210,125]]){
+  // A few low-contrast terrain landmarks emphasize world scale; positions
+  // derive from EACH circuit's bounds instead of the original GP coordinates.
+  const bounds=m.track.bounds,w=bounds.maxX-bounds.minX,
+    h=bounds.maxY-bounds.minY;
+  const landmarks=terrain==='skyline'?
+    [[.28,.62,205],[.79,.32,185]]:
+    terrain==='canyon'?
+    [[.25,.72,235],[.69,.39,205],[.85,.83,165]]:
+    [[.74,.45,175],[.23,.77,140],[.55,.95,125]];
+  for(const [u,v,r] of landmarks){
+    const x=bounds.minX+w*u,y=bounds.minY+h*v;
     if(x+r<frame.minX||x-r>frame.maxX||
        y+r<frame.minY||y-r>frame.maxY)continue;
     g.strokeStyle=rgb(light.primary,.09+.035*light.charge);

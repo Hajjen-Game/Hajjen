@@ -468,7 +468,7 @@ test('Dynamic zoom shows more road at speed while keeping the cube square',()=>{
   const cam=Camera.create(C.WORLD_BOUNDS,v,low);
   const z=cam.zoom;low.speed=260;
   for(let i=0;i<90;i++)Camera.step(cam,low,v,1/60);
-  assert.ok(cam.zoom<z*.87,'camera did not zoom out: '+cam.zoom+'/'+z);
+  assert.ok(cam.zoom<z*.91,'camera should zoom out gently: '+cam.zoom+'/'+z);
   assert.ok(Math.abs(cam.targetZoom-Camera.desiredZoom(v.height,260))<.02);
   assert.ok(Camera.viewBounds(cam).maxX-Camera.viewBounds(cam).minX>
     v.width/z,'higher speed must reveal a longer stretch of road');

@@ -297,6 +297,10 @@ function fallOff(m,p){
   if(p.id===0){
     m.announcement='FALL · RESPAWNING';
     m.announcementTime=m.elapsed+.95;
+  }else if(attacker===0){
+    // Recognize a skillful shove immediately, before the next zone banner.
+    m.announcement='RIVAL EJECTED · '+p.name;
+    m.announcementTime=m.elapsed+1.2;
   }
 }
 function respawn(m,p){

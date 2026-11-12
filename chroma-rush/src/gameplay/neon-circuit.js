@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.6.1: Auto Throttle & Manual Steering.
+/* CHROMA RUSH — NEON CIRCUIT 2.7: Premium Motion & Visual Cohesion.
  * Camera follows the cube through a multi-screen neon racing world.
  * The stable dark environment and road-only Track Tide render in visible
  * cached world tiles (never one enormous offscreen track image).
@@ -28,9 +28,12 @@ const mix=(a,b,t)=>{
 let viewW=960,viewH=540,quality=1,slowStreak=0,camera=null;
 const TILE=448,TILE_PAD=18,TILE_LIMIT=36;
 const tileCache=new Map(),sprites=Object.create(null);
+const motionStates=new WeakMap();
+let motionSnapshot={lean:0,squash:1,stretch:1,brake:0};
 let tileBuilds=0,tileHits=0,mode='menu',race=null,preview=CORE.seededRace(103),
   nextCourse=0,joyId=null,joyX=0,joyY=0,brakePressed=false,dashPending=false,
-  keys=new Set(),frameBefore=0,accumulator=0,noticeUntil=0;
+  keys=new Set(),frameBefore=0,accumulator=0,noticeUntil=0,
+  finishPendingAt=0,lastAnnouncement='',lastZone=-1,lastPlace='';
 function resize(){
   viewW=Math.max(1,SHELL.clientWidth||innerWidth);
   viewH=Math.max(1,SHELL.clientHeight||innerHeight);
@@ -66,7 +69,8 @@ function begin(){
     {width:viewW,height:viewH},race.racers[0]);
   tileCache.clear();tileBuilds=0;tileHits=0;
   keys.clear();resetStick();brakePressed=false;dashPending=false;
-  screen('playing');noticeUntil=0;updateHud();
+  screen('playing');noticeUntil=0;finishPendingAt=0;
+  lastAnnouncement='';lastZone=-1;lastPlace='';updateHud();
 }
 function pause(){
   if(mode!=='playing')return;
@@ -78,6 +82,7 @@ function resume(){
   screen('playing');frameBefore=0;accumulator=0;
 }
 function finish(){
+  finishPendingAt=0;
   screen('result');
   text('circuit-outcome',race.finishPlace===1?'1ST PLACE!':
     race.finishPlace===2?'2ND PLACE':race.finishPlace===3?'3RD PLACE':'RACE COMPLETE');
@@ -183,12 +188,29 @@ function getInput(){
 function updateHud(){
   if(!race)return;
   const me=race.racers[0],lap=Math.min(CORE.LAPS_TO_WIN,me.laps+1);
+  const zoneEl=$('circuit-zone');
   text('circuit-zone','ZONE '+String(race.zone+1).padStart(2,'0'));
+  if(lastZone!==race.zone){
+    if(lastZone>=0&&!reduced()){
+      zoneEl.classList.remove('zone-shift');void zoneEl.offsetWidth;
+      zoneEl.classList.add('zone-shift');
+    }
+    lastZone=race.zone;
+  }
   text('circuit-phase',ZONE_NAMES[race.zone%ZONE_NAMES.length]+
     ' · SPEED '+Math.round(me.speed));
   text('circuit-lap','LAP '+lap+'/'+CORE.LAPS_TO_WIN);
   text('circuit-flow','LINE FLOW '+Math.round(me.flow*100)+'%');
-  text('circuit-place',ordinal(CORE.currentPosition(race))+' / 4');
+  const placing=ordinal(CORE.currentPosition(race))+' / 4';
+  text('circuit-place',placing);
+  if(placing!==lastPlace){
+    const place=$('circuit-place');
+    if(lastPlace&&!reduced()){
+      place.classList.remove('place-swap');void place.offsetWidth;
+      place.classList.add('place-swap');
+    }
+    lastPlace=placing;
+  }
   text('circuit-clock',clock(race.elapsed));
   text('circuit-dash',me.dashCooldown>.08?me.dashCooldown.toFixed(1)+'s':'DASH');
   dash.disabled=me.dashCooldown>.08||me.speed<45;
@@ -201,7 +223,25 @@ function updateHud(){
     label=race.announcement;visible=true;
   }
   text('circuit-announce',label);
-  $('circuit-announce').classList.toggle('hidden',!visible);
+  const announce=$('circuit-announce');
+  announce.classList.toggle('hidden',!visible);
+  const moment=race.phase==='ready'?'ready':
+    label.startsWith('GO')?'go':
+    label.startsWith('LAP')?'lap':
+    label.startsWith('ZONE')?'zone':
+    label.includes('EJECTED')?'knockout':
+    label.includes('HIT')?'impact':
+    label.includes('FALL')?'fall':
+    label.includes('BOOST')?'boost':'neutral';
+  const key=visible?moment+':'+label:'';
+  if(key!==lastAnnouncement){
+    announce.dataset.moment=moment;
+    if(visible&&!reduced()){
+      announce.classList.remove('moment-enter');
+      void announce.offsetWidth;announce.classList.add('moment-enter');
+    }else announce.classList.remove('moment-enter');
+    lastAnnouncement=key;
+  }
 }
 const buttons=[$('circuit-fullscreen'),$('circuit-fullscreen-menu')];
 function syncFull(){
@@ -287,39 +327,52 @@ function drawBankedEdges(g,track,rect,primary,secondary){
   }
   g.save();g.lineJoin='round';g.lineCap='round';
   for(const run of runs)for(const side of [-1,1]){
-    strip(run,side,0,1,rgb('#020b18',.87));
-    strip(run,side,0,.48,rgb(primary,.25));
-    strip(run,side,.48,.84,rgb(secondary,.24));
-    strip(run,side,.84,1,rgb('#d6f5ff',.21));
+    // An extruded metal bank with a soft lit slope and a recessed root.
+    // Static tile-only geometry; the inner track still has the same width.
+    strip(run,side,0,1,rgb('#020b18',.96));
+    strip(run,side,0,.23,rgb('#021526',.79));
+    strip(run,side,.23,.73,rgb(primary,.32));
+    strip(run,side,.73,.93,rgb(secondary,.24));
+    strip(run,side,.93,1,rgb('#e4f8ff',.19));
     g.beginPath();
     for(let i=0;i<run.length;i++){
       const p=point(run[i],side,1);
       if(i===0)g.moveTo(p.x,p.y);else g.lineTo(p.x,p.y);
     }
-    g.strokeStyle=rgb('#010512',.70);g.lineWidth=6;g.stroke();
-    g.strokeStyle=rgb(primary,.38);g.lineWidth=1.7;g.stroke();
+    g.strokeStyle=rgb('#000712',.85);g.lineWidth=5.2;g.stroke();
+    g.strokeStyle=rgb(mix(primary,'#e8faff',.58),.46);
+    g.lineWidth=1.35;g.stroke();
   }
   g.restore();
 }
 function drawBoostPads(g,track,rect,primary,secondary){
   for(const pad of track.boosts){
     const p=CORE.pointAt(pad.s,track);
-    if(p.x<rect.minX-70||p.x>rect.maxX+70||
-       p.y<rect.minY-70||p.y>rect.maxY+70)continue;
+    if(p.x<rect.minX-80||p.x>rect.maxX+80||
+       p.y<rect.minY-80||p.y>rect.maxY+80)continue;
     g.save();
     g.translate(p.x+p.nx*pad.lane,p.y+p.ny*pad.lane);
     g.rotate(p.angle);
-    // Flush with the roadway: cyan chevrons are a BOOST, not a barrier.
-    g.fillStyle=rgb('#07192c',.38);
-    rounded(g,-43,-15,86,30,7);g.fill();
-    g.strokeStyle=rgb(secondary,.48);g.lineWidth=1.2;
-    rounded(g,-43,-15,86,30,7);g.stroke();
+    // Engraved into the raceway rather than a hovering rounded card.
+    const bed=g.createLinearGradient(-48,-12,48,12);
+    bed.addColorStop(0,rgb(primary,.045));
+    bed.addColorStop(.40,rgb(secondary,.17));
+    bed.addColorStop(.70,rgb(primary,.25));
+    bed.addColorStop(1,rgb(primary,.045));
+    g.fillStyle=bed;rounded(g,-46,-15,92,30,5);g.fill();
+    for(const y of [-14,14]){
+      g.strokeStyle=rgb(mix(primary,'#e0f7ff',.42),.35);
+      g.lineWidth=1.1;g.beginPath();
+      g.moveTo(-42,y);g.lineTo(42,y);g.stroke();
+    }
+    g.lineJoin='round';g.lineCap='round';
     for(const x of [-23,0,23]){
-      g.beginPath();g.moveTo(x-8,-9);g.lineTo(x+5,0);
-      g.lineTo(x-8,9);
-      g.strokeStyle=rgb(primary,.95);g.lineWidth=5.2;
-      g.lineCap='round';g.lineJoin='round';g.stroke();
-      g.strokeStyle=rgb('#ecffff',.80);g.lineWidth=1.65;g.stroke();
+      g.beginPath();g.moveTo(x-11,-9);g.lineTo(x+3,0);
+      g.lineTo(x-11,9);
+      g.strokeStyle=rgb(primary,.30);g.lineWidth=8;g.stroke();
+      g.strokeStyle=rgb(mix(primary,'#ffffff',.55),.91);
+      g.lineWidth=3.4;g.stroke();
+      g.strokeStyle=rgb('#f4ffff',.60);g.lineWidth=1;g.stroke();
     }
     g.restore();
   }
@@ -374,10 +427,13 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   stroke(90,'#09192c');
   stroke(88,asphalt);
   // Subtle lane gloss adds depth without reading as an obstacle.
-  stroke(74,rgb('#f7ffff',.055));
-  stroke(72,rgb('#dbf5ff',.032));
-  stroke(62,rgb(primary,.052));
+  stroke(78,rgb(mix(primary,'#eafaff',.63),.061));
+  stroke(73,rgb('#f3ffff',.034));
+  stroke(61,rgb(primary,.076));
   stroke(52,asphalt);
+  // Narrow specular road grooves sit inside the surface, not above it.
+  stroke(44,rgb(secondary,.035));
+  stroke(41,asphalt);
   stroke(1.4,rgb('#d3f6ff',.18),true);
   drawBankedEdges(g,track,rect,primary,secondary);
   drawBoostPads(g,track,rect,primary,secondary);
@@ -511,26 +567,66 @@ function rounded(g,x,y,w,h,r){
   g.lineTo(x+r,y+h);g.quadraticCurveTo(x,y+h,x,y+h-r);
   g.lineTo(x,y+r);g.quadraticCurveTo(x,y,x+r,y);g.closePath();
 }
+// Cached multi-facet beveled glass sprite. The clear face and reflective edge
+// remain readable at phone-scale, while the radial glow is pre-rasterized.
 function sprite(color){
   if(sprites[color])return sprites[color];
   const surface=document.createElement('canvas');
-  surface.width=68;surface.height=68;
-  const g=surface.getContext('2d');g.translate(34,34);
-  g.fillStyle=rgb(color,.25);g.shadowColor=color;g.shadowBlur=13;
-  rounded(g,-11,-11,22,22,5);g.fill();g.shadowBlur=0;
-  if(IDENTITY&&typeof IDENTITY.paintPlayer==='function'){
-    IDENTITY.paintPlayer(g,{
-      x:-11,y:-11,w:22,h:22,primary:color,
-      secondary:mix(color,'#ffffff',.24),
-      quality:{density:1,glow:.72},ambientLight:.61,
-      bodyPath:(x,y,w,h,r)=>rounded(g,x,y,w,h,Math.min(r,5))
-    });
-  }else{
-    g.fillStyle=mix(color,'#ffffff',.75);
-    rounded(g,-11,-11,22,22,5);g.fill();
-    g.strokeStyle=color;g.lineWidth=2;g.stroke();
-  }
+  surface.width=90;surface.height=90;
+  const g=surface.getContext('2d');g.translate(45,45);
+  const halo=g.createRadialGradient(0,0,6,0,0,34);
+  halo.addColorStop(0,rgb(color,.39));
+  halo.addColorStop(.38,rgb(color,.18));
+  halo.addColorStop(1,rgb(color,0));
+  g.fillStyle=halo;g.fillRect(-36,-36,72,72);
+  g.shadowColor=color;g.shadowBlur=10;
+  const glass=g.createLinearGradient(-12,-13,12,14);
+  glass.addColorStop(0,mix(color,'#ffffff',.92));
+  glass.addColorStop(.43,mix(color,'#ffffff',.66));
+  glass.addColorStop(1,mix(color,'#06172f',.31));
+  g.fillStyle=glass;rounded(g,-12,-12,24,24,5);g.fill();
+  g.shadowBlur=0;
+  g.strokeStyle=rgb(mix(color,'#ffffff',.64),.91);
+  g.lineWidth=1.7;rounded(g,-11.2,-11.2,22.4,22.4,4.6);g.stroke();
+  g.beginPath();g.moveTo(-8,7);g.lineTo(-8,-7);
+  g.quadraticCurveTo(-8,-9,-5,-9);g.lineTo(6,-9);
+  g.strokeStyle='rgba(255,255,255,.65)';g.lineWidth=2.1;g.stroke();
+  const facet=g.createLinearGradient(-12,0,12,0);
+  facet.addColorStop(0,'rgba(255,255,255,.01)');
+  facet.addColorStop(1,'rgba(2,14,35,.29)');
+  g.fillStyle=facet;rounded(g,-9,-9,18,18,3);g.fill();
   return sprites[color]=surface;
+}
+// Visual-only spring: steering remains a manual physics input and neither
+// contact size nor collision timing ever depends on these transforms.
+function motionPose(p,r){
+  let st=motionStates.get(p);
+  if(!st){st={angle:p.angle,time:r.elapsed,lean:0,sx:1,sy:1};motionStates.set(p,st);}
+  const dt=clamp(r.elapsed-st.time,.001,.05);
+  const turn=CORE.angleDelta(st.angle,p.angle)/dt;
+  const lateral=(-Math.sin(p.angle)*p.vx+Math.cos(p.angle)*p.vy)/
+    Math.max(80,p.speed);
+  const brake=p.braking?1:0;
+  const bank=p.bankHeight||0;
+  const hit=clamp((p.contactFlash||0)/.24,0,1);
+  const dash=p.dashTime>0?1:0;
+  const boost=p.boostTime>0?1:0;
+  // Quick impact compression followed by restrained release; no arrow form.
+  const leanTarget=clamp(-turn*.050-lateral*.12,-.18,.18)+
+    clamp(bank*.075,-.06,.06);
+  const sx=1+dash*.11+boost*.09+hit*.13-brake*.05;
+  const sy=1-dash*.065-boost*.055-hit*.15+brake*.065;
+  const t=1-Math.exp(-dt*15);
+  st.lean+=(leanTarget-st.lean)*t;
+  st.sx+=(sx-st.sx)*(1-Math.exp(-dt*20));
+  st.sy+=(sy-st.sy)*(1-Math.exp(-dt*20));
+  st.angle=p.angle;st.time=r.elapsed;
+  const pose={lean:reduced()?0:st.lean,
+    sx:reduced()?1:st.sx,sy:reduced()?1:st.sy,
+    brake,hit,dash,boost,slip:clamp(Math.abs(lateral),0,1)};
+  if(p.id===0)motionSnapshot={lean:pose.lean,squash:pose.sx,
+    stretch:pose.sy,brake:pose.brake};
+  return pose;
 }
 function drawCombatOpportunity(r){
   if(reduced())return;
@@ -562,70 +658,61 @@ function drawCombatOpportunity(r){
 function drawRacers(r){
   for(const p of r.racers){
     const falling=p.fallTimer>0;
-    const fallFraction=falling?clamp(p.fallTimer/CORE.FALL_SECONDS,0,1):1;
-    const spriteScale=falling?.13+.87*fallFraction:1;
-    const vx=Math.cos(p.angle),vy=Math.sin(p.angle);
+    const fraction=falling?clamp(p.fallTimer/CORE.FALL_SECONDS,0,1):1;
+    const fallScale=falling?.13+.87*fraction:1;
+    const dirX=Math.cos(p.angle),dirY=Math.sin(p.angle);
+    const pose=motionPose(p,r);
     ctx.save();
-    if(!falling&&!p.finished){
-      // A short REAR wake, not a deadly light trail or extra forward tick.
-      const d=p.dashTime>0||p.boostTime>0;
+    // Wheel-free racer language: energy traction is attached immediately
+    // beneath the cube and never becomes a detached obstacle-looking trail.
+    if(!falling&&p.braking&&!reduced()){
+      const sideX=-dirY,sideY=dirX,fade=.22+.24*pose.slip;
+      ctx.strokeStyle=p.color;ctx.lineWidth=1.4;ctx.globalAlpha=fade;
       ctx.lineCap='round';
-      ctx.beginPath();ctx.moveTo(p.x-vx*11,p.y-vy*11);
-      ctx.lineTo(p.x-vx*(p.dashTime>0?45:p.boostTime>0?33:20),
-       p.y-vy*(p.dashTime>0?45:p.boostTime>0?33:20));
-      ctx.strokeStyle=p.color;ctx.lineWidth=d?3.5:2;
-      ctx.globalAlpha=d?.52:.25;ctx.stroke();
+      for(const side of [-1,1]){
+        const ax=p.x+sideX*side*11-dirX*8;
+        const ay=p.y+sideY*side*11-dirY*8;
+        ctx.beginPath();ctx.moveTo(ax,ay);
+        ctx.lineTo(ax-dirX*(8+pose.slip*12),
+          ay-dirY*(8+pose.slip*12));
+        ctx.stroke();
+      }
     }
-    ctx.globalAlpha=falling?Math.max(.08,fallFraction*.76):
-      p.finished?.30:
-      p.invulnerable>0?.63+.28*Math.sin(r.elapsed*15):1;
-    // Simulate FALLING DOWN INTO DEPTH without sliding the image toward
-    // the bottom of the phone, matching the shared Clash design language.
+    ctx.globalAlpha=falling?Math.max(.07,fraction*.78):
+      p.finished?.30:p.invulnerable>0?.67+.24*Math.sin(r.elapsed*15):1;
     ctx.translate(p.x,p.y);
-    // Glass cubes remain visibly SQUARE on wide-screen phones even as
-    // the roadway fills more horizontal space.
-    ctx.scale(spriteScale,spriteScale);
-    if(!falling&&p.boostTime>0){
-      // A restrained squash/stretch from the existing glass sprite.
-      ctx.rotate(p.angle);
-      ctx.scale(1.10,.93);
-      ctx.rotate(-p.angle);
+    ctx.scale(fallScale,fallScale);
+    ctx.rotate(pose.lean);
+    // Squash is smooth and based on the actual force and maneuver state.
+    ctx.rotate(p.angle);
+    ctx.scale(pose.sx,pose.sy);
+    ctx.rotate(-p.angle);
+    if(!falling&&!reduced()&&pose.hit>.08){
+      ctx.save();ctx.globalAlpha*=pose.hit*.36;
+      ctx.strokeStyle='#ffffff';ctx.lineWidth=1.7;
+      rounded(ctx,-15,-15,30,30,6);ctx.stroke();ctx.restore();
     }
-    if(!falling&&p.bankHeight>0){
-      const tilt=(CORE.closest(p.x,p.y,r.track).side<0?1:-1)*p.bankHeight*.11;
-      ctx.rotate(tilt);
+    ctx.drawImage(sprite(p.color),-45,-45);
+    if(!falling&&p.boostTime>0&&!reduced()){
+      const age=CORE.TRACK.boosts[0].duration-p.boostTime;
+      if(age<.24){
+        const fade=1-clamp(age/.24,0,1);
+        ctx.save();ctx.strokeStyle=p.color;ctx.lineWidth=2;
+        ctx.globalAlpha*=fade*.65;
+        ctx.beginPath();ctx.arc(0,0,17+(1-fade)*14,0,Math.PI*2);
+        ctx.stroke();ctx.restore();
+      }
     }
-    if(!falling&&p.contactFlash>0&&!reduced()){
-      ctx.globalAlpha*=clamp(p.contactFlash/.24,0,1)*.70;
-      ctx.strokeStyle=p.color;ctx.lineWidth=2;
-      ctx.strokeRect(-18,-18,36,36);
-      ctx.globalAlpha=1;
-    }
-    // Cube-linked underglow communicates mass and road contact.
-    ctx.save();
-    ctx.globalCompositeOperation='screen';
-    luminousPool(ctx,0,3,p.color,2,p.boostTime>0?36:29,
-      p.boostTime>0?.25:.13);
-    ctx.restore();
-    ctx.drawImage(sprite(p.color),-34,-34);
-    if(!falling&&p.boostTime>1.01&&!reduced()){
-      const arrival=clamp((p.boostTime-1.01)/.23,0,1);
-      ctx.save();
-      ctx.strokeStyle=p.color;ctx.lineWidth=1.9;
-      ctx.globalAlpha*=arrival*.66;
-      ctx.beginPath();ctx.arc(0,0,19+(1-arrival)*16,0,Math.PI*2);
-      ctx.stroke();ctx.restore();
-    }
-    // Small front lip shows heading, without an arrow or long streak.
+    // A small inset front glint indicates heading without an arrow.
     ctx.rotate(p.angle+Math.PI/2);
-    ctx.fillStyle=p.id===0?'#f3ffff':'#e2e7ff';
-    ctx.globalAlpha*=.75;
-    ctx.fillRect(-6,-12,12,2.1);
+    ctx.fillStyle=p.id===0?'#ffffff':'#d4e8f7';
+    ctx.globalAlpha*=.60;
+    ctx.fillRect(-5,-12,10,1.5);
     ctx.restore();
     if(!falling){
-      ctx.save();
-      ctx.textAlign='center';ctx.font='800 11px system-ui,sans-serif';
-      ctx.fillStyle=p.id===0?'#ffffff':p.color;
+      ctx.save();ctx.textAlign='center';
+      ctx.font='800 11px system-ui,sans-serif';
+      ctx.fillStyle=p.id===0?'#f3ffff':p.color;
       ctx.globalAlpha=p.finished?.4:1;
       ctx.fillText(p.name,p.x,p.y-23);
       ctx.restore();
@@ -643,39 +730,76 @@ function luminousPool(g,x,y,color,inner,outer,alpha){
 }
 function drawWorldSpectacles(m,view){
   if(reduced())return;
-  // Short, physically attached light events, not extra track obstacles.
+  // A short hierarchy: pad < hit < ejection < finish. No projectile shapes.
   for(const fx of m.spectacles||[]){
-    if(fx.x<view.minX-110||fx.x>view.maxX+110||
-      fx.y<view.minY-110||fx.y>view.maxY+110)continue;
-    const progress=1-fx.life/fx.duration;
-    const fade=Math.pow(1-progress,1.3);
+    if(fx.x<view.minX-130||fx.x>view.maxX+130||
+       fx.y<view.minY-130||fx.y>view.maxY+130)continue;
+    const age=clamp(1-fx.life/fx.duration,0,1);
+    const vanish=Math.pow(1-age,1.55);
     ctx.save();
+    ctx.translate(fx.x,fx.y);ctx.rotate(fx.angle);
     if(fx.kind==='boost'){
-      luminousPool(ctx,fx.x,fx.y,fx.color,5,92,fade*.27);
-      ctx.translate(fx.x,fx.y);ctx.rotate(fx.angle);
-      ctx.lineCap='round';ctx.lineJoin='round';
+      luminousPool(ctx,0,0,fx.color,5,92,vanish*.32);
       for(let k=0;k<3;k++){
-        const advance=-31+progress*90+k*19;
-        ctx.beginPath();
-        ctx.moveTo(advance-11,-12);ctx.lineTo(advance+1,0);
-        ctx.lineTo(advance-11,12);
+        const dx=-36+age*82+k*20;
+        ctx.beginPath();ctx.moveTo(dx-9,-11);ctx.lineTo(dx+3,0);
+        ctx.lineTo(dx-9,11);
         ctx.strokeStyle=k===1?'#ffffff':fx.color;
-        ctx.lineWidth=k===1?3.5:2.8;
-        ctx.globalAlpha=fade*(k===1?.80:.67);
+        ctx.lineWidth=k===1?3.6:2.5;
+        ctx.lineCap='round';ctx.lineJoin='round';
+        ctx.globalAlpha=vanish*(k===1?.83:.60);
         ctx.stroke();
       }
+      ctx.globalAlpha=vanish*.52;
+      ctx.strokeStyle=fx.color;ctx.lineWidth=1.3;
+      for(const y of [-21,21]){
+        ctx.beginPath();ctx.moveTo(-28+age*65,y);
+        ctx.lineTo(3+age*65,y);ctx.stroke();
+      }
     }else if(fx.kind==='eject'){
-      luminousPool(ctx,fx.x,fx.y,fx.color,2,58+progress*45,fade*.40);
-      ctx.translate(fx.x,fx.y);ctx.rotate(fx.angle);
-      for(let k=0;k<7;k++){
-        const theta=k*Math.PI*2/7+fx.owner*.39;
-        const dist=10+progress*42;
-        const xx=Math.cos(theta)*dist,yy=Math.sin(theta)*dist;
-        ctx.globalAlpha=fade*.73;
-        ctx.strokeStyle=k%2?'#ffffff':fx.color;
-        ctx.lineWidth=k%2?1.7:2.5;
+      luminousPool(ctx,0,0,fx.color,5,110,vanish*.28);
+      ctx.globalAlpha=vanish*.66;
+      ctx.strokeStyle=fx.color;ctx.lineWidth=2.6;
+      ctx.beginPath();ctx.ellipse(0,0,13+age*45,9+age*35,0,0,Math.PI*2);
+      ctx.stroke();
+      for(let k=0;k<8;k++){
+        const theta=k*Math.PI/4+fx.owner*.25;
+        const distance=12+age*46;
+        ctx.strokeStyle=k%2?'#e8ffff':fx.color;
+        ctx.lineWidth=k%2?1.4:2.2;
         ctx.beginPath();
-        ctx.moveTo(xx*.58,yy*.58);ctx.lineTo(xx,yy);ctx.stroke();
+        ctx.moveTo(Math.cos(theta)*distance*.70,
+          Math.sin(theta)*distance*.70);
+        ctx.lineTo(Math.cos(theta)*distance,
+          Math.sin(theta)*distance);ctx.stroke();
+      }
+    }else if(fx.kind==='respawn'){
+      // A soft reconstruction field anchored to the newly placed racer.
+      luminousPool(ctx,0,0,fx.color,3,76,vanish*.21);
+      ctx.globalAlpha=vanish*.63;
+      for(let k=0;k<2;k++){
+        const rad=15+age*28+k*12;
+        ctx.beginPath();ctx.arc(0,0,rad,
+          -Math.PI*.62+age*Math.PI*.5,
+          Math.PI*.64+age*Math.PI*.5);
+        ctx.strokeStyle=k===0?fx.color:'#e7ffff';
+        ctx.lineWidth=k===0?2.4:1;ctx.stroke();
+      }
+    }else if(fx.kind==='lap'||fx.kind==='finish'){
+      // One celebratory wave expands from the crossing point. Result panel
+      // follows only after the short finish moment has been seen.
+      const final=fx.kind==='finish';
+      luminousPool(ctx,0,0,fx.color,6,final?125:94,
+        vanish*(final?.39:.25));
+      ctx.globalAlpha=vanish*(final?.83:.58);
+      for(let k=0;k<(final?3:2);k++){
+        const rad=15+age*(final?70:42)+k*13;
+        ctx.beginPath();
+        ctx.arc(0,0,rad,
+          -Math.PI*.8+(age*.2+k*.19),
+          Math.PI*.85+age*.2+k*.19);
+        ctx.strokeStyle=k===1?'#ffffff':fx.color;
+        ctx.lineWidth=k===0?3.8:1.7;ctx.stroke();
       }
     }
     ctx.restore();
@@ -725,41 +849,46 @@ function drawImpacts(r){
   if(reduced())return;
   for(const v of r.impacts){
     const life=clamp(v.life/(v.lifeMax||.32),0,1),age=1-life;
-    const power=clamp((v.strength||190)/420,.45,1.5);
+    const force=clamp((v.strength||260)/720,.35,1);
+    const heavy=force>.68||v.charged;
     const angle=Math.atan2(v.ny,v.nx);
     ctx.save();ctx.translate(v.x,v.y);ctx.rotate(angle);
     ctx.globalCompositeOperation='screen';
-    luminousPool(ctx,0,0,'#ffffff',4,38+age*25,power*life*.36);
-    luminousPool(ctx,-10,0,v.colorA,2,28+age*23,life*.22);
-    luminousPool(ctx,10,0,v.colorB,2,28+age*23,life*.22);
+    luminousPool(ctx,0,0,'#ffffff',3,44+age*30,life*force*.40);
+    luminousPool(ctx,-8,0,v.colorA,2,39+age*18,life*.29);
+    luminousPool(ctx,8,0,v.colorB,2,39+age*18,life*.29);
     ctx.globalCompositeOperation='source-over';
-    ctx.lineCap='round';
-    // Compressed core, directional sparks and a quickly dissolving afterimage.
-    for(let i=0;i<7;i++){
-      const y=(i-3)*6.7;
-      const spread=(13+age*35)*(1-Math.abs(i-3)*.09)*power;
-      ctx.strokeStyle=i===3?'#ffffff':i<3?v.colorA:v.colorB;
-      ctx.lineWidth=i===3?3.2:1.55;
-      ctx.globalAlpha=life*(i===3?.92:.75);
+    // Compression is instantaneous; a coherent radial shock ring follows.
+    ctx.strokeStyle='#f4ffff';ctx.lineWidth=heavy?2.6:1.5;
+    ctx.globalAlpha=life*(heavy?.76:.48);
+    ctx.beginPath();
+    ctx.ellipse(0,0,9+age*(heavy?38:24),
+      7+age*(heavy?26:16),0,0,Math.PI*2);
+    ctx.stroke();
+    ctx.lineCap='round';ctx.lineJoin='round';
+    // Directional shards fly from collision normal, never from random screen
+    // positions and never persist as long streaks behind the racer.
+    for(let k=0;k<(heavy?9:5);k++){
+      const t=(k-(heavy?4:2))*.42;
+      const theta=(k%2?1:-1)*.18+t;
+      const spread=(11+age*(heavy?41:28))*(.74+.24*Math.abs(Math.sin(t)));
+      const x=Math.cos(theta)*spread;
+      const y=Math.sin(theta)*spread;
+      const sign=k%2?-1:1;
+      ctx.strokeStyle=k%3===0?'#ffffff':sign<0?v.colorA:v.colorB;
+      ctx.lineWidth=k%3===0?2.7:1.65;
+      ctx.globalAlpha=life*(heavy?.84:.53);
       ctx.beginPath();
-      ctx.moveTo(-spread,y);ctx.lineTo(spread,y);ctx.stroke();
+      ctx.moveTo(x*.62*sign,y*.62);
+      ctx.lineTo(x*sign,y);ctx.stroke();
     }
-    for(let k=0;k<8;k++){
-      const t=k*Math.PI*2/8+.35;
-      const dist=(9+age*32)*power;
-      const x=Math.cos(t)*dist,y=Math.sin(t)*dist*.65;
-      ctx.globalAlpha=life*.65;
-      ctx.strokeStyle=k%2?'#e5ffff':k<4?v.colorA:v.colorB;
-      ctx.lineWidth=1.6;
-      ctx.beginPath();ctx.moveTo(x*.70,y*.70);ctx.lineTo(x,y);
-      ctx.stroke();
-    }
+    // Brief bright contact core. Dash hits read as distinct energy clashes.
     if(v.charged){
-      ctx.globalAlpha=life*.65;
-      ctx.strokeStyle='#ffffff';ctx.lineWidth=1.7;
-      ctx.beginPath();
-      ctx.ellipse(0,0,17+age*31,10+age*24,0,0,Math.PI*2);
-      ctx.stroke();
+      ctx.globalAlpha=Math.pow(life,1.55)*.83;
+      ctx.strokeStyle='#ffffff';ctx.lineWidth=2.3;
+      ctx.beginPath();ctx.moveTo(-8,-8);ctx.lineTo(0,-13);
+      ctx.lineTo(8,-8);ctx.moveTo(-8,8);ctx.lineTo(0,13);
+      ctx.lineTo(8,8);ctx.stroke();
     }
     ctx.restore();
   }
@@ -905,8 +1034,12 @@ function loop(now){
       CORE.tick(race,input,CORE.STEP);
       accumulator-=CORE.STEP;loops++;
     }
-    if(race.finished)finish();
-    updateHud();
+    if(race.finished){
+      // Show the physical finish flare before the result overlay.
+      if(!finishPendingAt)finishPendingAt=now+(reduced()?0:760);
+      if(now>=finishPendingAt)finish();
+    }
+    if(mode==='playing')updateHud();
   }
   const m=race||preview;
   if(camera&&m){
@@ -938,6 +1071,9 @@ root.ChromaCircuitViewDebug={
       targetZoom:camera.targetZoom,lookAhead:camera.lookAhead,
       updates:camera.updates}:null,
     tiles:tileCache.size,tileBuilds,tileHits,
+    premiumMotion:motionSnapshot,
+    finishPending:finishPendingAt>0,
+    moment:($('circuit-announce').dataset.moment||'neutral'),
     spectacles:(race||preview).spectacles.length,
     arena:arenaLighting(race||preview),
     course:(race||preview).track.courseId,

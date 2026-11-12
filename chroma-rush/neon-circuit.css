@@ -1,4 +1,4 @@
-/* NEON CIRCUIT 2.1 — cohesive Chroma Rush premium arcade racing.
+/* NEON CIRCUIT 2.7 — Premium Motion & Visual Cohesion.
  * The physical track is rendered in Canvas; CSS only touches UI/chrome. */
 #circuit-shell{
  position:relative;isolation:isolate;width:100vw;height:100vh;height:100dvh;
@@ -48,7 +48,8 @@
  transition:background 90ms,transform 90ms;min-width:81px;
 }
 #circuit-brake{width:clamp(92px,17vh,125px);height:clamp(92px,17vh,125px);
- border-radius:26px}
+ border-radius:26px;background:linear-gradient(155deg,rgba(10,35,54,.93),rgba(7,15,32,.89));
+ box-shadow:inset 0 1px rgba(218,252,255,.19),inset 0 -16px 20px rgba(5,14,32,.2),0 0 19px rgba(28,164,211,.14)}
 #circuit-dash{width:clamp(85px,15vh,115px);height:clamp(85px,15vh,115px);
  border-radius:25px;background:linear-gradient(140deg,rgba(54,29,64,.89),
  rgba(18,19,49,.86));border-color:rgba(255,133,189,.72);color:#ffadd9}
@@ -58,10 +59,39 @@
 }
 #circuit-dash.recharging{opacity:.55;border-color:rgba(190,119,162,.38);color:#a78ba9}
 .circuit-announce{
- position:absolute;z-index:6;top:20%;left:50%;transform:translateX(-50%);
+ position:absolute;z-index:6;top:19%;left:50%;transform:translateX(-50%);
  color:#edfaff;text-align:center;pointer-events:none;
- font-size:clamp(13px,2vw,24px);letter-spacing:.19em;font-weight:900;
- text-shadow:0 0 17px rgba(63,238,255,.42);
+ white-space:nowrap;max-width:85vw;
+ font-size:clamp(13px,2vw,24px);letter-spacing:.17em;font-weight:900;
+ text-shadow:0 1px 1px rgba(2,9,27,.7),0 0 14px rgba(66,230,247,.32);
+}
+.circuit-announce[data-moment="ready"]{color:#d4eaf6;letter-spacing:.15em}
+.circuit-announce[data-moment="go"]{color:#f4ffff;font-size:clamp(26px,4.2vw,52px);
+ letter-spacing:.27em;text-shadow:0 0 22px rgba(60,245,255,.72)}
+.circuit-announce[data-moment="zone"]{color:#9cf6ff}
+.circuit-announce[data-moment="impact"],
+.circuit-announce[data-moment="knockout"]{color:#ffcfec;
+ text-shadow:0 0 19px rgba(251,109,178,.46)}
+.circuit-announce[data-moment="lap"]{color:#f7ffff}
+.circuit-announce[data-moment="fall"]{color:#fcbed2}
+.circuit-announce[data-moment="boost"]{color:#b9ffff}
+.circuit-announce.moment-enter{animation:circuit-moment-enter .48s cubic-bezier(.18,.79,.22,1.01) both}
+@keyframes circuit-moment-enter{
+ 0%{opacity:0;transform:translate(-50%,12px) scale(.89);filter:brightness(1.7)}
+ 43%{opacity:1;transform:translate(-50%,-3px) scale(1.065)}
+ 100%{opacity:1;transform:translate(-50%,0) scale(1);filter:brightness(1)}
+}
+#circuit-zone.zone-shift{animation:circuit-zone-surge .85s ease-out}
+@keyframes circuit-zone-surge{
+ 0%{transform:scale(.9);opacity:.55;filter:brightness(2)}
+ 43%{transform:scale(1.09);opacity:1}
+ 100%{transform:scale(1);filter:brightness(1)}
+}
+#circuit-place.place-swap{animation:circuit-rank-shift .54s cubic-bezier(.17,.82,.21,1)}
+@keyframes circuit-rank-shift{
+ 0%{opacity:.45;transform:translateY(6px)}
+ 55%{opacity:1;transform:translateY(-2px)}
+ 100%{transform:translateY(0)}
 }
 #circuit-input-help{z-index:5}
 #circuit-menu h1{font-size:clamp(34px,6.9vw,79px)}
@@ -98,4 +128,31 @@
 }
 @media(prefers-reduced-motion:reduce){
  .circuit-actions button{transition:none}
+}
+
+/* One consistent event language. Keep the playing screen unobstructed:
+   the finish panel enters AFTER the track flare, never during the crossing. */
+#circuit-shell .hud-left,#circuit-shell .hud-center,#circuit-shell .hud-right{
+ filter:drop-shadow(0 1px 2px rgba(1,5,16,.55));
+}
+#circuit-zone{font-variant-numeric:tabular-nums}
+#circuit-shell #circuit-brake.pressed{
+ border-color:rgba(198,249,255,.92);
+ box-shadow:inset 0 0 24px rgba(37,184,233,.24),0 0 22px rgba(48,200,255,.29);
+}
+#circuit-finish:not(.hidden) h2{
+ animation:circuit-result-arrive .56s cubic-bezier(.2,.75,.25,1) both;
+ text-shadow:0 0 27px rgba(101,235,255,.3);
+}
+#circuit-finish:not(.hidden) .result-stats{
+ animation:circuit-result-arrive .68s .08s both;
+}
+@keyframes circuit-result-arrive{
+ from{opacity:0;transform:translateY(17px) scale(.975)}
+ to{opacity:1;transform:translateY(0) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+ .circuit-announce.moment-enter,#circuit-zone.zone-shift,
+ #circuit-place.place-swap,#circuit-finish:not(.hidden) h2,
+ #circuit-finish:not(.hidden) .result-stats{animation:none}
 }

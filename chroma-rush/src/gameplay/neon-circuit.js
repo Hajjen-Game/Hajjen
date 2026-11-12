@@ -467,15 +467,15 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   drawBankedEdges(g,track,rect,primary,secondary,tileKey);
   drawBoostPads(g,track,rect,primary,secondary);
   // Small light studs/curb marks. Skip markers outside the current tile.
-  for(let distance=28;distance<track.length;distance+=34){
-    const p=CORE.pointAt(distance,track);
+  for(const i of track.renderTileStuds.get(tileKey)||[]){
+    const p=track.studs[i];
     if(p.x<rect.minX-10||p.x>rect.maxX+10||
-        p.y<rect.minY-10||p.y>rect.maxY+10)continue;
+       p.y<rect.minY-10||p.y>rect.maxY+10)continue;
     for(const side of [-1,1]){
       g.save();g.translate(p.x+p.nx*side*CORE.TRACK_HALF,
         p.y+p.ny*side*CORE.TRACK_HALF);
       g.rotate(p.angle);
-      g.fillStyle=rgb((Math.floor(distance/84)%2)?primary:'#d5efff',.54);
+      g.fillStyle=rgb((Math.floor(p.distance/84)%2)?primary:'#d5efff',.54);
       g.fillRect(-5,side===1?-3:0,11,3);g.restore();
     }
   }

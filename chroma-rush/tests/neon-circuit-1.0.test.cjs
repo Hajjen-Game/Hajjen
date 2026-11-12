@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Neon Circuit 2.6 Spectral Arena & Impact Language regression */
+/* CHROMA RUSH — Neon Circuit 2.6.1 Auto Throttle & Manual Steering regression */
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -221,35 +221,65 @@ test('2.4 three in-road boost pads trigger without collecting a power-up',()=>{
   assert.ok(me.speed>185&&me.boostTime>0);
   assert.ok(race.events.some(e=>e.type==='boost'&&e.pad===0&&e.player===0));
 });
-test('2.1 neutral joystick never secretly drives or steers the cube',()=>{
+test('2.6.1 centered joystick accelerates automatically without steering',()=>{
   const r=C.seededRace(42);r.phase='running';
-  const p=r.racers[0],x=p.x,y=p.y,heading=p.angle;
-  for(let i=0;i<120;i++)C.tick(r,{},C.STEP);
-  assert.equal(p.speed,0);
-  assert.ok(Math.hypot(p.x-x,p.y-y)<.01);
-  assert.equal(p.angle,heading);
-  assert.equal(p.gatePasses,0);
-  assert.ok(p.coastSeconds>1.9);
-  // Aiming right now provides all propulsion; release decelerates.
-  for(let i=0;i<60;i++)C.tick(r,{x:1,y:0},C.STEP);
-  assert.ok(p.speed>140,'hold-stick speed: '+p.speed);
-  assert.ok(p.x>x+50,'manual acceleration failed');
-  assert.ok(p.driveSeconds>.9);
-  const headingDriven=p.angle;
-  for(let i=0;i<65;i++)C.tick(r,{},C.STEP);
-  assert.equal(p.speed,0,'neutral must coast to a stop');
-  assert.equal(p.angle,headingDriven,'no invisible corner tracking');
+  for(const other of r.racers.slice(1))other.finished=true;
+  const p=r.racers[0],at=C.pointAt(250,r.track);
+  p.x=at.x;p.y=at.y;p.angle=at.angle;p.speed=0;p.vx=0;p.vy=0;
+  for(let i=0;i<48;i++)C.tick(r,{},C.STEP);
+  assert.ok(p.speed>100,'neutral stick must accelerate: '+p.speed);
+  assert.ok(Math.hypot(p.x-at.x,p.y-at.y)>40,'auto drive must move cube');
+  assert.equal(p.angle,at.angle,'no hidden line-following autopilot');
+  assert.ok(p.driveSeconds>.7);
+  assert.ok(p.neutralSteerSeconds>.7);
+  assert.equal(C.audit(r).summary.controlMode,'auto-throttle-manual-steering');
 });
-test('2.1 player can turn against the line and cannot dash from rest',()=>{
+test('2.6.1 release preserves last heading and Brake works without steering',()=>{
+  const setup=()=>{
+    const r=C.seededRace(54);r.phase='running';
+    for(const other of r.racers.slice(1))other.finished=true;
+    const p=r.racers[0],at=C.pointAt(250,r.track);
+    p.x=at.x;p.y=at.y;p.angle=at.angle;p.speed=165;
+    p.vx=at.tx*165;p.vy=at.ty*165;
+    return {r,p};
+  };
+  const first=setup();
+  for(let i=0;i<7;i++)C.tick(first.r,{x:0,y:1},C.STEP);
+  assert.ok(first.p.angle>.25,'joystick must change heading');
+  const angle=first.p.angle;
+  for(let i=0;i<7;i++)C.tick(first.r,{},C.STEP);
+  assert.equal(first.p.angle,angle,'releasing stick must keep last heading');
+  assert.ok(first.p.speed>130,'releasing stick should not stop throttle');
+  const normal=setup(),braked=setup();
+  for(let i=0;i<7;i++){
+    C.tick(normal.r,{},C.STEP);
+    C.tick(braked.r,{brake:true},C.STEP);
+  }
+  assert.ok(braked.p.speed<normal.p.speed,'brake should slow auto throttle');
+  assert.ok(braked.p.brakeSeconds>.10,'brake works with neutral joystick');
+});
+test('2.6.1 Dash works hands-free after accelerating, not from rest',()=>{
   const r=C.seededRace(54);r.phase='running';
-  const p=r.racers[0],start=p.angle;
+  for(const other of r.racers.slice(1))other.finished=true;
+  const p=r.racers[0],at=C.pointAt(250);
+  p.x=at.x;p.y=at.y;p.angle=at.angle;p.speed=0;
   C.tick(r,{dash:true},C.STEP);
-  assert.equal(p.dashes,0,'idle dash is not propulsion');
-  for(let i=0;i<30;i++)C.tick(r,{x:0,y:1},C.STEP);
-  assert.ok(C.angleDelta(start,p.angle)>1,'joystick controls heading');
-  assert.ok(p.speed>40);
-  C.tick(r,{x:0,y:1,dash:true},C.STEP);
-  assert.equal(p.dashes,1);
+  assert.equal(p.dashes,0,'cannot dash when virtually stationary');
+  for(let i=0;i<28;i++)C.tick(r,{},C.STEP);
+  assert.ok(p.speed>65);
+  C.tick(r,{dash:true},C.STEP);
+  assert.equal(p.dashes,1,'Dash button should work without touching joystick');
+});
+test('2.6.1 GO enables automatic acceleration, countdown remains still',()=>{
+  const r=C.seededRace(91);
+  const p=r.racers[0],x=p.x,y=p.y;
+  for(let i=0;i<100;i++)C.tick(r,{},C.STEP);
+  assert.equal(p.speed,0);
+  assert.equal(p.x,x);assert.equal(p.y,y);
+  for(let i=0;i<50;i++)C.tick(r,{},C.STEP);
+  assert.equal(r.phase,'running');
+  for(let i=0;i<25;i++)C.tick(r,{},C.STEP);
+  assert.ok(p.speed>30,'auto throttle should engage after GO');
 });
 test('2.2 the road edge is fallable with momentum, not invisible autopilot',()=>{
   const r=C.seededRace(19);r.phase='running';
@@ -579,7 +609,10 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
     'circuit-brake','circuit-dash','circuit-pause','circuit-fullscreen',
     'circuit-export','circuit-export-pause'])
       assert.ok(html.includes('id="'+id+'"'),id);
-  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.6'));
+  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.6.1'));
+  assert.ok(html.includes('AUTO THROTTLE'));
+  assert.ok(html.includes('ACCELERATION IS AUTOMATIC'));
+  assert.ok(js.includes('dash.disabled=me.dashCooldown>.08||me.speed<45;'));
   assert.ok(js.includes("requestFullscreen"));
   assert.ok(js.includes('JSON.stringify(CORE.audit(race)'));
   assert.ok(js.includes('getInput()'));
@@ -587,8 +620,8 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
 test('Run audit 2.3 includes falls, AI aggression and the spectral wave without private input history',()=>{
   const r=run(77);
   const a=C.audit(r);
-  assert.equal(a.schema,'neon-circuit-run-audit/2.6');
-  assert.equal(a.build,'neon-circuit-2.6');
+  assert.equal(a.schema,'neon-circuit-run-audit/2.6.1');
+  assert.equal(a.build,'neon-circuit-2.6.1');
   assert.equal(a.courseId,'spectral-highway');
   assert.ok(a.trackLength>4600);
   assert.equal(a.summary.cameraMode,'close-follow-damped-zoom');
@@ -598,7 +631,8 @@ test('Run audit 2.3 includes falls, AI aggression and the spectral wave without 
   assert.deepEqual(a.summary.rivalStyles,['precision','aggressive','opportunist']);
   assert.equal(a.summary.spectacleMode,'layered-world-lighting-impact-2.6');
   assert.ok(a.summary.boostPeak>=0);
-  assert.equal(a.summary.controlMode,'hold-to-drive-manual-steering');
+  assert.equal(a.summary.controlMode,'auto-throttle-manual-steering');
+  assert.ok(a.summary.neutralSteerSeconds>=0);
   assert.ok(a.summary.driveSeconds>20);
   assert.equal(a.summary.lapValidation,'four-ordered-physical-gates');
   assert.equal(a.summary.waveMode,'spectral-feather-offscreen-origin');

@@ -9,10 +9,10 @@ test('Neon Circuit is a distinct closed-track racing game, not trail-survival',(
   assert.equal(c.LAPS_TO_WIN,3);
   assert.equal(c.ZONE_SECONDS,10);
   assert.equal(c.NAMES.length,4);
-  assert.equal(c.NODES.length,8);
-  assert.equal(c.TRACK.layout,'straight-arc');
-  assert.deepEqual(c.TRACK.segmentKinds,['straight','quarter-arc','soft-chicane']);
-  assert.ok(c.TRACK.length>1200&&c.TRACK.length<1900,c.TRACK.length);
+  assert.ok(c.NODES.length>=10);
+  assert.equal(c.TRACK.layout,'full-span-rounded-polyline');
+  assert.deepEqual(c.TRACK.segmentKinds,['straight','rounded-corner']);
+  assert.ok(c.TRACK.length>1500&&c.TRACK.length<2200,c.TRACK.length);
   assert.ok(c.TRACK.pointCount>150);
   const a=c.TRACK.samples[0],b=c.TRACK.samples.at(-1);
   assert.ok(Math.hypot(a.x-b.x,a.y-b.y)<EPS);
@@ -54,7 +54,9 @@ test('Three separate hand-designed circuits contain different gentle turns and r
     assert.equal(m.track,t);
     assert.equal(m.gates.length,4);
     assert.equal(m.track.name,c.COURSE_NAMES[k]);
-    assert.ok(t.length>1400&&t.length<1900,t.length);
+    assert.ok(t.length>1600&&t.length<2200,t.length);
+    assert.ok(t.coverage.width>=.87&&t.coverage.height>=.72,
+      'world track must occupy most of the landscape playfield');
     assert.ok(Math.hypot(t.samples[0].x-t.samples.at(-1).x,
       t.samples[0].y-t.samples.at(-1).y)<1e-5);
     assert.ok(m.racers.every(p=>p.progress<0));
@@ -127,6 +129,61 @@ test('Circuit visual palette affects road only; atmosphere is static across zone
   assert.ok(js.includes('appendRoadSlice'));
   assert.ok(js.includes('drawWaveFront'));
   assert.ok(js.includes('getStatic(z-1,track)'));
+});
+test('1.3 courses are actually full-span silhouettes with purposeful straight runs',()=>{
+  const expected=['full-span-loop','wide-corner-cut','lower-sweep-hook'];
+  assert.deepEqual(c.TRACKS.map(t=>t.courseId),expected);
+  assert.ok(c.TRACKS.every(t=>t.bounds.minX<105&&t.bounds.maxX>855));
+  assert.ok(c.TRACKS.every(t=>t.bounds.minY<=115&&t.bounds.maxY>425));
+  // At least a substantial flat top straight remains near the start line;
+  // no sinusoidal deformation of the entire upper course.
+  for(const t of c.TRACKS){
+    const path=t.samples;
+    let longestStraight=0,run=0;
+    for(let i=1;i<path.length;i++){
+      const p=path[i-1],q=path[i];
+      if(Math.abs(p.y-q.y)<.000001&&Math.abs(p.y-115)<1)
+        run+=Math.hypot(p.x-q.x,p.y-q.y);
+      else {longestStraight=Math.max(longestStraight,run);run=0;}
+    }
+    assert.ok(Math.max(longestStraight,run)>220,t.name);
+  }
+});
+test('1.3 road ribbons never cross or compress into impassable choke points',()=>{
+  for(const t of c.TRACKS){
+    let minimum=Infinity,minRadius=Infinity;
+    const pts=t.samples;
+    for(let i=1;i<pts.length-1;i++){
+      const a=pts[i-1],b=pts[i],d=pts[i+1];
+      const before=Math.atan2(b.y-a.y,b.x-a.x),
+        after=Math.atan2(d.y-b.y,d.x-b.x);
+      const bend=Math.abs(c.angleDelta(before,after));
+      if(bend>1e-4){
+        const radius=Math.hypot(d.x-b.x,d.y-b.y)/bend;
+        minRadius=Math.min(minRadius,radius);
+      }
+      for(let j=i+1;j<pts.length-1;j++){
+        const q=pts[j],sep=Math.abs(q.s-b.s),
+          along=Math.min(sep,t.length-sep);
+        if(along<170)continue;
+        minimum=Math.min(minimum,Math.hypot(b.x-q.x,b.y-q.y));
+      }
+    }
+    assert.ok(minimum>2*c.TRACK_HALF+35,
+      t.name+' neighboring road sections too close: '+minimum);
+    assert.ok(minRadius>42,
+      t.name+' corner turns sharply: '+minRadius);
+  }
+});
+test('1.3 panoramic renderer uses all of wide displays without squashing glass cubes',()=>{
+  const ui=read('src/gameplay/neon-circuit.js');
+  assert.match(ui,/scaleX=viewW\/WIDTH;scaleY=viewH\/HEIGHT/);
+  assert.match(ui,/ctx\.scale\(scaleX,scaleY\)/);
+  assert.match(ui,/ctx\.scale\(spriteScale\*scaleY\/scaleX,spriteScale\)/);
+  assert.match(ui,/x\*=scaleY\/scaleX/);
+  // These preserve the requested Track Tide effect, not a screen tint.
+  assert.match(ui,/clipWaveRepaint\(ctx,track,wave\)/);
+  assert.match(ui,/drawWaveFront\(ctx,track,wave/);
 });
 test('Countdown starts safely and 10-second color zones increase real racing speed',()=>{
   const m=c.seededRace(123),p=m.racers[0];
@@ -251,7 +308,7 @@ test('Shortcuts do not grant laps and results can be exported for arcade cup lat
   assert.equal(p.laps,0);
   assert.ok(p.progress<=before+12);
   const data=c.audit(m);
-  assert.equal(data.schema,'neon-circuit-run-audit/1.2');
+  assert.equal(data.schema,'neon-circuit-run-audit/1.3');
   assert.equal(data.summary.lapValidation,'four-ordered-physical-gates');
   assert.equal(data.summary.lapsCompleted,0);
   assert.equal(data.racers.length,4);

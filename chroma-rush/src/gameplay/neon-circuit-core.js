@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.3: Rival Pressure & Spectral Track Tide
+/* CHROMA RUSH — NEON CIRCUIT 2.4: Authored GP Geometry & Banked Racing
  * Hold the joystick to drive and aim to steer. Releasing coasts instead
  * of falling back to invisible autopilot; AI remains track guided. */
 (function(root,factory){
@@ -11,7 +11,7 @@ const WIDTH=960,HEIGHT=540,CX=480,CY=270;
 const TRACK_HALF=47,PLAYER_RADIUS=11;
 const RAMP_START=TRACK_HALF-PLAYER_RADIUS-1;
 const FALL_SECONDS=.72,RESPAWN_GRACE=.92;
-const FALL_EDGE=TRACK_HALF-1.5; // Center fully crosses the lip.
+const FALL_EDGE=TRACK_HALF+17; // Base outer ramp edge, extended in banked curves.
 const IMPACT_COOLDOWN=.64,IMPACT_FRICTION=.91;
 const ZONE_SECONDS=10,LAPS_TO_WIN=3,READY_SECONDS=2.4,STEP=1/60;
 const MAX_RACE_SECONDS=165;
@@ -24,17 +24,14 @@ const DASH_TIME=.34,DASH_COOLDOWN=5.4;
 // Only a small fraction of this multi-screen world is visible at once.
 const TRACK_SHAPE=Object.freeze({left:240,right:2260,top:185,bottom:1300,radius:160});
 const COURSE_PROFILES=Object.freeze([
-  {id:'spectral-highway',name:'SPECTRAL GP',cornerCut:180,
+  {id:'spectral-highway',name:'SPECTRAL GP',cornerCut:128,
+    // Deliberately authored GP rhythm: long straights, outer hairpins, then
+    // one technical infield chicane. Circular fillets, not Bézier wobble.
     waypoints:[
-      [640,260],[1470,260],        // full-throttle opening straight
-      [1740,240],[2010,400],       // offset entry and flowing right bend
-      [2260,510],[2350,760],       // wide outside hairpin
-      [2140,1020],[1880,1080],     // recovery straight
-      [1640,1020],[1410,810],      // broad technical S
-      [1150,830],[1010,1100],      // distinct infield chicane
-      [710,1300],[430,1250],      // lower acceleration zone
-      [250,1010],[250,730],       // left-hand climbing hairpin
-      [400,470]                   // forgiving run back to the grid
+      [620,260],[1580,260],[2100,330],[2340,650],
+      [2130,1010],[1810,1080],[1480,790],
+      [1170,840],[900,1190],[510,1260],
+      [250,930],[320,570]
     ]}
 ]);
 const NODES=COURSE_PROFILES[0].waypoints;
@@ -52,43 +49,65 @@ const rand=seed=>{let n=(seed>>>0)||0x6e624eb7;
 function makeTrack(shape=TRACK_SHAPE,steps=20,variant=0){
   const index=mod(Math.floor(variant),COURSE_PROFILES.length);
   const profile=COURSE_PROFILES[index],vertices=profile.waypoints;
-  const n=vertices.length,spacing=Math.max(4,Math.min(10,steps*.40));
-  const incoming=[],outgoing=[];
+  const n=vertices.length,spacing=Math.max(4,Math.min(8,steps*.35));
+  const corners=[];
   for(let i=0;i<n;i++){
-    const p=vertices[(i+n-1)%n],v=vertices[i],q=vertices[(i+1)%n];
-    const dx=v[0]-p[0],dy=v[1]-p[1],nextX=q[0]-v[0],nextY=q[1]-v[1];
-    const before=hypot(dx,dy),after=hypot(nextX,nextY);
-    if(before<60||after<60)throw Error('World circuit segment too short');
-    const cut=Math.min(profile.cornerCut,before*.44,after*.44);
-    incoming.push({x:v[0]-dx/before*cut,y:v[1]-dy/before*cut});
-    outgoing.push({x:v[0]+nextX/after*cut,y:v[1]+nextY/after*cut});
+    const prev=vertices[(i+n-1)%n],v=vertices[i],next=vertices[(i+1)%n];
+    const di=[v[0]-prev[0],v[1]-prev[1]];
+    const dout=[next[0]-v[0],next[1]-v[1]];
+    const li=hypot(...di),lo=hypot(...dout);
+    if(li<85||lo<85)throw Error('World circuit segment too short');
+    const ui=[di[0]/li,di[1]/li],uo=[dout[0]/lo,dout[1]/lo];
+    const turn=Math.atan2(ui[0]*uo[1]-ui[1]*uo[0],
+      ui[0]*uo[0]+ui[1]*uo[1]);
+    if(Math.abs(turn)>.01){
+      const cut=Math.min(profile.cornerCut,li*.30,lo*.30);
+      const radius=cut/Math.tan(Math.abs(turn)/2),sign=Math.sign(turn);
+      const entry={x:v[0]-ui[0]*cut,y:v[1]-ui[1]*cut};
+      const exit={x:v[0]+uo[0]*cut,y:v[1]+uo[1]*cut};
+      const cx=entry.x-ui[1]*sign*radius;
+      const cy=entry.y+ui[0]*sign*radius;
+      corners.push({entry,exit,cx,cy,radius,turn,
+        startAngle:Math.atan2(entry.y-cy,entry.x-cx),sign});
+    }else corners.push({entry:{x:v[0],y:v[1]},
+      exit:{x:v[0],y:v[1]},radius:Infinity,turn:0,sign:0});
   }
-  const samples=[],push=(x,y)=>{
-    const prev=samples[samples.length-1];
-    if(prev&&hypot(prev.x-x,prev.y-y)<1e-6)return;
+  const samples=[],parts=[];
+  const push=(x,y)=>{
+    const last=samples[samples.length-1];
+    if(last&&hypot(last.x-x,last.y-y)<1e-7)return;
     samples.push({x,y});
   };
-  push(outgoing[0].x,outgoing[0].y);
+  push(corners[0].exit.x,corners[0].exit.y);
   for(let i=0;i<n;i++){
-    const j=(i+1)%n,from=outgoing[i],to=incoming[j],
-      distance=hypot(to.x-from.x,to.y-from.y),
-      count=Math.max(2,Math.ceil(distance/spacing));
-    for(let k=1;k<=count;k++){
-      const t=k/count;
-      push(from.x+(to.x-from.x)*t,from.y+(to.y-from.y)*t);
+    const j=(i+1)%n,from=corners[i].exit,to=corners[j].entry;
+    const lineLength=hypot(to.x-from.x,to.y-from.y);
+    let start=samples.length-1;
+    const straightSteps=Math.max(2,Math.ceil(lineLength/spacing));
+    for(let k=1;k<=straightSteps;k++){
+      const t=k/straightSteps;push(from.x+(to.x-from.x)*t,
+        from.y+(to.y-from.y)*t);
     }
-    const v=vertices[j],exit=outgoing[j],
-      bendLength=hypot(to.x-v[0],to.y-v[1])+hypot(exit.x-v[0],exit.y-v[1]),
-      arcCount=Math.max(8,Math.ceil(bendLength/spacing));
-    for(let k=1;k<=arcCount;k++){
-      const t=k/arcCount,u=1-t;
-      push(u*u*to.x+2*u*t*v[0]+t*t*exit.x,
-        u*u*to.y+2*u*t*v[1]+t*t*exit.y);
+    parts.push({kind:'straight',i0:start,i1:samples.length-1,
+      length:lineLength,curvature:0});
+    start=samples.length-1;
+    const c=corners[j];
+    if(c.sign){
+      const count=Math.max(8,Math.ceil(c.radius*Math.abs(c.turn)/spacing));
+      for(let k=1;k<=count;k++){
+        const angle=c.startAngle+c.turn*k/count;
+        push(c.cx+Math.cos(angle)*c.radius,
+          c.cy+Math.sin(angle)*c.radius);
+      }
+      parts.push({kind:'arc',i0:start,i1:samples.length-1,
+        radius:c.radius,turn:c.turn,sign:c.sign,
+        length:c.radius*Math.abs(c.turn),curvature:c.sign/c.radius});
     }
   }
   const first=samples[0],last=samples[samples.length-1];
-  if(hypot(first.x-last.x,first.y-last.y)>1e-5)
-    samples.push({x:first.x,y:first.y});
+  if(hypot(first.x-last.x,first.y-last.y)>.001)
+    throw Error('circular GP course does not close');
+  samples[samples.length-1]={x:first.x,y:first.y};
   let total=0;samples[0].s=0;
   const bounds={minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity};
   for(let i=0;i<samples.length;i++){
@@ -100,13 +119,40 @@ function makeTrack(shape=TRACK_SHAPE,steps=20,variant=0){
   if(total<4000||total>6500)throw Error('World circuit length out of range');
   if(bounds.maxX-bounds.minX<1600||bounds.maxY-bounds.minY<850)
     throw Error('World circuit too small for follow-camera racing');
+  const sections=parts.map(part=>({...part,
+    start:samples[part.i0].s,end:samples[part.i1].s}));
+  // Three boost lanes on the three longest STRAIGHT sections; never inside
+  // a turn. Choose offsets to make overtaking a deliberate route decision.
+  const candidates=sections.filter(p=>p.kind==='straight'&&p.length>185)
+    .sort((a,b)=>b.length-a.length).slice(0,3)
+    .sort((a,b)=>a.start-b.start);
+  const boosts=candidates.map((part,id)=>({
+    id,s:part.start+part.length*.57,halfLength:38,
+    lane:[-16,15,0][id],halfWidth:14,
+    duration:1.05,factor:1.19,section:'straight'
+  }));
   return {samples,length:total,half:TRACK_HALF,
-    pointCount:samples.length,shape:{...shape},variant:index,
-    courseId:profile.id,name:profile.name,bounds,
+    sections,boosts,pointCount:samples.length,shape:{...shape},
+    variant:index,courseId:profile.id,name:profile.name,bounds,
     coverage:{width:(bounds.maxX-bounds.minX+2*TRACK_HALF)/WIDTH,
       height:(bounds.maxY-bounds.minY+2*TRACK_HALF)/HEIGHT},
     layout:'multi-screen-world-track',
-    segmentKinds:['straight','rounded-corner','hairpin','sweep']};
+    segmentKinds:['straight','constant-radius-arc','banked-hairpin']};
+}
+function bankingAt(s,track=TRACK){
+  const distance=mod(s,track.length);
+  const part=track.sections.find(p=>p.start<=distance&&p.end>=distance);
+  if(!part||part.kind!=='arc')return {bank:0,sign:0,radius:Infinity};
+  const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
+  const fade=smooth(Math.min(distance-part.start,part.end-distance)/43);
+  return {bank:fade*clamp(315/part.radius,.4,1),
+    sign:part.sign,radius:part.radius};
+}
+function edgeAt(s,side=1,track=TRACK){
+  const bank=bankingAt(s,track),outer=bank.sign*side<0;
+  const extra=(outer?12:3)*bank.bank;
+  return {limit:FALL_EDGE+extra,bank:bank.bank,outer,
+    sign:bank.sign,radius:bank.radius};
 }
 const TRACKS=COURSE_PROFILES.map((_,index)=>makeTrack(TRACK_SHAPE,20,index));
 const TRACK=TRACKS[0];

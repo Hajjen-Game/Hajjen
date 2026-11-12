@@ -101,6 +101,7 @@ function makeTrack(shape=TRACK_SHAPE,steps=20,variant=0){
       }
       parts.push({kind:'arc',i0:start,i1:samples.length-1,
         radius:c.radius,turn:c.turn,sign:c.sign,
+        cx:c.cx,cy:c.cy,
         length:c.radius*Math.abs(c.turn),curvature:c.sign/c.radius});
     }
   }

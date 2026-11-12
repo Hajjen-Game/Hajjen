@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.1: Player-Driven Racing
+/* CHROMA RUSH — NEON CIRCUIT 2.2: Roller Physics & Edge Ejection
  * Hold the joystick to drive and aim to steer. Releasing coasts instead
  * of falling back to invisible autopilot; AI remains track guided. */
 (function(root,factory){
@@ -10,8 +10,9 @@
 const WIDTH=960,HEIGHT=540,CX=480,CY=270;
 const TRACK_HALF=47,PLAYER_RADIUS=11;
 const RAMP_START=TRACK_HALF-PLAYER_RADIUS-1;
-const FALL_SECONDS=.72,RESPAWN_GRACE=1.22;
-const IMPACT_COOLDOWN=.64,IMPACT_FRICTION=.855;
+const FALL_SECONDS=.72,RESPAWN_GRACE=.92;
+const FALL_EDGE=TRACK_HALF-1.5; // Center fully crosses the lip.
+const IMPACT_COOLDOWN=.58,IMPACT_FRICTION=.88;
 const ZONE_SECONDS=10,LAPS_TO_WIN=3,READY_SECONDS=2.4,STEP=1/60;
 const MAX_RACE_SECONDS=165;
 const COLOR_WAVE_SECONDS=1.45;
@@ -169,8 +170,9 @@ function seededRace(seed=20261111,courseId=0){
       aiTempo:id===0?1:.97+id*.024+(random()-.5)*.06,
       contactFlash:0,gatePasses:0,lastGateTime:null,impactCooldown:0,impulseX:0,impulseY:0,
       knockSeconds:0,falls:0,knockouts:0,fallTimer:0,
-      respawns:0,invulnerable:0,lastAttacker:null,unsafeImpact:false,
-       driveSeconds:0,coastSeconds:0};
+      respawns:0,invulnerable:0,lastAttacker:null,lastImpactAt:-100,
+      unsafeImpact:false,fallVX:0,fallVY:0,fallAnchorX:0,
+      fallAnchorY:0,edgeExposure:0,driveSeconds:0,coastSeconds:0};
   });
   const race={seed,random,racers,track,gates,courseIndex,
     ready:READY_SECONDS,elapsed:0,
@@ -180,7 +182,7 @@ function seededRace(seed=20261111,courseId=0){
     impacts:[],contactPairs:{},performance:{
       frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     quality:'auto'};
-  log(race,'race_start',{mode:'neon-circuit-2.1',laps:LAPS_TO_WIN,
+  log(race,'race_start',{mode:'neon-circuit-2.2',laps:LAPS_TO_WIN,
     trackLength:Math.round(track.length),track:track.courseId,
     course:track.name,impact:'ejection-and-respawn',
     zoneWave:'forward-track-only'});
@@ -279,18 +281,22 @@ function desiredAI(m,p){
 }
 function fallOff(m,p){
   if(p.fallTimer>0||p.finished||p.invulnerable>0)return;
+  p.fallVX=Math.cos(p.angle)*p.speed*.44+p.impulseX*.62;
+  p.fallVY=Math.sin(p.angle)*p.speed*.44+p.impulseY*.62;
+  p.fallAnchorX=p.x;p.fallAnchorY=p.y;
   p.falls++;p.fallTimer=FALL_SECONDS;
   p.speed=0;p.dashTime=0;p.impulseX=0;p.impulseY=0;
   p.knockSeconds=0;p.contactFlash=0;p.unsafeImpact=false;
-  const attacker=p.lastAttacker;
-  if(Number.isInteger(attacker)&&attacker!==p.id&&m.racers[attacker]){
+  p.edgeExposure=0;
+  const attacker=m.elapsed-(p.lastImpactAt||-100)<1.7?
+    p.lastAttacker:null;
+  if(Number.isInteger(attacker)&&attacker!==p.id&&m.racers[attacker])
     m.racers[attacker].knockouts++;
-  }
   log(m,'fall',{player:p.id,attacker:attacker??null,
     lap:p.laps+1,progress:+p.progress.toFixed(1)});
   if(p.id===0){
     m.announcement='FALL · RESPAWNING';
-    m.announcementTime=m.elapsed+.9;
+    m.announcementTime=m.elapsed+.95;
   }
 }
 function respawn(m,p){
@@ -300,10 +306,11 @@ function respawn(m,p){
   p.x=target.x+target.nx*offset;
   p.y=target.y+target.ny*offset;
   p.angle=target.angle;
-  p.speed=zoneSpeed(m.zone)*.68;
+  p.speed=p.id===0?0:zoneSpeed(m.zone)*.52;
   p.impulseX=0;p.impulseY=0;p.knockSeconds=0;p.lastAttacker=null;
   p.impactCooldown=.55;p.edgeCooldown=.45;
   p.invulnerable=RESPAWN_GRACE;
+  p.edgeExposure=0;p.fallVX=0;p.fallVY=0;p.lastImpactAt=-100;
   p.respawns++;
   log(m,'respawn',{player:p.id,lap:p.laps+1,
     grace:RESPAWN_GRACE,setback:27});
@@ -312,6 +319,8 @@ function moveRacer(m,p,input,dt){
   if(p.finished)return;
   if(p.fallTimer>0){
     p.fallTimer=Math.max(0,p.fallTimer-dt);
+    p.x+=p.fallVX*dt*.62;p.y+=p.fallVY*dt*.62;
+    p.fallVX*=Math.exp(-dt*2.7);p.fallVY*=Math.exp(-dt*2.7);
     if(p.fallTimer<=0)respawn(m,p);
     return;
   }
@@ -373,29 +382,19 @@ function moveRacer(m,p,input,dt){
   let nearest=closest(proposed.x,proposed.y,m.track);
   const limit=RAMP_START;
   if(nearest.dist>limit){
-    if(p.unsafeImpact&&p.knockSeconds>.05&&p.invulnerable<=0&&
-        nearest.dist>limit+3){
+    // Recoverable shoulder: never clamp speed/coordinates or turn inward.
+    p.edgeExposure+=dt;
+    if(nearest.dist>=FALL_EDGE&&p.invulnerable<=0){
       p.x=proposed.x;p.y=proposed.y;
-      fallOff(m,p);
-      return;
+      fallOff(m,p);return;
     }
-    const factor=limit/Math.max(.01,nearest.dist);
-    proposed.x=nearest.x+(proposed.x-nearest.x)*factor;
-    proposed.y=nearest.y+(proposed.y-nearest.y)*factor;
-    // No more repeated 45% losses and near-zero "speed 5" stalls.
-    p.speed=Math.max(zoneSpeed(m.zone)*.69,p.speed*.86);
-    const inward=pointAt(nearest.s+52,m.track);
-    const escape=Math.atan2(inward.y-proposed.y,inward.x-proposed.x);
-    p.angle+=angleDelta(p.angle,escape)*.72;
-    p.impulseX*=.35;p.impulseY*=.35;
-    p.unsafeImpact=false;
+    p.speed*=Math.max(.96,1-.55*dt);
     if(p.edgeCooldown<=0){
-      p.edgeHits++;p.contactFlash=.16;p.edgeCooldown=.5;
+      p.edgeHits++;p.contactFlash=.16;p.edgeCooldown=.48;
       log(m,'edge_scrape',{player:p.id,lap:p.laps+1,zone:m.zone+1,
         speed:Math.round(p.speed)});
     }
-    nearest=closest(proposed.x,proposed.y,m.track);
-  }
+  }else p.edgeExposure=0;
   const previous={x:p.x,y:p.y};
   p.x=proposed.x;p.y=proposed.y;
   updateProgress(m,p,previous,nearest,dt);
@@ -434,18 +433,28 @@ function bumpRacers(m){
       if(m.elapsed-last>=IMPACT_COOLDOWN &&
           (closing>19||dashA||dashB)){
         m.contactPairs[key]=m.elapsed;
-        const force=clamp(120+closing*.95+(dashA||dashB?145:0),
-          130,430);
-        const weightA=dashA&&!dashB?.23:dashB&&!dashA?1:.70;
-        const weightB=dashB&&!dashA?.23:dashA&&!dashB?1:.70;
+        // Forward momentum transfers mainly to the OTHER racer.
+        const force=clamp(155+closing*1.1+(dashA||dashB?115:0),
+          155,530);
+        const aApproach=Math.max(0,aVX*nx+aVY*ny);
+        const bApproach=Math.max(0,-bVX*nx-bVY*ny);
+        const aAttacks=(dashA&&!dashB)||
+          (!dashB&&aApproach>bApproach+15);
+        const bAttacks=(dashB&&!dashA)||
+          (!dashA&&bApproach>aApproach+15);
+        const weightA=aAttacks?.23:bAttacks?1.18:.75;
+        const weightB=bAttacks?.23:aAttacks?1.18:.75;
         a.impulseX-=nx*force*weightA;
         a.impulseY-=ny*force*weightA;
         b.impulseX+=nx*force*weightB;
         b.impulseY+=ny*force*weightB;
         a.knockSeconds=.36;b.knockSeconds=.36;
         a.unsafeImpact=true;b.unsafeImpact=true;
-        a.lastAttacker=b.id;b.lastAttacker=a.id;
-        a.speed*=dashA?.91:.77;b.speed*=dashB?.91:.77;
+        a.lastAttacker=aAttacks?null:b.id;
+        b.lastAttacker=bAttacks?null:a.id;
+        a.lastImpactAt=m.elapsed;b.lastImpactAt=m.elapsed;
+        a.speed*=aAttacks?.94:dashA?.90:.77;
+        b.speed*=bAttacks?.94:dashB?.90:.77;
         a.contacts++;b.contacts++;
         a.contactFlash=.24;b.contactFlash=.24;
         m.impacts.push({x:(a.x+b.x)/2,y:(a.y+b.y)/2,
@@ -453,7 +462,8 @@ function bumpRacers(m){
           strength:force});
         if(m.impacts.length>10)m.impacts.shift();
         log(m,'impact',{a:a.id,b:b.id,force:Math.round(force),
-          dash:dashA||dashB,closing:Math.round(closing)});
+          dash:dashA||dashB,closing:Math.round(closing),
+          dominant:aAttacks?a.id:bAttacks?b.id:null});
       }
       // A high-energy hit deliberately exceeds the safe road limit:
       // don't clamp it away before the fall check on the next tick.
@@ -515,14 +525,15 @@ function waveState(m){
 }
 function audit(m){
   const p=m.racers[0];
-  return {schema:'neon-circuit-run-audit/2.1',build:'neon-circuit-2.1',
+  return {schema:'neon-circuit-run-audit/2.2',build:'neon-circuit-2.2',
     seed:m.seed,status:m.finished?'completed':'in_progress',
     courseId:m.track.courseId,courseName:m.track.name,
     trackLength:+m.track.length.toFixed(1),
     summary:{durationSeconds:+m.elapsed.toFixed(3),highestZone:m.zone+1,
       lapValidation:'four-ordered-physical-gates',
       waveMode:'forward-track-only',
-      cameraMode:'damped-world-follow-lookahead-zoom',worldTrack:true,
+      cameraMode:'close-follow-damped-zoom',worldTrack:true,
+      edgeMode:'momentum-falls-without-autocorrect',
        controlMode:'hold-to-drive-manual-steering',
       waveTransitions:m.events.filter(e=>e.type==='zone').length,
       finishPlace:m.finishPlace,lapsCompleted:p.laps,
@@ -547,7 +558,7 @@ function audit(m){
 }
 return {WIDTH,HEIGHT,CX,CY,COLORS,NAMES,NODES,TRACK,TRACKS,TRACK_SHAPE,WORLD_BOUNDS,MAX_RACE_SECONDS,
   COURSE_NAMES,COURSE_IDS,COLOR_WAVE_SECONDS,
-  TRACK_HALF,PLAYER_RADIUS,RAMP_START,FALL_SECONDS,RESPAWN_GRACE,
+  TRACK_HALF,PLAYER_RADIUS,RAMP_START,FALL_EDGE,FALL_SECONDS,RESPAWN_GRACE,
   READY_SECONDS,ZONE_SECONDS,LAPS_TO_WIN,DASH_TIME,DASH_COOLDOWN,STEP,zoneAt,zoneSpeed,
   angleDelta,makeTrack,pointAt,closest,directionAt,gateCrossed,GATES,
   waveState,seededRace,

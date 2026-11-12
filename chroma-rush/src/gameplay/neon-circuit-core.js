@@ -1,7 +1,8 @@
-/* CHROMA RUSH — NEON CIRCUIT 1.2: Course Variety & Track Tide
- * Three hand-curated readable circuits with long straights and gentle
- * chicanes. Physical lap gates and AI use each race's own geometry.
- * A directional zone wave repaints only the race track, not the world.
+/* CHROMA RUSH — NEON CIRCUIT 1.3: Full-Screen Track Rebuild
+ * Three independent, hand-authored track silhouettes span most of the
+ * actual playfield. Rounded joins between real straight pieces (not
+ * sinusoidal distortion of a single small oval). Physical lap gates,
+ * AI, respawn, collisions and Track Tide follow each selected centerline.
  */
 (function(root,factory){
   const api=factory();
@@ -19,15 +20,28 @@ const COLOR_WAVE_SECONDS=1.45;
 const COLORS=['#60ecff','#ff71ac','#ffe26a','#9f8aff'];
 const NAMES=['YOU','NOVA','VOLT','HEX'];
 const DASH_TIME=.34,DASH_COOLDOWN=5.4;
-const TRACK_SHAPE=Object.freeze({left:184,right:777,top:119,bottom:421,radius:102});
-// Track has LONG straightaways joined by exact quarter circles. Old 1.0
-// S-bend/hairpin geometry was visually difficult to parse on mobile.
-const NODES=[
-  [388,119],[675,119],[777,221],[777,319],
-  [675,421],[286,421],[184,319],[184,221]
-];
-const COURSE_NAMES=['CHROMA CHICANE','SPECTRAL STRAIGHTS','APEX SWITCHBACK'];
-const COURSE_IDS=['chroma-chicane','spectral-straights','apex-switchback'];
+// All positions are landscape WORLD coordinates (960×540).
+// Each vertex describes a purposeful large-scale section of the course.
+// Round joins preserve straight sections and remove sharp corner spikes.
+const TRACK_SHAPE=Object.freeze({left:45,right:915,top:62,bottom:505,radius:90});
+const COURSE_PROFILES=Object.freeze([
+  {id:'full-span-loop',name:'FULL SPAN LOOP',cornerCut:96,
+    waypoints:[[350,115],[720,115],[850,200],[875,306],
+      [780,376],[620,380],[540,438],[365,455],
+      [230,411],[105,345],[95,230],[188,130]]},
+  {id:'wide-corner-cut',name:'WIDE CORNER CUT',cornerCut:96,
+    waypoints:[[320,115],[715,115],[865,190],[858,313],
+      [748,395],[605,428],[438,430],[345,350],
+      [217,372],[100,339],[85,224],[185,142]]},
+  {id:'lower-sweep-hook',name:'LOWER SWEEP HOOK',cornerCut:96,
+    waypoints:[[330,115],[700,115],[852,183],[890,294],
+      [823,359],[730,360],[635,425],[500,454],
+      [350,414],[255,377],[135,417],[85,323],
+      [85,202],[180,127]]}
+]);
+const NODES=COURSE_PROFILES[0].waypoints;
+const COURSE_NAMES=COURSE_PROFILES.map(p=>p.name);
+const COURSE_IDS=COURSE_PROFILES.map(p=>p.id);
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,Number.isFinite(n)?n:a));
 const hypot=Math.hypot;
 const mod=(x,n)=>(x%n+n)%n;
@@ -38,89 +52,76 @@ const rand=seed=>{let n=(seed>>>0)||0x6e624eb7;
   return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296};
 };
 function makeTrack(shape=TRACK_SHAPE,steps=20,variant=0){
-  const {left:L,right:R,top:T,bottom:B,radius:r}=shape;
-  if(!(r>0&&R-L>r*2&&B-T>r*2))throw Error('Invalid Circuit shape');
-  const samples=[];
-  const push=(x,y)=>{
+  const index=mod(Math.floor(variant),COURSE_PROFILES.length);
+  const profile=COURSE_PROFILES[index],vertices=profile.waypoints;
+  const n=vertices.length,spacing=Math.max(4,Math.min(8,steps*.30));
+  const incoming=[],outgoing=[];
+  for(let i=0;i<n;i++){
+    const p=vertices[(i+n-1)%n],v=vertices[i],q=vertices[(i+1)%n];
+    const dx=v[0]-p[0],dy=v[1]-p[1],nextX=q[0]-v[0],nextY=q[1]-v[1];
+    const before=hypot(dx,dy),after=hypot(nextX,nextY);
+    if(before<24||after<24)throw Error('Circuit segment too short');
+    const cut=Math.min(profile.cornerCut,before*.46,after*.46);
+    incoming.push({x:v[0]-dx/before*cut,y:v[1]-dy/before*cut});
+    outgoing.push({x:v[0]+nextX/after*cut,y:v[1]+nextY/after*cut});
+  }
+  const samples=[],push=(x,y)=>{
     const prev=samples[samples.length-1];
-    if(prev&&hypot(prev.x-x,prev.y-y)<.00001)return;
+    if(prev&&hypot(prev.x-x,prev.y-y)<1e-6)return;
     samples.push({x,y});
   };
-  const line=(x1,y1,x2,y2)=>{
-    const count=Math.max(1,Math.ceil(hypot(x2-x1,y2-y1)/
-      Math.max(4,steps*.4)));
-    for(let j=1;j<=count;j++)push(x1+(x2-x1)*j/count,
-      y1+(y2-y1)*j/count);
-  };
-  const arc=(cx,cy,start,end)=>{
-    const count=Math.max(8,Math.ceil(steps*1.7));
-    for(let j=1;j<=count;j++){
-      const a=start+(end-start)*j/count;
-      push(cx+r*Math.cos(a),cy+r*Math.sin(a));
+  push(outgoing[0].x,outgoing[0].y);
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n,from=outgoing[i],to=incoming[j];
+    // True perfectly straight section between the rounded turns.
+    const length=hypot(to.x-from.x,to.y-from.y);
+    const count=Math.max(2,Math.ceil(length/spacing));
+    for(let k=1;k<=count;k++){
+      const t=k/count;push(from.x+(to.x-from.x)*t,
+        from.y+(to.y-from.y)*t);
     }
-  };
-  // Start/finish on the upper straight, not at a tight corner.
-  const sx=L+r+75;
-  push(sx,T);
-  line(sx,T,R-r,T);
-  arc(R-r,T+r,-Math.PI/2,0);
-  line(R,T+r,R,B-r);
-  arc(R-r,B-r,0,Math.PI/2);
-  line(R-r,B,L+r,B);
-  arc(L+r,B-r,Math.PI/2,Math.PI);
-  line(L,B-r,L,T+r);
-  arc(L+r,T+r,Math.PI,Math.PI*1.5);
-  line(L+r,T,sx,T);
-  // Gentle continuous changes to selected straight sectors. These are
-  // fixed curated courses, not randomized turns. Endpoints have zero
-  // slope displacement, preserving smooth tangent joins with the bends.
-  const upperA=L+r+18,upperB=R-r-18;
-  const lowerA=L+r+18,lowerB=R-r-18;
-  const influence=(x,a,b)=>{
-    const u=clamp((x-a)/(b-a),0,1);
-    return {u,e:Math.sin(Math.PI*u)**2};
-  };
-  for(const p of samples){
-    if(variant===0 && Math.abs(p.y-B)<.00001){
-      const {u,e}=influence(p.x,lowerA,lowerB);
-      p.y-=36*Math.sin(2*Math.PI*u)*e;
-    }else if(variant===1){
-      if(Math.abs(p.y-T)<.00001){
-        const {u,e}=influence(p.x,upperA,upperB);
-        p.y+=32*Math.sin(2*Math.PI*u)*e;
-      }else if(Math.abs(p.y-B)<.00001){
-        const {u,e}=influence(p.x,lowerA,lowerB);
-        p.y-=21*e;
-      }
-    }else if(variant===2){
-      if(Math.abs(p.y-B)<.00001){
-        const {u,e}=influence(p.x,lowerA,lowerB);
-        p.y-=38*e;
-      }else if(Math.abs(p.y-T)<.00001){
-        const {u,e}=influence(p.x,upperA,upperB);
-        p.y+=20*e;
-      }else if(Math.abs(p.x-L)<.00001){
-        const {u,e}=influence(p.y,T+r+10,B-r-10);
-        p.x+=25*e;
-      }else if(Math.abs(p.x-R)<.00001){
-        const {u,e}=influence(p.y,T+r+10,B-r-10);
-        p.x-=25*e;
-      }
+    // Quadratic Bezier tangent to both adjoining straightaways.
+    // No "wobbly" sine shape; one intentional radius per corner.
+    const v=vertices[j],exit=outgoing[j],
+      bendLength=hypot(to.x-v[0],to.y-v[1])+
+        hypot(exit.x-v[0],exit.y-v[1]);
+    const arcCount=Math.max(6,Math.ceil(bendLength/spacing));
+    for(let k=1;k<=arcCount;k++){
+      const t=k/arcCount,u=1-t;
+      push(u*u*to.x+2*u*t*v[0]+t*t*exit.x,
+        u*u*to.y+2*u*t*v[1]+t*t*exit.y);
     }
   }
+  const first=samples[0],last=samples[samples.length-1];
+  if(hypot(first.x-last.x,first.y-last.y)>1e-5)
+    samples.push({x:first.x,y:first.y});
   let total=0;samples[0].s=0;
-  for(let i=1;i<samples.length;i++){
-    total+=hypot(samples[i].x-samples[i-1].x,
-      samples[i].y-samples[i-1].y);
-    samples[i].s=total;
+  const bounds={minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity};
+  for(let i=0;i<samples.length;i++){
+    const p=samples[i];
+    bounds.minX=Math.min(bounds.minX,p.x);
+    bounds.maxX=Math.max(bounds.maxX,p.x);
+    bounds.minY=Math.min(bounds.minY,p.y);
+    bounds.maxY=Math.max(bounds.maxY,p.y);
+    if(i){
+      total+=hypot(p.x-samples[i-1].x,p.y-samples[i-1].y);
+      p.s=total;
+    }
   }
+  if(total<1350||total>2350)throw Error('Circuit track length invalid');
+  // Require a near-full-screen footprint including the drivable road.
+  const coverageX=(bounds.maxX-bounds.minX+2*TRACK_HALF)/WIDTH;
+  const coverageY=(bounds.maxY-bounds.minY+2*TRACK_HALF)/HEIGHT;
+  if(coverageX<.87||coverageY<.72)
+    throw Error('Circuit layout does not use enough screen space');
   return {samples,length:total,half:TRACK_HALF,
     pointCount:samples.length,shape:{...shape},
-    variant,courseId:COURSE_IDS[variant]||COURSE_IDS[0],
-    name:COURSE_NAMES[variant]||COURSE_NAMES[0],
-    layout:'straight-arc',segmentKinds:['straight','quarter-arc','soft-chicane']};
+    variant:index,courseId:profile.id,name:profile.name,
+    bounds,coverage:{width:coverageX,height:coverageY},
+    layout:'full-span-rounded-polyline',
+    segmentKinds:['straight','rounded-corner']};
 }
-const TRACKS=COURSE_NAMES.map((_,index)=>makeTrack(TRACK_SHAPE,20,index));
+const TRACKS=COURSE_PROFILES.map((_,index)=>makeTrack(TRACK_SHAPE,20,index));
 const TRACK=TRACKS[0];
 function pointAt(s,track=TRACK){
   const distance=mod(s,track.length),list=track.samples;
@@ -189,7 +190,7 @@ function seededRace(seed=20261111,courseId=0){
     impacts:[],contactPairs:{},performance:{
       frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     quality:'auto'};
-  log(race,'race_start',{mode:'neon-circuit-1.2',laps:LAPS_TO_WIN,
+  log(race,'race_start',{mode:'neon-circuit-1.3',laps:LAPS_TO_WIN,
     trackLength:Math.round(track.length),track:track.courseId,
     course:track.name,impact:'ejection-and-respawn',
     zoneWave:'forward-track-only'});
@@ -516,7 +517,7 @@ function waveState(m){
 }
 function audit(m){
   const p=m.racers[0];
-  return {schema:'neon-circuit-run-audit/1.2',build:'neon-circuit-1.2',
+  return {schema:'neon-circuit-run-audit/1.3',build:'neon-circuit-1.3',
     seed:m.seed,status:m.finished?'completed':'in_progress',
     courseId:m.track.courseId,courseName:m.track.name,
     trackLength:+m.track.length.toFixed(1),

@@ -1,7 +1,7 @@
-/* CHROMA RUSH — NEON CIRCUIT 1.2: Track Tide & Course Variety.
- * Three curated straight/chicane tracks. Zone pigment flows forward
- * ALONG the road; the landscape remains a fixed dark backdrop.
- * Cached panoramas, shared glass sprites, 750k mobile pixel cap.
+/* CHROMA RUSH — NEON CIRCUIT 1.3: Full-Screen Track Rebuild.
+ * Actual large-scale polyline racing circuits with straight sections and
+ * rounded turns. Wide-landscape camera uses the entire screen instead of
+ * leaving side gutters. Track Tide still recolors road ONLY in race direction.
  */
 (function(root){
 'use strict';
@@ -25,7 +25,7 @@ const mix=(a,b,t)=>{
   return '#'+[16,8,0].map(k=>Math.round(((x>>k)&255)*(1-t)+
     ((y>>k)&255)*t).toString(16).padStart(2,'0')).join('');
 };
-let viewW=960,viewH=540,scale=1,ox=0,oy=0,
+let viewW=960,viewH=540,scaleX=1,scaleY=1,ox=0,oy=0,
   panoWidth=WIDTH,panoLeft=0,quality=1,slowStreak=0;
 const slots=[{key:'',canvas:null},{key:'',canvas:null}],sprites=Object.create(null);
 let slotCursor=0,mode='menu',race=null,preview=CORE.seededRace(103),
@@ -38,10 +38,12 @@ function resize(){
   const cw=Math.max(1,Math.floor(viewW*ratio)),ch=Math.max(1,Math.floor(viewH*ratio));
   if(CANVAS.width!==cw)CANVAS.width=cw;
   if(CANVAS.height!==ch)CANVAS.height=ch;
-  scale=Math.min(viewW/WIDTH,viewH/HEIGHT);
-  ox=(viewW-WIDTH*scale)/2;oy=(viewH-HEIGHT*scale)/2;
-  panoWidth=Math.max(WIDTH,Math.ceil((viewW/scale)/4)*4);
-  panoLeft=(WIDTH-panoWidth)/2;
+  // World-space terrain fills the *actual* mobile landscape viewport.
+  // The old aspect-fit letterboxed a 16:9 world on 20:9 phones, making
+  // the race course look small despite larger geometry.
+  scaleX=viewW/WIDTH;scaleY=viewH/HEIGHT;
+  ox=0;oy=0;
+  panoWidth=WIDTH;panoLeft=0;
   // Keep players safe when rotating the handset; no hidden game progress.
   if(viewH>viewW&&mode==='playing')pause();
 }
@@ -167,6 +169,9 @@ function getInput(){
     y=Number(keys.has('ArrowDown')||keys.has('s'))-
       Number(keys.has('ArrowUp')||keys.has('w'));
   }
+  // Counteract the non-uniform panoramic scale when interpreting the
+  // joystick. A diagonal thumb gesture stays diagonal on the display.
+  x*=scaleY/scaleX;
   const input={x,y,brake:brakePressed||keys.has('Shift'),dash:dashPending};
   dashPending=false;
   return input;
@@ -362,7 +367,10 @@ function drawRacers(r){
       p.invulnerable>0?.63+.28*Math.sin(r.elapsed*15):1;
     // Simulate FALLING DOWN INTO DEPTH without sliding the image toward
     // the bottom of the phone, matching the shared Clash design language.
-    ctx.translate(p.x,p.y);ctx.scale(spriteScale,spriteScale);
+    ctx.translate(p.x,p.y);
+    // Glass cubes remain visibly SQUARE on wide-screen phones even as
+    // the roadway fills more horizontal space.
+    ctx.scale(spriteScale*scaleY/scaleX,spriteScale);
     if(!falling&&p.contactFlash>0&&!reduced()){
       ctx.globalAlpha*=clamp(p.contactFlash/.24,0,1)*.70;
       ctx.strokeStyle=p.color;ctx.lineWidth=2;
@@ -376,7 +384,9 @@ function drawRacers(r){
       ctx.textAlign='center';ctx.font='800 11px system-ui,sans-serif';
       ctx.fillStyle=p.id===0?'#ffffff':p.color;
       ctx.globalAlpha=p.finished?.4:1;
-      ctx.fillText(p.name,p.x,p.y-23);
+      ctx.translate(p.x,p.y-23);
+      ctx.scale(scaleY/scaleX,1);
+      ctx.fillText(p.name,0,0);
       ctx.restore();
     }
   }
@@ -453,7 +463,7 @@ function paint(){
   const m=race||preview,track=m.track||TRACK;
   ctx.setTransform(CANVAS.width/viewW,0,0,CANVAS.height/viewH,0,0);
   ctx.clearRect(0,0,viewW,viewH);
-  ctx.translate(ox,oy);ctx.scale(scale,scale);
+  ctx.translate(ox,oy);ctx.scale(scaleX,scaleY);
   const z=m.zone;
   const current=getStatic(z,track);
   if(m.tide>0&&z>0){

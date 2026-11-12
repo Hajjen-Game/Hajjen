@@ -350,55 +350,82 @@ function updateProgress(m,p,from,nearest,dt){
   }
 }
 function desiredAI(m,p,dt=STEP){
-  const current=closest(p.x,p.y,m.track);
-  const s=current.s,look=clamp(p.speed*.53,59,103);
+  const style=AI_STYLES[p.id],current=closest(p.x,p.y,m.track);
+  const s=current.s,look=clamp(p.speed*.52,63,style.turnLead);
   const near=pointAt(s+28,m.track),future=pointAt(s+120,m.track);
   const curve=Math.abs(angleDelta(near.angle,future.angle));
   p.aiAttackCooldown=Math.max(0,p.aiAttackCooldown-dt);
   p.aiAttackTime=Math.max(0,p.aiAttackTime-dt);
+  p.aiDefenseCooldown=Math.max(0,p.aiDefenseCooldown-dt);
+  p.aiDefendTime=Math.max(0,p.aiDefendTime-dt);
+  const opponents=m.racers.filter(v=>v!==p&&!v.finished&&
+    v.fallTimer<=0&&v.invulnerable<=0);
+  const threats=opponents.map(v=>({
+    racer:v,dist:hypot(v.x-p.x,v.y-p.y),gap:v.progress-p.progress
+  })).filter(t=>t.dist<95&&t.gap<22&&t.gap>-100)
+    .sort((a,b)=>a.dist-b.dist);
+  // A defender yields or blocks laterally; no artificial speed advantage.
+  const threat=threats.find(t=>t.racer.dashTime>0||
+    t.racer.aiAttackTarget===p.id||t.dist<29);
+  if(threat&&p.aiDefendTime<=0&&p.aiDefenseCooldown<=0&&
+     current.dist<26&&p.speed>85){
+    p.aiDefendTime=.47;p.aiDefenseCooldown=1.6+(p.id===1?.4:0);
+    p.aiDefenses++;
+    log(m,'ai_defend',{player:p.id,against:threat.racer.id,
+      style:style.name});
+  }
   let target=p.aiAttackTarget===null?null:m.racers[p.aiAttackTarget];
   if(!target||target.finished||target.fallTimer>0||target.invulnerable>0||
-     hypot(target.x-p.x,target.y-p.y)>180||current.dist>30||p.aiAttackTime<=0){
+     hypot(target.x-p.x,target.y-p.y)>180||current.dist>32||
+     p.aiAttackTime<=0||p.aiDefendTime>0){
     target=null;p.aiAttackTarget=null;p.aiAttackTime=0;
   }
-  // Active rival pressure: choose nearby racers instead of sitting on a rail.
-  // Physical overlap is still required for every impact.
-  if(!target&&p.aiAttackCooldown<=0&&p.speed>105&&current.dist<23){
-    const options=m.racers.filter(v=>v!==p&&!v.finished&&v.fallTimer<=0&&
-      v.invulnerable<=0).map(v=>{
+  if(!target&&p.aiAttackCooldown<=0&&p.speed>115&&
+     current.dist<25&&p.aiDefendTime<=0){
+    const options=opponents.map(v=>{
       const gap=v.progress-p.progress,dist=hypot(v.x-p.x,v.y-p.y);
-      return {v,gap,dist,score:(v.id>0?25:0)-dist*.43+
-        Math.max(0,Math.min(60,gap))*.12,
-        eligible:gap>-25&&gap<145&&dist<148};
+      const edge=closest(v.x,v.y,m.track).dist;
+      const vulnerability=edge>24?35:0;
+      return {v,dist,gap,eligible:gap>-28&&gap<style.attackRange&&
+        dist<style.attackRange,
+        score:-dist*.44+clamp(gap,0,60)*.12+
+         (p.id===3?vulnerability*2:p.id===2?20:-12)};
     }).filter(v=>v.eligible).sort((a,b)=>b.score-a.score);
     if(options.length){
       target=options[0].v;p.aiAttackTarget=target.id;
-      p.aiAttackTime=1.42;p.aiAttackCooldown=4.4+p.id*.45;
+      p.aiAttackTime=style.attackWindow;
+      p.aiAttackCooldown=style.attackCooldown;
       p.aiAttacks++;
       log(m,'ai_attack',{attacker:p.id,target:target.id,
-        gap:Math.round(options[0].gap)});
+        gap:Math.round(options[0].gap),style:style.name});
     }
   }
   if(target){
-    const tx=target.x+target.vx*.13,ty=target.y+target.vy*.13;
+    const tx=target.x+target.vx*style.targetLead;
+    const ty=target.y+target.vy*style.targetLead;
     return {angle:Math.atan2(ty-p.y,tx-p.x),brake:false,
       line:s,curvature:curve,attacking:true,target:target.id};
   }
   const ahead=pointAt(s+look,m.track);
-  let lane=p.aiLane*(.68+.08*Math.sin(m.elapsed*.7+p.id));
-  // AI uses boost lanes opportunistically while retaining overtaking AI.
+  let lane=(p.id===1?0:p.aiLane)*
+    (.72+.06*Math.sin(m.elapsed*.65+p.id));
   const lap=Math.max(0,Math.floor(p.progress/m.track.length));
   const boost=m.track.boosts.find(pad=>{
-    const ahead=mod(pad.s-s,m.track.length);
-    // Rival AI takes selected boost routes, not every pad perfectly.
-    // This leaves meaningful opportunities for a skilled human driver.
-    return ahead>0&&ahead<160&&(pad.id+p.id+lap)%3===0;
+    const distance=mod(pad.s-s,m.track.length);
+    const choice=p.id===1?3:p.id===2?2:3;
+    return distance>0&&distance<160&&
+      (pad.id+p.id+lap)%choice===0;
   });
-  if(boost)lane=boost.lane;
+  if(boost&&p.aiDefendTime<=0)lane=boost.lane;
+  if(p.aiDefendTime>0&&threat){
+    const threatRoad=closest(threat.racer.x,threat.racer.y,m.track);
+    lane=clamp(threatRoad.side>=current.side?
+      current.side-12:current.side+12,-19,19);
+  }
   return {angle:Math.atan2(ahead.y+ahead.ny*lane-p.y,
       ahead.x+ahead.nx*lane-p.x),
-    brake:curve>.84&&p.speed>200,line:s,curvature:curve,
-    attacking:false,target:null};
+    brake:curve>style.brakeCurve&&p.speed>185,
+    line:s,curvature:curve,attacking:false,target:null};
 }
 function fallOff(m,p){
   if(p.fallTimer>0||p.finished||p.invulnerable>0)return;

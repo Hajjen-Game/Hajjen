@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.5: Arcade Velocity & Rival Identity.
+/* CHROMA RUSH — NEON CIRCUIT 2.6: Spectral Arena & Impact Language.
  * Camera follows the cube through a multi-screen neon racing world.
  * The stable dark environment and road-only Track Tide render in visible
  * cached world tiles (never one enormous offscreen track image).
@@ -344,7 +344,16 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   };
   // These geometries are RASTERIZED ONCE per visible tile per zone.
   // No huge full-world canvases and no runtime per-frame glow blur.
-  // Dark shoulder, color-coded guard rail and precise bright cap.
+  // A separate, downward-extruded under-deck makes the track read as a
+  // hovering physical structure. Fully tile-cached; zero extra blur per frame.
+  g.save();
+  g.translate(0,15);
+  stroke(148,'rgba(0,1,11,.56)');
+  stroke(139,'#071023');
+  stroke(135,rgb(secondary,.22));
+  stroke(128,'#111d30');
+  g.restore();
+  // Top asphalt face and subdued neon bevels.
   stroke(136,'rgba(0,1,14,.72)');
   stroke(124,rgb(secondary,.095));
   stroke(114,rgb(primary,.16));
@@ -365,6 +374,7 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   stroke(90,'#09192c');
   stroke(88,asphalt);
   // Subtle lane gloss adds depth without reading as an obstacle.
+  stroke(74,rgb('#f7ffff',.055));
   stroke(72,rgb('#dbf5ff',.032));
   stroke(62,rgb(primary,.052));
   stroke(52,asphalt);
@@ -423,43 +433,74 @@ function drawRoadTiles(g,zone,track,view){
     if(tile)g.drawImage(tile,ix*TILE-TILE_PAD,iy*TILE-TILE_PAD);
   }
 }
-function drawWorldBackdrop(g,cam){
-  // Stable atmosphere is drawn screen-space; it NEVER changes with Zone.
-  const gradient=g.createLinearGradient(0,0,0,viewH);
-  gradient.addColorStop(0,'#060a18');
-  gradient.addColorStop(.48,'#10263b');
-  gradient.addColorStop(1,'#09162a');
+function arenaLighting(m){
+  const next=PALETTES[m.zone%PALETTES.length];
+  const last=PALETTES[Math.max(0,m.zone-1)%PALETTES.length];
+  const active=m.zone>0&&m.tide>0;
+  const progress=active?clamp(1-m.tide/CORE.COLOR_WAVE_SECONDS,0,1):1;
+  const eased=progress*progress*(3-2*progress);
+  return {
+    primary:active?mix(last.primary,next.primary,eased):next.primary,
+    secondary:active?mix(last.secondary,next.secondary,eased):next.secondary,
+    charge:active?Math.pow(Math.sin(progress*Math.PI),2):0,
+    progress
+  };
+}
+function drawWorldBackdrop(g,cam,m){
+  // Spectral Arena lighting is intentionally WORLD-AGNOSTIC during a tide.
+  // The palette breathes over the entire arena without a rear starting line.
+  const light=arenaLighting(m);
+  const gradient=g.createLinearGradient(0,0,viewW*.16,viewH);
+  gradient.addColorStop(0,mix('#030916',light.primary,.075));
+  gradient.addColorStop(.52,mix('#0a172c',light.secondary,.105));
+  gradient.addColorStop(1,mix('#030c1b',light.primary,.11));
   g.fillStyle=gradient;g.fillRect(0,0,viewW,viewH);
-  const frame=CAMERA.viewBounds(cam,80);
-  // World-anchored quiet pillars contribute parallax without cities or
-  // moving colored shapes that can be mistaken for hazards.
+  const halo=g.createRadialGradient(viewW*.50,viewH*.49,viewH*.12,
+    viewW*.50,viewH*.49,Math.max(viewW,viewH)*.68);
+  halo.addColorStop(0,rgb(light.primary,.095+.12*light.charge));
+  halo.addColorStop(.6,rgb(light.secondary,.025+.025*light.charge));
+  halo.addColorStop(1,rgb(light.primary,0));
+  g.fillStyle=halo;g.fillRect(0,0,viewW,viewH);
+  const frame=CAMERA.viewBounds(cam,130);
   g.save();
   g.translate(viewW*.5,viewH*.5);g.scale(cam.zoom,cam.zoom);
   g.translate(-cam.x,-cam.y);
-  const startX=Math.floor(frame.minX/140)*140;
-  const endX=Math.ceil(frame.maxX/140)*140;
-  for(let x=startX;x<=endX;x+=140){
-    const top=frame.minY+85+Math.abs((Math.floor(x/140)*37)%175);
-    g.fillStyle='rgba(63,133,185,.035)';
-    g.fillRect(x,top,23,frame.maxY-top);
+  // Large, restrained geometric terraces and ribs: calm depth beneath the
+  // elevated roadway, never floating rectangular objects resembling hazards.
+  const cell=280;
+  const x0=Math.floor(frame.minX/cell)*cell;
+  const y0=Math.floor(frame.minY/cell)*cell;
+  const x1=Math.ceil(frame.maxX/cell)*cell;
+  const y1=Math.ceil(frame.maxY/cell)*cell;
+  g.lineJoin='round';
+  for(let x=x0;x<=x1;x+=cell)for(let y=y0;y<=y1;y+=cell){
+    const code=Math.abs((Math.floor(x/cell)*37+Math.floor(y/cell)*53)%7);
+    const rise=(code%3)*22;
+    g.beginPath();
+    g.moveTo(x+8,y+cell*.32+rise);
+    g.lineTo(x+cell*.64,y+5);
+    g.lineTo(x+cell-10,y+cell*.31+rise);
+    g.lineTo(x+cell*.35,y+cell*.63+rise);
+    g.closePath();
+    g.fillStyle=rgb(light.primary,code%2?.010:.020);
+    g.fill();
+    g.beginPath();
+    g.moveTo(x+8,y+cell*.32+rise);
+    g.lineTo(x+cell*.64,y+5);
+    g.lineTo(x+cell-10,y+cell*.31+rise);
+    g.strokeStyle=rgb(light.secondary,code%2?.034:.056);
+    g.lineWidth=1.4;g.stroke();
   }
-  g.strokeStyle='rgba(87,169,215,.045)';g.lineWidth=1;
-  g.beginPath();
-  for(let x=Math.floor(frame.minX/160)*160;x<frame.maxX;x+=160){
-    g.moveTo(x,frame.minY);g.lineTo(x,frame.maxY);
-  }
-  for(let y=Math.floor(frame.minY/160)*160;y<frame.maxY;y+=160){
-    g.moveTo(frame.minX,y);g.lineTo(frame.maxX,y);
-  }
-  g.stroke();
-  // Calm world-anchored landmarks: outside-road curves, never square hazards.
+  // Sparse radial trenches communicate massive arena scale and continuity.
   for(const [x,y,r] of [[1790,700,175],[730,1010,140],[1390,1210,125]]){
     if(x+r<frame.minX||x-r>frame.maxX||
-        y+r<frame.minY||y-r>frame.maxY)continue;
-    g.strokeStyle='rgba(89,196,226,.055)';g.lineWidth=3;
+       y+r<frame.minY||y-r>frame.maxY)continue;
+    g.strokeStyle=rgb(light.primary,.09+.035*light.charge);
+    g.lineWidth=7;
     g.beginPath();g.arc(x,y,r,-.9,2.15);g.stroke();
-    g.strokeStyle='rgba(244,130,190,.038)';g.lineWidth=1;
-    g.beginPath();g.arc(x,y,r+23,1.8,5.65);g.stroke();
+    g.strokeStyle=rgb(light.secondary,.075);
+    g.lineWidth=1.8;
+    g.beginPath();g.arc(x,y,r+18,1.8,5.65);g.stroke();
   }
   g.restore();
 }
@@ -667,7 +708,7 @@ function paint(){
     {width:viewW,height:viewH},m.racers[0]);
   ctx.setTransform(CANVAS.width/viewW,0,0,CANVAS.height/viewH,0,0);
   ctx.clearRect(0,0,viewW,viewH);
-  drawWorldBackdrop(ctx,camera);
+  drawWorldBackdrop(ctx,camera,m);
   ctx.save();
   ctx.translate(viewW*.5,viewH*.5);
   ctx.scale(camera.zoom,camera.zoom);

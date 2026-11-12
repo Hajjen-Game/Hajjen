@@ -158,6 +158,9 @@ test('2.8 menu and camera use selected track without auto-cycling',()=>{
   for(const id of [0,1,2])
     assert.ok(html.includes('data-circuit-course="'+id+'"'));
   assert.ok(html.includes('circuit-selected-description'));
+  assert.ok(html.includes('id="circuit-change-course"'));
+  assert.ok(html.includes('id="circuit-change-course-pause"'));
+  assert.ok(js.includes('function backToCourseMenu()'));
   assert.ok(css.includes('.circuit-course-picker'));
 });
 test('2.7 premium presentation is graphics-only and preserves auto throttle',()=>{

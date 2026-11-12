@@ -574,6 +574,12 @@ function drawRacers(r){
       ctx.strokeRect(-18,-18,36,36);
       ctx.globalAlpha=1;
     }
+    // Cube-linked underglow communicates mass and road contact.
+    ctx.save();
+    ctx.globalCompositeOperation='screen';
+    luminousPool(ctx,0,3,p.color,2,p.boostTime>0?36:29,
+      p.boostTime>0?.25:.13);
+    ctx.restore();
     ctx.drawImage(sprite(p.color),-34,-34);
     if(!falling&&p.boostTime>1.01&&!reduced()){
       const arrival=clamp((p.boostTime-1.01)/.23,0,1);
@@ -599,25 +605,133 @@ function drawRacers(r){
     }
   }
 }
+function luminousPool(g,x,y,color,inner,outer,alpha){
+  if(alpha<=0)return;
+  const halo=g.createRadialGradient(x,y,inner,x,y,outer);
+  halo.addColorStop(0,rgb(color,alpha));
+  halo.addColorStop(.42,rgb(color,alpha*.37));
+  halo.addColorStop(1,rgb(color,0));
+  g.fillStyle=halo;
+  g.fillRect(x-outer,y-outer,outer*2,outer*2);
+}
+function drawWorldSpectacles(m,view){
+  if(reduced())return;
+  // Short, physically attached light events, not extra track obstacles.
+  for(const fx of m.spectacles||[]){
+    if(fx.x<view.minX-110||fx.x>view.maxX+110||
+      fx.y<view.minY-110||fx.y>view.maxY+110)continue;
+    const progress=1-fx.life/fx.duration;
+    const fade=Math.pow(1-progress,1.3);
+    ctx.save();
+    if(fx.kind==='boost'){
+      luminousPool(ctx,fx.x,fx.y,fx.color,5,92,fade*.27);
+      ctx.translate(fx.x,fx.y);ctx.rotate(fx.angle);
+      ctx.lineCap='round';ctx.lineJoin='round';
+      for(let k=0;k<3;k++){
+        const advance=-31+progress*90+k*19;
+        ctx.beginPath();
+        ctx.moveTo(advance-11,-12);ctx.lineTo(advance+1,0);
+        ctx.lineTo(advance-11,12);
+        ctx.strokeStyle=k===1?'#ffffff':fx.color;
+        ctx.lineWidth=k===1?3.5:2.8;
+        ctx.globalAlpha=fade*(k===1?.80:.67);
+        ctx.stroke();
+      }
+    }else if(fx.kind==='eject'){
+      luminousPool(ctx,fx.x,fx.y,fx.color,2,58+progress*45,fade*.40);
+      ctx.translate(fx.x,fx.y);ctx.rotate(fx.angle);
+      for(let k=0;k<7;k++){
+        const theta=k*Math.PI*2/7+fx.owner*.39;
+        const dist=10+progress*42;
+        const xx=Math.cos(theta)*dist,yy=Math.sin(theta)*dist;
+        ctx.globalAlpha=fade*.73;
+        ctx.strokeStyle=k%2?'#ffffff':fx.color;
+        ctx.lineWidth=k%2?1.7:2.5;
+        ctx.beginPath();
+        ctx.moveTo(xx*.58,yy*.58);ctx.lineTo(xx,yy);ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+}
+function drawVelocityRails(m,view){
+  if(reduced())return;
+  const p=m.racers[0],factor=clamp((p.speed-170)/205,0,1);
+  if(factor<.07||p.fallTimer>0)return;
+  const at=CORE.closest(p.x,p.y,m.track).s;
+  const primary=PALETTES[m.zone%PALETTES.length].primary;
+  ctx.save();ctx.lineCap='round';ctx.lineWidth=1.2+factor*.55;
+  // The WORLD moves against the player; short side glints emphasize speed
+  // without adding long lines to the player cube itself.
+  const travel=m.elapsed*p.speed*.22;
+  for(let i=0;i<15;i++){
+    const s=at-180+i*45+travel%45;
+    const pt=CORE.pointAt(s,m.track);
+    if(pt.x<view.minX-22||pt.x>view.maxX+22||
+       pt.y<view.minY-22||pt.y>view.maxY+22)continue;
+    const fade=.14+.12*factor;
+    for(const side of [-1,1]){
+      const x=pt.x+pt.nx*side*42,y=pt.y+pt.ny*side*42;
+      ctx.strokeStyle=side>0?'#d9faff':primary;
+      ctx.globalAlpha=fade;
+      ctx.beginPath();ctx.moveTo(x,y);
+      ctx.lineTo(x-pt.tx*(12+factor*17),y-pt.ty*(12+factor*17));
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+function drawWaveWorldHalo(m,view,wave){
+  if(reduced()||!wave.active)return;
+  const p=CORE.pointAt(wave.frontS,m.track);
+  if(p.x<view.minX-380||p.x>view.maxX+380||
+     p.y<view.minY-380||p.y>view.maxY+380)return;
+  const palette=PALETTES[m.zone%PALETTES.length];
+  const charge=.17+.10*Math.sin(wave.progress*Math.PI);
+  ctx.save();
+  ctx.globalCompositeOperation='screen';
+  luminousPool(ctx,p.x,p.y,palette.primary,36,310,charge);
+  luminousPool(ctx,p.x,p.y,palette.secondary,10,156,charge*.55);
+  ctx.restore();
+}
 function drawImpacts(r){
   if(reduced())return;
   for(const v of r.impacts){
-    const alpha=clamp(v.life/.32,0,1);
-    const tx=-v.ny,ty=v.nx;
-    const blast=clamp((v.strength||190)/360,.45,1.35);
-    const span=(14+(1-alpha)*19)*blast;
-    ctx.save();
-    ctx.globalAlpha=alpha*.85;ctx.lineCap='square';
-    // A compressed white strike, flanked by each combatant's pigment.
-    // All lines are DIRECTIONAL. No ring-shaped particle hitbox.
-    for(let i=0;i<5;i++){
-      const offset=(i-2)*7.2;
-      ctx.lineWidth=i===2?3:1.8;
-      ctx.strokeStyle=i===2?'#ffffff':i<2?v.colorA:v.colorB;
-      const spread=span*(1-.12*Math.abs(i-2));
+    const life=clamp(v.life/(v.lifeMax||.32),0,1),age=1-life;
+    const power=clamp((v.strength||190)/420,.45,1.5);
+    const angle=Math.atan2(v.ny,v.nx);
+    ctx.save();ctx.translate(v.x,v.y);ctx.rotate(angle);
+    ctx.globalCompositeOperation='screen';
+    luminousPool(ctx,0,0,'#ffffff',4,38+age*25,power*life*.36);
+    luminousPool(ctx,-10,0,v.colorA,2,28+age*23,life*.22);
+    luminousPool(ctx,10,0,v.colorB,2,28+age*23,life*.22);
+    ctx.globalCompositeOperation='source-over';
+    ctx.lineCap='round';
+    // Compressed core, directional sparks and a quickly dissolving afterimage.
+    for(let i=0;i<7;i++){
+      const y=(i-3)*6.7;
+      const spread=(13+age*35)*(1-Math.abs(i-3)*.09)*power;
+      ctx.strokeStyle=i===3?'#ffffff':i<3?v.colorA:v.colorB;
+      ctx.lineWidth=i===3?3.2:1.55;
+      ctx.globalAlpha=life*(i===3?.92:.75);
       ctx.beginPath();
-      ctx.moveTo(v.x+tx*(offset-spread),v.y+ty*(offset-spread));
-      ctx.lineTo(v.x+tx*(offset+spread),v.y+ty*(offset+spread));
+      ctx.moveTo(-spread,y);ctx.lineTo(spread,y);ctx.stroke();
+    }
+    for(let k=0;k<8;k++){
+      const t=k*Math.PI*2/8+.35;
+      const dist=(9+age*32)*power;
+      const x=Math.cos(t)*dist,y=Math.sin(t)*dist*.65;
+      ctx.globalAlpha=life*.65;
+      ctx.strokeStyle=k%2?'#e5ffff':k<4?v.colorA:v.colorB;
+      ctx.lineWidth=1.6;
+      ctx.beginPath();ctx.moveTo(x*.70,y*.70);ctx.lineTo(x,y);
+      ctx.stroke();
+    }
+    if(v.charged){
+      ctx.globalAlpha=life*.65;
+      ctx.strokeStyle='#ffffff';ctx.lineWidth=1.7;
+      ctx.beginPath();
+      ctx.ellipse(0,0,17+age*31,10+age*24,0,0,Math.PI*2);
       ctx.stroke();
     }
     ctx.restore();
@@ -710,7 +824,15 @@ function paint(){
   ctx.clearRect(0,0,viewW,viewH);
   drawWorldBackdrop(ctx,camera,m);
   ctx.save();
-  ctx.translate(viewW*.5,viewH*.5);
+  const p=m.racers[0];
+  const nearbyImpact=m.impacts.find(v=>v.life>.08&&
+    Math.hypot(v.x-p.x,v.y-p.y)<82);
+  // Tiny visual-only camera impulse; navigation and world physics never shake.
+  const kick=nearbyImpact&&!reduced()?
+    clamp(nearbyImpact.strength/330,0,2.4)*
+      clamp(nearbyImpact.life/.32,0,1):0;
+  ctx.translate(viewW*.5+kick*Math.sin(m.elapsed*121),
+    viewH*.5+kick*Math.sin(m.elapsed*153));
   ctx.scale(camera.zoom,camera.zoom);
   ctx.translate(-camera.x,-camera.y);
   const z=m.zone,view=CAMERA.viewBounds(camera,12);
@@ -735,6 +857,9 @@ function paint(){
       drawWaveFront(ctx,track,wave,PALETTES[z%PALETTES.length].primary);
     }
   }else drawRoadTiles(ctx,z,track,view);
+  drawVelocityRails(m,view);
+  drawWorldSpectacles(m,view);
+  if(m.tide>0&&z>0)drawWaveWorldHalo(m,view,CORE.waveState(m));
   drawImpacts(m);drawRacers(m);
   ctx.restore();
 }

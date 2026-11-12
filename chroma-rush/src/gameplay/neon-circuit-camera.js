@@ -1,6 +1,6 @@
-/* CHROMA RUSH — Circuit World Follow Camera 2.0
- * Fixed-north camera; soft follow, lookahead, and speed-related field of view.
- * All measurements are CSS pixels or world units. Never changes physics.
+/* CHROMA RUSH — Neon Circuit Camera 2.1.
+ * Independent heading filter, gentle look-ahead, small positional dead zone
+ * and damped speed-zoom. Fixed north: steering never rotates the screen.
  */
 (function(root,factory){
   const api=factory();
@@ -11,6 +11,7 @@
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const NOMINAL_HEIGHT=540;
 const MIN_ZOOM_FACTOR=.78,MAX_ZOOM_FACTOR=1.035;
+const fade=(rate,dt)=>1-Math.exp(-rate*Math.max(0,dt));
 function desiredZoom(height,speed){
   const h=Math.max(1,height);
   const nominal=clamp(h/NOMINAL_HEIGHT,.52,1.7);
@@ -28,8 +29,8 @@ function confine(x,y,z,viewport,bounds){
   };
 }
 function lookAhead(player){
-  // World direction, not screen position, so speed/heading feel natural.
-  const length=clamp(55+player.speed*.38,65,160);
+  // Shorter than 2.0, so moving a thumb does not whip the world sideways.
+  const length=clamp(40+Math.max(0,player.speed)*.20,40,95);
   return {x:Math.cos(player.angle)*length,
     y:Math.sin(player.angle)*length,length};
 }
@@ -38,27 +39,34 @@ function create(bounds,viewport,player){
   const a=lookAhead(player);
   const p=confine(player.x+a.x,player.y+a.y,z,viewport,bounds);
   return {x:p.x,y:p.y,zoom:z,targetZoom:z,lookAhead:a.length,
-    viewport:{...viewport},bounds:{...bounds},updates:0,
-    maxDrift:0};
+    lookX:a.x,lookY:a.y,filteredSpeed:player.speed,
+    viewport:{...viewport},bounds:{...bounds},updates:0,maxDrift:0};
 }
 function step(cam,player,viewport,dt,instant=false){
   cam.viewport.width=viewport.width;cam.viewport.height=viewport.height;
-  const z=desiredZoom(viewport.height,player.speed);
-  const alpha=instant?1:1-Math.exp(-Math.max(0,dt)*3.9);
-  cam.zoom+=(z-cam.zoom)*alpha;
+  if(instant){
+    cam.filteredSpeed=player.speed;
+  }else cam.filteredSpeed+=(player.speed-cam.filteredSpeed)*fade(2.5,dt);
+  const z=desiredZoom(viewport.height,cam.filteredSpeed);
+  cam.zoom+=(z-cam.zoom)*(instant?1:fade(1.9,dt));
   cam.targetZoom=z;
   const a=lookAhead(player);
   cam.lookAhead=a.length;
-  const target=confine(player.x+a.x,player.y+a.y,
+  const directionAlpha=instant?1:fade(1.65,dt);
+  cam.lookX+=(a.x-cam.lookX)*directionAlpha;
+  cam.lookY+=(a.y-cam.lookY)*directionAlpha;
+  const target=confine(player.x+cam.lookX,player.y+cam.lookY,
     cam.zoom,viewport,cam.bounds);
-  const drift=Math.hypot(target.x-cam.x,target.y-cam.y);
+  const dx=target.x-cam.x,dy=target.y-cam.y;
+  const drift=Math.hypot(dx,dy);
   cam.maxDrift=Math.max(cam.maxDrift,drift);
-  // Spawn and fall/respawn corrections must not move the road across
-  // the viewport for several seconds while the player is off screen.
+  // A genuine respawn/teleport must snap; ordinary steering never should.
   const snap=instant||drift>560;
-  const follow=snap?1:1-Math.exp(-Math.max(0,dt)*5.7);
-  cam.x+=(target.x-cam.x)*follow;
-  cam.y+=(target.y-cam.y)*follow;
+  if(snap){cam.x=target.x;cam.y=target.y;cam.lookX=a.x;cam.lookY=a.y;}
+  else if(drift>14){
+    const move=(drift-14)/drift*fade(4.3,dt);
+    cam.x+=dx*move;cam.y+=dy*move;
+  }
   const safe=confine(cam.x,cam.y,cam.zoom,viewport,cam.bounds);
   cam.x=safe.x;cam.y=safe.y;cam.updates++;
   return cam;

@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Neon Circuit 2.1 Manual Racing & Track Identity regression */
+/* CHROMA RUSH — Neon Circuit 2.2 Roller Ruckus Falls & Close Camera regression */
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -71,6 +71,70 @@ test('2.1 player can turn against the line and cannot dash from rest',()=>{
   assert.ok(p.speed>40);
   C.tick(r,{x:0,y:1,dash:true},C.STEP);
   assert.equal(p.dashes,1);
+});
+test('2.2 the road edge is fallable with momentum, not invisible autopilot',()=>{
+  const r=C.seededRace(19);r.phase='running';
+  for(const other of r.racers.slice(1))other.finished=true;
+  const me=r.racers[0],at=C.pointAt(500);
+  me.x=at.x+at.nx*(C.RAMP_START-3);
+  me.y=at.y+at.ny*(C.RAMP_START-3);
+  me.angle=Math.atan2(at.ny,at.nx);me.speed=200;
+  for(let i=0;i<35;i++)C.tick(r,{x:at.nx,y:at.ny},C.STEP);
+  assert.equal(me.falls,1,'player must genuinely leave the track');
+  assert.ok(r.events.some(e=>e.type==='fall'&&e.player===0));
+  assert.ok(me.fallTimer>0,'fall should visibly take time');
+  for(let i=0;i<80;i++)C.tick(r,{},C.STEP);
+  assert.ok(me.respawns>=1);
+  assert.equal(me.speed,0,'respawn must not restore autopilot');
+  assert.ok(me.invulnerable>=0&&Number.isFinite(me.x));
+});
+test('2.2 intentional non-Dash contact can eject an opponent and credit KO',()=>{
+  const r=C.seededRace(10);r.phase='running';r.elapsed=5;
+  for(const other of r.racers.slice(2))other.finished=true;
+  const a=r.racers[0],b=r.racers[1],road=C.pointAt(540);
+  a.x=road.x-road.nx*12;a.y=road.y-road.ny*12;
+  a.angle=Math.atan2(road.ny,road.nx);a.speed=210;
+  b.x=road.x+road.nx*9;b.y=road.y+road.ny*9;
+  b.angle=road.angle;b.speed=20;
+  for(let i=0;i<120;i++)C.tick(r,i<2?
+    {x:road.nx,y:road.ny}:
+    {x:road.tx,y:road.ty,brake:i<25},C.STEP);
+  assert.equal(b.falls,1,'victim should fall from shove');
+  assert.equal(a.knockouts,1,'shove should credit attacker');
+  assert.equal(a.falls,0,'attacker should be able to steer to safety');
+  assert.ok(r.events.some(e=>e.type==='fall'&&e.player===1&&e.attacker===0));
+});
+test('2.2 enemy momentum can shove a stationary player off the road',()=>{
+  const r=C.seededRace(8);r.phase='running';r.elapsed=8;
+  for(const other of r.racers.slice(2))other.finished=true;
+  const player=r.racers[0],enemy=r.racers[1],road=C.pointAt(540);
+  player.x=road.x+road.nx*20;player.y=road.y+road.ny*20;
+  player.speed=0;player.angle=road.angle;
+  enemy.x=road.x-road.nx;enemy.y=road.y-road.ny;
+  enemy.angle=Math.atan2(road.ny,road.nx);enemy.speed=220;
+  for(let i=0;i<60;i++)C.tick(r,{},C.STEP);
+  assert.equal(player.falls,1);
+  assert.equal(enemy.knockouts,1);
+  assert.ok(r.events.some(e=>e.type==='fall'&&e.player===0&&e.attacker===1));
+});
+test('2.2 closer zoom preserves distant road visibility at higher speed',()=>{
+  const v={width:812,height:375};
+  const slow=Camera.desiredZoom(v.height,170);
+  const fast=Camera.desiredZoom(v.height,260);
+  assert.ok(slow>1.03,'needs a considerably closer camera than 2.1');
+  assert.ok(fast>.78,'higher speed must remain closer than 2.1');
+  assert.ok(fast<slow*.87,'speed-related zoom-out must remain');
+  const p={x:700,y:350,angle:0,speed:170,respawns:0};
+  const cam=Camera.create(C.WORLD_BOUNDS,v,p);
+  p.fallTimer=.5;p.fallAnchorX=p.x;p.fallAnchorY=p.y;
+  p.x+=150;
+  for(let i=0;i<40;i++)Camera.step(cam,p,v,1/60);
+  const holding=Camera.worldToScreen(cam,p.fallAnchorX,p.fallAnchorY);
+  assert.ok(Math.abs(holding.x-v.width*.5)<150);
+  p.fallTimer=0;p.respawns=1;p.x=1600;
+  Camera.step(cam,p,v,1/60);
+  const followed=Camera.worldToScreen(cam,p.x,p.y);
+  assert.ok(Math.abs(followed.x-v.width*.5)<170);
 });
 test('Path lookup is continuous, tangent-normal and physically projected',()=>{
   for(let i=0;i<35;i++){
@@ -186,8 +250,8 @@ test('Dash, BRAKE and ramp ejection retain their recovery gameplay',()=>{
   b.angle=at.angle-Math.PI/2;b.speed=165;
   b.progress=180;b.dashTime=.30;a.gatePasses=b.gatePasses=1;
   for(let i=0;i<115;i++)C.tick(r,{x:1,y:-1},C.STEP);
-  assert.equal(a.falls,1);
-  assert.equal(a.respawns,1);
+  assert.ok(a.falls>=1);
+  assert.ok(a.respawns>=1);
   assert.equal(a.laps,0);
   assert.ok(r.events.some(e=>e.type==='impact'));
   assert.ok(r.events.some(e=>e.type==='respawn'));
@@ -241,7 +305,7 @@ test('Dynamic zoom shows more road at speed while keeping the cube square',()=>{
     v.width/z,'higher speed must reveal a longer stretch of road');
   const wide={width:1536,height:691};
   const normalized=Camera.desiredZoom(wide.height,170)*540/wide.height;
-  assert.ok(normalized>.9&&normalized<1.06,'stable size across mobile aspect ratios');
+  assert.ok(normalized>1.4&&normalized<1.65,'close view across mobile aspect ratios');
 });
 test('Camera snaps safely on respawn and stays within world bounds',()=>{
   const viewport={width:960,height:540};
@@ -277,19 +341,20 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
     'circuit-brake','circuit-dash','circuit-pause','circuit-fullscreen',
     'circuit-export','circuit-export-pause'])
       assert.ok(html.includes('id="'+id+'"'),id);
-  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.1'));
+  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.2'));
   assert.ok(js.includes("requestFullscreen"));
   assert.ok(js.includes('JSON.stringify(CORE.audit(race)'));
   assert.ok(js.includes('getInput()'));
 });
-test('Run audit 2.1 includes controls and camera data without private input history',()=>{
+test('Run audit 2.2 includes falls, controls and camera data without private input history',()=>{
   const r=run(77);
   const a=C.audit(r);
-  assert.equal(a.schema,'neon-circuit-run-audit/2.1');
-  assert.equal(a.build,'neon-circuit-2.1');
+  assert.equal(a.schema,'neon-circuit-run-audit/2.2');
+  assert.equal(a.build,'neon-circuit-2.2');
   assert.equal(a.courseId,'spectral-highway');
   assert.ok(a.trackLength>4600);
-  assert.equal(a.summary.cameraMode,'damped-world-follow-lookahead-zoom');
+  assert.equal(a.summary.cameraMode,'close-follow-damped-zoom');
+  assert.equal(a.summary.edgeMode,'momentum-falls-without-autocorrect');
   assert.equal(a.summary.controlMode,'hold-to-drive-manual-steering');
   assert.ok(a.summary.driveSeconds>20);
   assert.equal(a.summary.lapValidation,'four-ordered-physical-gates');

@@ -1,4 +1,4 @@
-/* NEON CIRCUIT 2.7 — Premium Motion & Visual Cohesion.
+/* NEON CIRCUIT 2.8 — Multi-Circuit Architecture & Track Diversity.
  * The physical track is rendered in Canvas; CSS only touches UI/chrome. */
 #circuit-shell{
  position:relative;isolation:isolate;width:100vw;height:100vh;height:100dvh;
@@ -156,3 +156,50 @@
  #circuit-place.place-swap,#circuit-finish:not(.hidden) h2,
  #circuit-finish:not(.hidden) .result-stats{animation:none}
 }
+
+/* Compact, purposeful track picker. All three options stay legible on
+   landscape phones; course variety is not hidden behind restart cycling. */
+#circuit-menu{width:min(650px,96vw)}
+.circuit-course-picker{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:7px;width:min(568px,100%);margin:1px 0 0
+}
+.circuit-course{
+ appearance:none;cursor:pointer;text-align:center;
+ min-width:0;min-height:56px;padding:9px 6px 8px;
+ display:flex;flex-direction:column;justify-content:center;gap:4px;
+ background:linear-gradient(150deg,rgba(17,40,62,.88),rgba(8,17,36,.85));
+ color:#c4ddea;border:1px solid rgba(109,170,207,.28);
+ border-radius:11px;box-shadow:inset 0 1px rgba(225,247,255,.06);
+ transition:background .16s,border-color .16s,box-shadow .16s
+}
+.circuit-course strong{font-size:clamp(10px,1.25vw,13px);
+ letter-spacing:.07em;font-weight:900;white-space:nowrap}
+.circuit-course small{font-size:clamp(7px,.84vw,9px);
+ letter-spacing:.09em;font-weight:800;color:#89a9bf;white-space:nowrap}
+.circuit-course.selected,.circuit-course[aria-pressed="true"]{
+ border-color:rgba(95,236,255,.85);
+ background:linear-gradient(150deg,rgba(15,65,87,.88),rgba(8,28,49,.93));
+ color:#effeff;box-shadow:inset 0 1px rgba(203,248,255,.27),
+ 0 0 17px rgba(40,216,247,.13)
+}
+.circuit-course.selected small{color:#91ecf4}
+.circuit-course:focus-visible{outline:2px solid #d7ffff;outline-offset:3px}
+.circuit-course-description{
+ margin:0;min-height:12px;font-size:clamp(8px,.90vw,10px);
+ font-weight:800;letter-spacing:.12em;color:#8caec2
+}
+@media(max-height:450px){
+ .circuit-course{min-height:42px;padding:5px 4px;gap:2px}
+ .circuit-course-picker{gap:5px}
+ .circuit-course-description{display:none}
+ #circuit-menu{gap:3px}
+ #circuit-menu .intro-line{margin:3px 0}
+ #circuit-menu .tagline{margin:0}
+}
+@media(max-width:650px){
+ .circuit-course{min-height:44px;padding:6px 3px}
+ .circuit-course strong{font-size:10px;letter-spacing:.03em}
+ .circuit-course small{font-size:7px;letter-spacing:0}
+}
+@media(prefers-reduced-motion:reduce){.circuit-course{transition:none}}

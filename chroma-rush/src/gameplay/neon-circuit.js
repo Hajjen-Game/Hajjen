@@ -117,11 +117,13 @@ function setStick(e){
   const strength=len>r*.13?Math.min(1,len/r):0;
   joyX=len>0?dx/len*strength:0;
   joyY=len>0?dy/len*strength:0;
+  $('circuit-joystick').classList.toggle('driving',strength>.15);
   $('circuit-stick').style.transform='translate(calc(-50% + '+(joyX*r).toFixed(1)+
     'px),calc(-50% + '+(joyY*r).toFixed(1)+'px))';
 }
 function resetStick(){
   joyId=null;joyX=0;joyY=0;
+  $('circuit-joystick').classList.remove('driving');
   $('circuit-stick').style.transform='translate(-50%, -50%)';
 }
 const joystick=$('circuit-joystick');

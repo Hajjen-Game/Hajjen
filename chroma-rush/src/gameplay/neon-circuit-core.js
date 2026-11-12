@@ -248,6 +248,8 @@ for(const track of TRACKS){
   // ONLY nearby samples/rim points instead of the entire extended circuit.
   track.renderTileSegments=new Map();
   track.renderTileRims=new Map();
+  track.renderTileStuds=new Map();
+  track.studs=[];
   function tileRange(map,index,xmin,ymin,xmax,ymax){
     for(let x=Math.floor(xmin/RENDER_TILE);x<=Math.floor(xmax/RENDER_TILE);x++)
       for(let y=Math.floor(ymin/RENDER_TILE);y<=Math.floor(ymax/RENDER_TILE);y++){
@@ -267,6 +269,13 @@ for(const track of TRACKS){
     tileRange(track.renderTileRims,i,
       p.x-RENDER_SAFE_PAD,p.y-RENDER_SAFE_PAD,
       p.x+RENDER_SAFE_PAD,p.y+RENDER_SAFE_PAD);
+  }
+  // Static roadside studs are another source of redundant pointAt queries.
+  for(let distance=28;distance<track.length;distance+=34){
+    const p=pointAt(distance,track);
+    track.studs.push({...p,distance});
+    tileRange(track.renderTileStuds,track.studs.length-1,
+      p.x-115,p.y-115,p.x+115,p.y+115);
   }
 }
 

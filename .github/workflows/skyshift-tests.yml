@@ -1,0 +1,20 @@
+name: SKYSHIFT track logic checks
+on:
+  push:
+    paths:
+      - 'skyshift/**'
+      - '.github/workflows/skyshift-tests.yml'
+  pull_request:
+    paths:
+      - 'skyshift/**'
+      - '.github/workflows/skyshift-tests.yml'
+jobs:
+  track-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify SKYSHIFT deterministic track planner
+        run: node --test skyshift/track.test.mjs

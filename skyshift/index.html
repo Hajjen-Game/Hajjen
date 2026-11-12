@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#060a16">
+  <meta name="description" content="SKYSHIFT 0.1 – a playable neon flight and platform-jumping prototype.">
+  <title>SKYSHIFT · Flight & Track Prototype 0.1</title>
+  <link rel="stylesheet" href="./style.css?v=0.1.0">
+</head>
+<body>
+  <div id="app">
+    <canvas id="game" aria-label="SKYSHIFT 3D flight game"></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+    <div id="zone-flash" aria-hidden="true"></div>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ FLIGHT PROTOTYPE 0.1</span></div>
+      <button id="pause-btn" class="top-button hidden" aria-label="Pausa spelet">Ⅱ</button>
+    </header>
+    <div id="hud" class="hud hidden">
+      <div class="hud-left">
+        <div class="eyebrow">SKYSHIELD <b id="shield-text">100%</b></div>
+        <div class="shield-track"><div id="shield-fill"></div></div>
+        <div class="hud-note" id="flight-state">READY</div>
+      </div>
+      <div class="hud-center">
+        <div class="eyebrow">CURRENT ZONE</div>
+        <div class="zone-number" id="zone-number">01</div>
+        <div class="zone-progress"><div id="zone-progress-fill"></div></div>
+      </div>
+      <div class="hud-right">
+        <div class="eyebrow">DISTANCE</div>
+        <div class="distance" id="distance">0000 <small>M</small></div>
+        <div class="hud-note" id="speed">SPEED 1.00×</div>
+      </div>
+    </div>
+    <div id="zone-banner" class="zone-banner hidden" aria-live="polite"><small>ENTERING ZONE</small><strong id="zone-banner-number">02</strong><span id="zone-banner-name">VIOLET PULSE</span></div>
+    <div id="toast" class="toast hidden" aria-live="polite"></div>
+    <div id="mobile-controls" class="mobile-controls hidden">
+      <div id="stick" class="stick" role="group" aria-label="Styr vänster och höger">
+        <div class="stick-track"><div id="stick-knob" class="stick-knob"></div></div>
+        <div class="stick-caption">STEER</div>
+      </div>
+      <button id="jump-btn" class="jump-button" type="button" aria-label="Hoppa"><span class="jump-arrow">↑</span><span>JUMP</span></button>
+    </div>
+    <section id="menu" class="screen">
+      <div class="screen-content">
+        <div class="kicker">NEON FLIGHT · PRECISION PLATFORMING</div>
+        <h1>SKY<span>SHIFT</span></h1>
+        <div class="rule"></div>
+        <p class="tagline">MASTER THE SPEED.<br>OWN THE SKY.</p>
+        <button id="start-btn" class="primary">START FLIGHT <span>↗</span></button>
+        <div class="instructions">MOVE <b>A / D · ← →</b> <i></i> JUMP <b>SPACE</b><br><span>Mobile: drag left to steer · tap right to jump</span></div>
+        <div class="prototype-label">THREE TRACK FAMILIES · LIVE ZONE SYSTEM · BUILD 0.1</div>
+      </div>
+    </section>
+    <section id="pause-screen" class="screen hidden" aria-label="Pausmeny">
+      <div class="screen-content compact">
+        <div class="kicker">FLIGHT INTERRUPTED</div>
+        <h2>PAUSED</h2>
+        <button id="resume-btn" class="primary">RESUME <span>→</span></button>
+        <button id="restart-paused-btn" class="secondary">RESTART FLIGHT</button>
+      </div>
+    </section>
+    <section id="end-screen" class="screen hidden" aria-label="Resultat">
+      <div class="screen-content compact">
+        <div class="kicker">RUN COMPLETE</div>
+        <h2>FLIGHT ENDED</h2>
+        <div class="summary"><span>DISTANCE</span><strong id="final-distance">0 M</strong><span>MAX ZONE</span><strong id="final-zone">01</strong><span>PERSONAL BEST</span><strong id="personal-best">0 M</strong><span>FLIGHT TIME</span><strong id="flight-time">0:00</strong></div>
+        <button id="retry-btn" class="primary">FLY AGAIN <span>↗</span></button>
+        <button id="audit-btn" class="secondary">EXPORT RUN DATA ↓</button>
+      </div>
+    </section>
+    <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
+    <div id="error" class="error hidden" role="alert"></div>
+  </div>
+  <script type="module" src="./game.mjs?v=0.1.0"></script>
+</body>
+</html>

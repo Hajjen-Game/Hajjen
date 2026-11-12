@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.4: Authored GP Geometry & Banked Racing
+/* CHROMA RUSH — NEON CIRCUIT 2.5: Arcade Velocity & Rival Identity
  * Hold the joystick to drive and aim to steer. Releasing coasts instead
  * of falling back to invisible autopilot; AI remains track guided. */
 (function(root,factory){
@@ -42,7 +42,16 @@ const hypot=Math.hypot;
 const mod=(x,n)=>(x%n+n)%n;
 const angleDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 const zoneAt=t=>Math.floor(Math.max(0,t+1e-8)/ZONE_SECONDS);
-const zoneSpeed=z=>Math.min(268,172+14*Math.max(0,z));
+const zoneSpeed=z=>Math.min(300,191+15.5*Math.max(0,z));
+const AI_STYLES=Object.freeze([
+  null,
+  Object.freeze({name:'precision',attackCooldown:7.2,attackWindow:1.10,
+    targetLead:.19,attackRange:104,tempo:1.055,turnLead:110,brakeCurve:.52}),
+  Object.freeze({name:'aggressive',attackCooldown:2.65,attackWindow:1.72,
+    targetLead:.18,attackRange:156,tempo:1.070,turnLead:82,brakeCurve:.75}),
+  Object.freeze({name:'opportunist',attackCooldown:5.3,attackWindow:1.32,
+    targetLead:.24,attackRange:108,tempo:1.045,turnLead:96,brakeCurve:.65})
+]);
 const rand=seed=>{let n=(seed>>>0)||0x6e624eb7;
   return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296};
 };
@@ -130,7 +139,7 @@ function makeTrack(shape=TRACK_SHAPE,steps=20,variant=0){
   const boosts=candidates.map((part,id)=>({
     id,s:part.start+part.length*.57,halfLength:38,
     lane:[-16,15,0][id],halfWidth:14,
-    duration:1.05,factor:1.19,section:'straight'
+    duration:1.24,factor:1.34,section:'straight'
   }));
   return {samples,length:total,half:TRACK_HALF,
     sections,boosts,pointCount:samples.length,shape:{...shape},
@@ -157,6 +166,25 @@ function edgeAt(s,side=1,track=TRACK){
 }
 const TRACKS=COURSE_PROFILES.map((_,index)=>makeTrack(TRACK_SHAPE,20,index));
 const TRACK=TRACKS[0];
+const SPATIAL_CELL=144;
+for(const track of TRACKS){
+  const grid=new Map(),list=track.samples;
+  for(let i=0;i<list.length-1;i++){
+    const a=list[i],b=list[i+1],pad=80;
+    const minX=Math.floor((Math.min(a.x,b.x)-pad)/SPATIAL_CELL);
+    const maxX=Math.floor((Math.max(a.x,b.x)+pad)/SPATIAL_CELL);
+    const minY=Math.floor((Math.min(a.y,b.y)-pad)/SPATIAL_CELL);
+    const maxY=Math.floor((Math.max(a.y,b.y)+pad)/SPATIAL_CELL);
+    for(let cx=minX;cx<=maxX;cx++)for(let cy=minY;cy<=maxY;cy++){
+      const key=cx+','+cy;
+      if(!grid.has(key))grid.set(key,[]);
+      grid.get(key).push(i);
+    }
+  }
+  track.spatialCell=SPATIAL_CELL;
+  track.spatialBuckets=grid;
+}
+
  // Cache static bank rim geometry at boot; only tile painting reuses it.
 for(const track of TRACKS){
   track.rimSamples=[];
@@ -192,10 +220,16 @@ function pointAt(s,track=TRACK){
   return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,
     tx,ty,angle:Math.atan2(ty,tx),nx:-ty,ny:tx,s:distance};
 }
+// Local spatial lookup replaces ~750 segment scans every time an AI plans,
+// the camera draws a bank tilt, or a collision tests the road edge.
+// Off-track/teleport positions explicitly fall back to the exact full scan.
 function closest(x,y,track=TRACK){
+  const list=track.samples,cell=track.spatialCell||144;
+  const buckets=track.spatialBuckets;
+  const key=Math.floor(x/cell)+','+Math.floor(y/cell);
+  const candidates=buckets?buckets.get(key):null;
   let best=Infinity,result=null;
-  const list=track.samples;
-  for(let i=0;i<list.length-1;i++){
+  function inspect(i){
     const a=list[i],b=list[i+1],dx=b.x-a.x,dy=b.y-a.y;
     const den=dx*dx+dy*dy||1;
     const t=clamp(((x-a.x)*dx+(y-a.y)*dy)/den,0,1);
@@ -208,6 +242,14 @@ function closest(x,y,track=TRACK){
         nx:-dy/seg,ny:dx/seg,
         side:((x-px)*(-dy)+(y-py)*dx)/seg,index:i};
     }
+  }
+  if(candidates&&candidates.length){
+    for(const i of candidates)inspect(i);
+  }
+  // Exact behavior outside the near-road band and at an empty grid cell.
+  if(best>80*80){
+    best=Infinity;result=null;
+    for(let i=0;i<list.length-1;i++)inspect(i);
   }
   return result;
 }
@@ -233,7 +275,9 @@ function seededRace(seed=20261111,courseId=0){
       dashes:0,dashTime:0,dashCooldown:0,brakeSeconds:0,
       lineSeconds:0,flow:0,bestFlow:0,edgeCooldown:0,
       aiLane:id===0?lane[id]:lane[id]+(random()-.5)*9,
-      aiTempo:id===0?1:.97+id*.024+(random()-.5)*.06,
+      aiTempo:id===0?1:AI_STYLES[id].tempo+(random()-.5)*.035,
+      aiStyle:id===0?'player':AI_STYLES[id].name,
+      aiDefenses:0,aiDefendTime:0,aiDefenseCooldown:id*.37,
       contactFlash:0,gatePasses:0,lastGateTime:null,impactCooldown:0,impulseX:0,impulseY:0,
       knockSeconds:0,falls:0,knockouts:0,fallTimer:0,
       respawns:0,invulnerable:0,lastAttacker:null,lastImpactAt:-100,
@@ -242,7 +286,8 @@ function seededRace(seed=20261111,courseId=0){
       aiAttackTarget:null,aiAttackTime:0,aiAttackCooldown:id*.28,
       aiAttacks:0,aiHits:0,
       bankRides:0,bankSaves:0,bankHeight:0,boosts:0,
-      boostTime:0,boostPadId:-1,boostNextAt:0};
+      boostTime:0,boostFactor:1,boostPadId:-1,boostNextAt:0,
+      speedSamples:0,speedAccum:0,boostPeak:0};
   });
   const race={seed,random,racers,track,gates,courseIndex,
     ready:READY_SECONDS,elapsed:0,
@@ -252,7 +297,7 @@ function seededRace(seed=20261111,courseId=0){
     impacts:[],contactPairs:{},performance:{
       frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     quality:'auto'};
-  log(race,'race_start',{mode:'neon-circuit-2.4',laps:LAPS_TO_WIN,
+  log(race,'race_start',{mode:'neon-circuit-2.5',laps:LAPS_TO_WIN,
     trackLength:Math.round(track.length),track:track.courseId,
     course:track.name,impact:'ejection-and-respawn',
     zoneWave:'forward-track-only'});
@@ -338,55 +383,83 @@ function updateProgress(m,p,from,nearest,dt){
   }
 }
 function desiredAI(m,p,dt=STEP){
-  const current=closest(p.x,p.y,m.track);
-  const s=current.s,look=clamp(p.speed*.53,59,103);
+  const style=AI_STYLES[p.id],current=closest(p.x,p.y,m.track);
+  const s=current.s,look=clamp(p.speed*.52,63,style.turnLead);
   const near=pointAt(s+28,m.track),future=pointAt(s+120,m.track);
   const curve=Math.abs(angleDelta(near.angle,future.angle));
   p.aiAttackCooldown=Math.max(0,p.aiAttackCooldown-dt);
   p.aiAttackTime=Math.max(0,p.aiAttackTime-dt);
+  p.aiDefenseCooldown=Math.max(0,p.aiDefenseCooldown-dt);
+  p.aiDefendTime=Math.max(0,p.aiDefendTime-dt);
+  const opponents=m.racers.filter(v=>v!==p&&!v.finished&&
+    v.fallTimer<=0&&v.invulnerable<=0);
+  const threats=opponents.map(v=>({
+    racer:v,dist:hypot(v.x-p.x,v.y-p.y),gap:v.progress-p.progress
+  })).filter(t=>t.dist<95&&t.gap<22&&t.gap>-100)
+    .sort((a,b)=>a.dist-b.dist);
+  // A defender yields or blocks laterally; no artificial speed advantage.
+  const threat=threats.find(t=>t.racer.dashTime>0||
+    (p.id!==2&&(t.racer.aiAttackTarget===p.id||t.dist<29)));
+  if(threat&&p.aiDefendTime<=0&&p.aiDefenseCooldown<=0&&
+     current.dist<26&&p.speed>85){
+    p.aiDefendTime=.47;p.aiDefenseCooldown=1.6+(p.id===1?.4:0);
+    p.aiDefenses++;
+    log(m,'ai_defend',{player:p.id,against:threat.racer.id,
+      style:style.name});
+  }
   let target=p.aiAttackTarget===null?null:m.racers[p.aiAttackTarget];
   if(!target||target.finished||target.fallTimer>0||target.invulnerable>0||
-     hypot(target.x-p.x,target.y-p.y)>180||current.dist>30||p.aiAttackTime<=0){
+     hypot(target.x-p.x,target.y-p.y)>180||current.dist>32||
+     p.aiAttackTime<=0||p.aiDefendTime>0){
     target=null;p.aiAttackTarget=null;p.aiAttackTime=0;
   }
-  // Active rival pressure: choose nearby racers instead of sitting on a rail.
-  // Physical overlap is still required for every impact.
-  if(!target&&p.aiAttackCooldown<=0&&p.speed>105&&current.dist<23){
-    const options=m.racers.filter(v=>v!==p&&!v.finished&&v.fallTimer<=0&&
-      v.invulnerable<=0).map(v=>{
+  if(!target&&p.aiAttackCooldown<=0&&p.speed>115&&
+     current.dist<25&&p.aiDefendTime<=0){
+    const options=opponents.map(v=>{
       const gap=v.progress-p.progress,dist=hypot(v.x-p.x,v.y-p.y);
-      return {v,gap,dist,score:(v.id>0?25:0)-dist*.43+
-        Math.max(0,Math.min(60,gap))*.12,
-        eligible:gap>-25&&gap<145&&dist<148};
+      const edge=closest(v.x,v.y,m.track).dist;
+      const vulnerability=edge>24?35:0;
+      return {v,dist,gap,eligible:gap>-28&&gap<style.attackRange&&
+        dist<style.attackRange&&
+        (p.id!==3||edge>18||dist<30),
+        score:-dist*.44+clamp(gap,0,60)*.12+
+         (p.id===3?vulnerability*2:p.id===2?20:-12)};
     }).filter(v=>v.eligible).sort((a,b)=>b.score-a.score);
     if(options.length){
       target=options[0].v;p.aiAttackTarget=target.id;
-      p.aiAttackTime=1.42;p.aiAttackCooldown=4.4+p.id*.45;
+      p.aiAttackTime=style.attackWindow;
+      p.aiAttackCooldown=style.attackCooldown;
       p.aiAttacks++;
       log(m,'ai_attack',{attacker:p.id,target:target.id,
-        gap:Math.round(options[0].gap)});
+        gap:Math.round(options[0].gap),style:style.name});
     }
   }
   if(target){
-    const tx=target.x+target.vx*.13,ty=target.y+target.vy*.13;
+    const tx=target.x+target.vx*style.targetLead;
+    const ty=target.y+target.vy*style.targetLead;
     return {angle:Math.atan2(ty-p.y,tx-p.x),brake:false,
       line:s,curvature:curve,attacking:true,target:target.id};
   }
   const ahead=pointAt(s+look,m.track);
-  let lane=p.aiLane*(.68+.08*Math.sin(m.elapsed*.7+p.id));
-  // AI uses boost lanes opportunistically while retaining overtaking AI.
+  let lane=(p.id===1?0:p.aiLane)*
+    (.72+.06*Math.sin(m.elapsed*.65+p.id));
   const lap=Math.max(0,Math.floor(p.progress/m.track.length));
   const boost=m.track.boosts.find(pad=>{
-    const ahead=mod(pad.s-s,m.track.length);
-    // Rival AI takes selected boost routes, not every pad perfectly.
-    // This leaves meaningful opportunities for a skilled human driver.
-    return ahead>0&&ahead<160&&(pad.id+p.id+lap)%3===0;
+    const distance=mod(pad.s-s,m.track.length);
+    const choice=p.id===1?3:p.id===2?2:3;
+    return distance>0&&distance<160&&
+      (pad.id+p.id+lap)%choice===0;
   });
-  if(boost)lane=boost.lane;
+  if(boost&&p.aiDefendTime<=0)lane=boost.lane;
+  if(p.aiDefendTime>0&&threat){
+    const threatRoad=closest(threat.racer.x,threat.racer.y,m.track);
+    lane=clamp(threatRoad.side>=current.side?
+      current.side-12:current.side+12,-19,19);
+  }
   return {angle:Math.atan2(ahead.y+ahead.ny*lane-p.y,
       ahead.x+ahead.nx*lane-p.x),
-    brake:curve>.84&&p.speed>200,line:s,curvature:curve,
-    attacking:false,target:null};
+    brake:curve>style.brakeCurve&&p.speed>185,
+    line:s,curvature:curve,attacking:false,target:null};
 }
 function fallOff(m,p){
   if(p.fallTimer>0||p.finished||p.invulnerable>0)return;
@@ -426,7 +499,8 @@ function respawn(m,p){
   p.aiAttackTime=0;p.aiAttackTarget=null;p.aiAttackCooldown=2.3;
   p.invulnerable=RESPAWN_GRACE;
   p.edgeExposure=0;p.fallVX=0;p.fallVY=0;p.lastImpactAt=-100;
-  p.bankHeight=0;p.boostTime=0;
+  p.bankHeight=0;p.boostTime=0;p.boostFactor=1;
+  p.aiDefendTime=0;p.aiDefenseCooldown=1.1;
   p.respawns++;
   log(m,'respawn',{player:p.id,lap:p.laps+1,
     grace:RESPAWN_GRACE,setback:27});
@@ -448,6 +522,7 @@ function moveRacer(m,p,input,dt){
   p.knockSeconds=Math.max(0,p.knockSeconds-dt);
   p.contactFlash=Math.max(0,p.contactFlash-dt);
   p.boostTime=Math.max(0,p.boostTime-dt);
+  if(p.boostTime<=0)p.boostFactor=1;
   let brake=false,desired=p.angle,throttle=1,steering=true,
     aiPressure=false;
    const now=closest(p.x,p.y,m.track);
@@ -478,19 +553,21 @@ function moveRacer(m,p,input,dt){
      const ai=desiredAI(m,p,dt);
      desired=ai.angle;brake=ai.brake;aiPressure=ai.attacking;
    }
-   const turnSpeed=brake?5.25:4.35;
+   const turnSpeed=brake?5.85:4.35;
    if(steering)
      p.angle+=clamp(angleDelta(p.angle,desired),-turnSpeed*dt,turnSpeed*dt);
    if(brake)p.brakeSeconds+=dt;
    const base=zoneSpeed(m.zone);
    const aiSpeed=p.aiTempo;
-   const dashFactor=(p.dashTime>0?1.47:1)*(p.boostTime>0?1.19:1);
+   const dashFactor=Math.min(1.77,(p.dashTime>0?1.47:1)*
+     (p.boostTime>0?p.boostFactor:1));
    const flowFactor=p.id===0?1+.075*p.flow:1;
-   const target=base*aiSpeed*(aiPressure?1.18:1)*throttle*
-     (brake?.55:1)*dashFactor*flowFactor;
+   const target=base*aiSpeed*throttle*
+     (brake?.76:1)*dashFactor*flowFactor;
    // No input: coast to a stop in under a second; BRAKE is stronger.
-   const decel=p.id===0&&!steering?310:brake?330:185;
-   p.speed+=clamp(target-p.speed,-decel*dt,235*dt);
+   const decel=p.id===0&&!steering?340:brake?400:215;
+   const accel=p.boostTime>0?390:265;
+   p.speed+=clamp(target-p.speed,-decel*dt,accel*dt);
    if(p.speed<.5)p.speed=0;
   // Rolling momentum: changing heading does not instantly redirect movement.
   // Brake tightens the turn. Keep a quicker response for the track AI.
@@ -499,7 +576,7 @@ function moveRacer(m,p,input,dt){
   }
   const targetVX=Math.cos(p.angle)*p.speed;
   const targetVY=Math.sin(p.angle)*p.speed;
-  const blend=1-Math.exp(-(p.id===0?(brake?10:8.5):16)*dt);
+  const blend=1-Math.exp(-(p.id===0?(brake?15:8.5):16)*dt);
   p.vx+=(targetVX-p.vx)*blend;p.vy+=(targetVY-p.vy)*blend;
   const proposed={x:p.x+(p.vx+p.impulseX)*dt,
     y:p.y+(p.vy+p.impulseY)*dt};
@@ -549,13 +626,17 @@ function moveRacer(m,p,input,dt){
       if(Math.abs(delta)>pad.halfLength)continue;
       if(Math.abs(nearest.side-pad.lane)>pad.halfWidth)continue;
       p.boosts++;p.boostPadId=pad.id;p.boostNextAt=m.elapsed+2;
-      p.boostTime=pad.duration;
+      p.boostTime=pad.duration;p.boostFactor=pad.factor;
       // Immediate burst ensures the pad feels rewarding even if the
       // player is already at full speed; dash stacks, but is not required.
-      p.speed+=Math.min(38,zoneSpeed(m.zone)*.16);
-      p.vx+=Math.cos(p.angle)*22;p.vy+=Math.sin(p.angle)*22;
+      const impulse=Math.min(66,zoneSpeed(m.zone)*.29);
+      p.speed+=impulse;
+      p.vx+=Math.cos(p.angle)*impulse*.60;
+      p.vy+=Math.sin(p.angle)*impulse*.60;
+      p.boostPeak=Math.max(p.boostPeak,p.speed);
       p.contactFlash=.18;
-      log(m,'boost',{player:p.id,pad:pad.id,lap:p.laps+1});
+      log(m,'boost',{player:p.id,pad:pad.id,lap:p.laps+1,
+        speed:Math.round(p.speed),factor:pad.factor});
       if(p.id===0){
         m.announcement='BOOST · SPEED UP';
         m.announcementTime=m.elapsed+.58;
@@ -563,7 +644,9 @@ function moveRacer(m,p,input,dt){
       break;
     }
   }
+  if(p.boostTime>0)p.boostPeak=Math.max(p.boostPeak,p.speed);
   if(p.id===0){
+    p.speedSamples++;p.speedAccum+=p.speed;
     if(steering&&p.speed>45&&nearest.dist<24&&!brake){
       p.flow=clamp(p.flow+dt*.34,0,1);
       p.lineSeconds+=dt;
@@ -698,7 +781,7 @@ function waveState(m){
 }
 function audit(m){
   const p=m.racers[0];
-  return {schema:'neon-circuit-run-audit/2.4',build:'neon-circuit-2.4',
+  return {schema:'neon-circuit-run-audit/2.5',build:'neon-circuit-2.5',
     seed:m.seed,status:m.finished?'completed':'in_progress',
     courseId:m.track.courseId,courseName:m.track.name,
     trackLength:+m.track.length.toFixed(1),
@@ -710,13 +793,16 @@ function audit(m){
       trackArchitecture:'tangent-circular-arcs-straights',
       boostPads:m.track.boosts.length,
        controlMode:'hold-to-drive-manual-steering',
+      rivalStyles:m.racers.slice(1).map(p=>p.aiStyle),
       waveTransitions:m.events.filter(e=>e.type==='zone').length,
       finishPlace:m.finishPlace,lapsCompleted:p.laps,
       lapFraction:+lapProgress(p,m.track).fraction.toFixed(3),
       lapTimes:p.lapTimes.slice(),speed:Math.round(p.speed),
       edgeHits:p.edgeHits,contacts:p.contacts,dashes:p.dashes,
       falls:p.falls,respawns:p.respawns,knockouts:p.knockouts,
-      boosts:p.boosts,bankRides:+p.bankRides.toFixed(2),
+      boosts:p.boosts,boostPeak:Math.round(p.boostPeak),
+      averageSpeed:Math.round(p.speedAccum/Math.max(1,p.speedSamples)),
+      bankRides:+p.bankRides.toFixed(2),
       bankSaves:p.bankSaves,
       aiAttacks:m.racers.reduce((n,r)=>n+r.aiAttacks,0),
       aiHits:m.racers.reduce((n,r)=>n+r.aiHits,0),
@@ -733,6 +819,7 @@ function audit(m){
       dashes:r.dashes,falls:r.falls,respawns:r.respawns,
       knockouts:r.knockouts,aiAttacks:r.aiAttacks,aiHits:r.aiHits,
       boosts:r.boosts,bankSaves:r.bankSaves,
+      aiStyle:r.aiStyle,aiDefenses:r.aiDefenses,
       lapTimes:r.lapTimes.slice()})),
     events:m.events.map(v=>({...v})),
     limits:{maxEvents:m.maxEvents,droppedEvents:m.overflow},
@@ -742,6 +829,7 @@ return {WIDTH,HEIGHT,CX,CY,COLORS,NAMES,NODES,TRACK,TRACKS,TRACK_SHAPE,WORLD_BOU
   COURSE_NAMES,COURSE_IDS,COLOR_WAVE_SECONDS,WAVE_START_BACK,WAVE_FRONT_TRAVEL,
   TRACK_HALF,PLAYER_RADIUS,RAMP_START,FALL_EDGE,FALL_SECONDS,RESPAWN_GRACE,
   READY_SECONDS,ZONE_SECONDS,LAPS_TO_WIN,DASH_TIME,DASH_COOLDOWN,STEP,zoneAt,zoneSpeed,
+  AI_STYLES,
   angleDelta,makeTrack,pointAt,closest,directionAt,gateCrossed,GATES,
   bankingAt,edgeAt,
   waveState,seededRace,

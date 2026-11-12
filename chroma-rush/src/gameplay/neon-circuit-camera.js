@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Neon Circuit Camera 2.2 — Closer Racing View.
+/* CHROMA RUSH — Neon Circuit Camera 2.5 — Readable High-Speed Close Follow.
  * Independent heading filter, gentle look-ahead, small positional dead zone
  * and damped speed-zoom. Fixed north: steering never rotates the screen.
  */
@@ -11,7 +11,7 @@
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const NOMINAL_HEIGHT=540;
 // ~50% tighter view at low and high speeds; preserves gradual zoom-out.
-const MIN_ZOOM_FACTOR=1.16,MAX_ZOOM_FACTOR=1.55;
+const MIN_ZOOM_FACTOR=1.29,MAX_ZOOM_FACTOR=1.55;
 const fade=(rate,dt)=>1-Math.exp(-rate*Math.max(0,dt));
 function desiredZoom(height,speed){
   const h=Math.max(1,height);
@@ -49,7 +49,10 @@ function step(cam,player,viewport,dt,instant=false){
   if(instant){
     cam.filteredSpeed=player.speed;
   }else cam.filteredSpeed+=(player.speed-cam.filteredSpeed)*fade(2.5,dt);
-  const z=desiredZoom(viewport.height,cam.filteredSpeed);
+  // A restrained boost punch keeps the cube and road visually close,
+  // rather than cancelling the sensation of acceleration with zoom-out.
+  const z=desiredZoom(viewport.height,cam.filteredSpeed)*
+    (player.boostTime>0?1.035:1);
   cam.zoom+=(z-cam.zoom)*(instant?1:fade(1.9,dt));
   cam.targetZoom=z;
   const a=lookAhead(player);

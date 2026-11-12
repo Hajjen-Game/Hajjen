@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.4: Track Architecture & Banked Racing.
+/* CHROMA RUSH — NEON CIRCUIT 2.5: Arcade Velocity & Rival Identity.
  * Camera follows the cube through a multi-screen neon racing world.
  * The stable dark environment and road-only Track Tide render in visible
  * cached world tiles (never one enormous offscreen track image).
@@ -260,50 +260,46 @@ function tileHasRoad(track,rect){
 // Paint the physical ramp as a continuous shoulder, with taller light
 // banking on the OUTSIDE of circular turns. World-coordinates, tile-cached.
 function drawBankedEdges(g,track,rect,primary,secondary){
-  const makePath=(side,lip)=>{
-    let started=false;
-    g.beginPath();
-    for(const p of track.rimSamples){
-      const sidePoints=side<0?p.left:p.right;
-      const x=lip?sidePoints.ox:sidePoints.ix,
-        y=lip?sidePoints.oy:sidePoints.iy;
-      const visible=x>=rect.minX-80&&x<=rect.maxX+80&&
-        y>=rect.minY-80&&y<=rect.maxY+80;
-      if(!visible){started=false;continue;}
-      if(!started)g.moveTo(x,y);else g.lineTo(x,y);
-      started=true;
-    }
+  // Physically continuous shaded slopes instead of stacked neon outlines.
+  const runs=[];let current=[];
+  for(const p of track.rimSamples){
+    const visible=p.x>rect.minX-110&&p.x<rect.maxX+110&&
+      p.y>rect.minY-110&&p.y<rect.maxY+110;
+    if(visible)current.push(p);
+    else if(current.length){if(current.length>1)runs.push(current);current=[];}
+  }
+  if(current.length>1)runs.push(current);
+  const point=(p,side,t)=>{
+    const edge=side<0?p.left:p.right;
+    return {x:edge.ix+(edge.ox-edge.ix)*t,
+      y:edge.iy+(edge.oy-edge.iy)*t};
   };
-  for(const side of [-1,1]){
-    g.save();g.lineJoin='round';g.lineCap='round';
-    makePath(side,false);
-    g.strokeStyle=rgb(primary,.16);g.lineWidth=15;g.stroke();
-    makePath(side,true);
-    g.strokeStyle=rgb('#07101d',.88);g.lineWidth=6;g.stroke();
-    g.strokeStyle=rgb(secondary,.46);g.lineWidth=2.2;g.stroke();
-    g.restore();
-  }
-  // Additional elevated outside curbs for the large banked arcs.
-  for(const section of track.sections){
-    if(section.kind!=='arc'||section.radius>600)continue;
-    const side=-section.sign;
-    g.beginPath();let started=false;
-    for(let t=0;t<=1.001;t+=.04){
-      const pos=section.start+(section.end-section.start)*Math.min(t,1);
-      const pt=CORE.pointAt(pos,track);
-      const e=CORE.edgeAt(pos,side,track);
-      if(e.bank<.05){started=false;continue;}
-      const offset=e.limit-6,x=pt.x+pt.nx*offset*side,
-        y=pt.y+pt.ny*offset*side;
-      const visible=x>rect.minX-30&&x<rect.maxX+30&&
-        y>rect.minY-30&&y<rect.maxY+30;
-      if(!visible){started=false;continue;}
-      if(started)g.lineTo(x,y);else g.moveTo(x,y);
-      started=true;
+  function strip(run,side,inner,outer,color){
+    g.beginPath();
+    for(let i=0;i<run.length;i++){
+      const p=point(run[i],side,inner);
+      if(i===0)g.moveTo(p.x,p.y);else g.lineTo(p.x,p.y);
     }
-    g.strokeStyle=rgb(secondary,.42);g.lineWidth=5;g.stroke();
-    g.strokeStyle=rgb('#f0faff',.33);g.lineWidth=1.3;g.stroke();
+    for(let i=run.length-1;i>=0;i--){
+      const p=point(run[i],side,outer);g.lineTo(p.x,p.y);
+    }
+    g.closePath();g.fillStyle=color;g.fill();
   }
+  g.save();g.lineJoin='round';g.lineCap='round';
+  for(const run of runs)for(const side of [-1,1]){
+    strip(run,side,0,1,rgb('#020b18',.87));
+    strip(run,side,0,.48,rgb(primary,.25));
+    strip(run,side,.48,.84,rgb(secondary,.24));
+    strip(run,side,.84,1,rgb('#d6f5ff',.21));
+    g.beginPath();
+    for(let i=0;i<run.length;i++){
+      const p=point(run[i],side,1);
+      if(i===0)g.moveTo(p.x,p.y);else g.lineTo(p.x,p.y);
+    }
+    g.strokeStyle=rgb('#010512',.70);g.lineWidth=6;g.stroke();
+    g.strokeStyle=rgb(primary,.38);g.lineWidth=1.7;g.stroke();
+  }
+  g.restore();
 }
 function drawBoostPads(g,track,rect,primary,secondary){
   for(const pad of track.boosts){
@@ -316,14 +312,14 @@ function drawBoostPads(g,track,rect,primary,secondary){
     // Flush with the roadway: cyan chevrons are a BOOST, not a barrier.
     g.fillStyle=rgb('#07192c',.38);
     rounded(g,-43,-15,86,30,7);g.fill();
-    g.strokeStyle=rgb(secondary,.35);g.lineWidth=1.2;
+    g.strokeStyle=rgb(secondary,.48);g.lineWidth=1.2;
     rounded(g,-43,-15,86,30,7);g.stroke();
     for(const x of [-23,0,23]){
       g.beginPath();g.moveTo(x-8,-9);g.lineTo(x+5,0);
       g.lineTo(x-8,9);
-      g.strokeStyle=rgb(primary,.8);g.lineWidth=4.8;
+      g.strokeStyle=rgb(primary,.95);g.lineWidth=5.2;
       g.lineCap='round';g.lineJoin='round';g.stroke();
-      g.strokeStyle=rgb('#ecffff',.54);g.lineWidth=1.45;g.stroke();
+      g.strokeStyle=rgb('#ecffff',.80);g.lineWidth=1.65;g.stroke();
     }
     g.restore();
   }
@@ -376,7 +372,7 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   drawBankedEdges(g,track,rect,primary,secondary);
   drawBoostPads(g,track,rect,primary,secondary);
   // Small light studs/curb marks. Skip markers outside the current tile.
-  for(let distance=28;distance<track.length;distance+=42){
+  for(let distance=28;distance<track.length;distance+=34){
     const p=CORE.pointAt(distance,track);
     if(p.x<rect.minX-10||p.x>rect.maxX+10||
         p.y<rect.minY-10||p.y>rect.maxY+10)continue;
@@ -504,11 +500,12 @@ function drawRacers(r){
     ctx.save();
     if(!falling&&!p.finished){
       // A short REAR wake, not a deadly light trail or extra forward tick.
-      const d=p.dashTime>0;
+      const d=p.dashTime>0||p.boostTime>0;
       ctx.lineCap='round';
       ctx.beginPath();ctx.moveTo(p.x-vx*11,p.y-vy*11);
-      ctx.lineTo(p.x-vx*(d?45:20),p.y-vy*(d?45:20));
-      ctx.strokeStyle=p.color;ctx.lineWidth=d?4:2;
+      ctx.lineTo(p.x-vx*(p.dashTime>0?45:p.boostTime>0?33:20),
+       p.y-vy*(p.dashTime>0?45:p.boostTime>0?33:20));
+      ctx.strokeStyle=p.color;ctx.lineWidth=d?3.5:2;
       ctx.globalAlpha=d?.52:.25;ctx.stroke();
     }
     ctx.globalAlpha=falling?Math.max(.08,fallFraction*.76):
@@ -537,6 +534,14 @@ function drawRacers(r){
       ctx.globalAlpha=1;
     }
     ctx.drawImage(sprite(p.color),-34,-34);
+    if(!falling&&p.boostTime>1.01&&!reduced()){
+      const arrival=clamp((p.boostTime-1.01)/.23,0,1);
+      ctx.save();
+      ctx.strokeStyle=p.color;ctx.lineWidth=1.9;
+      ctx.globalAlpha*=arrival*.66;
+      ctx.beginPath();ctx.arc(0,0,19+(1-arrival)*16,0,Math.PI*2);
+      ctx.stroke();ctx.restore();
+    }
     // Small front lip shows heading, without an arrow or long streak.
     ctx.rotate(p.angle+Math.PI/2);
     ctx.fillStyle=p.id===0?'#f3ffff':'#e2e7ff';
@@ -680,7 +685,7 @@ function paint(){
       drawRoadTiles(ctx,z,track,view);
       ctx.restore();
       if(!reduced())for(const [offset,alpha] of
-        [[-17,.35],[12,.29],[39,.17]]){
+        [[-17,.35],[28,.22]]){
         ctx.save();ctx.globalAlpha=alpha;
         clipWaveRepaint(ctx,track,wave,offset);
         drawRoadTiles(ctx,z,track,view);

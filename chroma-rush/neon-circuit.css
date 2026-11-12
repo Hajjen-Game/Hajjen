@@ -203,3 +203,14 @@
  .circuit-course small{font-size:7px;letter-spacing:0}
 }
 @media(prefers-reduced-motion:reduce){.circuit-course{transition:none}}
+
+/* Let racers change circuits without navigating through the parent game. */
+.menu-circuit-change{
+ border:0;background:none;color:#99d9e8;
+ font-size:clamp(9px,1vw,11px);font-weight:850;
+ letter-spacing:.13em;cursor:pointer;padding:5px 12px;
+ border-radius:7px
+}
+.menu-circuit-change:hover{color:#ddffff;background:rgba(42,190,222,.10)}
+.menu-circuit-change:focus-visible{outline:2px solid #ddffff;outline-offset:2px}
+@media(max-height:450px){.menu-circuit-change{padding:3px 9px}}

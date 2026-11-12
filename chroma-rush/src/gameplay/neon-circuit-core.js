@@ -166,6 +166,25 @@ function edgeAt(s,side=1,track=TRACK){
 }
 const TRACKS=COURSE_PROFILES.map((_,index)=>makeTrack(TRACK_SHAPE,20,index));
 const TRACK=TRACKS[0];
+const SPATIAL_CELL=144;
+for(const track of TRACKS){
+  const grid=new Map(),list=track.samples;
+  for(let i=0;i<list.length-1;i++){
+    const a=list[i],b=list[i+1],pad=80;
+    const minX=Math.floor((Math.min(a.x,b.x)-pad)/SPATIAL_CELL);
+    const maxX=Math.floor((Math.max(a.x,b.x)+pad)/SPATIAL_CELL);
+    const minY=Math.floor((Math.min(a.y,b.y)-pad)/SPATIAL_CELL);
+    const maxY=Math.floor((Math.max(a.y,b.y)+pad)/SPATIAL_CELL);
+    for(let cx=minX;cx<=maxX;cx++)for(let cy=minY;cy<=maxY;cy++){
+      const key=cx+','+cy;
+      if(!grid.has(key))grid.set(key,[]);
+      grid.get(key).push(i);
+    }
+  }
+  track.spatialCell=SPATIAL_CELL;
+  track.spatialBuckets=grid;
+}
+
  // Cache static bank rim geometry at boot; only tile painting reuses it.
 for(const track of TRACKS){
   track.rimSamples=[];
@@ -201,10 +220,16 @@ function pointAt(s,track=TRACK){
   return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,
     tx,ty,angle:Math.atan2(ty,tx),nx:-ty,ny:tx,s:distance};
 }
+// Local spatial lookup replaces ~750 segment scans every time an AI plans,
+// the camera draws a bank tilt, or a collision tests the road edge.
+// Off-track/teleport positions explicitly fall back to the exact full scan.
 function closest(x,y,track=TRACK){
+  const list=track.samples,cell=track.spatialCell||144;
+  const buckets=track.spatialBuckets;
+  const key=Math.floor(x/cell)+','+Math.floor(y/cell);
+  const candidates=buckets?buckets.get(key):null;
   let best=Infinity,result=null;
-  const list=track.samples;
-  for(let i=0;i<list.length-1;i++){
+  function inspect(i){
     const a=list[i],b=list[i+1],dx=b.x-a.x,dy=b.y-a.y;
     const den=dx*dx+dy*dy||1;
     const t=clamp(((x-a.x)*dx+(y-a.y)*dy)/den,0,1);
@@ -217,6 +242,14 @@ function closest(x,y,track=TRACK){
         nx:-dy/seg,ny:dx/seg,
         side:((x-px)*(-dy)+(y-py)*dx)/seg,index:i};
     }
+  }
+  if(candidates&&candidates.length){
+    for(const i of candidates)inspect(i);
+  }
+  // Exact behavior outside the near-road band and at an empty grid cell.
+  if(best>80*80){
+    best=Infinity;result=null;
+    for(let i=0;i<list.length-1;i++)inspect(i);
   }
   return result;
 }

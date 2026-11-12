@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.6.1: Auto Throttle & Manual Steering.
+/* CHROMA RUSH — NEON CIRCUIT 2.7: Premium Motion & Visual Cohesion.
  * Camera follows the cube through a multi-screen neon racing world.
  * The stable dark environment and road-only Track Tide render in visible
  * cached world tiles (never one enormous offscreen track image).
@@ -28,6 +28,8 @@ const mix=(a,b,t)=>{
 let viewW=960,viewH=540,quality=1,slowStreak=0,camera=null;
 const TILE=448,TILE_PAD=18,TILE_LIMIT=36;
 const tileCache=new Map(),sprites=Object.create(null);
+const motionStates=new WeakMap();
+let motionSnapshot={lean:0,squash:1,stretch:1,brake:0};
 let tileBuilds=0,tileHits=0,mode='menu',race=null,preview=CORE.seededRace(103),
   nextCourse=0,joyId=null,joyX=0,joyY=0,brakePressed=false,dashPending=false,
   keys=new Set(),frameBefore=0,accumulator=0,noticeUntil=0;
@@ -511,26 +513,66 @@ function rounded(g,x,y,w,h,r){
   g.lineTo(x+r,y+h);g.quadraticCurveTo(x,y+h,x,y+h-r);
   g.lineTo(x,y+r);g.quadraticCurveTo(x,y,x+r,y);g.closePath();
 }
+// Cached multi-facet beveled glass sprite. The clear face and reflective edge
+// remain readable at phone-scale, while the radial glow is pre-rasterized.
 function sprite(color){
   if(sprites[color])return sprites[color];
   const surface=document.createElement('canvas');
-  surface.width=68;surface.height=68;
-  const g=surface.getContext('2d');g.translate(34,34);
-  g.fillStyle=rgb(color,.25);g.shadowColor=color;g.shadowBlur=13;
-  rounded(g,-11,-11,22,22,5);g.fill();g.shadowBlur=0;
-  if(IDENTITY&&typeof IDENTITY.paintPlayer==='function'){
-    IDENTITY.paintPlayer(g,{
-      x:-11,y:-11,w:22,h:22,primary:color,
-      secondary:mix(color,'#ffffff',.24),
-      quality:{density:1,glow:.72},ambientLight:.61,
-      bodyPath:(x,y,w,h,r)=>rounded(g,x,y,w,h,Math.min(r,5))
-    });
-  }else{
-    g.fillStyle=mix(color,'#ffffff',.75);
-    rounded(g,-11,-11,22,22,5);g.fill();
-    g.strokeStyle=color;g.lineWidth=2;g.stroke();
-  }
+  surface.width=90;surface.height=90;
+  const g=surface.getContext('2d');g.translate(45,45);
+  const halo=g.createRadialGradient(0,0,6,0,0,34);
+  halo.addColorStop(0,rgb(color,.39));
+  halo.addColorStop(.38,rgb(color,.18));
+  halo.addColorStop(1,rgb(color,0));
+  g.fillStyle=halo;g.fillRect(-36,-36,72,72);
+  g.shadowColor=color;g.shadowBlur=10;
+  const glass=g.createLinearGradient(-12,-13,12,14);
+  glass.addColorStop(0,mix(color,'#ffffff',.92));
+  glass.addColorStop(.43,mix(color,'#ffffff',.66));
+  glass.addColorStop(1,mix(color,'#06172f',.31));
+  g.fillStyle=glass;rounded(g,-12,-12,24,24,5);g.fill();
+  g.shadowBlur=0;
+  g.strokeStyle=rgb(mix(color,'#ffffff',.64),.91);
+  g.lineWidth=1.7;rounded(g,-11.2,-11.2,22.4,22.4,4.6);g.stroke();
+  g.beginPath();g.moveTo(-8,7);g.lineTo(-8,-7);
+  g.quadraticCurveTo(-8,-9,-5,-9);g.lineTo(6,-9);
+  g.strokeStyle='rgba(255,255,255,.65)';g.lineWidth=2.1;g.stroke();
+  const facet=g.createLinearGradient(-12,0,12,0);
+  facet.addColorStop(0,'rgba(255,255,255,.01)');
+  facet.addColorStop(1,'rgba(2,14,35,.29)');
+  g.fillStyle=facet;rounded(g,-9,-9,18,18,3);g.fill();
   return sprites[color]=surface;
+}
+// Visual-only spring: steering remains a manual physics input and neither
+// contact size nor collision timing ever depends on these transforms.
+function motionPose(p,r){
+  let st=motionStates.get(p);
+  if(!st){st={angle:p.angle,time:r.elapsed,lean:0,sx:1,sy:1};motionStates.set(p,st);}
+  const dt=clamp(r.elapsed-st.time,.001,.05);
+  const turn=CORE.angleDelta(st.angle,p.angle)/dt;
+  const lateral=(-Math.sin(p.angle)*p.vx+Math.cos(p.angle)*p.vy)/
+    Math.max(80,p.speed);
+  const brake=p.braking?1:0;
+  const bank=p.bankHeight||0;
+  const hit=clamp((p.contactFlash||0)/.24,0,1);
+  const dash=p.dashTime>0?1:0;
+  const boost=p.boostTime>0?1:0;
+  // Quick impact compression followed by restrained release; no arrow form.
+  const leanTarget=clamp(-turn*.050-lateral*.12,-.18,.18)+
+    clamp(bank*.075,-.06,.06);
+  const sx=1+dash*.11+boost*.09+hit*.13-brake*.05;
+  const sy=1-dash*.065-boost*.055-hit*.15+brake*.065;
+  const t=1-Math.exp(-dt*15);
+  st.lean+=(leanTarget-st.lean)*t;
+  st.sx+=(sx-st.sx)*(1-Math.exp(-dt*20));
+  st.sy+=(sy-st.sy)*(1-Math.exp(-dt*20));
+  st.angle=p.angle;st.time=r.elapsed;
+  const pose={lean:reduced()?0:st.lean,
+    sx:reduced()?1:st.sx,sy:reduced()?1:st.sy,
+    brake,hit,dash,boost,slip:clamp(Math.abs(lateral),0,1)};
+  if(p.id===0)motionSnapshot={lean:pose.lean,squash:pose.sx,
+    stretch:pose.sy,brake:pose.brake};
+  return pose;
 }
 function drawCombatOpportunity(r){
   if(reduced())return;
@@ -562,70 +604,61 @@ function drawCombatOpportunity(r){
 function drawRacers(r){
   for(const p of r.racers){
     const falling=p.fallTimer>0;
-    const fallFraction=falling?clamp(p.fallTimer/CORE.FALL_SECONDS,0,1):1;
-    const spriteScale=falling?.13+.87*fallFraction:1;
-    const vx=Math.cos(p.angle),vy=Math.sin(p.angle);
+    const fraction=falling?clamp(p.fallTimer/CORE.FALL_SECONDS,0,1):1;
+    const fallScale=falling?.13+.87*fraction:1;
+    const dirX=Math.cos(p.angle),dirY=Math.sin(p.angle);
+    const pose=motionPose(p,r);
     ctx.save();
-    if(!falling&&!p.finished){
-      // A short REAR wake, not a deadly light trail or extra forward tick.
-      const d=p.dashTime>0||p.boostTime>0;
+    // Wheel-free racer language: energy traction is attached immediately
+    // beneath the cube and never becomes a detached obstacle-looking trail.
+    if(!falling&&p.braking&&!reduced()){
+      const sideX=-dirY,sideY=dirX,fade=.22+.24*pose.slip;
+      ctx.strokeStyle=p.color;ctx.lineWidth=1.4;ctx.globalAlpha=fade;
       ctx.lineCap='round';
-      ctx.beginPath();ctx.moveTo(p.x-vx*11,p.y-vy*11);
-      ctx.lineTo(p.x-vx*(p.dashTime>0?45:p.boostTime>0?33:20),
-       p.y-vy*(p.dashTime>0?45:p.boostTime>0?33:20));
-      ctx.strokeStyle=p.color;ctx.lineWidth=d?3.5:2;
-      ctx.globalAlpha=d?.52:.25;ctx.stroke();
+      for(const side of [-1,1]){
+        const ax=p.x+sideX*side*11-dirX*8;
+        const ay=p.y+sideY*side*11-dirY*8;
+        ctx.beginPath();ctx.moveTo(ax,ay);
+        ctx.lineTo(ax-dirX*(8+pose.slip*12),
+          ay-dirY*(8+pose.slip*12));
+        ctx.stroke();
+      }
     }
-    ctx.globalAlpha=falling?Math.max(.08,fallFraction*.76):
-      p.finished?.30:
-      p.invulnerable>0?.63+.28*Math.sin(r.elapsed*15):1;
-    // Simulate FALLING DOWN INTO DEPTH without sliding the image toward
-    // the bottom of the phone, matching the shared Clash design language.
+    ctx.globalAlpha=falling?Math.max(.07,fraction*.78):
+      p.finished?.30:p.invulnerable>0?.67+.24*Math.sin(r.elapsed*15):1;
     ctx.translate(p.x,p.y);
-    // Glass cubes remain visibly SQUARE on wide-screen phones even as
-    // the roadway fills more horizontal space.
-    ctx.scale(spriteScale,spriteScale);
-    if(!falling&&p.boostTime>0){
-      // A restrained squash/stretch from the existing glass sprite.
-      ctx.rotate(p.angle);
-      ctx.scale(1.10,.93);
-      ctx.rotate(-p.angle);
+    ctx.scale(fallScale,fallScale);
+    ctx.rotate(pose.lean);
+    // Squash is smooth and based on the actual force and maneuver state.
+    ctx.rotate(p.angle);
+    ctx.scale(pose.sx,pose.sy);
+    ctx.rotate(-p.angle);
+    if(!falling&&!reduced()&&pose.hit>.08){
+      ctx.save();ctx.globalAlpha*=pose.hit*.36;
+      ctx.strokeStyle='#ffffff';ctx.lineWidth=1.7;
+      rounded(ctx,-15,-15,30,30,6);ctx.stroke();ctx.restore();
     }
-    if(!falling&&p.bankHeight>0){
-      const tilt=(CORE.closest(p.x,p.y,r.track).side<0?1:-1)*p.bankHeight*.11;
-      ctx.rotate(tilt);
+    ctx.drawImage(sprite(p.color),-45,-45);
+    if(!falling&&p.boostTime>0&&!reduced()){
+      const age=CORE.TRACK.boosts[0].duration-p.boostTime;
+      if(age<.24){
+        const fade=1-clamp(age/.24,0,1);
+        ctx.save();ctx.strokeStyle=p.color;ctx.lineWidth=2;
+        ctx.globalAlpha*=fade*.65;
+        ctx.beginPath();ctx.arc(0,0,17+(1-fade)*14,0,Math.PI*2);
+        ctx.stroke();ctx.restore();
+      }
     }
-    if(!falling&&p.contactFlash>0&&!reduced()){
-      ctx.globalAlpha*=clamp(p.contactFlash/.24,0,1)*.70;
-      ctx.strokeStyle=p.color;ctx.lineWidth=2;
-      ctx.strokeRect(-18,-18,36,36);
-      ctx.globalAlpha=1;
-    }
-    // Cube-linked underglow communicates mass and road contact.
-    ctx.save();
-    ctx.globalCompositeOperation='screen';
-    luminousPool(ctx,0,3,p.color,2,p.boostTime>0?36:29,
-      p.boostTime>0?.25:.13);
-    ctx.restore();
-    ctx.drawImage(sprite(p.color),-34,-34);
-    if(!falling&&p.boostTime>1.01&&!reduced()){
-      const arrival=clamp((p.boostTime-1.01)/.23,0,1);
-      ctx.save();
-      ctx.strokeStyle=p.color;ctx.lineWidth=1.9;
-      ctx.globalAlpha*=arrival*.66;
-      ctx.beginPath();ctx.arc(0,0,19+(1-arrival)*16,0,Math.PI*2);
-      ctx.stroke();ctx.restore();
-    }
-    // Small front lip shows heading, without an arrow or long streak.
+    // A small inset front glint indicates heading without an arrow.
     ctx.rotate(p.angle+Math.PI/2);
-    ctx.fillStyle=p.id===0?'#f3ffff':'#e2e7ff';
-    ctx.globalAlpha*=.75;
-    ctx.fillRect(-6,-12,12,2.1);
+    ctx.fillStyle=p.id===0?'#ffffff':'#d4e8f7';
+    ctx.globalAlpha*=.60;
+    ctx.fillRect(-5,-12,10,1.5);
     ctx.restore();
     if(!falling){
-      ctx.save();
-      ctx.textAlign='center';ctx.font='800 11px system-ui,sans-serif';
-      ctx.fillStyle=p.id===0?'#ffffff':p.color;
+      ctx.save();ctx.textAlign='center';
+      ctx.font='800 11px system-ui,sans-serif';
+      ctx.fillStyle=p.id===0?'#f3ffff':p.color;
       ctx.globalAlpha=p.finished?.4:1;
       ctx.fillText(p.name,p.x,p.y-23);
       ctx.restore();
@@ -938,6 +971,7 @@ root.ChromaCircuitViewDebug={
       targetZoom:camera.targetZoom,lookAhead:camera.lookAhead,
       updates:camera.updates}:null,
     tiles:tileCache.size,tileBuilds,tileHits,
+    premiumMotion:motionSnapshot,
     spectacles:(race||preview).spectacles.length,
     arena:arenaLighting(race||preview),
     course:(race||preview).track.courseId,

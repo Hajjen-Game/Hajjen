@@ -1,6 +1,6 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.6: Spectral Arena & Impact Language
- * Hold the joystick to drive and aim to steer. Releasing coasts instead
- * of falling back to invisible autopilot; AI remains track guided. */
+/* CHROMA RUSH — NEON CIRCUIT 2.6.1: Auto Throttle & Manual Steering
+ * Auto-accelerate from GO. Thumb aim changes heading; releasing the stick
+ * keeps that heading without any automatic racing-line correction. */
 (function(root,factory){
   const api=factory();
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
@@ -282,7 +282,7 @@ function seededRace(seed=20261111,courseId=0){
       knockSeconds:0,falls:0,knockouts:0,fallTimer:0,
       respawns:0,invulnerable:0,lastAttacker:null,lastImpactAt:-100,
       unsafeImpact:false,vx:0,vy:0,fallVX:0,fallVY:0,fallAnchorX:0,
-      fallAnchorY:0,edgeExposure:0,driveSeconds:0,coastSeconds:0,
+      fallAnchorY:0,edgeExposure:0,driveSeconds:0,neutralSteerSeconds:0,
       aiAttackTarget:null,aiAttackTime:0,aiAttackCooldown:id*.28,
       aiAttacks:0,aiHits:0,
       bankRides:0,bankSaves:0,bankHeight:0,boosts:0,
@@ -297,7 +297,7 @@ function seededRace(seed=20261111,courseId=0){
     impacts:[],spectacles:[],contactPairs:{},performance:{
       frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     quality:'auto'};
-  log(race,'race_start',{mode:'neon-circuit-2.6',laps:LAPS_TO_WIN,
+  log(race,'race_start',{mode:'neon-circuit-2.6.1',laps:LAPS_TO_WIN,
     trackLength:Math.round(track.length),track:track.courseId,
     course:track.name,impact:'ejection-and-respawn',
     zoneWave:'forward-track-only'});
@@ -527,8 +527,7 @@ function moveRacer(m,p,input,dt){
   p.contactFlash=Math.max(0,p.contactFlash-dt);
   p.boostTime=Math.max(0,p.boostTime-dt);
   if(p.boostTime<=0)p.boostFactor=1;
-  let brake=false,desired=p.angle,throttle=1,steering=true,
-    aiPressure=false;
+  let brake=false,desired=p.angle,steering=true;
    const now=closest(p.x,p.y,m.track);
    if(p.id===0){
      brake=!!input.brake;
@@ -536,8 +535,8 @@ function moveRacer(m,p,input,dt){
      const y=Number.isFinite(input.y)?input.y:0;
      const mag=clamp(hypot(x,y),0,1);
      steering=mag>.15;
-     // Full thumb deflection = full throttle; a centered stick never drives.
-     throttle=steering?clamp((mag-.1)/.9,0,1):0;
+     // Full auto-throttle: the stick only determines steering direction.
+     // Centering it preserves the last heading and never follows the road.
      if(steering){
        desired=Math.atan2(y,x);
        // Only a last-resort rim correction. Normal racing is manual.
@@ -547,15 +546,15 @@ function moveRacer(m,p,input,dt){
          const escape=Math.atan2(guide.y-p.y,guide.x-p.x);
          desired+=angleDelta(desired,escape)*(.22*edge);
        }
-       p.driveSeconds+=dt;
-     }else p.coastSeconds+=dt;
-     if(input.dash&&steering&&p.dashCooldown<=0){
+     }else p.neutralSteerSeconds+=dt;
+     // Dash does not require the stick to be held, but needs real speed.
+     if(input.dash&&p.speed>=45&&p.dashCooldown<=0){
        p.dashTime=DASH_TIME;p.dashCooldown=DASH_COOLDOWN;p.dashes++;
        log(m,'dash',{player:p.id,lap:p.laps+1});
      }
    }else{
      const ai=desiredAI(m,p,dt);
-     desired=ai.angle;brake=ai.brake;aiPressure=ai.attacking;
+     desired=ai.angle;brake=ai.brake;
    }
    const turnSpeed=brake?5.85:4.35;
    if(steering)
@@ -566,13 +565,13 @@ function moveRacer(m,p,input,dt){
    const dashFactor=Math.min(1.77,(p.dashTime>0?1.47:1)*
      (p.boostTime>0?p.boostFactor:1));
    const flowFactor=p.id===0?1+.075*p.flow:1;
-   const target=base*aiSpeed*throttle*
-     (brake?.76:1)*dashFactor*flowFactor;
-   // No input: coast to a stop in under a second; BRAKE is stronger.
-   const decel=p.id===0&&!steering?340:brake?400:215;
+   const target=base*aiSpeed*(brake?.76:1)*dashFactor*flowFactor;
+   // Both neutral and directed stick auto-accelerate; only BRAKE slows.
+   const decel=brake?400:215;
    const accel=p.boostTime>0?390:265;
    p.speed+=clamp(target-p.speed,-decel*dt,accel*dt);
    if(p.speed<.5)p.speed=0;
+   if(p.id===0)p.driveSeconds+=dt;
   // Rolling momentum: changing heading does not instantly redirect movement.
   // Brake tightens the turn. Keep a quicker response for the track AI.
   if(p.speed>40&&p.vx===0&&p.vy===0){
@@ -658,7 +657,7 @@ function moveRacer(m,p,input,dt){
   if(p.boostTime>0)p.boostPeak=Math.max(p.boostPeak,p.speed);
   if(p.id===0){
     p.speedSamples++;p.speedAccum+=p.speed;
-    if(steering&&p.speed>45&&nearest.dist<24&&!brake){
+    if(p.speed>45&&nearest.dist<24&&!brake){
       p.flow=clamp(p.flow+dt*.34,0,1);
       p.lineSeconds+=dt;
     }else p.flow=clamp(p.flow-dt*.54,0,1);
@@ -808,7 +807,7 @@ function waveState(m){
 }
 function audit(m){
   const p=m.racers[0];
-  return {schema:'neon-circuit-run-audit/2.6',build:'neon-circuit-2.6',
+  return {schema:'neon-circuit-run-audit/2.6.1',build:'neon-circuit-2.6.1',
     seed:m.seed,status:m.finished?'completed':'in_progress',
     courseId:m.track.courseId,courseName:m.track.name,
     trackLength:+m.track.length.toFixed(1),
@@ -819,7 +818,7 @@ function audit(m){
       edgeMode:'physical-cambered-bank-and-recoverable-ramp',
       trackArchitecture:'tangent-circular-arcs-straights',
       boostPads:m.track.boosts.length,
-       controlMode:'hold-to-drive-manual-steering',
+       controlMode:'auto-throttle-manual-steering',
       rivalStyles:m.racers.slice(1).map(p=>p.aiStyle),
       spectacleMode:'layered-world-lighting-impact-2.6',
       waveTransitions:m.events.filter(e=>e.type==='zone').length,
@@ -837,7 +836,7 @@ function audit(m){
       aiAIContacts:m.events.filter(e=>e.type==='impact'&&e.a>0&&e.b>0).length,
       brakeSeconds:+p.brakeSeconds.toFixed(2),
        driveSeconds:+p.driveSeconds.toFixed(2),
-       coastSeconds:+p.coastSeconds.toFixed(2),
+       neutralSteerSeconds:+p.neutralSteerSeconds.toFixed(2),
       lineSeconds:+p.lineSeconds.toFixed(2),bestFlow:+p.bestFlow.toFixed(3),
       finishCompleted:p.finished,performance:{...m.performance}},
     racers:m.racers.map(r=>({

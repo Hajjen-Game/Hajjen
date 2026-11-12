@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.6.1: Auto Throttle & Manual Steering
+/* CHROMA RUSH — NEON CIRCUIT 2.7: Premium Motion & Visual Cohesion
  * Auto-accelerate from GO. Thumb aim changes heading; releasing the stick
  * keeps that heading without any automatic racing-line correction. */
 (function(root,factory){
@@ -283,6 +283,7 @@ function seededRace(seed=20261111,courseId=0){
       respawns:0,invulnerable:0,lastAttacker:null,lastImpactAt:-100,
       unsafeImpact:false,vx:0,vy:0,fallVX:0,fallVY:0,fallAnchorX:0,
       fallAnchorY:0,edgeExposure:0,driveSeconds:0,neutralSteerSeconds:0,
+      braking:false,
       aiAttackTarget:null,aiAttackTime:0,aiAttackCooldown:id*.28,
       aiAttacks:0,aiHits:0,
       bankRides:0,bankSaves:0,bankHeight:0,boosts:0,
@@ -297,7 +298,7 @@ function seededRace(seed=20261111,courseId=0){
     impacts:[],spectacles:[],contactPairs:{},performance:{
       frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     quality:'auto'};
-  log(race,'race_start',{mode:'neon-circuit-2.6.1',laps:LAPS_TO_WIN,
+  log(race,'race_start',{mode:'neon-circuit-2.7',laps:LAPS_TO_WIN,
     trackLength:Math.round(track.length),track:track.courseId,
     course:track.name,impact:'ejection-and-respawn',
     zoneWave:'forward-track-only'});
@@ -355,6 +356,11 @@ function updateProgress(m,p,from,nearest,dt){
       log(m,'lap',{player:p.id,lap:p.laps,seconds:lapTime,
         validatedBy:'physical-checkpoints'});
       if(p.id===0){
+        const finishing=p.laps>=LAPS_TO_WIN;
+        m.spectacles.push({kind:finishing?'finish':'lap',
+          x:p.x,y:p.y,angle:p.angle,color:p.color,
+          owner:p.id,life:finishing?.92:.70,duration:finishing?.92:.70});
+        if(m.spectacles.length>12)m.spectacles.shift();
         m.announcement='LAP '+Math.min(p.laps+1,LAPS_TO_WIN)+' / '+LAPS_TO_WIN;
         m.announcementTime=m.elapsed+1.1;
       }
@@ -503,9 +509,12 @@ function respawn(m,p){
   p.aiAttackTime=0;p.aiAttackTarget=null;p.aiAttackCooldown=2.3;
   p.invulnerable=RESPAWN_GRACE;
   p.edgeExposure=0;p.fallVX=0;p.fallVY=0;p.lastImpactAt=-100;
-  p.bankHeight=0;p.boostTime=0;p.boostFactor=1;
+  p.bankHeight=0;p.boostTime=0;p.boostFactor=1;p.braking=false;
   p.aiDefendTime=0;p.aiDefenseCooldown=1.1;
   p.respawns++;
+  m.spectacles.push({kind:'respawn',x:p.x,y:p.y,
+    angle:p.angle,color:p.color,owner:p.id,life:.66,duration:.66});
+  if(m.spectacles.length>12)m.spectacles.shift();
   log(m,'respawn',{player:p.id,lap:p.laps+1,
     grace:RESPAWN_GRACE,setback:27});
 }
@@ -559,6 +568,7 @@ function moveRacer(m,p,input,dt){
    const turnSpeed=brake?5.85:4.35;
    if(steering)
      p.angle+=clamp(angleDelta(p.angle,desired),-turnSpeed*dt,turnSpeed*dt);
+   p.braking=brake;
    if(brake)p.brakeSeconds+=dt;
    const base=zoneSpeed(m.zone);
    const aiSpeed=p.aiTempo;
@@ -807,7 +817,7 @@ function waveState(m){
 }
 function audit(m){
   const p=m.racers[0];
-  return {schema:'neon-circuit-run-audit/2.6.1',build:'neon-circuit-2.6.1',
+  return {schema:'neon-circuit-run-audit/2.7',build:'neon-circuit-2.7',
     seed:m.seed,status:m.finished?'completed':'in_progress',
     courseId:m.track.courseId,courseName:m.track.name,
     trackLength:+m.track.length.toFixed(1),
@@ -820,7 +830,7 @@ function audit(m){
       boostPads:m.track.boosts.length,
        controlMode:'auto-throttle-manual-steering',
       rivalStyles:m.racers.slice(1).map(p=>p.aiStyle),
-      spectacleMode:'layered-world-lighting-impact-2.6',
+      spectacleMode:'premium-motion-impact-lap-2.7',
       waveTransitions:m.events.filter(e=>e.type==='zone').length,
       finishPlace:m.finishPlace,lapsCompleted:p.laps,
       lapFraction:+lapProgress(p,m.track).fraction.toFixed(3),

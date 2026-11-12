@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Neon Circuit 2.7 real Chromium: premium motion, track materials & race presentation."""
+"""Neon Circuit 2.8 real Chromium: three selectable circuits and indexed world tiles."""
 from __future__ import annotations
 import json
 import os
@@ -27,6 +27,9 @@ def main():
             page.goto((ROOT/"neon-circuit.html").as_uri(),wait_until="load")
             page.wait_for_function("() => !!window.ChromaCircuitViewDebug")
             assert page.locator("#circuit-menu").is_visible()
+            assert page.locator("[data-circuit-course]").count()==3
+            assert page.locator("[data-circuit-course='0']").get_attribute(
+                "aria-pressed")=="true"
             page.screenshot(path=str(OUT/f"circuit-2-menu-{w}.png"))
             geometry=page.evaluate("""() => {
               const c=window.ChromaNeonCircuitCore,
@@ -54,7 +57,7 @@ def main():
               };
             }""")
             assert geometry["closed"]<.01 and geometry["geometryFinite"],geometry
-            assert geometry["length"]>4600 and geometry["courses"]==1,geometry
+            assert geometry["length"]>4600 and geometry["courses"]==3,geometry
             assert geometry["racers"]==4 and geometry["cameraModule"],geometry
             assert geometry["speed"]==191,geometry
             assert geometry["boostPads"]==3,geometry
@@ -213,10 +216,11 @@ def main():
             destination=OUT/f"circuit-2-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/2.7",log
+            assert log["schema"]=="neon-circuit-run-audit/2.8",log
             assert log["summary"]["cameraMode"]=="close-follow-damped-zoom"
             assert log["summary"]["edgeMode"]=="physical-cambered-bank-and-recoverable-ramp"
-            assert log["summary"]["trackArchitecture"]=="tangent-circular-arcs-straights"
+            assert log["summary"]["trackArchitecture"]=="multi-circuit-tangent-arcs-v2.8"
+            assert log["summary"]["renderIndex"]=="precomputed-course-tile-buckets"
             assert log["summary"]["boostPads"]==3
             assert log["summary"]["rivalStyles"]==["precision","aggressive","opportunist"]
             assert log["summary"]["spectacleMode"]=="premium-motion-impact-lap-2.7"
@@ -328,6 +332,74 @@ def main():
                 "cameraWorldViewport":[width_world,height_world],
                 "screenPixels":pixels,"rules":rules,
                 "fullscreenActivated":fullscreen,"pageErrors":[]})
+            # All course choices are selectable and persist on restart.
+            # Run the complete rendering/control path for each long world.
+            if w==960:
+                for idx,course_id,laps in [
+                    (1,"skyline-rift",2),(2,"pulse-canyon",2)]:
+                    page.goto((ROOT/"neon-circuit.html").as_uri(),
+                              wait_until="load")
+                    page.wait_for_function(
+                        "() => !!window.ChromaCircuitViewDebug")
+                    picker=page.locator(f"[data-circuit-course='{idx}']")
+                    picker.click()
+                    assert picker.get_attribute("aria-pressed")=="true"
+                    assert page.locator(
+                        "[data-circuit-course='0']").get_attribute(
+                            "aria-pressed")=="false"
+                    choice=page.evaluate("""() => {
+                      const c=window.ChromaNeonCircuitCore,
+                        v=window.ChromaCircuitViewDebug.snapshot(),
+                        t=c.TRACKS.find(t=>t.courseId===v.selectedCourse);
+                      return {id:v.course,laps:v.courseLaps,
+                        length:t.length,worldBounds:t.worldBounds,
+                        camera:v.camera,
+                        description:document.getElementById(
+                          'circuit-selected-description').textContent.trim(),
+                        renderBuckets:t.renderTileSegments.size};
+                    }""")
+                    assert choice["id"]==course_id,choice
+                    assert choice["laps"]==laps,choice
+                    assert choice["renderBuckets"]>25,choice
+                    assert choice["description"],choice
+                    assert choice["worldBounds"]["maxX"]>2800,choice
+                    page.screenshot(path=str(
+                        OUT/f"circuit-2-selected-{course_id}.png"))
+                    page.locator("#circuit-start").click()
+                    page.wait_for_timeout(470)
+                    assert page.locator(
+                        "#circuit-lap").inner_text()==f"LAP 1/{laps}"
+                    running=page.evaluate(
+                        "() => window.ChromaCircuitViewDebug.snapshot()")
+                    assert running["course"]==course_id,running
+                    assert running["camera"]["zoom"]>1.2,running
+                    assert 0<running["tiles"]<=36,running
+                    course_pixel=page.evaluate("""() => {
+                      const c=window.ChromaNeonCircuitCore,
+                        d=window.ChromaCircuitViewDebug,
+                        t=c.TRACKS.find(t=>t.courseId===
+                          d.snapshot().course),p=c.pointAt(165,t);
+                      return {old:d.sampleRoad(0,p.x,p.y),
+                        new:d.sampleRoad(1,p.x,p.y)};
+                    }""")
+                    assert course_pixel["old"][3]>245,course_pixel
+                    assert sum(abs(a-b) for a,b in zip(
+                        course_pixel["old"][:3],
+                        course_pixel["new"][:3]))>25,course_pixel
+                    page.screenshot(path=str(
+                        OUT/f"circuit-2-world-{course_id}.png"))
+                    page.locator("#circuit-pause").click()
+                    page.locator("#circuit-restart").click()
+                    again=page.evaluate(
+                        "() => window.ChromaCircuitViewDebug.snapshot()")
+                    assert again["course"]==course_id,again
+                    assert again["courseLaps"]==laps,again
+                    page.locator("#circuit-pause").click()
+                    page.locator("#circuit-change-course-pause").click()
+                    assert page.locator("#circuit-menu").is_visible()
+                    assert page.locator(
+                        f"[data-circuit-course='{idx}']").get_attribute(
+                            "aria-pressed")=="true"
             page.close()
         browser.close()
     assert not errors,errors

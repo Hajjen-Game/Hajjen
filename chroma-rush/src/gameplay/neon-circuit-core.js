@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.7: Premium Motion & Visual Cohesion
+/* CHROMA RUSH — NEON CIRCUIT 2.8: Multi-Circuit Architecture & Track Diversity
  * Auto-accelerate from GO. Thumb aim changes heading; releasing the stick
  * keeps that heading without any automatic racing-line correction. */
 (function(root,factory){
@@ -24,7 +24,8 @@ const DASH_TIME=.34,DASH_COOLDOWN=5.4;
 // Only a small fraction of this multi-screen world is visible at once.
 const TRACK_SHAPE=Object.freeze({left:240,right:2260,top:185,bottom:1300,radius:160});
 const COURSE_PROFILES=Object.freeze([
-  {id:'spectral-highway',name:'SPECTRAL GP',cornerCut:128,
+  {id:'spectral-highway',name:'SPECTRAL GP',cornerCut:128,laps:3,
+    terrain:'spectral',description:'ORIGINAL CIRCUIT · BALANCED FLOW',
     // Deliberately authored GP rhythm: long straights, outer hairpins, then
     // one technical infield chicane. Circular fillets, not Bézier wobble.
     waypoints:[
@@ -32,6 +33,25 @@ const COURSE_PROFILES=Object.freeze([
       [2130,1010],[1810,1080],[1480,790],
       [1170,840],[900,1190],[510,1260],
       [250,930],[320,570]
+    ]},
+  {id:'skyline-rift',name:'SKYLINE RIFT',cornerCut:168,scale:1.08,
+    laps:2,terrain:'skyline',boostCount:4,
+    description:'LONG STRAIGHTS · SWEEPING BANKS',
+    // Extended open-air loop with a fast crest and two banking sections.
+    waypoints:[
+      [610,290],[2070,290],[2890,510],[3200,980],
+      [2980,1480],[2410,1730],[1860,1540],[1450,1250],
+      [920,1450],[410,1450],[210,1050],[320,640]
+    ]},
+  {id:'pulse-canyon',name:'PULSE CANYON',cornerCut:155,scale:1.14,
+    laps:2,terrain:'canyon',boostCount:4,
+    description:'TECHNICAL HAIRPINS · WIDE BANKS',
+    // Longer infield climb and a broad exterior canyon perimeter.
+    waypoints:[
+      [650,330],[1840,330],[2500,510],[2830,940],
+      [2780,1450],[2480,1740],[2040,1770],[1700,1330],
+      [1340,1240],[1020,1700],[550,1800],[220,1480],
+      [210,1000],[440,650]
     ]}
 ]);
 const NODES=COURSE_PROFILES[0].waypoints;
@@ -57,7 +77,8 @@ const rand=seed=>{let n=(seed>>>0)||0x6e624eb7;
 };
 function makeTrack(shape=TRACK_SHAPE,steps=20,variant=0){
   const index=mod(Math.floor(variant),COURSE_PROFILES.length);
-  const profile=COURSE_PROFILES[index],vertices=profile.waypoints;
+  const profile=COURSE_PROFILES[index],scale=profile.scale||1;
+  const vertices=profile.waypoints.map(v=>[v[0]*scale,v[1]*scale]);
   const n=vertices.length,spacing=Math.max(4,Math.min(8,steps*.35));
   const corners=[];
   for(let i=0;i<n;i++){
@@ -70,7 +91,7 @@ function makeTrack(shape=TRACK_SHAPE,steps=20,variant=0){
     const turn=Math.atan2(ui[0]*uo[1]-ui[1]*uo[0],
       ui[0]*uo[0]+ui[1]*uo[1]);
     if(Math.abs(turn)>.01){
-      const cut=Math.min(profile.cornerCut,li*.30,lo*.30);
+      const cut=Math.min(profile.cornerCut*scale,li*.30,lo*.30);
       const radius=cut/Math.tan(Math.abs(turn)/2),sign=Math.sign(turn);
       const entry={x:v[0]-ui[0]*cut,y:v[1]-ui[1]*cut};
       const exit={x:v[0]+uo[0]*cut,y:v[1]+uo[1]*cut};
@@ -126,24 +147,39 @@ function makeTrack(shape=TRACK_SHAPE,steps=20,variant=0){
     bounds.minY=Math.min(bounds.minY,p.y);bounds.maxY=Math.max(bounds.maxY,p.y);
     if(i){total+=hypot(p.x-samples[i-1].x,p.y-samples[i-1].y);p.s=total;}
   }
-  if(total<4000||total>6500)throw Error('World circuit length out of range');
+  if(total<4000||total>10000)throw Error('World circuit length out of range');
   if(bounds.maxX-bounds.minX<1600||bounds.maxY-bounds.minY<850)
     throw Error('World circuit too small for follow-camera racing');
   const sections=parts.map(part=>({...part,
     start:samples[part.i0].s,end:samples[part.i1].s}));
   // Three boost lanes on the three longest STRAIGHT sections; never inside
   // a turn. Choose offsets to make overtaking a deliberate route decision.
-  const candidates=sections.filter(p=>p.kind==='straight'&&p.length>185)
-    .sort((a,b)=>b.length-a.length).slice(0,3)
+  const longStraights=sections.filter(p=>p.kind==='straight'&&p.length>185)
+    .sort((a,b)=>b.length-a.length);
+  const candidates=longStraights.slice(0,profile.boostCount||3)
     .sort((a,b)=>a.start-b.start);
   const boosts=candidates.map((part,id)=>({
     id,s:part.start+part.length*.57,halfLength:38,
-    lane:[-16,15,0][id],halfWidth:14,
+    lane:[-16,15,0,-8][id],halfWidth:14,
     duration:1.24,factor:1.34,section:'straight'
   }));
+  // 2.8 lays out optional future jump sections without activating them:
+  // neither obstacles nor hidden jump physics exist until Hover Dynamics.
+  const jumpSites=index===0?[]:longStraights.filter(p=>p.length>390)
+    .slice(0,2).map((part,id)=>({
+      id,entryS:part.start+part.length*.20,
+      landingS:part.start+part.length*.38,
+      kind:'reserved-straight-crest',active:false
+    }));
+  const worldBounds={
+    minX:bounds.minX-290,maxX:bounds.maxX+290,
+    minY:bounds.minY-290,maxY:bounds.maxY+290
+  };
   return {samples,length:total,half:TRACK_HALF,
-    sections,boosts,pointCount:samples.length,shape:{...shape},
-    variant:index,courseId:profile.id,name:profile.name,bounds,
+    sections,boosts,jumpSites,pointCount:samples.length,shape:{...shape},
+    variant:index,courseId:profile.id,name:profile.name,bounds,worldBounds,
+    laps:profile.laps||LAPS_TO_WIN,terrain:profile.terrain,
+    description:profile.description,
     coverage:{width:(bounds.maxX-bounds.minX+2*TRACK_HALF)/WIDTH,
       height:(bounds.maxY-bounds.minY+2*TRACK_HALF)/HEIGHT},
     layout:'multi-screen-world-track',
@@ -203,10 +239,46 @@ for(const track of TRACKS){
   }
 }
 
-const WORLD_BOUNDS=Object.freeze({
-  minX:TRACK.bounds.minX-290,maxX:TRACK.bounds.maxX+290,
-  minY:TRACK.bounds.minY-290,maxY:TRACK.bounds.maxY+290
-});
+// Legacy default kept for the original Spectral GP; the camera must use
+// race.track.worldBounds for longer worlds and their distinct extents.
+const WORLD_BOUNDS=Object.freeze({...TRACK.worldBounds});
+const RENDER_TILE=448,RENDER_SAFE_PAD=215;
+for(const track of TRACKS){
+  // Build two lightweight spatial indices once. World road tiles then scan
+  // ONLY nearby samples/rim points instead of the entire extended circuit.
+  track.renderTileSegments=new Map();
+  track.renderTileRims=new Map();
+  track.renderTileStuds=new Map();
+  track.studs=[];
+  function tileRange(map,index,xmin,ymin,xmax,ymax){
+    for(let x=Math.floor(xmin/RENDER_TILE);x<=Math.floor(xmax/RENDER_TILE);x++)
+      for(let y=Math.floor(ymin/RENDER_TILE);y<=Math.floor(ymax/RENDER_TILE);y++){
+        const key=x+','+y;
+        if(!map.has(key))map.set(key,[]);
+        map.get(key).push(index);
+      }
+  }
+  for(let i=1;i<track.samples.length;i++){
+    const p=track.samples[i-1],q=track.samples[i];
+    tileRange(track.renderTileSegments,i,
+      Math.min(p.x,q.x)-RENDER_SAFE_PAD,Math.min(p.y,q.y)-RENDER_SAFE_PAD,
+      Math.max(p.x,q.x)+RENDER_SAFE_PAD,Math.max(p.y,q.y)+RENDER_SAFE_PAD);
+  }
+  for(let i=0;i<track.rimSamples.length;i++){
+    const p=track.rimSamples[i];
+    tileRange(track.renderTileRims,i,
+      p.x-RENDER_SAFE_PAD,p.y-RENDER_SAFE_PAD,
+      p.x+RENDER_SAFE_PAD,p.y+RENDER_SAFE_PAD);
+  }
+  // Static roadside studs are another source of redundant pointAt queries.
+  for(let distance=28;distance<track.length;distance+=34){
+    const p=pointAt(distance,track);
+    track.studs.push({...p,distance});
+    tileRange(track.renderTileStuds,track.studs.length-1,
+      p.x-115,p.y-115,p.x+115,p.y+115);
+  }
+}
+
 function pointAt(s,track=TRACK){
   const distance=mod(s,track.length),list=track.samples;
   let lo=0,hi=list.length-1;
@@ -259,7 +331,9 @@ function directionAt(s,lead=68,track=TRACK){
 }
 function seededRace(seed=20261111,courseId=0){
   const random=rand(seed);
-  const courseIndex=mod(Math.floor(courseId),TRACKS.length);
+  const courseIndex=typeof courseId==='string'?
+    Math.max(0,COURSE_IDS.indexOf(courseId)):
+    mod(Math.floor(courseId),TRACKS.length);
   const track=TRACKS[courseIndex];
   const gates=[0,.25,.5,.75].map(v=>pointAt(track.length*v,track));
   // The player begins third: overtaking is visible from the first lap,
@@ -291,14 +365,14 @@ function seededRace(seed=20261111,courseId=0){
       speedSamples:0,speedAccum:0,boostPeak:0};
   });
   const race={seed,random,racers,track,gates,courseIndex,
-    ready:READY_SECONDS,elapsed:0,
+    lapsToWin:track.laps,ready:READY_SECONDS,elapsed:0,
     zone:0,tide:0,waveStartS:0,waveStartPlayerS:0,phase:'ready',finished:false,finishPlace:null,
     winner:null,announcement:'READY',announcementTime:0,
     events:[],overflow:0,maxEvents:450,
     impacts:[],spectacles:[],contactPairs:{},performance:{
       frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     quality:'auto'};
-  log(race,'race_start',{mode:'neon-circuit-2.7',laps:LAPS_TO_WIN,
+  log(race,'race_start',{mode:'neon-circuit-2.8',laps:race.lapsToWin,
     trackLength:Math.round(track.length),track:track.courseId,
     course:track.name,impact:'ejection-and-respawn',
     zoneWave:'forward-track-only'});
@@ -356,15 +430,15 @@ function updateProgress(m,p,from,nearest,dt){
       log(m,'lap',{player:p.id,lap:p.laps,seconds:lapTime,
         validatedBy:'physical-checkpoints'});
       if(p.id===0){
-        const finishing=p.laps>=LAPS_TO_WIN;
+        const finishing=p.laps>=m.lapsToWin;
         m.spectacles.push({kind:finishing?'finish':'lap',
           x:p.x,y:p.y,angle:p.angle,color:p.color,
           owner:p.id,life:finishing?.92:.70,duration:finishing?.92:.70});
         if(m.spectacles.length>12)m.spectacles.shift();
-        m.announcement='LAP '+Math.min(p.laps+1,LAPS_TO_WIN)+' / '+LAPS_TO_WIN;
+        m.announcement='LAP '+Math.min(p.laps+1,m.lapsToWin)+' / '+m.lapsToWin;
         m.announcementTime=m.elapsed+1.1;
       }
-      if(p.laps>=LAPS_TO_WIN){
+      if(p.laps>=m.lapsToWin){
         p.finished=true;p.finishTime=m.elapsed;
         log(m,'finish',{player:p.id,time:+m.elapsed.toFixed(3)});
       }
@@ -826,16 +900,19 @@ function waveState(m){
 }
 function audit(m){
   const p=m.racers[0];
-  return {schema:'neon-circuit-run-audit/2.7',build:'neon-circuit-2.7',
+  return {schema:'neon-circuit-run-audit/2.8',build:'neon-circuit-2.8',
     seed:m.seed,status:m.finished?'completed':'in_progress',
     courseId:m.track.courseId,courseName:m.track.name,
     trackLength:+m.track.length.toFixed(1),
+    lapsTarget:m.lapsToWin,terrain:m.track.terrain,
+    jumpSectionsReserved:m.track.jumpSites.length,
     summary:{durationSeconds:+m.elapsed.toFixed(3),highestZone:m.zone+1,
       lapValidation:'four-ordered-physical-gates',
       waveMode:'spectral-feather-offscreen-origin',
       cameraMode:'close-follow-damped-zoom',worldTrack:true,
       edgeMode:'physical-cambered-bank-and-recoverable-ramp',
-      trackArchitecture:'tangent-circular-arcs-straights',
+      trackArchitecture:'multi-circuit-tangent-arcs-v2.8',
+      renderIndex:'precomputed-course-tile-buckets',
       boostPads:m.track.boosts.length,
        controlMode:'auto-throttle-manual-steering',
       rivalStyles:m.racers.slice(1).map(p=>p.aiStyle),
@@ -872,6 +949,7 @@ function audit(m){
     privacy:'Local export only; no raw joystick, device identifiers or network telemetry'};
 }
 return {WIDTH,HEIGHT,CX,CY,COLORS,NAMES,NODES,TRACK,TRACKS,TRACK_SHAPE,WORLD_BOUNDS,MAX_RACE_SECONDS,
+  COURSE_PROFILES,RENDER_TILE,
   COURSE_NAMES,COURSE_IDS,COLOR_WAVE_SECONDS,WAVE_START_BACK,WAVE_FRONT_TRAVEL,
   TRACK_HALF,PLAYER_RADIUS,RAMP_START,FALL_EDGE,FALL_SECONDS,RESPAWN_GRACE,
   READY_SECONDS,ZONE_SECONDS,LAPS_TO_WIN,DASH_TIME,DASH_COOLDOWN,STEP,zoneAt,zoneSpeed,

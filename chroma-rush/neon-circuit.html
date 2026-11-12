@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#070b17">
-<meta name="description" content="NEON CIRCUIT — CHROMA RUSH Neon Circuit 2.7 — premium arcade racing with fluid cube motion, sculpted metallic tracks, cinematic short-form impacts, reactive light and auto throttle.">
-<title>CHROMA RUSH | Neon Circuit 2.7</title>
+<meta name="description" content="NEON CIRCUIT — CHROMA RUSH Neon Circuit 2.8 — three hand-authored world circuits, smooth follow camera, auto-throttle and boost-fueled arcade racing.">
+<title>CHROMA RUSH | Neon Circuit 2.8</title>
 <link rel="stylesheet" href="clash.css?v=chroma-circuit-1.0">
-<link rel="stylesheet" href="neon-circuit.css?v=neon-circuit-2.7">
+<link rel="stylesheet" href="neon-circuit.css?v=neon-circuit-2.8">
 </head>
 <body>
 <main id="circuit-shell" aria-label="Neon Circuit racing mini game">
@@ -45,10 +45,22 @@
     <h1>NEON <em>CIRCUIT</em></h1>
     <p class="tagline">RACE THE LINE. OWN THE CORNERS.</p>
     <div class="intro-line">
-      <span>3 LAPS · 4 CUBES</span>
-      <span>AUTO ACCELERATION · GP TRACK</span>
+      <span>3 CIRCUITS · 4 CUBES</span>
+      <span>AUTO ACCELERATION</span>
       <span>BRAKE & DASH</span>
     </div>
+    <div id="circuit-course-picker" class="circuit-course-picker"
+      role="group" aria-label="Choose racing circuit">
+      <button type="button" class="circuit-course selected" data-circuit-course="0"
+        aria-pressed="true"><strong>SPECTRAL GP</strong><small>CLASSIC · 3 LAPS</small></button>
+      <button type="button" class="circuit-course" data-circuit-course="1"
+        aria-pressed="false"><strong>SKYLINE RIFT</strong><small>FAST · 2 LAPS</small></button>
+      <button type="button" class="circuit-course" data-circuit-course="2"
+        aria-pressed="false"><strong>PULSE CANYON</strong><small>TECHNICAL · 2 LAPS</small></button>
+    </div>
+    <p id="circuit-selected-description" class="circuit-course-description">
+      ORIGINAL CIRCUIT · BALANCED FLOW
+    </p>
     <button id="circuit-start" class="primary-btn" type="button">START RACE <span aria-hidden="true">→</span></button>
     <p class="control-hint">ACCELERATION IS AUTOMATIC · JOYSTICK TO STEER · BRAKE / DASH · WASD / ARROWS</p>
     <button id="circuit-fullscreen-menu" class="menu-fullscreen" type="button" aria-label="Enter fullscreen">⛶ FULLSCREEN</button>
@@ -58,30 +70,32 @@
     <div class="kicker">NEON CIRCUIT</div><h2>PAUSED</h2>
     <button id="circuit-resume" class="primary-btn" type="button">RESUME <span aria-hidden="true">→</span></button>
     <button id="circuit-restart" class="secondary-btn" type="button">RESTART RACE</button>
+    <button id="circuit-change-course-pause" class="menu-circuit-change" type="button">CHANGE CIRCUIT</button>
     <button id="circuit-export-pause" class="audit-btn" type="button">EXPORT RUN LOG</button>
     <a class="return-link" href="./index.html">← MAIN MENU</a>
   </section>
   <section id="circuit-finish" class="overlay hidden" aria-label="Race results" aria-live="polite">
     <div class="kicker">NEON CIRCUIT · RACE RESULT</div>
     <h2 id="circuit-outcome">RACE COMPLETE</h2>
-    <p id="circuit-result-message" class="tagline">THREE LAPS, ONE CHAMPION.</p>
+    <p id="circuit-result-message" class="tagline">FINISH THE CIRCUIT.</p>
     <div class="result-stats">
       <div><small>PLACE</small><strong id="circuit-result-place">—</strong></div>
       <div><small>TIME</small><strong id="circuit-result-time">0:00</strong></div>
       <div><small>BEST LAP</small><strong id="circuit-result-best">—</strong></div>
     </div>
     <button id="circuit-again" class="primary-btn" type="button">RACE AGAIN <span aria-hidden="true">→</span></button>
+    <button id="circuit-change-course" class="menu-circuit-change" type="button">CHOOSE CIRCUIT</button>
     <button id="circuit-export" class="audit-btn" type="button">EXPORT RUN LOG</button>
     <a class="return-link" href="./index.html">← MAIN MENU</a>
   </section>
   <div id="circuit-fullscreen-status" class="fullscreen-status" role="status" aria-live="polite"></div>
   <div id="circuit-orientation" aria-live="polite"><div class="rotate-symbol">▭ ↻</div><strong>ROTATE YOUR DEVICE</strong><span>NEON CIRCUIT is designed for landscape play.</span></div>
 </main>
-<script src="src/core/config.js?v=neon-circuit-2.7"></script>
-<script src="src/render/chroma-identity.js?v=neon-circuit-2.7"></script>
-<script src="src/render/chroma-center-pulse.js?v=neon-circuit-2.7"></script>
-<script src="src/gameplay/neon-circuit-core.js?v=neon-circuit-2.7"></script>
-<script src="src/gameplay/neon-circuit-camera.js?v=neon-circuit-2.7"></script>
-<script src="src/gameplay/neon-circuit.js?v=neon-circuit-2.7"></script>
+<script src="src/core/config.js?v=neon-circuit-2.8"></script>
+<script src="src/render/chroma-identity.js?v=neon-circuit-2.8"></script>
+<script src="src/render/chroma-center-pulse.js?v=neon-circuit-2.8"></script>
+<script src="src/gameplay/neon-circuit-core.js?v=neon-circuit-2.8"></script>
+<script src="src/gameplay/neon-circuit-camera.js?v=neon-circuit-2.8"></script>
+<script src="src/gameplay/neon-circuit.js?v=neon-circuit-2.8"></script>
 </body>
 </html>

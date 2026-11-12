@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.7: Premium Motion & Visual Cohesion.
+/* CHROMA RUSH — NEON CIRCUIT 2.8: Multi-Circuit Architecture & Track Diversity.
  * Camera follows the cube through a multi-screen neon racing world.
  * The stable dark environment and road-only Track Tide render in visible
  * cached world tiles (never one enormous offscreen track image).
@@ -31,7 +31,7 @@ const tileCache=new Map(),sprites=Object.create(null);
 const motionStates=new WeakMap();
 let motionSnapshot={lean:0,squash:1,stretch:1,brake:0};
 let tileBuilds=0,tileHits=0,mode='menu',race=null,preview=CORE.seededRace(103),
-  nextCourse=0,joyId=null,joyX=0,joyY=0,brakePressed=false,dashPending=false,
+  selectedCourse=0,joyId=null,joyX=0,joyY=0,brakePressed=false,dashPending=false,
   keys=new Set(),frameBefore=0,accumulator=0,noticeUntil=0,
   finishPendingAt=0,lastAnnouncement='',lastZone=-1,lastPlace='';
 function resize(){
@@ -61,16 +61,43 @@ function screen(next){
   $('circuit-actions').classList.toggle('hidden',next!=='playing');
   $('circuit-input-help').classList.toggle('hidden',next!=='playing');
 }
+function selectCourse(course){
+  if(mode!=='menu')return;
+  selectedCourse=clamp(course,0,CORE.TRACKS.length-1);
+  const track=CORE.TRACKS[selectedCourse];
+  preview=CORE.seededRace(103,selectedCourse);
+  camera=CAMERA.create(track.worldBounds,
+    {width:viewW,height:viewH},preview.racers[0]);
+  tileCache.clear();tileBuilds=0;tileHits=0;
+  for(const btn of document.querySelectorAll('[data-circuit-course]')){
+    const chosen=Number(btn.dataset.circuitCourse)===selectedCourse;
+    btn.setAttribute('aria-pressed',String(chosen));
+    btn.classList.toggle('selected',chosen);
+  }
+  text('circuit-selected-description',track.description);
+}
+for(const btn of document.querySelectorAll('[data-circuit-course]')){
+  btn.addEventListener('click',()=>selectCourse(Number(btn.dataset.circuitCourse)));
+}
 function begin(){
-  const course=nextCourse++%CORE.TRACKS.length;
+  const course=selectedCourse;
   race=CORE.seededRace((Date.now()^Math.floor(Math.random()*0x7fffffff))>>>0,course);
   frameBefore=0;accumulator=0;quality=1;slowStreak=0;resize();
-  camera=CAMERA.create(CORE.WORLD_BOUNDS,
+  camera=CAMERA.create(race.track.worldBounds,
     {width:viewW,height:viewH},race.racers[0]);
   tileCache.clear();tileBuilds=0;tileHits=0;
   keys.clear();resetStick();brakePressed=false;dashPending=false;
   screen('playing');noticeUntil=0;finishPendingAt=0;
   lastAnnouncement='';lastZone=-1;lastPlace='';updateHud();
+}
+function backToCourseMenu(){
+  race=null;preview=CORE.seededRace(103,selectedCourse);
+  camera=CAMERA.create(preview.track.worldBounds,
+    {width:viewW,height:viewH},preview.racers[0]);
+  keys.clear();resetStick();brakePressed=false;dashPending=false;
+  tileCache.clear();frameBefore=0;accumulator=0;finishPendingAt=0;
+  lastAnnouncement='';lastZone=-1;lastPlace='';
+  screen('menu');
 }
 function pause(){
   if(mode!=='playing')return;
@@ -87,7 +114,7 @@ function finish(){
   text('circuit-outcome',race.finishPlace===1?'1ST PLACE!':
     race.finishPlace===2?'2ND PLACE':race.finishPlace===3?'3RD PLACE':'RACE COMPLETE');
   text('circuit-result-message',race.racers[0].finished?
-    'THREE LAPS COMPLETE':'TIME LIMIT REACHED');
+    'ALL '+race.lapsToWin+' LAPS COMPLETE':'TIME LIMIT REACHED');
   text('circuit-result-place',ordinal(race.finishPlace));
   text('circuit-result-time',clock(race.elapsed));
   const lapTimes=race.racers[0].lapTimes;
@@ -109,6 +136,8 @@ function download(){
 }
 $('circuit-start').addEventListener('click',begin);
 $('circuit-again').addEventListener('click',begin);
+$('circuit-change-course').addEventListener('click',backToCourseMenu);
+$('circuit-change-course-pause').addEventListener('click',backToCourseMenu);
 $('circuit-pause').addEventListener('click',pause);
 $('circuit-resume').addEventListener('click',resume);
 $('circuit-restart').addEventListener('click',begin);
@@ -187,7 +216,7 @@ function getInput(){
 }
 function updateHud(){
   if(!race)return;
-  const me=race.racers[0],lap=Math.min(CORE.LAPS_TO_WIN,me.laps+1);
+  const me=race.racers[0],lap=Math.min(race.lapsToWin,me.laps+1);
   const zoneEl=$('circuit-zone');
   text('circuit-zone','ZONE '+String(race.zone+1).padStart(2,'0'));
   if(lastZone!==race.zone){
@@ -199,7 +228,7 @@ function updateHud(){
   }
   text('circuit-phase',ZONE_NAMES[race.zone%ZONE_NAMES.length]+
     ' · SPEED '+Math.round(me.speed));
-  text('circuit-lap','LAP '+lap+'/'+CORE.LAPS_TO_WIN);
+  text('circuit-lap','LAP '+lap+'/'+race.lapsToWin);
   text('circuit-flow','LINE FLOW '+Math.round(me.flow*100)+'%');
   const placing=ordinal(CORE.currentPosition(race))+' / 4';
   text('circuit-place',placing);
@@ -266,47 +295,57 @@ function toggleFull(){
 buttons.forEach(b=>b.addEventListener('click',toggleFull));
 document.addEventListener('fullscreenchange',()=>{syncFull();resize()});
 syncFull();
-function forVisibleSegments(g,track,rect){
+function forVisibleSegments(g,track,rect,tileKey){
   const list=track.samples;
-  let painting=false,found=false;
+  const candidates=track.renderTileSegments.get(tileKey)||[];
+  let painting=false,found=false,previous=-2;
   g.beginPath();
-  // Segments have global world coordinates; only nearby lines are emitted,
-  // so multi-screen courses never issue a full-track paint on every frame.
-  for(let i=1;i<list.length;i++){
+  // Index lookup transforms painting cost from entire track geometry to only
+  // the few segments intersecting this 448-unit world tile.
+  for(const i of candidates){
     const a=list[i-1],b=list[i];
     const intersects=Math.max(a.x,b.x)>=rect.minX&&
       Math.min(a.x,b.x)<=rect.maxX&&
       Math.max(a.y,b.y)>=rect.minY&&Math.min(a.y,b.y)<=rect.maxY;
     if(intersects){
-      if(!painting)g.moveTo(a.x,a.y);
+      if(!painting||i!==previous+1)g.moveTo(a.x,a.y);
       g.lineTo(b.x,b.y);found=true;painting=true;
     }else painting=false;
+    previous=i;
   }
   return found;
 }
-function tileHasRoad(track,rect){
+function tileHasRoad(track,rect,tileKey){
   const a=track.bounds;
   if(a.minX>rect.maxX||a.maxX<rect.minX||
       a.minY>rect.maxY||a.maxY<rect.minY)return false;
   const list=track.samples;
-  for(let i=1;i<list.length;i++){
+  for(const i of track.renderTileSegments.get(tileKey)||[]){
     const p=list[i-1],q=list[i];
     if(Math.max(p.x,q.x)>=rect.minX&&Math.min(p.x,q.x)<=rect.maxX&&
-      Math.max(p.y,q.y)>=rect.minY&&Math.min(p.y,q.y)<=rect.maxY)
+       Math.max(p.y,q.y)>=rect.minY&&Math.min(p.y,q.y)<=rect.maxY)
       return true;
   }
   return false;
 }
 // Paint the physical ramp as a continuous shoulder, with taller light
 // banking on the OUTSIDE of circular turns. World-coordinates, tile-cached.
-function drawBankedEdges(g,track,rect,primary,secondary){
+function drawBankedEdges(g,track,rect,primary,secondary,tileKey){
   // Physically continuous shaded slopes instead of stacked neon outlines.
-  const runs=[];let current=[];
-  for(const p of track.rimSamples){
+  const runs=[];let current=[],lastIndex=-2;
+  for(const i of track.renderTileRims.get(tileKey)||[]){
+    const p=track.rimSamples[i];
     const visible=p.x>rect.minX-110&&p.x<rect.maxX+110&&
       p.y>rect.minY-110&&p.y<rect.maxY+110;
-    if(visible)current.push(p);
-    else if(current.length){if(current.length>1)runs.push(current);current=[];}
+    if(visible){
+      if(i!==lastIndex+1&&current.length>1)runs.push(current);
+      if(i!==lastIndex+1)current=[];
+      current.push(p);
+    }else if(current.length){
+      if(current.length>1)runs.push(current);
+      current=[];
+    }
+    lastIndex=i;
   }
   if(current.length>1)runs.push(current);
   const point=(p,side,t)=>{
@@ -384,11 +423,12 @@ function paintRoadTile(g,zone,track,tileX,tileY){
     maxX:(tileX+1)*TILE+TILE_PAD+74,
     minY:tileY*TILE-TILE_PAD-74,
     maxY:(tileY+1)*TILE+TILE_PAD+74};
-  if(!tileHasRoad(track,rect))return false;
+  const tileKey=tileX+','+tileY;
+  if(!tileHasRoad(track,rect,tileKey))return false;
   g.save();g.translate(-tileX*TILE+TILE_PAD,-tileY*TILE+TILE_PAD);
   g.lineCap='round';g.lineJoin='round';
   const stroke=(width,color,dashed=false)=>{
-    const visible=forVisibleSegments(g,track,rect);
+    const visible=forVisibleSegments(g,track,rect,tileKey);
     if(!visible)return;
     g.lineWidth=width;g.strokeStyle=color;
     if(dashed)g.setLineDash([16,15]);
@@ -413,14 +453,17 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   stroke(106,rgb(primary,.48));
   stroke(103,rgb('#c8f5ff',.26));
   stroke(98,'#071527');
-  // The actual ROAD pigment changes across zones, not just the rails.
+  // Material tone follows the course identity without overriding the
+  // animated Wipeout-style spectral zone pigment on top of the track.
+  const material=track.terrain==='canyon'?'#211829':
+    track.terrain==='skyline'?'#0b2236':'#13213a';
   const asphalt=g.createLinearGradient(
     track.bounds.minX,track.bounds.minY,
     track.bounds.maxX,track.bounds.maxY);
-  asphalt.addColorStop(0,mix('#102038',primary,.33));
-  asphalt.addColorStop(.40,mix('#13213a',primary,.31));
-  asphalt.addColorStop(.70,mix('#131e35',secondary,.32));
-  asphalt.addColorStop(1,mix('#16243b',primary,.30));
+  asphalt.addColorStop(0,mix(material,primary,.34));
+  asphalt.addColorStop(.40,mix(material,primary,.29));
+  asphalt.addColorStop(.70,mix(material,secondary,.31));
+  asphalt.addColorStop(1,mix(material,primary,.29));
   stroke(89,asphalt);
   stroke(97,rgb('#e3faff',.13));
   stroke(95.5,rgb(primary,.39));
@@ -435,18 +478,18 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   stroke(44,rgb(secondary,.035));
   stroke(41,asphalt);
   stroke(1.4,rgb('#d3f6ff',.18),true);
-  drawBankedEdges(g,track,rect,primary,secondary);
+  drawBankedEdges(g,track,rect,primary,secondary,tileKey);
   drawBoostPads(g,track,rect,primary,secondary);
   // Small light studs/curb marks. Skip markers outside the current tile.
-  for(let distance=28;distance<track.length;distance+=34){
-    const p=CORE.pointAt(distance,track);
+  for(const i of track.renderTileStuds.get(tileKey)||[]){
+    const p=track.studs[i];
     if(p.x<rect.minX-10||p.x>rect.maxX+10||
-        p.y<rect.minY-10||p.y>rect.maxY+10)continue;
+       p.y<rect.minY-10||p.y>rect.maxY+10)continue;
     for(const side of [-1,1]){
       g.save();g.translate(p.x+p.nx*side*CORE.TRACK_HALF,
         p.y+p.ny*side*CORE.TRACK_HALF);
       g.rotate(p.angle);
-      g.fillStyle=rgb((Math.floor(distance/84)%2)?primary:'#d5efff',.54);
+      g.fillStyle=rgb((Math.floor(p.distance/84)%2)?primary:'#d5efff',.54);
       g.fillRect(-5,side===1?-3:0,11,3);g.restore();
     }
   }
@@ -505,10 +548,12 @@ function arenaLighting(m){
 function drawWorldBackdrop(g,cam,m){
   // Spectral Arena lighting is intentionally WORLD-AGNOSTIC during a tide.
   // The palette breathes over the entire arena without a rear starting line.
-  const light=arenaLighting(m);
+  const light=arenaLighting(m),terrain=m.track.terrain;
+  const base=terrain==='skyline'?'#071b30':
+    terrain==='canyon'?'#171024':'#091527';
   const gradient=g.createLinearGradient(0,0,viewW*.16,viewH);
-  gradient.addColorStop(0,mix('#030916',light.primary,.075));
-  gradient.addColorStop(.52,mix('#0a172c',light.secondary,.105));
+  gradient.addColorStop(0,mix(base,light.primary,.075));
+  gradient.addColorStop(.52,mix(base,light.secondary,.105));
   gradient.addColorStop(1,mix('#030c1b',light.primary,.11));
   g.fillStyle=gradient;g.fillRect(0,0,viewW,viewH);
   const halo=g.createRadialGradient(viewW*.50,viewH*.49,viewH*.12,
@@ -523,7 +568,7 @@ function drawWorldBackdrop(g,cam,m){
   g.translate(-cam.x,-cam.y);
   // Large, restrained geometric terraces and ribs: calm depth beneath the
   // elevated roadway, never floating rectangular objects resembling hazards.
-  const cell=280;
+  const cell=terrain==='skyline'?350:terrain==='canyon'?325:280;
   const x0=Math.floor(frame.minX/cell)*cell;
   const y0=Math.floor(frame.minY/cell)*cell;
   const x1=Math.ceil(frame.maxX/cell)*cell;
@@ -532,6 +577,37 @@ function drawWorldBackdrop(g,cam,m){
   for(let x=x0;x<=x1;x+=cell)for(let y=y0;y<=y1;y+=cell){
     const code=Math.abs((Math.floor(x/cell)*37+Math.floor(y/cell)*53)%7);
     const rise=(code%3)*22;
+    // Different backdrop geometry for each authored course, all calm
+    // non-interactive forms beneath the physical track surface.
+    if(terrain==='skyline'){
+      g.beginPath();
+      g.moveTo(x-20,y+cell*.72+rise);
+      g.lineTo(x+cell*.43,y+cell*.20);
+      g.lineTo(x+cell+20,y+cell*.58+rise);
+      g.strokeStyle=rgb(light.secondary,.068);
+      g.lineWidth=2.2;g.stroke();
+      g.beginPath();
+      g.moveTo(x+cell*.05,y+cell*.95+rise);
+      g.lineTo(x+cell*.57,y+cell*.34);
+      g.lineTo(x+cell*.94,y+cell*.75+rise);
+      g.strokeStyle=rgb(light.primary,.042);
+      g.lineWidth=6;g.stroke();
+      continue;
+    }
+    if(terrain==='canyon'){
+      for(let j=0;j<3;j++){
+        g.beginPath();
+        const inset=21+j*23;
+        g.moveTo(x+inset,y+cell*.31+rise);
+        g.lineTo(x+cell*.49,y+inset);
+        g.lineTo(x+cell-inset,y+cell*.45+rise);
+        g.lineTo(x+cell*.52,y+cell-inset);
+        g.strokeStyle=rgb(j%2?light.primary:light.secondary,
+          .028+j*.013);
+        g.lineWidth=j===0?4.4:1.4;g.stroke();
+      }
+      continue;
+    }
     g.beginPath();
     g.moveTo(x+8,y+cell*.32+rise);
     g.lineTo(x+cell*.64,y+5);
@@ -547,8 +623,17 @@ function drawWorldBackdrop(g,cam,m){
     g.strokeStyle=rgb(light.secondary,code%2?.034:.056);
     g.lineWidth=1.4;g.stroke();
   }
-  // Sparse radial trenches communicate massive arena scale and continuity.
-  for(const [x,y,r] of [[1790,700,175],[730,1010,140],[1390,1210,125]]){
+  // A few low-contrast terrain landmarks emphasize world scale; positions
+  // derive from EACH circuit's bounds instead of the original GP coordinates.
+  const bounds=m.track.bounds,w=bounds.maxX-bounds.minX,
+    h=bounds.maxY-bounds.minY;
+  const landmarks=terrain==='skyline'?
+    [[.28,.62,205],[.79,.32,185]]:
+    terrain==='canyon'?
+    [[.25,.72,235],[.69,.39,205],[.85,.83,165]]:
+    [[.74,.45,175],[.23,.77,140],[.55,.95,125]];
+  for(const [u,v,r] of landmarks){
+    const x=bounds.minX+w*u,y=bounds.minY+h*v;
     if(x+r<frame.minX||x-r>frame.maxX||
        y+r<frame.minY||y-r>frame.maxY)continue;
     g.strokeStyle=rgb(light.primary,.09+.035*light.charge);
@@ -974,7 +1059,7 @@ function drawWaveFront(g,track,wave,color){
 }
 function paint(){
   const m=race||preview,track=m.track||TRACK;
-  if(!camera)camera=CAMERA.create(CORE.WORLD_BOUNDS,
+  if(!camera)camera=CAMERA.create(m.track.worldBounds,
     {width:viewW,height:viewH},m.racers[0]);
   ctx.setTransform(CANVAS.width/viewW,0,0,CANVAS.height/viewH,0,0);
   ctx.clearRect(0,0,viewW,viewH);
@@ -1077,6 +1162,8 @@ root.ChromaCircuitViewDebug={
     spectacles:(race||preview).spectacles.length,
     arena:arenaLighting(race||preview),
     course:(race||preview).track.courseId,
+    courseLaps:(race||preview).lapsToWin,
+    selectedCourse:CORE.TRACKS[selectedCourse].courseId,
     player:(race||preview).racers[0]&&{
       x:(race||preview).racers[0].x,
       y:(race||preview).racers[0].y,

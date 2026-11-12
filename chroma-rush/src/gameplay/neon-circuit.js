@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.7: Premium Motion & Visual Cohesion.
+/* CHROMA RUSH — NEON CIRCUIT 2.8: Multi-Circuit Architecture & Track Diversity.
  * Camera follows the cube through a multi-screen neon racing world.
  * The stable dark environment and road-only Track Tide render in visible
  * cached world tiles (never one enormous offscreen track image).
@@ -31,7 +31,7 @@ const tileCache=new Map(),sprites=Object.create(null);
 const motionStates=new WeakMap();
 let motionSnapshot={lean:0,squash:1,stretch:1,brake:0};
 let tileBuilds=0,tileHits=0,mode='menu',race=null,preview=CORE.seededRace(103),
-  nextCourse=0,joyId=null,joyX=0,joyY=0,brakePressed=false,dashPending=false,
+  selectedCourse=0,joyId=null,joyX=0,joyY=0,brakePressed=false,dashPending=false,
   keys=new Set(),frameBefore=0,accumulator=0,noticeUntil=0,
   finishPendingAt=0,lastAnnouncement='',lastZone=-1,lastPlace='';
 function resize(){
@@ -61,11 +61,29 @@ function screen(next){
   $('circuit-actions').classList.toggle('hidden',next!=='playing');
   $('circuit-input-help').classList.toggle('hidden',next!=='playing');
 }
+function selectCourse(course){
+  if(mode!=='menu')return;
+  selectedCourse=clamp(course,0,CORE.TRACKS.length-1);
+  const track=CORE.TRACKS[selectedCourse];
+  preview=CORE.seededRace(103,selectedCourse);
+  camera=CAMERA.create(track.worldBounds,
+    {width:viewW,height:viewH},preview.racers[0]);
+  tileCache.clear();tileBuilds=0;tileHits=0;
+  for(const btn of document.querySelectorAll('[data-circuit-course]')){
+    const chosen=Number(btn.dataset.circuitCourse)===selectedCourse;
+    btn.setAttribute('aria-pressed',String(chosen));
+    btn.classList.toggle('selected',chosen);
+  }
+  text('circuit-selected-description',track.description);
+}
+for(const btn of document.querySelectorAll('[data-circuit-course]')){
+  btn.addEventListener('click',()=>selectCourse(Number(btn.dataset.circuitCourse)));
+}
 function begin(){
-  const course=nextCourse++%CORE.TRACKS.length;
+  const course=selectedCourse;
   race=CORE.seededRace((Date.now()^Math.floor(Math.random()*0x7fffffff))>>>0,course);
   frameBefore=0;accumulator=0;quality=1;slowStreak=0;resize();
-  camera=CAMERA.create(CORE.WORLD_BOUNDS,
+  camera=CAMERA.create(race.track.worldBounds,
     {width:viewW,height:viewH},race.racers[0]);
   tileCache.clear();tileBuilds=0;tileHits=0;
   keys.clear();resetStick();brakePressed=false;dashPending=false;
@@ -87,7 +105,7 @@ function finish(){
   text('circuit-outcome',race.finishPlace===1?'1ST PLACE!':
     race.finishPlace===2?'2ND PLACE':race.finishPlace===3?'3RD PLACE':'RACE COMPLETE');
   text('circuit-result-message',race.racers[0].finished?
-    'THREE LAPS COMPLETE':'TIME LIMIT REACHED');
+    'ALL '+race.lapsToWin+' LAPS COMPLETE':'TIME LIMIT REACHED');
   text('circuit-result-place',ordinal(race.finishPlace));
   text('circuit-result-time',clock(race.elapsed));
   const lapTimes=race.racers[0].lapTimes;
@@ -187,7 +205,7 @@ function getInput(){
 }
 function updateHud(){
   if(!race)return;
-  const me=race.racers[0],lap=Math.min(CORE.LAPS_TO_WIN,me.laps+1);
+  const me=race.racers[0],lap=Math.min(race.lapsToWin,me.laps+1);
   const zoneEl=$('circuit-zone');
   text('circuit-zone','ZONE '+String(race.zone+1).padStart(2,'0'));
   if(lastZone!==race.zone){
@@ -199,7 +217,7 @@ function updateHud(){
   }
   text('circuit-phase',ZONE_NAMES[race.zone%ZONE_NAMES.length]+
     ' · SPEED '+Math.round(me.speed));
-  text('circuit-lap','LAP '+lap+'/'+CORE.LAPS_TO_WIN);
+  text('circuit-lap','LAP '+lap+'/'+race.lapsToWin);
   text('circuit-flow','LINE FLOW '+Math.round(me.flow*100)+'%');
   const placing=ordinal(CORE.currentPosition(race))+' / 4';
   text('circuit-place',placing);
@@ -974,7 +992,7 @@ function drawWaveFront(g,track,wave,color){
 }
 function paint(){
   const m=race||preview,track=m.track||TRACK;
-  if(!camera)camera=CAMERA.create(CORE.WORLD_BOUNDS,
+  if(!camera)camera=CAMERA.create(m.track.worldBounds,
     {width:viewW,height:viewH},m.racers[0]);
   ctx.setTransform(CANVAS.width/viewW,0,0,CANVAS.height/viewH,0,0);
   ctx.clearRect(0,0,viewW,viewH);
@@ -1077,6 +1095,8 @@ root.ChromaCircuitViewDebug={
     spectacles:(race||preview).spectacles.length,
     arena:arenaLighting(race||preview),
     course:(race||preview).track.courseId,
+    courseLaps:(race||preview).lapsToWin,
+    selectedCourse:CORE.TRACKS[selectedCourse].courseId,
     player:(race||preview).racers[0]&&{
       x:(race||preview).racers[0].x,
       y:(race||preview).racers[0].y,

@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.6: Spectral Arena & Impact Language.
+/* CHROMA RUSH — NEON CIRCUIT 2.6.1: Auto Throttle & Manual Steering.
  * Camera follows the cube through a multi-screen neon racing world.
  * The stable dark environment and road-only Track Tide render in visible
  * cached world tiles (never one enormous offscreen track image).
@@ -113,7 +113,7 @@ function setStick(e){
   const box=$('circuit-joystick').getBoundingClientRect();
   const dx=e.clientX-box.x-box.width*.5,dy=e.clientY-box.y-box.height*.5;
   const r=box.width*.39,len=Math.hypot(dx,dy);
-  // Analog thumb travel: centered means no drive, full radius full power.
+  // Thumb changes heading only. Neutral preserves heading, not speed.
   const strength=len>r*.13?Math.min(1,len/r):0;
   joyX=len>0?dx/len*strength:0;
   joyY=len>0?dy/len*strength:0;
@@ -174,8 +174,8 @@ function getInput(){
     y=Number(keys.has('ArrowDown')||keys.has('s'))-
       Number(keys.has('ArrowUp')||keys.has('w'));
   }
-  // North-up follow camera: a thumb direction is the same world
-  // direction, so it needs no aspect or camera-rotation correction.
+  // North-up follow camera: the thumb aims toward a world direction.
+  // When released the cube keeps the last heading at auto speed.
   const input={x,y,brake:brakePressed||keys.has('Shift'),dash:dashPending};
   dashPending=false;
   return input;
@@ -191,7 +191,7 @@ function updateHud(){
   text('circuit-place',ordinal(CORE.currentPosition(race))+' / 4');
   text('circuit-clock',clock(race.elapsed));
   text('circuit-dash',me.dashCooldown>.08?me.dashCooldown.toFixed(1)+'s':'DASH');
-  dash.disabled=me.dashCooldown>.08||me.speed<18;
+  dash.disabled=me.dashCooldown>.08||me.speed<45;
   dash.classList.toggle('recharging',dash.disabled);
   let label='',visible=false;
   if(race.phase==='ready'){
@@ -945,6 +945,7 @@ root.ChromaCircuitViewDebug={
       x:(race||preview).racers[0].x,
       y:(race||preview).racers[0].y,
       speed:(race||preview).racers[0].speed,
+      angle:(race||preview).racers[0].angle,
       falls:(race||preview).racers[0].falls,
       knockouts:(race||preview).racers[0].knockouts},
     viewport:{width:viewW,height:viewH}

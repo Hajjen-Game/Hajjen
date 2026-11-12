@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Neon Circuit 2.5 real Chromium: velocity, boosted banks and rival identities."""
+"""Neon Circuit 2.6 real Chromium: Spectral Arena and impact reactions."""
 from __future__ import annotations
 import json
 import os
@@ -73,6 +73,8 @@ def main():
             first=page.evaluate("() => window.ChromaCircuitViewDebug.snapshot()")
             assert first["camera"] is not None,first
             assert first["tiles"]>0 and first["tiles"]<=36,first
+            assert first["arena"]["primary"].startswith("#"),first
+            assert first["arena"]["charge"]==0,first
             assert first["camera"]["zoom"]>1.4*h/540,first
             # A 2D follow camera reveals only a FRACTION of the road.
             width_world=first["viewport"]["width"]/first["camera"]["zoom"]
@@ -116,10 +118,12 @@ def main():
               for(let i=0;i<42;i++)
                 c.tick(r,{x:start.tx,y:start.ty},c.STEP);
               return {count:p.boosts,pad:p.boostPadId,
-                time:p.boostTime,speed:p.speed,peak:p.boostPeak};
+                time:p.boostTime,speed:p.speed,peak:p.boostPeak,
+                dashHits:p.dashHits,spectacleMode:c.audit(r).summary.spectacleMode};
             }""")
             assert boosted["count"]==1 and boosted["time"]>0,boosted
             assert boosted["peak"]>220,boosted
+            assert boosted["spectacleMode"]=="layered-world-lighting-impact-2.6"
             # Controls remain user-driven and responsive.
             box=page.locator("#circuit-joystick").bounding_box()
             assert box
@@ -166,6 +170,10 @@ def main():
                     timeout=24000)
                 page.wait_for_timeout(500)
                 page.screenshot(path=str(OUT/"circuit-2-track-tide-mid.png"))
+                wave_lighting=page.evaluate(
+                    "() => window.ChromaCircuitViewDebug.snapshot().arena")
+                assert wave_lighting["charge"]>0,wave_lighting
+                assert wave_lighting["primary"]!=first["arena"]["primary"],wave_lighting
                 page.wait_for_timeout(1150)
                 page.screenshot(path=str(OUT/"circuit-2-track-tide-complete.png"))
             page.locator("#circuit-pause").click()
@@ -177,12 +185,13 @@ def main():
             destination=OUT/f"circuit-2-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/2.5",log
+            assert log["schema"]=="neon-circuit-run-audit/2.6",log
             assert log["summary"]["cameraMode"]=="close-follow-damped-zoom"
             assert log["summary"]["edgeMode"]=="physical-cambered-bank-and-recoverable-ramp"
             assert log["summary"]["trackArchitecture"]=="tangent-circular-arcs-straights"
             assert log["summary"]["boostPads"]==3
             assert log["summary"]["rivalStyles"]==["precision","aggressive","opportunist"]
+            assert log["summary"]["spectacleMode"]=="layered-world-lighting-impact-2.6"
             assert log["summary"]["controlMode"]=="hold-to-drive-manual-steering"
             assert log["summary"]["driveSeconds"]>.5
             assert log["summary"]["waveMode"]=="spectral-feather-offscreen-origin"
@@ -255,11 +264,13 @@ def main():
                 hits:a.summary.aiHits,aiAI:a.summary.aiAIContacts,
                 profiles:a.summary.rivalStyles,
                 defends:r.events.filter(e=>e.type==='ai_defend').length,
+                aiTempos:r.racers.slice(1).map(p=>p.aiTempo),
                 aiFalls:r.racers.slice(1).reduce((n,p)=>n+p.falls,0)};
             }""")
             assert rivalry["attacks"]>=3,rivalry
             assert rivalry["aiAI"]>=2,rivalry
             assert rivalry["defends"]>=1,rivalry
+            assert all(.96<x<1.06 for x in rivalry["aiTempos"]),rivalry
             assert not errors,errors
             checks.append({
                 "viewport":[w,h],"geometry":geometry,

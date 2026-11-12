@@ -289,39 +289,52 @@ function drawBankedEdges(g,track,rect,primary,secondary){
   }
   g.save();g.lineJoin='round';g.lineCap='round';
   for(const run of runs)for(const side of [-1,1]){
-    strip(run,side,0,1,rgb('#020b18',.87));
-    strip(run,side,0,.48,rgb(primary,.25));
-    strip(run,side,.48,.84,rgb(secondary,.24));
-    strip(run,side,.84,1,rgb('#d6f5ff',.21));
+    // An extruded metal bank with a soft lit slope and a recessed root.
+    // Static tile-only geometry; the inner track still has the same width.
+    strip(run,side,0,1,rgb('#020b18',.96));
+    strip(run,side,0,.23,rgb('#021526',.79));
+    strip(run,side,.23,.73,rgb(primary,.32));
+    strip(run,side,.73,.93,rgb(secondary,.24));
+    strip(run,side,.93,1,rgb('#e4f8ff',.19));
     g.beginPath();
     for(let i=0;i<run.length;i++){
       const p=point(run[i],side,1);
       if(i===0)g.moveTo(p.x,p.y);else g.lineTo(p.x,p.y);
     }
-    g.strokeStyle=rgb('#010512',.70);g.lineWidth=6;g.stroke();
-    g.strokeStyle=rgb(primary,.38);g.lineWidth=1.7;g.stroke();
+    g.strokeStyle=rgb('#000712',.85);g.lineWidth=5.2;g.stroke();
+    g.strokeStyle=rgb(mix(primary,'#e8faff',.58),.46);
+    g.lineWidth=1.35;g.stroke();
   }
   g.restore();
 }
 function drawBoostPads(g,track,rect,primary,secondary){
   for(const pad of track.boosts){
     const p=CORE.pointAt(pad.s,track);
-    if(p.x<rect.minX-70||p.x>rect.maxX+70||
-       p.y<rect.minY-70||p.y>rect.maxY+70)continue;
+    if(p.x<rect.minX-80||p.x>rect.maxX+80||
+       p.y<rect.minY-80||p.y>rect.maxY+80)continue;
     g.save();
     g.translate(p.x+p.nx*pad.lane,p.y+p.ny*pad.lane);
     g.rotate(p.angle);
-    // Flush with the roadway: cyan chevrons are a BOOST, not a barrier.
-    g.fillStyle=rgb('#07192c',.38);
-    rounded(g,-43,-15,86,30,7);g.fill();
-    g.strokeStyle=rgb(secondary,.48);g.lineWidth=1.2;
-    rounded(g,-43,-15,86,30,7);g.stroke();
+    // Engraved into the raceway rather than a hovering rounded card.
+    const bed=g.createLinearGradient(-48,-12,48,12);
+    bed.addColorStop(0,rgb(primary,.045));
+    bed.addColorStop(.40,rgb(secondary,.17));
+    bed.addColorStop(.70,rgb(primary,.25));
+    bed.addColorStop(1,rgb(primary,.045));
+    g.fillStyle=bed;rounded(g,-46,-15,92,30,5);g.fill();
+    for(const y of [-14,14]){
+      g.strokeStyle=rgb(mix(primary,'#e0f7ff',.42),.35);
+      g.lineWidth=1.1;g.beginPath();
+      g.moveTo(-42,y);g.lineTo(42,y);g.stroke();
+    }
+    g.lineJoin='round';g.lineCap='round';
     for(const x of [-23,0,23]){
-      g.beginPath();g.moveTo(x-8,-9);g.lineTo(x+5,0);
-      g.lineTo(x-8,9);
-      g.strokeStyle=rgb(primary,.95);g.lineWidth=5.2;
-      g.lineCap='round';g.lineJoin='round';g.stroke();
-      g.strokeStyle=rgb('#ecffff',.80);g.lineWidth=1.65;g.stroke();
+      g.beginPath();g.moveTo(x-11,-9);g.lineTo(x+3,0);
+      g.lineTo(x-11,9);
+      g.strokeStyle=rgb(primary,.30);g.lineWidth=8;g.stroke();
+      g.strokeStyle=rgb(mix(primary,'#ffffff',.55),.91);
+      g.lineWidth=3.4;g.stroke();
+      g.strokeStyle=rgb('#f4ffff',.60);g.lineWidth=1;g.stroke();
     }
     g.restore();
   }
@@ -376,10 +389,13 @@ function paintRoadTile(g,zone,track,tileX,tileY){
   stroke(90,'#09192c');
   stroke(88,asphalt);
   // Subtle lane gloss adds depth without reading as an obstacle.
-  stroke(74,rgb('#f7ffff',.055));
-  stroke(72,rgb('#dbf5ff',.032));
-  stroke(62,rgb(primary,.052));
+  stroke(78,rgb(mix(primary,'#eafaff',.63),.061));
+  stroke(73,rgb('#f3ffff',.034));
+  stroke(61,rgb(primary,.076));
   stroke(52,asphalt);
+  // Narrow specular road grooves sit inside the surface, not above it.
+  stroke(44,rgb(secondary,.035));
+  stroke(41,asphalt);
   stroke(1.4,rgb('#d3f6ff',.18),true);
   drawBankedEdges(g,track,rect,primary,secondary);
   drawBoostPads(g,track,rect,primary,secondary);

@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.2: Close Racing, Edge Falls & Impacts.
+/* CHROMA RUSH — NEON CIRCUIT 2.3: Rival Pressure & Spectral Chroma Tide.
  * Camera follows the cube through a multi-screen neon racing world.
  * The stable dark environment and road-only Track Tide render in visible
  * cached world tiles (never one enormous offscreen track image).
@@ -494,47 +494,82 @@ function drawImpacts(r){
     ctx.restore();
   }
 }
-// A world-space ribbon follows the circuit in POSITIVE driving direction.
-// Two ribbons cover wraparound with no diagonal through the center.
-function appendRoadSlice(g,track,from,to,half){
-  if(to<=from+.0001)return;
-  const count=Math.max(2,Math.ceil((to-from)/13));
+// Chroma Rush Spectral Wave translated to curving WORLD-space track geometry:
+// moving refractive veil, softened color field, three attached light filaments,
+// no detached square/flash and no visible starting seam.
+function waveRibbon(g,track,wave,offset=0){
+  // The REAR seam stays thousands of units behind the initial player and
+  // never rides forward into camera view with the prismatic leading edge.
+  const from=wave.start-track.length*.49,to=wave.start+wave.reach+offset;
+  if(to<=from)return;
+  const count=Math.ceil((to-from)/19),half=66;
+  const shimmer=side=>{
+    const phase=wave.progress*21;
+    return 7*Math.sin(side*3.8+phase)+
+      3.4*Math.sin(side*8.9-phase*1.3);
+  };
+  g.beginPath();
   for(let i=0;i<=count;i++){
-    const p=CORE.pointAt(from+(to-from)*i/count,track);
-    const x=p.x+p.nx*half,y=p.y+p.ny*half;
-    if(i===0)g.moveTo(x,y);else g.lineTo(x,y);
+    const distance=from+(to-from)*i/count;
+    const p=CORE.pointAt(distance,track),d=distance===to?shimmer(1):0;
+    const v=d?CORE.pointAt(distance+d,track):p;
+    if(i===0)g.moveTo(v.x+v.nx*half,v.y+v.ny*half);
+    else g.lineTo(v.x+v.nx*half,v.y+v.ny*half);
   }
-  for(let i=count;i>=0;i--){
+  // A living, warped cross-track boundary. Never a rigid rectangular line.
+  for(let i=1;i<=10;i++){
+    const side=1-i/5;
+    const p=CORE.pointAt(to+shimmer(side),track);
+    g.lineTo(p.x+p.nx*side*half,p.y+p.ny*side*half);
+  }
+  for(let i=count-1;i>=0;i--){
     const p=CORE.pointAt(from+(to-from)*i/count,track);
     g.lineTo(p.x-p.nx*half,p.y-p.ny*half);
   }
   g.closePath();
 }
-function clipWaveRepaint(g,track,wave){
-  const end=wave.start+wave.reach,L=track.length;
-  g.beginPath();
-  if(end>L){
-    appendRoadSlice(g,track,wave.start,L,69);
-    appendRoadSlice(g,track,0,end-L,69);
-  }else appendRoadSlice(g,track,wave.start,end,69);
+function clipWaveRepaint(g,track,wave,offset=-42){
+  waveRibbon(g,track,wave,offset);
   g.clip();
 }
 function drawWaveFront(g,track,wave,color){
   if(reduced()||!wave.active)return;
-  const lead=wave.start+wave.reach;
-  // Following the road edges instead of drawing a full-width bar:
-  // this reads as pigment movement, not as a new physical obstacle.
-  g.save();g.lineJoin='round';g.lineCap='round';
+  const front=wave.start+wave.reach;
+  const secondary=PALETTES[(race||preview).zone%PALETTES.length].secondary;
+  const phase=wave.progress*21;
+  const p=CORE.pointAt(front,track),wobble=8*Math.sin(phase);
+  // Chroma Rush Spectral Wave's prismatic veil: light follows the moving
+  // road-front, not a screen-wide line or something the player might dodge.
+  g.save();
+  g.translate(p.x+p.nx*wobble,p.y+p.ny*wobble);
+  g.rotate(p.angle);
+  const veil=g.createLinearGradient(-105,0,110,0);
+  veil.addColorStop(0,rgb(secondary,0));
+  veil.addColorStop(.26,rgb(secondary,.075));
+  veil.addColorStop(.48,rgb(color,.24));
+  veil.addColorStop(.56,'rgba(255,255,255,.13)');
+  veil.addColorStop(.80,rgb(color,.14));
+  veil.addColorStop(1,rgb(secondary,0));
+  g.fillStyle=veil;g.fillRect(-105,-44,215,88);
+  g.restore();
+  // Like Spectral Wave, these short filaments are attached to the SAME
+  // front, with different radii and phase. They are parallel to the road.
+  g.save();g.lineCap='round';g.lineJoin='round';
   for(const side of [-1,1]){
-    g.beginPath();
-    for(let i=0;i<=10;i++){
-      const p=CORE.pointAt(lead-95+104*i/10,track);
-      const x=p.x+p.nx*45*side,y=p.y+p.ny*45*side;
-      if(i===0)g.moveTo(x,y);else g.lineTo(x,y);
+    for(const [index,shift,alpha,width] of
+      [[0,-24,.28,5],[1,0,.63,2.6],[2,20,.31,2.5]]){
+      g.beginPath();
+      for(let i=0;i<=10;i++){
+        const ss=front-90+130*i/10+shift;
+        const t=CORE.pointAt(ss,track);
+        const off=43*side+3.8*Math.sin(i*.8+phase+side*2);
+        const x=t.x+t.nx*off,y=t.y+t.ny*off;
+        if(i===0)g.moveTo(x,y);else g.lineTo(x,y);
+      }
+      g.globalAlpha=alpha*(.9+.1*Math.sin(phase*1.5+index));
+      g.strokeStyle=index===0?secondary:index===1?'#ffffff':color;
+      g.lineWidth=width;g.stroke();
     }
-    g.globalAlpha=.17;g.strokeStyle=color;g.lineWidth=7;g.stroke();
-    g.globalAlpha=.72;g.strokeStyle=mix(color,'#ffffff',.62);
-    g.lineWidth=1.7;g.stroke();
   }
   g.restore();
 }
@@ -553,10 +588,23 @@ function paint(){
   if(m.tide>0&&z>0){
     const wave=CORE.waveState(m);
     drawRoadTiles(ctx,z-1,track,view);
-    ctx.save();clipWaveRepaint(ctx,track,wave);
-    drawRoadTiles(ctx,z,track,view);
-    ctx.restore();
-    drawWaveFront(ctx,track,wave,PALETTES[z%PALETTES.length].primary);
+    // Only the front moves: the initial recolor seam remains far behind.
+    // Three alpha passes feather the warped boundary instead of a hard cut.
+    if(wave.progress>.87){
+      drawRoadTiles(ctx,z,track,view);
+    }else{
+      ctx.save();clipWaveRepaint(ctx,track,wave);
+      drawRoadTiles(ctx,z,track,view);
+      ctx.restore();
+      if(!reduced())for(const [offset,alpha] of
+        [[-17,.35],[12,.29],[39,.17]]){
+        ctx.save();ctx.globalAlpha=alpha;
+        clipWaveRepaint(ctx,track,wave,offset);
+        drawRoadTiles(ctx,z,track,view);
+        ctx.restore();
+      }
+      drawWaveFront(ctx,track,wave,PALETTES[z%PALETTES.length].primary);
+    }
   }else drawRoadTiles(ctx,z,track,view);
   drawImpacts(m);drawRacers(m);
   ctx.restore();

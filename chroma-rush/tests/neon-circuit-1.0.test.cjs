@@ -1,4 +1,4 @@
-/* CHROMA RUSH — Neon Circuit 2.2 Roller Ruckus Falls & Close Camera regression */
+/* CHROMA RUSH — Neon Circuit 2.3 Rival Pressure & Spectral Track Tide regression */
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -136,6 +136,37 @@ test('2.2 closer zoom preserves distant road visibility at higher speed',()=>{
   const followed=Camera.worldToScreen(cam,p.x,p.y);
   assert.ok(Math.abs(followed.x-v.width*.5)<170);
 });
+test('2.3 AI seeks real rival contact and can eject other AI racers',()=>{
+  const seeds=[18,27,42,77],outcomes=[];
+  for(const seed of seeds){
+    const m=run(seed,110),events=m.events;
+    const attacks=events.filter(e=>e.type==='ai_attack'&&e.attacker>0);
+    const aiCollisions=events.filter(e=>e.type==='impact'&&e.a>0&&e.b>0);
+    const aiFalls=events.filter(e=>e.type==='fall'&&e.player>0);
+    outcomes.push({attacks:attacks.length,
+      collisions:aiCollisions.length,falls:aiFalls.length});
+    assert.ok(m.racers[0].laps===3,'guided lap path must survive rival AI');
+    assert.ok(attacks.length>=4,'passive AI: '+JSON.stringify(outcomes));
+    assert.ok(aiCollisions.length>=2,'no AI-versus-AI pressure');
+  }
+  assert.ok(outcomes.some(o=>o.falls>=1),
+    'AI attacks never create track ejections');
+});
+test('2.3 spectral wave begins fully offscreen, follows player and feathers',()=>{
+  const m=C.seededRace(91);m.phase='running';m.elapsed=9.995;
+  C.tick(m,{},C.STEP);
+  const a=C.waveState(m);
+  assert.ok(a.active&&a.reach<100);
+  assert.ok(a.behind>650&&a.feather>=60);
+  const start=a.start,playerStart=a.playerStart;
+  assert.ok(Math.abs((playerStart-start+C.TRACK.length)%
+    C.TRACK.length-a.behind)<1);
+  for(let i=0;i<85;i++)C.tick(m,{},C.STEP);
+  const b=C.waveState(m);
+  assert.ok(b.reach>a.behind*2,'front must travel visibly along the track');
+  assert.equal(a.start,b.start,'source of wave should never follow player');
+  assert.ok(b.reach<C.TRACK.length,'a longer and slower Rush-like sweep');
+});
 test('Path lookup is continuous, tangent-normal and physically projected',()=>{
   for(let i=0;i<35;i++){
     const s=(i+.33)/35*C.TRACK.length;
@@ -270,6 +301,14 @@ test('Track Tide still changes zones each ten seconds and follows the road',()=>
   const start=C.waveState(r);
   assert.equal(start.scope,'track-only');
   assert.equal(start.direction,'forward');
+  assert.equal(start.style,'spectral-feather-prismatic-front');
+  assert.equal(start.behind,C.WAVE_START_BACK);
+  assert.ok(C.WAVE_START_BACK>650);
+  const startSeparation=((start.playerStart-start.start+C.TRACK.length)%
+    C.TRACK.length);
+  assert.ok(Math.abs(startSeparation-C.WAVE_START_BACK)<.1);
+  assert.ok(start.reach<40,'first physics tick advances the wave slightly');;
+  assert.equal(C.COLOR_WAVE_SECONDS,3.15);
   assert.ok(start.active);
   for(let i=0;i<43;i++)C.tick(r,{},C.STEP);
   const later=C.waveState(r);
@@ -330,6 +369,9 @@ test('Renderer has visible tile cache, world transform and no monolithic world r
   assert.ok(js.includes('CAMERA.viewBounds(camera'));
   assert.ok(js.includes('clipWaveRepaint(ctx,track,wave)'));
   assert.ok(js.includes('drawWaveFront(ctx,track,wave'));
+  assert.ok(js.includes('function waveRibbon'));
+  assert.ok(js.includes('const shimmer=side'));
+  assert.ok(js.includes('clipWaveRepaint(ctx,track,wave,offset)'));;
   assert.ok(!js.includes('getStatic(z,track)'));
   assert.ok(!js.includes('panoWidth'));
   assert.ok(!js.includes('scaleX=viewW/WIDTH'));
@@ -341,16 +383,16 @@ test('Phone joystick/Brake/Dash, pause, fullscreen and local logs are still wire
     'circuit-brake','circuit-dash','circuit-pause','circuit-fullscreen',
     'circuit-export','circuit-export-pause'])
       assert.ok(html.includes('id="'+id+'"'),id);
-  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.2'));
+  assert.ok(html.includes('neon-circuit-camera.js?v=neon-circuit-2.3'));
   assert.ok(js.includes("requestFullscreen"));
   assert.ok(js.includes('JSON.stringify(CORE.audit(race)'));
   assert.ok(js.includes('getInput()'));
 });
-test('Run audit 2.2 includes falls, controls and camera data without private input history',()=>{
+test('Run audit 2.3 includes falls, AI aggression and the spectral wave without private input history',()=>{
   const r=run(77);
   const a=C.audit(r);
-  assert.equal(a.schema,'neon-circuit-run-audit/2.2');
-  assert.equal(a.build,'neon-circuit-2.2');
+  assert.equal(a.schema,'neon-circuit-run-audit/2.3');
+  assert.equal(a.build,'neon-circuit-2.3');
   assert.equal(a.courseId,'spectral-highway');
   assert.ok(a.trackLength>4600);
   assert.equal(a.summary.cameraMode,'close-follow-damped-zoom');
@@ -358,7 +400,8 @@ test('Run audit 2.2 includes falls, controls and camera data without private inp
   assert.equal(a.summary.controlMode,'hold-to-drive-manual-steering');
   assert.ok(a.summary.driveSeconds>20);
   assert.equal(a.summary.lapValidation,'four-ordered-physical-gates');
-  assert.equal(a.summary.waveMode,'forward-track-only');
+  assert.equal(a.summary.waveMode,'spectral-feather-offscreen-origin');
+  assert.ok(a.summary.aiAttacks>1);
   assert.equal(a.summary.lapsCompleted,3);
   assert.ok(a.events.some(e=>e.type==='checkpoint'));
   assert.ok(!JSON.stringify(a).match(/deviceId|fingerprint|rawJoystick/));

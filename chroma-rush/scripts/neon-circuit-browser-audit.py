@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Neon Circuit 2.2 real Chromium: Close Camera & Roller Ejections."""
+"""Neon Circuit 2.3 real Chromium: Rival AI & Spectral Wave."""
 from __future__ import annotations
 import json
 import os
@@ -149,12 +149,13 @@ def main():
             destination=OUT/f"circuit-2-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/2.2",log
+            assert log["schema"]=="neon-circuit-run-audit/2.3",log
             assert log["summary"]["cameraMode"]=="close-follow-damped-zoom"
             assert log["summary"]["edgeMode"]=="momentum-falls-without-autocorrect"
             assert log["summary"]["controlMode"]=="hold-to-drive-manual-steering"
             assert log["summary"]["driveSeconds"]>.5
-            assert log["summary"]["waveMode"]=="forward-track-only"
+            assert log["summary"]["waveMode"]=="spectral-feather-offscreen-origin"
+            assert log["summary"]["aiAttacks"]>=0
             assert log["courseId"]=="spectral-highway"
             assert log["summary"]["dashes"]==1,log
             assert log["summary"]["performance"]["tileBuilds"]>0,log
@@ -203,8 +204,28 @@ def main():
               return {victimFalls:b.falls,attackerFalls:a.falls,
                 knockouts:a.knockouts};
             }""")
-            assert ejection=={"victimFalls":1,"attackerFalls":0,
-                "knockouts":1},ejection
+            assert ejection["victimFalls"]>=1,ejection
+            assert ejection["knockouts"]>=1,ejection
+            # AI must seek each other out, not merely travel fixed lanes.
+            rivalry=page.evaluate("""() => {
+              const c=window.ChromaNeonCircuitCore,r=c.seededRace(18);
+              r.phase='running';
+              const aim=(m)=>{
+                const p=m.racers[0],s=c.closest(p.x,p.y,m.track).s,
+                  f=c.pointAt(s+Math.max(55,p.speed*.42),m.track),
+                  near=c.pointAt(s+27,m.track),far=c.pointAt(s+130,m.track),
+                  bend=Math.abs(c.angleDelta(near.angle,far.angle));
+                return {x:f.x-p.x,y:f.y-p.y,brake:bend>.58&&p.speed>161};
+              };
+              for(let i=0;i<70*60&&!r.finished;i++)
+                c.tick(r,aim(r),c.STEP);
+              const a=c.audit(r);
+              return {attacks:a.summary.aiAttacks,
+                hits:a.summary.aiHits,aiAI:a.summary.aiAIContacts,
+                aiFalls:r.racers.slice(1).reduce((n,p)=>n+p.falls,0)};
+            }""")
+            assert rivalry["attacks"]>=3,rivalry
+            assert rivalry["aiAI"]>=2,rivalry
             assert not errors,errors
             checks.append({
                 "viewport":[w,h],"geometry":geometry,

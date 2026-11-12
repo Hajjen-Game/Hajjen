@@ -1,4 +1,4 @@
-/* CHROMA RUSH — NEON CIRCUIT 2.2: Roller Physics & Edge Ejection
+/* CHROMA RUSH — NEON CIRCUIT 2.3: Rival Pressure & Spectral Track Tide
  * Hold the joystick to drive and aim to steer. Releasing coasts instead
  * of falling back to invisible autopilot; AI remains track guided. */
 (function(root,factory){
@@ -12,10 +12,11 @@ const TRACK_HALF=47,PLAYER_RADIUS=11;
 const RAMP_START=TRACK_HALF-PLAYER_RADIUS-1;
 const FALL_SECONDS=.72,RESPAWN_GRACE=.92;
 const FALL_EDGE=TRACK_HALF-1.5; // Center fully crosses the lip.
-const IMPACT_COOLDOWN=.58,IMPACT_FRICTION=.88;
+const IMPACT_COOLDOWN=.64,IMPACT_FRICTION=.91;
 const ZONE_SECONDS=10,LAPS_TO_WIN=3,READY_SECONDS=2.4,STEP=1/60;
 const MAX_RACE_SECONDS=165;
-const COLOR_WAVE_SECONDS=1.45;
+const COLOR_WAVE_SECONDS=3.15;
+const WAVE_START_BACK=760,WAVE_FRONT_TRAVEL=4550;
 const COLORS=['#60ecff','#ff71ac','#ffe26a','#9f8aff'];
 const NAMES=['YOU','NOVA','VOLT','HEX'];
 const DASH_TIME=.34,DASH_COOLDOWN=5.4;
@@ -172,17 +173,19 @@ function seededRace(seed=20261111,courseId=0){
       knockSeconds:0,falls:0,knockouts:0,fallTimer:0,
       respawns:0,invulnerable:0,lastAttacker:null,lastImpactAt:-100,
       unsafeImpact:false,vx:0,vy:0,fallVX:0,fallVY:0,fallAnchorX:0,
-      fallAnchorY:0,edgeExposure:0,driveSeconds:0,coastSeconds:0};
+      fallAnchorY:0,edgeExposure:0,driveSeconds:0,coastSeconds:0,
+      aiAttackTarget:null,aiAttackTime:0,aiAttackCooldown:id*.28,
+      aiAttacks:0,aiHits:0};
   });
   const race={seed,random,racers,track,gates,courseIndex,
     ready:READY_SECONDS,elapsed:0,
-    zone:0,tide:0,waveStartS:0,phase:'ready',finished:false,finishPlace:null,
+    zone:0,tide:0,waveStartS:0,waveStartPlayerS:0,phase:'ready',finished:false,finishPlace:null,
     winner:null,announcement:'READY',announcementTime:0,
     events:[],overflow:0,maxEvents:450,
     impacts:[],contactPairs:{},performance:{
       frames:0,slow50:0,worstFrameMs:0,renderMaxMs:0},
     quality:'auto'};
-  log(race,'race_start',{mode:'neon-circuit-2.2',laps:LAPS_TO_WIN,
+  log(race,'race_start',{mode:'neon-circuit-2.3',laps:LAPS_TO_WIN,
     trackLength:Math.round(track.length),track:track.courseId,
     course:track.name,impact:'ejection-and-respawn',
     zoneWave:'forward-track-only'});
@@ -267,17 +270,47 @@ function updateProgress(m,p,from,nearest,dt){
     if(p.finished)p.progress=Math.max(p.progress,p.laps*length);
   }
 }
-function desiredAI(m,p){
-  const s=closest(p.x,p.y,m.track).s;
-  const look=clamp(p.speed*.53,59,103);
-  const ahead=pointAt(s+look,m.track);
-  const lane=p.aiLane*(.68+.08*Math.sin(m.elapsed*.7+p.id));
-  const tx=ahead.x+ahead.nx*lane,ty=ahead.y+ahead.ny*lane;
-  const angle=Math.atan2(ty-p.y,tx-p.x);
+function desiredAI(m,p,dt=STEP){
+  const current=closest(p.x,p.y,m.track);
+  const s=current.s,look=clamp(p.speed*.53,59,103);
   const near=pointAt(s+28,m.track),future=pointAt(s+120,m.track);
   const curve=Math.abs(angleDelta(near.angle,future.angle));
-  return {angle,brake:curve>.84&&p.speed>200,
-    line:s,curvature:curve};
+  p.aiAttackCooldown=Math.max(0,p.aiAttackCooldown-dt);
+  p.aiAttackTime=Math.max(0,p.aiAttackTime-dt);
+  let target=p.aiAttackTarget===null?null:m.racers[p.aiAttackTarget];
+  if(!target||target.finished||target.fallTimer>0||target.invulnerable>0||
+     hypot(target.x-p.x,target.y-p.y)>180||current.dist>30||p.aiAttackTime<=0){
+    target=null;p.aiAttackTarget=null;p.aiAttackTime=0;
+  }
+  // Active rival pressure: choose nearby racers instead of sitting on a rail.
+  // Physical overlap is still required for every impact.
+  if(!target&&p.aiAttackCooldown<=0&&p.speed>105&&current.dist<23){
+    const options=m.racers.filter(v=>v!==p&&!v.finished&&v.fallTimer<=0&&
+      v.invulnerable<=0).map(v=>{
+      const gap=v.progress-p.progress,dist=hypot(v.x-p.x,v.y-p.y);
+      return {v,gap,dist,score:(v.id>0?25:0)-dist*.43+
+        Math.max(0,Math.min(60,gap))*.12,
+        eligible:gap>-25&&gap<145&&dist<148};
+    }).filter(v=>v.eligible).sort((a,b)=>b.score-a.score);
+    if(options.length){
+      target=options[0].v;p.aiAttackTarget=target.id;
+      p.aiAttackTime=1.42;p.aiAttackCooldown=4.4+p.id*.45;
+      p.aiAttacks++;
+      log(m,'ai_attack',{attacker:p.id,target:target.id,
+        gap:Math.round(options[0].gap)});
+    }
+  }
+  if(target){
+    const tx=target.x+target.vx*.13,ty=target.y+target.vy*.13;
+    return {angle:Math.atan2(ty-p.y,tx-p.x),brake:false,
+      line:s,curvature:curve,attacking:true,target:target.id};
+  }
+  const ahead=pointAt(s+look,m.track);
+  const lane=p.aiLane*(.68+.08*Math.sin(m.elapsed*.7+p.id));
+  return {angle:Math.atan2(ahead.y+ahead.ny*lane-p.y,
+      ahead.x+ahead.nx*lane-p.x),
+    brake:curve>.84&&p.speed>200,line:s,curvature:curve,
+    attacking:false,target:null};
 }
 function fallOff(m,p){
   if(p.fallTimer>0||p.finished||p.invulnerable>0)return;
@@ -314,6 +347,7 @@ function respawn(m,p){
   p.vx=Math.cos(p.angle)*p.speed;p.vy=Math.sin(p.angle)*p.speed;
   p.impulseX=0;p.impulseY=0;p.knockSeconds=0;p.lastAttacker=null;
   p.impactCooldown=.55;p.edgeCooldown=.45;
+  p.aiAttackTime=0;p.aiAttackTarget=null;p.aiAttackCooldown=2.3;
   p.invulnerable=RESPAWN_GRACE;
   p.edgeExposure=0;p.fallVX=0;p.fallVY=0;p.lastImpactAt=-100;
   p.respawns++;
@@ -336,7 +370,8 @@ function moveRacer(m,p,input,dt){
   p.invulnerable=Math.max(0,p.invulnerable-dt);
   p.knockSeconds=Math.max(0,p.knockSeconds-dt);
   p.contactFlash=Math.max(0,p.contactFlash-dt);
-  let brake=false,desired=p.angle,throttle=1,steering=true;
+  let brake=false,desired=p.angle,throttle=1,steering=true,
+    aiPressure=false;
    const now=closest(p.x,p.y,m.track);
    if(p.id===0){
      brake=!!input.brake;
@@ -362,8 +397,8 @@ function moveRacer(m,p,input,dt){
        log(m,'dash',{player:p.id,lap:p.laps+1});
      }
    }else{
-     const ai=desiredAI(m,p);
-     desired=ai.angle;brake=ai.brake;
+     const ai=desiredAI(m,p,dt);
+     desired=ai.angle;brake=ai.brake;aiPressure=ai.attacking;
    }
    const turnSpeed=brake?5.25:4.35;
    if(steering)
@@ -373,7 +408,8 @@ function moveRacer(m,p,input,dt){
    const aiSpeed=p.aiTempo;
    const dashFactor=p.dashTime>0?1.47:1;
    const flowFactor=p.id===0?1+.075*p.flow:1;
-   const target=base*aiSpeed*throttle*(brake?.55:1)*dashFactor*flowFactor;
+   const target=base*aiSpeed*(aiPressure?1.18:1)*throttle*
+     (brake?.55:1)*dashFactor*flowFactor;
    // No input: coast to a stop in under a second; BRAKE is stronger.
    const decel=p.id===0&&!steering?310:brake?330:185;
    p.speed+=clamp(target-p.speed,-decel*dt,235*dt);
@@ -448,16 +484,19 @@ function bumpRacers(m){
           (closing>19||dashA||dashB)){
         m.contactPairs[key]=m.elapsed;
         // Forward momentum transfers mainly to the OTHER racer.
-        const force=clamp(155+closing*1.1+(dashA||dashB?115:0),
-          155,530);
+        const intendedA=a.aiAttackTarget===b.id&&a.aiAttackTime>0;
+        const intendedB=b.aiAttackTarget===a.id&&b.aiAttackTime>0;
+        const charged=intendedA||intendedB;
+        const force=clamp(260+closing*1.55+
+          (dashA||dashB?155:0)+(charged?90:0),260,720);
         const aApproach=Math.max(0,aVX*nx+aVY*ny);
         const bApproach=Math.max(0,-bVX*nx-bVY*ny);
-        const aAttacks=(dashA&&!dashB)||
-          (!dashB&&aApproach>bApproach+15);
-        const bAttacks=(dashB&&!dashA)||
-          (!dashA&&bApproach>aApproach+15);
-        const weightA=aAttacks?.23:bAttacks?1.18:.75;
-        const weightB=bAttacks?.23:aAttacks?1.18:.75;
+        const aAttacks=(dashA&&!dashB)||(intendedA&&!intendedB)||
+          (!dashB&&!intendedB&&aApproach>bApproach+15);
+        const bAttacks=(dashB&&!dashA)||(intendedB&&!intendedA)||
+          (!dashA&&!intendedA&&bApproach>aApproach+15);
+        const weightA=aAttacks?.22:bAttacks?1.24:.78;
+        const weightB=bAttacks?.22:aAttacks?1.24:.78;
         a.impulseX-=nx*force*weightA;
         a.impulseY-=ny*force*weightA;
         b.impulseX+=nx*force*weightB;
@@ -470,6 +509,8 @@ function bumpRacers(m){
         a.speed*=aAttacks?.94:dashA?.90:.77;
         b.speed*=bAttacks?.94:dashB?.90:.77;
         a.contacts++;b.contacts++;
+        if(intendedA){a.aiHits++;a.aiAttackTime=0;a.aiAttackTarget=null;}
+        if(intendedB){b.aiHits++;b.aiAttackTime=0;b.aiAttackTarget=null;}
         a.contactFlash=.24;b.contactFlash=.24;
         m.impacts.push({x:(a.x+b.x)/2,y:(a.y+b.y)/2,
           nx,ny,life:.32,colorA:a.color,colorB:b.color,
@@ -477,7 +518,7 @@ function bumpRacers(m){
         if(m.impacts.length>10)m.impacts.shift();
         log(m,'impact',{a:a.id,b:b.id,force:Math.round(force),
           dash:dashA||dashB,closing:Math.round(closing),
-          dominant:aAttacks?a.id:bAttacks?b.id:null});
+          intended:charged,dominant:aAttacks?a.id:bAttacks?b.id:null});
       }
       // A high-energy hit deliberately exceeds the safe road limit:
       // don't clamp it away before the fall check on the next tick.
@@ -505,14 +546,15 @@ function tick(m,input={},dt=STEP){
     m.tide=COLOR_WAVE_SECONDS;
     // At the zone boundary the pigment begins just behind the player,
     // then travels *forward* along this track's arc-length geometry.
-    m.waveStartS=mod(closest(m.racers[0].x,m.racers[0].y,m.track).s-92,
-      m.track.length);
+    m.waveStartPlayerS=closest(m.racers[0].x,m.racers[0].y,m.track).s;
+    m.waveStartS=mod(m.waveStartPlayerS-WAVE_START_BACK,m.track.length);
     m.announcement='ZONE '+String(m.zone+1).padStart(2,'0')+' · SPEED UP';
     m.announcementTime=m.elapsed+1.2;
     log(m,'zone',{zone:m.zone+1,speed:zoneSpeed(m.zone),
       waveStart:+m.waveStartS.toFixed(1),
       waveDirection:'forward',waveScope:'track-only',
-      waveSeconds:COLOR_WAVE_SECONDS});
+      waveSeconds:COLOR_WAVE_SECONDS,behind:WAVE_START_BACK,
+      style:'spectral-feather-prismatic-front'});
   }
   m.tide=Math.max(0,m.tide-step);
   for(const p of m.racers)moveRacer(m,p,input,step);
@@ -532,20 +574,22 @@ function waveState(m){
   const progress=clamp(1-m.tide/COLOR_WAVE_SECONDS,0,1);
   const start=mod(m.waveStartS||0,m.track.length);
   return {progress,start,length:m.track.length,
-    reach:m.track.length*progress,
-    frontS:mod(start+m.track.length*progress,m.track.length),
+    reach:WAVE_FRONT_TRAVEL*progress,
+    behind:WAVE_START_BACK,playerStart:m.waveStartPlayerS,
+    feather:76,style:'spectral-feather-prismatic-front',
+    frontS:mod(start+WAVE_FRONT_TRAVEL*progress,m.track.length),
     active:m.zone>0&&m.tide>0,
     direction:'forward',scope:'track-only'};
 }
 function audit(m){
   const p=m.racers[0];
-  return {schema:'neon-circuit-run-audit/2.2',build:'neon-circuit-2.2',
+  return {schema:'neon-circuit-run-audit/2.3',build:'neon-circuit-2.3',
     seed:m.seed,status:m.finished?'completed':'in_progress',
     courseId:m.track.courseId,courseName:m.track.name,
     trackLength:+m.track.length.toFixed(1),
     summary:{durationSeconds:+m.elapsed.toFixed(3),highestZone:m.zone+1,
       lapValidation:'four-ordered-physical-gates',
-      waveMode:'forward-track-only',
+      waveMode:'spectral-feather-offscreen-origin',
       cameraMode:'close-follow-damped-zoom',worldTrack:true,
       edgeMode:'momentum-falls-without-autocorrect',
        controlMode:'hold-to-drive-manual-steering',
@@ -555,6 +599,9 @@ function audit(m){
       lapTimes:p.lapTimes.slice(),speed:Math.round(p.speed),
       edgeHits:p.edgeHits,contacts:p.contacts,dashes:p.dashes,
       falls:p.falls,respawns:p.respawns,knockouts:p.knockouts,
+      aiAttacks:m.racers.reduce((n,r)=>n+r.aiAttacks,0),
+      aiHits:m.racers.reduce((n,r)=>n+r.aiHits,0),
+      aiAIContacts:m.events.filter(e=>e.type==='impact'&&e.a>0&&e.b>0).length,
       brakeSeconds:+p.brakeSeconds.toFixed(2),
        driveSeconds:+p.driveSeconds.toFixed(2),
        coastSeconds:+p.coastSeconds.toFixed(2),
@@ -565,13 +612,14 @@ function audit(m){
       gatePasses:r.gatePasses,
       finishTime:r.finishTime,edgeHits:r.edgeHits,contacts:r.contacts,
       dashes:r.dashes,falls:r.falls,respawns:r.respawns,
-      knockouts:r.knockouts,lapTimes:r.lapTimes.slice()})),
+      knockouts:r.knockouts,aiAttacks:r.aiAttacks,aiHits:r.aiHits,
+      lapTimes:r.lapTimes.slice()})),
     events:m.events.map(v=>({...v})),
     limits:{maxEvents:m.maxEvents,droppedEvents:m.overflow},
     privacy:'Local export only; no raw joystick, device identifiers or network telemetry'};
 }
 return {WIDTH,HEIGHT,CX,CY,COLORS,NAMES,NODES,TRACK,TRACKS,TRACK_SHAPE,WORLD_BOUNDS,MAX_RACE_SECONDS,
-  COURSE_NAMES,COURSE_IDS,COLOR_WAVE_SECONDS,
+  COURSE_NAMES,COURSE_IDS,COLOR_WAVE_SECONDS,WAVE_START_BACK,WAVE_FRONT_TRAVEL,
   TRACK_HALF,PLAYER_RADIUS,RAMP_START,FALL_EDGE,FALL_SECONDS,RESPAWN_GRACE,
   READY_SECONDS,ZONE_SECONDS,LAPS_TO_WIN,DASH_TIME,DASH_COOLDOWN,STEP,zoneAt,zoneSpeed,
   angleDelta,makeTrack,pointAt,closest,directionAt,gateCrossed,GATES,

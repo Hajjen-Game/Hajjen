@@ -294,7 +294,8 @@ test('2.2 the road edge is fallable with momentum, not invisible autopilot',()=>
   assert.ok(me.fallTimer>0,'fall should visibly take time');
   for(let i=0;i<80;i++)C.tick(r,{},C.STEP);
   assert.ok(me.respawns>=1);
-  assert.equal(me.speed,0,'respawn must not restore autopilot');
+  assert.ok(me.speed>45,'auto throttle must resume after respawn');
+  assert.ok(me.neutralSteerSeconds>0);
   assert.ok(me.invulnerable>=0&&Number.isFinite(me.x));
 });
 test('2.2 intentional non-Dash contact can eject an opponent and credit KO',()=>{
@@ -496,6 +497,7 @@ test('Dash, BRAKE and ramp ejection retain their recovery gameplay',()=>{
   assert.ok(r.events.some(e=>e.type==='impact'));
   assert.ok(r.events.some(e=>e.type==='respawn'));
   const t=C.seededRace(33);t.phase='running';
+  for(let i=0;i<20;i++)C.tick(t,{},C.STEP);
   C.tick(t,{x:1,y:0,dash:true,brake:true},C.STEP);
   assert.equal(t.racers[0].dashes,1);
   assert.ok(t.racers[0].dashCooldown>0);

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Neon Circuit 2.1 real Chromium: Manual Drive, GP Track & Camera."""
+"""Neon Circuit 2.2 real Chromium: Close Camera & Roller Ejections."""
 from __future__ import annotations
 import json
 import os
@@ -63,6 +63,7 @@ def main():
             first=page.evaluate("() => window.ChromaCircuitViewDebug.snapshot()")
             assert first["camera"] is not None,first
             assert first["tiles"]>0 and first["tiles"]<=36,first
+            assert first["camera"]["zoom"]>1.4*h/540,first
             # A 2D follow camera reveals only a FRACTION of the road.
             width_world=first["viewport"]["width"]/first["camera"]["zoom"]
             height_world=first["viewport"]["height"]/first["camera"]["zoom"]
@@ -113,7 +114,9 @@ def main():
             stationary=page.evaluate("() => window.ChromaCircuitViewDebug.snapshot()")
             idle_distance=((stationary["player"]["x"]-first["player"]["x"])**2+
                 (stationary["player"]["y"]-first["player"]["y"])**2)**.5
-            assert idle_distance<10,("autopilot regression",idle_distance)
+            assert stationary["player"]["speed"]<1,("neutral drive regression",stationary)
+            # With genuine bump physics AI may displace an idle player.
+            assert idle_distance<90,("unexpected idle displacement",idle_distance)
             assert page.locator("#circuit-dash").is_disabled()
             # Keyboard is a deterministic full-deflection joystick surrogate.
             page.keyboard.down("ArrowRight")
@@ -146,8 +149,9 @@ def main():
             destination=OUT/f"circuit-2-run-{w}.json"
             download.save_as(str(destination))
             log=json.loads(destination.read_text(encoding="utf-8"))
-            assert log["schema"]=="neon-circuit-run-audit/2.1",log
-            assert log["summary"]["cameraMode"]=="damped-world-follow-lookahead-zoom"
+            assert log["schema"]=="neon-circuit-run-audit/2.2",log
+            assert log["summary"]["cameraMode"]=="close-follow-damped-zoom"
+            assert log["summary"]["edgeMode"]=="momentum-falls-without-autocorrect"
             assert log["summary"]["controlMode"]=="hold-to-drive-manual-steering"
             assert log["summary"]["driveSeconds"]>.5
             assert log["summary"]["waveMode"]=="forward-track-only"
@@ -183,6 +187,24 @@ def main():
             assert rules["zone"]==1 and rules["speed"]==186,rules
             assert rules["wave"]=="track-only",rules
             assert rules["finished"] and rules["laps"]==3,rules
+            # Deterministic browser proof: a momentum hit can push a rival
+            # over the shoulder while the attacking player recovers.
+            ejection=page.evaluate("""() => {
+              const c=window.ChromaNeonCircuitCore,r=c.seededRace(10);
+              r.phase='running';r.elapsed=5;
+              for(const p of r.racers.slice(2))p.finished=true;
+              const a=r.racers[0],b=r.racers[1],p=c.pointAt(540);
+              a.x=p.x-p.nx*12;a.y=p.y-p.ny*12;
+              a.angle=Math.atan2(p.ny,p.nx);a.speed=210;
+              b.x=p.x+p.nx*9;b.y=p.y+p.ny*9;
+              b.angle=p.angle;b.speed=20;
+              for(let i=0;i<120;i++)c.tick(r,i<2?
+                {x:p.nx,y:p.ny}:{x:p.tx,y:p.ty,brake:i<25},c.STEP);
+              return {victimFalls:b.falls,attackerFalls:a.falls,
+                knockouts:a.knockouts};
+            }""")
+            assert ejection=={"victimFalls":1,"attackerFalls":0,
+                "knockouts":1},ejection
             assert not errors,errors
             checks.append({
                 "viewport":[w,h],"geometry":geometry,

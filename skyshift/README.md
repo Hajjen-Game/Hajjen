@@ -1,4 +1,40 @@
-# SKYSHIFT 0.4.6 – Track Flow, Guardrails & Surface Identity
+# SKYSHIFT 0.4.7 – Aero-Barrier Architecture & Premium Trackside Design
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+**Optional Flight Lab:** https://hajjen-game.github.io/Hajjen/skyshift/?flightlab=1
+
+## Visual design objective
+
+The 0.4.6 screenshot feedback was positive on the smoother ribbon course, but the rails looked like thick colored luminous tubes. This pass replaces those rails with deliberately faceted metal architecture: a continuous road-side sweep, angled graphite wall, broad flat cap, distinct recessed channel, very thin inset LED, and sparse direction chevrons concentrated in the bends. The surface is restrained rather than busy. The art direction is informed by the structural design language of futuristic racing tracks but is original to SKYSHIFT.
+
+## Geometry / rendering
+
+- `aero-barrier-v047.mjs` replaces `identity-v046.mjs` on the active page. The old module and build remain available for rollback.
+- **Eight-vertex angular cross-section** (was 5), with a 1.36m gradual road shoulder, sharp armored inner face, chamfered corners and broad flat cap. Height remains **0.78m**.
+- **A dark recessed channel** is laid along the cap, with an **inset LED 0.035m wide** instead of the large continuously glowing rail profile.
+- Panels include graphite seam engravings every **16m**, restrained low-side latch cuts, and large double-chevron inlays through appreciable curves (rather than equal chevron density everywhere).
+- The accent material is isolated from the dark metal and seams: `updateAccent(color)` recolors only the small LED and chevron/shoulder inlays. No animated zone transition is introduced in 0.4.7.
+- **Three batched draw calls**: indexed shared-vertex structural body, dark inset grooves/panel seams, and color-reactive light inlays. The redundant old underside trim from `game-v046.mjs` is removed to offset the additional batch.
+- All mesh data is generated once at build time. This pass adds no particle effects, new postprocessing passes, or dynamic lights; the angled body is slightly more geometrically detailed than 0.4.6 and should be tested on device.
+
+## Handling and safety
+
+- Uses the exact **`trial-v046.mjs` collision constraints**. Pilot-owned position/heading, 44–47m/s speed, guardrail contact limits, banked/curvature-continuous course, 120Hz simulation, and non-magnetic containment remain unchanged.
+- Keeps the 0.4.5 cinematic camera and 0.4.4 bank/hover response.
+- `game-v047.mjs` exports `skyshift-track-v047-audit.json` including panel counts, accent width, body/detail triangle counts, FPS percentiles, and prior guardrail contact metrics.
+
+## QA
+
+- `aero-barrier-v047.test.mjs` verifies angular profile, seamless bends, geometry budget, curve-only chevron placement, separation of color-reactive inlays from non-reactive metal, and unchanged piloting/collision behavior.
+- Existing historical tests continue to validate archived builds, with active-page assertions updated to 0.4.7.
+- `.github/workflows/skyshift-tests.yml` includes the new files and full regression suite.
+
+**Playtest priorities on iPhone:** does the rail now read as a low, integrated METAL safety wall rather than a pipe? Can you still see the corner through the new faceted profile? Is the cap line thin enough? Are panel seams and chevrons elegant rather than flashy or obstacle-like? Compare frame-time telemetry to 0.4.6. Camera and physics have not been changed.
+
+---
+
+## Previous release — 0.4.6
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 

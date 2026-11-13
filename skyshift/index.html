@@ -3,10 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
-  <meta name="theme-color" content="#060a16">
-  <meta name="description" content="SKYSHIFT 0.3 – FIRST FLIGHT 2.0 handcrafted neon sky platformer.">
-  <title>SKYSHIFT · First Flight 2.0 – Track Identity 0.3</title>
-  <link rel="stylesheet" href="./style-v03.css?v=0.3.0">
+  <meta name="theme-color" content="#050914">
+  <meta name="description" content="SKYSHIFT 0.3.1 – First Flight 2.0 with premium neon and cinematic HDR bloom.">
+  <title>SKYSHIFT · Premium Neon Identity 0.3.1</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="./style-v031.css?v=0.3.1">
 </head>
 <body>
   <div id="app">
@@ -14,7 +22,7 @@
     <div class="vignette" aria-hidden="true"></div>
     <div id="zone-flash" aria-hidden="true"></div>
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ FIRST FLIGHT 2.0</span></div>
+      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ NEON IDENTITY 0.3.1</span></div>
       <div class="top-actions">
         <button id="fullscreen-btn" class="top-button fullscreen-toggle hidden" type="button" title="Fullscreen" aria-label="Fullscreen" aria-pressed="false">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>
@@ -50,17 +58,17 @@
     </div>
     <section id="menu" class="screen">
       <div class="screen-content">
-        <div class="kicker">SKY TRIAL 01 · REBUILT FLIGHT COURSE</div>
+        <div class="kicker">SKY TRIAL 01 · PREMIUM NEON EDITION</div>
         <h1>SKY<span>SHIFT</span></h1>
         <div class="rule"></div>
-        <p class="tagline">CHASE THE HORIZON.<br>MASTER THE SKY ISLANDS.</p>
+        <p class="tagline">LIGHT THE HORIZON.<br>OWN THE SKY.</p>
         <button id="start-btn" class="primary">START TRIAL <span>↗</span></button>
         <button id="menu-fullscreen-btn" class="secondary menu-fullscreen" type="button" aria-pressed="false">⛶ FULLSCREEN</button>
         <div id="fullscreen-help" class="fullscreen-help hidden" role="status">
           Fullscreen stöds inte i den här webbläsarvyn. Öppna SKYSHIFT direkt i Chrome via webbläsarens meny (⋮) och prova igen.
         </div>
         <div class="instructions">MOVE <b>A / D · ← →</b> <i></i> JUMP <b>SPACE</b><br><span>Mobile: drag left to steer · tap right to jump</span></div>
-        <div class="prototype-label">SKY ISLANDS · RISK ROUTE · FINAL VELOCITY · 0.3</div>
+        <div class="prototype-label">FIRST FLIGHT 2.0 · HDR NEON · CINEMATIC BLOOM · 0.3.1</div>
       </div>
     </section>
     <section id="pause-screen" class="screen hidden" aria-label="Pausmeny">
@@ -83,6 +91,6 @@
     <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
     <div id="error" class="error hidden" role="alert"></div>
   </div>
-  <script type="module" src="./game-v03.mjs?v=0.3.0"></script>
+  <script type="module" src="./game-v031.mjs?v=0.3.1"></script>
 </body>
 </html>

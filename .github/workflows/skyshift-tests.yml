@@ -26,5 +26,8 @@ jobs:
           node --check skyshift/trial-v03.mjs
           node --check skyshift/game-v03.mjs
           node --check skyshift/premium-v03.mjs
+          node --check skyshift/neon-v031.mjs
+          node --check skyshift/premium-v031.mjs
+          node --check skyshift/game-v031.mjs
       - name: Verify SKYSHIFT deterministic track planner
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/fullscreen-v02.test.mjs skyshift/trial-v03.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/fullscreen-v02.test.mjs skyshift/trial-v03.test.mjs skyshift/neon-v031.test.mjs

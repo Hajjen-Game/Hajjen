@@ -12,7 +12,8 @@ test("renderer is wired to one pinned Three.js version and addon import map",()=
   assert.match(html,/"three\/addons\/": "https:\/\/cdn\.jsdelivr\.net\/npm\/three@0\.180\.0\/examples\/jsm\/"/);
   assert.match(game,/import \* as THREE from "three"/);
   assert.match(game,/import \{ createNeonPipeline,createNeonKit,NEON_TUNING \} from "\.\/neon-v031\.mjs"/);
-  assert.match(html,/src="\.\/game-v031\.mjs\?v=0\.3\.1"/);
+  // Historical 0.3.1 code remains available for comparisons, but is no longer the entrypoint.
+  assert.ok(source("game-v031.mjs").length>0);
 });
 
 test("post-processing runs scene, HDR bloom and output/tone mapping in correct order",()=>{

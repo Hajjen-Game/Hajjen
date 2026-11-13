@@ -1,36 +1,43 @@
-# SKYSHIFT 0.3.1 – Premium Neon Identity
+# SKYSHIFT 0.3.2 – Refined Neon Balance
 
-First Flight 2.0 remains the same complete, handcrafted 1300-metre browser-based 3D trial. **0.3.1 is a lighting, material and visual-cohesion pass, not a gameplay revision.**
+### Corrective visual pass after 0.3.1
 
-## Play
+The 0.3.1 HDR bloom was too strong: oversized glows on rails and beacons, a nearly blown-out ship, and reduced readability of platform edges. **0.3.2 fixes light balance, not resolution or gameplay.**
+
+### Play
+
 https://hajjen-game.github.io/Hajjen/skyshift/
 
-- **Mobile:** landscape; left thumb steering and right thumb JUMP. Fullscreen in the menu or the HUD; START TRIAL also requests fullscreen where supported.
-- **Desktop:** A/D or arrows to steer; Space to jump; P/Esc to pause.
+### Changes
 
-## Premium Neon pipeline
+- **Controlled HDR bloom:** UnrealBloomPass strength 1.18 → 0.43, radius 0.48 → 0.21, threshold 1.06 → 1.40. OutputPass and ACES tone mapping remain active.
+- **Crisp neon rails:** preserve three-layer look but halve the physical width of the halo, reduce opacity and core intensity; dark road material remains a contrast anchor.
+- **Subtle beacons:** the intrusive tall white beacons are smaller, thinner, and significantly less luminous. Three-layer neon remains.
+- **Readable ship:** toned-down thrusters, emissive strips and local engine lighting. Metallic body and clearcoat glass remain.
+- **Gates and signage:** lighter bloom on arches and in-world text; no neon rectangles should overpower the route.
+- **Flight FX:** less energetic engine trails and landing shards; still responsive.
+- **Lighting:** reduced scene exposure, key light and rim fill to keep surface shapes legible.
+- **Same quality tier:** WebGL HDR, postprocessing and native device pixel ratio up to 2. No Galaxy A51-driven downgrades.
 
-- `neon-v031.mjs`: a Three.js **EffectComposer → RenderPass → UnrealBloomPass → OutputPass** chain. Bloom is applied to bright HDR surfaces before final tonemapping.
-- Road rails are three physical layers: soft tinted halo, saturated color body and a thin almost-white luminous core. This preserves precise boundaries and creates a real bloom halo.
-- Jump warnings, landing pads, beacons, signs, arches and the finish gate use a coherent luminous material hierarchy.
-- `game-v031.mjs`: darker satin deck, contrasting dark terrain, complementary fill lighting, clearcoat hull/cockpit, detailed wing-tip LEDs and a responsive local engine light.
-- `premium-v031.mjs`: emissive engine trails and angular landing shards in the same palette, without ring-shaped visual noise.
-- `style-v031.css`: restrained premium neon UI styling so gameplay remains readable.
+### Code
 
-## Performance target
+- `neon-balance-v032.mjs` is a pure JavaScript lighting-tuning module. It validates contrast hierarchy, halo spread and intensity budgets.
+- `neon-v032.mjs` keeps the high-quality compositor and shares the tuning values with world materials.
+- `game-v032.mjs` modifies only renderer materials, lighting, rail/beacon widths, scene exposure and the active visual modules; the authored trial and collision logic are unchanged.
+- `premium-v032.mjs` limits the brightness of engine trails and landing effects.
+- `neon-v032.test.mjs` checks tuning relationships, bounds, visual component integration, import map and unchanged game systems.
+- `game-v031.mjs`, `neon-v031.mjs` and `premium-v031.mjs` remain for diagnosis and rollback.
 
-The game now targets current mobile GPUs and desktop WebGL with a maximum device pixel ratio of 2, and real HDR bloom enabled by default. An older Samsung Galaxy A51 is **not** the limiting target, as requested. The GPU load is higher than v0.3, and should be evaluated on a newer phone.
+### Verification
 
-Three.js 0.180.0 is loaded via a pinned CDN import map so all core/addon modules share the same runtime instance; internet is required for the first module download.
+Run `node --test skyshift/neon-v032.test.mjs`. GitHub Actions runs all historical deterministic game tests too.
 
-## Automated tests
+Automated tests cannot guarantee the visual result in actual browsers. Compare v0.3.2 screenshots at the start, at the first gap, and in Skybreak and Final Velocity. Assess ship silhouette, luminous core sharpness and whether the glow respects the missing-platform edges.
 
-- Run `node --check skyshift/game-v031.mjs` to check the browser JavaScript grammar.
-- Run `node --test skyshift/neon-v031.test.mjs` for pipeline wiring, HDR hierarchy, material coverage, resolution policy and unchanged controls.
-- CI continues the deterministic track/physics tests for all previous versions.
+### Unchanged
 
-## Known limits
+First Flight 2.0 length 1300 m, six mandatory gaps, risk route, checkpoints, zone transitions, fullscreen and exported run metrics. No endless mode or new gameplay content.
 
-Automated tests cannot certify how the bloom actually looks, or measure phone GPU frame pacing. Real browser playtests should evaluate halo width, bright-core contrast, glow at sharp curves, readability of jump edges, colors at sector transitions and the effect on performance.
+### Platform
 
-Full-screen controls, 1300m course, six mandatory gaps, safe/risk split and Skyshield behavior are retained. No new levels, sound, weapons or endless mode in 0.3.1. Other games in the repository are unchanged.
+Modern mobile GPUs and desktop browsers are the target; Galaxy A51 is not the graphics-quality reference. Three.js modules are version-pinned to 0.180.0 via the HTML import map. No changes to other projects in the repository.

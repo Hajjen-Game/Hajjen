@@ -90,8 +90,8 @@ export const SURFACE_FRAGMENT_GLSL=`
   // Physical boost fields read as embedded ENERGY INLAYS, not raised golden
   // rectangles. Their functional world coordinates match boost-v048 exactly.
   ${shaderBoostPads}
-  float padCoverage = max(${boostAggregation});
-  float boostArrows = max(${arrowsAggregation});
+  float padCoverage = ${boostAggregation};
+  float boostArrows = ${arrowsAggregation};
   float insetGold = max(
     padCoverage * trackStripe(absL, 4.04, 0.055, 0.12),
     boostArrows * 0.84

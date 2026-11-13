@@ -161,7 +161,8 @@ export function stepFlight(state,dt,control={}) {
     }
   }
   if(state.y<ground-TRIAL.fallDepth) {
-    state.falls++;crashed=true;state.shield=Math.max(0,state.shield-TRIAL.shieldPenalty);
+    state.falls++;crashed=true;state.lastCrashS=state.s;
+    state.shield=Math.max(0,state.shield-TRIAL.shieldPenalty);
     if(state.shield<=0){state.failed=true;}
     else {
       // Never teleport directly into a gap. Keep the checkpoint before the obstacle.

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
- TRIAL,GAPS,SECTORS,headingAt,poseAt,positionAt,onRoad,roadIntervals,
+ clamp,TRIAL,GAPS,SECTORS,headingAt,poseAt,positionAt,onRoad,roadIntervals,
  sectorAt,checkpointFor,speedAt,newFlightState,stepFlight,validateTrial
 } from "./trial-v02.mjs";
 const dt=1/120;
@@ -81,4 +81,36 @@ test("finite 3-sector trial has a proper finish and safe checkpoints",()=>{
  s.y=poseAt(s.s).y+TRIAL.hoverHeight;
  const r=stepFlight(s,dt,{});
  assert.equal(r.finished,true);assert.equal(s.finished,true);
+});
+
+test("every authored jump has a viable takeoff window at its actual speed",()=>{
+ for(const gap of GAPS) {
+   const state=newFlightState();
+   state.s=gap.start-14;
+   state.y=poseAt(state.s).y+TRIAL.hoverHeight;
+   state.checkpoint=checkpointFor(state.s);
+   let pressed=false;
+   const result=advance(state,gap.end+10,st=>{
+     const press=!pressed&&st.s>=gap.start-4.2;
+     if(press)pressed=true;
+     return {steer:0,jumpPressed:press,jumpHeld:pressed&&st.vy>0};
+   });
+   assert.equal(result.crashes,0,gap.id+" should be jumpable from the intended window");
+   assert.equal(state.jumps,1,gap.id+" needs only one jump");
+   assert.ok(state.clearedGaps.includes(gap.id),gap.id+" should record a clear");
+ }
+});
+test("split road is steerable into either authored route",()=>{
+ for(const direction of [-1,1]){
+   const state=newFlightState();
+   state.s=410;state.y=poseAt(410).y+TRIAL.hoverHeight;
+   state.checkpoint=checkpointFor(state.s);
+   const r=advance(state,510,st=>({
+     steer:clamp(direction*4.3-st.lateral,-1,1),
+     jumpPressed:false,jumpHeld:false
+   }));
+   assert.equal(r.crashes,0);
+   assert.ok(state.s>=510);
+   assert.ok(Math.abs(state.lateral)>3.4);
+ }
 });

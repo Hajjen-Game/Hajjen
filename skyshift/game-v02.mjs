@@ -310,6 +310,7 @@ function clearInput(){
 }
 function resetFlight(){
  flight=newFlightState();previousSector=0;
+ document.documentElement.style.setProperty("--neon","#43dff3");
  telemetry.length=0;uiState.trackHint=-1;clearInput();
  event("trial_start",{trial:TRIAL.id});
  UI.banner.classList.add("hidden");
@@ -415,7 +416,7 @@ function integrate(dt){
  if(result.landed)event("landing");
  if(result.cleared)event("gap_cleared",{count:flight.clearedGaps.length});
  if(result.crashed){
-   event("fall",{shield:flight.shield});
+   event("fall",{at:Math.round(flight.lastCrashS),shield:flight.shield});
    flashToast("SKYSHIELD -35 · CHECKPOINT",1350);
  }
  const sector=sectorAt(flight.s);

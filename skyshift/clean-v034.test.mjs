@@ -108,8 +108,8 @@ test("modern HDR, luminance, controls, checkpoint logic and personal best stay i
 test("active HTML loads 0.3.4 and records rendering workload in exported audit",()=>{
   const html=src("index.html");
   const game=src("game-v034.mjs");
-  assert.match(html,/src="\.\/game-v041\.mjs\?v=0\.4\.1"/);
-  assert.match(html,/style-v041\.css\?v=0\.4\.1/);
+  assert.match(html,/src="\.\/game-v042\.mjs\?v=0\.4\.2"/);
+  assert.match(html,/style-v042\.css\?v=0\.4\.2/);
   assert.match(html,/id="fullscreen-btn"/);
   assert.match(game,/decorativePlates:0/);
   assert.match(game,/rendererDrawCallsAverage/);

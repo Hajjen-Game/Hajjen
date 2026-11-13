@@ -836,6 +836,27 @@ function installFlightTuningPanel(){
  }
  document.body.appendChild(panel);
 }
+// Opt-in browser-only integration probe. It advances the actual fixed-flight
+// clock past the first scheduled wave on a software-rendered CI machine that
+// cannot reliably simulate ten seconds within ten wall-clock seconds.
+// Production players never have this hook without ?waveSmoke=1.
+function installWaveSmokeHook(){
+ if(new URLSearchParams(location.search).get("waveSmoke")!=="1")return;
+ window.__skyshiftWaveSmoke=()=>{
+  if(uiState.mode!=="playing")throw new Error("Wave smoke requires active run");
+  const atS=flight.s;
+  flight.elapsed=10;
+  updateZoneWave(zoneWave,10,atS);
+  flight.elapsed=12.5;
+  const pass=updateZoneWave(zoneWave,12.5,atS);
+  if(!pass.changed||pass.stage!==1)throw new Error("Zone 02 did not pass craft");
+  previousSector=pass.stage;announceSector(pass.stage);
+  premiumSurface?.setWaveState(zoneWave);
+  refreshHud();
+  return {zone:zoneWave.playerStage+1,flightSeconds:flight.elapsed,
+   playerS:flight.s,frontS:zoneWave.fronts[0]};
+ };
+}
 function installControls(){
  UI.start.addEventListener("click",startImmersiveTrial);
  UI.retry.addEventListener("click",startImmersiveTrial);
@@ -899,7 +920,7 @@ function installControls(){
  });
 }
 try{
- initScene();installFullscreen();installControls();installFlightTuningPanel();resetFlight();
+ initScene();installFullscreen();installControls();installFlightTuningPanel();resetFlight();installWaveSmokeHook();
  requestAnimationFrame(loop);
 }catch(error){
  console.error("SKYSHIFT startup failed",error);

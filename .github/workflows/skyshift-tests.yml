@@ -80,9 +80,12 @@ jobs:
           node --check skyshift/premium-track-v0482.mjs
           node --check skyshift/game-v0482.mjs
           node --check skyshift/browser-smoke-v0482.mjs
+          node --check skyshift/manta-blade-v0483.mjs
+          node --check skyshift/game-v0483.mjs
+          node --check skyshift/browser-smoke-v0483.mjs
           node --check skyshift/browser-smoke-v0481.mjs
       - name: Verify SKYSHIFT deterministic track planner
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/fullscreen-v02.test.mjs skyshift/trial-v03.test.mjs skyshift/neon-v031.test.mjs skyshift/neon-v032.test.mjs skyshift/identity-v033.test.mjs skyshift/luminance-v0331.test.mjs skyshift/clean-v034.test.mjs skyshift/flow-v04.test.mjs skyshift/truebank-v041.test.mjs skyshift/handling-v042.test.mjs skyshift/speed-v043.test.mjs skyshift/flight-motion-v044.test.mjs skyshift/cinematic-v045.test.mjs skyshift/track-flow-v046.test.mjs skyshift/aero-barrier-v047.test.mjs skyshift/boost-zone-v048.test.mjs skyshift/premium-track-v0481.test.mjs skyshift/premium-ship-v0482.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/fullscreen-v02.test.mjs skyshift/trial-v03.test.mjs skyshift/neon-v031.test.mjs skyshift/neon-v032.test.mjs skyshift/identity-v033.test.mjs skyshift/luminance-v0331.test.mjs skyshift/clean-v034.test.mjs skyshift/flow-v04.test.mjs skyshift/truebank-v041.test.mjs skyshift/handling-v042.test.mjs skyshift/speed-v043.test.mjs skyshift/flight-motion-v044.test.mjs skyshift/cinematic-v045.test.mjs skyshift/track-flow-v046.test.mjs skyshift/aero-barrier-v047.test.mjs skyshift/boost-zone-v048.test.mjs skyshift/premium-track-v0481.test.mjs skyshift/premium-ship-v0482.test.mjs skyshift/manta-blade-v0483.test.mjs
 
   browser-smoke:
     name: Premium material WebGL smoke
@@ -96,11 +99,11 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Render SKYSHIFT 0.4.8.2 in headless Chrome WebGL
-        run: node skyshift/browser-smoke-v0482.mjs
+      - name: Render SKYSHIFT 0.4.8.3 in headless Chrome WebGL
+        run: node skyshift/browser-smoke-v0483.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v0482-browser-smoke
-          path: skyshift-v0481-browser-smoke.png
+          name: skyshift-v0483-browser-smoke
+          path: skyshift-v0483-browser-smoke.png
           if-no-files-found: ignore

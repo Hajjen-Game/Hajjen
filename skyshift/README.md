@@ -1,4 +1,40 @@
-# SKYSHIFT 0.4.8.3 – Signature Craft Identity (Manta Blade)
+# SKYSHIFT 0.4.8.4 – Hard-Edge Craft Read & Engine Trail Language
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## 0.4.8.3 feedback and fixes
+
+The player liked the new manta concept, but in banked turns it looked too organic/soft. The apparent blue glow and speed wake came from near the center of the craft rather than the twin wing-mounted exhausts. The user requested sharper shapes and subtle speed lines at regular pace with visual capacity for stronger later speed stages.
+
+## Manta Blade / Interceptor Cut
+
+- New **`manta-blade-v0484.mjs`** builds on the manta identity rather than swapping to a conventional interceptor: hard-cut forward blade corners, clipped outer shoulders, more angular stern edges, new shallow graphite cut panels and smaller precise cyan tips.
+- The central body now uses an **eight-corner faceted ring** rather than ten, and hull/wing/canopy metal uses **flat shading** to reveal hard structural cuts. Dimensions and maximum wing width remain **±2.90m**.
+- The pair of actual exhaust socket coordinates **(-1.99, 0.035, 2.52)** and **(1.99, 0.035, 2.52)** is exported and used by both the ship builder, engine lights and twin trail emission, preventing aesthetic/physical mismatch.
+- The former long central luminous keel is now a tiny inset component. The old single **2.6-strength point light at x=0** is replaced by **two shorter-range wing-local lights** at **42% per engine** of its original intensity. This adds one point-light versus 0.4.8.3, but keeps total nominal intensity lower and replaces the center spotlight with two localized pools. Validate on iPhone.
+- Thruster apertures now actually pulse in size (including X and Z radius on local rotating cylinders); a small controlled bank asymmetry and boost emphasis give the engine more life.
+
+## Twin Engine Trail Language
+
+- New **`engine-trails-v0484.mjs`** replaces the old 0.4.5 world-space line effect. That older effect placed its strokes at only **±0.78m**, inadvertently reading as a single middle wake. Now both emitter coordinates are the **actual two wing exhaust locations ±1.99m**.
+- Two narrow, gently tapered **two-stage ribbons** are parented to the craft's local transform. They inherit every cosmetic bank/pitch/yaw, without changing the authoritative steering or camera.
+- Normal 44m/s speed yields ~**2.6m** streaks and low **0.25** alpha. During +30% boosts they grow toward **6.4m** at current speeds, with brightness capped below **0.43**. Each ribbon fades toward the tip rather than ending as a neon bar. A subtle wingtip shimmer reacts to boost and banking.
+- All trails are emitted by a **single prebuilt mesh/dynamic vertex buffer**, with no per-frame geometry allocations, particles, rings or new textures. Existing landing slash effects remain.
+- The audit export `skyshift-manta-v0484-audit.json` reports twin-light sockets, base/max trail lengths, peak rendered trail length/opacity and existing performance, steering and boost diagnostics.
+- Extra-high-speed visual tiers and full color waves remain intentionally for later versions: 0.4.8.4 is restrained at today's 44–60m/s.
+
+## Scope / QA
+
+- `game-v0484.mjs` retains `trial-v048.mjs`, `premium-track-v0482.mjs`, `cinematic-v045.mjs` and `flight-motion-v044.mjs`. Track geometry, guardrail collision, boost pads and user steering are unchanged.
+- `hard-edge-v0484.test.mjs` covers wing triangulation and collision width, actual sockets, normal/boost trail envelope, paired ribbon buffer coordinates, legacy center-spot removal and preserved handling.
+- `browser-smoke-v0484.mjs` validates real Chrome/WebGL rendering and takes a screenshot in GitHub Actions.
+- The Pages guard verifies both the **public HTML and game JS** after merge; code tests alone do not establish live availability.
+
+**Playtest focus:** Check the two separate glows/trails behind the wing motors instead of one blue center spot, especially in banking screenshots. Ask whether the harder outline reads at phone size and whether the short base streaks are visible but not distracting. Compare iPhone FPS against 0.4.8.3. This visual pass should not modify steering, camera, geometry or boosts.
+
+---
+
+## Previous release — 0.4.8.3
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 

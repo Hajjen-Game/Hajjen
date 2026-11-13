@@ -130,8 +130,8 @@ test("authoritative collision and steering are still from 0.4.6",()=>{
 });
 test("0.4.7 active page uses batched metal, panel seams and color-ready inlays",()=>{
  const html=source("index.html"),game=source("game-v047.mjs");
- assert.match(html,/game-v0483\.mjs\?v=0\.4\.8\.3/);
- assert.match(html,/style-v043\.css\?v=0\.4\.8\.3/);
+ assert.match(html,/game-v0484\.mjs\?v=0\.4\.8\.4/);
+ assert.match(html,/style-v043\.css\?v=0\.4\.8\.4/);
  assert.match(game,/from "\.\/aero-barrier-v047\.mjs"/);
  assert.match(game,/identitySurface=installAeroBarriers\(THREE,world\)/);
  assert.match(game,/identitySurface\?\.updateAccent\(neonKit\.worldAccent\)/);

@@ -10,8 +10,8 @@ export const PREMIUM_TRACK=Object.freeze({
  version:"zone-ribbon-pbr-0481",
  material:"continuous-integrated-PBR",
  palette:"midnight-teal / icy-white / restrained-amber",
- baseHex:0x103e52,
- sideBandHex:0x147d8c,
+ baseHex:0x245b69,
+ sideBandHex:0x2a94a1,
  guideHex:0xc2f8f5,
  accentHex:0x6be5f0,
  boostHex:0xf8b65b,
@@ -51,13 +51,15 @@ export const GLSL_BOOST_PADS=BOOST_PADS.map(p=>({
  id:p.id,start:p.start,end:p.end,min:p.lateralMin,max:p.lateralMax
 }));
 const glNumber=n=>Number(n).toFixed(3);
-const boostBodies=BOOST_PADS.map(p=>
-  `vec2(${glNumber(p.start)}, ${glNumber(p.end)})`).join(", ");
 const shaderBoostPads=BOOST_PADS.map(p=>
   `float boost_${p.id.replace(/-/g,"_")} = trackWindow(trackS, ${glNumber(p.start)}, ${glNumber(p.end)}, 1.05) * (1.0 - smoothstep(${glNumber(p.lateralMax-0.7)}, ${glNumber(p.lateralMax)}, abs(trackL))); 
    float arrow_${p.id.replace(/-/g,"_")} = trackChevron(trackS - ${glNumber(p.start)}, trackL) * boost_${p.id.replace(/-/g,"_")};`).join("\n");
-const boostAggregation=BOOST_PADS.map(p=>`boost_${p.id.replace(/-/g,"_")}`).join(", ");
-const arrowsAggregation=BOOST_PADS.map(p=>`arrow_${p.id.replace(/-/g,"_")}`).join(", ");
+// Nest max() rather than emitting a two-argument-only expression so future
+// pads cannot accidentally generate invalid GLSL in a zone expansion.
+const shaderMax=(items)=>items.reduce((all,item)=>
+  all?`max(${all}, ${item})`:item,"");
+const boostAggregation=shaderMax(BOOST_PADS.map(p=>`boost_${p.id.replace(/-/g,"_")}`));
+const arrowsAggregation=shaderMax(BOOST_PADS.map(p=>`arrow_${p.id.replace(/-/g,"_")}`));
 
 export const SURFACE_FRAGMENT_GLSL=`
   float trackS = vTrackCoord.x;

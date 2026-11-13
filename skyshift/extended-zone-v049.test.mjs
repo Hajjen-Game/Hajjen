@@ -33,6 +33,7 @@ test("1530m authored course is exactly 3x, has six real bends, and preserves ope
   near(COURSE_SEGMENTS[i].start,COURSE_SEGMENTS[i-1].end);
  for(let s=0;s<=424;s+=4){
   near(curvatureAt(s),reference.curvatureAt(s));
+  near(speedAt(s),reference.speedAt(s),1e-9);
   near(headingAt(s),reference.headingAt(s));
   const a=poseAt(s),b=reference.poseAt(s);
   near(a.x,b.x,.001);near(a.z,b.z,.001);
@@ -46,6 +47,8 @@ test("1530m authored course is exactly 3x, has six real bends, and preserves ope
  }
  assert.ok(turns.some(t=>t.curvature<0));
  assert.ok(turns.some(t=>t.curvature>0));
+ near(speedAt(850),47);
+ near(speedAt(1530),47);
 });
 test("all five boosted road inlays are within real straights and authoritative rails",()=>{
  assert.equal(BOOST_PADS.length,5);

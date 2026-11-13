@@ -30,3 +30,17 @@
   .zone-banner strong{font-size:41px}
 }
 @media(prefers-reduced-motion:reduce){.zone-banner{animation:none}}
+
+/* SKYSHIFT 0.2.1 – immersive fullscreen layout */
+.topbar{z-index:9}
+.top-actions{display:flex;align-items:center;gap:9px;pointer-events:auto}
+.top-actions .top-button{min-width:43px;min-height:40px;display:grid;place-items:center}
+.top-actions .top-button.active{color:var(--neon);border-color:var(--neon);background:rgba(9,48,66,.88)}
+.menu-fullscreen{max-width:235px;min-width:210px;justify-content:center;padding:12px 16px;margin-top:9px;letter-spacing:.12em}
+.fullscreen-help{font-size:11px;line-height:1.4;color:#ffd89b;margin-top:11px;max-width:340px;border-left:2px solid #ffc568;padding:7px 11px;background:rgba(27,22,36,.68)}
+#app:fullscreen,#app:-webkit-full-screen{position:fixed;inset:0;width:100%;height:100%;background:#060a16;overflow:hidden}
+#app:fullscreen #game,#app:-webkit-full-screen #game{width:100%;height:100%}
+.hud{top:calc(69px + env(safe-area-inset-top))}
+@media(max-height:490px){.hud{top:51px}.menu-fullscreen{padding:9px 12px;margin-top:7px}}
+@media(max-width:810px){.top-actions{gap:6px}.top-actions .top-button{min-width:39px;min-height:39px}}
+@media(max-height:410px){.menu-fullscreen{font-size:11px}.fullscreen-help{font-size:10px}}

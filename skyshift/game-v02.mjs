@@ -4,6 +4,7 @@ import {
  heightAt,widthAt,roadIntervals,sectorAt,speedAt,nextGap,
  newFlightState,stepFlight,clamp,lerp
 } from "./trial-v02.mjs";
+import { makeFullscreenController } from "./fullscreen-v02.mjs";
 
 const $=id=>document.getElementById(id);
 const UI={
@@ -21,7 +22,9 @@ const UI={
  finalDistance:$("final-distance"),finalSector:$("final-zone"),
  finalBest:$("personal-best"),finalTime:$("flight-time"),
  finalJumps:$("final-jumps"),export:$("audit-btn"),
- raceLabel:$("trial-label")
+ raceLabel:$("trial-label"),
+ fullscreen:$("fullscreen-btn"),menuFullscreen:$("menu-fullscreen-btn"),
+ fullscreenHelp:$("fullscreen-help")
 };
 const COLOR=[
  {color:0x43dff3,sky:0x070f22,fog:0x102038,name:"FLOW"},
@@ -38,7 +41,7 @@ const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let cameraLook=new THREE.Vector3(),shadowMesh,rockMesh,pylonMesh;
 const telemetry=[];
-let previousSector=0,sceneReady=false;
+let previousSector=0,sceneReady=false,fullscreenController=null;
 const reusable=new THREE.Object3D();
 
 function bestForTrial(){
@@ -299,8 +302,38 @@ function initScene(){
 }
 function resize(){
  if(!renderer)return;
- camera.aspect=innerWidth/Math.max(1,innerHeight);camera.updateProjectionMatrix();
- renderer.setSize(innerWidth,innerHeight,false);
+ const rect=UI.canvas.getBoundingClientRect();
+ const width=Math.max(1,Math.round(rect.width||innerWidth));
+ const height=Math.max(1,Math.round(rect.height||innerHeight));
+ camera.aspect=width/height;camera.updateProjectionMatrix();
+ renderer.setSize(width,height,false);
+}
+function syncFullscreenUi(active){
+ UI.fullscreen.setAttribute("aria-label",active?"Exit fullscreen":"Enter fullscreen");
+ UI.fullscreen.setAttribute("aria-pressed",String(active));
+ UI.fullscreen.title=active?"Exit fullscreen":"Fullscreen";
+ UI.fullscreen.classList.toggle("active",active);
+ UI.menuFullscreen.textContent=active?"⛶ EXIT FULLSCREEN":"⛶ FULLSCREEN";
+ UI.menuFullscreen.setAttribute("aria-pressed",String(active));
+ if(active)UI.fullscreenHelp.classList.add("hidden");
+}
+function fullscreenBlocked(){
+ UI.fullscreenHelp.classList.remove("hidden");
+ if(uiState.mode!=="menu")flashToast("FULLSCREEN BLOCKED · OPEN IN CHROME",2600);
+}
+function installFullscreen(){
+ fullscreenController=makeFullscreenController({
+   doc:document,root:$("app"),deviceScreen:screen,
+   onChange:syncFullscreenUi,
+   onBlocked:fullscreenBlocked,
+   onResize:()=>{resize();requestAnimationFrame(resize);}
+ });
+ fullscreenController.sync();
+}
+function startImmersiveTrial(){
+ // Must request fullscreen inside the originating user-gesture click.
+ if(!fullscreenController.active())fullscreenController.request(true);
+ enterPlaying();
 }
 function clearInput(){
  uiState.inputX=0;uiState.jumpPressed=false;uiState.jumpHeld=false;
@@ -332,6 +365,7 @@ function enterPlaying(){
  UI.pause.classList.add("hidden");
  UI.hud.classList.remove("hidden");UI.controls.classList.remove("hidden");
  UI.pauseBtn.classList.remove("hidden");
+ UI.fullscreen.classList.remove("hidden");
  refreshHud();
 }
 function pause(){
@@ -504,11 +538,13 @@ function exportAudit(){
  setTimeout(()=>URL.revokeObjectURL(url),1800);
 }
 function installControls(){
- UI.start.addEventListener("click",enterPlaying);
- UI.retry.addEventListener("click",enterPlaying);
+ UI.start.addEventListener("click",startImmersiveTrial);
+ UI.retry.addEventListener("click",startImmersiveTrial);
  UI.restart.addEventListener("click",enterPlaying);
  UI.resume.addEventListener("click",resume);
  UI.pauseBtn.addEventListener("click",pause);
+ UI.fullscreen.addEventListener("click",()=>fullscreenController.toggle());
+ UI.menuFullscreen.addEventListener("click",()=>fullscreenController.toggle());
  UI.export.addEventListener("click",exportAudit);
  addEventListener("keydown",e=>{
    if(["Space","ArrowUp","ArrowRight","ArrowLeft","KeyA","KeyD"].includes(e.code))
@@ -564,7 +600,7 @@ function installControls(){
  });
 }
 try{
- initScene();installControls();resetFlight();
+ initScene();installFullscreen();installControls();resetFlight();
  requestAnimationFrame(loop);
 }catch(error){
  console.error("SKYSHIFT 0.2 startup failed",error);

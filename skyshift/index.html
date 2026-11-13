@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#060a16">
   <meta name="description" content="SKYSHIFT 0.2 – FIRST FLIGHT handcrafted 3D arcade trial.">
   <title>SKYSHIFT · First Flight – Sky Trials 0.2</title>
-  <link rel="stylesheet" href="./style-v02.css?v=0.2.0">
+  <link rel="stylesheet" href="./style-v02.css?v=0.2.1">
 </head>
 <body>
   <div id="app">
@@ -15,7 +15,12 @@
     <div id="zone-flash" aria-hidden="true"></div>
     <header class="topbar">
       <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ SKY TRIALS 0.2</span></div>
-      <button id="pause-btn" class="top-button hidden" aria-label="Pausa spelet">Ⅱ</button>
+      <div class="top-actions">
+        <button id="fullscreen-btn" class="top-button fullscreen-toggle hidden" type="button" title="Fullscreen" aria-label="Fullscreen" aria-pressed="false">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>
+        </button>
+        <button id="pause-btn" class="top-button hidden" aria-label="Pausa spelet">Ⅱ</button>
+      </div>
     </header>
     <div id="hud" class="hud hidden">
       <div class="hud-left">
@@ -50,6 +55,10 @@
         <div class="rule"></div>
         <p class="tagline">FIRST FLIGHT.<br>FOUR REAL JUMPS. ONE FINISH.</p>
         <button id="start-btn" class="primary">START TRIAL <span>↗</span></button>
+        <button id="menu-fullscreen-btn" class="secondary menu-fullscreen" type="button" aria-pressed="false">⛶ FULLSCREEN</button>
+        <div id="fullscreen-help" class="fullscreen-help hidden" role="status">
+          Fullscreen stöds inte i den här webbläsarvyn. Öppna SKYSHIFT direkt i Chrome via webbläsarens meny (⋮) och prova igen.
+        </div>
         <div class="instructions">MOVE <b>A / D · ← →</b> <i></i> JUMP <b>SPACE</b><br><span>Mobile: drag left to steer · tap right to jump</span></div>
         <div class="prototype-label">ONE HANDCRAFTED COURSE · REAL GAPS · BUILD 0.2</div>
       </div>
@@ -74,6 +83,6 @@
     <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
     <div id="error" class="error hidden" role="alert"></div>
   </div>
-  <script type="module" src="./game-v02.mjs?v=0.2.0"></script>
+  <script type="module" src="./game-v02.mjs?v=0.2.1"></script>
 </body>
 </html>

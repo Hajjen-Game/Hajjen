@@ -7,6 +7,8 @@ A standalone 3D browser arcade prototype and the first finite SKY TRIAL.
 
 - Desktop: **A / D** or **left / right arrow** to steer; **Space** to jump; **P / Escape** to pause.
 - Mobile: drag the horizontal steering control with your left thumb and tap / hold **JUMP** with your right.
+- **Fullscreen:** press START TRIAL to request fullscreen automatically, or use the ⛶ FULLSCREEN button on the menu and the top-right toggle during play. Tap again to exit.
+- Embedded or in-app browsers can block fullscreen; if the browser refuses the request, open SKYSHIFT directly in Chrome using its browser menu. Landscape lock is attempted when supported, but gameplay is not blocked if it fails.
 - Reach the **finish gate** on the short, manually laid-out course. There are **four genuine missing-road gaps** that cannot be safely crossed by simply continuing forward.
 - Explore a split-lane bridge and deliberate gentle curves. Clear the course for a personal-best time.
 - Shield: a failed jump or fall costs **35%**, with checkpoint recovery. Three falls end the attempt.
@@ -35,3 +37,8 @@ Run \`node --test skyshift/trial-v02.test.mjs skyshift/track.test.mjs\`.
 **Prototype, not finished:** no advanced AI Director or endless mode. Visuals, camera feel, touch comfort, jump timings and real mobile frame pacing still require player testing. The mathematical tests ensure correct collision geometry and that no-jump traversal fails; they cannot substitute for human playtesting.
 
 Other games in the monorepo are unaffected.
+
+## Fullscreen implementation (0.2.1)
+- `fullscreen-v02.mjs`: Fullscreen API adapter with user-gesture entry, exit, state synchronization, optional mobile landscape lock and actionable fallback.
+- `fullscreen-v02.test.mjs`: Mock browser tests for entry/exit, blocked in-app contexts and unsupported browsers.
+- `game-v02.mjs`: fullscreen buttons and responsive renderer resize.

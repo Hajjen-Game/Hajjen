@@ -86,6 +86,8 @@ test("embedded booster graphics use EXACT authoritative pad boundaries",()=>{
   assert.match(SURFACE_FRAGMENT_GLSL,new RegExp(physical.end.toFixed(3)));
  }
  assert.match(SURFACE_FRAGMENT_GLSL,/boostArrows/);
+ assert.doesNotMatch(SURFACE_FRAGMENT_GLSL,/max\(max\(/,
+   "A shader max() must have exactly two scalar/vector arguments");
  assert.match(SURFACE_FRAGMENT_GLSL,/padCoverage \* 0\.23/);
  assert.doesNotMatch(SURFACE_FRAGMENT_GLSL,/uTime|sin\(uTime|flash/);
  assert.match(SURFACE_FRAGMENT_HELPERS,/trackChevron/);

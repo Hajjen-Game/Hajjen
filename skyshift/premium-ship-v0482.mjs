@@ -160,8 +160,9 @@ export function buildPremiumShip(THREE,shipGlow){
  const coreDark=new THREE.MeshStandardMaterial({
   color:0x091a2d,metalness:.82,roughness:.29,side:THREE.DoubleSide
  });
+ const hullData=buildStreamlinedHull();
  const body=new THREE.Mesh(meshGeometry(THREE,
-  buildStreamlinedHull().positions,buildStreamlinedHull().indices),titanium);
+  hullData.positions,hullData.indices),titanium);
  body.name="Contiguous aerodynamic center hull";ship.add(body);
  const wingData=buildSweptWings();
  const wing=new THREE.Mesh(meshGeometry(THREE,wingData.positions,wingData.indices),wingFinish);

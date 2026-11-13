@@ -61,5 +61,8 @@ jobs:
           node --check skyshift/flight-motion-v044.mjs
           node --check skyshift/frame-pacing-v044.mjs
           node --check skyshift/game-v044.mjs
+          node --check skyshift/cinematic-v045.mjs
+          node --check skyshift/premium-v045.mjs
+          node --check skyshift/game-v045.mjs
       - name: Verify SKYSHIFT deterministic track planner
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/fullscreen-v02.test.mjs skyshift/trial-v03.test.mjs skyshift/neon-v031.test.mjs skyshift/neon-v032.test.mjs skyshift/identity-v033.test.mjs skyshift/luminance-v0331.test.mjs skyshift/clean-v034.test.mjs skyshift/flow-v04.test.mjs skyshift/truebank-v041.test.mjs skyshift/handling-v042.test.mjs skyshift/speed-v043.test.mjs skyshift/flight-motion-v044.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/fullscreen-v02.test.mjs skyshift/trial-v03.test.mjs skyshift/neon-v031.test.mjs skyshift/neon-v032.test.mjs skyshift/identity-v033.test.mjs skyshift/luminance-v0331.test.mjs skyshift/clean-v034.test.mjs skyshift/flow-v04.test.mjs skyshift/truebank-v041.test.mjs skyshift/handling-v042.test.mjs skyshift/speed-v043.test.mjs skyshift/flight-motion-v044.test.mjs skyshift/cinematic-v045.test.mjs

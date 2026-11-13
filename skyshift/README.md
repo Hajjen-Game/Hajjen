@@ -1,4 +1,41 @@
-# SKYSHIFT 0.4.4 – Flight Dynamics & Motion Feel
+# SKYSHIFT 0.4.5 – Cinematic Flight Camera & Motion Weight
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+**Optional flight tuning:** https://hajjen-game.github.io/Hajjen/skyshift/?flightlab=1
+
+## Intent
+
+Building on the user-approved SKYSHIFT 0.4.4 handling feel, this release improves perspective, speed readability and lightweight engine/body movement. The underlying 0.4.3 course and manual flight physics are deliberately unchanged; visuals must never magnetize the craft toward the track. The user's 0.4.4 Samsung log showed 29fps average and 66.6ms p95 frame time despite 120Hz simulation stability, so this pass avoids new dynamic lights, postprocessing layers, or meshes per frame.
+
+## Changes
+
+- **Closer / lower chase camera:** default distance **13.8m** (15.2m previously), height **7.8m** (9.5m previously); look-ahead **36m**. Keep the fixed-step flight and existing small horizon roll.
+- **Bounded corner anticipation:** camera looks toward upcoming curvature sampled **40m** ahead; capped to **±0.12 rad (~6.9°)** with frame-rate-independent smoothing. It only biases the look target, **not** camera world position, ship yaw, lateral position, collision or speed. On straight sections the preview is zero.
+- **Controlled motion weight:** existing hover/bank from 0.4.4 remains. Small cosmetic nose yaw is capped at **±1.9°** and is independent of authoritative world yaw.
+- **Engine/load response:** reuse the existing engine light and plume meshes, vary their intensity and scale subtly based on yaw rate and steering; adjust the two existing engine trails in world-space to match visual hover and banking. No new draw calls required for these changes.
+- **Allocation cleanup:** reuse trail bounding sphere and impact material color instead of allocating these every frame.
+- **Frame-rate resilience:** smooth time constants use closed-form exponential updates; no new simulation forces.
+- **Optional live tuning panel:** use `?flightlab=1` to tune camera height/distance, corner preview and engine weight alongside existing flight sliders. The regular UI remains uncluttered.
+- **Flight audit:** export `skyshift-flight-v045-audit.json`, including preview, max cosmetic yaw, peak engine response and configured camera values.
+
+## Changed files
+
+- `cinematic-v045.mjs`: pure camera anticipation, chase pose, bounded weight curves and diagnostics.
+- `premium-v045.mjs`: reuse original trails and materials with more faithful exhaust positions.
+- `game-v045.mjs`: the active 0.4.5 game, same `trial-v043.mjs` handling and `flight-motion-v044.mjs` banking.
+- `cinematic-v045.test.mjs`: turn preview, no-assist invariants, camera dimensions, capped engine/nose motion, FPS invariance and active site checks.
+- `index.html`: current release.
+- `.github/workflows/skyshift-tests.yml`: include new module syntax and test suite.
+- Historical test files updated only where they assert the active HTML asset version.
+
+## Phone playtest
+
+Compare 0.4.5 and 0.4.4 on the iPhone, especially the entry to each long bend. Confirm that the craft is larger and the camera looks earlier into the curve without exaggerated swinging or undesired steering correction; engine response should remain subtle. Capture a short video and the 0.4.5 flight audit. This build intentionally leaves the 510m calibration track in place—jumps, weapon systems and full-sized courses are separate future work.
+
+---
+
+## Previous release — 0.4.4
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 

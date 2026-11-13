@@ -170,6 +170,20 @@ test("slow devices may reduce only internal HDR resolution; fast devices retain 
  assert.equal(fast.level,0);
 });
 
+test("transient frame spikes never downgrade premium HDR quality",()=>{
+ const quality=createAdaptiveQuality();
+ let changes=0;
+ // Sustained 60fps start, then a brief 500ms hitchy period.
+ for(let i=0;i<96;i++){
+   if(nextAdaptiveRatio(quality,16,10000+i*16,2)!==null)changes++;
+ }
+ for(let i=0;i<20;i++){
+   if(nextAdaptiveRatio(quality,40,11536+i*40,2)!==null)changes++;
+ }
+ assert.equal(changes,0);
+ assert.equal(quality.level,0);
+});
+
 test("a plausible pilot can finish double-speed lab while manually steering",()=>{
  let successful=null;
  // Different lookahead gains are simple deterministic player policies.

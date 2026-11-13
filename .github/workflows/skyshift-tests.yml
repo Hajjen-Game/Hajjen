@@ -95,9 +95,14 @@ jobs:
           node --check skyshift/premium-track-v049.mjs
           node --check skyshift/game-v049.mjs
           node --check skyshift/browser-smoke-v049.mjs
+          node --check skyshift/zone-wave-v0491.mjs
+          node --check skyshift/premium-track-v0491.mjs
+          node --check skyshift/aero-barrier-v0491.mjs
+          node --check skyshift/game-v0491.mjs
+          node --check skyshift/browser-smoke-v0491.mjs
           node --check skyshift/browser-smoke-v0481.mjs
       - name: Verify SKYSHIFT deterministic track planner
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/fullscreen-v02.test.mjs skyshift/trial-v03.test.mjs skyshift/neon-v031.test.mjs skyshift/neon-v032.test.mjs skyshift/identity-v033.test.mjs skyshift/luminance-v0331.test.mjs skyshift/clean-v034.test.mjs skyshift/flow-v04.test.mjs skyshift/truebank-v041.test.mjs skyshift/handling-v042.test.mjs skyshift/speed-v043.test.mjs skyshift/flight-motion-v044.test.mjs skyshift/cinematic-v045.test.mjs skyshift/track-flow-v046.test.mjs skyshift/aero-barrier-v047.test.mjs skyshift/boost-zone-v048.test.mjs skyshift/premium-track-v0481.test.mjs skyshift/premium-ship-v0482.test.mjs skyshift/manta-blade-v0483.test.mjs skyshift/hard-edge-v0484.test.mjs skyshift/extended-zone-v049.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/fullscreen-v02.test.mjs skyshift/trial-v03.test.mjs skyshift/neon-v031.test.mjs skyshift/neon-v032.test.mjs skyshift/identity-v033.test.mjs skyshift/luminance-v0331.test.mjs skyshift/clean-v034.test.mjs skyshift/flow-v04.test.mjs skyshift/truebank-v041.test.mjs skyshift/handling-v042.test.mjs skyshift/speed-v043.test.mjs skyshift/flight-motion-v044.test.mjs skyshift/cinematic-v045.test.mjs skyshift/track-flow-v046.test.mjs skyshift/aero-barrier-v047.test.mjs skyshift/boost-zone-v048.test.mjs skyshift/premium-track-v0481.test.mjs skyshift/premium-ship-v0482.test.mjs skyshift/manta-blade-v0483.test.mjs skyshift/hard-edge-v0484.test.mjs skyshift/extended-zone-v049.test.mjs skyshift/spectral-zone-v0491.test.mjs
 
   browser-smoke:
     name: Premium material WebGL smoke
@@ -111,11 +116,13 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Render SKYSHIFT 0.4.9 in headless Chrome WebGL (10s wave transition)
-        run: node skyshift/browser-smoke-v049.mjs
+      - name: Render SKYSHIFT 0.4.9.1 in headless Chrome WebGL (first/last spectral waves)
+        run: node skyshift/browser-smoke-v0491.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v049-browser-smoke
-          path: skyshift-v049-browser-smoke.png
+          name: skyshift-v0491-spectral-waves
+          path: |
+            skyshift-v0491-first-wave.png
+            skyshift-v0491-final-wave.png
           if-no-files-found: ignore

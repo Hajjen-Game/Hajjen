@@ -102,7 +102,11 @@ export function nextAdaptiveRatio(q,frameMs,nowMs,nativeDpr){
   if(q.samples.length<PACING.minimumFramesBeforeChange||
     nowMs-q.lastChangeMs<PACING.qualityCooldownMs)return null;
   const p95=percentile(q.samples,.95),before=q.level;
-  if(p95>PACING.lowerAtP95Ms&&q.level<PACING.dprCaps.length-1)q.level++;
+  // A high p95 alone can be caused by old spikes in this rolling sample.
+  // Downshift only when BOTH tail latency and median indicate sustained load.
+  const median=percentile(q.samples,.50);
+  if(p95>PACING.lowerAtP95Ms&&median>PACING.lowerAtP95Ms*.91&&
+      q.level<PACING.dprCaps.length-1)q.level++;
   else if(p95<PACING.raiseAtP95Ms&&q.level>0)q.level--;
   if(before===q.level)return null;
   const oldRatio=Math.min(nativeDpr,PACING.dprCaps[before]);

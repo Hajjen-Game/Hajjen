@@ -212,7 +212,7 @@ test("a plausible pilot can finish double-speed lab while manually steering",()=
  assert.equal(successful.flight.jumps,0);
 });
 
-test("active site uses new speed, indexed mesh and interpolated HDR render loop",()=>{
+test("archived 0.4.3 build retains speed, mesh and pacing; current page is 0.4.4",()=>{
  const game=source("game-v043.mjs"),html=source("index.html");
  assert.match(game,/from "\.\/trial-v043\.mjs"/);
  assert.match(game,/from "\.\/smooth-track-v043\.mjs"/);
@@ -224,7 +224,7 @@ test("active site uses new speed, indexed mesh and interpolated HDR render loop"
  assert.match(game,/frameMsP95/);
  assert.match(game,/game:"SKYSHIFT",version:"0\.4\.3"/);
  assert.match(game,/skyshift-handling-v043-audit\.json/);
- assert.match(html,/game-v043\.mjs\?v=0\.4\.3/);
- assert.match(html,/style-v043\.css\?v=0\.4\.3/);
+ assert.match(html,/game-v044\.mjs\?v=0\.4\.4/);
+ assert.match(html,/style-v043\.css\?v=0\.4\.4/);
  assert.match(html,/id="fullscreen-btn"/);
 });

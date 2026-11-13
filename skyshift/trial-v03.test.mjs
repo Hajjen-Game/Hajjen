@@ -140,3 +140,25 @@ test("finish, checkpoints and path frame stay consistent",()=>{
  const r=stepFlight(st,dt,{});
  assert.equal(r.finished,true);assert.equal(st.s,TRIAL.length);
 });
+
+test("first-flight 2.0 is completable start to finish without losing shield using planned transitions",()=>{
+  const st=newFlightState(),jumped=new Set();
+  let frames=0,crashes=0;
+  while(!st.finished&&!st.failed&&frames++<15000){
+    const gap=GAPS.find(g=>!jumped.has(g.id)&&st.s>=g.start-2.5&&st.s<g.start+.5);
+    if(gap)jumped.add(gap.id);
+    const target=st.s<293?0:st.s<372?-2.8:st.s<458?2.8:
+      st.s<517?0:st.s<688?-4.5:0;
+    const steering=clamp((target-st.lateral)*.72,-1,1);
+    const r=stepFlight(st,dt,{
+      steer:steering,jumpPressed:!!gap,jumpHeld:st.vy>0
+    });
+    if(r.crashed)crashes++;
+  }
+  assert.equal(st.failed,false);
+  assert.equal(crashes,0,"an authored fair route should have zero mandatory crashes");
+  assert.ok(st.finished,"a complete autopilot route should reach the finish");
+  assert.equal(st.shield,100);
+  assert.equal(st.clearedGaps.length,GAPS.length);
+  assert.equal(st.jumps,GAPS.length);
+});

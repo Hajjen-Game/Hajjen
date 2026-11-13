@@ -20,5 +20,7 @@ jobs:
         run: |
           node --check skyshift/game.mjs
           node --check skyshift/track.mjs
+          node --check skyshift/game-v02.mjs
+          node --check skyshift/trial-v02.mjs
       - name: Verify SKYSHIFT deterministic track planner
-        run: node --test skyshift/track.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs

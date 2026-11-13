@@ -1,28 +1,37 @@
-# SKYSHIFT 0.1 – Flight & Track Prototype
+# SKYSHIFT 0.2 – Flight, Camera & Handcrafted Track Foundation
 
-An original standalone browser 3D arcade prototype. Flowing high-speed roads meet precision platform jumps and color-changing Zone Survival.
+A standalone 3D browser arcade prototype and the first finite SKY TRIAL.
 
 ## Play
-GitHub Pages: https://hajjen-game.github.io/Hajjen/skyshift/ (once deployed). Landscape orientation is recommended on phones.
+[First Flight on GitHub Pages](https://hajjen-game.github.io/Hajjen/skyshift/) · landscape orientation recommended on mobile.
 
-- Desktop: A/D or left/right arrows to steer, Space to jump, P or Esc to pause.
-- Mobile: drag the left control to steer and tap/hold JUMP on the right.
-- Jump across missing road, navigate split routes, survive increasing speed. A fall costs 35 shield and repositions you; 0 shield ends the run.
-- Export telemetry from the results screen with EXPORT RUN DATA.
+- Desktop: **A / D** or **left / right arrow** to steer; **Space** to jump; **P / Escape** to pause.
+- Mobile: drag the horizontal steering control with your left thumb and tap / hold **JUMP** with your right.
+- Reach the **finish gate** on the short, manually laid-out course. There are **four genuine missing-road gaps** that cannot be safely crossed by simply continuing forward.
+- Explore a split-lane bridge and deliberate gentle curves. Clear the course for a personal-best time.
+- Shield: a failed jump or fall costs **35%**, with checkpoint recovery. Three falls end the attempt.
 
-## Architecture
-- index.html: responsive menu, HUD, results and mobile controls.
-- style.css: neon arcade visuals.
-- track.mjs: deterministic modular track planner, continuity, surface masks, zone and mathematical jump envelope checks. Pure JS.
-- game.mjs: Three.js renderer, procedural ribbon mesh, ship model, camera, flight, landings, controls, palette and run telemetry.
-- track.test.mjs: deterministic track and collision logic tests.
+## Changes from 0.1
+- **Endless suspended**: fixed, repeatable First Flight course instead of constantly randomized bends.
+- **Camera**: anchored primarily to the course direction with look-ahead; a fraction of player offset affects framing rather than always re-centering the ship.
+- **Physics**: descent must cross a deck from above to count as a landing; it is not possible to snap onto it from below after coasting across a gap.
+- **Tracks**: authored straights, designed curves, height profiles, four jumps and a split-lane section.
+- **Feedback**: approach markings, in-world beacons, sector gates, jump cues, result screen and a detailed telemetry export.
 
-Standalone GitHub Pages subdirectory; no build step. Three.js version 0.180.0 is pinned from jsDelivr, so an internet connection is needed for initial module loading. No images or media files are required.
+## Code
+- \`trial-v02.mjs\`: authored finite trial and deterministic physics model.
+- \`trial-v02.test.mjs\`: gap, continuity, actual jump necessity, camera coordinates and finish tests.
+- \`game-v02.mjs\`: Three.js track rendering, scenery, ship, camera, inputs, HUD, logs.
+- \`style-v02.css\`: trial-specific style adjustments.
+- \`index.html\`: active entry point for 0.2.
+- \`game.mjs\`, \`track.mjs\`, \`track.test.mjs\`: the previous 0.1 implementation retained as a reference, not loaded by the current page.
 
-## Prototype limitations
-Contains Flow Roads, Precision Gaps, Surge Gaps, Split Routes and gentle Vertical Sections. These are procedural prototypes, not yet a curated hand-authored segment library or advanced AI Director. Gap fairness is checked mathematically for same-height jumps and still requires real mobile playtesting. No music, opponents, weapons, production settings or advanced collision models in v0.1.
+Three.js is loaded from a pinned CDN URL. GitHub Pages can serve the project directly without building.
 
-This project is isolated in /skyshift/ and does not change the other games in this repository.
+## Verification
+Run \`node --test skyshift/trial-v02.test.mjs skyshift/track.test.mjs\`.
+\`node --check skyshift/game-v02.mjs\` verifies parse syntax, not runtime rendering.
 
-## Tests
-Run: node --test skyshift/track.test.mjs
+**Prototype, not finished:** no advanced AI Director or endless mode. Visuals, camera feel, touch comfort, jump timings and real mobile frame pacing still require player testing. The mathematical tests ensure correct collision geometry and that no-jump traversal fails; they cannot substitute for human playtesting.
+
+Other games in the monorepo are unaffected.

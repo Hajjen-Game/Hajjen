@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#060a16">
-  <meta name="description" content="SKYSHIFT 0.1 – a playable neon flight and platform-jumping prototype.">
-  <title>SKYSHIFT · Flight & Track Prototype 0.1</title>
-  <link rel="stylesheet" href="./style.css?v=0.1.0">
+  <meta name="description" content="SKYSHIFT 0.2 – FIRST FLIGHT handcrafted 3D arcade trial.">
+  <title>SKYSHIFT · First Flight – Sky Trials 0.2</title>
+  <link rel="stylesheet" href="./style-v02.css?v=0.2.0">
 </head>
 <body>
   <div id="app">
@@ -14,7 +14,7 @@
     <div class="vignette" aria-hidden="true"></div>
     <div id="zone-flash" aria-hidden="true"></div>
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ FLIGHT PROTOTYPE 0.1</span></div>
+      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ SKY TRIALS 0.2</span></div>
       <button id="pause-btn" class="top-button hidden" aria-label="Pausa spelet">Ⅱ</button>
     </header>
     <div id="hud" class="hud hidden">
@@ -24,8 +24,8 @@
         <div class="hud-note" id="flight-state">READY</div>
       </div>
       <div class="hud-center">
-        <div class="eyebrow">CURRENT ZONE</div>
-        <div class="zone-number" id="zone-number">01</div>
+        <div class="eyebrow">TRIAL SECTOR</div>
+        <div class="zone-number" id="zone-number">01</div><div id="sector-name" class="sector-name">FLOW</div>
         <div class="zone-progress"><div id="zone-progress-fill"></div></div>
       </div>
       <div class="hud-right">
@@ -34,7 +34,7 @@
         <div class="hud-note" id="speed">SPEED 1.00×</div>
       </div>
     </div>
-    <div id="zone-banner" class="zone-banner hidden" aria-live="polite"><small>ENTERING ZONE</small><strong id="zone-banner-number">02</strong><span id="zone-banner-name">VIOLET PULSE</span></div>
+    <div id="zone-banner" class="zone-banner hidden" aria-live="polite"><small>ENTERING SECTOR</small><strong id="zone-banner-number">02</strong><span id="zone-banner-name">VIOLET PULSE</span></div>
     <div id="toast" class="toast hidden" aria-live="polite"></div>
     <div id="mobile-controls" class="mobile-controls hidden">
       <div id="stick" class="stick" role="group" aria-label="Styr vänster och höger">
@@ -45,13 +45,13 @@
     </div>
     <section id="menu" class="screen">
       <div class="screen-content">
-        <div class="kicker">NEON FLIGHT · PRECISION PLATFORMING</div>
+        <div class="kicker">SKY TRIAL 01 · HANDCRAFTED FLIGHT COURSE</div>
         <h1>SKY<span>SHIFT</span></h1>
         <div class="rule"></div>
-        <p class="tagline">MASTER THE SPEED.<br>OWN THE SKY.</p>
-        <button id="start-btn" class="primary">START FLIGHT <span>↗</span></button>
+        <p class="tagline">FIRST FLIGHT.<br>FOUR REAL JUMPS. ONE FINISH.</p>
+        <button id="start-btn" class="primary">START TRIAL <span>↗</span></button>
         <div class="instructions">MOVE <b>A / D · ← →</b> <i></i> JUMP <b>SPACE</b><br><span>Mobile: drag left to steer · tap right to jump</span></div>
-        <div class="prototype-label">THREE TRACK FAMILIES · LIVE ZONE SYSTEM · BUILD 0.1</div>
+        <div class="prototype-label">ONE HANDCRAFTED COURSE · REAL GAPS · BUILD 0.2</div>
       </div>
     </section>
     <section id="pause-screen" class="screen hidden" aria-label="Pausmeny">
@@ -59,21 +59,21 @@
         <div class="kicker">FLIGHT INTERRUPTED</div>
         <h2>PAUSED</h2>
         <button id="resume-btn" class="primary">RESUME <span>→</span></button>
-        <button id="restart-paused-btn" class="secondary">RESTART FLIGHT</button>
+        <button id="restart-paused-btn" class="secondary">RESTART TRIAL</button>
       </div>
     </section>
     <section id="end-screen" class="screen hidden" aria-label="Resultat">
       <div class="screen-content compact">
-        <div class="kicker">RUN COMPLETE</div>
-        <h2>FLIGHT ENDED</h2>
-        <div class="summary"><span>DISTANCE</span><strong id="final-distance">0 M</strong><span>MAX ZONE</span><strong id="final-zone">01</strong><span>PERSONAL BEST</span><strong id="personal-best">0 M</strong><span>FLIGHT TIME</span><strong id="flight-time">0:00</strong></div>
-        <button id="retry-btn" class="primary">FLY AGAIN <span>↗</span></button>
-        <button id="audit-btn" class="secondary">EXPORT RUN DATA ↓</button>
+        <div class="kicker">FIRST FLIGHT · SKY TRIAL 01</div>
+        <h2 id="final-title">FLIGHT ENDED</h2>
+        <div class="summary"><span>DISTANCE</span><strong id="final-distance">0 M</strong><span>FINAL SECTOR</span><strong id="final-zone">01</strong><span>BEST CLEAR TIME</span><strong id="personal-best">—</strong><span>FLIGHT TIME</span><strong id="flight-time">0:00</strong><span>JUMPS / GAPS</span><strong id="final-jumps">0 / 0</strong></div>
+        <button id="retry-btn" class="primary">RETRY TRIAL <span>↗</span></button>
+        <button id="audit-btn" class="secondary">EXPORT FLIGHT LOG ↓</button>
       </div>
     </section>
     <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
     <div id="error" class="error hidden" role="alert"></div>
   </div>
-  <script type="module" src="./game.mjs?v=0.1.0"></script>
+  <script type="module" src="./game-v02.mjs?v=0.2.0"></script>
 </body>
 </html>

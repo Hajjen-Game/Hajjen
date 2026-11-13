@@ -1,4 +1,36 @@
-# SKYSHIFT 0.4.8.2 – Premium Ship Identity & Track Spine
+# SKYSHIFT 0.4.8.3 – Signature Craft Identity (Manta Blade)
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Concept choice
+
+The user specifically preferred **Manta Blade** over the previously proposed Split-Tail Interceptor. Despite the repeated Split-Tail wording at the end of the implementation request, Manta Blade is the explicit selected concept and the only active design for 0.4.8.3. It borrows a small open-aft cutaway from the broader design exploration but its primary language is a **single, wide, low-profile manta-like antigravity wing**, not a conventional jet plane or a forked interceptor.
+
+## Identity, silhouette and structure
+
+- **Wing-first geometry**: `manta-blade-v0483.mjs` builds a broad 5.8m-span shape with two sweeping blade lobes. Each lobe is a solid, concave, ear-clipped outline, not a flat rectangle or generic airplane wing.
+- **Readable rear view**: The short central fuselage stops at **z=1.36m**, while two swept-back wing tips reach **z=2.62m**. This creates a scalloped/open-looking trailing silhouette in the exact chase-camera view the player sees most of the time.
+- **Compact center keel**: A sculpted, thin central hull is built from 8 longitudinal stations, with a low curved canopy. Materials: satin titanium, dark graphite wing channels, tinted teal glass and restrained cyan tip details.
+- **Twin integral exhausts**: Two small venturi thruster housings are fitted into the aft wing lobes, with existing glow-material aperture meshes. A narrow central luminous keel replaces the third big bright circular exhaust, maintaining the previous engineCore animation handle.
+- **No new dynamic lights**: The existing single engine point light and the two enginePlumes / engineCore animation hooks remain active. Static mesh data is generated only once and stays below the 650-triangle budget for the three main custom shells.
+- **No collision changes**: The maximum outer wing span is ±2.90m, within the existing craft collision half-span. Original steering, camera position, ship roll/pitch, boost pads, guardrails and 0.4.8.2 track spine remain exactly as before.
+
+## Scope and QA
+
+- `game-v0483.mjs` uses `buildMantaBlade(THREE,shipGlow)` instead of the old `buildPremiumShip`, without modifying the flight simulation.
+- `skyshift/index.html` loads `game-v0483.mjs?v=0.4.8.3`.
+- `manta-blade-v0483.test.mjs` verifies mirrored concave wing triangulation, unchanged collision span, distinct rear silhouette, paired engine animation handles and preserved physics.
+- `browser-smoke-v0483.mjs` launches the actual game in Chrome / software WebGL, captures a screenshot and fails on shader/script/runtime errors. CI captures the screenshot as a GitHub artifact.
+- `skyshift-manta-v0483-audit.json` adds the design identity and still records all flight, boost and performance metrics from the preceding version.
+- GitHub Pages release guard must verify the public index and live game module after merge.
+
+## iPhone review
+
+Evaluate the actual rear silhouette at s≈100m and s≈300m: does the wing-first manta shape read instantly when the craft banks? Are the two extended aft fins, graphite inset areas and recessed vents clearer and more distinctive than the old "Astra Needle" conventional plane? Ensure the wider, flatter appearance stays centered and does not obscure the centerline/boost fields. Visual taste still needs real-device confirmation—code/Chrome tests alone cannot establish art quality.
+
+---
+
+## Previous release — 0.4.8.2
 
 **Live:** https://hajjen-game.github.io/Hajjen/skyshift/
 

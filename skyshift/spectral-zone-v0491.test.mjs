@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {
  ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL,newZoneWaveState,
- updateZoneWave,frontPaletteBlend,waveResonanceStrength
+ updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength
 } from "./zone-wave-v0491.mjs";
 import {
  PREMIUM_TRACK,SURFACE_FRAGMENT_GLSL,SURFACE_FRAGMENT_HELPERS,
@@ -30,6 +30,15 @@ test("Spectral wave keeps the signed world-arc front, broadens it to ~0.7s at cr
  assert.equal(ZONE_WAVE.afterglowMeters,62);
  assert.equal(ZONE_WAVE.screenFlash,false);
  assert.equal(ZONE_WAVE.shaderUniformOnly,true);
+});
+test("The brief charge cue is simulation-clock based and stops at launch",()=>{
+ near(spectralChargeStrength(9.79),0);
+ assert.ok(spectralChargeStrength(9.92)>0);
+ assert.ok(spectralChargeStrength(9.99)>.95);
+ near(spectralChargeStrength(10),0);
+ assert.ok(spectralChargeStrength(19.91)>.5);
+ assert.ok(spectralChargeStrength(26.9)>.4);
+ near(spectralChargeStrength(29),0);
 });
 test("First, second and early final spectral waves pass from behind without changing speed or course",()=>{
  const state=newZoneWaveState();

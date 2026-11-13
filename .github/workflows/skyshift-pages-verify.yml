@@ -1,0 +1,62 @@
+name: SKYSHIFT Pages publication guard
+# SKYSHIFT logic tests alone do not establish which version visitors actually see.
+# Verify the LIVE Pages HTML on every main update and explicitly request a
+# branch-based Pages rebuild when Github has the new code but the website does not.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skyshift/**'
+      - '.github/workflows/skyshift-pages-verify.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+jobs:
+  published-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Diagnose source, public version, and refresh stale Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected='game-v048.mjs'
+          site='https://hajjen-game.github.io/Hajjen/skyshift/index.html'
+          echo "Expecting deployed SKYSHIFT entrypoint: $expected"
+          echo "GitHub source SHA: $GITHUB_SHA"
+          page_info="$(gh api "repos/$GITHUB_REPOSITORY/pages" || true)"
+          if [[ -n "$page_info" ]]; then
+            printf '%s\n' "$page_info" | jq '{html_url, status, build_type, source}'
+          else
+            echo "::warning::Cannot read Pages configuration with workflow token."
+          fi
+          # A unique query string and no-cache header distinguish a stale CDN
+          # response from a browser tab still running old JavaScript.
+          live="$(curl -fsSL --retry 2 --max-time 25 -H 'Cache-Control: no-cache' \
+            "$site?release=${GITHUB_SHA:0:12}" || true)"
+          if [[ "$live" == *"$expected"* ]]; then
+            echo "LIVE VERIFIED: HTML serves $expected. No Pages rebuild needed."
+            exit 0
+          fi
+          echo "::warning::Published page is stale or unavailable. Expected $expected."
+          printf '%s\n' "$live" | grep -Eo 'game-v[0-9]+\.mjs|SKYSHIFT[^<]{0,80}' | head -8 || true
+          source_branch="$(printf '%s' "$page_info" | jq -r '.source.branch // empty' 2>/dev/null || true)"
+          if [[ "$source_branch" != "main" ]]; then
+            echo "::error::Pages source is not confirmed as main. Check Pages settings; not changing source automatically."
+            exit 1
+          fi
+          echo "Requesting explicit GitHub Pages rebuild of main branch..."
+          gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" \
+            --jq '{status, error, url}'
+          echo "Rebuild requested. Rechecking published HTML after initial propagation..."
+          sleep 16
+          live="$(curl -fsSL --retry 2 --max-time 25 -H 'Cache-Control: no-cache' \
+            "$site?release=${GITHUB_SHA:0:12}-after" || true)"
+          if [[ "$live" == *"$expected"* ]]; then
+            echo "LIVE VERIFIED AFTER REBUILD: $expected"
+          else
+            echo "::warning::Pages build was triggered; CDN propagation may still be in progress."
+            printf '%s\n' "$live" | grep -Eo 'game-v[0-9]+\.mjs' | head -3 || true
+          fi

@@ -192,13 +192,13 @@ export function buildMantaBlade(THREE,existingShipGlow){
  cockpit.name="Low integrated teardrop canopy";ship.add(cockpit);
  // Two broad recessed graphite sweeps reinforce the silhouette.
  mirroredQuad(THREE,ship,graphite,"Inset swept dorsal wing channels",[
-  [.89,.286,-.94],[1.42,.229,-.56],
-  [1.86,.204,.73],[1.36,.259,.50]
+  [.89,.286,-.94],[1.42,.263,-.56],
+  [1.86,.247,.73],[1.36,.261,.50]
  ]);
  // Short near-tip glints—not dangling neon spikes.
  mirroredQuad(THREE,ship,cyan,"Manta blade tip luminescence",[
-  [2.56,.190,.11],[2.67,.177,.19],
-  [2.43,.178,.97],[2.33,.197,.88]
+  [2.56,.222,.11],[2.67,.219,.19],
+  [2.43,.221,.97],[2.33,.222,.88]
  ]);
  const enginePlumes=[];
  for(const side of [-1,1]){

@@ -1,43 +1,42 @@
-# SKYSHIFT 0.3.2 – Refined Neon Balance
+# SKYSHIFT 0.3.3 — Neon Surface Language & World Identity
 
-### Corrective visual pass after 0.3.1
+SKYSHIFT remains a standalone, finite, handcrafted 3D trial. This version implements visual identity, not gameplay changes.
 
-The 0.3.1 HDR bloom was too strong: oversized glows on rails and beacons, a nearly blown-out ship, and reduced readability of platform edges. **0.3.2 fixes light balance, not resolution or gameplay.**
-
-### Play
-
+## Play
 https://hajjen-game.github.io/Hajjen/skyshift/
 
-### Changes
+## 0.3.3A · Authored surfaces
+- A pure, deterministic decoration plan derives all graphics from the actual roadIntervals collision intervals.
+- Dark metallic inset panel pairs, sparse seams, cyan navigation chips and controlled magenta energy details.
+- Sky Islands use separate landing braces; no decorative bridges are ever drawn across gaps.
+- Safe route is cyan; optional right-hand risk route uses magenta; amber continues to indicate jumps.
+- All surfaces are batched by material into a handful of meshes; no extra global post-processing.
 
-- **Controlled HDR bloom:** UnrealBloomPass strength 1.18 → 0.43, radius 0.48 → 0.21, threshold 1.06 → 1.40. OutputPass and ACES tone mapping remain active.
-- **Crisp neon rails:** preserve three-layer look but halve the physical width of the halo, reduce opacity and core intensity; dark road material remains a contrast anchor.
-- **Subtle beacons:** the intrusive tall white beacons are smaller, thinner, and significantly less luminous. Three-layer neon remains.
-- **Readable ship:** toned-down thrusters, emissive strips and local engine lighting. Metallic body and clearcoat glass remain.
-- **Gates and signage:** lighter bloom on arches and in-world text; no neon rectangles should overpower the route.
-- **Flight FX:** less energetic engine trails and landing shards; still responsive.
-- **Lighting:** reduced scene exposure, key light and rim fill to keep surface shapes legible.
-- **Same quality tier:** WebGL HDR, postprocessing and native device pixel ratio up to 2. No Galaxy A51-driven downgrades.
+## 0.3.3B · World identity
+- Sparse far-below-track energy grid, visibly disconnected from the drivable path.
+- Instanced angular towers, subdued neon inlays and five pairs of structural landmarks outside the racing corridor.
+- Landmark spacing emphasizes Sky Islands, Split Horizon, elevated sections and the finish.
 
-### Code
+## 0.3.3C · Hero ship
+- Split dorsal armor, swept shoulder vanes, dark rear engine hardware and narrow cyan/magenta inlays.
+- Physical clearcoat metal and dark recesses remain dominant rather than bloom.
 
-- `neon-balance-v032.mjs` is a pure JavaScript lighting-tuning module. It validates contrast hierarchy, halo spread and intensity budgets.
-- `neon-v032.mjs` keeps the high-quality compositor and shares the tuning values with world materials.
-- `game-v032.mjs` modifies only renderer materials, lighting, rail/beacon widths, scene exposure and the active visual modules; the authored trial and collision logic are unchanged.
-- `premium-v032.mjs` limits the brightness of engine trails and landing effects.
-- `neon-v032.test.mjs` checks tuning relationships, bounds, visual component integration, import map and unchanged game systems.
-- `game-v031.mjs`, `neon-v031.mjs` and `premium-v031.mjs` remain for diagnosis and rollback.
+## 0.3.3D · Integration and coherence
+- Dark physical housings on the existing beacons so lights read as built-in hardware.
+- Restrained dual-tone HUD/menu adjustments.
+- The 0.3.2 HDR bloom, modern-resolution target, track layout, controls, camera, jump physics, checkpoints and fullscreen are unchanged.
 
-### Verification
+## Code
+- identity-v033.mjs: visual plan, validation, batched geometry, world architecture and ship enhancements.
+- identity-v033.test.mjs: geometric safety, collision alignment, safe/risk semantics and integration tests.
+- game-v033.mjs, style-v033.css, index.html: active version.
+- trial-v03.mjs, neon-v032.mjs, neon-balance-v032.mjs, premium-v032.mjs: retained foundations.
 
-Run `node --test skyshift/neon-v032.test.mjs`. GitHub Actions runs all historical deterministic game tests too.
+## Testing
+- node --check skyshift/identity-v033.mjs && node --check skyshift/game-v033.mjs
+- node --test skyshift/identity-v033.test.mjs
+- CI continues all existing gameplay, fullscreen and lighting regression tests.
 
-Automated tests cannot guarantee the visual result in actual browsers. Compare v0.3.2 screenshots at the start, at the first gap, and in Skybreak and Final Velocity. Assess ship silhouette, luminous core sharpness and whether the glow respects the missing-platform edges.
+Unit tests cannot verify the final WebGL appearance. Review first deck at 40-100m, Sky Islands at 330-430m, optional split route 560-680m and finish 1200-1300m for visual clarity.
 
-### Unchanged
-
-First Flight 2.0 length 1300 m, six mandatory gaps, risk route, checkpoints, zone transitions, fullscreen and exported run metrics. No endless mode or new gameplay content.
-
-### Platform
-
-Modern mobile GPUs and desktop browsers are the target; Galaxy A51 is not the graphics-quality reference. Three.js modules are version-pinned to 0.180.0 via the HTML import map. No changes to other projects in the repository.
+No new levels, mechanics, audio or endless mode in this visual pass; other games in the repository are untouched.

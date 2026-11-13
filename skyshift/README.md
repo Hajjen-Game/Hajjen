@@ -1,53 +1,51 @@
-# SKYSHIFT 0.4.2 — Track Geometry & Handling Reset
+# SKYSHIFT 0.4.3 – Speed, Smooth Mesh & Frame Pacing
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 
-This is an intentional **short driving-quality experiment**, not a content update to the 1,300 m full trial. Previous flight versions including `trial-v041.mjs` and `game-v041.mjs` remain untouched in GitHub for comparison and rollback.
+This is a focused technical pass on the 510-metre Handling Lab. The user confirmed that the manual ship controls are no longer notably slippery but reported visible stutter, transverse lighting bands in the road, and the desire for roughly twice the forward speed. The former 0.4.2 code and longer 0.4.1 trial remain in GitHub for rollback/comparison. Other games are untouched.
 
-## Why we are resetting
+## 1. Double speed, same basic radius
 
-The 0.4/0.4.1 track was an accumulated set of smoothstep changes in heading. With physical camber tied to changing curvature, it looked hand-drawn and continuously wriggling. The player also reported a slippery ship, partly consistent with yaw-rate response, camera lag and heavy renderer load. The 0.4.1 log showed 23 steering reversals, 5.25 s off-road and a 31 FPS average (20 minimum). Those metrics alone cannot diagnose handling feel, but the feedback warrants separating geometry and control from platform challenges.
+- `trial-v043.mjs` scales speed from **22–23.5 m/s** to **44–47 m/s**.
+- Maximum yaw rate scales by 2× (0.62 → 1.24 rad/s); response and release constants increase to stay responsive over the doubled distance traveled each second.
+- The authored course is still exactly five elements: 95m straight, genuine constant-radius banked left, straight, genuine constant-radius right, finish straight. No jumps in this steering-only lab.
+- The craft owns its world position and heading. None of these changes bring back road following, lane recentering or synthetic turning forces.
 
-## 0.4.2 handling-lab test course
+## 2. Rebuild road as ONE shared-vertex surface
 
-**510 metres, five authored elements:**
-1. 0–95 m: precisely straight launch
-2. 95–222 m: long banked left corner with 20 m entry transition, **87 m constant-radius arc**, 20 m exit
-3. 222–292 m: precisely straight middle section
-4. 292–424 m: long banked right corner with 20 m entry transition, **92 m constant-radius arc**, 20 m exit
-5. 424–510 m: precisely straight finish
+- `smooth-track-v043.mjs` samples the centerline every **0.45 metres**, using 5 vertices across its width.
+- Instead of generating independent 0.8m top-surface triangles and shading each face separately, it builds **one indexed, contiguous deck**. The render engine computes normals across shared row vertices.
+- Physically hard-edged vertical sidewalls remain a separate mesh. Thin neon guardrails, centerline, banking, checkpoint signs, collider and route shape retain their established roles.
+- The change fixes the *structural cause* of transverse per-segment lighting seams. It does not guarantee visual smoothness until playtested.
 
-Geometry uses curvature integration. On the straights, curvature **equals zero**. In each circular arc core, curvature is **constant**, so the radius never wobbles. Only short, defined linear-curvature entrance and exit transitions are allowed. This is materially different from adding more smoothstep bends. Banking is physical and matches the collision surface (about 17–18 degrees at full curve), with a smooth 20 m ramp at each end.
+## 3. Fixed-step physics and interpolated rendering
 
-There are **no jumps, moving hazards, split lanes or risk route** in this calibration course. The jump control is hidden and jump input has no effect. The target is to learn if two good corners and a responsive steering model can make SKYSHIFT actually fun before restoring the Sky Islands and other challenges.
+- Physics is still authoritative at **120Hz**. Renderer samples a pose interpolated between the previous and current fixed physics steps.
+- Ship, chasing camera and engine trail feed from the *same* interpolated world pose, not three differently timed positions.
+- Checkpoint teleport/respawn is recognized and rendered as a snap; interpolation must not visually slide the ship hundreds of metres.
+- Long frame delays are explicitly tracked. No hidden automatic course correction is added.
 
-## Handling reset
+## 4. HDR compositing and performance
 
-- Forward speed remains automatic at roughly 22–23.5 m/s.
-- **No automatic turn-following**, correction to track centerline, hidden corner load or lane magnet.
-- Player stick input drives a *bounded yaw rate* (~0.62 rad/s maximum), not an accumulated artificial lateral force.
-- Small center deadzone and shaped input improve precision on phones.
-- On stick release yaw rate damps quickly, while the current world-space heading remains player owned. There is no reversal or auto recenter.
-- The same input response is used at any frame rate in the deterministic 120Hz physics step.
-- Keyboard steering is slightly scaled for predictable digital input.
-- The craft and chase camera share a quicker, **matched** smoothing constant so separate camera/look delays cannot induce the previous lagged orbit sensation.
-- The 0.4.1 HDR neon pipeline, space environment, anti-gravity hull, fullscreen and modern-device target are preserved.
+- Default is **full quality up to 2× device DPR** and the exact 0.3.2 neon/bloom hierarchy.
+- When **90+ consecutive recent samples** indicate prolonged slow frame times (95th percentile over 27ms), the **offscreen** EffectComposer render resolution can fall from 2 to 1.75 to 1.5, with a 9s cooldown. The visible canvas and HTML HUD remain at native quality. Fast devices remain at full settings, and resolution can recover after sustained fast frames (p95 under 17ms).
+- This is workload adaptation rather than a permanent global reduction for older hardware; no device model is singled out.
+- The audit now reports **real frame-duration average FPS** (not arithmetic per-frame FPS), minimum observed FPS, p95/p99 frame times, renderer CPU-call timing (not true GPU timing), simulation steps, dropped simulation time and HDR internal rendering DPR.
+- Logging of renderer draw calls/triangles remains indicative, not an absolute GPU load metric.
 
-## Files
+## Changed modules
 
-- `trial-v042.mjs`: mathematically designed track, camber, free-heading yaw physics, checkpoint handling, deterministic runtime
-- `identity-v042.mjs`: zero nonfunctional road graphics
-- `game-v042.mjs`: short-course presentation, camera/ship response, runtime telemetry
-- `handling-v042.test.mjs`: straightness and constant radius, banking continuity, yaw input and release, full pilot-controlled lap, no hidden road-following, WebGL integration wiring
-- `index.html`, `style-v042.css`: new menu, result fields, hidden jump button
-- `README.md`: design rationale and testing instructions
+- `trial-v043.mjs`: twice the speed, matched steering authority.
+- `smooth-track-v043.mjs`: continuous indexed roadway deck.
+- `frame-pacing-v043.mjs`: deterministic fixed-step scheduler, visual interpolation, frame diagnostics and adaptive HDR ratio.
+- `neon-v043.mjs`: unchanged original HDR renderer with an opt-in internal render-target DPR adjustment.
+- `game-v043.mjs`: active 0.4.3 game, road geometry and animation/render integration.
+- `index.html`, `style-v043.css`: active version and label.
+- `speed-v043.test.mjs`: geometry, pacing, speed scaling, camera/ship integration, adaptive quality and manual-pilot full-course tests.
+- Existing versioned 0.4.2 and earlier files remain available.
 
-## Please test on a phone
+## What to test on a phone
 
-Focus specifically on whether the road looks *machine-designed*: truly straight sections, single consistent-radius bends and gradual camber changes. During each corner, release the steering briefly — the ship should maintain its heading and drift **off the racing line**, not turn itself back. It should not keep turning long after releasing the stick. Try several partial-deflection inputs and notice whether the camera is less disorienting.
+Play at least 2–3 full rounds. Check whether the transverse stripes on the banked road are gone, whether the ship/camera movement is smoother, and whether 2× speed feels good or needs compensation through wider tracks/longer curves. Export `skyshift-handling-v043-audit.json` to see FPS, p95 frame time, internal HDR resolution changes, off-road seconds and steer reversals.
 
-Export `skyshift-handling-v042-audit.json`: it includes steering reversals, peak yaw rate, maximum lateral deviation, banking angle and time off-road. Compare with 0.4.1, but note that this is a different-length test course and times are not comparable.
-
-## Out of scope
-
-No real wall riding, ceiling gravity, endless mode, new weapons or Chroma Rush color wave. No full-course migration until the handling lab is approved. Other games in the repository remain unchanged.
+Automated tests cannot prove that a device runs at 60fps or that the change feels right. If the graphics are still slow, the new separate frame/render metrics can help determine whether more targeted GPU optimization is needed.

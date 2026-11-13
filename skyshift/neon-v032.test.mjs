@@ -54,7 +54,7 @@ test("beacons, archs, engine fill and flight FX follow the new tuning",()=>{
 
 test("HDR composer remains active, with one core Three.js instance and tone mapping",()=>{
   const html=src("index.html"),game=src("game-v032.mjs"),neon=src("neon-v032.mjs");
-  assert.match(html,/src="\.\/game-v042\.mjs\?v=0\.4\.2"/);
+  assert.match(html,/src="\.\/game-v043\.mjs\?v=0\.4\.3"/);
   // The 0.3.2 renderer remains in the repo as the approved lighting baseline.
   assert.match(src("game-v0331.mjs"),/from "\.\/neon-v032\.mjs"/);
   assert.match(html,/<script type="importmap">/);

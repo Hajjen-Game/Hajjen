@@ -1,4 +1,43 @@
-# SKYSHIFT 0.4.9 – Extended Circuit & Zone Wave 1.0
+# SKYSHIFT 0.4.9.1 – Spectral Zone Wave & Palette Harmony
+
+**Playable URL:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Why this pass
+
+The 1,530 m circuit, 6 big curves, Manta Blade and five boosts in 0.4.9 were received well, but the 12 m-wide wave read as a short recolor, not a memorable energy event. Chroma Rush's actual jump/duck renderer (`chroma-rush/src/render/spectral-wave.js`) provides a reference: gently irregular chromatic seam, a slim bright edge with broad veils, local player-crossing resonance, and light afterglow. Do not directly port 2D Canvas layers or its screen-space sweep to a perspective WebGL racer. Instead reproduce the choreography **inside existing Three.js shaders**.
+
+The supplied mobile audit (0.4.9) reported three correctly timed waves but the final Arctic front crossed at 31.417 s with a 31.48 s finish, so it was nearly invisible. Average recorded frame rate was **22 FPS**, p95 frame duration 83.2ms (device not established). Hence no new draw passes, full-screen filters, rings, beams, particles, or new dynamic lights.
+
+## Spectral shader architecture
+
+- `zone-wave-v0491.mjs`: keep 1,530 m world-space arc-length waves at 114 m/s, 90m behind craft, launched at **10/20/27 s**; last wave now leaves roughly three seconds of final palette in a ~31.5s clean run.
+- The front's smooth half-width is **24 m** (48 m total), versus 6 m half-width previously, providing about 0.72s of gradual passage relative to a 47 m/s ship. Three-layer look: broadened chromatic color body, slim soft luminous crest (~4.5m), and low-energy wake extending up to ~62m behind the moving front.
+- Two small oscillatory lateral offsets produce a gently refracted moving leading edge; **one shared spectral GLSL function** controls both road and rail light coordinates. The physical front's progression is unchanged and does not introduce a new obstacle.
+- `premium-track-v0491.mjs` modifies the existing indexed PBR road shader only, with **no added meshes, draw calls, decals, framebuffers or texture fetches**. Boost inlays and neutral, readable racing lines remain visible.
+- `aero-barrier-v0491.mjs` attaches lightweight world-arc-length coordinates to the **existing** light-chevron geometry. Its existing MeshBasicMaterial receives a matching spectral onBeforeCompile shader. Both deck and rail share one front position, shimmer function, time and zone palette.
+- `game-v0491.mjs` blends fog, sky and ambient neon accent across a wider area around the approaching front, rather than suddenly jumping to the new color when the HUD changes. The HUD still advances when the wave passes the ship.
+- Without new particle or lighting objects, the two existing wing-engine lights briefly charge for **0.19s** before each wave and brighten up to +22% for **0.62s** after crossing, plus small engine aperture size response. They cannot change authoritative physics or shield.
+- `SPECTRAL_FRONT_GLSL` avoids per-frame material rebuilding; color uniforms and front coordinates are updated in place with the fixed-time simulation.
+
+## Palette harmony, adapted from Chroma Rush
+
+Use SKYSHIFT-specific darker, metallic road pigments against strong luminous contrast: **Midnight** (ocean blue + cyan), **Electric Violet** (violet + magenta), **Solar Gold** (copper + golden yellow), and **Jade Surge** (deep jade + electric lime). These are curated pairs inspired by the original Chroma Rush `PALETTES` (`chroma-rush/src/core/config.js`) rather than copying 2D canvas colors directly. The long bright guide lines remain near neutral across the four stages, and gold booster inlays remain legible.
+
+The original Chroma Rush implementation uses precomputed 64-step OKLab ramps. SKYSHIFT intentionally retains GPU-native Three.js linear-color shader mixing instead of converting every road pixel in OKLab; this avoids a heavy shader and preserves existing PBR tone mapping. Only the color pair design and wave choreography were transferred.
+
+## Testing & scope
+
+- `spectral-zone-v0491.test.mjs`: verifies deterministic triggers (including 27s final), 48m color-transition width, charge, stage passing, post-crossing resonance, palette contrast, synchronized rail/deck GLSL, preserved route and speed, and unchanged draw-batch counts.
+- `browser-smoke-v0491.mjs` captures both **Electric Violet** and **Jade Surge** using real Chrome/WebGL; a test-only fixed-time hook avoids conflating software renderer wall-clock performance with game time.
+- Version and export: `game-v0491.mjs`, `skyshift-zone-v0491-audit.json`, active HTML `0.4.9.1`. Existing prior modules remain for fallback.
+- No changes to `trial-v049.mjs`, `boost-v049.mjs`, Manta Blade geometry or twin trail logic, chase camera, track design, collision geometry, or controls.
+- GitHub Pages guard validates live HTML and game module separately after main merge.
+
+**Device playtest:** Compare the same iPhone across 0.4.9 and 0.4.9.1: perceptual clarity of spectral seam in each curve, physically synchronized rail accent wave, far-ahead color transformation, absence of distracting screen flashes, Jade visibly active for ~3 s before finish, and 95th-percentile frame time/CPU render cost. Unit/WebGL tests validate correctness but not final visual quality on a real device.
+
+---
+
+## Previous release — 0.4.9
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 

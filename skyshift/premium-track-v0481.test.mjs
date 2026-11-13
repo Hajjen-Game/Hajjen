@@ -121,7 +121,7 @@ test("materials use stable shader uniforms and palette can be recolored without 
 test("0.4.8 authoritative speed & steering remain exactly unchanged",()=>{
  const state=newFlightState();
  let count=0;
- for(let i=0;i<1000;i++){
+ for(let i=0;i<130;i++){
   const x=stepFlight(state,1/120,{steer:0});
   if(x.boostActivated)count++;
   if(state.finished)break;

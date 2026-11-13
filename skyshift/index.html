@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#050914">
   <link rel="icon" href="data:,">
-  <meta name="description" content="SKYSHIFT 0.4.9.1 – Spectral Zone Wave & Palette Harmony: multi-layer world-space color fronts and synchronized neon rails.">
-  <title>SKYSHIFT · Spectral Zone Wave & Palette Harmony · 0.4.9.1</title>
+  <meta name="description" content="SKYSHIFT 0.4.9.1.1 – Mobile Boot Reliability: multi-layer world-space color fronts and synchronized neon rails.">
+  <title>SKYSHIFT · Spectral Zone Wave & Mobile Boot Fix · 0.4.9.1.1</title>
   <script type="importmap">
     {
       "imports": {
@@ -15,7 +15,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="./style-v043.css?v=0.4.9.1">
+  <link rel="stylesheet" href="./style-v043.css?v=0.4.9.1.1">
 </head>
 <body>
   <div id="app">
@@ -23,7 +23,7 @@
     <div class="vignette" aria-hidden="true"></div>
     <div id="zone-flash" aria-hidden="true"></div>
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ SPECTRAL ZONE WAVE · 0.4.9.1</span></div>
+      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ SPECTRAL ZONE WAVE · 0.4.9.1.1</span></div>
       <div class="top-actions">
         <button id="fullscreen-btn" class="top-button fullscreen-toggle hidden" type="button" title="Fullscreen" aria-label="Fullscreen" aria-pressed="false">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>
@@ -59,17 +59,18 @@
     </div>
     <section id="menu" class="screen">
       <div class="screen-content">
-        <div class="kicker">MANTA BLADE · SPECTRAL TIDE 0.4.9.1</div>
+        <div class="kicker">MANTA BLADE · SPECTRAL TIDE 0.4.9.1.1</div>
         <h1>SKY<span>SHIFT</span></h1>
         <div class="rule"></div>
         <p class="tagline">TWICE THE SPEED.<br>ONE CLEAN RACING LINE.</p>
         <button id="start-btn" class="primary">START RUN <span>↗</span></button>
         <button id="menu-fullscreen-btn" class="secondary menu-fullscreen" type="button" aria-pressed="false">⛶ FULLSCREEN</button>
+        <div id="boot-state" class="boot-state hidden" role="status" aria-live="polite"></div>
         <div id="fullscreen-help" class="fullscreen-help hidden" role="status">
           Fullscreen stöds inte i den här webbläsarvyn. Öppna SKYSHIFT direkt i Chrome via webbläsarens meny (⋮) och prova igen.
         </div>
         <div class="instructions">STEER <b>A / D · ← →</b><br><span>Mobile: drag left to steer · no jumping in this test</span></div>
-        <div class="prototype-label">1530 M · SPECTRAL ZONE WAVES · 10 / 20 / 27 S · 0.4.9.1</div>
+        <div class="prototype-label">1530 M · SPECTRAL ZONE WAVES · 10 / 20 / 27 S · 0.4.9.1.1</div>
       </div>
     </section>
     <section id="pause-screen" class="screen hidden" aria-label="Pausmeny">
@@ -92,6 +93,6 @@
     <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
     <div id="error" class="error hidden" role="alert"></div>
   </div>
-  <script type="module" src="./game-v0491.mjs?v=0.4.9.1"></script>
+  <script src="./boot-v04911.js?v=0.4.9.1.1" data-game-module="game-v04911.mjs"></script>
 </body>
 </html>

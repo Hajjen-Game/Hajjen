@@ -1,4 +1,29 @@
-# SKYSHIFT 0.4.9.1 – Spectral Zone Wave & Palette Harmony
+# SKYSHIFT 0.4.9.1.1 – Mobile Boot & Menu Reliability Hotfix
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Reported failure
+
+Samsung Android landscape screenshot of 0.4.9.1 shows the rendered HTML start menu, but tapping **START RUN** or **FULLSCREEN** has no effect. There is no visible error overlay or active game canvas. This indicates a failure/delay somewhere between loading the page and the game's listener initialization; a screenshot alone cannot identify whether the culprit is a failed Three.js module/CDN fetch, slow initialization, or a WebGL context exception.
+
+Previously, the game ran `initScene()` **before** attaching the controls, while an HTML static module could fail during import before the game's own `try/catch` ran. The menu then remained visually attractive but inert. The prior desktop WebGL test could not detect this device-specific bootstrap failure.
+
+## Changes
+
+- `boot-v04911.js` is dependency-free, nonmodule JavaScript loaded from the bottom of the HTML **before** importing any game modules. Its capture-phase listeners keep START RUN and FULLSCREEN responsive during slow or failed module loading. Start on a slow device queues an automatic game start on readiness; an early user-gesture fullscreen request is issued immediately. Fullscreen works independently of 3D initialization.
+- Dynamic `import("./game-v04911.mjs?v=0.4.9.1.1")` reports module/network failures via a visible `boot-state` panel rather than leaving dead buttons. A failed start changes the button to **FÖRSÖK IGEN** and retries on reload. Loading status appears if import takes time.
+- `game-v04911.mjs` connects fullscreen and game input handlers **before** heavy `initScene()`, signals ready only after the renderer, track and start state have been successfully built, and reports startup exceptions back to the bootstrap as well as the original error overlay.
+- On devices reporting ≤4 GB RAM through `navigator.deviceMemory`, disable WebGL antialiasing and limit render DPR to 1.35; newer devices keep the existing settings. Retry the renderer context without antialiasing/default GPU preference if the primary context creation throws. This is a startup-safety path only, not an optimization target for the old Samsung.
+- The spectral color wave, rail shaders, four palettes, course, physics, ship, boost and camera remain unchanged from 0.4.9.1.
+- Audit file `skyshift-zone-v04911-audit.json` and public page version 0.4.9.1.1.
+
+## QA
+
+- `mobile-boot-v04911.test.mjs` checks the early bootstrap, protected failure handling and stable physics imports.
+- `browser-smoke-v04911.mjs` still renders and tests the violet and jade spectral wave in real desktop Chrome WebGL. It additionally creates an Android-landscape **touch** viewport and taps START RUN to verify the transition to active HUD, and deliberately aborts a module request in another mobile viewport to verify visible retry messaging and an available fullscreen button.
+- These tests establish web browser-level behavior. Real Samsung/iPhone testing is still required to identify any device-specific GPU or CDN issue.
+
+## Previous release — 0.4.9.1
 
 **Playable URL:** https://hajjen-game.github.io/Hajjen/skyshift/
 

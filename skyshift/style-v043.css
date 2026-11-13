@@ -128,3 +128,12 @@
 
 /* SKYSHIFT 0.4.3: fullscreen mobile HUD remains legible at 2x racing speed. */
 #flight-state{text-shadow:0 0 10px rgba(42,171,210,.18)}
+
+/* 0.4.9.1.1 – show mobile bootstrap/load errors before WebGL can initialize. */
+.boot-state{margin-top:12px;padding:9px 12px;max-width:385px;
+ font-size:11px;line-height:1.5;letter-spacing:.03em;color:#c7efff;
+ border-left:2px solid #5bc8eb;background:rgba(4,21,37,.70);
+ border-radius:3px;overflow-wrap:anywhere}
+.boot-state.failed{color:#ffe5d8;border-left-color:#ff997d;
+ background:rgba(60,19,25,.84)}
+@media(max-height:490px){.boot-state{font-size:10px;padding:5px 8px;margin-top:6px}}

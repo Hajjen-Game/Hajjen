@@ -97,7 +97,10 @@ test("passing outside the active lane, or in the air, never activates",()=>{
  assert.equal(boostPadAt(pad.start+3,0)?.id,pad.id);
 });
 test("old handling is unchanged without an active boost pad",()=>{
- const a=newFlightState(),b=previous.newFlightState();
+ const a=placed(105),b=previous.newFlightState();
+ const start=previous.positionAt(105,0,0);
+ Object.assign(b,{s:105,lateral:0,worldX:start.x,worldZ:start.z,
+  heading:previous.headingAt(105),y:TRIAL.hoverHeight});
  for(let i=0;i<60;i++){
   const steer=i<30?.30:-.15;
   stepFlight(a,1/120,{steer});

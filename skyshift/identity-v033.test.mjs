@@ -72,7 +72,8 @@ test("identity implementation uses batched surface geometry and instanced world 
 
 test("active HTML and game load 0.3.3 without changing flight physics",()=>{
   const page=read("index.html"),game=read("game-v033.mjs");
-  assert.match(page,/game-v033\.mjs\?v=0\.3\.3/);
+  assert.match(page,/game-v0331\.mjs\?v=0\.3\.3\.1/);
+  assert.match(read("game-v0331.mjs"),/from "\.\/identity-v0331\.mjs"/);
   assert.match(game,/from "\.\/trial-v03\.mjs"/);
   assert.match(game,/from "\.\/identity-v033\.mjs"/);
   assert.match(game,/from "\.\/neon-v032\.mjs"/);

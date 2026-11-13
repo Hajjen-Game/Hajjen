@@ -30,13 +30,20 @@ try{
   if(/\.mjs|three\.module\.js/.test(request.url()))
    errors.push("Script fetch: "+request.url());
  });
- await page.goto("http://127.0.0.1:8765/skyshift/?smoke=049",
+ await page.goto("http://127.0.0.1:8765/skyshift/?waveSmoke=1",
   {waitUntil:"networkidle",timeout:60000});
  await page.locator("#start-btn").waitFor({state:"visible",timeout:25000});
  await page.locator("#start-btn").click();
- // Allow the first actual fixed-step world-space wave (10 s) to catch the
- // craft from behind and update the HUD; this also compiles the wave shader.
- await sleep(13400);
+ // Software Chrome may simulate only a fraction of real elapsed time while
+ // composing HDR frames. Use the explicit test-only hook to advance fixed
+ // simulation time through 10 s, then render a real zone-02 shader frame.
+ await sleep(1400);
+ const wave=await page.evaluate(()=>window.__skyshiftWaveSmoke?.());
+ console.log("Injected fixed-time wave integration:",JSON.stringify(wave));
+ if(!wave||wave.zone!==2||wave.flightSeconds!==12.5||
+    !(wave.frontS>wave.playerS))
+  throw new Error("Browser zone wave did not overtake ship from behind");
+ await sleep(1600);
  const result=await page.evaluate(()=>{
   const visible=el=>!!el&&!el.classList.contains("hidden");
   return {
@@ -57,7 +64,7 @@ try{
     !result.hudVisible||result.errorVisible||!result.canvasWidth||
     result.zoneNumber!=="02"||
     errors.length)throw new Error("0.4.9 browser/WebGL rendering smoke failed");
- console.log("PASS: 0.4.9 WebGL rendered first live palette transition at 10 s.");
+ console.log("PASS: 0.4.9 Chrome/WebGL renders a palette wave triggered at fixed-flight time 10 s.");
 }finally{
  await browser?.close();
  server.kill("SIGTERM");

@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#050914">
   <link rel="icon" href="data:,">
-  <meta name="description" content="SKYSHIFT 0.4.8.4 – Hard-Edge Craft Read & Engine Trail Language: sharper Manta wings, dual exhaust light and responsive racing streaks.">
-  <title>SKYSHIFT · Hard-Edge Craft Read & Engine Trail Language 0.4.8.4</title>
+  <meta name="description" content="SKYSHIFT 0.4.9 – Extended Circuit & Zone Wave 1.0: 1530m 3D antigravity circuit and world-space color waves every 10 seconds.">
+  <title>SKYSHIFT · Extended Circuit & Zone Wave 1.0 · 0.4.9</title>
   <script type="importmap">
     {
       "imports": {
@@ -15,7 +15,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="./style-v043.css?v=0.4.8.4">
+  <link rel="stylesheet" href="./style-v043.css?v=0.4.9">
 </head>
 <body>
   <div id="app">
@@ -23,7 +23,7 @@
     <div class="vignette" aria-hidden="true"></div>
     <div id="zone-flash" aria-hidden="true"></div>
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ MANTA BLADE / INTERCEPTOR CUT · 0.4.8.4</span></div>
+      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ EXTENDED CIRCUIT · ZONE WAVE 0.4.9</span></div>
       <div class="top-actions">
         <button id="fullscreen-btn" class="top-button fullscreen-toggle hidden" type="button" title="Fullscreen" aria-label="Fullscreen" aria-pressed="false">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>
@@ -39,7 +39,7 @@
       </div>
       <div class="hud-center">
         <div class="eyebrow">FLIGHT ZONE</div>
-        <div class="zone-number" id="zone-number">01</div><div id="sector-name" class="sector-name">ZONE RIBBON</div>
+        <div class="zone-number" id="zone-number">01</div><div id="sector-name" class="sector-name">MIDNIGHT</div>
         <div class="zone-progress"><div id="zone-progress-fill"></div></div>
       </div>
       <div class="hud-right">
@@ -48,7 +48,7 @@
         <div class="hud-note" id="speed">SPEED 1.00×</div>
       </div>
     </div>
-    <div id="zone-banner" class="zone-banner hidden" aria-live="polite"><small>ENTERING SECTOR</small><strong id="zone-banner-number">02</strong><span id="zone-banner-name">VIOLET PULSE</span></div>
+    <div id="zone-banner" class="zone-banner hidden" aria-live="polite"><small>ZONE SHIFT</small><strong id="zone-banner-number">02</strong><span id="zone-banner-name">VIOLET PULSE</span></div>
     <div id="toast" class="toast hidden" aria-live="polite"></div>
     <div id="mobile-controls" class="mobile-controls hidden">
       <div id="stick" class="stick" role="group" aria-label="Styr vänster och höger">
@@ -59,7 +59,7 @@
     </div>
     <section id="menu" class="screen">
       <div class="screen-content">
-        <div class="kicker">MANTA BLADE · TWIN THRUST 0.4.8.4</div>
+        <div class="kicker">MANTA BLADE · ZONE WAVE 0.4.9</div>
         <h1>SKY<span>SHIFT</span></h1>
         <div class="rule"></div>
         <p class="tagline">TWICE THE SPEED.<br>ONE CLEAN RACING LINE.</p>
@@ -69,7 +69,7 @@
           Fullscreen stöds inte i den här webbläsarvyn. Öppna SKYSHIFT direkt i Chrome via webbläsarens meny (⋮) och prova igen.
         </div>
         <div class="instructions">STEER <b>A / D · ← →</b><br><span>Mobile: drag left to steer · no jumping in this test</span></div>
-        <div class="prototype-label">510 M · MANTA BLADE · DUAL ENGINE STREAKS · 0.4.8.4</div>
+        <div class="prototype-label">1530 M · EXTENDED CIRCUIT · COLOR WAVE EVERY 10 S · 0.4.9</div>
       </div>
     </section>
     <section id="pause-screen" class="screen hidden" aria-label="Pausmeny">
@@ -92,6 +92,6 @@
     <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
     <div id="error" class="error hidden" role="alert"></div>
   </div>
-  <script type="module" src="./game-v0484.mjs?v=0.4.8.4"></script>
+  <script type="module" src="./game-v049.mjs?v=0.4.9"></script>
 </body>
 </html>

@@ -1,4 +1,40 @@
-# SKYSHIFT 0.4.8.1 – Zone Surface Rebuild & Premium Track Material
+# SKYSHIFT 0.4.8.2 – Premium Ship Identity & Track Spine
+
+**Live:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Why this pass
+
+Review of the 0.4.8.1 phone video showed the new cohesive PBR road surface working well, but the tiny box-and-cone prototype craft no longer matched the road's quality, and the wide dark central strip could benefit from a subtle speed reference. Preserve the camera and flight feel the player likes.
+
+## Sculpted "Astra Needle" racing ship
+
+- `premium-ship-v0482.mjs` builds a purpose-designed low, tapered center hull from **eight joined axial cross-sections**, with shared indexed vertices and smooth surface normals, no rectangular main body or primitive cone nose.
+- A second **solid, swept double-wing structure** (matching top/bottom and closed edges) provides a purposeful compact craft silhouette, rather than flat overlapping wing stickers.
+- A longitudinal canopy shell with six shaped stations replaces the glass box. Satin ice titanium, graphite shoulder channels, darker canopy and subdued cyan light tips form a deliberate, cohesive palette.
+- Two recessed circular engine exhausts sit inside dark tapered nacelles, with a subtle center engine bridge. Reuse the existing `shipGlow` material and return **the same `enginePlumes` and `engineCore` animation handles** to `game-v0482.mjs`. Reuse the existing single engine point light—**zero new dynamic lights**.
+- The old large extraneous decorative lines and mechanical box parts are not carried forward.
+- No changes to position, heading, steering yaw, banking spring, boost, guardrail collision, shadow logic or chase camera.
+
+## Minimal segmented track spine
+
+- `premium-track-v0482.mjs` keeps the exact indexed 0.4.8.1 PBR road and shader placement.
+- One subtle **center spine** is added as purely pixel-shaded road paint in the existing material: **11.5m repetition, around 8m of visible dash**, soft anti-aliased sides (about 0.15m full characteristic width), **23% of the guide tone**.
+- It does **not emit light**, does **not create geometry**, and loses **80% strength over functional boost patches** so boosts remain readable.
+- Existing long icy-white parallel guides, restrained teal bands, small panel seams, and subtle amber boost inlays stay untouched. The spine is intentionally a small speed-reference detail, not a new luminous stripe.
+
+## Version / build integration
+
+- `game-v0482.mjs`: activates new craft model and new road shader while retaining physics from `trial-v048.mjs`; exports `skyshift-ship-v0482-audit.json` with craft and spine metadata.
+- `index.html`: points to `game-v0482.mjs?v=0.4.8.2` so the active page reflects the release.
+- `premium-ship-v0482.test.mjs`: mesh index validity, symmetry and bounds, canopy/profile quality, linked engine animation, absence of primitive geometry, narrow/low-contrast shader spine and unchanged physics.
+- `.github/workflows/skyshift-tests.yml`: includes the historic tests and 0.4.8.2 real browser WebGL smoke.
+- Pages guard confirms deployed HTML and game module, not just GitHub contents.
+
+**Phone review:** Examine craft shape from behind at the 0.4.8.1 camera angle, boost and bank sections. Confirm the cockpit reads as a coherent hull and the engines have depth rather than looking like floating neon blocks. The spine should be visible only close to the ship, barely noticeable at the horizon, and should not compete with boost markings. Compare iPhone FPS / draw calls against 0.4.8.1. If the spine remains too subtle, adjust shader contrast gently before widening it.
+
+---
+
+## Previous release — 0.4.8.1
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 

@@ -94,6 +94,8 @@ test("material layers are separate and only inlays follow zone color",()=>{
  const members=[],world={add(m){members.push(m);}};
  const result=installAeroBarriers(THREE,world);
  assert.equal(members.length,3);
+ assert.equal(members[0].material.flatShading,true,
+   "angular metal must not shade like a rounded tube");
  assert.equal(result.drawBatches,3);
  assert.equal(result.accentWidthMeters,.035);
  assert.equal(result.chevrons,createAeroDetailData().curveChevrons);

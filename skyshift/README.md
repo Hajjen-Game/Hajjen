@@ -1,55 +1,42 @@
-# SKYSHIFT 0.4 – Track Flow Rebuild
+# SKYSHIFT 0.4.1 – True Banking & Manual Flight
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 
-First Flight has been rebuilt as a **track-led space arcade trial**. Endless is still deferred. A finite 1300-metre course remains with six mandatory platform jumps, Sky Islands, optional safe/risk split, checkpoints, shield and finish. The visual focus has shifted from canyon props to the raceway, spacecraft and active steering.
+0.4.1 replaces the last spline-following steering with genuine pilot-controlled 3D flight and banked raceway geometry. **Only forward speed remains automatic.** Steering, heading and world-space X/Z movement are player owned. The trial remains finite with six mandatory jumps, the island sequence, checkpoints, split routes, fullscreen and HDR rendering.
 
-## New in 0.4
+## Manual flight physics
 
-### 1. No canyon – open space
-- `space-v04.mjs`: three restrained star fields and two almost imperceptible nebula haze sprites; no geological terrain, artificial floor, towers or clutter.
-- The camera stays track-relative, keeping the craft free to move laterally on screen.
+- `trial-v041.mjs`: worldX/worldZ and heading are independent state variables. Steering rotates the ship's *own* heading; world displacement is derived from that heading and forward speed.
+- Local road s/lateral coordinates now come from a bounded nearest-segment projection, used only for road/collision queries, checkpoint events and UI. That projection NEVER modifies heading or worldX/worldZ.
+- Removed the synthetic `turnLoadAt` force entirely. Neutral steering does not turn toward the road, and a misjudged bend can send the ship off the edge.
+- Pure deterministic physics with controlled turn rate and a smooth input response rather than hidden guide rails.
+- Genuine checkpoint resets restore a coherent world position/heading, not just logical spline coordinates.
+- The personal-best storage key is versioned for the new driving model so old assisted times do not compete.
 
-### 2. Real authored track flow
-- `trial-v04.mjs`: nine hand-designed sweepers and linked-turn segments with stronger heading angles (.28 to 1.07 radians), starting shortly after launch.
-- Normal deck widths increase by roughly 20–25%, reaching approximately 20–21.2 m. Island pads get a modest readability increase without making lateral jumps optional.
-- All road mesh vertices, jumping gaps, lane splits, guardrails and physics use the same authored positions and widths; no misaligned visuals.
-- The deck's vertical sidewalls have a subtle structural light trim. No decorative black squares or fake platform bridges.
-- Gate widths are derived from track width.
+## Physical 3D banking
 
-### 3. Curves demand steering
-- Previously the craft *automatically followed the centreline* of each curve, requiring little player input.
-- `turnLoadAt(s)` adds modest, signed lateral load driven by heading derivative and speed. The load is **fully countersteerable**; the ship continues moving forward automatically.
-- Turn-load is explicitly disabled near mandatory jumps, the island sequence and the split risk lane, preserving fair precision challenges.
-- A wider deck supports deliberate carving without simply removing challenge.
-- `stepFlight` records steering time, reversal count, total curve load and peak curve load.
+- `bankAt(s)` uses authored road curvature to create a continuously varying camber up to **25°**, not a camera-only trick.
+- `positionAt(s,lateral,height)` positions every road mesh, side rail, neon core, guide mark and landing cue in the same banked road frame.
+- Ground collision and landing code sample `surfaceHeightAt(s,lateral)` from that geometry. The contact shadow follows the true surface normal.
+- Bank angle gradually goes to zero at mandatory jumps, lateral Sky Islands and split cutouts, preserving fair launch/landing edges.
 
-### 4. Camera and craft motion
-- Increased turn anticipation and more room for the ship to swing across the camera frame.
-- The ship's visual lean reacts to turn shape as well as lateral velocity; the camera has a very small roll in sweeps. These are **visual cues only**; actual banked road geometry will be a separate future step.
+## Craft and chase camera
 
-### 5. Performance and controls
-- Retains modern GPU target, original refined HDR bloom and 0.3.3.1 luminance – Galaxy A51 is not the quality ceiling.
-- Existing fullscreen, mobile steering and jump controls remain unchanged.
-- Old versions and `world-v034.mjs` stay in repository for comparison but are not loaded by the active game.
-- Existing personal-best storage remains, although the redesigned course's geometry means old times are not directly comparable.
+- Craft yaw follows `flight.heading`, rather than `poseAt(s).heading`.
+- Third-person camera follows the real player heading and world position, not the track's path; leaving the track is visible rather than automatically corrected.
+- Ship roll is composed from physical deck camber and actual input. Engine trails follow real craft heading instead of the old road tangent (`premium-v041.mjs`).
+- Small horizon roll keeps the camera readable while the entire 3D road actually banks.
 
-## Active files
-- `trial-v04.mjs` – new course geometry and turn-force physics
-- `game-v04.mjs` – WebGL road, camera, ship motion, controls and telemetry
-- `identity-v04.mjs` – minimal collision-safe surface markings
-- `space-v04.mjs` – quiet starfield / atmospheric depth
-- `index.html` and `style-v04.css` – active HTML/CSS
-- `ship-v034.mjs`, `premium-v032.mjs`, `neon-v032.mjs`, `luminance-v0331.mjs`, `fullscreen-v02.mjs` – retained visual and control modules
+## Tests, metrics and constraints
 
-## Test
-- `node --test skyshift/flow-v04.test.mjs` verifies bend geometry and demand, countersteering, safe gap crossings and continuous full-course completion.
-- CI also runs all historical tests of earlier versions.
-- Automated tests cannot validate subjective flight feel or screenshots, so mobile playtesting is required. Check 35–116m, 181–258m, 687–839m and 1130–1248m for stronger steering.
+- `truebank-v041.test.mjs` covers free-flight/no autopilot, left/right yaw, physical bank height and normals, geometry projection, checkpoint correction, independent jump trajectories, and active module wiring.
+- CI keeps historical 0.4 tests scoped to the archived 0.4 renderer/fixed-track files.
+- Audit now records real steering time, lateral off-track time, peak banking, heading-error statistics and aggregated draw calls/triangles.
+- Renderer workload counters sum the whole HDR composer rather than logging only its last pass. They remain *draw-call proxies*, not direct GPU timing.
+- Existing HDR bloom settings, modern GPU target (up to 2× DPR), space environment and the six handcrafted gaps are retained. No wall rides, inverted gravity or Chroma Rush color wave yet.
 
-## Next, not yet implemented
-- 0.4.1: physically banked road geometry and deeper corner attitude.
-- 0.5: a Chroma Rush-inspired traveling zone color wave in 3D.
-- 0.6: optional wall riding and unusual gravity sections, only once flat racing feels good.
+## Browser testing
 
-Other projects in the repository are unchanged.
+Test long sweepers around 40–116m, 181–258m, 687–839m, and 1130–1248m. A neutral stick should now leave the road in a bend; controlled countersteering should trace it. Check the transition into/out of genuine bank and the Sky Islands jumping sequence. Report any launch/landing or unexpected snap in a 0.4.1 audit.
+
+Other games in the repository are unchanged.

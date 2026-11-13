@@ -1,0 +1,122 @@
+:root{--neon:#66e8ff;--neon2:#7b78f9;--white:#eaf5ff;--muted:#9baec9;--panel:rgba(6,13,31,.74)}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#060a16;color:var(--white);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}button{font:inherit;cursor:pointer;touch-action:manipulation}#app,#game{position:absolute;inset:0;width:100%;height:100%}#game{display:block;outline:0}.hidden{display:none!important}.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 86% 75% at 50% 43%,transparent 30%,rgba(1,4,13,.44) 100%)}#zone-flash{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 60%,transparent 12%,var(--neon) 100%);opacity:0;transition:opacity .8s ease}#zone-flash.active{opacity:.22;transition:opacity .12s ease}.topbar{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:calc(13px + env(safe-area-inset-top)) calc(23px + env(safe-area-inset-right)) 10px calc(23px + env(safe-area-inset-left));z-index:5;pointer-events:none}.brand{font-size:12px;font-weight:850;letter-spacing:.23em;text-shadow:0 2px 8px #000}.brand-mark{font-size:22px;color:var(--neon);vertical-align:-1px;margin-right:6px}.submark{font-size:9px;font-weight:600;color:#7d92b0;letter-spacing:.11em}.top-button{pointer-events:auto;background:rgba(4,11,28,.6);color:#d6edff;border:1px solid #58738b60;border-radius:12px;min-height:38px;min-width:43px;backdrop-filter:blur(10px);font-size:20px}.hud{position:absolute;z-index:3;top:calc(62px + env(safe-area-inset-top));left:calc(22px + env(safe-area-inset-left));right:calc(22px + env(safe-area-inset-right));display:grid;grid-template-columns:1fr auto 1fr;gap:16px;pointer-events:none}.hud-left{max-width:175px}.hud-center{text-align:center;min-width:100px}.hud-right{text-align:right}.eyebrow{font-size:9px;letter-spacing:.18em;color:#c2d7e7;font-weight:800}.eyebrow b{margin-left:8px;color:#f7fcff}.shield-track,.zone-progress{height:5px;background:rgba(170,215,242,.17);border-radius:99px;overflow:hidden;margin-top:9px}.shield-track>div,.zone-progress>div{height:100%;width:100%;background:var(--neon);box-shadow:0 0 12px var(--neon);border-radius:99px;transition:width .22s linear}.hud-note{font-size:10px;font-weight:800;letter-spacing:.13em;color:#b4cbe1;margin-top:9px}.zone-number{font-size:34px;font-weight:900;line-height:1.08;text-shadow:0 0 23px var(--neon);letter-spacing:.08em}.zone-progress{max-width:96px;margin:5px auto}.distance{font-weight:850;font-size:23px;letter-spacing:.07em;margin-top:4px}.distance small{font-size:10px;color:#b7cddd}.zone-banner{z-index:4;position:absolute;top:22%;left:50%;transform:translate(-50%,-12px);display:flex;align-items:center;flex-direction:column;text-shadow:0 0 28px var(--neon);pointer-events:none;animation:banner 2.4s ease both}.zone-banner small{font-size:11px;letter-spacing:.3em;font-weight:800}.zone-banner strong{font-size:78px;line-height:1;font-weight:950}.zone-banner span{font-size:14px;letter-spacing:.22em;font-weight:800}@keyframes banner{0%{opacity:0;transform:translate(-50%,-12px) scale(.96)}18%{opacity:1;transform:translate(-50%,0) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-16px)}}.toast{position:absolute;z-index:4;top:29%;left:50%;transform:translateX(-50%);background:rgba(8,16,35,.77);border:1px solid #b4e8f750;border-radius:8px;padding:10px 18px;font-size:12px;letter-spacing:.11em;font-weight:850;white-space:nowrap;pointer-events:none}.mobile-controls{position:absolute;z-index:6;bottom:calc(21px + env(safe-area-inset-bottom));left:calc(32px + env(safe-area-inset-left));right:calc(32px + env(safe-area-inset-right));display:flex;justify-content:space-between;align-items:end;pointer-events:none}.stick{width:173px;height:95px;display:flex;flex-direction:column;justify-content:end;align-items:center;pointer-events:auto;touch-action:none}.stick-track{width:156px;height:63px;border-radius:99px;border:1px solid #b7dbfa60;background:rgba(7,22,42,.55);box-shadow:inset 0 0 25px #143c5999,0 0 25px #0005;position:relative;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(9px)}.stick-track:after{content:"";position:absolute;left:50%;top:10px;bottom:10px;border-left:1px solid #9dcbde55}.stick-knob{position:absolute;z-index:1;width:47px;height:47px;border-radius:50%;border:2px solid var(--neon);background:radial-gradient(circle,#b5faff66,#26739870);box-shadow:0 0 24px #31d1f36a, inset 0 0 12px #9cf5ff40;transform:translateX(0)}.stick-caption{font-size:9px;letter-spacing:.21em;margin-top:9px;color:#b5d2e2;font-weight:800}.jump-button{pointer-events:auto;width:108px;height:108px;border-radius:50%;border:2px solid var(--neon);background:radial-gradient(circle at 45% 30%,#7cecff48,rgba(12,44,75,.7));color:#effcff;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;font-size:14px;font-weight:900;letter-spacing:.1em;box-shadow:0 0 33px #18cdff3d,inset 0 0 23px #aaf4ff28;touch-action:none}.jump-button:active,.jump-button.held{transform:scale(.95);box-shadow:0 0 33px #2ddfffaa}.jump-arrow{font-size:28px;line-height:1.1}.screen{position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,rgba(2,7,19,.94) 0%,rgba(3,9,22,.78) 51%,rgba(3,9,23,.46) 100%);backdrop-filter:blur(3px)}.screen-content{width:min(510px,calc(100vw - 48px));margin-left:clamp(0px,4vw,80px)}.screen-content.compact{width:min(420px,calc(100vw - 48px))}.kicker{color:var(--neon);font-size:11px;letter-spacing:.25em;font-weight:850;margin-bottom:14px}.screen h1{font-size:clamp(54px,9vw,108px);letter-spacing:-.075em;font-style:italic;line-height:.9;margin:0;white-space:nowrap;text-shadow:0 4px 40px #152c60}.screen h1 span{color:var(--neon)}.screen h2{font-size:clamp(42px,8vw,74px);letter-spacing:-.04em;font-style:italic;line-height:1;margin:0 0 23px}.rule{width:70px;height:3px;background:var(--neon);box-shadow:0 0 22px var(--neon);margin:30px 0 24px}.tagline{font-size:clamp(17px,2.3vw,22px);font-weight:760;line-height:1.38;letter-spacing:.12em;color:#d7e6f8;margin:0 0 27px}.primary,.secondary{display:flex;justify-content:space-between;align-items:center;gap:22px;min-width:210px;border-radius:5px;padding:15px 18px;font-weight:900;letter-spacing:.16em;font-size:12px;border:1px solid var(--neon);margin-top:12px}.primary{background:var(--neon);color:#071323;box-shadow:0 5px 32px #26ceec35}.primary span{font-size:22px;line-height:.6}.secondary{background:#08172dc7;color:#e0efff;border-color:#77a4c250}.primary:focus-visible,.secondary:focus-visible,.top-button:focus-visible{outline:2px solid white;outline-offset:3px}.instructions{color:#93acc5;font-size:11px;letter-spacing:.09em;line-height:2.2;margin-top:24px}.instructions b{color:#e6f5ff}.instructions i{display:inline-block;width:17px}.instructions span{font-size:10px;color:#7994ad}.prototype-label{font-size:9px;letter-spacing:.15em;color:#6884a3;margin-top:22px}.summary{display:grid;grid-template-columns:1fr auto;gap:12px;margin:18px 0 25px;max-width:320px;border-top:1px solid #7890ab44;border-bottom:1px solid #7890ab44;padding:15px 0}.summary span{font-size:10px;letter-spacing:.12em;color:#9bb6ca;font-weight:850}.summary strong{font-size:17px;letter-spacing:.06em;text-align:right}.rotate{display:none;position:absolute;inset:0;z-index:12;background:#071226;color:#ecfaff;align-items:center;justify-content:center;flex-direction:column;text-align:center;gap:13px;padding:25px}.rotate-icon{font-size:65px;color:var(--neon);transform:rotate(-22deg)}.rotate strong{font-size:17px;letter-spacing:.17em}.rotate span{font-size:13px;color:#a1b8cd}.error{position:absolute;z-index:15;inset:auto 10px 10px;background:#1c0d1b;border:1px solid #f979a9;color:#fff;padding:18px;border-radius:8px;font-size:13px}@media(max-height:490px){.screen-content{transform:scale(.84);transform-origin:center left}.screen h1{font-size:min(85px,13vh)}.rule{margin:16px 0}.tagline{margin-bottom:12px}.instructions{margin-top:12px}.prototype-label{margin-top:10px}.hud{top:42px}.mobile-controls{bottom:calc(9px + env(safe-area-inset-bottom))}.jump-button{width:83px;height:83px}.stick{height:74px}.stick-track{height:51px}.stick-knob{width:39px;height:39px}}@media(max-width:810px){.submark{display:none}.hud{gap:4px;left:15px;right:15px}.hud-left{max-width:110px}.eyebrow{font-size:8px}.hud-note{font-size:8px}.distance{font-size:19px}.zone-number{font-size:27px}.topbar{padding-left:15px;padding-right:15px}.screen-content{margin-left:0}.screen h1{font-size:clamp(45px,12vw,85px)}}@media(orientation:portrait) and (max-width:850px){.rotate{display:flex}}@media(hover:hover) and (pointer:fine){.mobile-controls{opacity:.42;transition:opacity .2s}.mobile-controls:hover{opacity:1}}@media(prefers-reduced-motion:reduce){.zone-banner{animation:none;transition:none}#zone-flash{transition:none}}
+
+/* SKYSHIFT 0.2 – track-aligned camera, short trial HUD / readable mobile layout */
+.sector-name{color:#bcefff;font-size:9px;font-weight:900;letter-spacing:.22em;text-align:center;line-height:1.1}
+.hud-center .zone-progress{max-width:110px;margin-top:6px}
+.hud-right{padding-right:46px}
+.zone-banner{top:29%;animation:sector-banner 1.75s ease both}
+.zone-banner strong{font-size:clamp(42px,6vw,58px);letter-spacing:.04em}
+.zone-banner span{font-size:12px}
+.zone-banner small{font-size:9px;letter-spacing:.24em}
+@keyframes sector-banner{
+  0%{opacity:0;transform:translate(-50%,-14px) scale(.95)}
+  19%{opacity:1;transform:translate(-50%,0) scale(1)}
+  74%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-12px)}
+}
+#final-title.success{color:#86ebff}
+.summary{gap:9px;padding:11px 0;margin:12px 0 14px}
+.summary span{font-size:9px}
+.summary strong{font-size:14px}
+@media(max-height:550px){
+  .screen-content.compact{transform:scale(.79);transform-origin:center center}
+  .screen-content.compact h2{font-size:56px;margin-bottom:8px}
+  .screen-content.compact .summary{gap:7px;margin:8px 0;padding:8px 0}
+  .screen-content.compact .primary,.screen-content.compact .secondary{padding:11px 16px;margin-top:8px}
+}
+@media(max-width:810px){.hud-right{padding-right:45px}}
+@media(max-height:460px){
+  .zone-banner{top:34%}
+  .zone-banner strong{font-size:41px}
+}
+@media(prefers-reduced-motion:reduce){.zone-banner{animation:none}}
+
+/* SKYSHIFT 0.2.1 – immersive fullscreen layout */
+.topbar{z-index:9}
+.top-actions{display:flex;align-items:center;gap:9px;pointer-events:auto}
+.top-actions .top-button{min-width:43px;min-height:40px;display:grid;place-items:center}
+.top-actions .top-button.active{color:var(--neon);border-color:var(--neon);background:rgba(9,48,66,.88)}
+.menu-fullscreen{max-width:235px;min-width:210px;justify-content:center;padding:12px 16px;margin-top:9px;letter-spacing:.12em}
+.fullscreen-help{font-size:11px;line-height:1.4;color:#ffd89b;margin-top:11px;max-width:340px;border-left:2px solid #ffc568;padding:7px 11px;background:rgba(27,22,36,.68)}
+#app:fullscreen,#app:-webkit-full-screen{position:fixed;inset:0;width:100%;height:100%;background:#060a16;overflow:hidden}
+#app:fullscreen #game,#app:-webkit-full-screen #game{width:100%;height:100%}
+.hud{top:calc(69px + env(safe-area-inset-top))}
+@media(max-height:490px){.hud{top:51px}.menu-fullscreen{padding:9px 12px;margin-top:7px}}
+@media(max-width:810px){.top-actions{gap:6px}.top-actions .top-button{min-width:39px;min-height:39px}}
+@media(max-height:410px){.menu-fullscreen{font-size:11px}.fullscreen-help{font-size:10px}}
+
+/* SKYSHIFT 0.3 – premium trial HUD */
+:root{--skyshift-gold:#ffd48b}
+.brand{letter-spacing:.21em}
+.screen h1{text-shadow:0 5px 44px #185a91a8}
+.screen .tagline{max-width:410px}
+#final-title.success{text-shadow:0 0 28px #42e4f04a}
+.hud-center .sector-name{max-width:180px;margin:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zone-banner{top:35%;animation-duration:1.65s}
+.zone-banner strong{font-size:clamp(42px,5.6vw,60px)}
+.zone-banner small{letter-spacing:.14em}
+.jump-button{border-width:2px}
+#mobile-controls .stick-track{background:linear-gradient(125deg,#0a2344c9,#0a254061)}
+#final-style{color:var(--skyshift-gold)}
+@media(max-height:480px){.zone-banner{top:31%}.screen-content.compact{transform:scale(.74)}.tagline{font-size:16px;line-height:1.25}}
+
+/* SKYSHIFT 0.3.1 – premium high-dynamic-range neon UI language */
+:root{--neon:#43ddf0;--dark-surface:#060c18}
+.brand-mark{color:#efffff;text-shadow:0 0 5px white,0 0 13px var(--neon),0 0 25px var(--neon)}
+.brand{color:#effbff;text-shadow:0 0 20px #8bdbff55;letter-spacing:.22em}
+.screen{background:linear-gradient(95deg,rgba(2,6,17,.94) 0%,rgba(5,10,23,.82) 48%,rgba(2,7,18,.34) 100%)}
+.screen h1{letter-spacing:-.075em;text-shadow:0 0 40px #3478b943}
+.screen h1 span{text-shadow:0 0 14px #d9ffff42,0 0 32px var(--neon)}
+.kicker{color:#baf5fd;text-shadow:0 0 18px var(--neon)}
+.rule{height:2px;background:#e6fcff;box-shadow:0 0 5px white,0 0 18px var(--neon),0 0 33px var(--neon)}
+.primary{background:linear-gradient(110deg,#c7fbff,var(--neon));box-shadow:0 0 18px #46daee66,0 8px 44px #0cb4dd51;border:1px solid #d9fdff}
+.primary:hover{filter:brightness(1.1)}
+.secondary{border-color:#80dcee80;box-shadow:inset 0 0 20px #46b2d518}
+.top-button,.fullscreen-toggle{box-shadow:inset 0 0 17px #5daae01c,0 0 18px #5ecbff10}
+.shield-track>div,.zone-progress>div{box-shadow:0 0 6px var(--neon),0 0 18px var(--neon)}
+.zone-number{text-shadow:0 0 9px var(--neon),0 0 24px #27bded77}
+.jump-button{border:2px solid #aefbff;box-shadow:0 0 8px #a5f9ff7c,0 0 25px #25ceec44,inset 0 0 16px #b0f6ff38;
+  background:radial-gradient(circle at 45% 30%,#b8f9ff33,rgba(9,28,53,.79))}
+.stick-track{border-color:#a2edff95;box-shadow:inset 0 0 21px #134c7279,0 0 17px #34c7ed22}
+.stick-knob{border-color:#b7ffff;box-shadow:0 0 9px #b9ffff88,0 0 21px #26d7ed68,inset 0 0 13px #b7fbff55}
+.zone-banner strong{text-shadow:0 0 10px #d9faff,0 0 27px var(--neon)}
+#zone-flash{background:radial-gradient(ellipse 70% 70% at 50% 50%,transparent 32%,var(--neon) 100%)}
+#zone-flash.active{opacity:.10}
+.toast{background:rgba(5,14,30,.84);border-color:#a7edff7a;box-shadow:0 0 18px #47dfff25}
+@media(max-height:470px){.screen h1{font-size:clamp(46px,11vw,78px)}}
+
+/* SKYSHIFT 0.3.3 – immersive, restrained, dual-tone flight-UI finish. */
+:root{--skyshift-cyan:#46cadb;--skyshift-magenta:#c66ea9;--skyshift-amber:#e4b96d}
+.brand-mark{filter:drop-shadow(0 0 5px #61dcee44)}
+.topbar .brand{letter-spacing:.22em}
+.screen h1 span{text-shadow:0 0 22px #43ddf04c}
+.screen .kicker{color:#b4edf5;text-shadow:none}
+.screen .rule{background:linear-gradient(90deg,var(--skyshift-cyan) 0 66%,var(--skyshift-magenta) 66% 100%);
+  box-shadow:0 0 10px #40d9eb2b,0 0 17px #40d9eb21;height:3px}
+.screen .prototype-label{letter-spacing:.12em;color:#89a8c8}
+.screen .primary{background:linear-gradient(110deg,#c1f7ff,#6bdbeb);
+  border-color:#b7f5fd;box-shadow:0 5px 21px #1683b63d}
+#final-style{color:var(--skyshift-amber)}
+.hud .zone-progress{background:rgba(141,181,201,.19)}
+#zone-flash.active{opacity:.09}
+@media(max-height:490px){.screen .prototype-label{font-size:8px}}
+
+/* 0.3.3.1 – let the brighter 3D midtones reach the corners of the screen. */
+.vignette{background:radial-gradient(ellipse 94% 82% at 50% 43%,transparent 40%,rgba(1,4,13,.19) 100%)}
+
+/* SKYSHIFT 0.3.4 – Cleaner surfaces, balanced UI contrast, no extra UI glow. */
+:root{--skyshift-cyan:#6bd0e0;--skyshift-magenta:#ce8dbb}
+.hud .eyebrow{letter-spacing:.14em}
+.brand-mark{filter:drop-shadow(0 0 4px #86d9e64a)}
+.screen .rule{box-shadow:0 0 9px #49b9d742}
+#jump-btn{box-shadow:0 0 7px #71cbef51,inset 0 0 14px #adeafa22}
+
+/* SKYSHIFT 0.4 – space trial: keep the track and navigation as sole heroes */
+.screen{background:linear-gradient(96deg,rgba(3,8,21,.86),rgba(3,8,24,.66) 53%,rgba(2,9,22,.18))}
+.screen h1{text-shadow:0 0 42px rgba(45,169,198,.16)}
+.prototype-label{max-width:500px;letter-spacing:.11em}
+#mobile-controls{touch-action:none}
+
+/* 0.4.1 – manual flight is pilot-owned; UI remains quiet and readable. */
+#flight-state{letter-spacing:.14em}
+#steer-control{touch-action:none}

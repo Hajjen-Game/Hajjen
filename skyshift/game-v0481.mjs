@@ -495,7 +495,7 @@ function announceSector(index){
 function refreshHud(){
  const sector=sectorAt(flight.s);
  UI.sector.textContent=String(sector+1).padStart(2,"0");
- UI.sectorName.textContent=SECTORS[sector].name;
+ UI.sectorName.textContent="ZONE RIBBON";
  UI.shieldFill.style.width=flight.shield+"%";
  UI.shieldText.textContent=flight.shield+"%";
  UI.distance.innerHTML=String(Math.floor(flight.s)).padStart(4,"0")+

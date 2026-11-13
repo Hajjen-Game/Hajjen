@@ -4,8 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#050914">
-  <meta name="description" content="SKYSHIFT 0.4.8 – Boost Lanes & Zone Surface Language: true straight-line speed boosts and bold two-tone macro geometry on the track.">
-  <title>SKYSHIFT · Boost Lanes & Zone Surface Language 0.4.8</title>
+  <link rel="icon" href="data:,">
+  <meta name="description" content="SKYSHIFT 0.4.8.1 – Zone Surface Rebuild & Premium Track Material: integrated flowing guides, subtle technical panels and real boost inlays.">
+  <title>SKYSHIFT · Zone Surface Rebuild & Premium Track Material 0.4.8.1</title>
   <script type="importmap">
     {
       "imports": {
@@ -14,7 +15,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="./style-v043.css?v=0.4.8">
+  <link rel="stylesheet" href="./style-v043.css?v=0.4.8.1">
 </head>
 <body>
   <div id="app">
@@ -22,7 +23,7 @@
     <div class="vignette" aria-hidden="true"></div>
     <div id="zone-flash" aria-hidden="true"></div>
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ BOOST & ZONE SURFACE 0.4.8</span></div>
+      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ PREMIUM ZONE SURFACE 0.4.8.1</span></div>
       <div class="top-actions">
         <button id="fullscreen-btn" class="top-button fullscreen-toggle hidden" type="button" title="Fullscreen" aria-label="Fullscreen" aria-pressed="false">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>
@@ -37,8 +38,8 @@
         <div class="hud-note" id="flight-state">READY</div>
       </div>
       <div class="hud-center">
-        <div class="eyebrow">HANDLING TEST</div>
-        <div class="zone-number" id="zone-number">01</div><div id="sector-name" class="sector-name">TWO SWEEPERS</div>
+        <div class="eyebrow">FLIGHT ZONE</div>
+        <div class="zone-number" id="zone-number">01</div><div id="sector-name" class="sector-name">ZONE RIBBON</div>
         <div class="zone-progress"><div id="zone-progress-fill"></div></div>
       </div>
       <div class="hud-right">
@@ -58,17 +59,17 @@
     </div>
     <section id="menu" class="screen">
       <div class="screen-content">
-        <div class="kicker">BOOST & ZONE SURFACE LAB · PREMIUM VELOCITY 0.4.8</div>
+        <div class="kicker">PREMIUM TRACK MATERIAL · ZONE RIBBON 0.4.8.1</div>
         <h1>SKY<span>SHIFT</span></h1>
         <div class="rule"></div>
         <p class="tagline">TWICE THE SPEED.<br>ONE CLEAN RACING LINE.</p>
-        <button id="start-btn" class="primary">TEST HANDLING <span>↗</span></button>
+        <button id="start-btn" class="primary">START RUN <span>↗</span></button>
         <button id="menu-fullscreen-btn" class="secondary menu-fullscreen" type="button" aria-pressed="false">⛶ FULLSCREEN</button>
         <div id="fullscreen-help" class="fullscreen-help hidden" role="status">
           Fullscreen stöds inte i den här webbläsarvyn. Öppna SKYSHIFT direkt i Chrome via webbläsarens meny (⋮) och prova igen.
         </div>
         <div class="instructions">STEER <b>A / D · ← →</b><br><span>Mobile: drag left to steer · no jumping in this test</span></div>
-        <div class="prototype-label">510 M · REAL BOOST LANES · LARGE COLOR FIELDS · 0.4.8</div>
+        <div class="prototype-label">510 M · EMBEDDED BOOST LANES · FLOWING RACING LINES · 0.4.8.1</div>
       </div>
     </section>
     <section id="pause-screen" class="screen hidden" aria-label="Pausmeny">
@@ -81,7 +82,7 @@
     </section>
     <section id="end-screen" class="screen hidden" aria-label="Resultat">
       <div class="screen-content compact">
-        <div class="kicker">HANDLING LAB · 510 M</div>
+        <div class="kicker">ZONE RIBBON · 510 M</div>
         <h2 id="final-title">FLIGHT ENDED</h2>
         <div class="summary"><span>DISTANCE</span><strong id="final-distance">0 M</strong><span>FINAL SECTOR</span><strong id="final-zone">01</strong><span>BEST CLEAR TIME</span><strong id="personal-best">—</strong><span>FLIGHT TIME</span><strong id="flight-time">0:00</strong><span>PEAK YAW RATE</span><strong id="final-jumps">0°/S</strong><span>OFF-TRACK TIME</span><strong id="final-style">0 S</strong></div>
         <button id="retry-btn" class="primary">RETRY TRIAL <span>↗</span></button>
@@ -91,6 +92,6 @@
     <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
     <div id="error" class="error hidden" role="alert"></div>
   </div>
-  <script type="module" src="./game-v048.mjs?v=0.4.8"></script>
+  <script type="module" src="./game-v0481.mjs?v=0.4.8.1"></script>
 </body>
 </html>

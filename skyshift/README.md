@@ -1,4 +1,34 @@
-# SKYSHIFT 0.4.8 – Boost Lanes & Zone Surface Language
+# SKYSHIFT 0.4.8.1 – Zone Surface Rebuild & Premium Track Material
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Why rebuild rather than tweak?
+
+The user-approved 0.4.7 track and the 0.4.8 +30% boosts functioned, but 0.4.8's large, disconnected violet polygons and bright amber rectangles looked like stickers. They did not convey the architectural, saturated, lane-following material rhythm of the WipEout HD Zone Mode screenshots. This release **removes the detached decals entirely** and rebuilds the road's color language as a continuous, curved, physically based material with a single coherent palette.
+
+## What changed
+
+- **Shader-based road material:** New `premium-track-v0481.mjs` uses one indexed, shared-normal, 510m roadway geometry with custom longitudinal/lateral attributes. Lighting remains MeshStandardMaterial/PBR (metalness 0.52, roughness 0.38). A shader patch paints broad teal side fields, continuous icy-white racing guide lines, a very fine secondary lane spine and near-camera 12m panel seams **within the road material itself**. No extra floating band meshes.
+- **Color is part of the roadway:** Longitudinal lanes always follow banked turns and remain visible far down a straight. Broad side bands gently change their strength over entire curve sections instead of abrupt diagonal triangles. Panel and guide details use restrained contrast to protect high-speed readability.
+- **Embedded boost inlays:** Keep `boost-v048.mjs` and `trial-v048.mjs` unchanged; two genuine +30% boost fields stay at 22–40m and 447–465m. The shader reads these same start/end/lateral bounds, adds subtle warm amber tint in the road and thin amber/white speed-chevron outlines. No raised pads or screen-size orange slabs.
+- **Material-only future palette changes:** Base, band, guide, secondary accent and boost colors are five shader uniforms backed by mutable Three.js Color objects. Changing colors does not rebuild the mesh and can support future zone transition waves, but **no actual zone animation** is implemented here.
+- **Less visual obstruction:** Remove the giant in-world "HANDLING LAB" start billboard/gantry and huge curve signs. Keep a small finish gate/sign as an unmistakable race landmark.
+- **Simpler rendering:** Remove three 0.4.8 overlay draw batches, the old centerline decal mesh, and the obstructive start structure. The premium top deck still uses one draw call. The shader does add per-pixel math, so actual iPhone GPU performance and appearance still require playtesting.
+- **No handling regressions:** Preserve the 0.4.7 Aero-Barriers, 0.4.6 curve shape, 0.4.5 camera, 0.4.4 banking, 120Hz pilot-owned steering and the 0.4.8 boost timing.
+
+## Implementation / QA
+
+- `premium-track-v0481.mjs`: GLSL patcher and PBR material, integrated boost fields, material-color controls and shared indexed road coordinates.
+- `game-v0481.mjs`: active game; adds the new material, removes the old `installZoneSurface` and debug-scale signs, updates version/audit filename.
+- `premium-track-v0481.test.mjs`: checks geometry identity/continuity, shader injection, exact agreement between boost graphics and physics, no floating overlay calls and palette references.
+- `.github/workflows/skyshift-tests.yml`: syntax and full legacy regression tests.
+- `skyshift-premium-v0481-audit.json`: new version tag and material metadata with existing FPS, boost and rail safety telemetry.
+
+**Important:** A passing source-code test cannot prove visual quality or compilation on every mobile GPU. We will verify the live GitHub Pages HTML *and the actual JS module* before reporting release. Review on an iPhone, with screenshots in the same banked bends as 0.4.8. The old version remains available as an archived entrypoint for rollback.
+
+---
+
+## Previous release — 0.4.8
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 

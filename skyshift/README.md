@@ -1,4 +1,46 @@
-# SKYSHIFT 0.4.7 – Aero-Barrier Architecture & Premium Trackside Design
+# SKYSHIFT 0.4.8 – Boost Lanes & Zone Surface Language
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+**Optional Flight Lab:** https://hajjen-game.github.io/Hajjen/skyshift/?flightlab=1
+
+## Intent
+
+The 0.4.7 faceted Aero-Barrier and 0.4.6 curve shape are now approved for the time being. This release adds real integrated boost lanes on authored straight sections, plus highly legible, large-scale multi-color geometry on the deck. Influenced by the abstract/color-block visual identity of WipEout HD Zone Mode and the user's CHROMA RUSH / Chroma Circuit, but with original SKYSHIFT markings and a fixed starting palette. **No animated overall color-zone switching yet.**
+
+## 1. Real boost pads and physical speed changes
+
+- `boost-v048.mjs` is independent of Three.js. Two wide 18m boost pads span lateral positions **-4.6m to +4.6m** in straight sections: **s=22–40m** (launch) and **s=447–465m** (finish).
+- When the craft is grounded, physically inside the pad, and has not triggered that pad before, apply a short boost ramp, target **+30% speed** for **0.92s**. Attack time constant **0.15s**, release **0.23s**, automatically returning smoothly to normal speed. Distinct pad IDs prevent multiple activations from the same pad.
+- `trial-v048.mjs` is the active authoritative pilot simulation; only forward speed is varied. Curvature/heading/position helpers, 1.24rad/s maximum yaw, steering mapping, banked guardrail collider, 44–47m/s base speed, and 120Hz fixed timestep remain as in `trial-v046.mjs`.
+- Real world-space translation uses `state.currentSpeed` rather than applying cosmetic speed lines without additional forward movement.
+- The HUD speed display, camera field-of-view and existing motor trails react to actual current speed; an unobtrusive "BOOST +30%" status/toast and a small existing engine-light intensity increase give feedback without new particles or dynamic lights.
+- Boost activation/count/peak actual speed/duration/distance are recorded in `skyshift-boost-v048-audit.json`. Best run time uses a new storage key to avoid comparison with pre-boost runs.
+
+## 2. Large-scale zone-surface motifs
+
+- `zone-surface-v048.mjs` is a Three.js-independent mesh-data generator with a minimal installer. It creates **eight sweeping violet band fields**, **three large direction-V fields**, and two inset **amber** boost pads with turquoise-white edge and chevrons.
+- Violet/purple is an intentional contrasting secondary color against the existing deep blue track; amber is reserved for functional speed pads. Distinct graphic language ensures decoration does not look like an obstacle or an active boost.
+- Individual band width **3.4–4.3m**, length **12–29m**, projected and banked with the same authoritative `positionAt` geometry as the physical deck. Designed to be readable in motion at 44–61m/s rather than scattered micro-decorations.
+- Static geometry only, with **three batched draw layers** and no flash, screen pulse, extra point lights, extra bloom pass, timers, textures, or new physics colliders. Material opacity/zone tone chosen to limit bloom.
+- `setZonePalette(patternHex,boostHex,accentHex)` recolors **materials only** in a future color-wave release; this version uses a fixed two-tone palette, not color switching.
+
+## 3. Integration and performance
+
+- `game-v048.mjs` is active, preserving `aero-barrier-v047.mjs`, `smooth-track-v046.mjs`, `flight-motion-v044.mjs` and `cinematic-v045.mjs`.
+- `index.html` now uses `game-v048.mjs?v=0.4.8`.
+- Old releases remain for rollback. No existing rail or track geometry is deleted, and the full 510m handling track is still present.
+- Increased static geometry and 3 extra mesh draw batches need an **on-iPhone** FPS check; older Samsung performance is not an optimization target for this change.
+- `boost-zone-v048.test.mjs` checks pads stay on straights, player physically accelerates, pads fire only once, collision/no-assist physics remain unchanged, frame-rate-independent boost recovery, large-pattern geometry budget, palette updates, and active-page wiring.
+- Full CI syntax and regressions run via `.github/workflows/skyshift-tests.yml`.
+
+## Playtest focus
+
+Check that the first pad can be hit by staying roughly centered on the opening straight; that a short, unmistakable acceleration occurs but fades before the first big bend; that the last pad boosts onto the finish straight; that graphics feel large/graphic and complementary rather than hazardous or busy; that the 0.4.7 rails remain premium. Record iPhone frame pacing and export `skyshift-boost-v048-audit.json`.
+
+---
+
+## Previous release — 0.4.7
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 

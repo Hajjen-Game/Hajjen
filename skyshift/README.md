@@ -28,7 +28,7 @@ This is a focused technical pass on the 510-metre Handling Lab. The user confirm
 ## 4. HDR compositing and performance
 
 - Default is **full quality up to 2× device DPR** and the exact 0.3.2 neon/bloom hierarchy.
-- When **90+ consecutive recent samples** indicate prolonged slow frame times (95th percentile over 27ms), the **offscreen** EffectComposer render resolution can fall from 2 to 1.75 to 1.5, with a 9s cooldown. The visible canvas and HTML HUD remain at native quality. Fast devices remain at full settings, and resolution can recover after sustained fast frames (p95 under 17ms).
+- When **90+ recent samples** indicate prolonged slow frame times (95th percentile over 27ms AND a similarly slow median), the **offscreen** EffectComposer render resolution can fall from 2 to 1.75 to 1.5, with a 9s cooldown. The visible canvas and HTML HUD remain at native quality. Fast devices remain at full settings, and resolution can recover after sustained fast frames (p95 under 17ms).
 - This is workload adaptation rather than a permanent global reduction for older hardware; no device model is singled out.
 - The audit now reports **real frame-duration average FPS** (not arithmetic per-frame FPS), minimum observed FPS, p95/p99 frame times, renderer CPU-call timing (not true GPU timing), simulation steps, dropped simulation time and HDR internal rendering DPR.
 - Logging of renderer draw calls/triangles remains indicative, not an absolute GPU load metric.

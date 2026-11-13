@@ -169,3 +169,48 @@ test("active website serves 0.4.1, retains HDR, fullscreen and fresh per-trial r
  assert.match(game,/skyshift-first-flight-v041-audit\.json/);
  assert.match(game,/version:"0\.4\.1"/);
 });
+
+
+test("manual pilot can traverse the complete finite course without spline assistance",()=>{
+ const st=newFlightState(),triggered=new Set();
+ const blend=(s,a,b,x,y)=>{
+   const t=clamp((s-a)/(b-a),0,1);
+   const k=t*t*(3-2*t);
+   return x+(y-x)*k;
+ };
+ const laneAt=s=>{
+   if(s<289)return 0;
+   if(s<328)return blend(s,289,328,0,-3.4);
+   if(s<353)return -3.4;
+   if(s<373)return blend(s,353,373,-3.4,-1.1);
+   if(s<393)return blend(s,373,393,-1.1,2.8);
+   if(s<417)return 2.8;
+   if(s<452)return blend(s,417,452,2.8,0);
+   if(s<535)return 0;
+   if(s<564)return blend(s,535,564,0,-4.6);
+   if(s<682)return -4.6;
+   if(s<725)return blend(s,682,725,-4.6,0);
+   return 0;
+ };
+ let n=0,crashes=0;
+ while(!st.finished&&!st.failed&&n++<16000){
+   const s=st.s,look=Math.min(1299,s+12);
+   const lateral=laneAt(look),aim=positionAt(look,lateral,0);
+   const desired=Math.atan2(aim.x-st.worldX,-(aim.z-st.worldZ));
+   const error=Math.atan2(Math.sin(desired-st.heading),
+     Math.cos(desired-st.heading));
+   const steer=clamp(error*3.0,-1,1);
+   const gap=GAPS.find(g=>!triggered.has(g.id)&&
+     s>=g.start-2.8&&s<g.start-.35);
+   if(gap)triggered.add(gap.id);
+   const r=stepFlight(st,dt,{steer,jumpPressed:!!gap,jumpHeld:st.vy>0});
+   if(r.crashed)crashes++;
+ }
+ assert.equal(st.finished,true,
+   "manual course failed near "+st.s.toFixed(1)+" l="+st.lateral.toFixed(1)+
+   " yaw="+st.heading.toFixed(2)+" crashes="+crashes+
+   " cleared="+st.clearedGaps.join(","));
+ assert.equal(crashes,0,"course should be driveable without automatic steering");
+ assert.equal(st.clearedGaps.length,6);
+ assert.ok(st.steerSeconds>12);
+});

@@ -74,6 +74,9 @@ try{
     result.zoneNumber!=="04"||
     errors.length)throw new Error("0.4.9.1.1 browser/WebGL rendering smoke failed");
  console.log("PASS: 0.4.9.1.1 real WebGL renders first and final spectral fronts plus synchronized rail shaders.");
+ // Stop the desktop HDR render loop before creating an Android SwiftShader tab.
+ // Two simultaneously-rendering tabs starve each other on CI software GPUs.
+ await page.close();
  // Exercise the Android-landscape menu with touch, not desktop click only.
  const mobile=await browser.newPage({
   viewport:{width:914,height:411},deviceScaleFactor:1.2,

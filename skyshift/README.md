@@ -1,4 +1,39 @@
-# SKYSHIFT 0.4.8.4 – Hard-Edge Craft Read & Engine Trail Language
+# SKYSHIFT 0.4.9 – Extended Circuit & Zone Wave 1.0
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Intent
+
+Three times the road length, but **not the old layout looped three times**. Preserve the tested Manta Blade 0.4.8.4, two-engine flight effects, pilot-directed steering, speed curve, guardrail physics and clean premium PBR surface. Add real-time color fronts like WipEout HD Zone Mode and CHROMA RUSH, without screen flashes or false hazards.
+
+## Extended 1,530 m circuit
+
+- `trial-v049.mjs` is the authoritative physics/route: exactly **1,530 m**, **13 connected authored pieces**, **6 major corners** rather than the old 510 m / two corners. The first 424 m is geometrically and mathematically preserved, then a very long Horizon straight, a wide left orbital bend, Vista straight, broad right bend, fast right arc, shorter left closing curve, and finish straight. All turns are genuine constant-curvature arcs with quintic-curvature C2 ramps and no pen-like micro-wiggles.
+- Four *new* road straights have been authored for real boosts. `boost-v049.mjs` has 5 single-use 30% boost inlays: original launch 22–40 m, and 536–558, 815–837, 1080–1102, 1488–1508 m. Each is on a real straight with guardrail clearance, and matches visual pad coordinates in the road shader.
+- New checkpoint positions and the finish arch at 1,523 m. The camera preview is unchanged and uses the updated 1,530 m future heading.
+- New `smooth-track-v049.mjs` and `aero-barrier-v049.mjs` share the v049 authoritative track geometry. Deck sampling is 0.38 m and barrier sweep 0.70 m to control static geometry growth on a mobile phone while retaining continuous shared normals.
+- Static road/beacon/ribbon draw batches remain constant in kind, but **total geometry is larger**, so phone FPS needs testing. No automatic speed increase is introduced.
+
+## Zone Wave 1.0 — behind-to-ahead
+
+- `zone-wave-v049.mjs`: triggers at fixed **10 s, 20 s, 30 s** in **flight simulation time**, not wall clock; pauses do not trigger waves. Each front spawns **90 meters behind** the ship at trigger time and advances forward at **114 m/s world arc-length** until it passes the ship and continues toward the horizon.
+- `premium-track-v049.mjs` updates only shader uniforms (three front positions + stage count); the existing indexed PBR road is rendered **without rebuilding the geometry** and no new road draw layers.
+- The shader blends the **base, side-band, guide-line, accent, and boost** colors over a subtle 6 m transition band. Small near-crest material brightness communicates the wave but avoids bright 3D gates, HUD-wide flashing or fake obstacles. Every curve naturally follows longitudinal distance along the authoritative mesh.
+- Palettes: Midnight blue-green → Violet Velocity → Solar Flare (warm coral) → Arctic Flow (icy mint). World fog, sky, guardrail accents and engine lighting follow the palette after its wave passes the ship, smoothly rather than all at once.
+- HUD zone number and name update when each actual front passes the craft. The zone label is not incremented just because a timer started. No full-screen `zone-flash` activation.
+
+## QA & instrumentation
+
+- `extended-zone-v049.test.mjs` verifies old-start geometry parity, all 6 bends and their C2 boundaries, no gaps, shared 1,530m road and rails, five real straight boosts, 10/20/30 triggers, 90m behind origin, world-space front timing, palette shader uniform identity, no new road meshes, and live 0.4.9 page dependencies.
+- `browser-smoke-v049.mjs` runs real Chrome/WebGL long enough to check that **the first color wave actually reaches zone 02 after 10 seconds**, and captures screenshot artifact.
+- `skyshift-zone-v049-audit.json`: length, six curves, full boost stats, wave launch/passed stages and their time/front coordinates plus renderer FPS/draw-call metrics. Old source code stays intact for rollback.
+- GitHub Pages guard checks the *live public entrypoint and module*, not just git source, after merge.
+
+**Real-device review:** Check iPhone frame pacing over the 1,530m run, the spatial wave actually moving forward through the bends, stage colors through 10/20/30, unobstructed view of road, five pads, and gradual environment shift. No claims of final visual quality until in-phone video confirms it.
+
+---
+
+## Previous release — 0.4.8.4
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 

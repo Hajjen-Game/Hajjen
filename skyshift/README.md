@@ -1,4 +1,43 @@
-# SKYSHIFT 0.4.5 – Cinematic Flight Camera & Motion Weight
+# SKYSHIFT 0.4.6 – Track Flow, Guardrails & Surface Identity
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+This pass targets the user's screenshots of visible angular transitions and their request for genuinely protective, visually elegant Wipeout-like raised edge rails and carefully restrained surface design before implementing spectacular future color transitions.
+
+## 1. Curve flow and surface continuity
+
+- `trial-v046.mjs`: replace linear curvature ramps with analytic **quintic smoothstep** curvature ramps. The entering and exiting curvature now has zero first and second derivatives at joins; integrated heading stays continuous. Straights and circular-arc plateaus are preserved.
+- Lengthen each curve entry/exit from 20m to **30m**, keeping the same overall 510m route and maximum turn curvature. This softens the visual entry/exit; it slightly reduces each curve's total deflection.
+- `smooth-track-v046.mjs`: one indexed continuous top ribbon at **0.30m longitudinal spacing**, **7 lateral columns** (was 0.45m and 5). The banked collision surface, edges and camera all follow the **same** new heading/bank model.
+- The centerline remains simple, and the track avoids noisy tiling or many small false curves.
+
+## 2. Real raised guardrails
+
+- `identity-v046.mjs`: add two **0.78m high** sculpted edge rails with shared longitudinal vertices, dark titanium-toned material, a restrained lit cap and chevron precision inlays.
+- Physically contain the ship on either side: world position is clipped at the collision boundary only when the craft strikes the rail. The boundary includes the approximate craft half-width and rail shoulder. This prevents accidental off-track falls and protects the previous steering feel.
+- Rail collision **never changes pilot yaw, steering input or forward speed**. There is no invisible road centering or constant auto-steering. A player intentionally steering into a guardrail may continue sliding along it, rather than turning automatically.
+- Flight logs include **rail contacts, contact seconds and maximum attempted penetration**. Only the new contact event is emitted, avoiding per-frame log noise.
+
+## 3. Surface identity and color-zone groundwork
+
+- One batched mesh for continuous raised edge bodies; one batched mesh for lit caps, low-profile shoulder markings and chevrons. Broad road center remains uncluttered.
+- Small racing inlays on the rail face and interrupted shoulder stripes support speed reading. Accents have a common color-controlled material, so future color transitions can recolor them coherently.
+- The 0.4.6 build **does not yet contain animated zone color switching**, as that is a separate feature. Future wave anchors are exposed from the track identity data.
+- Three old free-floating neon rim passes have been removed; new body/markings require two batches. Extra geometry is precomputed once rather than regenerated each frame.
+
+## 4. Protected flight handling and QA
+
+- The trusted 0.4.5 cinematic camera, 0.4.4 motion response and 44–47m/s 120Hz steering dynamics are retained unchanged.
+- Added `track-flow-v046.test.mjs` for C2 curvature joins, no seam positions/banking, shared vertices, guardrail collision/non-magnetic control, high-speed containment and future-color anchors.
+- Historical version logic is retained and all affected active-page expectations now refer to 0.4.6.
+- `.github/workflows/skyshift-tests.yml` runs the complete regression suite and syntax checks for the new modules.
+- Export `skyshift-track-v046-audit.json`. On iPhone, inspect both corner transitions, guardrail feel and pattern readability, and compare average FPS / frame-time percentiles to 0.4.5.
+
+**Known limitation:** This remains the 510m handling track, not a production race circuit. Guardrail impacts are protective constraints, not full rigid-body vehicle collision/bounce physics. Final judgment of visual quality and handling requires a real-device playtest.
+
+---
+
+## Previous release — 0.4.5
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 

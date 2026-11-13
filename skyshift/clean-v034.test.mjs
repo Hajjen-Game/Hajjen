@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import {runInNewContext} from "node:vm";
 import {readFileSync} from "node:fs";
 import {
   TRACK_ART,createSurfacePlan,validateSurfacePlan
@@ -101,17 +102,66 @@ test("modern HDR, luminance, controls, checkpoint logic and personal best stay i
   assert.equal(NEON_TUNING.bloomStrength,.43);
   assert.equal(NEON_TUNING.maxPixelRatio,2);
   assert.equal(LUMINANCE.exposure,1.015);
-  assert.match(game,/version:"0\.3\.4"/);
+  assert.match(game,/version:"0\.3\.4\.1"/);
 });
 
 test("active HTML loads 0.3.4 and records rendering workload in exported audit",()=>{
   const html=src("index.html");
   const game=src("game-v034.mjs");
-  assert.match(html,/src="\.\/game-v034\.mjs\?v=0\.3\.4"/);
+  assert.match(html,/src="\.\/game-v034\.mjs\?v=0\.3\.4\.1"/);
   assert.match(html,/style-v034\.css\?v=0\.3\.4/);
   assert.match(html,/id="fullscreen-btn"/);
   assert.match(game,/decorativePlates:0/);
   assert.match(game,/rendererDrawCallsAverage/);
   assert.match(game,/rendererTrianglesAverage/);
-  assert.match(game,/skyshift-first-flight-v034-audit\.json/);
+  assert.match(game,/skyshift-first-flight-v0341-audit\.json/);
+});
+
+
+test("beacon construction runs at startup without undeclared variables",()=>{
+  // Executes the exact production buildDecor function with lightweight Three.js
+  // stand-ins: static syntax checks do not detect missing runtime locals.
+  const game=src("game-v034.mjs");
+  const from=game.indexOf("function buildDecor(){");
+  const to=game.indexOf("function makeShip()",from);
+  assert.ok(from>=0&&to>from);
+  const added=[],billboards=[];
+  class Instances {
+    constructor(geometry,material,capacity){
+      this.capacity=capacity;this.count=0;this.instanceMatrix={needsUpdate:false};
+      this.indices=[];
+    }
+    setMatrixAt(i,matrix){
+      assert.ok(Number.isInteger(i)&&i>=0&&i<this.capacity);
+      this.indices.push(i);
+    }
+  }
+  class Simple {constructor(...args){this.args=args;}}
+  const noop={set(){}};
+  const context={
+    THREE:{BoxGeometry:Simple,MeshStandardMaterial:Simple,InstancedMesh:Instances},
+    TRIAL:{length:1300},LUMINANCE:{housingColor:0x31475e},
+    neonKit:{beacon:{},beaconCore:{},beaconHalo:{}},
+    reusable:{position:noop,rotation:noop,scale:noop,updateMatrix(){},matrix:{}},
+    roadIntervals:()=>[[-8,8]],poseAt:()=>({heading:0}),
+    positionAt:(s,l,y)=>({x:s,y,z:l}),
+    world:{add:obj=>added.push(obj)},pylonMesh:null,ARCHES:[],
+    makeArch(){},makeBillboard:(...args)=>billboards.push(args)
+  };
+  runInNewContext(game.slice(from,to)+"\nbuildDecor();",context,{timeout:2000});
+  assert.equal(added.length,4);
+  const n=added[0].count;
+  assert.ok(n>125&&n<210);
+  for(const mesh of added){
+    assert.equal(mesh.count,n);
+    assert.equal(mesh.indices.length,n);
+    assert.equal(mesh.instanceMatrix.needsUpdate,true);
+  }
+  assert.equal(billboards.length,2);
+});
+
+test("startup error message does not falsely blame missing WebGL for JavaScript exceptions",()=>{
+  const game=src("game-v034.mjs");
+  assert.match(game,/UI\.error\.textContent="SKYSHIFT could not start: "/);
+  assert.doesNotMatch(game,/WebGL required\./);
 });

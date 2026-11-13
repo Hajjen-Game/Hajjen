@@ -1,4 +1,4 @@
-# SKYSHIFT 0.3.4 — Clean Track & Premium World Rebuild
+# SKYSHIFT 0.3.4.1 — Clean Track & Premium World Rebuild (startup fix)
 
 First Flight 2.0 remains a **finite, handcrafted, 1300 m 3D trial**. Version 0.3.4 is a deliberate visual simplification and world rebuild in response to feedback that the dark squares and glowing chips made the route harder to read, added little value, and could waste rendering resources.
 
@@ -48,3 +48,6 @@ https://hajjen-game.github.io/Hajjen/skyshift/
 - 900–1300m: new world silhouettes and cleaner finish presentation.
 
 Gameplay, checkpoint recovery, score logic, fullscreen and previous best remain unchanged. No new level, weapon, audio or endless mode. No other games in the repository are affected.
+
+## 0.3.4.1 startup regression fix
+The cleanup of old cylinder scenery accidentally removed the local `i` variable while beacon assembly still used it, causing `i is not defined` immediately at startup on all devices. The beacon index is now explicitly declared with `let i=0` inside `buildDecor()`. Startup errors no longer automatically blame WebGL. An executable beacon-construction smoke test now checks the actual function using WebGL stand-ins, catching this class of runtime error that `node --check` alone misses. Main script URL is cache-busted to v0.3.4.1. No physics or graphics adjustment.

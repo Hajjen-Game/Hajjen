@@ -263,7 +263,7 @@ function buildDecor(){
    new THREE.MeshStandardMaterial({
       color:LUMINANCE.housingColor,metalness:.61,roughness:.44
     }),210);
- i=0;
+ let i=0;
  for(let s=12;s<TRIAL.length-8;s+=18){
    if(!roadIntervals(s).length)continue;
    for(const dir of [-1,1]){
@@ -651,7 +651,7 @@ function loop(now){
 }
 function exportAudit(){
  const data={
-   game:"SKYSHIFT",version:"0.3.4",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   game:"SKYSHIFT",version:"0.3.4.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
    visual:{pipeline:"HDR UnrealBloom",tier:"Clean Track & Premium World",
      renderDpr:renderer.getPixelRatio(),
      surfaceAccents:identitySurface.plan.length,decorativePlates:0,
@@ -677,7 +677,7 @@ function exportAudit(){
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-first-flight-v034-audit.json";
+ a.href=url;a.download="skyshift-first-flight-v0341-audit.json";
  document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1800);
 }
@@ -747,7 +747,7 @@ try{
  initScene();installFullscreen();installControls();resetFlight();
  requestAnimationFrame(loop);
 }catch(error){
- console.error("SKYSHIFT 0.2 startup failed",error);
+ console.error("SKYSHIFT startup failed",error);
  UI.error.classList.remove("hidden");
- UI.error.textContent="SKYSHIFT could not start. WebGL required. "+(error?.message||"");
+ UI.error.textContent="SKYSHIFT could not start: "+(error?.message||"Unknown startup error");
 }

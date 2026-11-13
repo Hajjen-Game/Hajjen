@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#060a16">
-  <meta name="description" content="SKYSHIFT 0.2 – FIRST FLIGHT handcrafted 3D arcade trial.">
-  <title>SKYSHIFT · First Flight – Sky Trials 0.2</title>
-  <link rel="stylesheet" href="./style-v02.css?v=0.2.1">
+  <meta name="description" content="SKYSHIFT 0.3 – FIRST FLIGHT 2.0 handcrafted neon sky platformer.">
+  <title>SKYSHIFT · First Flight 2.0 – Track Identity 0.3</title>
+  <link rel="stylesheet" href="./style-v03.css?v=0.3.0">
 </head>
 <body>
   <div id="app">
@@ -14,7 +14,7 @@
     <div class="vignette" aria-hidden="true"></div>
     <div id="zone-flash" aria-hidden="true"></div>
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ SKY TRIALS 0.2</span></div>
+      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ FIRST FLIGHT 2.0</span></div>
       <div class="top-actions">
         <button id="fullscreen-btn" class="top-button fullscreen-toggle hidden" type="button" title="Fullscreen" aria-label="Fullscreen" aria-pressed="false">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>
@@ -50,17 +50,17 @@
     </div>
     <section id="menu" class="screen">
       <div class="screen-content">
-        <div class="kicker">SKY TRIAL 01 · HANDCRAFTED FLIGHT COURSE</div>
+        <div class="kicker">SKY TRIAL 01 · REBUILT FLIGHT COURSE</div>
         <h1>SKY<span>SHIFT</span></h1>
         <div class="rule"></div>
-        <p class="tagline">FIRST FLIGHT.<br>FOUR REAL JUMPS. ONE FINISH.</p>
+        <p class="tagline">CHASE THE HORIZON.<br>MASTER THE SKY ISLANDS.</p>
         <button id="start-btn" class="primary">START TRIAL <span>↗</span></button>
         <button id="menu-fullscreen-btn" class="secondary menu-fullscreen" type="button" aria-pressed="false">⛶ FULLSCREEN</button>
         <div id="fullscreen-help" class="fullscreen-help hidden" role="status">
           Fullscreen stöds inte i den här webbläsarvyn. Öppna SKYSHIFT direkt i Chrome via webbläsarens meny (⋮) och prova igen.
         </div>
         <div class="instructions">MOVE <b>A / D · ← →</b> <i></i> JUMP <b>SPACE</b><br><span>Mobile: drag left to steer · tap right to jump</span></div>
-        <div class="prototype-label">ONE HANDCRAFTED COURSE · REAL GAPS · BUILD 0.2</div>
+        <div class="prototype-label">SKY ISLANDS · RISK ROUTE · FINAL VELOCITY · 0.3</div>
       </div>
     </section>
     <section id="pause-screen" class="screen hidden" aria-label="Pausmeny">
@@ -73,9 +73,9 @@
     </section>
     <section id="end-screen" class="screen hidden" aria-label="Resultat">
       <div class="screen-content compact">
-        <div class="kicker">FIRST FLIGHT · SKY TRIAL 01</div>
+        <div class="kicker">FIRST FLIGHT 2.0 · SKY TRIAL 01</div>
         <h2 id="final-title">FLIGHT ENDED</h2>
-        <div class="summary"><span>DISTANCE</span><strong id="final-distance">0 M</strong><span>FINAL SECTOR</span><strong id="final-zone">01</strong><span>BEST CLEAR TIME</span><strong id="personal-best">—</strong><span>FLIGHT TIME</span><strong id="flight-time">0:00</strong><span>JUMPS / GAPS</span><strong id="final-jumps">0 / 0</strong></div>
+        <div class="summary"><span>DISTANCE</span><strong id="final-distance">0 M</strong><span>FINAL SECTOR</span><strong id="final-zone">01</strong><span>BEST CLEAR TIME</span><strong id="personal-best">—</strong><span>FLIGHT TIME</span><strong id="flight-time">0:00</strong><span>JUMPS / GAPS</span><strong id="final-jumps">0 / 0</strong><span>STYLE BONUS</span><strong id="final-style">0</strong></div>
         <button id="retry-btn" class="primary">RETRY TRIAL <span>↗</span></button>
         <button id="audit-btn" class="secondary">EXPORT FLIGHT LOG ↓</button>
       </div>
@@ -83,6 +83,6 @@
     <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
     <div id="error" class="error hidden" role="alert"></div>
   </div>
-  <script type="module" src="./game-v02.mjs?v=0.2.1"></script>
+  <script type="module" src="./game-v03.mjs?v=0.3.0"></script>
 </body>
 </html>

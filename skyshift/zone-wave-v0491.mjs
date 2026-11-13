@@ -64,6 +64,16 @@ export function frontPaletteBlend(state,playerS){
  }
  return {from,to,mix:factor};
 }
+// Anticipation cue in the existing two engine lights 0.19s before a wave.
+// Independent of wall-clock, game progression and the high-cost HDR pipeline.
+export function spectralChargeStrength(elapsedSeconds){
+ for(const trigger of ZONE_WAVE.triggers){
+  const remaining=trigger-elapsedSeconds;
+  if(remaining>0&&remaining<=ZONE_WAVE.chargingSeconds)
+   return smooth(1-remaining/ZONE_WAVE.chargingSeconds);
+ }
+ return 0;
+}
 export function waveResonanceStrength(state,elapsedSeconds){
  const last=state.stageTransitionSeconds.at(-1);
  if(!Number.isFinite(last))return 0;

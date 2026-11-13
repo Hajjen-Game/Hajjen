@@ -140,8 +140,8 @@ test("two draw batches carry meaningful chevrons and restrained road patterns",(
 });
 test("active site builds the new road mesh, rails, collision log and audit",()=>{
  const html=source("index.html"),game=source("game-v046.mjs");
- assert.match(html,/game-v0483\.mjs\?v=0\.4\.8\.3/);
- assert.match(html,/style-v043\.css\?v=0\.4\.8\.3/);
+ assert.match(html,/game-v0484\.mjs\?v=0\.4\.8\.4/);
+ assert.match(html,/style-v043\.css\?v=0\.4\.8\.4/);
  assert.match(game,/from "\.\/trial-v046\.mjs"/);
  assert.match(game,/from "\.\/smooth-track-v046\.mjs"/);
  assert.match(game,/from "\.\/identity-v046\.mjs"/);

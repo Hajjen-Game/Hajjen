@@ -232,6 +232,10 @@ export function stepFlight(state,dt,control={}){
     if(state.shield===0)state.failed=true;
     else {
       const recover=state.checkpoint+8;
+      // Keep only jump clears made before the recovery position.
+      // A crash must not leave stale island clears in the exported run log.
+      state.clearedGaps=state.clearedGaps.filter(id=>
+        GAPS.find(g=>g.id===id)?.end<=recover);
       state.s=recover;state.lateral=0;state.sideVelocity=0;
       state.y=heightAt(recover)+TRIAL.hoverHeight;state.vy=0;
       state.grounded=true;state.coyote=0;state.jumpBuffer=0;state.jumpHold=0;

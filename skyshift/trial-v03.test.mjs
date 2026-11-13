@@ -162,3 +162,15 @@ test("first-flight 2.0 is completable start to finish without losing shield usin
   assert.equal(st.clearedGaps.length,GAPS.length);
   assert.equal(st.jumps,GAPS.length);
 });
+
+test("checkpoint recovery removes jump-clears after the rewind position",()=>{
+  const st=placedState(370,-2);
+  st.checkpoint=260;
+  st.clearedGaps=["launch-leap","island-one"];
+  st.grounded=false;st.y=-22;st.vy=-15;
+  const result=stepFlight(st,dt,{});
+  assert.equal(result.crashed,true);
+  assert.equal(st.s,268);
+  assert.deepEqual(st.clearedGaps,["launch-leap"]);
+  assert.equal(st.shield,65);
+});

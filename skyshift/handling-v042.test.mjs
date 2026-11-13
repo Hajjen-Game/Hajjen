@@ -158,8 +158,8 @@ test("visuals: a clean uninterrupted deck, stable camera and no jump hazards",()
  assert.doesNotMatch(game,/Math\.floor\(s\/4\)/);
  assert.match(game,/UI\.jump\.classList\.add\("hidden"\)/);
  assert.match(html,/no jumping in this test/);
- assert.match(html,/game-v043\.mjs\?v=0\.4\.3/);
- assert.match(html,/style-v043\.css\?v=0\.4\.3/);
+ assert.match(html,/game-v044\.mjs\?v=0\.4\.4/);
+ assert.match(html,/style-v043\.css\?v=0\.4\.4/);
  assert.match(html,/id="fullscreen-btn"/);
  assert.match(game,/skyshift-handling-v042-audit\.json/);
  assert.match(game,/skyshift-handling-lab-best-v042/);

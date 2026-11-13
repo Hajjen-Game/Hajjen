@@ -99,7 +99,7 @@ test("spine is a subtle non-emissive 8m segmented material feature, not extra me
 test("active game replaces old box/cone prototype without touching movement",()=>{
  const html=source("index.html");
  const game=source("game-v0482.mjs");
- assert.match(html,/game-v049\.mjs\?v=0\.4\.9/);
+ assert.match(html,/game-v0491\.mjs\?v=0\.4\.9\.1/);
  assert.match(game,/from "\.\/premium-ship-v0482\.mjs"/);
  assert.match(game,/from "\.\/premium-track-v0482\.mjs"/);
  assert.match(game,/buildPremiumShip\(THREE,shipGlow\)/);

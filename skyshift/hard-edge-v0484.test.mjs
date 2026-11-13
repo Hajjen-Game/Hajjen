@@ -100,7 +100,7 @@ test("No old center engine light or +/-0.78m fake emitters survive live integrat
 });
 test("The old pilot/boost model and course visual material are unchanged",()=>{
  const game=read("game-v0484.mjs"),html=read("index.html");
- assert.match(html,/game-v049\.mjs\?v=0\.4\.9/);
+ assert.match(html,/game-v0491\.mjs\?v=0\.4\.9\.1/);
  assert.match(game,/from "\.\/trial-v048\.mjs"/);
  assert.match(game,/from "\.\/premium-track-v0482\.mjs"/);
  assert.match(game,/from "\.\/cinematic-v045\.mjs"/);

@@ -863,19 +863,28 @@ function installFlightTuningPanel(){
 // Production players never have this hook without ?waveSmoke=1.
 function installWaveSmokeHook(){
  if(new URLSearchParams(location.search).get("waveSmoke")!=="1")return;
- window.__skyshiftWaveSmoke=()=>{
+ window.__skyshiftWaveSmoke=(targetStage=1)=>{
   if(uiState.mode!=="playing")throw new Error("Wave smoke requires active run");
-  const atS=flight.s;
-  flight.elapsed=10;
-  updateZoneWave(zoneWave,10,atS);
-  flight.elapsed=12.5;
-  const pass=updateZoneWave(zoneWave,12.5,atS);
-  if(!pass.changed||pass.stage!==1)throw new Error("Zone 02 did not pass craft");
-  previousSector=pass.stage;announceSector(pass.stage);
+  if(!Number.isInteger(targetStage)||targetStage<1||targetStage>3)
+   throw new Error("Invalid spectral smoke stage");
+  // Deterministically place each successive physical crest just ahead of
+  // the stationary craft under software WebGL. Actual play uses 120Hz ticks.
+  for(let k=zoneWave.activeCount;k<targetStage;k++){
+   const at=ZONE_WAVE.triggers[k],atS=flight.s;
+   flight.elapsed=at;
+   updateZoneWave(zoneWave,at,atS);
+   flight.elapsed=at+.85;
+   const pass=updateZoneWave(zoneWave,at+.85,atS);
+   if(!pass.changed||pass.stage!==k+1)
+    throw new Error("Zone "+(k+2)+" did not pass craft");
+   previousSector=pass.stage;announceSector(pass.stage);
+  }
   premiumSurface?.setWaveState(zoneWave);
+  identitySurface?.setWaveState(zoneWave);
   refreshHud();
   return {zone:zoneWave.playerStage+1,flightSeconds:flight.elapsed,
-   playerS:flight.s,frontS:zoneWave.fronts[0],
+   playerS:flight.s,frontS:zoneWave.fronts[targetStage-1],
+   launches:[...ZONE_WAVE.triggers],palette:ZONE_PALETTES[zoneWave.playerStage].id,
    featherMeters:ZONE_WAVE.featherMeters,
    railSynchronized:Boolean(identitySurface?.setWaveState),
    engineResonance:waveResonanceStrength(zoneWave,flight.elapsed)};

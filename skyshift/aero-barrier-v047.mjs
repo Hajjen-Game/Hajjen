@@ -157,6 +157,7 @@ export function installAeroBarriers(THREE,world){
  // Deliberately matte-dark under ambient light; narrow bright paint on top.
  const metal=new THREE.MeshStandardMaterial({
   color:0xffffff,vertexColors:true,metalness:.72,roughness:.32,
+  flatShading:true, // Sharp metal bevels rather than smooth luminous tube normals.
   emissive:0x07111b,emissiveIntensity:.16,side:THREE.DoubleSide
  });
  const groove=new THREE.MeshBasicMaterial({

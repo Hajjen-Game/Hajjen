@@ -6,7 +6,7 @@ import {
 } from "./trial-v049.mjs";
 import { BOOST_PADS,BOOST_CONFIG } from "./boost-v049.mjs";
 import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v0491.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength} from "./zone-wave-v0491.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength} from "./zone-wave-v0491.mjs";
 import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
 import { makeFullscreenController } from "./fullscreen-v02.mjs";
 import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0484.mjs";
@@ -569,9 +569,10 @@ function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicSta
  ship.rotation.z=motion.roll;
  ship.rotation.x=motion.pitch;
  const crossingPulse=waveResonanceStrength(zoneWave,flight.elapsed);
+ const charge=spectralChargeStrength(flight.elapsed);
  for(const light of engineLights)light.intensity=
    NEON_TUNING.enginePointIntensity*.42*engineLightFactor(cinematic)*
-   (1+(flight.boostMultiplier-1)*.70)*(1+.22*crossingPulse);
+   (1+(flight.boostMultiplier-1)*.70)*(1+.22*crossingPulse+.07*charge);
  if(engineCore)engineCore.scale.z=1+cinematic.engineEnergy*.16+
   (flight.boostMultiplier-1)*.40;
  for(let i=0;i<enginePlumes.length;i++){
@@ -579,7 +580,7 @@ function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicSta
    const pulse=.028*Math.sin(time*21+i*1.4);
    const boost=clamp((flight.boostMultiplier-1)/.30,0,1);
    const shape=1+.065*cinematic.engineEnergy+boost*.19+pulse+
-    crossingPulse*.10;
+    crossingPulse*.10+charge*.035;
    const bankVariation=sign*clamp(view.steering,-1,1)*.035;
    // Exhaust cylinder axis is local Y. Animate the radius (X/Z).
    enginePlumes[i].scale.set(shape+bankVariation,1+boost*.14,shape);

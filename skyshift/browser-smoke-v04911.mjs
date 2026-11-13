@@ -84,12 +84,18 @@ try{
   {waitUntil:"domcontentloaded",timeout:50000});
  await mobile.waitForFunction(()=>window.__skyshiftBoot?.phase==="ready",
   null,{timeout:75000});
- await mobile.locator("#start-btn").tap();
+ // Direct touchscreen event avoids Playwright's pixel-stability
+ // heuristic, which can time out while software WebGL is drawing.
+ await mobile.locator("#start-btn").waitFor({state:"visible",timeout:20000});
+ const tapRect=await mobile.locator("#start-btn").boundingBox();
+ if(!tapRect)throw new Error("Android start button has no bounds");
+ await mobile.touchscreen.tap(tapRect.x+tapRect.width/2,
+  tapRect.y+tapRect.height/2);
  await mobile.waitForFunction(()=>{
   const menu=document.getElementById("menu");
   return menu?.classList.contains("hidden")&&
    !document.getElementById("hud")?.classList.contains("hidden");
- },null,{timeout:20000});
+ },null,{timeout:45000});
  console.log("PASS: Android-landscape touch START RUN enters actual active flight.");
  await mobile.close();
  // Explicitly block the JS module: the user must get a visible,

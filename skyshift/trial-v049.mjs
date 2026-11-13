@@ -108,7 +108,9 @@ export function surfaceHeightAt(s,lateral=0){
 }
 export function widthAt(s){return 23.2;}
 export function speedAt(s){
- return lerp(TRIAL.startSpeed,TRIAL.endSpeed,smooth(s/TRIAL.length));
+ // Preserve the approved 0.4.8.4 speed curve through its first 510m.
+ // Hold the same top cruise speed for the extended circuit; no new ramp.
+ return lerp(TRIAL.startSpeed,TRIAL.endSpeed,smooth(clamp(s/510,0,1)));
 }
 export function sectorAt(s){return 0;}
 export function gapAt(s){return null;}

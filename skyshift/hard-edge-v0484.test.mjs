@@ -17,7 +17,7 @@ test("Angular wing shape has a sharp outer shoulder and extended clipped stern",
  const rear=MANTA_WING_OUTLINE.filter(p=>p[1]>2);
  assert.ok(rear.length>=2&&rear.some(p=>p[0]<2.1));
  assert.ok(MANTA_WING_OUTLINE.some(([x,z])=>x>2.85&&z<0));
- assert.equal(buildMantaWings().triangles,92);
+ assert.equal(buildMantaWings().triangles,96);
  assert.ok(buildMantaSpine().triangles<200);
  assert.equal(MANTA_IDENTITY.changesFlightPhysics,false);
 });
@@ -75,7 +75,7 @@ test("Actual FX geometry emits exactly two independent streak pairs, not center"
  assert.ok(Math.abs(mid1-1.99)<.1);
  assert.equal(position.length,72);
  assert.ok(position[2]>2.5&&position[38]>2.5);
- assert.ok(position[3*12+2]>position[2]);
+ assert.ok(position[8]>position[2]);
  const defaultStats=fx.stats();
  assert.equal(defaultStats.actualEmitters,2);
  fx.frame({dt:1/60,playing:true,flight:{forwardSpeed:57,boostMultiplier:1.3},

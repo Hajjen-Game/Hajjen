@@ -131,6 +131,19 @@ function buildRoad(){
      }
    }
  }
+ // The optional right-hand route gets its own readable advance markings.
+ for(const cut of RISK_CUTS){
+   for(let d=cut.start-12;d<cut.start-1;d+=1.4){
+     const e=Math.min(cut.start-1,d+1.4);
+     if(Math.floor((cut.start-d)/2.8)%2!==0)continue;
+     for(const [a,b] of roadIntervals((d+e)*.5)){
+       if(a<0)continue;
+       const m=(a+b)*.5;
+       addQuad(jumpMarks,null,toVec(d,m-.64,.084),toVec(d,m+.64,.084),
+         toVec(e,m+.64,.084),toVec(e,m-.64,.084));
+     }
+   }
+ }
  // Highlight each separate landing island at its front and rear edge.
  for(const gap of GAPS){
    for(const spot of [gap.start-1.0,gap.end+.2]){
@@ -160,7 +173,7 @@ function buildRoad(){
      depthWrite:false,side:THREE.DoubleSide}));
  caps.frustumCulled=false;world.add(caps);
 }
-function makeBillboard(text,s,height=6.7,scale=8){
+function makeBillboard(text,s,height=6.7,scale=8,lateral=0){
  const canvas=document.createElement("canvas");
  canvas.width=512;canvas.height=128;
  const ctx=canvas.getContext("2d");
@@ -174,7 +187,8 @@ function makeBillboard(text,s,height=6.7,scale=8){
    depthWrite:false,side:THREE.DoubleSide});
  const sign=new THREE.Mesh(new THREE.PlaneGeometry(scale,scale*.25),mat);
  const p=poseAt(s);
- sign.position.set(p.x,p.y+height,p.z);
+ const place=positionAt(s,lateral,height);
+ sign.position.set(place.x,place.y,place.z);
  sign.rotation.y=-p.heading;
  world.add(sign);
  return sign;
@@ -234,8 +248,8 @@ function buildDecor(){
  }
  beacon.count=i;beacon.instanceMatrix.needsUpdate=true;world.add(beacon);pylonMesh=beacon;
  for(const arch of ARCHES)makeArch(arch.s,arch.label,arch.color,arch.s>1280?19:17);
- makeBillboard("LEFT  /  SAFE",536,4.0,10);
- makeBillboard("RIGHT  /  RISK",552,4.0,10);
+ makeBillboard("SAFE",547,4.15,7,-4.3);
+ makeBillboard("RISK",547,4.15,7,4.3);
 }
 function makeShip(){
  const hullMat=new THREE.MeshStandardMaterial({
@@ -451,6 +465,13 @@ function maybeShowCue(){
    uiState.trackHint=gap.id;
    flashToast(gap.kind==="island"?"SKY ISLAND · STEER AND JUMP":
      "GAP AHEAD · TIME YOUR JUMP",1350);
+ }
+ const risky=RISK_CUTS.find(c=>flight.s<c.start &&
+   flight.s>=c.start-20&&flight.lateral>2.6&&
+   uiState.trackHint!=="risk-"+c.start);
+ if(risky){
+   uiState.trackHint="risk-"+risky.start;
+   flashToast("RISK LANE · JUMP AHEAD",1100);
  }
  const split=SPLITS[0];
  if(flight.s>=split.start-48&&flight.s<split.start-43 && uiState.trackHint!=="split"){

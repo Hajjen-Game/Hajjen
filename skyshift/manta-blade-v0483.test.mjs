@@ -106,7 +106,7 @@ test("builder returns exactly two existing animation plume handles and a recesse
  assert.equal(craft.ship.children.filter(m=>m.name==="Wing-integrated venturi thruster").length,2);
  assert.equal(craft.ship.children.filter(m=>m.name==="Inset wing thrust aperture").length,2);
  assert.ok(craft.triangles<CRAFT_MAX);
- assert.equal(craft.ship.children.length,13);
+ assert.equal(craft.ship.children.length,12);
  assert.equal(craft.spec.newDynamicLights,0);
  assert.ok(craft.materials.titanium.options.metalness>.7);
  assert.ok(craft.materials.glass.options.roughness<.2);

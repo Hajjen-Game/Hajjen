@@ -107,12 +107,12 @@ test("HUD is DOM-only, throttled, and provides event counters for exported logs"
  assert.equal(hud.stats().noAdditionalRenderPasses,true);
 });
 test("live production page keeps the archived HUD telemetry and controls",()=>{
- const html=source("./index.html"),css=source("./style-v04991.css"),
-  game=source("./game-v051.mjs"),boot=source("./boot-v060.js");
- assert.match(html,/style-v04991\.css\?v=0\.5\.0/);
+ const html=source("./index.html"),css=source("./style-v060.css"),
+  game=source("./game-v060.mjs"),boot=source("./boot-v060.js");
+ assert.match(html,/style-v060\.css\?v=0\.6\.0/);
  assert.match(html,/boot-v060\.js\?v=0\.6\.0/);
  assert.match(html,/data-game-module="game-v060\.mjs"/);
- assert.match(boot,/import\("\.\/game-v051\.mjs\?v=0\.5\.1"\)/);
+ assert.match(boot,/import\("\.\/game-v060\.mjs\?v=0\.6\.0"\)/);
  for(const id of ["hud","shield-fill","shield-text","flight-state",
    "shield-status","zone-number","sector-name","zone-progress-fill",
    "speed","speed-energy-fill","distance","start-btn","stick","stick-knob",
@@ -133,8 +133,8 @@ test("live production page keeps the archived HUD telemetry and controls",()=>{
  assert.doesNotMatch(game,/bankDegrees:motionState\.roll\*180\/Math\.PI/);
  assert.match(game,/reactiveHud\.update\(/);
  assert.match(game,/reactiveHud:reactiveHud\.stats\(\)/);
- assert.match(game,/version:"0\.5\.1"/);
- assert.match(game,/skyshift-track-character-v051-audit\.json/);
+ assert.match(game,/version:"0\.6\.0"/);
+ assert.match(game,/skyshift-skyline-circuit-v060-audit\.json/);
 });
 test("old flight physics, spectrum timing, SMAA, boosts and elevated corner rails survive",()=>{
  const game=source("./game-v0499.mjs");

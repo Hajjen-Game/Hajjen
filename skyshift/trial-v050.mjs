@@ -37,7 +37,7 @@ export const SHOWCASE_PLAN=Object.freeze([
  ["big-right",480,.0043],["afterburn",510,0],
  ["last-left",490,-.0040],["closing-run",420,0],
  ["final-right",380,.0038],["finish",260,0]
-].map(([id,length,curvature])=>Object.freeze({id,length,curvature}))));
+].map(([id,length,curvature])=>Object.freeze({id,length,curvature})));
 const PLAN_METERS=SHOWCASE_PLAN.reduce((sum,c)=>sum+c.length,0);
 let endRaw=0,previousEnd=0;
 export const COURSE_SEGMENTS=Object.freeze(SHOWCASE_PLAN.map((segment,i)=>{

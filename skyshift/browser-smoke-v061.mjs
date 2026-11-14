@@ -402,6 +402,41 @@ try{
    JSON.stringify(mobileGrip));
  console.log("PASS: Samsung landscape grip button is separate from steer and HUD:",
    JSON.stringify(mobileGrip));
+ // Real Chrome multitouch: each thumb captures an independent pointer.
+ // An actual analog stick move while holding GRIP must activate the
+ // presentation button, then BOTH controls must release safely.
+ const stickBox=await mobile.locator("#stick").boundingBox();
+ const gripBox=await mobile.locator("#grip-btn").boundingBox();
+ const touch=await mobile.context().newCDPSession(mobile);
+ const steerPt={id:11,x:stickBox.x+stickBox.width*.5,
+  y:stickBox.y+stickBox.height*.62};
+ const gripPt={id:12,x:gripBox.x+gripBox.width*.5,
+  y:gripBox.y+gripBox.height*.5};
+ try{
+  await touch.send("Input.dispatchTouchEvent",{
+   type:"touchStart",touchPoints:[steerPt]});
+  await touch.send("Input.dispatchTouchEvent",{
+   type:"touchStart",touchPoints:[steerPt,gripPt]});
+  await touch.send("Input.dispatchTouchEvent",{
+   type:"touchMove",touchPoints:[{...steerPt,x:steerPt.x+39},gripPt]});
+  await mobile.waitForFunction(()=>{
+   const b=document.getElementById("grip-btn");
+   const k=document.getElementById("stick-knob");
+   return b?.classList.contains("active")&&
+    b?.getAttribute("aria-pressed")==="true"&&
+    k?.style.transform?.includes("translateX");
+  },null,{timeout:20000});
+  console.log("PASS: physical Android multitouch GRIP + STEER engaged together.");
+ }finally{
+  await touch.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
+  await touch.detach();
+ }
+ await mobile.waitForFunction(()=>{
+  const b=document.getElementById("grip-btn");
+  return !b?.classList.contains("armed")&&
+   b?.getAttribute("aria-pressed")==="false";
+ },null,{timeout:15000});
+ console.log("PASS: both thumb inputs release without latched GRIP.");
  console.log("PASS: responsive Samsung HUD keeps steering and fullscreen reachable:",
   JSON.stringify(mobileHud));
  console.log("PASS: Android-landscape touch START RUN enters actual active flight.");

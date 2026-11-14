@@ -81,8 +81,8 @@ test("luminance safety rules reject dangerous settings",()=>{
 
 test("app serves new assets, reduces vignette, and keeps fullscreen UI",()=>{
   const html=read("index.html"),css=read("style-v0331.css");
-  assert.match(html,/src="\.\/boot-v04991\.js\?v=0\.4\.9\.9\.1"/);
-  assert.match(html,/href="\.\/style-v04991\.css\?v=0\.4\.9\.9\.1"/);
+  assert.match(html,/src="\.\/boot-v050\.js\?v=0\.5\.0"/);
+  assert.match(html,/href="\.\/style-v04991\.css\?v=0\.5\.0"/);
   assert.match(html,/id="fullscreen-btn"/);
   assert.match(css,/rgba\(1,4,13,\.19\)/);
 });

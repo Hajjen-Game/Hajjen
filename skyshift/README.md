@@ -1,3 +1,37 @@
+# SKYSHIFT 0.5.0 – Full Circuit & Zone Acceleration
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## A complete playable three-minute circuit
+
+Built for a relaxed real-world demo. Replaces the 1,530m handling lab *only at the active entrypoint* with a **10,400m continuous race**, designed for approximately **180 seconds** at intended speed and a few optional boost pickups. 25 geometrically joined pieces alternate **13 genuine straights and 12 smooth, wide sweeping turns**, with small curvatures (max 0.0055 rad/m). **Absolutely no road banking or jumps** in this edition, and the player remains in full control of steering. The original 0.4.9.9.1 and all historical versions remain intact for rollback.
+
+### Permanent speed escalation that is actually in the simulation
+
+- A total of **nine distinct color zones** (Midnight, Violet, Solar Gold, Jade Surge, Ember Drive, Glacier Flow, Copper Burst, Prism Tide, Aurora Finale).
+- **Eight waves launched at 20, 40, 60, 80, 100, 120, 140 and 160 seconds**, controlled by the existing 120Hz flight clock.
+- The moment an authentic spatial wave passes the pilot, the authoritative `flight.zoneSpeedStage` advances. The physical base speed then **increases 6.5% per new zone**, easing to its target over 0.9 seconds; by zone 9 it rises from 44 to approximately **72.8 metres/second** even without boost pads.
+- Real world coordinates, displacement, ship steering dynamics and camera follow use the increasing speed. The speedometer is **not** an independent animation.
+- Five optional +40% boost pads remain physically functional, spaced across the route; no artificial mandatory obstacle or gap.
+
+### How nine palettes fit the original premium visual pipeline
+
+The original 0.4.9.3 visual shader was written for three time events with three persistent spatial fronts. Simply adding eight fronts would increase GLSL shader instructions dramatically and can allow older fronts moving ahead of the player to overlay newer colors. `zone-wave-v050.mjs` tracks all eight crossings for physics/logs but renders **only the most recent traveling world-space front**, rebasing the road/rail shader base color and destination palette to that one transition. This preserves the thick colored layers, narrow white-core crest, rail chevrons and bloom while keeping the exact existing shader constant count and draw-pass count. Road and rail use the same source wave and base-palette stage, so color changes stay synchronized through all 9 zones.
+
+### Three-minute performance
+
+The route uses the existing C2 curvature architecture and continuous shared-index meshes, while reducing the long-road longitudinal sampling from 0.38m to **0.80m**, raised rail sampling from 0.70m to **0.95m**, and cap accent sampling from 0.80m to **1.15m**. This bounds the mobile geometry cost despite the six-to-seven-times-longer course. Existing Samsung SMAA adaptive resolution, racing HUD 2.1, boost spring camera and Manta Blade thrust remain unchanged. No more than the original rail/deck batches or premium shader uniforms are used. The tradeoff is that this route uses more total vertices than the old lab; real-device FPS still needs testing.
+
+### Verification and player feedback
+
+- `full-circuit-v050.test.mjs`: C2 continuity, no bank/gaps, all segment endpoints, 20s zone schedule, genuine physics speed changes, nine distinct palettes, bounded geometry, approximate 180s speed/distance estimate and active production references.
+- `browser-smoke-v050.mjs`: real Chrome WebGL shader render, all earlier HUD/SMAA/boost/rail and emulated Android landscape checks, plus a production module simulation of authentic zone speed increases.
+- Flight export `skyshift-full-circuit-v050-audit.json` now includes the real 6.5% step, observed zone-event timestamps, actual rising cruise speed, peak boost speed and the updated 10,400m track geometry.
+
+**Playtest:** Try one entire circuit, note the actual completion time, visual wave timing and whether the late high-speed sweeping corners remain comfortable. The targeted `~3 minutes` is a design estimate, **not a hard game timer**; steering and optional boost pads change the exact completion time.
+
+---
+
 # SKYSHIFT 0.4.9.9.1 – Racing HUD Refinement
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

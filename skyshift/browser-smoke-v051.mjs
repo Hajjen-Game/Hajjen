@@ -230,7 +230,7 @@ try{
  const marathon=await page.evaluate(async()=>{
    const [trial,wave,boost]=await Promise.all([
      import("./trial-v051.mjs"),import("./zone-wave-v051.mjs"),
-     import("./boost-v051.mjs")]);
+     import("./boost-v050.mjs")]);
    const steps=Array.from({length:9},(_,i)=>trial.speedAt(0,i));
    const progress=trial.newFlightState();
    const base=progress.currentSpeed;

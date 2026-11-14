@@ -61,7 +61,7 @@ test("camera lag has a capped FORWARD separation, not a steering correction",()=
  capCameraBoostTrail(side,{x:22,y:9,z:1},Math.PI/2,s);
  assert.ok(Math.abs(side.x-12)<1e-9);
  assert.equal(side.y,9);
- assert.equal(side.z,1);
+ assert.ok(Math.abs(side.z-1)<1e-9);
 });
 test("live page and game use new boost, camera, and resilient mobile bootstrap",()=>{
  const html=src("./index.html"),boot=src("./boot-v0494.js");

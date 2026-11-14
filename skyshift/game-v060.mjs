@@ -2,7 +2,7 @@ import * as THREE from "three";
 import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,
- newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,sectorAt,clamp,lerp
+ newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
 } from "./trial-v060.mjs";
 import { BOOST_PADS,BOOST_CONFIG } from "./boost-v060.mjs";
 import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v060.mjs";

@@ -1,3 +1,32 @@
+# SKYSHIFT 0.7.0 — 3D Track Evolution
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Purpose
+
+SKYSHIFT is now a smooth 3-lap antigravity racing circuit. v0.7.0 deliberately introduces authentic *three-dimensional topology* while keeping the proven 3x3400m circuit, GRIP steering and white-core spectral wave. The first step toward future wall/ceiling rides is a robust local road frame and correct vertical flight, **not** an instant cinematic upside-down roll.
+
+## New in this build
+
+- A periodic **C2-eased 3D heightfield** (same physical track across all three laps) changes the road elevation from **-4.6m to +12m**, with distinctive rises, crests, gradual downhills and a lower valley. The elevation and grade are exactly continuous at start/finish.
+- `trial-v070.mjs` uses this height for authoritative pilot ground contact, spawn, recovery, graded road vertices, surface-normal alignment, guardrails and airborne trajectory. Real slope derives an oriented 3D normal from planar heading + vertical grade, and `positionAt(s,lateral,height)` displaces along the physical normal, rather than pretending the whole world is flat.
+- The 0.7.0 mesh stays **one indexed road with shared lighting normals**, but removes all triangles across the **17.6m SKYLINE LEAP** (808–825.6m), on a real straight. The raised outer metal rail likewise skips geometry across the same physical opening. Landing and warning markings are installed in the existing buildRoad path, with one lightweight LEAP landmark in advance.
+- At the lip the craft receives a controlled vertical impulse (from **7.8m/s** with slight velocity-dependent boost), then uses the real 24m/s² gravity and ground intersection before counting a *clean landing*. No decorative false jump, invisible bridge, automatic yaw alignment, or obligatory extra button. Jump can happen once on each lap; all nine existing speed zones, boost pads and the GRIP skill continue to function.
+- The Manta Blade follows the actual hill slope in pitch. The chase camera remains pilot-owned horizontally but anticipates the coming altitude in its look target. A steep grade never rotates the view into a wall or locks steering.
+- Audit includes `track3D`, lap-seam elevation validation, jump count, air time, peak relative air height and clean landings. Retain original 0.6.1 modules and existing HDR/SMAA, waves, rail chevrons, HUD and two-thumb phone controls.
+
+## Tests
+
+`track-3d-v070.test.mjs` checks loop and grade closure, continuous elevations, three-lap parity, true missing mesh triangles and rail sections, 24m/s² ballistic jump and safe landing at the earliest and latest zone speeds, GRIP compatibility and incline-aware camera.
+
+`browser-smoke-v070.mjs` checks the actual Chrome WebGL 3D geometry and launch–flight–landing physics at both speed extremes, including smoothness of the camera and unchanged Samsung-landscape two-thumb GRIP, HUD, fullscreen, boost, white-core wave and SMAA pipeline.
+
+## Deferred by design
+
+Wall rides, inverted ceiling driving, corkscrew tracks and user-triggered aerobatic tricks will need a *full 3D tangent-frame road/ship physics redesign*. They are **not** faked with camera rotation in 0.7.0. The first leap is intentionally wide, on a straight, and forgiving; it serves as a measurable handling baseline before harder three-dimensional racing.
+
+---
+
 # SKYSHIFT 0.6.1 – Precision Grip & Side Thrusters
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

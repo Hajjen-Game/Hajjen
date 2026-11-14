@@ -17,7 +17,7 @@ The 0.4.9.5 spring camera has a measured ~4.04m boost separation and a convincin
 
 ### Performance and safety
 
-No additional GPU render passes, rail/deck materials, new particle emitters, point lights or track colliders. The twin-engine geometry uses 4 rather than 2 ribbon quads per socket inside the same mesh (24 additional triangles total), and updates the same two dynamic buffer attributes each frame. **The increase in geometry is not zero**; shader fragment math and the larger engine ribbon are bounded but may have a small GPU cost on older phones. Mobile WebGL smoke tests check shader compilation, not exact real-device FPS.
+No additional GPU render passes, rail/deck materials, new particle emitters, point lights or track colliders. The twin-engine geometry uses 4 rather than 2 ribbon quads per socket inside the same mesh (8 additional triangles total), and updates the same two dynamic buffer attributes each frame. **The increase in geometry is not zero**; shader fragment math and the larger engine ribbon are bounded but may have a small GPU cost on older phones. Mobile WebGL smoke tests check shader compilation, not exact real-device FPS.
 
 ### Review criteria
 

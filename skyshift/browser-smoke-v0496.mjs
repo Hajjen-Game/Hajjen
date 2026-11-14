@@ -79,7 +79,7 @@ try{
  // Validate the camera's real browser ESM module without replacing the
  // normal flight simulation or introducing extra GPU draw calls.
  const boostSpring=await page.evaluate(async()=>{
-  const m=await import("./boost-spring-v0496.mjs");
+  const m=await import("./boost-spring-v0495.mjs");
   const s=m.createBoostSpringState();
   m.triggerBoostSpring(s,44,1.4);
   let speedMult=1,peak=0,peakTime=0;

@@ -112,7 +112,7 @@ test("live production page keeps the archived HUD telemetry and controls",()=>{
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(html,/boot-v061\.js\?v=0\.6\.1/);
  assert.match(html,/data-game-module="game-v061\.mjs"/);
- assert.match(boot,/import\("\.\/game-v060\.mjs\?v=0\.6\.0"\)/);
+ assert.match(boot,/import\("\.\/game-v061\.mjs\?v=0\.6\.1"\)/);
  for(const id of ["hud","shield-fill","shield-text","flight-state",
    "shield-status","zone-number","sector-name","zone-progress-fill",
    "speed","speed-energy-fill","distance","start-btn","stick","stick-knob",

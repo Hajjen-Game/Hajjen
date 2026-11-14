@@ -170,24 +170,24 @@ test("long deck/raised guardrails share the same authority and bounded mesh dens
 });
 test("production version routes to the real 10.4km race; archived 1530m lab preserved",()=>{
  const html=source("./index.html");
- const boot=source("./boot-v060.js");
- const game=source("./game-v060.mjs");
- const browser=source("./browser-smoke-v060.mjs");
- assert.match(html,/data-game-module="game-v060\.mjs"/);
- assert.match(html,/boot-v060\.js\?v=0\.6\.0/);
- assert.match(boot,/import\("\.\/game-v060\.mjs\?v=0\.6\.0"\)/);
- for(const dep of ["trial-v060","zone-wave-v060","boost-v060",
+ const boot=source("./boot-v061.js");
+ const game=source("./game-v061.mjs");
+ const browser=source("./browser-smoke-v061.mjs");
+ assert.match(html,/data-game-module="game-v061\.mjs"/);
+ assert.match(html,/boot-v061\.js\?v=0\.6\.1/);
+ assert.match(boot,/import\("\.\/game-v061\.mjs\?v=0\.6\.1"\)/);
+ for(const dep of ["trial-v061","zone-wave-v060","boost-v060",
   "smooth-track-v060","premium-track-v060","aero-barrier-v060"])
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  assert.match(game,/setZoneSpeedStage\(flight,wave\.stage\)/);
  assert.match(game,/zone_speed_increase/);
  assert.match(game,/zoneSpeedEvents:\[\.\.\.flight\.zoneSpeedEvents\]/);
- assert.match(game,/version:"0\.6\.0"/);
- assert.match(game,/skyshift-skyline-circuit-v060-audit\.json/);
+ assert.match(game,/version:"0\.6\.1"/);
+ assert.match(game,/skyshift-precision-grip-v061-audit\.json/);
  assert.match(browser,/circuit\.lapLength!==3400/);
  assert.match(html,/10200 M/);
  assert.match(html,/THREE FASTER LAPS/);
- assert.match(html,/style-v060\.css/);
+ assert.match(html,/style-v061\.css/);
  assert.doesNotMatch(game,/from "\.\/trial-v0494\.mjs"/);
  assert.equal(source("./trial-v0494.mjs").includes("length:1530"),true);
 });

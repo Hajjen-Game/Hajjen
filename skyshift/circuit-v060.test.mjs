@@ -216,16 +216,16 @@ test("long GPU geometry is rendered ONCE; HDR shader front repeats without a sea
  assert.match(source,/state\.playerStage/);
 });
 test("production route preserves original HUD, SMAA and three-lap telemetry",()=>{
- const html=src("./index.html"),game=src("./game-v060.mjs"),
-  boot=src("./boot-v060.js"),smoke=src("./browser-smoke-v060.mjs");
- assert.match(html,/data-game-module="game-v060\.mjs"/);
- assert.match(html,/boot-v060\.js\?v=0\.6\.0/);
- assert.match(html,/style-v060\.css\?v=0\.6\.0/);
+ const html=src("./index.html"),game=src("./game-v061.mjs"),
+  boot=src("./boot-v061.js"),smoke=src("./browser-smoke-v061.mjs");
+ assert.match(html,/data-game-module="game-v061\.mjs"/);
+ assert.match(html,/boot-v061\.js\?v=0\.6\.1/);
+ assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(html,/id="lap-info"/);
  assert.match(html,/id="lap-number"/);
  assert.match(html,/id="final-laps"/);
- assert.match(boot,/import\("\.\/game-v060\.mjs\?v=0\.6\.0"\)/);
- for(const dep of ["trial-v060","circuit-layout-v060","boost-v060",
+ assert.match(boot,/import\("\.\/game-v061\.mjs\?v=0\.6\.1"\)/);
+ for(const dep of ["trial-v061","circuit-layout-v060","boost-v060",
   "zone-wave-v060","smooth-track-v060","premium-track-v060",
   "aero-barrier-v060"]){
   if(dep==="circuit-layout-v060")continue;
@@ -235,8 +235,8 @@ test("production route preserves original HUD, SMAA and three-lap telemetry",()=
  assert.match(game,/lap_completed/);
  assert.match(game,/lapTimesSeconds/);
  assert.match(game,/raceDistanceMeters/);
- assert.match(game,/version:"0\.6\.0"/);
- assert.match(game,/skyshift-skyline-circuit-v060-audit\.json/);
+ assert.match(game,/version:"0\.6\.1"/);
+ assert.match(game,/skyshift-precision-grip-v061-audit\.json/);
  assert.match(smoke,/CIRCUIT\.laps/);
  assert.match(game,/from "\.\/neon-v0498\.mjs"/);
  assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);

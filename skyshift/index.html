@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#050914">
   <link rel="icon" href="data:,">
-  <meta name="description" content="SKYSHIFT 0.6.0 – Circuit Architecture & Track Identity: a 10.4 km race with thrilling 11% physics speed escalation, varied corners and a smooth flat racing line.">
-  <title>SKYSHIFT · Circuit Architecture & Track Identity · 0.6.0</title>
+  <meta name="description" content="SKYSHIFT 0.6.1 – Precision Grip & Side Thrusters: precision steering grip and responsive lateral thrusters on the three-lap Skyline Circuit.">
+  <title>SKYSHIFT · Circuit Architecture & Track Identity · 0.6.1</title>
   <script type="importmap">
     {
       "imports": {
@@ -15,7 +15,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="./style-v060.css?v=0.6.0">
+  <link rel="stylesheet" href="./style-v061.css?v=0.6.1">
 </head>
 <body>
   <div id="app">
@@ -23,7 +23,7 @@
     <div class="vignette" aria-hidden="true"></div>
     <div id="zone-flash" aria-hidden="true"></div>
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ SKYLINE CIRCUIT · 0.6.0</span></div>
+      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ SKYLINE CIRCUIT · 0.6.1</span></div>
       <div class="top-actions">
         <button id="fullscreen-btn" class="top-button fullscreen-toggle hidden" type="button" title="Fullscreen" aria-label="Fullscreen" aria-pressed="false">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>
@@ -61,10 +61,16 @@
         <div class="stick-caption">STEER</div>
       </div>
       <button id="jump-btn" class="jump-button" type="button" aria-label="Hoppa"><span class="jump-arrow">↑</span><span>JUMP</span></button>
+      <button id="grip-btn" class="grip-button" type="button"
+        aria-label="GRIP: håll in samtidigt som du styr för snävare svängar" aria-pressed="false">
+        <span class="grip-icon" aria-hidden="true">⟨⟩</span>
+        <strong>GRIP</strong>
+        <small>HOLD + STEER</small>
+      </button>
     </div>
     <section id="menu" class="screen">
       <div class="screen-content">
-        <div class="kicker">MANTA BLADE · REACTIVE SKYLINE CIRCUIT · 0.6.0</div>
+        <div class="kicker">MANTA BLADE · REACTIVE SKYLINE CIRCUIT · 0.6.1</div>
         <h1>SKY<span>SHIFT</span></h1>
         <div class="rule"></div>
         <p class="tagline">ONE ICONIC CIRCUIT.<br>THREE FASTER LAPS.</p>
@@ -74,8 +80,9 @@
         <div id="fullscreen-help" class="fullscreen-help hidden" role="status">
           Fullscreen stöds inte i den här webbläsarvyn. Öppna SKYSHIFT direkt i Chrome via webbläsarens meny (⋮) och prova igen.
         </div>
-        <div class="instructions">STEER <b>A / D · ← →</b><br><span>Mobile: drag left to steer · no jumping in this test</span></div>
-        <div class="prototype-label">3 × 3,400 M · 9 COLOR ZONES · SKYLINE CIRCUIT · 0.6.0</div>
+        <div class="instructions">STEER <b>A / D · ← →</b> &nbsp; GRIP <b>SHIFT + STEER</b>
+          <br><span>Mobile: steer with left thumb · hold GRIP with right thumb for tighter turns</span></div>
+        <div class="prototype-label">3 × 3,400 M · 9 COLOR ZONES · SKYLINE CIRCUIT · 0.6.1</div>
       </div>
     </section>
     <section id="pause-screen" class="screen hidden" aria-label="Pausmeny">
@@ -98,6 +105,6 @@
     <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
     <div id="error" class="error hidden" role="alert"></div>
   </div>
-  <script src="./boot-v060.js?v=0.6.0" data-game-module="game-v060.mjs"></script>
+  <script src="./boot-v061.js?v=0.6.1" data-game-module="game-v061.mjs"></script>
 </body>
 </html>

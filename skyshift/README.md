@@ -1,3 +1,33 @@
+# SKYSHIFT 0.6.1 – Precision Grip & Side Thrusters
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Purpose
+
+Give Skyline Circuit its first genuinely player-controlled driving technique without compromising direct steering or adding automatic lane-following. This release deliberately does **not** include trick/roll input, high-speed ceiling navigation or new tracks yet. Existing 0.6.0 modules are preserved for rollback.
+
+### GRIP: racing technique instead of a free steering buff
+
+- **Hold GRIP + STEER** using the right-thumb GRIP button on Android/iOS landscape while the left thumb steers; on desktop use either **Shift + A/D** or **Shift + arrow keys**. When released, or when steering is neutral, it does nothing. GRIP does not snap the craft to track geometry.
+- Physically authoritative yaw authority builds smoothly up to **+27%**, with a **6.5% maximum physical speed penalty** proportional to active steering. The penalty is applied to real world displacement after the existing boost/zone cruise math; it falls away promptly on release, no residual speed tax. Existing 11% zone escalation, +40% physical booster and full 3-lap circuit remain.
+- Ramp times are frame-rate independent (**~0.11s attack, ~0.16s release**); stable in the existing 120Hz physics clock. Airborne GRIP is disabled to leave room for later trick/air-control design. Activation counters, actual seconds, distance, max turning response and speed loss are exported to `skyshift-precision-grip-v061-audit.json`.
+
+### Directional side thrusters
+
+- Two original Manta Blade wingtip sideways nozzle jets (port/starboard). Only the nozzle that physically pushes the current turn is lit. Each active nozzle has a **chromatic veil and neutral white-hot core**, with a small movement shimmer and light extra bank in the model pose.
+- **No additional point lights, particle emitters, separate RAF loops or postprocessing passes**; the nozzle geometry is attached to the ship and only the active side's two little triangles are drawn (max two extra draw calls). All usual engine plumes and HDR/SMAA remain untouched.
+
+### UI, safety and testing
+
+- New independent `#grip-btn` touch control, visually aligned on the right bottom edge while preserving the existing large left steering surface. Touch pointer capture supports **simultaneous two-thumb use**. Pointer cancel, focus loss, pause, restart and fullscreen changes release GRIP safely.
+- Desktop Shift input is added to the existing key set, not a new input engine. GRIP button has accessible instructions and `aria-pressed` active state; a thin white-core active rim indicates active grip. Reduced-motion preferences disable animation transitions.
+- `precision-grip-v061.test.mjs` verifies that grip only works with simultaneous steer, yaw really improves, real speed drops and recovers, left/right symmetry, no airborne acceleration, cruise/boost compatibility, side jet geometry and active production bindings.
+- `browser-smoke-v061.mjs` checks the actual running Three.js/Chrome instance responds to Shift+Right with real flight state and glowing side jets; Samsung-landscape grip button has adequate dimensions and doesn't overlap the 156px steering pad, top HUD or screen edge. Existing Skyline Circuit/3-lap/white-core/SMAA tests continue.
+
+Playtest: compare a technical corner with and without GRIP. Ideally GRIP lets you take a cleaner inside line at a clear but not dominant speed cost; it should not feel mandatory on regular bends. Let the grip jets remain readable but not brighter than the zone pulse.
+
+---
+
 # SKYSHIFT 0.6.0 – Circuit Architecture & Track Identity
 
 **Live:** https://hajjen-game.github.io/Hajjen/skyshift/

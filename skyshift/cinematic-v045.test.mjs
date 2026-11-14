@@ -96,8 +96,8 @@ test("active 0.4.5 page wires cinematic preview and reused engine visuals",()=>{
  const game=source("game-v045.mjs");
  const fx=source("premium-v045.mjs");
  const html=source("index.html");
- assert.match(html,/boot-v060\.js\?v=0\.6\.0/);
- assert.match(html,/style-v060\.css\?v=0\.6\.0/);
+ assert.match(html,/boot-v061\.js\?v=0\.6\.1/);
+ assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(game,/from "\.\/cinematic-v045\.mjs"/);
  assert.match(game,/from "\.\/premium-v045\.mjs"/);
  assert.match(game,/turnPreview\(headingAt\(view\.s\),headingAt\(upcoming\)/);

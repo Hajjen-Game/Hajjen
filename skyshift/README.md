@@ -1,3 +1,28 @@
+# SKYSHIFT 0.4.9.9 – Reactive HUD & Premium Telemetry
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## HUD 2.0 direction
+
+Replace the prototype's loosely related text overlays with three consistent, modern edge-anchored instrument modules inspired by readable antigravity racing instrumentation, **not copied from WipEout**. Keep the road unobstructed, controls touch-safe and visual motion contextual. Previous feedback requested a WipEout-like racing spirit, modern restraint, and HUD that visibly reacts to the game.
+
+### Changes
+
+- **New HUD geometry and visual hierarchy:** `index.html` and `style-v0499.css` separate shield/flight state + bank readout (left), a restrained zone hero + current palette + course progress (centre), and a large real-time velocity readout + energetic meter + distance (right). Slim glass-like module surfaces, hairline borders, small diamond cues, consistent typography and color; no stock dashboard images, heavy translucent boxes or added WebGL layers.
+- **Actual gameplay-driven animation:** `reactive-hud-v0499.mjs` is a 30Hz capped DOM controller with exponential time-based easing, three short events and real-time continuous inputs. It receives real boost activation, actual observed craft bank (interpolated `motionState.roll`), physically simulated speed (not a random animation), completed zone waves, shield impacts and low-shield status. It does **not** alter physics or emit new render passes.
+- **Boost feedback:** the speed readout briefly tightens and brightens on pad contact, the panel receives an accent stroke, and an animated narrow velocity bar reflects actual speed.
+- **Zone feedback:** the existing physical spectral wave triggers a short restrained hero-zone crest, current palette accent, and a reduced narrow message below the top HUD. No large central flash or obstruction.
+- **Shield + bank:** the shield bar retains its original width and receives a subtle impact flicker on real shield loss; at <=30% the widget turns warm and stays in warning status. A small low-motion bank instrument uses the ship's real visual roll rather than a faked sway.
+- **Clean responsive mobile:** landscape layout at 914×411 and smaller widths with safe-area spacing, preserve the original large steering touch target and fullscreen/pause controls, no new buttons. Preferences for reduced motion disable all added pulses. HUD widgets do not intercept touches and mostly use opacity/transform rather than expensive filters.
+- **Prior functionality unchanged:** 0.4.9.8 HDR/SMAA, wave timing, 0.4.9.7 raised rails/pillars removal, 0.4.9.6 thrust motion, +40% physical boosts, 0.4.9.5 spring camera, and 1530m course. The original versioned game entrypoints remain intact.
+- **Verification and traceability:** deterministic `reactive-hud-v0499.test.mjs` validates no idle fake animation, boost, zone fade, shield warning, bounded bank, reset, responsive markup and retained physics. Real Chrome WebGL and emulated Samsung touch smoke additionally verify actual HTML geometry, wave-to-HUD signal, feedback stages, SMAA and bootstrap recovery. Exported `skyshift-hud-v0499-audit.json` now includes HUD event counters and peak intensities.
+
+### Playtest criteria
+
+Judge whether speed has an obvious but controlled punch when a +40% pad triggers; the centre zone becomes a premium moment without hiding the corner; the shield/roll at left is legible yet quiet during normal flight. Compare landscape screenshots on old Samsung and iPhone to verify panel spacing, stick usability and smoothness (especially while zone transitions occur). The automated browser smoke validates functional layout, not the final subjective art direction.
+
+---
+
 # SKYSHIFT 0.4.9.8 – Premium Image Clarity & Anti-Aliasing
 
 **Live:** https://hajjen-game.github.io/Hajjen/skyshift/

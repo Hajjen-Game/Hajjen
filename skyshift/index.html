@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#050914">
   <link rel="icon" href="data:,">
-  <meta name="description" content="SKYSHIFT 0.4.9.8 – Premium Image Clarity & Anti-Aliasing: HDR SMAA, stable distant road guides and adaptive mobile render quality.">
-  <title>SKYSHIFT · Premium Image Clarity & Anti-Aliasing · 0.4.9.8</title>
+  <meta name="description" content="SKYSHIFT 0.4.9.9 – Reactive HUD & Premium Telemetry: cinematic instrument-grade HUD with live boost, zone, banking and shield feedback.">
+  <title>SKYSHIFT · Reactive HUD & Premium Telemetry · 0.4.9.9</title>
   <script type="importmap">
     {
       "imports": {
@@ -15,7 +15,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="./style-v043.css?v=0.4.9.8">
+  <link rel="stylesheet" href="./style-v0499.css?v=0.4.9.9">
 </head>
 <body>
   <div id="app">
@@ -23,7 +23,7 @@
     <div class="vignette" aria-hidden="true"></div>
     <div id="zone-flash" aria-hidden="true"></div>
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ IMAGE CLARITY · 0.4.9.8</span></div>
+      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ HUD 2.0 · 0.4.9.9</span></div>
       <div class="top-actions">
         <button id="fullscreen-btn" class="top-button fullscreen-toggle hidden" type="button" title="Fullscreen" aria-label="Fullscreen" aria-pressed="false">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>
@@ -31,21 +31,25 @@
         <button id="pause-btn" class="top-button hidden" aria-label="Pausa spelet">Ⅱ</button>
       </div>
     </header>
-    <div id="hud" class="hud hidden">
-      <div class="hud-left">
-        <div class="eyebrow">SKYSHIELD <b id="shield-text">100%</b></div>
-        <div class="shield-track"><div id="shield-fill"></div></div>
-        <div class="hud-note" id="flight-state">READY</div>
+    <div id="hud" class="hud hud-v2 hidden" aria-label="Live flight telemetry">
+      <div class="hud-left hud-module" aria-label="Shield and craft attitude">
+        <div class="hud-module-heading"><span class="hud-indicator" aria-hidden="true"></span> SKYSHIELD <small>SYS / 01</small></div>
+        <div class="shield-readout"><strong id="shield-text">100%</strong><span id="shield-status" aria-hidden="true">STABLE</span></div>
+        <div class="shield-track" aria-label="Shield energy"><div id="shield-fill"></div></div>
+        <div class="hud-status-row"><span class="hud-state-pip" aria-hidden="true"></span><span class="hud-note" id="flight-state">READY</span></div>
+        <div class="hud-bank-instrument" aria-hidden="true"><span class="bank-caption">ROLL</span><span class="bank-line"><i id="hud-bank-gauge" role="meter" aria-label="Craft bank" aria-valuemin="-24" aria-valuemax="24" aria-valuenow="0"></i></span></div>
       </div>
-      <div class="hud-center">
-        <div class="eyebrow">FLIGHT ZONE</div>
-        <div class="zone-number" id="zone-number">01</div><div id="sector-name" class="sector-name">MIDNIGHT</div>
-        <div class="zone-progress"><div id="zone-progress-fill"></div></div>
+      <div class="hud-center hud-module" aria-label="Current flight zone">
+        <div class="hud-module-heading zone-kicker"><span class="hud-zone-ornament" aria-hidden="true">◇</span> FLIGHT ZONE <span class="hud-zone-ornament" aria-hidden="true">◇</span></div>
+        <div class="zone-hero"><span class="zone-prefix">Z</span><strong class="zone-number" id="zone-number">01</strong><span class="zone-horizon" aria-hidden="true"></span></div>
+        <div id="sector-name" class="sector-name">MIDNIGHT</div>
+        <div class="zone-progress" aria-label="Course progress"><div id="zone-progress-fill"></div></div>
       </div>
-      <div class="hud-right">
-        <div class="eyebrow">DISTANCE</div>
-        <div class="distance" id="distance">0000 <small>M</small></div>
-        <div class="hud-note" id="speed">SPEED 1.00×</div>
+      <div class="hud-right hud-module" aria-label="Speed and course distance">
+        <div class="hud-module-heading">VELOCITY <small>LIVE / X</small></div>
+        <div class="speed-readout"><strong id="speed">1.00×</strong><span class="speed-indicator" aria-hidden="true"></span></div>
+        <div class="speed-energy-track" aria-hidden="true"><div id="speed-energy-fill"></div></div>
+        <div class="hud-distance-line"><span>DISTANCE</span><span class="distance" id="distance">0000 <small>/ 1530 M</small></span></div>
       </div>
     </div>
     <div id="zone-banner" class="zone-banner hidden" aria-live="polite"><small>ZONE SHIFT</small><strong id="zone-banner-number">02</strong><span id="zone-banner-name">VIOLET PULSE</span></div>
@@ -59,7 +63,7 @@
     </div>
     <section id="menu" class="screen">
       <div class="screen-content">
-        <div class="kicker">MANTA BLADE · PREMIUM IMAGE CLARITY 0.4.9.8</div>
+        <div class="kicker">MANTA BLADE · REACTIVE HUD 2.0 · 0.4.9.9</div>
         <h1>SKY<span>SHIFT</span></h1>
         <div class="rule"></div>
         <p class="tagline">TWICE THE SPEED.<br>ONE CLEAN RACING LINE.</p>
@@ -70,7 +74,7 @@
           Fullscreen stöds inte i den här webbläsarvyn. Öppna SKYSHIFT direkt i Chrome via webbläsarens meny (⋮) och prova igen.
         </div>
         <div class="instructions">STEER <b>A / D · ← →</b><br><span>Mobile: drag left to steer · no jumping in this test</span></div>
-        <div class="prototype-label">1530 M · REFINED SPECTRAL ZONE WAVES · 10 / 20 / 27 S · 0.4.9.8</div>
+        <div class="prototype-label">1530 M · REFINED SPECTRAL ZONE WAVES · 10 / 20 / 27 S · 0.4.9.9</div>
       </div>
     </section>
     <section id="pause-screen" class="screen hidden" aria-label="Pausmeny">
@@ -93,6 +97,6 @@
     <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
     <div id="error" class="error hidden" role="alert"></div>
   </div>
-  <script src="./boot-v0498.js?v=0.4.9.8" data-game-module="game-v0498.mjs"></script>
+  <script src="./boot-v0499.js?v=0.4.9.9" data-game-module="game-v0499.mjs"></script>
 </body>
 </html>

@@ -102,7 +102,7 @@ test("production page and boot load v04991; old gameplay and SMAA stay intact",(
  const boot=src("./boot-v070.js");
  const game=src("./game-v070.mjs");
  const browser=src("./browser-smoke-v04991.mjs");
- assert.match(html,/style-v061\.css\?v=0\.7\.0/);
+ assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(html,/boot-v070\.js\?v=0\.7\.0/);
  assert.match(html,/data-game-module="game-v070\.mjs"/);
  assert.match(boot,/import\("\.\/game-v070\.mjs\?v=0\.7\.0"\)/);

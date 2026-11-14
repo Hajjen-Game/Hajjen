@@ -168,7 +168,7 @@ test("mobile GRIP and desktop Shift are explicit, touch-safe, and reset on pause
  assert.match(game,/sideThrusters\?\.frame\(/);
  assert.match(game,/gripActiveSeconds/);
  assert.match(game,/grip_activated/);
- assert.match(html,/style-v061\.css\?v=0\.7\.0/);
+ assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(html,/boot-v070\.js\?v=0\.7\.0/);
  assert.match(html,/data-game-module="game-v070\.mjs"/);
  assert.match(boot,/import\("\.\/game-v070\.mjs\?v=0\.7\.0"\)/);

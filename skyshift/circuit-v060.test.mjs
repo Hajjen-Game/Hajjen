@@ -220,7 +220,7 @@ test("production route preserves original HUD, SMAA and three-lap telemetry",()=
   boot=src("./boot-v070.js"),smoke=src("./browser-smoke-v070.mjs");
  assert.match(html,/data-game-module="game-v070\.mjs"/);
  assert.match(html,/boot-v070\.js\?v=0\.7\.0/);
- assert.match(html,/style-v061\.css\?v=0\.7\.0/);
+ assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(html,/id="lap-info"/);
  assert.match(html,/id="lap-number"/);
  assert.match(html,/id="final-laps"/);

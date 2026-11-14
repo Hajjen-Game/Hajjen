@@ -54,7 +54,7 @@ test("Cinematic horizon cue follows physical front, not screen timers",()=>{
  updateZoneWave(wave,11.4,540);
  assert.equal(wave.playerStage,1);
  assert.ok(waveResonanceStrength(wave,10.790)>.95);
- close(waveResonanceStrength(wave,11.4),0);
+ assert.ok(waveResonanceStrength(wave,11.4)<.005);
  updateZoneWave(wave,12.7,600);
  close(waveResonanceStrength(wave,12.7),0);
  assert.deepEqual(wave.triggers,[10,20,27]);

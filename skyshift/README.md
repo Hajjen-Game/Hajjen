@@ -1,3 +1,15 @@
+# SKYSHIFT 0.4.9.4 – Boost Punch & Camera Catch-Up
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+- Five existing one-use boost pads now target **1.40× normal speed** (+40%, previously +30%) using the same 0.15s attack / 0.23s release / 0.92s duration, unchanged location/steering/road geometry.
+- On boost activation the camera briefly falls behind the faster Manta Blade for **0.36s** (follow response 2.8), then accelerates to catch up over **0.52s** (response 13.8), returning to default response 10.4. The forward-axis distance behind the target is capped at **10m** during the effect to protect visibility and corner readability. Camera look smoothing shares the response, but player heading, lateral movement and collision are never modified.
+- Boost HUD toast shows +40%; thrust plume normalization uses the actual configured boost rather than a hardcoded 30% scale. The flight audit records max camera trail and event count.
+- New versioned `boost-v0494.mjs`, `trial-v0494.mjs`, `boost-chase-v0494.mjs`, `game-v0494.mjs`, `boot-v0494.js` keep 0.4.9.3 files available for rollback. Geometry, Manta Blade, 0.4.9.3 spectral wave, five boost positions and shader workload remain unchanged.
+- New deterministic tests and real Chrome/WebGL & simulated Android touch/failure smoke. Tune perception using actual phone footage after checks.
+
+---
+
 # SKYSHIFT 0.4.9.3 – Spectral Balance & Refined White Core
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

@@ -1,3 +1,28 @@
+# SKYSHIFT 0.4.9.7 – Elevated Rails & Corner Readability
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Intent
+
+Improve high-speed track readability, make the chromatic white-core zone wave more prominent on the guardrails, and remove four overlapping roadside beacon-instancing layers that were barely visible. Inspired by the deliberate continuous edging and repeated curve direction language of antigravity racers such as WipEout, FAST RMX and Redout; these are SKYSHIFT-specific proportions, not copied assets.
+
+## Changes
+
+- **Continuous raised armor:** new `aero-barrier-v0497.mjs` has an **0.99 m** cap on straights (previously 0.78 m) with smoothly blended **1.11 m** height in committed bends. Height is a continuous function of the exact pre-existing analytic C2 track curvature, not a set of discrete new rail segments. A wider, flatter higher inner face lets the original spectral front illuminate a visually substantial raised side.
+- **Keep original collision boundaries:** `trial-v0494.mjs`, `GUARDRAIL.height=0.78`, player lateral limit, width and all handling are unchanged. This is a visual pass, not a difficulty increase or a hidden track width reduction.
+- **Curve chevrons:** arc-length pitch **11.5 m → 7.8 m**, threshold **0.0045 → 0.0028**, longitudinal footprint **2.8 m → 4.6 m**. Strokes span more of the taller rail face, with greater emphasis on the outside of a corner while preserving visible guidance on both sides.
+- **Spectral chevron identity:** a one-float vertex flag in the original rail-light geometry makes the wave's color crest and narrow white core brighten the directional arrows more strongly than the rest of the wall, synchronized with the existing rail and road zone shader. Slightly wider cap strip, no new particles, no independent flash. The velocity flow from 0.4.9.6 remains active.
+- **Remove roadside pillars entirely:** `game-v0497.mjs` removes four 18-m-spaced instanced beacon/pylon layers and their allocations. The intentional FINISH arch remains. This saves four decorative draw batches; no invisible geometry remains running alongside the barriers.
+- **Zero new render passes or material batches:** three original rail batches remain, and the geometry gets a modest extra per-vertex chevron flag and more chevron triangles. The shader has a small additional multiplicative chevron term; confirm frame pacing on a real phone.
+- **Telemetry & regression:** active audit `skyshift-rails-v0497-audit.json` records visual height, physical unchanged collider, arrow pitch, removed pillars, and track/rail spectral configuration. Additional deterministic and Chrome WebGL/Android touch/import-recovery checks.
+- Existing +40% physical boost (five pads), boost spring camera, layered twin engine velocity effects, Manta Blade and zone-wave timing remain unchanged.
+
+## What to evaluate
+
+Pay attention to whether the taller wall makes the turns easier to read without boxing in the open-space atmosphere, whether the arrows feel large and rhythmic rather than cluttered, and whether the zone wave feels like it climbs the rail. No more roadside pillars should be present.
+
+---
+
 # SKYSHIFT 0.4.9.6 – Velocity Language & Boost Spectacle
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

@@ -106,15 +106,15 @@ test("HUD is DOM-only, throttled, and provides event counters for exported logs"
  assert.equal(hud.stats().boostEvents,1);
  assert.equal(hud.stats().noAdditionalRenderPasses,true);
 });
-test("production 0.4.9.9 layout keeps all existing controls and new concise modules",()=>{
- const html=source("./index.html"),css=source("./style-v0499.css"),
-  game=source("./game-v0499.mjs"),boot=source("./boot-v0499.js");
- assert.match(html,/style-v0499\.css\?v=0\.4\.9\.9/);
- assert.match(html,/boot-v0499\.js\?v=0\.4\.9\.9/);
- assert.match(html,/data-game-module="game-v0499\.mjs"/);
- assert.match(boot,/import\("\.\/game-v0499\.mjs\?v=0\.4\.9\.9"\)/);
+test("live production page keeps the archived HUD telemetry and controls",()=>{
+ const html=source("./index.html"),css=source("./style-v04991.css"),
+  game=source("./game-v04991.mjs"),boot=source("./boot-v04991.js");
+ assert.match(html,/style-v04991\.css\?v=0\.4\.9\.9\.1/);
+ assert.match(html,/boot-v04991\.js\?v=0\.4\.9\.9\.1/);
+ assert.match(html,/data-game-module="game-v04991\.mjs"/);
+ assert.match(boot,/import\("\.\/game-v04991\.mjs\?v=0\.4\.9\.9\.1"\)/);
  for(const id of ["hud","shield-fill","shield-text","flight-state",
-   "hud-bank-gauge","zone-number","sector-name","zone-progress-fill",
+   "shield-status","zone-number","sector-name","zone-progress-fill",
    "speed","speed-energy-fill","distance","start-btn","stick","stick-knob",
    "jump-btn","fullscreen-btn","menu-fullscreen-btn","pause-btn","toast"])
   assert.ok(html.includes('id="'+id+'"'),id);
@@ -126,15 +126,15 @@ test("production 0.4.9.9 layout keeps all existing controls and new concise modu
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(css,/env\(safe-area-inset-left\)/);
  assert.match(css,/#mobile-controls \.stick-track/);
- assert.match(game,/from "\.\/reactive-hud-v0499\.mjs"/);
+ assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);
  assert.match(game,/reactiveHud\.onBoost\(\)/);
  assert.match(game,/reactiveHud\.onZone\(\)/);
  assert.match(game,/reactiveHud\.onImpact\(\)/);
- assert.match(game,/bankDegrees:motionState\.roll\*180\/Math\.PI/);
+ assert.doesNotMatch(game,/bankDegrees:motionState\.roll\*180\/Math\.PI/);
  assert.match(game,/reactiveHud\.update\(/);
  assert.match(game,/reactiveHud:reactiveHud\.stats\(\)/);
- assert.match(game,/version:"0\.4\.9\.9"/);
- assert.match(game,/skyshift-hud-v0499-audit\.json/);
+ assert.match(game,/version:"0\.4\.9\.9\.1"/);
+ assert.match(game,/skyshift-racing-hud-v04991-audit\.json/);
 });
 test("old flight physics, spectrum timing, SMAA, boosts and elevated corner rails survive",()=>{
  const game=source("./game-v0499.mjs");

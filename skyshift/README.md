@@ -1,3 +1,28 @@
+# SKYSHIFT 0.4.9.9.1 – Racing HUD Refinement
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Playtest feedback
+
+The 0.4.9.9 HUD 2.0 is more organized but the tiny bank/roll instrument contributes little during real racing. Its 3px shield / 2px speed / 2px course bars are too thin to feel like racing instrumentation, and three outlined glass rectangles remain overly prominent. The user wants stronger visual weight inspired by WipEout without copying its HUD. This release is deliberately a **HUD-only** iteration.
+
+## Changes
+
+- **Delete unused miniature bank instrument** from the live HTML, visuals and active HUD director. No hidden icon, obsolete bank calculation, or unused roll telemetry in the current module. Flight-state text such as RIGHT BANK remains, so real race feedback is retained without clutter.
+- **Three thicker and stronger racing bars:** shield **9px**, velocity **8px**, course progress **6px**. Angled polygon ends, a white-hot 2px highlight on the fill, lightly segmented track surfaces and saturation tied to the existing live zone color; shields still reflect real percentage, velocity energy reflects real speed. No canvas redraws, sprites, fonts, images, or new GPU draw passes.
+- **Short readable effects:** boost produces a single white crest sweep through the velocity bar, shield loss lights up the filling itself rather than flashing the entire left module; low-shield warning persists in warm tones; zone crossings still pulse the middle instrument. Motion is suppressed using `prefers-reduced-motion`.
+- **Less visual boxing:** trim side-module height, remove rounded card treatment, reduce panel background opacity and replace heavy outlines with partial angled-edge instrument framing. Simplify low-value SYS/LIVE labels while keeping readable shield/flight/zone/speed/distance values.
+- **Landscape performance and touch:** retain top-safe-area HUD, unchanged large steering controls and fullscreen/pause buttons, responsive 914×411 older-Samsung layout, no layout thrash from continuous geometry effects. The existing DOM HUD update rate stays 30Hz.
+- **Gameplay and graphics untouched:** 1530m route, direct steering, five +40% boost pads, inertial spring chase camera, premium engine trails, 0.4.9.7 elevated rails and chromatic white-core wave, 0.4.9.8 HDR/SMAA remain unchanged.
+- **Diagnostics:** `skyshift-racing-hud-v04991-audit.json` identifies the new live HUD director, actual events and meter dimensions. Legacy 0.4.9.9 source files remain available as a stable comparison.
+- **Verification:** new `racing-hud-v04991.test.mjs` covers all bar dimensions, no bank icon, real boost/zone/shield events, no extra render passes, production routing and retained physics; updated Chrome/Three.js software-WebGL and emulated Samsung test assert computed CSS bar dimensions, unobstructed touch surfaces, world wave/HUD synchronization and failed module recovery.
+
+## What to review
+
+On the older Samsung, compare how clearly the 9/8/6px meters read while looking at a curve and whether the angled framing feels cleaner. Look for unwanted overlap at zone changes and ensure the meter highlights are not too white. The software-GPU smoke validates rendering and layout, but actual subjective performance is established by the user's playtest.
+
+---
+
 # SKYSHIFT 0.4.9.9 – Reactive HUD & Premium Telemetry
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

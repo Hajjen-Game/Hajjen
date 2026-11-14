@@ -1,3 +1,11 @@
+# SKYSHIFT 0.4.9.3 – Spectral Balance & Refined White Core
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+Based on mobile video feedback, 0.4.9.2's white wave overexposed the road, muted Violet/Gold/Jade, and sometimes obscured the craft. This targeted shader balance pass reduces white-core half-width 5.6m→2.9m, white bloom half-width 19m→14m, core emission 1.52→0.72, and bloom emission 0.46→0.20. It caps neutral road diffuse mix to 0.60, gives the chromatic crest/halo more presence, and softens the white tint in rail LEDs, fog and twin engine lighting. All five spectral layers remain, with identical physical front timing (10/20/27s), 1,530m course, five boosts, Manta Blade, flight handling, 0.4.9.1.1 mobile bootstrap, no new geometry, draw calls or passes. New 0.4.9.3 Node and browser/WebGL/Android smoke tests validate integrations; real phone visual balance still needs user verification.
+
+---
+
 # SKYSHIFT 0.4.9.2 – White-Core Spectral Wave & Cinematic Energy
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

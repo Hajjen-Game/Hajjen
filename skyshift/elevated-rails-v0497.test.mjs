@@ -84,7 +84,7 @@ test("spectral front and white-core ripple now also emphasize directional chevro
  assert.match(patched.fragmentShader,/spectralWhiteBloom/);
  assert.match(patched.fragmentShader,/velocityRailPulse/);
  assert.match(patched.fragmentShader,/float chevronResponse=vRailChevron/);
- assert.match(patched.fragmentShader,/uZoneFront1/);
+ assert.match(patched.fragmentShader,/uRailFront1/);
  const src=source("./aero-barrier-v0497.mjs");
  assert.match(src,/aRailChevron/);
  assert.match(src,/setWaveState\(state\)/);

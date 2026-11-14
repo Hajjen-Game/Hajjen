@@ -123,7 +123,7 @@ test("active game uses interpolated 0.4.4 motion, independent camera and audit",
  assert.match(game,/\?flightlab=1/);
  assert.match(game,/version:"0\.4\.4"/);
  assert.match(game,/skyshift-flight-v044-audit\.json/);
- assert.match(html,/boot-v0494\.js\?v=0\.4\.9\.4/);
- assert.match(html,/style-v043\.css\?v=0\.4\.9\.4/);
+ assert.match(html,/boot-v0495\.js\?v=0\.4\.9\.5/);
+ assert.match(html,/style-v043\.css\?v=0\.4\.9\.5/);
  assert.doesNotMatch(game,/headingAt\(view\.s\)/);
 });

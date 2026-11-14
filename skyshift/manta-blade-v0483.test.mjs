@@ -114,7 +114,7 @@ test("builder returns exactly two existing animation plume handles and a recesse
 const CRAFT_MAX=MANTA_IDENTITY.maxGeometryTriangles;
 test("live game uses new ship while retaining same authoritative trial and camera",()=>{
  const game=source("game-v0483.mjs"),page=source("index.html");
- assert.match(page,/boot-v0494\.js\?v=0\.4\.9\.4/);
+ assert.match(page,/boot-v0495\.js\?v=0\.4\.9\.5/);
  assert.match(game,/from "\.\/manta-blade-v0483\.mjs"/);
  assert.match(game,/buildMantaBlade\(THREE,shipGlow\)/);
  assert.match(game,/engineCore=craft\.engineCore/);

@@ -138,7 +138,7 @@ test("0.4.8 authoritative speed & steering remain exactly unchanged",()=>{
 test("active 0.4.8.1 game removes all three floating neon decal batches",()=>{
  const g=source("game-v0481.mjs");
  const html=source("index.html");
- assert.match(html,/boot-v0494\.js\?v=0\.4\.9\.4/);
+ assert.match(html,/boot-v0495\.js\?v=0\.4\.9\.5/);
  assert.match(g,/createPremiumDeckGeometry\(THREE\)/);
  assert.match(g,/createPremiumTrackMaterial\(THREE\)/);
  assert.match(g,/from "\.\/trial-v048\.mjs"/);

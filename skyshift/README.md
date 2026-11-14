@@ -1,3 +1,28 @@
+# SKYSHIFT 0.4.9.5 – Inertial Boost Camera & Speed Punch
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Why this release
+
+The 0.4.9.4 camera lag changed the chase camera's global follow response for 0.36 seconds and then jumped to a faster response for 0.52 seconds. It also imposed a positional 10m cap and slowed the camera's look target. Phone footage showed the ship moving away but the effect feeling like a correction rather than natural acceleration.
+
+## Inertial boost spring
+
+- `boost-spring-v0495.mjs` replaces response switching with an exactly integrated **critically damped longitudinal spring**. The initial velocity impulse is proportional to +40% expected boost speed, and half the total input is coupled to the real exponential speed ramp; the camera position itself is never teleported when boost starts.
+- Peak visual separation on the 44–47m/s trial is about **4.0–4.2m**, at about **0.17–0.20 seconds** after pad contact, then it returns naturally over roughly **0.5–0.8 seconds** without position snapping or oscillation. A smooth hyperbolic tangent envelope keeps the additional lag strictly under **5.2m**, even under unusual inputs. There are no arbitrary lag/catch-up phase timers.
+- The original default-position chase camera follows the pilot at its normal **10.4/s exponential response**, even during boost. Only a bounded offset along the ship's forward axis is layered on top. The look target keeps normal response: **steering, turn preview and aiming never inherit boost damping**.
+- `boostFovTarget` smoothly adds up to **+3.7 degrees**, reaching about **74.2°** from the existing 70.5° high-speed FOV. Separate rise/fall responses (13.0/s and 5.5/s) prevent a harsh FOV cut at boost release, and the total is limited to 75°.
+- The five physical boost pads, **+40% real speed multiplier**, 0.92s duration, authored 1,530m track, Manta Blade, existing Chroma-inspired spectral wave, mobile bootstrap and no extra GPU draw calls remain unchanged.
+- The audit includes spring peak metres, event count, FOV bonus, frequencies and bounding values for comparison with new phone footage. No extra geometry or post-processing passes.
+
+## Validation
+
+- `boost-spring-v0495.test.mjs`: checks 20/30/60/120FPS spring timing, smooth distance envelope, steady return, FOV limits and unchanged physical boost/steering, plus production boot wiring.
+- `browser-smoke-v0495.mjs`: checks live Chrome/Three.js WebGL, wave shaders, real browser ESM spring maths, Android touchscreen start and recoverable import failure.
+- The user should judge the actual *feel* on their mobile; automated checks prove timing, wiring and absence of exceptions, not subjective quality.
+
+---
+
 # SKYSHIFT 0.4.9.4 – Boost Punch & Camera Catch-Up
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

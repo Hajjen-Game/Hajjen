@@ -172,5 +172,5 @@ test("active 0.4.9 uses extended modules, dynamic palettes and no screen flash",
  assert.match(game,/skyshift-zone-v049-audit\.json/);
  assert.match(game,/ENGINE_SOCKETS/);
  assert.doesNotMatch(game,/UI\.flash\.classList\.add\("active"\)/);
- assert.ok(page.includes("10400 M"));
+ assert.ok(page.includes("10200 M"));
 });

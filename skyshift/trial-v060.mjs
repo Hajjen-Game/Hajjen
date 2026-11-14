@@ -295,12 +295,13 @@ export function stepFlight(st,dt,control={}){
   }
  }
  // Ten ordered checkpoints per lap prevent shortcuts and duplicate laps.
- const cp=checkpointFor(st.s);
- if(cp>st.checkpoint){
-  const fromIndex=Math.round(st.checkpoint/(CIRCUIT.lapLength/10));
-  const toIndex=Math.round(cp/(CIRCUIT.lapLength/10));
-  for(let i=fromIndex+1;i<=toIndex;i++)st.checkpointsPassed++;
-  st.checkpoint=cp;
+ // Validate ONE physical forward crossing at a time. A fabricated jump
+ // across a full lap, teleport to finish or reverse finish-line pass cannot
+ // magically award all intervening checkpoints.
+ const nextGate=(st.checkpointsPassed+1)*(CIRCUIT.lapLength/10);
+ if(beforeS<nextGate&&st.s>=nextGate&&st.s-beforeS<5){
+  st.checkpointsPassed++;
+  st.checkpoint=nextGate;
  }
  let lapCompleted=0;
  const lapGate=(st.lapsCompleted+1)*CIRCUIT.lapLength;

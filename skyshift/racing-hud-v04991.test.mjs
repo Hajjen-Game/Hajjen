@@ -111,8 +111,8 @@ test("production page and boot load v04991; old gameplay and SMAA stay intact",(
  assert.match(game,/skyshift-track-character-v051-audit\.json/);
  assert.match(browser,/racingMeters/);
  assert.match(browser,/phoneBars/);
- for(const dep of ["neon-v0498","image-clarity-v0498","premium-track-v050",
-  "aero-barrier-v050","zone-wave-v050","trial-v050","boost-v050",
+ for(const dep of ["neon-v0498","image-clarity-v0498","premium-track-v051",
+  "aero-barrier-v051","zone-wave-v051","trial-v051","boost-v050",
   "boost-spring-v0495","velocity-language-v0496","engine-trails-v0496"])
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  assert.equal(BOOST_CONFIG.multiplier,1.4);

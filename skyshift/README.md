@@ -1,3 +1,30 @@
+# SKYSHIFT 0.4.9.6 – Velocity Language & Boost Spectacle
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Goal
+
+The 0.4.9.5 spring camera has a measured ~4.04m boost separation and a convincing catch-up, but the ship/world animations undersell the physical +40% acceleration. The old engine trails saturated their boost normalization at +30%, had just one colored ribbon layer per outlet, and the roadway/rails were only responsive to zone spectral waves. This release extends the feeling of speed to the full world without hiding the craft or making new hazards.
+
+## Implementation
+
+- **One shared visual velocity signal:** `velocity-language-v0496.mjs` reads actual `flight.boostMultiplier` and `flight.currentSpeed` with a short decaying ignition impulse, attack/release easing and a continuously integrated, distance-based phase. It drives ship, thruster and world outputs. Camera remains the verified 0.4.9.5 spring, and pilot 120Hz physics and all five 1.40× boost pads are unchanged.
+- **Manta Blade thrust recoil and pose:** a small (under 0.26m) aft visual recoil and under 1.7° cosmetic pitch are projected along the *pilot's actual heading* during ignition. Existing twin engine lens scaling and the two already-present engine fill lights react to flow/ignition, with normal hover/turning and collision state untouched.
+- **Layered engine jets:** `engine-trails-v0496.mjs` doubles the reused ribbon geometry within its **same single GPU draw batch**: a chromatic outer veil and slender near-neutral hot core behind both real Manta Blade sockets. The +40% physical boost has its own full normalized scale rather than the old +30% cap; the jet can reach **10.4m** (previously 6.75m), with responsive glow, pulse and an elegant trailing fade. The original silhouette, landing effect and dual-socket alignment are preserved.
+- **Speed-reactive world:** `premium-track-v0496.mjs` and `aero-barrier-v0496.mjs` add two live shader uniforms for intensity/arc-length phase, pulsing world-anchored glints along existing longitudinal road guides and rail LED paint. No bright transverse gates, screen-space flashes, extra meshes or render passes. These effects are independent of—and remain compatible with—the existing five-layer 0.4.9.3 chromatic white-core spectral wave.
+- **Subtle peripheral depth:** `space-v0496.mjs` scales and brightens only the original 3 star point-cloud layers by a few percent during boost, reusing existing GPU points and preserving the clear flight horizon.
+- **New audit:** spring metrics plus ignition activations, peak visible hull recoil/pitch, world/engine flow, longitudinal flow phase and updated twin-thruster geometry stats. New deterministic regression tests and Chrome/WebGL/Android real module smoke.
+
+### Performance and safety
+
+No additional GPU render passes, rail/deck materials, new particle emitters, point lights or track colliders. The twin-engine geometry uses 4 rather than 2 ribbon quads per socket inside the same mesh (24 additional triangles total), and updates the same two dynamic buffer attributes each frame. **The increase in geometry is not zero**; shader fragment math and the larger engine ribbon are bounded but may have a small GPU cost on older phones. Mobile WebGL smoke tests check shader compilation, not exact real-device FPS.
+
+### Review criteria
+
+The boost must feel stronger in the ship and nearby world than 0.4.9.5, without introducing a distracting extra obstruction in front of the player. Evaluate both early launch and the second pad, preferably with captured flight logs and phone video. The next iteration should tune brightness and timing based on actual perceived feel.
+
+---
+
 # SKYSHIFT 0.4.9.5 – Inertial Boost Camera & Speed Punch
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

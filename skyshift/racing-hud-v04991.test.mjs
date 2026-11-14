@@ -99,12 +99,12 @@ test("HUD timestamps and event counters reset without fake pulses or new render 
 });
 test("production page and boot load v04991; old gameplay and SMAA stay intact",()=>{
  const html=src("./index.html");
- const boot=src("./boot-v051.js");
+ const boot=src("./boot-v060.js");
  const game=src("./game-v051.mjs");
  const browser=src("./browser-smoke-v04991.mjs");
  assert.match(html,/style-v04991\.css\?v=0\.5\.0/);
- assert.match(html,/boot-v051\.js\?v=0\.5\.1/);
- assert.match(html,/data-game-module="game-v051\.mjs"/);
+ assert.match(html,/boot-v060\.js\?v=0\.6\.0/);
+ assert.match(html,/data-game-module="game-v060\.mjs"/);
  assert.match(boot,/import\("\.\/game-v051\.mjs\?v=0\.5\.1"\)/);
  assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);
  assert.match(game,/version:"0\.5\.1"/);

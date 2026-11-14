@@ -1,3 +1,33 @@
+# SKYSHIFT 0.6.0 – Circuit Architecture & Track Identity
+
+**Live:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Why a real circuit
+
+Repeated player feedback found 27-segment 10.4km linear 0.5.1 course unmemorable despite stronger +11% zone escalation and a token S-link. Rebuild SKYSHIFT around one **actual C2 closed loop** and three real laps, instead of drawing the same long linear runway, adding more incidental curves or duplicating meshes. Keep the previous versions archived.
+
+## SKYLINE CIRCUIT — 3 × 3,400m = 10,200m
+
+- **Authored design** in `circuit-layout-v060.mjs`: 15 purposeful sections (8 genuine mathematical straights, 7 smoothly joined curvature arcs), four distinct 90° corners and an asymmetric **left–right–left 3-bend S complex** with two actual release straights. Defined radii range from a broad 164m sweeper to a ~108m precision apex. The connected plan was numerically constrained to finish at exactly its original start x/z/heading/elevation, and the 0.25m position integration distributes any tiny numerical closure drift across a whole lap. No jumps, track bank or pylon spam.
+- **Memorable sector identity:** HIGH-SPEED FLOW (long launch straight, open 90° sweep, horizon sprint); TECHNICAL RHYTHM (tighter apex and an S with two alternating 65m connectors); VELOCITY FINALE (release, back sweeper, coast straight, fast final corner and a meaningful 416m finish drive). Lightweight suspended sector signs provide recognizable landmarks; the original elevated rail, corner chevrons and road material remain.
+- **True 3-lap physics:** the physically instantiated road, vertical walls, guardrails, emissive chevrons and boost inlays are built **only once** for 3400m. The pilot state `flight.s` is authoritative and **unwrapped** from 0 to 10,200m. All spline poses, headings, track-relative projections, corners, collision checks, camera previews and recovery checkpoints work through lap seams with a periodic centerline, not by teleporting or reloading the scene.
+- **Reliable lap timing:** ten ordered checkpoints per lap plus a forward finish-line crossing; three lap times, one notification at each crossing, final finish only after checkpoint 30 and lap 3. Reverse crossing or cutting across another nearby portion cannot create an additional lap. HUD adds a restrained `LAP 1 / 3` readout and the results screen reports completed laps.
+- **Speed/color continuity:** preserve nine distinctive zone palettes, current 18s cadence and authoritative **+11% physical cruise speed per color front**. A new circular shader front computes a wrapped signed distance around the 3.4km loop and treats the crest as a *localized* energy band. Road and rail rebase to the completed zone to avoid a second hard palette seam on the opposite side of a circle; original white-core, halo, filaments, palette, velocity and HDR SMAA passes remain.
+- **Visible lap boosts:** three mapped boost inlays on the track (launch / technical release / finishing straight) with **nine separately identified physical activations**, one per inlay per lap. The existing +40% multiplier, recovery springs and Manta Blade boost animations are preserved.
+- **Mobile GPU benefit:** a single 3400m indexed road mesh and one set of rails instead of the older 10,400m 3D runway. The world geometry does *not* triple with the three laps. No new WebGL passes or materials from the circuit logic.
+
+## Validation
+
+- `circuit-v060.test.mjs` checks exact loop closure and heading/curvature parity, three-periodic world positions, no distant route intersections, real S connectors and named sector radii, manually steered road and guarded lateral limits, ordered checkpoints, three uniquely timed lap crossings, no premature shortcut finish, real 9-stage speed progression, repeating physical boost IDs and **one** deck mesh.
+- `browser-smoke-v060.mjs` checks live Chrome WebGL shader compilation, narrow white-core spectral wave, HUD, HDR SMAA, Samsung landscape touch, and actual 3×3400m seam traversal and final-lap completion in Chrome's JS physics engine. Asset-failure/fullscreen fallback is also covered.
+- Real-world actual lap times, steering fairness in zone 8/9 and older Samsung frame pacing still need the player's phone capture, not simply automation claims.
+
+## Test drive
+
+Look for: whether the first lap teaches the three distinct areas, the second lap lets you improve the line, and the third feels significantly faster. Pay attention to the one fast technical apex and the S-complex: if they feel too tight when the zone speed is highest, we should tune speed/turning rather than sacrifice the clear geometry.
+
+---
+
 # SKYSHIFT 0.5.1 – Speed Escalation & Track Character
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

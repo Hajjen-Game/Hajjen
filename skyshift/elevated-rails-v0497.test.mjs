@@ -94,8 +94,8 @@ test("active 0.4.9.7 removes all instanced roadside pillars, keeps finish arch",
  const html=source("./index.html");
  const boot=source("./boot-v0497.js");
  const game=source("./game-v0497.mjs");
- assert.match(html,/boot-v051\.js\?v=0\.5\.1/);
- assert.match(html,/data-game-module="game-v051\.mjs"/);
+ assert.match(html,/boot-v060\.js\?v=0\.6\.0/);
+ assert.match(html,/data-game-module="game-v060\.mjs"/);
  assert.match(boot,/import\("\.\/game-v0497\.mjs\?v=0\.4\.9\.7"\)/);
  assert.match(boot,/__skyshiftBootFail/);
  assert.match(game,/from "\.\/aero-barrier-v0497\.mjs"/);

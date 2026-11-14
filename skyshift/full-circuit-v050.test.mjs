@@ -170,11 +170,11 @@ test("long deck/raised guardrails share the same authority and bounded mesh dens
 });
 test("production version routes to the real 10.4km race; archived 1530m lab preserved",()=>{
  const html=source("./index.html");
- const boot=source("./boot-v051.js");
+ const boot=source("./boot-v060.js");
  const game=source("./game-v051.mjs");
  const browser=source("./browser-smoke-v050.mjs");
- assert.match(html,/data-game-module="game-v051\.mjs"/);
- assert.match(html,/boot-v051\.js\?v=0\.5\.1/);
+ assert.match(html,/data-game-module="game-v060\.mjs"/);
+ assert.match(html,/boot-v060\.js\?v=0\.6\.0/);
  assert.match(boot,/import\("\.\/game-v051\.mjs\?v=0\.5\.1"\)/);
  for(const dep of ["trial-v051","zone-wave-v051","boost-v050",
   "smooth-track-v051","premium-track-v051","aero-barrier-v051"])

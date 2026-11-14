@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#050914">
   <link rel="icon" href="data:,">
-  <meta name="description" content="SKYSHIFT 0.5.1 – Speed Escalation & Track Character: a 10.4 km race with thrilling 11% physics speed escalation, varied corners and a smooth flat racing line.">
-  <title>SKYSHIFT · Speed Escalation & Track Character · 0.5.1</title>
+  <meta name="description" content="SKYSHIFT 0.6.0 – Circuit Architecture & Track Identity: a 10.4 km race with thrilling 11% physics speed escalation, varied corners and a smooth flat racing line.">
+  <title>SKYSHIFT · Circuit Architecture & Track Identity · 0.6.0</title>
   <script type="importmap">
     {
       "imports": {
@@ -15,7 +15,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="./style-v04991.css?v=0.5.0">
+  <link rel="stylesheet" href="./style-v060.css?v=0.6.0">
 </head>
 <body>
   <div id="app">
@@ -23,7 +23,7 @@
     <div class="vignette" aria-hidden="true"></div>
     <div id="zone-flash" aria-hidden="true"></div>
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ FULL CIRCUIT · 0.5.1</span></div>
+      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ SKYLINE CIRCUIT · 0.6.0</span></div>
       <div class="top-actions">
         <button id="fullscreen-btn" class="top-button fullscreen-toggle hidden" type="button" title="Fullscreen" aria-label="Fullscreen" aria-pressed="false">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>
@@ -44,12 +44,13 @@
         <div class="zone-hero"><span class="zone-prefix">Z</span><strong class="zone-number" id="zone-number">01</strong><span class="zone-horizon" aria-hidden="true"></span></div>
         <div id="sector-name" class="sector-name">MIDNIGHT</div>
         <div class="zone-progress racing-meter" aria-label="Course progress"><div id="zone-progress-fill"></div></div>
+        <div id="lap-info" class="lap-info" aria-label="Lap 1 of 3">LAP <strong id="lap-number">1</strong><span> / 3</span></div>
       </div>
       <div class="hud-right hud-module" aria-label="Speed and course distance">
         <div class="hud-module-heading">VELOCITY</div>
         <div class="speed-readout"><strong id="speed">1.00×</strong></div>
         <div class="speed-energy-track racing-meter" aria-hidden="true"><div id="speed-energy-fill"></div></div>
-        <div class="hud-distance-line"><span>DISTANCE</span><span class="distance" id="distance">0000 <small>/ 10400 M</small></span></div>
+        <div class="hud-distance-line"><span>DISTANCE</span><span class="distance" id="distance">0000 <small>/ 10200 M</small></span></div>
       </div>
     </div>
     <div id="zone-banner" class="zone-banner hidden" aria-live="polite"><small>ZONE SHIFT</small><strong id="zone-banner-number">02</strong><span id="zone-banner-name">VIOLET PULSE</span></div>
@@ -63,10 +64,10 @@
     </div>
     <section id="menu" class="screen">
       <div class="screen-content">
-        <div class="kicker">MANTA BLADE · REACTIVE FULL CIRCUIT · 0.5.1</div>
+        <div class="kicker">MANTA BLADE · REACTIVE SKYLINE CIRCUIT · 0.6.0</div>
         <h1>SKY<span>SHIFT</span></h1>
         <div class="rule"></div>
-        <p class="tagline">NINE COLOR ZONES.<br>ONE COMPLETE CIRCUIT.</p>
+        <p class="tagline">ONE ICONIC CIRCUIT.<br>THREE FASTER LAPS.</p>
         <button id="start-btn" class="primary">START RUN <span>↗</span></button>
         <button id="menu-fullscreen-btn" class="secondary menu-fullscreen" type="button" aria-pressed="false">⛶ FULLSCREEN</button>
         <div id="boot-state" class="boot-state hidden" role="status" aria-live="polite"></div>
@@ -74,7 +75,7 @@
           Fullscreen stöds inte i den här webbläsarvyn. Öppna SKYSHIFT direkt i Chrome via webbläsarens meny (⋮) och prova igen.
         </div>
         <div class="instructions">STEER <b>A / D · ← →</b><br><span>Mobile: drag left to steer · no jumping in this test</span></div>
-        <div class="prototype-label">10,400 M · NINE SPEED ZONES · ~2:35 · 0.5.1</div>
+        <div class="prototype-label">3 × 3,400 M · 9 COLOR ZONES · SKYLINE CIRCUIT · 0.6.0</div>
       </div>
     </section>
     <section id="pause-screen" class="screen hidden" aria-label="Pausmeny">
@@ -87,9 +88,9 @@
     </section>
     <section id="end-screen" class="screen hidden" aria-label="Resultat">
       <div class="screen-content compact">
-        <div class="kicker">ZONE RIBBON · 10400 M</div>
+        <div class="kicker">ZONE RIBBON · 10200 M</div>
         <h2 id="final-title">FLIGHT ENDED</h2>
-        <div class="summary"><span>DISTANCE</span><strong id="final-distance">0 M</strong><span>FINAL SECTOR</span><strong id="final-zone">01</strong><span>BEST CLEAR TIME</span><strong id="personal-best">—</strong><span>FLIGHT TIME</span><strong id="flight-time">0:00</strong><span>PEAK YAW RATE</span><strong id="final-jumps">0°/S</strong><span>OFF-TRACK TIME</span><strong id="final-style">0 S</strong></div>
+        <div class="summary"><span>DISTANCE</span><strong id="final-distance">0 M</strong><span>FINAL SECTOR</span><strong id="final-zone">01</strong><span>BEST CLEAR TIME</span><strong id="personal-best">—</strong><span>FLIGHT TIME</span><strong id="flight-time">0:00</strong><span>LAPS COMPLETED</span><strong id="final-laps">0 / 3</strong><span>PEAK YAW RATE</span><strong id="final-jumps">0°/S</strong><span>OFF-TRACK TIME</span><strong id="final-style">0 S</strong></div>
         <button id="retry-btn" class="primary">RETRY TRIAL <span>↗</span></button>
         <button id="audit-btn" class="secondary">EXPORT FLIGHT LOG ↓</button>
       </div>
@@ -97,6 +98,6 @@
     <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
     <div id="error" class="error hidden" role="alert"></div>
   </div>
-  <script src="./boot-v051.js?v=0.5.1" data-game-module="game-v051.mjs"></script>
+  <script src="./boot-v060.js?v=0.6.0" data-game-module="game-v060.mjs"></script>
 </body>
 </html>

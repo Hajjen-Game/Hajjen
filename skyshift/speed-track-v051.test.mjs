@@ -141,10 +141,10 @@ test("same road mesh and indexed raised rail system; larger curves physically na
  assert.ok(speedAt(0,8)*.0081<TRIAL.maxYawRate);
 });
 test("production loads faster diverse race and retains existing HUD/SMAA",()=>{
- const html=source("./index.html"),boot=source("./boot-v051.js"),
+ const html=source("./index.html"),boot=source("./boot-v060.js"),
   game=source("./game-v051.mjs"),browser=source("./browser-smoke-v051.mjs");
  assert.match(html,/game-v051\.mjs/);
- assert.match(html,/boot-v051\.js\?v=0\.5\.1/);
+ assert.match(html,/boot-v060\.js\?v=0\.6\.0/);
  assert.match(html,/10400 M/);
  assert.match(html,/style-v04991\.css/);
  assert.match(boot,/import\("\.\/game-v051\.mjs\?v=0\.5\.1"\)/);

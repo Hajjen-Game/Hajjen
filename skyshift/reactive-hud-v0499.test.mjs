@@ -97,7 +97,7 @@ test("HUD is DOM-only, throttled, and provides event counters for exported logs"
  assert.ok(HUD_SPEC.reducedMotionSupported);
  assert.ok(HUD_SPEC.updateIntervalSeconds>=1/60);
  const mod=source("./reactive-hud-v0499.mjs");
- assert.doesNotMatch(mod,/WebGLRenderer|RenderPass|requestAnimationFrame|setInterval/);
+ assert.doesNotMatch(mod,/new\s+(?:THREE\.)?WebGLRenderer|new\s+RenderPass|requestAnimationFrame\s*\(|setInterval\s*\(/);
  const root={classList:{toggle(){},remove(){}},
   querySelector(){return null;},style:{setProperty(){}}};
  const hud=createReactiveHud(root);

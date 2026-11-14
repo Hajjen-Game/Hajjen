@@ -1,3 +1,30 @@
+# SKYSHIFT 0.4.9.8 – Premium Image Clarity & Anti-Aliasing
+
+**Live:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Why
+
+Two screenshots from an older Samsung phone running 0.4.9.7 show severe pixel stairstepping on angled guardrail caps, narrow chevrons and distant deck guides. This is primarily raster aliasing rather than bad texture resolution. The game renders Three.js through an HDR `EffectComposer` whose previous pipeline was **RenderPass → UnrealBloomPass → OutputPass**: hardware canvas MSAA is not used to resolve those offscreen targets. On <=4GB devices the game also limits render DPR to 1.35 and disables canvas antialiasing, making the effect more visible.
+
+## Improvements
+
+- **Correct HDR SMAA:** `neon-v0498.mjs` inserts the Three.js r180 `SMAAPass` between `UnrealBloomPass` and `OutputPass`, preserving the source's linear-sRGB requirements, existing bloom constants and sRGB/tone mapping. It runs at the same internal resolution as the HDR composer and resizes with the buffer. No FXAA blur filter or extra screen-space flashes.
+- **Less flicker on distant white guides:** `premium-track-v0498.mjs` adds a `fwidth`-based, bounded pixel footprint to the existing arc-length `trackStripe` function. The main geometry, zone spectral wave and boost pad overlays remain unchanged.
+- **Samsung-aware resolution tiers:** `image-clarity-v0498.mjs` keeps old Android initial DPR at **1.35**, preserving the previous baseline, but replaces its ineffective adaptive resolution caps with **1.35 → 1.18 → 1.0**. High-end devices retain **2.0 → 1.75 → 1.5**. The existing sustained-frame-time director still decides *when* to change after a long window and cooldown; the new tiers define usable actual sizes. DOM UI remains at CSS/native screen resolution.
+- **No extra geometry, lights or game physics changes:** physical flight, camera spring, +40% boost, higher 0.4.9.7 rails, directional arrows, original 0.4.9.3 spectral timing and twin thrusters remain unchanged. Canvas MSAA is disabled intentionally because SMAA handles antialiasing for offscreen rendered content.
+- **Transparent diagnostics:** `skyshift-clarity-v0498-audit.json` records the actual active composer pass order, SMAA status, low-memory detection, on-screen canvas DPR and adaptive offscreen DPR tiers. A read-only `window.__skyshiftClarityInfo()` makes browser checks possible.
+- **Regression:** new `image-clarity-v0498.test.mjs` asserts profile/tier behaviour, preserved shaders and physics, explicit SMAA ordering, curve/road continuity and production wiring; `browser-smoke-v0498.mjs` compiles/render-tests actual Chrome WebGL, validates physical 4GB Samsung mode and checks Android landscape touch and failed import recovery.
+
+## Performance trade-offs
+
+SMAA uses additional fullscreen GPU operations, so it is *not* free on older phones. The 1.35x starting resolution is deliberately unchanged; if slower frame pacing persists, our previously ineffective adaptive scaling is now able to lower **offscreen** resolution gradually. We do not claim improvement to real-device frame rate until an actual Samsung capture/log confirms it. Spatial SMAA does not remove all temporal shimmer in hair-thin lines; the derivative-aware roadway pattern reduces the most obvious case. The higher-end iPhone profile remains at 2x DPR until GPU load warrants a downshift.
+
+## Device review
+
+Capture both the earlier and later right-sweeper and Jade left-bank scenes at the same view angle, comparing diagonal rail caps, distant line stability, ship silhouette and chevron readability. Record frame-time P95, rendering ratio and pass chain in the exported flight audit. If the Samsung version runs too slowly at steady frame rate, use the tier telemetry before considering a cheaper fallback AA mode.
+
+---
+
 # SKYSHIFT 0.4.9.7 – Elevated Rails & Corner Readability
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

@@ -5,7 +5,7 @@ import {readFileSync} from "node:fs";
 const src=name=>readFileSync(new URL(name,import.meta.url),"utf8");
 test("Classic, dependency-free bootstrap loads before Three.js and captures import failures",()=>{
  const html=src("./index.html"),boot=src("./boot-v04911.js");
- assert.match(html,/boot-v0497\.js\?v=0\.4\.9\.7/);
+ assert.match(html,/boot-v0498\.js\?v=0\.4\.9\.8/);
  assert.doesNotMatch(html,/<script type="module" src="\.\/game-v04911/);
  assert.match(boot,/import\("\.\/game-v04911\.mjs\?v=0\.4\.9\.1\.1"\)\.catch\(fail\)/);
  assert.match(boot,/__skyshiftBootReady/);

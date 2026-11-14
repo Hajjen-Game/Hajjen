@@ -76,6 +76,7 @@ const CAMERA_TARGET_LOOK=new THREE.Vector3();
 const telemetry=[];
 let previousSector=0,sceneReady=false,fullscreenController=null,lastRailLog=0;
 let zoneWave=newZoneWaveState();
+let waveSmokeHold=false;
 const SHADOW_NORMAL=new THREE.Vector3(),SHADOW_PLANE_NORMAL=new THREE.Vector3(0,0,1);
 const reusable=new THREE.Object3D();
 
@@ -643,7 +644,7 @@ function loop(now){
  const rawDt=Math.max(0,(now-worldClock.last)/1000);
  const dt=Math.min(.095,rawDt);
  worldClock.last=now;
- if(uiState.mode==="playing"){
+ if(uiState.mode==="playing"&&!waveSmokeHold){
    const tick=advanceFrame(frameClock,rawDt,step=>{
      previousRenderPose=currentRenderPose||capturePose(flight);
      integrate(step);
@@ -910,6 +911,7 @@ function installWaveSmokeHook(){
     throw new Error("Zone "+(k+2)+" did not pass craft");
    previousSector=pass.stage;announceSector(pass.stage);
   }
+  waveSmokeHold=true; // CI-only freeze for honest white-core screenshots.
   premiumSurface?.setWaveState(zoneWave);
   identitySurface?.setWaveState(zoneWave);
   refreshHud();

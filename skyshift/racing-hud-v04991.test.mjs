@@ -105,7 +105,7 @@ test("production page and boot load v04991; old gameplay and SMAA stay intact",(
  assert.match(html,/style-v04991\.css\?v=0\.5\.0/);
  assert.match(html,/boot-v051\.js\?v=0\.5\.1/);
  assert.match(html,/data-game-module="game-v051\.mjs"/);
- assert.match(boot,/import\("\.\/game-v050\.mjs\?v=0\.5\.0"\)/);
+ assert.match(boot,/import\("\.\/game-v051\.mjs\?v=0\.5\.1"\)/);
  assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);
  assert.match(game,/version:"0\.5\.1"/);
  assert.match(game,/skyshift-track-character-v051-audit\.json/);

@@ -183,7 +183,7 @@ test("production version routes to the real 10.4km race; archived 1530m lab pres
  assert.match(game,/zone_speed_increase/);
  assert.match(game,/zoneSpeedEvents:\[\.\.\.flight\.zoneSpeedEvents\]/);
  assert.match(game,/version:"0\.5\.1"/);
- assert.match(game,/skyshift-full-circuit-v050-audit\.json/);
+ assert.match(game,/skyshift-track-character-v051-audit\.json/);
  assert.match(browser,/marathon\.length!==10400/);
  assert.match(html,/10400 M/);
  assert.match(html,/NINE COLOR ZONES/);

@@ -47,7 +47,7 @@ test("Cinematic horizon cue follows physical front, not screen timers",()=>{
  close(horizonWaveCue(wave,480),0);
  updateZoneWave(wave,10,480);
  close(horizonWaveCue(wave,480),0);
- updateZoneWave(wave,10.789,480);
+ updateZoneWave(wave,10.790,480);
  const crest=wave.fronts[0];
  assert.ok(Math.abs(crest-480)<1);
  assert.ok(horizonWaveCue(wave,480)>.95);

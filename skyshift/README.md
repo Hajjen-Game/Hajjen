@@ -1,3 +1,26 @@
+# SKYSHIFT 0.5.1 – Speed Escalation & Track Character
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Why
+
+The first two real playtests of 0.5.0 both clocked at precisely three minutes; the user liked the length but found the route repetitive and wanted a stronger feeling of increasing speed each color change. Preserve the **10,400m** distance, existing HUD, visuals, boost system, mobile controls and absence of jumps/banked road.
+
+## What changes
+
+- **Permanent acceleration goes from 6.5% to 11% per zone.** The physical ship/track movement starts at 44m/s and reaches a target of **101.4 m/s by the ninth zone** (instead of 72.8m/s). Existing additional +40% boost pads remain optional. Easing remains smooth at an 0.85s time constant, and steering is still manual, never track-snapped.
+- **Preserve all nine color changes:** schedule eight traveling color fronts every ~18s instead of 20s, at 18, 36, 54, 72, 90, 108, 126, 144s. The world-space front must catch up with the actual craft; crossing triggers the authoritative speed stage, not simply elapsed time or HUD text. A fixed-step simulation that follows the path centerline estimates **~2m36s** with no boost and sees all nine zones; this is neither a time cap nor a guarantee for an actual steering run.
+- **More distinct race rhythm:** still 10,400m, but **27 authored continuous pieces**, including 14 real straights, 13 curves and a deliberate S-link with a 150m true straight between opposing arcs. Broad sections have curvature ~0.0048–0.0056; standout, sharper but still steered corners reach ~0.0075–0.0081 (minimum radius ~123m). Long release straights (up to 680m) mix with tighter, quicker sectors; no arbitrary hand-drawn side-to-side noise.
+- **Smooth and safe:** all corners keep exact zero-curvature transitions with quintic C2 joins; no jumps, no bank, no collision changes. A spatial self-overlap test checks that distant track segments are never dangerously close; each authored curvature remains below steering authority even at final cruise speed.
+- **No visual regression:** new versioned track/road/raised rails/zone wave wrappers reference the v051 authoritative geometry and schedule, reusing the same white-core, colored afterglow, bloom, SMAA, elevated side rails and racing HUD 2.1. No more shader passes or draw batches.
+- **Proving it works:** the new deterministic `speed-track-v051.test.mjs` tests the 27-section geometry, corner radii, lack of overlap, 11% physics increments, 18-second world-space zone triggers, all 9 zones before the finish, real speed gain on 120Hz steps and an untimed ~2m36s completion. `browser-smoke-v051.mjs` tests WebGL, Samsung landscape controls, new speed targets and the new wave timing; archived 0.5.0 remains in GitHub.
+
+## Playtest
+
+Does the 11% step produce a satisfying difference between zones 1–9 without making the final tight corners frustrating? The expected time is shorter because the user specifically requested not to increase distance; do not add a hidden time-lock or stretch the route. The main comparison is whether the stronger pace and sharper S-link now make the same-length race noticeably more fun.
+
+---
+
 # SKYSHIFT 0.5.0 – Full Circuit & Zone Acceleration
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

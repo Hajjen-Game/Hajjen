@@ -1,4 +1,31 @@
-# SKYSHIFT 0.4.9.1.1 – Mobile Boot & Menu Reliability Hotfix
+# SKYSHIFT 0.4.9.2 – White-Core Spectral Wave & Cinematic Energy
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Motivation
+
+The 0.4.9.1 spectral tide was more colorful but lacked the dramatic white-hot seam visible in the actual Chroma Rush jump/duck mode (`chroma-rush/src/render/spectral-wave.js`). Mobile screenshots showed a large violet patch rather than a recognizably travelling energy front. In Chroma Rush, a thin near-white core, much wider light veil, secondary moving filaments and brief resonance are layered around one physical transition.
+
+## White-Core Energy Architecture
+
+- `zone-wave-v0492.mjs`: retains the approved 1,530m circuit, waves from behind at 10 / 20 / 27 simulated seconds, moving at 114m/s; base ±24m palette transition, subtle lateral refraction, 62m afterglow. New **5.6m half-width neutral white core**, **19m white bloom**, sparsely animated front-local filaments, restrained pre-wave horizon cue. The white core is white (not the current palette's pink or green).
+- `premium-track-v0492.mjs`: blends **five compositional energy components** in the same existing physically-based road shader: color body, high-luminance white core, soft neutral halo, few fine filaments and afterglow. White emissive intensity is 1.52 (shader units) and bloom 0.46; the core is wider than a single low-FPS frame at normal 47m/s cruise. Guides and boosts remain baked into the road and no new energy wall/gate obstructs the flight path.
+- `aero-barrier-v0492.mjs`: **exactly the same world-distance spectral functions** run along existing rail LED and chevron geometry. White core temporarily brightens rail paint and its alpha as it travels forward; nothing spawns off the track.
+- `game-v0492.mjs`: existing two wing engine lights briefly lean toward neutral white on the real crest crossing; the fog has a subtle horizon-linked tint (only a few percent) so the wider world participates without a full-screen flash. Stage colours, Manta Blade craft and twin-engine trails remain intact.
+- No extra scene lights, new meshes, particle emitters, post-processing passes, textures or collisions. Secondary filaments are suppressed via a shader uniform on devices reporting ≤4GB RAM; white core and halo **remain enabled at every quality**.
+- Keeps the independent `boot-v0492.js` start/fullscreen/error recovery from 0.4.9.1.1 intact. Production has no flight test-hook; `?waveSmoke=1` deliberately holds simulation only for accurate Chrome screenshots of the centre of the crest.
+
+## Verification
+
+- `white-core-v0492.test.mjs`: white-core vs chromatic palette separation; world-distance timing and horizon cue; road shader energy and low-tier filament gating; rail coordinate/shader synchronization; 1,530m, 5 boost fields, original physics and independent Android bootstrap.
+- `browser-smoke-v0492.mjs`: actual headless Chrome WebGL screenshots at the white-core crossing in Violet and Jade, Android landscape touch start, and simulated module-network failure/retry. Production must be manually tested on iPhone for perceived luminosity and frame pacing.
+- Audit export `skyshift-zone-v0492-audit.json` includes white-core/bloom widths and power plus unchanged renderer draw call / frame-time fields.
+
+**Playtest:** White line should remain visible when the wave moves through distant bends, even on mobile; ambient world should subtly respond, rails must light at the same physical position, and no raised object should resemble a hazard. Check whether 0.4.9.2 increases p95 frame time relative to 0.4.9.1.1 on the same phone. Favor shader simplifications (especially fine filaments) over increasing draws.
+
+---
+
+## Previous release – 0.4.9.1.1
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 

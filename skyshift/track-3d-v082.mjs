@@ -22,12 +22,12 @@ export const SKYLINE_LEAP=Object.freeze({
  minTakeoffSpeed:40,
  widthMeters:23.2
 });
-// Magnetic wall is now the deliberate mid-race technical release, well separated\n// from the finale Corkscrew. Its 228m runtime fits the C2 release straight.
+// Magnetic wall is now the deliberate mid-race technical release, with 67m of\n// straight-line recovery before the back sweeper and well separated\n// from the finale Corkscrew. Its 228m runtime fits the C2 release straight.
 // This is a true roll of the road collision/surface normal, not a camera trick.
 // Quintic transitions have zero angular derivative at entry, plateau and exit.
 export const MAGNETIC_WALL=Object.freeze({
  id:"coast-magnetic-wall",name:"MAGNETIC WALL RIDE",
- start:1662,riseEnd:1720,fallStart:1830,end:1890,
+ start:1662,riseEnd:1710,fallStart:1794,end:1842,
  maxBankDegrees:70,side:"right",requiresButton:false,
  keepsPhysicalGrip:true,magneticAdhesion:true
 });

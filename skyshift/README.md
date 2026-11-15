@@ -1,3 +1,59 @@
+# SKYSHIFT 0.8.4 — Steering Authority & GRIP Balance
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Objective
+
+Give the Manta Blade a learnable steering hierarchy: normal steering is
+responsive and fairly strong at takeoff but its achievable radius grows as
+speed increases; the *existing hold-GRIP + steer* command enables a truly
+distinct high-authority carve. The player maintains complete yaw, line and
+position control throughout. No automatic apex steering, lane snap, hidden
+speed cap, additional buttons or camera changes.
+
+### Deterministic physical tuning
+
+- New independent speed-aware steering curve, `steering-authority-v084.mjs`:
+  ordinary yaw fraction **0.96×** the existing reference rate at **44m/s**,
+  declining continuously to **0.66×** at the eighth cruise-speed stage
+  (**101.4m/s**). At speeds above this (including 40% boost), ordinary yaw
+  remains at the 0.66× floor: no discontinuous turn response.
+- Full **GRIP carve = 1.55×** the *original reference yaw rate* at any
+  speed, not 1.55× a weakened normal-control envelope. Physically
+  at 101.4m/s this represents approximately **2.35× more authority than
+  normal steering**; at 44m/s approximately **1.61×**.
+- GRIP engagement now uses **85ms attack, 140ms release** rather than
+  110/160ms, retaining the old real 6.5% max speed tradeoff and the need
+  to steer while holding GRIP. The reference yaw cap 1.24rad/s, turn
+  responsiveness 24 and release damping 36 remain exactly unchanged.
+- Speed-aware authority is computed from the **last authoritative 120Hz
+  speed**; latency is bounded by one fixed physics tick (8.33ms), not
+  a visible input delay, and respects boost and zone acceleration.
+- The physical 14m GRIP apex, C2 turns, 3×3400m closed loop, three
+  jump pads, wall, 360° corkscrew, boost physics and camera are untouched.
+- Audit `skyshift-steering-v084-audit.json` includes steering limits at
+  startup and maximum zone, normal steering seconds, observed grip
+  advantage, grip activation and precise physical rail measurements.
+- On the same complete three-lap 120Hz virtual-centerline pilot,
+  **no GRIP** still finishes but grazes the narrow apex on the fast
+  third lap; deliberately **holding GRIP** through the apex produces
+  3/3 clean passages and no rail contacts. All 3 jumps, walls, corkscrews,
+  9 regular boost pads and 3 laps remain traversable. These are calibrated
+  simulation results, not a claim about every possible player racing line.
+- Existing 0.8.3 archived modules are left intact for comparison.
+  New Node physics regressions and Android/Chrome WebGL smoke cover 0.8.4.
+
+### Suggested real-device playtest
+
+Play all three laps with ordinary steering only once; then repeat while
+holding GRIP + steering into the precision apex (especially lap three).
+Compare **how naturally the craft turns on straight/large curves** and
+**whether the GRIP carve feels deliberate rather than twitchy**.
+Send both the new audit log and subjective feedback. Motion and camera
+personality belong to the separate proposed Kinetic Camera phase.
+
+---
+
 # SKYSHIFT 0.8.3 — GRIP Clarity & Racing Feel
 
 **Live:** https://hajjen-game.github.io/Hajjen/skyshift/

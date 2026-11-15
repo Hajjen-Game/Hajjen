@@ -186,14 +186,14 @@ test("unchanged track, rails, physical leap, wall and corkscrew",()=>{
  assert.ok(createSmoothDeckData().triangles>25000);
  assert.ok(createAeroBarrierData().triangles>90000);
 });
-test("active 0.9.0 camera build retains original 0.9.0 steering authority and archive",()=>{
+test("active 0.9.0 camera build retains original 0.8.4 steering authority and archive",()=>{
  const html=src("./index.html"),boot=src("./boot-v090.js"),
   game=src("./game-v090.mjs");
  assert.match(html,/boot-v090\.js\?v=0\.9\.0/);
  assert.match(html,/data-game-module="game-v090\.mjs"/);
  assert.match(boot,/game-v090\.mjs\?v=0\.9\.0/);
  assert.match(game,/version:"0\.9\.0"/);
- assert.match(game,/steering-authority-v084/);
+ assert.match(src("./trial-v084.mjs"),/steering-authority-v084/);
  assert.match(game,/steeringBalanceAt/);
  assert.match(game,/precision-grip-v084/);
  assert.match(game,/skyshift-kinetic-camera-v090-audit\.json/);

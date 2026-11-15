@@ -198,7 +198,7 @@ test("active 0.9.1 camera build references archived 0.8.4 yaw for its legacy phy
  assert.match(game,/precision-grip-v084/);
  assert.match(game,/trial-v0901\.mjs/);
  assert.match(src("./trial-v0901.mjs"),/steering-authority-v0901/);
- assert.match(game,/skyshift-grip-first-v0901-audit\.json/);
+ assert.match(game,/skyshift-signature-flight-v091-audit\.json/);
  assert.match(src("./game-v084.mjs"),/version:"0\.8\.4"/);
  assert.match(src("./game-v083.mjs"),/version:"0\.8\.3"/);
 });

@@ -1,3 +1,23 @@
+# SKYSHIFT 0.7.2 — Corkscrew Spectacle
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## 0.7.2 — What changed
+
+- A **333-metre physical corkscrew (3,005–3,338m)** is authored on the long finish-drive straight on **each of the three laps**, separate from the 70° Magnetic Wall Ride at 2,418–2,698m. The entire indexed roadway completes an eased **-360°** roll, passing through a true inverted ceiling before returning to the same frame at the exit.
+- The road's cross-track frame, physical adhesion, hover normal, 3-batch armored rail meshes and contact shadow all use the same authoritative bank. **No trick button or autopilot** is required; GRIP and manual steering remain available.
+- At 90° and 270° the horizontal projection of the road has zero lane width. Therefore `trial-v072.mjs` integrates pilot-owned forward and lateral movement directly in the **rotating 3D track frame** within the screw, instead of dividing by a near-zero horizontal cosine. No automatic pull toward rails or the centre is added.
+- The chase camera moves into the correct normal half-space on the inverted section and rolls through the **full 360°**. The old 70° wall retains its more restrained partial camera roll. A full roll is essential to avoid an abrupt orientation discontinuity on exiting.
+- **Spectacle graphics** use two built-in cyan energy guides with layered spectral pulses and re-use the existing one-batch PBR road shader and rail accent batch; no new HDR passes, raised hazards or floating obstacles.
+- Added `corkscrew_enter` / `corkscrew_exit` events and telemetry for full rotations, clean passages, seconds inverted, total distance and peak roll in `skyshift-corkscrew-v072-audit.json`.
+- Added `corkscrew-v072.test.mjs` and Chrome/Android production smoke to GitHub Actions. The former 0.7.1 and 0.7.0 modules remain archived and independently regression-tested.
+
+## Design intent
+
+This is a **playable racing spectacle**, not a forced ship stunt. The player stays attached to the real twisted track, steers normally and may engage the existing GRIP in tight situations. The 360° corkscrew is a distinct authored feature, not repeated jitter or constant random banking. The 3400m loop, 10200m race distance, Skyline Leap, nine palette zones, boost and lap logic remain intact.
+
+---
+
 # SKYSHIFT 0.7.1 — Magnetic Wall Ride
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

@@ -172,7 +172,7 @@ test("production version routes to the real 10.4km race; archived 1530m lab pres
  const html=source("./index.html");
  const boot=source("./boot-v082.js");
  const game=source("./game-v082.mjs");
- const browser=source("./browser-smoke-v082.mjs");
+ const browser=source("./browser-smoke-v081.mjs");
  assert.match(html,/data-game-module="game-v082\.mjs"/);
  assert.match(html,/boot-v082\.js\?v=0\.8\.2/);
  assert.match(boot,/import\("\.\/game-v082\.mjs\?v=0\.8\.2"\)/);

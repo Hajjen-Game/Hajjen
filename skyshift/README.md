@@ -1,3 +1,26 @@
+# SKYSHIFT 0.8.1 — Elevated Leap & GRIP Air Tricks
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Post-video correction
+
+The 0.8.0 phone recording revealed two issues: the earlier 17.6m Skyline Leap was too shallow/brief for a convincing rotation and the extra contextual TRICK control did not match the ship's existing side-thruster vocabulary. A normal jump still works automatically, but the pilot should perceive a real launch and freely airborne interval that grows with physical speed.
+
+- **One right-thumb control:** existing GRIP works as precision side-thruster steering while grounded and as **GRIP + STEER = 360° air roll** only during a real Skyline Leap. Desktop: **SHIFT + A/D or left/right arrow** while airborne. The previous TRICK/JUMP DOM node and handling code are preserved for future evaluation but **hidden** in the current UI. No extra visible button.
+- **Authentic bigger gap:** physical deck, rail openings and collision agree on a **33.6m missing track span (808–841.6m)** instead of 17.6m. Terrain profile has a coherent landing transition without disconnected road chunks.
+- **Real vertical trajectory:** initial launch 12.6m/s instead of 7.8m/s, gravity 22m/s² instead of 24m/s²; the same ballistic model and 120Hz steps still govern impacts, flight and landings. Predictive camera gently pulls back/re-aims to show the deck below the craft.
+- **Speed amplifies flight distance**, not a fixed-length cinematic: deterministic physics scenarios show roughly **51m travel / 3.6m vertical clearance at 44m/s**, approximately **89m / 3.7m at mid-race speed**, and **127–143m / 4.9–5.6m in the final fast zones**. These are simulations to confirm by actual device playtest.
+- **One readable controlled full rotation:** lower roll rate (11.8rad/s, magnitude eased) and a lower 20% input threshold allow the full 360° to read over the longer airborne interval. The real **GRIP side-nozzles' existing white-core and chromatic jets** fire during the selected rotation, with no new lights, geometry, or WebGL passes.
+- The pre-existing **earned +22% / 1.45s Landing Boost** only follows a fully completed air roll and clean landing; simply flying across the gap earns no free boost.
+- Original Magnetic Wall Ride, Corkscrew Spectacle, three 3400m laps, nine color zones, GRIP handling on ground, reusable speed pads, lap logic and checkpoints are retained. **0.8.0 and all earlier active assets are archived**, not replaced.
+- New live JSON: `skyshift-grip-leap-v081-audit.json`. New 0.8.1 physics regression and Chrome/Android smoke test; full real-device visual smoothness still requires playtesting.
+
+## Playtest
+
+Try the first large leap without any input; note altitude and distance. On the next, hold **GRIP + STEER** during flight and check that the craft rotates through a **full** 360° and fires the appropriate side motor. After a clean landing you should feel a short acceleration. Test faster third-lap leap as the most important high-speed stress case. Send video and JSON log.
+
+---
+
 # SKYSHIFT 0.8.0 — Air Tricks & Landing Boost
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

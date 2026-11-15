@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#050914">
   <link rel="icon" href="data:,">
-  <meta name="description" content="SKYSHIFT 0.8.0 – Air Tricks & Landing Boost: real elevated racing surface, visible skyline leaps and momentum-driven flight on three Skyline Circuit laps.">
-  <title>SKYSHIFT · Air Tricks & Landing Boost · 0.8.0</title>
+  <meta name="description" content="SKYSHIFT 0.8.1 – Elevated Leap & GRIP Air Tricks: real elevated racing surface, visible skyline leaps and momentum-driven flight on three Skyline Circuit laps.">
+  <title>SKYSHIFT · Elevated Leap & GRIP Air Tricks · 0.8.1</title>
   <script type="importmap">
     {
       "imports": {
@@ -16,7 +16,7 @@
     }
   </script>
   <link rel="stylesheet" href="./style-v061.css?v=0.6.1">
-  <link rel="stylesheet" href="./style-v080.css?v=0.8.0">
+  <link rel="stylesheet" href="./style-v081.css?v=0.8.1">
 </head>
 <body>
   <div id="app">
@@ -24,7 +24,7 @@
     <div class="vignette" aria-hidden="true"></div>
     <div id="zone-flash" aria-hidden="true"></div>
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ SKYLINE CIRCUIT · 0.8.0</span></div>
+      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ SKYLINE CIRCUIT · 0.8.1</span></div>
       <div class="top-actions">
         <button id="fullscreen-btn" class="top-button fullscreen-toggle hidden" type="button" title="Fullscreen" aria-label="Fullscreen" aria-pressed="false">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>
@@ -61,9 +61,9 @@
         <div class="stick-track"><div id="stick-knob" class="stick-knob"></div></div>
         <div class="stick-caption">STEER</div>
       </div>
-      <button id="jump-btn" class="jump-button hidden" type="button" aria-label="Håll TRICK och styr i luften för ett 360 graders trick" aria-pressed="false"><span class="jump-arrow" aria-hidden="true">⟳</span><span>TRICK</span></button>
+      <button id="jump-btn" class="jump-button hidden" type="button" aria-label="Reservknapp för eventuellt framtida hopp" aria-pressed="false"><span class="jump-arrow" aria-hidden="true">⟳</span><span>TRICK</span></button>
       <button id="grip-btn" class="grip-button" type="button"
-        aria-label="GRIP: håll in samtidigt som du styr för snävare svängar" aria-pressed="false">
+        aria-label="GRIP: håll och styr för snävare svängar på marken eller 360 graders air roll i luften" aria-pressed="false">
         <span class="grip-icon" aria-hidden="true">⟨⟩</span>
         <strong>GRIP</strong>
         <small>HOLD + STEER</small>
@@ -71,7 +71,7 @@
     </div>
     <section id="menu" class="screen">
       <div class="screen-content">
-        <div class="kicker">MANTA BLADE · MAGNETIC SKYLINE CIRCUIT · 0.8.0</div>
+        <div class="kicker">MANTA BLADE · MAGNETIC SKYLINE CIRCUIT · 0.8.1</div>
         <h1>SKY<span>SHIFT</span></h1>
         <div class="rule"></div>
         <p class="tagline">MAGNETIC WALL RACING.<br>THREE FASTER LAPS.</p>
@@ -82,8 +82,8 @@
           Fullscreen stöds inte i den här webbläsarvyn. Öppna SKYSHIFT direkt i Chrome via webbläsarens meny (⋮) och prova igen.
         </div>
         <div class="instructions">STEER <b>A / D · ← →</b> &nbsp; GRIP <b>SHIFT + STEER</b>
-          <br><span>AIR TRICK: SPACE + STEER in flight · Mobile: hold TRICK + steer</span></div>
-        <div class="prototype-label">3 × 3,400 M · LEAP · TRICKS · LANDING BOOST · 0.8.0</div>
+          <br><span>AIR ROLL: SHIFT + STEER in flight · Mobile: hold GRIP + steer</span></div>
+        <div class="prototype-label">3 × 3,400 M · HIGH LEAP · GRIP AIR ROLL · LANDING BOOST · 0.8.1</div>
       </div>
     </section>
     <section id="pause-screen" class="screen hidden" aria-label="Pausmeny">
@@ -106,6 +106,6 @@
     <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
     <div id="error" class="error hidden" role="alert"></div>
   </div>
-  <script src="./boot-v080.js?v=0.8.0" data-game-module="game-v080.mjs"></script>
+  <script src="./boot-v081.js?v=0.8.1" data-game-module="game-v081.mjs"></script>
 </body>
 </html>

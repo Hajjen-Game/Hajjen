@@ -275,7 +275,12 @@ jobs:
           node --check skyshift/game-v0901.mjs
           node --check skyshift/boot-v0901.js
           node --check skyshift/browser-smoke-v0901.mjs
-          node --check skyshift/grip-first-v0901.test.mjs
+          node --check skyshift/signature-flight-v091.mjs
+          node --check skyshift/signature-flight-v091.test.mjs
+          node --check skyshift/game-v091.mjs
+          node --check skyshift/boot-v091.js
+          node --check skyshift/browser-smoke-v091.mjs
+          node --check skyshift/grip-first-v0901.test.mjs skyshift/signature-flight-v091.test.mjs
           node --check skyshift/kinetic-camera-v090.test.mjs
           node --check skyshift/steering-authority-v084.test.mjs
           node --check skyshift/browser-smoke-v0481.mjs
@@ -294,8 +299,8 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Render SKYSHIFT 0.9.0.1 GRIP-First Steering on Kinetic Camera in real Chrome WebGL and Android touch
-        run: node skyshift/browser-smoke-v0901.mjs
+      - name: Render SKYSHIFT 0.9.1 Signature Flight Motion in real Chrome WebGL and Android touch
+        run: node skyshift/browser-smoke-v091.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -99,20 +99,20 @@ test("HUD timestamps and event counters reset without fake pulses or new render 
 });
 test("production page and boot load v04991; old gameplay and SMAA stay intact",()=>{
  const html=src("./index.html");
- const boot=src("./boot-v082.js");
- const game=src("./game-v082.mjs");
+ const boot=src("./boot-v083.js");
+ const game=src("./game-v083.mjs");
  const browser=src("./browser-smoke-v04991.mjs");
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
- assert.match(html,/boot-v082\.js\?v=0\.8\.2/);
- assert.match(html,/data-game-module="game-v082\.mjs"/);
- assert.match(boot,/import\("\.\/game-v082\.mjs\?v=0\.8\.2"\)/);
+ assert.match(html,/boot-v083\.js\?v=0\.8\.3/);
+ assert.match(html,/data-game-module="game-v083\.mjs"/);
+ assert.match(boot,/import\("\.\/game-v083\.mjs\?v=0\.8\.3"\)/);
  assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);
- assert.match(game,/version:"0\.8\.2"/);
- assert.match(game,/skyshift-track-rhythm-v082-audit\.json/);
+ assert.match(game,/version:"0\.8\.3"/);
+ assert.match(game,/skyshift-racing-feel-v083-audit\.json/);
  assert.match(browser,/racingMeters/);
  assert.match(browser,/phoneBars/);
- for(const dep of ["neon-v0498","image-clarity-v0498","premium-track-v082",
-  "aero-barrier-v082","zone-wave-v060","trial-v082","boost-v082",
+ for(const dep of ["neon-v0498","image-clarity-v0498","premium-track-v083",
+  "aero-barrier-v083","zone-wave-v060","trial-v083","boost-v082",
   "boost-spring-v0495","velocity-language-v0496","engine-trails-v0496"])
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  assert.equal(BOOST_CONFIG.multiplier,1.4);

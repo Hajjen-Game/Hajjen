@@ -1,3 +1,20 @@
+# SKYSHIFT 0.7.1 — Magnetic Wall Ride
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## New in 0.7.1
+
+- **One authored magnetic wall section per 3,400m lap**, on the long coast straight between 2,418m and 2,698m. Its real roadway and collision frame progressively rotate through quintic ramps up to **70°**; the 15-section Skyline racing line, all three laps and the 17.6m SKYLINE LEAP are unchanged.
+- **Magnetized surface contact** keeps the Manta Blade 1.05m off the banked road along its genuine surface normal. The pilot owns yaw and lateral positioning; the bank preserves the selected lane through roll transitions rather than recentering the craft. Original GRIP physics, boost and guardrail boundaries remain.
+- The existing indexed road, PBR spectrum and three-batch armored rails **all rotate in the same authoritative 3D local frame**. Discreet cyan magnetic guide lighting is integrated into the road shader with zero added draw batches.
+- **Cinematic wall camera** lifts into the magnetic normal and performs partial, readable roll rather than pitching the entire horizon 70°. Hull and contact shadow align to the road surface.
+- Compact MAGNETIC WALL cue, engagement/exit telemetry, clean completion counts, peak bank, wall seconds and wall distance in the export `skyshift-wall-v071-audit.json`.
+- New deterministic wall physics tests and Chrome/Android shader/touch smoke are wired into `.github/workflows/skyshift-tests.yml`.
+
+The archive below documents the original **unmodified 0.7.0** modules and baseline, retained for comparison.
+
+---
+
 # SKYSHIFT 0.7.0 — 3D Track Evolution
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

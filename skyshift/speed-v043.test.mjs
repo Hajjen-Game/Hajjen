@@ -224,7 +224,7 @@ test("archived 0.4.3 build retains speed, mesh and pacing; current page is 0.4.4
  assert.match(game,/frameMsP95/);
  assert.match(game,/game:"SKYSHIFT",version:"0\.4\.3"/);
  assert.match(game,/skyshift-handling-v043-audit\.json/);
- assert.match(html,/boot-v082\.js\?v=0\.8\.2/);
+ assert.match(html,/boot-v083\.js\?v=0\.8\.3/);
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(html,/id="fullscreen-btn"/);
 });

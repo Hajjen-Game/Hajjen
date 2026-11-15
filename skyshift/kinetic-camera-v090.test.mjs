@@ -127,19 +127,19 @@ test("classic camera geometry is exactly preserved with all kinetic fields zero"
  near(MAGNETIC_WALL.start,1662);
  near(CORKSCREW.start,3005);
 });
-test("0.9.0 page offers Classic, Balanced and Kinetic on identical 0.8.4 physics",()=>{
- const html=read("./index.html"),boot=read("./boot-v090.js"),
-  game=read("./game-v090.mjs");
- assert.match(html,/boot-v090\.js\?v=0\.9\.0/);
- assert.match(html,/data-game-module="game-v090\.mjs"/);
- assert.match(boot,/game-v090\.mjs\?v=0\.9\.0/);
- assert.match(game,/version:"0\.9\.0"/);
+test("0.9.0.1 page offers Classic, Balanced and Kinetic with the new GRIP-first physical handling",()=>{
+ const html=read("./index.html"),boot=read("./boot-v0901.js"),
+  game=read("./game-v0901.mjs");
+ assert.match(html,/boot-v0901\.js\?v=0\.9\.0\.1/);
+ assert.match(html,/data-game-module="game-v0901\.mjs"/);
+ assert.match(boot,/game-v0901\.mjs\?v=0\.9\.0\.1/);
+ assert.match(game,/version:"0\.9\.0\.1"/);
  assert.match(game,/kinetic-camera-v090\.mjs/);
- assert.match(game,/cinematic-v090\.mjs/);
+ assert.match(game,/cinematic-v0901\.mjs/);
  assert.match(game,/boost-spring-v090\.mjs/);
- assert.match(game,/trial-v084\.mjs/);
+ assert.match(game,/trial-v0901\.mjs/);
  assert.match(game,/CAMERA_MODE/);
  assert.match(game,/CAMERA_GAIN/);
- assert.match(game,/skyshift-kinetic-camera-v090-audit\.json/);
+ assert.match(game,/skyshift-grip-first-v0901-audit\.json/);
  assert.match(read("./game-v084.mjs"),/version:"0\.8\.4"/);
 });

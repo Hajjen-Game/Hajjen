@@ -712,8 +712,13 @@ function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicSta
  // Extra craft attitude is visual-only; heading and yaw rate are already
  // resolved by stepFlight, independent of the camera.
  // The hull matches the actual physical banked road normal.
-  // Pilot-controlled 360° air roll is visual-only, not a road tilt.
- ship.rotation.z=motion.roll-bankAt(view.s)+
+  // The flight-motion bank convention is NEGATIVE steering:
+ // left input (<0) banks toward +Z (port wing down), right toward -Z.
+ // The trick physics stores direction in INPUT sign, so the rendered
+ // barrel roll must negate trickVisualAngle to match both normal banking
+ // and the opposite-wing GRIP jet. Without this, LEFT rolled RIGHT.
+ // Visual-only: the 120Hz air-time, landing judgement and velocity remain.
+ ship.rotation.z=motion.roll-bankAt(view.s)-
   (view.trickVisualAngle??0)-
    Math.sign(flight.gripDirection)*flight.gripIntensity*.058;
  // Same side-engine geometry that powers GRIP turns now powers air-rolls.

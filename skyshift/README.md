@@ -1,3 +1,64 @@
+# SKYSHIFT 0.9.0.1 – GRIP-First Steering
+
+**Live:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Why this patch exists
+
+Real-player feedback after the 0.9.0 Kinetic Camera trial: ordinary steering still
+made difficult corners too easy to clear without GRIP, while steering normally
+to set up the turn **then pressing GRIP to carve through the apex** was the
+most rewarding racing technique. The goal here is **much stronger handling
+differentiation, not slower response or more HUD clutter**.
+
+## Changes and tests
+
+- New `steering-authority-v0901.mjs` supplies **69%** original reference
+  normal yaw at 44 m/s (previous 0.8.4: 96%), falling progressively to
+  **40%** at zone-8 cruise 101.4 m/s (previous: 66%).
+  This is a relative reduction of 28% at low speeds and 39% at high speeds
+  **versus the immediately preceding release**.
+- Existing full-speed GRIP still reaches **155%** original yaw reference at
+  full attack; the relative GRIP advantage rises from **2.25×** near start
+  to **3.88×** in the final zone. Attack, release and 6.5% movement-speed
+  cost remain unchanged. The grip steer threshold stays at 0.12.
+- Normal input response (24), release damping (36), joystick deadzone,
+  physical pilot yaw integration and all no-steer/no-magnet guarantees
+  are unchanged. The gameplay change is **turning radius**, not
+  latency or a forced assistance script.
+- The **same 3 × 3400m circuit, 14m precision throat, Skyline Leap,
+  Magnetic Wall, Corkscrew, full-air-roll controls, 40% boost pads, HDR
+  white-core zone wave and Kinetic Camera Rig** all remain unchanged.
+  Default camera is Balanced; Classic and Kinetic remain available
+  via `?camera=classic` / `?camera=kinetic`.
+- In a complete 120 Hz **scripted virtual pilot** comparison, a run
+  without GRIP completed with about ten rail contacts, mostly on later
+  laps; the same pilot with curvature-demanded GRIP completed all
+  three laps with zero contacts, all leap/wall/Corkscrew sections
+  clean, and about 21 seconds of deliberately held GRIP. These
+  figures are simulation results and not guaranteed human results.
+- The new `skyshift-grip-first-v0901-audit.json` includes true GRIP
+  seconds, activations, peak GRIP advantage, steering caps, relative
+  percent of the run using GRIP, and rail scrubbing measurements.
+- The 0.8.4 and 0.9.0 modules remain archived and intact;
+  `grip-first-v0901.test.mjs` and `browser-smoke-v0901.mjs`
+  are registered in GitHub Actions.
+
+### Suggested playtest
+
+1. Play **Kinetic**: https://hajjen-game.github.io/Hajjen/skyshift/?camera=kinetic
+   — lightly steer into corners, tap or hold GRIP to carve the apex and
+   release to return to wide-arc controls.
+2. Compare on **Balanced**: https://hajjen-game.github.io/Hajjen/skyshift/
+   — exactly the same steering model and track, camera strength only.
+3. Try a complete first-to-third-lap run: note whether the first lap
+   still teaches easily, whether later turns encourage active GRIP and
+   whether sudden steering transitions remain predictable.
+
+The next camera/flight animation polish (Signature Flight Motion) should
+be evaluated only after the physical GRIP-first feel passes player testing.
+
+---
+
 # SKYSHIFT 0.9.0 – Kinetic Camera Rig
 
 **Live:** https://hajjen-game.github.io/Hajjen/skyshift/

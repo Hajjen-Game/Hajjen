@@ -112,7 +112,7 @@ test("production page and boot load v04991; old gameplay and SMAA stay intact",(
  assert.match(browser,/racingMeters/);
  assert.match(browser,/phoneBars/);
  for(const dep of ["neon-v0498","image-clarity-v0498","premium-track-v082",
-  "aero-barrier-v082","zone-wave-v060","trial-v082","boost-v060",
+  "aero-barrier-v082","zone-wave-v060","trial-v082","boost-v082",
   "boost-spring-v0495","velocity-language-v0496","engine-trails-v0496"])
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  assert.equal(BOOST_CONFIG.multiplier,1.4);

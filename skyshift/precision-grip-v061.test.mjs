@@ -173,7 +173,7 @@ test("mobile GRIP and desktop Shift are explicit, touch-safe, and reset on pause
  assert.match(html,/data-game-module="game-v083\.mjs"/);
  assert.match(boot,/import\("\.\/game-v083\.mjs\?v=0\.8\.3"\)/);
  assert.match(game,/version:"0\.8\.3"/);
- assert.match(game,/from "\.\/neon-v0498\.mjs"/);
+ assert.match(game,/from "\.\/neon-v083\.mjs"/);
  assert.match(game,/from "\.\/trial-v083\.mjs"/);
  assert.match(game,/from "\.\/aero-barrier-v083\.mjs"/);
 });

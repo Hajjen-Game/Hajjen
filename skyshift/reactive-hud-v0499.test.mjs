@@ -108,11 +108,11 @@ test("HUD is DOM-only, throttled, and provides event counters for exported logs"
 });
 test("live production page keeps the archived HUD telemetry and controls",()=>{
  const html=source("./index.html"),css=source("./style-v061.css"),
-  game=source("./game-v060.mjs"),boot=source("./boot-v082.js");
+  game=source("./game-v060.mjs"),boot=source("./boot-v083.js");
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
- assert.match(html,/boot-v082\.js\?v=0\.8\.2/);
- assert.match(html,/data-game-module="game-v082\.mjs"/);
- assert.match(boot,/import\("\.\/game-v082\.mjs\?v=0\.8\.2"\)/);
+ assert.match(html,/boot-v083\.js\?v=0\.8\.3/);
+ assert.match(html,/data-game-module="game-v083\.mjs"/);
+ assert.match(boot,/import\("\.\/game-v083\.mjs\?v=0\.8\.3"\)/);
  for(const id of ["hud","shield-fill","shield-text","flight-state",
    "shield-status","zone-number","sector-name","zone-progress-fill",
    "speed","speed-energy-fill","distance","start-btn","stick","stick-knob",

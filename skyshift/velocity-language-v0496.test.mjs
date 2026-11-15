@@ -111,8 +111,8 @@ test("road and rail velocity uniforms share spatial phase, retain spectral wave"
 test("0.4.9.6 active browser, physics/camera integration, HUD and audit",()=>{
  const page=src("./index.html"),boot=src("./boot-v0496.js"),
   game=src("./game-v0496.mjs");
- assert.match(page,/boot-v080\.js\?v=0\.8\.0/);
- assert.match(page,/data-game-module="game-v080\.mjs"/);
+ assert.match(page,/boot-v081\.js\?v=0\.8\.1/);
+ assert.match(page,/data-game-module="game-v081\.mjs"/);
  assert.match(boot,/import\("\.\/game-v0496\.mjs\?v=0\.4\.9\.6"\)/);
  assert.match(boot,/__skyshiftBootFail/);
  for(const dep of ["engine-trails-v0496","premium-track-v0496",

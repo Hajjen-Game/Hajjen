@@ -145,7 +145,30 @@ export function surfaceHeightAt(s,lateral=0){
  const p=poseAt(s),ground=groundNormalAt(s,p.heading);
  return elevationAt(s)-ground.y*Math.sin(bankAt(s))*lateral;
 }
-export function widthAt(s){return 23.2;}
+// Precision GRIP APEX: physically narrowing guardrails and top deck, never a
+// UI-only "challenge". An early C2 funnel makes the 14m throat visible
+// before the technical 90° bend; at high zone speeds the apex requires GRIP
+// to avoid the rail. Low-speed laps teach the line without a forced crash.
+export const GRIP_APEX=Object.freeze({
+ id:"precision-grip-apex",name:"GRIP APEX",
+ funnelStart:777,throatStart:840,throatEnd:962,funnelEnd:995,
+ minWidthMeters:14,normalWidthMeters:23.2,
+ peakCurvature:0.01649,fullGripRequiredAtFastestZone:true
+});
+export function gripApexAt(s){
+ const d=lapPosition(s);
+ return d>=GRIP_APEX.funnelStart&&d<GRIP_APEX.funnelEnd?GRIP_APEX:null;
+}
+export function widthAt(s){
+ const d=lapPosition(s),g=GRIP_APEX;
+ let narrow=0;
+ if(d>=g.funnelStart&&d<g.throatStart)
+  narrow=easedCurvature((d-g.funnelStart)/(g.throatStart-g.funnelStart));
+ else if(d>=g.throatStart&&d<g.throatEnd)narrow=1;
+ else if(d>=g.throatEnd&&d<g.funnelEnd)
+  narrow=1-easedCurvature((d-g.throatEnd)/(g.funnelEnd-g.throatEnd));
+ return g.normalWidthMeters-(g.normalWidthMeters-g.minWidthMeters)*narrow;
+}
 export function speedAt(s,zoneStage=0){
  // This is real physics speed (m/s), not a speedometer multiplier.
  // Every authentic color-front crossing gives +11% physical cruise speed.
@@ -280,6 +303,9 @@ export function newFlightState(){
   s:5,lateral:0,sideVelocity:0,worldX:p.x,worldZ:p.z,
   heading:headingAt(5),steering:0,yawRate:0,lastInput:0,
   peakYawRateDeg:0,peakBankDeg:0,
+  gripApexActive:false,gripApexEntries:0,gripApexExits:0,
+  gripApexCleanExits:0,gripApexRailContactsAtEntry:0,
+  gripApexGripSeconds:0,
   totalHeadingError:0,maxHeadingErrorDeg:0,headingSamples:0,
   maxLateral:0,offRoadSeconds:0,steerSeconds:0,
   railContacts:0,railSeconds:0,railMaxPenetration:0,lastRailSide:0,
@@ -379,6 +405,24 @@ export function stepFlight(st,dt,control={}){
   st.s=q.s;st.lateral=q.lateral;
  }
  const contacted=constrainToGuardrail(st,dt);
+ // Evaluate the physically narrowed GRIP funnel only on the actual track,
+ // not just an instructional popup. An exit earns a clean-line result only
+ // when the pilot has stayed clear of the rails throughout the apex.
+ const previousGripApex=st.gripApexActive;
+ st.gripApexActive=Boolean(gripApexAt(st.s));
+ const gripApexEntered=!previousGripApex&&st.gripApexActive;
+ const gripApexExited=previousGripApex&&!st.gripApexActive;
+ let cleanGripApexExit=false;
+ if(gripApexEntered){
+  st.gripApexEntries++;
+  st.gripApexRailContactsAtEntry=st.railContacts;
+ }
+ if(st.gripApexActive&&grip.active)st.gripApexGripSeconds+=dt;
+ if(gripApexExited){
+  st.gripApexExits++;
+  cleanGripApexExit=st.railContacts===st.gripApexRailContactsAtEntry;
+  if(cleanGripApexExit)st.gripApexCleanExits++;
+ }
  if(!contacted)st.lastRailSide=0;
  st.sideVelocity=(st.lateral-beforeLateral)/dt;
  st.maxLateral=Math.max(st.maxLateral,Math.abs(st.lateral));
@@ -516,7 +560,7 @@ export function stepFlight(st,dt,control={}){
    st.gripDirection=0;
    st.lastInput=0;st.y=surfaceHeightAt(recover)+
     TRIAL.hoverHeight*surfaceNormalAt(recover).y;
-   st.magneticActive=false;st.corkscrewActive=false;
+   st.magneticActive=false;st.corkscrewActive=false;st.gripApexActive=false;
    st.trickActive=false;st.trickReady=false;st.trickLaunchLap=0;
    st.trickVisualAngle=0;st.landingBoostTimer=0;
    st.landingBoostMultiplier=1;
@@ -534,6 +578,7 @@ export function stepFlight(st,dt,control={}){
    crashed?"crashed":"moving",crashed,finished,
    jumped,landed,cleared:false,railContact:contacted,
    gripActivated:grip.activated,gripActive:grip.active,
+   gripApexEntered,gripApexExited,cleanGripApexExit,
    trickStarted,trickCompleted,landingBoostAwarded,
    landingBoostRejected,landingBoostReason,
    boostActivated:triggeredBoost?.id??null,lapCompleted,routeChoice:null,
@@ -572,6 +617,12 @@ export function validateTrial(){
   errors.push("unwelded vertical height or slope at lap seam");
  if(Math.abs(bankAt(0))+Math.abs(bankAt(TRIAL.length))>1e-9)
   errors.push("track bank leaks into lap seam");
+ if(gripApexAt(SKYLINE_LEAP.start)||gripApexAt(MAGNETIC_WALL.start))
+  errors.push("grip apex overlaps leap or wall");
+ if(CORKSCREW.start-MAGNETIC_WALL.end<850)
+  errors.push("spectacle sections are too closely spaced");
+ if(widthAt(GRIP_APEX.throatStart)!==GRIP_APEX.minWidthMeters)
+  errors.push("grip apex has no physical deck narrowing");
  if(corkscrewAt(SKYLINE_LEAP.start)||corkscrewAt(MAGNETIC_WALL.start))
   errors.push("corkscrew overlaps launch gap or magnetic wall");
  if(GAPS.length!==1)

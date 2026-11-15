@@ -86,7 +86,8 @@ test("full intentional LEFT/RIGHT air roll earns one real landing boost on all l
   assert.ok(a.f.trickAirSeconds>.4);
   assert.ok(a.f.grounded&&a.f.falls===0);
   assert.ok(a.f.landingBoostTimer>1.4);
-  near(a.f.trickVisualAngle,Math.sign(steer)*2*Math.PI,0.02);
+  // 0 and ±2π are the same landing attitude after visual settling.
+   near(Math.atan2(Math.sin(a.f.trickVisualAngle),Math.cos(a.f.trickVisualAngle)),0,0.02);
   let peak=1,physicalPeak=0;
   for(let i=0;i<175;i++){
     stepFlight(a.f,1/120,{steer:0,trick:false});

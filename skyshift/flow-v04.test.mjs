@@ -141,7 +141,7 @@ test("camera and craft show turn attitude, with future real banking held back",(
 
 test("active browser entrypoint loads 0.4 and retains fullscreen and neon defaults",()=>{
   const html=src("index.html"),game=src("game-v04.mjs");
-  assert.match(html,/boot-v082\.js\?v=0\.8\.2/);
+  assert.match(html,/boot-v083\.js\?v=0\.8\.3/);
   assert.match(html,/style-v061\.css\?v=0\.6\.1/);
   assert.match(html,/id="fullscreen-btn"/);
   assert.match(game,/from "\.\/fullscreen-v02\.mjs"/);

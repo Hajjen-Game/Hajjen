@@ -192,7 +192,7 @@ test("archived 0.7.2 corkscrew keeps its geometry; live 0.8.2 extends the flight
  assert.doesNotMatch(shader,/corkscrewLines|magneticLines|screwArea|magneticZone/);
  assert.match(shader,/float innerLine = trackStripe/);
  assert.match(shader,/float guideLine = trackStripe/);
- assert.match(smoke,/real WebGL\/Chrome|CORKSCREW/);
+ assert.match(smoke,/real Chrome validates|genuine 360° inverted road/);
  assert.match(source("./trial-v071.mjs"),/skyline-wall-v071/);
  assert.match(source("./trial-v070.mjs"),/skyline-3d-v070/);
 });

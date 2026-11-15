@@ -130,9 +130,9 @@ test("classic camera geometry is exactly preserved with all kinetic fields zero"
 test("0.9.1 page offers Classic, Balanced and Kinetic with the new GRIP-first physical handling",()=>{
  const html=read("./index.html"),boot=read("./boot-v091.js"),
   game=read("./game-v091.mjs");
- assert.match(html,/boot-v0901\.js\?v=0\.9\.1/);
- assert.match(html,/data-game-module="game-v0901\.mjs"/);
- assert.match(boot,/game-v0901\.mjs\?v=0\.9\.1/);
+ assert.match(html,/boot-v091\.js\?v=0\.9\.1/);
+ assert.match(html,/data-game-module="game-v091\.mjs"/);
+ assert.match(boot,/game-v091\.mjs\?v=0\.9\.1/);
  assert.match(game,/version:"0\.9\.1"/);
  assert.match(game,/kinetic-camera-v090\.mjs/);
  assert.match(game,/cinematic-v0901\.mjs/);

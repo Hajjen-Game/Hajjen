@@ -4,7 +4,7 @@ import {GRIP_SPEC,initGripState,stepGripState} from "./precision-grip-v061.mjs";
 import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from "./track-3d-v072.mjs";
 import {CIRCUIT,CIRCUIT_LENGTH,COURSE_SEGMENTS as LOOP_SEGMENTS,
  lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from "./circuit-layout-v060.mjs";
-export {BOOST_PADS,BOOST_CONFIG,CIRCUIT,circuitPlanSummary,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,pitchAt,gradeAt,elevationAudit};
+export {BOOST_PADS,BOOST_CONFIG,CIRCUIT,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,pitchAt,gradeAt,elevationAudit};
 // Intentionally small handling lab: geometric straights, circular arcs and
 // quintic-curvature transitions. No incidental heading changes, no jump hazards.
 // This trial supersedes 0.4.1 ONLY in the active page; the old course is kept.

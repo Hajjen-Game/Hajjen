@@ -196,7 +196,7 @@ test("live page, controls and telemetry point to 0.9.1 and retain archive",()=>{
  assert.match(game,/racing-feel-v083\.mjs/);
  assert.match(game,/railScrubLossMeters/);
  assert.match(game,/grip_guidance_start/);
- assert.match(game,/skyshift-grip-first-v0901-audit\.json/);
+ assert.match(game,/skyshift-signature-flight-v091-audit\.json/);
  assert.match(css,/#grip-cue/);
  assert.match(source("./game-v082.mjs"),/version:"0\.8\.2"/);
 });

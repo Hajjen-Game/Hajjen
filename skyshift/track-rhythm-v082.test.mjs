@@ -119,7 +119,7 @@ test("leap and three reusable speed pads move to safe authored straights",()=>{
  assert.ok(COURSE_SEGMENTS[2].start<SKYLINE_LEAP.start);
  assert.ok(COURSE_SEGMENTS[2].end>SKYLINE_LEAP.end);
 });
-test("active GitHub Pages build and audit reflect 0.8.3, preserving 0.8.3 geometry archive",()=>{
+test("active GitHub Pages build and audit reflect 0.8.3, preserving 0.8.2 geometry archive",()=>{
  const html=source("./index.html"),boot=source("./boot-v083.js"),
   game=source("./game-v083.mjs");
  assert.match(html,/data-game-module="game-v083\.mjs"/);

@@ -99,20 +99,20 @@ test("HUD timestamps and event counters reset without fake pulses or new render 
 });
 test("production page and boot load v04991; old gameplay and SMAA stay intact",()=>{
  const html=src("./index.html");
- const boot=src("./boot-v072.js");
- const game=src("./game-v072.mjs");
+ const boot=src("./boot-v080.js");
+ const game=src("./game-v080.mjs");
  const browser=src("./browser-smoke-v04991.mjs");
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
- assert.match(html,/boot-v072\.js\?v=0\.7\.2/);
- assert.match(html,/data-game-module="game-v072\.mjs"/);
- assert.match(boot,/import\("\.\/game-v072\.mjs\?v=0\.7\.2"\)/);
+ assert.match(html,/boot-v080\.js\?v=0\.8\.0/);
+ assert.match(html,/data-game-module="game-v080\.mjs"/);
+ assert.match(boot,/import\("\.\/game-v080\.mjs\?v=0\.8\.0"\)/);
  assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);
- assert.match(game,/version:"0\.7\.2"/);
- assert.match(game,/skyshift-corkscrew-v072-audit\.json/);
+ assert.match(game,/version:"0\.8\.0"/);
+ assert.match(game,/skyshift-airtricks-v080-audit\.json/);
  assert.match(browser,/racingMeters/);
  assert.match(browser,/phoneBars/);
- for(const dep of ["neon-v0498","image-clarity-v0498","premium-track-v072",
-  "aero-barrier-v072","zone-wave-v060","trial-v072","boost-v060",
+ for(const dep of ["neon-v0498","image-clarity-v0498","premium-track-v080",
+  "aero-barrier-v080","zone-wave-v060","trial-v080","boost-v060",
   "boost-spring-v0495","velocity-language-v0496","engine-trails-v0496"])
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  assert.equal(BOOST_CONFIG.multiplier,1.4);

@@ -177,7 +177,7 @@ test("production version routes to the real 10.4km race; archived 1530m lab pres
  assert.match(html,/boot-v080\.js\?v=0\.8\.0/);
  assert.match(boot,/import\("\.\/game-v080\.mjs\?v=0\.8\.0"\)/);
  for(const dep of ["trial-v080","zone-wave-v060","boost-v060",
-  "smooth-track-v080","premium-track-v080","aero-barrier-v080"])
+  "smooth-track-v072","premium-track-v072","aero-barrier-v072"])
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  assert.match(game,/setZoneSpeedStage\(flight,wave\.stage\)/);
  assert.match(game,/zone_speed_increase/);

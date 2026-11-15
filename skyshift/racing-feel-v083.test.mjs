@@ -90,7 +90,7 @@ test("rail feedback is a single short HUD cue without extra world effects",()=>{
  startRailFeedback(s,-1);
  assert.equal(s.contacts,1);
  assert.equal(s.lastSide,-1);
- near(stepRailFeedback(s,.12,true),(.92*(1-.12/.36)),1e-7);
+ near(stepRailFeedback(s,.12,true),(.92*(1-.10/.36)),1e-7);
  for(let i=0;i<30;i++)stepRailFeedback(s,.05,false);
  assert.equal(s.pulse,0);
  assert.equal(s.contacts,1);

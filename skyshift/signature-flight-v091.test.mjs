@@ -61,15 +61,15 @@ test("bounded takeoff/landing/boost responses and frozen pause",()=>{
 test("0.9.1 live source retains GRIP-first pilot physics and Kinetic Camera",()=>{
  const html=read("./index.html"),boot=read("./boot-v091.js"),
   game=read("./game-v091.mjs"),prior=read("./game-v0901.mjs");
- assert.match(html,/boot-v091\\.js\\?v=0\\.9\\.1/);
- assert.match(html,/data-game-module="game-v091\\.mjs"/);
- assert.match(boot,/game-v091\\.mjs\\?v=0\\.9\\.1/);
- assert.match(game,/version:"0\\.9\\.1"/);
- assert.match(game,/signature-flight-v091\\.mjs/);
- assert.match(game,/kinetic-camera-v090\\.mjs/);
- assert.match(game,/trial-v0901\\.mjs/);
+ assert.match(html,/boot-v091\.js\?v=0\.9\.1/);
+ assert.match(html,/data-game-module="game-v091\.mjs"/);
+ assert.match(boot,/game-v091\.mjs\?v=0\.9\.1/);
+ assert.match(game,/version:"0\.9\.1"/);
+ assert.match(game,/signature-flight-v091\.mjs/);
+ assert.match(game,/kinetic-camera-v090\.mjs/);
+ assert.match(game,/trial-v0901\.mjs/);
  assert.match(game,/triggerSignatureLanding/);
  assert.match(game,/signatureFlightAudit/);
- assert.match(prior,/version:"0\\.9\\.0\\.1"/);
+ assert.match(prior,/version:"0\.9\.0\.1"/);
  assert.match(read("./trial-v0901.mjs"),/GRIP-First Steering Balance/);
 });

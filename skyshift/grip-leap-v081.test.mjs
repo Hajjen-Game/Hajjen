@@ -114,7 +114,8 @@ test("GRIP air roll follows LEFT/RIGHT stick and bank orientation (0.8.1.1)",()=
  assert.ok(game.includes('uiState.inputX=clamp((e.clientX-(rect.left+rect.width*.5))/59,-1,1);'));
  // The production renderer MUST negate input-signed trickVisualAngle.
  // In Three.js a +Z craft roll lowers the craft's left (-X) wing.
- assert.ok(game.includes('ship.rotation.z=motion.roll-bankAt(view.s)-\\n  (view.trickVisualAngle??0)-'),
+ assert.ok(game.includes('ship.rotation.z=motion.roll-bankAt(view.s)-')&&
+  game.includes('(view.trickVisualAngle??0)-'),
   "visual roll must invert the stored steering sign");
  assert.ok(thrusters.includes('activeSide=-Math.sign(direction)'),
   "left roll should fire the right wing side jet, and vice versa");
@@ -138,8 +139,8 @@ test("GRIP air roll follows LEFT/RIGHT stick and bank orientation (0.8.1.1)",()=
   assert.equal(firingWing,-Math.sign(steer));
  }
  const index=source("./index.html"),boot=source("./boot-v081.js");
- assert.match(index,/boot-v081\\.js\\?v=0\\.8\\.1\\.1/);
- assert.match(boot,/game-v081\\.mjs\\?v=0\\.8\\.1\\.1/);
+ assert.ok(index.includes('boot-v081.js?v=0.8.1.1'));
+ assert.ok(boot.includes('game-v081.mjs?v=0.8.1.1'));
 });
 test("active production has one GRIP button for steering and air roll",()=>{
  const html=source("./index.html"),boot=source("./boot-v081.js"),

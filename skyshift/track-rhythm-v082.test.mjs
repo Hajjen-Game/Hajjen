@@ -119,13 +119,13 @@ test("leap and three reusable speed pads move to safe authored straights",()=>{
  assert.ok(COURSE_SEGMENTS[2].start<SKYLINE_LEAP.start);
  assert.ok(COURSE_SEGMENTS[2].end>SKYLINE_LEAP.end);
 });
-test("active GitHub Pages build and audit reflect 0.9.0.1, preserving 0.8.2 geometry archive",()=>{
- const html=source("./index.html"),boot=source("./boot-v0901.js"),
-  game=source("./game-v0901.mjs");
+test("active GitHub Pages build and audit reflect 0.9.1, preserving 0.8.2 geometry archive",()=>{
+ const html=source("./index.html"),boot=source("./boot-v091.js"),
+  game=source("./game-v091.mjs");
  assert.match(html,/data-game-module="game-v0901\.mjs"/);
- assert.match(html,/boot-v0901\.js\?v=0\.9\.0\.1/);
- assert.match(boot,/game-v0901\.mjs\?v=0\.9\.0\.1/);
- assert.match(game,/version:"0\.9\.0\.1"/);
+ assert.match(html,/boot-v0901\.js\?v=0\.9\.1/);
+ assert.match(boot,/game-v0901\.mjs\?v=0\.9\.1/);
+ assert.match(game,/version:"0\.9\.1"/);
  for(const d of ["trial-v0901","boost-v082","premium-track-v0901",
   "smooth-track-v0901","aero-barrier-v0901","cinematic-v0901"])
   assert.ok(game.includes('from "./'+d+'.mjs"'),d);

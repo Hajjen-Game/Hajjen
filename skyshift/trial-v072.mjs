@@ -3,7 +3,7 @@ import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} fr
 import {GRIP_SPEC,initGripState,stepGripState} from "./precision-grip-v061.mjs";
 import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from "./track-3d-v072.mjs";
 import {CIRCUIT,CIRCUIT_LENGTH,COURSE_SEGMENTS as LOOP_SEGMENTS,
- lapPosition,sectionAt,circuitPlanSummary} from "./circuit-layout-v060.mjs";
+ lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from "./circuit-layout-v060.mjs";
 export {BOOST_PADS,BOOST_CONFIG,CIRCUIT,circuitPlanSummary,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,pitchAt,gradeAt,elevationAudit};
 // Intentionally small handling lab: geometric straights, circular arcs and
 // quintic-curvature transitions. No incidental heading changes, no jump hazards.
@@ -34,6 +34,27 @@ export const TRIAL=Object.freeze({
 // with generous C2 easing — never sketchy short hand-drawn wiggles.
 export const SHOWCASE_PLAN=LOOP_SEGMENTS;
 export const COURSE_SEGMENTS=LOOP_SEGMENTS;
+// 0.7.2 handling polish: sharpen the *middle* of selected real corners,
+// retaining exactly the same turn angle, entry/exit and straight sections.
+// Pulse area is zero: no heading drift downstream or handwritten chicanes.
+// Full-speed laps need deliberate GRIP at technical apexes, while lap one
+// remains learnable without it. Never add lane magnets or steering assists.
+export const TECHNICAL_APEX_PULSES=Object.freeze({
+ "high-speed-sweep":0.00857070014,
+ "precision-apex":0.013,
+ "back-sweeper":0.014,
+ "final-corner":0.00961940512
+});
+export function circuitPlanSummary(){
+ const base=baseCircuitPlanSummary();
+ const radii=COURSE_SEGMENTS.filter(t=>t.type==="turn").map(t=>
+  +(1/Math.abs(t.curvature+(TECHNICAL_APEX_PULSES[t.id]??0)*.5)).toFixed(1));
+ return {...base,
+  maximumCurvature:Math.max(...COURSE_SEGMENTS.map(t=>
+   Math.abs(t.curvature+(TECHNICAL_APEX_PULSES[t.id]??0)*.5))),
+  uniqueTurnRadii:radii,
+  gripApexes:Object.keys(TECHNICAL_APEX_PULSES)};
+}
 export const MAX_BANK_RAD=2*Math.PI;
 export const GAPS=Object.freeze([SKYLINE_LEAP]);
 export const ISLANDS=Object.freeze([]);
@@ -73,10 +94,21 @@ export function integratedEasedCurvature(u){
 function turnContribution(s,t){
  const {entry,hold,exit,curvature:k}=t;
  const d=clamp(s-t.start,0,entry+hold+exit);
- if(d<=entry)return k*entry*integratedEasedCurvature(d/entry);
- if(d<=entry+hold)return k*(entry*.5+d-entry);
- const x=(d-entry-hold)/exit;
- return k*(entry*.5+hold+exit*(x-integratedEasedCurvature(x)));
+ let base;
+ if(d<=entry)base=k*entry*integratedEasedCurvature(d/entry);
+ else if(d<=entry+hold)base=k*(entry*.5+d-entry);
+ else {
+  const x=(d-entry-hold)/exit;
+  base=k*(entry*.5+hold+exit*(x-integratedEasedCurvature(x)));
+ }
+ const pulse=TECHNICAL_APEX_PULSES[t.id]??0;
+ if(!pulse||d<=entry||d>=entry+hold)return base;
+ // Integral of (cos(4πu)-cos(2πu))/4 is zero over [0,1].
+ // Thus the *true* corner radius tightens at the apex while its final
+ // heading and its C2 curvature joins stay exactly unchanged.
+ const u=(d-entry)/hold;
+ return base+pulse*hold*(Math.sin(4*Math.PI*u)/(16*Math.PI)-
+    Math.sin(2*Math.PI*u)/(8*Math.PI));
 }
 export function headingAt(s){
  const lap=Math.floor(s/CIRCUIT.lapLength);
@@ -90,7 +122,12 @@ export function curvatureAt(s){
   if(t.type!=="turn"||local<t.start||local>=t.end)continue;
   const d=local-t.start;
   if(d<t.entry)return t.curvature*easedCurvature(d/t.entry);
-  if(d<t.entry+t.hold)return t.curvature;
+  if(d<t.entry+t.hold){
+   const pulse=TECHNICAL_APEX_PULSES[t.id]??0;
+   const u=(d-t.entry)/t.hold;
+   return t.curvature+.25*pulse*(Math.cos(4*Math.PI*u)-
+      Math.cos(2*Math.PI*u));
+  }
   return t.curvature*(1-easedCurvature((d-t.entry-t.hold)/t.exit));
  }
  return 0;

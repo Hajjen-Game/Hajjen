@@ -178,19 +178,19 @@ test("chase camera anticipates approaching slope, but stays pilot owned",()=>{
  near(normal.lookY,flat.y+1.25);
  assert.match(src("./cinematic-v070.mjs"),/heightAt\(nextS\)-heightAt\(currentS\)/);
 });
-test("archived SKYSHIFT 0.7.0 stays unbanked while active 0.7.1 is magnetic",()=>{
- const html=src("./index.html"),boot=src("./boot-v071.js"),
-   game=src("./game-v071.mjs"),smoke=src("./browser-smoke-v071.mjs");
- assert.match(html,/game-v071\.mjs/);
- assert.match(html,/Magnetic Wall Ride/);
- assert.match(boot,/game-v071\.mjs\?v=0\.7\.1/);
- for(const dep of ["trial-v071","premium-track-v071",
-  "aero-barrier-v071","cinematic-v071"])
+test("archived SKYSHIFT 0.7.0 stays unbanked while active 0.7.2 is magnetic",()=>{
+ const html=src("./index.html"),boot=src("./boot-v072.js"),
+   game=src("./game-v072.mjs"),smoke=src("./browser-smoke-v072.mjs");
+ assert.match(html,/game-v072\.mjs/);
+ assert.match(html,/Corkscrew Spectacle/);
+ assert.match(boot,/game-v072\.mjs\?v=0\.7\.2/);
+ for(const dep of ["trial-v072","premium-track-v072",
+  "aero-barrier-v072","cinematic-v072"])
    assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
- assert.match(game,/skyshift-wall-v071-audit\.json/);
+ assert.match(game,/skyshift-corkscrew-v072-audit\.json/);
  assert.match(game,/autoLaunches/);
  assert.match(game,/pitchAt\(view\.s\)/);
- assert.match(game,/version:"0\.7\.1"/);
+ assert.match(game,/version:"0\.7\.2"/);
  assert.match(game,/precision-grip-v061/);
  assert.match(smoke,/skylineLeap/);
  assert.ok(src("./trial-v061.mjs").includes('export const GAPS=Object.freeze([])'));

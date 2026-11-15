@@ -1,0 +1,57 @@
+/* SKYSHIFT 0.8.1 – one physical GRIP button, context-aware side thruster role.
+   The older JUMP/TRICK DOM node stays archived but is not presented. */
+#mobile-controls{justify-content:space-between}
+#mobile-controls #jump-btn{display:none!important}
+#grip-btn.air-trick{
+ border-color:rgba(240,255,255,.91);
+ background:linear-gradient(145deg,rgba(14,70,104,.90),rgba(4,26,50,.85));
+ box-shadow:0 0 21px rgba(83,212,246,.31),inset 0 0 20px rgba(111,225,255,.17);
+}
+#grip-btn.air-trick .grip-icon{
+ color:#f5ffff;text-shadow:0 0 12px rgba(180,249,255,.66)
+}
+#grip-btn.air-trick small{
+ color:#c4f6ff;letter-spacing:.07em
+}
+@media(prefers-reduced-motion:reduce){
+ #grip-btn.air-trick,#grip-btn.air-trick .grip-icon{transition:none!important}
+}
+
+/* SKYSHIFT 0.8.3 — precise GRIP coaching and measured rail contact.
+   No new WebGL meshes, animation loops or focus-stealing controls. */
+#grip-cue{
+ position:absolute;right:calc(13px + env(safe-area-inset-right));
+ bottom:calc(123px + env(safe-area-inset-bottom));
+ width:min(225px,33vw);min-height:20px;z-index:8;
+ box-sizing:border-box;padding:8px 10px;
+ border:1px solid rgba(154,240,255,.66);
+ border-left:3px solid rgba(241,253,255,.94);
+ border-radius:4px 11px 4px 10px;
+ background:linear-gradient(116deg,rgba(4,23,43,.90),rgba(5,28,46,.72));
+ color:#e9fcff;font:bold 10px/1.4 system-ui,Arial,sans-serif;
+ text-align:center;letter-spacing:.115em;text-shadow:0 0 9px rgba(147,227,251,.43);
+ pointer-events:none;user-select:none;
+}
+#grip-cue.hidden{display:none!important}
+#grip-btn.apex-approach{
+ border-color:rgba(239,253,255,.92);
+ box-shadow:0 0 17px rgba(94,224,241,.34),inset 0 0 18px rgba(143,234,255,.19);
+}
+#grip-btn.apex-engaged{
+ border-color:#e7ffff;
+ background:linear-gradient(145deg,rgba(20,79,89,.93),rgba(7,35,57,.93));
+ box-shadow:0 0 16px rgba(90,240,220,.38),inset 0 0 19px rgba(134,249,229,.20);
+}
+.hud-v2.hud-rail-contact .hud-right{
+ border-top-color:rgba(249,207,140,.92);
+ box-shadow:0 10px 22px rgba(0,0,0,.15),
+  inset 0 0 calc(var(--rail-contact,0) * 18px) rgba(253,196,113,.32);
+}
+.hud-v2.hud-rail-contact .speed-indicator{background:#ffd29b}
+@media(max-height:460px){
+ #grip-cue{bottom:calc(108px + env(safe-area-inset-bottom));
+  font-size:9px;padding:6px 8px;width:min(215px,37vw)}
+}
+@media(prefers-reduced-motion:reduce){
+ #grip-cue,#grip-btn.apex-approach,#grip-btn.apex-engaged{animation:none!important}
+}

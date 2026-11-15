@@ -182,7 +182,7 @@ test("archived SKYSHIFT 0.7.0 stays unbanked while active 0.9.1 uses air tricks"
  const html=src("./index.html"),boot=src("./boot-v091.js"),
    game=src("./game-v091.mjs"),smoke=src("./browser-smoke-v081.mjs");
  assert.match(html,/game-v091\.mjs/);
- assert.match(html,/GRIP Clarity & Racing Feel/);
+ assert.match(html,/Signature Flight Motion/);
  assert.match(boot,/game-v091\.mjs\?v=0\.9\.1/);
  for(const dep of ["trial-v0901","premium-track-v0901",
   "aero-barrier-v0901","cinematic-v0901"])

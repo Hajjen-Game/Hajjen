@@ -106,8 +106,8 @@ test("exported image report contains actual pass order and render tier",()=>{
 test("production boot uses 0.4.9.8 without touching ship physics or scenery",()=>{
  const html=src("./index.html"),boot=src("./boot-v0498.js"),
   game=src("./game-v0498.mjs"),smoke=src("./browser-smoke-v0498.mjs");
- assert.match(html,/boot-v083\.js\?v=0\.8\.3/);
- assert.match(html,/data-game-module="game-v083\.mjs"/);
+ assert.match(html,/boot-v084\.js\?v=0\.8\.4/);
+ assert.match(html,/data-game-module="game-v084\.mjs"/);
  assert.match(boot,/import\("\.\/game-v0498\.mjs\?v=0\.4\.9\.8"\)/);
  for(const dep of ["neon-v0498","image-clarity-v0498","premium-track-v0498",
   "aero-barrier-v0497","zone-wave-v0493","trial-v0494",

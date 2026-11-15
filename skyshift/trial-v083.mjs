@@ -310,6 +310,7 @@ export function newFlightState(){
   gripApexCleanExits:0,gripApexRailContactsAtEntry:0,
   gripApexGripSeconds:0,gripApexWarnSeconds:0,
   railContactStarts:0,railContacting:false,railScrubIntensity:0,
+  railScrubPeak:0,
   railScrubSeconds:0,railScrubLossMeters:0,
   totalHeadingError:0,maxHeadingErrorDeg:0,headingSamples:0,
   maxLateral:0,offRoadSeconds:0,steerSeconds:0,
@@ -423,6 +424,7 @@ export function stepFlight(st,dt,control={}){
  st.railScrubIntensity=lerp(st.railScrubIntensity,contacted?1:0,
   1-Math.exp(-dt/railResponse));
  if(contacted)st.railScrubSeconds+=dt;
+ st.railScrubPeak=Math.max(st.railScrubPeak,st.railScrubIntensity);
  // Evaluate the physically narrowed GRIP funnel only on the actual track,
  // not just an instructional popup. An exit earns a clean-line result only
  // when the pilot has stayed clear of the rails throughout the apex.

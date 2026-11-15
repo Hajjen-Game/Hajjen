@@ -192,7 +192,7 @@ test("archived SKYSHIFT 0.7.0 stays unbanked while active 0.8.2 uses air tricks"
  assert.match(game,/pitchAt\(view\.s\)/);
  assert.match(game,/version:"0\.8\.2"/);
  assert.match(game,/precision-grip-v061/);
- assert.match(smoke,/SKYLINE_LEAP/);
+ assert.match(smoke,/skylineLeap/);
  assert.ok(src("./trial-v061.mjs").includes('export const GAPS=Object.freeze([])'));
  assert.equal(TRACK_3D.wallRide,false);
 });

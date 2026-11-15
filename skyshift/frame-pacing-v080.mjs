@@ -35,7 +35,11 @@ export function interpolatePose(previous,current,alpha){
 }
 export function shouldSnapPose(a,b){
   // A checkpoint respawn must never interpolate across world-space void.
-  return !a||!b||Math.hypot(b.worldX-a.worldX,b.worldZ-a.worldZ)>8;
+  // A completed ±2π trick eventually renormalizes to 0: same physical
+ // orientation, but interpolating across a 6.28rad numeric jump would
+ // render an accidental instant reverse flip.
+ return !a||!b||Math.hypot(b.worldX-a.worldX,b.worldZ-a.worldZ)>8||
+  Math.abs((b.trickVisualAngle??0)-(a.trickVisualAngle??0))>Math.PI;
 }
 export function createFrameClock(){
   return {accum:0,simulatedSeconds:0,droppedSeconds:0,totalSteps:0,

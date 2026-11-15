@@ -238,7 +238,7 @@ test("production route preserves original HUD, SMAA and three-lap telemetry",()=
  assert.match(game,/version:"0\.8\.3"/);
  assert.match(game,/skyshift-racing-feel-v083-audit\.json/);
  assert.match(smoke,/CIRCUIT\.laps/);
- assert.match(game,/from "\.\/neon-v0498\.mjs"/);
+ assert.match(game,/from "\.\/neon-v083\.mjs"/);
  assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);
  assert.doesNotMatch(game,/from "\.\/trial-v051\.mjs"/);
 });

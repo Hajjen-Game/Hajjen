@@ -5,7 +5,7 @@
 import {TRIAL,widthAt} from "./trial-v084.mjs";
 import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
 import {BOOST_PADS} from "./boost-v082.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v082.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v084.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
  version:"track-rhythm-spectrum-082",

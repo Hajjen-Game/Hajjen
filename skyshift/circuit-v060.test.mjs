@@ -226,8 +226,8 @@ test("production route preserves original HUD, SMAA and three-lap telemetry",()=
  assert.match(html,/id="final-laps"/);
  assert.match(boot,/import\("\.\/game-v080\.mjs\?v=0\.8\.0"\)/);
  for(const dep of ["trial-v080","circuit-layout-v060","boost-v060",
-  "zone-wave-v060","smooth-track-v080","premium-track-v080",
-  "aero-barrier-v080"]){
+  "zone-wave-v060","smooth-track-v072","premium-track-v072",
+  "aero-barrier-v072"]){
   if(dep==="circuit-layout-v060")continue;
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  }

@@ -201,7 +201,7 @@ try{
    clarity.low.internalTiers[2]!==.82||
    clarity.high.internalTiers[0]!==2||
    clarity.normalStart!==.69||clarity.normalFast!==.40||
-   clarity.gripFull!==1.55||
+   Math.abs(clarity.gripFull-1.55)>1e-8||
    !clarity.gripCueNode||!clarity.cueStyle||
    !clarity.buttonVisible||!clarity.hiddenInitially)
   throw new Error("SKYSHIFT 0.9.1 HUD/GRIP clarity readiness: "+

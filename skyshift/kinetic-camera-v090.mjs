@@ -24,7 +24,6 @@ export const KINETIC_CAMERA=Object.freeze({
 });
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const finite=(x,f=0)=>Number.isFinite(x)?x:f;
-const mix=(a,b,t)=>a+(b-a)*t;
 export function kineticSpeedFraction(speed,config=KINETIC_CAMERA){
  return clamp((finite(speed,config.referenceSpeed)-config.referenceSpeed)/
   (config.highSpeed-config.referenceSpeed),0,1);
@@ -37,7 +36,7 @@ export function kineticFovAt(speed,config=KINETIC_CAMERA){
 }
 export function createKineticCameraState(){
  return {
-  previewMeters:KINETIC_CAMERA.previewStartMeters,
+  previewMeters:KINETIC_CAMERA.previewStartMeters,previewVelocity:0,
   sideMeters:0,sideVelocity:0,
   rollRadians:0,rollVelocity:0,
   eyeLiftMeters:0,eyeLiftVelocity:0,

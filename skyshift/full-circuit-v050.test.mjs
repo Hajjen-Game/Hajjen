@@ -176,7 +176,7 @@ test("production version routes to the real 10.4km race; archived 1530m lab pres
  assert.match(html,/data-game-module="game-v082\.mjs"/);
  assert.match(html,/boot-v082\.js\?v=0\.8\.2/);
  assert.match(boot,/import\("\.\/game-v082\.mjs\?v=0\.8\.2"\)/);
- for(const dep of ["trial-v082","zone-wave-v060","boost-v060",
+ for(const dep of ["trial-v082","zone-wave-v060","boost-v082",
   "smooth-track-v082","premium-track-v082","aero-barrier-v082"])
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  assert.match(game,/setZoneSpeedStage\(flight,wave\.stage\)/);
@@ -184,7 +184,7 @@ test("production version routes to the real 10.4km race; archived 1530m lab pres
  assert.match(game,/zoneSpeedEvents:\[\.\.\.flight\.zoneSpeedEvents\]/);
  assert.match(game,/version:"0\.8\.2"/);
  assert.match(game,/skyshift-track-rhythm-v082-audit\.json/);
- assert.match(browser,/circuit\.lapLength!==3400/);
+ assert.match(browser,/physical\.firstCorner/);
  assert.match(html,/10200 M/);
  assert.match(html,/THREE FASTER LAPS/);
  assert.match(html,/style-v061\.css/);

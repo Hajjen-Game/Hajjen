@@ -1083,7 +1083,7 @@ function exportAudit(){
        cueDisplays:gripCueDisplays,cueVisibleSeconds:+gripCueSeconds.toFixed(2),
        peakRailFlash:railFeedback.maxPulse,
        projection:PROJECTION_083,
-       railScrubIntensityPeak:1},
+       railScrubIntensityPeak:+flight.railScrubPeak.toFixed(3)},
       gripApex:{...GRIP_APEX,
        entries:flight.gripApexEntries,exits:flight.gripApexExits,
        cleanExits:flight.gripApexCleanExits,

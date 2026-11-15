@@ -131,7 +131,7 @@ test("active GitHub Pages build and audit reflect 0.9.1, preserving 0.8.2 geomet
   assert.ok(game.includes('from "./'+d+'.mjs"'),d);
  assert.match(game,/grip_apex_enter/);
  assert.match(game,/grip_apex_exit/);
- assert.match(game,/skyshift-grip-first-v0901-audit\.json/);
+ assert.match(game,/skyshift-signature-flight-v091-audit\.json/);
  assert.match(source("./trial-v081.mjs"),/skyline-grip-airtricks-v081/);
  assert.match(source("./game-v081.mjs"),/version:"0\.8\.1"/);
 });

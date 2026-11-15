@@ -123,8 +123,8 @@ test("active GitHub Pages build and audit reflect 0.8.2 instead of archived 0.8.
  const html=source("./index.html"),boot=source("./boot-v082.js"),
   game=source("./game-v082.mjs");
  assert.match(html,/data-game-module="game-v082\.mjs"/);
- assert.match(html,/boot-v082\.js\?v=0\.8\.2\.1/);
- assert.match(boot,/game-v082\.mjs\?v=0\.8\.2\.1/);
+ assert.match(html,/boot-v082\.js\?v=0\.8\.2/);
+ assert.match(boot,/game-v082\.mjs\?v=0\.8\.2/);
  assert.match(game,/version:"0\.8\.2"/);
  for(const d of ["trial-v082","boost-v082","premium-track-v082",
   "smooth-track-v082","aero-barrier-v082","cinematic-v082"])

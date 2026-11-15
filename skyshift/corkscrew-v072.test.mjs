@@ -168,7 +168,7 @@ test("GRIP apexes get real tighter curvature, preserve closed geometry and C2 jo
 });
 test("archived 0.7.2 corkscrew keeps its geometry; live 0.8.2 extends the flight",()=>{
  const html=source("./index.html"),boot=source("./boot-v082.js"),
-  game=source("./game-v082.mjs"),smoke=source("./browser-smoke-v082.mjs"),
+  game=source("./game-v082.mjs"),smoke=source("./browser-smoke-v081.mjs"),
   shader=source("./premium-track-v072.mjs"),
   archivedBoot=source("./boot-v072.js"),archivedGame=source("./game-v072.mjs");
  assert.match(html,/data-game-module="game-v082\.mjs"/);

@@ -2,6 +2,13 @@
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/
 
+## 0.7.2 — Post-playtest handling and road polish (2026-11-15)
+
+- Removed the extra cyan magnetic tracks on the 70° wall and 360° corkscrew. Their physical magnetic attachment, local road normals and steering remain entirely intact. Ordinary integrated racing guides, rails, boosts and the zone wave are preserved.
+- Four existing turns now have a smooth, mathematically zero-area curvature pulse inside their constant-radius middle. The sharper true apexes become GRIP-worthy at high zone speeds, without turning straights into small wiggles or changing each turn's overall heading.
+- Calibrated apex pulses together so the 3,400m loop remains welded; road geometry, lateral rail geometry and collision projection use the same updated pose. The circuitPlanSummary() audit now records the actual peak curvature and peak turn radii (plus named grip apexes).
+- Added deterministic regression checks for road closure, turn continuity, zero unintended reverse-curvature, GRIP feasibility and absence of special luminous magnetic strips. This is a tuning update to 0.7.2, not a new feature version.
+
 ## 0.7.2 — What changed
 
 - A **333-metre physical corkscrew (3,005–3,338m)** is authored on the long finish-drive straight on **each of the three laps**, separate from the 70° Magnetic Wall Ride at 2,418–2,698m. The entire indexed roadway completes an eased **-360°** roll, passing through a true inverted ceiling before returning to the same frame at the exit.

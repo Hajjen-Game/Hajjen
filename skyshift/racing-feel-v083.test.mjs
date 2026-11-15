@@ -1,4 +1,4 @@
-// SKYSHIFT 0.9.0 – physics and UX regression against actual 0.8.2 baseline.
+// SKYSHIFT 0.9.0.1 – physics and UX regression against actual 0.8.2 baseline.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -182,21 +182,21 @@ test("low-memory HDR can truly downshift below 1x while premium devices remain c
  assert.deepEqual(premium.internalTiers,[2,1.75,1.5]);
  assert.equal(dprForAdaptiveLevel(low,2),.82);
  assert.match(source("./neon-v083.mjs"),/Math.max\(\.82,/);
- assert.match(source("./game-v090.mjs"),/image-clarity-v083/);
- assert.match(source("./game-v090.mjs"),/neon-v083/);
+ assert.match(source("./game-v0901.mjs"),/image-clarity-v083/);
+ assert.match(source("./game-v0901.mjs"),/neon-v083/);
 });
-test("live page, controls and telemetry point to 0.9.0 and retain archive",()=>{
- const index=source("./index.html"),boot=source("./boot-v090.js"),
-  game=source("./game-v090.mjs"),css=source("./style-v083.css");
- assert.match(index,/boot-v090\.js\?v=0\.9\.0/);
- assert.match(index,/data-game-module="game-v090\.mjs"/);
+test("live page, controls and telemetry point to 0.9.0.1 and retain archive",()=>{
+ const index=source("./index.html"),boot=source("./boot-v0901.js"),
+  game=source("./game-v0901.mjs"),css=source("./style-v083.css");
+ assert.match(index,/boot-v0901\.js\?v=0\.9\.0\.1/);
+ assert.match(index,/data-game-module="game-v0901\.mjs"/);
  assert.match(index,/id="grip-cue"/);
- assert.match(boot,/game-v090\.mjs\?v=0\.9\.0/);
- assert.match(game,/version:"0\.9\.0"/);
+ assert.match(boot,/game-v0901\.mjs\?v=0\.9\.0\.1/);
+ assert.match(game,/version:"0\.9\.0\.1"/);
  assert.match(game,/racing-feel-v083\.mjs/);
  assert.match(game,/railScrubLossMeters/);
  assert.match(game,/grip_guidance_start/);
- assert.match(game,/skyshift-kinetic-camera-v090-audit\.json/);
+ assert.match(game,/skyshift-grip-first-v0901-audit\.json/);
  assert.match(css,/#grip-cue/);
  assert.match(source("./game-v082.mjs"),/version:"0\.8\.2"/);
 });

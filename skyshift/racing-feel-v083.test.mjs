@@ -188,10 +188,10 @@ test("low-memory HDR can truly downshift below 1x while premium devices remain c
 test("live page, controls and telemetry point to 0.9.1 and retain archive",()=>{
  const index=source("./index.html"),boot=source("./boot-v091.js"),
   game=source("./game-v091.mjs"),css=source("./style-v083.css");
- assert.match(index,/boot-v0901\.js\?v=0\.9\.1/);
- assert.match(index,/data-game-module="game-v0901\.mjs"/);
+ assert.match(index,/boot-v091\.js\?v=0\.9\.1/);
+ assert.match(index,/data-game-module="game-v091\.mjs"/);
  assert.match(index,/id="grip-cue"/);
- assert.match(boot,/game-v0901\.mjs\?v=0\.9\.1/);
+ assert.match(boot,/game-v091\.mjs\?v=0\.9\.1/);
  assert.match(game,/version:"0\.9\.1"/);
  assert.match(game,/racing-feel-v083\.mjs/);
  assert.match(game,/railScrubLossMeters/);

@@ -2,7 +2,7 @@
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt,MAGNETIC_WALL,CORKSCREW} from "./trial-v072.mjs";
+import {TRIAL,widthAt} from "./trial-v072.mjs";
 import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
 import {BOOST_PADS} from "./boost-v060.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v072.mjs";
@@ -121,30 +121,9 @@ const zoneLayerGLSL=`
   ${zoneShaders}
 `;
 
-// Magnetic guides are integrated into the same PBR road material.
-const magneticLines=`
-   float magneticZone = trackWindow(trackS, ${MAGNETIC_WALL.start.toFixed(1)},
-     ${MAGNETIC_WALL.end.toFixed(1)}, 7.0);
-   float magneticRail = max(
-     trackStripe(absL,7.56,0.085,0.18),
-     trackStripe(absL,10.28,0.085,0.18));
-   float magneticBeat = pow(.5+.5*sin((trackS-uVelocityPhase)*.18),5.0);
-   road=mix(road,vec3(.30,.84,1.05),magneticZone*magneticRail*
-      (.36+.22*magneticBeat));
-`;
-// Racing-line readability is more important than extra luminous obstacles.
-// Animated multi-layer guide pulses share the current PBR shader: one surface,
-// no fake raised energy bridges, no extra draw calls or render passes.
-const corkscrewLines=`
-   float screwArea=trackWindow(trackS,
-      ${CORKSCREW.start.toFixed(1)},${CORKSCREW.end.toFixed(1)},11.0);
-   float screwSide=max(trackStripe(absL,5.35,0.11,0.24),
-        trackStripe(absL,9.25,0.085,0.19));
-   float screwFlux=.43+.57*pow(.5+.5*sin(trackS*.15-uVelocityPhase*.17),4.0);
-   float screwPulse=pow(.5+.5*sin(trackS*.085-uVelocityPhase*.12+2.5),6.0);
-   road=mix(road,vec3(.18,.70,1.0),screwArea*screwSide*
-      (.45*screwFlux+.20*screwPulse));
-`;
+// Wall rides and the corkscrew retain full magnetic attachment PHYSICS, but
+// use the same understated racing lines as the rest of the track. No extra
+// cyan magnetic stripes or corkscrew pulses compete with the driving line.
 export const SURFACE_FRAGMENT_GLSL=`
   float trackS = vTrackCoord.x;
   float trackL = vTrackCoord.y;
@@ -172,8 +151,6 @@ export const SURFACE_FRAGMENT_GLSL=`
   float shoulderMask = smoothstep(8.7, 9.3, absL) * (1.0 - smoothstep(10.2, 10.8, absL));
   road = mix(road, zoneAccent, shoulderMask * panelSeam * 0.10);
 
-  ${magneticLines}
-  ${corkscrewLines}
   // Physical boost fields read as embedded ENERGY INLAYS, not raised golden
   // rectangles. Their functional world coordinates match boost-v048 exactly.
   ${shaderBoostPads}
@@ -281,10 +258,7 @@ export function patchPremiumShaders(vertexShader,fragmentShader){
          whiteBloom*${ZONE_WAVE.whiteBloomEnergy.toFixed(2)} +
          whiteFilaments*.11)
       + zoneGuide*velocityGlint*.35
-       + vec3(.16,.66,.96)*magneticZone*magneticRail*
-          (.10+.18*magneticBeat)
-       + vec3(.26,.78,1.0)*screwArea*screwSide*
-          (.20*screwFlux+.12*screwPulse);`;
+       ;`;
  const fragment=fragmentShader.replace(fCommon,
    fCommon+"\n"+SURFACE_FRAGMENT_HELPERS)
    .replace(fColor,fColor+"\n"+coloring)

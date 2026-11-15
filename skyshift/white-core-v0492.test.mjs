@@ -112,8 +112,8 @@ test("Rails use SAME spectral functions and white core in original accent batch"
 });
 test("0.4.9.2 keeps independent Android bootstrap and original flight physics",()=>{
  const boot=source("boot-v0492.js"),page=source("index.html"),game=source("game-v0492.mjs");
- assert.match(page,/boot-v084\.js\?v=0\.8\.4/);
- assert.match(page,/data-game-module="game-v084\.mjs"/);
+ assert.match(page,/boot-v090\.js\?v=0\.9\.0/);
+ assert.match(page,/data-game-module="game-v090\.mjs"/);
  assert.match(boot,/import\("\.\/game-v0492\.mjs\?v=0\.4\.9\.2"\)/);
  assert.match(boot,/__skyshiftBootFail/);
  assert.match(game,/version:"0\.4\.9\.2"/);

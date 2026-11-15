@@ -126,8 +126,7 @@ test("true 3D track and all physical meshes remain unchanged",()=>{
   near(widthAt(at),prior.widthAt(at),1e-10);
   near(curvatureAt(at),prior.curvatureAt(at),1e-10);
  }
- assert.equal(createSmoothDeckData().triangles,
-  (awaitCalc=>awaitCalc) && createSmoothDeckData().triangles);
+ assert.ok(createSmoothDeckData().triangles>25000);
  assert.ok(createAeroBarrierData().triangles>90000);
 });
 test("low-memory HDR can truly downshift below 1x while premium devices remain crisp",()=>{
@@ -153,6 +152,4 @@ test("live page, controls and telemetry point to 0.8.3 and retain archive",()=>{
  assert.match(game,/skyshift-racing-feel-v083-audit\.json/);
  assert.match(css,/#grip-cue/);
  assert.match(source("./game-v082.mjs"),/version:"0\.8\.2"/);
-});
-
 });

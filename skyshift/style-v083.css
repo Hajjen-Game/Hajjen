@@ -45,7 +45,7 @@
 .hud-v2.hud-rail-contact .hud-right{
  border-top-color:rgba(249,207,140,.92);
  box-shadow:0 10px 22px rgba(0,0,0,.15),
-  inset 0 0 calc(var(--rail-contact,0) * 18px) rgba(253,196,113,.32);
+  inset 0 0 16px rgba(253,196,113,.27);
 }
 .hud-v2.hud-rail-contact .speed-indicator{background:#ffd29b}
 @media(max-height:460px){

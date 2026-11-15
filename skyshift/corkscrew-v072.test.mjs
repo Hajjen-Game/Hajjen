@@ -166,27 +166,27 @@ test("GRIP apexes get real tighter curvature, preserve closed geometry and C2 jo
  assert.ok(audit.maximumCurvature>.014);
  assert.equal(audit.gripApexes.length,4);
 });
-test("archived 0.7.2 corkscrew keeps its geometry; live 0.8.4 extends the flight",()=>{
- const html=source("./index.html"),boot=source("./boot-v084.js"),
-  game=source("./game-v084.mjs"),smoke=source("./browser-smoke-v081.mjs"),
+test("archived 0.7.2 corkscrew keeps its geometry; live 0.9.0 extends the flight",()=>{
+ const html=source("./index.html"),boot=source("./boot-v090.js"),
+  game=source("./game-v090.mjs"),smoke=source("./browser-smoke-v081.mjs"),
   shader=source("./premium-track-v072.mjs"),
   archivedBoot=source("./boot-v072.js"),archivedGame=source("./game-v072.mjs");
- assert.match(html,/data-game-module="game-v084\.mjs"/);
+ assert.match(html,/data-game-module="game-v090\.mjs"/);
  assert.match(html,/GRIP Clarity & Racing Feel/);
- assert.match(boot,/game-v084\.mjs\?v=0\.8\.4/);
+ assert.match(boot,/game-v090\.mjs\?v=0\.9\.0/);
  assert.match(archivedBoot,/game-v072\.mjs\?v=0\.7\.2/);
  for(const dep of ["trial-v084","frame-pacing-v080"]){
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  }
  for(const dep of ["smooth-track-v084","premium-track-v084",
-  "aero-barrier-v084","cinematic-v084"]){
+  "aero-barrier-v084","cinematic-v090"]){
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  }
- assert.match(game,/version:"0\.8\.4"/);
+ assert.match(game,/version:"0\.9\.0"/);
  assert.match(game,/corkscrew_enter/);
  assert.match(game,/corkscrew_exit/);
  assert.match(game,/corkscrewCeilingSeconds/);
- assert.match(game,/skyshift-steering-v084-audit\.json/);
+ assert.match(game,/skyshift-kinetic-camera-v090-audit\.json/);
  assert.match(game,/cameraBankAt\(view\.s\)/);
  assert.match(archivedGame,/skyshift-corkscrew-v072-audit\.json/);
  assert.doesNotMatch(shader,/corkscrewLines|magneticLines|screwArea|magneticZone/);

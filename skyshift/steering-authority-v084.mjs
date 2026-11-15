@@ -9,7 +9,7 @@ export const STEERING_AUTHORITY=Object.freeze({
  referenceSpeed:44,
  fullSpeed:44*1.11**8,
  normalSlowFactor:.96,
- normalFastFactor:.70,
+ normalFastFactor:.66,
  fullGripFactor:1.55,
  inputResponseUnchanged:true,
  pilotOwnedSteer:true,

@@ -388,7 +388,7 @@ export function stepFlight(st,dt,control={}){
  const railScale=1-.085*st.railScrubIntensity;
  st.currentSpeed=ungrippedSpeed*grip.speedScale*railScale;
  st.railScrubLossMeters+=ungrippedSpeed*grip.speedScale*(1-railScale)*dt;
- st.gripSpeedLossMeters+=(ungrippedSpeed-st.currentSpeed)*dt;
+ st.gripSpeedLossMeters+=ungrippedSpeed*(1-grip.speedScale)*dt;
  if(grip.active)st.gripDistanceMeters+=st.currentSpeed*dt;
  const forward=st.currentSpeed;
  // At 90°/270° of a corkscrew the horizontal projection of the lane has

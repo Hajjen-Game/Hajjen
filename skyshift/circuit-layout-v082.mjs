@@ -6,9 +6,9 @@ export const CIRCUIT=Object.freeze({
  id:"skyline-circuit",name:"SKYLINE CIRCUIT",lapLength:3400,laps:3,
  totalDistance:10200,trackWidth:23.2,zeroBank:true,
  sectors:Object.freeze([
-  Object.freeze({id:"high-speed",name:"HIGH-SPEED FLOW",start:0,end:1242.12101754}),
-  Object.freeze({id:"technical",name:"TECHNICAL RHYTHM",start:1242.12101754,end:2143.91737525}),
-  Object.freeze({id:"finale",name:"VELOCITY FINALE",start:2143.91737525,end:3400})
+  Object.freeze({id:"high-speed",name:"HIGH-SPEED FLOW",start:0,end:1007.12101754}),
+  Object.freeze({id:"technical",name:"TECHNICAL RHYTHM",start:1007.12101754,end:2168.91737525}),
+  Object.freeze({id:"finale",name:"VELOCITY FINALE",start:2168.91737525,end:3400})
  ])
 });
 const deg=a=>a*Math.PI/180;

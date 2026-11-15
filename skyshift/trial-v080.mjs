@@ -321,7 +321,12 @@ export function stepFlight(st,dt,control={}){
  // While the player deliberately holds TRICK in flight, steer controls
  // a barrel roll instead of throwing the ship off the landing island.
  // Without TRICK the original pilot-owned yaw remains unchanged.
- const tricking=control.trick===true&&!st.grounded&&st.trickLaunchLap>0;
+ const lapS=lapPosition(st.s);
+ const preArming=control.trick===true&&st.grounded&&
+  lapS>=SKYLINE_LEAP.approachStart-40&&lapS<SKYLINE_LEAP.start&&
+  st.lastJumpLap!==st.lap;
+ const tricking=control.trick===true&&
+  ((!st.grounded&&st.trickLaunchLap>0)||preArming);
  const desired=input*TRIAL.maxYawRate*grip.authority*
   (tricking?AIR_TRICKS.yawAuthorityWhileTricking:1);
  const response=Math.abs(input)>.001?TRIAL.turnResponse:TRIAL.turnRelease;

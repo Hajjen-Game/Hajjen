@@ -153,6 +153,6 @@ test("production 0.7.2 boot has 360° renderer and existing features",()=>{
  assert.match(game,/cameraBankAt\(view\.s\)/);
  assert.match(shader,/corkscrewLines/);
  assert.match(smoke,/real Chrome validates|genuine 360° inverted road/);
- assert.match(source("./trial-v071.mjs"),/magnetic-wall-071/);
+ assert.match(source("./trial-v071.mjs"),/skyline-wall-v071/);
  assert.match(source("./trial-v070.mjs"),/skyline-3d-v070/);
 });

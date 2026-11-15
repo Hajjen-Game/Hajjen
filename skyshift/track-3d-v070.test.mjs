@@ -178,19 +178,19 @@ test("chase camera anticipates approaching slope, but stays pilot owned",()=>{
  near(normal.lookY,flat.y+1.25);
  assert.match(src("./cinematic-v070.mjs"),/heightAt\(nextS\)-heightAt\(currentS\)/);
 });
-test("active production uses actual 3D modules without rewriting the archived race",()=>{
- const html=src("./index.html"),boot=src("./boot-v070.js"),
-  game=src("./game-v070.mjs"),smoke=src("./browser-smoke-v070.mjs");
- assert.match(html,/game-v070\.mjs/);
- assert.match(html,/3D Track Evolution/);
- assert.match(boot,/import\("\.\/game-v070\.mjs\?v=0\.7\.0"\)/);
- for(const dep of ["trial-v070","premium-track-v070",
-  "aero-barrier-v070","cinematic-v070"])
-  assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
- assert.match(game,/skyshift-track-3d-v070-audit\.json/);
+test("archived SKYSHIFT 0.7.0 stays unbanked while active 0.7.1 is magnetic",()=>{
+ const html=src("./index.html"),boot=src("./boot-v071.js"),
+   game=src("./game-v071.mjs"),smoke=src("./browser-smoke-v071.mjs");
+ assert.match(html,/game-v071\.mjs/);
+ assert.match(html,/Magnetic Wall Ride/);
+ assert.match(boot,/game-v071\.mjs\?v=0\.7\.1/);
+ for(const dep of ["trial-v071","premium-track-v071",
+  "aero-barrier-v071","cinematic-v071"])
+   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
+ assert.match(game,/skyshift-wall-v071-audit\.json/);
  assert.match(game,/autoLaunches/);
  assert.match(game,/pitchAt\(view\.s\)/);
- assert.match(game,/version:"0\.7\.0"/);
+ assert.match(game,/version:"0\.7\.1"/);
  assert.match(game,/precision-grip-v061/);
  assert.match(smoke,/skylineLeap/);
  assert.ok(src("./trial-v061.mjs").includes('export const GAPS=Object.freeze([])'));

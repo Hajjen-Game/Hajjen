@@ -2,7 +2,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {AIR_TRICKS} from "./air-tricks-v081.mjs";
+import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick}
+ from "./air-tricks-v081.mjs";
+import {createFlightMotionState,stepFlightMotion}
+ from "./flight-motion-v044.mjs";
 import {TRIAL,CIRCUIT,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  positionAt,surfaceHeightAt,headingAt,bankAt,newFlightState,stepFlight,
  speedAt,validateTrial} from "./trial-v081.mjs";
@@ -103,6 +106,40 @@ test("without GRIP or without enough rotation, no air trick or bonus occurs",()=
  assert.equal(tooLate.completed,0);assert.equal(tooLate.awards,0);
  assert.equal(tooLate.f.landingBoostActivations,0);
  assert.equal(tooLate.f.lastTrickFailReason,"incomplete");
+});
+test("GRIP air roll follows LEFT/RIGHT stick and bank orientation (0.8.1.1)",()=>{
+ const game=source("./game-v081.mjs"),thrusters=source("./side-thrusters-v061.mjs");
+ // Left touch/stick or A/ArrowLeft produces negative steering.
+ assert.ok(game.includes('const keyboard=(keyRight?1:0)-(keyLeft?1:0);'));
+ assert.ok(game.includes('uiState.inputX=clamp((e.clientX-(rect.left+rect.width*.5))/59,-1,1);'));
+ // The production renderer MUST negate input-signed trickVisualAngle.
+ // In Three.js a +Z craft roll lowers the craft's left (-X) wing.
+ assert.ok(game.includes('ship.rotation.z=motion.roll-bankAt(view.s)-\\n  (view.trickVisualAngle??0)-'),
+  "visual roll must invert the stored steering sign");
+ assert.ok(thrusters.includes('activeSide=-Math.sign(direction)'),
+  "left roll should fire the right wing side jet, and vice versa");
+ for(const steer of [-.74,.74]){
+  const st=initAirTrickState({grounded:false,railContacts:0,lateral:0});
+  beginAirTrick(st,1);
+  const result=advanceAirTrick(st,1/60,steer,true);
+  assert.ok(result.started&&st.trickAngle>0);
+  assert.equal(st.trickDirection,Math.sign(steer));
+  // The previous game bug added this angle instead of subtracting it.
+  const signedShipRoll=-st.trickVisualAngle;
+  const normalBank=createFlightMotionState();
+  for(let k=0;k<18;k++)
+   stepFlightMotion(normalBank,{steering:steer,trackBank:0,
+    yawRate:0,sideVelocity:0,heading:0,vy:0},1/120,k/120);
+  assert.equal(Math.sign(signedShipRoll),Math.sign(normalBank.roll),
+   "air roll must agree with ground GRIP bank for "+steer);
+  assert.equal(Math.sign(signedShipRoll),-Math.sign(steer));
+  // Opposite wing physically supplies the torque: left = right jet.
+  const firingWing=-Math.sign(st.trickDirection);
+  assert.equal(firingWing,-Math.sign(steer));
+ }
+ const index=source("./index.html"),boot=source("./boot-v081.js");
+ assert.match(index,/boot-v081\\.js\\?v=0\\.8\\.1\\.1/);
+ assert.match(boot,/game-v081\\.mjs\\?v=0\\.8\\.1\\.1/);
 });
 test("active production has one GRIP button for steering and air roll",()=>{
  const html=source("./index.html"),boot=source("./boot-v081.js"),

@@ -180,7 +180,7 @@ test("chase camera anticipates approaching slope, but stays pilot owned",()=>{
 });
 test("archived SKYSHIFT 0.7.0 stays unbanked while active 0.8.2 uses air tricks",()=>{
  const html=src("./index.html"),boot=src("./boot-v082.js"),
-   game=src("./game-v082.mjs"),smoke=src("./browser-smoke-v082.mjs");
+   game=src("./game-v082.mjs"),smoke=src("./browser-smoke-v081.mjs");
  assert.match(html,/game-v082\.mjs/);
  assert.match(html,/Track Rhythm & GRIP Apex/);
  assert.match(boot,/game-v082\.mjs\?v=0\.8\.2/);

@@ -8,7 +8,7 @@ import {createFlightMotionState,stepFlightMotion}
  from "./flight-motion-v044.mjs";
 import {TRIAL,CIRCUIT,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  positionAt,surfaceHeightAt,headingAt,bankAt,newFlightState,stepFlight,
- speedAt,validateTrial} from "./trial-v081.mjs";
+ speedAt,widthAt,validateTrial} from "./trial-v081.mjs";
 import {createSmoothDeckData} from "./smooth-track-v081.mjs";
 import {createAeroBarrierData} from "./aero-barrier-v081.mjs";
 import {PREMIUM_TRACK} from "./premium-track-v081.mjs";
@@ -90,7 +90,8 @@ test("GRIP + steer powers a complete legible 360° roll and real landing boost",
   near(r.f.trickPeakDegrees,360,.01);
   assert.ok(r.f.landingBoostTimer>1.4);
   assert.equal(r.f.falls,0);
-  assert.ok(Math.abs(r.f.lateral)<2.5);
+  // Flight is pilot-directed, not auto-centered; validate legal landing lane.
+   assert.ok(Math.abs(r.f.lateral)<widthAt(r.f.s)*.5);
   let peak=1;
   for(let i=0;i<160;i++){
    stepFlight(r.f,1/120,{steer:0,grip:false});

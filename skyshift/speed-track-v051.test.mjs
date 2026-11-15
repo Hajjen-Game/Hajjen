@@ -151,8 +151,8 @@ test("production loads faster diverse race and retains existing HUD/SMAA",()=>{
  assert.match(game,/version:"0\.8\.0"/);
  assert.match(game,/zone_speed_increase/);
  assert.match(game,/skyshift-airtricks-v080-audit\.json/);
- for(const path of ["trial-v080","zone-wave-v060","smooth-track-v080",
-   "premium-track-v080","aero-barrier-v080"])
+ for(const path of ["trial-v080","zone-wave-v060","smooth-track-v072",
+   "premium-track-v072","aero-barrier-v072"])
   assert.ok(game.includes('from "./'+path+'.mjs"'),path);
  assert.match(browser,/18,36,54,72,90,108,126,144/);
  assert.ok(source("./trial-v050.mjs").includes("zoneSpeedStep:1.065"));

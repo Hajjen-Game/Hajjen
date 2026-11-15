@@ -140,6 +140,6 @@ test("0.9.1 page offers Classic, Balanced and Kinetic with the new GRIP-first ph
  assert.match(game,/trial-v0901\.mjs/);
  assert.match(game,/CAMERA_MODE/);
  assert.match(game,/CAMERA_GAIN/);
- assert.match(game,/skyshift-grip-first-v0901-audit\.json/);
+ assert.match(game,/skyshift-signature-flight-v091-audit\.json/);
  assert.match(read("./game-v084.mjs"),/version:"0\.8\.4"/);
 });

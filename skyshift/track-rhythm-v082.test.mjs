@@ -119,19 +119,19 @@ test("leap and three reusable speed pads move to safe authored straights",()=>{
  assert.ok(COURSE_SEGMENTS[2].start<SKYLINE_LEAP.start);
  assert.ok(COURSE_SEGMENTS[2].end>SKYLINE_LEAP.end);
 });
-test("active GitHub Pages build and audit reflect 0.8.4, preserving 0.8.2 geometry archive",()=>{
- const html=source("./index.html"),boot=source("./boot-v084.js"),
-  game=source("./game-v084.mjs");
- assert.match(html,/data-game-module="game-v084\.mjs"/);
- assert.match(html,/boot-v084\.js\?v=0\.8\.4/);
- assert.match(boot,/game-v084\.mjs\?v=0\.8\.4/);
- assert.match(game,/version:"0\.8\.4"/);
+test("active GitHub Pages build and audit reflect 0.9.0, preserving 0.8.2 geometry archive",()=>{
+ const html=source("./index.html"),boot=source("./boot-v090.js"),
+  game=source("./game-v090.mjs");
+ assert.match(html,/data-game-module="game-v090\.mjs"/);
+ assert.match(html,/boot-v090\.js\?v=0\.9\.0/);
+ assert.match(boot,/game-v090\.mjs\?v=0\.9\.0/);
+ assert.match(game,/version:"0\.9\.0"/);
  for(const d of ["trial-v084","boost-v082","premium-track-v084",
-  "smooth-track-v084","aero-barrier-v084","cinematic-v084"])
+  "smooth-track-v084","aero-barrier-v084","cinematic-v090"])
   assert.ok(game.includes('from "./'+d+'.mjs"'),d);
  assert.match(game,/grip_apex_enter/);
  assert.match(game,/grip_apex_exit/);
- assert.match(game,/skyshift-steering-v084-audit\.json/);
+ assert.match(game,/skyshift-kinetic-camera-v090-audit\.json/);
  assert.match(source("./trial-v081.mjs"),/skyline-grip-airtricks-v081/);
  assert.match(source("./game-v081.mjs"),/version:"0\.8\.1"/);
 });

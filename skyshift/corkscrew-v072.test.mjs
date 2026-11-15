@@ -166,22 +166,29 @@ test("GRIP apexes get real tighter curvature, preserve closed geometry and C2 jo
  assert.ok(audit.maximumCurvature>.014);
  assert.equal(audit.gripApexes.length,4);
 });
-test("production 0.7.2 boot has 360° renderer and existing features",()=>{
- const html=source("./index.html"),boot=source("./boot-v072.js"),
-  game=source("./game-v072.mjs"),smoke=source("./browser-smoke-v072.mjs"),
-  shader=source("./premium-track-v072.mjs");
- assert.match(html,/data-game-module="game-v072\.mjs"/);
- assert.match(html,/Corkscrew Spectacle/);
- assert.match(boot,/game-v072\.mjs\?v=0\.7\.2/);
- for(const dep of ["trial-v072","smooth-track-v072","premium-track-v072",
-    "aero-barrier-v072","cinematic-v072"])
-   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
- assert.match(game,/version:"0\.7\.2"/);
+test("archived 0.7.2 corkscrew keeps its geometry; live 0.8.0 extends the flight",()=>{
+ const html=source("./index.html"),boot=source("./boot-v080.js"),
+  game=source("./game-v080.mjs"),smoke=source("./browser-smoke-v080.mjs"),
+  shader=source("./premium-track-v072.mjs"),
+  archivedBoot=source("./boot-v072.js"),archivedGame=source("./game-v072.mjs");
+ assert.match(html,/data-game-module="game-v080\.mjs"/);
+ assert.match(html,/Air Tricks & Landing Boost/);
+ assert.match(boot,/game-v080\.mjs\?v=0\.8\.0/);
+ assert.match(archivedBoot,/game-v072\.mjs\?v=0\.7\.2/);
+ for(const dep of ["trial-v080","frame-pacing-v080"]){
+  assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
+ }
+ for(const dep of ["smooth-track-v072","premium-track-v072",
+  "aero-barrier-v072","cinematic-v072"]){
+  assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
+ }
+ assert.match(game,/version:"0\.8\.0"/);
  assert.match(game,/corkscrew_enter/);
  assert.match(game,/corkscrew_exit/);
  assert.match(game,/corkscrewCeilingSeconds/);
- assert.match(game,/skyshift-corkscrew-v072-audit\.json/);
+ assert.match(game,/skyshift-airtricks-v080-audit\.json/);
  assert.match(game,/cameraBankAt\(view\.s\)/);
+ assert.match(archivedGame,/skyshift-corkscrew-v072-audit\.json/);
  assert.doesNotMatch(shader,/corkscrewLines|magneticLines|screwArea|magneticZone/);
  assert.match(shader,/float innerLine = trackStripe/);
  assert.match(shader,/float guideLine = trackStripe/);

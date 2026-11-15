@@ -145,10 +145,10 @@ test("GRIP air roll follows LEFT/RIGHT stick and bank orientation (0.8.1.1)",()=
 test("active production has one GRIP button for steering and air roll",()=>{
  const html=source("./index.html"),boot=source("./boot-v091.js"),
   game=source("./game-v091.mjs"),css=source("./style-v081.css");
- assert.match(html,/data-game-module="game-v0901\.mjs"/);
+ assert.match(html,/data-game-module="game-v091\.mjs"/);
  assert.match(html,/style-v083\.css/);
  assert.match(html,/hold GRIP \+ steer/);
- assert.match(boot,/game-v0901\.mjs\?v=0\.9\.1/);
+ assert.match(boot,/game-v091\.mjs\?v=0\.9\.1/);
  assert.match(game,/version:"0\.9\.1"/);
  assert.match(game,/trial-v0901\.mjs/);
  assert.match(game,/smooth-track-v0901\.mjs/);

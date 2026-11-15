@@ -97,7 +97,7 @@ test("lower speeds teach the line without arbitrarily requiring GRIP",()=>{
 });
 test("a real wall moves to the middle and full 360° Corkscrew remains at finale",()=>{
  near(MAGNETIC_WALL.start,1662);
- near(MAGNETIC_WALL.end,1890);
+ near(MAGNETIC_WALL.end,1842);
  near(MAGNETIC_WALL.maxBankDegrees,70);
  near(CORKSCREW.start,3005);
  near(CORKSCREW.end,3338);

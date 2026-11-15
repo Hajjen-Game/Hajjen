@@ -139,26 +139,26 @@ test("GRIP air roll follows LEFT/RIGHT stick and bank orientation (0.8.1.1)",()=
   assert.equal(firingWing,-Math.sign(steer));
  }
  const index=source("./index.html"),boot=source("./boot-v081.js");
- assert.ok(index.includes('boot-v084.js?v=0.8.4'));
+ assert.ok(index.includes('boot-v090.js?v=0.9.0'));
  assert.ok(boot.includes('game-v081.mjs?v=0.8.1.1'));
 });
 test("active production has one GRIP button for steering and air roll",()=>{
- const html=source("./index.html"),boot=source("./boot-v084.js"),
-  game=source("./game-v084.mjs"),css=source("./style-v081.css");
- assert.match(html,/data-game-module="game-v084\.mjs"/);
+ const html=source("./index.html"),boot=source("./boot-v090.js"),
+  game=source("./game-v090.mjs"),css=source("./style-v081.css");
+ assert.match(html,/data-game-module="game-v090\.mjs"/);
  assert.match(html,/style-v083\.css/);
  assert.match(html,/hold GRIP \+ steer/);
- assert.match(boot,/game-v084\.mjs\?v=0\.8\.4/);
- assert.match(game,/version:"0\.8\.4"/);
+ assert.match(boot,/game-v090\.mjs\?v=0\.9\.0/);
+ assert.match(game,/version:"0\.9\.0"/);
  assert.match(game,/trial-v084\.mjs/);
  assert.match(game,/smooth-track-v084\.mjs/);
  assert.match(game,/aero-barrier-v084\.mjs/);
  assert.match(game,/premium-track-v084\.mjs/);
- assert.match(game,/cinematic-v084\.mjs/);
+ assert.match(game,/cinematic-v090\.mjs/);
  assert.match(game,/sideThrusters\?\.frame\(airThruster\?1/);
  assert.match(game,/grip:gripHeld\}/);
  assert.doesNotMatch(game,/trick:uiState\.jumpHeld/);
- assert.match(game,/skyshift-steering-v084-audit\.json/);
+ assert.match(game,/skyshift-kinetic-camera-v090-audit\.json/);
  assert.match(css,/#mobile-controls #jump-btn\{display:none!important\}/);
  assert.match(source("./trial-v080.mjs"),/skyline-airtricks-v080/);
 });

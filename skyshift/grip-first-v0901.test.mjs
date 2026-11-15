@@ -148,7 +148,7 @@ test("0.9.1 release points to new physics while preserving 0.9.0 camera modes",(
  assert.match(game,/cinematic-v0901\.mjs/);
  assert.match(game,/kinetic-camera-v090\.mjs/);
  assert.match(game,/CAMERA_MODE/);
- assert.match(game,/skyshift-grip-first-v0901-audit\.json/);
+ assert.match(game,/skyshift-signature-flight-v091-audit\.json/);
  assert.match(before,/version:"0\.9\.0"/);
  assert.match(read("./steering-authority-v084.mjs"),/normalSlowFactor:\.96/);
 });

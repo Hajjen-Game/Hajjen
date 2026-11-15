@@ -141,18 +141,18 @@ test("same road mesh and indexed raised rail system; larger curves physically na
  assert.ok(speedAt(0,8)*.0081<TRIAL.maxYawRate);
 });
 test("production loads faster diverse race and retains existing HUD/SMAA",()=>{
- const html=source("./index.html"),boot=source("./boot-v083.js"),
-  game=source("./game-v083.mjs"),browser=source("./browser-smoke-v081.mjs");
- assert.match(html,/game-v083\.mjs/);
- assert.match(html,/boot-v083\.js\?v=0\.8\.3/);
+ const html=source("./index.html"),boot=source("./boot-v084.js"),
+  game=source("./game-v084.mjs"),browser=source("./browser-smoke-v081.mjs");
+ assert.match(html,/game-v084\.mjs/);
+ assert.match(html,/boot-v084\.js\?v=0\.8\.4/);
  assert.match(html,/10200 M/);
  assert.match(html,/style-v061\.css/);
- assert.match(boot,/import\("\.\/game-v083\.mjs\?v=0\.8\.3"\)/);
- assert.match(game,/version:"0\.8\.3"/);
+ assert.match(boot,/import\("\.\/game-v084\.mjs\?v=0\.8\.4"\)/);
+ assert.match(game,/version:"0\.8\.4"/);
  assert.match(game,/zone_speed_increase/);
- assert.match(game,/skyshift-racing-feel-v083-audit\.json/);
- for(const path of ["trial-v083","zone-wave-v060","smooth-track-v083",
-   "premium-track-v083","aero-barrier-v083"])
+ assert.match(game,/skyshift-steering-v084-audit\.json/);
+ for(const path of ["trial-v084","zone-wave-v060","smooth-track-v084",
+   "premium-track-v084","aero-barrier-v084"])
   assert.ok(game.includes('from "./'+path+'.mjs"'),path);
  assert.match(browser,/18,36,54,72,90,108,126,144/);
  assert.ok(source("./trial-v050.mjs").includes("zoneSpeedStep:1.065"));

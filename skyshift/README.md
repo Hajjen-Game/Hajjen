@@ -1,3 +1,25 @@
+# SKYSHIFT 0.8.2 — Track Rhythm & GRIP Apex
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Gameplay pacing redesign from playtest feedback
+
+Three specific issues were addressed without changing the 3×3400m course length or adding handwritten road wiggles.
+
+- **Active opening:** shortened the initial true straight by **235m**, from **395.14m to 160.14m**. That same length moves to the final straight, which has the exact same heading at the lap seam; the original **closed-loop 2π heading and centerline closure remain mathematically exact**. At the 44m/s starting cruise the first sweeping turn arrives around **3.5s**, not around 9s; a visible +40% pad is available at **58–86m**, making the early game interactive.
+- **GRIP APEX with actual difficulty:** the purposeful 90° precision turn now spans **797–1007m** (previously 1032–1242m) with stronger but continuous C2 curvature. The physical deck AND guardrails smoothly narrow from **23.2m** to a **14m technical throat (840–962m)** and widen afterward. Same road mesh/collision source. At stage 8 (fastest zone) an identical centerline-following 120Hz pilot controller contacts the rail without GRIP and takes a clean line with GRIP. At low zone speeds the feature remains learnable. A contextual GRIP cue appears on approach; the gameplay remains manually steered, with no mandatory automatic braking or lane magnets.
+- **Major spectacles separated:** 70° Magnetic Wall Ride now occupies the authored midrace technical-release straight **1662–1890m**, rather than 2418–2698m. The 360° corkscrew remains **3005–3338m**, now separated from the wall exit by **1115m** and two distinct bends. The existing real wall adhesion and genuine inverted road still use local 3D normals, not scripted fake visuals.
+- **Skyline Leap preserved:** same real 33.6m gap, but moved with the sprint to **573–606.6m** where the road is actually straight. The coherent elevation keys and rendered guardrail opening move with it, so the camera, flight and landing contact agree.
+- **Three reusable physical boost pads** now sit at 58–86m, 2195–2225m and 3150–3180m per lap. No new draw calls, no new side magnets, no extra visible buttons.
+- **Telemetry:** `skyshift-track-rhythm-v082-audit.json` now reports GRIP apex entries, clean exits, time actually using GRIP, width and spacing; ordinary 0.8.1 air trick/wall/corkscrew logs remain.
+- **Safety:** 120Hz deterministic checks cover closed lap geometry, narrowed road/rail physical contact, active early corner, fast-zone GRIP advantage, high-speed inverted section and leap. Browser/WebGL/Android smoke is added in the CI pipeline, but real-device handling awaits the next user playtest.
+
+## Playtest
+
+Notice the first 4 seconds: the first boost/turn should ask something of the pilot. After SKYLINE LEAP, test the GRIP APEX first without GRIP, then holding it through the narrowing. The challenge is intentionally strongest later in the run when speed has increased. The Magnetic Wall is now midrace; the finale Corkscrew is intentionally a separate dramatic beat.
+
+---
+
 # SKYSHIFT 0.8.1 — Elevated Leap & GRIP Air Tricks
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

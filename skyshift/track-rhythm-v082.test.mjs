@@ -122,16 +122,16 @@ test("leap and three reusable speed pads move to safe authored straights",()=>{
 test("active GitHub Pages build and audit reflect 0.8.2 instead of archived 0.8.1",()=>{
  const html=source("./index.html"),boot=source("./boot-v082.js"),
   game=source("./game-v082.mjs");
- assert.match(html,/data-game-module="game-v082\\.mjs"/);
- assert.match(html,/boot-v082\\.js\\?v=0\\.8\\.2\\.1/);
- assert.match(boot,/game-v082\\.mjs\\?v=0\\.8\\.2\\.1/);
- assert.match(game,/version:"0\\.8\\.2"/);
+ assert.match(html,/data-game-module="game-v082\.mjs"/);
+ assert.match(html,/boot-v082\.js\?v=0\.8\.2\.1/);
+ assert.match(boot,/game-v082\.mjs\?v=0\.8\.2\.1/);
+ assert.match(game,/version:"0\.8\.2"/);
  for(const d of ["trial-v082","boost-v082","premium-track-v082",
   "smooth-track-v082","aero-barrier-v082","cinematic-v082"])
   assert.ok(game.includes('from "./'+d+'.mjs"'),d);
  assert.match(game,/grip_apex_enter/);
  assert.match(game,/grip_apex_exit/);
- assert.match(game,/skyshift-track-rhythm-v082-audit\\.json/);
+ assert.match(game,/skyshift-track-rhythm-v082-audit\.json/);
  assert.match(source("./trial-v081.mjs"),/skyline-grip-airtricks-v081/);
- assert.match(source("./game-v081.mjs"),/version:"0\\.8\\.1"/);
+ assert.match(source("./game-v081.mjs"),/version:"0\.8\.1"/);
 });

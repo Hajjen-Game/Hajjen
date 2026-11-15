@@ -184,7 +184,7 @@ test("production version routes to the real 10.4km race; archived 1530m lab pres
  assert.match(game,/zoneSpeedEvents:\[\.\.\.flight\.zoneSpeedEvents\]/);
  assert.match(game,/version:"0\.8\.2"/);
  assert.match(game,/skyshift-track-rhythm-v082-audit\.json/);
- assert.match(browser,/physical\.firstCorner/);
+ assert.match(browser,/circuit\.lapLength!==3400/);
  assert.match(html,/10200 M/);
  assert.match(html,/THREE FASTER LAPS/);
  assert.match(html,/style-v061\.css/);

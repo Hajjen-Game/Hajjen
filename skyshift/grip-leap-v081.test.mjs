@@ -139,17 +139,17 @@ test("GRIP air roll follows LEFT/RIGHT stick and bank orientation (0.8.1.1)",()=
   assert.equal(firingWing,-Math.sign(steer));
  }
  const index=source("./index.html"),boot=source("./boot-v081.js");
- assert.ok(index.includes('boot-v0901.js?v=0.9.0.1'));
+ assert.ok(index.includes('boot-v091.js?v=0.9.1'));
  assert.ok(boot.includes('game-v081.mjs?v=0.8.1.1'));
 });
 test("active production has one GRIP button for steering and air roll",()=>{
- const html=source("./index.html"),boot=source("./boot-v0901.js"),
-  game=source("./game-v0901.mjs"),css=source("./style-v081.css");
+ const html=source("./index.html"),boot=source("./boot-v091.js"),
+  game=source("./game-v091.mjs"),css=source("./style-v081.css");
  assert.match(html,/data-game-module="game-v0901\.mjs"/);
  assert.match(html,/style-v083\.css/);
  assert.match(html,/hold GRIP \+ steer/);
- assert.match(boot,/game-v0901\.mjs\?v=0\.9\.0\.1/);
- assert.match(game,/version:"0\.9\.0\.1"/);
+ assert.match(boot,/game-v0901\.mjs\?v=0\.9\.1/);
+ assert.match(game,/version:"0\.9\.1"/);
  assert.match(game,/trial-v0901\.mjs/);
  assert.match(game,/smooth-track-v0901\.mjs/);
  assert.match(game,/aero-barrier-v0901\.mjs/);

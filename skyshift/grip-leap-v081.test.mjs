@@ -158,7 +158,7 @@ test("active production has one GRIP button for steering and air roll",()=>{
  assert.match(game,/sideThrusters\?\.frame\(airThruster\?1/);
  assert.match(game,/grip:gripHeld\}/);
  assert.doesNotMatch(game,/trick:uiState\.jumpHeld/);
- assert.match(game,/skyshift-grip-first-v0901-audit\.json/);
+ assert.match(game,/skyshift-signature-flight-v091-audit\.json/);
  assert.match(css,/#mobile-controls #jump-btn\{display:none!important\}/);
  assert.match(source("./trial-v080.mjs"),/skyline-airtricks-v080/);
 });

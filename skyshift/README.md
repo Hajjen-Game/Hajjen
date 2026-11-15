@@ -1,3 +1,23 @@
+# SKYSHIFT 0.8.0 — Air Tricks & Landing Boost
+
+**Play:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## What's new
+
+- **Optional 360° air roll**, controlled by the pilot during the REAL automatically launched Skyline Leap (the 17.6m deck gap at 808–825.6m on each of three laps). Hold **SPACE + A/D or ←/→** on desktop, or hold the contextual **TRICK** button and steer with the left stick on mobile. The button appears only on leap approach and while airborne; the regular GRIP button is unaffected.
+- Steering in this deliberately selected airborne trick mode drives a **clockwise or counterclockwise barrel roll**; steering without holding TRICK retains the prior pilot-owned yaw. Holding TRICK before the lip safely pre-arms the roll without steering into the rails. One rotation per genuine leap.
+- The airborne rotation is simulated at the same deterministic **120Hz** flight rate and is rendered with interpolated roll, true craft/engine movement and safe ±2π normalization. **No changes to leap trajectory, road contact, ceiling/corkscrew roll or collision geometry.**
+- **Perfect landing boost** is earned ONLY for a full 360° rotation and a clean, aligned, on-road landing without rail contact, excessive yaw error or a damaging impact. An ordinary jump, incomplete roll, side contact, or fall never grants free speed.
+- The awarded bonus is real physical velocity: up to **+22% for 1.45s**, with a 0.10s soft onset and 0.43s fade, capped alongside any existing track boosts. It activates existing twin engine lighting, thruster recoil, camera spring and HUD energy feedback; **zero extra rendering passes or lights**.
+- New compact airborne-trick progress on the contextual touch button and the flight-state HUD. Telemetry records trick attempts, rotations, successful or missed landings, trick time and boost activations/distance in `skyshift-airtricks-v080-audit.json`.
+- Dedicated deterministic unit and pure physics tests in `air-tricks-v080.test.mjs` plus Chrome WebGL and emulated Samsung landscape multi-touch smoke in `browser-smoke-v080.mjs`. GitHub Actions checks syntax and 0.7.0–0.7.2 archived regression tests.
+
+## Playtest guidance
+
+Try the first leap **without** TRICK, then hold TRICK + left/right steering throughout the next leap. Notice the 360° roll, the landing slash and the brief speed burst. As speed rises, check whether the trick can still be performed without hiding the next corner. Send the new JSON log and, if possible, video from a phone; code and CI tests cannot establish the exact perceived handling on a real device.
+
+---
+
 # SKYSHIFT 0.7.2 — Corkscrew Spectacle
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

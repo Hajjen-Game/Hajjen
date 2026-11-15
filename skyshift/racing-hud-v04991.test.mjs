@@ -99,20 +99,20 @@ test("HUD timestamps and event counters reset without fake pulses or new render 
 });
 test("production page and boot load v04991; old gameplay and SMAA stay intact",()=>{
  const html=src("./index.html");
- const boot=src("./boot-v090.js");
- const game=src("./game-v090.mjs");
+ const boot=src("./boot-v0901.js");
+ const game=src("./game-v0901.mjs");
  const browser=src("./browser-smoke-v04991.mjs");
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
- assert.match(html,/boot-v090\.js\?v=0\.9\.0/);
- assert.match(html,/data-game-module="game-v090\.mjs"/);
- assert.match(boot,/import\("\.\/game-v090\.mjs\?v=0\.9\.0"\)/);
+ assert.match(html,/boot-v0901\.js\?v=0\.9\.0\.1/);
+ assert.match(html,/data-game-module="game-v0901\.mjs"/);
+ assert.match(boot,/import\("\.\/game-v0901\.mjs\?v=0\.9\.0\.1"\)/);
  assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);
- assert.match(game,/version:"0\.9\.0"/);
- assert.match(game,/skyshift-kinetic-camera-v090-audit\.json/);
+ assert.match(game,/version:"0\.9\.0\.1"/);
+ assert.match(game,/skyshift-grip-first-v0901-audit\.json/);
  assert.match(browser,/racingMeters/);
  assert.match(browser,/phoneBars/);
- for(const dep of ["neon-v083","image-clarity-v083","premium-track-v084",
-  "aero-barrier-v084","zone-wave-v060","trial-v084","boost-v082",
+ for(const dep of ["neon-v083","image-clarity-v083","premium-track-v0901",
+  "aero-barrier-v0901","zone-wave-v060","trial-v0901","boost-v082",
   "boost-spring-v0495","velocity-language-v0496","engine-trails-v0496"])
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  assert.equal(BOOST_CONFIG.multiplier,1.4);

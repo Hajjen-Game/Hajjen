@@ -172,7 +172,7 @@ test("archived 0.7.2 corkscrew keeps its geometry; live 0.9.1 extends the flight
   shader=source("./premium-track-v072.mjs"),
   archivedBoot=source("./boot-v072.js"),archivedGame=source("./game-v072.mjs");
  assert.match(html,/data-game-module="game-v091\.mjs"/);
- assert.match(html,/GRIP Clarity & Racing Feel/);
+ assert.match(html,/Signature Flight Motion/);
  assert.match(boot,/game-v091\.mjs\?v=0\.9\.1/);
  assert.match(archivedBoot,/game-v072\.mjs\?v=0\.7\.2/);
  for(const dep of ["trial-v0901","frame-pacing-v080"]){

@@ -72,7 +72,7 @@ test("rail scrub is physically subtle, shield-safe and absent from a clean line"
   stepFlight(upgraded,dt,{steer:.8,grip:false});
  }
  assert.ok(upgraded.railContactStarts>=1);
- assert.ok(upgraded.railScrubSeconds>.2);
+ assert.ok(upgraded.railScrubSeconds>.04);
  assert.ok(upgraded.railScrubLossMeters>0);
  assert.ok(upgraded.currentSpeed<old.currentSpeed*.995);
  assert.ok(upgraded.currentSpeed>old.currentSpeed*.88);

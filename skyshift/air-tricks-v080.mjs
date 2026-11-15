@@ -10,7 +10,7 @@ export const AIR_TRICKS=Object.freeze({
  fullRollRadians:TAU,oneTrickPerLeap:true,
  yawAuthorityWhileTricking:.065,
  maxLandingHeadingErrorDegrees:14,
- maxLandingImpactMetersPerSecond:14,
+ maxLandingImpactMetersPerSecond:18,
  maxLandingLateralRatio:.90,
  landingBoostPercent:22,
  landingBoostDurationSeconds:1.45,

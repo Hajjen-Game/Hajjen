@@ -146,7 +146,7 @@ test("active production has one GRIP button for steering and air roll",()=>{
  const html=source("./index.html"),boot=source("./boot-v083.js"),
   game=source("./game-v083.mjs"),css=source("./style-v081.css");
  assert.match(html,/data-game-module="game-v083\.mjs"/);
- assert.match(html,/style-v081\.css/);
+ assert.match(html,/style-v083\.css/);
  assert.match(html,/hold GRIP \+ steer/);
  assert.match(boot,/game-v083\.mjs\?v=0\.8\.3/);
  assert.match(game,/version:"0\.8\.3"/);

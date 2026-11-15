@@ -7,8 +7,10 @@ import {CORKSCREW,TRACK_3D,corkscrewAt,corkscrewBankAt,
  from "./track-3d-v072.mjs";
 import {TRIAL,CIRCUIT,GAPS,GUARDRAIL,bankAt,bankDegreesAt,
  surfaceNormalAt,surfaceHeightAt,positionAt,poseAt,projectWorldToTrack,
- widthAt,guardrailLateralLimit,headingAt,newFlightState,stepFlight,
- speedAt,validateTrial} from "./trial-v072.mjs";
+ widthAt,guardrailLateralLimit,headingAt,curvatureAt,COURSE_SEGMENTS,
+ TECHNICAL_APEX_PULSES,LOOP_CLOSURE_ERROR_METERS,circuitPlanSummary,
+ newFlightState,stepFlight,speedAt,validateTrial} from "./trial-v072.mjs";
+import {GRIP_SPEC} from "./precision-grip-v061.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v072.mjs";
 import {createAeroBarrierData,sampleAeroProfile,AERO_BARRIER}
  from "./aero-barrier-v072.mjs";
@@ -135,6 +137,35 @@ test("full-roll chase camera has a continuous physical exit and stable framing",
    Math.sin(cameraBankAt(3338)),1e-7);
  near(cameraBankAt(2550),70*Math.PI/180*.46,1e-7);
 });
+test("GRIP apexes get real tighter curvature, preserve closed geometry and C2 joints",()=>{
+ const designed=Object.entries(TECHNICAL_APEX_PULSES);
+ assert.equal(designed.length,4);
+ assert.deepEqual(validateTrial(),[]);
+ assert.ok(LOOP_CLOSURE_ERROR_METERS<.3,"real geometry must close");
+ for(const [id,pulse] of designed){
+  const turn=COURSE_SEGMENTS.find(x=>x.id===id);
+  assert.ok(turn&&turn.type==="turn",id);
+  const mid=turn.start+turn.entry+turn.hold*.5;
+  near(curvatureAt(mid),turn.curvature+.5*pulse,1e-8);
+  near(headingAt(turn.start),archived.headingAt(turn.start),1e-8);
+  near(headingAt(turn.end),archived.headingAt(turn.end),1e-8);
+  near(curvatureAt(turn.start),0,1e-8);
+  near(curvatureAt(turn.end),0,1e-8);
+  for(let u=.01;u<1;u+=.05)
+   assert.ok(curvatureAt(turn.start+turn.entry+u*turn.hold)>0,
+    "a GRIP apex must not reverse direction: "+id);
+ }
+ const back=COURSE_SEGMENTS.find(t=>t.id==="back-sweeper");
+ const curvature=curvatureAt(back.start+back.entry+back.hold*.5);
+ const lateLapSpeed=92;
+ assert.ok(curvature*lateLapSpeed>1.24,
+  "late-lap corner should challenge normal yaw authority");
+ assert.ok(curvature*lateLapSpeed<1.24*GRIP_SPEC.yawMultiplier,
+  "GRIP should enable the late-lap turn without becoming impossible");
+ const audit=circuitPlanSummary();
+ assert.ok(audit.maximumCurvature>.014);
+ assert.equal(audit.gripApexes.length,4);
+});
 test("production 0.7.2 boot has 360° renderer and existing features",()=>{
  const html=source("./index.html"),boot=source("./boot-v072.js"),
   game=source("./game-v072.mjs"),smoke=source("./browser-smoke-v072.mjs"),
@@ -151,7 +182,9 @@ test("production 0.7.2 boot has 360° renderer and existing features",()=>{
  assert.match(game,/corkscrewCeilingSeconds/);
  assert.match(game,/skyshift-corkscrew-v072-audit\.json/);
  assert.match(game,/cameraBankAt\(view\.s\)/);
- assert.match(shader,/corkscrewLines/);
+ assert.doesNotMatch(shader,/corkscrewLines|magneticLines|screwArea|magneticZone/);
+ assert.match(shader,/float innerLine = trackStripe/);
+ assert.match(shader,/float guideLine = trackStripe/);
  assert.match(smoke,/real Chrome validates|genuine 360° inverted road/);
  assert.match(source("./trial-v071.mjs"),/skyline-wall-v071/);
  assert.match(source("./trial-v070.mjs"),/skyline-3d-v070/);

@@ -166,27 +166,27 @@ test("GRIP apexes get real tighter curvature, preserve closed geometry and C2 jo
  assert.ok(audit.maximumCurvature>.014);
  assert.equal(audit.gripApexes.length,4);
 });
-test("archived 0.7.2 corkscrew keeps its geometry; live 0.8.3 extends the flight",()=>{
- const html=source("./index.html"),boot=source("./boot-v083.js"),
-  game=source("./game-v083.mjs"),smoke=source("./browser-smoke-v081.mjs"),
+test("archived 0.7.2 corkscrew keeps its geometry; live 0.8.4 extends the flight",()=>{
+ const html=source("./index.html"),boot=source("./boot-v084.js"),
+  game=source("./game-v084.mjs"),smoke=source("./browser-smoke-v081.mjs"),
   shader=source("./premium-track-v072.mjs"),
   archivedBoot=source("./boot-v072.js"),archivedGame=source("./game-v072.mjs");
- assert.match(html,/data-game-module="game-v083\.mjs"/);
+ assert.match(html,/data-game-module="game-v084\.mjs"/);
  assert.match(html,/GRIP Clarity & Racing Feel/);
- assert.match(boot,/game-v083\.mjs\?v=0\.8\.3/);
+ assert.match(boot,/game-v084\.mjs\?v=0\.8\.4/);
  assert.match(archivedBoot,/game-v072\.mjs\?v=0\.7\.2/);
- for(const dep of ["trial-v083","frame-pacing-v080"]){
+ for(const dep of ["trial-v084","frame-pacing-v080"]){
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  }
- for(const dep of ["smooth-track-v083","premium-track-v083",
-  "aero-barrier-v083","cinematic-v083"]){
+ for(const dep of ["smooth-track-v084","premium-track-v084",
+  "aero-barrier-v084","cinematic-v084"]){
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  }
- assert.match(game,/version:"0\.8\.3"/);
+ assert.match(game,/version:"0\.8\.4"/);
  assert.match(game,/corkscrew_enter/);
  assert.match(game,/corkscrew_exit/);
  assert.match(game,/corkscrewCeilingSeconds/);
- assert.match(game,/skyshift-racing-feel-v083-audit\.json/);
+ assert.match(game,/skyshift-steering-v084-audit\.json/);
  assert.match(game,/cameraBankAt\(view\.s\)/);
  assert.match(archivedGame,/skyshift-corkscrew-v072-audit\.json/);
  assert.doesNotMatch(shader,/corkscrewLines|magneticLines|screwArea|magneticZone/);

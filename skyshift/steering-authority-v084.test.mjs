@@ -189,13 +189,13 @@ test("unchanged track, rails, physical leap, wall and corkscrew",()=>{
 test("active 0.8.4 page, control, audit and archived 0.8.3 remain consistent",()=>{
  const html=src("./index.html"),boot=src("./boot-v084.js"),
   game=src("./game-v084.mjs");
- assert.match(html,/boot-v084\\.js\\?v=0\\.8\\.4/);
- assert.match(html,/data-game-module="game-v084\\.mjs"/);
- assert.match(boot,/game-v084\\.mjs\\?v=0\\.8\\.4/);
- assert.match(game,/version:"0\\.8\\.4"/);
+ assert.match(html,/boot-v084\.js\?v=0\.8\.4/);
+ assert.match(html,/data-game-module="game-v084\.mjs"/);
+ assert.match(boot,/game-v084\.mjs\?v=0\.8\.4/);
+ assert.match(game,/version:"0\.8\.4"/);
  assert.match(game,/steering-authority-v084/);
  assert.match(game,/steeringBalanceAt/);
  assert.match(game,/precision-grip-v084/);
- assert.match(game,/skyshift-steering-v084-audit\\.json/);
- assert.match(src("./game-v083.mjs"),/version:"0\\.8\\.3"/);
+ assert.match(game,/skyshift-steering-v084-audit\.json/);
+ assert.match(src("./game-v083.mjs"),/version:"0\.8\.3"/);
 });

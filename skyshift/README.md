@@ -1,3 +1,69 @@
+# SKYSHIFT 0.9.0 – Kinetic Camera Rig
+
+**Live:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+The camera is no longer simply a fixed-offset chase view. 0.9.0 is the first
+camera-focused version of SKYSHIFT, with cinematic movement coupled to
+*real pilot motion*, never track-centre correction or autopilot. Original
+0.8.4 Steering Authority & GRIP Balance physics is unchanged.
+
+## Camera A/B comparison — same flight physics, same 3 × 3400m track
+
+- **Balanced (default):** [play](https://hajjen-game.github.io/Hajjen/skyshift/),
+  85% of the new kinetic-offset / roll / FOV amplitude.
+- **Classic (archived camera feel):** [play](https://hajjen-game.github.io/Hajjen/skyshift/?camera=classic),
+  preserve 0.8.4 camera anticipation, side offset, boost FOV cap and no kinetic
+  impulses. Uses the same active game, identical physics and all the latest
+  performance improvements.
+- **Kinetic (more expressive):** [play](https://hajjen-game.github.io/Hajjen/skyshift/?camera=kinetic),
+  115% of the kinetic camera movements. Useful to playtest feel independently
+  from steering physics. Avoid choosing a favourite by screenshots alone.
+
+## The new Kinetic Camera language
+
+1. **Approach:** speed-aware lookahead expands from 35m towards 72m,
+   and the camera's smoothly bounded look-angle previews upcoming real
+   curvature, not a fabricated animation.
+2. **Carve:** the camera shifts *outside* the pilot's actual yaw, up to
+   1.55m in the pure rig (Balanced uses 85% amplitude). A low-amplitude
+   camera lean and a hint of pullback make corner entry and GRIP
+   feel more physical and distinct. These are critically damped, deterministic
+   20–120fps-safe springs; no view teleports or hidden steering assists.
+3. **Release:** the same inertial springs restore the neutral chase view
+   when yaw and GRIP end. The pilot-owned yaw rate and authority are unchanged.
+4. **Speed:** ordinary FOV now grows across *all eight zone-speed stages*,
+   starting at 65.4° and approaching 76.2° at the final stage. Boost adds
+   up to 2.65° in a carefully bounded 80° maximum envelope, maintaining
+   the original +40% boost spring and performance.
+5. **Free flight:** as the craft gains clearance, the view rises slightly
+   and aims lower to reveal the landing deck. After a real landing, a small
+   0.36m-limited critically damped vertical impulse compresses and
+   recovers the view. It never changes jump physics or the earned +22%
+   landing bonus.
+6. **Full-3D bank safety:** kinetic sideways shifts and lean are attenuated
+   to 20% inside the 70° Magnetic Wall and only 3.5% through the
+   full-roll Corkscrew. The original full, continuous 360° camera roll
+   is preserved (not reset or partially untwisted), including exit seam.
+7. **Performance:** no new geometry, WebGL draw calls, passes, postprocessing
+   or timers. Reuses existing vectors and the 120Hz interpolated flight
+   state. The low-memory HDR/SMAA path remains unchanged from 0.8.3.
+
+## Verification & next player test
+
+New independent `kinetic-camera-v090.mjs`, `cinematic-v090.mjs`,
+`boost-spring-v090.mjs`, `game-v090.mjs`, `boot-v090.js`.
+Node tests evaluate camera FPS invariance, ±steer/GRIP symmetry,
+FOV progression, landing recovery, and physical bank continuity,
+alongside all existing course/flight 3D checks. A new Chrome/Android
+WebGL smoke inspects the real production module.
+
+Download the new `skyshift-kinetic-camera-v090-audit.json`, recording
+actual camera preview and lateral shift, maximum lean, FOV, landing
+impulses, and time in protected wall/Corkscrew states.
+Real-world feel and measured mobile frame pacing still require playtest.
+
+---
+
 # SKYSHIFT 0.8.4 — Steering Authority & GRIP Balance
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

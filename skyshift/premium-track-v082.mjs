@@ -8,7 +8,7 @@ import {BOOST_PADS} from "./boost-v082.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v082.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
- version:"high-leap-spectrum-081",
+ version:"track-rhythm-spectrum-082",
  material:"continuous-integrated-PBR",
  palette:"Nine synchronized color zones across 3 circuit laps",
  baseHex:ZONE_PALETTES[0].base,

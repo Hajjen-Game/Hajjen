@@ -1,3 +1,29 @@
+# SKYSHIFT 0.8.3 — GRIP Clarity & Racing Feel
+
+**Live:** https://hajjen-game.github.io/Hajjen/skyshift/
+
+## Response to the 0.8.2 real playtest (151.08 s, 3 laps, 23 rail contacts)
+
+The audit showed **0 ground GRIP activations and 0/3 clean GRIP apex exits**, despite successful three-lap completion. Two air rolls stopped at **327.8°** and one earned the +22% landing boost. The low-memory browser averaged **33 FPS**, with 50.1ms P95 frame latency, and downgraded the compositor to its previous 1.0x limit. The player reported that the new track rhythm felt better.
+
+### Changes implemented
+
+- **Persistent skill cue, not a popup:** from 650m to the end of the precision funnel at 995m, a small, non-interactive sign above the existing GRIP button says **RIGHT APEX AHEAD · HOLD GRIP**, then **GRIP + STEER RIGHT** through the corner. Once GRIP is engaged it confirms **GRIP ENGAGED · HOLD RIGHT**. The cue is repeated each lap, survives fast speeds, hides during flight, uses no new visible button and does **not** activate grip, steer or slow the pilot.
+- **Genuine contact feel:** entering a rail contact triggers one subtle amber speed-instrument accent, with a 0.36s decay. While actually rubbing the rail, the 120Hz physics applies at most **8.5% physical speed scrub**, easing in/out; the old no-damage guardrail and hard-edge collision geometry are unchanged. Clean racing has exactly zero scrub. No shield penalty, forced braking, haptics, camera shake, screen-filling red flashes or new GPU effects.
+- **Pilot air roll timing:** 11.8→**13.1 radians/s** and steering threshold 20→**18%** (during a genuine leap only) improves near-complete rolls without granting automatic rewards. A full pilot-held 360° and clean landing are still required for +22%.
+- **Reduce real physics cost:** the original local world-to-track measurement used about 28 segment projections per 120Hz tick. Now four bounded tangent iterations perform the same **measurement, not a position magnet**. Across 6,780 track samples (three laps, including 14m throat and banks), the maximum observed lateral difference was about **0.00012m**; on a 20,000-call microbenchmark the isolated projection ran approximately **12× faster**. Full game FPS improvement must still be measured on the real device.
+- **Low-memory rendering:** new low-memory SMAA/HDR composer caps at **1.25, 0.98, 0.82 DPR** instead of 1.35, 1.18, 1.0. The editor keeps the full four-pass order (RenderPass / UnrealBloom / SMAA / OutputPass), all zone wave layers and an unchanged premium-device 2.0 / 1.75 / 1.5 profile. No extra geometry, lights or draw calls. Image clarity is traded only for sustainable smoothness on resource-constrained devices.
+- **Log:** new `skyshift-racing-feel-v083-audit.json` records cue appearances/visible time, physical rail-contact starts, scrub seconds and lost travel, along with the exact new projection spec and renderer quality tier. Previous telemetry is retained.
+- **Preserved:** 160m first corner, the 14m GRIP throat, 3 × 3400m closed lap, 573–606.6m Skyline Leap, 1662–1842m magnetic wall, 3005–3338m corkscrew, spatial color wave, clean boost pads, full manually controlled steering.
+
+### Verification / next playtest
+
+Deterministic projection parity, actual previous/new rail-speed comparison, adaptive HDR and signed left/right air roll timing were checked against code. New 0.8.3 Node tests and a Chrome/Android WebGL smoke have been registered in GitHub Actions. **Real-world FPS and clarity must be evaluated in-game**; do not infer a guaranteed FPS increase from the isolated projection benchmark.
+
+Look for: whether the cue helps you hold GRIP through the 14m apex, whether wall scraping feels like gentle lost momentum rather than sticky steering, whether air roll is less frustrating, and whether frame-time P95 improves. Please send the new audit and short video if any feature feels off.
+
+---
+
 # SKYSHIFT 0.8.2 — Track Rhythm & GRIP Apex
 
 **Play:** https://hajjen-game.github.io/Hajjen/skyshift/

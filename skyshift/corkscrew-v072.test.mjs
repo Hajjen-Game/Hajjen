@@ -166,27 +166,27 @@ test("GRIP apexes get real tighter curvature, preserve closed geometry and C2 jo
  assert.ok(audit.maximumCurvature>.014);
  assert.equal(audit.gripApexes.length,4);
 });
-test("archived 0.7.2 corkscrew keeps its geometry; live 0.8.1 extends the flight",()=>{
- const html=source("./index.html"),boot=source("./boot-v081.js"),
-  game=source("./game-v081.mjs"),smoke=source("./browser-smoke-v081.mjs"),
+test("archived 0.7.2 corkscrew keeps its geometry; live 0.8.2 extends the flight",()=>{
+ const html=source("./index.html"),boot=source("./boot-v082.js"),
+  game=source("./game-v082.mjs"),smoke=source("./browser-smoke-v082.mjs"),
   shader=source("./premium-track-v072.mjs"),
   archivedBoot=source("./boot-v072.js"),archivedGame=source("./game-v072.mjs");
- assert.match(html,/data-game-module="game-v081\.mjs"/);
- assert.match(html,/Elevated Leap & GRIP Air Tricks/);
- assert.match(boot,/game-v081\.mjs\?v=0\.8\.1/);
+ assert.match(html,/data-game-module="game-v082\.mjs"/);
+ assert.match(html,/Track Rhythm & GRIP Apex/);
+ assert.match(boot,/game-v082\.mjs\?v=0\.8\.2/);
  assert.match(archivedBoot,/game-v072\.mjs\?v=0\.7\.2/);
- for(const dep of ["trial-v081","frame-pacing-v080"]){
+ for(const dep of ["trial-v082","frame-pacing-v080"]){
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  }
- for(const dep of ["smooth-track-v081","premium-track-v081",
-  "aero-barrier-v081","cinematic-v081"]){
+ for(const dep of ["smooth-track-v082","premium-track-v082",
+  "aero-barrier-v082","cinematic-v082"]){
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  }
- assert.match(game,/version:"0\.8\.1"/);
+ assert.match(game,/version:"0\.8\.2"/);
  assert.match(game,/corkscrew_enter/);
  assert.match(game,/corkscrew_exit/);
  assert.match(game,/corkscrewCeilingSeconds/);
- assert.match(game,/skyshift-grip-leap-v081-audit\.json/);
+ assert.match(game,/skyshift-track-rhythm-v082-audit\.json/);
  assert.match(game,/cameraBankAt\(view\.s\)/);
  assert.match(archivedGame,/skyshift-corkscrew-v072-audit\.json/);
  assert.doesNotMatch(shader,/corkscrewLines|magneticLines|screwArea|magneticZone/);

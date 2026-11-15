@@ -6,7 +6,7 @@ import * as prior from "./trial-v082.mjs";
 import {
  TRIAL,PROJECTION_083,GRIP_APEX,SKYLINE_LEAP,CORKSCREW,MAGNETIC_WALL,
  positionAt,headingAt,surfaceHeightAt,curvatureAt,widthAt,projectWorldToTrack,
- newFlightState,stepFlight,validateTrial,speedAt
+ newFlightState,stepFlight,setZoneSpeedStage,validateTrial,speedAt
 } from "./trial-v083.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick}
  from "./air-tricks-v083.mjs";
@@ -128,6 +128,53 @@ test("true 3D track and all physical meshes remain unchanged",()=>{
  }
  assert.ok(createSmoothDeckData().triangles>25000);
  assert.ok(createAeroBarrierData().triangles>90000);
+});
+test("complete 3×3400m manually steered race crosses every feature without regressions",()=>{
+ const f=newFlightState();
+ const stats={jump:0,land:0,wall:0,wallEnd:0,cork:0,corkEnd:0,
+  apex:0,cleanApex:0,lap:0,boost:0,crash:0};
+ const inverse=x=>{
+  if(Math.abs(x)<.001)return 0;
+  const y=Math.min(1,Math.abs(x));
+  const n=(-.32+Math.sqrt(.1024+2.72*y))/1.36;
+  return Math.sign(x)*(.055+.945*n);
+ };
+ // Pilot follows a target through yaw commands ONLY. No position snaps,
+ // steering magnets, or synthetic lap advancement are supplied.
+ for(let i=0;i<26000&&!f.finished&&!f.failed;i++){
+  const curve=curvatureAt(f.s+f.currentSpeed*.1);
+  const desired=curve*f.currentSpeed+
+   .95*(headingAt(f.s)-f.heading)-.12*f.lateral;
+  const d=(f.s%3400+3400)%3400;
+  const grip=f.grounded&&d>760&&d<995&&f.zoneSpeedStage>=3;
+  const authority=grip?1.27:1;
+  const steer=Math.max(-1,Math.min(1,
+   inverse(desired/(TRIAL.maxYawRate*authority))));
+  const r=stepFlight(f,1/120,{steer,grip});
+  stats.jump+=Number(r.jumped);stats.land+=Number(r.landed);
+  stats.wall+=Number(r.wallEntered);stats.wallEnd+=Number(r.wallExited);
+  stats.cork+=Number(r.corkscrewEntered);stats.corkEnd+=Number(r.corkscrewExited);
+  stats.apex+=Number(r.gripApexEntered);
+  stats.cleanApex+=Number(r.cleanGripApexExit);
+  stats.lap+=Number(r.lapCompleted>0);
+  stats.boost+=Number(Boolean(r.boostActivated));
+  stats.crash+=Number(r.crashed);
+  const stage=Math.min(8,Math.floor(f.elapsed/18));
+  if(stage>f.zoneSpeedStage)setZoneSpeedStage(f,stage);
+ }
+ assert.equal(f.finished,true);
+ assert.equal(f.failed,false);
+ assert.equal(f.s,10200);
+ assert.equal(f.railContacts,0);
+ assert.equal(f.falls,0);
+ assert.equal(f.shield,100);
+ assert.equal(f.railScrubLossMeters,0);
+ assert.equal(f.gripApexCleanExits,3);
+ assert.ok(f.gripActiveSeconds>1);
+ assert.deepEqual(stats,{jump:3,land:3,wall:3,wallEnd:3,cork:3,
+  corkEnd:3,apex:3,cleanApex:3,lap:3,boost:9,crash:0});
+ assert.equal(f.lapTimes.length,3);
+ assert.ok(f.elapsed>140&&f.elapsed<165);
 });
 test("low-memory HDR can truly downshift below 1x while premium devices remain crisp",()=>{
  const low=clarityProfile(4,3),premium=clarityProfile(8,3);

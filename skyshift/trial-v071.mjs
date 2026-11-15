@@ -97,7 +97,10 @@ export function bankAt(s){return magneticBankAt(s);}
 export function bankDegreesAt(s){return bankAt(s)*180/Math.PI;}
 export function heightAt(s){return elevationAt(s);}
 export function surfaceHeightAt(s,lateral=0){
- return elevationAt(s)-Math.sin(bankAt(s))*lateral;
+ // The road's lateral tangent rolls about the true grade-aware forward
+ // direction, so gravity and hover agree exactly with the rendered deck.
+ const p=poseAt(s),ground=groundNormalAt(s,p.heading);
+ return elevationAt(s)-ground.y*Math.sin(bankAt(s))*lateral;
 }
 export function widthAt(s){return 23.2;}
 export function speedAt(s,zoneStage=0){
@@ -188,11 +191,12 @@ export function surfaceNormalAt(s){
 }
 export function positionAt(s,lateral=0,height=0){
  const p=poseAt(s),normal=surfaceNormalAt(s),b=bankAt(s);
- const cb=Math.cos(b),sb=Math.sin(b);
- // World surface = center + banked tangent-right * lane + true normal * height.
- return {x:p.x+p.rightX*lateral*cb+normal.x*height,
-   y:p.y-lateral*sb+normal.y*height,
-   z:p.z+p.rightZ*lateral*cb+normal.z*height};
+ const cb=Math.cos(b),sb=Math.sin(b),base=groundNormalAt(s,p.heading);
+ // Rigid orthonormal local road frame: lane-right = right*cos(bank)
+ // - grade-normal*sin(bank). Height always follows the true wall normal.
+ return {x:p.x+lateral*(p.rightX*cb-base.x*sb)+normal.x*height,
+   y:p.y-lateral*base.y*sb+normal.y*height,
+   z:p.z+lateral*(p.rightZ*cb-base.z*sb)+normal.z*height};
 }
 // Projection ONLY measures track-relative coordinates. It cannot move, rotate
 // or recenter the ship. The search is local in arc length, not a global magnet.

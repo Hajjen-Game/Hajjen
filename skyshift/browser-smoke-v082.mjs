@@ -85,7 +85,7 @@ try{
  });
  if(physical.firstCorner>165||physical.firstCorner<155||
    physical.gripWidth!==14||physical.normalWidth!==23.2||
-   physical.gap!==573||physical.wallStart!==1662||physical.wallEnd!==1890||
+   physical.gap!==573||physical.wallStart!==1662||physical.wallEnd!==1842||
    physical.separated<1000||physical.boosts!==3||
    physical.closure.length||physical.roadTriangles<25000||
    physical.railTriangles<20000||

@@ -83,17 +83,18 @@ export function chasePose(view,flightMotion,cinematic,settings=CINEMATIC_DEFAULT
  // Follow the inclined surface normal while retaining a visible horizon.
  const wallEyeSide=sa*settings.cameraHeight*(screw?.96:.62);
  const air=Math.max(0,finite(view.clearance));
- out.x=finite(view.worldX)-fx*settings.cameraDistance+rx*(offset+wallEyeSide);
+ const flightBack=clamp(air,0,7)*.58; // expose free space and moving landing deck
+ out.x=finite(view.worldX)-fx*(settings.cameraDistance+flightBack)+rx*(offset+wallEyeSide);
  out.y=finite(view.y)+settings.cameraHeight*
-  (screw?ca*.96:(.47+.53*ca))+finite(flightMotion.hover)+air*.08;
- out.z=finite(view.worldZ)-fz*settings.cameraDistance+rz*(offset+wallEyeSide);
+  (screw?ca*.96:(.47+.53*ca))+finite(flightMotion.hover)-air*.19;
+ out.z=finite(view.worldZ)-fz*(settings.cameraDistance+flightBack)+rz*(offset+wallEyeSide);
  const aim=heading+finite(cinematic.preview);
  out.lookX=finite(view.worldX)+Math.sin(aim)*settings.cameraLookAhead+rx*sa*2.6;
  // Framing anticipates real upcoming terrain elevation, not an invented
  // camera bank or horizontal track-following correction.
  const currentS=finite(view.s),nextS=currentS+settings.cameraLookAhead;
  const futureTerrain=heightAt(nextS)-heightAt(currentS);
- out.lookY=finite(view.y)+(screw?1.25*ca:1.25)+finite(flightMotion.hover)+
+ out.lookY=finite(view.y)+(screw?1.25*ca:1.25)-air*.17+finite(flightMotion.hover)+
   clamp(futureTerrain*.68,-7.5,7.5);
  out.lookZ=finite(view.worldZ)-Math.cos(aim)*settings.cameraLookAhead+rz*sa*2.6;
  out.sideOffsetMeters=offset;

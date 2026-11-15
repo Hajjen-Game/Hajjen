@@ -119,19 +119,19 @@ test("leap and three reusable speed pads move to safe authored straights",()=>{
  assert.ok(COURSE_SEGMENTS[2].start<SKYLINE_LEAP.start);
  assert.ok(COURSE_SEGMENTS[2].end>SKYLINE_LEAP.end);
 });
-test("active GitHub Pages build and audit reflect 0.8.3, preserving 0.8.2 geometry archive",()=>{
- const html=source("./index.html"),boot=source("./boot-v083.js"),
-  game=source("./game-v083.mjs");
- assert.match(html,/data-game-module="game-v083\.mjs"/);
- assert.match(html,/boot-v083\.js\?v=0\.8\.3/);
- assert.match(boot,/game-v083\.mjs\?v=0\.8\.3/);
- assert.match(game,/version:"0\.8\.3"/);
- for(const d of ["trial-v083","boost-v082","premium-track-v083",
-  "smooth-track-v083","aero-barrier-v083","cinematic-v083"])
+test("active GitHub Pages build and audit reflect 0.8.4, preserving 0.8.2 geometry archive",()=>{
+ const html=source("./index.html"),boot=source("./boot-v084.js"),
+  game=source("./game-v084.mjs");
+ assert.match(html,/data-game-module="game-v084\.mjs"/);
+ assert.match(html,/boot-v084\.js\?v=0\.8\.4/);
+ assert.match(boot,/game-v084\.mjs\?v=0\.8\.4/);
+ assert.match(game,/version:"0\.8\.4"/);
+ for(const d of ["trial-v084","boost-v082","premium-track-v084",
+  "smooth-track-v084","aero-barrier-v084","cinematic-v084"])
   assert.ok(game.includes('from "./'+d+'.mjs"'),d);
  assert.match(game,/grip_apex_enter/);
  assert.match(game,/grip_apex_exit/);
- assert.match(game,/skyshift-racing-feel-v083-audit\.json/);
+ assert.match(game,/skyshift-steering-v084-audit\.json/);
  assert.match(source("./trial-v081.mjs"),/skyline-grip-airtricks-v081/);
  assert.match(source("./game-v081.mjs"),/version:"0\.8\.1"/);
 });

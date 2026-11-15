@@ -225,7 +225,7 @@ test("production route preserves original HUD, SMAA and three-lap telemetry",()=
  assert.match(html,/id="lap-number"/);
  assert.match(html,/id="final-laps"/);
  assert.match(boot,/import\("\.\/game-v082\.mjs\?v=0\.8\.2"\)/);
- for(const dep of ["trial-v082","circuit-layout-v060","boost-v060",
+ for(const dep of ["trial-v082","circuit-layout-v082","boost-v082",
   "zone-wave-v060","smooth-track-v082","premium-track-v082",
   "aero-barrier-v082"]){
   if(dep==="circuit-layout-v060")continue;
@@ -237,7 +237,7 @@ test("production route preserves original HUD, SMAA and three-lap telemetry",()=
  assert.match(game,/raceDistanceMeters/);
  assert.match(game,/version:"0\.8\.2"/);
  assert.match(game,/skyshift-track-rhythm-v082-audit\.json/);
- assert.match(smoke,/CIRCUIT\.laps/);
+ assert.match(smoke,/SKYLINE_LEAP/);
  assert.match(game,/from "\.\/neon-v0498\.mjs"/);
  assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);
  assert.doesNotMatch(game,/from "\.\/trial-v051\.mjs"/);

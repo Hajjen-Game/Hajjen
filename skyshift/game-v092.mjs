@@ -1419,6 +1419,34 @@ function installWaveSmokeHook(){
      whiteBloomEnergy:ZONE_WAVE.whiteBloomEnergy};
  };
 }
+// Visual regression only: opt in with ?tunnelSmoke=1.
+// Teleports the test pilot to an existing legal road pose for screenshots.
+// Actual play never invokes or exposes this function.
+function installTunnelSmokeHook(){
+ if(new URLSearchParams(location.search).get("tunnelSmoke")!=="1")return;
+ window.__skyshiftTunnelSmoke=(at=2435)=>{
+  if(uiState.mode!=="playing")throw new Error("Tunnel smoke requires active race");
+  const s=clamp(at,SHADOW_TUNNEL.start+48,SHADOW_TUNNEL.end-48);
+  const p=positionAt(s,0,0);
+  Object.assign(flight,{s,lap:1,worldX:p.x,worldZ:p.z,
+   lateral:0,y:surfaceHeightAt(s)+TRIAL.hoverHeight,
+   heading:headingAt(s),grounded:true,vy:0,
+   currentSpeed:TRIAL.startSpeed,zoneCruiseSpeed:TRIAL.startSpeed});
+  motionState=createFlightMotionState(flight.heading);
+  cinematicState=createCinematicState();
+  kineticCamera=createKineticCameraState();
+  previousRenderPose=capturePose(flight);currentRenderPose=previousRenderPose;
+  const frame=chasePose(flight,motionState,cinematicState,cinematicTuning,CAMERA_INFO);
+  CAMERA_BASE_POSITION.set(frame.x,frame.y,frame.z);
+  CAMERA_TARGET_POSITION.copy(CAMERA_BASE_POSITION);
+  cameraLook.set(frame.lookX,frame.lookY,frame.lookZ);
+  tunnelInside=inShadowTunnel(flight.s);
+  return {at:flight.s,inside:tunnelInside,
+   darkness:tunnelIntensityAt(flight.s),
+   geometry:shadowTunnel?.getStats(),normalBank:bankAt(s),
+   pilotPhysics:TRIAL.id,cameraMode:CAMERA_MODE};
+ };
+}
 function installControls(){
  UI.start.addEventListener("click",startImmersiveTrial);
  UI.retry.addEventListener("click",startImmersiveTrial);
@@ -1509,6 +1537,7 @@ try{
  installFlightTuningPanel();
  resetFlight();
  installWaveSmokeHook();
+ installTunnelSmokeHook();
  window.__skyshiftBootReady?.(enterPlaying);
  requestAnimationFrame(loop);
 }catch(error){

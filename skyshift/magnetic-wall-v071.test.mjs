@@ -141,11 +141,11 @@ test("camera is in the magnetic half-space; legacy 0.7.0 remains archived",()=>{
  assert.equal(legacy.TRIAL.id,"skyline-3d-v070");
  assert.equal(TRIAL.id,"skyline-wall-v071");
  assert.equal(elevationAudit().seamHeightError,0);
- assert.match(source("./index.html"),/data-game-module="game-v0102\.mjs"/);
+ assert.match(source("./index.html"),/data-game-module="game-v0103\.mjs"/);
  assert.match(source("./boot-v071.js"),/game-v071\.mjs\?v=0\.7\.1/);
  assert.match(source("./boot-v072.js"),/game-v072\.mjs\?v=0\.7\.2/);
  assert.match(source("./boot-v080.js"),/game-v080\.mjs\?v=0\.8\.0/);
- assert.match(source("./boot-v0103.js"),/game-v0102\.mjs\?v=0\.10\.3/);
+ assert.match(source("./boot-v0103.js"),/game-v0103\.mjs\?v=0\.10\.3/);
  assert.match(source("./game-v071.mjs"),/magnetic_wall_enter/);
  assert.match(source("./game-v071.mjs"),/skyshift-wall-v071-audit\.json/);
  assert.match(source("./premium-track-v071.mjs"),/magneticLines/);

@@ -186,19 +186,19 @@ test("unchanged track, rails, physical leap, wall and corkscrew",()=>{
  assert.ok(createSmoothDeckData().triangles>25000);
  assert.ok(createAeroBarrierData().triangles>90000);
 });
-test("active 0.9.1 camera build references archived 0.8.4 yaw for its legacy physics tests",()=>{
- const html=src("./index.html"),boot=src("./boot-v091.js"),
-  game=src("./game-v091.mjs");
- assert.match(html,/boot-v091\.js\?v=0\.9\.1/);
- assert.match(html,/data-game-module="game-v091\.mjs"/);
- assert.match(boot,/game-v091\.mjs\?v=0\.9\.1/);
- assert.match(game,/version:"0\.9\.1"/);
+test("active 0.9.2 camera build references archived 0.8.4 yaw for its legacy physics tests",()=>{
+ const html=src("./index.html"),boot=src("./boot-v092.js"),
+  game=src("./game-v092.mjs");
+ assert.match(html,/boot-v092\.js\?v=0\.9\.2/);
+ assert.match(html,/data-game-module="game-v092\.mjs"/);
+ assert.match(boot,/game-v092\.mjs\?v=0\.9\.2/);
+ assert.match(game,/version:"0\.9\.2"/);
  assert.match(src("./trial-v084.mjs"),/steering-authority-v084/);
  assert.match(game,/steeringBalanceAt/);
  assert.match(game,/precision-grip-v084/);
  assert.match(game,/trial-v0901\.mjs/);
  assert.match(src("./trial-v0901.mjs"),/steering-authority-v0901/);
- assert.match(game,/skyshift-signature-flight-v091-audit\.json/);
+ assert.match(game,/skyshift-shadow-tunnel-v092-audit\.json/);
  assert.match(src("./game-v084.mjs"),/version:"0\.8\.4"/);
  assert.match(src("./game-v083.mjs"),/version:"0\.8\.3"/);
 });

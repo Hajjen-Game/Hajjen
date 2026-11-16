@@ -158,6 +158,6 @@ test("production activates v0.10.7.1, deactivates old ship-attached trails",()=>
  assert.match(game,/__skyshiftWakeSmoke/);
  assert.doesNotMatch(game,/wingtipContrails|createWingtipContrails|createWingVaporFX/);
  assert.match(index,/data-game-module="game-v01071\.mjs"/);
- assert.match(boot,/game-v01071\.mjs\?v=0\.10\.7/);
+ assert.match(boot,/game-v01071\.mjs\?v=0\.10\.7\.1/);
  assert.match(game,/from "\.\/trial-v0901\.mjs"/);
 });

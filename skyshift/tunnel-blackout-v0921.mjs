@@ -84,7 +84,8 @@ export function createTunnelBlackoutController({worldLights,camera,bladeTips,
   ambient:worldLights.ambient.intensity,
   key:worldLights.key.intensity,fill:worldLights.fill.intensity
  };
- const starLayers=camera.children.filter(o=>o.isPoints||o.isSprite);
+ const starLayers=camera.children.filter(o=>o.isPoints||o.isSprite)
+  .map(object=>({object,initialOpacity:object.material.opacity}));
  let peakDarkness=0,coreFrames=0,frames=0;
  const levels={darkness:0,ambient:1,key:1,fill:1,roadBody:1,
   roadBaseEmissive:1,bladeTip:1,background:1};
@@ -97,7 +98,10 @@ export function createTunnelBlackoutController({worldLights,camera,bladeTips,
    bladeTips.material.opacity=bladeTips.baseOpacity*levels.bladeTip;
    // Called immediately after backdrop velocity animation each frame.
    // Camera-local stars cannot appear to shine through a black vault.
-   for(const star of starLayers)star.material.opacity*=levels.background;
+   for(const star of starLayers){
+    if(star.object.isPoints)star.object.material.opacity*=levels.background;
+    else star.object.material.opacity=star.initialOpacity*levels.background;
+   }
    peakDarkness=Math.max(peakDarkness,levels.darkness);
    coreFrames+=Number(levels.darkness>.98);frames++;
    return levels;
@@ -109,6 +113,8 @@ export function createTunnelBlackoutController({worldLights,camera,bladeTips,
    worldLights.fill.intensity=baselines.fill;
    bladeTips.material.opacity=bladeTips.baseOpacity;
    peakDarkness=0;coreFrames=0;frames=0;
+   for(const star of starLayers)
+    star.object.material.opacity=star.initialOpacity;
    for(const key of Object.keys(levels))levels[key]=1;
    levels.darkness=0;
   },

@@ -156,7 +156,9 @@ export function advanceSparkState(st,dt,input={},source=null){
   st.accumulator=0;
  }
  if(st.flash.active){
-  st.flash.age+=h;
+  // Preserve at least one FULL-BRIGHT visible hit frame on slower phones.
+  // A 90ms first frame should not consume almost all of a 135ms flash.
+  st.flash.age+=started?Math.min(h,.016):h;
   if(st.flash.age>=st.flash.life)st.flash.active=false;
  }
  st.lastSide=active?side:0;

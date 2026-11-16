@@ -206,6 +206,6 @@ test("active game observes physics-owned railContacting, never approximate proxi
  assert.match(game,/reactiveWingFlaps\?\.frame\(showroom\?dt:presentationDt/);
  assert.match(game,/livingWake\?\.frame\(presentationDt/);
  assert.doesNotMatch(game,/stepFlight=.*railSpark|const contacted=\s*railSpark/);
- assert.match(page,/data-game-module="game-v0110\.mjs"/);
- assert.match(boot,/game-v0110\.mjs\?v=0\.11\.1/);
+ assert.match(page,/data-game-module="game-v0111\.mjs"/);
+ assert.match(boot,/game-v0111\.mjs\?v=0\.11\.1/);
 });

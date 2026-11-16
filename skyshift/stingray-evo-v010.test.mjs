@@ -59,7 +59,7 @@ test("visual motors and tail run at 30/60/120Hz with stable interpolation",()=>{
 });
 test("new mesh is a real procedurally rigged linked 3D ship, not an image",()=>{
  const src=read("./stingray-evo-v010.mjs");
- const game=read("./game-v0102.mjs");
+ const game=read("./game-v0103.mjs");
  assert.match(src,/new THREE\.Group\(\)/);
  assert.match(src,/new THREE\.CylinderGeometry/);
  assert.match(src,/parent=joint/);

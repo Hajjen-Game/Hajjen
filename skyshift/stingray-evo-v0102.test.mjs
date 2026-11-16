@@ -1,4 +1,4 @@
-// SKYSHIFT 0.10.2: player-confirmed turn direction + live track Hangar regression.
+// SKYSHIFT 0.10.3: player-confirmed turn direction + live track Hangar regression.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -47,14 +47,14 @@ test("same-side animation remains bounded on slow phones and after direction rev
  tailPoseStep(reversal,0,{steering:1,yawRate:1});
  assert.equal(total(reversal),paused);
 });
-test("0.10.2 returns to the live racing track Hangar without changing pilot physics",()=>{
- const html=read("./index.html"),game=read("./game-v0102.mjs"),
-  boot=read("./boot-v0102.js"),css=read("./fleet-v0102.css");
- assert.match(html,/boot-v0102\.js\?v=0\.10\.2/);
+test("0.10.3 returns to the live racing track Hangar without changing pilot physics",()=>{
+ const html=read("./index.html"),game=read("./game-v0103.mjs"),
+  boot=read("./boot-v0103.js"),css=read("./fleet-v0102.css");
+ assert.match(html,/boot-v0102\.js\?v=0\.10\.3/);
  assert.match(html,/data-game-module="game-v0102\.mjs"/);
- assert.match(boot,/game-v0102\.mjs\?v=0\.10\.2/);
- assert.match(game,/version:"0\.10\.2"/);
- assert.match(game,/stingray-evo-v0102\.mjs/);
+ assert.match(boot,/game-v0102\.mjs\?v=0\.10\.3/);
+ assert.match(game,/version:"0\.10\.3"/);
+ assert.match(game,/stingray-evo-v0103\.mjs/);
  assert.match(game,/world\.visible=true/);
  assert.doesNotMatch(game,/world\.visible=false/);
  assert.match(game,/placeShip\(now\/1000,dt,view,motionState,cinematicState\)/);

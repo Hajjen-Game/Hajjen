@@ -164,7 +164,7 @@ test("production 0.8.0 uses contextual multitouch and exports deterministic stat
  const html=source("./index.html"),game=source("./game-v080.mjs"),
   css=source("./style-v080.css"),boot=source("./boot-v080.js"),
   smoke=source("./browser-smoke-v080.mjs");
- assert.match(html,/data-game-module="game-v0102\.mjs"/);
+ assert.match(html,/data-game-module="game-v0103\.mjs"/);
  assert.match(html,/style-v083\.css/);
  assert.match(html,/aria-label="GRIP:/);
  assert.match(html,/SHIFT \+ STEER/);

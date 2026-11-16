@@ -80,8 +80,8 @@ test("FOV has independent boost punch, bounded up to 75 degrees",()=>{
 test("active page uses independent baseline camera/aim and spring inertia",()=>{
  const page=src("./index.html"),boot=src("./boot-v0495.js"),
   game=src("./game-v0495.mjs");
- assert.match(page,/boot-v0102\.js\?v=0\.10\.3/);
- assert.match(page,/data-game-module="game-v0102\.mjs"/);
+ assert.match(page,/boot-v0103\.js\?v=0\.10\.3/);
+ assert.match(page,/data-game-module="game-v0103\.mjs"/);
  assert.match(boot,/import\("\.\/game-v0495\.mjs\?v=0\.4\.9\.5"\)/);
  assert.match(boot,/__skyshiftBootFail/);
  assert.match(game,/from "\.\/boost-spring-v0495\.mjs"/);

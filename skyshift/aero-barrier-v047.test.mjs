@@ -130,7 +130,7 @@ test("authoritative collision and steering are still from 0.4.6",()=>{
 });
 test("0.4.7 active page uses batched metal, panel seams and color-ready inlays",()=>{
  const html=source("index.html"),game=source("game-v047.mjs");
- assert.match(html,/boot-v092\.js\?v=0\.9\.2/);
+ assert.match(html,/boot-v0921\.js\?v=0\.9\.2\.1/);
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(game,/from "\.\/aero-barrier-v047\.mjs"/);
  assert.match(game,/identitySurface=installAeroBarriers\(THREE,world\)/);

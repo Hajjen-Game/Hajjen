@@ -1,4 +1,4 @@
-// SKYSHIFT 0.10.2 — Signature Flight Motion: deterministic presentation QA.
+// SKYSHIFT 0.10.3 — Signature Flight Motion: deterministic presentation QA.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -58,13 +58,13 @@ test("bounded takeoff/landing/boost responses and frozen pause",()=>{
  assert.equal(JSON.stringify(st),snapshot);
  assert.ok(signatureFlightAudit(st).peakTwinEngineSplit>0);
 });
-test("0.10.2 live source retains GRIP-first pilot physics and Kinetic Camera",()=>{
- const html=read("./index.html"),boot=read("./boot-v0102.js"),
-  game=read("./game-v0102.mjs"),prior=read("./game-v0901.mjs");
- assert.match(html,/boot-v0102\.js\?v=0\.10\.2/);
+test("0.10.3 live source retains GRIP-first pilot physics and Kinetic Camera",()=>{
+ const html=read("./index.html"),boot=read("./boot-v0103.js"),
+  game=read("./game-v0103.mjs"),prior=read("./game-v0901.mjs");
+ assert.match(html,/boot-v0102\.js\?v=0\.10\.3/);
  assert.match(html,/data-game-module="game-v0102\.mjs"/);
- assert.match(boot,/game-v0102\.mjs\?v=0\.10\.2/);
- assert.match(game,/version:"0\.10\.2"/);
+ assert.match(boot,/game-v0102\.mjs\?v=0\.10\.3/);
+ assert.match(game,/version:"0\.10\.3"/);
  assert.match(game,/signature-flight-v091\.mjs/);
  assert.match(game,/kinetic-camera-v090\.mjs/);
  assert.match(game,/trial-v0901\.mjs/);

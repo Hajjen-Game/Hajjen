@@ -127,19 +127,19 @@ test("classic camera geometry is exactly preserved with all kinetic fields zero"
  near(MAGNETIC_WALL.start,1662);
  near(CORKSCREW.start,3005);
 });
-test("0.10.0 page offers Classic, Balanced and Kinetic with the new GRIP-first physical handling",()=>{
- const html=read("./index.html"),boot=read("./boot-v010.js"),
-  game=read("./game-v010.mjs");
- assert.match(html,/boot-v010\.js\?v=0\.10\.0/);
- assert.match(html,/data-game-module="game-v010\.mjs"/);
- assert.match(boot,/game-v010\.mjs\?v=0\.10\.0/);
- assert.match(game,/version:"0\.10\.0"/);
+test("0.10.1 page offers Classic, Balanced and Kinetic with the new GRIP-first physical handling",()=>{
+ const html=read("./index.html"),boot=read("./boot-v0101.js"),
+  game=read("./game-v0101.mjs");
+ assert.match(html,/boot-v0101\.js\?v=0\.10\.1/);
+ assert.match(html,/data-game-module="game-v0101\.mjs"/);
+ assert.match(boot,/game-v0101\.mjs\?v=0\.10\.1/);
+ assert.match(game,/version:"0\.10\.1"/);
  assert.match(game,/kinetic-camera-v090\.mjs/);
  assert.match(game,/cinematic-v0901\.mjs/);
  assert.match(game,/boost-spring-v090\.mjs/);
  assert.match(game,/trial-v0901\.mjs/);
  assert.match(game,/CAMERA_MODE/);
  assert.match(game,/CAMERA_GAIN/);
- assert.match(game,/skyshift-fleet-v010-audit\.json/);
+ assert.match(game,/skyshift-stingray-kinetic-v0101-audit\.json/);
  assert.match(read("./game-v084.mjs"),/version:"0\.8\.4"/);
 });

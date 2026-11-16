@@ -1144,7 +1144,7 @@ function loop(now){
     camera.position.set(ship.position.x+5.9+Math.sin(t)*.65,
      ship.position.y+3.45,
      ship.position.z+11.8+Math.cos(t)*.55);
-    camera.lookAt(ship.position.x-3.5,
+    camera.lookAt(ship.position.x-6.5,
      ship.position.y+.28,ship.position.z+1.7);
    }
    premiumFX?.frame({
@@ -1719,6 +1719,8 @@ try{
   window.__skyshiftFleetProbe=()=>({
    showroomWorldHidden:world?.visible===false,
    previewTrackVisible:world?.visible===true,
+   // Screen-space center validates that the craft stays clear of Hangar cards.
+   projectedShipX:ship?(ship.position.clone().project(camera).x+1)*.5:null,
    showroomCamera:{x:camera?.position.x,y:camera?.position.y,
     z:camera?.position.z,fov:camera?.fov},
    ...fleetStatus(fleetProgress),activeShipId,previewShipId,

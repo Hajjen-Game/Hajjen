@@ -103,6 +103,12 @@ test("live mesh stores world path, fades after release and resets on pause",()=>
  assert.equal(fx.mesh.visible,true);
  assert.equal(scene.items[0],fx.mesh);
  assert.ok(fx.mesh.geometry.attributes.position.array.some(v=>v!==0));
+ assert.equal(fx.mesh.geometry.attributes.color.itemSize,4,
+  "RGBA per-vertex transparency prevents opaque dark strips");
+ assert.ok(fx.mesh.geometry.attributes.color.array.some((value,i)=>
+  i%4===3 && value>0 && value<=.35),
+  "wake opacity stays subdued and fades by age");
+
  ship.matrixWorld.z-=1.5;
  fx.frame(.03,opts);
  assert.equal(old.x,px);assert.equal(old.z,pz);

@@ -99,16 +99,16 @@ test("HUD timestamps and event counters reset without fake pulses or new render 
 });
 test("production page and boot load v04991; old gameplay and SMAA stay intact",()=>{
  const html=src("./index.html");
- const boot=src("./boot-v0101.js");
- const game=src("./game-v0101.mjs");
+ const boot=src("./boot-v0102.js");
+ const game=src("./game-v0102.mjs");
  const browser=src("./browser-smoke-v04991.mjs");
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
- assert.match(html,/boot-v0101\.js\?v=0\.10\.1/);
- assert.match(html,/data-game-module="game-v0101\.mjs"/);
- assert.match(boot,/import\("\.\/game-v0101\.mjs\?v=0\.10\.1"\)/);
+ assert.match(html,/boot-v0102\.js\?v=0\.10\.2/);
+ assert.match(html,/data-game-module="game-v0102\.mjs"/);
+ assert.match(boot,/import\("\.\/game-v0102\.mjs\?v=0\.10\.2"\)/);
  assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);
- assert.match(game,/version:"0\.10\.1"/);
- assert.match(game,/skyshift-stingray-kinetic-v0101-audit\.json/);
+ assert.match(game,/version:"0\.10\.2"/);
+ assert.match(game,/skyshift-stingray-turn-follow-v0102-audit\.json/);
  assert.match(browser,/racingMeters/);
  assert.match(browser,/phoneBars/);
  for(const dep of ["neon-v083","image-clarity-v083","premium-track-v0901",

@@ -1739,6 +1739,7 @@ try{
     z:camera?.position.z,fov:camera?.fov},
    ...fleetStatus(fleetProgress),activeShipId,previewShipId,
    tail:activeCraft?.tailStats?.()??null,
+   surfacePolish:activeCraft?.polishStats?.()??null,
    hangarVisible:!UI.hangar.classList.contains("hidden")
   });
  window.__skyshiftBootReady?.(enterPlaying);

@@ -145,7 +145,7 @@ test("camera is in the magnetic half-space; legacy 0.7.0 remains archived",()=>{
  assert.match(source("./boot-v071.js"),/game-v071\.mjs\?v=0\.7\.1/);
  assert.match(source("./boot-v072.js"),/game-v072\.mjs\?v=0\.7\.2/);
  assert.match(source("./boot-v080.js"),/game-v080\.mjs\?v=0\.8\.0/);
- assert.match(source("./boot-v0102.js"),/game-v0102\.mjs\?v=0\.10\.2/);
+ assert.match(source("./boot-v0103.js"),/game-v0102\.mjs\?v=0\.10\.3/);
  assert.match(source("./game-v071.mjs"),/magnetic_wall_enter/);
  assert.match(source("./game-v071.mjs"),/skyshift-wall-v071-audit\.json/);
  assert.match(source("./premium-track-v071.mjs"),/magneticLines/);

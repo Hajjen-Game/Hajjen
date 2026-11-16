@@ -705,24 +705,24 @@ function announceSector(index){
 }
 function refreshHud(){
  const sector=zoneWave.playerStage;
- UI.sector.textContent=String(sector+1).padStart(2,"0");
- UI.sectorName.textContent=ZONE_PALETTES[sector].name;
- UI.shieldFill.style.width=flight.shield+"%";
- UI.shieldText.textContent=flight.shield+"%";
- if(UI.shieldStatus)UI.shieldStatus.textContent=
-  flight.shield<=30?"CRITICAL":flight.shield<=60?"DAMAGED":"STABLE";
- UI.distance.innerHTML=String(Math.floor(flight.s)).padStart(4,"0")+
-   ' <small>/ '+TRIAL.raceLength+' M</small>';
- if(UI.lapNumber)UI.lapNumber.textContent=String(flight.lap);
- if(UI.lapInfo)UI.lapInfo.setAttribute("aria-label",
-  "Lap "+flight.lap+" of "+CIRCUIT.laps);
+ domWrites.text(UI.sector,String(sector+1).padStart(2,"0"));
+ domWrites.text(UI.sectorName,ZONE_PALETTES[sector].name);
+ domWrites.width(UI.shieldFill,flight.shield+"%");
+ domWrites.text(UI.shieldText,flight.shield+"%");
+ domWrites.text(UI.shieldStatus,
+ flight.shield<=30?"CRITICAL":flight.shield<=60?"DAMAGED":"STABLE");
+ domWrites.html(UI.distance,String(Math.floor(flight.s)).padStart(4,"0")+
+ ' <small>/ '+TRIAL.raceLength+' M</small>');
+ domWrites.text(UI.lapNumber,String(flight.lap));
+ domWrites.attr(UI.lapInfo,"aria-label",
+ "Lap "+flight.lap+" of "+CIRCUIT.laps);
  // Compare with baseline handling-lab speed (22 m/s), not new speed.
- UI.speed.textContent=(flight.currentSpeed/22).toFixed(2)+"×";
+ domWrites.text(UI.speed,(flight.currentSpeed/22).toFixed(2)+"×");
  // The old JUMP button is a contextual TRICK key only on approach/airborne.
  // JUMP stays in the DOM for later design decisions, but GRIP is now
  // the only visible right-thumb input, both on the road and in the air.
  UI.jump.classList.add("hidden");
- UI.progress.style.width=(flight.s/TRIAL.raceLength*100).toFixed(1)+"%";
+ domWrites.width(UI.progress,(flight.s/TRIAL.raceLength*100).toFixed(1)+"%");
  const curve=curvatureAt(flight.s),section=sectorAt(flight.s);
  // One small persistent prompt by the existing GRIP thumb control: never
  // a full-screen warning or a new button. It starts early enough at
@@ -740,9 +740,9 @@ function refreshHud(){
  UI.grip.classList.toggle("apex-approach",cue.visible&&!cue.active);
  UI.grip.classList.toggle("apex-engaged",cue.active);
  UI.hud.classList.toggle("hud-rail-contact",railFeedback.pulse>.025);
- UI.hud.style.setProperty("--rail-contact",
-  String(Math.min(.92,railFeedback.pulse*.92).toFixed(3)));
- UI.flight.textContent=!flight.grounded?
+ domWrites.property(UI.hud,"--rail-contact",
+ String(Math.min(.92,railFeedback.pulse*.92).toFixed(3)));
+ domWrites.text(UI.flight,!flight.grounded?
    (flight.lastJumpLap===flight.lap?
    flight.trickReady?"AIR TRICK · 360° COMPLETE":
    flight.trickActive?"AIR TRICK · "+Math.round(flight.trickAngle/
@@ -764,7 +764,7 @@ function refreshHud(){
    flight.boostMultiplier>1.08?"BOOST · +"+Math.round((flight.boostMultiplier-1)*100)+"%":
    Math.abs(curve)>.0016?
      (curve<0?"LEFT":"RIGHT")+" SWEEP · "+section.name:
-     section.name+" · DIRECT CONTROL";
+     section.name+" · DIRECT CONTROL");
 }
 function maybeShowCue(){
  if(uiState.mode!=="playing")return;

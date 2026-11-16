@@ -1,4 +1,4 @@
-// SKYSHIFT 0.9.1 — GRIP-FIRST STEERING: authority and 3-lap race checks.
+// SKYSHIFT 0.9.2 — GRIP-FIRST STEERING: authority and 3-lap race checks.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -137,18 +137,18 @@ test("new wide-arc steering makes GRIP truly valuable on later laps",()=>{
  assert.ok(skill.f.peakGripRelativeGain>3);
  assert.ok(skill.f.elapsed>140&&skill.f.elapsed<160);
 });
-test("0.9.1 release points to new physics while preserving 0.9.0 camera modes",()=>{
- const html=read("./index.html"),boot=read("./boot-v091.js"),
-  game=read("./game-v091.mjs"),before=read("./game-v090.mjs");
- assert.match(html,/boot-v091\.js\?v=0\.9\.1/);
- assert.match(html,/data-game-module="game-v091\.mjs"/);
- assert.match(boot,/game-v091\.mjs\?v=0\.9\.1/);
- assert.match(game,/version:"0\.9\.1"/);
+test("0.9.2 release points to new physics while preserving 0.9.0 camera modes",()=>{
+ const html=read("./index.html"),boot=read("./boot-v092.js"),
+  game=read("./game-v092.mjs"),before=read("./game-v090.mjs");
+ assert.match(html,/boot-v092\.js\?v=0\.9\.2/);
+ assert.match(html,/data-game-module="game-v092\.mjs"/);
+ assert.match(boot,/game-v092\.mjs\?v=0\.9\.2/);
+ assert.match(game,/version:"0\.9\.2"/);
  assert.match(game,/trial-v0901\.mjs/);
  assert.match(game,/cinematic-v0901\.mjs/);
  assert.match(game,/kinetic-camera-v090\.mjs/);
  assert.match(game,/CAMERA_MODE/);
- assert.match(game,/skyshift-signature-flight-v091-audit\.json/);
+ assert.match(game,/skyshift-shadow-tunnel-v092-audit\.json/);
  assert.match(before,/version:"0\.9\.0"/);
  assert.match(read("./steering-authority-v084.mjs"),/normalSlowFactor:\.96/);
 });

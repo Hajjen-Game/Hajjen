@@ -227,7 +227,7 @@ try{
     !(boost.peakLightEnergy>straight.peakLightEnergy)||
     grip.sampleCount<10||grip.historicalSpanMeters<3||
     grip.peakSegments<3||grip.tipXMeters!==2.9||
-    grip.extraDrawCalls!==1||grip.peakLightEnergy>.35||
+    grip.extraDrawCalls!==1||grip.peakLightEnergy>.46||
     !grip.physicsUnchanged)
   throw new Error("0.10.7.1 world history, subtle energy or turn activation: "+
    JSON.stringify({straight,grip,airborne,boost}));

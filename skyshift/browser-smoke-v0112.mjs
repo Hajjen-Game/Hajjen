@@ -39,7 +39,9 @@ try{
  // Passive default profiling must retain the complete 0.10.9.1 game presentation.
  const baseline=await page.evaluate(()=>window.__skyshiftPerfProbe?.());
  if(!baseline||baseline.settings.enabled||baseline.pipeline.fixedQuality||
-    !baseline.pipeline.bloom||!baseline.pipeline.smaa||baseline.physicsHz!==120)
+    !baseline.pipeline.bloom||!baseline.pipeline.smaa||baseline.physicsHz!==120||
+    baseline.motionRig?.version!=="unified-flight-motion-0112"||
+    baseline.motionRig?.physicsChanged||baseline.motionRig?.extraDrawCalls!==0)
   throw Error("0.11.2 normal game profile regression "+JSON.stringify(baseline));
  // REAL production ESM, not reimplemented geometry or an image-only fake.
  const physical=await page.evaluate(async()=>{

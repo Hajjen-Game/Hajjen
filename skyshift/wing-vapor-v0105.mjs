@@ -70,18 +70,18 @@ export function wingVaporEnvelope(speed,boost=1,grounded=true,lowMemory=false){
 }
 function writeQuad(position,color,offset,x0,x1,y0,y1,z0,z1,
  width0,width1,brightness0,brightness1){
- // Two triangles, 18 floats. Shared fixed white/cool-white gradients.
- const verts=[
-  x0-width0,y0,z0,brightness0,
-  x0+width0,y0,z0,brightness0,
-  x1+width1,y1,z1,brightness1,
-  x0-width0,y0,z0,brightness0,
-  x1+width1,y1,z1,brightness1,
-  x1-width1,y1,z1,brightness1
- ];
+ // No temporary arrays or GC inside the 60/120 FPS geometry update.
+ // Two triangles: near-left, near-right, far-right, near-left,
+ // far-right, far-left.
  for(let i=0;i<6;i++){
-  const o=offset+i*3,j=i*4,c=verts[j+3];
-  position[o]=verts[j];position[o+1]=verts[j+1];position[o+2]=verts[j+2];
+  const far=i===2||i===4||i===5;
+  const right=i===1||i===2||i===4;
+  const o=offset+i*3;
+  const w=far?width1:width0;
+  const c=far?brightness1:brightness0;
+  position[o]=(far?x1:x0)+(right?w:-w);
+  position[o+1]=far?y1:y0;
+  position[o+2]=far?z1:z0;
   color[o]=c*.94;color[o+1]=c*.985;color[o+2]=c;
  }
 }

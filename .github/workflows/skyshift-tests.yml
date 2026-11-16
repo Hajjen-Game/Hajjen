@@ -357,6 +357,11 @@ jobs:
           node --check skyshift/game-v01091.mjs
           node --check skyshift/boot-v01091.js
           node --check skyshift/browser-smoke-v01091.mjs
+          node --check skyshift/performance-audit-v0110.mjs
+          node --check skyshift/performance-audit-v0110.test.mjs
+          node --check skyshift/game-v0110.mjs
+          node --check skyshift/boot-v0110.js
+          node --check skyshift/browser-smoke-v0110.mjs
           node --check skyshift/grip-first-v0901.test.mjs
           node --check skyshift/signature-flight-v091.test.mjs
           node --check skyshift/shadow-tunnel-v092.test.mjs
@@ -367,10 +372,10 @@ jobs:
         # Historical test files contain version-pinned active HTML assertions for
         # superseded releases. Keep them archived; gate the current release
         # with unaffected core physics tests and new 0.10.9.1 assertions.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v01091.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v01091.test.mjs skyshift/performance-audit-v0110.test.mjs
 
   browser-smoke:
-    name: Spark Visibility Polish 0.10.9.1 WebGL smoke
+    name: Performance & Frame-Time Audit 0.11.0 WebGL smoke
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -382,7 +387,7 @@ jobs:
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Render SKYSHIFT 0.10.9.1 brighter white-core sparks and collision flashes in Chrome WebGL
-        run: node skyshift/browser-smoke-v01091.mjs
+        run: node skyshift/browser-smoke-v0110.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

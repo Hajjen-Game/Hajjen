@@ -17,17 +17,19 @@ export function trailMotionState(speed=44,boost=1,energy=0,bank=0,clock=0,veloci
  // The old 45m/s window topped out before the final zone.
  const speedSignal=clamp((speed-44)/(44*1.11**8-44),0,1);
  const effect=clamp((energy??0),0,1);
+ // Use the shared velocity-presence envelope as well as raw physics speed.
+ const presenceLoad=clamp(presence?.trailLoad??speedSignal,0,1);
  const flow=clamp(velocity?.engineFlow??boosted,0,1);
  const ignition=clamp(velocity?.ignition??0,0,1);
  const pulse=1+.028*Math.sin(clock*(19+flow*9))+
   ignition*.055*Math.exp(-clock*.02);
  const length=clamp((ENGINE_TRAIL_SPEC.baseLengthMeters+
-  speedSignal*2.55+boosted*5.00+flow*1.35+ignition*.45+effect*.18)*pulse,
+  speedSignal*1.75+presenceLoad*.80+boosted*5.00+flow*1.35+ignition*.45+effect*.18)*pulse,
   1.9,ENGINE_TRAIL_SPEC.maxBoostLengthMeters);
  const opacity=clamp(ENGINE_TRAIL_SPEC.baseOpacity+flow*.30+
-  ignition*.095+speedSignal*.095,.18,ENGINE_TRAIL_SPEC.boostOpacity);
+  ignition*.095+speedSignal*.070+presenceLoad*.025,.18,ENGINE_TRAIL_SPEC.boostOpacity);
  const sideBias=clamp(bank,-.38,.38)*.08;
- return {length,opacity,boosted,speedSignal,flow,ignition,sideBias,
+ return {length,opacity,boosted,speedSignal,presenceLoad,flow,ignition,sideBias,
   emitterCount:ENGINE_TRAIL_SPEC.emitters};
 }
 export function createTwinEngineFX(THREE,scene,ship,edgeMaterial=null){
@@ -132,7 +134,7 @@ export function createTwinEngineFX(THREE,scene,ship,edgeMaterial=null){
     const skew=(i===0?1:-1)*state.sideBias;
     const length=state.length*(1+skew),from=emitter.z+.11;
     paintRibbon(emitter,from,from+length*.46,from+length,skew,
-      clamp(state.flow+state.speedSignal*.45,0,1),state.ignition);
+      clamp(state.flow+Math.max(state.speedSignal,state.presenceLoad)*.45,0,1),state.ignition);
    }
    geometry.attributes.position.needsUpdate=true;
    geometry.attributes.color.needsUpdate=true;

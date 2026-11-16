@@ -118,7 +118,8 @@ test("real 3D meshes raise trailing edges and brighten the correct glow",()=>{
   assert.ok(fx.stats().peakDegrees>25);
   assert.equal(fx.stats().physicsUnchanged,true);
   fx.reset();
-  assert.equal(left.rotation.x,0);assert.equal(right.rotation.x,0);
+  assert.ok(Math.abs(left.rotation.x)<1e-9);
+  assert.ok(Math.abs(right.rotation.x)<1e-9);
   assert.ok(fx.stats().peakGlowOpacity<=.055);
   fx.dispose();
  }

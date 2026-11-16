@@ -1,4 +1,4 @@
-// SKYSHIFT 0.9.2.1 – physics and UX regression against actual 0.8.2 baseline.
+// SKYSHIFT 0.10.0 – physics and UX regression against actual 0.8.2 baseline.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -182,21 +182,21 @@ test("low-memory HDR can truly downshift below 1x while premium devices remain c
  assert.deepEqual(premium.internalTiers,[2,1.75,1.5]);
  assert.equal(dprForAdaptiveLevel(low,2),.82);
  assert.match(source("./neon-v083.mjs"),/Math.max\(\.82,/);
- assert.match(source("./game-v0921.mjs"),/image-clarity-v083/);
- assert.match(source("./game-v0921.mjs"),/neon-v083/);
+ assert.match(source("./game-v010.mjs"),/image-clarity-v083/);
+ assert.match(source("./game-v010.mjs"),/neon-v083/);
 });
-test("live page, controls and telemetry point to 0.9.2.1 and retain archive",()=>{
- const index=source("./index.html"),boot=source("./boot-v0921.js"),
-  game=source("./game-v0921.mjs"),css=source("./style-v083.css");
- assert.match(index,/boot-v0921\.js\?v=0\.9\.2\.1/);
- assert.match(index,/data-game-module="game-v0921\.mjs"/);
+test("live page, controls and telemetry point to 0.10.0 and retain archive",()=>{
+ const index=source("./index.html"),boot=source("./boot-v010.js"),
+  game=source("./game-v010.mjs"),css=source("./style-v083.css");
+ assert.match(index,/boot-v010\.js\?v=0\.10\.0/);
+ assert.match(index,/data-game-module="game-v010\.mjs"/);
  assert.match(index,/id="grip-cue"/);
- assert.match(boot,/game-v0921\.mjs\?v=0\.9\.2\.1/);
- assert.match(game,/version:"0\.9\.2\.1"/);
+ assert.match(boot,/game-v010\.mjs\?v=0\.10\.0/);
+ assert.match(game,/version:"0\.10\.0"/);
  assert.match(game,/racing-feel-v083\.mjs/);
  assert.match(game,/railScrubLossMeters/);
  assert.match(game,/grip_guidance_start/);
- assert.match(game,/skyshift-shadow-tunnel-v0921-audit\.json/);
+ assert.match(game,/skyshift-fleet-v010-audit\.json/);
  assert.match(css,/#grip-cue/);
  assert.match(source("./game-v082.mjs"),/version:"0\.8\.2"/);
 });

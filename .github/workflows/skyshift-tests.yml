@@ -280,7 +280,12 @@ jobs:
           node --check skyshift/game-v091.mjs
           node --check skyshift/boot-v091.js
           node --check skyshift/browser-smoke-v091.mjs
-          node --check skyshift/grip-first-v0901.test.mjs skyshift/signature-flight-v091.test.mjs
+          node --check skyshift/shadow-tunnel-v092.mjs
+          node --check skyshift/shadow-tunnel-v092.test.mjs
+          node --check skyshift/game-v092.mjs
+          node --check skyshift/boot-v092.js
+          node --check skyshift/browser-smoke-v092.mjs
+          node --check skyshift/grip-first-v0901.test.mjs skyshift/signature-flight-v091.test.mjs skyshift/shadow-tunnel-v092.test.mjs
           node --check skyshift/kinetic-camera-v090.test.mjs
           node --check skyshift/steering-authority-v084.test.mjs
           node --check skyshift/browser-smoke-v0481.mjs
@@ -299,13 +304,12 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Render SKYSHIFT 0.9.1 Signature Flight Motion in real Chrome WebGL and Android touch
-        run: node skyshift/browser-smoke-v091.mjs
+      - name: Render SKYSHIFT 0.9.2 Shadow Tunnel in real Chrome WebGL and Android touch
+        run: node skyshift/browser-smoke-v092.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v082-3d-track-evolution
+          name: skyshift-v092-shadow-tunnel
           path: |
-            skyshift-v082-first-wave.png
-            skyshift-v082-final-wave.png
+            skyshift-v092-shadow-tunnel.png
           if-no-files-found: ignore

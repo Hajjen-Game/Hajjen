@@ -337,6 +337,11 @@ jobs:
           node --check skyshift/game-v0107.mjs
           node --check skyshift/boot-v0107.js
           node --check skyshift/browser-smoke-v0107.mjs
+          node --check skyshift/living-wake-v01071.mjs
+          node --check skyshift/living-wake-v01071.test.mjs
+          node --check skyshift/game-v01071.mjs
+          node --check skyshift/boot-v01071.js
+          node --check skyshift/browser-smoke-v01071.mjs
           node --check skyshift/grip-first-v0901.test.mjs
           node --check skyshift/signature-flight-v091.test.mjs
           node --check skyshift/shadow-tunnel-v092.test.mjs
@@ -346,11 +351,11 @@ jobs:
       - name: Verify SKYSHIFT deterministic track planner
         # Historical test files contain version-pinned active HTML assertions for
         # superseded releases. Keep them archived; gate the current release
-        # with unaffected core physics tests and new 0.10.7 assertions.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/living-wake-v0107.test.mjs
+        # with unaffected core physics tests and new 0.10.7.1 assertions.
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/living-wake-v01071.test.mjs
 
   browser-smoke:
-    name: Living Aerodynamic Wake 0.10.7 WebGL smoke
+    name: White Aerodynamic Wake 0.10.7.1 WebGL smoke
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -361,15 +366,15 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Render SKYSHIFT 0.10.7 world-space wake history and GRIP flight in Chrome WebGL
-        run: node skyshift/browser-smoke-v0107.mjs
+      - name: Render SKYSHIFT 0.10.7.1 white additive wake and GRIP history in Chrome WebGL
+        run: node skyshift/browser-smoke-v01071.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v0107-living-aerodynamic-wake
+          name: skyshift-v01071-white-living-wake
           path: |
-            skyshift-v0107-blackout-tunnel.png
-            skyshift-v0107-stingray-hangar.png
-            skyshift-v0107-grip-wake.png
-            skyshift-v0107-boost-wake.png
+            skyshift-v01071-blackout-tunnel.png
+            skyshift-v01071-stingray-hangar.png
+            skyshift-v01071-grip-wake.png
+            skyshift-v01071-boost-wake.png
           if-no-files-found: ignore

@@ -363,6 +363,7 @@ jobs:
           node --check skyshift/game-v0110.mjs
           node --check skyshift/boot-v0110.js
           node --check skyshift/browser-smoke-v0110.mjs
+          node --check skyshift/rail-scrape-sparks-v0111.test.mjs
           node --check skyshift/render-optimizer-v0111.mjs
           node --check skyshift/render-optimizer-v0111.test.mjs
           node --check skyshift/performance-audit-v0111.mjs
@@ -380,7 +381,7 @@ jobs:
         # Historical test files contain version-pinned active HTML assertions for
         # superseded releases. Keep them archived; gate the current release
         # with unaffected core physics tests and new 0.10.9.1 assertions.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0110.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0111.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs
 
   browser-smoke:
     name: Render & CPU Optimization 0.11.1 WebGL smoke

@@ -53,6 +53,10 @@ try{
     baseline.motionRig?.version!=="unified-flight-motion-0112"||
     baseline.motionRig?.physicsChanged||baseline.motionRig?.extraDrawCalls!==0)
   throw Error("0.11.3 normal game profile regression "+JSON.stringify(baseline));
+ // Visual comparison artifact: the premium default shown with its actual
+ // current SMAA and optimized HDR bloom, not a shader-only mock.
+ if(baseline.visualFidelity.profile==="near-field-pbr-sheen")
+  await page.screenshot({path:"skyshift-v0113-smart-fidelity.png"});
  // REAL production ESM, not reimplemented geometry or an image-only fake.
  const physical=await page.evaluate(async()=>{
   const [m,road,rail,cinema,boost]=await Promise.all([

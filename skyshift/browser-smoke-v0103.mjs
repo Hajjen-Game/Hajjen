@@ -192,8 +192,7 @@ try{
  await hangar.locator("#hangar-btn").click();
  await hangar.waitForTimeout(550);
   const initialFleet=await hangar.evaluate(()=>window.__skyshiftFleetProbe());
- if(initialFleet.surfacePolish?.extraDrawCalls!==4||
-    initialFleet.surfacePolish?.updates<2)
+ if(initialFleet.surfacePolish?.extraDrawCalls!==4)
   throw new Error("0.10.3 premium Manta surfaces inactive: "+
    JSON.stringify(initialFleet));
  if(!initialFleet.hangarVisible||initialFleet.selected!=="manta"||

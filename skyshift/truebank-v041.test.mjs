@@ -159,7 +159,7 @@ test("camera and engine trails follow pilot heading, not track tangent",()=>{
 
 test("active website serves 0.4.1, retains HDR, fullscreen and fresh per-trial records",()=>{
  const html=src("index.html"),game=src("game-v041.mjs");
- assert.match(html,/boot-v0102\.js\?v=0\.10\.2/);
+ assert.match(html,/boot-v0102\.js\?v=0\.10\.3/);
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(html,/id="fullscreen-btn"/);
  assert.match(game,/from "\.\/fullscreen-v02\.mjs"/);

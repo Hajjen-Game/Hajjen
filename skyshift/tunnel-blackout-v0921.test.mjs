@@ -108,9 +108,9 @@ test("live 0.10.3 remains 3 laps, 0.9.0.1 handling and 0.9.1 flight motion",()=>
  const game=src("./game-v0103.mjs"),
   html=src("./index.html"),boot=src("./boot-v0103.js"),
   previous=src("./game-v092.mjs");
- assert.match(html,/boot-v0102\.js\?v=0\.10\.3/);
- assert.match(html,/data-game-module="game-v0102\.mjs"/);
- assert.match(boot,/game-v0102\.mjs\?v=0\.10\.3/);
+ assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
+ assert.match(html,/data-game-module="game-v0103\.mjs"/);
+ assert.match(boot,/game-v0103\.mjs\?v=0\.10\.3/);
  assert.match(game,/version:"0\.10\.3"/);
  assert.match(game,/tunnel-blackout-v0921\.mjs/);
  assert.match(game,/installBlackoutRoadShading/);

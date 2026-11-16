@@ -58,7 +58,7 @@ test("0.10.2 returns to the live racing track Hangar without changing pilot phys
  assert.match(game,/world\.visible=true/);
  assert.doesNotMatch(game,/world\.visible=false/);
  assert.match(game,/placeShip\(now\/1000,dt,view,motionState,cinematicState\)/);
- assert.match(game,/ship\.position\.x-3\.5/);
+ assert.match(game,/ship\.position\.x-6\.5/);
  assert.doesNotMatch(game,/ship\.position\.set\(0,1\.62,0\)/);
  assert.match(game,/trial-v0901\.mjs/);
  assert.match(game,/signature-flight-v091\.mjs/);

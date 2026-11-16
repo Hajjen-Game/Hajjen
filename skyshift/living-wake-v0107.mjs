@@ -93,17 +93,21 @@ export function historyPoint(h,side,ageIndex){
 }
 function putTrianglePair(pos,col,start,a,b,halfA,halfB,lightA,lightB,halo){
  // Camera-facing tangent units are supplied from 'a' and 'b' as nx,ny,nz.
+ // RGBA vertex alpha is essential: normal blending with RGB-only colors
+ // would create dark opaque patches instead of translucent condensation.
+ const colorOffset=start/3*4;
  for(let i=0;i<6;i++){
   const far=i===2||i===4||i===5;
   const sign=(i===1||i===2||i===4)?1:-1;
   const p=far?b:a,w=(far?halfB:halfA)*sign;
   const light=far?lightB:lightA;
-  const k=start+i*3;
+  const k=start+i*3,c=colorOffset+i*4;
   pos[k]=p.x+p.nx*w;pos[k+1]=p.y+p.ny*w;pos[k+2]=p.z+p.nz*w;
-  // Very restrained, white-grey condensation; never neon/exhaust.
-  col[k]=light*(halo?.94:1);
-  col[k+1]=light*(halo?.98:1);
-  col[k+2]=light;
+  // Neutral-white vapor with TRUE per-vertex transparency and age decay.
+  col[c]=halo?.92:.97;
+  col[c+1]=halo?.97:.99;
+  col[c+2]=1;
+  col[c+3]=clamp(light,0,1);
  }
 }
 export function createLivingWakeFX(THREE,scene,ship,
@@ -111,10 +115,10 @@ export function createLivingWakeFX(THREE,scene,ship,
  const cfg=LIVING_WAKE,tips=wingtipEmitters(variant);
  const history=createWakeHistory();
  const count=cfg.emitters*cfg.segmentsPerTip*cfg.layers*6;
- const xyz=new Float32Array(count*3),rgb=new Float32Array(count*3);
+ const xyz=new Float32Array(count*3),rgb=new Float32Array(count*4);
  const geometry=new THREE.BufferGeometry();
  const position=new THREE.BufferAttribute(xyz,3).setUsage(THREE.DynamicDrawUsage);
- const color=new THREE.BufferAttribute(rgb,3).setUsage(THREE.DynamicDrawUsage);
+ const color=new THREE.BufferAttribute(rgb,4).setUsage(THREE.DynamicDrawUsage);
  geometry.setAttribute("position",position);geometry.setAttribute("color",color);
  const material=new THREE.MeshBasicMaterial({
   color:0xffffff,vertexColors:true,transparent:true,opacity:1,

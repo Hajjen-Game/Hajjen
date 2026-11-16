@@ -1859,6 +1859,7 @@ try{
    ...fleetStatus(fleetProgress),activeShipId,previewShipId,
    tail:activeCraft?.tailStats?.()??null,
    surfacePolish:activeCraft?.polishStats?.()??null,
+   wingFlaps:reactiveWingFlaps?.stats?.()??null,
    hangarVisible:!UI.hangar.classList.contains("hidden")
   });
  window.__skyshiftBootReady?.(enterPlaying);

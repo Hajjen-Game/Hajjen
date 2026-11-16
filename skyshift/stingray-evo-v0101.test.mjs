@@ -69,11 +69,11 @@ test("30/60/120 fps animation stays close, capped and freezes at dt=0",()=>{
  resetTailState(a);
  assert.ok(a.yaw.every(x=>x===0)&&a.yawVelocity.every(x=>x===0));
 });
-test("normal flight untouched and full Hangar stage no longer blocks aircraft",()=>{
+test("archived 0.10.1 showroom remains intact while 0.10.2 is active",()=>{
  const html=read("./index.html"),boot=read("./boot-v0101.js"),
   game=read("./game-v0101.mjs"),css=read("./fleet-v0101.css");
- assert.match(html,/data-game-module="game-v0101\.mjs"/);
- assert.match(html,/boot-v0101\.js\?v=0\.10\.1/);
+ assert.match(html,/data-game-module="game-v0102\.mjs"/);
+ assert.match(html,/boot-v0102\.js\?v=0\.10\.2/);
  assert.match(boot,/game-v0101\.mjs\?v=0\.10\.1/);
  assert.match(game,/version:"0\.10\.1"/);
  assert.match(game,/stingray-evo-v0101\.mjs/);

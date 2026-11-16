@@ -202,9 +202,13 @@ try{
  const stage=async(stage,airborne=false,boost=false)=>{
   await vapor.evaluate(([n,a,b])=>window.__skyshiftVaporSmoke(n,a,b),
    [stage,airborne,boost]);
-  await vapor.waitForFunction(expected=>
-   window.__skyshiftWingVaporInfo()?.currentStrands===expected,
-   stage===0?0:Math.min(7,stage)*2,{timeout:12000});
+  await vapor.waitForFunction(({expected,minLength})=>{
+   const state=window.__skyshiftWingVaporInfo?.();
+   return state?.currentStrands===expected &&
+    (minLength===0||state?.lastLengthMeters>=minLength);
+  },{expected:stage===0?0:Math.min(7,stage)*2,
+     minLength:stage===0?0:stage===3?3.4:boost?9.0:6.2},
+    {timeout:30000});
   return vapor.evaluate(()=>window.__skyshiftWingVaporInfo());
  };
  const idle=await stage(0);

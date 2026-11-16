@@ -1437,6 +1437,15 @@ function installWaveSmokeHook(){
 // Actual play never invokes or exposes this function.
 function installTunnelSmokeHook(){
  if(new URLSearchParams(location.search).get("tunnelSmoke")!=="1")return;
+ window.__skyshiftTunnelLightInfo=()=>({
+  levels:{...tunnelBlackout?.levels},
+  lightIntensity:{ambient:worldLights?.ambient.intensity,
+   key:worldLights?.key.intensity,fill:worldLights?.fill.intensity},
+  engineIntensity:engineLights.map(light=>light.intensity),
+  bladeTipOpacity:bladeTips?.material.opacity,
+  baselineShipGlowOpacity:shipGlow?.opacity,
+  state:tunnelBlackout?.audit()
+ });
  window.__skyshiftTunnelSmoke=(at=2435)=>{
   if(uiState.mode!=="playing")throw new Error("Tunnel smoke requires active race");
   const s=clamp(at,SHADOW_TUNNEL.start+48,SHADOW_TUNNEL.end-48);

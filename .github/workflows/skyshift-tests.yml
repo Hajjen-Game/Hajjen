@@ -347,6 +347,11 @@ jobs:
           node --check skyshift/game-v0108.mjs
           node --check skyshift/boot-v0108.js
           node --check skyshift/browser-smoke-v0108.mjs
+          node --check skyshift/rail-scrape-sparks-v0109.mjs
+          node --check skyshift/rail-scrape-sparks-v0109.test.mjs
+          node --check skyshift/game-v0109.mjs
+          node --check skyshift/boot-v0109.js
+          node --check skyshift/browser-smoke-v0109.mjs
           node --check skyshift/grip-first-v0901.test.mjs
           node --check skyshift/signature-flight-v091.test.mjs
           node --check skyshift/shadow-tunnel-v092.test.mjs
@@ -356,11 +361,11 @@ jobs:
       - name: Verify SKYSHIFT deterministic track planner
         # Historical test files contain version-pinned active HTML assertions for
         # superseded releases. Keep them archived; gate the current release
-        # with unaffected core physics tests and new 0.10.8 assertions.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/reactive-wing-flaps-v0108.test.mjs
+        # with unaffected core physics tests and new 0.10.9 assertions.
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0109.test.mjs
 
   browser-smoke:
-    name: Reactive Wing Flaps 0.10.8 WebGL smoke
+    name: Rail Scrape Sparks 0.10.9 WebGL smoke
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -371,17 +376,19 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Render SKYSHIFT 0.10.8 mechanical elevons, glowing edges, GRIP and Hangar in Chrome WebGL
-        run: node skyshift/browser-smoke-v0108.mjs
+      - name: Render SKYSHIFT 0.10.9 physical white-gold rail sparks, world physics and GRIP in Chrome WebGL
+        run: node skyshift/browser-smoke-v0109.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v0108-reactive-wing-flaps
+          name: skyshift-v0109-rail-scrape-sparks
           path: |
-            skyshift-v0108-blackout-tunnel.png
-            skyshift-v0108-stingray-hangar.png
-            skyshift-v0108-grip-wake.png
-            skyshift-v0108-boost-wake.png
-            skyshift-v0108-flaps-grip-right.png
-            skyshift-v0108-flaps-grip-left.png
+            skyshift-v0109-blackout-tunnel.png
+            skyshift-v0109-stingray-hangar.png
+            skyshift-v0109-grip-wake.png
+            skyshift-v0109-boost-wake.png
+            skyshift-v0109-flaps-grip-right.png
+            skyshift-v0109-flaps-grip-left.png
+            skyshift-v0109-rail-sparks-right.png
+            skyshift-v0109-rail-sparks-left.png
           if-no-files-found: ignore

@@ -1,4 +1,4 @@
-// SKYSHIFT 0.9.2.1 – True darkness tunnel, PBR blackout and engine-only glow.
+// SKYSHIFT 0.10.0 – True darkness tunnel, PBR blackout and engine-only glow.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -104,14 +104,14 @@ test("only world PBR lights and starfield dim, existing engine local point light
  close(controller.levels.darkness,0);
  assert.ok(stats.blackoutFrames>=2);
 });
-test("live 0.9.2.1 remains 3 laps, 0.9.0.1 handling and 0.9.1 flight motion",()=>{
- const game=src("./game-v0921.mjs"),
-  html=src("./index.html"),boot=src("./boot-v0921.js"),
+test("live 0.10.0 remains 3 laps, 0.9.0.1 handling and 0.9.1 flight motion",()=>{
+ const game=src("./game-v010.mjs"),
+  html=src("./index.html"),boot=src("./boot-v010.js"),
   previous=src("./game-v092.mjs");
- assert.match(html,/boot-v0921\.js\?v=0\.9\.2\.1/);
- assert.match(html,/data-game-module="game-v0921\.mjs"/);
- assert.match(boot,/game-v0921\.mjs\?v=0\.9\.2\.1/);
- assert.match(game,/version:"0\.9\.2\.1"/);
+ assert.match(html,/boot-v010\.js\?v=0\.10\.0/);
+ assert.match(html,/data-game-module="game-v010\.mjs"/);
+ assert.match(boot,/game-v010\.mjs\?v=0\.10\.0/);
+ assert.match(game,/version:"0\.10\.0"/);
  assert.match(game,/tunnel-blackout-v0921\.mjs/);
  assert.match(game,/installBlackoutRoadShading/);
  assert.match(game,/createTunnelBlackoutController/);
@@ -121,6 +121,6 @@ test("live 0.9.2.1 remains 3 laps, 0.9.0.1 handling and 0.9.1 flight motion",()=
  assert.match(game,/signature-flight-v091\.mjs/);
  assert.match(game,/trial-v0901\.mjs/);
  assert.match(previous,/version:"0\.9\.2"/);
- assert.match(game,/skyshift-shadow-tunnel-v0921-audit\.json/);
+ assert.match(game,/skyshift-fleet-v010-audit\.json/);
  assert.equal(SHADOW_TUNNEL.lengthMeters,760);
 });

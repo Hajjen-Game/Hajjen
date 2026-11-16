@@ -103,9 +103,9 @@ test("production page and boot load v04991; old gameplay and SMAA stay intact",(
  const game=src("./game-v0103.mjs");
  const browser=src("./browser-smoke-v04991.mjs");
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
- assert.match(html,/boot-v0102\.js\?v=0\.10\.3/);
- assert.match(html,/data-game-module="game-v0102\.mjs"/);
- assert.match(boot,/import\("\.\/game-v0102\.mjs\?v=0\.10\.3"\)/);
+ assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
+ assert.match(html,/data-game-module="game-v0103\.mjs"/);
+ assert.match(boot,/import\("\.\/game-v0103\.mjs\?v=0\.10\.3"\)/);
  assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);
  assert.match(game,/version:"0\.10\.3"/);
  assert.match(game,/skyshift-premium-ship-v0103-audit\.json/);

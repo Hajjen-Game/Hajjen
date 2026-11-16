@@ -79,9 +79,9 @@ test("PBR deck darkens only INSIDE while guide, boost and zone emission survive"
 test("active 0.10.3 uses tunnel geometry and dark/glow shader, preserves 0.9.1 handling",()=>{
  const html=read("./index.html"),boot=read("./boot-v0103.js"),
   game=read("./game-v0103.mjs"),archived=read("./game-v091.mjs");
- assert.match(html,/boot-v0102\.js\?v=0\.10\.3/);
- assert.match(html,/data-game-module="game-v0102\.mjs"/);
- assert.match(boot,/game-v0102\.mjs\?v=0\.10\.3/);
+ assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
+ assert.match(html,/data-game-module="game-v0103\.mjs"/);
+ assert.match(boot,/game-v0103\.mjs\?v=0\.10\.3/);
  assert.match(game,/version:"0\.10\.3"/);
  assert.match(game,/shadow-tunnel-v092\.mjs/);
  assert.match(game,/installShadowTunnel/);

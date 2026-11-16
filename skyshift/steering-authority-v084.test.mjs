@@ -189,9 +189,9 @@ test("unchanged track, rails, physical leap, wall and corkscrew",()=>{
 test("active 0.10.3 camera build references archived 0.8.4 yaw for its legacy physics tests",()=>{
  const html=src("./index.html"),boot=src("./boot-v0103.js"),
   game=src("./game-v0103.mjs");
- assert.match(html,/boot-v0102\.js\?v=0\.10\.3/);
- assert.match(html,/data-game-module="game-v0102\.mjs"/);
- assert.match(boot,/game-v0102\.mjs\?v=0\.10\.3/);
+ assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
+ assert.match(html,/data-game-module="game-v0103\.mjs"/);
+ assert.match(boot,/game-v0103\.mjs\?v=0\.10\.3/);
  assert.match(game,/version:"0\.10\.3"/);
  assert.match(src("./trial-v084.mjs"),/steering-authority-v084/);
  assert.match(game,/steeringBalanceAt/);

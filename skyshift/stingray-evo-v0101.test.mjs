@@ -72,8 +72,8 @@ test("30/60/120 fps animation stays close, capped and freezes at dt=0",()=>{
 test("archived 0.10.1 showroom remains intact while 0.10.3 is active",()=>{
  const html=read("./index.html"),boot=read("./boot-v0101.js"),
   game=read("./game-v0101.mjs"),css=read("./fleet-v0101.css");
- assert.match(html,/data-game-module="game-v0102\.mjs"/);
- assert.match(html,/boot-v0102\.js\?v=0\.10\.3/);
+ assert.match(html,/data-game-module="game-v0103\.mjs"/);
+ assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(boot,/game-v0101\.mjs\?v=0\.10\.1/);
  assert.match(game,/version:"0\.10\.1"/);
  assert.match(game,/stingray-evo-v0101\.mjs/);

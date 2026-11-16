@@ -181,9 +181,9 @@ test("chase camera anticipates approaching slope, but stays pilot owned",()=>{
 test("archived SKYSHIFT 0.7.0 stays unbanked while active 0.10.3 uses air tricks",()=>{
  const html=src("./index.html"),boot=src("./boot-v0103.js"),
    game=src("./game-v0103.mjs"),smoke=src("./browser-smoke-v081.mjs");
- assert.match(html,/game-v0102\.mjs/);
+ assert.match(html,/game-v0103\.mjs/);
  assert.match(html,/Signature Flight Motion/);
- assert.match(boot,/game-v0102\.mjs\?v=0\.10\.3/);
+ assert.match(boot,/game-v0103\.mjs\?v=0\.10\.3/);
  for(const dep of ["trial-v0901","premium-track-v0901",
   "aero-barrier-v0901","cinematic-v0901"])
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);

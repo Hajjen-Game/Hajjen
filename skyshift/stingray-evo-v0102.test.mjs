@@ -50,9 +50,9 @@ test("same-side animation remains bounded on slow phones and after direction rev
 test("0.10.3 returns to the live racing track Hangar without changing pilot physics",()=>{
  const html=read("./index.html"),game=read("./game-v0103.mjs"),
   boot=read("./boot-v0103.js"),css=read("./fleet-v0102.css");
- assert.match(html,/boot-v0102\.js\?v=0\.10\.3/);
- assert.match(html,/data-game-module="game-v0102\.mjs"/);
- assert.match(boot,/game-v0102\.mjs\?v=0\.10\.3/);
+ assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
+ assert.match(html,/data-game-module="game-v0103\.mjs"/);
+ assert.match(boot,/game-v0103\.mjs\?v=0\.10\.3/);
  assert.match(game,/version:"0\.10\.3"/);
  assert.match(game,/stingray-evo-v0103\.mjs/);
  assert.match(game,/world\.visible=true/);

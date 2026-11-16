@@ -143,11 +143,11 @@ test("same road mesh and indexed raised rail system; larger curves physically na
 test("production loads faster diverse race and retains existing HUD/SMAA",()=>{
  const html=source("./index.html"),boot=source("./boot-v0103.js"),
   game=source("./game-v0103.mjs"),browser=source("./browser-smoke-v081.mjs");
- assert.match(html,/game-v0102\.mjs/);
- assert.match(html,/boot-v0102\.js\?v=0\.10\.3/);
+ assert.match(html,/game-v0103\.mjs/);
+ assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(html,/10200 M/);
  assert.match(html,/style-v061\.css/);
- assert.match(boot,/import\("\.\/game-v0102\.mjs\?v=0\.10\.3"\)/);
+ assert.match(boot,/import\("\.\/game-v0103\.mjs\?v=0\.10\.3"\)/);
  assert.match(game,/version:"0\.10\.3"/);
  assert.match(game,/zone_speed_increase/);
  assert.match(game,/skyshift-premium-ship-v0103-audit\.json/);

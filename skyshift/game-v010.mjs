@@ -1572,6 +1572,9 @@ function installTunnelSmokeHook(){
  });
  window.__skyshiftTunnelSmoke=(at=2435)=>{
   if(uiState.mode!=="playing")throw new Error("Tunnel smoke requires active race");
+  // Freeze 120Hz physics while CI captures a stable, legal tunnel pose.
+  // This hook is only installed with ?tunnelSmoke=1.
+  waveSmokeHold=true;
   const s=clamp(at,SHADOW_TUNNEL.start+48,SHADOW_TUNNEL.end-48);
   const p=positionAt(s,0,0);
   Object.assign(flight,{s,lap:1,worldX:p.x,worldZ:p.z,

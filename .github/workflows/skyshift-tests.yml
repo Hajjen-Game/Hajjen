@@ -297,6 +297,11 @@ jobs:
           node --check skyshift/game-v010.mjs
           node --check skyshift/boot-v010.js
           node --check skyshift/browser-smoke-v010.mjs
+          node --check skyshift/stingray-evo-v0101.mjs
+          node --check skyshift/stingray-evo-v0101.test.mjs
+          node --check skyshift/game-v0101.mjs
+          node --check skyshift/boot-v0101.js
+          node --check skyshift/browser-smoke-v0101.mjs
           node --check skyshift/grip-first-v0901.test.mjs
           node --check skyshift/signature-flight-v091.test.mjs
           node --check skyshift/shadow-tunnel-v092.test.mjs
@@ -304,7 +309,7 @@ jobs:
           node --check skyshift/steering-authority-v084.test.mjs
           node --check skyshift/browser-smoke-v0481.mjs
       - name: Verify SKYSHIFT deterministic track planner
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/fullscreen-v02.test.mjs skyshift/trial-v03.test.mjs skyshift/neon-v031.test.mjs skyshift/neon-v032.test.mjs skyshift/identity-v033.test.mjs skyshift/luminance-v0331.test.mjs skyshift/clean-v034.test.mjs skyshift/flow-v04.test.mjs skyshift/truebank-v041.test.mjs skyshift/handling-v042.test.mjs skyshift/speed-v043.test.mjs skyshift/flight-motion-v044.test.mjs skyshift/cinematic-v045.test.mjs skyshift/track-flow-v046.test.mjs skyshift/aero-barrier-v047.test.mjs skyshift/boost-zone-v048.test.mjs skyshift/premium-track-v0481.test.mjs skyshift/premium-ship-v0482.test.mjs skyshift/manta-blade-v0483.test.mjs skyshift/hard-edge-v0484.test.mjs skyshift/extended-zone-v049.test.mjs skyshift/spectral-zone-v0491.test.mjs skyshift/mobile-boot-v04911.test.mjs skyshift/white-core-v0492.test.mjs skyshift/spectral-balance-v0493.test.mjs skyshift/boost-chase-v0494.test.mjs skyshift/boost-spring-v0495.test.mjs skyshift/velocity-language-v0496.test.mjs skyshift/elevated-rails-v0497.test.mjs skyshift/image-clarity-v0498.test.mjs skyshift/reactive-hud-v0499.test.mjs skyshift/racing-hud-v04991.test.mjs skyshift/full-circuit-v050.test.mjs skyshift/speed-track-v051.test.mjs skyshift/circuit-v060.test.mjs skyshift/precision-grip-v061.test.mjs skyshift/track-3d-v070.test.mjs skyshift/magnetic-wall-v071.test.mjs skyshift/corkscrew-v072.test.mjs skyshift/air-tricks-v080.test.mjs skyshift/grip-leap-v081.test.mjs skyshift/track-rhythm-v082.test.mjs skyshift/racing-feel-v083.test.mjs skyshift/steering-authority-v084.test.mjs skyshift/kinetic-camera-v090.test.mjs skyshift/grip-first-v0901.test.mjs skyshift/signature-flight-v091.test.mjs skyshift/shadow-tunnel-v092.test.mjs skyshift/tunnel-blackout-v0921.test.mjs skyshift/fleet-v010.test.mjs skyshift/stingray-evo-v010.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/fullscreen-v02.test.mjs skyshift/trial-v03.test.mjs skyshift/neon-v031.test.mjs skyshift/neon-v032.test.mjs skyshift/identity-v033.test.mjs skyshift/luminance-v0331.test.mjs skyshift/clean-v034.test.mjs skyshift/flow-v04.test.mjs skyshift/truebank-v041.test.mjs skyshift/handling-v042.test.mjs skyshift/speed-v043.test.mjs skyshift/flight-motion-v044.test.mjs skyshift/cinematic-v045.test.mjs skyshift/track-flow-v046.test.mjs skyshift/aero-barrier-v047.test.mjs skyshift/boost-zone-v048.test.mjs skyshift/premium-track-v0481.test.mjs skyshift/premium-ship-v0482.test.mjs skyshift/manta-blade-v0483.test.mjs skyshift/hard-edge-v0484.test.mjs skyshift/extended-zone-v049.test.mjs skyshift/spectral-zone-v0491.test.mjs skyshift/mobile-boot-v04911.test.mjs skyshift/white-core-v0492.test.mjs skyshift/spectral-balance-v0493.test.mjs skyshift/boost-chase-v0494.test.mjs skyshift/boost-spring-v0495.test.mjs skyshift/velocity-language-v0496.test.mjs skyshift/elevated-rails-v0497.test.mjs skyshift/image-clarity-v0498.test.mjs skyshift/reactive-hud-v0499.test.mjs skyshift/racing-hud-v04991.test.mjs skyshift/full-circuit-v050.test.mjs skyshift/speed-track-v051.test.mjs skyshift/circuit-v060.test.mjs skyshift/precision-grip-v061.test.mjs skyshift/track-3d-v070.test.mjs skyshift/magnetic-wall-v071.test.mjs skyshift/corkscrew-v072.test.mjs skyshift/air-tricks-v080.test.mjs skyshift/grip-leap-v081.test.mjs skyshift/track-rhythm-v082.test.mjs skyshift/racing-feel-v083.test.mjs skyshift/steering-authority-v084.test.mjs skyshift/kinetic-camera-v090.test.mjs skyshift/grip-first-v0901.test.mjs skyshift/signature-flight-v091.test.mjs skyshift/shadow-tunnel-v092.test.mjs skyshift/tunnel-blackout-v0921.test.mjs skyshift/fleet-v010.test.mjs skyshift/stingray-evo-v010.test.mjs skyshift/stingray-evo-v0101.test.mjs
 
   browser-smoke:
     name: Premium material WebGL smoke
@@ -318,13 +323,13 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Render SKYSHIFT 0.10.0 Fleet & Stingray EVO in Chrome WebGL and Android touch
-        run: node skyshift/browser-smoke-v010.mjs
+      - name: Render SKYSHIFT 0.10.1 Kinetic Tail & Hangar Polish in Chrome WebGL and Android touch
+        run: node skyshift/browser-smoke-v0101.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v010-fleet-and-stingray
+          name: skyshift-v0101-stingray-kinetic
           path: |
-            skyshift-v010-blackout-tunnel.png
-            skyshift-v010-stingray-hangar.png
+            skyshift-v0101-blackout-tunnel.png
+            skyshift-v0101-stingray-hangar.png
           if-no-files-found: ignore

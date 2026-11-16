@@ -216,15 +216,15 @@ test("long GPU geometry is rendered ONCE; HDR shader front repeats without a sea
  assert.match(source,/state\.playerStage/);
 });
 test("production route preserves original HUD, SMAA and three-lap telemetry",()=>{
- const html=src("./index.html"),game=src("./game-v0921.mjs"),
-  boot=src("./boot-v0921.js"),smoke=src("./browser-smoke-v081.mjs");
- assert.match(html,/data-game-module="game-v0921\.mjs"/);
- assert.match(html,/boot-v0921\.js\?v=0\.9\.2\.1/);
+ const html=src("./index.html"),game=src("./game-v010.mjs"),
+  boot=src("./boot-v010.js"),smoke=src("./browser-smoke-v081.mjs");
+ assert.match(html,/data-game-module="game-v010\.mjs"/);
+ assert.match(html,/boot-v010\.js\?v=0\.10\.0/);
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(html,/id="lap-info"/);
  assert.match(html,/id="lap-number"/);
  assert.match(html,/id="final-laps"/);
- assert.match(boot,/import\("\.\/game-v0921\.mjs\?v=0\.9\.2\.1"\)/);
+ assert.match(boot,/import\("\.\/game-v010\.mjs\?v=0\.10\.0"\)/);
  for(const dep of ["trial-v0901","circuit-layout-v082","boost-v082",
   "zone-wave-v060","smooth-track-v0901","premium-track-v0901",
   "aero-barrier-v0901"]){
@@ -238,8 +238,8 @@ test("production route preserves original HUD, SMAA and three-lap telemetry",()=
  assert.match(game,/lap_completed/);
  assert.match(game,/lapTimesSeconds/);
  assert.match(game,/raceDistanceMeters/);
- assert.match(game,/version:"0\.9\.2\.1"/);
- assert.match(game,/skyshift-shadow-tunnel-v0921-audit\.json/);
+ assert.match(game,/version:"0\.10\.0"/);
+ assert.match(game,/skyshift-fleet-v010-audit\.json/);
  assert.match(smoke,/CIRCUIT\.laps/);
  assert.match(game,/from "\.\/neon-v083\.mjs"/);
  assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);

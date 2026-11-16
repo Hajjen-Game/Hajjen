@@ -43,16 +43,16 @@ test("stored progression survives reload and malformed data cannot equip locked 
  assert.equal(saveFleet(broken,selected).selected,"stingray");
 });
 test("production fleet has live hangar and retained previous handling",()=>{
- const html=read("./index.html"),boot=read("./boot-v0101.js"),
-  game=read("./game-v0101.mjs"),old=read("./game-v0921.mjs");
- assert.match(html,/data-game-module="game-v0101\.mjs"/);
- assert.match(html,/boot-v0101\.js\?v=0\.10\.1/);
- assert.match(boot,/game-v0101\.mjs\?v=0\.10\.1/);
+ const html=read("./index.html"),boot=read("./boot-v0102.js"),
+  game=read("./game-v0102.mjs"),old=read("./game-v0921.mjs");
+ assert.match(html,/data-game-module="game-v0102\.mjs"/);
+ assert.match(html,/boot-v0102\.js\?v=0\.10\.2/);
+ assert.match(boot,/game-v0102\.mjs\?v=0\.10\.2/);
  for(const id of ["hangar-screen","hangar-btn","hangar-back",
   "fleet-progress","fleet-unlock-toast","fleet-preview-title"]){
   assert.ok(html.includes('id="'+id+'"'),id);
  }
- assert.match(game,/version:"0\.10\.1"/);
+ assert.match(game,/version:"0\.10\.2"/);
  assert.match(game,/buildStingrayEvo/);
  assert.match(game,/readFleet\(fleetStorage\(\)\)/);
  assert.match(game,/recordFleetClear\(fleetProgress,won\)/);

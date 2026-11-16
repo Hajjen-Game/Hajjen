@@ -149,7 +149,7 @@ test("two genuine side jets use no lights or particles and ignite opposite of st
 });
 test("mobile GRIP and desktop Shift are explicit, touch-safe, and reset on pause",()=>{
  const html=src("./index.html"),css=src("./style-v061.css"),
-   game=src("./game-v010.mjs"),boot=src("./boot-v010.js");
+   game=src("./game-v0101.mjs"),boot=src("./boot-v0101.js");
  assert.match(html,/id="grip-btn"/);
  assert.match(html,/HOLD \+ STEER/);
  assert.match(html,/aria-pressed="false"/);
@@ -169,10 +169,10 @@ test("mobile GRIP and desktop Shift are explicit, touch-safe, and reset on pause
  assert.match(game,/gripActiveSeconds/);
  assert.match(game,/grip_activated/);
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
- assert.match(html,/boot-v010\.js\?v=0\.10\.0/);
- assert.match(html,/data-game-module="game-v010\.mjs"/);
- assert.match(boot,/import\("\.\/game-v010\.mjs\?v=0\.10\.0"\)/);
- assert.match(game,/version:"0\.10\.0"/);
+ assert.match(html,/boot-v0101\.js\?v=0\.10\.1/);
+ assert.match(html,/data-game-module="game-v0101\.mjs"/);
+ assert.match(boot,/import\("\.\/game-v0101\.mjs\?v=0\.10\.1"\)/);
+ assert.match(game,/version:"0\.10\.1"/);
  assert.match(game,/from "\.\/neon-v083\.mjs"/);
  assert.match(game,/from "\.\/trial-v0901\.mjs"/);
  assert.match(game,/from "\.\/aero-barrier-v0901\.mjs"/);

@@ -159,7 +159,13 @@ try{
     tunnel.geometry.drawBatches!==4||
     tunnel.geometry.additionalLights!==0)
   throw new Error("Shadow Tunnel render probe failed: "+JSON.stringify(tunnel));
- await page.waitForTimeout(700);
+ // Software WebGL and HDR can take more than 700ms per frame on CI.
+ // Wait for the REAL production lighting controller to observe the pose.
+ await page.waitForFunction(()=>{
+  const result=window.__skyshiftTunnelLightInfo?.();
+  return result?.levels?.darkness>.98&&
+    result?.lightIntensity?.ambient<.03;
+ },null,{timeout:30000});
  // The actual production WebGL scene—not a synthesized mock—must have
  // its world lights nearly off. Keep local twin-engine light sources on.
  const light=await page.evaluate(()=>window.__skyshiftTunnelLightInfo?.());

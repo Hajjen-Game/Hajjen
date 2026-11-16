@@ -1,4 +1,4 @@
-// SKYSHIFT 0.10.0 — Shadow Tunnel authored layout, glow shader, release safety.
+// SKYSHIFT 0.10.1 — Shadow Tunnel authored layout, glow shader, release safety.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -76,13 +76,13 @@ test("PBR deck darkens only INSIDE while guide, boost and zone emission survive"
  assert.throws(()=>shadeTunnelRoadGLSL("void main() {}"),/unsupported/);
  assert.ok(ZONE_PALETTES.length>=9);
 });
-test("active 0.10.0 uses tunnel geometry and dark/glow shader, preserves 0.9.1 handling",()=>{
- const html=read("./index.html"),boot=read("./boot-v010.js"),
-  game=read("./game-v010.mjs"),archived=read("./game-v091.mjs");
- assert.match(html,/boot-v010\.js\?v=0\.10\.0/);
- assert.match(html,/data-game-module="game-v010\.mjs"/);
- assert.match(boot,/game-v010\.mjs\?v=0\.10\.0/);
- assert.match(game,/version:"0\.10\.0"/);
+test("active 0.10.1 uses tunnel geometry and dark/glow shader, preserves 0.9.1 handling",()=>{
+ const html=read("./index.html"),boot=read("./boot-v0101.js"),
+  game=read("./game-v0101.mjs"),archived=read("./game-v091.mjs");
+ assert.match(html,/boot-v0101\.js\?v=0\.10\.1/);
+ assert.match(html,/data-game-module="game-v0101\.mjs"/);
+ assert.match(boot,/game-v0101\.mjs\?v=0\.10\.1/);
+ assert.match(game,/version:"0\.10\.1"/);
  assert.match(game,/shadow-tunnel-v092\.mjs/);
  assert.match(game,/installShadowTunnel/);
  assert.match(game,/installTunnelRoadShading/);

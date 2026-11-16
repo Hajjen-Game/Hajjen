@@ -115,7 +115,7 @@ test("live 0.10.1 remains 3 laps, 0.9.0.1 handling and 0.9.1 flight motion",()=>
  assert.match(game,/tunnel-blackout-v0921\.mjs/);
  assert.match(game,/installBlackoutRoadShading/);
  assert.match(game,/createTunnelBlackoutController/);
- assert.match(game,/tunnelBlackout\?\.apply\(flight\.s\)/);
+ assert.match(game,/tunnelBlackout\?\.apply\(uiState\.mode==="hangar"\?0:flight\.s\)/);
  assert.match(game,/shadowTunnel.*getStats/);
  assert.match(game,/kinetic-camera-v090\.mjs/);
  assert.match(game,/signature-flight-v091\.mjs/);

@@ -1692,6 +1692,12 @@ try{
  installWaveSmokeHook();
  installTunnelSmokeHook();
  if(new URLSearchParams(location.search).get("fleetSmoke")==="1")
+  window.__skyshiftFleetSmokeUnlock=()=>{
+   if(uiState.mode!=="hangar")throw new Error("Fleet QA requires Hangar");
+   fleetProgress=saveFleet(fleetStorage(),recordFleetClear(fleetProgress,true).state);
+   refreshHangar();
+   return fleetStatus(fleetProgress);
+  };
   window.__skyshiftFleetProbe=()=>({
    ...fleetStatus(fleetProgress),activeShipId,previewShipId,
    tail:activeCraft?.tailStats?.()??null,

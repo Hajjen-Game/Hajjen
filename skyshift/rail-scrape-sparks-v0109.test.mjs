@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {poseAt,widthAt,GUARDRAIL} from "./trial-v0901.mjs";
+import {poseAt,widthAt,GUARDRAIL,positionAt,surfaceNormalAt} from "./trial-v0901.mjs";
 import {RAIL_SPARKS,railContactPoint,sparkDemand,
  createSparkState,advanceSparkState,resetSparkState,createRailScrapeSparks
 } from "./rail-scrape-sparks-v0109.mjs";
@@ -16,7 +16,14 @@ test("collision anchors follow the ACTUAL banked rail face on both sides",()=>{
   const lx=(left.x-p.x)*p.rightX+(left.z-p.z)*p.rightZ;
   const rx=(right.x-p.x)*p.rightX+(right.z-p.z)*p.rightZ;
   assert.ok(lx<-.1&&rx>.1);
-  assert.ok(right.y>p.y-.8,"emitter at elevated contact face, not road center");
+  // Wall rides and corkscrews can invert world Y. Height is measured along
+  // the physical banked road NORMAL, not the global up axis.
+  const base=positionAt(s,widthAt(s)*.5-.69,0);
+  const n=surfaceNormalAt(s);
+  const h=(right.x-base.x)*n.x+(right.y-base.y)*n.y+
+   (right.z-base.z)*n.z;
+  assert.ok(Math.abs(h-.68)<1e-5,
+   "sparks emerge 0.68m above the actual banked contact surface");
   assert.ok(Math.abs(right.backwardX+p.forwardX)<1e-9);
   assert.ok(Math.abs(left.backwardZ+p.forwardZ)<1e-9);
   assert.ok(widthAt(s)/2-GUARDRAIL.collisionMargin>0);

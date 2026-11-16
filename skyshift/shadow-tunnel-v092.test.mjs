@@ -63,7 +63,8 @@ test("PBR deck darkens only INSIDE while guide, boost and zone emission survive"
   float velocityGlint=0.;
   vec3 totalEmissiveRadiance=vec3(0.);
   diffuseColor.rgb = road;
-  totalEmissiveRadiance += zoneGuide*velocityGlint*.35;
+  totalEmissiveRadiance += zoneGuide * guided * .24
+    + zoneGuide*velocityGlint*.35;
  }`;
  const patched=shadeTunnelRoadGLSL(fragment);
  assert.match(patched,/tunnelShade = smoothstep\(2050\.0,2080\.0,trackS\)/);

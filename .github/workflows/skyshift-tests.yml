@@ -363,6 +363,13 @@ jobs:
           node --check skyshift/game-v0110.mjs
           node --check skyshift/boot-v0110.js
           node --check skyshift/browser-smoke-v0110.mjs
+          node --check skyshift/render-optimizer-v0111.mjs
+          node --check skyshift/render-optimizer-v0111.test.mjs
+          node --check skyshift/performance-audit-v0111.mjs
+          node --check skyshift/neon-v0111.mjs
+          node --check skyshift/game-v0111.mjs
+          node --check skyshift/boot-v0111.js
+          node --check skyshift/browser-smoke-v0111.mjs
           node --check skyshift/grip-first-v0901.test.mjs
           node --check skyshift/signature-flight-v091.test.mjs
           node --check skyshift/shadow-tunnel-v092.test.mjs
@@ -373,10 +380,10 @@ jobs:
         # Historical test files contain version-pinned active HTML assertions for
         # superseded releases. Keep them archived; gate the current release
         # with unaffected core physics tests and new 0.10.9.1 assertions.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0110.test.mjs skyshift/performance-audit-v0110.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0110.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs
 
   browser-smoke:
-    name: Performance & Frame-Time Audit 0.11.0 WebGL smoke
+    name: Render & CPU Optimization 0.11.1 WebGL smoke
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -387,12 +394,12 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Render SKYSHIFT 0.10.9.1 brighter white-core sparks and collision flashes in Chrome WebGL
-        run: node skyshift/browser-smoke-v0110.mjs
+      - name: Verify SKYSHIFT 0.11.1 visuals, full HDR pipeline and optimized bloom in Chrome WebGL
+        run: node skyshift/browser-smoke-v0111.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v01091-spark-visibility-polish
+          name: skyshift-v0111-render-cpu-optimization
           path: |
             skyshift-v01091-blackout-tunnel.png
             skyshift-v01091-stingray-hangar.png

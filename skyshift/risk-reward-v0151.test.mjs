@@ -69,7 +69,7 @@ test("every gate has a reachable SAFE center and a physical RISK shoulder",()=>{
   const safe=riskChoiceAt(at,0);
   const risk=riskChoiceAt(at,center(g.riskMin,g.riskMax));
   assert.equal(safe.kind,"safe");assert.equal(risk.kind,"risk");
-  assert.equal(safe.group,g.id);assert.equal(risk.group,g.id);
+  assert.equal(safe.group,g.id+"-lap1");assert.equal(risk.group,g.id+"-lap1");
   near(safe.multiplier,g.safeMultiplier);
   near(risk.multiplier,g.riskMultiplier);
   assert.ok(g.riskMultiplier>g.safeMultiplier+.08);

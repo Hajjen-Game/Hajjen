@@ -441,11 +441,22 @@ jobs:
           node --check skyshift/browser-smoke-v0133.mjs
           node --check skyshift/rail-scrape-sparks-v0133.test.mjs
           node --check skyshift/ui-flow-v0133.test.mjs
+          node --check skyshift/blender/stingray-hero-v3-source-v0134.mjs
+          node --check skyshift/ship-art-pipeline-v0134.mjs
+          node --check skyshift/ship-hero-loader-v0134.mjs
+          node --check skyshift/hangar-hero-v0134.mjs
+          node --check skyshift/stingray-hero-v0134.test.mjs
+          node --check skyshift/ship-hero-loader-v0134.test.mjs
+          node --check skyshift/game-v0134.mjs
+          node --check skyshift/boot-v0134.js
+          node --check skyshift/browser-smoke-v0134.mjs
+          node --check skyshift/rail-scrape-sparks-v0134.test.mjs
+          node --check skyshift/ui-flow-v0134.test.mjs
           node --check skyshift/game-v0132.mjs
           node --check skyshift/boot-v0132.js
           node --check skyshift/browser-smoke-v0132.mjs
           node --check skyshift/rail-scrape-sparks-v0132.test.mjs
-          python3 -m py_compile skyshift/blender/build_stingray_hero.py skyshift/blender/convert_stingray_hero_v2.py skyshift/blender/validate_hero_glb.py
+          python3 -m py_compile skyshift/blender/build_stingray_hero.py skyshift/blender/convert_stingray_hero_v2.py skyshift/blender/convert_stingray_hero_v3.py skyshift/blender/validate_hero_glb.py
           python3 -m unittest discover -s skyshift/blender -p 'test_*.py'
           if [ -f skyshift/assets/ships/stingray-evo-hero-v1.glb ]; then
             python3 skyshift/blender/validate_hero_glb.py skyshift/assets/ships/stingray-evo-hero-v1.glb
@@ -460,10 +471,10 @@ jobs:
         # Historical test files contain version-pinned active HTML assertions for
         # superseded releases. Keep them archived; gate the current release
         # with unaffected core physics tests and new 0.10.9.1 assertions.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0133.test.mjs skyshift/ui-flow-v0133.test.mjs skyshift/stingray-hero-v0133.test.mjs skyshift/ship-hero-loader-v0133.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0134.test.mjs skyshift/ui-flow-v0134.test.mjs skyshift/stingray-hero-v0134.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
-    name: Stingray HERO 2.0 True Sculpt & Presentation 0.13.3 WebGL smoke
+    name: Stingray Silhouette & Hard-Surface 0.13.4 WebGL smoke
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -474,15 +485,15 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Verify SKYSHIFT 0.13.3 real cambered wings, V2 hero default, 3/4 Hangar showcase and 9-link living tail in Chrome WebGL
-        run: node skyshift/browser-smoke-v0133.mjs
+      - name: Verify SKYSHIFT 0.13.4 swept manta shape, V3 hero default, full-silhouette Hangar and original 9-link tail in Chrome WebGL
+        run: node skyshift/browser-smoke-v0134.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v0133-true-sculpt-stingray-hero
+          name: skyshift-v0134-manta-silhouette-hard-surface
           path: |
-            skyshift-v0133-stingray-hero.png
-            skyshift-v0133-stingray-hero-preview.png
+            skyshift-v0134-stingray-hero.png
+            skyshift-v0134-stingray-hero-preview.png
             skyshift-v01091-blackout-tunnel.png
             skyshift-v01091-stingray-hangar.png
             skyshift-v01091-grip-wake.png

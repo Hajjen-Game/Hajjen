@@ -1238,8 +1238,9 @@ function loop(now){
     wall:motionRig.wall,corkscrew:motionRig.corkscrew,
     playing:uiState.mode==="playing"
    });
-   // Same 0.11.3 finish; its spatial mask is now calculated per vertex.
-   // The low-memory shader is identical to 0.11.2; no extra passes.
+   // 0.11.4 optimized near-field PBR remains vertex-calculated even on
+   // 4GB devices by default. The classic low-memory shader is opt-out only.
+   // A51 still gets its ordinary adaptive DPR and optimized bloom pass.
    fidelitySignals.s=view.s;
    fidelitySignals.speed=flight.currentSpeed;
    fidelitySignals.boostMultiplier=Math.max(flight.boostMultiplier,
@@ -1411,6 +1412,7 @@ function exportAudit(){
      smartVisualFidelity:{...fidelityAudit(fidelityDirector),
       shaderVariant:premiumSurface?.fidelityShaderVariant,
       modeSelection:fidelityProfile.modeSelection,
+      shaderChangesOnLowMemory:fidelityProfile.lowMemory&&fidelityProfile.premium,
       premiumDefaultOnLowMemory:fidelityProfile.defaultPremiumOnLowMemory,
       userRequestedOff:fidelityProfile.userRequestedOff,
       adaptiveResolutionEnabled:!perfSettings.fixedQuality},
@@ -2054,6 +2056,7 @@ try{
   visualFidelity:fidelityDirector?{...fidelityAudit(fidelityDirector),
    shaderVariant:premiumSurface?.fidelityShaderVariant,
    modeSelection:fidelityProfile.modeSelection,
+   shaderChangesOnLowMemory:fidelityProfile.lowMemory&&fidelityProfile.premium,
    premiumDefaultOnLowMemory:fidelityProfile.defaultPremiumOnLowMemory,
    userRequestedOff:fidelityProfile.userRequestedOff,
    adaptiveResolutionEnabled:!perfSettings.fixedQuality}:null,

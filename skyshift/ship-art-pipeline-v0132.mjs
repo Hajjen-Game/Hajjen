@@ -116,6 +116,10 @@ export function installHeroBodyAndTail(THREE,craft,gltfScene,report=assessHeroAs
  for(const name of PROCEDURAL_BODY_MESHES_0132){
   ship.traverse(obj=>{if(obj.name===name&&obj.isMesh)obj.visible=false;});
  }
+ // v0.10.3 polishing overlays were authored for the old wing contour.
+ // Avoid a second floating set of shoulders, vents and static engine bezels.
+ // Existing v0.10.8 reactive FLAPS and existing engine VFX remain intact.
+ for(const part of craft.polishSurfaces??[])part.visible=false;
  for(const {joint,clone} of plateParts){
   for(const child of joint.children)
    if(child.name.startsWith("Stingray faceted armor plate"))

@@ -8,6 +8,8 @@ import {STINGRAY_PRESENTATION_01344 as spec,
  from "./stingray-presentation-v01344.mjs";
 import {TRIAL} from "./trial-v0901.mjs";
 import {STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
+import {buildStingrayHeroV4GLTF,HERO_V4_SPEC}
+ from "./blender/stingray-hero-v4-source-v01342.mjs";
 const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
 const art=JSON.parse(read("./assets/ships/stingray-evo-hero-v4.gltf"));
 const mesh=name=>art.meshes.find(m=>m.name===name);
@@ -105,4 +107,12 @@ test("0.13.4.4 boot and menu are wired to the new production module",()=>{
  assert.match(html,/data-game-module="game-v01344\.mjs"/);
  assert.match(html,/SKYLINE CIRCUIT · 0\.13\.4\.4/);
  assert.match(boot,/import\("\.\/game-v01344\.mjs\?v=0\.13\.4\.4"\)/);
+});
+
+test("production V4 sculpt remains byte-identical to reproducible source",()=>{
+ const built=buildStingrayHeroV4GLTF();
+ assert.equal(read("./assets/ships/stingray-evo-hero-v4.gltf"),built.content);
+ assert.equal(art.meshes.length,34);
+ assert.equal(art.materials.length,9);
+ assert.equal(HERO_V4_SPEC.physicsChanged,false);
 });

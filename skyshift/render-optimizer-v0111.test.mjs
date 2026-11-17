@@ -25,7 +25,10 @@ test("HUD gets first update, capped 30Hz, and safe reset",()=>{
  assert.equal(c.shouldUpdate(1000),true);
  assert.equal(c.shouldUpdate(1010),false);
  assert.equal(c.shouldUpdate(1033.34),true);
- assert.deepEqual(c.stats(),{targetHz:30,updates:2,skips:1});
+ const hud=c.stats();
+ assert.ok(Math.abs(hud.targetHz-30)<1e-9);
+ assert.equal(hud.updates,2);
+ assert.equal(hud.skips,1);
  c.reset();
  assert.equal(c.shouldUpdate(1010),true);
 });

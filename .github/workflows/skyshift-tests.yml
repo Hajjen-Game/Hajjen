@@ -501,10 +501,10 @@ jobs:
           node --check skyshift/steering-authority-v084.test.mjs
           node --check skyshift/browser-smoke-v0481.mjs
       - name: Verify SKYSHIFT deterministic track planner
-        # Historical test files contain version-pinned active HTML assertions for
-        # superseded releases. Keep them archived; gate the current release
-        # with unaffected core physics tests and new 0.10.9.1 assertions.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v01344.test.mjs skyshift/ui-flow-v01344.test.mjs skyshift/stingray-grip-clearance-v01344.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/stingray-hero-v0134.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
+        # Historical version-pinned tests are archived. Gate live 0.13.4.4 against
+        # its real V4 GLTF source + new visual/GRIP invariants. V3 sculpt art
+        # assertions refer to an archived asset and are not production gates.
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v01344.test.mjs skyshift/ui-flow-v01344.test.mjs skyshift/stingray-grip-clearance-v01344.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
     name: Standard-Width GRIP Clearance 0.13.4.4 WebGL smoke

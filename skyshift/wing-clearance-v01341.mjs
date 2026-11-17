@@ -180,7 +180,8 @@ export function createStingraySurfaceClearance(THREE,{
     Math.max(0,hit.margin-state.minAfter));
   return state.liftMeters;
  }
- return {bind,reset,frame,clampRoll:(fullRoll,physicalBank,grounded)=>{
+ return {bind,reset,frame,isActive:()=>state.active,
+  clampRoll:(fullRoll,physicalBank,grounded)=>{
    const out=clampVisualRoll(fullRoll,physicalBank,grounded);
    if(Math.abs(out-fullRoll)>1e-5)state.rollClamps++;
    return out;

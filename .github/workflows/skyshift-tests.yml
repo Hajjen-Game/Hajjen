@@ -400,6 +400,13 @@ jobs:
           node --check skyshift/boot-v0120.js
           node --check skyshift/browser-smoke-v0120.mjs
           node --check skyshift/rail-scrape-sparks-v0120.test.mjs
+          node --check skyshift/fidelity-settings-v0121.mjs
+          node --check skyshift/racing-experience-v0121.mjs
+          node --check skyshift/racing-experience-v0121.test.mjs
+          node --check skyshift/game-v0121.mjs
+          node --check skyshift/boot-v0121.js
+          node --check skyshift/browser-smoke-v0121.mjs
+          node --check skyshift/rail-scrape-sparks-v0121.test.mjs
           node --check skyshift/grip-first-v0901.test.mjs
           node --check skyshift/signature-flight-v091.test.mjs
           node --check skyshift/shadow-tunnel-v092.test.mjs
@@ -410,10 +417,10 @@ jobs:
         # Historical test files contain version-pinned active HTML assertions for
         # superseded releases. Keep them archived; gate the current release
         # with unaffected core physics tests and new 0.10.9.1 assertions.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0120.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0121.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
-    name: Racing Experience Evolution 0.12.0 WebGL smoke
+    name: Smart Fidelity & Power Carve 0.12.1 WebGL smoke
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -424,14 +431,14 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Verify SKYSHIFT 0.12.0 racing rhythm, sector landmarks, Fidelity, tunnel and 120 Hz flight in Chrome WebGL
-        run: node skyshift/browser-smoke-v0120.mjs
+      - name: Verify SKYSHIFT 0.12.1 premium Fidelity default, real Power Carve, no pylons and 120 Hz flight in Chrome WebGL
+        run: node skyshift/browser-smoke-v0121.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v0120-racing-experience-evolution
+          name: skyshift-v0121-smart-fidelity-power-carve
           path: |
-            skyshift-v0120-racing-experience.png
+            skyshift-v0121-power-carve.png
             skyshift-v01091-blackout-tunnel.png
             skyshift-v01091-stingray-hangar.png
             skyshift-v01091-grip-wake.png

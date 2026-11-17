@@ -1937,9 +1937,11 @@ function installControls(){
  UI.fidelityToggle.addEventListener("click",()=>{
   if(FIDELITY_0121.overridePresets.includes(perfSettings.preset))return;
   const next=!fidelityProfile.premium;
-  saveFidelityChoice(next,fleetStorage());
+  const saved=saveFidelityChoice(next,fleetStorage());
   const address=new URL(location.href);
   address.searchParams.delete("fidelity");
+  // Private-mode storage can be unavailable: keep the OFF choice in URL.
+  if(!saved)address.searchParams.set("fidelity",next?"on":"off");
   address.searchParams.set("v","0.12.1");
   location.assign(address.toString());
  });

@@ -43,7 +43,7 @@ jobs:
           mkdir -p skyshift/assets/ships
           blender --background --factory-startup --python skyshift/blender/build_stingray_hero.py -- \
             --out skyshift/assets/ships/stingray-evo-hero-v1.glb \
-            --save-blend /tmp/stingray-evo-hero-v1.blend
+            --save-blend skyshift/blender/build-output/stingray-evo-hero-v1.blend
       - name: Enforce 4GB mobile polygon, batching and named-socket contract
         run: |
           python3 skyshift/blender/validate_hero_glb.py \
@@ -55,7 +55,7 @@ jobs:
           name: skyshift-stingray-evo-blender-hero-v0132
           path: |
             skyshift/assets/ships/stingray-evo-hero-v1.glb
-            /tmp/stingray-evo-hero-v1.blend
+            skyshift/blender/build-output/stingray-evo-hero-v1.blend
           if-no-files-found: warn
       - name: Publish passing GLB to Skyline Circuit asset directory
         # Branch protections may deny this; the .blend + .glb are still

@@ -242,7 +242,7 @@ function normals(mesh){
  return out;
 }
 function base64(raw){
- const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+";
+ const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
  let s="";
  for(let i=0;i<raw.length;i+=3){
   const a=raw[i],b=i+1<raw.length?raw[i+1]:0,

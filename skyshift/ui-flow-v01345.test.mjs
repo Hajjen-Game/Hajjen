@@ -63,10 +63,10 @@ test("pause has working ghost toggle and return-to-menu without PB mutation",()=
  assert.doesNotMatch(method,/finishTimeTrial|savePersonalGhost|clearPersonalGhost/);
 });
 test("active boot, CSS and audit are all version-consistent",()=>{
- assert.match(html,/boot-v01345\.js\?v=0\.13\.4\.4" data-game-module="game-v01345\.mjs"/);
- assert.match(boot,/import\("\.\/game-v01345\.mjs\?v=0\.13\.4\.4"\)/);
- assert.match(html,/style-v0131\.css\?v=0\.13\.4\.4/);
- assert.match(app,/version:"0\.13\.4\.4"/);
+ assert.match(html,/boot-v01345\.js\?v=0\.13\.4\.5" data-game-module="game-v01345\.mjs"/);
+ assert.match(boot,/import\("\.\/game-v01345\.mjs\?v=0\.13\.4\.5"\)/);
+ assert.match(html,/style-v0131\.css\?v=0\.13\.4\.5/);
+ assert.match(app,/version:"0\.13\.4\.5"/);
  assert.match(app,/skyshift-v01345-performance-/);
- assert.match(app,/address\.searchParams\.set\("v","0\.13\.4\.4"\)/);
+ assert.match(app,/address\.searchParams\.set\("v","0\.13\.4\.5"\)/);
 });

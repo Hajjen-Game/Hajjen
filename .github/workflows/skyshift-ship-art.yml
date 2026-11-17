@@ -5,9 +5,9 @@ on:
     branches: [main]
     paths:
       - 'skyshift/blender/build_stingray_hero.py'
-      - 'skyshift/blender/stingray-hero-v2-source-v0133.mjs'
-      - 'skyshift/blender/convert_stingray_hero_v2.py'
-      - 'skyshift/assets/ships/stingray-evo-hero-v2.gltf'
+      - 'skyshift/blender/stingray-hero-v3-source-v0134.mjs'
+      - 'skyshift/blender/convert_stingray_hero_v3.py'
+      - 'skyshift/assets/ships/stingray-evo-hero-v3.gltf'
       - 'skyshift/blender/validate_hero_glb.py'
       - '.github/workflows/skyshift-ship-art.yml'
   workflow_dispatch:
@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   blender-export:
-    name: Generate and validate Stingray EVO HERO in actual Blender
+    name: Generate and validate Stingray EVO silhouette V3 in actual Blender
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -40,42 +40,42 @@ jobs:
       - name: Python static + binary validator regression
         run: |
           python3 -m py_compile skyshift/blender/build_stingray_hero.py
-          python3 -m py_compile skyshift/blender/convert_stingray_hero_v2.py
+          python3 -m py_compile skyshift/blender/convert_stingray_hero_v3.py
           python3 -m py_compile skyshift/blender/validate_hero_glb.py
           python3 -m unittest discover -s skyshift/blender -p 'test_*.py' -v
       - name: Import authored V2 sculpt into Blender, save editable .blend and export GLB
         run: |
           mkdir -p skyshift/assets/ships skyshift/blender/build-output
-          blender --background --factory-startup --python skyshift/blender/convert_stingray_hero_v2.py -- \
-            --source skyshift/assets/ships/stingray-evo-hero-v2.gltf \
-            --out skyshift/assets/ships/stingray-evo-hero-v2.glb \
-            --blend skyshift/blender/build-output/stingray-evo-hero-v2.blend
+          blender --background --factory-startup --python skyshift/blender/convert_stingray_hero_v3.py -- \
+            --source skyshift/assets/ships/stingray-evo-hero-v3.gltf \
+            --out skyshift/assets/ships/stingray-evo-hero-v3.glb \
+            --blend skyshift/blender/build-output/stingray-evo-hero-v3.blend
       - name: Enforce 4GB mobile polygon, batching and named-socket contract
         run: |
           python3 skyshift/blender/validate_hero_glb.py \
-            skyshift/assets/ships/stingray-evo-hero-v2.glb
-          test -s skyshift/assets/ships/stingray-evo-hero-v2.glb
+            skyshift/assets/ships/stingray-evo-hero-v3.glb
+          test -s skyshift/assets/ships/stingray-evo-hero-v3.glb
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-stingray-evo-blender-hero-v0133
+          name: skyshift-stingray-evo-blender-hero-v0134
           path: |
-            skyshift/assets/ships/stingray-evo-hero-v2.glb
-            skyshift/blender/build-output/stingray-evo-hero-v2.blend
+            skyshift/assets/ships/stingray-evo-hero-v3.glb
+            skyshift/blender/build-output/stingray-evo-hero-v3.blend
           if-no-files-found: warn
       - name: Publish passing GLB to Skyline Circuit asset directory
         # Branch protections may deny this; the .blend + .glb are still
         # archived above for manual publishing in that situation.
         if: github.ref == 'refs/heads/main'
         run: |
-          git add skyshift/assets/ships/stingray-evo-hero-v2.glb
+          git add skyshift/assets/ships/stingray-evo-hero-v3.glb
           if git diff --staged --quiet; then
             echo "Hero GLB is already current"
             exit 0
           fi
           git -c user.name='skyshift-ship-art-bot' \
               -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-              commit -m 'SKYSHIFT 0.13.3: publish Blender-exported Stingray HERO V2 GLB'
+              commit -m 'SKYSHIFT 0.13.4: publish Blender-exported Stingray HERO V3 GLB'
           for attempt in 1 2 3; do
             git pull --rebase origin main
             if git push origin HEAD:main; then

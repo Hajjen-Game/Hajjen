@@ -2505,7 +2505,9 @@ try{
    bloomScale:neonPipeline?.bloomResolutionScale,
    dpr:neonPipeline?.internalPixelRatio,fixedQuality:perfSettings.fixedQuality}
  });
- window.__skyshiftBootReady?.(enterPlaying);
+ // Pre-boot START queues a legacy "time-trial" mode string.
+ // Only actual selected catalog objects may enter Challenge mode.
+ window.__skyshiftBootReady?.(()=>enterPlaying(null));
  requestAnimationFrame(loop);
 }catch(error){
  console.error("SKYSHIFT startup failed",error);

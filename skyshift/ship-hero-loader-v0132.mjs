@@ -26,6 +26,7 @@ export function createShipArtController(THREE,{
   state.token=token;state.loaded=false;state.heroApplied=false;
   state.activeMode="procedural";state.error=null;
   state.triangles=0;state.addedDrawCalls=0;state.addedTextures=0;
+  state.assetFormat=null;
   state.requestedShip=id;
   if(state.requested!=="hero"){
    state.status="procedural";return state;
@@ -36,13 +37,24 @@ export function createShipArtController(THREE,{
   state.status="loading";state.attempts++;
   let imported=null;
   try{
-   const assetURL=new URL(SHIP_ART_0132.assetPath,import.meta.url);
-   const response=await (fetchAsset??fetch)(assetURL,{cache:"force-cache"});
+   // Prefer an actual Blender-exported binary GLB. Until Blender CI
+   // publishes it, the tracked first-playable text glTF is a real 3D mesh
+   // with identical named parts, not a runtime-generated Three.js craft.
+   const request=fetchAsset??fetch;
+   let response=await request(new URL(SHIP_ART_0132.assetPath,import.meta.url),
+    {cache:"force-cache"}),format="glb";
+   if(!response.ok){
+    response=await request(new URL(SHIP_ART_0132.previewAssetPath,import.meta.url),
+     {cache:"force-cache"});
+    format="gltf";
+   }
    if(!response.ok)
-    throw Error("Hero GLB missing: HTTP "+response.status);
-   const bytes=await response.arrayBuffer();
-   if(bytes.byteLength>SHIP_ART_0132.maxAssetBytes)
-    throw Error("Hero GLB size over mobile budget: "+bytes.byteLength);
+    throw Error("Stingray hero mesh unavailable (HTTP "+response.status+")");
+   const source=format==="glb"?await response.arrayBuffer():
+    await response.text();
+   const length=typeof source==="string"?source.length:source.byteLength;
+   if(length>SHIP_ART_0132.maxAssetBytes)
+    throw Error("Hero mesh exceeds mobile budget: "+length);
    let loader;
    if(loaderFactory)loader=await loaderFactory();
    else {
@@ -50,7 +62,7 @@ export function createShipArtController(THREE,{
     loader=new GLTFLoader();
    }
    const gltf=await new Promise((resolve,reject)=>
-    loader.parse(bytes,new URL("./assets/ships/",import.meta.url).href,
+    loader.parse(source,new URL("./assets/ships/",import.meta.url).href,
      resolve,reject));
    imported=gltf.scene;
    if(token!==generation||currentCraft()!==craft||
@@ -62,6 +74,7 @@ export function createShipArtController(THREE,{
    const installed=installHeroBodyAndTail(THREE,craft,imported,report);
    state.heroApplied=true;state.loaded=true;state.status="active";
    state.activeMode="hero";state.triangles=installed.triangles;
+   state.assetFormat=format;
    state.addedDrawCalls=installed.addedDrawCalls;
    return state;
   }catch(error){

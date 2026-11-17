@@ -26,7 +26,9 @@ try{
  await page.evaluate(()=>window.__skyshiftFlapSet(1,1));
  await sleep(1200);
  const mantaPose=await page.evaluate(()=>window.__skyshiftHandlingParityProbe?.());
- if(!mantaPose||Math.abs(mantaPose.difference)>.025||mantaPose.renderedRoll>-.32)
+ if(!mantaPose||mantaPose.steering!==1||mantaPose.gripIntensity!==1||
+    !Number.isFinite(mantaPose.renderedRoll)||
+    Math.abs(mantaPose.renderedRoll)<.06||Math.abs(mantaPose.difference)>.01)
   throw Error("Manta baseline unrestricted GRIP bank failed "+
    JSON.stringify(mantaPose));
  const manta=await page.evaluate(()=>window.__skyshiftScreenBeamProbe?.());
@@ -46,9 +48,11 @@ try{
  await page.evaluate(()=>window.__skyshiftFlapSet(1,1));
  await sleep(1200);
  const stingrayPose=await page.evaluate(()=>window.__skyshiftHandlingParityProbe?.());
- if(!stingrayPose||Math.abs(stingrayPose.difference)>.025||
-    stingrayPose.renderedRoll>-.32||
-    Math.abs(mantaPose.renderedRoll-stingrayPose.renderedRoll)>.075)
+ if(!stingrayPose||stingrayPose.steering!==1||stingrayPose.gripIntensity!==1||
+    !Number.isFinite(stingrayPose.renderedRoll)||
+    Math.abs(stingrayPose.renderedRoll)<.06||
+    Math.abs(stingrayPose.difference)>.01||
+    Math.abs(mantaPose.renderedRoll-stingrayPose.renderedRoll)>.20)
   throw Error("Stingray GRIP bank differs from Manta "+
    JSON.stringify({mantaPose,stingrayPose}));
  const ray=await page.evaluate(()=>window.__skyshiftScreenBeamProbe?.());

@@ -1,0 +1,52 @@
+/* SKYSHIFT 0.14.0 — interactive, lightweight challenge catalog. */
+#menu #challenges-btn{margin-top:8px}
+#challenges-screen .challenge-panel{position:relative;z-index:1;
+ width:min(830px,calc(100vw - 48px));height:min(86dvh,610px);
+ margin:auto;display:flex;flex-direction:column;gap:9px;
+ padding:12px 16px;border:1px solid #4eacbd71;border-radius:12px;
+ background:linear-gradient(165deg,rgba(5,19,37,.97),rgba(5,15,29,.94));
+ box-shadow:0 14px 50px #0008;color:#e7fbff;box-sizing:border-box}
+#challenges-screen .challenge-heading{display:flex;gap:14px;align-items:center;justify-content:space-between}
+#challenges-screen h2{font-size:clamp(18px,3vw,27px);letter-spacing:.09em;margin:2px 0 0}
+#challenge-summary{font-size:10px;color:#9bcbd8;letter-spacing:.07em}
+.challenge-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;
+ overflow:auto;min-height:0;flex:1;padding:2px 3px;scrollbar-width:thin}
+.challenge-card{display:flex;flex-direction:column;align-items:stretch;text-align:left;
+ min-height:68px;gap:3px;padding:8px 10px;background:rgba(14,46,67,.67);
+ color:#e8f9ff;border:1px solid #398ca16b;border-radius:8px;
+ cursor:pointer;touch-action:manipulation}
+.challenge-card .challenge-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.challenge-card .challenge-title{font-size:11px;font-weight:800;letter-spacing:.09em}
+.challenge-card .challenge-sub{font-size:9px;color:#b4d3de;letter-spacing:.03em}
+.challenge-card .challenge-state{font-size:9px;font-weight:800;letter-spacing:.08em;color:#83d7e9}
+.challenge-card[data-medal="bronze"]{border-color:#aa805f}
+.challenge-card[data-medal="silver"]{border-color:#bac8d9}
+.challenge-card[data-medal="gold"]{border-color:#efca6d}
+.challenge-card[data-medal="bronze"] .challenge-state{color:#d2a17a}
+.challenge-card[data-medal="silver"] .challenge-state{color:#d4ebf1}
+.challenge-card[data-medal="gold"] .challenge-state{color:#ffd571}
+.challenge-card:disabled{opacity:.49;cursor:not-allowed}
+.challenge-card:focus-visible{outline:2px solid #a2eeff;outline-offset:2px}
+#challenges-back-btn{align-self:center;min-width:160px;max-width:230px;padding:8px 15px}
+#challenge-hud{display:flex;gap:8px;align-items:center;justify-content:center;
+ font-size:11px;letter-spacing:.09em;color:#d3f9ff}
+#challenge-clock{font-size:14px;font-weight:850;font-variant-numeric:tabular-nums}
+#challenge-result{border:1px solid #5cb8cd7f;border-radius:8px;padding:9px;
+ background:rgba(11,46,63,.67);font-size:11px;line-height:1.45;
+ color:#d9f8ff}
+#challenge-result[data-medal="gold"]{border-color:#ffd16b;color:#ffe1a5}
+#challenge-result[data-medal="silver"]{border-color:#b8d9ed;color:#e0effd}
+#challenge-result[data-medal="bronze"]{border-color:#b38b69;color:#e1ba96}
+#challenge-end-back{width:100%;max-width:340px}
+@media(max-height:475px){
+ #challenges-screen .challenge-panel{height:calc(100dvh - 68px);padding:7px 11px;gap:5px}
+ #challenges-screen h2{font-size:18px}
+ .challenge-card{min-height:58px;padding:5px 8px}
+ .challenge-card .challenge-sub{font-size:8px}
+ #challenges-back-btn{padding:6px 10px;margin:0}
+ #menu #challenges-btn{padding:8px 12px;margin-top:6px}
+}
+
+#challenge-hud.hidden{display:none!important}
+#app.challenge-active #lap-info{display:none}
+#end-screen .screen-content.compact{max-height:calc(100dvh - 58px);overflow-y:auto}

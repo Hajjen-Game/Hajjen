@@ -512,6 +512,11 @@ jobs:
           node --check skyshift/handling-fairness-v0135.test.mjs
           node --check skyshift/handling-fairness-cli-v0135.mjs
           node --check skyshift/browser-fairness-v0135.mjs
+          node --check skyshift/skyline-challenges-v0140.mjs
+          node --check skyshift/skyline-challenges-v0140.test.mjs
+          node --check skyshift/browser-challenges-v0140.mjs
+          node --check skyshift/game-v0140.mjs
+          node --check skyshift/boot-v0140.js
           node --check skyshift/game-v0135.mjs
           node --check skyshift/boot-v0135.js
           node --check skyshift/rail-scrape-sparks-v01344.test.mjs
@@ -531,13 +536,13 @@ jobs:
           node --check skyshift/steering-authority-v084.test.mjs
           node --check skyshift/browser-smoke-v0481.mjs
       - name: Verify SKYSHIFT deterministic track planner
-        # Historical version-pinned tests (including 0.13.4.8 boot) are archived. Gate live 0.13.5 against
+        # Historical version-pinned tests are archived. Gate live 0.14.0 against
         # the deployed V4 GLTF geometry + visual/GRIP invariants. V3 sculpt art
         # assertions refer to an archived asset and are not production gates.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/handling-fairness-v0135.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/handling-fairness-v0135.test.mjs skyshift/skyline-challenges-v0140.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
-    name: SKYSHIFT 0.13.5 Fairness & GRIP WebGL
+    name: Skyline Challenges & Medals 0.14.0 WebGL
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -550,15 +555,15 @@ jobs:
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Export SKYSHIFT 0.13.5 deterministic handling fairness report
         run: node skyshift/handling-fairness-cli-v0135.mjs
-      - name: Verify SKYSHIFT 0.13.5 current WebGL and preserved half-boost GRIP
-        run: node skyshift/browser-fairness-v0135.mjs
+      - name: Verify SKYSHIFT 0.14.0 challenges, medals and original Time Trial
+        run: node skyshift/browser-challenges-v0140.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v01348-grip-half-power
+          name: skyshift-v0140-challenges-and-fairness
           path: |
             skyshift-fairness-v0135.json
-            skyshift-v0135-fairness-gameplay.png
+            skyshift-v0140-challenge-medals.png
             skyshift-v01091-blackout-tunnel.png
             skyshift-v01091-stingray-hangar.png
             skyshift-v01091-grip-wake.png

@@ -530,10 +530,10 @@ jobs:
           node --check skyshift/steering-authority-v084.test.mjs
           node --check skyshift/browser-smoke-v0481.mjs
       - name: Verify SKYSHIFT deterministic track planner
-        # Historical version-pinned tests are archived. Gate live 0.13.5 against
+        # Historical version-pinned tests (including 0.13.4.8 boot) are archived. Gate live 0.13.5 against
         # the deployed V4 GLTF geometry + visual/GRIP invariants. V3 sculpt art
         # assertions refer to an archived asset and are not production gates.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/grip-half-power-v01348.test.mjs skyshift/handling-fairness-v0135.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/handling-fairness-v0135.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
     name: Gameplay GRIP Half-Power 0.13.4.8 WebGL

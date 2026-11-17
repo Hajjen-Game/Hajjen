@@ -5,12 +5,16 @@ on:
     branches: [main]
     paths:
       - 'skyshift/blender/build_stingray_hero.py'
+      - 'skyshift/blender/stingray-hero-v2-source-v0133.mjs'
+      - 'skyshift/blender/convert_stingray_hero_v2.py'
+      - 'skyshift/assets/ships/stingray-evo-hero-v2.gltf'
       - 'skyshift/blender/validate_hero_glb.py'
       - '.github/workflows/skyshift-ship-art.yml'
   workflow_dispatch:
 
 # The generated .glb is a tracked game asset; .blend is kept as a build artifact.
-# Default gameplay will not load the asset unless ?shipArt=hero is requested.
+# The validated V2 glTF is used in-game. Blender GLB is a separate
+# editable/exported source for review; automatic runtime promotion is disabled.
 permissions:
   contents: write
 
@@ -28,7 +32,7 @@ jobs:
         with:
           persist-credentials: true
           fetch-depth: 0
-      - name: Install Blender 4.x export environment
+      - name: Install Blender export environment
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq blender
@@ -36,40 +40,42 @@ jobs:
       - name: Python static + binary validator regression
         run: |
           python3 -m py_compile skyshift/blender/build_stingray_hero.py
+          python3 -m py_compile skyshift/blender/convert_stingray_hero_v2.py
           python3 -m py_compile skyshift/blender/validate_hero_glb.py
           python3 -m unittest discover -s skyshift/blender -p 'test_*.py' -v
-      - name: Sculpt and export original Stingray HERO glTF model with Blender
+      - name: Import authored V2 sculpt into Blender, save editable .blend and export GLB
         run: |
-          mkdir -p skyshift/assets/ships
-          blender --background --factory-startup --python skyshift/blender/build_stingray_hero.py -- \
-            --out skyshift/assets/ships/stingray-evo-hero-v1.glb \
-            --save-blend skyshift/blender/build-output/stingray-evo-hero-v1.blend
+          mkdir -p skyshift/assets/ships skyshift/blender/build-output
+          blender --background --factory-startup --python skyshift/blender/convert_stingray_hero_v2.py -- \
+            --source skyshift/assets/ships/stingray-evo-hero-v2.gltf \
+            --out skyshift/assets/ships/stingray-evo-hero-v2.glb \
+            --blend skyshift/blender/build-output/stingray-evo-hero-v2.blend
       - name: Enforce 4GB mobile polygon, batching and named-socket contract
         run: |
           python3 skyshift/blender/validate_hero_glb.py \
-            skyshift/assets/ships/stingray-evo-hero-v1.glb
-          test -s skyshift/assets/ships/stingray-evo-hero-v1.glb
+            skyshift/assets/ships/stingray-evo-hero-v2.glb
+          test -s skyshift/assets/ships/stingray-evo-hero-v2.glb
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-stingray-evo-blender-hero-v0132
+          name: skyshift-stingray-evo-blender-hero-v0133
           path: |
-            skyshift/assets/ships/stingray-evo-hero-v1.glb
-            skyshift/blender/build-output/stingray-evo-hero-v1.blend
+            skyshift/assets/ships/stingray-evo-hero-v2.glb
+            skyshift/blender/build-output/stingray-evo-hero-v2.blend
           if-no-files-found: warn
       - name: Publish passing GLB to Skyline Circuit asset directory
         # Branch protections may deny this; the .blend + .glb are still
         # archived above for manual publishing in that situation.
         if: github.ref == 'refs/heads/main'
         run: |
-          git add skyshift/assets/ships/stingray-evo-hero-v1.glb
+          git add skyshift/assets/ships/stingray-evo-hero-v2.glb
           if git diff --staged --quiet; then
             echo "Hero GLB is already current"
             exit 0
           fi
           git -c user.name='skyshift-ship-art-bot' \
               -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-              commit -m 'SKYSHIFT 0.13.2: publish Blender-generated Stingray HERO GLB'
+              commit -m 'SKYSHIFT 0.13.3: publish Blender-exported Stingray HERO V2 GLB'
           for attempt in 1 2 3; do
             git pull --rebase origin main
             if git push origin HEAD:main; then

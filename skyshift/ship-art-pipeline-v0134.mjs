@@ -124,7 +124,7 @@ export function installHeroBodyAndTail(THREE,craft,gltfScene,report=assessHeroAs
  for(const name of PROCEDURAL_BODY_MESHES_0134){
   ship.traverse(obj=>{if(obj.name===name&&obj.isMesh)obj.visible=false;});
  }
- // v0.10.3 polishing overlays were authored for the old wing contour.
+ // Older polishing overlays were authored for the old wing contour.
  // Avoid a second floating set of shoulders, vents and static engine bezels.
  // Existing v0.10.8 reactive FLAPS and existing engine VFX remain intact.
  for(const part of craft.polishSurfaces??[])part.visible=false;
@@ -134,7 +134,7 @@ export function installHeroBodyAndTail(THREE,craft,gltfScene,report=assessHeroAs
     child.visible=false;
   joint.add(clone);
  }
- gltfScene.name="Blender Stingray HERO body · approved preview only";
+ gltfScene.name="Stingray HERO V3 · sculpted 3D flight body";
  gltfScene.traverse(obj=>{if(obj.isMesh){
   obj.castShadow=false;obj.receiveShadow=false;}});
  ship.add(gltfScene);

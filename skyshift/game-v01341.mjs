@@ -1212,7 +1212,7 @@ function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicSta
  // by steering animation. Bound only the EXTRA visual roll beyond road
  // bank; physical bank/handling/GRIP and air tricks are never modified.
  const protectWings=activeShipId==="stingray"&&
-  stingrayClearance.stats().active&&uiState.mode!=="menu";
+  stingrayClearance.isActive()&&uiState.mode!=="menu";
  ship.rotation.z=protectWings?
   stingrayClearance.clampRoll(rawVisualRoll,roadBank,view.grounded):
   rawVisualRoll;

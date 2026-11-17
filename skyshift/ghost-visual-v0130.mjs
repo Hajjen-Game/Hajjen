@@ -6,7 +6,7 @@ export const GHOST_VISUAL_0130=Object.freeze({
  version:"translucent-personal-ghost-0130",
  bodyTint:0x5bd9ff,edgeTint:0xeafcff,
  drawCalls:2,colliders:0,extraLights:0,renderPasses:0,
- estimatedTriangles:60,maxOpacity:.65,depthWrite:false,
+ estimatedTriangles:14,maxOpacity:.65,depthWrite:false,
  physicalFlightUnchanged:true,noRoadCenterlineApproximation:true
 });
 const vert=(x,y,z)=>[x,y,z];

@@ -79,7 +79,7 @@ const shaderBoostPads=BOOST_PADS.map(p=>{
     smoothstep(${glNumber(p.lateralMin-.25)},${glNumber(p.lateralMin+.10)},trackL) *
     (1.0-smoothstep(${glNumber(p.lateralMax-.10)},${glNumber(p.lateralMax+.25)},trackL));
    float arrow_${tag} = trackChevron(trackS-${glNumber(p.start)},
-      (trackL-${glNumber(center)})*${glNumber(2.6/half)}) * boost_${tag};`;
+      (trackL-(${glNumber(center)}))*${glNumber(2.6/half)}) * boost_${tag};`;
 }).join("\n");
 // Nest max() rather than emitting a two-argument-only expression so future
 // pads cannot accidentally generate invalid GLSL in a zone expansion.

@@ -159,6 +159,10 @@ test("same PBR road paints all source-defined pads and shows only post-jump prev
   assert.equal(render.end,pad.end);
  }
  assert.match(SURFACE_FRAGMENT_GLSL,/riskLead/);
+ // LEFT lane centre is a negative number. Do not emit invalid GLSL
+ // like "trackL--4.625" when translating the physical coordinate.
+ assert.doesNotMatch(SURFACE_FRAGMENT_GLSL,/trackL--[0-9]/);
+ assert.match(SURFACE_FRAGMENT_GLSL,/trackL-\\(-[0-9]/);
  const shader=patchPremiumShaders("#include <common>\n#include <begin_vertex>",
    "#include <common>\n#include <color_fragment>\n#include <emissivemap_fragment>");
  assert.match(shader.fragmentShader,/riskCoverage/);

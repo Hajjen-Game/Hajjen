@@ -67,6 +67,6 @@ test("active boot, CSS and audit are all version-consistent",()=>{
  assert.match(boot,/import\("\.\/game-v0132\.mjs\?v=0\.13\.2"\)/);
  assert.match(html,/style-v0131\.css\?v=0\.13\.2/);
  assert.match(app,/version:"0\.13\.2"/);
- assert.match(app,/skyshift-v0131-performance-/);
+ assert.match(app,/skyshift-v0132-performance-/);
  assert.match(app,/address\.searchParams\.set\("v","0\.13\.2"\)/);
 });

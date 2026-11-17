@@ -1,0 +1,34 @@
+/* SKYSHIFT 0.12.1: one compact graphics toggle beside existing Fullscreen.
+   No new HUD text, overlays, or racing-line decoration. */
+#menu .menu-utility-row{
+ display:flex;align-items:stretch;gap:8px;
+ width:min(430px,100%);margin-top:8px
+}
+#menu .menu-utility-row>.secondary{
+ display:flex;align-items:center;justify-content:center;
+ flex:1 1 0;width:auto;max-width:none;min-width:0;
+ min-height:39px;margin:0;padding:10px 7px;
+ font-size:10px;letter-spacing:.07em;font-weight:800;
+ line-height:1.25;text-align:center;white-space:nowrap
+}
+#menu #fidelity-btn[aria-pressed="true"]{
+ color:#e9fbff;border-color:#80dcec9c;
+ background:rgba(10,44,58,.74)
+}
+#menu #fidelity-btn[aria-pressed="false"]{
+ color:#a0b6c7;border-color:#6c879e77;
+ background:rgba(5,16,34,.77)
+}
+#menu #fidelity-btn:focus-visible{
+ outline:2px solid #e8fbff;outline-offset:3px
+}
+#menu #fidelity-btn:disabled{
+ opacity:.60;cursor:default
+}
+@media(max-height:490px){
+ #menu .menu-utility-row{margin-top:6px;gap:6px}
+ #menu .menu-utility-row>.secondary{min-height:34px;padding:8px 6px;font-size:10px}
+}
+@media(max-width:480px){
+ #menu .menu-utility-row>.secondary{font-size:9px;letter-spacing:.03em}
+}

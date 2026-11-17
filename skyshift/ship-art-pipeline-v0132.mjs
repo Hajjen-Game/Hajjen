@@ -4,6 +4,7 @@
 export const SHIP_ART_0132=Object.freeze({
  version:"blender-stingray-hero-pipeline-0132",
  assetPath:"./assets/ships/stingray-evo-hero-v1.glb",
+ previewAssetPath:"./assets/ships/stingray-evo-hero-v1.gltf",
  browserFlag:"shipArt",
  defaultMode:"procedural",
  optInMode:"hero",

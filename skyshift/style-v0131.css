@@ -1,0 +1,30 @@
+/* SKYSHIFT 0.13.1 — Menu Restraint.
+   Only START RUN + HANGAR in the main menu. Visual settings live under
+   a small accessible gear; ghost may be switched live from PAUSE. */
+#app>.topbar{z-index:9}
+#menu-settings-btn{display:grid;place-items:center;padding:0}
+#menu-settings-btn svg{width:22px;height:22px;display:block}
+#menu .tt-menu-status{margin-top:8px;letter-spacing:.12em;color:#8ecedb}
+#menu .hangar-entry{margin-top:10px}
+#settings-screen .settings-panel{width:min(385px,calc(100vw - 52px));margin:0 auto}
+#settings-screen .settings-title{font-size:clamp(31px,5.5vw,52px);letter-spacing:.035em;margin:0 0 14px}
+#settings-screen .settings-subhead{color:#94dce8;font-size:10px;letter-spacing:.19em;font-weight:900;margin:6px 0 10px}
+#settings-screen .settings-hint{color:#8ea9c4;font-size:10px;line-height:1.5;letter-spacing:.03em;max-width:340px;margin:8px 0 12px}
+#settings-screen .secondary{width:min(310px,100%);min-width:0;max-width:100%;padding:11px 15px;margin-top:9px;justify-content:space-between}
+#settings-screen #fidelity-btn[aria-pressed="true"]{border-color:#73daf0a1;color:#ebfcff;background:rgba(13,46,61,.76)}
+#settings-screen #fidelity-btn[aria-pressed="false"]{border-color:#5a7a94a0;color:#9db2c6;background:rgba(6,19,36,.84)}
+#settings-screen #fidelity-btn:disabled{opacity:.55}
+#settings-screen #settings-back-btn{margin-top:16px;border-color:#a9d8e071}
+#pause-screen .pause-option-row{display:flex;gap:8px;width:min(420px,100%)}
+#pause-screen .pause-option-row>.secondary{min-width:0;width:50%;max-width:none;justify-content:center;padding:11px 9px;letter-spacing:.06em;font-size:10px}
+#pause-screen #pause-ghost-toggle[aria-pressed="true"]{color:#d7fbff;border-color:#7fdef0a0}
+#pause-screen #pause-ghost-toggle[aria-pressed="false"]{color:#9bafc0;border-color:#5b768a6b}
+#pause-screen #pause-menu-btn{border-color:#9eabc061}
+@media(max-height:480px){
+ #settings-screen .settings-panel{transform:scale(.87);transform-origin:center center}
+ #settings-screen .settings-title{margin-bottom:8px}
+ #settings-screen .secondary{padding:9px 13px;margin-top:6px}
+ #settings-screen .settings-hint{margin:5px 0 8px}
+ #pause-screen .pause-option-row>.secondary{padding:8px 7px;margin-top:8px;font-size:9px}
+ #menu .tt-menu-status{margin-top:5px}
+}

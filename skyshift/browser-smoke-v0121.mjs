@@ -60,7 +60,7 @@ try{
     baseline.visualFidelity.extraRenderPasses!==0||
     baseline.visualFidelity.extraDrawCalls!==0||
     baseline.visualFidelity.pixelModOps!==0||
-    baseline.visualFidelity.shaderStage!==(baseline.visualFidelity.lowMemory?"none":"vertex")||
+    baseline.visualFidelity.shaderStage!=="vertex"||
     baseline.visualFidelity.pilotPhysicsChanged||
     !baseline.visualFidelity.whiteCoreUnchanged)
   throw Error("0.12.1 visual fidelity / production WebGL profile regression "+

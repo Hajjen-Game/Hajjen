@@ -1,0 +1,82 @@
+name: SKYSHIFT Blender Stingray HERO asset build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skyshift/blender/build_stingray_hero.py'
+      - 'skyshift/blender/validate_hero_glb.py'
+      - '.github/workflows/skyshift-ship-art.yml'
+  workflow_dispatch:
+
+# The generated .glb is a tracked game asset; .blend is kept as a build artifact.
+# Default gameplay will not load the asset unless ?shipArt=hero is requested.
+permissions:
+  contents: write
+
+concurrency:
+  group: skyshift-ship-art-build
+  cancel-in-progress: false
+
+jobs:
+  blender-export:
+    name: Generate and validate Stingray EVO HERO in actual Blender
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+      - name: Install Blender 4.x export environment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq blender
+          blender --version | head -2
+      - name: Python static + binary validator regression
+        run: |
+          python3 -m py_compile skyshift/blender/build_stingray_hero.py
+          python3 -m py_compile skyshift/blender/validate_hero_glb.py
+          python3 -m unittest discover -s skyshift/blender -p 'test_*.py' -v
+      - name: Sculpt and export original Stingray HERO glTF model with Blender
+        run: |
+          mkdir -p skyshift/assets/ships
+          blender --background --factory-startup --python skyshift/blender/build_stingray_hero.py -- \
+            --out skyshift/assets/ships/stingray-evo-hero-v1.glb \
+            --save-blend /tmp/stingray-evo-hero-v1.blend
+      - name: Enforce 4GB mobile polygon, batching and named-socket contract
+        run: |
+          python3 skyshift/blender/validate_hero_glb.py \
+            skyshift/assets/ships/stingray-evo-hero-v1.glb
+          test -s skyshift/assets/ships/stingray-evo-hero-v1.glb
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-stingray-evo-blender-hero-v0132
+          path: |
+            skyshift/assets/ships/stingray-evo-hero-v1.glb
+            /tmp/stingray-evo-hero-v1.blend
+          if-no-files-found: warn
+      - name: Publish passing GLB to Skyline Circuit asset directory
+        # Branch protections may deny this; the .blend + .glb are still
+        # archived above for manual publishing in that situation.
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git add skyshift/assets/ships/stingray-evo-hero-v1.glb
+          if git diff --staged --quiet; then
+            echo "Hero GLB is already current"
+            exit 0
+          fi
+          git -c user.name='skyshift-ship-art-bot' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -m 'SKYSHIFT 0.13.2: publish Blender-generated Stingray HERO GLB'
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then
+              echo "Blender HERO asset published"
+              exit 0
+            fi
+            sleep 4
+          done
+          echo "Could not push generated GLB; download the workflow artifact"
+          exit 1

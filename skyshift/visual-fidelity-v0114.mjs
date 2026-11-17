@@ -122,10 +122,10 @@ varying float vFidelityMask;
 `;
  return {
   vertexShader:vertex.replace(vHeader,vHeader+vDeclarations)
-    .replace(assign,assign+"\\n"+vSignal),
+    .replace(assign,assign+"\n"+vSignal),
   fragmentShader:fragment.replace(fHeader,fHeader+fDeclarations)
-    .replace(road,fSignal+"\\n  "+road)
-    .replace(rough,rough+"\\n"+roughExt)
+    .replace(road,fSignal+"\n  "+road)
+    .replace(rough,rough+"\n"+roughExt)
  };
 }
 export function createSmartPremiumTrackMaterial(THREE,profile){

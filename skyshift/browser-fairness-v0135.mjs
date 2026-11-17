@@ -46,7 +46,7 @@ try{
    active:window.__skyshiftPerfProbe?.().state,
    canvasWidth:document.querySelector("#game")?.width};
  });
- if(!real.version.includes("0.13.4.8")||
+ if(!real.version.includes("0.13.5")||
     real.active!=="playing"||!real.canvasWidth)
   throw Error("Gameplay boot failed "+JSON.stringify(real));
  for(const row of real.rows){

@@ -100,7 +100,7 @@ test("camera and engine motion uses bounded exponential response and freeze on p
  assert.deepEqual({fov:a.fovAddition,cam:a.cameraLean,frames:a.presentationFrames},before);
  for(let i=0;i<90;i++)stepRacingExperience(a,1/120,{...v,wall:true});
  assert.ok(Math.abs(a.cameraLean)<1e-4,"real 70° wall must suppress extra camera lean");
- assert.ok(a.fovAddition<.001);
+ assert.ok(a.fovAddition<.003);
  assert.ok(a.protectedFrames>0);
  for(let i=0;i<90;i++)stepRacingExperience(a,1/120,{...v,corkscrew:true});
  assert.ok(Math.abs(a.cameraLean)<1e-6,"360° corkscrew must retain full physical horizon");

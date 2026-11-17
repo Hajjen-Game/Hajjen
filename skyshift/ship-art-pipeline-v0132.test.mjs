@@ -15,9 +15,15 @@ function makeObject(name,options={}){
   children:options.children??[]};
 }
 function asset({omit="",extra=0,texture=false,lights=0}={}){
+ const materialPool=new Map();
  const parts=SHIP_ART_0132.requiredMeshes.filter(n=>n!==omit)
-  .map((name,i)=>makeObject(name,{count:120,material:
-   ["armor","wing","glass","glow","engine","tail"][i%6]}));
+  .map((name,i)=>{
+   const label=["armor","wing","glass","glow","engine","tail"][i%6];
+   if(!materialPool.has(label))materialPool.set(label,{name:label});
+   const obj=makeObject(name,{count:120,material:label});
+   obj.material=materialPool.get(label);
+   return obj;
+  });
  for(let i=0;i<extra;i++)parts.push(makeObject("Hero_Detail_"+i,{count:120}));
  if(texture)parts[0].material={map:{image:{}},name:"forbidden-texture"};
  if(lights)parts.push(makeObject("Fake Light",{mesh:false,light:true}));

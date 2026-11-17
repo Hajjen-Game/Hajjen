@@ -101,7 +101,7 @@ export function evaluateChallenge(c,metrics){
  const masterGold=c.type!=="master"||[
   (m.qualifiedLandings??0)>=1,(m.cleanCarves??0)>=1,
   (m.cleanWallExits??0)>=1,(m.cleanCorkscrewExits??0)>=1
- ].filter(Boolean).length>=3;
+ ].filter(Boolean).length===4;
  const gold=silver&&masterGold&&(m.railContacts??0)===0&&
   m.elapsed<=c.goldSeconds;
  return {medal:gold?"gold":silver?"silver":"bronze",skillMet:skill,

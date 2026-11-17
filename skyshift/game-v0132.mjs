@@ -2110,7 +2110,7 @@ function installControls(){
   address.searchParams.delete("fidelity");
   // Private-mode storage can be unavailable: keep the OFF choice in URL.
   if(!saved)address.searchParams.set("fidelity",next?"on":"off");
-  address.searchParams.set("v","0.13.1");
+  address.searchParams.set("v","0.13.2");
   location.assign(address.toString());
  });
  UI.export.addEventListener("click",exportAudit);

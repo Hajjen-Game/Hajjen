@@ -459,11 +459,23 @@ jobs:
           node --check skyshift/browser-smoke-v01341.mjs
           node --check skyshift/rail-scrape-sparks-v01341.test.mjs
           node --check skyshift/ui-flow-v01341.test.mjs
+          node --check skyshift/stingray-presentation-v01342.mjs
+          node --check skyshift/stingray-evo-v01342.mjs
+          node --check skyshift/blender/stingray-hero-v4-source-v01342.mjs
+          node --check skyshift/ship-art-pipeline-v01342.mjs
+          node --check skyshift/ship-hero-loader-v01342.mjs
+          node --check skyshift/stingray-static-tail-v01342.test.mjs
+          node --check skyshift/ship-hero-loader-v01342.test.mjs
+          node --check skyshift/game-v01342.mjs
+          node --check skyshift/boot-v01342.js
+          node --check skyshift/browser-smoke-v01342.mjs
+          node --check skyshift/rail-scrape-sparks-v01342.test.mjs
+          node --check skyshift/ui-flow-v01342.test.mjs
           node --check skyshift/game-v0132.mjs
           node --check skyshift/boot-v0132.js
           node --check skyshift/browser-smoke-v0132.mjs
           node --check skyshift/rail-scrape-sparks-v0132.test.mjs
-          python3 -m py_compile skyshift/blender/build_stingray_hero.py skyshift/blender/convert_stingray_hero_v2.py skyshift/blender/convert_stingray_hero_v3.py skyshift/blender/validate_hero_glb.py
+          python3 -m py_compile skyshift/blender/build_stingray_hero.py skyshift/blender/convert_stingray_hero_v2.py skyshift/blender/convert_stingray_hero_v3.py skyshift/blender/convert_stingray_hero_v4.py skyshift/blender/validate_hero_glb.py
           python3 -m unittest discover -s skyshift/blender -p 'test_*.py'
           if [ -f skyshift/assets/ships/stingray-evo-hero-v1.glb ]; then
             python3 skyshift/blender/validate_hero_glb.py skyshift/assets/ships/stingray-evo-hero-v1.glb
@@ -478,10 +490,10 @@ jobs:
         # Historical test files contain version-pinned active HTML assertions for
         # superseded releases. Keep them archived; gate the current release
         # with unaffected core physics tests and new 0.10.9.1 assertions.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v01341.test.mjs skyshift/ui-flow-v01341.test.mjs skyshift/wing-clearance-v01341.test.mjs skyshift/stingray-hero-v0134.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v01342.test.mjs skyshift/ui-flow-v01342.test.mjs skyshift/stingray-static-tail-v01342.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/stingray-hero-v0134.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
-    name: Stingray Clearance & Surface Integrity 0.13.4.1 WebGL smoke
+    name: Stingray Static Hover & Faceted Tail 0.13.4.2 WebGL smoke
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -492,15 +504,15 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Verify SKYSHIFT 0.13.4.1 actual wing underside clearance and bank normals, original physics and 3D Hangar in Chrome WebGL
-        run: node skyshift/browser-smoke-v01341.mjs
+      - name: Verify SKYSHIFT 0.13.4.2 rollback of dynamic lift, stable ship scale, genuine V4 faceted tail and original steering in Chrome WebGL
+        run: node skyshift/browser-smoke-v01342.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v01341-wing-surface-clearance
+          name: skyshift-v01342-stable-hover-faceted-tail
           path: |
-            skyshift-v01341-stingray-hero.png
-            skyshift-v01341-stingray-hero-preview.png
+            skyshift-v01342-stingray-hero.png
+            skyshift-v01342-stingray-hero-preview.png
             skyshift-v01091-blackout-tunnel.png
             skyshift-v01091-stingray-hangar.png
             skyshift-v01091-grip-wake.png

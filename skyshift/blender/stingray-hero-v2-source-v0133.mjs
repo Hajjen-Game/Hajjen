@@ -184,8 +184,6 @@ for(const [sign,L] of [[-1,"L"],[1,"R"]]){
  const ice=part("Hero_Detail_Ice_"+L,6);
  strip(ice,[.88,1.20,1.55,1.91,2.27,2.63,3.0,3.36]
   .map(x=>surf(sign,x,.83,.028)),.055);
- const stripe=part("Hero_Detail_Stripe_"+L,6);
- strip(stripe,[2.92,3.04,3.18].map(x=>surf(sign,x,.55,.03)),.05);
  const nacelle=part("Hero_Engine_"+L,4);
  cappedLoft(nacelle,[
   [1.13,sign*1.99,.16,.12,.13],

@@ -497,6 +497,11 @@ jobs:
           node --check skyshift/boot-v01346.js
           node --check skyshift/stingray-scale-ownership-v01346.test.mjs
           node --check skyshift/browser-scale-ownership-v01346.mjs
+          node --check skyshift/stingray-presentation-v01347.mjs
+          node --check skyshift/game-v01347.mjs
+          node --check skyshift/boot-v01347.js
+          node --check skyshift/handling-parity-v01347.test.mjs
+          node --check skyshift/browser-handling-parity-v01347.mjs
           node --check skyshift/rail-scrape-sparks-v01344.test.mjs
           node --check skyshift/game-v0132.mjs
           node --check skyshift/boot-v0132.js
@@ -514,13 +519,13 @@ jobs:
           node --check skyshift/steering-authority-v084.test.mjs
           node --check skyshift/browser-smoke-v0481.mjs
       - name: Verify SKYSHIFT deterministic track planner
-        # Historical version-pinned tests are archived. Gate live 0.13.4.6 against
+        # Historical version-pinned tests are archived. Gate live 0.13.4.7 against
         # the deployed V4 GLTF geometry + visual/GRIP invariants. V3 sculpt art
         # assertions refer to an archived asset and are not production gates.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/stingray-scale-ownership-v01346.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/handling-parity-v01347.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
-    name: Stingray true root-scale ownership 0.13.4.6 WebGL
+    name: Shared Steering & GRIP Pose 0.13.4.7 WebGL
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -531,14 +536,14 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Verify SKYSHIFT 0.13.4.6 actual engine root-scale composition and projected wing parity
-        run: node skyshift/browser-scale-ownership-v01346.mjs
+      - name: Verify SKYSHIFT 0.13.4.7 identical Manta / Stingray GRIP pose and retained wing width
+        run: node skyshift/browser-handling-parity-v01347.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v01346-true-root-scale-parity
+          name: skyshift-v01347-shared-steering-parity
           path: |
-            skyshift-v01346-root-scale-parity.png
+            skyshift-v01347-shared-grip-pose.png
             skyshift-v01091-blackout-tunnel.png
             skyshift-v01091-stingray-hangar.png
             skyshift-v01091-grip-wake.png

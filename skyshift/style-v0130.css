@@ -1,0 +1,57 @@
+/* SKYSHIFT 0.13.0 — time-trial option and single-line delta.
+   No new always-on race HUD, no large mode overlay, no mobile obstruction. */
+#menu .tt-start-row{
+ display:flex;gap:8px;align-items:stretch;
+ width:min(430px,100%);margin-top:7px
+}
+#menu .tt-start-row>.secondary{
+ margin:0;padding:8px 12px;min-width:0;min-height:36px;
+ font-size:10px;font-weight:850;letter-spacing:.11em;
+ display:flex;align-items:center;justify-content:space-between;
+ border-color:#8fdfee6b
+}
+#menu #time-trial-btn{flex:1 1 0}
+#menu #ghost-toggle{flex:0 0 116px;justify-content:center}
+#menu #ghost-toggle[aria-pressed="false"]{
+ color:#849ab2;border-color:#6c819963;background:rgba(6,18,33,.86)
+}
+#menu .tt-menu-status{
+ font-size:9px;letter-spacing:.13em;line-height:1.25;
+ color:#adc7da;margin:5px 0 0;min-height:11px
+}
+#menu .hangar-entry{margin-top:8px}
+#tt-hud{
+ display:flex;align-items:center;justify-content:center;
+ gap:8px;margin-top:5px;white-space:nowrap;
+ font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+ text-shadow:0 0 9px #050d1f
+}
+#tt-hud .tt-tag{font-size:9px;letter-spacing:.12em;font-weight:900;color:#91bdd0}
+#tt-clock{font-size:13px;letter-spacing:.045em;font-weight:900;color:#e8f8ff}
+#tt-delta{font-size:12px;font-weight:900;letter-spacing:.035em;color:#aebfd4}
+#tt-delta.ahead{color:#8cf3ec}
+#tt-delta.behind{color:#ffd3a2}
+#tt-result{
+ font-size:11px;letter-spacing:.08em;font-weight:800;
+ padding:5px 0;margin:2px 0 4px;
+ color:#c8ecff;max-width:420px;
+ font-variant-numeric:tabular-nums
+}
+#tt-result.new-best{color:#95ffef}
+@media(max-height:490px){
+ #menu .tt-start-row{margin-top:5px;gap:6px}
+ #menu .tt-start-row>.secondary{min-height:29px;padding:5px 10px;font-size:9px}
+ #menu #ghost-toggle{flex-basis:96px}
+ #menu .tt-menu-status{margin-top:3px;font-size:8px}
+ #menu .instructions{margin-top:6px;line-height:1.5}
+ #menu .prototype-label{margin-top:5px}
+ #tt-hud{margin-top:3px;gap:5px}
+ #tt-clock{font-size:12px}
+ #tt-delta{font-size:11px}
+}
+@media(max-width:650px) and (orientation:landscape){
+ #tt-hud{gap:4px}
+ #tt-hud .tt-tag{font-size:8px}
+ #tt-clock{font-size:11px}
+ #tt-delta{font-size:10px}
+}

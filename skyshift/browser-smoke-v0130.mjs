@@ -623,7 +623,7 @@ try{
   mode:window.__skyshiftPerfProbe?.().timeTrial,
   visual:window.__skyshiftPerfProbe?.().ghostVisual
  }));
- if(!trialLive.hud||!/^\\d\\d:\\d\\d\\.\\d\\d$/.test(trialLive.timing)||
+ if(!trialLive.hud||!/^\d\d:\d\d\.\d\d$/.test(trialLive.timing)||
   !trialLive.delta?.includes("Δ")||
   !trialLive.mode?.hasPersonalBest||trialLive.mode?.samplesWritten<1||
   trialLive.visual?.colliders!==0||trialLive.visual?.drawCalls!==2||

@@ -484,6 +484,7 @@ function openHangar(){
  UI.hangar.classList.remove("hidden");
  UI.hud.classList.add("hidden");UI.controls.classList.add("hidden");
  UI.pauseBtn.classList.add("hidden");
+ UI.fullscreen.classList.add("hidden");
  UI.settingsOpen.classList.add("hidden");
 }
 function closeHangar(){
@@ -494,6 +495,7 @@ function closeHangar(){
  uiState.mode="menu";
  if(activeShipId!==fleetProgress.selected)makeShip(fleetProgress.selected);
  UI.settingsOpen.classList.remove("hidden");
+ UI.fullscreen.classList.add("hidden");
  resetFlight();
 }
 function previewFleetShip(id){
@@ -843,7 +845,8 @@ function endRun(won){
  refreshTrialMenu();
  event(won?"trial_clear":"trial_failed",{shield:flight.shield});
  UI.hud.classList.add("hidden");UI.controls.classList.add("hidden");
- UI.pauseBtn.classList.add("hidden");UI.end.classList.remove("hidden");
+ UI.pauseBtn.classList.add("hidden");UI.fullscreen.classList.add("hidden");
+ UI.end.classList.remove("hidden");
 }
 function announceSector(index){
  const palette=ZONE_PALETTES[index],color=palette.light;

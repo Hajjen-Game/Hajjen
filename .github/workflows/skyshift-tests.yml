@@ -422,6 +422,7 @@ jobs:
           node --check skyshift/ship-art-pipeline-v0132.mjs
           node --check skyshift/ship-hero-loader-v0132.mjs
           node --check skyshift/ship-art-pipeline-v0132.test.mjs
+          node --check skyshift/ui-flow-v0132.test.mjs
           node --check skyshift/game-v0132.mjs
           node --check skyshift/boot-v0132.js
           node --check skyshift/browser-smoke-v0132.mjs
@@ -441,7 +442,7 @@ jobs:
         # Historical test files contain version-pinned active HTML assertions for
         # superseded releases. Keep them archived; gate the current release
         # with unaffected core physics tests and new 0.10.9.1 assertions.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0132.test.mjs skyshift/ui-flow-v0131.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0132.test.mjs skyshift/ui-flow-v0132.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
     name: Blender Stingray HERO Pipeline 0.13.2 WebGL smoke

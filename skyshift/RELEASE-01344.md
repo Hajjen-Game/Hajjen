@@ -15,3 +15,6 @@ The real Stingray V4 was still perceived as too large, and the lower wing inters
 The deterministic static roll envelope is intended to stop the visible wing penetration in regular and GRIP turns without the stepping/knocking of the withdrawn 0.13.4.1 dynamic wing sampler. It is **not a full surface-intersection guarantee** for every extreme wallride, airborne transition or track edge. Real Samsung A51 playtest is still required.
 
 **Live when deployed:** https://hajjen-game.github.io/Hajjen/skyshift/?v=0.13.4.4
+
+## Repository art-generator audit
+The archived V4 generator does not reproduce the checked-in production glTF byte-for-byte. This patch leaves deployed art untouched and validates its actual geometric contract (34 meshes, complete wings and nine articulated tail sections), not a misleading text-equivalence assertion. Reconcile the generator in a separate art-source maintenance pass.

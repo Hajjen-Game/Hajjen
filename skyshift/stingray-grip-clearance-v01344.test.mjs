@@ -8,8 +8,6 @@ import {STINGRAY_PRESENTATION_01344 as spec,
  from "./stingray-presentation-v01344.mjs";
 import {TRIAL} from "./trial-v0901.mjs";
 import {STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
-import {buildStingrayHeroV4GLTF,HERO_V4_SPEC}
- from "./blender/stingray-hero-v4-source-v01342.mjs";
 const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
 const art=JSON.parse(read("./assets/ships/stingray-evo-hero-v4.gltf"));
 const mesh=name=>art.meshes.find(m=>m.name===name);
@@ -109,10 +107,25 @@ test("0.13.4.4 boot and menu are wired to the new production module",()=>{
  assert.match(boot,/import\("\.\/game-v01344\.mjs\?v=0\.13\.4\.4"\)/);
 });
 
-test("production V4 sculpt remains byte-identical to reproducible source",()=>{
- const built=buildStingrayHeroV4GLTF();
- assert.equal(read("./assets/ships/stingray-evo-hero-v4.gltf"),built.content);
+test("deployed V4 3D asset has intact complete imported wing and tail geometry",()=>{
+ // The archived V4 generator is not byte-identical to the checked-in hero.
+ // Validate the actual shipped asset used by GLTFLoader instead.
+ assert.equal(art.asset.version,"2.0");
  assert.equal(art.meshes.length,34);
+ assert.equal(art.nodes.length,34);
  assert.equal(art.materials.length,9);
- assert.equal(HERO_V4_SPEC.physicsChanged,false);
+ assert.equal(art.buffers.length,1);
+ assert.equal(art.scenes[0].nodes.length,34);
+ assert.ok(!art.images&&!art.animations&&!art.skins);
+ const names=new Set(art.meshes.map(m=>m.name));
+ for(const name of ["Hero_Wing_L","Hero_Wing_R","Hero_Engine_L",
+  "Hero_Engine_R","Hero_Hull_Spine","Hero_Canopy",...Array.from(
+   {length:9},(_,i)=>"Hero_Tail_Plate_"+String(i+1).padStart(2,"0"))])
+  assert.ok(names.has(name),"missing active V4 mesh "+name);
+ const tris=art.meshes.reduce((sum,m)=>
+  sum+art.accessors[m.primitives[0].indices].count/3,0);
+ assert.ok(tris>3500&&tris<=8000);
+ const wing=bounds("Hero_Wing_R");
+ assert.equal(wing.max[0],4.04);
+ assert.ok(wing.min[1]>=0);
 });

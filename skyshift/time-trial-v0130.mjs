@@ -47,7 +47,7 @@ function saneSample(s){
 }
 export function validateGhost(raw){
  if(!raw||raw.v!==1||raw.track!==fingerprint()||
-  raw.mode!=="time-trial"||raw.samples?.length<20||
+  raw.mode!=="time-trial"||!Array.isArray(raw.samples)||raw.samples.length<20||
   raw.samples.length>TIME_TRIAL_0130.maxSamples||
   !Number.isFinite(raw.duration)||raw.duration<30||raw.duration>1800||
   !Array.isArray(raw.laps)||raw.laps.length!==TIME_TRIAL_0130.laps||
@@ -65,6 +65,14 @@ export function validateGhost(raw){
     Math.abs(lastT-raw.duration)>.15||
     Math.abs(raw.laps.reduce((a,b)=>a+b,0)-raw.duration)>.35)return null;
  return raw;
+}
+export const GHOST_TOGGLE_KEY="skyshift-time-trial-ghost-visible";
+export function readGhostEnabled(storage){
+ try{return storage?.getItem(GHOST_TOGGLE_KEY)!=="off"}catch{return true}
+}
+export function saveGhostEnabled(storage,enabled){
+ try{storage?.setItem(GHOST_TOGGLE_KEY,enabled?"on":"off");return !!storage}
+ catch{return false}
 }
 export function loadPersonalGhost(storage){
  try{

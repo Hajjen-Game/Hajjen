@@ -95,7 +95,12 @@ def polygon_shell(name,path,mat,top=.24,bottom=-.02,bevel=.018):
         for x,z in path:
             dome=.055*(1-min(abs(x)/3.28,1))
             verts.append((x,y+dome,z))
-    faces=[tuple(range(n-1,-1,-1)),tuple(range(n,2*n))]
+    # Mirroring flips polygon winding. Keep BOTH wing top surfaces up-facing,
+    # otherwise one wing can disappear under glTF backface culling.
+    signed_area=sum(path[i][0]*path[(i+1)%n][1]-
+                    path[(i+1)%n][0]*path[i][1] for i in range(n))
+    top=list(range(n)) if signed_area<0 else list(range(n-1,-1,-1))
+    faces=[tuple(top),tuple(i+n for i in reversed(top))]
     faces.extend([(k,(k+1)%n,(k+1)%n+n,k+n) for k in range(n)])
     return mesh(name,verts,faces,mat,bevel)
 

@@ -121,7 +121,7 @@ export function installHeroBodyAndTail(THREE,craft,gltfScene,report=assessHeroAs
   const part=report.found.get(name);
   part.removeFromParent();
  }
- for(const name of PROCEDURAL_BODY_MESHES_0132){
+ for(const name of PROCEDURAL_BODY_MESHES_0134){
   ship.traverse(obj=>{if(obj.name===name&&obj.isMesh)obj.visible=false;});
  }
  // v0.10.3 polishing overlays were authored for the old wing contour.

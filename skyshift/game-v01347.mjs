@@ -22,7 +22,7 @@ import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
 import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
  isFleetUnlocked,recordFleetClear,fleetStatus} from "./fleet-v010.mjs";
 import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v01347.mjs";
+import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v01346.mjs";
 import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v0111.mjs";
 import { MESH_SPEC } from "./smooth-track-v0901.mjs";
 import {OPT_0111,newHudBudget,createDomWriteCache} from "./render-optimizer-v0111.mjs";

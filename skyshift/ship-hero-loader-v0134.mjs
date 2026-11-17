@@ -1,6 +1,6 @@
-// SKYSHIFT 0.13.2 — optional Blender HERO GLB in production WebGL.
-// The requested preview is deliberately opt-in until visual + FPS playtest.
-// No file loads, new objects or imports in normal 0.13.2 play.
+// SKYSHIFT 0.13.4 — Stingray V3 geometry is the production default.
+// Only Stingray fetches external art; Manta and all flight physics are intact.
+// Missing/invalid model files retain the original procedural Stingray.
 import {SHIP_ART_0134,requestedShipArt,createShipArtState,
  assessHeroAsset,installHeroBodyAndTail,shipArtAudit}
  from "./ship-art-pipeline-v0134.mjs";
@@ -40,7 +40,7 @@ export function createShipArtController(THREE,{
   state.status="loading";state.attempts++;
   let imported=null;
   try{
-   // The deployed sculpted V3 glTF is the actual source of truth.
+   // The checked-in V3 glTF is the runtime source of truth.
    // No missing GLB requests or 404 console noise on mobile.
    // A later reviewed Blender GLB can replace this asset without changing
    // tail joints, mesh-node naming, or gameplay flight physics.

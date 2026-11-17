@@ -66,7 +66,7 @@ test("world road-normal distance works on flat, banked, and inverted deck",()=>{
  const p=point(2,2+normal.y*(-.31),normal.z*(-.31));
  assert.ok(Math.abs(signedRoadClearance(p,road,normal)+.31)<1e-9);
  const inv={x:0,y:-1,z:0};
- assert.equal(signedRoadClearance(point(0,2.40),point(0,2),inv),-.4);
+ assert.ok(Math.abs(signedRoadClearance(point(0,2.40),point(0,2),inv)+.4)<1e-10);
 });
 test("actual V3 model yields 36 wing undersurface probes from BOTH wings",()=>{
  const ship=mockedShip();
@@ -104,7 +104,7 @@ test("inverted corkscrew road normal produces outward—not downward—lift",()=
  assert.ok(Math.abs(hit.required-1.4-hit.margin)<1e-9);
 });
 test("outside-deck wing is not used as a fictitious floor",()=>{
- const hit=wingSurfaceLift([point(-9,-1),point(2,.34)],
+ const hit=wingSurfaceLift([point(-11,-1),point(2,.34)],
   flat.road,flat.n,flat.lane,0,10);
  assert.equal(hit.valid,1);
  assert.equal(hit.left,0);

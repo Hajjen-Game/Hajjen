@@ -15,3 +15,6 @@ This is a **measurement-only** gameplay release; 0.13.4.8 steering/track, ship h
 `node skyshift/handling-fairness-cli-v0135.mjs` (generates report JSON and prints summary)
 
 **Play (no gameplay differences yet):** https://hajjen-game.github.io/Hajjen/skyshift/?v=0.13.5
+
+## Measured CI results
+7 distinct authored turn sections, 70 zone/boost feasibility envelopes; 16 centerline-yaw deficits. The 30 deterministic idealized-drive traces achieved 19 no-rail exits. Worst simulated centerline yaw margin is 0.552 at precision apex, zone 8 ×1.4 boost. These are *stress envelopes*; they are not automatically attainable together in a normal three-lap race. All 95 node tests passed at this stage.

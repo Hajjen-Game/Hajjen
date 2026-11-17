@@ -511,6 +511,7 @@ jobs:
           node --check skyshift/handling-fairness-v0135.mjs
           node --check skyshift/handling-fairness-v0135.test.mjs
           node --check skyshift/handling-fairness-cli-v0135.mjs
+          node --check skyshift/browser-fairness-v0135.mjs
           node --check skyshift/game-v0135.mjs
           node --check skyshift/boot-v0135.js
           node --check skyshift/rail-scrape-sparks-v01344.test.mjs
@@ -536,7 +537,7 @@ jobs:
         run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/handling-fairness-v0135.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
-    name: Gameplay GRIP Half-Power 0.13.4.8 WebGL
+    name: SKYSHIFT 0.13.5 Fairness & GRIP WebGL
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -549,15 +550,15 @@ jobs:
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Export SKYSHIFT 0.13.5 deterministic handling fairness report
         run: node skyshift/handling-fairness-cli-v0135.mjs
-      - name: Verify SKYSHIFT 0.13.4.8 real WebGL at half the extra GRIP turn authority
-        run: node skyshift/browser-grip-half-v01348.mjs
+      - name: Verify SKYSHIFT 0.13.5 current WebGL and preserved half-boost GRIP
+        run: node skyshift/browser-fairness-v0135.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: skyshift-v01348-grip-half-power
           path: |
             skyshift-fairness-v0135.json
-            skyshift-v01348-grip-half-gameplay.png
+            skyshift-v0135-fairness-gameplay.png
             skyshift-v01091-blackout-tunnel.png
             skyshift-v01091-stingray-hangar.png
             skyshift-v01091-grip-wake.png

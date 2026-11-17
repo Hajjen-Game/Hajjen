@@ -10,6 +10,9 @@ export function createShipArtController(THREE,{
 }={}){
  const state=createShipArtState();
  state.requested=requestedShipArt(search);
+ // Explicit visual A/B only: a reviewed Blender-exported binary may be
+ // tested separately. The normal mobile game uses the verified glTF sculpt.
+ const blenderPreview=new URLSearchParams(search).get("shipArt")==="blender";
  let generation=0;
  function disposeImported(root){
   const geometries=new Set(),materials=new Set();
@@ -42,12 +45,15 @@ export function createShipArtController(THREE,{
    // A later reviewed Blender GLB can replace this asset without changing
    // tail joints, mesh-node naming, or gameplay flight physics.
    const request=fetchAsset??fetch;
-   const response=await request(new URL(SHIP_ART_0133.assetPath,import.meta.url),
+   const srcPath=blenderPreview?SHIP_ART_0133.blenderAssetPath:
+    SHIP_ART_0133.assetPath;
+   const response=await request(new URL(srcPath,import.meta.url),
     {cache:"force-cache"});
    if(!response.ok)
     throw Error("Stingray HERO V2 unavailable (HTTP "+response.status+")");
-   const source=await response.text();
-   const format="gltf";
+   const source=blenderPreview?await response.arrayBuffer():
+    await response.text();
+   const format=blenderPreview?"glb":"gltf";
    const length=typeof source==="string"?source.length:source.byteLength;
    if(length>SHIP_ART_0133.maxAssetBytes)
     throw Error("Hero mesh exceeds mobile budget: "+length);

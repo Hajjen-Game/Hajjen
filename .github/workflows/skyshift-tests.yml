@@ -386,6 +386,13 @@ jobs:
           node --check skyshift/boot-v0113.js
           node --check skyshift/browser-smoke-v0113.mjs
           node --check skyshift/rail-scrape-sparks-v0113.test.mjs
+          node --check skyshift/visual-fidelity-v0114.mjs
+          node --check skyshift/visual-fidelity-v0114.test.mjs
+          node --check skyshift/performance-audit-v0114.mjs
+          node --check skyshift/game-v0114.mjs
+          node --check skyshift/boot-v0114.js
+          node --check skyshift/browser-smoke-v0114.mjs
+          node --check skyshift/rail-scrape-sparks-v0114.test.mjs
           node --check skyshift/grip-first-v0901.test.mjs
           node --check skyshift/signature-flight-v091.test.mjs
           node --check skyshift/shadow-tunnel-v092.test.mjs
@@ -396,10 +403,10 @@ jobs:
         # Historical test files contain version-pinned active HTML assertions for
         # superseded releases. Keep them archived; gate the current release
         # with unaffected core physics tests and new 0.10.9.1 assertions.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0113.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/rail-scrape-sparks-v0114.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
-    name: Smart Visual Fidelity 0.11.3 WebGL smoke
+    name: Smart Fidelity Refinement 0.11.4 WebGL smoke
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -410,14 +417,14 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Verify SKYSHIFT 0.11.3 PBR fidelity, bloom, shadow tunnel and 120 Hz flight in Chrome WebGL
-        run: node skyshift/browser-smoke-v0113.mjs
+      - name: Verify SKYSHIFT 0.11.4 vertex-quality refinement, bloom, tunnel and 120 Hz flight in Chrome WebGL
+        run: node skyshift/browser-smoke-v0114.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v0113-smart-visual-fidelity
+          name: skyshift-v0114-smart-fidelity-refinement
           path: |
-            skyshift-v0113-smart-fidelity.png
+            skyshift-v0114-smart-fidelity.png
             skyshift-v01091-blackout-tunnel.png
             skyshift-v01091-stingray-hangar.png
             skyshift-v01091-grip-wake.png

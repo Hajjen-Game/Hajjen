@@ -72,7 +72,8 @@ export function assessHeroAsset(root){
 export function createShipArtState(){
  return {requested:"procedural",status:"not-requested",loaded:false,
   requestedShip:"",heroApplied:false,error:null,attempts:0,triangles:0,
-  addedDrawCalls:0,addedTextures:0,activeMode:"procedural",token:0};
+  addedDrawCalls:0,addedTextures:0,activeMode:"procedural",
+  assetFormat:null,token:0};
 }
 // Existing craft has these exact mesh names; hiding them preserves the
 // original engine lights, plume nodes, reactive wing flaps and 9-link pivots.
@@ -143,7 +144,8 @@ export function shipArtAudit(state){
   status:state.status,loaded:state.loaded,heroApplied:state.heroApplied,
   activeMode:state.activeMode,attempts:state.attempts,
   triangles:state.triangles,addedDrawCalls:state.addedDrawCalls,
-  addedTextures:state.addedTextures,error:state.error,
+  addedTextures:state.addedTextures,assetFormat:state.assetFormat,
+  error:state.error,
   proceduralFallback:true,physicalFlightUnchanged:true,
   originalTailRigPreserved:true,originalEngineSocketsPreserved:true};
 }

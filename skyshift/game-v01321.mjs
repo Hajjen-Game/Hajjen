@@ -447,14 +447,20 @@ function makeShip(id=fleetProgress.selected){
  if(!shadowMesh)shadowMesh=createContactShadow(THREE,scene);
  UI.jump.classList.add("hidden");
  // A scene-art preview only; 120Hz flight/camera/GRIP remain unchanged.
- void shipArtController.onCraftBuilt(craft,id);
+ void shipArtController.onCraftBuilt(craft,id).then(()=>{
+  if(activeCraft===craft&&id==="stingray"&&uiState.mode==="hangar")
+   refreshHangar();
+ });
 }
 function refreshHangar(){
  UI.menuSelectedShip.textContent=FLEET.find(x=>x.id===fleetProgress.selected)?.name||
    FLEET[0].name;
  UI.fleetPreviewTitle.textContent=FLEET.find(x=>x.id===previewShipId)?.name||
    FLEET[0].name;
+ const art=shipArtController.audit();
  UI.fleetPreviewDescription.textContent=previewShipId==="stingray"?
+  art.heroApplied?"NY HERO-MODELL · 9-DELAD RÖRLIG SVANS":
+  art.status==="loading"?"HERO-MODELL · LADDAR 3D-GEOMETRI":
   "Segmenterad mekanisk svans · reagerar på styrning, GRIP och boost":
   "Hårdskuren interceptor · dubbla motorer";
  for(const item of FLEET){

@@ -6,11 +6,11 @@ import {STINGRAY_PRESENTATION_01343,visualSettingsForShip}
  from "./stingray-presentation-v01343.mjs";
 import {MANTA_WING_OUTLINE} from "./manta-blade-v0484.mjs";
 import {STINGRAY_EVO,createTailState,tailPoseStep}
- from "./stingray-evo-v01343.mjs";
+ from "./stingray-evo-v01342.mjs";
 import {buildStingrayHeroV4GLTF,HERO_V4_SPEC}
- from "./blender/stingray-hero-v4-source-v01343.mjs";
+ from "./blender/stingray-hero-v4-source-v01342.mjs";
 import {SHIP_ART_01342,assessHeroAsset,requestedShipArt}
- from "./ship-art-pipeline-v01343.mjs";
+ from "./ship-art-pipeline-v01342.mjs";
 
 const source=readFileSync(new URL("./assets/ships/stingray-evo-hero-v4.gltf",import.meta.url),"utf8");
 const model=JSON.parse(source),buffer=Buffer.from(model.buffers[0].uri.split(",")[1],"base64");
@@ -135,7 +135,7 @@ test("tail idle remains alive but is less snake-like than GRIP response",()=>{
  assert.ok(STINGRAY_EVO.dampingRatio>=.84);
 });
 test("actual visible tail guides are distinct ticks instead of continuous strips",()=>{
- const source=readFileSync(new URL("./stingray-evo-v01343.mjs",import.meta.url),"utf8");
+ const source=readFileSync(new URL("./stingray-evo-v01342.mjs",import.meta.url),"utf8");
  assert.match(source,/length\*\.30\),neon\)/);
  assert.match(source,/neon\.opacity=\.30\+\.24\*state\.ribbonEnergy/);
  assert.equal(STINGRAY_EVO.additionalTailDrawCalls,20);
@@ -143,9 +143,9 @@ test("actual visible tail guides are distinct ticks instead of continuous strips
 test("live entrypoint targets rollback version and preserves settings/Ghost",()=>{
  const index=readFileSync(new URL("./index.html",import.meta.url),"utf8");
  const boot=readFileSync(new URL("./boot-v01343.js",import.meta.url),"utf8");
- assert.match(index,/boot-v01343\.js\?v=0\.13\.4\.2/);
+ assert.match(index,/boot-v01343\.js\?v=0\.13\.4\.3/);
  assert.match(index,/data-game-module="game-v01343\.mjs"/);
  assert.match(index,/id="pause-ghost-toggle"/);
  assert.match(index,/id="menu-settings-btn"/);
- assert.match(boot,/game-v01343\.mjs\?v=0\.13\.4\.2/);
+ assert.match(boot,/game-v01343\.mjs\?v=0\.13\.4\.3/);
 });

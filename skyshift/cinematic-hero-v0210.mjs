@@ -10,9 +10,9 @@ export const HERO_0210=Object.freeze({
  visualGoal:"Faceted monumental station, 5m wall relief, asymmetric spans and cathedral ribs"
 });
 const COLORS=Object.freeze({
- void:0x07111e,under:0x0b1728,outer:0x0f1e31,shadow:0x0b1526,
- face:0x2b4964,lit:0x446d8b,edge:0x5b92ae,blade:0x1c3651,
- roof:0x1b344e,coffer:0x0e2236,carbon:0x1b344d,
+ void:0x030916,under:0x07111f,outer:0x061528,shadow:0x060f1f,
+ face:0x0d2945,lit:0x183f5e,edge:0x295d80,blade:0x071a31,
+ roof:0x08172b,coffer:0x030a17,carbon:0x0e2944,
  pink:0xff449f,pinkWhite:0xffd8ef,cyan:0x43d5f8,cyanWhite:0xd6f9ff,
  blueReflection:0x236a87,roseReflection:0x8e295c
 });
@@ -77,7 +77,9 @@ function artBatches(positionAt){
    face("LIGHT",side,14.76,13.8,14.76,14.04,a,b,COLORS.cyan);
    return;
   }
-  face("HULL",side,17.7,7.5,17.7,25.8,a,b,COLORS.shadow);
+  // Stagger wall depth around a dark recessed reveal; avoid a 19m flat slab.
+  face("HULL",side,17.65,7.5,17.85,15.1,a,b,COLORS.shadow);
+  face("HULL",side,18.65,15.1,18.95,25.8,a,b,COLORS.outer);
   const split=a+((i%3)+1)*3.05;
   // Two broad, genuinely angled pieces, not decorative rectangle borders.
   quad("FACET",[side*14.55,8.1,a],[side*17.6,10.2,split],
@@ -152,9 +154,9 @@ function artBatches(positionAt){
   if([0,2,5,9,12,15,17].includes(i)){
    for(const side of [-1,1]){
     const s=a+4.2;
-    face("LIGHT",side,14.44,15.0,14.44,25.45,s,s+.35,COLORS.pink);
-    face("LIGHT",side,14.405,15.7,14.405,24.8,s+.08,s+.135,COLORS.pinkWhite);
-    face("HALO",side,14.38,14.5,14.38,25.8,s-.15,s+.48,COLORS.roseReflection);
+    face("LIGHT",side,14.44,15.0,14.44,25.45,s,s+.78,COLORS.pink);
+    face("LIGHT",side,14.405,15.7,14.405,24.8,s+.22,s+.34,COLORS.pinkWhite);
+    face("HALO",side,14.38,14.5,14.38,25.8,s-.18,s+.90,COLORS.roseReflection);
    }
   }
   // Panoramic galleries and machine naves have distinctive overhead geometry.

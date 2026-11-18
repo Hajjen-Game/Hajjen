@@ -28,7 +28,10 @@ export function planCinematicHero(track="skyline"){
   center:HERO_0210.start+16*(i+.5)
  }))};
 }
-function color3(hex){return [(hex>>16&255)/255,(hex>>8&255)/255,(hex&255)/255]}
+// Three.js BufferGeometry vertex colors are LINEAR, while authored hex swatches
+// are sRGB. Without conversion the graphite becomes pale blue slabs.
+function color3(hex){const linear=c=>{const v=c/255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4};
+ return [linear(hex>>16&255),linear(hex>>8&255),linear(hex&255)];}
 function artBatches(positionAt){
  const data=Object.fromEntries(["HULL","FACET","LIGHT","HALO"].map(k=>[k,{p:[],c:[]}]));
  let rejected=0;

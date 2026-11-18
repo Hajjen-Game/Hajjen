@@ -14,7 +14,7 @@ export const SIGNATURE_ENV_0180=Object.freeze({
  fallback:"?env=classic",distinctive:"arched canopy / floating fins / illuminated guidance"
 });
 const S=SIGNATURE_ENV_0180;
-const farOutside=(l,h)=>Math.abs(l)>S.roadHalfWidth+3||h>S.minimumCrossingHeight;
+const farOutside=(l,h)=>Math.abs(l)>S.roadHalfWidth+2.4||h>S.minimumCrossingHeight;
 // All segments are authored in real track arc-length, lateral offset and
 // road-normal height. Road width is <=23.2m in this section. Crown beams always
 // cross over the lane at >20m; footings are beyond the actual guardrails.

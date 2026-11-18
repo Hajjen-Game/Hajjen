@@ -162,7 +162,7 @@ export function retiredPrimitiveStation(beam){
  // Suppress *only* that station, NOT other orbital landmarks, the rail or
  // the second orbital ring. Do not modify archived 0.19.0 data or modules.
  return beam.chapter==="orbital"&&
-  beam.a[0]>=239&&beam.a[0]<=280&&beam.b[0]<=320&&
+  beam.a[0]>=239&&beam.a[0]<=285&&beam.b[0]<=320&&
   (beam.a[1]<-40||beam.b[1]<-40);
 }
 function retireOriginalStation(THREE,world,lowMemory){

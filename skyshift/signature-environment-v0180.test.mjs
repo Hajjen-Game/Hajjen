@@ -59,6 +59,6 @@ test("Production uses original shared 120Hz steering, GRIP and camera",()=>{
  assert.match(game,/from "\.\/cinematic-v0165\.mjs"/);
  assert.match(game,/from "\.\/signature-environment-v0180\.mjs"/);
  assert.match(game,/envEnabled/);
- assert.match(html,/boot-v02041\.js\?v=0\.20\.4\.1/);
+ assert.match(html,/boot-v0205\.js\?v=0\.20\.5/);
  assert.match(src("./boot-v0180.js"),/game-v0180\.mjs\?v=0\.18\.0/);
 });

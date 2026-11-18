@@ -64,6 +64,8 @@ import {WORLD_ART_0202,installWorldArt as installObservationWorldArt}
  from "./environment-art-pipeline-v0202.mjs";
 import {WORLD_ART_02021,installWorldArt as installRibbonWindowArt}
  from "./environment-art-pipeline-v02021.mjs";
+import {WORLD_ART_0203,installWorldArt as installGraphiteWorldArt}
+ from "./environment-art-pipeline-v0203.mjs";
 import {WORLD_ART_0204,installWorldArt as installPremiumNeonWorldArt}
  from "./environment-art-pipeline-v0204.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
@@ -120,9 +122,12 @@ const observationWindowsEnabled=enclosedStationEnabled&&
 // 0.20.4 cleans up fake shut windows; compare ?windowCleanup=classic.
 const ribbonWindowsEnabled=observationWindowsEnabled&&
  new URLSearchParams(location.search).get("windowCleanup")!=="classic";
-// Pass 3 can be evaluated independently of the still-unreleased dark regrade.
-// ?neon=classic keeps the exact 0.20.2.1 materials and geometry.
-const premiumNeonEnabled=ribbonWindowsEnabled&&
+// Material-only 0.20.4: the archived 0.20.2.1 geometry and coloring can be
+// restored at ?materialGrade=classic, with the same scene lights and race.
+const graphiteGradeEnabled=ribbonWindowsEnabled&&
+ new URLSearchParams(location.search).get("materialGrade")!=="classic";
+// Pass 3 glTF neon layers the existing graphite materials, not a new grade.
+const premiumNeonEnabled=graphiteGradeEnabled&&
  new URLSearchParams(location.search).get("neon")!=="classic";
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
@@ -792,6 +797,7 @@ function initScene(){
  // is async and safe, but the old 120 Hz race motor stays authoritative.
  if(rebirthEnabled)stationWorld=(enclosedStationEnabled?
   (premiumNeonEnabled?installPremiumNeonWorldArt:
+   graphiteGradeEnabled?installGraphiteWorldArt:
    ribbonWindowsEnabled?installRibbonWindowArt:
    observationWindowsEnabled?installObservationWorldArt:installEnclosedWorldArt):
   installWorldArt)(THREE,world,{
@@ -833,17 +839,24 @@ function initScene(){
    enabled:rebirthEnabled,track:TRACK_ID_0160,
    ...(stationWorld?.stats?.()??{active:false,status:"classic",installedBays:0,drawBatches:0}),
    variant:premiumNeonEnabled?"premium-integrated-neon":
+    graphiteGradeEnabled?"graphite-regrade":
     ribbonWindowsEnabled?"ribbon-cleanup":
     (observationWindowsEnabled?"observation-balance":
      enclosedStationEnabled?"enclosed":"classic-open"),
    importedMeshes:(world.getObjectByName("CONTINUUM STATION · Integrated Neon 0.20.4")??
+    world.getObjectByName("CONTINUUM STATION · Graphite Regrade 0.20.3")??
     world.getObjectByName("CONTINUUM STATION · Ribbon Cleanup 0.20.2.1")??
     world.getObjectByName("CONTINUUM STATION · Observation Balance 0.20.2")??
     world.getObjectByName("CONTINUUM STATION · Architectural Depth 0.20.1")??
     world.getObjectByName("CONTINUUM STATION · World Art 0.20.0"))?.children
     .map(x=>({name:x.name,vertices:x.geometry?.attributes?.position?.count??0,
      isInstanced:!!x.isInstancedMesh,
-     roadConforming:!!x.geometry?.userData?.trackConforming}))??[],
+     roadConforming:!!x.geometry?.userData?.trackConforming,
+     metallic:x.material?.metalness??null,roughness:x.material?.roughness??null,
+     emissive:x.material?.emissive?.getHex?.()??null,
+     firstVertexRgb:x.geometry?.attributes?.color?
+      [x.geometry.attributes.color.getX(0),x.geometry.attributes.color.getY(0),
+       x.geometry.attributes.color.getZ(0)]:null}))??[],
    legacyDecorDisabled:!signatureEnvironment&&!cinematicWorld&&!orbitalHero
   });
  // Pass 2 hero-only art diagnostics. No simulation changes or test shortcuts.
@@ -1959,15 +1972,18 @@ function exportAudit(){
      worldArtRebirth:{enabled:rebirthEnabled,
       ...(stationWorld?.stats?.()??{active:false,status:"classic"}),
       artAsset:(premiumNeonEnabled?WORLD_ART_0204:
+       graphiteGradeEnabled?WORLD_ART_0203:
        ribbonWindowsEnabled?WORLD_ART_02021:
        observationWindowsEnabled?WORLD_ART_0202:
        enclosedStationEnabled?WORLD_ART_0201:WORLD_ART_0200).assetPath,
       enclosedStationEnabled,observationWindowsEnabled,ribbonWindowsEnabled,
-      premiumNeonEnabled,roadWidthUnchanged:true,
+      graphiteGradeEnabled,premiumNeonEnabled,roadWidthUnchanged:true,
       originalRoomLightingUnchanged:true,
-      pass2DarkMaterialsNotApplied:true,
+      originalRaceTrackMaterialUnchanged:true,
+      retainedGraphiteMaterials0203:true,
       premiumIntegratedLightingOnly:true,
       compareBeforeNeon:"?neon=classic",
+      compareBeforeMaterial:"?materialGrade=classic",
       compareBeforeCleanup:"?windowCleanup=classic",
       compareBeforeWindows:"?windows=classic",
       comparisonWithOpenStation:"?stationStyle=classic",

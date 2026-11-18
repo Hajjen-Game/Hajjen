@@ -23,7 +23,7 @@ try{
    errors.push("GLSL: "+msg.text().slice(0,850));
  });
  async function load(query){
-  await page.goto(expectedBase+"?"+query,{waitUntil:"domcontentloaded",timeout:60000});
+  await page.goto(expectedBase+"?worldArt=classic&"+query,{waitUntil:"domcontentloaded",timeout:60000});
   await page.waitForFunction(()=>window.__skyshiftBoot?.phase==="ready",
     null,{timeout:75000});
   return page.evaluate(()=>window.__skyshiftEnvironmentProbe?.());

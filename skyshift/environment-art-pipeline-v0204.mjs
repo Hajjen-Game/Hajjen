@@ -14,7 +14,10 @@ export const WORLD_ART_0204=Object.freeze({
  integratedMagentaWallGuides:true,integratedCyanCeilingCoves:true,
  restrainedWhiteLightCores:true,optionalBakedGlowHalo:true,
  preservesOriginalStationShell:true,preservesOriginalRoad:true,
+ preservesGraphiteRegrade0203:true,lowMemoryUsesSameGraphite:true,
  originalLightingSystemUnchanged:true,addedShadowLights:0,
+ renderExposureUnchanged:true,worldFogUnchanged:true,
+ flightZoneColorsUnchanged:true,shipMaterialsUnchanged:true,
  addedColliders:0,addedPhysicsChanges:0,addedDynamicLights:0,
  addedRenderPasses:0,panoramicExterior:false,continuousRoof:true,
  structuralUnderdeck:true,enclosedCrossSection:true,
@@ -244,6 +247,11 @@ export function installWorldArt(THREE,world,{
     if(kind==="GLASS"){
      material.transparent=true;material.depthWrite=false;
     }
+    if(kind==="SHELL"||kind==="INLAY"){
+     // Retain 0.20.3 graphite PBR shading; never lift the metal itself.
+     if(material.emissive)material.emissive.setHex(0x000000);
+     material.emissiveIntensity=0;
+    }
     if(kind==="HALO"){
      // One optional glow geometry layer, not a new lamp or postprocess.
      // The white-hot architectural cores remain on all devices.
@@ -276,6 +284,8 @@ export function installWorldArt(THREE,world,{
    state.geometryResources=batches.length;
    state.materialResources=batches.length;
    state.geometryFromGltf=true;
+   state.materialColorSpace="gltf-vertex-srgb";
+   state.graphiteRegradeRetained=true;
    state.neonRenderingActive=batches.some(x=>x.name.includes(" · ENERGY · "));
    state.haloRenderingActive=batches.some(x=>x.name.includes(" · HALO · "));
    state.emissiveCorePreservedOnMobile=true;

@@ -611,6 +611,12 @@ jobs:
           node --check skyshift/game-v0190.mjs
           node --check skyshift/game-v0192.mjs
           node --check skyshift/game-v0200.mjs
+          node --check skyshift/game-v0201.mjs
+          node --check skyshift/boot-v0201.js
+          node --check skyshift/build-station-world-v0201.mjs
+          node --check skyshift/environment-art-pipeline-v0201.mjs
+          node --check skyshift/environment-art-pipeline-v0201.test.mjs
+          node --check skyshift/browser-environment-art-v0201.mjs
           node --check skyshift/boot-v0200.js
           node --check skyshift/build-station-world-v0200.mjs
           node --check skyshift/environment-art-pipeline-v0200.mjs
@@ -656,7 +662,7 @@ jobs:
         # Historical version-pinned tests are archived. Gate live 0.16.5 against
         # the deployed V4 GLTF geometry + visual/GRIP invariants. V3 sculpt art
         # assertions refer to an archived asset and are not production gates.
-        run: node --test skyshift/environment-art-pipeline-v0200.test.mjs skyshift/orbital-hero-v0192.test.mjs skyshift/world-rebuild-v0190.test.mjs skyshift/signature-environment-v0180.test.mjs skyshift/cinematic-space-lighting-v0170.test.mjs skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/handling-fairness-v0135.test.mjs skyshift/track-integrity-v0165.test.mjs skyshift/track-physics-parity-v0165.test.mjs skyshift/grip-trick-lock-v0165.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
+        run: node --test skyshift/environment-art-pipeline-v0201.test.mjs skyshift/environment-art-pipeline-v0200.test.mjs skyshift/orbital-hero-v0192.test.mjs skyshift/world-rebuild-v0190.test.mjs skyshift/signature-environment-v0180.test.mjs skyshift/cinematic-space-lighting-v0170.test.mjs skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/handling-fairness-v0135.test.mjs skyshift/track-integrity-v0165.test.mjs skyshift/track-physics-parity-v0165.test.mjs skyshift/grip-trick-lock-v0165.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
     name: No-Jump GRIP Fix & Track Parity 0.16.5 WebGL
@@ -682,12 +688,19 @@ jobs:
         run: node skyshift/browser-orbital-hero-v0192.mjs
       - name: Verify SKYSHIFT 0.20.0 glTF station world and mobile in Chrome WebGL
         run: node skyshift/browser-environment-art-v0200.mjs
+      - name: Verify SKYSHIFT 0.20.1 enclosed station shell and mobile in real WebGL
+        run: node skyshift/browser-environment-art-v0201.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: skyshift-v0165-grip-trick-lock
           path: |
             skyshift-fairness-v0135.json
+            skyshift-v0201-interior.png
+            skyshift-v0201-observation.png
+            skyshift-v0201-bulkhead.png
+            skyshift-v0201-exit.png
+            skyshift-v0201-mobile.png
             skyshift-v0200-arrival.png
             skyshift-v0200-panorama.png
             skyshift-v0200-exit.png

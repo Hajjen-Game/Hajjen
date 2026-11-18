@@ -2,9 +2,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {WORLD_ART_0200,planStationWorld} from "./environment-art-pipeline-v0200.mjs";
+import {WORLD_ART_0200,planStationWorld,bakeTrackConformingBayGeometry} from "./environment-art-pipeline-v0200.mjs";
 import {STATION_ART_0200,buildStationAsset} from "./build-station-world-v0200.mjs";
-import {TRIAL,SKYLINE_LEAP} from "./trial-v0165.mjs";
+import {TRIAL,SKYLINE_LEAP,positionAt} from "./trial-v0165.mjs";
 const src=path=>readFileSync(new URL(path,import.meta.url),"utf8");
 const gltf=JSON.parse(src("./assets/worlds/continuum-bays-v1.gltf"));
 test("World Art station is contiguous, coherent, and fits before first Skyline leap",()=>{
@@ -66,8 +66,8 @@ test("Low-memory version retains whole interior without glass draw batches",()=>
  assert.equal(low.bays.length,18);
  assert.equal(low.stats.panoramaWindowBays,14);
  assert.equal(low.stats.openRoof,true);
- assert.equal(WORLD_ART_0200.maxBatchesHigh,12);
- assert.equal(WORLD_ART_0200.maxBatchesLow,9);
+ assert.equal(WORLD_ART_0200.maxBatchesHigh,4);
+ assert.equal(WORLD_ART_0200.maxBatchesLow,3);
  assert.equal(WORLD_ART_0200.addedDynamicLights,0);
  assert.equal(WORLD_ART_0200.addedRenderPasses,0);
 });
@@ -84,4 +84,41 @@ test("Aurora remains independent and classic mode loads legacy geometry",()=>{
  assert.match(game,/version:"0\.20\.0"/);
  assert.match(src("./index.html"),/boot-v0200\.js\?v=0\.20\.0/);
  assert.match(src("./boot-v0200.js"),/game-v0200\.mjs\?v=0\.20\.0/);
+});
+
+test("Real curves have zero station-bay seam distance, even in banked turns",()=>{
+ // Minimal THREE-shaped BufferGeometry harness; exercises the *same bake*
+ // routine as Chrome without needing a second copy of the placement math.
+ class Attr{
+  constructor(array,itemSize){this.array=array;this.itemSize=itemSize;this.count=array.length/itemSize}
+  getX(i){return this.array[3*i]}
+  getY(i){return this.array[3*i+1]}
+  getZ(i){return this.array[3*i+2]}
+ }
+ class Geo{
+  attributes={};
+  setAttribute(k,v){this.attributes[k]=v}
+  computeVertexNormals(){}
+  computeBoundingSphere(){}
+ }
+ const THREE={BufferGeometry:Geo,BufferAttribute:Attr};
+ const variants=WORLD_ART_0200.variants;
+ const nodes=new Map(variants.map(variant=>[
+  variant+"_SHELL",{geometry:{attributes:{
+   position:new Attr(new Float32Array([25,15,-8,25,15,8]),3),
+   color:new Attr(new Float32Array([.2,.4,.6,.2,.4,.6]),3)
+  }}}
+ ]));
+ const geo=bakeTrackConformingBayGeometry(THREE,planStationWorld(),nodes,
+  "SHELL",positionAt);
+ const positions=geo.attributes.position.array;
+ const d=(a,b)=>Math.hypot(
+  positions[3*a]-positions[3*b],
+  positions[3*a+1]-positions[3*b+1],
+  positions[3*a+2]-positions[3*b+2]);
+ for(let i=0;i<17;i++)
+  assert.ok(d(i*2,(i+1)*2+1)<.00001,
+   "Seam between actual curved station bays "+i+" and "+(i+1)+" must close");
+ assert.equal(geo.userData.trackConforming,true);
+ assert.equal(geo.userData.bayCount,18);
 });

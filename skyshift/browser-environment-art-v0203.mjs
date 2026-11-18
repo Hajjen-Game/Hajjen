@@ -26,7 +26,7 @@ try{
   await page.addInitScript(memory=>Object.defineProperty(navigator,"deviceMemory",
    {configurable:true,get:()=>memory}),memory);
   await page.goto("http://127.0.0.1:"+port+
-   "/skyshift/?v=0.20.3&artSmoke=1&heroSmoke=1&worldSmoke=1"+
+   "/skyshift/material-grade-v0203.html?v=0.20.3&artSmoke=1&heroSmoke=1&worldSmoke=1"+
    "&envSmoke=1&trackRepairSmoke=1&"+query,
    {waitUntil:"domcontentloaded",timeout:60000});
   await page.waitForFunction(()=>window.__skyshiftBoot?.phase==="ready",

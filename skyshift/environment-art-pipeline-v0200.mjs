@@ -10,7 +10,7 @@ export const WORLD_ART_0200=Object.freeze({
  materials:Object.freeze(["SHELL","INLAY","ENERGY","GLASS"]),
  variants:Object.freeze(["PANORAMA","SERVICE","GATE"]),
  maxAssetBytes:260000,maxTrianglesPerAsset:2000,
- maxBatchesHigh:12,maxBatchesLow:9,
+ maxBatchesHigh:4,maxBatchesLow:3,
  addedColliders:0,addedPhysicsChanges:0,addedDynamicLights:0,
  addedRenderPasses:0,panoramicExterior:true,continuousRoof:true
 });
@@ -110,6 +110,45 @@ export function stationFrame(THREE,positionAt,s){
   throw Error("Invalid Skyline road frame transform");
  return transform;
 }
+// Curve-conform the AUTHOR'S glTF vertices to the actual curved, banked road.
+// A rigid 16m instanced straight bay left visible gaps in fast corners.
+// By baking all 18 authored modules into one mesh per material, every shared
+// seam maps to the exact same positionAt(s,lateral,height) road coordinate,
+// and we need only 3/4 draw calls (not 9/12). The asset remains real glTF.
+export function bakeTrackConformingBayGeometry(THREE,plan,nodes,kind,positionAt){
+ const count=plan.bays.reduce((sum,bay)=>{
+  const node=nodes.get(bay.variant+"_"+kind);
+  if(!node?.geometry?.attributes?.position||
+     !node?.geometry?.attributes?.color)
+   throw Error("Station glTF missing authored positions/colors: "+bay.variant+"/"+kind);
+  return sum+node.geometry.attributes.position.count;
+ },0);
+ if(!count)throw Error("Empty station material batch "+kind);
+ const positions=new Float32Array(count*3),colors=new Float32Array(count*3);
+ let n=0;
+ for(const bay of plan.bays){
+  const attributes=nodes.get(bay.variant+"_"+kind).geometry.attributes;
+  const pos=attributes.position,col=attributes.color;
+  for(let i=0;i<pos.count;i++){
+   const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);
+   // Local model +Z points BACKWARD along the course; -Z is forward.
+   // This exactly coincides for adjacent bay boundaries at z=+/-8.
+   const p=positionAt(bay.center-z,x,y);
+   if(!Number.isFinite(p.x+p.y+p.z))
+    throw Error("Invalid world-art curvature at s="+(bay.center-z));
+   positions.set([p.x,p.y,p.z],n*3);
+   colors.set([col.getX(i),col.getY(i),col.getZ(i)],n*3);
+   n++;
+  }
+ }
+ const mesh=new THREE.BufferGeometry();
+ mesh.setAttribute("position",new THREE.BufferAttribute(positions,3));
+ mesh.setAttribute("color",new THREE.BufferAttribute(colors,3));
+ mesh.computeVertexNormals();mesh.computeBoundingSphere();
+ mesh.userData.trackConforming=true;
+ mesh.userData.bayCount=plan.bays.length;
+ return mesh;
+}
 export function installWorldArt(THREE,world,{
  track="skyline",lowMemory=false,positionAt,
  request=typeof fetch==="function"?fetch:null,
@@ -151,54 +190,49 @@ export function installWorldArt(THREE,world,{
    if(!report.valid)throw Error(report.errors.join("; "));
    const group=new THREE.Group();
    group.name="CONTINUUM STATION · World Art 0.20.0";
-   const instances=[];
-   const shared=new Set();
-   const matCache=new Map();
-   for(const variant of WORLD_ART_0200.variants){
-    const bays=plan.bays.filter(x=>x.variant===variant);
-    for(const kind of WORLD_ART_0200.materials){
-     if(lowMemory&&kind==="GLASS")continue;
-     const src=report.nodes.get(variant+"_"+kind);
-     if(!src||!src.geometry)throw Error("Absent glTF module "+variant+"/"+kind);
-     // Reuse a single imported vertex buffer and 1 draw for all identical bays.
-     const mesh=new THREE.InstancedMesh(src.geometry,
-      src.material.clone(),bays.length);
-     mesh.name="Station Bay · "+variant+" · "+kind;
-     mesh.frustumCulled=true;mesh.castShadow=false;mesh.receiveShadow=false;
-     if(kind==="ENERGY"){
-      // Glowing coves follow authored vertex colors, not 19.1's global
-      // material brightening, and never introduce new scene lights.
-      mesh.material.dispose();
-      mesh.material=new THREE.MeshBasicMaterial({
-       color:0xffffff,vertexColors:true,toneMapped:false,
-       side:THREE.DoubleSide
-      });
-     }
-     if(kind==="GLASS"){
-      mesh.material.transparent=true;mesh.material.depthWrite=false;
-      mesh.renderOrder=2;
-     }
-     for(let i=0;i<bays.length;i++)
-      mesh.setMatrixAt(i,stationFrame(THREE,positionAt,bays[i].center));
-     mesh.instanceMatrix.needsUpdate=true;
-     mesh.computeBoundingSphere();
-     instances.push(mesh);
-     group.add(mesh);
-     shared.add(src.geometry);matCache.set(mesh,mesh.material);
+   const batches=[];
+   for(const kind of WORLD_ART_0200.materials){
+    if(lowMemory&&kind==="GLASS")continue;
+    const source=report.nodes.get("PANORAMA_"+kind);
+    if(!source||!source.geometry)
+     throw Error("Missing original glTF material "+kind);
+    const geometry=bakeTrackConformingBayGeometry(
+     THREE,plan,report.nodes,kind,positionAt);
+    let material=source.material.clone();
+    if(kind==="ENERGY"){
+     // Only authored recesses emit light; dark hull colors remain as in 0.19.
+     material.dispose();
+     material=new THREE.MeshBasicMaterial({
+      color:0xffffff,vertexColors:true,toneMapped:false,
+      side:THREE.DoubleSide
+     });
+    }
+    if(kind==="GLASS"){
+     material.transparent=true;material.depthWrite=false;
+    }
+    const mesh=new THREE.Mesh(geometry,material);
+    mesh.name="Station Surface · "+kind+" · road-conforming";
+    mesh.frustumCulled=true;mesh.castShadow=false;mesh.receiveShadow=false;
+    if(kind==="GLASS")mesh.renderOrder=2;
+    group.add(mesh);
+    batches.push(mesh);
    }
-   }
-   if(disposed){for(const mesh of instances)mesh.material.dispose();
-    disposeAll(imported);return}
+   if(disposed){disposeAll(group);disposeAll(imported);return}
    world.add(group);
    installedGroup=group;
+   // Source glTF geometry/materials are no longer needed: each batch has
+   // its own compact, road-curved vertex buffer. Release source RAM.
+   disposeAll(imported);imported=null;
    state.status="active";state.active=true;state.installedBays=plan.bays.length;
-   state.drawBatches=instances.length;
-   state.trianglesRendered=report.triangles;
-   state.geometryResources=shared.size;
-   state.materialResources=instances.length;
+   state.drawBatches=batches.length;
+   state.trianglesRendered=batches.reduce((sum,m)=>
+    sum+m.geometry.attributes.position.count/3,0);
+   state.glTFSourceTriangles=report.triangles;
+   state.geometryResources=batches.length;
+   state.materialResources=batches.length;
    state.geometryFromGltf=true;
-   // No more longer need the imported wrapper; child geometries remain in use
-   // by the instanced batches. Clean up only after controller.dispose().
+   state.seamlessCurvedWorld=true;
+   state.bakedWorldSpace=true;
   }catch(e){
    state.status="fallback";state.active=false;
    state.loadError=String(e?.message??e);

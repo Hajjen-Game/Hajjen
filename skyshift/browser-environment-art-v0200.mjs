@@ -50,6 +50,7 @@ try{
     high.art.installedBays!==18||
     high.art.drawBatches!==4||
     high.art.importedMeshes?.length!==4||
+    !high.art.importedMeshes.every(x=>x.roadConforming&&!x.isInstanced&&x.vertices>0)||
     !high.art.seamlessCurvedWorld||!high.art.bakedWorldSpace||
     high.art.panoramaWindowBays!==14||
     !high.art.openRoof||
@@ -75,7 +76,7 @@ try{
  if(!mobile.lowMemory||!mobile.art?.active||
     mobile.art.installedBays!==18||
     mobile.art.drawBatches!==3||
-    mobile.art.importedMeshes.some(x=>x.name.endsWith("GLASS"))||
+    mobile.art.importedMeshes.some(x=>x.name.includes(" · GLASS · "))||
     !mobile.art.openRoof)
   throw Error("4GB mobile Skyline world not fully authored: "+JSON.stringify(mobile.art));
  await mobile.page.locator("#start-btn").click();

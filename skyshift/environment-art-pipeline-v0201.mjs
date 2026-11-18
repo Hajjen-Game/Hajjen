@@ -35,7 +35,7 @@ export function planStationWorld({track="skyline",lowMemory=false}={}){
   version:c.version,bayCount:bays.length,meters:c.meters,
   start:c.start,end:c.end,variants:Object.fromEntries(
    c.variants.map(v=>[v,bays.filter(x=>x.variant===v).length])),
-  panoramaWindowBays:bays.filter(x=>x.variant!=="SERVICE").length,
+  panoramaWindowBays:bays.filter(x=>x.variant==="PANORAMA").length,
   openRoof:false,exteriorSpaceVisible:true,
   closedCeiling:true,continuousUnderdeck:true,
   enclosedInterior:true,sideWallInsideMeters:14.5,

@@ -537,6 +537,24 @@ jobs:
           node --check skyshift/boot-v0151.js
           node --check skyshift/risk-reward-v0151.test.mjs
           node --check skyshift/browser-risk-reward-v0151.mjs
+          node --check skyshift/track-selection-v0160.mjs
+          node --check skyshift/circuit-layout-v0160.mjs
+          node --check skyshift/track-3d-v0160.mjs
+          node --check skyshift/risk-reward-v0160.mjs
+          node --check skyshift/boost-v0160.mjs
+          node --check skyshift/trial-v0160.mjs
+          node --check skyshift/smooth-track-v0160.mjs
+          node --check skyshift/premium-track-v0160.mjs
+          node --check skyshift/visual-fidelity-v0160.mjs
+          node --check skyshift/aero-barrier-v0160.mjs
+          node --check skyshift/shadow-tunnel-v0160.mjs
+          node --check skyshift/tunnel-blackout-v0160.mjs
+          node --check skyshift/racing-experience-v0160.mjs
+          node --check skyshift/time-trial-v0160.mjs
+          node --check skyshift/game-v0160.mjs
+          node --check skyshift/boot-v0160.js
+          node --check skyshift/multi-track-aurora-v0160.test.mjs
+          node --check skyshift/browser-multi-track-v0160.mjs
           node --check skyshift/game-v0135.mjs
           node --check skyshift/boot-v0135.js
           node --check skyshift/rail-scrape-sparks-v01344.test.mjs
@@ -556,13 +574,13 @@ jobs:
           node --check skyshift/steering-authority-v084.test.mjs
           node --check skyshift/browser-smoke-v0481.mjs
       - name: Verify SKYSHIFT deterministic track planner
-        # Historical version-pinned tests are archived. Gate live 0.15.1 against
+        # Historical version-pinned tests are archived. Gate live 0.16.0 against
         # the deployed V4 GLTF geometry + visual/GRIP invariants. V3 sculpt art
         # assertions refer to an archived asset and are not production gates.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/handling-fairness-v0135.test.mjs skyshift/risk-reward-v0151.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/handling-fairness-v0135.test.mjs skyshift/multi-track-aurora-v0160.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
-    name: Risk Line Diversity & Track Flow 0.15.1 WebGL
+    name: Multi-Circuit Aurora Run 0.16.0 WebGL
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -575,15 +593,16 @@ jobs:
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Export SKYSHIFT 0.13.5 deterministic handling fairness report
         run: node skyshift/handling-fairness-cli-v0135.mjs
-      - name: Verify SKYSHIFT 0.15.1 WebGL five direction-specific risk lines, original Challenges
-        run: node skyshift/browser-risk-reward-v0151.mjs
+      - name: Verify SKYSHIFT 0.16.0 distinct Aurora & Skyline courses and track selector
+        run: node skyshift/browser-multi-track-v0160.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v0151-risk-line-diversity
+          name: skyshift-v0160-two-circuits
           path: |
             skyshift-fairness-v0135.json
-            skyshift-v0151-flow-and-risk.png
+            skyshift-v0160-aurora-open-racing.png
+            skyshift-v0160-skyline-original.png
             skyshift-v01091-blackout-tunnel.png
             skyshift-v01091-stingray-hangar.png
             skyshift-v01091-grip-wake.png

@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#050914">
   <link rel="icon" href="data:,">
-  <meta name="description" content="SKYSHIFT 0.15.1 – Risk Line Diversity & Track Flow · Signature Flight Motion · GRIP-First Steering · Kinetic Camera: real elevated racing surface, visible skyline leaps and momentum-driven flight on three Skyline Circuit laps.">
-  <title>SKYSHIFT · Risk Line Diversity & Track Flow · 0.15.1</title>
+  <meta name="description" content="SKYSHIFT 0.16.0 – Risk Line Diversity & Track Flow · Signature Flight Motion · GRIP-First Steering · Kinetic Camera: real elevated racing surface, visible skyline leaps and momentum-driven flight on three Skyline Circuit laps.">
+  <title>SKYSHIFT · Risk Line Diversity & Track Flow · 0.16.0</title>
   <script type="importmap">
     {
       "imports": {
@@ -17,12 +17,12 @@
   </script>
   <link rel="stylesheet" href="./style-v061.css?v=0.6.1">
   <link rel="stylesheet" href="./style-v083.css?v=0.9.2.1">
-  <link rel="stylesheet" href="./fleet-v0102.css?v=0.15.1">
-  <link rel="stylesheet" href="./style-v0121.css?v=0.15.1">
-  <link rel="stylesheet" href="./style-v0130.css?v=0.15.1">
-  <link rel="stylesheet" href="./style-v0131.css?v=0.15.1">
-  <link rel="stylesheet" href="./style-v0140.css?v=0.15.1">
-  <link rel="stylesheet" href="./style-v0151.css?v=0.15.1">
+  <link rel="stylesheet" href="./fleet-v0102.css?v=0.16.0">
+  <link rel="stylesheet" href="./style-v0121.css?v=0.16.0">
+  <link rel="stylesheet" href="./style-v0130.css?v=0.16.0">
+  <link rel="stylesheet" href="./style-v0131.css?v=0.16.0">
+  <link rel="stylesheet" href="./style-v0140.css?v=0.16.0">
+  <link rel="stylesheet" href="./style-v0160.css?v=0.16.0">
 </head>
 <body>
   <div id="app">
@@ -30,7 +30,7 @@
     <div class="vignette" aria-hidden="true"></div>
     <div id="zone-flash" aria-hidden="true"></div>
     <header class="topbar">
-      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ SKYLINE CIRCUIT · 0.15.1</span></div>
+      <div class="brand"><span class="brand-mark">◇</span> SKYSHIFT <span class="submark">/ <span id="topbar-track-name">SKYLINE CIRCUIT · 0.16.0</span></span></div>
       <div class="top-actions">
         <button id="menu-settings-btn" class="top-button menu-settings-btn" type="button"
           title="Inställningar" aria-label="Inställningar" aria-haspopup="dialog">
@@ -96,10 +96,15 @@
       aria-label="Valfri risklinje med högre fartbonus"></div>
     <section id="menu" class="screen">
       <div class="screen-content">
-        <div class="kicker"><span id="menu-selected-ship">MANTA BLADE</span> · SKYLINE CIRCUIT · 0.15.1</div>
+        <div class="kicker"><span id="menu-selected-ship">MANTA BLADE</span> · <span id="menu-track-name">SKYLINE CIRCUIT</span> · 0.16.0</div>
         <h1>SKY<span>SHIFT</span></h1>
         <div class="rule"></div>
-        <p class="tagline">WIDE ARCS · SMART LINES.<br>THREE FASTER LAPS.</p>
+        <p class="tagline" id="track-tagline">WIDE ARCS · SMART LINES · THREE FASTER LAPS.</p>
+        <label for="track-picker" class="track-select-label">SELECT CIRCUIT</label>
+        <select id="track-picker" class="track-picker" aria-label="Välj bana">
+          <option value="skyline">01 · SKYLINE CIRCUIT — RISK LINES</option>
+          <option value="aurora">02 · AURORA RUN — PURE RACING</option>
+        </select>
         <button id="start-btn" class="primary">START RUN <span>↗</span></button>
         <button id="challenges-btn" class="secondary" type="button">SKYLINE CHALLENGES <span>◆</span></button>
         <p id="tt-menu-status" class="tt-menu-status hidden" aria-live="polite"></p>
@@ -107,7 +112,7 @@
         <div id="boot-state" class="boot-state hidden" role="status" aria-live="polite"></div>
         <div class="instructions">STEER <b>A / D · ← →</b> &nbsp; GRIP <b>SHIFT + STEER</b>
           <br><span>AIR ROLL: SHIFT + STEER in flight · Mobile: hold GRIP + steer</span></div>
-        <div class="prototype-label">3 × 3,400 M · GRIP · WALL · CORKSCREW · SHADOW TUNNEL · 0.15.1</div>
+        <div class="prototype-label" id="track-features">3 × 3,400 M · GRIP · WALL · CORKSCREW · SHADOW TUNNEL</div>
       </div>
     </section>
     <section id="challenges-screen" class="screen hidden" aria-label="Skyline Challenges">
@@ -203,6 +208,6 @@
     <div id="rotate" class="rotate"><div class="rotate-icon">▱</div><strong>ROTATE YOUR DEVICE</strong><span>SKYSHIFT is built for landscape play.</span></div>
     <div id="error" class="error hidden" role="alert"></div>
   </div>
-  <script src="./boot-v0151.js?v=0.15.1" data-game-module="game-v0151.mjs"></script>
+  <script src="./boot-v0160.js?v=0.16.0" data-game-module="game-v0160.mjs"></script>
 </body>
 </html>

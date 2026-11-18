@@ -133,7 +133,7 @@ test("PB/ghost separate from Skyline while keeping Skyline saved records",async(
  const original=(await import("./time-trial-v0151.mjs")).TIME_TRIAL_0151;
  assert.notEqual(tt.TIME_TRIAL_0160.storageKey,original.storageKey);
  assert.notEqual(tt.TIME_TRIAL_0160.trackRevision,original.trackRevision);
- assert.equal(tt.TIME_TRIAL_0160.trackId,"aurora-flow-v0160");
+ assert.equal(tt.TIME_TRIAL_0160.trackId,"aurora-flow-v0164");
  assert.equal(tt.TIME_TRIAL_0160.raceMeters,10200);
 });
 test("menu uses real circuit selector and Skyline-only Challenges not shown on Aurora",()=>{
@@ -192,8 +192,8 @@ test("Aurora metal contact sparks are on Aurora rails, never old Skyline world s
    assert.equal(q.side,side);
   }
  }
- const wrong=oldSparks.railContactPoint(3180,-1);
- const correct=sparks.railContactPoint(3180,-1);
+ const wrong=oldSparks.railContactPoint(550,-1);
+ const correct=sparks.railContactPoint(550,-1);
  assert.ok(Math.hypot(wrong.x-correct.x,wrong.z-correct.z)>30,
   "reproduce the old displaced metallic spark position");
 });

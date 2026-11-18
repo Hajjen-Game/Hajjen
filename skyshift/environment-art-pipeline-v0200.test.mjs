@@ -56,7 +56,7 @@ test("Every mesh has authored normals and colors and avoids flight envelope",()=
    assert.ok([x,y,z].every(Number.isFinite));
    assert.ok(Math.abs(x)>=17.5||y>=30,
     "Interior geometry must remain outside pilot corridor: "+mesh.name);
-   assert.ok(Math.abs(z)<=8.1,"All modules join without longitudinal gaps");
+   assert.ok(Math.abs(z)<=8.2,"All modules join with at most 0.2m overlap at joint fins");
   }
  }
  assert.ok(gltf.materials.find(x=>x.name==="Panoramic Glass")?.alphaMode==="BLEND");

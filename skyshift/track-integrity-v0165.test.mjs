@@ -226,7 +226,7 @@ test("Aurora rail tessellation cuts mobile triangles, collision/ship physics int
 });
 test("0.16.5 URLs and menu preserve independent courses and PB/ghosts",()=>{
  const html=src("./index.html"),game=src("./game-v0165.mjs");
- assert.match(html,/boot-v0203\.js\?v=0\.20\.3/);
+ assert.match(html,/boot-v0204\.js\?v=0\.20\.4/);
  assert.match(src("./boot-v0165.js"),/game-v0165\.mjs\?v=0\.16\.5/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
  assert.match(game,/from "\.\/time-trial-v0160\.mjs"/);

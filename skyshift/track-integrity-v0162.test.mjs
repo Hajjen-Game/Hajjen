@@ -16,7 +16,7 @@ const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,r
  import("./premium-track-v0160.mjs"),
  import("./aero-barrier-v0162.mjs"),
  import("./shadow-tunnel-v0160.mjs"),
- import("./time-trial-v0162.mjs"),
+ import("./time-trial-v0160.mjs"),
  import("./racing-experience-v0160.mjs")]);
 const src=p=>readFileSync(new URL(p,import.meta.url),"utf8");
 const near=(a,b,eps=1e-7)=>assert.ok(Math.abs(a-b)<eps,

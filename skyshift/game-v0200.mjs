@@ -808,7 +808,9 @@ function initScene(){
    enabled:rebirthEnabled,track:TRACK_ID_0160,
    ...(stationWorld?.stats?.()??{active:false,status:"classic",installedBays:0,drawBatches:0}),
    importedMeshes:world.getObjectByName("CONTINUUM STATION · World Art 0.20.0")?.children
-    .map(x=>({name:x.name,count:x.count,isInstanced:x.isInstancedMesh}))??[],
+    .map(x=>({name:x.name,vertices:x.geometry?.attributes?.position?.count??0,
+     isInstanced:!!x.isInstancedMesh,
+     roadConforming:!!x.geometry?.userData?.trackConforming}))??[],
    legacyDecorDisabled:!signatureEnvironment&&!cinematicWorld&&!orbitalHero
   });
  // Pass 2 hero-only art diagnostics. No simulation changes or test shortcuts.

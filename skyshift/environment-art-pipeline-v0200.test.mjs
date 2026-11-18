@@ -1,0 +1,87 @@
+// SKYSHIFT 0.20.0 — World Art Pipeline deterministic regression tests.
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {WORLD_ART_0200,planStationWorld} from "./environment-art-pipeline-v0200.mjs";
+import {STATION_ART_0200,buildStationAsset} from "./build-station-world-v0200.mjs";
+import {TRIAL,SKYLINE_LEAP} from "./trial-v0165.mjs";
+const src=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+const gltf=JSON.parse(src("./assets/worlds/continuum-bays-v1.gltf"));
+test("World Art station is contiguous, coherent, and fits before first Skyline leap",()=>{
+ const p=planStationWorld();
+ assert.equal(p.stats.bayCount,18);
+ assert.equal(p.stats.meters,288);
+ assert.equal(p.bays[0].start,80);
+ assert.equal(p.bays.at(-1).end,368);
+ assert.ok(p.bays.at(-1).end<SKYLINE_LEAP.start);
+ assert.equal(TRIAL.length,3400);
+ for(let i=1;i<p.bays.length;i++)
+  assert.equal(p.bays[i].start,p.bays[i-1].end);
+ assert.equal(p.stats.variants.GATE,2);
+ assert.ok(p.stats.panoramaWindowBays>=12);
+ assert.equal(p.stats.openRoof,true);
+ assert.equal(p.stats.colliders,0);
+ assert.equal(p.stats.physicsChanges,0);
+});
+test("Real glTF asset is checked in, reproducible, compact and self-contained",()=>{
+ const {gltf:recreated,statistics}=buildStationAsset();
+ assert.deepEqual(gltf,recreated);
+ assert.equal(gltf.asset.version,"2.0");
+ assert.equal(statistics.meshes,12);
+ assert.equal(statistics.materialCount,4);
+ assert.ok(statistics.triangles<=WORLD_ART_0200.maxTrianglesPerAsset);
+ assert.ok(src("./assets/worlds/continuum-bays-v1.gltf").length<=WORLD_ART_0200.maxAssetBytes);
+ assert.equal(gltf.buffers.length,1);
+ assert.match(gltf.buffers[0].uri,/^data:application\/octet-stream;base64,/);
+ const decoded=Buffer.from(gltf.buffers[0].uri.split(",")[1],"base64");
+ assert.equal(decoded.byteLength,gltf.buffers[0].byteLength);
+ assert.equal(gltf.meshes.length,12);
+ assert.equal(gltf.meshes.filter(x=>x.name.includes("GLASS")).length,3);
+});
+test("Every mesh has authored normals and colors and avoids flight envelope",()=>{
+ const bytes=Buffer.from(gltf.buffers[0].uri.split(",")[1],"base64");
+ for(const mesh of gltf.meshes){
+  const prim=mesh.primitives[0],attrs=prim.attributes;
+  assert.ok(Number.isInteger(attrs.POSITION));
+  assert.ok(Number.isInteger(attrs.NORMAL));
+  assert.ok(Number.isInteger(attrs.COLOR_0));
+  const pos=gltf.accessors[attrs.POSITION];
+  const view=gltf.bufferViews[pos.bufferView];
+  assert.equal(pos.count%3,0);
+  assert.ok(pos.count>0);
+  for(let i=0;i<pos.count;i++){
+   const at=view.byteOffset+i*12;
+   const x=bytes.readFloatLE(at),y=bytes.readFloatLE(at+4),
+    z=bytes.readFloatLE(at+8);
+   assert.ok([x,y,z].every(Number.isFinite));
+   assert.ok(Math.abs(x)>=17.5||y>=30,
+    "Interior geometry must remain outside pilot corridor: "+mesh.name);
+   assert.ok(Math.abs(z)<=8.1,"All modules join without longitudinal gaps");
+  }
+ }
+ assert.ok(gltf.materials.find(x=>x.name==="Panoramic Glass")?.alphaMode==="BLEND");
+});
+test("Low-memory version retains whole interior without glass draw batches",()=>{
+ const low=planStationWorld({lowMemory:true});
+ assert.equal(low.bays.length,18);
+ assert.equal(low.stats.panoramaWindowBays,14);
+ assert.equal(low.stats.openRoof,true);
+ assert.equal(WORLD_ART_0200.maxBatchesHigh,12);
+ assert.equal(WORLD_ART_0200.maxBatchesLow,9);
+ assert.equal(WORLD_ART_0200.addedDynamicLights,0);
+ assert.equal(WORLD_ART_0200.addedRenderPasses,0);
+});
+test("Aurora remains independent and classic mode loads legacy geometry",()=>{
+ assert.equal(planStationWorld({track:"aurora"}).active,false);
+ assert.equal(planStationWorld({track:"aurora"}).bays.length,0);
+ const game=src("./game-v0200.mjs");
+ assert.match(game,/from "\.\/trial-v0165\.mjs"/);
+ assert.match(game,/from "\.\/unified-flight-v0165\.mjs"/);
+ assert.match(game,/from "\.\/cinematic-v0165\.mjs"/);
+ assert.match(game,/from "\.\/environment-art-pipeline-v0200\.mjs"/);
+ assert.match(game,/if\(rebirthEnabled\)stationWorld=installWorldArt/);
+ assert.match(game,/if\(envEnabled&&!rebirthEnabled\)signatureEnvironment=/);
+ assert.match(game,/version:"0\.20\.0"/);
+ assert.match(src("./index.html"),/boot-v0200\.js\?v=0\.20\.0/);
+ assert.match(src("./boot-v0200.js"),/game-v0200\.mjs\?v=0\.20\.0/);
+});

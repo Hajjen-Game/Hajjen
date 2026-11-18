@@ -24,7 +24,7 @@ try{
   });
   await page.addInitScript(mem=>Object.defineProperty(navigator,"deviceMemory",
    {configurable:true,get:()=>mem}),memory);
-  await page.goto("http://127.0.0.1:8775/skyshift/?v=0.20.4.1"+
+  await page.goto("http://127.0.0.1:8775/skyshift/?v=0.20.4.1&architecturePass=classic"+
    "&artSmoke=1&heroSmoke=1&worldSmoke=1&envSmoke=1&trackRepairSmoke=1&"+query,
    {waitUntil:"domcontentloaded",timeout:60000});
   await page.waitForFunction(()=>window.__skyshiftBoot?.phase==="ready",

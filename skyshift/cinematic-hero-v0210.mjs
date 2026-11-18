@@ -11,8 +11,8 @@ export const HERO_0210=Object.freeze({
 });
 const COLORS=Object.freeze({
  void:0x07111e,under:0x0b1728,outer:0x0f1e31,shadow:0x0b1526,
- face:0x233e56,lit:0x365a75,edge:0x51809a,blade:0x152d47,
- roof:0x14283d,coffer:0x091525,carbon:0x122237,
+ face:0x2b4964,lit:0x446d8b,edge:0x5b92ae,blade:0x1c3651,
+ roof:0x1b344e,coffer:0x0e2236,carbon:0x1b344d,
  pink:0xff449f,pinkWhite:0xffd8ef,cyan:0x43d5f8,cyanWhite:0xd6f9ff,
  blueReflection:0x236a87,roseReflection:0x8e295c
 });
@@ -106,22 +106,22 @@ function artBatches(positionAt){
   const wide=variant==="GATE"?2.8:variant==="CATHEDRAL"?2.6:1.7;
   const long=variant==="GATE"?5.0:2.4;
   solid("HULL",side,[
-   [14.7,12.5],[17.9,12.5],[19.45,23.8],[18.8,26.0],
-   [12.15,32.45],[7.45,32.45],[7.45,30.65],
-   [11.15,30.65],[14.68,25.95],[14.7,24.9]
+   [14.72,13.3],[16.2,13.3],[16.4,23.9],[17.15,26.2],
+   [11.85,32.85],[7.65,32.85],[7.65,31.6],
+   [11.08,31.6],[14.55,26.15],[14.72,24.8]
   ],s,s+long,COLORS.void);
   solid("FACET",side,[
-   [15.02,16.0],[17.35,16.0],[18.18,23.7],
-   [12.08,31.83],[8.05,31.83],[8.05,31.28],
-   [11.67,31.28],[15.4,25.88],[15.02,24.6]
+   [14.82,16.0],[15.84,16.0],[16.05,23.9],
+   [11.67,32.4],[8.10,32.4],[8.10,31.96],
+   [11.40,31.96],[14.46,26.22],[14.82,24.9]
   ],s+.18,s+Math.min(1.35,long-.28),variant==="GATE"?COLORS.lit:COLORS.face);
   // A broad angled architectural edge catches the cyan light.
-  face("LIGHT",side,14.71,26.32,11.25,31.35,s+.12,s+wide,
+  face("LIGHT",side,14.38,26.40,10.70,32.12,s+.10,s+wide,
    variant==="GATE"?COLORS.pink:COLORS.cyan);
-  face("LIGHT",side,14.71,26.51,11.34,31.47,s+.30,s+.43,
+  face("LIGHT",side,14.32,26.52,10.64,32.25,s+.22,s+.34,
    variant==="GATE"?COLORS.pinkWhite:COLORS.cyanWhite);
-  // Controlled halo belongs to structure, not free-floating neon rods.
-  face("HALO",side,14.76,25.90,11.06,31.78,s,s+wide,
+  // Integrated high-rib glow, restrained but visible from cockpit.
+  face("HALO",side,14.34,26.16,10.60,32.38,s,s+wide,
    variant==="GATE"?COLORS.roseReflection:COLORS.blueReflection);
  }
  const bays=planCinematicHero().bays;
@@ -131,20 +131,33 @@ function artBatches(positionAt){
   for(const side of [-1,1]){
    face("HULL",side,14.8,-10.5,26.0,-10.5,a,b,COLORS.under);
    face("HULL",side,20.8,-9,27.0,8.0,a,b,COLORS.void);
-   face("HULL",side,21.4,24.0,25.6,36.6,a,b,COLORS.roof);
+   face("HULL",side,21.4,29.2,24.0,35.8,a,b,COLORS.roof);
    lowerWall(side,a,b,kind,i);
    // The ceiling is sloped and vaulted rather than a flat crossbar stack.
-   face("HULL",side,20.7,34.2,7.8,32.5,a,b,COLORS.roof);
-   face("FACET",side,15.9,30.55,10.1,32.10,a,b,
+   face("HULL",side,20.7,35.5,7.8,34.1,a,b,COLORS.roof);
+   face("FACET",side,15.9,30.55,10.1,33.40,a,b,
     kind==="CATHEDRAL"?COLORS.lit:COLORS.blade);
-   face("HULL",side,10.0,32.65,.15,34.7,a,b,COLORS.coffer);
+   face("HULL",side,10.0,34.20,.15,34.80,a,b,COLORS.coffer);
+   // Continuous luminous cornice: the 0.20.5 ceiling was unlit from cockpit.
+   face("LIGHT",side,9.86,33.76,9.86,34.02,a,b,COLORS.cyan);
+   face("LIGHT",side,9.80,33.855,9.80,33.908,a,b,COLORS.cyanWhite);
+   face("HALO",side,9.73,33.40,9.73,34.28,a,b,COLORS.blueReflection);
   }
   // Large-scale room rhythm changes every ~32-64m: not a rib on every bay.
   if([0,2,5,7,9,12,15,17].includes(i)){
    const offset=i===0?0:kind==="PANORAMA"?1.3:3.3;
    arch(1,a+offset,kind);arch(-1,a+offset,kind);
   }
-  // Panoramic galleries and machine navess have distinctive overhead geometry.
+  // Signature structural neon follows genuine 3D joints, with breathing room.
+  if([0,2,5,9,12,15,17].includes(i)){
+   for(const side of [-1,1]){
+    const s=a+4.2;
+    face("LIGHT",side,14.44,15.0,14.44,25.45,s,s+.35,COLORS.pink);
+    face("LIGHT",side,14.405,15.7,14.405,24.8,s+.08,s+.135,COLORS.pinkWhite);
+    face("HALO",side,14.38,14.5,14.38,25.8,s-.15,s+.48,COLORS.roseReflection);
+   }
+  }
+  // Panoramic galleries and machine naves have distinctive overhead geometry.
   if(kind==="PANORAMA"){
    for(const side of [-1,1]){
     // Long diagonal exterior visor over genuine open space.
@@ -208,10 +221,8 @@ export function installCinematicHero(THREE,world,{
     transparent:true,opacity:.12,depthWrite:false,
     blending:THREE.AdditiveBlending
    });
-   else material=new THREE.MeshStandardMaterial({
-    color:0xffffff,vertexColors:true,metalness:kind==="HULL"?.33:.24,
-    roughness:kind==="HULL"?.65:.51,side:THREE.DoubleSide,
-    emissive:0x102237,emissiveIntensity:.32
+   else material=new THREE.MeshBasicMaterial({
+    color:0xffffff,vertexColors:true,side:THREE.DoubleSide,toneMapped:true
    });
    const mesh=new THREE.Mesh(geo,material);
    mesh.name="Cinematic megastructure / "+kind;

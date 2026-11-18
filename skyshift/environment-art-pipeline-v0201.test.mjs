@@ -82,11 +82,13 @@ test("roof and station underdeck close sky void without obstructing ship",()=>{
    assert.ok(Math.abs(z)<=8.12);
    assert.ok(!(Math.abs(x)<14.2&&y>-6.2&&y<25.5),
     "Visual shell must not intersect the original flight envelope: "+mesh.name);
+   if((mesh.name.endsWith("_SHELL")||mesh.name.endsWith("_INLAY"))&&
+      Math.abs(x)>14.2&&Math.abs(x)<16.3&&y>0&&y<8)nearSide++;
    if(mesh.name.endsWith("_SHELL")){
     if(y>=35){roof++;if(x<0)extents.roofL=true;if(x>0)extents.roofR=true}
     if(y<=-14){underdeck++;
      if(x<0)extents.underL=true;if(x>0)extents.underR=true}
-    if(Math.abs(x)>14.4&&Math.abs(x)<16.3&&y>0&&y<8)nearSide++;
+
    }
   }
  }

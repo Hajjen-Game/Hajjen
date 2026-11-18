@@ -6,7 +6,7 @@ export const TRACKS_0160=Object.freeze([
   hasSkylineChallenges:true,trackRevision:"skyline-risk-diversity-0151"}),
  Object.freeze({id:"aurora",name:"AURORA RUN",shortName:"AURORA",
   tag:"OPEN ROAD · FLOWING S-CURVES · ELEVATION",hasRiskLines:false,
-  hasSkylineChallenges:false,trackRevision:"aurora-run-0160"})
+  hasSkylineChallenges:false,trackRevision:"aurora-fair-flow-0164"})
 ]);
 export const parseTrackId=search=>{
  const raw=new URLSearchParams(search||"").get("track");

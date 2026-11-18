@@ -5,10 +5,10 @@ import {isAurora} from "./track-selection-v0160.mjs";
 export const RACING_0121=Object.freeze({
  version:"power-carve-racing-experience-0121",
  precisionWindows:Object.freeze(isAurora()?[
-  Object.freeze({id:"aurora-glass",name:"GLASS SWEEP",start:252,end:444,minGripSeconds:.15}),
-  Object.freeze({id:"aurora-north",name:"NORTH SWITCHBACK",start:1245,end:1690,minGripSeconds:.24}),
-  Object.freeze({id:"aurora-luminous",name:"LUMINOUS SWEEP",start:2000,end:2195,minGripSeconds:.16}),
-  Object.freeze({id:"aurora-south",name:"SOUTH SWITCHBACK",start:2970,end:3390,minGripSeconds:.24})
+  Object.freeze({id:"aurora-glass",name:"GLASS SWEEP",start:100,end:280,minGripSeconds:.15}),
+  Object.freeze({id:"aurora-north",name:"NORTH SWITCHBACK",start:727,end:1483,minGripSeconds:.24}),
+  Object.freeze({id:"aurora-luminous",name:"LUMINOUS SWEEP",start:1700,end:1900,minGripSeconds:.16}),
+  Object.freeze({id:"aurora-south",name:"SOUTH SWITCHBACK",start:2440,end:3180,minGripSeconds:.24})
  ]:[
   Object.freeze({id:"precision-apex",name:"PRECISION APEX",start:785,end:990,minGripSeconds:.18}),
   Object.freeze({id:"s-complex",name:"S-COMPLEX",start:1145,end:1638,minGripSeconds:.22}),
@@ -39,9 +39,9 @@ export function raceWindowAt(s){
 export function raceRhythmAt(s){
  const d=local(s);
  if(isAurora()){
-  if(d>=1240&&d<1700||d>=2950)return "SWITCHBACK";
+  if(d>=727&&d<1483||d>=2440&&d<3180)return "SWITCHBACK";
   if(d>=910&&d<1180)return "LUMEN PASS";
-  if(d>=250&&d<880||d>=1987&&d<2390)return "FLOW";
+  if(d>=100&&d<700||d>=1700&&d<2440)return "FLOW";
   return "OPEN SPEED";
  }
  if(d>=785&&d<1007)return "APEX";

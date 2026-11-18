@@ -59,7 +59,8 @@ try{
  await enhanced.page.close();
  const classic=await open("materials=classic",8);
  if(classic.material?.enabled||classic.material?.adjustedPbrMaterials!==0||
-    classic.material.worldMaterials.some(x=>x.metalness<.6||
+    classic.material.worldMaterials.some(x=>
+     Math.abs(x.metalness-(x.kind==="steel"?.68:.47))>.001||
      x.shaderKey.includes("readable-0191"))||
     classic.world.beams!==enhanced.world.beams||
     classic.material.signatureMaterial!==0x101c32)

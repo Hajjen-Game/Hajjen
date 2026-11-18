@@ -4,7 +4,7 @@ import {existsSync} from "node:fs";
 import {setTimeout as sleep} from "node:timers/promises";
 import {chromium} from "playwright-core";
 const chrome=[process.env.CHROME_PATH,"/usr/bin/google-chrome",
- "/usr/bin/google-chrome-stable","/usr/bin/chromium"].filter(existsSync).find(Boolean);
+ "/usr/bin/google-chrome-stable","/usr/bin/chromium"].filter(Boolean).find(existsSync);
 if(!chrome)throw Error("Chrome unavailable for SKYSHIFT 0.20.4 QA");
 const server=spawn("python3",["-m","http.server","8774","--bind","127.0.0.1"],
  {cwd:process.cwd(),stdio:"ignore"});

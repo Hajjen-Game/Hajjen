@@ -144,7 +144,8 @@ export function heroArchitecturePlan({lowMemory=false}={}){
  }
  const plan={station:H.stationS,stationL:H.stationL,lowMemory,
   armorSegments,recessedFaces,beacons,arms,
-  surfaces,details,emissive:emit};
+  surfaces,surfaceTints,details,detailTints,
+  emissive:emit,emissiveTints:emitTints};
  const all=[...surfaces,...details,...emit];
  if(!all.every(v=>v.every(Number.isFinite)&&safe(v)))
   throw Error("Orbital hero must not collide with flight envelope");
@@ -219,14 +220,6 @@ export function installOrbitalHero(THREE,world,{
  const group=new THREE.Group();
  group.name="Orbital Hero 0.19.2 · Asterion";
  const meshes=[];
- const art=[
-  {name:"Layered armor / cassettes",pts:plan.surfaces,
-   kind:"shell",colors:plan.surfaces.map((_,i)=>null)},
-  {name:"Recessed faceted face panels",pts:plan.details,kind:"inlays",
-   colors:plan.details.map(()=>null)},
-  {name:"Selective luminance accents",pts:plan.emissive,kind:"energy",
-   colors:plan.emissive.map(()=>null)}
- ];
  // plan stores coordinates and tints separately, one material per entire
  // authored shell class — no draw call per segment or per arm.
  const definitions=[

@@ -96,7 +96,7 @@ test("Real curves have zero station-bay seam distance, even in banked turns",()=
   getZ(i){return this.array[3*i+2]}
  }
  class Geo{
-  attributes={};
+  attributes={};userData={};
   setAttribute(k,v){this.attributes[k]=v}
   computeVertexNormals(){}
   computeBoundingSphere(){}

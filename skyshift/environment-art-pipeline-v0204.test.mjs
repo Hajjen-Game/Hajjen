@@ -147,7 +147,7 @@ test("Live entry uses 0.20.4 GLTF and optional halo; all prior versions remain s
  for(const module of ["trial-v0165","unified-flight-v0165","cinematic-v0165"])
   assert.ok(game.includes('from "./'+module+'.mjs"'));
  assert.match(game,/environment-art-pipeline-v0204\.mjs/);
- assert.match(game,/premiumNeonEnabled=ribbonWindowsEnabled&&/);
+ assert.match(game,/premiumNeonEnabled=graphiteGradeEnabled&&/);
  assert.match(game,/get\("neon"\)!=="classic"/);
  assert.match(game,/installPremiumNeonWorldArt/);
  assert.match(game,/compareBeforeNeon:"\?neon=classic"/);

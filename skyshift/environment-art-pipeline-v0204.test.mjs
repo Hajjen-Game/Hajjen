@@ -155,6 +155,6 @@ test("Live entry uses 0.20.4 GLTF and optional halo; all prior versions remain s
  assert.match(game,/from "\.\/environment-art-pipeline-v0203\.mjs"/);
  assert.match(game,/get\("materialGrade"\)!=="classic"/);
  assert.match(game,/version:"0\.20\.4"/);
- assert.match(file("./index.html"),/boot-v0204\.js\?v=0\.20\.4/);
+ assert.match(file("./index.html"),/boot-v02041\.js\?v=0\.20\.4\.1/);
  assert.match(file("./boot-v0204.js"),/game-v0204\.mjs\?v=0\.20\.4/);
 });

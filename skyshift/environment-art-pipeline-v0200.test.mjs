@@ -82,7 +82,7 @@ test("Aurora remains independent and classic mode loads legacy geometry",()=>{
  assert.match(game,/if\(rebirthEnabled\)stationWorld=installWorldArt/);
  assert.match(game,/if\(envEnabled&&!rebirthEnabled\)signatureEnvironment=/);
  assert.match(game,/version:"0\.20\.0"/);
- assert.match(src("./index.html"),/boot-v0200\.js\?v=0\.20\.0/);
+ assert.match(src("./index.html"),/boot-v0201\.js\?v=0\.20\.1/);
  assert.match(src("./boot-v0200.js"),/game-v0200\.mjs\?v=0\.20\.0/);
 });
 

@@ -7,10 +7,10 @@ const stages=[0,0,0,3,6,8,8,8,8,8];
 const positions=[120,470,510,1300,4700,6600,8149,9300,9852,10125];
 function sample(trial,s,stage,grip,side=0){
  const st=trial.newFlightState(),limit=trial.guardrailLateralLimit(s);
- const lateral=side*(limit-.03),p=trial.positionAt(s,lateral);
+ const lateral=side*(limit+1.2),p=trial.positionAt(s,lateral);
  const speed=trial.speedAt(s,stage);
  Object.assign(st,{s,lateral,worldX:p.x,worldZ:p.z,
-  heading:trial.headingAt(s),currentSpeed:speed,
+  heading:trial.headingAt(s)+side*.12,currentSpeed:speed,
   zoneCruiseSpeed:speed,zoneSpeedStage:stage,
   lap:Math.min(3,Math.floor(s/3400)+1),grounded:true});
  let maxTurn=0,contactTicks=0;

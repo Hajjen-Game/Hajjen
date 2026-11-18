@@ -23,7 +23,7 @@ try{
    errors.push("GLSL: "+msg.text().slice(0,900));
  });
  async function load(params){
-  await page.goto("http://127.0.0.1:"+port+"/skyshift/?v=0.19.0&worldSmoke=1&envSmoke=1&"+params,
+  await page.goto("http://127.0.0.1:"+port+"/skyshift/?v=0.19.0&worldArt=classic&worldSmoke=1&envSmoke=1&"+params,
    {waitUntil:"domcontentloaded",timeout:60000});
   await page.waitForFunction(()=>window.__skyshiftBoot?.phase==="ready",
    null,{timeout:75000});

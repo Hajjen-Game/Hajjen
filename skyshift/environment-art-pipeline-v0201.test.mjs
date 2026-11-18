@@ -113,7 +113,7 @@ test("low-memory retains enclosed cross-section, original driving physics stays 
  assert.match(game,/stationStyle"\)!=="classic"/);
  assert.match(game,/if\(rebirthEnabled\)stationWorld=\(enclosedStationEnabled\?/);
  assert.match(game,/version:"0\.20\.1"/);
- assert.match(src("./index.html"),/boot-v02021\.js\?v=0\.20\.2\.1/);
+ assert.match(src("./index.html"),/boot-v0203\.js\?v=0\.20\.3/);
  assert.match(src("./boot-v0201.js"),/game-v0201\.mjs\?v=0\.20\.1/);
 });
 test("bay edge coordinates remain joined along the actual banking and curvature",()=>{

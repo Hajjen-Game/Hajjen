@@ -40,7 +40,7 @@ try{
  }
  const high=await open("",8);
  if(!high.hero?.active||high.hero.track!=="skyline"||
-    high.hero.maskedPrimitiveBeams!==54||
+    high.hero.maskedPrimitiveBeams!==55||
     high.hero.armorSegments!==20||high.hero.recessedFaces!==20||
     high.hero.addedDrawMeshes!==3||high.hero.additionalLights!==1||
     high.hero.heroGroup?.length!==4||

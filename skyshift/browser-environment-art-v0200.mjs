@@ -48,8 +48,9 @@ try{
     !high.art.geometryFromGltf||
     high.art.assetBytes<100000||
     high.art.installedBays!==18||
-    high.art.drawBatches!==12||
-    high.art.importedMeshes?.length!==12||
+    high.art.drawBatches!==4||
+    high.art.importedMeshes?.length!==4||
+    !high.art.seamlessCurvedWorld||!high.art.bakedWorldSpace||
     high.art.panoramaWindowBays!==14||
     !high.art.openRoof||
     !high.art.legacyDecorDisabled||
@@ -73,7 +74,7 @@ try{
  const mobile=await open("",4);
  if(!mobile.lowMemory||!mobile.art?.active||
     mobile.art.installedBays!==18||
-    mobile.art.drawBatches!==9||
+    mobile.art.drawBatches!==3||
     mobile.art.importedMeshes.some(x=>x.name.endsWith("GLASS"))||
     !mobile.art.openRoof)
   throw Error("4GB mobile Skyline world not fully authored: "+JSON.stringify(mobile.art));
@@ -93,7 +94,7 @@ try{
  if(errors.length)throw Error(errors.join(" | "));
  console.log("PASS: SKYSHIFT 0.20.0 authentic glTF world: 288 contiguous meters, "+
   "18 station bays with panoramic space-facing windows and open roof, "+
-  "12 instanced draw batches high / 9 low, zero added colliders/lights/passes; "+
+  "4 curved-world draw batches high / 3 low, zero added colliders/lights/passes; "+
   "old 0.19.2 environment fully restored with ?worldArt=classic; Aurora isolated; "+
   "four screenshots captured in real Chrome WebGL.");
 }finally{

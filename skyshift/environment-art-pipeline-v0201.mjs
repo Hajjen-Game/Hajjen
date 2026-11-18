@@ -1,6 +1,6 @@
 // SKYSHIFT 0.20.1 — World Art Pipeline
 // An independently-authored, checked-in glTF asset is loaded ONCE.
-// Instanced authored architecture follows the existing road local frame;
+// Authored glTF bay vertices are curved to the original road local frame;
 // the 120 Hz game physics, steering, GRIP, rails and road mesh are untouched.
 export const WORLD_ART_0201=Object.freeze({
  version:"architectural-enclosure-v0201",name:"CONTINUUM STATION · ARCHITECTURAL DEPTH",
@@ -12,7 +12,9 @@ export const WORLD_ART_0201=Object.freeze({
  maxAssetBytes:280000,maxTrianglesPerAsset:2000,
  maxBatchesHigh:4,maxBatchesLow:3,
  addedColliders:0,addedPhysicsChanges:0,addedDynamicLights:0,
- addedRenderPasses:0,panoramicExterior:true,continuousRoof:true
+ addedRenderPasses:0,panoramicExterior:false,continuousRoof:true,
+ structuralUnderdeck:true,enclosedCrossSection:true,
+ windowsAreSelective:true
 });
 export function planStationWorld({track="skyline",lowMemory=false}={}){
  const c=WORLD_ART_0201;
@@ -117,7 +119,7 @@ export function stationFrame(THREE,positionAt,s){
  return transform;
 }
 // Curve-conform the AUTHOR'S glTF vertices to the actual curved, banked road.
-// A rigid 16m instanced straight bay left visible gaps in fast corners.
+// A rigid 16m straight bay once left visible gaps in fast corners.
 // By baking all 18 authored modules into one mesh per material, every shared
 // seam maps to the exact same positionAt(s,lateral,height) road coordinate,
 // and we need only 3/4 draw calls (not 9/12). The asset remains real glTF.

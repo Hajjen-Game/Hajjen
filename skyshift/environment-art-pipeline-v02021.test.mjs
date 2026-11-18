@@ -117,6 +117,6 @@ test("original physics, 0.20.2 rollback and Aurora remain intact",()=>{
  assert.match(game,/installRibbonWindowArt/);
  assert.match(game,/compareBeforeCleanup:"\?windowCleanup=classic"/);
  assert.match(game,/version:"0\.20\.2\.1"/);
- assert.match(file("./index.html"),/boot-v02021\.js\?v=0\.20\.2\.1/);
+ assert.match(file("./index.html"),/boot-v0203\.js\?v=0\.20\.3/);
  assert.match(file("./boot-v02021.js"),/game-v02021\.mjs\?v=0\.20\.2\.1/);
 });

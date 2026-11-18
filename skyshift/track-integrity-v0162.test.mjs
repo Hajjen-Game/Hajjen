@@ -139,11 +139,11 @@ test("menu uses real circuit selector and Skyline-only Challenges not shown on A
  assert.match(html,/id="track-picker"/);
  assert.match(html,/value="aurora"/);
  assert.match(html,/value="skyline"/);
- assert.match(boot,/game-v0161\.mjs\?v=0\.16\.1/);
+ assert.match(boot,/game-v0162\.mjs\?v=0\.16\.2/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
  assert.match(game,/challengeButton\.classList\.toggle\("hidden",!ACTIVE_TRACK_0160\.hasSkylineChallenges\)/);
- assert.match(game,/from "\.\/trial-v0160\.mjs"/);
- assert.match(game,/from "\.\/aero-barrier-v0161\.mjs"/);
+ assert.match(game,/from "\.\/trial-v0162\.mjs"/);
+ assert.match(game,/from "\.\/aero-barrier-v0162\.mjs"/);
  assert.match(game,/from "\.\/shadow-tunnel-v0160\.mjs"/);
  assert.match(game,/ship\.rotation\.z=naturalRoll;/);
 });
@@ -200,13 +200,13 @@ test("No ghost right-apex guidance or Skyline-only leap signs on Aurora",()=>{
  assert.match(game,/if\(!isAurora\(\)\)makeBillboard\("SKYLINE LEAP"/);
  assert.match(game,/makeBillboard\(isAurora\(\)\?"LUMEN PASS":"SHADOW TUNNEL"/);
  assert.match(game,/ACTIVE_TRACK_0160\.name\+" COMPLETE"/);
- assert.match(game,/from "\.\/cinematic-v0161\.mjs"/);
- assert.match(game,/from "\.\/unified-flight-v0161\.mjs"/);
- assert.match(game,/from "\.\/rail-scrape-sparks-v0161\.mjs"/);
+ assert.match(game,/from "\.\/cinematic-v0162\.mjs"/);
+ assert.match(game,/from "\.\/unified-flight-v0162\.mjs"/);
+ assert.match(game,/from "\.\/rail-scrape-sparks-v0162\.mjs"/);
  const rig=src("./unified-flight-v0162.mjs");
- assert.match(rig,/from "\.\/cinematic-v0161\.mjs"/);
+ assert.match(rig,/from "\.\/cinematic-v0162\.mjs"/);
  const realCamera=src("./cinematic-v0162.mjs");
- assert.match(realCamera,/from "\.\/trial-v0160\.mjs"/);
+ assert.match(realCamera,/from "\.\/trial-v0162\.mjs"/);
  assert.doesNotMatch(realCamera,/from "\.\/trial-v0901\.mjs"/);
 });
 test("Aurora rail tessellation cuts mobile triangles, collision/ship physics intact",async()=>{
@@ -221,13 +221,13 @@ test("Aurora rail tessellation cuts mobile triangles, collision/ship physics int
  assert.equal(trial.GAPS.length,0);
  assert.equal(trial.TRIAL.hoverHeight,1.05);
  const source=src("./aero-barrier-v0162.mjs");
- assert.match(source,/from "\.\/trial-v0160\.mjs"/);
+ assert.match(source,/from "\.\/trial-v0162\.mjs"/);
  assert.match(source,/step=isAurora\(\)\?1\.55:AERO_BARRIER\.step/);
 });
 test("0.16.2 URLs and menu preserve independent courses and PB/ghosts",()=>{
  const html=src("./index.html"),game=src("./game-v0162.mjs");
- assert.match(html,/boot-v0161\.js\?v=0\.16\.1/);
- assert.match(src("./boot-v0162.js"),/game-v0161\.mjs\?v=0\.16\.1/);
+ assert.match(html,/boot-v0162\.js\?v=0\.16\.2/);
+ assert.match(src("./boot-v0162.js"),/game-v0162\.mjs\?v=0\.16\.2/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
  assert.match(game,/from "\.\/time-trial-v0160\.mjs"/);
  assert.equal(tt.TIME_TRIAL_0160.storageKey,"skyshift-time-trial-ghost-aurora-0160");

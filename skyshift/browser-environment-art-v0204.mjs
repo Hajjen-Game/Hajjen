@@ -67,10 +67,10 @@ try{
   await capture(high.page,s,n);
  await high.page.close();
  const previous=await open("neon=classic",8);
- if(!previous.art?.active||previous.art.variant!=="ribbon-cleanup"||
+ if(!previous.art?.active||previous.art.variant!=="graphite-regrade"||
    previous.art.drawBatches!==4||previous.art.premiumIntegratedNeon===true||
    previous.art.importedMeshes.some(x=>x.name.includes(" · HALO · ")))
-  throw Error("0.20.2.1 A/B mode missing: "+JSON.stringify(previous.art));
+  throw Error("0.20.3 graphite A/B mode missing: "+JSON.stringify(previous.art));
  await previous.page.locator("#start-btn").click();
  await previous.page.waitForFunction(()=>window.__skyshiftPerfProbe?.().state==="playing",
   null,{timeout:30000});
@@ -92,9 +92,11 @@ try{
   null,{timeout:30000});
  await capture(low.page,155,"mobile");
  await low.page.close();
- for(const q of ["windowCleanup=classic","windows=classic",
+ for(const q of ["materialGrade=classic","windowCleanup=classic","windows=classic",
    "stationStyle=classic","worldArt=classic","track=aurora","env=classic"]){
   const prior=await open(q,8);
+  if(q==="materialGrade=classic"&&prior.art?.variant!=="ribbon-cleanup")
+   throw Error("Original 0.20.2.1 ribbon comparison broken");
   if(q==="windowCleanup=classic"&&prior.art?.variant!=="observation-balance")
    throw Error("Original window cleanup comparison broken");
   if(q==="windows=classic"&&prior.art?.variant!=="enclosed")

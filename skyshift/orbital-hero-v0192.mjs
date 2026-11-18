@@ -33,7 +33,7 @@ function quad(out,positions,color,a,b,c,d){
   if(!p.every(Number.isFinite)||!safe(p))
    throw Error("Orbital observatory infringes pilot flight corridor: "+p);
   positions.push(p);
-  out.push(color,color,color);
+  out.push(color);
  }
 }
 const face=(positions,colors,shade,a,b,c,d)=>quad(colors,positions,shade,a,b,c,d);

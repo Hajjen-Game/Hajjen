@@ -56,6 +56,6 @@ test("the final executable uses original GRIP and flight physics",()=>{
  assert.match(game,/worldEnabled=envEnabled/);
  assert.match(game,/track:TRACK_ID_0160,lowMemory:limitedMemory,positionAt/);
  assert.match(game,/version:"0\.19\.0"/);
- assert.match(html,/boot-v0200\.js\?v=0\.20\.0/);
+ assert.match(html,/boot-v0201\.js\?v=0\.20\.1/);
  assert.match(src("./boot-v0190.js"),/game-v0190\.mjs\?v=0\.19\.0/);
 });

@@ -1,0 +1,39 @@
+name: SKYSHIFT 0.20.3 isolated graphite visual QA
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/skyshift-material-v0203.yml'
+      - 'skyshift/game-v0203.mjs'
+      - 'skyshift/environment-art-pipeline-v0203.mjs'
+      - 'skyshift/build-station-world-v0203.mjs'
+      - 'skyshift/environment-art-pipeline-v0203.test.mjs'
+      - 'skyshift/browser-environment-art-v0203.mjs'
+      - 'skyshift/assets/worlds/continuum-graphite-bays-v5.gltf'
+      - 'skyshift/material-grade-v0203.html'
+jobs:
+  graphite-webgl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
+      - name: Check deterministic authored graphite and physics isolation
+        run: node --test skyshift/environment-art-pipeline-v0203.test.mjs
+      - name: Test 0.20.3 PBR in real Chromium WebGL
+        run: node skyshift/browser-environment-art-v0203.mjs
+      - name: Publish real camera comparison images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skyshift-v0203-graphite-comparison
+          path: |
+            skyshift-v0203-graphite-wall.png
+            skyshift-v0203-graphite-window.png
+            skyshift-v0203-original-wall.png
+            skyshift-v0203-mobile-graphite-wall.png
+          if-no-files-found: ignore

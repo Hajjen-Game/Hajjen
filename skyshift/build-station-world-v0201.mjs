@@ -154,6 +154,8 @@ function stationBay(kind){
  // repeated every metre; spatial hierarchy comes from architecture.
  if(kind==="SERVICE"){
   span(inlay,-8.6,28.68,-2.4,8.6,28.85,2.4,palette.panel);
+  // Small functional status luminaire, embedded in the service ceiling.
+  span(energy,-1.5,28.60,-.18,1.5,28.68,.18,palette.cove);
  }
  return {shell,inlay,energy,glass};
 }

@@ -19,12 +19,14 @@ export const STATION_ART_0204=Object.freeze({
  observationBandLengthMeters:32,observationRevealHeight:7.25,
  openingPerModuleMeters:15.9,centerMullions:0,
  closedBayDecorativeGlassPanels:0,
- originalHallWidthUnchanged:true,originalLightingUnchanged:true
+ originalHallWidthUnchanged:true,originalLightingUnchanged:true,
+ originalGraphitePalettePreserved:true,stationPbrOnly:true,
+ roadAndShipMaterialsUnchanged:true,sceneExposureUnchanged:true
 });
-const palette=Object.freeze({
- shell:0x32485d,side:0x25374a,roof:0x36495c,roofLit:0x40576b,
- rim:0x52697d,bevel:0x485d70,under:0x182839,recess:0x142438,
- fascia:0x405b73,panel:0x2e465c,panelLit:0x3d5d72,
+export const GRAPHITE_PALETTE_0204=Object.freeze({
+ shell:0x1c2d3d,side:0x172536,roof:0x1b2a3b,roofLit:0x2b4257,
+ rim:0x3c5c74,bevel:0x30495f,under:0x111e2c,recess:0x0e1a29,
+ fascia:0x2e485f,panel:0x23394d,panelLit:0x3a5b72,
  warm:0xa9a1a0,cool:0x8bbacb,
  whiteCore:0xc3f6ff,cove:0x56d6eb,coveWarm:0xffbda4,
  glass:0x254b69,
@@ -32,6 +34,7 @@ const palette=Object.freeze({
  neonCyan:0x39cff5,neonWhiteBlue:0xe5faff,
  glowPink:0xb13b77,glowCyan:0x167ea4
 });
+const palette=GRAPHITE_PALETTE_0204;
 const Vec=(x,y,z)=>[x,y,z];
 const floatColor=(hex)=>[((hex>>16)&255)/255,((hex>>8)&255)/255,(hex&255)/255];
 function surface(){
@@ -219,9 +222,9 @@ function base64(data){
 export function buildStationAsset(){
  const meshes=[],nodes=[],bufferViews=[],accessors=[],payload=[],materials=[
   {name:STATION_ART_0204.shellMaterial,doubleSided:true,
-   pbrMetallicRoughness:{baseColorFactor:[1,1,1,1],metallicFactor:.31,roughnessFactor:.7}},
+   pbrMetallicRoughness:{baseColorFactor:[1,1,1,1],metallicFactor:.22,roughnessFactor:.7}},
   {name:STATION_ART_0204.detailMaterial,doubleSided:true,
-   pbrMetallicRoughness:{baseColorFactor:[1,1,1,1],metallicFactor:.14,roughnessFactor:.63}},
+   pbrMetallicRoughness:{baseColorFactor:[1,1,1,1],metallicFactor:.12,roughnessFactor:.68}},
   {name:STATION_ART_0204.energyMaterial,doubleSided:true,
    pbrMetallicRoughness:{baseColorFactor:[1,1,1,1],metallicFactor:0,roughnessFactor:1},
    emissiveFactor:[.84,.84,.84],extensions:{

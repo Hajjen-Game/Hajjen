@@ -92,7 +92,7 @@ try{
   await page.close();
  }
  if(issues.length)throw Error(issues.join(" | "));
- console.log("PASS: 0.19.2 real Chrome/WebGL: Asterion sculpted hero, 54 crude station "+
+ console.log("PASS: 0.19.2 real Chrome/WebGL: Asterion sculpted hero, 55 crude station "+
   "beams replaced, 3 authored hard-surface batches, 1 local unshadowed light; "+
   "classic 0.19.0 rollback verified; 4GB Samsung-tier retained 12 armor segments "+
   "and 4 light windows with no new lights; Aurora and world=classic untouched.");

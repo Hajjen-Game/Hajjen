@@ -596,6 +596,19 @@ jobs:
           node --check skyshift/track-physics-parity-probe-v0164.mjs
           node --check skyshift/track-physics-parity-v0164.test.mjs
           node --check skyshift/browser-track-parity-v0164.mjs
+          node --check skyshift/trial-v0165.mjs
+          node --check skyshift/cinematic-v0165.mjs
+          node --check skyshift/unified-flight-v0165.mjs
+          node --check skyshift/aero-barrier-v0165.mjs
+          node --check skyshift/rail-scrape-sparks-v0165.mjs
+          node --check skyshift/game-v0165.mjs
+          node --check skyshift/boot-v0165.js
+          node --check skyshift/track-integrity-v0165.test.mjs
+          node --check skyshift/track-physics-parity-probe-v0165.mjs
+          node --check skyshift/track-physics-parity-v0165.test.mjs
+          node --check skyshift/grip-trick-audit-v0165.mjs
+          node --check skyshift/grip-trick-lock-v0165.test.mjs
+          node --check skyshift/browser-grip-trick-v0165.mjs
           node --check skyshift/game-v0135.mjs
           node --check skyshift/boot-v0135.js
           node --check skyshift/rail-scrape-sparks-v01344.test.mjs
@@ -615,13 +628,13 @@ jobs:
           node --check skyshift/steering-authority-v084.test.mjs
           node --check skyshift/browser-smoke-v0481.mjs
       - name: Verify SKYSHIFT deterministic track planner
-        # Historical version-pinned tests are archived. Gate live 0.16.4 against
+        # Historical version-pinned tests are archived. Gate live 0.16.5 against
         # the deployed V4 GLTF geometry + visual/GRIP invariants. V3 sculpt art
         # assertions refer to an archived asset and are not production gates.
-        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/handling-fairness-v0135.test.mjs skyshift/track-integrity-v0164.test.mjs skyshift/track-physics-parity-v0164.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
+        run: node --test skyshift/track.test.mjs skyshift/trial-v02.test.mjs skyshift/handling-fairness-v0135.test.mjs skyshift/track-integrity-v0165.test.mjs skyshift/track-physics-parity-v0165.test.mjs skyshift/grip-trick-lock-v0165.test.mjs skyshift/ship-hero-loader-v01342.test.mjs skyshift/ship-hero-loader-v0134.test.mjs skyshift/ship-art-pipeline-v0132.test.mjs skyshift/stingray-hero-preview-v01321.test.mjs skyshift/time-trial-v0130.test.mjs skyshift/racing-experience-v0120.test.mjs skyshift/racing-experience-v0121.test.mjs skyshift/performance-audit-v0110.test.mjs skyshift/render-optimizer-v0111.test.mjs skyshift/unified-flight-v0112.test.mjs skyshift/visual-fidelity-v0113.test.mjs skyshift/visual-fidelity-v0114.test.mjs
 
   browser-smoke:
-    name: Two-Circuit Identical Physics 0.16.4 WebGL
+    name: No-Jump GRIP Fix & Track Parity 0.16.5 WebGL
     needs: track-tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -634,16 +647,16 @@ jobs:
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Export SKYSHIFT 0.13.5 deterministic handling fairness report
         run: node skyshift/handling-fairness-cli-v0135.mjs
-      - name: Verify SKYSHIFT 0.16.4 original Skyline physics applies to BOTH real 3D tracks
-        run: node skyshift/browser-track-parity-v0164.mjs
+      - name: Verify SKYSHIFT 0.16.5 late-lap GRIP matches full yaw, Skyline trick preserved
+        run: node skyshift/browser-grip-trick-v0165.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v0164-handling-parity
+          name: skyshift-v0165-grip-trick-lock
           path: |
             skyshift-fairness-v0135.json
-            skyshift-v0164-aurora-final-corner.png
-            skyshift-v0164-skyline-original.png
+            skyshift-v0165-aurora-final-corner.png
+            skyshift-v0165-skyline-original.png
             skyshift-v01091-blackout-tunnel.png
             skyshift-v01091-stingray-hangar.png
             skyshift-v01091-grip-wake.png

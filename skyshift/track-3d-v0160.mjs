@@ -90,7 +90,7 @@ export function corkscrewAt(s){
  return d>=CORKSCREW.start&&d<CORKSCREW.end?CORKSCREW:null;
 }
 export const TRACK_3D=Object.freeze({
- version:isAurora()?"aurora-fair-flow-rolling-hills-0164":"track-rhythm-grip-apex-082",
+ version:isAurora()?"aurora-run-rolling-hills-0160":"track-rhythm-grip-apex-082",
  lapLength:CIRCUIT.lapLength,
  highestMeters:isAurora()?16:12,lowestMeters:isAurora()?-4:-4.6,
  heightRangeMeters:isAurora()?20:16.6,

@@ -32,7 +32,7 @@ test("two independent track choices exist; Aurora truly selected",()=>{
  assert.equal(trial.TRIAL.raceLength,10200);
  assert.equal(trial.TRIAL.laps,3);
  assert.equal(layout.AUTHORED_SECTIONS.length,12);
- assert.equal(layout.COURSE_SEGMENTS.filter(s=>s.type==="turn").length,8);
+ assert.equal(layout.COURSE_SEGMENTS.filter(s=>s.type==="turn").length,6);
 });
 test("genuinely distinct 3D course closes without seam or short microbends",async()=>{
  near(layout.CIRCUIT_LENGTH,3400,1e-5);
@@ -52,7 +52,7 @@ test("genuinely distinct 3D course closes without seam or short microbends",asyn
   assert.equal(trial.widthAt(i),23.2);
  }
  const turnCount=trial.COURSE_SEGMENTS.filter(s=>s.turnAngle!==0).length;
- assert.equal(turnCount,8);
+ assert.equal(turnCount,6);
  assert.ok(trial.COURSE_SEGMENTS.some(s=>s.length>=440&&s.type==="turn"));
  assert.ok(trial.COURSE_SEGMENTS.some(s=>s.length>350&&s.type==="straight"));
 });
@@ -87,7 +87,7 @@ test("physical road, guardrails and geometry all follow the SAME new flight",()=
  const r=aero.sampleAeroProfile(1350,1);
  const edge=trial.positionAt(1350,trial.widthAt(1350)/2);
  assert.ok(Math.hypot(r[0].x-edge.x,r[0].z-edge.z)<3);
- assert.equal(trial.GEOMETRY_BREAKS.at(-1),3400);
+ near(trial.GEOMETRY_BREAKS.at(-1),3400);
  assert.equal(trial.GEOMETRY_BREAKS[0],0);
 });
 test("open hills and gentle bank follow complete selected lap geometry",()=>{

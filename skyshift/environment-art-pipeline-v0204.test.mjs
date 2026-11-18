@@ -7,11 +7,11 @@ import {STATION_ART_0204,buildStationAsset}
 import {WORLD_ART_0204,planStationWorld,bakeTrackConformingBayGeometry}
  from "./environment-art-pipeline-v0204.mjs";
 import {planStationWorld as oldWorld}
- from "./environment-art-pipeline-v02021.mjs";
+ from "./environment-art-pipeline-v0203.mjs";
 import {TRIAL,SKYLINE_LEAP,positionAt} from "./trial-v0165.mjs";
 const file=path=>readFileSync(new URL(path,import.meta.url),"utf8");
 const gltf=JSON.parse(file("./assets/worlds/continuum-neon-bays-v5.gltf"));
-const oldGltf=JSON.parse(file("./assets/worlds/continuum-ribbon-bays-v4.gltf"));
+const oldGltf=JSON.parse(file("./assets/worlds/continuum-graphite-bays-v5.gltf"));
 function bytes(doc,name,attribute){
  const mesh=doc.meshes.find(x=>x.name===name);
  assert.ok(mesh,"Missing original GLTF mesh "+name);
@@ -55,6 +55,8 @@ test("Authored glTF has five deliberate material layers and correct byte-for-byt
  assert.deepEqual(authored.gltf,gltf);
  assert.equal(gltf.asset.version,"2.0");
  assert.equal(gltf.meshes.length,18);
+ assert.deepEqual(gltf.materials.slice(0,4),oldGltf.materials);
+ assert.equal(STATION_ART_0204.originalGraphitePalettePreserved,true);
  assert.equal(gltf.materials.length,5);
  assert.ok(authored.statistics.triangles<=WORLD_ART_0204.maxTrianglesPerAsset);
  assert.ok(file("./assets/worlds/continuum-neon-bays-v5.gltf").length<
@@ -71,13 +73,13 @@ test("Authored glTF has five deliberate material layers and correct byte-for-byt
  assert.equal(WORLD_ART_0204.integratedMagentaWallGuides,true);
  assert.equal(WORLD_ART_0204.integratedCyanCeilingCoves,true);
 });
-test("The station shell and window geometry are exactly unchanged by neon pass",()=>{
+test("The graphite station shell, glass and PBR values remain exactly as 0.20.3",()=>{
  for(const name of ["PANORAMA_START_SHELL","PANORAMA_END_SHELL",
   "SERVICE_SHELL","GATE_SHELL",
   "PANORAMA_START_GLASS","PANORAMA_END_GLASS"])
   for(const attr of ["POSITION","NORMAL","COLOR_0"])
    assert.deepEqual(bytes(gltf,name,attr),bytes(oldGltf,name,attr),
-    name+"/"+attr+" must match the original 0.20.2.1 model");
+    name+"/"+attr+" must match the 0.20.3 graphite model");
  for(const name of ["SERVICE_GLASS","GATE_GLASS"])
   assert.ok(!gltf.meshes.some(x=>x.name===name));
 });
@@ -149,7 +151,9 @@ test("Live entry uses 0.20.4 GLTF and optional halo; all prior versions remain s
  assert.match(game,/get\("neon"\)!=="classic"/);
  assert.match(game,/installPremiumNeonWorldArt/);
  assert.match(game,/compareBeforeNeon:"\?neon=classic"/);
- assert.match(game,/pass2DarkMaterialsNotApplied:true/);
+ assert.match(game,/retainedGraphiteMaterials0203:true/);
+ assert.match(game,/from "\.\/environment-art-pipeline-v0203\.mjs"/);
+ assert.match(game,/get\("materialGrade"\)!=="classic"/);
  assert.match(game,/version:"0\.20\.4"/);
  assert.match(file("./index.html"),/boot-v0204\.js\?v=0\.20\.4/);
  assert.match(file("./boot-v0204.js"),/game-v0204\.mjs\?v=0\.20\.4/);

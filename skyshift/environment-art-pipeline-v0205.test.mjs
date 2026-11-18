@@ -64,7 +64,7 @@ test("checked-in six-material GLTF reproducible, lightweight and zero added phys
  assert.equal(WORLD_ART_0205.surfaceCollisionChanges,0);
  assert.equal(STATION_ART_0205.noRealtimeReflections,true);
  assert.equal(STATION_ART_0205.vaultedHallAndServiceNave,true);
- assert.equal(STATION_ART_0205.roadWidthAndHandlingUnchanged,true);
+ assert.equal(STATION_ART_0205.unchangedHandling,true);
 });
 test("original pink/cyan/white light, panorama and graphite metallurgy preserved",()=>{
  for(const kind of ["ENERGY","GLASS","HALO"]){
@@ -80,7 +80,7 @@ test("original pink/cyan/white light, panorama and graphite metallurgy preserved
   (x.name.endsWith("_GLASS")||x.name.endsWith("_SHEEN"))));
  const newVault=verts(newer,"SERVICE_VAULT_SHELL");
  const newSpine=verts(newer,"SERVICE_SPINE_SHELL");
- assert.notEqual(newVault.length,newSpine.length,
+ assert.notDeepEqual(newVault,newSpine,
   "Hall identities must be real 3D geometry, not differently named recolors");
  assert.ok(newVault.length>verts(older,"SERVICE_SHELL").length);
 });

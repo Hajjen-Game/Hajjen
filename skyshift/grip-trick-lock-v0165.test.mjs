@@ -72,6 +72,6 @@ test("only actual near-gap can suppress GRIP yaw; physics has no track forks",()
  assert.match(physics,/gripYawSuppressedTicks\+\+/);
  assert.match(src("./time-trial-v0160.mjs"),/skyshift-time-trial-ghost-aurora-0160/);
  assert.match(src("./track-selection-v0160.mjs"),/trackRevision:"aurora-run-0160"/);
- assert.match(src("./index.html"),/boot-v0203\.js\?v=0\.20\.3/);
+ assert.match(src("./index.html"),/boot-v0204\.js\?v=0\.20\.4/);
  assert.match(src("./boot-v0165.js"),/game-v0165\.mjs\?v=0\.16\.5/);
 });

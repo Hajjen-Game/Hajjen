@@ -141,7 +141,8 @@ const sculptedNeonEnabled=premiumNeonEnabled&&
 const architecturalRebirthEnabled=sculptedNeonEnabled&&
  new URLSearchParams(location.search).get("architecturePass")!=="classic";
 // Phase A: swap the whole former corridor, not an overlay on top of it.
-const cinematicHeroEnabled=architecturalRebirthEnabled&&
+const reviewedLegacyVersion=/^0\.20\./.test(new URLSearchParams(location.search).get("v")||"");
+const cinematicHeroEnabled=architecturalRebirthEnabled&&!reviewedLegacyVersion&&
  new URLSearchParams(location.search).get("cinematicHero")!=="classic";
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";

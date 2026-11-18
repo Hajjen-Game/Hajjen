@@ -794,7 +794,7 @@ function initScene(){
   window.__skyshiftEnvironmentProbe=()=>({
    enabled:envEnabled,track:TRACK_ID_0160,
    ...(signatureEnvironment?.stats?.()??{active:false,beams:0,extraDrawCalls:0}),
-   worldMesh:world.getObjectByName("Signature Environment · Celestial Conduit 0.19.0")?.children
+   worldMesh:world.getObjectByName("Signature Environment · Celestial Conduit 0.18.0")?.children
     .map(x=>({name:x.name,count:x.count,isInstanced:x.isInstancedMesh}))??[]
   });
  UI.hangarBtn.disabled=false;

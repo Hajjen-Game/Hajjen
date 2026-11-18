@@ -53,6 +53,7 @@ try{
    };
   });
  }
+ const aurora=await ready("aurora");
  // WebGL regression for the REAL bug: old no-jump Aurora geometry
  // mistakenly triggers the Skyline 100m trick-arming penalty on every
  // position after 475m, reducing steering to 6.5% under full GRIP.
@@ -79,7 +80,6 @@ try{
    throw Error("Aurora GRIP still goes straight after s=475m "+
     JSON.stringify(p));
  }
- const aurora=await ready("aurora");
  if(aurora.selected!=="aurora"||aurora.picker!=="aurora"||
   !aurora.name.includes("AURORA")||aurora.pads!==0||aurora.renderPads!==0||
   aurora.launchGap!==0||aurora.special.wall||aurora.special.roll||

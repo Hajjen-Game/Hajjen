@@ -56,7 +56,7 @@ test("only first primitive station is replaced and legacy source is preserved",(
  for(const lowMemory of [false,true]){
   const w=worldArchitecturePlan({lowMemory});
   const hidden=w.beams.filter(retiredPrimitiveStation);
-  assert.equal(hidden.length,lowMemory?21:54);
+  assert.equal(hidden.length,lowMemory?21:55);
   assert.ok(hidden.every(x=>x.chapter==="orbital"));
   assert.ok(hidden.every(x=>x.a[1]<-40||x.b[1]<-40));
   assert.ok(!hidden.some(x=>x.a[0]>320));

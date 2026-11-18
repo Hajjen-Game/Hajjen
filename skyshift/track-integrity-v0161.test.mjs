@@ -139,11 +139,11 @@ test("menu uses real circuit selector and Skyline-only Challenges not shown on A
  assert.match(html,/id="track-picker"/);
  assert.match(html,/value="aurora"/);
  assert.match(html,/value="skyline"/);
- assert.match(boot,/game-v0160\.mjs\?v=0\.16\.0/);
+ assert.match(boot,/game-v0161\.mjs\?v=0\.16\.1/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
  assert.match(game,/challengeButton\.classList\.toggle\("hidden",!ACTIVE_TRACK_0160\.hasSkylineChallenges\)/);
  assert.match(game,/from "\.\/trial-v0160\.mjs"/);
- assert.match(game,/from "\.\/aero-barrier-v0160\.mjs"/);
+ assert.match(game,/from "\.\/aero-barrier-v0161\.mjs"/);
  assert.match(game,/from "\.\/shadow-tunnel-v0160\.mjs"/);
  assert.match(game,/ship\.rotation\.z=naturalRoll;/);
 });

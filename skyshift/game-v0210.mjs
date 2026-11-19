@@ -86,6 +86,8 @@ import {TUNNEL_SPECTRUM_02121}
  from "./tunnel-spectrum-v02121.mjs";
 import {EXTERIOR_SEAL_02122,installExteriorLightSeal}
  from "./tunnel-exterior-seal-v02122.mjs";
+import {WHITE_CORE_02123,createWhiteCoreContainment}
+ from "./white-core-containment-v02123.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
@@ -164,12 +166,15 @@ const tunnelMegaEnabled=cinematicGradeEnabled&&
 // Local neon is now the author of tunnel light, not external Hemisphere/Key.
 const neonInteriorEnabled=tunnelMegaEnabled&&
  new URLSearchParams(location.search).get("interiorLight")!=="classic";
-// 0.21.2.2.1: spatially synchronized interior neons; exact 0.21.2.2 A/B preserved.
+// 0.21.2.3.1: spatially synchronized interior neons; exact 0.21.2.3 A/B preserved.
 const tunnelSpectrumEnabled=neonInteriorEnabled&&
  new URLSearchParams(location.search).get("tunnelSpectrum")!=="classic";
-// 0.21.2.2: tunnel-only fog isolation + local rail glare trim, no global lights.
+// 0.21.2.3: tunnel-only fog isolation + local rail glare trim, no global lights.
 const exteriorSealEnabled=tunnelSpectrumEnabled&&
  new URLSearchParams(location.search).get("exteriorSeal")!=="classic";
+// 0.21.2.3: fix *white PBR glare* on road and ship, not tunnel color/fog.
+const whiteCoreEnabled=exteriorSealEnabled&&
+ new URLSearchParams(location.search).get("whiteCore")!=="classic";
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -251,7 +256,7 @@ let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
-let stationWorld=null;
+let stationWorld=null,whiteCoreContainment=null;
 let cameraLook=new THREE.Vector3(),shadowMesh,premiumFX,sideThrusters,reactiveWingFlaps,livingWake,railSparks;
 let sectorLandmarks=null,ghostVisual=null,hangarHeroRig=null;
 const racingExperience=createRacingExperience();
@@ -553,6 +558,8 @@ function makeShip(id=fleetProgress.selected){
   ship.add(light);return light;
  });
  scene.add(ship);
+ // Bind PBR ship hull, including fleet swaps, to a visual-only light trim.
+ whiteCoreContainment?.attachShip(ship);
  premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan);
  reactiveWingFlaps=installReactiveWingFlaps(THREE,ship,{variant:id});
  livingWake=createLivingWakeFX(THREE,scene,ship,{variant:id,
@@ -566,6 +573,7 @@ function makeShip(id=fleetProgress.selected){
  UI.jump.classList.add("hidden");
  // A scene-art preview only; 120Hz flight/camera/GRIP remain unchanged.
  void shipArtController.onCraftBuilt(craft,id).then(()=>{
+  if(activeCraft===craft)whiteCoreContainment?.attachShip(ship);
   if(activeCraft===craft&&id==="stingray"&&uiState.mode==="hangar")
    refreshHangar();
  });
@@ -860,6 +868,13 @@ function initScene(){
  // the ship and camera now carry the visual identity with zero added draws.
  // Open space, no geological scenery, distant monuments or 3D floor.
  makeShip();
+ // 0.21.2.3: suppress external white PBR specular on road and current
+ // ship INSIDE this sealed 368m tunnel only. No world light/exposure edits.
+ whiteCoreContainment=whiteCoreEnabled?createWhiteCoreContainment({
+  roadMaterial:premiumSurface?.material,
+  railSurface:identitySurface,
+  ship
+ }):null;
  // Two-batch, translucent personal ghost with no physical collider or AI.
  ghostVisual=createPersonalGhostVisual(THREE,scene);
  spaceBackdrop=installSpaceBackdrop(THREE,camera);
@@ -891,7 +906,8 @@ function initScene(){
   window.__skyshiftArtProbe=()=>({
    enabled:rebirthEnabled,track:TRACK_ID_0160,
    ...(stationWorld?.stats?.()??{active:false,status:"classic",installedBays:0,drawBatches:0}),
-   variant:exteriorSealEnabled?"sealed-neon-tunnel":
+   variant:whiteCoreEnabled?"white-core-contained-tunnel":
+    exteriorSealEnabled?"sealed-neon-tunnel":
     tunnelSpectrumEnabled?"neon-wave-interior":
     neonInteriorEnabled?"neon-driven-interior":
     tunnelMegaEnabled?"continuous-vault-tunnel":
@@ -923,6 +939,18 @@ function initScene(){
       [x.geometry.attributes.color.getX(0),x.geometry.attributes.color.getY(0),
        x.geometry.attributes.color.getZ(0)]:null}))??[],
    legacyDecorDisabled:!signatureEnvironment&&!cinematicWorld&&!orbitalHero
+  });
+ // White-core-specific photo QA: examine *ship PBR* and *full-deck*
+ // specular handling without changing the normal gameplay or physics.
+ if(new URLSearchParams(location.search).get("whiteCoreSmoke")==="1")
+  window.__skyshiftWhiteCoreProbe=()=>({
+   enabled:whiteCoreEnabled,
+   ...(whiteCoreContainment?.stats()??{}),
+   currentShipId:activeShipId,
+   roadMaterial:premiumSurface?.material?.type??null,
+   worldLightsUnchanged:Boolean(worldLights?.ambient&&worldLights?.key),
+   bloomEnabled:Boolean(neonPipeline?.bloom?.enabled),
+   trackDistance:flight?.s??null
   });
  // QA-only: prove every interior mesh has fog disabled while the
  // global exterior fog and ship lighting remain active and unmodified.
@@ -968,7 +996,7 @@ function initScene(){
  UI.hangarBtn.disabled=false;
  UI.trackPicker.value=TRACK_ID_0160;
  UI.trackName.textContent=ACTIVE_TRACK_0160.name;
- UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.2.2";
+ UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.2.3";
  UI.trackTagline.textContent=isAurora()?
   "WIDE SWITCHBACKS · ROLLING HILLS · THREE FAST LAPS.":
   "WIDE ARCS · SMART LINES · THREE FASTER LAPS.";
@@ -1805,6 +1833,7 @@ function loop(now){
    }
    const view=uiState.mode==="playing"&&currentRenderPose?
      interpolatePose(previousRenderPose,currentRenderPose,frameBlend,interpolatedRenderPose):flight;
+   whiteCoreContainment?.update(view.s,uiState.mode==="playing");
    // Flight motion sees the same interpolated 120Hz simulation pose as FX.
    // Ship bank, signature effects, preview and kinetic camera share
    // stable read-only signals. All original springs and handling are kept.
@@ -1996,7 +2025,7 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.21.2.2",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   game:"SKYSHIFT",version:"0.21.2.3",trial:TRIAL.id,exportedAt:new Date().toISOString(),
    timeTrial:{...ghostAudit(timeTrialState),visual:ghostVisual?.stats()??null},
     performanceAudit:{...perfSummary(frameProfiler),preset:perfSettings,
      gpu:gpuClock?.summary()??{available:false,reason:"uninitialized"},
@@ -2006,7 +2035,7 @@ function exportAudit(){
      bloomResolutionScale:neonPipeline?.bloomResolutionScale,
      deviceMemoryGB:navigator.deviceMemory??null,
      devicePixelRatio:devicePixelRatio||1},
-   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.2.2",
+   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.2.3",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -2067,6 +2096,9 @@ function exportAudit(){
       architecturalRebirthEnabled,cinematicHeroEnabled,cinematicGradeEnabled,
       tunnelMegaEnabled,neonInteriorEnabled,tunnelSpectrumEnabled,
       exteriorSealEnabled,exteriorSealProfile:exteriorSealEnabled?EXTERIOR_SEAL_02122:null,
+      whiteCoreEnabled,whiteCoreProfile:whiteCoreEnabled?WHITE_CORE_02123:null,
+      whiteCoreAudit:whiteCoreContainment?.stats()??null,
+      compareBeforeWhiteCore:"?whiteCore=classic",
       compareBeforeExteriorSeal:"?exteriorSeal=classic",
       railTunnelGlareScale:identitySurface?.getTunnelGlareScale?.()??1,
       spectrumProfile:tunnelSpectrumEnabled?TUNNEL_SPECTRUM_02121:null,
@@ -2613,7 +2645,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v","0.21.2.2");
+  uri.searchParams.set("v","0.21.2.3");
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);
@@ -2659,7 +2691,7 @@ function installControls(){
   address.searchParams.delete("fidelity");
   // Private-mode storage can be unavailable: keep the OFF choice in URL.
   if(!saved)address.searchParams.set("fidelity",next?"on":"off");
-  address.searchParams.set("v","0.21.2.2");
+  address.searchParams.set("v","0.21.2.3");
   location.assign(address.toString());
  });
  UI.export.addEventListener("click",exportAudit);

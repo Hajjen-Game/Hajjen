@@ -16,3 +16,6 @@ Acceptance: Node indexed-mesh continuous profile/side-floor/clearance and materi
 
 ## 0.21.1.1 – Vault Height Refinement
 The curved vaulted crown is lowered from 34.15m to 29.62m nominal (about 4.5m, 13%). The lower wall and side-floor shoulder geometry are identical, and roof arch ribs / inlaid lights follow the new vault. An exact height-only comparison is available with `?vaultHeight=classic`, while `?tunnelMega=classic` still shows the older block corridor. No physics, GRIP, controls or camera changes.
+
+## 0.21.2 — Neon-Driven Interior Lighting
+Tunnel geometry is unchanged. The closed shell and curved rib material no longer take scene-wide Hemisphere and Directional lighting; they are dark matte metal with a per-vertex locally authored response to the *existing* pink guides and cyan/pink portal rings. The response fades with distance from those emitters. Optionally, a narrow additive light reflection appears on the racing deck's outer margins on higher-quality devices, without changing the deck material or gameplay. The low-memory path has no extra draw batches. Disable with `?interiorLight=classic` (the exact old 0.21.1.1 tunnel). Exterior global lighting on ship and rest of the world is unchanged; no dynamic light or shader pass introduced.

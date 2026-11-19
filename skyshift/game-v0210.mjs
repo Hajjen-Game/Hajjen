@@ -78,6 +78,8 @@ import {CINEMATIC_GRADE_0210B,installCinematicGradeHero}
  from "./cinematic-grade-v0210b.mjs";
 import {TUNNEL_MEGA_0211,installTunnelMegastructure}
  from "./tunnel-megastructure-v0211.mjs";
+import {NEON_INTERIOR_0212,installNeonDrivenInterior}
+ from "./neon-interior-v0212.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
@@ -153,6 +155,9 @@ const cinematicGradeEnabled=cinematicHeroEnabled&&
 // True large tunnel replaces the Phase A/B block corridor in the same interval.
 const tunnelMegaEnabled=cinematicGradeEnabled&&
  new URLSearchParams(location.search).get("tunnelMega")!=="classic";
+// Local neon is now the author of tunnel light, not external Hemisphere/Key.
+const neonInteriorEnabled=tunnelMegaEnabled&&
+ new URLSearchParams(location.search).get("interiorLight")!=="classic";
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -820,7 +825,7 @@ function initScene(){
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
  if(rebirthEnabled)stationWorld=(enclosedStationEnabled?
-  (tunnelMegaEnabled?installTunnelMegastructure:
+  (tunnelMegaEnabled?(neonInteriorEnabled?installNeonDrivenInterior:installTunnelMegastructure):
    cinematicHeroEnabled?(cinematicGradeEnabled?installCinematicGradeHero:installCinematicHero):
    architecturalRebirthEnabled?installArchitecturalWorldArt:
    sculptedNeonEnabled?installSculptedNeonWorldArt:
@@ -867,7 +872,8 @@ function initScene(){
   window.__skyshiftArtProbe=()=>({
    enabled:rebirthEnabled,track:TRACK_ID_0160,
    ...(stationWorld?.stats?.()??{active:false,status:"classic",installedBays:0,drawBatches:0}),
-   variant:tunnelMegaEnabled?"continuous-vault-tunnel":
+   variant:neonInteriorEnabled?"neon-driven-interior":
+    tunnelMegaEnabled?"continuous-vault-tunnel":
     cinematicGradeEnabled?"cinematic-material-light":
     cinematicHeroEnabled?"cinematic-megastructure":
     architecturalRebirthEnabled?"architectural-rebirth":
@@ -877,7 +883,7 @@ function initScene(){
     ribbonWindowsEnabled?"ribbon-cleanup":
     (observationWindowsEnabled?"observation-balance":
      enclosedStationEnabled?"enclosed":"classic-open"),
-   importedMeshes:(world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1.1")??
+   importedMeshes:(world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.2")??
     world.getObjectByName("SKYSHIFT · Cinematic Megastructure 0.21.0-A")??
     world.getObjectByName("CONTINUUM STATION · Architectural Rebirth 0.20.5")??
     world.getObjectByName("CONTINUUM STATION · Sculpted Neon 0.20.4.1")??
@@ -928,7 +934,7 @@ function initScene(){
  UI.hangarBtn.disabled=false;
  UI.trackPicker.value=TRACK_ID_0160;
  UI.trackName.textContent=ACTIVE_TRACK_0160.name;
- UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.1.1";
+ UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.2";
  UI.trackTagline.textContent=isAurora()?
   "WIDE SWITCHBACKS · ROLLING HILLS · THREE FAST LAPS.":
   "WIDE ARCS · SMART LINES · THREE FASTER LAPS.";
@@ -1953,7 +1959,7 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.21.1.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   game:"SKYSHIFT",version:"0.21.2",trial:TRIAL.id,exportedAt:new Date().toISOString(),
    timeTrial:{...ghostAudit(timeTrialState),visual:ghostVisual?.stats()??null},
     performanceAudit:{...perfSummary(frameProfiler),preset:perfSettings,
      gpu:gpuClock?.summary()??{available:false,reason:"uninitialized"},
@@ -1963,7 +1969,7 @@ function exportAudit(){
      bloomResolutionScale:neonPipeline?.bloomResolutionScale,
      deviceMemoryGB:navigator.deviceMemory??null,
      devicePixelRatio:devicePixelRatio||1},
-   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.1.1",
+   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.2",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -2009,7 +2015,8 @@ function exportAudit(){
        accentAnchors:identitySurface.accentAnchors},
      worldArtRebirth:{enabled:rebirthEnabled,
       ...(stationWorld?.stats?.()??{active:false,status:"classic"}),
-      artAsset:(tunnelMegaEnabled?TUNNEL_MEGA_0211:
+      artAsset:(neonInteriorEnabled?NEON_INTERIOR_0212:
+       tunnelMegaEnabled?TUNNEL_MEGA_0211:
        cinematicHeroEnabled?HERO_0210:
        architecturalRebirthEnabled?WORLD_ART_0205:
        sculptedNeonEnabled?WORLD_ART_02041:
@@ -2021,7 +2028,9 @@ function exportAudit(){
       enclosedStationEnabled,observationWindowsEnabled,ribbonWindowsEnabled,
       graphiteGradeEnabled,premiumNeonEnabled,sculptedNeonEnabled,
       architecturalRebirthEnabled,cinematicHeroEnabled,cinematicGradeEnabled,
-      tunnelMegaEnabled,compareBeforeTunnel:"?tunnelMega=classic",
+      tunnelMegaEnabled,neonInteriorEnabled,
+      compareBeforeNeonInterior:"?interiorLight=classic",
+      compareBeforeTunnel:"?tunnelMega=classic",
       materialGradeProfile:cinematicGradeEnabled?CINEMATIC_GRADE_0210B:null,
       compareBeforeCinematicGrade:"?cinematicGrade=classic",
       compareBeforeCinematicHero:"?cinematicHero=classic",
@@ -2561,7 +2570,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v","0.21.1.1");
+  uri.searchParams.set("v","0.21.2");
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);
@@ -2607,7 +2616,7 @@ function installControls(){
   address.searchParams.delete("fidelity");
   // Private-mode storage can be unavailable: keep the OFF choice in URL.
   if(!saved)address.searchParams.set("fidelity",next?"on":"off");
-  address.searchParams.set("v","0.21.1.1");
+  address.searchParams.set("v","0.21.2");
   location.assign(address.toString());
  });
  UI.export.addEventListener("click",exportAudit);

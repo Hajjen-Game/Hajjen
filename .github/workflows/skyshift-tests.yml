@@ -920,6 +920,44 @@ jobs:
             skyshift-v0210b-before-*.png
             skyshift-v0210b-mobile-*.png
 
+  neon-interior-v0212-unit:
+    name: SKYSHIFT 0.21.2 neon-sourced light isolation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify neon light falloff and unchanged mesh physics
+        run: |
+          node --check skyshift/neon-interior-v0212.mjs
+          node --check skyshift/browser-neon-interior-v0212.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/neon-interior-v0212.test.mjs
+
+  browser-neon-interior-v0212:
+    name: SKYSHIFT 0.21.2 neon-lit tunnel real Chrome WebGL and A/B
+    needs: neon-interior-v0212-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install lightweight browser driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
+      - name: Render neon-driven walls with real WebGL and classic A/B
+        run: node skyshift/browser-neon-interior-v0212.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0212-neon-interior-qa
+          path: |
+            skyshift-v0212-neon-*.png
+            skyshift-v0212-classic-*.png
+            skyshift-v0212-mobile-*.png
+
   tunnel-megastructure-v0211-unit:
     name: SKYSHIFT 0.21.1 continuous tunnel profile and clearance
     runs-on: ubuntu-latest

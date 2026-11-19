@@ -2,7 +2,7 @@
 // Velocity Cinematography: selective HDR wall/roof streaks BEFORE OutputPass
 // and AFTER SMAA. Protect ship, road apex and central driving corridor.
 // No new lights, meshes, camera movement, physics or white solar source.
-import {ShaderPass} from "three/addons/postprocessing/ShaderPass.js";
+// ShaderPass is created by the already-mounted neon pipeline (neon-v0111).
 export const VELOCITY_CINEMA_0220_P3=Object.freeze({
  version:"0.22.0.3",pass:"3 — Velocity Cinematography",
  source:"actual speed ratio + physical boost multiplier",
@@ -92,7 +92,8 @@ export function installVelocityCinematography(THREE,pipeline,{
  });
  if(!enabled||lowMemory)return disabled();
  const composer=pipeline?.composer,output=pipeline?.output;
- if(!composer||!output||typeof composer.insertPass!=="function"||
+ if(!composer||!output||typeof pipeline.makeShaderPass!=="function"||
+    typeof composer.insertPass!=="function"||
     typeof composer.removePass!=="function")return disabled();
  const index=composer.passes.indexOf(output);
  if(index<1)return disabled();
@@ -106,7 +107,7 @@ export function installVelocityCinematography(THREE,pipeline,{
     uCinemaMaxPixels:{value:VELOCITY_CINEMA_0220_P3.maxRadiusPx}
    }
   };
-  pass=new ShaderPass(shader);
+  pass=pipeline.makeShaderPass(shader);
   pass.enabled=false;
   composer.insertPass(pass,index);
  }catch(error){

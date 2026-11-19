@@ -920,6 +920,45 @@ jobs:
             skyshift-v0210b-before-*.png
             skyshift-v0210b-mobile-*.png
 
+  tunnel-megastructure-v0211-unit:
+    name: SKYSHIFT 0.21.1 continuous tunnel profile and clearance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Tunnel geometry, floor seal and untouched race code
+        run: |
+          node --check skyshift/tunnel-megastructure-v0211.mjs
+          node --check skyshift/game-v0210.mjs
+          node --check skyshift/boot-v0210.js
+          node --check skyshift/browser-tunnel-megastructure-v0211.mjs
+          node --test skyshift/tunnel-megastructure-v0211.test.mjs
+
+  browser-tunnel-megastructure-v0211:
+    name: SKYSHIFT 0.21.1 tunnel WebGL, sealed shoulders, matched A/B
+    needs: tunnel-megastructure-v0211-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
+      - name: Capture enclosed tunnel and 0.21.0-B matched viewpoints, 4GB
+        run: node skyshift/browser-tunnel-megastructure-v0211.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0211-tunnel-qa
+          path: |
+            skyshift-v0211-tunnel-*.png
+            skyshift-v0211-before-*.png
+            skyshift-v0211-mobile-*.png
+
   browser-cinematic-phase-a:
     name: Cinematic Environment Rebuild Phase A real Chrome/WebGL
     needs: track-tests

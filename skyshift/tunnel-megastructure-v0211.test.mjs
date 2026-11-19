@@ -1,0 +1,99 @@
+// SKYSHIFT 0.21.1 — actual enclosed-vault geometry and driving invariants.
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {TUNNEL_MEGA_0211,TUNNEL_PROFILE_0211,TUNNEL_PORTALS_0211,installTunnelMegastructure}
+ from "./tunnel-megastructure-v0211.mjs";
+const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+class Group{
+ name="";children=[];add(x){this.children.push(x)}removeFromParent(){}
+ traverse(f){f(this);for(const child of this.children)child.traverse?.(f)}
+}
+class Geo{
+ attributes={};index=null;setAttribute(k,v){this.attributes[k]=v}
+ setIndex(a){this.index={array:a,count:a.length}}
+ computeVertexNormals(){}computeBoundingSphere(){}dispose(){}
+}
+class Attr{constructor(a,n){this.array=a;this.itemSize=n;this.count=a.length/n}}
+class Mesh{constructor(geometry,material){this.geometry=geometry;this.material=material}
+ traverse(f){f(this)}}
+class Material{constructor(o){Object.assign(this,o)}dispose(){}}
+const THREE={Group,BufferGeometry:Geo,Float32BufferAttribute:Attr,
+ Mesh,MeshStandardMaterial:Material,MeshBasicMaterial:Material,
+ DoubleSide:2,AdditiveBlending:2};
+const pos=(s,x,y)=>({x,y,z:s});
+test("arched roof is closed over the road; floor connects continuously to both walls",()=>{
+ const world=new Group(),inst=installTunnelMegastructure(THREE,world,{positionAt:pos});
+ const stats=inst.stats();
+ assert.equal(stats.active,true);
+ assert.equal(stats.status,"active");
+ assert.equal(stats.drawBatches,4);
+ assert.equal(stats.sampledRings,185);
+ assert.equal(stats.profilePoints,TUNNEL_PROFILE_0211.length);
+ assert.ok(stats.trianglesRendered<15000);
+ assert.ok(stats.trianglesRendered>5000);
+ assert.equal(world.children.length,1);
+ const shell=world.children[0].children[0].geometry;
+ assert.ok(shell.index.count>25000,"A continuous indexed sweep, not disconnected wall slabs");
+ const v=shell.attributes.position.array,section=TUNNEL_PROFILE_0211.length;
+ for(let ring=0;ring<stats.sampledRings;ring++){
+  const at=j=>Array.from(v.slice(3*(ring*section+j),3*(ring*section+j+1)));
+  const left=at(0),right=at(section-1),apex=at((section-1)/2);
+  assert.ok(left[0]<-12&&left[0]>-13);
+  assert.ok(right[0]>12&&right[0]<13);
+  assert.ok(Math.abs(apex[0])<.001&&apex[1]>33,
+   "Continuous roof must cover track center");
+  for(let j=0;j<section-1;j++){
+   const [x0,y0]=at(j),[x1,y1]=at(j+1);
+   assert.ok(Math.hypot(x1-x0,y1-y0)<7,
+    "Tunnel profile cannot have unconnected floor/wall/roof gaps");
+  }
+ }
+ assert.ok(Math.abs(v[2]-0)<1e-6);
+ assert.ok(Math.abs(v[v.length-1]-368)<1e-5);
+ assert.equal(TUNNEL_PORTALS_0211.length,10);
+});
+test("shoulder is real geometry outside original rails; no space-visible gap beside track",()=>{
+ const group=new Group(),inst=installTunnelMegastructure(THREE,group,{positionAt:pos});
+ const shell=group.children[0].children[0].geometry.attributes.position.array;
+ const n=TUNNEL_PROFILE_0211.length;
+ for(let i=0;i<inst.stats().sampledRings;i++){
+  for(let k of [0,1,2,3,4,n-5,n-4,n-3,n-2,n-1]){
+   const p=3*(i*n+k),x=shell[p],y=shell[p+1];
+   assert.ok(Math.abs(x)>12.2,"Don't overlap playable deck");
+   assert.ok(y>=.05&&y<=1.7,
+    "Solid bank must run continuously to the root of the vault");
+  }
+ }
+ assert.equal(TUNNEL_MEGA_0211.solidSideShoulders,true);
+ assert.equal(TUNNEL_MEGA_0211.continuousCrossSection,true);
+});
+test("low-memory tunnel retains opaque entire vault and integrated neon, drops only halo",()=>{
+ const g=new Group(),low=installTunnelMegastructure(THREE,g,{
+  track:"skyline",lowMemory:true,positionAt:pos});
+ assert.equal(low.stats().active,true);
+ assert.equal(low.stats().drawBatches,3);
+ assert.ok(g.children[0].children.some(x=>x.name.endsWith("/ CLOSED_SHELL")));
+ assert.ok(g.children[0].children.some(x=>x.name.endsWith("/ INTEGRATED_LIGHT")));
+ assert.ok(!g.children[0].children.some(x=>x.name.endsWith("/ HALO")));
+ const alt=installTunnelMegastructure(THREE,new Group(),{track:"aurora",positionAt:pos});
+ assert.equal(alt.stats().active,false);
+});
+test("flight physics, steering, grip, camera, road and colors are not replaced",()=>{
+ const x=TUNNEL_MEGA_0211;
+ assert.equal(x.physicsChanges,0);
+ assert.equal(x.gripChanges,0);
+ assert.equal(x.cameraChanges,0);
+ assert.equal(x.roadGeometryChanged,false);
+ assert.equal(x.newDynamicLights,0);
+ assert.equal(x.colliderCount,0);
+ assert.equal(x.newRenderPasses,0);
+ const game=read("./game-v0210.mjs");
+ assert.match(game,/tunnelMegaEnabled\?installTunnelMegastructure/);
+ assert.match(game,/tunnelMega"\)!=="classic"/);
+ assert.match(game,/compareBeforeTunnel:"\?tunnelMega=classic"/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.21\.1/);
+ assert.match(read("./index.html"),/boot-v0210\.js\?v=0\.21\.1/);
+ const old=read("./game-v0205.mjs");
+ assert.ok(!old.includes("tunnel-megastructure-v0211"));
+});

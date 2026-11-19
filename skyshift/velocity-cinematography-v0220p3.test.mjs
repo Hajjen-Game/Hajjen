@@ -46,7 +46,9 @@ test("composer inserts exactly once between SMAA and final OutputPass",()=>{
  const composer={passes:[input,bloom,smaa,output],
   insertPass(p,i){this.passes.splice(i,0,p)},
   removePass(p){this.passes.splice(this.passes.indexOf(p),1)}};
- const pipeline={composer,output};
+ const pipeline={composer,output,
+  makeShaderPass(shader){return {uniforms:shader.uniforms,enabled:true,dispose(){}};}
+ };
  const Three={Vector2:class{
   constructor(x,y){this.x=x;this.y=y}
   set(x,y){this.x=x;this.y=y}

@@ -23,9 +23,10 @@ class Mesh {name="";parent=null;constructor(g,m){this.geometry=g;this.material=m
  traverse(fn){fn(this)}
  removeFromParent(){if(this.parent)this.parent.children=this.parent.children.filter(x=>x!==this)}
 }
-class Material {constructor(o){Object.assign(this,o)}dispose(){}}
+class Material {constructor(o){Object.assign(this,o)}onBeforeCompile(){}customProgramCacheKey(){return ""}dispose(){}}
+class Color {constructor(hex){this.setHex(hex)}setHex(hex){this.hex=hex;return this}}
 const THREE={Group,BufferGeometry:Geo,Float32BufferAttribute:Attr,Mesh,
- MeshBasicMaterial:Material,MeshStandardMaterial:Material,DoubleSide:2,AdditiveBlending:2};
+ MeshBasicMaterial:Material,MeshStandardMaterial:Material,Color,DoubleSide:2,AdditiveBlending:2};
 const pos=(s,x,y)=>({x,y,z:s});
 const load=(impl=installNeonDrivenInterior,opts={})=>{
  const w=new Group(),installed=impl(THREE,w,{positionAt:pos,...opts});
@@ -73,8 +74,8 @@ test("no change to Aurora and original lighting A/B remains available",()=>{
  assert.equal(NEON_INTERIOR_0212.roadMaterialChanged,false);
  assert.equal(NEON_INTERIOR_0212.globalLightsChanged,0);
  const g=read("./game-v0210.mjs");
- assert.match(g,/neonInteriorEnabled\?installNeonDrivenInterior:installTunnelMegastructure/);
+ assert.match(g,/tunnelSpectrumEnabled\?installNeonDrivenInterior:installClassicNeonInterior/);
  assert.match(g,/interiorLight"\)!=="classic"/);
  assert.match(g,/compareBeforeNeonInterior:"\?interiorLight=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.21\.2/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.21\.2\.1/);
 });

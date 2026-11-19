@@ -920,6 +920,43 @@ jobs:
             skyshift-v0210b-before-*.png
             skyshift-v0210b-mobile-*.png
 
+  tunnel-spectrum-v02121-unit:
+    name: SKYSHIFT 0.21.2.1 spatial neon wave / geometry parity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Nine zone palette sync / shader and geometry proof
+        run: |
+          node --check skyshift/tunnel-spectrum-v02121.mjs
+          node --check skyshift/neon-interior-v0212.mjs
+          node --check skyshift/tunnel-megastructure-v0211.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/tunnel-spectrum-v02121.test.mjs
+
+  browser-tunnel-spectrum-v02121:
+    name: SKYSHIFT 0.21.2.1 live color wave / interior WebGL
+    needs: tunnel-spectrum-v02121-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install lightweight browser driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
+      - name: Real screenshots of cyan violet gold jade and original static tunnel
+        run: node skyshift/browser-tunnel-spectrum-v02121.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02121-wave-interior-review
+          path: |
+            skyshift-v02121-*.png
+
   neon-interior-v0212-unit:
     name: SKYSHIFT 0.21.2 neon-sourced light isolation
     runs-on: ubuntu-latest

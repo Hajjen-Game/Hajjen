@@ -941,6 +941,43 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  cinematic-light-architecture-v0232-unit:
+    name: SKYSHIFT 0.23.2 P2 native-neon reflection shader, solar and GRIP guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate metal shader chain, low-memory, old white light isolation
+        run: |
+          node --check skyshift/cinematic-light-architecture-v0232.mjs
+          node --check skyshift/browser-light-architecture-v0232.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/cinematic-light-architecture-v0232.test.mjs skyshift/true-material-depth-v0231.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/ship-white-spill-v02125.test.mjs skyshift/build-version-v02204.test.mjs
+
+  browser-cinematic-light-architecture-v0232:
+    name: SKYSHIFT 0.23.2 P2 real WebGL cyan gold jade 4GB neon preservation
+    needs: cinematic-light-architecture-v0232-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install WebGL browser renderer and PNG inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Exact-frame WebGL visual proof, both memory profiles
+        run: node skyshift/browser-light-architecture-v0232.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0232-p2-cinematic-light-before-after
+          path: |
+            skyshift-v0232-*.png
+            skyshift-v0232-proof.json
+
   true-material-depth-v0231-unit:
     name: SKYSHIFT 0.23.1 authentic inset panels and solar-safe metallic reflection
     runs-on: ubuntu-latest

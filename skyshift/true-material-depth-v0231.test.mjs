@@ -50,7 +50,7 @@ test("mobile shader needs no new attributes or world light",()=>{
  assert.match(f,/d31Micro/);
  assert.match(f,/d31Chrome/);
  assert.doesNotMatch(f,/uniform DirectionalLight/);
- assert.match(f,/\\.22/);
+ assert.match(f,/d31Chrome=rbTint/);
 });
 test("real raised plate creates extra cross-sectional triangles only in study area",()=>{
  const at=(s,x,y)=>({x:s,y,z:x});

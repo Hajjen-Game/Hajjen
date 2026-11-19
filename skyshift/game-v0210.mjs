@@ -98,6 +98,8 @@ import {ROAD_SOLAR_SPILL_02126,createRoadSolarSpillController}
  from "./road-solar-spill-v02126.mjs";
 import {PREMIUM_ROAD_SURFACE_0215,createPremiumRoadSurfaceController}
  from "./premium-road-surface-v0215.mjs";
+import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
+ from "./cinematic-energy-v0216.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
@@ -208,6 +210,10 @@ const integratedNeonFlowEnabled=structuralTunnelEnabled&&
 const premiumRoadEnabled=roadSolarEnabled&&TRACK_ID_0160==="skyline"&&
  new URLSearchParams(location.search).get("premiumRoad")!=="classic"&&
  !/^0\.21\.[0-4](?:\.|$)/.test(new URLSearchParams(location.search).get("v")||"");
+// 0.21.6: speed-reactive ENERGY in existing tunnel neon, never an extra clock.
+const cinematicMotionEnabled=integratedNeonFlowEnabled&&premiumRoadEnabled&&
+ new URLSearchParams(location.search).get("cinematicMotion")!=="classic"&&
+ !/^0\.21\.[0-5](?:\.|$)/.test(new URLSearchParams(location.search).get("v")||"");
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -882,7 +888,8 @@ function initScene(){
  // 0.20.5 World Art Pipeline: coherent, authored glTF station interior.
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
- if(rebirthEnabled)stationWorld=(integratedNeonFlowEnabled?installIntegratedNeonFlow:
+ if(rebirthEnabled)stationWorld=(cinematicMotionEnabled?installCinematicEnergyMotion:
+    integratedNeonFlowEnabled?installIntegratedNeonFlow:
     structuralTunnelEnabled?installStructuralTunnelRebuild:
    enclosedStationEnabled?
   (tunnelMegaEnabled?(neonInteriorEnabled?
@@ -1117,6 +1124,37 @@ function initScene(){
    try{return {classic:draw(false),structural:draw(true),
     panels:meshes.length,trackS:flight?.s??null}}
    finally{meshes.forEach((m,i)=>m.visible=original[i])}
+  };
+ // 0.21.6: same-frame physical-velocity cinematic energy A/B.
+ if(new URLSearchParams(location.search).get("cinematicMotionSmoke")==="1")
+  window.__skyshiftCinematicMotionProbe=()=>({
+   enabled:cinematicMotionEnabled,
+   ...(stationWorld?.stats?.()??{}),
+   roadSolarSeal:roadSolarSpill?.stats()?.seal??null,
+   premiumRoad:premiumRoadSurface?.stats()?.active??false,
+   worldLightsUnchanged:Boolean(worldLights?.key)
+  });
+ if(new URLSearchParams(location.search).get("cinematicMotionFrameProof")==="1")
+  window.__skyshiftCinematicMotionFrameProof=()=>{
+   if(!cinematicMotionEnabled||!neonPipeline?.render||
+      !stationWorld?.setMotionSample||!stationWorld?.setMotionComparison)
+    throw Error("Cinematic motion same-frame proof unavailable");
+   const previous=stationWorld.stats();
+   const render=(enabled)=>{
+    stationWorld.setMotionComparison(enabled);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    stationWorld.setMotionSample({flow:1,phaseMeters:flight?.s??165,
+     boost:1,playing:true});
+    return {baseline:render(0),cinematic:render(1),s:flight?.s??null};
+   }finally{
+    stationWorld.setMotionSample({flow:previous.cinematicFlow,
+     phaseMeters:previous.cinematicPhaseMeters,
+     boost:previous.cinematicBoost,playing:true});
+    stationWorld.setMotionComparison(previous.cinematicComparison);
+   }
   };
  // 0.21.5: same-frame finish-only A/B, without a world or physics tick.
  if(new URLSearchParams(location.search).get("premiumRoadSmoke")==="1")
@@ -1451,6 +1489,7 @@ function resetFlight(){
  velocityPresence=createVelocityPresenceState();
  reactiveWingFlaps?.reset();livingWake?.reset();railSparks?.reset();
  premiumSurface?.setVelocityFlow(0,0);
+ stationWorld?.updateMotion?.({flow:0,phaseMeters:0,boost:0,playing:false});
  identitySurface?.setVelocityFlow(0,0);
  spaceBackdrop?.setVelocityFlow(0);
  tunnelBlackout?.reset();
@@ -2154,6 +2193,12 @@ function loop(now){
    // Every zone increases environmental flow even without hitting a boost pad.
    const worldFlow=Math.max(velocityState.worldFlow,velocityPresence.trackFlow);
    premiumSurface?.setVelocityFlow(worldFlow,velocityState.flowPhaseMeters);
+   stationWorld?.updateMotion?.({
+    flow:worldFlow,phaseMeters:velocityState.flowPhaseMeters,
+    boost:Math.max(0,Math.min(1,(Math.max(flight.boostMultiplier,
+     flight.landingBoostMultiplier)-1)/0.40)),
+    playing:uiState.mode==="playing"
+   });
    identitySurface?.setVelocityFlow(worldFlow,velocityState.flowPhaseMeters);
    spaceBackdrop?.setVelocityFlow(Math.max(velocityState.worldFlow*.66,
     velocityPresence.starFlow));
@@ -2451,6 +2496,9 @@ function exportAudit(){
       premiumRoadEnabled,premiumRoadProfile:premiumRoadEnabled?PREMIUM_ROAD_SURFACE_0215:null,
       premiumRoadAudit:premiumRoadSurface?.stats()??null,
       compareBeforePremiumRoad:"?premiumRoad=classic",
+      cinematicMotionEnabled,cinematicMotionProfile:cinematicMotionEnabled?CINEMATIC_ENERGY_0216:null,
+      cinematicMotionAudit:cinematicMotionEnabled?stationWorld?.stats?.()??null:null,
+      compareBeforeCinematicMotion:"?cinematicMotion=classic",
       shipWhiteSpillEnabled,shipWhiteSpillAudit:shipWhiteSpill?.stats()??null,
       compareBeforeShipWhite:"?shipWhite=classic",
       railBodyContainmentEnabled,

@@ -6,14 +6,15 @@
 // No extra colliders, no steering/GRIP/camera/road or light-rig changes.
 
 export const TUNNEL_MEGA_0211=Object.freeze({
- version:"0.21.1",id:"continuous-megatunnel-0211",track:"skyline",
+ version:"0.21.1.1",id:"continuous-megatunnel-0211",track:"skyline",
  start:0,end:368,meters:368,sweepStepMeters:2,
  protectedRoadHalfWidth:11.6,shoulderStart:12.25,
- wallOutsideX:26.5,roofHeight:34,closedRoof:true,
+ wallOutsideX:26.5,roofHeight:29.623,previousRoofHeight:34.15,
+ vaultScale:.82,vaultCompressionStart:9,vaultWaveAmplitude:.55,closedRoof:true,
  solidSideShoulders:true,continuousCrossSection:true,
  roadGeometryChanged:false,colliderCount:0,physicsChanges:0,
  cameraChanges:0,gripChanges:0,newDynamicLights:0,newRenderPasses:0,
- comparison:"?tunnelMega=classic",
+ comparison:"?vaultHeight=classic",oldCorridorComparison:"?tunnelMega=classic",
  qualityDrawBatches:4,mobileDrawBatches:3
 });
 // One profile travels from the left roadway shoulder up the left wall,
@@ -47,13 +48,21 @@ const COLORS=Object.freeze({
 const linear=(value)=>{const x=value/255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4};
 const rgb=(hex)=>[linear((hex>>>16)&255),linear((hex>>>8)&255),linear(hex&255)];
 const mix=(a,b,t)=>a+(b-a)*t;
-function profilePoint(i,s){
+function profilePoint(i,s,vaultHeightClassic=false){
  const [x0,y0]=TUNNEL_PROFILE_0211[i];
- // Extremely broad changes of vault scale, not little handmade road kinks.
+ // Lower only the upper vaulted shell, smoothly from 9m height; the deck,
+ // outside-rail shoulders and lower sidewall remain EXACTLY where they were.
  const u=(s-TUNNEL_MEGA_0211.start)/TUNNEL_MEGA_0211.meters;
  const bend=.5-.5*Math.cos(2*Math.PI*u);
  const strength=Math.max(0,Math.min(1,(y0-4)/20));
- return [x0*(1+.015*bend*strength),y0+1.0*bend*strength];
+ const y=vaultHeightClassic
+   ? y0+1.0*bend*strength
+   : (y0<=TUNNEL_MEGA_0211.vaultCompressionStart
+       ? y0
+       : TUNNEL_MEGA_0211.vaultCompressionStart+
+         (y0-TUNNEL_MEGA_0211.vaultCompressionStart)*TUNNEL_MEGA_0211.vaultScale)
+      +TUNNEL_MEGA_0211.vaultWaveAmplitude*bend*strength;
+ return [x0*(1+.015*bend*strength),y];
 }
 function safePosition(positionAt,s,x,y,isFloor){
  if(!Number.isFinite(s+x+y)||s<TUNNEL_MEGA_0211.start-1e-6||s>TUNNEL_MEGA_0211.end+1e-6)
@@ -68,7 +77,7 @@ function safePosition(positionAt,s,x,y,isFloor){
   throw Error("Tunnel road curvature produced invalid point");
  return [p.x,p.y,p.z];
 }
-function makeSurface(positionAt){
+function makeSurface(positionAt,vaultHeightClassic){
  const p=[],colors=[],indices=[];
  const points=TUNNEL_PROFILE_0211.length;
  const rings=1+Math.round(TUNNEL_MEGA_0211.meters/TUNNEL_MEGA_0211.sweepStepMeters);
@@ -76,7 +85,7 @@ function makeSurface(positionAt){
   const s=TUNNEL_MEGA_0211.start+row*TUNNEL_MEGA_0211.sweepStepMeters;
   const sectionWave=.5+.5*Math.sin(s*.035);
   for(let j=0;j<points;j++){
-   const [x,y]=profilePoint(j,s);
+   const [x,y]=profilePoint(j,s,vaultHeightClassic);
    const floor=(j<5||j>points-6);
    p.push(...safePosition(positionAt,s,x,y,floor));
    let swatch;
@@ -97,7 +106,7 @@ function makeSurface(positionAt){
 }
 // Only a handful of **curved** structural ribs. They trace the tunnel vault
 // rather than resembling the old rectangular corridor pillars.
-function makeDetails(positionAt,lowMemory){
+function makeDetails(positionAt,lowMemory,vaultHeightClassic){
  const rib={p:[],c:[]},energy={p:[],c:[]},halo={p:[],c:[]};
  const tri=(target,verts,swatch)=>{
   for(const v of verts){
@@ -120,27 +129,27 @@ function makeDetails(positionAt,lowMemory){
   // The curved 3D rib is rooted in the outside shoulder x>18m; it may
   // cross the road only as a HIGH ceiling (>=26m), never as a solid obstacle.
   for(let j=2;j<TUNNEL_PROFILE_0211.length-3;j++){
-   const a=inset(profilePoint(j,s),.38);
-   const b=inset(profilePoint(j+1,s),.38);
-   const c=inset(profilePoint(j+1,end),.38);
-   const d=inset(profilePoint(j,end),.38);
+   const a=inset(profilePoint(j,s,vaultHeightClassic),.38);
+   const b=inset(profilePoint(j+1,s,vaultHeightClassic),.38);
+   const c=inset(profilePoint(j+1,end,vaultHeightClassic),.38);
+   const d=inset(profilePoint(j,end,vaultHeightClassic),.38);
    quad(rib,worldP(s,a),worldP(s,b),worldP(end,c),worldP(end,d),
     j%6===0?COLORS.pierEdge:COLORS.pier);
    // An integrated luminous trace follows the CROSS SECTION of the arch.
    // One slim 0.3m longitudinal band, NOT a rectangular sidewall sticker.
    if(j>=6&&j<=TUNNEL_PROFILE_0211.length-7){
-    const e=inset(profilePoint(j,s+.46),.57);
-    const f=inset(profilePoint(j+1,s+.46),.57);
-    const g=inset(profilePoint(j+1,s+.76),.57);
-    const h=inset(profilePoint(j,s+.76),.57);
+    const e=inset(profilePoint(j,s+.46,vaultHeightClassic),.57);
+    const f=inset(profilePoint(j+1,s+.46,vaultHeightClassic),.57);
+    const g=inset(profilePoint(j+1,s+.76,vaultHeightClassic),.57);
+    const h=inset(profilePoint(j,s+.76,vaultHeightClassic),.57);
     quad(energy,worldP(s+.46,e),worldP(s+.46,f),
      worldP(s+.76,g),worldP(s+.76,h),
      (s===80||s===240)?COLORS.pink:COLORS.cyan);
     if(!lowMemory){
-     const e2=inset(profilePoint(j,s+.31),.62);
-     const f2=inset(profilePoint(j+1,s+.31),.62);
-     const g2=inset(profilePoint(j+1,s+.91),.62);
-     const h2=inset(profilePoint(j,s+.91),.62);
+     const e2=inset(profilePoint(j,s+.31,vaultHeightClassic),.62);
+     const f2=inset(profilePoint(j+1,s+.31,vaultHeightClassic),.62);
+     const g2=inset(profilePoint(j+1,s+.91,vaultHeightClassic),.62);
+     const h2=inset(profilePoint(j,s+.91,vaultHeightClassic),.62);
      quad(halo,worldP(s+.31,e2),worldP(s+.31,f2),
       worldP(s+.91,g2),worldP(s+.91,h2),
       (s===80||s===240)?COLORS.faintPink:COLORS.faintBlue);
@@ -155,7 +164,7 @@ function makeDetails(positionAt,lowMemory){
    const j=side<0?9:TUNNEL_PROFILE_0211.length-10;
    const next=side<0?10:TUNNEL_PROFILE_0211.length-11;
    const interp=(where,k,t)=>{
-    const a=profilePoint(where,k),b=profilePoint(next,k);
+    const a=profilePoint(where,k,vaultHeightClassic),b=profilePoint(next,k,vaultHeightClassic);
     const v=lerpP(a,b,t);
     return inset(v,.24);
    };
@@ -174,14 +183,17 @@ const disposeGroup=(g)=>{
  }});
 };
 export function installTunnelMegastructure(THREE,world,{
- track="skyline",positionAt,lowMemory=false
+ track="skyline",positionAt,lowMemory=false,vaultHeightClassic=false
 }={}){
  if(!THREE||!world||typeof positionAt!=="function")
   throw Error("SKYSHIFT 0.21.1 requires original positionAt / world / Three");
  const active=track===TUNNEL_MEGA_0211.track;
  const state={
-  version:"0.21.1",variant:"continuous-vault-tunnel",active:false,
-  status:active?"loading":"inactive",track,lowMemory,
+  version:"0.21.1.1",variant:"continuous-vault-tunnel",active:false,
+  status:active?"loading":"inactive",track,lowMemory,vaultHeightClassic,
+  roofHeight:vaultHeightClassic?TUNNEL_MEGA_0211.previousRoofHeight:TUNNEL_MEGA_0211.roofHeight,
+  previousRoofHeight:TUNNEL_MEGA_0211.previousRoofHeight,
+  vaultHeightReductionMeters:vaultHeightClassic?0:4.527,
   start:TUNNEL_MEGA_0211.start,end:TUNNEL_MEGA_0211.end,
   meters:TUNNEL_MEGA_0211.meters,
   solidSideShoulders:true,continuousCrossSection:true,roofEnclosed:true,
@@ -198,7 +210,8 @@ export function installTunnelMegastructure(THREE,world,{
  if(!active)return {ready:Promise.resolve(),stats:()=>({...state}),dispose(){}};
  const group=new THREE.Group();group.name="SKYSHIFT · Tunnel Megastructure 0.21.1";
  try{
-  const surface=makeSurface(positionAt),details=makeDetails(positionAt,lowMemory);
+  const surface=makeSurface(positionAt,vaultHeightClassic),
+        details=makeDetails(positionAt,lowMemory,vaultHeightClassic);
   function install(kind,data,material,indexed=false){
    const geo=new THREE.BufferGeometry();
    geo.setAttribute("position",new THREE.Float32BufferAttribute(data.p,3));

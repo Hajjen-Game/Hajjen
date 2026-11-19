@@ -44,6 +44,9 @@ try{
   await page.screenshot({path});
  }
  const fresh=await load();
+ if(fresh.art.roofHeight<29.5||fresh.art.roofHeight>30||
+    fresh.art.vaultHeightClassic!==false)
+  throw Error("New 0.21.1.1 vault height missing "+JSON.stringify(fresh.art));
  if(fresh.art.variant!=="continuous-vault-tunnel"||
     fresh.art.drawBatches!==4||
     fresh.art.profilePoints<30||
@@ -57,6 +60,14 @@ try{
  for(const s of [104,144,165,196,245,350])
   await screenshot(fresh.page,s,"skyshift-v0211-tunnel-"+s+".png");
  await fresh.page.close();
+ const originalVault=await load("vaultHeight=classic");
+ if(originalVault.art.variant!=="continuous-vault-tunnel"||
+    originalVault.art.vaultHeightClassic!==true||
+    originalVault.art.roofHeight!==34.15)
+  throw Error("Original vault height unavailable for A/B");
+ await screenshot(originalVault.page,165,"skyshift-v0211-vault-before-165.png");
+ await screenshot(originalVault.page,104,"skyshift-v0211-vault-before-104.png");
+ await originalVault.page.close();
  const old=await load("tunnelMega=classic");
  if(old.art.variant!=="cinematic-material-light"||
     old.art.drawBatches!==7)

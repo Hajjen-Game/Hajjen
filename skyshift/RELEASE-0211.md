@@ -13,3 +13,6 @@ Replaces (never overlays) the first 288m of Skyline's 0.21.0-B corridor with an 
 A/B compare with `?tunnelMega=classic` for 0.21.0-B or `?cinematicHero=classic` for old station architecture. The old module code is retained and unchanged.
 
 Acceptance: Node indexed-mesh continuous profile/side-floor/clearance and material budget tests, Chrome SwiftShader WebGL matching-position screenshots at s=104, 144, 165, 196, 245, 350 and low-memory baseline.
+
+## 0.21.1.1 – Vault Height Refinement
+The curved vaulted crown is lowered from 34.15m to 29.62m nominal (about 4.5m, 13%). The lower wall and side-floor shoulder geometry are identical, and roof arch ribs / inlaid lights follow the new vault. An exact height-only comparison is available with `?vaultHeight=classic`, while `?tunnelMega=classic` still shows the older block corridor. No physics, GRIP, controls or camera changes.

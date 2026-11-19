@@ -108,6 +108,8 @@ import {PHYSICAL_MATERIAL_0230,installPhysicalMaterialRebuild}
  from "./physical-material-rebuild-v0230.mjs";
 import {TRUE_MATERIAL_0231,installTrueMaterialDepthRebuild}
  from "./true-material-depth-v0231.mjs";
+import {LIGHT_ARCHITECTURE_0232,installCinematicLightArchitecture}
+ from "./cinematic-light-architecture-v0232.mjs";
 import {VELOCITY_CINEMA_0220_P3,installVelocityCinematography}
  from "./velocity-cinematography-v0220p3.mjs";
 import {UNIFIED_GRADE_0220_P4,installUnifiedCinematicGrade}
@@ -249,6 +251,11 @@ const physicalMaterialEnabled=cinematicNeonEnabled&&TRACK_ID_0160==="skyline"&&
 const trueMaterialDepthEnabled=physicalMaterialEnabled&&
  new URLSearchParams(location.search).get("trueDepth")!=="classic"&&
  !["0.23.0"].includes(new URLSearchParams(location.search).get("v")||"");
+// 0.23.2 Pass 2: only local neon highlights on real metal panels.
+const lightArchitectureEnabled=trueMaterialDepthEnabled&&
+ new URLSearchParams(location.search).get("lightArchitecture")!=="classic"&&
+ !["0.23.0","0.23.1","0.23.1.1"].includes(
+  new URLSearchParams(location.search).get("v")||"");
 // 0.22.0 Pass 3: additive postprocess; Pass 1 and Pass 2 links unchanged.
 const velocityCinemaEnabled=cinematicNeonEnabled&&
  new URLSearchParams(location.search).get("velocityCinema")!=="classic"&&
@@ -933,7 +940,8 @@ function initScene(){
  // 0.20.5 World Art Pipeline: coherent, authored glTF station interior.
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
- if(rebirthEnabled)stationWorld=(trueMaterialDepthEnabled?installTrueMaterialDepthRebuild:
+ if(rebirthEnabled)stationWorld=(lightArchitectureEnabled?installCinematicLightArchitecture:
+    trueMaterialDepthEnabled?installTrueMaterialDepthRebuild:
     physicalMaterialEnabled?installPhysicalMaterialRebuild:
     cinematicNeonEnabled?installCinematicNeonLighting:
     premiumMaterialRebirthEnabled?installPremiumMaterialRebirth:
@@ -1253,6 +1261,29 @@ function initScene(){
       flight?.landingBoostMultiplier??1)});
     velocityCinematography.setComparison(before.comparison);
    }
+  };
+ // 0.23.2 exact-frame new neon reflections vs unchanged 0.23.1.1.
+ if(new URLSearchParams(location.search).get("lightArchitectureSmoke")==="1")
+  window.__skyshiftLightArchitectureProbe=()=>({
+   requested:lightArchitectureEnabled,
+   ...(stationWorld?.stats?.()??{}),
+   roadSolarSeal:roadSolarSpill?.stats()?.seal??null,
+   originalControlsUntouched:true,
+   nativeWave:Boolean(premiumSurface?.setWaveState)
+  });
+ if(new URLSearchParams(location.search).get("lightArchitectureFrameProof")==="1")
+  window.__skyshiftLightArchitectureFrameProof=()=>{
+   if(!lightArchitectureEnabled||!stationWorld?.setLightArchitectureComparison||
+      !stationWorld.stats().lightArchitecture0232Enabled||!neonPipeline?.render)
+    throw Error("0.23.2 light architecture A/B unavailable");
+   const previous=stationWorld.stats().lightArchitecture0232Strength;
+   const capture=value=>{
+    stationWorld.setLightArchitectureComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:capture(0),lit:capture(1),position:flight?.s??null};}
+   finally{stationWorld.setLightArchitectureComparison(previous);}
   };
  // 0.23.1 exact-frame metal+geometry A/B on the same track and camera.
  if(new URLSearchParams(location.search).get("trueDepthSmoke")==="1")
@@ -2762,6 +2793,10 @@ function exportAudit(){
       trueMaterialDepthProfile:trueMaterialDepthEnabled?TRUE_MATERIAL_0231:null,
       trueMaterialDepthAudit:trueMaterialDepthEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeTrueDepth:"?trueDepth=classic",
+      lightArchitectureEnabled,
+      lightArchitectureProfile:lightArchitectureEnabled?LIGHT_ARCHITECTURE_0232:null,
+      lightArchitectureAudit:lightArchitectureEnabled?stationWorld?.stats?.()??null:null,
+      compareBeforeLightArchitecture:"?lightArchitecture=classic",
       velocityCinemaRequested:velocityCinemaEnabled,
       velocityCinemaProfile:velocityCinemaEnabled?VELOCITY_CINEMA_0220_P3:null,
       velocityCinemaAudit:velocityCinematography?.stats?.()??null,

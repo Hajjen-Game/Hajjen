@@ -941,6 +941,43 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  premium-road-v0215-unit:
+    name: SKYSHIFT 0.21.5 road-only PBR finish, white-sun preservation and no gameplay regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify shader composition and old road/wave/ship/structure invariants
+        run: |
+          node --check skyshift/premium-road-surface-v0215.mjs
+          node --check skyshift/browser-premium-road-surface-v0215.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/premium-road-surface-v0215.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/white-core-containment-v02123.test.mjs skyshift/ship-white-spill-v02125.test.mjs skyshift/integrated-neon-flow-v0214.test.mjs
+
+  browser-premium-road-v0215:
+    name: SKYSHIFT 0.21.5 real WebGL same-frame premium road pixels on 8GB and 4GB
+    needs: premium-road-v0215-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome and PNG inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Verify deck-specific material changes and no new white spill
+        run: node skyshift/browser-premium-road-surface-v0215.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0215-premium-road-before-after
+          path: |
+            skyshift-v0215-*.png
+            skyshift-v0215-premium-road-proof.json
+
   integrated-neon-flow-v0214-unit:
     name: SKYSHIFT 0.21.4 synchronized tunnel lines, quiet panels and mobile budget
     runs-on: ubuntu-latest

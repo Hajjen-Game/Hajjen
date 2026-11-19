@@ -104,6 +104,8 @@ import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
  from "./premium-material-rebirth-v0220.mjs";
 import {CINEMATIC_NEON_0220_P2,installCinematicNeonLighting}
  from "./cinematic-neon-lighting-v0220p2.mjs";
+import {PHYSICAL_MATERIAL_0230,installPhysicalMaterialRebuild}
+ from "./physical-material-rebuild-v0230.mjs";
 import {VELOCITY_CINEMA_0220_P3,installVelocityCinematography}
  from "./velocity-cinematography-v0220p3.mjs";
 import {UNIFIED_GRADE_0220_P4,installUnifiedCinematicGrade}
@@ -236,6 +238,10 @@ const premiumMaterialRebirthEnabled=cinematicMotionEnabled&&
 const cinematicNeonEnabled=premiumMaterialRebirthEnabled&&
  new URLSearchParams(location.search).get("cinematicNeon")!=="classic"&&
  !["0.22.0","0.22.0.1"].includes(new URLSearchParams(location.search).get("v")||"");
+// 0.23.0 P1: local, solar-sealed GGX metal on one reference gallery.
+const physicalMaterialEnabled=cinematicNeonEnabled&&TRACK_ID_0160==="skyline"&&
+ new URLSearchParams(location.search).get("physicalMaterial")!=="classic"&&
+ !/^0\.22\./.test(new URLSearchParams(location.search).get("v")||"");
 // 0.22.0 Pass 3: additive postprocess; Pass 1 and Pass 2 links unchanged.
 const velocityCinemaEnabled=cinematicNeonEnabled&&
  new URLSearchParams(location.search).get("velocityCinema")!=="classic"&&
@@ -920,7 +926,8 @@ function initScene(){
  // 0.20.5 World Art Pipeline: coherent, authored glTF station interior.
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
- if(rebirthEnabled)stationWorld=(cinematicNeonEnabled?installCinematicNeonLighting:
+ if(rebirthEnabled)stationWorld=(physicalMaterialEnabled?installPhysicalMaterialRebuild:
+    cinematicNeonEnabled?installCinematicNeonLighting:
     premiumMaterialRebirthEnabled?installPremiumMaterialRebirth:
     cinematicMotionEnabled?installCinematicEnergyMotion:
     integratedNeonFlowEnabled?installIntegratedNeonFlow:
@@ -1238,6 +1245,30 @@ function initScene(){
       flight?.landingBoostMultiplier??1)});
     velocityCinematography.setComparison(before.comparison);
    }
+  };
+ // 0.23.0 P1 exact-frame material A/B without a physics/camera update.
+ if(new URLSearchParams(location.search).get("physicalMaterialSmoke")==="1")
+  window.__skyshiftPhysicalMaterialProbe=()=>({
+   requested:physicalMaterialEnabled,
+   ...(stationWorld?.stats?.()??{}),
+   roadSolarSeal:roadSolarSpill?.stats()?.seal??null,
+   originalControlsUntouched:true,originalCameraUntouched:true
+  });
+ if(new URLSearchParams(location.search).get("physicalMaterialFrameProof")==="1")
+  window.__skyshiftPhysicalMaterialFrameProof=()=>{
+   if(!physicalMaterialEnabled||!neonPipeline?.render||
+      !stationWorld?.setPhysicalComparison||
+      !stationWorld.stats().physicalMaterial023Enabled)
+    throw Error("0.23.0 physical material A/B unavailable");
+   const original=stationWorld.stats().physicalMaterial023Strength;
+   const snap=v=>{
+    stationWorld.setPhysicalComparison(v);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:snap(0),physical:snap(1),
+    position:flight?.s??null};}
+   finally{stationWorld.setPhysicalComparison(original);}
   };
  // 0.22.0 Pass 2: identical camera, wave and ship pose with just the
  // colored local neon-bounce strength toggled. No physics tick.
@@ -2693,6 +2724,10 @@ function exportAudit(){
       cinematicNeonProfile:cinematicNeonEnabled?CINEMATIC_NEON_0220_P2:null,
       cinematicNeonAudit:cinematicNeonEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeCinematicNeon:"?cinematicNeon=classic",
+      physicalMaterialEnabled,
+      physicalMaterialProfile:physicalMaterialEnabled?PHYSICAL_MATERIAL_0230:null,
+      physicalMaterialAudit:physicalMaterialEnabled?stationWorld?.stats?.()??null:null,
+      compareBeforePhysicalMaterial:"?physicalMaterial=classic",
       velocityCinemaRequested:velocityCinemaEnabled,
       velocityCinemaProfile:velocityCinemaEnabled?VELOCITY_CINEMA_0220_P3:null,
       velocityCinemaAudit:velocityCinematography?.stats?.()??null,

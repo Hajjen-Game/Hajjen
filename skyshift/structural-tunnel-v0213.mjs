@@ -90,8 +90,8 @@ const WALL=[5,6,7,8,9,10,19,20,21,22,23,24];
 const ROOF=[12,13,14,15,16,17,18];
 // Break each architectural plate at the original 2 m mesh sampling
 // cadence so it hugs real track curvature rather than bridging a turn.
-function makePlate(target,positionAt,options,s0,s1,j,swatch){
- const steps=Math.ceil((s1-s0)/2);
+function makePlate(target,positionAt,options,s0,s1,j,swatch,lowMemory){
+ const steps=Math.ceil((s1-s0)/(lowMemory?3.5:2));
  const pad=.26;
  const a=s0+pad,b=s1-pad;
  if(b-a<1.1)return;
@@ -132,22 +132,25 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
   throw Error("0.21.3 requires the original positionAt curve sampler");
  const options={vaultHeightClassic};
  const primary=empty(),detail=empty();
+ const walls=lowMemory?[5,7,9,20,22,24]:WALL;
+ const roof=lowMemory?[12,14,16,18]:ROOF;
  let plates=0,arches=0;
  for(let bay=0,s=.8;s<368;s+=STRUCTURAL_TUNNEL_0213.bayPitch,bay++){
   const intervals=keptSpans(s,s+12.8);
-  for(const [a,b] of intervals)for(const j of [...WALL,...ROOF]){
-   const isRoof=ROOF.includes(j);
+  for(const [a,b] of intervals)for(const j of [...walls,...roof]){
+   const isRoof=roof.includes(j);
    const alternate=(bay+j)%4===0;
    const color=isRoof?(alternate?COLORS.roofAlt:COLORS.roof):
     (alternate?COLORS.panelAlt:COLORS.panel);
-   makePlate(primary,positionAt,options,a,b,j,color);plates++;
+   makePlate(primary,positionAt,options,a,b,j,color,lowMemory);plates++;
   }
  }
  // Secondary cross-members between the existing ~42m neon portal arches.
  // On 4GB devices this sculptural rhythm stays, but no extra detail layer.
- for(let s=21;s<=357;s+=STRUCTURAL_TUNNEL_0213.secondaryBracePitch){
+ for(let s=21;s<=357;s+=lowMemory?42:STRUCTURAL_TUNNEL_0213.secondaryBracePitch){
   if(TUNNEL_PORTALS_0211.some(p=>Math.abs(s-p)<3.5))continue;
-  for(const j of [5,7,9,11,12,13,14,15,16,17,18,19,21,23,25]){
+  for(const j of (lowMemory?[5,9,12,14,16,18,21,25]:
+   [5,7,9,11,12,13,14,15,16,17,18,19,21,23,25])){
    makeSecondarySupport(primary,positionAt,options,s,j);
   }
   arches++;

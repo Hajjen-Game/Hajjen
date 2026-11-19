@@ -941,6 +941,43 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  premium-material-rebirth-v0220-unit:
+    name: SKYSHIFT 0.22.0 P1 physical graphite metal material/shader and no-physics regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate high/mobile metallic shaders and existing flight, neon, road light fixes
+        run: |
+          node --check skyshift/premium-material-rebirth-v0220.mjs
+          node --check skyshift/browser-premium-material-rebirth-v0220.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/premium-material-rebirth-v0220.test.mjs skyshift/cinematic-energy-v0216.test.mjs skyshift/integrated-neon-flow-v0214.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/premium-road-surface-v0215.test.mjs
+
+  browser-premium-material-rebirth-v0220:
+    name: SKYSHIFT 0.22.0 P1 real WebGL brushed graphite shell/bays on 8GB and 4GB
+    needs: premium-material-rebirth-v0220-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome and PNG pixel inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Compare exactly the same tunnel frame and prove material-only effect in 3 palettes
+        run: node skyshift/browser-premium-material-rebirth-v0220.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0220-premium-material-rebirth-screenshots
+          path: |
+            skyshift-v0220-*.png
+            skyshift-v0220-premium-material-proof.json
+
   cinematic-energy-v0216-unit:
     name: SKYSHIFT 0.21.6 motion shader, pause, mobile and original flight invariants
     runs-on: ubuntu-latest

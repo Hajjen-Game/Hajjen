@@ -8,9 +8,12 @@
 
 import {installTunnelMegastructure,TUNNEL_PROFILE_0211,
  TUNNEL_PORTALS_0211,TUNNEL_MEGA_0211} from "./tunnel-megastructure-v0211.mjs";
+import {TUNNEL_SPECTRUM_02121,createTunnelSpectrumUniforms,
+ updateTunnelSpectrumUniforms,bindTunnelSpectrumMaterial}
+ from "./tunnel-spectrum-v02121.mjs";
 
 export const NEON_INTERIOR_0212=Object.freeze({
- version:"0.21.2",id:"neon-driven-interior-0212",
+ version:"0.21.2.1",id:"neon-driven-interior-0212",
  start:0,end:368,profiles:TUNNEL_PROFILE_0211.length,
  lightingModel:"authored-per-vertex-local-neon-bounce",
  sourceOnly:["curved cyan portal ribs","magenta portal ribs","pink wall guides"],
@@ -33,9 +36,9 @@ const PORTAL_LIGHTS=TUNNEL_PORTALS_0211.map(s=>({
 const CYAN=swatch(0x5fdaff);
 const PINK=swatch(0xff60ba);
 const BASE=Object.freeze({
- floor:swatch(0x08121f),bank:swatch(0x0a1929),
- wall:swatch(0x091a2d),vault:swatch(0x061426),
- metal:swatch(0x162a3d)
+ floor:swatch(0x040b15),bank:swatch(0x071321),
+ wall:swatch(0x071323),vault:swatch(0x05111f),
+ metal:swatch(0x0b1727)
 });
 // These three independent components remain visible in QA and avoid fake
 // "global brightening": the response falls off from actual neon geometry.
@@ -77,7 +80,8 @@ export function sampleNeonInteriorLight(s,x,y,{detail="shell"}={}){
  };
 }
 function buildShellColors(vertices,positions,classicVault){
- const points=TUNNEL_PROFILE_0211.length,colors=new Float32Array(vertices*3);
+ const points=TUNNEL_PROFILE_0211.length,colors=new Float32Array(vertices*3),
+  glow=new Float32Array(vertices);
  for(let i=0;i<vertices;i++){
   const j=i%points;
   const s=TUNNEL_MEGA_0211.start+
@@ -93,13 +97,16 @@ function buildShellColors(vertices,positions,classicVault){
     TUNNEL_MEGA_0211.vaultCompressionStart+
     (yRaw-TUNNEL_MEGA_0211.vaultCompressionStart)*TUNNEL_MEGA_0211.vaultScale)
     +TUNNEL_MEGA_0211.vaultWaveAmplitude*bend*strength;
-  const pt=sampleNeonInteriorLight(s,x,y).rgb;
-  for(let c=0;c<3;c++)colors[i*3+c]=pt[c];
+  const pt=sampleNeonInteriorLight(s,x,y);
+  // Keep only dark metal base in the vertex color. The shared spectral
+  // wave shader applies neon colors per station metre at render-time.
+  for(let c=0;c<3;c++)colors[i*3+c]=pt.ambientFloor[c];
+  glow[i]=Math.min(.16,pt.cyan*.22+pt.pink*.19);
  }
- return colors;
+ return {colors,glow};
 }
 function buildRoadReflections(THREE,positionAt){
- const verts=[],color=[],indices=[],columns=5;
+ const verts=[],color=[],indices=[],trackS=[],glow=[],columns=5;
  // Thin neon reflection pulses ON the playable road's outer margins.
  // No road material replacement, no obstacle and no transparent room-wide wash.
  const profile=[8.0,8.8,9.55,10.35,10.9];
@@ -114,9 +121,11 @@ function buildRoadReflections(THREE,positionAt){
     const x=side*profile[col],p=positionAt(s,x,.105);
     if(!Number.isFinite(p.x+p.y+p.z))throw Error("Bad neon road reflection");
     verts.push(p.x,p.y,p.z);
+    trackS.push(s);
     const transverse=[.01,.06,.13,.18,.045][col];
     const value=longitudinal*transverse;
-    color.push(tint[0]*value,tint[1]*value,tint[2]*value);
+    color.push(0,0,0);
+    glow.push(value);
    }
   }
   for(let step=0;step<steps-1;step++)for(let j=0;j<columns-1;j++){
@@ -127,6 +136,8 @@ function buildRoadReflections(THREE,positionAt){
  const geo=new THREE.BufferGeometry();
  geo.setAttribute("position",new THREE.Float32BufferAttribute(verts,3));
  geo.setAttribute("color",new THREE.Float32BufferAttribute(color,3));
+ geo.setAttribute("trackS",new THREE.Float32BufferAttribute(trackS,1));
+ geo.setAttribute("glowWeight",new THREE.Float32BufferAttribute(glow,1));
  geo.setIndex(indices);geo.computeVertexNormals();geo.computeBoundingSphere();
  return geo;
 }
@@ -140,14 +151,18 @@ export function installNeonDrivenInterior(THREE,world,options={}){
  const shell=group.children.find(x=>x.name==="Tunnel / CLOSED_SHELL");
  const ribs=group.children.find(x=>x.name==="Tunnel / CURVED_RIBS");
  const state={
-  ...oldState,version:"0.21.2",variant:"neon-driven-interior",
+  ...oldState,version:"0.21.2.1",variant:"neon-driven-interior",
   lightingEnabled:false,interiorNeonPrimary:false,exteriorLightInfluence:0,
   diffuseNeonWallResponse:false,localNeonRoadResponse:false,
   darkMaterial:true,sideFloorsRetained:true,ceilingHeightUnchanged:true,
   globalLightsChanged:0,dynamicLightsAdded:0,addedRenderPasses:0,
+  waveSynchronized:false,spectrumPaletteCount:TUNNEL_SPECTRUM_02121.paletteCount,
+  currentSpectrumStage:0,currentWaveFront:-10000,
+  exteriorLightLeakRemoved:true,staticPinkCyanWashRemoved:true,
   originalGRIPUntouched:true,roadMeshUntouched:true,comparedTo:NEON_INTERIOR_0212.comparison
  };
  let roadLight=null,oldShell=null,oldRibs=null,oldColors=null;
+ const spectrum=createTunnelSpectrumUniforms(THREE);
  try{
   if(!shell||!ribs||!shell.geometry?.attributes?.position)
    throw Error("0.21.2 missing tunnel shell or support ribs");
@@ -155,20 +170,48 @@ export function installNeonDrivenInterior(THREE,world,options={}){
   oldColors=shell.geometry.getAttribute("color");
   const pos=shell.geometry.getAttribute("position");
   const baked=buildShellColors(pos.count,pos.array,!!options.vaultHeightClassic);
-  shell.geometry.setAttribute("color",new THREE.Float32BufferAttribute(baked,3));
-  shell.material=new THREE.MeshBasicMaterial({
+  shell.geometry.setAttribute("color",new THREE.Float32BufferAttribute(baked.colors,3));
+  shell.geometry.setAttribute("glowWeight",new THREE.Float32BufferAttribute(baked.glow,1));
+  for(const mesh of group.children){
+   if(mesh.name==="Tunnel / CLOSED_SHELL")continue;
+   const count=mesh.geometry?.getAttribute("trackS")?.count;
+   if(!count)throw Error("Tunnel neon lacks track-space wave coordinate: "+mesh.name);
+   const weight=mesh.name==="Tunnel / CURVED_RIBS"?.075:
+    mesh.name==="Tunnel / HALO"?.62:1;
+   mesh.geometry.setAttribute("glowWeight",
+    new THREE.Float32BufferAttribute(new Float32Array(count).fill(weight),1));
+  }
+  shell.material=bindTunnelSpectrumMaterial(new THREE.MeshBasicMaterial({
    color:0xffffff,vertexColors:true,side:THREE.DoubleSide,toneMapped:true
-  });
-  ribs.material=new THREE.MeshBasicMaterial({
-   color:0x91afc4,vertexColors:true,side:THREE.DoubleSide,toneMapped:true
-  });
+  }),spectrum,"shell");
+  ribs.material=bindTunnelSpectrumMaterial(new THREE.MeshBasicMaterial({
+   color:0x0c1b2b,vertexColors:false,side:THREE.DoubleSide,toneMapped:true
+  }),spectrum,"rib");
+  for(const mesh of group.children){
+   if(mesh.name==="Tunnel / INTEGRATED_LIGHT"){
+    const old=mesh.material;
+    mesh.material=bindTunnelSpectrumMaterial(new THREE.MeshBasicMaterial({
+     color:0xffffff,vertexColors:false,side:THREE.DoubleSide,
+     toneMapped:false
+    }),spectrum,"emitter");
+    old.dispose();
+   }else if(mesh.name==="Tunnel / HALO"){
+    const old=mesh.material;
+    mesh.material=bindTunnelSpectrumMaterial(new THREE.MeshBasicMaterial({
+     color:0xffffff,vertexColors:false,side:THREE.DoubleSide,
+     toneMapped:false,transparent:true,opacity:.14,
+     depthWrite:false,blending:THREE.AdditiveBlending
+    }),spectrum,"halo");
+    old.dispose();
+   }
+  }
   if(!options.lowMemory){
    const geo=buildRoadReflections(THREE,options.positionAt);
    roadLight=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({
-    color:0xffffff,vertexColors:true,side:THREE.DoubleSide,
+    color:0xffffff,vertexColors:false,side:THREE.DoubleSide,
     toneMapped:false,transparent:true,opacity:.62,
     depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending
-   }));
+   }),spectrum,"reflection"));
    roadLight.name="Tunnel / NEON_ROAD_RESPONSE";
    roadLight.frustumCulled=true;
    roadLight.renderOrder=1;
@@ -178,6 +221,7 @@ export function installNeonDrivenInterior(THREE,world,options={}){
   }
   oldShell.dispose();oldRibs.dispose();
   state.lightingEnabled=true;
+  state.waveSynchronized=true;
   state.interiorNeonPrimary=true;
   state.diffuseNeonWallResponse=true;
   state.localNeonRoadResponse=!!roadLight;
@@ -194,5 +238,13 @@ export function installNeonDrivenInterior(THREE,world,options={}){
   state.status="fallback-materials";
  }
  return {ready:base.ready,stats:()=>({...state}),
+  updateWave(wave){
+   if(!state.waveSynchronized)return;
+   const next=updateTunnelSpectrumUniforms(spectrum,wave);
+   state.currentSpectrumStage=next.stage;
+   state.currentWaveFront=next.front;
+   state.currentSpectrumTo=next.transitionTo;
+   state.waveActive=next.active;
+  },
   dispose(){base.dispose()}};
 }

@@ -88,6 +88,8 @@ import {EXTERIOR_SEAL_02122,installExteriorLightSeal}
  from "./tunnel-exterior-seal-v02122.mjs";
 import {STRUCTURAL_TUNNEL_0213,installStructuralTunnelRebuild}
  from "./structural-tunnel-v0213.mjs";
+import {INTEGRATED_NEON_FLOW_0214,installIntegratedNeonFlow}
+ from "./integrated-neon-flow-v0214.mjs";
 import {WHITE_CORE_02123,createWhiteCoreContainment}
  from "./white-core-containment-v02123.mjs";
 import {SHIP_WHITE_SPILL_02125,createShipWhiteSpillController}
@@ -195,6 +197,11 @@ const roadSolarEnabled=whiteCoreEnabled&&
 const structuralTunnelEnabled=exteriorSealEnabled&&
  new URLSearchParams(location.search).get("tunnelStructure")!=="classic"&&
  !/^0\.21\.[0-2](?:\.|$)/.test(new URLSearchParams(location.search).get("v")||"");
+// 0.21.4: longer neon direction lines + deliberately calmer structural contrast.
+// Explicit 0.21.3 A/B URLs retain their original 0.21.3 look.
+const integratedNeonFlowEnabled=structuralTunnelEnabled&&
+ new URLSearchParams(location.search).get("tunnelFlow")!=="classic"&&
+ !/^0\.21\.[0-3](?:\.|$)/.test(new URLSearchParams(location.search).get("v")||"");
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -868,7 +875,8 @@ function initScene(){
  // 0.20.5 World Art Pipeline: coherent, authored glTF station interior.
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
- if(rebirthEnabled)stationWorld=(structuralTunnelEnabled?installStructuralTunnelRebuild:
+ if(rebirthEnabled)stationWorld=(integratedNeonFlowEnabled?installIntegratedNeonFlow:
+    structuralTunnelEnabled?installStructuralTunnelRebuild:
    enclosedStationEnabled?
   (tunnelMegaEnabled?(neonInteriorEnabled?
     (tunnelSpectrumEnabled?(exteriorSealEnabled?installExteriorLightSeal:installNeonDrivenInterior):installClassicNeonInterior):
@@ -1059,6 +1067,26 @@ function initScene(){
     worldLights.fill.intensity=levels.fill;
     engineLights.forEach((x,i)=>x.intensity=engines[i]);
    }
+  };
+ // 0.21.4: QA-only identical-frame view with/without integrated neons.
+ if(new URLSearchParams(location.search).get("flowFrameProof")==="1")
+  window.__skyshiftFlowFrameProof=()=>{
+   if(!integratedNeonFlowEnabled||!neonPipeline?.render)
+    throw Error("Neon flow same-frame proof unavailable");
+   const group=world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1");
+   const strips=group?.children?.filter(o=>o.name==="Tunnel / FLOW_CORES"||
+    o.name==="Tunnel / FLOW_RECESSES")??[];
+   if(!strips.some(x=>x.name==="Tunnel / FLOW_CORES"))
+    throw Error("Integrated neon core missing");
+   const previous=strips.map(m=>m.visible);
+   const draw=enabled=>{
+    strips.forEach(m=>m.visible=enabled);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {baseline:draw(false),flow:draw(true),
+    meshes:strips.length,trackS:flight?.s??null}}
+   finally{strips.forEach((m,i)=>m.visible=previous[i])}
   };
  // 0.21.3: same-frame structural art-only comparison, no simulation step.
  if(new URLSearchParams(location.search).get("structureFrameProof")==="1")
@@ -2369,6 +2397,9 @@ function exportAudit(){
       exteriorSealEnabled,exteriorSealProfile:exteriorSealEnabled?EXTERIOR_SEAL_02122:null,
        structuralTunnelEnabled,structuralProfile:structuralTunnelEnabled?STRUCTURAL_TUNNEL_0213:null,
        compareBeforeStructure:"?tunnelStructure=classic",
+       integratedNeonFlowEnabled,
+       integratedNeonFlowProfile:integratedNeonFlowEnabled?INTEGRATED_NEON_FLOW_0214:null,
+       compareBeforeIntegratedFlow:"?tunnelFlow=classic",
       whiteCoreEnabled,whiteCoreProfile:whiteCoreEnabled?WHITE_CORE_02123:null,
       roadSolarEnabled,roadSolarProfile:roadSolarEnabled?ROAD_SOLAR_SPILL_02126:null,
       roadSolarAudit:roadSolarSpill?.stats()??null,

@@ -28,7 +28,7 @@ test("arched roof is closed over the road; floor connects continuously to both w
  assert.equal(stats.active,true);
  assert.equal(stats.status,"active");
  assert.equal(stats.drawBatches,4);
- assert.equal(stats.sampledRings,145);
+ assert.equal(stats.sampledRings,185);
  assert.equal(stats.profilePoints,TUNNEL_PROFILE_0211.length);
  assert.ok(stats.trianglesRendered<15000);
  assert.ok(stats.trianglesRendered>5000);
@@ -49,9 +49,9 @@ test("arched roof is closed over the road; floor connects continuously to both w
     "Tunnel profile cannot have unconnected floor/wall/roof gaps");
   }
  }
- assert.ok(Math.abs(v[2]-80)<1e-6);
+ assert.ok(Math.abs(v[2]-0)<1e-6);
  assert.ok(Math.abs(v[v.length-1]-368)<1e-5);
- assert.equal(TUNNEL_PORTALS_0211.length,8);
+ assert.equal(TUNNEL_PORTALS_0211.length,10);
 });
 test("shoulder is real geometry outside original rails; no space-visible gap beside track",()=>{
  const group=new Group(),inst=installTunnelMegastructure(THREE,group,{positionAt:pos});

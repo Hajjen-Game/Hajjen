@@ -32,10 +32,14 @@ export function premiumRoadInteriorMask(s){
 // Keep the integrated floor color gently brighter at shoulder pockets,
 // never introduce neutral sun/horizon lights. Gold, magenta and cyan are
 // sourced from zoneAccent and therefore follow the original 9-color wave.
-const portalGLSL=TUNNEL_PORTALS_0211.map(p=>
- "premiumRoadPortal=max(premiumRoadPortal,exp(-0.5*pow((trackS-"+
-  p.toFixed(1)+")/6.8,2.0)));"
-).join("\n");
+// Find the nearest installed portal with cheap min/abs first; ONE exp() per
+// pixel rather than one Gaussian per portal, important on mobile GPUs.
+const portalGLSL=[
+ "float roadPortalDistance=10000.0;",
+ ...TUNNEL_PORTALS_0211.map(p=>
+  "roadPortalDistance=min(roadPortalDistance,abs(trackS-"+p.toFixed(1)+"));"),
+ "premiumRoadPortal=exp(-0.5*pow(roadPortalDistance/6.8,2.0));"
+].join("\n");
 const roadColorAnchor=
  "vec3 road = mix(zoneBase, zoneBand, sideBand * (0.27 + 0.24 * flowZone));";
 const roadFinishGLSL=[

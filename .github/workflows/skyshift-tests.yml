@@ -941,6 +941,43 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  cinematic-neon-p2-v02202-unit:
+    name: SKYSHIFT 0.22.0 Pass 2 banked local neon lighting, MeshBasic solar isolation and mobile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check new shader, geometry and corrected Pass 1 regression
+        run: |
+          node --check skyshift/cinematic-neon-lighting-v0220p2.mjs
+          node --check skyshift/browser-cinematic-neon-v0220p2.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/cinematic-neon-lighting-v0220p2.test.mjs skyshift/premium-material-rebirth-v0220.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/structural-tunnel-v0213.test.mjs
+
+  browser-cinematic-neon-p2-v02202:
+    name: SKYSHIFT 0.22.0 Pass 2 real WebGL cyan gold jade and mobile colored neon bounce
+    needs: cinematic-neon-p2-v02202-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome and screenshot raster checker
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Compare same-frame native spectral bounce to Pass 1 materials on real WebGL
+        run: node skyshift/browser-cinematic-neon-v0220p2.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0220p2-cinematic-neon-lighting
+          path: |
+            skyshift-v0220p2-*.png
+            skyshift-v0220p2-proof.json
+
   premium-material-rebirth-v0220-unit:
     name: SKYSHIFT 0.22.0 P1 physical graphite metal material/shader and no-physics regressions
     runs-on: ubuntu-latest

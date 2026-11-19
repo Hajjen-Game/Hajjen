@@ -90,6 +90,8 @@ import {WHITE_CORE_02123,createWhiteCoreContainment}
  from "./white-core-containment-v02123.mjs";
 import {SHIP_WHITE_SPILL_02125,createShipWhiteSpillController}
  from "./ship-white-spill-v02125.mjs";
+import {ROAD_SOLAR_SPILL_02126,createRoadSolarSpillController}
+ from "./road-solar-spill-v02126.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
@@ -184,6 +186,9 @@ const railBodyContainmentEnabled=whiteCoreEnabled&&
 // 0.21.2.5: prevent an exterior key light from bleaching the vehicle hull.
 const shipWhiteSpillEnabled=whiteCoreEnabled&&
  new URLSearchParams(location.search).get("shipWhite")!=="classic";
+// 0.21.2.6: world sun/hemisphere may not bleach the PBR road INSIDE the tunnel.
+const roadSolarEnabled=whiteCoreEnabled&&
+ new URLSearchParams(location.search).get("roadSolar")!=="classic";
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -265,7 +270,7 @@ let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
-let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null;
+let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null;
 let cameraLook=new THREE.Vector3(),shadowMesh,premiumFX,sideThrusters,reactiveWingFlaps,livingWake,railSparks;
 let sectorLandmarks=null,ghostVisual=null,hangarHeroRig=null;
 const racingExperience=createRacingExperience();
@@ -889,6 +894,8 @@ function initScene(){
   ship
  }):null;
  shipWhiteSpill=shipWhiteSpillEnabled?createShipWhiteSpillController(THREE,ship):null;
+ // Existing road-only shader; preserve rail, ship, local neon and wave emission.
+ roadSolarSpill=roadSolarEnabled?createRoadSolarSpillController(premiumSurface.material):null;
  // Matte only this rail's PBR shell inside the first 368m. The colored
  // inlay remains the same native zone-wave material and draw batch.
  identitySurface?.setRailBodyContainment?.(railBodyContainmentEnabled?1:0);
@@ -923,7 +930,8 @@ function initScene(){
   window.__skyshiftArtProbe=()=>({
    enabled:rebirthEnabled,track:TRACK_ID_0160,
    ...(stationWorld?.stats?.()??{active:false,status:"classic",installedBays:0,drawBatches:0}),
-   variant:shipWhiteSpillEnabled?"ship-white-spill-contained":
+   variant:roadSolarEnabled?"road-solar-spill-contained":
+    shipWhiteSpillEnabled?"ship-white-spill-contained":
     railBodyContainmentEnabled?"rail-body-highlight-contained":
     whiteCoreEnabled?"white-core-contained-tunnel":
     exteriorSealEnabled?"sealed-neon-tunnel":
@@ -1045,6 +1053,32 @@ function initScene(){
     worldLights.fill.intensity=levels.fill;
     engineLights.forEach((x,i)=>x.intensity=engines[i]);
    }
+  };
+ // 0.21.2.6: EXACT same-frame road-only lighting comparison (no physics tick).
+ if(new URLSearchParams(location.search).get("roadSolarSmoke")==="1")
+  window.__skyshiftRoadSolarProbe=()=>({
+   enabled:roadSolarEnabled,
+   ...(roadSolarSpill?.stats()??{}),
+   roadMaterial:premiumSurface?.material?.type??null,
+   railBodyContainment:identitySurface?.getRailBodyContainment?.()??null,
+   exteriorKeyIntensity:worldLights?.key?.intensity??null,
+   waveEnabled:Boolean(premiumSurface?.setWaveState),
+   sceneFogUnchanged:true
+  });
+ if(new URLSearchParams(location.search).get("roadSolarFrameProof")==="1")
+  window.__skyshiftRoadSolarFrameProof=()=>{
+   if(!roadSolarSpill||!neonPipeline?.render)
+    throw Error("Road solar WebGL proof unavailable");
+   const original=roadSolarSpill.stats().seal;
+   const render=level=>{
+    roadSolarSpill.setComparison(level);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    return {classic:render(0),contained:render(1),
+     sealBefore:0,sealAfter:1,s:flight?.s??null};
+   }finally{roadSolarSpill.setComparison(original)}
   };
  // 0.21.2.5 diagnostic: actual rendered ship material and same-frame A/B.
  if(new URLSearchParams(location.search).get("shipWhiteSmoke")==="1")
@@ -2297,6 +2331,9 @@ function exportAudit(){
       tunnelMegaEnabled,neonInteriorEnabled,tunnelSpectrumEnabled,
       exteriorSealEnabled,exteriorSealProfile:exteriorSealEnabled?EXTERIOR_SEAL_02122:null,
       whiteCoreEnabled,whiteCoreProfile:whiteCoreEnabled?WHITE_CORE_02123:null,
+      roadSolarEnabled,roadSolarProfile:roadSolarEnabled?ROAD_SOLAR_SPILL_02126:null,
+      roadSolarAudit:roadSolarSpill?.stats()??null,
+      compareBeforeRoadSolar:"?roadSolar=classic",
       shipWhiteSpillEnabled,shipWhiteSpillAudit:shipWhiteSpill?.stats()??null,
       compareBeforeShipWhite:"?shipWhite=classic",
       railBodyContainmentEnabled,

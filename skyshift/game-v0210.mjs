@@ -2811,6 +2811,9 @@ try{
    kineticCamera=createKineticCameraState();
    previousRenderPose=capturePose(flight);
    currentRenderPose=previousRenderPose;frameBlend=0;
+   // Browser QA freezes 120Hz simulation, so update visual-only ship light
+   // immediately at the teleported position before the slow WebGL frame.
+   whiteCoreContainment?.update(s,true);
    refreshHud();
    return window.__skyshiftTrackRepairProbe(s);
   };

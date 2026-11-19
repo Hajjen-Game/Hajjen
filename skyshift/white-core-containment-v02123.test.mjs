@@ -9,7 +9,7 @@ const shader=()=>({
  uniforms:{},
  vertexShader:"#include <common>\n#include <begin_vertex>",
  fragmentShader:"varying vec2 vTrackCoord;\n#include <common>\n"+
-  "#include <lights_fragment_end>\n#include <opaque_fragment>"
+  "float whiteCore=0.0,whiteBloom=0.0;\n#include <lights_fragment_end>\n#include <opaque_fragment>"
 });
 const material=(pbr=true)=>({
  isMeshStandardMaterial:pbr,
@@ -35,6 +35,10 @@ test("PBR road white specular reduced across FULL deck before HDR bloom",()=>{
  assert.match(s.fragmentShader,/reflectedLight\.indirectSpecular\*=mix\(1\.0,0\.38/);
  assert.match(s.fragmentShader,/reflectedLight\.directDiffuse\*=mix\(1\.0,0\.78/);
  assert.match(s.fragmentShader,/vTrackCoord\.x/);
+ assert.match(s.fragmentShader,/wcNeutral/);
+ assert.match(s.fragmentShader,/wcKeepCrest/);
+ assert.match(s.fragmentShader,/whiteCore/);
+ assert.match(s.fragmentShader,/coreContainRoad\*wcNeutral/);
  assert.doesNotMatch(s.fragmentShader,/abs\(vTrackCoord\.y\)/);
  assert.match(m.customProgramCacheKey(),/white-core-containment-02123/);
  assert.ok(m.needsUpdate);

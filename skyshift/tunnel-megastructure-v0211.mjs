@@ -93,7 +93,7 @@ function makeSurface(positionAt){
   const a=i*points+j,b=a+1,c=a+points,d=c+1;
   indices.push(a,b,d,a,d,c);
  }
- return {p,colors,indices,sampledRings:rings};
+ return {p,c:colors,indices,sampledRings:rings};
 }
 // Only a handful of **curved** structural ribs. They trace the tunnel vault
 // rather than resembling the old rectangular corridor pillars.

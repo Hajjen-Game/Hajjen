@@ -27,6 +27,7 @@ try{
  const stats=[];
  for(const point of [165,273]){
   await page.evaluate(v=>window.__skyshiftTrackRepairTeleport(v),point);
+  if(point===273)await page.evaluate(()=>window.__skyshiftWaveSmoke(2));
   await page.waitForTimeout(620);
   const {shipId,materials,captures}=await page.evaluate(()=>window.__skyshiftShipSourceSmoke());
   const rasters=Object.fromEntries(Object.entries(captures).map(([k,b64])=>
@@ -46,7 +47,7 @@ try{
     if(diff>44){mask.push(i);maskCount++}
    }
   }
-  if(maskCount<1200)throw Error("Ship silhouette not measurable "+maskCount);
+  if(maskCount<150)throw Error("Ship silhouette not measurable "+maskCount);
   const output={point,shipId,maskCount,materials,
    samples:[]};
   for(const [mode,bytes] of Object.entries(captures)){

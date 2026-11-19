@@ -7,7 +7,7 @@
 
 export const TUNNEL_MEGA_0211=Object.freeze({
  version:"0.21.1",id:"continuous-megatunnel-0211",track:"skyline",
- start:80,end:368,meters:288,sweepStepMeters:2,
+ start:0,end:368,meters:368,sweepStepMeters:2,
  protectedRoadHalfWidth:11.6,shoulderStart:12.25,
  wallOutsideX:26.5,roofHeight:34,closedRoof:true,
  solidSideShoulders:true,continuousCrossSection:true,
@@ -31,15 +31,15 @@ export const TUNNEL_PROFILE_0211=Object.freeze([
  ...LEFT_HALF.map(([x,y])=>Object.freeze([x,y])),
  ...LEFT_HALF.slice(0,-1).reverse().map(([x,y])=>Object.freeze([-x,y]))
 ]);
-export const TUNNEL_PORTALS_0211=Object.freeze([80,118,156,198,240,282,324,363]);
+export const TUNNEL_PORTALS_0211=Object.freeze([0,42,80,118,156,198,240,282,324,363]);
 // The existing road remains 23.2m wide on this interval. Floor starts 0.65m
 // beyond its edge, just OUTSIDE the original physically separate rail.
 // Above 25.6m the vault can safely pass over the vehicle's space.
 const COLORS=Object.freeze({
  shoulder:0x0e1d2c,deckEdge:0x1d3a50,
- outerFloor:0x13273b,lower:0x172d42,
- middle:0x102237,upper:0x152e46,roof:0x0c2037,
- roofLit:0x244762,pier:0x1b3850,pierEdge:0x426e85,
+ outerFloor:0x13273b,lower:0x29435e,
+ middle:0x203e58,upper:0x365775,roof:0x25435e,
+ roofLit:0x416584,pier:0x1b3850,pierEdge:0x426e85,
  groove:0x2b5870,cyan:0x43cbea,cyanCore:0xc9f9ff,
  pink:0xff419b,pinkCore:0xffd9ed,
  faintBlue:0x206481,faintPink:0x7d2257
@@ -56,7 +56,7 @@ function profilePoint(i,s){
  return [x0*(1+.015*bend*strength),y0+1.0*bend*strength];
 }
 function safePosition(positionAt,s,x,y,isFloor){
- if(!Number.isFinite(s+x+y)||s<80-1e-6||s>368+1e-6)
+ if(!Number.isFinite(s+x+y)||s<TUNNEL_MEGA_0211.start-1e-6||s>TUNNEL_MEGA_0211.end+1e-6)
   throw Error("Tunnel invalid local coordinate");
  if(isFloor){
   if(Math.abs(x)<12.2||y<-.015||y>1.6)
@@ -116,7 +116,7 @@ function makeDetails(positionAt,lowMemory){
  ];
  const worldP=(s,p)=>[s,p[0],p[1]];
  for(const s of TUNNEL_PORTALS_0211){
-  const end=Math.min(s+2.1,368);
+  const end=Math.min(s+2.1,TUNNEL_MEGA_0211.end);
   // The curved 3D rib is rooted in the outside shoulder x>18m; it may
   // cross the road only as a HIGH ceiling (>=26m), never as a solid obstacle.
   for(let j=2;j<TUNNEL_PROFILE_0211.length-3;j++){
@@ -150,7 +150,7 @@ function makeDetails(positionAt,lowMemory){
  }
  // Flow guides integrated into *curved* surfaces along the course,
  // i.e. not free-floating lines or square sections.
- for(let s=80;s<368;s+=2){
+ for(let s=TUNNEL_MEGA_0211.start;s<TUNNEL_MEGA_0211.end;s+=2){
   for(const side of [-1,1]){
    const j=side<0?9:TUNNEL_PROFILE_0211.length-10;
    const next=side<0?10:TUNNEL_PROFILE_0211.length-11;
@@ -182,7 +182,8 @@ export function installTunnelMegastructure(THREE,world,{
  const state={
   version:"0.21.1",variant:"continuous-vault-tunnel",active:false,
   status:active?"loading":"inactive",track,lowMemory,
-  start:80,end:368,meters:288,
+  start:TUNNEL_MEGA_0211.start,end:TUNNEL_MEGA_0211.end,
+  meters:TUNNEL_MEGA_0211.meters,
   solidSideShoulders:true,continuousCrossSection:true,roofEnclosed:true,
   draws:0,drawBatches:0,trianglesRendered:0,
   sideFloorReachesOuterRails:true,
@@ -214,7 +215,7 @@ export function installTunnelMegastructure(THREE,world,{
   }
   install("CLOSED_SHELL",surface,new THREE.MeshStandardMaterial({
    color:0xffffff,vertexColors:true,side:THREE.DoubleSide,
-   metalness:.33,roughness:.66,emissive:0x0e1d30,emissiveIntensity:.25
+   metalness:.28,roughness:.63,emissive:0x25435d,emissiveIntensity:.33
   }),true);
   install("CURVED_RIBS",details.rib,new THREE.MeshStandardMaterial({
    color:0xffffff,vertexColors:true,side:THREE.DoubleSide,

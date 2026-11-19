@@ -941,6 +941,43 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  road-solar-spill-v02126-unit:
+    name: SKYSHIFT 0.21.2.6 road-only solar PBR seal and no-gameplay regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate road, ship, rail, wave and boot source
+        run: |
+          node --check skyshift/road-solar-spill-v02126.mjs
+          node --check skyshift/browser-road-solar-spill-v02126.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/road-solar-spill-v02126.test.mjs skyshift/ship-white-spill-v02125.test.mjs skyshift/white-core-containment-v02123.test.mjs skyshift/rail-body-containment-v02124.test.mjs
+
+  browser-road-solar-spill-v02126:
+    name: SKYSHIFT 0.21.2.6 real WebGL masked road solar spill A/B
+    needs: road-solar-spill-v02126-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome and PNG inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Measure road-only sun diffuse/ambient removal and preserve 4GB path
+        run: node skyshift/browser-road-solar-spill-v02126.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02126-road-solar-spill-proof
+          path: |
+            skyshift-v02126-*.png
+            skyshift-v02126-road-solar-proof.json
+
   ship-white-spill-v02125-unit:
     name: SKYSHIFT 0.21.2.5 isolated ship hull white diffuse / clearcoat
     runs-on: ubuntu-latest

@@ -1,4 +1,4 @@
-// SKYSHIFT 0.21.2.1 — verify ACTUAL 0.6 zone wave controls tunnel neon.
+// SKYSHIFT 0.21.2.2 — verify ACTUAL 0.6 zone wave controls tunnel neon.
 // Matched live WebGL shots capture original 0.21.2, before-wave, and
 // successive cyan -> violet -> solar -> jade states at the same track metre.
 import {spawn} from "node:child_process";
@@ -26,8 +26,8 @@ try {
   });
   await p.addInitScript(v=>Object.defineProperty(navigator,"deviceMemory",
    {get:()=>v,configurable:true}),mem);
-  await p.goto("http://127.0.0.1:8799/skyshift/?v=0.21.2.1"+
-   "&artSmoke=1&trackRepairSmoke=1&waveSmoke=1&"+query,
+  await p.goto("http://127.0.0.1:8799/skyshift/?v=0.21.2.2"+
+   "&artSmoke=1&trackRepairSmoke=1&waveSmoke=1&exteriorSeal=classic&"+query,
    {waitUntil:"domcontentloaded",timeout:60000});
   await p.waitForFunction(()=>window.__skyshiftBoot?.phase==="ready",
    null,{timeout:75000});
@@ -80,7 +80,7 @@ try {
  await low.p.screenshot({path:"skyshift-v02121-mobile-violet.png"});
  await low.p.close();
  if(errors.length)throw Error("Shader/WebGL errors: "+errors.join(" | "));
- console.log("PASS: actual zone waves recolor ALL 0.21.2.1 tunnel neon, "+
+ console.log("PASS: actual zone waves recolor ALL 0.21.2.2 tunnel neon, "+
   "walls, vault, arches, road sheen; old 0.21.2 A/B, 4GB tier, "+
   "no gameplay or world lighting changes");
 }finally{await browser?.close();server.kill("SIGTERM")}

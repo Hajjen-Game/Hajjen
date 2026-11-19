@@ -920,6 +920,42 @@ jobs:
             skyshift-v0210b-before-*.png
             skyshift-v0210b-mobile-*.png
 
+  white-core-v02123-unit:
+    name: SKYSHIFT 0.21.2.3 neutral glare containment and PBR invariants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact road / ship white specular reduction and unchanged gameplay
+        run: |
+          node --check skyshift/white-core-containment-v02123.mjs
+          node --check skyshift/browser-white-core-containment-v02123.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/white-core-containment-v02123.test.mjs
+
+  browser-white-core-v02123:
+    name: SKYSHIFT 0.21.2.3 real WebGL white hotspot A/B across ship and road
+    needs: white-core-v02123-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
+      - name: Capture exact before-after camera angles, gold/jade and low-memory
+        run: node skyshift/browser-white-core-containment-v02123.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02123-white-core-before-after
+          path: |
+            skyshift-v02123-*.png
+
   tunnel-exterior-seal-v02122-unit:
     name: SKYSHIFT 0.21.2.2 tunnel fog isolation and local glare
     runs-on: ubuntu-latest

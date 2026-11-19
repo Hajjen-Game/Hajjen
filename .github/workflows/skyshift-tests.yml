@@ -941,6 +941,27 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  ship-light-source-v02125:
+    name: SKYSHIFT 0.21.2.5 same-frame clearcoat / key / engine source isolation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser and PNG inspection
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Reproduce ship white hotspot and isolate its exact sources
+        run: node skyshift/browser-ship-light-source-v02125.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02125-ship-white-source-qa
+          path: |
+            skyshift-v02125-ship-source-*.png
+            skyshift-v02125-ship-source-measurements.json
+
   rail-body-v02124-unit:
     name: SKYSHIFT 0.21.2.4 rail shell matte tunnel PBR + wave invariants
     runs-on: ubuntu-latest

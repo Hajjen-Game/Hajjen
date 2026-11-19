@@ -99,8 +99,8 @@ test("A/B preserves the old 0.21.2.2 and native palette wave",()=>{
  assert.match(g,/compareBeforeWhiteCore:"\?whiteCore=classic"/);
  assert.match(g,/whiteCoreContainment\?\.update\(view\.s/);
  assert.match(g,/whiteCoreContainment\?\.attachShip\(ship\)/);
- assert.match(g,/0\.21\.6/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.21\.6/);
+ assert.match(g,/0\.22\.0/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.22\.0/);
  assert.equal(WHITE_CORE_02123.addedPostprocessPasses,0);
  assert.equal(WHITE_CORE_02123.cameraChanged,false);
  assert.equal(WHITE_CORE_02123.steeringChanged,false);

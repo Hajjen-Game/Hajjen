@@ -920,6 +920,27 @@ jobs:
             skyshift-v0210b-before-*.png
             skyshift-v0210b-mobile-*.png
 
+  rail-source-diagnostic-v02124:
+    name: SKYSHIFT 0.21.2.4 white rail hotspot source isolation
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser and PNG inspection
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Capture rail body vs inlay vs bloom vs external key in real WebGL
+        run: node skyshift/browser-rail-source-diagnostic-v02124.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02124-rail-source-isolation
+          path: |
+            skyshift-rail-source-*.png
+            skyshift-rail-source-measurements.json
+
   white-core-v02123-unit:
     name: SKYSHIFT 0.21.2.3 neutral glare containment and PBR invariants
     runs-on: ubuntu-latest

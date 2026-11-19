@@ -220,6 +220,7 @@ uniform float uZoneTime;
 uniform float uWaveDetail;
 uniform float uSpeedFlow;
 uniform float uVelocityPhase;
+uniform float uRailInteriorSeal;
 uniform float uRailFront1,uRailFront2,uRailFront3;
 uniform vec3 uRailBase,uRailNext1,uRailNext2,uRailNext3;
 ${SPECTRAL_FRONT_GLSL}
@@ -262,6 +263,13 @@ export const RAIL_SPECTRAL_FRAGMENT=`
    railBloom*.22+railFilaments*.12+velocityRail*.57+chevronResponse);
  diffuseColor.a=min(1.0,diffuseColor.a*(1.0+railWhite*.32+railBloom*.12+
    velocityRail*.36+chevronResponse*.19));
+ // 0.21.2.2: the broad white inset glare must not resemble a sunlight
+ // source inside the tunnel. Preserve the zone tint and moving white core.
+ // The original brightness comes back gradually before the 368m exit.
+ float interiorMask=1.0-smoothstep(344.0,368.0,vRailCoord.x);
+ float tunnelRailEnergy=mix(1.0,uRailInteriorSeal,interiorMask);
+ diffuseColor.rgb*=tunnelRailEnergy;
+ diffuseColor.a*=mix(1.0,0.93,interiorMask*(1.0-uRailInteriorSeal));
 `;
 export function patchRailShaders(vertex,fragment){
  if(!vertex.includes("#include <common>")||
@@ -302,6 +310,7 @@ export function installAeroBarriers(THREE,world){
   uZoneFeather:{value:ZONE_WAVE.featherMeters},
   uZoneTime:{value:0},uWaveDetail:{value:1},
   uSpeedFlow:{value:0},uVelocityPhase:{value:0},
+  uRailInteriorSeal:{value:1.0},
   uRailBase:{value:new THREE.Color(ZONE_PALETTES[0].accent)}
  };
  for(let k=1;k<=3;k++){
@@ -366,6 +375,12 @@ export function installAeroBarriers(THREE,world){
     railUniforms["uRailNext"+k].value.set(ZONE_PALETTES[idx].accent);
    }
   },
+  setTunnelGlareScale(value=1){
+   // Opt-in visual trim only. A value of 1 preserves legacy modes and
+   // every meter after the tunnel unchanged.
+   railUniforms.uRailInteriorSeal.value=Math.max(.3,Math.min(1,Number(value)));
+  },
+  getTunnelGlareScale(){return railUniforms.uRailInteriorSeal.value;},
   updateAccent(color){railUniforms.uRailBase.value.copy(color);},
   dispose(){
    for(const mesh of [bodyMesh,seamMesh,lightMesh]){

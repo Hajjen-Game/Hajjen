@@ -941,6 +941,44 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  true-material-depth-v0231-unit:
+    name: SKYSHIFT 0.23.1 authentic inset panels and solar-safe metallic reflection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Geometry, WebGL shader, 4GB and prior solar/GRIP regression checks
+        run: |
+          node --check skyshift/structural-tunnel-v0213.mjs
+          node --check skyshift/true-material-depth-v0231.mjs
+          node --check skyshift/browser-true-material-v0231.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/true-material-depth-v0231.test.mjs skyshift/physical-material-rebuild-v0230.test.mjs skyshift/structural-tunnel-v0213.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/build-version-v02204.test.mjs
+
+  browser-true-material-depth-v0231:
+    name: SKYSHIFT 0.23.1 real Chrome WebGL geometry and reflective graphite A/B
+    needs: true-material-depth-v0231-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome and PNG frame analysis
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Render identical frames in cyan, gold, jade and mobile 4GB
+        run: node skyshift/browser-true-material-v0231.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0231-true-metal-depth-before-after
+          path: |
+            skyshift-v0231-*.png
+            skyshift-v0231-proof.json
+
   physical-material-v0230-unit:
     name: SKYSHIFT 0.23.0 Pass 1 GGX neon metal and solar isolation
     runs-on: ubuntu-latest

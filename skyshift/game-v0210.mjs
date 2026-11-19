@@ -100,6 +100,8 @@ import {PREMIUM_ROAD_SURFACE_0215,createPremiumRoadSurfaceController}
  from "./premium-road-surface-v0215.mjs";
 import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
  from "./cinematic-energy-v0216.mjs";
+import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
+ from "./premium-material-rebirth-v0220.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
@@ -214,6 +216,11 @@ const premiumRoadEnabled=roadSolarEnabled&&TRACK_ID_0160==="skyline"&&
 const cinematicMotionEnabled=integratedNeonFlowEnabled&&premiumRoadEnabled&&
  new URLSearchParams(location.search).get("cinematicMotion")!=="classic"&&
  !/^0\.21\.[0-5](?:\.|$)/.test(new URLSearchParams(location.search).get("v")||"");
+// 0.22.0 Pass 1: genuine material finish on existing structural meshes.
+// The 0.21.x versions and ?rebirthMaterial=classic retain their older art.
+const premiumMaterialRebirthEnabled=cinematicMotionEnabled&&
+ new URLSearchParams(location.search).get("rebirthMaterial")!=="classic"&&
+ !/^0\.21\./.test(new URLSearchParams(location.search).get("v")||"");
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -888,7 +895,8 @@ function initScene(){
  // 0.20.5 World Art Pipeline: coherent, authored glTF station interior.
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
- if(rebirthEnabled)stationWorld=(cinematicMotionEnabled?installCinematicEnergyMotion:
+ if(rebirthEnabled)stationWorld=(premiumMaterialRebirthEnabled?installPremiumMaterialRebirth:
+    cinematicMotionEnabled?installCinematicEnergyMotion:
     integratedNeonFlowEnabled?installIntegratedNeonFlow:
     structuralTunnelEnabled?installStructuralTunnelRebuild:
    enclosedStationEnabled?
@@ -1124,6 +1132,30 @@ function initScene(){
    try{return {classic:draw(false),structural:draw(true),
     panels:meshes.length,trackS:flight?.s??null}}
    finally{meshes.forEach((m,i)=>m.visible=original[i])}
+  };
+ // 0.22.0: premium materials only, same frame, no world/camera tick.
+ if(new URLSearchParams(location.search).get("materialRebirthSmoke")==="1")
+  window.__skyshiftMaterialRebirthProbe=()=>({
+   enabled:premiumMaterialRebirthEnabled,
+   ...(stationWorld?.stats?.()??{}),
+   roadSolarSeal:roadSolarSpill?.stats()?.seal??null,
+   roadPremiumEnabled:Boolean(premiumRoadSurface?.stats()?.active),
+   fullSceneLightsUnchanged:Boolean(worldLights?.key&&worldLights?.ambient)
+  });
+ if(new URLSearchParams(location.search).get("materialRebirthFrameProof")==="1")
+  window.__skyshiftMaterialRebirthFrameProof=()=>{
+   if(!premiumMaterialRebirthEnabled||!neonPipeline?.render||
+      !stationWorld?.setMaterialComparison)
+    throw Error("Material Rebirth same-frame proof unavailable");
+   const prev=stationWorld.stats().rebirthMaterialBlend;
+   const render=amount=>{
+    stationWorld.setMaterialComparison(amount);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:render(0),rebirth:render(1),
+    position:flight?.s??null}}
+   finally{stationWorld.setMaterialComparison(prev)}
   };
  // 0.21.6: same-frame physical-velocity cinematic energy A/B.
  if(new URLSearchParams(location.search).get("cinematicMotionSmoke")==="1")
@@ -2499,6 +2531,10 @@ function exportAudit(){
       cinematicMotionEnabled,cinematicMotionProfile:cinematicMotionEnabled?CINEMATIC_ENERGY_0216:null,
       cinematicMotionAudit:cinematicMotionEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeCinematicMotion:"?cinematicMotion=classic",
+      premiumMaterialRebirthEnabled,
+      premiumMaterialRebirthProfile:premiumMaterialRebirthEnabled?MATERIAL_REBIRTH_0220:null,
+      premiumMaterialAudit:premiumMaterialRebirthEnabled?stationWorld?.stats?.()??null:null,
+      compareBeforePremiumMaterial:"?rebirthMaterial=classic",
       shipWhiteSpillEnabled,shipWhiteSpillAudit:shipWhiteSpill?.stats()??null,
       compareBeforeShipWhite:"?shipWhite=classic",
       railBodyContainmentEnabled,

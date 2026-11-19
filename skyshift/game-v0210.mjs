@@ -166,15 +166,19 @@ const tunnelMegaEnabled=cinematicGradeEnabled&&
 // Local neon is now the author of tunnel light, not external Hemisphere/Key.
 const neonInteriorEnabled=tunnelMegaEnabled&&
  new URLSearchParams(location.search).get("interiorLight")!=="classic";
-// 0.21.2.3.1: spatially synchronized interior neons; exact 0.21.2.3 A/B preserved.
+// 0.21.2.4.1: spatially synchronized interior neons; exact 0.21.2.4 A/B preserved.
 const tunnelSpectrumEnabled=neonInteriorEnabled&&
  new URLSearchParams(location.search).get("tunnelSpectrum")!=="classic";
-// 0.21.2.3: tunnel-only fog isolation + local rail glare trim, no global lights.
+// 0.21.2.4: tunnel-only fog isolation + local rail glare trim, no global lights.
 const exteriorSealEnabled=tunnelSpectrumEnabled&&
  new URLSearchParams(location.search).get("exteriorSeal")!=="classic";
-// 0.21.2.3: fix *white PBR glare* on road and ship, not tunnel color/fog.
+// 0.21.2.4: fix *white PBR glare* on road and ship, not tunnel color/fog.
 const whiteCoreEnabled=exteriorSealEnabled&&
  new URLSearchParams(location.search).get("whiteCore")!=="classic";
+// White streak traced in real WebGL to the physically shaded rail BODY,
+// not the rail LEDs, road, ship, fog or global bloom.
+const railBodyContainmentEnabled=whiteCoreEnabled&&
+ new URLSearchParams(location.search).get("railBody")!=="classic";
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -868,13 +872,16 @@ function initScene(){
  // the ship and camera now carry the visual identity with zero added draws.
  // Open space, no geological scenery, distant monuments or 3D floor.
  makeShip();
- // 0.21.2.3: suppress external white PBR specular on road and current
+ // 0.21.2.4: suppress external white PBR specular on road and current
  // ship INSIDE this sealed 368m tunnel only. No world light/exposure edits.
  whiteCoreContainment=whiteCoreEnabled?createWhiteCoreContainment({
   roadMaterial:premiumSurface?.material,
   railSurface:identitySurface,
   ship
  }):null;
+ // Matte only this rail's PBR shell inside the first 368m. The colored
+ // inlay remains the same native zone-wave material and draw batch.
+ identitySurface?.setRailBodyContainment?.(railBodyContainmentEnabled?1:0);
  // Two-batch, translucent personal ghost with no physical collider or AI.
  ghostVisual=createPersonalGhostVisual(THREE,scene);
  spaceBackdrop=installSpaceBackdrop(THREE,camera);
@@ -906,7 +913,8 @@ function initScene(){
   window.__skyshiftArtProbe=()=>({
    enabled:rebirthEnabled,track:TRACK_ID_0160,
    ...(stationWorld?.stats?.()??{active:false,status:"classic",installedBays:0,drawBatches:0}),
-   variant:whiteCoreEnabled?"white-core-contained-tunnel":
+   variant:railBodyContainmentEnabled?"rail-body-highlight-contained":
+    whiteCoreEnabled?"white-core-contained-tunnel":
     exteriorSealEnabled?"sealed-neon-tunnel":
     tunnelSpectrumEnabled?"neon-wave-interior":
     neonInteriorEnabled?"neon-driven-interior":
@@ -947,6 +955,7 @@ function initScene(){
    enabled:whiteCoreEnabled,
    ...(whiteCoreContainment?.stats()??{}),
    railGlareScale:identitySurface?.getTunnelGlareScale?.()??null,
+   railBodyContainment:identitySurface?.getRailBodyContainment?.()??null,
    railWhiteContainment:identitySurface?.getRailNeutralContainment?.()??null,
    currentShipId:activeShipId,
    roadMaterial:premiumSurface?.material?.type??null,
@@ -954,6 +963,64 @@ function initScene(){
    bloomEnabled:Boolean(neonPipeline?.bloom?.enabled),
    trackDistance:flight?.s??null
   });
+ // 0.21.2.4 QA ONLY — physically identify the overbright white rail
+ // source by isolating body PBR vs colored inlay vs bloom on the SAME frame.
+ if(new URLSearchParams(location.search).get("railSourceSmoke")==="1"){
+  const body=world.getObjectByName("Angular integrated aero-barrier body");
+  const inlay=world.getObjectByName("Thin inset zone accents and curve chevrons");
+  const groove=world.getObjectByName("Recessed graphite cap channels and modular panel seams");
+  const saved={
+   bodyVisible:body?.visible,inlayVisible:inlay?.visible,grooveVisible:groove?.visible,
+   metalness:body?.material?.metalness,roughness:body?.material?.roughness,
+   color:body?.material?.color?.clone(),
+   bloomEnabled:neonPipeline?.bloom?.enabled,
+   ambient:worldLights?.ambient?.intensity,key:worldLights?.key?.intensity,
+   fill:worldLights?.fill?.intensity
+  };
+  window.__skyshiftRailSourceSmoke=(mode="baseline")=>{
+   if(!body||!inlay||!groove)throw Error("Missing named rail meshes");
+   body.visible=saved.bodyVisible;inlay.visible=saved.inlayVisible;
+   groove.visible=saved.grooveVisible;
+   body.material.metalness=saved.metalness;body.material.roughness=saved.roughness;
+   body.material.color.copy(saved.color);
+   neonPipeline.bloom.enabled=saved.bloomEnabled;
+   worldLights.ambient.intensity=saved.ambient;
+   worldLights.key.intensity=saved.key;
+   worldLights.fill.intensity=saved.fill;
+   if(mode==="noBody")body.visible=false;
+   else if(mode==="noInlay")inlay.visible=false;
+   else if(mode==="noRails")body.visible=inlay.visible=groove.visible=false;
+   else if(mode==="noBloom")neonPipeline.bloom.enabled=false;
+   else if(mode==="noWorldKey"){
+    worldLights.key.intensity=0;worldLights.fill.intensity=0;
+    worldLights.ambient.intensity=0;
+   }else if(mode==="bodyMatte"){
+    body.material.metalness=0;body.material.roughness=1;
+    body.material.color.setHex(0x263746);
+   }else if(mode!=="baseline")throw Error("Bad diagnostic "+mode);
+   return {mode,bodyVisible:body.visible,inlayVisible:inlay.visible,
+    bodyMetalness:body.material.metalness,bodyRoughness:body.material.roughness,
+    bloomEnabled:neonPipeline.bloom.enabled,
+    keyIntensity:worldLights.key.intensity};
+  };
+ }
+ // Exact-frame optical proof: render the SAME scene/camera twice, before
+ // and after the new rail metal treatment, without advancing physics,
+ // camera or colors even one tick. Testing only; no user-facing controls.
+ if(new URLSearchParams(location.search).get("railFrameProof")==="1")
+  window.__skyshiftRailFrameProof=()=>{
+   const original=identitySurface.getRailBodyContainment();
+   if(!neonPipeline?.render)throw Error("Missing WebGL pipeline");
+   const render=(level)=>{
+    identitySurface.setRailBodyContainment(level);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try {
+    return {original:render(0),contained:render(1),
+     railBodyBefore:0,railBodyAfter:1};
+   }finally{identitySurface.setRailBodyContainment(original)}
+  };
  // QA-only: prove every interior mesh has fog disabled while the
  // global exterior fog and ship lighting remain active and unmodified.
  if(new URLSearchParams(location.search).get("sealSmoke")==="1")
@@ -998,7 +1065,7 @@ function initScene(){
  UI.hangarBtn.disabled=false;
  UI.trackPicker.value=TRACK_ID_0160;
  UI.trackName.textContent=ACTIVE_TRACK_0160.name;
- UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.2.3";
+ UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.2.4";
  UI.trackTagline.textContent=isAurora()?
   "WIDE SWITCHBACKS · ROLLING HILLS · THREE FAST LAPS.":
   "WIDE ARCS · SMART LINES · THREE FASTER LAPS.";
@@ -2027,7 +2094,7 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.21.2.3",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   game:"SKYSHIFT",version:"0.21.2.4",trial:TRIAL.id,exportedAt:new Date().toISOString(),
    timeTrial:{...ghostAudit(timeTrialState),visual:ghostVisual?.stats()??null},
     performanceAudit:{...perfSummary(frameProfiler),preset:perfSettings,
      gpu:gpuClock?.summary()??{available:false,reason:"uninitialized"},
@@ -2037,7 +2104,7 @@ function exportAudit(){
      bloomResolutionScale:neonPipeline?.bloomResolutionScale,
      deviceMemoryGB:navigator.deviceMemory??null,
      devicePixelRatio:devicePixelRatio||1},
-   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.2.3",
+   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.2.4",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -2099,6 +2166,9 @@ function exportAudit(){
       tunnelMegaEnabled,neonInteriorEnabled,tunnelSpectrumEnabled,
       exteriorSealEnabled,exteriorSealProfile:exteriorSealEnabled?EXTERIOR_SEAL_02122:null,
       whiteCoreEnabled,whiteCoreProfile:whiteCoreEnabled?WHITE_CORE_02123:null,
+      railBodyContainmentEnabled,
+      railBodyContainment:identitySurface?.getRailBodyContainment?.()??null,
+      compareBeforeRailBody:"?railBody=classic",
       whiteCoreAudit:whiteCoreContainment?.stats()??null,
       compareBeforeWhiteCore:"?whiteCore=classic",
       compareBeforeExteriorSeal:"?exteriorSeal=classic",
@@ -2647,7 +2717,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v","0.21.2.3");
+  uri.searchParams.set("v","0.21.2.4");
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);
@@ -2693,7 +2763,7 @@ function installControls(){
   address.searchParams.delete("fidelity");
   // Private-mode storage can be unavailable: keep the OFF choice in URL.
   if(!saved)address.searchParams.set("fidelity",next?"on":"off");
-  address.searchParams.set("v","0.21.2.3");
+  address.searchParams.set("v","0.21.2.4");
   location.assign(address.toString());
  });
  UI.export.addEventListener("click",exportAudit);

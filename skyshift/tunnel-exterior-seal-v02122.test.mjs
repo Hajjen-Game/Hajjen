@@ -108,7 +108,7 @@ test("rail inlay glare reduction applies only within first 368m and is opt-in",(
  assert.match(g,/exteriorSealEnabled\?installExteriorLightSeal:installNeonDrivenInterior/);
  assert.match(g,/exteriorSeal"\)!=="classic"/);
  assert.match(g,/compareBeforeExteriorSeal:"\?exteriorSeal=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.22\.0\.4/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.0/);
 });
 
 test("only the final PBR road shoulder highlight is sealed, not lane, physics or rest of track",()=>{

@@ -954,7 +954,7 @@ jobs:
           node --check skyshift/unified-cinematic-grade-v0220p4.mjs
           node --check skyshift/browser-unified-cinematic-grade-v0220p4.mjs
           node --check skyshift/game-v0210.mjs
-          node --test skyshift/unified-cinematic-grade-v0220p4.test.mjs skyshift/velocity-cinematography-v0220p3.test.mjs skyshift/cinematic-neon-lighting-v0220p2.test.mjs skyshift/premium-material-rebirth-v0220.test.mjs skyshift/road-solar-spill-v02126.test.mjs
+          node --test skyshift/build-version-v02204.test.mjs skyshift/unified-cinematic-grade-v0220p4.test.mjs skyshift/velocity-cinematography-v0220p3.test.mjs skyshift/cinematic-neon-lighting-v0220p2.test.mjs skyshift/premium-material-rebirth-v0220.test.mjs skyshift/road-solar-spill-v02126.test.mjs
 
   browser-unified-grade-p4-v02204:
     name: SKYSHIFT 0.22.0 Pass 4 real WebGL graphite and neon grade cyan gold jade mobile

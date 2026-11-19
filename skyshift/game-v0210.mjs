@@ -147,6 +147,10 @@ import {STINGRAY_PRESENTATION_01347,visualSettingsForShip}
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);
+// The published boot script is the source of truth for the live build label.
+const SKYSHIFT_BUILD_VERSION=new URL(
+ document.querySelector("script[data-game-module]")?.src||location.href
+).searchParams.get("v")||"0.22.0.4";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -1536,7 +1540,7 @@ function initScene(){
  UI.hangarBtn.disabled=false;
  UI.trackPicker.value=TRACK_ID_0160;
  UI.trackName.textContent=ACTIVE_TRACK_0160.name;
- UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.2.5";
+ UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · "+SKYSHIFT_BUILD_VERSION;
  UI.trackTagline.textContent=isAurora()?
   "WIDE SWITCHBACKS · ROLLING HILLS · THREE FAST LAPS.":
   "WIDE ARCS · SMART LINES · THREE FASTER LAPS.";
@@ -2595,7 +2599,7 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.21.2.5",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   game:"SKYSHIFT",version:SKYSHIFT_BUILD_VERSION,trial:TRIAL.id,exportedAt:new Date().toISOString(),
    timeTrial:{...ghostAudit(timeTrialState),visual:ghostVisual?.stats()??null},
     performanceAudit:{...perfSummary(frameProfiler),preset:perfSettings,
      gpu:gpuClock?.summary()??{available:false,reason:"uninitialized"},
@@ -2605,7 +2609,7 @@ function exportAudit(){
      bloomResolutionScale:neonPipeline?.bloomResolutionScale,
      deviceMemoryGB:navigator.deviceMemory??null,
      devicePixelRatio:devicePixelRatio||1},
-   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.2.5",
+   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure",buildVersion:SKYSHIFT_BUILD_VERSION,
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -3250,7 +3254,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v","0.21.2.5");
+  uri.searchParams.set("v",SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);
@@ -3296,7 +3300,7 @@ function installControls(){
   address.searchParams.delete("fidelity");
   // Private-mode storage can be unavailable: keep the OFF choice in URL.
   if(!saved)address.searchParams.set("fidelity",next?"on":"off");
-  address.searchParams.set("v","0.21.2.5");
+  address.searchParams.set("v",SKYSHIFT_BUILD_VERSION);
   location.assign(address.toString());
  });
  UI.export.addEventListener("click",exportAudit);

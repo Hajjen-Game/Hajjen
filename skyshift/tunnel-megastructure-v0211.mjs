@@ -78,7 +78,7 @@ function safePosition(positionAt,s,x,y,isFloor){
  return [p.x,p.y,p.z];
 }
 function makeSurface(positionAt,vaultHeightClassic){
- const p=[],colors=[],indices=[];
+ const p=[],colors=[],indices=[],trackS=[];
  const points=TUNNEL_PROFILE_0211.length;
  const rings=1+Math.round(TUNNEL_MEGA_0211.meters/TUNNEL_MEGA_0211.sweepStepMeters);
  for(let row=0;row<rings;row++){
@@ -88,6 +88,7 @@ function makeSurface(positionAt,vaultHeightClassic){
    const [x,y]=profilePoint(j,s,vaultHeightClassic);
    const floor=(j<5||j>points-6);
    p.push(...safePosition(positionAt,s,x,y,floor));
+   trackS.push(s);
    let swatch;
    if(y<.13)swatch=COLORS.deckEdge;
    else if(y<1.6)swatch=COLORS.outerFloor;
@@ -102,16 +103,18 @@ function makeSurface(positionAt,vaultHeightClassic){
   const a=i*points+j,b=a+1,c=a+points,d=c+1;
   indices.push(a,b,d,a,d,c);
  }
- return {p,c:colors,indices,sampledRings:rings};
+ return {p,c:colors,indices,trackS,sampledRings:rings};
 }
 // Only a handful of **curved** structural ribs. They trace the tunnel vault
 // rather than resembling the old rectangular corridor pillars.
 function makeDetails(positionAt,lowMemory,vaultHeightClassic){
- const rib={p:[],c:[]},energy={p:[],c:[]},halo={p:[],c:[]};
+ const mk=()=>({p:[],c:[],trackS:[]});
+ const rib=mk(),energy=mk(),halo=mk();
  const tri=(target,verts,swatch)=>{
   for(const v of verts){
    const [s,x,y]=v;
    target.p.push(...safePosition(positionAt,s,x,y,false));
+   target.trackS.push(s);
    target.c.push(...rgb(swatch));
   }
  };
@@ -216,6 +219,7 @@ export function installTunnelMegastructure(THREE,world,{
    const geo=new THREE.BufferGeometry();
    geo.setAttribute("position",new THREE.Float32BufferAttribute(data.p,3));
    geo.setAttribute("color",new THREE.Float32BufferAttribute(data.c,3));
+   geo.setAttribute("trackS",new THREE.Float32BufferAttribute(data.trackS,1));
    if(indexed)geo.setIndex(data.indices);
    geo.computeVertexNormals();geo.computeBoundingSphere();
    const mesh=new THREE.Mesh(geo,material);

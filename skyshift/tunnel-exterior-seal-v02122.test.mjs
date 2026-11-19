@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {EXTERIOR_SEAL_02122,installExteriorLightSeal} from "./tunnel-exterior-seal-v02122.mjs";
+import {EXTERIOR_SEAL_02122,installExteriorLightSeal,sealPremiumRoadGlare} from "./tunnel-exterior-seal-v02122.mjs";
 import {installNeonDrivenInterior} from "./neon-interior-v0212.mjs";
 import {newZoneWaveState,ZONE_PALETTES} from "./zone-wave-v060.mjs";
 import {patchRailShaders} from "./aero-barrier-v0165.mjs";
@@ -22,7 +22,7 @@ class Geo{
  setIndex(a){this.index={array:a,count:a.length}}
  computeVertexNormals(){}computeBoundingSphere(){}dispose(){}
 }
-class Attr{constructor(a,n){this.array=a;this.itemSize=n;this.count=a.length/n}}
+class Attr{constructor(a,n){this.array=a;this.itemSize=n;this.count=a.length/n}getX(i){return this.array[i*this.itemSize]}}
 class Mesh{
  name="";parent=null;constructor(g,m){this.geometry=g;this.material=m}
  traverse(f){f(this)}
@@ -53,6 +53,8 @@ test("all tunnel materials have fog disabled; classic interior still has global 
  assert.equal(newVersion.installed.stats().globalLightsChanged,0);
  assert.equal(newVersion.installed.stats().addedRenderPasses,0);
  assert.equal(newVersion.installed.stats().drawBatches,5);
+ assert.equal(newVersion.installed.stats().shellBounceReduced,true);
+ assert.ok(newVersion.installed.stats().bounceSamples>5000);
  assert.equal(newVersion.installed.stats().roadMeshUntouched,true);
 });
 test("original tunnel geometry and GRIP survive the fog seal without any movement",()=>{
@@ -67,6 +69,10 @@ test("original tunnel geometry and GRIP survive the fog seal without any movemen
   assert.equal(m.material.fog,true);
   assert.equal(n.material.fog,false);
  }
+ const oldGlow=a.group.children.find(x=>x.name==="Tunnel / CLOSED_SHELL").geometry.getAttribute("glowWeight");
+ const newGlow=b.group.children.find(x=>x.name==="Tunnel / CLOSED_SHELL").geometry.getAttribute("glowWeight");
+ assert.ok(newGlow.getX(1000)<oldGlow.getX(1000),
+  "Broad colored light must become more localized near neon arches");
  assert.equal(b.installed.stats().colliders,0);
  assert.equal(b.installed.stats().originalGRIPUntouched,true);
  const wave=newZoneWaveState();
@@ -103,4 +109,20 @@ test("rail inlay glare reduction applies only within first 368m and is opt-in",(
  assert.match(g,/exteriorSeal"\)!=="classic"/);
  assert.match(g,/compareBeforeExteriorSeal:"\?exteriorSeal=classic"/);
  assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.21\.2\.2/);
+});
+
+test("only the final PBR road shoulder highlight is sealed, not lane, physics or rest of track",()=>{
+ const material=new Mat({});
+ const original=material.onBeforeCompile;
+ sealPremiumRoadGlare(material);
+ const shader={uniforms:{},
+  vertexShader:"#include <common>\n#include <begin_vertex>",
+  fragmentShader:"varying vec2 vTrackCoord;\n#include <opaque_fragment>"};
+ material.onBeforeCompile(shader,{});
+ assert.match(shader.fragmentShader,/sealAlongRoad/);
+ assert.match(shader.fragmentShader,/smoothstep\(344\.0,368\.0,vTrackCoord\.x\)/);
+ assert.match(shader.fragmentShader,/smoothstep\(6\.8,9\.2,abs\(vTrackCoord\.y\)\)/);
+ assert.match(shader.fragmentShader,/gl_FragColor\.rgb \*= mix\(1\.0,0\.43,sealedSpecular\)/);
+ assert.equal(typeof original,"function");
+ assert.match(material.customProgramCacheKey(),/exterior-seal-02122/);
 });

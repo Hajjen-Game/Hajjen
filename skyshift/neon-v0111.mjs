@@ -7,6 +7,7 @@ import {RenderPass} from "three/addons/postprocessing/RenderPass.js";
 import {UnrealBloomPass} from "three/addons/postprocessing/UnrealBloomPass.js";
 import {SMAAPass} from "three/addons/postprocessing/SMAAPass.js";
 import {OutputPass} from "three/addons/postprocessing/OutputPass.js";
+import {ShaderPass} from "three/addons/postprocessing/ShaderPass.js";
 import {createNeonKit,NEON_TUNING,brightnessHierarchy} from "./neon-v032.mjs";
 import {bloomScaleFor,tuneBloomPass} from "./render-optimizer-v0111.mjs";
 export {createNeonKit,NEON_TUNING,brightnessHierarchy};
@@ -29,6 +30,9 @@ export function createNeonPipeline(THREE,renderer,scene,camera,{lowMemory=false,
  composer.addPass(output);
  const pipeline={
   composer,bloom,smaa,output,
+  // Reuse the loaded Three.js postprocessing module without requiring it
+  // in standalone Node unit tests of the velocity controller.
+  makeShaderPass(shader){return new ShaderPass(shader)},
   bloomResolutionScale:bloomResolution.scale,
   bloomResolution:()=>bloomResolution.stats(),
   antialiasing:"SMAA",

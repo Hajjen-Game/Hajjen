@@ -104,6 +104,8 @@ import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
  from "./premium-material-rebirth-v0220.mjs";
 import {CINEMATIC_NEON_0220_P2,installCinematicNeonLighting}
  from "./cinematic-neon-lighting-v0220p2.mjs";
+import {VELOCITY_CINEMA_0220_P3,installVelocityCinematography}
+ from "./velocity-cinematography-v0220p3.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
@@ -228,6 +230,11 @@ const premiumMaterialRebirthEnabled=cinematicMotionEnabled&&
 const cinematicNeonEnabled=premiumMaterialRebirthEnabled&&
  new URLSearchParams(location.search).get("cinematicNeon")!=="classic"&&
  !["0.22.0","0.22.0.1"].includes(new URLSearchParams(location.search).get("v")||"");
+// 0.22.0 Pass 3: additive postprocess; Pass 1 and Pass 2 links unchanged.
+const velocityCinemaEnabled=cinematicNeonEnabled&&
+ new URLSearchParams(location.search).get("velocityCinema")!=="classic"&&
+ !["0.22.0","0.22.0.1","0.22.0.2"].includes(
+  new URLSearchParams(location.search).get("v")||"");
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -307,7 +314,7 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,gripHeld:fa
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
-let neonKit,neonPipeline,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
+let neonKit,neonPipeline,velocityCinematography=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null;
@@ -957,6 +964,11 @@ function initScene(){
   lowMemory:limitedMemory,forceFullBloom:perfSettings.preset==="bloom-full"
  });
  neonPipeline.resize(innerWidth,innerHeight);
+ // Selective HDR velocity pass between SMAA and OutputPass; off when idle.
+ velocityCinematography=installVelocityCinematography(THREE,neonPipeline,{
+  enabled:velocityCinemaEnabled,lowMemory:limitedMemory
+ });
+ velocityCinematography.resize?.(innerWidth,innerHeight,neonPipeline.internalPixelRatio);
  if(perfSettings.enabled){
   if(perfSettings.preset==="no-bloom")neonPipeline.bloom.enabled=false;
   if(perfSettings.preset==="no-smaa")neonPipeline.smaa.enabled=false;
@@ -1140,6 +1152,41 @@ function initScene(){
    try{return {classic:draw(false),structural:draw(true),
     panels:meshes.length,trackS:flight?.s??null}}
    finally{meshes.forEach((m,i)=>m.visible=original[i])}
+  };
+ // 0.22.0 Pass 3: same camera/ship/wave, only optional velocity pass toggled.
+ if(new URLSearchParams(location.search).get("velocityCinemaSmoke")==="1")
+  window.__skyshiftVelocityCinemaProbe=()=>({
+   requested:velocityCinemaEnabled,
+   ...(velocityCinematography?.stats?.()??{active:false}),
+   rendererDpr:neonPipeline?.internalPixelRatio??null,
+   outputFinal:neonPipeline?.composer?.passes?.at(-1)===neonPipeline?.output,
+   roadSolarSeal:roadSolarSpill?.stats()?.seal??null,
+   nativeWave:Boolean(premiumSurface?.setWaveState)
+  });
+ if(new URLSearchParams(location.search).get("velocityCinemaFrameProof")==="1")
+  window.__skyshiftVelocityCinemaFrameProof=()=>{
+   if(!velocityCinematography?.active||!neonPipeline?.render)
+    throw Error("Velocity Cinematography same-frame proof unavailable");
+   const before=velocityCinematography.stats();
+   const take=enabled=>{
+    velocityCinematography.setComparison(enabled);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    velocityCinematography.setQualityLevel(0);
+    velocityCinematography.update({playing:true,
+     speedMultiplier:3.1,boostMultiplier:1.40});
+    return {classic:take(0),cinematic:take(1),
+     flightS:flight?.s??null,velocity:3.1};
+   }finally{
+    velocityCinematography.setQualityLevel(before.qualityLevel);
+    velocityCinematography.update({playing:uiState.mode==="playing",
+     speedMultiplier:(flight?.currentSpeed??TRIAL.startSpeed)/TRIAL.startSpeed,
+     boostMultiplier:Math.max(flight?.boostMultiplier??1,
+      flight?.landingBoostMultiplier??1)});
+    velocityCinematography.setComparison(before.comparison);
+   }
   };
  // 0.22.0 Pass 2: identical camera, wave and ship pose with just the
  // colored local neon-bounce strength toggled. No physics tick.
@@ -1462,6 +1509,7 @@ function resize(){
  camera.aspect=width/height;camera.updateProjectionMatrix();
  renderer.setSize(width,height,false);
  neonPipeline?.resize(width,height);
+ velocityCinematography?.resize?.(width,height,neonPipeline?.internalPixelRatio??1);
 }
 function syncFullscreenUi(active){
  UI.fullscreen.setAttribute("aria-label",active?"Exit fullscreen":"Enter fullscreen");
@@ -1556,6 +1604,7 @@ function resetFlight(){
  reactiveWingFlaps?.reset();livingWake?.reset();railSparks?.reset();
  premiumSurface?.setVelocityFlow(0,0);
  stationWorld?.updateMotion?.({flow:0,phaseMeters:0,boost:0,playing:false});
+ velocityCinematography?.update?.({playing:false});
  identitySurface?.setVelocityFlow(0,0);
  spaceBackdrop?.setVelocityFlow(0);
  tunnelBlackout?.reset();
@@ -2428,6 +2477,13 @@ function loop(now){
     zoneStage:zoneWave.playerStage
    });
  }
+ // 0.22.0 Pass 3: read-only visual speed; original camera/physics untouched.
+ velocityCinematography?.update?.({
+  playing:uiState.mode==="playing",
+  speedMultiplier:(flight?.currentSpeed??0)/Math.max(1,TRIAL.startSpeed),
+  boostMultiplier:Math.max(flight?.boostMultiplier??1,
+   flight?.landingBoostMultiplier??1)
+ });
  // World-anchored stellar glow follows camera position, never camera heading.
  cinematicLighting?.frame();
  signatureEnvironment?.frame?.(camera);
@@ -2469,6 +2525,8 @@ function loop(now){
    if(tierChanged!==null&&neonPipeline){
      const targetDpr=dprForAdaptiveLevel(claritySettings,adaptiveQuality.level);
      neonPipeline.setInternalPixelRatio(targetDpr,innerWidth,innerHeight);
+     velocityCinematography?.setQualityLevel?.(adaptiveQuality.level);
+     velocityCinematography?.resize?.(innerWidth,innerHeight,neonPipeline.internalPixelRatio);
      event("adaptive_render_resolution",{ratio:+targetDpr.toFixed(2),
        antiAliasing:CLARITY.antiAliasing,level:adaptiveQuality.level});
    }
@@ -2573,6 +2631,10 @@ function exportAudit(){
       cinematicNeonProfile:cinematicNeonEnabled?CINEMATIC_NEON_0220_P2:null,
       cinematicNeonAudit:cinematicNeonEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeCinematicNeon:"?cinematicNeon=classic",
+      velocityCinemaRequested:velocityCinemaEnabled,
+      velocityCinemaProfile:velocityCinemaEnabled?VELOCITY_CINEMA_0220_P3:null,
+      velocityCinemaAudit:velocityCinematography?.stats?.()??null,
+      compareBeforeVelocityCinema:"?velocityCinema=classic",
       shipWhiteSpillEnabled,shipWhiteSpillAudit:shipWhiteSpill?.stats()??null,
       compareBeforeShipWhite:"?shipWhite=classic",
       railBodyContainmentEnabled,

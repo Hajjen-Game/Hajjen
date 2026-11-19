@@ -948,6 +948,93 @@ function initScene(){
        x.geometry.attributes.color.getZ(0)]:null}))??[],
    legacyDecorDisabled:!signatureEnvironment&&!cinematicWorld&&!orbitalHero
   });
+ // 0.21.2.5 same-frame ship source isolation, QA only.
+ if(new URLSearchParams(location.search).get("shipSourceSmoke")==="1")
+  window.__skyshiftShipSourceSmoke=()=>{
+   if(!ship||!neonPipeline?.render||!renderer?.domElement)
+    throw Error("Ship/source not ready");
+   const mats=new Set(),parts=[];
+   ship.traverse(obj=>{
+    if(obj.isMesh){
+     parts.push(obj);
+     const a=Array.isArray(obj.material)?obj.material:[obj.material];
+     for(const m of a)if(m)mats.add(m);
+    }
+   });
+   const store=[...mats].map(m=>({
+    m,roughness:m.roughness,metalness:m.metalness,clearcoat:m.clearcoat,
+    clearcoatRoughness:m.clearcoatRoughness,emissiveIntensity:m.emissiveIntensity
+   }));
+   const levels={ambient:worldLights.ambient.intensity,
+    key:worldLights.key.intensity,fill:worldLights.fill.intensity};
+   const engines=engineLights.map(x=>x.intensity);
+   const originalVisible=parts.map(m=>m.visible);
+   const report=store.map(({m})=>({
+    name:m.name||"",type:m.type,clearcoat:m.clearcoat??null,
+    roughness:m.roughness??null,metalness:m.metalness??null
+   }));
+   const modes=["baseline","noKey","noWorld","noEngines","noCoat",
+    "matteHull","noPolishArmor","noSeams","noShip"];
+   const captures={};
+   try{
+    for(const mode of modes){
+     for(const x of store){
+      const {m}=x;
+      if(x.roughness!==undefined)m.roughness=x.roughness;
+      if(x.metalness!==undefined)m.metalness=x.metalness;
+      if(x.clearcoat!==undefined)m.clearcoat=x.clearcoat;
+      if(x.clearcoatRoughness!==undefined)m.clearcoatRoughness=x.clearcoatRoughness;
+      m.needsUpdate=true;
+     }
+     for(let i=0;i<parts.length;i++)parts[i].visible=originalVisible[i];
+     worldLights.ambient.intensity=levels.ambient;
+     worldLights.key.intensity=levels.key;
+     worldLights.fill.intensity=levels.fill;
+     engineLights.forEach((x,i)=>x.intensity=engines[i]);
+     if(mode==="noKey")worldLights.key.intensity=0;
+     if(mode==="noWorld")worldLights.key.intensity=
+      worldLights.fill.intensity=worldLights.ambient.intensity=0;
+     if(mode==="noEngines")engineLights.forEach(x=>x.intensity=0);
+     if(mode==="noCoat"||mode==="matteHull")
+      for(const x of store){
+       const m=x.m;
+       if(!m.isMeshPhysicalMaterial&&!m.isMeshStandardMaterial)continue;
+       if(mode==="matteHull"){
+        if(m.roughness!==undefined)m.roughness=.94;
+        if(m.metalness!==undefined)m.metalness=.06;
+       }
+       if(m.clearcoat!==undefined)m.clearcoat=0;
+       if(m.clearcoatRoughness!==undefined)m.clearcoatRoughness=1;
+       m.needsUpdate=true;
+      }
+     if(mode==="noPolishArmor")
+      for(const part of parts)if(/Premium bevelled shoulder armour/.test(part.name))
+       part.visible=false;
+     if(mode==="noSeams")
+      for(const part of parts)if(/seams|luminescen|luminou/i.test(part.name))
+       part.visible=false;
+     if(mode==="noShip")for(const part of parts)part.visible=false;
+     neonPipeline.render(0);
+     captures[mode]=renderer.domElement.toDataURL("image/png").split(",")[1];
+    }
+    return {shipId:activeShipId,materials:report,captures,
+     zone:flight.zoneIndex??null,s:flight.s};
+   }finally{
+    for(const x of store){
+     const {m}=x;
+     if(x.roughness!==undefined)m.roughness=x.roughness;
+     if(x.metalness!==undefined)m.metalness=x.metalness;
+     if(x.clearcoat!==undefined)m.clearcoat=x.clearcoat;
+     if(x.clearcoatRoughness!==undefined)m.clearcoatRoughness=x.clearcoatRoughness;
+     m.needsUpdate=true;
+    }
+    for(let i=0;i<parts.length;i++)parts[i].visible=originalVisible[i];
+    worldLights.ambient.intensity=levels.ambient;
+    worldLights.key.intensity=levels.key;
+    worldLights.fill.intensity=levels.fill;
+    engineLights.forEach((x,i)=>x.intensity=engines[i]);
+   }
+  };
  // White-core-specific photo QA: examine *ship PBR* and *full-deck*
  // specular handling without changing the normal gameplay or physics.
  if(new URLSearchParams(location.search).get("whiteCoreSmoke")==="1")

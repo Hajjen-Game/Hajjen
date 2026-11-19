@@ -194,7 +194,7 @@ const roadSolarEnabled=whiteCoreEnabled&&
 // 0.21.3 additive hard-surface art, safely gated from historical A/B versions.
 const structuralTunnelEnabled=exteriorSealEnabled&&
  new URLSearchParams(location.search).get("tunnelStructure")!=="classic"&&
- !/^0\\.21\\.[0-2](?:\\.|$)/.test(new URLSearchParams(location.search).get("v")||"");
+ !/^0\.21\.[0-2](?:\.|$)/.test(new URLSearchParams(location.search).get("v")||"");
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -1067,8 +1067,8 @@ function initScene(){
     throw Error("Structural tunnel same-frame proof unavailable");
    const group=world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1");
    const meshes=group?.children?.filter(o=>
-    /Tunnel \\/ (HARDSURFACE_PANELS|STRUCTURAL_CONDUITS)/.test(o.name)||
-    /HARDSURFACE_PANELS|STRUCTURAL_CONDUITS/.test(o.name))??[];
+    o.name==="Tunnel / HARDSURFACE_PANELS"||
+    o.name==="Tunnel / STRUCTURAL_CONDUITS")??[];
    if(!meshes.length)throw Error("Structural tunnel meshes absent");
    const original=meshes.map(m=>m.visible);
    const draw=active=>{

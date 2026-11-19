@@ -64,6 +64,15 @@ function profilePoint(i,s,vaultHeightClassic=false){
       +TUNNEL_MEGA_0211.vaultWaveAmplitude*bend*strength;
  return [x0*(1+.015*bend*strength),y];
 }
+// Public geometry sampler for additive art modules. Uses the ORIGINAL
+// vaulted profile / bank without duplicating the curvature calculation.
+export function tunnelProfilePoint0211(index,s,vaultHeightClassic=false){
+ if(!Number.isInteger(index)||index<0||index>=TUNNEL_PROFILE_0211.length)
+  throw Error("Tunnel profile index out of range");
+ if(!Number.isFinite(s)||s<TUNNEL_MEGA_0211.start||s>TUNNEL_MEGA_0211.end)
+  throw Error("Tunnel profile arc out of range");
+ return profilePoint(index,s,vaultHeightClassic);
+}
 function safePosition(positionAt,s,x,y,isFloor){
  if(!Number.isFinite(s+x+y)||s<TUNNEL_MEGA_0211.start-1e-6||s>TUNNEL_MEGA_0211.end+1e-6)
   throw Error("Tunnel invalid local coordinate");

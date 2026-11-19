@@ -21,11 +21,23 @@ function analyze(captures,label,{mobile=false}={}){
   writeFileSync("skyshift-v0231-"+label+"-"+type+".png",
    Buffer.from(bytes,"base64"));
  let changed=0,upper=0,side=0,road=0,whiteBefore=0,whiteAfter=0;
+ let nativeBright=0,nativeBrightRetained=0;
  for(let y=Math.floor(a.height*.07);y<Math.floor(a.height*.96);y+=2)
   for(let x=Math.floor(a.width*.035);x<Math.floor(a.width*.965);x+=2){
    const i=(y*a.width+x)*4,from=a.data,to=b.data;
    if(Math.min(from[i],from[i+1],from[i+2])>205)whiteBefore++;
    if(Math.min(to[i],to[i+1],to[i+2])>205)whiteAfter++;
+   // On 4GB, the geometry is deliberately IDENTICAL; every bright local
+   // cyan/violet/gold neon core must retain its previous luminance.
+   if(mobile&&y<a.height*.64){
+    const oldPeak=Math.max(from[i],from[i+1],from[i+2]);
+    const oldLow=Math.min(from[i],from[i+1],from[i+2]);
+    if(oldPeak>125&&oldPeak-oldLow>35){
+     nativeBright++;
+     if(Math.max(to[i],to[i+1],to[i+2])>=oldPeak*.80)
+      nativeBrightRetained++;
+    }
+   }
    const delta=Math.abs(from[i]-to[i])+Math.abs(from[i+1]-to[i+1])+
     Math.abs(from[i+2]-to[i+2]);
    if(delta<12)continue;
@@ -35,7 +47,9 @@ function analyze(captures,label,{mobile=false}={}){
    if(y>a.height*.75&&x>a.width*.41&&x<a.width*.59)road++;
   }
  const result={label,changed,upper,side,road,whiteBefore,whiteAfter,
-  flightS:captures.position};
+  nativeBright,nativeBrightRetained,flightS:captures.position};
+ if(mobile&&nativeBright>80&&nativeBrightRetained/nativeBright<.91)
+  throw Error("Native neon glow lost in low-memory tunnel "+JSON.stringify(result));
  if(changed<(mobile?60:1000)||upper<60)
   throw Error("0.23.1 material upgrade too subtle "+JSON.stringify(result));
  if(road>changed*.28+75)
@@ -76,7 +90,8 @@ try{
   const probe=await page.evaluate(()=>window.__skyshiftTrueDepthProbe());
   if(!probe.requested||!probe.trueDepth0231Enabled||
      probe.trueDepth0231Status!=="active"||
-     probe.trueDepth0231MaterialRoles!==(memory===4?3:4)||
+     probe.trueDepth0231MaterialRoles!==(memory===4?1:2)||
+     probe.trueDepth0231PreservedNativeNeon!==true||
      probe.trueDepth0231GeometrySwap!==(memory!==4)||
      probe.trueDepth0231AddedDrawBatches!==0||
      (memory!==4&&probe.trueDepth0231NewVertices<10000)||
@@ -95,6 +110,7 @@ try{
  await desktop.close();
  const mobile=await load(4);
  await take(mobile,165,2,"mobile-gold-165",4);
+ await take(mobile,165,1,"mobile-violet-165",4);
  await mobile.close();
  const classic=await load(8,"trueDepth=classic");
  const state=await classic.evaluate(()=>window.__skyshiftTrueDepthProbe());

@@ -86,6 +86,6 @@ test("no world-light, physics, spectral wave or road-material overrides",()=>{
  assert.match(game,/installStructuralTunnelRebuild/);
  assert.match(game,/compareBeforeStructure:"\?tunnelStructure=classic"/);
  assert.match(game,/__skyshiftStructureFrameProof/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.21\.5/);
- assert.match(read("./index.html"),/0\.21\.5/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.21\.6/);
+ assert.match(read("./index.html"),/0\.21\.6/);
 });

@@ -58,7 +58,7 @@ try{
   if(status.railGlareScale!==.34||status.shipPbrMaterials<1||
     !status.roadSpecularTrimmed||
     status.shipWhiteContainment<.99||
-    !status.worldLightsUnchanged)
+    status.railWhiteContainment!==1||!status.worldLightsUnchanged)
    throw Error("White source not reduced in road/ship "+JSON.stringify(status));
  }
  const gold=await modern.page.evaluate(()=>window.__skyshiftWaveSmoke(2));
@@ -75,7 +75,7 @@ try{
   throw Error("Original 0.21.2.2 before/after mode broken "+JSON.stringify(prior.art));
  for(const s of [90,178,273,333]){
   const status=await photo(prior.page,s,"skyshift-v02123-original-cyan-"+s+".png");
-  if(status.enabled||status.railGlareScale!==.52)
+  if(status.enabled||status.railGlareScale!==.52||status.railWhiteContainment!==0)
    throw Error("Original full specular not preserved "+JSON.stringify(status));
  }
  await prior.page.evaluate(()=>window.__skyshiftWaveSmoke(2));
@@ -86,7 +86,8 @@ try{
  const lowProbe=await low.page.evaluate(()=>window.__skyshiftWhiteCoreProbe());
  if(low.art.variant!=="white-core-contained-tunnel"||
     low.art.drawBatches!==3||!lowProbe?.enabled||
-    lowProbe.railGlareScale!==.34||lowProbe.shipPbrMaterials<1)
+    lowProbe.railGlareScale!==.34||lowProbe.railWhiteContainment!==1||
+    lowProbe.shipPbrMaterials<1)
   throw Error("Low memory path broke "+JSON.stringify({art:low.art,probe:lowProbe}));
  await photo(low.page,273,"skyshift-v02123-mobile-273.png");
  await low.page.close();

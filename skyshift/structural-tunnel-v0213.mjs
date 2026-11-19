@@ -34,6 +34,16 @@ const COLORS=Object.freeze({
  brace:makeRGB(0x344c62),braceShadow:makeRGB(0x0b1929),
  conduit:makeRGB(0x3c6073),groove:makeRGB(0x0e2336)
 });
+// 0.21.4 opt-in art direction. Recessive graphite and longer panel bays
+// let a handful of continuous neon flows define the tunnel at speed.
+// The classic 0.21.3 mesh is untouched unless explicitly requested.
+const FLOW_COLORS=Object.freeze({
+ panel:makeRGB(0x142638),panelAlt:makeRGB(0x102031),
+ roof:makeRGB(0x192b3d),roofAlt:makeRGB(0x112132),
+ lip:makeRGB(0x253d50),shadow:makeRGB(0x06111c),
+ brace:makeRGB(0x213749),braceShadow:makeRGB(0x091521),
+ conduit:makeRGB(0x264153),groove:makeRGB(0x091828)
+});
 const empty=()=>({positions:[],colors:[],trackS:[],glowWeight:[],triangles:0});
 const mix=(a,b,t)=>a+(b-a)*t;
 
@@ -90,12 +100,12 @@ const WALL=[5,6,7,8,9,10,19,20,21,22,23,24];
 const ROOF=[12,13,14,15,16,17,18];
 // Break each architectural plate at the original 2 m mesh sampling
 // cadence so it hugs real track curvature rather than bridging a turn.
-function makePlate(target,positionAt,options,s0,s1,j,swatch,lowMemory){
+function makePlate(target,positionAt,options,s0,s1,j,swatch,lowMemory,colors=COLORS){
  const steps=Math.ceil((s1-s0)/(lowMemory?3.5:2));
  const pad=.26;
  const a=s0+pad,b=s1-pad;
  if(b-a<1.1)return;
- const col=swatch,lip=COLORS.lip,shadow=COLORS.shadow;
+ const col=swatch,lip=colors.lip,shadow=colors.shadow;
  for(let step=0;step<steps;step++){
   const x=mix(a,b,step/steps),y=mix(a,b,(step+1)/steps);
   quad(target,[[x,j,.10,.34],[x,j,.90,.34],
@@ -111,51 +121,54 @@ function makePlate(target,positionAt,options,s0,s1,j,swatch,lowMemory){
   const v=[[s,j,.045,.11],[s,j,.955,.11],
    [s,j,.90,.34],[s,j,.10,.34]];
   quad(target,reverse?v.slice().reverse():v,
-   reverse?COLORS.shadow:COLORS.lip,positionAt,options,.003);
+   reverse?colors.shadow:colors.lip,positionAt,options,.003);
  }
 }
-function makeSecondarySupport(dest,positionAt,options,s,j){
+function makeSecondarySupport(dest,positionAt,options,s,j,colors=COLORS){
  const a=Math.max(0,s-.44),b=Math.min(368,s+.44);
  if(b-a<.2)return;
  quad(dest,[[a,j,.08,.38],[a,j,.92,.38],
   [b,j,.92,.38],[b,j,.08,.38]],
-  j%3===0?COLORS.brace:COLORS.braceShadow,
+  j%3===0?colors.brace:colors.braceShadow,
   positionAt,options,.011);
  // A bevelled structural return adds edge thickness to the upright.
  quad(dest,[[a,j,.045,.12],[a,j,.08,.38],
   [b,j,.08,.38],[b,j,.045,.12]],
-  COLORS.brace,positionAt,options,.007);
+  colors.brace,positionAt,options,.007);
 }
 export function buildStructuralTunnelData(positionAt,{lowMemory=false,
- vaultHeightClassic=false}={}){
+ vaultHeightClassic=false,flowCohesion=false}={}){
  if(typeof positionAt!=="function")
   throw Error("0.21.3 requires the original positionAt curve sampler");
  const options={vaultHeightClassic};
+ const colors=flowCohesion?FLOW_COLORS:COLORS;
  const primary=empty(),detail=empty();
  const walls=lowMemory?[5,7,9,20,22,24]:WALL;
  const roof=lowMemory?[12,14,16,18]:ROOF;
  let plates=0,arches=0;
- for(let bay=0,s=.8;s<368;s+=STRUCTURAL_TUNNEL_0213.bayPitch,bay++){
+ const bayPitch=flowCohesion?22:STRUCTURAL_TUNNEL_0213.bayPitch;
+ const baySpan=flowCohesion?20.8:12.8;
+ for(let bay=0,s=.8;s<368;s+=bayPitch,bay++){
   for(const j of [...walls,...roof]){
    // Avoid the "identical square corridor" rhythm. Structural joins stay
    // staggered per facet, while all openings around neon portals stay free.
    const offset=j%3===0?-.65:j%3===1?.80:.12;
    const isRoof=roof.includes(j);
    const alternate=(bay+j)%4===0;
-   const color=isRoof?(alternate?COLORS.roofAlt:COLORS.roof):
-    (alternate?COLORS.panelAlt:COLORS.panel);
-   for(const [a,b] of keptSpans(s+offset,s+12.8+offset)){
-    makePlate(primary,positionAt,options,a,b,j,color,lowMemory);plates++;
+   const color=isRoof?(alternate?colors.roofAlt:colors.roof):
+    (alternate?colors.panelAlt:colors.panel);
+   for(const [a,b] of keptSpans(s+offset,s+baySpan+offset)){
+    makePlate(primary,positionAt,options,a,b,j,color,lowMemory,colors);plates++;
    }
   }
  }
  // Secondary cross-members between the existing ~42m neon portal arches.
  // On 4GB devices this sculptural rhythm stays, but no extra detail layer.
- for(let s=21;s<=357;s+=lowMemory?42:STRUCTURAL_TUNNEL_0213.secondaryBracePitch){
+ for(let s=21;s<=357;s+=(lowMemory||flowCohesion)?42:STRUCTURAL_TUNNEL_0213.secondaryBracePitch){
   if(TUNNEL_PORTALS_0211.some(p=>Math.abs(s-p)<3.5))continue;
   for(const j of (lowMemory?[5,9,12,14,16,18,21,25]:
    [5,7,9,11,12,13,14,15,16,17,18,19,21,23,25])){
-   makeSecondarySupport(primary,positionAt,options,s,j);
+   makeSecondarySupport(primary,positionAt,options,s,j,colors);
   }
   arches++;
  }
@@ -167,21 +180,22 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
    for(const j of [6,9,20,23]){
     quad(detail,[[s,j,.35,.42],[s,j,.48,.42],
      [end,j,.48,.42],[end,j,.35,.42]],
-     COLORS.conduit,positionAt,options,.012);
+     colors.conduit,positionAt,options,.012);
     quad(detail,[[s,j,.49,.09],[s,j,.58,.09],
      [end,j,.58,.09],[end,j,.49,.09]],
-     COLORS.groove,positionAt,options,0);
+     colors.groove,positionAt,options,0);
    }
    for(const j of [14,15]){
     quad(detail,[[s,j,.16,.44],[s,j,.84,.44],
      [end,j,.84,.44],[end,j,.16,.44]],
-     COLORS.braceShadow,positionAt,options,.006);
+     colors.braceShadow,positionAt,options,.006);
    }
   }
  }
  return {primary,detail,plateCount:plates,secondaryArchCount:arches,
   geometryBatches:lowMemory?1:2,
-  totalTriangles:primary.triangles+(lowMemory?0:detail.triangles)};
+  totalTriangles:primary.triangles+(lowMemory?0:detail.triangles),
+  flowCohesion,architecturalBayPitch:bayPitch};
 }
 function disposeMesh(mesh){
  mesh?.removeFromParent?.();
@@ -202,6 +216,7 @@ export function installStructuralTunnelRebuild(THREE,world,options={}){
   structureComparison:STRUCTURAL_TUNNEL_0213.comparison,
   structureDrawBatches:0,structureTriangles:0,
   structuralPlates:0,structuralSecondaryArches:0,
+  cohesivePanelRhythm:Boolean(options.flowCohesion),
   roofSafetyPreserved:true,originalTrackUntouched:true,
   tunnelFogSealed:true,noNewColliders:true,
   waveSourceUnchanged:true

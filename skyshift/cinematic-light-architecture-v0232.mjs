@@ -88,7 +88,7 @@ export function patchLightArchitectureShader(vertex,fragment,{
   " float c32Edge=(.055+.09*c32Grazing)*c32Proximity*",
   "  (c32Bevel*.85+c32Face*.11);",
   " float c32Total=min(0.22,(c32Spec+c32Edge+c32PortalBoost)*",
-  (mobile?"  0.64;":"  0.95;"),
+  (mobile?"  0.64);":"  0.95);"),
   " vec3 c32Palette=clamp(rbTint,vec3(0.0),vec3(.76));",
   " vec3 c32Contribution=c32Palette*c32Total*",
   "  (1.0-.97*c32Recess);",

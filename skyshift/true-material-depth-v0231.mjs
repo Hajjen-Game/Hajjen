@@ -10,7 +10,7 @@ import {buildTunnelNeonLocalData}
  from "./cinematic-neon-lighting-v0220p2.mjs";
 
 export const TRUE_MATERIAL_0231=Object.freeze({
- version:"0.23.1",pass:"True Material Depth & Reflection Rebuild",
+ version:"0.23.1.1",pass:"Native Neon Preservation & Depth Repair",
  referenceStart:78,referenceEnd:304,
  physicallyRaisedInsertDepth:.58,previousInsertDepth:.34,
  finish:"deep graphite insert / stepped satin-titanium bevel / black inset / milled trim",
@@ -40,53 +40,41 @@ export function patchTrueMaterialDepthShader(vertex,fragment,{
     !fragment.includes("float p23RoofLight=")||
     !fragment.includes("#include <common>"))
   throw Error("0.23.1 requires sun-isolated 0.23.0 material chain");
- const roleColor=RGB[role].map(x=>x.toFixed(3)).join(",");
+ // Material finish must never replace the finished local neon color.
+ // The previous 0.23.1 shader put constant graphite/satin colors on all
+ // tunnel role surfaces, overwhelming colored bounce and creating abrupt
+ // visual seams at the study-gallery boundary. Restore the exact existing
+ // 0.23.0 output and add only tightly gated highlights on real panel facets.
  const lines=[
   "float d31Strength=uTrueDepth0231*p23Gallery;",
   "if(d31Strength>0.0001){",
-  " // Real facet classification: plate, stepped bevel, inset reveal and rib.",
+  " vec3 d31Original=diffuseColor.rgb;",
   " float d31Face=1.0-step(0.001,abs(vRebirthClass-0.008));",
-  " float d31Bevel=1.0-step(0.0015,abs(vRebirthClass-0.004));",
+  " float d31Bevel=1.0-step(0.0009,abs(vRebirthClass-0.004));",
   " float d31Milled=1.0-step(0.0008,abs(vRebirthClass-0.003));",
-  " float d31Support=step(0.009,vRebirthClass);",
-  " float d31Recess=1.0-step(0.001,vRebirthClass);",
-  " float d31View=clamp(abs(dot(normalize(vRebirthNormal),",
-  " normalize(cameraPosition-vRebirthPosition))),0.0,1.0);",
-  " float d31Glance=pow(1.0-d31View,2.15);",
+  " float d31Recess=1.0-step(0.0007,vRebirthClass);",
+  " float d31EdgeMask=max(d31Bevel,d31Milled);",
+  " float d31Facing=clamp(abs(dot(normalize(vRebirthNormal),",
+  "  normalize(cameraPosition-vRebirthPosition))),0.0,1.0);",
+  " float d31Grazing=pow(1.0-d31Facing,2.0);",
   " float d31Near=max(p23WallLight,p23RoofLight);",
-  " float d31Brush=sin(vRebirthTrack*"+(mobile?"3.2":"9.7")+
-   "+vNeonLocalSection.y*"+(mobile?"1.4":"3.8")+");",
-  " float d31Micro=(1.0-smoothstep(26.0,82.0,p23Distance));",
-  " float d31Macro=.88+.15*sin(vRebirthTrack*.12+vNeonLocalSection.y*.24);",
-  " vec3 d31Body=vec3("+roleColor+")*",
-  "  (d31Macro+.024*d31Micro*d31Brush);",
-  " vec3 d31Dark=vec3(.004,.007,.012);",
-  " vec3 d31Satin=vec3(.095,.119,.147);",
-  " vec3 d31Machined=vec3(.135,.162,.188);",
-  " float d31EdgeBoost=pow(max(d31Near,0.0),0.72);",
-  " float d31ShapeSpec=(.19+.58*d31Glance)*d31EdgeBoost;",
-  " vec3 d31Chrome=rbTint*(d31ShapeSpec*",
-  "  ("+(mobile?".22":".34")+")+",
-  "  .035*d31Near);",
-  // Most of the wall stays dark graphite: the source reflects strongly
-  // on *actual* beveled facet normals, not as a bright wall-wide flat fill.
-  " vec3 d31FaceColor=d31Body+rbTint*",
-  "  ((.034+.066*d31Glance)*d31Near);",
-  " vec3 d31EdgeColor=d31Satin*(.83+.27*d31View)+",
-  "  d31Chrome*(.65+.35*d31Glance);",
-  " vec3 d31CutColor=d31Machined+d31Chrome*1.17;",
-  " vec3 d31SupportColor=mix(d31Body,d31Satin,.44)+",
-  "  d31Chrome*.43;",
-  " vec3 d31Out=d31Body;",
-  " d31Out=mix(d31Out,d31FaceColor,d31Face);",
-  " d31Out=mix(d31Out,d31EdgeColor,d31Bevel);",
-  " d31Out=mix(d31Out,d31CutColor,d31Milled);",
-  " d31Out=mix(d31Out,d31SupportColor,d31Support);",
-  " d31Out=mix(d31Out,d31Dark,d31Recess);",
-  // Do not emit the bright white crest. Native zone palette only,
-  // with explicit HDR cap before original bloom and tone mapping.
-  " d31Out=clamp(d31Out,vec3(.002),vec3(.44));",
-  " diffuseColor.rgb=mix(diffuseColor.rgb,d31Out,d31Strength);",
+  " float d31Arch=cinemaArch;",
+  " float d31Localized=min(1.0,d31Near+.13*d31Arch);",
+  " float d31Brush=sin(vRebirthTrack*"+(mobile?"2.8":"8.6")+
+   "+vNeonLocalSection.y*"+(mobile?"1.1":"2.4")+");",
+  " float d31Detail=1.0-smoothstep(22.0,82.0,p23Distance);",
+  " // Small, surface-bound metal response. NOT a replacement wall color.",
+  " float d31Satin=.032+.048*d31Grazing+.008*d31Brush*d31Detail;",
+  " vec3 d31Chrome=rbTint*(.045+.12*d31Grazing)*d31Localized;",
+  " vec3 d31Engraving=vec3(.014,.021,.029)*d31Satin;",
+  " vec3 d31Raised=(vec3(.016,.024,.030)+d31Chrome)*",
+  "   d31EdgeMask*(.76+.24*d31Facing);",
+  " vec3 d31Out=d31Original;",
+  " d31Out*=1.0-.055*d31Recess-.015*d31Face;",
+  " d31Out+=d31Raised+d31Engraving*d31Milled;",
+  " // Preserve original HDR luminance, palette wave, and every strip core.",
+  " d31Out=max(vec3(0.0),d31Out);",
+  " diffuseColor.rgb=mix(d31Original,d31Out,d31Strength);",
   "}"
  ].join("\n");
  return {vertexShader:vertex,fragmentShader:fragment
@@ -192,12 +180,17 @@ export function installTrueMaterialDepthRebuild(THREE,world,options={}){
  const panel=meshes.find(x=>x.role==="panel").mesh;
  const classicGeometry=panel.geometry;
  const grade={uTrueDepth0231:{value:1}};
- for(const {role,mesh} of meshes)
+ // The arch ribs and closed shell already contain good native neon
+ // bounce. They must NOT be recolored merely to make 0.23.1 "different".
+ const treated=meshes.filter(({role})=>role==="panel"||role==="conduit");
+ for(const {role,mesh} of treated)
   installTrueMaterialShader(mesh.material,grade,{role,mobile:lowMemory});
  if(prepared)panel.geometry=prepared.geometry;
  const state={
   trueDepth0231Enabled:true,trueDepth0231Status:"active",
-  trueDepth0231MaterialRoles:meshes.length,trueDepth0231GeometrySwap:!lowMemory,
+  trueDepth0231MaterialRoles:treated.length,trueDepth0231GeometrySwap:!lowMemory,
+  trueDepth0231PreservedNativeNeon:true,
+  trueDepth0231UntouchedRoles:["shell","rib"],
   trueDepth0231PreviousTriangles:classicGeometry.getAttribute("position").count/3,
   trueDepth0231Triangles:prepared?.triangles??0,
   trueDepth0231NewVertices:prepared?.vertices??0,

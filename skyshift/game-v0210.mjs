@@ -96,6 +96,8 @@ import {SHIP_WHITE_SPILL_02125,createShipWhiteSpillController}
  from "./ship-white-spill-v02125.mjs";
 import {ROAD_SOLAR_SPILL_02126,createRoadSolarSpillController}
  from "./road-solar-spill-v02126.mjs";
+import {PREMIUM_ROAD_SURFACE_0215,createPremiumRoadSurfaceController}
+ from "./premium-road-surface-v0215.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
@@ -202,6 +204,10 @@ const structuralTunnelEnabled=exteriorSealEnabled&&
 const integratedNeonFlowEnabled=structuralTunnelEnabled&&
  new URLSearchParams(location.search).get("tunnelFlow")!=="classic"&&
  !/^0\.21\.[0-3](?:\.|$)/.test(new URLSearchParams(location.search).get("v")||"");
+// 0.21.5: matte architectural deck finish inside sealed tunnel only.
+const premiumRoadEnabled=roadSolarEnabled&&TRACK_ID_0160==="skyline"&&
+ new URLSearchParams(location.search).get("premiumRoad")!=="classic"&&
+ !/^0\.21\.[0-4](?:\.|$)/.test(new URLSearchParams(location.search).get("v")||"");
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -283,7 +289,8 @@ let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
-let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null;
+let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
+ premiumRoadSurface=null;
 let cameraLook=new THREE.Vector3(),shadowMesh,premiumFX,sideThrusters,reactiveWingFlaps,livingWake,railSparks;
 let sectorLandmarks=null,ghostVisual=null,hangarHeroRig=null;
 const racingExperience=createRacingExperience();
@@ -911,6 +918,9 @@ function initScene(){
  shipWhiteSpill=shipWhiteSpillEnabled?createShipWhiteSpillController(THREE,ship):null;
  // Existing road-only shader; preserve rail, ship, local neon and wave emission.
  roadSolarSpill=roadSolarEnabled?createRoadSolarSpillController(premiumSurface.material):null;
+ // Chain after the white-core and road solar seal PBR modifications.
+ premiumRoadSurface=premiumRoadEnabled?createPremiumRoadSurfaceController(
+  premiumSurface.material,{lowMemory:limitedMemory}):null;
  // Matte only this rail's PBR shell inside the first 368m. The colored
  // inlay remains the same native zone-wave material and draw batch.
  identitySurface?.setRailBodyContainment?.(railBodyContainmentEnabled?1:0);
@@ -1107,6 +1117,40 @@ function initScene(){
    try{return {classic:draw(false),structural:draw(true),
     panels:meshes.length,trackS:flight?.s??null}}
    finally{meshes.forEach((m,i)=>m.visible=original[i])}
+  };
+ // 0.21.5: same-frame finish-only A/B, without a world or physics tick.
+ if(new URLSearchParams(location.search).get("premiumRoadSmoke")==="1")
+  window.__skyshiftPremiumRoadProbe=()=>({
+   enabled:premiumRoadEnabled,
+   ...(premiumRoadSurface?.stats()??{}),
+   roadMaterial:premiumSurface?.material?.type??null,
+   solarSeal:roadSolarSpill?.stats()?.seal??null,
+   waveAvailable:Boolean(premiumSurface?.setWaveState),
+   exteriorKeyUnchanged:Boolean(worldLights?.key),
+   railBodyContainment:identitySurface?.getRailBodyContainment?.()??null
+  });
+ if(new URLSearchParams(location.search).get("premiumRoadFrameProof")==="1")
+  window.__skyshiftPremiumRoadFrameProof=()=>{
+   if(!premiumRoadSurface||!neonPipeline?.render)
+    throw Error("Premium road exact-frame proof unavailable");
+   const original=premiumRoadSurface.stats().seal;
+   const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
+   if(!deck)throw Error("Premium road physical deck unavailable");
+   const visible=deck.visible;
+   const draw=enabled=>{
+    premiumRoadSurface.setComparison(enabled);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    const baseline=draw(0),premium=draw(1);
+    deck.visible=false;
+    const absent=draw(1);
+    return {baseline,premium,absent,trackS:flight?.s??null};
+   }finally{
+    deck.visible=visible;
+    premiumRoadSurface.setComparison(original);
+   }
   };
  // 0.21.2.6: EXACT same-frame road-only lighting comparison (no physics tick).
  if(new URLSearchParams(location.search).get("roadSolarSmoke")==="1")
@@ -2404,6 +2448,9 @@ function exportAudit(){
       roadSolarEnabled,roadSolarProfile:roadSolarEnabled?ROAD_SOLAR_SPILL_02126:null,
       roadSolarAudit:roadSolarSpill?.stats()??null,
       compareBeforeRoadSolar:"?roadSolar=classic",
+      premiumRoadEnabled,premiumRoadProfile:premiumRoadEnabled?PREMIUM_ROAD_SURFACE_0215:null,
+      premiumRoadAudit:premiumRoadSurface?.stats()??null,
+      compareBeforePremiumRoad:"?premiumRoad=classic",
       shipWhiteSpillEnabled,shipWhiteSpillAudit:shipWhiteSpill?.stats()??null,
       compareBeforeShipWhite:"?shipWhite=classic",
       railBodyContainmentEnabled,

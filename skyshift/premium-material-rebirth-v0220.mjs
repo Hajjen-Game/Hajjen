@@ -36,7 +36,13 @@ export function patchPremiumMaterialShader(vertex,fragment,{
  role="panel",mobile=false
 }={}){
  if(!lightSafeRole(role))throw Error("0.22.0 invalid material role");
- const standard=role==="shell"||role==="rib";
+ // 0.21.2 Neon-Driven Interior deliberately replaces BOTH the shell and
+ // curved ribs with MeshBasicMaterial to block external sun/hemisphere.
+ // Never infer actual material type from a geometry role. Detect the shader
+ // that was truly composed by earlier onBeforeCompile decorators instead.
+ const standard=["#include <lights_fragment_end>",
+  "#include <roughnessmap_fragment>","#include <metalnessmap_fragment>",
+  "#include <emissivemap_fragment>"].every(chunk=>fragment.includes(chunk));
  const common="#include <common>",begin="#include <begin_vertex>";
  const color="#include <color_fragment>";
  if(!vertex.includes(common)||!vertex.includes(begin)||
@@ -59,7 +65,8 @@ export function patchPremiumMaterialShader(vertex,fragment,{
   "vRebirthPosition=(modelMatrix*vec4(transformed,1.0)).xyz;",
   "vRebirthNormal=normalize(mat3(modelMatrix)*normal);",
   "vRebirthTrack=trackS;",
-  standard?("vRebirthClass="+(role==="shell"?"0.008":"0.004")+";"):
+  (role==="shell"||role==="rib")?
+   ("vRebirthClass="+(role==="shell"?"0.008":"0.004")+";"):
    "vRebirthClass=glowWeight;"
  ].join("\n");
  const tint=rgb(role);
@@ -117,8 +124,9 @@ export function patchPremiumMaterialShader(vertex,fragment,{
   .replace(common,common+"\n"+fragmentCommon)
   .replace(colorAnchor,colorAnchor+"\n"+model);
  if(standard){
-  // Shell and structural ribs are genuinely MeshStandardMaterial: preserve
-  // roughness/metalness physically but close exterior key diffuse/specular.
+  // Only apply native PBR controls when the preceding renderer actually
+  // supplies a MeshStandard shader. Current closed tunnel surfaces are Basic,
+  // which already ignore exterior world lighting by construction.
   const rough="#include <roughnessmap_fragment>";
   const metal="#include <metalnessmap_fragment>";
   const lights="#include <lights_fragment_end>";
@@ -189,7 +197,7 @@ export function installPremiumMaterialRebirth(THREE,world,options={}){
   uRebirthFront:palette.uTunnelFront,
   uRebirthActive:palette.uTunnelActive
  };
- let materials=0;
+ let materials=0,originalBasic=0,originalPbr=0;
  // Validate all expected materials BEFORE touching them, avoiding a partial
  // update if a future version changes the base/world architecture.
  const existing=lookup.map(([name,role])=>{
@@ -197,23 +205,27 @@ export function installPremiumMaterialRebirth(THREE,world,options={}){
   if(role==="conduit"&&options.lowMemory)return null;
   if(!mesh?.material||!mesh?.geometry?.getAttribute?.("trackS"))
    throw Error("0.22.0 missing expected vault material/arc: "+name);
-  const standard=role==="shell"||role==="rib";
-  if(standard&&!mesh.material.isMeshStandardMaterial)
-   throw Error("0.22.0 needs PBR original shell: "+name);
-  if(!standard&&!mesh.material.isMeshBasicMaterial)
-   throw Error("0.22.0 needs 0.21.3 batch: "+name);
+  // MeshBasicMaterial here is intentional in 0.21.2, not a missing PBR
+  // feature. Keep its sun-isolated native spectral hook and layer the metal
+  // finish analytically on top, without changing the material class.
+  if(!mesh.material.isMeshBasicMaterial&&
+     !mesh.material.isMeshStandardMaterial)
+   throw Error("0.22.0 unsupported original tunnel material: "+name);
   return {mesh,role};
  }).filter(Boolean);
  for(const {mesh,role} of existing){
   installPremiumMaterialShader(mesh.material,uniforms,{
    role,mobile:!!options.lowMemory
   });
+  if(mesh.material.isMeshStandardMaterial)originalPbr++;
+  else originalBasic++;
   materials++;
  }
  const state={
   rebirthMaterialEnabled:true,rebirthMaterialPass:"1",
   rebirthMaterialVersion:"0.22.0",rebirthMaterialStatus:"active",
-  rebirthMaterials:materials,rebirthNoNewDrawBatches:true,
+  rebirthMaterials:materials,rebirthBasicMaterials:originalBasic,
+  rebirthPbrMaterials:originalPbr,rebirthNoNewDrawBatches:true,
   rebirthWorldSunSealed:true,rebirthMobile:!!options.lowMemory,
   rebirthCameraUntouched:true,rebirthPhysicsUntouched:true,
   rebirthComparison:MATERIAL_REBIRTH_0220.compare

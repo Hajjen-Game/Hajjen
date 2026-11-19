@@ -52,24 +52,24 @@ export function sampleNeonInteriorLight(s,x,y,{detail="shell"}={}){
  // Existing magenta side strips sit about 20m up each tunnel wall. The falloff
  // reaches side benches softly but leaves the center of the vault in darkness.
  const wallGuide=gauss(y-20.4,6.6)*clamp((Math.abs(x)-5.0)/18.0);
- pink+=.25*wallGuide;
- cyan+=.055*gauss(y-17,8.0)*clamp((Math.abs(x)-12)/14);
+ pink+=.11*wallGuide;
+ cyan+=.025*gauss(y-17,7.0)*clamp((Math.abs(x)-12)/14);
  // Radial luminous arcs are made every ~38-42m, and their influence is
  // local to each arc. 2m road-conforming vertices record the response.
  for(const {s:p,hex} of PORTAL_LIGHTS){
-  const dist=gauss(s-p,9.5);
+  const dist=gauss(s-p,7.5);
   const reach=.62+.40*gauss(y-24,11.0);
-  if(hex===0xff48a5)pink+=dist*.70*reach;
-  else cyan+=dist*.70*reach;
+  if(hex===0xff48a5)pink+=dist*.46*reach;
+  else cyan+=dist*.43*reach;
  }
  // Gentle local lift at upper vault joints; not light from outside the scene.
- const localJoint=.013*gauss(y-26,5);
+ const localJoint=.006*gauss(y-26,4.5);
  cyan+=localJoint;
  // Linear-space authored bounce, with enough dark material retained between
  // emitters that neon reads as an actual source instead of decoration.
  const scene=[CYAN,PINK];
  for(let k=0;k<3;k++)result[k]=clamp(result[k]+
-  cyan*scene[0][k]*.68+pink*scene[1][k]*.53,0,.65);
+  cyan*scene[0][k]*.26+pink*scene[1][k]*.23,0,.65);
  return {
   rgb:result,cyan,pink,
   ambientFloor:base,

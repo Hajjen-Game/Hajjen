@@ -40,8 +40,8 @@ try{
   });
   await page.addInitScript(v=>Object.defineProperty(navigator,"deviceMemory",
    {get:()=>v,configurable:true}),memory);
-  await page.goto("http://127.0.0.1:8806/skyshift/?v=0.21.2.4"+
-   "&artSmoke=1&whiteCoreSmoke=1&trackRepairSmoke=1&waveSmoke=1"+
+  await page.goto("http://127.0.0.1:8806/skyshift/?v=0.21.2.5"+
+   "&artSmoke=1&whiteCoreSmoke=1&trackRepairSmoke=1&waveSmoke=1&shipWhite=classic"+
    (legacy?"&railBody=classic":""),{waitUntil:"domcontentloaded",timeout:60000});
   await page.waitForFunction(()=>window.__skyshiftBoot?.phase==="ready",
    null,{timeout:75000});

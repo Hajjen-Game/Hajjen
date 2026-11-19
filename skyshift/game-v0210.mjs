@@ -88,6 +88,8 @@ import {EXTERIOR_SEAL_02122,installExteriorLightSeal}
  from "./tunnel-exterior-seal-v02122.mjs";
 import {WHITE_CORE_02123,createWhiteCoreContainment}
  from "./white-core-containment-v02123.mjs";
+import {SHIP_WHITE_SPILL_02125,createShipWhiteSpillController}
+ from "./ship-white-spill-v02125.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
@@ -166,19 +168,22 @@ const tunnelMegaEnabled=cinematicGradeEnabled&&
 // Local neon is now the author of tunnel light, not external Hemisphere/Key.
 const neonInteriorEnabled=tunnelMegaEnabled&&
  new URLSearchParams(location.search).get("interiorLight")!=="classic";
-// 0.21.2.4.1: spatially synchronized interior neons; exact 0.21.2.4 A/B preserved.
+// 0.21.2.5.1: spatially synchronized interior neons; exact 0.21.2.5 A/B preserved.
 const tunnelSpectrumEnabled=neonInteriorEnabled&&
  new URLSearchParams(location.search).get("tunnelSpectrum")!=="classic";
-// 0.21.2.4: tunnel-only fog isolation + local rail glare trim, no global lights.
+// 0.21.2.5: tunnel-only fog isolation + local rail glare trim, no global lights.
 const exteriorSealEnabled=tunnelSpectrumEnabled&&
  new URLSearchParams(location.search).get("exteriorSeal")!=="classic";
-// 0.21.2.4: fix *white PBR glare* on road and ship, not tunnel color/fog.
+// 0.21.2.5: fix *white PBR glare* on road and ship, not tunnel color/fog.
 const whiteCoreEnabled=exteriorSealEnabled&&
  new URLSearchParams(location.search).get("whiteCore")!=="classic";
 // White streak traced in real WebGL to the physically shaded rail BODY,
 // not the rail LEDs, road, ship, fog or global bloom.
 const railBodyContainmentEnabled=whiteCoreEnabled&&
  new URLSearchParams(location.search).get("railBody")!=="classic";
+// 0.21.2.5: prevent an exterior key light from bleaching the vehicle hull.
+const shipWhiteSpillEnabled=whiteCoreEnabled&&
+ new URLSearchParams(location.search).get("shipWhite")!=="classic";
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -260,7 +265,7 @@ let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
-let stationWorld=null,whiteCoreContainment=null;
+let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null;
 let cameraLook=new THREE.Vector3(),shadowMesh,premiumFX,sideThrusters,reactiveWingFlaps,livingWake,railSparks;
 let sectorLandmarks=null,ghostVisual=null,hangarHeroRig=null;
 const racingExperience=createRacingExperience();
@@ -564,6 +569,7 @@ function makeShip(id=fleetProgress.selected){
  scene.add(ship);
  // Bind PBR ship hull, including fleet swaps, to a visual-only light trim.
  whiteCoreContainment?.attachShip(ship);
+ shipWhiteSpill?.attachShip(ship);
  premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan);
  reactiveWingFlaps=installReactiveWingFlaps(THREE,ship,{variant:id});
  livingWake=createLivingWakeFX(THREE,scene,ship,{variant:id,
@@ -577,7 +583,10 @@ function makeShip(id=fleetProgress.selected){
  UI.jump.classList.add("hidden");
  // A scene-art preview only; 120Hz flight/camera/GRIP remain unchanged.
  void shipArtController.onCraftBuilt(craft,id).then(()=>{
-  if(activeCraft===craft)whiteCoreContainment?.attachShip(ship);
+  if(activeCraft===craft){
+   whiteCoreContainment?.attachShip(ship);
+   shipWhiteSpill?.attachShip(ship);
+  }
   if(activeCraft===craft&&id==="stingray"&&uiState.mode==="hangar")
    refreshHangar();
  });
@@ -872,13 +881,14 @@ function initScene(){
  // the ship and camera now carry the visual identity with zero added draws.
  // Open space, no geological scenery, distant monuments or 3D floor.
  makeShip();
- // 0.21.2.4: suppress external white PBR specular on road and current
+ // 0.21.2.5: suppress external white PBR specular on road and current
  // ship INSIDE this sealed 368m tunnel only. No world light/exposure edits.
  whiteCoreContainment=whiteCoreEnabled?createWhiteCoreContainment({
   roadMaterial:premiumSurface?.material,
   railSurface:identitySurface,
   ship
  }):null;
+ shipWhiteSpill=shipWhiteSpillEnabled?createShipWhiteSpillController(THREE,ship):null;
  // Matte only this rail's PBR shell inside the first 368m. The colored
  // inlay remains the same native zone-wave material and draw batch.
  identitySurface?.setRailBodyContainment?.(railBodyContainmentEnabled?1:0);
@@ -913,7 +923,8 @@ function initScene(){
   window.__skyshiftArtProbe=()=>({
    enabled:rebirthEnabled,track:TRACK_ID_0160,
    ...(stationWorld?.stats?.()??{active:false,status:"classic",installedBays:0,drawBatches:0}),
-   variant:railBodyContainmentEnabled?"rail-body-highlight-contained":
+   variant:shipWhiteSpillEnabled?"ship-white-spill-contained":
+    railBodyContainmentEnabled?"rail-body-highlight-contained":
     whiteCoreEnabled?"white-core-contained-tunnel":
     exteriorSealEnabled?"sealed-neon-tunnel":
     tunnelSpectrumEnabled?"neon-wave-interior":
@@ -948,6 +959,125 @@ function initScene(){
        x.geometry.attributes.color.getZ(0)]:null}))??[],
    legacyDecorDisabled:!signatureEnvironment&&!cinematicWorld&&!orbitalHero
   });
+ // 0.21.2.5 same-frame ship source isolation, QA only.
+ if(new URLSearchParams(location.search).get("shipSourceSmoke")==="1")
+  window.__skyshiftShipSourceSmoke=()=>{
+   if(!ship||!neonPipeline?.render||!renderer?.domElement)
+    throw Error("Ship/source not ready");
+   const mats=new Set(),parts=[];
+   ship.traverse(obj=>{
+    if(obj.isMesh){
+     parts.push(obj);
+     const a=Array.isArray(obj.material)?obj.material:[obj.material];
+     for(const m of a)if(m)mats.add(m);
+    }
+   });
+   const store=[...mats].map(m=>({
+    m,roughness:m.roughness,metalness:m.metalness,clearcoat:m.clearcoat,
+    clearcoatRoughness:m.clearcoatRoughness,emissiveIntensity:m.emissiveIntensity
+   }));
+   const levels={ambient:worldLights.ambient.intensity,
+    key:worldLights.key.intensity,fill:worldLights.fill.intensity};
+   const engines=engineLights.map(x=>x.intensity);
+   const originalVisible=parts.map(m=>m.visible);
+   const report=store.map(({m})=>({
+    name:m.name||"",type:m.type,clearcoat:m.clearcoat??null,
+    roughness:m.roughness??null,metalness:m.metalness??null
+   }));
+   const modes=["baseline","noKey","noWorld","noEngines","noCoat",
+    "matteHull","noPolishArmor","noSeams","noShip"];
+   const captures={};
+   try{
+    for(const mode of modes){
+     for(const x of store){
+      const {m}=x;
+      if(x.roughness!==undefined)m.roughness=x.roughness;
+      if(x.metalness!==undefined)m.metalness=x.metalness;
+      if(x.clearcoat!==undefined)m.clearcoat=x.clearcoat;
+      if(x.clearcoatRoughness!==undefined)m.clearcoatRoughness=x.clearcoatRoughness;
+      m.needsUpdate=true;
+     }
+     for(let i=0;i<parts.length;i++)parts[i].visible=originalVisible[i];
+     worldLights.ambient.intensity=levels.ambient;
+     worldLights.key.intensity=levels.key;
+     worldLights.fill.intensity=levels.fill;
+     engineLights.forEach((x,i)=>x.intensity=engines[i]);
+     if(mode==="noKey")worldLights.key.intensity=0;
+     if(mode==="noWorld")worldLights.key.intensity=
+      worldLights.fill.intensity=worldLights.ambient.intensity=0;
+     if(mode==="noEngines")engineLights.forEach(x=>x.intensity=0);
+     if(mode==="noCoat"||mode==="matteHull")
+      for(const x of store){
+       const m=x.m;
+       if(!m.isMeshPhysicalMaterial&&!m.isMeshStandardMaterial)continue;
+       if(mode==="matteHull"){
+        if(m.roughness!==undefined)m.roughness=.94;
+        if(m.metalness!==undefined)m.metalness=.06;
+       }
+       if(m.clearcoat!==undefined)m.clearcoat=0;
+       if(m.clearcoatRoughness!==undefined)m.clearcoatRoughness=1;
+       m.needsUpdate=true;
+      }
+     if(mode==="noPolishArmor")
+      for(const part of parts)if(/Premium bevelled shoulder armour/.test(part.name))
+       part.visible=false;
+     if(mode==="noSeams")
+      for(const part of parts)if(/seams|luminescen|luminou/i.test(part.name))
+       part.visible=false;
+     if(mode==="noShip")for(const part of parts)part.visible=false;
+     neonPipeline.render(0);
+     captures[mode]=renderer.domElement.toDataURL("image/png").split(",")[1];
+    }
+    return {shipId:activeShipId,materials:report,captures,
+     zone:flight.zoneIndex??null,s:flight.s};
+   }finally{
+    for(const x of store){
+     const {m}=x;
+     if(x.roughness!==undefined)m.roughness=x.roughness;
+     if(x.metalness!==undefined)m.metalness=x.metalness;
+     if(x.clearcoat!==undefined)m.clearcoat=x.clearcoat;
+     if(x.clearcoatRoughness!==undefined)m.clearcoatRoughness=x.clearcoatRoughness;
+     m.needsUpdate=true;
+    }
+    for(let i=0;i<parts.length;i++)parts[i].visible=originalVisible[i];
+    worldLights.ambient.intensity=levels.ambient;
+    worldLights.key.intensity=levels.key;
+    worldLights.fill.intensity=levels.fill;
+    engineLights.forEach((x,i)=>x.intensity=engines[i]);
+   }
+  };
+ // 0.21.2.5 diagnostic: actual rendered ship material and same-frame A/B.
+ if(new URLSearchParams(location.search).get("shipWhiteSmoke")==="1")
+  window.__skyshiftShipWhiteProbe=()=>({
+   enabled:shipWhiteSpillEnabled,
+   ...(shipWhiteSpill?.stats()??{}),
+   previousPbrTrim:whiteCoreContainment?.stats()?.shipPbrMaterials??null,
+   shipId:activeShipId,
+   exteriorKeyIntensity:worldLights.key.intensity,
+   railBodyContainment:identitySurface?.getRailBodyContainment?.(),
+   geometryAndPhysicsUnchanged:true
+  });
+ if(new URLSearchParams(location.search).get("shipWhiteFrameProof")==="1")
+  window.__skyshiftShipWhiteFrameProof=(extraRoll=0)=>{
+   if(!shipWhiteSpill||!ship||!neonPipeline?.render)
+    throw Error("Ship white proof not installed");
+   const previousMask=shipWhiteSpill.stats().whiteMask;
+   const previousRoll=ship.rotation.z;
+   const draw=(mask)=>{
+    shipWhiteSpill.setComparison(mask);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    ship.rotation.z=previousRoll+extraRoll;
+    return {classic:draw(0),contained:draw(1),
+     shipId:activeShipId,maskBefore:0,maskAfter:1,
+     capturePosition:flight.s,extraRoll};
+   }finally{
+    ship.rotation.z=previousRoll;
+    shipWhiteSpill.setComparison(previousMask);
+   }
+  };
  // White-core-specific photo QA: examine *ship PBR* and *full-deck*
  // specular handling without changing the normal gameplay or physics.
  if(new URLSearchParams(location.search).get("whiteCoreSmoke")==="1")
@@ -963,7 +1093,7 @@ function initScene(){
    bloomEnabled:Boolean(neonPipeline?.bloom?.enabled),
    trackDistance:flight?.s??null
   });
- // 0.21.2.4 QA ONLY — physically identify the overbright white rail
+ // 0.21.2.5 QA ONLY — physically identify the overbright white rail
  // source by isolating body PBR vs colored inlay vs bloom on the SAME frame.
  if(new URLSearchParams(location.search).get("railSourceSmoke")==="1"){
   const body=world.getObjectByName("Angular integrated aero-barrier body");
@@ -1065,7 +1195,7 @@ function initScene(){
  UI.hangarBtn.disabled=false;
  UI.trackPicker.value=TRACK_ID_0160;
  UI.trackName.textContent=ACTIVE_TRACK_0160.name;
- UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.2.4";
+ UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.2.5";
  UI.trackTagline.textContent=isAurora()?
   "WIDE SWITCHBACKS · ROLLING HILLS · THREE FAST LAPS.":
   "WIDE ARCS · SMART LINES · THREE FASTER LAPS.";
@@ -1903,6 +2033,7 @@ function loop(now){
    const view=uiState.mode==="playing"&&currentRenderPose?
      interpolatePose(previousRenderPose,currentRenderPose,frameBlend,interpolatedRenderPose):flight;
    whiteCoreContainment?.update(view.s,uiState.mode==="playing");
+   shipWhiteSpill?.update(view.s,targetAccent,uiState.mode==="playing");
    // Flight motion sees the same interpolated 120Hz simulation pose as FX.
    // Ship bank, signature effects, preview and kinetic camera share
    // stable read-only signals. All original springs and handling are kept.
@@ -2094,7 +2225,7 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.21.2.4",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   game:"SKYSHIFT",version:"0.21.2.5",trial:TRIAL.id,exportedAt:new Date().toISOString(),
    timeTrial:{...ghostAudit(timeTrialState),visual:ghostVisual?.stats()??null},
     performanceAudit:{...perfSummary(frameProfiler),preset:perfSettings,
      gpu:gpuClock?.summary()??{available:false,reason:"uninitialized"},
@@ -2104,7 +2235,7 @@ function exportAudit(){
      bloomResolutionScale:neonPipeline?.bloomResolutionScale,
      deviceMemoryGB:navigator.deviceMemory??null,
      devicePixelRatio:devicePixelRatio||1},
-   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.2.4",
+   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.2.5",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -2166,6 +2297,8 @@ function exportAudit(){
       tunnelMegaEnabled,neonInteriorEnabled,tunnelSpectrumEnabled,
       exteriorSealEnabled,exteriorSealProfile:exteriorSealEnabled?EXTERIOR_SEAL_02122:null,
       whiteCoreEnabled,whiteCoreProfile:whiteCoreEnabled?WHITE_CORE_02123:null,
+      shipWhiteSpillEnabled,shipWhiteSpillAudit:shipWhiteSpill?.stats()??null,
+      compareBeforeShipWhite:"?shipWhite=classic",
       railBodyContainmentEnabled,
       railBodyContainment:identitySurface?.getRailBodyContainment?.()??null,
       compareBeforeRailBody:"?railBody=classic",
@@ -2717,7 +2850,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v","0.21.2.4");
+  uri.searchParams.set("v","0.21.2.5");
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);
@@ -2763,7 +2896,7 @@ function installControls(){
   address.searchParams.delete("fidelity");
   // Private-mode storage can be unavailable: keep the OFF choice in URL.
   if(!saved)address.searchParams.set("fidelity",next?"on":"off");
-  address.searchParams.set("v","0.21.2.4");
+  address.searchParams.set("v","0.21.2.5");
   location.assign(address.toString());
  });
  UI.export.addEventListener("click",exportAudit);
@@ -2886,6 +3019,7 @@ try{
    // Browser QA freezes 120Hz simulation, so update visual-only ship light
    // immediately at the teleported position before the slow WebGL frame.
    whiteCoreContainment?.update(s,true);
+   shipWhiteSpill?.update(s,targetAccent,true);
    refreshHud();
    return window.__skyshiftTrackRepairProbe(s);
   };

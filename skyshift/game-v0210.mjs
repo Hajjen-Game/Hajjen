@@ -1070,15 +1070,26 @@ function initScene(){
    if(!roadSolarSpill||!neonPipeline?.render)
     throw Error("Road solar WebGL proof unavailable");
    const original=roadSolarSpill.stats().seal;
+   const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
+   if(!deck)throw Error("Road solar proof missing actual road mesh");
+   const wasVisible=deck.visible;
    const render=level=>{
     roadSolarSpill.setComparison(level);
     neonPipeline.render(0);
     return renderer.domElement.toDataURL("image/png").split(",")[1];
    };
    try{
-    return {classic:render(0),contained:render(1),
+    const classic=render(0),contained=render(1);
+    // Road removed ONLY for the third diagnostic exposure: this
+    // measures an actual deck-pixel mask independently of the ship/rails.
+    deck.visible=false;
+    const absent=render(1);
+    return {classic,contained,absent,
      sealBefore:0,sealAfter:1,s:flight?.s??null};
-   }finally{roadSolarSpill.setComparison(original)}
+   }finally{
+    deck.visible=wasVisible;
+    roadSolarSpill.setComparison(original);
+   }
   };
  // 0.21.2.5 diagnostic: actual rendered ship material and same-frame A/B.
  if(new URLSearchParams(location.search).get("shipWhiteSmoke")==="1")

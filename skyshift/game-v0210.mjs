@@ -954,6 +954,47 @@ function initScene(){
    bloomEnabled:Boolean(neonPipeline?.bloom?.enabled),
    trackDistance:flight?.s??null
   });
+ // 0.21.2.4 QA ONLY — physically identify the overbright white rail
+ // source by isolating body PBR vs colored inlay vs bloom on the SAME frame.
+ if(new URLSearchParams(location.search).get("railSourceSmoke")==="1"){
+  const body=world.getObjectByName("Angular integrated aero-barrier body");
+  const inlay=world.getObjectByName("Thin inset zone accents and curve chevrons");
+  const groove=world.getObjectByName("Recessed graphite cap channels and modular panel seams");
+  const saved={
+   bodyVisible:body?.visible,inlayVisible:inlay?.visible,grooveVisible:groove?.visible,
+   metalness:body?.material?.metalness,roughness:body?.material?.roughness,
+   color:body?.material?.color?.clone(),
+   bloomEnabled:neonPipeline?.bloom?.enabled,
+   ambient:worldLights?.ambient?.intensity,key:worldLights?.key?.intensity,
+   fill:worldLights?.fill?.intensity
+  };
+  window.__skyshiftRailSourceSmoke=(mode="baseline")=>{
+   if(!body||!inlay||!groove)throw Error("Missing named rail meshes");
+   body.visible=saved.bodyVisible;inlay.visible=saved.inlayVisible;
+   groove.visible=saved.grooveVisible;
+   body.material.metalness=saved.metalness;body.material.roughness=saved.roughness;
+   body.material.color.copy(saved.color);
+   neonPipeline.bloom.enabled=saved.bloomEnabled;
+   worldLights.ambient.intensity=saved.ambient;
+   worldLights.key.intensity=saved.key;
+   worldLights.fill.intensity=saved.fill;
+   if(mode==="noBody")body.visible=false;
+   else if(mode==="noInlay")inlay.visible=false;
+   else if(mode==="noRails")body.visible=inlay.visible=groove.visible=false;
+   else if(mode==="noBloom")neonPipeline.bloom.enabled=false;
+   else if(mode==="noWorldKey"){
+    worldLights.key.intensity=0;worldLights.fill.intensity=0;
+    worldLights.ambient.intensity=0;
+   }else if(mode==="bodyMatte"){
+    body.material.metalness=0;body.material.roughness=1;
+    body.material.color.setHex(0x263746);
+   }else if(mode!=="baseline")throw Error("Bad diagnostic "+mode);
+   return {mode,bodyVisible:body.visible,inlayVisible:inlay.visible,
+    bodyMetalness:body.material.metalness,bodyRoughness:body.material.roughness,
+    bloomEnabled:neonPipeline.bloom.enabled,
+    keyIntensity:worldLights.key.intensity};
+  };
+ }
  // QA-only: prove every interior mesh has fog disabled while the
  // global exterior fog and ship lighting remain active and unmodified.
  if(new URLSearchParams(location.search).get("sealSmoke")==="1")

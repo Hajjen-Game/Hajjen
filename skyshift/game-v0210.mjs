@@ -923,6 +923,19 @@ function initScene(){
        x.geometry.attributes.color.getZ(0)]:null}))??[],
    legacyDecorDisabled:!signatureEnvironment&&!cinematicWorld&&!orbitalHero
   });
+ // QA-only: prove every interior mesh has fog disabled while the
+ // global exterior fog and ship lighting remain active and unmodified.
+ if(new URLSearchParams(location.search).get("sealSmoke")==="1")
+  window.__skyshiftExteriorSealProbe=()=>({
+   enabled:exteriorSealEnabled,
+   railGlareScale:identitySurface?.getTunnelGlareScale?.()??1,
+   sceneFogDensity:scene.fog?.density??null,
+   sceneFogPresent:Boolean(scene.fog),
+   globalLightingPresent:Boolean(worldLights?.ambient&&worldLights?.key),
+   materials:(world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1")?.children??[])
+    .map(m=>({name:m.name,fog:m.material?.fog??null,
+     trackS:m.geometry?.getAttribute("trackS")?.count??0}))
+  });
  // Pass 2 hero-only art diagnostics. No simulation changes or test shortcuts.
  if(new URLSearchParams(location.search).get("heroSmoke")==="1")
   window.__skyshiftHeroProbe=()=>({

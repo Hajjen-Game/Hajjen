@@ -946,6 +946,7 @@ function initScene(){
   window.__skyshiftWhiteCoreProbe=()=>({
    enabled:whiteCoreEnabled,
    ...(whiteCoreContainment?.stats()??{}),
+   railGlareScale:identitySurface?.getTunnelGlareScale?.()??null,
    currentShipId:activeShipId,
    roadMaterial:premiumSurface?.material?.type??null,
    worldLightsUnchanged:Boolean(worldLights?.ambient&&worldLights?.key),

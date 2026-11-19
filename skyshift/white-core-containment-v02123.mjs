@@ -57,6 +57,23 @@ export function patchRoadWhiteCore(material){
    "reflectedLight.indirectSpecular*=mix(1.0,0.38,coreContainRoad);",
    "reflectedLight.directDiffuse*=mix(1.0,0.78,coreContainRoad);"
   ].join("\n"));
+  // The largest remaining white region is an HDR-neutral road/guide
+  // highlight which blooms after lighting. A chroma-aware compression
+  // acts AFTER prior road decorators and BEFORE postprocessing.
+  // Importantly, the spectral moving WHITE crest bypasses it.
+  const opaque="#include <opaque_fragment>";
+  if(!shader.fragmentShader.includes(opaque)||
+     !shader.fragmentShader.includes("float whiteCore=0.0"))
+   throw Error("0.21.2.3 needs premium spectral white-core and output chunks");
+  shader.fragmentShader=shader.fragmentShader.replace(opaque,opaque+"\n"+[
+   "float wcMax=max(max(gl_FragColor.r,gl_FragColor.g),gl_FragColor.b);",
+   "float wcMin=min(min(gl_FragColor.r,gl_FragColor.g),gl_FragColor.b);",
+   "float wcLuma=dot(gl_FragColor.rgb,vec3(0.2126,0.7152,0.0722));",
+   "float wcNeutral=1.0-smoothstep(0.22,0.68,(wcMax-wcMin)/max(0.06,wcLuma));",
+   "float wcOverbright=smoothstep(0.55,1.40,wcMax);",
+   "float wcKeepCrest=1.0-smoothstep(0.10,0.60,whiteCore);",
+   "gl_FragColor.rgb*=1.0-0.52*coreContainRoad*wcNeutral*wcOverbright*wcKeepCrest;"
+  ].join("\n"));
  };
  material.customProgramCacheKey=function(){
   return oldKey.call(this)+"-white-core-containment-02123";

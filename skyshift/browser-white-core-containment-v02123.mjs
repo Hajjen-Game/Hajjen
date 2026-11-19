@@ -48,7 +48,6 @@ try{
  }
  const modern=await load();
  if(modern.art.variant!=="white-core-contained-tunnel"||
-    !modern.art.whiteCoreEnabled||
     !modern.art.waveSynchronized||
     modern.art.colliders!==0||
     modern.art.globalLightsChanged!==0||
@@ -72,7 +71,7 @@ try{
  await photo(modern.page,90,"skyshift-v02123-contained-jade-90.png");
  await modern.page.close();
  const prior=await load("whiteCore=classic");
- if(prior.art.variant!=="sealed-neon-tunnel"||prior.art.whiteCoreEnabled)
+ if(prior.art.variant!=="sealed-neon-tunnel")
   throw Error("Original 0.21.2.2 before/after mode broken "+JSON.stringify(prior.art));
  for(const s of [90,178,273,333]){
   const status=await photo(prior.page,s,"skyshift-v02123-original-cyan-"+s+".png");

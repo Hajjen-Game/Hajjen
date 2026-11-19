@@ -941,6 +941,43 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  integrated-neon-flow-v0214-unit:
+    name: SKYSHIFT 0.21.4 synchronized tunnel lines, quiet panels and mobile budget
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate integrated neon, structural profiles, white-spill fixes and game boot
+        run: |
+          node --check skyshift/integrated-neon-flow-v0214.mjs
+          node --check skyshift/browser-integrated-neon-flow-v0214.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/integrated-neon-flow-v0214.test.mjs skyshift/structural-tunnel-v0213.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/ship-white-spill-v02125.test.mjs
+
+  browser-integrated-neon-flow-v0214:
+    name: SKYSHIFT 0.21.4 real WebGL continuous neon flow matched-frame and 4GB QA
+    needs: integrated-neon-flow-v0214-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome driver and screenshot raster inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Require visible continuous wall and ceiling lines across the native zone wave
+        run: node skyshift/browser-integrated-neon-flow-v0214.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0214-integrated-neon-flow-proof
+          path: |
+            skyshift-v0214-*.png
+            skyshift-v0214-neon-flow-proof.json
+
   structural-tunnel-v0213-unit:
     name: SKYSHIFT 0.21.3 structural clearance, panel tessellation and mobile geometry budget
     runs-on: ubuntu-latest

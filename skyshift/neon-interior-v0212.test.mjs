@@ -74,7 +74,7 @@ test("no change to Aurora and original lighting A/B remains available",()=>{
  assert.equal(NEON_INTERIOR_0212.roadMaterialChanged,false);
  assert.equal(NEON_INTERIOR_0212.globalLightsChanged,0);
  const g=read("./game-v0210.mjs");
- assert.match(g,/neonInteriorEnabled\?installNeonDrivenInterior:installTunnelMegastructure/);
+ assert.match(g,/tunnelSpectrumEnabled\?installNeonDrivenInterior:installClassicNeonInterior/);
  assert.match(g,/interiorLight"\)!=="classic"/);
  assert.match(g,/compareBeforeNeonInterior:"\?interiorLight=classic"/);
  assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.21\.2\.1/);

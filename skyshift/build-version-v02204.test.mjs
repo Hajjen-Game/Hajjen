@@ -7,7 +7,7 @@ test("the current published build is the HUD, audit and shared URL version",()=>
  const game=read("./game-v0210.mjs");
  const html=read("./index.html");
  const boot=read("./boot-v0210.js");
- const version=boot.match(/game-v0210\.mjs\?v=(0\.23\.0)/)?.[1];
+ const version=boot.match(/game-v0210\.mjs\?v=(0\.23\.1)/)?.[1];
  assert.ok(version);
  assert.ok(html.includes("boot-v0210.js?v="+version));
  assert.ok(html.includes("SKYLINE CIRCUIT · "+version));

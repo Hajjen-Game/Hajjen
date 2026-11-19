@@ -903,7 +903,7 @@ function initScene(){
     ribbonWindowsEnabled?"ribbon-cleanup":
     (observationWindowsEnabled?"observation-balance":
      enclosedStationEnabled?"enclosed":"classic-open"),
-   importedMeshes:(world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.2.2")??
+   importedMeshes:(world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1")??
     world.getObjectByName("SKYSHIFT · Cinematic Megastructure 0.21.0-A")??
     world.getObjectByName("CONTINUUM STATION · Architectural Rebirth 0.20.5")??
     world.getObjectByName("CONTINUUM STATION · Sculpted Neon 0.20.4.1")??

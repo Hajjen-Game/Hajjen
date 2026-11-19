@@ -849,6 +849,7 @@ function initScene(){
    observationWindowsEnabled?installObservationWorldArt:installEnclosedWorldArt):
   installWorldArt)(THREE,world,{
   track:TRACK_ID_0160,lowMemory:limitedMemory,positionAt,
+  roadMaterial:exteriorSealEnabled?premiumSurface?.material:null,
   vaultHeightClassic:new URLSearchParams(location.search).get("vaultHeight")==="classic"
  });
  // Existing rail paint now reduces its overbright white glare solely inside

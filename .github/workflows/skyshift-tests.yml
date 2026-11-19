@@ -941,6 +941,43 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  cinematic-energy-v0216-unit:
+    name: SKYSHIFT 0.21.6 motion shader, pause, mobile and original flight invariants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate shader runtime, speed data and existing road/white containment
+        run: |
+          node --check skyshift/cinematic-energy-v0216.mjs
+          node --check skyshift/browser-cinematic-energy-v0216.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/cinematic-energy-v0216.test.mjs skyshift/integrated-neon-flow-v0214.test.mjs skyshift/premium-road-surface-v0215.test.mjs skyshift/road-solar-spill-v02126.test.mjs
+
+  browser-cinematic-energy-v0216:
+    name: SKYSHIFT 0.21.6 real WebGL speed-reactive motion and 4GB color QA
+    needs: cinematic-energy-v0216-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome driver and screenshot inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Compare exact same-frame velocity neon glow with classic and mobile
+        run: node skyshift/browser-cinematic-energy-v0216.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0216-cinematic-energy-motion
+          path: |
+            skyshift-v0216-*.png
+            skyshift-v0216-cinematic-motion-proof.json
+
   premium-road-v0215-unit:
     name: SKYSHIFT 0.21.5 road-only PBR finish, white-sun preservation and no gameplay regressions
     runs-on: ubuntu-latest

@@ -76,7 +76,7 @@ test("new version is actually wired as the default, with an exact classic A/B",(
  const g=read("./game-v0210.mjs"),boot=read("./boot-v0210.js");
  const html=read("./index.html");
  assert.match(g,/import \{HERO_0210,installCinematicHero\}/);
- assert.match(g,/cinematicHeroEnabled\?installCinematicHero/);
+ assert.match(g,/cinematicHeroEnabled\?\(cinematicGradeEnabled\?installCinematicGradeHero:installCinematicHero\)/);
  assert.match(g,/cinematicHero"\)!=="classic"/);
  assert.match(g,/version:"0\.21\.0"/);
  assert.match(boot,/game-v0210\.mjs\?v=0\.21\.0/);

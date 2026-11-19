@@ -74,6 +74,8 @@ import {WORLD_ART_0205,installWorldArt as installArchitecturalWorldArt}
  from "./environment-art-pipeline-v0205.mjs";
 import {HERO_0210,installCinematicHero}
  from "./cinematic-hero-v0210.mjs";
+import {CINEMATIC_GRADE_0210B,installCinematicGradeHero}
+ from "./cinematic-grade-v0210b.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
@@ -144,6 +146,8 @@ const architecturalRebirthEnabled=sculptedNeonEnabled&&
 const reviewedLegacyVersion=/^0\.20\./.test(new URLSearchParams(location.search).get("v")||"");
 const cinematicHeroEnabled=architecturalRebirthEnabled&&!reviewedLegacyVersion&&
  new URLSearchParams(location.search).get("cinematicHero")!=="classic";
+const cinematicGradeEnabled=cinematicHeroEnabled&&
+ new URLSearchParams(location.search).get("cinematicGrade")!=="classic";
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -811,7 +815,7 @@ function initScene(){
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
  if(rebirthEnabled)stationWorld=(enclosedStationEnabled?
-  (cinematicHeroEnabled?installCinematicHero:
+  (cinematicHeroEnabled?(cinematicGradeEnabled?installCinematicGradeHero:installCinematicHero):
    architecturalRebirthEnabled?installArchitecturalWorldArt:
    sculptedNeonEnabled?installSculptedNeonWorldArt:
    premiumNeonEnabled?installPremiumNeonWorldArt:
@@ -856,7 +860,8 @@ function initScene(){
   window.__skyshiftArtProbe=()=>({
    enabled:rebirthEnabled,track:TRACK_ID_0160,
    ...(stationWorld?.stats?.()??{active:false,status:"classic",installedBays:0,drawBatches:0}),
-   variant:cinematicHeroEnabled?"cinematic-megastructure":
+   variant:cinematicGradeEnabled?"cinematic-material-light":
+    cinematicHeroEnabled?"cinematic-megastructure":
     architecturalRebirthEnabled?"architectural-rebirth":
     sculptedNeonEnabled?"sculpted-premium-neon":
     premiumNeonEnabled?"premium-integrated-neon":
@@ -1949,7 +1954,7 @@ function exportAudit(){
      bloomResolutionScale:neonPipeline?.bloomResolutionScale,
      deviceMemoryGB:navigator.deviceMemory??null,
      devicePixelRatio:devicePixelRatio||1},
-   visual:{pipeline:"HDR UnrealBloom",tier:"Cinematic Megastructure 0.21.0-A",
+   visual:{pipeline:"HDR UnrealBloom",tier:"Cinematic Material & Light 0.21.0-B",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -2005,7 +2010,9 @@ function exportAudit(){
        enclosedStationEnabled?WORLD_ART_0201:WORLD_ART_0200).assetPath,
       enclosedStationEnabled,observationWindowsEnabled,ribbonWindowsEnabled,
       graphiteGradeEnabled,premiumNeonEnabled,sculptedNeonEnabled,
-      architecturalRebirthEnabled,cinematicHeroEnabled,
+      architecturalRebirthEnabled,cinematicHeroEnabled,cinematicGradeEnabled,
+      materialGradeProfile:cinematicGradeEnabled?CINEMATIC_GRADE_0210B:null,
+      compareBeforeCinematicGrade:"?cinematicGrade=classic",
       compareBeforeCinematicHero:"?cinematicHero=classic",
       roadWidthUnchanged:true,roadMaterialStillOriginal:true,
       extraReflectionPasses:0,geometryOnlyRoadGlints:true,

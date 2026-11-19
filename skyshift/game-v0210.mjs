@@ -930,8 +930,7 @@ function initScene(){
   window.__skyshiftArtProbe=()=>({
    enabled:rebirthEnabled,track:TRACK_ID_0160,
    ...(stationWorld?.stats?.()??{active:false,status:"classic",installedBays:0,drawBatches:0}),
-   variant:roadSolarEnabled?"road-solar-spill-contained":
-    shipWhiteSpillEnabled?"ship-white-spill-contained":
+   variant:shipWhiteSpillEnabled?"ship-white-spill-contained":
     railBodyContainmentEnabled?"rail-body-highlight-contained":
     whiteCoreEnabled?"white-core-contained-tunnel":
     exteriorSealEnabled?"sealed-neon-tunnel":

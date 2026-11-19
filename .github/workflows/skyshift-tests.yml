@@ -941,6 +941,43 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  structural-tunnel-v0213-unit:
+    name: SKYSHIFT 0.21.3 structural clearance, panel tessellation and mobile geometry budget
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate architecture modules and existing physics/visual regressions
+        run: |
+          node --check skyshift/structural-tunnel-v0213.mjs
+          node --check skyshift/browser-structural-tunnel-v0213.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/structural-tunnel-v0213.test.mjs skyshift/tunnel-megastructure-v0211.test.mjs skyshift/road-solar-spill-v02126.test.mjs
+
+  browser-structural-tunnel-v0213:
+    name: SKYSHIFT 0.21.3 same-frame real WebGL tunnel panels and mobile 4GB
+    needs: structural-tunnel-v0213-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome browser driver and screenshot inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Compare same camera physical tunnel with/without structure across cyan gold jade and mobile
+        run: node skyshift/browser-structural-tunnel-v0213.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0213-structural-tunnel-comparison
+          path: |
+            skyshift-v0213-*.png
+            skyshift-v0213-structural-proof.json
+
   road-solar-spill-v02126-unit:
     name: SKYSHIFT 0.21.2.6 road-only solar PBR seal and no-gameplay regressions
     runs-on: ubuntu-latest

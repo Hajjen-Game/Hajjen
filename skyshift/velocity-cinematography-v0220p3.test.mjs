@@ -98,8 +98,8 @@ test("new release preserves older 0.22.0 and 0.22.0.2 visual comparisons",()=>{
  assert.match(game,/velocityCinematography\?\.setQualityLevel/);
  assert.match(game,/speedMultiplier:\(flight\?\.currentSpeed\?\?0\)\/Math\.max\(1,TRIAL\.startSpeed\)/);
  assert.match(game,/compareBeforeVelocityCinema:"\?velocityCinema=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.22\.0\.3/);
- assert.match(read("./index.html"),/0\.22\.0\.3/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.22\.0\.4/);
+ assert.match(read("./index.html"),/0\.22\.0\.4/);
 });
 test("physically unchanged ship, grip, HDR white core and performance cap",()=>{
  const c=VELOCITY_CINEMA_0220_P3;

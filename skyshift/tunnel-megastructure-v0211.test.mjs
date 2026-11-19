@@ -120,7 +120,7 @@ test("flight physics, steering, grip, camera, road and colors are not replaced",
  assert.match(game,/tunnelMegaEnabled\?\(neonInteriorEnabled\?\s*\(tunnelSpectrumEnabled\?\(exteriorSealEnabled\?installExteriorLightSeal:installNeonDrivenInterior\):installClassicNeonInterior\):\s*installTunnelMegastructure\)/);
  assert.match(game,/tunnelMega"\)!=="classic"/);
  assert.match(game,/compareBeforeTunnel:"\?tunnelMega=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.22\.0\.3/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.22\.0\.4/);
  assert.match(read("./index.html"),/boot-v0210\.js\?v=0\.22\.0\.2/);
  const old=read("./game-v0205.mjs");
  assert.ok(!old.includes("tunnel-megastructure-v0211"));

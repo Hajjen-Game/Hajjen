@@ -941,6 +941,43 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  unified-grade-p4-v02204-unit:
+    name: SKYSHIFT 0.22.0 Pass 4 unified HDR contrast, protected road and solar isolation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate unified grade and all prior 0.22.0 visual stages
+        run: |
+          node --check skyshift/unified-cinematic-grade-v0220p4.mjs
+          node --check skyshift/browser-unified-cinematic-grade-v0220p4.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/unified-cinematic-grade-v0220p4.test.mjs skyshift/velocity-cinematography-v0220p3.test.mjs skyshift/cinematic-neon-lighting-v0220p2.test.mjs skyshift/premium-material-rebirth-v0220.test.mjs skyshift/road-solar-spill-v02126.test.mjs
+
+  browser-unified-grade-p4-v02204:
+    name: SKYSHIFT 0.22.0 Pass 4 real WebGL graphite and neon grade cyan gold jade mobile
+    needs: unified-grade-p4-v02204-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome and pixel inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Verify real same-frame spectral grade, protected road and no white spill
+        run: node skyshift/browser-unified-cinematic-grade-v0220p4.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0220p4-unified-cinematic-grade-screenshots
+          path: |
+            skyshift-v0220p4-*.png
+            skyshift-v0220p4-proof.json
+
   velocity-cinema-p3-v02203-unit:
     name: SKYSHIFT 0.22.0 Pass 3 selective blur, protected racing line and adaptive performance
     runs-on: ubuntu-latest

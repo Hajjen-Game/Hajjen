@@ -947,6 +947,7 @@ function initScene(){
    enabled:whiteCoreEnabled,
    ...(whiteCoreContainment?.stats()??{}),
    railGlareScale:identitySurface?.getTunnelGlareScale?.()??null,
+   railWhiteContainment:identitySurface?.getRailNeutralContainment?.()??null,
    currentShipId:activeShipId,
    roadMaterial:premiumSurface?.material?.type??null,
    worldLightsUnchanged:Boolean(worldLights?.ambient&&worldLights?.key),

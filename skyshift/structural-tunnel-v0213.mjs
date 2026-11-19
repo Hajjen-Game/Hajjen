@@ -136,13 +136,17 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
  const roof=lowMemory?[12,14,16,18]:ROOF;
  let plates=0,arches=0;
  for(let bay=0,s=.8;s<368;s+=STRUCTURAL_TUNNEL_0213.bayPitch,bay++){
-  const intervals=keptSpans(s,s+12.8);
-  for(const [a,b] of intervals)for(const j of [...walls,...roof]){
+  for(const j of [...walls,...roof]){
+   // Avoid the "identical square corridor" rhythm. Structural joins stay
+   // staggered per facet, while all openings around neon portals stay free.
+   const offset=j%3===0?-.65:j%3===1?.80:.12;
    const isRoof=roof.includes(j);
    const alternate=(bay+j)%4===0;
    const color=isRoof?(alternate?COLORS.roofAlt:COLORS.roof):
     (alternate?COLORS.panelAlt:COLORS.panel);
-   makePlate(primary,positionAt,options,a,b,j,color,lowMemory);plates++;
+   for(const [a,b] of keptSpans(s+offset,s+12.8+offset)){
+    makePlate(primary,positionAt,options,a,b,j,color,lowMemory);plates++;
+   }
   }
  }
  // Secondary cross-members between the existing ~42m neon portal arches.

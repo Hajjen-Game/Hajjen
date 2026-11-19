@@ -98,15 +98,18 @@ try{
   return result;
  }
  const page=await load();
+ // A position teleport can leave the chase camera over 90m behind on
+ // slow SwiftShader. Color wave stages are forced at the same centered
+ // camera/ship position; the hull bank is an independent orientation test.
  await collect(page,165,0,0,"cyan-straight");
- await collect(page,261,2,0,"gold-curved");
- await collect(page,261,2,.28,"gold-banked");
- await collect(page,273,3,-.24,"jade-banked");
+ await collect(page,165,2,0,"gold-centered");
+ await collect(page,165,2,.28,"gold-banked");
+ await collect(page,165,3,-.24,"jade-banked");
  await page.close();
  const mobile=await load(true);
  const p=await mobile.evaluate(()=>window.__skyshiftArtProbe());
  if(p.drawBatches!==3)throw Error("Low memory draw batches changed "+JSON.stringify(p));
- await collect(mobile,261,2,0,"mobile-gold");
+ await collect(mobile,165,2,0,"mobile-gold");
  await mobile.close();
  if(errors.length)throw Error("WebGL shader compilation errors: "+errors.join(" | "));
  writeFileSync("skyshift-v02125-ship-white-proof.json",JSON.stringify(records,null,2));

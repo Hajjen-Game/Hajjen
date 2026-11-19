@@ -941,6 +941,43 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  physical-material-v0230-unit:
+    name: SKYSHIFT 0.23.0 Pass 1 GGX neon metal and solar isolation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check original banked frame, mesh compatibility and solar containment
+        run: |
+          node --check skyshift/physical-material-rebuild-v0230.mjs
+          node --check skyshift/browser-physical-material-v0230.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/physical-material-rebuild-v0230.test.mjs skyshift/cinematic-neon-lighting-v0220p2.test.mjs skyshift/premium-material-rebirth-v0220.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/build-version-v02204.test.mjs
+
+  browser-physical-material-v0230:
+    name: SKYSHIFT 0.23.0 P1 real WebGL GGX neon metal 8GB and 4GB
+    needs: physical-material-v0230-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser and PNG inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Same-frame metal A/B cyan/gold/jade and mobile road protection
+        run: node skyshift/browser-physical-material-v0230.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0230-p1-metal-study
+          path: |
+            skyshift-v0230p1-*.png
+            skyshift-v0230p1-proof.json
+
   unified-grade-p4-v02204-unit:
     name: SKYSHIFT 0.22.0 Pass 4 unified HDR contrast, protected road and solar isolation
     runs-on: ubuntu-latest

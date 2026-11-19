@@ -9,8 +9,8 @@ export const CINEMATIC_GRADE_0210B=Object.freeze({
  id:"cinematic-environment-0210-b",version:"0.21.0-B",
  base:HERO_0210.id,comparison:"?cinematicGrade=classic",
  staticLightResponse:true,lightmapApproach:"road-conforming vertex geometry",
- hullMetalness:.28,hullRoughness:.56,
- facetMetalness:.38,facetRoughness:.43,
+ hullMetalness:.50,hullRoughness:.68,
+ facetMetalness:.54,facetRoughness:.60,
  noEnvironmentProbe:true,addedDynamicLights:0,addedRenderPasses:0,
  newRoadMaterial:false,newRoadColliders:0,globalExposureChange:0,
  globalFogChange:0,shipOrGRIPChange:0,
@@ -23,10 +23,10 @@ const rgb=hex=>[linear(hex>>16&255),linear(hex>>8&255),linear(hex&255)];
 // All swatches are authored as sRGB, converted to linear vertex colors.
 const C=Object.freeze({
  bezel:0x2b4f68,bezelLow:0x10283e,bezelHigh:0x6089a3,
- darkCyan:0x0b4569,darkPink:0x4b1339,
+ darkCyan:0x09304c,darkPink:0x2d0d2a,
  warmSpec:0xc8dcf0,coolSpec:0x61b9df,
- wallCyan:0x0874a6,wallPink:0x9b2666,
- roofCyan:0x155a86,reflectionCyan:0x1885a9,
+ wallCyan:0x1b5879,wallPink:0x6e2249,
+ roofCyan:0x104267,reflectionCyan:0x1885a9,
  reflectionPink:0x9a225c,nearlyBlack:0x020712
 });
 function gradedSurfaces(positionAt){
@@ -61,6 +61,15 @@ function gradedSurfaces(positionAt){
     p(15.77,30.62,a+.22),p(10.02,33.48,a+.22),
     p(10.02,33.48,b-.22),p(15.77,30.62,b-.22)
    ],[C.bezelLow,C.bezelHigh,C.bezel,C.bezelLow]);
+   // A thin satin ridge makes the actual diagonal wall panel legible;
+   // importantly this is a metal edge, NOT an added glowing rectangle.
+   if(kind!=="PANORAMA"){
+    const ridge=a+((i%3)+1)*3.05;
+    quad("BEVEL",[
+     p(14.53,22.72,a+.25),p(17.57,23.52,ridge),
+     p(17.57,24.06,ridge),p(14.53,23.02,a+.25)
+    ],[C.bezelLow,C.bezelHigh,C.bezel,C.bezelLow]);
+   }
    // Cross-light that glances along the pressure hull's real diagonal
    // faces: two triangles with a smooth authored per-vertex fade.
    if(kind!=="PANORAMA"){
@@ -142,7 +151,7 @@ export function installCinematicGradeHero(THREE,world,options={}){
    const next=new THREE.MeshStandardMaterial({
     color:0xffffff,vertexColors:true,side:THREE.DoubleSide,
     metalness,roughness,
-    emissive:0x0f263e,emissiveIntensity:.13,
+    emissive:0x081929,emissiveIntensity:.18,
     flatShading:true
    });
    old.push([mesh,previous]);
@@ -163,14 +172,14 @@ export function installCinematicGradeHero(THREE,world,options={}){
    geometry.computeBoundingSphere();
    let material;
    if(kind==="BEVEL")material=new THREE.MeshStandardMaterial({
-    color:0xffffff,vertexColors:true,metalness:.24,roughness:.42,
+    color:0xffffff,vertexColors:true,metalness:.44,roughness:.56,
     emissive:0x14283b,emissiveIntensity:.10,side:THREE.DoubleSide
    });
    else material=new THREE.MeshBasicMaterial({
     color:0xffffff,vertexColors:true,side:THREE.DoubleSide,
     toneMapped:false,transparent:true,depthWrite:false,
     depthTest:true,
-    opacity:kind==="BOUNCE"?(options.lowMemory?.24:.38):.18,
+    opacity:kind==="BOUNCE"?(options.lowMemory?.16:.23):.13,
     blending:THREE.AdditiveBlending,
     polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-1
    });

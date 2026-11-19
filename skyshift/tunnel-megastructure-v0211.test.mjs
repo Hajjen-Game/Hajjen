@@ -117,7 +117,7 @@ test("flight physics, steering, grip, camera, road and colors are not replaced",
  assert.equal(x.colliderCount,0);
  assert.equal(x.newRenderPasses,0);
  const game=read("./game-v0210.mjs");
- assert.match(game,/tunnelMegaEnabled\?installTunnelMegastructure/);
+ assert.match(game,/tunnelMegaEnabled\?\(neonInteriorEnabled\?installNeonDrivenInterior:installTunnelMegastructure\)/);
  assert.match(game,/tunnelMega"\)!=="classic"/);
  assert.match(game,/compareBeforeTunnel:"\?tunnelMega=classic"/);
  assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.21\.2/);

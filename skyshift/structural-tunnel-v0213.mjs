@@ -98,9 +98,42 @@ function keptSpans(from,to){
 }
 const WALL=[5,6,7,8,9,10,19,20,21,22,23,24];
 const ROOF=[12,13,14,15,16,17,18];
+// 0.23.1 true-relief insert: genuine layered cross-section facets, not a
+// painted border. Original vaulted profile and roof/road clearance enforced.
+function makeDepthStudyPlate(target,positionAt,options,s0,s1,j,swatch,colors){
+ const a=s0+.26,b=s1-.26;
+ if(b-a<1.1)return;
+ const steps=Math.ceil((b-a)/2);
+ const strip=(x,y,t0,d0,t1,d1,t2,d2,t3,d3,col,glow)=>{
+  quad(target,[[x,j,t0,d0],[x,j,t1,d1],
+   [y,j,t2,d2],[y,j,t3,d3]],col,positionAt,options,glow);
+ };
+ for(let i=0;i<steps;i++){
+  const x=mix(a,b,i/steps),y=mix(a,b,(i+1)/steps);
+  strip(x,y,.028,.035,.067,.075,.067,.075,.028,.035,colors.groove,0);
+  strip(x,y,.067,.075,.178,.58,.178,.58,.067,.075,colors.lip,.004);
+  strip(x,y,.178,.58,.822,.58,.822,.58,.178,.58,swatch,.008);
+  strip(x,y,.822,.58,.933,.075,.933,.075,.822,.58,colors.brace,.004);
+  strip(x,y,.933,.075,.972,.035,.972,.035,.933,.075,colors.shadow,0);
+  // True thin raised machined edges, no emission / bloom added.
+  strip(x,y,.178,.592,.204,.592,.204,.592,.178,.592,colors.lip,.003);
+  strip(x,y,.796,.592,.822,.592,.822,.592,.796,.592,colors.lip,.003);
+ }
+ for(const [end,reverse] of [[a,false],[b,true]]){
+  const verts=[[end,j,.067,.075],[end,j,.933,.075],
+   [end,j,.822,.58],[end,j,.178,.58]];
+  quad(target,reverse?verts.slice().reverse():verts,
+   colors.shadow,positionAt,options,0);
+ }
+}
 // Break each architectural plate at the original 2 m mesh sampling
 // cadence so it hugs real track curvature rather than bridging a turn.
-function makePlate(target,positionAt,options,s0,s1,j,swatch,lowMemory,colors=COLORS){
+function makePlate(target,positionAt,options,s0,s1,j,swatch,lowMemory,
+ colors=COLORS,depthStudy=false){
+ if(depthStudy&&!lowMemory&&s0>=98&&s1<=284){
+  makeDepthStudyPlate(target,positionAt,options,s0,s1,j,swatch,colors);
+  return;
+ }
  const steps=Math.ceil((s1-s0)/(lowMemory?3.5:2));
  const pad=.26;
  const a=s0+pad,b=s1-pad;
@@ -137,7 +170,7 @@ function makeSecondarySupport(dest,positionAt,options,s,j,colors=COLORS){
   colors.brace,positionAt,options,.007);
 }
 export function buildStructuralTunnelData(positionAt,{lowMemory=false,
- vaultHeightClassic=false,flowCohesion=false}={}){
+ vaultHeightClassic=false,flowCohesion=false,depthStudy=false}={}){
  if(typeof positionAt!=="function")
   throw Error("0.21.3 requires the original positionAt curve sampler");
  const options={vaultHeightClassic};
@@ -158,7 +191,7 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
    const color=isRoof?(alternate?colors.roofAlt:colors.roof):
     (alternate?colors.panelAlt:colors.panel);
    for(const [a,b] of keptSpans(s+offset,s+baySpan+offset)){
-    makePlate(primary,positionAt,options,a,b,j,color,lowMemory,colors);plates++;
+    makePlate(primary,positionAt,options,a,b,j,color,lowMemory,colors,depthStudy);plates++;
    }
   }
  }
@@ -195,7 +228,7 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
  return {primary,detail,plateCount:plates,secondaryArchCount:arches,
   geometryBatches:lowMemory?1:2,
   totalTriangles:primary.triangles+(lowMemory?0:detail.triangles),
-  flowCohesion,architecturalBayPitch:bayPitch};
+  flowCohesion,depthStudy:Boolean(depthStudy&&!lowMemory),architecturalBayPitch:bayPitch};
 }
 function disposeMesh(mesh){
  mesh?.removeFromParent?.();

@@ -14,7 +14,8 @@ test("PBR rail body has precise arc-length on BOTH sides and no geometry edits",
  assert.ok(Math.abs(g.trackS.at(-1)-10200)<2);
  // Every row follows the exact same s, not estimated from world XYZ.
  for(let i=0;i<g.columns;i++)assert.equal(g.trackS[i],0);
- for(let i=1;i<g.columns*2;i++)assert.equal(g.trackS[i],g.trackS[i-g.columns]);
+ for(let row=0;row<3;row++)for(let j=1;j<g.columns;j++)
+  assert.equal(g.trackS[row*g.columns+j],g.trackS[row*g.columns]);
 });
 test("only PBR metal shell changes, LED inlay shader stays original",()=>{
  const v="#include <common>\n#include <begin_vertex>";

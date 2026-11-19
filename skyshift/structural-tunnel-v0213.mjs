@@ -104,9 +104,19 @@ function makeDepthStudyPlate(target,positionAt,options,s0,s1,j,swatch,colors){
  const a=s0+.26,b=s1-.26;
  if(b-a<1.1)return;
  const steps=Math.ceil((b-a)/2);
+ const smooth=t=>{const v=Math.min(1,Math.max(0,t));return v*v*(3-2*v)};
+ // Ease the true 3D relief into the original 0.34 m plates at both ends.
+ // Previously panels appeared suddenly 0.24 m taller at a complete bay.
+ const relief=(s)=>smooth((s-96)/26)*smooth((286-s)/26);
+ const shaped=(s,d)=>{
+  if(d>=.58)return .34+(d-.34)*relief(s);
+  if(d>=.075)return .11+(d-.11)*relief(s);
+  return d;
+ };
  const strip=(x,y,t0,d0,t1,d1,t2,d2,t3,d3,col,glow)=>{
-  quad(target,[[x,j,t0,d0],[x,j,t1,d1],
-   [y,j,t2,d2],[y,j,t3,d3]],col,positionAt,options,glow);
+  quad(target,[[x,j,t0,shaped(x,d0)],[x,j,t1,shaped(x,d1)],
+   [y,j,t2,shaped(y,d2)],[y,j,t3,shaped(y,d3)]],
+   col,positionAt,options,glow);
  };
  for(let i=0;i<steps;i++){
   const x=mix(a,b,i/steps),y=mix(a,b,(i+1)/steps);
@@ -120,8 +130,8 @@ function makeDepthStudyPlate(target,positionAt,options,s0,s1,j,swatch,colors){
   strip(x,y,.796,.592,.822,.592,.822,.592,.796,.592,colors.lip,.003);
  }
  for(const [end,reverse] of [[a,false],[b,true]]){
-  const verts=[[end,j,.067,.075],[end,j,.933,.075],
-   [end,j,.822,.58],[end,j,.178,.58]];
+  const verts=[[end,j,.067,shaped(end,.075)],[end,j,.933,shaped(end,.075)],
+   [end,j,.822,shaped(end,.58)],[end,j,.178,shaped(end,.58)]];
   quad(target,reverse?verts.slice().reverse():verts,
    colors.shadow,positionAt,options,0);
  }

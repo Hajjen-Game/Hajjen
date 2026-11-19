@@ -136,7 +136,7 @@ test("sealed vault and ribs remain on original 0.23.0 shader",()=>{
  assert.match(source,/trueDepth0231PreservedNativeNeon:true/);
  assert.match(source,/trueDepth0231UntouchedRoles:\["shell","rib"\]/);
  assert.doesNotMatch(source,/d31FaceColor|d31EdgeColor|d31CutColor/);
- assert.match(source,/version:"0\.23\.1\.1"/);
+ assert.match(source,/version:"0\.23\.1\.1\.1"/);
  const structural=read("./structural-tunnel-v0213.mjs");
  assert.match(structural,/const relief=\(s\)=>smooth/);
  assert.match(structural,/shaped\(x,d0\)/);
@@ -148,6 +148,6 @@ test("game exposes real pass, version, and exact frame comparison",()=>{
  assert.match(game,/__skyshiftTrueDepthProbe/);
  assert.match(game,/__skyshiftTrueDepthFrameProof/);
  assert.match(game,/compareBeforeTrueDepth:"\?trueDepth=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.1\.1/);
- assert.match(read("./index.html"),/0\.23\.1\.1/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.1\.1\.1/);
+ assert.match(read("./index.html"),/0\.23\.1\.1\.1/);
 });

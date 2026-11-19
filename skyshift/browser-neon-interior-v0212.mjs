@@ -19,7 +19,7 @@ try{
   p.on("console",m=>{if(m.type()==="error"&&/WebGLProgram|Shader Error|INVALID_OPERATION/i.test(m.text()))
    errors.push(m.text().slice(0,500))});
   await p.addInitScript(v=>Object.defineProperty(navigator,"deviceMemory",{get:()=>v,configurable:true}),mem);
-  await p.goto("http://127.0.0.1:8798/skyshift/?v=0.21.2&artSmoke=1&trackRepairSmoke=1&"+query,
+  await p.goto("http://127.0.0.1:8798/skyshift/?v=0.21.2.1&artSmoke=1&trackRepairSmoke=1&tunnelSpectrum=classic&"+query,
    {waitUntil:"domcontentloaded",timeout:60000});
   await p.waitForFunction(()=>window.__skyshiftBoot?.phase==="ready",null,{timeout:75000});
   await p.waitForFunction(()=>["active","fallback","fallback-materials"].includes(

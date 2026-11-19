@@ -72,10 +72,10 @@ export const VELOCITY_SHADER_0220_P3={
   " vec2 radius=direction*uCinemaPixelSize*uCinemaMaxPixels*energy;",
   " // Symmetric 5-tap HDR blur; no generated white/neutral sun pixel.",
   " vec3 response=clean.rgb*0.48;",
-  " response+=texture2D(tDiffuse,clamp(vUv-radius,0.001,0.999)).rgb*0.13;",
-  " response+=texture2D(tDiffuse,clamp(vUv+radius,0.001,0.999)).rgb*0.13;",
-  " response+=texture2D(tDiffuse,clamp(vUv-radius*0.52,0.001,0.999)).rgb*0.13;",
-  " response+=texture2D(tDiffuse,clamp(vUv+radius*0.52,0.001,0.999)).rgb*0.13;",
+  " response+=texture2D(tDiffuse,clamp(vUv-radius,vec2(0.001),vec2(0.999))).rgb*0.13;",
+  " response+=texture2D(tDiffuse,clamp(vUv+radius,vec2(0.001),vec2(0.999))).rgb*0.13;",
+  " response+=texture2D(tDiffuse,clamp(vUv-radius*0.52,vec2(0.001),vec2(0.999))).rgb*0.13;",
+  " response+=texture2D(tDiffuse,clamp(vUv+radius*0.52,vec2(0.001),vec2(0.999))).rgb*0.13;",
   " gl_FragColor=vec4(response,clean.a);",
   "}"
  ].join("\n")

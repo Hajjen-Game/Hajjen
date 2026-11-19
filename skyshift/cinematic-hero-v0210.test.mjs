@@ -78,9 +78,9 @@ test("new version is actually wired as the default, with an exact classic A/B",(
  assert.match(g,/import \{HERO_0210,installCinematicHero\}/);
  assert.match(g,/cinematicHeroEnabled\?\(cinematicGradeEnabled\?installCinematicGradeHero:installCinematicHero\)/);
  assert.match(g,/cinematicHero"\)!=="classic"/);
- assert.match(g,/version:"0\.21\.6"/);
- assert.match(boot,/game-v0210\.mjs\?v=0\.21\.6/);
- assert.match(html,/boot-v0210\.js\?v=0\.21\.6/);
+ assert.match(g,/version:"0\.22\.0"/);
+ assert.match(boot,/game-v0210\.mjs\?v=0\.22\.0/);
+ assert.match(html,/boot-v0210\.js\?v=0\.22\.0/);
  assert.equal(read("./game-v0205.mjs").includes(
   'from "./cinematic-hero-v0210.mjs"'),false,
   "The 0.20.5 engine baseline stays untouched");

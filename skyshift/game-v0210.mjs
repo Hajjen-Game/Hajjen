@@ -86,6 +86,8 @@ import {TUNNEL_SPECTRUM_02121}
  from "./tunnel-spectrum-v02121.mjs";
 import {EXTERIOR_SEAL_02122,installExteriorLightSeal}
  from "./tunnel-exterior-seal-v02122.mjs";
+import {STRUCTURAL_TUNNEL_0213,installStructuralTunnelRebuild}
+ from "./structural-tunnel-v0213.mjs";
 import {WHITE_CORE_02123,createWhiteCoreContainment}
  from "./white-core-containment-v02123.mjs";
 import {SHIP_WHITE_SPILL_02125,createShipWhiteSpillController}
@@ -189,6 +191,10 @@ const shipWhiteSpillEnabled=whiteCoreEnabled&&
 // 0.21.2.6: world sun/hemisphere may not bleach the PBR road INSIDE the tunnel.
 const roadSolarEnabled=whiteCoreEnabled&&
  new URLSearchParams(location.search).get("roadSolar")!=="classic";
+// 0.21.3 additive hard-surface art, safely gated from historical A/B versions.
+const structuralTunnelEnabled=exteriorSealEnabled&&
+ new URLSearchParams(location.search).get("tunnelStructure")!=="classic"&&
+ !/^0\\.21\\.[0-2](?:\\.|$)/.test(new URLSearchParams(location.search).get("v")||"");
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -862,7 +868,8 @@ function initScene(){
  // 0.20.5 World Art Pipeline: coherent, authored glTF station interior.
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
- if(rebirthEnabled)stationWorld=(enclosedStationEnabled?
+ if(rebirthEnabled)stationWorld=(structuralTunnelEnabled?installStructuralTunnelRebuild:
+   enclosedStationEnabled?
   (tunnelMegaEnabled?(neonInteriorEnabled?
     (tunnelSpectrumEnabled?(exteriorSealEnabled?installExteriorLightSeal:installNeonDrivenInterior):installClassicNeonInterior):
     installTunnelMegastructure):
@@ -1052,6 +1059,26 @@ function initScene(){
     worldLights.fill.intensity=levels.fill;
     engineLights.forEach((x,i)=>x.intensity=engines[i]);
    }
+  };
+ // 0.21.3: same-frame structural art-only comparison, no simulation step.
+ if(new URLSearchParams(location.search).get("structureFrameProof")==="1")
+  window.__skyshiftStructureFrameProof=()=>{
+   if(!structuralTunnelEnabled||!neonPipeline?.render)
+    throw Error("Structural tunnel same-frame proof unavailable");
+   const group=world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1");
+   const meshes=group?.children?.filter(o=>
+    /Tunnel \\/ (HARDSURFACE_PANELS|STRUCTURAL_CONDUITS)/.test(o.name)||
+    /HARDSURFACE_PANELS|STRUCTURAL_CONDUITS/.test(o.name))??[];
+   if(!meshes.length)throw Error("Structural tunnel meshes absent");
+   const original=meshes.map(m=>m.visible);
+   const draw=active=>{
+    for(const m of meshes)m.visible=active;
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:draw(false),structural:draw(true),
+    panels:meshes.length,trackS:flight?.s??null}}
+   finally{meshes.forEach((m,i)=>m.visible=original[i])}
   };
  // 0.21.2.6: EXACT same-frame road-only lighting comparison (no physics tick).
  if(new URLSearchParams(location.search).get("roadSolarSmoke")==="1")
@@ -2340,6 +2367,8 @@ function exportAudit(){
       architecturalRebirthEnabled,cinematicHeroEnabled,cinematicGradeEnabled,
       tunnelMegaEnabled,neonInteriorEnabled,tunnelSpectrumEnabled,
       exteriorSealEnabled,exteriorSealProfile:exteriorSealEnabled?EXTERIOR_SEAL_02122:null,
+       structuralTunnelEnabled,structuralProfile:structuralTunnelEnabled?STRUCTURAL_TUNNEL_0213:null,
+       compareBeforeStructure:"?tunnelStructure=classic",
       whiteCoreEnabled,whiteCoreProfile:whiteCoreEnabled?WHITE_CORE_02123:null,
       roadSolarEnabled,roadSolarProfile:roadSolarEnabled?ROAD_SOLAR_SPILL_02126:null,
       roadSolarAudit:roadSolarSpill?.stats()??null,

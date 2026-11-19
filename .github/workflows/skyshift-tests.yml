@@ -941,6 +941,43 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  velocity-cinema-p3-v02203-unit:
+    name: SKYSHIFT 0.22.0 Pass 3 selective blur, protected racing line and adaptive performance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify original HDR pipeline and composited speed/boost blur
+        run: |
+          node --check skyshift/velocity-cinematography-v0220p3.mjs
+          node --check skyshift/browser-velocity-cinematography-v0220p3.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/velocity-cinematography-v0220p3.test.mjs skyshift/cinematic-neon-lighting-v0220p2.test.mjs skyshift/premium-material-rebirth-v0220.test.mjs skyshift/road-solar-spill-v02126.test.mjs
+
+  browser-velocity-cinema-p3-v02203:
+    name: SKYSHIFT 0.22.0 Pass 3 real WebGL speed streaks and protected mobile fallback
+    needs: velocity-cinema-p3-v02203-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome driver and screenshot raster checker
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Verify genuine before-after wall velocity smears and crisp center corridor
+        run: node skyshift/browser-velocity-cinematography-v0220p3.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0220p3-velocity-cinematography-proof
+          path: |
+            skyshift-v0220p3-*.png
+            skyshift-v0220p3-velocity-proof.json
+
   cinematic-neon-p2-v02202-unit:
     name: SKYSHIFT 0.22.0 Pass 2 banked local neon lighting, MeshBasic solar isolation and mobile
     runs-on: ubuntu-latest

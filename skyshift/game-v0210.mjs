@@ -829,7 +829,8 @@ function initScene(){
    ribbonWindowsEnabled?installRibbonWindowArt:
    observationWindowsEnabled?installObservationWorldArt:installEnclosedWorldArt):
   installWorldArt)(THREE,world,{
-  track:TRACK_ID_0160,lowMemory:limitedMemory,positionAt
+  track:TRACK_ID_0160,lowMemory:limitedMemory,positionAt,
+  vaultHeightClassic:new URLSearchParams(location.search).get("vaultHeight")==="classic"
  });
  // 0.12.0's roadside sculptures resembled extra poles. Remove entirely;
  // the ship and camera now carry the visual identity with zero added draws.
@@ -876,7 +877,7 @@ function initScene(){
     ribbonWindowsEnabled?"ribbon-cleanup":
     (observationWindowsEnabled?"observation-balance":
      enclosedStationEnabled?"enclosed":"classic-open"),
-   importedMeshes:(world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1")??
+   importedMeshes:(world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1.1")??
     world.getObjectByName("SKYSHIFT · Cinematic Megastructure 0.21.0-A")??
     world.getObjectByName("CONTINUUM STATION · Architectural Rebirth 0.20.5")??
     world.getObjectByName("CONTINUUM STATION · Sculpted Neon 0.20.4.1")??
@@ -927,7 +928,7 @@ function initScene(){
  UI.hangarBtn.disabled=false;
  UI.trackPicker.value=TRACK_ID_0160;
  UI.trackName.textContent=ACTIVE_TRACK_0160.name;
- UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.1";
+ UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.1.1";
  UI.trackTagline.textContent=isAurora()?
   "WIDE SWITCHBACKS · ROLLING HILLS · THREE FAST LAPS.":
   "WIDE ARCS · SMART LINES · THREE FASTER LAPS.";
@@ -1952,7 +1953,7 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.21.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   game:"SKYSHIFT",version:"0.21.1.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
    timeTrial:{...ghostAudit(timeTrialState),visual:ghostVisual?.stats()??null},
     performanceAudit:{...perfSummary(frameProfiler),preset:perfSettings,
      gpu:gpuClock?.summary()??{available:false,reason:"uninitialized"},
@@ -1962,7 +1963,7 @@ function exportAudit(){
      bloomResolutionScale:neonPipeline?.bloomResolutionScale,
      deviceMemoryGB:navigator.deviceMemory??null,
      devicePixelRatio:devicePixelRatio||1},
-   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.1",
+   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.1.1",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -2560,7 +2561,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v","0.21.1");
+  uri.searchParams.set("v","0.21.1.1");
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);
@@ -2606,7 +2607,7 @@ function installControls(){
   address.searchParams.delete("fidelity");
   // Private-mode storage can be unavailable: keep the OFF choice in URL.
   if(!saved)address.searchParams.set("fidelity",next?"on":"off");
-  address.searchParams.set("v","0.21.1");
+  address.searchParams.set("v","0.21.1.1");
   location.assign(address.toString());
  });
  UI.export.addEventListener("click",exportAudit);

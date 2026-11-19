@@ -41,7 +41,7 @@ test("arched roof is closed over the road; floor connects continuously to both w
   const left=at(0),right=at(section-1),apex=at((section-1)/2);
   assert.ok(left[0]<-12&&left[0]>-13);
   assert.ok(right[0]>12&&right[0]<13);
-  assert.ok(Math.abs(apex[0])<.001&&apex[1]>33,
+  assert.ok(Math.abs(apex[0])<.001&&apex[1]>29.5&&apex[1]<30.3,
    "Continuous roof must cover track center");
   for(let j=0;j<section-1;j++){
    const [x0,y0]=at(j),[x1,y1]=at(j+1);
@@ -52,6 +52,34 @@ test("arched roof is closed over the road; floor connects continuously to both w
  assert.ok(Math.abs(v[2]-0)<1e-6);
  assert.ok(Math.abs(v[v.length-1]-368)<1e-5);
  assert.equal(TUNNEL_PORTALS_0211.length,10);
+ assert.ok(Math.abs(TUNNEL_MEGA_0211.roofHeight-29.623)<.001);
+ assert.equal(TUNNEL_MEGA_0211.previousRoofHeight,34.15);
+});
+test("0.21.1.1 lowers vault without moving deck, lower walls or tunnel ribs off profile",()=>{
+ const oldWorld=new Group(),newWorld=new Group();
+ const old=installTunnelMegastructure(THREE,oldWorld,{positionAt:pos,vaultHeightClassic:true});
+ const next=installTunnelMegastructure(THREE,newWorld,{positionAt:pos});
+ assert.equal(old.stats().status,"active");
+ assert.equal(next.stats().status,"active");
+ const o=oldWorld.children[0].children[0].geometry.attributes.position.array;
+ const n=newWorld.children[0].children[0].geometry.attributes.position.array;
+ assert.equal(o.length,n.length);
+ const count=TUNNEL_PROFILE_0211.length;
+ const apex=(count-1)/2;
+ for(let ring=0;ring<next.stats().sampledRings;ring++){
+  const base=ring*count*3;
+  const off=base+apex*3;
+  assert.ok(o[off+1]-n[off+1]>=4.45&&o[off+1]-n[off+1]<5,
+    "Only 4-5m lower at the crown, without flattening the tunnel");
+  for(const edge of [0,1,2,3,4,count-5,count-4,count-3,count-2,count-1]){
+   const p=base+edge*3;
+   assert.ok(Math.abs(o[p]-n[p])<1e-6);
+   assert.ok(Math.abs(o[p+1]-n[p+1])<1e-6);
+   assert.ok(Math.abs(o[p+2]-n[p+2])<1e-6);
+  }
+ }
+ assert.equal(next.stats().colliders,0);
+ assert.equal(next.stats().originalGRIPUntouched,true);
 });
 test("shoulder is real geometry outside original rails; no space-visible gap beside track",()=>{
  const group=new Group(),inst=installTunnelMegastructure(THREE,group,{positionAt:pos});
@@ -92,8 +120,8 @@ test("flight physics, steering, grip, camera, road and colors are not replaced",
  assert.match(game,/tunnelMegaEnabled\?installTunnelMegastructure/);
  assert.match(game,/tunnelMega"\)!=="classic"/);
  assert.match(game,/compareBeforeTunnel:"\?tunnelMega=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.21\.1/);
- assert.match(read("./index.html"),/boot-v0210\.js\?v=0\.21\.1/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.21\.1\.1/);
+ assert.match(read("./index.html"),/boot-v0210\.js\?v=0\.21\.1\.1/);
  const old=read("./game-v0205.mjs");
  assert.ok(!old.includes("tunnel-megastructure-v0211"));
 });

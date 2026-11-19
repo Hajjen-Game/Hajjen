@@ -1004,6 +1004,23 @@ function initScene(){
     keyIntensity:worldLights.key.intensity};
   };
  }
+ // Exact-frame optical proof: render the SAME scene/camera twice, before
+ // and after the new rail metal treatment, without advancing physics,
+ // camera or colors even one tick. Testing only; no user-facing controls.
+ if(new URLSearchParams(location.search).get("railFrameProof")==="1")
+  window.__skyshiftRailFrameProof=()=>{
+   const original=identitySurface.getRailBodyContainment();
+   if(!neonPipeline?.render)throw Error("Missing WebGL pipeline");
+   const render=(level)=>{
+    identitySurface.setRailBodyContainment(level);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try {
+    return {original:render(0),contained:render(1),
+     railBodyBefore:0,railBodyAfter:1};
+   }finally{identitySurface.setRailBodyContainment(original)}
+  };
  // QA-only: prove every interior mesh has fog disabled while the
  // global exterior fog and ship lighting remain active and unmodified.
  if(new URLSearchParams(location.search).get("sealSmoke")==="1")

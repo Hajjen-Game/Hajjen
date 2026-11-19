@@ -155,49 +155,69 @@ export function installCinematicNeonLighting(THREE,world,options={}){
  const old=base.stats();
  if(!old.active||!old.rebirthMaterialEnabled||
     old.rebirthMaterialStatus!=="active")return base;
- const group=world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1");
- if(!group)throw Error("0.22.0 P2: missing original closed vault");
- const names=CINEMATIC_NEON_0220_P2.targetMeshes;
- const target=names.map(name=>group.children.find(m=>m.name==="Tunnel / "+name))
-  .filter(m=>m&&!!m.material);
- const expected=options.lowMemory?3:4;
- if(target.length!==expected)
-  throw Error("0.22.0 P2: material groups missing "+target.length+"/"+expected);
- const planned=target.map(mesh=>({
-  mesh,prepared:buildTunnelNeonLocalData(mesh.geometry,options.positionAt)
- }));
- const control={value:1},uniforms={uCinematicNeonMix:control};
- let vertexCount=0,frameCount=0;
- for(const {mesh,prepared} of planned){
-  mesh.geometry.setAttribute("neonLocalSection",
-   new THREE.Float32BufferAttribute(prepared.coordinates,2));
-  appendCinematicShader(mesh.material,uniforms,{
-   mobile:!!options.lowMemory
-  });
-  vertexCount+=prepared.vertices;frameCount+=prepared.frames;
+ // Fail safely to the existing Pass 1 materials if geometry changes.
+ // Never turn missing P2 art into another complete game-start failure.
+ try {
+  const group=world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1");
+  if(!group)throw Error("0.22.0 P2: missing original closed vault");
+  const names=CINEMATIC_NEON_0220_P2.targetMeshes;
+  const target=names.map(name=>group.children.find(m=>m.name==="Tunnel / "+name))
+   .filter(m=>m&&!!m.material);
+  const expected=options.lowMemory?3:4;
+  if(target.length!==expected)
+   throw Error("0.22.0 P2: material groups missing "+target.length+"/"+expected);
+  const planned=target.map(mesh=>({
+   mesh,prepared:buildTunnelNeonLocalData(mesh.geometry,options.positionAt)
+  }));
+  const control={value:1},uniforms={uCinematicNeonMix:control};
+  let vertexCount=0,frameCount=0;
+  for(const {mesh,prepared} of planned){
+   mesh.geometry.setAttribute("neonLocalSection",
+    new THREE.Float32BufferAttribute(prepared.coordinates,2));
+   appendCinematicShader(mesh.material,uniforms,{
+    mobile:!!options.lowMemory
+   });
+   vertexCount+=prepared.vertices;frameCount+=prepared.frames;
+  }
+  const state={
+   cinematicNeonEnabled:true,cinematicNeonStatus:"active",
+   cinematicNeonPass:"2",cinematicNeonVersion:"0.22.0.2",
+   cinematicNeonMaterialBatches:planned.length,
+   cinematicNeonVertices:vertexCount,
+   cinematicNeonSampledFrames:frameCount,
+   cinematicNeonNoNewDrawCalls:true,
+   cinematicNeonNoNewLights:true,
+   cinematicNeonNoWhiteSpill:true,
+   cinematicNeonMobile:!!options.lowMemory,
+   cinematicNeonCompare:CINEMATIC_NEON_0220_P2.comparison
+  };
+  return {
+   ready:base.ready,
+   stats(){return {...base.stats(),...state,
+    version:"0.22.0.2",cinematicNeonStrength:control.value};},
+   updateWave(wave){base.updateWave?.(wave)},
+   updateMotion(frame){base.updateMotion?.(frame)},
+   setMotionComparison(v){base.setMotionComparison?.(v)},
+   setMotionSample(v){base.setMotionSample?.(v)},
+   setMaterialComparison(v){base.setMaterialComparison?.(v)},
+   setNeonComparison(v){control.value=clamp(v)},
+   dispose(){base.dispose?.()}
+  };
+ } catch(error){
+  const message=String(error?.message??error);
+  console.warn("SKYSHIFT P2 neon fallback to Pass 1",message);
+  return {
+   ready:base.ready,
+   stats(){return {...base.stats(),version:"0.22.0.2",
+    cinematicNeonEnabled:false,cinematicNeonStatus:"fallback",
+    cinematicNeonError:message};},
+   updateWave(wave){base.updateWave?.(wave)},
+   updateMotion(frame){base.updateMotion?.(frame)},
+   setMotionComparison(v){base.setMotionComparison?.(v)},
+   setMotionSample(v){base.setMotionSample?.(v)},
+   setMaterialComparison(v){base.setMaterialComparison?.(v)},
+   setNeonComparison(){},
+   dispose(){base.dispose?.()}
+  };
  }
- const state={
-  cinematicNeonEnabled:true,cinematicNeonStatus:"active",
-  cinematicNeonPass:"2",cinematicNeonVersion:"0.22.0.2",
-  cinematicNeonMaterialBatches:planned.length,
-  cinematicNeonVertices:vertexCount,
-  cinematicNeonSampledFrames:frameCount,
-  cinematicNeonNoNewDrawCalls:true,
-  cinematicNeonNoNewLights:true,
-  cinematicNeonNoWhiteSpill:true,
-  cinematicNeonMobile:!!options.lowMemory,
-  cinematicNeonCompare:CINEMATIC_NEON_0220_P2.comparison
- };
- return {
-  ready:base.ready,
-  stats(){return {...base.stats(),...state,
-   version:"0.22.0.2",cinematicNeonStrength:control.value};},
-  updateWave(wave){base.updateWave?.(wave)},
-  updateMotion(frame){base.updateMotion?.(frame)},
-  setMotionComparison(v){base.setMotionComparison?.(v)},
-  setMotionSample(v){base.setMotionSample?.(v)},
-  setMaterialComparison(v){base.setMaterialComparison?.(v)},
-  setNeonComparison(v){control.value=clamp(v)},
-  dispose(){base.dispose?.()}
- };
 }

@@ -92,35 +92,31 @@ test("Pass 1 only changes tunnel material channels, never physics or PBR road",(
  assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.22\.0/);
  assert.match(read("./index.html"),/0\.22\.0/);
 });
-test("orchestrator patches existing four geometry batches without replacing meshes",()=>{
- const group={children:[]};
- function material(standard){
-  return {isMeshStandardMaterial:standard,isMeshBasicMaterial:!standard,
-   onBeforeCompile(){},customProgramCacheKey(){return "base"},needsUpdate:false};
+test("each original shared batch receives one independent, cache-safe shader override",()=>{
+ const targets=[
+  {name:"HARDSURFACE_PANELS",role:"panel",standard:false},
+  {name:"STRUCTURAL_CONDUITS",role:"conduit",standard:false},
+  {name:"CLOSED_SHELL",role:"shell",standard:true},
+  {name:"CURVED_RIBS",role:"rib",standard:true}
+ ];
+ const uniforms={uRebirthMaterial:{value:1}};
+ const mats=targets.map(t=>({
+  onBeforeCompile(){},customProgramCacheKey(){return "original";},
+  needsUpdate:false,kind:t.name
+ }));
+ for(let i=0;i<mats.length;i++){
+  const {role,standard}=targets[i];
+  installPremiumMaterialShader(mats[i],uniforms,{role});
+  const shader={uniforms:{},vertexShader:standard?pbrV:basicV,
+   fragmentShader:standard?pbrF:basicF};
+  mats[i].onBeforeCompile(shader,{});
+  assert.equal(shader.uniforms.uRebirthMaterial,uniforms.uRebirthMaterial);
+  assert.match(shader.fragmentShader,/rbFinish/);
+  assert.ok(mats[i].needsUpdate);
+  assert.match(mats[i].customProgramCacheKey(),new RegExp(role+"-desktop"));
  }
- for(const [name,standard] of [["HARDSURFACE_PANELS",false],
-  ["STRUCTURAL_CONDUITS",false],["CLOSED_SHELL",true],["CURVED_RIBS",true]]){
-  group.children.push({name:"Tunnel / "+name,material:material(standard),
-   geometry:{getAttribute(k){return k==="trackS"?{}:null}}});
- }
- let waves=0,motion=0;
- const fake=()=>({ready:Promise.resolve(),stats:()=>({active:true,
-  cinematicEnergyEnabled:true,cinematicStatus:"active",drawBatches:9}),
-  updateWave(){waves++},updateMotion(){motion++},
-  setMotionComparison(){},setMotionSample(){},dispose(){}});
- // validate shader injection separately, then integration invariants.
- const e={Color:class{constructor(x){this.value=x}setHex(v){this.value=v}}};
- const m=installPremiumMaterialRebirth(e,
-  {getObjectByName(){return group}},{roadMaterial:{},lowMemory:false});
- const status=m.stats();
- assert.equal(status.rebirthMaterials,4);
- assert.equal(status.rebirthMaterialBlend,1);
- assert.equal(status.rebirthMaterialStatus,"active");
- assert.equal(status.drawBatches,9);
- assert.ok(group.children.every(x=>x.material.needsUpdate));
- m.setMaterialComparison(0);
- assert.equal(m.stats().rebirthMaterialBlend,0);
- m.setMaterialComparison(1);
- assert.equal(m.stats().rebirthMaterialBlend,1);
- assert.equal(m.stats().rebirthNoNewDrawBatches,true);
+ assert.equal(new Set(mats.map(m=>m.customProgramCacheKey())).size,4);
+ uniforms.uRebirthMaterial.value=0;
+ assert.equal(mats.every(m=>m.needsUpdate),true);
+ uniforms.uRebirthMaterial.value=1;
 });

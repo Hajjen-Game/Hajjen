@@ -920,6 +920,43 @@ jobs:
             skyshift-v0210b-before-*.png
             skyshift-v0210b-mobile-*.png
 
+  tunnel-exterior-seal-v02122-unit:
+    name: SKYSHIFT 0.21.2.2 tunnel fog isolation and local glare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check fog seal / geometry parity / spatial wave
+        run: |
+          node --check skyshift/tunnel-exterior-seal-v02122.mjs
+          node --check skyshift/browser-tunnel-exterior-seal-v02122.mjs
+          node --check skyshift/game-v0210.mjs
+          node --check skyshift/aero-barrier-v0165.mjs
+          node --test skyshift/tunnel-exterior-seal-v02122.test.mjs
+
+  browser-tunnel-exterior-seal-v02122:
+    name: SKYSHIFT 0.21.2.2 actual Chrome WebGL fog / glare A-B
+    needs: tunnel-exterior-seal-v02122-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install lightweight browser driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
+      - name: Compare identical camera frames in sealed tunnel and old global fog
+        run: node skyshift/browser-tunnel-exterior-seal-v02122.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02122-exterior-light-seal-screenshots
+          path: |
+            skyshift-v02122-*.png
+
   tunnel-spectrum-v02121-unit:
     name: SKYSHIFT 0.21.2.1 spatial neon wave / geometry parity
     runs-on: ubuntu-latest

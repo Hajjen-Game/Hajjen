@@ -83,9 +83,11 @@ try{
  await photo(prior.page,333,"skyshift-v02123-original-gold-333.png");
  await prior.page.close();
  const low=await load("",4);
+ const lowProbe=await low.page.evaluate(()=>window.__skyshiftWhiteCoreProbe());
  if(low.art.variant!=="white-core-contained-tunnel"||
-    low.art.drawBatches!==3||!low.art.whiteCoreEnabled)
-  throw Error("Low memory path broke");
+    low.art.drawBatches!==3||!lowProbe?.enabled||
+    lowProbe.railGlareScale!==.34||lowProbe.shipPbrMaterials<1)
+  throw Error("Low memory path broke "+JSON.stringify({art:low.art,probe:lowProbe}));
  await photo(low.page,273,"skyshift-v02123-mobile-273.png");
  await low.page.close();
  if(errors.length)throw Error("WebGL shader errors: "+errors.join(" | "));

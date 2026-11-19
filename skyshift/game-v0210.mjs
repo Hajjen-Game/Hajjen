@@ -84,6 +84,8 @@ import {installNeonDrivenInterior as installClassicNeonInterior}
  from "./neon-interior-v0212-classic.mjs";
 import {TUNNEL_SPECTRUM_02121}
  from "./tunnel-spectrum-v02121.mjs";
+import {EXTERIOR_SEAL_02122,installExteriorLightSeal}
+ from "./tunnel-exterior-seal-v02122.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
@@ -162,9 +164,12 @@ const tunnelMegaEnabled=cinematicGradeEnabled&&
 // Local neon is now the author of tunnel light, not external Hemisphere/Key.
 const neonInteriorEnabled=tunnelMegaEnabled&&
  new URLSearchParams(location.search).get("interiorLight")!=="classic";
-// 0.21.2.1.1: spatially synchronized interior neons; exact 0.21.2.1 A/B preserved.
+// 0.21.2.2.1: spatially synchronized interior neons; exact 0.21.2.2 A/B preserved.
 const tunnelSpectrumEnabled=neonInteriorEnabled&&
  new URLSearchParams(location.search).get("tunnelSpectrum")!=="classic";
+// 0.21.2.2: tunnel-only fog isolation + local rail glare trim, no global lights.
+const exteriorSealEnabled=tunnelSpectrumEnabled&&
+ new URLSearchParams(location.search).get("exteriorSeal")!=="classic";
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -833,7 +838,7 @@ function initScene(){
  // is async and safe, but the old 120 Hz race motor stays authoritative.
  if(rebirthEnabled)stationWorld=(enclosedStationEnabled?
   (tunnelMegaEnabled?(neonInteriorEnabled?
-    (tunnelSpectrumEnabled?installNeonDrivenInterior:installClassicNeonInterior):
+    (tunnelSpectrumEnabled?(exteriorSealEnabled?installExteriorLightSeal:installNeonDrivenInterior):installClassicNeonInterior):
     installTunnelMegastructure):
    cinematicHeroEnabled?(cinematicGradeEnabled?installCinematicGradeHero:installCinematicHero):
    architecturalRebirthEnabled?installArchitecturalWorldArt:
@@ -846,6 +851,10 @@ function initScene(){
   track:TRACK_ID_0160,lowMemory:limitedMemory,positionAt,
   vaultHeightClassic:new URLSearchParams(location.search).get("vaultHeight")==="classic"
  });
+ // Existing rail paint now reduces its overbright white glare solely inside
+ // the sealed tunnel. No collider, input, or global bloom pass changes.
+ identitySurface?.setTunnelGlareScale?.(exteriorSealEnabled?
+  EXTERIOR_SEAL_02122.railGlareInteriorScale:1);
  // 0.12.0's roadside sculptures resembled extra poles. Remove entirely;
  // the ship and camera now carry the visual identity with zero added draws.
  // Open space, no geological scenery, distant monuments or 3D floor.
@@ -881,7 +890,8 @@ function initScene(){
   window.__skyshiftArtProbe=()=>({
    enabled:rebirthEnabled,track:TRACK_ID_0160,
    ...(stationWorld?.stats?.()??{active:false,status:"classic",installedBays:0,drawBatches:0}),
-   variant:tunnelSpectrumEnabled?"neon-wave-interior":
+   variant:exteriorSealEnabled?"sealed-neon-tunnel":
+    tunnelSpectrumEnabled?"neon-wave-interior":
     neonInteriorEnabled?"neon-driven-interior":
     tunnelMegaEnabled?"continuous-vault-tunnel":
     cinematicGradeEnabled?"cinematic-material-light":
@@ -893,7 +903,7 @@ function initScene(){
     ribbonWindowsEnabled?"ribbon-cleanup":
     (observationWindowsEnabled?"observation-balance":
      enclosedStationEnabled?"enclosed":"classic-open"),
-   importedMeshes:(world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.2.1")??
+   importedMeshes:(world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.2.2")??
     world.getObjectByName("SKYSHIFT · Cinematic Megastructure 0.21.0-A")??
     world.getObjectByName("CONTINUUM STATION · Architectural Rebirth 0.20.5")??
     world.getObjectByName("CONTINUUM STATION · Sculpted Neon 0.20.4.1")??
@@ -944,7 +954,7 @@ function initScene(){
  UI.hangarBtn.disabled=false;
  UI.trackPicker.value=TRACK_ID_0160;
  UI.trackName.textContent=ACTIVE_TRACK_0160.name;
- UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.2.1";
+ UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.21.2.2";
  UI.trackTagline.textContent=isAurora()?
   "WIDE SWITCHBACKS · ROLLING HILLS · THREE FAST LAPS.":
   "WIDE ARCS · SMART LINES · THREE FASTER LAPS.";
@@ -1972,7 +1982,7 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.21.2.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   game:"SKYSHIFT",version:"0.21.2.2",trial:TRIAL.id,exportedAt:new Date().toISOString(),
    timeTrial:{...ghostAudit(timeTrialState),visual:ghostVisual?.stats()??null},
     performanceAudit:{...perfSummary(frameProfiler),preset:perfSettings,
      gpu:gpuClock?.summary()??{available:false,reason:"uninitialized"},
@@ -1982,7 +1992,7 @@ function exportAudit(){
      bloomResolutionScale:neonPipeline?.bloomResolutionScale,
      deviceMemoryGB:navigator.deviceMemory??null,
      devicePixelRatio:devicePixelRatio||1},
-   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.2.1",
+   visual:{pipeline:"HDR UnrealBloom",tier:"Tunnel Megastructure 0.21.2.2",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -2042,6 +2052,9 @@ function exportAudit(){
       graphiteGradeEnabled,premiumNeonEnabled,sculptedNeonEnabled,
       architecturalRebirthEnabled,cinematicHeroEnabled,cinematicGradeEnabled,
       tunnelMegaEnabled,neonInteriorEnabled,tunnelSpectrumEnabled,
+      exteriorSealEnabled,exteriorSealProfile:exteriorSealEnabled?EXTERIOR_SEAL_02122:null,
+      compareBeforeExteriorSeal:"?exteriorSeal=classic",
+      railTunnelGlareScale:identitySurface?.getTunnelGlareScale?.()??1,
       spectrumProfile:tunnelSpectrumEnabled?TUNNEL_SPECTRUM_02121:null,
       compareBeforeSpectrum:"?tunnelSpectrum=classic",
       compareBeforeNeonInterior:"?interiorLight=classic",
@@ -2586,7 +2599,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v","0.21.2.1");
+  uri.searchParams.set("v","0.21.2.2");
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);
@@ -2632,7 +2645,7 @@ function installControls(){
   address.searchParams.delete("fidelity");
   // Private-mode storage can be unavailable: keep the OFF choice in URL.
   if(!saved)address.searchParams.set("fidelity",next?"on":"off");
-  address.searchParams.set("v","0.21.2.1");
+  address.searchParams.set("v","0.21.2.2");
   location.assign(address.toString());
  });
  UI.export.addEventListener("click",exportAudit);

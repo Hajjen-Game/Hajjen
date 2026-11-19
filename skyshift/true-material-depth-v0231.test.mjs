@@ -19,18 +19,18 @@ const compose=(role,mobile=false)=>{
  const p23=patchPhysicalMaterialShader(p2.vertexShader,p2.fragmentShader,{role,mobile});
  return patchTrueMaterialDepthShader(p23.vertexShader,p23.fragmentShader,{role,mobile});
 };
-test("every existing sun-isolated mesh receives a distinct finished material",()=>{
+test("material glints are additive to existing native neon, not a new flat wall color",()=>{
  for(const role of ["panel","shell","rib","conduit"]){
   const shader=compose(role);
   const f=shader.fragmentShader;
   assert.match(f,/uniform float uTrueDepth0231/);
-  assert.match(f,/vec3 d31FaceColor=/);
-  assert.match(f,/vec3 d31EdgeColor=/);
-  assert.match(f,/vec3 d31CutColor=/);
-  assert.match(f,/vec3 d31Dark=vec3/);
-  assert.match(f,/d31Out=mix\(d31Out,d31Dark,d31Recess\)/);
+  assert.match(f,/vec3 d31Original=diffuseColor.rgb/);
+  assert.match(f,/vec3 d31Out=d31Original/);
+  assert.match(f,/d31Out\+=d31Raised\+d31Engraving\*d31Milled/);
+  assert.match(f,/d31Chrome=rbTint/);
+  assert.match(f,/diffuseColor.rgb=mix\(d31Original,d31Out,d31Strength\)/);
+  assert.doesNotMatch(f,/vec3 d31FaceColor=|vec3 d31EdgeColor=|vec3 d31Dark=vec3/);
   assert.match(f,/float d31Near=max\(p23WallLight,p23RoofLight\)/);
-  assert.match(f,/diffuseColor.rgb=mix\(diffuseColor.rgb,d31Out,d31Strength\)/);
   assert.match(f,/uTrueDepth0231\*p23Gallery/);
   assert.doesNotMatch(f,/DirectionalLight|sunPosition|reflectedLight\.directSpecular/);
   assert.equal(shader.vertexShader,patchPhysicalMaterialShader(
@@ -47,7 +47,7 @@ test("every existing sun-isolated mesh receives a distinct finished material",()
 });
 test("mobile shader needs no new attributes or world light",()=>{
  const f=compose("panel",true).fragmentShader;
- assert.match(f,/d31Micro/);
+ assert.match(f,/d31Detail/);
  assert.match(f,/d31Chrome/);
  assert.doesNotMatch(f,/uniform DirectionalLight/);
  assert.match(f,/d31Chrome=rbTint/);
@@ -115,7 +115,7 @@ test("shader composition and comparison modify uniform, not physical simulation"
  installTrueMaterialShader(mat,uni,{role:"panel"});
  const shader={uniforms:{},vertexShader:f.vertexShader,fragmentShader:
   f.fragmentShader.replace("uniform float uTrueDepth0231;","")
-   .replace(/float d31Strength=[\s\S]*?diffuseColor.rgb=mix\(diffuseColor.rgb,d31Out,d31Strength\);\n}/,"")};
+   .replace(/float d31Strength=[\s\S]*?diffuseColor.rgb=mix\(d31Original,d31Out,d31Strength\);\n}/,"")};
  // On a live renderer the previous hooks compose Pass 1/2/0.23.0 first.
  mat.onBeforeCompile(shader,{});
  assert.ok(mat.needsUpdate);
@@ -129,6 +129,18 @@ test("shader composition and comparison modify uniform, not physical simulation"
  for(const key of ["solarSealed","physicsUnchanged","cameraUnchanged",
   "gripUnchanged","roadUnchanged","shipUnchanged"])assert.equal(p[key],true);
 });
+
+test("sealed vault and ribs remain on original 0.23.0 shader",()=>{
+ const source=read("./true-material-depth-v0231.mjs");
+ assert.match(source,/meshes\.filter\(\(\{role\}\)=>role==="panel"\|\|role==="conduit"\)/);
+ assert.match(source,/trueDepth0231PreservedNativeNeon:true/);
+ assert.match(source,/trueDepth0231UntouchedRoles:\["shell","rib"\]/);
+ assert.doesNotMatch(source,/d31FaceColor|d31EdgeColor|d31CutColor/);
+ assert.match(source,/version:"0\.23\.1\.1"/);
+ const structural=read("./structural-tunnel-v0213.mjs");
+ assert.match(structural,/const relief=\(s\)=>smooth/);
+ assert.match(structural,/shaped\(x,d0\)/);
+});
 test("game exposes real pass, version, and exact frame comparison",()=>{
  const game=read("./game-v0210.mjs");
  assert.match(game,/trueMaterialDepthEnabled=physicalMaterialEnabled/);
@@ -136,6 +148,6 @@ test("game exposes real pass, version, and exact frame comparison",()=>{
  assert.match(game,/__skyshiftTrueDepthProbe/);
  assert.match(game,/__skyshiftTrueDepthFrameProof/);
  assert.match(game,/compareBeforeTrueDepth:"\?trueDepth=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.1/);
- assert.match(read("./index.html"),/0\.23\.1/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.1\.1/);
+ assert.match(read("./index.html"),/0\.23\.1\.1/);
 });

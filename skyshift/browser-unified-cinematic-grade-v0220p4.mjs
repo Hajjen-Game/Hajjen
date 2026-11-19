@@ -17,7 +17,7 @@ function inspect(pair,label){
  if(a.width!==b.width||a.height!==b.height)
   throw Error("P4 same-frame dimensions changed");
  const W=a.width,H=a.height;
- let changed=0,wall=0,roof=0,road=0,whiteOld=0,whiteNew=0;
+ let changed=0,wall=0,upperTunnel=0,road=0,whiteOld=0,whiteNew=0;
  for(let y=Math.floor(H*.08);y<Math.floor(H*.95);y+=2)
   for(let x=Math.floor(W*.035);x<Math.floor(W*.965);x+=2){
    const i=4*(y*W+x),old=a.data,next=b.data;
@@ -27,12 +27,14 @@ function inspect(pair,label){
    if(Math.min(next[i],next[i+1],next[i+2])>192)whiteNew++;
    if(delta<12)continue;
    changed++;
-   if(y>H*.50)roof++;
+   // PNG pixels are indexed TOP-to-BOTTOM. The previous test incorrectly
+   // measured the bottom half as the ceiling and the top as the road.
+   if(y<H*.50)upperTunnel++;
    if(x<W*.31||x>W*.69)wall++;
-   if(x>W*.39&&x<W*.61&&y<H*.50)road++;
+   if(x>W*.39&&x<W*.61&&y>H*.50)road++;
   }
- const row={label,position:pair.flightS,changed,wall,roof,road,whiteOld,whiteNew};
- if(changed<90||wall<45||roof<40)
+ const row={label,position:pair.flightS,changed,wall,upperTunnel,road,whiteOld,whiteNew};
+ if(changed<90||wall<45||upperTunnel<40)
   throw Error("Cinematic material/neon grade not perceptible "+JSON.stringify(row));
  if(road>changed*.32+45)
   throw Error("Protected driving corridor altered "+JSON.stringify(row));

@@ -207,7 +207,7 @@ export function installNeonDrivenInterior(THREE,world,options={}){
   }
   if(!options.lowMemory){
    const geo=buildRoadReflections(THREE,options.positionAt);
-   roadLight=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({
+   roadLight=new THREE.Mesh(geo,bindTunnelSpectrumMaterial(new THREE.MeshBasicMaterial({
     color:0xffffff,vertexColors:false,side:THREE.DoubleSide,
     toneMapped:false,transparent:true,opacity:.62,
     depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending

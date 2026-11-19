@@ -129,6 +129,7 @@ export function createWhiteCoreContainment({roadMaterial,railSurface,ship}={}){
   return added;
  }
  railSurface?.setTunnelGlareScale?.(WHITE_CORE_02123.railGlareScale);
+ railSurface?.setRailNeutralContainment?.(1);
  if(ship)attachShip(ship);
  return {
   attachShip,
@@ -145,6 +146,7 @@ export function createWhiteCoreContainment({roadMaterial,railSurface,ship}={}){
    shipAttached:Boolean(trackedShip),
    shipWhiteContainment:tint.value,
    railGlareScale:railSurface?.getTunnelGlareScale?.()??null,
+   railWhiteContainment:railSurface?.getRailNeutralContainment?.()??null,
    controlUpdates:updates,
    waveUnchanged:true,bloomUnchanged:true,
    geometryUnchanged:true,physicsUnchanged:true

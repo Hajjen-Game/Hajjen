@@ -17,8 +17,8 @@ try{
   "--use-angle=swiftshader","--enable-unsafe-swiftshader"]});
  const page=await browser.newPage({viewport:{width:1536,height:691}});
  page.on("pageerror",e=>{throw e});
- await page.goto("http://127.0.0.1:8807/skyshift/?v=0.21.2.4"+
-  "&railFrameProof=1&trackRepairSmoke=1&waveSmoke=1",
+ await page.goto("http://127.0.0.1:8807/skyshift/?v=0.21.2.5"+
+  "&railFrameProof=1&trackRepairSmoke=1&waveSmoke=1&shipWhite=classic",
   {waitUntil:"domcontentloaded",timeout:60000});
  await page.waitForFunction(()=>window.__skyshiftBoot?.phase==="ready",
    null,{timeout:75000});

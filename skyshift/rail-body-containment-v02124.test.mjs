@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {createAeroBarrierData,RAIL_BODY_CONTAINMENT_02124,
  patchAeroBodyShaders,installAeroBarriers} from "./aero-barrier-v0165.mjs";
+import {TRIAL} from "./trial-v0165.mjs";
 const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
 test("PBR rail body has precise arc-length on BOTH sides and no geometry edits",()=>{
  const g=createAeroBarrierData(5);
@@ -11,7 +12,7 @@ test("PBR rail body has precise arc-length on BOTH sides and no geometry edits",
  assert.equal(g.indices.length/3,g.triangles);
  assert.ok(g.trackS.length>2000);
  assert.ok(g.trackS[0]===0);
- assert.ok(Math.abs(g.trackS.at(-1)-10200)<2);
+ assert.ok(Math.abs(g.trackS.at(-1)-TRIAL.length)<2);
  // Every row follows the exact same s, not estimated from world XYZ.
  for(let i=0;i<g.columns;i++)assert.equal(g.trackS[i],0);
  for(let row=0;row<3;row++)for(let j=1;j<g.columns;j++)

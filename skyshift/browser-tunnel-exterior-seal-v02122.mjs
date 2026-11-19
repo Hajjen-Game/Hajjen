@@ -52,6 +52,8 @@ try{
     sealed.art.waveSynchronized!==true||
     sealed.art.fogDisabledMaterialCount!==5||
     sealed.art.drawBatches!==5||
+    sealed.art.roadShoulderGlareSealed!==true||
+    sealed.art.shellBounceReduced!==true||
     sealed.art.originalGRIPUntouched!==true||
     sealed.art.globalLightsChanged!==0||
     a.sceneFogPresent!==true||

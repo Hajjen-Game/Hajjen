@@ -49,13 +49,17 @@ test("ship reflection attenuated without modifying engine, emissive materials or
   for(const item of [
    {material:hull},{material:[fins,engine]},{material:hull}])fn(item);
  }};
- let railScale=0;
+ let railScale=0,whiteRail=0;
  const rail={setTunnelGlareScale(v){railScale=v},
-  getTunnelGlareScale(){return railScale}};
+  getTunnelGlareScale(){return railScale},
+  setRailNeutralContainment(v){whiteRail=v},
+  getRailNeutralContainment(){return whiteRail}};
  const controller=createWhiteCoreContainment({roadMaterial:material(),ship,railSurface:rail});
  const st=controller.stats();
  assert.equal(st.shipPbrMaterials,2);
  assert.equal(railScale,.34);
+ assert.equal(whiteRail,1);
+ assert.equal(st.railWhiteContainment,1);
  assert.equal(controller.update(178,true),1);
  const s=shader();hull.onBeforeCompile(s,{});
  assert.equal(s.uniforms.uWhiteCoreShipContainment.value,1);

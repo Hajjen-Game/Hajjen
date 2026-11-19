@@ -102,6 +102,8 @@ import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
  from "./cinematic-energy-v0216.mjs";
 import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
  from "./premium-material-rebirth-v0220.mjs";
+import {CINEMATIC_NEON_0220_P2,installCinematicNeonLighting}
+ from "./cinematic-neon-lighting-v0220p2.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
@@ -221,6 +223,11 @@ const cinematicMotionEnabled=integratedNeonFlowEnabled&&premiumRoadEnabled&&
 const premiumMaterialRebirthEnabled=cinematicMotionEnabled&&
  new URLSearchParams(location.search).get("rebirthMaterial")!=="classic"&&
  !/^0\.21\./.test(new URLSearchParams(location.search).get("v")||"");
+// 0.22.0 Pass 2: locally colored neon light on existing metal surfaces.
+// ?v=0.22.0 remains the exact Pass 1 release for visual comparisons.
+const cinematicNeonEnabled=premiumMaterialRebirthEnabled&&
+ new URLSearchParams(location.search).get("cinematicNeon")!=="classic"&&
+ !["0.22.0","0.22.0.1"].includes(new URLSearchParams(location.search).get("v")||"");
 const worldEnabled=envEnabled&&!rebirthEnabled&&
  new URLSearchParams(location.search).get("world")!=="classic";
 const architectureEnabled=worldEnabled&&new URLSearchParams(location.search).get("architecture")!=="classic";
@@ -895,7 +902,8 @@ function initScene(){
  // 0.20.5 World Art Pipeline: coherent, authored glTF station interior.
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
- if(rebirthEnabled)stationWorld=(premiumMaterialRebirthEnabled?installPremiumMaterialRebirth:
+ if(rebirthEnabled)stationWorld=(cinematicNeonEnabled?installCinematicNeonLighting:
+    premiumMaterialRebirthEnabled?installPremiumMaterialRebirth:
     cinematicMotionEnabled?installCinematicEnergyMotion:
     integratedNeonFlowEnabled?installIntegratedNeonFlow:
     structuralTunnelEnabled?installStructuralTunnelRebuild:
@@ -1132,6 +1140,32 @@ function initScene(){
    try{return {classic:draw(false),structural:draw(true),
     panels:meshes.length,trackS:flight?.s??null}}
    finally{meshes.forEach((m,i)=>m.visible=original[i])}
+  };
+ // 0.22.0 Pass 2: identical camera, wave and ship pose with just the
+ // colored local neon-bounce strength toggled. No physics tick.
+ if(new URLSearchParams(location.search).get("cinematicNeonSmoke")==="1")
+  window.__skyshiftCinematicNeonProbe=()=>({
+   enabled:cinematicNeonEnabled,
+   ...(stationWorld?.stats?.()??{}),
+   roadSolarSeal:roadSolarSpill?.stats()?.seal??null,
+   roadPremium:Boolean(premiumRoadSurface?.stats()?.active),
+   originalGRIPUntouched:true,
+   originalCameraUntouched:true
+  });
+ if(new URLSearchParams(location.search).get("cinematicNeonFrameProof")==="1")
+  window.__skyshiftCinematicNeonFrameProof=()=>{
+   if(!cinematicNeonEnabled||!neonPipeline?.render||
+      !stationWorld?.setNeonComparison)
+    throw Error("Cinematic Neon same-frame proof unavailable");
+   const prev=stationWorld.stats().cinematicNeonStrength;
+   const draw=v=>{
+    stationWorld.setNeonComparison(v);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:draw(0),neon:draw(1),
+    position:flight?.s??null}}
+   finally{stationWorld.setNeonComparison(prev)}
   };
  // 0.22.0: premium materials only, same frame, no world/camera tick.
  if(new URLSearchParams(location.search).get("materialRebirthSmoke")==="1")
@@ -2535,6 +2569,10 @@ function exportAudit(){
       premiumMaterialRebirthProfile:premiumMaterialRebirthEnabled?MATERIAL_REBIRTH_0220:null,
       premiumMaterialAudit:premiumMaterialRebirthEnabled?stationWorld?.stats?.()??null:null,
       compareBeforePremiumMaterial:"?rebirthMaterial=classic",
+      cinematicNeonEnabled,
+      cinematicNeonProfile:cinematicNeonEnabled?CINEMATIC_NEON_0220_P2:null,
+      cinematicNeonAudit:cinematicNeonEnabled?stationWorld?.stats?.()??null:null,
+      compareBeforeCinematicNeon:"?cinematicNeon=classic",
       shipWhiteSpillEnabled,shipWhiteSpillAudit:shipWhiteSpill?.stats()??null,
       compareBeforeShipWhite:"?shipWhite=classic",
       railBodyContainmentEnabled,

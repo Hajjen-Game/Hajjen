@@ -32,6 +32,33 @@ test("original mesh remains intact; actual normals, view and position author the
  assert.doesNotMatch(r.fragmentShader,/reflectedLight\.directSpecular\*=mix/);
  assert.throws(()=>patchPremiumMaterialShader(basicV,basicF,{role:"bad"}));
 });
+
+test("0.21.2 native sun-isolated Basic shell and ribs accept 0.22.0 materials",()=>{
+ const actual=read("./neon-interior-v0212.mjs");
+ // These substitutions happen on every real sealed tunnel. The material
+ // upgrade must NOT demand MeshStandardMaterial or reinstate exterior light.
+ assert.match(actual,/shell\.material=bindTunnelSpectrumMaterial\(new THREE\.MeshBasicMaterial/);
+ assert.match(actual,/ribs\.material=bindTunnelSpectrumMaterial\(new THREE\.MeshBasicMaterial/);
+ for(const role of ["shell","rib"]){
+  const upgraded=patchPremiumMaterialShader(basicV,basicF,{role});
+  assert.match(upgraded.fragmentShader,/diffuseColor\.rgb \+= tunnelSpectrumTint\(\)\*vTunnelGlow/);
+  assert.match(upgraded.fragmentShader,/rbGraphite/);
+  assert.match(upgraded.fragmentShader,/rbSatin/);
+  assert.match(upgraded.fragmentShader,/rbTint=rebirthPalette\(\)/);
+  assert.match(upgraded.vertexShader,/vRebirthClass=0\.00/);
+  assert.doesNotMatch(upgraded.fragmentShader,/reflectedLight\./);
+  assert.doesNotMatch(upgraded.fragmentShader,/roughnessFactor=/);
+  const mat={isMeshBasicMaterial:true,isMeshStandardMaterial:false,
+   onBeforeCompile(){},customProgramCacheKey(){return "native-sealed-spectrum"},
+   needsUpdate:false};
+  installPremiumMaterialShader(mat,{uRebirthMaterial:{value:1}},{role});
+  const shader={uniforms:{},vertexShader:basicV,fragmentShader:basicF};
+  mat.onBeforeCompile(shader,{});
+  assert.match(shader.fragmentShader,/rbFinish/);
+  assert.ok(mat.needsUpdate);
+ }
+});
+
 test("PBR original shell and ribs retain roughness/metalness but seal external sun",()=>{
  for(const role of ["shell","rib"]){
   const q=patchPremiumMaterialShader(pbrV,pbrF,{role});

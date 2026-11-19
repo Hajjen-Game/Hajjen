@@ -221,6 +221,7 @@ uniform float uWaveDetail;
 uniform float uSpeedFlow;
 uniform float uVelocityPhase;
 uniform float uRailInteriorSeal;
+uniform float uRailWhiteContainment;
 uniform float uRailFront1,uRailFront2,uRailFront3;
 uniform vec3 uRailBase,uRailNext1,uRailNext2,uRailNext3;
 ${SPECTRAL_FRONT_GLSL}
@@ -270,6 +271,12 @@ export const RAIL_SPECTRAL_FRAGMENT=`
  float tunnelRailEnergy=mix(1.0,uRailInteriorSeal,interiorMask);
  diffuseColor.rgb*=tunnelRailEnergy;
  diffuseColor.a*=mix(1.0,0.93,interiorMask*(1.0-uRailInteriorSeal));
+ // 0.21.2.3: reduce the common neutral-white HDR component BEFORE bloom.
+ // Preserve the chromatic remainder of each of the nine zone accents,
+ // and use zero containment outside the tunnel or in classic A/B mode.
+ float railNeutral=min(min(diffuseColor.r,diffuseColor.g),diffuseColor.b);
+ float railWhiteExcess=max(0.0,railNeutral-0.20);
+ diffuseColor.rgb-=vec3(railWhiteExcess*interiorMask*uRailWhiteContainment);
 `;
 export function patchRailShaders(vertex,fragment){
  if(!vertex.includes("#include <common>")||
@@ -311,6 +318,7 @@ export function installAeroBarriers(THREE,world){
   uZoneTime:{value:0},uWaveDetail:{value:1},
   uSpeedFlow:{value:0},uVelocityPhase:{value:0},
   uRailInteriorSeal:{value:1.0},
+  uRailWhiteContainment:{value:0.0},
   uRailBase:{value:new THREE.Color(ZONE_PALETTES[0].accent)}
  };
  for(let k=1;k<=3;k++){
@@ -381,6 +389,10 @@ export function installAeroBarriers(THREE,world){
    railUniforms.uRailInteriorSeal.value=Math.max(.3,Math.min(1,Number(value)));
   },
   getTunnelGlareScale(){return railUniforms.uRailInteriorSeal.value;},
+  setRailNeutralContainment(value=0){
+   railUniforms.uRailWhiteContainment.value=Math.max(0,Math.min(1,Number(value)));
+  },
+  getRailNeutralContainment(){return railUniforms.uRailWhiteContainment.value;},
   updateAccent(color){railUniforms.uRailBase.value.copy(color);},
   dispose(){
    for(const mesh of [bodyMesh,seamMesh,lightMesh]){

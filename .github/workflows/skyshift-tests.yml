@@ -957,6 +957,7 @@ jobs:
           path: |
             skyshift-v0211-tunnel-*.png
             skyshift-v0211-before-*.png
+            skyshift-v0211-vault-before-*.png
             skyshift-v0211-mobile-*.png
 
   browser-cinematic-phase-a:

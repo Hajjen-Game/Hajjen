@@ -920,6 +920,43 @@ jobs:
             skyshift-v0210b-before-*.png
             skyshift-v0210b-mobile-*.png
 
+  rail-body-v02124-unit:
+    name: SKYSHIFT 0.21.2.4 rail shell matte tunnel PBR + wave invariants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test measured metallic rail-body fix and exact arc coordinates
+        run: |
+          node --check skyshift/aero-barrier-v0165.mjs
+          node --check skyshift/game-v0210.mjs
+          node --check skyshift/browser-rail-body-containment-v02124.mjs
+          node --test skyshift/rail-body-containment-v02124.test.mjs
+
+  browser-rail-body-v02124:
+    name: SKYSHIFT 0.21.2.4 measurable real WebGL white glare A/B
+    needs: rail-body-v02124-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser + PNG inspection
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Require reduction in actual user-marked white rail glare
+        run: node skyshift/browser-rail-body-containment-v02124.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02124-white-glare-A-B
+          path: |
+            skyshift-v02124-*.png
+            skyshift-v02124-rail-body-proof.json
+
   rail-source-diagnostic-v02124:
     name: SKYSHIFT 0.21.2.4 white rail hotspot source isolation
     runs-on: ubuntu-latest

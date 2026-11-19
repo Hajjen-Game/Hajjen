@@ -110,6 +110,6 @@ test("versioned A/B, adaptive device control and same-frame proof remain availab
  assert.match(game,/unifiedCinematicGrade\?\.resize/);
  assert.match(game,/unifiedCinematicGrade\?\.update/);
  assert.match(game,/compareBeforeUnifiedGrade:"\?unifiedGrade=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.22\.0\.4/);
- assert.match(read("./index.html"),/0\.22\.0\.4/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.0/);
+ assert.match(read("./index.html"),/0\.23\.0/);
 });

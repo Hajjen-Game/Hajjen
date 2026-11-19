@@ -882,6 +882,44 @@ jobs:
             skyshift-v01091-rail-sparks-left.png
           if-no-files-found: ignore
 
+  cinematic-phase-b-tests:
+    name: SKYSHIFT 0.21.0 Phase B material + geometry
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Phase B code and safe 3D geometry
+        run: |
+          node --check skyshift/cinematic-grade-v0210b.mjs
+          node --check skyshift/browser-cinematic-grade-v0210b.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/cinematic-grade-v0210b.test.mjs
+
+  browser-cinematic-phase-b:
+    name: Cinematic Environment Rebuild Phase B Chrome WebGL
+    needs: cinematic-phase-b-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install lightweight browser driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
+      - name: Compare Phase A and B materials in real Chrome WebGL
+        run: node skyshift/browser-cinematic-grade-v0210b.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0210b-material-light-qa
+          path: |
+            skyshift-v0210b-after-*.png
+            skyshift-v0210b-before-*.png
+            skyshift-v0210b-mobile-*.png
+
   browser-cinematic-phase-a:
     name: Cinematic Environment Rebuild Phase A real Chrome/WebGL
     needs: track-tests

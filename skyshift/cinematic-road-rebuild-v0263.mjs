@@ -192,10 +192,10 @@ export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false}={})
  ];
  // A symmetric, finite-emitter quadrature; no camera-facing fake streaks.
  if(mobile){
+  direct.push(" vec3 r263AmberNear=mix(r263AmberLeft,r263AmberRight,step(0.0,vTrackCoord.y));");
   direct.push(oneSample("CyanLeft",0,0.5,10.8),
    oneSample("CyanRight",0,0.5,10.8));
-  direct.push(oneSample("AmberLeft",0,.5,10.0),
-   oneSample("AmberRight",0,.5,10.0));
+  direct.push(oneSample("AmberNear",0,1.0,10.0));
  }else{
   for(const name of ["CyanLeft","CyanRight"])
    for(const offset of [-3.5,3.5])
@@ -278,7 +278,7 @@ export function createCinematicRoadReflectionRebuild0263(THREE,roadMesh,{
     roadRebuild0263LitVertices:data.litCount,
     roadRebuild0263SourceCount:data.sourcePositions,
     roadRebuild0263CyanSamples:lowMemory?2:4,
-    roadRebuild0263AmberSamples:2,
+    roadRebuild0263AmberSamples:lowMemory?1:2,
     roadRebuild0263LowMemory:!!lowMemory,
     roadRebuild0263UsesOriginalDeck:true,
     roadRebuild0263UsesOriginalSourcePositions:true,

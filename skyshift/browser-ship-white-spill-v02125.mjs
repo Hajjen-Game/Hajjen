@@ -90,7 +90,18 @@ try{
    brightReductionPct:Math.round(100*(1-b.bright/Math.max(1,a.bright))),
    whiteReductionPct:Math.round(100*(1-b.white/Math.max(1,a.white)))};
   records.push(result);
-  if(changed<65)throw Error("Ship light material change was visually inert "+JSON.stringify(result));
+  // A newer PBR substrate can already have ZERO saturated white pixels
+  // before the legacy containment shader A/B. In that genuinely dark
+  // source regime still demand measurable material change and zero new
+  // white pixels, rather than incorrectly demanding 65 changed pixels.
+  // Preserve the original stronger threshold when any bright wash exists.
+  const alreadyDark=a.bright===0&&a.white===0&&a.meanLight<12;
+  const minChanged=alreadyDark?20:65;
+  if(changed<minChanged)throw Error("Ship light material change was visually inert "+
+   JSON.stringify({...result,alreadyDark,minChanged}));
+  if(alreadyDark&&(b.bright!==0||b.white!==0))
+   throw Error("Ship introduced white pixels into already dark hull "+
+    JSON.stringify(result));
   if(offHullChanges>5)throw Error("Ship treatment unexpectedly changes outside hull "+
     JSON.stringify(result));
   if(b.bright>a.bright*1.15||b.white>a.white*1.15)

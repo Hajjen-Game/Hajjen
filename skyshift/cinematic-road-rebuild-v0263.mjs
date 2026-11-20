@@ -206,6 +206,23 @@ export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false}={})
   for(const name of ["AmberLeft","AmberRight"])
    direct.push(oneSample(name,0,.5,9.0));
  }
+ // 0.26.3: finite-strip glancing convolution for a racing-road finish.
+ // The original fixture weights and view/surface normals bound each glint.
+ // This contributes SPECULAR ONLY – no emissive paint, no ambient white.
+ direct.push(
+  " float r263NdV=clamp(dot(normalize(vViewPosition),normal),0.0,1.0);",
+  " float r263Fresnel=0.24+0.76*pow(1.0-r263NdV,2.0);",
+  " float r263Lateral=abs(vTrackCoord.y);",
+  " float r263CoveBand=exp(-pow((r263Lateral-6.7)/2.2,2.0))+",
+  "  0.48*exp(-pow((r263Lateral-9.1)/1.7,2.0));",
+  " float r263AmberBand=exp(-pow((r263Lateral-7.5)/2.05,2.0));",
+  " float r263Surface=0.86+0.14*sin(vTrackCoord.x*0.28+vTrackCoord.y*0.31);",
+  " vec3 r263Convolved=vec3(0.045,0.54,0.90)*",
+  "  (r263Source.x*r263CoveBand*0.38)+",
+  "  vec3(1.0,0.33,0.075)*(r263Source.y*r263AmberBand*0.29);",
+  " reflectedLight.directSpecular+=r263Convolved*",
+  "  (r263Keep*r263Fresnel*r263Surface);"
+ );
  direct.push("}");
  return {
   vertexShader:vertex.replace(COMMON,COMMON+"\n"+decl)

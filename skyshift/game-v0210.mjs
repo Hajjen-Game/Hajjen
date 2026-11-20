@@ -102,6 +102,8 @@ import {PREMIUM_ROAD_SURFACE_0215,createPremiumRoadSurfaceController}
  from "./premium-road-surface-v0215.mjs";
 import {CINEMATIC_ROAD_0242,createCinematicRoadReflectionController}
  from "./cinematic-road-reflections-v0242.mjs";
+import {ROAD_REBUILD_0263,createCinematicRoadReflectionRebuild0263}
+ from "./cinematic-road-rebuild-v0263.mjs";
 import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
  from "./cinematic-energy-v0216.mjs";
 import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
@@ -178,7 +180,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.26.2";
+).searchParams.get("v")||"0.26.3";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -258,6 +260,13 @@ const cinematicRoadEnabled=premiumRoadEnabled&&
  roadReflectionRelease[0]===0&&
  (roadReflectionRelease[1]>24||
   (roadReflectionRelease[1]===24&&roadReflectionRelease[2]>=2));
+// 0.26.3 Pass 3: native GGX from the real, banked cyan/amber fixtures.
+// ?roadRebuild=classic reproduces 0.26.2 exactly (no scene/flight changes).
+const roadRebuildEnabled=cinematicRoadEnabled&&
+ roadReflectionRelease[0]===0&&
+ (roadReflectionRelease[1]>26||
+  (roadReflectionRelease[1]===26&&roadReflectionRelease[2]>=3))&&
+ new URLSearchParams(location.search).get("roadRebuild")!=="classic";
 // 0.21.6: speed-reactive ENERGY in existing tunnel neon, never an extra clock.
 const cinematicMotionEnabled=integratedNeonFlowEnabled&&premiumRoadEnabled&&
  new URLSearchParams(location.search).get("cinematicMotion")!=="classic"&&
@@ -437,7 +446,7 @@ let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
- premiumRoadSurface=null,cinematicRoadReflections=null;
+ premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null;
 let cameraLook=new THREE.Vector3(),shadowMesh,premiumFX,sideThrusters,reactiveWingFlaps,livingWake,railSparks;
 let sectorLandmarks=null,ghostVisual=null,hangarHeroRig=null;
 const racingExperience=createRacingExperience();
@@ -1090,6 +1099,15 @@ function initScene(){
  cinematicRoadReflections=cinematicRoadEnabled?
   createCinematicRoadReflectionController(premiumSurface.material,
    {lowMemory:limitedMemory}):null;
+ // 0.26.3: unchanged indexed PBR deck, original banked physical LED sites.
+ cinematicRoadRebuild=roadRebuildEnabled?
+  createCinematicRoadReflectionRebuild0263(THREE,
+   world.getObjectByName("Zone Ribbon · integrated PBR racing deck"),{
+    positionAt,lowMemory:limitedMemory,
+    vaultHeightClassic:new URLSearchParams(location.search)
+     .get("vaultHeight")==="classic",
+    legacy:cinematicRoadReflections
+   }):null;
  // Matte only this rail's PBR shell inside the first 368m. The colored
  // inlay remains the same native zone-wave material and draw batch.
  identitySurface?.setRailBodyContainment?.(railBodyContainmentEnabled?1:0);
@@ -1914,6 +1932,60 @@ function initScene(){
      phaseMeters:previous.cinematicPhaseMeters,
      boost:previous.cinematicBoost,playing:true});
     stationWorld.setMotionComparison(previous.cinematicComparison);
+   }
+  };
+ // 0.26.3: native GGX road A/B against EXACT 0.26.2, same world frame.
+ if(new URLSearchParams(location.search).get("roadRebuildSmoke")==="1")
+  window.__skyshiftRoadRebuildProbe=()=>({
+   requested:roadRebuildEnabled,
+   ...(cinematicRoadRebuild?.stats()??{}),
+   legacyReflections:cinematicRoadReflections?.stats()?.seal??null,
+   roadMaterial:premiumSurface?.material?.type??null,
+   solarSeal:roadSolarSpill?.stats()?.seal??null,
+   premiumRoadSeal:premiumRoadSurface?.stats()?.seal??null,
+   nativeWave:Boolean(premiumSurface?.setWaveState),
+   originalRail:Boolean(identitySurface),
+   originalShip:Boolean(ship)
+  });
+ if(new URLSearchParams(location.search).get("roadRebuildFrameProof")==="1")
+  window.__skyshiftRoadRebuildFrameProof=()=>{
+   if(!roadRebuildEnabled||
+    !cinematicRoadRebuild?.stats?.().roadRebuild0263Active||
+    !neonPipeline?.render)
+    throw Error("0.26.3 GPU A/B unavailable");
+   const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
+   if(!deck)throw Error("0.26.3 original indexed deck missing");
+   const prev=cinematicRoadRebuild.stats().roadRebuild0263Strength,
+    visible=deck.visible,originalMaterial=deck.material,
+    oldTarget=renderer.getRenderTarget();
+   let mask=null;
+   const draw=value=>{
+    cinematicRoadRebuild.setComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   const raw=()=>{
+    renderer.setRenderTarget(null);renderer.render(scene,camera);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    const classic=draw(0),physical=draw(1);
+    deck.visible=false;
+    const absent=draw(1);
+    mask=new THREE.MeshBasicMaterial({
+     color:0xffffff,side:THREE.DoubleSide,toneMapped:false,fog:false
+    });
+    deck.material=mask;deck.visible=true;
+    const roadMask=raw();
+    deck.visible=false;
+    const emptyMask=raw();
+    return {classic,physical,absent,roadMask,emptyMask,
+     trackS:flight?.s??null};
+   }finally{
+    deck.material=originalMaterial;deck.visible=visible;
+    mask?.dispose();
+    cinematicRoadRebuild.setComparison(prev);
+    renderer.setRenderTarget(oldTarget);neonPipeline.render(0);
    }
   };
  // 0.24.2 same-frame neon reflections on ONLY the integrated road deck.

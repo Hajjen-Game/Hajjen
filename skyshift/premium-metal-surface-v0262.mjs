@@ -70,7 +70,7 @@ export function patchPremiumMetalShader0262(vertex,fragment,{role="panel",mobile
  const rough=[
   "if(uPremiumMetal0262>0.0001){",
   " vec4 m262=texture2D(uMetalAtlas0262,vec2(vPbrTrack0260*0.25,vPbrSection0260.y*0.58));",
-  " float m262Polish="+(role==="rib?"0.89":"1.0")+";",
+  " float m262Polish="+(role==="rib"?"0.89":"1.0")+";",
   " float m262R=clamp(roughnessFactor*",
   "   (0.68+0.48*m262.g)*m262Polish,0.24,0.68);",
   " roughnessFactor=mix(roughnessFactor,m262R,uPremiumMetal0262);",
@@ -87,7 +87,7 @@ export function patchPremiumMetalShader0262(vertex,fragment,{role="panel",mobile
   " if(dot(m262T,m262T)>0.0000001&&dot(m262B,m262B)>0.0000001){",
   "  m262T=normalize(m262T);m262B=normalize(m262B);",
   "  vec2 m262Grain=(m262N.rb*2.0-1.0);",
-  "  float m262Amp="+(role==="rib?"0.12":"0.21")+";",
+  "  float m262Amp="+(role==="rib"?"0.12":"0.21")+";",
   "  normal=normalize(normal+uPremiumMetal0262*m262Amp*",
   "    (m262T*m262Grain.x+m262B*m262Grain.y));",
   " }",

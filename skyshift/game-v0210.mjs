@@ -124,6 +124,8 @@ import {MICRO_SURFACE_METAL_0251,installMicroSurfaceMetalDefinition}
  from "./micro-surface-metal-definition-v0251.mjs";
 import {DUAL_TONE_LIGHTING_0260,installDualToneLightingPass1}
  from "./dual-tone-lighting-v0260.mjs";
+import {TRUE_METAL_0260_P2,installTrueMetalMaterialsPass2}
+ from "./true-metal-materials-v0260p2.mjs";
 import {VELOCITY_CINEMA_0220_P3,installVelocityCinematography}
  from "./velocity-cinematography-v0220p3.mjs";
 import {UNIFIED_GRADE_0220_P4,installUnifiedCinematicGrade}
@@ -315,6 +317,11 @@ const dualToneVersion=(new URLSearchParams(location.search).get("v")||"0.26.0")
  .split(".").map(Number);
 const dualToneEnabled=microMetalEnabled&&
  new URLSearchParams(location.search).get("dualTone")!=="classic"&&
+ dualToneVersion[0]===0&&dualToneVersion[1]>=26;
+// 0.26.0 Pass 2: native physical metal light response, separate from the
+// original 0.26.0 dual-tone Basic-material solar seal. Same-build A/B switch.
+const trueMetalEnabled=dualToneEnabled&&
+ new URLSearchParams(location.search).get("trueMetal")!=="classic"&&
  dualToneVersion[0]===0&&dualToneVersion[1]>=26;
 // 0.22.0 Pass 3: additive postprocess; Pass 1 and Pass 2 links unchanged.
 const velocityCinemaEnabled=cinematicNeonEnabled&&
@@ -1000,7 +1007,8 @@ function initScene(){
  // 0.20.5 World Art Pipeline: coherent, authored glTF station interior.
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
- if(rebirthEnabled)stationWorld=(dualToneEnabled?installDualToneLightingPass1:
+ if(rebirthEnabled)stationWorld=(trueMetalEnabled?installTrueMetalMaterialsPass2:
+     dualToneEnabled?installDualToneLightingPass1:
      microMetalEnabled?installMicroSurfaceMetalDefinition:
      darkMetalEnabled?installDarkMetallicFoundation:
      surfaceCraftEnabled?installPremiumSurfaceCraftsmanship:
@@ -1378,6 +1386,56 @@ function initScene(){
     deck.material=oldMaterial;
     maskMaterial?.dispose();
     stationWorld.setDualToneComparison(prior);
+    renderer.setRenderTarget(oldTarget);
+    neonPipeline.render(0);
+   }
+  };
+ // 0.26.0 Pass 2: true MeshPhysicalMaterial coating on exactly the same
+ // original solar-sealed 0.26.0 Pass 1 world, for pixel A/B validation.
+ if(new URLSearchParams(location.search).get("trueMetalSmoke")==="1")
+  window.__skyshiftTrueMetalProbe=()=>({
+   requested:trueMetalEnabled,
+   ...(stationWorld?.stats?.()??{}),
+   roadSolarSeal:roadSolarSpill?.stats()?.seal??null,
+   nativeWave:Boolean(premiumSurface?.setWaveState)
+  });
+ if(new URLSearchParams(location.search).get("trueMetalFrameProof")==="1")
+  window.__skyshiftTrueMetalFrameProof=()=>{
+   if(!trueMetalEnabled||!stationWorld?.setTrueMetalComparison||
+      !stationWorld.stats().trueMetal0260P2Enabled||!neonPipeline?.render)
+    throw Error("0.26.0 P2 physical metal same-frame proof unavailable");
+   const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
+   if(!deck)throw Error("0.26.0 P2 original road unavailable");
+   const original=stationWorld.stats().trueMetal0260P2Strength;
+   const oldMaterial=deck.material,oldVisible=deck.visible;
+   const oldTarget=renderer.getRenderTarget();
+   let maskMaterial=null;
+   const capture=value=>{
+    stationWorld.setTrueMetalComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   const directRoadMask=()=>{
+    renderer.setRenderTarget(null);
+    renderer.render(scene,camera);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    const classic=capture(0),physical=capture(1);
+    maskMaterial=new THREE.MeshBasicMaterial({
+     color:0xffffff,side:THREE.DoubleSide,toneMapped:false,fog:false
+    });
+    deck.material=maskMaterial;
+    deck.visible=true;
+    const roadMask=directRoadMask();
+    deck.visible=false;
+    const emptyMask=directRoadMask();
+    return {classic,physical,roadMask,emptyMask,position:flight?.s??null};
+   }finally{
+    deck.visible=oldVisible;
+    deck.material=oldMaterial;
+    maskMaterial?.dispose();
+    stationWorld.setTrueMetalComparison(original);
     renderer.setRenderTarget(oldTarget);
     neonPipeline.render(0);
    }
@@ -3167,6 +3225,10 @@ function exportAudit(){
       dualToneProfile:dualToneEnabled?DUAL_TONE_LIGHTING_0260:null,
       dualToneAudit:dualToneEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeDualTone:"?dualTone=classic",
+      trueMetalEnabled,
+      trueMetalProfile:trueMetalEnabled?TRUE_METAL_0260_P2:null,
+      trueMetalAudit:trueMetalEnabled?stationWorld?.stats?.()??null:null,
+      compareBeforeTrueMetal:"?trueMetal=classic",
       velocityCinemaRequested:velocityCinemaEnabled,
       velocityCinemaProfile:velocityCinemaEnabled?VELOCITY_CINEMA_0220_P3:null,
       velocityCinemaAudit:velocityCinematography?.stats?.()??null,

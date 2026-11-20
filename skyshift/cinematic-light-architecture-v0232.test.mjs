@@ -99,6 +99,6 @@ test("game and release distinguish pass-2 and old 0.23.1.1 for A/B",()=>{
  assert.match(game,/__skyshiftLightArchitectureProbe/);
  assert.match(game,/__skyshiftLightArchitectureFrameProof/);
  assert.match(game,/compareBeforeLightArchitecture:"\?lightArchitecture=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.24\.2/);
- assert.match(read("./index.html"),/0\.24\.2/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.25\.0/);
+ assert.match(read("./index.html"),/0\.25\.0/);
 });

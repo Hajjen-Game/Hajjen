@@ -941,6 +941,45 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  dark-metallic-lighting-foundation-v0250-unit:
+    name: SKYSHIFT 0.25.0 dark graphite, native neon, portal practical and flight regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate complete 0.24 shader chain plus 0.25 material and no regression
+        run: |
+          node --check skyshift/dark-metallic-foundation-v0250.mjs
+          node --check skyshift/dark-metallic-foundation-v0250.test.mjs
+          node --check skyshift/browser-dark-metallic-v0250.mjs
+          node --check skyshift/game-v0210.mjs
+          node --check skyshift/boot-v0210.js
+          node --test skyshift/dark-metallic-foundation-v0250.test.mjs skyshift/premium-surface-craftsmanship-v0241.test.mjs skyshift/architectural-neon-lighting-v0240.test.mjs skyshift/unified-tunnel-materials-v0233.test.mjs skyshift/cinematic-road-reflections-v0242.test.mjs skyshift/ship-white-spill-v02125.test.mjs skyshift/road-solar-spill-v02126.test.mjs
+
+  browser-dark-metallic-lighting-v0250:
+    name: SKYSHIFT 0.25.0 REAL WebGL high-contrast charcoal, neon cores and 4GB proof
+    needs: dark-metallic-lighting-foundation-v0250-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome WebGL and real PNG pixel inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Real WebGL 0.24.2 versus 0.25.0 across cyan gold jade and 4GB
+        run: node skyshift/browser-dark-metallic-v0250.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0250-dark-metallic-visual-proof
+          path: |
+            skyshift-v0250-*.png
+            skyshift-v0250-proof.json
+
   cinematic-road-reflections-v0242-unit:
     name: SKYSHIFT 0.24.2 road-only spectral reflection + white-core solar regression
     runs-on: ubuntu-latest

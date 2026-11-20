@@ -112,6 +112,6 @@ test("0.26.0 pass 1 boot, same-frame A/B and all previous passes remain wired",(
  assert.match(game,/const roadMask=directRoadMask\(\)/);
  assert.match(game,/darkMetalEnabled\?installDarkMetallicFoundation/);
  assert.match(game,/microMetalEnabled\?installMicroSurfaceMetalDefinition/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.[01]/);
- assert.match(read("./index.html"),/SKYSHIFT.*0\.26\.[01]/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.[012]/);
+ assert.match(read("./index.html"),/SKYSHIFT.*0\.26\.[012]/);
 });

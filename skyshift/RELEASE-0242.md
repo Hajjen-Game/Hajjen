@@ -15,7 +15,8 @@ Continue toward the provided premium futuristic tunnel reference without undermi
 - Release: `/skyshift/?v=0.24.2`.
 - Exact 0.24.1 look on the same build: `/skyshift/?v=0.24.2&cinematicRoad=classic`.
 - WebGL probe and same-frame screenshots: `?cinematicRoadSmoke=1&cinematicRoadFrameProof=1&trackRepairSmoke=1&waveSmoke=1`.
-- Capture each frame with original 0.24.1 road, cinematic road, and deck hidden to segment road-only pixels. Profile cyan/gold/jade at entry/middle/exit, plus 4GB gold/violet.
+- Capture each frame with original 0.24.1 road, cinematic road, and deck hidden. The *road-only segmentation* is computed from a temporary flat-white road versus deck-hidden **direct renderer** pass, eliminating false positives from dark road versus dark background.
+- The first test revealed too much road brightness; tuned emitter energy downward while preserving long chromatic highlights and adding an explicit average road-luminance limit. Profile cyan/gold/jade at entry/middle/exit, plus 4GB gold/violet.
 
 ## Acceptance
 Require shader composition and historic road/white-solar/GRIP tests plus real Chromium screenshot pixel proof: visible additional colored illumination on the deck, preserved lane visibility, no extra white pixels and no substantive change outside the physical road. Reconcile A/B failures before release. Automated success cannot guarantee subjective parity with the target image; evaluate on iPhone.

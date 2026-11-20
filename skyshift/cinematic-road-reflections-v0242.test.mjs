@@ -120,6 +120,8 @@ test("0.24.2 game boot, old 0.24.1 A/B and native stage wave hooks",()=>{
  assert.match(game,/createCinematicRoadReflectionController\(premiumSurface\.material/);
  assert.match(game,/__skyshiftCinematicRoadProbe/);
  assert.match(game,/__skyshiftCinematicRoadFrameProof/);
+ assert.match(game,/roadMask,emptyMask/);
+ assert.match(game,/new THREE.MeshBasicMaterial\(\{/);
  assert.match(game,/compareBeforeCinematicRoad:"\?cinematicRoad=classic"/);
  assert.match(game,/roadSolarSpill=roadSolarEnabled\?createRoadSolarSpillController/);
  assert.match(game,/premiumRoadSurface=premiumRoadEnabled\?createPremiumRoadSurfaceController/);

@@ -18,11 +18,15 @@ function analyze(pair,label,{mobile=false}={}){
  const images=Object.fromEntries(["classic","cinematic","absent"].map(k=>
   [k,PNG.sync.read(Buffer.from(pair[k],"base64"))]));
  const a=images.classic,b=images.cinematic,off=images.absent;
+ const roadMask=PNG.sync.read(Buffer.from(pair.roadMask,"base64"));
+ const emptyMask=PNG.sync.read(Buffer.from(pair.emptyMask,"base64"));
  if(a.width!==b.width||a.height!==b.height||
-    a.width!==off.width||a.height!==off.height)
+    a.width!==off.width||a.height!==off.height||
+    roadMask.width!==a.width||emptyMask.width!==a.width||
+    roadMask.height!==a.height||emptyMask.height!==a.height)
   throw Error("0.24.2 same-frame A/B size mismatch");
  for(const [name,raw] of Object.entries(pair))
-  if(name!=="trackS")writeFileSync("skyshift-v0242-"+label+"-"+name+".png",
+  if(name!=="trackS"&&(!name.endsWith("Mask")||label==="cyan-early-44"))writeFileSync("skyshift-v0242-"+label+"-"+name+".png",
    Buffer.from(raw,"base64"));
  let deckPixels=0,changedDeck=0,changedOutside=0;
  let whiteBefore=0,whiteAfter=0,oldLuma=0,newLuma=0;
@@ -31,11 +35,15 @@ function analyze(pair,label,{mobile=false}={}){
  for(let y=Math.floor(h*.25);y<Math.floor(h*.97);y+=3)
   for(let x=Math.floor(w*.035);x<Math.floor(w*.965);x+=3){
    const i=(y*w+x)*4,A=a.data,B=b.data,N=off.data;
-   const absentDelta=Math.abs(A[i]-N[i])+Math.abs(A[i+1]-N[i+1])+
-    Math.abs(A[i+2]-N[i+2]);
+   // True visible deck silhouette, not dark road vs dark empty tunnel:
+   // difference from the temporary WHITE road and no-road DIRECT renders.
+   // This prevents false off-road bleed reports on near-black road pixels.
+   const M=roadMask.data,E=emptyMask.data;
+   const maskDelta=Math.abs(M[i]-E[i])+Math.abs(M[i+1]-E[i+1])+
+    Math.abs(M[i+2]-E[i+2]);
    const change=Math.abs(A[i]-B[i])+Math.abs(A[i+1]-B[i+1])+
     Math.abs(A[i+2]-B[i+2]);
-   if(absentDelta>32){
+   if(maskDelta>115){
     deckPixels++;
     oldLuma+=luminance(A,i);newLuma+=luminance(B,i);
     if(Math.min(A[i],A[i+1],A[i+2])>190)whiteBefore++;
@@ -56,13 +64,15 @@ function analyze(pair,label,{mobile=false}={}){
   changedOutside,changedTop,whiteBefore,whiteAfter,coloredBoost,darkenedDeck,
   oldMean:+(oldLuma/Math.max(deckPixels,1)).toFixed(2),
   newMean:+(newLuma/Math.max(deckPixels,1)).toFixed(2)};
- if(deckPixels<300||changedDeck<(mobile?22:75))
+ if(deckPixels<300||changedDeck<(mobile?18:65))
   throw Error("0.24.2 reflections invisible on actual deck "+JSON.stringify(stats));
  if(stats.newMean<stats.oldMean-.3||darkenedDeck>changedDeck*.12+35)
   throw Error("0.24.2 neon reflections darken original driving surface "+JSON.stringify(stats));
+ if(stats.newMean>stats.oldMean+(mobile?12:15))
+  throw Error("0.24.2 roadway reflections are too bright "+JSON.stringify(stats));
  if(whiteAfter>whiteBefore*1.15+7)
   throw Error("0.24.2 neutral-white sunlight returned "+JSON.stringify(stats));
- if(changedOutside>changedDeck*3+150)
+ if(changedOutside>changedDeck*.60+175)
   throw Error("0.24.2 reflections escaped road geometry "+JSON.stringify(stats));
  return stats;
 }

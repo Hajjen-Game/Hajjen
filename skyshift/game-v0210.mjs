@@ -1539,19 +1539,41 @@ function initScene(){
    const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
    if(!deck)throw Error("0.24.2 original physical road unavailable");
    const prior=cinematicRoadReflections.stats().seal,oldVisible=deck.visible;
+   const oldMaterial=deck.material,oldTarget=renderer.getRenderTarget();
+   let segmentationMaterial=null;
    const draw=value=>{
     cinematicRoadReflections.setComparison(value);
     neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   const drawRawMask=()=>{
+    // Only for WebGL QA: render the original road silhouette WITHOUT bloom.
+    // Never alter normal gameplay geometry, shaders, or scene configuration.
+    renderer.setRenderTarget(null);
+    renderer.render(scene,camera);
     return renderer.domElement.toDataURL("image/png").split(",")[1];
    };
    try{
     const classic=draw(0),cinematic=draw(1);
     deck.visible=false;
     const absent=draw(0);
-    return {classic,cinematic,absent,trackS:flight?.s??null};
+    segmentationMaterial=new THREE.MeshBasicMaterial({
+     color:0xffffff,side:THREE.DoubleSide,toneMapped:false,fog:false
+    });
+    deck.material=segmentationMaterial;
+    deck.visible=true;
+    const roadMask=drawRawMask();
+    deck.visible=false;
+    const emptyMask=drawRawMask();
+    return {classic,cinematic,absent,roadMask,emptyMask,
+     trackS:flight?.s??null};
    }finally{
+    deck.material=oldMaterial;
     deck.visible=oldVisible;
+    segmentationMaterial?.dispose();
     cinematicRoadReflections.setComparison(prior);
+    renderer.setRenderTarget(oldTarget);
+    neonPipeline.render(0);
    }
   };
  // 0.21.5: same-frame finish-only A/B, without a world or physics tick.

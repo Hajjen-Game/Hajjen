@@ -77,5 +77,5 @@ test("no change to Aurora and original lighting A/B remains available",()=>{
  assert.match(g,/exteriorSealEnabled\?installExteriorLightSeal:installNeonDrivenInterior/);
  assert.match(g,/interiorLight"\)!=="classic"/);
  assert.match(g,/compareBeforeNeonInterior:"\?interiorLight=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.3/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.24\.0/);
 });

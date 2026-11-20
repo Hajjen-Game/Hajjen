@@ -112,6 +112,8 @@ import {LIGHT_ARCHITECTURE_0232,installCinematicLightArchitecture}
  from "./cinematic-light-architecture-v0232.mjs";
 import {UNIFIED_TUNNEL_0233,installUnifiedTunnelMaterials}
  from "./unified-tunnel-materials-v0233.mjs";
+import {ARCHITECTURAL_NEON_0240,installArchitecturalNeonLighting}
+ from "./architectural-neon-lighting-v0240.mjs";
 import {VELOCITY_CINEMA_0220_P3,installVelocityCinematography}
  from "./velocity-cinematography-v0220p3.mjs";
 import {UNIFIED_GRADE_0220_P4,installUnifiedCinematicGrade}
@@ -158,7 +160,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.23.3";
+).searchParams.get("v")||"0.24.0";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -263,6 +265,12 @@ const lightArchitectureEnabled=trueMaterialDepthEnabled&&
 const unifiedTunnelEnabled=lightArchitectureEnabled&&
  new URLSearchParams(location.search).get("unifiedTunnel")!=="classic"&&
  !["0.23.0","0.23.1","0.23.1.1","0.23.2"].includes(
+  new URLSearchParams(location.search).get("v")||"");
+// 0.24.0: bounded architecture-driven neon bounce over full 0.23.3 vault.
+// ?architecturalNeon=classic is the same deployment with this pass off.
+const architecturalNeonEnabled=unifiedTunnelEnabled&&
+ new URLSearchParams(location.search).get("architecturalNeon")!=="classic"&&
+ !["0.23.0","0.23.1","0.23.1.1","0.23.2","0.23.3"].includes(
   new URLSearchParams(location.search).get("v")||"");
 // 0.22.0 Pass 3: additive postprocess; Pass 1 and Pass 2 links unchanged.
 const velocityCinemaEnabled=cinematicNeonEnabled&&
@@ -948,7 +956,8 @@ function initScene(){
  // 0.20.5 World Art Pipeline: coherent, authored glTF station interior.
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
- if(rebirthEnabled)stationWorld=(unifiedTunnelEnabled?installUnifiedTunnelMaterials:
+ if(rebirthEnabled)stationWorld=(architecturalNeonEnabled?installArchitecturalNeonLighting:
+     unifiedTunnelEnabled?installUnifiedTunnelMaterials:
      lightArchitectureEnabled?installCinematicLightArchitecture:
     trueMaterialDepthEnabled?installTrueMaterialDepthRebuild:
     physicalMaterialEnabled?installPhysicalMaterialRebuild:
@@ -1270,6 +1279,28 @@ function initScene(){
       flight?.landingBoostMultiplier??1)});
     velocityCinematography.setComparison(before.comparison);
    }
+  };
+ // 0.24.0 architectural neon ON/OFF in the exact same 0.23.3 frame.
+ if(new URLSearchParams(location.search).get("architecturalNeonSmoke")==="1")
+  window.__skyshiftArchitecturalNeonProbe=()=>({
+   requested:architecturalNeonEnabled,
+   ...(stationWorld?.stats?.()??{}),
+   roadSolarSeal:roadSolarSpill?.stats()?.seal??null,
+   nativeWave:Boolean(premiumSurface?.setWaveState)
+  });
+ if(new URLSearchParams(location.search).get("architecturalNeonFrameProof")==="1")
+  window.__skyshiftArchitecturalNeonFrameProof=()=>{
+   if(!architecturalNeonEnabled||!stationWorld?.setArchitecturalNeonComparison||
+      !stationWorld.stats().architecturalNeon0240Enabled||!neonPipeline?.render)
+    throw Error("0.24.0 exact-frame architectural neon A/B unavailable");
+   const previous=stationWorld.stats().architecturalNeon0240Strength;
+   const capture=value=>{
+    stationWorld.setArchitecturalNeonComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:capture(0),lit:capture(1),position:flight?.s??null};}
+   finally{stationWorld.setArchitecturalNeonComparison(previous);}
   };
  // 0.23.3 full-tunnel geometry/materials versus 0.23.2 in the same frame.
  if(new URLSearchParams(location.search).get("unifiedTunnelSmoke")==="1")
@@ -2832,6 +2863,10 @@ function exportAudit(){
       unifiedTunnelProfile:unifiedTunnelEnabled?UNIFIED_TUNNEL_0233:null,
       unifiedTunnelAudit:unifiedTunnelEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeUnifiedTunnel:"?unifiedTunnel=classic",
+      architecturalNeonEnabled,
+      architecturalNeonProfile:architecturalNeonEnabled?ARCHITECTURAL_NEON_0240:null,
+      architecturalNeonAudit:architecturalNeonEnabled?stationWorld?.stats?.()??null:null,
+      compareBeforeArchitecturalNeon:"?architecturalNeon=classic",
       velocityCinemaRequested:velocityCinemaEnabled,
       velocityCinemaProfile:velocityCinemaEnabled?VELOCITY_CINEMA_0220_P3:null,
       velocityCinemaAudit:velocityCinematography?.stats?.()??null,

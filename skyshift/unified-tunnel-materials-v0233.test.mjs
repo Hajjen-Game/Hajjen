@@ -95,6 +95,6 @@ test("0.23.3 only changes tunnel shader and panel geometry, not lighting or phys
  assert.match(game,/__skyshiftUnifiedTunnelProbe/);
  assert.match(game,/__skyshiftUnifiedTunnelFrameProof/);
  assert.match(game,/compareBeforeUnifiedTunnel:"\?unifiedTunnel=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.3/);
- assert.match(read("./index.html"),/SKYSHIFT.*0\.23\.3/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.24\.0/);
+ assert.match(read("./index.html"),/SKYSHIFT.*0\.24\.0/);
 });

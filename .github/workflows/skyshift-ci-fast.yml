@@ -1,0 +1,90 @@
+name: SKYSHIFT fast PR checks
+# SKYSHIFT CI Optimization 1.0
+# A PR commit runs once (not also on branch push). Superseded commits are
+# cancelled before they consume more CI minutes. Full historical visual QA is
+# retained in skyshift-tests.yml and can be dispatched before any release.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'skyshift/**'
+      - '.github/workflows/skyshift-ci-fast.yml'
+      - '.github/workflows/skyshift-tests.yml'
+
+concurrency:
+  group: skyshift-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  fast-core:
+    name: SKYSHIFT fast syntax, flight, solar seal & current metal unit gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and high-value flight/visual regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check skyshift/game-v0210.mjs
+          node --check skyshift/boot-v0210.js
+          node --check skyshift/dual-tone-lighting-v0260.mjs
+          node --check skyshift/browser-dual-tone-lighting-v0260.mjs
+          if [[ -f skyshift/true-metal-materials-v0260p2.mjs ]]; then
+            node --check skyshift/true-metal-materials-v0260p2.mjs
+            node --check skyshift/browser-true-metal-materials-v0260p2.mjs
+          fi
+          node --test \
+            skyshift/track-physics-parity-v0165.test.mjs \
+            skyshift/track-integrity-v0165.test.mjs \
+            skyshift/grip-trick-lock-v0165.test.mjs \
+            skyshift/white-core-containment-v02123.test.mjs \
+            skyshift/rail-body-containment-v02124.test.mjs \
+            skyshift/ship-white-spill-v02125.test.mjs \
+            skyshift/road-solar-spill-v02126.test.mjs \
+            skyshift/dark-metallic-foundation-v0250.test.mjs \
+            skyshift/micro-surface-metal-definition-v0251.test.mjs \
+            skyshift/dual-tone-lighting-v0260.test.mjs
+          if [[ -f skyshift/true-metal-materials-v0260p2.test.mjs ]]; then
+            node --test skyshift/true-metal-materials-v0260p2.test.mjs
+          fi
+
+  current-material-webgl:
+    name: SKYSHIFT current material REAL Chrome/WebGL, dual-tone and 4 GB
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install real Chromium test driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Verify latest metal pipeline in the real renderer
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f skyshift/browser-true-metal-materials-v0260p2.mjs ]]; then
+            echo "QA: Pass 2 native physical metal, solar seal and same-camera comparison"
+            node skyshift/browser-true-metal-materials-v0260p2.mjs
+          else
+            echo "QA: Pass 1 dual-tone lighting, solar seal and same-camera comparison"
+            node skyshift/browser-dual-tone-lighting-v0260.mjs
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-ci-fast-current-metal-visual-proof
+          path: |
+            skyshift-v0260p2-*.png
+            skyshift-v0260p2-proof.json
+            skyshift-v0260-*.png
+            skyshift-v0260-proof.json
+          if-no-files-found: warn

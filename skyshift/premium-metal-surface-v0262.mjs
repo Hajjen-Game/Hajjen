@@ -153,8 +153,8 @@ export function patchPremiumSubstrateShader0262(vertex,fragment,
   "}"
  ].join("\n");
  return {vertexShader:vertex,fragmentShader:fragment
-  .replace("#include <common>","#include <common>\\nuniform sampler2D uMetalAtlas0262;\\nuniform float uPremiumMetal0262;")
-  .replace(SUBSTRATE_ANCHOR,SUBSTRATE_ANCHOR+"\\n"+body)};
+  .replace("#include <common>","#include <common>\nuniform sampler2D uMetalAtlas0262;\nuniform float uPremiumMetal0262;")
+  .replace(SUBSTRATE_ANCHOR,SUBSTRATE_ANCHOR+"\n"+body)};
 }
 export function installPremiumSubstrateShader0262(material,uniforms,opts){
  if(!material?.isMeshBasicMaterial||

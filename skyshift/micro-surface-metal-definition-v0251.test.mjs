@@ -91,7 +91,7 @@ test("no new render passes, geometry, lights, textures, road/ship/physics mutati
  assert.equal(spec.comparison,"?microMetal=classic");
  const mod=read("./micro-surface-metal-definition-v0251.mjs");
  assert.match(mod,/installDarkMetallicFoundation\(THREE,world,options\)/);
- assert.match(mod,/mesh\.material\?\.isMeshBasicMaterial/);
+ assert.match(mod,/mesh\?\.material\?\.isMeshBasicMaterial/);
  assert.match(mod,/m51Local\*m51Facet\*m51Near\*m51Face/);
 });
 test("game boots current 0.25.1; native 0.25.0 remains exact A/B",()=>{

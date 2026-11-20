@@ -4,7 +4,9 @@ name: SKYSHIFT track logic checks
 # Pull requests run fast/targeted checks in skyshift-ci-fast.yml instead.
 on:
   push:
-    branches: [main]
+    # Temporary pre-merge release gate for 0.26.0 P2 only.
+    # Revert to main-only after the full candidate checks pass.
+    branches: [main, skyshift-v0260-true-metal-materials-pass2]
     paths:
       - 'skyshift/**'
       - '.github/workflows/skyshift-tests.yml'

@@ -38,7 +38,10 @@ jobs:
           node --test skyshift/unified-tunnel-lighting-v1.test.mjs
           node --check skyshift/local-reflections-v0261p1.mjs
           node --check skyshift/browser-local-reflections-v0261p1.mjs
-          node --test skyshift/local-reflections-v0261p1.test.mjs\n          node --check skyshift/cinematic-road-rebuild-v0263.mjs\n          node --check skyshift/browser-cinematic-road-rebuild-v0263.mjs\n          node --test skyshift/cinematic-road-rebuild-v0263.test.mjs
+          node --test skyshift/local-reflections-v0261p1.test.mjs
+          node --check skyshift/cinematic-road-rebuild-v0263.mjs
+          node --check skyshift/browser-cinematic-road-rebuild-v0263.mjs
+          node --test skyshift/cinematic-road-rebuild-v0263.test.mjs
 
   browser-true-metal-v0260p2:
     name: SKYSHIFT 0.26.0 P2 REAL PBR WebGL and 4GB solar-sealed A/B
@@ -56,7 +59,8 @@ jobs:
         run: |
           node skyshift/browser-true-metal-materials-v0260p2.mjs
           node skyshift/browser-unified-tunnel-lighting-v1.mjs
-          node skyshift/browser-local-reflections-v0261p1.mjs\n          node skyshift/browser-cinematic-road-rebuild-v0263.mjs
+          node skyshift/browser-local-reflections-v0261p1.mjs
+          node skyshift/browser-cinematic-road-rebuild-v0263.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -67,7 +71,9 @@ jobs:
             skyshift-unified-lighting-v1-*.png
             skyshift-unified-lighting-v1-proof.json
             skyshift-v0261p1-*.png
-            skyshift-v0261p1-proof.json\n            skyshift-v0263-*.png\n            skyshift-v0263-proof.json
+            skyshift-v0261p1-proof.json
+            skyshift-v0263-*.png
+            skyshift-v0263-proof.json
 
   track-tests:
     runs-on: ubuntu-latest

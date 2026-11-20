@@ -77,6 +77,7 @@ function localStripBrdfSample0261(source,offset,weight,lightColor,
   reach,amplitude,visibility){
  const p="l261"+source;
  return [
+  "{",
   p+".visible=true;",
   p+".direction=normalize("+visibility+"+l261Axis*("+offset.toFixed(2)+")+vec3(0.00001));",
   "float "+p+"Distance=length("+visibility+"+l261Axis*("+offset.toFixed(2)+"));",
@@ -84,7 +85,8 @@ function localStripBrdfSample0261(source,offset,weight,lightColor,
   " l261Relief*l261Mask."+ (source==="Cool"?"x":"y")+"*",
   " "+(weight*amplitude).toFixed(5)+"*exp(-pow("+p+"Distance/"+reach+",2.0)));",
   "RE_Direct("+p+",geometryPosition,geometryNormal,geometryViewDir,",
-  " geometryClearcoatNormal,material,reflectedLight);"
+  " geometryClearcoatNormal,material,reflectedLight);",
+  "}"
  ].join("\n");
 }
 export function patchLocalStripReflectionShader0261(vertex,fragment,

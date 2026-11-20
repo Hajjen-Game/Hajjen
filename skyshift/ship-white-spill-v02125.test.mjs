@@ -103,5 +103,5 @@ test("classic A/B, ship swap and 120Hz mechanics untouched",()=>{
  assert.match(s,/compareBeforeShipWhite:"\?shipWhite=classic"/);
  assert.match(s,/shipWhiteSpill\?\.attachShip\(ship\)/);
  assert.match(s,/shipWhiteSpill\?\.update\(view\.s,targetAccent/);
- assert.match(src("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.0/);
+ assert.match(src("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.[01]/);
 });

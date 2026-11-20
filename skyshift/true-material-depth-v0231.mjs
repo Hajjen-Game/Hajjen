@@ -113,7 +113,8 @@ export function buildTrueDepthGeometry(THREE,positionAt,options={}){
   typeof positionAt!=="function")throw Error("0.23.1 frame invalid");
  // Same 22 m cohesive bays and same underlying curve as 0.21.4.
  const data=buildStructuralTunnelData(positionAt,{
-  ...options,flowCohesion:true,depthStudy:true,lowMemory:false
+  ...options,flowCohesion:true,depthStudy:true,
+  lowMemory:!!(options.unifiedDepth&&options.lowMemory)
  });
  if(!data.depthStudy||data.primary.triangles<1)
   throw Error("0.23.1 raised panel geometry not created");
@@ -128,13 +129,17 @@ export function buildTrueDepthGeometry(THREE,positionAt,options={}){
  // A geometry swap without re-deriving them breaks WebGL or produces light
  // response tied to the wrong panel after a banked turn.
  const local=buildTunnelNeonLocalData(geo,positionAt);
- const frames=buildPhysicalMaterialFrames(geo,positionAt);
+ const mobile=!!(options.unifiedDepth&&options.lowMemory);
+ const frames=mobile?{vertices:geo.getAttribute("position").count,frames:0}:
+  buildPhysicalMaterialFrames(geo,positionAt);
  geo.setAttribute("neonLocalSection",
   new THREE.Float32BufferAttribute(local.coordinates,2));
- geo.setAttribute("physicalRight023",
-  new THREE.Float32BufferAttribute(frames.right,3));
- geo.setAttribute("physicalUp023",
-  new THREE.Float32BufferAttribute(frames.up,3));
+ if(!mobile){
+  geo.setAttribute("physicalRight023",
+   new THREE.Float32BufferAttribute(frames.right,3));
+  geo.setAttribute("physicalUp023",
+   new THREE.Float32BufferAttribute(frames.up,3));
+ }
  return {geometry:geo,triangles:array.triangles,vertices:frames.vertices,
   bankedFrames:frames.frames,referenceStart:TRUE_MATERIAL_0231.referenceStart,
   referenceEnd:TRUE_MATERIAL_0231.referenceEnd};

@@ -20,7 +20,7 @@ export const UNIFIED_TUNNEL_LIGHTING_1=Object.freeze({
  neonEntranceFadeMeters:14,neonExitFadeMeters:28,
  // The gallery's graphite is already dark. Retain a SMALL, controlled
  // neutral PBR contribution for ship readability but not solar wash.
- neonAmbientAtCore:.060,neonKeyAtCore:.018,neonFillAtCore:.028,
+ neonAmbientAtCore:.72,neonKeyAtCore:.38,neonFillAtCore:.56,
  shadowStart:SHADOW_TUNNEL.start,shadowEnd:SHADOW_TUNNEL.end,
  shadowProfile:"unchanged 0.9.2.1 near-black room",
  preservesOldBlackout:true,preservesLocalEngineLights:true,

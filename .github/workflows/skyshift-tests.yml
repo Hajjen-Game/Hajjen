@@ -941,6 +941,45 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  architectural-neon-lighting-v0240-unit:
+    name: SKYSHIFT 0.24.0 solar-safe architectural neon shader and motion invariants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate 0.23.3->0.24.0 shader chain and old neon/road/ship
+        run: |
+          node --check skyshift/architectural-neon-lighting-v0240.mjs
+          node --check skyshift/architectural-neon-lighting-v0240.test.mjs
+          node --check skyshift/browser-architectural-neon-v0240.mjs
+          node --check skyshift/game-v0210.mjs
+          node --check skyshift/boot-v0210.js
+          node --test skyshift/architectural-neon-lighting-v0240.test.mjs skyshift/unified-tunnel-materials-v0233.test.mjs skyshift/cinematic-light-architecture-v0232.test.mjs skyshift/true-material-depth-v0231.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/ship-white-spill-v02125.test.mjs
+
+  browser-architectural-neon-v0240:
+    name: SKYSHIFT 0.24.0 real WebGL architectural neon cyan gold jade 4GB QA
+    needs: architectural-neon-lighting-v0240-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome WebGL driver and PNG pixel analyzer
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Same-camera neon illumination ON/OFF, tunnel entry-mid-exit, mobile 4GB
+        run: node skyshift/browser-architectural-neon-v0240.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0240-architectural-neon-visual-proof
+          path: |
+            skyshift-v0240-*.png
+            skyshift-v0240-proof.json
+
   unified-tunnel-materials-v0233-unit:
     name: SKYSHIFT 0.23.3 full-tunnel depth, neon and 4GB regression
     runs-on: ubuntu-latest

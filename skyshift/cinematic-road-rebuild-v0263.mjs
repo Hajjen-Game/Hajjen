@@ -121,8 +121,11 @@ function oneSample(source,tangentOffset,weight,energy){
    ")*("+energy.toFixed(3)+"*"+weight.toFixed(3)+
    "*r263Falloff*r263Keep*r263Source."+
    (source.startsWith("Cyan")?"x":"y")+");",
+  "// 0.26.3 specular-only: preserve original dark road diffuse.",
+  " vec3 r263DiffuseBefore=reflectedLight.directDiffuse;",
   " RE_Direct(r263Lamp,geometryPosition,geometryNormal,geometryViewDir,",
   "  geometryClearcoatNormal,material,reflectedLight);",
+  " reflectedLight.directDiffuse=r263DiffuseBefore;",
   "}"
  ].join("\n");
 }
@@ -193,15 +196,15 @@ export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false}={})
  // A symmetric, finite-emitter quadrature; no camera-facing fake streaks.
  if(mobile){
   direct.push(" vec3 r263AmberNear=mix(r263AmberLeft,r263AmberRight,step(0.0,vTrackCoord.y));");
-  direct.push(oneSample("CyanLeft",0,0.5,10.8),
-   oneSample("CyanRight",0,0.5,10.8));
-  direct.push(oneSample("AmberNear",0,1.0,10.0));
+  direct.push(oneSample("CyanLeft",0,0.5,7.8),
+   oneSample("CyanRight",0,0.5,7.8));
+  direct.push(oneSample("AmberNear",0,1.0,7.8));
  }else{
   for(const name of ["CyanLeft","CyanRight"])
    for(const offset of [-3.5,3.5])
-    direct.push(oneSample(name,offset,.25,14.2));
+    direct.push(oneSample(name,offset,.25,9.0));
   for(const name of ["AmberLeft","AmberRight"])
-   direct.push(oneSample(name,0,.5,13.4));
+   direct.push(oneSample(name,0,.5,9.0));
  }
  direct.push("}");
  return {

@@ -941,6 +941,45 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  cinematic-road-reflections-v0242-unit:
+    name: SKYSHIFT 0.24.2 road-only spectral reflection + white-core solar regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check original deck PBR chain, nine-zone wave, shader and flight parity
+        run: |
+          node --check skyshift/cinematic-road-reflections-v0242.mjs
+          node --check skyshift/cinematic-road-reflections-v0242.test.mjs
+          node --check skyshift/browser-cinematic-road-v0242.mjs
+          node --check skyshift/game-v0210.mjs
+          node --check skyshift/boot-v0210.js
+          node --test skyshift/cinematic-road-reflections-v0242.test.mjs skyshift/premium-road-surface-v0215.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/premium-surface-craftsmanship-v0241.test.mjs skyshift/architectural-neon-lighting-v0240.test.mjs skyshift/ship-white-spill-v02125.test.mjs
+
+  browser-cinematic-road-reflections-v0242:
+    name: SKYSHIFT 0.24.2 real WebGL road pixels neon + zero-white solar 4GB QA
+    needs: cinematic-road-reflections-v0242-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome WebGL and actual PNG pixel analyzer
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Same-frame road-only classic/cinematic/absent across cyan, gold, jade and mobile
+        run: node skyshift/browser-cinematic-road-v0242.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0242-road-reflections-visual-proof
+          path: |
+            skyshift-v0242-*.png
+            skyshift-v0242-proof.json
+
   premium-surface-craftsmanship-v0241-unit:
     name: SKYSHIFT 0.24.1 sculpted panel craft, shader and physics regression
     runs-on: ubuntu-latest

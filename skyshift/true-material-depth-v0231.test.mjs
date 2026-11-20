@@ -148,6 +148,6 @@ test("game exposes real pass, version, and exact frame comparison",()=>{
  assert.match(game,/__skyshiftTrueDepthProbe/);
  assert.match(game,/__skyshiftTrueDepthFrameProof/);
  assert.match(game,/compareBeforeTrueDepth:"\?trueDepth=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.24\.1/);
- assert.match(read("./index.html"),/0\.24\.1/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.24\.2/);
+ assert.match(read("./index.html"),/0\.24\.2/);
 });

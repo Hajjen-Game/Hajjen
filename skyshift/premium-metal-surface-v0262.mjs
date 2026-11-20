@@ -65,11 +65,11 @@ export function patchPremiumMetalShader0262(vertex,fragment,{role="panel",mobile
   "uniform sampler2D uMetalAtlas0262;",
   "uniform float uPremiumMetal0262;",
   "// Atlas UV is locked to original banked track geometry, never the camera.",
-  "vec2 metalUV0262(){return vec2(vPbrTrack0260*0.25,vPbrSection0260.y*0.58);}"
+  "// Local metal coordinates reuse 0.26.0 physical metal varyings."
  ].join("\n");
  const rough=[
   "if(uPremiumMetal0262>0.0001){",
-  " vec4 m262=texture2D(uMetalAtlas0262,metalUV0262());",
+  " vec4 m262=texture2D(uMetalAtlas0262,vec2(vPbrTrack0260*0.25,vPbrSection0260.y*0.58));",
   " float m262Polish="+(role==="rib?"0.89":"1.0")+";",
   " float m262R=clamp(roughnessFactor*",
   "   (0.68+0.48*m262.g)*m262Polish,0.24,0.68);",
@@ -78,7 +78,7 @@ export function patchPremiumMetalShader0262(vertex,fragment,{role="panel",mobile
  ].join("\n");
  const normal=mobile?"// 0.26.2 mobile: filtered roughness only; skip per-pixel tangent derivatives.":[
   "if(uPremiumMetal0262>0.0001){",
-  " vec2 m262UV=metalUV0262();",
+  " vec2 m262UV=vec2(vPbrTrack0260*0.25,vPbrSection0260.y*0.58);",
   " vec4 m262N=texture2D(uMetalAtlas0262,m262UV);",
   " vec3 m262DX=dFdx(-vViewPosition),m262DY=dFdy(-vViewPosition);",
   " vec2 m262TX=dFdx(m262UV),m262TY=dFdy(m262UV);",

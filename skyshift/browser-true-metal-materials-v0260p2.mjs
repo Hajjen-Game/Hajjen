@@ -90,7 +90,7 @@ try{
  }
  async function take(page,s,zone,label,memory){
   await page.evaluate(v=>window.__skyshiftTrackRepairTeleport(v),s);
-  await page.evaluate(z=>window.__skyshiftWaveSmoke(z),zone);
+  if(zone)await page.evaluate(z=>window.__skyshiftWaveSmoke(z),zone);
   await page.waitForTimeout(650);
   const status=await page.evaluate(()=>window.__skyshiftTrueMetalProbe());
   if(!status.requested||!status.trueMetal0260P2Enabled||

@@ -74,7 +74,7 @@ export function separateBladeTipMaterial(ship,sourceMaterial){
  return {material:clone,count:tips.length,baseOpacity:sourceMaterial.opacity};
 }
 export function createTunnelBlackoutController({worldLights,camera,bladeTips,
- config=TUNNEL_BLACKOUT}){
+ config=TUNNEL_BLACKOUT,levelsAt=blackoutLevelsAt}){
  for(const name of ["ambient","key","fill"])
   if(!worldLights?.[name]||!Number.isFinite(worldLights[name].intensity))
    throw new Error("Missing PBR world light: "+name);
@@ -91,7 +91,7 @@ export function createTunnelBlackoutController({worldLights,camera,bladeTips,
   roadBaseEmissive:1,bladeTip:1,background:1};
  return {
   apply(s){
-   Object.assign(levels,blackoutLevelsAt(s,config));
+   Object.assign(levels,levelsAt(s,config));
    worldLights.ambient.intensity=baselines.ambient*levels.ambient;
    worldLights.key.intensity=baselines.key*levels.key;
    worldLights.fill.intensity=baselines.fill*levels.fill;

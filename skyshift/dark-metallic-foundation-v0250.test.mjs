@@ -104,6 +104,6 @@ test("0.25.0 game integration and exact before/after same-frame check",()=>{
  assert.match(game,/const emptyMask=directRoadMask\(\)/);
  assert.match(game,/compareBeforeDarkMetal:"\?darkMetal=classic"/);
  assert.match(game,/cinematicRoadEnabled\?[\s\S]*createCinematicRoadReflectionController/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.0/);
- assert.match(read("./index.html"),/SKYSHIFT.*0\.26\.0/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.[01]/);
+ assert.match(read("./index.html"),/SKYSHIFT.*0\.26\.[01]/);
 });

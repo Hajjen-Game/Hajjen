@@ -113,6 +113,6 @@ test("0.24.1 boot, original 0.24.0 A/B, and audit probe are wired",()=>{
  assert.match(game,/__skyshiftSurfaceCraftProbe/);
  assert.match(game,/__skyshiftSurfaceCraftFrameProof/);
  assert.match(game,/compareBeforeSurfaceCraft:"\?surfaceCraft=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.0/);
- assert.match(read("./index.html"),/SKYSHIFT.*0\.26\.0/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.\d+/);
+ assert.match(read("./index.html"),/SKYSHIFT.*0\.26\.\d+/);
 });

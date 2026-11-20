@@ -128,6 +128,8 @@ import {DUAL_TONE_LIGHTING_0260,installDualToneLightingPass1}
  from "./dual-tone-lighting-v0260.mjs";
 import {TRUE_METAL_0260_P2,installTrueMetalMaterialsPass2}
  from "./true-metal-materials-v0260p2.mjs";
+import {LOCAL_REFLECTIONS_0261,installTrueLocalReflectionsPass1}
+ from "./local-reflections-v0261p1.mjs";
 import {VELOCITY_CINEMA_0220_P3,installVelocityCinematography}
  from "./velocity-cinematography-v0220p3.mjs";
 import {UNIFIED_GRADE_0220_P4,installUnifiedCinematicGrade}
@@ -174,7 +176,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.26.0";
+).searchParams.get("v")||"0.26.1";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -315,7 +317,7 @@ const microMetalEnabled=darkMetalEnabled&&
  (microMetalVersion[1]===25&&microMetalVersion[2]>=1));
 // 0.26.0 pass 1: independent cool cyan coves, amber practicals and native
 // zone-colored main neon. 0.25.1 is exactly preserved with ?dualTone=classic.
-const dualToneVersion=(new URLSearchParams(location.search).get("v")||"0.26.0")
+const dualToneVersion=(new URLSearchParams(location.search).get("v")||"0.26.1")
  .split(".").map(Number);
 const dualToneEnabled=microMetalEnabled&&
  new URLSearchParams(location.search).get("dualTone")!=="classic"&&
@@ -325,6 +327,13 @@ const dualToneEnabled=microMetalEnabled&&
 const trueMetalEnabled=dualToneEnabled&&
  new URLSearchParams(location.search).get("trueMetal")!=="classic"&&
  dualToneVersion[0]===0&&dualToneVersion[1]>=26;
+// Local finite cyan/amber strip reflections on top of original 0.26.0 P2.
+// Historical 0.26.0 QA remains on its untouched physical metal pipeline.
+const localReflectionsEnabled=trueMetalEnabled&&
+ dualToneVersion[0]===0&&
+ (dualToneVersion[1]>26||
+  (dualToneVersion[1]===26&&dualToneVersion[2]>=1))&&
+ new URLSearchParams(location.search).get("localReflections")!=="classic";
 // Reuse the ORIGINAL blackout controller across both tunnel interiors.
 // ?unifiedLighting=classic restores the original light-control behavior.
 const unifiedTunnelLightingEnabled=tunnelMegaEnabled&&exteriorSealEnabled&&
@@ -1015,7 +1024,8 @@ function initScene(){
  // 0.20.5 World Art Pipeline: coherent, authored glTF station interior.
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
- if(rebirthEnabled)stationWorld=(trueMetalEnabled?installTrueMetalMaterialsPass2:
+ if(rebirthEnabled)stationWorld=(localReflectionsEnabled?installTrueLocalReflectionsPass1:
+     trueMetalEnabled?installTrueMetalMaterialsPass2:
      dualToneEnabled?installDualToneLightingPass1:
      microMetalEnabled?installMicroSurfaceMetalDefinition:
      darkMetalEnabled?installDarkMetallicFoundation:
@@ -1397,6 +1407,56 @@ function initScene(){
     maskMaterial?.dispose();
     stationWorld.setDualToneComparison(prior);
     renderer.setRenderTarget(oldTarget);
+    neonPipeline.render(0);
+   }
+  };
+ // 0.26.1 P1: same-frame finite-strip PBR A/B, original road/ship
+ // and native neon unmodified, no physics or camera progress.
+ if(new URLSearchParams(location.search).get("localReflectionsSmoke")==="1")
+  window.__skyshiftLocalReflectionsProbe=()=>({
+   requested:localReflectionsEnabled,
+   ...(stationWorld?.stats?.()??{}),
+   roadSolarSeal:roadSolarSpill?.stats?.().seal??null,
+   nativeWave:Boolean(premiumSurface?.setWaveState),
+   unifiedLighting:unifiedTunnelLightingEnabled,
+   comparison:"?localReflections=classic"
+  });
+ if(new URLSearchParams(location.search).get("localReflectionsFrameProof")==="1")
+  window.__skyshiftLocalReflectionsFrameProof=()=>{
+   if(!localReflectionsEnabled||!stationWorld?.setLocalReflectionsComparison||
+      !stationWorld.stats().localReflections0261Enabled||!neonPipeline?.render)
+    throw Error("0.26.1 local reflection proof unavailable");
+   const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
+   if(!deck)throw Error("0.26.1 original PBR deck unavailable");
+   const old=stationWorld.stats().localReflections0261Strength;
+   const material=deck.material,wasVisible=deck.visible,
+    target=renderer.getRenderTarget();
+   let mask=null;
+   const snap=value=>{
+    stationWorld.setLocalReflectionsComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   const maskSnap=()=>{
+    renderer.setRenderTarget(null);
+    renderer.render(scene,camera);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    const classic=snap(0),local=snap(1);
+    mask=new THREE.MeshBasicMaterial({
+     color:0xffffff,side:THREE.DoubleSide,toneMapped:false,fog:false});
+    deck.material=mask;
+    deck.visible=true;
+    const roadMask=maskSnap();
+    deck.visible=false;
+    const emptyMask=maskSnap();
+    return {classic,local,roadMask,emptyMask,s:flight?.s??null};
+   }finally{
+    deck.material=material;deck.visible=wasVisible;
+    mask?.dispose();
+    stationWorld.setLocalReflectionsComparison(old);
+    renderer.setRenderTarget(target);
     neonPipeline.render(0);
    }
   };
@@ -3278,6 +3338,10 @@ function exportAudit(){
       dualToneAudit:dualToneEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeDualTone:"?dualTone=classic",
       trueMetalEnabled,
+      localReflectionsEnabled,
+      localReflectionsProfile:localReflectionsEnabled?LOCAL_REFLECTIONS_0261:null,
+      localReflectionsAudit:localReflectionsEnabled?stationWorld?.stats?.()??null:null,
+      compareBeforeLocalReflections:"?localReflections=classic",
       trueMetalProfile:trueMetalEnabled?TRUE_METAL_0260_P2:null,
       trueMetalAudit:trueMetalEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeTrueMetal:"?trueMetal=classic",

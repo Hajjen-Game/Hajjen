@@ -100,16 +100,19 @@ const WALL=[5,6,7,8,9,10,19,20,21,22,23,24];
 const ROOF=[12,13,14,15,16,17,18];
 // 0.23.1 true-relief insert: genuine layered cross-section facets, not a
 // painted border. Original vaulted profile and roof/road clearance enforced.
-function makeDepthStudyPlate(target,positionAt,options,s0,s1,j,swatch,colors,{unifiedDepth=false,lowMemory=false}={}){
+function makeDepthStudyPlate(target,positionAt,options,s0,s1,j,swatch,colors,{unifiedDepth=false,lowMemory=false,surfaceCraftsmanship=false}={}){
  const a=s0+.26,b=s1-.26;
  if(b-a<1.1)return;
  const steps=Math.ceil((b-a)/(lowMemory?3.5:2));
+ const crafted=Boolean(unifiedDepth&&surfaceCraftsmanship&&!lowMemory);
  const smooth=t=>{const v=Math.min(1,Math.max(0,t));return v*v*(3-2*v)};
  // Ease the true 3D relief into the original 0.34 m plates at both ends.
  // Previously panels appeared suddenly 0.24 m taller at a complete bay.
  const relief=(s)=>unifiedDepth?1:smooth((s-96)/26)*smooth((286-s)/26);
  const shaped=(s,d)=>{
-  if(d>=.58)return .34+(d-.34)*relief(s);
+  // Real end-chamfer, never a coplanar overlay in a banked turn.
+  const endRelief=crafted?.84+.16*smooth(Math.min(s-a,b-s)/.42):1;
+  if(d>=.58)return .34+(d-.34)*relief(s)*endRelief;
   if(d>=.075)return .11+(d-.11)*relief(s);
   return d;
  };
@@ -120,6 +123,22 @@ function makeDepthStudyPlate(target,positionAt,options,s0,s1,j,swatch,colors,{un
  };
  for(let i=0;i<steps;i++){
   const x=mix(a,b,i/steps),y=mix(a,b,(i+1)/steps);
+  if(crafted){
+   // 0.24.1 precision cross-section: continuous shoulders, inset face
+   // and two genuinely recessed dark score lines (no stacked decals).
+   strip(x,y,.028,.035,.061,.065,.061,.065,.028,.035,colors.groove,0);
+   strip(x,y,.061,.065,.154,.56,.154,.56,.061,.065,colors.lip,.004);
+   strip(x,y,.154,.56,.187,.609,.187,.609,.154,.56,colors.lip,.003);
+   strip(x,y,.187,.609,.206,.554,.206,.554,.187,.609,colors.groove,0);
+   strip(x,y,.206,.554,.224,.58,.224,.58,.206,.554,swatch,.008);
+   strip(x,y,.224,.58,.776,.58,.776,.58,.224,.58,swatch,.008);
+   strip(x,y,.776,.58,.794,.554,.794,.554,.776,.58,swatch,.008);
+   strip(x,y,.794,.554,.813,.609,.813,.609,.794,.554,colors.groove,0);
+   strip(x,y,.813,.609,.846,.56,.846,.56,.813,.609,colors.lip,.003);
+   strip(x,y,.846,.56,.939,.065,.939,.065,.846,.56,colors.brace,.004);
+   strip(x,y,.939,.065,.972,.035,.972,.035,.939,.065,colors.shadow,0);
+   continue;
+  }
   strip(x,y,.028,.035,.067,.075,.067,.075,.028,.035,colors.groove,0);
   strip(x,y,.067,.075,.178,.58,.178,.58,.067,.075,colors.lip,.004);
   strip(x,y,.178,.58,.822,.58,.822,.58,.178,.58,swatch,.008);
@@ -133,8 +152,11 @@ function makeDepthStudyPlate(target,positionAt,options,s0,s1,j,swatch,colors,{un
   }
  }
  for(const [end,reverse] of [[a,false],[b,true]]){
-  const verts=[[end,j,.067,shaped(end,.075)],[end,j,.933,shaped(end,.075)],
-   [end,j,.822,shaped(end,.58)],[end,j,.178,shaped(end,.58)]];
+  const verts=crafted?
+   [[end,j,.061,shaped(end,.065)],[end,j,.939,shaped(end,.065)],
+    [end,j,.846,shaped(end,.56)],[end,j,.154,shaped(end,.56)]]:
+   [[end,j,.067,shaped(end,.075)],[end,j,.933,shaped(end,.075)],
+    [end,j,.822,shaped(end,.58)],[end,j,.178,shaped(end,.58)]];
   quad(target,reverse?verts.slice().reverse():verts,
    colors.shadow,positionAt,options,0);
  }
@@ -142,10 +164,10 @@ function makeDepthStudyPlate(target,positionAt,options,s0,s1,j,swatch,colors,{un
 // Break each architectural plate at the original 2 m mesh sampling
 // cadence so it hugs real track curvature rather than bridging a turn.
 function makePlate(target,positionAt,options,s0,s1,j,swatch,lowMemory,
- colors=COLORS,depthStudy=false,unifiedDepth=false){
+ colors=COLORS,depthStudy=false,unifiedDepth=false,surfaceCraftsmanship=false){
  if(depthStudy&&(unifiedDepth||(!lowMemory&&s0>=98&&s1<=284))){
   makeDepthStudyPlate(target,positionAt,options,s0,s1,j,swatch,colors,
-   {unifiedDepth,lowMemory});
+   {unifiedDepth,lowMemory,surfaceCraftsmanship});
   return;
  }
  const steps=Math.ceil((s1-s0)/(lowMemory?3.5:2));
@@ -185,7 +207,7 @@ function makeSecondarySupport(dest,positionAt,options,s,j,colors=COLORS){
 }
 export function buildStructuralTunnelData(positionAt,{lowMemory=false,
  vaultHeightClassic=false,flowCohesion=false,depthStudy=false,
- unifiedDepth=false}={}){
+ unifiedDepth=false,surfaceCraftsmanship=false}={}){
  if(typeof positionAt!=="function")
   throw Error("0.21.3 requires the original positionAt curve sampler");
  const options={vaultHeightClassic};
@@ -207,7 +229,7 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
     (alternate?colors.panelAlt:colors.panel);
    for(const [a,b] of keptSpans(s+offset,s+baySpan+offset)){
     makePlate(primary,positionAt,options,a,b,j,color,lowMemory,colors,
-     depthStudy,unifiedDepth);plates++;
+     depthStudy,unifiedDepth,surfaceCraftsmanship);plates++;
    }
   }
  }
@@ -245,7 +267,9 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
   geometryBatches:lowMemory?1:2,
   totalTriangles:primary.triangles+(lowMemory?0:detail.triangles),
   flowCohesion,depthStudy:Boolean(depthStudy&&(!lowMemory||unifiedDepth)),
-  unifiedDepth:Boolean(depthStudy&&unifiedDepth),architecturalBayPitch:bayPitch};
+  unifiedDepth:Boolean(depthStudy&&unifiedDepth),
+  craftsmanshipGeometry:Boolean(depthStudy&&unifiedDepth&&surfaceCraftsmanship&&!lowMemory),
+  architecturalBayPitch:bayPitch};
 }
 function disposeMesh(mesh){
  mesh?.removeFromParent?.();

@@ -53,9 +53,9 @@ export function patchDarkMetallicShader(vertex,fragment,{role="panel",mobile=fal
   !fragment.includes("diffuseColor.rgb += tunnelSpectrumTint()*vTunnelGlow;"))
   throw Error("0.25.0 requires complete original sun-isolated 0.24.2 tunnel shaders");
  const panel=role==="panel",rib=role==="rib",shell=role==="shell";
- const base=panel?"vec3(0.010,0.013,0.017)":
-  shell?"vec3(0.012,0.015,0.019)":rib?
-  "vec3(0.014,0.017,0.022)":"vec3(0.012,0.016,0.021)";
+ const base=panel?"vec3(0.019,0.023,0.027)":
+  shell?"vec3(0.020,0.024,0.028)":rib?
+  "vec3(0.022,0.026,0.030)":"vec3(0.020,0.025,0.029)";
  const body=[
   "// 0.25.0: charcoal metal (the earlier cyan metal fill is intentionally",
   "// discarded) illuminated only where REAL original neon is present.",
@@ -82,8 +82,8 @@ export function patchDarkMetallicShader(vertex,fragment,{role="panel",mobile=fal
   "  (0.45+0.55*m25Facing);",
   // All inputs are the 0.23 true banked local emitters, NOT exterior sun,
   // not a screen-space fake and not a colored global ambient fill.
-  " float m25Wall=pow(clamp(p23WallLight,0.0,1.0),3.2);",
-  " float m25Roof=pow(clamp(p23RoofLight,0.0,1.0),3.4);",
+  " float m25Wall=pow(clamp(p23WallLight,0.0,1.0),2.65);",
+  " float m25Roof=pow(clamp(p23RoofLight,0.0,1.0),2.85);",
   " float m25Portal=pow(clamp(cinemaArch,0.0,1.0),3.1);",
   " float m25Local=max(m25Wall,m25Roof);",
   " float m25LightZone=clamp(0.65*m25Wall+0.80*m25Roof,0.0,1.0);",
@@ -92,19 +92,19 @@ export function patchDarkMetallicShader(vertex,fragment,{role="panel",mobile=fal
   " float m25PortalLobe=m25Portal*(0.22+0.78*m25Local)*",
   "  (0.26+0.74*m25EdgeLobe);",
   // Isolated glow on nearby real metal rather than wash across all panels.
-  " float m25Bounce=(0.038*m25Wall+0.043*m25Roof)*",
-  "  (0.38+0.62*m25EdgeLobe)+0.046*m25PortalLobe;",
-  " float m25Chrome=(0.058*m25Local*m25EdgeLobe+",
-  "  0.037*m25Local*m25ViewLobe)*(0.45+0.55*m25Near);",
+  " float m25Bounce=(0.069*m25Wall+0.074*m25Roof)*",
+  "  (0.38+0.62*m25EdgeLobe)+0.085*m25PortalLobe;",
+  " float m25Chrome=(0.086*m25Local*m25EdgeLobe+",
+  "  0.051*m25Local*m25ViewLobe)*(0.45+0.55*m25Near);",
   " vec3 m25Tint=clamp(rbTint,vec3(0.0),vec3(0.86));",
-  " vec3 m25Spectral=m25Tint*min(0.19,m25Bounce+m25Chrome)*",
+  " vec3 m25Spectral=m25Tint*min(0.25,m25Bounce+m25Chrome)*",
   "  (1.0-0.94*m25Cavity);",
   // Warm light ONLY close to the visible practical sconces on the
   // sides of existing portals. No amber global lighting.
   " float m25Side=smoothstep(16.0,23.0,abs(vNeonLocalSection.x));",
   " float m25Height=smoothstep(8.5,13.6,vNeonLocalSection.y)*",
   "  (1.0-smoothstep(17.3,22.0,vNeonLocalSection.y));",
-  " float m25Amber=0.125*m25Portal*m25Side*m25Height*",
+  " float m25Amber=0.215*m25Portal*m25Side*m25Height*",
   "  (0.30+0.70*(m25EdgeLobe+m25Grazing)*0.5)*",
   "  (1.0-0.86*m25Cavity);",
   " vec3 m25Warm=vec3(0.82,0.31,0.075)*m25Amber;",
@@ -158,8 +158,8 @@ function makeWarmPracticalBatch(THREE,positionAt,options={}){
     const y=a[1]*(1-t)+b[1]*t-0.15;
     return positionAt(s,side*x,y);
    };
-   quad(get(portal+.74,.18),get(portal+1.5,.18),
-    get(portal+1.5,.28),get(portal+.74,.28));
+   quad(get(portal+.58,.15),get(portal+1.7,.15),
+    get(portal+1.7,.31),get(portal+.58,.31));
    fixtures++;
   }
  }

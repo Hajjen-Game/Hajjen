@@ -4,8 +4,7 @@ name: SKYSHIFT track logic checks
 # Pull requests run fast/targeted checks in skyshift-ci-fast.yml instead.
 on:
   push:
-    # Temporary 1.0 release gate for the P2-integrated candidate only.
-    branches: [main, skyshift-unified-tunnel-lighting-v1-on-pbr]
+    branches: [main]
     paths:
       - 'skyshift/**'
       - '.github/workflows/skyshift-tests.yml'

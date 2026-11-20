@@ -1415,6 +1415,8 @@ function initScene(){
    const original=tunnelBlackout.getComparison();
    const capture=value=>{
     tunnelBlackout.setComparison(value);
+    // CI teleports a frozen 120 Hz flight; sample the REAL target position.
+    tunnelBlackout.apply(flight.s);
     neonPipeline.render(0);
     return {data:renderer.domElement.toDataURL("image/png").split(",")[1],
      levels:{...tunnelBlackout.levels}};
@@ -1423,6 +1425,7 @@ function initScene(){
     return {classic:capture(0),unified:capture(1),s:flight.s};
    }finally{
     tunnelBlackout.setComparison(original);
+    tunnelBlackout.apply(flight.s);
     neonPipeline.render(0);
    }
   };

@@ -941,6 +941,45 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  micro-surface-metal-definition-v0251-unit:
+    name: SKYSHIFT 0.25.1 brushed graphite, microfacet, cavity and flight regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate complete 0.25.0 material chain and 0.25.1 finish
+        run: |
+          node --check skyshift/micro-surface-metal-definition-v0251.mjs
+          node --check skyshift/micro-surface-metal-definition-v0251.test.mjs
+          node --check skyshift/browser-micro-surface-v0251.mjs
+          node --check skyshift/game-v0210.mjs
+          node --check skyshift/boot-v0210.js
+          node --test skyshift/micro-surface-metal-definition-v0251.test.mjs skyshift/dark-metallic-foundation-v0250.test.mjs skyshift/premium-surface-craftsmanship-v0241.test.mjs skyshift/architectural-neon-lighting-v0240.test.mjs skyshift/unified-tunnel-materials-v0233.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/ship-white-spill-v02125.test.mjs
+
+  browser-micro-surface-metal-v0251:
+    name: SKYSHIFT 0.25.1 real WebGL micro texture 8GB and 4GB comparison
+    needs: micro-surface-metal-definition-v0251-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome WebGL and PNG inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Render actual microfacet A/B and check original road, neon, contrast
+        run: node skyshift/browser-micro-surface-v0251.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0251-micro-surface-metal-visual-proof
+          path: |
+            skyshift-v0251-*.png
+            skyshift-v0251-proof.json
+
   dark-metallic-lighting-foundation-v0250-unit:
     name: SKYSHIFT 0.25.0 dark graphite, native neon, portal practical and flight regression
     runs-on: ubuntu-latest

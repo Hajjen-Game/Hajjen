@@ -65,11 +65,11 @@ export function patchCinematicRoadReflectionShader(fragment,{mobile=false}={}){
   "  clamp(waveCrest+waveHalo*0.28,0.0,1.0)),",
   "  vec3(0.0),vec3(0.78));",
   " float r42WaveSafe=1.0-0.92*clamp(whiteBloom,0.0,1.0);",
-  " float r42WallSpec=(0.055*r42Wall+0.029*r42Crown)*",
+  " float r42WallSpec=(0.038*r42Wall+0.020*r42Crown)*",
   "  r42Long*r42Sheen*r42Keep*r42WaveSafe;",
   // Subtle warm contacts derived from the NATIVE boost/architectural
   // accent, not a second independently animated portal color or sun.
-  " float r42Amber=0.014*r42Long*r42Wall*",
+  " float r42Amber=0.010*r42Long*r42Wall*",
   "  (0.44+0.56*r42Sheen)*r42Keep*r42WaveSafe;",
   " vec3 r42Colored=r42Tint*r42WallSpec+zoneBoost*r42Amber;",
   " totalEmissiveRadiance+=r42Mask*r42Colored*"+

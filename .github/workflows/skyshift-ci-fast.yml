@@ -93,7 +93,6 @@ jobs:
           node skyshift/browser-unified-tunnel-lighting-v1.mjs
           node skyshift/browser-local-reflections-v0261p1.mjs
           node skyshift/browser-premium-metal-v0262.mjs
-          node skyshift/browser-cinematic-road-rebuild-v0263.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -109,6 +108,27 @@ jobs:
             skyshift-v0261p1-proof.json
             skyshift-v0262-*.png
             skyshift-v0262-proof.json
+          if-no-files-found: warn
+
+  road-reflections-webgl-0263:
+    name: SKYSHIFT 0.26.3 TRUE GGX road high/4GB & solar-seal A/B
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium and PNG analysis
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Validate real banked fixture GGX and exact same-frame 0.26.2 comparison
+        run: node skyshift/browser-cinematic-road-rebuild-v0263.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0263-native-ggx-road-screenshots
+          path: |
             skyshift-v0263-*.png
             skyshift-v0263-proof.json
           if-no-files-found: warn

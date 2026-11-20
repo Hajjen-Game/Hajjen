@@ -36,6 +36,8 @@ jobs:
           node --check skyshift/boot-v0210.js
           node --check skyshift/dual-tone-lighting-v0260.mjs
           node --check skyshift/browser-dual-tone-lighting-v0260.mjs
+          node --check skyshift/unified-tunnel-lighting-v1.mjs
+          node --check skyshift/browser-unified-tunnel-lighting-v1.mjs
           if [[ -f skyshift/true-metal-materials-v0260p2.mjs ]]; then
             node --check skyshift/true-metal-materials-v0260p2.mjs
             node --check skyshift/browser-true-metal-materials-v0260p2.mjs
@@ -50,7 +52,8 @@ jobs:
             skyshift/road-solar-spill-v02126.test.mjs \
             skyshift/dark-metallic-foundation-v0250.test.mjs \
             skyshift/micro-surface-metal-definition-v0251.test.mjs \
-            skyshift/dual-tone-lighting-v0260.test.mjs
+            skyshift/dual-tone-lighting-v0260.test.mjs \
+            skyshift/unified-tunnel-lighting-v1.test.mjs
           if [[ -f skyshift/true-metal-materials-v0260p2.test.mjs ]]; then
             node --test skyshift/true-metal-materials-v0260p2.test.mjs
           fi
@@ -78,6 +81,7 @@ jobs:
             echo "QA: Pass 1 dual-tone lighting, solar seal and same-camera comparison"
             node skyshift/browser-dual-tone-lighting-v0260.mjs
           fi
+          node skyshift/browser-unified-tunnel-lighting-v1.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -87,4 +91,6 @@ jobs:
             skyshift-v0260p2-proof.json
             skyshift-v0260-*.png
             skyshift-v0260-proof.json
+            skyshift-unified-lighting-v1-*.png
+            skyshift-unified-lighting-v1-proof.json
           if-no-files-found: warn

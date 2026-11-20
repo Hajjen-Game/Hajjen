@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {PREMIUM_METAL_0262,buildPremiumMetalAtlas0262,
  makePremiumMetalTexture0262,patchPremiumMetalShader0262,
- installPremiumMetalShader0262} from "./premium-metal-surface-v0262.mjs";
+ installPremiumMetalShader0262,patchPremiumSubstrateShader0262} from "./premium-metal-surface-v0262.mjs";
 const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
 const fragment=[
  "#include <common>",
@@ -92,4 +92,26 @@ test("game boot selects 0.26.2 without changing older pipeline or driving",()=>{
  assert.match(game,/createRoadSolarSpillController/);
  assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.2/);
  assert.match(read("./index.html"),/Premium Metal Surface Library/);
+});
+
+test("packed atlas also defines the visible ORIGINAL solar-sealed graphite panels",()=>{
+ const base=[
+  "#include <common>",
+  "varying float vRebirthTrack;varying vec2 vNeonLocalSection;",
+  "float m25Cavity=0.0;",
+  "float m25Wall=0.0;",
+  "float m25Roof=0.0;",
+  " m25Final=mix(d26OriginalMetal,d26Output,uDualTone0260);"
+ ].join("\n");
+ for(const role of ["panel","rib","shell","conduit"])
+  for(const mobile of [false,true]){
+   const r=patchPremiumSubstrateShader0262("#include <common>",base,{role,mobile});
+   assert.match(r.fragmentShader,/uniform sampler2D uMetalAtlas0262/);
+   assert.match(r.fragmentShader,/s262Gain=clamp/);
+   assert.match(r.fragmentShader,/s262Face=1.0-clamp\(m25Cavity/);
+   assert.match(r.fragmentShader,/s262Lit=clamp/);
+   assert.match(r.fragmentShader,/m25Final=clamp\(m25Final\*s262Gain/);
+   assert.doesNotMatch(r.fragmentShader,/new PointLight|sunlight|uDirectionalSun/);
+  }
+ assert.throws(()=>patchPremiumSubstrateShader0262("","#include <common>"));
 });

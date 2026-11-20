@@ -98,6 +98,8 @@ import {ROAD_SOLAR_SPILL_02126,createRoadSolarSpillController}
  from "./road-solar-spill-v02126.mjs";
 import {PREMIUM_ROAD_SURFACE_0215,createPremiumRoadSurfaceController}
  from "./premium-road-surface-v0215.mjs";
+import {CINEMATIC_ROAD_0242,createCinematicRoadReflectionController}
+ from "./cinematic-road-reflections-v0242.mjs";
 import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
  from "./cinematic-energy-v0216.mjs";
 import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
@@ -162,7 +164,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.24.1";
+).searchParams.get("v")||"0.24.2";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -234,6 +236,14 @@ const integratedNeonFlowEnabled=structuralTunnelEnabled&&
 const premiumRoadEnabled=roadSolarEnabled&&TRACK_ID_0160==="skyline"&&
  new URLSearchParams(location.search).get("premiumRoad")!=="classic"&&
  !/^0\.21\.[0-4](?:\.|$)/.test(new URLSearchParams(location.search).get("v")||"");
+// 0.24.2: road-only spectral arch reflections. Historical A/B versions
+// and ?cinematicRoad=classic retain the original 0.24.1 road.
+const roadReflectionRelease=(new URLSearchParams(location.search).get("v")||"0.24.2").split(".").map(Number);
+const cinematicRoadEnabled=premiumRoadEnabled&&
+ new URLSearchParams(location.search).get("cinematicRoad")!=="classic"&&
+ roadReflectionRelease[0]===0&&
+ (roadReflectionRelease[1]>24||
+  (roadReflectionRelease[1]===24&&roadReflectionRelease[2]>=2));
 // 0.21.6: speed-reactive ENERGY in existing tunnel neon, never an extra clock.
 const cinematicMotionEnabled=integratedNeonFlowEnabled&&premiumRoadEnabled&&
  new URLSearchParams(location.search).get("cinematicMotion")!=="classic"&&
@@ -372,7 +382,7 @@ let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
- premiumRoadSurface=null;
+ premiumRoadSurface=null,cinematicRoadReflections=null;
 let cameraLook=new THREE.Vector3(),shadowMesh,premiumFX,sideThrusters,reactiveWingFlaps,livingWake,railSparks;
 let sectorLandmarks=null,ghostVisual=null,hangarHeroRig=null;
 const racingExperience=createRacingExperience();
@@ -1012,6 +1022,11 @@ function initScene(){
  // Chain after the white-core and road solar seal PBR modifications.
  premiumRoadSurface=premiumRoadEnabled?createPremiumRoadSurfaceController(
   premiumSurface.material,{lowMemory:limitedMemory}):null;
+ // 0.24.2 road-only portal/crown color reflections on the ORIGINAL deck.
+ // Install after road solar seal and 0.21.5 finish; no world light changes.
+ cinematicRoadReflections=cinematicRoadEnabled?
+  createCinematicRoadReflectionController(premiumSurface.material,
+   {lowMemory:limitedMemory}):null;
  // Matte only this rail's PBR shell inside the first 368m. The colored
  // inlay remains the same native zone-wave material and draw batch.
  identitySurface?.setRailBodyContainment?.(railBodyContainmentEnabled?1:0);
@@ -1503,6 +1518,62 @@ function initScene(){
      phaseMeters:previous.cinematicPhaseMeters,
      boost:previous.cinematicBoost,playing:true});
     stationWorld.setMotionComparison(previous.cinematicComparison);
+   }
+  };
+ // 0.24.2 same-frame neon reflections on ONLY the integrated road deck.
+ if(new URLSearchParams(location.search).get("cinematicRoadSmoke")==="1")
+  window.__skyshiftCinematicRoadProbe=()=>({
+   requested:cinematicRoadEnabled,
+   ...(cinematicRoadReflections?.stats()??{enabled:false,active:false}),
+   roadMaterial:premiumSurface?.material?.type??null,
+   solarSeal:roadSolarSpill?.stats()?.seal??null,
+   priorRoadSeal:premiumRoadSurface?.stats()?.seal??null,
+   nativeWave:Boolean(premiumSurface?.setWaveState),
+   originalRail:Boolean(identitySurface),
+   originalShip:Boolean(ship)
+  });
+ if(new URLSearchParams(location.search).get("cinematicRoadFrameProof")==="1")
+  window.__skyshiftCinematicRoadFrameProof=()=>{
+   if(!cinematicRoadEnabled||!cinematicRoadReflections||!neonPipeline?.render)
+    throw Error("0.24.2 same-frame cinematic road proof unavailable");
+   const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
+   if(!deck)throw Error("0.24.2 original physical road unavailable");
+   const prior=cinematicRoadReflections.stats().seal,oldVisible=deck.visible;
+   const oldMaterial=deck.material,oldTarget=renderer.getRenderTarget();
+   let segmentationMaterial=null;
+   const draw=value=>{
+    cinematicRoadReflections.setComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   const drawRawMask=()=>{
+    // Only for WebGL QA: render the original road silhouette WITHOUT bloom.
+    // Never alter normal gameplay geometry, shaders, or scene configuration.
+    renderer.setRenderTarget(null);
+    renderer.render(scene,camera);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    const classic=draw(0),cinematic=draw(1);
+    deck.visible=false;
+    const absent=draw(0);
+    segmentationMaterial=new THREE.MeshBasicMaterial({
+     color:0xffffff,side:THREE.DoubleSide,toneMapped:false,fog:false
+    });
+    deck.material=segmentationMaterial;
+    deck.visible=true;
+    const roadMask=drawRawMask();
+    deck.visible=false;
+    const emptyMask=drawRawMask();
+    return {classic,cinematic,absent,roadMask,emptyMask,
+     trackS:flight?.s??null};
+   }finally{
+    deck.material=oldMaterial;
+    deck.visible=oldVisible;
+    segmentationMaterial?.dispose();
+    cinematicRoadReflections.setComparison(prior);
+    renderer.setRenderTarget(oldTarget);
+    neonPipeline.render(0);
    }
   };
  // 0.21.5: same-frame finish-only A/B, without a world or physics tick.
@@ -2867,6 +2938,10 @@ function exportAudit(){
       premiumRoadEnabled,premiumRoadProfile:premiumRoadEnabled?PREMIUM_ROAD_SURFACE_0215:null,
       premiumRoadAudit:premiumRoadSurface?.stats()??null,
       compareBeforePremiumRoad:"?premiumRoad=classic",
+      cinematicRoadEnabled,
+      cinematicRoadProfile:cinematicRoadEnabled?CINEMATIC_ROAD_0242:null,
+      cinematicRoadAudit:cinematicRoadReflections?.stats()??null,
+      compareBeforeCinematicRoad:"?cinematicRoad=classic",
       cinematicMotionEnabled,cinematicMotionProfile:cinematicMotionEnabled?CINEMATIC_ENERGY_0216:null,
       cinematicMotionAudit:cinematicMotionEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeCinematicMotion:"?cinematicMotion=classic",

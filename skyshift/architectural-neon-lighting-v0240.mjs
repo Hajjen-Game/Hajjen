@@ -26,7 +26,7 @@ const roles=Object.freeze({
  shell:"CLOSED_SHELL",rib:"CURVED_RIBS"
 });
 const panelEnd="diffuseColor.rgb=c32Before+c32Strength*c32Contribution;";
-const otherEnd="diffuseColor.rgb=mix(d31Original,d31Out,d31Strength);";
+const otherEnd="diffuseColor.rgb=mix(p23Original, mix(p23Result,max(p23Original,p23Result),uUnifiedExtent0233), p23Mix);";
 
 // Insert AFTER 0.23.3's finished material AND after the existing 0.23.2
 // metal glints. The original shader remains byte-for-byte identical at
@@ -44,8 +44,9 @@ export function patchArchitecturalNeonShader(vertex,fragment,{
     !fragment.includes("float cinemaArch=")||
     !fragment.includes("vec3 rbTint=rebirthPalette();")||
     !fragment.includes("varying vec2 vNeonLocalSection;")||
-    !fragment.includes("float d31Grazing=")||
-    !fragment.includes("float p23Facing="))
+    !fragment.includes("float p23Facing=")||
+    ((role==="panel"||role==="conduit")&&
+      !fragment.includes("float d31Grazing=")))
   throw Error("0.24.0 requires 0.23.3's full-length sun-sealed shader");
  const materialRole=(role==="rib")?"rib":(role==="shell")?"shell":"metal";
  // No new world-space point lights or neutral-white shading. All spatial
@@ -63,7 +64,8 @@ export function patchArchitecturalNeonShader(vertex,fragment,{
   " float a24Crown=clamp(p23RoofLight,0.0,1.0);",
   " float a24Near=max(a24Wall,a24Crown);",
   " float a24Portal=clamp(cinemaArch,0.0,1.0);",
-  " float a24Graze=clamp(d31Grazing,0.0,1.0);",
+  " float a24Graze=clamp("+(role==="panel"||role==="conduit"?
+   "d31Grazing":"pow(1.0-p23Facing,2.0)")+",0.0,1.0);",
   " float a24Bevel=clamp(rbBevel,0.0,1.0);",
   " float a24Cavity=clamp(rbCavity,0.0,1.0);",
   " float a24WallCove=smoothstep(15.0,22.0,a24X)*",

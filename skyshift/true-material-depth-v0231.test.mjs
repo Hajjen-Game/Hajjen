@@ -138,7 +138,7 @@ test("sealed vault and ribs remain on original 0.23.0 shader",()=>{
  assert.doesNotMatch(source,/d31FaceColor|d31EdgeColor|d31CutColor/);
  assert.match(source,/version:"0\.23\.1\.1"/);
  const structural=read("./structural-tunnel-v0213.mjs");
- assert.match(structural,/const relief=\(s\)=>smooth/);
+ assert.match(structural,/const relief=\(s\)=>unifiedDepth\?1:smooth/);
  assert.match(structural,/shaped\(x,d0\)/);
 });
 test("game exposes real pass, version, and exact frame comparison",()=>{

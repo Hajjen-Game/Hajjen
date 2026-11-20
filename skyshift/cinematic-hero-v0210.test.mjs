@@ -79,7 +79,7 @@ test("new version is actually wired as the default, with an exact classic A/B",(
  assert.match(g,/cinematicHeroEnabled\?\(cinematicGradeEnabled\?installCinematicGradeHero:installCinematicHero\)/);
  assert.match(g,/cinematicHero"\)!=="classic"/);
  assert.match(g,/compareBeforeCinematicHero:"\?cinematicHero=classic"/);
- const current=boot.match(/game-v0210\.mjs\?v=(0\.24\.0)/)?.[1];
+ const current=boot.match(/game-v0210\.mjs\?v=(0\.24\.1)/)?.[1];
  assert.ok(current,"a real 0.23.1 module build must be published");
  assert.ok(html.includes(`boot-v0210.js?v=${current}`),
   "HTML boot cache key must match the exact game-module version");

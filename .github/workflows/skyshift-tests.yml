@@ -941,6 +941,47 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  premium-surface-craftsmanship-v0241-unit:
+    name: SKYSHIFT 0.24.1 sculpted panel craft, shader and physics regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check precision faceting, mobile budget, shader and unchanged physics
+        run: |
+          node --check skyshift/premium-surface-craftsmanship-v0241.mjs
+          node --check skyshift/premium-surface-craftsmanship-v0241.test.mjs
+          node --check skyshift/browser-premium-surface-v0241.mjs
+          node --check skyshift/structural-tunnel-v0213.mjs
+          node --check skyshift/true-material-depth-v0231.mjs
+          node --check skyshift/game-v0210.mjs
+          node --check skyshift/boot-v0210.js
+          node --test skyshift/premium-surface-craftsmanship-v0241.test.mjs skyshift/architectural-neon-lighting-v0240.test.mjs skyshift/unified-tunnel-materials-v0233.test.mjs skyshift/true-material-depth-v0231.test.mjs skyshift/structural-tunnel-v0213.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/ship-white-spill-v02125.test.mjs
+
+  browser-premium-surface-craftsmanship-v0241:
+    name: SKYSHIFT 0.24.1 real WebGL crafted facets, mobile and native neon proof
+    needs: premium-surface-craftsmanship-v0241-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome WebGL renderer and PNG inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Same-camera old/new early/middle/late 8GB and 4GB
+        run: node skyshift/browser-premium-surface-v0241.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0241-surface-craftsmanship-visual-proof
+          path: |
+            skyshift-v0241-*.png
+            skyshift-v0241-proof.json
+
   architectural-neon-lighting-v0240-unit:
     name: SKYSHIFT 0.24.0 solar-safe architectural neon shader and motion invariants
     runs-on: ubuntu-latest

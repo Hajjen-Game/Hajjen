@@ -81,5 +81,5 @@
  },14000);
  // Use dynamic import so *module graph* failures also show actionable
  // feedback; static <script type=module> silently fails before try/catch.
- import("./game-v0210.mjs?v=0.25.1&rev=micro-surface-metal-20261120").catch(fail);
+ import("./game-v0210.mjs?v=0.26.0&rev=dual-tone-lighting-p1-20261120").catch(fail);
 })();

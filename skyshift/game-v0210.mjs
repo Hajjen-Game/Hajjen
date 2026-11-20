@@ -176,7 +176,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.26.0";
+).searchParams.get("v")||"0.26.1";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -317,7 +317,7 @@ const microMetalEnabled=darkMetalEnabled&&
  (microMetalVersion[1]===25&&microMetalVersion[2]>=1));
 // 0.26.0 pass 1: independent cool cyan coves, amber practicals and native
 // zone-colored main neon. 0.25.1 is exactly preserved with ?dualTone=classic.
-const dualToneVersion=(new URLSearchParams(location.search).get("v")||"0.26.0")
+const dualToneVersion=(new URLSearchParams(location.search).get("v")||"0.26.1")
  .split(".").map(Number);
 const dualToneEnabled=microMetalEnabled&&
  new URLSearchParams(location.search).get("dualTone")!=="classic"&&

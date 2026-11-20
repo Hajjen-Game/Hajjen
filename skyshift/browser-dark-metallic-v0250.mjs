@@ -17,7 +17,12 @@ const lum=(p,i)=>.2126*p[i]+.7152*p[i+1]+.0722*p[i+2];
 function check(pair,label,{mobile=false}={}){
  const a=PNG.sync.read(Buffer.from(pair.classic,"base64"));
  const b=PNG.sync.read(Buffer.from(pair.dark,"base64"));
- if(a.width!==b.width||a.height!==b.height)throw Error("0.25.0 A/B size mismatch");
+ const mask=PNG.sync.read(Buffer.from(pair.roadMask,"base64"));
+ const empty=PNG.sync.read(Buffer.from(pair.emptyMask,"base64"));
+ if(a.width!==b.width||a.height!==b.height||
+    mask.width!==a.width||empty.width!==a.width||
+    mask.height!==a.height||empty.height!==a.height)
+  throw Error("0.25.0 A/B road silhouette size mismatch");
  for(const k of ["classic","dark"])
   writeFileSync("skyshift-v0250-"+label+"-"+k+".png",Buffer.from(pair[k],"base64"));
  let oldWall=0,newWall=0,samples=0,darkened=0,lightened=0;
@@ -44,7 +49,12 @@ function check(pair,label,{mobile=false}={}){
     if(B[i]>90&&B[i]>B[i+1]*1.20&&B[i+1]>B[i+2]*1.25)
      warmLights++;
    }
-   if(y>H*.79&&x>W*.43&&x<W*.57){
+   // Only the REAL visible road silhouette, rather than a fixed
+   // screen-space rectangle that may contain a wall on banked turns.
+   const M=mask.data,E=empty.data;
+   const roadDelta=Math.abs(M[i]-E[i])+Math.abs(M[i+1]-E[i+1])+
+    Math.abs(M[i+2]-E[i+2]);
+   if(roadDelta>115){
     roadSamples++;
     if(delta<23)unchangedRoad++;
    }
@@ -66,7 +76,7 @@ function check(pair,label,{mobile=false}={}){
   throw Error("0.25.0 dark graphite absent from most wall "+JSON.stringify(stats));
  if(oldHot>75&&newHotRetained/oldHot<.48)
   throw Error("0.25.0 original bright neon sources extinguished "+JSON.stringify(stats));
- if(roadSamples>50&&unchangedRoad/roadSamples<.76)
+ if(roadSamples<300||unchangedRoad/roadSamples<.76)
   throw Error("0.25.0 driving corridor changed "+JSON.stringify(stats));
  if(whiteAfter>whiteBefore*1.15+45)
   throw Error("0.25.0 white flood returned "+JSON.stringify(stats));

@@ -1325,14 +1325,43 @@ function initScene(){
    if(!darkMetalEnabled||!stationWorld?.setDarkMetalComparison||
       !stationWorld.stats().darkMetal0250Enabled||!neonPipeline?.render)
     throw Error("0.25.0 same-frame dark metal comparison unavailable");
+   const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
+   if(!deck)throw Error("0.25.0 original road deck unavailable");
    const before=stationWorld.stats().darkMetal0250Strength;
+   const oldMaterial=deck.material,oldVisible=deck.visible;
+   const oldTarget=renderer.getRenderTarget();
+   let maskMaterial=null;
    const capture=value=>{
     stationWorld.setDarkMetalComparison(value);
     neonPipeline.render(0);
     return renderer.domElement.toDataURL("image/png").split(",")[1];
    };
-   try{return {classic:capture(0),dark:capture(1),position:flight?.s??null};}
-   finally{stationWorld.setDarkMetalComparison(before);}
+   const directRoadMask=()=>{
+    // QA-only road silhouette in this exact camera frame. Banked bends
+    // can place a WALL in the lower-center screen rectangle.
+    renderer.setRenderTarget(null);
+    renderer.render(scene,camera);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    const classic=capture(0),dark=capture(1);
+    maskMaterial=new THREE.MeshBasicMaterial({
+     color:0xffffff,side:THREE.DoubleSide,toneMapped:false,fog:false
+    });
+    deck.material=maskMaterial;
+    deck.visible=true;
+    const roadMask=directRoadMask();
+    deck.visible=false;
+    const emptyMask=directRoadMask();
+    return {classic,dark,roadMask,emptyMask,position:flight?.s??null};
+   }finally{
+    deck.visible=oldVisible;
+    deck.material=oldMaterial;
+    maskMaterial?.dispose();
+    stationWorld.setDarkMetalComparison(before);
+    renderer.setRenderTarget(oldTarget);
+    neonPipeline.render(0);
+   }
   };
  // 0.24.1 true crafted panel geometry + shader vs exact 0.24.0 same frame.
  if(new URLSearchParams(location.search).get("surfaceCraftSmoke")==="1")

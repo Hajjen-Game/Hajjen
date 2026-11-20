@@ -96,6 +96,8 @@ test("no paid assets, no new dynamic light, no physics/PBR phase 2 changes",()=>
  assert.match(src,/tunnelProfilePoint0211\(11,s,vaultHeightClassic\)/);
  assert.match(src,/color:0xffffff,vertexColors:true,side:THREE.DoubleSide/);
  assert.match(src,/const nativeEmitter=group\?\.children/);
+ assert.match(src,/const amber=new THREE.Color\(0xffa35d\)/);
+ assert.match(src,/warmStrips\+\+/);
  assert.match(src,/coves\.mesh\.visible=amount\.value>0\.001/);
  assert.doesNotMatch(src,/new THREE\.PointLight|new THREE\.DirectionalLight/);
 });

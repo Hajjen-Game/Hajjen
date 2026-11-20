@@ -123,6 +123,7 @@ try{
    status.dualTone0260LowMemory!==(memory===4)||
    status.dualTone0260CyanCoveStrips!==20||
    status.dualTone0260CyanAccents!==(memory===4?0:20)||
+   status.dualTone0260AmberAccentStrips!==20||
    !status.dualTone0260WarmFixturesRetained||
    !status.dualTone0260NativeNeonUnchanged||
    !status.dualTone0260SolarSealed||

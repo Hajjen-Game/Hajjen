@@ -122,6 +122,8 @@ import {DARK_METALLIC_FOUNDATION_0250,installDarkMetallicFoundation}
  from "./dark-metallic-foundation-v0250.mjs";
 import {MICRO_SURFACE_METAL_0251,installMicroSurfaceMetalDefinition}
  from "./micro-surface-metal-definition-v0251.mjs";
+import {DUAL_TONE_LIGHTING_0260,installDualToneLightingPass1}
+ from "./dual-tone-lighting-v0260.mjs";
 import {VELOCITY_CINEMA_0220_P3,installVelocityCinematography}
  from "./velocity-cinematography-v0220p3.mjs";
 import {UNIFIED_GRADE_0220_P4,installUnifiedCinematicGrade}
@@ -168,7 +170,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.25.1";
+).searchParams.get("v")||"0.26.0";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -307,6 +309,13 @@ const microMetalEnabled=darkMetalEnabled&&
  microMetalVersion[0]===0&&
  (microMetalVersion[1]>25||
  (microMetalVersion[1]===25&&microMetalVersion[2]>=1));
+// 0.26.0 pass 1: independent cool cyan coves, amber practicals and native
+// zone-colored main neon. 0.25.1 is exactly preserved with ?dualTone=classic.
+const dualToneVersion=(new URLSearchParams(location.search).get("v")||"0.26.0")
+ .split(".").map(Number);
+const dualToneEnabled=microMetalEnabled&&
+ new URLSearchParams(location.search).get("dualTone")!=="classic"&&
+ dualToneVersion[0]===0&&dualToneVersion[1]>=26;
 // 0.22.0 Pass 3: additive postprocess; Pass 1 and Pass 2 links unchanged.
 const velocityCinemaEnabled=cinematicNeonEnabled&&
  new URLSearchParams(location.search).get("velocityCinema")!=="classic"&&
@@ -991,7 +1000,8 @@ function initScene(){
  // 0.20.5 World Art Pipeline: coherent, authored glTF station interior.
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
- if(rebirthEnabled)stationWorld=(microMetalEnabled?installMicroSurfaceMetalDefinition:
+ if(rebirthEnabled)stationWorld=(dualToneEnabled?installDualToneLightingPass1:
+     microMetalEnabled?installMicroSurfaceMetalDefinition:
      darkMetalEnabled?installDarkMetallicFoundation:
      surfaceCraftEnabled?installPremiumSurfaceCraftsmanship:
      architecturalNeonEnabled?installArchitecturalNeonLighting:
@@ -1321,6 +1331,55 @@ function initScene(){
      boostMultiplier:Math.max(flight?.boostMultiplier??1,
       flight?.landingBoostMultiplier??1)});
     velocityCinematography.setComparison(before.comparison);
+   }
+  };
+ // 0.26.0 pass 1: exact same-camera dual tone vs the 0.25.1 scene.
+ if(new URLSearchParams(location.search).get("dualToneSmoke")==="1")
+  window.__skyshiftDualToneProbe=()=>({
+   requested:dualToneEnabled,
+   ...(stationWorld?.stats?.()??{}),
+   roadSolarSeal:roadSolarSpill?.stats()?.seal??null,
+   nativeWave:Boolean(premiumSurface?.setWaveState)
+  });
+ if(new URLSearchParams(location.search).get("dualToneFrameProof")==="1")
+  window.__skyshiftDualToneFrameProof=()=>{
+   if(!dualToneEnabled||!stationWorld?.setDualToneComparison||
+      !stationWorld.stats().dualTone0260Enabled||!neonPipeline?.render)
+    throw Error("0.26.0 same-frame dual-tone proof unavailable");
+   const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
+   if(!deck)throw Error("0.26.0 original road deck unavailable");
+   const prior=stationWorld.stats().dualTone0260Strength;
+   const oldMaterial=deck.material,oldVisible=deck.visible;
+   const oldTarget=renderer.getRenderTarget();
+   let maskMaterial=null;
+   const capture=value=>{
+    stationWorld.setDualToneComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   const directRoadMask=()=>{
+    renderer.setRenderTarget(null);
+    renderer.render(scene,camera);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    const classic=capture(0),dual=capture(1);
+    maskMaterial=new THREE.MeshBasicMaterial({
+     color:0xffffff,side:THREE.DoubleSide,toneMapped:false,fog:false
+    });
+    deck.material=maskMaterial;
+    deck.visible=true;
+    const roadMask=directRoadMask();
+    deck.visible=false;
+    const emptyMask=directRoadMask();
+    return {classic,dual,roadMask,emptyMask,position:flight?.s??null};
+   }finally{
+    deck.visible=oldVisible;
+    deck.material=oldMaterial;
+    maskMaterial?.dispose();
+    stationWorld.setDualToneComparison(prior);
+    renderer.setRenderTarget(oldTarget);
+    neonPipeline.render(0);
    }
   };
  // 0.25.1 real same-frame micro finish vs unchanged 0.25.0 graphite.
@@ -3104,6 +3163,10 @@ function exportAudit(){
       microMetalProfile:microMetalEnabled?MICRO_SURFACE_METAL_0251:null,
       microMetalAudit:microMetalEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeMicroMetal:"?microMetal=classic",
+      dualToneEnabled,
+      dualToneProfile:dualToneEnabled?DUAL_TONE_LIGHTING_0260:null,
+      dualToneAudit:dualToneEnabled?stationWorld?.stats?.()??null:null,
+      compareBeforeDualTone:"?dualTone=classic",
       velocityCinemaRequested:velocityCinemaEnabled,
       velocityCinemaProfile:velocityCinemaEnabled?VELOCITY_CINEMA_0220_P3:null,
       velocityCinemaAudit:velocityCinematography?.stats?.()??null,

@@ -64,8 +64,8 @@ test("game wiring preserves 0.21.2.5 ship, 0.21.2.4 rails and physics",()=>{
  assert.match(game,/__skyshiftRoadSolarFrameProof/);
  assert.match(game,/shipWhiteSpill\?\.update/);
  assert.match(game,/setRailBodyContainment/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.25\.1/);
- assert.match(read("./index.html"),/0\.25\.1/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.0/);
+ assert.match(read("./index.html"),/0\.26\.0/);
  for(const k of ["extraDrawCalls","extraLights","extraRenderPasses"])
   assert.equal(ROAD_SOLAR_SPILL_02126[k],0);
  assert.equal(ROAD_SOLAR_SPILL_02126.gripChanged,false);

@@ -941,6 +941,45 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  dual-tone-lighting-v0260-pass1-unit:
+    name: SKYSHIFT 0.26.0 P1 independent cyan amber palette and physics regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify native wave, dual-tone shader, mobile and physics parity
+        run: |
+          node --check skyshift/dual-tone-lighting-v0260.mjs
+          node --check skyshift/dual-tone-lighting-v0260.test.mjs
+          node --check skyshift/browser-dual-tone-lighting-v0260.mjs
+          node --check skyshift/game-v0210.mjs
+          node --check skyshift/boot-v0210.js
+          node --test skyshift/dual-tone-lighting-v0260.test.mjs skyshift/micro-surface-metal-definition-v0251.test.mjs skyshift/dark-metallic-foundation-v0250.test.mjs skyshift/architectural-neon-lighting-v0240.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/ship-white-spill-v02125.test.mjs
+
+  browser-dual-tone-lighting-v0260-pass1:
+    name: SKYSHIFT 0.26.0 P1 real WebGL simultaneous cyan amber zone 8GB 4GB
+    needs: dual-tone-lighting-v0260-pass1-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome WebGL and actual PNG analyzer
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Same-camera cyan violet gold jade and mobile render comparisons
+        run: node skyshift/browser-dual-tone-lighting-v0260.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0260-pass1-dual-tone-visual-proof
+          path: |
+            skyshift-v0260-*.png
+            skyshift-v0260-proof.json
+
   micro-surface-metal-definition-v0251-unit:
     name: SKYSHIFT 0.25.1 brushed graphite, microfacet, cavity and flight regression
     runs-on: ubuntu-latest

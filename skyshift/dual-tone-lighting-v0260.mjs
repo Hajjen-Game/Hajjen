@@ -15,7 +15,7 @@ export const DUAL_TONE_LIGHTING_0260=Object.freeze({
  nativeWave:"existing original 9-stage palette and white-core crest",
  independentAnimationClocks:0,
  material:"original solar-isolated metal batches; no PBR replacement until pass 2",
- cyanFixtures:"20 bay-local wall coves plus 20 small side accents on high tier",
+ cyanFixtures:"20 exposed cyan wall coves + 20 high-tier accents; 20 amber companion strips",
  localBounce:"source-position-limited cyan and amber with restrained original zone tint",
  geometry:"unchanged road, ship, tunnel structural panels, bank, rails and collisions",
  sourceDrawCalls:1,sourceLights:0,newTextures:0,newRenderPasses:0,
@@ -130,32 +130,43 @@ function makeCoolCoveBatch(THREE,positionAt,{lowMemory=false,
   throw Error("0.26.0 needs real banked positionAt sampler");
  const positions=[],colors=[];
  const cyan=new THREE.Color(0x31ddf2);
- function point(s,side,t){
-  const a=tunnelProfilePoint0211(10,s,vaultHeightClassic);
-  const b=tunnelProfilePoint0211(11,s,vaultHeightClassic);
-  const x=Math.abs(a[0]*(1-t)+b[0]*t)-0.19;
+ const amber=new THREE.Color(0xffa35d);
+ function point(s,side,t,lower=false){
+  const a=tunnelProfilePoint0211(lower?8:10,s,vaultHeightClassic);
+  const b=tunnelProfilePoint0211(lower?9:11,s,vaultHeightClassic);
+  // Move emitters in front of the 0.24.1 raised metal panel face:
+  // old 0.19m offset left real strips hidden behind 0.58m relief.
+  const x=Math.abs(a[0]*(1-t)+b[0]*t)-0.82;
   const y=a[1]*(1-t)+b[1]*t-0.085;
   const v=positionAt(s,side*x,y);
   if(!Number.isFinite(v.x+v.y+v.z))
    throw Error("0.26.0 cove position is non-finite");
   return [v.x,v.y,v.z];
  }
- function quad(a,b,c,d){
+ function quad(a,b,c,d,tint=cyan){
   for(const q of [a,b,c,a,c,d]){
    positions.push(...q);
-   colors.push(cyan.r,cyan.g,cyan.b);
+   colors.push(tint.r,tint.g,tint.b);
   }
  }
- let strips=0,shortAccents=0;
+ let strips=0,shortAccents=0,warmStrips=0;
  for(const portal of TUNNEL_PORTALS_0211){
-  const lo=portal+2.2,hi=Math.min(portal+12.0,367.2);
+  const lo=portal+2.0,hi=Math.min(portal+16.0,367.2);
   if(lo+0.8>hi)continue;
   for(const side of [-1,1]){
    // An intermittent horizontal cove on each upper side wall. It is
    // far from existing lower amber practicals and clear of the deck.
-   quad(point(lo,side,.36),point(hi,side,.36),
-        point(hi,side,.391),point(lo,side,.391));
+   quad(point(lo,side,.31),point(hi,side,.31),
+        point(hi,side,.41),point(lo,side,.41));
    strips++;
+   // Warm detail has an independently colored physical emitter near
+   // each existing orange portal practical, below upper cyan coves.
+   const w0=portal+2.4,w1=Math.min(portal+5.1,367.1);
+   if(w1-w0>0.7){
+    quad(point(w0,side,.14,true),point(w1,side,.14,true),
+     point(w1,side,.23,true),point(w0,side,.23,true),amber);
+    warmStrips++;
+   }
    if(!lowMemory&&portal+2.1<=367.2){
     // Tiny vertical cyan accent tied to that bay's portal, not a
     // copy of the native zone-colored full arch.
@@ -176,7 +187,7 @@ function makeCoolCoveBatch(THREE,positionAt,{lowMemory=false,
  const mesh=new THREE.Mesh(geometry,material);
  mesh.name="SKYSHIFT 0.26.0 / stable cyan cove emitters";
  mesh.frustumCulled=true;mesh.renderOrder=2;
- return {mesh,strips,shortAccents};
+ return {mesh,strips,shortAccents,warmStrips};
 }
 export function installDualToneLightingPass1(THREE,world,options={}){
  const base=installMicroSurfaceMetalDefinition(THREE,world,options);
@@ -220,6 +231,7 @@ export function installDualToneLightingPass1(THREE,world,options={}){
   dualTone0260Batches:original.length,
   dualTone0260CyanCoveStrips:coves.strips,
   dualTone0260CyanAccents:coves.shortAccents,
+  dualTone0260AmberAccentStrips:coves.warmStrips,
   dualTone0260LowMemory:mobile,
   dualTone0260PaletteMode:"native-zone-plus-constant-cyan-and-amber",
   dualTone0260WarmFixturesRetained:old.darkMetal0250Fixtures===20,

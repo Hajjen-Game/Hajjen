@@ -27,9 +27,9 @@ function analyze(captures,label,{mobile=false}={}){
    const i=(y*a.width+x)*4,from=a.data,to=b.data;
    if(Math.min(from[i],from[i+1],from[i+2])>205)whiteBefore++;
    if(Math.min(to[i],to[i+1],to[i+2])>205)whiteAfter++;
-   // On 4GB, the geometry is deliberately IDENTICAL; every bright local
-   // cyan/violet/gold neon core must retain its previous luminance.
-   if(mobile&&y<a.height*.64){
+   // On both high and 4GB, actual saturated cyan/violet/gold bright
+   // sources must survive. The sculpted recess may legitimately darken.
+   if(y<a.height*.64){
     const oldPeak=Math.max(from[i],from[i+1],from[i+2]);
     const oldLow=Math.min(from[i],from[i+1],from[i+2]);
     if(oldPeak>125&&oldPeak-oldLow>35){
@@ -50,12 +50,12 @@ function analyze(captures,label,{mobile=false}={}){
   }
  const result={label,changed,upper,side,road,whiteBefore,whiteAfter,
   nativeBright,nativeBrightRetained,darker,flightS:captures.position};
- if(nativeBright>80&&nativeBrightRetained/nativeBright<.93)
+ if(nativeBright>80&&nativeBrightRetained/nativeBright<(mobile?.97:.92))
   throw Error("Native neon glow lost in low-memory tunnel "+JSON.stringify(result));
  if(changed<(mobile?15:55)||upper<10)
   throw Error("0.24.1 material upgrade too subtle "+JSON.stringify(result));
- if(darker>changed*.25+55)
-  throw Error("Local lighting darkens old neon "+JSON.stringify(result));
+ if(darker>changed*.33+40)
+  throw Error("Excessive shadowing outside machined seams "+JSON.stringify(result));
  if(road>changed*.25+45)
   throw Error("0.24.1 changed driving corridor "+JSON.stringify(result));
  if(whiteAfter>whiteBefore*1.16+45)

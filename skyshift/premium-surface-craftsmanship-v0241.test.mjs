@@ -44,7 +44,7 @@ test("real 0.24.1 metal shader is additive and after all existing 0.24.0 lightin
    f.indexOf("diffuseColor.rgb+=a24Bounce;"));
   assert.match(f,/tunnelSpectrumTint\(\)\*vTunnelGlow/);
   assert.doesNotMatch(f,/sunPosition|uniform DirectionalLight|whiteCore0241/);
-  if(mobile)assert.match(f,/s41Satin=min\(0\.055,s41Satin\)\*0\.55/);
+  if(mobile)assert.match(f,/s41Satin=min\(0\.055,s41Satin\)\*1\.15/);
   else assert.match(f,/s41Satin=min\(0\.055,s41Satin\)\*1\.0/);
  }
 });

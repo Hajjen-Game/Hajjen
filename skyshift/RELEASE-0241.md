@@ -8,7 +8,7 @@ Advance toward the supplied futuristic tunnel reference without rolling back 0.2
 - On high-fidelity hardware, the panel cross-section now has an actual cast-in shoulder, narrow raised titanium bead, a recessed dark machining score, an inset graphite face and a genuine longitudinal end relief. Material categories use the original glowWeight classes (.008 face, .004 lip, .003 machined edge, 0 recess).
 - The panel geometry is **replaced inside the same original HARDSURFACE_PANELS mesh**, not stacked over it, to avoid z-fighting and preserve material batching. Other structural conduits/arched ribs/closed shell keep their current shapes.
 - A local, restrained spectral satin response is appended after the original native-emissive + 0.24.0 shader chain. It uses the existing nine-zone wave and banked neon proximity. Fine directional grain fades out with distance to avoid shimmering.
-- On simulated 4GB mobile, geometry remains byte-for-byte identical to 0.23.3; only a cheaper, attenuated shader finish is used. No extra geometry, lights or draw calls on that tier.
+- On simulated 4GB mobile, geometry remains byte-for-byte identical to 0.23.3; a cheaper distance-faded shader finish is used, with bounded extra edge response to compensate for missing fine geometry. No extra geometry, lights or draw calls on that tier.
 - No new lights, textures, meshes, render passes, colliders or changes to original road, ship, rail, steering, GRIP, physics, camera, bloom, exposure, neutral-white solar containment or zone wave.
 
 ## Compare

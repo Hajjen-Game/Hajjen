@@ -57,7 +57,7 @@ export function patchPremiumSurfaceShader(vertex,fragment,{mobile=false}={}){
   "  0.024*s41Face*(0.35+0.65*s41Brush)*s41Detail)*",
   "  (0.40+0.60*s41Near);",
   " s41Satin=min(0.055,s41Satin)*"+
-   (mobile?"0.55":"1.0")+"*(1.0-0.96*s41Cavity);",
+   (mobile?"1.15":"1.0")+"*(1.0-0.96*s41Cavity);",
   " vec3 s41Color=clamp(rbTint,vec3(0.0),vec3(0.72));",
   " diffuseColor.rgb+=uSurfaceCraft0241*s41Color*s41Satin;",
   "}"

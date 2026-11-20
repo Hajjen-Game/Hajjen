@@ -92,8 +92,8 @@ test("no paid assets, no new dynamic light, no physics/PBR phase 2 changes",()=>
  assert.equal(a.keepsMetalMicroDetail,true);
  const src=read("./dual-tone-lighting-v0260.mjs");
  assert.match(src,/for\(const portal of TUNNEL_PORTALS_0211\)/);
- assert.match(src,/tunnelProfilePoint0211\(10,s,vaultHeightClassic\)/);
- assert.match(src,/tunnelProfilePoint0211\(11,s,vaultHeightClassic\)/);
+ assert.match(src,/tunnelProfilePoint0211\(lower\?8:10,s,vaultHeightClassic\)/);
+ assert.match(src,/tunnelProfilePoint0211\(lower\?9:11,s,vaultHeightClassic\)/);
  assert.match(src,/color:0xffffff,vertexColors:true,side:THREE.DoubleSide/);
  assert.match(src,/const nativeEmitter=group\?\.children/);
  assert.match(src,/const amber=new THREE.Color\(0xffa35d\)/);

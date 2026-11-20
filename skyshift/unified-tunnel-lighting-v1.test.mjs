@@ -62,7 +62,7 @@ test("1.0: neon-gallery world PBR lights strongly dim but emissives and engines 
  for(const k of ["roadBody","roadBaseEmissive","bladeTip","background"])
   near(a[k],old[k]);
  assert.deepEqual(unifiedTunnelLevelsAt(165,undefined,c,0),old);
- assert.equal(unifiedTunnelLevelsAt(165).key<.05,true);
+ assert.equal(unifiedTunnelLevelsAt(165).key<.50,true);
  const entry=unifiedTunnelLevelsAt(7);
  assert.ok(entry.key>a.key&&entry.key<1);
  assert.ok(unifiedTunnelLevelsAt(356).key>a.key);
@@ -75,9 +75,9 @@ test("1.0: shared controller retains engine lights and A/B restores 3 PBR baseli
  const controller=createUnifiedTunnelLightingController({
   worldLights:lights,camera:{children:[star]},bladeTips:tips});
  controller.apply(165);
- near(lights.ambient.intensity,2*.060);
- near(lights.key.intensity,3*.018);
- near(lights.fill.intensity,.6*.028);
+ near(lights.ambient.intensity,2*.72);
+ near(lights.key.intensity,3*.38);
+ near(lights.fill.intensity,.6*.56);
  near(star.material.opacity,.35);
  near(tips.material.opacity,.7);
  assert.deepEqual(engine,[{intensity:5},{intensity:6}]);

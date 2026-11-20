@@ -266,7 +266,9 @@ export function createCinematicRoadReflectionRebuild0263(THREE,roadMesh,{
   legacy.setComparison(LEGACY_RESIDUAL);
   const setComparison=value=>{
    strength.value=clamp(value,0,1);
-   legacy.setComparison(1-(1-LEGACY_RESIDUAL)*strength.value);
+   legacy.setComparison(strength.value===0?1:
+    strength.value===1?LEGACY_RESIDUAL:
+    1-(1-LEGACY_RESIDUAL)*strength.value);
   };
   return {
    setComparison,

@@ -107,6 +107,7 @@ test("actual BRDF uses original colored fixture directions, not emissive fake",(
   assert.match(shader.fragmentShader,/uniform float uRoadRebuild0263/);
   assert.match(shader.fragmentShader,/roughnessFactor=mix\(roughnessFactor,r263Rough,r263Interior\)/);
   assert.match(shader.fragmentShader,/metalnessFactor=mix/);
+  assert.match(shader.fragmentShader,/reflectedLight.directDiffuse=r263DiffuseBefore/);
   assert.match(shader.fragmentShader,/RE_Direct\(r263Lamp,geometryPosition,geometryNormal,geometryViewDir/);
   assert.match(shader.fragmentShader,/reflectedLight.indirectSpecular \*= mix\(1.0,0.14,roadSolarMask\)/);
   assert.match(shader.fragmentShader,/1.0-0.92\*clamp\(whiteCore/);

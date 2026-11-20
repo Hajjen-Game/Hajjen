@@ -62,6 +62,8 @@ export function patchMicroSurfaceMetalShader(vertex,fragment,{role="panel",mobil
   " float m51Cross=sin(m51UV.x*"+(mobile?"2.8":"7.1")+
    "+m51UV.y*1.43);",
   " float m51Brush=clamp(0.5+0.34*m51Stria+0.16*m51Cross,0.0,1.0);",
+  " float m51Line=0.5+0.5*sin(m51UV.y*5.4+m51UV.x*0.22+m51Warp);",
+  " float m51Grain=clamp(0.64*m51Brush+0.36*m51Line,0.0,1.0);",
   // Roughness BREAKUP changes the distribution of the neon highlight.
   // For these original MeshBasicMaterial batches there is no true
   // physical roughness uniform; emulate it in the local specular lobe.
@@ -74,28 +76,31 @@ export function patchMicroSurfaceMetalShader(vertex,fragment,{role="panel",mobil
   "  0.34*m25Portal,0.0,1.0);",
   // Specular exists only near the real existing emitters, strongly
   // shaped by the roughness and real geometry bevel/cavity masks.
-  " float m51Facet=(0.25+0.75*m51Bevel)*",
-  "  (0.36+0.64*m51Lobe)*(1.0-m51Rough);",
+  " float m51Facet=(0.45+0.55*m51Bevel)*",
+  "  (0.44+0.56*m51Lobe)*(1.0-m51Rough);",
   " float m51Polish=m51Local*m51Facet*m51Near*m51Face;",
-  " float m51Finish=0.090*m51Polish*"+
+  " float m51Finish=0.205*m51Polish*(0.55+0.95*m51Grain)*"+
    roleStrength.toFixed(2)+"*"+quality.toFixed(2)+";",
-  " float m51Mill=0.018*(m51Brush-0.5)*m51Near*m51Face*",
+  " float m51Mill=0.042*(m51Grain-0.5)*m51Near*m51Face*",
   "  (0.35+0.65*m51Local);",
   // Milling changes charcoal itself ONLY subtly; graphite stays dark.
-  " vec3 m51Body=m25Graphite*(1.0+0.21*m51Mill+",
-  "  0.11*(m51Brush-0.5)*m51Near);",
-  " m51Body*=1.0-0.16*m51Cavity;",
+  " vec3 m51Body=m25Graphite*(1.0+0.75*m51Mill+",
+  "  0.35*(m51Grain-0.5)*m51Near);",
+  " m51Body+=vec3(0.030,0.033,0.035)*",
+  "  max(0.0,m51Grain-0.28)*m51Near*m51Face*",
+  "  (0.23+0.77*m51Local);",
+  " m51Body*=1.0-0.22*m51Cavity;",
   " vec3 m51Chrome=m25Tint*max(0.0,m51Finish+",
-  "  0.012*m51Bevel*m51Local*(1.0-m51Rough));",
+  "  0.025*m51Bevel*m51Local*(1.0-m51Rough));",
   ...(mobile?[]:[
    // Sparse 3D machining score: a high-tier detail visible only in the
    // light, never an all-over scratches texture/noisy white pattern.
    " float m51Seed=fract(sin(floor(m51UV.x*0.41)*12.9898+",
    "  floor(m51UV.y*0.72)*78.233)*43758.5453);",
-   " float m51Score=step(0.93,m51Seed)*",
+   " float m51Score=step(0.87,m51Seed)*",
    "  pow(max(0.0,0.5+0.5*sin(m51UV.y*9.0+",
    "  m51UV.x*0.16)),16.0);",
-   " m51Chrome+=m25Tint*(0.025*m51Score*m51Near*",
+   " m51Chrome+=m25Tint*(0.043*m51Score*m51Near*",
    "  m51Local*m51Face);"
   ]),
   // Protect genuine black joints, do not amplify emitter geometry

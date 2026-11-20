@@ -130,6 +130,8 @@ import {TRUE_METAL_0260_P2,installTrueMetalMaterialsPass2}
  from "./true-metal-materials-v0260p2.mjs";
 import {LOCAL_REFLECTIONS_0261,installTrueLocalReflectionsPass1}
  from "./local-reflections-v0261p1.mjs";
+import {PREMIUM_METAL_0262,installPremiumMetalSurfaceLibrary}
+ from "./premium-metal-surface-v0262.mjs";
 import {VELOCITY_CINEMA_0220_P3,installVelocityCinematography}
  from "./velocity-cinematography-v0220p3.mjs";
 import {UNIFIED_GRADE_0220_P4,installUnifiedCinematicGrade}
@@ -176,7 +178,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.26.1";
+).searchParams.get("v")||"0.26.2";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -317,7 +319,7 @@ const microMetalEnabled=darkMetalEnabled&&
  (microMetalVersion[1]===25&&microMetalVersion[2]>=1));
 // 0.26.0 pass 1: independent cool cyan coves, amber practicals and native
 // zone-colored main neon. 0.25.1 is exactly preserved with ?dualTone=classic.
-const dualToneVersion=(new URLSearchParams(location.search).get("v")||"0.26.1")
+const dualToneVersion=(new URLSearchParams(location.search).get("v")||"0.26.2")
  .split(".").map(Number);
 const dualToneEnabled=microMetalEnabled&&
  new URLSearchParams(location.search).get("dualTone")!=="classic"&&
@@ -336,6 +338,11 @@ const localReflectionsEnabled=trueMetalEnabled&&
  new URLSearchParams(location.search).get("localReflections")!=="classic";
 // Reuse the ORIGINAL blackout controller across both tunnel interiors.
 // ?unifiedLighting=classic restores the original light-control behavior.
+// 0.26.2: micro-normal and micro-roughness maps on EXISTING native GGX
+// cyan/amber local reflection coats; exact classic comparison is on 0.26.1.
+const premiumMetalEnabled=localReflectionsEnabled&&
+ dualToneVersion[0]===0&&dualToneVersion[1]===26&&dualToneVersion[2]>=2&&
+ new URLSearchParams(location.search).get("premiumMetal")!=="classic";
 const unifiedTunnelLightingEnabled=tunnelMegaEnabled&&exteriorSealEnabled&&
  new URLSearchParams(location.search).get("unifiedLighting")!=="classic";
 // 0.22.0 Pass 3: additive postprocess; Pass 1 and Pass 2 links unchanged.
@@ -1024,7 +1031,8 @@ function initScene(){
  // 0.20.5 World Art Pipeline: coherent, authored glTF station interior.
  // This replaces the old random arches/rings in rebirth mode; asset loading
  // is async and safe, but the old 120 Hz race motor stays authoritative.
- if(rebirthEnabled)stationWorld=(localReflectionsEnabled?installTrueLocalReflectionsPass1:
+ if(rebirthEnabled)stationWorld=(premiumMetalEnabled?installPremiumMetalSurfaceLibrary:
+     localReflectionsEnabled?installTrueLocalReflectionsPass1:
      trueMetalEnabled?installTrueMetalMaterialsPass2:
      dualToneEnabled?installDualToneLightingPass1:
      microMetalEnabled?installMicroSurfaceMetalDefinition:
@@ -1408,6 +1416,51 @@ function initScene(){
     stationWorld.setDualToneComparison(prior);
     renderer.setRenderTarget(oldTarget);
     neonPipeline.render(0);
+   }
+  };
+ // 0.26.2 P2: exactly matched camera/frame metal A/B; road and ship
+ // stay on the original 0.26.1 shader path with no changes or additional lights.
+ if(new URLSearchParams(location.search).get("premiumMetalSmoke")==="1")
+  window.__skyshiftPremiumMetalProbe=()=>({
+   requested:premiumMetalEnabled,
+   ...(stationWorld?.stats?.()??{}),
+   roadSolarSeal:roadSolarSpill?.stats?.().seal??null,
+   unifiedLighting:unifiedTunnelLightingEnabled,
+   nativeWave:Boolean(premiumSurface?.setWaveState),
+   comparison:"?premiumMetal=classic"
+  });
+ if(new URLSearchParams(location.search).get("premiumMetalFrameProof")==="1")
+  window.__skyshiftPremiumMetalFrameProof=()=>{
+   if(!premiumMetalEnabled||!stationWorld?.setPremiumMetalComparison||
+    !stationWorld.stats().premiumMetal0262Enabled||!neonPipeline?.render)
+    throw Error("0.26.2 premium metal proof unavailable");
+   const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
+   if(!deck)throw Error("0.26.2 original road unavailable");
+   const old=stationWorld.stats().premiumMetal0262Strength;
+   const material=deck.material,wasVisible=deck.visible;
+   const target=renderer.getRenderTarget();let mask=null;
+   const snap=value=>{
+    stationWorld.setPremiumMetalComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   const maskSnap=()=>{
+    renderer.setRenderTarget(null);renderer.render(scene,camera);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    const classic=snap(0),premium=snap(1);
+    mask=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide,
+     toneMapped:false,fog:false});
+    deck.material=mask;deck.visible=true;
+    const roadMask=maskSnap();
+    deck.visible=false;
+    const emptyMask=maskSnap();
+    return {classic,premium,roadMask,emptyMask,s:flight?.s??null};
+   }finally{
+    deck.material=material;deck.visible=wasVisible;
+    mask?.dispose();stationWorld.setPremiumMetalComparison(old);
+    renderer.setRenderTarget(target);neonPipeline.render(0);
    }
   };
  // 0.26.1 P1: same-frame finite-strip PBR A/B, original road/ship

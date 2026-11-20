@@ -38,6 +38,8 @@ jobs:
           node --check skyshift/browser-dual-tone-lighting-v0260.mjs
           node --check skyshift/unified-tunnel-lighting-v1.mjs
           node --check skyshift/browser-unified-tunnel-lighting-v1.mjs
+          node --check skyshift/premium-metal-surface-v0262.mjs
+          node --check skyshift/browser-premium-metal-v0262.mjs
           node --check skyshift/local-reflections-v0261p1.mjs
           node --check skyshift/browser-local-reflections-v0261p1.mjs
           if [[ -f skyshift/true-metal-materials-v0260p2.mjs ]]; then
@@ -59,6 +61,7 @@ jobs:
           if [[ -f skyshift/true-metal-materials-v0260p2.test.mjs ]]; then
             node --test skyshift/true-metal-materials-v0260p2.test.mjs
             node --test skyshift/local-reflections-v0261p1.test.mjs
+            node --test skyshift/premium-metal-surface-v0262.test.mjs
           fi
 
   current-material-webgl:
@@ -86,6 +89,7 @@ jobs:
           fi
           node skyshift/browser-unified-tunnel-lighting-v1.mjs
           node skyshift/browser-local-reflections-v0261p1.mjs
+          node skyshift/browser-premium-metal-v0262.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -99,4 +103,6 @@ jobs:
             skyshift-unified-lighting-v1-proof.json
             skyshift-v0261p1-*.png
             skyshift-v0261p1-proof.json
+            skyshift-v0262-*.png
+            skyshift-v0262-proof.json
           if-no-files-found: warn

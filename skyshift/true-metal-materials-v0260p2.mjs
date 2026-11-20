@@ -218,7 +218,7 @@ export function installTrueMetalMaterialsPass2(THREE,world,options={}){
     metalness:role==="panel"?.89:.83,
     roughness:role==="panel"?.36:.30,
     clearcoat:mobile?0:.14,clearcoatRoughness:.32,
-    side:THREE.DoubleSide,
+    side:THREE.DoubleSide,forceSinglePass:true,
     transparent:true,opacity:role==="panel"?.60:.49,
     blending:THREE.AdditiveBlending,depthWrite:false,depthTest:true,
     polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,

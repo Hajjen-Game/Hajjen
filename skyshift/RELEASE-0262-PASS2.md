@@ -11,6 +11,7 @@ Dark, dense brushed titanium with direction-aware fine grain, distinct satin pan
 - On high graphics, small physically shaped micro-normal perturbations use screen-space derivatives of the existing view-space surface, respecting the underlying true metal GGX.
 - On 4GB profile, keep the roughness atlas but skip derivative micro-normal work and use 128² filtered texture.
 - Satin flat panels and lightly polished ribs have distinct roughness profiles. The actual face geometry is preserved.
+- Crucial visual follow-up: apply the SAME packed atlas to original solar-isolated graphite MeshBasicMaterial substrate across panel/rib/shell/conduit batches, using the existing cavity and authored-neon masks. The initial coat-only proof passed technically but was too subtle at full-screen scale. This change brings material definition to the visible dark panel body rather than only a translucent topcoat.
 - Original solar and ambient loops stay disabled on these physical metal coats. No PMREM, SSR, HDRI, new lights, draw calls, or road/ship material edits.
 - A/B: `?v=0.26.2&premiumMetal=classic` restores the 0.26.1 physical metal response. `?v=0.26.2&premiumMetalSmoke=1&premiumMetalFrameProof=1&trackRepairSmoke=1&waveSmoke=1` provides identical frame GPU checks.
 

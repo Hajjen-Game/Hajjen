@@ -48,8 +48,8 @@ test("the isolated white-hotspot fix is enabled by default with exact original A
  assert.match(s,/setRailBodyContainment\?\.\(railBodyContainmentEnabled\?1:0\)/);
  assert.match(s,/compareBeforeRailBody:"\?railBody=classic"/);
  assert.match(s,/whiteCoreContainment\?\.update/);
- assert.match(source("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.24\.2/);
- const current=source("./boot-v0210.js").match(/game-v0210\.mjs\?v=(0\.24\.2)/)?.[1];
+ assert.match(source("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.25\.0/);
+ const current=source("./boot-v0210.js").match(/game-v0210\.mjs\?v=(0\.25\.0)/)?.[1];
  assert.ok(current,"the corrected road/rail game must carry a version key");
  assert.ok(source("./index.html").includes(`boot-v0210.js?v=${current}`));
 });

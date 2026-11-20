@@ -118,7 +118,7 @@ test("new version uses exact Pass 1 / previous stable shaders as A/B",()=>{
  assert.match(game,/__skyshiftCinematicNeonProbe/);
  assert.match(game,/__skyshiftCinematicNeonFrameProof/);
  assert.match(game,/compareBeforeCinematicNeon:"\?cinematicNeon=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.24\.2/);
- assert.match(read("./index.html"),/0\.24\.2/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.25\.0/);
+ assert.match(read("./index.html"),/0\.25\.0/);
  assert.match(read("./neon-interior-v0212.mjs"),/shell\.material=bindTunnelSpectrumMaterial\(new THREE\.MeshBasicMaterial/);
 });

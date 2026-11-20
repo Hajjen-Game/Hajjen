@@ -96,6 +96,6 @@ test("game, build labels and exact-frame WebGL hooks are 0.24.0",()=>{
  assert.match(game,/__skyshiftArchitecturalNeonProbe/);
  assert.match(game,/__skyshiftArchitecturalNeonFrameProof/);
  assert.match(game,/compareBeforeArchitecturalNeon:"\?architecturalNeon=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.24\.2/);
- assert.match(read("./index.html"),/SKYSHIFT.*0\.24\.2/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.25\.0/);
+ assert.match(read("./index.html"),/SKYSHIFT.*0\.25\.0/);
 });

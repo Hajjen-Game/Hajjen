@@ -126,6 +126,6 @@ test("0.24.2 game boot, old 0.24.1 A/B and native stage wave hooks",()=>{
  assert.match(game,/roadSolarSpill=roadSolarEnabled\?createRoadSolarSpillController/);
  assert.match(game,/premiumRoadSurface=premiumRoadEnabled\?createPremiumRoadSurfaceController/);
  assert.match(game,/surfaceCraftEnabled\?installPremiumSurfaceCraftsmanship/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.24\.2/);
- assert.match(read("./index.html"),/SKYSHIFT.*0\.24\.2/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.25\.0/);
+ assert.match(read("./index.html"),/SKYSHIFT.*0\.25\.0/);
 });

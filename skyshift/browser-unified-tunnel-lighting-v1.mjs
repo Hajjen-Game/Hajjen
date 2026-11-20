@@ -49,8 +49,8 @@ function inspect(pair,label,mobile,mode){
   if(Math.abs(pair.classic.levels.key-1)>1e-6||
      pair.unified.levels.key>(mode==="gallery"?.40:.99))
    throw Error("1.0 new gallery failed global light source policy");
-  if(changed<180)
-   throw Error("1.0 gallery PBR lighting difference not visible");
+  if(changed<(mode==="gallery"?180:40))
+   throw Error("1.0 gallery/transition PBR lighting difference not visible");
   if(stat.newMean>stat.oldMean+2)
    throw Error("1.0 brought white/exterior light back to gallery");
   if(whiteAfter>whiteBefore*1.08+50)

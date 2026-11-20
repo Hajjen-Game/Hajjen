@@ -97,6 +97,6 @@ test("reference bay preserves sun seal, lane and controls; game mounts new versi
  assert.match(game,/__skyshiftPhysicalMaterialProbe/);
  assert.match(game,/__skyshiftPhysicalMaterialFrameProof/);
  assert.match(game,/compareBeforePhysicalMaterial:"\?physicalMaterial=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.2/);
- assert.match(read("./index.html"),/0\.23\.2/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.3/);
+ assert.match(read("./index.html"),/0\.23\.3/);
 });

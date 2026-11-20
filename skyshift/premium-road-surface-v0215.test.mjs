@@ -84,8 +84,8 @@ test("release toggles exact old 0.21.4 and preserves 0.21.2.6 light seal",()=>{
  assert.match(game,/whiteCoreContainment=whiteCoreEnabled/);
  assert.match(game,/shipWhiteSpill=shipWhiteSpillEnabled/);
  assert.match(game,/installIntegratedNeonFlow/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.2/);
- assert.match(read("./index.html"),/0\.23\.2/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.3/);
+ assert.match(read("./index.html"),/0\.23\.3/);
  assert.equal(PREMIUM_ROAD_SURFACE_0215.newDrawBatches,0);
  assert.equal(PREMIUM_ROAD_SURFACE_0215.collidersAdded,0);
  assert.equal(PREMIUM_ROAD_SURFACE_0215.gripChanged,false);

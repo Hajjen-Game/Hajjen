@@ -941,6 +941,47 @@ jobs:
             skyshift-v02124-exact-*.png
             skyshift-v02124-exact-frame-proof.json
 
+  unified-tunnel-materials-v0233-unit:
+    name: SKYSHIFT 0.23.3 full-tunnel depth, neon and 4GB regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate full 0.23 shader chain, geometry and unchanged physics
+        run: |
+          node --check skyshift/unified-tunnel-materials-v0233.mjs
+          node --check skyshift/unified-tunnel-materials-v0233.test.mjs
+          node --check skyshift/browser-unified-tunnel-v0233.mjs
+          node --check skyshift/structural-tunnel-v0213.mjs
+          node --check skyshift/true-material-depth-v0231.mjs
+          node --check skyshift/game-v0210.mjs
+          node --check skyshift/boot-v0210.js
+          node --test skyshift/unified-tunnel-materials-v0233.test.mjs skyshift/cinematic-light-architecture-v0232.test.mjs skyshift/true-material-depth-v0231.test.mjs skyshift/structural-tunnel-v0213.test.mjs skyshift/road-solar-spill-v02126.test.mjs skyshift/ship-white-spill-v02125.test.mjs
+
+  browser-unified-tunnel-v0233:
+    name: SKYSHIFT 0.23.3 real WebGL early/mid/late, high and 4GB
+    needs: unified-tunnel-materials-v0233-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install WebGL browser renderer and PNG inspector
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Same-frame real WebGL comparison and native neon retention
+        run: node skyshift/browser-unified-tunnel-v0233.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0233-unified-tunnel-visual-proof
+          path: |
+            skyshift-v0233-*.png
+            skyshift-v0233-proof.json
+
   cinematic-light-architecture-v0232-unit:
     name: SKYSHIFT 0.23.2 P2 native-neon reflection shader, solar and GRIP guard
     runs-on: ubuntu-latest

@@ -68,8 +68,8 @@ test("UI/boot keeps old 0.21.5 A/B and new cinematics off in classic mode",()=>{
  assert.match(game,/compareBeforeCinematicMotion:"\?cinematicMotion=classic"/);
  assert.match(game,/createRoadSolarSpillController/);
  assert.match(game,/createPremiumRoadSurfaceController/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.2/);
- assert.match(read("./index.html"),/0\.23\.2/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.3/);
+ assert.match(read("./index.html"),/0\.23\.3/);
 });
 test("no extra render work or gameplay changes",()=>{
  const a=CINEMATIC_ENERGY_0216;

@@ -116,8 +116,8 @@ test("Pass 1 only changes tunnel material channels, never physics or PBR road",(
  assert.match(game,/__skyshiftMaterialRebirthProbe/);
  assert.match(game,/__skyshiftMaterialRebirthFrameProof/);
  assert.match(game,/compareBeforePremiumMaterial:"\?rebirthMaterial=classic"/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.2/);
- assert.match(read("./index.html"),/0\.23\.2/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.23\.3/);
+ assert.match(read("./index.html"),/0\.23\.3/);
 });
 test("each original shared batch receives one independent, cache-safe shader override",()=>{
  const targets=[

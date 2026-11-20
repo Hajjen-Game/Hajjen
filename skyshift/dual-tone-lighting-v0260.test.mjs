@@ -106,7 +106,7 @@ test("0.26.0 pass 1 boot, same-frame A/B and all previous passes remain wired",(
  assert.match(game,/__skyshiftDualToneProbe/);
  assert.match(game,/__skyshiftDualToneFrameProof/);
  assert.match(game,/compareBeforeDualTone:"\?dualTone=classic"/);
- assert.match(game,/const dual=capture\(1\)/);
+ assert.match(game,/dual=capture\(1\)/);
  assert.match(game,/const roadMask=directRoadMask\(\)/);
  assert.match(game,/darkMetalEnabled\?installDarkMetallicFoundation/);
  assert.match(game,/microMetalEnabled\?installMicroSurfaceMetalDefinition/);

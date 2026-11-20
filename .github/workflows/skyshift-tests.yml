@@ -33,6 +33,9 @@ jobs:
           node --check skyshift/game-v0210.mjs
           node --check skyshift/boot-v0210.js
           node --test skyshift/true-metal-materials-v0260p2.test.mjs
+          node --check skyshift/unified-tunnel-lighting-v1.mjs
+          node --check skyshift/browser-unified-tunnel-lighting-v1.mjs
+          node --test skyshift/unified-tunnel-lighting-v1.test.mjs
 
   browser-true-metal-v0260p2:
     name: SKYSHIFT 0.26.0 P2 REAL PBR WebGL and 4GB solar-sealed A/B
@@ -47,7 +50,9 @@ jobs:
       - name: Install chromium test driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Compare original dark dual-tone and physically lit metal, all zones
-        run: node skyshift/browser-true-metal-materials-v0260p2.mjs
+        run: |
+          node skyshift/browser-true-metal-materials-v0260p2.mjs
+          node skyshift/browser-unified-tunnel-lighting-v1.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -55,6 +60,8 @@ jobs:
           path: |
             skyshift-v0260p2-*.png
             skyshift-v0260p2-proof.json
+            skyshift-unified-lighting-v1-*.png
+            skyshift-unified-lighting-v1-proof.json
 
   track-tests:
     runs-on: ubuntu-latest

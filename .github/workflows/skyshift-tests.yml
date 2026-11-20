@@ -4,7 +4,8 @@ name: SKYSHIFT track logic checks
 # Pull requests run fast/targeted checks in skyshift-ci-fast.yml instead.
 on:
   push:
-    branches: [main]
+    # Temporary 0.26.1 P1 release gate; restore main-only after success.
+    branches: [main, skyshift-v0261-true-local-reflections-pass1]
     paths:
       - 'skyshift/**'
       - '.github/workflows/skyshift-tests.yml'

@@ -81,5 +81,5 @@
  },14000);
  // Use dynamic import so *module graph* failures also show actionable
  // feedback; static <script type=module> silently fails before try/catch.
- import("./game-v0210.mjs?v=0.25.0&rev=dark-metallic-foundation-20261120").catch(fail);
+ import("./game-v0210.mjs?v=0.25.1&rev=micro-surface-metal-20261120").catch(fail);
 })();

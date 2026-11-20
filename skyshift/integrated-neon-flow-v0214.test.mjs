@@ -98,6 +98,6 @@ test("flow cannot revive exterior light, replace steering or allocate lighting p
  assert.match(game,/installIntegratedNeonFlow/);
  assert.match(game,/compareBeforeIntegratedFlow:"\?tunnelFlow=classic"/);
  assert.match(game,/__skyshiftFlowFrameProof/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.25\.0/);
- assert.match(read("./index.html"),/0\.25\.0/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.25\.1/);
+ assert.match(read("./index.html"),/0\.25\.1/);
 });

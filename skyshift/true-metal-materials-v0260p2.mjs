@@ -74,6 +74,13 @@ export function patchTrueMetalPBRShader(vertex,fragment,{role="panel",mobile=fal
   "vec3 geometryNormal=normal;",
   "vec3 geometryViewDir=normalize(vViewPosition);",
   "vec3 geometryClearcoatNormal=geometryNormal;",
+  // The stock lights_fragment_begin declares these accumulators. We replace
+  // that chunk to exclude ALL sunlight, so recreate zero-filled indirect
+  // buffers expected by lights_fragment_maps/end.
+  "vec3 irradiance=vec3(0.0);",
+  "vec3 iblIrradiance=vec3(0.0);",
+  "vec3 radiance=vec3(0.0);",
+  "vec3 clearcoatRadiance=vec3(0.0);",
   "float pbrColdDistance0260=length(vPbrCold0260);",
   "float pbrWarmDistance0260=length(vPbrWarm0260);",
   "float pbrRelief0260="+(role==="panel"?"mix(0.46,1.0,smoothstep(0.0001,0.005,vPbrRelief0260))":"0.82")+";",

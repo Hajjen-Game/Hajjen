@@ -45,8 +45,9 @@ function inspect(pair,label,mobile,mode){
   Buffer.from(pair.classic.data,"base64"));
  writeFileSync("skyshift-unified-lighting-v1-"+label+"-unified.png",
   Buffer.from(pair.unified.data,"base64"));
- if(mode==="gallery"){
-  if(Math.abs(pair.classic.levels.key-1)>1e-6||pair.unified.levels.key>.025)
+ if(mode==="gallery"||mode==="transition"){
+  if(Math.abs(pair.classic.levels.key-1)>1e-6||
+     pair.unified.levels.key>(mode==="gallery"?.025:.99))
    throw Error("1.0 new gallery failed global light source policy");
   if(changed<180)
    throw Error("1.0 gallery PBR lighting difference not visible");

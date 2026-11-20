@@ -1,13 +1,22 @@
 name: SKYSHIFT track logic checks
+# CI Optimization 1.0: the costly full historic/visual suite runs on main
+# and is manually dispatchable against a release-candidate branch.
+# Pull requests run fast/targeted checks in skyshift-ci-fast.yml instead.
 on:
   push:
+    branches: [main]
     paths:
       - 'skyshift/**'
       - '.github/workflows/skyshift-tests.yml'
-  pull_request:
-    paths:
-      - 'skyshift/**'
-      - '.github/workflows/skyshift-tests.yml'
+      - '.github/workflows/skyshift-ci-fast.yml'
+  workflow_dispatch:
+# Release checks on main must finish. Supersede old manual runs on a
+# development branch when testing a newer commit there.
+concurrency:
+  group: skyshift-full-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+permissions:
+  contents: read
 jobs:
   track-tests:
     runs-on: ubuntu-latest

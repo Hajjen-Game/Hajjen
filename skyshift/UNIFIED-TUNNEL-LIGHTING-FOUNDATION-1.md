@@ -15,9 +15,9 @@ validating their absence with real 8GB/4GB WebGL A/B at the same camera pose.
 
 | Component | Existing shadow tunnel | New 0–368m neon gallery |
 |---|---|---|
-| External ambient at core | 0.4% | 6.0% |
-| External key at core | 0.8% | 1.8% |
-| External fill at core | 0.4% | 2.8% |
+| External ambient at core | 0.4% | 72% |
+| External key at core | 0.8% | 38% |
+| External fill at core | 0.4% | 56% |
 | Engine point lights | unchanged | unchanged |
 | Native colored neon | unchanged | unchanged |
 | Moving zone wave | unchanged | unchanged |

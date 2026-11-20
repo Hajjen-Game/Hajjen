@@ -102,7 +102,7 @@ try{
    {configurable:true,get:()=>v}),memory);
   await page.goto("http://127.0.0.1:8860/skyshift/?v=0.26.0"+
    "&artSmoke=1&dualToneSmoke=1&dualToneFrameProof=1"+
-   "&trackRepairSmoke=1&waveSmoke=1&"+extra,
+   "&trackRepairSmoke=1&waveSmoke=1&trueMetal=classic&"+extra,
    {waitUntil:"domcontentloaded",timeout:65000});
   await page.waitForFunction(()=>window.__skyshiftBoot?.phase==="ready",
    null,{timeout:90000});

@@ -18,6 +18,44 @@ concurrency:
 permissions:
   contents: read
 jobs:
+  true-metal-v0260p2-unit:
+    name: SKYSHIFT 0.26.0 P2 native metal GGX, local lights & solar isolation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify real MeshPhysicalMaterial, shader and solar/flight safeguards
+        run: |
+          node --check skyshift/true-metal-materials-v0260p2.mjs
+          node --check skyshift/browser-true-metal-materials-v0260p2.mjs
+          node --check skyshift/game-v0210.mjs
+          node --check skyshift/boot-v0210.js
+          node --test skyshift/true-metal-materials-v0260p2.test.mjs
+
+  browser-true-metal-v0260p2:
+    name: SKYSHIFT 0.26.0 P2 REAL PBR WebGL and 4GB solar-sealed A/B
+    needs: true-metal-v0260p2-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install chromium test driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Compare original dark dual-tone and physically lit metal, all zones
+        run: node skyshift/browser-true-metal-materials-v0260p2.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0260p2-physical-metal-webgl-proof
+          path: |
+            skyshift-v0260p2-*.png
+            skyshift-v0260p2-proof.json
+
   track-tests:
     runs-on: ubuntu-latest
     steps:

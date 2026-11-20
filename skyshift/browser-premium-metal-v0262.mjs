@@ -97,6 +97,7 @@ try{
    status.premiumMetal0262Textures!==1||
    status.premiumMetal0262TextureSize!==(memory===4?128:256)||
    status.premiumMetal0262Batches!==(memory===4?1:2)||
+   status.premiumMetal0262SubstrateBatches!==(memory===4?3:4)||
    status.premiumMetal0262AddedDrawCalls!==0||
    status.premiumMetal0262AddedDynamicLights!==0||
    status.premiumMetal0262ChangesRoad!==false||

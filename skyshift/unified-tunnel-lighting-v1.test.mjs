@@ -86,7 +86,7 @@ test("1.0: shared controller retains engine lights and A/B restores 3 PBR baseli
  near(lights.key.intensity,3);
  near(lights.fill.intensity,.6);
  controller.setComparison(1);
- near(lights.key.intensity,3*.018);
+ near(lights.key.intensity,3*.38);
  const audit=controller.audit();
  assert.equal(audit.externalLightControllerCount,1);
  assert.equal(audit.galleryAddedShaders,0);

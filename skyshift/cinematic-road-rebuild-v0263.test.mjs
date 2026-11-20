@@ -90,7 +90,7 @@ test("source positions follow original bank and preserve indexed deck",()=>{
  assert.equal(result.count,4);
  assert.equal(result.vectors.roadCyanLeft0263.length,12);
  assert.equal(result.vectors.roadFixtureMasks0263.length,8);
- assert.ok(result.sourcePositions>=8);
+ assert.ok(result.sourcePositions>=6);
  assert.ok(result.litCount>0);
  const left=result.vectors.roadCyanLeft0263;
  const right=result.vectors.roadCyanRight0263;

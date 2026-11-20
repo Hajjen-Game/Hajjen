@@ -19,6 +19,8 @@ import {SHADOW_TUNNEL,inShadowTunnel,tunnelIntensityAt,installShadowTunnel,
 import {TUNNEL_BLACKOUT,installBlackoutRoadShading,
  separateBladeTipMaterial,createTunnelBlackoutController}
  from "./tunnel-blackout-v0160.mjs";
+import {UNIFIED_TUNNEL_LIGHTING_1,createUnifiedTunnelLightingController}
+ from "./unified-tunnel-lighting-v1.mjs";
 import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./manta-blade-v0103.mjs";
@@ -316,6 +318,10 @@ const dualToneVersion=(new URLSearchParams(location.search).get("v")||"0.26.0")
 const dualToneEnabled=microMetalEnabled&&
  new URLSearchParams(location.search).get("dualTone")!=="classic"&&
  dualToneVersion[0]===0&&dualToneVersion[1]>=26;
+// Reuse the ORIGINAL blackout controller across both tunnel interiors.
+// ?unifiedLighting=classic restores the original light-control behavior.
+const unifiedTunnelLightingEnabled=tunnelMegaEnabled&&exteriorSealEnabled&&
+ new URLSearchParams(location.search).get("unifiedLighting")!=="classic";
 // 0.22.0 Pass 3: additive postprocess; Pass 1 and Pass 2 links unchanged.
 const velocityCinemaEnabled=cinematicNeonEnabled&&
  new URLSearchParams(location.search).get("velocityCinema")!=="classic"&&
@@ -721,7 +727,9 @@ function makeShip(id=fleetProgress.selected){
   lowMemory:claritySettings?.lowMemory??false});
  sideThrusters=createSideThrusters(THREE,ship);
  if(spaceBackdrop)
-  tunnelBlackout=createTunnelBlackoutController({worldLights,camera,bladeTips});
+  tunnelBlackout=(unifiedTunnelLightingEnabled?
+    createUnifiedTunnelLightingController:createTunnelBlackoutController)({
+    worldLights,camera,bladeTips});
  if(!shadowMesh)shadowMesh=createContactShadow(THREE,scene);
  UI.jump.classList.add("hidden");
  // A scene-art preview only; 120Hz flight/camera/GRIP remain unchanged.
@@ -1063,7 +1071,9 @@ function initScene(){
  ghostVisual=createPersonalGhostVisual(THREE,scene);
  spaceBackdrop=installSpaceBackdrop(THREE,camera);
  // Global light fades do not affect engine point lights or emitted neon.
- tunnelBlackout=createTunnelBlackoutController({worldLights,camera,bladeTips});
+ tunnelBlackout=(unifiedTunnelLightingEnabled?
+    createUnifiedTunnelLightingController:createTunnelBlackoutController)({
+    worldLights,camera,bladeTips});
  // HDR multilayer bloom renders *after* the beauty pass and before tone mapping.
  neonPipeline=createNeonPipeline(THREE,renderer,scene,camera,{
   lowMemory:limitedMemory,forceFullBloom:perfSettings.preset==="bloom-full"
@@ -1379,6 +1389,40 @@ function initScene(){
     maskMaterial?.dispose();
     stationWorld.setDualToneComparison(prior);
     renderer.setRenderTarget(oldTarget);
+    neonPipeline.render(0);
+   }
+  };
+ // 1.0 same-frame A/B: world light policy only, no new renderer or shade.
+ if(new URLSearchParams(location.search).get("unifiedLightingSmoke")==="1")
+  window.__skyshiftUnifiedLightingProbe=()=>({
+   enabled:unifiedTunnelLightingEnabled,
+   profile:unifiedTunnelLightingEnabled?UNIFIED_TUNNEL_LIGHTING_1:null,
+   comparison:tunnelBlackout?.getComparison?.()??null,
+   levels:{...tunnelBlackout?.levels},
+   blackout:tunnelBlackout?.audit?.()??null,
+   distance:flight?.s??null,
+   engineLightIntensities:engineLights.map(light=>light.intensity),
+   nativeWaveActive:Boolean(premiumSurface?.setWaveState),
+   roadSolarSeal:roadSolarSpill?.stats?.().seal??null,
+   whiteCoreProtectionEnabled:whiteCoreEnabled,
+   shipWhiteProtectionEnabled:shipWhiteSpillEnabled
+  });
+ if(new URLSearchParams(location.search).get("unifiedLightingFrameProof")==="1")
+  window.__skyshiftUnifiedLightingFrameProof=()=>{
+   if(!unifiedTunnelLightingEnabled||!tunnelBlackout?.setComparison||
+      !neonPipeline?.render||!flight)
+    throw Error("Unified Tunnel Lighting QA requires active foundation");
+   const original=tunnelBlackout.getComparison();
+   const capture=value=>{
+    tunnelBlackout.setComparison(value);
+    neonPipeline.render(0);
+    return {data:renderer.domElement.toDataURL("image/png").split(",")[1],
+     levels:{...tunnelBlackout.levels}};
+   };
+   try{
+    return {classic:capture(0),unified:capture(1),s:flight.s};
+   }finally{
+    tunnelBlackout.setComparison(original);
     neonPipeline.render(0);
    }
   };
@@ -3164,6 +3208,11 @@ function exportAudit(){
       microMetalAudit:microMetalEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeMicroMetal:"?microMetal=classic",
       dualToneEnabled,
+      unifiedTunnelLightingEnabled,
+      unifiedTunnelLightingProfile:unifiedTunnelLightingEnabled?
+       UNIFIED_TUNNEL_LIGHTING_1:null,
+      unifiedTunnelLightingAudit:tunnelBlackout?.audit?.()??null,
+      unifiedTunnelLightingComparison:"?unifiedLighting=classic",
       dualToneProfile:dualToneEnabled?DUAL_TONE_LIGHTING_0260:null,
       dualToneAudit:dualToneEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeDualTone:"?dualTone=classic",

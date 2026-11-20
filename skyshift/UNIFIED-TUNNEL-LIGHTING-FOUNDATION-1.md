@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Reuse the original 0.9.2.1 **True Black-Room Tunnel Lighting** controller
+Building on the published SKYSHIFT 0.26.0 Pass 2 metal renderer, reuse the original 0.9.2.1 **True Black-Room Tunnel Lighting** controller
 instead of maintaining a second world-light controller for the new 0–368m
 metal gallery. The old controller remains the ONLY per-frame writer for
 the three global PBR lights: hemisphere ambient, key directional and fill.
@@ -61,3 +61,14 @@ moving color crest.
 After the new light policy is visually validated, investigate consolidating
 the earlier multiple solar/white-shader decorators. Measure before deletion.
 Do not remove the road's native white wave or animated neon while doing so.
+
+## Pass 2 integration
+
+This implementation is rebased by reconstructing it from the published
+True Metal Materials Pass 2 release (`4697c3f`). Its native
+`MeshPhysicalMaterial` coats, physical roughness, GGX highlights and
+`?trueMetal=classic` A/B switch are retained. The shared controller only
+changes three legacy WORLD lights; localized metal fixtures remain isolated
+and unchanged. The fast PR checks must pass BOTH the native PBR screenshot
+proof and the shared tunnel lighting screenshot proof. A full candidate
+release check is required before main/Pages deployment.

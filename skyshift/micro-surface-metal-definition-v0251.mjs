@@ -56,14 +56,15 @@ export function patchMicroSurfaceMetalShader(vertex,fragment,{role="panel",mobil
   " vec2 m51UV=vec2(vRebirthTrack,vNeonLocalSection.y);",
   // Brushing follows the ORIGINAL banked track; no world-space decals.
   // Lower frequencies / reduced strength on mobile avoid crawling stripes.
-  " float m51Warp=0.14*sin(m51UV.x*0.29+m51UV.y*0.38);",
+  " float m51Warp=0.21*sin(m51UV.x*0.29+m51UV.y*0.38)+",
+  "  0.17*sin(m51UV.x*0.081-m51UV.y*0.92);",
   " float m51Stria=sin(m51UV.y*"+(mobile?"8.0":"23.0")+
    "+m51UV.x*0.42+m51Warp);",
   " float m51Cross=sin(m51UV.x*"+(mobile?"2.8":"7.1")+
    "+m51UV.y*1.43);",
-  " float m51Brush=clamp(0.5+0.34*m51Stria+0.16*m51Cross,0.0,1.0);",
-  " float m51Line=0.5+0.5*sin(m51UV.y*5.4+m51UV.x*0.22+m51Warp);",
-  " float m51Grain=clamp(0.64*m51Brush+0.36*m51Line,0.0,1.0);",
+  " float m51Brush=clamp(0.5+0.40*m51Stria+0.10*m51Cross,0.0,1.0);",
+  " float m51Line=0.5+0.5*sin(m51UV.y*4.5+m51UV.x*0.22+m51Warp);",
+  " float m51Grain=clamp(0.78*m51Brush+0.22*m51Line,0.0,1.0);",
   // Roughness BREAKUP changes the distribution of the neon highlight.
   // For these original MeshBasicMaterial batches there is no true
   // physical roughness uniform; emulate it in the local specular lobe.
@@ -85,10 +86,10 @@ export function patchMicroSurfaceMetalShader(vertex,fragment,{role="panel",mobil
   "  (0.35+0.65*m51Local);",
   // Milling changes charcoal itself ONLY subtly; graphite stays dark.
   " vec3 m51Body=m25Graphite*(1.0+0.75*m51Mill+",
-  "  0.35*(m51Grain-0.5)*m51Near);",
-  " m51Body+=vec3(0.030,0.033,0.035)*",
+  "  0.21*(m51Grain-0.5)*m51Near*(0.25+0.75*m51Local));",
+  " m51Body+=vec3(0.026,0.028,0.030)*",
   "  max(0.0,m51Grain-0.28)*m51Near*m51Face*",
-  "  (0.23+0.77*m51Local);",
+  "  (0.09+0.91*m51Local);",
   " m51Body*=1.0-0.22*m51Cavity;",
   " vec3 m51Chrome=m25Tint*max(0.0,m51Finish+",
   "  0.025*m51Bevel*m51Local*(1.0-m51Rough));",

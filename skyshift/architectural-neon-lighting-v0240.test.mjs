@@ -18,7 +18,8 @@ const compose=(role="panel",mobile=false)=>{
  const a=patchPremiumMaterialShader(v,f,{role,mobile});
  const b=patchCinematicNeonShader(a.vertexShader,a.fragmentShader,{mobile});
  const c=patchPhysicalMaterialShader(b.vertexShader,b.fragmentShader,{role,mobile});
- const d=patchTrueMaterialDepthShader(c.vertexShader,c.fragmentShader,{role,mobile});
+ const d=(role==="panel"||role==="conduit")?
+  patchTrueMaterialDepthShader(c.vertexShader,c.fragmentShader,{role,mobile}):c;
  const e=(role==="panel"||(!mobile&&role==="conduit"))?
   patchLightArchitectureShader(d.vertexShader,d.fragmentShader,{role,mobile}):d;
  const g=patchUnifiedTunnelShader(e.vertexShader,e.fragmentShader,{role});
@@ -47,7 +48,7 @@ test("0.24.0 composes real banked neon across panel, conduit, shell and ribs",()
    assert.ok(x.lastIndexOf("diffuseColor.rgb+=a24Bounce;")>
     x.lastIndexOf(role==="panel"||role==="conduit"?
      "diffuseColor.rgb=c32Before+c32Strength*c32Contribution;":
-     "diffuseColor.rgb=mix(d31Original,d31Out,d31Strength);"));
+     "diffuseColor.rgb=mix(p23Original, mix(p23Result,max(p23Original,p23Result),uUnifiedExtent0233), p23Mix);"));
   }
  }
 });

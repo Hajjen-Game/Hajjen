@@ -21,7 +21,7 @@ export const TRUE_SHARED_RENDERER_0281=Object.freeze({
  reference:"Skyline 0.26.5",sourceLength:368,
  renderer:"installPremiumMetalSurfaceLibrary",
  sharedGeometry:true,sharedFixtureGeometry:true,sharedShaders:true,
- sharedMaterialAtlas:true,independentTrackSampler:true,
+ sharedAtlasGenerator:true,independentTrackSampler:true,
  changesRoad:false,changesRails:false,changesShip:false,
  changesFlight:false,changesGrip:false,addsColliders:0,
  comparison:"?trueSharedRenderer=classic"

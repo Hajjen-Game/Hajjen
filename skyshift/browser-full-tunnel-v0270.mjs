@@ -35,7 +35,7 @@ function inspect(b64,label,memory,s){
  console.log("NEON_VAULT_0270 "+JSON.stringify(report));
  if(cyan<85||nonblack<800)
   throw Error("0.27.0 tunnel scene lacks real luminous architecture "+JSON.stringify(report));
- if(white>pixels*.15)
+ if(white>pixels*.035)
   throw Error("0.27.0 reintroduced all-white scene spill");
 }
 try{
@@ -77,7 +77,9 @@ try{
    q.lapMeters!==3400||q.quality!==(memory===4?"4GB":"High")||
    !q.solarIndependentMaterials||
    !Number.isFinite(q.cameraDistanceToPilotMeters)||
-   q.cameraDistanceToPilotMeters>45)
+   q.cameraDistanceToPilotMeters>45||
+   q.sunKeyScale>.035||q.ambientScale>.19||
+   q.vaultGlobalLightSeal?.end!==3400)
    throw Error("0.27.0 original racing and full-tunnel invariants failed: "+JSON.stringify(q));
   const frame=await page.evaluate(()=>window.__skyshiftFullTunnelFrameProof());
   if(Math.abs(frame.s-s)>.1)throw Error("teleport s mismatch");

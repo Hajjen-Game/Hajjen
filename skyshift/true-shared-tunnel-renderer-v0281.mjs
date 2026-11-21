@@ -222,7 +222,6 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
     item.finish?.dispose?.();item.metal?.dispose?.();
     item.source?.dispose?.();
     item.roadFacade?.dispose?.();
-   item.roadFacade?.dispose?.();
    }
    root.removeFromParent();
   }

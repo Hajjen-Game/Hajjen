@@ -175,7 +175,7 @@ export function patchPhysicalWall0265(vertex,fragment,{role="panel",mobile=false
   if(!fragment.includes(k))throw Error("0.26.5 missing 0.26.1/0.26.4.3 wall GGX "+k);
  const mask=[
   "#include <metalnessmap_fragment>",
-  "float r65Face=1.0-smoothstep(23.0,27.0,vPbrSection0260.y);",
+  "float r65Face=1.0-smoothstep(20.5,24.0,vPbrSection0260.y);",
   "float r65Side=smoothstep(12.5,19.6,abs(vPbrSection0260.x));",
   "float r65WallC=clamp(vLocalMask0261.x,0.0,1.0)*r65Face*r65Side;",
   "float r65WallW=clamp(vLocalMask0261.y,0.0,1.0)*r65Face*r65Side;",
@@ -188,11 +188,11 @@ export function patchPhysicalWall0265(vertex,fragment,{role="panel",mobile=false
   .replace("#include <metalnessmap_fragment>",mask);
  next=next.replaceAll("RE_Direct(l261Cool,geometryPosition",
   "l261Cool.color*=mix(vec3(1.0),vec3("+
-   (mobile?"1.20,1.25,1.28":"1.48,1.60,1.65")+
+   (mobile?"1.09,1.10,1.11":"1.23,1.32,1.36")+
    "),uTrueRailWall0265*r65WallC);\nRE_Direct(l261Cool,geometryPosition");
  next=next.replaceAll("RE_Direct(l261Warm,geometryPosition",
   "l261Warm.color*=mix(vec3(1.0),vec3("+
-   (mobile?"1.17,1.18,1.15":"1.46,1.42,1.30")+
+   (mobile?"1.10,1.11,1.10":"1.31,1.30,1.24")+
    "),uTrueRailWall0265*r65WallW);\nRE_Direct(l261Warm,geometryPosition");
  return {vertexShader:vertex,fragmentShader:next};
 }
@@ -203,7 +203,7 @@ export function patchSubstrateWall0265(vertex,fragment,{role="panel",mobile=fals
   !fragment.includes("float t43Warm=")||
   !fragment.includes("float t43Face="))
   throw Error("0.26.5 requires pre-masked 0.26.4.3 wall substrate");
- const cool=mobile?1.28:1.95,warm=mobile?1.22:1.62;
+ const cool=mobile?1.13:1.38,warm=mobile?1.12:1.35;
  return {vertexShader:vertex,fragmentShader:fragment
   .replace(COMMON,COMMON+"\nuniform float uTrueRailWall0265;")
   .replace(BOUNCE,"vec3 t43Bounce=vec3(0.028,0.138,0.187)*"+

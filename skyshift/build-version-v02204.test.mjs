@@ -28,7 +28,8 @@ test("third Neon Vault course has a distinct 0.27.x versioned menu URL",()=>{
  const version=game.match(/uri\.searchParams\.set\("v",selected==="vault"\?"(0\.27\.\d+)":SKYSHIFT_BUILD_VERSION\)/)?.[1];
  assert.ok(version,"Vault route must use its distinct 0.27.x release version");
  assert.ok(html.includes("Neon Vault Material Parity · "+version)||
-  html.includes("Architectural Geometry & Panel Parity · "+version));
+  html.includes("Architectural Geometry & Panel Parity · "+version)||
+   html.includes("Full Tunnel Lighting & Visual Parity · "+version));
  assert.match(html,/<option value="vault">03 · NEON VAULT/);
  assert.match(game,/const vaultMaterialParityEnabled=fullTunnelFoundationEnabled/);
  assert.match(game,/vaultMaterialComparison:"\?vaultMaterial=classic"/);

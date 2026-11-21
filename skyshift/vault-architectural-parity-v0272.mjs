@@ -98,6 +98,8 @@ function geometry(THREE,part){
  g.setAttribute("color",new THREE.Float32BufferAttribute(part.colors,3));
  g.setAttribute("trackS",new THREE.Float32BufferAttribute(part.trackS,1));
  g.setAttribute("glowWeight",new THREE.Float32BufferAttribute(part.glowWeight,1));
+ // Reuse the original 0.26.x physical metal shader\u2019s true tunnel-space inputs.
+ g.setAttribute("neonLocalSection",new THREE.Float32BufferAttribute(part.localSection,2));
  const uv=new Float32Array(part.trackS.length*2);
  for(let j=0;j<part.trackS.length;j++){
   uv[j*2]=part.trackS[j];

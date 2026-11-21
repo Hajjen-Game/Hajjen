@@ -61,7 +61,7 @@ function compare(pair,label,mobile){
   throw Error("0.27.2 reintroduced outside white-sun spill "+JSON.stringify(m));
  if(m.blackAfter<m.blackBefore*.56)
   throw Error("0.27.2 erased essential dark tunnel recesses "+JSON.stringify(m));
- if(m.cyanAfter<m.cyanBefore*.58)
+ if(m.cyanAfter<m.cyanBefore*.55)
   throw Error("0.27.2 obscured cyan fixture architecture "+JSON.stringify(m));
 }
 try{

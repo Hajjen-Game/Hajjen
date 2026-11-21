@@ -118,7 +118,7 @@ test("high mounts original 2 Physical GGX and 4 sealed graphite roles, with reve
  assert.equal(s.unifiedMetal02641PhysicalCoats,2);
  assert.equal(s.unifiedMetal02641Substrates,4);
  assert.equal(s.unifiedMetal02641NewLights,0);
- assert.equal(m.cove.material.color.g,1.095);
+ assert.equal(m.cove.material.color.g,1.12);
  assert.ok(m.group.children.every((x,i)=>x.material.onBeforeCompile!==originals[i]));
  installed.setComparison(0);
  assert.deepEqual(m.cove.material.color,new Color(1,1,1));

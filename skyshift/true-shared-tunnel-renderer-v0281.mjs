@@ -149,14 +149,19 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    const section=new THREE.Group();
    section.name="SKYLINE SOURCE / Vault "+module.index;
    root.add(section);
+   // Some original 0.21.x art layers expect the Skyline native road
+   // shader even though they only render tunnel geometry. Supply a
+   // DETACHED, never-rendered material facade instead of mutating Vault's
+   // actual PBR deck or coupling its physics/collision geometry.
+   const roadFacade=new THREE.MeshStandardMaterial({color:0x050914});
+   const item={source:null,section,module,metal:null,finish:null,
+    roadFacade};
+   installed.push(item);
    const source=installPremiumMetalSurfaceLibrary(THREE,section,{
     track:"skyline",positionAt:adaptSourcePosition0281(positionAt,module),
-    lowMemory,roadMaterial:null,vaultHeightClassic:false
+    lowMemory,roadMaterial:roadFacade,vaultHeightClassic:false
    });
-   // Register disposal BEFORE checking activation; a partially built
-   // module must never leak geometry when the legacy fallback wins.
-   const item={source,section,module,metal:null,finish:null};
-   installed.push(item);
+   item.source=source;
    const result=source.stats?.()??{};
    if(!result.premiumMetal0262Enabled||
     !result.localReflections0261Enabled||!result.trueMetal0260P2NativeGGX||
@@ -181,6 +186,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    item.finish?.dispose?.();
    item.metal?.dispose?.();
    item.source?.dispose?.();
+   item.roadFacade?.dispose?.();
   }
   root.removeFromParent();
   // The caller falls back to the complete original Vault renderer,
@@ -215,6 +221,8 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    for(const item of installed.reverse()){
     item.finish?.dispose?.();item.metal?.dispose?.();
     item.source?.dispose?.();
+    item.roadFacade?.dispose?.();
+   item.roadFacade?.dispose?.();
    }
    root.removeFromParent();
   }

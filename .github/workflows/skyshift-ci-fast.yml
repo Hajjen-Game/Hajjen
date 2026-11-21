@@ -67,6 +67,8 @@ jobs:
           node --check skyshift/browser-true-shared-tunnel-v0281.mjs
           node --check skyshift/shared-road-ship-light-v0282.mjs
           node --check skyshift/browser-shared-road-ship-v0282.mjs
+          node --check skyshift/vault-boost-clarity-v0283.mjs
+          node --check skyshift/browser-vault-boost-clarity-v0283.mjs
           node --check skyshift/browser-fixture-transport-v02643.mjs
           node --check skyshift/browser-reflection-cohesion-v02642.mjs
           node --check skyshift/browser-unified-metal-v02641.mjs
@@ -118,6 +120,7 @@ jobs:
             node --test skyshift/shared-tunnel-architecture-v0280.test.mjs
             node --test skyshift/true-shared-tunnel-renderer-v0281.test.mjs
             node --test skyshift/shared-road-ship-light-v0282.test.mjs
+            node --test skyshift/vault-boost-clarity-v0283.test.mjs
           fi
           # Prevent legacy push-only failure: Skyline's boot release and
           # Neon Vault's independent menu release must both be validated
@@ -577,4 +580,27 @@ jobs:
           path: |
             skyshift-v0282-*.png
             skyshift-v0282-proof.json
+          if-no-files-found: warn
+
+  vault-boost-clarity-webgl-0283:
+    name: SKYSHIFT 0.28.3 Vault main glow pads / no risk boosts High+4GB WebGL
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install real Chromium/WebGL pixel QA
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Compare original and cleaned Vault boost plates, physics and actual screen pixels
+        run: node skyshift/browser-vault-boost-clarity-v0283.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0283-real-webgl-boost-cleanup
+          path: |
+            skyshift-v0283-*.png
+            skyshift-v0283-boost-proof.json
           if-no-files-found: warn

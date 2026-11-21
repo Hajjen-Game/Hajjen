@@ -12,6 +12,7 @@ Introduce **NEON VAULT CIRCUIT** as a third circuit, entirely inside a continuou
 - Continuous vault from 0 to 3,400m, based on the original 31-point 0.21.1 banked tunnel cross-section rather than a stretched texture.
 - Twenty 170m independently culled mesh chunks. Roof, curved structural ribs, finite cyan overhead practicals, lower cyan inlays and amber wall lights cover the entire lap.
 - High quality samples the shell every 2.5m, 4GB every 4.25m. Dark solar-independent metal and source-colored gradients provide a cautious foundation without global white exposure.
+- The original native black-room controller now uses a Vault-only constant light-seal profile for all 3400m. Exterior directional/hemisphere white spill is reduced everywhere without altering original road/ship shaders or the other circuits.
 - Skip the old independent 760m Shadow Tunnel and open-world station on this new course to avoid overlapping structures.
 - Original racing deck, physical rails, zone wave, ship, camera and controls are not modified. No new physical colliders or rendering postprocess passes.
 - Historical 0.26.5 Skyline geometry, lighting and A/B paths are preserved. New QA functions: __skyshiftFullTunnelProbe and __skyshiftFullTunnelFrameProof.

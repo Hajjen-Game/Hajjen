@@ -72,6 +72,8 @@ test("existing deck gets genuine HDR arrow glow without risk guide artwork",asyn
   "#include <common>\n#include <begin_vertex>",
   "#include <common>\n#include <color_fragment>\n#include <emissivemap_fragment>");
  assert.ok(result.fragmentShader.includes("trackChevronGlow0283"));
+ assert.ok(result.fragmentShader.includes("float vaultChevron0283(float s,float lateral)"));
+ assert.ok(result.fragmentShader.includes("5.45-1.24*abs(lateral)"));
  assert.ok(result.fragmentShader.includes("zoneBoost*(boostArrows*1.55"));
  assert.ok(result.fragmentShader.includes("vaultHalo0283*.46"));
  assert.ok(result.fragmentShader.includes("totalEmissiveRadiance"));

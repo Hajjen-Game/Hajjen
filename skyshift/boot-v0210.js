@@ -81,5 +81,5 @@
  },14000);
  // Use dynamic import so *module graph* failures also show actionable
  // feedback; static <script type=module> silently fails before try/catch.
- import("./game-v0210.mjs?v=0.26.3.1&rev=edge-lighting-floor-pools-02631-20261121").catch(fail);
+ import("./game-v0210.mjs?v=0.26.3.2&rev=edge-source-connected-bands-02632-20261121").catch(fail);
 })();

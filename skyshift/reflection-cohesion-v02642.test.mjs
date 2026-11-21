@@ -8,7 +8,7 @@ import {
 } from "./reflection-cohesion-v02642.mjs";
 const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
 const roughMetal=" roughnessFactor=mix(roughnessFactor,m262R,uPremiumMetal0262);";
-const roughRoad=" roughnessFactor=mix(roughnessFactor,r263Rough,r263Interior);";
+const roughRoad="roughnessFactor=mix(roughnessFactor,r263Rough,r263Interior);";
 const metalShader=(mobile=false)=>[
  "#include <common>",
  "uniform float uMetalLightResponse02641;",

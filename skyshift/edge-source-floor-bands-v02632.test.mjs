@@ -174,6 +174,6 @@ test("live boot selects 0.26.3.2 but allows exact 0.26.3.1 classic",()=>{
  assert.match(game,/installEdgeLightingFloorPools02631/);
  assert.match(game,/__skyshiftEdgeSourceProbe/);
  assert.match(game,/__skyshiftEdgeSourceFrameProof/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.(?:3\.[23]|4)/);
- assert.match(read("./index.html"),/Connected Floor Light Bands|Lighting, Glow & Final Cohesion|Unified Light Response & Dark Titanium Rebalance|Reflection Cohesion & Premium Surface Finish|Unified Fixture Light Transport & Surface Response/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.(?:3\.[23]|4|5)/);
+ assert.match(read("./index.html"),/Connected Floor Light Bands|Lighting, Glow & Final Cohesion|Unified Light Response & Dark Titanium Rebalance|Reflection Cohesion & Premium Surface Finish|Unified Fixture Light Transport & Surface Response|True Rail & Wall Local Light Response/);
 });

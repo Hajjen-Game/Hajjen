@@ -10,6 +10,7 @@
 // with ?roadRebuild=classic returning EXACTLY to 0.26.2.
 import {TUNNEL_PORTALS_0211,tunnelProfilePoint0211}
  from "./tunnel-megastructure-v0211.mjs";
+import {ROAD_SOLAR_SPILL_02126} from "./road-solar-spill-v02126.mjs";
 
 export const ROAD_REBUILD_0263=Object.freeze({
  version:"0.26.3",pass:3,id:"cinematic-road-reflection-rebuild-0263",
@@ -180,7 +181,23 @@ export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false,
   "metalnessFactor=mix(metalnessFactor,0.41,r263Interior);"
  ].join("\n");
  const direct=[
-  "// 0.26.3: world-light solar suppression above has ALREADY executed.",
+  // Vault 0.28.2 must carry the original Skyline 0.21.2.6 road-only
+  // neutral world-light containment BEFORE adding its colored GGX. The
+  // racing guides/zone-wave emission are applied separately and unchanged.
+  // In A/B classic (uRoadRebuild0263=0) every PBR coefficient is original.
+  ...(fullTunnel?[
+   "// Original Skyline 0.21.2.6 PBR-only sunlight isolation: 3400m Vault.",
+   "float roadSolarMask=uRoadRebuild0263;",
+   "reflectedLight.directDiffuse*=mix(1.0,"+
+    ROAD_SOLAR_SPILL_02126.directDiffuseScale.toFixed(2)+",roadSolarMask);",
+   "reflectedLight.indirectDiffuse*=mix(1.0,"+
+    ROAD_SOLAR_SPILL_02126.indirectDiffuseScale.toFixed(2)+",roadSolarMask);",
+   "reflectedLight.directSpecular*=mix(1.0,"+
+    ROAD_SOLAR_SPILL_02126.directSpecularScale.toFixed(2)+",roadSolarMask);",
+   "reflectedLight.indirectSpecular*=mix(1.0,"+
+    ROAD_SOLAR_SPILL_02126.indirectSpecularScale.toFixed(2)+",roadSolarMask);"
+  ]:[]),
+  "// 0.26.3: world-light suppression has completed before local lights.",
   "// Add only the original physically placed cyan and amber tunnel strips.",
   "if(uRoadRebuild0263>0.0001){",
   " vec2 r263Source=clamp(vRoadFixtureMasks0263,0.0,1.0)*uRoadRebuild0263;",

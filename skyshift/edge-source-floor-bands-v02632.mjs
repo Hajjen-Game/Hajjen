@@ -19,7 +19,7 @@ export const EDGE_SOURCE_02632=Object.freeze({
  cyanWidthMeters:0.18,cyanSegmentPitchMeters:24,
  cyanLitLengthMeters:6.5,cyanDarkGapMeters:17.5,
  amberFootBands:20,amberSourceHeightMeters:0.50,
- amberTrackBandLengthMeters:14.4,amberFloorBandWidthMeters:11.25,
+ amberTrackBandLengthMeters:14.4,amberFloorBandWidthMeters:6.0,
  connectedFloorAndFootGeometry:true,
  addedDrawBatches:2,addedDynamicLights:0,addedTextures:0,
  addedPostprocessPasses:0,addedColliders:0,
@@ -128,19 +128,19 @@ export function createConnectedFootBands02632(THREE,positionAt,
     [[1,.36,.09,.82],[1,.36,.09,.76],[1,.36,.09,.76],[1,.36,.09,.82]]);
    footSources++;
    // WIDE connected source-foot band, curved along original side floor.
-   // Longitudinal extent ~14.4m, lateral 13.25..24.45m. Alpha peaks on
+   // Longitudinal extent ~14.4m, lateral 18.45..24.45m. Alpha peaks on
    // the root x (the foot's floor-contact position) and tapers smoothly.
    const meshP=(i,j)=>{
     const s=clamp(center-7.2+14.4*i/NS,.04,367.58);
     // End the floor ribbon AT the real wall-foot source, not before it.
-    const x=13.25+(rootX-13.25)*j/NX;
+    const x=rootX-6.0+6.0*j/NX;
     const along=gauss(s-center,4.35);
-    const lateral=gauss(x-rootX,6.15);
+    const lateral=gauss(x-rootX,2.85);
     // Enough source width to look intentional, without brightening
     // the rail, ship, racing lane or full graphite shoulder.
-    const sourceCore=Math.exp(-Math.pow((x-rootX)/2.25,2)-
-     Math.pow((s-center)/3.25,2));
-    const alpha=(.43*along*lateral+.20*sourceCore);
+    const sourceCore=Math.exp(-Math.pow((x-rootX)/1.10,2)-
+     Math.pow((s-center)/4.20,2));
+    const alpha=(.30*along*lateral+.29*sourceCore);
     return {q:anchor(s,x),color:[1,.34,.075,alpha]};
    };
    for(let i=0;i<NS;i++)for(let j=0;j<NX;j++){

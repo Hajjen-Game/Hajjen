@@ -64,7 +64,8 @@ jobs:
           node --test skyshift/final-cohesion-v0264.test.mjs
           node --test skyshift/unified-metal-light-response-v02641.test.mjs
           node --test skyshift/reflection-cohesion-v02642.test.mjs
-          node --test skyshift/unified-fixture-transport-v02643.test.mjsnode --test skyshift/true-rail-wall-response-v0265.test.mjs
+          node --test skyshift/unified-fixture-transport-v02643.test.mjs
+          node --test skyshift/true-rail-wall-response-v0265.test.mjs
 
   # The old 12-minute job ran NINE full Chromium/SwiftShader sessions
   # sequentially. On 2026-11-21 it completed 7/9 successfully, then

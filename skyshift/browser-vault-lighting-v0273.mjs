@@ -114,8 +114,8 @@ try{
    !q.foundation?.active||q.foundation.coverageMeters!==3400||
    q.foundation.drawBatches!==60||
    q.originalRoad!=="MeshStandardMaterial"||
-   !q.originalShip||!q.gripPresent||
-   q.raceDistance!==10200||q.sunKeyScale>.035||
+   !q.originalShip||!q.originalGrip||
+   q.raceMeters!==10200||q.sunKeyScale>.035||
    q.cameraDistanceToPilotMeters>45)
    throw Error("0.27.3 source builder/flight/metal invariants "+
     JSON.stringify(q));

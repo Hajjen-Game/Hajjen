@@ -1287,7 +1287,10 @@ function initScene(){
    intactRail:Boolean(identitySurface?.setWaveState),
    originalShip:Boolean(ship),noJump:GAPS.length===0,
    originalGripAvailable:Boolean(UI.grip),
-   worldChildren:world?.children?.length??0
+   worldChildren:world?.children?.length??0,
+    cameraDistanceToPilotMeters:camera&&flight?
+     +Math.hypot(camera.position.x-flight.worldX,
+      camera.position.z-flight.worldZ).toFixed(2):null
   });
  if(new URLSearchParams(location.search).get("fullTunnelFrameProof")==="1")
   window.__skyshiftFullTunnelFrameProof=()=>{
@@ -4652,6 +4655,17 @@ try{
    kineticCamera=createKineticCameraState();
    previousRenderPose=capturePose(flight);
    currentRenderPose=previousRenderPose;frameBlend=0;
+    // The established Shadow Tunnel QA snaps directly to chasePose.
+    // Do likewise for 1–3 km Vault WebGL jumps only: normal flight camera
+    // damping, steering and GRIP never enter this opt-in code path.
+    if(isVault()){
+     const frame=chasePose(flight,motionState,cinematicState,
+      cinematicTuning,CAMERA_INFO);
+     CAMERA_BASE_POSITION.set(frame.x,frame.y,frame.z);
+     CAMERA_TARGET_POSITION.copy(CAMERA_BASE_POSITION);
+     cameraLook.set(frame.lookX,frame.lookY,frame.lookZ);
+     CAMERA_TARGET_LOOK.copy(cameraLook);
+    }
    // Browser QA freezes 120Hz simulation, so update visual-only ship light
    // immediately at the teleported position before the slow WebGL frame.
    whiteCoreContainment?.update(s,true);

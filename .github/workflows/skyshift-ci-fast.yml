@@ -531,3 +531,24 @@ jobs:
             skyshift-v0281-*.png
             skyshift-v0281-proof.json
           if-no-files-found: warn
+
+  focused-grip-webgl-0165:
+    name: SKYSHIFT focused No-Jump GRIP parity REAL Chrome/WebGL
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install real lightweight browser driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
+      - name: Verify No-Jump GRIP separately from historical art tests
+        run: node skyshift/browser-grip-trick-v0165.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-pr-grip-parity-real-webgl
+          path: skyshift-v0165-*.png
+          if-no-files-found: warn

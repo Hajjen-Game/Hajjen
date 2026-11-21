@@ -4,7 +4,7 @@
 // existing C2 / banked cross-section: not a second imitation panel system.
 // The 0.27.1 0.26.2 atlas is shared, NOT duplicated. No new world lights,
 // camera/ship/road/rail/colliders, steering or GRIP changes.
-import {buildStructuralTunnelData}
+import {buildSharedTunnelSection0280}
  from "./structural-tunnel-v0213.mjs";
 import {vaultCrossSection0270}
  from "./full-tunnel-circuit-v0270.mjs";
@@ -74,10 +74,9 @@ export function buildVaultArchitectureData0272(positionAt,chunkIndex,{
   !Number.isInteger(chunkIndex)||chunkIndex<0||chunkIndex>=20)
   throw Error("0.27.2 requires real C2 track sampler and 0–19 chunk");
  const {start:from,end:to}=SHARED_PLAN.intervals[0].chunks[chunkIndex];
- const result=buildStructuralTunnelData(positionAt,{
-  arcStart:from,arcEnd:to,
-  profilePoint:vaultCrossSection0270,
-  portals,lowMemory,flowCohesion:true,depthStudy:true,
+ const result=buildSharedTunnelSection0280(positionAt,SHARED_PLAN,{
+  chunkIndex,lowMemory,profilePoint:vaultCrossSection0270,
+  flowCohesion:true,depthStudy:true,
   unifiedDepth:true,surfaceCraftsmanship:true,
   panelStepMeters:lowMemory?
    SHARED_TUNNEL_STYLE_0280.geometry.panelStep4GBMeters:

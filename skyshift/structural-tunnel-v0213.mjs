@@ -50,12 +50,13 @@ const mix=(a,b,t)=>a+(b-a)*t;
 // This is the TRUE inner normal of a cross-section facet, including curved
 // crown and near-vertical side walls. No flattened world-axis rectangles.
 export function sampleStructuralFacet(s,j,t,depth=0,{vaultHeightClassic=false}={}){
- if(!Number.isFinite(s)||s<0||s>TUNNEL_MEGA_0211.end||
+ if(!Number.isFinite(s)||s<(options.arcStart??0)||s>(options.arcEnd??TUNNEL_MEGA_0211.end)||
     !Number.isInteger(j)||j<0||j>=TUNNEL_PROFILE_0211.length-1||
     t<0||t>1||depth<0||depth>.9)
   throw Error("0.21.3 bad original-vault facet coordinate");
- const a=tunnelProfilePoint0211(j,s,vaultHeightClassic);
- const b=tunnelProfilePoint0211(j+1,s,vaultHeightClassic);
+ const sample=typeof options.profilePoint==="function"?options.profilePoint:tunnelProfilePoint0211;
+ const a=sample(j,s,vaultHeightClassic);
+ const b=sample(j+1,s,vaultHeightClassic);
  const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy);
  if(len<1e-5)throw Error("0.21.3 degenerate tunnel cross section");
  const x=mix(a[0],b[0],t)+dy/len*depth;
@@ -72,7 +73,7 @@ function vertex(dest,local,col,positionAt,options,glow){
  if(!Number.isFinite(p?.x+p?.y+p?.z))
   throw Error("0.21.3 track sampling yielded nonfinite world vertex");
  dest.positions.push(p.x,p.y,p.z);
- dest.colors.push(...col);
+ dest.colors.push(...(typeof options.colorize==="function"?options.colorize(local,col,glow):col));
  dest.trackS.push(s);
  dest.glowWeight.push(glow);
 }
@@ -82,10 +83,12 @@ function quad(dest,corners,col,positionAt,options,glow=0){
   vertex(dest,points[index],col,positionAt,options,glow);
  dest.triangles+=2;
 }
-function keptSpans(from,to){
- // Do not cover the 0.21.1 illuminated portals with flat panel faces.
- let intervals=[[Math.max(from,0),Math.min(to,TUNNEL_MEGA_0211.end)]];
- for(const p of TUNNEL_PORTALS_0211){
+function keptSpans(from,to,options={}){
+ // 0.27.2: same genuine Skyline portal exclusion, reusable on the
+ // full-lap Vault with its OWN existing portal schedule and C2 sampler.
+ const arcStart=options.arcStart??0,arcEnd=options.arcEnd??TUNNEL_MEGA_0211.end;
+ let intervals=[[Math.max(from,arcStart),Math.min(to,arcEnd)]];
+ for(const p of (options.portals??TUNNEL_PORTALS_0211)){
   const lo=p-1.1,hi=p+2.85,fragments=[];
   for(const [a,b] of intervals){
    if(b<=lo||a>=hi){fragments.push([a,b]);continue}
@@ -103,7 +106,7 @@ const ROOF=[12,13,14,15,16,17,18];
 function makeDepthStudyPlate(target,positionAt,options,s0,s1,j,swatch,colors,{unifiedDepth=false,lowMemory=false,surfaceCraftsmanship=false}={}){
  const a=s0+.26,b=s1-.26;
  if(b-a<1.1)return;
- const steps=Math.ceil((b-a)/(lowMemory?3.5:2));
+ const steps=Math.ceil((b-a)/(options.panelStepMeters??(lowMemory?3.5:2)));
  const crafted=Boolean(unifiedDepth&&surfaceCraftsmanship&&!lowMemory);
  const smooth=t=>{const v=Math.min(1,Math.max(0,t));return v*v*(3-2*v)};
  // Ease the true 3D relief into the original 0.34 m plates at both ends.
@@ -170,7 +173,7 @@ function makePlate(target,positionAt,options,s0,s1,j,swatch,lowMemory,
    {unifiedDepth,lowMemory,surfaceCraftsmanship});
   return;
  }
- const steps=Math.ceil((s1-s0)/(lowMemory?3.5:2));
+ const steps=Math.ceil((s1-s0)/(options.panelStepMeters??(lowMemory?3.5:2)));
  const pad=.26;
  const a=s0+pad,b=s1-pad;
  if(b-a<1.1)return;
@@ -194,7 +197,7 @@ function makePlate(target,positionAt,options,s0,s1,j,swatch,lowMemory,
  }
 }
 function makeSecondarySupport(dest,positionAt,options,s,j,colors=COLORS){
- const a=Math.max(0,s-.44),b=Math.min(368,s+.44);
+ const a=Math.max(options.arcStart??0,s-.44),b=Math.min(options.arcEnd??368,s+.44);
  if(b-a<.2)return;
  quad(dest,[[a,j,.08,.38],[a,j,.92,.38],
   [b,j,.92,.38],[b,j,.08,.38]],
@@ -207,10 +210,14 @@ function makeSecondarySupport(dest,positionAt,options,s,j,colors=COLORS){
 }
 export function buildStructuralTunnelData(positionAt,{lowMemory=false,
  vaultHeightClassic=false,flowCohesion=false,depthStudy=false,
- unifiedDepth=false,surfaceCraftsmanship=false}={}){
+ unifiedDepth=false,surfaceCraftsmanship=false,
+ arcStart=0,arcEnd=TUNNEL_MEGA_0211.end,profilePoint=null,portals=null,
+ panelStepMeters=null,colorize=null}={}){
  if(typeof positionAt!=="function")
   throw Error("0.21.3 requires the original positionAt curve sampler");
- const options={vaultHeightClassic};
+ if(!Number.isFinite(arcStart)||!Number.isFinite(arcEnd)||arcStart<0||
+  arcEnd>3400||arcEnd<=arcStart)throw Error("bad reusable architecture arc");
+ const options={vaultHeightClassic,arcStart,arcEnd,profilePoint,portals,panelStepMeters,colorize};
  const colors=flowCohesion?FLOW_COLORS:COLORS;
  const primary=empty(),detail=empty();
  const walls=lowMemory?[5,7,9,20,22,24]:WALL;
@@ -218,7 +225,10 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
  let plates=0,arches=0;
  const bayPitch=flowCohesion?22:STRUCTURAL_TUNNEL_0213.bayPitch;
  const baySpan=flowCohesion?20.8:12.8;
- for(let bay=0,s=.8;s<368;s+=bayPitch,bay++){
+ // Keep the global 22m panel cadence continuous across 170m Vault chunks.
+ // The original Skyline starts at exactly bay zero.
+ for(let bay=Math.max(0,Math.floor((arcStart-.8-baySpan)/bayPitch)),s=.8+bay*bayPitch;
+     s<arcEnd;s+=bayPitch,bay++){
   for(const j of [...walls,...roof]){
    // Avoid the "identical square corridor" rhythm. Structural joins stay
    // staggered per facet, while all openings around neon portals stay free.
@@ -227,7 +237,7 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
    const alternate=(bay+j)%4===0;
    const color=isRoof?(alternate?colors.roofAlt:colors.roof):
     (alternate?colors.panelAlt:colors.panel);
-   for(const [a,b] of keptSpans(s+offset,s+baySpan+offset)){
+   for(const [a,b] of keptSpans(s+offset,s+baySpan+offset,options)){
     makePlate(primary,positionAt,options,a,b,j,color,lowMemory,colors,
      depthStudy,unifiedDepth,surfaceCraftsmanship);plates++;
    }
@@ -235,8 +245,9 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
  }
  // Secondary cross-members between the existing ~42m neon portal arches.
  // On 4GB devices this sculptural rhythm stays, but no extra detail layer.
- for(let s=21;s<=357;s+=(lowMemory||flowCohesion)?42:STRUCTURAL_TUNNEL_0213.secondaryBracePitch){
-  if(TUNNEL_PORTALS_0211.some(p=>Math.abs(s-p)<3.5))continue;
+ for(let s=21;s<=arcEnd-11;s+=(lowMemory||flowCohesion)?42:STRUCTURAL_TUNNEL_0213.secondaryBracePitch){
+  if(s<arcStart||s>arcEnd)continue;
+  if((portals??TUNNEL_PORTALS_0211).some(p=>Math.abs(s-p)<3.5))continue;
   for(const j of (lowMemory?[5,9,12,14,16,18,21,25]:
    [5,7,9,11,12,13,14,15,16,17,18,19,21,23,25])){
    makeSecondarySupport(primary,positionAt,options,s,j,colors);
@@ -246,8 +257,8 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
  if(!lowMemory){
   // Continuous recessed conduits and graphite overhead service spine.
   // Deliberately NOT luminous yet: integrated neon flow belongs to 0.21.4.
-  for(let s=0;s<368;s+=2){
-   const end=Math.min(368,s+2);
+  for(let s=arcStart;s<arcEnd;s+=2){
+   const end=Math.min(arcEnd,s+2);
    for(const j of [6,9,20,23]){
     quad(detail,[[s,j,.35,.42],[s,j,.48,.42],
      [end,j,.48,.42],[end,j,.35,.42]],

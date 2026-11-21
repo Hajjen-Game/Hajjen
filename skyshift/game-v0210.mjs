@@ -4665,6 +4665,10 @@ try{
      CAMERA_TARGET_POSITION.copy(CAMERA_BASE_POSITION);
      cameraLook.set(frame.lookX,frame.lookY,frame.lookZ);
      CAMERA_TARGET_LOOK.copy(cameraLook);
+     // SwiftShader may not schedule another RAF before screenshot capture.
+     // Update actual ship + chase camera with the production render path
+     // immediately, without stepping the user's 120Hz physics.
+     placeShip(performance.now()/1000,1/60,flight,motionState,cinematicState);
     }
    // Browser QA freezes 120Hz simulation, so update visual-only ship light
    // immediately at the teleported position before the slow WebGL frame.

@@ -86,7 +86,7 @@ const shaderBoostPads=BOOST_PADS.map(p=>{
  return `float boost_${tag} = trackWindow(trackS,${glNumber(p.start)},${glNumber(p.end)},1.2) *
     smoothstep(${glNumber(p.lateralMin-.25)},${glNumber(p.lateralMin+.10)},trackL) *
     (1.0-smoothstep(${glNumber(p.lateralMax-.10)},${glNumber(p.lateralMax+.25)},trackL));
-   float arrow_${tag} = trackChevron(trackS-${glNumber(p.start)},
+   float arrow_${tag} = ${VAULT_BOOST_0283_ACTIVE?"vaultChevron0283":"trackChevron"}(trackS-${glNumber(p.start)},
       (trackL-(${glNumber(center)}))*${glNumber(2.6/half)}) * boost_${tag};`;
 }).join("\n");
 // Nest max() rather than emitting a two-argument-only expression so future
@@ -295,12 +295,21 @@ float trackWindow(float x, float from, float to, float feather) {
 // Only compiled for the Vault 0.28.3 main-pad shader. The normal
 // chevron is the sharp glyph; this larger derivative-safe band is
 // warm bloom that remains physically integrated into the road surface.
-${VAULT_BOOST_0283_ACTIVE?`float trackChevronGlow0283(float s,float lateral) {
-  float phase=mod(s+0.25,5.65);
-  float diagonal=abs(phase-(4.55-.70*abs(lateral)));
-  return (1.0-smoothstep(.24,1.10,diagonal))*
-     smoothstep(.10,.65,abs(lateral))*
-     (1.0-smoothstep(3.0,3.90,abs(lateral)));
+${VAULT_BOOST_0283_ACTIVE?`float vaultChevron0283(float s,float lateral) {
+  // Apex is FARTHER down the road than both arms: unmistakable
+  // forward V-chevron, not horizontal bars on the runway.
+  float phase=mod(s+0.45,7.60);
+  float diagonal=abs(phase-(5.45-1.24*abs(lateral)));
+  return (1.0-smoothstep(.12,.36,diagonal))*
+     smoothstep(.02,.12,abs(lateral))*
+     (1.0-smoothstep(2.12,2.65,abs(lateral)));
+}
+float trackChevronGlow0283(float s,float lateral) {
+  float phase=mod(s+0.45,7.60);
+  float diagonal=abs(phase-(5.45-1.24*abs(lateral)));
+  return (1.0-smoothstep(.20,1.05,diagonal))*
+     smoothstep(0.0,.33,abs(lateral))*
+     (1.0-smoothstep(2.13,2.69,abs(lateral)));
 }`:""}
 float trackChevron(float s, float lateral) {
   float phase = mod(s+0.25, 5.65);

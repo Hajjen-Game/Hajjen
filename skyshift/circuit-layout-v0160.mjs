@@ -1,4 +1,5 @@
-import {ACTIVE_TRACK_0160,isAurora} from "./track-selection-v0160.mjs";
+import {ACTIVE_TRACK_0160,isAurora,isVault} from "./track-selection-v0160.mjs";
+import {VAULT_SECTIONS_0270,VAULT_SECTORS_0270} from "./full-tunnel-layout-v0270.mjs";
 // SKYSHIFT 0.16.0 — selected, genuinely closed three-lap Skyline or Aurora geometry.
 // Each TURN integrates a quintic-curvature entry/exit; straights are exactly
 // straight. Paired S-bends and four right-angle corners close the loop
@@ -6,7 +7,7 @@ import {ACTIVE_TRACK_0160,isAurora} from "./track-selection-v0160.mjs";
 export const CIRCUIT=Object.freeze({
  id:ACTIVE_TRACK_0160.id+"-circuit",name:ACTIVE_TRACK_0160.name,lapLength:3400,laps:3,
  totalDistance:10200,trackWidth:23.2,zeroBank:true,
- sectors:Object.freeze(isAurora()?[
+ sectors:Object.freeze(isVault()?VAULT_SECTORS_0270:isAurora()?[
   Object.freeze({id:"flow",name:"AURORA FLOW",start:0,end:1240}),
   Object.freeze({id:"switchback",name:"SWITCHBACK RIDGE",start:1240,end:2287.411}),
   Object.freeze({id:"finale",name:"HORIZON RETURN",start:2287.411,end:3400})
@@ -38,7 +39,7 @@ const AURORA_SECTIONS=[
  ["aurora-highland-run",357.412,0,0],
  ["aurora-south-switchback",445.492,deg(180),70]
 ];
-export const AUTHORED_SECTIONS=Object.freeze((isAurora()?AURORA_SECTIONS:[
+export const AUTHORED_SECTIONS=Object.freeze((isVault()?VAULT_SECTIONS_0270:isAurora()?AURORA_SECTIONS:[
  ["launch-straight",160.13576152,0,0],
  ["high-speed-sweep",305,deg(90),48],
  ["horizon-sprint",331.98525602,0,0],

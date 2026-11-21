@@ -31,8 +31,8 @@ const PROJECT="#include <project_vertex>";
 const SPOT_ANCHOR="  (r263Keep*r263Fresnel*r263Surface);";
 const clamp=(x,min,max)=>Math.max(min,Math.min(max,Number.isFinite(x)?x:min));
 const gauss=(x,sigma)=>Math.exp(-Math.pow(x/sigma,2));
-const INSIDE=367.7,STEP=24.0,LIT=21.2;
-// Each 24m metal rail bay has a 21.2m recessed LED and a 2.8m dark seam.
+const INSIDE=367.7,STEP=24.0,LIT=22.7;
+// Each 24m metal rail bay has a 22.7m recessed LED and a 1.3m dark seam.
 export function railSegment02631(s){
  if(!Number.isFinite(s)||s<0||s>INSIDE)return 0;
  const t=((s%STEP)+STEP)%STEP;
@@ -107,9 +107,9 @@ export function patchEdgeRoadShader02631(vertex,fragment,{mobile=false}={}){
   " float e31In=1.0-smoothstep(349.0,367.7,vTrackCoord.x);",
   " float e31Pitch=mod(vTrackCoord.x,24.0);",
   " float e31Bay=smoothstep(0.05,1.05,e31Pitch)*",
-  "  (1.0-smoothstep(20.05,21.25,e31Pitch));",
+  "  (1.0-smoothstep(21.55,22.75,e31Pitch));",
   " float e31L=abs(vTrackCoord.y);",
-  " float e31Edge=exp(-pow((e31L-9.85)/1.35,2.0));",
+  " float e31Edge=0.63*exp(-pow((e31L-7.60)/2.25,2.0))+","  exp(-pow((e31L-10.10)/1.85,2.0));",
   " float e31Safe=(1.0-0.88*clamp(guided,0.0,1.0))*",
   "  (1.0-0.88*clamp(padCoverage,0.0,1.0))*",
   "  (1.0-0.97*clamp(whiteCore,0.0,1.0));",
@@ -140,8 +140,8 @@ export function patchEdgeRoadShader02631(vertex,fragment,{mobile=false}={}){
  // Modest extended-source lobe. Not a self-illuminated roadway: its extent,
  // segment phase, viewing angle and source positions are constrained.
  direct.push(
-  " vec3 e31Cool=vec3(0.018,0.38,0.58)*",
-  "  (e31Power*e31F*e31Edge*0.23);",
+  " vec3 e31Cool=vec3(0.018,0.48,0.76)*",
+  "  (e31Power*e31F*e31Edge*0.37);",
   " float e31FootBand=exp(-pow((e31L-10.75)/1.90,2.0));",
   " vec3 e31Warm=vec3(0.85,0.27,0.055)*",
   "  (uEdgeFloor02631*e31In*e31Safe*clamp(vEdgeFoot02631,0.0,1.0)*",

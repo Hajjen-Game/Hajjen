@@ -31,7 +31,8 @@ test("third Neon Vault course has a distinct 0.27.x versioned menu URL",()=>{
   html.includes("Architectural Geometry & Panel Parity · "+version)||
    html.includes("Full Tunnel Lighting & Visual Parity · "+version)||
    html.includes("Premium Tunnel Cohesion & Finish · "+version)||
-   html.includes("Shared Tunnel Architecture 1.0 · "+version));
+   html.includes("Shared Tunnel Architecture 1.0 · "+version)||
+   html.includes("True Shared Tunnel Renderer · "+version));
  assert.match(html,/<option value="vault">03 · NEON VAULT/);
  assert.match(game,/const vaultMaterialParityEnabled=fullTunnelFoundationEnabled/);
  assert.match(game,/vaultMaterialComparison:"\?vaultMaterial=classic"/);

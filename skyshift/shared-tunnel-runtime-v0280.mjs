@@ -5,6 +5,8 @@
 // remain authoritative. Tracks declare sections, source layout and banked
 // positionAt, while the renderer consumes the shared visual style.
 // Skyline's existing 0.20–0.26 historical A/B chain remains invokable.
+import {installTrueSharedTunnelRenderer0281}
+ from "./true-shared-tunnel-renderer-v0281.mjs";
 import {makeTunnelPlan0280,tunnelQuality0280,SHARED_TUNNEL_STYLE_0280}
  from "./shared-tunnel-architecture-v0280.mjs";
 import {installFullTunnelCircuit0270}
@@ -24,15 +26,25 @@ export function createSharedTunnelRuntime0280(THREE,world,{
   throw Error("0.28.0 shared tunnel requires banked positionAt, world, Three");
  const plan=makeTunnelPlan0280({track,trackLength,sections,
   quality:tunnelQuality0280(lowMemory)});
- let vault=null,skyline=null,installedVault=false,installedSkyline=false;
+ let vault=null,skyline=null,trueShared=null,
+  installedVault=false,installedSkyline=false,installedTrueShared=false;
  const stopped={active:false,stats:()=>({active:false}),dispose(){}};
+ function installTrueShared({enabled=false}={}){
+  if(installedTrueShared)throw Error("0.28.1 duplicate true shared install");
+  installedTrueShared=true;
+  trueShared=installTrueSharedTunnelRenderer0281(THREE,world,{
+   track,positionAt,trackLength,lowMemory,enabled
+  });
+  return trueShared;
+ }
  function installVault({
   foundationEnabled=false,materialEnabled=false,architectureEnabled=false,
   lightingEnabled=false,finishEnabled=false
  }={}){
   if(installedVault)throw Error("0.28.0 duplicate shared Vault installation");
   installedVault=true;
-  if(track!=="vault")return vault={
+  if(track!=="vault"||trueShared?.active)return vault={
+
    foundation:stopped,material:stopped,architecture:stopped,
    lighting:stopped
   };
@@ -77,8 +89,8 @@ export function createSharedTunnelRuntime0280(THREE,world,{
    l=vault?.lighting?.stats?.()??null,
    sky=skyline?.stats?.()??null;
   return {
-   version:"0.28.0",track,active:track==="vault"?
-    !!f?.active:track==="skyline"?!!sky?.active:false,
+   version:trueShared?.active?"0.28.1":"0.28.0",track,active:track==="vault"?
+    !!(trueShared?.active||f?.active):track==="skyline"?!!sky?.active:false,
    styleId:SHARED_TUNNEL_STYLE_0280.id,
    styleVersion:SHARED_TUNNEL_STYLE_0280.version,
    quality:plan.quality,
@@ -98,6 +110,7 @@ export function createSharedTunnelRuntime0280(THREE,world,{
    skylineLegacyPipelinePreserved:true,sharedPanelSource:true,
    oldTunnelRendererRecreated:false,
    skyline:sky?vitalize(sky):null,
+   trueSharedRenderer:trueShared?.stats?.()??null,
    vault:f?{foundationActive:!!f.active,materialActive:!!m?.active,
     architectureActive:!!a?.active,lightingActive:!!l?.active,
     drawBatches:f.drawBatches??null,raisedPanels:a?.panels??null,
@@ -108,10 +121,12 @@ export function createSharedTunnelRuntime0280(THREE,world,{
   version:s.version??null,drawBatches:s.drawBatches??null,
   sourcePanels:s.structuralPlates??null});
  return Object.freeze({
-  plan,installVault,installSkyline,audit,
+  plan,installVault,installSkyline,installTrueShared,audit,
+  updateWave(wave){trueShared?.updateWave?.(wave);},
   refs:()=>vault??{foundation:stopped,material:stopped,
    architecture:stopped,lighting:stopped},
   dispose(){
+   trueShared?.dispose?.();
    vault?.lighting?.dispose?.();
    vault?.architecture?.dispose?.();
    vault?.material?.dispose?.();

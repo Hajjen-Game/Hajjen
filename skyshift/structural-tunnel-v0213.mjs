@@ -49,7 +49,8 @@ const mix=(a,b,t)=>a+(b-a)*t;
 
 // This is the TRUE inner normal of a cross-section facet, including curved
 // crown and near-vertical side walls. No flattened world-axis rectangles.
-export function sampleStructuralFacet(s,j,t,depth=0,{vaultHeightClassic=false}={}){
+export function sampleStructuralFacet(s,j,t,depth=0,options={}){
+ const {vaultHeightClassic=false}=options;
  if(!Number.isFinite(s)||s<(options.arcStart??0)||s>(options.arcEnd??TUNNEL_MEGA_0211.end)||
     !Number.isInteger(j)||j<0||j>=TUNNEL_PROFILE_0211.length-1||
     t<0||t>1||depth<0||depth>.9)
@@ -87,7 +88,7 @@ function keptSpans(from,to,options={}){
  // 0.27.2: same genuine Skyline portal exclusion, reusable on the
  // full-lap Vault with its OWN existing portal schedule and C2 sampler.
  const arcStart=options.arcStart??0,arcEnd=options.arcEnd??TUNNEL_MEGA_0211.end;
- let intervals=[[Math.max(from,arcStart),Math.min(to,arcEnd)]];
+ let intervals=[[Math.max(from,arcStart),Math.min(to,arcEnd)]].filter(([a,b])=>b>a);
  for(const p of (options.portals??TUNNEL_PORTALS_0211)){
   const lo=p-1.1,hi=p+2.85,fragments=[];
   for(const [a,b] of intervals){

@@ -250,7 +250,8 @@ export function installVaultMaterialParity0271(THREE,world,{
   previousFoundation:foundation.stats().version
  };
  let disposed=false;
- return {active:true,setComparison:x=>{uniform.value=clamp(x,0,1);},
+ return {active:true,getMetalAtlas(){return atlas;},
+  setComparison:x=>{uniform.value=clamp(x,0,1);},
   stats:()=>({...state,strength:uniform.value}),
   dispose(){
    if(disposed)return;disposed=true;

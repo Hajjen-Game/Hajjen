@@ -97,7 +97,7 @@ function makeShell(positionAt,a,b,step){
  }
  return {positions,colors,indices,triangles:indices.length/3,rings:rows+1};
 }
-function makeDetails(positionAt,a,b,lowMemory){
+function makeDetails(positionAt,a,b,lowMemory,architectureRelief=false){
  const ribs=createBatch(),emission=createBatch();
  // Original 0.21.1 curved portal profile, but at a globally deterministic
  // pitch through ALL 3400m. Fully integrated, no rectangular arch overlay.
@@ -111,10 +111,11 @@ function makeDetails(positionAt,a,b,lowMemory){
    quad(ribs,p0,p1,p2,p3,j%6===0?[.12,.19,.22]:[.061,.116,.153]);
    if(j>=7&&j<=baseProfile.length-9){
     const l=Math.min(b,s+.92),h=Math.min(b,s+1.18);
-    const p4=surfacePoint(positionAt,l,j,.47),
-     p5=surfacePoint(positionAt,l,j+1,.47),
-     p6=surfacePoint(positionAt,h,j+1,.47),
-     p7=surfacePoint(positionAt,h,j,.47);
+    const inlayDepth=architectureRelief?.94:.47;
+    const p4=surfacePoint(positionAt,l,j,inlayDepth),
+     p5=surfacePoint(positionAt,l,j+1,inlayDepth),
+     p6=surfacePoint(positionAt,h,j+1,inlayDepth),
+     p7=surfacePoint(positionAt,h,j,inlayDepth);
     quad(emission,p4,p5,p6,p7,[.075,.48,.67]);
    }
   }
@@ -122,7 +123,7 @@ function makeDetails(positionAt,a,b,lowMemory){
   for(const side of [-1,1]){
    const c=Math.min(b,s+2.1),base=s+.13;
    if(c<=base)continue;
-   const p=(ss,yy)=>positionAt(ss,side*26.13,yy);
+   const p=(ss,yy)=>positionAt(ss,side*(architectureRelief?25.18:26.13),yy);
    quad(emission,p(base,8.0),p(base,8.8),
     p(c,8.8),p(c,8.0),[.95,.38,.071]);
   }
@@ -139,7 +140,7 @@ function makeDetails(positionAt,a,b,lowMemory){
     // Parallel ribbon across the existing contoured roof.
     const x=side*(8.8+off);
     const [,y]=vaultCrossSection0270(j,s);
-    return positionAt(s,x,y-.17);
+    return positionAt(s,x,y-(architectureRelief?.94:.17));
    };
    quad(emission,p(start,-.14),p(start,.14),
     p(end,.14),p(end,-.14),[.095,.69,.92]);
@@ -176,7 +177,8 @@ function destroy(g){
  });
 }
 export function installFullTunnelCircuit0270(THREE,world,{
- track="skyline",positionAt,lowMemory=false,enabled=true
+ track="skyline",positionAt,lowMemory=false,enabled=true,
+ reliefLighting=false
 }={}){
  const status={version:"0.27.0",track,active:false,requested:enabled,
   status:"inactive",start:0,end:3400,coverageMeters:0,
@@ -204,7 +206,7 @@ export function installFullTunnelCircuit0270(THREE,world,{
    const chunk=new THREE.Group();chunk.name="Vault · "+start+"–"+end+"m";
    const surface=makeShell(positionAt,start,end,
     lowMemory?FULL_TUNNEL_0270.mobileStepMeters:FULL_TUNNEL_0270.highStepMeters);
-   const details=makeDetails(positionAt,start,end,lowMemory);
+   const details=makeDetails(positionAt,start,end,lowMemory,reliefLighting);
    for(const [name,data,material,indexed] of [
     ["DARK METAL ENCLOSURE",surface,shellMat,true],
     ["FACETED STRUCTURAL ARCHES",details.ribs,ribsMat,false],
@@ -226,6 +228,11 @@ export function installFullTunnelCircuit0270(THREE,world,{
   status.materials=3;status.roofClosed=true;status.sourceLit=true;
   status.structuralProfileVertices=baseProfile.length;
   status.solarIndependentMaterials=true;
+  // Native 0.27.0 source bays and emitted spectra are identical. With
+  // genuine 0.58m raised 0.24.1 panels, keep the *same* original source
+  // ribbons in front of the real metal silhouette, rather than occluding
+  // cyan behind the geometry. The 0.27.0/0.27.1 baseline is unchanged.
+  status.fixtureReliefAligned=!!reliefLighting;
  }catch(e){
   status.status="fallback";status.error=String(e?.message||e);
   destroy(root);

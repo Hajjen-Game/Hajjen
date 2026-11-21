@@ -89,9 +89,14 @@ try{
     center:window.__skyshiftRiskPhysicsSmoke("safe"),
     side:window.__skyshiftRiskPhysicsSmoke("risk")
    }));
+   // The QA helper deliberately tries the side lane first, THEN moves
+   // back to the center. Side must NOT fire; the subsequent legitimate
+   // central main pad MUST fire exactly once. Checking total activations
+   // against zero would incorrectly reject the valid main boost.
    if(physics.center.picked?.kind!=="boost"||
     physics.side.picked!==null||
-    physics.side.activationCount!==0)
+    physics.side.secondChoice?.kind!=="boost"||
+    physics.side.activationCount!==1)
     throw Error(key+" old mini/risk boosts still in physics "+JSON.stringify(physics));
   }else if(track==="vault"&&version==="0.28.2"){
    if(audit.v?.active||audit.v?.padCount!==11||

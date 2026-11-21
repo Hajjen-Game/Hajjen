@@ -62,6 +62,7 @@ test("true original road 0.26.3 shader has a separate Vault full-course mode",()
  const patched=patchCinematicRoadRebuild0263(
   "#include <common>\n#include <project_vertex>",anchor,{fullTunnel:true});
  assert.match(patched.fragmentShader,/float r263Tunnel=1\.0;/);
+ assert.ok(patched.fragmentShader.includes("smoothstep(5.0,8.5,abs(vTrackCoord.y))"));
  assert.match(patched.fragmentShader,/float r263Interior=uRoadRebuild0263;/);
  assert.match(patched.fragmentShader,/RE_Direct/);
  assert.match(patched.fragmentShader,/float roadSolarMask=uRoadRebuild0263;/);

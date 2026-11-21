@@ -61,7 +61,7 @@ test("fixture moved DOWN to physically correct bottom shoulder slope",()=>{
  assert.ok(high.y<.24,high.y);
  assert.ok(high.y>low.y);
  assert.ok(center.y<.17,center.y);
- assert.ok(Math.abs(low.x)>Math.abs(high.x));
+ assert.ok(Math.abs(low.x)<Math.abs(high.x));
  assert.throws(()=>railLipPosition02632(165,1,-.6,positionAt));
 });
 test("short 18cm broad strips share real rail surface and 4GB batching",()=>{

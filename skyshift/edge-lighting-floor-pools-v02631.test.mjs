@@ -163,7 +163,7 @@ test("game cache key exposes 0.26.3.1 and new same-camera GPU proof",()=>{
  assert.match(boot,/game-v0210\.mjs\?v=0\.26\.3\.1/);
  assert.match(index,/Edge Lighting & Floor Pools/);
  assert.match(game,/edgeFloorEnabled=roadRebuildEnabled/);
- assert.match(game,/get\\("edgeFloor"\\)!=="classic"/);
+ assert.ok(game.includes('get("edgeFloor")!=="classic"'));
  assert.match(game,/__skyshiftEdgeFloorProbe/);
  assert.match(game,/__skyshiftEdgeFloorFrameProof/);
  assert.match(game,/installEdgeLightingFloorPools02631/);

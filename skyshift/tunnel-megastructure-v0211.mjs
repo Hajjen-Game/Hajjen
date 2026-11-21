@@ -5,14 +5,14 @@
 // the tunnel's lower curved wall: there is no exterior-space floor gap.
 // No extra colliders, no steering/GRIP/camera/road or light-rig changes.
 
-import {SHARED_TUNNEL_STYLE_0280} from "./shared-tunnel-architecture-v0280.mjs";
+import {SHARED_TUNNEL_STYLE_0280,SHARED_TUNNEL_ROUTES_0280} from "./shared-tunnel-architecture-v0280.mjs";
 
 export const TUNNEL_MEGA_0211=Object.freeze({
  version:"0.21.1.1",id:"continuous-megatunnel-0211",track:"skyline",
  start:0,end:368,meters:368,sweepStepMeters:2,
  protectedRoadHalfWidth:11.6,shoulderStart:12.25,
  wallOutsideX:26.5,roofHeight:29.623,previousRoofHeight:34.15,
- vaultScale:.82,vaultCompressionStart:9,vaultWaveAmplitude:.55,closedRoof:true,
+ vaultScale:SHARED_TUNNEL_STYLE_0280.geometry.vaultScale,vaultCompressionStart:SHARED_TUNNEL_STYLE_0280.geometry.compressionStartY,vaultWaveAmplitude:SHARED_TUNNEL_STYLE_0280.geometry.vaultWaveMeters,closedRoof:true,
  solidSideShoulders:true,continuousCrossSection:true,
  roadGeometryChanged:false,colliderCount:0,physicsChanges:0,
  cameraChanges:0,gripChanges:0,newDynamicLights:0,newRenderPasses:0,
@@ -34,7 +34,7 @@ export const TUNNEL_PROFILE_0211=Object.freeze([
  ...LEFT_HALF.map(([x,y])=>Object.freeze([x,y])),
  ...LEFT_HALF.slice(0,-1).reverse().map(([x,y])=>Object.freeze([-x,y]))
 ]);
-export const TUNNEL_PORTALS_0211=Object.freeze([0,42,80,118,156,198,240,282,324,363]);
+export const TUNNEL_PORTALS_0211=SHARED_TUNNEL_ROUTES_0280.skyline.segments[0].portals;
 // The existing road remains 23.2m wide on this interval. Floor starts 0.65m
 // beyond its edge, just OUTSIDE the original physically separate rail.
 // Above 25.6m the vault can safely pass over the vehicle's space.

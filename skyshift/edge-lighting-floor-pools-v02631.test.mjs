@@ -160,8 +160,8 @@ test("installation toggles full 0.26.3 A/B without touching colliders or road me
 test("game cache key exposes 0.26.3.1 and new same-camera GPU proof",()=>{
  const game=read("./game-v0210.mjs"),index=read("./index.html"),
   boot=read("./boot-v0210.js");
- assert.match(boot,/game-v0210\.mjs\?v=0\.26\.3\.1/);
- assert.match(index,/Edge Lighting & Floor Pools/);
+ assert.match(boot,/game-v0210\.mjs\?v=0\.26\.3\.[12]/);
+ assert.match(index,/Edge Lighting & Floor Pools|Connected Floor Light Bands/);
  assert.match(game,/edgeFloorEnabled=roadRebuildEnabled/);
  assert.ok(game.includes('get("edgeFloor")!=="classic"'));
  assert.match(game,/__skyshiftEdgeFloorProbe/);

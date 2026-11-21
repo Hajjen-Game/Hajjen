@@ -139,7 +139,7 @@ export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false,
   !fragment.includes("float padCoverage =")||
   !fragment.includes("float whiteCore=0.0")||
   !fragment.includes("varying vec2 vTrackCoord;")||
-  !fragment.includes("uRoadSolarSpillSeal"))
+  (!fullTunnel&&!fragment.includes("uRoadSolarSpillSeal")))
   throw Error("0.26.3 requires original sun-isolated indexed road and 0.24.2");
  const decl=[
   "attribute vec3 roadCyanLeft0263;",

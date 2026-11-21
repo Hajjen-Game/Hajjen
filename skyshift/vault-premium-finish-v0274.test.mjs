@@ -86,8 +86,8 @@ test("the actual 0.27.3 controller remains functional with opt-in 0.27.4 shader 
  assert.match(g,/finishEnabled:vaultPremiumFinishEnabled/);
  assert.match(g,/vaultPremiumFinishComparison:"\?vaultFinish=classic"/);
  assert.match(g,/__skyshiftVaultFinishFrameProof/);
- assert.match(g,/selected==="vault"\?"(?:0\.27\.4|0\.28\.[012])"/);
- assert.match(source("./index.html"),/(?:Premium Tunnel Cohesion & Finish · 0\.27\.4|Shared Tunnel Architecture 1.0 · 0\.28\.0|True Shared Tunnel Renderer · 0\.28\.1|Shared Road Reflections & Ship Light Response · 0\.28\.2)/);
+ assert.match(g,/selected==="vault"\?"(?:0\.27\.4|0\.28\.[0123])"/);
+ assert.match(source("./index.html"),/(?:Premium Tunnel Cohesion & Finish · 0\.27\.4|Shared Tunnel Architecture 1.0 · 0\.28\.0|True Shared Tunnel Renderer · 0\.28\.1|Shared Road Reflections & Ship Light Response · 0\.28\.2|Vault Main Boost Glow & Risk Lane Cleanup · 0\.28\.3)/);
 });
 test("new finish QA is a true independent A/B of 0.27.3, not a physics feature",()=>{
  const t=vaultPremiumFinishAudit0274(true,1,false);

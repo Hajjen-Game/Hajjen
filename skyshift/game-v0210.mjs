@@ -8,8 +8,8 @@ import {
  newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
 } from "./trial-v0165.mjs";
 import { BOOST_PADS,BOOST_CONFIG } from "./boost-v0160.mjs";
-import {RISK_REWARD_0160,RHYTHM_GATES_0160,riskCueAt}
- from "./risk-reward-v0160.mjs";
+import {RISK_REWARD_0160,RHYTHM_GATES_0160,riskCueAt,
+ VAULT_BOOST_0283_ACTIVE} from "./risk-reward-v0160.mjs";
 import { createPremiumDeckGeometry,PREMIUM_TRACK } from "./premium-track-v0160.mjs";
 import {FIDELITY_0114,createFidelityDirector,
  resetFidelityDirector,advanceFidelityDirector,fidelityAudit,
@@ -2960,13 +2960,16 @@ function initScene(){
  // Original Skyline boot version remains 0.26.5; show VAULT's actual
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
-  UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.28.2";
+  UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
+   (VAULT_BOOST_0283_ACTIVE?" · 0.28.3":" · 0.28.2");
  UI.trackTagline.textContent=isVault()?
   "CONTINUOUS 3D TUNNEL · FAST C2 CORNERS · THREE LAPS.":isAurora()?
   "WIDE SWITCHBACKS · ROLLING HILLS · THREE FAST LAPS.":
   "WIDE ARCS · SMART LINES · THREE FASTER LAPS.";
  UI.trackFeatures.textContent=isVault()?
-  "3 × 3,400 M · FULL TUNNEL · GRIP · S-LINKS · NO JUMPS":isAurora()?
+  (VAULT_BOOST_0283_ACTIVE?
+   "3 × 3,400 M · FULL TUNNEL · MAIN BOOST · GRIP · NO RISK LANES":
+   "3 × 3,400 M · FULL TUNNEL · GRIP · S-LINKS · NO JUMPS"):isAurora()?
   "3 × 3,400 M · GRIP · OPEN SWEEPS · LUMEN PASS · NO RISK LINES":
   "3 × 3,400 M · GRIP · WALL · CORKSCREW · SHADOW TUNNEL";
  UI.challengeButton.classList.toggle("hidden",!ACTIVE_TRACK_0160.hasSkylineChallenges);
@@ -4772,7 +4775,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.2":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.3":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);
@@ -4985,6 +4988,20 @@ try{
    stingrayPresentation:STINGRAY_PRESENTATION_01347,
    heroShowroom:hangarHeroRig?.stats(),
    hangarVisible:!UI.hangar.classList.contains("hidden")
+  });
+ // 0.28.3: production boost pad and PBR glow release audit, opt-in.
+ if(new URLSearchParams(location.search).get("vaultBoostSmoke")==="1")
+  window.__skyshiftVaultBoostAudit=()=>({
+   active:VAULT_BOOST_0283_ACTIVE,track:TRACK_ID_0160,
+   release:VAULT_BOOST_0283_ACTIVE?"0.28.3":"legacy",
+   padCount:BOOST_PADS.length,
+   physicalPads:BOOST_PADS.map(p=>({id:p.id,group:p.group,kind:p.kind,
+    start:p.start,end:p.end,range:[p.lateralMin,p.lateralMax],
+    multiplier:p.multiplier})),
+   riskGateCount:RHYTHM_GATES_0160.length,
+   riskVisible:!UI.riskCue.classList.contains("hidden"),
+   roadMaterial:premiumSurface?.material?.type??null,
+   inputHandlingUnchanged:true,physicsTicksPerSecond:120
   });
  // Browser CI only. Never accessible to real players without opt-in URL.
  if(new URLSearchParams(location.search).get("challengeSmoke")==="1"){

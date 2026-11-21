@@ -7,6 +7,14 @@ import {installPremiumMetalSurfaceLibrary}
  from "./premium-metal-surface-v0262.mjs";
 import {installUnifiedMetalLighting02641}
  from "./unified-metal-light-response-v02641.mjs";
+import {wrapFinishShader02642}
+ from "./reflection-cohesion-v02642.mjs";
+import {wrapFixtureMaterial02643}
+ from "./unified-fixture-transport-v02643.mjs";
+import {wrapShader0265}
+ from "./true-rail-wall-response-v0265.mjs";
+import {createLowerEdgeSources02632,createConnectedFootBands02632}
+ from "./edge-source-floor-bands-v02632.mjs";
 
 export const TRUE_SHARED_RENDERER_0281=Object.freeze({
  version:"0.28.1",id:"skyline-original-renderer",
@@ -50,6 +58,77 @@ export function adaptSourcePosition0281(positionAt,module){
   return positionAt(arc,lateral,height);
  };
 }
+// Apply the unchanged original Skyline 0.26.4.2/0.26.4.3/0.26.5
+// FINISH functions to its actual 0.26.2 mesh/shader objects. The rest
+// of those releases modifies Skyline's road/rails and is NOT duplicated
+// on Vault: the existing racing deck and collision rails stay independent.
+export function finishOriginalSourceMaterials0281(THREE,section,lowMemory,
+ positionAt){
+ const group=section.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1");
+ if(!group)throw Error("0.28.1 original 0.21.1 tunnel source absent");
+ const physical=["panel",...(!lowMemory?["rib"]:[])].map(role=>({
+  role,mesh:group.children.find(x=>x.name===
+   "SKYSHIFT 0.26.0 P2 / true physical "+role)
+ }));
+ const substrate=["panel","rib","shell",...(!lowMemory?["conduit"]:[])]
+  .map(role=>({role,mesh:group.children.find(x=>x.name==="Tunnel / "+({
+   panel:"HARDSURFACE_PANELS",rib:"CURVED_RIBS",
+   shell:"CLOSED_SHELL",conduit:"STRUCTURAL_CONDUITS"
+  })[role])}));
+ if([...physical,...substrate].some(x=>!x.mesh?.material))
+  throw Error("0.28.1 original Skyline shader targets missing");
+ const reflection={value:1},transport={value:1},wall={value:1};
+ const undo=[],added=[];
+ try{
+  for(const {mesh} of physical)
+   undo.push(wrapFinishShader02642(mesh.material,reflection,"metal",lowMemory));
+  for(const {role,mesh} of [...physical.map(x=>({...x,type:"physical"})),
+   ...substrate.map(x=>({...x,type:"substrate"}))])
+   undo.push(wrapFixtureMaterial02643(mesh.material,transport,
+    physical.some(p=>p.mesh===mesh)?"physical":"substrate",
+    {role,mobile:lowMemory}));
+  for(const {role,mesh} of physical)
+   undo.push(wrapShader0265(mesh.material,wall,"wall",
+    {role,mobile:lowMemory}));
+  for(const {role,mesh} of substrate)
+   undo.push(wrapShader0265(mesh.material,wall,"substrate",
+    {role,mobile:lowMemory}));
+  // The original Skyline 0.26.3.2 artist-authored connected amber
+  // arch feet and short lower cyan inlays also follow this SAME
+  // banked source position adapter. New courses do not redraw them.
+  const floor=createConnectedFootBands02632(THREE,positionAt,lowMemory,false);
+  const foot=new THREE.Mesh(floor.geometry,new THREE.MeshBasicMaterial({
+   vertexColors:true,side:THREE.DoubleSide,toneMapped:false,
+   transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,
+   opacity:.86,polygonOffset:true,polygonOffsetFactor:-1,
+   polygonOffsetUnits:-1
+  }));
+  foot.name="SKYSHIFT 0.28.1 / original joined amber arch feet";
+  foot.frustumCulled=true;foot.renderOrder=3;
+  section.add(foot);added.push(foot);
+  const edge=createLowerEdgeSources02632(THREE,positionAt,lowMemory);
+  const emitter=new THREE.Mesh(edge.geometry,new THREE.MeshBasicMaterial({
+   vertexColors:true,side:THREE.DoubleSide,toneMapped:false,depthWrite:true
+  }));
+  emitter.name="SKYSHIFT 0.28.1 / original short cyan edge inlays";
+  emitter.frustumCulled=true;emitter.renderOrder=2;
+  section.add(emitter);added.push(emitter);
+  return {active:true,footBands:floor.bands,lowEdgeSegments:edge.segments,
+   physicalMaterials:physical.length,substrateMaterials:substrate.length,
+   dispose(){
+    for(const item of added){
+     item.removeFromParent();item.geometry.dispose();item.material.dispose();
+    }
+    for(const restore of undo.reverse())restore();
+   }};
+ }catch(error){
+  for(const item of added){
+   item.removeFromParent();item.geometry?.dispose();item.material?.dispose();
+  }
+  for(const restore of undo.reverse())restore();
+  throw error;
+ }
+}
 const inactive=reason=>Object.freeze({active:false,
  stats:()=>({active:false,version:"0.28.1",reason}),
  updateWave(){},dispose(){}});
@@ -74,6 +153,10 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
     track:"skyline",positionAt:adaptSourcePosition0281(positionAt,module),
     lowMemory,roadMaterial:null,vaultHeightClassic:false
    });
+   // Register disposal BEFORE checking activation; a partially built
+   // module must never leak geometry when the legacy fallback wins.
+   const item={source,section,module,metal:null,finish:null};
+   installed.push(item);
    const result=source.stats?.()??{};
    if(!result.premiumMetal0262Enabled||
     !result.localReflections0261Enabled||!result.trueMetal0260P2NativeGGX||
@@ -83,17 +166,19 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
       premium:result.premiumMetal0262Status,
       reflections:result.localReflections0261Status,
       structural:result.structuralStatus}));
-   installed.push({source,section,module,metal:null});
    const metal=installUnifiedMetalLighting02641(THREE,section,source,{
     enabled:true,lowMemory
    });
-   installed[installed.length-1].metal=metal;
+   item.metal=metal;
    if(!metal.active)
     throw Error("source unified metallic response failed in section "+module.index);
+   item.finish=finishOriginalSourceMaterials0281(THREE,section,
+    lowMemory,adaptSourcePosition0281(positionAt,module));
   }
   world.add(root);
  }catch(error){
   for(const item of installed.reverse()){
+   item.finish?.dispose?.();
    item.metal?.dispose?.();
    item.source?.dispose?.();
   }
@@ -118,6 +203,9 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    physicalModules:installed.filter(x=>
     x.source.stats?.().trueMetal0260P2NativeGGX).length,
    commonResponseModules:installed.filter(x=>x.metal.active).length,
+   authentic0265WallModules:installed.filter(x=>x.finish?.active).length,
+   originalAmberFootBands:installed.reduce((n,x)=>n+(x.finish?.footBands||0),0),
+   originalShortCyanInlays:installed.reduce((n,x)=>n+(x.finish?.lowEdgeSegments||0),0),
    originalTrackUntouched:true,originalPhysicsUntouched:true,
    originalShipUntouched:true,originalGripUntouched:true,
    legacyVaultRendererUsed:false
@@ -125,7 +213,8 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   dispose(){
    if(disposed)return;disposed=true;
    for(const item of installed.reverse()){
-    item.metal?.dispose?.();item.source?.dispose?.();
+    item.finish?.dispose?.();item.metal?.dispose?.();
+    item.source?.dispose?.();
    }
    root.removeFromParent();
   }

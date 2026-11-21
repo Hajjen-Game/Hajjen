@@ -4,6 +4,9 @@
 // no new draw calls, no per-frame geometry, and no flashing textures.
 import {TRIAL,widthAt} from "./trial-v0160.mjs";
 import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
+import {vaultSpatialWaveEnabled0285}
+ from "./vault-spatial-wave-parity-v0285.mjs";
+export const VAULT_WAVE_PARITY_0285_ACTIVE=vaultSpatialWaveEnabled0285();
 import {BOOST_PADS} from "./boost-v0160.mjs";
 import {RHYTHM_GATES_0160,VAULT_BOOST_0283_ACTIVE} from "./risk-reward-v0160.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v0160.mjs";
@@ -154,7 +157,13 @@ const zoneShaders=Array.from({length:3},(_,i)=>{
   `float wave${k}On = step(${(k-.5).toFixed(1)}, uZoneActiveCount);`,
   `float wave${k}D = mod(waveTrack-uZoneFront${k}+0.5*uCircuitLength,uCircuitLength)-0.5*uCircuitLength;`,
   `float wave${k} = wave${k}On * (1.0-smoothstep(uZoneFeather*0.3,uZoneFeather*2.0,abs(wave${k}D)));`,
-  ...zoneFields.map(field=>`zone${field} = mix(zone${field}, uZone${k}${field}, wave${k});`),
+  // On VAULT v0.28.5 both the road and tunnel transition from old to
+  // new palette BEHIND the same spatial front (66m feather), rather
+  // than the old road switching its entire base color at the HUD stage.
+  VAULT_WAVE_PARITY_0285_ACTIVE?
+   `float wave${k}Color = wave${k}On * (1.0-smoothstep(${(-ZONE_WAVE.atmosphereTransitionMeters).toFixed(1)},${ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)},wave${k}D));`:
+   `float wave${k}Color = wave${k};`,
+  ...zoneFields.map(field=>`zone${field} = mix(zone${field}, uZone${k}${field}, wave${k}Color);`),
   `float wave${k}Core = wave${k}On*spectralCore(wave${k}D);`,
   `float wave${k}Halo = wave${k}On*spectralHalo(wave${k}D);`,
   `float wave${k}After = wave${k}On*spectralAfterglow(wave${k}D);`,
@@ -416,14 +425,17 @@ export function createPremiumTrackMaterial(THREE){
     // A closed loop must NEVER leave a hard half-track palette boundary.
     // The completed zone colors the whole road; only a localized,
     // periodic white/color crest wraps around start/finish.
-    const base=ZONE_PALETTES[state.playerStage??0];
+    const base=ZONE_PALETTES[VAULT_WAVE_PARITY_0285_ACTIVE?
+     (state.shaderBaseStage??0):(state.playerStage??0)];
     for(const [field,key] of Object.entries(zoneFieldToColor))
       palette[key].set(base[key]);
     for(let k=1;k<=3;k++){
       const f=state.fronts[k-1];
       waveUniforms["uZoneFront"+k].value=((f%TRIAL.length)+TRIAL.length)%TRIAL.length;
-      const idx=Math.max(state.playerStage??0,
-        Math.min(ZONE_PALETTES.length-1,(state.shaderBaseStage??0)+k));
+      const idx=VAULT_WAVE_PARITY_0285_ACTIVE?
+        Math.min(ZONE_PALETTES.length-1,(state.shaderBaseStage??0)+k):
+        Math.max(state.playerStage??0,
+         Math.min(ZONE_PALETTES.length-1,(state.shaderBaseStage??0)+k));
       const destination=ZONE_PALETTES[idx];
       for(const [field,key] of Object.entries(zoneFieldToColor))
         waveUniforms["uZone"+k+field].value.set(destination[key]);

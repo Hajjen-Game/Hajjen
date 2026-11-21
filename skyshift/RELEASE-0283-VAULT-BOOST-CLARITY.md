@@ -14,7 +14,7 @@ were unwelcome.
   physics, GRIP, collisions and banked road geometry remain unchanged.
 - Remove all additional risk lane pads, 125m risk approach stripes and risk
   cues on Vault. No risk bonus can trigger invisibly.
-- Add emissive warm/gold chevrons with a wide feathered halo and subtle plate
+- Add forward-pointing, sharply V-shaped warm/gold chevrons with a wide feathered halo and subtle plate
   rim directly in the EXISTING indexed PBR road shader. Unlike the previous
   coloring-only arrows, HDR emissive energy now reaches the existing bloom.
   No new meshes, scene lights, colliders, post-process stages or draw calls.
@@ -35,3 +35,11 @@ were unwelcome.
 If WebGL detects a material shader failure or the new chevrons do not visibly
 change the real game screenshot, do not merge. The user's future PC screenshots
 for *other* outstanding visual issues will be handled independently.
+
+## Real WebGL visual QA refinement
+The initial High screenshots made the new glyph cores look like horizontal
+rungs instead of forward arrows. Before merging, the Vault-only glyph helper
+was changed to an explicit steep V geometry (center apex farther along the
+longitudinal track than both arms), and its halo now follows the same
+signed-distance profile. Skyline's original trackChevron function and all
+historical releases remain unchanged. Repeat real High + 4GB screenshot QA.

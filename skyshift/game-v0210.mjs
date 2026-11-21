@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {TRACKS_0160,ACTIVE_TRACK_0160,TRACK_ID_0160,isAurora}
+import {TRACKS_0160,ACTIVE_TRACK_0160,TRACK_ID_0160,isAurora,isVault}
  from "./track-selection-v0160.mjs";
 import {perfConfig as readPerfConfig,newPerfMonitor,resetPerfMonitor,recordPerfFrame,perfSummary,gpuTimer as createGpuTimer} from "./performance-audit-v0114.mjs";
 import {
@@ -80,6 +80,8 @@ import {CINEMATIC_GRADE_0210B,installCinematicGradeHero}
  from "./cinematic-grade-v0210b.mjs";
 import {TUNNEL_MEGA_0211,installTunnelMegastructure}
  from "./tunnel-megastructure-v0211.mjs";
+import {FULL_TUNNEL_0270,installFullTunnelCircuit0270}
+ from "./full-tunnel-circuit-v0270.mjs";
 import {NEON_INTERIOR_0212,installNeonDrivenInterior}
  from "./neon-interior-v0212.mjs";
 import {installNeonDrivenInterior as installClassicNeonInterior}
@@ -198,7 +200,11 @@ const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
 ).searchParams.get("v")||"0.26.5";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
-const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
+// 0.27.0: do not overlay the old open-world scenery or 760m shadow
+// segment on the continuous Neon Vault structure.
+const envEnabled=!isVault()&&new URLSearchParams(location.search).get("env")!=="classic";
+const fullTunnelFoundationEnabled=isVault()&&
+ new URLSearchParams(location.search).get("fullTunnel")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
 // 0.19.2 decoration in full, with exactly the same racing physics.
 const rebirthEnabled=envEnabled&&TRACK_ID_0160==="skyline"&&
@@ -512,6 +518,7 @@ let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,unifiedMetalLight=null,premiumReflectionFinish=null,fixtureTransport=null,trueRailWall=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
+let fullTunnelCircuit=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
  edgeFloorLighting=null;
@@ -772,11 +779,12 @@ function buildDecor(){
   makeArch(arch.s,arch.label,arch.color,widthAt(arch.s)+.5);
  // Distinct elevated sectors. The leap is clearly warned with an actual
  // suspended sign before the opening, never an obstacle across the road.
- for(const sector of CIRCUIT.sectors.slice(1))
+ if(!isVault())for(const sector of CIRCUIT.sectors.slice(1))
   makeBillboard(sector.name,sector.start+45,10.2,21,0);
- if(!isAurora())makeBillboard("SKYLINE LEAP",SKYLINE_LEAP.start-50,9.4,15,0);
+ if(!isAurora()&&!isVault())makeBillboard("SKYLINE LEAP",SKYLINE_LEAP.start-50,9.4,15,0);
  // Portal warning is safely above the racing lane, after the wall ride.
- makeBillboard(isAurora()?"LUMEN PASS":"SHADOW TUNNEL",SHADOW_TUNNEL.start-83,11,15,0);
+ if(!isVault())makeBillboard(isAurora()?"LUMEN PASS":"SHADOW TUNNEL",
+  SHADOW_TUNNEL.start-83,11,15,0);
 }
 function makeShip(id=fleetProgress.selected){
  // Ship and engine visuals can change; the real physical state is untouched.
@@ -1080,16 +1088,24 @@ function initScene(){
  if(CINEMATIC_ENABLED&&!limitedMemory)
   installCinematicRoadLighting(premiumSurface.material);
  // Static 760m architecture and preserved high-energy road markings.
- installTunnelRoadShading(premiumSurface.material);
- installBlackoutRoadShading(premiumSurface.material);
- shadowTunnel=installShadowTunnel(THREE,world);
- shadowTunnel.setAccent(neonKit.worldAccent);
+ if(!isVault()){
+  installTunnelRoadShading(premiumSurface.material);
+  installBlackoutRoadShading(premiumSurface.material);
+  shadowTunnel=installShadowTunnel(THREE,world);
+  shadowTunnel.setAccent(neonKit.worldAccent);
+ }
  // Always retain white core and bloom. Disable only optional filaments
  // when navigator reports a low-memory device.
  const waveDetail=limitedMemory?"low":"high";
  premiumSurface?.setDetailMode(waveDetail);
  identitySurface?.setDetailMode(waveDetail);
   buildDecor();
+ // 0.27.0: twenty locally culled 170m sections sweep the original vault
+ // cross-section over the entire separate mathematically closed 3400m lap.
+ fullTunnelCircuit=installFullTunnelCircuit0270(THREE,world,{
+  track:TRACK_ID_0160,enabled:fullTunnelFoundationEnabled,
+  lowMemory:limitedMemory,positionAt
+ });
  // 0.20.5: six architectural vaults, far-field fins and coherent edge light
  // around the S-link on Skyline. Instanced visuals only, no new colliders.
  if(envEnabled&&!rebirthEnabled)signatureEnvironment=installSignatureEnvironment(THREE,world,{
@@ -1261,6 +1277,26 @@ function initScene(){
  window.__skyshiftClarityInfo=()=>clarityAudit(claritySettings,neonPipeline);
  addEventListener("resize",resize);
  sceneReady=true;
+ // 0.27.0 QA-only: read the real 3D chunk/track invariants.
+ if(new URLSearchParams(location.search).get("fullTunnelSmoke")==="1")
+  window.__skyshiftFullTunnelProbe=()=>({
+   selected:TRACK_ID_0160,requested:fullTunnelFoundationEnabled,
+   ...(fullTunnelCircuit?.stats?.()??{}),
+   circuit:CIRCUIT.id,lapMeters:CIRCUIT.lapLength,
+   totalMeters:TRIAL.raceLength,roadMesh:premiumSurface?.material?.type,
+   intactRail:Boolean(identitySurface?.setWaveState),
+   originalShip:Boolean(ship),noJump:GAPS.length===0,
+   originalGripAvailable:Boolean(UI.grip),
+   worldChildren:world?.children?.length??0
+  });
+ if(new URLSearchParams(location.search).get("fullTunnelFrameProof")==="1")
+  window.__skyshiftFullTunnelFrameProof=()=>{
+   if(!fullTunnelCircuit?.active||!neonPipeline?.render)
+    throw Error("SKYSHIFT 0.27.0 tunnel not rendered");
+   neonPipeline.render(0);
+   return {image:renderer.domElement.toDataURL("image/png").split(",")[1],
+    s:flight?.s??null,world:fullTunnelCircuit.stats()};
+  };
  // 0.20.5 authored glTF world inspection, deliberately QA-only.
  if(new URLSearchParams(location.search).get("artSmoke")==="1")
   window.__skyshiftArtProbe=()=>({
@@ -2660,10 +2696,12 @@ function initScene(){
  UI.trackPicker.value=TRACK_ID_0160;
  UI.trackName.textContent=ACTIVE_TRACK_0160.name;
  UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · "+SKYSHIFT_BUILD_VERSION;
- UI.trackTagline.textContent=isAurora()?
+ UI.trackTagline.textContent=isVault()?
+  "CONTINUOUS 3D TUNNEL · FAST C2 CORNERS · THREE LAPS.":isAurora()?
   "WIDE SWITCHBACKS · ROLLING HILLS · THREE FAST LAPS.":
   "WIDE ARCS · SMART LINES · THREE FASTER LAPS.";
- UI.trackFeatures.textContent=isAurora()?
+ UI.trackFeatures.textContent=isVault()?
+  "3 × 3,400 M · FULL TUNNEL · GRIP · S-LINKS · NO JUMPS":isAurora()?
   "3 × 3,400 M · GRIP · OPEN SWEEPS · LUMEN PASS · NO RISK LINES":
   "3 × 3,400 M · GRIP · WALL · CORKSCREW · SHADOW TUNNEL";
  UI.challengeButton.classList.toggle("hidden",!ACTIVE_TRACK_0160.hasSkylineChallenges);
@@ -2983,7 +3021,7 @@ function refreshHud(){
  // 100+ m/s for the driver to react and disappears naturally on exit.
  // Aurora has no authored narrow RIGHT apex. Reusing Skyline's 650m
  // warning displayed a fictitious apex 3348m away, three times per run.
- const cue=isAurora()?{visible:false,active:false,text:"",distanceMeters:null}:
+ const cue=(isAurora()||isVault())?{visible:false,active:false,text:"",distanceMeters:null}:
   gripApexCue(flight.s,flight.grounded,
    uiState.gripHeld||uiState.keys.has("ShiftLeft")||
    uiState.keys.has("ShiftRight"),flight.gripActive,GRIP_APEX);
@@ -3038,6 +3076,19 @@ function refreshHud(){
 function maybeShowCue(){
  if(uiState.mode!=="playing")return;
  const localS=((flight.s%CIRCUIT.lapLength)+CIRCUIT.lapLength)%CIRCUIT.lapLength;
+ if(isVault()){
+  for(const hint of [
+   {id:"vault-entry",start:178,end:199,text:"NEON VAULT · FLOW INTO THE S-LINK"},
+   {id:"vault-grip",start:740,end:770,text:"TECHNICAL CURVE AHEAD · GRIP IF NEEDED"},
+   {id:"vault-sweep",start:1315,end:1340,text:"GRAND SWEEP · HOLD A CLEAN LINE"},
+   {id:"vault-return",start:1710,end:1730,text:"MIRROR RUN · TUNNEL CONTINUES"}
+  ]){
+   if(localS>=hint.start&&localS<hint.end&&uiState.trackHint!==hint.id){
+    uiState.trackHint=hint.id;flashToast(hint.text,1250);
+   }
+  }
+  return;
+ }
  if(isAurora()){
   for(const hint of [
    {id:"aurora-glass",start:192,end:215,text:"AURORA GLASS SWEEP · HOLD THE ARC"},
@@ -3233,7 +3284,7 @@ function integrate(dt){
    speedStepPercent:+((TRIAL.zoneSpeedStep-1)*100).toFixed(1)});
   announceSector(wave.stage);
  }
- const insideNow=inShadowTunnel(flight.s);
+ const insideNow=!isVault()&&inShadowTunnel(flight.s);
  if(insideNow&&!tunnelInside){
   tunnelEntries++;event("shadow_tunnel_enter",{lap:flight.lap});
  }else if(!insideNow&&tunnelInside){
@@ -3264,7 +3315,7 @@ function updatePalette(dt){
  const resonance=waveResonanceStrength(zoneWave,flight.elapsed);
  targetFog.lerp(SPECTRAL_WHITE,nearHorizon*.038+resonance*.018);
  // Spatial darkness reduces atmosphere wash while leaving track HDR intact.
- const shadow=tunnelIntensityAt(flight.s);
+ const shadow=isVault()?0:tunnelIntensityAt(flight.s);
  targetSky.lerp(SHADOW_VOID,shadow*.95);
  targetFog.lerp(SHADOW_VOID,shadow*.94);
  if(CINEMATIC_ENABLED){
@@ -3863,6 +3914,10 @@ function exportAudit(){
       localReflectionsProfile:localReflectionsEnabled?LOCAL_REFLECTIONS_0261:null,
       localReflectionsAudit:localReflectionsEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeLocalReflections:"?localReflections=classic",
+       fullTunnelFoundationEnabled,
+       fullTunnelProfile:isVault()?FULL_TUNNEL_0270:null,
+       fullTunnelAudit:fullTunnelCircuit?.stats?.()??null,
+       fullTunnelComparison:"?fullTunnel=classic",
       railWallResponseEnabled,
       railWallResponseProfile:railWallResponseEnabled?TRUE_RAIL_WALL_0265:null,
       railWallResponseAudit:trueRailWall?.stats?.()??null,
@@ -4431,7 +4486,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.27.0":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

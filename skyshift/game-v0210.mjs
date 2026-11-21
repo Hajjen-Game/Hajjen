@@ -84,6 +84,8 @@ import {FULL_TUNNEL_0270,installFullTunnelCircuit0270}
  from "./full-tunnel-circuit-v0270.mjs";
 import {VAULT_MATERIAL_PARITY_0271,installVaultMaterialParity0271}
  from "./vault-material-parity-v0271.mjs";
+import {VAULT_ARCHITECTURE_0272,installVaultArchitectureParity0272}
+ from "./vault-architectural-parity-v0272.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
  from "./full-tunnel-light-seal-v0270.mjs";
 import {NEON_INTERIOR_0212,installNeonDrivenInterior}
@@ -213,6 +215,12 @@ const vaultMaterialParityEnabled=fullTunnelFoundationEnabled&&
  /^0\.27\.(?:[1-9]|[1-9][0-9])(?:\.|$)/.test(
   new URLSearchParams(location.search).get("v")||"0.27.1")&&
  new URLSearchParams(location.search).get("vaultMaterial")!=="classic";
+// 0.27.2: the actual Skyline 0.24.1 physical panel silhouette, not a
+// painted copy. ?vaultArchitecture=classic restores the exact 0.27.1 shell.
+const vaultArchitectureEnabled=vaultMaterialParityEnabled&&
+ /^0\.27\.(?:[2-9]|[1-9][0-9])(?:\.|$)/.test(
+  new URLSearchParams(location.search).get("v")||"0.27.2")&&
+ new URLSearchParams(location.search).get("vaultArchitecture")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
 // 0.19.2 decoration in full, with exactly the same racing physics.
 const rebirthEnabled=envEnabled&&TRACK_ID_0160==="skyline"&&
@@ -526,7 +534,7 @@ let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,unifiedMetalLight=null,premiumReflectionFinish=null,fixtureTransport=null,trueRailWall=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
-let fullTunnelCircuit=null,vaultMaterialParity=null;
+let fullTunnelCircuit=null,vaultMaterialParity=null,vaultArchitecture=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
  edgeFloorLighting=null;
@@ -1125,6 +1133,11 @@ function initScene(){
   enabled:vaultMaterialParityEnabled,track:TRACK_ID_0160,
   lowMemory:limitedMemory,foundation:fullTunnelCircuit
  });
+ vaultArchitecture=installVaultArchitectureParity0272(THREE,world,{
+  enabled:vaultArchitectureEnabled,track:TRACK_ID_0160,
+  lowMemory:limitedMemory,positionAt,foundation:fullTunnelCircuit,
+  materialParity:vaultMaterialParity
+ });
  // 0.20.5: six architectural vaults, far-field fins and coherent edge light
  // around the S-link on Skyline. Instanced visuals only, no new colliders.
  if(envEnabled&&!rebirthEnabled)signatureEnvironment=installSignatureEnvironment(THREE,world,{
@@ -1300,6 +1313,36 @@ function initScene(){
  window.__skyshiftClarityInfo=()=>clarityAudit(claritySettings,neonPipeline);
  addEventListener("resize",resize);
  sceneReady=true;
+ // 0.27.2 reusable Skyline HARD-SURFACE architecture, real in-game
+ // same-frame A/B; never touches ship, road or racing simulation.
+ if(new URLSearchParams(location.search).get("vaultArchitectureSmoke")==="1")
+  window.__skyshiftVaultArchitectureProbe=()=>({
+   selected:TRACK_ID_0160,requested:vaultArchitectureEnabled,
+   ...(vaultArchitecture?.stats?.()??{}),
+   materialParity:vaultMaterialParity?.stats?.()??null,
+   foundation:fullTunnelCircuit?.stats?.()??null,
+   sunKeyScale:tunnelBlackout?.levels?.key??null,
+   originalShip:Boolean(ship),gripPresent:Boolean(UI.grip),
+   originalRoad:premiumSurface?.material?.type??null,
+   raceDistance:TRIAL.raceLength,
+   cameraDistanceToPilotMeters:camera&&flight?
+    +Math.hypot(camera.position.x-flight.worldX,
+      camera.position.z-flight.worldZ).toFixed(2):null
+  });
+ if(new URLSearchParams(location.search).get("vaultArchitectureFrameProof")==="1")
+  window.__skyshiftVaultArchitectureFrameProof=()=>{
+   if(!vaultArchitecture?.active||!neonPipeline?.render)
+    throw Error("0.27.2 real source geometry not installed");
+   const old=vaultArchitecture.stats().strength;
+   const draw=v=>{
+    vaultArchitecture.setComparison(v);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:draw(0),architecture:draw(1),
+    s:flight?.s??null,stats:vaultArchitecture.stats()};}
+   finally{vaultArchitecture.setComparison(old);neonPipeline.render(0);}
+  };
  // 0.27.1 material-only QA and deterministic same-frame toggle.
  if(new URLSearchParams(location.search).get("vaultMaterialSmoke")==="1")
   window.__skyshiftVaultMaterialProbe=()=>({
@@ -3979,6 +4022,10 @@ function exportAudit(){
        vaultMaterialProfile:isVault()?VAULT_MATERIAL_PARITY_0271:null,
        vaultMaterialAudit:vaultMaterialParity?.stats?.()??null,
        vaultMaterialComparison:"?vaultMaterial=classic",
+       vaultArchitectureEnabled,
+       vaultArchitectureProfile:isVault()?VAULT_ARCHITECTURE_0272:null,
+       vaultArchitectureAudit:vaultArchitecture?.stats?.()??null,
+       vaultArchitectureComparison:"?vaultArchitecture=classic",
       railWallResponseEnabled,
       railWallResponseProfile:railWallResponseEnabled?TRUE_RAIL_WALL_0265:null,
       railWallResponseAudit:trueRailWall?.stats?.()??null,
@@ -4547,7 +4594,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.27.1":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.27.2":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

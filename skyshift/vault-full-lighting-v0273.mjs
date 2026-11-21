@@ -17,6 +17,7 @@ import {patchPhysicalWall0265}
 import {vaultCrossSection0270}
  from "./full-tunnel-circuit-v0270.mjs";
 import {widthAt} from "./trial-v0165.mjs";
+import {sharedPhysicalPreset0280} from "./shared-tunnel-architecture-v0280.mjs";
 import {patchVaultPremiumPhysical0274,patchVaultPremiumSource0274,
  patchVaultPremiumRail0274,vaultPremiumFinishAudit0274}
  from "./vault-premium-finish-v0274.mjs";
@@ -164,15 +165,11 @@ function installPhysicalShader0273(material,role,mobile,atlas,power,finish=null)
 }
 function physicalCoat(THREE,role,mobile,atlas,power,finish=null){
  const m=new THREE.MeshPhysicalMaterial({
-  color:role==="panel"?0x7f9ead:0x9ab0bc,
-  metalness:role==="panel"?.89:.83,
-  roughness:role==="panel"?.36:.30,
-  clearcoat:mobile?0:.14,clearcoatRoughness:.32,
+  ...sharedPhysicalPreset0280(role,mobile,"vault"),
   side:THREE.DoubleSide,forceSinglePass:true,
-  transparent:true,opacity:role==="panel"?(mobile?.51:.60):(mobile?.41:.49),
+  transparent:true,
   blending:THREE.AdditiveBlending,depthWrite:false,depthTest:true,
   polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,
-  envMapIntensity:0
  });
  installPhysicalShader0273(m,role,mobile,atlas,power,finish);
  return m;

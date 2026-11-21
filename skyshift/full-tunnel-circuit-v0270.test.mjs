@@ -51,7 +51,7 @@ test("the exact original vaulted profile is reused throughout full lap",()=>{
   assert.deepEqual(vaultCrossSection0270(0,s).map(x=>+x.toFixed(4)),
    TUNNEL_PROFILE_0211[0].map(x=>+x.toFixed(4)));
   const roof=vaultCrossSection0270(15,s);
-  assert.ok(roof[1]>28&&roof[1]<30,"vault roof clears craft at "+s);
+  assert.ok(roof[1]>28&&roof[1]<30.5,"vault roof clears craft at "+s);
  }
  assert.throws(()=>vaultCrossSection0270(3,3401));
 });

@@ -107,7 +107,7 @@ test("rail shader restores bounded native GGX ONLY after legacy white-sun seal",
 test("wall retains existing 0.26.1 BRDF taps and hard-roof height cutout",()=>{
  for(const mobile of [false,true]){
   const p=patchPhysicalWall0265("",wall,{mobile});
-  assert.match(p.fragmentShader,/r65Face=1\.0-smoothstep\(23\.0,27\.0/);
+  assert.match(p.fragmentShader,/r65Face=1\.0-smoothstep\(20\.5,24\.0/);
   assert.match(p.fragmentShader,/r65WallC=clamp\(vLocalMask0261\.x/);
   assert.match(p.fragmentShader,/l261Cool\.color\*=mix/);
   assert.match(p.fragmentShader,/l261Warm\.color\*=mix/);

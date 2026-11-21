@@ -291,6 +291,9 @@ function boostFixture(material,power,mobile){
    throw Error("0.27.3 old visible source shader missing vertex color");
   // Source ribbons are the actual inlaid geometry from 0.27.0.
   // Do not add distant white lights or increase exposure globally.
+  shader.fragmentShader=shader.fragmentShader.replace(
+   "#include <common>",
+   "#include <common>\nuniform float uVaultFixtureResponse0273;");
   shader.fragmentShader=shader.fragmentShader.replace(marker,
    marker+"\nfloat v27Warm=step(diffuseColor.r,diffuseColor.b)*0.0+"+
    "step(diffuseColor.b*1.20,diffuseColor.r);"+

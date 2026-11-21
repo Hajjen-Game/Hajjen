@@ -19,7 +19,7 @@ export const EDGE_SOURCE_02632=Object.freeze({
  cyanWidthMeters:0.18,cyanSegmentPitchMeters:24,
  cyanLitLengthMeters:6.5,cyanDarkGapMeters:17.5,
  amberFootBands:20,amberSourceHeightMeters:0.50,
- amberTrackBandLengthMeters:12.4,amberFloorBandWidthMeters:8.7,
+ amberTrackBandLengthMeters:14.4,amberFloorBandWidthMeters:11.25,
  connectedFloorAndFootGeometry:true,
  addedDrawBatches:2,addedDynamicLights:0,addedTextures:0,
  addedPostprocessPasses:0,addedColliders:0,
@@ -98,13 +98,16 @@ export function createLowerEdgeSources02632(THREE,positionAt,lowMemory=false){
  }
  return {geometry:buildGeometry(THREE,p,c),segments,quads,litMeters:totalLit};
 }
+// Mount at the actually VISIBLE outer vault foot, near wall/floor junction.
+// 0.26.3.1 incorrectly used index 2 (x≈17.8), which placed an isolated
+// amber stick well inboard of the visible arch end (index 4, x≈24.65).
 const ROOT=(s,vaultHeightClassic=false)=>Math.abs(
- tunnelProfilePoint0211(2,s,vaultHeightClassic)[0])-.38;
+ tunnelProfilePoint0211(4,s,vaultHeightClassic)[0])-.20;
 export function createConnectedFootBands02632(THREE,positionAt,
  lowMemory=false,vaultHeightClassic=false){
  const positions=[],colors=[];
  let bands=0,footSources=0;
- const NX=lowMemory?5:8,NS=lowMemory?9:14;
+ const NX=lowMemory?6:9,NS=lowMemory?10:16;
  // One geometry *and* one material contains the foot lamp + its falloff band.
  // Both geometries share the same source floor position; no isolated spots.
  for(const portal of TUNNEL_PORTALS_0211){
@@ -114,29 +117,30 @@ export function createConnectedFootBands02632(THREE,positionAt,
    const at=(s,x,h)=>positionAt(s,side*x,h);
    const anchor=(s,x,raise=.03)=>at(s,x,
     floorY02631(x,s,vaultHeightClassic)+raise);
-   // A warm, elongated arch-foot practical: 2.4m long along the vault,
+   // A warm, elongated arch-foot practical: 3.0m long along the vault,
    // attached to the SAME origin as the floor's luminous ridge.
-   const s0=Math.max(.04,center-1.15),s1=Math.min(367.60,center+1.15);
+   const s0=Math.max(.04,center-1.50),s1=Math.min(367.60,center+1.50);
    const footBottom0=anchor(s0,rootX),footBottom1=anchor(s1,rootX);
-   const footTop0=at(s0,rootX,floorY02631(rootX,s0,vaultHeightClassic)+.51);
-   const footTop1=at(s1,rootX,floorY02631(rootX,s1,vaultHeightClassic)+.51);
+   const footTop0=at(s0,rootX,floorY02631(rootX,s0,vaultHeightClassic)+.32);
+   const footTop1=at(s1,rootX,floorY02631(rootX,s1,vaultHeightClassic)+.32);
    pushRGBA(positions,colors,
     [footBottom0,footTop0,footTop1,footBottom1],
     [[1,.36,.09,.82],[1,.36,.09,.76],[1,.36,.09,.76],[1,.36,.09,.82]]);
    footSources++;
    // WIDE connected source-foot band, curved along original side floor.
-   // Longitudinal extent ~12.4m, lateral 13.25..21.95m. Alpha peaks on
+   // Longitudinal extent ~14.4m, lateral 13.25..24.45m. Alpha peaks on
    // the root x (the foot's floor-contact position) and tapers smoothly.
    const meshP=(i,j)=>{
-    const s=clamp(center-6.2+12.4*i/NS,.04,367.58);
-    const x=13.25+8.70*j/NX;
-    const along=gauss(s-center,3.65);
-    const lateral=gauss(x-rootX,3.65);
+    const s=clamp(center-7.2+14.4*i/NS,.04,367.58);
+    // End the floor ribbon AT the real wall-foot source, not before it.
+    const x=13.25+(rootX-13.25)*j/NX;
+    const along=gauss(s-center,4.35);
+    const lateral=gauss(x-rootX,6.15);
     // Enough source width to look intentional, without brightening
     // the rail, ship, racing lane or full graphite shoulder.
-    const sourceCore=Math.exp(-Math.pow((x-rootX)/1.55,2)-
-     Math.pow((s-center)/2.85,2));
-    const alpha=(.42*along*lateral+.22*sourceCore);
+    const sourceCore=Math.exp(-Math.pow((x-rootX)/2.25,2)-
+     Math.pow((s-center)/3.25,2));
+    const alpha=(.43*along*lateral+.20*sourceCore);
     return {q:anchor(s,x),color:[1,.34,.075,alpha]};
    };
    for(let i=0;i<NS;i++)for(let j=0;j<NX;j++){

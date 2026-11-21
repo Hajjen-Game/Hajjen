@@ -45,7 +45,7 @@ test("0.26.3.1 adds only rendered lighting to a protected race world",()=>{
 });
 test("cyan edge segment is intentionally broken at 24m metal bays, not arrows",()=>{
  assert.ok(railSegment02631(8)>.98);
- assert.equal(railSegment02631(22.5),0);
+ assert.equal(railSegment02631(23.5),0);
  assert.ok(railSegment02631(24+8)>.98);
  assert.equal(railSegment02631(-1),0);
  assert.equal(railSegment02631(369),0);

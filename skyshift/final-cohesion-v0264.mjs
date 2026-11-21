@@ -9,7 +9,7 @@ export const FINAL_COHESION_0264=Object.freeze({
  base:"0.26.3.3",comparison:"?finalCohesion=classic",
  approach:"restrained HDR source response + bloom calibration + chromatic selective finish",
  bloomBefore:{strength:0.43,radius:0.21,threshold:1.40},
- bloomHigh:{strength:0.47,radius:0.235,threshold:1.34},
+ bloomHigh:{strength:0.52,radius:0.25,threshold:1.28},
  bloom4GB:{strength:0.44,radius:0.21,threshold:1.38},
  finishShaderSamplesHigh:5,finishShaderSamples4GB:0,
  additionalPassesHigh:1,additionalPasses4GB:0,
@@ -33,8 +33,8 @@ export const SOURCE_NAMES_0264=Object.freeze({
  amber:"SKYSHIFT 0.26.3.2 / one-piece amber arch-foot and floor bands"
 });
 const SOURCE_GAIN=Object.freeze({
- high:{cyan:{r:1.30,g:1.26,b:1.26},
-       amber:{r:1.28,g:1.21,b:1.14}},
+ high:{cyan:{r:1.43,g:1.40,b:1.40},
+       amber:{r:1.43,g:1.31,b:1.20}},
  mobile:{cyan:{r:1.12,g:1.11,b:1.11},
          amber:{r:1.10,g:1.08,b:1.04}}
 });
@@ -98,7 +98,7 @@ export const FINAL_COHESION_SHADER_0264={
   "   blackGuard*highlightGuard*uFinalCohesion0264;",
   " // Sculpt graphite shadows without lifting near-black panel seams.",
   " float face=1.0-smoothstep(0.22,0.72,lum);",
-  " float graphite=.065*safe*face*(1.0-chroma*.65);",
+  " float graphite=.087*safe*face*(1.0-chroma*.65);",
   " vec3 metal=source.rgb*(1.0-graphite);",
   " // Narrow chromatic highlight response around existing *colored* cores.",
   " vec2 p=uFinalPixel0264*vec2(5.0);",
@@ -110,9 +110,9 @@ export const FINAL_COHESION_SHADER_0264={
   " float nearChroma=c264Color(max(nearRGB,vec3(0.0)));",
   " vec3 hue=nearRGB-vec3(c264Luma(nearRGB));",
   " vec3 wrapped=max(hue,vec3(0.0))*nearChroma*",
-  "   (0.115*safe)*(1.0-smoothstep(0.42,1.2,lum));",
+  "   (0.185*safe)*(1.0-smoothstep(0.42,1.2,lum));",
   " vec3 rich=metal+wrapped+",
-  "   (source.rgb-vec3(lum))*(0.095*safe*chroma);",
+  "   (source.rgb-vec3(lum))*(0.135*safe*chroma);",
   " // Pure gray/white never receives added energy, preserve original alpha.",
   " gl_FragColor=vec4(max(rich,vec3(0.0)),source.a);",
   "}"
@@ -166,7 +166,7 @@ export function installFinalCohesion0264(THREE,pipeline,world,{
    mesh.material.color.setRGB(old.r*gain.r,old.g*gain.g,old.b*gain.b);
   }
   if(pass){
-   pass.uniforms.uFinalCohesion0264.value=.78*comparison;
+   pass.uniforms.uFinalCohesion0264.value=.88*comparison;
    pass.enabled=comparison>0.001;
   }
  };

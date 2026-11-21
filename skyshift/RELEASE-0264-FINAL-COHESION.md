@@ -16,14 +16,14 @@ screen SSR would destroy the dark intended aesthetic.
 **A. Actual fixture radiance:** only color-scale the EXISTING cyan straight
 rail and amber connected-foot MeshBasic emitters, preserving their exact
 meshes/locations/segments/collisions. HDR cyan/amber color is amplified
-by restrained channel-specific gains (high 1.14–1.30, low 1.04–1.12);
+by restrained channel-specific gains (high 1.20–1.43, low 1.04–1.12);
 no new lamp, no brighter corner arrows, no shader rewrite or white source.
 
 **B. Calibrated existing bloom:** original UnrealBloom strength .43,
-radius .21, threshold 1.4. High: strength .47, radius .235, threshold 1.34.
+radius .21, threshold 1.4. High: strength .52, radius .25, threshold 1.28.
 4GB: strength .44, radius .21, threshold 1.38. Existing bloom mip
 resolution, SMAA, original ACES exposure, zone wave and OutputPass unchanged.
-No additional new dynamic or ambient light or shadow pass.
+No additional new dynamic or ambient light or shadow pass. The first real 1536×870 WebGL A/B was visually too subtle despite passing all containment tests, so the second high-graphics calibration increases colored-core radiance and narrows bloom emphasis around real HDR fixtures while maintaining the original dark deck.
 
 **C. A high-graphics-only chromatic cohesion grade:** one 5-tap (source +
 four near neighbors) linear-HDR shader pass after the original unified

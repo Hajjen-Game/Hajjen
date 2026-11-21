@@ -123,6 +123,14 @@ function installPhysicalShader0273(material,role,mobile,atlas,power){
   previous.call(this,shader,renderer);
   shader.fragmentShader=shader.fragmentShader.replace("#include <common>",
    "#include <common>\nuniform float uFixtureTransport02643;");
+  // The original 0.26.5 wall shader expects the 0.26.4.3 near-source
+  // precursor. Vault already provides a real vLocalMask0261 derived from
+  // its own 27m / 42.5m emitters, so supply the exact compatible mask
+  // in the SAME physical source-map scope; do not port Skyline's 368m map.
+  shader.fragmentShader=shader.fragmentShader.replace(
+   "#include <lights_fragment_maps>",
+   "float f42Near=clamp(max(vLocalMask0261.x*0.85,vLocalMask0261.y),0.0,1.0);\n"+
+   "#include <lights_fragment_maps>");
   const wall=patchPhysicalWall0265(shader.vertexShader,
    shader.fragmentShader,{role,mobile});
   const metal=patchVaultMaterialShader0271(wall.vertexShader,

@@ -75,7 +75,9 @@ try{
    !q.originalShip||!q.intactRail||!q.noJump||
    !q.originalGripAvailable||q.totalMeters!==10200||
    q.lapMeters!==3400||q.quality!==(memory===4?"4GB":"High")||
-   !q.solarIndependentMaterials)
+   !q.solarIndependentMaterials||
+   !Number.isFinite(q.cameraDistanceToPilotMeters)||
+   q.cameraDistanceToPilotMeters>45)
    throw Error("0.27.0 original racing and full-tunnel invariants failed: "+JSON.stringify(q));
   const frame=await page.evaluate(()=>window.__skyshiftFullTunnelFrameProof());
   if(Math.abs(frame.s-s)>.1)throw Error("teleport s mismatch");

@@ -16,7 +16,7 @@ const COMMON="#include <common>";
 const PROJECTION="#include <project_vertex>";
 const COLOR="#include <color_fragment>";
 const LENGTH=3400,CHUNK=170,RIB_PITCH=42.5, RIB_START=3;
-const SECTIONS=TUNNEL_PROFILE_0211.length-8;
+const SECTIONS=TUNNEL_PROFILE_0211.length-7;
 const EPS=1e-6;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const VAULT_MATERIAL_PARITY_0271=Object.freeze({

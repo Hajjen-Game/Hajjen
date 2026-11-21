@@ -18,7 +18,11 @@ test("actual original Skyline 0.24.1 panel sculptor is imported, not imitated",(
  assert.equal(VAULT_ARCHITECTURE_0272.originalStructuralPortalPitchMeters,42.5);
  assert.equal(VAULT_ARCHITECTURE_0272.trackLengthMeters,3400);
  const source=read("./vault-architectural-parity-v0272.mjs");
- assert.match(source,/import \{buildStructuralTunnelData\}/);
+ // Vault now calls the SAME public Skyline sculptor entry point that
+ // Skyline uses, rather than duplicating the original 0.24.1 builder.
+ assert.match(source,/import \{buildSharedTunnelSection0280\}/);
+ const originalBuilder=read("./structural-tunnel-v0213.mjs");
+ assert.match(originalBuilder,/return buildStructuralTunnelData\(positionAt,/);
  assert.match(source,/depthStudy:true/);
  assert.match(source,/unifiedDepth:true,surfaceCraftsmanship:true/);
  assert.match(source,/profilePoint:vaultCrossSection0270/);

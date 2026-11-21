@@ -211,7 +211,7 @@ export function patchSubstrateWall0265(vertex,fragment,{role="panel",mobile=fals
   .replace(WARM,"vec3(0.205,0.077,0.018)*"+
    "mix(1.0,"+warm.toFixed(2)+",uTrueRailWall0265)*t43Warm;")};
 }
-function wrapShader0265(material,uniform,kind,opts={}){
+export function wrapShader0265(material,uniform,kind,opts={}){
  const prop=kind==="rail"?"isMeshStandardMaterial":
   kind==="wall"?"isMeshPhysicalMaterial":"isMeshBasicMaterial";
  if(!material?.[prop]||typeof material.onBeforeCompile!=="function"||

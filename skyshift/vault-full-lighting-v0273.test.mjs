@@ -114,6 +114,6 @@ test("the build does not install on older circuits or comparison classic",()=>{
  assert.match(g,/installVaultFullLighting0273/);
  assert.match(g,/vaultFullLightingComparison:"\?vaultLighting=classic"/);
  assert.match(g,/__skyshiftVaultLightingFrameProof/);
- assert.match(g,/selected==="vault"\?"0\.27\.3"/);
- assert.match(read("./index.html"),/Full Tunnel Lighting & Visual Parity · 0\.27\.3/);
+ assert.match(g,/selected==="vault"\?"0\.27\.(?:3|4)"/);
+ assert.match(read("./index.html"),/(?:Full Tunnel Lighting & Visual Parity · 0\.27\.3|Premium Tunnel Cohesion & Finish · 0\.27\.4)/);
 });

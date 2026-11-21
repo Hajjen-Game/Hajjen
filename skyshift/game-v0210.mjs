@@ -88,6 +88,7 @@ import {VAULT_ARCHITECTURE_0272,installVaultArchitectureParity0272}
  from "./vault-architectural-parity-v0272.mjs";
 import {VAULT_LIGHTING_0273,installVaultFullLighting0273}
  from "./vault-full-lighting-v0273.mjs";
+import {VAULT_PREMIUM_FINISH_0274} from "./vault-premium-finish-v0274.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
  from "./full-tunnel-light-seal-v0270.mjs";
 import {NEON_INTERIOR_0212,installNeonDrivenInterior}
@@ -227,6 +228,10 @@ const vaultFullLightingEnabled=vaultArchitectureEnabled&&
  /^0\.27\.(?:[3-9]|[1-9][0-9])(?:\.|$)/.test(
   new URLSearchParams(location.search).get("v")||"0.27.3")&&
  new URLSearchParams(location.search).get("vaultLighting")!=="classic";
+const vaultPremiumFinishEnabled=vaultFullLightingEnabled&&
+ /^0\.27\.(?:[4-9]|[1-9][0-9])(?:\.|$)/.test(
+  new URLSearchParams(location.search).get("v")||"0.27.4")&&
+ new URLSearchParams(location.search).get("vaultFinish")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
 // 0.19.2 decoration in full, with exactly the same racing physics.
 const rebirthEnabled=envEnabled&&TRACK_ID_0160==="skyline"&&
@@ -1150,7 +1155,8 @@ function initScene(){
  vaultFullLighting=installVaultFullLighting0273(THREE,world,{
   enabled:vaultFullLightingEnabled,track:TRACK_ID_0160,
   lowMemory:limitedMemory,positionAt,foundation:fullTunnelCircuit,
-  architecture:vaultArchitecture,materialParity:vaultMaterialParity
+  architecture:vaultArchitecture,materialParity:vaultMaterialParity,
+  finishEnabled:vaultPremiumFinishEnabled
  });
  // 0.20.5: six architectural vaults, far-field fins and coherent edge light
  // around the S-link on Skyline. Instanced visuals only, no new colliders.
@@ -1327,6 +1333,37 @@ function initScene(){
  window.__skyshiftClarityInfo=()=>clarityAudit(claritySettings,neonPipeline);
  addEventListener("resize",resize);
  sceneReady=true;
+ // 0.27.4: finish-only, same-frame A/B without altering 0.27.3.
+ if(new URLSearchParams(location.search).get("vaultFinishSmoke")==="1")
+  window.__skyshiftVaultFinishProbe=()=>({
+   selected:TRACK_ID_0160,requested:vaultPremiumFinishEnabled,
+   ...(vaultFullLighting?.stats?.().premiumFinish??{}),
+   fullLighting:vaultFullLighting?.stats?.()??null,
+   architecture:vaultArchitecture?.stats?.()??null,
+   materialParity:vaultMaterialParity?.stats?.()??null,
+   foundation:fullTunnelCircuit?.stats?.()??null,
+   sunKeyScale:tunnelBlackout?.levels?.key??null,
+   originalShip:Boolean(ship),originalGrip:Boolean(UI.grip),
+   originalRoad:premiumSurface?.material?.type??null,
+   raceMeters:TRIAL.raceLength,
+   cameraDistanceToPilotMeters:camera&&flight?
+    +Math.hypot(camera.position.x-flight.worldX,
+      camera.position.z-flight.worldZ).toFixed(2):null
+  });
+ if(new URLSearchParams(location.search).get("vaultFinishFrameProof")==="1")
+  window.__skyshiftVaultFinishFrameProof=()=>{
+   if(!vaultFullLighting?.active||!vaultPremiumFinishEnabled||!neonPipeline?.render)
+    throw Error("SKYSHIFT 0.27.4 true Vault finish not installed");
+   const old=vaultFullLighting.stats().premiumFinish.enabledAmount;
+   const draw=value=>{
+    vaultFullLighting.setFinishComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:draw(0),premium:draw(1),
+    s:flight?.s??null,audit:vaultFullLighting.stats().premiumFinish};}
+   finally{vaultFullLighting.setFinishComparison(old);neonPipeline.render(0);}
+  };
  // 0.27.3 genuine GPU material + local 3400m fixture transport A/B.
  if(new URLSearchParams(location.search).get("vaultLightingSmoke")==="1")
   window.__skyshiftVaultLightingProbe=()=>({
@@ -4074,6 +4111,10 @@ function exportAudit(){
        vaultFullLightingProfile:isVault()?VAULT_LIGHTING_0273:null,
        vaultFullLightingAudit:vaultFullLighting?.stats?.()??null,
        vaultFullLightingComparison:"?vaultLighting=classic",
+        vaultPremiumFinishEnabled,
+        vaultPremiumFinishProfile:isVault()?VAULT_PREMIUM_FINISH_0274:null,
+        vaultPremiumFinishAudit:vaultFullLighting?.stats?.().premiumFinish??null,
+        vaultPremiumFinishComparison:"?vaultFinish=classic",
       railWallResponseEnabled,
       railWallResponseProfile:railWallResponseEnabled?TRUE_RAIL_WALL_0265:null,
       railWallResponseAudit:trueRailWall?.stats?.()??null,
@@ -4642,7 +4683,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.27.3":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.27.4":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

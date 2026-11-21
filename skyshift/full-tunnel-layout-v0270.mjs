@@ -47,7 +47,7 @@ export const VAULT_SECTORS_0270=Object.freeze([
 export function validateVaultLayout0270(){
  const length=VAULT_SECTIONS_0270.reduce((s,x)=>s+x[1],0);
  const halfLength=HALF.reduce((s,x)=>s+x[1],0);
- const halfAngle=HALF.reduce((s,x)=>s+x[2],0);
+ const halfAngle=HALF.reduce((s,x)=>s+radians(x[2]),0);
  const end=VAULT_ELEVATION_KEYS_0270.at(-1);
  return {length,halfLength,halfYaw:halfAngle,
   totalYaw:halfAngle*2,

@@ -110,12 +110,12 @@ try{
   await page.close();
  }
  for(const args of [
-  ["vault","0.28.2",37,8],
-  ["vault","0.28.3",37,8],
-  ["vault","0.28.3",680,8],
-  ["vault","0.28.3",2182,8],
-  ["vault","0.28.3",37,4],
-  ["skyline","0.26.5",37,8]
+  ["vault","0.28.2",8,37],
+  ["vault","0.28.3",8,37],
+  ["vault","0.28.3",8,680],
+  ["vault","0.28.3",8,2182],
+  ["vault","0.28.3",4,37],
+  ["skyline","0.26.5",8,37]
  ])await frame(...args);
  const old=frames.find(f=>f.key==="vault-0.28.2-High-37"),
   updated=frames.find(f=>f.key==="vault-0.28.3-High-37");

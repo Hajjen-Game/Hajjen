@@ -110,6 +110,8 @@ import {EDGE_SOURCE_02632,installRepositionedEdgeAndConnectedFoot02632}
  from "./edge-source-floor-bands-v02632.mjs";
 import {STRAIGHT_EDGE_02633,installStraightOnlyEdgeLighting02633}
  from "./straight-only-edge-lighting-v02633.mjs";
+import {FINAL_COHESION_0264,installFinalCohesion0264}
+ from "./final-cohesion-v0264.mjs";
 import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
  from "./cinematic-energy-v0216.mjs";
 import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
@@ -186,7 +188,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.26.3.3";
+).searchParams.get("v")||"0.26.4";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -282,14 +284,22 @@ const edgeFloorEnabled=roadRebuildEnabled&&
 // 0.26.3.2: short ground-level cyan and single connected warm floor bands.
 const edgeSourceRebuildEnabled=edgeFloorEnabled&&
  roadReflectionRelease[0]===0&&roadReflectionRelease[1]===26&&
- roadReflectionRelease[2]===3&&(roadReflectionRelease[3]??0)>=2&&
+ (roadReflectionRelease[2]>3||
+ (roadReflectionRelease[2]===3&&(roadReflectionRelease[3]??0)>=2))&&
  new URLSearchParams(location.search).get("edgeSources")!=="classic";
 // 0.26.3.3: new cyan source lights on authored STRAIGHTS ONLY.
 // Keep orange vault-foot bands and curve arrows exactly as in 0.26.3.2.
 const straightEdgesEnabled=edgeSourceRebuildEnabled&&
  roadReflectionRelease[0]===0&&roadReflectionRelease[1]===26&&
- roadReflectionRelease[2]===3&&(roadReflectionRelease[3]??0)>=3&&
+ (roadReflectionRelease[2]>3||
+ (roadReflectionRelease[2]===3&&(roadReflectionRelease[3]??0)>=3))&&
  new URLSearchParams(location.search).get("straightEdges")!=="classic";
+// 0.26.4: the existing corrected straight-only edges are REQUIRED;
+// restore exact 0.26.3.3 optically with ?finalCohesion=classic.
+const finalCohesionEnabled=straightEdgesEnabled&&
+ roadReflectionRelease[0]===0&&roadReflectionRelease[1]===26&&
+ roadReflectionRelease[2]>=4&&
+ new URLSearchParams(location.search).get("finalCohesion")!=="classic";
 // 0.21.6: speed-reactive ENERGY in existing tunnel neon, never an extra clock.
 const cinematicMotionEnabled=integratedNeonFlowEnabled&&premiumRoadEnabled&&
  new URLSearchParams(location.search).get("cinematicMotion")!=="classic"&&
@@ -466,7 +476,7 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,gripHeld:fa
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
-let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
+let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
@@ -1168,6 +1178,12 @@ function initScene(){
   enabled:unifiedGradeEnabled,lowMemory:limitedMemory
  });
  unifiedCinematicGrade.resize?.(innerWidth,innerHeight,neonPipeline.internalPixelRatio);
+ // Pass 4: fine chromatic grade and bounded HDR fixture response. The
+ // existing UnrealBloomPass, SMAA, unified grade and OutputPass are retained.
+ finalCohesion=installFinalCohesion0264(THREE,neonPipeline,world,{
+  enabled:finalCohesionEnabled,lowMemory:limitedMemory
+ });
+ finalCohesion.resize?.(innerWidth,innerHeight,neonPipeline.internalPixelRatio);
  if(perfSettings.enabled){
   if(perfSettings.preset==="no-bloom")neonPipeline.bloom.enabled=false;
   if(perfSettings.preset==="no-smaa")neonPipeline.smaa.enabled=false;
@@ -1969,6 +1985,37 @@ function initScene(){
     stationWorld.setMotionComparison(previous.cinematicComparison);
    }
   };
+ // 0.26.4: true same-camera HDR optical A/B (previous 0.26.3.3).
+ if(new URLSearchParams(location.search).get("finalCohesionSmoke")==="1")
+  window.__skyshiftFinalCohesionProbe=()=>({
+   requested:finalCohesionEnabled,
+   ...(finalCohesion?.stats?.()??{}),
+   straightOnly:edgeFloorLighting?.stats?.().straightEdges02633Active??false,
+   amberBands:edgeFloorLighting?.stats?.().straightEdges02633AmberBands??0,
+   originalRoad:cinematicRoadRebuild?.stats?.().roadRebuild0263Active??false,
+   originalMetal:stationWorld?.stats?.().premiumMetal0262Enabled??false,
+   roadSolarSeal:roadSolarSpill?.stats?.().seal??null,
+   premiumRoadSeal:premiumRoadSurface?.stats?.().seal??null,
+   nativeWave:Boolean(premiumSurface?.setWaveState),
+   shipPresent:Boolean(ship),
+   outputFinal:neonPipeline?.composer?.passes?.at(-1)===neonPipeline?.output,
+   smaaPresent:Boolean(neonPipeline?.smaa),
+   originalExposure:renderer?.toneMappingExposure
+  });
+ if(new URLSearchParams(location.search).get("finalCohesionFrameProof")==="1")
+  window.__skyshiftFinalCohesionFrameProof=()=>{
+   if(!finalCohesion?.active||!neonPipeline?.render)
+    throw Error("0.26.4 real HDR frame proof unavailable");
+   const before=finalCohesion.stats().finalCohesion0264Comparison;
+   const shot=v=>{finalCohesion.setComparison(v);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];};
+   try{
+    return {classic:shot(0),cohesion:shot(1),trackS:flight?.s??null};
+   }finally{
+    finalCohesion.setComparison(before);neonPipeline.render(0);
+   }
+  };
  // 0.26.3.3: same-frame true WebGL proof that new cyan is absent
  // in curved/pointer zones and that amber arch feet stay unchanged.
  if(new URLSearchParams(location.search).get("straightEdgeSmoke")==="1")
@@ -2451,6 +2498,7 @@ function resize(){
  neonPipeline?.resize(width,height);
  velocityCinematography?.resize?.(width,height,neonPipeline?.internalPixelRatio??1);
  unifiedCinematicGrade?.resize?.(width,height,neonPipeline?.internalPixelRatio??1);
+ finalCohesion?.resize?.(width,height,neonPipeline?.internalPixelRatio??1);
 }
 function syncFullscreenUi(active){
  UI.fullscreen.setAttribute("aria-label",active?"Exit fullscreen":"Enter fullscreen");

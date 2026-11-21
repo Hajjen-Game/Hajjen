@@ -108,6 +108,8 @@ import {EDGE_FLOOR_02631,installEdgeLightingFloorPools02631}
  from "./edge-lighting-floor-pools-v02631.mjs";
 import {EDGE_SOURCE_02632,installRepositionedEdgeAndConnectedFoot02632}
  from "./edge-source-floor-bands-v02632.mjs";
+import {STRAIGHT_EDGE_02633,installStraightOnlyEdgeLighting02633}
+ from "./straight-only-edge-lighting-v02633.mjs";
 import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
  from "./cinematic-energy-v0216.mjs";
 import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
@@ -184,7 +186,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.26.3.2";
+).searchParams.get("v")||"0.26.3.3";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -282,6 +284,12 @@ const edgeSourceRebuildEnabled=edgeFloorEnabled&&
  roadReflectionRelease[0]===0&&roadReflectionRelease[1]===26&&
  roadReflectionRelease[2]===3&&(roadReflectionRelease[3]??0)>=2&&
  new URLSearchParams(location.search).get("edgeSources")!=="classic";
+// 0.26.3.3: new cyan source lights on authored STRAIGHTS ONLY.
+// Keep orange vault-foot bands and curve arrows exactly as in 0.26.3.2.
+const straightEdgesEnabled=edgeSourceRebuildEnabled&&
+ roadReflectionRelease[0]===0&&roadReflectionRelease[1]===26&&
+ roadReflectionRelease[2]===3&&(roadReflectionRelease[3]??0)>=3&&
+ new URLSearchParams(location.search).get("straightEdges")!=="classic";
 // 0.21.6: speed-reactive ENERGY in existing tunnel neon, never an extra clock.
 const cinematicMotionEnabled=integratedNeonFlowEnabled&&premiumRoadEnabled&&
  new URLSearchParams(location.search).get("cinematicMotion")!=="classic"&&
@@ -1127,7 +1135,8 @@ function initScene(){
  // Subtle visible cyan inset rails and arch-foot amber floor pools, with
  // original indexed racing deck and road GGX left unmodified in classic mode.
  edgeFloorLighting=edgeFloorEnabled?
-  (edgeSourceRebuildEnabled?installRepositionedEdgeAndConnectedFoot02632:
+  (straightEdgesEnabled?installStraightOnlyEdgeLighting02633:
+   edgeSourceRebuildEnabled?installRepositionedEdgeAndConnectedFoot02632:
    installEdgeLightingFloorPools02631)(THREE,world,
    world.getObjectByName("Zone Ribbon · integrated PBR racing deck"),{
     positionAt,lowMemory:limitedMemory,
@@ -1958,6 +1967,51 @@ function initScene(){
      phaseMeters:previous.cinematicPhaseMeters,
      boost:previous.cinematicBoost,playing:true});
     stationWorld.setMotionComparison(previous.cinematicComparison);
+   }
+  };
+ // 0.26.3.3: same-frame true WebGL proof that new cyan is absent
+ // in curved/pointer zones and that amber arch feet stay unchanged.
+ if(new URLSearchParams(location.search).get("straightEdgeSmoke")==="1")
+  window.__skyshiftStraightEdgeProbe=()=>({
+   requested:straightEdgesEnabled,
+   ...(edgeFloorLighting?.stats?.()??{}),
+   previousRoad:cinematicRoadRebuild?.stats?.().roadRebuild0263Active??false,
+   originalRoadMaterial:premiumSurface?.material?.type??null,
+   solarSeal:roadSolarSpill?.stats?.().seal??null,
+   premiumRoadSeal:premiumRoadSurface?.stats?.().seal??null,
+   nativeWave:Boolean(premiumSurface?.setWaveState),
+   originalShip:Boolean(ship),originalRail:Boolean(identitySurface)
+  });
+ if(new URLSearchParams(location.search).get("straightEdgeFrameProof")==="1")
+  window.__skyshiftStraightEdgeFrameProof=()=>{
+   if(!straightEdgesEnabled||
+    !edgeFloorLighting?.stats?.().straightEdges02633Active||
+    !neonPipeline?.render)
+    throw Error("0.26.3.3 straight-only WebGL proof unavailable");
+   const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
+   if(!deck)throw Error("0.26.3.3 original PBR road unavailable");
+   const originalStrength=edgeFloorLighting.stats().straightEdges02633Strength,
+    originalMaterial=deck.material,originalVisible=deck.visible,
+    originalTarget=renderer.getRenderTarget();
+   let mask=null;
+   const shot=value=>{
+    edgeFloorLighting.setComparison(value);neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   const raw=()=>{renderer.setRenderTarget(null);
+    renderer.render(scene,camera);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];};
+   try{
+    const off=shot(0),straightOnly=shot(1);
+    mask=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide,
+     toneMapped:false,fog:false});
+    deck.material=mask;deck.visible=true;const roadMask=raw();
+    deck.visible=false;const emptyMask=raw();
+    return {off,straightOnly,roadMask,emptyMask,trackS:flight?.s??null};
+   }finally{
+    deck.material=originalMaterial;deck.visible=originalVisible;
+    mask?.dispose();edgeFloorLighting.setComparison(originalStrength);
+    renderer.setRenderTarget(originalTarget);neonPipeline.render(0);
    }
   };
  // 0.26.3.2: same-frame low-edge/connected-band A/B with preserved ship.

@@ -41,6 +41,8 @@ jobs:
           node --check skyshift/cinematic-road-rebuild-v0263.mjs
           node --check skyshift/edge-lighting-floor-pools-v02631.mjs
           node --check skyshift/edge-source-floor-bands-v02632.mjs
+          node --check skyshift/straight-only-edge-lighting-v02633.mjs
+          node --check skyshift/browser-straight-only-edge-v02633.mjs
           node --check skyshift/browser-edge-source-floor-bands-v02632.mjs
           node --check skyshift/browser-edge-floor-v02631.mjs
           node --check skyshift/browser-cinematic-road-rebuild-v0263.mjs
@@ -71,6 +73,7 @@ jobs:
             node --test skyshift/cinematic-road-rebuild-v0263.test.mjs
             node --test skyshift/edge-lighting-floor-pools-v02631.test.mjs
             node --test skyshift/edge-source-floor-bands-v02632.test.mjs
+            node --test skyshift/straight-only-edge-lighting-v02633.test.mjs
           fi
 
   current-material-webgl:
@@ -183,4 +186,27 @@ jobs:
           path: |
             skyshift-v02632-*.png
             skyshift-v02632-proof.json
+          if-no-files-found: warn
+
+  straight-only-edge-webgl-02633:
+    name: SKYSHIFT 0.26.3.3 straight ONLY cyan / corner arrow dark, high + 4GB
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install real WebGL validation driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Check straight-only light geometry and zero curve GGX
+        run: node skyshift/browser-straight-only-edge-v02633.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02633-straight-only-curve-clearance
+          path: |
+            skyshift-v02633-*.png
+            skyshift-v02633-proof.json
           if-no-files-found: warn

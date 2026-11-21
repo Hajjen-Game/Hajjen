@@ -17,7 +17,7 @@ import {patchPhysicalWall0265}
 import {vaultCrossSection0270}
  from "./full-tunnel-circuit-v0270.mjs";
 import {widthAt} from "./trial-v0165.mjs";
-import {sharedPhysicalPreset0280} from "./shared-tunnel-architecture-v0280.mjs";
+import {sharedPhysicalPreset0280,SHARED_TUNNEL_ROUTES_0280} from "./shared-tunnel-architecture-v0280.mjs";
 import {patchVaultPremiumPhysical0274,patchVaultPremiumSource0274,
  patchVaultPremiumRail0274,vaultPremiumFinishAudit0274}
  from "./vault-premium-finish-v0274.mjs";
@@ -26,7 +26,8 @@ const PANEL="SKYLINE REAL-DEPTH HARDSURFACE_PANELS";
 const CONDUIT="SKYLINE SERVICE CONDUITS";
 const RAIL="Angular integrated aero-barrier body";
 const BODY="CYAN ROOF + AMBER WALL + LOWER RAIL SOURCES";
-const END=3400,ROOF_PITCH=27,ARCH_PITCH=42.5,RAIL_PITCH=24;
+const VAULT_ROUTE_0280=SHARED_TUNNEL_ROUTES_0280.vault.segments[0];
+const END=VAULT_ROUTE_0280.end,ROOF_PITCH=VAULT_ROUTE_0280.roofPitch,ARCH_PITCH=VAULT_ROUTE_0280.amberPitch,RAIL_PITCH=VAULT_ROUTE_0280.railPitch;
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const smooth=(a,b,x)=>{const v=clamp((x-a)/Math.max(.0001,b-a));return v*v*(3-2*v)};
 const fall=(d,w)=>Math.exp(-((d/w)**2));

@@ -28,7 +28,7 @@ export const FULL_TUNNEL_0270=Object.freeze({
 });
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const smooth=(a,b,x)=>{const t=clamp((x-a)/Math.max(1e-7,b-a),0,1);return t*t*(3-2*t);};
-const fall=(d,reach)=>Math.exp(-(d/reach)**2);
+const fall=(d,reach)=>Math.exp(-((d/reach)**2));
 const periodicDistance=(s,pitch,center)=>{
  const a=((s-center+pitch*.5)%pitch+pitch)%pitch-pitch*.5;
  return Math.abs(a);

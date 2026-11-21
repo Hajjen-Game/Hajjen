@@ -19,8 +19,8 @@ A new release-gated module, `edge-source-floor-bands-v02632.mjs`, replaces (not 
 
 ### Warm arch-foot connected band
 - Original 10 ribs × two sides = 20 practicals.
-- Every practical and its shoulder illumination share **one RGBA geometry and one material**. The foot is a ~2.3m longitudinal amber source, root following the original vault rib at x≈17.77m; the attached floor band extends ~12.4m along the original banked shoulder and 8.7m laterally.
-- Tapered longitudinal + lateral alpha with strong source ridge, continuous source-to-floor transition rather than two disconnected glows. No change to racing deck/rail/tunnel geometry or physics.
+- Every practical and its shoulder illumination share **one RGBA geometry and one material**. The foot is a ~3.0m longitudinal amber source, attached to the **visible outer rib foot (profile index 4, x≈24.45m)**. The floor ribbon reaches that SAME wall-floor root, then extends ~14.4m along the original banked shoulder and ~11.25m inward toward the original guardrail.
+- Tapered longitudinal + lateral alpha with a strong wall-root ridge, continuous source-to-floor transition rather than two disconnected glows. First Chromium capture showed the original index-2 attachment was still visibly inboard of the actual outer arch terminus, so root placement was corrected to profile index 4 before merge. No change to racing deck/rail/tunnel geometry or physics.
 - Total effect remains **two visual draw batches**: cyan lower insets, and warm integrated foot/floor bands. No extra dynamic lights, shadow maps, PMREM, SSR or image-based illumination.
 
 ## QA / release gates

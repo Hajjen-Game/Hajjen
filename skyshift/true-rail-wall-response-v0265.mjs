@@ -174,7 +174,7 @@ export function patchPhysicalWall0265(vertex,fragment,{role="panel",mobile=false
   "varying vec2 vLocalMask0261;","uniform float uFixtureTransport02643;"])
   if(!fragment.includes(k))throw Error("0.26.5 missing 0.26.1/0.26.4.3 wall GGX "+k);
  const mask=[
-  WALL,
+  "#include <metalnessmap_fragment>",
   "float r65Face=1.0-smoothstep(23.0,27.0,vPbrSection0260.y);",
   "float r65Side=smoothstep(12.5,19.6,abs(vPbrSection0260.x));",
   "float r65WallC=clamp(vLocalMask0261.x,0.0,1.0)*r65Face*r65Side;",
@@ -182,8 +182,10 @@ export function patchPhysicalWall0265(vertex,fragment,{role="panel",mobile=false
   "roughnessFactor=max(0.20,roughnessFactor-"+
    (mobile?"0.038":"0.085")+"*max(r65WallC,r65WallW)*uTrueRailWall0265);"
  ].join("\n");
+ // Outside the 0.26.2 roughness-atlas if-block, so GGX samples can
+ // read the wall masks later in lights_fragment_maps at every quality tier.
  let next=fragment.replace(COMMON,COMMON+"\nuniform float uTrueRailWall0265;")
-  .replace(WALL,mask);
+  .replace("#include <metalnessmap_fragment>",mask);
  next=next.replaceAll("RE_Direct(l261Cool,geometryPosition",
   "l261Cool.color*=mix(vec3(1.0),vec3("+
    (mobile?"1.20,1.25,1.28":"1.48,1.60,1.65")+

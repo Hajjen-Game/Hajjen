@@ -129,10 +129,12 @@ function oneSample(source,tangentOffset,weight,energy){
   "}"
  ].join("\n");
 }
-export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false}={}){
+export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false,
+ fullTunnel=false}={}){
+ const sourceAnchor=fullTunnel?"#include <lights_fragment_end>":SOLAR_ANCHOR;
  if(!vertex.includes(COMMON)||!vertex.includes(VPROJECT)||
   !fragment.includes(COMMON)||!fragment.includes(ROUGH)||
-  !fragment.includes(SOLAR_ANCHOR)||
+  !fragment.includes(sourceAnchor)||
   !fragment.includes("float guided =")||
   !fragment.includes("float padCoverage =")||
   !fragment.includes("float whiteCore=0.0")||
@@ -168,8 +170,8 @@ export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false}={})
  ].join("\n");
  const rough=[
   ROUGH,
-  "float r263Interior=uRoadRebuild0263*",
-  " (1.0-smoothstep(340.0,368.0,vTrackCoord.x));",
+  fullTunnel?"float r263Interior=uRoadRebuild0263;":
+   "float r263Interior=uRoadRebuild0263* (1.0-smoothstep(340.0,368.0,vTrackCoord.x));",
   "float r263Side=abs(vTrackCoord.y);",
   "float r263Grain=0.5+0.5*sin(vTrackCoord.x*0.31+vTrackCoord.y*0.27);",
   "float r263Rough=mix(0.39,0.32,",
@@ -182,7 +184,8 @@ export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false}={})
   "// Add only the original physically placed cyan and amber tunnel strips.",
   "if(uRoadRebuild0263>0.0001){",
   " vec2 r263Source=clamp(vRoadFixtureMasks0263,0.0,1.0)*uRoadRebuild0263;",
-  " float r263Tunnel=1.0-smoothstep(340.0,368.0,vTrackCoord.x);",
+  fullTunnel?" float r263Tunnel=1.0;":
+   " float r263Tunnel=1.0-smoothstep(340.0,368.0,vTrackCoord.x);",
   " float r263Guides=(1.0-0.91*clamp(guided,0.0,1.0))*",
   "  (1.0-0.88*clamp(padCoverage,0.0,1.0))*",
   "  (1.0-0.92*clamp(whiteCore,0.0,1.0));",
@@ -229,7 +232,7 @@ export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false}={})
    .replace(VPROJECT,VPROJECT+"\n"+vCode),
   fragmentShader:fragment.replace(COMMON,COMMON+"\n"+fDecl)
    .replace(ROUGH,rough)
-   .replace(SOLAR_ANCHOR,SOLAR_ANCHOR+"\n"+direct.join("\n"))
+   .replace(sourceAnchor,sourceAnchor+"\n"+direct.join("\n"))
  };
 }
 export function installCinematicRoadRebuildShader0263(material,uniform,opts){
@@ -247,7 +250,8 @@ export function installCinematicRoadRebuildShader0263(material,uniform,opts){
   shader.uniforms.uRoadRebuild0263=uniform;
  };
  material.customProgramCacheKey=function(){
-  return cache.call(this)+"-real-road-ggx-0263-"+(opts.mobile?"4gb":"high");
+  return cache.call(this)+"-real-road-ggx-0263-"+(opts.mobile?"4gb":"high")+
+   (opts.fullTunnel?"-shared-vault":"");
  };
  material.needsUpdate=true;
  return ()=>{material.onBeforeCompile=old;
@@ -329,3 +333,7 @@ export function createCinematicRoadReflectionRebuild0263(THREE,roadMesh,{
   return fallback("physical-road-install-failed");
  }
 }
+
+// Shared 0.28.2 source adapter uses the SAME original installed physical
+// positions and PBR reflection shader, but maps art-local 368m to Vault.
+export {fixturePosition as fixturePosition0263};

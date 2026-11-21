@@ -18,7 +18,11 @@ test("actual original Skyline 0.24.1 panel sculptor is imported, not imitated",(
  assert.equal(VAULT_ARCHITECTURE_0272.originalStructuralPortalPitchMeters,42.5);
  assert.equal(VAULT_ARCHITECTURE_0272.trackLengthMeters,3400);
  const source=read("./vault-architectural-parity-v0272.mjs");
- assert.match(source,/import \{buildStructuralTunnelData\}/);
+ // Vault now calls the SAME public Skyline sculptor entry point that
+ // Skyline uses, rather than duplicating the original 0.24.1 builder.
+ assert.match(source,/import \{buildSharedTunnelSection0280\}/);
+ const originalBuilder=read("./structural-tunnel-v0213.mjs");
+ assert.match(originalBuilder,/return buildStructuralTunnelData\(positionAt,/);
  assert.match(source,/depthStudy:true/);
  assert.match(source,/unifiedDepth:true,surfaceCraftsmanship:true/);
  assert.match(source,/profilePoint:vaultCrossSection0270/);
@@ -83,5 +87,5 @@ test("the 0.27.1 shared metal atlas and culling preserve previous batch and flig
   assert.equal(VAULT_ARCHITECTURE_0272[name],true,name);
  const old=read("./vault-material-parity-v0271.mjs");
  assert.match(old,/getMetalAtlas\(\)\{return atlas;\}/);
- assert.match(read("./index.html"),/(?:Architectural Geometry & Panel Parity · 0\.27\.2|Full Tunnel Lighting & Visual Parity · 0\.27\.3|Premium Tunnel Cohesion & Finish · 0\.27\.4)/);
+ assert.match(read("./index.html"),/(?:Architectural Geometry & Panel Parity · 0\.27\.2|Full Tunnel Lighting & Visual Parity · 0\.27\.3|Premium Tunnel Cohesion & Finish · 0\.27\.4|Shared Tunnel Architecture 1.0 · 0\.28\.0)/);
 });

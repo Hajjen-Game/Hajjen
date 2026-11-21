@@ -6,16 +6,17 @@
 // GGX metal/fixture library remains exclusive to Skyline until later port.
 // Metal is source-colored, dark, and solar-independent; lamps use HDR bloom.
 // 170m bounded segments: short camera-distance draw, mobile detail tier.
-import {TUNNEL_PROFILE_0211} from "./tunnel-megastructure-v0211.mjs";
+import {TUNNEL_PROFILE_0211,sampleSharedTunnelProfile0280} from "./tunnel-megastructure-v0211.mjs";
+import {SHARED_TUNNEL_STYLE_0280,SHARED_TUNNEL_ROUTES_0280} from "./shared-tunnel-architecture-v0280.mjs";
 import {FULL_TUNNEL_LAYOUT_0270} from "./full-tunnel-layout-v0270.mjs";
 
 export const FULL_TUNNEL_0270=Object.freeze({
  version:"0.27.0",name:"Neon Vault / continuous closed tunnel",
  track:"vault",start:0,end:3400,meters:3400,
- chunkMeters:170,chunkCount:20,
+ chunkMeters:SHARED_TUNNEL_STYLE_0280.geometry.defaultChunkMeters,chunkCount:20,
  highStepMeters:2.5,mobileStepMeters:4.25,
- ribPitchMeters:42.5,roofCyanPitchMeters:27,roofCyanLengthMeters:11,
- sideAmberPitchMeters:42.5,sideAmberLengthMeters:2.2,
+ ribPitchMeters:SHARED_TUNNEL_ROUTES_0280.vault.segments[0].portalPitch,roofCyanPitchMeters:SHARED_TUNNEL_ROUTES_0280.vault.segments[0].roofPitch,roofCyanLengthMeters:11,
+ sideAmberPitchMeters:SHARED_TUNNEL_ROUTES_0280.vault.segments[0].amberPitch,sideAmberLengthMeters:2.2,
  profile:TUNNEL_PROFILE_0211.length,
  geometryType:"banked swept dark titanium vault with real structural ribs",
  sourceStyle:"roof cyan + wall amber without outdoor key/hemisphere",
@@ -34,16 +35,17 @@ const periodicDistance=(s,pitch,center)=>{
  return Math.abs(a);
 };
 const baseProfile=TUNNEL_PROFILE_0211;
+const VAULT_SOURCES_0280=SHARED_TUNNEL_ROUTES_0280.vault.segments[0];
 const isFloor=(j)=>j<=3||j>=baseProfile.length-4;
 export function vaultCrossSection0270(i,s){
  if(i<0||i>=baseProfile.length||!Number.isFinite(s)||s<0||s>FULL_TUNNEL_0270.end)
   throw Error("0.27.0 cross-section outside authored tunnel");
- const [xx,yy]=baseProfile[i];
- const fold=smooth(0,1,yy>9?1:0);
- const roof=yy>9?9+(yy-9)*.82:yy;
- // Same proportional 0.21.1 compression and gentle 0.55m vault motion.
- const wave=.55*(.5-.5*Math.cos(2*Math.PI*s/620))*clamp((yy-4)/20,0,1);
- return [xx*(1+.015*clamp((yy-4)/20,0,1)*(.5-.5*Math.cos(2*Math.PI*s/620))),roof+wave];
+ // Exactly the Skyline original sample with a track-defined 620m
+ // phase. New tracks can provide other curve phases via the shared plan.
+ return sampleSharedTunnelProfile0280(i,s,{
+  start:SHARED_TUNNEL_ROUTES_0280.vault.segments[0].start,
+  period:SHARED_TUNNEL_ROUTES_0280.vault.segments[0].profilePeriod
+ });
 }
 function baseMetalColor(i,s){
  const [xx,yy]=vaultCrossSection0270(i,s);
@@ -101,8 +103,8 @@ function makeDetails(positionAt,a,b,lowMemory,architectureRelief=false){
  const ribs=createBatch(),emission=createBatch();
  // Original 0.21.1 curved portal profile, but at a globally deterministic
  // pitch through ALL 3400m. Fully integrated, no rectangular arch overlay.
- for(let k=Math.ceil(a/42.5);k*42.5<b-2.5;k++){
-  const s=k*42.5,end=Math.min(b,s+1.9);
+ for(let k=Math.ceil(a/VAULT_SOURCES_0280.portalPitch);k*VAULT_SOURCES_0280.portalPitch<b-2.5;k++){
+  const s=k*VAULT_SOURCES_0280.portalPitch,end=Math.min(b,s+1.9);
   for(let j=3;j<baseProfile.length-4;j++){
    const p0=surfacePoint(positionAt,s,j,.30),
     p1=surfacePoint(positionAt,s,j+1,.30),
@@ -130,8 +132,8 @@ function makeDetails(positionAt,a,b,lowMemory,architectureRelief=false){
  }
  // Two precision strips follow the C2-banked ROOF profile, not camera
  // billboard rays. Lights remain near their own 11m finite bays.
- for(let k=Math.floor(a/27)-1;k*27<b;k++){
-  const start=Math.max(a,k*27+6),end=Math.min(b,k*27+17);
+ for(let k=Math.floor(a/VAULT_SOURCES_0280.roofPitch)-1;k*VAULT_SOURCES_0280.roofPitch<b;k++){
+  const start=Math.max(a,k*VAULT_SOURCES_0280.roofPitch+6),end=Math.min(b,k*VAULT_SOURCES_0280.roofPitch+17);
   if(end-start<.06)continue;
   for(const side of [-1,1]){
    const j=side<0?13:baseProfile.length-14;
@@ -148,8 +150,8 @@ function makeDetails(positionAt,a,b,lowMemory,architectureRelief=false){
  }
  // Short lower cyan strips follow actual road geometry; no endless lines.
  // The original racing deck and original guardrails are NEVER modified.
- for(let k=Math.floor(a/24)-1;k*24<b;k++){
-  const start=Math.max(a,k*24+4.5),end=Math.min(b,k*24+11);
+ for(let k=Math.floor(a/VAULT_SOURCES_0280.railPitch)-1;k*VAULT_SOURCES_0280.railPitch<b;k++){
+  const start=Math.max(a,k*VAULT_SOURCES_0280.railPitch+4.5),end=Math.min(b,k*VAULT_SOURCES_0280.railPitch+11);
   if(end-start<.06)continue;
   for(const side of [-1,1]){
    const p=(ss,dx)=>positionAt(ss,side*(11.82+dx),.23);

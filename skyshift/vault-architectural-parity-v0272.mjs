@@ -4,15 +4,20 @@
 // existing C2 / banked cross-section: not a second imitation panel system.
 // The 0.27.1 0.26.2 atlas is shared, NOT duplicated. No new world lights,
 // camera/ship/road/rail/colliders, steering or GRIP changes.
-import {buildStructuralTunnelData}
+import {buildSharedTunnelSection0280}
  from "./structural-tunnel-v0213.mjs";
 import {vaultCrossSection0270}
  from "./full-tunnel-circuit-v0270.mjs";
 import {patchVaultMaterialShader0271}
  from "./vault-material-parity-v0271.mjs";
+import {makeTunnelPlan0280,SHARED_TUNNEL_STYLE_0280}
+ from "./shared-tunnel-architecture-v0280.mjs";
 
 const ROOT="SKYSHIFT · Neon Vault Full Tunnel 0.27.0";
-const ARC=3400,CHUNK=170,PITCH=42.5;
+const SHARED_PLAN=makeTunnelPlan0280({track:"vault"});
+const ARC=SHARED_PLAN.intervals[0].end;
+const CHUNK=SHARED_TUNNEL_STYLE_0280.geometry.defaultChunkMeters;
+const PITCH=SHARED_PLAN.intervals[0].portalPitch;
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const smooth=(a,b,x)=>{const q=clamp((x-a)/(b-a));return q*q*(3-2*q);};
 const periodic=(s,p)=>Math.abs(((s+p*.5)%p+p)%p-p*.5);
@@ -43,7 +48,9 @@ export const VAULT_ARCHITECTURE_0272=Object.freeze({
  noNewColliders:true,noDynamicLights:true,noNewRenderPasses:true,
  nativeGGXNotYetPorted:true
 });
-const portals=Object.freeze(Array.from({length:81},(_,i)=>i*PITCH));
+// Same per-track portal positions already used by the common architecture
+// plan; the original Skyline geometric sculptor performs both builds.
+const portals=SHARED_PLAN.intervals[0].portals;
 function colorize([s,x,y],color,glow,lowMemory){
  // The original sculptor's graphite/metal palette stays authoritative.
  // Reuse positions of the actual 0.27.0 short cyan/amber practicals,
@@ -66,13 +73,14 @@ export function buildVaultArchitectureData0272(positionAt,chunkIndex,{
  if(typeof positionAt!=="function"||
   !Number.isInteger(chunkIndex)||chunkIndex<0||chunkIndex>=20)
   throw Error("0.27.2 requires real C2 track sampler and 0–19 chunk");
- const from=chunkIndex*CHUNK,to=from+CHUNK;
- const result=buildStructuralTunnelData(positionAt,{
-  arcStart:from,arcEnd:to,
-  profilePoint:vaultCrossSection0270,
-  portals,lowMemory,flowCohesion:true,depthStudy:true,
+ const {start:from,end:to}=SHARED_PLAN.intervals[0].chunks[chunkIndex];
+ const result=buildSharedTunnelSection0280(positionAt,SHARED_PLAN,{
+  chunkIndex,lowMemory,profilePoint:vaultCrossSection0270,
+  flowCohesion:true,depthStudy:true,
   unifiedDepth:true,surfaceCraftsmanship:true,
-  panelStepMeters:lowMemory?5.5:3.8,
+  panelStepMeters:lowMemory?
+   SHARED_TUNNEL_STYLE_0280.geometry.panelStep4GBMeters:
+   SHARED_TUNNEL_STYLE_0280.geometry.panelStepHighMeters,
   colorize:(point,rgb,g)=>colorize(point,rgb,g,lowMemory)
  });
  for(const part of [result.primary,...(!lowMemory?[result.detail]:[])]){

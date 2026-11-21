@@ -63,6 +63,9 @@ jobs:
           node --check skyshift/browser-vault-lighting-v0273.mjs
           node --check skyshift/vault-premium-finish-v0274.mjs
           node --check skyshift/browser-vault-premium-finish-v0274.mjs
+          node --check skyshift/shared-tunnel-architecture-v0280.mjs
+          node --check skyshift/shared-tunnel-runtime-v0280.mjs
+          node --check skyshift/browser-shared-tunnel-v0280.mjs
           node --check skyshift/browser-fixture-transport-v02643.mjs
           node --check skyshift/browser-reflection-cohesion-v02642.mjs
           node --check skyshift/browser-unified-metal-v02641.mjs
@@ -85,6 +88,7 @@ jobs:
           node --test skyshift/vault-architectural-parity-v0272.test.mjs
           node --test skyshift/vault-full-lighting-v0273.test.mjs
           node --test skyshift/vault-premium-finish-v0274.test.mjs
+          node --test skyshift/shared-tunnel-architecture-v0280.test.mjs
 
   # The old 12-minute job ran NINE full Chromium/SwiftShader sessions
   # sequentially. On 2026-11-21 it completed 7/9 successfully, then
@@ -2323,4 +2327,27 @@ jobs:
           path: |
             skyshift-v0274-*.png
             skyshift-v0274-proof.json
+          if-no-files-found: warn
+
+  shared-tunnel-webgl-0280:
+    name: SKYSHIFT 0.28.0 shared Skyline/Vault/Aurora real High/4GB WebGL
+    needs: true-metal-v0260p2-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install true Chromium/WebGL shared route proof
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Verify shared original 0.26.5 source, full 3400m Vault, 4GB and Aurora no-tunnel
+        run: node skyshift/browser-shared-tunnel-v0280.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0280-shared-skyline-vault-audits
+          path: |
+            skyshift-v0280-*.png
+            skyshift-v0280-proof.json
           if-no-files-found: warn

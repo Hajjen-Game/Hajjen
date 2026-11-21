@@ -81,5 +81,5 @@
  },14000);
  // Use dynamic import so *module graph* failures also show actionable
  // feedback; static <script type=module> silently fails before try/catch.
- import("./game-v0210.mjs?v=0.26.5&rev=neon-vault-metal-0271-20261121").catch(fail);
+ import("./game-v0210.mjs?v=0.26.5&rev=vault-skyline-architecture-0272-20261121").catch(fail);
 })();

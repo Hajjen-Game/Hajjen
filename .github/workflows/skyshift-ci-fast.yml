@@ -43,6 +43,8 @@ jobs:
           node --check skyshift/edge-source-floor-bands-v02632.mjs
           node --check skyshift/straight-only-edge-lighting-v02633.mjs
           node --check skyshift/final-cohesion-v0264.mjs
+          node --check skyshift/unified-metal-light-response-v02641.mjs
+          node --check skyshift/browser-unified-metal-v02641.mjs
           node --check skyshift/browser-final-cohesion-v0264.mjs
           node --check skyshift/browser-straight-only-edge-v02633.mjs
           node --check skyshift/browser-edge-source-floor-bands-v02632.mjs
@@ -77,6 +79,7 @@ jobs:
             node --test skyshift/edge-source-floor-bands-v02632.test.mjs
             node --test skyshift/straight-only-edge-lighting-v02633.test.mjs
             node --test skyshift/final-cohesion-v0264.test.mjs
+            node --test skyshift/unified-metal-light-response-v02641.test.mjs
           fi
 
   current-material-webgl:
@@ -235,4 +238,27 @@ jobs:
           path: |
             skyshift-v0264-*.png
             skyshift-v0264-proof.json
+          if-no-files-found: warn
+
+  unified-metal-webgl-02641:
+    name: SKYSHIFT 0.26.4.1 real titanium graphite / local GGX light 8GB + 4GB
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install real Chromium graphics test driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Verify dark titanium, cyan/amber metal GGX and original white-core containment
+        run: node skyshift/browser-unified-metal-v02641.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02641-real-unified-metal-light-screenshots
+          path: |
+            skyshift-v02641-*.png
+            skyshift-v02641-proof.json
           if-no-files-found: warn

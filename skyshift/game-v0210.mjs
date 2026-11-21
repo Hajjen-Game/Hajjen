@@ -112,6 +112,8 @@ import {STRAIGHT_EDGE_02633,installStraightOnlyEdgeLighting02633}
  from "./straight-only-edge-lighting-v02633.mjs";
 import {FINAL_COHESION_0264,installFinalCohesion0264}
  from "./final-cohesion-v0264.mjs";
+import {UNIFIED_METAL_LIGHT_02641,installUnifiedMetalLighting02641}
+ from "./unified-metal-light-response-v02641.mjs";
 import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
  from "./cinematic-energy-v0216.mjs";
 import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
@@ -188,7 +190,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.26.4";
+).searchParams.get("v")||"0.26.4.1";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -385,6 +387,13 @@ const localReflectionsEnabled=trueMetalEnabled&&
 const premiumMetalEnabled=localReflectionsEnabled&&
  dualToneVersion[0]===0&&dualToneVersion[1]===26&&dualToneVersion[2]>=2&&
  new URLSearchParams(location.search).get("premiumMetal")!=="classic";
+// 0.26.4.1: only after final HDR polish and actual premium metal. Historical
+// 0.26.4 and ?unifiedLight=classic remain exact previous pixel output.
+const unifiedLightResponseEnabled=finalCohesionEnabled&&premiumMetalEnabled&&
+ roadReflectionRelease[0]===0&&roadReflectionRelease[1]===26&&
+ (roadReflectionRelease[2]>4||
+ (roadReflectionRelease[2]===4&&(roadReflectionRelease[3]??0)>=1))&&
+ new URLSearchParams(location.search).get("unifiedLight")!=="classic";
 const unifiedTunnelLightingEnabled=tunnelMegaEnabled&&exteriorSealEnabled&&
  new URLSearchParams(location.search).get("unifiedLighting")!=="classic";
 // 0.22.0 Pass 3: additive postprocess; Pass 1 and Pass 2 links unchanged.
@@ -476,7 +485,7 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,gripHeld:fa
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
-let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
+let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,unifiedMetalLight=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
@@ -1106,6 +1115,12 @@ function initScene(){
   track:TRACK_ID_0160,lowMemory:limitedMemory,positionAt,
   roadMaterial:exteriorSealEnabled?premiumSurface?.material:null,
   vaultHeightClassic:new URLSearchParams(location.search).get("vaultHeight")==="classic"
+ });
+ // 0.26.4.1: darken original sealed titanium substrates and calibrate the
+ // actual near-light GGX sources on the unchanged physical panels/ribs.
+ // This happens after the original 0.26.2 material chain has installed.
+ unifiedMetalLight=installUnifiedMetalLighting02641(THREE,world,stationWorld,{
+  enabled:unifiedLightResponseEnabled,lowMemory:limitedMemory
  });
  // Existing rail paint now reduces its overbright white glare solely inside
  // the sealed tunnel. No collider, input, or global bloom pass changes.
@@ -1984,6 +1999,38 @@ function initScene(){
      boost:previous.cinematicBoost,playing:true});
     stationWorld.setMotionComparison(previous.cinematicComparison);
    }
+  };
+ // 0.26.4.1: true native WebGL material A/B with exactly the original
+ // ship, wave, corner arrows, camera, local lights and HDR pass retained.
+ if(new URLSearchParams(location.search).get("unifiedLightSmoke")==="1")
+  window.__skyshiftUnifiedLightProbe=()=>({
+   requested:unifiedLightResponseEnabled,
+   ...(unifiedMetalLight?.stats?.()??{}),
+   premiumMetal:stationWorld?.stats?.().premiumMetal0262Enabled??false,
+   localGGX:stationWorld?.stats?.().localReflections0261Enabled??false,
+   finalHDR:finalCohesion?.stats?.().finalCohesion0264Active??false,
+   straightOnly:edgeFloorLighting?.stats?.().straightEdges02633Active??false,
+   amberBands:edgeFloorLighting?.stats?.().straightEdges02633AmberBands??0,
+   roadSolarSeal:roadSolarSpill?.stats?.().seal??null,
+   premiumRoadSeal:premiumRoadSurface?.stats?.().seal??null,
+   originalRoad:cinematicRoadRebuild?.stats?.().roadRebuild0263Active??false,
+   nativeWave:Boolean(premiumSurface?.setWaveState),
+   originalShip:Boolean(ship),
+   renderPasses:neonPipeline?.composer?.passes?.length??null,
+   originalExposure:renderer?.toneMappingExposure
+  });
+ if(new URLSearchParams(location.search).get("unifiedLightFrameProof")==="1")
+  window.__skyshiftUnifiedLightFrameProof=()=>{
+   if(!unifiedMetalLight?.active||!neonPipeline?.render)
+    throw Error("0.26.4.1 native metal-light frame comparison unavailable");
+   const saved=unifiedMetalLight.stats().unifiedMetal02641Strength,
+    target=renderer.getRenderTarget();
+   const shot=v=>{unifiedMetalLight.setComparison(v);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];};
+   try{return {classic:shot(0),balanced:shot(1),trackS:flight?.s??null};}
+   finally{unifiedMetalLight.setComparison(saved);
+    renderer.setRenderTarget(target);neonPipeline.render(0);}
   };
  // 0.26.4: true same-camera HDR optical A/B (previous 0.26.3.3).
  if(new URLSearchParams(location.search).get("finalCohesionSmoke")==="1")

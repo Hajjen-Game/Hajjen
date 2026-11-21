@@ -1459,7 +1459,8 @@ function initScene(){
     return {index:module.moduleIndex,globalS,localSigned,roadSigned,
      delta:Math.abs(localSigned-roadSigned)};
    });
-   return {track:TRACK_ID_0160,release:sharedWaveParityEnabled?"0.28.5":"legacy",
+   return {...VAULT_WAVE_PARITY_0285,
+    track:TRACK_ID_0160,release:sharedWaveParityEnabled?"0.28.5":"legacy",
     enabled:sharedWaveParityEnabled,
     modules,tunnelPatches:t?.sharedWave0285?.patchedMaterials??0,
     originalSharedRendererActive:!!trueSharedVault?.active,
@@ -1468,8 +1469,7 @@ function initScene(){
     playerStage:zoneWave.playerStage,checks,
     physicsUntouched:true,gripUntouched:true,
     boostUntouched:true,roadGeometryUntouched:true,
-    pmremUntouched:true,addedLights:0,
-    ...VAULT_WAVE_PARITY_0285
+    pmremUntouched:true,addedLights:0
    };
   };
   window.__skyshiftVaultWaveParitySetFront=(front)=>{

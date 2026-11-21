@@ -48,6 +48,8 @@ jobs:
           node --check skyshift/final-cohesion-v0264.mjs
           node --check skyshift/unified-metal-light-response-v02641.mjs
           node --check skyshift/reflection-cohesion-v02642.mjs
+          node --check skyshift/unified-fixture-transport-v02643.mjs
+          node --check skyshift/browser-fixture-transport-v02643.mjs
           node --check skyshift/browser-reflection-cohesion-v02642.mjs
           node --check skyshift/browser-unified-metal-v02641.mjs
           node --check skyshift/browser-final-cohesion-v0264.mjs
@@ -60,6 +62,7 @@ jobs:
           node --test skyshift/final-cohesion-v0264.test.mjs
           node --test skyshift/unified-metal-light-response-v02641.test.mjs
           node --test skyshift/reflection-cohesion-v02642.test.mjs
+          node --test skyshift/unified-fixture-transport-v02643.test.mjs
 
   # The old 12-minute job ran NINE full Chromium/SwiftShader sessions
   # sequentially. On 2026-11-21 it completed 7/9 successfully, then
@@ -2137,4 +2140,27 @@ jobs:
           path: |
             skyshift-v02642-*.png
             skyshift-v02642-proof.json
+          if-no-files-found: warn
+
+  fixture-transport-webgl-02643:
+    name: SKYSHIFT 0.26.4.3 REAL cyan-amber fixture transport user-marked ROI high/4GB
+    needs: true-metal-v0260p2-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install real Chromium/WebGL picture validator
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Compare user red fixture regions against roof/road control in real Gold/Violet game
+        run: node skyshift/browser-fixture-transport-v02643.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02643-fixture-transport-high-4gb-real-png
+          path: |
+            skyshift-v02643-*.png
+            skyshift-v02643-proof.json
           if-no-files-found: warn

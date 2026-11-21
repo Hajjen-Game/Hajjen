@@ -161,7 +161,7 @@ test("game cache key exposes 0.26.3.1 and new same-camera GPU proof",()=>{
  const game=read("./game-v0210.mjs"),index=read("./index.html"),
   boot=read("./boot-v0210.js");
  assert.match(boot,/game-v0210\.mjs\?v=0\.26\.(?:3\.[123]|4)/);
- assert.match(index,/Edge Lighting & Floor Pools|Connected Floor Light Bands|Lighting, Glow & Final Cohesion|Unified Light Response & Dark Titanium Rebalance|Reflection Cohesion & Premium Surface Finish/);
+ assert.match(index,/Edge Lighting & Floor Pools|Connected Floor Light Bands|Lighting, Glow & Final Cohesion|Unified Light Response & Dark Titanium Rebalance|Reflection Cohesion & Premium Surface Finish|Unified Fixture Light Transport & Surface Response/);
  assert.match(game,/edgeFloorEnabled=roadRebuildEnabled/);
  assert.ok(game.includes('get("edgeFloor")!=="classic"'));
  assert.match(game,/__skyshiftEdgeFloorProbe/);

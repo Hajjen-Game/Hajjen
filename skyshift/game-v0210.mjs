@@ -220,6 +220,15 @@ const sharedTunnelEnabled=
  new URLSearchParams(location.search).get("sharedTunnel")!=="classic"&&
  (!new URLSearchParams(location.search).has("v")||
   sharedTunnelVersionActive0280(new URLSearchParams(location.search).get("v")));
+// 0.28.1: Vault installs the ORIGINAL Skyline full renderer, not its
+// parallel 0.27.x copy. Legacy remains opt-in for pixel comparison.
+const trueSharedQueryVersion=(new URLSearchParams(location.search).get("v")||"0.28.0")
+ .split(".").map(Number);
+const trueSharedVaultEnabled=isVault()&&sharedTunnelEnabled&&
+ trueSharedQueryVersion[0]===0&&
+ (trueSharedQueryVersion[1]>28||
+  (trueSharedQueryVersion[1]===28&&trueSharedQueryVersion[2]>=1))&&
+ new URLSearchParams(location.search).get("trueSharedRenderer")!=="classic";
 const fullTunnelFoundationEnabled=isVault()&&
  new URLSearchParams(location.search).get("fullTunnel")!=="classic";
 const vaultMaterialParityEnabled=fullTunnelFoundationEnabled&&
@@ -1144,6 +1153,11 @@ function initScene(){
   track:TRACK_ID_0160,positionAt,lowMemory:limitedMemory,
   trackLength:CIRCUIT.lapLength,enabled:sharedTunnelEnabled
  });
+ // Reinstall the SAME Skyline source pipeline over the independent
+ // Vault spline. Its 0.27.x pipeline only runs on explicit classic/fallback.
+ const trueSharedVault=sharedTunnelRuntime.installTrueShared({
+  enabled:trueSharedVaultEnabled
+ });
  const sharedLayers=sharedTunnelRuntime.installVault({
   foundationEnabled:fullTunnelFoundationEnabled,
   materialEnabled:vaultMaterialParityEnabled,
@@ -1337,6 +1351,7 @@ function initScene(){
    originalRoadMaterial:premiumSurface?.material?.type??null,
    originalShip:Boolean(ship),originalGrip:Boolean(UI.grip),
    originalCourseMeters:CIRCUIT.lapLength,
+   actualOriginalSourceActive:!!trueSharedVault?.active,
    centralSource:TUNNEL_SHARED_ARCHITECTURE_0280
   });
  // 0.27.4: finish-only, same-frame A/B without altering 0.27.3.
@@ -2980,6 +2995,7 @@ function resetFlight(){
  tunnelInside=false;tunnelEntries=0;tunnelExits=0;
  tunnelSeconds=0;tunnelMaxIntensity=0;
  zoneWave=newZoneWaveState();stationWorld?.updateWave?.(zoneWave);
+ sharedTunnelRuntime?.updateWave?.(zoneWave);
  premiumSurface?.setWaveState(zoneWave);
  identitySurface?.setWaveState(zoneWave);
  scene?.background?.copy(themes[0].skyColor);
@@ -3488,6 +3504,7 @@ function integrate(dt){
 function updatePalette(dt){
  // Tunnel walls, roof, every ring and bounce read the same world-space front.
  stationWorld?.updateWave?.(zoneWave);
+ sharedTunnelRuntime?.updateWave?.(zoneWave);
  premiumSurface?.setWaveState(zoneWave);
  identitySurface?.setWaveState(zoneWave);
  // The atmosphere follows the physical front spatially, not the HUD switch.
@@ -4551,6 +4568,7 @@ function installWaveSmokeHook(){
   premiumSurface?.setWaveState(zoneWave);
   identitySurface?.setWaveState(zoneWave);
   stationWorld?.updateWave?.(zoneWave);
+ sharedTunnelRuntime?.updateWave?.(zoneWave);
   refreshHud();
   return {zone:zoneWave.playerStage+1,flightSeconds:flight.elapsed,
    playerS:flight.s,frontS:zoneWave.fronts[0],
@@ -4689,7 +4707,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.0":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.1":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

@@ -302,13 +302,6 @@ const finalCohesionEnabled=straightEdgesEnabled&&
  roadReflectionRelease[0]===0&&roadReflectionRelease[1]===26&&
  roadReflectionRelease[2]>=4&&
  new URLSearchParams(location.search).get("finalCohesion")!=="classic";
-// 0.26.4.1: only after final HDR polish and actual premium metal. Historical
-// 0.26.4 and ?unifiedLight=classic remain exact previous pixel output.
-const unifiedLightResponseEnabled=finalCohesionEnabled&&premiumMetalEnabled&&
- roadReflectionRelease[0]===0&&roadReflectionRelease[1]===26&&
- (roadReflectionRelease[2]>4||
- (roadReflectionRelease[2]===4&&(roadReflectionRelease[3]??0)>=1))&&
- new URLSearchParams(location.search).get("unifiedLight")!=="classic";
 // 0.21.6: speed-reactive ENERGY in existing tunnel neon, never an extra clock.
 const cinematicMotionEnabled=integratedNeonFlowEnabled&&premiumRoadEnabled&&
  new URLSearchParams(location.search).get("cinematicMotion")!=="classic"&&
@@ -394,6 +387,13 @@ const localReflectionsEnabled=trueMetalEnabled&&
 const premiumMetalEnabled=localReflectionsEnabled&&
  dualToneVersion[0]===0&&dualToneVersion[1]===26&&dualToneVersion[2]>=2&&
  new URLSearchParams(location.search).get("premiumMetal")!=="classic";
+// 0.26.4.1: only after final HDR polish and actual premium metal. Historical
+// 0.26.4 and ?unifiedLight=classic remain exact previous pixel output.
+const unifiedLightResponseEnabled=finalCohesionEnabled&&premiumMetalEnabled&&
+ roadReflectionRelease[0]===0&&roadReflectionRelease[1]===26&&
+ (roadReflectionRelease[2]>4||
+ (roadReflectionRelease[2]===4&&(roadReflectionRelease[3]??0)>=1))&&
+ new URLSearchParams(location.search).get("unifiedLight")!=="classic";
 const unifiedTunnelLightingEnabled=tunnelMegaEnabled&&exteriorSealEnabled&&
  new URLSearchParams(location.search).get("unifiedLighting")!=="classic";
 // 0.22.0 Pass 3: additive postprocess; Pass 1 and Pass 2 links unchanged.

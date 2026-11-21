@@ -22,7 +22,8 @@ const src=p=>readFileSync(new URL(p,import.meta.url),"utf8");
 const near=(a,b,eps=1e-7)=>assert.ok(Math.abs(a-b)<eps,
  "expected "+a+" ≈ "+b);
 test("two independent track choices exist; Aurora truly selected",()=>{
- assert.equal(selection.TRACKS_0160.length,2);
+ assert.equal(selection.TRACKS_0160.length,3);
+ assert.equal(selection.parseTrackId("?track=vault"),"vault");
  assert.equal(selection.ACTIVE_TRACK_0160.id,"aurora");
  assert.equal(selection.parseTrackId("?track=skyline"),"skyline");
  assert.equal(selection.parseTrackId("?track=aurora"),"aurora");

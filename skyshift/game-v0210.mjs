@@ -89,7 +89,7 @@ import {VAULT_ARCHITECTURE_0272,installVaultArchitectureParity0272}
 import {VAULT_LIGHTING_0273,installVaultFullLighting0273}
  from "./vault-full-lighting-v0273.mjs";
 import {VAULT_PREMIUM_FINISH_0274} from "./vault-premium-finish-v0274.mjs";
-import {TUNNEL_SHARED_ARCHITECTURE_0280,tunnelReleaseAtLeast0280}
+import {TUNNEL_SHARED_ARCHITECTURE_0280,tunnelReleaseAtLeast0280,sharedTunnelVersionActive0280}
  from "./shared-tunnel-architecture-v0280.mjs";
 import {createSharedTunnelRuntime0280}
  from "./shared-tunnel-runtime-v0280.mjs";
@@ -219,7 +219,7 @@ const envEnabled=!isVault()&&new URLSearchParams(location.search).get("env")!=="
 const sharedTunnelEnabled=
  new URLSearchParams(location.search).get("sharedTunnel")!=="classic"&&
  (!new URLSearchParams(location.search).has("v")||
-  /^0\.28\./.test(new URLSearchParams(location.search).get("v")||""));
+  sharedTunnelVersionActive0280(new URLSearchParams(location.search).get("v")));
 const fullTunnelFoundationEnabled=isVault()&&
  new URLSearchParams(location.search).get("fullTunnel")!=="classic";
 const vaultMaterialParityEnabled=fullTunnelFoundationEnabled&&

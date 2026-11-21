@@ -30,7 +30,7 @@ export const FOOT_BAND_NAME_02642=
 const clamp=(x)=>Math.max(0,Math.min(1,Number.isFinite(x)?x:0));
 const COMMON="#include <common>";
 const ROUGH_METAL=" roughnessFactor=mix(roughnessFactor,m262R,uPremiumMetal0262);";
-const ROUGH_ROAD=" roughnessFactor=mix(roughnessFactor,r263Rough,r263Interior);";
+const ROUGH_ROAD="roughnessFactor=mix(roughnessFactor,r263Rough,r263Interior);";
 const COLOR="#include <color_fragment>";
 const number=(v)=>Number(v).toFixed(3);
 // Compiled shaders already include 0.26.0 PBR fixtures, 0.26.1 finite

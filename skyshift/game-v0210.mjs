@@ -106,6 +106,8 @@ import {ROAD_REBUILD_0263,createCinematicRoadReflectionRebuild0263}
  from "./cinematic-road-rebuild-v0263.mjs";
 import {EDGE_FLOOR_02631,installEdgeLightingFloorPools02631}
  from "./edge-lighting-floor-pools-v02631.mjs";
+import {EDGE_SOURCE_02632,installRepositionedEdgeAndConnectedFoot02632}
+ from "./edge-source-floor-bands-v02632.mjs";
 import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
  from "./cinematic-energy-v0216.mjs";
 import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
@@ -182,7 +184,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.26.3.1";
+).searchParams.get("v")||"0.26.3.2";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -275,6 +277,11 @@ const edgeFloorEnabled=roadRebuildEnabled&&
  (roadReflectionRelease[2]>3||
  (roadReflectionRelease[2]===3&&(roadReflectionRelease[3]??0)>=1))&&
  new URLSearchParams(location.search).get("edgeFloor")!=="classic";
+// 0.26.3.2: short ground-level cyan and single connected warm floor bands.
+const edgeSourceRebuildEnabled=edgeFloorEnabled&&
+ roadReflectionRelease[0]===0&&roadReflectionRelease[1]===26&&
+ roadReflectionRelease[2]===3&&(roadReflectionRelease[3]??0)>=2&&
+ new URLSearchParams(location.search).get("edgeSources")!=="classic";
 // 0.21.6: speed-reactive ENERGY in existing tunnel neon, never an extra clock.
 const cinematicMotionEnabled=integratedNeonFlowEnabled&&premiumRoadEnabled&&
  new URLSearchParams(location.search).get("cinematicMotion")!=="classic"&&
@@ -1120,7 +1127,8 @@ function initScene(){
  // Subtle visible cyan inset rails and arch-foot amber floor pools, with
  // original indexed racing deck and road GGX left unmodified in classic mode.
  edgeFloorLighting=edgeFloorEnabled?
-  installEdgeLightingFloorPools02631(THREE,world,
+  (edgeSourceRebuildEnabled?installRepositionedEdgeAndConnectedFoot02632:
+   installEdgeLightingFloorPools02631)(THREE,world,
    world.getObjectByName("Zone Ribbon · integrated PBR racing deck"),{
     positionAt,lowMemory:limitedMemory,
     vaultHeightClassic:new URLSearchParams(location.search)
@@ -1950,6 +1958,50 @@ function initScene(){
      phaseMeters:previous.cinematicPhaseMeters,
      boost:previous.cinematicBoost,playing:true});
     stationWorld.setMotionComparison(previous.cinematicComparison);
+   }
+  };
+ // 0.26.3.2: same-frame low-edge/connected-band A/B with preserved ship.
+ if(new URLSearchParams(location.search).get("edgeSourceSmoke")==="1")
+  window.__skyshiftEdgeSourceProbe=()=>({
+   requested:edgeSourceRebuildEnabled,
+   ...(edgeFloorLighting?.stats?.()??{}),
+   roadRebuild:cinematicRoadRebuild?.stats?.().roadRebuild0263Active??false,
+   solarSeal:roadSolarSpill?.stats?.().seal??null,
+   premiumRoadSeal:premiumRoadSurface?.stats?.().seal??null,
+   originalRail:Boolean(identitySurface),originalShip:Boolean(ship),
+   nativeWave:Boolean(premiumSurface?.setWaveState),
+   roadMaterial:premiumSurface?.material?.type??null
+  });
+ if(new URLSearchParams(location.search).get("edgeSourceFrameProof")==="1")
+  window.__skyshiftEdgeSourceFrameProof=()=>{
+   if(!edgeSourceRebuildEnabled||
+    !edgeFloorLighting?.stats?.().edgeSources02632Active||!neonPipeline?.render)
+    throw Error("0.26.3.2 real road/floor WebGL A/B unavailable");
+   const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
+   if(!deck)throw Error("0.26.3.2 original deck missing");
+   const originalStrength=edgeFloorLighting.stats().edgeSources02632Strength,
+    originalMaterial=deck.material,originalVisible=deck.visible,
+    originalTarget=renderer.getRenderTarget();
+   let mask=null;
+   const draw=value=>{
+    edgeFloorLighting.setComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   const raw=()=>{renderer.setRenderTarget(null);
+    renderer.render(scene,camera);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];};
+   try{
+    const classic=draw(0),repositioned=draw(1);
+    mask=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide,
+     toneMapped:false,fog:false});
+    deck.material=mask;deck.visible=true;const roadMask=raw();
+    deck.visible=false;const emptyMask=raw();
+    return {classic,repositioned,roadMask,emptyMask,trackS:flight?.s??null};
+   }finally{
+    deck.material=originalMaterial;deck.visible=originalVisible;
+    mask?.dispose();edgeFloorLighting.setComparison(originalStrength);
+    renderer.setRenderTarget(originalTarget);neonPipeline.render(0);
    }
   };
  // 0.26.3.1: same-frame actual WebGL A/B, preserve 0.26.3 and its wave.

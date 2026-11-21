@@ -102,7 +102,7 @@ test("rail shader restores bounded native GGX ONLY after legacy white-sun seal",
   assert.equal(p.vertexShader.includes("aRailSourceB0265"),!mobile);
   assert.match(p.fragmentShader,/roughnessFactor=mix\(roughnessFactor,0\.98/);
  }
- assert.throws(()=>patchRailBody0265(vert,rail.replace("railBodyTunnelMask()","BAD")));
+ assert.throws(()=>patchRailBody0265(vert,rail.replace("roughnessFactor=mix(roughnessFactor,0.98,railBodyTunnelMask());","BAD")));
 });
 test("wall retains existing 0.26.1 BRDF taps and hard-roof height cutout",()=>{
  for(const mobile of [false,true]){

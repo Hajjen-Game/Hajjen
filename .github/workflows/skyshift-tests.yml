@@ -47,6 +47,8 @@ jobs:
           node --check skyshift/straight-only-edge-lighting-v02633.mjs
           node --check skyshift/final-cohesion-v0264.mjs
           node --check skyshift/unified-metal-light-response-v02641.mjs
+          node --check skyshift/reflection-cohesion-v02642.mjs
+          node --check skyshift/browser-reflection-cohesion-v02642.mjs
           node --check skyshift/browser-unified-metal-v02641.mjs
           node --check skyshift/browser-final-cohesion-v0264.mjs
           node --check skyshift/browser-straight-only-edge-v02633.mjs
@@ -57,6 +59,7 @@ jobs:
           node --test skyshift/straight-only-edge-lighting-v02633.test.mjs
           node --test skyshift/final-cohesion-v0264.test.mjs
           node --test skyshift/unified-metal-light-response-v02641.test.mjs
+          node --test skyshift/reflection-cohesion-v02642.test.mjs
 
   # The old 12-minute job ran NINE full Chromium/SwiftShader sessions
   # sequentially. On 2026-11-21 it completed 7/9 successfully, then
@@ -2112,3 +2115,26 @@ jobs:
             skyshift-v0210-hero-*.png
             skyshift-v0210-before-*.png
             skyshift-v0210-mobile-*.png
+
+  reflection-finish-webgl-02642:
+    name: SKYSHIFT 0.26.4.2 premium PBR reflections and amber-falloff real WebGL high/4GB
+    needs: true-metal-v0260p2-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install real WebGL Chromium test driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Prove physical titanium/road highlight shape and connected warm light A-B
+        run: node skyshift/browser-reflection-cohesion-v02642.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02642-high-4gb-actual-reflection-screenshots
+          path: |
+            skyshift-v02642-*.png
+            skyshift-v02642-proof.json
+          if-no-files-found: warn

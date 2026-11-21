@@ -114,6 +114,8 @@ import {FINAL_COHESION_0264,installFinalCohesion0264}
  from "./final-cohesion-v0264.mjs";
 import {UNIFIED_METAL_LIGHT_02641,installUnifiedMetalLighting02641}
  from "./unified-metal-light-response-v02641.mjs";
+import {REFLECTION_FINISH_02642,installPremiumReflectionFinish02642}
+ from "./reflection-cohesion-v02642.mjs";
 import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
  from "./cinematic-energy-v0216.mjs";
 import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
@@ -190,7 +192,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.26.4.1";
+).searchParams.get("v")||"0.26.4.2";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -394,6 +396,13 @@ const unifiedLightResponseEnabled=finalCohesionEnabled&&premiumMetalEnabled&&
  (roadReflectionRelease[2]>4||
  (roadReflectionRelease[2]===4&&(roadReflectionRelease[3]??0)>=1))&&
  new URLSearchParams(location.search).get("unifiedLight")!=="classic";
+// 0.26.4.2 polishing is a bounded OPTICAL layer on top of actual 0.26.4.1
+// metal and straight-only edge geometry; no changes to flight or exposure.
+const reflectionFinishEnabled=unifiedLightResponseEnabled&&
+ roadReflectionRelease[0]===0&&roadReflectionRelease[1]===26&&
+ (roadReflectionRelease[2]>4||
+  (roadReflectionRelease[2]===4&&(roadReflectionRelease[3]??0)>=2))&&
+ new URLSearchParams(location.search).get("reflectionFinish")!=="classic";
 const unifiedTunnelLightingEnabled=tunnelMegaEnabled&&exteriorSealEnabled&&
  new URLSearchParams(location.search).get("unifiedLighting")!=="classic";
 // 0.22.0 Pass 3: additive postprocess; Pass 1 and Pass 2 links unchanged.
@@ -485,7 +494,7 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,gripHeld:fa
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
-let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,unifiedMetalLight=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
+let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,unifiedMetalLight=null,premiumReflectionFinish=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
@@ -1199,6 +1208,14 @@ function initScene(){
   enabled:finalCohesionEnabled,lowMemory:limitedMemory
  });
  finalCohesion.resize?.(innerWidth,innerHeight,neonPipeline.internalPixelRatio);
+ // 0.26.4.2: uses original PBR coats, indexed GGX road and the EXISTING
+ // connected amber geometry, after the physical light and HDR pipeline.
+ premiumReflectionFinish=installPremiumReflectionFinish02642(
+  THREE,world,world.getObjectByName("Zone Ribbon · integrated PBR racing deck"),{
+   enabled:reflectionFinishEnabled,lowMemory:limitedMemory,
+   metalState:unifiedMetalLight,roadRebuild:cinematicRoadRebuild,
+   straightEdges:edgeFloorLighting,finalCohesion
+  });
  if(perfSettings.enabled){
   if(perfSettings.preset==="no-bloom")neonPipeline.bloom.enabled=false;
   if(perfSettings.preset==="no-smaa")neonPipeline.smaa.enabled=false;
@@ -1999,6 +2016,37 @@ function initScene(){
      boost:previous.cinematicBoost,playing:true});
     stationWorld.setMotionComparison(previous.cinematicComparison);
    }
+  };
+ // 0.26.4.2: native WebGL same-frame material, road and amber falloff
+ // proof. ?reflectionFinish=classic restores exact 0.26.4.1.
+ if(new URLSearchParams(location.search).get("reflectionFinishSmoke")==="1")
+  window.__skyshiftReflectionFinishProbe=()=>({
+   requested:reflectionFinishEnabled,
+   ...(premiumReflectionFinish?.stats?.()??{}),
+   sourceMetal:unifiedMetalLight?.stats?.().unifiedMetal02641Active??false,
+   roadGGX:cinematicRoadRebuild?.stats?.().roadRebuild0263Active??false,
+   straightOnly:edgeFloorLighting?.stats?.().straightEdges02633Active??false,
+   amberBands:edgeFloorLighting?.stats?.().straightEdges02633AmberBands??0,
+   finalHDR:finalCohesion?.stats?.().finalCohesion0264Active??false,
+   whiteSeal:roadSolarSpill?.stats?.().seal??null,
+   premiumRoadSeal:premiumRoadSurface?.stats?.().seal??null,
+   originalRoadType:premiumSurface?.material?.type??null,
+   originalShip:Boolean(ship),nativeWave:Boolean(premiumSurface?.setWaveState),
+   originalExposure:renderer?.toneMappingExposure
+  });
+ if(new URLSearchParams(location.search).get("reflectionFinishFrameProof")==="1")
+  window.__skyshiftReflectionFinishFrameProof=()=>{
+   if(!premiumReflectionFinish?.active||!neonPipeline?.render)
+    throw Error("0.26.4.2 real WebGL optical comparison unavailable");
+   const old=premiumReflectionFinish.stats().reflectionFinish02642Strength;
+   const prevTarget=renderer.getRenderTarget();
+   const draw=value=>{
+    premiumReflectionFinish.setComparison(value);neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:draw(0),refined:draw(1),trackS:flight?.s??null};}
+   finally{premiumReflectionFinish.setComparison(old);
+    renderer.setRenderTarget(prevTarget);neonPipeline.render(0);}
   };
  // 0.26.4.1: true native WebGL material A/B with exactly the original
  // ship, wave, corner arrows, camera, local lights and HDR pass retained.

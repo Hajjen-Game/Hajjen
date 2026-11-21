@@ -155,6 +155,6 @@ test("v0.26.4.1 inherits 0.26.4 HDR and 0.26.3.3 straight-only lighting",()=>{
  assert.ok(game.includes('get("unifiedLight")!=="classic"'));
  assert.match(game,/__skyshiftUnifiedLightFrameProof/);
  assert.match(game,/createRoadSolarSpillController/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.4\.1/);
- assert.match(read("./index.html"),/Unified Light Response & Dark Titanium Rebalance/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.4\.[12]/);
+ assert.match(read("./index.html"),/Unified Light Response & Dark Titanium Rebalance|Reflection Cohesion & Premium Surface Finish/);
 });

@@ -35,6 +35,7 @@ const periodicDistance=(s,pitch,center)=>{
  return Math.abs(a);
 };
 const baseProfile=TUNNEL_PROFILE_0211;
+const VAULT_SOURCES_0280=SHARED_TUNNEL_ROUTES_0280.vault.segments[0];
 const isFloor=(j)=>j<=3||j>=baseProfile.length-4;
 export function vaultCrossSection0270(i,s){
  if(i<0||i>=baseProfile.length||!Number.isFinite(s)||s<0||s>FULL_TUNNEL_0270.end)
@@ -102,8 +103,8 @@ function makeDetails(positionAt,a,b,lowMemory,architectureRelief=false){
  const ribs=createBatch(),emission=createBatch();
  // Original 0.21.1 curved portal profile, but at a globally deterministic
  // pitch through ALL 3400m. Fully integrated, no rectangular arch overlay.
- for(let k=Math.ceil(a/42.5);k*42.5<b-2.5;k++){
-  const s=k*42.5,end=Math.min(b,s+1.9);
+ for(let k=Math.ceil(a/VAULT_SOURCES_0280.portalPitch);k*VAULT_SOURCES_0280.portalPitch<b-2.5;k++){
+  const s=k*VAULT_SOURCES_0280.portalPitch,end=Math.min(b,s+1.9);
   for(let j=3;j<baseProfile.length-4;j++){
    const p0=surfacePoint(positionAt,s,j,.30),
     p1=surfacePoint(positionAt,s,j+1,.30),
@@ -131,8 +132,8 @@ function makeDetails(positionAt,a,b,lowMemory,architectureRelief=false){
  }
  // Two precision strips follow the C2-banked ROOF profile, not camera
  // billboard rays. Lights remain near their own 11m finite bays.
- for(let k=Math.floor(a/27)-1;k*27<b;k++){
-  const start=Math.max(a,k*27+6),end=Math.min(b,k*27+17);
+ for(let k=Math.floor(a/VAULT_SOURCES_0280.roofPitch)-1;k*VAULT_SOURCES_0280.roofPitch<b;k++){
+  const start=Math.max(a,k*VAULT_SOURCES_0280.roofPitch+6),end=Math.min(b,k*VAULT_SOURCES_0280.roofPitch+17);
   if(end-start<.06)continue;
   for(const side of [-1,1]){
    const j=side<0?13:baseProfile.length-14;
@@ -149,8 +150,8 @@ function makeDetails(positionAt,a,b,lowMemory,architectureRelief=false){
  }
  // Short lower cyan strips follow actual road geometry; no endless lines.
  // The original racing deck and original guardrails are NEVER modified.
- for(let k=Math.floor(a/24)-1;k*24<b;k++){
-  const start=Math.max(a,k*24+4.5),end=Math.min(b,k*24+11);
+ for(let k=Math.floor(a/VAULT_SOURCES_0280.railPitch)-1;k*VAULT_SOURCES_0280.railPitch<b;k++){
+  const start=Math.max(a,k*VAULT_SOURCES_0280.railPitch+4.5),end=Math.min(b,k*VAULT_SOURCES_0280.railPitch+11);
   if(end-start<.06)continue;
   for(const side of [-1,1]){
    const p=(ss,dx)=>positionAt(ss,side*(11.82+dx),.23);

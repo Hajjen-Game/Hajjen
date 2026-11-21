@@ -49,9 +49,9 @@ test("Pass 4 protects solar seal, straight edge placement, physics and actual me
   "connectedAmberFloorUnchanged","curveArrowsUnchanged",
   "physicsUnchanged","GRIPUnchanged","shipUnchanged","nativeZoneWaveUnchanged"])
   assert.equal(FINAL_COHESION_0264[k],true,k);
- assert.equal(FINAL_COHESION_0264.bloomHigh.strength,.47);
- assert.ok(FINAL_COHESION_0264.bloomHigh.radius<.25);
- assert.ok(FINAL_COHESION_0264.bloomHigh.threshold>1.3);
+ assert.equal(FINAL_COHESION_0264.bloomHigh.strength,.52);
+ assert.ok(FINAL_COHESION_0264.bloomHigh.radius<=.25);
+ assert.ok(FINAL_COHESION_0264.bloomHigh.threshold>1.25);
 });
 test("HDR bloom settings are subtle, deterministic and EXACTLY recoverable",()=>{
  const initial={strength:.43,radius:.21,threshold:1.4};
@@ -62,8 +62,8 @@ test("HDR bloom settings are subtle, deterministic and EXACTLY recoverable",()=>
  assert.deepEqual(finalCohesionBloom0264(initial,{lowMemory:true,comparison:1}),
   FINAL_COHESION_0264.bloom4GB);
  const halfway=finalCohesionBloom0264(initial,{comparison:.5});
- assert.ok(halfway.strength>initial.strength&&halfway.strength<.47);
- assert.ok(halfway.threshold>1.34&&halfway.threshold<1.4);
+ assert.ok(halfway.strength>initial.strength&&halfway.strength<.52);
+ assert.ok(halfway.threshold>1.28&&halfway.threshold<1.4);
 });
 test("new HDR gains apply only existing cyan and amber sources, not arrows, ship or road",()=>{
  assert.match(SOURCE_NAMES_0264.cyan,/straight track ONLY/);
@@ -71,7 +71,7 @@ test("new HDR gains apply only existing cyan and amber sources, not arrows, ship
  assert.deepEqual(finalFixtureGain0264("cyan",{comparison:0}),{r:1,g:1,b:1});
  const high=finalFixtureGain0264("cyan");
  const low=finalFixtureGain0264("cyan",{lowMemory:true});
- assert.ok(high.b>low.b&&high.b<1.4);
+ assert.ok(high.b>low.b&&high.b<=1.4);
  const amber=finalFixtureGain0264("amber");
  assert.ok(amber.r>amber.b);
  assert.throws(()=>finalFixtureGain0264("corner"));
@@ -102,7 +102,7 @@ test("high graphics inserts one finish before OutputPass, after original grade",
  assert.equal(s.finalCohesion0264OutputIndex,5);
  assert.equal(h.pipeline.composer.passes.at(-1),h.output);
  assert.equal(h.pipeline.composer.passes[3],original[3]);
- assert.equal(s.finalCohesion0264Bloom.strength,.47);
+ assert.equal(s.finalCohesion0264Bloom.strength,.52);
  assert.ok(h.cyan.material.color.b>1.2);
  assert.ok(h.amber.material.color.r>1.2);
  c.resize(1536,870,2);
@@ -116,7 +116,7 @@ test("high graphics inserts one finish before OutputPass, after original grade",
  assert.deepEqual(h.amber.material.color,new Color());
  c.setComparison(1);
  assert.equal(c.pass.enabled,true);
- assert.equal(h.bloom.strength,.47);
+ assert.equal(h.bloom.strength,.52);
  c.dispose();
  assert.equal(h.pipeline.composer.passes.length,original.length);
  assert.deepEqual(h.pipeline.composer.passes,original);

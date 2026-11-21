@@ -93,6 +93,8 @@ import {TUNNEL_SHARED_ARCHITECTURE_0280,tunnelReleaseAtLeast0280,sharedTunnelVer
  from "./shared-tunnel-architecture-v0280.mjs";
 import {createSharedTunnelRuntime0280}
  from "./shared-tunnel-runtime-v0280.mjs";
+import {SHARED_LIGHT_0282,installSharedRoadReflections0282,
+ installSharedShipLight0282} from "./shared-road-ship-light-v0282.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
  from "./full-tunnel-light-seal-v0270.mjs";
 import {NEON_INTERIOR_0212,installNeonDrivenInterior}
@@ -229,6 +231,17 @@ const trueSharedVaultEnabled=isVault()&&sharedTunnelEnabled&&
  (trueSharedQueryVersion[1]>28||
   (trueSharedQueryVersion[1]===28&&trueSharedQueryVersion[2]>=1))&&
  new URLSearchParams(location.search).get("trueSharedRenderer")!=="classic";
+// Vault-only 0.28.2 gate; 0.28.1 & Skyline retain their original artwork.
+const sharedOpticsVersion=(new URLSearchParams(location.search)
+ .get("v")||"0.28.1").split(".").map(Number);
+const sharedOpticsEnabled=trueSharedVaultEnabled&&
+ sharedOpticsVersion[0]===0&&
+ (sharedOpticsVersion[1]>28||
+  (sharedOpticsVersion[1]===28&&sharedOpticsVersion[2]>=2));
+const sharedRoadLightEnabled=sharedOpticsEnabled&&
+ new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
+const sharedShipLightEnabled=sharedOpticsEnabled&&
+ new URLSearchParams(location.search).get("sharedShipLight")!=="classic";
 const fullTunnelFoundationEnabled=isVault()&&
  new URLSearchParams(location.search).get("fullTunnel")!=="classic";
 const vaultMaterialParityEnabled=fullTunnelFoundationEnabled&&
@@ -559,6 +572,7 @@ let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,unifiedMetalLight=null,premiumReflectionFinish=null,fixtureTransport=null,trueRailWall=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
 let fullTunnelCircuit=null,vaultMaterialParity=null,vaultArchitecture=null,vaultFullLighting=null,sharedTunnelRuntime=null;
+let sharedRoadLight=null,sharedShipLight=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
  edgeFloorLighting=null;
@@ -867,6 +881,7 @@ function makeShip(id=fleetProgress.selected){
  // Bind PBR ship hull, including fleet swaps, to a visual-only light trim.
  whiteCoreContainment?.attachShip(ship);
  shipWhiteSpill?.attachShip(ship);
+ sharedShipLight?.attachShip(ship);
  premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan);
  reactiveWingFlaps=installReactiveWingFlaps(THREE,ship,{variant:id});
  livingWake=createLivingWakeFX(THREE,scene,ship,{variant:id,
@@ -890,6 +905,7 @@ function makeShip(id=fleetProgress.selected){
   if(activeCraft===craft){
    whiteCoreContainment?.attachShip(ship);
    shipWhiteSpill?.attachShip(ship);
+   sharedShipLight?.attachShip(ship);
   }
   if(activeCraft===craft&&id==="stingray"&&uiState.mode==="hangar")
    refreshHangar();
@@ -1240,6 +1256,12 @@ function initScene(){
   ship
  }):null;
  shipWhiteSpill=shipWhiteSpillEnabled?createShipWhiteSpillController(THREE,ship):null;
+ // 0.28.2: finite-source local color on existing physical ship, no key light.
+ sharedShipLight=installSharedShipLight0282(THREE,{
+  enabled:sharedShipLightEnabled,positionAt,
+  trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory
+ });
+ sharedShipLight.attachShip(ship);
  // Existing road-only shader; preserve rail, ship, local neon and wave emission.
  roadSolarSpill=roadSolarEnabled?createRoadSolarSpillController(premiumSurface.material):null;
  // Chain after the white-core and road solar seal PBR modifications.
@@ -1259,6 +1281,12 @@ function initScene(){
      .get("vaultHeight")==="classic",
     legacy:cinematicRoadReflections
    }):null;
+ // 0.28.2: reuse actual Skyline 0.26.3 GGX native material on the
+ // unmodified Vault deck, real source positions over the entire 3400m.
+ sharedRoadLight=installSharedRoadReflections0282(THREE,world,{
+  enabled:sharedRoadLightEnabled,positionAt,
+  trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory
+ });
  // Subtle visible cyan inset rails and arch-foot amber floor pools, with
  // original indexed racing deck and road GGX left unmodified in classic mode.
  edgeFloorLighting=edgeFloorEnabled?
@@ -1352,8 +1380,40 @@ function initScene(){
    originalShip:Boolean(ship),originalGrip:Boolean(UI.grip),
    originalCourseMeters:CIRCUIT.lapLength,
    actualOriginalSourceActive:!!trueSharedVault?.active,
+   sharedRoadReflections0282:sharedRoadLight?.stats?.()??null,
+   sharedShipLighting0282:sharedShipLight?.stats?.()??null,
    centralSource:TUNNEL_SHARED_ARCHITECTURE_0280
   });
+ // QA-only real GPU A/B on identical camera frames, no flight changes.
+ if(new URLSearchParams(location.search).get("sharedOpticsSmoke")==="1"){
+  window.__skyshiftSharedOpticsAudit=()=>({
+   track:TRACK_ID_0160,release:"0.28.2",
+   requested:sharedOpticsEnabled,
+   road:sharedRoadLight?.stats?.()??null,
+   ship:sharedShipLight?.stats?.()??null,
+   originalSourceActive:!!trueSharedVault?.active,
+   originalRoad:premiumSurface?.material?.type??null,
+   originalShip:Boolean(ship),originalGrip:Boolean(UI.grip),
+   trackLength:CIRCUIT.lapLength,physicsUnchanged:true,
+   whiteWorldLightsAdded:0
+  });
+  window.__skyshiftSharedOpticsFrameProof=(roadStrength=1,shipStrength=1)=>{
+   if(!neonPipeline?.render||!sharedRoadLight?.active||
+    !sharedShipLight?.active)throw Error("0.28.2 original road/ship absent");
+   const roadPrev=sharedRoadLight.stats().strength,
+    shipPrev=sharedShipLight.stats().strength;
+   const render=(r,h)=>{
+    sharedRoadLight.setComparison(r);sharedShipLight.setComparison(h);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:render(0,0),road:render(1,0),
+    ship:render(0,1),both:render(roadStrength,shipStrength),
+    s:flight?.s??null,track:TRACK_ID_0160};}
+   finally{sharedRoadLight.setComparison(roadPrev);
+    sharedShipLight.setComparison(shipPrev);}
+  };
+ }
  // 0.27.4: finish-only, same-frame A/B without altering 0.27.3.
  if(new URLSearchParams(location.search).get("vaultFinishSmoke")==="1")
   window.__skyshiftVaultFinishProbe=()=>({
@@ -2897,6 +2957,10 @@ function initScene(){
  UI.trackPicker.value=TRACK_ID_0160;
  UI.trackName.textContent=ACTIVE_TRACK_0160.name;
  UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · "+SKYSHIFT_BUILD_VERSION;
+ // Original Skyline boot version remains 0.26.5; show VAULT's actual
+ // independent release in the HUD, never misleading 0.26.5.
+ if(isVault()&&sharedOpticsEnabled)
+  UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+" · 0.28.2";
  UI.trackTagline.textContent=isVault()?
   "CONTINUOUS 3D TUNNEL · FAST C2 CORNERS · THREE LAPS.":isAurora()?
   "WIDE SWITCHBACKS · ROLLING HILLS · THREE FAST LAPS.":
@@ -3764,6 +3828,7 @@ function loop(now){
      interpolatePose(previousRenderPose,currentRenderPose,frameBlend,interpolatedRenderPose):flight;
    whiteCoreContainment?.update(view.s,uiState.mode==="playing");
    shipWhiteSpill?.update(view.s,targetAccent,uiState.mode==="playing");
+   sharedShipLight?.update(view.s);
    // Flight motion sees the same interpolated 120Hz simulation pose as FX.
    // Ship bank, signature effects, preview and kinetic camera share
    // stable read-only signals. All original springs and handling are kept.
@@ -4707,7 +4772,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.1":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.2":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

@@ -6,6 +6,7 @@
 import {TUNNEL_MEGA_0211,TUNNEL_PROFILE_0211,TUNNEL_PORTALS_0211,
  tunnelProfilePoint0211} from "./tunnel-megastructure-v0211.mjs";
 import {installExteriorLightSeal} from "./tunnel-exterior-seal-v02122.mjs";
+import {SHARED_TUNNEL_STYLE_0280} from "./shared-tunnel-architecture-v0280.mjs";
 import {createTunnelSpectrumUniforms,updateTunnelSpectrumUniforms,
  bindTunnelSpectrumMaterial} from "./tunnel-spectrum-v02121.mjs";
 
@@ -37,13 +38,12 @@ const COLORS=Object.freeze({
 // 0.21.4 opt-in art direction. Recessive graphite and longer panel bays
 // let a handful of continuous neon flows define the tunnel at speed.
 // The classic 0.21.3 mesh is untouched unless explicitly requested.
-const FLOW_COLORS=Object.freeze({
- panel:makeRGB(0x142638),panelAlt:makeRGB(0x102031),
- roof:makeRGB(0x192b3d),roofAlt:makeRGB(0x112132),
- lip:makeRGB(0x253d50),shadow:makeRGB(0x06111c),
- brace:makeRGB(0x213749),braceShadow:makeRGB(0x091521),
- conduit:makeRGB(0x264153),groove:makeRGB(0x091828)
-});
+// The one global Skyline-sourced premium panel palette. Vault and any
+// declared future tunnel use exactly these same authoring colors.
+const FLOW_COLORS=Object.freeze(Object.fromEntries(
+ Object.entries(SHARED_TUNNEL_STYLE_0280.panels.palette)
+  .map(([name,hex])=>[name,makeRGB(hex)])
+));
 const empty=()=>({positions:[],colors:[],trackS:[],glowWeight:[],materialProfile:[],localSection:[],triangles:0});
 const mix=(a,b,t)=>a+(b-a)*t;
 
@@ -107,8 +107,8 @@ function keptSpans(from,to,options={}){
  }
  return intervals.filter(([a,b])=>b-a>2.25);
 }
-const WALL=[5,6,7,8,9,10,19,20,21,22,23,24];
-const ROOF=[12,13,14,15,16,17,18];
+const WALL=SHARED_TUNNEL_STYLE_0280.panels.wallFacets;
+const ROOF=SHARED_TUNNEL_STYLE_0280.panels.roofFacets;
 // 0.23.1 true-relief insert: genuine layered cross-section facets, not a
 // painted border. Original vaulted profile and roof/road clearance enforced.
 function makeDepthStudyPlate(target,positionAt,options,s0,s1,j,swatch,colors,{unifiedDepth=false,lowMemory=false,surfaceCraftsmanship=false}={}){
@@ -228,11 +228,13 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
  const options={vaultHeightClassic,arcStart,arcEnd,profilePoint,portals,panelStepMeters,colorize};
  const colors=flowCohesion?FLOW_COLORS:COLORS;
  const primary=empty(),detail=empty();
- const walls=lowMemory?[5,7,9,20,22,24]:WALL;
- const roof=lowMemory?[12,14,16,18]:ROOF;
+ const walls=lowMemory?SHARED_TUNNEL_STYLE_0280.panels.mobileWallFacets:WALL;
+ const roof=lowMemory?SHARED_TUNNEL_STYLE_0280.panels.mobileRoofFacets:ROOF;
  let plates=0,arches=0;
- const bayPitch=flowCohesion?22:STRUCTURAL_TUNNEL_0213.bayPitch;
- const baySpan=flowCohesion?20.8:12.8;
+ const bayPitch=flowCohesion?
+  SHARED_TUNNEL_STYLE_0280.geometry.panelBayMeters:STRUCTURAL_TUNNEL_0213.bayPitch;
+ const baySpan=flowCohesion?
+  SHARED_TUNNEL_STYLE_0280.geometry.panelSpanMeters:12.8;
  // Keep the global 22m panel cadence continuous across 170m Vault chunks.
  // The original Skyline starts at exactly bay zero.
  for(let bay=Math.max(0,Math.floor((arcStart-.8-baySpan)/bayPitch)),s=.8+bay*bayPitch;

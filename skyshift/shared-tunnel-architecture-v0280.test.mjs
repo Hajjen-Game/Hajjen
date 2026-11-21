@@ -147,6 +147,6 @@ test("race engine, GRIP and roads are not involved in the new shared visual pipe
  assert.match(g,/sharedTunnelRuntime\.installSkyline\(/);
  assert.match(g,/__skyshiftSharedTunnelAudit/);
  assert.match(g,/tunnelReleaseAtLeast0280/);
- assert.match(g,/selected==="vault"\?"0\.28\.[0123]"/);
+ assert.match(g,/selected==="vault"\?"0\.28\.[01234]"/);
  assert.match(read("./shared-tunnel-runtime-v0280.mjs"),/originalPhysicsUntouched:true/);
 });

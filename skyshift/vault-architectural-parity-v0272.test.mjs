@@ -87,5 +87,5 @@ test("the 0.27.1 shared metal atlas and culling preserve previous batch and flig
   assert.equal(VAULT_ARCHITECTURE_0272[name],true,name);
  const old=read("./vault-material-parity-v0271.mjs");
  assert.match(old,/getMetalAtlas\(\)\{return atlas;\}/);
- assert.match(read("./index.html"),/(?:Architectural Geometry & Panel Parity · 0\.27\.2|Full Tunnel Lighting & Visual Parity · 0\.27\.3|Premium Tunnel Cohesion & Finish · 0\.27\.4|Shared Tunnel Architecture 1.0 · 0\.28\.0|True Shared Tunnel Renderer · 0\.28\.1|Shared Road Reflections & Ship Light Response · 0\.28\.2|Vault Main Boost Glow & Risk Lane Cleanup · 0\.28\.3)/);
+ assert.match(read("./index.html"),/(?:Architectural Geometry & Panel Parity · 0\.27\.2|Full Tunnel Lighting & Visual Parity · 0\.27\.3|Premium Tunnel Cohesion & Finish · 0\.27\.4|Shared Tunnel Architecture 1.0 · 0\.28\.0|True Shared Tunnel Renderer · 0\.28\.1|Shared Road Reflections & Ship Light Response · 0\.28\.2|Vault Main Boost Glow & Risk Lane Cleanup · 0\.28\.3|PMREM Reflection Pipeline 1.0 · 0\.28\.4)/);
 });

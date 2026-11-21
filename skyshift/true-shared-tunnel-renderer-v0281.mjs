@@ -5,6 +5,8 @@
 // positionAt adapter. Road, rails, ship, GRIP and flight data are untouched.
 import {installPremiumMetalSurfaceLibrary}
  from "./premium-metal-surface-v0262.mjs";
+import {vaultSpatialWaveEnabled0285,installVaultSpatialWaveModule0285}
+ from "./vault-spatial-wave-parity-v0285.mjs";
 import {installUnifiedMetalLighting02641}
  from "./unified-metal-light-response-v02641.mjs";
 import {wrapFinishShader02642}
@@ -142,6 +144,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  const root=new THREE.Group();
  root.name="SKYSHIFT · TRUE shared Skyline tunnel 0.28.1";
  const installed=[];
+ const spatialWave0285=vaultSpatialWaveEnabled0285();
  // The original Skyline renderer owns EVERY panel, rib, bay, cove and
  // source-local metallic shader. Do not call the 0.27.x Vault pipeline here.
  try{
@@ -155,7 +158,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    // actual PBR deck or coupling its physics/collision geometry.
    const roadFacade=new THREE.MeshStandardMaterial({color:0x050914});
    const item={source:null,section,module,metal:null,finish:null,
-    roadFacade};
+    wave:null,roadFacade};
    installed.push(item);
    const source=installPremiumMetalSurfaceLibrary(THREE,section,{
     track:"skyline",positionAt:adaptSourcePosition0281(positionAt,module),
@@ -179,10 +182,15 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
     throw Error("source unified metallic response failed in section "+module.index);
    item.finish=finishOriginalSourceMaterials0281(THREE,section,
     lowMemory,adaptSourcePosition0281(positionAt,module));
+   // Only on 0.28.5: remap authored local source wave to world arc.
+   item.wave=installVaultSpatialWaveModule0285(THREE,section,module,{
+    trackLength,enabled:spatialWave0285
+   });
   }
   world.add(root);
  }catch(error){
   for(const item of installed.reverse()){
+   item.wave?.dispose?.();
    item.finish?.dispose?.();
    item.metal?.dispose?.();
    item.source?.dispose?.();
@@ -210,6 +218,14 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
     x.source.stats?.().trueMetal0260P2NativeGGX).length,
    commonResponseModules:installed.filter(x=>x.metal.active).length,
    authentic0265WallModules:installed.filter(x=>x.finish?.active).length,
+   sharedWave0285:{
+    active:spatialWave0285,
+    sourceModules:installed.filter(x=>x.wave?.active).length,
+    patchedMaterials:installed.reduce((n,x)=>n+(x.wave?.materials||0),0),
+    modules:spatialWave0285?installed.map(x=>x.wave?.stats?.()):[],
+    exactSource:"zone-wave-v060 global front",circuitMeters:trackLength,
+    localFixtureShadersPreserved:true
+   },
    originalAmberFootBands:installed.reduce((n,x)=>n+(x.finish?.footBands||0),0),
    originalShortCyanInlays:installed.reduce((n,x)=>n+(x.finish?.lowEdgeSegments||0),0),
    originalTrackUntouched:true,originalPhysicsUntouched:true,
@@ -219,6 +235,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   dispose(){
    if(disposed)return;disposed=true;
    for(const item of installed.reverse()){
+    item.wave?.dispose?.();
     item.finish?.dispose?.();item.metal?.dispose?.();
     item.source?.dispose?.();
     item.roadFacade?.dispose?.();

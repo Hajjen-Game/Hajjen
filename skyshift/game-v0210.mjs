@@ -82,6 +82,8 @@ import {TUNNEL_MEGA_0211,installTunnelMegastructure}
  from "./tunnel-megastructure-v0211.mjs";
 import {FULL_TUNNEL_0270,installFullTunnelCircuit0270}
  from "./full-tunnel-circuit-v0270.mjs";
+import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
+ from "./full-tunnel-light-seal-v0270.mjs";
 import {NEON_INTERIOR_0212,installNeonDrivenInterior}
  from "./neon-interior-v0212.mjs";
 import {installNeonDrivenInterior as installClassicNeonInterior}
@@ -837,7 +839,12 @@ function makeShip(id=fleetProgress.selected){
  if(spaceBackdrop)
   tunnelBlackout=(unifiedTunnelLightingEnabled?
     createUnifiedTunnelLightingController:createTunnelBlackoutController)({
-    worldLights,camera,bladeTips});
+    worldLights,camera,bladeTips,
+  // The original 760m Shadow Tunnel light curve must NOT leak into
+  // the 3400m Neon Vault. Reuse the native PBR sun-containment controller
+  // with a sealed interior level at EVERY track coordinate instead.
+  ...(isVault()?{levelsAt:vaultLightLevels0270}:{})
+ });
  if(!shadowMesh)shadowMesh=createContactShadow(THREE,scene);
  UI.jump.classList.add("hidden");
  // A scene-art preview only; 120Hz flight/camera/GRIP remain unchanged.
@@ -1288,6 +1295,9 @@ function initScene(){
    originalShip:Boolean(ship),noJump:GAPS.length===0,
    originalGripAvailable:Boolean(UI.grip),
    worldChildren:world?.children?.length??0,
+    vaultGlobalLightSeal:isVault()?VAULT_LIGHT_SEAL_0270:null,
+    ambientScale:tunnelBlackout?.levels?.ambient??null,
+    sunKeyScale:tunnelBlackout?.levels?.key??null,
     cameraDistanceToPilotMeters:camera&&flight?
      +Math.hypot(camera.position.x-flight.worldX,
       camera.position.z-flight.worldZ).toFixed(2):null
@@ -3919,6 +3929,7 @@ function exportAudit(){
       compareBeforeLocalReflections:"?localReflections=classic",
        fullTunnelFoundationEnabled,
        fullTunnelProfile:isVault()?FULL_TUNNEL_0270:null,
+       vaultLightSealProfile:isVault()?VAULT_LIGHT_SEAL_0270:null,
        fullTunnelAudit:fullTunnelCircuit?.stats?.()??null,
        fullTunnelComparison:"?fullTunnel=classic",
       railWallResponseEnabled,

@@ -42,6 +42,8 @@ jobs:
           node --check skyshift/edge-lighting-floor-pools-v02631.mjs
           node --check skyshift/edge-source-floor-bands-v02632.mjs
           node --check skyshift/straight-only-edge-lighting-v02633.mjs
+          node --check skyshift/final-cohesion-v0264.mjs
+          node --check skyshift/browser-final-cohesion-v0264.mjs
           node --check skyshift/browser-straight-only-edge-v02633.mjs
           node --check skyshift/browser-edge-source-floor-bands-v02632.mjs
           node --check skyshift/browser-edge-floor-v02631.mjs
@@ -74,6 +76,7 @@ jobs:
             node --test skyshift/edge-lighting-floor-pools-v02631.test.mjs
             node --test skyshift/edge-source-floor-bands-v02632.test.mjs
             node --test skyshift/straight-only-edge-lighting-v02633.test.mjs
+            node --test skyshift/final-cohesion-v0264.test.mjs
           fi
 
   current-material-webgl:
@@ -209,4 +212,27 @@ jobs:
           path: |
             skyshift-v02633-*.png
             skyshift-v02633-proof.json
+          if-no-files-found: warn
+
+  final-cohesion-webgl-0264:
+    name: SKYSHIFT 0.26.4 HDR bloom, graphite and local neon REAL WebGL high/4GB
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install real Chromium and PNG pixel proof
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Final Pass 4 native HDR/metal/road A-B in Gold, Violet and 4GB
+        run: node skyshift/browser-final-cohesion-v0264.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0264-final-cohesion-real-screenshots
+          path: |
+            skyshift-v0264-*.png
+            skyshift-v0264-proof.json
           if-no-files-found: warn

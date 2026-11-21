@@ -153,5 +153,5 @@ test("game defaults to straight-only after 0.26.3.2, classic remains selectable"
  assert.match(game,/installRepositionedEdgeAndConnectedFoot02632/);
  assert.match(game,/__skyshiftStraightEdgeFrameProof/);
  assert.match(game,/createRoadSolarSpillController/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.3\.3/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.(?:3\.3|4)/);
 });

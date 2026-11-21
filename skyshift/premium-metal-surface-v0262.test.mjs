@@ -90,8 +90,8 @@ test("game boot selects 0.26.2 without changing older pipeline or driving",()=>{
  assert.match(game,/premiumMetal=classic/);
  assert.match(game,/createUnifiedTunnelLightingController/);
  assert.match(game,/createRoadSolarSpillController/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.[23]/);
- assert.match(read("./index.html"),/Cinematic Road Reflection Rebuild/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.[234]/);
+ assert.match(read("./index.html"),/Cinematic Road Reflection Rebuild|Lighting, Glow & Final Cohesion/);
 });
 
 test("packed atlas also defines the visible ORIGINAL solar-sealed graphite panels",()=>{

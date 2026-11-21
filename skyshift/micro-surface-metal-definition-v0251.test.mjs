@@ -102,6 +102,6 @@ test("game boots current 0.25.1; native 0.25.0 remains exact A/B",()=>{
  assert.match(game,/__skyshiftMicroMetalFrameProof/);
  assert.match(game,/compareBeforeMicroMetal:"\?microMetal=classic"/);
  assert.match(game,/const roadMask=directRoadMask\(\)/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.[0123]/);
- assert.match(read("./index.html"),/SKYSHIFT.*0\.26\.[0123]/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.[01234]/);
+ assert.match(read("./index.html"),/SKYSHIFT.*0\.26\.[01234]/);
 });

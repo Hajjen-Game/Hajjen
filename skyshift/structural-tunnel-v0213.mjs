@@ -225,7 +225,7 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
  if(typeof positionAt!=="function")
   throw Error("0.21.3 requires the original positionAt curve sampler");
  if(!Number.isFinite(arcStart)||!Number.isFinite(arcEnd)||arcStart<0||
-  arcEnd>3400||arcEnd<=arcStart)throw Error("bad reusable architecture arc");
+  arcEnd>200000||arcEnd<=arcStart)throw Error("bad reusable architecture arc");
  const options={vaultHeightClassic,arcStart,arcEnd,profilePoint,portals,panelStepMeters,colorize};
  const colors=flowCohesion?FLOW_COLORS:COLORS;
  const primary=empty(),detail=empty();

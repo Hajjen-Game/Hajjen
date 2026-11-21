@@ -149,6 +149,6 @@ test("live 0.26.4.2 release only after 0.26.4.1 and clean classic comparison",()
  assert.match(game,/installPremiumReflectionFinish02642/);
  assert.match(game,/installStraightOnlyEdgeLighting02633/);
  assert.match(game,/__skyshiftReflectionFinishFrameProof/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.4\.[23]/);
- assert.match(read("./index.html"),/Reflection Cohesion & Premium Surface Finish|Unified Fixture Light Transport & Surface Response/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.(?:4\.[23]|5)/);
+ assert.match(read("./index.html"),/Reflection Cohesion & Premium Surface Finish|Unified Fixture Light Transport & Surface Response|True Rail & Wall Local Light Response/);
 });

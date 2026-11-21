@@ -49,6 +49,8 @@ jobs:
           node --check skyshift/unified-metal-light-response-v02641.mjs
           node --check skyshift/reflection-cohesion-v02642.mjs
           node --check skyshift/unified-fixture-transport-v02643.mjs
+          node --check skyshift/true-rail-wall-response-v0265.mjs
+          node --check skyshift/browser-rail-wall-v0265.mjs
           node --check skyshift/browser-fixture-transport-v02643.mjs
           node --check skyshift/browser-reflection-cohesion-v02642.mjs
           node --check skyshift/browser-unified-metal-v02641.mjs
@@ -63,6 +65,7 @@ jobs:
           node --test skyshift/unified-metal-light-response-v02641.test.mjs
           node --test skyshift/reflection-cohesion-v02642.test.mjs
           node --test skyshift/unified-fixture-transport-v02643.test.mjs
+          node --test skyshift/true-rail-wall-response-v0265.test.mjs
 
   # The old 12-minute job ran NINE full Chromium/SwiftShader sessions
   # sequentially. On 2026-11-21 it completed 7/9 successfully, then
@@ -2163,4 +2166,27 @@ jobs:
           path: |
             skyshift-v02643-*.png
             skyshift-v02643-proof.json
+          if-no-files-found: warn
+
+  true-rail-wall-webgl-0265:
+    name: SKYSHIFT 0.26.5 real rail GGX + wall-local High/4GB no-white-spill proof
+    needs: true-metal-v0260p2-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 11
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium/WebGL proof driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Render 0.26.5 identical-frame High/4GB rail and wall source-local A/B
+        run: node skyshift/browser-rail-wall-v0265.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0265-true-rail-wall-high-4gb-real-png
+          path: |
+            skyshift-v0265-*.png
+            skyshift-v0265-proof.json
           if-no-files-found: warn

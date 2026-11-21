@@ -150,6 +150,6 @@ test("live 0.26.4.3 inherits 0.26.4.2, 0.26.3.3 and source-preserving A/B",()=>{
  assert.ok(game.includes("installUnifiedFixtureTransport02643"));
  assert.ok(game.includes("installStraightOnlyEdgeLighting02633"));
  assert.ok(game.includes("__skyshiftFixtureTransportFrameProof"));
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.4\.3/);
- assert.match(read("./index.html"),/Unified Fixture Light Transport & Surface Response/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.(?:4\.3|5)/);
+ assert.match(read("./index.html"),/(?:Unified Fixture Light Transport & Surface Response|True Rail & Wall Local Light Response)/);
 });

@@ -118,6 +118,8 @@ import {REFLECTION_FINISH_02642,installPremiumReflectionFinish02642}
  from "./reflection-cohesion-v02642.mjs";
 import {FIXTURE_TRANSPORT_02643,installUnifiedFixtureTransport02643}
  from "./unified-fixture-transport-v02643.mjs";
+import {TRUE_RAIL_WALL_0265,installTrueRailWallResponse0265}
+ from "./true-rail-wall-response-v0265.mjs";
 import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
  from "./cinematic-energy-v0216.mjs";
 import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
@@ -194,7 +196,7 @@ const $=id=>document.getElementById(id);
 // The published boot script is the source of truth for the live build label.
 const SKYSHIFT_BUILD_VERSION=new URL(
  document.querySelector("script[data-game-module]")?.src||location.href
-).searchParams.get("v")||"0.26.4.3";
+).searchParams.get("v")||"0.26.5";
 const CINEMATIC_ENABLED=new URLSearchParams(location.search).get("lighting")!=="classic";
 const envEnabled=new URLSearchParams(location.search).get("env")!=="classic";
 // Rebirth is the default on Skyline. ?worldArt=classic shows the original
@@ -412,6 +414,11 @@ const fixtureTransportEnabled=reflectionFinishEnabled&&
  (roadReflectionRelease[2]>4||
   (roadReflectionRelease[2]===4&&(roadReflectionRelease[3]??0)>=3))&&
  new URLSearchParams(location.search).get("fixtureTransport")!=="classic";
+// 0.26.5 local physical metal on sealed rail and 0.26.1 wall coats.
+const railWallResponseEnabled=fixtureTransportEnabled&&
+ roadReflectionRelease[0]===0&&roadReflectionRelease[1]===26&&
+ roadReflectionRelease[2]>=5&&
+ new URLSearchParams(location.search).get("railWallResponse")!=="classic";
 const unifiedTunnelLightingEnabled=tunnelMegaEnabled&&exteriorSealEnabled&&
  new URLSearchParams(location.search).get("unifiedLighting")!=="classic";
 // 0.22.0 Pass 3: additive postprocess; Pass 1 and Pass 2 links unchanged.
@@ -503,7 +510,7 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,gripHeld:fa
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
-let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,unifiedMetalLight=null,premiumReflectionFinish=null,fixtureTransport=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
+let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,unifiedMetalLight=null,premiumReflectionFinish=null,fixtureTransport=null,trueRailWall=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
@@ -1232,6 +1239,12 @@ function initScene(){
    metalState:unifiedMetalLight,roadRebuild:cinematicRoadRebuild,
    reflectionFinish:premiumReflectionFinish,straightEdges:edgeFloorLighting
   });
+ // 0.26.5: original anti-sunlight rail metal, straight-only cyan inlays
+ // and physical 0.26.1 wall GGX. No changed driving or collision geometry.
+ trueRailWall=installTrueRailWallResponse0265(THREE,world,{
+  enabled:railWallResponseEnabled,lowMemory:limitedMemory,positionAt,
+  identitySurface,stationWorld,fixtureTransport,straightEdges:edgeFloorLighting
+ });
  if(perfSettings.enabled){
   if(perfSettings.preset==="no-bloom")neonPipeline.bloom.enabled=false;
   if(perfSettings.preset==="no-smaa")neonPipeline.smaa.enabled=false;
@@ -2063,6 +2076,34 @@ function initScene(){
    try{return {classic:capture(0),transport:capture(1),s:flight?.s??null};}
    finally{fixtureTransport.setComparison(original);
     renderer.setRenderTarget(priorTarget);neonPipeline.render(0);}
+  };
+ // 0.26.5: real WebGL fixed-camera rail and wall A/B.
+ if(new URLSearchParams(location.search).get("railWallSmoke")==="1")
+  window.__skyshiftRailWallProbe=()=>({
+   requested:railWallResponseEnabled,...(trueRailWall?.stats?.()??{}),
+   originalRailContainment:identitySurface?.getRailBodyContainment?.()??null,
+   priorFixture:fixtureTransport?.stats?.().fixtureTransport02643Active??false,
+   straightOnly:edgeFloorLighting?.stats?.().straightEdges02633Active??false,
+   amberBands:edgeFloorLighting?.stats?.().straightEdges02633AmberBands??0,
+   nativeWallGGX:stationWorld?.stats?.().localReflections0261Enabled??false,
+   whiteSeal:roadSolarSpill?.stats?.().seal??null,
+   originalRoadType:premiumSurface?.material?.type??null,
+   originalShip:Boolean(ship),nativeWave:Boolean(premiumSurface?.setWaveState),
+   exposure:renderer?.toneMappingExposure
+  });
+ if(new URLSearchParams(location.search).get("railWallFrameProof")==="1")
+  window.__skyshiftRailWallFrameProof=()=>{
+   if(!trueRailWall?.active||!neonPipeline?.render)
+    throw Error("0.26.5 true rail/wall response unavailable");
+   const original=trueRailWall.stats().railWall0265Strength;
+   const oldTarget=renderer.getRenderTarget();
+   const draw=v=>{
+    trueRailWall.setComparison(v);neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:draw(0),response:draw(1),s:flight?.s??null};}
+   finally{trueRailWall.setComparison(original);
+    renderer.setRenderTarget(oldTarget);neonPipeline.render(0);}
   };
  // 0.26.4.2: native WebGL same-frame material, road and amber falloff
  // proof. ?reflectionFinish=classic restores exact 0.26.4.1.
@@ -3822,6 +3863,10 @@ function exportAudit(){
       localReflectionsProfile:localReflectionsEnabled?LOCAL_REFLECTIONS_0261:null,
       localReflectionsAudit:localReflectionsEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeLocalReflections:"?localReflections=classic",
+      railWallResponseEnabled,
+      railWallResponseProfile:railWallResponseEnabled?TRUE_RAIL_WALL_0265:null,
+      railWallResponseAudit:trueRailWall?.stats?.()??null,
+      compareBeforeRailWallResponse:"?railWallResponse=classic",
       trueMetalProfile:trueMetalEnabled?TRUE_METAL_0260_P2:null,
       trueMetalAudit:trueMetalEnabled?stationWorld?.stats?.()??null:null,
       compareBeforeTrueMetal:"?trueMetal=classic",

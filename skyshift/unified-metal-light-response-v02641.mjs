@@ -9,7 +9,7 @@ export const UNIFIED_METAL_LIGHT_02641=Object.freeze({
  id:"unified-local-metal-response-and-dark-titanium-02641",
  comparison:"?unifiedLight=classic",
  roles:["panel","rib","shell","conduit"],
- graphite:{panel:.81,rib:.87,shell:.91,conduit:.94},
+ graphite:{panel:.74,rib:.83,shell:.88,conduit:.92},
  sourceSamples:"existing 0.26.0 PBR cyan+amber and 0.26.1 finite-area GGX",
  cyanCove:"original 0.26.0 persistent cyan cove, no new light",
  preservedRoadGGX:true,preservedMicroNormals:true,
@@ -38,8 +38,8 @@ const SUBSTRATE_NAMES={
 };
 export const COVE_NAME_02641="SKYSHIFT 0.26.0 / stable cyan cove emitters";
 const response={
- high:{cyan:[1.16,1.21,1.24],warm:[1.25,1.18,1.11],
-  localCyan:[1.13,1.17,1.18],localWarm:[1.20,1.15,1.10]},
+ high:{cyan:[1.22,1.26,1.30],warm:[1.32,1.26,1.16],
+  localCyan:[1.19,1.22,1.24],localWarm:[1.27,1.21,1.15]},
  mobile:{cyan:[1.06,1.07,1.08],warm:[1.09,1.07,1.04],
   localCyan:[1.04,1.05,1.06],localWarm:[1.06,1.05,1.03]}
 };
@@ -176,7 +176,7 @@ export function installUnifiedMetalLighting02641(THREE,world,stationWorld,{
   console.warn("SKYSHIFT 0.26.4.1 keeping previous titanium",error);
   return fallback("unified-metal-compile-precheck-failed");
  }
- const coveGain=lowMemory?1.045:1.095;
+ const coveGain=lowMemory?1.045:1.120;
  const setComparison=v=>{
   uniform.value=clamp(v);
   if(originalCove)cove.material.color.setRGB(

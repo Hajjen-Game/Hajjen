@@ -39,6 +39,8 @@ jobs:
           node --check skyshift/unified-tunnel-lighting-v1.mjs
           node --check skyshift/browser-unified-tunnel-lighting-v1.mjs
           node --check skyshift/cinematic-road-rebuild-v0263.mjs
+          node --check skyshift/edge-lighting-floor-pools-v02631.mjs
+          node --check skyshift/browser-edge-floor-v02631.mjs
           node --check skyshift/browser-cinematic-road-rebuild-v0263.mjs
           node --check skyshift/premium-metal-surface-v0262.mjs
           node --check skyshift/browser-premium-metal-v0262.mjs
@@ -65,6 +67,7 @@ jobs:
             node --test skyshift/local-reflections-v0261p1.test.mjs
             node --test skyshift/premium-metal-surface-v0262.test.mjs
             node --test skyshift/cinematic-road-rebuild-v0263.test.mjs
+            node --test skyshift/edge-lighting-floor-pools-v02631.test.mjs
           fi
 
   current-material-webgl:
@@ -131,4 +134,27 @@ jobs:
           path: |
             skyshift-v0263-*.png
             skyshift-v0263-proof.json
+          if-no-files-found: warn
+
+  edge-floor-webgl-02631:
+    name: SKYSHIFT 0.26.3.1 edge / floor authentic WebGL A/B high + 4GB
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install real Chromium test driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Verify new existing-rail cyan and banked arch foot pools
+        run: node skyshift/browser-edge-floor-v02631.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02631-edge-floor-real-screenshots
+          path: |
+            skyshift-v02631-*.png
+            skyshift-v02631-proof.json
           if-no-files-found: warn

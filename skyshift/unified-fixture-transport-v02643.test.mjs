@@ -120,7 +120,7 @@ test("connected warm foot alpha is feathered without changing geometry",()=>{
  assert.match(f,/float t43Feather=pow\(t43A,1\.115\)/);
  assert.match(f,/uFixtureTransport02643\*0\.74/);
  assert.match(f,/uReflectionFinish02642/);
- assert.throws(()=>patchFootTransport02643("",foot.replace("f42Soft","bad")));
+ assert.throws(()=>patchFootTransport02643("",foot.replaceAll("f42Soft","bad")));
 });
 test("high/4GB own exactly the original material chain; classic is reversible",()=>{
  for(const mobile of [false,true]){

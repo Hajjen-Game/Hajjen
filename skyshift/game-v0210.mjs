@@ -22,6 +22,9 @@ import {TUNNEL_BLACKOUT,installBlackoutRoadShading,
 import {UNIFIED_TUNNEL_LIGHTING_1,createUnifiedTunnelLightingController}
  from "./unified-tunnel-lighting-v1.mjs";
 import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
+import {vaultSpatialWaveEnabled0285,waveSignedGlobal0285,
+ VAULT_WAVE_PARITY_0285}
+ from "./vault-spatial-wave-parity-v0285.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./manta-blade-v0103.mjs";
 import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
@@ -247,6 +250,8 @@ const pmremReleaseEnabled=trueSharedVaultEnabled&&
  readPmremRelease0284(location.search);
 const pmremEnabled=pmremReleaseEnabled&&
  !["off","classic"].includes(new URLSearchParams(location.search).get("pmrem"));
+const sharedWaveParityEnabled=trueSharedVaultEnabled&&
+ vaultSpatialWaveEnabled0285(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -1435,6 +1440,53 @@ function initScene(){
      s:flight?.s??null,track:TRACK_ID_0160,
      map:pmremPipeline.stats()};
    }finally{pmremPipeline.setComparison(previous);}
+  };
+ }
+ // v0.28.5 wave regression: static geometry and fixed-clock spectral
+ // stage, with a user-facing classic fallback (?waveSync=classic).
+ // QA helpers exist ONLY behind an explicit smoke flag.
+ if(new URLSearchParams(location.search).get("waveParitySmoke")==="1"){
+  window.__skyshiftVaultWaveParityAudit=()=>{
+   const t=sharedTunnelRuntime?.audit?.().trueSharedRenderer;
+   const modules=t?.sharedWave0285?.modules??[];
+   const front=zoneWave.fronts[0];
+   const checks=modules.map(module=>{
+    const sourceS=module.sourceMeters*.5;
+    const globalS=module.start+module.scale*sourceS;
+    const localSigned=waveSignedGlobal0285(sourceS,front,module,CIRCUIT.lapLength);
+    const roadSigned=((globalS-front+CIRCUIT.lapLength*.5)%CIRCUIT.lapLength+
+     CIRCUIT.lapLength)%CIRCUIT.lapLength-CIRCUIT.lapLength*.5;
+    return {index:module.moduleIndex,globalS,localSigned,roadSigned,
+     delta:Math.abs(localSigned-roadSigned)};
+   });
+   return {track:TRACK_ID_0160,release:sharedWaveParityEnabled?"0.28.5":"legacy",
+    enabled:sharedWaveParityEnabled,
+    modules,tunnelPatches:t?.sharedWave0285?.patchedMaterials??0,
+    originalSharedRendererActive:!!trueSharedVault?.active,
+    nativeRoadWave:!!premiumSurface?.setWaveState,
+    front,shaderBaseStage:zoneWave.shaderBaseStage,
+    playerStage:zoneWave.playerStage,checks,
+    physicsUntouched:true,gripUntouched:true,
+    boostUntouched:true,roadGeometryUntouched:true,
+    pmremUntouched:true,addedLights:0,
+    ...VAULT_WAVE_PARITY_0285
+   };
+  };
+  window.__skyshiftVaultWaveParitySetFront=(front)=>{
+   if(uiState.mode!=="playing"||!Number.isFinite(front))
+    throw Error("Wavefront QA requires running game and finite front");
+   if(!isVault())throw Error("0.28.5 wavefront QA Vault only");
+   zoneWave.waves=[{index:1,atSeconds:18,startS:front}];
+   zoneWave.fronts[0]=front;
+   zoneWave.fronts[1]=-10000;zoneWave.fronts[2]=-10000;
+   zoneWave.shaderBaseStage=0;zoneWave.activeCount=1;
+   zoneWave.playerStage=flight.s>front?1:0;
+   zoneWave.lastStepSeconds=18.42;
+   premiumSurface?.setWaveState(zoneWave);
+   identitySurface?.setWaveState(zoneWave);
+   sharedTunnelRuntime?.updateWave?.(zoneWave);
+   refreshHud();
+   return window.__skyshiftVaultWaveParityAudit();
   };
  }
  // QA-only real GPU A/B on identical camera frames, no flight changes.
@@ -3014,7 +3066,8 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (pmremReleaseEnabled?" · 0.28.4":
+   (sharedWaveParityEnabled?" · 0.28.5":
+    pmremReleaseEnabled?" · 0.28.4":
     VAULT_BOOST_0283_ACTIVE?" · 0.28.3":" · 0.28.2");
  UI.trackTagline.textContent=isVault()?
   "CONTINUOUS 3D TUNNEL · FAST C2 CORNERS · THREE LAPS.":isAurora()?
@@ -4829,7 +4882,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.4":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.5":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

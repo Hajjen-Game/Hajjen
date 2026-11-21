@@ -125,8 +125,8 @@ try{
    q.roadSolarSeal!==1||q.premiumRoadSeal!==1||
    !q.nativeWave||!q.shipPresent||!q.outputFinal||!q.smaaPresent||
    Math.abs(q.originalExposure-.96)>.06||
-   q.finalCohesion0264Bloom.strength!==(memory===4?.44:.47)||
-   q.finalCohesion0264Bloom.threshold!==(memory===4?1.38:1.34))
+   q.finalCohesion0264Bloom.strength!==(memory===4?.44:.52)||
+   q.finalCohesion0264Bloom.threshold!==(memory===4?1.38:1.28))
    throw Error("0.26.4 high/4GB physical source and HDR policy "+JSON.stringify(q));
   const frames=await page.evaluate(()=>window.__skyshiftFinalCohesionFrameProof());
   compare(frames,label,memory===4);

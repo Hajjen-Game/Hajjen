@@ -25,12 +25,13 @@ test("Skyline's published source build remains aligned with HUD/audit/links",()=
 
 test("third Neon Vault course has a distinct 0.27.x versioned menu URL",()=>{
  const game=read("./game-v0210.mjs"),html=read("./index.html");
- const version=game.match(/uri\.searchParams\.set\("v",selected==="vault"\?"(0\.27\.\d+)":SKYSHIFT_BUILD_VERSION\)/)?.[1];
- assert.ok(version,"Vault route must use its distinct 0.27.x release version");
+ const version=game.match(/uri\.searchParams\.set\("v",selected==="vault"\?"(0\.(?:27|28)\.\d+)":SKYSHIFT_BUILD_VERSION\)/)?.[1];
+ assert.ok(version,"Vault route must use its distinct 0.27.x/0.28.x release version");
  assert.ok(html.includes("Neon Vault Material Parity · "+version)||
   html.includes("Architectural Geometry & Panel Parity · "+version)||
    html.includes("Full Tunnel Lighting & Visual Parity · "+version)||
-   html.includes("Premium Tunnel Cohesion & Finish · "+version));
+   html.includes("Premium Tunnel Cohesion & Finish · "+version)||
+   html.includes("Shared Tunnel Architecture 1.0 · "+version));
  assert.match(html,/<option value="vault">03 · NEON VAULT/);
  assert.match(game,/const vaultMaterialParityEnabled=fullTunnelFoundationEnabled/);
  assert.match(game,/vaultMaterialComparison:"\?vaultMaterial=classic"/);

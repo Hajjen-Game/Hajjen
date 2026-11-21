@@ -4680,6 +4680,8 @@ try{
      // Update actual ship + chase camera with the production render path
      // immediately, without stepping the user's 120Hz physics.
      placeShip(performance.now()/1000,1/60,flight,motionState,cinematicState);
+     // Match the real global-light controller before the manual QA frame.
+     tunnelBlackout?.apply(s);
     }
    // Browser QA freezes 120Hz simulation, so update visual-only ship light
    // immediately at the teleported position before the slow WebGL frame.

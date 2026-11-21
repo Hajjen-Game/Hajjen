@@ -5,6 +5,7 @@
 // Global sun/ambient/environment lamps are deliberately excluded in shader.
 // No road, ship, physics, GRIP, zone wave or native neon changes.
 import {installDualToneLightingPass1} from "./dual-tone-lighting-v0260.mjs";
+import {sharedPhysicalPreset0280,SHARED_TUNNEL_STYLE_0280} from "./shared-tunnel-architecture-v0280.mjs";
 import {TUNNEL_MEGA_0211,TUNNEL_PORTALS_0211} from "./tunnel-megastructure-v0211.mjs";
 
 export const TRUE_METAL_0260_P2=Object.freeze({
@@ -92,12 +93,12 @@ export function patchTrueMetalPBRShader(vertex,fragment,{role="panel",mobile=fal
   "IncidentLight pbrFixture0260;",
   "pbrFixture0260.visible=true;",
   "pbrFixture0260.direction=normalize(vPbrCold0260+vec3(0.0001));",
-  "pbrFixture0260.color=vec3(0.11,0.68,0.94)*",
+  "pbrFixture0260.color=vec3("+SHARED_TUNNEL_STYLE_0280.lighting.cyan.join(",")+")*",
   " (2.80*pbrColdFalloff0260*pbrAttenuation0260);",
   "RE_Direct(pbrFixture0260,geometryPosition,geometryNormal,",
   " geometryViewDir,geometryClearcoatNormal,material,reflectedLight);",
   "pbrFixture0260.direction=normalize(vPbrWarm0260+vec3(0.0001));",
-  "pbrFixture0260.color=vec3(0.94,0.35,0.085)*",
+  "pbrFixture0260.color=vec3("+SHARED_TUNNEL_STYLE_0280.lighting.amber.join(",")+")*",
   " (2.35*pbrWarmFalloff0260*pbrAttenuation0260);",
   "RE_Direct(pbrFixture0260,geometryPosition,geometryNormal,",
   " geometryViewDir,geometryClearcoatNormal,material,reflectedLight);"
@@ -214,15 +215,11 @@ export function installTrueMetalMaterialsPass2(THREE,world,options={}){
    mesh.geometry.setAttribute(COLD,new THREE.Float32BufferAttribute(built.cold,3));
    mesh.geometry.setAttribute(WARM,new THREE.Float32BufferAttribute(built.warm,3));
    const physical=new THREE.MeshPhysicalMaterial({
-    color:role==="panel"?0x7f9ead:0x9ab0bc,
-    metalness:role==="panel"?.89:.83,
-    roughness:role==="panel"?.36:.30,
-    clearcoat:mobile?0:.14,clearcoatRoughness:.32,
+    ...sharedPhysicalPreset0280(role,mobile,"skyline"),
     side:THREE.DoubleSide,forceSinglePass:true,
-    transparent:true,opacity:role==="panel"?.60:.49,
+    transparent:true,
     blending:THREE.AdditiveBlending,depthWrite:false,depthTest:true,
     polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,
-    envMapIntensity:0
    });
    installTrueMetalPBRShader(physical,uniforms,{role,mobile});
    const coat=new THREE.Mesh(mesh.geometry,physical);

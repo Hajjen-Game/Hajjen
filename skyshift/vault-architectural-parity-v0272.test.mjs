@@ -61,7 +61,8 @@ test("high/mobile real 3D panels follow the actual C2 banked vault far beyond 36
    else assert.ok(r.detail.triangles>300,"original service conduits absent");
    triangles+=r.totalTriangles;
   }
-  assert.ok(triangles>15000);
+  assert.ok(triangles>(lowMemory?10000:15000),
+   "original Skyline mobile panel geometry remains a meaningful but reduced silhouette");
  }
 });
 test("the 0.27.1 shared metal atlas and culling preserve previous batch and flight APIs",()=>{

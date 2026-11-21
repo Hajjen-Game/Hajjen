@@ -1125,7 +1125,7 @@ function initScene(){
  // cross-section over the entire separate mathematically closed 3400m lap.
  fullTunnelCircuit=installFullTunnelCircuit0270(THREE,world,{
   track:TRACK_ID_0160,enabled:fullTunnelFoundationEnabled,
-  lowMemory:limitedMemory,positionAt
+  lowMemory:limitedMemory,positionAt,reliefLighting:vaultArchitectureEnabled
  });
  // 0.27.1: exactly one reused 0.26.2 metal atlas, applied to the original
  // 20 shell + 20 structural rib batches. No new mesh, light or physics.

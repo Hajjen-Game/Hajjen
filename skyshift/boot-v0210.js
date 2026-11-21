@@ -81,5 +81,5 @@
  },14000);
  // Use dynamic import so *module graph* failures also show actionable
  // feedback; static <script type=module> silently fails before try/catch.
- import("./game-v0210.mjs?v=0.26.5&rev=shared-road-ship-light-0282-20261121").catch(fail);
+ import("./game-v0210.mjs?v=0.26.5&rev=vault-boost-clarity-0283-20261121").catch(fail);
 })();

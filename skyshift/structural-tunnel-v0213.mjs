@@ -4,7 +4,8 @@
 // the original curved/banked track-space profile; no new colliders, lights,
 // road overlay or moving world geometry. Existing neon arch emission survives.
 import {TUNNEL_MEGA_0211,TUNNEL_PROFILE_0211,TUNNEL_PORTALS_0211,
- tunnelProfilePoint0211} from "./tunnel-megastructure-v0211.mjs";
+ tunnelProfilePoint0211,sampleSharedTunnelProfile0280}
+ from "./tunnel-megastructure-v0211.mjs";
 import {installExteriorLightSeal} from "./tunnel-exterior-seal-v02122.mjs";
 import {SHARED_TUNNEL_STYLE_0280} from "./shared-tunnel-architecture-v0280.mjs";
 import {createTunnelSpectrumUniforms,updateTunnelSpectrumUniforms,
@@ -292,6 +293,31 @@ export function buildStructuralTunnelData(positionAt,{lowMemory=false,
   craftsmanshipGeometry:Boolean(depthStudy&&unifiedDepth&&surfaceCraftsmanship&&!lowMemory),
   architecturalBayPitch:bayPitch};
 }
+// New/future circuits call the exact same original Skyline 0.24.1 panel
+// sculptor. Only a route segment, a banked positionAt and a quality tier
+// differ; no separate "Vault panel generator" is needed.
+export function buildSharedTunnelSection0280(positionAt,plan,{
+ segmentIndex=0,chunkIndex=0,lowMemory=plan?.quality==="4GB",
+ profilePoint=null,colorize=null,
+ flowCohesion=true,depthStudy=true,unifiedDepth=true,
+ surfaceCraftsmanship=true,panelStepMeters=null
+}={}){
+ if(!plan||plan.styleId!==SHARED_TUNNEL_STYLE_0280.id)
+  throw Error("0.28.0 shared panel builder needs validated Skyline visual plan");
+ const section=plan.intervals?.[segmentIndex],
+  chunk=section?.chunks?.[chunkIndex];
+ if(!section||!chunk)throw Error("0.28.0 invalid track tunnel section/chunk");
+ const profile=profilePoint??
+  plan.profileAt(segmentIndex,sampleSharedTunnelProfile0280);
+ // Original 0.26.5 Skyline can retain its historic 2/3.5m sampling,
+ // while a new full-tunnel circuit chooses explicit bounded steps.
+ return buildStructuralTunnelData(positionAt,{
+  arcStart:chunk.start,arcEnd:chunk.end,profilePoint:profile,
+  portals:section.portals,lowMemory,flowCohesion,depthStudy,
+  unifiedDepth,surfaceCraftsmanship,
+  panelStepMeters,colorize
+ });
+}
 function disposeMesh(mesh){
  mesh?.removeFromParent?.();
  mesh?.geometry?.dispose?.();
@@ -317,7 +343,16 @@ export function installStructuralTunnelRebuild(THREE,world,options={}){
   waveSourceUnchanged:true
  };
  try{
-  const data=buildStructuralTunnelData(options.positionAt,options);
+  const data=options.sharedTunnelPlan0280?
+   buildSharedTunnelSection0280(options.positionAt,options.sharedTunnelPlan0280,{
+    lowMemory:options.lowMemory,
+    flowCohesion:options.flowCohesion,
+    depthStudy:options.depthStudy,
+    unifiedDepth:options.unifiedDepth,
+    surfaceCraftsmanship:options.surfaceCraftsmanship,
+    profilePoint:options.vaultHeightClassic?
+     ((j,s)=>tunnelProfilePoint0211(j,s,true)):null
+   }):buildStructuralTunnelData(options.positionAt,options);
   plates=data.plateCount;arches=data.secondaryArchCount;
   const batches=[["HARDSURFACE_PANELS",data.primary]];
   if(!options.lowMemory)batches.push(["STRUCTURAL_CONDUITS",data.detail]);

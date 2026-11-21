@@ -44,9 +44,9 @@ export const SHARED_TUNNEL_STYLE_0280=freezeDeep({
  // physical coat, including its one shared geometry and native GGX.
  physical:{
   panel:{color:0x7f9ead,metalness:.89,roughness:.36,
-   highOpacity:.60,mobileOpacity:.51},
+   highOpacity:.60,mobileOpacity:.51,skylineMobileOpacity:.60},
   rib:{color:0x9ab0bc,metalness:.83,roughness:.30,
-   highOpacity:.49,mobileOpacity:.41},
+   highOpacity:.49,mobileOpacity:.41,skylineMobileOpacity:.49},
   highClearcoat:.14,mobileClearcoat:0,clearcoatRoughness:.32,
   atlasHigh:256,atlas4GB:128
  },
@@ -60,7 +60,7 @@ export const SHARED_TUNNEL_STYLE_0280=freezeDeep({
 const SKYLINE_PORTALS=Object.freeze([0,42,80,118,156,198,240,282,324,363]);
 export const SHARED_TUNNEL_ROUTES_0280=freezeDeep({
  skyline:{
-  track:"skyline",length:11979.0,
+  track:"skyline",length:null,
   // Only the 368m authored tunnel is enclosed; racing road untouched.
   segments:[{start:0,end:368,profilePeriod:368,
    portals:SKYLINE_PORTALS,fixturePreset:"skyline-original-0265"}]
@@ -175,7 +175,7 @@ export function tunnelReleaseAtLeast0280(version,minPatch=0){
 export function tunnelQuality0280(lowMemory){
  return lowMemory?"4GB":"high";
 }
-export function sharedPhysicalPreset0280(role,mobile=false){
+export function sharedPhysicalPreset0280(role,mobile=false,track="vault"){
  if(role!=="panel"&&role!=="rib")
   throw Error("0.28.0 physical coat must be an existing panel or rib");
  const p=SHARED_TUNNEL_STYLE_0280.physical;
@@ -183,5 +183,5 @@ export function sharedPhysicalPreset0280(role,mobile=false){
  return Object.freeze({color:r.color,metalness:r.metalness,
   roughness:r.roughness,clearcoat:mobile?p.mobileClearcoat:p.highClearcoat,
   clearcoatRoughness:p.clearcoatRoughness,
-  opacity:mobile?r.mobileOpacity:r.highOpacity,envMapIntensity:0});
+  opacity:mobile?(track==="skyline"?r.skylineMobileOpacity:r.mobileOpacity):r.highOpacity,envMapIntensity:0});
 }

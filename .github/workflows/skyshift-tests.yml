@@ -44,10 +44,13 @@ jobs:
           node --test skyshift/cinematic-road-rebuild-v0263.test.mjs
           node --check skyshift/edge-lighting-floor-pools-v02631.mjs
           node --check skyshift/edge-source-floor-bands-v02632.mjs
+          node --check skyshift/straight-only-edge-lighting-v02633.mjs
+          node --check skyshift/browser-straight-only-edge-v02633.mjs
           node --check skyshift/browser-edge-source-floor-bands-v02632.mjs
           node --check skyshift/browser-edge-floor-v02631.mjs
           node --test skyshift/edge-lighting-floor-pools-v02631.test.mjs
           node --test skyshift/edge-source-floor-bands-v02632.test.mjs
+          node --test skyshift/straight-only-edge-lighting-v02633.test.mjs
 
   browser-true-metal-v0260p2:
     name: SKYSHIFT 0.26.0 P2 REAL PBR WebGL and 4GB solar-sealed A/B
@@ -69,6 +72,7 @@ jobs:
           node skyshift/browser-cinematic-road-rebuild-v0263.mjs
           node skyshift/browser-edge-floor-v02631.mjs
           node skyshift/browser-edge-source-floor-bands-v02632.mjs
+          node skyshift/browser-straight-only-edge-v02633.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -86,6 +90,8 @@ jobs:
             skyshift-v02631-proof.json
             skyshift-v02632-*.png
             skyshift-v02632-proof.json
+            skyshift-v02633-*.png
+            skyshift-v02633-proof.json
 
   track-tests:
     runs-on: ubuntu-latest

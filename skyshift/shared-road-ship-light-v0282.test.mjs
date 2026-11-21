@@ -27,7 +27,7 @@ test("source fixtures really repeat from original Skyline renderer at 10 Vault b
 test("shared source physical positions continue through all 3400 metres, no road collider changes",()=>{
  const rows=[0,82,290,340,341,1440,1840,3060,3380,3399],
   lateral=[-9.8,0,9.8];
- const coords=rows.flatMap(s=>lateral.map(x=>[s,x]));
+ const coords=rows.flatMap(s=>lateral.flatMap(x=>[s,x]));
  const position={count:coords.length/2};
  const attributes={
   position,aTrackCoord:{count:position.count,getX:i=>coords[i*2]}
@@ -69,6 +69,6 @@ test("true original road 0.26.3 shader has a separate Vault full-course mode",()
 test("non-Vault and classic paths are inert and cannot alter Skyline",()=>{
  assert.equal(installSharedRoadReflections0282(null,null,{enabled:false}).active,false);
  assert.equal(installSharedShipLight0282(null,{enabled:false}).active,false);
- assert.throws(()=>createSharedSourceSampler0282(null,3400),/requires/);
+ assert.throws(()=>createSharedSourceSampler0282(null,3400),/needs/);
  assert.throws(()=>createSharedSourceSampler0282(sample,0),/needs/);
 });

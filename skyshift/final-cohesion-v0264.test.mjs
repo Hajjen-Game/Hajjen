@@ -156,6 +156,6 @@ test("released Pass 4 must KEEP the 0.26.3.3 STRAIGHT-only rail implementation",
  assert.ok(game.includes('get("finalCohesion")!=="classic"'));
  assert.match(game,/__skyshiftFinalCohesionFrameProof/);
  assert.match(game,/createRoadSolarSpillController/);
- assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.4/);
- assert.match(read("./index.html"),/Lighting, Glow & Final Cohesion|Unified Light Response & Dark Titanium Rebalance|Reflection Cohesion & Premium Surface Finish|Unified Fixture Light Transport & Surface Response/);
+ assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.(?:4|5)/);
+ assert.match(read("./index.html"),/Lighting, Glow & Final Cohesion|Unified Light Response & Dark Titanium Rebalance|Reflection Cohesion & Premium Surface Finish|Unified Fixture Light Transport & Surface Response|True Rail & Wall Local Light Response/);
 });

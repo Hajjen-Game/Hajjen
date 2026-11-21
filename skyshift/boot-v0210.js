@@ -81,5 +81,5 @@
  },14000);
  // Use dynamic import so *module graph* failures also show actionable
  // feedback; static <script type=module> silently fails before try/catch.
- import("./game-v0210.mjs?v=0.26.4&rev=final-cohesion-0264-20261121").catch(fail);
+ import("./game-v0210.mjs?v=0.26.4.1&rev=unified-metal-light-02641-20261121").catch(fail);
 })();

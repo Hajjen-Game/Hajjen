@@ -134,8 +134,10 @@ export function installPmremReflectionPipeline0284(THREE,renderer,scene,world,{
   root.traverse(mesh=>{
    if(!mesh?.isMesh||!isPhysical(mesh.material))return;
    const material=mesh.material;
-   if(material.metalness<.20||material.transparent||material.opacity<.98)
-    return;
+   // Original Skyline metallic coats are transparent ADDITIVE native
+   // MeshPhysicalMaterials over graphite. Their transparency is intentional;
+   // excluding them would disable PMREM on the actual source panels!
+   if(material.metalness<.20||material.opacity<.12)return;
    bind(material,"tunnel");
   });
   attachShip(ship);

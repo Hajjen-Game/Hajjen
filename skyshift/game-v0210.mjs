@@ -1225,7 +1225,11 @@ function initScene(){
  // Global light fades do not affect engine point lights or emitted neon.
  tunnelBlackout=(unifiedTunnelLightingEnabled?
     createUnifiedTunnelLightingController:createTunnelBlackoutController)({
-    worldLights,camera,bladeTips});
+    worldLights,camera,bladeTips,
+    // The active controller is reconstructed once after scenery setup.
+    // It too must use the same full-lap Vault-only no-sun profile.
+    ...(isVault()?{levelsAt:vaultLightLevels0270}:{})
+   });
  // HDR multilayer bloom renders *after* the beauty pass and before tone mapping.
  neonPipeline=createNeonPipeline(THREE,renderer,scene,camera,{
   lowMemory:limitedMemory,forceFullBloom:perfSettings.preset==="bloom-full"

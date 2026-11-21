@@ -95,6 +95,9 @@ import {createSharedTunnelRuntime0280}
  from "./shared-tunnel-runtime-v0280.mjs";
 import {SHARED_LIGHT_0282,installSharedRoadReflections0282,
  installSharedShipLight0282} from "./shared-road-ship-light-v0282.mjs";
+import {PMREM_0284,readPmremRelease0284,
+ installPmremReflectionPipeline0284}
+ from "./pmrem-reflection-pipeline-v0284.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
  from "./full-tunnel-light-seal-v0270.mjs";
 import {NEON_INTERIOR_0212,installNeonDrivenInterior}
@@ -238,6 +241,12 @@ const sharedOpticsEnabled=trueSharedVaultEnabled&&
  sharedOpticsVersion[0]===0&&
  (sharedOpticsVersion[1]>28||
   (sharedOpticsVersion[1]===28&&sharedOpticsVersion[2]>=2));
+// 0.28.4: true real-scene PMREM capture on VAULT only. Explicitly
+// ?pmrem=off gives exact previous 0.28.3 pixels, not a studio fallback.
+const pmremReleaseEnabled=trueSharedVaultEnabled&&
+ readPmremRelease0284(location.search);
+const pmremEnabled=pmremReleaseEnabled&&
+ !["off","classic"].includes(new URLSearchParams(location.search).get("pmrem"));
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -572,7 +581,7 @@ let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,unifiedMetalLight=null,premiumReflectionFinish=null,fixtureTransport=null,trueRailWall=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
 let fullTunnelCircuit=null,vaultMaterialParity=null,vaultArchitecture=null,vaultFullLighting=null,sharedTunnelRuntime=null;
-let sharedRoadLight=null,sharedShipLight=null;
+let sharedRoadLight=null,sharedShipLight=null,pmremPipeline=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
  edgeFloorLighting=null;
@@ -882,6 +891,7 @@ function makeShip(id=fleetProgress.selected){
  whiteCoreContainment?.attachShip(ship);
  shipWhiteSpill?.attachShip(ship);
  sharedShipLight?.attachShip(ship);
+ pmremPipeline?.attachShip(ship);
  premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan);
  reactiveWingFlaps=installReactiveWingFlaps(THREE,ship,{variant:id});
  livingWake=createLivingWakeFX(THREE,scene,ship,{variant:id,
@@ -906,6 +916,7 @@ function makeShip(id=fleetProgress.selected){
    whiteCoreContainment?.attachShip(ship);
    shipWhiteSpill?.attachShip(ship);
    sharedShipLight?.attachShip(ship);
+   pmremPipeline?.attachShip(ship);
   }
   if(activeCraft===craft&&id==="stingray"&&uiState.mode==="hangar")
    refreshHangar();
@@ -1354,6 +1365,16 @@ function initScene(){
   enabled:railWallResponseEnabled,lowMemory:limitedMemory,positionAt,
   identitySurface,stationWorld,fixtureTransport,straightEdges:edgeFloorLighting
  });
+ // 0.28.4 PMREM is captured ONCE from the already built original
+ // Skyline-shaped Vault, after all source fixtures/physical shaders exist.
+ // Only actual tunnel PBR coats + the hull use the resulting CubeUV.
+ // Never set scene.environment or touch the indexed road or boost arrows.
+ pmremPipeline=installPmremReflectionPipeline0284(
+  THREE,renderer,scene,world,{
+   enabled:pmremEnabled,track:TRACK_ID_0160,
+   lowMemory:limitedMemory,trackLength:CIRCUIT.lapLength,
+   positionAt,ship
+  });
  if(perfSettings.enabled){
   if(perfSettings.preset==="no-bloom")neonPipeline.bloom.enabled=false;
   if(perfSettings.preset==="no-smaa")neonPipeline.smaa.enabled=false;
@@ -1382,8 +1403,40 @@ function initScene(){
    actualOriginalSourceActive:!!trueSharedVault?.active,
    sharedRoadReflections0282:sharedRoadLight?.stats?.()??null,
    sharedShipLighting0282:sharedShipLight?.stats?.()??null,
+   pmrem0284:pmremPipeline?.stats?.()??null,
    centralSource:TUNNEL_SHARED_ARCHITECTURE_0280
   });
+ // PMREM QA: exact-frame comparison with unchanged underlying scene,
+ // camera, local GGX, bloom and zone wave. Does not advance the sim.
+ if(new URLSearchParams(location.search).get("pmremSmoke")==="1"){
+  window.__skyshiftPmremAudit=()=>({
+   track:TRACK_ID_0160,release:pmremReleaseEnabled?"0.28.4":"legacy",
+   requested:pmremEnabled,probe:pmremPipeline?.stats?.()??null,
+   originalTunnelActive:!!trueSharedVault?.active,
+   roadSourceActive:!!sharedRoadLight?.active,
+   shipSourceActive:!!sharedShipLight?.active,
+   roadMaterial:premiumSurface?.material?.type??null,
+   originalShip:Boolean(ship),originalGrip:Boolean(UI.grip),
+   raceMeters:CIRCUIT.lapLength,
+   addedRenderPasses:0,changedPhysics:false,
+   changedBoost:false,changedWhiteKey:false
+  });
+  window.__skyshiftPmremFrameProof=()=>{
+   if(!pmremPipeline?.active||!neonPipeline?.render)
+    throw Error("0.28.4 genuine PMREM A/B unavailable");
+   const previous=pmremPipeline.stats().strength;
+   const draw=value=>{
+    pmremPipeline.setComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    return {classic:draw(0),pmrem:draw(1),
+     s:flight?.s??null,track:TRACK_ID_0160,
+     map:pmremPipeline.stats()};
+   }finally{pmremPipeline.setComparison(previous);}
+  };
+ }
  // QA-only real GPU A/B on identical camera frames, no flight changes.
  if(new URLSearchParams(location.search).get("sharedOpticsSmoke")==="1"){
   window.__skyshiftSharedOpticsAudit=()=>({
@@ -2961,7 +3014,8 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (VAULT_BOOST_0283_ACTIVE?" · 0.28.3":" · 0.28.2");
+   (pmremReleaseEnabled?" · 0.28.4":
+    VAULT_BOOST_0283_ACTIVE?" · 0.28.3":" · 0.28.2");
  UI.trackTagline.textContent=isVault()?
   "CONTINUOUS 3D TUNNEL · FAST C2 CORNERS · THREE LAPS.":isAurora()?
   "WIDE SWITCHBACKS · ROLLING HILLS · THREE FAST LAPS.":
@@ -4775,7 +4829,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.3":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.4":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

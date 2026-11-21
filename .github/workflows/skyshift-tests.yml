@@ -53,6 +53,7 @@ jobs:
           node --check skyshift/browser-rail-wall-v0265.mjs
           node --check skyshift/full-tunnel-layout-v0270.mjs
           node --check skyshift/full-tunnel-circuit-v0270.mjs
+          node --check skyshift/full-tunnel-light-seal-v0270.mjs
           node --check skyshift/browser-full-tunnel-v0270.mjs
           node --check skyshift/browser-fixture-transport-v02643.mjs
           node --check skyshift/browser-reflection-cohesion-v02642.mjs
@@ -71,6 +72,7 @@ jobs:
           node --test skyshift/true-rail-wall-response-v0265.test.mjs
           node --test skyshift/full-tunnel-layout-v0270.test.mjs
           node --test skyshift/full-tunnel-circuit-v0270.test.mjs
+          node --test skyshift/full-tunnel-light-seal-v0270.test.mjs
 
   # The old 12-minute job ran NINE full Chromium/SwiftShader sessions
   # sequentially. On 2026-11-21 it completed 7/9 successfully, then

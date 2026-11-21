@@ -171,5 +171,5 @@ test("boot and public A/B are version-scoped; no GRIP or ship rewrites",()=>{
  assert.match(game,/createUnifiedTunnelLightingController/);
  assert.match(game,/createShipWhiteSpillController/);
  assert.match(boot,/game-v0210\.mjs\?v=0\.26\.(?:3|4)/);
- assert.match(html,/Cinematic Road Reflection Rebuild|Lighting, Glow & Final Cohesion|Unified Light Response & Dark Titanium Rebalance|Reflection Cohesion & Premium Surface Finish/);
+ assert.match(html,/Cinematic Road Reflection Rebuild|Lighting, Glow & Final Cohesion|Unified Light Response & Dark Titanium Rebalance|Reflection Cohesion & Premium Surface Finish|Unified Fixture Light Transport & Surface Response/);
 });

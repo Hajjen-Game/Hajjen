@@ -91,6 +91,11 @@ test("20 amber practicals and the floor band are ONE joined surface",()=>{
   assert.equal(a.count,c.count);
   assert.ok(x.triangles>900);
   assert.ok(a.array.every(Number.isFinite));
+  // The latest source ROOT is on the OUTER VISIBLE arch foot at x≈24.45,
+  // not the formerly detached inner x≈17.77 reference.
+  const xs=Array.from({length:a.count},(_,i)=>Math.abs(a.array[3*i]));
+  assert.ok(Math.max(...xs)>24.25);
+  assert.ok(Math.min(...xs)>=13.24);
   // The foot is rooted at the same x-coordinate and s as the floor band.
   // The joined mesh is not two disconnected draw batches.
   assert.equal(x.geometry.getAttribute("position").count%3,0);

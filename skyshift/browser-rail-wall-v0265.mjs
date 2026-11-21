@@ -14,7 +14,12 @@ const server=spawn("python3",["-m","http.server","8872","--bind","127.0.0.1"],
 const roi={
  railMetal:[[.08,.54,.38,.91],[.62,.54,.92,.91]],
  wallMetal:[[.05,.11,.35,.49],[.65,.11,.95,.49]],
- protectedRoof:[[.40,.08,.60,.29]],
+ // Restrict roof-control ROI to the upper ceiling, not the near-frame
+ // shoulder/arch walls below y=.20. Those wall panels are intentionally
+ // brighter after 0.26.5, and are already measured by wallMetal.
+ // Main 0.28.1 proof frames: high-gold-arch true roof +1.54/255;
+ // old mixed wall+roof ROI +3.77/255 spuriously exceeded the SAME 3.40 gate.
+ protectedRoof:[[.40,.08,.60,.20]],
  protectedRoad:[[.41,.65,.59,.91]]
 };
 const luma=(p,i)=>p[i]*.2126+p[i+1]*.7152+p[i+2]*.0722;

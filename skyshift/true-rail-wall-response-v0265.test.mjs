@@ -84,7 +84,7 @@ test("indexed original rail source attributes: two real GGX taps, no curves",()=
   assert.equal(at(2),0,"s=80 is outside every authored straight");
   assert.equal(at(5),0,"s=350 is outside valid straight-safe sources");
   assert.equal(d.mask[7],0,"outer/under-deck profile not lit");
-  assert.ok(d.mask[2]===0);
+  assert.ok(d.mask[2]>0,"visible front bevel must reflect adjacent real LED");
  }
  assert.throws(()=>buildRailLocalSourceData0265(null,positionAt));
 });
@@ -153,7 +153,7 @@ function mock(lowMemory=false){
 test("live installer wraps original rail and wall materials; classic and dispose work",()=>{
  for(const mobile of [false,true]){
   const m=mock(mobile),before=m.all.map(x=>x.onBeforeCompile);
-  const result=installTrueRailWallResponse0265({},m.world,m.options);
+  const result=installTrueRailWallResponse0265({Float32BufferAttribute:Attribute},m.world,m.options);
   const q=result.stats();
   assert.equal(q.railWall0265Active,true,JSON.stringify(q));
   assert.equal(q.railWall0265WallPhysicalCount,mobile?1:2);

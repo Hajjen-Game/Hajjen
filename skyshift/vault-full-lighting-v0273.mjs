@@ -17,6 +17,9 @@ import {patchPhysicalWall0265}
 import {vaultCrossSection0270}
  from "./full-tunnel-circuit-v0270.mjs";
 import {widthAt} from "./trial-v0165.mjs";
+import {patchVaultPremiumPhysical0274,patchVaultPremiumSource0274,
+ patchVaultPremiumRail0274,vaultPremiumFinishAudit0274}
+ from "./vault-premium-finish-v0274.mjs";
 const ROOT="SKYSHIFT · Neon Vault Full Tunnel 0.27.0";
 const PANEL="SKYLINE REAL-DEPTH HARDSURFACE_PANELS";
 const CONDUIT="SKYLINE SERVICE CONDUITS";
@@ -114,7 +117,7 @@ export function buildVaultPhysicalSources0273(geo,positionAt,{
  return {cold,warm,axis,masks,vertices:count,bright,
   coldSamples,warmSamples,uniqueSamples:cache.size,mobile};
 }
-function installPhysicalShader0273(material,role,mobile,atlas,power){
+function installPhysicalShader0273(material,role,mobile,atlas,power,finish=null){
  const uniforms={uTrueMetal0260P2:power,uLocalReflections0261:power};
  installTrueMetalPBRShader(material,uniforms,{role,mobile});
  installLocalStripShader0261(material,uniforms,{role,mobile});
@@ -145,7 +148,9 @@ function installPhysicalShader0273(material,role,mobile,atlas,power){
    " (texture2D(uVaultMetalAtlas0271,vVaultMaterialCoord0271*vec2(.25,.58)).g-.52)*"+
    (mobile?".09":".16")+",.22,.68);");
   shader.vertexShader=metal.vertexShader;
-  shader.fragmentShader=mapped;
+  shader.fragmentShader=finish?
+   patchVaultPremiumPhysical0274(mapped,{role,mobile}):mapped;
+  if(finish)shader.uniforms.uVaultPremiumFinish0274=finish;
   shader.uniforms.uTrueRailWall0265=power;
   shader.uniforms.uFixtureTransport02643=power;
   shader.uniforms.uVaultMetalAtlas0271={value:atlas};
@@ -153,11 +158,11 @@ function installPhysicalShader0273(material,role,mobile,atlas,power){
  };
  material.customProgramCacheKey=function(){
   return key.call(this)+"-vault-0273-shared-0260-0261-0265-"+role+
-   (mobile?"-mobile":"-high");
+   (mobile?"-mobile":"-high")+(finish?"-finish0274":"");
  };
  material.needsUpdate=true;
 }
-function physicalCoat(THREE,role,mobile,atlas,power){
+function physicalCoat(THREE,role,mobile,atlas,power,finish=null){
  const m=new THREE.MeshPhysicalMaterial({
   color:role==="panel"?0x7f9ead:0x9ab0bc,
   metalness:role==="panel"?.89:.83,
@@ -169,7 +174,7 @@ function physicalCoat(THREE,role,mobile,atlas,power){
   polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1,
   envMapIntensity:0
  });
- installPhysicalShader0273(m,role,mobile,atlas,power);
+ installPhysicalShader0273(m,role,mobile,atlas,power,finish);
  return m;
 }
 const RAIL_FACE=[.16,.80,1,.88,.28,.08,0,0];
@@ -265,24 +270,27 @@ export function patchVaultRailGGX0273(vertex,fragment,{mobile=false}={}){
     body+"\n#include <lights_fragment_maps>")
  };
 }
-function wrapRail(rail,power,mobile){
+function wrapRail(rail,power,mobile,finish=null){
  const material=rail.material,prior=material.onBeforeCompile,
   key=material.customProgramCacheKey;
  material.onBeforeCompile=function(shader,renderer){
   prior.call(this,shader,renderer);
   const p=patchVaultRailGGX0273(shader.vertexShader,
    shader.fragmentShader,{mobile});
-  shader.vertexShader=p.vertexShader;shader.fragmentShader=p.fragmentShader;
+  shader.vertexShader=p.vertexShader;
+  shader.fragmentShader=finish?
+   patchVaultPremiumRail0274(p.fragmentShader,{mobile}):p.fragmentShader;
   shader.uniforms.uVaultRailResponse0273=power;
+  if(finish)shader.uniforms.uVaultPremiumFinish0274=finish;
  };
  material.customProgramCacheKey=function(){
-  return key.call(this)+"-vault-rail-local-0273"+(mobile?"-mobile":"-high");
+  return key.call(this)+"-vault-rail-local-0273"+(mobile?"-mobile":"-high")+(finish?"-finish0274":"");
  };
  material.needsUpdate=true;
  return ()=>{material.onBeforeCompile=prior;
   material.customProgramCacheKey=key;material.needsUpdate=true;};
 }
-function boostFixture(material,power,mobile){
+function boostFixture(material,power,mobile,finish=null){
  const before=material.onBeforeCompile,key=material.customProgramCacheKey;
  material.onBeforeCompile=function(shader,renderer){
   before.call(this,shader,renderer);
@@ -301,9 +309,13 @@ function boostFixture(material,power,mobile){
    (mobile?"1.32":"1.65")+",v27Warm);"+
    "\ndiffuseColor.rgb*=mix(1.0,v27Source,uVaultFixtureResponse0273);");
   shader.uniforms.uVaultFixtureResponse0273=power;
+  if(finish){
+   shader.fragmentShader=patchVaultPremiumSource0274(shader.fragmentShader,{mobile});
+   shader.uniforms.uVaultPremiumFinish0274=finish;
+  }
  };
  material.customProgramCacheKey=function(){
-  return key.call(this)+"-vault-practical-source-0273"+(mobile?"-4gb":"-high");
+  return key.call(this)+"-vault-practical-source-0273"+(mobile?"-4gb":"-high")+(finish?"-finish0274":"");
  };
  material.needsUpdate=true;
  return ()=>{material.onBeforeCompile=before;
@@ -311,7 +323,7 @@ function boostFixture(material,power,mobile){
 }
 export function installVaultFullLighting0273(THREE,world,{
  enabled=true,track="vault",lowMemory=false,positionAt,
- foundation=null,architecture=null,materialParity=null
+ foundation=null,architecture=null,materialParity=null,finishEnabled=false
 }={}){
  const fallback=reason=>({active:false,stats:()=>({
   active:false,version:"0.27.3",reason}),setComparison(){},dispose(){}});
@@ -343,12 +355,13 @@ export function installVaultFullLighting0273(THREE,world,{
   !rail.geometry?.getAttribute?.("aBarrierArc"))
   return fallback("original indexed aero-barrier metal unavailable");
  const power={value:1},railPower={value:1};
+ const finish=finishEnabled?{value:1}:null;
  const coats=[],attributes=[],materials=[],undo=[];
  let sourceVertices=0,litVertices=0,railLit=0;
  try{
-  const panelMat=physicalCoat(THREE,"panel",lowMemory,atlas,power);
+  const panelMat=physicalCoat(THREE,"panel",lowMemory,atlas,power,finish);
   materials.push(panelMat);
-  const ribMat=lowMemory?null:physicalCoat(THREE,"rib",lowMemory,atlas,power);
+  const ribMat=lowMemory?null:physicalCoat(THREE,"rib",lowMemory,atlas,power,finish);
   if(ribMat)materials.push(ribMat);
   for(const [chunk,mesh,role] of panels){
    const result=buildVaultPhysicalSources0273(mesh.geometry,positionAt,
@@ -381,8 +394,8 @@ export function installVaultFullLighting0273(THREE,world,{
    attributes.push([rail.geometry,name]);
   }
   railLit=railSrc.litVertices;
-  undo.push(wrapRail(rail,railPower,lowMemory));
-  undo.push(boostFixture(emissive[0].material,power,lowMemory));
+  undo.push(wrapRail(rail,railPower,lowMemory,finish));
+  undo.push(boostFixture(emissive[0].material,power,lowMemory,finish));
  }catch(error){
   for(const m of coats)m.removeFromParent();
   for(const [g,n] of attributes)g.deleteAttribute(n);
@@ -406,9 +419,13 @@ export function installVaultFullLighting0273(THREE,world,{
   originalRoadUnchanged:true,originalShipUnchanged:true,
   originalTrackUnchanged:true,originalGripUnchanged:true,
   originalCameraUnchanged:true,originalSkylineUnchanged:true,
-  originalAuroraUnchanged:true,quality:lowMemory?"4GB":"High"};
+  originalAuroraUnchanged:true,quality:lowMemory?"4GB":"High",
+  premiumFinish:finishEnabled?vaultPremiumFinishAudit0274(true,1,lowMemory):
+   vaultPremiumFinishAudit0274(false,0,lowMemory)};
  let disposed=false;
- return {active:true,stats:()=>({...state,strength:power.value}),
+ return {active:true,stats:()=>({...state,strength:power.value,
+   premiumFinish:vaultPremiumFinishAudit0274(!!finish,finish?.value??0,lowMemory)}),
+  setFinishComparison(v){if(finish)finish.value=clamp(v);},
   setComparison(v){const x=clamp(v);power.value=x;railPower.value=x;
    for(const c of coats)c.visible=x>.001;},
   dispose(){

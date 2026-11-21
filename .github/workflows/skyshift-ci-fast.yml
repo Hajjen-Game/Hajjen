@@ -100,6 +100,10 @@ jobs:
             node --test skyshift/full-tunnel-light-seal-v0270.test.mjs
             node --test skyshift/vault-material-parity-v0271.test.mjs
           fi
+          # Prevent legacy push-only failure: Skyline's boot release and
+          # Neon Vault's independent menu release must both be validated
+          # on the PR, before merging to main.
+          node --test skyshift/build-version-v02204.test.mjs
 
   current-material-webgl:
     name: SKYSHIFT current material REAL Chrome/WebGL, dual-tone and 4 GB

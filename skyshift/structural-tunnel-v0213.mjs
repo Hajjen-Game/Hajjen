@@ -44,7 +44,7 @@ const FLOW_COLORS=Object.freeze({
  brace:makeRGB(0x213749),braceShadow:makeRGB(0x091521),
  conduit:makeRGB(0x264153),groove:makeRGB(0x091828)
 });
-const empty=()=>({positions:[],colors:[],trackS:[],glowWeight:[],materialProfile:[],triangles:0});
+const empty=()=>({positions:[],colors:[],trackS:[],glowWeight:[],materialProfile:[],localSection:[],triangles:0});
 const mix=(a,b,t)=>a+(b-a)*t;
 
 // This is the TRUE inner normal of a cross-section facet, including curved
@@ -81,6 +81,9 @@ function vertex(dest,local,col,positionAt,options,glow){
  // Used by the existing 0.26.2 atlas when the SAME panel code is swept
  // around the full banked 0.27.x circuit.
  dest.materialProfile.push(y+Math.abs(x)*.12);
+ // 0.27.3 provides the TRUE physical tunnel-space section for the
+ // unchanged native 0.26.0/0.26.1 finite-source GGX shaders.
+ dest.localSection.push(x,y);
 }
 function quad(dest,corners,col,positionAt,options,glow=0){
  const points=corners.map(([s,j,t,d])=>sampleStructuralFacet(s,j,t,d,options));

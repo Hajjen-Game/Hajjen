@@ -200,7 +200,13 @@ export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false,
   "// 0.26.3: world-light suppression has completed before local lights.",
   "// Add only the original physically placed cyan and amber tunnel strips.",
   "if(uRoadRebuild0263>0.0001){",
-  " vec2 r263Source=clamp(vRoadFixtureMasks0263,0.0,1.0)*uRoadRebuild0263;",
+  // Vault's wider continuous road must not turn source GGX into a broad
+  // cyan-white floor wash. Retain Skyline's exact physical BRDF, but apply
+  // its finite emitter mask most strongly at the actual curb inlay;
+  // central racing lines and white zone core stay intentionally dark.
+  fullTunnel?
+   " vec2 r263Source=clamp(vRoadFixtureMasks0263,0.0,1.0)*uRoadRebuild0263*0.56*(0.18+0.82*smoothstep(5.0,8.5,abs(vTrackCoord.y)));":
+   " vec2 r263Source=clamp(vRoadFixtureMasks0263,0.0,1.0)*uRoadRebuild0263;",
   fullTunnel?" float r263Tunnel=1.0;":
    " float r263Tunnel=1.0-smoothstep(340.0,368.0,vTrackCoord.x);",
   " float r263Guides=(1.0-0.91*clamp(guided,0.0,1.0))*",

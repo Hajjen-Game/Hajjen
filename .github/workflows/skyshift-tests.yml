@@ -58,11 +58,16 @@ jobs:
           node --test skyshift/final-cohesion-v0264.test.mjs
           node --test skyshift/unified-metal-light-response-v02641.test.mjs
 
+  # The old 12-minute job ran NINE full Chromium/SwiftShader sessions
+  # sequentially. On 2026-11-21 it completed 7/9 successfully, then
+  # GitHub canceled it at 12m before Pass 4 and 0.26.4.1 could start.
+  # Split by concern: each independent suite can run in parallel after
+  # the same unchanged native-GGX/solar/flight unit gate.
   browser-true-metal-v0260p2:
-    name: SKYSHIFT 0.26.0 P2 REAL PBR WebGL and 4GB solar-sealed A/B
+    name: SKYSHIFT historic PBR metal / black-room / local-strip WebGL 8GB + 4GB
     needs: true-metal-v0260p2-unit
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 9
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -70,21 +75,15 @@ jobs:
           node-version: '22'
       - name: Install chromium test driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
-      - name: Compare original dark dual-tone and physically lit metal, all zones
+      - name: Real physical metal, shared dark room and finite-strip GGX checks
         run: |
           node skyshift/browser-true-metal-materials-v0260p2.mjs
           node skyshift/browser-unified-tunnel-lighting-v1.mjs
           node skyshift/browser-local-reflections-v0261p1.mjs
-          node skyshift/browser-cinematic-road-rebuild-v0263.mjs
-          node skyshift/browser-edge-floor-v02631.mjs
-          node skyshift/browser-edge-source-floor-bands-v02632.mjs
-          node skyshift/browser-straight-only-edge-v02633.mjs
-          node skyshift/browser-final-cohesion-v0264.mjs
-          node skyshift/browser-unified-metal-v02641.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: skyshift-v0260p2-physical-metal-webgl-proof
+          name: skyshift-historic-physical-metal-webgl-proof
           path: |
             skyshift-v0260p2-*.png
             skyshift-v0260p2-proof.json
@@ -92,6 +91,31 @@ jobs:
             skyshift-unified-lighting-v1-proof.json
             skyshift-v0261p1-*.png
             skyshift-v0261p1-proof.json
+          if-no-files-found: warn
+
+  browser-road-edge-historical:
+    name: SKYSHIFT historic road GGX / connected floor / straight-only edges 8GB + 4GB
+    needs: true-metal-v0260p2-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install chromium test driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Real roadway, foot pools, lower rail and NO light in chevron turns
+        run: |
+          node skyshift/browser-cinematic-road-rebuild-v0263.mjs
+          node skyshift/browser-edge-floor-v02631.mjs
+          node skyshift/browser-edge-source-floor-bands-v02632.mjs
+          node skyshift/browser-straight-only-edge-v02633.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-historic-road-edge-webgl-proof
+          path: |
             skyshift-v0263-*.png
             skyshift-v0263-proof.json
             skyshift-v02631-*.png
@@ -100,10 +124,34 @@ jobs:
             skyshift-v02632-proof.json
             skyshift-v02633-*.png
             skyshift-v02633-proof.json
+          if-no-files-found: warn
+
+  browser-finish-metal-historical:
+    name: SKYSHIFT Pass 4 and 0.26.4.1 HDR / dark titanium REAL WebGL 8GB + 4GB
+    needs: true-metal-v0260p2-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install chromium test driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Verify final optical HDR and new titanium response independently
+        run: |
+          node skyshift/browser-final-cohesion-v0264.mjs
+          node skyshift/browser-unified-metal-v02641.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-historic-final-light-titanium-webgl-proof
+          path: |
             skyshift-v0264-*.png
             skyshift-v0264-proof.json
             skyshift-v02641-*.png
             skyshift-v02641-proof.json
+          if-no-files-found: warn
 
   track-tests:
     runs-on: ubuntu-latest

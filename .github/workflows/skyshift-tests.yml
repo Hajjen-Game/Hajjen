@@ -971,11 +971,15 @@ jobs:
             skyshift-v0205-original-nave-comparison.png
             skyshift-v0205-mobile-vault.png
 
+  # CI Optimization 0.28.1: keep the No-Jump GRIP check separate from the
+  # unrelated historical 0.18–0.20.x art browsers. Running the old 9 heavy
+  # WebGL programs sequentially made the *GRIP* check appear to take 6–10 min.
+  # All historic checks still run on main, now in parallel groups.
   browser-smoke:
-    name: No-Jump GRIP Fix & Track Parity 0.16.5 WebGL
+    name: No-Jump GRIP 0.16.5 – focused real WebGL and 120 Hz parity
     needs: track-tests
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -983,80 +987,99 @@ jobs:
           node-version: '22'
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
-      - name: Export SKYSHIFT 0.13.5 deterministic handling fairness report
+      - name: Export deterministic SKYSHIFT 0.13.5 handling fairness report
         run: node skyshift/handling-fairness-cli-v0135.mjs
-      - name: Verify SKYSHIFT 0.16.5 late-lap GRIP matches full yaw, Skyline trick preserved
+      - name: Verify late-lap No-Jump GRIP and Skyline parity in real Chromium
         run: node skyshift/browser-grip-trick-v0165.mjs
-      - name: Verify SKYSHIFT 0.18.0 Celestial Conduit in real Chrome WebGL
-        run: node skyshift/browser-signature-environment-v0180.mjs
-      - name: Verify SKYSHIFT 0.19.0 Cinematic World in real Chrome WebGL
-        run: node skyshift/browser-world-rebuild-v0190.mjs
-      - name: Verify SKYSHIFT 0.19.2 Asterion Orbital Hero WebGL and classic A/B
-        run: node skyshift/browser-orbital-hero-v0192.mjs
-      - name: Verify SKYSHIFT 0.20.0 glTF station world and mobile in Chrome WebGL
-        run: node skyshift/browser-environment-art-v0200.mjs
-      - name: Verify SKYSHIFT 0.20.1 enclosed station shell and mobile in real WebGL
-        run: node skyshift/browser-environment-art-v0201.mjs
-      - name: Verify SKYSHIFT 0.20.2 observation windows A/B and mobile WebGL
-        run: node skyshift/browser-environment-art-v0202.mjs
-      - name: Verify SKYSHIFT 0.20.2.1 ribbon window cleanup and mobile WebGL
-        run: node skyshift/browser-environment-art-v02021.mjs
-      - name: Verify SKYSHIFT 0.20.3 graphite materials and mobile WebGL
-        run: node skyshift/browser-environment-art-v0203.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: skyshift-v0165-grip-trick-lock
           path: |
             skyshift-fairness-v0135.json
-            skyshift-v0204-closed-hall.png
-            skyshift-v0204-panorama.png
-            skyshift-v0204-sidewall.png
-            skyshift-v0204-classic-before-neon.png
-            skyshift-v0204-mobile.png
-            skyshift-v0203-graphite-wall.png
-            skyshift-v0203-graphite-window.png
-            skyshift-v0203-original-wall.png
-            skyshift-v0203-mobile-graphite-wall.png
-            skyshift-v02021-ribbon.png
-            skyshift-v02021-solid-wall.png
-            skyshift-v02021-before-cleanup.png
-            skyshift-v02021-mobile.png
-            skyshift-v0202-new-observation.png
-            skyshift-v0202-main-observation.png
-            skyshift-v0202-enclosed-interval.png
-            skyshift-v0202-third-observation.png
-            skyshift-v0202-classic-at-same-position.png
-            skyshift-v0202-mobile-observation.png
-            skyshift-v0201-interior.png
-            skyshift-v0201-observation.png
-            skyshift-v0201-bulkhead.png
-            skyshift-v0201-exit.png
-            skyshift-v0201-mobile.png
-            skyshift-v0200-arrival.png
-            skyshift-v0200-panorama.png
-            skyshift-v0200-exit.png
-            skyshift-v0200-mobile.png
-            skyshift-v0192-approach.png
-            skyshift-v0192-hero.png
-            skyshift-v0192-classic.png
-            skyshift-v0192-mobile.png
-            skyshift-v0190-orbital-expanse.png
-            skyshift-v0190-celestial-conduit.png
-            skyshift-v0190-void-cathedral.png
-            skyshift-v0180-celestial-conduit.png
-            skyshift-v0180-env-classic.png
-            skyshift-v0165-aurora-final-corner.png
-            skyshift-v0165-skyline-original.png
-            skyshift-v01091-blackout-tunnel.png
-            skyshift-v01091-stingray-hangar.png
-            skyshift-v01091-grip-wake.png
-            skyshift-v01091-boost-wake.png
-            skyshift-v01091-flaps-grip-right.png
-            skyshift-v01091-flaps-grip-left.png
-            skyshift-v01091-rail-sparks-right.png
-            skyshift-v01091-rail-sparks-left.png
-          if-no-files-found: ignore
+            skyshift-v0165-*.png
+          if-no-files-found: warn
+
+  historical-art-webgl-v0180-v0200:
+    name: Historic WebGL art 0.18–0.20.0 – conduit, world, orbital and station
+    needs: track-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install WebGL browser driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
+      - name: Verify 0.18.0 Celestial Conduit
+        run: node skyshift/browser-signature-environment-v0180.mjs
+      - name: Verify 0.19.0 Cinematic World
+        run: node skyshift/browser-world-rebuild-v0190.mjs
+      - name: Verify 0.19.2 Asterion Orbital Hero
+        run: node skyshift/browser-orbital-hero-v0192.mjs
+      - name: Verify 0.20.0 glTF station environment
+        run: node skyshift/browser-environment-art-v0200.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-historic-webgl-v0180-v0200
+          path: |
+            skyshift-v0180-*.png
+            skyshift-v0190-*.png
+            skyshift-v0192-*.png
+            skyshift-v0200-*.png
+          if-no-files-found: warn
+
+  historical-art-webgl-v0201-v0202:
+    name: Historic WebGL art 0.20.1–0.20.2 – enclosed station and windows
+    needs: track-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install WebGL browser driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
+      - name: Verify 0.20.1 enclosed station shell
+        run: node skyshift/browser-environment-art-v0201.mjs
+      - name: Verify 0.20.2 selective observation windows
+        run: node skyshift/browser-environment-art-v0202.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-historic-webgl-v0201-v0202
+          path: |
+            skyshift-v0201-*.png
+            skyshift-v0202-*.png
+          if-no-files-found: warn
+
+  historical-art-webgl-v02021-v0203:
+    name: Historic WebGL art 0.20.2.1–0.20.3 – ribbons and graphite
+    needs: track-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install WebGL browser driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
+      - name: Verify 0.20.2.1 ribbon window cleanup
+        run: node skyshift/browser-environment-art-v02021.mjs
+      - name: Verify 0.20.3 graphite materials
+        run: node skyshift/browser-environment-art-v0203.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-historic-webgl-v02021-v0203
+          path: |
+            skyshift-v02021-*.png
+            skyshift-v0203-*.png
+          if-no-files-found: warn
 
   cinematic-phase-b-tests:
     name: SKYSHIFT 0.21.0 Phase B material + geometry

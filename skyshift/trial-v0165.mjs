@@ -1,4 +1,5 @@
-import {ACTIVE_TRACK_0160,isAurora} from "./track-selection-v0160.mjs";
+import {ACTIVE_TRACK_0160,isAurora,isVault} from "./track-selection-v0160.mjs";
+const isFlowTrack=()=>isAurora()||isVault();
 // SKYSHIFT 0.16.4 — SAME physics for all circuits; geometry only changes course.
 import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./boost-v0160.mjs";
 import {GRIP_SPEC,initGripState,stepGripState} from "./precision-grip-v084.mjs";
@@ -17,7 +18,8 @@ export const lerp=(a,b,t)=>a+(b-a)*t;
 export const smooth=x=>{const t=clamp(x,0,1);return t*t*(3-2*t);};
 
 export const TRIAL=Object.freeze({
- id:ACTIVE_TRACK_0160.id==="aurora"?"aurora-flow-v0160":"skyline-grip-first-v0901",
+ id:isVault()?"neon-vault-full-tunnel-0270":
+  ACTIVE_TRACK_0160.id==="aurora"?"aurora-flow-v0160":"skyline-grip-first-v0901",
  name:ACTIVE_TRACK_0160.name,length:CIRCUIT.lapLength,
  raceLength:CIRCUIT.totalDistance,laps:CIRCUIT.laps,
  hoverHeight:1.05,gravity:22,fallDepth:8.5,shieldPenalty:20,
@@ -45,7 +47,7 @@ export const COURSE_SEGMENTS=LOOP_SEGMENTS;
 // Pulse area is zero: no heading drift downstream or handwritten chicanes.
 // Full-speed laps need deliberate GRIP at technical apexes, while lap one
 // remains learnable without it. Never add lane magnets or steering assists.
-export const TECHNICAL_APEX_PULSES=Object.freeze(isAurora()?{}:{
+export const TECHNICAL_APEX_PULSES=Object.freeze(isFlowTrack()?{}:{
  "high-speed-sweep":0.00857070014,
  "precision-apex":0.0145,
  "back-sweeper":0.014,
@@ -62,7 +64,7 @@ export function circuitPlanSummary(){
   gripApexes:Object.keys(TECHNICAL_APEX_PULSES)};
 }
 export const MAX_BANK_RAD=2*Math.PI;
-export const GAPS=Object.freeze(isAurora()?[]:[SKYLINE_LEAP]);
+export const GAPS=Object.freeze(isFlowTrack()?[]:[SKYLINE_LEAP]);
 export const ISLANDS=Object.freeze([]);
 export const SPLITS=Object.freeze([]);
 export const RISK_CUTS=Object.freeze([]);
@@ -70,7 +72,11 @@ export const CHECKPOINTS=Object.freeze(
  Array.from({length:CIRCUIT.laps*10+1},(_,i)=>i*CIRCUIT.lapLength/10));
 export const SECTORS=Object.freeze(
  CIRCUIT.sectors.map(s=>({s:s.start,name:s.name,tint:0x43ddf0})));
-export const ROAD_CUES=Object.freeze(isAurora()?[
+export const ROAD_CUES=Object.freeze(isVault()?[
+ {s:228,label:"VAULT S-LINK",kind:"turn"},
+ {s:870,label:"GRIP SWEEP",kind:"grip"},
+ {s:1580,label:"GRAND SWEEP",kind:"turn"}
+]:isAurora()?[
  {s:205,label:"GLASS SWEEP",kind:"turn"},
  {s:1140,label:"NORTH SWITCHBACK",kind:"turn"},
  {s:2840,label:"HIGHLAND RUN",kind:"turn"}
@@ -86,12 +92,12 @@ export const ARCHES=Object.freeze([
 export const GEOMETRY_BREAKS=Object.freeze([
  ...new Set([...COURSE_SEGMENTS.flatMap(c=>c.type==="turn"?
   [c.start,c.start+c.entry,c.end-c.exit,c.end]:[c.start,c.end]),
-  ...(isAurora()?[]:[SKYLINE_LEAP.start,SKYLINE_LEAP.end,
+  ...(isFlowTrack()?[]:[SKYLINE_LEAP.start,SKYLINE_LEAP.end,
    MAGNETIC_WALL.start,MAGNETIC_WALL.riseEnd,MAGNETIC_WALL.fallStart,
    MAGNETIC_WALL.end,CORKSCREW.start,CORKSCREW.end])])
 ].sort((a,b)=>a-b));
 export const SPEED_SECTIONS=Object.freeze([
- {start:0,end:CIRCUIT.lapLength,id:isAurora()?"aurora-lap":"skyline-lap"}
+ {start:0,end:CIRCUIT.lapLength,id:isVault()?"vault-lap":isAurora()?"aurora-lap":"skyline-lap"}
 ]);
 
 // Quintic smoothstep yields C2 curvature at straight/transition joins.
@@ -159,12 +165,12 @@ export function surfaceHeightAt(s,lateral=0){
 // before the technical 90° bend; at high zone speeds the apex requires GRIP
 // to avoid the rail. Low-speed laps teach the line without a forced crash.
 export const GRIP_APEX=Object.freeze({
- id:isAurora()?"no-narrow-apex":"precision-grip-apex",name:"GRIP APEX",
- funnelStart:isAurora()?4000:777,throatStart:isAurora()?4010:840,
- throatEnd:isAurora()?4020:962,funnelEnd:isAurora()?4030:995,
- minWidthMeters:isAurora()?23.2:14,normalWidthMeters:23.2,
- peakCurvature:isAurora()?0.0086:0.01649,
- fullGripRequiredAtFastestZone:!isAurora()
+ id:isFlowTrack()?"no-narrow-apex":"precision-grip-apex",name:"GRIP APEX",
+ funnelStart:isFlowTrack()?4000:777,throatStart:isFlowTrack()?4010:840,
+ throatEnd:isFlowTrack()?4020:962,funnelEnd:isFlowTrack()?4030:995,
+ minWidthMeters:isFlowTrack()?23.2:14,normalWidthMeters:23.2,
+ peakCurvature:isFlowTrack()?0.0086:0.01649,
+ fullGripRequiredAtFastestZone:!isFlowTrack()
 });
 export function gripApexAt(s){
  const d=lapPosition(s);

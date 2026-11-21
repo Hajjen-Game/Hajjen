@@ -65,8 +65,8 @@ test("true original road 0.26.3 shader has a separate Vault full-course mode",()
  assert.match(patched.fragmentShader,/float r263Interior=uRoadRebuild0263;/);
  assert.match(patched.fragmentShader,/RE_Direct/);
  assert.match(patched.fragmentShader,/float roadSolarMask=uRoadRebuild0263;/);
- assert.match(patched.fragmentShader,/reflectedLight\\.directSpecular\\*=mix\\(1\\.0,0\\.08,roadSolarMask\\)/);
- assert.match(patched.fragmentShader,/reflectedLight\\.indirectSpecular\\*=mix\\(1\\.0,0\\.14,roadSolarMask\\)/);
+ assert.ok(patched.fragmentShader.includes("reflectedLight.directSpecular*=mix(1.0,0.08,roadSolarMask);"));
+ assert.ok(patched.fragmentShader.includes("reflectedLight.indirectSpecular*=mix(1.0,0.14,roadSolarMask);"));
  assert.doesNotMatch(patched.fragmentShader,/uRoadSolarSpillSeal/);
 });
 test("non-Vault and classic paths are inert and cannot alter Skyline",()=>{

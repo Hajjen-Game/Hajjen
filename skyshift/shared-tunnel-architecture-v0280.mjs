@@ -169,8 +169,15 @@ export function makeTunnelPlan0280({
 // Do not accidentally enable them for historical 0.26.x screenshots.
 export function tunnelReleaseAtLeast0280(version,minPatch=0){
  if(typeof version!=="string")return false;
- const m=/^0\.(27|28|29)\.(\d+)(?:\.|$)/.exec(version);
- return !!m&&(Number(m[1])>27||Number(m[2])>=minPatch);
+ const m=/^(\d+)\.(\d+)\.(\d+)(?:\.|$)/.exec(version);
+ if(!m)return false;
+ const [major,minor,patch]=m.slice(1).map(Number);
+ return major>0||minor>27||(minor===27&&patch>=minPatch);
+}
+export function sharedTunnelVersionActive0280(version){
+ const m=/^(\d+)\.(\d+)\.(\d+)(?:\.|$)/.exec(version??"");
+ return !!m&&(Number(m[1])>0||Number(m[2])>28||
+  (Number(m[2])===28&&Number(m[3])>=0));
 }
 export function tunnelQuality0280(lowMemory){
  return lowMemory?"4GB":"high";

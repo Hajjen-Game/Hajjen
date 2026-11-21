@@ -193,5 +193,5 @@ test("game version, same-frame proof and comparison wired without changing exist
  assert.match(g,/__skyshiftVaultMaterialFrameProof/);
  assert.match(g,/vaultMaterialComparison:"\?vaultMaterial=classic"/);
  assert.match(h,/Neon Vault Material Parity/);
- assert.match(g,/selected==="vault"\?"0\.27\.1"/);
+ assert.match(g,/selected==="vault"\?"0\.27\.(?:1|2)"/);
 });

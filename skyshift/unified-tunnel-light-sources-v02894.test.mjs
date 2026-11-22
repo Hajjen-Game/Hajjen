@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import {ZONE_PALETTES} from "./zone-wave-v060.mjs";
 import {panelSeamPoint02892}
  from "./ceiling-fixture-cohesion-v02892.mjs";
-import {buildArchRoadSources02893}
+import {buildArchRoadSources02893,patchArchRoadShader02893,
+ installArchRoadReflection02893}
  from "./premium-arch-optics-v02893.mjs";
 import {vaultStraightMask02891}
  from "./shared-straight-edge-parity-v02891.mjs";
@@ -118,6 +119,41 @@ test("unified v.4 arch positions and 0.28.9.3 are NUMERICALLY IDENTICAL",()=>{
   for(let i=0;i<a.length;i++)
    assert.ok(Math.abs(a[i]-b[i])<.0001,k+"["+i+"] "+a[i]+" vs "+b[i]);
  }
+});
+test("new release packs old arch arc/window without changing physical values",()=>{
+ const g=road();
+ const mat={isMeshStandardMaterial:true,needsUpdate:false,
+  onBeforeCompile(){},customProgramCacheKey(){return "native";}};
+ const original=mat.onBeforeCompile,key=mat.customProgramCacheKey;
+ const scene={getObjectByName(name){return name==="Zone Ribbon · integrated PBR racing deck"?
+  {material:mat,geometry:g}:null;}};
+ const q=installArchRoadReflection02893(THREE,scene,at,{
+  enabled:true,lowMemory:false,trackLength:3400,unifiedSources:true});
+ assert.equal(q.active,true);
+ assert.equal(q.stats().sourceAttributes,3);
+ assert.equal(q.stats().packedArcWindow02894,true);
+ const packed=g.getAttribute("archArcWindow02894");
+ assert.ok(packed&&packed.itemSize===2);
+ assert.equal(packed.count,g.getAttribute("position").count);
+ assert.equal(g.getAttribute("archArc02893"),undefined);
+ assert.equal(g.getAttribute("archWindow02893"),undefined);
+ const base=buildArchRoadSources02893(g,at,3400,{unifiedSources:true});
+ for(let i=0;i<packed.count;i++){
+  assert.ok(Math.abs(packed.getX(i)-base.arc[i])<.0001);
+  assert.ok(Math.abs(packed.getY(i)-base.window[i])<.0001);
+ }
+ const fragmentArch="#include <common>\nvarying vec2 vTrackCoord;\n"+
+ "float r263Guides=1.0;\nfloat r263Keep=1.0;\n"+
+ "float roadSolarMask=1.0;\n"+
+ "reflectedLight.directSpecular+=r263Convolved*\n"+
+ "  (r263Keep*r263Fresnel*r263Surface);";
+ const shader=patchArchRoadShader02893(vertex,fragmentArch,{packed:true});
+ assert.match(shader.vertexShader,/attribute vec2 archArcWindow02894/);
+ assert.match(shader.vertexShader,/vA93Arc=archArcWindow02894.x/);
+ assert.doesNotMatch(shader.vertexShader,/attribute float archArc02893/);
+ q.dispose();assert.equal(mat.onBeforeCompile,original);
+ assert.equal(mat.customProgramCacheKey,key);
+ assert.equal(g.getAttribute("archArcWindow02894"),undefined);
 });
 test("source-matched real j11 cove source packed into ONE WebGL vec4, HIGH and 4GB",()=>{
  const g=road();

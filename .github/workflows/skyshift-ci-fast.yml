@@ -1,5 +1,5 @@
 name: SKYSHIFT fast PR checks
-# SKYSHIFT CI Optimization 1.0
+# SKYSHIFT CI Optimization 2.0: classify PR changes, skip expensive WebGL only for non-runtime edits
 # A PR commit runs once (not also on branch push). Superseded commits are
 # cancelled before they consume more CI minutes. Full historical visual QA is
 # retained in skyshift-tests.yml and can be dispatched before any release.
@@ -19,6 +19,35 @@ permissions:
   contents: read
 
 jobs:
+  change-scope:
+    name: SKYSHIFT CI 2.0 conservative change classifier
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    outputs:
+      visual: ${{ steps.classify.outputs.visual }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Select checks; missing or ambiguous diff means FULL WebGL
+        id: classify
+        shell: bash
+        run: |
+          set -euo pipefail
+          paths="$RUNNER_TEMP/skyshift-pr-changed-paths.z"
+          if git rev-parse --verify -q HEAD^1 >/dev/null 2>&1 && \
+             git rev-parse --verify -q HEAD^2 >/dev/null 2>&1 && \
+             git diff --name-only --no-renames -z HEAD^1 HEAD^2 > "$paths"; then
+            node skyshift/tests/architecture/ci-change-scope-v2.mjs < "$paths" >> "$GITHUB_OUTPUT"
+          else
+            echo 'visual=true' >> "$GITHUB_OUTPUT"
+            echo 'tier=full-visual-fallback' >> "$GITHUB_OUTPUT"
+          fi
+          cat "$GITHUB_OUTPUT" >> "$GITHUB_STEP_SUMMARY"
+
   fast-core:
     name: SKYSHIFT fast syntax, flight, solar seal & current metal unit gates
     runs-on: ubuntu-latest
@@ -160,7 +189,8 @@ jobs:
 
   current-material-webgl:
     name: SKYSHIFT current material REAL Chrome/WebGL, dual-tone and 4 GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -203,7 +233,8 @@ jobs:
 
   road-reflections-webgl-0263:
     name: SKYSHIFT 0.26.3 TRUE GGX road high/4GB & solar-seal A/B
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 9
     steps:
@@ -226,7 +257,8 @@ jobs:
 
   edge-floor-webgl-02631:
     name: SKYSHIFT 0.26.3.1 edge / floor authentic WebGL A/B high + 4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 9
     steps:
@@ -249,7 +281,8 @@ jobs:
 
   edge-source-webgl-02632:
     name: SKYSHIFT 0.26.3.2 SHORT edge/CONNECTED foot WebGL high/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 9
     steps:
@@ -272,7 +305,8 @@ jobs:
 
   straight-only-edge-webgl-02633:
     name: SKYSHIFT 0.26.3.3 straight ONLY cyan / corner arrow dark, high + 4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 9
     steps:
@@ -295,7 +329,8 @@ jobs:
 
   final-cohesion-webgl-0264:
     name: SKYSHIFT 0.26.4 HDR bloom, graphite and local neon REAL WebGL high/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -318,7 +353,8 @@ jobs:
 
   unified-metal-webgl-02641:
     name: SKYSHIFT 0.26.4.1 real titanium graphite / local GGX light 8GB + 4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -341,7 +377,8 @@ jobs:
 
   reflection-finish-webgl-02642:
     name: SKYSHIFT 0.26.4.2 premium PBR reflections and amber-falloff real WebGL high/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 9
     steps:
@@ -364,7 +401,8 @@ jobs:
 
   fixture-transport-webgl-02643:
     name: SKYSHIFT 0.26.4.3 REAL cyan-amber fixture transport user-marked ROI high/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -387,7 +425,8 @@ jobs:
 
   true-rail-wall-webgl-0265:
     name: SKYSHIFT 0.26.5 real rail GGX + wall-local High/4GB no-white-spill proof
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 11
     steps:
@@ -410,7 +449,8 @@ jobs:
 
   full-tunnel-circuit-webgl-0270:
     name: SKYSHIFT 0.27.0 NEON VAULT complete 3400m real Chromium High/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 11
     steps:
@@ -433,7 +473,8 @@ jobs:
 
   vault-material-webgl-0271:
     name: SKYSHIFT 0.27.1 actual 3400m packed metal High/4GB parity A/B
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -456,7 +497,8 @@ jobs:
 
   vault-architecture-webgl-0272:
     name: SKYSHIFT 0.27.2 genuine Skyline 3D raised panels 3400m High/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 17
     steps:
@@ -479,7 +521,8 @@ jobs:
 
   vault-lighting-webgl-0273:
     name: SKYSHIFT 0.27.3 native Skyline GGX 3400m roof/amber/rail High/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 17
     steps:
@@ -502,7 +545,8 @@ jobs:
 
   vault-premium-finish-webgl-0274:
     name: SKYSHIFT 0.27.4 premium source-aware satin metal High/4GB real WebGL
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 18
     steps:
@@ -525,7 +569,8 @@ jobs:
 
   shared-tunnel-webgl-0280:
     name: SKYSHIFT 0.28.0 shared Skyline/Vault/Aurora real High/4GB WebGL
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 18
     steps:
@@ -548,7 +593,8 @@ jobs:
 
   true-shared-renderer-webgl-0281:
     name: SKYSHIFT 0.28.1 actual Skyline renderer on Vault / real WebGL High + 4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 17
     steps:
@@ -571,7 +617,8 @@ jobs:
 
   focused-grip-webgl-0165:
     name: SKYSHIFT focused No-Jump GRIP parity REAL Chrome/WebGL
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
@@ -592,7 +639,8 @@ jobs:
 
   shared-road-ship-webgl-0282:
     name: SKYSHIFT 0.28.2 original road GGX + source-lit ship real High/4GB WebGL
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 17
     steps:
@@ -615,7 +663,8 @@ jobs:
 
   vault-boost-clarity-webgl-0283:
     name: SKYSHIFT 0.28.3 Vault main glow pads / no risk boosts High+4GB WebGL
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 13
     steps:
@@ -638,7 +687,8 @@ jobs:
 
   pmrem-reflection-real-webgl-0284:
     name: SKYSHIFT 0.28.4 real tunnel PMREM High/4GB vs exact prior
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 21
     steps:
@@ -661,7 +711,8 @@ jobs:
 
   vault-spatial-wave-webgl-0285:
     name: SKYSHIFT 0.28.5 shared Vault wavefront parity REAL WebGL High/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 17
     steps:
@@ -684,7 +735,8 @@ jobs:
 
   reflection-stability-real-webgl-0286:
     name: SKYSHIFT 0.28.6 stable native metal and defined light strips High/4GB WebGL
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 19
     steps:
@@ -707,7 +759,8 @@ jobs:
 
   arch-foot-light-assembly-real-webgl-0287:
     name: SKYSHIFT 0.28.7 real L arch-foot assembly and local glow High/4GB WebGL
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 19
     steps:
@@ -730,7 +783,8 @@ jobs:
 
   precision-neon-real-webgl-0288:
     name: SKYSHIFT 0.28.8 native neon emission and original metal GGX / real Chromium High + 4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -762,7 +816,8 @@ jobs:
 
   cinematic-metal-real-webgl-0289:
     name: SKYSHIFT 0.28.9 real cinematic graphite, GGX strip streaks and original racing road High + 4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 22
     steps:
@@ -794,7 +849,8 @@ jobs:
 
   straight-edge-parity-real-webgl-02891:
     name: SKYSHIFT 0.28.9.1 Skyline 0.26.3.3 cyan only on Vault straights + original road GGX High/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 22
     steps:
@@ -826,7 +882,8 @@ jobs:
 
   ceiling-fixture-wave-real-webgl-02892:
     name: SKYSHIFT 0.28.9.2 actual seam fixtures, zone wave and rollback High/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 22
     steps:
@@ -857,7 +914,8 @@ jobs:
 
   premium-arch-optics-real-webgl-02893:
     name: SKYSHIFT 0.28.9.3 actual chromatic arch/road optics, pink/cyan High/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -888,7 +946,8 @@ jobs:
 
   unified-tunnel-light-real-webgl-02894:
     name: SKYSHIFT 0.28.9.4 actual legacy layer / source registry pink-cyan High/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 22
     steps:
@@ -919,7 +978,8 @@ jobs:
 
   road-spill-cove-wave-real-webgl-02895:
     name: SKYSHIFT 0.28.9.5 actual Skyline-source road pools and wave metal High/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 23
     steps:
@@ -950,7 +1010,8 @@ jobs:
 
   curve-surface-continuity-real-webgl-02896:
     name: SKYSHIFT 0.28.9.6 true indexed PBR curve and opposite-wave seam High/4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 23
     steps:
@@ -981,7 +1042,8 @@ jobs:
 
   startup-memory-budget-real-webgl-02897:
     name: SKYSHIFT 0.28.9.7 real cold-start, shared atlas/PMREM diagnosis, GPU crash and 4GB
-    needs: fast-core
+    needs: [fast-core, change-scope]
+    if: ${{ needs.change-scope.outputs.visual == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 23
     steps:

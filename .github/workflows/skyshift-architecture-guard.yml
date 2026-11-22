@@ -5,6 +5,8 @@ on:
     paths:
       - 'skyshift/**'
       - '.github/workflows/skyshift-architecture-guard.yml'
+      - '.github/workflows/skyshift-ci-fast.yml'
+      - '.github/workflows/skyshift-tests.yml'
   workflow_dispatch:
 
 permissions:
@@ -37,6 +39,8 @@ jobs:
         run: node --test skyshift/tests/architecture/stage7-unit-migration-integrity.test.mjs
       - name: Audit final 12 formerly protected tests, historical source parity and subprocess probes
         run: node --test skyshift/tests/architecture/stage8-unit-migration-integrity.test.mjs
+      - name: Validate CI 2.0 change classifier and fail-safe cases
+        run: node --test skyshift/tests/architecture/ci-change-scope-v2.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

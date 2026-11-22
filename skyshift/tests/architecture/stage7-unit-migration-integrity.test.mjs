@@ -15,13 +15,43 @@ const manifest = JSON.parse(readFileSync(resolve(testsDir, 'migration-manifest-0
 const names = Object.keys(manifest.entries);
 
 function restore(source) {
-  return source
-    .replace(/\bnew URL\((\s*)"\.\.\/\.\.\/"\+([^,\r\n()]+?)(\s*,\s*import\.meta\.url\s*\))/g,
-      (_m, a, b, z) => 'new URL(' + a + b + z)
-    .replace(/^(\s*import\b[^\n]*?\bfrom\s*["'])\.\.\/\.\.\//gm, '$1./')
-    .replace(/^(\s*from\s*["'])\.\.\/\.\.\//gm, '$1./')
-    .replace(/^(\s*import\s*["'])\.\.\/\.\.\//gm, '$1./')
-    .replace(/^(\s*export\b[^\n]*?\bfrom\s*["'])\.\.\/\.\.\//gm, '$1./');
+  const urlRestored = source.replace(
+    /\bnew URL\((\s*)"\.\.\/\.\.\/"\+([^,\r\n()]+?)(\s*,\s*import\.meta\.url\s*\))/g,
+    (_m, a, b, z) => 'new URL(' + a + b + z
+  );
+  const lines = urlRestored.split('\n');
+  let inImport = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s*(?:import|export)\s+/.test(line) && !/^\s*import\s*\(/.test(line)) inImport = true;
+    if (inImport) {
+      lines[i] = line
+        .replace(/(\bfrom\s*["'])\.\.\/\.\.\//g, '$1./')
+        .replace(/^(\s*import\s*["'])\.\.\/\.\.\//g, '$1./');
+    }
+    if (inImport && /;\s*(?:\/\/.*)?$/.test(lines[i])) inImport = false;
+  }
+  return lines.join('\n');
+}
+
+function assertStaticImportsResolve(name, contents) {
+  const lines = contents.split('\n');
+  let inImport = false;
+  for (const line of lines) {
+    if (/^\s*(?:import|export)\s+/.test(line) && !/^\s*import\s*\(/.test(line)) inImport = true;
+    if (inImport) {
+      const from = line.match(/\bfrom\s*["']([^"']+)["']/);
+      const bare = line.match(/^\s*import\s*["']([^"']+)["']/);
+      const spec = (from || bare)?.[1];
+      if (spec && spec.startsWith('.')) {
+        const target = resolve(testsDir, spec);
+        const rel = relative(skyshift, target);
+        assert.ok(rel && rel !== '..' && !rel.startsWith('..' + sep) && !isAbsolute(rel), 'Import escapes SKYSHIFT: ' + name + ' -> ' + spec);
+        assert.ok(existsSync(target), 'Missing static import: ' + name + ' -> ' + spec);
+      }
+    }
+    if (inImport && /;\s*(?:\/\/.*)?$/.test(line)) inImport = false;
+  }
 }
 
 test('all 125 migrated tests have exactly the same original Git blob after reversing paths', () => {
@@ -38,14 +68,7 @@ test('all 125 migrated tests have exactly the same original Git blob after rever
     const original = Buffer.from(restore(contents), 'utf8');
     const actual = createHash('sha1').update('blob ' + original.length + '\0').update(original).digest('hex');
     assert.equal(actual, manifest.entries[name], 'Test assertions or source changed: ' + name);
-    for (const match of contents.matchAll(/\b(?:from\s*|import\s*\(\s*|import\s*)["'](\.\.\/\.\.\/[^"']+)["']/g)) {
-      const spec = match[1];
-      if (spec.includes('${')) continue; // A string used by a historical source assertion, not an actual import
-      const target = resolve(testsDir, spec);
-      const rel = relative(skyshift, target);
-      assert.ok(rel && rel !== '..' && !rel.startsWith('..' + sep) && !isAbsolute(rel), 'Module escapes SKYSHIFT root: ' + name);
-      assert.ok(existsSync(target), 'Missing moved-test dependency: ' + name + ' -> ' + spec);
-    }
+    assertStaticImportsResolve(name, contents);
   }
 });
 

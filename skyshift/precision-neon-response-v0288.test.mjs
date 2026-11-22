@@ -96,7 +96,7 @@ test("shared renderer and game own lifecycle, not a parallel Vault imitation",()
  assert.match(shared,/item\.precision\?\.dispose\?\.\(\)/);
  assert.match(game,/__skyshiftPrecisionNeonFrameProof/);
  assert.match(game,/precisionNeonReleaseEnabled\?" · 0\.28\.8"/);
- assert.match(html,/(?:Shared Straight-Only Edge Lighting Parity|Ceiling Fixture Placement & Glow Cohesion|Premium Arch Optics & Chromatic Road Reflections|Unified Light Sources & Road Layer Cleanup|Road Light Spill Continuity & Wave-Coupled Cove Lighting)/);
+ assert.match(html,/(?:Shared Straight-Only Edge Lighting Parity|Ceiling Fixture Placement & Glow Cohesion|Premium Arch Optics & Chromatic Road Reflections|Unified Light Sources & Road Layer Cleanup|Road Light Spill Continuity & Wave-Coupled Cove Lighting|Curve Surface Artifact & Transition Seam Cleanup)/);
  assert.match(html,/0\.28\.9/);
  assert.doesNotMatch(read("./precision-neon-response-v0288.mjs"),
   /new THREE\.(PointLight|RectAreaLight|Reflector|PMREMGenerator|WebGLRenderTarget)/);

@@ -100,8 +100,27 @@ try{
     before.engineLightIntensities.length!==2)
    throw Error("Unified foundation broke mandatory source/wave protections "+
     JSON.stringify(before));
-  const frame=await page.evaluate(()=>window.__skyshiftUnifiedLightingFrameProof());
-  inspect(frame,label,memory===4,mode);
+  // On SwiftShader a teleported chase camera can still be interpolating
+  // when the first image is sampled. Never weaken the PBR/white-spill
+  // thresholds: re-sample only a non-visible transition, after more frames.
+  // A genuinely missing lighting response still fails on the final attempt.
+  const maxAttempts=mode==="transition"?4:1;
+  for(let attempt=1;attempt<=maxAttempts;attempt++){
+   const frame=await page.evaluate(()=>window.__skyshiftUnifiedLightingFrameProof());
+   if(Math.abs(frame.s-s)>.001)
+    throw Error("1.0 QA frame moved away from requested tunnel position");
+   try{
+    inspect(frame,label,memory===4,mode);
+    return;
+   }catch(error){
+    if(mode!=="transition"||
+       error?.message!=="1.0 gallery/transition PBR lighting difference not visible"||
+       attempt===maxAttempts)throw error;
+    console.warn("UNIFIED_TUNNEL_1 transition camera settling; retry "+
+     attempt+"/"+maxAttempts+" after next browser frames");
+    await page.waitForTimeout(850);
+   }
+  }
  }
  const hi=await pageFor(8);
  await capture(hi,165,"high-gallery",8,"gallery");

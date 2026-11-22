@@ -68,6 +68,8 @@ jobs:
           node --check skyshift/premium-arch-optics-v02893.mjs
           node --check skyshift/unified-tunnel-light-sources-v02894.mjs
           node --check skyshift/road-spill-wave-coves-v02895.mjs
+          node --check skyshift/curve-surface-continuity-v02896.mjs
+          node --check skyshift/browser-curve-surface-continuity-v02896.mjs
           node --check skyshift/browser-road-spill-wave-cove-v02895.mjs
           node --check skyshift/browser-unified-tunnel-light-v02894.mjs
           node --check skyshift/browser-premium-arch-optics-v02893.mjs
@@ -149,6 +151,7 @@ jobs:
           node --test skyshift/premium-arch-optics-v02893.test.mjs
           node --test skyshift/unified-tunnel-light-sources-v02894.test.mjs
           node --test skyshift/road-spill-wave-coves-v02895.test.mjs
+          node --test skyshift/curve-surface-continuity-v02896.test.mjs
           node --test skyshift/build-version-v02204.test.mjs
 
   current-material-webgl:
@@ -939,4 +942,35 @@ jobs:
           path: |
             skyshift/previews/v02895-*.png
             skyshift/previews/v02895-proof.json
+          if-no-files-found: warn
+
+  curve-surface-continuity-real-webgl-02896:
+    name: SKYSHIFT 0.28.9.6 true indexed PBR curve and opposite-wave seam High/4GB
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate true curve-clearance geometry mask and cyclic color continuity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check skyshift/curve-surface-continuity-v02896.mjs
+          node --check skyshift/browser-curve-surface-continuity-v02896.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/curve-surface-continuity-v02896.test.mjs
+      - name: Install real WebGL screenshot dependencies
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Capture original game before-after curve and wave-color seams
+        run: node skyshift/browser-curve-surface-continuity-v02896.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02896-real-webgl-curve-and-color-continuity
+          path: |
+            skyshift/previews/v02896-*.png
+            skyshift/previews/v02896-proof.json
           if-no-files-found: warn

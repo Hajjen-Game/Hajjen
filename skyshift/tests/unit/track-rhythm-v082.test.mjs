@@ -7,7 +7,7 @@ import {
  BOOST_PADS,GUARDRAIL,poseAt,positionAt,headingAt,curvatureAt,bankDegreesAt,
  surfaceNormalAt,surfaceHeightAt,widthAt,newFlightState,stepFlight,speedAt,
  validateTrial,gripApexAt,guardrailLateralLimit
-} from "./trial-v082.mjs";
+} from "../../trial-v082.mjs";
 import {GRIP_SPEC} from "../../precision-grip-v061.mjs";
 import {createSmoothDeckData} from "../../smooth-track-v082.mjs";
 import {createAeroBarrierData} from "../../aero-barrier-v082.mjs";

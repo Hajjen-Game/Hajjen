@@ -7,13 +7,13 @@ import {
  easedCurvature,integratedEasedCurvature,headingAt,curvatureAt,bankAt,
  positionAt,poseAt,roadIntervals,guardrailLateralLimit,constrainToGuardrail,
  newFlightState,stepFlight,validateTrial,onRoad
-} from "./trial-v046.mjs";
+} from "../../trial-v046.mjs";
 import {
  MESH_SPEC,createSmoothDeckData,sampleDeckRows
-} from "./smooth-track-v046.mjs";
+} from "../../smooth-track-v046.mjs";
 import {
  TRACK_IDENTITY,createRailData,sampleRailSection,createSurfaceIdentityData
-} from "./identity-v046.mjs";
+} from "../../identity-v046.mjs";
 const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const epsilon=1e-5;
 const near=(a,b,tol=epsilon)=>assert.ok(Math.abs(a-b)<=tol,

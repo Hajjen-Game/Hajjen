@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";
 import {STINGRAY_PRESENTATION_01346 as spec,
- visualSettingsForShip,stableStingrayVisualRoll} from "./stingray-presentation-v01346.mjs";
+ visualSettingsForShip,stableStingrayVisualRoll} from "../../stingray-presentation-v01346.mjs";
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 test("real HERO wing is scaled to Manta width instead of the failed 170/210 workaround",()=>{
  const m=JSON.parse(read("./assets/ships/stingray-evo-hero-v4.gltf"));

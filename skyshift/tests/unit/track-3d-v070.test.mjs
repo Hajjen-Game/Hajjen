@@ -4,11 +4,11 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {ELEVATION_KEYS,TRACK_3D,SKYLINE_LEAP,
  elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,
- elevationAudit} from "./track-3d-v070.mjs";
+ elevationAudit} from "../../track-3d-v070.mjs";
 import {CIRCUIT,COURSE_SEGMENTS,TRIAL,GAPS,
  poseAt,positionAt,heightAt,surfaceNormalAt,surfaceHeightAt,bankAt,
  onRoad,gapAt,nextGap,widthAt,headingAt,curvatureAt,
- newFlightState,stepFlight,speedAt,validateTrial} from "./trial-v070.mjs";
+ newFlightState,stepFlight,speedAt,validateTrial} from "../../trial-v070.mjs";
 import {MESH_SPEC,sampleDeckRows,createSmoothDeckData} from "../../smooth-track-v070.mjs";
 import {AERO_BARRIER,createAeroBarrierData,sampleAeroProfile}
  from "../../aero-barrier-v070.mjs";

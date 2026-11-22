@@ -7,7 +7,7 @@ import {
  STRAIGHT_EDGE_02633,straightRanges02633,straightEdgeMask02633,
  buildStraightCyanEmitters02633,buildStraightRoadMasks02633,
  patchStraightEdgeShader02633,installStraightOnlyEdgeLighting02633
-} from "./straight-only-edge-lighting-v02633.mjs";
+} from "../../straight-only-edge-lighting-v02633.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Attr{
  constructor(a,size){this.array=a;this.itemSize=size;this.count=a.length/size;}

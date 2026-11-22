@@ -1,0 +1,146 @@
+[
+  {
+    "tag": "High-110-before-0289",
+    "condition": "straight",
+    "s": 110,
+    "memory": 8,
+    "active": false,
+    "masked": 0,
+    "segments": 320
+  },
+  {
+    "tag": "High-110-after-02891",
+    "condition": "straight",
+    "s": 110,
+    "memory": 8,
+    "active": true,
+    "masked": 16933,
+    "segments": 132
+  },
+  {
+    "tag": "High-292-before-0289",
+    "condition": "turn",
+    "s": 292,
+    "memory": 8,
+    "active": false,
+    "masked": 0,
+    "segments": 320
+  },
+  {
+    "tag": "High-292-after-02891",
+    "condition": "turn",
+    "s": 292,
+    "memory": 8,
+    "active": true,
+    "masked": 16933,
+    "segments": 132
+  },
+  {
+    "tag": "High-540-before-0289",
+    "condition": "turn",
+    "s": 540,
+    "memory": 8,
+    "active": false,
+    "masked": 0,
+    "segments": 320
+  },
+  {
+    "tag": "High-540-after-02891",
+    "condition": "turn",
+    "s": 540,
+    "memory": 8,
+    "active": true,
+    "masked": 16933,
+    "segments": 132
+  },
+  {
+    "tag": "High-955-before-0289",
+    "condition": "turn",
+    "s": 955,
+    "memory": 8,
+    "active": false,
+    "masked": 0,
+    "segments": 320
+  },
+  {
+    "tag": "High-955-after-02891",
+    "condition": "turn",
+    "s": 955,
+    "memory": 8,
+    "active": true,
+    "masked": 16933,
+    "segments": 132
+  },
+  {
+    "tag": "High-1210-before-0289",
+    "condition": "straight",
+    "s": 1210,
+    "memory": 8,
+    "active": false,
+    "masked": 0,
+    "segments": 320
+  },
+  {
+    "tag": "High-1210-after-02891",
+    "condition": "straight",
+    "s": 1210,
+    "memory": 8,
+    "active": true,
+    "masked": 16933,
+    "segments": 132
+  },
+  {
+    "tag": "High-1450-before-0289",
+    "condition": "turn",
+    "s": 1450,
+    "memory": 8,
+    "active": false,
+    "masked": 0,
+    "segments": 320
+  },
+  {
+    "tag": "High-1450-after-02891",
+    "condition": "turn",
+    "s": 1450,
+    "memory": 8,
+    "active": true,
+    "masked": 16933,
+    "segments": 132
+  },
+  {
+    "tag": "4GB-1995-before-0289",
+    "condition": "turn",
+    "s": 1995,
+    "memory": 4,
+    "active": false,
+    "masked": 0,
+    "segments": 320
+  },
+  {
+    "tag": "4GB-1995-after-02891",
+    "condition": "turn",
+    "s": 1995,
+    "memory": 4,
+    "active": true,
+    "masked": 16933,
+    "segments": 132
+  },
+  {
+    "tag": "4GB-1840-before-0289",
+    "condition": "straight",
+    "s": 1840,
+    "memory": 4,
+    "active": false,
+    "masked": 0,
+    "segments": 320
+  },
+  {
+    "tag": "4GB-1840-after-02891",
+    "condition": "straight",
+    "s": 1840,
+    "memory": 4,
+    "active": true,
+    "masked": 16933,
+    "segments": 132
+  }
+]

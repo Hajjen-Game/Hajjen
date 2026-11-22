@@ -101,7 +101,8 @@ test("source shader only upgrades original arch and never 0.21.1 wall guides",()
 });
 test("same physical source 3400m arc, actual j6 banked arch, High+4GB sampler",()=>{
  const g=new Geometry();
- const s=[108,292,340,1190,1840,3395];
+ const s=[TUNNEL_PORTALS_0211[0]+.61,TUNNEL_PORTALS_0211[0]+20.61,
+  108,292,340,1190,1840,3395];
  g.setAttribute("aTrackCoord",new Attribute(s.flatMap(x=>[x,9.2]),2));
  g.setAttribute("position",new Attribute(s.flatMap(x=>[9.2,0,x]),3));
  const data=buildArchRoadSources02893(g,positionAt,3400);
@@ -109,6 +110,10 @@ test("same physical source 3400m arc, actual j6 banked arch, High+4GB sampler",(
  assert.equal(data.sourceModules,10);
  assert.equal(data.left.length,s.length*3);
  assert.ok(data.arc.every(x=>x>=0&&x<=3400));
+ assert.equal(data.window.length,s.length);
+ assert.ok(data.window.every(x=>x>=0&&x<=1));
+ assert.ok(data.window[0]>.95,"actual arch source lights near its body");
+ assert.ok(data.window[1]<.10,"midway between actual arches stays DARK");
  assert.ok(data.left.every(Number.isFinite));
  assert.ok(data.right.every(Number.isFinite));
  assert.ok(data.sourcePositions>2);
@@ -117,10 +122,12 @@ test("same physical source 3400m arc, actual j6 banked arch, High+4GB sampler",(
 test("road shader uses original solar-sealed GGX and true 9-stage wave colors",()=>{
  const source=patchArchRoadShader02893(vertex(),fragment(),{mobile:false});
  assert.match(source.vertexShader,/archArc02893/);
+ assert.match(source.vertexShader,/archWindow02893/);
  assert.match(source.fragmentShader,/uA93Old/);
  assert.match(source.fragmentShader,/uA93Next/);
  assert.match(source.fragmentShader,/mod\(vTrackCoord.x-uA93Front/);
  assert.match(source.fragmentShader,/smoothstep\(-66.0,66.0/);
+ assert.match(source.fragmentShader,/float a93Window=clamp\(vA93Window/);
  assert.match(source.fragmentShader,/RE_Direct\(a93Lamp/);
  assert.match(source.fragmentShader,/reflectedLight.directDiffuse=a93DiffuseBefore/);
  assert.match(source.fragmentShader,/a93Shoulder/);
@@ -163,6 +170,7 @@ test("road material is decorated in place, changes no geometry or physics, rollb
  assert.equal(g.getAttribute("archLeft02893"),undefined);
  assert.equal(g.getAttribute("archRight02893"),undefined);
  assert.equal(g.getAttribute("archArc02893"),undefined);
+ assert.equal(g.getAttribute("archWindow02893"),undefined);
 });
 test("old additive overlay only toggles for explicit diagnostic",()=>{
  const mesh={isMesh:true,name:"Tunnel / NEON_ROAD_RESPONSE",visible:true};

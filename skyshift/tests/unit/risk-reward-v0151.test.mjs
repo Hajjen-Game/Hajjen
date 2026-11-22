@@ -6,16 +6,16 @@ import {RISK_REWARD_0151,RHYTHM_GATES_0151,BOOST_CHOICES_0151,
  RACE_BOOST_CHOICES_0151,RHYTHM_FLOW_0151,riskChoiceAt,riskCueAt,
  approachingRiskGate,trackFlowAt} from "./risk-reward-v0151.mjs";
 import {BOOST_CONFIG,BOOST_PADS,initBoostState,stepBoostState}
- from "./boost-v0151.mjs";
+ from "../../boost-v0151.mjs";
 import {TRIAL,CIRCUIT,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  curvatureAt,guardrailLateralLimit,gapAt,newFlightState,positionAt,
  headingAt,surfaceHeightAt,stepFlight,speedAt} from "./trial-v0151.mjs";
 import {PREMIUM_TRACK,GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,
  patchPremiumShaders} from "./premium-track-v0151.mjs";
-import {TIME_TRIAL_0151} from "./time-trial-v0151.mjs";
-import {TIME_TRIAL_0150} from "./time-trial-v0150.mjs";
-import {CHALLENGES_0140} from "./skyline-challenges-v0140.mjs";
-const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+import {TIME_TRIAL_0151} from "../../time-trial-v0151.mjs";
+import {TIME_TRIAL_0150} from "../../time-trial-v0150.mjs";
+import {CHALLENGES_0140} from "../../skyline-challenges-v0140.mjs";
+const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const center=(a,b)=>(a+b)/2;
 const near=(a,b,eps=1e-9)=>assert.ok(Math.abs(a-b)<=eps,
  "expected "+a+" ~= "+b+" diff "+Math.abs(a-b));

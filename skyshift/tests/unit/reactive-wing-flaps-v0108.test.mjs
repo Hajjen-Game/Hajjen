@@ -7,7 +7,7 @@ import {readFileSync} from "node:fs";
 import {REACTIVE_FLAPS,createFlapState,stepFlapState,resetFlapState,
  flapTargets,flapMount,installReactiveWingFlaps
 } from "./reactive-wing-flaps-v0108.mjs";
-const src=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const deg=r=>r*180/Math.PI;
 const tick=(st,seconds,dt,view)=>{
  for(let i=0;i<Math.round(seconds/dt);i++)stepFlapState(st,dt,view);

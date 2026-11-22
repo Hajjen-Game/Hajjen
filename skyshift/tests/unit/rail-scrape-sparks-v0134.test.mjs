@@ -3,11 +3,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {poseAt,widthAt,GUARDRAIL,positionAt,surfaceNormalAt} from "./trial-v0901.mjs";
+import {poseAt,widthAt,GUARDRAIL,positionAt,surfaceNormalAt} from "../../trial-v0901.mjs";
 import {RAIL_SPARKS,railContactPoint,sparkDemand,
  createSparkState,advanceSparkState,resetSparkState,createRailScrapeSparks
 } from "./rail-scrape-sparks-v01091.mjs";
-const src=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const speed=stage=>44*1.11**stage;
 test("collision anchors follow the ACTUAL banked rail face on both sides",()=>{
  for(const s of [180,520,900,1800,2250]){

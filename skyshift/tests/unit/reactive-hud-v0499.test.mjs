@@ -6,10 +6,10 @@ import {
  HUD_SPEC,createHudState,hudSignal,stepHudState,
  hudVisualFrame,createReactiveHud
 } from "./reactive-hud-v0499.mjs";
-import {GUARDRAIL,TRIAL} from "./trial-v0494.mjs";
-import {BOOST_CONFIG} from "./boost-v0494.mjs";
-import {ZONE_WAVE} from "./zone-wave-v0493.mjs";
-const source=n=>readFileSync(new URL(n,import.meta.url),"utf8");
+import {GUARDRAIL,TRIAL} from "../../trial-v0494.mjs";
+import {BOOST_CONFIG} from "../../boost-v0494.mjs";
+import {ZONE_WAVE} from "../../zone-wave-v0493.mjs";
+const source=n=>readFileSync(new URL("../../"+n,import.meta.url),"utf8");
 const near=(a,b,eps=.02)=>assert.ok(Math.abs(a-b)<eps,
  String(a)+" not near "+String(b));
 function tick(state,seconds,flight={}){

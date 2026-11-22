@@ -4,8 +4,8 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {ROAD_SOLAR_SPILL_02126,roadSolarTunnelMask,
  patchRoadSolarSpillShader,createRoadSolarSpillController}
- from "./road-solar-spill-v02126.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../road-solar-spill-v02126.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const shader=()=>({
  uniforms:{},
  fragmentShader:"#include <common>\nvarying vec2 vTrackCoord;\n"+

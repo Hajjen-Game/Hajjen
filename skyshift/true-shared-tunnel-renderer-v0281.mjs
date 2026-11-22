@@ -234,6 +234,9 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   setReflectionComparison(value){
    for(const item of installed)item.stability?.setComparison?.(value);
   },
+  setArchFootComparison(value){
+   for(const item of installed)item.archFoot?.setComparison?.(value);
+  },
   stats(){return {
    active:true,version:"0.28.1",track,
    trueSharedSource:"Skyline 0.26.5 real installer",

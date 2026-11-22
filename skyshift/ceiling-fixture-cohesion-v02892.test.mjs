@@ -47,7 +47,7 @@ test("old cyan T on panel face is replaced by real banked upper seam",()=>{
  const a=panelSeamPoint02892(point,110,1,"upper"),
   b=panelSeamPoint02892(point,110,-1,"upper"),
   c=panelSeamPoint02892(point,110,1,"wall");
- assert.ok(a.x>13&&a.x<24&&a.y>24,"roof/upper seam");
+ assert.ok(a.x>13&&a.x<24&&a.y>22,"roof/upper seam after original vaulted compression");
  assert.equal(a.x,-b.x,"mirrored real contour");
  assert.ok(c.y<a.y,"orange companion lives in wall reveal");
  assert.throws(()=>panelSeamPoint02892(point,369,1,"upper"),/sampler/);

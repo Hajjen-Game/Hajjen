@@ -28,7 +28,7 @@ test('60 bulk-migrated tests exactly preserve their original assertions and sour
   const entries = Object.entries(manifest.entries);
   assert.equal(entries.length, 60, 'Expected 60 test migrations in stage 6');
   const discovered = readdirSync(unitDir).filter(name => name.endsWith('.test.mjs'));
-  assert.equal(discovered.length, 73, 'Stage 4 + 5 + 6 test totals differ');
+  assert.equal(discovered.length, 198, 'Expected stages 4–7 combined test count');
 
   for (const [filename, expectedBlobSha] of entries) {
     assert.match(filename, /^[A-Za-z0-9-]+\.test\.mjs$/);

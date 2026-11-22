@@ -25,6 +25,8 @@ import {wrapShader0265}
  from "./true-rail-wall-response-v0265.mjs";
 import {createLowerEdgeSources02632,createConnectedFootBands02632}
  from "./edge-source-floor-bands-v02632.mjs";
+import {ceilingFixtureEnabled02892,installCeilingFixtureCohesion02892}
+ from "./ceiling-fixture-cohesion-v02892.mjs";
 import {straightParityEnabled02891,buildVaultStraightEmitters02891,
  vaultStraightRanges02891} from "./shared-straight-edge-parity-v02891.mjs";
 
@@ -168,6 +170,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  const precisionNeon0288=precisionNeonEnabled0288();
  const cinematicMetal0289=cinematicMetalEnabled0289();
  const straightOnly02891=straightParityEnabled02891();
+ const ceilingFixtures02892=ceilingFixtureEnabled02892();
  const straightRanges02891=straightOnly02891?vaultStraightRanges02891():null;
  // The original Skyline renderer owns EVERY panel, rib, bay, cove and
  // source-local metallic shader. Do not call the 0.27.x Vault pipeline here.
@@ -182,7 +185,8 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    // actual PBR deck or coupling its physics/collision geometry.
    const roadFacade=new THREE.MeshStandardMaterial({color:0x050914});
    const item={source:null,section,module,metal:null,finish:null,
-    wave:null,stability:null,archFoot:null,precision:null,cinematic:null,roadFacade};
+    wave:null,stability:null,archFoot:null,precision:null,cinematic:null,
+    ceiling:null,roadFacade};
    installed.push(item);
    const source=installPremiumMetalSurfaceLibrary(THREE,section,{
     track:"skyline",positionAt:adaptSourcePosition0281(positionAt,module),
@@ -247,10 +251,20 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    if(cinematicMetal0289&&!item.cinematic.active)
     throw Error("0.28.9 original metal shader unavailable in module "+
      module.index+": "+item.cinematic.stats().reason);
+   // 0.28.9.2: replace old cyan/orange ceiling marks IN their original
+   // source mesh. These upper-wall and wall-panel joints follow the same
+   // banked 368m Skyline authoring, remapped to Vault global zone-wave arc.
+   item.ceiling=installCeilingFixtureCohesion02892(THREE,section,
+    adaptSourcePosition0281(positionAt,module),module,{
+     enabled:ceilingFixtures02892,lowMemory,trackLength
+    });
+   if(ceilingFixtures02892&&!item.ceiling.active)
+    throw Error("0.28.9.2 seam fixtures unavailable in module "+module.index);
   }
   world.add(root);
  }catch(error){
   for(const item of installed.reverse()){
+   item.ceiling?.dispose?.();
    item.cinematic?.dispose?.();
    item.precision?.dispose?.();
    item.stability?.dispose?.();
@@ -270,7 +284,10 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  let disposed=false;
  return Object.freeze({
   active:true,
-  updateWave(wave){for(const item of installed)item.source.updateWave?.(wave);},
+  updateWave(wave){for(const item of installed){
+   item.source.updateWave?.(wave);
+   item.ceiling?.updateWave?.(wave);
+  }},
   setReflectionComparison(value){
    for(const item of installed)item.stability?.setComparison?.(value);
   },
@@ -359,6 +376,17 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    },
    originalAmberFootBands:installed.reduce((n,x)=>n+(x.finish?.footBands||0),0),
    originalShortCyanInlays:installed.reduce((n,x)=>n+(x.finish?.lowEdgeSegments||0),0),
+   ceilingFixtureCohesion02892:{
+    active:ceilingFixtures02892,
+    sourceModules:installed.filter(x=>x.ceiling?.active).length,
+    cyanStrips:installed.reduce((n,x)=>n+(x.ceiling?.stats?.().cyanStrips||0),0),
+    warmStrips:installed.reduce((n,x)=>n+(x.ceiling?.stats?.().warmStrips||0),0),
+    removedTAccents:installed.reduce((n,x)=>n+
+     (x.ceiling?.stats?.().removedTAccents||0),0),
+    source:installed[0]?.ceiling?.stats?.()??null,
+    noNewMeshes:true,noDynamicLights:true,noNewPasses:true,
+    zoneFrontShared:true,originalSkylineIntact:true,physicsUntouched:true
+   },
    straightOnlyCyan02891:{active:straightOnly02891,
     sourceModules:installed.length,
     litSegments:installed.reduce((n,x)=>n+(x.finish?.lowEdgeSegments||0),0),

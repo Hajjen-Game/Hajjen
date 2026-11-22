@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {CURVE_CONTINUITY_02896,surfaceContinuityEnabled02896,
  curveRoadMask02896,periodicColorBlend02896,patchCurveColorSeam02896,
  installCurveSurfaceContinuity02896} from "./curve-surface-continuity-v02896.mjs";
-import {vaultStraightMask02891} from "./shared-straight-edge-parity-v02891.mjs";
+import {vaultStraightMask02891,vaultStraightRanges02891} from "./shared-straight-edge-parity-v02891.mjs";
 
 test("only Vault >= 0.28.9.6 opts in, older Skyline and Vault preserved",()=>{
  for(const old of ["0.28.9.1","0.28.9.4","0.28.9.5"])
@@ -76,8 +76,11 @@ test("only original chromatic color source weights are changed; white core remai
  assert.throws(()=>patchCurveColorSeam02896("",originalFragment),/requires/);
 });
 test("old indexed attribute and material are restored exactly on disposal",()=>{
- const ss=[99,100,100.2,102,104,108,130,225,228,229.8,230,250];
- const ranges=[{from:100,to:230}];
+ const first=vaultStraightRanges02891()[0];
+ const ss=[first.from-1,first.from,first.from+.2,first.from+2,
+  first.from+4,first.from+8,(first.from+first.to)*.5,
+  first.to-8,first.to-4,first.to-.2,first.to,first.to+1];
+ const ranges=vaultStraightRanges02891();
  const attr={
   count:ss.length,array:new Float32Array(ss.map(s=>vaultStraightMask02891(s,ranges))),
   needsUpdate:false

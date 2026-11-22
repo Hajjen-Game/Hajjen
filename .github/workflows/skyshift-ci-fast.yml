@@ -740,3 +740,35 @@ jobs:
             skyshift/previews/v0288-*.png
             skyshift/previews/v0288-proof.json
           if-no-files-found: warn
+
+  cinematic-metal-real-webgl-0289:
+    name: SKYSHIFT 0.28.9 real cinematic graphite, GGX strip streaks and original racing road High + 4GB
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate shader anchors and full rollback tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check skyshift/cinematic-metal-neon-v0289.mjs
+          node --check skyshift/browser-cinematic-metal-v0289.mjs
+          node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/cinematic-metal-neon-v0289.test.mjs
+      - name: Install actual browser WebGL screenshot dependencies
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Render old and cinematic new frames in the actual game
+        run: node skyshift/browser-cinematic-metal-v0289.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0289-real-game-before-after
+          path: |
+            skyshift/previews/v0289-*.png
+            skyshift/previews/v0289-proof.json
+          if-no-files-found: warn

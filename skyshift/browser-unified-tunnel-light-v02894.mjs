@@ -67,7 +67,7 @@ async function capture(spec){
  if(!audit.requested||!audit.ceilingRoad?.active||
   !audit.ceilingRoad?.originalIndexedPBRMaterial||
   !audit.ceilingRoad?.physicalGGX||
-  audit.ceilingRoad?.additionalRoadAttributes!==3||
+  audit.ceilingRoad?.additionalRoadAttributes!==1||
   !audit.ceilingRoad?.webglGuaranteedAttributeBudget||
   audit.ceilingRoad?.modules!==10||
   audit.ceilingRoad?.drawCallsAdded!==0||

@@ -131,8 +131,7 @@ export function installCurveSurfaceContinuity02896(THREE,road,{
   original.needsUpdate=true;
  }
  applyMask();
- if(waveEnabled||!waveEnabled){
-  mat.onBeforeCompile=function(shader,renderer){
+ mat.onBeforeCompile=function(shader,renderer){
    before.call(this,shader,renderer);
    const p=patchCurveColorSeam02896(shader.vertexShader,shader.fragmentShader);
    shader.vertexShader=p.vertexShader;shader.fragmentShader=p.fragmentShader;
@@ -142,7 +141,6 @@ export function installCurveSurfaceContinuity02896(THREE,road,{
    return cache.call(this)+"-curve-surface-seam-02896";
   };
   mat.needsUpdate=true;
- }
  let disposed=false;
  return {active:true,updateWave(){},
   setComparison({curve,wave}={}){

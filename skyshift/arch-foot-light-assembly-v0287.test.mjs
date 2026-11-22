@@ -98,6 +98,13 @@ test("install REPLACES original source foot geometry with joined L, never duplic
  assert.equal(mod.stats().duplicateFootMeshes,0);
  const replacement=foot.geometry;
  const mount=children[1];
+ mod.setComparison(0);
+ assert.equal(foot.geometry,old,"classic uses the original visible 0.28.6 emitter");
+ assert.equal(foot.visible,true);
+ assert.equal(mount.visible,false);
+ mod.setComparison(1);
+ assert.equal(foot.geometry,replacement,"new source returns at exact pose");
+ assert.equal(mount.visible,true);
  assert.equal(mount.material.isMeshStandardMaterial,true);
  assert.ok(mount.geometry.getAttribute("position").count>100);
  mod.dispose();mod.dispose();

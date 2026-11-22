@@ -119,27 +119,29 @@ test("unified v.4 arch positions and 0.28.9.3 are NUMERICALLY IDENTICAL",()=>{
    assert.ok(Math.abs(a[i]-b[i])<.0001,k+"["+i+"] "+a[i]+" vs "+b[i]);
  }
 });
-test("source-matched ceiling and wall attributes: bounded 3 extra inputs, HIGH and 4GB",()=>{
+test("source-matched real j11 cove source packed into ONE WebGL vec4, HIGH and 4GB",()=>{
  const g=road();
  for(const mobile of [false,true]){
   const out=buildUnifiedCeilingRoadData02894(g,at,3400,{lowMemory:mobile});
   const keys=Object.keys(out.vectors);
-  assert.deepEqual(keys.sort(),[
-   "unifiedCove02894","unifiedWall02894","unifiedWindows02894"].sort());
-  assert.equal(keys.length,3,"WebGL minimum 16-attribute budget is protected");
+  assert.deepEqual(keys,["unifiedCoveSource02894"]);
+  assert.equal(keys.length,1,"actual GPU must retain two free vertex slots");
   assert.equal(out.modules,10);
   assert.equal(out.vertices,g.getAttribute("position").count);
   assert.ok(out.litVertices>0);
   assert.ok(out.physicalPositions>10);
-  assert.ok(out.vectors.unifiedWindows02894.every(x=>x>=0&&x<=1));
+  const packed=out.vectors.unifiedCoveSource02894;
+  assert.equal(packed.length,out.vertices*4);
+  for(let i=0;i<out.vertices;i++)
+   assert.ok(packed[i*4+3]>=0&&packed[i*4+3]<=1);
   for(const key of keys)assert.ok(out.vectors[key].every(Number.isFinite));
  }
 });
 test("native 0.28.9.3 road shader extension uses shared true j11/j9 physical sources",()=>{
  for(const lowMemory of [false,true]){
   const p=patchUnifiedCeilingRoad02894(vertex,fragment,{lowMemory});
-  assert.match(p.vertexShader,/unifiedCove02894/);
-  assert.match(p.vertexShader,/unifiedWall02894/);
+  assert.match(p.vertexShader,/attribute vec4 unifiedCoveSource02894/);
+  assert.match(p.fragmentShader,/varying vec4 vU94Cove/);
   assert.match(p.fragmentShader,/uniform vec3 uU94Old,uU94Next/);
   assert.match(p.fragmentShader,/u94Signed/);
   assert.match(p.fragmentShader,/smoothstep\(-66.0,66.0/);
@@ -148,8 +150,8 @@ test("native 0.28.9.3 road shader extension uses shared true j11/j9 physical sou
   assert.match(p.fragmentShader,/guided/);
   assert.match(p.fragmentShader,/whiteCore/);
   assert.match(p.fragmentShader,/padCoverage/);
-  if(lowMemory)assert.doesNotMatch(p.fragmentShader,/u94DW/);
-  else assert.match(p.fragmentShader,/u94DW/);
+  assert.doesNotMatch(p.fragmentShader,/u94DW/);
+  assert.match(p.fragmentShader,/vU94Cove\.w/);
  }
  assert.throws(()=>patchUnifiedCeilingRoad02894(vertex,"missing"),/GGX/);
 });
@@ -181,7 +183,7 @@ test("native 0.28.9.4 road decor is in-place, restores original shader and every
   const q=installUnifiedCeilingRoad02894(THREE,world,at,{
    enabled:true,lowMemory,trackLength:3400});
   assert.equal(q.active,true);
-  assert.equal(q.stats().additionalRoadAttributes,3);
+  assert.equal(q.stats().additionalRoadAttributes,1);
   assert.equal(q.stats().drawCallsAdded,0);
   assert.equal(q.stats().ceilingInCurves>=0,true);
   assert.equal(q.stats().strength,1);
@@ -198,7 +200,6 @@ test("native 0.28.9.4 road decor is in-place, restores original shader and every
   q.dispose();q.dispose();
   assert.equal(mat.onBeforeCompile,before);
   assert.equal(mat.customProgramCacheKey,key);
-  for(const name of ["unifiedCove02894","unifiedWall02894",
-    "unifiedWindows02894"])assert.equal(g.getAttribute(name),undefined);
+  assert.equal(g.getAttribute("unifiedCoveSource02894"),undefined);
  }
 });

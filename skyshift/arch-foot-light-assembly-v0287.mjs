@@ -58,7 +58,7 @@ export function archFootRelease0287(search=
  const params=new URLSearchParams(search||"");
  if(params.get("track")!=="vault"||
   ["classic","off"].includes(params.get("archFoot")))return false;
- const version=/^(\d+)\.(\d+)\.(\d+)$/.exec(params.get("v")||"");
+ const version=/^(\d+)\.(\d+)\.(\d+)(?:\.\d+)?$/.exec(params.get("v")||"");
  if(!version)return false;
  const [a,b,c]=version.slice(1).map(Number);
  return a>0||b>28||(b===28&&c>=7);

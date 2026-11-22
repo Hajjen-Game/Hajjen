@@ -90,7 +90,7 @@ export function buildCeilingFixtureGeometry02892(THREE,positionAt,{
    isWarm?367.1:367.2);
   if(end-start<.8)return;
   const kind=isWarm?"wall":"upper";
-  const steps=Math.max(1,Math.ceil((end-start)/(lowMemory?4.8:3.0)));
+  const steps=Math.max(isWarm?3:4,Math.ceil((end-start)/(lowMemory?4.8:3.0)));
   const fade=(s)=>clamp(Math.min((s-start)/.7,(end-s)/.7),.035,1);
   for(let i=0;i<steps;i++){
    const s0=start+(end-start)*i/steps,

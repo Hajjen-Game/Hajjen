@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-const read=file=>readFileSync(new URL(file,import.meta.url),"utf8");
+const read=file=>readFileSync(new URL("../../"+file,import.meta.url),"utf8");
 const html=read("./index.html"),
   app=read("./game-v01345.mjs"),boot=read("./boot-v01345.js"),
   css=read("./style-v0131.css");

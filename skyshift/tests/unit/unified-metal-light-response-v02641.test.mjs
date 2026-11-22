@@ -6,7 +6,7 @@ import {
  patchLocalResponse02641,patchTitaniumSubstrate02641,
  installUnifiedMetalLighting02641
 } from "./unified-metal-light-response-v02641.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const direct="RE_Direct(pbrFixture0260,geometryPosition";
 const cool="RE_Direct(l261Cool,geometryPosition";
 const warm="RE_Direct(l261Warm,geometryPosition";

@@ -2,15 +2,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {buildStructuralTunnelData,sampleStructuralFacet}
- from "./structural-tunnel-v0213.mjs";
+ from "../../structural-tunnel-v0213.mjs";
 import {vaultCrossSection0270}
- from "./full-tunnel-circuit-v0270.mjs";
+ from "../../full-tunnel-circuit-v0270.mjs";
 import {buildVaultArchitectureData0272,VAULT_ARCHITECTURE_0272}
- from "./vault-architectural-parity-v0272.mjs";
+ from "../../vault-architectural-parity-v0272.mjs";
 import {TUNNEL_PROFILE_0211}
- from "./tunnel-megastructure-v0211.mjs";
+ from "../../tunnel-megastructure-v0211.mjs";
 
-const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const pos=(s,x,y)=>({x,y,z:s});
 test("actual original Skyline 0.24.1 panel sculptor is imported, not imitated",()=>{
  assert.equal(VAULT_ARCHITECTURE_0272.originalBuilder,"buildStructuralTunnelData");

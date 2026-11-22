@@ -4,8 +4,8 @@ import {readFileSync} from "node:fs";
 import {VAULT_PREMIUM_FINISH_0274,patchVaultPremiumPhysical0274,
  patchVaultPremiumSource0274,patchVaultPremiumRail0274,
  vaultPremiumFinishAudit0274}
- from "./vault-premium-finish-v0274.mjs";
-const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../vault-premium-finish-v0274.mjs";
+const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const PBR=[
  "#include <common>",
  "varying vec2 vVaultMaterialCoord0271;",

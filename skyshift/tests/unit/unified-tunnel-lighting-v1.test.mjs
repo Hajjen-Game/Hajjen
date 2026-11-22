@@ -1,14 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {CIRCUIT} from "./trial-v0165.mjs";
-import {SHADOW_TUNNEL,tunnelIntensityAt} from "./shadow-tunnel-v0160.mjs";
-import {blackoutLevelsAt,createTunnelBlackoutController} from "./tunnel-blackout-v0160.mjs";
+import {CIRCUIT} from "../../trial-v0165.mjs";
+import {SHADOW_TUNNEL,tunnelIntensityAt} from "../../shadow-tunnel-v0160.mjs";
+import {blackoutLevelsAt,createTunnelBlackoutController} from "../../tunnel-blackout-v0160.mjs";
 import {UNIFIED_TUNNEL_LIGHTING_1,neonGalleryMaskAt,unifiedTunnelLevelsAt,
  createUnifiedTunnelLightingController} from "./unified-tunnel-lighting-v1.mjs";
 
 const near=(a,b,eps=1e-8)=>assert.ok(Math.abs(a-b)<=eps,`${a} ≠ ${b}`);
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 test("1.0: only spatial world-light policy differs; legacy shadow retained",()=>{
  const c=UNIFIED_TUNNEL_LIGHTING_1;
  assert.equal(c.neonStart,0);assert.equal(c.neonEnd,368);

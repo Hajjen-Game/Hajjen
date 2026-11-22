@@ -5,7 +5,7 @@ import {FIXTURE_TRANSPORT_02643,LOWER_CYAN_NAME_02643,JOINED_AMBER_NAME_02643,
  patchWallTransport02643,patchMetalTransport02643,
  patchRailTransport02643,patchFootTransport02643,
  installUnifiedFixtureTransport02643} from "./unified-fixture-transport-v02643.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const metal=[
  "#include <common>","uniform float uReflectionFinish02642;",
  "uniform float uMetalLightResponse02641;",

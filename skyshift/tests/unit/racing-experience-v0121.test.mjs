@@ -2,10 +2,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {FIDELITY_0121,readFidelityChoice,saveFidelityChoice,
- chooseFidelity0121} from "./fidelity-settings-v0121.mjs";
+ chooseFidelity0121} from "../../fidelity-settings-v0121.mjs";
 import {RACING_0121,createRacingExperience,resetRacingExperience,
  raceWindowAt,raceRhythmAt,observeRacingStep,stepRacingExperience,
- racingExperienceAudit} from "./racing-experience-v0121.mjs";
+ racingExperienceAudit} from "../../racing-experience-v0121.mjs";
 const v=(grip=1)=>({s:885,steering:.93,yawRate:.78,gripIntensity:grip,
  speed:95,grounded:true,wall:false,corkscrew:false,playing:true});
 const f=(s=780)=>({s,grounded:true,gripIntensity:0,steering:0,yawRate:0,

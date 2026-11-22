@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {createAeroBarrierData,RAIL_BODY_CONTAINMENT_02124,
- patchAeroBodyShaders,installAeroBarriers} from "./aero-barrier-v0165.mjs";
+ patchAeroBodyShaders,installAeroBarriers} from "../../aero-barrier-v0165.mjs";
 import {TRIAL} from "../../trial-v0165.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 test("PBR rail body has precise arc-length on BOTH sides and no geometry edits",()=>{

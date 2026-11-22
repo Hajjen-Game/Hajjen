@@ -5,7 +5,7 @@ import {readFileSync} from "node:fs";
 import {
  CRAFT_IDENTITY,HULL_SECTIONS,CANOPY_STATIONS,
  buildStreamlinedHull,buildSweptWings,buildCanopyShell,buildPremiumShip
-} from "./premium-ship-v0482.mjs";
+} from "../../premium-ship-v0482.mjs";
 import {PREMIUM_TRACK,SURFACE_FRAGMENT_GLSL} from "../../premium-track-v0482.mjs";
 import * as before from "../../trial-v048.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");

@@ -11,7 +11,7 @@
 - Cyan lower inlay: 0.28.9.1 straight-only mask and the approved 0.26.3.2 banked lower rail lip location, without reintroducing bend fixtures.
 - Shared `zone-wave-v060` 9-color palette and the same 3400m moving front; ceiling materials and arch road uniforms call the same mapping.
 
-The new physical ceiling-to-road light transport **wraps the existing** `MeshStandardMaterial` `RE_Direct` path after 0.28.9.3. On High, evaluate restrained nearest-side j11 cyan and j9 warm source GGX specular; on 4GB, only one nearest-side upper cove source. No new world lights, road geometry, material replacements, mesh draws, shadow maps, global wetness, SSR, bloom passes, or tone-mapping adjustments. New sources are local and pre-weighted by per-vertex distance to the actual fixture, so their color does not smear across the whole track. Three packed attributes (two vec3 actual source positions and one vec2 distance masks) keep the native road within the WebGL 16-attribute minimum.
+The new physical ceiling-to-road light transport **wraps the existing** `MeshStandardMaterial` `RE_Direct` path after 0.28.9.3. On both High and 4GB, evaluate restrained nearest-side j11 cove source GGX. The j9 warm wall practical remains authored through the same position and palette registry, with its existing legacy amber road response intact; do not add a second costly GPU source tap. No new world lights, road geometry, material replacements, mesh draws, shadow maps, global wetness, SSR, bloom passes, or tone-mapping adjustments. New sources are local and pre-weighted by per-vertex distance to the actual fixture, so their color does not smear across the whole track. One packed vec4 vertex attribute (actual j11 world XYZ + source-distance mask) keeps the native road within the WebGL attribute limit, after real Chromium validation found that three extra attributes exhausted shader slots.
 
 ## Comparison and rollback
 - **Version:** https://hajjen-game.github.io/Hajjen/skyshift/?track=vault&v=0.28.9.4
@@ -23,7 +23,7 @@ The new physical ceiling-to-road light transport **wraps the existing** `MeshSta
 `?unifiedSourcesSmoke=1` exposes `__skyshiftUnifiedSourcesAudit()` and `__skyshiftUnifiedSourcesFrameProof()` to render identical-frame classic/cleanOnly/sourceOnly/after screenshots. The original `?archOpticsSmoke=1` wave stage setter remains available for pink/cyan comparisons.
 
 ## Verification
-- Node unit tests: exact 0.28.9.3 unchanged arch positions when using the new registry, exact 0.28.9.2 j11/j9 seam geometry with the same palette, 0.28.9.1 bend/straight masks preserved, ten old additive sources hidden but restorable, three additional road vertex attributes maximum, original shader restoration, unchanged game controls.
+- Node unit tests: exact 0.28.9.3 unchanged arch positions when using the new registry, exact 0.28.9.2 j11/j9 seam geometry with the same palette, 0.28.9.1 bend/straight masks preserved, ten old additive sources hidden but restorable, one additional packed road vertex attribute maximum, original shader restoration, unchanged game controls.
 - Real Chrome/WebGL High and 4GB: raw native before/after, original-road-layer only and new ceiling GGX only, cyan and pink palette, straights and bends, runtime toggle controls, no shader errors and limited source area (not a road-wide filter).
 - Historic Skyline artwork, Skyline 0.26.5 and Vault 0.28.9.3 are not visually altered by their existing versioned paths.
 

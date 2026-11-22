@@ -80,8 +80,8 @@ export function buildCeilingFixtureGeometry02892(THREE,positionAt,{
    panelSeamPoint02892(positionAt,s1,side,kind,offset0)
   ];
   for(const i of [0,1,2,0,2,3]){
-   const ss=i<2||i===3?s0:s1;
-   vertex(v[i],ss,isWarm,[a0,b0,b1,a1][i]);
+   const ss=i<2?s0:s1;
+   vertex(v[i],ss,isWarm,[a0,a1,b1,b0][i]);
   }
  }
  function source(portal,side,isWarm){

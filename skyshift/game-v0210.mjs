@@ -33,6 +33,9 @@ import {PRECISION_NEON_0288,precisionNeonEnabled0288}
 import {CINEMATIC_METAL_0289,cinematicMetalEnabled0289,
  cinematicComponentEnabled0289,installCinematicRoad0289}
  from "./cinematic-metal-neon-v0289.mjs";
+import {STRAIGHT_EDGE_PARITY_02891,straightParityEnabled02891,
+ installVaultStraightRoadParity02891}
+ from "./shared-straight-edge-parity-v02891.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./manta-blade-v0103.mjs";
 import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
@@ -268,6 +271,8 @@ const precisionNeonReleaseEnabled=trueSharedVaultEnabled&&
  precisionNeonEnabled0288(location.search);
 const cinematicMetalReleaseEnabled=trueSharedVaultEnabled&&
  cinematicMetalEnabled0289(location.search);
+const straightParityReleaseEnabled=trueSharedVaultEnabled&&
+ straightParityEnabled02891(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -602,7 +607,8 @@ let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,unifiedMetalLight=null,premiumReflectionFinish=null,fixtureTransport=null,trueRailWall=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
 let fullTunnelCircuit=null,vaultMaterialParity=null,vaultArchitecture=null,vaultFullLighting=null,sharedTunnelRuntime=null;
-let sharedRoadLight=null,sharedShipLight=null,pmremPipeline=null,cinematicRoadFinish=null;
+let sharedRoadLight=null,sharedShipLight=null,pmremPipeline=null,cinematicRoadFinish=null,
+ sharedStraightEdgeRoad=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
  edgeFloorLighting=null;
@@ -1325,6 +1331,16 @@ function initScene(){
   enabled:cinematicMetalReleaseEnabled&&!!sharedRoadLight?.active,
   lowMemory:limitedMemory,road:false
  });
+ // 0.28.9.1: AFTER the original 0.28.2 GGX and 0.28.9 color-streak shader,
+ // mask their cyan source in all Vault turns. Amber remains untouched.
+ sharedStraightEdgeRoad=installVaultStraightRoadParity02891(THREE,
+  world.getObjectByName("Zone Ribbon · integrated PBR racing deck"),{
+   enabled:straightParityReleaseEnabled&&!!sharedRoadLight?.active&&
+    !!cinematicRoadFinish?.active
+  });
+ if(straightParityReleaseEnabled&&!sharedStraightEdgeRoad?.active)
+  throw Error("0.28.9.1 native straight-only road mask unavailable: "+
+   (sharedStraightEdgeRoad?.stats?.().reason??"unknown"));
  // Subtle visible cyan inset rails and arch-foot amber floor pools, with
  // original indexed racing deck and road GGX left unmodified in classic mode.
  edgeFloorLighting=edgeFloorEnabled?
@@ -3246,7 +3262,8 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (cinematicMetalReleaseEnabled?" · 0.28.9":
+   (straightParityReleaseEnabled?" · 0.28.9.1":
+    cinematicMetalReleaseEnabled?" · 0.28.9":
     precisionNeonReleaseEnabled?" · 0.28.8":
     archFootAssemblyEnabled?" · 0.28.7":
     stabilityReleaseEnabled?" · 0.28.6":
@@ -5066,7 +5083,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.9":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.9.1":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

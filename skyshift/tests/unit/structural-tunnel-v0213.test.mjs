@@ -3,10 +3,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {TUNNEL_PROFILE_0211,tunnelProfilePoint0211}
- from "./tunnel-megastructure-v0211.mjs";
+ from "../../tunnel-megastructure-v0211.mjs";
 import {STRUCTURAL_TUNNEL_0213,sampleStructuralFacet,
  buildStructuralTunnelData} from "./structural-tunnel-v0213.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const pos=(s,x,y)=>({x,y,z:s});
 test("raised panels conform to ORIGINAL 0.21.1 vaulted sections",()=>{
  for(const s of [0,42,104,165,245,339,368])

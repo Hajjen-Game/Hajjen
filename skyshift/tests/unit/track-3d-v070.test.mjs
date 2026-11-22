@@ -9,12 +9,12 @@ import {CIRCUIT,COURSE_SEGMENTS,TRIAL,GAPS,
  poseAt,positionAt,heightAt,surfaceNormalAt,surfaceHeightAt,bankAt,
  onRoad,gapAt,nextGap,widthAt,headingAt,curvatureAt,
  newFlightState,stepFlight,speedAt,validateTrial} from "./trial-v070.mjs";
-import {MESH_SPEC,sampleDeckRows,createSmoothDeckData} from "./smooth-track-v070.mjs";
+import {MESH_SPEC,sampleDeckRows,createSmoothDeckData} from "../../smooth-track-v070.mjs";
 import {AERO_BARRIER,createAeroBarrierData,sampleAeroProfile}
- from "./aero-barrier-v070.mjs";
-import {PREMIUM_TRACK} from "./premium-track-v070.mjs";
-import {chasePose,CINEMATIC_DEFAULTS} from "./cinematic-v070.mjs";
-const src=n=>readFileSync(new URL(n,import.meta.url),"utf8");
+ from "../../aero-barrier-v070.mjs";
+import {PREMIUM_TRACK} from "../../premium-track-v070.mjs";
+import {chasePose,CINEMATIC_DEFAULTS} from "../../cinematic-v070.mjs";
+const src=n=>readFileSync(new URL("../../"+n,import.meta.url),"utf8");
 const near=(a,b,tol=1e-5)=>assert.ok(Math.abs(a-b)<=tol,
   "Expected "+a+" ≈ "+b);
 test("the 3D skyline preserves the 3400m closed line across three laps",()=>{

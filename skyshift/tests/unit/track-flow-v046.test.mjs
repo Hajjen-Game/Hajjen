@@ -14,7 +14,7 @@ import {
 import {
  TRACK_IDENTITY,createRailData,sampleRailSection,createSurfaceIdentityData
 } from "./identity-v046.mjs";
-const source=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const epsilon=1e-5;
 const near=(a,b,tol=epsilon)=>assert.ok(Math.abs(a-b)<=tol,
  "expected "+a+" ≈ "+b+" (+/- "+tol+")");

@@ -3,14 +3,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {buildStructuralTunnelData}
- from "./structural-tunnel-v0213.mjs";
-import {patchPremiumMaterialShader} from "./premium-material-rebirth-v0220.mjs";
-import {patchCinematicNeonShader} from "./cinematic-neon-lighting-v0220p2.mjs";
-import {patchPhysicalMaterialShader} from "./physical-material-rebuild-v0230.mjs";
+ from "../../structural-tunnel-v0213.mjs";
+import {patchPremiumMaterialShader} from "../../premium-material-rebirth-v0220.mjs";
+import {patchCinematicNeonShader} from "../../cinematic-neon-lighting-v0220p2.mjs";
+import {patchPhysicalMaterialShader} from "../../physical-material-rebuild-v0230.mjs";
 import {TRUE_MATERIAL_0231,patchTrueMaterialDepthShader,
  buildTrueDepthGeometry,installTrueMaterialShader}
- from "./true-material-depth-v0231.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../true-material-depth-v0231.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const oldVertex="#include <common>\nattribute float trackS;\nattribute float glowWeight;\n#include <begin_vertex>";
 const oldFragment="#include <common>\n#include <color_fragment>\ndiffuseColor.rgb += tunnelSpectrumTint()*vTunnelGlow;";
 const compose=(role,mobile=false)=>{

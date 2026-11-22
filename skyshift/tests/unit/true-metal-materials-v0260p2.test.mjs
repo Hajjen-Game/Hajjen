@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {TRUE_METAL_0260_P2,patchTrueMetalPBRShader,
  installTrueMetalPBRShader,buildTrueMetalSources} from "./true-metal-materials-v0260p2.mjs";
-import {TUNNEL_PORTALS_0211} from "./tunnel-megastructure-v0211.mjs";
-import {sharedPhysicalPreset0280} from "./shared-tunnel-architecture-v0280.mjs";
-const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+import {TUNNEL_PORTALS_0211} from "../../tunnel-megastructure-v0211.mjs";
+import {sharedPhysicalPreset0280} from "../../shared-tunnel-architecture-v0280.mjs";
+const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const vertex="#include <common>\n#include <project_vertex>\n#include <worldpos_vertex>";
 const fragment="#include <common>\n#include <roughnessmap_fragment>\n#include <metalnessmap_fragment>\n#include <lights_physical_fragment>\n#include <lights_fragment_begin>";
 test("genuine MeshPhysicalMaterial GGX receives two REAL localized lights, no global sun",()=>{

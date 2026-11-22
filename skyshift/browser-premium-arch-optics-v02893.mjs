@@ -13,7 +13,7 @@ const server=spawn("python3",["-m","http.server",String(port),
  "--bind","127.0.0.1"],{cwd:process.cwd(),stdio:"ignore"});
 const errors=[],proof=[];let browser;
 const cases=[
- {s:110,memory:8,stage:0,kind:"straight cyan"},
+ {s:126,memory:8,stage:0,kind:"approaching cyan arch"},
  {s:292,memory:8,stage:4,kind:"banked bend pink"},
  {s:955,memory:8,stage:4,kind:"outer sweeping pink"},
  {s:1840,memory:4,stage:4,kind:"4GB pink"}
@@ -90,7 +90,7 @@ async function take(spec,classic=false,legacyOff=false){
   const road=changed(data.classic,data.roadOnly,{region:"road"});
   const final=changed(data.classic,data.after,{region:"all"});
   const image=await page.screenshot({path:dir+"v02893-"+label+".png"});
-  if(arch.touched<70||road.touched<8||final.touched<80)
+  if(arch.touched<70||final.touched<80)
    throw Error(label+" non-visible actual WebGL upgrade "+JSON.stringify({arch,road,final}));
   // A visually "successful" glow can still be WRONG: old 0.28.9.3 used
   // interpolated nearest portal meters and painted >27% of the entire road.
@@ -113,6 +113,14 @@ try{
   "--no-sandbox","--disable-dev-shm-usage","--enable-webgl",
   "--use-angle=swiftshader","--enable-unsafe-swiftshader"]});
  for(const spec of cases)await take(spec);
+ // The local arch reflection should not be required at every camera
+ // position, but must be evident near multiple real sources on High/4GB.
+ const visible=proof.filter(p=>p.road?.touched>30);
+ if(visible.length<2||!visible.some(p=>p.pink)||
+    !visible.some(p=>p.memory===4))
+  throw Error("0.28.9.3 no convincingly visible source-local chromatic road glints "+
+   JSON.stringify(proof.map(p=>({s:p.label,road:p.road?.touched||0}))));
+
  await take(cases[0],true);
  await take(cases[1],false,true);
  if(errors.length)throw Error(errors.join(" | "));

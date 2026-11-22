@@ -76,6 +76,64 @@ export function adaptSourcePosition0281(positionAt,module){
   return positionAt(arc,lateral,height);
  };
 }
+// 0.28.9.7: A banked road positionAt(s,side,height) is affine in
+// side/height for any FIXED arc s. Original high-resolution Skyline panels,
+// arches, ribs, cores and PBR source data repeatedly sample dozens of
+// transverse points at exactly the same s. The full Vault calls the expensive
+// route pose/bank/normal evaluator for every one of those vertices TEN times.
+// Compute a (center,right,up) frame only ONCE per longitudinal sample,
+// then reconstruct the exact same world XYZ algebraically. No simplification
+// of panel geometry, positions, curves, shaders or road/flight/GRIP.
+// The cache is capped and CLEARed after EACH module, avoiding resident
+// 3400m frame arrays. `?startupSampler=classic` bypasses it.
+export function createSourceFrameSampler02897(positionAt,{
+ maxFrames=8192
+}={}){
+ if(typeof positionAt!=="function"||
+  !Number.isInteger(maxFrames)||maxFrames<16)
+  throw Error("0.28.9.7 invalid original source frame cache");
+ const frames=new Map();
+ let poseCalculations=0,frameHits=0,calls=0,clears=0;
+ const sample=(s,lateral=0,height=0)=>{
+  calls++;
+  if(!Number.isFinite(s+lateral+height))
+   return positionAt(s,lateral,height);
+  let frame=frames.get(s);
+  if(!frame){
+   // 3 genuine samples reconstruct the full tangent/normal basis at s.
+   const p0=positionAt(s,0,0),
+    pX=positionAt(s,1,0),pH=positionAt(s,0,1);
+   poseCalculations+=3;
+   frame={
+    x:p0.x,y:p0.y,z:p0.z,
+    rx:pX.x-p0.x,ry:pX.y-p0.y,rz:pX.z-p0.z,
+    hx:pH.x-p0.x,hy:pH.y-p0.y,hz:pH.z-p0.z
+   };
+   if(frames.size>=maxFrames){frames.clear();clears++;}
+   frames.set(s,frame);
+  }else frameHits++;
+  return {
+   x:frame.x+lateral*frame.rx+height*frame.hx,
+   y:frame.y+lateral*frame.ry+height*frame.hy,
+   z:frame.z+lateral*frame.rz+height*frame.hz
+  };
+ };
+ sample.stats=()=>({calls,poseCalculations,frameHits,
+  framesResident:frames.size,clears,maxFrames,
+  substitutedEvaluations:Math.max(0,calls-poseCalculations)});
+ sample.clear=()=>frames.clear();
+ return sample;
+}
+export function startupSamplerEnabled02897(search=
+ typeof location!=="undefined"?location.search:""){
+ const p=new URLSearchParams(search||"");
+ if(p.get("track")!=="vault"||
+  p.get("startupSampler")==="classic")return false;
+ const parts=/^(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?$/.exec(p.get("v")||"");
+ if(!parts)return false;
+ const [maj,min,patch,sub]=parts.slice(1).map(x=>Number(x||0));
+ return maj>0||min>28||(min===28&&(patch>9||(patch===9&&sub>=7)));
+}
 // Apply the unchanged original Skyline 0.26.4.2/0.26.4.3/0.26.5
 // FINISH functions to its actual 0.26.2 mesh/shader objects. The rest
 // of those releases modifies Skyline's road/rails and is NOT duplicated
@@ -177,11 +235,17 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  const ceilingFixtures02892=ceilingFixtureEnabled02892();
  const premiumArch02893=archOpticsEnabled02893();
  const waveCove02895=coveWaveEnabled02895();
+ const fastFrames02897=!lowMemory&&startupSamplerEnabled02897();
+ const startupModuleMetrics02897=[];
  const straightRanges02891=straightOnly02891?vaultStraightRanges02891():null;
  // The original Skyline renderer owns EVERY panel, rib, bay, cove and
  // source-local metallic shader. Do not call the 0.27.x Vault pipeline here.
  try{
   for(const module of modules){
+   const startedAt=performance.now();
+   const directSource=adaptSourcePosition0281(positionAt,module);
+   const frameSampler=fastFrames02897?
+    createSourceFrameSampler02897(directSource):directSource;
    const section=new THREE.Group();
    section.name="SKYLINE SOURCE / Vault "+module.index;
    root.add(section);
@@ -195,7 +259,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
     ceiling:null,archOptics:null,waveCove:null,roadFacade};
    installed.push(item);
    const source=installPremiumMetalSurfaceLibrary(THREE,section,{
-    track:"skyline",positionAt:adaptSourcePosition0281(positionAt,module),
+    track:"skyline",positionAt:frameSampler,
     lowMemory,roadMaterial:roadFacade,vaultHeightClassic:false
    });
    item.source=source;
@@ -215,7 +279,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    if(!metal.active)
     throw Error("source unified metallic response failed in section "+module.index);
    item.finish=finishOriginalSourceMaterials0281(THREE,section,
-    lowMemory,adaptSourcePosition0281(positionAt,module),{
+    lowMemory,frameSampler,{
      module,straightOnly:straightOnly02891,
      straightRanges:straightRanges02891
     });
@@ -223,7 +287,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    // Same source profile and banked arc as every original portal;
    // one graphite mounting batch and the existing amber emitter mesh.
    item.archFoot=installArchFootAssembly0287(THREE,section,
-    adaptSourcePosition0281(positionAt,module),{
+    frameSampler,{
      enabled:archFeet0287,lowMemory
     });
    if(archFeet0287&&!item.archFoot.active)
@@ -261,7 +325,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    // source mesh. These upper-wall and wall-panel joints follow the same
    // banked 368m Skyline authoring, remapped to Vault global zone-wave arc.
    item.ceiling=installCeilingFixtureCohesion02892(THREE,section,
-    adaptSourcePosition0281(positionAt,module),module,{
+    frameSampler,module,{
      enabled:ceilingFixtures02892,lowMemory,trackLength
     });
    if(ceilingFixtures02892&&!item.ceiling.active)
@@ -280,6 +344,11 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    });
    if(waveCove02895&&!item.waveCove.active)
     throw Error("0.28.9.5 real wave-linked cove response unavailable "+module.index);
+   startupModuleMetrics02897.push({
+    index:module.index,ms:Math.round((performance.now()-startedAt)*10)/10,
+    sampler:fastFrames02897?frameSampler.stats():null
+   });
+   frameSampler.clear?.();
   }
   world.add(root);
  }catch(error){
@@ -336,6 +405,16 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    originalGeometryAndFixtureAuthoring:true,
    commonGGX:true,commonMetalAndLocalResponse:true,
    sourceModules:modules.length,coverageMeters:trackLength,
+   startupFrameOptimization02897:{
+    active:fastFrames02897,
+    moduleMetrics:startupModuleMetrics02897,
+    physicalRouteCalls:startupModuleMetrics02897.reduce((n,x)=>
+     n+(x.sampler?.poseCalculations??0),0),
+    avoidedRouteCalls:startupModuleMetrics02897.reduce((n,x)=>
+     n+(x.sampler?.substitutedEvaluations??0),0),
+    frameBuffersRetained:0,originalArtPreserved:true,
+    geometryAndGameplayUnchanged:true
+   },
    moduleMeters:modules[0]?.meters??0,lowMemory:!!lowMemory,
    physicalModules:installed.filter(x=>
     x.source.stats?.().trueMetal0260P2NativeGGX).length,

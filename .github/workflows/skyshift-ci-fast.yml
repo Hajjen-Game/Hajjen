@@ -96,6 +96,8 @@ jobs:
           node --check skyshift/browser-edge-floor-v02631.mjs
           node --check skyshift/browser-cinematic-road-rebuild-v0263.mjs
           node --check skyshift/premium-metal-surface-v0262.mjs
+          node --check skyshift/browser-startup-stability-v02897.mjs
+          node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
           node --check skyshift/browser-premium-metal-v0262.mjs
           node --check skyshift/local-reflections-v0261p1.mjs
           node --check skyshift/browser-local-reflections-v0261p1.mjs
@@ -119,6 +121,8 @@ jobs:
             node --test skyshift/true-metal-materials-v0260p2.test.mjs
             node --test skyshift/local-reflections-v0261p1.test.mjs
             node --test skyshift/premium-metal-surface-v0262.test.mjs
+          node --test skyshift/startup-resource-budget-v02897.test.mjs
+          node --test skyshift/startup-source-frame-v02897.test.mjs
             node --test skyshift/cinematic-road-rebuild-v0263.test.mjs
             node --test skyshift/edge-lighting-floor-pools-v02631.test.mjs
             node --test skyshift/edge-source-floor-bands-v02632.test.mjs
@@ -973,4 +977,33 @@ jobs:
           path: |
             skyshift/previews/v02896-*.png
             skyshift/previews/v02896-proof.json
+          if-no-files-found: warn
+
+  startup-memory-budget-real-webgl-02897:
+    name: SKYSHIFT 0.28.9.7 real cold-start, shared atlas/PMREM diagnosis, GPU crash and 4GB
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify unchanged original pixel data and correct shared GPU disposal
+        run: |
+          node --check skyshift/premium-metal-surface-v0262.mjs
+          node --check skyshift/browser-startup-stability-v02897.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/startup-resource-budget-v02897.test.mjs
+      - name: Install original browser/WebGL driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Measure four real cold boots and screenshot actual scene after launch
+        run: node skyshift/browser-startup-stability-v02897.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02897-startup-diagnostic-real-webgl
+          path: |
+            skyshift/previews/v02897-*.png
+            skyshift/previews/v02897-startup-profile.json
           if-no-files-found: warn

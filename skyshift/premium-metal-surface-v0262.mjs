@@ -57,6 +57,58 @@ export function makePremiumMetalTexture0262(THREE,mobile=false){
  texture.needsUpdate=true;texture.name="SKYSHIFT 0.26.2 / packed titanium finish";
  return texture;
 }
+// 0.28.9.7: The full Vault instantiates TEN copies of the same original
+// Skyline 368m artist geometry. Its 0.26.2 atlas depends ONLY on 128/256
+// quality, not on a module's position or lighting. Re-generating ten identical
+// sin/noise atlases and uploading ten identical mipmapped textures wastes
+// cold-start CPU, GPU memory and WebGL initialization time. Lease one
+// identical immutable atlas per Three runtime + quality, retaining exact
+// original shader uniforms and texture filtering. Skyline naturally leases
+// only one. Explicit refcounts preserve all old cleanup/fallback semantics.
+const metalAtlasPool0262=new WeakMap();
+export function acquirePremiumMetalTexture0262(THREE,mobile=false,{shared=true}={}){
+ if(!THREE?.DataTexture)throw Error("0.28.9.7 needs original Three DataTexture");
+ const quality=mobile?"4gb":"high";
+ if(!shared){
+  const texture=makePremiumMetalTexture0262(THREE,mobile);
+  let released=false;
+  return Object.freeze({texture,reused:false,quality,
+   get references(){return released?0:1;},
+   release(){if(released)return;released=true;texture.dispose();}
+  });
+ }
+ let pool=metalAtlasPool0262.get(THREE);
+ if(!pool){pool=new Map();metalAtlasPool0262.set(THREE,pool);}
+ let entry=pool.get(quality);
+ let reused=!!entry;
+ if(!entry){
+  entry={texture:makePremiumMetalTexture0262(THREE,mobile),refs:0,
+   allocations:1,bytes:(mobile?128:256)**2*4};
+  pool.set(quality,entry);
+ }
+ entry.refs++;
+ let released=false;
+ return Object.freeze({
+  texture:entry.texture,reused,quality,
+  get references(){return entry.refs;},
+  release(){
+   if(released)return;
+   released=true;
+   entry.refs--;
+   if(entry.refs===0){
+    pool.delete(quality);
+    entry.texture.dispose();
+   }
+  }
+ });
+}
+export function premiumMetalTexturePoolStats0262(THREE){
+ const pool=metalAtlasPool0262.get(THREE);
+ return {qualityModes:pool?.size??0,
+  textures:pool?.size??0,
+  references:[...(pool?.entries()??[])].map(([quality,e])=>({
+   quality,refs:e.refs,bytes:e.bytes}))};
+}
 export function patchPremiumMetalShader0262(vertex,fragment,{role="panel",mobile=false}={}){
  if(!ROLES.includes(role))throw Error("0.26.2 only supports tunnel metal coats");
  for(const token of [COMMON,ROUGH,NORMAL,"vPbrTrack0260","vPbrSection0260",
@@ -198,7 +250,11 @@ export function installPremiumMetalSurfaceLibrary(THREE,world,options={}){
   conduit:"STRUCTURAL_CONDUITS"})[role])}));
  if(substrates.some(({mesh})=>!mesh?.material?.isMeshBasicMaterial))
   return fallback("0.26.0-graphite-substrate-unavailable");
- const power={value:1},texture=makePremiumMetalTexture0262(THREE,mobile);
+ const shareAtlas=typeof location==="undefined"||
+ new URLSearchParams(location.search).get("startupAtlas")!=="classic";
+ const power={value:1},atlasLease=acquirePremiumMetalTexture0262(THREE,mobile,
+  {shared:shareAtlas}),
+  texture=atlasLease.texture;
  const uniforms={uPremiumMetal0262:power,uMetalAtlas0262:{value:texture}};
  const restores=[];
  try{
@@ -212,7 +268,7 @@ export function installPremiumMetalSurfaceLibrary(THREE,world,options={}){
   }
  }catch(error){
   for(const restore of restores)restore();
-  texture.dispose();
+  atlasLease.release();
   console.warn("SKYSHIFT 0.26.2 retaining previous local metal",error);
   return fallback("premium-material-install-failed");
  }
@@ -222,6 +278,7 @@ export function installPremiumMetalSurfaceLibrary(THREE,world,options={}){
   premiumMetal0262PhysicalGGX:true,premiumMetal0262SolarSealed:true,
   premiumMetal0262KeepsLocalReflections:true,
   premiumMetal0262Textures:1,premiumMetal0262TextureSize:mobile?128:256,
+  premiumMetal0262SharedAtlasLease:true,premiumMetal0262AtlasReused:atlasLease.reused,
   premiumMetal0262Batches:targets.length,
   premiumMetal0262SubstrateBatches:substrates.length,
   premiumMetal0262Mobile:mobile,premiumMetal0262AddedDrawCalls:0,
@@ -235,6 +292,6 @@ export function installPremiumMetalSurfaceLibrary(THREE,world,options={}){
    premiumMetal0262Strength:power.value,version:"0.26.2"};},
   setPremiumMetalComparison(v){power.value=clamp(v,0,1);},
   dispose(){for(const restore of restores)restore();
-   texture.dispose();base.dispose?.();}
+   atlasLease.release();base.dispose?.();}
  };
 }

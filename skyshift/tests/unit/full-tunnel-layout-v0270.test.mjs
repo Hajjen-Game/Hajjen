@@ -11,9 +11,9 @@ function subTrack(track){
  const code=[
   "globalThis.location={search:'?track=REPLACE_TRACK&v=0.27.0'};",
   "const [sel,c,t]=await Promise.all([",
-  "import('../../skyshift/track-selection-v0160.mjs'),",
-  "import('../../skyshift/circuit-layout-v0160.mjs'),",
-  "import('../../skyshift/trial-v0165.mjs')]);",
+  "import('./skyshift/track-selection-v0160.mjs'),",
+  "import('./skyshift/circuit-layout-v0160.mjs'),",
+  "import('./skyshift/trial-v0165.mjs')]);",
   "const {CIRCUIT,COURSE_SEGMENTS}=c;",
   "const {poseAt,headingAt,bankAt,elevationAudit,TRIAL,GAPS,GRIP_APEX,LOOP_CLOSURE_ERROR_METERS,widthAt}=t;",
   "const a=poseAt(0),b=poseAt(3400);",

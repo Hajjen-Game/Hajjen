@@ -33,6 +33,8 @@ import {PRECISION_NEON_0288,precisionNeonEnabled0288}
 import {CINEMATIC_METAL_0289,cinematicMetalEnabled0289,
  cinematicComponentEnabled0289,installCinematicRoad0289}
  from "./cinematic-metal-neon-v0289.mjs";
+import {CEILING_FIXTURE_02892,ceilingFixtureEnabled02892}
+ from "./ceiling-fixture-cohesion-v02892.mjs";
 import {STRAIGHT_EDGE_PARITY_02891,straightParityEnabled02891,
  installVaultStraightRoadParity02891}
  from "./shared-straight-edge-parity-v02891.mjs";
@@ -273,6 +275,8 @@ const cinematicMetalReleaseEnabled=trueSharedVaultEnabled&&
  cinematicMetalEnabled0289(location.search);
 const straightParityReleaseEnabled=trueSharedVaultEnabled&&
  straightParityEnabled02891(location.search);
+const ceilingFixtureReleaseEnabled=trueSharedVaultEnabled&&
+ ceilingFixtureEnabled02892(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -1460,7 +1464,18 @@ function initScene(){
    pmrem0284:pmremPipeline?.stats?.()??null,
    centralSource:TUNNEL_SHARED_ARCHITECTURE_0280
   });
- // 0.28.9.1 visual and geometric bend-clearance probe.
+ // 0.28.9.2 shared ceiling seams and moving palette smoke probe.
+  if(new URLSearchParams(location.search).get("ceilingFixtureSmoke")==="1"){
+   window.__skyshiftCeilingFixtureAudit=()=>({
+    track:TRACK_ID_0160,requested:ceilingFixtureReleaseEnabled,
+    source:trueSharedVault?.stats?.().ceilingFixtureCohesion02892??null,
+    sharedWave:trueSharedVault?.stats?.().sharedWave0285??null,
+    edge:trueSharedVault?.stats?.().straightOnlyCyan02891??null,
+    originalShip:!!ship,originalGrip:!!UI.grip,
+    definition:CEILING_FIXTURE_02892
+   });
+  }
+  // 0.28.9.1 visual and geometric bend-clearance probe.
  // The underlying Skyline 0.26.3.3 source mask is adapted to Vault metres.
  if(new URLSearchParams(location.search).get("straightParitySmoke")==="1"){
   window.__skyshiftStraightParityProbe=()=>{
@@ -3283,7 +3298,8 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (straightParityReleaseEnabled?" · 0.28.9.1":
+   (ceilingFixtureReleaseEnabled?" · 0.28.9.2":
+     straightParityReleaseEnabled?" · 0.28.9.1":
     cinematicMetalReleaseEnabled?" · 0.28.9":
     precisionNeonReleaseEnabled?" · 0.28.8":
     archFootAssemblyEnabled?" · 0.28.7":
@@ -5104,7 +5120,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.9.1":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.9.2":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

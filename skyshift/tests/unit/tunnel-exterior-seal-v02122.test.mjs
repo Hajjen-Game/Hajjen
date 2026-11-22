@@ -2,11 +2,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {EXTERIOR_SEAL_02122,installExteriorLightSeal,sealPremiumRoadGlare} from "./tunnel-exterior-seal-v02122.mjs";
-import {installNeonDrivenInterior} from "./neon-interior-v0212.mjs";
-import {newZoneWaveState,ZONE_PALETTES} from "./zone-wave-v060.mjs";
-import {patchRailShaders} from "./aero-barrier-v0165.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+import {EXTERIOR_SEAL_02122,installExteriorLightSeal,sealPremiumRoadGlare} from "../../tunnel-exterior-seal-v02122.mjs";
+import {installNeonDrivenInterior} from "../../neon-interior-v0212.mjs";
+import {newZoneWaveState,ZONE_PALETTES} from "../../zone-wave-v060.mjs";
+import {patchRailShaders} from "../../aero-barrier-v0165.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Color{constructor(hex){this.setHex(hex)}setHex(hex){this.hex=hex;return this}}
 class Group{
  name="";children=[];parent=null;

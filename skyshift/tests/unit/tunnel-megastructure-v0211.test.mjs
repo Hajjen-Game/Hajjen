@@ -3,8 +3,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {TUNNEL_MEGA_0211,TUNNEL_PROFILE_0211,TUNNEL_PORTALS_0211,installTunnelMegastructure}
- from "./tunnel-megastructure-v0211.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../tunnel-megastructure-v0211.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Group{
  name="";children=[];add(x){this.children.push(x)}removeFromParent(){}
  traverse(f){f(this);for(const child of this.children)child.traverse?.(f)}

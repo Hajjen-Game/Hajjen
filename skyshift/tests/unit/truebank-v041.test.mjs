@@ -7,8 +7,8 @@ import {
  surfaceHeightAt,surfaceNormalAt,MAX_BANK_RAD,
  newFlightState,stepFlight,onRoad,validateTrial,speedAt,clamp
 } from "./trial-v041.mjs";
-import {createSurfacePlan,validateSurfacePlan} from "./identity-v041.mjs";
-const src=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+import {createSurfacePlan,validateSurfacePlan} from "../../identity-v041.mjs";
+const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const dt=1/120;
 const rad=x=>x*Math.PI/180;
 const setPose=(st,s,l,yawOffset=0)=>{

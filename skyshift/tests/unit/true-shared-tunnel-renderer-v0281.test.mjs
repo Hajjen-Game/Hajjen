@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {TRUE_SHARED_RENDERER_0281,planTrueSharedTunnel0281,
  adaptSourcePosition0281,installTrueSharedTunnelRenderer0281}
- from "./true-shared-tunnel-renderer-v0281.mjs";
+ from "../../true-shared-tunnel-renderer-v0281.mjs";
 
 test("0.28.1 uses source renderer, not an independently colored Vault skin",()=>{
  assert.equal(TRUE_SHARED_RENDERER_0281.renderer,

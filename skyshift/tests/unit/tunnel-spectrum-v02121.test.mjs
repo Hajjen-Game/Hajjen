@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {ZONE_PALETTES,ZONE_WAVE,newZoneWaveState,updateZoneWave,frontPaletteBlend} from "./zone-wave-v060.mjs";
+import {ZONE_PALETTES,ZONE_WAVE,newZoneWaveState,updateZoneWave,frontPaletteBlend} from "../../zone-wave-v060.mjs";
 import {TUNNEL_SPECTRUM_02121,tunnelColorAt,createTunnelSpectrumUniforms,
  updateTunnelSpectrumUniforms,bindTunnelSpectrumMaterial} from "./tunnel-spectrum-v02121.mjs";
-import {installNeonDrivenInterior} from "./neon-interior-v0212.mjs";
+import {installNeonDrivenInterior} from "../../neon-interior-v0212.mjs";
 class Color{
  constructor(hex){this.setHex(hex)}
  setHex(hex){this.hex=hex;return this}

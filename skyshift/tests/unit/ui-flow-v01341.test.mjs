@@ -1,10 +1,10 @@
-// SKYSHIFT 0.13.2 — navigation and default Ghost regression.
+// SKYSHIFT 0.13.4.1 — navigation and default Ghost regression.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-const read=file=>readFileSync(new URL(file,import.meta.url),"utf8");
+const read=file=>readFileSync(new URL("../../"+file,import.meta.url),"utf8");
 const html=read("./index.html"),
-  app=read("./game-v0132.mjs"),boot=read("./boot-v0132.js"),
+  app=read("./game-v01341.mjs"),boot=read("./boot-v01341.js"),
   css=read("./style-v0131.css");
 const has=id=>new RegExp('id="'+id+'"').test(html);
 test("main menu only has START RUN, Hangar and the discrete gear",()=>{
@@ -63,10 +63,10 @@ test("pause has working ghost toggle and return-to-menu without PB mutation",()=
  assert.doesNotMatch(method,/finishTimeTrial|savePersonalGhost|clearPersonalGhost/);
 });
 test("active boot, CSS and audit are all version-consistent",()=>{
- assert.match(html,/boot-v0132\.js\?v=0\.13\.2" data-game-module="game-v0132\.mjs"/);
- assert.match(boot,/import\("\.\/game-v0132\.mjs\?v=0\.13\.2"\)/);
- assert.match(html,/style-v0131\.css\?v=0\.13\.2/);
- assert.match(app,/version:"0\.13\.2"/);
- assert.match(app,/skyshift-v0132-performance-/);
- assert.match(app,/address\.searchParams\.set\("v","0\.13\.2"\)/);
+ assert.match(html,/boot-v01341\.js\?v=0\.13\.4\.1" data-game-module="game-v01341\.mjs"/);
+ assert.match(boot,/import\("\.\/game-v01341\.mjs\?v=0\.13\.4\.1"\)/);
+ assert.match(html,/style-v0131\.css\?v=0\.13\.4\.1/);
+ assert.match(app,/version:"0\.13\.4\.1"/);
+ assert.match(app,/skyshift-v01341-performance-/);
+ assert.match(app,/address\.searchParams\.set\("v","0\.13\.4\.1"\)/);
 });

@@ -4,9 +4,9 @@ import {readFileSync} from "node:fs";
 import {TRUE_RAIL_WALL_0265,railFixtureIntervals0265,
  buildRailLocalSourceData0265,patchRailBody0265,patchPhysicalWall0265,
  patchSubstrateWall0265,installTrueRailWallResponse0265}
- from "./true-rail-wall-response-v0265.mjs";
+ from "../../true-rail-wall-response-v0265.mjs";
 
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const vert=[
  "#include <common>","#include <project_vertex>"
 ].join("\n");

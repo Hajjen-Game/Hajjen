@@ -1,0 +1,57 @@
+name: SKYSHIFT 0.28.9 verified cinematic before-after screenshots
+# main only; screenshot commit never retriggers this workflow.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skyshift/cinematic-metal-neon-v0289.mjs'
+      - '.github/workflows/skyshift-preview-v0289.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  capture-cinematic-webgl:
+    name: Publish actual WebGL 0.28.8 vs 0.28.9 plus component-isolation PNGs
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify source, original release gates and shader anchors
+        run: |
+          set -euo pipefail
+          node --check skyshift/cinematic-metal-neon-v0289.mjs
+          node --check skyshift/browser-cinematic-metal-v0289.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/cinematic-metal-neon-v0289.test.mjs
+      - name: Install real browser WebGL proof tools
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Capture genuine 0.28.8 vs 0.28.9 and component frames
+        run: node skyshift/browser-cinematic-metal-v0289.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0289-authentic-webgl-image-pairs
+          path: |
+            skyshift/previews/v0289-*.png
+            skyshift/previews/v0289-proof.json
+          if-no-files-found: warn
+      - name: Publish verified images in Pages source
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add skyshift/previews/v0289-*.png skyshift/previews/v0289-proof.json
+          if git diff --cached --quiet; then
+            echo "No new screenshot changes."
+            exit 0
+          fi
+          git commit -m "SKYSHIFT 0.28.9: publish authentic cinematic WebGL before/after [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main

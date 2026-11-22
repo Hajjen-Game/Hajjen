@@ -72,7 +72,7 @@ const COMMON="#include <common>";
 // chromatic transition weight, NEVER whiteCore, geometry, wave timing,
 // guide markings or the source-selected GGX positions.
 export function patchCurveColorSeam02896(vertex,fragment){
- if(!fragment.includes(COMMON)||
+ if(!vertex.includes(COMMON)||!fragment.includes(COMMON)||
   !fragment.includes("float wave1Color =")||
   !fragment.includes("a93Signed")||!fragment.includes("u94Signed"))
   throw Error("0.28.9.6 requires the original 0.28.9.4+ moving color shaders");

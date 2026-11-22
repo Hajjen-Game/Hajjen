@@ -14,6 +14,7 @@ const server=spawn("python3",["-m","http.server",String(port),"--bind","127.0.0.
  {cwd:process.cwd(),stdio:"ignore"});
 const profiles=[
  {label:"High-shared-atlas",deviceMemory:8,query:""},
+ {label:"High-classic-route-evaluator",deviceMemory:8,query:"&startupSampler=classic"},
  {label:"High-classic-10-atlases",deviceMemory:8,query:"&startupAtlas=classic"},
  {label:"High-no-PMREM-control",deviceMemory:8,query:"&pmrem=off"},
  {label:"4GB-shared-atlas",deviceMemory:4,query:""}
@@ -50,9 +51,17 @@ try{
    throw Error(profile.label+" boot failed: "+JSON.stringify({boot,errors}).slice(0,3000));
   const scene=boot.audit.scene,atlas=boot.audit.atlas;
   if(scene.sharedTunnelModules!==10||scene.meshes<90||
+   !scene.startupFrameSampler||
    !Number.isFinite(boot.audit.durations.sharedTunnelMs)||
    !Number.isFinite(boot.audit.durations.pmremMs))
    throw Error(profile.label+" incomplete original source: "+JSON.stringify(boot.audit));
+  if(profile.query.includes("startupSampler=classic")){
+   if(scene.startupFrameSampler.active)
+    throw Error("classic route-evaluator mode did not restore original source sampling");
+  }else if(profile.deviceMemory===8&&
+   (!scene.startupFrameSampler.active||
+    scene.startupFrameSampler.avoidedRouteCalls<500))
+   throw Error(profile.label+" did not reuse original source frames "+JSON.stringify(scene.startupFrameSampler));
   if(profile.query.includes("startupAtlas=classic")){
    if(atlas.textures!==0)throw Error("classic mode did not restore ten independent atlases");
   }else if(atlas.textures!==1||atlas.references[0]?.refs!==10)
@@ -80,7 +89,11 @@ try{
    moduleElapsedMs:boot.audit.stamps.bootReady,
    sharedTunnelMs:boot.audit.durations.sharedTunnelMs,
    pmremMs:boot.audit.durations.pmremMs,
-   atlas,scene,gpu:boot.audit.renderer,heapMB:boot.audit.jsHeapMB,
+   atlas,scene:{...scene,startupFrameSampler:scene.startupFrameSampler?
+    {...scene.startupFrameSampler,moduleMetrics:scene.startupFrameSampler.moduleMetrics?.map(
+     ({index,ms,sampler})=>({index,ms,calls:sampler?.calls,
+      routeCalls:sampler?.poseCalculations,avoided:sampler?.substitutedEvaluations}))
+    }:null},gpu:boot.audit.renderer,heapMB:boot.audit.jsHeapMB,
    browserElapsedMs:Date.now()-nav,render};
   reports.push(report);
   writeFileSync(out+"/v02897-startup-profile.json",JSON.stringify(reports,null,2));

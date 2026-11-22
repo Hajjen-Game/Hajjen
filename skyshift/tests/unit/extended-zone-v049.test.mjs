@@ -6,19 +6,19 @@ import {
  TRIAL,COURSE_SEGMENTS,GEOMETRY_BREAKS,CHECKPOINTS,ARCHES,
  curvatureAt,headingAt,bankAt,positionAt,poseAt,validateTrial,
  speedAt,newFlightState,stepFlight,GUARDRAIL,guardrailLateralLimit
-} from "./trial-v049.mjs";
-import {BOOST_PADS,BOOST_CONFIG} from "./boost-v049.mjs";
-import {MESH_SPEC,createSmoothDeckData} from "./smooth-track-v049.mjs";
-import {AERO_BARRIER,createAeroBarrierData,createAeroDetailData} from "./aero-barrier-v049.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,stageAtS} from "./zone-wave-v049.mjs";
+} from "../../trial-v049.mjs";
+import {BOOST_PADS,BOOST_CONFIG} from "../../boost-v049.mjs";
+import {MESH_SPEC,createSmoothDeckData} from "../../smooth-track-v049.mjs";
+import {AERO_BARRIER,createAeroBarrierData,createAeroDetailData} from "../../aero-barrier-v049.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,stageAtS} from "../../zone-wave-v049.mjs";
 import {
  PREMIUM_TRACK,GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,
  SURFACE_FRAGMENT_HELPERS,createPremiumTrackMaterial,patchPremiumShaders,
  premiumTrackCoordinates
-} from "./premium-track-v049.mjs";
-const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+} from "../../premium-track-v049.mjs";
+const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,eps=1e-5)=>assert.ok(Math.abs(a-b)<=eps, `expected ${a} ≈ ${b}`);
-const reference=await import("./trial-v048.mjs");
+const reference=await import("../../trial-v048.mjs");
 test("1530m authored course is exactly 3x, has six real bends, and preserves opening 424m",()=>{
  assert.equal(TRIAL.length,510*3);
  assert.equal(COURSE_SEGMENTS.length,13);
@@ -164,7 +164,7 @@ test("active 0.4.9 uses extended modules, dynamic palettes and no screen flash",
  const game=source("game-v049.mjs"),page=source("index.html");
  assert.match(page,/boot-v0103\.js\?v=0\.10\.3/);
  for(const dep of ["trial-v049","boost-v049","premium-track-v049","smooth-track-v049","aero-barrier-v049","zone-wave-v049"])
-  assert.ok(game.includes(`from "./${dep}.mjs"`),dep);
+  assert.ok(game.includes(`from "../../${dep}.mjs"`),dep);
  assert.match(game,/updateZoneWave\(zoneWave,flight\.elapsed,flight\.s\)/);
  assert.match(game,/premiumSurface\?\.setWaveState\(zoneWave\)/);
  assert.match(game,/zoneWave\.playerStage/);

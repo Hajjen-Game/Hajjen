@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {FULL_TUNNEL_0270,vaultCrossSection0270,installFullTunnelCircuit0270}
- from "./full-tunnel-circuit-v0270.mjs";
-import {TUNNEL_PROFILE_0211} from "./tunnel-megastructure-v0211.mjs";
+ from "../../full-tunnel-circuit-v0270.mjs";
+import {TUNNEL_PROFILE_0211} from "../../tunnel-megastructure-v0211.mjs";
 
 class FakeGroup{
  constructor(){this.children=[];this.name="";this.parent=null;}

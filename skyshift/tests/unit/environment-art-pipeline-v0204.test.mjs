@@ -3,13 +3,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {STATION_ART_0204,buildStationAsset}
- from "./build-station-world-v0204.mjs";
+ from "../../build-station-world-v0204.mjs";
 import {WORLD_ART_0204,planStationWorld,bakeTrackConformingBayGeometry}
- from "./environment-art-pipeline-v0204.mjs";
+ from "../../environment-art-pipeline-v0204.mjs";
 import {planStationWorld as oldWorld}
- from "./environment-art-pipeline-v0203.mjs";
-import {TRIAL,SKYLINE_LEAP,positionAt} from "./trial-v0165.mjs";
-const file=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+ from "../../environment-art-pipeline-v0203.mjs";
+import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
+const file=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const gltf=JSON.parse(file("./assets/worlds/continuum-neon-bays-v5.gltf"));
 const oldGltf=JSON.parse(file("./assets/worlds/continuum-graphite-bays-v5.gltf"));
 function bytes(doc,name,attribute){
@@ -145,7 +145,7 @@ test("Curved and banked sidewall neon connects exactly across 18 authored bays",
 test("Live entry uses 0.20.4 GLTF and optional halo; all prior versions remain selectable",()=>{
  const game=file("./game-v0204.mjs");
  for(const module of ["trial-v0165","unified-flight-v0165","cinematic-v0165"])
-  assert.ok(game.includes('from "./'+module+'.mjs"'));
+  assert.ok(game.includes('from "../../'+module+'.mjs"'));
  assert.match(game,/environment-art-pipeline-v0204\.mjs/);
  assert.match(game,/premiumNeonEnabled=graphiteGradeEnabled&&/);
  assert.match(game,/get\("neon"\)!=="classic"/);

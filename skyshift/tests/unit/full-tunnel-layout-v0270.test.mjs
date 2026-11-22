@@ -2,18 +2,18 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {VAULT_SECTIONS_0270,VAULT_ELEVATION_KEYS_0270,VAULT_SECTORS_0270,
  FULL_TUNNEL_LAYOUT_0270,validateVaultLayout0270}
- from "./full-tunnel-layout-v0270.mjs";
+ from "../../full-tunnel-layout-v0270.mjs";
 import {readFileSync} from "node:fs";
 import {spawnSync} from "node:child_process";
 
-const read=x=>readFileSync(new URL(x,import.meta.url),"utf8");
+const read=x=>readFileSync(new URL("../../"+x,import.meta.url),"utf8");
 function subTrack(track){
  const code=[
   "globalThis.location={search:'?track=REPLACE_TRACK&v=0.27.0'};",
   "const [sel,c,t]=await Promise.all([",
-  "import('./skyshift/track-selection-v0160.mjs'),",
-  "import('./skyshift/circuit-layout-v0160.mjs'),",
-  "import('./skyshift/trial-v0165.mjs')]);",
+  "import('../../skyshift/track-selection-v0160.mjs'),",
+  "import('../../skyshift/circuit-layout-v0160.mjs'),",
+  "import('../../skyshift/trial-v0165.mjs')]);",
   "const {CIRCUIT,COURSE_SEGMENTS}=c;",
   "const {poseAt,headingAt,bankAt,elevationAudit,TRIAL,GAPS,GRIP_APEX,LOOP_CLOSURE_ERROR_METERS,widthAt}=t;",
   "const a=poseAt(0),b=poseAt(3400);",
@@ -27,7 +27,7 @@ function subTrack(track){
   "console.log(JSON.stringify(p));"
  ].join("\n").replace("REPLACE_TRACK",track);
  const cmd=spawnSync(process.execPath,["--input-type=module","-e",code],
-  {cwd:new URL("../",import.meta.url).pathname,encoding:"utf8",timeout:25000});
+  {cwd:new URL("../../"+"../",import.meta.url).pathname,encoding:"utf8",timeout:25000});
  assert.equal(cmd.status,0,cmd.stderr?.slice(0,3000));
  return JSON.parse(cmd.stdout.trim().split("\n").at(-1));
 }

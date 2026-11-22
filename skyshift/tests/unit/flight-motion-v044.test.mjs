@@ -5,14 +5,14 @@ import {readFileSync} from "node:fs";
 import {
  MOTION_DEFAULTS,dampedSpring,followAngle,
  createFlightMotionState,stepFlightMotion
-} from "./flight-motion-v044.mjs";
+} from "../../flight-motion-v044.mjs";
 import {
  TRIAL,newFlightState,stepFlight,positionAt,clamp
-} from "./trial-v043.mjs";
+} from "../../trial-v043.mjs";
 import {
  capturePose,interpolatePose,createFrameClock,advanceFrame
-} from "./frame-pacing-v044.mjs";
-const source=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+} from "../../frame-pacing-v044.mjs";
+const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const pose=(changes={})=>({steering:0,trackBank:0,yawRate:0,sideVelocity:0,
  heading:0,vy:0,...changes});
 function runMotion(target,seconds=1,rate=60,state=createFlightMotionState()){

@@ -2,10 +2,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {STATION_ART_02041,buildStationAsset} from "./build-station-world-v02041.mjs";
-import {WORLD_ART_02041,planStationWorld} from "./environment-art-pipeline-v02041.mjs";
-import {planStationWorld as oldWorld} from "./environment-art-pipeline-v0204.mjs";
-const file=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+import {STATION_ART_02041,buildStationAsset} from "../../build-station-world-v02041.mjs";
+import {WORLD_ART_02041,planStationWorld} from "../../environment-art-pipeline-v02041.mjs";
+import {planStationWorld as oldWorld} from "../../environment-art-pipeline-v0204.mjs";
+const file=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const asset=JSON.parse(file("./assets/worlds/continuum-neon-sculpted-v6.gltf"));
 const old=JSON.parse(file("./assets/worlds/continuum-neon-bays-v5.gltf"));
 function vertexBytes(doc,name,attribute){

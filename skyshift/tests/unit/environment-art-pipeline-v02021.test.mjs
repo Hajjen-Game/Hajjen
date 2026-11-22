@@ -3,13 +3,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {STATION_ART_02021,buildStationAsset}
- from "./build-station-world-v02021.mjs";
+ from "../../build-station-world-v02021.mjs";
 import {WORLD_ART_02021,planStationWorld,bakeTrackConformingBayGeometry}
- from "./environment-art-pipeline-v02021.mjs";
+ from "../../environment-art-pipeline-v02021.mjs";
 import {planStationWorld as previousPlan}
- from "./environment-art-pipeline-v0202.mjs";
-import {TRIAL,SKYLINE_LEAP,positionAt} from "./trial-v0165.mjs";
-const file=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../environment-art-pipeline-v0202.mjs";
+import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
+const file=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const asset=JSON.parse(file("./assets/worlds/continuum-ribbon-bays-v4.gltf"));
 test("3 long two-bay windows instead of 6 squared-off panes",()=>{
  const p=planStationWorld(),old=previousPlan();
@@ -112,7 +112,7 @@ test("original physics, 0.20.2 rollback and Aurora remain intact",()=>{
  assert.equal(planStationWorld({track:"aurora"}).active,false);
  const game=file("./game-v02021.mjs");
  for(const module of ["trial-v0165","unified-flight-v0165","cinematic-v0165"])
-  assert.ok(game.includes('from "./'+module+'.mjs"'));
+  assert.ok(game.includes('from "../../'+module+'.mjs"'));
  assert.match(game,/windowCleanup"\)!=="classic"/);
  assert.match(game,/installRibbonWindowArt/);
  assert.match(game,/compareBeforeCleanup:"\?windowCleanup=classic"/);

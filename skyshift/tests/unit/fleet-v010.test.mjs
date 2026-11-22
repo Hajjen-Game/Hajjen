@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {FLEET,FLEET_STORAGE_KEY,initialFleet,normalizeFleet,isFleetUnlocked,
  readFleet,saveFleet,equipFleet,recordFleetClear,fleetStatus}
- from "./fleet-v010.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../fleet-v010.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 function storage(){
  const map=new Map();
  return {getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v)};

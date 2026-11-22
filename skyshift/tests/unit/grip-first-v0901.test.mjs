@@ -2,19 +2,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import * as archived from "./trial-v084.mjs";
+import * as archived from "../../trial-v084.mjs";
 import {
  STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt
-} from "./steering-authority-v0901.mjs";
-import {GRIP_SPEC,initGripState,stepGripState} from "./precision-grip-v084.mjs";
+} from "../../steering-authority-v0901.mjs";
+import {GRIP_SPEC,initGripState,stepGripState} from "../../precision-grip-v084.mjs";
 import {TRIAL,CIRCUIT,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  positionAt,headingAt,surfaceHeightAt,curvatureAt,widthAt,speedAt,
- newFlightState,stepFlight,setZoneSpeedStage,validateTrial} from "./trial-v0901.mjs";
+ newFlightState,stepFlight,setZoneSpeedStage,validateTrial} from "../../trial-v0901.mjs";
 
 const near=(actual,expected,tolerance=1e-6)=>
  assert.ok(Math.abs(actual-expected)<=tolerance,
   "expected "+actual+" ~= "+expected+" ± "+tolerance);
-const read=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+const read=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 // The test-only, pilot-like steering controller is NOT shipped to the game.
 // It only holds steering or GRIP after sampling the actual curves.
 function unshape(x){

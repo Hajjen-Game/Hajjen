@@ -6,11 +6,11 @@ import {
   FLOW_TURNS,headingAt,curvatureAt,turnLoadAt,widthAt,speedAt,
   roadIntervals,onRoad,poseAt,positionAt,newFlightState,stepFlight,clamp,
   validateTrial
-} from "./trial-v04.mjs";
-import {createSurfacePlan,validateSurfacePlan} from "./identity-v04.mjs";
-import {SPACE_DESIGN} from "./space-v04.mjs";
+} from "../../trial-v04.mjs";
+import {createSurfacePlan,validateSurfacePlan} from "../../identity-v04.mjs";
+import {SPACE_DESIGN} from "../../space-v04.mjs";
 
-const src=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+const src=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const dt=1/120;
 
 test("0.4 has nine authored strong linked turns, genuine corner load and wider deck",()=>{

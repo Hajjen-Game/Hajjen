@@ -4,8 +4,8 @@ import {readFileSync} from "node:fs";
 import {
  FINAL_COHESION_0264,SOURCE_NAMES_0264,FINAL_COHESION_SHADER_0264,
  finalCohesionBloom0264,finalFixtureGain0264,installFinalCohesion0264
-} from "./final-cohesion-v0264.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+} from "../../final-cohesion-v0264.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Color{
  constructor(r=1,g=1,b=1){this.r=r;this.g=g;this.b=b;}
  clone(){return new Color(this.r,this.g,this.b);}

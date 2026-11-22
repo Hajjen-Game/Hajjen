@@ -7,18 +7,18 @@ import {
  GUARDRAIL,GAPS,bankAt,bankDegreesAt,surfaceHeightAt,
  widthAt,headingAt,curvatureAt,positionAt,speedAt,validateTrial,
  newFlightState,stepFlight,setZoneSpeedStage
-} from "./trial-v050.mjs";
-import {BOOST_CONFIG,BOOST_PADS} from "./boost-v050.mjs";
+} from "../../trial-v050.mjs";
+import {BOOST_CONFIG,BOOST_PADS} from "../../boost-v050.mjs";
 import {
  ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,
  frontPaletteBlend,spectralChargeStrength
-} from "./zone-wave-v050.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v050.mjs";
+} from "../../zone-wave-v050.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v050.mjs";
 import {PREMIUM_TRACK,GLSL_BOOST_PADS,patchPremiumShaders}
- from "./premium-track-v050.mjs";
+ from "../../premium-track-v050.mjs";
 import {AERO_BARRIER,createAeroBarrierData,createAeroDetailData,patchRailShaders}
- from "./aero-barrier-v050.mjs";
-const source=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+ from "../../aero-barrier-v050.mjs";
+const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const close=(actual,expected,delta=.0001)=>
  assert.ok(Math.abs(actual-expected)<delta,actual+" != "+expected);
 test("a 10.4km authored route has real straights, C2 turns and a clean finish",()=>{
@@ -178,7 +178,7 @@ test("production version routes to the real 10.4km race; archived 1530m lab pres
  assert.match(boot,/import\("\.\/game-v0103\.mjs\?v=0\.10\.3"\)/);
  for(const dep of ["trial-v0901","zone-wave-v060","boost-v082",
   "smooth-track-v0901","premium-track-v0901","aero-barrier-v0901"])
-  assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
+  assert.ok(game.includes('from "../../'+dep+'.mjs"'),dep);
  assert.match(game,/setZoneSpeedStage\(flight,wave\.stage\)/);
  assert.match(game,/zone_speed_increase/);
  assert.match(game,/zoneSpeedEvents:\[\.\.\.flight\.zoneSpeedEvents\]/);

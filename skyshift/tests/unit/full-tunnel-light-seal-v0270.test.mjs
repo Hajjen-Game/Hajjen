@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
- from "./full-tunnel-light-seal-v0270.mjs";
+ from "../../full-tunnel-light-seal-v0270.mjs";
 import {readFileSync} from "node:fs";
-const game=readFileSync(new URL("./game-v0210.mjs",import.meta.url),"utf8");
+const game=readFileSync(new URL("../../"+"./game-v0210.mjs",import.meta.url),"utf8");
 test("Vault full lap uses exactly one source-independent sun seal at any distance",()=>{
  const a=vaultLightLevels0270(0);
  for(const s of [1,367,368,851,2050,2810,3230,3400,9999])

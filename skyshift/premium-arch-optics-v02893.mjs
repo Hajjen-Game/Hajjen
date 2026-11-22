@@ -190,7 +190,8 @@ export function installArchSourceOptics02893(THREE,section,{enabled=false,
 // Original Skyline profile j6 is the actual lower lit arch segment, not a
 // guessed fake world point or a separate road lamp. Sample the SAME local
 // source arc / positionAt adapter used for the tunnel geometry.
-export function buildArchRoadSources02893(geometry,positionAt,trackLength){
+export function buildArchRoadSources02893(geometry,positionAt,trackLength,{
+ lowMemory=false}={}){
  const source=createSharedSourceSampler0282(positionAt,trackLength);
  const coords=geometry?.getAttribute?.("aTrackCoord"),
   positions=geometry?.getAttribute?.("position");
@@ -212,7 +213,7 @@ export function buildArchRoadSources02893(geometry,positionAt,trackLength){
   // POSITION across a portal-selection seam made archArc follow the road
   // and generated a false continuously glowing pink/cyan shoulder.
   // A preweighted local pulse stays dark midway between actual arches.
-  window[i]=Math.exp(-Math.pow((s-arc[i])/5.6,2));
+  window[i]=Math.exp(-Math.pow((s-arc[i])/(lowMemory?3.9:5.6),2));
   const [x,y]=tunnelProfilePoint0211(6,archS,false);
   for(const side of [-1,1]){
    const key=local.index+":"+nearest+":"+side;
@@ -322,7 +323,7 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
  if(!material?.isMeshStandardMaterial||!geometry||
   typeof positionAt!=="function")
   throw Error("0.28.9.3 original physical road/source missing");
- const data=buildArchRoadSources02893(geometry,positionAt,trackLength);
+ const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory});
  const keys=["archLeft02893","archRight02893","archArc02893",
   "archWindow02893"];
  if(keys.some(k=>geometry.getAttribute(k)))
@@ -372,7 +373,7 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
    nativeGGX:true,originalIndexedRoad:true,
    sourceModules:data.sourceModules,sourcePositions:data.sourcePositions,
    vertices:data.vertices,nearArchVertices:data.nearArchVertices,
-   actualVertexDistanceMask:true,sourcePulseRadiusMeters:5.6,
+   actualVertexDistanceMask:true,sourcePulseRadiusMeters:lowMemory?3.9:5.6,
    colorFrom:uniform.uA93Old.value.getHex(),
    colorTo:uniform.uA93Next.value.getHex(),
    waveFront:uniform.uA93Front.value,

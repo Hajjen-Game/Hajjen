@@ -88,6 +88,12 @@ async function frame(track,version,memory,s,expected){
    road:regions(a,b,roadway)};
   if(data.foot.changedPct<.035||data.foot.changed<80)
    throw Error(tag+" new L lighting not actually visible on VAULT wall/foot "+JSON.stringify(data));
+  // The FIRST prototype passed mere change detection even when its dark
+  // plinth hid the bright L. Require a meaningful warm-foot light signature
+  // on actual pixels, while allowing a much smaller footprint than the
+  // old broad 14.4m orange wedge.
+  if(data.foot.amberAfter<data.foot.amberBefore*.45)
+   throw Error(tag+" the brighter integrated amber L has disappeared behind graphite "+JSON.stringify(data));
   if(data.roof.whiteAfter>data.roof.whiteBefore+90)
    throw Error(tag+" new arch feet reintroduced white ceiling light");
   if(data.road.meanAfter>data.road.meanBefore+3.0)

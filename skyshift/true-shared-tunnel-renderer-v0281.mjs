@@ -25,6 +25,8 @@ import {wrapShader0265}
  from "./true-rail-wall-response-v0265.mjs";
 import {createLowerEdgeSources02632,createConnectedFootBands02632}
  from "./edge-source-floor-bands-v02632.mjs";
+import {straightParityEnabled02891,buildVaultStraightEmitters02891,
+ vaultStraightRanges02891} from "./shared-straight-edge-parity-v02891.mjs";
 
 export const TRUE_SHARED_RENDERER_0281=Object.freeze({
  version:"0.28.1",id:"skyline-original-renderer",
@@ -73,7 +75,7 @@ export function adaptSourcePosition0281(positionAt,module){
 // of those releases modifies Skyline's road/rails and is NOT duplicated
 // on Vault: the existing racing deck and collision rails stay independent.
 export function finishOriginalSourceMaterials0281(THREE,section,lowMemory,
- positionAt){
+ positionAt,{module=null,straightOnly=false,straightRanges=null}={}){
  const group=section.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1");
  if(!group)throw Error("0.28.1 original 0.21.1 tunnel source absent");
  const physical=["panel",...(!lowMemory?["rib"]:[])].map(role=>({
@@ -116,11 +118,19 @@ export function finishOriginalSourceMaterials0281(THREE,section,lowMemory,
   foot.name="SKYSHIFT 0.28.1 / original joined amber arch feet";
   foot.frustumCulled=true;foot.renderOrder=3;
   section.add(foot);added.push(foot);
-  const edge=createLowerEdgeSources02632(THREE,positionAt,lowMemory);
+  // 0.28.9.1 uses the corrected 0.26.3.3 straight classifier,
+  // but in Vault WORLD metres rather than the repeated 368m Skyline art.
+  // Legacy 0.28.9 retains its exact original 0.26.3.2 emitter geometry.
+  const edge=straightOnly?
+   buildVaultStraightEmitters02891(THREE,positionAt,module,{
+    lowMemory,ranges:straightRanges
+   }):createLowerEdgeSources02632(THREE,positionAt,lowMemory);
   const emitter=new THREE.Mesh(edge.geometry,new THREE.MeshBasicMaterial({
    vertexColors:true,side:THREE.DoubleSide,toneMapped:false,depthWrite:true
   }));
-  emitter.name="SKYSHIFT 0.28.1 / original short cyan edge inlays";
+  emitter.name=straightOnly?
+   "SKYSHIFT 0.28.9.1 / native straight ONLY cyan edge inlays":
+   "SKYSHIFT 0.28.1 / original short cyan edge inlays";
   emitter.frustumCulled=true;emitter.renderOrder=2;
   section.add(emitter);added.push(emitter);
   return {active:true,footBands:floor.bands,lowEdgeSegments:edge.segments,
@@ -157,6 +167,8 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  const archFeet0287=archFootRelease0287();
  const precisionNeon0288=precisionNeonEnabled0288();
  const cinematicMetal0289=cinematicMetalEnabled0289();
+ const straightOnly02891=straightParityEnabled02891();
+ const straightRanges02891=straightOnly02891?vaultStraightRanges02891():null;
  // The original Skyline renderer owns EVERY panel, rib, bay, cove and
  // source-local metallic shader. Do not call the 0.27.x Vault pipeline here.
  try{
@@ -193,7 +205,10 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    if(!metal.active)
     throw Error("source unified metallic response failed in section "+module.index);
    item.finish=finishOriginalSourceMaterials0281(THREE,section,
-    lowMemory,adaptSourcePosition0281(positionAt,module));
+    lowMemory,adaptSourcePosition0281(positionAt,module),{
+     module,straightOnly:straightOnly02891,
+     straightRanges:straightRanges02891
+    });
    // Replace, never overlay, the 0.28.1 foot geometry on VAULT 0.28.7.
    // Same source profile and banked arc as every original portal;
    // one graphite mounting batch and the existing amber emitter mesh.
@@ -344,6 +359,13 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    },
    originalAmberFootBands:installed.reduce((n,x)=>n+(x.finish?.footBands||0),0),
    originalShortCyanInlays:installed.reduce((n,x)=>n+(x.finish?.lowEdgeSegments||0),0),
+   straightOnlyCyan02891:{active:straightOnly02891,
+    sourceModules:installed.length,
+    litSegments:installed.reduce((n,x)=>n+(x.finish?.lowEdgeSegments||0),0),
+    straightRanges:straightRanges02891?.map(x=>({from:x.from,to:x.to,id:x.id}))??[],
+    bendClearanceMeters:straightOnly02891?12:0,
+    originalAmberFootBandsUntouched:true,
+    originalSourceMaterialsUntouched:true,curveInlaysRemoved:straightOnly02891},
    originalTrackUntouched:true,originalPhysicsUntouched:true,
    originalShipUntouched:true,originalGripUntouched:true,
    legacyVaultRendererUsed:false

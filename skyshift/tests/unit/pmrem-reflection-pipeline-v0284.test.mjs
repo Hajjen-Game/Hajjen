@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {PMREM_0284,readPmremRelease0284,planPmrem0284,
  installPmremReflectionPipeline0284}
- from "./pmrem-reflection-pipeline-v0284.mjs";
+ from "../../pmrem-reflection-pipeline-v0284.mjs";
 
 test("0.28.4 is Vault-only and historical versions remain byte-identical",()=>{
  for(const track of ["skyline","aurora"])

@@ -7,14 +7,14 @@ import {CIRCUIT,TRIAL,GAPS,GUARDRAIL,MAX_BANK_RAD,bankAt,bankDegreesAt,
  headingAt,guardrailLateralLimit,newFlightState,stepFlight,speedAt,
  validateTrial} from "./trial-v071.mjs";
 import {MAGNETIC_WALL,TRACK_3D,magneticBankAt,elevationAudit}
- from "./track-3d-v071.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v071.mjs";
+ from "../../track-3d-v071.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v071.mjs";
 import {sampleAeroProfile,AERO_BARRIER,createAeroBarrierData}
- from "./aero-barrier-v071.mjs";
-import {PREMIUM_TRACK} from "./premium-track-v071.mjs";
-import {chasePose,CINEMATIC_DEFAULTS} from "./cinematic-v071.mjs";
-import * as legacy from "./trial-v070.mjs";
-const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../aero-barrier-v071.mjs";
+import {PREMIUM_TRACK} from "../../premium-track-v071.mjs";
+import {chasePose,CINEMATIC_DEFAULTS} from "../../cinematic-v071.mjs";
+import * as legacy from "../../trial-v070.mjs";
+const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,e=1e-4)=>assert.ok(Math.abs(a-b)<e,
   "expected "+a+" within "+e+" of "+b);
 test("one physical magnetic straight rises smoothly to 70° and releases safely",()=>{

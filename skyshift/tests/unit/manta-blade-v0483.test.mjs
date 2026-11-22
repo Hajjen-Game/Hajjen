@@ -6,8 +6,8 @@ import {
  MANTA_IDENTITY,MANTA_SPINE,MANTA_WING_OUTLINE,MANTA_CANOPY,
  triangulateWing,buildMantaSpine,buildMantaWings,buildMantaCanopy,buildMantaBlade
 } from "./manta-blade-v0483.mjs";
-import {TRIAL,newFlightState,stepFlight} from "./trial-v048.mjs";
-const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+import {TRIAL,newFlightState,stepFlight} from "../../trial-v048.mjs";
+const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const close=(a,b,t=1e-7)=>assert.ok(Math.abs(a-b)<=t,`${a} differs from ${b}`);
 const checkMesh=mesh=>{
  assert.equal(mesh.positions.length%3,0);

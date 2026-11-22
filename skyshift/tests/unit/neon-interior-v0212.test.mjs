@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {installNeonDrivenInterior,NEON_INTERIOR_0212,sampleNeonInteriorLight} from "./neon-interior-v0212.mjs";
-import {installTunnelMegastructure} from "./tunnel-megastructure-v0211.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+import {installNeonDrivenInterior,NEON_INTERIOR_0212,sampleNeonInteriorLight} from "../../neon-interior-v0212.mjs";
+import {installTunnelMegastructure} from "../../tunnel-megastructure-v0211.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Group {
  name="";children=[];parent=null;
  add(x){x.parent=this;this.children.push(x)}

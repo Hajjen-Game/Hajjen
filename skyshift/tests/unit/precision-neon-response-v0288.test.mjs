@@ -4,8 +4,8 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {precisionNeonEnabled0288,patchPrecisionNeon0288,
  installPrecisionNeon0288,PRECISION_NEON_0288}
- from "./precision-neon-response-v0288.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../precision-neon-response-v0288.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 
 test("0.28.8 enabled only for new Vault; classic restores exact 0.28.7",()=>{
  for(const v of ["0.28.1","0.28.4","0.28.5","0.28.6","0.28.7"])

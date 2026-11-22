@@ -4,12 +4,12 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {PHYSICAL_MATERIAL_0230,buildPhysicalMaterialFrames,
  patchPhysicalMaterialShader,installPhysicalMaterialShader}
- from "./physical-material-rebuild-v0230.mjs";
+ from "../../physical-material-rebuild-v0230.mjs";
 import {patchPremiumMaterialShader}
- from "./premium-material-rebirth-v0220.mjs";
+ from "../../premium-material-rebirth-v0220.mjs";
 import {patchCinematicNeonShader}
- from "./cinematic-neon-lighting-v0220p2.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../cinematic-neon-lighting-v0220p2.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const vs="#include <common>\nattribute float trackS;\nattribute float glowWeight;\n#include <begin_vertex>";
 const fs="#include <common>\n#include <color_fragment>\ndiffuseColor.rgb += tunnelSpectrumTint()*vTunnelGlow;";
 function compose(role,mobile=false){

@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-const src=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+const src=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 test("Classic, dependency-free bootstrap loads before Three.js and captures import failures",()=>{
  const html=src("./index.html"),boot=src("./boot-v04911.js");
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);

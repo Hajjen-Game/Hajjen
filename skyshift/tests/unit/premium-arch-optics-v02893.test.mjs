@@ -1,14 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {TUNNEL_PORTALS_0211,TUNNEL_PROFILE_0211}
- from "./tunnel-megastructure-v0211.mjs";
-import {ZONE_PALETTES} from "./zone-wave-v060.mjs";
+ from "../../tunnel-megastructure-v0211.mjs";
+import {ZONE_PALETTES} from "../../zone-wave-v060.mjs";
 import {ARCH_OPTICS_02893,archOpticsEnabled02893,archRoadEnabled02893,
  archCoreVertices02893,buildArchCoreMask02893,buildArchHaloFeather02893,
  patchArchSource02893,patchArchRoadShader02893,
  buildArchRoadSources02893,installArchSourceOptics02893,
  installArchRoadReflection02893,diagnosticLegacyRoadOverlay02893}
- from "./premium-arch-optics-v02893.mjs";
+ from "../../premium-arch-optics-v02893.mjs";
 
 class Attribute{
  constructor(array,itemSize){this.array=new Float32Array(array);this.itemSize=itemSize;

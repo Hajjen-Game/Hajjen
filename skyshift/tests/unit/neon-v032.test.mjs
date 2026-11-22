@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {NEON_TUNING,validateNeonBalance} from "./neon-balance-v032.mjs";
+import {NEON_TUNING,validateNeonBalance} from "../../neon-balance-v032.mjs";
 
-const here=new URL(".",import.meta.url);
+const here=new URL("../../"+".",import.meta.url);
 const src=(file)=>readFileSync(new URL(file,here),"utf8");
 const old={bloomStrength:1.18,bloomRadius:.48,edgeCoreLuminance:3.6,
   beaconCoreLuminance:3.9,haloOpacity:.16,shipLuminance:3.0,enginePointIntensity:12};

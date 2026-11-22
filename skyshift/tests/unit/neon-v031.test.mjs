@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-const root=new URL(".",import.meta.url);
+const root=new URL("../../"+".",import.meta.url);
 const source=name=>readFileSync(new URL(name,root),"utf8");
 
 test("renderer is wired to one pinned Three.js version and addon import map",()=>{

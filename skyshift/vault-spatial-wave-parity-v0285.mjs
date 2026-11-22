@@ -23,7 +23,7 @@ export function vaultSpatialWaveEnabled0285(search=
  const params=new URLSearchParams(search||"");
  if(params.get("track")!=="vault"||
   ["classic","off"].includes(params.get("waveSync")))return false;
- const version=/^(\d+)\.(\d+)\.(\d+)$/.exec(params.get("v")||"");
+ const version=/^(\d+)\.(\d+)\.(\d+)(?:\.\d+)?$/.exec(params.get("v")||"");
  if(!version)return false;
  const [major,minor,patch]=version.slice(1).map(Number);
  return major>0||minor>28||(minor===28&&patch>=5);

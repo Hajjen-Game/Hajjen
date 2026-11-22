@@ -33,6 +33,9 @@ import {PRECISION_NEON_0288,precisionNeonEnabled0288}
 import {CINEMATIC_METAL_0289,cinematicMetalEnabled0289,
  cinematicComponentEnabled0289,installCinematicRoad0289}
  from "./cinematic-metal-neon-v0289.mjs";
+import {ARCH_OPTICS_02893,archOpticsEnabled02893,archRoadEnabled02893,
+ installArchRoadReflection02893,diagnosticLegacyRoadOverlay02893}
+ from "./premium-arch-optics-v02893.mjs";
 import {CEILING_FIXTURE_02892,ceilingFixtureEnabled02892}
  from "./ceiling-fixture-cohesion-v02892.mjs";
 import {STRAIGHT_EDGE_PARITY_02891,straightParityEnabled02891,
@@ -277,6 +280,10 @@ const straightParityReleaseEnabled=trueSharedVaultEnabled&&
  straightParityEnabled02891(location.search);
 const ceilingFixtureReleaseEnabled=trueSharedVaultEnabled&&
  ceilingFixtureEnabled02892(location.search);
+const archOpticsReleaseEnabled=trueSharedVaultEnabled&&
+ archOpticsEnabled02893(location.search);
+const archRoadReleaseEnabled=archOpticsReleaseEnabled&&
+ archRoadEnabled02893(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -612,7 +619,7 @@ let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
 let fullTunnelCircuit=null,vaultMaterialParity=null,vaultArchitecture=null,vaultFullLighting=null,sharedTunnelRuntime=null;
 let sharedRoadLight=null,sharedShipLight=null,pmremPipeline=null,cinematicRoadFinish=null,
- sharedStraightEdgeRoad=null;
+ sharedStraightEdgeRoad=null,archRoadReflections=null,archLegacyOverlay=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
  edgeFloorLighting=null;
@@ -1216,6 +1223,11 @@ function initScene(){
  const trueSharedVault=sharedTunnelRuntime.installTrueShared({
   enabled:trueSharedVaultEnabled
  });
+ // Optional 0.28.9.3 diagnostic, unchanged by default.
+ archLegacyOverlay=diagnosticLegacyRoadOverlay02893(world,{
+  enabled:archOpticsReleaseEnabled&&
+   new URLSearchParams(location.search).get("archLegacyRoad")==="off"
+ });
  const sharedLayers=sharedTunnelRuntime.installVault({
   foundationEnabled:fullTunnelFoundationEnabled,
   materialEnabled:vaultMaterialParityEnabled,
@@ -1345,6 +1357,17 @@ function initScene(){
  if(straightParityReleaseEnabled&&!sharedStraightEdgeRoad?.active)
   throw Error("0.28.9.1 native straight-only road mask unavailable: "+
    (sharedStraightEdgeRoad?.stats?.().reason??"unknown"));
+ // 0.28.9.3: original curved portal arch sources, separately from
+ // straight-only lower LEDs. Road/physics geometry remains untouched.
+ archRoadReflections=installArchRoadReflection02893(THREE,world,positionAt,{
+  enabled:archRoadReleaseEnabled&&!!sharedRoadLight?.active&&
+   !!sharedStraightEdgeRoad?.active,lowMemory:limitedMemory,
+  trackLength:CIRCUIT.lapLength
+ });
+ if(archRoadReleaseEnabled&&!archRoadReflections?.active)
+  throw Error("0.28.9.3 real zone-colored arch GGX unavailable: "+
+   (archRoadReflections?.stats?.().reason??"unknown"));
+ archRoadReflections?.updateWave?.(zoneWave);
  // Subtle visible cyan inset rails and arch-foot amber floor pools, with
  // original indexed racing deck and road GGX left unmodified in classic mode.
  edgeFloorLighting=edgeFloorEnabled?
@@ -1464,6 +1487,40 @@ function initScene(){
    pmrem0284:pmremPipeline?.stats?.()??null,
    centralSource:TUNNEL_SHARED_ARCHITECTURE_0280
   });
+ // 0.28.9.3 real arch/road optical QA and independent legacy layer.
+ if(new URLSearchParams(location.search).get("archOpticsSmoke")==="1"){
+  window.__skyshiftArchOpticsAudit=()=>({
+   track:TRACK_ID_0160,requested:archOpticsReleaseEnabled,
+   source:trueSharedVault?.stats?.().premiumArchOptics02893??null,
+   road:archRoadReflections?.stats?.()??null,
+   legacyRoadResponseCount:archLegacyOverlay?.count??0,
+   legacyRoadResponseSuppressed:archLegacyOverlay?.suppressed??false,
+   edge:trueSharedVault?.stats?.().straightOnlyCyan02891??null,
+   originalShip:!!ship,originalGrip:!!UI.grip,
+   originalPhysics:flight?.s!==undefined,definition:ARCH_OPTICS_02893
+  });
+  window.__skyshiftArchOpticsFrameProof=()=>{
+   if(!archOpticsReleaseEnabled||!neonPipeline?.render||
+       !archRoadReflections?.active)
+    throw Error("0.28.9.3 original WebGL unavailable");
+   const oldArch=trueSharedVault.stats().premiumArchOptics02893.source?.sourceStrength??1;
+   const oldRoad=archRoadReflections.stats().strength;
+   const sample=(arch,road)=>{
+    trueSharedVault.setArchOpticsComparison(arch);
+    archRoadReflections.setComparison(road);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:sample(0,0),archOnly:sample(1,0),
+    roadOnly:sample(0,1),after:sample(1,1),
+    audit:window.__skyshiftArchOpticsAudit(),s:flight?.s};}
+   finally{
+    trueSharedVault.setArchOpticsComparison(oldArch);
+    archRoadReflections.setComparison(oldRoad);
+    neonPipeline.render(0);
+   }
+  };
+ }
  // 0.28.9.2 shared ceiling seams and moving palette smoke probe.
   if(new URLSearchParams(location.search).get("ceilingFixtureSmoke")==="1"){
    window.__skyshiftCeilingFixtureAudit=()=>({
@@ -1717,6 +1774,7 @@ function initScene(){
    premiumSurface?.setWaveState(zoneWave);
    identitySurface?.setWaveState(zoneWave);
    sharedTunnelRuntime?.updateWave?.(zoneWave);
+ archRoadReflections?.updateWave?.(zoneWave);
    refreshHud();
    return window.__skyshiftVaultWaveParityAudit();
   };
@@ -3298,7 +3356,8 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (ceilingFixtureReleaseEnabled?" · 0.28.9.2":
+   (archOpticsReleaseEnabled?" · 0.28.9.3":
+     ceilingFixtureReleaseEnabled?" · 0.28.9.2":
      straightParityReleaseEnabled?" · 0.28.9.1":
     cinematicMetalReleaseEnabled?" · 0.28.9":
     precisionNeonReleaseEnabled?" · 0.28.8":
@@ -3408,6 +3467,7 @@ function resetFlight(){
  tunnelSeconds=0;tunnelMaxIntensity=0;
  zoneWave=newZoneWaveState();stationWorld?.updateWave?.(zoneWave);
  sharedTunnelRuntime?.updateWave?.(zoneWave);
+ archRoadReflections?.updateWave?.(zoneWave);
  premiumSurface?.setWaveState(zoneWave);
  identitySurface?.setWaveState(zoneWave);
  scene?.background?.copy(themes[0].skyColor);
@@ -3917,6 +3977,7 @@ function updatePalette(dt){
  // Tunnel walls, roof, every ring and bounce read the same world-space front.
  stationWorld?.updateWave?.(zoneWave);
  sharedTunnelRuntime?.updateWave?.(zoneWave);
+ archRoadReflections?.updateWave?.(zoneWave);
  premiumSurface?.setWaveState(zoneWave);
  identitySurface?.setWaveState(zoneWave);
  // The atmosphere follows the physical front spatially, not the HUD switch.
@@ -4982,6 +5043,7 @@ function installWaveSmokeHook(){
   identitySurface?.setWaveState(zoneWave);
   stationWorld?.updateWave?.(zoneWave);
  sharedTunnelRuntime?.updateWave?.(zoneWave);
+ archRoadReflections?.updateWave?.(zoneWave);
   refreshHud();
   return {zone:zoneWave.playerStage+1,flightSeconds:flight.elapsed,
    playerS:flight.s,frontS:zoneWave.fronts[0],
@@ -5120,7 +5182,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.9.2":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.9.3":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

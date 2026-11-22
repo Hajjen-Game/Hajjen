@@ -24,3 +24,5 @@ jobs:
         run: | 
           node --test skyshift/tests/architecture/active-entrypoint.test.mjs
           node --test skyshift/tests/architecture/release-archive-integrity.test.mjs
+      - name: Run relocated early flight/fullscreen unit tests
+        run: node --test skyshift/tests/unit/fullscreen-v02.test.mjs skyshift/tests/unit/trial-v02.test.mjs skyshift/tests/unit/trial-v03.test.mjs

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
  clamp,TRIAL,GAPS,SECTORS,headingAt,poseAt,positionAt,onRoad,roadIntervals,
  sectorAt,checkpointFor,speedAt,newFlightState,stepFlight,validateTrial
-} from "./trial-v02.mjs";
+} from "../../trial-v02.mjs";
 const dt=1/120;
 const advance=(state,target,control=()=>({}))=>{
   let steps=0,crashes=0;

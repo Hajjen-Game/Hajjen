@@ -5,7 +5,7 @@ import {
   poseAt,positionAt,headingAt,heightAt,roadIntervals,onRoad,
   speedAt,sectorAt,checkpointFor,clamp,
   newFlightState,stepFlight,validateTrial
-} from "./trial-v03.mjs";
+} from "../../trial-v03.mjs";
 
 const dt=1/120;
 function simulate(state,target,pilot=()=>({}),limit=15000){

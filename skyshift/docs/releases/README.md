@@ -51,6 +51,25 @@ The next 26 release notes were moved **without modifying their content**; see `r
 - [0.16.4](RELEASE-0164.md)
 - [0.16.5](RELEASE-0165.md)
 
+## Migration batch 3 — 0.21–0.23 historical notes (stage 4)
+
+Fourteen additional release notes were moved byte-for-byte; all 53 archived release notes are validated using their original Git blob hashes.
+
+- [0211](RELEASE-0211.md)
+- [02123](RELEASE-02123.md)
+- [02124](RELEASE-02124.md)
+- [02125](RELEASE-02125.md)
+- [02126](RELEASE-02126.md)
+- [0213](RELEASE-0213.md)
+- [0214](RELEASE-0214.md)
+- [0215](RELEASE-0215.md)
+- [0216](RELEASE-0216.md)
+- [0220-P1](RELEASE-0220-P1.md)
+- [0220-P2](RELEASE-0220-P2.md)
+- [0220-P3](RELEASE-0220-P3.md)
+- [0220-P4](RELEASE-0220-P4.md)
+- [0230-P1](RELEASE-0230-P1.md)
+
 Other historical release notes stay in `skyshift/` pending separate audit. This archive is **not** a source of active game code or a replacement for Git history.
 
 

@@ -222,11 +222,13 @@ export function installArchFootAssembly0287(THREE,section,sourcePositionAt,{
  let strength=1,disposed=false;
  return {active:true,
   setComparison(value){
-   // Exact 0.28.6 geometry restored for A/B only via two isolated runs,
-   // NOT runtime mesh swapping while the GPU is drawing.
+   // QA-only same-frame A/B: replace the existing source geometry in
+   // place while the renderer is idle. Unlike hiding it, this compares
+   // the EXACT old 0.28.6 floor band against the new 0.28.7 joined L.
    strength=clamp(value,0,1);
-   foot.visible=strength>.00001;
-   mount.visible=strength>.00001;
+   foot.geometry=strength>=.5?generated.emitterGeometry:originalGeometry;
+   foot.visible=true;
+   mount.visible=strength>=.5;
   },
   stats(){return {active:true,version:"0.28.7",strength,
    fixtures:generated.fixtures,

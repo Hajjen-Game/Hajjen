@@ -108,33 +108,33 @@ jobs:
           node --test \
             skyshift/track-physics-parity-v0165.test.mjs \
             skyshift/track-integrity-v0165.test.mjs \
-            skyshift/grip-trick-lock-v0165.test.mjs \
+            skyshift/tests/unit/grip-trick-lock-v0165.test.mjs \
             skyshift/white-core-containment-v02123.test.mjs \
             skyshift/rail-body-containment-v02124.test.mjs \
             skyshift/ship-white-spill-v02125.test.mjs \
             skyshift/road-solar-spill-v02126.test.mjs \
-            skyshift/dark-metallic-foundation-v0250.test.mjs \
+            skyshift/tests/unit/dark-metallic-foundation-v0250.test.mjs \
             skyshift/micro-surface-metal-definition-v0251.test.mjs \
-            skyshift/dual-tone-lighting-v0260.test.mjs \
+            skyshift/tests/unit/dual-tone-lighting-v0260.test.mjs \
             skyshift/unified-tunnel-lighting-v1.test.mjs
           if [[ -f skyshift/true-metal-materials-v0260p2.test.mjs ]]; then
             node --test skyshift/true-metal-materials-v0260p2.test.mjs
-            node --test skyshift/local-reflections-v0261p1.test.mjs
+            node --test skyshift/tests/unit/local-reflections-v0261p1.test.mjs
             node --test skyshift/premium-metal-surface-v0262.test.mjs
           node --test skyshift/startup-resource-budget-v02897.test.mjs
           node --test skyshift/startup-source-frame-v02897.test.mjs
-            node --test skyshift/cinematic-road-rebuild-v0263.test.mjs
-            node --test skyshift/edge-lighting-floor-pools-v02631.test.mjs
-            node --test skyshift/edge-source-floor-bands-v02632.test.mjs
+            node --test skyshift/tests/unit/cinematic-road-rebuild-v0263.test.mjs
+            node --test skyshift/tests/unit/edge-lighting-floor-pools-v02631.test.mjs
+            node --test skyshift/tests/unit/edge-source-floor-bands-v02632.test.mjs
             node --test skyshift/straight-only-edge-lighting-v02633.test.mjs
-            node --test skyshift/final-cohesion-v0264.test.mjs
+            node --test skyshift/tests/unit/final-cohesion-v0264.test.mjs
             node --test skyshift/unified-metal-light-response-v02641.test.mjs
             node --test skyshift/reflection-cohesion-v02642.test.mjs
             node --test skyshift/unified-fixture-transport-v02643.test.mjs
             node --test skyshift/true-rail-wall-response-v0265.test.mjs
-            node --test skyshift/full-tunnel-layout-v0270.test.mjs
-            node --test skyshift/full-tunnel-circuit-v0270.test.mjs
-            node --test skyshift/full-tunnel-light-seal-v0270.test.mjs
+            node --test skyshift/tests/unit/full-tunnel-layout-v0270.test.mjs
+            node --test skyshift/tests/unit/full-tunnel-circuit-v0270.test.mjs
+            node --test skyshift/tests/unit/full-tunnel-light-seal-v0270.test.mjs
             node --test skyshift/vault-material-parity-v0271.test.mjs
             node --test skyshift/vault-architectural-parity-v0272.test.mjs
             node --test skyshift/vault-full-lighting-v0273.test.mjs
@@ -146,17 +146,17 @@ jobs:
             node --test skyshift/pmrem-reflection-pipeline-v0284.test.mjs
             node --test skyshift/vault-spatial-wave-parity-v0285.test.mjs
             node --test skyshift/reflection-stability-strips-v0286.test.mjs
-            node --test skyshift/arch-foot-light-assembly-v0287.test.mjs
+            node --test skyshift/tests/unit/arch-foot-light-assembly-v0287.test.mjs
           fi
           # Prevent legacy push-only failure: Skyline's boot release and
           # Neon Vault's independent menu release must both be validated
           # on the PR, before merging to main.
-          node --test skyshift/ceiling-fixture-cohesion-v02892.test.mjs
+          node --test skyshift/tests/unit/ceiling-fixture-cohesion-v02892.test.mjs
           node --test skyshift/premium-arch-optics-v02893.test.mjs
           node --test skyshift/unified-tunnel-light-sources-v02894.test.mjs
           node --test skyshift/road-spill-wave-coves-v02895.test.mjs
-          node --test skyshift/curve-surface-continuity-v02896.test.mjs
-          node --test skyshift/build-version-v02204.test.mjs
+          node --test skyshift/tests/unit/curve-surface-continuity-v02896.test.mjs
+          node --test skyshift/tests/unit/build-version-v02204.test.mjs
 
   current-material-webgl:
     name: SKYSHIFT current material REAL Chrome/WebGL, dual-tone and 4 GB
@@ -778,7 +778,7 @@ jobs:
           node --check skyshift/browser-cinematic-metal-v0289.mjs
           node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
           node --check skyshift/game-v0210.mjs
-          node --test skyshift/cinematic-metal-neon-v0289.test.mjs
+          node --test skyshift/tests/unit/cinematic-metal-neon-v0289.test.mjs
       - name: Install actual browser WebGL screenshot dependencies
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Render old and cinematic new frames in the actual game
@@ -841,7 +841,7 @@ jobs:
           node --check skyshift/ceiling-fixture-cohesion-v02892.mjs
           node --check skyshift/browser-ceiling-fixture-v02892.mjs
           node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
-          node --test skyshift/ceiling-fixture-cohesion-v02892.test.mjs
+          node --test skyshift/tests/unit/ceiling-fixture-cohesion-v02892.test.mjs
       - name: Install original WebGL screenshot driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Capture actual Vault upper-wall seams and wave fixture before-after
@@ -965,7 +965,7 @@ jobs:
           node --check skyshift/curve-surface-continuity-v02896.mjs
           node --check skyshift/browser-curve-surface-continuity-v02896.mjs
           node --check skyshift/game-v0210.mjs
-          node --test skyshift/curve-surface-continuity-v02896.test.mjs
+          node --test skyshift/tests/unit/curve-surface-continuity-v02896.test.mjs
       - name: Install real WebGL screenshot dependencies
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Capture original game before-after curve and wave-color seams

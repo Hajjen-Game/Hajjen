@@ -7,7 +7,7 @@ on:
       - 'skyshift/game-v0203.mjs'
       - 'skyshift/environment-art-pipeline-v0203.mjs'
       - 'skyshift/build-station-world-v0203.mjs'
-      - 'skyshift/environment-art-pipeline-v0203.test.mjs'
+      - 'skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs'
       - 'skyshift/browser-environment-art-v0203.mjs'
       - 'skyshift/assets/worlds/continuum-graphite-bays-v5.gltf'
       - 'skyshift/material-grade-v0203.html'
@@ -23,7 +23,7 @@ jobs:
       - name: Install browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Check deterministic authored graphite and physics isolation
-        run: node --test skyshift/environment-art-pipeline-v0203.test.mjs
+        run: node --test skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs
       - name: Test 0.20.3 PBR in real Chromium WebGL
         run: node skyshift/browser-environment-art-v0203.mjs
       - name: Publish real camera comparison images

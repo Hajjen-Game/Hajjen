@@ -65,7 +65,7 @@ export function sharedPanelSeamPoint02894(positionAt,s,side,kind,offset=0){
  if(typeof positionAt!=="function"||!Number.isFinite(s)||
   s<0||s>368||![-1,1].includes(side)||
   !["upper","wall"].includes(kind)||!Number.isFinite(offset))
-  throw Error("0.28.9.4 invalid canonical panel seam");
+  throw Error("0.28.9.4 invalid canonical panel seam sampler");
  const j=kind==="upper"?11:9,q=tunnelProfilePoint0211(j,s,false),
   a=tunnelProfilePoint0211(j-1,s,false),
   b=tunnelProfilePoint0211(j+1,s,false);

@@ -25,6 +25,8 @@ import {wrapShader0265}
  from "./true-rail-wall-response-v0265.mjs";
 import {createLowerEdgeSources02632,createConnectedFootBands02632}
  from "./edge-source-floor-bands-v02632.mjs";
+import {archOpticsEnabled02893,installArchSourceOptics02893}
+ from "./premium-arch-optics-v02893.mjs";
 import {ceilingFixtureEnabled02892,installCeilingFixtureCohesion02892}
  from "./ceiling-fixture-cohesion-v02892.mjs";
 import {straightParityEnabled02891,buildVaultStraightEmitters02891,
@@ -171,6 +173,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  const cinematicMetal0289=cinematicMetalEnabled0289();
  const straightOnly02891=straightParityEnabled02891();
  const ceilingFixtures02892=ceilingFixtureEnabled02892();
+ const premiumArch02893=archOpticsEnabled02893();
  const straightRanges02891=straightOnly02891?vaultStraightRanges02891():null;
  // The original Skyline renderer owns EVERY panel, rib, bay, cove and
  // source-local metallic shader. Do not call the 0.27.x Vault pipeline here.
@@ -186,7 +189,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    const roadFacade=new THREE.MeshStandardMaterial({color:0x050914});
    const item={source:null,section,module,metal:null,finish:null,
     wave:null,stability:null,archFoot:null,precision:null,cinematic:null,
-    ceiling:null,roadFacade};
+    ceiling:null,archOptics:null,roadFacade};
    installed.push(item);
    const source=installPremiumMetalSurfaceLibrary(THREE,section,{
     track:"skyline",positionAt:adaptSourcePosition0281(positionAt,module),
@@ -260,10 +263,18 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
     });
    if(ceilingFixtures02892&&!item.ceiling.active)
     throw Error("0.28.9.2 seam fixtures unavailable in module "+module.index);
+   // 0.28.9.3: original arch and halo meshes, shared in all ten source
+   // modules. Upgrades the curve emitters only, leaving wall guides intact.
+   item.archOptics=installArchSourceOptics02893(THREE,section,{
+    enabled:premiumArch02893,lowMemory
+   });
+   if(premiumArch02893&&!item.archOptics.active)
+    throw Error("0.28.9.3 source arch optics failed "+module.index);
   }
   world.add(root);
  }catch(error){
   for(const item of installed.reverse()){
+   item.archOptics?.dispose?.();
    item.ceiling?.dispose?.();
    item.cinematic?.dispose?.();
    item.precision?.dispose?.();
@@ -296,6 +307,9 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   },
   setPrecisionNeonComparison(value){
    for(const item of installed)item.precision?.setComparison?.(value);
+  },
+  setArchOpticsComparison(value){
+   for(const item of installed)item.archOptics?.setComparison?.(value);
   },
   setCinematicMetalComparison(values){
    for(const item of installed)item.cinematic?.setComparison?.(values);
@@ -376,6 +390,16 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    },
    originalAmberFootBands:installed.reduce((n,x)=>n+(x.finish?.footBands||0),0),
    originalShortCyanInlays:installed.reduce((n,x)=>n+(x.finish?.lowEdgeSegments||0),0),
+   premiumArchOptics02893:{
+    active:premiumArch02893,
+    sourceModules:installed.filter(x=>x.archOptics?.active).length,
+    originalArches:installed.reduce((n,x)=>n+
+     (x.archOptics?.stats?.().originalArchSegments||0),0),
+    haloFeathered:installed.filter(x=>x.archOptics?.stats?.().haloFeathered).length,
+    source:installed[0]?.archOptics?.stats?.()??null,
+    sourceMeshReused:true,roadAndPhysicsUntouched:true,
+    noNewDrawCalls:true,oldWallGuidesUntouched:true
+   },
    ceilingFixtureCohesion02892:{
     active:ceilingFixtures02892,
     sourceModules:installed.filter(x=>x.ceiling?.active).length,

@@ -1460,6 +1460,27 @@ function initScene(){
    pmrem0284:pmremPipeline?.stats?.()??null,
    centralSource:TUNNEL_SHARED_ARCHITECTURE_0280
   });
+ // 0.28.9.1 visual and geometric bend-clearance probe.
+ // The underlying Skyline 0.26.3.3 source mask is adapted to Vault metres.
+ if(new URLSearchParams(location.search).get("straightParitySmoke")==="1"){
+  window.__skyshiftStraightParityProbe=()=>{
+   const t=trueSharedVault?.stats?.()??{};
+   const p=t.straightOnlyCyan02891??null;
+   const r=sharedStraightEdgeRoad?.stats?.()??null;
+   return {track:TRACK_ID_0160,requested:straightParityReleaseEnabled,
+    source:p,road:r,originalRoad:sharedRoadLight?.stats?.()??null,
+    metal:t.cinematicMetal0289??null,
+    archFoot:t.archFootAssembly0287??null,
+    precision:t.precisionNeon0288??null,
+    stable:t.stableLuminous0286??null,
+    wave:t.sharedWave0285??null,pmrem:!!pmremPipeline?.active,
+    originalShip:!!ship,originalGrip:!!UI.grip,
+    unchanged:{geometry:true,physics:true,boost:true,ship:true,
+     orangeFoot:true,turnArrows:true},
+    definition:STRAIGHT_EDGE_PARITY_02891
+   };
+  };
+ }
  // 0.28.9: same-frame real game render with full 0.28.8 PMREM kept.
  // Tests image identity on zero-strength settings then enables components.
  if(new URLSearchParams(location.search).get("cinematicMetalSmoke")==="1"){

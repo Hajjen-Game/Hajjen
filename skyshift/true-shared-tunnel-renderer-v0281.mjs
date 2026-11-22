@@ -13,6 +13,8 @@ import {archFootRelease0287,installArchFootAssembly0287}
  from "./arch-foot-light-assembly-v0287.mjs";
 import {precisionNeonEnabled0288,installPrecisionNeon0288}
  from "./precision-neon-response-v0288.mjs";
+import {cinematicMetalEnabled0289,installCinematicTunnel0289}
+ from "./cinematic-metal-neon-v0289.mjs";
 import {installUnifiedMetalLighting02641}
  from "./unified-metal-light-response-v02641.mjs";
 import {wrapFinishShader02642}
@@ -154,6 +156,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  const stableStrips0286=reflectionStabilityEnabled0286();
  const archFeet0287=archFootRelease0287();
  const precisionNeon0288=precisionNeonEnabled0288();
+ const cinematicMetal0289=cinematicMetalEnabled0289();
  // The original Skyline renderer owns EVERY panel, rib, bay, cove and
  // source-local metallic shader. Do not call the 0.27.x Vault pipeline here.
  try{
@@ -167,7 +170,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    // actual PBR deck or coupling its physics/collision geometry.
    const roadFacade=new THREE.MeshStandardMaterial({color:0x050914});
    const item={source:null,section,module,metal:null,finish:null,
-    wave:null,stability:null,archFoot:null,precision:null,roadFacade};
+    wave:null,stability:null,archFoot:null,precision:null,cinematic:null,roadFacade};
    installed.push(item);
    const source=installPremiumMetalSurfaceLibrary(THREE,section,{
     track:"skyline",positionAt:adaptSourcePosition0281(positionAt,module),
@@ -220,10 +223,20 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    if(precisionNeon0288&&!item.precision.active)
     throw Error("0.28.8 original neon response missing in module "+
      module.index+": "+item.precision.stats().reason);
+   // 0.28.9 must install after 0.28.8, but REMAIN at strength zero
+   // while 0.28.4 PMREM captures its ORIGINAL scene. The game enables
+   // the cinematic grade only after the authentic PMREM capture finishes.
+   item.cinematic=installCinematicTunnel0289(section,{
+    enabled:cinematicMetal0289,lowMemory,contrast:false,strips:false
+   });
+   if(cinematicMetal0289&&!item.cinematic.active)
+    throw Error("0.28.9 original metal shader unavailable in module "+
+     module.index+": "+item.cinematic.stats().reason);
   }
   world.add(root);
  }catch(error){
   for(const item of installed.reverse()){
+   item.cinematic?.dispose?.();
    item.precision?.dispose?.();
    item.stability?.dispose?.();
    item.archFoot?.dispose?.();
@@ -252,6 +265,9 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   setPrecisionNeonComparison(value){
    for(const item of installed)item.precision?.setComparison?.(value);
   },
+  setCinematicMetalComparison(values){
+   for(const item of installed)item.cinematic?.setComparison?.(values);
+  },
   stats(){return {
    active:true,version:"0.28.1",track,
    trueSharedSource:"Skyline 0.26.5 real installer",
@@ -278,6 +294,18 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
     duplicateFootMeshes:0,lightsAdded:0,collidersAdded:0,
     sourceProfileReused:true,gripUnchanged:true,pmremUnchanged:true,
     lowMemory:!!lowMemory
+   },
+   cinematicMetal0289:{
+    active:cinematicMetal0289,
+    sourceModules:installed.filter(x=>x.cinematic?.active).length,
+    physicalCoats:installed.reduce((n,x)=>n+(x.cinematic?.stats?.().nativePhysicalCoats||0),0),
+    substrates:installed.reduce((n,x)=>n+(x.cinematic?.stats?.().nativeSubstrates||0),0),
+    strength:installed[0]?.cinematic?.stats?.().strength??{contrast:0,strips:0},
+    addedLights:0,addedMeshes:0,addedTextures:0,
+    addedRenderPasses:0,addedBRDFSamples:0,
+    originalGGX:true,originalPMREM:true,original0286:true,
+    original0287:true,original0288:true,lowMemory:!!lowMemory,
+    originalPhysicsUntouched:true,originalGripUntouched:true
    },
    precisionNeon0288:{
     active:precisionNeon0288,
@@ -323,6 +351,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   dispose(){
    if(disposed)return;disposed=true;
    for(const item of installed.reverse()){
+    item.cinematic?.dispose?.();
     item.precision?.dispose?.();
     item.stability?.dispose?.();
     item.archFoot?.dispose?.();

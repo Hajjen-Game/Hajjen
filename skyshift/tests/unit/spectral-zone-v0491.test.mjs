@@ -5,15 +5,15 @@ import {readFileSync} from "node:fs";
 import {
  ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL,newZoneWaveState,
  updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength
-} from "./zone-wave-v0491.mjs";
+} from "../../zone-wave-v0491.mjs";
 import {
  PREMIUM_TRACK,SURFACE_FRAGMENT_GLSL,SURFACE_FRAGMENT_HELPERS,
  patchPremiumShaders,createPremiumTrackMaterial
-} from "./premium-track-v0491.mjs";
+} from "../../premium-track-v0491.mjs";
 import {
  AERO_BARRIER,createAeroDetailData,patchRailShaders,
  RAIL_SPECTRAL_VERTEX,RAIL_SPECTRAL_FRAGMENT,installAeroBarriers
-} from "./aero-barrier-v0491.mjs";
+} from "../../aero-barrier-v0491.mjs";
 import {TRIAL,speedAt,COURSE_SEGMENTS} from "../../trial-v049.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(x,y,e=1e-7)=>assert.ok(Math.abs(x-y)<=e,

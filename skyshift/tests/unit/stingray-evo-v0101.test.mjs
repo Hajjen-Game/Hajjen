@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {STINGRAY_EVO,STINGRAY_WING,createTailState,
- resetTailState,tailPoseStep} from "./stingray-evo-v0101.mjs";
+ resetTailState,tailPoseStep} from "../../stingray-evo-v0101.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const base={steering:.88,yawRate:.84,gripIntensity:.8,
  boostMultiplier:1,speed:100,grounded:true};

@@ -4,16 +4,16 @@ import {readFileSync} from "node:fs";
 import {
   TRIAL,GAPS,COURSE_SEGMENTS,positionAt,headingAt,curvatureAt,
   speedAt,newFlightState,stepFlight,clamp,validateTrial
-} from "./trial-v043.mjs";
+} from "../../trial-v043.mjs";
 import {
  MESH_SPEC,sampleDeckRows,createSmoothDeckData,createSmoothDeckGeometry
-} from "./smooth-track-v043.mjs";
+} from "../../smooth-track-v043.mjs";
 import {
   PACING,createFrameClock,advanceFrame,
   capturePose,interpolatePose,interpolateAngle,shouldSnapPose,
   createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./frame-pacing-v043.mjs";
+} from "../../frame-pacing-v043.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const dt=1/120;
 

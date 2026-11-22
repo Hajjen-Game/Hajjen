@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {acquirePremiumMetalTexture0262,premiumMetalTexturePoolStats0262,
- buildPremiumMetalAtlas0262} from "./premium-metal-surface-v0262.mjs";
+ buildPremiumMetalAtlas0262} from "../../premium-metal-surface-v0262.mjs";
 function makeMock(){
  const records={allocations:0,disposals:0};
  class DataTexture{

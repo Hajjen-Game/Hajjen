@@ -6,7 +6,7 @@ import {readFileSync} from "node:fs";
 import * as previous from "../../trial-v083.mjs";
 import {
  STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt
-} from "./steering-authority-v084.mjs";
+} from "../../steering-authority-v084.mjs";
 import {GRIP_SPEC,initGripState,stepGripState} from "../../precision-grip-v084.mjs";
 import {createSmoothDeckData} from "../../smooth-track-v084.mjs";
 import {createAeroBarrierData} from "../../aero-barrier-v084.mjs";
@@ -14,7 +14,7 @@ import {
  TRIAL,CIRCUIT,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  widthAt,curvatureAt,positionAt,surfaceHeightAt,headingAt,speedAt,
  validateTrial,newFlightState,stepFlight,setZoneSpeedStage,shapeSteer
-} from "./trial-v084.mjs";
+} from "../../trial-v084.mjs";
 const near=(a,b,eps=1e-7)=>assert.ok(Math.abs(a-b)<=eps,
  "expected "+a+" within "+eps+" of "+b);
 const src=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");

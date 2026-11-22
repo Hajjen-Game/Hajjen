@@ -6,10 +6,10 @@ import {
  TRIAL,SHOWCASE_PLAN,COURSE_SEGMENTS,GEOMETRY_BREAKS,
  GAPS,bankAt,speedAt,headingAt,poseAt,curvatureAt,positionAt,
  newFlightState,stepFlight,setZoneSpeedStage,validateTrial
-} from "./trial-v051.mjs";
+} from "../../trial-v051.mjs";
 import {
  ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave
-} from "./zone-wave-v051.mjs";
+} from "../../zone-wave-v051.mjs";
 import {BOOST_PADS,BOOST_CONFIG} from "../../boost-v050.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v051.mjs";
 import {createAeroBarrierData,AERO_BARRIER} from "../../aero-barrier-v051.mjs";

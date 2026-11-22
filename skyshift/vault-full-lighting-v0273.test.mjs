@@ -114,6 +114,6 @@ test("the build does not install on older circuits or comparison classic",()=>{
  assert.match(g,/installVaultFullLighting0273/);
  assert.match(g,/vaultFullLightingComparison:"\?vaultLighting=classic"/);
  assert.match(g,/__skyshiftVaultLightingFrameProof/);
- assert.match(g,/selected==="vault"\?"(?:0\.27\.(?:3|4)|0\.28\.[0123456])"/);
- assert.match(read("./index.html"),/(?:Full Tunnel Lighting & Visual Parity · 0\.27\.3|Premium Tunnel Cohesion & Finish · 0\.27\.4|Shared Tunnel Architecture 1.0 · 0\.28\.0|True Shared Tunnel Renderer · 0\.28\.1|Shared Road Reflections & Ship Light Response · 0\.28\.2|Vault Main Boost Glow & Risk Lane Cleanup · 0\.28\.3|PMREM Reflection Pipeline 1.0 · 0\.28\.4|Shared Tunnel Spatial Wavefront Parity · 0\.28\.5|Reflection Stability & Luminous Strip Definition · 0\.28\.6)/);
+ assert.match(g,/selected==="vault"\?"(?:0\.27\.(?:3|4)|0\.28\.[01234567])"/);
+ assert.match(read("./index.html"),/(?:Full Tunnel Lighting & Visual Parity · 0\.27\.3|Premium Tunnel Cohesion & Finish · 0\.27\.4|Shared Tunnel Architecture 1.0 · 0\.28\.0|True Shared Tunnel Renderer · 0\.28\.1|Shared Road Reflections & Ship Light Response · 0\.28\.2|Vault Main Boost Glow & Risk Lane Cleanup · 0\.28\.3|PMREM Reflection Pipeline 1.0 · 0\.28\.4|Shared Tunnel Spatial Wavefront Parity · 0\.28\.5|Reflection Stability & Luminous Strip Definition · 0\.28\.6|Arch Foot Light Assembly & Corner Signature · 0\.28\.7)/);
 });

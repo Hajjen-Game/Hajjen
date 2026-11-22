@@ -75,6 +75,8 @@ jobs:
           node --check skyshift/browser-vault-spatial-wave-v0285.mjs
           node --check skyshift/reflection-stability-strips-v0286.mjs
           node --check skyshift/browser-reflection-stability-v0286.mjs
+          node --check skyshift/arch-foot-light-assembly-v0287.mjs
+          node --check skyshift/browser-arch-foot-light-assembly-v0287.mjs
           node --check skyshift/browser-fixture-transport-v02643.mjs
           node --check skyshift/browser-reflection-cohesion-v02642.mjs
           node --check skyshift/browser-unified-metal-v02641.mjs
@@ -130,6 +132,7 @@ jobs:
             node --test skyshift/pmrem-reflection-pipeline-v0284.test.mjs
             node --test skyshift/vault-spatial-wave-parity-v0285.test.mjs
             node --test skyshift/reflection-stability-strips-v0286.test.mjs
+            node --test skyshift/arch-foot-light-assembly-v0287.test.mjs
           fi
           # Prevent legacy push-only failure: Skyline's boot release and
           # Neon Vault's independent menu release must both be validated
@@ -681,4 +684,27 @@ jobs:
           path: |
             skyshift-v0286-*.png
             skyshift-v0286-proof.json
+          if-no-files-found: warn
+
+  arch-foot-light-assembly-real-webgl-0287:
+    name: SKYSHIFT 0.28.7 real L arch-foot assembly and local glow High/4GB WebGL
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 19
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium/WebGL true game screenshots
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Verify physical L source, graphite bracket and restrained warm shoulder reflection
+        run: node skyshift/browser-arch-foot-light-assembly-v0287.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0287-real-webgl-corner-L-before-after
+          path: |
+            skyshift-v0287-*.png
+            skyshift-v0287-proof.json
           if-no-files-found: warn

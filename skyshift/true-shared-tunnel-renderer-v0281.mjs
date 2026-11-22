@@ -9,6 +9,8 @@ import {vaultSpatialWaveEnabled0285,installVaultSpatialWaveModule0285}
  from "./vault-spatial-wave-parity-v0285.mjs";
 import {reflectionStabilityEnabled0286,installReflectionStability0286}
  from "./reflection-stability-strips-v0286.mjs";
+import {archFootRelease0287,installArchFootAssembly0287}
+ from "./arch-foot-light-assembly-v0287.mjs";
 import {installUnifiedMetalLighting02641}
  from "./unified-metal-light-response-v02641.mjs";
 import {wrapFinishShader02642}
@@ -148,6 +150,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  const installed=[];
  const spatialWave0285=vaultSpatialWaveEnabled0285();
  const stableStrips0286=reflectionStabilityEnabled0286();
+ const archFeet0287=archFootRelease0287();
  // The original Skyline renderer owns EVERY panel, rib, bay, cove and
  // source-local metallic shader. Do not call the 0.27.x Vault pipeline here.
  try{
@@ -161,7 +164,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    // actual PBR deck or coupling its physics/collision geometry.
    const roadFacade=new THREE.MeshStandardMaterial({color:0x050914});
    const item={source:null,section,module,metal:null,finish:null,
-    wave:null,stability:null,roadFacade};
+    wave:null,stability:null,archFoot:null,roadFacade};
    installed.push(item);
    const source=installPremiumMetalSurfaceLibrary(THREE,section,{
     track:"skyline",positionAt:adaptSourcePosition0281(positionAt,module),
@@ -185,6 +188,15 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
     throw Error("source unified metallic response failed in section "+module.index);
    item.finish=finishOriginalSourceMaterials0281(THREE,section,
     lowMemory,adaptSourcePosition0281(positionAt,module));
+   // Replace, never overlay, the 0.28.1 foot geometry on VAULT 0.28.7.
+   // Same source profile and banked arc as every original portal;
+   // one graphite mounting batch and the existing amber emitter mesh.
+   item.archFoot=installArchFootAssembly0287(THREE,section,
+    adaptSourcePosition0281(positionAt,module),{
+     enabled:archFeet0287,lowMemory
+    });
+   if(archFeet0287&&!item.archFoot.active)
+    throw Error("0.28.7 original corner fixture unavailable: "+module.index);
    // Only on 0.28.5: remap authored local source wave to world arc.
    item.wave=installVaultSpatialWaveModule0285(THREE,section,module,{
     trackLength,enabled:spatialWave0285
@@ -202,6 +214,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  }catch(error){
   for(const item of installed.reverse()){
    item.stability?.dispose?.();
+   item.archFoot?.dispose?.();
    item.wave?.dispose?.();
    item.finish?.dispose?.();
    item.metal?.dispose?.();
@@ -221,6 +234,9 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   setReflectionComparison(value){
    for(const item of installed)item.stability?.setComparison?.(value);
   },
+  setArchFootComparison(value){
+   for(const item of installed)item.archFoot?.setComparison?.(value);
+  },
   stats(){return {
    active:true,version:"0.28.1",track,
    trueSharedSource:"Skyline 0.26.5 real installer",
@@ -233,6 +249,21 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
     x.source.stats?.().trueMetal0260P2NativeGGX).length,
    commonResponseModules:installed.filter(x=>x.metal.active).length,
    authentic0265WallModules:installed.filter(x=>x.finish?.active).length,
+   archFootAssembly0287:{
+    active:archFeet0287,
+    sourceModules:installed.filter(x=>x.archFoot?.active).length,
+    sourceFixtures:installed.reduce((n,x)=>n+
+     (x.archFoot?.stats?.().fixtures||0),0),
+    verticalQuads:installed.reduce((n,x)=>n+
+     (x.archFoot?.stats?.().verticalLightQuads||0),0),
+    horizontalQuads:installed.reduce((n,x)=>n+
+     (x.archFoot?.stats?.().horizontalLightQuads||0),0),
+    mountedSourceBatches:installed.filter(x=>
+     x.archFoot?.stats?.().darkBaseStructuralBatches===1).length,
+    duplicateFootMeshes:0,lightsAdded:0,collidersAdded:0,
+    sourceProfileReused:true,gripUnchanged:true,pmremUnchanged:true,
+    lowMemory:!!lowMemory
+   },
    stableLuminous0286:{
     active:stableStrips0286,
     sourceModules:installed.filter(x=>x.stability?.active).length,
@@ -265,6 +296,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    if(disposed)return;disposed=true;
    for(const item of installed.reverse()){
     item.stability?.dispose?.();
+    item.archFoot?.dispose?.();
     item.wave?.dispose?.();
     item.finish?.dispose?.();item.metal?.dispose?.();
     item.source?.dispose?.();

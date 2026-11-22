@@ -81,5 +81,5 @@
  },14000);
  // Use dynamic import so *module graph* failures also show actionable
  // feedback; static <script type=module> silently fails before try/catch.
- import("./game-v0210.mjs?v=0.26.5&rev=reflection-stability-strips-0286-20261122").catch(fail);
+ import("./game-v0210.mjs?v=0.26.5&rev=arch-foot-corner-signature-0287-20261122").catch(fail);
 })();

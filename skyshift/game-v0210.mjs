@@ -26,6 +26,8 @@ import {vaultSpatialWaveEnabled0285,waveSignedGlobal0285,
  VAULT_WAVE_PARITY_0285} from "./vault-spatial-wave-parity-v0285.mjs";
 import {STABILITY_0286,reflectionStabilityEnabled0286}
  from "./reflection-stability-strips-v0286.mjs";
+import {ARCH_FOOT_0287,archFootRelease0287}
+ from "./arch-foot-light-assembly-v0287.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./manta-blade-v0103.mjs";
 import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
@@ -255,6 +257,8 @@ const sharedWaveParityEnabled=trueSharedVaultEnabled&&
  vaultSpatialWaveEnabled0285(location.search);
 const stabilityReleaseEnabled=trueSharedVaultEnabled&&
  reflectionStabilityEnabled0286(location.search);
+const archFootAssemblyEnabled=trueSharedVaultEnabled&&
+ archFootRelease0287(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -1414,6 +1418,43 @@ function initScene(){
    pmrem0284:pmremPipeline?.stats?.()??null,
    centralSource:TUNNEL_SHARED_ARCHITECTURE_0280
   });
+ // 0.28.7 native geometry QA only: replacing the existing L emitter
+ // cannot be toggled by shader uniforms; compare independent launches
+ // with &archFoot=classic at identical camera positions.
+ if(new URLSearchParams(location.search).get("archFootSmoke")==="1"){
+  window.__skyshiftArchFootAudit=()=>{
+   const data=trueSharedVault?.stats?.()??{};
+   return {track:TRACK_ID_0160,
+    release:archFootAssemblyEnabled?"0.28.7":"legacy",
+    requested:archFootAssemblyEnabled,
+    arch:data.archFootAssembly0287??null,
+    originalShared:!!trueSharedVault?.active,
+    stability:data.stableLuminous0286??null,
+    pmremActive:!!pmremPipeline?.active,
+    waveAligned:data.sharedWave0285?.active??false,
+    roadMaterial:premiumSurface?.material?.type??null,
+    originalShip:!!ship,grip:!!UI.grip,
+    replacedOriginalFoot:!!data.archFootAssembly0287?.active,
+    physicsUntouched:true,boostUntouched:true,
+    geometryTrackUntouched:true,addedWorldLights:0,
+    design:ARCH_FOOT_0287
+   };
+  };
+  window.__skyshiftArchFootFrameProof=()=>{
+   if(!trueSharedVault?.stats?.().archFootAssembly0287?.active||
+    !neonPipeline?.render)
+    throw Error("0.28.7 original shared arch-foot A/B unavailable");
+   const capture=value=>{
+    trueSharedVault.setArchFootComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    return {old: capture(0),updated:capture(1),
+     s:flight?.s??null,meta:window.__skyshiftArchFootAudit()};
+   }finally{trueSharedVault.setArchFootComparison(1);}
+  };
+ }
  // 0.28.6: actual same-scene renderer A/B. Keep all positional
  // light sources, PMREM, zone wave, ship and physics UNCHANGED.
  if(new URLSearchParams(location.search).get("reflectionStabilitySmoke")==="1"){
@@ -3101,7 +3142,8 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (stabilityReleaseEnabled?" · 0.28.6":
+   (archFootAssemblyEnabled?" · 0.28.7":
+    stabilityReleaseEnabled?" · 0.28.6":
     sharedWaveParityEnabled?" · 0.28.5":
     pmremReleaseEnabled?" · 0.28.4":
     VAULT_BOOST_0283_ACTIVE?" · 0.28.3":" · 0.28.2");
@@ -4918,7 +4960,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.6":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.7":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

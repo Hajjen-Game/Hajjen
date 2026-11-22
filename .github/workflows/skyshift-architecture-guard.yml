@@ -1,0 +1,24 @@
+name: SKYSHIFT architecture safety guard
+# Independent, no-runtime-change guard for safe repository consolidation.
+on:
+  pull_request:
+    paths:
+      - 'skyshift/**'
+      - '.github/workflows/skyshift-architecture-guard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  active-entrypoint-graph:
+    name: Validate live SKYSHIFT HTML and reachable module paths
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check active bootstrap and relative imports
+        run: node --test skyshift/tests/architecture/active-entrypoint.test.mjs

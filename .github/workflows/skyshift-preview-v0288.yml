@@ -1,0 +1,57 @@
+name: SKYSHIFT 0.28.8 verified before-after screenshots
+# Only the release source changes trigger new proof. The screenshot commit
+# does not loop back into this workflow.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skyshift/precision-neon-response-v0288.mjs'
+      - '.github/workflows/skyshift-preview-v0288.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  capture-actual-game:
+    name: Real Chromium WebGL capture and publish 0.28.7 vs 0.28.8 images
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate patch and renderer before preview
+        run: |
+          set -euo pipefail
+          node --check skyshift/precision-neon-response-v0288.mjs
+          node --check skyshift/browser-precision-neon-v0288.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/precision-neon-response-v0288.test.mjs
+      - name: Install actual WebGL screenshot dependencies
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Capture real game before-and-after images
+        run: node skyshift/browser-precision-neon-v0288.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v0288-rendered-game-before-after
+          path: |
+            skyshift/previews/v0288-*.png
+            skyshift/previews/v0288-proof.json
+          if-no-files-found: warn
+      - name: Publish only verified image pairs to GitHub Pages source
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add skyshift/previews/v0288-*.png skyshift/previews/v0288-proof.json
+          if git diff --cached --quiet; then
+            echo "No new screenshot changes."
+            exit 0
+          fi
+          git commit -m "SKYSHIFT 0.28.8: publish verified real game A/B screenshots [skip ci]"
+          git push origin HEAD:main

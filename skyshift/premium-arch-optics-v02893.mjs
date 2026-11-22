@@ -251,7 +251,7 @@ const COMMON="#include <common>",PROJ="#include <project_vertex>";
 // removes the original leading space; match the stable semantic expression.
 const ANCHOR="reflectedLight.directSpecular+=r263Convolved*\n"+
  "  (r263Keep*r263Fresnel*r263Surface);";
-export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
+export function patchArchRoadShader02893(vertex,fragment,{mobile=false,packed=false}={}){
  if(!vertex.includes(COMMON)||!vertex.includes(PROJ)||
   !fragment.includes(COMMON)||!fragment.includes(ANCHOR)||
   !fragment.includes("varying vec2 vTrackCoord;")||
@@ -260,14 +260,15 @@ export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
   throw Error("0.28.9.3 original solar-sealed GGX road shader required");
  const decl=[
   "attribute vec3 archLeft02893,archRight02893;",
-  "attribute float archArc02893,archWindow02893;",
+  packed?"attribute vec2 archArcWindow02894;":"attribute float archArc02893,archWindow02893;",
   "varying vec3 vA93Left,vA93Right;",
   "varying float vA93Arc,vA93Window;"
  ].join("\n");
  const vd=[
   "vA93Left=(viewMatrix*vec4(archLeft02893,1.0)).xyz-mvPosition.xyz;",
   "vA93Right=(viewMatrix*vec4(archRight02893,1.0)).xyz-mvPosition.xyz;",
-  "vA93Arc=archArc02893;vA93Window=archWindow02893;"
+  packed?"vA93Arc=archArcWindow02894.x;vA93Window=archArcWindow02894.y;":
+   "vA93Arc=archArc02893;vA93Window=archWindow02893;"
  ].join("\n");
  const fd=[
   "uniform vec3 uA93Old,uA93Next;",
@@ -338,8 +339,13 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
   typeof positionAt!=="function")
   throw Error("0.28.9.3 original physical road/source missing");
  const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory,unifiedSources});
- const keys=["archLeft02893","archRight02893","archArc02893",
-  "archWindow02893"];
+ // 0.28.9.4 packs the original two scalar sources into one vec2.
+ // Existing 0.28.9.3 URLs keep exact historical data and shader layout.
+ // This frees one GPU slot for the new single packed j11 cove position,
+ // ensuring no increase over the approved 0.28.9.3 attribute count.
+ const keys=unifiedSources?["archLeft02893","archRight02893",
+   "archArcWindow02894"]:
+  ["archLeft02893","archRight02893","archArc02893","archWindow02893"];
  if(keys.some(k=>geometry.getAttribute(k)))
   throw Error("0.28.9.3 arch attributes already installed");
  const uniform={
@@ -352,17 +358,26 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
  try{
   geometry.setAttribute(keys[0],new THREE.Float32BufferAttribute(data.left,3));
   geometry.setAttribute(keys[1],new THREE.Float32BufferAttribute(data.right,3));
-  geometry.setAttribute(keys[2],new THREE.Float32BufferAttribute(data.arc,1));
-  geometry.setAttribute(keys[3],new THREE.Float32BufferAttribute(data.window,1));
+  if(unifiedSources){
+   const packed=new Float32Array(data.vertices*2);
+   for(let i=0;i<data.vertices;i++){
+    packed[2*i]=data.arc[i];packed[2*i+1]=data.window[i];
+   }
+   geometry.setAttribute(keys[2],new THREE.Float32BufferAttribute(packed,2));
+  }else{
+   geometry.setAttribute(keys[2],new THREE.Float32BufferAttribute(data.arc,1));
+   geometry.setAttribute(keys[3],new THREE.Float32BufferAttribute(data.window,1));
+  }
   material.onBeforeCompile=function(shader,renderer){
    before.call(this,shader,renderer);
    const next=patchArchRoadShader02893(
-    shader.vertexShader,shader.fragmentShader,{mobile:lowMemory});
+    shader.vertexShader,shader.fragmentShader,{mobile:lowMemory,packed:unifiedSources});
    shader.vertexShader=next.vertexShader;shader.fragmentShader=next.fragmentShader;
    Object.assign(shader.uniforms,uniform);
   };
   material.customProgramCacheKey=function(){
-   return key.call(this)+"-arch-wave-ggx-02893-"+(lowMemory?"4GB":"High");
+   return key.call(this)+"-arch-wave-ggx-02893-"+(lowMemory?"4GB":"High")+
+    (unifiedSources?"-packed-source-02894":"");
   };
   material.needsUpdate=true;
  }catch(e){
@@ -387,6 +402,7 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
    sourceModules:data.sourceModules,sourcePositions:data.sourcePositions,
    vertices:data.vertices,nearArchVertices:data.nearArchVertices,
    sharedRegistry02894:!!data.unifiedSources,
+   packedArcWindow02894:unifiedSources,sourceAttributes:keys.length,
    actualVertexDistanceMask:true,sourcePulseRadiusMeters:lowMemory?3.9:5.6,
    colorFrom:uniform.uA93Old.value.getHex(),
    colorTo:uniform.uA93Next.value.getHex(),

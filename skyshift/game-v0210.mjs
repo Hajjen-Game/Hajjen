@@ -1477,6 +1477,9 @@ function initScene(){
    };
    try{
     return {before:render(0,0,0),
+     contrastOnly:render(originalTunnel.contrast,0,0),
+     stripsOnly:render(0,originalTunnel.strips,0),
+     roadOnly:render(0,0,originalRoad.road),
      after:render(originalTunnel.contrast,originalTunnel.strips,originalRoad.road),
      s:flight?.s??null,meta:window.__skyshiftCinematicMetalAudit()};
    }finally{

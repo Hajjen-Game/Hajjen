@@ -2,13 +2,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {BOOST_CONFIG,BOOST_PADS,stepBoostState,initBoostState} from "./boost-v0494.mjs";
-import {BOOST_CONFIG as OLD_BOOST} from "./boost-v049.mjs";
-import {TRIAL,newFlightState,stepFlight} from "./trial-v0494.mjs";
-import {TRIAL as OLD_TRIAL} from "./trial-v049.mjs";
+import {BOOST_CONFIG,BOOST_PADS,stepBoostState,initBoostState} from "../../boost-v0494.mjs";
+import {BOOST_CONFIG as OLD_BOOST} from "../../boost-v049.mjs";
+import {TRIAL,newFlightState,stepFlight} from "../../trial-v0494.mjs";
+import {TRIAL as OLD_TRIAL} from "../../trial-v049.mjs";
 import {BOOST_CHASE,createBoostChaseState,onBoostChase,cameraBoostResponse,
- capCameraBoostTrail} from "./boost-chase-v0494.mjs";
-const src=f=>readFileSync(new URL(f,import.meta.url),"utf8");
+ capCameraBoostTrail} from "../../boost-chase-v0494.mjs";
+const src=f=>readFileSync(new URL("../../"+f,import.meta.url),"utf8");
 test("all five original pads give an actual 40% physical speed target",()=>{
  assert.equal(BOOST_CONFIG.multiplier,1.4);
  assert.equal(OLD_BOOST.multiplier,1.3);

@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 
 test("Skyline's published source build remains aligned with HUD/audit/links",()=>{
  const game=read("./game-v0210.mjs"),html=read("./index.html");

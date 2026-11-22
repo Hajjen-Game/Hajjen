@@ -2,17 +2,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {BOOST_CONFIG,BOOST_PADS,boostPadAt,stepBoostState} from "./boost-v048.mjs";
+import {BOOST_CONFIG,BOOST_PADS,boostPadAt,stepBoostState} from "../../boost-v048.mjs";
 import {
  TRIAL,COURSE_SEGMENTS,positionAt,headingAt,curvatureAt,
  newFlightState,stepFlight,guardrailLateralLimit,speedAt
-} from "./trial-v048.mjs";
+} from "../../trial-v048.mjs";
 import {
  ZONE_SURFACE,MACRO_FIELDS,MACRO_CHEVRONS,
  buildZoneSurfaceData,installZoneSurface
-} from "./zone-surface-v048.mjs";
-import * as previous from "./trial-v046.mjs";
-const source=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+} from "../../zone-surface-v048.mjs";
+import * as previous from "../../trial-v046.mjs";
+const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 function near(a,b,eps=1e-8){assert.ok(Math.abs(a-b)<eps,"expected "+a+" near "+b);}
 function placed(s,lateral=0){
  const f=newFlightState(),p=positionAt(s,lateral,0);

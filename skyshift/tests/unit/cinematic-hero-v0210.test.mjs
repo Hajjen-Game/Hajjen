@@ -3,8 +3,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {HERO_0210,HERO_BAYS_0210,planCinematicHero,installCinematicHero}
- from "./cinematic-hero-v0210.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../cinematic-hero-v0210.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Group{
  children=[];name="";add(m){this.children.push(m)}
  removeFromParent(){}
@@ -84,6 +84,6 @@ test("new version is actually wired as the default, with an exact classic A/B",(
  assert.ok(html.includes(`boot-v0210.js?v=${current}`),
   "HTML boot cache key must match the exact game-module version");
  assert.equal(read("./game-v0205.mjs").includes(
-  'from "./cinematic-hero-v0210.mjs"'),false,
+  'from "../../cinematic-hero-v0210.mjs"'),false,
   "The 0.20.5 engine baseline stays untouched");
 });

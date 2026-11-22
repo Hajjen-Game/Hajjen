@@ -4,8 +4,8 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {CINEMATIC_ENERGY_0216,cinematicEnergyFrame,
  patchCinematicFlowFragment,patchCinematicRoadFragment}
- from "./cinematic-energy-v0216.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../cinematic-energy-v0216.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const glowShader=[
  "#include <common>",
  "varying float vTunnelTrack;",

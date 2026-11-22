@@ -3,15 +3,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {patchPremiumMaterialShader} from "./premium-material-rebirth-v0220.mjs";
-import {patchCinematicNeonShader} from "./cinematic-neon-lighting-v0220p2.mjs";
-import {patchPhysicalMaterialShader} from "./physical-material-rebuild-v0230.mjs";
-import {patchTrueMaterialDepthShader} from "./true-material-depth-v0231.mjs";
-import {patchLightArchitectureShader} from "./cinematic-light-architecture-v0232.mjs";
-import {patchUnifiedTunnelShader} from "./unified-tunnel-materials-v0233.mjs";
+import {patchPremiumMaterialShader} from "../../premium-material-rebirth-v0220.mjs";
+import {patchCinematicNeonShader} from "../../cinematic-neon-lighting-v0220p2.mjs";
+import {patchPhysicalMaterialShader} from "../../physical-material-rebuild-v0230.mjs";
+import {patchTrueMaterialDepthShader} from "../../true-material-depth-v0231.mjs";
+import {patchLightArchitectureShader} from "../../cinematic-light-architecture-v0232.mjs";
+import {patchUnifiedTunnelShader} from "../../unified-tunnel-materials-v0233.mjs";
 import {ARCHITECTURAL_NEON_0240,patchArchitecturalNeonShader,
- installArchitecturalNeonShader} from "./architectural-neon-lighting-v0240.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ installArchitecturalNeonShader} from "../../architectural-neon-lighting-v0240.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const v="#include <common>\nattribute float trackS;\nattribute float glowWeight;\n#include <begin_vertex>";
 const f="#include <common>\n#include <color_fragment>\ndiffuseColor.rgb += tunnelSpectrumTint()*vTunnelGlow;";
 const compose=(role="panel",mobile=false)=>{

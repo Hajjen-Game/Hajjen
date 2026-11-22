@@ -4,14 +4,14 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick,
  finalizeAirTrick,stepLandingBoost,settleTrickVisual}
- from "./air-tricks-v080.mjs";
+ from "../../air-tricks-v080.mjs";
 import {TRIAL,CIRCUIT,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  poseAt,positionAt,bankAt,surfaceHeightAt,speedAt,headingAt,
- newFlightState,stepFlight,validateTrial} from "./trial-v080.mjs";
+ newFlightState,stepFlight,validateTrial} from "../../trial-v080.mjs";
 import {capturePose,interpolatePose,shouldSnapPose}
- from "./frame-pacing-v080.mjs";
-import * as archived from "./trial-v072.mjs";
-const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../frame-pacing-v080.mjs";
+import * as archived from "../../trial-v072.mjs";
+const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,e=1e-5)=>assert.ok(Math.abs(a-b)<=e,"expected "+a+" ≈ "+b);
 function fly({lap=1,stage=0,steer=.74,held=true,delay=0,prearm=false}={}){
  const start=(lap-1)*3400+790,p=positionAt(start,0,0),f=newFlightState();

@@ -7,8 +7,8 @@ import {CINEMATIC_METAL_0289,cinematicMetalEnabled0289,
  patchPhysicalStreaks0289,patchRoadGlints0289,
  wrapCinematicMetalShader0289,installCinematicTunnel0289,
  installCinematicRoad0289}
- from "./cinematic-metal-neon-v0289.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../cinematic-metal-neon-v0289.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 test("release applies to Vault 0.28.9+ only, 0.28.8 and older stay exact",()=>{
  for(const v of ["0.28.1","0.28.5","0.28.6","0.28.7","0.28.8"])
   assert.equal(cinematicMetalEnabled0289("?track=vault&v="+v),false);

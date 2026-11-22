@@ -2,9 +2,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {CINEMATIC_GRADE_0210B,installCinematicGradeHero} from "./cinematic-grade-v0210b.mjs";
-import {installCinematicHero} from "./cinematic-hero-v0210.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+import {CINEMATIC_GRADE_0210B,installCinematicGradeHero} from "../../cinematic-grade-v0210b.mjs";
+import {installCinematicHero} from "../../cinematic-hero-v0210.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Group {
  children=[];name="";
  add(x){this.children.push(x)}

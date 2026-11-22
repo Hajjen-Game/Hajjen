@@ -3,17 +3,17 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {patchPremiumMaterialShader}
- from "./premium-material-rebirth-v0220.mjs";
+ from "../../premium-material-rebirth-v0220.mjs";
 import {patchCinematicNeonShader}
- from "./cinematic-neon-lighting-v0220p2.mjs";
+ from "../../cinematic-neon-lighting-v0220p2.mjs";
 import {patchPhysicalMaterialShader}
- from "./physical-material-rebuild-v0230.mjs";
+ from "../../physical-material-rebuild-v0230.mjs";
 import {patchTrueMaterialDepthShader}
- from "./true-material-depth-v0231.mjs";
+ from "../../true-material-depth-v0231.mjs";
 import {LIGHT_ARCHITECTURE_0232,patchLightArchitectureShader,
  installLightArchitectureShader}
- from "./cinematic-light-architecture-v0232.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../cinematic-light-architecture-v0232.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const v="#include <common>\nattribute float trackS;\nattribute float glowWeight;\n#include <begin_vertex>";
 const f="#include <common>\n#include <color_fragment>\ndiffuseColor.rgb += tunnelSpectrumTint()*vTunnelGlow;";
 function compose(role="panel",mobile=false){

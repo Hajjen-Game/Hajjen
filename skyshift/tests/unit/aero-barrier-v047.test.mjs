@@ -5,12 +5,12 @@ import {readFileSync} from "node:fs";
 import {
  AERO_BARRIER,AERO_PROFILE,sampleAeroProfile,
  createAeroBarrierData,createAeroDetailData,installAeroBarriers
-} from "./aero-barrier-v047.mjs";
+} from "../../aero-barrier-v047.mjs";
 import {
  TRIAL,GUARDRAIL,positionAt,curvatureAt,
  guardrailLateralLimit,newFlightState,stepFlight
-} from "./trial-v046.mjs";
-const source=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+} from "../../trial-v046.mjs";
+const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
 
 test("profile is architectural, not a semicircular glowing tube",()=>{

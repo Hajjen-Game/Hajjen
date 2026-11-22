@@ -78,7 +78,7 @@ test("0.27.0 menu/QA routes keep original 0.26.5 branch",()=>{
  assert.match(g,/fullTunnelFoundationEnabled=isVault\(\)/);
  assert.match(g,/__skyshiftFullTunnelProbe/);
  assert.match(g,/!isVault\(\)&&inShadowTunnel/);
- assert.match(g,/selected==="vault"\?"(?:0\.27\.(?:0|1|2|3|4)|0\.28\.[0123456789])"/);
+ assert.match(g,/selected==="vault"\?"(?:0\.27\.(?:0|1|2|3|4)|0\.28\.[0123456789](?:\.1)?)"/);
  assert.match(g,/compareBeforeRailWallResponse/);
  assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.5/);
 });

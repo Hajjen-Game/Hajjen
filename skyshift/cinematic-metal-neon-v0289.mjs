@@ -44,7 +44,7 @@ export function cinematicMetalEnabled0289(search=
  const p=new URLSearchParams(search||"");
  if(p.get("track")!=="vault"||
   ["off","classic"].includes(p.get("cinematicMetal")))return false;
- const m=/^(\d+)\.(\d+)\.(\d+)$/.exec(p.get("v")||"");
+ const m=/^(\d+)\.(\d+)\.(\d+)(?:\.\d+)?$/.exec(p.get("v")||"");
  if(!m)return false;
  const [a,b,c]=m.slice(1).map(Number);
  return a>0||b>28||(b===28&&c>=9);

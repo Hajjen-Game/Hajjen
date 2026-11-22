@@ -25,7 +25,7 @@ test("Skyline's published source build remains aligned with HUD/audit/links",()=
 
 test("third Neon Vault course has a distinct 0.27.x versioned menu URL",()=>{
  const game=read("./game-v0210.mjs"),html=read("./index.html");
- const version=game.match(/uri\.searchParams\.set\("v",selected==="vault"\?"(0\.(?:27|28)\.\d+)":SKYSHIFT_BUILD_VERSION\)/)?.[1];
+ const version=game.match(/uri\.searchParams\.set\("v",selected==="vault"\?"(0\.(?:27|28)\.\d+(?:\.\d+)?)":SKYSHIFT_BUILD_VERSION\)/)?.[1];
  assert.ok(version,"Vault route must use its distinct 0.27.x/0.28.x release version");
  assert.ok(html.includes("Neon Vault Material Parity · "+version)||
   html.includes("Architectural Geometry & Panel Parity · "+version)||
@@ -40,7 +40,8 @@ test("third Neon Vault course has a distinct 0.27.x versioned menu URL",()=>{
    html.includes("Reflection Stability & Luminous Strip Definition · "+version)||
    html.includes("Arch Foot Light Assembly & Corner Signature · "+version)||
    html.includes("Precision Neon Emission & Local Metal Response · "+version)||
-   html.includes("Cinematic Metal & Neon Reflection Rebalance · "+version));
+   html.includes("Cinematic Metal & Neon Reflection Rebalance · "+version)||
+   html.includes("Shared Straight-Only Edge Lighting Parity · "+version));
  assert.match(html,/<option value="vault">03 · NEON VAULT/);
  assert.match(game,/const vaultMaterialParityEnabled=fullTunnelFoundationEnabled/);
  assert.match(game,/vaultMaterialComparison:"\?vaultMaterial=classic"/);

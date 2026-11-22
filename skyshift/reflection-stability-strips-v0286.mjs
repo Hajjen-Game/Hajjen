@@ -41,7 +41,7 @@ export function reflectionStabilityEnabled0286(search=
  if(params.get("track")!=="vault"||
   ["classic","off"].includes(params.get("reflectionStability")))
   return false;
- const v=/^(\d+)\.(\d+)\.(\d+)$/.exec(params.get("v")||"");
+ const v=/^(\d+)\.(\d+)\.(\d+)(?:\.\d+)?$/.exec(params.get("v")||"");
  if(!v)return false;
  const [a,b,c]=v.slice(1).map(Number);
  return a>0||b>28||(b===28&&c>=6);

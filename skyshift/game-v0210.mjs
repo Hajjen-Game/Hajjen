@@ -197,7 +197,7 @@ import {TRUE_METAL_0260_P2,installTrueMetalMaterialsPass2}
  from "./true-metal-materials-v0260p2.mjs";
 import {LOCAL_REFLECTIONS_0261,installTrueLocalReflectionsPass1}
  from "./local-reflections-v0261p1.mjs";
-import {PREMIUM_METAL_0262,installPremiumMetalSurfaceLibrary}
+import {PREMIUM_METAL_0262,installPremiumMetalSurfaceLibrary,premiumMetalTexturePoolStats0262}
  from "./premium-metal-surface-v0262.mjs";
 import {VELOCITY_CINEMA_0220_P3,installVelocityCinematography}
  from "./velocity-cinematography-v0220p3.mjs";
@@ -630,6 +630,50 @@ const SPECTRAL_WHITE=new THREE.Color(0xf5fbff);
 const SHADOW_VOID=new THREE.Color(SHADOW_TUNNEL.voidHex);
 const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,gripHeld:false,gripPointer:null,stickPointer:null,
  keys:new Set(),bannerTimeout:null,toastTimeout:null,trackHint:-1};
+// 0.28.9.7 startup profiling: zero scene traversal until explicitly requested.
+const startupOrigin=performance.now(),startupMarks=Object.create(null);
+function markStartup(label){
+ startupMarks[label]=Math.round((performance.now()-startupOrigin)*10)/10;
+}
+markStartup("moduleEvaluated");
+window.__skyshiftStartupAudit=()=>{
+ const meshes=[],materials=new Set(),geometries=new Set();
+ world?.traverse?.(obj=>{
+  if(!obj.isMesh)return;
+  meshes.push(obj);
+  if(obj.geometry)geometries.add(obj.geometry);
+  for(const mat of (Array.isArray(obj.material)?obj.material:[obj.material]))
+   if(mat)materials.add(mat);
+ });
+ const now=performance.now();
+ const stamps={...startupMarks};
+ const durations={
+  sharedTunnelMs:stamps.sharedTunnelReady!==undefined&&stamps.sharedTunnelBegin!==undefined?
+   Math.round((stamps.sharedTunnelReady-stamps.sharedTunnelBegin)*10)/10:null,
+  pmremMs:stamps.pmremReady!==undefined&&stamps.pmremBegin!==undefined?
+   Math.round((stamps.pmremReady-stamps.pmremBegin)*10)/10:null,
+  restOfSceneMs:stamps.sceneReady!==undefined&&stamps.sharedTunnelReady!==undefined?
+   Math.round((stamps.sceneReady-stamps.sharedTunnelReady)*10)/10:null
+ };
+ return {
+  track:TRACK_ID_0160,version:"0.28.9.7",
+  elapsedSinceModuleMs:Math.round((now-startupOrigin)*10)/10,
+  browserBootMs:window.__skyshiftBoot?.readyAfterMs??null,
+  phase:window.__skyshiftBoot?.phase??"loading",
+  stamps,durations,
+  atlas:premiumMetalTexturePoolStats0262(THREE),
+  renderer:renderer?{
+   memory:{...renderer.info.memory},
+   programs:renderer.info.programs?.length??null
+  }:null,
+  scene:{meshes:meshes.length,geometryObjects:geometries.size,
+   materials:materials.size,
+   sharedTunnelModules:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.sourceModules??0,
+   pmremActive:pmremPipeline?.active??false},
+  jsHeapMB:performance.memory?.usedJSHeapSize?
+   Math.round(performance.memory.usedJSHeapSize/1048576):null
+ };
+};
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
@@ -1149,6 +1193,7 @@ function equipFleetShip(id){
  refreshHangar();
 }
 function initScene(){
+ markStartup("sceneBegin");
  scene=new THREE.Scene();
  hangarHeroRig=createStingrayHeroShowroom(THREE,scene);
  scene.background=new THREE.Color(COLOR[0].sky);
@@ -1211,6 +1256,7 @@ function initScene(){
  });
  world=new THREE.Group();scene.add(world);
  buildRoad();
+ markStartup("roadReady");
  identitySurface=installAeroBarriers(THREE,world);
  // Static indirect-light pockets reuse the existing deck draw call.
  // The tunnel and blackout decorators retain the final say over darkness.
@@ -1239,9 +1285,11 @@ function initScene(){
  });
  // Reinstall the SAME Skyline source pipeline over the independent
  // Vault spline. Its 0.27.x pipeline only runs on explicit classic/fallback.
+ markStartup("sharedTunnelBegin");
  const trueSharedVault=sharedTunnelRuntime.installTrueShared({
   enabled:trueSharedVaultEnabled
  });
+ markStartup("sharedTunnelReady");
  // Optional 0.28.9.3 diagnostic, unchanged by default.
  archLegacyOverlay=diagnosticLegacyRoadOverlay02893(world,{
   enabled:archOpticsReleaseEnabled&&
@@ -1498,16 +1546,19 @@ function initScene(){
   enabled:railWallResponseEnabled,lowMemory:limitedMemory,positionAt,
   identitySurface,stationWorld,fixtureTransport,straightEdges:edgeFloorLighting
  });
+ markStartup("roadAndFixturesReady");
  // 0.28.4 PMREM is captured ONCE from the already built original
  // Skyline-shaped Vault, after all source fixtures/physical shaders exist.
  // Only actual tunnel PBR coats + the hull use the resulting CubeUV.
  // Never set scene.environment or touch the indexed road or boost arrows.
+ markStartup("pmremBegin");
  pmremPipeline=installPmremReflectionPipeline0284(
   THREE,renderer,scene,world,{
    enabled:pmremEnabled,track:TRACK_ID_0160,
    lowMemory:limitedMemory,trackLength:CIRCUIT.lapLength,
    positionAt,ship
   });
+ markStartup("pmremReady");
  // The PMREM captures 0.28.8 ORIGINAL geometry/light levels. Only
  // afterwards enable local 0.28.9 material uniforms for visible racing.
  if(cinematicMetalReleaseEnabled){
@@ -1535,6 +1586,7 @@ function initScene(){
  window.__skyshiftClarityInfo=()=>clarityAudit(claritySettings,neonPipeline);
  addEventListener("resize",resize);
  sceneReady=true;
+ markStartup("sceneReady");
  // Source-of-truth 0.28.0 plan/installer audit for every current
  // course, including Aurora's deliberately empty tunnel inventory.
  if(new URLSearchParams(location.search).get("sharedTunnelSmoke")==="1")
@@ -5738,6 +5790,7 @@ try{
  });
  // Pre-boot START queues a legacy "time-trial" mode string.
  // Only actual selected catalog objects may enter Challenge mode.
+ markStartup("bootReady");
  window.__skyshiftBootReady?.(()=>enterPlaying(null));
  requestAnimationFrame(loop);
 }catch(error){

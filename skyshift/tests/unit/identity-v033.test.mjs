@@ -1,13 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {TRIAL,GAPS,SPLITS,RISK_CUTS,roadIntervals,SECTORS,GEOMETRY_BREAKS} from "./trial-v03.mjs";
+import {TRIAL,GAPS,SPLITS,RISK_CUTS,roadIntervals,SECTORS,GEOMETRY_BREAKS} from "../../trial-v03.mjs";
 import {
  IDENTITY_RULES,createSurfacePlan,validateSurfacePlan
-} from "./identity-v033.mjs";
-import {NEON_TUNING} from "./neon-balance-v032.mjs";
+} from "../../identity-v033.mjs";
+import {NEON_TUNING} from "../../neon-balance-v032.mjs";
 
-const read=file=>readFileSync(new URL(file,import.meta.url),"utf8");
+const read=file=>readFileSync(new URL("../../"+file,import.meta.url),"utf8");
 const plan=createSurfacePlan();
 test("surface language is a substantial but controlled authored design system",()=>{
   assert.ok(plan.length>130,"expected meaningful deck detailing");

@@ -6,11 +6,11 @@ import {
  headingAt,curvatureAt,bankAt,bankDegreesAt,poseAt,positionAt,
  widthAt,speedAt,onRoad,roadIntervals,shapeSteer,projectWorldToTrack,
  newFlightState,stepFlight,validateTrial,clamp
-} from "./trial-v042.mjs";
+} from "../../trial-v042.mjs";
 import {SURFACE_DESIGN,createSurfacePlan,validateSurfacePlan}
- from "./identity-v042.mjs";
+ from "../../identity-v042.mjs";
 
-const src=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const dt=1/120,eps=1e-8;
 
 test("0.4.2 uses only five deliberately authored course sections and no jumps",()=>{

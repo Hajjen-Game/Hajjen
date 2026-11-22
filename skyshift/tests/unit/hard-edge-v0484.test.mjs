@@ -3,11 +3,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {MANTA_IDENTITY,MANTA_WING_OUTLINE,ENGINE_SOCKETS,
- buildMantaWings,buildMantaSpine,buildMantaBlade} from "./manta-blade-v0484.mjs";
+ buildMantaWings,buildMantaSpine,buildMantaBlade} from "../../manta-blade-v0484.mjs";
 import {ENGINE_TRAIL_SPEC,trailMotionState,createTwinEngineFX}
- from "./engine-trails-v0484.mjs";
-import {newFlightState,stepFlight,TRIAL} from "./trial-v048.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../engine-trails-v0484.mjs";
+import {newFlightState,stepFlight,TRIAL} from "../../trial-v048.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 test("Angular wing shape has a sharp outer shoulder and extended clipped stern",()=>{
  assert.equal(MANTA_IDENTITY.hardEdgeProfile,true);
  assert.equal(MANTA_IDENTITY.name,"Manta Blade");

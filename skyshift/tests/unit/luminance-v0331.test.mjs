@@ -1,12 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {LUMINANCE,validateLuminance} from "./luminance-v0331.mjs";
-import {createSurfacePlan,validateSurfacePlan,IDENTITY_RULES} from "./identity-v0331.mjs";
-import {NEON_TUNING} from "./neon-balance-v032.mjs";
-import {TRIAL,GAPS,CHECKPOINTS} from "./trial-v03.mjs";
+import {LUMINANCE,validateLuminance} from "../../luminance-v0331.mjs";
+import {createSurfacePlan,validateSurfacePlan,IDENTITY_RULES} from "../../identity-v0331.mjs";
+import {NEON_TUNING} from "../../neon-balance-v032.mjs";
+import {TRIAL,GAPS,CHECKPOINTS} from "../../trial-v03.mjs";
 
-const read=file=>readFileSync(new URL(file,import.meta.url),"utf8");
+const read=file=>readFileSync(new URL("../../"+file,import.meta.url),"utf8");
 const brightness=hex=>{
   const r=(hex>>16)&255,g=(hex>>8)&255,b=hex&255;
   return .2126*r+.7152*g+.0722*b;

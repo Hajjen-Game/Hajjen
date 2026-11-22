@@ -4,14 +4,14 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {STEERING_AUTHORITY as tuned,normalYawFactorAt,
  fullGripYawFactorAt,yawAuthorityAt,steeringBalanceAt}
- from "./steering-authority-v01348.mjs";
+ from "../../steering-authority-v01348.mjs";
 import {STEERING_AUTHORITY as previous,
  yawAuthorityAt as oldYaw,normalYawFactorAt as oldNormal}
- from "./steering-authority-v0901.mjs";
-import {newFlightState,stepFlight,TRIAL} from "./trial-v01348.mjs";
+ from "../../steering-authority-v0901.mjs";
+import {newFlightState,stepFlight,TRIAL} from "../../trial-v01348.mjs";
 const near=(a,b,eps=1e-9)=>assert.ok(Math.abs(a-b)<=eps,
   "expected "+a+" ~= "+b+" (delta="+Math.abs(a-b)+")");
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 test("GRIP bonus exactly halved, NOT the entire authority",()=>{
  assert.equal(tuned.gripBonusFraction,.5);
  assert.equal(tuned.fullGripFactor,previous.fullGripFactor);

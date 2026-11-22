@@ -3,15 +3,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {CLARITY,clarityProfile,dprForAdaptiveLevel,clarityAudit}
- from "./image-clarity-v0498.mjs";
+ from "../../image-clarity-v0498.mjs";
 import {createAdaptiveQuality,nextAdaptiveRatio}
- from "./frame-pacing-v044.mjs";
+ from "../../frame-pacing-v044.mjs";
 import {PREMIUM_TRACK,SURFACE_FRAGMENT_HELPERS,patchPremiumShaders}
- from "./premium-track-v0498.mjs";
-import {AERO_BARRIER} from "./aero-barrier-v0497.mjs";
-import {GUARDRAIL} from "./trial-v0494.mjs";
-import {BOOST_CONFIG} from "./boost-v0494.mjs";
-const src=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+ from "../../premium-track-v0498.mjs";
+import {AERO_BARRIER} from "../../aero-barrier-v0497.mjs";
+import {GUARDRAIL} from "../../trial-v0494.mjs";
+import {BOOST_CONFIG} from "../../boost-v0494.mjs";
+const src=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const near=(a,b,tolerance=.00001)=>assert.ok(Math.abs(a-b)<tolerance,
  String(a)+" != "+String(b));
 test("Samsung 4GB path retains current DPR cap, but now has true fallback tiers",()=>{
@@ -112,7 +112,7 @@ test("production boot uses 0.4.9.8 without touching ship physics or scenery",()=
  for(const dep of ["neon-v0498","image-clarity-v0498","premium-track-v0498",
   "aero-barrier-v0497","zone-wave-v0493","trial-v0494",
   "boost-v0494","boost-spring-v0495","velocity-language-v0496"])
-  assert.ok(game.includes('from "./'+dep+'.mjs"'),"missing "+dep);
+  assert.ok(game.includes('from "../../'+dep+'.mjs"'),"missing "+dep);
  assert.match(game,/claritySettings=selectClarityProfile/);
  assert.match(game,/renderer\.setPixelRatio\(claritySettings\.renderDpr\)/);
  assert.match(game,/dprForAdaptiveLevel\(claritySettings,adaptiveQuality\.level\)/);

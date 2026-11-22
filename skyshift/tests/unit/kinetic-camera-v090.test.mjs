@@ -3,16 +3,16 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {TRIAL,CIRCUIT,CORKSCREW,MAGNETIC_WALL,SKYLINE_LEAP,
- newFlightState,validateTrial,bankAt,headingAt,positionAt} from "./trial-v084.mjs";
+ newFlightState,validateTrial,bankAt,headingAt,positionAt} from "../../trial-v084.mjs";
 import {KINETIC_CAMERA,kineticFovAt,kineticSpeedFraction,
  createKineticCameraState,stepKineticCamera,triggerKineticLanding,
- kineticCameraAudit} from "./kinetic-camera-v090.mjs";
-import {BOOST_SPRING,boostFovTarget} from "./boost-spring-v090.mjs";
+ kineticCameraAudit} from "../../kinetic-camera-v090.mjs";
+import {BOOST_SPRING,boostFovTarget} from "../../boost-spring-v090.mjs";
 import {chasePose as oldChasePose,CINEMATIC_DEFAULTS as oldSettings,
- cameraBankAt as oldCameraBankAt} from "./cinematic-v084.mjs";
+ cameraBankAt as oldCameraBankAt} from "../../cinematic-v084.mjs";
 import {chasePose as kineticChasePose,CINEMATIC_DEFAULTS as newSettings,
- cameraBankAt} from "./cinematic-v090.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ cameraBankAt} from "../../cinematic-v090.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(x,y,t=.000001)=>assert.ok(Math.abs(x-y)<=t,
  "expected "+x+" near "+y+" (tolerance "+t+")");
 const motion={cameraHeading:.13,hover:.025};

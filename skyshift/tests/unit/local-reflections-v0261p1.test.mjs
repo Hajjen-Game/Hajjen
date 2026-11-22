@@ -5,8 +5,8 @@ import {
  LOCAL_REFLECTIONS_0261,nearestFixtureMask0261,
  buildLocalStripFrame0261,patchLocalStripReflectionShader0261,
  installLocalStripShader0261
-} from "./local-reflections-v0261p1.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+} from "../../local-reflections-v0261p1.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const vertex="#include <common>\n#include <project_vertex>\n#include <worldpos_vertex>\nvarying vec3 vPbrCold0260;varying vec3 vPbrWarm0260;";
 const fragment="#include <common>\nvarying vec3 vPbrCold0260;\nvarying vec3 vPbrWarm0260;\n"+
  "vec3 geometryPosition=-vViewPosition;\nRE_Direct(pbrFixture0260,geometryPosition,geometryNormal,geometryViewDir,geometryClearcoatNormal,material,reflectedLight);\n"+

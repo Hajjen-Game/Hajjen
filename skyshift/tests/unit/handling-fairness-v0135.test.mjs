@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {auditHandlingFairness,FAIRNESS_0135,sectionCurvature,
- simulateApproach,yawFeasibility} from "./handling-fairness-v0135.mjs";
+ simulateApproach,yawFeasibility} from "../../handling-fairness-v0135.mjs";
 import {COURSE_SEGMENTS,TRIAL,GRIP_APEX,stepFlight,newFlightState}
- from "./trial-v01348.mjs";
+ from "../../trial-v01348.mjs";
 import {readFileSync} from "node:fs";
 test("full authored course has deterministic finite curvature and lane width",()=>{
  const a=auditHandlingFairness();
@@ -33,12 +33,12 @@ test("idealized 120Hz driving probe never changes active physics",()=>{
  assert.ok(Number.isFinite(a.peakHeadingErrorDeg));
  assert.ok(Number.isFinite(a.peakLateralMeters));
  assert.ok(!a.failed);
- const x=readFileSync(new URL("./trial-v01348.mjs",import.meta.url),"utf8");
+ const x=readFileSync(new URL("../../"+"./trial-v01348.mjs",import.meta.url),"utf8");
  assert.match(x,/const result=stepLandingBoost|stepLandingBoost\(st,dt/);
  assert.doesNotMatch(x,/handling-fairness-v0135|simulateApproach/);
 });
 test("exact same steered physics used by Manta and Stingray and prior build",()=>{
- const game=readFileSync(new URL("./game-v0135.mjs",import.meta.url),"utf8");
+ const game=readFileSync(new URL("../../"+"./game-v0135.mjs",import.meta.url),"utf8");
  assert.match(game,/from "\.\/trial-v01348\.mjs"/);
  assert.match(game,/const result=stepFlight\(flight,dt,\{steer,grip:gripHeld\}\)/);
  assert.match(game,/ship\.rotation\.z=naturalRoll;/);

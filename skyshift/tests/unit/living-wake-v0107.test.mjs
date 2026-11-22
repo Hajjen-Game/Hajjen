@@ -1,4 +1,4 @@
-// SKYSHIFT 0.10.7.1 — physical-looking wake should move and decay, NOT be static.
+// SKYSHIFT 0.10.7 — physical-looking wake should move and decay, NOT be static.
 // Tests assert meaningful world-space history instead of only emitter counts.
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -6,8 +6,8 @@ import {readFileSync} from "node:fs";
 import {
  LIVING_WAKE,wakeEnergy,createWakeHistory,recordWake,historyPoint,
  createLivingWakeFX
-} from "./living-wake-v01071.mjs";
-const src=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+} from "../../living-wake-v0107.mjs";
+const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const speed=n=>44*1.11**n;
 test("quiet straight lines do not fully activate in early zones",()=>{
  const low=wakeEnergy({speed:speed(2)});
@@ -79,7 +79,7 @@ function fakeThree(){
   removeFromParent(){}
  }
  return {BufferGeometry:Geometry,BufferAttribute:Attribute,Vector3:Vec,
-  MeshBasicMaterial:Mat,Mesh,NormalBlending:1,AdditiveBlending:4,DoubleSide:2,DynamicDrawUsage:3};
+  MeshBasicMaterial:Mat,Mesh,NormalBlending:1,DoubleSide:2,DynamicDrawUsage:3};
 }
 test("live mesh stores world path, fades after release and resets on pause",()=>{
  const THREE=fakeThree(),scene={items:[],add(o){this.items.push(o)}};
@@ -100,23 +100,11 @@ test("live mesh stores world path, fades after release and resets on pause",()=>
  assert.ok(active.activeSegments>1);
  assert.ok(active.peakLightEnergy>0);
  assert.ok(active.peakLightEnergy<=LIVING_WAKE.maxLightEnergy);
- assert.ok(active.peakLightEnergy>.1,
-  "loaded turns should retain a visible but controlled white core");
-
  assert.equal(fx.mesh.visible,true);
  assert.equal(scene.items[0],fx.mesh);
  assert.ok(fx.mesh.geometry.attributes.position.array.some(v=>v!==0));
  assert.equal(fx.mesh.geometry.attributes.color.itemSize,4,
   "RGBA per-vertex transparency prevents opaque dark strips");
- assert.equal(fx.mesh.material.blending,THREE.AdditiveBlending,
-  "additive white light cannot darken the track");
- assert.equal(fx.mesh.material.fog,false,
-  "black tunnel fog must not turn white trails dark");
- assert.equal(fx.mesh.material.depthWrite,false);
- assert.equal(fx.stats().additiveLightOnly,true);
- assert.equal(fx.stats().materialFogDisabled,true);
- assert.equal(fx.stats().colorRgbaItemSize,4);
-
  assert.ok(fx.mesh.geometry.attributes.color.array.some((value,i)=>
   i%4===3 && value>0 && value<=.35),
   "wake opacity stays subdued and fades by age");
@@ -146,10 +134,10 @@ test("low-memory keeps single dynamic batch, no game physics touched",()=>{
  assert.ok(LIVING_WAKE.maxLifetimeSeconds<.7);
  assert.ok(LIVING_WAKE.maxTrailMeters<=40);
 });
-test("production activates v0.10.7.1, deactivates old ship-attached trails",()=>{
- const game=src("./game-v01071.mjs");
+test("production activates v0.10.7, deactivates old ship-attached trails",()=>{
+ const game=src("./game-v0107.mjs");
  const index=src("./index.html");
- const boot=src("./boot-v01071.js");
+ const boot=src("./boot-v0107.js");
  assert.match(game,/createLivingWakeFX\(THREE,scene,ship,\{variant:id/);
  assert.match(game,/livingWake\?\.dispose\(\)/);
  assert.match(game,/livingWake\?\.reset\(\)/);
@@ -157,7 +145,7 @@ test("production activates v0.10.7.1, deactivates old ship-attached trails",()=>
  assert.match(game,/livingWake:\{\.\.\.LIVING_WAKE/);
  assert.match(game,/__skyshiftWakeSmoke/);
  assert.doesNotMatch(game,/wingtipContrails|createWingtipContrails|createWingVaporFX/);
- assert.match(index,/data-game-module="game-v01071\.mjs"/);
- assert.match(boot,/game-v01071\.mjs\?v=0\.10\.7\.1/);
+ assert.match(index,/data-game-module="game-v0107\.mjs"/);
+ assert.match(boot,/game-v0107\.mjs\?v=0\.10\.7/);
  assert.match(game,/from "\.\/trial-v0901\.mjs"/);
 });

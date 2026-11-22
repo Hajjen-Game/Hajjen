@@ -94,7 +94,7 @@ test("road stays physically sourced and retains white guides without Reflector",
   assert.match(s,/r263Convolved\+=uCinematicRoad0289/);
   assert.equal((s.match(/reflectedLight\.directSpecular\+=r263Convolved\*/g)||[]).length,1);
  }
- assert.throws(()=>patchRoadGlints0289(ROAD.replace("r263Keep","missing")));
+ assert.throws(()=>patchRoadGlints0289(ROAD.replaceAll("r263Keep","missing")));
  for(const x of ["additionalMeshes","additionalLights","additionalPasses",
   "additionalTextures","additionalSamples"])
   assert.equal(CINEMATIC_METAL_0289[x],0,x);

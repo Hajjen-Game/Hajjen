@@ -128,6 +128,7 @@ test("road shader uses original solar-sealed GGX and true 9-stage wave colors",(
  assert.match(source.fragmentShader,/mod\(vTrackCoord.x-uA93Front/);
  assert.match(source.fragmentShader,/smoothstep\(-66.0,66.0/);
  assert.match(source.fragmentShader,/float a93Window=clamp\(vA93Window/);
+ assert.match(source.fragmentShader,/varying float vA93Arc,vA93Window;/);
  assert.match(source.fragmentShader,/RE_Direct\(a93Lamp/);
  assert.match(source.fragmentShader,/reflectedLight.directDiffuse=a93DiffuseBefore/);
  assert.match(source.fragmentShader,/a93Shoulder/);

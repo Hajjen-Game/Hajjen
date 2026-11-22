@@ -14,8 +14,8 @@ import {
  AERO_BARRIER,RAIL_SPECTRAL_FRAGMENT,RAIL_SPECTRAL_VERTEX,
  patchRailShaders,createAeroDetailData
 } from "./aero-barrier-v0493.mjs";
-import {TRIAL,speedAt} from "./trial-v049.mjs";
-const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+import {TRIAL,speedAt} from "../../trial-v049.mjs";
+const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const close=(a,b,e=1e-5)=>assert.ok(Math.abs(a-b)<e,`${a} != ${b}`);
 const smooth=(a,b,v)=>{
  const t=Math.max(0,Math.min(1,(v-a)/(b-a)));

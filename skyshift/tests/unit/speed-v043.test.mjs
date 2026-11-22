@@ -14,7 +14,7 @@ import {
   createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
 } from "./frame-pacing-v043.mjs";
-const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const dt=1/120;
 
 test("speed doubles without changing authored geometry or reintroducing lane guidance",()=>{

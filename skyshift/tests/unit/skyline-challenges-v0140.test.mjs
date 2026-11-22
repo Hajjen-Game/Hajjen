@@ -7,7 +7,7 @@ import {CHALLENGES_0140,CHALLENGE_RULES_0140,initialChallengeProgress,
 import {TRIAL,newFlightState,CIRCUIT,SKYLINE_LEAP,GRIP_APEX,
  MAGNETIC_WALL,CORKSCREW,poseAt} from "./trial-v01348.mjs";
 import {readFileSync} from "node:fs";
-const src=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const sample=(c,o={})=>({reachedExit:true,elapsed:c.goldSeconds-1,
  railContacts:0,falls:0,gripSeconds:2,qualifiedLandings:1,
  cleanWallExits:1,cleanCorkscrewExits:1,cleanCarves:3,...o});

@@ -3,15 +3,15 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {TUNNEL_PROFILE_0211,sampleSharedTunnelProfile0280,
  tunnelProfilePoint0211} from "./tunnel-megastructure-v0211.mjs";
-import {buildSharedTunnelSection0280} from "./structural-tunnel-v0213.mjs";
-import {vaultCrossSection0270} from "./full-tunnel-circuit-v0270.mjs";
+import {buildSharedTunnelSection0280} from "../../structural-tunnel-v0213.mjs";
+import {vaultCrossSection0270} from "../../full-tunnel-circuit-v0270.mjs";
 import {SHARED_TUNNEL_STYLE_0280,SHARED_TUNNEL_ROUTES_0280,
  makeTunnelPlan0280,tunnelReleaseAtLeast0280,
  sharedTunnelVersionActive0280,sharedPhysicalPreset0280}
- from "./shared-tunnel-architecture-v0280.mjs";
+ from "../../shared-tunnel-architecture-v0280.mjs";
 import {createSharedTunnelRuntime0280}
- from "./shared-tunnel-runtime-v0280.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../shared-tunnel-runtime-v0280.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const pos=(s,x,y)=>({x,y,z:s});
 const eq=(a,b)=>assert.ok(Math.abs(a-b)<1e-9,String(a)+" != "+String(b));
 test("original Skyline is one immutable source of panels, atlas and native coat",()=>{

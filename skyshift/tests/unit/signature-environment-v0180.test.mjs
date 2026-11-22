@@ -2,10 +2,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {CIRCUIT,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW} from "./trial-v0165.mjs";
+import {CIRCUIT,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW} from "../../trial-v0165.mjs";
 import {SIGNATURE_ENV_0180,signatureArchitecturePlan}
- from "./signature-environment-v0180.mjs";
-const src=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+ from "../../signature-environment-v0180.mjs";
+const src=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 test("Celestial Conduit is exactly one 300m Skyline S-section, away from hazards",()=>{
  const c=SIGNATURE_ENV_0180;
  assert.equal(c.end-c.start,300);

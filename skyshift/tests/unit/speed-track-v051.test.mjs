@@ -10,10 +10,10 @@ import {
 import {
  ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave
 } from "./zone-wave-v051.mjs";
-import {BOOST_PADS,BOOST_CONFIG} from "./boost-v050.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v051.mjs";
-import {createAeroBarrierData,AERO_BARRIER} from "./aero-barrier-v051.mjs";
-const source=n=>readFileSync(new URL(n,import.meta.url),"utf8");
+import {BOOST_PADS,BOOST_CONFIG} from "../../boost-v050.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v051.mjs";
+import {createAeroBarrierData,AERO_BARRIER} from "../../aero-barrier-v051.mjs";
+const source=n=>readFileSync(new URL("../../"+n,import.meta.url),"utf8");
 const near=(a,b,eps=1e-7)=>assert.ok(Math.abs(a-b)<eps,
  "Expected "+a+" ≈ "+b);
 test("same 10400m route and no jumps, banked road or auto steer",()=>{

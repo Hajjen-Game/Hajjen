@@ -5,7 +5,7 @@ import {
  SHIP_ART_0132,requestedShipArt,assessHeroAsset,createShipArtState,
  shipArtAudit,PROCEDURAL_BODY_MESHES_0132,installHeroBodyAndTail
 } from "./ship-art-pipeline-v0132.mjs";
-import {createShipArtController} from "./ship-hero-loader-v0132.mjs";
+import {createShipArtController} from "../../ship-hero-loader-v0132.mjs";
 function makeObject(name,options={}){
  return {name,isMesh:options.mesh??true,isLight:options.light??false,
   isSkinnedMesh:options.skin??false,

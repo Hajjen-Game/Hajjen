@@ -7,6 +7,8 @@
 // road/ship/physics edits or global bloom/exposure changes.
 import {TUNNEL_PORTALS_0211,tunnelProfilePoint0211}
  from "./tunnel-megastructure-v0211.mjs";
+import {sharedPanelSeamPoint02894,sharedWaveColors02894}
+ from "./unified-tunnel-light-sources-v02894.mjs";
 import {ZONE_PALETTES,ZONE_WAVE}
  from "./zone-wave-v060.mjs";
 
@@ -40,22 +42,7 @@ export function ceilingFixtureEnabled02892(search=
 // Offset inward by the original 0.26.0 cove clearance to expose the source
 // IN the groove, without drawing a white rectangle over the metal face.
 export function panelSeamPoint02892(positionAt,s,side,kind,offset=0){
- if(typeof positionAt!=="function"||!Number.isFinite(s)||
-  s<0||s>368||![-1,1].includes(side)||
-  !["upper","wall"].includes(kind)||!Number.isFinite(offset))
-  throw Error("0.28.9.2 invalid real seam sampler");
- const j=kind==="upper"?11:9;
- const q=tunnelProfilePoint0211(j,s,false),
-  a=tunnelProfilePoint0211(j-1,s,false),
-  b=tunnelProfilePoint0211(j+1,s,false);
- const dx=Math.abs(b[0])-Math.abs(a[0]),dy=b[1]-a[1];
- const norm=Math.hypot(dx,dy);
- const x=side*(Math.abs(q[0])-.82+dx/norm*offset);
- const y=q[1]-.095+dy/norm*offset;
- const v=positionAt(s,x,y);
- if(!v||!Number.isFinite(v.x+v.y+v.z))
-  throw Error("0.28.9.2 nonfinite banked seam");
- return v;
+ return sharedPanelSeamPoint02894(positionAt,s,side,kind,offset);
 }
 // Alpha is vertex-local and falls to zero around the original source
 // endpoints. Separate low-alpha shoulders stay IN the same physical batch;
@@ -229,12 +216,11 @@ export function installCeilingFixtureCohesion02892(THREE,section,positionAt,modu
  return {
   active:true,
   updateWave(wave){
-   const stage=clamp(wave?.shaderBaseStage??0,0,ZONE_PALETTES.length-1);
-   uniform.uF92Old.value.setHex(ZONE_PALETTES[stage].light);
-   uniform.uF92Next.value.setHex(
-    ZONE_PALETTES[Math.min(stage+1,ZONE_PALETTES.length-1)].light);
-   uniform.uF92Front.value=wave?.fronts?.[0]??-10000;
-   uniform.uF92Active.value=wave?.activeCount>0?1:0;
+   const stage=sharedWaveColors02894(wave);
+   uniform.uF92Old.value.setHex(stage.from);
+   uniform.uF92Next.value.setHex(stage.to);
+   uniform.uF92Front.value=stage.front;
+   uniform.uF92Active.value=stage.active;
   },
   stats:()=>({active:true,version:"0.28.9.2",
    cyanStrips:generated.cyanStrips,warmStrips:generated.warmStrips,

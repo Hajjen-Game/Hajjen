@@ -4,6 +4,8 @@
 // road material, geometry positions, curves, collision, GRIP all unchanged.
 import {TUNNEL_PORTALS_0211,TUNNEL_PROFILE_0211,
  tunnelProfilePoint0211} from "./tunnel-megastructure-v0211.mjs";
+import {createUnifiedSourceRegistry02894,sharedWaveColors02894}
+ from "./unified-tunnel-light-sources-v02894.mjs";
 import {createSharedSourceSampler0282}
  from "./shared-road-ship-light-v0282.mjs";
 import {ZONE_WAVE,ZONE_PALETTES} from "./zone-wave-v060.mjs";
@@ -191,8 +193,10 @@ export function installArchSourceOptics02893(THREE,section,{enabled=false,
 // guessed fake world point or a separate road lamp. Sample the SAME local
 // source arc / positionAt adapter used for the tunnel geometry.
 export function buildArchRoadSources02893(geometry,positionAt,trackLength,{
- lowMemory=false}={}){
+ lowMemory=false,unifiedSources=false}={}){
  const source=createSharedSourceSampler0282(positionAt,trackLength);
+ const unified=unifiedSources?
+  createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory}):null;
  const coords=geometry?.getAttribute?.("aTrackCoord"),
   positions=geometry?.getAttribute?.("position");
  if(!coords||!positions||coords.count!==positions.count)
@@ -202,7 +206,16 @@ export function buildArchRoadSources02893(geometry,positionAt,trackLength,{
   window=new Float32Array(n);
  const cache=new Map();let near=0;
  for(let i=0;i<n;i++){
-  const s=coords.getX(i),local=source.localFor(s);
+  const s=coords.getX(i);
+  if(unified){
+   const sample=unified.at(s).arch;
+   arc[i]=sample.worldS;window[i]=sample.window;
+   left.set([sample.left.x,sample.left.y,sample.left.z],3*i);
+   right.set([sample.right.x,sample.right.y,sample.right.z],3*i);
+   if(Math.abs(s-arc[i])<12)near++;
+   continue;
+  }
+  const local=source.localFor(s);
   const nearest=TUNNEL_PORTALS_0211.reduce((best,x)=>
    Math.abs(x-local.s)<Math.abs(best-local.s)?x:best,
    TUNNEL_PORTALS_0211[0]);
@@ -229,15 +242,16 @@ export function buildArchRoadSources02893(geometry,positionAt,trackLength,{
   }
   if(Math.abs(s-arc[i])<12)near++;
  }
- return {left,right,arc,window,vertices:n,sourcePositions:cache.size,
-  nearArchVertices:near,sourceModules:source.modules.length};
+ return {left,right,arc,window,vertices:n,
+  sourcePositions:unified?unified.stats().physicalPositions:cache.size,
+  unifiedSources,nearArchVertices:near,sourceModules:source.modules.length};
 }
 const COMMON="#include <common>",PROJ="#include <project_vertex>";
 // 0.28.9 inserts its streak code immediately before this expression and
 // removes the original leading space; match the stable semantic expression.
 const ANCHOR="reflectedLight.directSpecular+=r263Convolved*\n"+
  "  (r263Keep*r263Fresnel*r263Surface);";
-export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
+export function patchArchRoadShader02893(vertex,fragment,{mobile=false,packed=false}={}){
  if(!vertex.includes(COMMON)||!vertex.includes(PROJ)||
   !fragment.includes(COMMON)||!fragment.includes(ANCHOR)||
   !fragment.includes("varying vec2 vTrackCoord;")||
@@ -246,14 +260,15 @@ export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
   throw Error("0.28.9.3 original solar-sealed GGX road shader required");
  const decl=[
   "attribute vec3 archLeft02893,archRight02893;",
-  "attribute float archArc02893,archWindow02893;",
+  packed?"attribute vec2 archArcWindow02894;":"attribute float archArc02893,archWindow02893;",
   "varying vec3 vA93Left,vA93Right;",
   "varying float vA93Arc,vA93Window;"
  ].join("\n");
  const vd=[
   "vA93Left=(viewMatrix*vec4(archLeft02893,1.0)).xyz-mvPosition.xyz;",
   "vA93Right=(viewMatrix*vec4(archRight02893,1.0)).xyz-mvPosition.xyz;",
-  "vA93Arc=archArc02893;vA93Window=archWindow02893;"
+  packed?"vA93Arc=archArcWindow02894.x;vA93Window=archArcWindow02894.y;":
+   "vA93Arc=archArc02893;vA93Window=archWindow02893;"
  ].join("\n");
  const fd=[
   "uniform vec3 uA93Old,uA93Next;",
@@ -313,7 +328,7 @@ export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
  };
 }
 export function installArchRoadReflection02893(THREE,world,positionAt,{
- enabled=false,lowMemory=false,trackLength=3400
+ enabled=false,lowMemory=false,trackLength=3400,unifiedSources=false
 }={}){
  const inactive=reason=>({active:false,reason,setComparison(){},
   updateWave(){},stats:()=>({active:false,reason}),dispose(){}});
@@ -323,9 +338,14 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
  if(!material?.isMeshStandardMaterial||!geometry||
   typeof positionAt!=="function")
   throw Error("0.28.9.3 original physical road/source missing");
- const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory});
- const keys=["archLeft02893","archRight02893","archArc02893",
-  "archWindow02893"];
+ const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory,unifiedSources});
+ // 0.28.9.4 packs the original two scalar sources into one vec2.
+ // Existing 0.28.9.3 URLs keep exact historical data and shader layout.
+ // This frees one GPU slot for the new single packed j11 cove position,
+ // ensuring no increase over the approved 0.28.9.3 attribute count.
+ const keys=unifiedSources?["archLeft02893","archRight02893",
+   "archArcWindow02894"]:
+  ["archLeft02893","archRight02893","archArc02893","archWindow02893"];
  if(keys.some(k=>geometry.getAttribute(k)))
   throw Error("0.28.9.3 arch attributes already installed");
  const uniform={
@@ -338,17 +358,26 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
  try{
   geometry.setAttribute(keys[0],new THREE.Float32BufferAttribute(data.left,3));
   geometry.setAttribute(keys[1],new THREE.Float32BufferAttribute(data.right,3));
-  geometry.setAttribute(keys[2],new THREE.Float32BufferAttribute(data.arc,1));
-  geometry.setAttribute(keys[3],new THREE.Float32BufferAttribute(data.window,1));
+  if(unifiedSources){
+   const packed=new Float32Array(data.vertices*2);
+   for(let i=0;i<data.vertices;i++){
+    packed[2*i]=data.arc[i];packed[2*i+1]=data.window[i];
+   }
+   geometry.setAttribute(keys[2],new THREE.Float32BufferAttribute(packed,2));
+  }else{
+   geometry.setAttribute(keys[2],new THREE.Float32BufferAttribute(data.arc,1));
+   geometry.setAttribute(keys[3],new THREE.Float32BufferAttribute(data.window,1));
+  }
   material.onBeforeCompile=function(shader,renderer){
    before.call(this,shader,renderer);
    const next=patchArchRoadShader02893(
-    shader.vertexShader,shader.fragmentShader,{mobile:lowMemory});
+    shader.vertexShader,shader.fragmentShader,{mobile:lowMemory,packed:unifiedSources});
    shader.vertexShader=next.vertexShader;shader.fragmentShader=next.fragmentShader;
    Object.assign(shader.uniforms,uniform);
   };
   material.customProgramCacheKey=function(){
-   return key.call(this)+"-arch-wave-ggx-02893-"+(lowMemory?"4GB":"High");
+   return key.call(this)+"-arch-wave-ggx-02893-"+(lowMemory?"4GB":"High")+
+    (unifiedSources?"-packed-source-02894":"");
   };
   material.needsUpdate=true;
  }catch(e){
@@ -361,18 +390,19 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
  return {
   active:true,
   updateWave(wave){
-   const stage=clamp(wave?.shaderBaseStage??0,0,ZONE_PALETTES.length-1);
-   uniform.uA93Old.value.setHex(ZONE_PALETTES[stage].light);
-   uniform.uA93Next.value.setHex(
-    ZONE_PALETTES[Math.min(stage+1,ZONE_PALETTES.length-1)].light);
-   uniform.uA93Front.value=wave?.fronts?.[0]??-10000;
-   uniform.uA93Active.value=wave?.activeCount>0?1:0;
+   const stage=sharedWaveColors02894(wave);
+   uniform.uA93Old.value.setHex(stage.from);
+   uniform.uA93Next.value.setHex(stage.to);
+   uniform.uA93Front.value=stage.front;
+   uniform.uA93Active.value=stage.active;
   },
   setComparison:v=>uniform.uA93Power.value=clamp(v),
   stats:()=>({active:true,version:"0.28.9.3",
    nativeGGX:true,originalIndexedRoad:true,
    sourceModules:data.sourceModules,sourcePositions:data.sourcePositions,
    vertices:data.vertices,nearArchVertices:data.nearArchVertices,
+   sharedRegistry02894:!!data.unifiedSources,
+   packedArcWindow02894:unifiedSources,sourceAttributes:keys.length,
    actualVertexDistanceMask:true,sourcePulseRadiusMeters:lowMemory?3.9:5.6,
    colorFrom:uniform.uA93Old.value.getHex(),
    colorTo:uniform.uA93Next.value.getHex(),

@@ -144,5 +144,5 @@ test("game integrates PMREM-safe zero-strength source followed by native 0.28.9 
   game.indexOf("trueSharedVault?.setCinematicMetalComparison?.("));
  assert.match(game,/__skyshiftCinematicMetalFrames/);
  assert.match(game,/cinematicMetalReleaseEnabled\?" · 0\.28\.9"/);
- assert.match(html,/(?:Shared Straight-Only Edge Lighting Parity · 0\.28\.9\.1|Ceiling Fixture Placement & Glow Cohesion · 0\.28\.9\.2|Premium Arch Optics & Chromatic Road Reflections · 0\.28\.9\.3)/);
+ assert.match(html,/(?:Shared Straight-Only Edge Lighting Parity · 0\.28\.9\.1|Ceiling Fixture Placement & Glow Cohesion · 0\.28\.9\.2|Premium Arch Optics & Chromatic Road Reflections · 0\.28\.9\.3|Unified Light Sources & Road Layer Cleanup · 0\.28\.9\.4)/);
 });

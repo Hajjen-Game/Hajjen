@@ -66,9 +66,17 @@ export function makePremiumMetalTexture0262(THREE,mobile=false){
 // original shader uniforms and texture filtering. Skyline naturally leases
 // only one. Explicit refcounts preserve all old cleanup/fallback semantics.
 const metalAtlasPool0262=new WeakMap();
-export function acquirePremiumMetalTexture0262(THREE,mobile=false){
+export function acquirePremiumMetalTexture0262(THREE,mobile=false,{shared=true}={}){
  if(!THREE?.DataTexture)throw Error("0.28.9.7 needs original Three DataTexture");
  const quality=mobile?"4gb":"high";
+ if(!shared){
+  const texture=makePremiumMetalTexture0262(THREE,mobile);
+  let released=false;
+  return Object.freeze({texture,reused:false,quality,
+   get references(){return released?0:1;},
+   release(){if(released)return;released=true;texture.dispose();}
+  });
+ }
  let pool=metalAtlasPool0262.get(THREE);
  if(!pool){pool=new Map();metalAtlasPool0262.set(THREE,pool);}
  let entry=pool.get(quality);
@@ -242,7 +250,10 @@ export function installPremiumMetalSurfaceLibrary(THREE,world,options={}){
   conduit:"STRUCTURAL_CONDUITS"})[role])}));
  if(substrates.some(({mesh})=>!mesh?.material?.isMeshBasicMaterial))
   return fallback("0.26.0-graphite-substrate-unavailable");
- const power={value:1},atlasLease=acquirePremiumMetalTexture0262(THREE,mobile),
+ const shareAtlas=typeof location==="undefined"||
+ new URLSearchParams(location.search).get("startupAtlas")!=="classic";
+ const power={value:1},atlasLease=acquirePremiumMetalTexture0262(THREE,mobile,
+  {shared:shareAtlas}),
   texture=atlasLease.texture;
  const uniforms={uPremiumMetal0262:power,uMetalAtlas0262:{value:texture}};
  const restores=[];

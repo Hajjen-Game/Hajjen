@@ -110,6 +110,10 @@ test("same physical source 3400m arc, actual j6 banked arch, High+4GB sampler",(
  assert.equal(data.sourceModules,10);
  assert.equal(data.left.length,s.length*3);
  assert.ok(data.arc.every(x=>x>=0&&x<=3400));
+ const mobile=buildArchRoadSources02893(g,positionAt,3400,{lowMemory:true});
+ assert.equal(mobile.window.length,s.length);
+ assert.ok(mobile.window[1]<data.window[1],
+  "4GB arch light falls off faster than the High profile");
  assert.equal(data.window.length,s.length);
  assert.ok(data.window.every(x=>x>=0&&x<=1));
  assert.ok(data.window[0]>.95,"actual arch source lights near its body");

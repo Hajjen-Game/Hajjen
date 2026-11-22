@@ -138,11 +138,11 @@ export function patchRoadGlints0289(fragment,{mobile=false}={}){
   "float cm289Side=smoothstep(2.0,9.3,abs(vTrackCoord.y));",
   "float cm289Flow=0.5+0.5*sin(vTrackCoord.x*0.093+",
   " vTrackCoord.y*0.23);",
-  "float cm289Wet="+(mobile?"0.280":"0.228")+"+0.052*cm289Flow;",
+  "float cm289Wet="+(mobile?"0.384":"0.355")+"+0.025*cm289Flow;",
   "float cm289RoughWeight=uCinematicRoad0289*r263Interior*",
-  " (0.58+0.42*cm289Side);",
-  "roughnessFactor=mix(roughnessFactor,cm289Wet,cm289RoughWeight);",
-  "metalnessFactor=mix(metalnessFactor,0.63,0.77*cm289RoughWeight);"
+  " (0.12+0.88*cm289Side);",
+  "roughnessFactor=mix(roughnessFactor,cm289Wet,0.38*cm289RoughWeight);",
+  "metalnessFactor=mix(metalnessFactor,0.41,0.10*cm289RoughWeight);"
  ].join("\n");
  const streak=[
   "// Longitudinal, source-masked color glints: existing road tangent +",

@@ -197,7 +197,8 @@ export function buildArchRoadSources02893(geometry,positionAt,trackLength){
  if(!coords||!positions||coords.count!==positions.count)
   throw Error("0.28.9.3 existing indexed banked PBR road missing");
  const n=coords.count,left=new Float32Array(n*3),
-  right=new Float32Array(n*3),arc=new Float32Array(n);
+  right=new Float32Array(n*3),arc=new Float32Array(n),
+  window=new Float32Array(n);
  const cache=new Map();let near=0;
  for(let i=0;i<n;i++){
   const s=coords.getX(i),local=source.localFor(s);
@@ -206,6 +207,12 @@ export function buildArchRoadSources02893(geometry,positionAt,trackLength){
    TUNNEL_PORTALS_0211[0]);
   const archS=Math.min(nearest+.61,367.0);
   arc[i]=local.module.start+archS*local.module.scale;
+  // Weight by the TRUE distance at each physical road vertex BEFORE the
+  // rasterizer interpolates attributes. Interpolating the nearest-source
+  // POSITION across a portal-selection seam made archArc follow the road
+  // and generated a false continuously glowing pink/cyan shoulder.
+  // A preweighted local pulse stays dark midway between actual arches.
+  window[i]=Math.exp(-Math.pow((s-arc[i])/5.6,2));
   const [x,y]=tunnelProfilePoint0211(6,archS,false);
   for(const side of [-1,1]){
    const key=local.index+":"+nearest+":"+side;
@@ -221,7 +228,7 @@ export function buildArchRoadSources02893(geometry,positionAt,trackLength){
   }
   if(Math.abs(s-arc[i])<12)near++;
  }
- return {left,right,arc,vertices:n,sourcePositions:cache.size,
+ return {left,right,arc,window,vertices:n,sourcePositions:cache.size,
   nearArchVertices:near,sourceModules:source.modules.length};
 }
 const COMMON="#include <common>",PROJ="#include <project_vertex>";
@@ -238,14 +245,14 @@ export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
   throw Error("0.28.9.3 original solar-sealed GGX road shader required");
  const decl=[
   "attribute vec3 archLeft02893,archRight02893;",
-  "attribute float archArc02893;",
+  "attribute float archArc02893,archWindow02893;",
   "varying vec3 vA93Left,vA93Right;",
-  "varying float vA93Arc;"
+  "varying float vA93Arc,vA93Window;"
  ].join("\n");
  const vd=[
   "vA93Left=(viewMatrix*vec4(archLeft02893,1.0)).xyz-mvPosition.xyz;",
   "vA93Right=(viewMatrix*vec4(archRight02893,1.0)).xyz-mvPosition.xyz;",
-  "vA93Arc=archArc02893;"
+  "vA93Arc=archArc02893;vA93Window=archWindow02893;"
  ].join("\n");
  const fd=[
   "uniform vec3 uA93Old,uA93Next;",
@@ -260,8 +267,8 @@ export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
    ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)+","+
    ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)+",a93Signed));",
   "vec3 a93Tint=mix(uA93Old,uA93Next,clamp(a93Mix,0.0,1.0));",
-  "float a93Delta=abs(vTrackCoord.x-vA93Arc);",
-  "float a93Window=exp(-pow(a93Delta/9.0,2.0));",
+  "// Do not interpolate nearest arch meters as a source-distance field.",
+  "float a93Window=clamp(vA93Window,0.0,1.0);",
   "float a93L=abs(vTrackCoord.y);",
   "float a93Shoulder=smoothstep(5.5,8.5,a93L)*",
   " (1.0-smoothstep(10.55,11.7,a93L));",
@@ -276,7 +283,7 @@ export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
    "vec3 a93Pos=mix(vA93Left,vA93Right,step(0.0,vTrackCoord.y));",
    "float a93Dist=length(a93Pos);",
    "a93Lamp.direction=normalize(a93Pos+vec3(0.0001));",
-   "a93Lamp.color=a93Tint*(a93Energy*4.2/"+
+   "a93Lamp.color=a93Tint*(a93Energy*3.3/"+
     "(1.0+pow(a93Dist/18.0,2.0)));",
    "RE_Direct(a93Lamp,geometryPosition,geometryNormal,geometryViewDir,",
    " geometryClearcoatNormal,material,reflectedLight);"
@@ -285,7 +292,7 @@ export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
    "vec3 a93Pos=a93Side==0?vA93Left:vA93Right;",
    "float a93Dist=length(a93Pos);",
    "a93Lamp.direction=normalize(a93Pos+vec3(0.0001));",
-   "a93Lamp.color=a93Tint*(a93Energy*3.4/"+
+   "a93Lamp.color=a93Tint*(a93Energy*2.6/"+
     "(1.0+pow(a93Dist/18.0,2.0)));",
    "RE_Direct(a93Lamp,geometryPosition,geometryNormal,geometryViewDir,",
    " geometryClearcoatNormal,material,reflectedLight);",
@@ -294,7 +301,7 @@ export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
   "reflectedLight.directDiffuse=a93DiffuseBefore;",
   "float a93Fresnel=pow(1.0-clamp(dot(normalize(vViewPosition),normal),0.0,1.0),2.0);",
   "reflectedLight.directSpecular+=a93Tint*",
-   " (a93Energy*(0.065+0.085*a93Fresnel));",
+   " (a93Energy*(0.036+0.062*a93Fresnel));",
   "}"
  ].join("\n");
  return {
@@ -316,7 +323,8 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
   typeof positionAt!=="function")
   throw Error("0.28.9.3 original physical road/source missing");
  const data=buildArchRoadSources02893(geometry,positionAt,trackLength);
- const keys=["archLeft02893","archRight02893","archArc02893"];
+ const keys=["archLeft02893","archRight02893","archArc02893",
+  "archWindow02893"];
  if(keys.some(k=>geometry.getAttribute(k)))
   throw Error("0.28.9.3 arch attributes already installed");
  const uniform={
@@ -330,6 +338,7 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
   geometry.setAttribute(keys[0],new THREE.Float32BufferAttribute(data.left,3));
   geometry.setAttribute(keys[1],new THREE.Float32BufferAttribute(data.right,3));
   geometry.setAttribute(keys[2],new THREE.Float32BufferAttribute(data.arc,1));
+  geometry.setAttribute(keys[3],new THREE.Float32BufferAttribute(data.window,1));
   material.onBeforeCompile=function(shader,renderer){
    before.call(this,shader,renderer);
    const next=patchArchRoadShader02893(
@@ -363,6 +372,7 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
    nativeGGX:true,originalIndexedRoad:true,
    sourceModules:data.sourceModules,sourcePositions:data.sourcePositions,
    vertices:data.vertices,nearArchVertices:data.nearArchVertices,
+   actualVertexDistanceMask:true,sourcePulseRadiusMeters:5.6,
    colorFrom:uniform.uA93Old.value.getHex(),
    colorTo:uniform.uA93Next.value.getHex(),
    waveFront:uniform.uA93Front.value,

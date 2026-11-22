@@ -109,52 +109,52 @@ jobs:
             skyshift/track-physics-parity-v0165.test.mjs \
             skyshift/track-integrity-v0165.test.mjs \
             skyshift/tests/unit/grip-trick-lock-v0165.test.mjs \
-            skyshift/white-core-containment-v02123.test.mjs \
-            skyshift/rail-body-containment-v02124.test.mjs \
-            skyshift/ship-white-spill-v02125.test.mjs \
-            skyshift/road-solar-spill-v02126.test.mjs \
+            skyshift/tests/unit/white-core-containment-v02123.test.mjs \
+            skyshift/tests/unit/rail-body-containment-v02124.test.mjs \
+            skyshift/tests/unit/ship-white-spill-v02125.test.mjs \
+            skyshift/tests/unit/road-solar-spill-v02126.test.mjs \
             skyshift/tests/unit/dark-metallic-foundation-v0250.test.mjs \
-            skyshift/micro-surface-metal-definition-v0251.test.mjs \
+            skyshift/tests/unit/micro-surface-metal-definition-v0251.test.mjs \
             skyshift/tests/unit/dual-tone-lighting-v0260.test.mjs \
-            skyshift/unified-tunnel-lighting-v1.test.mjs
-          if [[ -f skyshift/true-metal-materials-v0260p2.test.mjs ]]; then
-            node --test skyshift/true-metal-materials-v0260p2.test.mjs
+            skyshift/tests/unit/unified-tunnel-lighting-v1.test.mjs
+          if [[ -f skyshift/tests/unit/true-metal-materials-v0260p2.test.mjs ]]; then
+            node --test skyshift/tests/unit/true-metal-materials-v0260p2.test.mjs
             node --test skyshift/tests/unit/local-reflections-v0261p1.test.mjs
-            node --test skyshift/premium-metal-surface-v0262.test.mjs
-          node --test skyshift/startup-resource-budget-v02897.test.mjs
-          node --test skyshift/startup-source-frame-v02897.test.mjs
+            node --test skyshift/tests/unit/premium-metal-surface-v0262.test.mjs
+          node --test skyshift/tests/unit/startup-resource-budget-v02897.test.mjs
+          node --test skyshift/tests/unit/startup-source-frame-v02897.test.mjs
             node --test skyshift/tests/unit/cinematic-road-rebuild-v0263.test.mjs
             node --test skyshift/tests/unit/edge-lighting-floor-pools-v02631.test.mjs
             node --test skyshift/tests/unit/edge-source-floor-bands-v02632.test.mjs
-            node --test skyshift/straight-only-edge-lighting-v02633.test.mjs
+            node --test skyshift/tests/unit/straight-only-edge-lighting-v02633.test.mjs
             node --test skyshift/tests/unit/final-cohesion-v0264.test.mjs
-            node --test skyshift/unified-metal-light-response-v02641.test.mjs
-            node --test skyshift/reflection-cohesion-v02642.test.mjs
-            node --test skyshift/unified-fixture-transport-v02643.test.mjs
-            node --test skyshift/true-rail-wall-response-v0265.test.mjs
+            node --test skyshift/tests/unit/unified-metal-light-response-v02641.test.mjs
+            node --test skyshift/tests/unit/reflection-cohesion-v02642.test.mjs
+            node --test skyshift/tests/unit/unified-fixture-transport-v02643.test.mjs
+            node --test skyshift/tests/unit/true-rail-wall-response-v0265.test.mjs
             node --test skyshift/tests/unit/full-tunnel-layout-v0270.test.mjs
             node --test skyshift/tests/unit/full-tunnel-circuit-v0270.test.mjs
             node --test skyshift/tests/unit/full-tunnel-light-seal-v0270.test.mjs
-            node --test skyshift/vault-material-parity-v0271.test.mjs
-            node --test skyshift/vault-architectural-parity-v0272.test.mjs
-            node --test skyshift/vault-full-lighting-v0273.test.mjs
-            node --test skyshift/vault-premium-finish-v0274.test.mjs
-            node --test skyshift/shared-tunnel-architecture-v0280.test.mjs
-            node --test skyshift/true-shared-tunnel-renderer-v0281.test.mjs
-            node --test skyshift/shared-road-ship-light-v0282.test.mjs
+            node --test skyshift/tests/unit/vault-material-parity-v0271.test.mjs
+            node --test skyshift/tests/unit/vault-architectural-parity-v0272.test.mjs
+            node --test skyshift/tests/unit/vault-full-lighting-v0273.test.mjs
+            node --test skyshift/tests/unit/vault-premium-finish-v0274.test.mjs
+            node --test skyshift/tests/unit/shared-tunnel-architecture-v0280.test.mjs
+            node --test skyshift/tests/unit/true-shared-tunnel-renderer-v0281.test.mjs
+            node --test skyshift/tests/unit/shared-road-ship-light-v0282.test.mjs
             node --test skyshift/vault-boost-clarity-v0283.test.mjs
-            node --test skyshift/pmrem-reflection-pipeline-v0284.test.mjs
-            node --test skyshift/vault-spatial-wave-parity-v0285.test.mjs
-            node --test skyshift/reflection-stability-strips-v0286.test.mjs
+            node --test skyshift/tests/unit/pmrem-reflection-pipeline-v0284.test.mjs
+            node --test skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs
+            node --test skyshift/tests/unit/reflection-stability-strips-v0286.test.mjs
             node --test skyshift/tests/unit/arch-foot-light-assembly-v0287.test.mjs
           fi
           # Prevent legacy push-only failure: Skyline's boot release and
           # Neon Vault's independent menu release must both be validated
           # on the PR, before merging to main.
           node --test skyshift/tests/unit/ceiling-fixture-cohesion-v02892.test.mjs
-          node --test skyshift/premium-arch-optics-v02893.test.mjs
-          node --test skyshift/unified-tunnel-light-sources-v02894.test.mjs
-          node --test skyshift/road-spill-wave-coves-v02895.test.mjs
+          node --test skyshift/tests/unit/premium-arch-optics-v02893.test.mjs
+          node --test skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs
+          node --test skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs
           node --test skyshift/tests/unit/curve-surface-continuity-v02896.test.mjs
           node --test skyshift/tests/unit/build-version-v02204.test.mjs
 
@@ -746,7 +746,7 @@ jobs:
           node --check skyshift/browser-precision-neon-v0288.mjs
           node --check skyshift/game-v0210.mjs
           node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
-          node --test skyshift/precision-neon-response-v0288.test.mjs
+          node --test skyshift/tests/unit/precision-neon-response-v0288.test.mjs
       - name: Install real Chromium WebGL driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Produce verified 0.28.7 / 0.28.8 same-frame image pairs
@@ -872,7 +872,7 @@ jobs:
           node --check skyshift/premium-arch-optics-v02893.mjs
           node --check skyshift/browser-premium-arch-optics-v02893.mjs
           node --check skyshift/game-v0210.mjs
-          node --test skyshift/premium-arch-optics-v02893.test.mjs
+          node --test skyshift/tests/unit/premium-arch-optics-v02893.test.mjs
       - name: Install real browser screenshot driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Capture true chromatic moving-wave arch and floor reflections
@@ -903,7 +903,7 @@ jobs:
           node --check skyshift/unified-tunnel-light-sources-v02894.mjs
           node --check skyshift/browser-unified-tunnel-light-v02894.mjs
           node --check skyshift/game-v0210.mjs
-          node --test skyshift/unified-tunnel-light-sources-v02894.test.mjs
+          node --test skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs
       - name: Install Chromium screenshot driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Verify actual additive road cleanup and physically sourced road reflections
@@ -934,7 +934,7 @@ jobs:
           node --check skyshift/road-spill-wave-coves-v02895.mjs
           node --check skyshift/browser-road-spill-wave-cove-v02895.mjs
           node --check skyshift/game-v0210.mjs
-          node --test skyshift/road-spill-wave-coves-v02895.test.mjs
+          node --test skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs
       - name: Install real Chromium screenshot driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Capture real road spill and chromatic wall metal before-after
@@ -994,7 +994,7 @@ jobs:
           node --check skyshift/premium-metal-surface-v0262.mjs
           node --check skyshift/browser-startup-stability-v02897.mjs
           node --check skyshift/game-v0210.mjs
-          node --test skyshift/startup-resource-budget-v02897.test.mjs
+          node --test skyshift/tests/unit/startup-resource-budget-v02897.test.mjs
       - name: Install original browser/WebGL driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Measure four real cold boots and screenshot actual scene after launch

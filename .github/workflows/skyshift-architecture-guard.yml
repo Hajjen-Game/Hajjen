@@ -33,6 +33,8 @@ jobs:
           node --test skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/ship-hero-loader-v0133.test.mjs skyshift/tests/unit/ship-hero-loader-v0134.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs skyshift/tests/unit/track.test.mjs
       - name: Verify 60 byte-identical migrated test assertions and no stale paths
         run: node --test skyshift/tests/architecture/bulk-unit-migration-integrity.test.mjs
+      - name: Audit 125 safely relocated stage-7 unit tests and workflow paths
+        run: node --test skyshift/tests/architecture/stage7-unit-migration-integrity.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

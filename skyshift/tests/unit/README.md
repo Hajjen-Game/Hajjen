@@ -48,3 +48,11 @@ Sixty additional historical unit tests were relocated from `skyshift/` into this
 Their original Git blob hashes are recorded in `migration-manifest-02898-stage6.json`. The architecture gate runs `../architecture/bulk-unit-migration-integrity.test.mjs` to reverse the permitted text changes and verify byte-identical original assertions, module paths and workflow references. All 73 files are syntax-checked and protected by migration integrity guards. Tests that remain part of the established SKYSHIFT CI suites are executed normally. Historical tests with obsolete hardcoded expectations (such as old index.html boot versions) are preserved verbatim but are not added as new always-on test gates; this avoids confusing a historical baseline mismatch with a migration regression.
 
 Only a successful full Chrome/WebGL and Node CI run can authorize merging the stage-6 PR. The production tunnel, driving physics, active bootstrap and WebGL renderer are not part of the migration.
+
+## Stage 7 — 125 dependency-audited historical tests
+
+The next **125** unit-test files were moved from `skyshift/` to `skyshift/tests/unit/`. The migration only changes actual static import paths and module-relative `new URL(..., import.meta.url)` bases to account for the extra two parent directories. Assertions and other source text have not been updated, including obsolete historical version expectations.
+
+`migration-manifest-02898-stage7.json` records every original Git blob. `../architecture/stage7-unit-migration-integrity.test.mjs` reverses the limited import transformations, checks exact original test-byte hashes, confirms all moved imports exist and prevents stale workflow paths. All **198** tests in the reorganized unit directory are syntax-checked.
+
+Twelve tests remain in the original root because they launch subprocesses, use relative working directories or have similar non-trivial path dependencies. They are **not** deleted or forcibly migrated. Existing active Node/Chromium/WebGL regression gates remain in place, and older tests with historical hardcoded version assertions are preserved without being newly added as unconditional CI execution gates.

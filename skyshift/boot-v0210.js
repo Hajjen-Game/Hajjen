@@ -9,7 +9,7 @@
  const status=document.getElementById("boot-state");
  if(!app||!start||!fullscreen||!status)return;
  const boot={phase:"loading",pendingStart:false,pendingMode:"time-trial",fullscreenRequested:false,
-  moduleReady:false,error:""};
+  moduleReady:false,error:"",startedAt:performance.now(),readyAfterMs:null};
  window.__skyshiftBoot=boot;
  function report(message,kind){
   status.textContent=message;
@@ -19,6 +19,7 @@
  function fail(error){
   if(boot.phase==="ready")return;
   boot.phase="failed";
+  boot.failedAfterMs=Math.round((performance.now()-boot.startedAt)*10)/10;
   boot.error=String(error&&error.message||error||"Unknown module error");
   start.firstChild.textContent="FÖRSÖK IGEN ";
   report("STARTFEL: "+boot.error+" · Tryck FÖRSÖK IGEN för att ladda om.",
@@ -60,6 +61,7 @@
  },true);
  window.__skyshiftBootReady=function(startQueued){
   boot.moduleReady=true;boot.phase="ready";boot.error="";
+  boot.readyAfterMs=Math.round((performance.now()-boot.startedAt)*10)/10;
   status.classList.add("hidden");
   start.firstChild.textContent="START RUN ";
   if(boot.pendingStart&&typeof startQueued==="function"){

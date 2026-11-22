@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {VELOCITY_PRESENCE,speedPresenceAt,createVelocityPresenceState,
- stepVelocityPresence,velocityPresenceAudit} from "./velocity-presence-v0104.mjs";
+ stepVelocityPresence,velocityPresenceAudit} from "../../velocity-presence-v0104.mjs";
 import {trailMotionState} from "../../engine-trails-v0104.mjs";
 const source=n=>readFileSync(new URL("../../"+n,import.meta.url),"utf8");
 const tick=(st,view,seconds=1)=>{for(let i=0;i<Math.ceil(seconds*120);i++)

@@ -33,6 +33,9 @@ import {PRECISION_NEON_0288,precisionNeonEnabled0288}
 import {CINEMATIC_METAL_0289,cinematicMetalEnabled0289,
  cinematicComponentEnabled0289,installCinematicRoad0289}
  from "./cinematic-metal-neon-v0289.mjs";
+import {CURVE_CONTINUITY_02896,surfaceContinuityEnabled02896,
+ installCurveSurfaceContinuity02896}
+ from "./curve-surface-continuity-v02896.mjs";
 import {ROAD_SPILL_COVE_02895,roadSpillEnabled02895,
  coveWaveEnabled02895,installRoadSpill02895}
  from "./road-spill-wave-coves-v02895.mjs";
@@ -297,6 +300,8 @@ const unifiedCeilingRoadReleaseEnabled=unifiedSourcesReleaseEnabled&&
  ceilingRoadEnabled02894(location.search);
 const roadSpillReleaseEnabled=trueSharedVaultEnabled&&roadSpillEnabled02895(location.search);
 const coveWaveReleaseEnabled=trueSharedVaultEnabled&&coveWaveEnabled02895(location.search);
+const curveContinuityReleaseEnabled=trueSharedVaultEnabled&&
+ surfaceContinuityEnabled02896(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -633,7 +638,7 @@ let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbital
 let fullTunnelCircuit=null,vaultMaterialParity=null,vaultArchitecture=null,vaultFullLighting=null,sharedTunnelRuntime=null;
 let sharedRoadLight=null,sharedShipLight=null,pmremPipeline=null,cinematicRoadFinish=null,
  sharedStraightEdgeRoad=null,archRoadReflections=null,archLegacyOverlay=null,
- unifiedCeilingRoad=null,unifiedLegacyRoad=null,roadSpill02895=null;
+ unifiedCeilingRoad=null,unifiedLegacyRoad=null,roadSpill02895=null,curveContinuity02896=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
  edgeFloorLighting=null;
@@ -1414,6 +1419,18 @@ function initScene(){
  if(roadSpillReleaseEnabled&&!roadSpill02895.active)
   throw Error("0.28.9.5 original physical lip spill missing");
  roadSpill02895.updateWave?.(zoneWave);
+ // 0.28.9.6: same indexed PBR road, optically soften the original
+ // edge-light mask before curves, and remove the periodic 3400m
+ // antipodal palette jump; leave the white core/wave crest alone.
+ curveContinuity02896=installCurveSurfaceContinuity02896(THREE,
+  world.getObjectByName("Zone Ribbon · integrated PBR racing deck"),{
+   enabled:curveContinuityReleaseEnabled&&!!sharedStraightEdgeRoad?.active&&
+    !!unifiedCeilingRoad?.active,
+   curveEnabled:new URLSearchParams(location.search).get("curveBlend")!=="classic",
+   waveEnabled:new URLSearchParams(location.search).get("waveSeam")!=="classic"
+  });
+ if(curveContinuityReleaseEnabled&&!curveContinuity02896.active)
+  throw Error("0.28.9.6 existing road continuity unavailable");
  // Subtle visible cyan inset rails and arch-foot amber floor pools, with
  // original indexed racing deck and road GGX left unmodified in classic mode.
  edgeFloorLighting=edgeFloorEnabled?
@@ -1533,6 +1550,38 @@ function initScene(){
    pmrem0284:pmremPipeline?.stats?.()??null,
    centralSource:TUNNEL_SHARED_ARCHITECTURE_0280
   });
+ // 0.28.9.6: actual indexed road A/B without moving camera or wavefront.
+ if(new URLSearchParams(location.search).get("curveContinuitySmoke")==="1"){
+  window.__skyshiftCurveContinuityAudit=()=>({
+   release:CURVE_CONTINUITY_02896.version,
+   requested:curveContinuityReleaseEnabled,
+   road:curveContinuity02896?.stats?.()??null,
+   originalEdge:sharedStraightEdgeRoad?.stats?.()??null,
+   originalSpill:roadSpill02895?.stats?.()??null,
+   originalArch:archRoadReflections?.stats?.()??null,
+   originalCeiling:unifiedCeilingRoad?.stats?.()??null,
+   originalShip:!!ship,originalGrip:!!UI.grip,physics:flight?.s!==undefined,
+   originalRoadMaterial:premiumSurface?.material?.type??null
+  });
+  window.__skyshiftCurveContinuityFrameProof=()=>{
+   if(!curveContinuity02896?.active||!neonPipeline?.render)
+    throw Error("0.28.9.6 real wave/curve same-frame proof unavailable");
+   const initial=curveContinuity02896.stats();
+   const render=(curve,wave)=>{
+    curveContinuity02896.setComparison({curve,wave});
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:render(0,0),curveOnly:render(1,0),
+    waveOnly:render(0,1),after:render(1,1),
+    audit:window.__skyshiftCurveContinuityAudit(),s:flight?.s};}
+   finally{
+    curveContinuity02896.setComparison({
+     curve:initial.curveStrength,wave:initial.waveStrength});
+    neonPipeline.render(0);
+   }
+  };
+ }
  // 0.28.9.5: real WebGL independent lip spill + wave-cove comparisons.
  if(new URLSearchParams(location.search).get("roadSpillWaveSmoke")==="1"){
   window.__skyshiftRoadSpillWaveAudit=()=>({
@@ -3491,7 +3540,8 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (roadSpillReleaseEnabled||coveWaveReleaseEnabled?" · 0.28.9.5":
+   (curveContinuityReleaseEnabled?" · 0.28.9.6":
+    roadSpillReleaseEnabled||coveWaveReleaseEnabled?" · 0.28.9.5":
      unifiedSourcesReleaseEnabled?" · 0.28.9.4":
   archOpticsReleaseEnabled?" · 0.28.9.3":
      ceilingFixtureReleaseEnabled?" · 0.28.9.2":
@@ -5325,7 +5375,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.9.5":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.9.6":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

@@ -25,7 +25,7 @@ export function precisionNeonEnabled0288(search=
  const p=new URLSearchParams(search||"");
  if(p.get("track")!=="vault"||
   ["off","classic"].includes(p.get("precisionNeon")))return false;
- const match=/^(\d+)\.(\d+)\.(\d+)$/.exec(p.get("v")||"");
+ const match=/^(\d+)\.(\d+)\.(\d+)(?:\.\d+)?$/.exec(p.get("v")||"");
  if(!match)return false;
  const [a,b,c]=match.slice(1).map(Number);
  return a>0||b>28||(b===28&&c>=8);

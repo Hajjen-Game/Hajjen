@@ -224,6 +224,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   world.add(root);
  }catch(error){
   for(const item of installed.reverse()){
+   item.precision?.dispose?.();
    item.stability?.dispose?.();
    item.archFoot?.dispose?.();
    item.wave?.dispose?.();

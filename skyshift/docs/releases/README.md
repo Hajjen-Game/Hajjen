@@ -20,7 +20,39 @@ The following 13 early release notes were moved **without changing their bytes**
 - [0.11.3](RELEASE-0113.md)
 - [0.11.4](RELEASE-0114.md)
 
-All other historical notes remain where they are until separately audited.
+## Migration batch 2 — 0.12.0 to 0.16.5 (stage 3)
+
+The next 26 release notes were moved **without modifying their content**; see `release-manifest.json` for the original Git blob SHAs. The [archive integrity test](../../tests/architecture/release-archive-integrity.test.mjs) checks **all 39 moved notes**, their original bytes, and these links.
+
+- [0.12.0](RELEASE-0120.md)
+- [0.12.1](RELEASE-0121.md)
+- [0.13.0](RELEASE-0130.md)
+- [0.13.1](RELEASE-0131.md)
+- [0.13.2](RELEASE-0132.md)
+- [0.13.2.1](RELEASE-01321.md)
+- [0.13.3](RELEASE-0133.md)
+- [0.13.4](RELEASE-0134.md)
+- [0.13.4.1](RELEASE-01341.md)
+- [0.13.4.2](RELEASE-01342.md)
+- [0.13.4.3](RELEASE-01343.md)
+- [0.13.4.4](RELEASE-01344.md)
+- [0.13.4.5](RELEASE-01345.md)
+- [0.13.4.6](RELEASE-01346.md)
+- [0.13.4.7](RELEASE-01347.md)
+- [0.13.4.8](RELEASE-01348.md)
+- [0.13.5](RELEASE-0135.md)
+- [0.14.0](RELEASE-0140.md)
+- [0.15.0](RELEASE-0150.md)
+- [0.15.1](RELEASE-0151.md)
+- [0.16.0](RELEASE-0160.md)
+- [0.16.1](RELEASE-0161.md)
+- [0.16.2](RELEASE-0162.md)
+- [0.16.3](RELEASE-0163.md)
+- [0.16.4](RELEASE-0164.md)
+- [0.16.5](RELEASE-0165.md)
+
+Other historical release notes stay in `skyshift/` pending separate audit. This archive is **not** a source of active game code or a replacement for Git history.
+
 
 ### Path policy
 

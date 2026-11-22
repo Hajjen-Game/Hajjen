@@ -4,15 +4,15 @@ import {runInNewContext} from "node:vm";
 import {readFileSync} from "node:fs";
 import {
   TRACK_ART,createSurfacePlan,validateSurfacePlan
-} from "./identity-v034.mjs";
+} from "../../identity-v034.mjs";
 import {
   WORLD_DESIGN,createFormationPlan,validateWorldPlan
-} from "./world-v034.mjs";
-import {SHIP_STYLE} from "./ship-v034.mjs";
-import {TRIAL,GAPS,ISLANDS,SPLITS,roadIntervals,widthAt,onRoad} from "./trial-v03.mjs";
-import {NEON_TUNING} from "./neon-balance-v032.mjs";
-import {LUMINANCE} from "./luminance-v0331.mjs";
-const src=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+} from "../../world-v034.mjs";
+import {SHIP_STYLE} from "../../ship-v034.mjs";
+import {TRIAL,GAPS,ISLANDS,SPLITS,roadIntervals,widthAt,onRoad} from "../../trial-v03.mjs";
+import {NEON_TUNING} from "../../neon-balance-v032.mjs";
+import {LUMINANCE} from "../../luminance-v0331.mjs";
+const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 
 const plan=createSurfacePlan();
 

@@ -5,24 +5,24 @@ import {readFileSync} from "node:fs";
 import {
  CIRCUIT,CIRCUIT_LENGTH,AUTHORED_SECTIONS,COURSE_SEGMENTS,
  lapPosition,sectionAt,circuitPlanSummary
-} from "./circuit-layout-v060.mjs";
+} from "../../circuit-layout-v060.mjs";
 import {
  TRIAL,ARCHES,GUARDRAIL,MAX_BANK_RAD,GEOMETRY_BREAKS,
  CHECKPOINTS,LOOP_CLOSURE_ERROR_METERS,
  poseAt,headingAt,curvatureAt,bankAt,surfaceHeightAt,positionAt,
  projectWorldToTrack,checkpointFor,guardrailLateralLimit,
  onRoad,speedAt,setZoneSpeedStage,newFlightState,stepFlight,validateTrial
-} from "./trial-v060.mjs";
+} from "../../trial-v060.mjs";
 import {
  BOOST_PADS,RACE_BOOST_PADS,BOOST_CONFIG,boostPadAt
-} from "./boost-v060.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v060.mjs";
-import {createAeroBarrierData,AERO_BARRIER} from "./aero-barrier-v060.mjs";
-import {PREMIUM_TRACK,patchPremiumShaders} from "./premium-track-v060.mjs";
+} from "../../boost-v060.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v060.mjs";
+import {createAeroBarrierData,AERO_BARRIER} from "../../aero-barrier-v060.mjs";
+import {PREMIUM_TRACK,patchPremiumShaders} from "../../premium-track-v060.mjs";
 import {
  ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave
-} from "./zone-wave-v060.mjs";
-const src=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+} from "../../zone-wave-v060.mjs";
+const src=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const near=(actual,expected,tol=1e-5)=>assert.ok(Math.abs(actual-expected)<tol,
  String(actual)+" ≠ "+String(expected));
 test("authored Skyline Circuit is one welded 3400m closed 3D loop, 3 laps",()=>{
@@ -229,10 +229,10 @@ test("production route preserves original HUD, SMAA and three-lap telemetry",()=
   "zone-wave-v060","smooth-track-v0901","premium-track-v0901",
   "aero-barrier-v0901"]){
   if(dep==="circuit-layout-v082"){
-    assert.ok(src("./trial-v0901.mjs").includes('from "./circuit-layout-v082.mjs"'));
+    assert.ok(src("./trial-v0901.mjs").includes('from "../../circuit-layout-v082.mjs"'));
     continue;
    }
-  assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
+  assert.ok(game.includes('from "../../'+dep+'.mjs"'),dep);
  }
  assert.match(game,/TRIAL\.raceLength/);
  assert.match(game,/lap_completed/);

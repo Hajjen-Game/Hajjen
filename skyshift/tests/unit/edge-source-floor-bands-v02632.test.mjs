@@ -5,8 +5,8 @@ import {EDGE_SOURCE_02632,railBayWeight02632,railLipPosition02632,
  createLowerEdgeSources02632,createConnectedFootBands02632,
  createLowRailSourcesData02632,patchConnectedEdgeShader02632,
  installRepositionedEdgeAndConnectedFoot02632}
- from "./edge-source-floor-bands-v02632.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../edge-source-floor-bands-v02632.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Attr{
  constructor(array,size){this.array=array;this.itemSize=size;this.count=array.length/size;}
  getX(i){return this.array[i*this.itemSize];}

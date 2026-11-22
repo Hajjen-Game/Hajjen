@@ -5,12 +5,12 @@ import {readFileSync} from "node:fs";
 import {
  CINEMATIC_DEFAULTS,createCinematicState,turnPreview,headingDelta,
  stepCinematic,chasePose,cinematicFov,engineLightFactor
-} from "./cinematic-v045.mjs";
-import {createFlightMotionState} from "./flight-motion-v044.mjs";
+} from "../../cinematic-v045.mjs";
+import {createFlightMotionState} from "../../flight-motion-v044.mjs";
 import {
  TRIAL,headingAt,positionAt,newFlightState,stepFlight
-} from "./trial-v043.mjs";
-const source=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+} from "../../trial-v043.mjs";
+const source=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const pose=(more={})=>({worldX:12,worldZ:-80,y:1,
  steering:0,yawRate:0,heading:0,clearance:0,...more});
 function advance(state,view,preview,seconds=1,fps=60){

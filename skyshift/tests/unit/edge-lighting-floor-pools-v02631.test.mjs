@@ -5,8 +5,8 @@ import {EDGE_FLOOR_02631,railSegment02631,nearestFoot02631,
  railSourceData02631,floorY02631,createEmitterGeometry02631,
  createFloorPoolGeometry02631,patchEdgeRoadShader02631,
  installEdgeRoadShader02631,installEdgeLightingFloorPools02631}
- from "./edge-lighting-floor-pools-v02631.mjs";
-const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+ from "../../edge-lighting-floor-pools-v02631.mjs";
+const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const p=(s,l,y)=>({x:l,y,z:s});
 class Attr{
  constructor(array,size){this.array=array;this.itemSize=size;this.count=array.length/size;}

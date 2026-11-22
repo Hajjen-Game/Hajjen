@@ -3,13 +3,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {WORLD_ART_0201,planStationWorld,bakeTrackConformingBayGeometry}
- from "./environment-art-pipeline-v0201.mjs";
+ from "../../environment-art-pipeline-v0201.mjs";
 import {STATION_ART_0201,buildStationAsset}
- from "./build-station-world-v0201.mjs";
-import {TRIAL,SKYLINE_LEAP,positionAt} from "./trial-v0165.mjs";
+ from "../../build-station-world-v0201.mjs";
+import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
 import {planStationWorld as planLegacyWorld}
- from "./environment-art-pipeline-v0200.mjs";
-const src=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+ from "../../environment-art-pipeline-v0200.mjs";
+const src=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const gltf=JSON.parse(src("./assets/worlds/continuum-enclosure-bays-v2.gltf"));
 test("station becomes an enclosed interior; old highway remains exactly the same",()=>{
  const p=planStationWorld();

@@ -3,13 +3,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {WORLD_ART_0202,planStationWorld,bakeTrackConformingBayGeometry}
- from "./environment-art-pipeline-v0202.mjs";
+ from "../../environment-art-pipeline-v0202.mjs";
 import {WORLD_ART_0201,planStationWorld as planOld}
- from "./environment-art-pipeline-v0201.mjs";
+ from "../../environment-art-pipeline-v0201.mjs";
 import {STATION_ART_0202,buildStationAsset}
- from "./build-station-world-v0202.mjs";
-import {TRIAL,SKYLINE_LEAP,positionAt} from "./trial-v0165.mjs";
-const file=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+ from "../../build-station-world-v0202.mjs";
+import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
+const file=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const asset=JSON.parse(file("./assets/worlds/continuum-observation-bays-v3.gltf"));
 const previous=JSON.parse(file("./assets/worlds/continuum-enclosure-bays-v2.gltf"));
 test("window balance: exactly three pairs separated by enclosed bulkheads",()=>{

@@ -2,8 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {CURVE_CONTINUITY_02896,surfaceContinuityEnabled02896,
  curveRoadMask02896,periodicColorBlend02896,patchCurveColorSeam02896,
- installCurveSurfaceContinuity02896} from "./curve-surface-continuity-v02896.mjs";
-import {vaultStraightMask02891,vaultStraightRanges02891} from "./shared-straight-edge-parity-v02891.mjs";
+ installCurveSurfaceContinuity02896} from "../../curve-surface-continuity-v02896.mjs";
+import {vaultStraightMask02891,vaultStraightRanges02891} from "../../shared-straight-edge-parity-v02891.mjs";
 
 test("only Vault >= 0.28.9.6 opts in, older Skyline and Vault preserved",()=>{
  for(const old of ["0.28.9.1","0.28.9.4","0.28.9.5"])

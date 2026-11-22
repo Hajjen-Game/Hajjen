@@ -3,12 +3,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {patchRoadSolarSpillShader} from "./road-solar-spill-v02126.mjs";
-import {patchPremiumRoadSurfaceShader} from "./premium-road-surface-v0215.mjs";
+import {patchRoadSolarSpillShader} from "../../road-solar-spill-v02126.mjs";
+import {patchPremiumRoadSurfaceShader} from "../../premium-road-surface-v0215.mjs";
 import {CINEMATIC_ROAD_0242,patchCinematicRoadReflectionShader,
  createCinematicRoadReflectionController}
- from "./cinematic-road-reflections-v0242.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../cinematic-road-reflections-v0242.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 function roadFragment(){
  return [
  "#include <common>",

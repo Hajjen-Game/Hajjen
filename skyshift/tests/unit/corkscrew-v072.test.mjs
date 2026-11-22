@@ -4,21 +4,21 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {CORKSCREW,TRACK_3D,corkscrewAt,corkscrewBankAt,
  corkscrewProgressAt,MAGNETIC_WALL,elevationAt,gradeAt}
- from "./track-3d-v072.mjs";
+ from "../../track-3d-v072.mjs";
 import {TRIAL,CIRCUIT,GAPS,GUARDRAIL,bankAt,bankDegreesAt,
  surfaceNormalAt,surfaceHeightAt,positionAt,poseAt,projectWorldToTrack,
  widthAt,guardrailLateralLimit,headingAt,curvatureAt,COURSE_SEGMENTS,
  TECHNICAL_APEX_PULSES,LOOP_CLOSURE_ERROR_METERS,circuitPlanSummary,
- newFlightState,stepFlight,speedAt,validateTrial} from "./trial-v072.mjs";
-import {GRIP_SPEC} from "./precision-grip-v061.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v072.mjs";
+ newFlightState,stepFlight,speedAt,validateTrial} from "../../trial-v072.mjs";
+import {GRIP_SPEC} from "../../precision-grip-v061.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v072.mjs";
 import {createAeroBarrierData,sampleAeroProfile,AERO_BARRIER}
- from "./aero-barrier-v072.mjs";
-import {PREMIUM_TRACK,patchPremiumShaders} from "./premium-track-v072.mjs";
+ from "../../aero-barrier-v072.mjs";
+import {PREMIUM_TRACK,patchPremiumShaders} from "../../premium-track-v072.mjs";
 import {chasePose,cameraBankAt,CINEMATIC_DEFAULTS}
- from "./cinematic-v072.mjs";
-import * as archived from "./trial-v071.mjs";
-const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../cinematic-v072.mjs";
+import * as archived from "../../trial-v071.mjs";
+const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,tol=1e-5)=>assert.ok(Math.abs(a-b)<=tol,
  "expected "+a+" ≈ "+b+" (tolerance "+tol+")");
 test("full 360° corkscrew lives on the finish straight, leaves 70° wall alone",()=>{
@@ -176,11 +176,11 @@ test("archived 0.7.2 corkscrew keeps its geometry; live 0.10.3 extends the fligh
  assert.match(boot,/game-v0103\.mjs\?v=0\.10\.3/);
  assert.match(archivedBoot,/game-v072\.mjs\?v=0\.7\.2/);
  for(const dep of ["trial-v0901","frame-pacing-v080"]){
-  assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
+  assert.ok(game.includes('from "../../'+dep+'.mjs"'),dep);
  }
  for(const dep of ["smooth-track-v0901","premium-track-v0901",
   "aero-barrier-v0901","cinematic-v0901"]){
-  assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
+  assert.ok(game.includes('from "../../'+dep+'.mjs"'),dep);
  }
  assert.match(game,/version:"0\.10\.3"/);
  assert.match(game,/corkscrew_enter/);

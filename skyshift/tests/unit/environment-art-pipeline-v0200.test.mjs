@@ -2,10 +2,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {WORLD_ART_0200,planStationWorld,bakeTrackConformingBayGeometry} from "./environment-art-pipeline-v0200.mjs";
-import {STATION_ART_0200,buildStationAsset} from "./build-station-world-v0200.mjs";
-import {TRIAL,SKYLINE_LEAP,positionAt} from "./trial-v0165.mjs";
-const src=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+import {WORLD_ART_0200,planStationWorld,bakeTrackConformingBayGeometry} from "../../environment-art-pipeline-v0200.mjs";
+import {STATION_ART_0200,buildStationAsset} from "../../build-station-world-v0200.mjs";
+import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
+const src=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const gltf=JSON.parse(src("./assets/worlds/continuum-bays-v1.gltf"));
 test("World Art station is contiguous, coherent, and fits before first Skyline leap",()=>{
  const p=planStationWorld();

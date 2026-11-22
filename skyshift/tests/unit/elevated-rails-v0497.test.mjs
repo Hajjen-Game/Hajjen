@@ -6,12 +6,12 @@ import {
  AERO_BARRIER,AERO_PROFILE,cornerRailEmphasisAt,railHeightAt,
  sampleAeroProfile,createAeroBarrierData,createAeroDetailData,
  patchRailShaders
-} from "./aero-barrier-v0497.mjs";
+} from "../../aero-barrier-v0497.mjs";
 import {AERO_BARRIER as PRIOR,createAeroDetailData as priorDetail}
- from "./aero-barrier-v0496.mjs";
+ from "../../aero-barrier-v0496.mjs";
 import {GUARDRAIL,TRIAL,headingAt,widthAt,guardrailLateralLimit}
- from "./trial-v0494.mjs";
-const source=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+ from "../../trial-v0494.mjs";
+const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const epsilon=(a,b,eps=1e-6)=>assert.ok(Math.abs(a-b)<eps,
   "Expected "+a+" to equal "+b);
 test("straight rails are 27% taller, corners rise smoothly and collision is unchanged",()=>{
@@ -102,7 +102,7 @@ test("active 0.4.9.7 removes all instanced roadside pillars, keeps finish arch",
  for(const dep of ["premium-track-v0496","zone-wave-v0493",
    "boost-v0494","trial-v0494","boost-spring-v0495",
    "engine-trails-v0496","velocity-language-v0496"])
-  assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
+  assert.ok(game.includes('from "../../'+dep+'.mjs"'),dep);
  assert.match(game,/function buildDecor\(\)\{/);
  assert.match(game,/if\(arch.label==="FINISH"\)/);
  assert.doesNotMatch(game,/new THREE\.InstancedMesh/);

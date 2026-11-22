@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
+import {ENGINE_SOCKETS} from "../../manta-blade-v0484.mjs";
 import {STINGRAY_EVO,STINGRAY_WING,createTailState,tailPoseStep}
- from "./stingray-evo-v010.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../stingray-evo-v010.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 function sample(fps,view,duration=1.5){
  const state=createTailState();
  for(let i=0;i<Math.round(fps*duration);i++)

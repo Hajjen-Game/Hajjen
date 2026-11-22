@@ -3,13 +3,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import * as previous from "./trial-v083.mjs";
+import * as previous from "../../trial-v083.mjs";
 import {
  STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt
 } from "./steering-authority-v084.mjs";
-import {GRIP_SPEC,initGripState,stepGripState} from "./precision-grip-v084.mjs";
-import {createSmoothDeckData} from "./smooth-track-v084.mjs";
-import {createAeroBarrierData} from "./aero-barrier-v084.mjs";
+import {GRIP_SPEC,initGripState,stepGripState} from "../../precision-grip-v084.mjs";
+import {createSmoothDeckData} from "../../smooth-track-v084.mjs";
+import {createAeroBarrierData} from "../../aero-barrier-v084.mjs";
 import {
  TRIAL,CIRCUIT,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  widthAt,curvatureAt,positionAt,surfaceHeightAt,headingAt,speedAt,
@@ -17,7 +17,7 @@ import {
 } from "./trial-v084.mjs";
 const near=(a,b,eps=1e-7)=>assert.ok(Math.abs(a-b)<=eps,
  "expected "+a+" within "+eps+" of "+b);
-const src=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+const src=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 
 // Exactly invert the existing shaped analog stick in a *test pilot* only.
 // The production game never receives an automated target heading or lane.

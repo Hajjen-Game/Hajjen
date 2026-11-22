@@ -2,8 +2,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {SHIP_ART_0132,assessHeroAsset} from "./ship-art-pipeline-v0132.mjs";
-const path=new URL("./assets/ships/stingray-evo-hero-v1.gltf",import.meta.url);
+import {SHIP_ART_0132,assessHeroAsset} from "../../ship-art-pipeline-v0132.mjs";
+const path=new URL("../../"+"./assets/ships/stingray-evo-hero-v1.gltf",import.meta.url);
 const source=readFileSync(path,"utf8"),model=JSON.parse(source);
 const named=name=>{
  const idx=model.meshes.findIndex(x=>x.name===name);

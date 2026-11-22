@@ -3,8 +3,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {STINGRAY_EVO,createTailState,tailPoseStep}
- from "./stingray-evo-v0102.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../stingray-evo-v0102.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const input={steering:.91,yawRate:.80,gripIntensity:.90,
  boostMultiplier:1,speed:104,grounded:true};
 function run(view,seconds=2,fps=60,st=createTailState()){

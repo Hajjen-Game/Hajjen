@@ -3,12 +3,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {buildStingrayHeroV3GLTF,HERO_V3_SPEC}
- from "./blender/stingray-hero-v3-source-v0134.mjs";
+ from "../../blender/stingray-hero-v3-source-v0134.mjs";
 import {SHIP_ART_0134,assessHeroAsset,requestedShipArt}
- from "./ship-art-pipeline-v0134.mjs";
+ from "../../ship-art-pipeline-v0134.mjs";
 import {HANGAR_HERO_0134,createStingrayHeroShowroom}
- from "./hangar-hero-v0134.mjs";
-const source=readFileSync(new URL("./assets/ships/stingray-evo-hero-v3.gltf",
+ from "../../hangar-hero-v0134.mjs";
+const source=readFileSync(new URL("../../"+"./assets/ships/stingray-evo-hero-v3.gltf",
  import.meta.url),"utf8");
 const asset=JSON.parse(source);
 const binary=Buffer.from(asset.buffers[0].uri.split(",")[1],"base64");

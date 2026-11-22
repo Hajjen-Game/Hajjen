@@ -1,14 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {COURSE_SEGMENTS} from "./trial-v0165.mjs";
-import {createConnectedFootBands02632} from "./edge-source-floor-bands-v02632.mjs";
+import {COURSE_SEGMENTS} from "../../trial-v0165.mjs";
+import {createConnectedFootBands02632} from "../../edge-source-floor-bands-v02632.mjs";
 import {
  STRAIGHT_EDGE_02633,straightRanges02633,straightEdgeMask02633,
  buildStraightCyanEmitters02633,buildStraightRoadMasks02633,
  patchStraightEdgeShader02633,installStraightOnlyEdgeLighting02633
 } from "./straight-only-edge-lighting-v02633.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Attr{
  constructor(a,size){this.array=a;this.itemSize=size;this.count=a.length/size;}
  getX(i){return this.array[this.itemSize*i];}

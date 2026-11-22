@@ -1,34 +1,38 @@
-// SKYSHIFT 0.13.4.4 — real art span, continuous GRIP-safe visual pose.
+// SKYSHIFT 0.13.4.5 — real art span, continuous GRIP-safe visual pose.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {MANTA_WING_OUTLINE} from "./manta-blade-v0484.mjs";
-import {STINGRAY_PRESENTATION_01344 as spec,
+import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";
+import {STINGRAY_PRESENTATION_01345 as spec,
  visualSettingsForShip,stableStingrayVisualRoll}
- from "./stingray-presentation-v01344.mjs";
-import {TRIAL} from "./trial-v0901.mjs";
-import {STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
-const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+ from "../../stingray-presentation-v01345.mjs";
+import {TRIAL} from "../../trial-v0901.mjs";
+import {STINGRAY_EVO} from "../../stingray-evo-v01342.mjs";
+const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const art=JSON.parse(read("./assets/ships/stingray-evo-hero-v4.gltf"));
 const mesh=name=>art.meshes.find(m=>m.name===name);
 function bounds(name){
  const m=mesh(name);assert.ok(m,"missing real glTF mesh "+name);
  return art.accessors[m.primitives[0].attributes.POSITION];
 }
-test("actual deployed V4 HERO wing matches the Manta wingtip span EXACTLY",()=>{
+test("deployed V4 HERO wing is calibrated against captured chase-view pixels",()=>{
  const manta=2*Math.max(...MANTA_WING_OUTLINE.map(p=>Math.abs(p[0])));
  const hero=2*bounds("Hero_Wing_R").max[0];
  const presented=hero*spec.visualWingScale;
  assert.equal(manta,5.8);
- assert.ok(Math.abs(presented-manta)<1e-8,{manta,presented});
- assert.equal(spec.visualWingScale,spec.mantaBeamMeters/spec.rawStingrayBeamMeters);
+ assert.equal(spec.screenshotMantaWidthPixels,170);
+ assert.equal(spec.screenshotStingrayWidthPixels,210);
+ assert.equal(spec.screenSpaceCorrection,170/210);
+ assert.ok(Math.abs(presented-manta*spec.screenSpaceCorrection)<1e-8);
+ assert.equal(spec.visualWingScale,(spec.mantaBeamMeters/spec.rawStingrayBeamMeters)*(170/210));
+ assert.ok(presented<manta,"the image-space reference requires a narrower world span");
  assert.ok(spec.visualLengthScale<.72);
  assert.ok(spec.visualVerticalScale<.72);
  assert.equal(spec.tailJoints,STINGRAY_EVO.segmentCount);
 });
 test("only Stingray gets a compact 3D root and fixed road-normal lift",()=>{
  assert.deepEqual(visualSettingsForShip("stingray"),{
-  scaleX:5.80/8.08,scaleY:.68,scaleZ:.68,lift:.26});
+  scaleX:(5.80/8.08)*(170/210),scaleY:.68,scaleZ:.68,lift:.26});
  for(const id of ["manta","",null])
   assert.deepEqual(visualSettingsForShip(id),{
    scaleX:1,scaleY:1,scaleZ:1,lift:0});
@@ -59,7 +63,7 @@ test("GRIP visual roll stays smooth and below a static wing-clearance envelope",
  const pitchReserve=2.49*spec.visualLengthScale*Math.sin(.14);
  const clearance=TRIAL.hoverHeight+spec.visualRoadNormalLiftMeters-
   compression-wingHalf*Math.sin(max)-pitchReserve;
- assert.ok(clearance>.10,"static roll cap must retain clearance: "+clearance);
+ assert.ok(clearance>.20,"static roll cap must retain clearance: "+clearance);
 });
 test("no abrupt bank limit, left/right symmetry or steering reversal",()=>{
  const bank=.28,max=spec.maxRelativeVisualRollRadians;
@@ -89,9 +93,11 @@ test("full aerial trick and 360 degree corkscrew bank survive limitation",()=>{
  }
 });
 test("active game changes ONLY Stingray render root and visual roll, not physics",()=>{
- const game=read("./game-v01344.mjs");
+ const game=read("./game-v01345.mjs");
  assert.match(game,/buildStingrayEvo\(THREE,shipGlow\):buildPremiumMantaBlade/);
  assert.match(game,/ship\.scale\.set\(visual\.scaleX,visual\.scaleY,visual\.scaleZ\)/);
+ assert.match(game,/__skyshiftScreenBeamProbe/);
+ assert.match(game,/buildMantaWings\(\)\.positions/);
  assert.match(game,/stableStingrayVisualRoll\(naturalRoll,roadBank,view\.trickVisualAngle\?\?0\)/);
  assert.match(game,/const result=stepFlight\(flight,dt,\{steer,grip:gripHeld\}\)/);
  assert.match(game,/const visualLift=activeShipId==="stingray"/);
@@ -99,12 +105,12 @@ test("active game changes ONLY Stingray render root and visual roll, not physics
  assert.doesNotMatch(game,/flight\.y\s*\+=\s*spec|flight\.y\s*\+=\s*STINGRAY_PRESENTATION/);
  assert.equal(spec.addedDrawCalls,0);
 });
-test("0.13.4.4 boot and menu are wired to the new production module",()=>{
- const html=read("./index.html"),boot=read("./boot-v01344.js");
- assert.match(html,/boot-v01344\.js\?v=0\.13\.4\.4/);
- assert.match(html,/data-game-module="game-v01344\.mjs"/);
- assert.match(html,/SKYLINE CIRCUIT · 0\.13\.4\.4/);
- assert.match(boot,/import\("\.\/game-v01344\.mjs\?v=0\.13\.4\.4"\)/);
+test("0.13.4.5 boot and menu are wired to the new production module",()=>{
+ const html=read("./index.html"),boot=read("./boot-v01345.js");
+ assert.match(html,/boot-v01345\.js\?v=0\.13\.4\.5/);
+ assert.match(html,/data-game-module="game-v01345\.mjs"/);
+ assert.match(html,/SKYLINE CIRCUIT · 0\.13\.4\.5/);
+ assert.match(boot,/import\("\.\/game-v01345\.mjs\?v=0\.13\.4\.5"\)/);
 });
 
 test("deployed V4 3D asset has intact complete imported wing and tail geometry",()=>{

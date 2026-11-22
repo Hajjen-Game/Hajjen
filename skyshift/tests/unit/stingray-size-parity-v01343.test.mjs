@@ -1,17 +1,18 @@
-// SKYSHIFT 0.13.4.2 — stable scale and faceted tail rollback regression.
+// SKYSHIFT 0.13.4.3 — stable scale and faceted tail rollback regression.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {STINGRAY_PRESENTATION_01342,visualSettingsForShip}
- from "./stingray-presentation-v01342.mjs";
+import {STINGRAY_PRESENTATION_01343,visualSettingsForShip}
+ from "../../stingray-presentation-v01343.mjs";
+import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";
 import {STINGRAY_EVO,createTailState,tailPoseStep}
- from "./stingray-evo-v01342.mjs";
+ from "../../stingray-evo-v01342.mjs";
 import {buildStingrayHeroV4GLTF,HERO_V4_SPEC}
- from "./blender/stingray-hero-v4-source-v01342.mjs";
+ from "../../blender/stingray-hero-v4-source-v01342.mjs";
 import {SHIP_ART_01342,assessHeroAsset,requestedShipArt}
- from "./ship-art-pipeline-v01342.mjs";
+ from "../../ship-art-pipeline-v01342.mjs";
 
-const source=readFileSync(new URL("./assets/ships/stingray-evo-hero-v4.gltf",import.meta.url),"utf8");
+const source=readFileSync(new URL("../../"+"./assets/ships/stingray-evo-hero-v4.gltf",import.meta.url),"utf8");
 const model=JSON.parse(source),buffer=Buffer.from(model.buffers[0].uri.split(",")[1],"base64");
 const mesh=n=>model.meshes.find(m=>m.name===n);
 function range(name){
@@ -25,25 +26,37 @@ function sampleTail(data,frames=300){
  return st;
 }
 test("the patch is a TRUE rollback of dynamic wing compensation",()=>{
- const game=readFileSync(new URL("./game-v01342.mjs",import.meta.url),"utf8");
+ const game=readFileSync(new URL("../../"+"./game-v01343.mjs",import.meta.url),"utf8");
  assert.doesNotMatch(game,/wing-clearance-v01341|stingrayClearance|clampVisualRoll/);
  assert.match(game,/ship\.rotation\.z=motion\.roll-bankAt\(view\.s\)-/);
  assert.match(game,/const result=stepFlight\(flight,dt,\{steer,grip:gripHeld\}\)/);
  assert.match(game,/visualRoadNormalLiftMeters/);
  assert.match(game,/ship\.scale\.setScalar/);
  assert.doesNotMatch(game,/flight\.y\s*\+=\s*STINGRAY_PRESENTATION/);
- assert.equal(STINGRAY_PRESENTATION_01342.useDynamicWingClearance,false);
- assert.equal(STINGRAY_PRESENTATION_01342.modifyRoll,false);
- assert.equal(STINGRAY_PRESENTATION_01342.modifyGrip,false);
- assert.equal(STINGRAY_PRESENTATION_01342.modifySteering,false);
- assert.equal(STINGRAY_PRESENTATION_01342.modifyCamera,false);
+ assert.equal(STINGRAY_PRESENTATION_01343.useDynamicWingClearance,false);
+ assert.equal(STINGRAY_PRESENTATION_01343.modifyRoll,false);
+ assert.equal(STINGRAY_PRESENTATION_01343.modifyGrip,false);
+ assert.equal(STINGRAY_PRESENTATION_01343.modifySteering,false);
+ assert.equal(STINGRAY_PRESENTATION_01343.modifyCamera,false);
 });
-test("Stingray only is 10% smaller with constant +18cm road-normal lift",()=>{
- assert.deepEqual(visualSettingsForShip("stingray"),{scale:.90,lift:.18});
+test("Stingray matches Manta Blade screen-space beam with constant +18cm road-normal lift",()=>{
+ assert.deepEqual(visualSettingsForShip("stingray"),{scale:.72,lift:.18});
  for(const id of ["manta","",null])
   assert.deepEqual(visualSettingsForShip(id),{scale:1,lift:0});
- assert.equal(STINGRAY_PRESENTATION_01342.modifyPhysicalHover,false);
- assert.equal(STINGRAY_PRESENTATION_01342.otherShipsUnaffected,true);
+ assert.equal(STINGRAY_PRESENTATION_01343.modifyPhysicalHover,false);
+ assert.equal(STINGRAY_PRESENTATION_01343.otherShipsUnaffected,true);
+});
+test("REAL V4 wing half-span at scale .72 matches REAL Manta Blade within 1%",()=>{
+ const mantaHalf=Math.max(...MANTA_WING_OUTLINE.map(([x])=>Math.abs(x)));
+ const stingrayHalf=range("Hero_Wing_R").max[0];
+ const mantaBeam=mantaHalf*2;
+ const stingrayBeam=stingrayHalf*2*STINGRAY_PRESENTATION_01343.visualUniformScale;
+ assert.equal(mantaBeam,5.8);
+ assert.ok(stingrayBeam>mantaBeam*.99&&stingrayBeam<mantaBeam*1.01,
+  "screen-space beam should match standard Manta within 1%");
+ assert.ok(Math.abs(stingrayBeam-mantaBeam)<.03);
+ assert.equal(STINGRAY_PRESENTATION_01343.visualUniformScale,.72);
+ assert.equal(STINGRAY_PRESENTATION_01343.visualRoadNormalLiftMeters,.18);
 });
 test("published external V4 GLTF exactly equals its reproducible source",()=>{
  const generated=buildStingrayHeroV4GLTF();
@@ -75,7 +88,7 @@ test("9 REAL mechanical plates have smaller slim, sharp-sided hard surfaces",()=
   assert.ok(widths[i]<widths[i-1]);
  assert.equal(STINGRAY_EVO.segmentCount,9);
  assert.equal(STINGRAY_EVO.tailSegmentMeters,.68);
- assert.equal(STINGRAY_PRESENTATION_01342.tailJoints,9);
+ assert.equal(STINGRAY_PRESENTATION_01343.tailJoints,9);
 });
 test("V4 art remains a validated real glTF with all legacy rig sockets",()=>{
  const materials=model.materials.map(m=>({name:m.name}));
@@ -122,17 +135,17 @@ test("tail idle remains alive but is less snake-like than GRIP response",()=>{
  assert.ok(STINGRAY_EVO.dampingRatio>=.84);
 });
 test("actual visible tail guides are distinct ticks instead of continuous strips",()=>{
- const source=readFileSync(new URL("./stingray-evo-v01342.mjs",import.meta.url),"utf8");
+ const source=readFileSync(new URL("../../"+"./stingray-evo-v01342.mjs",import.meta.url),"utf8");
  assert.match(source,/length\*\.30\),neon\)/);
  assert.match(source,/neon\.opacity=\.30\+\.24\*state\.ribbonEnergy/);
  assert.equal(STINGRAY_EVO.additionalTailDrawCalls,20);
 });
 test("live entrypoint targets rollback version and preserves settings/Ghost",()=>{
- const index=readFileSync(new URL("./index.html",import.meta.url),"utf8");
- const boot=readFileSync(new URL("./boot-v01342.js",import.meta.url),"utf8");
- assert.match(index,/boot-v01342\.js\?v=0\.13\.4\.2/);
- assert.match(index,/data-game-module="game-v01342\.mjs"/);
+ const index=readFileSync(new URL("../../"+"./index.html",import.meta.url),"utf8");
+ const boot=readFileSync(new URL("../../"+"./boot-v01343.js",import.meta.url),"utf8");
+ assert.match(index,/boot-v01343\.js\?v=0\.13\.4\.3/);
+ assert.match(index,/data-game-module="game-v01343\.mjs"/);
  assert.match(index,/id="pause-ghost-toggle"/);
  assert.match(index,/id="menu-settings-btn"/);
- assert.match(boot,/game-v01342\.mjs\?v=0\.13\.4\.2/);
+ assert.match(boot,/game-v01343\.mjs\?v=0\.13\.4\.3/);
 });

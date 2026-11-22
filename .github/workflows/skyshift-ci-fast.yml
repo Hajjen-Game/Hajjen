@@ -65,6 +65,8 @@ jobs:
           node --check skyshift/browser-shared-tunnel-v0280.mjs
           node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
           node --check skyshift/ceiling-fixture-cohesion-v02892.mjs
+          node --check skyshift/premium-arch-optics-v02893.mjs
+          node --check skyshift/browser-premium-arch-optics-v02893.mjs
           node --check skyshift/browser-ceiling-fixture-v02892.mjs
           node --check skyshift/browser-true-shared-tunnel-v0281.mjs
           node --check skyshift/shared-road-ship-light-v0282.mjs
@@ -140,6 +142,7 @@ jobs:
           # Neon Vault's independent menu release must both be validated
           # on the PR, before merging to main.
           node --test skyshift/ceiling-fixture-cohesion-v02892.test.mjs
+          node --test skyshift/premium-arch-optics-v02893.test.mjs
           node --test skyshift/build-version-v02204.test.mjs
 
   current-material-webgl:
@@ -837,4 +840,35 @@ jobs:
           path: |
             skyshift/previews/v02892-*.png
             skyshift/previews/v02892-proof.json
+          if-no-files-found: warn
+
+  premium-arch-optics-real-webgl-02893:
+    name: SKYSHIFT 0.28.9.3 actual chromatic arch/road optics, pink/cyan High/4GB
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify shared source masks, real GGX and wave shader
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check skyshift/premium-arch-optics-v02893.mjs
+          node --check skyshift/browser-premium-arch-optics-v02893.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/premium-arch-optics-v02893.test.mjs
+      - name: Install real browser screenshot driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Capture true chromatic moving-wave arch and floor reflections
+        run: node skyshift/browser-premium-arch-optics-v02893.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02893-original-arch-chromatic-road-before-after
+          path: |
+            skyshift/previews/v02893-*.png
+            skyshift/previews/v02893-proof.json
           if-no-files-found: warn

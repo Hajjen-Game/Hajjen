@@ -39,7 +39,8 @@ test("third Neon Vault course has a distinct 0.27.x versioned menu URL",()=>{
    html.includes("Shared Tunnel Spatial Wavefront Parity · "+version)||
    html.includes("Reflection Stability & Luminous Strip Definition · "+version)||
    html.includes("Arch Foot Light Assembly & Corner Signature · "+version)||
-   html.includes("Precision Neon Emission & Local Metal Response · "+version));
+   html.includes("Precision Neon Emission & Local Metal Response · "+version)||
+   html.includes("Cinematic Metal & Neon Reflection Rebalance · "+version));
  assert.match(html,/<option value="vault">03 · NEON VAULT/);
  assert.match(game,/const vaultMaterialParityEnabled=fullTunnelFoundationEnabled/);
  assert.match(game,/vaultMaterialComparison:"\?vaultMaterial=classic"/);

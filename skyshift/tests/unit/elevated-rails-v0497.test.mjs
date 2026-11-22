@@ -102,7 +102,7 @@ test("active 0.4.9.7 removes all instanced roadside pillars, keeps finish arch",
  for(const dep of ["premium-track-v0496","zone-wave-v0493",
    "boost-v0494","trial-v0494","boost-spring-v0495",
    "engine-trails-v0496","velocity-language-v0496"])
-  assert.ok(game.includes('from "../../'+dep+'.mjs"'),dep);
+  assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  assert.match(game,/function buildDecor\(\)\{/);
  assert.match(game,/if\(arch.label==="FINISH"\)/);
  assert.doesNotMatch(game,/new THREE\.InstancedMesh/);

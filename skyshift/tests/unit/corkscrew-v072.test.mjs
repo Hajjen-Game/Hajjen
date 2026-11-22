@@ -176,11 +176,11 @@ test("archived 0.7.2 corkscrew keeps its geometry; live 0.10.3 extends the fligh
  assert.match(boot,/game-v0103\.mjs\?v=0\.10\.3/);
  assert.match(archivedBoot,/game-v072\.mjs\?v=0\.7\.2/);
  for(const dep of ["trial-v0901","frame-pacing-v080"]){
-  assert.ok(game.includes('from "../../'+dep+'.mjs"'),dep);
+  assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  }
  for(const dep of ["smooth-track-v0901","premium-track-v0901",
   "aero-barrier-v0901","cinematic-v0901"]){
-  assert.ok(game.includes('from "../../'+dep+'.mjs"'),dep);
+  assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  }
  assert.match(game,/version:"0\.10\.3"/);
  assert.match(game,/corkscrew_enter/);

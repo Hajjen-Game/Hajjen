@@ -229,10 +229,10 @@ test("production route preserves original HUD, SMAA and three-lap telemetry",()=
   "zone-wave-v060","smooth-track-v0901","premium-track-v0901",
   "aero-barrier-v0901"]){
   if(dep==="circuit-layout-v082"){
-    assert.ok(src("./trial-v0901.mjs").includes('from "../../circuit-layout-v082.mjs"'));
+    assert.ok(src("./trial-v0901.mjs").includes('from "./circuit-layout-v082.mjs"'));
     continue;
    }
-  assert.ok(game.includes('from "../../'+dep+'.mjs"'),dep);
+  assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);
  }
  assert.match(game,/TRIAL\.raceLength/);
  assert.match(game,/lap_completed/);

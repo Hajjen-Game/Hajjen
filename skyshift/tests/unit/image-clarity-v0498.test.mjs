@@ -112,7 +112,7 @@ test("production boot uses 0.4.9.8 without touching ship physics or scenery",()=
  for(const dep of ["neon-v0498","image-clarity-v0498","premium-track-v0498",
   "aero-barrier-v0497","zone-wave-v0493","trial-v0494",
   "boost-v0494","boost-spring-v0495","velocity-language-v0496"])
-  assert.ok(game.includes('from "../../'+dep+'.mjs"'),"missing "+dep);
+  assert.ok(game.includes('from "./'+dep+'.mjs"'),"missing "+dep);
  assert.match(game,/claritySettings=selectClarityProfile/);
  assert.match(game,/renderer\.setPixelRatio\(claritySettings\.renderDpr\)/);
  assert.match(game,/dprForAdaptiveLevel\(claritySettings,adaptiveQuality\.level\)/);

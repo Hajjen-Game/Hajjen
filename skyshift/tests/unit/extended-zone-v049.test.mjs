@@ -164,7 +164,7 @@ test("active 0.4.9 uses extended modules, dynamic palettes and no screen flash",
  const game=source("game-v049.mjs"),page=source("index.html");
  assert.match(page,/boot-v0103\.js\?v=0\.10\.3/);
  for(const dep of ["trial-v049","boost-v049","premium-track-v049","smooth-track-v049","aero-barrier-v049","zone-wave-v049"])
-  assert.ok(game.includes(`from "../../${dep}.mjs"`),dep);
+  assert.ok(game.includes(`from "./${dep}.mjs"`),dep);
  assert.match(game,/updateZoneWave\(zoneWave,flight\.elapsed,flight\.s\)/);
  assert.match(game,/premiumSurface\?\.setWaveState\(zoneWave\)/);
  assert.match(game,/zoneWave\.playerStage/);

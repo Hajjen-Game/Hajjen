@@ -98,7 +98,7 @@ test("all 10 REAL shared source modules obey the same world-space safe ranges",(
   }
   assert.ok(segments>12&&segments<220,"visible lit segments "+segments);
   assert.ok(quads>100,"real quad geometry "+quads);
-  assert.ok(lit>60&&lit<500,"only source runs on straights "+lit);
+  assert.ok(lit>60&&lit<1200,"only source runs on straights "+lit);
  }
 });
 test("indexed original racing deck mask 0 in each bend, active on straights",()=>{

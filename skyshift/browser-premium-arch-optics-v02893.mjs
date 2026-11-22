@@ -92,6 +92,12 @@ async function take(spec,classic=false,legacyOff=false){
   const image=await page.screenshot({path:dir+"v02893-"+label+".png"});
   if(arch.touched<70||road.touched<8||final.touched<80)
    throw Error(label+" non-visible actual WebGL upgrade "+JSON.stringify({arch,road,final}));
+  // A visually "successful" glow can still be WRONG: old 0.28.9.3 used
+  // interpolated nearest portal meters and painted >27% of the entire road.
+  // Keep the premium tint LOCAL to the real nearest arch, no color overlay.
+  if(road.touched>road.area*.20)
+   throw Error(label+" broad unphysical road wash (arch source interpolation) "+
+    JSON.stringify(road));
   proof.push({label,pink:spec.stage===4,memory:spec.memory,
    arch,road,final,source:audit.source,roadSource:audit.road,
    legacyCount:audit.legacyRoadResponseCount,

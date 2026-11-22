@@ -52,7 +52,10 @@ export function smoothPulse02895(s,{
  const center=from+length*.5;
  const delta=Math.abs(((within-center+pitch*10000+pitch*.5)%pitch)-pitch*.5);
  const t=clamp((delta-(length*.5-.32))/2.7);
- return 1-t*t*(3-2*t);
+ // The final source bay is clipped at 367.65m by Skyline's ORIGINAL
+ // geometry. Fade its spill before the 368m->0m module seam.
+ const end=1-clamp((within-364.2)/3.7);
+ return (1-t*t*(3-2*t))*end;
 }
 export function sampleEdgeSpill02895(s,lateral,{
  straightMask=vaultStraightMask02891,moduleMeters=340,sourceMeters=368
@@ -84,13 +87,15 @@ export function patchRoadSpill02895(vertex,fragment,{
   "float s95Local=mod(vTrackCoord.x,"+moduleMeters.toFixed(4)+")*"+
    (sourceMeters/moduleMeters).toFixed(8)+";",
   "float s95Delta=abs(mod(s95Local-(4.5+3.25)+24.0*100.5,24.0)-12.0);",
-  "float s95Shape=1.0-smoothstep(2.93,6.0,s95Delta);",
+  "float s95Shape=(1.0-smoothstep(2.93,6.0,s95Delta))*",
+  " (1.0-smoothstep(364.2,367.9,s95Local));",
   "float s95RoadSide=abs(vTrackCoord.y);",
   "float s95Across=exp(-pow((s95RoadSide-10.4)/3.05,2.0));",
   "float s95Safe=clamp(vEdgeStraight02891,0.0,1.0);",
   "float s95Energy=uS95Strength*s95Shape*s95Across*s95Safe;",
   "// Old broad cove/road GGX is attenuated between physical lip lamps.",
-  "float s95BroadTrim=mix(1.0,0.25+0.75*s95Shape,uS95Strength);"
+  "float s95BroadTrim=mix(1.0,0.82+0.18*s95Shape,",
+  " uS95Strength*s95Across);"
  ].join("\n");
  let f=fragment.replace(GLSL_COMMON,GLSL_COMMON+"\n"+header)
  .replace("float r263CoveBand=",prefix+"\nfloat r263CoveBand=")

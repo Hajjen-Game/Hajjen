@@ -67,6 +67,8 @@ jobs:
           node --check skyshift/ceiling-fixture-cohesion-v02892.mjs
           node --check skyshift/premium-arch-optics-v02893.mjs
           node --check skyshift/unified-tunnel-light-sources-v02894.mjs
+          node --check skyshift/road-spill-wave-coves-v02895.mjs
+          node --check skyshift/browser-road-spill-wave-cove-v02895.mjs
           node --check skyshift/browser-unified-tunnel-light-v02894.mjs
           node --check skyshift/browser-premium-arch-optics-v02893.mjs
           node --check skyshift/browser-ceiling-fixture-v02892.mjs
@@ -146,6 +148,7 @@ jobs:
           node --test skyshift/ceiling-fixture-cohesion-v02892.test.mjs
           node --test skyshift/premium-arch-optics-v02893.test.mjs
           node --test skyshift/unified-tunnel-light-sources-v02894.test.mjs
+          node --test skyshift/road-spill-wave-coves-v02895.test.mjs
           node --test skyshift/build-version-v02204.test.mjs
 
   current-material-webgl:
@@ -905,4 +908,35 @@ jobs:
           path: |
             skyshift/previews/v02894-*.png
             skyshift/previews/v02894-proof.json
+          if-no-files-found: warn
+
+  road-spill-cove-wave-real-webgl-02895:
+    name: SKYSHIFT 0.28.9.5 actual Skyline-source road pools and wave metal High/4GB
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate banked lip mask, original GGX, wall wave, 4GB and rollback
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check skyshift/road-spill-wave-coves-v02895.mjs
+          node --check skyshift/browser-road-spill-wave-cove-v02895.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/road-spill-wave-coves-v02895.test.mjs
+      - name: Install real Chromium screenshot driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Capture real road spill and chromatic wall metal before-after
+        run: node skyshift/browser-road-spill-wave-cove-v02895.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02895-true-webgl-road-pools-and-wall-wave
+          path: |
+            skyshift/previews/v02895-*.png
+            skyshift/previews/v02895-proof.json
           if-no-files-found: warn

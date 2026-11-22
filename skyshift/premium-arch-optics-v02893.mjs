@@ -258,7 +258,7 @@ export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
   "uniform vec3 uA93Old,uA93Next;",
   "uniform float uA93Front,uA93Active,uA93Lap,uA93Power;",
   "varying vec3 vA93Left,vA93Right;",
-  "varying float vA93Arc;"
+  "varying float vA93Arc,vA93Window;"
  ].join("\n");
  const physical=[
   "// Source is the ACTUAL j6 portal arch, not the straight-only edge LED.",

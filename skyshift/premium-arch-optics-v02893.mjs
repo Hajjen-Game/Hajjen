@@ -225,7 +225,7 @@ export function buildArchRoadSources02893(geometry,positionAt,trackLength){
   nearArchVertices:near,sourceModules:source.modules.length};
 }
 const COMMON="#include <common>",PROJ="#include <project_vertex>";
-const ANCHOR=" reflectedLight.directSpecular+=r263Convolved*\n"+
+// 0.28.9 inserts its streak code immediately before this expression and\n// removes the original leading space; match the stable semantic expression.\nconst ANCHOR="reflectedLight.directSpecular+=r263Convolved*\n"+
  "  (r263Keep*r263Fresnel*r263Surface);";
 export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
  if(!vertex.includes(COMMON)||!vertex.includes(PROJ)||

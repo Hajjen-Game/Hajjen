@@ -21,8 +21,8 @@ export const ARCH_FOOT_0287=Object.freeze({
  oldGeometryReplaced:true,duplicateFootMeshes:0,
  mounting:"single original-source graphite mounting batch per 340m module",
  verticalMeters:1.80,horizontalMeters:3.30,
- longitudinalEmitterWidth:.38,floorCoreWidth:.36,
- warmCore:[1,.59,.22],warmHalo:[1,.31,.055],
+ longitudinalEmitterWidth:.52,floorCoreWidth:.48,
+ warmCore:[1,.42,.09],warmHalo:[1,.32,.045],
  noArtificialWorldLights:true,addedDynamicLights:0,
  addedTextures:0,addedColliders:0,addedPostprocessPasses:0,
  roadUntouched:true,gripUntouched:true,boostUntouched:true,
@@ -112,7 +112,7 @@ export function buildArchFootAssembly0287(THREE,positionAt,{
     corner(l1,1,-.055),corner(l1,0,-.05));
    // Build the bright vertical as a narrow, flush inset on the same
    // physical arch-foot plane, and extend exactly to the floor blade.
-   const span=.20;
+   const span=.26;
    const verticalSteps=lowMemory?5:9;
    for(let k=0;k<verticalSteps;k++){
     const t0=k/verticalSteps,t1=(k+1)/verticalSteps;
@@ -130,10 +130,10 @@ export function buildArchFootAssembly0287(THREE,positionAt,{
      x0=coreRootX-(coreRootX-plateInner)*t0,
      x1=coreRootX-(coreRootX-plateInner)*t1;
     appendLight(
-     floor(s-.18,side,x0,.105),
-     floor(s-.18,side,x1,.105),
-     floor(s+.18,side,x1,.105),
-     floor(s+.18,side,x0,.105),
+     floor(s-.24,side,x0,.105),
+     floor(s-.24,side,x1,.105),
+     floor(s+.24,side,x1,.105),
+     floor(s+.24,side,x0,.105),
      ARCH_FOOT_0287.warmCore,.98);
     horizontals++;
    }
@@ -144,13 +144,13 @@ export function buildArchFootAssembly0287(THREE,positionAt,{
     appendLight(
      corner(s-k,0,.009),corner(s-k,1,.009),
      corner(s+k,1,.009),corner(s+k,0,.009),
-     ARCH_FOOT_0287.warmHalo,spread===0?.11:.045);
+     ARCH_FOOT_0287.warmHalo,spread===0?.23:.11);
     appendLight(
-     floor(s-k,side,rootX,.026),
-     floor(s-k,side,plateInner,.026),
-     floor(s+k,side,plateInner,.026),
-     floor(s+k,side,rootX,.026),
-     ARCH_FOOT_0287.warmHalo,spread===0?.14:.048);
+     floor(s-k,side,coreRootX,.065),
+     floor(s-k,side,plateInner,.065),
+     floor(s+k,side,plateInner,.065),
+     floor(s+k,side,coreRootX,.065),
+     ARCH_FOOT_0287.warmHalo,spread===0?.23:.10);
    }
    // Soft amber response on the existing shoulder only, in the same
    // emitter mesh. Attenuated separably in source-S and distance from
@@ -162,8 +162,8 @@ export function buildArchFootAssembly0287(THREE,positionAt,{
       x=plateInner-1.35+v*(rootX-plateInner+1.35);
      const longitudinal=gauss(along-s,2.15);
      const transverse=gauss(x-(rootX-1.45),1.45);
-     return {q:floor(along,side,x,.014),
-      color:[1,.34,.075,.15*longitudinal*transverse]};
+     return {q:floor(along,side,x,.058),
+      color:[1,.34,.075,.29*longitudinal*transverse]};
     };
     const c0=at(i,j),c1=at(i+1,j),
      c2=at(i+1,j+1),c3=at(i,j+1);

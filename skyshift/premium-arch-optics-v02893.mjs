@@ -4,6 +4,8 @@
 // road material, geometry positions, curves, collision, GRIP all unchanged.
 import {TUNNEL_PORTALS_0211,TUNNEL_PROFILE_0211,
  tunnelProfilePoint0211} from "./tunnel-megastructure-v0211.mjs";
+import {createUnifiedSourceRegistry02894,sharedWaveColors02894}
+ from "./unified-tunnel-light-sources-v02894.mjs";
 import {createSharedSourceSampler0282}
  from "./shared-road-ship-light-v0282.mjs";
 import {ZONE_WAVE,ZONE_PALETTES} from "./zone-wave-v060.mjs";
@@ -191,8 +193,10 @@ export function installArchSourceOptics02893(THREE,section,{enabled=false,
 // guessed fake world point or a separate road lamp. Sample the SAME local
 // source arc / positionAt adapter used for the tunnel geometry.
 export function buildArchRoadSources02893(geometry,positionAt,trackLength,{
- lowMemory=false}={}){
+ lowMemory=false,unifiedSources=false}={}){
  const source=createSharedSourceSampler0282(positionAt,trackLength);
+ const unified=unifiedSources?
+  createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory}):null;
  const coords=geometry?.getAttribute?.("aTrackCoord"),
   positions=geometry?.getAttribute?.("position");
  if(!coords||!positions||coords.count!==positions.count)
@@ -202,7 +206,16 @@ export function buildArchRoadSources02893(geometry,positionAt,trackLength,{
   window=new Float32Array(n);
  const cache=new Map();let near=0;
  for(let i=0;i<n;i++){
-  const s=coords.getX(i),local=source.localFor(s);
+  const s=coords.getX(i);
+  if(unified){
+   const sample=unified.at(s).arch;
+   arc[i]=sample.worldS;window[i]=sample.window;
+   left.set([sample.left.x,sample.left.y,sample.left.z],3*i);
+   right.set([sample.right.x,sample.right.y,sample.right.z],3*i);
+   if(Math.abs(s-arc[i])<12)near++;
+   continue;
+  }
+  const local=source.localFor(s);
   const nearest=TUNNEL_PORTALS_0211.reduce((best,x)=>
    Math.abs(x-local.s)<Math.abs(best-local.s)?x:best,
    TUNNEL_PORTALS_0211[0]);
@@ -229,8 +242,9 @@ export function buildArchRoadSources02893(geometry,positionAt,trackLength,{
   }
   if(Math.abs(s-arc[i])<12)near++;
  }
- return {left,right,arc,window,vertices:n,sourcePositions:cache.size,
-  nearArchVertices:near,sourceModules:source.modules.length};
+ return {left,right,arc,window,vertices:n,
+  sourcePositions:unified?unified.stats().physicalPositions:cache.size,
+  unifiedSources,nearArchVertices:near,sourceModules:source.modules.length};
 }
 const COMMON="#include <common>",PROJ="#include <project_vertex>";
 // 0.28.9 inserts its streak code immediately before this expression and
@@ -313,7 +327,7 @@ export function patchArchRoadShader02893(vertex,fragment,{mobile=false}={}){
  };
 }
 export function installArchRoadReflection02893(THREE,world,positionAt,{
- enabled=false,lowMemory=false,trackLength=3400
+ enabled=false,lowMemory=false,trackLength=3400,unifiedSources=false
 }={}){
  const inactive=reason=>({active:false,reason,setComparison(){},
   updateWave(){},stats:()=>({active:false,reason}),dispose(){}});
@@ -323,7 +337,7 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
  if(!material?.isMeshStandardMaterial||!geometry||
   typeof positionAt!=="function")
   throw Error("0.28.9.3 original physical road/source missing");
- const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory});
+ const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory,unifiedSources});
  const keys=["archLeft02893","archRight02893","archArc02893",
   "archWindow02893"];
  if(keys.some(k=>geometry.getAttribute(k)))
@@ -361,18 +375,18 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
  return {
   active:true,
   updateWave(wave){
-   const stage=clamp(wave?.shaderBaseStage??0,0,ZONE_PALETTES.length-1);
-   uniform.uA93Old.value.setHex(ZONE_PALETTES[stage].light);
-   uniform.uA93Next.value.setHex(
-    ZONE_PALETTES[Math.min(stage+1,ZONE_PALETTES.length-1)].light);
-   uniform.uA93Front.value=wave?.fronts?.[0]??-10000;
-   uniform.uA93Active.value=wave?.activeCount>0?1:0;
+   const stage=sharedWaveColors02894(wave);
+   uniform.uA93Old.value.setHex(stage.from);
+   uniform.uA93Next.value.setHex(stage.to);
+   uniform.uA93Front.value=stage.front;
+   uniform.uA93Active.value=stage.active;
   },
   setComparison:v=>uniform.uA93Power.value=clamp(v),
   stats:()=>({active:true,version:"0.28.9.3",
    nativeGGX:true,originalIndexedRoad:true,
    sourceModules:data.sourceModules,sourcePositions:data.sourcePositions,
    vertices:data.vertices,nearArchVertices:data.nearArchVertices,
+   sharedRegistry02894:!!data.unifiedSources,
    actualVertexDistanceMask:true,sourcePulseRadiusMeters:lowMemory?3.9:5.6,
    colorFrom:uniform.uA93Old.value.getHex(),
    colorTo:uniform.uA93Next.value.getHex(),

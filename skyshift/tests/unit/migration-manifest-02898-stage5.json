@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "stage": "SKYSHIFT 0.28.9.8 Stage 5",
+  "description": "Original Git blob SHA of tests moved into tests/unit/. Normalize their relative imports back to ./ to verify no assertions changed.",
+  "entries": {
+    "performance-audit-v0110.test.mjs": {
+      "originalGitBlob": "c888b68179570a209f460de470b153b79f9b6359",
+      "replacedStaticImports": 1
+    },
+    "render-optimizer-v0111.test.mjs": {
+      "originalGitBlob": "52e8e4804424b9aa3a8b0db1a6f760001ff60502",
+      "replacedStaticImports": 2
+    },
+    "cinematic-space-lighting-v0170.test.mjs": {
+      "originalGitBlob": "2eaa84902907c2b5a79ab901765c975bce5302f3",
+      "replacedStaticImports": 1
+    },
+    "ship-hero-loader-v0133.test.mjs": {
+      "originalGitBlob": "71e28041f4aee7ec28e38263ac7e9c6d13db6008",
+      "replacedStaticImports": 1
+    },
+    "ship-hero-loader-v0134.test.mjs": {
+      "originalGitBlob": "ac8855267a1acfca36f584cb2a9d08c9eff7e723",
+      "replacedStaticImports": 1
+    },
+    "ship-hero-loader-v01342.test.mjs": {
+      "originalGitBlob": "d1c16ecc5dda51df6b511649f5de1512b5f98efe",
+      "replacedStaticImports": 1
+    },
+    "unified-flight-v0112.test.mjs": {
+      "originalGitBlob": "9061dd8bfa51dcf8fcaf31caf966789fa4f9c64a",
+      "replacedStaticImports": 9
+    },
+    "visual-fidelity-v0113.test.mjs": {
+      "originalGitBlob": "19975d25ead671679464f835578247ba8a227efb",
+      "replacedStaticImports": 5
+    },
+    "visual-fidelity-v0114.test.mjs": {
+      "originalGitBlob": "806c5b672478472548772902845092441c57a269",
+      "replacedStaticImports": 6
+    },
+    "track.test.mjs": {
+      "originalGitBlob": "8355f39f7fd58363abbbfe4a22019898c0bb40a8",
+      "replacedStaticImports": 1
+    }
+  }
+}

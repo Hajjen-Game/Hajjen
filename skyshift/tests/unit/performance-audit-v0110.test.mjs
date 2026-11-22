@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {perfConfig,newPerfMonitor,recordPerfFrame,perfSummary,resetPerfMonitor,gpuTimer} from "./performance-audit-v0110.mjs";
+import {perfConfig,newPerfMonitor,recordPerfFrame,perfSummary,resetPerfMonitor,gpuTimer} from "../../performance-audit-v0110.mjs";
 test("A/B variants are opt-in",()=>{
  assert.equal(perfConfig("?perfPreset=no-bloom").preset,"baseline");
  for(const mode of ["baseline","no-bloom","no-smaa","low-dpr","no-wake-sparks"])

@@ -26,3 +26,8 @@ jobs:
           node --test skyshift/tests/architecture/release-archive-integrity.test.mjs
       - name: Run relocated early flight/fullscreen unit tests
         run: node --test skyshift/tests/unit/fullscreen-v02.test.mjs skyshift/tests/unit/trial-v02.test.mjs skyshift/tests/unit/trial-v03.test.mjs
+      - name: Prove migrated unit-test assertions are byte-identical
+        run: node --test skyshift/tests/architecture/unit-migration-integrity.test.mjs
+      - name: Run all 10 newly relocated unit tests
+        run: |
+          node --test skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/ship-hero-loader-v0133.test.mjs skyshift/tests/unit/ship-hero-loader-v0134.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs skyshift/tests/unit/track.test.mjs

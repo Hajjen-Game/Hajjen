@@ -1,10 +1,10 @@
-// SKYSHIFT 0.13.3 — real release fallback and optional Blender A/B gating.
+// SKYSHIFT 0.13.4.2 — real release fallback and optional Blender A/B gating.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {createShipArtController} from "./ship-hero-loader-v0133.mjs";
+import {createShipArtController} from "../../ship-hero-loader-v01342.mjs";
 
 const F=()=>({ship:{name:"procedural"}});
-test("normal 0.13.3 wants Stingray Hero but never loads it on Manta",async()=>{
+test("normal 0.13.4.2 wants Stingray Hero but never loads it on Manta",async()=>{
  let requested=0;
  const ctrl=createShipArtController({},{
   fetchAsset:async()=>{requested++;throw Error("should not fetch");}
@@ -28,7 +28,7 @@ test("classic flag explicitly restores old fully procedural Stingray",async()=>{
  assert.equal(calls,0);
  assert.equal(ctrl.audit().originalTailRigPreserved,true);
 });
-test("failed or missing V2 glTF leaves the original live ship intact",async()=>{
+test("failed or missing V4 glTF leaves the original live ship intact",async()=>{
  const craft=F(),stateBefore=craft.ship;
  const ctrl=createShipArtController({},{
   fetchAsset:async()=>({ok:false,status:503})
@@ -39,7 +39,7 @@ test("failed or missing V2 glTF leaves the original live ship intact",async()=>{
  assert.equal(ctrl.state.heroApplied,false);
  assert.ok(ctrl.state.error.includes("503"));
 });
-test("default fetch targets shipped V2 glTF; experimental Blender targets V2 GLB",async()=>{
+test("default fetch targets shipped V4 glTF; experimental Blender targets V4 GLB",async()=>{
  for(const mode of ["", "?shipArt=blender"]){
   let path="";
   const ctrl=createShipArtController({},{
@@ -50,8 +50,8 @@ test("default fetch targets shipped V2 glTF; experimental Blender targets V2 GLB
    }
   });
   await ctrl.onCraftBuilt(F(),"stingray");
-  assert.ok(path.endsWith(mode?"stingray-evo-hero-v2.glb":
-   "stingray-evo-hero-v2.gltf"));
+  assert.ok(path.endsWith(mode?"stingray-evo-hero-v4.glb":
+   "stingray-evo-hero-v4.gltf"));
   assert.equal(ctrl.state.status,"fallback");
  }
 });

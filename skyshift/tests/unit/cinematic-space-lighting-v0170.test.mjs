@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {
  CINEMATIC_SPACE_0170,cinematicLightLevels,patchCinematicRoadFragment,
  installCinematicRoadLighting
-} from "./cinematic-space-lighting-v0170.mjs";
+} from "../../cinematic-space-lighting-v0170.mjs";
 test("cinematic hierarchy: darker ambient/fill, directional readable key",()=>{
  const s=cinematicLightLevels();
  assert.ok(s.ambient<1.62&&s.ambient>.80);

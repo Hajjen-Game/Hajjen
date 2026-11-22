@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {SHIP_WHITE_SPILL_02125,createShipWhiteSpillController,
- patchShipWhiteSpillShader} from "./ship-white-spill-v02125.mjs";
+ patchShipWhiteSpillShader} from "../../ship-white-spill-v02125.mjs";
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Color{
  constructor(hex){this.hex=hex;this.isColor=true;this.r=.45;this.g=.55;this.b=.61}

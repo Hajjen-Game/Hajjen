@@ -4,14 +4,14 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {RISK_REWARD_0151,RHYTHM_GATES_0151,BOOST_CHOICES_0151,
  RACE_BOOST_CHOICES_0151,RHYTHM_FLOW_0151,riskChoiceAt,riskCueAt,
- approachingRiskGate,trackFlowAt} from "./risk-reward-v0151.mjs";
+ approachingRiskGate,trackFlowAt} from "../../risk-reward-v0151.mjs";
 import {BOOST_CONFIG,BOOST_PADS,initBoostState,stepBoostState}
  from "../../boost-v0151.mjs";
 import {TRIAL,CIRCUIT,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  curvatureAt,guardrailLateralLimit,gapAt,newFlightState,positionAt,
- headingAt,surfaceHeightAt,stepFlight,speedAt} from "./trial-v0151.mjs";
+ headingAt,surfaceHeightAt,stepFlight,speedAt} from "../../trial-v0151.mjs";
 import {PREMIUM_TRACK,GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,
- patchPremiumShaders} from "./premium-track-v0151.mjs";
+ patchPremiumShaders} from "../../premium-track-v0151.mjs";
 import {TIME_TRIAL_0151} from "../../time-trial-v0151.mjs";
 import {TIME_TRIAL_0150} from "../../time-trial-v0150.mjs";
 import {CHALLENGES_0140} from "../../skyline-challenges-v0140.mjs";

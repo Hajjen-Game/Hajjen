@@ -9,7 +9,7 @@ import {BOOST_CONFIG,BOOST_PADS,boostPadAt,initBoostState,stepBoostState}
  from "../../boost-v0150.mjs";
 import {GRIP_APEX,TRIAL,CIRCUIT,curvatureAt,gapAt,
  guardrailLateralLimit,newFlightState,positionAt,headingAt,surfaceHeightAt,
- stepFlight} from "./trial-v0150.mjs";
+ stepFlight} from "../../trial-v0150.mjs";
 import {GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,patchPremiumShaders}
  from "../../premium-track-v0150.mjs";
 import {TIME_TRIAL_0150} from "../../time-trial-v0150.mjs";

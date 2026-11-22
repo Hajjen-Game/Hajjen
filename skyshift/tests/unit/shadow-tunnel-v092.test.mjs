@@ -6,7 +6,7 @@ import {CIRCUIT,positionAt,TRIAL} from "../../trial-v0901.mjs";
 import {MAGNETIC_WALL,CORKSCREW,SKYLINE_LEAP} from "../../track-3d-v082.mjs";
 import {ZONE_PALETTES} from "../../zone-wave-v060.mjs";
 import {SHADOW_TUNNEL,TUNNEL_SECTION,inShadowTunnel,tunnelIntensityAt,
- createShadowTunnelData,shadeTunnelRoadGLSL} from "./shadow-tunnel-v092.mjs";
+ createShadowTunnelData,shadeTunnelRoadGLSL} from "../../shadow-tunnel-v092.mjs";
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const near=(a,b,eps=.00001)=>assert.ok(Math.abs(a-b)<eps,`${a} != ${b}`);
 test("shadow tunnel is long, well after start, beyond wall, before corkscrew",()=>{

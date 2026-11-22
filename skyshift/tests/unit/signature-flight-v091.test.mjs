@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {SIGNATURE_FLIGHT,createSignatureFlightState,stepSignatureFlight,
  triggerSignatureJump,triggerSignatureLanding,triggerSignatureBoost,
- signatureFlightAudit} from "./signature-flight-v091.mjs";
+ signatureFlightAudit} from "../../signature-flight-v091.mjs";
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const sample=(fps,view,seconds=1)=>{
  const st=createSignatureFlightState();

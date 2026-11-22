@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {TUNNEL_PROFILE_0211,sampleSharedTunnelProfile0280,
- tunnelProfilePoint0211} from "./tunnel-megastructure-v0211.mjs";
+ tunnelProfilePoint0211} from "../../tunnel-megastructure-v0211.mjs";
 import {buildSharedTunnelSection0280} from "../../structural-tunnel-v0213.mjs";
 import {vaultCrossSection0270} from "../../full-tunnel-circuit-v0270.mjs";
 import {SHARED_TUNNEL_STYLE_0280,SHARED_TUNNEL_ROUTES_0280,

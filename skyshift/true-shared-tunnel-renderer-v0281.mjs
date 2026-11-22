@@ -401,6 +401,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   dispose(){
    if(disposed)return;disposed=true;
    for(const item of installed.reverse()){
+    item.ceiling?.dispose?.();
     item.cinematic?.dispose?.();
     item.precision?.dispose?.();
     item.stability?.dispose?.();

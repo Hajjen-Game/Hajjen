@@ -35,6 +35,8 @@ jobs:
         run: node --test skyshift/tests/architecture/bulk-unit-migration-integrity.test.mjs
       - name: Audit 125 safely relocated stage-7 unit tests and workflow paths
         run: node --test skyshift/tests/architecture/stage7-unit-migration-integrity.test.mjs
+      - name: Audit final 12 formerly protected tests, historical source parity and subprocess probes
+        run: node --test skyshift/tests/architecture/stage8-unit-migration-integrity.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

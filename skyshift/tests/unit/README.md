@@ -56,3 +56,11 @@ The next **125** unit-test files were moved from `skyshift/` to `skyshift/tests/
 `migration-manifest-02898-stage7.json` records every original Git blob. `../architecture/stage7-unit-migration-integrity.test.mjs` reverses the limited import transformations, checks exact original test-byte hashes, confirms all moved imports exist and prevents stale workflow paths. All **198** tests in the reorganized unit directory are syntax-checked.
 
 Twelve tests remain in the original root because they launch subprocesses, use relative working directories or have similar non-trivial path dependencies. They are **not** deleted or forcibly migrated. Existing active Node/Chromium/WebGL regression gates remain in place, and older tests with historical hardcoded version assertions are preserved without being newly added as unconditional CI execution gates.
+ 
+## Stage 8 — the final 12 path-sensitive historical tests
+
+The remaining 12 root-level `.test.mjs` files were dependency-audited individually and relocated into `skyshift/tests/unit/`. Their original assertions, import order and process invocation arguments are preserved; only module-relative paths were rebased. In particular, `track-physics-parity-probe-v0164.mjs` and `track-physics-parity-probe-v0165.mjs` remain at their original module paths and are called from the relocated tests.
+
+`migration-manifest-02898-stage8.json` stores the original 12 immutable Git blob SHAs. `../architecture/stage8-unit-migration-integrity.test.mjs` reverses the allowed path-only edits, verifies byte-equivalence to the original Git blobs, checks import/probe target existence and prevents stale workflow references. All 210 unit tests are syntax-checked. Existing active tests execute normally in PR CI; older historical tests with superseded version expectations are preserved without adding new always-on execution gates.
+
+**Do not move live game, boot, shaders, road, tunnel or physical modules in this stage.**

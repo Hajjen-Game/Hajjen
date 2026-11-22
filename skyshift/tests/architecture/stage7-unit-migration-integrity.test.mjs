@@ -58,7 +58,7 @@ test('all 125 migrated tests have exactly the same original Git blob after rever
   assert.equal(manifest.schemaVersion, 1);
   assert.equal(names.length, 125, 'Unexpected number of audited stage-7 files');
   const current = readdirSync(testsDir).filter(n => n.endsWith('.test.mjs'));
-  assert.equal(current.length, 198, 'Expected 73 previously moved + 125 stage-7 unit tests');
+  assert.equal(current.length, 210, 'Expected stages 4–8 combined unit tests');
   for (const name of names) {
     assert.match(name, /^[\w-]+\.test\.mjs$/);
     assert.equal(existsSync(resolve(skyshift, name)), false, 'Stale SKYSHIFT root test: ' + name);
@@ -81,7 +81,7 @@ test('all GitHub workflows reference the relocated tests rather than removed roo
   }
 });
 
-test('no unreviewed subprocess-based tests were moved', () => {
+test('stage-8 separately audits formerly protected complex tests', () => {
   const protectedNames = [
     'multi-track-aurora-v0160.test.mjs',
     'rail-collision-v0162.test.mjs',
@@ -97,7 +97,8 @@ test('no unreviewed subprocess-based tests were moved', () => {
     'vault-boost-clarity-v0283.test.mjs'
   ];
   for (const name of protectedNames) {
-    assert.ok(existsSync(resolve(skyshift, name)), 'Complex subprocess test must remain in root: ' + name);
+    assert.equal(existsSync(resolve(skyshift, name)), false, 'Complex test must no longer remain in root: ' + name);
+    assert.ok(existsSync(resolve(testsDir, name)), 'Stage-8 complex test missing: ' + name);
     assert.ok(!names.includes(name), 'Complex subprocess test was unexpectedly migrated: ' + name);
   }
 });

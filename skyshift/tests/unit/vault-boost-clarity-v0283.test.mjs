@@ -5,7 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {VAULT_BOOST_0283,VAULT_MAIN_BOOST_PADS_0283,
  VAULT_RACE_BOOST_PADS_0283,vaultBoostEnabled0283,
- vaultMainBoostAt0283} from "./vault-boost-clarity-v0283.mjs";
+ vaultMainBoostAt0283} from "../../vault-boost-clarity-v0283.mjs";
 
 test("new Vault release only, historical versions and other courses unchanged",()=>{
  for(const v of ["0.27.4","0.28.0","0.28.1","0.28.2"])
@@ -37,9 +37,9 @@ test("all 3 laps have 5 reachable central main pads and zero risk boosts",()=>{
 });
 test("Vault runtime uses exactly the same authoritative pads for art and physics",async()=>{
  globalThis.location={search:"?track=vault&v=0.28.3"};
- const m=await import("./risk-reward-v0160.mjs");
+ const m=await import("../../risk-reward-v0160.mjs");
  const {BOOST_PADS,initBoostState,stepBoostState,boostPadAt}
-  =await import("./boost-v0160.mjs");
+  =await import("../../boost-v0160.mjs");
  assert.equal(m.VAULT_BOOST_0283_ACTIVE,true);
  assert.equal(m.RHYTHM_GATES_0160.length,0);
  assert.equal(m.BOOST_CHOICES_0160,VAULT_MAIN_BOOST_PADS_0283);
@@ -60,7 +60,7 @@ test("Vault runtime uses exactly the same authoritative pads for art and physics
 test("existing deck gets genuine HDR arrow glow without risk guide artwork",async()=>{
  const {patchPremiumShaders,SURFACE_FRAGMENT_GLSL,
   VAULT_BOOST_GLOW_0283,GLSL_BOOST_PADS}
-  =await import("./premium-track-v0160.mjs");
+  =await import("../../premium-track-v0160.mjs");
  assert.equal(VAULT_BOOST_GLOW_0283.noAdditionalMeshes,true);
  assert.equal(GLSL_BOOST_PADS.length,5);
  assert.ok(GLSL_BOOST_PADS.every(p=>p.kind==="boost"));

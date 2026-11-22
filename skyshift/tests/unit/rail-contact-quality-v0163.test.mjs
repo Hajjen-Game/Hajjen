@@ -5,10 +5,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 globalThis.location={search:"?track=aurora"};
 const [oldPhysics,newPhysics,audit,cinematic]=await Promise.all([
- import("./trial-v0162.mjs"),
- import("./trial-v0163.mjs"),
- import("./rail-contact-audit-v0163.mjs"),
- import("./cinematic-v0163.mjs")
+ import("../../trial-v0162.mjs"),
+ import("../../trial-v0163.mjs"),
+ import("../../rail-contact-audit-v0163.mjs"),
+ import("../../cinematic-v0163.mjs")
 ]);
 const dt=1/120;
 const angleDelta=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));

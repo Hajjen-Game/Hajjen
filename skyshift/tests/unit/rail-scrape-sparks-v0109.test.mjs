@@ -1,13 +1,13 @@
-// SKYSHIFT 0.10.9.1 — safety: sparks ONLY from real guardrail contact;
+// SKYSHIFT 0.10.9 — safety: sparks ONLY from real guardrail contact;
 // world ballistic history; same glow logic on both ship models; no physics.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {poseAt,widthAt,GUARDRAIL,positionAt,surfaceNormalAt} from "./trial-v0901.mjs";
+import {poseAt,widthAt,GUARDRAIL,positionAt,surfaceNormalAt} from "../../trial-v0901.mjs";
 import {RAIL_SPARKS,railContactPoint,sparkDemand,
  createSparkState,advanceSparkState,resetSparkState,createRailScrapeSparks
-} from "./rail-scrape-sparks-v01091.mjs";
-const src=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+} from "./rail-scrape-sparks-v0109.mjs";
+const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const speed=stage=>44*1.11**stage;
 test("collision anchors follow the ACTUAL banked rail face on both sides",()=>{
  for(const s of [180,520,900,1800,2250]){
@@ -58,8 +58,6 @@ test("initial impact once, sustained scrape stochastic and old particles fly awa
   scrubIntensity:1,contactSerial:1};
  advanceSparkState(st,1/60,info,root);
  assert.equal(st.bursts,1);
- assert.ok(st.flash.active,"the impact creates a brief white flash");
- assert.equal(st.impactFlashes,1);
  assert.ok(st.emitted>=8);
  assert.ok(st.live>0);
  const first=st.particles.find(p=>p.active);
@@ -78,13 +76,11 @@ test("initial impact once, sustained scrape stochastic and old particles fly awa
  assert.notDeepEqual({x:first.x,y:first.y,z:first.z},from);
  for(let i=0;i<50;i++)advanceSparkState(st,1/60,release,null);
  assert.equal(st.live,0,"flecks die rather than remaining static behind ship");
- assert.equal(st.flash.active,false,"flash must vanish after a fraction of a second");
  assert.equal(st.emitted,beforeEnd);
  assert.equal(st.bursts,1);
  resetSparkState(st);
  assert.equal(st.emitted,0);
  assert.equal(st.peakVisible,0);
- assert.equal(st.impactFlashes,0);
 });
 test("contact side changes generate an independent new impact on correct wall",()=>{
  const st=createSparkState();
@@ -141,14 +137,7 @@ test("actual batched geometry emits white-gold RGBA streaks and no scene lights"
   assert.equal(loaded.impactBursts,1);
   assert.ok(loaded.activeSparks>0);
   assert.ok(loaded.lastDrawVertices>0);
-  assert.equal(loaded.lastDrawVertices,
-   loaded.activeSparks*12+RAIL_SPARKS.flashVertices,
-   "white contact flash shares the sparks' single draw call");
-  assert.ok(loaded.peakParticleWidthMeters>=.048);
-  assert.ok(loaded.peakFlashOpacity>.55);
-  assert.equal(loaded.impactFlashes,1);
-  assert.equal(loaded.flashVisible,true);
-  assert.equal(loaded.sparkCoreWhite,true);
+  assert.equal(loaded.lastDrawVertices,loaded.activeSparks*12);
   assert.ok(geo.attributes.position.array.some(v=>v!==0));
   assert.ok(geo.attributes.color.array.some((v,i)=>
    i%4===3&&v>.03&&v<1));
@@ -159,7 +148,6 @@ test("actual batched geometry emits white-gold RGBA streaks and no scene lights"
   for(let k=0;k<42;k++)fx.frame(1/60,{playing:true,camera,
    railContact:null,contacting:false,side:0,speed:speed(8)});
   assert.equal(fx.stats().activeSparks,0);
-  assert.equal(fx.stats().flashVisible,false);
   assert.equal(fx.mesh.visible,false);
   fx.frame(1/60,{playing:false,camera});
   assert.equal(fx.stats().emitted,0);
@@ -172,29 +160,9 @@ test("actual batched geometry emits white-gold RGBA streaks and no scene lights"
  assert.equal(RAIL_SPARKS.colliderChanged,false);
  assert.equal(RAIL_SPARKS.shieldChanged,false);
 });
-test("visible white cores and brief contact flare never emit without collision",()=>{
- const st=createSparkState(),contact=railContactPoint(520,1);
- const collision={contacting:true,side:1,grounded:true,
-  speed:speed(8),scrubIntensity:1,contactSerial:1};
- advanceSparkState(st,1/60,collision,contact);
- const active=st.particles.filter(p=>p.active);
- assert.ok(active.length>=10);
- assert.ok(active.every(p=>p.width>=.048&&p.tail>=.34));
- assert.ok(st.peakParticleWidth>=RAIL_SPARKS.minVisibleCoreWidthMeters);
- assert.ok(st.flash.active);
- assert.ok(Math.abs(st.flash.x-contact.x)<1e-10);
- const count=st.emitted;
- for(let i=0;i<10;i++)advanceSparkState(st,1/60,
-  {...collision,contacting:false,side:0},null);
- assert.ok(!st.flash.active);
- assert.equal(st.impactFlashes,1);
- assert.equal(st.emitted,count);
- assert.equal(RAIL_SPARKS.maxAddedDrawCalls,1);
- assert.equal(RAIL_SPARKS.flashVertices,12);
-});
 test("active game observes physics-owned railContacting, never approximate proximity",()=>{
- const game=src("./game-v0120.mjs"),
-  page=src("./index.html"),boot=src("./boot-v0120.js");
+ const game=src("./game-v0109.mjs"),
+  page=src("./index.html"),boot=src("./boot-v0109.js");
  assert.match(game,/createRailScrapeSparks\(THREE,scene/);
  assert.match(game,/railSparks\?\.dispose\(\)/);
  assert.match(game,/railSparks\?\.reset\(\)/);
@@ -206,6 +174,6 @@ test("active game observes physics-owned railContacting, never approximate proxi
  assert.match(game,/reactiveWingFlaps\?\.frame\(showroom\?dt:presentationDt/);
  assert.match(game,/livingWake\?\.frame\(presentationDt/);
  assert.doesNotMatch(game,/stepFlight=.*railSpark|const contacted=\s*railSpark/);
- assert.match(page,/data-game-module="game-v0120\.mjs"/);
- assert.match(boot,/game-v0120\.mjs\?v=0\.12\.0/);
+ assert.match(page,/data-game-module="game-v0109\.mjs"/);
+ assert.match(boot,/game-v0109\.mjs\?v=0\.10\.9/);
 });

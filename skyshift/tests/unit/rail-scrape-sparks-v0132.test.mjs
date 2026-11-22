@@ -3,11 +3,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {poseAt,widthAt,GUARDRAIL,positionAt,surfaceNormalAt} from "./trial-v0901.mjs";
+import {poseAt,widthAt,GUARDRAIL,positionAt,surfaceNormalAt} from "../../trial-v0901.mjs";
 import {RAIL_SPARKS,railContactPoint,sparkDemand,
  createSparkState,advanceSparkState,resetSparkState,createRailScrapeSparks
 } from "./rail-scrape-sparks-v01091.mjs";
-const src=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const speed=stage=>44*1.11**stage;
 test("collision anchors follow the ACTUAL banked rail face on both sides",()=>{
  for(const s of [180,520,900,1800,2250]){
@@ -193,8 +193,8 @@ test("visible white cores and brief contact flare never emit without collision",
  assert.equal(RAIL_SPARKS.flashVertices,12);
 });
 test("active game observes physics-owned railContacting, never approximate proximity",()=>{
- const game=src("./game-v0130.mjs"),
-  page=src("./index.html"),boot=src("./boot-v0130.js");
+ const game=src("./game-v0132.mjs"),
+  page=src("./index.html"),boot=src("./boot-v0132.js");
  assert.match(game,/createRailScrapeSparks\(THREE,scene/);
  assert.match(game,/railSparks\?\.dispose\(\)/);
  assert.match(game,/railSparks\?\.reset\(\)/);
@@ -206,6 +206,6 @@ test("active game observes physics-owned railContacting, never approximate proxi
  assert.match(game,/reactiveWingFlaps\?\.frame\(showroom\?dt:presentationDt/);
  assert.match(game,/livingWake\?\.frame\(presentationDt/);
  assert.doesNotMatch(game,/stepFlight=.*railSpark|const contacted=\s*railSpark/);
- assert.match(page,/data-game-module="game-v0130\.mjs"/);
- assert.match(boot,/game-v0130\.mjs\?v=0\.13\.0/);
+ assert.match(page,/data-game-module="game-v0132\.mjs"/);
+ assert.match(boot,/game-v0132\.mjs\?v=0\.13\.2/);
 });

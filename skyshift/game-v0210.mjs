@@ -3592,7 +3592,7 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (curveContinuityReleaseEnabled?" · 0.28.9.6":
+   (curveContinuityReleaseEnabled?" · 0.28.9.7":
     roadSpillReleaseEnabled||coveWaveReleaseEnabled?" · 0.28.9.5":
      unifiedSourcesReleaseEnabled?" · 0.28.9.4":
   archOpticsReleaseEnabled?" · 0.28.9.3":
@@ -5427,7 +5427,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.9.6":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.9.7":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

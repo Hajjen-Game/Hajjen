@@ -7,10 +7,10 @@ import {
  SURFACE_FRAGMENT_HELPERS,premiumTrackCoordinates,
  createPremiumDeckGeometry,patchPremiumShaders,createPremiumTrackMaterial
 } from "./premium-track-v0481.mjs";
-import {BOOST_PADS,BOOST_CONFIG} from "./boost-v048.mjs";
-import {TRIAL,widthAt,positionAt,newFlightState,stepFlight} from "./trial-v048.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v046.mjs";
-const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+import {BOOST_PADS,BOOST_CONFIG} from "../../boost-v048.mjs";
+import {TRIAL,widthAt,positionAt,newFlightState,stepFlight} from "../../trial-v048.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v046.mjs";
+const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,tolerance=1e-6)=>assert.ok(Math.abs(a-b)<tolerance,
  `expected ${a} near ${b}`);
 test("premium deck uses same indexed road as 0.4.6 with arc-length and lateral coords",()=>{

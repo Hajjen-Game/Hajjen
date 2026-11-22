@@ -2,20 +2,20 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import * as prior from "./trial-v082.mjs";
+import * as prior from "../../trial-v082.mjs";
 import {
  TRIAL,PROJECTION_083,GRIP_APEX,SKYLINE_LEAP,CORKSCREW,MAGNETIC_WALL,
  positionAt,headingAt,surfaceHeightAt,curvatureAt,widthAt,projectWorldToTrack,
  newFlightState,stepFlight,setZoneSpeedStage,validateTrial,speedAt
 } from "./trial-v083.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick}
- from "./air-tricks-v083.mjs";
+ from "../../air-tricks-v083.mjs";
 import {gripApexCue,createRailFeedbackState,startRailFeedback,
  stepRailFeedback,RACING_FEEL} from "./racing-feel-v083.mjs";
-import {clarityProfile,dprForAdaptiveLevel} from "./image-clarity-v083.mjs";
-import {createSmoothDeckData} from "./smooth-track-v083.mjs";
-import {createAeroBarrierData} from "./aero-barrier-v083.mjs";
-const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+import {clarityProfile,dprForAdaptiveLevel} from "../../image-clarity-v083.mjs";
+import {createSmoothDeckData} from "../../smooth-track-v083.mjs";
+import {createAeroBarrierData} from "../../aero-barrier-v083.mjs";
+const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,e=1e-5)=>assert.ok(Math.abs(a-b)<=e,
  "expected "+a+" to be within "+e+" of "+b);
 function startAt(s,lat=0,stage=0,api={positionAt,headingAt,surfaceHeightAt,

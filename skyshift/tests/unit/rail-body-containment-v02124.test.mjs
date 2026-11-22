@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {createAeroBarrierData,RAIL_BODY_CONTAINMENT_02124,
  patchAeroBodyShaders,installAeroBarriers} from "./aero-barrier-v0165.mjs";
-import {TRIAL} from "./trial-v0165.mjs";
-const source=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+import {TRIAL} from "../../trial-v0165.mjs";
+const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 test("PBR rail body has precise arc-length on BOTH sides and no geometry edits",()=>{
  const g=createAeroBarrierData(5);
  assert.equal(g.positions.length/3,g.trackS.length);

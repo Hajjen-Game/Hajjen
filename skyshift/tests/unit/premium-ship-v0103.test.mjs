@@ -3,12 +3,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {STINGRAY_EVO,createTailState,tailPoseStep}
- from "./stingray-evo-v0103.mjs";
-import {SHIP_POLISH,buildShipPolish} from "./ship-polish-v0103.mjs";
+ from "../../stingray-evo-v0103.mjs";
+import {SHIP_POLISH,buildShipPolish} from "../../ship-polish-v0103.mjs";
 import {MANTA_POLISH,buildPremiumMantaBlade}
- from "./manta-blade-v0103.mjs";
-import {ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../manta-blade-v0103.mjs";
+import {ENGINE_SOCKETS} from "../../manta-blade-v0484.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 function sample(fps,view,seconds=6){
  const st=createTailState(),track=[];
  for(let k=0;k<Math.round(seconds*fps);k++){

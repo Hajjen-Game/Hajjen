@@ -4,8 +4,8 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {MATERIAL_REBIRTH_0220,patchPremiumMaterialShader,
  installPremiumMaterialShader,installPremiumMaterialRebirth}
- from "./premium-material-rebirth-v0220.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../premium-material-rebirth-v0220.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const basicV="#include <common>\nattribute float trackS;\n"+
  "attribute float glowWeight;\n#include <begin_vertex>\n";
 const basicF="#include <common>\n#include <color_fragment>\n"+

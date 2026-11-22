@@ -4,8 +4,8 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {PREMIUM_ROAD_SURFACE_0215,premiumRoadInteriorMask,
  patchPremiumRoadSurfaceShader,createPremiumRoadSurfaceController}
- from "./premium-road-surface-v0215.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ from "../../premium-road-surface-v0215.mjs";
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 function mockFragment(){return [
  "#include <common>",
  "varying vec2 vTrackCoord;",

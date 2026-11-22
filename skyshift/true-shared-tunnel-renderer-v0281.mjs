@@ -11,6 +11,8 @@ import {reflectionStabilityEnabled0286,installReflectionStability0286}
  from "./reflection-stability-strips-v0286.mjs";
 import {archFootRelease0287,installArchFootAssembly0287}
  from "./arch-foot-light-assembly-v0287.mjs";
+import {precisionNeonEnabled0288,installPrecisionNeon0288}
+ from "./precision-neon-response-v0288.mjs";
 import {installUnifiedMetalLighting02641}
  from "./unified-metal-light-response-v02641.mjs";
 import {wrapFinishShader02642}
@@ -151,6 +153,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  const spatialWave0285=vaultSpatialWaveEnabled0285();
  const stableStrips0286=reflectionStabilityEnabled0286();
  const archFeet0287=archFootRelease0287();
+ const precisionNeon0288=precisionNeonEnabled0288();
  // The original Skyline renderer owns EVERY panel, rib, bay, cove and
  // source-local metallic shader. Do not call the 0.27.x Vault pipeline here.
  try{
@@ -164,7 +167,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    // actual PBR deck or coupling its physics/collision geometry.
    const roadFacade=new THREE.MeshStandardMaterial({color:0x050914});
    const item={source:null,section,module,metal:null,finish:null,
-    wave:null,stability:null,archFoot:null,roadFacade};
+    wave:null,stability:null,archFoot:null,precision:null,roadFacade};
    installed.push(item);
    const source=installPremiumMetalSurfaceLibrary(THREE,section,{
     track:"skyline",positionAt:adaptSourcePosition0281(positionAt,module),
@@ -209,6 +212,14 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    if(stableStrips0286&&!item.stability.active)
     throw Error("0.28.6 original luminous materials unavailable in module "+
      module.index+": "+item.stability.stats().reason);
+   // Finish AFTER 0.28.6: preserve the actual Skyline GGX and
+   // 0.28.7 physical L. No new source geometry or postprocess pass.
+   item.precision=installPrecisionNeon0288(section,{
+    enabled:precisionNeon0288,lowMemory
+   });
+   if(precisionNeon0288&&!item.precision.active)
+    throw Error("0.28.8 original neon response missing in module "+
+     module.index+": "+item.precision.stats().reason);
   }
   world.add(root);
  }catch(error){
@@ -237,6 +248,9 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   setArchFootComparison(value){
    for(const item of installed)item.archFoot?.setComparison?.(value);
   },
+  setPrecisionNeonComparison(value){
+   for(const item of installed)item.precision?.setComparison?.(value);
+  },
   stats(){return {
    active:true,version:"0.28.1",track,
    trueSharedSource:"Skyline 0.26.5 real installer",
@@ -263,6 +277,19 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
     duplicateFootMeshes:0,lightsAdded:0,collidersAdded:0,
     sourceProfileReused:true,gripUnchanged:true,pmremUnchanged:true,
     lowMemory:!!lowMemory
+   },
+   precisionNeon0288:{
+    active:precisionNeon0288,
+    sourceModules:installed.filter(x=>x.precision?.active).length,
+    physicalCoats:installed.reduce((n,x)=>n+(x.precision?.stats?.().coats||0),0),
+    cyanSources:installed.filter(x=>x.precision?.stats?.().realCove===1).length,
+    archFootSources:installed.filter(x=>x.precision?.stats?.().realArchFoot===1).length,
+    strength:installed[0]?.precision?.stats?.().strength??0,
+    addedLights:0,addedMeshes:0,addedTextures:0,
+    addedRenderPasses:0,addedReflectionSamples:0,
+    originalGGX:true,originalPMREM:true,originalArchFoot0287:true,
+    lowMemory:!!lowMemory,roadUntouched:true,shipUntouched:true,
+    boostUntouched:true,gripUntouched:true,physicsUntouched:true
    },
    stableLuminous0286:{
     active:stableStrips0286,
@@ -295,6 +322,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   dispose(){
    if(disposed)return;disposed=true;
    for(const item of installed.reverse()){
+    item.precision?.dispose?.();
     item.stability?.dispose?.();
     item.archFoot?.dispose?.();
     item.wave?.dispose?.();

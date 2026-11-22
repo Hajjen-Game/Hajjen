@@ -28,6 +28,8 @@ import {STABILITY_0286,reflectionStabilityEnabled0286}
  from "./reflection-stability-strips-v0286.mjs";
 import {ARCH_FOOT_0287,archFootRelease0287}
  from "./arch-foot-light-assembly-v0287.mjs";
+import {PRECISION_NEON_0288,precisionNeonEnabled0288}
+ from "./precision-neon-response-v0288.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./manta-blade-v0103.mjs";
 import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
@@ -259,6 +261,8 @@ const stabilityReleaseEnabled=trueSharedVaultEnabled&&
  reflectionStabilityEnabled0286(location.search);
 const archFootAssemblyEnabled=trueSharedVaultEnabled&&
  archFootRelease0287(location.search);
+const precisionNeonReleaseEnabled=trueSharedVaultEnabled&&
+ precisionNeonEnabled0288(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -1418,6 +1422,40 @@ function initScene(){
    pmrem0284:pmremPipeline?.stats?.()??null,
    centralSource:TUNNEL_SHARED_ARCHITECTURE_0280
   });
+ // 0.28.8: exact same camera/frame native source shader comparison.
+ // Only the small cove/L emission and original wall-masked GGX gains move.
+ if(new URLSearchParams(location.search).get("precisionNeonSmoke")==="1"){
+  window.__skyshiftPrecisionNeonAudit=()=>{
+   const data=trueSharedVault?.stats?.()??{};
+   return {track:TRACK_ID_0160,requested:precisionNeonReleaseEnabled,
+    precision:data.precisionNeon0288??null,
+    arch:data.archFootAssembly0287??null,
+    stability:data.stableLuminous0286??null,
+    originalShared:!!trueSharedVault?.active,
+    pmremActive:!!pmremPipeline?.active,
+    waveAligned:data.sharedWave0285?.active??false,
+    originalShip:!!ship,grip:!!UI.grip,
+    roadMaterial:premiumSurface?.material?.type??null,
+    physicsUntouched:true,boostUntouched:true,
+    originalGGX:true,originalPMREM:true,
+    noExtraWorldLights:true,design:PRECISION_NEON_0288
+   };
+  };
+  window.__skyshiftPrecisionNeonFrameProof=()=>{
+   if(!trueSharedVault?.stats?.().precisionNeon0288?.active||
+    !neonPipeline?.render)
+    throw Error("0.28.8 true original-source WebGL comparison unavailable");
+   const strength=trueSharedVault.stats().precisionNeon0288.strength;
+   const capture=value=>{
+    trueSharedVault.setPrecisionNeonComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {before:capture(0),after:capture(1),
+    s:flight?.s??null,meta:window.__skyshiftPrecisionNeonAudit()};}
+   finally{trueSharedVault.setPrecisionNeonComparison(strength);}
+  };
+ }
  // 0.28.7 native geometry QA only: replacing the existing L emitter
  // cannot be toggled by shader uniforms; compare independent launches
  // with &archFoot=classic at identical camera positions.
@@ -3142,7 +3180,8 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (archFootAssemblyEnabled?" · 0.28.7":
+   (precisionNeonReleaseEnabled?" · 0.28.8":
+    archFootAssemblyEnabled?" · 0.28.7":
     stabilityReleaseEnabled?" · 0.28.6":
     sharedWaveParityEnabled?" · 0.28.5":
     pmremReleaseEnabled?" · 0.28.4":
@@ -4960,7 +4999,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.7":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.8":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

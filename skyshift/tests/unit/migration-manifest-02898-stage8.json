@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "stage": "SKYSHIFT 0.28.9.8 Stage 8",
+  "description": "Original immutable Git blob SHA for the 12 formerly protected module-relative, historical and subprocess unit tests. Permitted changes: only module import and import.meta.url path bases.",
+  "entries": {
+    "multi-track-aurora-v0160.test.mjs": "a7d2d4503bd551c0075d40d9e76c0cd7d32c0856",
+    "rail-collision-v0162.test.mjs": "9e2f993f963e87d59fb8d17cfbd53ba521482054",
+    "rail-contact-quality-v0163.test.mjs": "6481bbe11a8d346a19330af2125232f7da0da8db",
+    "shared-straight-edge-parity-v02891.test.mjs": "e542408969604c42ebca777783f1bf6e999711b2",
+    "track-integrity-v0161.test.mjs": "4895bebace986bcffec1f617f2f5f31639bd435a",
+    "track-integrity-v0162.test.mjs": "88ae567f575be686c401b1b5af6add37702d622f",
+    "track-integrity-v0163.test.mjs": "034b3beff7c0ad4a3b5e8fa51d624f9881fab182",
+    "track-integrity-v0164.test.mjs": "c513d30f66861fa88131fce2d2b19de27791d7cb",
+    "track-integrity-v0165.test.mjs": "7cb19ae3c69a495f7cfd18b74a47bfe49dd2409e",
+    "track-physics-parity-v0164.test.mjs": "5f0590dca0cf945811d4b7e81114a3f2713b5e50",
+    "track-physics-parity-v0165.test.mjs": "3c08b2946fd0a665736ee747a910921477c0d7dd",
+    "vault-boost-clarity-v0283.test.mjs": "9b537c76d6e44ccab4589413db56f33b283b67e1"
+  }
+}

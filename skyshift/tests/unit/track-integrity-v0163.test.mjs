@@ -1,4 +1,4 @@
-// SKYSHIFT 0.16.4 — Aurora separate, actual road/collision, no risk lines.
+// SKYSHIFT 0.16.3 — Aurora separate, actual road/collision, no risk lines.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -6,19 +6,19 @@ import {readFileSync} from "node:fs";
 globalThis.location={search:"?track=aurora"};
 const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,racing]=
  await Promise.all([
- import("./track-selection-v0160.mjs"),
- import("./circuit-layout-v0160.mjs"),
- import("./trial-v0164.mjs"),
- import("./track-3d-v0160.mjs"),
- import("./risk-reward-v0160.mjs"),
- import("./boost-v0160.mjs"),
- import("./smooth-track-v0160.mjs"),
- import("./premium-track-v0160.mjs"),
- import("./aero-barrier-v0164.mjs"),
- import("./shadow-tunnel-v0160.mjs"),
- import("./time-trial-v0160.mjs"),
- import("./racing-experience-v0160.mjs")]);
-const src=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+ import("../../track-selection-v0160.mjs"),
+ import("../../circuit-layout-v0160.mjs"),
+ import("../../trial-v0163.mjs"),
+ import("../../track-3d-v0160.mjs"),
+ import("../../risk-reward-v0160.mjs"),
+ import("../../boost-v0160.mjs"),
+ import("../../smooth-track-v0160.mjs"),
+ import("../../premium-track-v0160.mjs"),
+ import("../../aero-barrier-v0163.mjs"),
+ import("../../shadow-tunnel-v0160.mjs"),
+ import("../../time-trial-v0160.mjs"),
+ import("../../racing-experience-v0160.mjs")]);
+const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,eps=1e-7)=>assert.ok(Math.abs(a-b)<eps,
  "expected "+a+" ≈ "+b);
 test("two independent track choices exist; Aurora truly selected",()=>{
@@ -32,7 +32,7 @@ test("two independent track choices exist; Aurora truly selected",()=>{
  assert.equal(trial.TRIAL.length,3400);
  assert.equal(trial.TRIAL.raceLength,10200);
  assert.equal(trial.TRIAL.laps,3);
- assert.equal(layout.AUTHORED_SECTIONS.length,13);
+ assert.equal(layout.AUTHORED_SECTIONS.length,12);
  assert.equal(layout.COURSE_SEGMENTS.filter(s=>s.type==="turn").length,6);
 });
 test("genuinely distinct 3D course closes without seam or short microbends",async()=>{
@@ -42,23 +42,20 @@ test("genuinely distinct 3D course closes without seam or short microbends",asyn
  near(trial.headingAt(3400)-trial.headingAt(0),Math.PI*2,1e-7);
  const a=trial.poseAt(0),z=trial.poseAt(3400);
  near(a.x,z.x);near(a.z,z.z);near(a.y,z.y);
- const old=await import("./trial-v0151.mjs");
+ const old=await import("../../trial-v0151.mjs");
  const orig=old.positionAt(550),fresh=trial.positionAt(550);
  assert.ok(Math.hypot(orig.x-fresh.x,orig.z-fresh.z)>20,
   "Aurora cannot just recolor the Skyline course");
  for(let i=0;i<3400;i+=2){
   assert.ok(Number.isFinite(trial.positionAt(i).x));
-  assert.ok(Math.abs(trial.curvatureAt(i))<=.0054,
+  assert.ok(Math.abs(trial.curvatureAt(i))<=.011,
    "Aurora's switchbacks stay wide and fair");
   assert.equal(trial.widthAt(i),23.2);
  }
  const turnCount=trial.COURSE_SEGMENTS.filter(s=>s.turnAngle!==0).length;
  assert.equal(turnCount,6);
  assert.ok(trial.COURSE_SEGMENTS.some(s=>s.length>=440&&s.type==="turn"));
- assert.ok(trial.COURSE_SEGMENTS.some(s=>s.length>210&&s.type==="straight"));
- assert.ok(trial.COURSE_SEGMENTS.at(-1).type==="straight"&&
-  trial.COURSE_SEGMENTS.at(-1).length>=219,
-  "Aurora must have a real final straight instead of ending mid-turn");
+ assert.ok(trial.COURSE_SEGMENTS.some(s=>s.length>350&&s.type==="straight"));
 });
 test("no risk/SAFE lines, mandatory jumps, magnetic walls, or rotating corkscrew",()=>{
  assert.equal(risk.RHYTHM_GATES_0160.length,0);
@@ -131,23 +128,23 @@ test("empty risk-pad GLSL compiles to numeric zero, not missing expression",()=>
  assert.doesNotMatch(fragment,/float \w+\s*=\s*;/);
 });
 test("PB/ghost separate from Skyline while keeping Skyline saved records",async()=>{
- const original=(await import("./time-trial-v0151.mjs")).TIME_TRIAL_0151;
+ const original=(await import("../../time-trial-v0151.mjs")).TIME_TRIAL_0151;
  assert.notEqual(tt.TIME_TRIAL_0160.storageKey,original.storageKey);
  assert.notEqual(tt.TIME_TRIAL_0160.trackRevision,original.trackRevision);
- assert.equal(tt.TIME_TRIAL_0160.trackId,"aurora-flow-v0164");
+ assert.equal(tt.TIME_TRIAL_0160.trackId,"aurora-flow-v0160");
  assert.equal(tt.TIME_TRIAL_0160.raceMeters,10200);
 });
 test("menu uses real circuit selector and Skyline-only Challenges not shown on Aurora",()=>{
- const html=src("./index.html"),game=src("./game-v0164.mjs"),
-  boot=src("./boot-v0164.js");
+ const html=src("./index.html"),game=src("./game-v0163.mjs"),
+  boot=src("./boot-v0163.js");
  assert.match(html,/id="track-picker"/);
  assert.match(html,/value="aurora"/);
  assert.match(html,/value="skyline"/);
- assert.match(boot,/game-v0164\.mjs\?v=0\.16\.4/);
+ assert.match(boot,/game-v0163\.mjs\?v=0\.16\.3/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
  assert.match(game,/challengeButton\.classList\.toggle\("hidden",!ACTIVE_TRACK_0160\.hasSkylineChallenges\)/);
- assert.match(game,/from "\.\/trial-v0164\.mjs"/);
- assert.match(game,/from "\.\/aero-barrier-v0164\.mjs"/);
+ assert.match(game,/from "\.\/trial-v0163\.mjs"/);
+ assert.match(game,/from "\.\/aero-barrier-v0163\.mjs"/);
  assert.match(game,/from "\.\/shadow-tunnel-v0160\.mjs"/);
  assert.match(game,/ship\.rotation\.z=naturalRoll;/);
 });
@@ -155,8 +152,8 @@ test("menu uses real circuit selector and Skyline-only Challenges not shown on A
 
 test("Aurora camera obeys Aurora's physical bank, never archived Skyline 360 roll",async()=>{
  const [camera,oldCamera]=await Promise.all([
-  import("./cinematic-v0164.mjs"),
-  import("./cinematic-v0901.mjs")]);
+  import("../../cinematic-v0163.mjs"),
+  import("../../cinematic-v0901.mjs")]);
  // Regression: the old chase camera imported trial-v0901 and incorrectly
  // treated Aurora's final 3005-3338m turn as a full corkscrew.
  assert.ok(Math.abs(oldCamera.cameraBankAt(3180))>2,
@@ -183,8 +180,8 @@ test("Aurora camera obeys Aurora's physical bank, never archived Skyline 360 rol
  }
 });
 test("Aurora metal contact sparks are on Aurora rails, never old Skyline world space",async()=>{
- const sparks=await import("./rail-scrape-sparks-v0164.mjs");
- const oldSparks=await import("./rail-scrape-sparks-v01091.mjs");
+ const sparks=await import("../../rail-scrape-sparks-v0163.mjs");
+ const oldSparks=await import("../../rail-scrape-sparks-v01091.mjs");
  for(const s of [250,715,1530,2060,2750,3180]){
   for(const side of [-1,1]){
    const q=sparks.railContactPoint(s,side);
@@ -193,28 +190,28 @@ test("Aurora metal contact sparks are on Aurora rails, never old Skyline world s
    assert.equal(q.side,side);
   }
  }
- const wrong=oldSparks.railContactPoint(550,-1);
- const correct=sparks.railContactPoint(550,-1);
+ const wrong=oldSparks.railContactPoint(3180,-1);
+ const correct=sparks.railContactPoint(3180,-1);
  assert.ok(Math.hypot(wrong.x-correct.x,wrong.z-correct.z)>30,
   "reproduce the old displaced metallic spark position");
 });
 test("No ghost right-apex guidance or Skyline-only leap signs on Aurora",()=>{
- const game=src("./game-v0164.mjs");
+ const game=src("./game-v0163.mjs");
  assert.match(game,/const cue=isAurora\(\)\?\{visible:false/);
  assert.match(game,/if\(!isAurora\(\)\)makeBillboard\("SKYLINE LEAP"/);
  assert.match(game,/makeBillboard\(isAurora\(\)\?"LUMEN PASS":"SHADOW TUNNEL"/);
  assert.match(game,/ACTIVE_TRACK_0160\.name\+" COMPLETE"/);
- assert.match(game,/from "\.\/cinematic-v0164\.mjs"/);
- assert.match(game,/from "\.\/unified-flight-v0164\.mjs"/);
- assert.match(game,/from "\.\/rail-scrape-sparks-v0164\.mjs"/);
- const rig=src("./unified-flight-v0164.mjs");
- assert.match(rig,/from "\.\/cinematic-v0164\.mjs"/);
- const realCamera=src("./cinematic-v0164.mjs");
- assert.match(realCamera,/from "\.\/trial-v0164\.mjs"/);
+ assert.match(game,/from "\.\/cinematic-v0163\.mjs"/);
+ assert.match(game,/from "\.\/unified-flight-v0163\.mjs"/);
+ assert.match(game,/from "\.\/rail-scrape-sparks-v0163\.mjs"/);
+ const rig=src("./unified-flight-v0163.mjs");
+ assert.match(rig,/from "\.\/cinematic-v0163\.mjs"/);
+ const realCamera=src("./cinematic-v0163.mjs");
+ assert.match(realCamera,/from "\.\/trial-v0163\.mjs"/);
  assert.doesNotMatch(realCamera,/from "\.\/trial-v0901\.mjs"/);
 });
 test("Aurora rail tessellation cuts mobile triangles, collision/ship physics intact",async()=>{
- const rail=await import("./aero-barrier-v0164.mjs");
+ const rail=await import("../../aero-barrier-v0163.mjs");
  const optimized=rail.createAeroBarrierData();
  const archived=rail.createAeroBarrierData(.95);
  assert.ok(optimized.indices.length<archived.indices.length*.76,
@@ -224,15 +221,15 @@ test("Aurora rail tessellation cuts mobile triangles, collision/ship physics int
  assert.equal(trial.TRIAL.maxYawRate,1.24);
  assert.equal(trial.GAPS.length,0);
  assert.equal(trial.TRIAL.hoverHeight,1.05);
- const source=src("./aero-barrier-v0164.mjs");
- assert.match(source,/from "\.\/trial-v0164\.mjs"/);
+ const source=src("./aero-barrier-v0163.mjs");
+ assert.match(source,/from "\.\/trial-v0163\.mjs"/);
  assert.match(source,/step=isAurora\(\)\?1\.55:AERO_BARRIER\.step/);
 });
-test("0.16.4 URLs and menu preserve independent courses and PB/ghosts",()=>{
- const html=src("./index.html"),game=src("./game-v0164.mjs");
- assert.match(html,/boot-v0164\.js\?v=0\.16\.4/);
- assert.match(src("./boot-v0164.js"),/game-v0164\.mjs\?v=0\.16\.4/);
+test("0.16.3 URLs and menu preserve independent courses and PB/ghosts",()=>{
+ const html=src("./index.html"),game=src("./game-v0163.mjs");
+ assert.match(html,/boot-v0163\.js\?v=0\.16\.3/);
+ assert.match(src("./boot-v0163.js"),/game-v0163\.mjs\?v=0\.16\.3/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
  assert.match(game,/from "\.\/time-trial-v0160\.mjs"/);
- assert.equal(tt.TIME_TRIAL_0160.storageKey,"skyshift-time-trial-ghost-aurora-0164");
+ assert.equal(tt.TIME_TRIAL_0160.storageKey,"skyshift-time-trial-ghost-aurora-0160");
 });

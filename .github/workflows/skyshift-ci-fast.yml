@@ -64,6 +64,8 @@ jobs:
           node --check skyshift/shared-tunnel-runtime-v0280.mjs
           node --check skyshift/browser-shared-tunnel-v0280.mjs
           node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
+          node --check skyshift/ceiling-fixture-cohesion-v02892.mjs
+          node --check skyshift/browser-ceiling-fixture-v02892.mjs
           node --check skyshift/browser-true-shared-tunnel-v0281.mjs
           node --check skyshift/shared-road-ship-light-v0282.mjs
           node --check skyshift/browser-shared-road-ship-v0282.mjs
@@ -137,6 +139,7 @@ jobs:
           # Prevent legacy push-only failure: Skyline's boot release and
           # Neon Vault's independent menu release must both be validated
           # on the PR, before merging to main.
+          node --test skyshift/ceiling-fixture-cohesion-v02892.test.mjs
           node --test skyshift/build-version-v02204.test.mjs
 
   current-material-webgl:
@@ -803,4 +806,35 @@ jobs:
           path: |
             skyshift/previews/v02891-*.png
             skyshift/previews/v02891-proof.json
+          if-no-files-found: warn
+
+  ceiling-fixture-wave-real-webgl-02892:
+    name: SKYSHIFT 0.28.9.2 actual seam fixtures, zone wave and rollback High/4GB
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check source shader and original profile parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check skyshift/ceiling-fixture-cohesion-v02892.mjs
+          node --check skyshift/browser-ceiling-fixture-v02892.mjs
+          node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
+          node --test skyshift/ceiling-fixture-cohesion-v02892.test.mjs
+      - name: Install original WebGL screenshot driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Capture actual Vault upper-wall seams and wave fixture before-after
+        run: node skyshift/browser-ceiling-fixture-v02892.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02892-real-game-before-after-ceiling-fixtures
+          path: |
+            skyshift/previews/v02892-*.png
+            skyshift/previews/v02892-proof.json
           if-no-files-found: warn

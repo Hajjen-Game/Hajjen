@@ -178,6 +178,6 @@ test("legacy Skyline release functions and Vault 0.28.9 lighting remain enabled"
  assert.match(shared,/straightOnly:straightOnly02891/);
  assert.match(game,/installVaultStraightRoadParity02891/);
  assert.match(game,/straightParityReleaseEnabled\?" · 0\.28\.9\.1"/);
- assert.match(game,/selected==="vault"\?"0\.28\.9\.1"/);
- assert.match(html,/Shared Straight-Only Edge Lighting Parity · 0\.28\.9\.1/);
+ assert.match(game,/selected==="vault"\?"0\.28\.9\.2"/);
+ assert.match(html,/Ceiling Fixture Placement & Glow Cohesion · 0\.28\.9\.2/);
 });

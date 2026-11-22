@@ -30,6 +30,9 @@ import {ARCH_FOOT_0287,archFootRelease0287}
  from "./arch-foot-light-assembly-v0287.mjs";
 import {PRECISION_NEON_0288,precisionNeonEnabled0288}
  from "./precision-neon-response-v0288.mjs";
+import {CINEMATIC_METAL_0289,cinematicMetalEnabled0289,
+ cinematicComponentEnabled0289,installCinematicRoad0289}
+ from "./cinematic-metal-neon-v0289.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./manta-blade-v0103.mjs";
 import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
@@ -263,6 +266,8 @@ const archFootAssemblyEnabled=trueSharedVaultEnabled&&
  archFootRelease0287(location.search);
 const precisionNeonReleaseEnabled=trueSharedVaultEnabled&&
  precisionNeonEnabled0288(location.search);
+const cinematicMetalReleaseEnabled=trueSharedVaultEnabled&&
+ cinematicMetalEnabled0289(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -597,7 +602,7 @@ let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,unifiedMetalLight=null,premiumReflectionFinish=null,fixtureTransport=null,trueRailWall=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
 let cinematicLighting=null,signatureEnvironment=null,cinematicWorld=null,orbitalHero=null;
 let fullTunnelCircuit=null,vaultMaterialParity=null,vaultArchitecture=null,vaultFullLighting=null,sharedTunnelRuntime=null;
-let sharedRoadLight=null,sharedShipLight=null,pmremPipeline=null;
+let sharedRoadLight=null,sharedShipLight=null,pmremPipeline=null,cinematicRoadFinish=null;
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
  edgeFloorLighting=null;
@@ -1314,6 +1319,12 @@ function initScene(){
   enabled:sharedRoadLightEnabled,positionAt,
   trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory
  });
+ // Attach to the ACTUAL indexed racing deck, after native 0.28.2 GGX.
+ // Stay at zero strength until authentic 0.28.4 PMREM capture finishes.
+ cinematicRoadFinish=installCinematicRoad0289(world,{
+  enabled:cinematicMetalReleaseEnabled&&!!sharedRoadLight?.active,
+  lowMemory:limitedMemory,road:false
+ });
  // Subtle visible cyan inset rails and arch-foot amber floor pools, with
  // original indexed racing deck and road GGX left unmodified in classic mode.
  edgeFloorLighting=edgeFloorEnabled?
@@ -1391,6 +1402,17 @@ function initScene(){
    lowMemory:limitedMemory,trackLength:CIRCUIT.lapLength,
    positionAt,ship
   });
+ // The PMREM captures 0.28.8 ORIGINAL geometry/light levels. Only
+ // afterwards enable local 0.28.9 material uniforms for visible racing.
+ if(cinematicMetalReleaseEnabled){
+  trueSharedVault?.setCinematicMetalComparison?.({
+   contrast:cinematicComponentEnabled0289("cinematicContrast",location.search)?1:0,
+   strips:cinematicComponentEnabled0289("cinematicStrips",location.search)?1:0
+  });
+  cinematicRoadFinish?.setComparison?.({
+   road:cinematicComponentEnabled0289("cinematicRoad",location.search)?1:0
+  });
+ }
  if(perfSettings.enabled){
   if(perfSettings.preset==="no-bloom")neonPipeline.bloom.enabled=false;
   if(perfSettings.preset==="no-smaa")neonPipeline.smaa.enabled=false;
@@ -1422,6 +1444,50 @@ function initScene(){
    pmrem0284:pmremPipeline?.stats?.()??null,
    centralSource:TUNNEL_SHARED_ARCHITECTURE_0280
   });
+ // 0.28.9: same-frame real game render with full 0.28.8 PMREM kept.
+ // Tests image identity on zero-strength settings then enables components.
+ if(new URLSearchParams(location.search).get("cinematicMetalSmoke")==="1"){
+  window.__skyshiftCinematicMetalAudit=()=>{
+   const tunnel=trueSharedVault?.stats?.()??{};
+   return {track:TRACK_ID_0160,requested:cinematicMetalReleaseEnabled,
+    tunnel:tunnel.cinematicMetal0289??null,
+    road:cinematicRoadFinish?.stats?.()??null,
+    originalShared:!!trueSharedVault?.active,
+    originalSource:tunnel.precisionNeon0288??null,
+    stableMetal:tunnel.stableLuminous0286??null,
+    archFoot:tunnel.archFootAssembly0287??null,
+    pmremActive:!!pmremPipeline?.active,
+    zoneWave:tunnel.sharedWave0285?.active??false,
+    originalShip:!!ship,grip:!!UI.grip,
+    geometryUntouched:true,physicsUntouched:true,boostUntouched:true,
+    newMeshes:0,newWorldLights:0,newRenderPasses:0,
+    design:CINEMATIC_METAL_0289};
+  };
+  window.__skyshiftCinematicMetalFrames=()=>{
+   if(!trueSharedVault?.stats?.().cinematicMetal0289?.active||
+    !cinematicRoadFinish?.stats?.().active||!neonPipeline?.render)
+    throw Error("0.28.9 real full source/road WebGL A/B unavailable");
+   const originalTunnel=trueSharedVault.stats().cinematicMetal0289.strength;
+   const originalRoad=cinematicRoadFinish.stats().strength;
+   const render=(contrast,strips,road)=>{
+    trueSharedVault.setCinematicMetalComparison({contrast,strips});
+    cinematicRoadFinish.setComparison({road});
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    return {before:render(0,0,0),
+     contrastOnly:render(originalTunnel.contrast,0,0),
+     stripsOnly:render(0,originalTunnel.strips,0),
+     roadOnly:render(0,0,originalRoad.road),
+     after:render(originalTunnel.contrast,originalTunnel.strips,originalRoad.road),
+     s:flight?.s??null,meta:window.__skyshiftCinematicMetalAudit()};
+   }finally{
+    trueSharedVault.setCinematicMetalComparison(originalTunnel);
+    cinematicRoadFinish.setComparison(originalRoad);
+   }
+  };
+ }
  // 0.28.8: exact same camera/frame native source shader comparison.
  // Only the small cove/L emission and original wall-masked GGX gains move.
  if(new URLSearchParams(location.search).get("precisionNeonSmoke")==="1"){
@@ -3180,7 +3246,8 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (precisionNeonReleaseEnabled?" · 0.28.8":
+   (cinematicMetalReleaseEnabled?" · 0.28.9":
+    precisionNeonReleaseEnabled?" · 0.28.8":
     archFootAssemblyEnabled?" · 0.28.7":
     stabilityReleaseEnabled?" · 0.28.6":
     sharedWaveParityEnabled?" · 0.28.5":
@@ -4999,7 +5066,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.8":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.9":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

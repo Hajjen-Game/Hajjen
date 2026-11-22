@@ -148,14 +148,14 @@ export function patchRoadGlints0289(fragment,{mobile=false}={}){
   "// Longitudinal, source-masked color glints: existing road tangent +",
   "// source positions (r263Source), same wave and guides as 0.28.8.",
   "float cm289Across=abs(vTrackCoord.y);",
-  "float cm289CyanBand=exp(-pow((cm289Across-6.5)/3.7,2.0));",
-  "float cm289AmberBand=exp(-pow((cm289Across-7.9)/3.0,2.0));",
+  "float cm289CyanBand=exp(-pow((cm289Across-8.0)/1.75,2.0));",
+  "float cm289AmberBand=exp(-pow((cm289Across-8.5)/1.65,2.0));",
   "float cm289StableFlow=0.85+0.15*",
   " sin(vTrackCoord.x*0.12+vTrackCoord.y*0.075);",
-  "vec3 cm289Tint=vec3(0.030,0.72,1.03)*",
-  " (r263Source.x*cm289CyanBand*"+(mobile?"0.88":"1.48")+")+",
-  " vec3(1.0,0.38,0.067)*",
-  " (r263Source.y*cm289AmberBand*"+(mobile?"0.66":"1.14")+");",
+  "vec3 cm289Tint=vec3(0.018,0.48,0.74)*",
+  " (r263Source.x*cm289CyanBand*"+(mobile?"0.10":"0.19")+")+",
+  " vec3(0.76,0.24,0.042)*",
+  " (r263Source.y*cm289AmberBand*"+(mobile?"0.065":"0.135")+");",
   "r263Convolved+=uCinematicRoad0289*cm289Tint*cm289StableFlow;"
  ].join("\n");
  return fragment.replace(COMMON,COMMON+"\nuniform float uCinematicRoad0289;")

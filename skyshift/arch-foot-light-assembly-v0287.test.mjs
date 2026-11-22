@@ -50,7 +50,7 @@ test("geometry uses same original full 368m portals and safe banked wall shoulde
   assert.equal(g.verticals,g.fixtures*(mobile?5:9));
   assert.equal(g.horizontals,g.fixtures*8);
   assert.equal(g.originalPortals,TUNNEL_PORTALS_0211.length);
-  assert.ok(g.glowCells>400);
+  assert.equal(g.glowCells,TUNNEL_PORTALS_0211.length*2*(mobile?5:9)*(mobile?4:7));
   assert.equal(g.emitterGeometry.getAttribute("color").itemSize,4);
   assert.equal(g.emitterGeometry.getAttribute("color").count,
    g.emitterGeometry.getAttribute("position").count);

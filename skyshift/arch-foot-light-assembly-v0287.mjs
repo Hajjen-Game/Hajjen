@@ -90,6 +90,9 @@ export function buildArchFootAssembly0287(THREE,positionAt,{
   const rise=clamp(tip[1]-
    floorY02631(rootX,s,vaultHeightClassic)-.18,1.45,2.00);
   const plateOuter=rootX+.05,plateInner=rootX-3.40;
+  // The luminous core must sit INWARD of the original physical wall
+  // and the new graphite foot mount, to remain visible in motion.
+  const coreRootX=rootX-.16;
   for(const side of [-1,1]){
    fixtures++;
    // Recessed graphite foot / kickplate, not an unlit 3D wedge.
@@ -101,9 +104,9 @@ export function buildArchFootAssembly0287(THREE,positionAt,{
     e=floor(l1,side,plateInner,.024);
    appendMount(a,b,d,e);
    const corner=(ss,t,raise=0)=>
-    p(ss,side,rootX+(topX-rootX)*t,
+    p(ss,side,rootX+(topX-rootX)*t-.16,
      floorY02631(rootX,clamp(ss,.035,MAX),vaultHeightClassic)+
-     .065+rise*t+raise);
+     .09+rise*t+raise);
    appendMount(
     corner(l0,0,-.05),corner(l0,1,-.055),
     corner(l1,1,-.055),corner(l1,0,-.05));
@@ -113,7 +116,7 @@ export function buildArchFootAssembly0287(THREE,positionAt,{
    const verticalSteps=lowMemory?5:9;
    for(let k=0;k<verticalSteps;k++){
     const t0=k/verticalSteps,t1=(k+1)/verticalSteps;
-    const alpha=.99-(t0+t1)*.035;
+    const alpha=1.0-(t0+t1)*.018;
     appendLight(
      corner(s-span, t0,.024),corner(s-span,t1,.024),
      corner(s+span,t1,.024),corner(s+span,t0,.024),
@@ -124,13 +127,13 @@ export function buildArchFootAssembly0287(THREE,positionAt,{
    // floor, 3.30m long. Its outer end touches the vertical at rootX.
    for(let k=0;k<8;k++){
     const t0=k/8,t1=(k+1)/8,
-     x0=rootX-(rootX-plateInner)*t0,
-     x1=rootX-(rootX-plateInner)*t1;
+     x0=coreRootX-(coreRootX-plateInner)*t0,
+     x1=coreRootX-(coreRootX-plateInner)*t1;
     appendLight(
-     floor(s-.18,side,x0,.075),
-     floor(s-.18,side,x1,.075),
-     floor(s+.18,side,x1,.075),
-     floor(s+.18,side,x0,.075),
+     floor(s-.18,side,x0,.105),
+     floor(s-.18,side,x1,.105),
+     floor(s+.18,side,x1,.105),
+     floor(s+.18,side,x0,.105),
      ARCH_FOOT_0287.warmCore,.98);
     horizontals++;
    }
@@ -206,11 +209,12 @@ export function installArchFootAssembly0287(THREE,section,sourcePositionAt,{
    color:0x23333b,metalness:.62,roughness:.49,
    emissive:0x100902,emissiveIntensity:.12,
    side:THREE.DoubleSide,
-   polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2
+   // Positive depth bias keeps the dark bracket BEHIND the emitter.
+   polygonOffset:true,polygonOffsetFactor:2,polygonOffsetUnits:2
   }));
   mount.name="SKYSHIFT 0.28.7 / original arch foot graphite L mount";
   mount.frustumCulled=true;
-  mount.renderOrder=2;
+  mount.renderOrder=1;
   section.add(mount);
   foot.geometry=generated.emitterGeometry;
   foot.renderOrder=3;

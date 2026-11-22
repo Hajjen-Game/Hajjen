@@ -1440,6 +1440,20 @@ function initScene(){
     design:ARCH_FOOT_0287
    };
   };
+  window.__skyshiftArchFootFrameProof=()=>{
+   if(!trueSharedVault?.stats?.().archFootAssembly0287?.active||
+    !neonPipeline?.render)
+    throw Error("0.28.7 original shared arch-foot A/B unavailable");
+   const capture=value=>{
+    trueSharedVault.setArchFootComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{
+    return {old: capture(0),updated:capture(1),
+     s:flight?.s??null,meta:window.__skyshiftArchFootAudit()};
+   }finally{trueSharedVault.setArchFootComparison(1);}
+  };
  }
  // 0.28.6: actual same-scene renderer A/B. Keep all positional
  // light sources, PMREM, zone wave, ship and physics UNCHANGED.

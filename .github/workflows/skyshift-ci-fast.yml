@@ -772,3 +772,35 @@ jobs:
             skyshift/previews/v0289-*.png
             skyshift/previews/v0289-proof.json
           if-no-files-found: warn
+
+  straight-edge-parity-real-webgl-02891:
+    name: SKYSHIFT 0.28.9.1 Skyline 0.26.3.3 cyan only on Vault straights + original road GGX High/4GB
+    needs: fast-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify patch semantics and complete old tunnel shader chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check skyshift/shared-straight-edge-parity-v02891.mjs
+          node --check skyshift/browser-straight-edge-parity-v02891.mjs
+          node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
+          node --check skyshift/game-v0210.mjs
+          node --test skyshift/shared-straight-edge-parity-v02891.test.mjs
+      - name: Install original browser WebGL screenshot driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Capture live Vault before/after on all turns and 4GB
+        run: node skyshift/browser-straight-edge-parity-v02891.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02891-vault-real-corner-clearance-webgl
+          path: |
+            skyshift/previews/v02891-*.png
+            skyshift/previews/v02891-proof.json
+          if-no-files-found: warn

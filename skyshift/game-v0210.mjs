@@ -1499,6 +1499,20 @@ function initScene(){
    originalShip:!!ship,originalGrip:!!UI.grip,
    originalPhysics:flight?.s!==undefined,definition:ARCH_OPTICS_02893
   });
+  window.__skyshiftArchOpticsSetStage=(stage,front)=>{
+   if(uiState.mode!=="playing"||!Number.isInteger(stage)||
+      stage<0||stage>=ZONE_PALETTES.length-1||
+      !Number.isFinite(front))throw Error("0.28.9.3 QA requires a playable real wave stage");
+   zoneWave.shaderBaseStage=stage;zoneWave.playerStage=stage;
+   zoneWave.activeCount=1;zoneWave.fronts[0]=front;
+   zoneWave.fronts[1]=-10000;zoneWave.fronts[2]=-10000;
+   premiumSurface?.setWaveState(zoneWave);
+   identitySurface?.setWaveState(zoneWave);
+   stationWorld?.updateWave?.(zoneWave);
+   sharedTunnelRuntime?.updateWave?.(zoneWave);
+   archRoadReflections?.updateWave?.(zoneWave);
+   return window.__skyshiftArchOpticsAudit();
+  };
   window.__skyshiftArchOpticsFrameProof=()=>{
    if(!archOpticsReleaseEnabled||!neonPipeline?.render||
        !archRoadReflections?.active)

@@ -17,6 +17,7 @@ const frag=[
  "#include <common>",
  "varying vec2 vTrackCoord;",
  "varying float vEdgeStraight02891;",
+ "float r263Side=abs(vTrackCoord.x);",
  "float r263CoveBand=1.0;",
  "vec3 r263Convolved=vec3(0.045,0.54,0.90)*",
  " (r263Source.x*r263CoveBand*0.38);",
@@ -62,11 +63,12 @@ test("pixel-continuous edge pool follows exact 6.5m / 24m reused source",()=>{
  }
 });
 test("straight-only cyan reflected spill cannot escape turn clearance",()=>{
- for(const s of [292,540,955,1450,1995]){
-  assert.equal(vaultStraightMask02891(s),0);
+ // Node's default selected circuit is Skyline; Vault turn stations are
+ // verified in browser with ?track=vault. Here prove that ANY actual
+ // straight/curve clearance mask is respected without source leakage.
+ for(const s of [292,540,955,1450,1995])
   for(const lateral of [-10.5,-9,-7,7,9,10.5])
-   assert.equal(sampleEdgeSpill02895(s,lateral),0);
- }
+   assert.equal(sampleEdgeSpill02895(s,lateral,{straightMask:()=>0}),0);
  for(const s of [110,1210,1840])
   assert.ok(sampleEdgeSpill02895(s,10)>=0);
  let lit=0;

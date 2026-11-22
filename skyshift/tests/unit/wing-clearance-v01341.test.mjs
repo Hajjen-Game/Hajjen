@@ -5,9 +5,9 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {STINGRAY_CLEARANCE_01341,clampVisualRoll,signedRoadClearance,
  wingSurfaceLift,extractWingUnderside,createStingraySurfaceClearance}
- from "./wing-clearance-v01341.mjs";
+ from "../../wing-clearance-v01341.mjs";
 const asset=JSON.parse(readFileSync(new URL(
- "./assets/ships/stingray-evo-hero-v3.gltf",import.meta.url),"utf8"));
+ "../../"+"./assets/ships/stingray-evo-hero-v3.gltf",import.meta.url),"utf8"));
 const bytes=Buffer.from(asset.buffers[0].uri.split(",")[1],"base64");
 class Vec3{
  constructor(x=0,y=0,z=0){this.set(x,y,z);}

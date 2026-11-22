@@ -2,14 +2,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {speedPresenceAt} from "./velocity-presence-v0104.mjs";
-import {MANTA_WING_OUTLINE} from "./manta-blade-v0484.mjs";
-import {STINGRAY_WING} from "./stingray-evo-v0104.mjs";
+import {speedPresenceAt} from "../../velocity-presence-v0104.mjs";
+import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";
+import {STINGRAY_WING} from "../../stingray-evo-v0104.mjs";
 import {
  WING_VAPOR,trailingWingZ,vaporWingAnchors,
  wingVaporEnvelope
 } from "./wing-vapor-v0105.mjs";
-const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const speed=stage=>44*1.11**stage;
 test("each wing vapor attaches to its actual outer-to-inner trailing edge",()=>{
  for(const [variant,outline] of [["manta",MANTA_WING_OUTLINE],

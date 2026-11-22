@@ -6,8 +6,8 @@ import {
  WORLD_0190,worldArchitecturePlan,worldBeamClear
 } from "./world-rebuild-v0190.mjs";
 import {TRIAL,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW}
- from "./trial-v0165.mjs";
-const src=path=>readFileSync(new URL(path,import.meta.url),"utf8");
+ from "../../trial-v0165.mjs";
+const src=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 test("3 authored chapters, Skyline geometry unchanged",()=>{
  const chapters=WORLD_0190.chapters;
  assert.deepEqual(chapters.map(x=>x.id),["orbital","conduit","cathedral"]);

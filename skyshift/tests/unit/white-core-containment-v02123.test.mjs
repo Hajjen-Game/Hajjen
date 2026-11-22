@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {WHITE_CORE_02123,whiteCoreTunnelMask,patchRoadWhiteCore,
  createWhiteCoreContainment} from "./white-core-containment-v02123.mjs";
-const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const shader=()=>({
  uniforms:{},
  vertexShader:"#include <common>\n#include <begin_vertex>",

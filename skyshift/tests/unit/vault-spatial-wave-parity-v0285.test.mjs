@@ -2,15 +2,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {planTrueSharedTunnel0281,adaptSourcePosition0281}
- from "./true-shared-tunnel-renderer-v0281.mjs";
+ from "../../true-shared-tunnel-renderer-v0281.mjs";
 import {ZONE_WAVE,newZoneWaveState,updateZoneWave}
- from "./zone-wave-v060.mjs";
+ from "../../zone-wave-v060.mjs";
 import {VAULT_WAVE_PARITY_0285,vaultSpatialWaveEnabled0285,
  waveSignedGlobal0285,waveColorAmount0285,
  patchVaultSpatialWave0285,installVaultSpatialWaveModule0285}
- from "./vault-spatial-wave-parity-v0285.mjs";
+ from "../../vault-spatial-wave-parity-v0285.mjs";
 
-const read=n=>readFileSync(new URL(n,import.meta.url),"utf8");
+const read=n=>readFileSync(new URL("../../"+n,import.meta.url),"utf8");
 const roadSigned=(s,front,length=3400)=>((s-front+length*.5)%length+
  length)%length-length*.5;
 

@@ -2,12 +2,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {MANTA_WING_OUTLINE} from "./manta-blade-v0484.mjs";
-import {STINGRAY_WING} from "./stingray-evo-v0104.mjs";
+import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";
+import {STINGRAY_WING} from "../../stingray-evo-v0104.mjs";
 import {WINGTIP_CONTRAILS,wingtipAnchor,wingtipEmitters,contrailEnvelope,
  createWingtipContrails} from "./wingtip-contrails-v0106.mjs";
 
-const source=name=>readFileSync(new URL(name,import.meta.url),"utf8");
+const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const speed=stage=>44*1.11**stage;
 test("one precise origin at the physical OUTERMOST tip of each model",()=>{
  for(const [model,outline] of [["manta",MANTA_WING_OUTLINE],

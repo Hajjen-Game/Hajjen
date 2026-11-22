@@ -7,6 +7,8 @@ import {installPremiumMetalSurfaceLibrary}
  from "./premium-metal-surface-v0262.mjs";
 import {vaultSpatialWaveEnabled0285,installVaultSpatialWaveModule0285}
  from "./vault-spatial-wave-parity-v0285.mjs";
+import {reflectionStabilityEnabled0286,installReflectionStability0286}
+ from "./reflection-stability-strips-v0286.mjs";
 import {installUnifiedMetalLighting02641}
  from "./unified-metal-light-response-v02641.mjs";
 import {wrapFinishShader02642}
@@ -145,6 +147,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  root.name="SKYSHIFT · TRUE shared Skyline tunnel 0.28.1";
  const installed=[];
  const spatialWave0285=vaultSpatialWaveEnabled0285();
+ const stableStrips0286=reflectionStabilityEnabled0286();
  // The original Skyline renderer owns EVERY panel, rib, bay, cove and
  // source-local metallic shader. Do not call the 0.27.x Vault pipeline here.
  try{
@@ -158,7 +161,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    // actual PBR deck or coupling its physics/collision geometry.
    const roadFacade=new THREE.MeshStandardMaterial({color:0x050914});
    const item={source:null,section,module,metal:null,finish:null,
-    wave:null,roadFacade};
+    wave:null,stability:null,roadFacade};
    installed.push(item);
    const source=installPremiumMetalSurfaceLibrary(THREE,section,{
     track:"skyline",positionAt:adaptSourcePosition0281(positionAt,module),
@@ -186,10 +189,19 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    item.wave=installVaultSpatialWaveModule0285(THREE,section,module,{
     trackLength,enabled:spatialWave0285
    });
+   // Deliberately LAST: wrap the actual 0.26.x and 0.28.5 shader chain.
+   // The single source installer owns every module, no separate Vault art.
+   item.stability=installReflectionStability0286(section,{
+    enabled:stableStrips0286,lowMemory
+   });
+   if(stableStrips0286&&!item.stability.active)
+    throw Error("0.28.6 original luminous materials unavailable in module "+
+     module.index+": "+item.stability.stats().reason);
   }
   world.add(root);
  }catch(error){
   for(const item of installed.reverse()){
+   item.stability?.dispose?.();
    item.wave?.dispose?.();
    item.finish?.dispose?.();
    item.metal?.dispose?.();
@@ -206,6 +218,9 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  return Object.freeze({
   active:true,
   updateWave(wave){for(const item of installed)item.source.updateWave?.(wave);},
+  setReflectionComparison(value){
+   for(const item of installed)item.stability?.setComparison?.(value);
+  },
   stats(){return {
    active:true,version:"0.28.1",track,
    trueSharedSource:"Skyline 0.26.5 real installer",
@@ -218,6 +233,20 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
     x.source.stats?.().trueMetal0260P2NativeGGX).length,
    commonResponseModules:installed.filter(x=>x.metal.active).length,
    authentic0265WallModules:installed.filter(x=>x.finish?.active).length,
+   stableLuminous0286:{
+    active:stableStrips0286,
+    sourceModules:installed.filter(x=>x.stability?.active).length,
+    physicalCoats:installed.reduce((n,x)=>
+     n+(x.stability?.stats?.().physicalCoats||0),0),
+    coveBatches:installed.filter(x=>
+     x.stability?.stats?.().coveEmitterMaterials===1).length,
+    amberFootBatches:installed.filter(x=>
+     x.stability?.stats?.().amberFootMaterials===1).length,
+    strength:installed[0]?.stability?.stats?.().strength??0,
+    lowMemory:!!lowMemory,originalFixturePositions:true,
+    originalPMREMKept:true,originalGGXKept:true,
+    addedDrawCalls:0,addedLights:0,addedRenderPasses:0
+   },
    sharedWave0285:{
     active:spatialWave0285,
     sourceModules:installed.filter(x=>x.wave?.active).length,
@@ -235,6 +264,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   dispose(){
    if(disposed)return;disposed=true;
    for(const item of installed.reverse()){
+    item.stability?.dispose?.();
     item.wave?.dispose?.();
     item.finish?.dispose?.();item.metal?.dispose?.();
     item.source?.dispose?.();

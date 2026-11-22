@@ -23,8 +23,9 @@ import {UNIFIED_TUNNEL_LIGHTING_1,createUnifiedTunnelLightingController}
  from "./unified-tunnel-lighting-v1.mjs";
 import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
 import {vaultSpatialWaveEnabled0285,waveSignedGlobal0285,
- VAULT_WAVE_PARITY_0285}
- from "./vault-spatial-wave-parity-v0285.mjs";
+ VAULT_WAVE_PARITY_0285} from "./vault-spatial-wave-parity-v0285.mjs";
+import {STABILITY_0286,reflectionStabilityEnabled0286}
+ from "./reflection-stability-strips-v0286.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./manta-blade-v0103.mjs";
 import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
@@ -252,6 +253,8 @@ const pmremEnabled=pmremReleaseEnabled&&
  !["off","classic"].includes(new URLSearchParams(location.search).get("pmrem"));
 const sharedWaveParityEnabled=trueSharedVaultEnabled&&
  vaultSpatialWaveEnabled0285(location.search);
+const stabilityReleaseEnabled=trueSharedVaultEnabled&&
+ reflectionStabilityEnabled0286(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -1411,6 +1414,38 @@ function initScene(){
    pmrem0284:pmremPipeline?.stats?.()??null,
    centralSource:TUNNEL_SHARED_ARCHITECTURE_0280
   });
+ // 0.28.6: actual same-scene renderer A/B. Keep all positional
+ // light sources, PMREM, zone wave, ship and physics UNCHANGED.
+ if(new URLSearchParams(location.search).get("reflectionStabilitySmoke")==="1"){
+  window.__skyshiftReflectionStabilityAudit=()=>({
+   track:TRACK_ID_0160,
+   requested:stabilityReleaseEnabled,
+   release:stabilityReleaseEnabled?"0.28.6":"legacy",
+   source:STABILITY_0286,
+   tunnel:trueSharedVault?.stats?.().stableLuminous0286??null,
+   originalShared:!!trueSharedVault?.active,
+   pmremActive:!!pmremPipeline?.active,
+   ship:!!ship,grip:!!UI.grip,
+   roadMaterial:premiumSurface?.material?.type??null,
+   physicsUntouched:true,boostUntouched:true,
+   originalWave:sharedWaveParityEnabled
+  });
+  window.__skyshiftReflectionStabilityFrames=()=>{
+   if(!trueSharedVault?.stats?.().stableLuminous0286?.active||
+    !neonPipeline?.render)
+    throw Error("0.28.6 stable source real WebGL A/B unavailable");
+   const prev=trueSharedVault.stats().stableLuminous0286.strength;
+   const capture=value=>{
+    trueSharedVault.setReflectionComparison(value);
+    neonPipeline.render(0);
+    return renderer.domElement.toDataURL("image/png").split(",")[1];
+   };
+   try{return {classic:capture(0),stable:capture(1),
+    s:flight?.s??null,
+    meta:window.__skyshiftReflectionStabilityAudit()};}
+   finally{trueSharedVault.setReflectionComparison(prev);}
+  };
+ }
  // PMREM QA: exact-frame comparison with unchanged underlying scene,
  // camera, local GGX, bloom and zone wave. Does not advance the sim.
  if(new URLSearchParams(location.search).get("pmremSmoke")==="1"){
@@ -3066,7 +3101,8 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (sharedWaveParityEnabled?" · 0.28.5":
+   (stabilityReleaseEnabled?" · 0.28.6":
+    sharedWaveParityEnabled?" · 0.28.5":
     pmremReleaseEnabled?" · 0.28.4":
     VAULT_BOOST_0283_ACTIVE?" · 0.28.3":" · 0.28.2");
  UI.trackTagline.textContent=isVault()?
@@ -4882,7 +4918,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.5":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?"0.28.6":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  UI.challengeButton.addEventListener("click",openChallenges);

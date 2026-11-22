@@ -13,7 +13,7 @@ import {patchArchitecturalNeonShader} from "../../architectural-neon-lighting-v0
 import {patchPremiumSurfaceShader} from "../../premium-surface-craftsmanship-v0241.mjs";
 import {patchDarkMetallicShader} from "../../dark-metallic-foundation-v0250.mjs";
 import {MICRO_SURFACE_METAL_0251,patchMicroSurfaceMetalShader,
- installMicroSurfaceShader} from "./micro-surface-metal-definition-v0251.mjs";
+ installMicroSurfaceShader} from "../../micro-surface-metal-definition-v0251.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const vertex="#include <common>\nattribute float trackS;\nattribute float glowWeight;\n#include <begin_vertex>";
 const fragment="#include <common>\n#include <color_fragment>\ndiffuseColor.rgb += tunnelSpectrumTint()*vTunnelGlow;";

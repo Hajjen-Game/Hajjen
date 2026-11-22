@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {PREMIUM_METAL_0262,buildPremiumMetalAtlas0262,
  makePremiumMetalTexture0262,patchPremiumMetalShader0262,
- installPremiumMetalShader0262,patchPremiumSubstrateShader0262} from "./premium-metal-surface-v0262.mjs";
+ installPremiumMetalShader0262,patchPremiumSubstrateShader0262} from "../../premium-metal-surface-v0262.mjs";
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const fragment=[
  "#include <common>",

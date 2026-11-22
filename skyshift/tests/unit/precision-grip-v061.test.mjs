@@ -5,7 +5,7 @@ import {readFileSync} from "node:fs";
 import {GRIP_SPEC,initGripState,stepGripState} from "../../precision-grip-v061.mjs";
 import {SIDE_THRUSTER_SPEC,createSideThrusters} from "../../side-thrusters-v061.mjs";
 import {TRIAL,newFlightState,stepFlight,speedAt,positionAt,headingAt,
- CIRCUIT,validateTrial} from "./trial-v061.mjs";
+ CIRCUIT,validateTrial} from "../../trial-v061.mjs";
 const src=f=>readFileSync(new URL("../../"+f,import.meta.url),"utf8");
 function ticks(s,n,opts){
  for(let i=0;i<n;i++)stepFlight(s,1/120,opts);

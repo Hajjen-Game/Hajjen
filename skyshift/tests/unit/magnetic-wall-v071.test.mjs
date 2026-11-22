@@ -5,7 +5,7 @@ import {readFileSync} from "node:fs";
 import {CIRCUIT,TRIAL,GAPS,GUARDRAIL,MAX_BANK_RAD,bankAt,bankDegreesAt,
  surfaceNormalAt,surfaceHeightAt,poseAt,positionAt,projectWorldToTrack,
  headingAt,guardrailLateralLimit,newFlightState,stepFlight,speedAt,
- validateTrial} from "./trial-v071.mjs";
+ validateTrial} from "../../trial-v071.mjs";
 import {MAGNETIC_WALL,TRACK_3D,magneticBankAt,elevationAudit}
  from "../../track-3d-v071.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v071.mjs";

@@ -14,7 +14,7 @@ const manifest = JSON.parse(readFileSync(resolve(docs, 'release-manifest.json'),
 test('all archived release notes keep their original Git blob bytes and valid index links', () => {
   assert.equal(manifest.schemaVersion, 1, 'Unknown manifest format');
   const entries = Object.entries(manifest.entries);
-  assert.equal(entries.length, 39, 'Unexpected stage-3 archived release-note count');
+  assert.equal(entries.length, 53, 'Unexpected stage-4 archived release-note count');
   const index = readFileSync(resolve(docs, 'README.md'), 'utf8');
   const names = [];
   for (const [filename, expectedBlobSha] of entries) {

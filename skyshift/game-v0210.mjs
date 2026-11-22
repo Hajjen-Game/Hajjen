@@ -669,6 +669,7 @@ window.__skyshiftStartupAudit=()=>{
   scene:{meshes:meshes.length,geometryObjects:geometries.size,
    materials:materials.size,
    sharedTunnelModules:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.sourceModules??0,
+   startupFrameSampler:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.startupFrameOptimization02897??null,
    pmremActive:pmremPipeline?.active??false},
   jsHeapMB:performance.memory?.usedJSHeapSize?
    Math.round(performance.memory.usedJSHeapSize/1048576):null

@@ -71,7 +71,8 @@ async function capture(spec){
   !audit.ceilingRoad?.webglGuaranteedAttributeBudget||
   audit.ceilingRoad?.modules!==10||
   audit.ceilingRoad?.drawCallsAdded!==0||
-  !audit.arch?.sharedRegistry02894||
+  !audit.arch?.sharedRegistry02894||!audit.arch?.packedArcWindow02894||
+  audit.arch?.sourceAttributes!==3||
   !audit.edges?.active||!audit.source?.active||
   !audit.movedCeiling?.active||!audit.shipPresent||!audit.gripPresent||
   !audit.originalPhysics)

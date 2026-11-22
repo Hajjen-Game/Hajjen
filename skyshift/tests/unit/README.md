@@ -40,3 +40,11 @@ The following test files were relocated with **only static import path adjustmen
 - `track.test.mjs`
 
 Source modules still live at the original `skyshift/` paths. `migration-manifest-02898-stage5.json` records each original test Git blob and allowed import count. The full historical workflow has been updated to invoke the new paths; architecture-guard runs these tests on each PR. Do not rearrange game rendering, physics, tunnel, or active boot as part of test relocation.
+
+## Stage 6 — safe bulk unit-test migration
+
+Sixty additional historical unit tests were relocated from `skyshift/` into this folder, using only transformation of static import path prefixes `./` → `../../` and `new URL(localPath, import.meta.url)` → `new URL("../../" + localPath, import.meta.url)`. Source modules were not changed.
+
+Their original Git blob hashes are recorded in `migration-manifest-02898-stage6.json`. The architecture gate runs `../architecture/bulk-unit-migration-integrity.test.mjs` to reverse the permitted text changes and verify byte-identical original assertions, module paths and workflow references. All 73 files are syntax-checked and protected by migration integrity guards. Tests that remain part of the established SKYSHIFT CI suites are executed normally. Historical tests with obsolete hardcoded expectations (such as old index.html boot versions) are preserved verbatim but are not added as new always-on test gates; this avoids confusing a historical baseline mismatch with a migration regression.
+
+Only a successful full Chrome/WebGL and Node CI run can authorize merging the stage-6 PR. The production tunnel, driving physics, active bootstrap and WebGL renderer are not part of the migration.

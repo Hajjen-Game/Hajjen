@@ -35,5 +35,5 @@ test('relocated historical unit tests retain assertions, source imports and orig
     assert.equal(gitHash, old.originalGitBlob, 'Test assertions or source changed: ' + name);
   }
   const extras = readdirSync(testDir).filter(name => name.endsWith('.test.mjs'));
-  assert.equal(extras.length, 13, 'Unexpected number of stage 4 + stage 5 relocated unit tests');
+  assert.equal(extras.length, 73, 'Unexpected number of relocated unit tests after stage 6');
 });

@@ -1,0 +1,53 @@
+name: SKYSHIFT 0.28.9.1 verified straight-only before-after
+# Real game screenshots; no generated art and no CI loop.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skyshift/shared-straight-edge-parity-v02891.mjs'
+      - '.github/workflows/skyshift-preview-v02891.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  compare-original-game:
+    name: Record original 0.28.9 vs new straight-only lighting in real WebGL
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate real source bend masks and old releases
+        run: |
+          set -euo pipefail
+          node --check skyshift/shared-straight-edge-parity-v02891.mjs
+          node --check skyshift/browser-straight-edge-parity-v02891.mjs
+          node --test skyshift/shared-straight-edge-parity-v02891.test.mjs
+      - name: Install real WebGL browser driver
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Create original-game before-after PNGs
+        run: node skyshift/browser-straight-edge-parity-v02891.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-v02891-original-game-before-after
+          path: |
+            skyshift/previews/v02891-*.png
+            skyshift/previews/v02891-proof.json
+          if-no-files-found: warn
+      - name: Publish only verified screenshot pairs to Pages source
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add skyshift/previews/v02891-*.png skyshift/previews/v02891-proof.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "SKYSHIFT 0.28.9.1: publish real turn-clearance WebGL comparisons [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main

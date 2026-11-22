@@ -21,4 +21,6 @@ jobs:
         with:
           node-version: '22'
       - name: Check active bootstrap and relative imports
-        run: node --test skyshift/tests/architecture/active-entrypoint.test.mjs
+        run: | 
+          node --test skyshift/tests/architecture/active-entrypoint.test.mjs
+          node --test skyshift/tests/architecture/release-archive-integrity.test.mjs

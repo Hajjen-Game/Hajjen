@@ -41,6 +41,8 @@ jobs:
         run: node --test skyshift/tests/architecture/stage8-unit-migration-integrity.test.mjs
       - name: Validate CI 2.0 change classifier and fail-safe cases
         run: node --test skyshift/tests/architecture/ci-change-scope-v2.test.mjs
+      - name: Audit 42 byte-identical browser QA runners and updated workflow paths
+        run: node --test skyshift/tests/architecture/browser-harness-relocation-stageB.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

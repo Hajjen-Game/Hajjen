@@ -8,7 +8,7 @@ on:
       - 'skyshift/environment-art-pipeline-v0203.mjs'
       - 'skyshift/build-station-world-v0203.mjs'
       - 'skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs'
-      - 'skyshift/browser-environment-art-v0203.mjs'
+      - 'skyshift/tests/browser/browser-environment-art-v0203.mjs'
       - 'skyshift/assets/worlds/continuum-graphite-bays-v5.gltf'
       - 'skyshift/material-grade-v0203.html'
 jobs:
@@ -25,7 +25,7 @@ jobs:
       - name: Check deterministic authored graphite and physics isolation
         run: node --test skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs
       - name: Test 0.20.3 PBR in real Chromium WebGL
-        run: node skyshift/browser-environment-art-v0203.mjs
+        run: node skyshift/tests/browser/browser-environment-art-v0203.mjs
       - name: Publish real camera comparison images
         if: always()
         uses: actions/upload-artifact@v4

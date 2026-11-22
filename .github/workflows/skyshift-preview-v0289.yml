@@ -25,13 +25,13 @@ jobs:
         run: |
           set -euo pipefail
           node --check skyshift/cinematic-metal-neon-v0289.mjs
-          node --check skyshift/browser-cinematic-metal-v0289.mjs
+          node --check skyshift/tests/browser/browser-cinematic-metal-v0289.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/cinematic-metal-neon-v0289.test.mjs
       - name: Install real browser WebGL proof tools
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Capture genuine 0.28.8 vs 0.28.9 and component frames
-        run: node skyshift/browser-cinematic-metal-v0289.mjs
+        run: node skyshift/tests/browser/browser-cinematic-metal-v0289.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

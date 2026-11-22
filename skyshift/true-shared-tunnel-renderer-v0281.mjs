@@ -25,6 +25,8 @@ import {wrapShader0265}
  from "./true-rail-wall-response-v0265.mjs";
 import {createLowerEdgeSources02632,createConnectedFootBands02632}
  from "./edge-source-floor-bands-v02632.mjs";
+import {coveWaveEnabled02895,installWaveCoupledCove02895}
+ from "./road-spill-wave-coves-v02895.mjs";
 import {archOpticsEnabled02893,installArchSourceOptics02893}
  from "./premium-arch-optics-v02893.mjs";
 import {ceilingFixtureEnabled02892,installCeilingFixtureCohesion02892}
@@ -174,6 +176,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  const straightOnly02891=straightParityEnabled02891();
  const ceilingFixtures02892=ceilingFixtureEnabled02892();
  const premiumArch02893=archOpticsEnabled02893();
+ const waveCove02895=coveWaveEnabled02895();
  const straightRanges02891=straightOnly02891?vaultStraightRanges02891():null;
  // The original Skyline renderer owns EVERY panel, rib, bay, cove and
  // source-local metallic shader. Do not call the 0.27.x Vault pipeline here.
@@ -189,7 +192,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    const roadFacade=new THREE.MeshStandardMaterial({color:0x050914});
    const item={source:null,section,module,metal:null,finish:null,
     wave:null,stability:null,archFoot:null,precision:null,cinematic:null,
-    ceiling:null,archOptics:null,roadFacade};
+    ceiling:null,archOptics:null,waveCove:null,roadFacade};
    installed.push(item);
    const source=installPremiumMetalSurfaceLibrary(THREE,section,{
     track:"skyline",positionAt:adaptSourcePosition0281(positionAt,module),
@@ -270,10 +273,18 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    });
    if(premiumArch02893&&!item.archOptics.active)
     throw Error("0.28.9.3 source arch optics failed "+module.index);
+   // 0.28.9.5: original dual-tone cold substrate and 0.26.0/1 native
+   // GGX cyan sources track the exact global wave, no new tunnel geometry.
+   item.waveCove=installWaveCoupledCove02895(THREE,section,module,{
+    enabled:waveCove02895,lowMemory,trackLength
+   });
+   if(waveCove02895&&!item.waveCove.active)
+    throw Error("0.28.9.5 real wave-linked cove response unavailable "+module.index);
   }
   world.add(root);
  }catch(error){
   for(const item of installed.reverse()){
+   item.waveCove?.dispose?.();
    item.archOptics?.dispose?.();
    item.ceiling?.dispose?.();
    item.cinematic?.dispose?.();
@@ -298,6 +309,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   updateWave(wave){for(const item of installed){
    item.source.updateWave?.(wave);
    item.ceiling?.updateWave?.(wave);
+   item.waveCove?.updateWave?.(wave);
   }},
   setReflectionComparison(value){
    for(const item of installed)item.stability?.setComparison?.(value);
@@ -307,6 +319,9 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
   },
   setPrecisionNeonComparison(value){
    for(const item of installed)item.precision?.setComparison?.(value);
+  },
+  setWaveCoveComparison(value){
+   for(const item of installed)item.waveCove?.setComparison?.(value);
   },
   setArchOpticsComparison(value){
    for(const item of installed)item.archOptics?.setComparison?.(value);
@@ -390,6 +405,17 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    },
    originalAmberFootBands:installed.reduce((n,x)=>n+(x.finish?.footBands||0),0),
    originalShortCyanInlays:installed.reduce((n,x)=>n+(x.finish?.lowEdgeSegments||0),0),
+   waveCoupledWallCoves02895:{
+    active:waveCove02895,
+    modules:installed.filter(item=>item.waveCove?.active).length,
+    physicalCoats:installed.reduce((n,item)=>n+
+     (item.waveCove?.stats?.().physicalGGX??0),0),
+    substrates:installed.reduce((n,item)=>n+
+     (item.waveCove?.stats?.().substrates??0),0),
+    sample:installed[0]?.waveCove?.stats?.()??null,
+    originalSkylineSource:true,sharedSourcePipeline:true,
+    changedDrawCalls:0,originalPhysics:true
+   },
    premiumArchOptics02893:{
     active:premiumArch02893,
     sourceModules:installed.filter(x=>x.archOptics?.active).length,

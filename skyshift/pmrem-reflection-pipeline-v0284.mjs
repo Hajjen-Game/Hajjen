@@ -27,7 +27,7 @@ const clamp=v=>Math.max(0,Math.min(1,Number.isFinite(v)?v:0));
 export function readPmremRelease0284(search){
  const params=new URLSearchParams(search||"");
  if(params.get("track")!=="vault")return false;
- const v=/^(\d+)\.(\d+)\.(\d+)$/.exec(params.get("v")||"");
+ const v=/^(\d+)\.(\d+)\.(\d+)(?:\.\d+)?$/.exec(params.get("v")||"");
  if(!v)return false;
  const [major,minor,patch]=v.slice(1).map(Number);
  return major>0||minor>28||(minor===28&&patch>=4);

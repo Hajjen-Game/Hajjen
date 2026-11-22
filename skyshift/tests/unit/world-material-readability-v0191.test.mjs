@@ -6,7 +6,7 @@ import {
  READABILITY_0191,READABLE_TINTS_0191,
  readableTint,perceivedLuma,patchReadableSurfaceFragment,
  installReadableFinish
-} from "./world-material-readability-v0191.mjs";
+} from "../../world-material-readability-v0191.mjs";
 import {worldArchitecturePlan} from "../../world-rebuild-v0190.mjs";
 import {signatureArchitecturePlan} from "../../signature-environment-v0180.mjs";
 const file=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");

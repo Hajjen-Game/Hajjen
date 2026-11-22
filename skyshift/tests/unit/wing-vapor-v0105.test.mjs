@@ -8,7 +8,7 @@ import {STINGRAY_WING} from "../../stingray-evo-v0104.mjs";
 import {
  WING_VAPOR,trailingWingZ,vaporWingAnchors,
  wingVaporEnvelope
-} from "./wing-vapor-v0105.mjs";
+} from "../../wing-vapor-v0105.mjs";
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const speed=stage=>44*1.11**stage;
 test("each wing vapor attaches to its actual outer-to-inner trailing edge",()=>{

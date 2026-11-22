@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {
  WORLD_0190,worldArchitecturePlan,worldBeamClear
-} from "./world-rebuild-v0190.mjs";
+} from "../../world-rebuild-v0190.mjs";
 import {TRIAL,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW}
  from "../../trial-v0165.mjs";
 const src=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");

@@ -44,11 +44,6 @@ test("0.28.9.2 applies only to new Vault version with exact rollback",()=>{
  assert.equal(CEILING_FIXTURE_02892.extraLights,0);
 });
 test("old cyan T on panel face is replaced by real banked upper seam",()=>{
- const oldFace=(s,side,t,lower=false)=>{
-  const a=import.meta.url;
-  return a&&t>=0; // ensure the geometry is not an invented billboard
- };
- assert.equal(oldFace(11,1,.31),true);
  const a=panelSeamPoint02892(point,110,1,"upper"),
   b=panelSeamPoint02892(point,110,-1,"upper"),
   c=panelSeamPoint02892(point,110,1,"wall");
@@ -78,6 +73,7 @@ test("High and 4GB reuse one original cove draw mesh and remove T caps",()=>{
   assert.ok([...p.array].every(Number.isFinite));
   assert.ok([...arc.array].every(x=>x>=0&&x<=368));
   assert.ok([...alpha.array].every(x=>x>=0&&x<=1));
+  assert.ok([...alpha.array].some(x=>x>.90),"core of short amber fixture must remain visible");
   assert.ok(new Set([...warm.array]).has(0));
   assert.ok(new Set([...warm.array]).has(1));
   assert.ok(q.triangles<11000,"bounded 4GB/High geometry");

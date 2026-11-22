@@ -174,25 +174,22 @@ export function buildUnifiedCeilingRoadData02894(geometry,positionAt,trackLength
   throw Error("0.28.9.4 original indexed PBR road missing");
  const reg=createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory});
  const N=coord.count;
- // Only THREE extra vertex attributes: the High road already has 13
- // from native PBR + 0.28.2 + 0.28.9.1 + 0.28.9.3. This stays <=16,
- // the minimum guaranteed WebGL limit. Choose the nearer physical side
- // at the actual road vertex, not a fake midpoint or extra shader batch.
+ // Real WebGL validation found the native deck also occupies additional
+ // built-in vertex slots: three new attrs exceeded MAX_VERTEX_ATTRIBS.
+ // Pack actual j11 source xyz + its physical-distance falloff into ONE
+ // vec4 attr. j9 wall remains the canonical original positioned emitter
+ // and existing amber reflection source, without a second new road tap.
  const vectors={
-  unifiedCove02894:new Float32Array(N*3),
-  unifiedWall02894:new Float32Array(N*3),
-  unifiedWindows02894:new Float32Array(N*2)
+  unifiedCoveSource02894:new Float32Array(N*4)
  };
  let lit=0,turns=0;
  for(let i=0;i<N;i++){
   const item=reg.at(coord.getX(i));
   const side=coord.getY(i)<0?"left":"right";
-  const cove=item.ceilingCove[side],wall=item.wallPractical[side];
-  vectors.unifiedCove02894.set([cove.x,cove.y,cove.z],3*i);
-  vectors.unifiedWall02894.set([wall.x,wall.y,wall.z],3*i);
-  vectors.unifiedWindows02894.set(
-   [item.ceilingCove.window,item.wallPractical.window],i*2);
-  if(item.ceilingCove.window>.02||item.wallPractical.window>.02)lit++;
+  const cove=item.ceilingCove[side];
+  vectors.unifiedCoveSource02894.set(
+   [cove.x,cove.y,cove.z,item.ceilingCove.window],4*i);
+  if(item.ceilingCove.window>.02)lit++;
   if(item.edgeStraightMask<.001&&item.ceilingCove.window>.02)turns++;
  }
  return {vectors,vertices:N,litVertices:lit,
@@ -208,28 +205,22 @@ export function patchUnifiedCeilingRoad02894(vertex,fragment,{lowMemory=false}={
   !fragment.includes("RE_Direct("))
   throw Error("0.28.9.4 native 0.28.9.3 GGX road shader required");
  const vd=[
-  "attribute vec3 unifiedCove02894,unifiedWall02894;",
-  "attribute vec2 unifiedWindows02894;",
-  "varying vec3 vU94Cove,vU94Wall;",
-  "varying vec2 vU94Windows;"
+  "attribute vec4 unifiedCoveSource02894;",
+  "varying vec4 vU94Cove;"
  ].join("\n");
  const vc=[
-  "vU94Cove=(viewMatrix*vec4(unifiedCove02894,1.0)).xyz-mvPosition.xyz;",
-  "vU94Wall=(viewMatrix*vec4(unifiedWall02894,1.0)).xyz-mvPosition.xyz;",
-  "vU94Windows=unifiedWindows02894;"
+  "vU94Cove=vec4((viewMatrix*vec4(unifiedCoveSource02894.xyz,1.0)).xyz-mvPosition.xyz,unifiedCoveSource02894.w);"
  ].join("\n");
  const fdecl=[
   "uniform vec3 uU94Old,uU94Next;",
   "uniform float uU94Front,uU94Active,uU94Lap,uU94Strength;",
-  "varying vec3 vU94Cove,vU94Wall;",
-  "varying vec2 vU94Windows;"
+  "varying vec4 vU94Cove;"
  ].join("\n");
  const code=[
-  "// Physical banked source positions: actual 0.28.9.2 j11 cove and j9 wall.",
+  "// Original 0.28.9.2 j11 cove source, sampled on the banked native road.",
   "float u94Signed=mod(vTrackCoord.x-uU94Front+uU94Lap*.5,uU94Lap)-uU94Lap*.5;",
   "float u94Mix=uU94Active*(1.0-smoothstep(-66.0,66.0,u94Signed));",
   "vec3 u94Tint=mix(uU94Old,uU94Next,clamp(u94Mix,0.0,1.0));",
-  "vec3 u94Warm=mix(u94Tint,vec3(1.0,.48,.17),.16);",
   "float u94Lateral=abs(vTrackCoord.y);",
   "float u94Shoulder=smoothstep(5.8,8.0,u94Lateral)*",
   " (1.0-smoothstep(10.1,11.55,u94Lateral));",
@@ -237,28 +228,18 @@ export function patchUnifiedCeilingRoad02894(vertex,fragment,{lowMemory=false}={
   " (1.0-.94*clamp(whiteCore,0.0,1.0))*",
   " (1.0-.84*clamp(padCoverage,0.0,1.0));",
   "float u94Cool=uU94Strength*u94Shoulder*u94Guard*",
-  " clamp(vU94Windows.x,0.0,1.0);",
-  "float u94Wall=uU94Strength*u94Shoulder*u94Guard*",
-  " clamp(vU94Windows.y,0.0,1.0);",
-  "if(u94Cool+u94Wall>.00004){",
+  " clamp(vU94Cove.w,0.0,1.0);",
+  "if(u94Cool>.00004){",
   "vec3 u94Diffuse=reflectedLight.directDiffuse;",
   "IncidentLight u94Lamp;u94Lamp.visible=true;",
-  "float u94D=length(vU94Cove);",
-  "u94Lamp.direction=normalize(vU94Cove+vec3(.0001));",
-  "u94Lamp.color=u94Tint*(u94Cool*"+(lowMemory?"0.95":"0.93")+"/",
+  "float u94D=length(vU94Cove.xyz);",
+  "u94Lamp.direction=normalize(vU94Cove.xyz+vec3(.0001));",
+  "u94Lamp.color=u94Tint*(u94Cool*"+(lowMemory?"1.08":"1.26")+"/",
   " (1.0+pow(u94D/17.0,2.0)));",
   "RE_Direct(u94Lamp,geometryPosition,geometryNormal,geometryViewDir,",
   " geometryClearcoatNormal,material,reflectedLight);",
-  ...(!lowMemory?[
-   "float u94DW=length(vU94Wall);",
-   "u94Lamp.direction=normalize(vU94Wall+vec3(.0001));",
-   "u94Lamp.color=u94Warm*(u94Wall*.51/(1.0+pow(u94DW/14.0,2.0)));",
-   "RE_Direct(u94Lamp,geometryPosition,geometryNormal,geometryViewDir,",
-   " geometryClearcoatNormal,material,reflectedLight);"
-  ]:[]),
   "reflectedLight.directDiffuse=u94Diffuse;",
-  "reflectedLight.directSpecular+=u94Tint*u94Cool*0.025+",
-  " u94Warm*u94Wall*"+(lowMemory?"0.004":"0.012")+";",
+  "reflectedLight.directSpecular+=u94Tint*u94Cool*"+(lowMemory?"0.045":"0.065")+";",
   "}"
  ].join("\n");
  return {
@@ -290,8 +271,7 @@ export function installUnifiedCeilingRoad02894(THREE,world,positionAt,{
  const before=mat.onBeforeCompile,key=mat.customProgramCacheKey;
  try{
   for(const name of names)
-   geo.setAttribute(name,new THREE.Float32BufferAttribute(data.vectors[name],
-    name==="unifiedWindows02894"?2:3));
+   geo.setAttribute(name,new THREE.Float32BufferAttribute(data.vectors[name],4));
   mat.onBeforeCompile=function(shader,renderer){
    before.call(this,shader,renderer);
    const patched=patchUnifiedCeilingRoad02894(
@@ -322,7 +302,8 @@ export function installUnifiedCeilingRoad02894(THREE,world,positionAt,{
   stats:()=>({active:true,version:"0.28.9.4",sourceKinds:UNIFIED_SOURCES_02894.sourceKinds,
    modules:data.modules,physicalPositions:data.physicalPositions,
    vertices:data.vertices,litVertices:data.litVertices,
-   additionalRoadAttributes:names.length,webglGuaranteedAttributeBudget:true,
+   additionalRoadAttributes:names.length,packedCoveSourceVec4:true,
+   webglGuaranteedAttributeBudget:true,
    ceilingInCurves:data.curvedCeilingVertices,lowMemory,
    paletteFrom:uniforms.uU94Old.value.getHex(),
    paletteTo:uniforms.uU94Next.value.getHex(),

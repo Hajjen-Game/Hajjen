@@ -28,7 +28,7 @@ jobs:
           node --check skyshift/precision-neon-response-v0288.mjs
           node --check skyshift/browser-precision-neon-v0288.mjs
           node --check skyshift/game-v0210.mjs
-          node --test skyshift/precision-neon-response-v0288.test.mjs
+          node --test skyshift/tests/unit/precision-neon-response-v0288.test.mjs
       - name: Install actual WebGL screenshot dependencies
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Capture real game before-and-after images

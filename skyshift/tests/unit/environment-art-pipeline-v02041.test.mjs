@@ -99,5 +99,5 @@ test("legacy 0.20.4 A/B, graphite A/B and old 120 Hz flight imports remain",()=>
  assert.match(game,/compareBeforeSculptedNeon:"\?neonPolish=classic"/);
  assert.match(game,/version:"0\.20\.4\.1"/);
  assert.match(file("./index.html"),/boot-v0205\.js\?v=0\.20\.5/);
- assert.match(file("./boot-v02041.js"),/game-v02041\.mjs\?v=0\.20\.4\.1/);
+ assert.match(file("./legacy/boot/boot-v02041.js"),/game-v02041\.mjs\?v=0\.20\.4\.1/);
 });

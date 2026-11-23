@@ -56,7 +56,7 @@ test('16 original Stingray HERO source Git hashes and original asset URLs are pr
    assert.ok(!source.includes('"./assets/ships/'),name+' still uses root-relative URL');
   }else unchanged++;
   if(name.startsWith('ship-hero-loader-')){
-   assert.match(source,/new URL\(srcPath,import\.meta\.url\)/);
+   assert.match(source,/new URL\((?:srcPath|SHIP_ART_\d+\.(?:assetPath|previewAssetPath)),import\.meta\.url\)/);
    assert.ok(source.includes('new URL("../assets/ships/",import.meta.url)'),
     'glTF auxiliary resource base must remain anchored in assets/ships: '+name);
   }

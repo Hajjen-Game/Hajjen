@@ -3,14 +3,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {STINGRAY_PRESENTATION_01343,visualSettingsForShip}
- from "../../stingray-presentation-v01343.mjs";
+ from "../../ships/stingray-presentation-v01343.mjs";
 import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";
 import {STINGRAY_EVO,createTailState,tailPoseStep}
  from "../../ships/stingray-evo-v01342.mjs";
 import {buildStingrayHeroV4GLTF,HERO_V4_SPEC}
  from "../../blender/stingray-hero-v4-source-v01342.mjs";
 import {SHIP_ART_01342,assessHeroAsset,requestedShipArt}
- from "../../ship-art-pipeline-v01342.mjs";
+ from "../../ships/ship-art-pipeline-v01342.mjs";
 
 const source=readFileSync(new URL("../../"+"./assets/ships/stingray-evo-hero-v4.gltf",import.meta.url),"utf8");
 const model=JSON.parse(source),buffer=Buffer.from(model.buffers[0].uri.split(",")[1],"base64");
@@ -110,7 +110,7 @@ test("V4 art remains a validated real glTF with all legacy rig sockets",()=>{
 test("default gameplay loads V4 on Stingray, old model remains optional",()=>{
  assert.equal(requestedShipArt(""),"hero");
  assert.equal(requestedShipArt("?shipArt=classic"),"procedural");
- assert.equal(SHIP_ART_01342.assetPath,"./assets/ships/stingray-evo-hero-v4.gltf");
+ assert.equal(SHIP_ART_01342.assetPath,"../assets/ships/stingray-evo-hero-v4.gltf");
  assert.equal(SHIP_ART_01342.defaultMode,"hero");
  assert.equal(SHIP_ART_01342.hasCollision,false);
 });

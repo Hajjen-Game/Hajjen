@@ -7,9 +7,9 @@ import {readFileSync} from "node:fs";
 import {buildStingrayHeroV2GLTF,HERO_V2_SPEC}
  from "../../blender/stingray-hero-v2-source-v0133.mjs";
 import {SHIP_ART_0133,requestedShipArt,assessHeroAsset}
- from "../../ship-art-pipeline-v0133.mjs";
+ from "../../ships/ship-art-pipeline-v0133.mjs";
 import {createStingrayHeroShowroom,HANGAR_HERO_0133}
- from "../../hangar-hero-v0133.mjs";
+ from "../../ships/hangar-hero-v0133.mjs";
 const source=readFileSync(new URL("../../"+"./assets/ships/stingray-evo-hero-v2.gltf",
  import.meta.url),"utf8");
 const asset=JSON.parse(source);
@@ -102,7 +102,7 @@ test("hero defaults only on Stingray and has explicit classic fallback",()=>{
  assert.equal(SHIP_ART_0133.defaultMode,"hero");
  assert.equal(SHIP_ART_0133.v0133HeroDefault,true);
  assert.equal(SHIP_ART_0133.assetPath,
-  "./assets/ships/stingray-evo-hero-v2.gltf");
+  "../assets/ships/stingray-evo-hero-v2.gltf");
  assert.equal(SHIP_ART_0133.maxDrawCalls,34);
 });
 test("published scene passes the real runtime budget/mesh contract",()=>{

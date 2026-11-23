@@ -5,9 +5,9 @@ import {readFileSync} from "node:fs";
 import {buildStingrayHeroV3GLTF,HERO_V3_SPEC}
  from "../../blender/stingray-hero-v3-source-v0134.mjs";
 import {SHIP_ART_0134,assessHeroAsset,requestedShipArt}
- from "../../ship-art-pipeline-v0134.mjs";
+ from "../../ships/ship-art-pipeline-v0134.mjs";
 import {HANGAR_HERO_0134,createStingrayHeroShowroom}
- from "../../hangar-hero-v0134.mjs";
+ from "../../ships/hangar-hero-v0134.mjs";
 const source=readFileSync(new URL("../../"+"./assets/ships/stingray-evo-hero-v3.gltf",
  import.meta.url),"utf8");
 const asset=JSON.parse(source);
@@ -121,7 +121,7 @@ test("Stingray new default, Manta unaffected and old model remains selectable",(
  assert.equal(requestedShipArt(""),"hero");
  assert.equal(requestedShipArt("?shipArt=classic"),"procedural");
  assert.equal(requestedShipArt("?shipArt=off"),"procedural");
- assert.equal(SHIP_ART_0134.assetPath,"./assets/ships/stingray-evo-hero-v3.gltf");
+ assert.equal(SHIP_ART_0134.assetPath,"../assets/ships/stingray-evo-hero-v3.gltf");
  assert.equal(SHIP_ART_0134.defaultMode,"hero");
  assert.equal(SHIP_ART_0134.hasCollision,false);
 });

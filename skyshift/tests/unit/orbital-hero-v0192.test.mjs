@@ -79,5 +79,5 @@ test("production keeps archived physics, camera, 0.19.0 chapters and versioned A
  assert.doesNotMatch(game,/world-material-readability-v0191\.mjs/);
  assert.match(game,/version:"0\.19\.2"/);
  assert.match(src("./index.html"),/boot-v0205\.js\?v=0\.20\.5/);
- assert.match(src("./boot-v0192.js"),/game-v0192\.mjs\?v=0\.19\.2/);
+ assert.match(src("./legacy/boot/boot-v0192.js"),/game-v0192\.mjs\?v=0\.19\.2/);
 });

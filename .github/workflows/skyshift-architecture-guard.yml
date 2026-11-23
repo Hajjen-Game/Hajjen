@@ -59,6 +59,10 @@ jobs:
         run: node --test skyshift/tests/architecture/core-migration-stageI.test.mjs
       - name: Audit Stage J immutable barrier/boost source SHA and all consumer paths
         run: node --test skyshift/tests/architecture/barrier-boost-migration-stageJ.test.mjs
+      - name: Stage K audit 57 byte-identical historical WebGL smoke runners and CI paths
+        run: |
+          node --test skyshift/tests/architecture/legacy-browser-migration-stageK.test.mjs
+          for file in skyshift/tests/browser/legacy/browser-smoke-v*.mjs; do node --check "$file"; done
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

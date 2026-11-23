@@ -40,10 +40,10 @@ jobs:
           node --check skyshift/browser-unified-tunnel-lighting-v1.mjs
           node --test skyshift/tests/unit/unified-tunnel-lighting-v1.test.mjs
           node --check skyshift/local-reflections-v0261p1.mjs
-          node --check skyshift/browser-local-reflections-v0261p1.mjs
+          node --check skyshift/tests/browser/browser-local-reflections-v0261p1.mjs
           node --test skyshift/tests/unit/local-reflections-v0261p1.test.mjs
           node --check skyshift/cinematic-road-rebuild-v0263.mjs
-          node --check skyshift/browser-cinematic-road-rebuild-v0263.mjs
+          node --check skyshift/tests/browser/browser-cinematic-road-rebuild-v0263.mjs
           node --test skyshift/tests/unit/cinematic-road-rebuild-v0263.test.mjs
           node --check skyshift/edge-lighting-floor-pools-v02631.mjs
           node --check skyshift/edge-source-floor-bands-v02632.mjs
@@ -57,7 +57,7 @@ jobs:
           node --check skyshift/full-tunnel-layout-v0270.mjs
           node --check skyshift/full-tunnel-circuit-v0270.mjs
           node --check skyshift/full-tunnel-light-seal-v0270.mjs
-          node --check skyshift/browser-full-tunnel-v0270.mjs
+          node --check skyshift/tests/browser/browser-full-tunnel-v0270.mjs
           node --check skyshift/vault-material-parity-v0271.mjs
           node --check skyshift/browser-vault-material-v0271.mjs
           node --check skyshift/vault-architectural-parity-v0272.mjs
@@ -69,13 +69,13 @@ jobs:
           node --check skyshift/shared-tunnel-architecture-v0280.mjs
           node --check skyshift/shared-tunnel-runtime-v0280.mjs
           node --check skyshift/browser-shared-tunnel-v0280.mjs
-          node --check skyshift/browser-fixture-transport-v02643.mjs
+          node --check skyshift/tests/browser/browser-fixture-transport-v02643.mjs
           node --check skyshift/browser-reflection-cohesion-v02642.mjs
           node --check skyshift/browser-unified-metal-v02641.mjs
-          node --check skyshift/browser-final-cohesion-v0264.mjs
+          node --check skyshift/tests/browser/browser-final-cohesion-v0264.mjs
           node --check skyshift/browser-straight-only-edge-v02633.mjs
-          node --check skyshift/browser-edge-source-floor-bands-v02632.mjs
-          node --check skyshift/browser-edge-floor-v02631.mjs
+          node --check skyshift/tests/browser/browser-edge-source-floor-bands-v02632.mjs
+          node --check skyshift/tests/browser/browser-edge-floor-v02631.mjs
           node --test skyshift/tests/unit/edge-lighting-floor-pools-v02631.test.mjs
           node --test skyshift/tests/unit/edge-source-floor-bands-v02632.test.mjs
           node --test skyshift/tests/unit/straight-only-edge-lighting-v02633.test.mjs
@@ -114,7 +114,7 @@ jobs:
         run: |
           node skyshift/browser-true-metal-materials-v0260p2.mjs
           node skyshift/browser-unified-tunnel-lighting-v1.mjs
-          node skyshift/browser-local-reflections-v0261p1.mjs
+          node skyshift/tests/browser/browser-local-reflections-v0261p1.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -142,9 +142,9 @@ jobs:
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Real roadway, foot pools, lower rail and NO light in chevron turns
         run: |
-          node skyshift/browser-cinematic-road-rebuild-v0263.mjs
-          node skyshift/browser-edge-floor-v02631.mjs
-          node skyshift/browser-edge-source-floor-bands-v02632.mjs
+          node skyshift/tests/browser/browser-cinematic-road-rebuild-v0263.mjs
+          node skyshift/tests/browser/browser-edge-floor-v02631.mjs
+          node skyshift/tests/browser/browser-edge-source-floor-bands-v02632.mjs
           node skyshift/browser-straight-only-edge-v02633.mjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -175,7 +175,7 @@ jobs:
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Verify final optical HDR and new titanium response independently
         run: |
-          node skyshift/browser-final-cohesion-v0264.mjs
+          node skyshift/tests/browser/browser-final-cohesion-v0264.mjs
           node skyshift/browser-unified-metal-v02641.mjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -680,7 +680,7 @@ jobs:
           node --check skyshift/game-v01347.mjs
           node --check skyshift/boot-v01347.js
           node --check skyshift/tests/unit/handling-parity-v01347.test.mjs
-          node --check skyshift/browser-handling-parity-v01347.mjs
+          node --check skyshift/tests/browser/browser-handling-parity-v01347.mjs
           node --check skyshift/steering-authority-v01348.mjs
           node --check skyshift/trial-v01348.mjs
           node --check skyshift/game-v01348.mjs
@@ -693,7 +693,7 @@ jobs:
           node --check skyshift/browser-fairness-v0135.mjs
           node --check skyshift/skyline-challenges-v0140.mjs
           node --check skyshift/tests/unit/skyline-challenges-v0140.test.mjs
-          node --check skyshift/browser-challenges-v0140.mjs
+          node --check skyshift/tests/browser/browser-challenges-v0140.mjs
           node --check skyshift/game-v0140.mjs
           node --check skyshift/boot-v0140.js
           node --check skyshift/risk-reward-v0150.mjs
@@ -800,47 +800,47 @@ jobs:
           node --check skyshift/build-station-world-v0205.mjs
           node --check skyshift/environment-art-pipeline-v0205.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0205.test.mjs
-          node --check skyshift/browser-environment-art-v0205.mjs
+          node --check skyshift/tests/browser/browser-environment-art-v0205.mjs
           node --check skyshift/boot-v02041.js
           node --check skyshift/build-station-world-v02041.mjs
           node --check skyshift/environment-art-pipeline-v02041.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs
-          node --check skyshift/browser-environment-art-v02041.mjs
+          node --check skyshift/tests/browser/browser-environment-art-v02041.mjs
           node --check skyshift/boot-v0204.js
           node --check skyshift/build-station-world-v0204.mjs
           node --check skyshift/environment-art-pipeline-v0204.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs
-          node --check skyshift/browser-environment-art-v0204.mjs
+          node --check skyshift/tests/browser/browser-environment-art-v0204.mjs
           node --check skyshift/game-v0203.mjs
           node --check skyshift/boot-v0203.js
           node --check skyshift/build-station-world-v0203.mjs
           node --check skyshift/environment-art-pipeline-v0203.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs
-          node --check skyshift/browser-environment-art-v0203.mjs
+          node --check skyshift/tests/browser/browser-environment-art-v0203.mjs
           node --check skyshift/boot-v02021.js
           node --check skyshift/build-station-world-v02021.mjs
           node --check skyshift/environment-art-pipeline-v02021.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs
-          node --check skyshift/browser-environment-art-v02021.mjs
+          node --check skyshift/tests/browser/browser-environment-art-v02021.mjs
           node --check skyshift/boot-v0202.js
           node --check skyshift/build-station-world-v0202.mjs
           node --check skyshift/environment-art-pipeline-v0202.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs
-          node --check skyshift/browser-environment-art-v0202.mjs
+          node --check skyshift/tests/browser/browser-environment-art-v0202.mjs
           node --check skyshift/boot-v0201.js
           node --check skyshift/build-station-world-v0201.mjs
           node --check skyshift/environment-art-pipeline-v0201.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs
-          node --check skyshift/browser-environment-art-v0201.mjs
+          node --check skyshift/tests/browser/browser-environment-art-v0201.mjs
           node --check skyshift/boot-v0200.js
           node --check skyshift/build-station-world-v0200.mjs
           node --check skyshift/environment-art-pipeline-v0200.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs
-          node --check skyshift/browser-environment-art-v0200.mjs
+          node --check skyshift/tests/browser/browser-environment-art-v0200.mjs
           node --check skyshift/boot-v0192.js
           node --check skyshift/orbital-hero-v0192.mjs
           node --check skyshift/tests/unit/orbital-hero-v0192.test.mjs
-          node --check skyshift/browser-orbital-hero-v0192.mjs
+          node --check skyshift/tests/browser/browser-orbital-hero-v0192.mjs
           node --check skyshift/world-rebuild-v0190.mjs
           node --check skyshift/tests/unit/world-rebuild-v0190.test.mjs
           node --check skyshift/browser-world-rebuild-v0190.mjs
@@ -908,7 +908,7 @@ jobs:
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify SKYSHIFT 0.20.4 integrated neon on graphite and 4GB mobile WebGL
-        run: node skyshift/browser-environment-art-v0204.mjs
+        run: node skyshift/tests/browser/browser-environment-art-v0204.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -933,7 +933,7 @@ jobs:
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify SKYSHIFT 0.20.4.1 sculpted neon high/low mobile and A/B
-        run: node skyshift/browser-environment-art-v02041.mjs
+        run: node skyshift/tests/browser/browser-environment-art-v02041.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -959,7 +959,7 @@ jobs:
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify SKYSHIFT 0.20.5 sculpted halls, static road glints and mobile WebGL
-        run: node skyshift/browser-environment-art-v0205.mjs
+        run: node skyshift/tests/browser/browser-environment-art-v0205.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1020,9 +1020,9 @@ jobs:
       - name: Verify 0.19.0 Cinematic World
         run: node skyshift/browser-world-rebuild-v0190.mjs
       - name: Verify 0.19.2 Asterion Orbital Hero
-        run: node skyshift/browser-orbital-hero-v0192.mjs
+        run: node skyshift/tests/browser/browser-orbital-hero-v0192.mjs
       - name: Verify 0.20.0 glTF station environment
-        run: node skyshift/browser-environment-art-v0200.mjs
+        run: node skyshift/tests/browser/browser-environment-art-v0200.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1047,9 +1047,9 @@ jobs:
       - name: Install WebGL browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify 0.20.1 enclosed station shell
-        run: node skyshift/browser-environment-art-v0201.mjs
+        run: node skyshift/tests/browser/browser-environment-art-v0201.mjs
       - name: Verify 0.20.2 selective observation windows
-        run: node skyshift/browser-environment-art-v0202.mjs
+        run: node skyshift/tests/browser/browser-environment-art-v0202.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1072,9 +1072,9 @@ jobs:
       - name: Install WebGL browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify 0.20.2.1 ribbon window cleanup
-        run: node skyshift/browser-environment-art-v02021.mjs
+        run: node skyshift/tests/browser/browser-environment-art-v02021.mjs
       - name: Verify 0.20.3 graphite materials
-        run: node skyshift/browser-environment-art-v0203.mjs
+        run: node skyshift/tests/browser/browser-environment-art-v0203.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1095,7 +1095,7 @@ jobs:
       - name: Validate Phase B code and safe 3D geometry
         run: |
           node --check skyshift/cinematic-grade-v0210b.mjs
-          node --check skyshift/browser-cinematic-grade-v0210b.mjs
+          node --check skyshift/tests/browser/browser-cinematic-grade-v0210b.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/cinematic-grade-v0210b.test.mjs
 
@@ -1112,7 +1112,7 @@ jobs:
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Compare Phase A and B materials in real Chrome WebGL
-        run: node skyshift/browser-cinematic-grade-v0210b.mjs
+        run: node skyshift/tests/browser/browser-cinematic-grade-v0210b.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1155,7 +1155,7 @@ jobs:
         run: |
           node --check skyshift/dual-tone-lighting-v0260.mjs
           node --check skyshift/tests/unit/dual-tone-lighting-v0260.test.mjs
-          node --check skyshift/browser-dual-tone-lighting-v0260.mjs
+          node --check skyshift/tests/browser/browser-dual-tone-lighting-v0260.mjs
           node --check skyshift/game-v0210.mjs
           node --check skyshift/boot-v0210.js
           node --test skyshift/tests/unit/dual-tone-lighting-v0260.test.mjs skyshift/tests/unit/micro-surface-metal-definition-v0251.test.mjs skyshift/tests/unit/dark-metallic-foundation-v0250.test.mjs skyshift/tests/unit/architectural-neon-lighting-v0240.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs
@@ -1173,7 +1173,7 @@ jobs:
       - name: Install Chrome WebGL and actual PNG analyzer
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Same-camera cyan violet gold jade and mobile render comparisons
-        run: node skyshift/browser-dual-tone-lighting-v0260.mjs
+        run: node skyshift/tests/browser/browser-dual-tone-lighting-v0260.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1194,7 +1194,7 @@ jobs:
         run: |
           node --check skyshift/micro-surface-metal-definition-v0251.mjs
           node --check skyshift/tests/unit/micro-surface-metal-definition-v0251.test.mjs
-          node --check skyshift/browser-micro-surface-v0251.mjs
+          node --check skyshift/tests/browser/browser-micro-surface-v0251.mjs
           node --check skyshift/game-v0210.mjs
           node --check skyshift/boot-v0210.js
           node --test skyshift/tests/unit/micro-surface-metal-definition-v0251.test.mjs skyshift/tests/unit/dark-metallic-foundation-v0250.test.mjs skyshift/tests/unit/premium-surface-craftsmanship-v0241.test.mjs skyshift/tests/unit/architectural-neon-lighting-v0240.test.mjs skyshift/tests/unit/unified-tunnel-materials-v0233.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs
@@ -1212,7 +1212,7 @@ jobs:
       - name: Install Chrome WebGL and PNG inspector
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Render actual microfacet A/B and check original road, neon, contrast
-        run: node skyshift/browser-micro-surface-v0251.mjs
+        run: node skyshift/tests/browser/browser-micro-surface-v0251.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1233,7 +1233,7 @@ jobs:
         run: |
           node --check skyshift/dark-metallic-foundation-v0250.mjs
           node --check skyshift/tests/unit/dark-metallic-foundation-v0250.test.mjs
-          node --check skyshift/browser-dark-metallic-v0250.mjs
+          node --check skyshift/tests/browser/browser-dark-metallic-v0250.mjs
           node --check skyshift/game-v0210.mjs
           node --check skyshift/boot-v0210.js
           node --test skyshift/tests/unit/dark-metallic-foundation-v0250.test.mjs skyshift/tests/unit/premium-surface-craftsmanship-v0241.test.mjs skyshift/tests/unit/architectural-neon-lighting-v0240.test.mjs skyshift/tests/unit/unified-tunnel-materials-v0233.test.mjs skyshift/tests/unit/cinematic-road-reflections-v0242.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs
@@ -1251,7 +1251,7 @@ jobs:
       - name: Install Chrome WebGL and real PNG pixel inspector
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Real WebGL 0.24.2 versus 0.25.0 across cyan gold jade and 4GB
-        run: node skyshift/browser-dark-metallic-v0250.mjs
+        run: node skyshift/tests/browser/browser-dark-metallic-v0250.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1272,7 +1272,7 @@ jobs:
         run: |
           node --check skyshift/cinematic-road-reflections-v0242.mjs
           node --check skyshift/tests/unit/cinematic-road-reflections-v0242.test.mjs
-          node --check skyshift/browser-cinematic-road-v0242.mjs
+          node --check skyshift/tests/browser/browser-cinematic-road-v0242.mjs
           node --check skyshift/game-v0210.mjs
           node --check skyshift/boot-v0210.js
           node --test skyshift/tests/unit/cinematic-road-reflections-v0242.test.mjs skyshift/tests/unit/premium-road-surface-v0215.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/premium-surface-craftsmanship-v0241.test.mjs skyshift/tests/unit/architectural-neon-lighting-v0240.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs
@@ -1290,7 +1290,7 @@ jobs:
       - name: Install Chrome WebGL and actual PNG pixel analyzer
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Same-frame road-only classic/cinematic/absent across cyan, gold, jade and mobile
-        run: node skyshift/browser-cinematic-road-v0242.mjs
+        run: node skyshift/tests/browser/browser-cinematic-road-v0242.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1311,7 +1311,7 @@ jobs:
         run: |
           node --check skyshift/premium-surface-craftsmanship-v0241.mjs
           node --check skyshift/tests/unit/premium-surface-craftsmanship-v0241.test.mjs
-          node --check skyshift/browser-premium-surface-v0241.mjs
+          node --check skyshift/tests/browser/browser-premium-surface-v0241.mjs
           node --check skyshift/structural-tunnel-v0213.mjs
           node --check skyshift/true-material-depth-v0231.mjs
           node --check skyshift/game-v0210.mjs
@@ -1331,7 +1331,7 @@ jobs:
       - name: Install Chrome WebGL renderer and PNG inspector
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Same-camera old/new early/middle/late 8GB and 4GB
-        run: node skyshift/browser-premium-surface-v0241.mjs
+        run: node skyshift/tests/browser/browser-premium-surface-v0241.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1352,7 +1352,7 @@ jobs:
         run: |
           node --check skyshift/architectural-neon-lighting-v0240.mjs
           node --check skyshift/tests/unit/architectural-neon-lighting-v0240.test.mjs
-          node --check skyshift/browser-architectural-neon-v0240.mjs
+          node --check skyshift/tests/browser/browser-architectural-neon-v0240.mjs
           node --check skyshift/game-v0210.mjs
           node --check skyshift/boot-v0210.js
           node --test skyshift/tests/unit/architectural-neon-lighting-v0240.test.mjs skyshift/tests/unit/unified-tunnel-materials-v0233.test.mjs skyshift/tests/unit/cinematic-light-architecture-v0232.test.mjs skyshift/tests/unit/true-material-depth-v0231.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs
@@ -1370,7 +1370,7 @@ jobs:
       - name: Install Chrome WebGL driver and PNG pixel analyzer
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Same-camera neon illumination ON/OFF, tunnel entry-mid-exit, mobile 4GB
-        run: node skyshift/browser-architectural-neon-v0240.mjs
+        run: node skyshift/tests/browser/browser-architectural-neon-v0240.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1431,7 +1431,7 @@ jobs:
       - name: Validate metal shader chain, low-memory, old white light isolation
         run: |
           node --check skyshift/cinematic-light-architecture-v0232.mjs
-          node --check skyshift/browser-light-architecture-v0232.mjs
+          node --check skyshift/tests/browser/browser-light-architecture-v0232.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/cinematic-light-architecture-v0232.test.mjs skyshift/tests/unit/true-material-depth-v0231.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs skyshift/tests/unit/build-version-v02204.test.mjs
 
@@ -1448,7 +1448,7 @@ jobs:
       - name: Install WebGL browser renderer and PNG inspector
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Exact-frame WebGL visual proof, both memory profiles
-        run: node skyshift/browser-light-architecture-v0232.mjs
+        run: node skyshift/tests/browser/browser-light-architecture-v0232.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1506,7 +1506,7 @@ jobs:
       - name: Check original banked frame, mesh compatibility and solar containment
         run: |
           node --check skyshift/physical-material-rebuild-v0230.mjs
-          node --check skyshift/browser-physical-material-v0230.mjs
+          node --check skyshift/tests/browser/browser-physical-material-v0230.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/physical-material-rebuild-v0230.test.mjs skyshift/tests/unit/cinematic-neon-lighting-v0220p2.test.mjs skyshift/tests/unit/premium-material-rebirth-v0220.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/build-version-v02204.test.mjs
 
@@ -1523,7 +1523,7 @@ jobs:
       - name: Install browser and PNG inspector
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Same-frame metal A/B cyan/gold/jade and mobile road protection
-        run: node skyshift/browser-physical-material-v0230.mjs
+        run: node skyshift/tests/browser/browser-physical-material-v0230.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1617,7 +1617,7 @@ jobs:
       - name: Check new shader, geometry and corrected Pass 1 regression
         run: |
           node --check skyshift/cinematic-neon-lighting-v0220p2.mjs
-          node --check skyshift/browser-cinematic-neon-v0220p2.mjs
+          node --check skyshift/tests/browser/browser-cinematic-neon-v0220p2.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/cinematic-neon-lighting-v0220p2.test.mjs skyshift/tests/unit/premium-material-rebirth-v0220.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/structural-tunnel-v0213.test.mjs
 
@@ -1634,7 +1634,7 @@ jobs:
       - name: Install Chrome and screenshot raster checker
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Compare same-frame native spectral bounce to Pass 1 materials on real WebGL
-        run: node skyshift/browser-cinematic-neon-v0220p2.mjs
+        run: node skyshift/tests/browser/browser-cinematic-neon-v0220p2.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1654,7 +1654,7 @@ jobs:
       - name: Validate high/mobile metallic shaders and existing flight, neon, road light fixes
         run: |
           node --check skyshift/premium-material-rebirth-v0220.mjs
-          node --check skyshift/browser-premium-material-rebirth-v0220.mjs
+          node --check skyshift/tests/browser/browser-premium-material-rebirth-v0220.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/premium-material-rebirth-v0220.test.mjs skyshift/tests/unit/cinematic-energy-v0216.test.mjs skyshift/tests/unit/integrated-neon-flow-v0214.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/premium-road-surface-v0215.test.mjs
 
@@ -1671,7 +1671,7 @@ jobs:
       - name: Install Chrome and PNG pixel inspector
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Compare exactly the same tunnel frame and prove material-only effect in 3 palettes
-        run: node skyshift/browser-premium-material-rebirth-v0220.mjs
+        run: node skyshift/tests/browser/browser-premium-material-rebirth-v0220.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1691,7 +1691,7 @@ jobs:
       - name: Validate shader runtime, speed data and existing road/white containment
         run: |
           node --check skyshift/cinematic-energy-v0216.mjs
-          node --check skyshift/browser-cinematic-energy-v0216.mjs
+          node --check skyshift/tests/browser/browser-cinematic-energy-v0216.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/cinematic-energy-v0216.test.mjs skyshift/tests/unit/integrated-neon-flow-v0214.test.mjs skyshift/tests/unit/premium-road-surface-v0215.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs
 
@@ -1708,7 +1708,7 @@ jobs:
       - name: Install Chrome driver and screenshot inspector
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Compare exact same-frame velocity neon glow with classic and mobile
-        run: node skyshift/browser-cinematic-energy-v0216.mjs
+        run: node skyshift/tests/browser/browser-cinematic-energy-v0216.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1728,7 +1728,7 @@ jobs:
       - name: Verify shader composition and old road/wave/ship/structure invariants
         run: |
           node --check skyshift/premium-road-surface-v0215.mjs
-          node --check skyshift/browser-premium-road-surface-v0215.mjs
+          node --check skyshift/tests/browser/browser-premium-road-surface-v0215.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/premium-road-surface-v0215.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/white-core-containment-v02123.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs skyshift/tests/unit/integrated-neon-flow-v0214.test.mjs
 
@@ -1745,7 +1745,7 @@ jobs:
       - name: Install Chrome and PNG inspector
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Verify deck-specific material changes and no new white spill
-        run: node skyshift/browser-premium-road-surface-v0215.mjs
+        run: node skyshift/tests/browser/browser-premium-road-surface-v0215.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1765,7 +1765,7 @@ jobs:
       - name: Validate integrated neon, structural profiles, white-spill fixes and game boot
         run: |
           node --check skyshift/integrated-neon-flow-v0214.mjs
-          node --check skyshift/browser-integrated-neon-flow-v0214.mjs
+          node --check skyshift/tests/browser/browser-integrated-neon-flow-v0214.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/integrated-neon-flow-v0214.test.mjs skyshift/tests/unit/structural-tunnel-v0213.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs
 
@@ -1782,7 +1782,7 @@ jobs:
       - name: Install Chrome driver and screenshot raster inspector
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Require visible continuous wall and ceiling lines across the native zone wave
-        run: node skyshift/browser-integrated-neon-flow-v0214.mjs
+        run: node skyshift/tests/browser/browser-integrated-neon-flow-v0214.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1914,7 +1914,7 @@ jobs:
         run: |
           node --check skyshift/aero-barrier-v0165.mjs
           node --check skyshift/game-v0210.mjs
-          node --check skyshift/browser-rail-body-containment-v02124.mjs
+          node --check skyshift/tests/browser/browser-rail-body-containment-v02124.mjs
           node --test skyshift/tests/unit/rail-body-containment-v02124.test.mjs
 
   browser-rail-body-v02124:
@@ -1930,7 +1930,7 @@ jobs:
       - name: Install browser + PNG inspection
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Require reduction in actual user-marked white rail glare
-        run: node skyshift/browser-rail-body-containment-v02124.mjs
+        run: node skyshift/tests/browser/browser-rail-body-containment-v02124.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -2081,7 +2081,7 @@ jobs:
       - name: Verify neon light falloff and unchanged mesh physics
         run: |
           node --check skyshift/neon-interior-v0212.mjs
-          node --check skyshift/browser-neon-interior-v0212.mjs
+          node --check skyshift/tests/browser/browser-neon-interior-v0212.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/neon-interior-v0212.test.mjs
 
@@ -2098,7 +2098,7 @@ jobs:
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Render neon-driven walls with real WebGL and classic A/B
-        run: node skyshift/browser-neon-interior-v0212.mjs
+        run: node skyshift/tests/browser/browser-neon-interior-v0212.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -2207,7 +2207,7 @@ jobs:
       - name: Install real Chromium/WebGL picture validator
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Compare user red fixture regions against roof/road control in real Gold/Violet game
-        run: node skyshift/browser-fixture-transport-v02643.mjs
+        run: node skyshift/tests/browser/browser-fixture-transport-v02643.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -2253,7 +2253,7 @@ jobs:
       - name: Install native Chromium test driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
       - name: Verify all-lap tunnel enclosure and preserve original tracks
-        run: node skyshift/browser-full-tunnel-v0270.mjs
+        run: node skyshift/tests/browser/browser-full-tunnel-v0270.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

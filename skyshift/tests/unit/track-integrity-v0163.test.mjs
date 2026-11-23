@@ -11,10 +11,10 @@ const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,r
  import("../../trial-v0163.mjs"),
  import("../../tracks/shared/track-3d-v0160.mjs"),
  import("../../risk-reward-v0160.mjs"),
- import("../../boost-v0160.mjs"),
+ import("../../flight/boost/boost-v0160.mjs"),
  import("../../smooth-track-v0160.mjs"),
  import("../../premium-track-v0160.mjs"),
- import("../../aero-barrier-v0163.mjs"),
+ import("../../tracks/barriers/aero-barrier-v0163.mjs"),
  import("../../shadow-tunnel-v0160.mjs"),
  import("../../time-trial-v0160.mjs"),
  import("../../racing-experience-v0160.mjs")]);
@@ -211,7 +211,7 @@ test("No ghost right-apex guidance or Skyline-only leap signs on Aurora",()=>{
  assert.doesNotMatch(realCamera,/from "\.\/trial-v0901\.mjs"/);
 });
 test("Aurora rail tessellation cuts mobile triangles, collision/ship physics intact",async()=>{
- const rail=await import("../../aero-barrier-v0163.mjs");
+ const rail=await import("../../tracks/barriers/aero-barrier-v0163.mjs");
  const optimized=rail.createAeroBarrierData();
  const archived=rail.createAeroBarrierData(.95);
  assert.ok(optimized.indices.length<archived.indices.length*.76,

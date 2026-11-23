@@ -5,11 +5,11 @@ import {readFileSync} from "node:fs";
 import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState}
  from "../../velocity-language-v0496.mjs";
 import {ENGINE_TRAIL_SPEC,trailMotionState} from "../../engine-trails-v0496.mjs";
-import {BOOST_CONFIG,BOOST_PADS} from "../../boost-v0494.mjs";
+import {BOOST_CONFIG,BOOST_PADS} from "../../flight/boost/boost-v0494.mjs";
 import {TRIAL} from "../../trial-v0494.mjs";
 import {patchPremiumShaders,PREMIUM_TRACK,GLSL_BOOST_PADS}
  from "../../premium-track-v0496.mjs";
-import {patchRailShaders} from "../../aero-barrier-v0496.mjs";
+import {patchRailShaders} from "../../tracks/barriers/aero-barrier-v0496.mjs";
 const src=f=>readFileSync(new URL("../../"+f,import.meta.url),"utf8");
 const close=(a,b,e=1e-6)=>assert.ok(Math.abs(a-b)<e,`${a} != ${b}`);
 function run(fps=60,seconds=1.4){

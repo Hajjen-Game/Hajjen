@@ -137,7 +137,7 @@ test("low-memory keeps single dynamic batch, no game physics touched",()=>{
 test("production activates v0.10.7, deactivates old ship-attached trails",()=>{
  const game=src("./game-v0107.mjs");
  const index=src("./index.html");
- const boot=src("./boot-v0107.js");
+ const boot=src("./legacy/boot/boot-v0107.js");
  assert.match(game,/createLivingWakeFX\(THREE,scene,ship,\{variant:id/);
  assert.match(game,/livingWake\?\.dispose\(\)/);
  assert.match(game,/livingWake\?\.reset\(\)/);

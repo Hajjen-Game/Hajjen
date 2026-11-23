@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "stage": "SKYSHIFT Architecture Cleanup 2.0 Stage N",
+  "baseCommit": "03f2566aa4d3efaa7773db4cf4989353a6a79c29",
+  "description": "Path-only migration of 16 historical Stingray HERO art, glTF runtime loaders, visual presentation and hangar modules; preserve runtime asset URLs and source hashes.",
+  "files": {
+    "ship-art-pipeline-v0132.mjs": {
+      "originalGitBlobSha": "8485de4a53f1ea9c806a20ec06270d774e0c0a1d",
+      "destination": "skyshift/ships/ship-art-pipeline-v0132.mjs",
+      "assetPathRebased": true,
+      "originalBytes": 7574
+    },
+    "ship-art-pipeline-v0133.mjs": {
+      "originalGitBlobSha": "a289f28fad5ff3574444c8fb45c036fc5c1bbd5e",
+      "destination": "skyshift/ships/ship-art-pipeline-v0133.mjs",
+      "assetPathRebased": true,
+      "originalBytes": 7783
+    },
+    "ship-art-pipeline-v0134.mjs": {
+      "originalGitBlobSha": "d67fbd69c9ddfcfd0d86d2e0a6b9181b622aab93",
+      "destination": "skyshift/ships/ship-art-pipeline-v0134.mjs",
+      "assetPathRebased": true,
+      "originalBytes": 7807
+    },
+    "ship-art-pipeline-v01342.mjs": {
+      "originalGitBlobSha": "64cc1c9c5d8e41106bf2444013f9a3e5d6ad8b35",
+      "destination": "skyshift/ships/ship-art-pipeline-v01342.mjs",
+      "assetPathRebased": true,
+      "originalBytes": 7840
+    },
+    "ship-hero-loader-v0132.mjs": {
+      "originalGitBlobSha": "01c92ae4f3427fcf77e16ba448b174eb1b1568fe",
+      "destination": "skyshift/ships/ship-hero-loader-v0132.mjs",
+      "assetPathRebased": true,
+      "originalBytes": 3967
+    },
+    "ship-hero-loader-v01321.mjs": {
+      "originalGitBlobSha": "2edc8300bfd007072a60a38889507ade317a3cd2",
+      "destination": "skyshift/ships/ship-hero-loader-v01321.mjs",
+      "assetPathRebased": true,
+      "originalBytes": 3978
+    },
+    "ship-hero-loader-v0133.mjs": {
+      "originalGitBlobSha": "ea2c2a1253262f0bb2aedd0e4ed7259844fb7140",
+      "destination": "skyshift/ships/ship-hero-loader-v0133.mjs",
+      "assetPathRebased": true,
+      "originalBytes": 4196
+    },
+    "ship-hero-loader-v0134.mjs": {
+      "originalGitBlobSha": "8d6c137d3568fb33e00eeca5a3a9426555e94a46",
+      "destination": "skyshift/ships/ship-hero-loader-v0134.mjs",
+      "assetPathRebased": true,
+      "originalBytes": 4202
+    },
+    "ship-hero-loader-v01342.mjs": {
+      "originalGitBlobSha": "fbb26b831ea52f96b9cdd3c728afcbb75049aaca",
+      "destination": "skyshift/ships/ship-hero-loader-v01342.mjs",
+      "assetPathRebased": true,
+      "originalBytes": 4209
+    },
+    "stingray-presentation-v01342.mjs": {
+      "originalGitBlobSha": "326e4bfa8ae8e45c3bf2d5555966c93a2d2a9e80",
+      "destination": "skyshift/ships/stingray-presentation-v01342.mjs",
+      "assetPathRebased": false,
+      "originalBytes": 1043
+    },
+    "stingray-presentation-v01343.mjs": {
+      "originalGitBlobSha": "77eda09fe27e2184c2ff8b7024160619a3b3907b",
+      "destination": "skyshift/ships/stingray-presentation-v01343.mjs",
+      "assetPathRebased": false,
+      "originalBytes": 1301
+    },
+    "stingray-presentation-v01344.mjs": {
+      "originalGitBlobSha": "b750cdc755f90674e3ec7ce452857dd8873ddf39",
+      "destination": "skyshift/ships/stingray-presentation-v01344.mjs",
+      "assetPathRebased": false,
+      "originalBytes": 2293
+    },
+    "stingray-presentation-v01345.mjs": {
+      "originalGitBlobSha": "ace29d18aab6ebbdd4b15edd01303bafa401b2f8",
+      "destination": "skyshift/ships/stingray-presentation-v01345.mjs",
+      "assetPathRebased": false,
+      "originalBytes": 2580
+    },
+    "stingray-presentation-v01346.mjs": {
+      "originalGitBlobSha": "6a226003dec7cd1059a43e0f4b4e988156740574",
+      "destination": "skyshift/ships/stingray-presentation-v01346.mjs",
+      "assetPathRebased": false,
+      "originalBytes": 2716
+    },
+    "hangar-hero-v0133.mjs": {
+      "originalGitBlobSha": "914a2564b5663f4b840a44f3b6aa52b62a3c3470",
+      "destination": "skyshift/ships/hangar-hero-v0133.mjs",
+      "assetPathRebased": false,
+      "originalBytes": 3310
+    },
+    "hangar-hero-v0134.mjs": {
+      "originalGitBlobSha": "99125328ca65570fed36a69efb07c66c176c2425",
+      "destination": "skyshift/ships/hangar-hero-v0134.mjs",
+      "assetPathRebased": false,
+      "originalBytes": 3422
+    }
+  }
+}

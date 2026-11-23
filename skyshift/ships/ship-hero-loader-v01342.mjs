@@ -1,15 +1,18 @@
-// SKYSHIFT 0.13.2 — optional Blender HERO GLB in production WebGL.
-// The requested preview is deliberately opt-in until visual + FPS playtest.
-// No file loads, new objects or imports in normal 0.13.2 play.
-import {SHIP_ART_0132,requestedShipArt,createShipArtState,
+// SKYSHIFT 0.13.4.2 — Stingray V4 geometry is the production default.
+// Only Stingray fetches external art; Manta and all flight physics are intact.
+// Missing/invalid model files retain the original procedural Stingray.
+import {SHIP_ART_01342,requestedShipArt,createShipArtState,
  assessHeroAsset,installHeroBodyAndTail,shipArtAudit}
- from "./ship-art-pipeline-v0132.mjs";
+ from "./ship-art-pipeline-v01342.mjs";
 export function createShipArtController(THREE,{
  search="",currentCraft=()=>null,currentShipId=()=>null,
  loaderFactory=null,fetchAsset=null
 }={}){
  const state=createShipArtState();
  state.requested=requestedShipArt(search);
+ // Explicit visual A/B only: a reviewed Blender-exported binary may be
+ // tested separately. The normal mobile game uses the verified glTF sculpt.
+ const blenderPreview=new URLSearchParams(search).get("shipArt")==="blender";
  let generation=0;
  function disposeImported(root){
   const geometries=new Set(),materials=new Set();
@@ -37,23 +40,22 @@ export function createShipArtController(THREE,{
   state.status="loading";state.attempts++;
   let imported=null;
   try{
-   // Prefer an actual Blender-exported binary GLB. Until Blender CI
-   // publishes it, the tracked first-playable text glTF is a real 3D mesh
-   // with identical named parts, not a runtime-generated Three.js craft.
+   // The checked-in V4 glTF is the runtime source of truth.
+   // No missing GLB requests or 404 console noise on mobile.
+   // A later reviewed Blender GLB can replace this asset without changing
+   // tail joints, mesh-node naming, or gameplay flight physics.
    const request=fetchAsset??fetch;
-   let response=await request(new URL(SHIP_ART_0132.assetPath,import.meta.url),
-    {cache:"force-cache"}),format="glb";
-   if(!response.ok){
-    response=await request(new URL(SHIP_ART_0132.previewAssetPath,import.meta.url),
-     {cache:"force-cache"});
-    format="gltf";
-   }
+   const srcPath=blenderPreview?SHIP_ART_01342.blenderAssetPath:
+    SHIP_ART_01342.assetPath;
+   const response=await request(new URL(srcPath,import.meta.url),
+    {cache:"force-cache"});
    if(!response.ok)
-    throw Error("Stingray hero mesh unavailable (HTTP "+response.status+")");
-   const source=format==="glb"?await response.arrayBuffer():
+    throw Error("Stingray HERO V4 unavailable (HTTP "+response.status+")");
+   const source=blenderPreview?await response.arrayBuffer():
     await response.text();
+   const format=blenderPreview?"glb":"gltf";
    const length=typeof source==="string"?source.length:source.byteLength;
-   if(length>SHIP_ART_0132.maxAssetBytes)
+   if(length>SHIP_ART_01342.maxAssetBytes)
     throw Error("Hero mesh exceeds mobile budget: "+length);
    let loader;
    if(loaderFactory)loader=await loaderFactory();
@@ -62,7 +64,7 @@ export function createShipArtController(THREE,{
     loader=new GLTFLoader();
    }
    const gltf=await new Promise((resolve,reject)=>
-    loader.parse(source,new URL("./assets/ships/",import.meta.url).href,
+    loader.parse(source,new URL("../assets/ships/",import.meta.url).href,
      resolve,reject));
    imported=gltf.scene;
    if(token!==generation||currentCraft()!==craft||

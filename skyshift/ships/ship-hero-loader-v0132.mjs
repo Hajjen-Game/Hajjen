@@ -3,7 +3,7 @@
 // No file loads, new objects or imports in normal 0.13.2 play.
 import {SHIP_ART_0132,requestedShipArt,createShipArtState,
  assessHeroAsset,installHeroBodyAndTail,shipArtAudit}
- from "./ship-art-pipeline-v0132.mjs?v=0.13.2.1";
+ from "./ship-art-pipeline-v0132.mjs";
 export function createShipArtController(THREE,{
  search="",currentCraft=()=>null,currentShipId=()=>null,
  loaderFactory=null,fetchAsset=null
@@ -62,7 +62,7 @@ export function createShipArtController(THREE,{
     loader=new GLTFLoader();
    }
    const gltf=await new Promise((resolve,reject)=>
-    loader.parse(source,new URL("./assets/ships/",import.meta.url).href,
+    loader.parse(source,new URL("../assets/ships/",import.meta.url).href,
      resolve,reject));
    imported=gltf.scene;
    if(token!==generation||currentCraft()!==craft||

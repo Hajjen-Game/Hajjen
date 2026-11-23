@@ -1,9 +1,9 @@
-// SKYSHIFT 0.13.4 — Stingray V3 geometry is the production default.
-// Only Stingray fetches external art; Manta and all flight physics are intact.
-// Missing/invalid model files retain the original procedural Stingray.
-import {SHIP_ART_0134,requestedShipArt,createShipArtState,
+// SKYSHIFT 0.13.2 — optional Blender HERO GLB in production WebGL.
+// The requested preview is deliberately opt-in until visual + FPS playtest.
+// No file loads, new objects or imports in normal 0.13.2 play.
+import {SHIP_ART_0133,requestedShipArt,createShipArtState,
  assessHeroAsset,installHeroBodyAndTail,shipArtAudit}
- from "./ship-art-pipeline-v0134.mjs";
+ from "./ship-art-pipeline-v0133.mjs";
 export function createShipArtController(THREE,{
  search="",currentCraft=()=>null,currentShipId=()=>null,
  loaderFactory=null,fetchAsset=null
@@ -40,22 +40,22 @@ export function createShipArtController(THREE,{
   state.status="loading";state.attempts++;
   let imported=null;
   try{
-   // The checked-in V3 glTF is the runtime source of truth.
+   // The deployed sculpted V2 glTF is the actual source of truth.
    // No missing GLB requests or 404 console noise on mobile.
    // A later reviewed Blender GLB can replace this asset without changing
    // tail joints, mesh-node naming, or gameplay flight physics.
    const request=fetchAsset??fetch;
-   const srcPath=blenderPreview?SHIP_ART_0134.blenderAssetPath:
-    SHIP_ART_0134.assetPath;
+   const srcPath=blenderPreview?SHIP_ART_0133.blenderAssetPath:
+    SHIP_ART_0133.assetPath;
    const response=await request(new URL(srcPath,import.meta.url),
     {cache:"force-cache"});
    if(!response.ok)
-    throw Error("Stingray HERO V3 unavailable (HTTP "+response.status+")");
+    throw Error("Stingray HERO V2 unavailable (HTTP "+response.status+")");
    const source=blenderPreview?await response.arrayBuffer():
     await response.text();
    const format=blenderPreview?"glb":"gltf";
    const length=typeof source==="string"?source.length:source.byteLength;
-   if(length>SHIP_ART_0134.maxAssetBytes)
+   if(length>SHIP_ART_0133.maxAssetBytes)
     throw Error("Hero mesh exceeds mobile budget: "+length);
    let loader;
    if(loaderFactory)loader=await loaderFactory();
@@ -64,7 +64,7 @@ export function createShipArtController(THREE,{
     loader=new GLTFLoader();
    }
    const gltf=await new Promise((resolve,reject)=>
-    loader.parse(source,new URL("./assets/ships/",import.meta.url).href,
+    loader.parse(source,new URL("../assets/ships/",import.meta.url).href,
      resolve,reject));
    imported=gltf.scene;
    if(token!==generation||currentCraft()!==craft||

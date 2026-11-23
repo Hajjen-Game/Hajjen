@@ -1,14 +1,15 @@
-// SKYSHIFT 0.13.2 — Blender/glTF hero-asset contract and safe loader.
+// SKYSHIFT 0.13.4.2 — Faceted mechanical tail and scaled Stingray HERO.
 // The real 120Hz physics, Manta Blade, and original animated Stingray rig
 // remain authoritative. This is only a replacement for cosmetic meshes.
-export const SHIP_ART_0132=Object.freeze({
- version:"blender-stingray-hero-pipeline-0132",
- assetPath:"./assets/ships/stingray-evo-hero-v1.glb",
- previewAssetPath:"./assets/ships/stingray-evo-hero-v1.gltf",
+export const SHIP_ART_01342=Object.freeze({
+ version:"stingray-static-hover-faceted-tail-01342",
+ assetPath:"../assets/ships/stingray-evo-hero-v4.gltf",
+ blenderAssetPath:"../assets/ships/stingray-evo-hero-v4.glb",
+ fallbackVersion:"0.13.4",
  browserFlag:"shipArt",
- defaultMode:"procedural",
+ defaultMode:"hero",
  optInMode:"hero",
- artist:"Blender 4.x → glTF 2.0 GLB → GLTFLoader",
+ artist:"Offline 3D sculpt → glTF 2.0 → Three.js; Blender .blend conversion available",
  axes:"Three +Y up, nose -Z, tail +Z, wingtip ±X, metres",
  requiredMeshes:Object.freeze([
   "Hero_Hull_Spine","Hero_Wing_L","Hero_Wing_R","Hero_Canopy",
@@ -20,13 +21,18 @@ export const SHIP_ART_0132=Object.freeze({
  maxAssetBytes:700000,maxTextureImages:0,maxPointLights:0,
  maxSkinnedMeshes:0,hasCollision:false,
  noPhysicsChange:true,proceduralFallback:true,
- v0132PreviewRequiresOptIn:true
+ v01342HeroDefault:true
 });
+// New V3 sculpt is Stingray default. ?shipArt=classic restores old craft.
+// Other modes and the Manta Blade are unaffected; no art fetch is performed.
 export function requestedShipArt(search=""){
- try{return new URLSearchParams(search).get(SHIP_ART_0132.browserFlag)==="hero"?
-  "hero":"procedural";}
- catch{return "procedural";}
+ try{
+  const v=new URLSearchParams(search).get(SHIP_ART_01342.browserFlag);
+  return v==="classic"||v==="procedural"||v==="off"?
+   "procedural":"hero";
+ }catch{return "hero";}
 }
+
 const hasMesh=(v)=>!!v&&v.isMesh===true;
 function triangles(geo){
  if(!geo?.attributes?.position)return 0;
@@ -50,34 +56,34 @@ export function assessHeroAsset(root){
     "emissiveMap","aoMap"]){if(m[k]?.image)images.add(m[k].image);}
   }
  });
- for(const name of SHIP_ART_0132.requiredMeshes)
+ for(const name of SHIP_ART_01342.requiredMeshes)
   if(!found.has(name))errors.push("Missing "+name);
  for(const name of names)
-  if(name.startsWith("Hero_")&&!SHIP_ART_0132.requiredMeshes.includes(name)&&
+  if(name.startsWith("Hero_")&&!SHIP_ART_01342.requiredMeshes.includes(name)&&
    !name.startsWith("Hero_Detail_")&&!name.startsWith("Hero_Tail_Glow_"))
    errors.push("Unexpected hero node "+name);
- if(meshes>SHIP_ART_0132.maxDrawCalls)errors.push("Too many mesh batches: "+meshes);
- if(triangleCount>SHIP_ART_0132.maxTriangles)
+ if(meshes>SHIP_ART_01342.maxDrawCalls)errors.push("Too many mesh batches: "+meshes);
+ if(triangleCount>SHIP_ART_01342.maxTriangles)
   errors.push("Triangle budget exceeded: "+triangleCount);
- if(materials.size>SHIP_ART_0132.maxMaterials)
+ if(materials.size>SHIP_ART_01342.maxMaterials)
   errors.push("Material budget exceeded: "+materials.size);
- if(images.size>SHIP_ART_0132.maxTextureImages)
-  errors.push("Texture maps forbidden in v0.13.2: "+images.size);
- if(lights>SHIP_ART_0132.maxPointLights)errors.push("No embedded light sources");
- if(skinned>SHIP_ART_0132.maxSkinnedMeshes)errors.push("No skin/armatures: use existing nine-joint rig");
+ if(images.size>SHIP_ART_01342.maxTextureImages)
+  errors.push("Texture maps forbidden in v0.13.4: "+images.size);
+ if(lights>SHIP_ART_01342.maxPointLights)errors.push("No embedded light sources");
+ if(skinned>SHIP_ART_01342.maxSkinnedMeshes)errors.push("No skin/armatures: use existing nine-joint rig");
  return {valid:errors.length===0,errors,meshes,triangles:triangleCount,
   materials:materials.size,textureImages:images.size,lights,skinned,
-  requiredNodes:SHIP_ART_0132.requiredMeshes.length,found};
+  requiredNodes:SHIP_ART_01342.requiredMeshes.length,found};
 }
 export function createShipArtState(){
- return {requested:"procedural",status:"not-requested",loaded:false,
+ return {requested:"hero",status:"not-requested",loaded:false,
   requestedShip:"",heroApplied:false,error:null,attempts:0,triangles:0,
   addedDrawCalls:0,addedTextures:0,activeMode:"procedural",
   assetFormat:null,token:0};
 }
 // Existing craft has these exact mesh names; hiding them preserves the
 // original engine lights, plume nodes, reactive wing flaps and 9-link pivots.
-export const PROCEDURAL_BODY_MESHES_0132=Object.freeze([
+export const PROCEDURAL_BODY_MESHES_01342=Object.freeze([
  "Compact central manta spine","Stingray EVO · wide manta wings",
  "Low integrated teardrop canopy","Inset swept dorsal wing channels",
  "Manta blade tip luminescence","Wing-integrated venturi thruster"
@@ -90,7 +96,7 @@ export function installHeroBodyAndTail(THREE,craft,gltfScene,report=assessHeroAs
  const ship=craft?.ship;
  if(!ship||typeof ship.getObjectByName!=="function")
   throw Error("Stingray craft root missing");
- const jointNames=Array.from({length:SHIP_ART_0132.tailSegments},(_,i)=>
+ const jointNames=Array.from({length:SHIP_ART_01342.tailSegments},(_,i)=>
   "Stingray kinetic joint "+String(i+1).padStart(2,"0"));
  const joints=jointNames.map(name=>ship.getObjectByName(name));
  if(joints.some(x=>!x))throw Error("Existing nine-joint Stingray animation rig missing");
@@ -111,14 +117,14 @@ export function installHeroBodyAndTail(THREE,craft,gltfScene,report=assessHeroAs
  });
  // Imported tail geometry is kept out of the static body root. Original
  // neon dorsal guides remain visible and follow the original motion rig.
- for(const name of SHIP_ART_0132.requiredMeshes.filter(x=>x.startsWith("Hero_Tail_"))){
+ for(const name of SHIP_ART_01342.requiredMeshes.filter(x=>x.startsWith("Hero_Tail_"))){
   const part=report.found.get(name);
   part.removeFromParent();
  }
- for(const name of PROCEDURAL_BODY_MESHES_0132){
+ for(const name of PROCEDURAL_BODY_MESHES_01342){
   ship.traverse(obj=>{if(obj.name===name&&obj.isMesh)obj.visible=false;});
  }
- // v0.10.3 polishing overlays were authored for the old wing contour.
+ // Older polishing overlays were authored for the old wing contour.
  // Avoid a second floating set of shoulders, vents and static engine bezels.
  // Existing v0.10.8 reactive FLAPS and existing engine VFX remain intact.
  for(const part of craft.polishSurfaces??[])part.visible=false;
@@ -128,7 +134,7 @@ export function installHeroBodyAndTail(THREE,craft,gltfScene,report=assessHeroAs
     child.visible=false;
   joint.add(clone);
  }
- gltfScene.name="Blender Stingray HERO body · approved preview only";
+ gltfScene.name="Stingray HERO V4 · hard-surface tail and 3D manta body";
  gltfScene.traverse(obj=>{if(obj.isMesh){
   obj.castShadow=false;obj.receiveShadow=false;}});
  ship.add(gltfScene);
@@ -140,7 +146,7 @@ export function installHeroBodyAndTail(THREE,craft,gltfScene,report=assessHeroAs
   addedDrawCalls:report.meshes};
 }
 export function shipArtAudit(state){
- return {version:SHIP_ART_0132.version,requested:state.requested,
+ return {version:SHIP_ART_01342.version,requested:state.requested,
   status:state.status,loaded:state.loaded,heroApplied:state.heroApplied,
   activeMode:state.activeMode,attempts:state.attempts,
   triangles:state.triangles,addedDrawCalls:state.addedDrawCalls,

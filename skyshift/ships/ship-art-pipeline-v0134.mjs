@@ -3,8 +3,8 @@
 // remain authoritative. This is only a replacement for cosmetic meshes.
 export const SHIP_ART_0134=Object.freeze({
  version:"stingray-silhouette-hard-surface-0134",
- assetPath:"./assets/ships/stingray-evo-hero-v3.gltf",
- blenderAssetPath:"./assets/ships/stingray-evo-hero-v3.glb",
+ assetPath:"../assets/ships/stingray-evo-hero-v3.gltf",
+ blenderAssetPath:"../assets/ships/stingray-evo-hero-v3.glb",
  fallbackVersion:"0.13.3",
  browserFlag:"shipArt",
  defaultMode:"hero",

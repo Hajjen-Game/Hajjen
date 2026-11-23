@@ -84,3 +84,12 @@ test('R1B CI and root layout enforce the total 468 → 449 → 429 file moves',(
  assert.ok(existsSync(resolve(root,'boot-v0210.js')));
  assert.ok(existsSync(resolve(root,'game-v0210.mjs')));
 });
+
+test('R1B original 0.20.3 graphite WebGL comparison page loads relocated original bootstrap',()=>{
+ const html=readFileSync(resolve(root,'material-grade-v0203.html'),'utf8');
+ assert.ok(html.includes('src="./legacy/boot/boot-v0203.js?v=0.20.3"'),
+  'Historical 0.20.3 comparison page must load its archived bootstrap');
+ assert.ok(html.includes('data-game-module="game-v0203.mjs"'),
+  'Historical 0.20.3 screenshot comparison must retain its original game');
+ assert.ok(existsSync(resolve(root,'legacy/boot/boot-v0203.js')));
+});

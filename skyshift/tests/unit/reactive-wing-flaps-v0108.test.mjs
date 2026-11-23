@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {REACTIVE_FLAPS,createFlapState,stepFlapState,resetFlapState,
  flapTargets,flapMount,installReactiveWingFlaps
-} from "../../reactive-wing-flaps-v0108.mjs";
+} from "../../ships/reactive-wing-flaps-v0108.mjs";
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const deg=r=>r*180/Math.PI;
 const tick=(st,seconds,dt,view)=>{

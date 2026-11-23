@@ -51,6 +51,8 @@ jobs:
         run: node --test skyshift/tests/architecture/vault-migration-stageE.test.mjs
       - name: Audit Stage F original shared-track/Skyline Git blobs and historical paths
         run: node --test skyshift/tests/architecture/track-migration-stageF.test.mjs
+      - name: Audit Stage G original ship/fleet source SHAs and relocated CI paths
+        run: node --test skyshift/tests/architecture/ship-migration-stageG.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

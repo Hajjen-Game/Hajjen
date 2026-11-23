@@ -467,7 +467,7 @@ try{
   throw new Error("0.13.4.2 articulated preview not working: "+
    JSON.stringify(preview));
  const direction=await hangar.evaluate(async()=>{
-  const m=await import("./stingray-evo-v01342.mjs");
+  const m=await import("./ships/stingray-evo-v01342.mjs");
   const pose=(direction)=>{
    const st=m.createTailState();
    for(let i=0;i<120;i++)m.tailPoseStep(st,1/60,{
@@ -481,7 +481,7 @@ try{
  if(!(direction.right>.16&&direction.left<-.16))
   throw new Error("Tail moves against steering input: "+JSON.stringify(direction));
  const neutral=await hangar.evaluate(async()=>{
-   const m=await import("./stingray-evo-v01342.mjs");
+   const m=await import("./ships/stingray-evo-v01342.mjs");
    const st=m.createTailState(),samples=[];
    for(let k=0;k<360;k++){
     m.tailPoseStep(st,1/60,{speed:112,steering:0,

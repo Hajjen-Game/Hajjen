@@ -21,10 +21,10 @@ import {TUNNEL_BLACKOUT,installBlackoutRoadShading,
  from "./tunnel-blackout-v0160.mjs";
 import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
-import {buildPremiumMantaBlade,MANTA_POLISH} from "./manta-blade-v0103.mjs";
-import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
+import {buildPremiumMantaBlade,MANTA_POLISH} from "./ships/manta-blade-v0103.mjs";
+import {buildStingrayEvo,STINGRAY_EVO} from "./ships/stingray-evo-v01342.mjs";
 import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
- isFleetUnlocked,recordFleetClear,fleetStatus} from "./fleet-v010.mjs";
+ isFleetUnlocked,recordFleetClear,fleetStatus} from "./ships/fleet-v010.mjs";
 import { makeFullscreenController } from "./fullscreen-v02.mjs";
 import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v01346.mjs";
 import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v0111.mjs";
@@ -59,7 +59,7 @@ import {RACING_FEEL,gripApexCue,createRailFeedbackState,
 import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./side-thrusters-v061.mjs";
 import {VELOCITY_PRESENCE,createVelocityPresenceState,
  stepVelocityPresence,velocityPresenceAudit} from "./velocity-presence-v0104.mjs";
-import {installReactiveWingFlaps,REACTIVE_FLAPS} from "./reactive-wing-flaps-v0108.mjs";
+import {installReactiveWingFlaps,REACTIVE_FLAPS} from "./ships/reactive-wing-flaps-v0108.mjs";
 import {createLivingWakeFX,LIVING_WAKE} from "./living-wake-v01071.mjs";
 import {createRailScrapeSparks,RAIL_SPARKS,railContactPoint}
  from "./rail-scrape-sparks-v0165.mjs";
@@ -83,7 +83,7 @@ import {createShipArtController} from "./ship-hero-loader-v01342.mjs";
 import {HANGAR_HERO_0134,createStingrayHeroShowroom}
  from "./hangar-hero-v0134.mjs";
 import {STINGRAY_PRESENTATION_01347,visualSettingsForShip}
- from "./stingray-presentation-v01347.mjs";
+ from "./ships/stingray-presentation-v01347.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);

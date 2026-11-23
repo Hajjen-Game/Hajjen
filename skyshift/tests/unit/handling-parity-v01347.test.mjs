@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";
 import {STINGRAY_PRESENTATION_01347 as s,visualSettingsForShip}
- from "../../stingray-presentation-v01347.mjs";
+ from "../../ships/stingray-presentation-v01347.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const game=read("./game-v01347.mjs");
 test("both ships get the exact SAME unrestricted visual rotation",()=>{

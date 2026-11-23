@@ -1,5 +1,5 @@
 import {ACTIVE_TRACK_0160,isAurora,isVault} from "./track-selection-v0160.mjs";
-import {VAULT_SECTIONS_0270,VAULT_SECTORS_0270} from "./full-tunnel-layout-v0270.mjs";
+import {VAULT_SECTIONS_0270,VAULT_SECTORS_0270} from "./tracks/vault/full-tunnel-layout-v0270.mjs";
 // SKYSHIFT 0.16.0 — selected, genuinely closed three-lap Skyline or Aurora geometry.
 // Each TURN integrates a quintic-curvature entry/exit; straights are exactly
 // straight. Paired S-bends and four right-angle corners close the loop

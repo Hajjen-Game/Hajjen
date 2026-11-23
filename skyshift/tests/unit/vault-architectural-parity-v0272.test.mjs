@@ -4,9 +4,9 @@ import {readFileSync} from "node:fs";
 import {buildStructuralTunnelData,sampleStructuralFacet}
  from "../../structural-tunnel-v0213.mjs";
 import {vaultCrossSection0270}
- from "../../full-tunnel-circuit-v0270.mjs";
+ from "../../tracks/vault/full-tunnel-circuit-v0270.mjs";
 import {buildVaultArchitectureData0272,VAULT_ARCHITECTURE_0272}
- from "../../vault-architectural-parity-v0272.mjs";
+ from "../../tracks/vault/vault-architectural-parity-v0272.mjs";
 import {TUNNEL_PROFILE_0211}
  from "../../tunnel-megastructure-v0211.mjs";
 
@@ -17,7 +17,7 @@ test("actual original Skyline 0.24.1 panel sculptor is imported, not imitated",(
  assert.equal(VAULT_ARCHITECTURE_0272.originalPanelDepthMeters,.58);
  assert.equal(VAULT_ARCHITECTURE_0272.originalStructuralPortalPitchMeters,42.5);
  assert.equal(VAULT_ARCHITECTURE_0272.trackLengthMeters,3400);
- const source=read("./vault-architectural-parity-v0272.mjs");
+ const source=read("./tracks/vault/vault-architectural-parity-v0272.mjs");
  // Vault now calls the SAME public Skyline sculptor entry point that
  // Skyline uses, rather than duplicating the original 0.24.1 builder.
  assert.match(source,/import \{buildSharedTunnelSection0280\}/);
@@ -71,7 +71,7 @@ test("high/mobile real 3D panels follow the actual C2 banked vault far beyond 36
 });
 test("the 0.27.1 shared metal atlas and culling preserve previous batch and flight APIs",()=>{
  const g=read("./game-v0210.mjs");
- const a=read("./vault-architectural-parity-v0272.mjs");
+ const a=read("./tracks/vault/vault-architectural-parity-v0272.mjs");
  assert.match(g,/installVaultArchitectureParity0272/);
  assert.match(g,/vaultArchitectureEnabled=vaultMaterialParityEnabled/);
  assert.match(g,/vaultArchitectureComparison:"\?vaultArchitecture=classic"/);
@@ -85,7 +85,7 @@ test("the 0.27.1 shared metal atlas and culling preserve previous batch and flig
   "originalGripUnchanged","originalCameraUnchanged","originalSkylineUnchanged",
   "originalAuroraUnchanged","noDynamicLights","noNewRenderPasses"])
   assert.equal(VAULT_ARCHITECTURE_0272[name],true,name);
- const old=read("./vault-material-parity-v0271.mjs");
+ const old=read("./tracks/vault/vault-material-parity-v0271.mjs");
  assert.match(old,/getMetalAtlas\(\)\{return atlas;\}/);
  assert.match(read("./index.html"),/(?:Architectural Geometry & Panel Parity · 0\.27\.2|Full Tunnel Lighting & Visual Parity · 0\.27\.3|Premium Tunnel Cohesion & Finish · 0\.27\.4|Shared Tunnel Architecture 1.0 · 0\.28\.0|True Shared Tunnel Renderer · 0\.28\.1|Shared Road Reflections & Ship Light Response · 0\.28\.2|Vault Main Boost Glow & Risk Lane Cleanup · 0\.28\.3|PMREM Reflection Pipeline 1.0 · 0\.28\.4|Shared Tunnel Spatial Wavefront Parity · 0\.28\.5|Reflection Stability & Luminous Strip Definition · 0\.28\.6|Arch Foot Light Assembly & Corner Signature · 0\.28\.7|Precision Neon Emission & Local Metal Response · 0\.28\.8|Cinematic Metal & Neon Reflection Rebalance · 0\.28\.9|Shared Straight-Only Edge Lighting Parity · 0\.28\.9\.1|Ceiling Fixture Placement & Glow Cohesion · 0\.28\.9\.2|Premium Arch Optics & Chromatic Road Reflections · 0\.28\.9\.3|Unified Light Sources & Road Layer Cleanup · 0\.28\.9\.4|Road Light Spill Continuity & Wave-Coupled Cove Lighting · 0\.28\.9\.5|Curve Surface Artifact & Transition Seam Cleanup · 0\.28\.9\.6|Startup Stability & Shared Resource Deduplication · 0\.28\.9\.7)/);
 });

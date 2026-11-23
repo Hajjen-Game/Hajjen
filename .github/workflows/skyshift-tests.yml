@@ -54,17 +54,17 @@ jobs:
           node --check skyshift/rendering/unified-fixture-transport-v02643.mjs
           node --check skyshift/true-rail-wall-response-v0265.mjs
           node --check skyshift/browser-rail-wall-v0265.mjs
-          node --check skyshift/full-tunnel-layout-v0270.mjs
-          node --check skyshift/full-tunnel-circuit-v0270.mjs
+          node --check skyshift/tracks/vault/full-tunnel-layout-v0270.mjs
+          node --check skyshift/tracks/vault/full-tunnel-circuit-v0270.mjs
           node --check skyshift/full-tunnel-light-seal-v0270.mjs
           node --check skyshift/tests/browser/browser-full-tunnel-v0270.mjs
-          node --check skyshift/vault-material-parity-v0271.mjs
+          node --check skyshift/tracks/vault/vault-material-parity-v0271.mjs
           node --check skyshift/browser-vault-material-v0271.mjs
-          node --check skyshift/vault-architectural-parity-v0272.mjs
+          node --check skyshift/tracks/vault/vault-architectural-parity-v0272.mjs
           node --check skyshift/browser-vault-architecture-v0272.mjs
-          node --check skyshift/vault-full-lighting-v0273.mjs
+          node --check skyshift/tracks/vault/vault-full-lighting-v0273.mjs
           node --check skyshift/browser-vault-lighting-v0273.mjs
-          node --check skyshift/vault-premium-finish-v0274.mjs
+          node --check skyshift/tracks/vault/vault-premium-finish-v0274.mjs
           node --check skyshift/browser-vault-premium-finish-v0274.mjs
           node --check skyshift/shared-tunnel-architecture-v0280.mjs
           node --check skyshift/shared-tunnel-runtime-v0280.mjs

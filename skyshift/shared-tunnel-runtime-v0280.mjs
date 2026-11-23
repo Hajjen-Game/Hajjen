@@ -10,13 +10,13 @@ import {installTrueSharedTunnelRenderer0281}
 import {makeTunnelPlan0280,tunnelQuality0280,SHARED_TUNNEL_STYLE_0280}
  from "./shared-tunnel-architecture-v0280.mjs";
 import {installFullTunnelCircuit0270}
- from "./full-tunnel-circuit-v0270.mjs";
+ from "./tracks/vault/full-tunnel-circuit-v0270.mjs";
 import {installVaultMaterialParity0271}
- from "./vault-material-parity-v0271.mjs";
+ from "./tracks/vault/vault-material-parity-v0271.mjs";
 import {installVaultArchitectureParity0272}
- from "./vault-architectural-parity-v0272.mjs";
+ from "./tracks/vault/vault-architectural-parity-v0272.mjs";
 import {installVaultFullLighting0273}
- from "./vault-full-lighting-v0273.mjs";
+ from "./tracks/vault/vault-full-lighting-v0273.mjs";
 
 export function createSharedTunnelRuntime0280(THREE,world,{
  track,positionAt,trackLength,lowMemory=false,sections=null,

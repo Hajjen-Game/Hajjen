@@ -4,7 +4,7 @@ import {readFileSync} from "node:fs";
 import {VAULT_PREMIUM_FINISH_0274,patchVaultPremiumPhysical0274,
  patchVaultPremiumSource0274,patchVaultPremiumRail0274,
  vaultPremiumFinishAudit0274}
- from "../../vault-premium-finish-v0274.mjs";
+ from "../../tracks/vault/vault-premium-finish-v0274.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const PBR=[
  "#include <common>",
@@ -75,7 +75,7 @@ test("rail finish only reshapes roughness of existing near-source GGX",()=>{
  assert.throws(()=>patchVaultPremiumRail0274("#include <common>"));
 });
 test("the actual 0.27.3 controller remains functional with opt-in 0.27.4 shader finish",()=>{
- const f=source("./vault-full-lighting-v0273.mjs"),g=source("./game-v0210.mjs");
+ const f=source("./tracks/vault/vault-full-lighting-v0273.mjs"),g=source("./game-v0210.mjs");
  assert.match(f,/finishEnabled=false/);
  assert.match(f,/patchVaultPremiumPhysical0274\(mapped/);
  assert.match(f,/patchVaultPremiumSource0274/);

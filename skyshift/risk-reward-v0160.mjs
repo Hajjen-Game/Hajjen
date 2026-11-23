@@ -2,7 +2,7 @@
 import {ACTIVE_TRACK_0160,isAurora} from "./track-selection-v0160.mjs";
 import {VAULT_BOOST_0283,VAULT_MAIN_BOOST_PADS_0283,
  VAULT_RACE_BOOST_PADS_0283,vaultBoostEnabled0283,vaultMainBoostAt0283}
- from "./vault-boost-clarity-v0283.mjs";
+ from "./tracks/vault/vault-boost-clarity-v0283.mjs";
 export const VAULT_BOOST_0283_ACTIVE=vaultBoostEnabled0283();
 import {RISK_REWARD_0151,RHYTHM_GATES_0151,BOOST_CHOICES_0151,
  RACE_BOOST_CHOICES_0151,riskChoiceAt as skylineRiskChoiceAt,

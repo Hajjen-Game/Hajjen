@@ -45,7 +45,9 @@ test('Stage H: no executable import or CI command references stale root flight m
  const files=[...walk(root),...walk(resolve(repository,'.github/workflows'))];
  assert.ok(files.length>250,'Unexpectedly few source files audited');
  for(const file of files){
-  if(file===fileURLToPath(import.meta.url))continue;
+  // Only the Stage H historical-hash inversion helper intentionally spells obsolete paths.
+  // Its reversibility is independently enforced by the original Stage 5–8 source SHA audits.
+  if(file===fileURLToPath(import.meta.url)||file===resolve(root,'tests/architecture/flight-test-path-overlay-stageH.mjs'))continue;
   const source=readFileSync(file,'utf8');
   for(const name of names){
    assert.equal(source.includes('skyshift/'+name),false,'Stale repository-root flight import: '+relative(repository,file)+' -> '+name);

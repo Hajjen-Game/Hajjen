@@ -691,7 +691,7 @@ jobs:
           node --check skyshift/tests/unit/handling-fairness-v0135.test.mjs
           node --check skyshift/handling-fairness-cli-v0135.mjs
           node --check skyshift/browser-fairness-v0135.mjs
-          node --check skyshift/skyline-challenges-v0140.mjs
+          node --check skyshift/tracks/skyline/skyline-challenges-v0140.mjs
           node --check skyshift/tests/unit/skyline-challenges-v0140.test.mjs
           node --check skyshift/tests/browser/browser-challenges-v0140.mjs
           node --check skyshift/game-v0140.mjs
@@ -716,9 +716,9 @@ jobs:
           node --check skyshift/boot-v0151.js
           node --check skyshift/tests/unit/risk-reward-v0151.test.mjs
           node --check skyshift/browser-risk-reward-v0151.mjs
-          node --check skyshift/track-selection-v0160.mjs
-          node --check skyshift/circuit-layout-v0160.mjs
-          node --check skyshift/track-3d-v0160.mjs
+          node --check skyshift/tracks/shared/track-selection-v0160.mjs
+          node --check skyshift/tracks/shared/circuit-layout-v0160.mjs
+          node --check skyshift/tracks/shared/track-3d-v0160.mjs
           node --check skyshift/risk-reward-v0160.mjs
           node --check skyshift/boost-v0160.mjs
           node --check skyshift/trial-v0160.mjs

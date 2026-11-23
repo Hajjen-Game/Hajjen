@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import {TRACKS_0160,ACTIVE_TRACK_0160,TRACK_ID_0160,isAurora}
- from "./track-selection-v0160.mjs";
+ from "./tracks/shared/track-selection-v0160.mjs";
 import {perfConfig as readPerfConfig,newPerfMonitor,resetPerfMonitor,recordPerfFrame,perfSummary,gpuTimer as createGpuTimer} from "./performance-audit-v0114.mjs";
 import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
@@ -98,7 +98,7 @@ import {GHOST_VISUAL_0130,createPersonalGhostVisual}
 import {CHALLENGES_0140,CHALLENGE_RULES_0140,getChallenge,challengeDistance,
  readChallengeProgress,saveChallengeProgress,challengeSummary,challengeUnlocked,
  evaluateChallenge,recordChallenge,captureChallengeMetrics}
- from "./skyline-challenges-v0140.mjs";
+ from "./tracks/skyline/skyline-challenges-v0140.mjs";
 import {createShipArtController} from "./ship-hero-loader-v01342.mjs";
 import {HANGAR_HERO_0134,createStingrayHeroShowroom}
  from "./hangar-hero-v0134.mjs";

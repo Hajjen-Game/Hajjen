@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "stage": "SKYSHIFT Architecture Cleanup 2.0 Stage F",
+  "baseCommit": "770bafb5ceb972a08a029407d330e9b7101726ff",
+  "files": {
+    "track-selection-v0160.mjs": {
+      "targetPath": "skyshift/tracks/shared/track-selection-v0160.mjs",
+      "originalGitBlobSha": "86b1cc66e69912664efed05f459f84e7dbaae7b3",
+      "externalImports": []
+    },
+    "circuit-layout-v0160.mjs": {
+      "targetPath": "skyshift/tracks/shared/circuit-layout-v0160.mjs",
+      "originalGitBlobSha": "f2e18b025edfd8e08cea429abebbf3df170b8b71",
+      "externalImports": [
+        "tracks/vault/full-tunnel-layout-v0270.mjs"
+      ]
+    },
+    "track-3d-v0160.mjs": {
+      "targetPath": "skyshift/tracks/shared/track-3d-v0160.mjs",
+      "originalGitBlobSha": "e3ea7757991105a8c0ecc824e556aa01b5f03f46",
+      "externalImports": [
+        "tracks/vault/full-tunnel-layout-v0270.mjs"
+      ]
+    },
+    "skyline-challenges-v0140.mjs": {
+      "targetPath": "skyshift/tracks/skyline/skyline-challenges-v0140.mjs",
+      "originalGitBlobSha": "25c70a1e979cd11644173ec3d69ff348ef128cf7",
+      "externalImports": []
+    }
+  }
+}

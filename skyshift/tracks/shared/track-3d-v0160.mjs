@@ -4,7 +4,7 @@
 // One short, visible straight-line physical gap provides a forgiving LEAP.
 import {CIRCUIT,lapPosition,COURSE_SEGMENTS} from "./circuit-layout-v0160.mjs";
 import {isAurora,isVault} from "./track-selection-v0160.mjs";
-import {VAULT_ELEVATION_KEYS_0270} from "./tracks/vault/full-tunnel-layout-v0270.mjs";
+import {VAULT_ELEVATION_KEYS_0270} from "../../tracks/vault/full-tunnel-layout-v0270.mjs";
 const isFlowTrack=()=>isAurora()||isVault();
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const ease=t=>{const u=clamp(t,0,1);return u*u*u*(10+u*(-15+6*u));};

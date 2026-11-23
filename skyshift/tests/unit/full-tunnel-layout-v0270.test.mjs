@@ -70,7 +70,7 @@ test("Skyline and Aurora retain original profiles and challenges",()=>{
  assert.ok(Math.abs(b.yaw-2*Math.PI)<1e-8);
 });
 test("0.27.0 menu/QA routes keep original 0.26.5 branch",()=>{
- const tr=read("./track-selection-v0160.mjs"),
+ const tr=read("./tracks/shared/track-selection-v0160.mjs"),
   g=read("./game-v0210.mjs"),h=read("./index.html");
  assert.match(tr,/id:"vault",name:"NEON VAULT CIRCUIT"/);
  assert.match(h,/<option value="vault">03 · NEON VAULT/);

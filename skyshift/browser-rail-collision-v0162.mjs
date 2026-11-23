@@ -29,7 +29,7 @@ try{
    null,{timeout:75000});
   return await page.evaluate(async()=>{
    const [trial,selection,premium,boost,shadow,record,racing]=await Promise.all([
-    import("./trial-v0162.mjs"),import("./track-selection-v0160.mjs"),
+    import("./trial-v0162.mjs"),import("./tracks/shared/track-selection-v0160.mjs"),
     import("./premium-track-v0160.mjs"),import("./boost-v0160.mjs"),
     import("./shadow-tunnel-v0160.mjs"),import("./time-trial-v0160.mjs"),
     import("./racing-experience-v0160.mjs")]);
@@ -99,7 +99,7 @@ try{
  const skyline=await page.evaluate(async()=>{
   const [trial,premium,record,selection,boost]=await Promise.all([
    import("./trial-v0162.mjs"),import("./premium-track-v0160.mjs"),
-   import("./time-trial-v0160.mjs"),import("./track-selection-v0160.mjs"),
+   import("./time-trial-v0160.mjs"),import("./tracks/shared/track-selection-v0160.mjs"),
    import("./boost-v0160.mjs")]);
   const p=trial.positionAt(550);
   return {selected:selection.TRACK_ID_0160,

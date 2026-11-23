@@ -2,12 +2,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {BOOST_CONFIG,BOOST_PADS,initBoostState,stepBoostState} from "../../boost-v0494.mjs";
+import {BOOST_CONFIG,BOOST_PADS,initBoostState,stepBoostState} from "../../flight/boost/boost-v0494.mjs";
 import {TRIAL,newFlightState,stepFlight} from "../../trial-v0494.mjs";
 import {
  BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,
  boostFovTarget,boostFovResponse
-} from "../../boost-spring-v0495.mjs";
+} from "../../flight/boost/boost-spring-v0495.mjs";
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const close=(a,b,epsilon=1e-7)=>
  assert.ok(Math.abs(a-b)<epsilon,`${a} differs from ${b}`);

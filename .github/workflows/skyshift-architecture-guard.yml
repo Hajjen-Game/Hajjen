@@ -57,6 +57,8 @@ jobs:
         run: node --test skyshift/tests/architecture/flight-migration-stageH.test.mjs
       - name: Audit Stage I immutable performance/fidelity Git blobs and migrated import paths
         run: node --test skyshift/tests/architecture/core-migration-stageI.test.mjs
+      - name: Audit Stage J immutable barrier/boost source SHA and all consumer paths
+        run: node --test skyshift/tests/architecture/barrier-boost-migration-stageJ.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

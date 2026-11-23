@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {createAeroBarrierData,RAIL_BODY_CONTAINMENT_02124,
- patchAeroBodyShaders,installAeroBarriers} from "../../aero-barrier-v0165.mjs";
+ patchAeroBodyShaders,installAeroBarriers} from "../../tracks/barriers/aero-barrier-v0165.mjs";
 import {TRIAL} from "../../trial-v0165.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 test("PBR rail body has precise arc-length on BOTH sides and no geometry edits",()=>{
@@ -35,7 +35,7 @@ test("only PBR metal shell changes, LED inlay shader stays original",()=>{
  assert.equal(RAIL_BODY_CONTAINMENT_02124.drawBatchesAdded,0);
  assert.equal(RAIL_BODY_CONTAINMENT_02124.waveChanged,false);
  assert.equal(RAIL_BODY_CONTAINMENT_02124.collidersChanged,false);
- const rails=source("./aero-barrier-v0165.mjs");
+ const rails=source("./tracks/barriers/aero-barrier-v0165.mjs");
  assert.match(rails,/railUniforms\.uRailBase/);
  assert.match(rails,/railColor=mix/);
  assert.match(rails,/setRailBodyContainment/);

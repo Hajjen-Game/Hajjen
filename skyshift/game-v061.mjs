@@ -4,7 +4,7 @@ import {
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,
  newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
 } from "./trial-v061.mjs";
-import { BOOST_PADS,BOOST_CONFIG } from "./boost-v060.mjs";
+import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v060.mjs";
 import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v060.mjs";
 import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
 import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
@@ -19,9 +19,9 @@ import {
 } from "./core/frame-pacing-v044.mjs";
 import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
 import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cinematicFov,engineLightFactor } from "./cinematic-v045.mjs";
-import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./boost-spring-v0495.mjs";
+import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./flight/boost/boost-spring-v0495.mjs";
 import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "./velocity-language-v0496.mjs";
-import { installAeroBarriers,AERO_BARRIER } from "./aero-barrier-v060.mjs";
+import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier-v060.mjs";
 import { installSpaceBackdrop } from "./space-v0496.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
 import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v0498.mjs";

@@ -185,7 +185,7 @@ try{
  // Validate the camera's real browser ESM module without replacing the
  // normal flight simulation or introducing extra GPU draw calls.
  const boostSpring=await page.evaluate(async()=>{
-  const m=await import("./boost-spring-v0495.mjs");
+  const m=await import("./flight/boost/boost-spring-v0495.mjs");
   const s=m.createBoostSpringState();
   m.triggerBoostSpring(s,44,1.4);
   let speedMult=1,peak=0,peakTime=0;
@@ -230,8 +230,8 @@ try{
  console.log("PASS: browser-executed world and thruster velocity:",JSON.stringify(velocity));
  // Validate the physical new profile with the real Three.js browser graph.
  const railProfile=await page.evaluate(async()=>{
-  const m=await import("./aero-barrier-v0497.mjs");
-  const previous=await import("./aero-barrier-v0496.mjs");
+  const m=await import("./tracks/barriers/aero-barrier-v0497.mjs");
+  const previous=await import("./tracks/barriers/aero-barrier-v0496.mjs");
   const straight=m.railHeightAt(30);
   const corner=m.railHeightAt(158);
   const arrows=m.createAeroDetailData();
@@ -253,7 +253,7 @@ try{
  const circuit=await page.evaluate(async()=>{
   const [trial,wave,boost,layout]=await Promise.all([
    import("./trial-v081.mjs"),import("./zone-wave-v060.mjs"),
-   import("./boost-v060.mjs"),import("./circuit-layout-v060.mjs")]);
+   import("./flight/boost/boost-v060.mjs"),import("./circuit-layout-v060.mjs")]);
   const p0=trial.poseAt(0),p1=trial.poseAt(3400),p2=trial.poseAt(6800);
   const flight=trial.newFlightState(),before=flight.currentSpeed;
   trial.setZoneSpeedStage(flight,1);
@@ -313,7 +313,7 @@ try{
  const skylineLeap=await page.evaluate(async()=>{
   const [trial,terrain,deck,rails,cinema]=await Promise.all([
    import("./trial-v081.mjs"),import("./track-3d-v081.mjs"),
-   import("./smooth-track-v081.mjs"),import("./aero-barrier-v081.mjs"),
+   import("./smooth-track-v081.mjs"),import("./tracks/barriers/aero-barrier-v081.mjs"),
    import("./cinematic-v081.mjs")]);
   const mesh=deck.createSmoothDeckData(),barrier=rails.createAeroBarrierData();
   const fullQuads=(mesh.rows-1)*(mesh.cols-1)*2;
@@ -373,7 +373,7 @@ try{
  const wallRide=await page.evaluate(async()=>{
   const [trial,track,rails,camera]=await Promise.all([
    import("./trial-v081.mjs"),import("./track-3d-v081.mjs"),
-   import("./aero-barrier-v081.mjs"),import("./cinematic-v081.mjs")]);
+   import("./tracks/barriers/aero-barrier-v081.mjs"),import("./cinematic-v081.mjs")]);
   const s=2558,n=trial.surfaceNormalAt(s);
   const center=trial.positionAt(s,0,0),left=trial.positionAt(s,-6,0),
     right=trial.positionAt(s,6,0);

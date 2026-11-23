@@ -3,7 +3,7 @@
 // All content is flat with the same authoritative road banking; this adds
 // no collision obstacles, flashing screen overlays or new point lights.
 import {TRIAL,positionAt,widthAt} from "./trial-v048.mjs";
-import {BOOST_PADS} from "./boost-v048.mjs";
+import {BOOST_PADS} from "./flight/boost/boost-v048.mjs";
 const mix=(a,b,t)=>a+(b-a)*t;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 export const ZONE_SURFACE=Object.freeze({

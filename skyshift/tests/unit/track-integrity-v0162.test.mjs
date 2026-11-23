@@ -11,10 +11,10 @@ const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,r
  import("../../trial-v0162.mjs"),
  import("../../tracks/shared/track-3d-v0160.mjs"),
  import("../../risk-reward-v0160.mjs"),
- import("../../boost-v0160.mjs"),
+ import("../../flight/boost/boost-v0160.mjs"),
  import("../../smooth-track-v0160.mjs"),
  import("../../premium-track-v0160.mjs"),
- import("../../aero-barrier-v0162.mjs"),
+ import("../../tracks/barriers/aero-barrier-v0162.mjs"),
  import("../../shadow-tunnel-v0160.mjs"),
  import("../../time-trial-v0160.mjs"),
  import("../../racing-experience-v0160.mjs")]);
@@ -144,7 +144,7 @@ test("menu uses real circuit selector and Skyline-only Challenges not shown on A
  assert.match(game,/trackPicker\.addEventListener\("change"/);
  assert.match(game,/challengeButton\.classList\.toggle\("hidden",!ACTIVE_TRACK_0160\.hasSkylineChallenges\)/);
  assert.match(game,/from "\.\/trial-v0162\.mjs"/);
- assert.match(game,/from "\.\/aero-barrier-v0162\.mjs"/);
+ assert.match(game,/from "\.\/tracks\/barriers\/aero-barrier-v0162\.mjs"/);
  assert.match(game,/from "\.\/shadow-tunnel-v0160\.mjs"/);
  assert.match(game,/ship\.rotation\.z=naturalRoll;/);
 });
@@ -211,7 +211,7 @@ test("No ghost right-apex guidance or Skyline-only leap signs on Aurora",()=>{
  assert.doesNotMatch(realCamera,/from "\.\/trial-v0901\.mjs"/);
 });
 test("Aurora rail tessellation cuts mobile triangles, collision/ship physics intact",async()=>{
- const rail=await import("../../aero-barrier-v0162.mjs");
+ const rail=await import("../../tracks/barriers/aero-barrier-v0162.mjs");
  const optimized=rail.createAeroBarrierData();
  const archived=rail.createAeroBarrierData(.95);
  assert.ok(optimized.indices.length<archived.indices.length*.76,
@@ -221,8 +221,8 @@ test("Aurora rail tessellation cuts mobile triangles, collision/ship physics int
  assert.equal(trial.TRIAL.maxYawRate,1.24);
  assert.equal(trial.GAPS.length,0);
  assert.equal(trial.TRIAL.hoverHeight,1.05);
- const source=src("./aero-barrier-v0162.mjs");
- assert.match(source,/from "\.\/trial-v0162\.mjs"/);
+ const source=src("./tracks/barriers/aero-barrier-v0162.mjs");
+ assert.match(source,/from "\.\.\/\.\.\/trial-v0162\.mjs"/);
  assert.match(source,/step=isAurora\(\)\?1\.55:AERO_BARRIER\.step/);
 });
 test("0.16.2 URLs and menu preserve independent courses and PB/ghosts",()=>{

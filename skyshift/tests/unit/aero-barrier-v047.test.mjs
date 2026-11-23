@@ -5,7 +5,7 @@ import {readFileSync} from "node:fs";
 import {
  AERO_BARRIER,AERO_PROFILE,sampleAeroProfile,
  createAeroBarrierData,createAeroDetailData,installAeroBarriers
-} from "../../aero-barrier-v047.mjs";
+} from "../../tracks/barriers/aero-barrier-v047.mjs";
 import {
  TRIAL,GUARDRAIL,positionAt,curvatureAt,
  guardrailLateralLimit,newFlightState,stepFlight

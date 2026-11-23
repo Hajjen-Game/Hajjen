@@ -8,9 +8,9 @@ import {createAdaptiveQuality,nextAdaptiveRatio}
  from "../../core/frame-pacing-v044.mjs";
 import {PREMIUM_TRACK,SURFACE_FRAGMENT_HELPERS,patchPremiumShaders}
  from "../../premium-track-v0498.mjs";
-import {AERO_BARRIER} from "../../aero-barrier-v0497.mjs";
+import {AERO_BARRIER} from "../../tracks/barriers/aero-barrier-v0497.mjs";
 import {GUARDRAIL} from "../../trial-v0494.mjs";
-import {BOOST_CONFIG} from "../../boost-v0494.mjs";
+import {BOOST_CONFIG} from "../../flight/boost/boost-v0494.mjs";
 const src=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const near=(a,b,tolerance=.00001)=>assert.ok(Math.abs(a-b)<tolerance,
  String(a)+" != "+String(b));

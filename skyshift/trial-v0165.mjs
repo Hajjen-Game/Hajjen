@@ -1,7 +1,7 @@
 import {ACTIVE_TRACK_0160,isAurora,isVault} from "./tracks/shared/track-selection-v0160.mjs";
 const isFlowTrack=()=>isAurora()||isVault();
 // SKYSHIFT 0.16.4 — SAME physics for all circuits; geometry only changes course.
-import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./boost-v0160.mjs";
+import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./flight/boost/boost-v0160.mjs";
 import {GRIP_SPEC,initGripState,stepGripState} from "./flight/precision-grip-v084.mjs";
 import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from "./flight/steering-authority-v01348.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick,

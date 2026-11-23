@@ -6,9 +6,9 @@ import {
  AERO_BARRIER,AERO_PROFILE,cornerRailEmphasisAt,railHeightAt,
  sampleAeroProfile,createAeroBarrierData,createAeroDetailData,
  patchRailShaders
-} from "../../aero-barrier-v0497.mjs";
+} from "../../tracks/barriers/aero-barrier-v0497.mjs";
 import {AERO_BARRIER as PRIOR,createAeroDetailData as priorDetail}
- from "../../aero-barrier-v0496.mjs";
+ from "../../tracks/barriers/aero-barrier-v0496.mjs";
 import {GUARDRAIL,TRIAL,headingAt,widthAt,guardrailLateralLimit}
  from "../../trial-v0494.mjs";
 const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");

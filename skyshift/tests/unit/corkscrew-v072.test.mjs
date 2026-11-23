@@ -13,7 +13,7 @@ import {TRIAL,CIRCUIT,GAPS,GUARDRAIL,bankAt,bankDegreesAt,
 import {GRIP_SPEC} from "../../precision-grip-v061.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v072.mjs";
 import {createAeroBarrierData,sampleAeroProfile,AERO_BARRIER}
- from "../../aero-barrier-v072.mjs";
+ from "../../tracks/barriers/aero-barrier-v072.mjs";
 import {PREMIUM_TRACK,patchPremiumShaders} from "../../premium-track-v072.mjs";
 import {chasePose,cameraBankAt,CINEMATIC_DEFAULTS}
  from "../../cinematic-v072.mjs";

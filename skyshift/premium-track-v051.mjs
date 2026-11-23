@@ -4,7 +4,7 @@
 // no new draw calls, no per-frame geometry, and no flashing textures.
 import {TRIAL,widthAt} from "./trial-v051.mjs";
 import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v051.mjs";
-import {BOOST_PADS} from "./boost-v050.mjs";
+import {BOOST_PADS} from "./flight/boost/boost-v050.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v051.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({

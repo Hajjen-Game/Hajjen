@@ -7,7 +7,7 @@ import {
  SURFACE_FRAGMENT_HELPERS,premiumTrackCoordinates,
  createPremiumDeckGeometry,patchPremiumShaders,createPremiumTrackMaterial
 } from "../../premium-track-v0481.mjs";
-import {BOOST_PADS,BOOST_CONFIG} from "../../boost-v048.mjs";
+import {BOOST_PADS,BOOST_CONFIG} from "../../flight/boost/boost-v048.mjs";
 import {TRIAL,widthAt,positionAt,newFlightState,stepFlight} from "../../trial-v048.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v046.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");

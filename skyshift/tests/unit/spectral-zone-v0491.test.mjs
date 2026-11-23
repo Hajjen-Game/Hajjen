@@ -13,7 +13,7 @@ import {
 import {
  AERO_BARRIER,createAeroDetailData,patchRailShaders,
  RAIL_SPECTRAL_VERTEX,RAIL_SPECTRAL_FRAGMENT,installAeroBarriers
-} from "../../aero-barrier-v0491.mjs";
+} from "../../tracks/barriers/aero-barrier-v0491.mjs";
 import {TRIAL,speedAt,COURSE_SEGMENTS} from "../../trial-v049.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(x,y,e=1e-7)=>assert.ok(Math.abs(x-y)<=e,

@@ -1,5 +1,5 @@
 // SKYSHIFT 0.8.0 — Air Tricks & Landing Boost Skyline Circuit: actual elevation, ramp and flight
-import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./boost-v060.mjs";
+import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./flight/boost/boost-v060.mjs";
 import {GRIP_SPEC,initGripState,stepGripState} from "./precision-grip-v061.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick,
  finalizeAirTrick,stepLandingBoost,settleTrickVisual} from "./air-tricks-v080.mjs";

@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {BOOST_CONFIG,BOOST_PADS,boostPadAt,stepBoostState} from "../../boost-v048.mjs";
+import {BOOST_CONFIG,BOOST_PADS,boostPadAt,stepBoostState} from "../../flight/boost/boost-v048.mjs";
 import {
  TRIAL,COURSE_SEGMENTS,positionAt,headingAt,curvatureAt,
  newFlightState,stepFlight,guardrailLateralLimit,speedAt

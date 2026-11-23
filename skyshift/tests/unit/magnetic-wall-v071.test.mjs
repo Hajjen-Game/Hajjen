@@ -10,7 +10,7 @@ import {MAGNETIC_WALL,TRACK_3D,magneticBankAt,elevationAudit}
  from "../../track-3d-v071.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v071.mjs";
 import {sampleAeroProfile,AERO_BARRIER,createAeroBarrierData}
- from "../../aero-barrier-v071.mjs";
+ from "../../tracks/barriers/aero-barrier-v071.mjs";
 import {PREMIUM_TRACK} from "../../premium-track-v071.mjs";
 import {chasePose,CINEMATIC_DEFAULTS} from "../../cinematic-v071.mjs";
 import * as legacy from "../../trial-v070.mjs";

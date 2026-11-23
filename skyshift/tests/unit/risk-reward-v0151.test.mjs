@@ -6,7 +6,7 @@ import {RISK_REWARD_0151,RHYTHM_GATES_0151,BOOST_CHOICES_0151,
  RACE_BOOST_CHOICES_0151,RHYTHM_FLOW_0151,riskChoiceAt,riskCueAt,
  approachingRiskGate,trackFlowAt} from "../../risk-reward-v0151.mjs";
 import {BOOST_CONFIG,BOOST_PADS,initBoostState,stepBoostState}
- from "../../boost-v0151.mjs";
+ from "../../flight/boost/boost-v0151.mjs";
 import {TRIAL,CIRCUIT,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  curvatureAt,guardrailLateralLimit,gapAt,newFlightState,positionAt,
  headingAt,surfaceHeightAt,stepFlight,speedAt} from "../../trial-v0151.mjs";

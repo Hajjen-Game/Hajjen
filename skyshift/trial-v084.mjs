@@ -1,5 +1,5 @@
 // SKYSHIFT 0.8.4 — Steering Authority & GRIP Balance Skyline Circuit: actual elevation, ramp and flight
-import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./boost-v082.mjs";
+import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./flight/boost/boost-v082.mjs";
 import {GRIP_SPEC,initGripState,stepGripState} from "./flight/precision-grip-v084.mjs";
 import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from "./flight/steering-authority-v084.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick,

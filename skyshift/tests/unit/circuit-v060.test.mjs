@@ -15,9 +15,9 @@ import {
 } from "../../trial-v060.mjs";
 import {
  BOOST_PADS,RACE_BOOST_PADS,BOOST_CONFIG,boostPadAt
-} from "../../boost-v060.mjs";
+} from "../../flight/boost/boost-v060.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v060.mjs";
-import {createAeroBarrierData,AERO_BARRIER} from "../../aero-barrier-v060.mjs";
+import {createAeroBarrierData,AERO_BARRIER} from "../../tracks/barriers/aero-barrier-v060.mjs";
 import {PREMIUM_TRACK,patchPremiumShaders} from "../../premium-track-v060.mjs";
 import {
  ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave

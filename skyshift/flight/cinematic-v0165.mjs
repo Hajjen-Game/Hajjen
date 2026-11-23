@@ -1,8 +1,8 @@
-import {heightAt,bankAt,CORKSCREW} from "./trial-v0165.mjs";
+import {heightAt,bankAt,CORKSCREW} from "../trial-v0165.mjs";
 // SKYSHIFT 0.9.0 — Kinetic Camera Rig integrated with archived 3D-safe chase frame.
 // All outputs are PRESENTATION ONLY: never modify trial position, yaw or collision.
 // Functions avoid allocations in the frame path and use exponential smoothing.
-import { followAngle } from "./flight-motion-v044.mjs";
+import { followAngle } from "../flight-motion-v044.mjs";
 const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 const finite=(v,otherwise=0)=>Number.isFinite(v)?v:otherwise;
 const RAD=Math.PI/180;

@@ -71,11 +71,11 @@ import {TIME_TRIAL_0130,createTimeTrialState,startTimeTrial,
  ghostAudit} from "./time-trial-v0130.mjs";
 import {GHOST_VISUAL_0130,createPersonalGhostVisual}
  from "./ghost-visual-v0130.mjs";
-import {createShipArtController} from "./ship-hero-loader-v01342.mjs";
+import {createShipArtController} from "./ships/ship-hero-loader-v01342.mjs";
 import {HANGAR_HERO_0134,createStingrayHeroShowroom}
- from "./hangar-hero-v0134.mjs";
+ from "./ships/hangar-hero-v0134.mjs";
 import {STINGRAY_PRESENTATION_01345,visualSettingsForShip,
- stableStingrayVisualRoll} from "./stingray-presentation-v01345.mjs";
+ stableStingrayVisualRoll} from "./ships/stingray-presentation-v01345.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);

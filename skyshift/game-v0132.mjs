@@ -71,7 +71,7 @@ import {TIME_TRIAL_0130,createTimeTrialState,startTimeTrial,
  ghostAudit} from "./time-trial-v0130.mjs";
 import {GHOST_VISUAL_0130,createPersonalGhostVisual}
  from "./ghost-visual-v0130.mjs";
-import {createShipArtController} from "./ship-hero-loader-v0132.mjs";
+import {createShipArtController} from "./ships/ship-hero-loader-v0132.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);

@@ -6,6 +6,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, resolve, relative, isAbsolute, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { restoreStageCRenderingReferences } from './rendering-test-path-overlay-stageC.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const testDir = resolve(root, 'tests/unit');
@@ -29,7 +30,7 @@ test('relocated historical unit tests retain assertions, source imports and orig
       assert.ok(localPath && localPath !== '..' && !localPath.startsWith('..' + sep) && !isAbsolute(localPath), 'Import escapes game root: ' + name);
       assert.ok(existsSync(imported), 'Moved test cannot import source: ' + name + ' -> ' + match[1]);
     }
-    const original = migrated.replace(/(\bfrom\s*["'])\.\.\/\.\.\//g, '$1./');
+    const original = restoreStageCRenderingReferences(migrated).replace(/(\bfrom\s*["'])\.\.\/\.\.\//g, '$1./');
     const bytes = Buffer.from(original, 'utf8');
     const gitHash = createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
     assert.equal(gitHash, old.originalGitBlob, 'Test assertions or source changed: ' + name);

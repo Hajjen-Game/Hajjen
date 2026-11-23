@@ -204,7 +204,7 @@ test("No ghost right-apex guidance or Skyline-only leap signs on Aurora",()=>{
  assert.match(game,/from "\.\/cinematic-v0161\.mjs"/);
  assert.match(game,/from "\.\/unified-flight-v0161\.mjs"/);
  assert.match(game,/from "\.\/rail-scrape-sparks-v0161\.mjs"/);
- const rig=src("./unified-flight-v0161.mjs");
+ const rig=src("./flight/unified-flight-v0161.mjs");
  assert.match(rig,/from "\.\/cinematic-v0161\.mjs"/);
  const realCamera=src("./cinematic-v0161.mjs");
  assert.match(realCamera,/from "\.\/trial-v0160\.mjs"/);

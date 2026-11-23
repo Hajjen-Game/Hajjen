@@ -3,20 +3,20 @@ import assert from "node:assert/strict";
 import {createFlightMotionState as legacyMotion,stepFlightMotion as legacyStep}
  from "../../flight-motion-v044.mjs";
 import {createFlightMotionState as optimizedMotion,stepFlightMotion as optimizedStep}
- from "../../flight-motion-v0112.mjs";
+ from "../../flight/flight-motion-v0112.mjs";
 import {capturePose as legacyCapture,interpolatePose as legacyInterpolate,
  shouldSnapPose as legacySnap} from "../../frame-pacing-v080.mjs";
 import {capturePose,interpolatePose,shouldSnapPose}
  from "../../frame-pacing-v0112.mjs";
 import {createSignatureFlightState,stepSignatureFlight}
- from "../../signature-flight-v091.mjs";
+ from "../../flight/signature-flight-v091.mjs";
 import {createKineticCameraState,stepKineticCamera}
- from "../../kinetic-camera-v090.mjs";
+ from "../../flight/kinetic-camera-v090.mjs";
 import {CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic}
  from "../../cinematic-v0901.mjs";
 import {MOTION_DEFAULTS} from "../../flight-motion-v044.mjs";
 import {createUnifiedFlightRig,advanceUnifiedFlightRig,
- resetUnifiedFlightRig,unifiedFlightAudit} from "../../unified-flight-v0112.mjs";
+ resetUnifiedFlightRig,unifiedFlightAudit} from "../../flight/unified-flight-v0112.mjs";
 const near=(a,b,which,tolerance=1e-11)=>{
  for(const key of Object.keys(a)){
   if(typeof a[key]==="number")assert.ok(Math.abs(a[key]-b[key])<tolerance,

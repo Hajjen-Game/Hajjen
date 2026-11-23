@@ -152,7 +152,7 @@ test("menu uses real circuit selector and Skyline-only Challenges not shown on A
 
 test("Aurora camera obeys Aurora's physical bank, never archived Skyline 360 roll",async()=>{
  const [camera,oldCamera]=await Promise.all([
-  import("../../cinematic-v0165.mjs"),
+  import("../../flight/cinematic-v0165.mjs"),
   import("../../cinematic-v0901.mjs")]);
  // Regression: the old chase camera imported trial-v0901 and incorrectly
  // treated Aurora's final 3005-3338m turn as a full corkscrew.
@@ -204,9 +204,9 @@ test("No ghost right-apex guidance or Skyline-only leap signs on Aurora",()=>{
  assert.match(game,/from "\.\/cinematic-v0165\.mjs"/);
  assert.match(game,/from "\.\/unified-flight-v0165\.mjs"/);
  assert.match(game,/from "\.\/rail-scrape-sparks-v0165\.mjs"/);
- const rig=src("./unified-flight-v0165.mjs");
+ const rig=src("./flight/unified-flight-v0165.mjs");
  assert.match(rig,/from "\.\/cinematic-v0165\.mjs"/);
- const realCamera=src("./cinematic-v0165.mjs");
+ const realCamera=src("./flight/cinematic-v0165.mjs");
  assert.match(realCamera,/from "\.\/trial-v0165\.mjs"/);
  assert.doesNotMatch(realCamera,/from "\.\/trial-v0901\.mjs"/);
 });

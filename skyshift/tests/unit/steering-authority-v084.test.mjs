@@ -6,8 +6,8 @@ import {readFileSync} from "node:fs";
 import * as previous from "../../trial-v083.mjs";
 import {
  STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt
-} from "../../steering-authority-v084.mjs";
-import {GRIP_SPEC,initGripState,stepGripState} from "../../precision-grip-v084.mjs";
+} from "../../flight/steering-authority-v084.mjs";
+import {GRIP_SPEC,initGripState,stepGripState} from "../../flight/precision-grip-v084.mjs";
 import {createSmoothDeckData} from "../../smooth-track-v084.mjs";
 import {createAeroBarrierData} from "../../aero-barrier-v084.mjs";
 import {

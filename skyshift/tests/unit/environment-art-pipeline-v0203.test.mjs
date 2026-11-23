@@ -111,7 +111,7 @@ test("world, bank, handling, old lighting and A/B baselines are intact",()=>{
  assert.equal(WORLD_ART_0203.lowMemoryUsesSamePalette,true);
  assert.equal(planStationWorld({track:"aurora"}).active,false);
  const game=f("./game-v0203.mjs");
- for(const base of ["trial-v0165","unified-flight-v0165","cinematic-v0165",
+ for(const base of ["trial-v0165","flight/unified-flight-v0165","flight/cinematic-v0165",
   "environment-art-pipeline-v02021","environment-art-pipeline-v0203"])
   assert.ok(game.includes('from "./'+base+'.mjs"'),base+" must remain imported");
  assert.match(game,/materialGrade"\)!=="classic"/);

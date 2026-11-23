@@ -76,8 +76,8 @@ test("Aurora remains independent and classic mode loads legacy geometry",()=>{
  assert.equal(planStationWorld({track:"aurora"}).bays.length,0);
  const game=src("./game-v0200.mjs");
  assert.match(game,/from "\.\/trial-v0165\.mjs"/);
- assert.match(game,/from "\.\/unified-flight-v0165\.mjs"/);
- assert.match(game,/from "\.\/cinematic-v0165\.mjs"/);
+ assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
+ assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);
  assert.match(game,/from "\.\/environment-art-pipeline-v0200\.mjs"/);
  assert.match(game,/if\(rebirthEnabled\)stationWorld=installWorldArt/);
  assert.match(game,/if\(envEnabled&&!rebirthEnabled\)signatureEnvironment=/);

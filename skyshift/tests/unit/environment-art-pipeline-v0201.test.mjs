@@ -107,8 +107,8 @@ test("low-memory retains enclosed cross-section, original driving physics stays 
  assert.equal(planStationWorld({track:"aurora"}).active,false);
  const game=src("./game-v0201.mjs");
  assert.match(game,/from "\.\/trial-v0165\.mjs"/);
- assert.match(game,/from "\.\/unified-flight-v0165\.mjs"/);
- assert.match(game,/from "\.\/cinematic-v0165\.mjs"/);
+ assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
+ assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);
  assert.match(game,/from "\.\/environment-art-pipeline-v0201\.mjs"/);
  assert.match(game,/stationStyle"\)!=="classic"/);
  assert.match(game,/if\(rebirthEnabled\)stationWorld=\(enclosedStationEnabled\?/);

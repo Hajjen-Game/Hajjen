@@ -59,8 +59,8 @@ test("live 0.19.1 renderer includes only opt-in material change",()=>{
  assert.match(game,/if\(materialsEnabled\)readabilityAudit=applyReadableWorldMaterials/);
  assert.match(game,/from "\.\/world-material-readability-v0191\.mjs"/);
  assert.match(game,/from "\.\/trial-v0165\.mjs"/);
- assert.match(game,/from "\.\/unified-flight-v0165\.mjs"/);
- assert.match(game,/from "\.\/cinematic-v0165\.mjs"/);
+ assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
+ assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);
  assert.match(game,/from "\.\/world-rebuild-v0190\.mjs"/);
  assert.match(game,/from "\.\/signature-environment-v0180\.mjs"/);
  assert.match(file("./index.html"),/boot-v0191\.js\?v=0\.19\.1/);

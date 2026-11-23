@@ -150,7 +150,7 @@ test("real curvature-baked station seam still closes perfectly on banked section
 });
 test("gameplay and lower versions are preserved; active boot and fair A/B",()=>{
  const game=read("./game-v0205.mjs");
- for(const m of ["trial-v0165","unified-flight-v0165","cinematic-v0165",
+ for(const m of ["trial-v0165","flight/unified-flight-v0165","flight/cinematic-v0165",
   "environment-art-pipeline-v02041","environment-art-pipeline-v0205"])
   assert.ok(game.includes('from "./'+m+'.mjs"'));
  assert.match(game,/architecturePass"\)!=="classic"/);

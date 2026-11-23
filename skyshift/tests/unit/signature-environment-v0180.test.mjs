@@ -55,8 +55,8 @@ test("Environment is Skyline-only; Aurora stays physically and visually intact",
 test("Production uses original shared 120Hz steering, GRIP and camera",()=>{
  const game=src("./game-v0180.mjs"),html=src("./index.html");
  assert.match(game,/from "\.\/trial-v0165\.mjs"/);
- assert.match(game,/from "\.\/unified-flight-v0165\.mjs"/);
- assert.match(game,/from "\.\/cinematic-v0165\.mjs"/);
+ assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
+ assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);
  assert.match(game,/from "\.\/signature-environment-v0180\.mjs"/);
  assert.match(game,/envEnabled/);
  assert.match(html,/boot-v0205\.js\?v=0\.20\.5/);

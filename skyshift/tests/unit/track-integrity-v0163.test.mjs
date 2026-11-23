@@ -136,7 +136,7 @@ test("PB/ghost separate from Skyline while keeping Skyline saved records",async(
 });
 test("menu uses real circuit selector and Skyline-only Challenges not shown on Aurora",()=>{
  const html=src("./index.html"),game=src("./game-v0163.mjs"),
-  boot=src("./boot-v0163.js");
+  boot=src("./legacy/boot/boot-v0163.js");
  assert.match(html,/id="track-picker"/);
  assert.match(html,/value="aurora"/);
  assert.match(html,/value="skyline"/);
@@ -228,7 +228,7 @@ test("Aurora rail tessellation cuts mobile triangles, collision/ship physics int
 test("0.16.3 URLs and menu preserve independent courses and PB/ghosts",()=>{
  const html=src("./index.html"),game=src("./game-v0163.mjs");
  assert.match(html,/boot-v0163\.js\?v=0\.16\.3/);
- assert.match(src("./boot-v0163.js"),/game-v0163\.mjs\?v=0\.16\.3/);
+ assert.match(src("./legacy/boot/boot-v0163.js"),/game-v0163\.mjs\?v=0\.16\.3/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
  assert.match(game,/from "\.\/time-trial-v0160\.mjs"/);
  assert.equal(tt.TIME_TRIAL_0160.storageKey,"skyshift-time-trial-ghost-aurora-0160");

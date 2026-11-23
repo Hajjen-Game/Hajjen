@@ -84,5 +84,5 @@ test("same course geometry, no broad rebalance or altered ship/camera animations
  assert.match(game,/railHeadingCorrections:flight\.railHeadingCorrections/);
  assert.match(game,/reverseProjectionTicks:flight\.reverseProjectionTicks/);
  assert.match(src("./index.html"),/boot-v0162\.js\?v=0\.16\.2/);
- assert.match(src("./boot-v0162.js"),/game-v0162\.mjs\?v=0\.16\.2/);
+ assert.match(src("./legacy/boot/boot-v0162.js"),/game-v0162\.mjs\?v=0\.16\.2/);
 });

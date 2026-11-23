@@ -136,7 +136,7 @@ test("PB/ghost separate from Skyline while keeping Skyline saved records",async(
 });
 test("menu uses real circuit selector and Skyline-only Challenges not shown on Aurora",()=>{
  const html=src("./index.html"),game=src("./game-v0160.mjs"),
-  boot=src("./boot-v0160.js");
+  boot=src("./legacy/boot/boot-v0160.js");
  assert.match(html,/id="track-picker"/);
  assert.match(html,/value="aurora"/);
  assert.match(html,/value="skyline"/);

@@ -63,7 +63,7 @@ jobs:
           set -euo pipefail
           node --check skyshift/game-v0210.mjs
           node --check skyshift/boot-v0210.js
-          node --check skyshift/dual-tone-lighting-v0260.mjs
+          node --check skyshift/rendering/dual-tone-lighting-v0260.mjs
           node --check skyshift/tests/browser/browser-dual-tone-lighting-v0260.mjs
           node --check skyshift/unified-tunnel-lighting-v1.mjs
           node --check skyshift/browser-unified-tunnel-lighting-v1.mjs
@@ -71,10 +71,10 @@ jobs:
           node --check skyshift/edge-lighting-floor-pools-v02631.mjs
           node --check skyshift/edge-source-floor-bands-v02632.mjs
           node --check skyshift/straight-only-edge-lighting-v02633.mjs
-          node --check skyshift/final-cohesion-v0264.mjs
-          node --check skyshift/unified-metal-light-response-v02641.mjs
-          node --check skyshift/reflection-cohesion-v02642.mjs
-          node --check skyshift/unified-fixture-transport-v02643.mjs
+          node --check skyshift/rendering/final-cohesion-v0264.mjs
+          node --check skyshift/rendering/unified-metal-light-response-v02641.mjs
+          node --check skyshift/rendering/reflection-cohesion-v02642.mjs
+          node --check skyshift/rendering/unified-fixture-transport-v02643.mjs
           node --check skyshift/true-rail-wall-response-v0265.mjs
           node --check skyshift/browser-rail-wall-v0265.mjs
           node --check skyshift/full-tunnel-layout-v0270.mjs
@@ -124,14 +124,14 @@ jobs:
           node --check skyshift/tests/browser/browser-edge-source-floor-bands-v02632.mjs
           node --check skyshift/tests/browser/browser-edge-floor-v02631.mjs
           node --check skyshift/tests/browser/browser-cinematic-road-rebuild-v0263.mjs
-          node --check skyshift/premium-metal-surface-v0262.mjs
+          node --check skyshift/rendering/premium-metal-surface-v0262.mjs
           node --check skyshift/browser-startup-stability-v02897.mjs
           node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
           node --check skyshift/tests/browser/browser-premium-metal-v0262.mjs
-          node --check skyshift/local-reflections-v0261p1.mjs
+          node --check skyshift/rendering/local-reflections-v0261p1.mjs
           node --check skyshift/tests/browser/browser-local-reflections-v0261p1.mjs
-          if [[ -f skyshift/true-metal-materials-v0260p2.mjs ]]; then
-            node --check skyshift/true-metal-materials-v0260p2.mjs
+          if [[ -f skyshift/rendering/true-metal-materials-v0260p2.mjs ]]; then
+            node --check skyshift/rendering/true-metal-materials-v0260p2.mjs
             node --check skyshift/browser-true-metal-materials-v0260p2.mjs
           fi
           node --test \
@@ -829,7 +829,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check skyshift/cinematic-metal-neon-v0289.mjs
+          node --check skyshift/rendering/cinematic-metal-neon-v0289.mjs
           node --check skyshift/tests/browser/browser-cinematic-metal-v0289.mjs
           node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
           node --check skyshift/game-v0210.mjs
@@ -1053,7 +1053,7 @@ jobs:
           node-version: '22'
       - name: Verify unchanged original pixel data and correct shared GPU disposal
         run: |
-          node --check skyshift/premium-metal-surface-v0262.mjs
+          node --check skyshift/rendering/premium-metal-surface-v0262.mjs
           node --check skyshift/browser-startup-stability-v02897.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/startup-resource-budget-v02897.test.mjs

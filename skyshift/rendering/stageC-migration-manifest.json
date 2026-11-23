@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "stage": "Architecture Cleanup 2.0 Stage C",
+  "baseCommit": "2283892ed2949a7de5835b2ed606bb29d29b453d",
+  "description": "14 live rendering modules moved to rendering; only relative ESM imports rebased, original Git blobs immutable.",
+  "files": {
+    "true-metal-materials-v0260p2.mjs": {
+      "originalGitBlobSha": "7ff7b59c33ffee34fbc0b7281ee5e5c8c859c080",
+      "externalImports": [
+        "shared-tunnel-architecture-v0280.mjs",
+        "tunnel-megastructure-v0211.mjs"
+      ]
+    },
+    "local-reflections-v0261p1.mjs": {
+      "originalGitBlobSha": "730e7013761cd1a82fc06c86e3f68d9a6f4b9ab1",
+      "externalImports": [
+        "tunnel-megastructure-v0211.mjs"
+      ]
+    },
+    "premium-metal-surface-v0262.mjs": {
+      "originalGitBlobSha": "d803192be70f2423eaf339b648bc3788d2bf2e00",
+      "externalImports": []
+    },
+    "unified-metal-light-response-v02641.mjs": {
+      "originalGitBlobSha": "fd8100407220a8205ec112cefa71a294a2b4e79b",
+      "externalImports": []
+    },
+    "reflection-cohesion-v02642.mjs": {
+      "originalGitBlobSha": "3fd27b78378814ac3c19f3ef1b9d33c69565619b",
+      "externalImports": []
+    },
+    "unified-fixture-transport-v02643.mjs": {
+      "originalGitBlobSha": "4b92e2a6c5293f43ef0068b90150dcaa6af02eac",
+      "externalImports": []
+    },
+    "dark-metallic-foundation-v0250.mjs": {
+      "originalGitBlobSha": "7581513c6088cc2b75e3d4ad3ee44e5078c95e8e",
+      "externalImports": [
+        "tunnel-megastructure-v0211.mjs"
+      ]
+    },
+    "micro-surface-metal-definition-v0251.mjs": {
+      "originalGitBlobSha": "9a5a51c22919066cba531778310ef8b5122b0fed",
+      "externalImports": []
+    },
+    "dual-tone-lighting-v0260.mjs": {
+      "originalGitBlobSha": "64bb3b8dc92dda3699f5ff3750483c635d1b46f3",
+      "externalImports": [
+        "tunnel-megastructure-v0211.mjs"
+      ]
+    },
+    "architectural-neon-lighting-v0240.mjs": {
+      "originalGitBlobSha": "9db728fc9561fc9a0344b2138cb2c8b538ca9d87",
+      "externalImports": [
+        "unified-tunnel-materials-v0233.mjs"
+      ]
+    },
+    "premium-surface-craftsmanship-v0241.mjs": {
+      "originalGitBlobSha": "59bf218b826d30f8fa2895455552dd083e488d17",
+      "externalImports": [
+        "true-material-depth-v0231.mjs"
+      ]
+    },
+    "final-cohesion-v0264.mjs": {
+      "originalGitBlobSha": "bc78ff6f971894c8a54f5b2bfe77c96b6cfbce65",
+      "externalImports": []
+    },
+    "cinematic-metal-neon-v0289.mjs": {
+      "originalGitBlobSha": "9592bbef9adcb94828e4e48612bf0d6f64c9311f",
+      "externalImports": []
+    },
+    "premium-material-rebirth-v0220.mjs": {
+      "originalGitBlobSha": "c79769696121244ca3036de17deed66a0b6f6677",
+      "externalImports": [
+        "cinematic-energy-v0216.mjs",
+        "tunnel-spectrum-v02121.mjs"
+      ]
+    }
+  }
+}

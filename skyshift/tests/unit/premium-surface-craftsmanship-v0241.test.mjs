@@ -3,15 +3,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {buildStructuralTunnelData} from "../../structural-tunnel-v0213.mjs";
-import {patchPremiumMaterialShader} from "../../premium-material-rebirth-v0220.mjs";
+import {patchPremiumMaterialShader} from "../../rendering/premium-material-rebirth-v0220.mjs";
 import {patchCinematicNeonShader} from "../../cinematic-neon-lighting-v0220p2.mjs";
 import {patchPhysicalMaterialShader} from "../../physical-material-rebuild-v0230.mjs";
 import {patchTrueMaterialDepthShader} from "../../true-material-depth-v0231.mjs";
 import {patchLightArchitectureShader} from "../../cinematic-light-architecture-v0232.mjs";
 import {patchUnifiedTunnelShader} from "../../unified-tunnel-materials-v0233.mjs";
-import {patchArchitecturalNeonShader} from "../../architectural-neon-lighting-v0240.mjs";
+import {patchArchitecturalNeonShader} from "../../rendering/architectural-neon-lighting-v0240.mjs";
 import {PREMIUM_SURFACE_0241,patchPremiumSurfaceShader,installPremiumSurfaceShader}
- from "../../premium-surface-craftsmanship-v0241.mjs";
+ from "../../rendering/premium-surface-craftsmanship-v0241.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const vertex="#include <common>\nattribute float trackS;\nattribute float glowWeight;\n#include <begin_vertex>";
 const fragment="#include <common>\n#include <color_fragment>\ndiffuseColor.rgb += tunnelSpectrumTint()*vTunnelGlow;";
@@ -100,7 +100,7 @@ test("pass is constrained to tunnel; existing physics, wave and solar seal remai
   "changesRoad","changesShip","changesRails","changesZoneWave","changesSolarSeal"])
   assert.equal(d[name],false);
  assert.equal(d.preservesNativeNeon,true);
- const module=read("./premium-surface-craftsmanship-v0241.mjs");
+ const module=read("./rendering/premium-surface-craftsmanship-v0241.mjs");
  assert.match(module,/if\(!lowMemory\)\{/);
  assert.match(module,/buildTrueDepthGeometry\(THREE,options\.positionAt/);
  assert.match(module,/!newGeometry\.getAttribute\("physicalRight023"\)/);

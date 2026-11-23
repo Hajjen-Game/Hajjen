@@ -6,7 +6,7 @@ import {PHYSICAL_MATERIAL_0230,buildPhysicalMaterialFrames,
  patchPhysicalMaterialShader,installPhysicalMaterialShader}
  from "../../physical-material-rebuild-v0230.mjs";
 import {patchPremiumMaterialShader}
- from "../../premium-material-rebirth-v0220.mjs";
+ from "../../rendering/premium-material-rebirth-v0220.mjs";
 import {patchCinematicNeonShader}
  from "../../cinematic-neon-lighting-v0220p2.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");

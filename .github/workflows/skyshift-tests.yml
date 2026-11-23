@@ -31,7 +31,7 @@ jobs:
           node-version: '22'
       - name: Verify real MeshPhysicalMaterial, shader and solar/flight safeguards
         run: |
-          node --check skyshift/true-metal-materials-v0260p2.mjs
+          node --check skyshift/rendering/true-metal-materials-v0260p2.mjs
           node --check skyshift/browser-true-metal-materials-v0260p2.mjs
           node --check skyshift/game-v0210.mjs
           node --check skyshift/boot-v0210.js
@@ -39,7 +39,7 @@ jobs:
           node --check skyshift/unified-tunnel-lighting-v1.mjs
           node --check skyshift/browser-unified-tunnel-lighting-v1.mjs
           node --test skyshift/tests/unit/unified-tunnel-lighting-v1.test.mjs
-          node --check skyshift/local-reflections-v0261p1.mjs
+          node --check skyshift/rendering/local-reflections-v0261p1.mjs
           node --check skyshift/tests/browser/browser-local-reflections-v0261p1.mjs
           node --test skyshift/tests/unit/local-reflections-v0261p1.test.mjs
           node --check skyshift/cinematic-road-rebuild-v0263.mjs
@@ -48,10 +48,10 @@ jobs:
           node --check skyshift/edge-lighting-floor-pools-v02631.mjs
           node --check skyshift/edge-source-floor-bands-v02632.mjs
           node --check skyshift/straight-only-edge-lighting-v02633.mjs
-          node --check skyshift/final-cohesion-v0264.mjs
-          node --check skyshift/unified-metal-light-response-v02641.mjs
-          node --check skyshift/reflection-cohesion-v02642.mjs
-          node --check skyshift/unified-fixture-transport-v02643.mjs
+          node --check skyshift/rendering/final-cohesion-v0264.mjs
+          node --check skyshift/rendering/unified-metal-light-response-v02641.mjs
+          node --check skyshift/rendering/reflection-cohesion-v02642.mjs
+          node --check skyshift/rendering/unified-fixture-transport-v02643.mjs
           node --check skyshift/true-rail-wall-response-v0265.mjs
           node --check skyshift/browser-rail-wall-v0265.mjs
           node --check skyshift/full-tunnel-layout-v0270.mjs
@@ -1153,7 +1153,7 @@ jobs:
           node-version: '22'
       - name: Verify native wave, dual-tone shader, mobile and physics parity
         run: |
-          node --check skyshift/dual-tone-lighting-v0260.mjs
+          node --check skyshift/rendering/dual-tone-lighting-v0260.mjs
           node --check skyshift/tests/unit/dual-tone-lighting-v0260.test.mjs
           node --check skyshift/tests/browser/browser-dual-tone-lighting-v0260.mjs
           node --check skyshift/game-v0210.mjs
@@ -1192,7 +1192,7 @@ jobs:
           node-version: '22'
       - name: Validate complete 0.25.0 material chain and 0.25.1 finish
         run: |
-          node --check skyshift/micro-surface-metal-definition-v0251.mjs
+          node --check skyshift/rendering/micro-surface-metal-definition-v0251.mjs
           node --check skyshift/tests/unit/micro-surface-metal-definition-v0251.test.mjs
           node --check skyshift/tests/browser/browser-micro-surface-v0251.mjs
           node --check skyshift/game-v0210.mjs
@@ -1231,7 +1231,7 @@ jobs:
           node-version: '22'
       - name: Validate complete 0.24 shader chain plus 0.25 material and no regression
         run: |
-          node --check skyshift/dark-metallic-foundation-v0250.mjs
+          node --check skyshift/rendering/dark-metallic-foundation-v0250.mjs
           node --check skyshift/tests/unit/dark-metallic-foundation-v0250.test.mjs
           node --check skyshift/tests/browser/browser-dark-metallic-v0250.mjs
           node --check skyshift/game-v0210.mjs
@@ -1309,7 +1309,7 @@ jobs:
           node-version: '22'
       - name: Check precision faceting, mobile budget, shader and unchanged physics
         run: |
-          node --check skyshift/premium-surface-craftsmanship-v0241.mjs
+          node --check skyshift/rendering/premium-surface-craftsmanship-v0241.mjs
           node --check skyshift/tests/unit/premium-surface-craftsmanship-v0241.test.mjs
           node --check skyshift/tests/browser/browser-premium-surface-v0241.mjs
           node --check skyshift/structural-tunnel-v0213.mjs
@@ -1350,7 +1350,7 @@ jobs:
           node-version: '22'
       - name: Validate 0.23.3->0.24.0 shader chain and old neon/road/ship
         run: |
-          node --check skyshift/architectural-neon-lighting-v0240.mjs
+          node --check skyshift/rendering/architectural-neon-lighting-v0240.mjs
           node --check skyshift/tests/unit/architectural-neon-lighting-v0240.test.mjs
           node --check skyshift/tests/browser/browser-architectural-neon-v0240.mjs
           node --check skyshift/game-v0210.mjs
@@ -1653,7 +1653,7 @@ jobs:
           node-version: '22'
       - name: Validate high/mobile metallic shaders and existing flight, neon, road light fixes
         run: |
-          node --check skyshift/premium-material-rebirth-v0220.mjs
+          node --check skyshift/rendering/premium-material-rebirth-v0220.mjs
           node --check skyshift/tests/browser/browser-premium-material-rebirth-v0220.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/premium-material-rebirth-v0220.test.mjs skyshift/tests/unit/cinematic-energy-v0216.test.mjs skyshift/tests/unit/integrated-neon-flow-v0214.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/premium-road-surface-v0215.test.mjs

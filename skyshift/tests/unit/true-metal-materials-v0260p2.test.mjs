@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {TRUE_METAL_0260_P2,patchTrueMetalPBRShader,
- installTrueMetalPBRShader,buildTrueMetalSources} from "../../true-metal-materials-v0260p2.mjs";
+ installTrueMetalPBRShader,buildTrueMetalSources} from "../../rendering/true-metal-materials-v0260p2.mjs";
 import {TUNNEL_PORTALS_0211} from "../../tunnel-megastructure-v0211.mjs";
 import {sharedPhysicalPreset0280} from "../../shared-tunnel-architecture-v0280.mjs";
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
@@ -13,7 +13,7 @@ test("genuine MeshPhysicalMaterial GGX receives two REAL localized lights, no gl
  assert.equal(meta.pass,2);assert.equal(meta.version,"0.26.0");
  assert.equal(meta.realMetal,true);assert.equal(meta.retainsBaseShader,true);
  assert.equal(meta.changesSolarSeal,false);
- const old=read("./true-metal-materials-v0260p2.mjs");
+ const old=read("./rendering/true-metal-materials-v0260p2.mjs");
  assert.match(old,/new THREE.MeshPhysicalMaterial\(/);
  // Source of truth moved from two copied literal fields to one shared
  // Skyline/Vault PBR preset; assert the actual values rather than text.
@@ -86,7 +86,7 @@ test("boot, A/B controls and flight safeguards keep the complete original P1",()
  assert.match(game,/const classic=capture\(0\),physical=capture\(1\)/);
  assert.match(game,/compareBeforeTrueMetal:"\?trueMetal=classic"/);
  assert.match(game,/roadSolarSeal:roadSolarSpill/);
- assert.match(read("./dual-tone-lighting-v0260.mjs"),/installMicroSurfaceMetalDefinition/);
+ assert.match(read("./rendering/dual-tone-lighting-v0260.mjs"),/installMicroSurfaceMetalDefinition/);
  const profile=TRUE_METAL_0260_P2;
  for(const key of ["addsDynamicLights","addsTextures","addsPostprocessPasses",
   "addsColliders"])assert.equal(profile[key],0);

@@ -4,7 +4,7 @@ import {readFileSync} from "node:fs";
 import {
  FINAL_COHESION_0264,SOURCE_NAMES_0264,FINAL_COHESION_SHADER_0264,
  finalCohesionBloom0264,finalFixtureGain0264,installFinalCohesion0264
-} from "../../final-cohesion-v0264.mjs";
+} from "../../rendering/final-cohesion-v0264.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Color{
  constructor(r=1,g=1,b=1){this.r=r;this.g=g;this.b=b;}
@@ -88,7 +88,7 @@ test("selective finish is linear HDR, chromatic and retains whites/graphite/ship
  assert.match(s,/nearChroma/);
  assert.match(s,/gl_FragColor=vec4\(max\(rich,vec3\(0.0\)\),source.a\)/);
  assert.doesNotMatch(s,/gl_FragColor\s*=\s*vec4\(\s*vec3\(1\)/);
- assert.doesNotMatch(read("./final-cohesion-v0264.mjs"),
+ assert.doesNotMatch(read("./rendering/final-cohesion-v0264.mjs"),
   /new THREE\.(PointLight|DirectionalLight|RectAreaLight|PMREMGenerator|WebGLRenderTarget)/);
 });
 test("high graphics inserts one finish before OutputPass, after original grade",()=>{

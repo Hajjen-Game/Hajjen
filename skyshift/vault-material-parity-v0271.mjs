@@ -7,7 +7,7 @@
 // falsely claiming native physical BRDF. Local GGX transfer is 0.27.2.
 // Source fixtures, HDR wave, cockpit, rail, road, ship, physics untouched.
 import {TUNNEL_PROFILE_0211} from "./tunnel-megastructure-v0211.mjs";
-import {makePremiumMetalTexture0262} from "./premium-metal-surface-v0262.mjs";
+import {makePremiumMetalTexture0262} from "./rendering/premium-metal-surface-v0262.mjs";
 
 const ROOT="SKYSHIFT · Neon Vault Full Tunnel 0.27.0";
 const SHELL="DARK METAL ENCLOSURE";

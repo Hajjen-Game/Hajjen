@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {buildStructuralTunnelData} from "../../structural-tunnel-v0213.mjs";
-import {patchPremiumMaterialShader} from "../../premium-material-rebirth-v0220.mjs";
+import {patchPremiumMaterialShader} from "../../rendering/premium-material-rebirth-v0220.mjs";
 import {patchCinematicNeonShader} from "../../cinematic-neon-lighting-v0220p2.mjs";
 import {patchPhysicalMaterialShader} from "../../physical-material-rebuild-v0230.mjs";
 import {patchTrueMaterialDepthShader} from "../../true-material-depth-v0231.mjs";

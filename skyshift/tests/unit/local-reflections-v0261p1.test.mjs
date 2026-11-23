@@ -5,7 +5,7 @@ import {
  LOCAL_REFLECTIONS_0261,nearestFixtureMask0261,
  buildLocalStripFrame0261,patchLocalStripReflectionShader0261,
  installLocalStripShader0261
-} from "../../local-reflections-v0261p1.mjs";
+} from "../../rendering/local-reflections-v0261p1.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const vertex="#include <common>\n#include <project_vertex>\n#include <worldpos_vertex>\nvarying vec3 vPbrCold0260;varying vec3 vPbrWarm0260;";
 const fragment="#include <common>\nvarying vec3 vPbrCold0260;\nvarying vec3 vPbrWarm0260;\n"+
@@ -21,7 +21,7 @@ test("finite GGX lights reuse physical P2 but do not reintroduce solar, environm
  for(const key of ["changesRoad","changesRails","changesShip",
  "changesHandling","changesGRIP","changesCamera","changesNativeNeon",
  "changesSolarSeal"])assert.equal(p[key],false,key);
- const s=read("./local-reflections-v0261p1.mjs");
+ const s=read("./rendering/local-reflections-v0261p1.mjs");
  assert.match(s,/installTrueMetalMaterialsPass2/);
  assert.match(s,/new THREE\.Float32BufferAttribute/);
  assert.doesNotMatch(s,/new THREE\.PointLight|new THREE\.RectAreaLight|new THREE\.DirectionalLight/);

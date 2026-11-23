@@ -4,7 +4,7 @@
 // The original 368m source is authored once and parameterized by the
 // positionAt adapter. Road, rails, ship, GRIP and flight data are untouched.
 import {installPremiumMetalSurfaceLibrary}
- from "./premium-metal-surface-v0262.mjs";
+ from "./rendering/premium-metal-surface-v0262.mjs";
 import {vaultSpatialWaveEnabled0285,installVaultSpatialWaveModule0285}
  from "./vault-spatial-wave-parity-v0285.mjs";
 import {reflectionStabilityEnabled0286,installReflectionStability0286}
@@ -14,13 +14,13 @@ import {archFootRelease0287,installArchFootAssembly0287}
 import {precisionNeonEnabled0288,installPrecisionNeon0288}
  from "./precision-neon-response-v0288.mjs";
 import {cinematicMetalEnabled0289,installCinematicTunnel0289}
- from "./cinematic-metal-neon-v0289.mjs";
+ from "./rendering/cinematic-metal-neon-v0289.mjs";
 import {installUnifiedMetalLighting02641}
- from "./unified-metal-light-response-v02641.mjs";
+ from "./rendering/unified-metal-light-response-v02641.mjs";
 import {wrapFinishShader02642}
- from "./reflection-cohesion-v02642.mjs";
+ from "./rendering/reflection-cohesion-v02642.mjs";
 import {wrapFixtureMaterial02643}
- from "./unified-fixture-transport-v02643.mjs";
+ from "./rendering/unified-fixture-transport-v02643.mjs";
 import {wrapShader0265}
  from "./true-rail-wall-response-v0265.mjs";
 import {createLowerEdgeSources02632,createConnectedFootBands02632}

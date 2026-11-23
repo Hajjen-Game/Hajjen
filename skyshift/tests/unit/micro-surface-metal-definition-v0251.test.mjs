@@ -3,17 +3,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {patchPremiumMaterialShader} from "../../premium-material-rebirth-v0220.mjs";
+import {patchPremiumMaterialShader} from "../../rendering/premium-material-rebirth-v0220.mjs";
 import {patchCinematicNeonShader} from "../../cinematic-neon-lighting-v0220p2.mjs";
 import {patchPhysicalMaterialShader} from "../../physical-material-rebuild-v0230.mjs";
 import {patchTrueMaterialDepthShader} from "../../true-material-depth-v0231.mjs";
 import {patchLightArchitectureShader} from "../../cinematic-light-architecture-v0232.mjs";
 import {patchUnifiedTunnelShader} from "../../unified-tunnel-materials-v0233.mjs";
-import {patchArchitecturalNeonShader} from "../../architectural-neon-lighting-v0240.mjs";
-import {patchPremiumSurfaceShader} from "../../premium-surface-craftsmanship-v0241.mjs";
-import {patchDarkMetallicShader} from "../../dark-metallic-foundation-v0250.mjs";
+import {patchArchitecturalNeonShader} from "../../rendering/architectural-neon-lighting-v0240.mjs";
+import {patchPremiumSurfaceShader} from "../../rendering/premium-surface-craftsmanship-v0241.mjs";
+import {patchDarkMetallicShader} from "../../rendering/dark-metallic-foundation-v0250.mjs";
 import {MICRO_SURFACE_METAL_0251,patchMicroSurfaceMetalShader,
- installMicroSurfaceShader} from "../../micro-surface-metal-definition-v0251.mjs";
+ installMicroSurfaceShader} from "../../rendering/micro-surface-metal-definition-v0251.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const vertex="#include <common>\nattribute float trackS;\nattribute float glowWeight;\n#include <begin_vertex>";
 const fragment="#include <common>\n#include <color_fragment>\ndiffuseColor.rgb += tunnelSpectrumTint()*vTunnelGlow;";
@@ -89,7 +89,7 @@ test("no new render passes, geometry, lights, textures, road/ship/physics mutati
  assert.equal(spec.keepsOriginalNeon,true);
  assert.equal(spec.keeps0250DarkGraphite,true);
  assert.equal(spec.comparison,"?microMetal=classic");
- const mod=read("./micro-surface-metal-definition-v0251.mjs");
+ const mod=read("./rendering/micro-surface-metal-definition-v0251.mjs");
  assert.match(mod,/installDarkMetallicFoundation\(THREE,world,options\)/);
  assert.match(mod,/mesh\?\.material\?\.isMeshBasicMaterial/);
  assert.match(mod,/m51Local\*m51Facet\*m51Near\*m51Face/);

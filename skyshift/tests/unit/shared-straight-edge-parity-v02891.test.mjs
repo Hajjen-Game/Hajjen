@@ -164,7 +164,7 @@ test("legacy Skyline release functions and Vault 0.28.9 lighting remain enabled"
    import("../../reflection-stability-strips-v0286.mjs"),
    import("../../arch-foot-light-assembly-v0287.mjs"),
    import("../../precision-neon-response-v0288.mjs"),
-   import("../../cinematic-metal-neon-v0289.mjs")
+   import("../../rendering/cinematic-metal-neon-v0289.mjs")
   ]);
  for(const f of [vaultSpatialWaveEnabled0285,reflectionStabilityEnabled0286,
   archFootRelease0287,precisionNeonEnabled0288,cinematicMetalEnabled0289]){

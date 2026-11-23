@@ -234,11 +234,11 @@ jobs:
           node --check skyshift/game-v042.mjs
           node --check skyshift/trial-v043.mjs
           node --check skyshift/smooth-track-v043.mjs
-          node --check skyshift/frame-pacing-v043.mjs
+          node --check skyshift/core/frame-pacing-v043.mjs
           node --check skyshift/neon-v043.mjs
           node --check skyshift/game-v043.mjs
           node --check skyshift/flight-motion-v044.mjs
-          node --check skyshift/frame-pacing-v044.mjs
+          node --check skyshift/core/frame-pacing-v044.mjs
           node --check skyshift/game-v044.mjs
           node --check skyshift/cinematic-v045.mjs
           node --check skyshift/premium-v045.mjs
@@ -392,7 +392,7 @@ jobs:
           node --check skyshift/browser-smoke-v072.mjs
           node --check skyshift/air-tricks-v080.mjs
           node --check skyshift/trial-v080.mjs
-          node --check skyshift/frame-pacing-v080.mjs
+          node --check skyshift/core/frame-pacing-v080.mjs
           node --check skyshift/game-v080.mjs
           node --check skyshift/boot-v080.js
           node --check skyshift/browser-smoke-v080.mjs
@@ -537,37 +537,37 @@ jobs:
           node --check skyshift/game-v01091.mjs
           node --check skyshift/boot-v01091.js
           node --check skyshift/browser-smoke-v01091.mjs
-          node --check skyshift/performance-audit-v0110.mjs
+          node --check skyshift/core/performance-audit-v0110.mjs
           node --check skyshift/tests/unit/performance-audit-v0110.test.mjs
           node --check skyshift/game-v0110.mjs
           node --check skyshift/boot-v0110.js
           node --check skyshift/browser-smoke-v0110.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v0111.test.mjs
-          node --check skyshift/render-optimizer-v0111.mjs
+          node --check skyshift/core/render-optimizer-v0111.mjs
           node --check skyshift/tests/unit/render-optimizer-v0111.test.mjs
-          node --check skyshift/performance-audit-v0111.mjs
+          node --check skyshift/core/performance-audit-v0111.mjs
           node --check skyshift/neon-v0111.mjs
           node --check skyshift/game-v0111.mjs
           node --check skyshift/boot-v0111.js
           node --check skyshift/browser-smoke-v0111.mjs
           node --check skyshift/flight/flight-motion-v0112.mjs
-          node --check skyshift/frame-pacing-v0112.mjs
+          node --check skyshift/core/frame-pacing-v0112.mjs
           node --check skyshift/flight/unified-flight-v0112.mjs
           node --check skyshift/tests/unit/unified-flight-v0112.test.mjs
           node --check skyshift/game-v0112.mjs
           node --check skyshift/boot-v0112.js
           node --check skyshift/browser-smoke-v0112.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v0112.test.mjs
-          node --check skyshift/performance-audit-v0113.mjs
-          node --check skyshift/visual-fidelity-v0113.mjs
+          node --check skyshift/core/performance-audit-v0113.mjs
+          node --check skyshift/core/visual-fidelity-v0113.mjs
           node --check skyshift/tests/unit/visual-fidelity-v0113.test.mjs
           node --check skyshift/game-v0113.mjs
           node --check skyshift/boot-v0113.js
           node --check skyshift/browser-smoke-v0113.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v0113.test.mjs
-          node --check skyshift/visual-fidelity-v0114.mjs
+          node --check skyshift/core/visual-fidelity-v0114.mjs
           node --check skyshift/tests/unit/visual-fidelity-v0114.test.mjs
-          node --check skyshift/performance-audit-v0114.mjs
+          node --check skyshift/core/performance-audit-v0114.mjs
           node --check skyshift/game-v0114.mjs
           node --check skyshift/boot-v0114.js
           node --check skyshift/browser-smoke-v0114.mjs
@@ -579,7 +579,7 @@ jobs:
           node --check skyshift/boot-v0120.js
           node --check skyshift/browser-smoke-v0120.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v0120.test.mjs
-          node --check skyshift/fidelity-settings-v0121.mjs
+          node --check skyshift/core/fidelity-settings-v0121.mjs
           node --check skyshift/racing-experience-v0121.mjs
           node --check skyshift/tests/unit/racing-experience-v0121.test.mjs
           node --check skyshift/game-v0121.mjs
@@ -700,7 +700,7 @@ jobs:
           node --check skyshift/boost-v0150.mjs
           node --check skyshift/trial-v0150.mjs
           node --check skyshift/premium-track-v0150.mjs
-          node --check skyshift/visual-fidelity-v0150.mjs
+          node --check skyshift/core/visual-fidelity-v0150.mjs
           node --check skyshift/time-trial-v0150.mjs
           node --check skyshift/game-v0150.mjs
           node --check skyshift/boot-v0150.js
@@ -710,7 +710,7 @@ jobs:
           node --check skyshift/boost-v0151.mjs
           node --check skyshift/trial-v0151.mjs
           node --check skyshift/premium-track-v0151.mjs
-          node --check skyshift/visual-fidelity-v0151.mjs
+          node --check skyshift/core/visual-fidelity-v0151.mjs
           node --check skyshift/time-trial-v0151.mjs
           node --check skyshift/game-v0151.mjs
           node --check skyshift/boot-v0151.js
@@ -724,7 +724,7 @@ jobs:
           node --check skyshift/trial-v0160.mjs
           node --check skyshift/smooth-track-v0160.mjs
           node --check skyshift/premium-track-v0160.mjs
-          node --check skyshift/visual-fidelity-v0160.mjs
+          node --check skyshift/core/visual-fidelity-v0160.mjs
           node --check skyshift/aero-barrier-v0160.mjs
           node --check skyshift/shadow-tunnel-v0160.mjs
           node --check skyshift/tunnel-blackout-v0160.mjs

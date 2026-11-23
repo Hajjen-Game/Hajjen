@@ -53,6 +53,8 @@ jobs:
         run: node --test skyshift/tests/architecture/track-migration-stageF.test.mjs
       - name: Audit Stage G original ship/fleet source SHAs and relocated CI paths
         run: node --test skyshift/tests/architecture/ship-migration-stageG.test.mjs
+      - name: Audit Stage H immutable flight source SHAs and relocated consumers
+        run: node --test skyshift/tests/architecture/flight-migration-stageH.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

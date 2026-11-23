@@ -5,7 +5,7 @@ import {
  REFLECTION_FINISH_02642,FOOT_BAND_NAME_02642,
  patchMetalFinish02642,patchRoadFinish02642,patchJoinedFootFinish02642,
  wrapFinishShader02642,installPremiumReflectionFinish02642
-} from "../../reflection-cohesion-v02642.mjs";
+} from "../../rendering/reflection-cohesion-v02642.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const roughMetal=" roughnessFactor=mix(roughnessFactor,m262R,uPremiumMetal0262);";
 const roughRoad="roughnessFactor=mix(roughnessFactor,r263Rough,r263Interior);";

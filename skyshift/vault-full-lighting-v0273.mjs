@@ -9,9 +9,9 @@
 import {patchVaultMaterialShader0271}
  from "./vault-material-parity-v0271.mjs";
 import {installTrueMetalPBRShader}
- from "./true-metal-materials-v0260p2.mjs";
+ from "./rendering/true-metal-materials-v0260p2.mjs";
 import {installLocalStripShader0261}
- from "./local-reflections-v0261p1.mjs";
+ from "./rendering/local-reflections-v0261p1.mjs";
 import {patchPhysicalWall0265}
  from "./true-rail-wall-response-v0265.mjs";
 import {vaultCrossSection0270}

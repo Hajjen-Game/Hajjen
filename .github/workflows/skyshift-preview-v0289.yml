@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'skyshift/cinematic-metal-neon-v0289.mjs'
+      - 'skyshift/rendering/cinematic-metal-neon-v0289.mjs'
       - '.github/workflows/skyshift-preview-v0289.yml'
   workflow_dispatch:
 permissions:
@@ -24,7 +24,7 @@ jobs:
       - name: Verify source, original release gates and shader anchors
         run: |
           set -euo pipefail
-          node --check skyshift/cinematic-metal-neon-v0289.mjs
+          node --check skyshift/rendering/cinematic-metal-neon-v0289.mjs
           node --check skyshift/tests/browser/browser-cinematic-metal-v0289.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/cinematic-metal-neon-v0289.test.mjs

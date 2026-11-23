@@ -5,7 +5,7 @@ import {
  UNIFIED_METAL_LIGHT_02641,COVE_NAME_02641,
  patchLocalResponse02641,patchTitaniumSubstrate02641,
  installUnifiedMetalLighting02641
-} from "../../unified-metal-light-response-v02641.mjs";
+} from "../../rendering/unified-metal-light-response-v02641.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const direct="RE_Direct(pbrFixture0260,geometryPosition";
 const cool="RE_Direct(l261Cool,geometryPosition";

@@ -106,7 +106,7 @@ test("physical coat is shared, with deliberately preserved mobile opacity per tr
  assert.equal(sharedPhysicalPreset0280("rib",true,"vault").opacity,.41);
  assert.equal(sharedPhysicalPreset0280("rib",true,"skyline").opacity,.49);
  assert.throws(()=>sharedPhysicalPreset0280("road"));
- assert.match(read("./true-metal-materials-v0260p2.mjs"),/sharedPhysicalPreset0280\(role,mobile,"skyline"\)/);
+ assert.match(read("./rendering/true-metal-materials-v0260p2.mjs"),/sharedPhysicalPreset0280\(role,mobile,"skyline"\)/);
  assert.match(read("./vault-full-lighting-v0273.mjs"),/sharedPhysicalPreset0280\(role,mobile,"vault"\)/);
 });
 test("0.27 historical comparisons stay versioned, 0.28+ unlocks previous layers",()=>{

@@ -3,7 +3,7 @@
 // portal arches, on EXISTING sealed tunnel metals. No new geometry/lights,
 // no outside sunlight, no road/ship/rail changes and no separate color clock.
 import {installUnifiedTunnelMaterials}
- from "./unified-tunnel-materials-v0233.mjs";
+ from "../unified-tunnel-materials-v0233.mjs";
 
 export const ARCHITECTURAL_NEON_0240=Object.freeze({
  version:"0.24.0",id:"architectural-neon-lighting-0240",

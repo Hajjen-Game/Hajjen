@@ -6,7 +6,7 @@
 import {installMicroSurfaceMetalDefinition}
  from "./micro-surface-metal-definition-v0251.mjs";
 import {TUNNEL_PORTALS_0211,tunnelProfilePoint0211}
- from "./tunnel-megastructure-v0211.mjs";
+ from "../tunnel-megastructure-v0211.mjs";
 
 export const DUAL_TONE_LIGHTING_0260=Object.freeze({
  version:"0.26.0",pass:1,id:"dual-tone-lighting-0260-pass1",

@@ -4,7 +4,7 @@
 import {installArchitecturalNeonLighting}
  from "./architectural-neon-lighting-v0240.mjs";
 import {buildTrueDepthGeometry}
- from "./true-material-depth-v0231.mjs";
+ from "../true-material-depth-v0231.mjs";
 
 export const PREMIUM_SURFACE_0241=Object.freeze({
  version:"0.24.1",id:"premium-surface-craftsmanship-0241",

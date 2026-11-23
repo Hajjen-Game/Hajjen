@@ -32,7 +32,7 @@ import {PRECISION_NEON_0288,precisionNeonEnabled0288}
  from "./precision-neon-response-v0288.mjs";
 import {CINEMATIC_METAL_0289,cinematicMetalEnabled0289,
  cinematicComponentEnabled0289,installCinematicRoad0289}
- from "./cinematic-metal-neon-v0289.mjs";
+ from "./rendering/cinematic-metal-neon-v0289.mjs";
 import {CURVE_CONTINUITY_02896,surfaceContinuityEnabled02896,
  installCurveSurfaceContinuity02896}
  from "./curve-surface-continuity-v02896.mjs";
@@ -160,19 +160,19 @@ import {EDGE_SOURCE_02632,installRepositionedEdgeAndConnectedFoot02632}
 import {STRAIGHT_EDGE_02633,installStraightOnlyEdgeLighting02633}
  from "./straight-only-edge-lighting-v02633.mjs";
 import {FINAL_COHESION_0264,installFinalCohesion0264}
- from "./final-cohesion-v0264.mjs";
+ from "./rendering/final-cohesion-v0264.mjs";
 import {UNIFIED_METAL_LIGHT_02641,installUnifiedMetalLighting02641}
- from "./unified-metal-light-response-v02641.mjs";
+ from "./rendering/unified-metal-light-response-v02641.mjs";
 import {REFLECTION_FINISH_02642,installPremiumReflectionFinish02642}
- from "./reflection-cohesion-v02642.mjs";
+ from "./rendering/reflection-cohesion-v02642.mjs";
 import {FIXTURE_TRANSPORT_02643,installUnifiedFixtureTransport02643}
- from "./unified-fixture-transport-v02643.mjs";
+ from "./rendering/unified-fixture-transport-v02643.mjs";
 import {TRUE_RAIL_WALL_0265,installTrueRailWallResponse0265}
  from "./true-rail-wall-response-v0265.mjs";
 import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
  from "./cinematic-energy-v0216.mjs";
 import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
- from "./premium-material-rebirth-v0220.mjs";
+ from "./rendering/premium-material-rebirth-v0220.mjs";
 import {CINEMATIC_NEON_0220_P2,installCinematicNeonLighting}
  from "./cinematic-neon-lighting-v0220p2.mjs";
 import {PHYSICAL_MATERIAL_0230,installPhysicalMaterialRebuild}
@@ -184,21 +184,21 @@ import {LIGHT_ARCHITECTURE_0232,installCinematicLightArchitecture}
 import {UNIFIED_TUNNEL_0233,installUnifiedTunnelMaterials}
  from "./unified-tunnel-materials-v0233.mjs";
 import {ARCHITECTURAL_NEON_0240,installArchitecturalNeonLighting}
- from "./architectural-neon-lighting-v0240.mjs";
+ from "./rendering/architectural-neon-lighting-v0240.mjs";
 import {PREMIUM_SURFACE_0241,installPremiumSurfaceCraftsmanship}
- from "./premium-surface-craftsmanship-v0241.mjs";
+ from "./rendering/premium-surface-craftsmanship-v0241.mjs";
 import {DARK_METALLIC_FOUNDATION_0250,installDarkMetallicFoundation}
- from "./dark-metallic-foundation-v0250.mjs";
+ from "./rendering/dark-metallic-foundation-v0250.mjs";
 import {MICRO_SURFACE_METAL_0251,installMicroSurfaceMetalDefinition}
- from "./micro-surface-metal-definition-v0251.mjs";
+ from "./rendering/micro-surface-metal-definition-v0251.mjs";
 import {DUAL_TONE_LIGHTING_0260,installDualToneLightingPass1}
- from "./dual-tone-lighting-v0260.mjs";
+ from "./rendering/dual-tone-lighting-v0260.mjs";
 import {TRUE_METAL_0260_P2,installTrueMetalMaterialsPass2}
- from "./true-metal-materials-v0260p2.mjs";
+ from "./rendering/true-metal-materials-v0260p2.mjs";
 import {LOCAL_REFLECTIONS_0261,installTrueLocalReflectionsPass1}
- from "./local-reflections-v0261p1.mjs";
+ from "./rendering/local-reflections-v0261p1.mjs";
 import {PREMIUM_METAL_0262,installPremiumMetalSurfaceLibrary,premiumMetalTexturePoolStats0262}
- from "./premium-metal-surface-v0262.mjs";
+ from "./rendering/premium-metal-surface-v0262.mjs";
 import {VELOCITY_CINEMA_0220_P3,installVelocityCinematography}
  from "./velocity-cinematography-v0220p3.mjs";
 import {UNIFIED_GRADE_0220_P4,installUnifiedCinematicGrade}

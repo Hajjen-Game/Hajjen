@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {patchPremiumMaterialShader}
- from "../../premium-material-rebirth-v0220.mjs";
+ from "../../rendering/premium-material-rebirth-v0220.mjs";
 import {patchCinematicNeonShader}
  from "../../cinematic-neon-lighting-v0220p2.mjs";
 import {patchPhysicalMaterialShader}

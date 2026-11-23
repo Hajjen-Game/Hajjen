@@ -5,8 +5,8 @@
 // Global sun/ambient/environment lamps are deliberately excluded in shader.
 // No road, ship, physics, GRIP, zone wave or native neon changes.
 import {installDualToneLightingPass1} from "./dual-tone-lighting-v0260.mjs";
-import {sharedPhysicalPreset0280,SHARED_TUNNEL_STYLE_0280} from "./shared-tunnel-architecture-v0280.mjs";
-import {TUNNEL_MEGA_0211,TUNNEL_PORTALS_0211} from "./tunnel-megastructure-v0211.mjs";
+import {sharedPhysicalPreset0280,SHARED_TUNNEL_STYLE_0280} from "../shared-tunnel-architecture-v0280.mjs";
+import {TUNNEL_MEGA_0211,TUNNEL_PORTALS_0211} from "../tunnel-megastructure-v0211.mjs";
 
 export const TRUE_METAL_0260_P2=Object.freeze({
  version:"0.26.0",pass:2,id:"true-metal-materials-0260-pass2",

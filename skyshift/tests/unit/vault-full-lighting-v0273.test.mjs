@@ -3,11 +3,11 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {VAULT_LIGHTING_0273,vaultFixtureAt0273,buildVaultPhysicalSources0273,
  buildVaultRailSources0273,patchVaultRailGGX0273,installVaultFullLighting0273}
- from "../../vault-full-lighting-v0273.mjs";
+ from "../../tracks/vault/vault-full-lighting-v0273.mjs";
 import {vaultCrossSection0270}
- from "../../full-tunnel-circuit-v0270.mjs";
+ from "../../tracks/vault/full-tunnel-circuit-v0270.mjs";
 import {buildVaultArchitectureData0272}
- from "../../vault-architectural-parity-v0272.mjs";
+ from "../../tracks/vault/vault-architectural-parity-v0272.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const positionAt=(s,x,y)=>({x,y,z:s});
 class A{

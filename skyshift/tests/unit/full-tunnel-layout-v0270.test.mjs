@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {VAULT_SECTIONS_0270,VAULT_ELEVATION_KEYS_0270,VAULT_SECTORS_0270,
  FULL_TUNNEL_LAYOUT_0270,validateVaultLayout0270}
- from "../../full-tunnel-layout-v0270.mjs";
+ from "../../tracks/vault/full-tunnel-layout-v0270.mjs";
 import {readFileSync} from "node:fs";
 import {spawnSync} from "node:child_process";
 

@@ -5,7 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {VAULT_BOOST_0283,VAULT_MAIN_BOOST_PADS_0283,
  VAULT_RACE_BOOST_PADS_0283,vaultBoostEnabled0283,
- vaultMainBoostAt0283} from "../../vault-boost-clarity-v0283.mjs";
+ vaultMainBoostAt0283} from "../../tracks/vault/vault-boost-clarity-v0283.mjs";
 
 test("new Vault release only, historical versions and other courses unchanged",()=>{
  for(const v of ["0.27.4","0.28.0","0.28.1","0.28.2"])

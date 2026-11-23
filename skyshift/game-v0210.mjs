@@ -110,14 +110,14 @@ import {CINEMATIC_GRADE_0210B,installCinematicGradeHero}
 import {TUNNEL_MEGA_0211,installTunnelMegastructure}
  from "./tunnel-megastructure-v0211.mjs";
 import {FULL_TUNNEL_0270,installFullTunnelCircuit0270}
- from "./full-tunnel-circuit-v0270.mjs";
+ from "./tracks/vault/full-tunnel-circuit-v0270.mjs";
 import {VAULT_MATERIAL_PARITY_0271,installVaultMaterialParity0271}
- from "./vault-material-parity-v0271.mjs";
+ from "./tracks/vault/vault-material-parity-v0271.mjs";
 import {VAULT_ARCHITECTURE_0272,installVaultArchitectureParity0272}
- from "./vault-architectural-parity-v0272.mjs";
+ from "./tracks/vault/vault-architectural-parity-v0272.mjs";
 import {VAULT_LIGHTING_0273,installVaultFullLighting0273}
- from "./vault-full-lighting-v0273.mjs";
-import {VAULT_PREMIUM_FINISH_0274} from "./vault-premium-finish-v0274.mjs";
+ from "./tracks/vault/vault-full-lighting-v0273.mjs";
+import {VAULT_PREMIUM_FINISH_0274} from "./tracks/vault/vault-premium-finish-v0274.mjs";
 import {TUNNEL_SHARED_ARCHITECTURE_0280,tunnelReleaseAtLeast0280,sharedTunnelVersionActive0280}
  from "./shared-tunnel-architecture-v0280.mjs";
 import {createSharedTunnelRuntime0280}

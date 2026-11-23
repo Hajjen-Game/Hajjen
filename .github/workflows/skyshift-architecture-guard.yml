@@ -47,6 +47,8 @@ jobs:
         run: node --test skyshift/tests/architecture/rendering-migration-stageC.test.mjs
       - name: Audit Stage D tunnel optics original SHA and all resolved module imports
         run: node --test skyshift/tests/architecture/tunnel-migration-stageD.test.mjs
+      - name: Audit Stage E original Vault Git blobs and all new module/CI paths
+        run: node --test skyshift/tests/architecture/vault-migration-stageE.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

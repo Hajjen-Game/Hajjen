@@ -4,7 +4,7 @@ import {readFileSync} from "node:fs";
 import {TUNNEL_PROFILE_0211,sampleSharedTunnelProfile0280,
  tunnelProfilePoint0211} from "../../tunnel-megastructure-v0211.mjs";
 import {buildSharedTunnelSection0280} from "../../structural-tunnel-v0213.mjs";
-import {vaultCrossSection0270} from "../../full-tunnel-circuit-v0270.mjs";
+import {vaultCrossSection0270} from "../../tracks/vault/full-tunnel-circuit-v0270.mjs";
 import {SHARED_TUNNEL_STYLE_0280,SHARED_TUNNEL_ROUTES_0280,
  makeTunnelPlan0280,tunnelReleaseAtLeast0280,
  sharedTunnelVersionActive0280,sharedPhysicalPreset0280}
@@ -26,7 +26,7 @@ test("original Skyline is one immutable source of panels, atlas and native coat"
  assert.ok(Object.isFrozen(p.panels.palette));
  assert.ok(Object.isFrozen(p.physical.panel));
  assert.match(read("./structural-tunnel-v0213.mjs"),/SHARED_TUNNEL_STYLE_0280\.panels\.palette/);
- assert.match(read("./vault-architectural-parity-v0272.mjs"),/buildSharedTunnelSection0280\(positionAt,SHARED_PLAN/);
+ assert.match(read("./tracks/vault/vault-architectural-parity-v0272.mjs"),/buildSharedTunnelSection0280\(positionAt,SHARED_PLAN/);
 });
 test("one source profile has IDENTICAL Skyline 368m and Vault 3400m geometry",()=>{
  for(const s of [0,18,150,184,321,368])for(let j=0;j<TUNNEL_PROFILE_0211.length;j++){
@@ -107,7 +107,7 @@ test("physical coat is shared, with deliberately preserved mobile opacity per tr
  assert.equal(sharedPhysicalPreset0280("rib",true,"skyline").opacity,.49);
  assert.throws(()=>sharedPhysicalPreset0280("road"));
  assert.match(read("./rendering/true-metal-materials-v0260p2.mjs"),/sharedPhysicalPreset0280\(role,mobile,"skyline"\)/);
- assert.match(read("./vault-full-lighting-v0273.mjs"),/sharedPhysicalPreset0280\(role,mobile,"vault"\)/);
+ assert.match(read("./tracks/vault/vault-full-lighting-v0273.mjs"),/sharedPhysicalPreset0280\(role,mobile,"vault"\)/);
 });
 test("0.27 historical comparisons stay versioned, 0.28+ unlocks previous layers",()=>{
  for(const v of ["0.20.4","0.26.5","0.27.0","xyz"])

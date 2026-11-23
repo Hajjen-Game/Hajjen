@@ -115,7 +115,7 @@ test("all actual geometry channels START at both tips, never inboard",()=>{
 test("active game references only v0.10.6 wingtip emitter, not old vapor curtain",()=>{
  const game=source("./game-v0106.mjs");
  const page=source("./index.html");
- const boot=source("./boot-v0106.js");
+ const boot=source("./legacy/boot/boot-v0106.js");
  assert.match(game,/createWingtipContrails\(THREE,ship,\{variant:id/);
  assert.match(game,/wingtipContrails\?\.dispose\(\)/);
  assert.match(game,/wingtipContrails\?\.reset\(\)/);

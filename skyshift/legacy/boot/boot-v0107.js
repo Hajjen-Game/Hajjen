@@ -6,10 +6,9 @@
  const app=document.getElementById("app");
  const start=document.getElementById("start-btn");
  const fullscreen=document.getElementById("menu-fullscreen-btn");
- const timeTrial=document.getElementById("time-trial-btn");
  const status=document.getElementById("boot-state");
  if(!app||!start||!fullscreen||!status)return;
- const boot={phase:"loading",pendingStart:false,pendingMode:"standard",fullscreenRequested:false,
+ const boot={phase:"loading",pendingStart:false,fullscreenRequested:false,
   moduleReady:false,error:""};
  window.__skyshiftBoot=boot;
  function report(message,kind){
@@ -49,18 +48,10 @@
    location.reload();return;
   }
   // Preserve the user gesture for fullscreen before loading completes.
-  boot.pendingStart=true;boot.pendingMode="standard";
+  boot.pendingStart=true;
   boot.fullscreenRequested=true;
   requestFullscreen();
   report("Laddar SKYSHIFT:s 3D-motor. Startar automatiskt när den är klar...");
- },true);
- if(timeTrial)timeTrial.addEventListener("click",function(e){
-  if(boot.phase==="ready")return;
-  e.preventDefault();e.stopImmediatePropagation();
-  if(boot.phase==="failed"){location.reload();return;}
-  boot.pendingStart=true;boot.pendingMode="time-trial";
-  boot.fullscreenRequested=true;requestFullscreen();
-  report("Laddar SKYSHIFT:s Time Trial och Ghost System...");
  },true);
  fullscreen.addEventListener("click",function(e){
   if(boot.phase==="ready")return;
@@ -74,7 +65,7 @@
   if(boot.pendingStart&&typeof startQueued==="function"){
    boot.pendingStart=false;
    // Fullscreen was already requested in the original touch gesture.
-   startQueued(boot.pendingMode);
+   startQueued();
   }
  };
  window.__skyshiftBootFail=fail;
@@ -90,5 +81,5 @@
  },14000);
  // Use dynamic import so *module graph* failures also show actionable
  // feedback; static <script type=module> silently fails before try/catch.
- import("./game-v0130.mjs?v=0.13.0").catch(fail);
+ import("../../game-v0107.mjs?v=0.10.7").catch(fail);
 })();

@@ -17,6 +17,7 @@ import { restoreStageICoreReferences } from './core-test-path-overlay-stageI.mjs
 import { restoreStageJPaths } from './stageJ-test-path-overlay.mjs';
 import { restoreStageMPaths } from './stageM-test-path-overlay.mjs';
 import { restoreR1BBootPaths } from './r1b-boot-test-path-overlay.mjs';
+import { restoreR1CBootPaths } from './r1c-boot-test-path-overlay.mjs';
 
 const skyshift = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const unitDir = resolve(skyshift, 'tests/unit');
@@ -47,7 +48,7 @@ test('60 bulk-migrated tests exactly preserve their original assertions and sour
     const migratedPath = resolve(unitDir, filename);
     assert.equal(existsSync(migratedPath), true, 'Missing migrated test: ' + filename);
     const source = readFileSync(migratedPath, 'utf8');
-    const inverse = restoreOriginalImports(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(restoreR1BBootPaths(source)))))))))));
+    const inverse = restoreOriginalImports(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(restoreR1BBootPaths(restoreR1CBootPaths(source))))))))))));
     const bytes = Buffer.from(inverse, 'utf8');
     const sha = createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
     assert.equal(sha, expectedBlobSha, 'Unexpected test content change: ' + filename);

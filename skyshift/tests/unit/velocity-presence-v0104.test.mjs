@@ -86,7 +86,7 @@ test("engine trails no longer saturate in early zones",()=>{
 test("production game uses all five passes without changing 120Hz flight physics",()=>{
  const game=source("./game-v0104.mjs");
  const idx=source("./index.html");
- const boot=source("./boot-v0104.js");
+ const boot=source("./legacy/boot/boot-v0104.js");
  assert.match(game,/stepVelocityPresence\(velocityPresence/);
  assert.match(game,/velocityVanes\?\.frame\(velocityPresence/);
  assert.match(game,/signatureFlight\.pitch\+velocityPresence\.hullPitch/);

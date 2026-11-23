@@ -127,7 +127,7 @@ test("real 3D meshes raise trailing edges and brighten the correct glow",()=>{
 test("production installs new flap system on both ships, not old floating vanes",()=>{
  const game=src("./game-v0108.mjs");
  const page=src("./index.html");
- const boot=src("./boot-v0108.js");
+ const boot=src("./legacy/boot/boot-v0108.js");
  assert.match(game,/installReactiveWingFlaps\(THREE,ship,\{variant:id\}/);
  assert.match(game,/reactiveWingFlaps\?\.dispose\(\)/);
  assert.match(game,/reactiveWingFlaps\?\.reset\(\)/);

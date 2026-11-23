@@ -1,4 +1,4 @@
-import {ACTIVE_TRACK_0160,isAurora} from "./track-selection-v0160.mjs";
+import {ACTIVE_TRACK_0160,isAurora} from "./tracks/shared/track-selection-v0160.mjs";
 // SKYSHIFT 0.13.0 — deterministic local Personal Best Time Trial + Ghost.
 // Recorded from the authoritative 120 Hz pilot state; compressed at 10 Hz.
 // Pure gameplay-adjacent data, never a source of physical steering/boost.

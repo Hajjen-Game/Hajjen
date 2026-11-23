@@ -1,4 +1,4 @@
-import {isAurora} from "./track-selection-v0160.mjs";
+import {isAurora} from "./tracks/shared/track-selection-v0160.mjs";
 // SKYSHIFT 0.9.2 — Shadow Tunnel: an authored dark/glow driving sequence.
 // All geometry follows the existing PBR deck centerline; no vehicle collision,
 // steering, air trick, camera, checkpoint or speed changes. Fixed geometry only.

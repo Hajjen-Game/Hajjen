@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {CHALLENGES_0140,CHALLENGE_RULES_0140,initialChallengeProgress,
  readChallengeProgress,saveChallengeProgress,challengeUnlocked,medalsEarned,
  evaluateChallenge,recordChallenge,challengeSummary,captureChallengeMetrics,
- normalizeChallengeProgress} from "../../skyline-challenges-v0140.mjs";
+ normalizeChallengeProgress} from "../../tracks/skyline/skyline-challenges-v0140.mjs";
 import {TRIAL,newFlightState,CIRCUIT,SKYLINE_LEAP,GRIP_APEX,
  MAGNETIC_WALL,CORKSCREW,poseAt} from "../../trial-v01348.mjs";
 import {readFileSync} from "node:fs";

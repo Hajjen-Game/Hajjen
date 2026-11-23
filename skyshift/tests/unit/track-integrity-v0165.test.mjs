@@ -6,10 +6,10 @@ import {readFileSync} from "node:fs";
 globalThis.location={search:"?track=aurora"};
 const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,racing]=
  await Promise.all([
- import("../../track-selection-v0160.mjs"),
- import("../../circuit-layout-v0160.mjs"),
+ import("../../tracks/shared/track-selection-v0160.mjs"),
+ import("../../tracks/shared/circuit-layout-v0160.mjs"),
  import("../../trial-v0165.mjs"),
- import("../../track-3d-v0160.mjs"),
+ import("../../tracks/shared/track-3d-v0160.mjs"),
  import("../../risk-reward-v0160.mjs"),
  import("../../boost-v0160.mjs"),
  import("../../smooth-track-v0160.mjs"),

@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { restoreStageCRenderingReferences } from './rendering-test-path-overlay-stageC.mjs';
 import { restoreStageDTunnelReferences } from './tunnel-test-path-overlay-stageD.mjs';
 import { restoreStageEVaultReferences } from './vault-test-path-overlay-stageE.mjs';
+import { restoreStageFTrackReferences } from './track-test-path-overlay-stageF.mjs';
 
 const skyshift = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const testsDir = resolve(skyshift, 'tests/unit');
@@ -68,7 +69,7 @@ test('all 125 migrated tests have exactly the same original Git blob after rever
     const file = resolve(testsDir, name);
     assert.ok(existsSync(file), 'Moved test missing: ' + name);
     const contents = readFileSync(file, 'utf8');
-    const original = Buffer.from(restore(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(contents)))), 'utf8');
+    const original = Buffer.from(restore(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(contents))))), 'utf8');
     const actual = createHash('sha1').update('blob ' + original.length + '\0').update(original).digest('hex');
     assert.equal(actual, manifest.entries[name], 'Test assertions or source changed: ' + name);
     assertStaticImportsResolve(name, contents);

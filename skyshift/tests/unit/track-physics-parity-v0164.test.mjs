@@ -61,7 +61,7 @@ test("Aurora has road-only fairness: 180° radii >200m, 220m finish straight",()
 test("Skyline original course stays unchanged; Aurora PB has a new revision",()=>{
  assert.equal(skyline.track,"skyline-grip-first-v0901");
  assert.equal(aurora.track,"aurora-flow-v0164");
- const reg=source("./track-selection-v0160.mjs");
+ const reg=source("./tracks/shared/track-selection-v0160.mjs");
  assert.match(reg,/trackRevision:"aurora-fair-flow-0164"/);
  assert.match(reg,/trackRevision:"skyline-risk-diversity-0151"/);
  const records=source("./time-trial-v0160.mjs");

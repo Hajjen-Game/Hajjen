@@ -14,7 +14,7 @@ import {PREMIUM_TRACK,GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,
  patchPremiumShaders} from "../../premium-track-v0151.mjs";
 import {TIME_TRIAL_0151} from "../../time-trial-v0151.mjs";
 import {TIME_TRIAL_0150} from "../../time-trial-v0150.mjs";
-import {CHALLENGES_0140} from "../../skyline-challenges-v0140.mjs";
+import {CHALLENGES_0140} from "../../tracks/skyline/skyline-challenges-v0140.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const center=(a,b)=>(a+b)/2;
 const near=(a,b,eps=1e-9)=>assert.ok(Math.abs(a-b)<=eps,

@@ -74,7 +74,7 @@ import {GHOST_VISUAL_0130,createPersonalGhostVisual}
 import {CHALLENGES_0140,CHALLENGE_RULES_0140,getChallenge,challengeDistance,
  readChallengeProgress,saveChallengeProgress,challengeSummary,challengeUnlocked,
  evaluateChallenge,recordChallenge,captureChallengeMetrics}
- from "./skyline-challenges-v0140.mjs";
+ from "./tracks/skyline/skyline-challenges-v0140.mjs";
 import {createShipArtController} from "./ship-hero-loader-v01342.mjs";
 import {HANGAR_HERO_0134,createStingrayHeroShowroom}
  from "./hangar-hero-v0134.mjs";

@@ -225,7 +225,7 @@ test("Aurora rail tessellation cuts mobile triangles, collision/ship physics int
  assert.equal(trial.GAPS.length,0);
  assert.equal(trial.TRIAL.hoverHeight,1.05);
  const source=src("./tracks/barriers/aero-barrier-v0164.mjs");
- assert.match(source,/from "\.\/trial-v0164\.mjs"/);
+ assert.match(source,/from "\.\.\/\.\.\/trial-v0164\.mjs"/);
  assert.match(source,/step=isAurora\(\)\?1\.55:AERO_BARRIER\.step/);
 });
 test("0.16.4 URLs and menu preserve independent courses and PB/ghosts",()=>{

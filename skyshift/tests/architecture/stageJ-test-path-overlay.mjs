@@ -14,5 +14,8 @@ export function restoreStageJPaths(contents) {
   const escapedDir=dir.replaceAll('/','\\/');
   text=text.split(escapedDir+escapedName).join(escapedName);
  }
+ if(contents.includes('src("./tracks/barriers/aero-barrier-v016')) {
+  text=text.split(String.raw`assert.match(source,/from "\.\.\/\.\.\/trial-v`).join(String.raw`assert.match(source,/from "\.\/trial-v`);
+ }
  return text;
 }

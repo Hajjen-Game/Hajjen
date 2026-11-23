@@ -48,6 +48,19 @@ The **Git repository, not the previous chat, is the durable project state**. In 
 
 For each work session: verify latest `main`, look for open PRs, reconcile the last finished stage, show the concrete before/after root count, and stop calling this task done prematurely.
 
+## R1 — first actual migration cohort (19 legacy bootstraps)
+
+**Proposed PR:** move 19 historical `boot-v*.js` files into `legacy/boot/`, preserving their bodies byte-for-byte except that their dynamic game import changes from `./game-v` to `../../game-v` (same target game file). Update `.github/workflows/skyshift-tests.yml` to check the new paths and add mandatory, original Git-blob SHA/integrity/path tests.
+
+- **Root before:** 468 files
+- **Root after this PR merges:** **449** files
+- **Moved:** 19 historical bootstrap files with no exact-string reference in the unit-test code search; all original SHAs recorded in `legacy/boot/R1-migration-manifest.json`.
+- **Explicit exclusions:** live `index.html`, `boot-v0210.js`, `game-v0210.mjs`; every bootstrap directly read by historical unit tests (those will need a separate controlled pass).
+- **Caveat:** old absolute GitHub Pages URLs ending in the removed root-level bootstrap filenames are not redirected by GitHub Pages; original scripts are preserved in `legacy/boot/`. No active entrypoint or visible game URL changes.
+- **CI acceptance:** mandatory root-count audit, SHA/content equivalence, preserved dynamic-import target URLs, all PR checks and post-merge Pages publication.
+
+**This is the first cohort, not the completion of root consolidation.** Next: remaining bootstraps that have historical test consumers; update those tests with reversible SHA checks, then game snapshots and styles.
+
 ## Work history / last decision
 
 - 2026-11-23: **468 root files** found; earlier "Architecture Cleanup 2.0 complete" statement corrected.

@@ -10,6 +10,9 @@ export function restoreStageJPaths(contents) {
   const dir=destination.slice(0,-name.length);
   for(const prefix of ['../../','../','./']) text=text.split(prefix+dir+name).join(prefix+name);
   text=text.split('skyshift/'+dir+name).join('skyshift/'+name);
+  const escapedName=name.replaceAll('.','\\.');
+  const escapedDir=dir.replaceAll('/','\\/');
+  text=text.split(escapedDir+escapedName).join(escapedName);
  }
  return text;
 }

@@ -35,7 +35,7 @@ test("only PBR metal shell changes, LED inlay shader stays original",()=>{
  assert.equal(RAIL_BODY_CONTAINMENT_02124.drawBatchesAdded,0);
  assert.equal(RAIL_BODY_CONTAINMENT_02124.waveChanged,false);
  assert.equal(RAIL_BODY_CONTAINMENT_02124.collidersChanged,false);
- const rails=source("./aero-barrier-v0165.mjs");
+ const rails=source("./tracks/barriers/aero-barrier-v0165.mjs");
  assert.match(rails,/railUniforms\.uRailBase/);
  assert.match(rails,/railColor=mix/);
  assert.match(rails,/setRailBodyContainment/);

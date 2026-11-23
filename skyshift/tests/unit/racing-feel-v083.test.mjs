@@ -9,9 +9,9 @@ import {
  newFlightState,stepFlight,setZoneSpeedStage,validateTrial,speedAt
 } from "../../trial-v083.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick}
- from "../../air-tricks-v083.mjs";
+ from "../../flight/air-tricks-v083.mjs";
 import {gripApexCue,createRailFeedbackState,startRailFeedback,
- stepRailFeedback,RACING_FEEL} from "../../racing-feel-v083.mjs";
+ stepRailFeedback,RACING_FEEL} from "../../flight/racing-feel-v083.mjs";
 import {clarityProfile,dprForAdaptiveLevel} from "../../image-clarity-v083.mjs";
 import {createSmoothDeckData} from "../../smooth-track-v083.mjs";
 import {createAeroBarrierData} from "../../aero-barrier-v083.mjs";

@@ -31,23 +31,23 @@ import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v0111.mjs";
 import { MESH_SPEC } from "./smooth-track-v0160.mjs";
 import {OPT_0111,newHudBudget,createDomWriteCache} from "./render-optimizer-v0111.mjs";
 import {createUnifiedFlightRig,resetUnifiedFlightRig,advanceUnifiedFlightRig,
- unifiedFlightAudit} from "./unified-flight-v0165.mjs";
+ unifiedFlightAudit} from "./flight/unified-flight-v0165.mjs";
 import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
 } from "./frame-pacing-v0112.mjs";
-import { MOTION_DEFAULTS,createFlightMotionState } from "./flight-motion-v0112.mjs";
+import { MOTION_DEFAULTS,createFlightMotionState } from "./flight/flight-motion-v0112.mjs";
 import {SIGNATURE_FLIGHT,createSignatureFlightState,
  triggerSignatureJump,triggerSignatureLanding,triggerSignatureBoost,
- signatureFlightAudit} from "./signature-flight-v091.mjs";
-import { CINEMATIC_DEFAULTS,createCinematicState,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "./cinematic-v0165.mjs";
-import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./boost-spring-v090.mjs";
+ signatureFlightAudit} from "./flight/signature-flight-v091.mjs";
+import { CINEMATIC_DEFAULTS,createCinematicState,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "./flight/cinematic-v0165.mjs";
+import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./flight/boost-spring-v090.mjs";
 import {BOOST_SPRING as CLASSIC_BOOST_FOV} from "./boost-spring-v0495.mjs";
 import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "./velocity-language-v0496.mjs";
 import {KINETIC_CAMERA,kineticFovAt,createKineticCameraState,
  triggerKineticLanding,kineticCameraAudit}
- from "./kinetic-camera-v090.mjs";
+ from "./flight/kinetic-camera-v090.mjs";
 import { installAeroBarriers,AERO_BARRIER } from "./aero-barrier-v0165.mjs";
 import { installSpaceBackdrop } from "./space-v0496.mjs";
 import {SIGNATURE_ENV_0180,installSignatureEnvironment}
@@ -61,10 +61,10 @@ import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLi
 import { createContactShadow } from "./ship-v034.mjs";
 import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v083.mjs";
 import {HUD_SPEC,createReactiveHud} from "./reactive-hud-v04991.mjs";
-import {GRIP_SPEC} from "./precision-grip-v084.mjs";
+import {GRIP_SPEC} from "./flight/precision-grip-v084.mjs";
 import {RACING_FEEL,gripApexCue,createRailFeedbackState,
- startRailFeedback,stepRailFeedback} from "./racing-feel-v083.mjs";
-import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./side-thrusters-v061.mjs";
+ startRailFeedback,stepRailFeedback} from "./flight/racing-feel-v083.mjs";
+import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./flight/side-thrusters-v061.mjs";
 import {VELOCITY_PRESENCE,createVelocityPresenceState,
  stepVelocityPresence,velocityPresenceAudit} from "./velocity-presence-v0104.mjs";
 import {installReactiveWingFlaps,REACTIVE_FLAPS} from "./ships/reactive-wing-flaps-v0108.mjs";

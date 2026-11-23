@@ -148,8 +148,8 @@ test("active game uses new window art with explicit 0.20.1 comparison, not new h
  assert.equal(planStationWorld({track:"aurora"}).active,false);
  const game=file("./game-v0202.mjs");
  assert.match(game,/from "\.\/trial-v0165\.mjs"/);
- assert.match(game,/from "\.\/unified-flight-v0165\.mjs"/);
- assert.match(game,/from "\.\/cinematic-v0165\.mjs"/);
+ assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
+ assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);
  assert.match(game,/from "\.\/environment-art-pipeline-v0202\.mjs"/);
  assert.match(game,/get\("windows"\)!=="classic"/);
  assert.match(game,/installObservationWorldArt:installEnclosedWorldArt/);

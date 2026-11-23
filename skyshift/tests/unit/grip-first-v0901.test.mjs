@@ -5,8 +5,8 @@ import {readFileSync} from "node:fs";
 import * as archived from "../../trial-v084.mjs";
 import {
  STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt
-} from "../../steering-authority-v0901.mjs";
-import {GRIP_SPEC,initGripState,stepGripState} from "../../precision-grip-v084.mjs";
+} from "../../flight/steering-authority-v0901.mjs";
+import {GRIP_SPEC,initGripState,stepGripState} from "../../flight/precision-grip-v084.mjs";
 import {TRIAL,CIRCUIT,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  positionAt,headingAt,surfaceHeightAt,curvatureAt,widthAt,speedAt,
  newFlightState,stepFlight,setZoneSpeedStage,validateTrial} from "../../trial-v0901.mjs";
@@ -150,5 +150,5 @@ test("0.10.3 release points to new physics while preserving 0.9.0 camera modes",
  assert.match(game,/CAMERA_MODE/);
  assert.match(game,/skyshift-premium-ship-v0103-audit\.json/);
  assert.match(before,/version:"0\.9\.0"/);
- assert.match(read("./steering-authority-v084.mjs"),/normalSlowFactor:\.96/);
+ assert.match(read("./flight/steering-authority-v084.mjs"),/normalSlowFactor:\.96/);
 });

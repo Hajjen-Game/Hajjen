@@ -107,7 +107,7 @@ try{
  // browser as the game. 0.8.4 pilot physics stays unchanged.
  const cameraRig=await page.evaluate(async()=>{
   const [rig,flight]=await Promise.all([
-   import("./kinetic-camera-v090.mjs"),import("./trial-v0901.mjs")]);
+   import("./flight/kinetic-camera-v090.mjs"),import("./trial-v0901.mjs")]);
   const classic=rig.kineticFovAt(flight.TRIAL.startSpeed);
   const top=rig.kineticFovAt(flight.TRIAL.endSpeed);
   const st=rig.createKineticCameraState();
@@ -130,7 +130,7 @@ try{
   JSON.stringify(cameraRig));
  // Verify new motion in the actual production browser module.
  const signature=await page.evaluate(async()=>{
-  const m=await import("./signature-flight-v091.mjs");
+  const m=await import("./flight/signature-flight-v091.mjs");
   const st=m.createSignatureFlightState();
   const base={speed:100,steering:.9,yawRate:1.0,
    gripIntensity:0,grounded:true,boostMultiplier:1};
@@ -503,9 +503,9 @@ try{
  const clarity=await mobile.evaluate(async()=>{
   const [c,guide,trial,steering]=await Promise.all([
    import("./image-clarity-v083.mjs"),
-   import("./racing-feel-v083.mjs"),
+   import("./flight/racing-feel-v083.mjs"),
    import("./trial-v0901.mjs"),
-   import("./steering-authority-v0901.mjs")]);
+   import("./flight/steering-authority-v0901.mjs")]);
   const cue=guide.gripApexCue(900,true,false,false,trial.GRIP_APEX);
   const low=c.clarityProfile(4,3),high=c.clarityProfile(8,3);
   const node=document.getElementById("grip-cue");

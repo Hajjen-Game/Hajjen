@@ -4,7 +4,7 @@
 import {stepFlightMotion} from "./flight-motion-v0112.mjs";
 import {stepSignatureFlight} from "./signature-flight-v091.mjs";
 import {stepKineticCamera} from "./kinetic-camera-v090.mjs";
-import {turnPreview,stepCinematic} from "./cinematic-v0162.mjs";
+import {turnPreview,stepCinematic} from "../cinematic-v0162.mjs";
 export const UNIFIED_FLIGHT_0112=Object.freeze({
  version:"unified-flight-motion-0112",physicsChanged:false,
  headingIsPilotOwned:true,originalSpringResponses:true,

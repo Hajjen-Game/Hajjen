@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "stage": "SKYSHIFT Architecture Cleanup 2.0 Stage H",
+  "baseCommit": "737c45484d4b1c420ab0d874f1a76488cf511676",
+  "description": "18 original flight modules, source-identical after undoing only allowlisted external ESM import rebases.",
+  "files": {
+    "unified-flight-v0112.mjs": {
+      "originalGitBlobSha": "07ae57c20ca0ec4b69dad8a776e89f146b834f26",
+      "externalImports": [
+        "cinematic-v0901.mjs"
+      ]
+    },
+    "unified-flight-v0161.mjs": {
+      "originalGitBlobSha": "5c494345335eadf02507f21aa56204c83fa41397",
+      "externalImports": [
+        "cinematic-v0161.mjs"
+      ]
+    },
+    "unified-flight-v0162.mjs": {
+      "originalGitBlobSha": "982fdddb4c1c2e7feede0e199072d331b9eeebed",
+      "externalImports": [
+        "cinematic-v0162.mjs"
+      ]
+    },
+    "unified-flight-v0163.mjs": {
+      "originalGitBlobSha": "3d7c76dbf02a879cbe4d21306124dfca806b784f",
+      "externalImports": [
+        "cinematic-v0163.mjs"
+      ]
+    },
+    "unified-flight-v0164.mjs": {
+      "originalGitBlobSha": "3093467fc66b69a9087913203b3d80e11c3e4bbf",
+      "externalImports": [
+        "cinematic-v0164.mjs"
+      ]
+    },
+    "unified-flight-v0165.mjs": {
+      "originalGitBlobSha": "d8a2282589f3ab9a39cb642567570f202da79169",
+      "externalImports": []
+    },
+    "flight-motion-v0112.mjs": {
+      "originalGitBlobSha": "7ddf85644aca11eb68cfefa8716ee7a848070232",
+      "externalImports": []
+    },
+    "signature-flight-v091.mjs": {
+      "originalGitBlobSha": "41202be925a1033b50c0ec26c0374d92d63ecad7",
+      "externalImports": []
+    },
+    "kinetic-camera-v090.mjs": {
+      "originalGitBlobSha": "f5f0bbb503a3f959599577eea347a3a9aef87e1f",
+      "externalImports": []
+    },
+    "cinematic-v0165.mjs": {
+      "originalGitBlobSha": "a93216e821096c9b37066c267a90b87ebc28aba7",
+      "externalImports": [
+        "trial-v0165.mjs",
+        "flight-motion-v044.mjs"
+      ]
+    },
+    "precision-grip-v084.mjs": {
+      "originalGitBlobSha": "60a3e43a754125164a76214331b5b9e5c53d5c38",
+      "externalImports": []
+    },
+    "steering-authority-v084.mjs": {
+      "originalGitBlobSha": "00e07bc0c8a42354131673f8e6ca9efc28d447b9",
+      "externalImports": []
+    },
+    "steering-authority-v0901.mjs": {
+      "originalGitBlobSha": "ea36edf92a3af756aa6e3cf40f45c1f9ea19cc02",
+      "externalImports": []
+    },
+    "steering-authority-v01348.mjs": {
+      "originalGitBlobSha": "e13371864a89456fe015b910684993e2da973e2f",
+      "externalImports": []
+    },
+    "side-thrusters-v061.mjs": {
+      "originalGitBlobSha": "fcd88e80b829b077cc20e74b07135bde8a7f7d96",
+      "externalImports": []
+    },
+    "racing-feel-v083.mjs": {
+      "originalGitBlobSha": "4582f888b7db8beab383269be392be2432e9a03e",
+      "externalImports": []
+    },
+    "air-tricks-v083.mjs": {
+      "originalGitBlobSha": "af23be4fcdfb13b9b90e27f25262783206fdeb13",
+      "externalImports": []
+    },
+    "boost-spring-v090.mjs": {
+      "originalGitBlobSha": "37177434c2c448c1cea137b767af81df586f82c9",
+      "externalImports": []
+    }
+  }
+}

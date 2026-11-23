@@ -358,7 +358,7 @@ jobs:
           node --check skyshift/boot-v060.js
           node --check skyshift/browser-smoke-v060.mjs
           node --check skyshift/precision-grip-v061.mjs
-          node --check skyshift/side-thrusters-v061.mjs
+          node --check skyshift/flight/side-thrusters-v061.mjs
           node --check skyshift/trial-v061.mjs
           node --check skyshift/game-v061.mjs
           node --check skyshift/boot-v061.js
@@ -418,8 +418,8 @@ jobs:
           node --check skyshift/boot-v082.js
           node --check skyshift/browser-smoke-v082.mjs
           node --check skyshift/trial-v083.mjs
-          node --check skyshift/air-tricks-v083.mjs
-          node --check skyshift/racing-feel-v083.mjs
+          node --check skyshift/flight/air-tricks-v083.mjs
+          node --check skyshift/flight/racing-feel-v083.mjs
           node --check skyshift/image-clarity-v083.mjs
           node --check skyshift/neon-v083.mjs
           node --check skyshift/smooth-track-v083.mjs
@@ -429,8 +429,8 @@ jobs:
           node --check skyshift/game-v083.mjs
           node --check skyshift/boot-v083.js
           node --check skyshift/browser-smoke-v083.mjs
-          node --check skyshift/precision-grip-v084.mjs
-          node --check skyshift/steering-authority-v084.mjs
+          node --check skyshift/flight/precision-grip-v084.mjs
+          node --check skyshift/flight/steering-authority-v084.mjs
           node --check skyshift/trial-v084.mjs
           node --check skyshift/smooth-track-v084.mjs
           node --check skyshift/aero-barrier-v084.mjs
@@ -439,13 +439,13 @@ jobs:
           node --check skyshift/game-v084.mjs
           node --check skyshift/boot-v084.js
           node --check skyshift/browser-smoke-v084.mjs
-          node --check skyshift/kinetic-camera-v090.mjs
+          node --check skyshift/flight/kinetic-camera-v090.mjs
           node --check skyshift/cinematic-v090.mjs
-          node --check skyshift/boost-spring-v090.mjs
+          node --check skyshift/flight/boost-spring-v090.mjs
           node --check skyshift/game-v090.mjs
           node --check skyshift/boot-v090.js
           node --check skyshift/browser-smoke-v090.mjs
-          node --check skyshift/steering-authority-v0901.mjs
+          node --check skyshift/flight/steering-authority-v0901.mjs
           node --check skyshift/trial-v0901.mjs
           node --check skyshift/smooth-track-v0901.mjs
           node --check skyshift/aero-barrier-v0901.mjs
@@ -454,7 +454,7 @@ jobs:
           node --check skyshift/game-v0901.mjs
           node --check skyshift/boot-v0901.js
           node --check skyshift/browser-smoke-v0901.mjs
-          node --check skyshift/signature-flight-v091.mjs
+          node --check skyshift/flight/signature-flight-v091.mjs
           node --check skyshift/tests/unit/signature-flight-v091.test.mjs
           node --check skyshift/game-v091.mjs
           node --check skyshift/boot-v091.js
@@ -550,9 +550,9 @@ jobs:
           node --check skyshift/game-v0111.mjs
           node --check skyshift/boot-v0111.js
           node --check skyshift/browser-smoke-v0111.mjs
-          node --check skyshift/flight-motion-v0112.mjs
+          node --check skyshift/flight/flight-motion-v0112.mjs
           node --check skyshift/frame-pacing-v0112.mjs
-          node --check skyshift/unified-flight-v0112.mjs
+          node --check skyshift/flight/unified-flight-v0112.mjs
           node --check skyshift/tests/unit/unified-flight-v0112.test.mjs
           node --check skyshift/game-v0112.mjs
           node --check skyshift/boot-v0112.js
@@ -681,7 +681,7 @@ jobs:
           node --check skyshift/boot-v01347.js
           node --check skyshift/tests/unit/handling-parity-v01347.test.mjs
           node --check skyshift/tests/browser/browser-handling-parity-v01347.mjs
-          node --check skyshift/steering-authority-v01348.mjs
+          node --check skyshift/flight/steering-authority-v01348.mjs
           node --check skyshift/trial-v01348.mjs
           node --check skyshift/game-v01348.mjs
           node --check skyshift/boot-v01348.js
@@ -735,7 +735,7 @@ jobs:
           node --check skyshift/tests/unit/multi-track-aurora-v0160.test.mjs
           node --check skyshift/browser-multi-track-v0160.mjs
           node --check skyshift/cinematic-v0161.mjs
-          node --check skyshift/unified-flight-v0161.mjs
+          node --check skyshift/flight/unified-flight-v0161.mjs
           node --check skyshift/rail-scrape-sparks-v0161.mjs
           node --check skyshift/aero-barrier-v0161.mjs
           node --check skyshift/game-v0161.mjs
@@ -744,7 +744,7 @@ jobs:
           node --check skyshift/browser-track-integrity-v0161.mjs
           node --check skyshift/trial-v0162.mjs
           node --check skyshift/cinematic-v0162.mjs
-          node --check skyshift/unified-flight-v0162.mjs
+          node --check skyshift/flight/unified-flight-v0162.mjs
           node --check skyshift/aero-barrier-v0162.mjs
           node --check skyshift/rail-scrape-sparks-v0162.mjs
           node --check skyshift/game-v0162.mjs
@@ -755,7 +755,7 @@ jobs:
           node --check skyshift/browser-rail-collision-v0162.mjs
           node --check skyshift/trial-v0163.mjs
           node --check skyshift/cinematic-v0163.mjs
-          node --check skyshift/unified-flight-v0163.mjs
+          node --check skyshift/flight/unified-flight-v0163.mjs
           node --check skyshift/aero-barrier-v0163.mjs
           node --check skyshift/rail-scrape-sparks-v0163.mjs
           node --check skyshift/game-v0163.mjs
@@ -766,7 +766,7 @@ jobs:
           node --check skyshift/browser-rail-contact-quality-v0163.mjs
           node --check skyshift/trial-v0164.mjs
           node --check skyshift/cinematic-v0164.mjs
-          node --check skyshift/unified-flight-v0164.mjs
+          node --check skyshift/flight/unified-flight-v0164.mjs
           node --check skyshift/aero-barrier-v0164.mjs
           node --check skyshift/rail-scrape-sparks-v0164.mjs
           node --check skyshift/game-v0164.mjs
@@ -776,8 +776,8 @@ jobs:
           node --check skyshift/tests/unit/track-physics-parity-v0164.test.mjs
           node --check skyshift/browser-track-parity-v0164.mjs
           node --check skyshift/trial-v0165.mjs
-          node --check skyshift/cinematic-v0165.mjs
-          node --check skyshift/unified-flight-v0165.mjs
+          node --check skyshift/flight/cinematic-v0165.mjs
+          node --check skyshift/flight/unified-flight-v0165.mjs
           node --check skyshift/aero-barrier-v0165.mjs
           node --check skyshift/rail-scrape-sparks-v0165.mjs
           node --check skyshift/game-v0165.mjs

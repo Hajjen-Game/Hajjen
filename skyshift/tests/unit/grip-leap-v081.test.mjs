@@ -109,7 +109,7 @@ test("without GRIP or without enough rotation, no air trick or bonus occurs",()=
  assert.equal(tooLate.f.lastTrickFailReason,"incomplete");
 });
 test("GRIP air roll follows LEFT/RIGHT stick and bank orientation (0.8.1.1)",()=>{
- const game=source("./game-v081.mjs"),thrusters=source("./side-thrusters-v061.mjs");
+ const game=source("./game-v081.mjs"),thrusters=source("./flight/side-thrusters-v061.mjs");
  // Left touch/stick or A/ArrowLeft produces negative steering.
  assert.ok(game.includes('const keyboard=(keyRight?1:0)-(keyLeft?1:0);'));
  assert.ok(game.includes('uiState.inputX=clamp((e.clientX-(rect.left+rect.width*.5))/59,-1,1);'));

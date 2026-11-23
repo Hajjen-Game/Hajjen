@@ -2,7 +2,7 @@
 import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./boost-v082.mjs";
 import {GRIP_SPEC,initGripState,stepGripState} from "./precision-grip-v061.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick,
- finalizeAirTrick,stepLandingBoost,settleTrickVisual} from "./air-tricks-v083.mjs";
+ finalizeAirTrick,stepLandingBoost,settleTrickVisual} from "./flight/air-tricks-v083.mjs";
 import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from "./track-3d-v082.mjs";
 import {CIRCUIT,CIRCUIT_LENGTH,COURSE_SEGMENTS as LOOP_SEGMENTS,
  lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from "./circuit-layout-v082.mjs";

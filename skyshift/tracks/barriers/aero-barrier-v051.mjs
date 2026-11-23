@@ -1,10 +1,10 @@
-// SKYSHIFT 0.7.1 — terrain-following rails with a real missing launch-gap span
+// SKYSHIFT 0.5.0 — full-circuit continuous raised rail & readable chevrons synchronized with premium inlaid rail accents
 // Material layers and inlaid graphics share the 0.4.6 track geometry/collider.
 // A faceted safety wall replaces the round-looking continuous neon tube.
 import {
- TRIAL,GUARDRAIL,COURSE_SEGMENTS,positionAt,widthAt,curvatureAt,gapAt,GAPS
-} from "./trial-v071.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
+ TRIAL,GUARDRAIL,COURSE_SEGMENTS,positionAt,widthAt,curvatureAt
+} from "../../trial-v051.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v051.mjs";
 export const AERO_BARRIER=Object.freeze({
  step:.95,
  height:.99,
@@ -68,15 +68,11 @@ export function sampleAeroProfile(s,side){
 }
 export function createAeroBarrierData(step=AERO_BARRIER.step){
  const slices=Math.ceil(TRIAL.length/step),count=AERO_PROFILE.length;
- // Insert exact gap edges; don't bridge the opening with any rail triangle.
- const samples=Array.from({length:slices+1},(_,i)=>i*TRIAL.length/slices)
-  .concat(GAPS.flatMap(g=>[g.start,g.end]))
-  .sort((a,b)=>a-b).filter((v,i,arr)=>i===0||Math.abs(v-arr[i-1])>1e-7);
  const positions=[],colors=[],indices=[];
  for(const side of [-1,1]){
   const offset=positions.length/3;
-  for(let i=0;i<samples.length;i++){
-   const s=samples[i];
+  for(let i=0;i<=slices;i++){
+   const s=i*TRIAL.length/slices;
    const vertices=sampleAeroProfile(s,side);
    for(let j=0;j<count;j++){
     const p=vertices[j];
@@ -85,15 +81,12 @@ export function createAeroBarrierData(step=AERO_BARRIER.step){
    }
   }
   // Indexed shared vertices: NO visual breaks at piece boundaries.
-  for(let i=0;i<samples.length-1;i++){
-   if(gapAt((samples[i]+samples[i+1])*.5))continue;
-   for(let j=0;j<count-1;j++){
+  for(let i=0;i<slices;i++)for(let j=0;j<count-1;j++){
    const a=offset+i*count+j,b=a+1,c=b+count,d=a+count;
    indices.push(a,b,c,a,c,d);
-   }
   }
  }
- return {positions,colors,indices,columns:count,rows:samples.length,
+ return {positions,colors,indices,columns:count,rows:slices+1,
   triangles:indices.length/3};
 }
 function createBatch(){
@@ -134,7 +127,6 @@ export function createAeroDetailData(){
  // Old v0.4.6 had a large luminous/rounded tube; these strips are 3.5cm.
  for(let i=0;i<slices;i++){
   const a=i*TRIAL.length/slices,b=(i+1)*TRIAL.length/slices;
-  if(gapAt((a+b)*.5))continue;
   for(const side of [-1,1]){
    const ah=railHeightAt(a),bh=railHeightAt(b);
    putQuad(dark,p(a,side,-.275,ah+.012),p(a,side,-.035,ah+.012),
@@ -146,7 +138,6 @@ export function createAeroDetailData(){
  // A structural panel seam each 16m, not fake curved panels or exposed posts.
  // The non-emissive graphite grooves sit inside the armored side face.
  for(let s=16;s<TRIAL.length-8;s+=AERO_BARRIER.metalPanelPitchMeters){
-  if(gapAt(s))continue;
   for(const side of [-1,1]){
    faceStroke(dark,side,s-.045,.09,s+.045,.91,.055,.54);
    // Lower recessed latch suggests a purposeful panel connection.
@@ -158,7 +149,6 @@ export function createAeroDetailData(){
  // No blinking slabs; the metal wall remains dominant. The arrow geometry
  // is coplanar with the inner face and is baked into ONE accent batch.
  for(let s=13;s<TRIAL.length-9;s+=AERO_BARRIER.curveArrowPitchMeters){
-  if(gapAt(s))continue;
   if(Math.abs(curvatureAt(s))<AERO_BARRIER.arrowCurvatureThreshold)continue;
   const outer=-Math.sign(curvatureAt(s));
   for(const side of [-1,1]){
@@ -175,7 +165,6 @@ export function createAeroDetailData(){
  // The deck remains intentionally uncluttered. Shoulder trim is intermittent,
  // never a full-width alternating tile that might be mistaken for a hazard.
  for(let s=15;s<TRIAL.length-15;s+=AERO_BARRIER.shoulderPitchMeters){
-  if(gapAt(s))continue;
   for(const side of [-1,1]){
    const x=side*(widthAt(s)/2-2.62);
    putQuad(light,positionAt(s,x-.045,.049),positionAt(s,x+.045,.049),
@@ -208,7 +197,6 @@ const railDeclaration=`
 varying vec2 vRailCoord;
 varying float vRailChevron;
 uniform float uZoneActiveCount;
-uniform float uCircuitLength;
 uniform float uZoneFeather;
 uniform float uZoneTime;
 uniform float uWaveDetail;
@@ -227,9 +215,9 @@ export const RAIL_SPECTRAL_FRAGMENT=`
   const k=i+1;
   return `
   float rail${k}On=step(${(k-.5).toFixed(1)},uZoneActiveCount);
-  float rail${k}D=mod(waveTrack-uRailFront${k}+uCircuitLength*.5,uCircuitLength)-uCircuitLength*.5;
-  float rail${k}Mix=rail${k}On*(1.0-smoothstep(uZoneFeather*.3,
-    uZoneFeather*2.0,abs(rail${k}D)));
+  float rail${k}D=waveTrack-uRailFront${k};
+  float rail${k}Mix=rail${k}On*(1.0-smoothstep(-uZoneFeather,
+    uZoneFeather,rail${k}D));
   railColor=mix(railColor,uRailNext${k},rail${k}Mix);
   railWhite=max(railWhite,rail${k}On*spectralWhiteCore(rail${k}D));
   railBloom=max(railBloom,rail${k}On*spectralWhiteBloom(rail${k}D));
@@ -292,8 +280,7 @@ export function installAeroBarriers(THREE,world){
   depthWrite:false,side:THREE.DoubleSide,toneMapped:true
  });
  const railUniforms={
-  uZoneActiveCount:{value:0},uCircuitLength:{value:TRIAL.length},
-  uZoneFeather:{value:ZONE_WAVE.featherMeters},
+  uZoneActiveCount:{value:0},uZoneFeather:{value:ZONE_WAVE.featherMeters},
   uZoneTime:{value:0},uWaveDetail:{value:1},
   uSpeedFlow:{value:0},uVelocityPhase:{value:0},
   uRailBase:{value:new THREE.Color(ZONE_PALETTES[0].accent)}
@@ -310,7 +297,7 @@ export function installAeroBarriers(THREE,world){
   shader.fragmentShader=patched.fragmentShader;
   Object.assign(shader.uniforms,railUniforms);
  };
- illumination.customProgramCacheKey=()=>"aero-3d-rail-v070";
+ illumination.customProgramCacheKey=()=>"aero-character-rail-v051";
  const bodyMesh=new THREE.Mesh(makeGeometry(THREE,body,body.indices),metal);
  bodyMesh.name="Angular integrated aero-barrier body";
  bodyMesh.frustumCulled=false;world.add(bodyMesh);
@@ -348,15 +335,11 @@ export function installAeroBarriers(THREE,world){
    // The physical rail shader shows only the latest traveling color wave.
    // Rebase its starting accent to the correct completed zone, leaving
    // the original narrow neutral-white crest and chevron mask untouched.
-   // Rebase the complete lap to the latest completed color.
-   // A narrow crest (not a half-track color seam) wraps at s=0.
-   const base=Math.min(ZONE_PALETTES.length-1,state.playerStage??0);
+   const base=Math.min(ZONE_PALETTES.length-1,state.shaderBaseStage??0);
    railUniforms.uRailBase.value.set(ZONE_PALETTES[base].accent);
    for(let k=1;k<=3;k++){
-    const f=state.fronts[k-1];
-    railUniforms["uRailFront"+k].value=((f%TRIAL.length)+TRIAL.length)%TRIAL.length;
-    const idx=Math.max(base,Math.min(ZONE_PALETTES.length-1,
-     (state.shaderBaseStage??0)+k));
+    railUniforms["uRailFront"+k].value=state.fronts[k-1];
+    const idx=Math.min(ZONE_PALETTES.length-1,base+k);
     railUniforms["uRailNext"+k].value.set(ZONE_PALETTES[idx].accent);
    }
   },

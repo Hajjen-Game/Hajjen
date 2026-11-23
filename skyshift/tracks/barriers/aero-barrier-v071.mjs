@@ -1,10 +1,10 @@
-// SKYSHIFT 0.7.0 — terrain-following rails with a real missing launch-gap span
+// SKYSHIFT 0.7.1 — terrain-following rails with a real missing launch-gap span
 // Material layers and inlaid graphics share the 0.4.6 track geometry/collider.
 // A faceted safety wall replaces the round-looking continuous neon tube.
 import {
  TRIAL,GUARDRAIL,COURSE_SEGMENTS,positionAt,widthAt,curvatureAt,gapAt,GAPS
-} from "./trial-v070.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
+} from "../../trial-v071.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v060.mjs";
 export const AERO_BARRIER=Object.freeze({
  step:.95,
  height:.99,

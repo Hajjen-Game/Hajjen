@@ -13,7 +13,7 @@ import {
   capturePose,interpolatePose,interpolateAngle,shouldSnapPose,
   createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "../../frame-pacing-v043.mjs";
+} from "../../core/frame-pacing-v043.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const dt=1/120;
 

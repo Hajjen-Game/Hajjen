@@ -7,8 +7,8 @@ import {patchBlackoutRoadFragment} from "../../tunnel-blackout-v0921.mjs";
 import {FIDELITY_0113,selectFidelityProfile,createFidelityDirector,
  resetFidelityDirector,advanceFidelityDirector,fidelityAudit,
  createSmartPremiumTrackMaterial,patchSmartRoadShader}
- from "../../visual-fidelity-v0113.mjs";
-import {perfConfig} from "../../performance-audit-v0113.mjs";
+ from "../../core/visual-fidelity-v0113.mjs";
+import {perfConfig} from "../../core/performance-audit-v0113.mjs";
 const VERT="#include <common>\nvoid main(){#include <begin_vertex>}";
 const FRAG="#include <common>\nvoid main(){#include <color_fragment>\n"+
  "#include <roughnessmap_fragment>\n#include <emissivemap_fragment>}";

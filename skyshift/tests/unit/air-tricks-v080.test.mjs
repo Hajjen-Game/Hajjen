@@ -9,7 +9,7 @@ import {TRIAL,CIRCUIT,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  poseAt,positionAt,bankAt,surfaceHeightAt,speedAt,headingAt,
  newFlightState,stepFlight,validateTrial} from "../../trial-v080.mjs";
 import {capturePose,interpolatePose,shouldSnapPose}
- from "../../frame-pacing-v080.mjs";
+ from "../../core/frame-pacing-v080.mjs";
 import * as archived from "../../trial-v072.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,e=1e-5)=>assert.ok(Math.abs(a-b)<=e,"expected "+a+" ≈ "+b);

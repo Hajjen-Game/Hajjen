@@ -2,7 +2,7 @@
 // Reuses 0.11.3 premium sheen while moving spatial GLSL from pixels to vertices.
 // No extra textures, particles, lights or render passes.
 // Low-memory devices still compile the exact existing 0.11.2 road shader.
-import {createPremiumTrackMaterial} from "./premium-track-v0160.mjs";
+import {createPremiumTrackMaterial} from "../premium-track-v0160.mjs";
 import {patchSmartRoadShader as patchLegacyRoadShader} from "./visual-fidelity-v0113.mjs";
 export const FIDELITY_0114=Object.freeze({
  version:"smart-fidelity-refinement-0114",

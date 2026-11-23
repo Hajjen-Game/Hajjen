@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {FIDELITY_0121,readFidelityChoice,saveFidelityChoice,
- chooseFidelity0121} from "../../fidelity-settings-v0121.mjs";
+ chooseFidelity0121} from "../../core/fidelity-settings-v0121.mjs";
 import {RACING_0121,createRacingExperience,resetRacingExperience,
  raceWindowAt,raceRhythmAt,observeRacingStep,stepRacingExperience,
  racingExperienceAudit} from "../../racing-experience-v0121.mjs";

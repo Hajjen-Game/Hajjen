@@ -5,7 +5,7 @@ import {readFileSync} from "node:fs";
 import {CLARITY,clarityProfile,dprForAdaptiveLevel,clarityAudit}
  from "../../image-clarity-v0498.mjs";
 import {createAdaptiveQuality,nextAdaptiveRatio}
- from "../../frame-pacing-v044.mjs";
+ from "../../core/frame-pacing-v044.mjs";
 import {PREMIUM_TRACK,SURFACE_FRAGMENT_HELPERS,patchPremiumShaders}
  from "../../premium-track-v0498.mjs";
 import {AERO_BARRIER} from "../../aero-barrier-v0497.mjs";

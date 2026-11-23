@@ -18,7 +18,7 @@ import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./frame-pacing-v080.mjs";
+} from "./core/frame-pacing-v080.mjs";
 import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
 import {SIGNATURE_FLIGHT,createSignatureFlightState,stepSignatureFlight,
  triggerSignatureJump,triggerSignatureLanding,triggerSignatureBoost,

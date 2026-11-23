@@ -11,7 +11,7 @@ import {
 } from "../../trial-v043.mjs";
 import {
  capturePose,interpolatePose,createFrameClock,advanceFrame
-} from "../../frame-pacing-v044.mjs";
+} from "../../core/frame-pacing-v044.mjs";
 const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const pose=(changes={})=>({steering:0,trackBank:0,yawRate:0,sideVelocity:0,
  heading:0,vy:0,...changes});
@@ -114,7 +114,7 @@ test("active game uses interpolated 0.4.4 motion, independent camera and audit",
  const game=source("game-v044.mjs");
  const html=source("index.html");
  assert.match(game,/from "\.\/flight-motion-v044\.mjs"/);
- assert.match(game,/from "\.\/frame-pacing-v044\.mjs"/);
+ assert.match(game,/from "\.\/core\/frame-pacing-v044\.mjs"/);
  assert.match(game,/from "\.\/trial-v043\.mjs"/);
  assert.match(game,/stepFlightMotion\(motionState,/);
  assert.match(game,/ship\.rotation\.z=motion\.roll/);

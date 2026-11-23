@@ -5,9 +5,9 @@ import {createFlightMotionState as legacyMotion,stepFlightMotion as legacyStep}
 import {createFlightMotionState as optimizedMotion,stepFlightMotion as optimizedStep}
  from "../../flight/flight-motion-v0112.mjs";
 import {capturePose as legacyCapture,interpolatePose as legacyInterpolate,
- shouldSnapPose as legacySnap} from "../../frame-pacing-v080.mjs";
+ shouldSnapPose as legacySnap} from "../../core/frame-pacing-v080.mjs";
 import {capturePose,interpolatePose,shouldSnapPose}
- from "../../frame-pacing-v0112.mjs";
+ from "../../core/frame-pacing-v0112.mjs";
 import {createSignatureFlightState,stepSignatureFlight}
  from "../../flight/signature-flight-v091.mjs";
 import {createKineticCameraState,stepKineticCamera}

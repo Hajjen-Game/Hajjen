@@ -12,7 +12,7 @@ import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./frame-pacing-v043.mjs";
+} from "./core/frame-pacing-v043.mjs";
 import { installCleanTrack } from "./identity-v042.mjs";
 import { installSpaceBackdrop } from "./space-v04.mjs";
 import { refineCraftSilhouette,createContactShadow } from "./ship-v034.mjs";

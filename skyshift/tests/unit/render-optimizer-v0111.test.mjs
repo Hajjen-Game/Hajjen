@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {OPT_0111,bloomScaleFor,scaledBloomSize,tuneBloomPass,
- newHudBudget,createDomWriteCache} from "../../render-optimizer-v0111.mjs";
-import {perfConfig,recordPerfFrame,newPerfMonitor} from "../../performance-audit-v0111.mjs";
+ newHudBudget,createDomWriteCache} from "../../core/render-optimizer-v0111.mjs";
+import {perfConfig,recordPerfFrame,newPerfMonitor} from "../../core/performance-audit-v0111.mjs";
 test("selective bloom scales only blur input, retains HDR beauty and SMAA",()=>{
  assert.equal(bloomScaleFor({lowMemory:false}),0.88);
  assert.equal(bloomScaleFor({lowMemory:true}),0.78);

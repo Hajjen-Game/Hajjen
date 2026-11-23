@@ -23,6 +23,12 @@
 6. Keep this file updated after every PR: number of direct-root files **before → after**, families moved, current SHA, any unresolved risks, and exact next step.
 7. **Success criterion:** after safety verification, only a small intentional set of root entrypoint/compatibility files remains (working target **at most 10**, subject to genuine hosting constraints). All other relevant source and archived versions have explicit homes. A green test suite is **necessary but not sufficient** to claim completion.
 
+## R0 automated audit — first execution
+
+The new `skyshift/tests/architecture/root-consolidation-inventory.test.mjs` is invoked by the existing mandatory entrypoint safety guard. It reads a **468-file original path + SHA baseline**, traverses the live HTML, CSS and JavaScript relative-reference graph, checks its local files exist, and groups each original root file into `entrypoint`, `activeReachable`, `otherReferenced`, `noObservedReference`, or `relocated`. It prints the measured groups to CI with the prefix `SKYSHIFT_ROOT_R0_COUNTS`.
+
+**Important:** `noObservedReference` is not the same as unused. Dynamic/templated/external URLs can evade a static scanner. R1 moves require additional code search and historical test/URL reviews. Every later group must change the measured root count and preserve source Git SHAs.
+
 ## Safe migration roadmap
 
 **R0 — Evidence and ownership (CURRENT).** Inventory all 468 root files, build a reference/asset dependency map, classify each file into (a) current entrypoint/runtime, (b) imported live module, (c) historical version needed by tests/A-B, (d) test/tool, or (e) confirmed unreferenced. Report **measured** categories. Never claim old versions are safe to remove without checking.

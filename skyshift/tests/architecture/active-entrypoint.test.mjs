@@ -7,6 +7,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve, relative, isAbsolute, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import './final-course-reuse-stageN.test.mjs';
+import './root-consolidation-inventory.test.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const at = relativePath => resolve(root, relativePath);

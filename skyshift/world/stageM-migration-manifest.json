@@ -105,5 +105,28 @@
     "environment-art-pipeline-v02041.test.mjs",
     "environment-art-pipeline-v0205.test.mjs"
   ],
-  "workflowReferences": {}
+  "workflowReferences": {
+    "skyshift-material-v0203.yml": [
+      "build-station-world-v0203.mjs",
+      "environment-art-pipeline-v0203.mjs"
+    ],
+    "skyshift-tests.yml": [
+      "build-station-world-v0200.mjs",
+      "build-station-world-v0201.mjs",
+      "build-station-world-v0202.mjs",
+      "build-station-world-v02021.mjs",
+      "build-station-world-v0203.mjs",
+      "build-station-world-v0204.mjs",
+      "build-station-world-v02041.mjs",
+      "build-station-world-v0205.mjs",
+      "environment-art-pipeline-v0200.mjs",
+      "environment-art-pipeline-v0201.mjs",
+      "environment-art-pipeline-v0202.mjs",
+      "environment-art-pipeline-v02021.mjs",
+      "environment-art-pipeline-v0203.mjs",
+      "environment-art-pipeline-v0204.mjs",
+      "environment-art-pipeline-v02041.mjs",
+      "environment-art-pipeline-v0205.mjs"
+    ]
+  }
 }

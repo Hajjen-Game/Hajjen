@@ -88,21 +88,21 @@ import {WORLD_0190,installCinematicWorld}
 import {ORBITAL_HERO_0192,installOrbitalHero}
  from "./orbital-hero-v0192.mjs";
 import {WORLD_ART_0200,installWorldArt}
- from "./environment-art-pipeline-v0200.mjs";
+ from "./world/environment-art-pipeline-v0200.mjs";
 import {WORLD_ART_0201,installWorldArt as installEnclosedWorldArt}
- from "./environment-art-pipeline-v0201.mjs";
+ from "./world/environment-art-pipeline-v0201.mjs";
 import {WORLD_ART_0202,installWorldArt as installObservationWorldArt}
- from "./environment-art-pipeline-v0202.mjs";
+ from "./world/environment-art-pipeline-v0202.mjs";
 import {WORLD_ART_02021,installWorldArt as installRibbonWindowArt}
- from "./environment-art-pipeline-v02021.mjs";
+ from "./world/environment-art-pipeline-v02021.mjs";
 import {WORLD_ART_0203,installWorldArt as installGraphiteWorldArt}
- from "./environment-art-pipeline-v0203.mjs";
+ from "./world/environment-art-pipeline-v0203.mjs";
 import {WORLD_ART_0204,installWorldArt as installPremiumNeonWorldArt}
- from "./environment-art-pipeline-v0204.mjs";
+ from "./world/environment-art-pipeline-v0204.mjs";
 import {WORLD_ART_02041,installWorldArt as installSculptedNeonWorldArt}
- from "./environment-art-pipeline-v02041.mjs";
+ from "./world/environment-art-pipeline-v02041.mjs";
 import {WORLD_ART_0205,installWorldArt as installArchitecturalWorldArt}
- from "./environment-art-pipeline-v0205.mjs";
+ from "./world/environment-art-pipeline-v0205.mjs";
 import {HERO_0210,installCinematicHero}
  from "./cinematic-hero-v0210.mjs";
 import {CINEMATIC_GRADE_0210B,installCinematicGradeHero}

@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "stage": "M",
+  "base": "daf237dee73259e702cbc04065ebcaa1dd28f3db",
+  "files": {
+    "build-station-world-v0200.mjs": {
+      "destination": "skyshift/world/authoring/build-station-world-v0200.mjs",
+      "originalGitBlobSha": "ad1b999368e374c221f67bfc8a2591767d65db65",
+      "assetRebase": false
+    },
+    "build-station-world-v0201.mjs": {
+      "destination": "skyshift/world/authoring/build-station-world-v0201.mjs",
+      "originalGitBlobSha": "fc0c4dc7af094fd753015faa594c2086170339b5",
+      "assetRebase": false
+    },
+    "build-station-world-v0202.mjs": {
+      "destination": "skyshift/world/authoring/build-station-world-v0202.mjs",
+      "originalGitBlobSha": "8fcf2b338b078bc2dc1ad2873b233db5cc8b0f8c",
+      "assetRebase": false
+    },
+    "build-station-world-v02021.mjs": {
+      "destination": "skyshift/world/authoring/build-station-world-v02021.mjs",
+      "originalGitBlobSha": "c5652825e4a7a0c567fe401f629801f14d6221bc",
+      "assetRebase": false
+    },
+    "build-station-world-v0203.mjs": {
+      "destination": "skyshift/world/authoring/build-station-world-v0203.mjs",
+      "originalGitBlobSha": "d264f2ae0a16c213a0f8b1c55faf92a95b70ecbd",
+      "assetRebase": false
+    },
+    "build-station-world-v0204.mjs": {
+      "destination": "skyshift/world/authoring/build-station-world-v0204.mjs",
+      "originalGitBlobSha": "d1b00ba60e2aec40aed89cc8909da4b140044750",
+      "assetRebase": false
+    },
+    "build-station-world-v02041.mjs": {
+      "destination": "skyshift/world/authoring/build-station-world-v02041.mjs",
+      "originalGitBlobSha": "a0c997b2e927da4fef7bbc04c70a6415cc0783f6",
+      "assetRebase": false
+    },
+    "build-station-world-v0205.mjs": {
+      "destination": "skyshift/world/authoring/build-station-world-v0205.mjs",
+      "originalGitBlobSha": "7e73b6c0dbf2663610b6fd74e8b9872e939f1396",
+      "assetRebase": false
+    },
+    "environment-art-pipeline-v0200.mjs": {
+      "destination": "skyshift/world/environment-art-pipeline-v0200.mjs",
+      "originalGitBlobSha": "ef5273e61baa7600a9caa353298a151768cda07f",
+      "assetRebase": true
+    },
+    "environment-art-pipeline-v0201.mjs": {
+      "destination": "skyshift/world/environment-art-pipeline-v0201.mjs",
+      "originalGitBlobSha": "df75906308d142035469e560eff7cc38b48a5f7f",
+      "assetRebase": true
+    },
+    "environment-art-pipeline-v0202.mjs": {
+      "destination": "skyshift/world/environment-art-pipeline-v0202.mjs",
+      "originalGitBlobSha": "49ecb312858e26ebc3365424bbe7863166f9393c",
+      "assetRebase": true
+    },
+    "environment-art-pipeline-v02021.mjs": {
+      "destination": "skyshift/world/environment-art-pipeline-v02021.mjs",
+      "originalGitBlobSha": "f6903fe832280735776295edf7782a70229b8b53",
+      "assetRebase": true
+    },
+    "environment-art-pipeline-v0203.mjs": {
+      "destination": "skyshift/world/environment-art-pipeline-v0203.mjs",
+      "originalGitBlobSha": "406631340e134ffc22b268dc72c074621367ee20",
+      "assetRebase": true
+    },
+    "environment-art-pipeline-v0204.mjs": {
+      "destination": "skyshift/world/environment-art-pipeline-v0204.mjs",
+      "originalGitBlobSha": "edc2e9146c94141746af9d04745019625b5ff519",
+      "assetRebase": true
+    },
+    "environment-art-pipeline-v02041.mjs": {
+      "destination": "skyshift/world/environment-art-pipeline-v02041.mjs",
+      "originalGitBlobSha": "ff54f6b55047b481c421c34e26195a079487b93b",
+      "assetRebase": true
+    },
+    "environment-art-pipeline-v0205.mjs": {
+      "destination": "skyshift/world/environment-art-pipeline-v0205.mjs",
+      "originalGitBlobSha": "e1cba7c46c2599f174d13dc2b6027228d2b5d05b",
+      "assetRebase": true
+    }
+  },
+  "gameConsumers": [
+    "game-v0200.mjs",
+    "game-v0201.mjs",
+    "game-v0202.mjs",
+    "game-v02021.mjs",
+    "game-v0203.mjs",
+    "game-v0204.mjs",
+    "game-v02041.mjs",
+    "game-v0205.mjs",
+    "game-v0210.mjs"
+  ],
+  "unitTests": [
+    "environment-art-pipeline-v0200.test.mjs",
+    "environment-art-pipeline-v0201.test.mjs",
+    "environment-art-pipeline-v0202.test.mjs",
+    "environment-art-pipeline-v02021.test.mjs",
+    "environment-art-pipeline-v0203.test.mjs",
+    "environment-art-pipeline-v0204.test.mjs",
+    "environment-art-pipeline-v02041.test.mjs",
+    "environment-art-pipeline-v0205.test.mjs"
+  ],
+  "workflowReferences": {
+    "skyshift-material-v0203.yml": [
+      "build-station-world-v0203.mjs",
+      "environment-art-pipeline-v0203.mjs"
+    ],
+    "skyshift-tests.yml": [
+      "build-station-world-v0200.mjs",
+      "build-station-world-v0201.mjs",
+      "build-station-world-v0202.mjs",
+      "build-station-world-v02021.mjs",
+      "build-station-world-v0203.mjs",
+      "build-station-world-v0204.mjs",
+      "build-station-world-v02041.mjs",
+      "build-station-world-v0205.mjs",
+      "environment-art-pipeline-v0200.mjs",
+      "environment-art-pipeline-v0201.mjs",
+      "environment-art-pipeline-v0202.mjs",
+      "environment-art-pipeline-v02021.mjs",
+      "environment-art-pipeline-v0203.mjs",
+      "environment-art-pipeline-v0204.mjs",
+      "environment-art-pipeline-v02041.mjs",
+      "environment-art-pipeline-v0205.mjs"
+    ]
+  }
+}

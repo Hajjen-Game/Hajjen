@@ -3,11 +3,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {STATION_ART_0204,buildStationAsset}
- from "../../build-station-world-v0204.mjs";
+ from "../../world/authoring/build-station-world-v0204.mjs";
 import {WORLD_ART_0204,planStationWorld,bakeTrackConformingBayGeometry}
- from "../../environment-art-pipeline-v0204.mjs";
+ from "../../world/environment-art-pipeline-v0204.mjs";
 import {planStationWorld as oldWorld}
- from "../../environment-art-pipeline-v0203.mjs";
+ from "../../world/environment-art-pipeline-v0203.mjs";
 import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
 const file=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const gltf=JSON.parse(file("./assets/worlds/continuum-neon-bays-v5.gltf"));
@@ -152,7 +152,7 @@ test("Live entry uses 0.20.4 GLTF and optional halo; all prior versions remain s
  assert.match(game,/installPremiumNeonWorldArt/);
  assert.match(game,/compareBeforeNeon:"\?neon=classic"/);
  assert.match(game,/retainedGraphiteMaterials0203:true/);
- assert.match(game,/from "\.\/environment-art-pipeline-v0203\.mjs"/);
+ assert.match(game,/from "\.\/world\/environment-art-pipeline-v0203\.mjs"/);
  assert.match(game,/get\("materialGrade"\)!=="classic"/);
  assert.match(game,/version:"0\.20\.4"/);
  assert.match(file("./index.html"),/boot-v0205\.js\?v=0\.20\.5/);

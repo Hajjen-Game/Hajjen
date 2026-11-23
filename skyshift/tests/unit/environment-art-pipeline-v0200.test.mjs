@@ -2,8 +2,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {WORLD_ART_0200,planStationWorld,bakeTrackConformingBayGeometry} from "../../environment-art-pipeline-v0200.mjs";
-import {STATION_ART_0200,buildStationAsset} from "../../build-station-world-v0200.mjs";
+import {WORLD_ART_0200,planStationWorld,bakeTrackConformingBayGeometry} from "../../world/environment-art-pipeline-v0200.mjs";
+import {STATION_ART_0200,buildStationAsset} from "../../world/authoring/build-station-world-v0200.mjs";
 import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
 const src=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const gltf=JSON.parse(src("./assets/worlds/continuum-bays-v1.gltf"));
@@ -78,7 +78,7 @@ test("Aurora remains independent and classic mode loads legacy geometry",()=>{
  assert.match(game,/from "\.\/trial-v0165\.mjs"/);
  assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
  assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);
- assert.match(game,/from "\.\/environment-art-pipeline-v0200\.mjs"/);
+ assert.match(game,/from "\.\/world\/environment-art-pipeline-v0200\.mjs"/);
  assert.match(game,/if\(rebirthEnabled\)stationWorld=installWorldArt/);
  assert.match(game,/if\(envEnabled&&!rebirthEnabled\)signatureEnvironment=/);
  assert.match(game,/version:"0\.20\.0"/);

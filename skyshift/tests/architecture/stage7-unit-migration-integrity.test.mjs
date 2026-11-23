@@ -15,6 +15,7 @@ import { restoreStageGShipReferences } from './ship-test-path-overlay-stageG.mjs
 import { restoreStageHFlightReferences } from './flight-test-path-overlay-stageH.mjs';
 import { restoreStageICoreReferences } from './core-test-path-overlay-stageI.mjs';
 import { restoreStageJPaths } from './stageJ-test-path-overlay.mjs';
+import { restoreStageMPaths } from './stageM-test-path-overlay.mjs';
 
 const skyshift = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const testsDir = resolve(skyshift, 'tests/unit');
@@ -73,7 +74,7 @@ test('all 125 migrated tests have exactly the same original Git blob after rever
     const file = resolve(testsDir, name);
     assert.ok(existsSync(file), 'Moved test missing: ' + name);
     const contents = readFileSync(file, 'utf8');
-    const original = Buffer.from(restore(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(contents))))))))), 'utf8');
+    const original = Buffer.from(restore(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(contents)))))))))), 'utf8');
     const actual = createHash('sha1').update('blob ' + original.length + '\0').update(original).digest('hex');
     assert.equal(actual, manifest.entries[name], 'Test assertions or source changed: ' + name);
     assertStaticImportsResolve(name, contents);

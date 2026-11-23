@@ -2,11 +2,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {STATION_ART_0205,buildStationAsset} from "../../build-station-world-v0205.mjs";
+import {STATION_ART_0205,buildStationAsset} from "../../world/authoring/build-station-world-v0205.mjs";
 import {WORLD_ART_0205,planStationWorld,bakeTrackConformingBayGeometry}
- from "../../environment-art-pipeline-v0205.mjs";
+ from "../../world/environment-art-pipeline-v0205.mjs";
 import {planStationWorld as oldWorld}
- from "../../environment-art-pipeline-v02041.mjs";
+ from "../../world/environment-art-pipeline-v02041.mjs";
 import {positionAt,TRIAL,SKYLINE_LEAP} from "../../trial-v0165.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const newer=JSON.parse(read("./assets/worlds/continuum-architecture-v7.gltf"));
@@ -151,7 +151,7 @@ test("real curvature-baked station seam still closes perfectly on banked section
 test("gameplay and lower versions are preserved; active boot and fair A/B",()=>{
  const game=read("./game-v0205.mjs");
  for(const m of ["trial-v0165","flight/unified-flight-v0165","flight/cinematic-v0165",
-  "environment-art-pipeline-v02041","environment-art-pipeline-v0205"])
+  "world/environment-art-pipeline-v02041","world/environment-art-pipeline-v0205"])
   assert.ok(game.includes('from "./'+m+'.mjs"'));
  assert.match(game,/architecturePass"\)!=="classic"/);
  assert.match(game,/installArchitecturalWorldArt/);

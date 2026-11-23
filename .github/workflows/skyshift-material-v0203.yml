@@ -5,8 +5,8 @@ on:
     paths:
       - '.github/workflows/skyshift-material-v0203.yml'
       - 'skyshift/game-v0203.mjs'
-      - 'skyshift/environment-art-pipeline-v0203.mjs'
-      - 'skyshift/build-station-world-v0203.mjs'
+      - 'skyshift/world/environment-art-pipeline-v0203.mjs'
+      - 'skyshift/world/authoring/build-station-world-v0203.mjs'
       - 'skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs'
       - 'skyshift/tests/browser/browser-environment-art-v0203.mjs'
       - 'skyshift/assets/worlds/continuum-graphite-bays-v5.gltf'

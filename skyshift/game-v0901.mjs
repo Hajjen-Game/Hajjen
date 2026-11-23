@@ -16,7 +16,7 @@ import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./frame-pacing-v080.mjs";
+} from "./core/frame-pacing-v080.mjs";
 import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
 import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "./cinematic-v0901.mjs";
 import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./flight/boost-spring-v090.mjs";

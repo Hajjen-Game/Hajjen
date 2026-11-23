@@ -12,6 +12,7 @@ import { restoreStageEVaultReferences } from './vault-test-path-overlay-stageE.m
 import { restoreStageFTrackReferences } from './track-test-path-overlay-stageF.mjs';
 import { restoreStageGShipReferences } from './ship-test-path-overlay-stageG.mjs';
 import { restoreStageHFlightReferences } from './flight-test-path-overlay-stageH.mjs';
+import { restoreStageICoreReferences } from './core-test-path-overlay-stageI.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const testDir = resolve(root, 'tests/unit');
@@ -35,7 +36,7 @@ test('relocated historical unit tests retain assertions, source imports and orig
       assert.ok(localPath && localPath !== '..' && !localPath.startsWith('..' + sep) && !isAbsolute(localPath), 'Import escapes game root: ' + name);
       assert.ok(existsSync(imported), 'Moved test cannot import source: ' + name + ' -> ' + match[1]);
     }
-    const original = restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(migrated)))))).replace(/(\bfrom\s*["'])\.\.\/\.\.\//g, '$1./');
+    const original = restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(migrated))))))).replace(/(\bfrom\s*["'])\.\.\/\.\.\//g, '$1./');
     const bytes = Buffer.from(original, 'utf8');
     const gitHash = createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
     assert.equal(gitHash, old.originalGitBlob, 'Test assertions or source changed: ' + name);

@@ -1,0 +1,57 @@
+// SKYSHIFT Stage I – immutable core runtime source integrity and ESM consumer audit.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync,existsSync,readdirSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {dirname,resolve,relative,join,extname,sep} from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
+const core=resolve(root,'core'),repo=resolve(root,'..');
+const manifest=JSON.parse(readFileSync(resolve(core,'stageI-migration-manifest.json'),'utf8'));
+const names=Object.keys(manifest.files);
+function hash(bytes){return createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex')}
+function walk(dir,out=[]){
+ for(const item of readdirSync(dir,{withFileTypes:true})){
+  const file=join(dir,item.name);
+  if(item.isDirectory())walk(file,out);
+  else if(item.isFile()&&['.mjs','.js','.html','.yml','.yaml'].includes(extname(file)))out.push(file);
+ }
+ return out;
+}
+test('Stage I preserves all 15 original performance/fidelity source blobs and resolves ESM imports',()=>{
+ assert.equal(manifest.schemaVersion,1);assert.equal(names.length,15);
+ for(const name of names){
+  assert.match(name,/^[a-z0-9-]+\.mjs$/);
+  assert.ok(!existsSync(resolve(root,name)),'Stale root performance module: '+name);
+  const path=resolve(core,name);assert.ok(existsSync(path),'Missing relocated runtime core module: '+name);
+  const source=readFileSync(path,'utf8');let original=source;
+  for(const ext of manifest.files[name].externalImports){
+   assert.ok(source.includes('../'+ext),'Missing approved external import path '+name+' -> '+ext);
+   assert.ok(existsSync(resolve(root,ext)),'Missing core external ESM dependency '+ext);
+   original=original.split('../'+ext).join('./'+ext);
+  }
+  assert.equal(hash(Buffer.from(original,'utf8')),manifest.files[name].originalGitBlobSha,
+   'Runtime performance/fidelity implementation or parameters changed: '+name);
+  for(const m of source.matchAll(/\b(?:from\s*|import\s*\(\s*|import\s*)["'](\.{1,2}\/[^"']+)["']/g)){
+   const dest=resolve(dirname(path),m[1].split(/[?#]/)[0]);
+   assert.ok(existsSync(dest),'Unresolved relocated performance ESM import '+name+' -> '+m[1]);
+   const rel=relative(root,dest);
+   assert.ok(rel&&rel!=='..'&&!rel.startsWith('..'+sep),'Core ESM escaped SKYSHIFT: '+name);
+  }
+ }
+});
+test('Stage I has no obsolete root imports in executable consumers or GitHub workflows',()=>{
+ const sources=[...walk(root),...walk(resolve(repo,'.github/workflows'))];
+ assert.ok(sources.length>250,'Unexpectedly low executable source audit count');
+ for(const path of sources){
+  if(path===fileURLToPath(import.meta.url)||path===resolve(root,'tests/architecture/core-test-path-overlay-stageI.mjs'))continue;
+  const source=readFileSync(path,'utf8');
+  for(const name of names){
+   assert.equal(source.includes('skyshift/'+name),false,'Stale repository-root core import '+relative(repo,path)+' -> '+name);
+   if(path.startsWith(core+sep))continue; // moved siblings keep ./name imports
+   const escaped=name.replaceAll('.','\\.');
+   const stale=new RegExp('["\\x27](?:\\./|(?:\\.\\./)+)'+escaped+'["\\x27]');
+   assert.doesNotMatch(source,stale,'Stale relative core import '+relative(repo,path)+' -> '+name);
+  }
+ }
+});

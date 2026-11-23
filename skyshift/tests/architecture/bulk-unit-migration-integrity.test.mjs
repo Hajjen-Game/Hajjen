@@ -13,6 +13,7 @@ import { restoreStageEVaultReferences } from './vault-test-path-overlay-stageE.m
 import { restoreStageFTrackReferences } from './track-test-path-overlay-stageF.mjs';
 import { restoreStageGShipReferences } from './ship-test-path-overlay-stageG.mjs';
 import { restoreStageHFlightReferences } from './flight-test-path-overlay-stageH.mjs';
+import { restoreStageICoreReferences } from './core-test-path-overlay-stageI.mjs';
 
 const skyshift = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const unitDir = resolve(skyshift, 'tests/unit');
@@ -43,7 +44,7 @@ test('60 bulk-migrated tests exactly preserve their original assertions and sour
     const migratedPath = resolve(unitDir, filename);
     assert.equal(existsSync(migratedPath), true, 'Missing migrated test: ' + filename);
     const source = readFileSync(migratedPath, 'utf8');
-    const inverse = restoreOriginalImports(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(source)))))));
+    const inverse = restoreOriginalImports(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(source))))))));
     const bytes = Buffer.from(inverse, 'utf8');
     const sha = createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
     assert.equal(sha, expectedBlobSha, 'Unexpected test content change: ' + filename);

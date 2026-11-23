@@ -12,6 +12,7 @@ import { restoreStageEVaultReferences } from './vault-test-path-overlay-stageE.m
 import { restoreStageFTrackReferences } from './track-test-path-overlay-stageF.mjs';
 import { restoreStageGShipReferences } from './ship-test-path-overlay-stageG.mjs';
 import { restoreStageHFlightReferences } from './flight-test-path-overlay-stageH.mjs';
+import { restoreStageICoreReferences } from './core-test-path-overlay-stageI.mjs';
 
 const skyshift = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const unitDir = resolve(skyshift, 'tests/unit');
@@ -49,7 +50,7 @@ test('all 12 final unit tests preserve their exact original Git blobs after path
     const file = resolve(unitDir, name);
     assert.ok(existsSync(file), 'Migrated test missing: ' + name);
     const source = readFileSync(file, 'utf8');
-    const bytes = Buffer.from(restore(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(source))))))), 'utf8');
+    const bytes = Buffer.from(restore(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(source)))))))), 'utf8');
     const actual = createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
     assert.equal(actual, manifest.entries[name], 'Original test source changed: ' + name);
 

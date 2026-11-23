@@ -27,7 +27,7 @@ try{
  const real=await page.evaluate(async()=>{
   const [trial,old]=await Promise.all([
    import("./trial-v01348.mjs"),
-   import("./steering-authority-v0901.mjs")]);
+   import("./flight/steering-authority-v0901.mjs")]);
   const speeds=[trial.TRIAL.startSpeed,75,trial.TRIAL.endSpeed],rows=[];
   for(const speed of speeds){
    const f=trial.newFlightState();

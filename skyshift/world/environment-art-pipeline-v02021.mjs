@@ -5,7 +5,7 @@
 export const WORLD_ART_02021=Object.freeze({
  version:"observation-window-cleanup-v02021",name:"CONTINUUM STATION · RIBBON OBSERVATORY",
  mode:"ribbon-cleanup",classic:"?windowCleanup=classic",
- assetPath:"./assets/worlds/continuum-ribbon-bays-v4.gltf",
+ assetPath:"../assets/worlds/continuum-ribbon-bays-v4.gltf",
  track:"skyline",start:80,end:368,meters:288,bayLength:16,bayCount:18,
  materials:Object.freeze(["SHELL","INLAY","ENERGY","GLASS"]),
  variants:Object.freeze(["PANORAMA_START","PANORAMA_END","SERVICE","GATE"]),

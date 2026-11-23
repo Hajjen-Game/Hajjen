@@ -1,74 +1,46 @@
-// SKYSHIFT 0.20.4.1 — World Art Pipeline
+// SKYSHIFT 0.20.1 — World Art Pipeline
 // An independently-authored, checked-in glTF asset is loaded ONCE.
 // Authored glTF bay vertices are curved to the original road local frame;
 // the 120 Hz game physics, steering, GRIP, rails and road mesh are untouched.
-export const WORLD_ART_02041=Object.freeze({
- version:"sculpted-premium-neon-v02041",name:"CONTINUUM STATION · SCULPTED LIGHT",
- mode:"sculpted-premium-neon",classic:"?neonPolish=classic",
- assetPath:"./assets/worlds/continuum-neon-sculpted-v6.gltf",
+export const WORLD_ART_0201=Object.freeze({
+ version:"architectural-enclosure-v0201",name:"CONTINUUM STATION · ARCHITECTURAL DEPTH",
+ mode:"enclosed",classic:"?stationStyle=classic",
+ assetPath:"../assets/worlds/continuum-enclosure-bays-v2.gltf",
  track:"skyline",start:80,end:368,meters:288,bayLength:16,bayCount:18,
- materials:Object.freeze(["SHELL","INLAY","ENERGY","GLASS","HALO"]),
- variants:Object.freeze(["PANORAMA_START","PANORAMA_END","SERVICE","GATE"]),
- maxAssetBytes:370000,maxTrianglesPerAsset:2600,
- maxBatchesHigh:5,maxBatchesLow:3,
- integratedMagentaWallGuides:true,integratedCyanCeilingCoves:true,
- restrainedWhiteLightCores:true,optionalBakedGlowHalo:true,
- angledLightOnlyAtTruePressureGates:true,windowLightOnlyAtExteriorJambs:true,
- originalObservatoryClearanceUnchanged:true,narrowGlowWithoutSolidBand:true,
- noNewPanelsOrFreeFloatingLightBars:true,
- noNewMaterialTypes:true,
- preservesOriginalStationShell:true,preservesOriginalRoad:true,
- preservesGraphiteRegrade0203:true,lowMemoryUsesSameGraphite:true,
- originalLightingSystemUnchanged:true,addedShadowLights:0,
- renderExposureUnchanged:true,worldFogUnchanged:true,
- flightZoneColorsUnchanged:true,shipMaterialsUnchanged:true,
+ materials:Object.freeze(["SHELL","INLAY","ENERGY","GLASS"]),
+ variants:Object.freeze(["PANORAMA","SERVICE","GATE"]),
+ maxAssetBytes:280000,maxTrianglesPerAsset:2000,
+ maxBatchesHigh:4,maxBatchesLow:3,
  addedColliders:0,addedPhysicsChanges:0,addedDynamicLights:0,
  addedRenderPasses:0,panoramicExterior:false,continuousRoof:true,
  structuralUnderdeck:true,enclosedCrossSection:true,
- observationGroupCount:3,windowBays:6,
- continuousRibbonMeters:32,centerWindowMullions:0,
- sealedBayFakeGlassPanels:0,observationGlassOpacity:.048,
- windowGlassHeightMeters:7.26,windowGlassWidthMeters:15.9,
- unchangedHullClearance:true,unchangedGlobalLighting:true,unchangedRacing:true,
  windowsAreSelective:true
 });
 export function planStationWorld({track="skyline",lowMemory=false}={}){
- const c=WORLD_ART_02041;
+ const c=WORLD_ART_0201;
  if(track!=="skyline")return {active:false,bays:[],stats:{
   active:false,track,mode:"none",bayCount:0,meters:0}};
- // Three paired observatories, separated by solid station bulkheads.
- const types=["GATE","SERVICE","SERVICE","PANORAMA_START","PANORAMA_END",
-  "SERVICE","SERVICE","PANORAMA_START","PANORAMA_END",
-  "SERVICE","SERVICE","SERVICE","PANORAMA_START",
-  "PANORAMA_END","SERVICE","SERVICE","SERVICE","GATE"];
+ // Four framed observation bays, not a continuous opening to the void.
+ const types=["GATE","SERVICE","SERVICE","SERVICE","SERVICE",
+  "SERVICE","SERVICE","PANORAMA","PANORAMA",
+  "SERVICE","SERVICE","SERVICE","PANORAMA",
+  "PANORAMA","SERVICE","SERVICE","SERVICE","GATE"];
  if(types.length!==c.bayCount)throw Error("Skyshift: station segment plan mismatch");
  const bays=types.map((variant,i)=>({
   index:i,variant,start:c.start+i*c.bayLength,
   end:c.start+(i+1)*c.bayLength,
   center:c.start+(i+.5)*c.bayLength
  }));
- return {active:true,bays,stats:{track,mode:"sculpted-premium-neon",lowMemory,
+ return {active:true,bays,stats:{track,mode:"enclosed",lowMemory,
   version:c.version,bayCount:bays.length,meters:c.meters,
   start:c.start,end:c.end,variants:Object.fromEntries(
    c.variants.map(v=>[v,bays.filter(x=>x.variant===v).length])),
-  panoramaWindowBays:bays.filter(x=>x.variant.startsWith("PANORAMA_")).length,
+  panoramaWindowBays:bays.filter(x=>x.variant==="PANORAMA").length,
   openRoof:false,exteriorSpaceVisible:true,
   closedCeiling:true,continuousUnderdeck:true,
   enclosedInterior:true,sideWallInsideMeters:14.5,
-  observationGroups:3,unbrokenSolidHallBays:bays.filter(x=>!x.variant.startsWith("PANORAMA_")).length,
-  centerWindowMullions:0,glazingOnlyInRealObservations:true,
-  premiumIntegratedNeon:true,
-  sculptedArchitecturalLight:true,nonRepeatingGateAccents:true,
-  cyanWindowJambsAtOuterEdgesOnly:true,narrowMagentaHalo:true,
-  gateAccents:2,observationWindowPairs:3,
-  magentaWallGuides:true,cyanCeilingCoves:true,
-  lightCoreWhite:true,staticGlowHalo:!lowMemory,
-  glowIntensity:lowMemory?0:0.14,
-  additionalDrawBatches:lowMemory?0:1,
-  observationLengthMeters:32,solidWallsWithoutFalseWindows:true,
-  observationsArePaired:true,
   roofSoffitHeightMeters:28.6,
-  windowFraction:Number((bays.filter(x=>x.variant.startsWith("PANORAMA_")).length/bays.length).toFixed(3)),
+  windowFraction:Number((bays.filter(x=>x.variant==="PANORAMA").length/bays.length).toFixed(3)),
   windowsOnlyAtDesignedObservationBays:true,roadWidthChanged:false,
   physicsChanges:0,colliders:0,dynamicLights:0,extraRenderPasses:0}};
 }
@@ -102,15 +74,10 @@ export function auditStationAsset(gltfScene){
     if(m[key]?.image)images.add(m[key].image);
   }
  });
- for(const variant of WORLD_ART_02041.variants){
-  for(const mat of WORLD_ART_02041.materials){
+ for(const variant of WORLD_ART_0201.variants){
+  for(const mat of WORLD_ART_0201.materials){
    const name=variant+"_"+mat;
    const mesh=nodes.get(name);
-   // Solid service/gate bays deliberately have NO mock window material.
-   if(mat==="GLASS"&&!variant.startsWith("PANORAMA_")){
-    if(mesh)errors.push("Sealed bay contains fake glass: "+name);
-    continue;
-   }
    if(!mesh){errors.push("Missing glTF bay "+name);continue}
    if(!mesh.geometry?.attributes?.normal||!mesh.geometry?.attributes?.color)
     errors.push("Bay has no authored surface normals/vertex palette: "+name);
@@ -125,10 +92,10 @@ export function auditStationAsset(gltfScene){
    }
   }
  }
- if(nodes.size!==18)errors.push("Expected 18 authored neon glTF module meshes");
- if(triangles>WORLD_ART_02041.maxTrianglesPerAsset)
+ if(nodes.size!==12)errors.push("Expected 12 original authored glTF meshes");
+ if(triangles>WORLD_ART_0201.maxTrianglesPerAsset)
   errors.push("Station asset triangle budget exceeded");
- if(materials.size>5)errors.push("Neon station uses too many separate materials");
+ if(materials.size>4)errors.push("Station uses too many separate materials");
  if(images.size!==0)errors.push("First station asset must not need texture downloads");
  if(lights)errors.push("No imported dynamic light rigs");
  if(skinned)errors.push("Station art must be static");
@@ -159,7 +126,6 @@ export function stationFrame(THREE,positionAt,s){
 export function bakeTrackConformingBayGeometry(THREE,plan,nodes,kind,positionAt){
  const count=plan.bays.reduce((sum,bay)=>{
   const node=nodes.get(bay.variant+"_"+kind);
-  if(kind==="GLASS"&&!bay.variant.startsWith("PANORAMA_"))return sum;
   if(!node?.geometry?.attributes?.position||
      !node?.geometry?.attributes?.color)
    throw Error("Station glTF missing authored positions/colors: "+bay.variant+"/"+kind);
@@ -169,9 +135,7 @@ export function bakeTrackConformingBayGeometry(THREE,plan,nodes,kind,positionAt)
  const positions=new Float32Array(count*3),colors=new Float32Array(count*3);
  let n=0;
  for(const bay of plan.bays){
-  const node=nodes.get(bay.variant+"_"+kind);
-  if(kind==="GLASS"&&!node)continue;
-  const attributes=node.geometry.attributes;
+  const attributes=nodes.get(bay.variant+"_"+kind).geometry.attributes;
   const pos=attributes.position,col=attributes.color;
   for(let i=0;i<pos.count;i++){
    const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);
@@ -199,7 +163,7 @@ export function installWorldArt(THREE,world,{
  loaderFactory=null
 }={}){
  if(!THREE||!world||typeof positionAt!=="function")
-  throw Error("SKYSHIFT 0.20.4.1 requires original road positionAt and THREE");
+  throw Error("SKYSHIFT 0.20.1 requires original road positionAt and THREE");
  const plan=planStationWorld({track,lowMemory});
  const state={
   ...plan.stats,status:plan.active?"loading":"inactive",
@@ -216,12 +180,12 @@ export function installWorldArt(THREE,world,{
   let imported=null;
   try{
    if(!request)throw Error("No asset fetch function");
-   const sourcePath=new URL(WORLD_ART_02041.assetPath,import.meta.url);
+   const sourcePath=new URL(WORLD_ART_0201.assetPath,import.meta.url);
    const res=await request(sourcePath,{cache:"force-cache"});
    if(!res.ok)throw Error("Station glTF unavailable (HTTP "+res.status+")");
    const asset=await res.text();
    state.assetBytes=asset.length;
-   if(asset.length>WORLD_ART_02041.maxAssetBytes)
+   if(asset.length>WORLD_ART_0201.maxAssetBytes)
     throw Error("Station GLTF exceeds conservative mobile budget");
    if(disposed)return;
    const {GLTFLoader}=loaderFactory?{GLTFLoader:await loaderFactory()}:
@@ -233,11 +197,11 @@ export function installWorldArt(THREE,world,{
    const report=auditStationAsset(imported);
    if(!report.valid)throw Error(report.errors.join("; "));
    const group=new THREE.Group();
-   group.name="CONTINUUM STATION · Sculpted Neon 0.20.4.1";
+   group.name="CONTINUUM STATION · Architectural Depth 0.20.1";
    const batches=[];
-   for(const kind of WORLD_ART_02041.materials){
-    if(lowMemory&&(kind==="GLASS"||kind==="HALO"))continue;
-    const source=report.nodes.get("PANORAMA_START_"+kind);
+   for(const kind of WORLD_ART_0201.materials){
+    if(lowMemory&&kind==="GLASS")continue;
+    const source=report.nodes.get("PANORAMA_"+kind);
     if(!source||!source.geometry)
      throw Error("Missing original glTF material "+kind);
     const geometry=bakeTrackConformingBayGeometry(
@@ -254,26 +218,10 @@ export function installWorldArt(THREE,world,{
     if(kind==="GLASS"){
      material.transparent=true;material.depthWrite=false;
     }
-    if(kind==="SHELL"||kind==="INLAY"){
-     // Retain 0.20.3 graphite PBR shading; never lift the metal itself.
-     if(material.emissive)material.emissive.setHex(0x000000);
-     material.emissiveIntensity=0;
-    }
-    if(kind==="HALO"){
-     // One optional glow geometry layer, not a new lamp or postprocess.
-     // The white-hot architectural cores remain on all devices.
-     material.dispose();
-     material=new THREE.MeshBasicMaterial({
-      color:0xffffff,vertexColors:true,toneMapped:false,
-      side:THREE.DoubleSide,transparent:true,opacity:0.14,
-      depthWrite:false,blending:THREE.AdditiveBlending
-     });
-    }
     const mesh=new THREE.Mesh(geometry,material);
     mesh.name="Station Surface · "+kind+" · road-conforming";
     mesh.frustumCulled=true;mesh.castShadow=false;mesh.receiveShadow=false;
     if(kind==="GLASS")mesh.renderOrder=2;
-    if(kind==="HALO")mesh.renderOrder=3;
     group.add(mesh);
     batches.push(mesh);
    }
@@ -291,19 +239,12 @@ export function installWorldArt(THREE,world,{
    state.geometryResources=batches.length;
    state.materialResources=batches.length;
    state.geometryFromGltf=true;
-   state.materialColorSpace="gltf-vertex-srgb";
-   state.graphiteRegradeRetained=true;
-   state.sculptedLightRenderingActive=true;
-   state.narrowerHaloOpacity=lowMemory?0:0.14;
-   state.neonRenderingActive=batches.some(x=>x.name.includes(" · ENERGY · "));
-   state.haloRenderingActive=batches.some(x=>x.name.includes(" · HALO · "));
-   state.emissiveCorePreservedOnMobile=true;
    state.seamlessCurvedWorld=true;
    state.bakedWorldSpace=true;
   }catch(e){
    state.status="fallback";state.active=false;
    state.loadError=String(e?.message??e);
-   console.warn("SKYSHIFT 0.20.4.1: station art unavailable; "+
+   console.warn("SKYSHIFT 0.20.1: station art unavailable; "+
     "the existing safe race environment remains playable.",state.loadError);
    if(imported&&!installedGroup)disposeAll(imported);
   }

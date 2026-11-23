@@ -11,7 +11,7 @@ import {
 } from "../../trial-v043.mjs";
 import {
  capturePose,interpolatePose,createFrameClock,advanceFrame
-} from "../../frame-pacing-v044.mjs";
+} from "../../core/frame-pacing-v044.mjs";
 const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const pose=(changes={})=>({steering:0,trackBank:0,yawRate:0,sideVelocity:0,
  heading:0,vy:0,...changes});

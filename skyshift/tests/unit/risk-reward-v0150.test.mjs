@@ -111,7 +111,7 @@ test("shader receives exact side-specific physical pad extents with zero decals"
   "#include <common>\n#include <begin_vertex>",
   "#include <common>\n#include <color_fragment>\n#include <emissivemap_fragment>");
  assert.match(patch.fragmentShader,/riskCoverage/);
- const fidelity=read("./visual-fidelity-v0150.mjs");
+ const fidelity=read("./core/visual-fidelity-v0150.mjs");
  assert.match(fidelity,/premium-track-v0150\.mjs/);
  assert.equal(RISK_REWARD_0150.additionalDrawCalls,0);
 });

@@ -129,7 +129,7 @@ test("actual visible tail guides are distinct ticks instead of continuous strips
 });
 test("live entrypoint targets rollback version and preserves settings/Ghost",()=>{
  const index=readFileSync(new URL("../../"+"./index.html",import.meta.url),"utf8");
- const boot=readFileSync(new URL("../../"+"./boot-v01342.js",import.meta.url),"utf8");
+ const boot=readFileSync(new URL("../../"+"./legacy/boot/boot-v01342.js",import.meta.url),"utf8");
  assert.match(index,/boot-v01342\.js\?v=0\.13\.4\.2/);
  assert.match(index,/data-game-module="game-v01342\.mjs"/);
  assert.match(index,/id="pause-ghost-toggle"/);

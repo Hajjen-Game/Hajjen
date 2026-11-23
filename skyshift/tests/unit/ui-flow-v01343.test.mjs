@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 const read=file=>readFileSync(new URL("../../"+file,import.meta.url),"utf8");
 const html=read("./index.html"),
-  app=read("./game-v01343.mjs"),boot=read("./boot-v01343.js"),
+  app=read("./game-v01343.mjs"),boot=read("./legacy/boot/boot-v01343.js"),
   css=read("./style-v0131.css");
 const has=id=>new RegExp('id="'+id+'"').test(html);
 test("main menu only has START RUN, Hangar and the discrete gear",()=>{
@@ -64,7 +64,7 @@ test("pause has working ghost toggle and return-to-menu without PB mutation",()=
 });
 test("active boot, CSS and audit are all version-consistent",()=>{
  assert.match(html,/boot-v01343\.js\?v=0\.13\.4\.3" data-game-module="game-v01343\.mjs"/);
- assert.match(boot,/import\("\.\/game-v01343\.mjs\?v=0\.13\.4\.3"\)/);
+ assert.match(boot,/import\("\.\.\/\.\.\/game-v01343\.mjs\?v=0\.13\.4\.3"\)/);
  assert.match(html,/style-v0131\.css\?v=0\.13\.4\.3/);
  assert.match(app,/version:"0\.13\.4\.3"/);
  assert.match(app,/skyshift-v01343-performance-/);

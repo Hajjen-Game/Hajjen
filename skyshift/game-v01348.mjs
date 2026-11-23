@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {perfConfig as readPerfConfig,newPerfMonitor,resetPerfMonitor,recordPerfFrame,perfSummary,gpuTimer as createGpuTimer} from "./performance-audit-v0114.mjs";
+import {perfConfig as readPerfConfig,newPerfMonitor,resetPerfMonitor,recordPerfFrame,perfSummary,gpuTimer as createGpuTimer} from "./core/performance-audit-v0114.mjs";
 import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,STEERING_AUTHORITY,steeringBalanceAt,normalYawFactorAt,elevationAudit,
@@ -9,7 +9,7 @@ import { BOOST_PADS,BOOST_CONFIG } from "./boost-v082.mjs";
 import { createPremiumDeckGeometry,PREMIUM_TRACK } from "./premium-track-v0901.mjs";
 import {FIDELITY_0114,createFidelityDirector,
  resetFidelityDirector,advanceFidelityDirector,fidelityAudit,
- createSmartPremiumTrackMaterial} from "./visual-fidelity-v0114.mjs";
+ createSmartPremiumTrackMaterial} from "./core/visual-fidelity-v0114.mjs";
 import {SHADOW_TUNNEL,inShadowTunnel,tunnelIntensityAt,installShadowTunnel,
  installTunnelRoadShading} from "./shadow-tunnel-v092.mjs";
 import {TUNNEL_BLACKOUT,installBlackoutRoadShading,
@@ -25,14 +25,14 @@ import { makeFullscreenController } from "./fullscreen-v02.mjs";
 import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v01346.mjs";
 import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v0111.mjs";
 import { MESH_SPEC } from "./smooth-track-v0901.mjs";
-import {OPT_0111,newHudBudget,createDomWriteCache} from "./render-optimizer-v0111.mjs";
+import {OPT_0111,newHudBudget,createDomWriteCache} from "./core/render-optimizer-v0111.mjs";
 import {createUnifiedFlightRig,resetUnifiedFlightRig,advanceUnifiedFlightRig,
  unifiedFlightAudit} from "./flight/unified-flight-v0112.mjs";
 import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./frame-pacing-v0112.mjs";
+} from "./core/frame-pacing-v0112.mjs";
 import { MOTION_DEFAULTS,createFlightMotionState } from "./flight/flight-motion-v0112.mjs";
 import {SIGNATURE_FLIGHT,createSignatureFlightState,
  triggerSignatureJump,triggerSignatureLanding,triggerSignatureBoost,
@@ -64,7 +64,7 @@ import {RACING_0121,createRacingExperience,resetRacingExperience,
  observeRacingStep,stepRacingExperience,raceRhythmAt,racingExperienceAudit}
  from "./racing-experience-v0121.mjs";
 import {FIDELITY_0121,readFidelityChoice,saveFidelityChoice,chooseFidelity0121}
- from "./fidelity-settings-v0121.mjs";
+ from "./core/fidelity-settings-v0121.mjs";
 import {TIME_TRIAL_0130,createTimeTrialState,startTimeTrial,
  captureTimeTrialSample,finishTimeTrial,formatTrialTime,formatTrialDelta,
  loadPersonalGhost,readGhostEnabled,saveGhostEnabled,updateGhostDelta,

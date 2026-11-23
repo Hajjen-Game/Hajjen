@@ -157,5 +157,5 @@ test("active game uses new window art with explicit 0.20.1 comparison, not new h
  assert.doesNotMatch(game,/world-material-readability-v0191\.mjs/);
  assert.match(game,/version:"0\.20\.2"/);
  assert.match(file("./index.html"),/boot-v0205\.js\?v=0\.20\.5/);
- assert.match(file("./boot-v0202.js"),/game-v0202\.mjs\?v=0\.20\.2/);
+ assert.match(file("./legacy/boot/boot-v0202.js"),/game-v0202\.mjs\?v=0\.20\.2/);
 });

@@ -120,5 +120,5 @@ test("world, bank, handling, old lighting and A/B baselines are intact",()=>{
  assert.doesNotMatch(game,/world-material-readability-v0191/);
  assert.match(game,/version:"0\.20\.3"/);
  assert.match(f("./material-grade-v0203.html"),/boot-v0203\.js\?v=0\.20\.3/);
- assert.match(f("./boot-v0203.js"),/game-v0203\.mjs\?v=0\.20\.3/);
+ assert.match(f("./legacy/boot/boot-v0203.js"),/game-v0203\.mjs\?v=0\.20\.3/);
 });

@@ -1,5 +1,5 @@
 // SKYSHIFT 0.8.2 — Track Rhythm & Pilot-Owned GRIP Apex Skyline Circuit: actual elevation, ramp and flight
-import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./boost-v082.mjs";
+import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./flight/boost/boost-v082.mjs";
 import {GRIP_SPEC,initGripState,stepGripState} from "./precision-grip-v061.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick,
  finalizeAirTrick,stepLandingBoost,settleTrickVisual} from "./air-tricks-v081.mjs";

@@ -81,9 +81,9 @@ import {CHALLENGES_0140,CHALLENGE_RULES_0140,getChallenge,challengeDistance,
  readChallengeProgress,saveChallengeProgress,challengeSummary,challengeUnlocked,
  evaluateChallenge,recordChallenge,captureChallengeMetrics}
  from "./tracks/skyline/skyline-challenges-v0140.mjs";
-import {createShipArtController} from "./ship-hero-loader-v01342.mjs";
+import {createShipArtController} from "./ships/ship-hero-loader-v01342.mjs";
 import {HANGAR_HERO_0134,createStingrayHeroShowroom}
- from "./hangar-hero-v0134.mjs";
+ from "./ships/hangar-hero-v0134.mjs";
 import {STINGRAY_PRESENTATION_01347,visualSettingsForShip}
  from "./ships/stingray-presentation-v01347.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");

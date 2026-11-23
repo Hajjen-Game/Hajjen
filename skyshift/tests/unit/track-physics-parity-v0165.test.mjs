@@ -70,5 +70,5 @@ test("Skyline original course stays unchanged; Aurora PB has a new revision",()=
  const game=source("./game-v0165.mjs"),html=source("./index.html");
  assert.match(game,/from "\.\/trial-v0165\.mjs"/);
  assert.match(html,/boot-v0205\.js\?v=0\.20\.5/);
- assert.match(source("./boot-v0165.js"),/game-v0165\.mjs\?v=0\.16\.5/);
+ assert.match(source("./legacy/boot/boot-v0165.js"),/game-v0165\.mjs\?v=0\.16\.5/);
 });

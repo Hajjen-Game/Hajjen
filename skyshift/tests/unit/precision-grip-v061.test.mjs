@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {GRIP_SPEC,initGripState,stepGripState} from "../../precision-grip-v061.mjs";
-import {SIDE_THRUSTER_SPEC,createSideThrusters} from "../../side-thrusters-v061.mjs";
+import {SIDE_THRUSTER_SPEC,createSideThrusters} from "../../flight/side-thrusters-v061.mjs";
 import {TRIAL,newFlightState,stepFlight,speedAt,positionAt,headingAt,
  CIRCUIT,validateTrial} from "../../trial-v061.mjs";
 const src=f=>readFileSync(new URL("../../"+f,import.meta.url),"utf8");

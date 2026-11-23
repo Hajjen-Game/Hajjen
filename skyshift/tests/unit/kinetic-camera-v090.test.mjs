@@ -6,8 +6,8 @@ import {TRIAL,CIRCUIT,CORKSCREW,MAGNETIC_WALL,SKYLINE_LEAP,
  newFlightState,validateTrial,bankAt,headingAt,positionAt} from "../../trial-v084.mjs";
 import {KINETIC_CAMERA,kineticFovAt,kineticSpeedFraction,
  createKineticCameraState,stepKineticCamera,triggerKineticLanding,
- kineticCameraAudit} from "../../kinetic-camera-v090.mjs";
-import {BOOST_SPRING,boostFovTarget} from "../../boost-spring-v090.mjs";
+ kineticCameraAudit} from "../../flight/kinetic-camera-v090.mjs";
+import {BOOST_SPRING,boostFovTarget} from "../../flight/boost-spring-v090.mjs";
 import {chasePose as oldChasePose,CINEMATIC_DEFAULTS as oldSettings,
  cameraBankAt as oldCameraBankAt} from "../../cinematic-v084.mjs";
 import {chasePose as kineticChasePose,CINEMATIC_DEFAULTS as newSettings,

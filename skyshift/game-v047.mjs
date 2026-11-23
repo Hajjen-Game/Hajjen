@@ -15,7 +15,7 @@ import {
 } from "./core/frame-pacing-v044.mjs";
 import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
 import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cinematicFov,engineLightFactor } from "./cinematic-v045.mjs";
-import { installAeroBarriers,AERO_BARRIER } from "./aero-barrier-v047.mjs";
+import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier-v047.mjs";
 import { installSpaceBackdrop } from "./space-v04.mjs";
 import { refineCraftSilhouette,createContactShadow } from "./ship-v034.mjs";
 import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";

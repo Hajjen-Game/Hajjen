@@ -14,7 +14,7 @@ import {gripApexCue,createRailFeedbackState,startRailFeedback,
  stepRailFeedback,RACING_FEEL} from "../../flight/racing-feel-v083.mjs";
 import {clarityProfile,dprForAdaptiveLevel} from "../../image-clarity-v083.mjs";
 import {createSmoothDeckData} from "../../smooth-track-v083.mjs";
-import {createAeroBarrierData} from "../../aero-barrier-v083.mjs";
+import {createAeroBarrierData} from "../../tracks/barriers/aero-barrier-v083.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,e=1e-5)=>assert.ok(Math.abs(a-b)<=e,
  "expected "+a+" to be within "+e+" of "+b);

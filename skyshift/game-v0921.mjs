@@ -4,7 +4,7 @@ import {
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,STEERING_AUTHORITY,steeringBalanceAt,normalYawFactorAt,elevationAudit,
  newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
 } from "./trial-v0901.mjs";
-import { BOOST_PADS,BOOST_CONFIG } from "./boost-v082.mjs";
+import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v082.mjs";
 import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v0901.mjs";
 import {SHADOW_TUNNEL,inShadowTunnel,tunnelIntensityAt,installShadowTunnel,
  installTunnelRoadShading} from "./shadow-tunnel-v092.mjs";
@@ -28,12 +28,12 @@ import {SIGNATURE_FLIGHT,createSignatureFlightState,stepSignatureFlight,
  signatureFlightAudit} from "./flight/signature-flight-v091.mjs";
 import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "./cinematic-v0901.mjs";
 import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./flight/boost-spring-v090.mjs";
-import {BOOST_SPRING as CLASSIC_BOOST_FOV} from "./boost-spring-v0495.mjs";
+import {BOOST_SPRING as CLASSIC_BOOST_FOV} from "./flight/boost/boost-spring-v0495.mjs";
 import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "./velocity-language-v0496.mjs";
 import {KINETIC_CAMERA,kineticFovAt,createKineticCameraState,
  stepKineticCamera,triggerKineticLanding,kineticCameraAudit}
  from "./flight/kinetic-camera-v090.mjs";
-import { installAeroBarriers,AERO_BARRIER } from "./aero-barrier-v0901.mjs";
+import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier-v0901.mjs";
 import { installSpaceBackdrop } from "./space-v0496.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
 import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v083.mjs";

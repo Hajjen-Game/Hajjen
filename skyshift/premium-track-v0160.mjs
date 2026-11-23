@@ -7,7 +7,7 @@ import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs"
 import {vaultSpatialWaveEnabled0285}
  from "./tunnel/vault-spatial-wave-parity-v0285.mjs";
 export const VAULT_WAVE_PARITY_0285_ACTIVE=vaultSpatialWaveEnabled0285();
-import {BOOST_PADS} from "./boost-v0160.mjs";
+import {BOOST_PADS} from "./flight/boost/boost-v0160.mjs";
 import {RHYTHM_GATES_0160,VAULT_BOOST_0283_ACTIVE} from "./risk-reward-v0160.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v0160.mjs";
 

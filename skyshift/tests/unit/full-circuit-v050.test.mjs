@@ -8,7 +8,7 @@ import {
  widthAt,headingAt,curvatureAt,positionAt,speedAt,validateTrial,
  newFlightState,stepFlight,setZoneSpeedStage
 } from "../../trial-v050.mjs";
-import {BOOST_CONFIG,BOOST_PADS} from "../../boost-v050.mjs";
+import {BOOST_CONFIG,BOOST_PADS} from "../../flight/boost/boost-v050.mjs";
 import {
  ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,
  frontPaletteBlend,spectralChargeStrength
@@ -17,7 +17,7 @@ import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v050.mjs";
 import {PREMIUM_TRACK,GLSL_BOOST_PADS,patchPremiumShaders}
  from "../../premium-track-v050.mjs";
 import {AERO_BARRIER,createAeroBarrierData,createAeroDetailData,patchRailShaders}
- from "../../aero-barrier-v050.mjs";
+ from "../../tracks/barriers/aero-barrier-v050.mjs";
 const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 const close=(actual,expected,delta=.0001)=>
  assert.ok(Math.abs(actual-expected)<delta,actual+" != "+expected);

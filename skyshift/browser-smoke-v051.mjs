@@ -161,7 +161,7 @@ try{
  // Validate the camera's real browser ESM module without replacing the
  // normal flight simulation or introducing extra GPU draw calls.
  const boostSpring=await page.evaluate(async()=>{
-  const m=await import("./boost-spring-v0495.mjs");
+  const m=await import("./flight/boost/boost-spring-v0495.mjs");
   const s=m.createBoostSpringState();
   m.triggerBoostSpring(s,44,1.4);
   let speedMult=1,peak=0,peakTime=0;
@@ -206,8 +206,8 @@ try{
  console.log("PASS: browser-executed world and thruster velocity:",JSON.stringify(velocity));
  // Validate the physical new profile with the real Three.js browser graph.
  const railProfile=await page.evaluate(async()=>{
-  const m=await import("./aero-barrier-v0497.mjs");
-  const previous=await import("./aero-barrier-v0496.mjs");
+  const m=await import("./tracks/barriers/aero-barrier-v0497.mjs");
+  const previous=await import("./tracks/barriers/aero-barrier-v0496.mjs");
   const straight=m.railHeightAt(30);
   const corner=m.railHeightAt(158);
   const arrows=m.createAeroDetailData();
@@ -230,7 +230,7 @@ try{
  const marathon=await page.evaluate(async()=>{
    const [trial,wave,boost]=await Promise.all([
      import("./trial-v051.mjs"),import("./zone-wave-v051.mjs"),
-     import("./boost-v050.mjs")]);
+     import("./flight/boost/boost-v050.mjs")]);
    const steps=Array.from({length:9},(_,i)=>trial.speedAt(0,i));
    const progress=trial.newFlightState();
    const base=progress.currentSpeed;

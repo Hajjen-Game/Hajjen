@@ -40,8 +40,8 @@ try{
  const physical=await page.evaluate(async()=>{
   const [m,road,rail,cinema,boost]=await Promise.all([
    import("./trial-v083.mjs"),import("./smooth-track-v083.mjs"),
-   import("./aero-barrier-v083.mjs"),import("./cinematic-v083.mjs"),
-   import("./boost-v082.mjs")]);
+   import("./tracks/barriers/aero-barrier-v083.mjs"),import("./cinematic-v083.mjs"),
+   import("./flight/boost/boost-v082.mjs")]);
   const corner=m.COURSE_SEGMENTS.find(x=>x.id==="high-speed-sweep");
   const wall=()=>{const s=1645,p=m.positionAt(s),f=m.newFlightState();
    Object.assign(f,{s,worldX:p.x,worldZ:p.z,

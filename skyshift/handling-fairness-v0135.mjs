@@ -4,7 +4,7 @@
 import {TRIAL,COURSE_SEGMENTS,CIRCUIT,headingAt,curvatureAt,widthAt,
  guardrailLateralLimit,positionAt,speedAt,yawAuthorityAt,normalYawFactorAt,
  newFlightState,stepFlight} from "./trial-v01348.mjs";
-import {BOOST_CONFIG} from "./boost-v082.mjs";
+import {BOOST_CONFIG} from "./flight/boost/boost-v082.mjs";
 export const FAIRNESS_0135=Object.freeze({
  version:"handling-track-fairness-0135",
  auditedPhysics:"grip-bonus-half-power-01348",

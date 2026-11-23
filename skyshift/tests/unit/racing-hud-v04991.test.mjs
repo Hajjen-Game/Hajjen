@@ -5,7 +5,7 @@ import {readFileSync} from "node:fs";
 import {
  HUD_SPEC,createHudState,hudSignal,stepHudState,hudVisualFrame,createReactiveHud
 } from "../../reactive-hud-v04991.mjs";
-import {BOOST_CONFIG} from "../../boost-v0494.mjs";
+import {BOOST_CONFIG} from "../../flight/boost/boost-v0494.mjs";
 import {TRIAL,GUARDRAIL} from "../../trial-v0494.mjs";
 import {ZONE_WAVE} from "../../zone-wave-v0493.mjs";
 const src=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");

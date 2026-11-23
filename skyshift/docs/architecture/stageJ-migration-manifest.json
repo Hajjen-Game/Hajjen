@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "stage": "SKYSHIFT Architecture Cleanup 2.0 — Stage J",
+  "baseCommit": "fc4d69f4267ba459dc85b4e5f64d7741b81d4bd7",
+  "description": "24 historic barrier sources and 11 boost sources; exact Git blob parity after reversible import-path rebases",
+  "files": {
+    "aero-barrier-v0160.mjs": {
+      "originalGitBlobSha": "4e5e0d7f898252356be9fb90fd72b976cb4a6fb5",
+      "destination": "tracks/barriers/aero-barrier-v0160.mjs"
+    },
+    "aero-barrier-v0161.mjs": {
+      "originalGitBlobSha": "c2770b0307a037cd9a92254e6025e6dfb64bdc81",
+      "destination": "tracks/barriers/aero-barrier-v0161.mjs"
+    },
+    "aero-barrier-v0162.mjs": {
+      "originalGitBlobSha": "74fedbdb6985452dc3524c1e1a434b6d7f90c5f3",
+      "destination": "tracks/barriers/aero-barrier-v0162.mjs"
+    },
+    "aero-barrier-v0163.mjs": {
+      "originalGitBlobSha": "a7e6b23faae2f75f06919cfcf82d9d86c227856b",
+      "destination": "tracks/barriers/aero-barrier-v0163.mjs"
+    },
+    "aero-barrier-v0164.mjs": {
+      "originalGitBlobSha": "326e3a362d219b15380cb214921d2c2eef0961f6",
+      "destination": "tracks/barriers/aero-barrier-v0164.mjs"
+    },
+    "aero-barrier-v0165.mjs": {
+      "originalGitBlobSha": "9269bb93bd8ff50296207a4c11cd33f8fd469e41",
+      "destination": "tracks/barriers/aero-barrier-v0165.mjs"
+    },
+    "aero-barrier-v047.mjs": {
+      "originalGitBlobSha": "3ee69bf80a4aff07db336471b75b13ad5c2bf077",
+      "destination": "tracks/barriers/aero-barrier-v047.mjs"
+    },
+    "aero-barrier-v049.mjs": {
+      "originalGitBlobSha": "c5a13d8f6ec2f1b3cf7118749eaae672908b00ae",
+      "destination": "tracks/barriers/aero-barrier-v049.mjs"
+    },
+    "aero-barrier-v0491.mjs": {
+      "originalGitBlobSha": "9af132abd7cbed459753f11d98e51a9c494a60db",
+      "destination": "tracks/barriers/aero-barrier-v0491.mjs"
+    },
+    "aero-barrier-v0492.mjs": {
+      "originalGitBlobSha": "f16006b48c8d24cbd0f1f2b59985c4bd76156763",
+      "destination": "tracks/barriers/aero-barrier-v0492.mjs"
+    },
+    "aero-barrier-v0493.mjs": {
+      "originalGitBlobSha": "0f673eb97be9a54c7e9f020f1c7ad3ab32e601f3",
+      "destination": "tracks/barriers/aero-barrier-v0493.mjs"
+    },
+    "aero-barrier-v0496.mjs": {
+      "originalGitBlobSha": "74f51632d2f73bf63dd113b72e61f49b643f36a7",
+      "destination": "tracks/barriers/aero-barrier-v0496.mjs"
+    },
+    "aero-barrier-v0497.mjs": {
+      "originalGitBlobSha": "7ae41271fa67ababf4f067c14981b83516c694f7",
+      "destination": "tracks/barriers/aero-barrier-v0497.mjs"
+    },
+    "aero-barrier-v050.mjs": {
+      "originalGitBlobSha": "1eb6242d69ae706674db7f4d6947a17344d03693",
+      "destination": "tracks/barriers/aero-barrier-v050.mjs"
+    },
+    "aero-barrier-v051.mjs": {
+      "originalGitBlobSha": "738aa9fa0dedce03bb4a1ec10a0e300040b44d28",
+      "destination": "tracks/barriers/aero-barrier-v051.mjs"
+    },
+    "aero-barrier-v060.mjs": {
+      "originalGitBlobSha": "93fa9d4168a0a29733b942aaf41938a9b4442985",
+      "destination": "tracks/barriers/aero-barrier-v060.mjs"
+    },
+    "aero-barrier-v070.mjs": {
+      "originalGitBlobSha": "a8ffa81c831acb232b1a5558ff76441afd4ecaf2",
+      "destination": "tracks/barriers/aero-barrier-v070.mjs"
+    },
+    "aero-barrier-v071.mjs": {
+      "originalGitBlobSha": "27f00be0b8e83aaeb7daafca67ab2edd8555b8e1",
+      "destination": "tracks/barriers/aero-barrier-v071.mjs"
+    },
+    "aero-barrier-v072.mjs": {
+      "originalGitBlobSha": "94ceb716766dff48bec06407e548c7ada42d05c7",
+      "destination": "tracks/barriers/aero-barrier-v072.mjs"
+    },
+    "aero-barrier-v081.mjs": {
+      "originalGitBlobSha": "37fc3e972c549b23d8a9bf11d65d411288bf9651",
+      "destination": "tracks/barriers/aero-barrier-v081.mjs"
+    },
+    "aero-barrier-v082.mjs": {
+      "originalGitBlobSha": "29ce24aa7d8205ffb42071711d64115e3ccc3b5e",
+      "destination": "tracks/barriers/aero-barrier-v082.mjs"
+    },
+    "aero-barrier-v083.mjs": {
+      "originalGitBlobSha": "ac7cc75f500da66c6b8a05f548515dfda3a48972",
+      "destination": "tracks/barriers/aero-barrier-v083.mjs"
+    },
+    "aero-barrier-v084.mjs": {
+      "originalGitBlobSha": "a89075e00c2f5c885c6d33c3a07cbe86936c985a",
+      "destination": "tracks/barriers/aero-barrier-v084.mjs"
+    },
+    "aero-barrier-v0901.mjs": {
+      "originalGitBlobSha": "1f72fe3754021f8cf0345ea3573fa4dc770075c6",
+      "destination": "tracks/barriers/aero-barrier-v0901.mjs"
+    },
+    "boost-chase-v0494.mjs": {
+      "originalGitBlobSha": "b71054ab3444d73280543f21d04f524fa4dbb7b2",
+      "destination": "flight/boost/boost-chase-v0494.mjs"
+    },
+    "boost-spring-v0495.mjs": {
+      "originalGitBlobSha": "5e3a25054a27c2e03f076cae0f79864aba70b6f2",
+      "destination": "flight/boost/boost-spring-v0495.mjs"
+    },
+    "boost-v0150.mjs": {
+      "originalGitBlobSha": "8a80bf39bc7f242d2f3826200b0dc329b92f09a4",
+      "destination": "flight/boost/boost-v0150.mjs"
+    },
+    "boost-v0151.mjs": {
+      "originalGitBlobSha": "390600b6dba9ee29cb191606fda47aa03ac9444d",
+      "destination": "flight/boost/boost-v0151.mjs"
+    },
+    "boost-v0160.mjs": {
+      "originalGitBlobSha": "d520265e46445e90578585eb8949fc499d6b013b",
+      "destination": "flight/boost/boost-v0160.mjs"
+    },
+    "boost-v048.mjs": {
+      "originalGitBlobSha": "0bf18a31e3b462f7d37b3293cb8c6b36e0e98367",
+      "destination": "flight/boost/boost-v048.mjs"
+    },
+    "boost-v049.mjs": {
+      "originalGitBlobSha": "026c714fc1bc9ec189488e27641b3ab0583ae9af",
+      "destination": "flight/boost/boost-v049.mjs"
+    },
+    "boost-v0494.mjs": {
+      "originalGitBlobSha": "ee71fbd4dd4410bb068be865f57f74073c9246c8",
+      "destination": "flight/boost/boost-v0494.mjs"
+    },
+    "boost-v050.mjs": {
+      "originalGitBlobSha": "14fdbd84bcb2ac4847140379e54477656c1c87b4",
+      "destination": "flight/boost/boost-v050.mjs"
+    },
+    "boost-v060.mjs": {
+      "originalGitBlobSha": "8be2fb44870ea572778aca989a2bc0963ac2042a",
+      "destination": "flight/boost/boost-v060.mjs"
+    },
+    "boost-v082.mjs": {
+      "originalGitBlobSha": "429a7efe16ca99e92bad495ee262c874166c2d55",
+      "destination": "flight/boost/boost-v082.mjs"
+    }
+  }
+}

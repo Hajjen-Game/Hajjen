@@ -71,9 +71,9 @@ test('R1B original source SHA of 22 historic unit readers is retained, with no a
  assert.ok(rebased>=22,'Expected rebase of all 22 historical readers');
 });
 
-test('R1B CI and root layout enforce the total 468 → 449 → 429 file moves',()=>{
+test('R1B CI and root layout enforce the total 468 → 449 → 429 → 409 file moves',()=>{
  const files=readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile());
- assert.equal(files.length,429,'Incorrect cumulative root count');
+ assert.equal(files.length,409,'Incorrect cumulative root count after R1C');
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const item of manifest.files){
   assert.ok(!workflow.includes('node --check '+item.oldPath),

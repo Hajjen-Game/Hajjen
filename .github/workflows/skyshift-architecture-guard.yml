@@ -73,6 +73,8 @@ jobs:
         run: node --test skyshift/tests/architecture/legacy-boot-migration-r1.test.mjs
       - name: R1B audit 20 original boot Git blobs, 22 historical test readers and root-count invariant
         run: node --test skyshift/tests/architecture/legacy-boot-migration-r1b.test.mjs
+      - name: R1C preserve 20 historical boots and 24 original unit-test Git hashes
+        run: node --test skyshift/tests/architecture/legacy-boot-migration-r1c.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

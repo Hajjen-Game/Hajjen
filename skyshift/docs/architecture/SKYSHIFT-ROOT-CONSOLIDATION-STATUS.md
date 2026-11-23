@@ -31,7 +31,7 @@ The new `skyshift/tests/architecture/root-consolidation-inventory.test.mjs` is i
 
 ## Safe migration roadmap
 
-**R0 — Evidence and ownership (CURRENT).** Inventory all 468 root files, build a reference/asset dependency map, classify each file into (a) current entrypoint/runtime, (b) imported live module, (c) historical version needed by tests/A-B, (d) test/tool, or (e) confirmed unreferenced. Report **measured** categories. Never claim old versions are safe to remove without checking.
+**R0 — Evidence and ownership (COMPLETE).** Inventory all 468 root files, build a reference/asset dependency map, classify each file into (a) current entrypoint/runtime, (b) imported live module, (c) historical version needed by tests/A-B, (d) test/tool, or (e) confirmed unreferenced. Report **measured** categories. Never claim old versions are safe to remove without checking.
 
 **R1 — Historical entry versions.** Relocate eligible `game-v*` and `boot-v*` snapshots to an explicit `legacy/` structure in coherent batches. Protect current `game-v0210.mjs` and `boot-v0210.js`, preserve A/B URLs when required, and update every historical test, import and workflow. A legacy URL compatibility decision must be explicit before relocation.
 
@@ -61,9 +61,19 @@ For each work session: verify latest `main`, look for open PRs, reconcile the la
 
 **This is the first cohort, not the completion of root consolidation.** Next: remaining bootstraps that have historical test consumers; update those tests with reversible SHA checks, then game snapshots and styles.
 
-## R1B — 20 more archived bootstrap files, pending tests
+## R1B — 20 archived bootstrap files, merged as PR #196
 
-Baseline after PR #195: **449 root files**. This R1B branch moves 20 more historical `boot-v*.js` to `legacy/boot/` and adjusts 22 historical unit test source readers, expecting **429 root files** after merge. Original boot Git blob SHA values and original test SHAs are protected by `legacy/boot/R1B-migration-manifest.json` and a reversible path-only audit. Live `boot-v0210.js`, `game-v0210.mjs`, and all rendering/flight code are untouched. Historical direct bootstrap URLs are not automatically redirected on GitHub Pages. **Do not claim this batch is merged until CI succeeds and root count is checked.**
+Baseline after PR #195: **449 root files**. Merged PR #196 moved 20 historical `boot-v*.js` to `legacy/boot/` and adjusts 22 historical unit test source readers, leaving **429 root files** on `main`. Original boot Git blob SHA values and original test SHAs are protected by `legacy/boot/R1B-migration-manifest.json` and a reversible path-only audit. Live `boot-v0210.js`, `game-v0210.mjs`, and all rendering/flight code are untouched. Historical direct bootstrap URLs are not automatically redirected on GitHub Pages. **All 35 PR checks, the separate 0.20.3 WebGL regression and `main` Pages/QA succeeded.**
+
+## R1C — early VFX and 0.13.x bootstrap readers (CURRENT PR)
+
+After PR #196, `main` has **429 direct-root files**. R1C moves **20 additional historical boot scripts** into `legacy/boot/`, updating **24 original unit-test readers**, reducing the expected direct-root count to **409** after merge. Four UI flow regression tests also update their import-path expectations from `./game-v` to `../../game-v`: they still verify the same target version and query, and their **entire original Git blob SHA** must be recoverable by the narrow reversible path overlay.
+
+- Immutable source/reader manifest: `skyshift/legacy/boot/R1C-migration-manifest.json`.
+- Mandatory independent SHA and root-count gate: `skyshift/tests/architecture/legacy-boot-migration-r1c.test.mjs`. Original Stage 5–8 unit-integrity checks remain strict.
+- Active `index.html`, `boot-v0210.js` and `game-v0210.mjs` are unchanged; no rendering/flight/track edits.
+- Await all PR and historical browser checks before merging; after merge confirm Pages, `main` QA and precisely **409** root files.
+- Remaining boot versions after R1C: **25**, including the active entrypoint (24 historical). Continue with the 0.13.4 lineage and older 0.4.9 compatibility tests, then the historical `game-v*` modules. The final target remains a few intentional root files, not just green CI.
 
 ## Work history / last decision
 

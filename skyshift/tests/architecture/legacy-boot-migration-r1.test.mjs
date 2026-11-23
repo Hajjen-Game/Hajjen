@@ -43,7 +43,7 @@ test('R1 exactly 19 selected historical bootstraps preserve original Git SHA and
  assert.ok(existsSync(resolve(root,'boot-v0210.js')));
  assert.ok(existsSync(resolve(root,'game-v0210.mjs')));
 });
-test('R1 CI points to all relocated bootstraps and cumulative root inventory reflects 468 to 429',()=>{
+test('R1 CI points to all relocated bootstraps and cumulative root inventory reflects 468 to 409',()=>{
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  const rootPaths=manifest.files.map(x=>x.name);
  for(const name of rootPaths){
@@ -51,5 +51,5 @@ test('R1 CI points to all relocated bootstraps and cumulative root inventory ref
   assert.ok(!workflow.includes('node --check skyshift/'+name),'Stale root syntax check for '+name);
  }
  const files=readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile());
- assert.equal(files.length,429,'R1 plus R1B must leave 429 root files (468 - 19 - 20)');
+ assert.equal(files.length,409,'R1 plus R1B plus R1C must leave 409 root files (468 - 19 - 20 - 20)');
 });

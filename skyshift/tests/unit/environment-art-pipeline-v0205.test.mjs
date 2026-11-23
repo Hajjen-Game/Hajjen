@@ -158,5 +158,5 @@ test("gameplay and lower versions are preserved; active boot and fair A/B",()=>{
  assert.match(game,/compareBeforeArchitecture:"\?architecturePass=classic"/);
  assert.match(game,/version:"0\.20\.5"/);
  assert.match(read("./index.html"),/boot-v0205\.js\?v=0\.20\.5/);
- assert.match(read("./boot-v0205.js"),/game-v0205\.mjs\?v=0\.20\.5/);
+ assert.match(read("./legacy/boot/boot-v0205.js"),/game-v0205\.mjs\?v=0\.20\.5/);
 });

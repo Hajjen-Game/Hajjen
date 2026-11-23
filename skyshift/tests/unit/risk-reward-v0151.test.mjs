@@ -196,5 +196,5 @@ test("records versioned for 0.15.1 but eight Challenge progress remains intact",
  assert.match(game,/const result=stepFlight\(flight,dt,\{steer,grip:gripHeld\}\)/);
  assert.match(game,/riskCueAt\(flight\.s,flight\.lateral,flight\.boostActivatedGroups\)/);
  assert.match(source("./index.html"),/boot-v0151\.js\?v=0\.15\.1/);
- assert.match(source("./boot-v0151.js"),/game-v0151\.mjs\?v=0\.15\.1/);
+ assert.match(source("./legacy/boot/boot-v0151.js"),/game-v0151\.mjs\?v=0\.15\.1/);
 });

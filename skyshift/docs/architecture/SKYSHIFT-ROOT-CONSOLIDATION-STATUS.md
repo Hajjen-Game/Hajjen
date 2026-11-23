@@ -61,6 +61,10 @@ For each work session: verify latest `main`, look for open PRs, reconcile the la
 
 **This is the first cohort, not the completion of root consolidation.** Next: remaining bootstraps that have historical test consumers; update those tests with reversible SHA checks, then game snapshots and styles.
 
+## R1B — 20 more archived bootstrap files, pending tests
+
+Baseline after PR #195: **449 root files**. This R1B branch moves 20 more historical `boot-v*.js` to `legacy/boot/` and adjusts 22 historical unit test source readers, expecting **429 root files** after merge. Original boot Git blob SHA values and original test SHAs are protected by `legacy/boot/R1B-migration-manifest.json` and a reversible path-only audit. Live `boot-v0210.js`, `game-v0210.mjs`, and all rendering/flight code are untouched. Historical direct bootstrap URLs are not automatically redirected on GitHub Pages. **Do not claim this batch is merged until CI succeeds and root count is checked.**
+
 ## Work history / last decision
 
 - 2026-11-23: **468 root files** found; earlier "Architecture Cleanup 2.0 complete" statement corrected.

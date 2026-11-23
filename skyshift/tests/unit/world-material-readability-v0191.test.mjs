@@ -64,5 +64,5 @@ test("live 0.19.1 renderer includes only opt-in material change",()=>{
  assert.match(game,/from "\.\/world-rebuild-v0190\.mjs"/);
  assert.match(game,/from "\.\/signature-environment-v0180\.mjs"/);
  assert.match(file("./index.html"),/boot-v0191\.js\?v=0\.19\.1/);
- assert.match(file("./boot-v0191.js"),/game-v0191\.mjs\?v=0\.19\.1/);
+ assert.match(file("./legacy/boot/boot-v0191.js"),/game-v0191\.mjs\?v=0\.19\.1/);
 });

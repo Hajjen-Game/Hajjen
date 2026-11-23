@@ -137,5 +137,5 @@ test("active 0.15.0 retains Manta/Stingray steering, Challenge medals, and real 
  assert.match(html,/boot-v0150\.js\?v=0\.15\.0/);
  assert.match(html,/id="risk-line-cue"/);
  assert.match(html,/id="challenges-btn"/);
- assert.match(read("./boot-v0150.js"),/game-v0150\.mjs\?v=0\.15\.0/);
+ assert.match(read("./legacy/boot/boot-v0150.js"),/game-v0150\.mjs\?v=0\.15\.0/);
 });

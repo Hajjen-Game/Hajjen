@@ -695,7 +695,7 @@ jobs:
           node --check skyshift/tests/unit/skyline-challenges-v0140.test.mjs
           node --check skyshift/tests/browser/browser-challenges-v0140.mjs
           node --check skyshift/game-v0140.mjs
-          node --check skyshift/boot-v0140.js
+          node --check skyshift/legacy/boot/boot-v0140.js
           node --check skyshift/risk-reward-v0150.mjs
           node --check skyshift/flight/boost/boost-v0150.mjs
           node --check skyshift/trial-v0150.mjs
@@ -703,7 +703,7 @@ jobs:
           node --check skyshift/core/visual-fidelity-v0150.mjs
           node --check skyshift/time-trial-v0150.mjs
           node --check skyshift/game-v0150.mjs
-          node --check skyshift/boot-v0150.js
+          node --check skyshift/legacy/boot/boot-v0150.js
           node --check skyshift/tests/unit/risk-reward-v0150.test.mjs
           node --check skyshift/tests/browser/browser-risk-reward-v0150.mjs
           node --check skyshift/risk-reward-v0151.mjs
@@ -713,7 +713,7 @@ jobs:
           node --check skyshift/core/visual-fidelity-v0151.mjs
           node --check skyshift/time-trial-v0151.mjs
           node --check skyshift/game-v0151.mjs
-          node --check skyshift/boot-v0151.js
+          node --check skyshift/legacy/boot/boot-v0151.js
           node --check skyshift/tests/unit/risk-reward-v0151.test.mjs
           node --check skyshift/tests/browser/browser-risk-reward-v0151.mjs
           node --check skyshift/tracks/shared/track-selection-v0160.mjs
@@ -731,7 +731,7 @@ jobs:
           node --check skyshift/racing-experience-v0160.mjs
           node --check skyshift/time-trial-v0160.mjs
           node --check skyshift/game-v0160.mjs
-          node --check skyshift/boot-v0160.js
+          node --check skyshift/legacy/boot/boot-v0160.js
           node --check skyshift/tests/unit/multi-track-aurora-v0160.test.mjs
           node --check skyshift/browser-multi-track-v0160.mjs
           node --check skyshift/cinematic-v0161.mjs
@@ -739,7 +739,7 @@ jobs:
           node --check skyshift/rail-scrape-sparks-v0161.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0161.mjs
           node --check skyshift/game-v0161.mjs
-          node --check skyshift/boot-v0161.js
+          node --check skyshift/legacy/boot/boot-v0161.js
           node --check skyshift/tests/unit/track-integrity-v0161.test.mjs
           node --check skyshift/tests/browser/browser-track-integrity-v0161.mjs
           node --check skyshift/trial-v0162.mjs
@@ -748,7 +748,7 @@ jobs:
           node --check skyshift/tracks/barriers/aero-barrier-v0162.mjs
           node --check skyshift/rail-scrape-sparks-v0162.mjs
           node --check skyshift/game-v0162.mjs
-          node --check skyshift/boot-v0162.js
+          node --check skyshift/legacy/boot/boot-v0162.js
           node --check skyshift/rail-contact-audit-v0162.mjs
           node --check skyshift/tests/unit/rail-collision-v0162.test.mjs
           node --check skyshift/tests/unit/track-integrity-v0162.test.mjs
@@ -759,7 +759,7 @@ jobs:
           node --check skyshift/tracks/barriers/aero-barrier-v0163.mjs
           node --check skyshift/rail-scrape-sparks-v0163.mjs
           node --check skyshift/game-v0163.mjs
-          node --check skyshift/boot-v0163.js
+          node --check skyshift/legacy/boot/boot-v0163.js
           node --check skyshift/rail-contact-audit-v0163.mjs
           node --check skyshift/tests/unit/rail-contact-quality-v0163.test.mjs
           node --check skyshift/tests/unit/track-integrity-v0163.test.mjs
@@ -770,7 +770,7 @@ jobs:
           node --check skyshift/tracks/barriers/aero-barrier-v0164.mjs
           node --check skyshift/rail-scrape-sparks-v0164.mjs
           node --check skyshift/game-v0164.mjs
-          node --check skyshift/boot-v0164.js
+          node --check skyshift/legacy/boot/boot-v0164.js
           node --check skyshift/tests/unit/track-integrity-v0164.test.mjs
           node --check skyshift/track-physics-parity-probe-v0164.mjs
           node --check skyshift/tests/unit/track-physics-parity-v0164.test.mjs
@@ -784,9 +784,9 @@ jobs:
           node --check skyshift/boot-v0165.js
           node --check skyshift/legacy/boot/boot-v0170.js
           node --check skyshift/game-v0170.mjs
-          node --check skyshift/boot-v0180.js
+          node --check skyshift/legacy/boot/boot-v0180.js
           node --check skyshift/game-v0180.mjs
-          node --check skyshift/boot-v0190.js
+          node --check skyshift/legacy/boot/boot-v0190.js
           node --check skyshift/game-v0190.mjs
           node --check skyshift/game-v0192.mjs
           node --check skyshift/game-v0200.mjs
@@ -796,48 +796,48 @@ jobs:
           node --check skyshift/game-v0204.mjs
           node --check skyshift/game-v02041.mjs
           node --check skyshift/game-v0205.mjs
-          node --check skyshift/boot-v0205.js
+          node --check skyshift/legacy/boot/boot-v0205.js
           node --check skyshift/world/authoring/build-station-world-v0205.mjs
           node --check skyshift/world/environment-art-pipeline-v0205.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0205.test.mjs
           node --check skyshift/tests/browser/browser-environment-art-v0205.mjs
-          node --check skyshift/boot-v02041.js
+          node --check skyshift/legacy/boot/boot-v02041.js
           node --check skyshift/world/authoring/build-station-world-v02041.mjs
           node --check skyshift/world/environment-art-pipeline-v02041.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs
           node --check skyshift/tests/browser/browser-environment-art-v02041.mjs
-          node --check skyshift/boot-v0204.js
+          node --check skyshift/legacy/boot/boot-v0204.js
           node --check skyshift/world/authoring/build-station-world-v0204.mjs
           node --check skyshift/world/environment-art-pipeline-v0204.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs
           node --check skyshift/tests/browser/browser-environment-art-v0204.mjs
           node --check skyshift/game-v0203.mjs
-          node --check skyshift/boot-v0203.js
+          node --check skyshift/legacy/boot/boot-v0203.js
           node --check skyshift/world/authoring/build-station-world-v0203.mjs
           node --check skyshift/world/environment-art-pipeline-v0203.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs
           node --check skyshift/tests/browser/browser-environment-art-v0203.mjs
-          node --check skyshift/boot-v02021.js
+          node --check skyshift/legacy/boot/boot-v02021.js
           node --check skyshift/world/authoring/build-station-world-v02021.mjs
           node --check skyshift/world/environment-art-pipeline-v02021.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs
           node --check skyshift/tests/browser/browser-environment-art-v02021.mjs
-          node --check skyshift/boot-v0202.js
+          node --check skyshift/legacy/boot/boot-v0202.js
           node --check skyshift/world/authoring/build-station-world-v0202.mjs
           node --check skyshift/world/environment-art-pipeline-v0202.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs
           node --check skyshift/tests/browser/browser-environment-art-v0202.mjs
-          node --check skyshift/boot-v0201.js
+          node --check skyshift/legacy/boot/boot-v0201.js
           node --check skyshift/world/authoring/build-station-world-v0201.mjs
           node --check skyshift/world/environment-art-pipeline-v0201.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs
           node --check skyshift/tests/browser/browser-environment-art-v0201.mjs
-          node --check skyshift/boot-v0200.js
+          node --check skyshift/legacy/boot/boot-v0200.js
           node --check skyshift/world/authoring/build-station-world-v0200.mjs
           node --check skyshift/world/environment-art-pipeline-v0200.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs
           node --check skyshift/tests/browser/browser-environment-art-v0200.mjs
-          node --check skyshift/boot-v0192.js
+          node --check skyshift/legacy/boot/boot-v0192.js
           node --check skyshift/orbital-hero-v0192.mjs
           node --check skyshift/tests/unit/orbital-hero-v0192.test.mjs
           node --check skyshift/tests/browser/browser-orbital-hero-v0192.mjs

@@ -1,4 +1,4 @@
-// SKYSHIFT 0.6.0 — three visible booster inlays, reusable once per lap.
+// SKYSHIFT 0.8.2 — early launch and spaced three visible booster inlays, reusable once per lap.
 // Renderer-neutral boost state: never changes yaw authority, steering or road geometry.
 export const BOOST_CONFIG=Object.freeze({
  multiplier:1.40,
@@ -8,10 +8,10 @@ export const BOOST_CONFIG=Object.freeze({
  padHalfWidthMeters:4.6,
  colorHex:0xffbe62
 });
-import {CIRCUIT} from "./circuit-layout-v060.mjs";
+import {CIRCUIT} from "../../circuit-layout-v082.mjs";
 export const BOOST_PADS=Object.freeze([
- Object.freeze({id:"launch",start:210,end:238,lateralMin:-4.6,lateralMax:4.6}),
- Object.freeze({id:"technical-release",start:1990,end:2020,lateralMin:-4.6,lateralMax:4.6}),
+ Object.freeze({id:"launch",start:58,end:86,lateralMin:-4.6,lateralMax:4.6}),
+ Object.freeze({id:"technical-release",start:2195,end:2225,lateralMin:-4.6,lateralMax:4.6}),
  Object.freeze({id:"finish-drive",start:3150,end:3180,lateralMin:-4.6,lateralMax:4.6})
 ]);
 // GPU draws three physical pads, the authoritative race has nine unique

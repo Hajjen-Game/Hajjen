@@ -139,7 +139,7 @@ test("GRIP air roll follows LEFT/RIGHT stick and bank orientation (0.8.1.1)",()=
   const firingWing=-Math.sign(st.trickDirection);
   assert.equal(firingWing,-Math.sign(steer));
  }
- const index=source("./index.html"),boot=source("./boot-v081.js");
+ const index=source("./index.html"),boot=source("./legacy/boot/boot-v081.js");
  assert.ok(index.includes('boot-v0103.js?v=0.10.3'));
  assert.ok(boot.includes('game-v081.mjs?v=0.8.1.1'));
 });

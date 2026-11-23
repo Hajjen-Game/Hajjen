@@ -1,11 +1,11 @@
-import {isAurora} from "./tracks/shared/track-selection-v0160.mjs";
+import {isAurora} from "../shared/track-selection-v0160.mjs";
 // SKYSHIFT 0.8.4 — terrain-following rails with a real missing launch-gap span
 // Material layers and inlaid graphics share the 0.4.6 track geometry/collider.
 // A faceted safety wall replaces the round-looking continuous neon tube.
 import {
  TRIAL,GUARDRAIL,COURSE_SEGMENTS,positionAt,widthAt,curvatureAt,gapAt,GAPS,CORKSCREW
-} from "./trial-v0165.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
+} from "../../trial-v0160.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v060.mjs";
 export const AERO_BARRIER=Object.freeze({
  step:.95,
  height:.99,
@@ -77,7 +77,7 @@ export function createAeroBarrierData(step=isAurora()?1.55:AERO_BARRIER.step){
  const samples=Array.from({length:slices+1},(_,i)=>i*TRIAL.length/slices)
   .concat(GAPS.flatMap(g=>[g.start,g.end]))
   .sort((a,b)=>a-b).filter((v,i,arr)=>i===0||Math.abs(v-arr[i-1])>1e-7);
- const positions=[],colors=[],indices=[],trackS=[];
+ const positions=[],colors=[],indices=[];
  for(const side of [-1,1]){
   const offset=positions.length/3;
   for(let i=0;i<samples.length;i++){
@@ -86,7 +86,6 @@ export function createAeroBarrierData(step=isAurora()?1.55:AERO_BARRIER.step){
    for(let j=0;j<count;j++){
     const p=vertices[j];
     positions.push(p.x,p.y,p.z);
-    trackS.push(s);
     colors.push(...METAL_GRADES[j]);
    }
   }
@@ -99,7 +98,7 @@ export function createAeroBarrierData(step=isAurora()?1.55:AERO_BARRIER.step){
    }
   }
  }
- return {positions,colors,indices,trackS,columns:count,rows:samples.length,
+ return {positions,colors,indices,columns:count,rows:samples.length,
   triangles:indices.length/3};
 }
 function createBatch(){
@@ -197,8 +196,6 @@ function makeGeometry(THREE,batch,indices){
  const geometry=new THREE.BufferGeometry();
  geometry.setAttribute("position",new THREE.Float32BufferAttribute(batch.positions,3));
  geometry.setAttribute("color",new THREE.Float32BufferAttribute(batch.colors,3));
- if(batch.trackS?.length)geometry.setAttribute("aBarrierArc",
-  new THREE.Float32BufferAttribute(batch.trackS,1));
  if(batch.coords?.length)geometry.setAttribute("aRailCoord",
   new THREE.Float32BufferAttribute(batch.coords,2));
  if(batch.chevrons?.length)geometry.setAttribute("aRailChevron",
@@ -223,8 +220,6 @@ uniform float uZoneTime;
 uniform float uWaveDetail;
 uniform float uSpeedFlow;
 uniform float uVelocityPhase;
-uniform float uRailInteriorSeal;
-uniform float uRailWhiteContainment;
 uniform float uRailFront1,uRailFront2,uRailFront3;
 uniform vec3 uRailBase,uRailNext1,uRailNext2,uRailNext3;
 ${SPECTRAL_FRONT_GLSL}
@@ -267,19 +262,6 @@ export const RAIL_SPECTRAL_FRAGMENT=`
    railBloom*.22+railFilaments*.12+velocityRail*.57+chevronResponse);
  diffuseColor.a=min(1.0,diffuseColor.a*(1.0+railWhite*.32+railBloom*.12+
    velocityRail*.36+chevronResponse*.19));
- // 0.21.2.2: the broad white inset glare must not resemble a sunlight
- // source inside the tunnel. Preserve the zone tint and moving white core.
- // The original brightness comes back gradually before the 368m exit.
- float interiorMask=1.0-smoothstep(344.0,368.0,vRailCoord.x);
- float tunnelRailEnergy=mix(1.0,uRailInteriorSeal,interiorMask);
- diffuseColor.rgb*=tunnelRailEnergy;
- diffuseColor.a*=mix(1.0,0.93,interiorMask*(1.0-uRailInteriorSeal));
- // 0.21.2.3: reduce the common neutral-white HDR component BEFORE bloom.
- // Preserve the chromatic remainder of each of the nine zone accents,
- // and use zero containment outside the tunnel or in classic A/B mode.
- float railNeutral=min(min(diffuseColor.r,diffuseColor.g),diffuseColor.b);
- float railWhiteExcess=max(0.0,railNeutral-0.20);
- diffuseColor.rgb-=vec3(railWhiteExcess*interiorMask*uRailWhiteContainment);
 `;
 export function patchRailShaders(vertex,fragment){
  if(!vertex.includes("#include <common>")||
@@ -298,42 +280,6 @@ export function patchRailShaders(vertex,fragment){
      "#include <color_fragment>\n"+RAIL_SPECTRAL_FRAGMENT)
  };
 }
-// SKYSHIFT 0.21.2.4: independent PBR metal shell ≠ colored LED inlay.
-// Source-isolation WebGL proof: removing LED did not affect white glare;
-// hiding or mattifying THIS metallic shell removed >96% of white pixels.
-// Use the physical track metre for per-fragment tunnel confinement.
-export const RAIL_BODY_CONTAINMENT_02124=Object.freeze({
- tunnelStart:0,fadeStart:340,tunnelEnd:368,
- enclosedRoughness:.98,enclosedMetalness:.04,
- enclosedColorFactor:.58,directSpecularFactor:.055,
- indirectSpecularFactor:.10,drawBatchesAdded:0,
- waveChanged:false,collidersChanged:false
-});
-export function patchAeroBodyShaders(vertexShader,fragmentShader){
- for(const token of ["#include <common>","#include <begin_vertex>"])
-  if(!vertexShader.includes(token))throw Error("Missing rail body vertex chunk "+token);
- for(const token of ["#include <common>","#include <color_fragment>",
-  "#include <metalnessmap_fragment>","#include <lights_fragment_end>"])
-  if(!fragmentShader.includes(token))throw Error("Missing rail body PBR chunk "+token);
- const v=vertexShader.replace("#include <common>","#include <common>\n"+
-  "attribute float aBarrierArc;\nvarying float vBarrierArc;")
-  .replace("#include <begin_vertex>",
-   "#include <begin_vertex>\nvBarrierArc=aBarrierArc;");
- const f=fragmentShader.replace("#include <common>","#include <common>\n"+
-  "varying float vBarrierArc;\nuniform float uRailBodyContainment;\n"+
-  "float railBodyTunnelMask(){return uRailBodyContainment*"+
-   "(1.0-smoothstep(340.0,368.0,vBarrierArc));}")
-  .replace("#include <color_fragment>","#include <color_fragment>\n"+
-   "diffuseColor.rgb*=mix(1.0,0.58,railBodyTunnelMask());")
-  .replace("#include <metalnessmap_fragment>","#include <metalnessmap_fragment>\n"+
-   "metalnessFactor=mix(metalnessFactor,0.04,railBodyTunnelMask());\n"+
-   "roughnessFactor=mix(roughnessFactor,0.98,railBodyTunnelMask());")
-  .replace("#include <lights_fragment_end>","#include <lights_fragment_end>\n"+
-   "reflectedLight.directSpecular*=mix(1.0,0.055,railBodyTunnelMask());\n"+
-   "reflectedLight.indirectSpecular*=mix(1.0,0.10,railBodyTunnelMask());");
- return {vertexShader:v,fragmentShader:f};
-}
-
 export function installAeroBarriers(THREE,world){
  const body=createAeroBarrierData(),detail=createAeroDetailData();
  // Deliberately matte-dark under ambient light; narrow bright paint on top.
@@ -342,14 +288,6 @@ export function installAeroBarriers(THREE,world){
   flatShading:true, // Sharp metal bevels rather than smooth luminous tube normals.
   emissive:0x07111b,emissiveIntensity:.16,side:THREE.DoubleSide
  });
- const bodyUniforms={uRailBodyContainment:{value:0}};
- metal.onBeforeCompile=shader=>{
-  const patched=patchAeroBodyShaders(shader.vertexShader,shader.fragmentShader);
-  shader.vertexShader=patched.vertexShader;
-  shader.fragmentShader=patched.fragmentShader;
-  Object.assign(shader.uniforms,bodyUniforms);
- };
- metal.customProgramCacheKey=()=>"aero-barrier-body-v02124";
  const groove=new THREE.MeshBasicMaterial({
   color:0x071420,vertexColors:true,side:THREE.DoubleSide,
   depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,
@@ -364,8 +302,6 @@ export function installAeroBarriers(THREE,world){
   uZoneFeather:{value:ZONE_WAVE.featherMeters},
   uZoneTime:{value:0},uWaveDetail:{value:1},
   uSpeedFlow:{value:0},uVelocityPhase:{value:0},
-  uRailInteriorSeal:{value:1.0},
-  uRailWhiteContainment:{value:0.0},
   uRailBase:{value:new THREE.Color(ZONE_PALETTES[0].accent)}
  };
  for(let k=1;k<=3;k++){
@@ -430,20 +366,6 @@ export function installAeroBarriers(THREE,world){
     railUniforms["uRailNext"+k].value.set(ZONE_PALETTES[idx].accent);
    }
   },
-  setRailBodyContainment(value=0){
-   bodyUniforms.uRailBodyContainment.value=Math.max(0,Math.min(1,Number(value)));
-  },
-  getRailBodyContainment(){return bodyUniforms.uRailBodyContainment.value;},
-  setTunnelGlareScale(value=1){
-   // Opt-in visual trim only. A value of 1 preserves legacy modes and
-   // every meter after the tunnel unchanged.
-   railUniforms.uRailInteriorSeal.value=Math.max(.3,Math.min(1,Number(value)));
-  },
-  getTunnelGlareScale(){return railUniforms.uRailInteriorSeal.value;},
-  setRailNeutralContainment(value=0){
-   railUniforms.uRailWhiteContainment.value=Math.max(0,Math.min(1,Number(value)));
-  },
-  getRailNeutralContainment(){return railUniforms.uRailWhiteContainment.value;},
   updateAccent(color){railUniforms.uRailBase.value.copy(color);},
   dispose(){
    for(const mesh of [bodyMesh,seamMesh,lightMesh]){

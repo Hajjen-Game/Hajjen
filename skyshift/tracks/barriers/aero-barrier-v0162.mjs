@@ -1,10 +1,11 @@
+import {isAurora} from "../shared/track-selection-v0160.mjs";
 // SKYSHIFT 0.8.4 — terrain-following rails with a real missing launch-gap span
 // Material layers and inlaid graphics share the 0.4.6 track geometry/collider.
 // A faceted safety wall replaces the round-looking continuous neon tube.
 import {
  TRIAL,GUARDRAIL,COURSE_SEGMENTS,positionAt,widthAt,curvatureAt,gapAt,GAPS,CORKSCREW
-} from "./trial-v0160.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
+} from "../../trial-v0162.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v060.mjs";
 export const AERO_BARRIER=Object.freeze({
  step:.95,
  height:.99,
@@ -66,7 +67,11 @@ export function sampleAeroProfile(s,side){
   return positionAt(s,side*(w+off),h+lifted);
  });
 }
-export function createAeroBarrierData(step=AERO_BARRIER.step){
+// Aurora's broad minimum ~120m turns need no 0.95m rail tessellation:
+ // 1.55m changes the polyline arc sagitta by <3mm, halves expensive
+ // world rail triangles on the user's 4GB mobile GPU. Physical collider
+ // and constant-width steering geometry stay at full precision.
+export function createAeroBarrierData(step=isAurora()?1.55:AERO_BARRIER.step){
  const slices=Math.ceil(TRIAL.length/step),count=AERO_PROFILE.length;
  // Insert exact gap edges; don't bridge the opening with any rail triangle.
  const samples=Array.from({length:slices+1},(_,i)=>i*TRIAL.length/slices)

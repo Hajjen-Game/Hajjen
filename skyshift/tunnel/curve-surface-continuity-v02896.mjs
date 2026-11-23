@@ -6,7 +6,7 @@
 // No overlay strips, new meshes/lights/attributes, handling or camera changes.
 import {vaultStraightRanges02891,vaultStraightMask02891}
  from "./shared-straight-edge-parity-v02891.mjs";
-import {ZONE_WAVE} from "./zone-wave-v060.mjs";
+import {ZONE_WAVE} from "../zone-wave-v060.mjs";
 
 export const CURVE_CONTINUITY_02896=Object.freeze({
  version:"0.28.9.6",title:"Curve Surface Artifact & Transition Seam Cleanup",

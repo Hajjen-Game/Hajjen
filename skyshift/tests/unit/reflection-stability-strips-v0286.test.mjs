@@ -4,7 +4,7 @@ import {STABILITY_0286,reflectionStabilityEnabled0286,
  patchPhysicalStability0286,patchSubstrateStability0286,
  patchCoveDefinition0286,patchAmberFoot0286,
  wrapStabilityShader0286,installReflectionStability0286}
- from "../../reflection-stability-strips-v0286.mjs";
+ from "../../tunnel/reflection-stability-strips-v0286.mjs";
 test("only Vault 0.28.6+ can opt into stabilised real source; previous builds and Skyline unchanged",()=>{
  for(const version of ["0.28.0","0.28.1","0.28.2","0.28.3","0.28.4","0.28.5"])
   assert.equal(reflectionStabilityEnabled0286("?track=vault&v="+version),false);

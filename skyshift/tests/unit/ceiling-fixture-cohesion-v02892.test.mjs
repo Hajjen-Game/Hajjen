@@ -6,7 +6,7 @@ import {planTrueSharedTunnel0281}
 import {CEILING_FIXTURE_02892,ceilingFixtureEnabled02892,
  panelSeamPoint02892,buildCeilingFixtureGeometry02892,
  patchCeilingFixtureShader02892,installCeilingFixtureCohesion02892}
- from "../../ceiling-fixture-cohesion-v02892.mjs";
+ from "../../tunnel/ceiling-fixture-cohesion-v02892.mjs";
 
 class FakeAttribute {
  constructor(array,itemSize){this.array=new Float32Array(array);

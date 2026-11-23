@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {SHARED_LIGHT_0282,createSharedSourceSampler0282,
  buildSharedRoadSourceData0282,patchSharedShipHull0282,
  installSharedRoadReflections0282,installSharedShipLight0282}
- from "../../shared-road-ship-light-v0282.mjs";
+ from "../../tunnel/shared-road-ship-light-v0282.mjs";
 import {patchCinematicRoadRebuild0263}
  from "../../cinematic-road-rebuild-v0263.mjs";
 const sample=(s,x,y)=>({x,y,z:s});

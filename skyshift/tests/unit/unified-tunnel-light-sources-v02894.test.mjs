@@ -2,19 +2,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {ZONE_PALETTES} from "../../zone-wave-v060.mjs";
 import {panelSeamPoint02892}
- from "../../ceiling-fixture-cohesion-v02892.mjs";
+ from "../../tunnel/ceiling-fixture-cohesion-v02892.mjs";
 import {buildArchRoadSources02893,patchArchRoadShader02893,
  installArchRoadReflection02893}
- from "../../premium-arch-optics-v02893.mjs";
+ from "../../tunnel/premium-arch-optics-v02893.mjs";
 import {vaultStraightMask02891}
- from "../../shared-straight-edge-parity-v02891.mjs";
+ from "../../tunnel/shared-straight-edge-parity-v02891.mjs";
 import {UNIFIED_SOURCES_02894,unifiedSourcesEnabled02894,
  cleanLegacyRoadEnabled02894,ceilingRoadEnabled02894,
  sharedWaveColors02894,sharedPanelSeamPoint02894,
  createUnifiedSourceRegistry02894,installLegacyRoadCleanup02894,
  buildUnifiedCeilingRoadData02894,patchUnifiedCeilingRoad02894,
  installUnifiedCeilingRoad02894}
- from "../../unified-tunnel-light-sources-v02894.mjs";
+ from "../../tunnel/unified-tunnel-light-sources-v02894.mjs";
 
 class Attribute {
  constructor(values,itemSize){this.array=new Float32Array(values);

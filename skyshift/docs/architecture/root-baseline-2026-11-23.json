@@ -1,0 +1,2349 @@
+{
+  "schemaVersion": 1,
+  "phase": "R0",
+  "baseCommit": "b3c0de39e011d0a6b0ca7d66886eb8e4ff5d93e5",
+  "rootCount": 468,
+  "notes": "Immutable baseline: original root paths and Git object SHAs; absence after migration is intentional. A historical name alone does not imply unused code.",
+  "entries": [
+    {
+      "path": "skyshift/air-tricks-v080.mjs",
+      "sha": "96ac88f6d7bff69d95d8c398681ec958f687e2f2",
+      "size": 5735
+    },
+    {
+      "path": "skyshift/air-tricks-v081.mjs",
+      "sha": "2f7fefae64a055bbcfc433a3440d4cc9cf6057e6",
+      "size": 5779
+    },
+    {
+      "path": "skyshift/ARCHITECTURE-0280-SHARED-TUNNEL.md",
+      "sha": "4dbf63c5a3702654ccf4932a6084a1ad2cb1a4cd",
+      "size": 5864
+    },
+    {
+      "path": "skyshift/boot-v010.js",
+      "sha": "af0f55638c003bf14388804de415b83fc14a1957",
+      "size": 3560
+    },
+    {
+      "path": "skyshift/boot-v0101.js",
+      "sha": "e5151d024226ae1f78180fc35684a954cfbbb6b5",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0102.js",
+      "sha": "429afc423db0264d08ded44ea99c597056f39d78",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0103.js",
+      "sha": "ffe76b59cbe254223ba07c3267a99909ae4709a4",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0104.js",
+      "sha": "62969b5472ff8faa74dd677bda142fee863f4add",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0105.js",
+      "sha": "8786636288e283c3e0344c145339384a415701c0",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0106.js",
+      "sha": "641d158d0cad6c864a6365a36392530ed5f0476c",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0107.js",
+      "sha": "a93b113c8357d5ba6f22cb53f9deeb8186159ab6",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v01071.js",
+      "sha": "60c581b2aaab3d8cddd3e654d5554836b6b1ce4b",
+      "size": 3564
+    },
+    {
+      "path": "skyshift/boot-v0108.js",
+      "sha": "3075562629f32a30e0d33dd11625f379d57f6072",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0109.js",
+      "sha": "1bba2345625ca74b621fd9762d4e3ab3d3f882d9",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v01091.js",
+      "sha": "284214f8ab5875d07cc5de0d05f4749b67e42870",
+      "size": 3564
+    },
+    {
+      "path": "skyshift/boot-v0110.js",
+      "sha": "eff26ef830c3eeda009d22570b40e20d7eedd58b",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0111.js",
+      "sha": "42a0c1c2b03e716b0a6be700435807ccc96ce4a0",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0112.js",
+      "sha": "787b5a8714f9221b45741ea25cd288996d11b266",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0113.js",
+      "sha": "89003b3b37b344dea72099b8a1237b5bb19084b3",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0114.js",
+      "sha": "8d291c499bac69f2f249b26448b4c33180cee32e",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0120.js",
+      "sha": "8eaea7d046f2e29498aaa8ee204addd47f5dee4a",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0121.js",
+      "sha": "8910ac86195f034e6417fbbf291d84707103f1b4",
+      "size": 3561
+    },
+    {
+      "path": "skyshift/boot-v0130.js",
+      "sha": "5b0022506d01101ef0072d389432b7da6094b1d6",
+      "size": 4071
+    },
+    {
+      "path": "skyshift/boot-v0131.js",
+      "sha": "35e49cf7c03f7ccec42fb4df772b6ff8b0b22f23",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0132.js",
+      "sha": "51a06bd6c303306185ff1b98d754664fa075d94d",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v01321.js",
+      "sha": "56eeaa3e9e6b3c0d12d33862fa2aeb2512cbe3f5",
+      "size": 3635
+    },
+    {
+      "path": "skyshift/boot-v0133.js",
+      "sha": "1eeea7287a511b98d861c9cc9002d9b7e797336f",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0134.js",
+      "sha": "570448e820393b1ec768723ed8536bcec97856dd",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v01341.js",
+      "sha": "0df5599a46a0b55808f072e1912f46f41fbb36c6",
+      "size": 3635
+    },
+    {
+      "path": "skyshift/boot-v01342.js",
+      "sha": "f85e931a0843ad59ba924d43daebb9ffed76e20f",
+      "size": 3635
+    },
+    {
+      "path": "skyshift/boot-v01343.js",
+      "sha": "52d357c8aa00faad9ad05338a962cca5836b2200",
+      "size": 3635
+    },
+    {
+      "path": "skyshift/boot-v01344.js",
+      "sha": "8ae5c3d45c75a9df6b7d187a30b6ce625d55f2f0",
+      "size": 3635
+    },
+    {
+      "path": "skyshift/boot-v01345.js",
+      "sha": "e7eb1690884b55042145fde1caff367d55107954",
+      "size": 3635
+    },
+    {
+      "path": "skyshift/boot-v01346.js",
+      "sha": "0fbec4f93a87de3cacd475979247060f773bd1a3",
+      "size": 3635
+    },
+    {
+      "path": "skyshift/boot-v01347.js",
+      "sha": "55620e512007f8fb571bbad5ff789331f93e379c",
+      "size": 3635
+    },
+    {
+      "path": "skyshift/boot-v01348.js",
+      "sha": "5ba5e8faf373f46853235f51d7d57dc75d742598",
+      "size": 3635
+    },
+    {
+      "path": "skyshift/boot-v0135.js",
+      "sha": "db52230fe6bd325abc4d528d2cecda1d10b3943a",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0140.js",
+      "sha": "c7bffa5ea8fb4c3f58961e5fc665ba6848b6d1be",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0150.js",
+      "sha": "c54de08c4f0f2f952bd3ed3b50a3bd82ed216f20",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0151.js",
+      "sha": "e587b04e8dd6180aaa83c47e03bf3d847e6d58c8",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0160.js",
+      "sha": "db912d889fb0c2b413856ba67a5692b26aecb0a7",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0161.js",
+      "sha": "e9e22e7238327e8224eb486b84dac9bfef52531f",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0162.js",
+      "sha": "c4791e34aa85a03d35a9b1000ff18d81fd3b6fba",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0163.js",
+      "sha": "9ec5c561502692e86c2cbca7f940be8fc8a6effc",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0164.js",
+      "sha": "bcd46b971c1d4dfc4cfe84e62d684404d382dbe6",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0165.js",
+      "sha": "1386f917434343596de6a1eadcf93035e10f3c07",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0170.js",
+      "sha": "b465b039f3de96cb99ac86dc9ca18f5c39daa43f",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0180.js",
+      "sha": "731757d33f6107d0be94df66ff39a401baa79098",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0190.js",
+      "sha": "bd3cee1fffaca5aa0e3859fcefcdb26e7736a733",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0191.js",
+      "sha": "d043f687d357cb3531f60730c84f74ab1ee6112b",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0192.js",
+      "sha": "70c20cb6d75b53583a554f30d022209b6e815370",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0200.js",
+      "sha": "a677a5ad67e146492cf4ee447b75ebdb75b5074a",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0201.js",
+      "sha": "abb722e36799f56102256a94b2760555043f721d",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0202.js",
+      "sha": "a98eb13f545f1471628895cbc2efb02ea67214d9",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v02021.js",
+      "sha": "94d1a581a5c7926159270f4f61990b62300cfbbb",
+      "size": 3635
+    },
+    {
+      "path": "skyshift/boot-v0203.js",
+      "sha": "bafbbe5f6c671e9f4cc1108a190817085dc3bacb",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0204.js",
+      "sha": "6b5836475ebf35dcb9592a581a6309c80efa3abb",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v02041.js",
+      "sha": "f017de5e8c708714d3120bac4850042a804fe561",
+      "size": 3635
+    },
+    {
+      "path": "skyshift/boot-v0205.js",
+      "sha": "a830736ab56099ac9da5226e0e17bacd681aab72",
+      "size": 3632
+    },
+    {
+      "path": "skyshift/boot-v0210.js",
+      "sha": "6c460a9fe91486230b17da43a6dbf803cf0d30b7",
+      "size": 3871
+    },
+    {
+      "path": "skyshift/boot-v04911.js",
+      "sha": "bc5f9aa4c22e4d2691dece21243ee74f7d490216",
+      "size": 3567
+    },
+    {
+      "path": "skyshift/boot-v0492.js",
+      "sha": "0b2690447f395e6f4d60cc0fe75c88b3322fd791",
+      "size": 3562
+    },
+    {
+      "path": "skyshift/boot-v0493.js",
+      "sha": "b7178d08cbb041df27d621c2d2bd661f36e2aa23",
+      "size": 3562
+    },
+    {
+      "path": "skyshift/boot-v0494.js",
+      "sha": "13cf0f4b459c7014dbd0b46034da9fd2cd7df7b9",
+      "size": 3562
+    },
+    {
+      "path": "skyshift/boot-v0495.js",
+      "sha": "24cd1877519f975d4b03cc456358193c1f2a445f",
+      "size": 3562
+    },
+    {
+      "path": "skyshift/boot-v0496.js",
+      "sha": "954b74c0bd20f33c48fdb74675a5d41dc7892aa8",
+      "size": 3562
+    },
+    {
+      "path": "skyshift/boot-v0497.js",
+      "sha": "f44fee6c440470d6036f4199f05c5f4a051477ce",
+      "size": 3562
+    },
+    {
+      "path": "skyshift/boot-v0498.js",
+      "sha": "904e6d6de4e06427a96d4ab5bf1b04d5879fdfea",
+      "size": 3562
+    },
+    {
+      "path": "skyshift/boot-v0499.js",
+      "sha": "816092730ba594785b58440abde919b30fc1cc71",
+      "size": 3562
+    },
+    {
+      "path": "skyshift/boot-v04991.js",
+      "sha": "005e412597514256bd25917deb0a9f1f861e9806",
+      "size": 3567
+    },
+    {
+      "path": "skyshift/boot-v050.js",
+      "sha": "94a26818ec18c557c6d6bc3c7293dc9a96b24816",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v051.js",
+      "sha": "75b63165f270523135b6a758c4b4e90dc9ab6096",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v060.js",
+      "sha": "4f2e4a78d3ea5438766fcc72ca4c7523da5eb128",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v061.js",
+      "sha": "aef823cca53cc198d69e7b29e01843c78c17856b",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v070.js",
+      "sha": "89c73006545cf911828fa02c93fd349ac799919d",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v071.js",
+      "sha": "6f2f517ef59602ff09ef51cc22b519cb671fd1fa",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v072.js",
+      "sha": "a6302a82e4398da8b20235e650ba3db3c5a06843",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v080.js",
+      "sha": "d9508391ccdd4ba5eccb277418e89244fd2c2615",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v081.js",
+      "sha": "9229bf4868239ece09bd1fe73e3f8a35dd9e48a0",
+      "size": 3559
+    },
+    {
+      "path": "skyshift/boot-v082.js",
+      "sha": "35592c509bda8d34301b606853ebc670d5286a30",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v083.js",
+      "sha": "01e9ec33c1c20be6902e1954cc189368735b5b7b",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v084.js",
+      "sha": "cd2afcc5902d769384071ee0802224d8c524eaa7",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v090.js",
+      "sha": "c531b295b447073b27119e35c6a1155d4e33b72a",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v0901.js",
+      "sha": "d3b89cf24e45c53473ac0fabc904e7aab53d6899",
+      "size": 3562
+    },
+    {
+      "path": "skyshift/boot-v091.js",
+      "sha": "fd78eb64deee42254c02e43d168629445cef5e9d",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v092.js",
+      "sha": "573b9e811f189273a5a68f8ff978fee03a5ba5b8",
+      "size": 3557
+    },
+    {
+      "path": "skyshift/boot-v0921.js",
+      "sha": "344dc971c9170e5050dc466a8c37bb5d30a629d4",
+      "size": 3562
+    },
+    {
+      "path": "skyshift/browser-cinematic-hero-v0210.mjs",
+      "sha": "98e1e7719ca880d008c9409400e3e2741b648b93",
+      "size": 3424
+    },
+    {
+      "path": "skyshift/browser-fairness-v0135.mjs",
+      "sha": "bc7b71fa66a43362c5121b6da9f766480e115407",
+      "size": 2781
+    },
+    {
+      "path": "skyshift/browser-grip-half-v01348.mjs",
+      "sha": "1c29049abdb68500802a2b7a4ffd93b1f4611779",
+      "size": 2787
+    },
+    {
+      "path": "skyshift/browser-grip-trick-v0165.mjs",
+      "sha": "8c4300bcc454bc26822d46c8b7707d8666a69630",
+      "size": 9678
+    },
+    {
+      "path": "skyshift/browser-multi-track-v0160.mjs",
+      "sha": "12f778f7e8535573697823b1c804d8bd654a4ca8",
+      "size": 5771
+    },
+    {
+      "path": "skyshift/browser-smoke-v0498.mjs",
+      "sha": "045a5d229251a8dd975c05ca9d3a92b70b6342e5",
+      "size": 11337
+    },
+    {
+      "path": "skyshift/browser-smoke-v04991.mjs",
+      "sha": "babcc68ce98cabca50d21a092695037c0bc019c4",
+      "size": 16867
+    },
+    {
+      "path": "skyshift/browser-smoke-v071.mjs",
+      "sha": "52b1da8bc00d346620dfd2b226911e4bc8d34a4f",
+      "size": 28311
+    },
+    {
+      "path": "skyshift/browser-smoke-v080.mjs",
+      "sha": "0556e6eba7ae39f06d4a8917dd0863dbde43e419",
+      "size": 35274
+    },
+    {
+      "path": "skyshift/browser-smoke-v081.mjs",
+      "sha": "3139a53940c4af6d9141b02e0ea37e41ee36e0c3",
+      "size": 33577
+    },
+    {
+      "path": "skyshift/CI-0281-RAIL-ROOF-GRIP-OPTIMIZATION.md",
+      "sha": "437ff06a6ec1775587d77abae96f64430883b244",
+      "size": 2168
+    },
+    {
+      "path": "skyshift/cinematic-energy-v0216.mjs",
+      "sha": "09958775a44beb94a7c849edbdbd14f252096358",
+      "size": 6774
+    },
+    {
+      "path": "skyshift/cinematic-grade-v0210b.mjs",
+      "sha": "c51948deb80fddba0b0cc7bf1c17f66abd12b11b",
+      "size": 9127
+    },
+    {
+      "path": "skyshift/cinematic-hero-v0210.mjs",
+      "sha": "101cea1a9eb600a8630491795002b3bc06dd9bf5",
+      "size": 11595
+    },
+    {
+      "path": "skyshift/cinematic-light-architecture-v0232.mjs",
+      "sha": "e3bb8dd0d0e508639f39a2c42a016d93555a8ace",
+      "size": 7786
+    },
+    {
+      "path": "skyshift/cinematic-neon-lighting-v0220p2.mjs",
+      "sha": "4eaf73e0d7a4cbec23c7af356e46e38df72a7566",
+      "size": 9995
+    },
+    {
+      "path": "skyshift/cinematic-road-rebuild-v0263.mjs",
+      "sha": "e656a6de250beca45539da318fa73f74da839bb8",
+      "size": 16478
+    },
+    {
+      "path": "skyshift/cinematic-road-reflections-v0242.mjs",
+      "sha": "5faf001549295ab7a8fbcb00a4e1163d0debe44e",
+      "size": 5808
+    },
+    {
+      "path": "skyshift/cinematic-space-lighting-v0170.mjs",
+      "sha": "9e7fa0de4cc49da7037ea706f7fb4a662eb45a1d",
+      "size": 8137
+    },
+    {
+      "path": "skyshift/cinematic-v0161.mjs",
+      "sha": "28327a903165bc1e05651689086c32f1128307c9",
+      "size": 6031
+    },
+    {
+      "path": "skyshift/cinematic-v0162.mjs",
+      "sha": "4e1470144e3388ccd53bc72c25f245d4b97dbf31",
+      "size": 6031
+    },
+    {
+      "path": "skyshift/cinematic-v0163.mjs",
+      "sha": "134bcd1ffa4d7a646454c980efc5b9ea5ebefc6f",
+      "size": 6031
+    },
+    {
+      "path": "skyshift/cinematic-v0164.mjs",
+      "sha": "a62440a4d19ebf1f9fa3244573e9be5970fa085f",
+      "size": 6031
+    },
+    {
+      "path": "skyshift/cinematic-v045.mjs",
+      "sha": "d4a1921ddc53a7879bf9fb53b6afdc8877ffab83",
+      "size": 4335
+    },
+    {
+      "path": "skyshift/cinematic-v070.mjs",
+      "sha": "231270f35ebbf6d77263409915e9de4d4cc0b6f5",
+      "size": 4675
+    },
+    {
+      "path": "skyshift/cinematic-v071.mjs",
+      "sha": "14735a481311533ec23d5ba4db386131d4b887fa",
+      "size": 4950
+    },
+    {
+      "path": "skyshift/cinematic-v072.mjs",
+      "sha": "44f88b7be361ca02599ccc5f2e9441f12cbd2a55",
+      "size": 5414
+    },
+    {
+      "path": "skyshift/cinematic-v081.mjs",
+      "sha": "34a833d92bde0f10c2228348854a13fdb5b662c9",
+      "size": 5531
+    },
+    {
+      "path": "skyshift/cinematic-v082.mjs",
+      "sha": "3c274dd93e2ba2b3484fec47b66b8c64fd6ce4c3",
+      "size": 5531
+    },
+    {
+      "path": "skyshift/cinematic-v083.mjs",
+      "sha": "094241bde7d3fc2149e5ddd789c9ba25c62e0f35",
+      "size": 5531
+    },
+    {
+      "path": "skyshift/cinematic-v084.mjs",
+      "sha": "c53526eb93e2a454875e1c5fe5ff1243b1a34596",
+      "size": 5531
+    },
+    {
+      "path": "skyshift/cinematic-v090.mjs",
+      "sha": "0ec7125da254ba560f2f42010424fc10f67626e2",
+      "size": 6030
+    },
+    {
+      "path": "skyshift/cinematic-v0901.mjs",
+      "sha": "3deec5ddb9aa977c3361a0b2821bc3865a02a9a5",
+      "size": 6031
+    },
+    {
+      "path": "skyshift/circuit-layout-v060.mjs",
+      "sha": "a839250ca8e53875b7addf548bc1dc8ecb2315a7",
+      "size": 3055
+    },
+    {
+      "path": "skyshift/circuit-layout-v082.mjs",
+      "sha": "853fd228d02aa471cdd2e9876e4a0b7f11ec993e",
+      "size": 3170
+    },
+    {
+      "path": "skyshift/edge-lighting-floor-pools-v02631.mjs",
+      "sha": "6e809246575e462ce72abc6812fb9be833c2c7af",
+      "size": 15368
+    },
+    {
+      "path": "skyshift/edge-source-floor-bands-v02632.mjs",
+      "sha": "2d12bca52bd1181f16b523945c92e342ec5c18f1",
+      "size": 13804
+    },
+    {
+      "path": "skyshift/engine-trails-v0104.mjs",
+      "sha": "72cccb9c0439861428ac135ff97c25af83ecfe51",
+      "size": 7851
+    },
+    {
+      "path": "skyshift/engine-trails-v01346.mjs",
+      "sha": "5894ad9225eb2d0651b8f659232ade127067f6ce",
+      "size": 8182
+    },
+    {
+      "path": "skyshift/engine-trails-v0484.mjs",
+      "sha": "f231dcecf7fb7fbee20b1fde740bb63f466475e6",
+      "size": 6812
+    },
+    {
+      "path": "skyshift/engine-trails-v0496.mjs",
+      "sha": "38478dffcfe6385985262e47d97e48d31a120d1e",
+      "size": 7429
+    },
+    {
+      "path": "skyshift/fleet-v010.css",
+      "sha": "0b15a7eb0207bf83bdf6cef27643ed949ab7e929",
+      "size": 4336
+    },
+    {
+      "path": "skyshift/fleet-v0101.css",
+      "sha": "71fdf2b668845f6fdab9c2134223bb39c1cdbc6e",
+      "size": 4722
+    },
+    {
+      "path": "skyshift/fleet-v0102.css",
+      "sha": "d6d083a580bbafd4f9547d9076d46bb49976e26f",
+      "size": 4563
+    },
+    {
+      "path": "skyshift/flight-motion-v044.mjs",
+      "sha": "fc5771b957518a448f7ce86b60f29f1a81b9d120",
+      "size": 3214
+    },
+    {
+      "path": "skyshift/full-tunnel-light-seal-v0270.mjs",
+      "sha": "d01dc46e24ace3e1e709e2b353cf928f34be276c",
+      "size": 1174
+    },
+    {
+      "path": "skyshift/fullscreen-v02.mjs",
+      "sha": "4bdb6d7208f747d3db66541f4f81c068ab48bf76",
+      "size": 2740
+    },
+    {
+      "path": "skyshift/game-v010.mjs",
+      "sha": "2af7e34f5df653c0008d0b7999e1a8a362c1898c",
+      "size": 86775
+    },
+    {
+      "path": "skyshift/game-v0101.mjs",
+      "sha": "1a0e584fba3e6ad1bcd70b3fe02c38fbd4717140",
+      "size": 87752
+    },
+    {
+      "path": "skyshift/game-v0102.mjs",
+      "sha": "05c9db545277e387990f66b2fc5f1f42b23b33bf",
+      "size": 87753
+    },
+    {
+      "path": "skyshift/game-v0103.mjs",
+      "sha": "51e6dc2bb10aac94635c4ed1c305e1a51b31f053",
+      "size": 88475
+    },
+    {
+      "path": "skyshift/game-v0104.mjs",
+      "sha": "8c027fefa754f8cb62cbd418cbf45e890989df3d",
+      "size": 90131
+    },
+    {
+      "path": "skyshift/game-v0105.mjs",
+      "sha": "7532e07d07286f29eb21f41aa618caee8f284e00",
+      "size": 91755
+    },
+    {
+      "path": "skyshift/game-v0106.mjs",
+      "sha": "446ad42fe0cf56e3b180fd563edaa3bf4c70c4dd",
+      "size": 91842
+    },
+    {
+      "path": "skyshift/game-v0107.mjs",
+      "sha": "2f906d2484f496cb51871070c4fc0e5beb0e85d8",
+      "size": 92838
+    },
+    {
+      "path": "skyshift/game-v01071.mjs",
+      "sha": "fbf573a3cd53ece5993df7c7e5398f1cc3988ada",
+      "size": 92849
+    },
+    {
+      "path": "skyshift/game-v0108.mjs",
+      "sha": "74e888e5a2027afb875c49236570bb3777f8af0c",
+      "size": 94209
+    },
+    {
+      "path": "skyshift/game-v0109.mjs",
+      "sha": "ae42745ac879c3d6008ba4a8ccc05d2d97b7ed42",
+      "size": 96608
+    },
+    {
+      "path": "skyshift/game-v01091.mjs",
+      "sha": "98d5c68edef9b9432868aeac92ddfb463b05e7bb",
+      "size": 96618
+    },
+    {
+      "path": "skyshift/game-v0110.mjs",
+      "sha": "12302e9a396c0c22360af5072ea36e38b8be5f9d",
+      "size": 99969
+    },
+    {
+      "path": "skyshift/game-v0111.mjs",
+      "sha": "9881e5fc28328b6a44be1631dffaea3a8c53cb67",
+      "size": 101444
+    },
+    {
+      "path": "skyshift/game-v0112.mjs",
+      "sha": "071fe3ef0b65a48f6ea51a47db4786a7b83539e9",
+      "size": 100712
+    },
+    {
+      "path": "skyshift/game-v0113.mjs",
+      "sha": "34e0fe4f9f36b4df795217b8e613f1095b8de336",
+      "size": 101971
+    },
+    {
+      "path": "skyshift/game-v0114.mjs",
+      "sha": "3fbb53aaefa75e8ccb8918a70d40ad4856177691",
+      "size": 102103
+    },
+    {
+      "path": "skyshift/game-v0120.mjs",
+      "sha": "cc58fa9c0ffa837429b02dc7a240bcd5dc0c61a4",
+      "size": 103825
+    },
+    {
+      "path": "skyshift/game-v0121.mjs",
+      "sha": "292ce5a53433582bf78d595dc7ce5128eaa79e40",
+      "size": 106116
+    },
+    {
+      "path": "skyshift/game-v0130.mjs",
+      "sha": "c49bf929dee446f270e4a30ca97c68f32d331074",
+      "size": 111578
+    },
+    {
+      "path": "skyshift/game-v0131.mjs",
+      "sha": "533e8c5b5b47f02e83a3680ba4eb655e0b5ca04f",
+      "size": 113785
+    },
+    {
+      "path": "skyshift/game-v0132.mjs",
+      "sha": "af8872492e4dfa7823e8e9c7860b9056c994dd70",
+      "size": 114238
+    },
+    {
+      "path": "skyshift/game-v01321.mjs",
+      "sha": "0f0fa2ccc17a1d6c086577581d66924f42f5978c",
+      "size": 114521
+    },
+    {
+      "path": "skyshift/game-v0133.mjs",
+      "sha": "742d0574e42e44a159c440025c9dc95211fa3f02",
+      "size": 115168
+    },
+    {
+      "path": "skyshift/game-v0134.mjs",
+      "sha": "a141224a89c71f3e0c9707e3db5217c880bf3bd8",
+      "size": 115172
+    },
+    {
+      "path": "skyshift/game-v01341.mjs",
+      "sha": "89898b74129bb233c78ae9c782720e4cdb64f52f",
+      "size": 116609
+    },
+    {
+      "path": "skyshift/game-v01342.mjs",
+      "sha": "62e0214f2bc6d5b5b48ba76509d677de691d1104",
+      "size": 116189
+    },
+    {
+      "path": "skyshift/game-v01343.mjs",
+      "sha": "a8365fb9959d613a885c86f3c572ba4b5f1948e0",
+      "size": 116173
+    },
+    {
+      "path": "skyshift/game-v01344.mjs",
+      "sha": "3cd41fee78be755c1f32fc46764865ab73910aff",
+      "size": 116570
+    },
+    {
+      "path": "skyshift/game-v01345.mjs",
+      "sha": "edd4dc6ffe8754bebee4e2f834a589ae43f3cb4a",
+      "size": 118439
+    },
+    {
+      "path": "skyshift/game-v01346.mjs",
+      "sha": "fe68c9a4af825e4a21379730fa00938bf5ec72a7",
+      "size": 118516
+    },
+    {
+      "path": "skyshift/game-v01347.mjs",
+      "sha": "fba30b145faa6cfdbfeddd79ed09df562a737013",
+      "size": 118930
+    },
+    {
+      "path": "skyshift/game-v01348.mjs",
+      "sha": "d926a8760e249e338e70b0eb7efd1332b4e0897b",
+      "size": 119201
+    },
+    {
+      "path": "skyshift/game-v0135.mjs",
+      "sha": "5f58b4ef76a97fe8bbccb2bf2bc7f4cb71a6ef81",
+      "size": 119195
+    },
+    {
+      "path": "skyshift/game-v0140.mjs",
+      "sha": "06f4601dc85d9e2b615e54586d68cfee29336303",
+      "size": 128051
+    },
+    {
+      "path": "skyshift/game-v0150.mjs",
+      "sha": "9958baba01c7bddb1508dd467a7a1a557253dc8a",
+      "size": 130966
+    },
+    {
+      "path": "skyshift/game-v0151.mjs",
+      "sha": "31b07534c3d27af26c5f683aa897d6ccf287fd1e",
+      "size": 131094
+    },
+    {
+      "path": "skyshift/game-v0160.mjs",
+      "sha": "df86ea19b11233f52db659774310cd50e0003a53",
+      "size": 132980
+    },
+    {
+      "path": "skyshift/game-v0161.mjs",
+      "sha": "393520faaf8d7e84b828e80849ae7c82542cdf02",
+      "size": 134842
+    },
+    {
+      "path": "skyshift/game-v0162.mjs",
+      "sha": "93ab02dafc2ab77683f90df39a5ae36cd4d3ab62",
+      "size": 135045
+    },
+    {
+      "path": "skyshift/game-v0163.mjs",
+      "sha": "3566d705522cb8d7d26bbbaa8e7fd2f1b63db540",
+      "size": 135351
+    },
+    {
+      "path": "skyshift/game-v0164.mjs",
+      "sha": "e2581ec574460e128e192d65d801126bcd5f9b5e",
+      "size": 135349
+    },
+    {
+      "path": "skyshift/game-v0165.mjs",
+      "sha": "7c21b91963fa69e7f3f02db762aee004dec9bdc3",
+      "size": 135462
+    },
+    {
+      "path": "skyshift/game-v0170.mjs",
+      "sha": "b6a805d430b2a9e43c4aeb2ffb63e0fc72f44b49",
+      "size": 137004
+    },
+    {
+      "path": "skyshift/game-v0180.mjs",
+      "sha": "eb3780fda83bd7d12db8f233c58b8f87cfa00816",
+      "size": 138270
+    },
+    {
+      "path": "skyshift/game-v0190.mjs",
+      "sha": "b43b282b1dc0b5a6f09126ef2763675e5493975f",
+      "size": 139467
+    },
+    {
+      "path": "skyshift/game-v0191.mjs",
+      "sha": "c277bd4df709e396a8cc30726c9cbe6ea72f3e18",
+      "size": 141015
+    },
+    {
+      "path": "skyshift/game-v0192.mjs",
+      "sha": "359e68bc2e5c9239d82b17c4b34c9a665df55c4f",
+      "size": 140829
+    },
+    {
+      "path": "skyshift/game-v02.mjs",
+      "sha": "c042d5f8247913dd5fc9bebea8df01a58ee72b83",
+      "size": 26122
+    },
+    {
+      "path": "skyshift/game-v0200.mjs",
+      "sha": "10a3b224d98bf397fba1a3d0339a9568b0b2e139",
+      "size": 142566
+    },
+    {
+      "path": "skyshift/game-v0201.mjs",
+      "sha": "4020e4f468ae56be132845b008a02e3d4b737139",
+      "size": 143223
+    },
+    {
+      "path": "skyshift/game-v0202.mjs",
+      "sha": "c74dff01be1879e4ed2869663d0a8543fee345db",
+      "size": 143895
+    },
+    {
+      "path": "skyshift/game-v02021.mjs",
+      "sha": "949b7bcaba5645fbd07ff886e1d4f6557fea9744",
+      "size": 144522
+    },
+    {
+      "path": "skyshift/game-v0203.mjs",
+      "sha": "cd229d6128a204338dc879fc3920cf0b611d3132",
+      "size": 145552
+    },
+    {
+      "path": "skyshift/game-v0204.mjs",
+      "sha": "59e039c10c13d33620b40379177b0b135beeaeea",
+      "size": 146223
+    },
+    {
+      "path": "skyshift/game-v02041.mjs",
+      "sha": "f227a4ae6813be61933aa112aeed2f8300397429",
+      "size": 146790
+    },
+    {
+      "path": "skyshift/game-v0205.mjs",
+      "sha": "26299b0aab71bb1571f76d0a27124e9f2f1fd6e7",
+      "size": 147534
+    },
+    {
+      "path": "skyshift/game-v0210.mjs",
+      "sha": "cd66ac6bde426091853e892a7fc4167db5505e70",
+      "size": 295731
+    },
+    {
+      "path": "skyshift/game-v03.mjs",
+      "sha": "ba3557df1e4c6ca10fe023f0867993bab8c2a186",
+      "size": 28871
+    },
+    {
+      "path": "skyshift/game-v031.mjs",
+      "sha": "692315ecc421e5fb453110050ce385ce7c68c653",
+      "size": 31754
+    },
+    {
+      "path": "skyshift/game-v032.mjs",
+      "sha": "42be63190a5c354afd512f0d410617e41d7ef7e0",
+      "size": 31993
+    },
+    {
+      "path": "skyshift/game-v033.mjs",
+      "sha": "6a492dd2e4c096b44702ae21736b730fd858e329",
+      "size": 32700
+    },
+    {
+      "path": "skyshift/game-v0331.mjs",
+      "sha": "8d737bcc29cb5599a2e5e9ed57bebc73289c53a9",
+      "size": 33236
+    },
+    {
+      "path": "skyshift/game-v034.mjs",
+      "sha": "68d80ac5f027155355d56099fd7fffd638a566f1",
+      "size": 33148
+    },
+    {
+      "path": "skyshift/game-v04.mjs",
+      "sha": "d0e2621a4ddc9ccd386ff0167d0d9cee291567b3",
+      "size": 33716
+    },
+    {
+      "path": "skyshift/game-v041.mjs",
+      "sha": "fbd2f043501393e86338c37a4cd4e56a926bab51",
+      "size": 34216
+    },
+    {
+      "path": "skyshift/game-v042.mjs",
+      "sha": "8a38dd8a82440cc96d2172b30d2632126f96a0e8",
+      "size": 34425
+    },
+    {
+      "path": "skyshift/game-v043.mjs",
+      "sha": "39fa88c0192570f96bea9064de00d789b27105d7",
+      "size": 37533
+    },
+    {
+      "path": "skyshift/game-v044.mjs",
+      "sha": "b6d4f9eb57cd146855dfc9da7c072f976e553500",
+      "size": 40333
+    },
+    {
+      "path": "skyshift/game-v045.mjs",
+      "sha": "74e44da0fc4510fcddb11af98d54996f90ef006a",
+      "size": 42086
+    },
+    {
+      "path": "skyshift/game-v046.mjs",
+      "sha": "44813f8363a1fa869b4402db72e5c47ff4967002",
+      "size": 41948
+    },
+    {
+      "path": "skyshift/game-v047.mjs",
+      "sha": "bbf239cc158a82a77e4c6c0e847fb91eb414909f",
+      "size": 41720
+    },
+    {
+      "path": "skyshift/game-v048.mjs",
+      "sha": "ec66935daed96614f9ec6476d2ec0fc1baac3587",
+      "size": 43084
+    },
+    {
+      "path": "skyshift/game-v0481.mjs",
+      "sha": "dd9c39e703756878d2256a7afabbf2a98ae60479",
+      "size": 42460
+    },
+    {
+      "path": "skyshift/game-v0482.mjs",
+      "sha": "1fb9367fc134b5212804132a2ec752097b5a5138",
+      "size": 41103
+    },
+    {
+      "path": "skyshift/game-v0483.mjs",
+      "sha": "e76c3fed34dac0e2107af3c871efd66db898641d",
+      "size": 41248
+    },
+    {
+      "path": "skyshift/game-v0484.mjs",
+      "sha": "94d84cd31b6c57f189bc6399f914a68f15d0d59b",
+      "size": 42254
+    },
+    {
+      "path": "skyshift/game-v049.mjs",
+      "sha": "a419f5bdf1055d0d732de6ee0fcd44ef2de45f80",
+      "size": 44362
+    },
+    {
+      "path": "skyshift/game-v0491.mjs",
+      "sha": "2e9bccce99ee8cee060a42bdb355c92c45590b72",
+      "size": 46266
+    },
+    {
+      "path": "skyshift/game-v04911.mjs",
+      "sha": "a04cdc18ae1a42dcb4db99fb0a3ee431d6e3a080",
+      "size": 46865
+    },
+    {
+      "path": "skyshift/game-v0492.mjs",
+      "sha": "d2a329b1ae03ee8dc5a895d1f87236a942a43cf4",
+      "size": 48157
+    },
+    {
+      "path": "skyshift/game-v0493.mjs",
+      "sha": "4ac571dca3ea59d819e9f62e7a45e8a6cc023b37",
+      "size": 48305
+    },
+    {
+      "path": "skyshift/game-v0494.mjs",
+      "sha": "f5dc71c016f23e65e162277eafeb1ee90a511c99",
+      "size": 49238
+    },
+    {
+      "path": "skyshift/game-v0495.mjs",
+      "sha": "fa436ee7825122f324aad0413b38d77ea14585ee",
+      "size": 50154
+    },
+    {
+      "path": "skyshift/game-v0496.mjs",
+      "sha": "f441e48badff65a3a6c8715dbac656bfc8dd352d",
+      "size": 51946
+    },
+    {
+      "path": "skyshift/game-v0497.mjs",
+      "sha": "d7cd286385c0de093d24fc554773f0ad20ea77c6",
+      "size": 50886
+    },
+    {
+      "path": "skyshift/game-v0498.mjs",
+      "sha": "a92b86a75a7e5fbe54df56eecdb859fb2b11be54",
+      "size": 51394
+    },
+    {
+      "path": "skyshift/game-v0499.mjs",
+      "sha": "64d6e32d99b9a2d2920bc7d6e79fb3caf443bc59",
+      "size": 52378
+    },
+    {
+      "path": "skyshift/game-v04991.mjs",
+      "sha": "8debce265ab51cf7f3653d15320e95473ade9f3d",
+      "size": 52336
+    },
+    {
+      "path": "skyshift/game-v050.mjs",
+      "sha": "84531c9b0db531af3d90e40f4eea0ffdd75ab0a5",
+      "size": 53052
+    },
+    {
+      "path": "skyshift/game-v051.mjs",
+      "sha": "885e556878ba7cb90906d71d0ef0323faedc28b2",
+      "size": 53049
+    },
+    {
+      "path": "skyshift/game-v060.mjs",
+      "sha": "cc286a8711d720996af7feb8b5ee0f93d0d4ad53",
+      "size": 54356
+    },
+    {
+      "path": "skyshift/game-v061.mjs",
+      "sha": "4c3b564201eb1b6a3821ddaa456753cb4e3f089c",
+      "size": 57486
+    },
+    {
+      "path": "skyshift/game-v070.mjs",
+      "sha": "4602c955918a340ec5d5ec26595553566159513a",
+      "size": 58399
+    },
+    {
+      "path": "skyshift/game-v071.mjs",
+      "sha": "893a5233ee7794d7a750c2b47b8ae46bc7644e3d",
+      "size": 60077
+    },
+    {
+      "path": "skyshift/game-v072.mjs",
+      "sha": "e0ddc2ba833a17571a8b640164d1db6cadcb155b",
+      "size": 61867
+    },
+    {
+      "path": "skyshift/game-v080.mjs",
+      "sha": "f1d59959a263e4b72310c292a1939e1ffbcececa",
+      "size": 65241
+    },
+    {
+      "path": "skyshift/game-v081.mjs",
+      "sha": "3334c11857a2079603070c170e8fdd498850fa4a",
+      "size": 65580
+    },
+    {
+      "path": "skyshift/game-v082.mjs",
+      "sha": "def1f24ea654d3da2feb47f7401e4eb40f0d6361",
+      "size": 66613
+    },
+    {
+      "path": "skyshift/game-v083.mjs",
+      "sha": "f5bf792ca57565939edb4fa6ebdb650f875744df",
+      "size": 69248
+    },
+    {
+      "path": "skyshift/game-v084.mjs",
+      "sha": "13b45ed22610edd59f8294bda2598d85c254bb9b",
+      "size": 70192
+    },
+    {
+      "path": "skyshift/game-v090.mjs",
+      "sha": "baeab3b6bc25b4fddf45353e12db3f90c66fa064",
+      "size": 73346
+    },
+    {
+      "path": "skyshift/game-v0901.mjs",
+      "sha": "05dbc7515e268c5eca01df8eecc1abddf6cf1846",
+      "size": 73740
+    },
+    {
+      "path": "skyshift/game-v091.mjs",
+      "sha": "2253cfb26155f125ffa31fff5a03e4d33d688441",
+      "size": 75735
+    },
+    {
+      "path": "skyshift/game-v092.mjs",
+      "sha": "79965a4b04e11b2c205305996517671f63797ceb",
+      "size": 78954
+    },
+    {
+      "path": "skyshift/game-v0921.mjs",
+      "sha": "9a4e58c6c8cc3e29aa3607cb4a9f5b1080135944",
+      "size": 80080
+    },
+    {
+      "path": "skyshift/game.mjs",
+      "sha": "30893fea6f41e47ae7d47ca310ea7893f2dbdd4e",
+      "size": 21468
+    },
+    {
+      "path": "skyshift/ghost-visual-v0130.mjs",
+      "sha": "272a3bb55a3288ff822839a26a90d76ed7bc7a2f",
+      "size": 4274
+    },
+    {
+      "path": "skyshift/grip-trick-audit-v0165.mjs",
+      "sha": "4e1e9f6e5f7c745803c1398cffafeb096d842812",
+      "size": 1993
+    },
+    {
+      "path": "skyshift/handling-fairness-cli-v0135.mjs",
+      "sha": "e4005748707ff4d6d994a01ee3e19f66d2382d0d",
+      "size": 958
+    },
+    {
+      "path": "skyshift/handling-fairness-v0135.mjs",
+      "sha": "34a2bfbdefa1b283b87ea718fea60745d1f65950",
+      "size": 5726
+    },
+    {
+      "path": "skyshift/hangar-hero-v0133.mjs",
+      "sha": "914a2564b5663f4b840a44f3b6aa52b62a3c3470",
+      "size": 3310
+    },
+    {
+      "path": "skyshift/hangar-hero-v0134.mjs",
+      "sha": "99125328ca65570fed36a69efb07c66c176c2425",
+      "size": 3422
+    },
+    {
+      "path": "skyshift/identity-v033.mjs",
+      "sha": "c01a8e3a8db7bc7a61f8f547a0ca6b626cb398bb",
+      "size": 12299
+    },
+    {
+      "path": "skyshift/identity-v0331.mjs",
+      "sha": "1428ee65e35520ff8e0934a1590d7c9f36f3a389",
+      "size": 12650
+    },
+    {
+      "path": "skyshift/identity-v034.mjs",
+      "sha": "d40abe920751c0f4a221397227da61169e3fb7ef",
+      "size": 4252
+    },
+    {
+      "path": "skyshift/identity-v04.mjs",
+      "sha": "3f27d1cf36272a322e6a078882110391345bcd12",
+      "size": 4275
+    },
+    {
+      "path": "skyshift/identity-v041.mjs",
+      "sha": "0d6e3ce0c87c2bc00617efd0e73f2d20aec20b65",
+      "size": 4296
+    },
+    {
+      "path": "skyshift/identity-v042.mjs",
+      "sha": "9abc8fed6be22bb876c786cef8766dc580d77786",
+      "size": 687
+    },
+    {
+      "path": "skyshift/identity-v046.mjs",
+      "sha": "fbf3f6bc0475c80486a9950b890b12c02b31666a",
+      "size": 5755
+    },
+    {
+      "path": "skyshift/image-clarity-v0498.mjs",
+      "sha": "07a06f10a7740093a810c76b7b24643bb5f9a56d",
+      "size": 1999
+    },
+    {
+      "path": "skyshift/image-clarity-v083.mjs",
+      "sha": "0225dbc7e3bebb4dcbae8d66c024c5ca75b68213",
+      "size": 2010
+    },
+    {
+      "path": "skyshift/index.html",
+      "sha": "76695232f00bf60cf4af323ce25f06cbc7f52bcc",
+      "size": 14982
+    },
+    {
+      "path": "skyshift/integrated-neon-flow-v0214.mjs",
+      "sha": "5a08f995a0202b505bf7b48b76d78cda0923359d",
+      "size": 8308
+    },
+    {
+      "path": "skyshift/living-wake-v0107.mjs",
+      "sha": "68f9073cb5d806a7515cc5846017be8bf14b4119",
+      "size": 11269
+    },
+    {
+      "path": "skyshift/living-wake-v01071.mjs",
+      "sha": "0400b3c8452bc97a8b6a30b205ee3980818875dc",
+      "size": 11643
+    },
+    {
+      "path": "skyshift/luminance-v0331.mjs",
+      "sha": "f7dd057aa63ac7712a1b32136b9ffef18cd422c8",
+      "size": 3017
+    },
+    {
+      "path": "skyshift/manta-blade-v0483.mjs",
+      "sha": "2682e5de9d0d1dc35d049426f274dfb43c9c04db",
+      "size": 8721
+    },
+    {
+      "path": "skyshift/manta-blade-v0484.mjs",
+      "sha": "af2e8324d5c610d60d7713ae8a3e4da4645b4939",
+      "size": 9382
+    },
+    {
+      "path": "skyshift/material-grade-v0203.html",
+      "sha": "253f37cbb8c4dd755e41a06173b44e8a1d8a342c",
+      "size": 14705
+    },
+    {
+      "path": "skyshift/neon-balance-v032.mjs",
+      "sha": "67382f8e783150895cd5f88aacccb49dc79bd073",
+      "size": 1858
+    },
+    {
+      "path": "skyshift/neon-interior-v0212-classic.mjs",
+      "sha": "478703a6bdbb4ff48fa14bf9e7c4a108b4a96ac2",
+      "size": 9027
+    },
+    {
+      "path": "skyshift/neon-interior-v0212.mjs",
+      "sha": "cb83f74eb700551291bba63ca8f3e3244fff140b",
+      "size": 11547
+    },
+    {
+      "path": "skyshift/neon-v0111.mjs",
+      "sha": "e28bffe5853fcad3f521af8019d9dfb6b73bea67",
+      "size": 2794
+    },
+    {
+      "path": "skyshift/neon-v031.mjs",
+      "sha": "8be18f779abbdc903b60dc6757cd41b5c8c481b7",
+      "size": 4144
+    },
+    {
+      "path": "skyshift/neon-v032.mjs",
+      "sha": "08370da1a512000da45bf90e46601b0ad54de4ad",
+      "size": 4402
+    },
+    {
+      "path": "skyshift/neon-v043.mjs",
+      "sha": "d1fb78c3004c243d3ff8024bcbd55fdb34c8b80c",
+      "size": 958
+    },
+    {
+      "path": "skyshift/neon-v0498.mjs",
+      "sha": "e345d3af72b225a1abeac4dbaccd1e7cc90efd43",
+      "size": 2151
+    },
+    {
+      "path": "skyshift/neon-v083.mjs",
+      "sha": "58dfb0e2e272b51bf7dc283c87625c27114b6a40",
+      "size": 2151
+    },
+    {
+      "path": "skyshift/orbital-hero-v0192.mjs",
+      "sha": "ba36cdaed1681aed977fec9cb5901366250eaf30",
+      "size": 11272
+    },
+    {
+      "path": "skyshift/physical-material-rebuild-v0230.mjs",
+      "sha": "a558728eea438c4d58fdccca7f37fadf35bd71b0",
+      "size": 12009
+    },
+    {
+      "path": "skyshift/precision-grip-v061.mjs",
+      "sha": "777a2778772c077b454a33856f5361281885de63",
+      "size": 2058
+    },
+    {
+      "path": "skyshift/premium-road-surface-v0215.mjs",
+      "sha": "bc1cb2cfa8f355b5117f8398acd448d6a295dd66",
+      "size": 6147
+    },
+    {
+      "path": "skyshift/premium-ship-v0482.mjs",
+      "sha": "aa14857aa903fbfef17ac80b73930d8f84e6da8d",
+      "size": 7861
+    },
+    {
+      "path": "skyshift/premium-track-v0150.mjs",
+      "sha": "efef54ef242fe8f60f4eb30848c6327e73a7209c",
+      "size": 17381
+    },
+    {
+      "path": "skyshift/premium-track-v0151.mjs",
+      "sha": "9c3abe73af5a025ef2c8e147b893a40235281a24",
+      "size": 17677
+    },
+    {
+      "path": "skyshift/premium-track-v0160.mjs",
+      "sha": "477c1960b8999d902c0b8daf055f986dfc4db2f8",
+      "size": 21314
+    },
+    {
+      "path": "skyshift/premium-track-v0481.mjs",
+      "sha": "28ffdf4ca51411f166bfce8d415231e37dc16cb0",
+      "size": 8314
+    },
+    {
+      "path": "skyshift/premium-track-v0482.mjs",
+      "sha": "9848f10fd39eef40154aab8a3202b343dd2a2603",
+      "size": 8999
+    },
+    {
+      "path": "skyshift/premium-track-v049.mjs",
+      "sha": "d04fdc63d3ade622c02aee2529c70bb2b7c2f7bf",
+      "size": 11011
+    },
+    {
+      "path": "skyshift/premium-track-v0491.mjs",
+      "sha": "7c59ac8009e98959a7c149ee7d9cdaaaa148eeb9",
+      "size": 12152
+    },
+    {
+      "path": "skyshift/premium-track-v0492.mjs",
+      "sha": "a2e25bee867f8b3dbbe86ffb930c84a3f68312d5",
+      "size": 13479
+    },
+    {
+      "path": "skyshift/premium-track-v0493.mjs",
+      "sha": "673cfbcef667c292a77520ee7e7c32538115ed5f",
+      "size": 13474
+    },
+    {
+      "path": "skyshift/premium-track-v0496.mjs",
+      "sha": "63374a11a5f2f9fac628aeb3a73266ccc0f0109e",
+      "size": 14465
+    },
+    {
+      "path": "skyshift/premium-track-v0498.mjs",
+      "sha": "cd76a9d9ec9f3ba3e62f989022fe15400bfb2eb9",
+      "size": 14752
+    },
+    {
+      "path": "skyshift/premium-track-v050.mjs",
+      "sha": "60165d2dbd5e846375fd26407a285eb39a2debf7",
+      "size": 15343
+    },
+    {
+      "path": "skyshift/premium-track-v051.mjs",
+      "sha": "1c2f8bf9a2fae22cfbe1a3da7d2fb1fccf9ebb31",
+      "size": 15342
+    },
+    {
+      "path": "skyshift/premium-track-v060.mjs",
+      "sha": "244050ed17e9719ee910db22513084f96ebc1ea4",
+      "size": 15810
+    },
+    {
+      "path": "skyshift/premium-track-v070.mjs",
+      "sha": "c79e5fdcccc79ac83afb0b346265db86d6a53411",
+      "size": 15820
+    },
+    {
+      "path": "skyshift/premium-track-v071.mjs",
+      "sha": "f57f67a857287bb4c270bd01a609d803ab914966",
+      "size": 16429
+    },
+    {
+      "path": "skyshift/premium-track-v072.mjs",
+      "sha": "4ed0ab7bd87272c6beb210ca89cb80e159aa6dac",
+      "size": 16054
+    },
+    {
+      "path": "skyshift/premium-track-v081.mjs",
+      "sha": "c5d7bb096640b0fff2c366116dfd484ee49b3c04",
+      "size": 16054
+    },
+    {
+      "path": "skyshift/premium-track-v082.mjs",
+      "sha": "473196e06bbf5d12e76100eb79bc257317a5e530",
+      "size": 16057
+    },
+    {
+      "path": "skyshift/premium-track-v083.mjs",
+      "sha": "897d5cd7b04ad0c61329ad957df54b5d2d3fca59",
+      "size": 16057
+    },
+    {
+      "path": "skyshift/premium-track-v084.mjs",
+      "sha": "2bda4f94fcc99959c129c03c30ba53e44611ef1e",
+      "size": 16057
+    },
+    {
+      "path": "skyshift/premium-track-v0901.mjs",
+      "sha": "08ca3519b0896e22c1c4b48c444f1bd0e9d98020",
+      "size": 16059
+    },
+    {
+      "path": "skyshift/premium-v03.mjs",
+      "sha": "091a297d708c6ee96fa6667c98647a4b5163127d",
+      "size": 3678
+    },
+    {
+      "path": "skyshift/premium-v031.mjs",
+      "sha": "d419bf0b0bfa3633af5c8b901956a07bea19b5f1",
+      "size": 3999
+    },
+    {
+      "path": "skyshift/premium-v032.mjs",
+      "sha": "beb9ca272328e0862dfcd40d750c588a89535810",
+      "size": 4176
+    },
+    {
+      "path": "skyshift/premium-v041.mjs",
+      "sha": "d4e06ddcb92e8d821e69983b69676d29a8faf18b",
+      "size": 4207
+    },
+    {
+      "path": "skyshift/premium-v045.mjs",
+      "sha": "925e02c971550b848368142028b33a2640bae149",
+      "size": 4708
+    },
+    {
+      "path": "skyshift/racing-experience-v0120.mjs",
+      "sha": "4209123d0b8db9d9aa168098a7b553001d689ecb",
+      "size": 7372
+    },
+    {
+      "path": "skyshift/racing-experience-v0121.mjs",
+      "sha": "7c4cc412e386c890e339e0ba5044e7d1f092350d",
+      "size": 8598
+    },
+    {
+      "path": "skyshift/racing-experience-v0160.mjs",
+      "sha": "4d73231ed156e528afd8e021513774e5b705d470",
+      "size": 9265
+    },
+    {
+      "path": "skyshift/rail-contact-audit-v0162.mjs",
+      "sha": "37f1b41120b6566a29d5b830465788b8b2975697",
+      "size": 3636
+    },
+    {
+      "path": "skyshift/rail-contact-audit-v0163.mjs",
+      "sha": "c224e2e861af072f34c3dfbca466043439a507a4",
+      "size": 4047
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0109.mjs",
+      "sha": "6a25f010a3cc4505c82d90c679fcdd2d9296667f",
+      "size": 10124
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v01091.mjs",
+      "sha": "963acee40626764e33c9dc708d9cde8bbf1ab205",
+      "size": 13069
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0161.mjs",
+      "sha": "c7249d91391bc20371af6833c2a932c8b34bec2d",
+      "size": 13069
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0162.mjs",
+      "sha": "f58c1522499adb074e5d55ea884f297846ce2b6e",
+      "size": 13069
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0163.mjs",
+      "sha": "c4c81a277cb482a58af60dfa56a7684ffc2c3832",
+      "size": 13069
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0164.mjs",
+      "sha": "86124c779503f2b85652e75fd138c03b6c82c19d",
+      "size": 13069
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0165.mjs",
+      "sha": "c6d42e03da28434fc07fa12f0d6c89f5de593e4b",
+      "size": 13069
+    },
+    {
+      "path": "skyshift/reactive-hud-v0499.mjs",
+      "sha": "0f938b3b588b9bc9730fdb51b8e0fa7df6c08e2b",
+      "size": 5208
+    },
+    {
+      "path": "skyshift/reactive-hud-v04991.mjs",
+      "sha": "20941508416a7042f509000e52c9a9fca9400455",
+      "size": 4615
+    },
+    {
+      "path": "skyshift/README.md",
+      "sha": "b38d5caec8bf332ef91a8e89d1dbfad609579a69",
+      "size": 123263
+    },
+    {
+      "path": "skyshift/risk-reward-v0150.mjs",
+      "sha": "62a33edc29b2ea253cdd9ab6f35e03b62af3f9ec",
+      "size": 3270
+    },
+    {
+      "path": "skyshift/risk-reward-v0151.mjs",
+      "sha": "a0cfbaf5d42433633d39bfd9b90a790e90acccaa",
+      "size": 6591
+    },
+    {
+      "path": "skyshift/risk-reward-v0160.mjs",
+      "sha": "145152d9158aebeff3cd3410d1c454c31f195c74",
+      "size": 2680
+    },
+    {
+      "path": "skyshift/road-solar-spill-v02126.mjs",
+      "sha": "b9e5ecf20105b5ea2a240a1bd291867cf9c314a6",
+      "size": 4017
+    },
+    {
+      "path": "skyshift/ROLLBACK-REFERENCE-0285-BEFORE-0286.md",
+      "sha": "29817c6d99ddf1f6c7ceaa9d33d308d65d894fbb",
+      "size": 4213
+    },
+    {
+      "path": "skyshift/sector-landmarks-v0120.mjs",
+      "sha": "02278037d63c339664ec9c14a649cdf0e39ecc80",
+      "size": 3814
+    },
+    {
+      "path": "skyshift/shadow-tunnel-v0160.mjs",
+      "sha": "acf44dc69904acb78c7be5213d634e3ec90676e0",
+      "size": 7974
+    },
+    {
+      "path": "skyshift/shadow-tunnel-v092.mjs",
+      "sha": "577cd78979d93a32ad90d79f518ade3aabf0a209",
+      "size": 7832
+    },
+    {
+      "path": "skyshift/shared-tunnel-architecture-v0280.mjs",
+      "sha": "72618b5abe070256ad76bd514ce8b812ca947b4e",
+      "size": 8306
+    },
+    {
+      "path": "skyshift/shared-tunnel-runtime-v0280.mjs",
+      "sha": "0c8b6ef9145997ea1c37f44fb1cc92149c062580",
+      "size": 5955
+    },
+    {
+      "path": "skyshift/ship-art-pipeline-v0132.mjs",
+      "sha": "8485de4a53f1ea9c806a20ec06270d774e0c0a1d",
+      "size": 7574
+    },
+    {
+      "path": "skyshift/ship-art-pipeline-v0133.mjs",
+      "sha": "a289f28fad5ff3574444c8fb45c036fc5c1bbd5e",
+      "size": 7783
+    },
+    {
+      "path": "skyshift/ship-art-pipeline-v0134.mjs",
+      "sha": "d67fbd69c9ddfcfd0d86d2e0a6b9181b622aab93",
+      "size": 7807
+    },
+    {
+      "path": "skyshift/ship-art-pipeline-v01342.mjs",
+      "sha": "64cc1c9c5d8e41106bf2444013f9a3e5d6ad8b35",
+      "size": 7840
+    },
+    {
+      "path": "skyshift/ship-hero-loader-v0132.mjs",
+      "sha": "01c92ae4f3427fcf77e16ba448b174eb1b1568fe",
+      "size": 3967
+    },
+    {
+      "path": "skyshift/ship-hero-loader-v01321.mjs",
+      "sha": "2edc8300bfd007072a60a38889507ade317a3cd2",
+      "size": 3978
+    },
+    {
+      "path": "skyshift/ship-hero-loader-v0133.mjs",
+      "sha": "ea2c2a1253262f0bb2aedd0e4ed7259844fb7140",
+      "size": 4196
+    },
+    {
+      "path": "skyshift/ship-hero-loader-v0134.mjs",
+      "sha": "8d6c137d3568fb33e00eeca5a3a9426555e94a46",
+      "size": 4202
+    },
+    {
+      "path": "skyshift/ship-hero-loader-v01342.mjs",
+      "sha": "fbb26b831ea52f96b9cdd3c728afcbb75049aaca",
+      "size": 4209
+    },
+    {
+      "path": "skyshift/ship-v034.mjs",
+      "sha": "f0582edeee7d55baab95dbe054f7e516eb71d4a3",
+      "size": 3993
+    },
+    {
+      "path": "skyshift/signature-environment-v0180.mjs",
+      "sha": "1a6219602cae4b0545b002b96f489cf58411958f",
+      "size": 8117
+    },
+    {
+      "path": "skyshift/smooth-track-v0160.mjs",
+      "sha": "fbb01a42ddb1306802fd258191f0ea4ba6bd87f7",
+      "size": 2535
+    },
+    {
+      "path": "skyshift/smooth-track-v043.mjs",
+      "sha": "4619637c7f85fe2b3480407a31e94af25cc69a30",
+      "size": 2256
+    },
+    {
+      "path": "skyshift/smooth-track-v046.mjs",
+      "sha": "2e6dfccbf668ceec40ca4f4af0fca85ade0cd9b2",
+      "size": 2326
+    },
+    {
+      "path": "skyshift/smooth-track-v049.mjs",
+      "sha": "8b193b3c14cd0869444275b75639ffd984916a51",
+      "size": 2336
+    },
+    {
+      "path": "skyshift/smooth-track-v050.mjs",
+      "sha": "65009d51791051f6e2ffcff817cbd6c2d37df944",
+      "size": 2333
+    },
+    {
+      "path": "skyshift/smooth-track-v051.mjs",
+      "sha": "f35175600bd692092568ac5599ae3242e42e7473",
+      "size": 2333
+    },
+    {
+      "path": "skyshift/smooth-track-v060.mjs",
+      "sha": "3828a13db70bc4b948d2ec591070cf5eec67015f",
+      "size": 2333
+    },
+    {
+      "path": "skyshift/smooth-track-v070.mjs",
+      "sha": "73e096c5f79e47b0254e1a99f2250cae08d36581",
+      "size": 2534
+    },
+    {
+      "path": "skyshift/smooth-track-v071.mjs",
+      "sha": "06390382da777951f5fa83ebd6bf29e67fc77176",
+      "size": 2534
+    },
+    {
+      "path": "skyshift/smooth-track-v072.mjs",
+      "sha": "113f3942d6b12c970bda7cc0b5d3d19c074c1120",
+      "size": 2534
+    },
+    {
+      "path": "skyshift/smooth-track-v081.mjs",
+      "sha": "40c46f3998592081d0f716842733244a6c481c7e",
+      "size": 2534
+    },
+    {
+      "path": "skyshift/smooth-track-v082.mjs",
+      "sha": "7a0176cd390643df6d35b0b09cb1e90723e2018a",
+      "size": 2534
+    },
+    {
+      "path": "skyshift/smooth-track-v083.mjs",
+      "sha": "77b461ecefcf08a75d1bd92d1082f1f58c13be75",
+      "size": 2534
+    },
+    {
+      "path": "skyshift/smooth-track-v084.mjs",
+      "sha": "cededc2deedad9698de2ef97c4842bdc330507d3",
+      "size": 2534
+    },
+    {
+      "path": "skyshift/smooth-track-v0901.mjs",
+      "sha": "8b9327d7135bceeb52557c772553081b543f2cef",
+      "size": 2535
+    },
+    {
+      "path": "skyshift/space-v04.mjs",
+      "sha": "d1537c175f68c49948a8d36443ca144f57fd6c7c",
+      "size": 2681
+    },
+    {
+      "path": "skyshift/space-v0496.mjs",
+      "sha": "b90077867761b511f187eea9eab5eddbc24df575",
+      "size": 3325
+    },
+    {
+      "path": "skyshift/stingray-evo-v010.mjs",
+      "sha": "1641caa8864fbaf585b63588f5d341365189a993",
+      "size": 6603
+    },
+    {
+      "path": "skyshift/stingray-evo-v0101.mjs",
+      "sha": "114663ef5adfb8fbb9222b7036c4ba9eea04a637",
+      "size": 10275
+    },
+    {
+      "path": "skyshift/stingray-evo-v0102.mjs",
+      "sha": "2d913e7c3f5e86c8d348f0a080e87f417675b795",
+      "size": 10359
+    },
+    {
+      "path": "skyshift/stingray-evo-v0103.mjs",
+      "sha": "bc341580f8af035773de5391915b7826176cb36b",
+      "size": 11772
+    },
+    {
+      "path": "skyshift/stingray-evo-v0104.mjs",
+      "sha": "d3005c694c56ede05b4cbd2f26ce9343a0d73b74",
+      "size": 11858
+    },
+    {
+      "path": "skyshift/stingray-presentation-v01342.mjs",
+      "sha": "326e4bfa8ae8e45c3bf2d5555966c93a2d2a9e80",
+      "size": 1043
+    },
+    {
+      "path": "skyshift/stingray-presentation-v01343.mjs",
+      "sha": "77eda09fe27e2184c2ff8b7024160619a3b3907b",
+      "size": 1301
+    },
+    {
+      "path": "skyshift/stingray-presentation-v01344.mjs",
+      "sha": "b750cdc755f90674e3ec7ce452857dd8873ddf39",
+      "size": 2293
+    },
+    {
+      "path": "skyshift/stingray-presentation-v01345.mjs",
+      "sha": "ace29d18aab6ebbdd4b15edd01303bafa401b2f8",
+      "size": 2580
+    },
+    {
+      "path": "skyshift/stingray-presentation-v01346.mjs",
+      "sha": "6a226003dec7cd1059a43e0f4b4e988156740574",
+      "size": 2716
+    },
+    {
+      "path": "skyshift/straight-only-edge-lighting-v02633.mjs",
+      "sha": "9c6571b59a01396c34fb28f6ca3ec309412fbf9c",
+      "size": 11166
+    },
+    {
+      "path": "skyshift/structural-tunnel-v0213.mjs",
+      "sha": "ec434303a76bd98644915ebf7f8d9556fe4e58c4",
+      "size": 19587
+    },
+    {
+      "path": "skyshift/style-v0121.css",
+      "sha": "08b588ff221780e8848df553d542266529345cc2",
+      "size": 1174
+    },
+    {
+      "path": "skyshift/style-v0130.css",
+      "sha": "39ca88fd88485edcaac38b7a5cebaab029dcea66",
+      "size": 2140
+    },
+    {
+      "path": "skyshift/style-v0131.css",
+      "sha": "25b25d93887c30e02937024e4462a567c2a292fc",
+      "size": 2274
+    },
+    {
+      "path": "skyshift/style-v0140.css",
+      "sha": "db1d9495527c44dd84ec2c11ce62b2596a2363eb",
+      "size": 3337
+    },
+    {
+      "path": "skyshift/style-v0150.css",
+      "sha": "4c2ac4972e7b41530fbc675dd36b5037b4c06d1a",
+      "size": 818
+    },
+    {
+      "path": "skyshift/style-v0151.css",
+      "sha": "56cff136e8058285acdb8676cd3b21010c07e9b5",
+      "size": 1191
+    },
+    {
+      "path": "skyshift/style-v0160.css",
+      "sha": "b48e039cd000090692be6141c017da7dd9be1e5b",
+      "size": 2047
+    },
+    {
+      "path": "skyshift/style-v02.css",
+      "sha": "108ba99f8c3fd39a604b6b53fa7a6ff3485896bb",
+      "size": 11665
+    },
+    {
+      "path": "skyshift/style-v03.css",
+      "sha": "8ba867ab838bcd7532cc8f7f284151fa2151fb89",
+      "size": 12445
+    },
+    {
+      "path": "skyshift/style-v031.css",
+      "sha": "cd2ce0260f0154d97e8f77028b0057410125bde4",
+      "size": 14376
+    },
+    {
+      "path": "skyshift/style-v033.css",
+      "sha": "e2319e42b756fed6089f1ae27ae4efa77f177d80",
+      "size": 15272
+    },
+    {
+      "path": "skyshift/style-v0331.css",
+      "sha": "dec4ffa242c53da6236769d5835f3d4549f5f2e4",
+      "size": 15457
+    },
+    {
+      "path": "skyshift/style-v034.css",
+      "sha": "a9519f0e5781e78a18272b85ef4c2af148510aae",
+      "size": 15795
+    },
+    {
+      "path": "skyshift/style-v04.css",
+      "sha": "aacef6c962646df1923dfc9c23ad11b097429f88",
+      "size": 16120
+    },
+    {
+      "path": "skyshift/style-v041.css",
+      "sha": "882bf2bd5ca0bdbfb3c6f23a9d31968577e15a65",
+      "size": 16268
+    },
+    {
+      "path": "skyshift/style-v042.css",
+      "sha": "d91f16912fc28e21ee76d68d9524c16d82c15d6a",
+      "size": 16446
+    },
+    {
+      "path": "skyshift/style-v043.css",
+      "sha": "e2289dd090f2b82c0d02e4790f9ba06cc22fc1f0",
+      "size": 17079
+    },
+    {
+      "path": "skyshift/style-v0499.css",
+      "sha": "0079c51cb8ae0e21c5360505554db918055e54e2",
+      "size": 27893
+    },
+    {
+      "path": "skyshift/style-v04991.css",
+      "sha": "a2ad0289240004009710c5d592e51ad14aee8489",
+      "size": 33093
+    },
+    {
+      "path": "skyshift/style-v060.css",
+      "sha": "3c6148ad33485a207eac898269173181cb47029e",
+      "size": 33621
+    },
+    {
+      "path": "skyshift/style-v061.css",
+      "sha": "455cb5d4c3969c9882489be373b40d2c13e9bb8c",
+      "size": 36250
+    },
+    {
+      "path": "skyshift/style-v080.css",
+      "sha": "a51d54e39bef318a2a394e4e27cff03da73742d6",
+      "size": 2188
+    },
+    {
+      "path": "skyshift/style-v081.css",
+      "sha": "b58554ea385db7ef2c205a3df2b245a7112b3a0c",
+      "size": 746
+    },
+    {
+      "path": "skyshift/style-v083.css",
+      "sha": "0dc961a642a5faf36a287e148929bc74b079faf0",
+      "size": 2369
+    },
+    {
+      "path": "skyshift/style.css",
+      "sha": "7b6e5ae131e79addf48d4544726e0c180ed9507b",
+      "size": 9063
+    },
+    {
+      "path": "skyshift/time-trial-v0130.mjs",
+      "sha": "d32eb559964cba5764612aaa889d4b71e96c536e",
+      "size": 9811
+    },
+    {
+      "path": "skyshift/time-trial-v0150.mjs",
+      "sha": "abe7fa1e56b07ce19eaeaaf5a72b8d1c669f504d",
+      "size": 9820
+    },
+    {
+      "path": "skyshift/time-trial-v0151.mjs",
+      "sha": "f4477d6fdca4869a188466b1117d1ecbea8d9ea9",
+      "size": 9823
+    },
+    {
+      "path": "skyshift/time-trial-v0160.mjs",
+      "sha": "833bf1d99b42a9e172cad6d06ed74c6a311ef833",
+      "size": 10004
+    },
+    {
+      "path": "skyshift/track-3d-v070.mjs",
+      "sha": "188ce12026dd3fdba9577b7ceac8d6d281376ab9",
+      "size": 2963
+    },
+    {
+      "path": "skyshift/track-3d-v071.mjs",
+      "sha": "a82f90b7e3911b7fe6c4bb03c2f974c3b37d4277",
+      "size": 4036
+    },
+    {
+      "path": "skyshift/track-3d-v072.mjs",
+      "sha": "284b19d99c4c16b45c072073bf7d8cd9b456a00c",
+      "size": 5269
+    },
+    {
+      "path": "skyshift/track-3d-v081.mjs",
+      "sha": "99ce3d0f7a5d327d40ce991da80ed5d2618b0c4f",
+      "size": 5315
+    },
+    {
+      "path": "skyshift/track-3d-v082.mjs",
+      "sha": "fe5de6865726a457bdaab8a6a3587d4daffa98f1",
+      "size": 5472
+    },
+    {
+      "path": "skyshift/track-physics-parity-probe-v0164.mjs",
+      "sha": "56fb4b654ad8213657e0ce03205d5de7e4d005a3",
+      "size": 1780
+    },
+    {
+      "path": "skyshift/track-physics-parity-probe-v0165.mjs",
+      "sha": "05fcedaddbad9835a2706a551d0d7ff56bcc566f",
+      "size": 1780
+    },
+    {
+      "path": "skyshift/track.mjs",
+      "sha": "89d6acbde2ff3486fe6a9c124dca63d5de3ff5af",
+      "size": 4898
+    },
+    {
+      "path": "skyshift/trial-v01348.mjs",
+      "sha": "358cd221db33e5894ea86149848ab7e9cc16455e",
+      "size": 32238
+    },
+    {
+      "path": "skyshift/trial-v0150.mjs",
+      "sha": "7dc8b21d1d655d7420d818ab89eb21f9c5df0814",
+      "size": 32454
+    },
+    {
+      "path": "skyshift/trial-v0151.mjs",
+      "sha": "86e46aa512b581de3e5b09cb5d5f8b2a1be8cd02",
+      "size": 32454
+    },
+    {
+      "path": "skyshift/trial-v0160.mjs",
+      "sha": "918d0dcaff5e36d0016202b617292988fb73e778",
+      "size": 32956
+    },
+    {
+      "path": "skyshift/trial-v0162.mjs",
+      "sha": "554c7d2a9c8db230690321d68e8988cfffd2d497",
+      "size": 34739
+    },
+    {
+      "path": "skyshift/trial-v0163.mjs",
+      "sha": "eb5419f47369c6adbfc29482f44f92eb29b98865",
+      "size": 36463
+    },
+    {
+      "path": "skyshift/trial-v0164.mjs",
+      "sha": "e22c2eb58c68a1d9c8591493cdadf5ca1c429d7f",
+      "size": 34462
+    },
+    {
+      "path": "skyshift/trial-v0165.mjs",
+      "sha": "dd4f085526286a68519f9a1e2950a97be59d28e2",
+      "size": 35348
+    },
+    {
+      "path": "skyshift/trial-v02.mjs",
+      "sha": "56e2e1219458023820da902b99bd44a9f0d73df6",
+      "size": 7871
+    },
+    {
+      "path": "skyshift/trial-v03.mjs",
+      "sha": "bf34d96f3e335f3c4045d610b4aae4933e44e086",
+      "size": 10451
+    },
+    {
+      "path": "skyshift/trial-v04.mjs",
+      "sha": "a67ae894749dcde24562569752bbb73164a236bc",
+      "size": 12532
+    },
+    {
+      "path": "skyshift/trial-v041.mjs",
+      "sha": "02dfb19d9cff810f78b99f580cb4ff3f3ca4c858",
+      "size": 15381
+    },
+    {
+      "path": "skyshift/trial-v042.mjs",
+      "sha": "1a8b8deecd76574de0e9a9d376a0d5394227a025",
+      "size": 10805
+    },
+    {
+      "path": "skyshift/trial-v043.mjs",
+      "sha": "754aab77bd785e14297ed00796e420d30caf1941",
+      "size": 10877
+    },
+    {
+      "path": "skyshift/trial-v046.mjs",
+      "sha": "2a460a5fca71fde4c8f0403f740e8894c1a944ed",
+      "size": 12518
+    },
+    {
+      "path": "skyshift/trial-v048.mjs",
+      "sha": "cb89318cbb4079f3c9ec0bdff13cf029fa1339d4",
+      "size": 12899
+    },
+    {
+      "path": "skyshift/trial-v049.mjs",
+      "sha": "b796635e02f348c308ded72d803e504f31b81114",
+      "size": 14188
+    },
+    {
+      "path": "skyshift/trial-v0494.mjs",
+      "sha": "9bbdec915cf2ca543e248241abe8b79a6c12504b",
+      "size": 14191
+    },
+    {
+      "path": "skyshift/trial-v050.mjs",
+      "sha": "146302562febc81cc273f8de62b8a3fe0cdd6c44",
+      "size": 14838
+    },
+    {
+      "path": "skyshift/trial-v051.mjs",
+      "sha": "a2f7170ae3208bc58fb15021696b47cd8208b64e",
+      "size": 15109
+    },
+    {
+      "path": "skyshift/trial-v060.mjs",
+      "sha": "9157221dd42f8b80cb063a1f6b5b9f3e164206e2",
+      "size": 15971
+    },
+    {
+      "path": "skyshift/trial-v061.mjs",
+      "sha": "ec157efa41a9995b4e550a1c2ddce4e2484895b4",
+      "size": 16902
+    },
+    {
+      "path": "skyshift/trial-v070.mjs",
+      "sha": "f5cbb2e877bf707ac4d59c4934889464fa3ed0a3",
+      "size": 18885
+    },
+    {
+      "path": "skyshift/trial-v071.mjs",
+      "sha": "bd36f4f8f2178f2d49a5accc863e15154a46f2ca",
+      "size": 21321
+    },
+    {
+      "path": "skyshift/trial-v072.mjs",
+      "sha": "77bf39a3b2989d66456218747056400344dc7d38",
+      "size": 25174
+    },
+    {
+      "path": "skyshift/trial-v080.mjs",
+      "sha": "008ba8e16d6c94f7ad16b0ee339fbb0867981c19",
+      "size": 27306
+    },
+    {
+      "path": "skyshift/trial-v081.mjs",
+      "sha": "3bc57eea97075639f9130f28ea775772539c47a9",
+      "size": 27309
+    },
+    {
+      "path": "skyshift/trial-v082.mjs",
+      "sha": "f804f64ec3f97469be811a2f63ed28225cd3170c",
+      "size": 29874
+    },
+    {
+      "path": "skyshift/trial-v083.mjs",
+      "sha": "22797afbf0d5c9ff7e1028d93454614f99446a0c",
+      "size": 31039
+    },
+    {
+      "path": "skyshift/trial-v084.mjs",
+      "sha": "cbad738880684489622915df0c7b7fba2f16ab9a",
+      "size": 32262
+    },
+    {
+      "path": "skyshift/trial-v0901.mjs",
+      "sha": "59f59189a01d1fcb11673b17aca715f4f51a6330",
+      "size": 32252
+    },
+    {
+      "path": "skyshift/true-material-depth-v0231.mjs",
+      "sha": "25aabd2a02817c24f660bcbe5ed09caf756d4a4e",
+      "size": 10388
+    },
+    {
+      "path": "skyshift/true-rail-wall-response-v0265.mjs",
+      "sha": "7f6ab2afb650ee89d5efd9a8bbb835dd03dda276",
+      "size": 14501
+    },
+    {
+      "path": "skyshift/true-shared-tunnel-renderer-v0281.mjs",
+      "sha": "9eb3554c5f05db50365ccc81b41b97052477d93b",
+      "size": 25847
+    },
+    {
+      "path": "skyshift/tunnel-blackout-v0160.mjs",
+      "sha": "b815ad4cbdfc546c2760db5e9753506fd1f081c5",
+      "size": 6375
+    },
+    {
+      "path": "skyshift/tunnel-blackout-v0921.mjs",
+      "sha": "92632ce4c72cab2cc3883a4c7a760e1f5419accc",
+      "size": 6356
+    },
+    {
+      "path": "skyshift/tunnel-exterior-seal-v02122.mjs",
+      "sha": "62ca5eb608fd6ef9c04661dae7dd521477ef628e",
+      "size": 6211
+    },
+    {
+      "path": "skyshift/tunnel-megastructure-v0211.mjs",
+      "sha": "64d0cbfc920c9c595c55d3fb37e6f6a5aeecd49d",
+      "size": 13221
+    },
+    {
+      "path": "skyshift/tunnel-spectrum-v02121.mjs",
+      "sha": "fb5d92896d940b9d04c9cca708793408bc5b2e04",
+      "size": 4297
+    },
+    {
+      "path": "skyshift/unified-cinematic-grade-v0220p4.mjs",
+      "sha": "e0660cffaaa5ca1946e622e1774e592c7f1b8df2",
+      "size": 6825
+    },
+    {
+      "path": "skyshift/UNIFIED-TUNNEL-LIGHTING-FOUNDATION-1.md",
+      "sha": "f04304ccc5cef60932c912cd83c77b02b199a3ff",
+      "size": 3579
+    },
+    {
+      "path": "skyshift/unified-tunnel-lighting-v1.mjs",
+      "sha": "80af3de254fa762886ab649473d5eeb55a65bbd5",
+      "size": 4392
+    },
+    {
+      "path": "skyshift/unified-tunnel-materials-v0233.mjs",
+      "sha": "d5106679318fcc5295aa51d1f15b49f5ece6f2a8",
+      "size": 6902
+    },
+    {
+      "path": "skyshift/velocity-cinematography-v0220p3.mjs",
+      "sha": "a1c8973880c953ac2e68d1db19365932c4228484",
+      "size": 5905
+    },
+    {
+      "path": "skyshift/velocity-language-v0496.mjs",
+      "sha": "9eff8395da24036979924e25bedfdde0d62d5829",
+      "size": 2560
+    },
+    {
+      "path": "skyshift/velocity-presence-v0104.mjs",
+      "sha": "0cf794e5cb6ebd451dab01c281a32b573b0de08c",
+      "size": 4353
+    },
+    {
+      "path": "skyshift/velocity-vanes-v0104.mjs",
+      "sha": "ebe00c2b6c40c07e4112fc93eb4aa022e280a381",
+      "size": 1695
+    },
+    {
+      "path": "skyshift/white-core-containment-v02123.mjs",
+      "sha": "cf4adf3988044a9c56d30de163689a99eef0ac85",
+      "size": 6726
+    },
+    {
+      "path": "skyshift/wing-vapor-v0105.mjs",
+      "sha": "5347d08777f5e1e96ce1d5990c2b55803bb7333f",
+      "size": 8182
+    },
+    {
+      "path": "skyshift/wingtip-contrails-v0106.mjs",
+      "sha": "8e65f76a23b78dce09343efc12775d19018c2c7c",
+      "size": 8166
+    },
+    {
+      "path": "skyshift/world-material-readability-v0191.mjs",
+      "sha": "80733cd48dc29f6c004fe42ab977762d07389763",
+      "size": 6148
+    },
+    {
+      "path": "skyshift/world-rebuild-v0190.mjs",
+      "sha": "0450cc9ce3b6cbe1cf1904f4594ee7a2e82235e5",
+      "size": 10512
+    },
+    {
+      "path": "skyshift/world-v034.mjs",
+      "sha": "227d38046d6085533879b739617f5a744e61d91d",
+      "size": 7857
+    },
+    {
+      "path": "skyshift/zone-surface-v048.mjs",
+      "sha": "5bc400d3966423672d2bc84d5aa0d21fb54daff9",
+      "size": 5903
+    },
+    {
+      "path": "skyshift/zone-wave-v049.mjs",
+      "sha": "70819eab7e789d22e624f40584421510bd60d397",
+      "size": 2910
+    },
+    {
+      "path": "skyshift/zone-wave-v0491.mjs",
+      "sha": "c57ad6f44896f42a5a11324d8e3486acf1b08e55",
+      "size": 5271
+    },
+    {
+      "path": "skyshift/zone-wave-v0492.mjs",
+      "sha": "88a29526db179d1e7e41a22c520d6d7b7e214d19",
+      "size": 6636
+    },
+    {
+      "path": "skyshift/zone-wave-v0493.mjs",
+      "sha": "1b7d0e816172bce6a5cc6f638483dcef29c19694",
+      "size": 6625
+    },
+    {
+      "path": "skyshift/zone-wave-v050.mjs",
+      "sha": "bb7dddd91dd4f21f452e4fb67e03a7302d96f5f5",
+      "size": 7523
+    },
+    {
+      "path": "skyshift/zone-wave-v051.mjs",
+      "sha": "c7ec8d5409e2c6924d8f22afc0acb2dd16a257a7",
+      "size": 7526
+    },
+    {
+      "path": "skyshift/zone-wave-v060.mjs",
+      "sha": "0367082d4ca6ba3a58d1f02a1f40789eddd39ba1",
+      "size": 7526
+    }
+  ]
+}

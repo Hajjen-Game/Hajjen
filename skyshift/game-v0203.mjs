@@ -57,15 +57,15 @@ import {WORLD_0190,installCinematicWorld}
 import {ORBITAL_HERO_0192,installOrbitalHero}
  from "./orbital-hero-v0192.mjs";
 import {WORLD_ART_0200,installWorldArt}
- from "./environment-art-pipeline-v0200.mjs";
+ from "./world/environment-art-pipeline-v0200.mjs";
 import {WORLD_ART_0201,installWorldArt as installEnclosedWorldArt}
- from "./environment-art-pipeline-v0201.mjs";
+ from "./world/environment-art-pipeline-v0201.mjs";
 import {WORLD_ART_0202,installWorldArt as installObservationWorldArt}
- from "./environment-art-pipeline-v0202.mjs";
+ from "./world/environment-art-pipeline-v0202.mjs";
 import {WORLD_ART_02021,installWorldArt as installRibbonWindowArt}
- from "./environment-art-pipeline-v02021.mjs";
+ from "./world/environment-art-pipeline-v02021.mjs";
 import {WORLD_ART_0203,installWorldArt as installGraphiteWorldArt}
- from "./environment-art-pipeline-v0203.mjs";
+ from "./world/environment-art-pipeline-v0203.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";

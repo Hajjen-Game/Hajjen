@@ -3,11 +3,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {GRAPHITE_PALETTE_0203,STATION_ART_0203,buildStationAsset}
- from "../../build-station-world-v0203.mjs";
+ from "../../world/authoring/build-station-world-v0203.mjs";
 import {WORLD_ART_0203,planStationWorld}
- from "../../environment-art-pipeline-v0203.mjs";
+ from "../../world/environment-art-pipeline-v0203.mjs";
 import {WORLD_ART_02021,planStationWorld as originalPlan}
- from "../../environment-art-pipeline-v02021.mjs";
+ from "../../world/environment-art-pipeline-v02021.mjs";
 const f=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const before=JSON.parse(f("./assets/worlds/continuum-ribbon-bays-v4.gltf"));
 const after=JSON.parse(f("./assets/worlds/continuum-graphite-bays-v5.gltf"));
@@ -112,7 +112,7 @@ test("world, bank, handling, old lighting and A/B baselines are intact",()=>{
  assert.equal(planStationWorld({track:"aurora"}).active,false);
  const game=f("./game-v0203.mjs");
  for(const base of ["trial-v0165","flight/unified-flight-v0165","flight/cinematic-v0165",
-  "environment-art-pipeline-v02021","environment-art-pipeline-v0203"])
+  "world/environment-art-pipeline-v02021","world/environment-art-pipeline-v0203"])
   assert.ok(game.includes('from "./'+base+'.mjs"'),base+" must remain imported");
  assert.match(game,/materialGrade"\)!=="classic"/);
  assert.match(game,/graphiteGradeEnabled\?installGraphiteWorldArt/);

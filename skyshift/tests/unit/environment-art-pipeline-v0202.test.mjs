@@ -3,11 +3,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {WORLD_ART_0202,planStationWorld,bakeTrackConformingBayGeometry}
- from "../../environment-art-pipeline-v0202.mjs";
+ from "../../world/environment-art-pipeline-v0202.mjs";
 import {WORLD_ART_0201,planStationWorld as planOld}
- from "../../environment-art-pipeline-v0201.mjs";
+ from "../../world/environment-art-pipeline-v0201.mjs";
 import {STATION_ART_0202,buildStationAsset}
- from "../../build-station-world-v0202.mjs";
+ from "../../world/authoring/build-station-world-v0202.mjs";
 import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
 const file=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const asset=JSON.parse(file("./assets/worlds/continuum-observation-bays-v3.gltf"));
@@ -56,8 +56,8 @@ test("window apertures enlarged modestly while architecture remains in the same 
  assert.equal(WORLD_ART_0202.addedRenderPasses,0);
  assert.ok(WORLD_ART_0202.windowGlassWidthMeters<16);
  assert.ok(WORLD_ART_0202.windowGlassHeightMeters<10);
- const oldSource=file("./build-station-world-v0201.mjs");
- const newSource=file("./build-station-world-v0202.mjs");
+ const oldSource=file("./world/authoring/build-station-world-v0201.mjs");
+ const newSource=file("./world/authoring/build-station-world-v0202.mjs");
  assert.match(newSource,/glass\.quad\(\[15\.64\*sign,14\.53,-5\.9\]/);
  assert.match(oldSource,/glass\.quad\(\[15\.64\*sign,15\.0,-5\.1\]/);
 });
@@ -150,7 +150,7 @@ test("active game uses new window art with explicit 0.20.1 comparison, not new h
  assert.match(game,/from "\.\/trial-v0165\.mjs"/);
  assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
  assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);
- assert.match(game,/from "\.\/environment-art-pipeline-v0202\.mjs"/);
+ assert.match(game,/from "\.\/world\/environment-art-pipeline-v0202\.mjs"/);
  assert.match(game,/get\("windows"\)!=="classic"/);
  assert.match(game,/installObservationWorldArt:installEnclosedWorldArt/);
  assert.match(game,/compareBeforeWindows:"\?windows=classic"/);

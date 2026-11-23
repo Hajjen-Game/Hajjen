@@ -3,11 +3,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {STATION_ART_02021,buildStationAsset}
- from "../../build-station-world-v02021.mjs";
+ from "../../world/authoring/build-station-world-v02021.mjs";
 import {WORLD_ART_02021,planStationWorld,bakeTrackConformingBayGeometry}
- from "../../environment-art-pipeline-v02021.mjs";
+ from "../../world/environment-art-pipeline-v02021.mjs";
 import {planStationWorld as previousPlan}
- from "../../environment-art-pipeline-v0202.mjs";
+ from "../../world/environment-art-pipeline-v0202.mjs";
 import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
 const file=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const asset=JSON.parse(file("./assets/worlds/continuum-ribbon-bays-v4.gltf"));

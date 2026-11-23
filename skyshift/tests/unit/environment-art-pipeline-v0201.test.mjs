@@ -3,12 +3,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {WORLD_ART_0201,planStationWorld,bakeTrackConformingBayGeometry}
- from "../../environment-art-pipeline-v0201.mjs";
+ from "../../world/environment-art-pipeline-v0201.mjs";
 import {STATION_ART_0201,buildStationAsset}
- from "../../build-station-world-v0201.mjs";
+ from "../../world/authoring/build-station-world-v0201.mjs";
 import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
 import {planStationWorld as planLegacyWorld}
- from "../../environment-art-pipeline-v0200.mjs";
+ from "../../world/environment-art-pipeline-v0200.mjs";
 const src=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const gltf=JSON.parse(src("./assets/worlds/continuum-enclosure-bays-v2.gltf"));
 test("station becomes an enclosed interior; old highway remains exactly the same",()=>{
@@ -109,7 +109,7 @@ test("low-memory retains enclosed cross-section, original driving physics stays 
  assert.match(game,/from "\.\/trial-v0165\.mjs"/);
  assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
  assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);
- assert.match(game,/from "\.\/environment-art-pipeline-v0201\.mjs"/);
+ assert.match(game,/from "\.\/world\/environment-art-pipeline-v0201\.mjs"/);
  assert.match(game,/stationStyle"\)!=="classic"/);
  assert.match(game,/if\(rebirthEnabled\)stationWorld=\(enclosedStationEnabled\?/);
  assert.match(game,/version:"0\.20\.1"/);

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {precisionNeonEnabled0288,patchPrecisionNeon0288,
  installPrecisionNeon0288,PRECISION_NEON_0288}
- from "../../precision-neon-response-v0288.mjs";
+ from "../../tunnel/precision-neon-response-v0288.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 
 test("0.28.8 enabled only for new Vault; classic restores exact 0.28.7",()=>{
@@ -98,6 +98,6 @@ test("shared renderer and game own lifecycle, not a parallel Vault imitation",()
  assert.match(game,/precisionNeonReleaseEnabled\?" · 0\.28\.8"/);
  assert.match(html,/(?:Shared Straight-Only Edge Lighting Parity|Ceiling Fixture Placement & Glow Cohesion|Premium Arch Optics & Chromatic Road Reflections|Unified Light Sources & Road Layer Cleanup|Road Light Spill Continuity & Wave-Coupled Cove Lighting|Curve Surface Artifact & Transition Seam Cleanup|Startup Stability & Shared Resource Deduplication)/);
  assert.match(html,/0\.28\.9/);
- assert.doesNotMatch(read("./precision-neon-response-v0288.mjs"),
+ assert.doesNotMatch(read("./tunnel/precision-neon-response-v0288.mjs"),
   /new THREE\.(PointLight|RectAreaLight|Reflector|PMREMGenerator|WebGLRenderTarget)/);
 });

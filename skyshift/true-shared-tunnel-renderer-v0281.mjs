@@ -6,13 +6,13 @@
 import {installPremiumMetalSurfaceLibrary}
  from "./rendering/premium-metal-surface-v0262.mjs";
 import {vaultSpatialWaveEnabled0285,installVaultSpatialWaveModule0285}
- from "./vault-spatial-wave-parity-v0285.mjs";
+ from "./tunnel/vault-spatial-wave-parity-v0285.mjs";
 import {reflectionStabilityEnabled0286,installReflectionStability0286}
- from "./reflection-stability-strips-v0286.mjs";
+ from "./tunnel/reflection-stability-strips-v0286.mjs";
 import {archFootRelease0287,installArchFootAssembly0287}
- from "./arch-foot-light-assembly-v0287.mjs";
+ from "./tunnel/arch-foot-light-assembly-v0287.mjs";
 import {precisionNeonEnabled0288,installPrecisionNeon0288}
- from "./precision-neon-response-v0288.mjs";
+ from "./tunnel/precision-neon-response-v0288.mjs";
 import {cinematicMetalEnabled0289,installCinematicTunnel0289}
  from "./rendering/cinematic-metal-neon-v0289.mjs";
 import {installUnifiedMetalLighting02641}
@@ -26,13 +26,13 @@ import {wrapShader0265}
 import {createLowerEdgeSources02632,createConnectedFootBands02632}
  from "./edge-source-floor-bands-v02632.mjs";
 import {coveWaveEnabled02895,installWaveCoupledCove02895}
- from "./road-spill-wave-coves-v02895.mjs";
+ from "./tunnel/road-spill-wave-coves-v02895.mjs";
 import {archOpticsEnabled02893,installArchSourceOptics02893}
- from "./premium-arch-optics-v02893.mjs";
+ from "./tunnel/premium-arch-optics-v02893.mjs";
 import {ceilingFixtureEnabled02892,installCeilingFixtureCohesion02892}
- from "./ceiling-fixture-cohesion-v02892.mjs";
+ from "./tunnel/ceiling-fixture-cohesion-v02892.mjs";
 import {straightParityEnabled02891,buildVaultStraightEmitters02891,
- vaultStraightRanges02891} from "./shared-straight-edge-parity-v02891.mjs";
+ vaultStraightRanges02891} from "./tunnel/shared-straight-edge-parity-v02891.mjs";
 
 export const TRUE_SHARED_RENDERER_0281=Object.freeze({
  version:"0.28.1",id:"skyline-original-renderer",

@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'skyshift/shared-straight-edge-parity-v02891.mjs'
+      - 'skyshift/tunnel/shared-straight-edge-parity-v02891.mjs'
       - '.github/workflows/skyshift-preview-v02891.yml'
   workflow_dispatch:
 permissions:
@@ -24,7 +24,7 @@ jobs:
       - name: Validate real source bend masks and old releases
         run: |
           set -euo pipefail
-          node --check skyshift/shared-straight-edge-parity-v02891.mjs
+          node --check skyshift/tunnel/shared-straight-edge-parity-v02891.mjs
           node --check skyshift/browser-straight-edge-parity-v02891.mjs
           node --test skyshift/tests/unit/shared-straight-edge-parity-v02891.test.mjs
       - name: Install real WebGL browser driver

@@ -3,7 +3,7 @@
 // original banked 0.26.0 physical/painted metal. Vault is first live rollout;
 // the same source shader adapters accept a native Skyline module at 1:1.
 // No new lights/meshes, geometry, road attributes, collisions, render passes.
-import {ZONE_PALETTES,ZONE_WAVE} from "./zone-wave-v060.mjs";
+import {ZONE_PALETTES,ZONE_WAVE} from "../zone-wave-v060.mjs";
 import {sharedWaveColors02894} from "./unified-tunnel-light-sources-v02894.mjs";
 import {vaultStraightMask02891} from "./shared-straight-edge-parity-v02891.mjs";
 

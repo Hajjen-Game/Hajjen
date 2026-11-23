@@ -45,6 +45,8 @@ jobs:
         run: node --test skyshift/tests/architecture/browser-harness-relocation-stageB.test.mjs
       - name: Audit Stage C relocated live rendering modules, original SHA and import consumers
         run: node --test skyshift/tests/architecture/rendering-migration-stageC.test.mjs
+      - name: Audit Stage D tunnel optics original SHA and all resolved module imports
+        run: node --test skyshift/tests/architecture/tunnel-migration-stageD.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

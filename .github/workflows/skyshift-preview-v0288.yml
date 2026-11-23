@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'skyshift/precision-neon-response-v0288.mjs'
+      - 'skyshift/tunnel/precision-neon-response-v0288.mjs'
       - '.github/workflows/skyshift-preview-v0288.yml'
   workflow_dispatch:
 permissions:
@@ -25,7 +25,7 @@ jobs:
       - name: Validate patch and renderer before preview
         run: |
           set -euo pipefail
-          node --check skyshift/precision-neon-response-v0288.mjs
+          node --check skyshift/tunnel/precision-neon-response-v0288.mjs
           node --check skyshift/tests/browser/browser-precision-neon-v0288.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/precision-neon-response-v0288.test.mjs

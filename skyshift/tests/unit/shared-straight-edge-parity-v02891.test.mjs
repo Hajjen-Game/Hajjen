@@ -10,7 +10,7 @@ const {
  vaultStraightMask02891,buildVaultStraightEmitters02891,
  buildVaultRoadStraightMask02891,patchVaultRoadCyanMask02891,
  installVaultStraightRoadParity02891,STRAIGHT_EDGE_PARITY_02891
-}=await import("../../shared-straight-edge-parity-v02891.mjs");
+}=await import("../../tunnel/shared-straight-edge-parity-v02891.mjs");
 const {COURSE_SEGMENTS,CIRCUIT}=await import("../../trial-v0165.mjs");
 const {planTrueSharedTunnel0281}=await import("../../true-shared-tunnel-renderer-v0281.mjs");
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
@@ -160,10 +160,10 @@ test("legacy Skyline release functions and Vault 0.28.9 lighting remain enabled"
  const [{vaultSpatialWaveEnabled0285},{reflectionStabilityEnabled0286},
   {archFootRelease0287},{precisionNeonEnabled0288},
   {cinematicMetalEnabled0289}]=await Promise.all([
-   import("../../vault-spatial-wave-parity-v0285.mjs"),
-   import("../../reflection-stability-strips-v0286.mjs"),
-   import("../../arch-foot-light-assembly-v0287.mjs"),
-   import("../../precision-neon-response-v0288.mjs"),
+   import("../../tunnel/vault-spatial-wave-parity-v0285.mjs"),
+   import("../../tunnel/reflection-stability-strips-v0286.mjs"),
+   import("../../tunnel/arch-foot-light-assembly-v0287.mjs"),
+   import("../../tunnel/precision-neon-response-v0288.mjs"),
    import("../../rendering/cinematic-metal-neon-v0289.mjs")
   ]);
  for(const f of [vaultSpatialWaveEnabled0285,reflectionStabilityEnabled0286,

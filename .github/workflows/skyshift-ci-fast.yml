@@ -93,28 +93,28 @@ jobs:
           node --check skyshift/shared-tunnel-runtime-v0280.mjs
           node --check skyshift/browser-shared-tunnel-v0280.mjs
           node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
-          node --check skyshift/ceiling-fixture-cohesion-v02892.mjs
-          node --check skyshift/premium-arch-optics-v02893.mjs
-          node --check skyshift/unified-tunnel-light-sources-v02894.mjs
-          node --check skyshift/road-spill-wave-coves-v02895.mjs
-          node --check skyshift/curve-surface-continuity-v02896.mjs
+          node --check skyshift/tunnel/ceiling-fixture-cohesion-v02892.mjs
+          node --check skyshift/tunnel/premium-arch-optics-v02893.mjs
+          node --check skyshift/tunnel/unified-tunnel-light-sources-v02894.mjs
+          node --check skyshift/tunnel/road-spill-wave-coves-v02895.mjs
+          node --check skyshift/tunnel/curve-surface-continuity-v02896.mjs
           node --check skyshift/tests/browser/browser-curve-surface-continuity-v02896.mjs
           node --check skyshift/browser-road-spill-wave-cove-v02895.mjs
           node --check skyshift/browser-unified-tunnel-light-v02894.mjs
           node --check skyshift/tests/browser/browser-premium-arch-optics-v02893.mjs
           node --check skyshift/tests/browser/browser-ceiling-fixture-v02892.mjs
           node --check skyshift/browser-true-shared-tunnel-v0281.mjs
-          node --check skyshift/shared-road-ship-light-v0282.mjs
+          node --check skyshift/tunnel/shared-road-ship-light-v0282.mjs
           node --check skyshift/browser-shared-road-ship-v0282.mjs
           node --check skyshift/vault-boost-clarity-v0283.mjs
           node --check skyshift/browser-vault-boost-clarity-v0283.mjs
-          node --check skyshift/pmrem-reflection-pipeline-v0284.mjs
+          node --check skyshift/tunnel/pmrem-reflection-pipeline-v0284.mjs
           node --check skyshift/tests/browser/browser-pmrem-reflection-v0284.mjs
-          node --check skyshift/vault-spatial-wave-parity-v0285.mjs
+          node --check skyshift/tunnel/vault-spatial-wave-parity-v0285.mjs
           node --check skyshift/browser-vault-spatial-wave-v0285.mjs
-          node --check skyshift/reflection-stability-strips-v0286.mjs
+          node --check skyshift/tunnel/reflection-stability-strips-v0286.mjs
           node --check skyshift/browser-reflection-stability-v0286.mjs
-          node --check skyshift/arch-foot-light-assembly-v0287.mjs
+          node --check skyshift/tunnel/arch-foot-light-assembly-v0287.mjs
           node --check skyshift/tests/browser/browser-arch-foot-light-assembly-v0287.mjs
           node --check skyshift/tests/browser/browser-fixture-transport-v02643.mjs
           node --check skyshift/browser-reflection-cohesion-v02642.mjs
@@ -796,7 +796,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check skyshift/precision-neon-response-v0288.mjs
+          node --check skyshift/tunnel/precision-neon-response-v0288.mjs
           node --check skyshift/tests/browser/browser-precision-neon-v0288.mjs
           node --check skyshift/game-v0210.mjs
           node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
@@ -862,7 +862,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check skyshift/shared-straight-edge-parity-v02891.mjs
+          node --check skyshift/tunnel/shared-straight-edge-parity-v02891.mjs
           node --check skyshift/browser-straight-edge-parity-v02891.mjs
           node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
           node --check skyshift/game-v0210.mjs
@@ -895,7 +895,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check skyshift/ceiling-fixture-cohesion-v02892.mjs
+          node --check skyshift/tunnel/ceiling-fixture-cohesion-v02892.mjs
           node --check skyshift/tests/browser/browser-ceiling-fixture-v02892.mjs
           node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
           node --test skyshift/tests/unit/ceiling-fixture-cohesion-v02892.test.mjs
@@ -927,7 +927,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check skyshift/premium-arch-optics-v02893.mjs
+          node --check skyshift/tunnel/premium-arch-optics-v02893.mjs
           node --check skyshift/tests/browser/browser-premium-arch-optics-v02893.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/premium-arch-optics-v02893.test.mjs
@@ -959,7 +959,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check skyshift/unified-tunnel-light-sources-v02894.mjs
+          node --check skyshift/tunnel/unified-tunnel-light-sources-v02894.mjs
           node --check skyshift/browser-unified-tunnel-light-v02894.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs
@@ -991,7 +991,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check skyshift/road-spill-wave-coves-v02895.mjs
+          node --check skyshift/tunnel/road-spill-wave-coves-v02895.mjs
           node --check skyshift/browser-road-spill-wave-cove-v02895.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs
@@ -1023,7 +1023,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check skyshift/curve-surface-continuity-v02896.mjs
+          node --check skyshift/tunnel/curve-surface-continuity-v02896.mjs
           node --check skyshift/tests/browser/browser-curve-surface-continuity-v02896.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/curve-surface-continuity-v02896.test.mjs

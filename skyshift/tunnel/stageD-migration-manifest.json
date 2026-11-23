@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "stage": "SKYSHIFT Architecture Cleanup 2.0 Stage D",
+  "baseCommit": "30440ac8b69d0111727c494299510ba60126f145",
+  "description": "12 active tunnel optics/lighting/reflection modules. Reverse ONLY external relative import path rebases to prove original Git blob identity.",
+  "files": {
+    "arch-foot-light-assembly-v0287.mjs": {
+      "originalGitBlobSha": "91ebbd9f60e716804f0f882253631a4d3060be1f",
+      "externalImports": [
+        "tunnel-megastructure-v0211.mjs",
+        "edge-lighting-floor-pools-v02631.mjs"
+      ]
+    },
+    "ceiling-fixture-cohesion-v02892.mjs": {
+      "originalGitBlobSha": "9fee7db97671900ace7f91d4d61f39b672c68806",
+      "externalImports": [
+        "tunnel-megastructure-v0211.mjs",
+        "zone-wave-v060.mjs"
+      ]
+    },
+    "unified-tunnel-light-sources-v02894.mjs": {
+      "originalGitBlobSha": "3ec0d41b495ae5c3d8cfa7642cd3adf61bfd8f5f",
+      "externalImports": [
+        "tunnel-megastructure-v0211.mjs",
+        "edge-source-floor-bands-v02632.mjs",
+        "zone-wave-v060.mjs"
+      ]
+    },
+    "premium-arch-optics-v02893.mjs": {
+      "originalGitBlobSha": "b4a62ebd9bf567938595786bf18330a3f10c20d8",
+      "externalImports": [
+        "tunnel-megastructure-v0211.mjs",
+        "zone-wave-v060.mjs"
+      ]
+    },
+    "road-spill-wave-coves-v02895.mjs": {
+      "originalGitBlobSha": "17a39f4372fa28d4f1916005a7f6910857962ccc",
+      "externalImports": [
+        "zone-wave-v060.mjs"
+      ]
+    },
+    "curve-surface-continuity-v02896.mjs": {
+      "originalGitBlobSha": "1227f699a3da3b29d10a97ea53259bc30ae855ca",
+      "externalImports": [
+        "zone-wave-v060.mjs"
+      ]
+    },
+    "shared-straight-edge-parity-v02891.mjs": {
+      "originalGitBlobSha": "1359d1b1b218b6bab1d2538303dbcaa86879c5b0",
+      "externalImports": [
+        "trial-v0165.mjs",
+        "edge-source-floor-bands-v02632.mjs"
+      ]
+    },
+    "reflection-stability-strips-v0286.mjs": {
+      "originalGitBlobSha": "758bff102e21090a8f0c1eac5a1b6631a38d26e2",
+      "externalImports": []
+    },
+    "precision-neon-response-v0288.mjs": {
+      "originalGitBlobSha": "4f1591e3b47628566d9a727524f86fe26f25eb7d",
+      "externalImports": []
+    },
+    "vault-spatial-wave-parity-v0285.mjs": {
+      "originalGitBlobSha": "b89b4c0230a2e35faab3f70d121f95346140b9f2",
+      "externalImports": [
+        "zone-wave-v060.mjs"
+      ]
+    },
+    "pmrem-reflection-pipeline-v0284.mjs": {
+      "originalGitBlobSha": "d4e539c81bc444e4a9ee52c4585c98898e6c580a",
+      "externalImports": []
+    },
+    "shared-road-ship-light-v0282.mjs": {
+      "originalGitBlobSha": "f564eca64c57df788858df1656e87c37b3bbf38f",
+      "externalImports": [
+        "true-shared-tunnel-renderer-v0281.mjs",
+        "cinematic-road-rebuild-v0263.mjs"
+      ]
+    }
+  }
+}

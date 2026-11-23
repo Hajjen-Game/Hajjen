@@ -23,34 +23,34 @@ import {UNIFIED_TUNNEL_LIGHTING_1,createUnifiedTunnelLightingController}
  from "./unified-tunnel-lighting-v1.mjs";
 import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
 import {vaultSpatialWaveEnabled0285,waveSignedGlobal0285,
- VAULT_WAVE_PARITY_0285} from "./vault-spatial-wave-parity-v0285.mjs";
+ VAULT_WAVE_PARITY_0285} from "./tunnel/vault-spatial-wave-parity-v0285.mjs";
 import {STABILITY_0286,reflectionStabilityEnabled0286}
- from "./reflection-stability-strips-v0286.mjs";
+ from "./tunnel/reflection-stability-strips-v0286.mjs";
 import {ARCH_FOOT_0287,archFootRelease0287}
- from "./arch-foot-light-assembly-v0287.mjs";
+ from "./tunnel/arch-foot-light-assembly-v0287.mjs";
 import {PRECISION_NEON_0288,precisionNeonEnabled0288}
- from "./precision-neon-response-v0288.mjs";
+ from "./tunnel/precision-neon-response-v0288.mjs";
 import {CINEMATIC_METAL_0289,cinematicMetalEnabled0289,
  cinematicComponentEnabled0289,installCinematicRoad0289}
  from "./rendering/cinematic-metal-neon-v0289.mjs";
 import {CURVE_CONTINUITY_02896,surfaceContinuityEnabled02896,
  installCurveSurfaceContinuity02896}
- from "./curve-surface-continuity-v02896.mjs";
+ from "./tunnel/curve-surface-continuity-v02896.mjs";
 import {ROAD_SPILL_COVE_02895,roadSpillEnabled02895,
  coveWaveEnabled02895,installRoadSpill02895}
- from "./road-spill-wave-coves-v02895.mjs";
+ from "./tunnel/road-spill-wave-coves-v02895.mjs";
 import {UNIFIED_SOURCES_02894,unifiedSourcesEnabled02894,
  cleanLegacyRoadEnabled02894,ceilingRoadEnabled02894,
  installLegacyRoadCleanup02894,installUnifiedCeilingRoad02894}
- from "./unified-tunnel-light-sources-v02894.mjs";
+ from "./tunnel/unified-tunnel-light-sources-v02894.mjs";
 import {ARCH_OPTICS_02893,archOpticsEnabled02893,archRoadEnabled02893,
  installArchRoadReflection02893,diagnosticLegacyRoadOverlay02893}
- from "./premium-arch-optics-v02893.mjs";
+ from "./tunnel/premium-arch-optics-v02893.mjs";
 import {CEILING_FIXTURE_02892,ceilingFixtureEnabled02892}
- from "./ceiling-fixture-cohesion-v02892.mjs";
+ from "./tunnel/ceiling-fixture-cohesion-v02892.mjs";
 import {STRAIGHT_EDGE_PARITY_02891,straightParityEnabled02891,
  installVaultStraightRoadParity02891}
- from "./shared-straight-edge-parity-v02891.mjs";
+ from "./tunnel/shared-straight-edge-parity-v02891.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./manta-blade-v0103.mjs";
 import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
@@ -123,10 +123,10 @@ import {TUNNEL_SHARED_ARCHITECTURE_0280,tunnelReleaseAtLeast0280,sharedTunnelVer
 import {createSharedTunnelRuntime0280}
  from "./shared-tunnel-runtime-v0280.mjs";
 import {SHARED_LIGHT_0282,installSharedRoadReflections0282,
- installSharedShipLight0282} from "./shared-road-ship-light-v0282.mjs";
+ installSharedShipLight0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
 import {PMREM_0284,readPmremRelease0284,
  installPmremReflectionPipeline0284}
- from "./pmrem-reflection-pipeline-v0284.mjs";
+ from "./tunnel/pmrem-reflection-pipeline-v0284.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
  from "./full-tunnel-light-seal-v0270.mjs";
 import {NEON_INTERIOR_0212,installNeonDrivenInterior}

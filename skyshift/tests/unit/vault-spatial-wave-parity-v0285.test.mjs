@@ -8,7 +8,7 @@ import {ZONE_WAVE,newZoneWaveState,updateZoneWave}
 import {VAULT_WAVE_PARITY_0285,vaultSpatialWaveEnabled0285,
  waveSignedGlobal0285,waveColorAmount0285,
  patchVaultSpatialWave0285,installVaultSpatialWaveModule0285}
- from "../../vault-spatial-wave-parity-v0285.mjs";
+ from "../../tunnel/vault-spatial-wave-parity-v0285.mjs";
 
 const read=n=>readFileSync(new URL("../../"+n,import.meta.url),"utf8");
 const roadSigned=(s,front,length=3400)=>((s-front+length*.5)%length+

@@ -5,7 +5,7 @@
 // This renderer-only adapter maps source metres into the real track arc;
 // it never changes the geometry, PBR fixtures, local 0.26.x shaders,
 // 120Hz wave scheduler, camera, collision, boost or GRIP.
-import {ZONE_WAVE} from "./zone-wave-v060.mjs";
+import {ZONE_WAVE} from "../zone-wave-v060.mjs";
 
 export const VAULT_WAVE_PARITY_0285=Object.freeze({
  version:"0.28.5",name:"Shared Tunnel Spatial Wavefront Parity",

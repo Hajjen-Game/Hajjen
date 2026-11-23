@@ -1,5 +1,5 @@
 // SKYSHIFT 0.5.0 — full 10.4km zero-bank continuous showcase; zone-coupled physics
-import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./boost-v050.mjs";
+import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./flight/boost/boost-v050.mjs";
 export { BOOST_PADS, BOOST_CONFIG };
 // Intentionally small handling lab: geometric straights, circular arcs and
 // quintic-curvature transitions. No incidental heading changes, no jump hazards.

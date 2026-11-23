@@ -1,5 +1,5 @@
 // SKYSHIFT 0.4.9 — 1530m authored multi-circuit with retained C2 curves and pilot-only steering
-import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./boost-v049.mjs";
+import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./flight/boost/boost-v049.mjs";
 export { BOOST_PADS, BOOST_CONFIG };
 // Intentionally small handling lab: geometric straights, circular arcs and
 // quintic-curvature transitions. No incidental heading changes, no jump hazards.

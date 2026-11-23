@@ -1,5 +1,5 @@
 // SKYSHIFT 0.6.1 — 3-lap Skyline Circuit with optional precision-grip steering
-import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./boost-v060.mjs";
+import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./flight/boost/boost-v060.mjs";
 import {GRIP_SPEC,initGripState,stepGripState} from "./precision-grip-v061.mjs";
 import {CIRCUIT,CIRCUIT_LENGTH,COURSE_SEGMENTS as LOOP_SEGMENTS,
  lapPosition,sectionAt,circuitPlanSummary} from "./circuit-layout-v060.mjs";

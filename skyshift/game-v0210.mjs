@@ -52,10 +52,10 @@ import {STRAIGHT_EDGE_PARITY_02891,straightParityEnabled02891,
  installVaultStraightRoadParity02891}
  from "./tunnel/shared-straight-edge-parity-v02891.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
-import {buildPremiumMantaBlade,MANTA_POLISH} from "./manta-blade-v0103.mjs";
-import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v01342.mjs";
+import {buildPremiumMantaBlade,MANTA_POLISH} from "./ships/manta-blade-v0103.mjs";
+import {buildStingrayEvo,STINGRAY_EVO} from "./ships/stingray-evo-v01342.mjs";
 import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
- isFleetUnlocked,recordFleetClear,fleetStatus} from "./fleet-v010.mjs";
+ isFleetUnlocked,recordFleetClear,fleetStatus} from "./ships/fleet-v010.mjs";
 import { makeFullscreenController } from "./fullscreen-v02.mjs";
 import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v01346.mjs";
 import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v0111.mjs";
@@ -144,7 +144,7 @@ import {INTEGRATED_NEON_FLOW_0214,installIntegratedNeonFlow}
 import {WHITE_CORE_02123,createWhiteCoreContainment}
  from "./white-core-containment-v02123.mjs";
 import {SHIP_WHITE_SPILL_02125,createShipWhiteSpillController}
- from "./ship-white-spill-v02125.mjs";
+ from "./ships/ship-white-spill-v02125.mjs";
 import {ROAD_SOLAR_SPILL_02126,createRoadSolarSpillController}
  from "./road-solar-spill-v02126.mjs";
 import {PREMIUM_ROAD_SURFACE_0215,createPremiumRoadSurfaceController}
@@ -214,7 +214,7 @@ import {RACING_FEEL,gripApexCue,createRailFeedbackState,
 import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./side-thrusters-v061.mjs";
 import {VELOCITY_PRESENCE,createVelocityPresenceState,
  stepVelocityPresence,velocityPresenceAudit} from "./velocity-presence-v0104.mjs";
-import {installReactiveWingFlaps,REACTIVE_FLAPS} from "./reactive-wing-flaps-v0108.mjs";
+import {installReactiveWingFlaps,REACTIVE_FLAPS} from "./ships/reactive-wing-flaps-v0108.mjs";
 import {createLivingWakeFX,LIVING_WAKE} from "./living-wake-v01071.mjs";
 import {createRailScrapeSparks,RAIL_SPARKS,railContactPoint}
  from "./rail-scrape-sparks-v0165.mjs";
@@ -238,7 +238,7 @@ import {createShipArtController} from "./ship-hero-loader-v01342.mjs";
 import {HANGAR_HERO_0134,createStingrayHeroShowroom}
  from "./hangar-hero-v0134.mjs";
 import {STINGRAY_PRESENTATION_01347,visualSettingsForShip}
- from "./stingray-presentation-v01347.mjs";
+ from "./ships/stingray-presentation-v01347.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);

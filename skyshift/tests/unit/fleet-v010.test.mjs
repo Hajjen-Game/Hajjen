@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {FLEET,FLEET_STORAGE_KEY,initialFleet,normalizeFleet,isFleetUnlocked,
  readFleet,saveFleet,equipFleet,recordFleetClear,fleetStatus}
- from "../../fleet-v010.mjs";
+ from "../../ships/fleet-v010.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 function storage(){
  const map=new Map();

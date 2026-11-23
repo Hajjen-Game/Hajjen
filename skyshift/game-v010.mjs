@@ -15,7 +15,7 @@ import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlen
 import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
 import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v010.mjs";
 import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
- isFleetUnlocked,recordFleetClear,fleetStatus} from "./fleet-v010.mjs";
+ isFleetUnlocked,recordFleetClear,fleetStatus} from "./ships/fleet-v010.mjs";
 import { makeFullscreenController } from "./fullscreen-v02.mjs";
 import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0496.mjs";
 import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v083.mjs";

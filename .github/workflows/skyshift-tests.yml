@@ -469,7 +469,7 @@ jobs:
           node --check skyshift/game-v0921.mjs
           node --check skyshift/boot-v0921.js
           node --check skyshift/browser-smoke-v0921.mjs
-          node --check skyshift/fleet-v010.mjs
+          node --check skyshift/ships/fleet-v010.mjs
           node --check skyshift/stingray-evo-v010.mjs
           node --check skyshift/tests/unit/fleet-v010.test.mjs
           node --check skyshift/tests/unit/stingray-evo-v010.test.mjs
@@ -486,8 +486,8 @@ jobs:
           node --check skyshift/game-v0102.mjs
           node --check skyshift/boot-v0102.js
           node --check skyshift/browser-smoke-v0102.mjs
-          node --check skyshift/ship-polish-v0103.mjs
-          node --check skyshift/manta-blade-v0103.mjs
+          node --check skyshift/ships/ship-polish-v0103.mjs
+          node --check skyshift/ships/manta-blade-v0103.mjs
           node --check skyshift/stingray-evo-v0103.mjs
           node --check skyshift/tests/unit/premium-ship-v0103.test.mjs
           node --check skyshift/game-v0103.mjs
@@ -521,7 +521,7 @@ jobs:
           node --check skyshift/game-v01071.mjs
           node --check skyshift/boot-v01071.js
           node --check skyshift/browser-smoke-v01071.mjs
-          node --check skyshift/reactive-wing-flaps-v0108.mjs
+          node --check skyshift/ships/reactive-wing-flaps-v0108.mjs
           node --check skyshift/tests/unit/reactive-wing-flaps-v0108.test.mjs
           node --check skyshift/game-v0108.mjs
           node --check skyshift/boot-v0108.js
@@ -631,7 +631,7 @@ jobs:
           node --check skyshift/browser-smoke-v0134.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v0134.test.mjs
           node --check skyshift/tests/unit/ui-flow-v0134.test.mjs
-          node --check skyshift/wing-clearance-v01341.mjs
+          node --check skyshift/ships/wing-clearance-v01341.mjs
           node --check skyshift/tests/unit/wing-clearance-v01341.test.mjs
           node --check skyshift/game-v01341.mjs
           node --check skyshift/boot-v01341.js
@@ -639,7 +639,7 @@ jobs:
           node --check skyshift/tests/unit/rail-scrape-sparks-v01341.test.mjs
           node --check skyshift/tests/unit/ui-flow-v01341.test.mjs
           node --check skyshift/stingray-presentation-v01342.mjs
-          node --check skyshift/stingray-evo-v01342.mjs
+          node --check skyshift/ships/stingray-evo-v01342.mjs
           node --check skyshift/blender/stingray-hero-v4-source-v01342.mjs
           node --check skyshift/ship-art-pipeline-v01342.mjs
           node --check skyshift/ship-hero-loader-v01342.mjs
@@ -676,7 +676,7 @@ jobs:
           node --check skyshift/boot-v01346.js
           node --check skyshift/tests/unit/stingray-scale-ownership-v01346.test.mjs
           node --check skyshift/browser-scale-ownership-v01346.mjs
-          node --check skyshift/stingray-presentation-v01347.mjs
+          node --check skyshift/ships/stingray-presentation-v01347.mjs
           node --check skyshift/game-v01347.mjs
           node --check skyshift/boot-v01347.js
           node --check skyshift/tests/unit/handling-parity-v01347.test.mjs
@@ -1875,7 +1875,7 @@ jobs:
           node-version: '22'
       - name: Validate white spill shader, palette, ship swap and unchanged physics
         run: |
-          node --check skyshift/ship-white-spill-v02125.mjs
+          node --check skyshift/ships/ship-white-spill-v02125.mjs
           node --check skyshift/browser-ship-white-spill-v02125.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/ship-white-spill-v02125.test.mjs

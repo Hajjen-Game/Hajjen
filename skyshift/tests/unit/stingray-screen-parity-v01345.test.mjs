@@ -7,7 +7,7 @@ import {STINGRAY_PRESENTATION_01345 as spec,
  visualSettingsForShip,stableStingrayVisualRoll}
  from "../../stingray-presentation-v01345.mjs";
 import {TRIAL} from "../../trial-v0901.mjs";
-import {STINGRAY_EVO} from "../../stingray-evo-v01342.mjs";
+import {STINGRAY_EVO} from "../../ships/stingray-evo-v01342.mjs";
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const art=JSON.parse(read("./assets/ships/stingray-evo-hero-v4.gltf"));
 const mesh=name=>art.meshes.find(m=>m.name===name);

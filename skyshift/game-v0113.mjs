@@ -17,10 +17,10 @@ import {TUNNEL_BLACKOUT,installBlackoutRoadShading,
  from "./tunnel-blackout-v0921.mjs";
 import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
-import {buildPremiumMantaBlade,MANTA_POLISH} from "./manta-blade-v0103.mjs";
+import {buildPremiumMantaBlade,MANTA_POLISH} from "./ships/manta-blade-v0103.mjs";
 import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v0104.mjs";
 import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
- isFleetUnlocked,recordFleetClear,fleetStatus} from "./fleet-v010.mjs";
+ isFleetUnlocked,recordFleetClear,fleetStatus} from "./ships/fleet-v010.mjs";
 import { makeFullscreenController } from "./fullscreen-v02.mjs";
 import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0104.mjs";
 import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v0111.mjs";
@@ -55,7 +55,7 @@ import {RACING_FEEL,gripApexCue,createRailFeedbackState,
 import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./side-thrusters-v061.mjs";
 import {VELOCITY_PRESENCE,createVelocityPresenceState,
  stepVelocityPresence,velocityPresenceAudit} from "./velocity-presence-v0104.mjs";
-import {installReactiveWingFlaps,REACTIVE_FLAPS} from "./reactive-wing-flaps-v0108.mjs";
+import {installReactiveWingFlaps,REACTIVE_FLAPS} from "./ships/reactive-wing-flaps-v0108.mjs";
 import {createLivingWakeFX,LIVING_WAKE} from "./living-wake-v01071.mjs";
 import {createRailScrapeSparks,RAIL_SPARKS,railContactPoint}
  from "./rail-scrape-sparks-v01091.mjs";

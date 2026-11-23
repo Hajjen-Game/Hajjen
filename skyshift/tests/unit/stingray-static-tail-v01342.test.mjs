@@ -5,7 +5,7 @@ import {readFileSync} from "node:fs";
 import {STINGRAY_PRESENTATION_01342,visualSettingsForShip}
  from "../../stingray-presentation-v01342.mjs";
 import {STINGRAY_EVO,createTailState,tailPoseStep}
- from "../../stingray-evo-v01342.mjs";
+ from "../../ships/stingray-evo-v01342.mjs";
 import {buildStingrayHeroV4GLTF,HERO_V4_SPEC}
  from "../../blender/stingray-hero-v4-source-v01342.mjs";
 import {SHIP_ART_01342,assessHeroAsset,requestedShipArt}
@@ -122,7 +122,7 @@ test("tail idle remains alive but is less snake-like than GRIP response",()=>{
  assert.ok(STINGRAY_EVO.dampingRatio>=.84);
 });
 test("actual visible tail guides are distinct ticks instead of continuous strips",()=>{
- const source=readFileSync(new URL("../../"+"./stingray-evo-v01342.mjs",import.meta.url),"utf8");
+ const source=readFileSync(new URL("../../"+"./ships/stingray-evo-v01342.mjs",import.meta.url),"utf8");
  assert.match(source,/length\*\.30\),neon\)/);
  assert.match(source,/neon\.opacity=\.30\+\.24\*state\.ribbonEnergy/);
  assert.equal(STINGRAY_EVO.additionalTailDrawCalls,20);

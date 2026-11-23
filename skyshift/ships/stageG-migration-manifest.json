@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "stage": "SKYSHIFT Architecture Cleanup 2.0 Stage G",
+  "baseCommit": "32b2a14b7911697003101c5f6df628808f6ce228",
+  "description": "Eight source-identical ship modules, except reversible root-external ESM import paths.",
+  "files": {
+    "fleet-v010.mjs": {
+      "originalGitBlobSha": "bcbe55695542121cba27ffa64dc4b09e110e463b",
+      "externalImports": []
+    },
+    "manta-blade-v0103.mjs": {
+      "originalGitBlobSha": "446c0149fabb5a469221f2df8d9d553c35ff575d",
+      "externalImports": [
+        "manta-blade-v0484.mjs"
+      ]
+    },
+    "stingray-evo-v01342.mjs": {
+      "originalGitBlobSha": "d867efa7757cdceb3fef2f9a4103beb6457e76d6",
+      "externalImports": [
+        "manta-blade-v0484.mjs"
+      ]
+    },
+    "stingray-presentation-v01347.mjs": {
+      "originalGitBlobSha": "136063793c18ac48e5cec348fce4d09c680ad07e",
+      "externalImports": []
+    },
+    "wing-clearance-v01341.mjs": {
+      "originalGitBlobSha": "67e0f5f4a2345e540590c2297caa5306aff27c7d",
+      "externalImports": []
+    },
+    "reactive-wing-flaps-v0108.mjs": {
+      "originalGitBlobSha": "b7f0dda530dda8345bac87de80b819d95d2a99f0",
+      "externalImports": []
+    },
+    "ship-white-spill-v02125.mjs": {
+      "originalGitBlobSha": "daaf1b9bf6e905b033ba6a2d7d860a1911750364",
+      "externalImports": [
+        "white-core-containment-v02123.mjs"
+      ]
+    },
+    "ship-polish-v0103.mjs": {
+      "originalGitBlobSha": "61ca1f2b2514a2c55a48510e33550e22f3233620",
+      "externalImports": []
+    }
+  }
+}

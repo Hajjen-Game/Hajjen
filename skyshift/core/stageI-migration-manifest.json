@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "stage": "SKYSHIFT Architecture Cleanup 2.0 Stage I",
+  "baseCommit": "9a27cc3270070b07cc7e3d7ff3f0f6a80fbc167f",
+  "description": "15 original runtime performance/fidelity modules unchanged except reversible root-external import rebases.",
+  "files": {
+    "performance-audit-v0110.mjs": {
+      "originalGitBlobSha": "24398f15db56a7837e25cb772a8abe2067b8a042",
+      "externalImports": []
+    },
+    "performance-audit-v0111.mjs": {
+      "originalGitBlobSha": "2fa8db53a10304e48b8a92124780c9777d08ee33",
+      "externalImports": []
+    },
+    "performance-audit-v0113.mjs": {
+      "originalGitBlobSha": "84913e23e8859fb21941e055eccfefc390229dae",
+      "externalImports": []
+    },
+    "performance-audit-v0114.mjs": {
+      "originalGitBlobSha": "a5111540a886540fe8a6674ca3c4815c3c6c2b3f",
+      "externalImports": []
+    },
+    "render-optimizer-v0111.mjs": {
+      "originalGitBlobSha": "cce03060ff27b1b69c6ac333dabee56616c85cb9",
+      "externalImports": []
+    },
+    "frame-pacing-v043.mjs": {
+      "originalGitBlobSha": "8dd5a169776034bf09e3b47c3c5cd2a1df091052",
+      "externalImports": []
+    },
+    "frame-pacing-v044.mjs": {
+      "originalGitBlobSha": "af0a6ef6dd9595717819a3da93806cdac417b528",
+      "externalImports": []
+    },
+    "frame-pacing-v080.mjs": {
+      "originalGitBlobSha": "beb88dae52a527fe1b67bfb8e81bda75b1906e63",
+      "externalImports": []
+    },
+    "frame-pacing-v0112.mjs": {
+      "originalGitBlobSha": "f7ff1c9624b4eafea3fe2df431e193560d9bfd46",
+      "externalImports": []
+    },
+    "visual-fidelity-v0113.mjs": {
+      "originalGitBlobSha": "26e8342c99a5ff97d1cfd7ce4ed49f0f5a45184e",
+      "externalImports": [
+        "premium-track-v0901.mjs"
+      ]
+    },
+    "visual-fidelity-v0114.mjs": {
+      "originalGitBlobSha": "5b275e1b221ce9653c3255da6297765c4d3d6c49",
+      "externalImports": [
+        "premium-track-v0901.mjs"
+      ]
+    },
+    "visual-fidelity-v0150.mjs": {
+      "originalGitBlobSha": "6bd62b80e99355a56d57f47ba5d2def9276217ae",
+      "externalImports": [
+        "premium-track-v0150.mjs"
+      ]
+    },
+    "visual-fidelity-v0151.mjs": {
+      "originalGitBlobSha": "0fd1d5a4bd84522316dd5db12b8f02b4b9fcb7ee",
+      "externalImports": [
+        "premium-track-v0151.mjs"
+      ]
+    },
+    "visual-fidelity-v0160.mjs": {
+      "originalGitBlobSha": "b9b342182ffde8eb19421c637dd34747bff3ba08",
+      "externalImports": [
+        "premium-track-v0160.mjs"
+      ]
+    },
+    "fidelity-settings-v0121.mjs": {
+      "originalGitBlobSha": "2dd8dd73ac59fbbff334cd39e0373ee94282b4ad",
+      "externalImports": []
+    }
+  }
+}

@@ -1,4 +1,4 @@
-// SKYSHIFT 0.7.1 — mobile-safe bootstrap. This small classic script
+// SKYSHIFT 0.8.1 — mobile-safe bootstrap. This small classic script
 // starts before any Three.js or WebGL modules need to load. Menu and
 // fullscreen must NEVER silently stop responding on shader/CDN/GPU failures.
 (function(){
@@ -81,5 +81,5 @@
  },14000);
  // Use dynamic import so *module graph* failures also show actionable
  // feedback; static <script type=module> silently fails before try/catch.
- import("./game-v071.mjs?v=0.7.1").catch(fail);
+ import("../../game-v081.mjs?v=0.8.1.1").catch(fail);
 })();

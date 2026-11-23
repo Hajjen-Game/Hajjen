@@ -12,6 +12,7 @@ export function restoreStageFTrackReferences(contents){
  for(const [name,cfg] of Object.entries(files)){
   const relativeTarget=cfg.targetPath.slice('skyshift/'.length);
   source=source.split('../../'+relativeTarget).join('../../'+name);
+  source=source.split('./skyshift/'+relativeTarget).join('./skyshift/'+name);
   source=source.split('./'+relativeTarget).join('./'+name);
  }
  return source;

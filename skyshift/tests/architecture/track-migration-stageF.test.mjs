@@ -72,6 +72,8 @@ test('original root module references are absent from runtime, historic tests, a
       'Old CI executable module path: '+relative(repo,file)+' -> '+name);
    }else if(!file.startsWith(resolve(tracks,'shared')+sep) &&
             !file.startsWith(resolve(tracks,'skyline')+sep)){
+    assert.equal(contents.includes('skyshift/'+name),false,
+      'Unrebased repository-root spawned process path: '+relative(skyshift,file)+' -> '+name);
     const escaped=name.replaceAll('.','\\.');
     const old=new RegExp('["\\x27](?:\\./|(?:\\.\\./)+)'+escaped+'["\\x27]');
     assert.doesNotMatch(contents,old,'Stale source/test relative path: '+relative(skyshift,file)+' -> '+name);

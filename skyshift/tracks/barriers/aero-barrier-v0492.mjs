@@ -1,10 +1,10 @@
-// SKYSHIFT 0.4.9.1 — Spectral Zone Wave synchronized with premium inlaid rail accents
+// SKYSHIFT 0.4.9.2 — White-Core Spectral Zone Wave synchronized with premium inlaid rail accents
 // Material layers and inlaid graphics share the 0.4.6 track geometry/collider.
 // A faceted safety wall replaces the round-looking continuous neon tube.
 import {
  TRIAL,GUARDRAIL,positionAt,widthAt,curvatureAt
-} from "./trial-v049.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "./zone-wave-v0491.mjs";
+} from "../../trial-v049.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v0492.mjs";
 export const AERO_BARRIER=Object.freeze({
  step:.70,
  height:GUARDRAIL.height,
@@ -18,6 +18,7 @@ export const AERO_BARRIER=Object.freeze({
  shoulderPitchMeters:24,
  drawBatches:3,
  colorZoneReady:true,
+ whiteCoreReady:true,
  colliderUnchanged:true
 });
 // Lateral offsets are relative to the lane's outer edge. The FIRST vertices
@@ -169,6 +170,7 @@ varying vec2 vRailCoord;
 uniform float uZoneActiveCount;
 uniform float uZoneFeather;
 uniform float uZoneTime;
+uniform float uWaveDetail;
 uniform float uRailFront1,uRailFront2,uRailFront3;
 uniform vec3 uRailBase,uRailNext1,uRailNext2,uRailNext3;
 ${SPECTRAL_FRONT_GLSL}
@@ -177,6 +179,7 @@ export const RAIL_SPECTRAL_FRAGMENT=`
  float waveTrack=spectralWaveOffset(vRailCoord.x,vRailCoord.y,uZoneTime);
  vec3 railColor=uRailBase;
  float railEnergy=0.0;
+ float railWhite=0.0,railBloom=0.0,railFilaments=0.0;
  ${Array.from({length:3},(_,i)=>{
   const k=i+1;
   return `
@@ -185,10 +188,20 @@ export const RAIL_SPECTRAL_FRAGMENT=`
   float rail${k}Mix=rail${k}On*(1.0-smoothstep(-uZoneFeather,
     uZoneFeather,rail${k}D));
   railColor=mix(railColor,uRailNext${k},rail${k}Mix);
+  railWhite=max(railWhite,rail${k}On*spectralWhiteCore(rail${k}D));
+  railBloom=max(railBloom,rail${k}On*spectralWhiteBloom(rail${k}D));
+  railFilaments=max(railFilaments,rail${k}On*spectralFilaments(
+    rail${k}D,vRailCoord.y,uZoneTime,uWaveDetail));
   railEnergy=max(railEnergy,
    rail${k}On*(spectralCore(rail${k}D)*.20+
      spectralHalo(rail${k}D)*.11+spectralAfterglow(rail${k}D)*.02));`;}).join("\n")}
- diffuseColor.rgb *= railColor*(1.0+railEnergy);
+ // White wave visibly runs along *each rail vertex* and the chevrons.
+ // Reuse this mesh's diffuse/alpha (zero added draw calls or lighting).
+ railColor=mix(railColor,vec3(1.0),
+  clamp(railWhite*.96+railBloom*.36+railFilaments*.20,0.0,1.0));
+ diffuseColor.rgb *= railColor*(1.0+railEnergy+railWhite*1.65+
+   railBloom*.44+railFilaments*.2);
+ diffuseColor.a=min(1.0,diffuseColor.a*(1.0+railWhite*.85+railBloom*.28));
 `;
 export function patchRailShaders(vertex,fragment){
  if(!vertex.includes("#include <common>")||
@@ -226,7 +239,7 @@ export function installAeroBarriers(THREE,world){
  });
  const railUniforms={
   uZoneActiveCount:{value:0},uZoneFeather:{value:ZONE_WAVE.featherMeters},
-  uZoneTime:{value:0},
+  uZoneTime:{value:0},uWaveDetail:{value:1},
   uRailBase:{value:new THREE.Color(ZONE_PALETTES[0].accent)}
  };
  for(let k=1;k<=3;k++){
@@ -241,7 +254,7 @@ export function installAeroBarriers(THREE,world){
   shader.fragmentShader=patched.fragmentShader;
   Object.assign(shader.uniforms,railUniforms);
  };
- illumination.customProgramCacheKey=()=>"aero-spectral-v0491";
+ illumination.customProgramCacheKey=()=>"aero-white-core-v0492";
  const bodyMesh=new THREE.Mesh(makeGeometry(THREE,body,body.indices),metal);
  bodyMesh.name="Angular integrated aero-barrier body";
  bodyMesh.frustumCulled=false;world.add(bodyMesh);
@@ -263,6 +276,9 @@ export function installAeroBarriers(THREE,world){
   accentAnchors:detail.accentAnchors,
   profileHeightMeters:AERO_BARRIER.height,
   accentWidthMeters:AERO_BARRIER.capLightWidthMeters,
+  setDetailMode(quality){
+   railUniforms.uWaveDetail.value=quality==="low"?0:1;
+  },
   setWaveState(state){
    railUniforms.uZoneActiveCount.value=state.activeCount;
    railUniforms.uZoneTime.value=state.lastStepSeconds;

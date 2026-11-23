@@ -3,8 +3,8 @@
 // A faceted safety wall replaces the round-looking continuous neon tube.
 import {
  TRIAL,GUARDRAIL,positionAt,widthAt,curvatureAt
-} from "./trial-v049.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "./zone-wave-v0493.mjs";
+} from "../../trial-v049.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v0493.mjs";
 export const AERO_BARRIER=Object.freeze({
  step:.70,
  height:GUARDRAIL.height,

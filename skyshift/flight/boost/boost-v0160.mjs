@@ -1,4 +1,4 @@
-// SKYSHIFT 0.15.0 — safe-versus-risk lane rewards, using the original 120Hz boost solver.
+// SKYSHIFT 0.15.1 — safe-versus-risk lane rewards, using the original 120Hz boost solver.
 // No steer assists, new colliders, or new physics integration. Pad groups prevent
 // players from picking both SAFE and RISK boosts on one gate on the same lap.
 export const BOOST_CONFIG=Object.freeze({
@@ -9,10 +9,10 @@ export const BOOST_CONFIG=Object.freeze({
  padHalfWidthMeters:4.6,
  colorHex:0xffbe62
 });
-import {BOOST_CHOICES_0150,RACE_BOOST_CHOICES_0150,
- riskChoiceAt,RISK_REWARD_0150} from "./risk-reward-v0150.mjs";
-export const BOOST_PADS=BOOST_CHOICES_0150;
-export const RACE_BOOST_PADS=RACE_BOOST_CHOICES_0150;
+import {BOOST_CHOICES_0160,RACE_BOOST_CHOICES_0160,
+ riskChoiceAt,RISK_REWARD_0160} from "../../risk-reward-v0160.mjs";
+export const BOOST_PADS=BOOST_CHOICES_0160;
+export const RACE_BOOST_PADS=RACE_BOOST_CHOICES_0160;
 export const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 export function boostPadAt(s,lateral){return riskChoiceAt(s,lateral);}
 export function initBoostState(state,baseSpeed=44){

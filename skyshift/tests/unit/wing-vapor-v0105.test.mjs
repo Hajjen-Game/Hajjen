@@ -71,7 +71,7 @@ test("low memory restricts strand count and avoids extra GPU passes",()=>{
 test("the live 0.10.5 build mounts production wing FX, reset and audit",()=>{
  const game=read("./game-v0105.mjs");
  const page=read("./index.html");
- const boot=read("./boot-v0105.js");
+ const boot=read("./legacy/boot/boot-v0105.js");
  assert.match(game,/createWingVaporFX\(THREE,ship,\{variant:id/);
  assert.match(game,/wingVapor\?\.dispose\(\)/);
  assert.match(game,/wingVapor\?\.reset\(\)/);

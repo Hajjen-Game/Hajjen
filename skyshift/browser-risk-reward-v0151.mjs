@@ -32,7 +32,7 @@ try{
  const report=await page.evaluate(async()=>{
   const [road,boost,risk,trial,records]=await Promise.all([
    import("./premium-track-v0151.mjs"),
-   import("./boost-v0151.mjs"),
+   import("./flight/boost/boost-v0151.mjs"),
    import("./risk-reward-v0151.mjs"),
    import("./trial-v0151.mjs"),
    import("./time-trial-v0151.mjs")

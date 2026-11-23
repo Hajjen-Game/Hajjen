@@ -194,7 +194,7 @@ test("visible white cores and brief contact flare never emit without collision",
 });
 test("active game observes physics-owned railContacting, never approximate proximity",()=>{
  const game=src("./game-v01321.mjs"),
-  page=src("./index.html"),boot=src("./boot-v01321.js");
+  page=src("./index.html"),boot=src("./legacy/boot/boot-v01321.js");
  assert.match(game,/createRailScrapeSparks\(THREE,scene/);
  assert.match(game,/railSparks\?\.dispose\(\)/);
  assert.match(game,/railSparks\?\.reset\(\)/);

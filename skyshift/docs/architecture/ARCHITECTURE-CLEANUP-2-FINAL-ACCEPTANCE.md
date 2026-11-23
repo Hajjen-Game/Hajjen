@@ -1,5 +1,7 @@
 # SKYSHIFT Architecture Cleanup 2.0 — Final Stage N acceptance review
 
+> **Correction (2026-11-23):** This document accepted the *shared track/tunnel architecture*, not the originally requested **root-directory consolidation**. Declaring the entire cleanup finished was premature. The current, authoritative unfinished-work status and migration exit criteria are recorded in [SKYSHIFT-ROOT-CONSOLIDATION-STATUS.md](./SKYSHIFT-ROOT-CONSOLIDATION-STATUS.md). No additional file moves were made by PR #192.
+
 **Baseline:** `03f2566aa4d3efaa7773db4cf4989353a6a79c29` (Stage M merged; real historical WebGL QA and GitHub Pages guard/deployment succeeded).  
 **Scope:** Cross-track verification and closing out the architecture effort. **No new source-file moves or runtime changes.**
 

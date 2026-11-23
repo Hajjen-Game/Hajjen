@@ -26,10 +26,10 @@ import { installSpaceBackdrop } from "./space-v0496.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
 import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v083.mjs";
 import {HUD_SPEC,createReactiveHud} from "./reactive-hud-v04991.mjs";
-import {GRIP_SPEC} from "./precision-grip-v084.mjs";
+import {GRIP_SPEC} from "./flight/precision-grip-v084.mjs";
 import {RACING_FEEL,gripApexCue,createRailFeedbackState,
- startRailFeedback,stepRailFeedback} from "./racing-feel-v083.mjs";
-import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./side-thrusters-v061.mjs";
+ startRailFeedback,stepRailFeedback} from "./flight/racing-feel-v083.mjs";
+import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./flight/side-thrusters-v061.mjs";
 import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 

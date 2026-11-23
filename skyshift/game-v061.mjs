@@ -27,7 +27,7 @@ import { createContactShadow } from "./ship-v034.mjs";
 import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v0498.mjs";
 import {HUD_SPEC,createReactiveHud} from "./reactive-hud-v04991.mjs";
 import {GRIP_SPEC} from "./precision-grip-v061.mjs";
-import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./side-thrusters-v061.mjs";
+import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./flight/side-thrusters-v061.mjs";
 import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 

@@ -69,6 +69,8 @@ jobs:
           for file in skyshift/tests/browser/browser-*.mjs; do node --check "$file"; done
       - name: Stage M audit 16 immutable world modules, glTF URL parity and historical references
         run: node --test skyshift/tests/architecture/station-world-migration-stageM.test.mjs
+      - name: Stage N audit original HERO art Git blobs, glTF URLs and all consumer paths
+        run: node --test skyshift/tests/architecture/ship-hero-migration-stageN.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

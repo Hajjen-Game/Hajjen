@@ -1,7 +1,7 @@
 // SKYSHIFT 0.13.4.2 — real release fallback and optional Blender A/B gating.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {createShipArtController} from "../../ship-hero-loader-v01342.mjs";
+import {createShipArtController} from "../../ships/ship-hero-loader-v01342.mjs";
 
 const F=()=>({ship:{name:"procedural"}});
 test("normal 0.13.4.2 wants Stingray Hero but never loads it on Manta",async()=>{

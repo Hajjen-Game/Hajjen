@@ -5,7 +5,7 @@ import {readFileSync} from "node:fs";
 import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";
 import {STINGRAY_PRESENTATION_01344 as spec,
  visualSettingsForShip,stableStingrayVisualRoll}
- from "../../stingray-presentation-v01344.mjs";
+ from "../../ships/stingray-presentation-v01344.mjs";
 import {TRIAL} from "../../trial-v0901.mjs";
 import {STINGRAY_EVO} from "../../ships/stingray-evo-v01342.mjs";
 const read=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");

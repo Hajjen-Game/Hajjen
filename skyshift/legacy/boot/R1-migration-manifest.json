@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "phase": "R1 bootstrap cohort 1",
+  "baseRootCount": 468,
+  "expectedRootAfter": 449,
+  "sourceCommit": "d1f188ca5df82cd4e4eb7311887ae47617d15650",
+  "reason": "Only boot sources lacking direct unit-test consumers in GitHub code search; leave current boot game and historical test readers at root.",
+  "files": [
+    {
+      "name": "boot-v0499.js",
+      "oldPath": "skyshift/boot-v0499.js",
+      "newPath": "skyshift/legacy/boot/boot-v0499.js",
+      "originalGitBlobSha": "816092730ba594785b58440abde919b30fc1cc71"
+    },
+    {
+      "name": "boot-v04991.js",
+      "oldPath": "skyshift/boot-v04991.js",
+      "newPath": "skyshift/legacy/boot/boot-v04991.js",
+      "originalGitBlobSha": "005e412597514256bd25917deb0a9f1f861e9806"
+    },
+    {
+      "name": "boot-v050.js",
+      "oldPath": "skyshift/boot-v050.js",
+      "newPath": "skyshift/legacy/boot/boot-v050.js",
+      "originalGitBlobSha": "94a26818ec18c557c6d6bc3c7293dc9a96b24816"
+    },
+    {
+      "name": "boot-v051.js",
+      "oldPath": "skyshift/boot-v051.js",
+      "newPath": "skyshift/legacy/boot/boot-v051.js",
+      "originalGitBlobSha": "75b63165f270523135b6a758c4b4e90dc9ab6096"
+    },
+    {
+      "name": "boot-v060.js",
+      "oldPath": "skyshift/boot-v060.js",
+      "newPath": "skyshift/legacy/boot/boot-v060.js",
+      "originalGitBlobSha": "4f2e4a78d3ea5438766fcc72ca4c7523da5eb128"
+    },
+    {
+      "name": "boot-v061.js",
+      "oldPath": "skyshift/boot-v061.js",
+      "newPath": "skyshift/legacy/boot/boot-v061.js",
+      "originalGitBlobSha": "aef823cca53cc198d69e7b29e01843c78c17856b"
+    },
+    {
+      "name": "boot-v070.js",
+      "oldPath": "skyshift/boot-v070.js",
+      "newPath": "skyshift/legacy/boot/boot-v070.js",
+      "originalGitBlobSha": "89c73006545cf911828fa02c93fd349ac799919d"
+    },
+    {
+      "name": "boot-v082.js",
+      "oldPath": "skyshift/boot-v082.js",
+      "newPath": "skyshift/legacy/boot/boot-v082.js",
+      "originalGitBlobSha": "35592c509bda8d34301b606853ebc670d5286a30"
+    },
+    {
+      "name": "boot-v083.js",
+      "oldPath": "skyshift/boot-v083.js",
+      "newPath": "skyshift/legacy/boot/boot-v083.js",
+      "originalGitBlobSha": "01e9ec33c1c20be6902e1954cc189368735b5b7b"
+    },
+    {
+      "name": "boot-v084.js",
+      "oldPath": "skyshift/boot-v084.js",
+      "newPath": "skyshift/legacy/boot/boot-v084.js",
+      "originalGitBlobSha": "cd2afcc5902d769384071ee0802224d8c524eaa7"
+    },
+    {
+      "name": "boot-v090.js",
+      "oldPath": "skyshift/boot-v090.js",
+      "newPath": "skyshift/legacy/boot/boot-v090.js",
+      "originalGitBlobSha": "c531b295b447073b27119e35c6a1155d4e33b72a"
+    },
+    {
+      "name": "boot-v0901.js",
+      "oldPath": "skyshift/boot-v0901.js",
+      "newPath": "skyshift/legacy/boot/boot-v0901.js",
+      "originalGitBlobSha": "d3b89cf24e45c53473ac0fabc904e7aab53d6899"
+    },
+    {
+      "name": "boot-v091.js",
+      "oldPath": "skyshift/boot-v091.js",
+      "newPath": "skyshift/legacy/boot/boot-v091.js",
+      "originalGitBlobSha": "fd78eb64deee42254c02e43d168629445cef5e9d"
+    },
+    {
+      "name": "boot-v092.js",
+      "oldPath": "skyshift/boot-v092.js",
+      "newPath": "skyshift/legacy/boot/boot-v092.js",
+      "originalGitBlobSha": "573b9e811f189273a5a68f8ff978fee03a5ba5b8"
+    },
+    {
+      "name": "boot-v0921.js",
+      "oldPath": "skyshift/boot-v0921.js",
+      "newPath": "skyshift/legacy/boot/boot-v0921.js",
+      "originalGitBlobSha": "344dc971c9170e5050dc466a8c37bb5d30a629d4"
+    },
+    {
+      "name": "boot-v010.js",
+      "oldPath": "skyshift/boot-v010.js",
+      "newPath": "skyshift/legacy/boot/boot-v010.js",
+      "originalGitBlobSha": "af0f55638c003bf14388804de415b83fc14a1957"
+    },
+    {
+      "name": "boot-v0102.js",
+      "oldPath": "skyshift/boot-v0102.js",
+      "newPath": "skyshift/legacy/boot/boot-v0102.js",
+      "originalGitBlobSha": "429afc423db0264d08ded44ea99c597056f39d78"
+    },
+    {
+      "name": "boot-v0135.js",
+      "oldPath": "skyshift/boot-v0135.js",
+      "newPath": "skyshift/legacy/boot/boot-v0135.js",
+      "originalGitBlobSha": "db52230fe6bd325abc4d528d2cecda1d10b3943a"
+    },
+    {
+      "name": "boot-v0170.js",
+      "oldPath": "skyshift/boot-v0170.js",
+      "newPath": "skyshift/legacy/boot/boot-v0170.js",
+      "originalGitBlobSha": "b465b039f3de96cb99ac86dc9ca18f5c39daa43f"
+    }
+  ]
+}

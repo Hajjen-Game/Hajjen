@@ -83,7 +83,7 @@ test('R1B CI and root layout enforce the total 468 → 449 → 429 → 409 file 
    'Stale historical syntax check '+item.name);
  }
  assert.ok(workflow.includes('skyshift/legacy/boot/boot-v0205.js'));
- assert.ok(workflow.includes('skyshift/legacy/boot/boot-v0164.js'));
+ assert.ok(historicalSyntaxCheck(workflow,resolve(root,'legacy/boot/boot-v0164.js')));
  assert.ok(existsSync(resolve(root,'boot-v0210.js')));
  assert.ok(existsSync(resolve(root,'game-v0210.mjs')));
 });

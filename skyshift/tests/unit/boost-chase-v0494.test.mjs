@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.9.4 — +40% physical boost and camera follow inertia.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {BOOST_CONFIG,BOOST_PADS,stepBoostState,initBoostState} from "../../flight/boost/boost-v0494.mjs";
 import {BOOST_CONFIG as OLD_BOOST} from "../../flight/boost/boost-v049.mjs";
 import {TRIAL,newFlightState,stepFlight} from "../../trial-v0494.mjs";

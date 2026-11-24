@@ -1,7 +1,7 @@
 // SKYSHIFT 0.8.1 – real 33.6m gap, GRIP-powered midair roll and landing boost.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick}
  from "../../air-tricks-v081.mjs";
 import {createFlightMotionState,stepFlightMotion}

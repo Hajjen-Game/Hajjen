@@ -1,7 +1,7 @@
 // SKYSHIFT 0.8.0 – Air Tricks & Landing Boost: authoritative 120Hz checks.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick,
  finalizeAirTrick,stepLandingBoost,settleTrickVisual}
  from "../../air-tricks-v080.mjs";

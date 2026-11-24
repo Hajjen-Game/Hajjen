@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.9.6 — speed-dependent ship, road and rail visual regression.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState}
  from "../../velocity-language-v0496.mjs";
 import {ENGINE_TRAIL_SPEC,trailMotionState} from "../../engine-trails-v0496.mjs";

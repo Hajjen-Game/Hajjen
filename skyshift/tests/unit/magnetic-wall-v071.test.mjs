@@ -1,7 +1,7 @@
 // SKYSHIFT 0.7.1 – physical magnetic wall, lap continuity and archived 0.7.0.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {CIRCUIT,TRIAL,GAPS,GUARDRAIL,MAX_BANK_RAD,bankAt,bankDegreesAt,
  surfaceNormalAt,surfaceHeightAt,poseAt,positionAt,projectWorldToTrack,
  headingAt,guardrailLateralLimit,newFlightState,stepFlight,speedAt,

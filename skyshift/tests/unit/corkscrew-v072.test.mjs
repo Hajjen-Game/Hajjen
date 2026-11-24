@@ -1,7 +1,7 @@
 // SKYSHIFT 0.7.2 – deterministic full-roll collision, ceiling and 3-lap physics.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {CORKSCREW,TRACK_3D,corkscrewAt,corkscrewBankAt,
  corkscrewProgressAt,MAGNETIC_WALL,elevationAt,gradeAt}
  from "../../track-3d-v072.mjs";

@@ -1,7 +1,7 @@
 // 0.4.9.1.1 – a failed or slow module must never leave a dead Android menu.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 const src=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 test("Classic, dependency-free bootstrap loads before Three.js and captures import failures",()=>{
  const html=src("./index.html"),boot=src("./legacy/boot/boot-v04911.js");

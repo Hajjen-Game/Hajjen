@@ -7,6 +7,8 @@ import {fileURLToPath} from 'node:url';
 import {expectedRootFiles} from './root-count-contract.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
 const m=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/root-relocation-l1h.json'),'utf8'));
+const ef02e=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef02-retirement-early-snapshots.json'),'utf8'));
+const archiveImport='import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";';
 const sha=s=>{const b=Buffer.from(s);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex')};
 test('L1H: six protected runners are byte-exact and ten historical readers retain every assertion',()=>{
  assert.equal(m.moves.length,6);assert.equal(m.readers.length,10);
@@ -23,6 +25,12 @@ test('L1H: six protected runners are byte-exact and ten historical readers retai
  }
  for(const r of m.readers){
   let s=readFileSync(resolve(repo,r.path),'utf8');
+  const retiredReader=ef02e.readers.find(x=>x.path===r.path);
+  if(retiredReader){
+   assert.equal(s.split(archiveImport).length,2,r.path);
+   s=s.replace(archiveImport,retiredReader.originalImport);
+   assert.equal(sha(s),retiredReader.sha,r.path+' EF02E inverse');
+  }
   for(const e of r.edits){assert.equal(s.split(e.after).length,2,r.path);assert.ok(!s.includes(e.before),r.path);s=s.replace(e.after,e.before);}
   assert.equal(sha(s),r.sha,r.path);
  }

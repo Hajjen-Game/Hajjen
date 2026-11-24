@@ -1,7 +1,9 @@
 # SKYSHIFT — ROOT CONSOLIDATION: SOURCE OF TRUTH
 
-> **Status: NOT FINISHED** (`main`: L1G #209 merged at bfecc3914be331de1fc8c9f8dfc27e6719f8c3d2; 1,087 total, 277 direct, 42 legacy; all three main workflows green. L1H candidate moves six protected browser runners and centralizes root-count checks).
+> **Status: NOT FINISHED** (`main` before Engineering Foundation plan: L1H #210 merged at 555999c364f59fcd32ab0773841794c4aa26c87c; 1,091 total, 271 direct, 42 legacy; all three main workflows green).
 > **User's actual goal:** Few essential root files (target <=10), organized active code, and removal of redundant obsolete versions from the working tree. Keep only live dependencies and justified historical fixtures, with Git history as the archive.
+
+> **Governing roadmap:** [SKYSHIFT Engineering Foundation 1.0](SKYSHIFT-ENGINEERING-FOUNDATION-1.0.md) supersedes the file-count-first strategy. Read it first; root consolidation is an EF02 workstream. Vault is the visual reference, Skyline/Aurora are frozen pending safe retirement, and shared engine capabilities (including jumps/tricks) must be preserved. Next step EF01 baseline, not independent root-only migration.
 
 ## Verified baseline
 
@@ -167,6 +169,11 @@ L1F #208 merged after 36/36 checks; main Pages 45397743201, publication guard 45
 Architecture run 45404530801 failed the new blanket relative-import guard, not a gameplay assertion. All relative dynamic import literals in the four byte-identical runners are inside Playwright page.evaluate callbacks and resolve against the loaded /skyshift/ document. Keep exact blob hashes, forbid Node static relative imports and import.meta.url, and verify the exact reviewed per-runner dynamic import inventory and existence of each document-relative target. No runner or gameplay changes, no new removals; 277 root, 1,087 total, 42 legacy. Require all checks on repaired HEAD.
 
 
-## L1H — finish browser runner relocation and prepare larger subsystem batches (UNMERGED)
+## L1H — finish browser runner relocation and prepare larger subsystem batches (MERGED #210)
 
 L1G #209 merged after 36/36 checks; main track QA 45409620517, publication guard 45409620308 and Pages deployment 45409619653 all succeeded. Verified main 1,087 tracked files, 277 direct, 42 legacy. L1H moves the remaining six root browser runners byte-exact into tests/browser or tests/browser/legacy and updates ten audited source readers by exact reversible literal path edits. Preserve workflow commands and document-relative imports. A single explicit root-count contract replaces nine duplicated hardcoded current counts; it remains an exact required check. Independent gate validates all original Git blobs, reader inverse SHA, import target inventory, and workflow parity. Adds a read-only tracked-tree reference inventory for the next 30–80 file track/geometry cohort, so the next PR can consume one comprehensive audit instead of serial code searches. Expected 277 → 271 direct, 1,087 → 1,091 total (four architecture files), 42 legacy unchanged. No runtime or visual behavior changed. Require all PR and post-merge checks before continuing. Next: use the inventory to migrate cohesive track/geometry families; review live and comparison imports, historical archive source dependencies, browser document-relative imports, original source assertions, CSS and asset URLs. The user explicitly wants fewer small PRs; combine compatible families while keeping genuine safety gates. Do not equate a green build with completed root consolidation.
+
+
+## Engineering Foundation 1.0 handoff (2026-11-24)
+
+L1H #210 is merged; independently verified 1,091 tracked files, 271 direct, 42 legacy. Main track QA 45422932872, Pages guard 45422932911 and deployment 45422930753 succeeded. The governing roadmap is now [SKYSHIFT-ENGINEERING-FOUNDATION-1.0.md](SKYSHIFT-ENGINEERING-FOUNDATION-1.0.md). EF01 is next after the plan is merged; L1H inventory feeds that work. This supersedes older next-step instructions for isolated mechanical root moves. No runtime changes in the plan PR (one additional docs file, 271 direct unchanged). Do not claim root consolidation or EF01 complete.

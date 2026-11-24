@@ -1,3 +1,4 @@
+import {expectedRootFiles} from './root-count-contract.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync,readdirSync} from 'node:fs';
@@ -11,7 +12,7 @@ const sha=s=>{const b=Buffer.from(s);return createHash('sha1').update('blob '+b.
 test('L1F: exact Git fixtures, exact reader assertions and no unapproved executable consumers',()=>{
  assert.equal(m.files.length,20);assert.equal(m.readers.length,22);
  assert.equal(new Set(m.files.map(f=>f.path)).size,20);
- assert.equal(readdirSync(resolve(repo,'skyshift'),{withFileTypes:true}).filter(e=>e.isFile()).length,277);
+ assert.equal(readdirSync(resolve(repo,'skyshift'),{withFileTypes:true}).filter(e=>e.isFile()).length,expectedRootFiles);
  for(const f of m.files){
   assert.ok(!existsSync(resolve(repo,f.path)),f.path);
   assert.equal(sha(readHistorical(resolve(repo,f.path))),f.sha,f.path);

@@ -1,3 +1,4 @@
+import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT R1E — original 30 game Git blobs, unchanged historical tests and 8 boot URL targets.
@@ -60,8 +61,8 @@ test('R1E: eight archive bootstraps still resolve to exact historic game with or
   assert.equal(sha(source.replace('import("../game/game-v','import("../../game-v')),b.originalGitBlobShaBeforeR1E,'Historical bootstrap body changed '+b.path);
  }
 });
-test('R1E: original 387 → 357 stage remains intact; current root 277; live entrypoint unchanged; CI rewired',()=>{
- assert.equal(readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile()).length,277);
+test('R1E: original 387 → 357 stage remains intact; approved current root; live entrypoint unchanged; CI rewired',()=>{
+ assert.equal(readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile()).length,expectedRootFiles);
  assert.equal(sha(readFileSync(resolve(root,'index.html'),'utf8')),manifest.active.index);
  assert.equal(sha(readFileSync(resolve(root,'boot-v0210.js'),'utf8')),manifest.active.boot);
  assert.equal(sha(readFileSync(resolve(root,'game-v0210.mjs'),'utf8')),manifest.active.game);

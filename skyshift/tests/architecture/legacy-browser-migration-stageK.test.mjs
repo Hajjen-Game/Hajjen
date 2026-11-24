@@ -45,12 +45,12 @@ test('Stage K: historical jobs execute the relocated QA runner paths',()=>{
    'Historical Chrome/WebGL workflow lost its QA job: '+name);
 });
 
-test('Stage K: five unit-test source readers retain their protected original smoke runners',()=>{
+test('Stage K: five unit-test source readers resolve the relocated protected original smoke runners',()=>{
  assert.deepEqual(manifest.protectedRoot.slice().sort(),
   ['browser-smoke-v0498.mjs','browser-smoke-v04991.mjs','browser-smoke-v071.mjs',
    'browser-smoke-v080.mjs','browser-smoke-v081.mjs'].sort());
  for(const name of manifest.protectedRoot){
-  assert.ok(existsSync(resolve(root,name)),'Historical unit-test fixture moved: '+name);
-  assert.equal(existsSync(resolve(legacy,name)),false,'Protected fixture duplicated: '+name);
+  assert.ok(!existsSync(resolve(root,name)),'Stale L1H root fixture: '+name);
+  assert.ok(existsSync(resolve(legacy,name)),'Missing L1H fixture: '+name);
  }
 });

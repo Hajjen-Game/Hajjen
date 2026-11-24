@@ -217,7 +217,7 @@ test("long GPU geometry is rendered ONCE; HDR shader front repeats without a sea
 });
 test("production route preserves original HUD, SMAA and three-lap telemetry",()=>{
  const html=src("./index.html"),game=src("./game-v0103.mjs"),
-  boot=src("./boot-v0103.js"),smoke=src("./browser-smoke-v081.mjs");
+  boot=src("./boot-v0103.js"),smoke=src("./tests/browser/legacy/browser-smoke-v081.mjs");
  assert.match(html,/data-game-module="game-v0103\.mjs"/);
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);

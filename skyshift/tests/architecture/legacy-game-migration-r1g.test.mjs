@@ -1,3 +1,4 @@
+import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 // Mandatory R1G original Git identity / dependency / live entrypoint gate.
 import test from 'node:test';
@@ -14,7 +15,7 @@ const baseline=JSON.parse(read('skyshift/docs/architecture/root-baseline-2026-11
 function sha(s){const b=Buffer.from(s);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex')}
 test('R1G: 42 immutable game sources, equivalent imports and held entrypoints',()=>{
  assert.equal(m.files.length,42);assert.equal(m.previousRootFiles,328);assert.equal(m.expectedRootFiles,286);
- assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,277);
+ assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,expectedRootFiles);
  for(const h of m.held)assert.equal(sha(readHistorical(resolve(repo,h.path))),h.sha,h.path);
  for(const f of m.files){
   assert.equal(f.oldPath,'skyshift/'+f.name);assert.equal(f.newPath,'skyshift/legacy/game/'+f.name);

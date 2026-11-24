@@ -1,3 +1,4 @@
+import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // R1C: prove original Git blobs, historical test assertion identity,
@@ -78,7 +79,7 @@ test('R1C all 24 original historical test Git blobs restore exactly (including U
 
 test('R1C CI rewire and cumulative 468 → 449 → 429 → 409 → 387 direct root-file count',()=>{
  const direct=readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile());
- assert.equal(direct.length,277);
+ assert.equal(direct.length,expectedRootFiles);
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const file of manifest.files){
   assert.ok(!workflow.includes('node --check '+file.oldPath),

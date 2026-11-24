@@ -147,10 +147,10 @@ test("actual curved and banked track seams remain joined after window change",()
 test("active game uses new window art with explicit 0.20.1 comparison, not new handling",()=>{
  assert.equal(planStationWorld({track:"aurora"}).active,false);
  const game=file("./legacy/game/game-v0202.mjs");
- assert.match(game,/from "\.\/trial-v0165\.mjs"/);
- assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
- assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);
- assert.match(game,/from "\.\/world\/environment-art-pipeline-v0202\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/trial-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/flight\/unified-flight-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/flight\/cinematic-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/world\/environment-art-pipeline-v0202\.mjs"/);
  assert.match(game,/get\("windows"\)!=="classic"/);
  assert.match(game,/installObservationWorldArt:installEnclosedWorldArt/);
  assert.match(game,/compareBeforeWindows:"\?windows=classic"/);

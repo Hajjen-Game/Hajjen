@@ -3,6 +3,11 @@ import {readFileSync} from 'node:fs';
 const manifest=JSON.parse(readFileSync(new URL('../../legacy/game/R1G-migration-manifest.json',import.meta.url),'utf8'));
 export function restoreR1GGamePaths(source){
  let out=source;
+ // Scoped R1G post-merge repair: these archived game readers assert the rebased ESM imports.
+ if(["0200","0201","0202","02021","0204","02041","0205","0135","0192","0180","0190"].some(v=>source.includes('./legacy/game/game-v'+v+'.mjs'))){
+  out=out.split("assert.match(game,/from \"\\.\\.\\/\\.\\.\\/").join("assert.match(game,/from \"\\.\\/");
+  out=out.split("game.includes('from \"../../'+").join("game.includes('from \"./'+");
+ }
  for(const {name,version} of manifest.files){
   for(const [a,b] of [['../../legacy/game/'+name,'../../'+name],['./legacy/game/'+name,'./'+name],['legacy/game/'+name,name]])for(const q of ['"',"'"])out=out.split(q+a+q).join(q+b+q);
   out=out.split("\\.\\.\\/game\\/game-v"+version+'\\.mjs').join("\\.\\.\\/\\.\\.\\/game-v"+version+'\\.mjs');

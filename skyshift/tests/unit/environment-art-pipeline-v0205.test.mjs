@@ -152,7 +152,7 @@ test("gameplay and lower versions are preserved; active boot and fair A/B",()=>{
  const game=read("./legacy/game/game-v0205.mjs");
  for(const m of ["trial-v0165","flight/unified-flight-v0165","flight/cinematic-v0165",
   "world/environment-art-pipeline-v02041","world/environment-art-pipeline-v0205"])
-  assert.ok(game.includes('from "./'+m+'.mjs"'));
+  assert.ok(game.includes('from "../../'+m+'.mjs"'));
  assert.match(game,/architecturePass"\)!=="classic"/);
  assert.match(game,/installArchitecturalWorldArt/);
  assert.match(game,/compareBeforeArchitecture:"\?architecturePass=classic"/);

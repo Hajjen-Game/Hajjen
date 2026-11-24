@@ -69,11 +69,11 @@ test("only first primitive station is replaced and legacy source is preserved",(
 });
 test("production keeps archived physics, camera, 0.19.0 chapters and versioned A/B",()=>{
  const game=src("./legacy/game/game-v0192.mjs");
- assert.match(game,/from "\.\/trial-v0165\.mjs"/);
- assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
- assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);
- assert.match(game,/from "\.\/world-rebuild-v0190\.mjs"/);
- assert.match(game,/from "\.\/orbital-hero-v0192\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/trial-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/flight\/unified-flight-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/flight\/cinematic-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/world-rebuild-v0190\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/orbital-hero-v0192\.mjs"/);
  assert.match(game,/architectureEnabled=worldEnabled&&/);
  assert.match(game,/if\(architectureEnabled\)orbitalHero=installOrbitalHero/);
  assert.doesNotMatch(game,/world-material-readability-v0191\.mjs/);

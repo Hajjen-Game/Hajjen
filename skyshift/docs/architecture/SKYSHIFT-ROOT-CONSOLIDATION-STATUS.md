@@ -183,3 +183,5 @@ EF01C #214 merged at 790540bd147a4f411ca522f742a34e74717afee1 (38/38 checks). Ba
 
 ## EF02E candidate — bulk historical retirement
 EF02A–D merged through 9c8eb6bf13256567e0dea2af206bda84ad074269; 26 algorithm bodies consolidated into five (137366 fewer source bytes including adapters). Current tracked SKYSHIFT 1112 files, root 271. EF02E candidate removes 31 actual obsolete game/bootstrap source files from legacy directories (not root); 1075045 bytes restored by Git archive when needed. Keep historical test assertions and current runtime/QA untouched. Candidate net count after one manifest, one test and one report: 1084 tracked files, root 271. Verify before merge; next prioritize active root ownership and remaining dependency cohorts.
+
+EF02E CI repair: architecture run 45458237378 failed L1H reader SHA after the approved archive import change. Compose the exact per-reader EF02E inverse before L1H path inverse, checking both original hashes. No test assertion removed or gameplay change. #218 main track QA 45457484722, Pages guard 45457484963 and deployment 45457483126 all green. Require new HEAD checks.

@@ -39,8 +39,8 @@ Before edit: read this plan/status; inspect current main SHA, open PRs, checks; 
 ## 5. Current execution status
 - Audit reference: bfecc3914be331de1fc8c9f8dfc27e6719f8c3d2 (0.28.9.7; 1,087 tracked files, 277 direct, 5,803 lines and 124 direct imports in game-v0210.mjs; selected module review, not full line-by-line audit or hardware profiling).
 - Latest verified pre-plan main: 555999c364f59fcd32ab0773841794c4aa26c87c (L1H #210 merged, 1,091 tracked files, 271 direct, 42 legacy; main track QA 45422932872, Pages publication guard 45422932911, Pages deployment 45422930753 successful).
-- EF01: IN PROGRESS — EF01A merged #212 at e7e88d4a1728d81493866d1f73f0366564f981d2 (38/38 checks); EF01B runtime profiling and reference review candidate. EF02–EF08: pending. Prior root consolidation remains unfinished; L1H inventory is input to EF01. See [EF01 baseline evidence](EF01-RUNTIME-PERFORMANCE-BASELINE.md).
-- Next: verify EF01B runtime matrix and reviewed census, then complete remaining runtime/feature evidence gaps. EF01A measured 160 literal production nodes, 10 duplicate candidate groups, High cold boot 10.26s in SwiftShader; see baseline report. No runtime change; do not begin EF02 before EF01 exit gate.
+- EF01: IN PROGRESS — EF01B merged #213 at 2691243adc7b2d59656bed5ead94a76b1e63ac63 (43/43 checks). EF01C current feature, source and repeated-run lifecycle evidence candidate. See [baseline report](EF01-RUNTIME-PERFORMANCE-BASELINE.md). EF02–EF08 pending.
+- Next: verify EF01C, summarize EF01 exit evidence and prioritized EF02 inventory. Hardware FPS/GPU percentiles unavailable from software runner; report limitations explicitly. Do not start EF02 before EF01 exit review.
 - Known gaps: complete live dynamic graph, actual bundle/network measurements, device GPU/CPU memory measurements, full duplication scan and cross-track reusable feature inventory are not yet verified.
 
 ## 6. New-chat handoff

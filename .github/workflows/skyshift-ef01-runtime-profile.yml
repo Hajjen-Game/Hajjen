@@ -1,0 +1,63 @@
+name: SKYSHIFT EF01 runtime profile
+on:
+  pull_request:
+    paths:
+      - 'skyshift/tests/browser/ef01-runtime-profile.mjs'
+      - 'skyshift/tests/architecture/ef01-review.mjs'
+      - '.github/workflows/skyshift-ef01-runtime-profile.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: skyshift-ef01-runtime-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  BASELINE: 4983f20f6cf867f91e1ebd57ad48b1d0c685997c
+jobs:
+  review-census:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reproduce pinned static census and prioritize references
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASELINE"
+          git worktree add --detach "$RUNNER_TEMP/ef01-source" "$BASELINE"
+          mkdir -p "$RUNNER_TEMP/ef01"
+          node skyshift/tests/architecture/ef01-census.mjs "$RUNNER_TEMP/ef01-source" "$RUNNER_TEMP/ef01/census.json" "$BASELINE"
+          node skyshift/tests/architecture/ef01-review.mjs "$RUNNER_TEMP/ef01/census.json" "$RUNNER_TEMP/ef01/review.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skyshift-ef01-census-reviewed
+          path: ${{ runner.temp }}/ef01/
+          if-no-files-found: error
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    strategy:
+      fail-fast: false
+      matrix:
+        track: [vault, skyline, aurora]
+        memory: [8, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install existing browser harness dependencies
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
+      - name: Pin reference and run cold/warm profile
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASELINE"
+          git worktree add --detach "$RUNNER_TEMP/ef01-source" "$BASELINE"
+          node --check skyshift/tests/browser/ef01-runtime-profile.mjs
+          node skyshift/tests/browser/ef01-runtime-profile.mjs "$RUNNER_TEMP/ef01-source" "$RUNNER_TEMP/ef01-runtime" "${{ matrix.track }}" "${{ matrix.memory }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-ef01-runtime-${{ matrix.track }}-${{ matrix.memory }}gb
+          path: ${{ runner.temp }}/ef01-runtime/
+          if-no-files-found: error

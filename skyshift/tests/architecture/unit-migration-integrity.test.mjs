@@ -19,6 +19,7 @@ import { restoreR1BBootPaths } from './r1b-boot-test-path-overlay.mjs';
 import { restoreR1CBootPaths } from './r1c-boot-test-path-overlay.mjs';
 import { restoreR1DBootPaths } from './r1d-boot-test-path-overlay.mjs';
 import { restoreR1EGamePaths } from './r1e-game-test-path-overlay.mjs';
+import { restoreR1FGamePaths } from './r1f-game-test-path-overlay.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const testDir = resolve(root, 'tests/unit');
@@ -42,7 +43,7 @@ test('relocated historical unit tests retain assertions, source imports and orig
       assert.ok(localPath && localPath !== '..' && !localPath.startsWith('..' + sep) && !isAbsolute(localPath), 'Import escapes game root: ' + name);
       assert.ok(existsSync(imported), 'Moved test cannot import source: ' + name + ' -> ' + match[1]);
     }
-    const original = restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(restoreR1BBootPaths(restoreR1CBootPaths(restoreR1DBootPaths(restoreR1EGamePaths(migrated))))))))))))).replace(/(\bfrom\s*["'])\.\.\/\.\.\//g, '$1./');
+    const original = restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(restoreR1BBootPaths(restoreR1CBootPaths(restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(migrated)))))))))))))).replace(/(\bfrom\s*["'])\.\.\/\.\.\//g, '$1./');
     const bytes = Buffer.from(original, 'utf8');
     const gitHash = createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
     assert.equal(gitHash, old.originalGitBlob, 'Test assertions or source changed: ' + name);

@@ -1,26 +1,27 @@
-name: SKYSHIFT R1G reference audit
+name: SKYSHIFT R1G migration candidate
 on:
   push:
     branches:
       - 'skyshift/root-consolidation-r1g-reference-audit'
 permissions:
-  contents: read
+  contents: write
 jobs:
-  audit:
+  migrate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check all 43 remaining candidate snapshots and tracked references
-        run: node skyshift/tests/architecture/r1g-reference-audit.mjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: skyshift-r1g-reference-audit
-          path: r1g-audit.json
-          if-no-files-found: error
+      - name: Generate and verify complete candidate from pinned R1F main
+        run: |
+          cp skyshift/tests/architecture/r1g-build-migration.mjs "$RUNNER_TEMP/r1g-build-migration.mjs"
+          git switch --detach ab926746c1a356d8f2a9c079968e7e65dc804901
+          node "$RUNNER_TEMP/r1g-build-migration.mjs"
+          git diff --stat
+          git add skyshift .github/workflows/skyshift-tests.yml .github/workflows/skyshift-architecture-guard.yml
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'SKYSHIFT R1G: migrate 42 audited historical game snapshots and preserve prior SHA guards'
+          git push origin HEAD:refs/heads/skyshift/root-consolidation-r1g-game-snapshots

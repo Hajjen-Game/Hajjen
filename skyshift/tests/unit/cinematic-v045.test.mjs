@@ -93,7 +93,7 @@ test("pilot heading/road collision are still authoritative and unchanged",()=>{
  assert.equal(TRIAL.maxYawRate,1.24);
 });
 test("active 0.4.5 page wires cinematic preview and reused engine visuals",()=>{
- const game=source("game-v045.mjs");
+ const game=source("legacy/game/game-v045.mjs");
  const fx=source("premium-v045.mjs");
  const html=source("index.html");
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);

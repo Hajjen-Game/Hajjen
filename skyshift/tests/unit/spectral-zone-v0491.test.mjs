@@ -160,7 +160,7 @@ test("Road material uniforms advance with flight clock, not wall-time or new geo
  assert.ok(shader.uniforms.uZone1Accent.value);
 });
 test("Live 0.4.9.1 references synchronised wave modules and unchanged flight steering",()=>{
- const game=source("game-v0491.mjs"),html=source("index.html");
+ const game=source("legacy/game/game-v0491.mjs"),html=source("index.html");
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  for(const mod of ["zone-wave-v0491","premium-track-v0491","aero-barrier-v0491",
   "trial-v049","boost-v049","manta-blade-v0484","engine-trails-v0484"])

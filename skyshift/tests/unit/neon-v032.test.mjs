@@ -33,7 +33,7 @@ test("unsafe visual tuning is detected before going to production",()=>{
 });
 
 test("refined rail geometry keeps three discrete layers with narrow halo",()=>{
-  const game=src("game-v032.mjs");
+  const game=src("legacy/game/game-v032.mjs");
   assert.match(game,/rimHalo=\[\],rimCore=\[\]/);
   assert.match(game,/addQuad\(rimHalo,null,toVec\(d,off-\.072/);
   assert.match(game,/addQuad\(rimCore,null,toVec\(d,off\+\.052/);
@@ -41,7 +41,7 @@ test("refined rail geometry keeps three discrete layers with narrow halo",()=>{
 });
 
 test("beacons, archs, engine fill and flight FX follow the new tuning",()=>{
-  const game=src("game-v032.mjs"),fx=src("premium-v032.mjs");
+  const game=src("legacy/game/game-v032.mjs"),fx=src("premium-v032.mjs");
   assert.match(game,/NEON_TUNING\.archBodyLuminance/);
   assert.match(game,/NEON_TUNING\.archCoreLuminance/);
   assert.match(game,/NEON_TUNING\.archHaloOpacity/);
@@ -53,10 +53,10 @@ test("beacons, archs, engine fill and flight FX follow the new tuning",()=>{
 });
 
 test("HDR composer remains active, with one core Three.js instance and tone mapping",()=>{
-  const html=src("index.html"),game=src("game-v032.mjs"),neon=src("neon-v032.mjs");
+  const html=src("index.html"),game=src("legacy/game/game-v032.mjs"),neon=src("neon-v032.mjs");
   assert.match(html,/src="\.\/boot-v0103\.js\?v=0\.10\.3"/);
   // The 0.3.2 renderer remains in the repo as the approved lighting baseline.
-  assert.match(src("game-v0331.mjs"),/from "\.\/neon-v032\.mjs"/);
+  assert.match(src("legacy/game/game-v0331.mjs"),/from "\.\/neon-v032\.mjs"/);
   assert.match(html,/<script type="importmap">/);
   assert.match(html,/three@0\.180\.0/);
   assert.match(neon,/UnrealBloomPass/);
@@ -67,7 +67,7 @@ test("HDR composer remains active, with one core Three.js instance and tone mapp
 });
 
 test("no gameplay modifications, checkpoints and fullscreen remain the same",()=>{
-  const game=src("game-v032.mjs");
+  const game=src("legacy/game/game-v032.mjs");
   assert.match(game,/from "\.\/trial-v03\.mjs"/);
   assert.match(game,/from "\.\/fullscreen-v02\.mjs"/);
   assert.match(game,/function startImmersiveTrial/);

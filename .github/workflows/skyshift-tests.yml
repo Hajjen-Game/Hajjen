@@ -199,72 +199,72 @@ jobs:
         run: |
           node --check skyshift/game.mjs
           node --check skyshift/track.mjs
-          node --check skyshift/game-v02.mjs
+          node --check skyshift/legacy/game/game-v02.mjs
           node --check skyshift/trial-v02.mjs
           node --check skyshift/fullscreen-v02.mjs
           node --check skyshift/trial-v03.mjs
-          node --check skyshift/game-v03.mjs
+          node --check skyshift/legacy/game/game-v03.mjs
           node --check skyshift/premium-v03.mjs
           node --check skyshift/neon-v031.mjs
           node --check skyshift/premium-v031.mjs
-          node --check skyshift/game-v031.mjs
+          node --check skyshift/legacy/game/game-v031.mjs
           node --check skyshift/neon-balance-v032.mjs
           node --check skyshift/neon-v032.mjs
           node --check skyshift/premium-v032.mjs
-          node --check skyshift/game-v032.mjs
+          node --check skyshift/legacy/game/game-v032.mjs
           node --check skyshift/identity-v033.mjs
-          node --check skyshift/game-v033.mjs
+          node --check skyshift/legacy/game/game-v033.mjs
           node --check skyshift/luminance-v0331.mjs
           node --check skyshift/identity-v0331.mjs
-          node --check skyshift/game-v0331.mjs
+          node --check skyshift/legacy/game/game-v0331.mjs
           node --check skyshift/identity-v034.mjs
           node --check skyshift/world-v034.mjs
           node --check skyshift/ship-v034.mjs
-          node --check skyshift/game-v034.mjs
+          node --check skyshift/legacy/game/game-v034.mjs
           node --check skyshift/trial-v04.mjs
           node --check skyshift/identity-v04.mjs
           node --check skyshift/space-v04.mjs
-          node --check skyshift/game-v04.mjs
+          node --check skyshift/legacy/game/game-v04.mjs
           node --check skyshift/trial-v041.mjs
           node --check skyshift/identity-v041.mjs
           node --check skyshift/premium-v041.mjs
-          node --check skyshift/game-v041.mjs
+          node --check skyshift/legacy/game/game-v041.mjs
           node --check skyshift/trial-v042.mjs
           node --check skyshift/identity-v042.mjs
-          node --check skyshift/game-v042.mjs
+          node --check skyshift/legacy/game/game-v042.mjs
           node --check skyshift/trial-v043.mjs
           node --check skyshift/smooth-track-v043.mjs
           node --check skyshift/core/frame-pacing-v043.mjs
           node --check skyshift/neon-v043.mjs
-          node --check skyshift/game-v043.mjs
+          node --check skyshift/legacy/game/game-v043.mjs
           node --check skyshift/flight-motion-v044.mjs
           node --check skyshift/core/frame-pacing-v044.mjs
-          node --check skyshift/game-v044.mjs
+          node --check skyshift/legacy/game/game-v044.mjs
           node --check skyshift/cinematic-v045.mjs
           node --check skyshift/premium-v045.mjs
-          node --check skyshift/game-v045.mjs
+          node --check skyshift/legacy/game/game-v045.mjs
           node --check skyshift/trial-v046.mjs
           node --check skyshift/smooth-track-v046.mjs
           node --check skyshift/identity-v046.mjs
-          node --check skyshift/game-v046.mjs
+          node --check skyshift/legacy/game/game-v046.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v047.mjs
-          node --check skyshift/game-v047.mjs
+          node --check skyshift/legacy/game/game-v047.mjs
           node --check skyshift/flight/boost/boost-v048.mjs
           node --check skyshift/trial-v048.mjs
           node --check skyshift/zone-surface-v048.mjs
-          node --check skyshift/game-v048.mjs
+          node --check skyshift/legacy/game/game-v048.mjs
           node --check skyshift/premium-track-v0481.mjs
-          node --check skyshift/game-v0481.mjs
+          node --check skyshift/legacy/game/game-v0481.mjs
           node --check skyshift/premium-ship-v0482.mjs
           node --check skyshift/premium-track-v0482.mjs
-          node --check skyshift/game-v0482.mjs
+          node --check skyshift/legacy/game/game-v0482.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0482.mjs
           node --check skyshift/manta-blade-v0483.mjs
-          node --check skyshift/game-v0483.mjs
+          node --check skyshift/legacy/game/game-v0483.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0483.mjs
           node --check skyshift/manta-blade-v0484.mjs
           node --check skyshift/engine-trails-v0484.mjs
-          node --check skyshift/game-v0484.mjs
+          node --check skyshift/legacy/game/game-v0484.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0484.mjs
           node --check skyshift/flight/boost/boost-v049.mjs
           node --check skyshift/trial-v049.mjs
@@ -272,36 +272,36 @@ jobs:
           node --check skyshift/tracks/barriers/aero-barrier-v049.mjs
           node --check skyshift/zone-wave-v049.mjs
           node --check skyshift/premium-track-v049.mjs
-          node --check skyshift/game-v049.mjs
+          node --check skyshift/legacy/game/game-v049.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v049.mjs
           node --check skyshift/zone-wave-v0491.mjs
           node --check skyshift/premium-track-v0491.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0491.mjs
-          node --check skyshift/game-v0491.mjs
+          node --check skyshift/legacy/game/game-v0491.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0491.mjs
           node --check skyshift/legacy/boot/boot-v04911.js
-          node --check skyshift/game-v04911.mjs
+          node --check skyshift/legacy/game/game-v04911.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v04911.mjs
           node --check skyshift/zone-wave-v0492.mjs
           node --check skyshift/premium-track-v0492.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0492.mjs
           node --check skyshift/legacy/boot/boot-v0492.js
-          node --check skyshift/game-v0492.mjs
+          node --check skyshift/legacy/game/game-v0492.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0492.mjs
           node --check skyshift/zone-wave-v0493.mjs
           node --check skyshift/premium-track-v0493.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0493.mjs
           node --check skyshift/legacy/boot/boot-v0493.js
-          node --check skyshift/game-v0493.mjs
+          node --check skyshift/legacy/game/game-v0493.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0493.mjs
           node --check skyshift/flight/boost/boost-v0494.mjs
           node --check skyshift/trial-v0494.mjs
           node --check skyshift/flight/boost/boost-chase-v0494.mjs
-          node --check skyshift/game-v0494.mjs
+          node --check skyshift/legacy/game/game-v0494.mjs
           node --check skyshift/legacy/boot/boot-v0494.js
           node --check skyshift/tests/browser/legacy/browser-smoke-v0494.mjs
           node --check skyshift/flight/boost/boost-spring-v0495.mjs
-          node --check skyshift/game-v0495.mjs
+          node --check skyshift/legacy/game/game-v0495.mjs
           node --check skyshift/legacy/boot/boot-v0495.js
           node --check skyshift/tests/browser/legacy/browser-smoke-v0495.mjs
           node --check skyshift/velocity-language-v0496.mjs
@@ -309,17 +309,17 @@ jobs:
           node --check skyshift/premium-track-v0496.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0496.mjs
           node --check skyshift/space-v0496.mjs
-          node --check skyshift/game-v0496.mjs
+          node --check skyshift/legacy/game/game-v0496.mjs
           node --check skyshift/legacy/boot/boot-v0496.js
           node --check skyshift/tests/browser/legacy/browser-smoke-v0496.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0497.mjs
-          node --check skyshift/game-v0497.mjs
+          node --check skyshift/legacy/game/game-v0497.mjs
           node --check skyshift/legacy/boot/boot-v0497.js
           node --check skyshift/tests/browser/legacy/browser-smoke-v0497.mjs
           node --check skyshift/neon-v0498.mjs
           node --check skyshift/image-clarity-v0498.mjs
           node --check skyshift/premium-track-v0498.mjs
-          node --check skyshift/game-v0498.mjs
+          node --check skyshift/legacy/game/game-v0498.mjs
           node --check skyshift/legacy/boot/boot-v0498.js
           node --check skyshift/browser-smoke-v0498.mjs
           node --check skyshift/reactive-hud-v0499.mjs

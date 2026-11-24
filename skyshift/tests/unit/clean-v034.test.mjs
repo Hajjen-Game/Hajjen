@@ -24,7 +24,7 @@ test("0.3.4 removes ALL decorative road plates, squares, and lighted panels",()=
   assert.ok(!plan.some(p=>["plate","seam","energy"].includes(p.kind)));
   assert.ok(plan.every(p=>["nav","risk","landing"].includes(p.kind)));
   assert.doesNotMatch(src("identity-v034.mjs"),/planRect\(result,"plate"/);
-  assert.doesNotMatch(src("game-v034.mjs"),/installSurfaceLanguage\(THREE,world\)/);
+  assert.doesNotMatch(src("legacy/game/game-v034.mjs"),/installSurfaceLanguage\(THREE,world\)/);
 });
 
 test("painted shapes never create fake roadway over a real gap",()=>{
@@ -69,7 +69,7 @@ test("fewer sculpted formations replace repetitive cylinder props without touchi
   assert.match(world,/new THREE\.InstancedMesh/);
   assert.match(world,/geo\.computeVertexNormals\(\)/);
   assert.doesNotMatch(world,/const grid=\[\]/);
-  const game=src("game-v034.mjs");
+  const game=src("legacy/game/game-v034.mjs");
   assert.doesNotMatch(game,/new THREE\.CylinderGeometry\(4\.7,10\.4,15\.5,5\)/);
   assert.match(game,/installPremiumWorld\(THREE,world\)/);
 });
@@ -82,7 +82,7 @@ test("cyan disc is removed; a diffuse dark contact shadow is used only on real r
   assert.match(ship,/createRadialGradient/);
   assert.match(ship,/new THREE\.PlaneGeometry\(3\.3,4\.1\)/);
   assert.doesNotMatch(ship,/CircleGeometry/);
-  const game=src("game-v034.mjs");
+  const game=src("legacy/game/game-v034.mjs");
   assert.match(game,/createContactShadow\(THREE,scene\)/);
   assert.match(game,/onRoad\(flight\.s,flight\.lateral\)/);
   assert.doesNotMatch(game,/new THREE\.CircleGeometry\(2\.8,24\)/);
@@ -90,7 +90,7 @@ test("cyan disc is removed; a diffuse dark contact shadow is used only on real r
 });
 
 test("modern HDR, luminance, controls, checkpoint logic and personal best stay intact",()=>{
-  const game=src("game-v034.mjs");
+  const game=src("legacy/game/game-v034.mjs");
   assert.match(game,/from "\.\/trial-v03\.mjs"/);
   assert.match(game,/from "\.\/neon-v032\.mjs"/);
   assert.match(game,/from "\.\/luminance-v0331\.mjs"/);
@@ -107,7 +107,7 @@ test("modern HDR, luminance, controls, checkpoint logic and personal best stay i
 
 test("active HTML loads 0.3.4 and records rendering workload in exported audit",()=>{
   const html=src("index.html");
-  const game=src("game-v034.mjs");
+  const game=src("legacy/game/game-v034.mjs");
   assert.match(html,/src="\.\/boot-v0103\.js\?v=0\.10\.3"/);
   assert.match(html,/style-v061\.css\?v=0\.6\.1/);
   assert.match(html,/id="fullscreen-btn"/);
@@ -121,7 +121,7 @@ test("active HTML loads 0.3.4 and records rendering workload in exported audit",
 test("beacon construction runs at startup without undeclared variables",()=>{
   // Executes the exact production buildDecor function with lightweight Three.js
   // stand-ins: static syntax checks do not detect missing runtime locals.
-  const game=src("game-v034.mjs");
+  const game=src("legacy/game/game-v034.mjs");
   const from=game.indexOf("function buildDecor(){");
   const to=game.indexOf("function makeShip()",from);
   assert.ok(from>=0&&to>from);
@@ -161,7 +161,7 @@ test("beacon construction runs at startup without undeclared variables",()=>{
 });
 
 test("startup error message does not falsely blame missing WebGL for JavaScript exceptions",()=>{
-  const game=src("game-v034.mjs");
+  const game=src("legacy/game/game-v034.mjs");
   assert.match(game,/UI\.error\.textContent="SKYSHIFT could not start: "/);
   assert.doesNotMatch(game,/WebGL required\./);
 });

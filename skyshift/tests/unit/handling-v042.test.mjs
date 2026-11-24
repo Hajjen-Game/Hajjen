@@ -146,7 +146,7 @@ test("a simulated pilot can drive the entire handling course without assistance"
 });
 
 test("visuals: a clean uninterrupted deck, stable camera and no jump hazards",()=>{
- const game=src("game-v042.mjs"),html=src("index.html");
+ const game=src("legacy/game/game-v042.mjs"),html=src("index.html");
  assert.equal(SURFACE_DESIGN.decorativePanels,0);
  assert.deepEqual(createSurfacePlan(),[]);
  assert.deepEqual(validateSurfacePlan(),[]);

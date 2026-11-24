@@ -77,6 +77,8 @@ jobs:
         run: node --test skyshift/tests/architecture/legacy-boot-migration-r1c.test.mjs
       - name: R1D preserve 22 historic bootstrap Git blobs, 34 unit readers and 387 root files
         run: node --test skyshift/tests/architecture/legacy-boot-migration-r1d.test.mjs
+      - name: R1E preserve 30 original game Git blobs, 28 historical unit readers, 8 boot URL targets and 357 root files
+        run: node --test skyshift/tests/architecture/legacy-game-migration-r1e.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done

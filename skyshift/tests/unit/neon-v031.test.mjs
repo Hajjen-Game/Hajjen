@@ -6,19 +6,19 @@ const source=name=>readFileSync(new URL(name,root),"utf8");
 
 test("renderer is wired to one pinned Three.js version and addon import map",()=>{
   const html=source("index.html");
-  const game=source("game-v031.mjs");
+  const game=source("legacy/game/game-v031.mjs");
   assert.match(html,/<script type="importmap">/);
   assert.match(html,/"three": "https:\/\/cdn\.jsdelivr\.net\/npm\/three@0\.180\.0\/build\/three\.module\.js"/);
   assert.match(html,/"three\/addons\/": "https:\/\/cdn\.jsdelivr\.net\/npm\/three@0\.180\.0\/examples\/jsm\/"/);
   assert.match(game,/import \* as THREE from "three"/);
   assert.match(game,/import \{ createNeonPipeline,createNeonKit,NEON_TUNING \} from "\.\/neon-v031\.mjs"/);
   // Historical 0.3.1 code remains available for comparisons, but is no longer the entrypoint.
-  assert.ok(source("game-v031.mjs").length>0);
+  assert.ok(source("legacy/game/game-v031.mjs").length>0);
 });
 
 test("post-processing runs scene, HDR bloom and output/tone mapping in correct order",()=>{
   const neon=source("neon-v031.mjs");
-  const game=source("game-v031.mjs");
+  const game=source("legacy/game/game-v031.mjs");
   const render=neon.indexOf("composer.addPass(render)");
   const bloom=neon.indexOf("composer.addPass(bloom)");
   const output=neon.indexOf("composer.addPass(output)");
@@ -31,7 +31,7 @@ test("post-processing runs scene, HDR bloom and output/tone mapping in correct o
 
 test("neon core body and halo are distinct 3D geometry layers",()=>{
   const neon=source("neon-v031.mjs");
-  const game=source("game-v031.mjs");
+  const game=source("legacy/game/game-v031.mjs");
   assert.match(game,/const deck=\[\],colors=\[\],rim=\[\],rimHalo=\[\],rimCore=\[\]/);
   assert.match(game,/addQuad\(rimHalo/);
   assert.match(game,/addQuad\(rimCore/);
@@ -44,7 +44,7 @@ test("neon core body and halo are distinct 3D geometry layers",()=>{
 });
 
 test("premium materials reach beacons arches ship and landing effects",()=>{
-  const game=source("game-v031.mjs"),fx=source("premium-v031.mjs");
+  const game=source("legacy/game/game-v031.mjs"),fx=source("premium-v031.mjs");
   assert.match(game,/neonKit\.beaconCore/);
   assert.match(game,/neonKit\.beaconHalo/);
   assert.match(game,/new THREE.MeshPhysicalMaterial/);
@@ -56,14 +56,14 @@ test("premium materials reach beacons arches ship and landing effects",()=>{
 });
 
 test("modern mobile displays get high quality default rather than an A51 cap",()=>{
-  const game=source("game-v031.mjs"),neon=source("neon-v031.mjs");
+  const game=source("legacy/game/game-v031.mjs"),neon=source("neon-v031.mjs");
   assert.match(neon,/maxPixelRatio:2/);
   assert.match(game,/NEON_TUNING\.maxPixelRatio/);
   assert.doesNotMatch(game,/matchMedia\("\(pointer:coarse\)"\)\.matches\?1\.35/);
 });
 
 test("finite Sky Trial gameplay, style score and fullscreen remain intact",()=>{
-  const game=source("game-v031.mjs"),html=source("index.html");
+  const game=source("legacy/game/game-v031.mjs"),html=source("index.html");
   assert.match(game,/from "\.\/trial-v03\.mjs"/);
   assert.match(game,/from "\.\/fullscreen-v02\.mjs"/);
   assert.match(game,/function startImmersiveTrial/);

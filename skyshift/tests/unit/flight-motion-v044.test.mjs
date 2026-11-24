@@ -111,7 +111,7 @@ test("0.4.3 pilot-owned steering and double-speed track remain unchanged",()=>{
  assert.ok(clamp(state.lateral,-12,12)===state.lateral);
 });
 test("active game uses interpolated 0.4.4 motion, independent camera and audit",()=>{
- const game=source("game-v044.mjs");
+ const game=source("legacy/game/game-v044.mjs");
  const html=source("index.html");
  assert.match(game,/from "\.\/flight-motion-v044\.mjs"/);
  assert.match(game,/from "\.\/core\/frame-pacing-v044\.mjs"/);

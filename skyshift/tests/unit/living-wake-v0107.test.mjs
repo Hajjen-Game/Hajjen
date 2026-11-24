@@ -2,7 +2,7 @@
 // Tests assert meaningful world-space history instead of only emitter counts.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  LIVING_WAKE,wakeEnergy,createWakeHistory,recordWake,historyPoint,
  createLivingWakeFX

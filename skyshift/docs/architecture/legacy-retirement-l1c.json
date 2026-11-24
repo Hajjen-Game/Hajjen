@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 1,
+  "stage": "L1C",
+  "archiveCommit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+  "baseCommit": "b9d4c08fb26138e2d8d89ae3d817f1ea75f33acc",
+  "inventoryRun": 45347691497,
+  "files": [
+    {
+      "path": "skyshift/legacy/boot/boot-v0104.js",
+      "sha": "30e70edb529d65b46f7681413373c669f38b2df4",
+      "reader": "skyshift/tests/unit/velocity-presence-v0104.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0104.mjs",
+      "sha": "5daf95cb39f275338fcbc4a92301e6f18ed7bae7",
+      "reader": "skyshift/tests/unit/velocity-presence-v0104.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0105.js",
+      "sha": "9a7668f460966549b30b4dbcb8b00b8a20840431",
+      "reader": "skyshift/tests/unit/wing-vapor-v0105.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0105.mjs",
+      "sha": "487fd93444e4e45e580d27eb6dccd3086eeb578c",
+      "reader": "skyshift/tests/unit/wing-vapor-v0105.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0106.js",
+      "sha": "ba02d9dc90526441136b70c3b3da3ab7766c4ed9",
+      "reader": "skyshift/tests/unit/wingtip-contrails-v0106.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0106.mjs",
+      "sha": "1aa7bb4de1d0248c785e92e5ac2fa4ac6eb6cfee",
+      "reader": "skyshift/tests/unit/wingtip-contrails-v0106.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0107.js",
+      "sha": "3a958cef5e9cd8e590b73901a6141b23e969e132",
+      "reader": "skyshift/tests/unit/living-wake-v0107.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0107.mjs",
+      "sha": "be2cf1a69715c688077ec5e2cbf9d53fb0a31b52",
+      "reader": "skyshift/tests/unit/living-wake-v0107.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v01071.js",
+      "sha": "44f5619a76b41a3b8a4bfa75fafe2625e5c51c48",
+      "reader": "skyshift/tests/unit/living-wake-v01071.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v01071.mjs",
+      "sha": "0b83dbabe1770203e06cbc0a512488ff369bacc8",
+      "reader": "skyshift/tests/unit/living-wake-v01071.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0108.js",
+      "sha": "b4824c4e9a25d4690ebe6c132dc0baafe272c639",
+      "reader": "skyshift/tests/unit/reactive-wing-flaps-v0108.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0108.mjs",
+      "sha": "faa869576790e4652290c2ce174e0d5aa8ef6181",
+      "reader": "skyshift/tests/unit/reactive-wing-flaps-v0108.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0109.js",
+      "sha": "ae86dac78d3051199c4abe9e26a13fb29882436f",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0109.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0109.mjs",
+      "sha": "fedcf11024d669e3e26b2f6ebd29334b08fef967",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0109.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v01091.js",
+      "sha": "4aebce7849c796b35c9b9d64bcc157fa28e33663",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v01091.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v01091.mjs",
+      "sha": "bcb9560f4a1a54576cd60505e3e3d0a012e65b47",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v01091.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0110.js",
+      "sha": "bfe3cad642d0b0788d2737afd7b172cd43bc29c1",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0110.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0110.mjs",
+      "sha": "81256994d2aa5d4085d73e2e8e18f787f4378fee",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0110.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0111.js",
+      "sha": "d3a8edde6ed261c7ffcdd3d3165dc9adb2925fc8",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0111.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0111.mjs",
+      "sha": "2d229ecf28523ed7a5c10886f91d8c72e9e3c760",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0111.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0112.js",
+      "sha": "5e434bc4d05b51a47e51ceae6f6f2a4caf562e23",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0112.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0112.mjs",
+      "sha": "8b6c59f8fa2b59f84facd87da6348fa00901e0ad",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0112.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0113.js",
+      "sha": "03134eb62eb9654e943db14a69e91b885e77b19f",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0113.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0113.mjs",
+      "sha": "2fa941e7256668809b45f946921270f91cdd7da5",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0113.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0114.js",
+      "sha": "2c79ebe108d9ec253b6e97dc5822949fc35861a8",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0114.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0114.mjs",
+      "sha": "835c1d2d9ee3c720b7172fc6ce1b20f3e4ce70ff",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0114.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0120.js",
+      "sha": "1f4da0fecd3c378bc238bfd2ade2bb57cd747a3e",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0120.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0120.mjs",
+      "sha": "63b821029305d47af3e27c3697e80cc71bf768a6",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0120.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0121.js",
+      "sha": "7a0e5f42831d64ef30693e6bae686677bbd7cdef",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0121.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0121.mjs",
+      "sha": "54e34c67e9a5d95e63c4520fca9ceb894dbf0012",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0121.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0130.js",
+      "sha": "96d60431982beb0a02bb30a92efda879511c6347",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0130.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0130.mjs",
+      "sha": "6ba9ef187cdcf1953d566b9cba77057f73a1459f",
+      "reader": "skyshift/tests/unit/rail-scrape-sparks-v0130.test.mjs"
+    }
+  ],
+  "readers": [
+    {
+      "path": "skyshift/tests/unit/velocity-presence-v0104.test.mjs",
+      "sha": "3c7288b99241ac98e61c6b68a369065f9bbbcd46"
+    },
+    {
+      "path": "skyshift/tests/unit/wing-vapor-v0105.test.mjs",
+      "sha": "82e43e03bac2a618461f1f0a1ae72c4c35781d55"
+    },
+    {
+      "path": "skyshift/tests/unit/wingtip-contrails-v0106.test.mjs",
+      "sha": "673542ede61bc0fc8bc11d4c403f32e9f26cc9b0"
+    },
+    {
+      "path": "skyshift/tests/unit/living-wake-v0107.test.mjs",
+      "sha": "7f6ec41f356b8448576bed39b96caade16c7e636"
+    },
+    {
+      "path": "skyshift/tests/unit/living-wake-v01071.test.mjs",
+      "sha": "ce8265934f483d3672a5268cffcbad5d632ffd99"
+    },
+    {
+      "path": "skyshift/tests/unit/reactive-wing-flaps-v0108.test.mjs",
+      "sha": "8d564629e4acb8e7c98e90f29471c2c4e12a4d9f"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0109.test.mjs",
+      "sha": "2dd73953d694d4d011f143cdbde80ce9fa69a103"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01091.test.mjs",
+      "sha": "99e41dc63c3d3b9ddde79b14c0f0c7bb475ee69c"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0110.test.mjs",
+      "sha": "3729656df7ce700f77961b4e92cc2d20bbcb510f"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0111.test.mjs",
+      "sha": "3f2f6f7e18cb0550b528e8643adeeea26a9b2b60"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0112.test.mjs",
+      "sha": "642b9daa98ce60f89006025d7418340a30b59e5d"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0113.test.mjs",
+      "sha": "82636e7cdfaefc8ad3ef83a91ba0f123ecfd3c83"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0114.test.mjs",
+      "sha": "770e42c1e9d70a9a5fb8d938d33f67a6a430f201"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0120.test.mjs",
+      "sha": "8d7f5efc8fc1fedc37ddfd14d67f2b148165acc2"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0121.test.mjs",
+      "sha": "242c27b6b313cd07e4068f6c06a6398699f10159"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0130.test.mjs",
+      "sha": "b7655c382db2f7bab84cf4ac7eb021a7d55c331f"
+    }
+  ]
+}

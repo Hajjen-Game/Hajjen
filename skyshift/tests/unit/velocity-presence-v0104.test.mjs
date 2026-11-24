@@ -1,7 +1,7 @@
 // SKYSHIFT 0.10.4 — deterministic shared visual signals and regression guard.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {VELOCITY_PRESENCE,speedPresenceAt,createVelocityPresenceState,
  stepVelocityPresence,velocityPresenceAudit} from "../../velocity-presence-v0104.mjs";
 import {trailMotionState} from "../../engine-trails-v0104.mjs";

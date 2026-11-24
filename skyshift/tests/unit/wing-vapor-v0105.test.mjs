@@ -1,7 +1,7 @@
 // SKYSHIFT 0.10.5 — wing-pressure optics, independent of flight physics.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {speedPresenceAt} from "../../velocity-presence-v0104.mjs";
 import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";
 import {STINGRAY_WING} from "../../stingray-evo-v0104.mjs";

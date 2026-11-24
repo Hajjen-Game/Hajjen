@@ -1,6 +1,6 @@
 # SKYSHIFT — ROOT CONSOLIDATION: SOURCE OF TRUTH
 
-> **Status: NOT FINISHED** (`main`: merged PR #197, `5c724ec8e19b`, **409 direct files**; R1D branch targeting **387** after verified merge, 2026-11-23).  
+> **Status: NOT FINISHED** (`main`: merged PR #198, `02942b62a788`, **387 direct files**; R1E branch targeting **357** after independent CI and merge, 2026-11-24).  
 > **User's actual goal:** Just a few essential files directly inside `skyshift/`; organize all remaining live modules, historical versions, tests and documentation into clearly named subdirectories. **Do not mark this goal complete merely because the shared tunnel architecture tests are green.**
 
 ## Verified baseline
@@ -75,17 +75,27 @@ After PR #196, `main` had **429 direct-root files**. Merged PR #197 moves **20 a
 - **Merged `5c724ec8e19bc67f1d84d57997b7e7316c380bc8`** after **36/36 successful PR checks**. Exactly **409** root files and the Pages publication guard and Pages deployment were verified; post-merge track logic QA was still being checked during this session.
 - Remaining boot versions after R1C: **25**, including the active entrypoint (24 historical). Continue with the 0.13.4 lineage and older 0.4.9 compatibility tests, then the historical `game-v*` modules. The final target remains a few intentional root files, not just green CI.
 
-## R1D — 22 remaining versioned boot readers, PENDING CI / NOT MERGED
+## R1D — 22 remaining versioned boot readers (MERGED PR #198)
 
 **Branch:** `skyshift/root-consolidation-r1d-historical-bootstrap-families` from merged PR #197 (`5c724ec8e19b`). After an explicit root-level inventory and literal-reference audit, this branch relocates **22 historical boot-v*.js scripts** (0.13.4 family, 0.16.5, 0.4.9.1.1–0.4.9.8, 0.7.1–0.8.1) into `skyshift/legacy/boot/`.
 
-- **Actual merged `main` root before:** 409. **Unmerged R1D branch measured root:** 387. Do **not** describe 387 as merged until PR checks, merge and main verification complete.
+- **Actual merged `main` root before:** 409. **Merged R1D root:** 387, independently checked on `main` at `02942b62a78808a6ae9480b5170cf0976068345d`.
 - **34 historical source readers** have only literal file paths updated; exact import URL assertions are adapted only for changed script location. Manifest: `skyshift/legacy/boot/R1D-migration-manifest.json`; inverse source overlay: `skyshift/tests/architecture/r1d-boot-test-path-overlay.mjs`. Original test blob SHAs from R1C-main are required to match perfectly after inverse. Stage 5–8 original SHA guards compose this inverse; R1B/R1C and R1 source tests enforce the cumulative 387 count.
 - **Intentionally untouched:** `index.html`, live `boot-v0210.js` and `game-v0210.mjs`, and legacy root `boot-v0101.js`, `boot-v0103.js` pending specific compatibility assessment. The original historical direct-root URLs of moved files cannot be redirected by GitHub Pages, as documented in prior batches.
-- **Merge gate:** new mandatory R1D integrity test, 22 syntax checks, 35 fast/browser jobs plus architecture guard. Only merge if all successful; then verify **409 → 387** on `main`, real Pages deploy, main track QA and the active entrypoint. Leave 0.10.1/0.10.3 aliases until separate audit. After that assess historical `game-v*.mjs` modules and stylesheet URLs, not just arbitrary old file names.
+- **Completed:** 36/36 PR checks passed; PR #198 merged as `02942b62a78808a6ae9480b5170cf0976068345d`; **409 → 387** direct files on `main`. Pages publication guard and Pages deployment passed; post-merge track logic workflow was still queued at last inspection. Leave 0.10.1/0.10.3 aliases until separate audit.
+
+## R1E — 30 early historical game snapshots (CURRENT OPEN WORK / NOT MERGED)
+
+**Branch:** `skyshift/root-consolidation-r1e-early-game-snapshots`, based on merged R1D main `02942b62a78808a6ae9480b5170cf0976068345d`. Move **30 early `game-v*.mjs` snapshots** (versions v02 through v0498, selected historical version chain) to `legacy/game/`, with coherent original ESM dependency target resolution. All 30 are tested to lack `new URL(` and `import.meta.url`, and their original Git blob identity is reconstructed by reversing only the import-specifier base `./` to `../../`.
+
+- **Root count:** confirmed **387 on merged main**, expected **357 on R1E branch**. This is not merged/complete until all safety checks succeed and a subsequent main count confirms it.
+- 28 audited historical unit-test readers have exact reversible path-only updates. Eight moved historical `legacy/boot/` scripts from R1D now point to the **same** archived game modules using `../game/game-v...`, retaining cache parameters and behavior. Their Git hashes are proven against the prior merged state.
+- New manifest `skyshift/legacy/game/R1E-migration-manifest.json`, inverse `skyshift/tests/architecture/r1e-game-test-path-overlay.mjs`, and independent mandatory SHA/dependency/root-count test `skyshift/tests/architecture/legacy-game-migration-r1e.test.mjs`. Stage 5–8 original test assertion guards and R1D historic reader checks compose this inverse; 30 CI syntax paths are rewired.
+- No production `index.html`, `boot-v0210.js`, `game-v0210.mjs`, physics/GRIP/tunnel shaders/track logic or visuals changed. Direct historical Pages URLs for removed game module files are not redirected; source remains available at the new archive path.
+- **Merge gate:** all 35 PR visual/fast checks + architecture guard must be green, along with no genuine missing historical imports; verify **357** direct files, Pages and track logic after merge. Do not mistake this one cohort for root consolidation completion. Continue remaining 76 `game-v*.mjs` source files, CSS, and active-module grouping with dependency-aware batches and a goal of <=10 root files.
 
 ## Work history / last decision
 
 - 2026-11-23: **468 root files** found; earlier "Architecture Cleanup 2.0 complete" statement corrected.
 - The ongoing crash/slow long-chat problem is a separate ChatGPT product issue; **do not rely on chat history alone** for technical handoff.
-- R0 was originally a **non-runtime correction**. R1–R1D are actual file moves, recorded separately above; the overarching root-consolidation goal remains unfinished.
+- R0 was originally a **non-runtime correction**. R1–R1E are actual file moves, recorded separately above; the overarching root-consolidation goal remains unfinished.

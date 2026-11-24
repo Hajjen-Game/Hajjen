@@ -3,21 +3,22 @@ import {
  TRIAL,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,
  newFlightState,stepFlight,clamp,lerp
-} from "./trial-v043.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createPremiumFlightFX } from "./premium-v041.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v043.mjs";
-import { createSmoothDeckGeometry,MESH_SPEC } from "./smooth-track-v043.mjs";
+} from "../../trial-v046.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createPremiumFlightFX } from "../../premium-v045.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v043.mjs";
+import { createSmoothDeckGeometry,MESH_SPEC } from "../../smooth-track-v046.mjs";
 import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./core/frame-pacing-v044.mjs";
-import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
-import { installCleanTrack } from "./identity-v042.mjs";
-import { installSpaceBackdrop } from "./space-v04.mjs";
-import { refineCraftSilhouette,createContactShadow } from "./ship-v034.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
+} from "../../core/frame-pacing-v044.mjs";
+import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "../../flight-motion-v044.mjs";
+import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cinematicFov,engineLightFactor } from "../../cinematic-v045.mjs";
+import { installAeroBarriers,AERO_BARRIER } from "../../tracks/barriers/aero-barrier-v047.mjs";
+import { installSpaceBackdrop } from "../../space-v04.mjs";
+import { refineCraftSilhouette,createContactShadow } from "../../ship-v034.mjs";
+import { LUMINANCE,validateLuminance } from "../../luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);
@@ -52,19 +53,21 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,stickPointe
  keys:new Set(),bannerTimeout:null,toastTimeout:null,trackHint:-1};
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
-let neonKit,neonPipeline,engineLight,identitySurface,spaceBackdrop;
+let neonKit,neonPipeline,engineLight,engineCore,enginePlumes=[],identitySurface,spaceBackdrop;
 let cameraLook=new THREE.Vector3(),shadowMesh,pylonMesh,premiumFX;
 let perfFrames=0,perfTotal=0,perfMin=200;
 let renderSamples=0,renderCallTotal=0,renderCallPeak=0,triangleTotal=0;
 let frameClock=createFrameClock(),frameMonitor=createFrameMonitor();
 let adaptiveQuality=createAdaptiveQuality(),currentRenderPose=null,previousRenderPose=null;
 let frameBlend=0;
-let motionState=createFlightMotionState();
+let motionState=createFlightMotionState(),cinematicState=createCinematicState();
 const flightTuning={...MOTION_DEFAULTS};
+const cinematicTuning={...CINEMATIC_DEFAULTS};
+const CAMERA_INFO={},CAMERA_VIEW={worldX:0,worldZ:0,y:0,steering:0,clearance:0};
 const CAMERA_TARGET_POSITION=new THREE.Vector3();
 const CAMERA_TARGET_LOOK=new THREE.Vector3();
 const telemetry=[];
-let previousSector=0,sceneReady=false,fullscreenController=null;
+let previousSector=0,sceneReady=false,fullscreenController=null,lastRailLog=0;
 const SHADOW_NORMAL=new THREE.Vector3(),SHADOW_PLANE_NORMAL=new THREE.Vector3(0,0,1);
 const reusable=new THREE.Object3D();
 
@@ -118,7 +121,7 @@ function buildGeometry(points,colors=null){
 function buildRoad(){
  // The roadway TOP is one contiguous indexed mesh with shared vertex normals.
  // Vertical wall facades remain separate so road edge lighting stays crisp.
- const walls=[],wallColors=[],rim=[],rimHalo=[],rimCore=[],underRail=[],jumpMarks=[],laneGuides=[],padFaces=[];
+ const walls=[],wallColors=[],jumpMarks=[],laneGuides=[],padFaces=[];
  const boundaries=GEOMETRY_BREAKS;
  const tintSide=new THREE.Color(0x091222);
  for(let k=0;k<boundaries.length-1;k++){
@@ -131,21 +134,8 @@ function buildRoad(){
        const drop=new THREE.Vector3(0,-1.05,0);
        addQuad(walls,wallColors,p1.clone().add(drop),p1,p4,p4.clone().add(drop),tintSide);
        addQuad(walls,wallColors,p2,p2.clone().add(drop),p3.clone().add(drop),p3,tintSide);
-       // Slim structural line inside the sidewall, not on the playing deck.
-       for(const outer of [a,b]){
-         addQuad(underRail,null,toVec(d,outer,-.30),toVec(d,outer,-.40),
-           toVec(e,outer,-.40),toVec(e,outer,-.30));
-       }
-       for(const off of [a+.10,b-.23]) {
-         // Spatially narrow neon: soft tint, readable colored body, needle-thin core.
-         // Broad 0.56m halos in 0.3.1 made the whole near road look illuminated.
-         addQuad(rimHalo,null,toVec(d,off-.072,.045),toVec(d,off+.203,.045),
-           toVec(e,off+.203,.045),toVec(e,off-.072,.045));
-         addQuad(rim,null,toVec(d,off+.016,.078),toVec(d,off+.114,.078),
-           toVec(e,off+.114,.078),toVec(e,off+.016,.078));
-         addQuad(rimCore,null,toVec(d,off+.052,.102),toVec(d,off+.078,.102),
-           toVec(e,off+.078,.102),toVec(e,off+.052,.102));
-       }
+       // The v0.4.7 faceted armor is a separate continuous swept mesh.
+       // No redundant neon skirt/border stripe along the deck sides.
      }
      // A subtle dashed road centreline supports speed perception.
      if(intervals.length===1&&Math.floor(mid/5)%2===0&&intervals[0][0]<0&&intervals[0][1]>0) {
@@ -202,17 +192,6 @@ function buildRoad(){
  const sidewalls=new THREE.Mesh(buildGeometry(walls,wallColors),roadMat);
  sidewalls.name="Deliberately hard-edged vertical road sides";
  sidewalls.frustumCulled=false;world.add(sidewalls);
- const bloomHalo=new THREE.Mesh(buildGeometry(rimHalo),neonKit.edgeHalo);
- bloomHalo.frustumCulled=false;bloomHalo.renderOrder=1;world.add(bloomHalo);
- const edge=new THREE.Mesh(buildGeometry(rim),edgeMat);
- edge.frustumCulled=false;edge.renderOrder=2;world.add(edge);
- const whiteHot=new THREE.Mesh(buildGeometry(rimCore),neonKit.edgeCore);
- whiteHot.frustumCulled=false;whiteHot.renderOrder=3;world.add(whiteHot);
- const skirtTrim=new THREE.Mesh(buildGeometry(underRail),
-   new THREE.MeshBasicMaterial({
-     color:0x3d779a,transparent:true,opacity:.63,depthWrite:false,side:THREE.DoubleSide
-   }));
- skirtTrim.frustumCulled=false;world.add(skirtTrim);
  const gold=neonKit.warning;
  const jumps=new THREE.Mesh(buildGeometry(jumpMarks),gold);
  jumps.frustumCulled=false;world.add(jumps);
@@ -354,8 +333,9 @@ function makeShip(){
    wingLed.rotation.y=sign*.64;ship.add(wingLed);
    const engine=new THREE.Mesh(new THREE.BoxGeometry(.38,.18,.46),shipGlow);
    engine.position.set(sign*.76,-.11,2.1);ship.add(engine);
+   enginePlumes.push(engine);
  }
- const engineCore=new THREE.Mesh(new THREE.BoxGeometry(.82,.13,.46),shipGlow);
+ engineCore=new THREE.Mesh(new THREE.BoxGeometry(.82,.13,.46),shipGlow);
  engineCore.position.set(0,-.08,2.06);ship.add(engineCore);
  const thrusterWhite=new THREE.Mesh(new THREE.BoxGeometry(.62,.055,.49),
    neonKit.edgeCore);
@@ -400,7 +380,7 @@ function initScene(){
  edgeFill.position.set(-18,11,-22);scene.add(edgeFill);
  world=new THREE.Group();scene.add(world);
  buildRoad();
- identitySurface=installCleanTrack(THREE,world);
+ identitySurface=installAeroBarriers(THREE,world);
  buildDecor();
  // Open space, no geological scenery, distant monuments or 3D floor.
  makeShip();
@@ -454,8 +434,9 @@ function clearInput(){
  UI.jump.classList.remove("held");
 }
 function resetFlight(){
- flight=newFlightState();previousSector=0;
+ flight=newFlightState();previousSector=0;lastRailLog=0;
  motionState=createFlightMotionState(flight.heading);
+ cinematicState=createCinematicState();
  premiumFX?.reset();
  perfFrames=0;perfTotal=0;perfMin=200;
  renderSamples=0;renderCallTotal=0;renderCallPeak=0;triangleTotal=0;
@@ -469,12 +450,10 @@ function resetFlight(){
  UI.flash.classList.remove("active");
  UI.toast.classList.add("hidden");
  UI.finalTitle.textContent="FLIGHT ENDED";
- // Initialize camera on authored track axis rather than on craft's X position.
- const initial=positionAt(5,0,0),yaw=flight.heading;
- camera.position.set(initial.x-Math.sin(yaw)*19,initial.y+10,
-   initial.z+Math.cos(yaw)*19);
- cameraLook.set(initial.x+Math.sin(yaw)*33,initial.y+1.5,
-   initial.z-Math.cos(yaw)*33);
+ // Place the camera at its new orbit at spawn to prevent startup swooping.
+ const home=chasePose(flight,motionState,cinematicState,cinematicTuning,CAMERA_INFO);
+ camera.position.set(home.x,home.y,home.z);
+ cameraLook.set(home.lookX,home.lookY,home.lookZ);
  camera.lookAt(cameraLook);
  worldClock.last=performance.now();worldClock.accum=0;
 }
@@ -570,6 +549,10 @@ function integrate(dt){
  const keyboard=(keyRight?1:0)-(keyLeft?1:0);
  const steer=clamp(keyboard*.74+uiState.inputX,-1,1);
  const result=stepFlight(flight,dt,{steer});
+ if(flight.railContacts>lastRailLog){
+   lastRailLog=flight.railContacts;
+   event("guardrail_contact",{side:flight.lastRailSide,at:+flight.lateral.toFixed(2)});
+ }
  uiState.jumpPressed=false;
  if(result.jumped){
    premiumFX?.onJump();
@@ -601,17 +584,25 @@ function updatePalette(dt){
  scene.background.lerp(palette.skyColor,k);
  scene.fog.color.lerp(palette.fogColor,k);
  neonKit.updateAccent(palette.color,k);
+ identitySurface?.updateAccent(neonKit.worldAccent);
  if(engineLight)engineLight.color.copy(neonKit.worldAccent);
 }
-function placeShip(time,dt,view=flight,motion=motionState){
+function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicState){
  // True world-space heading remains pilot-owned. Body pose is visual-only.
  const ground=surfaceHeightAt(view.s,view.lateral);
  const clearance=view.y+motion.hover-TRIAL.hoverHeight-ground;
  const solid=onRoad(view.s,view.lateral);
  ship.position.set(view.worldX,view.y+motion.hover,view.worldZ);
- ship.rotation.y=-view.heading;
+ // Cosmetic nose alignment <2 degrees; authoritative world yaw unchanged.
+ ship.rotation.y=-view.heading+cinematic.noseYaw;
  ship.rotation.z=motion.roll;
  ship.rotation.x=motion.pitch;
+ if(engineLight)engineLight.intensity=NEON_TUNING.enginePointIntensity*engineLightFactor(cinematic);
+ if(engineCore)engineCore.scale.z=1+cinematic.engineEnergy*.16;
+ for(let i=0;i<enginePlumes.length;i++){
+   const sign=i===0?-1:1;
+   enginePlumes[i].scale.z=1+cinematic.engineEnergy*.14+sign*clamp(view.steering,-1,1)*.035;
+ }
  if(shadowMesh){
    shadowMesh.visible=solid&&clearance<4.2;
    if(shadowMesh.visible){
@@ -623,29 +614,22 @@ function placeShip(time,dt,view=flight,motion=motionState){
      shadowMesh.material.opacity=clamp(.62-Math.max(0,clearance)*.16,0,.62);
    }
  }
- // Pilot-owned world position, smoothed camera heading and a calm horizon.
- // Both camera targets share one follow response to prevent angle-swing stutter.
- const fx=Math.sin(motion.cameraHeading),fz=-Math.cos(motion.cameraHeading);
- const rx=Math.cos(motion.cameraHeading),rz=Math.sin(motion.cameraHeading);
- const air=Math.max(0,clearance);
- const sideOffset=clamp(view.steering,-1,1)*.24;
- CAMERA_TARGET_POSITION.set(
-   view.worldX-fx*flightTuning.cameraDistance+rx*sideOffset,
-   view.y+9.5+motion.hover+air*.10,
-   view.worldZ-fz*flightTuning.cameraDistance+rz*sideOffset
- );
- CAMERA_TARGET_LOOK.set(
-   view.worldX+fx*flightTuning.cameraLookAhead,
-   view.y+1.4+motion.hover,
-   view.worldZ+fz*flightTuning.cameraLookAhead
- );
- const follow=1-Math.exp(-dt*flightTuning.cameraFollowResponse);
+ // Low/close chase camera with bounded future curvature preview.
+ // Camera POSITION follows pilot heading; only LOOK target anticipates a corner.
+ CAMERA_VIEW.worldX=view.worldX;CAMERA_VIEW.worldZ=view.worldZ;
+ CAMERA_VIEW.y=view.y;CAMERA_VIEW.steering=view.steering;
+ CAMERA_VIEW.clearance=clearance;
+ const framing=chasePose(CAMERA_VIEW,motion,cinematic,cinematicTuning,CAMERA_INFO);
+ CAMERA_TARGET_POSITION.set(framing.x,framing.y,framing.z);
+ CAMERA_TARGET_LOOK.set(framing.lookX,framing.lookY,framing.lookZ);
+ const follow=1-Math.exp(-dt*cinematicTuning.cameraFollowResponse);
  camera.position.lerp(CAMERA_TARGET_POSITION,follow);
  cameraLook.lerp(CAMERA_TARGET_LOOK,follow);
  camera.lookAt(cameraLook);
  camera.rotateZ(motion.cameraRoll);
- const targetFov=66+Math.min(5,(speedAt(view.s)-TRIAL.startSpeed)*.9);
- camera.fov=lerp(camera.fov,targetFov,1-Math.exp(-dt*2));
+ const targetFov=cinematicFov(speedAt(view.s),TRIAL.startSpeed,cinematicTuning);
+ camera.fov=lerp(camera.fov,targetFov,1-Math.exp(-dt*2.8));
+ cinematic.maxCameraLateralMeters=Math.max(cinematic.maxCameraLateralMeters,Math.abs(framing.sideOffsetMeters));
  camera.updateProjectionMatrix();
 }
 function loop(now){
@@ -673,11 +657,16 @@ function loop(now){
    stepFlightMotion(motionState,
      {...view,trackBank:bankAt(view.s)},
      uiState.mode==="playing"?dt:0,now/1000,flightTuning);
-   placeShip(now/1000,dt,view,motionState);
+   // Track preview affects framing only, never yaw/position of the craft.
+   const upcoming=Math.min(TRIAL.length,view.s+cinematicTuning.previewMeters);
+   const lookBias=turnPreview(headingAt(view.s),headingAt(upcoming),cinematicTuning);
+   stepCinematic(cinematicState,view,lookBias,uiState.mode==="playing"?dt:0,cinematicTuning);
+   placeShip(now/1000,dt,view,motionState,cinematicState);
    premiumFX?.frame({
      dt,playing:uiState.mode==="playing",
-     flight:{...flight,...view},poseAt,positionAt,
-     ship,shipGlow,sectorColor:COLOR[sectorAt(flight.s)].color
+     flight:{...flight,...view,forwardSpeed:speedAt(view.s)},poseAt,positionAt,
+     ship,shipGlow,sectorColor:COLOR[sectorAt(flight.s)].color,
+     motionWeight:cinematicState
    });
  }
  // One renderer.info reset PER frame, preserving the sum of composer passes.
@@ -709,13 +698,25 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.4.4",trial:TRIAL.id,exportedAt:new Date().toISOString(),
-   visual:{pipeline:"HDR UnrealBloom",tier:"Damped Flight Motion & Inertial Chase Camera",
+   game:"SKYSHIFT",version:"0.4.7",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   visual:{pipeline:"HDR UnrealBloom",tier:"Faceted Aero Barrier & Recessed Trackside Lighting",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      adaptiveQualityChanges:adaptiveQuality.changes,
      roadMeshType:"Single indexed top deck with shared vertex normals",
      roadLongitudinalStepMeters:MESH_SPEC.sampleStep,
+     guardrails:{heightMeters:AERO_BARRIER.height,
+       design:"Angular integrated protective profile, no luminous tubes",
+       innerSweepMeters:AERO_BARRIER.innerSweepMeters,
+       lightWidthMeters:identitySurface.accentWidthMeters,
+       panelSeams:identitySurface.panelSeams,
+       paletteReactive:true,
+       railTriangles:identitySurface.railTriangles,
+       surfaceTriangles:identitySurface.paintTriangles,
+       batchCount:identitySurface.drawBatches,
+       chevrons:identitySurface.chevrons,
+       shoulderMarks:identitySurface.shoulderMarks,
+       accentAnchors:identitySurface.accentAnchors},
      sharedDeckNormals:true,
      surfaceAccents:identitySurface.plan.length,decorativePlates:0,
      worldFormations:0,worldLandmarks:0,
@@ -725,7 +726,12 @@ function exportAudit(){
      rendererTrianglesAverage:renderSamples?Math.round(triangleTotal/renderSamples):null,
      banking:"Physically banked roadway plus independently damped craft pose",
      flightMotion:"Pilot-owned yaw, critically damped visual bank pitch hover",
-     flightTuning:{...flightTuning},
+     flightTuning:{...flightTuning},cameraTuning:{...cinematicTuning},
+     maxCameraPreviewDegrees:+cinematicState.maxPreviewDegrees.toFixed(2),
+     maxCosmeticNoseYawDegrees:+cinematicState.maxNoseDegrees.toFixed(2),
+     maxEngineResponse:+cinematicState.maxEngineEnergy.toFixed(3),
+     maxCameraSideOffsetMeters:+cinematicState.maxCameraLateralMeters.toFixed(2),
+     extraDrawCallsFromCameraAndEngine:0,
      maxVisualBankDegrees:+motionState.maxVisualBankDegrees.toFixed(1),
      maxVisualPitchDegrees:+motionState.maxVisualPitchDegrees.toFixed(1),
      maxHoverMeters:+motionState.maxHoverMeters.toFixed(3),
@@ -753,6 +759,9 @@ function exportAudit(){
      averageHeadingErrorDegrees:flight.headingSamples?
        +(flight.totalHeadingError/flight.headingSamples).toFixed(1):null,
      offRoadSeconds:+flight.offRoadSeconds.toFixed(2),
+     railContacts:flight.railContacts,
+     railSeconds:+flight.railSeconds.toFixed(2),
+     railMaxPenetrationMeters:+flight.railMaxPenetration.toFixed(3),
      manualSteering:true,
      routeChoice:flight.routeChoice,
      riskRouteStyleBonus:0,
@@ -772,7 +781,7 @@ function exportAudit(){
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-flight-v044-audit.json";
+ a.href=url;a.download="skyshift-track-v047-audit.json";
  document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1800);
 }
@@ -783,14 +792,18 @@ function installFlightTuningPanel(){
  panel.setAttribute("aria-label","Flight Dynamics Lab");
  panel.style.cssText="position:fixed;top:42px;right:8px;z-index:2500;box-sizing:border-box;width:215px;max-height:75vh;overflow:auto;background:rgba(4,13,27,.93);color:#d9f6ff;padding:12px;border:1px solid #397084;border-radius:10px;font:12px system-ui;box-shadow:0 8px 20px #0009";
  const title=document.createElement("strong");
- title.textContent="FLIGHT LAB · 0.4.4";panel.appendChild(title);
+ title.textContent="FLIGHT LAB · 0.4.7";panel.appendChild(title);
  const fields=[
   ["pilotBankDegrees","Pilot bank","°",8,28,1],
   ["bankResponse","Turn-in","",8,23,1],
   ["bankRecovery","Bank recovery","",6,18,1],
   ["hoverTravelMeters","Hover travel"," m",0,.18,.01],
   ["cameraYawResponse","Camera yaw","",5,17,1],
-  ["cameraFollowResponse","Camera follow","",6,18,1]
+  ["cameraFollowResponse","Camera follow","",6,18,1],
+  ["cameraDistance","Camera distance"," m",11.5,16,.1],
+  ["cameraHeight","Camera height"," m",6.2,10,.1],
+  ["previewGain","Corner preview","",0,.4,.02],
+  ["engineTurnGain","Engine weight","",0,.9,.05]
  ];
  for(const [key,label,unit,min,max,step] of fields){
    const row=document.createElement("label");row.style.cssText="display:block;margin-top:9px";
@@ -798,13 +811,14 @@ function installFlightTuningPanel(){
    const value=document.createElement("span");value.style.cssText="float:right";
    const slider=document.createElement("input");
    slider.type="range";slider.min=min;slider.max=max;slider.step=step;
-   slider.value=String(flightTuning[key]);
+   const params=Object.hasOwn(cinematicTuning,key)?cinematicTuning:flightTuning;
+  slider.value=String(params[key]);
    slider.style.cssText="display:block;width:100%;accent-color:#43ddf0";
-   const display=()=>Number(flightTuning[key]).toFixed(step<1?2:0)+unit;
+   const display=()=>Number(params[key]).toFixed(step<1?2:0)+unit;
    name.textContent=label;value.textContent=display();name.appendChild(value);
    row.append(name,slider);panel.appendChild(row);
    slider.addEventListener("input",()=>{
-     flightTuning[key]=Number(slider.value);value.textContent=display();
+     params[key]=Number(slider.value);value.textContent=display();
    });
  }
  document.body.appendChild(panel);

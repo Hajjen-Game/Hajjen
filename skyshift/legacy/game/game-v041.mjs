@@ -3,22 +3,14 @@ import {
  TRIAL,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,
  newFlightState,stepFlight,clamp,lerp
-} from "./trial-v046.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createPremiumFlightFX } from "./premium-v045.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v043.mjs";
-import { createSmoothDeckGeometry,MESH_SPEC } from "./smooth-track-v046.mjs";
-import {
-  PACING,capturePose,interpolatePose,shouldSnapPose,
-  createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
-  createAdaptiveQuality,nextAdaptiveRatio
-} from "./core/frame-pacing-v044.mjs";
-import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
-import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cinematicFov,engineLightFactor } from "./cinematic-v045.mjs";
-import { installPremiumTrack,TRACK_IDENTITY } from "./identity-v046.mjs";
-import { installSpaceBackdrop } from "./space-v04.mjs";
-import { refineCraftSilhouette,createContactShadow } from "./ship-v034.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
+} from "../../trial-v041.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createPremiumFlightFX } from "../../premium-v041.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v032.mjs";
+import { installCleanTrack } from "../../identity-v041.mjs";
+import { installSpaceBackdrop } from "../../space-v04.mjs";
+import { refineCraftSilhouette,createContactShadow } from "../../ship-v034.mjs";
+import { LUMINANCE,validateLuminance } from "../../luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);
@@ -41,9 +33,10 @@ const UI={
  fullscreen:$("fullscreen-btn"),menuFullscreen:$("menu-fullscreen-btn"),
  fullscreenHelp:$("fullscreen-help")
 };
-// Single palette in the Handling Lab: remove zone spectacle as a variable.
 const COLOR=[
- {color:0x43ddf0,...LUMINANCE.sectors[0],name:"HANDLING LAB"}
+ {color:0x43ddf0,...LUMINANCE.sectors[0],name:"THE LAUNCH"},
+ {color:0x9d83ff,...LUMINANCE.sectors[1],name:"SKYBREAK"},
+ {color:0xff77ad,...LUMINANCE.sectors[2],name:"FINAL VELOCITY"}
 ];
 const themes=COLOR.map(p=>({
   ...p,skyColor:new THREE.Color(p.sky),fogColor:new THREE.Color(p.fog),
@@ -53,30 +46,21 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,stickPointe
  keys:new Set(),bannerTimeout:null,toastTimeout:null,trackHint:-1};
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
-let neonKit,neonPipeline,engineLight,engineCore,enginePlumes=[],identitySurface,spaceBackdrop;
+let neonKit,neonPipeline,engineLight,identitySurface,spaceBackdrop;
 let cameraLook=new THREE.Vector3(),shadowMesh,pylonMesh,premiumFX;
 let perfFrames=0,perfTotal=0,perfMin=200;
 let renderSamples=0,renderCallTotal=0,renderCallPeak=0,triangleTotal=0;
-let frameClock=createFrameClock(),frameMonitor=createFrameMonitor();
-let adaptiveQuality=createAdaptiveQuality(),currentRenderPose=null,previousRenderPose=null;
-let frameBlend=0;
-let motionState=createFlightMotionState(),cinematicState=createCinematicState();
-const flightTuning={...MOTION_DEFAULTS};
-const cinematicTuning={...CINEMATIC_DEFAULTS};
-const CAMERA_INFO={},CAMERA_VIEW={worldX:0,worldZ:0,y:0,steering:0,clearance:0};
-const CAMERA_TARGET_POSITION=new THREE.Vector3();
-const CAMERA_TARGET_LOOK=new THREE.Vector3();
 const telemetry=[];
-let previousSector=0,sceneReady=false,fullscreenController=null,lastRailLog=0;
+let previousSector=0,sceneReady=false,fullscreenController=null;
 const SHADOW_NORMAL=new THREE.Vector3(),SHADOW_PLANE_NORMAL=new THREE.Vector3(0,0,1);
 const reusable=new THREE.Object3D();
 
 function bestForTrial(){
- try{return Number(localStorage.getItem("skyshift-handling-lab-best-v043"))||0;}
+ try{return Number(localStorage.getItem("skyshift-first-flight-best-v041"))||0;}
  catch{return 0;}
 }
 function saveBest(time){
- try{localStorage.setItem("skyshift-handling-lab-best-v043",String(time));}catch{}
+ try{localStorage.setItem("skyshift-first-flight-best-v041",String(time));}catch{}
 }
 function flashToast(message,time=1350){
  UI.toast.textContent=message;UI.toast.classList.remove("hidden");
@@ -98,8 +82,10 @@ function colorFor(s){
 function surfaceColor(s){
  const tint=colorFor(s);
  const base=new THREE.Color(LUMINANCE.roadBase);
- // A uniform clean asphalt base: no 4-metre checker/alternating panels.
- return base.lerp(tint,LUMINANCE.roadTintMix);
+ // Lift playable midtones without lifting the emissive rails.
+ return base.lerp(tint,LUMINANCE.roadTintMix).multiplyScalar(
+   (Math.floor(s/4)%2)? .975:1.025
+ );
 }
 function addQuad(points,colors,a,b,c,d,tint){
  for(const p of [a,b,c,a,c,d]){
@@ -119,9 +105,7 @@ function buildGeometry(points,colors=null){
  return geo;
 }
 function buildRoad(){
- // The roadway TOP is one contiguous indexed mesh with shared vertex normals.
- // Vertical wall facades remain separate so road edge lighting stays crisp.
- const walls=[],wallColors=[],underRail=[],jumpMarks=[],laneGuides=[],padFaces=[];
+ const deck=[],colors=[],rim=[],rimHalo=[],rimCore=[],underRail=[],jumpMarks=[],laneGuides=[],padFaces=[];
  const boundaries=GEOMETRY_BREAKS;
  const tintSide=new THREE.Color(0x091222);
  for(let k=0;k<boundaries.length-1;k++){
@@ -131,16 +115,25 @@ function buildRoad(){
      const intervals=roadIntervals(mid);
      for(const [a,b] of intervals) {
        const p1=toVec(d,a),p2=toVec(d,b),p3=toVec(e,b),p4=toVec(e,a);
+       addQuad(deck,colors,p1,p2,p3,p4,surfaceColor(mid));
        const drop=new THREE.Vector3(0,-1.05,0);
-       addQuad(walls,wallColors,p1.clone().add(drop),p1,p4,p4.clone().add(drop),tintSide);
-       addQuad(walls,wallColors,p2,p2.clone().add(drop),p3.clone().add(drop),p3,tintSide);
+       addQuad(deck,colors,p1.clone().add(drop),p1,p4,p4.clone().add(drop),tintSide);
+       addQuad(deck,colors,p2,p2.clone().add(drop),p3.clone().add(drop),p3,tintSide);
        // Slim structural line inside the sidewall, not on the playing deck.
        for(const outer of [a,b]){
          addQuad(underRail,null,toVec(d,outer,-.30),toVec(d,outer,-.40),
            toVec(e,outer,-.40),toVec(e,outer,-.30));
        }
-       // Raised safety rails and their inlays are now generated in one
-       // batched ribbon mesh, independent of these historical rim quads.
+       for(const off of [a+.10,b-.23]) {
+         // Spatially narrow neon: soft tint, readable colored body, needle-thin core.
+         // Broad 0.56m halos in 0.3.1 made the whole near road look illuminated.
+         addQuad(rimHalo,null,toVec(d,off-.072,.045),toVec(d,off+.203,.045),
+           toVec(e,off+.203,.045),toVec(e,off-.072,.045));
+         addQuad(rim,null,toVec(d,off+.016,.078),toVec(d,off+.114,.078),
+           toVec(e,off+.114,.078),toVec(e,off+.016,.078));
+         addQuad(rimCore,null,toVec(d,off+.052,.102),toVec(d,off+.078,.102),
+           toVec(e,off+.078,.102),toVec(e,off+.052,.102));
+       }
      }
      // A subtle dashed road centreline supports speed perception.
      if(intervals.length===1&&Math.floor(mid/5)%2===0&&intervals[0][0]<0&&intervals[0][1]>0) {
@@ -191,12 +184,14 @@ function buildRoad(){
    side:THREE.DoubleSide
  });
  edgeMat=neonKit.edgeBody;
- const road=new THREE.Mesh(createSmoothDeckGeometry(THREE,surfaceColor),roadMat);
- road.name="One continuous smooth indexed roadway";
+ const road=new THREE.Mesh(buildGeometry(deck,colors),roadMat);
  road.frustumCulled=false;world.add(road);
- const sidewalls=new THREE.Mesh(buildGeometry(walls,wallColors),roadMat);
- sidewalls.name="Deliberately hard-edged vertical road sides";
- sidewalls.frustumCulled=false;world.add(sidewalls);
+ const bloomHalo=new THREE.Mesh(buildGeometry(rimHalo),neonKit.edgeHalo);
+ bloomHalo.frustumCulled=false;bloomHalo.renderOrder=1;world.add(bloomHalo);
+ const edge=new THREE.Mesh(buildGeometry(rim),edgeMat);
+ edge.frustumCulled=false;edge.renderOrder=2;world.add(edge);
+ const whiteHot=new THREE.Mesh(buildGeometry(rimCore),neonKit.edgeCore);
+ whiteHot.frustumCulled=false;whiteHot.renderOrder=3;world.add(whiteHot);
  const skirtTrim=new THREE.Mesh(buildGeometry(underRail),
    new THREE.MeshBasicMaterial({
      color:0x3d779a,transparent:true,opacity:.63,depthWrite:false,side:THREE.DoubleSide
@@ -301,9 +296,8 @@ function buildDecor(){
  }
  pylonMesh=beacon;
  for(const arch of ARCHES)makeArch(arch.s,arch.label,arch.color,widthAt(arch.s)+.5);
- // Forward signage names the two intentional corners; no fake obstacles.
- makeBillboard("LONG LEFT",69,5.3,10,0);
- makeBillboard("LONG RIGHT",268,5.3,10,0);
+ makeBillboard("SAFE",547,4.15,7,-4.3);
+ makeBillboard("RISK",547,4.15,7,4.3);
 }
 function makeShip(){
  const hullMat=new THREE.MeshPhysicalMaterial({
@@ -343,9 +337,8 @@ function makeShip(){
    wingLed.rotation.y=sign*.64;ship.add(wingLed);
    const engine=new THREE.Mesh(new THREE.BoxGeometry(.38,.18,.46),shipGlow);
    engine.position.set(sign*.76,-.11,2.1);ship.add(engine);
-   enginePlumes.push(engine);
  }
- engineCore=new THREE.Mesh(new THREE.BoxGeometry(.82,.13,.46),shipGlow);
+ const engineCore=new THREE.Mesh(new THREE.BoxGeometry(.82,.13,.46),shipGlow);
  engineCore.position.set(0,-.08,2.06);ship.add(engineCore);
  const thrusterWhite=new THREE.Mesh(new THREE.BoxGeometry(.62,.055,.49),
    neonKit.edgeCore);
@@ -359,8 +352,6 @@ function makeShip(){
  scene.add(ship);
  premiumFX=createPremiumFlightFX(THREE,scene);
  shadowMesh=createContactShadow(THREE,scene);
- // No jump button in this short, steering-only calibration trial.
- UI.jump.classList.add("hidden");
 }
 function initScene(){
  scene=new THREE.Scene();
@@ -376,8 +367,6 @@ function initScene(){
  renderer.outputColorSpace=THREE.SRGBColorSpace;
  // Sum renderer workload across all composer passes (last pass alone=1 call).
  renderer.info.autoReset=false;
- // Native canvas remains high fidelity; adaptive detail adjusts only the
- // internal HDR composer targets on sustained slow devices.
  renderer.toneMapping=THREE.ACESFilmicToneMapping;
  renderer.toneMappingExposure=LUMINANCE.exposure;
  neonKit=createNeonKit(THREE);
@@ -390,7 +379,7 @@ function initScene(){
  edgeFill.position.set(-18,11,-22);scene.add(edgeFill);
  world=new THREE.Group();scene.add(world);
  buildRoad();
- identitySurface=installPremiumTrack(THREE,world);
+ identitySurface=installCleanTrack(THREE,world);
  buildDecor();
  // Open space, no geological scenery, distant monuments or 3D floor.
  makeShip();
@@ -444,15 +433,10 @@ function clearInput(){
  UI.jump.classList.remove("held");
 }
 function resetFlight(){
- flight=newFlightState();previousSector=0;lastRailLog=0;
- motionState=createFlightMotionState(flight.heading);
- cinematicState=createCinematicState();
+ flight=newFlightState();previousSector=0;
  premiumFX?.reset();
  perfFrames=0;perfTotal=0;perfMin=200;
  renderSamples=0;renderCallTotal=0;renderCallPeak=0;triangleTotal=0;
- frameClock=createFrameClock();frameMonitor=createFrameMonitor();
- currentRenderPose=capturePose(flight);previousRenderPose=currentRenderPose;
- frameBlend=0;
  document.documentElement.style.setProperty("--neon","#43dff3");
  telemetry.length=0;uiState.trackHint=-1;clearInput();
  event("trial_start",{trial:TRIAL.id});
@@ -460,10 +444,12 @@ function resetFlight(){
  UI.flash.classList.remove("active");
  UI.toast.classList.add("hidden");
  UI.finalTitle.textContent="FLIGHT ENDED";
- // Place the camera at its new orbit at spawn to prevent startup swooping.
- const home=chasePose(flight,motionState,cinematicState,cinematicTuning,CAMERA_INFO);
- camera.position.set(home.x,home.y,home.z);
- cameraLook.set(home.lookX,home.lookY,home.lookZ);
+ // Initialize camera on authored track axis rather than on craft's X position.
+ const initial=positionAt(5,0,0),yaw=flight.heading;
+ camera.position.set(initial.x-Math.sin(yaw)*19,initial.y+10,
+   initial.z+Math.cos(yaw)*19);
+ cameraLook.set(initial.x+Math.sin(yaw)*33,initial.y+1.5,
+   initial.z-Math.cos(yaw)*33);
  camera.lookAt(cameraLook);
  worldClock.last=performance.now();worldClock.accum=0;
 }
@@ -490,14 +476,14 @@ function resume(){
 }
 function endRun(won){
  uiState.mode="ended";clearInput();
- UI.finalTitle.textContent=won?"HANDLING LAB COMPLETE":"FLIGHT ENDED";
+ UI.finalTitle.textContent=won?"TRIAL CLEAR":"FLIGHT ENDED";
  UI.finalTitle.classList.toggle("success",won);
  UI.finalDistance.textContent=Math.floor(flight.s)+" M";
  UI.finalSector.textContent=String(sectorAt(flight.s)+1).padStart(2,"0");
  UI.finalTime.textContent=Math.floor(flight.elapsed/60)+":"+
    String(Math.floor(flight.elapsed%60)).padStart(2,"0");
- UI.finalJumps.textContent=flight.peakYawRateDeg.toFixed(1)+"°/S";
- UI.finalStyle.textContent=flight.offRoadSeconds.toFixed(1)+" S";
+ UI.finalJumps.textContent=String(flight.jumps)+" / "+String(flight.clearedGaps.length);
+ UI.finalStyle.textContent=flight.routeRewarded?"+500":"0";
  let best=bestForTrial();
  if(won && (!best||flight.elapsed<best)){saveBest(flight.elapsed);best=flight.elapsed;}
  UI.finalBest.textContent=best?best.toFixed(1)+" S":"—";
@@ -529,40 +515,43 @@ function refreshHud(){
  UI.shieldText.textContent=flight.shield+"%";
  UI.distance.innerHTML=String(Math.floor(flight.s)).padStart(4,"0")+
    ' <small>/ '+TRIAL.length+' M</small>';
- // Compare with baseline handling-lab speed (22 m/s), not new speed.
- UI.speed.textContent="SPEED "+(speedAt(flight.s)/22).toFixed(2)+"×";
+ UI.speed.textContent="SPEED "+(speedAt(flight.s)/TRIAL.startSpeed).toFixed(2)+"×";
  UI.progress.style.width=(flight.s/TRIAL.length*100).toFixed(1)+"%";
- const bank=bankDegreesAt(flight.s);
- UI.flight.textContent=!flight.grounded?"OFF TRACK":
-   Math.abs(bank)>1.5?
-     (bank<0?"LEFT BANK ":"RIGHT BANK ")+Math.round(Math.abs(bank))+"°":
-     "STRAIGHT · DIRECT CONTROL";
+ UI.flight.textContent=flight.s>=545&&flight.s<=680?
+   (flight.lateral>2.6?"RISK ROUTE":"SAFE ROUTE"):
+   flight.grounded?"GLIDING":
+   flight.vy>0?"AIRBORNE · RISING":"AIRBORNE · DESCENDING";
 }
 function maybeShowCue(){
  if(uiState.mode!=="playing")return;
- for(const hint of [
-   {id:"left",start:68,end:72,text:"LEFT SWEEPER · HOLD YOUR LINE"},
-   {id:"right",start:262,end:266,text:"RIGHT SWEEPER · SMOOTH INPUT"}
- ]){
-   if(flight.s>=hint.start&&flight.s<hint.end&&
-      uiState.trackHint!==hint.id){
-     uiState.trackHint=hint.id;
-     flashToast(hint.text,1700);
-   }
+ const gap=nextGap(flight.s);
+ if(gap&&flight.s>=gap.start-28&&flight.s<gap.start-23 &&
+   uiState.trackHint!==gap.id){
+   uiState.trackHint=gap.id;
+   flashToast(gap.kind==="island"?"SKY ISLAND · STEER AND JUMP":
+     "GAP AHEAD · TIME YOUR JUMP",1350);
+ }
+ const risky=RISK_CUTS.find(c=>flight.s<c.start &&
+   flight.s>=c.start-20&&flight.lateral>2.6&&
+   uiState.trackHint!=="risk-"+c.start);
+ if(risky){
+   uiState.trackHint="risk-"+risky.start;
+   flashToast("RISK LANE · JUMP AHEAD",1100);
+ }
+ const split=SPLITS[0];
+ if(flight.s>=split.start-48&&flight.s<split.start-43 && uiState.trackHint!=="split"){
+   uiState.trackHint="split";
+   flashToast("LEFT SAFE  /  RIGHT RISK +500",1850);
  }
 }
 function integrate(dt){
  const keyRight=uiState.keys.has("ArrowRight")||uiState.keys.has("KeyD");
  const keyLeft=uiState.keys.has("ArrowLeft")||uiState.keys.has("KeyA");
- // Digital keys are scaled for predictable corner holding; analog touch
- // retains the complete range and fine control around zero.
- const keyboard=(keyRight?1:0)-(keyLeft?1:0);
- const steer=clamp(keyboard*.74+uiState.inputX,-1,1);
- const result=stepFlight(flight,dt,{steer});
- if(flight.railContacts>lastRailLog){
-   lastRailLog=flight.railContacts;
-   event("guardrail_contact",{side:flight.lastRailSide,at:+flight.lateral.toFixed(2)});
- }
+ const steer=clamp((keyRight?1:0)-(keyLeft?1:0)+uiState.inputX,-1,1);
+ const result=stepFlight(flight,dt,{
+   steer,jumpPressed:uiState.jumpPressed,
+   jumpHeld:uiState.jumpHeld
+ });
  uiState.jumpPressed=false;
  if(result.jumped){
    premiumFX?.onJump();
@@ -581,7 +570,7 @@ function integrate(dt){
  }
  if(result.crashed){
    event("fall",{at:Math.round(flight.lastCrashS),shield:flight.shield});
-   flashToast("OFF TRACK · RETRY FROM CHECKPOINT",1350);
+   flashToast("SKYSHIELD -35 · CHECKPOINT",1350);
  }
  const sector=sectorAt(flight.s);
  if(sector!==previousSector){previousSector=sector;announceSector(sector);}
@@ -594,153 +583,97 @@ function updatePalette(dt){
  scene.background.lerp(palette.skyColor,k);
  scene.fog.color.lerp(palette.fogColor,k);
  neonKit.updateAccent(palette.color,k);
- identitySurface?.updateAccent(neonKit.worldAccent);
  if(engineLight)engineLight.color.copy(neonKit.worldAccent);
 }
-function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicState){
- // True world-space heading remains pilot-owned. Body pose is visual-only.
- const ground=surfaceHeightAt(view.s,view.lateral);
- const clearance=view.y+motion.hover-TRIAL.hoverHeight-ground;
- const solid=onRoad(view.s,view.lateral);
- ship.position.set(view.worldX,view.y+motion.hover,view.worldZ);
- // Cosmetic nose alignment <2 degrees; authoritative world yaw unchanged.
- ship.rotation.y=-view.heading+cinematic.noseYaw;
- ship.rotation.z=motion.roll;
- ship.rotation.x=motion.pitch;
- if(engineLight)engineLight.intensity=NEON_TUNING.enginePointIntensity*engineLightFactor(cinematic);
- if(engineCore)engineCore.scale.z=1+cinematic.engineEnergy*.16;
- for(let i=0;i<enginePlumes.length;i++){
-   const sign=i===0?-1:1;
-   enginePlumes[i].scale.z=1+cinematic.engineEnergy*.14+sign*clamp(view.steering,-1,1)*.035;
- }
+function placeShip(time,dt){
+ // Independent pilot-owned world pose, with no centreline yaw or position help.
+ const ground=surfaceHeightAt(flight.s,flight.lateral);
+ const clearance=flight.y-TRIAL.hoverHeight-ground;
+ const bank=bankAt(flight.s);
+ const solid=onRoad(flight.s,flight.lateral);
+ ship.position.set(flight.worldX,flight.y+Math.sin(time*4.2)*.025,flight.worldZ);
+ ship.rotation.y=-flight.heading;
+ const deckRoll=flight.grounded?bank:bank*.33;
+ ship.rotation.z=lerp(ship.rotation.z,
+   clamp(-deckRoll-flight.steering*.13,-.58,.58),
+   1-Math.exp(-dt*7));
+ ship.rotation.x=lerp(ship.rotation.x,clamp(flight.vy/28,-.19,.21),
+   1-Math.exp(-dt*7));
  if(shadowMesh){
    shadowMesh.visible=solid&&clearance<4.2;
    if(shadowMesh.visible){
-     const contact=positionAt(view.s,view.lateral,.032);
+     const contact=positionAt(flight.s,flight.lateral,.032);
      shadowMesh.position.set(contact.x,contact.y,contact.z);
-     const normal=surfaceNormalAt(view.s);
+     const normal=surfaceNormalAt(flight.s);
      SHADOW_NORMAL.set(normal.x,normal.y,normal.z);
      shadowMesh.quaternion.setFromUnitVectors(SHADOW_PLANE_NORMAL,SHADOW_NORMAL);
      shadowMesh.material.opacity=clamp(.62-Math.max(0,clearance)*.16,0,.62);
    }
  }
- // Low/close chase camera with bounded future curvature preview.
- // Camera POSITION follows pilot heading; only LOOK target anticipates a corner.
- CAMERA_VIEW.worldX=view.worldX;CAMERA_VIEW.worldZ=view.worldZ;
- CAMERA_VIEW.y=view.y;CAMERA_VIEW.steering=view.steering;
- CAMERA_VIEW.clearance=clearance;
- const framing=chasePose(CAMERA_VIEW,motion,cinematic,cinematicTuning,CAMERA_INFO);
- CAMERA_TARGET_POSITION.set(framing.x,framing.y,framing.z);
- CAMERA_TARGET_LOOK.set(framing.lookX,framing.lookY,framing.lookZ);
- const follow=1-Math.exp(-dt*cinematicTuning.cameraFollowResponse);
- camera.position.lerp(CAMERA_TARGET_POSITION,follow);
- cameraLook.lerp(CAMERA_TARGET_LOOK,follow);
+ // Third person camera follows craft WORLD heading, never authored headingAt().
+ const fx=Math.sin(flight.heading),fz=-Math.cos(flight.heading);
+ const air=Math.max(0,clearance);
+ const targetCamera=new THREE.Vector3(
+   flight.worldX-fx*17.8,flight.y+8.8+air*.13,flight.worldZ-fz*17.8
+ );
+ const targetLook=new THREE.Vector3(
+   flight.worldX+fx*33,flight.y+1.15,flight.worldZ+fz*33
+ );
+ camera.position.lerp(targetCamera,1-Math.exp(-dt*4.5));
+ cameraLook.lerp(targetLook,1-Math.exp(-dt*5.2));
  camera.lookAt(cameraLook);
- camera.rotateZ(motion.cameraRoll);
- const targetFov=cinematicFov(speedAt(view.s),TRIAL.startSpeed,cinematicTuning);
- camera.fov=lerp(camera.fov,targetFov,1-Math.exp(-dt*2.8));
- cinematic.maxCameraLateralMeters=Math.max(cinematic.maxCameraLateralMeters,Math.abs(framing.sideOffsetMeters));
+ // The actual surface tilts up to 25°; modest camera roll protects readability.
+ camera.rotateZ(-bank*.14);
+ const targetFov=66+Math.min(5,(speedAt(flight.s)-TRIAL.startSpeed)*.9);
+ camera.fov=lerp(camera.fov,targetFov,1-Math.exp(-dt*2));
  camera.updateProjectionMatrix();
 }
 function loop(now){
  requestAnimationFrame(loop);
- const rawDt=Math.max(0,(now-worldClock.last)/1000);
- const dt=Math.min(.095,rawDt);
+ const dt=Math.min(.05,Math.max(0,(now-worldClock.last)/1000));
  worldClock.last=now;
  if(uiState.mode==="playing"){
-   const tick=advanceFrame(frameClock,rawDt,step=>{
-     previousRenderPose=currentRenderPose||capturePose(flight);
-     integrate(step);
-     const next=capturePose(flight);
-     if(shouldSnapPose(previousRenderPose,next))
-       previousRenderPose=next;
-     currentRenderPose=next;
-   });
-   frameBlend=tick.alpha;
+   if(dt>0&&dt<.17){perfFrames++;perfTotal+=1/dt;perfMin=Math.min(perfMin,1/dt);}
+   worldClock.accum+=dt;
+   let count=0;
+   while(worldClock.accum>=1/120 && count<7 && uiState.mode==="playing"){
+     integrate(1/120);worldClock.accum-=1/120;count++;
+   }
+   if(count>=7)worldClock.accum=0;
    refreshHud();
  }
  if(flight){
-   updatePalette(dt);
-   const view=uiState.mode==="playing"&&currentRenderPose?
-     interpolatePose(previousRenderPose,currentRenderPose,frameBlend):flight;
-   // Flight motion sees the same interpolated 120Hz simulation pose as FX.
-   stepFlightMotion(motionState,
-     {...view,trackBank:bankAt(view.s)},
-     uiState.mode==="playing"?dt:0,now/1000,flightTuning);
-   // Track preview affects framing only, never yaw/position of the craft.
-   const upcoming=Math.min(TRIAL.length,view.s+cinematicTuning.previewMeters);
-   const lookBias=turnPreview(headingAt(view.s),headingAt(upcoming),cinematicTuning);
-   stepCinematic(cinematicState,view,lookBias,uiState.mode==="playing"?dt:0,cinematicTuning);
-   placeShip(now/1000,dt,view,motionState,cinematicState);
+   updatePalette(dt);placeShip(now/1000,dt);
    premiumFX?.frame({
-     dt,playing:uiState.mode==="playing",
-     flight:{...flight,...view,forwardSpeed:speedAt(view.s)},poseAt,positionAt,
-     ship,shipGlow,sectorColor:COLOR[sectorAt(flight.s)].color,
-     motionWeight:cinematicState
+     dt,playing:uiState.mode==="playing",flight,poseAt,positionAt,
+     ship,shipGlow,sectorColor:COLOR[sectorAt(flight.s)].color
    });
  }
- // One renderer.info reset PER frame, preserving the sum of composer passes.
+ // Capture all HDR composer pass draw calls in the current frame.
  renderer.info?.reset();
- const renderBegin=performance.now();
  if(neonPipeline)neonPipeline.render(dt);
  else renderer.render(scene,camera);
- const renderCpuMs=performance.now()-renderBegin;
  if(uiState.mode==="playing"&&renderer.info){
+   // Renderer workload is indicative; not GPU milliseconds.
    const work=renderer.info.render;
    renderSamples++;
    renderCallTotal+=work.calls;renderCallPeak=Math.max(renderCallPeak,work.calls);
    triangleTotal+=work.triangles;
-   observeFrame(frameMonitor,rawDt,renderCpuMs);
-   // Start at full premium quality. Only sustained low frame pacing changes
-   // internal bloom/scene buffer resolution; UI/canvas keep native DPR.
-   const availableDpr=Math.min(devicePixelRatio||1,NEON_TUNING.maxPixelRatio);
-   const nextRatio=nextAdaptiveRatio(
-     adaptiveQuality,rawDt*1000,now,availableDpr
-   );
-   if(nextRatio!==null&&neonPipeline){
-     neonPipeline.setInternalPixelRatio(nextRatio,innerWidth,innerHeight);
-     event("adaptive_render_resolution",{ratio:+nextRatio.toFixed(2)});
-   }
  }
 }
 function exportAudit(){
- const timing=monitorSummary(frameMonitor);
- const worstMs=frameMonitor.allFrameTimes.length?
-    Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.4.6",trial:TRIAL.id,exportedAt:new Date().toISOString(),
-   visual:{pipeline:"HDR UnrealBloom",tier:"Smooth Ribbon Geometry & Premium Safety Guardrails",
+   game:"SKYSHIFT",version:"0.4.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   visual:{pipeline:"HDR UnrealBloom",tier:"Space Track Flow",
      renderDpr:renderer.getPixelRatio(),
-     internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
-     adaptiveQualityChanges:adaptiveQuality.changes,
-     roadMeshType:"Single indexed top deck with shared vertex normals",
-     roadLongitudinalStepMeters:MESH_SPEC.sampleStep,
-     guardrails:{heightMeters:TRACK_IDENTITY.railHeight,
-       railTriangles:identitySurface.railTriangles,
-       surfaceTriangles:identitySurface.paintTriangles,
-       batchCount:identitySurface.drawBatches,
-       chevrons:identitySurface.chevrons,
-       shoulderMarks:identitySurface.shoulderMarks,
-       accentAnchors:identitySurface.accentAnchors},
-     sharedDeckNormals:true,
      surfaceAccents:identitySurface.plan.length,decorativePlates:0,
      worldFormations:0,worldLandmarks:0,
      spaceStars:spaceBackdrop.stars,spaceNebulae:spaceBackdrop.nebulae,
      rendererDrawCallsAverage:renderSamples?Math.round(renderCallTotal/renderSamples):null,
      rendererDrawCallsPeak:renderSamples?renderCallPeak:null,
      rendererTrianglesAverage:renderSamples?Math.round(triangleTotal/renderSamples):null,
-     banking:"Physically banked roadway plus independently damped craft pose",
-     flightMotion:"Pilot-owned yaw, critically damped visual bank pitch hover",
-     flightTuning:{...flightTuning},cameraTuning:{...cinematicTuning},
-     maxCameraPreviewDegrees:+cinematicState.maxPreviewDegrees.toFixed(2),
-     maxCosmeticNoseYawDegrees:+cinematicState.maxNoseDegrees.toFixed(2),
-     maxEngineResponse:+cinematicState.maxEngineEnergy.toFixed(3),
-     maxCameraSideOffsetMeters:+cinematicState.maxCameraLateralMeters.toFixed(2),
-     extraDrawCallsFromCameraAndEngine:0,
-     maxVisualBankDegrees:+motionState.maxVisualBankDegrees.toFixed(1),
-     maxVisualPitchDegrees:+motionState.maxVisualPitchDegrees.toFixed(1),
-     maxHoverMeters:+motionState.maxHoverMeters.toFixed(3),
-     maxBankDegrees:22,
+     banking:"Physical 3D geometry with matched collision",
+     maxBankDegrees:25,
      exposure:LUMINANCE.exposure,fogDensity:LUMINANCE.fogDensity,
      bloomStrength:NEON_TUNING.bloomStrength,
      bloomThreshold:NEON_TUNING.bloomThreshold},
@@ -752,81 +685,23 @@ function exportAudit(){
      steerSeconds:+flight.steerSeconds.toFixed(2),
      steerReversals:flight.steerReversals,
      maxBankDegrees:+flight.peakBankDeg.toFixed(2),
-      peakYawRateDegreesPerSecond:+flight.peakYawRateDeg.toFixed(2),
-      maxLateralMeters:+flight.maxLateral.toFixed(2),
-      steeringModel:"Damped speed-scaled yaw with neutral stabilization",
-      speedMetersPerSecondStart:TRIAL.startSpeed,
-      speedMetersPerSecondEnd:TRIAL.endSpeed,
-      speedMultiplierVs042:2,
-      maxYawDegreesPerSecond:+(TRIAL.maxYawRate*180/Math.PI).toFixed(1),
-      courseSegments:5,curveCount:2,
      maxHeadingErrorDegrees:+flight.maxHeadingErrorDeg.toFixed(1),
      averageHeadingErrorDegrees:flight.headingSamples?
        +(flight.totalHeadingError/flight.headingSamples).toFixed(1):null,
      offRoadSeconds:+flight.offRoadSeconds.toFixed(2),
-     railContacts:flight.railContacts,
-     railSeconds:+flight.railSeconds.toFixed(2),
-     railMaxPenetrationMeters:+flight.railMaxPenetration.toFixed(3),
      manualSteering:true,
      routeChoice:flight.routeChoice,
-     riskRouteStyleBonus:0,
-     fpsAverage:timing.fpsAverage?Math.round(timing.fpsAverage):null,
-     fpsMinimum:worstMs?Math.round(1000/worstMs):null,
-     frameMsP95:timing.frameMsP95?+timing.frameMsP95.toFixed(1):null,
-     frameMsP99:timing.frameMsP99?+timing.frameMsP99.toFixed(1):null,
-     renderCpuAverageMs:timing.renderCpuAverageMs?
-       +timing.renderCpuAverageMs.toFixed(2):null,
-     renderCpuPeakMs:+timing.renderCpuPeakMs.toFixed(2),
-     interpolationEnabled:true,
-     physicsSteps:frameClock.totalSteps,
-     maxPhysicsStepsPerFrame:frameClock.stepsPeak,
-     droppedSimulationSeconds:+frameClock.droppedSeconds.toFixed(3),
+     riskRouteStyleBonus:flight.routeRewarded?500:0,
+     fpsAverage:perfFrames?Math.round(perfTotal/perfFrames):null,
+     fpsMinimum:perfFrames?Math.round(perfMin):null,
      gapClears:[...flight.clearedGaps],failedJumpEdges:flight.failedJumps
    },events:telemetry
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-track-v046-audit.json";
+ a.href=url;a.download="skyshift-first-flight-v041-audit.json";
  document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1800);
-}
-function installFlightTuningPanel(){
- // The regular mobile interface stays clean. Developers opt in with ?flightlab=1.
- if(new URLSearchParams(location.search).get("flightlab")!=="1")return;
- const panel=document.createElement("section");
- panel.setAttribute("aria-label","Flight Dynamics Lab");
- panel.style.cssText="position:fixed;top:42px;right:8px;z-index:2500;box-sizing:border-box;width:215px;max-height:75vh;overflow:auto;background:rgba(4,13,27,.93);color:#d9f6ff;padding:12px;border:1px solid #397084;border-radius:10px;font:12px system-ui;box-shadow:0 8px 20px #0009";
- const title=document.createElement("strong");
- title.textContent="FLIGHT LAB · 0.4.6";panel.appendChild(title);
- const fields=[
-  ["pilotBankDegrees","Pilot bank","°",8,28,1],
-  ["bankResponse","Turn-in","",8,23,1],
-  ["bankRecovery","Bank recovery","",6,18,1],
-  ["hoverTravelMeters","Hover travel"," m",0,.18,.01],
-  ["cameraYawResponse","Camera yaw","",5,17,1],
-  ["cameraFollowResponse","Camera follow","",6,18,1],
-  ["cameraDistance","Camera distance"," m",11.5,16,.1],
-  ["cameraHeight","Camera height"," m",6.2,10,.1],
-  ["previewGain","Corner preview","",0,.4,.02],
-  ["engineTurnGain","Engine weight","",0,.9,.05]
- ];
- for(const [key,label,unit,min,max,step] of fields){
-   const row=document.createElement("label");row.style.cssText="display:block;margin-top:9px";
-   const name=document.createElement("div");
-   const value=document.createElement("span");value.style.cssText="float:right";
-   const slider=document.createElement("input");
-   slider.type="range";slider.min=min;slider.max=max;slider.step=step;
-   const params=Object.hasOwn(cinematicTuning,key)?cinematicTuning:flightTuning;
-  slider.value=String(params[key]);
-   slider.style.cssText="display:block;width:100%;accent-color:#43ddf0";
-   const display=()=>Number(params[key]).toFixed(step<1?2:0)+unit;
-   name.textContent=label;value.textContent=display();name.appendChild(value);
-   row.append(name,slider);panel.appendChild(row);
-   slider.addEventListener("input",()=>{
-     params[key]=Number(slider.value);value.textContent=display();
-   });
- }
- document.body.appendChild(panel);
 }
 function installControls(){
  UI.start.addEventListener("click",startImmersiveTrial);
@@ -891,7 +766,7 @@ function installControls(){
  });
 }
 try{
- initScene();installFullscreen();installControls();installFlightTuningPanel();resetFlight();
+ initScene();installFullscreen();installControls();resetFlight();
  requestAnimationFrame(loop);
 }catch(error){
  console.error("SKYSHIFT startup failed",error);

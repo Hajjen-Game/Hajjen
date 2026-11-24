@@ -583,11 +583,11 @@ jobs:
           node --check skyshift/flight/steering-authority-v01348.mjs
           node --check skyshift/trial-v01348.mjs
           node --check skyshift/tests/unit/grip-half-power-v01348.test.mjs
-          node --check skyshift/browser-grip-half-v01348.mjs
+          node --check skyshift/tests/browser/browser-grip-half-v01348.mjs
           node --check skyshift/handling-fairness-v0135.mjs
           node --check skyshift/tests/unit/handling-fairness-v0135.test.mjs
           node --check skyshift/handling-fairness-cli-v0135.mjs
-          node --check skyshift/browser-fairness-v0135.mjs
+          node --check skyshift/tests/browser/browser-fairness-v0135.mjs
           node --check skyshift/tracks/skyline/skyline-challenges-v0140.mjs
           node --check skyshift/tests/unit/skyline-challenges-v0140.test.mjs
           node --check skyshift/tests/browser/browser-challenges-v0140.mjs
@@ -622,7 +622,7 @@ jobs:
           node --check skyshift/racing-experience-v0160.mjs
           node --check skyshift/time-trial-v0160.mjs
           node --check skyshift/tests/unit/multi-track-aurora-v0160.test.mjs
-          node --check skyshift/browser-multi-track-v0160.mjs
+          node --check skyshift/tests/browser/browser-multi-track-v0160.mjs
           node --check skyshift/cinematic-v0161.mjs
           node --check skyshift/flight/unified-flight-v0161.mjs
           node --check skyshift/rail-scrape-sparks-v0161.mjs
@@ -713,7 +713,7 @@ jobs:
           node --check skyshift/tests/unit/track-physics-parity-v0165.test.mjs
           node --check skyshift/grip-trick-audit-v0165.mjs
           node --check skyshift/tests/unit/grip-trick-lock-v0165.test.mjs
-          node --check skyshift/browser-grip-trick-v0165.mjs
+          node --check skyshift/tests/browser/browser-grip-trick-v0165.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v01344.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0132.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v0132.test.mjs
@@ -848,7 +848,7 @@ jobs:
       - name: Export deterministic SKYSHIFT 0.13.5 handling fairness report
         run: node skyshift/handling-fairness-cli-v0135.mjs
       - name: Verify late-lap No-Jump GRIP and Skyline parity in real Chromium
-        run: node skyshift/browser-grip-trick-v0165.mjs
+        run: node skyshift/tests/browser/browser-grip-trick-v0165.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

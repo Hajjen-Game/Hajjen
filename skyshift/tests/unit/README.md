@@ -67,3 +67,5 @@ The remaining 12 root-level `.test.mjs` files were dependency-audited individual
 
 ## EF02J — current dependency integrity
 The four stage 5–8 immutable test-body guards above describe completed historical migration evidence. They are retired in EF02J after passing their final CI run. The original manifests and Git history preserve that evidence. The active replacement is `../architecture/current-unit-dependency-integrity.test.mjs`, which checks current imports and explicit CI test paths, no root test copies, retained protected complex tests and both physics probes. Actual unit test files and executable functional gates are unchanged in this candidate. Future historical retirement requires documented coverage/consumer review under Engineering Foundation; do not use the old fixed 210 count as a permanent design requirement.
+
+EF02J follow-up: V2/V3 ship hero loader tests were superseded by the identical five behavior tests against the active V4 loader. Their historical migration manifest remains evidence, not a requirement to keep duplicate test files. The V4 suite remains in PR and post-merge execution.

@@ -487,19 +487,15 @@ jobs:
           node --check skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs
           node --check skyshift/blender/stingray-hero-v2-source-v0133.mjs
           node --check skyshift/ship-art-pipeline-v0133.mjs
-          node --check skyshift/ship-hero-loader-v0133.mjs
           node --check skyshift/hangar-hero-v0133.mjs
           node --check skyshift/tests/unit/stingray-hero-v0133.test.mjs
-          node --check skyshift/tests/unit/ship-hero-loader-v0133.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0133.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v0133.test.mjs
           node --check skyshift/tests/unit/ui-flow-v0133.test.mjs
           node --check skyshift/blender/stingray-hero-v3-source-v0134.mjs
           node --check skyshift/ship-art-pipeline-v0134.mjs
-          node --check skyshift/ship-hero-loader-v0134.mjs
           node --check skyshift/hangar-hero-v0134.mjs
           node --check skyshift/tests/unit/stingray-hero-v0134.test.mjs
-          node --check skyshift/tests/unit/ship-hero-loader-v0134.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0134.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v0134.test.mjs
           node --check skyshift/tests/unit/ui-flow-v0134.test.mjs
@@ -691,7 +687,7 @@ jobs:
         # Historical version-pinned tests are archived. Gate live 0.16.5 against
         # the deployed V4 GLTF geometry + visual/GRIP invariants. V3 sculpt art
         # assertions refer to an archived asset and are not production gates.
-        run: node --test skyshift/tests/unit/environment-art-pipeline-v0205.test.mjs skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs skyshift/tests/unit/orbital-hero-v0192.test.mjs skyshift/tests/unit/world-rebuild-v0190.test.mjs skyshift/tests/unit/signature-environment-v0180.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/track.test.mjs skyshift/tests/unit/trial-v02.test.mjs skyshift/tests/unit/handling-fairness-v0135.test.mjs skyshift/tests/unit/track-integrity-v0165.test.mjs skyshift/tests/unit/track-physics-parity-v0165.test.mjs skyshift/tests/unit/grip-trick-lock-v0165.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/ship-hero-loader-v0134.test.mjs skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs skyshift/tests/unit/time-trial-v0130.test.mjs skyshift/tests/unit/racing-experience-v0120.test.mjs skyshift/tests/unit/racing-experience-v0121.test.mjs skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs
+        run: node --test skyshift/tests/unit/environment-art-pipeline-v0205.test.mjs skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs skyshift/tests/unit/orbital-hero-v0192.test.mjs skyshift/tests/unit/world-rebuild-v0190.test.mjs skyshift/tests/unit/signature-environment-v0180.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/track.test.mjs skyshift/tests/unit/trial-v02.test.mjs skyshift/tests/unit/handling-fairness-v0135.test.mjs skyshift/tests/unit/track-integrity-v0165.test.mjs skyshift/tests/unit/track-physics-parity-v0165.test.mjs skyshift/tests/unit/grip-trick-lock-v0165.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs skyshift/tests/unit/time-trial-v0130.test.mjs skyshift/tests/unit/racing-experience-v0120.test.mjs skyshift/tests/unit/racing-experience-v0121.test.mjs skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs
 
   # Current release is validated separately; old version baselines stay intact.
   cinematic-phase-a-tests:

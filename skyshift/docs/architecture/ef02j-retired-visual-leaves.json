@@ -19,6 +19,22 @@
       "readers": [],
       "replacement": "skyshift/ship-hero-loader-v01342.mjs",
       "coverage": "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs"
+    },
+    {
+      "path": "skyshift/ship-hero-loader-v0133.mjs",
+      "sha": "ea2c2a1253262f0bb2aedd0e4ed7259844fb7140",
+      "bytes": 4196,
+      "readers": [],
+      "replacement": "skyshift/ship-hero-loader-v01342.mjs",
+      "coverage": "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs"
+    },
+    {
+      "path": "skyshift/ship-hero-loader-v0134.mjs",
+      "sha": "8d6c137d3568fb33e00eeca5a3a9426555e94a46",
+      "bytes": 4202,
+      "readers": [],
+      "replacement": "skyshift/ship-hero-loader-v01342.mjs",
+      "coverage": "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs"
     }
   ],
   "workflow": {
@@ -32,8 +48,46 @@
       {
         "before": "          node --check skyshift/ship-hero-loader-v01321.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v01321.mjs\n",
         "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v01321.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/ship-hero-loader-v0133.mjs\n          node --check skyshift/hangar-hero-v0133.mjs\n",
+        "after": "          node --check skyshift/hangar-hero-v0133.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/ship-hero-loader-v0133.test.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v0133.mjs\n",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0133.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/ship-hero-loader-v0134.mjs\n          node --check skyshift/hangar-hero-v0134.mjs\n",
+        "after": "          node --check skyshift/hangar-hero-v0134.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/ship-hero-loader-v0134.test.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v0134.mjs\n",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0134.mjs\n"
+      },
+      {
+        "before": "        run: node --test skyshift/tests/unit/environment-art-pipeline-v0205.test.mjs skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs skyshift/tests/unit/orbital-hero-v0192.test.mjs skyshift/tests/unit/world-rebuild-v0190.test.mjs skyshift/tests/unit/signature-environment-v0180.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/track.test.mjs skyshift/tests/unit/trial-v02.test.mjs skyshift/tests/unit/handling-fairness-v0135.test.mjs skyshift/tests/unit/track-integrity-v0165.test.mjs skyshift/tests/unit/track-physics-parity-v0165.test.mjs skyshift/tests/unit/grip-trick-lock-v0165.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/ship-hero-loader-v0134.test.mjs skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs skyshift/tests/unit/time-trial-v0130.test.mjs skyshift/tests/unit/racing-experience-v0120.test.mjs skyshift/tests/unit/racing-experience-v0121.test.mjs skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs",
+        "after": "        run: node --test skyshift/tests/unit/environment-art-pipeline-v0205.test.mjs skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs skyshift/tests/unit/orbital-hero-v0192.test.mjs skyshift/tests/unit/world-rebuild-v0190.test.mjs skyshift/tests/unit/signature-environment-v0180.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/track.test.mjs skyshift/tests/unit/trial-v02.test.mjs skyshift/tests/unit/handling-fairness-v0135.test.mjs skyshift/tests/unit/track-integrity-v0165.test.mjs skyshift/tests/unit/track-physics-parity-v0165.test.mjs skyshift/tests/unit/grip-trick-lock-v0165.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs skyshift/tests/unit/time-trial-v0130.test.mjs skyshift/tests/unit/racing-experience-v0120.test.mjs skyshift/tests/unit/racing-experience-v0121.test.mjs skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs"
       }
     ]
   },
-  "reason": "Census job 138753605310: neither default/comparison graph nor transitive QA literal owners; only historical workflow syntax references and documentation. Current entry uses newer implementations; historical archived game references resolved via existing helper. No active functional commands removed."
+  "reason": "Census job 138753605310: neither default/comparison graph nor transitive QA literal owners; only historical workflow syntax references and documentation. Current entry uses newer implementations; historical archived game references resolved via existing helper. No active functional commands removed. Second cohort: two superseded loader implementations and two normalized-identical unit suites; replacement current V4 suite retained in PR and postmerge track QA. Actual comparison game, current game and retained v0205 use v01342. Historical source recoverability maintained; test bodies recoverable in exact base commit.",
+  "retiredTests": [
+    {
+      "path": "skyshift/tests/unit/ship-hero-loader-v0133.test.mjs",
+      "sha": "5d6561c5802509d6e97c6b803040b4bae0c799bd",
+      "bytes": 2756,
+      "rollbackCommit": "69fece90cf367efe5120a88ad73acb2a570a9e77",
+      "replacement": "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs",
+      "reason": "All five test bodies exactly equivalent after normalizing release and asset version identifiers; current default and comparison games use v01342."
+    },
+    {
+      "path": "skyshift/tests/unit/ship-hero-loader-v0134.test.mjs",
+      "sha": "73e934f551001514b0c8cf2de0bdf99761f82b5c",
+      "bytes": 2756,
+      "rollbackCommit": "69fece90cf367efe5120a88ad73acb2a570a9e77",
+      "replacement": "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs",
+      "reason": "All five test bodies exactly equivalent after normalizing release and asset version identifiers; current default and comparison games use v01342."
+    }
+  ]
 }

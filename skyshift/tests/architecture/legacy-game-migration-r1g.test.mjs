@@ -24,7 +24,7 @@ test('R1G: 42 immutable game sources, equivalent imports and held entrypoints',(
   assert.equal(sha(s.replace(/(\bfrom\s*["']|\bimport\s*["']|\bimport\s*\(\s*["'])\.\.\/\.\.\//g,'$1./')),f.originalGitBlobSha,f.name);
   assert.equal(baseline.entries.find(e=>e.path===f.oldPath)?.sha,f.originalGitBlobSha,f.name);
   const re=/(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s*)(["'])(\.\.\/\.\.\/[^"'?#]+)\1/g;
-  let n=0;for(const match of s.matchAll(re)){assert.ok(existsSync(resolve(dirname(resolve(repo,f.newPath)),match[2])),f.name+' '+match[2]);n++}assert.ok(n>=10,f.name);
+  let n=0;for(const match of s.matchAll(re)){assert.ok(historicalExists(resolve(dirname(resolve(repo,f.newPath)),match[2])),f.name+' '+match[2]);n++}assert.ok(n>=10,f.name);
   for(const line of s.split('\n').filter(l=>/\bnew\s+URL\s*\(/.test(l)))assert.match(line,/\bnew\s+URL\s*\(\s*(?:window\.)?location\.href\s*\)/);
  }
 });

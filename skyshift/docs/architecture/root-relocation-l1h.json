@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 1,
+  "stage": "L1H",
+  "baseCommit": "bfecc3914be331de1fc8c9f8dfc27e6719f8c3d2",
+  "previousRootFiles": 277,
+  "expectedRootFiles": 271,
+  "moves": [
+    {
+      "name": "browser-cinematic-hero-v0210.mjs",
+      "oldPath": "skyshift/browser-cinematic-hero-v0210.mjs",
+      "newPath": "skyshift/tests/browser/browser-cinematic-hero-v0210.mjs",
+      "sha": "98e1e7719ca880d008c9409400e3e2741b648b93",
+      "browserImports": []
+    },
+    {
+      "name": "browser-smoke-v0498.mjs",
+      "oldPath": "skyshift/browser-smoke-v0498.mjs",
+      "newPath": "skyshift/tests/browser/legacy/browser-smoke-v0498.mjs",
+      "sha": "045a5d229251a8dd975c05ca9d3a92b70b6342e5",
+      "browserImports": [
+        "./flight/boost/boost-spring-v0495.mjs",
+        "./image-clarity-v0498.mjs",
+        "./tracks/barriers/aero-barrier-v0496.mjs",
+        "./tracks/barriers/aero-barrier-v0497.mjs",
+        "./velocity-language-v0496.mjs"
+      ]
+    },
+    {
+      "name": "browser-smoke-v04991.mjs",
+      "oldPath": "skyshift/browser-smoke-v04991.mjs",
+      "newPath": "skyshift/tests/browser/legacy/browser-smoke-v04991.mjs",
+      "sha": "babcc68ce98cabca50d21a092695037c0bc019c4",
+      "browserImports": [
+        "./flight/boost/boost-spring-v0495.mjs",
+        "./image-clarity-v0498.mjs",
+        "./tracks/barriers/aero-barrier-v0496.mjs",
+        "./tracks/barriers/aero-barrier-v0497.mjs",
+        "./velocity-language-v0496.mjs"
+      ]
+    },
+    {
+      "name": "browser-smoke-v071.mjs",
+      "oldPath": "skyshift/browser-smoke-v071.mjs",
+      "newPath": "skyshift/tests/browser/legacy/browser-smoke-v071.mjs",
+      "sha": "52b1da8bc00d346620dfd2b226911e4bc8d34a4f",
+      "browserImports": [
+        "./cinematic-v071.mjs",
+        "./cinematic-v071.mjs",
+        "./circuit-layout-v060.mjs",
+        "./flight/boost/boost-spring-v0495.mjs",
+        "./flight/boost/boost-v060.mjs",
+        "./image-clarity-v0498.mjs",
+        "./smooth-track-v071.mjs",
+        "./track-3d-v071.mjs",
+        "./track-3d-v071.mjs",
+        "./tracks/barriers/aero-barrier-v0496.mjs",
+        "./tracks/barriers/aero-barrier-v0497.mjs",
+        "./tracks/barriers/aero-barrier-v071.mjs",
+        "./tracks/barriers/aero-barrier-v071.mjs",
+        "./trial-v071.mjs",
+        "./trial-v071.mjs",
+        "./trial-v071.mjs",
+        "./velocity-language-v0496.mjs",
+        "./zone-wave-v060.mjs"
+      ]
+    },
+    {
+      "name": "browser-smoke-v080.mjs",
+      "oldPath": "skyshift/browser-smoke-v080.mjs",
+      "newPath": "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+      "sha": "0556e6eba7ae39f06d4a8917dd0863dbde43e419",
+      "browserImports": [
+        "./air-tricks-v080.mjs",
+        "./cinematic-v072.mjs",
+        "./cinematic-v072.mjs",
+        "./cinematic-v072.mjs",
+        "./circuit-layout-v060.mjs",
+        "./flight/boost/boost-spring-v0495.mjs",
+        "./flight/boost/boost-v060.mjs",
+        "./image-clarity-v0498.mjs",
+        "./smooth-track-v072.mjs",
+        "./smooth-track-v072.mjs",
+        "./track-3d-v072.mjs",
+        "./track-3d-v072.mjs",
+        "./track-3d-v072.mjs",
+        "./tracks/barriers/aero-barrier-v0496.mjs",
+        "./tracks/barriers/aero-barrier-v0497.mjs",
+        "./tracks/barriers/aero-barrier-v072.mjs",
+        "./tracks/barriers/aero-barrier-v072.mjs",
+        "./trial-v080.mjs",
+        "./trial-v080.mjs",
+        "./trial-v080.mjs",
+        "./trial-v080.mjs",
+        "./trial-v080.mjs",
+        "./velocity-language-v0496.mjs",
+        "./zone-wave-v060.mjs"
+      ]
+    },
+    {
+      "name": "browser-smoke-v081.mjs",
+      "oldPath": "skyshift/browser-smoke-v081.mjs",
+      "newPath": "skyshift/tests/browser/legacy/browser-smoke-v081.mjs",
+      "sha": "3139a53940c4af6d9141b02e0ea37e41ee36e0c3",
+      "browserImports": [
+        "./air-tricks-v081.mjs",
+        "./cinematic-v081.mjs",
+        "./cinematic-v081.mjs",
+        "./cinematic-v081.mjs",
+        "./circuit-layout-v060.mjs",
+        "./flight/boost/boost-spring-v0495.mjs",
+        "./flight/boost/boost-v060.mjs",
+        "./image-clarity-v0498.mjs",
+        "./smooth-track-v081.mjs",
+        "./smooth-track-v081.mjs",
+        "./track-3d-v081.mjs",
+        "./track-3d-v081.mjs",
+        "./track-3d-v081.mjs",
+        "./tracks/barriers/aero-barrier-v0496.mjs",
+        "./tracks/barriers/aero-barrier-v0497.mjs",
+        "./tracks/barriers/aero-barrier-v081.mjs",
+        "./tracks/barriers/aero-barrier-v081.mjs",
+        "./trial-v081.mjs",
+        "./trial-v081.mjs",
+        "./trial-v081.mjs",
+        "./trial-v081.mjs",
+        "./trial-v081.mjs",
+        "./velocity-language-v0496.mjs",
+        "./zone-wave-v060.mjs"
+      ]
+    }
+  ],
+  "readers": [
+    {
+      "path": "skyshift/tests/unit/cinematic-grade-v0210b.test.mjs",
+      "sha": "c4959ed9aad8b2ff0e180238777147bb49c6c36a",
+      "edits": [
+        {
+          "before": "\"./browser-cinematic-hero-v0210.mjs\"",
+          "after": "\"./tests/browser/browser-cinematic-hero-v0210.mjs\""
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/image-clarity-v0498.test.mjs",
+      "sha": "a86bf4abeadc7b45171cd9b1f40f1272980211b1",
+      "edits": [
+        {
+          "before": "\"./browser-smoke-v0498.mjs\"",
+          "after": "\"./tests/browser/legacy/browser-smoke-v0498.mjs\""
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+      "sha": "f78e9edfb4cc4a6283b69016b0f45f722da7d5b9",
+      "edits": [
+        {
+          "before": "\"./browser-smoke-v04991.mjs\"",
+          "after": "\"./tests/browser/legacy/browser-smoke-v04991.mjs\""
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+      "sha": "9f30e9af009b7feda43fbade230b78de94dfef3a",
+      "edits": [
+        {
+          "before": "\"./browser-smoke-v071.mjs\"",
+          "after": "\"./tests/browser/legacy/browser-smoke-v071.mjs\""
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/air-tricks-v080.test.mjs",
+      "sha": "a962ddb18a370db5445ddf14142189cfe8ea18a1",
+      "edits": [
+        {
+          "before": "\"./browser-smoke-v080.mjs\"",
+          "after": "\"./tests/browser/legacy/browser-smoke-v080.mjs\""
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-3d-v070.test.mjs",
+      "sha": "3c533a9a46ddfe8cfdc3c273691da59af154856f",
+      "edits": [
+        {
+          "before": "\"./browser-smoke-v081.mjs\"",
+          "after": "\"./tests/browser/legacy/browser-smoke-v081.mjs\""
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/speed-track-v051.test.mjs",
+      "sha": "a7cd74103fded1d5b9fe16e6ac07c4e81f79d690",
+      "edits": [
+        {
+          "before": "\"./browser-smoke-v081.mjs\"",
+          "after": "\"./tests/browser/legacy/browser-smoke-v081.mjs\""
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/circuit-v060.test.mjs",
+      "sha": "b97a454fc92f3ca1cfe1763c93730d951d205d0e",
+      "edits": [
+        {
+          "before": "\"./browser-smoke-v081.mjs\"",
+          "after": "\"./tests/browser/legacy/browser-smoke-v081.mjs\""
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/corkscrew-v072.test.mjs",
+      "sha": "eb75737eaa991fc0d256f6db9323291c6b78d7ea",
+      "edits": [
+        {
+          "before": "\"./browser-smoke-v081.mjs\"",
+          "after": "\"./tests/browser/legacy/browser-smoke-v081.mjs\""
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/full-circuit-v050.test.mjs",
+      "sha": "bdab6b035e2d14244f90064ea52f490c0f005720",
+      "edits": [
+        {
+          "before": "\"./browser-smoke-v081.mjs\"",
+          "after": "\"./tests/browser/legacy/browser-smoke-v081.mjs\""
+        }
+      ]
+    }
+  ]
+}

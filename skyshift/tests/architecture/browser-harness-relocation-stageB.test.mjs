@@ -48,7 +48,7 @@ test('known source-sensitive browser QA harnesses remain present at approved pat
       assert.ok(existsSync(resolve(browser, name)), 'Missing L1G runner: ' + name);
       continue; // Exact original Git blob and CI commands verified by independent L1G gate.
     }
-    assert.ok(existsSync(resolve(root, name)), 'Protected browser QA runner moved: ' + name);
-    assert.equal(existsSync(resolve(browser, name)), false, 'Protected browser QA runner unexpectedly copied: ' + name);
+    assert.ok(!existsSync(resolve(root, name)), 'Stale L1H root browser QA runner: ' + name);
+    assert.ok(existsSync(resolve(browser, name)), 'Missing L1H browser QA runner: ' + name);
   }
 });

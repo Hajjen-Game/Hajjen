@@ -76,5 +76,5 @@ test("A/B still selects exactly Phase A; Aurora is excluded",()=>{
  assert.match(game,/cinematicGradeEnabled\?installCinematicGradeHero:installCinematicHero/);
  assert.match(game,/cinematicGrade"\)!=="classic"/);
  assert.match(game,/compareBeforeCinematicGrade:"\?cinematicGrade=classic"/);
- assert.match(read("./browser-cinematic-hero-v0210.mjs"),/cinematicGrade=classic/);
+ assert.match(read("./tests/browser/browser-cinematic-hero-v0210.mjs"),/cinematicGrade=classic/);
 });

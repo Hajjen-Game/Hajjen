@@ -1,3 +1,4 @@
+import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT root consolidation R1: preserve original git byte hashes except one
@@ -55,5 +56,5 @@ test('R1 CI points to all relocated bootstraps and cumulative root inventory ref
   assert.ok(!workflow.includes('node --check skyshift/'+name),'Stale root syntax check for '+name);
  }
  const files=readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile());
- assert.equal(files.length,277,'R1 plus R1B plus R1C must leave 277 root files (468 minus all approved moves and one retirement)');
+ assert.equal(files.length,expectedRootFiles,'R1 plus R1B plus R1C must leave the approved number of root files (468 minus all approved moves and one retirement)');
 });

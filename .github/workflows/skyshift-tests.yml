@@ -301,13 +301,13 @@ jobs:
           node --check skyshift/premium-track-v0498.mjs
           node --check skyshift/legacy/game/game-v0498.mjs
           node --check skyshift/legacy/boot/boot-v0498.js
-          node --check skyshift/browser-smoke-v0498.mjs
+          node --check skyshift/tests/browser/legacy/browser-smoke-v0498.mjs
           node --check skyshift/reactive-hud-v0499.mjs
           node --check skyshift/legacy/game/game-v0499.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0499.mjs
           node --check skyshift/reactive-hud-v04991.mjs
           node --check skyshift/legacy/game/game-v04991.mjs
-          node --check skyshift/browser-smoke-v04991.mjs
+          node --check skyshift/tests/browser/legacy/browser-smoke-v04991.mjs
           node --check skyshift/flight/boost/boost-v050.mjs
           node --check skyshift/trial-v050.mjs
           node --check skyshift/smooth-track-v050.mjs
@@ -353,7 +353,7 @@ jobs:
           node --check skyshift/cinematic-v071.mjs
           node --check skyshift/legacy/game/game-v071.mjs
           node --check skyshift/legacy/boot/boot-v071.js
-          node --check skyshift/browser-smoke-v071.mjs
+          node --check skyshift/tests/browser/legacy/browser-smoke-v071.mjs
           node --check skyshift/track-3d-v072.mjs
           node --check skyshift/trial-v072.mjs
           node --check skyshift/smooth-track-v072.mjs
@@ -368,7 +368,7 @@ jobs:
           node --check skyshift/core/frame-pacing-v080.mjs
           node --check skyshift/legacy/game/game-v080.mjs
           node --check skyshift/legacy/boot/boot-v080.js
-          node --check skyshift/browser-smoke-v080.mjs
+          node --check skyshift/tests/browser/legacy/browser-smoke-v080.mjs
           node --check skyshift/track-3d-v081.mjs
           node --check skyshift/air-tricks-v081.mjs
           node --check skyshift/trial-v081.mjs
@@ -378,7 +378,7 @@ jobs:
           node --check skyshift/cinematic-v081.mjs
           node --check skyshift/legacy/game/game-v081.mjs
           node --check skyshift/legacy/boot/boot-v081.js
-          node --check skyshift/browser-smoke-v081.mjs
+          node --check skyshift/tests/browser/legacy/browser-smoke-v081.mjs
           node --check skyshift/circuit-layout-v082.mjs
           node --check skyshift/track-3d-v082.mjs
           node --check skyshift/flight/boost/boost-v082.mjs
@@ -2016,7 +2016,7 @@ jobs:
       - name: Install browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify new 3D silhouette, mobile budget, matched camera screenshot A/B
-        run: node skyshift/browser-cinematic-hero-v0210.mjs
+        run: node skyshift/tests/browser/browser-cinematic-hero-v0210.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

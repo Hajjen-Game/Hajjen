@@ -59,10 +59,10 @@ test('Stage L: protected browser readers remain at approved paths',()=>{
    assert.ok(existsSync(resolve(folder,name)),'Missing L1G QA: '+name);
    continue; // Independent L1G gate verifies original blob and CI commands.
   }
-  assert.ok(existsSync(resolve(root,name)),'Protected browser source moved: '+name);
-  assert.equal(existsSync(resolve(folder,name)),false,'Protected browser source copied: '+name);
+  assert.ok(!existsSync(resolve(root,name)),'Stale L1H browser source: '+name);
+  assert.ok(existsSync(resolve(folder,name)),'Missing L1H browser source: '+name);
  }
  for(const name of ['browser-smoke-v0498.mjs','browser-smoke-v04991.mjs',
   'browser-smoke-v071.mjs','browser-smoke-v080.mjs','browser-smoke-v081.mjs'])
-  assert.ok(existsSync(resolve(root,name)),'Protected historical smoke reader moved: '+name);
+  {assert.ok(!existsSync(resolve(root,name)),'Stale L1H smoke reader: '+name);assert.ok(existsSync(resolve(folder,'legacy',name)),'Missing L1H smoke reader: '+name);}
 });

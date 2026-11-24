@@ -1,3 +1,4 @@
+import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT R1D: prove exact original Git blobs and historical reader assertions.
@@ -54,8 +55,8 @@ test('R1D: all 34 source readers invert to their exact pre-migration Git blob SH
   }
  }
 });
-test('R1D: measured 277 direct root files, CI paths and original live entrypoints',()=>{
- assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,277);
+test('R1D: measured approved direct root files, CI paths and original live entrypoints',()=>{
+ assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,expectedRootFiles);
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const f of manifest.files){
   assert.ok(historicalSyntaxCheck(workflow,f.newPath),'Missing historic bootstrap syntax gate '+f.name);

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {CORKSCREW,TRACK_3D,corkscrewAt,corkscrewBankAt,
  corkscrewProgressAt,MAGNETIC_WALL,elevationAt,gradeAt}
- from "../../track-3d-v072.mjs";
+ from "../../tracks/shared/track-3d-v072.mjs";
 import {TRIAL,CIRCUIT,GAPS,GUARDRAIL,bankAt,bankDegreesAt,
  surfaceNormalAt,surfaceHeightAt,positionAt,poseAt,projectWorldToTrack,
  widthAt,guardrailLateralLimit,headingAt,curvatureAt,COURSE_SEGMENTS,

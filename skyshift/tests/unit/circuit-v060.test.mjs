@@ -5,7 +5,7 @@ import {readFileSync} from "node:fs";
 import {
  CIRCUIT,CIRCUIT_LENGTH,AUTHORED_SECTIONS,COURSE_SEGMENTS,
  lapPosition,sectionAt,circuitPlanSummary
-} from "../../circuit-layout-v060.mjs";
+} from "../../tracks/shared/circuit-layout-v060.mjs";
 import {
  TRIAL,ARCHES,GUARDRAIL,MAX_BANK_RAD,GEOMETRY_BREAKS,
  CHECKPOINTS,LOOP_CLOSURE_ERROR_METERS,
@@ -229,7 +229,7 @@ test("production route preserves original HUD, SMAA and three-lap telemetry",()=
   "zone-wave-v060","smooth-track-v0901","premium-track-v0901",
   "aero-barrier-v0901"]){
   if(dep==="circuit-layout-v082"){
-    assert.ok(src("./trial-v0901.mjs").includes('from "./circuit-layout-v082.mjs"'));
+    assert.ok(src("./trial-v0901.mjs").includes('from "./tracks/shared/circuit-layout-v082.mjs"'));
     continue;
    }
   assert.ok(game.includes('from "./'+dep+'.mjs"'),dep);

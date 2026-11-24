@@ -117,3 +117,6 @@ jobs:
 
       - name: EF02G verify retired historical rendering modules and original syntax
         run: node --test skyshift/tests/architecture/ef02-retirement-historical-rendering.test.mjs
+
+      - name: EF02H verify exact track geometry ownership and consumer path parity
+        run: node --test skyshift/tests/architecture/ef02h-track-geometry-ownership.test.mjs

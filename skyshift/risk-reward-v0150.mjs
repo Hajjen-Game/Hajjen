@@ -2,7 +2,7 @@
 // Two deliberate dual-line decisions AFTER difficult corners, on broad straights.
 // Exactly one reward per gate per lap. No walls, gaps, hidden steering or new
 // geometry. All source lane bounds are used by the shader and 120Hz collision.
-import {CIRCUIT} from "./circuit-layout-v082.mjs";
+import {CIRCUIT} from "./tracks/shared/circuit-layout-v082.mjs";
 export const RISK_REWARD_0150=Object.freeze({
  version:"track-rhythm-risk-reward-0150",
  lapMeters:CIRCUIT.lapLength,

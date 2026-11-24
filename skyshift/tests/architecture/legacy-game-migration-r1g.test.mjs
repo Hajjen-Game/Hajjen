@@ -1,3 +1,4 @@
+import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 // Mandatory R1G original Git identity / dependency / live entrypoint gate.
@@ -30,7 +31,7 @@ test('R1G: 42 immutable game sources, equivalent imports and held entrypoints',(
 });
 test('R1G: historical source readers and boot imports invert exactly',()=>{
  assert.equal(m.bootstraps.length,42);assert.ok(m.tests.length>=50);
- for(const t of m.tests){const s=read(t.path),restored=restoreR1GGamePaths(s);assert.notEqual(restored,s,t.path);assert.equal(sha(restored),t.originalGitBlobShaBeforeR1G,t.path)}
+ for(const t of m.tests){const s=read(t.path),restored=restoreR1GGamePaths(restoreEF02H(s,t.path));assert.notEqual(restored,s,t.path);assert.equal(sha(restored),t.originalGitBlobShaBeforeR1G,t.path)}
  for(const b of m.bootstraps){const s=readHistorical(resolve(repo,b.path));assert.equal(sha(restoreR1GBootImport(s)),b.originalGitBlobShaBeforeR1G,b.path);const target='../game/game-v'+b.version+'.mjs';assert.equal(s.split('import("'+target).length,2,b.path);assert.ok(historicalExists(resolve(dirname(resolve(repo,b.path)),target)))}
  const wf=read('.github/workflows/skyshift-tests.yml');for(const f of m.files){assert.ok(historicalSyntaxCheck(wf,f.newPath),f.name);assert.ok(!wf.includes('node --check '+f.oldPath),f.name)}
 });

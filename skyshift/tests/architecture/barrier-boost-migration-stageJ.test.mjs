@@ -1,3 +1,4 @@
+import {restoreEF02H,ef02hCurrentPath} from './ef02h-path-overlay.mjs';
 // SKYSHIFT Architecture Cleanup 2.0 Stage J: preserve immutable source, paths and runtime imports.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -22,11 +23,11 @@ test('Stage J preserves exact 35 original barrier/boost Git blobs after only imp
  for(const [name,{destination,originalGitBlobSha}] of entries){
   assert.equal(existsSync(resolve(root,name)),false,'Unmoved old root module '+name);
   const relocated=resolve(root,destination);assert.ok(existsSync(relocated),'Missing relocated module '+name);
-  const source=readFileSync(relocated,'utf8');
+  const source=restoreEF02H(readFileSync(relocated,'utf8'),relocated);
   const reconstructed=source.replace(/(["'])(\.{1,2}\/[^"'\r\n]+)\1/g,(ent,quote,spec)=>{
    const pure=spec.split(/[?#]/)[0],suffix=spec.slice(pure.length);
    const current=resolve(dirname(relocated),pure);
-   assert.ok(existsSync(current),'Unresolved Stage J ESM/file reference '+name+' -> '+spec);
+   assert.ok(existsSync(ef02hCurrentPath(current)),'Unresolved Stage J ESM/file reference '+name+' -> '+spec);
    const oldTarget=originalAbs.get(current)||current;
    return quote+importSpec(resolve(root,name),oldTarget)+suffix+quote;
   });

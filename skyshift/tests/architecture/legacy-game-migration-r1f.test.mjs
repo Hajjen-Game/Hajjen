@@ -1,3 +1,4 @@
+import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
@@ -41,7 +42,7 @@ test('R1F: 25 historical original unit reader blobs invert exactly',()=>{
  assert.equal(manifest.tests.length,25);
  for(const item of manifest.tests){
   const source=readFileSync(resolve(repo,item.path),'utf8');
-  const restored=restoreR1FGamePaths(restoreR1GGamePaths(source));
+  const restored=restoreR1FGamePaths(restoreR1GGamePaths(restoreEF02H(source,item.path)));
   assert.notEqual(restored,source,'Historical game source read did not rebase '+item.path);
   assert.equal(sha(restored),item.originalGitBlobShaBeforeR1F,'Historic unit assertions mutated '+item.path);
  }

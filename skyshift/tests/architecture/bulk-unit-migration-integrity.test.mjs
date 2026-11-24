@@ -1,3 +1,4 @@
+import {restoreEF02H,ef02hCurrentPath} from './ef02h-path-overlay.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT 0.28.9.8 stage 6 — bulk relocation audit.
 // 60 migrated tests must be assertion-identical to the original Git blobs;
@@ -52,7 +53,7 @@ test('60 bulk-migrated tests exactly preserve their original assertions and sour
     const migratedPath = resolve(unitDir, filename);
     assert.equal(existsSync(migratedPath), true, 'Missing migrated test: ' + filename);
     const source = readFileSync(migratedPath, 'utf8');
-    const inverse = restoreOriginalImports(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(restoreR1BBootPaths(restoreR1CBootPaths(restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(restoreR1GGamePaths(source))))))))))))))));
+    const inverse = restoreOriginalImports(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(restoreR1BBootPaths(restoreR1CBootPaths(restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(restoreR1GGamePaths(restoreEF02H(source,migratedPath)))))))))))))))));
     const bytes = Buffer.from(inverse, 'utf8');
     const sha = createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
     assert.equal(sha, expectedBlobSha, 'Unexpected test content change: ' + filename);

@@ -1,3 +1,4 @@
+import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
@@ -46,7 +47,7 @@ test('R1D: all 34 source readers invert to their exact pre-migration Git blob SH
  for(const t of manifest.tests){
   assert.ok(!seen.has(t.path),'Duplicate historic test '+t.path);seen.add(t.path);
   const source=readFileSync(resolve(repo,t.path),'utf8');
-  const restored=restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(restoreR1GGamePaths(source))));
+  const restored=restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(restoreR1GGamePaths(restoreEF02H(source,t.path)))));
   assert.notEqual(restored,source,'No versioned boot reference changed '+t.path);
   assert.equal(sha(restored),t.originalGitBlobSha,'Original historic test changed beyond audited path adjustments '+t.path);
   for(const f of manifest.files){

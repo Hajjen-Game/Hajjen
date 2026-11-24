@@ -8,7 +8,7 @@ export const BOOST_CONFIG=Object.freeze({
  padHalfWidthMeters:4.6,
  colorHex:0xffbe62
 });
-import {CIRCUIT} from "../../circuit-layout-v060.mjs";
+import {CIRCUIT} from "../../tracks/shared/circuit-layout-v060.mjs";
 export const BOOST_PADS=Object.freeze([
  Object.freeze({id:"launch",start:210,end:238,lateralMin:-4.6,lateralMax:4.6}),
  Object.freeze({id:"technical-release",start:1990,end:2020,lateralMin:-4.6,lateralMax:4.6}),

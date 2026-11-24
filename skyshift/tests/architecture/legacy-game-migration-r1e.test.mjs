@@ -1,3 +1,4 @@
+import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
@@ -46,7 +47,7 @@ test('R1E: all 28 original historical unit test Git blobs restore exactly after 
  assert.equal(manifest.tests.length,28);
  for(const f of manifest.tests){
   const source=readFileSync(resolve(repo,f.path),'utf8');
-  const restored=restoreR1EGamePaths(restoreR1GGamePaths(source));
+  const restored=restoreR1EGamePaths(restoreR1GGamePaths(restoreEF02H(source,f.path)));
   assert.notEqual(restored,source,'No game source path changed '+f.path);
   assert.equal(sha(restored),f.originalGitBlobSha,'Historical assertion changed beyond path updates '+f.path);
  }

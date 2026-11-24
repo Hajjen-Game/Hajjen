@@ -1,7 +1,7 @@
 // SKYSHIFT 0.28.3 — NEON VAULT boost clarity, no SAFE/RISK detours.
 // The source of truth for new Vault pads. 0.28.2, Skyline and Aurora retain
 // their exact prior data and graphics. This module never touches flight/GRIP.
-import {CIRCUIT} from "../../circuit-layout-v082.mjs";
+import {CIRCUIT} from "../../tracks/shared/circuit-layout-v082.mjs";
 
 export const VAULT_BOOST_0283=Object.freeze({
  version:"0.28.3",id:"vault-main-boost-clarity",

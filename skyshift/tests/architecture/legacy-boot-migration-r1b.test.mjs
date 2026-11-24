@@ -1,3 +1,4 @@
+import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
@@ -62,7 +63,7 @@ test('R1B original source SHA of 22 historic unit readers is retained, with no a
   assert.ok(!seen.has(item.path),'duplicate historical source reader '+item.path);
   seen.add(item.path);
   const p=resolve(repo,item.path),source=readFileSync(p,'utf8');
-  const restored=restoreR1BBootPaths(restoreR1GGamePaths(source));
+  const restored=restoreR1BBootPaths(restoreR1GGamePaths(restoreEF02H(source,item.path)));
   assert.notEqual(restored,source,'Missing R1B reader rebase '+item.path);
   assert.equal(sha(restored),item.originalGitBlobSha,
    'Historical test assertion or source changed '+item.path);

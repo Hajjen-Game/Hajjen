@@ -253,7 +253,7 @@ try{
  const circuit=await page.evaluate(async()=>{
   const [trial,wave,boost,layout]=await Promise.all([
    import("./trial-v081.mjs"),import("./zone-wave-v060.mjs"),
-   import("./flight/boost/boost-v060.mjs"),import("./circuit-layout-v060.mjs")]);
+   import("./flight/boost/boost-v060.mjs"),import("./tracks/shared/circuit-layout-v060.mjs")]);
   const p0=trial.poseAt(0),p1=trial.poseAt(3400),p2=trial.poseAt(6800);
   const flight=trial.newFlightState(),before=flight.currentSpeed;
   trial.setZoneSpeedStage(flight,1);
@@ -312,7 +312,7 @@ try{
  // ballistic impulse/landings on first and fastest final lap in Chrome.
  const skylineLeap=await page.evaluate(async()=>{
   const [trial,terrain,deck,rails,cinema]=await Promise.all([
-   import("./trial-v081.mjs"),import("./track-3d-v081.mjs"),
+   import("./trial-v081.mjs"),import("./tracks/shared/track-3d-v081.mjs"),
    import("./smooth-track-v081.mjs"),import("./tracks/barriers/aero-barrier-v081.mjs"),
    import("./cinematic-v081.mjs")]);
   const mesh=deck.createSmoothDeckData(),barrier=rails.createAeroBarrierData();
@@ -372,7 +372,7 @@ try{
  // same inclined 70-degree physical frame at a repeatable world location.
  const wallRide=await page.evaluate(async()=>{
   const [trial,track,rails,camera]=await Promise.all([
-   import("./trial-v081.mjs"),import("./track-3d-v081.mjs"),
+   import("./trial-v081.mjs"),import("./tracks/shared/track-3d-v081.mjs"),
    import("./tracks/barriers/aero-barrier-v081.mjs"),import("./cinematic-v081.mjs")]);
   const s=2558,n=trial.surfaceNormalAt(s);
   const center=trial.positionAt(s,0,0),left=trial.positionAt(s,-6,0),
@@ -410,7 +410,7 @@ try{
  // normal and drive the segment at two physical zone speeds.
  const corkscrew=await page.evaluate(async()=>{
   const [trial,track,cinema,deck]=await Promise.all([
-   import("./trial-v081.mjs"),import("./track-3d-v081.mjs"),
+   import("./trial-v081.mjs"),import("./tracks/shared/track-3d-v081.mjs"),
    import("./cinematic-v081.mjs"),import("./smooth-track-v081.mjs")]);
   const center=3171.5,n=trial.surfaceNormalAt(center);
   const samples=[3005,3075,3171.5,3255,3337.9,3338]

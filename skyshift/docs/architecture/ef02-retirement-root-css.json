@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "stage": "EF02F",
+  "archiveCommit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+  "baseCommit": "f231e99920a18ace09c6f109ef4f8d95f02ddcf0",
+  "previousRootFiles": 271,
+  "expectedRootFiles": 252,
+  "files": [
+    {
+      "path": "skyshift/fleet-v010.css",
+      "sha": "0b15a7eb0207bf83bdf6cef27643ed949ab7e929",
+      "bytes": 4336,
+      "readers": []
+    },
+    {
+      "path": "skyshift/fleet-v0101.css",
+      "sha": "71fdf2b668845f6fdab9c2134223bb39c1cdbc6e",
+      "bytes": 4722,
+      "readers": [
+        "skyshift/tests/unit/stingray-evo-v0101.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/style-v0150.css",
+      "sha": "4c2ac4972e7b41530fbc675dd36b5037b4c06d1a",
+      "bytes": 818,
+      "readers": []
+    },
+    {
+      "path": "skyshift/style-v0151.css",
+      "sha": "56cff136e8058285acdb8676cd3b21010c07e9b5",
+      "bytes": 1191,
+      "readers": []
+    },
+    {
+      "path": "skyshift/style-v02.css",
+      "sha": "108ba99f8c3fd39a604b6b53fa7a6ff3485896bb",
+      "bytes": 11665,
+      "readers": []
+    },
+    {
+      "path": "skyshift/style-v03.css",
+      "sha": "8ba867ab838bcd7532cc8f7f284151fa2151fb89",
+      "bytes": 12445,
+      "readers": []
+    },
+    {
+      "path": "skyshift/style-v031.css",
+      "sha": "cd2ce0260f0154d97e8f77028b0057410125bde4",
+      "bytes": 14376,
+      "readers": []
+    },
+    {
+      "path": "skyshift/style-v033.css",
+      "sha": "e2319e42b756fed6089f1ae27ae4efa77f177d80",
+      "bytes": 15272,
+      "readers": []
+    },
+    {
+      "path": "skyshift/style-v0331.css",
+      "sha": "dec4ffa242c53da6236769d5835f3d4549f5f2e4",
+      "bytes": 15457,
+      "readers": [
+        "skyshift/tests/unit/luminance-v0331.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/style-v034.css",
+      "sha": "a9519f0e5781e78a18272b85ef4c2af148510aae",
+      "bytes": 15795,
+      "readers": []
+    },
+    {
+      "path": "skyshift/style-v04.css",
+      "sha": "aacef6c962646df1923dfc9c23ad11b097429f88",
+      "bytes": 16120,
+      "readers": []
+    },
+    {
+      "path": "skyshift/style-v041.css",
+      "sha": "882bf2bd5ca0bdbfb3c6f23a9d31968577e15a65",
+      "bytes": 16268,
+      "readers": []
+    },
+    {
+      "path": "skyshift/style-v042.css",
+      "sha": "d91f16912fc28e21ee76d68d9524c16d82c15d6a",
+      "bytes": 16446,
+      "readers": []
+    },
+    {
+      "path": "skyshift/style-v043.css",
+      "sha": "e2289dd090f2b82c0d02e4790f9ba06cc22fc1f0",
+      "bytes": 17079,
+      "readers": [
+        "skyshift/tests/unit/mobile-boot-v04911.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/style-v0499.css",
+      "sha": "0079c51cb8ae0e21c5360505554db918055e54e2",
+      "bytes": 27893,
+      "readers": []
+    },
+    {
+      "path": "skyshift/style-v04991.css",
+      "sha": "a2ad0289240004009710c5d592e51ad14aee8489",
+      "bytes": 33093,
+      "readers": [
+        "skyshift/tests/unit/racing-hud-v04991.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/style-v060.css",
+      "sha": "3c6148ad33485a207eac898269173181cb47029e",
+      "bytes": 33621,
+      "readers": []
+    },
+    {
+      "path": "skyshift/style-v080.css",
+      "sha": "a51d54e39bef318a2a394e4e27cff03da73742d6",
+      "bytes": 2188,
+      "readers": [
+        "skyshift/tests/unit/air-tricks-v080.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/style-v081.css",
+      "sha": "b58554ea385db7ef2c205a3df2b245a7112b3a0c",
+      "bytes": 746,
+      "readers": [
+        "skyshift/tests/unit/grip-leap-v081.test.mjs"
+      ]
+    }
+  ],
+  "retainedRootStylesheets": [
+    "skyshift/fleet-v0102.css",
+    "skyshift/style-v0121.css",
+    "skyshift/style-v0130.css",
+    "skyshift/style-v0131.css",
+    "skyshift/style-v0140.css",
+    "skyshift/style-v0160.css",
+    "skyshift/style-v061.css",
+    "skyshift/style-v083.css",
+    "skyshift/style.css"
+  ],
+  "activeDocumentPaths": [
+    "skyshift/index.html",
+    "skyshift/material-grade-v0203.html"
+  ],
+  "reason": "Retire obsolete stylesheets; current live and comparison documents load the same eight retained files. Preserve style.css until individually classified. All six historical CSS readers already use the pinned archive helper."
+}

@@ -3,3 +3,6 @@ Base/rollback a7210a6489dc4cba7689e59defb586ded97b6f87; inventory 45472565158. F
 
 ### EF02I CI repair / EF02J next
 Architecture run 45475646050 failed L1D immutable reader SHA (premium-track-v0481.test.mjs). Four L1D readers are affected by EF02I. Apply the existing exact manifest-scoped inverse before L1D's unchanged original import and SHA checks. No assertions removed; no source algorithm or gameplay changes. The inspected architecture, fast PR and historical workflow files do not name the fifteen moved unit readers in executable unit suites; they still receive historical syntax/identity checks. This is preliminary evidence, not retirement proof. Owner approved adjusting the roadmap based on results: prioritize EF02J historical-test/dependency rationalization after resolving EF02I and before further obsolete-module moves; follow the new binding section 0 criteria, maintain real behavior/visual coverage and keep unknown cases. EF02I remains draft until new HEAD and prior #222 main gates pass.
+
+## Verified result
+#223 merged at 254e869bfa3a912793117913b13d44a0eb01fd8a; 36/36 final checks on f0409bb367ce8d97c9802ca256e1a70278f837ee (45477230982 and 45477230978). All #222 main checks passed. All 15 destination paths present and old paths absent; CI inverse checks green. Root 220, total 1069. EF02J now starts under the approved adjusted plan.

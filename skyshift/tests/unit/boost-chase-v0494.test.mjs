@@ -65,10 +65,10 @@ test("camera lag has a capped FORWARD separation, not a steering correction",()=
 });
 test("live page and game use new boost, camera, and resilient mobile bootstrap",()=>{
  const html=src("./index.html"),boot=src("./legacy/boot/boot-v0494.js");
- const game=src("./game-v0494.mjs");
+ const game=src("./legacy/game/game-v0494.mjs");
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(html,/data-game-module="game-v0103\.mjs"/);
- assert.match(boot,/import\("\.\.\/\.\.\/game-v0494\.mjs\?v=0\.4\.9\.4"\)/);
+ assert.match(boot,/import\("\.\.\/game\/game-v0494\.mjs\?v=0\.4\.9\.4"\)/);
  assert.match(boot,/__skyshiftBootFail/);
  assert.match(game,/from "\.\/boost-v0494\.mjs"/);
  assert.match(game,/from "\.\/trial-v0494\.mjs"/);

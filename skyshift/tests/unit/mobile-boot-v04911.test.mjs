@@ -7,7 +7,7 @@ test("Classic, dependency-free bootstrap loads before Three.js and captures impo
  const html=src("./index.html"),boot=src("./legacy/boot/boot-v04911.js");
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.doesNotMatch(html,/<script type="module" src="\.\/game-v04911/);
- assert.match(boot,/import\("\.\.\/\.\.\/game-v04911\.mjs\?v=0\.4\.9\.1\.1"\)\.catch\(fail\)/);
+ assert.match(boot,/import\("\.\.\/game\/game-v04911\.mjs\?v=0\.4\.9\.1\.1"\)\.catch\(fail\)/);
  assert.match(boot,/__skyshiftBootReady/);
  assert.match(boot,/__skyshiftBootFail/);
  assert.match(boot,/window\.addEventListener\("unhandledrejection"/);
@@ -18,7 +18,7 @@ test("Classic, dependency-free bootstrap loads before Three.js and captures impo
  assert.match(src("./style-v043.css"),/\.boot-state\.failed/);
 });
 test("Hotfix still builds the same wave, physics and ship, but controls init first",()=>{
- const s=src("./game-v04911.mjs");
+ const s=src("./legacy/game/game-v04911.mjs");
  for(const mod of ["trial-v049.mjs","zone-wave-v0491.mjs",
   "premium-track-v0491.mjs","aero-barrier-v0491.mjs",
   "manta-blade-v0484.mjs","engine-trails-v0484.mjs"]){

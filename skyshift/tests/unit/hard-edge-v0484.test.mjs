@@ -86,7 +86,7 @@ test("Actual FX geometry emits exactly two independent streak pairs, not center"
  fx.dispose();assert.ok(mesh.removed);
 });
 test("No old center engine light or +/-0.78m fake emitters survive live integration",()=>{
- const game=read("game-v0484.mjs");
+ const game=read("legacy/game/game-v0484.mjs");
  const old=read("premium-v045.mjs");
  assert.match(game,/from "\.\/engine-trails-v0484\.mjs"/);
  assert.match(game,/from "\.\/manta-blade-v0484\.mjs"/);
@@ -99,7 +99,7 @@ test("No old center engine light or +/-0.78m fake emitters survive live integrat
  assert.match(game,/enginePlumes\[i\]\.scale\.set\(shape\+bankVariation/);
 });
 test("The old pilot/boost model and course visual material are unchanged",()=>{
- const game=read("game-v0484.mjs"),html=read("index.html");
+ const game=read("legacy/game/game-v0484.mjs"),html=read("index.html");
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(game,/from "\.\/trial-v048\.mjs"/);
  assert.match(game,/from "\.\/premium-track-v0482\.mjs"/);

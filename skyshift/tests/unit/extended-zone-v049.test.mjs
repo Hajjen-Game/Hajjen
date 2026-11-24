@@ -161,7 +161,7 @@ test("four track palettes are distinct and staged shader updates never rebuild g
  assert.match(shader.fragmentShader,/totalEmissiveRadiance \+= zoneGuide/);
 });
 test("active 0.4.9 uses extended modules, dynamic palettes and no screen flash",()=>{
- const game=source("game-v049.mjs"),page=source("index.html");
+ const game=source("legacy/game/game-v049.mjs"),page=source("index.html");
  assert.match(page,/boot-v0103\.js\?v=0\.10\.3/);
  for(const dep of ["trial-v049","boost-v049","premium-track-v049","smooth-track-v049","aero-barrier-v049","zone-wave-v049"])
   assert.ok(game.includes(`from "./${dep}.mjs"`),dep);

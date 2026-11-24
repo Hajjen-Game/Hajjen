@@ -3,28 +3,29 @@ import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,
  newFlightState,stepFlight,clamp,lerp
-} from "./trial-v0494.mjs";
-import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v0494.mjs";
-import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v0496.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v0493.mjs";
-import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0496.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v043.mjs";
-import { MESH_SPEC } from "./smooth-track-v049.mjs";
+} from "../../trial-v0494.mjs";
+import { BOOST_PADS,BOOST_CONFIG } from "../../flight/boost/boost-v0494.mjs";
+import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "../../premium-track-v0498.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "../../zone-wave-v0493.mjs";
+import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "../../manta-blade-v0484.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "../../engine-trails-v0496.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v0498.mjs";
+import { MESH_SPEC } from "../../smooth-track-v049.mjs";
 import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./core/frame-pacing-v044.mjs";
-import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
-import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cinematicFov,engineLightFactor } from "./cinematic-v045.mjs";
-import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./flight/boost/boost-spring-v0495.mjs";
-import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "./velocity-language-v0496.mjs";
-import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier-v0496.mjs";
-import { installSpaceBackdrop } from "./space-v0496.mjs";
-import { createContactShadow } from "./ship-v034.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
+} from "../../core/frame-pacing-v044.mjs";
+import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "../../flight-motion-v044.mjs";
+import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cinematicFov,engineLightFactor } from "../../cinematic-v045.mjs";
+import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "../../flight/boost/boost-spring-v0495.mjs";
+import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "../../velocity-language-v0496.mjs";
+import { installAeroBarriers,AERO_BARRIER } from "../../tracks/barriers/aero-barrier-v0497.mjs";
+import { installSpaceBackdrop } from "../../space-v0496.mjs";
+import { createContactShadow } from "../../ship-v034.mjs";
+import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "../../image-clarity-v0498.mjs";
+import { LUMINANCE,validateLuminance } from "../../luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);
@@ -62,8 +63,9 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,stickPointe
  keys:new Set(),bannerTimeout:null,toastTimeout:null,trackHint:-1};
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
+let claritySettings=null;
 let neonKit,neonPipeline,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop;
-let cameraLook=new THREE.Vector3(),shadowMesh,pylonMesh,premiumFX;
+let cameraLook=new THREE.Vector3(),shadowMesh,premiumFX;
 let perfFrames=0,perfTotal=0,perfMin=200;
 let renderSamples=0,renderCallTotal=0,renderCallPeak=0,triangleTotal=0;
 let frameClock=createFrameClock(),frameMonitor=createFrameMonitor();
@@ -81,7 +83,6 @@ let previousSector=0,sceneReady=false,fullscreenController=null,lastRailLog=0;
 let zoneWave=newZoneWaveState();
 let waveSmokeHold=false;
 const SHADOW_NORMAL=new THREE.Vector3(),SHADOW_PLANE_NORMAL=new THREE.Vector3(0,0,1);
-const reusable=new THREE.Object3D();
 
 function bestForTrial(){
  try{return Number(localStorage.getItem("skyshift-zone-wave-best-v049"))||0;}
@@ -246,46 +247,12 @@ function makeArch(s,label,color,wide=16){
 }
 
 function buildDecor(){
- // Track beacons, arches and signs only. World scenery lives in world-v034.
- const beaconGeo=new THREE.BoxGeometry(.17,1.78,.21);
- const beaconCapacity=Math.ceil(TRIAL.length/18)*2+6;
- const beacon=new THREE.InstancedMesh(beaconGeo,neonKit.beacon,beaconCapacity);
- const beaconCore=new THREE.InstancedMesh(
-   new THREE.BoxGeometry(.038,1.62,.065),neonKit.beaconCore,beaconCapacity);
- const beaconGlow=new THREE.InstancedMesh(
-   new THREE.BoxGeometry(.34,2.04,.38),neonKit.beaconHalo,beaconCapacity);
- // Dark hardware makes the small luminous elements feel *embedded* in a product.
- const beaconHousing=new THREE.InstancedMesh(
-   new THREE.BoxGeometry(.30,2.12,.34),
-   new THREE.MeshStandardMaterial({
-      color:LUMINANCE.housingColor,metalness:.61,roughness:.44
-    }),beaconCapacity);
- let i=0;
- for(let s=12;s<TRIAL.length-8;s+=18){
-   if(!roadIntervals(s).length)continue;
-   for(const dir of [-1,1]){
-     const lanes=roadIntervals(s);
-     const offset=dir<0?lanes[0][0]-1.0:lanes[lanes.length-1][1]+1.0;
-     const p=positionAt(s,offset,.92);
-     reusable.position.set(p.x,p.y,p.z);
-     reusable.rotation.set(0,-poseAt(s).heading,0);
-     reusable.scale.set(1,1,1);reusable.updateMatrix();
-     beacon.setMatrixAt(i,reusable.matrix);
-     beaconCore.setMatrixAt(i,reusable.matrix);
-     beaconGlow.setMatrixAt(i,reusable.matrix);
-     beaconHousing.setMatrixAt(i,reusable.matrix);
-     i++;
-   }
- }
- for(const mesh of [beaconHousing,beaconGlow,beacon,beaconCore]){
-   mesh.count=i;mesh.instanceMatrix.needsUpdate=true;world.add(mesh);
- }
- pylonMesh=beacon;
- // The huge start gantry and prototype lettering blocked the racing view.
+ // The invisible/visually noisy roadside beacons (four instanced pillar
+ // layers every 18m) are removed completely, not merely hidden.
+ // Keep only the authored FINISH arch; the raised rails and chevrons now
+ // communicate every turn and carry the continuous spectral zone wave.
  for(const arch of ARCHES)if(arch.label==="FINISH")
   makeArch(arch.s,arch.label,arch.color,widthAt(arch.s)+.5);
- // Forward signage names the two intentional corners; no fake obstacles.
- // Bend direction is communicated through continuous material lines.
 }
 function makeShip(){
   // Manta Blade silhouette: broad delta wings, open trailing scallop, twin inset thrust slots.
@@ -314,11 +281,12 @@ function initScene(){
  scene.fog=new THREE.FogExp2(COLOR[0].fog,LUMINANCE.fogDensity*.57);
  camera=new THREE.PerspectiveCamera(67,innerWidth/Math.max(1,innerHeight),.1,650);
  scene.add(camera);
- // Prefer a lower-memory context on older Android GPUs while retaining
- // full visual fidelity for the existing modern iPhone target.
- const limitedMemory=Number(navigator.deviceMemory)>0&&
-   Number(navigator.deviceMemory)<=4;
- const options={canvas:UI.canvas,antialias:!limitedMemory,
+ // Explicitly select quality based on real device capabilities. The
+ // HDR composer owns anti-aliasing (SMAA); canvas MSAA would only waste
+ // memory and cannot smooth our offscreen RenderPass.
+ claritySettings=selectClarityProfile(navigator.deviceMemory,devicePixelRatio||1);
+ const limitedMemory=claritySettings.lowMemory;
+ const options={canvas:UI.canvas,antialias:false,
   powerPreference:limitedMemory?"default":"high-performance"};
  try{
   renderer=new THREE.WebGLRenderer(options);
@@ -326,9 +294,7 @@ function initScene(){
   renderer=new THREE.WebGLRenderer({...options,
    antialias:false,powerPreference:"default"});
  }
- const safeDpr=limitedMemory?1.35:NEON_TUNING.maxPixelRatio;
- renderer.setPixelRatio(Math.min(devicePixelRatio||1,
-  NEON_TUNING.maxPixelRatio,safeDpr));
+ renderer.setPixelRatio(claritySettings.renderDpr);
  renderer.setSize(innerWidth,innerHeight,false);
  renderer.outputColorSpace=THREE.SRGBColorSpace;
  // Sum renderer workload across all composer passes (last pass alone=1 call).
@@ -360,6 +326,8 @@ function initScene(){
  // HDR multilayer bloom renders *after* the beauty pass and before tone mapping.
  neonPipeline=createNeonPipeline(THREE,renderer,scene,camera);
  neonPipeline.resize(innerWidth,innerHeight);
+ // Non-interactive rendering diagnostic for browser CI and exported audits.
+ window.__skyshiftClarityInfo=()=>clarityAudit(claritySettings,neonPipeline);
  addEventListener("resize",resize);
  sceneReady=true;
 }
@@ -727,15 +695,17 @@ function loop(now){
    renderCallTotal+=work.calls;renderCallPeak=Math.max(renderCallPeak,work.calls);
    triangleTotal+=work.triangles;
    observeFrame(frameMonitor,rawDt,renderCpuMs);
-   // Start at full premium quality. Only sustained low frame pacing changes
-   // internal bloom/scene buffer resolution; UI/canvas keep native DPR.
-   const availableDpr=Math.min(devicePixelRatio||1,NEON_TUNING.maxPixelRatio);
-   const nextRatio=nextAdaptiveRatio(
-     adaptiveQuality,rawDt*1000,now,availableDpr
+   // The existing hysteretic frame-pacing director chooses the level.
+   // Our new device-specific cap makes LOW-MEMORY tiers actually work;
+   // previously 2.0/1.75/1.5 never reduced a 1.35x Samsung buffer.
+   const tierChanged=nextAdaptiveRatio(
+     adaptiveQuality,rawDt*1000,now,NEON_TUNING.maxPixelRatio
    );
-   if(nextRatio!==null&&neonPipeline){
-     neonPipeline.setInternalPixelRatio(nextRatio,innerWidth,innerHeight);
-     event("adaptive_render_resolution",{ratio:+nextRatio.toFixed(2)});
+   if(tierChanged!==null&&neonPipeline){
+     const targetDpr=dprForAdaptiveLevel(claritySettings,adaptiveQuality.level);
+     neonPipeline.setInternalPixelRatio(targetDpr,innerWidth,innerHeight);
+     event("adaptive_render_resolution",{ratio:+targetDpr.toFixed(2),
+       antiAliasing:CLARITY.antiAliasing,level:adaptiveQuality.level});
    }
  }
 }
@@ -744,15 +714,24 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.4.9.6",trial:TRIAL.id,exportedAt:new Date().toISOString(),
-   visual:{pipeline:"HDR UnrealBloom",tier:"Velocity Language & Boost Spectacle 0.4.9.6",
+   game:"SKYSHIFT",version:"0.4.9.8",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   visual:{pipeline:"HDR UnrealBloom",tier:"Premium Image Clarity & Anti-Aliasing 0.4.9.8",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
+     imageClarity:clarityAudit(claritySettings,neonPipeline),
      adaptiveQualityChanges:adaptiveQuality.changes,
      roadMeshType:"Single indexed top deck with shared vertex normals",
      roadLongitudinalStepMeters:MESH_SPEC.sampleStep,
      guardrails:{heightMeters:AERO_BARRIER.height,
-       design:"Angular integrated protective profile, no luminous tubes",
+       design:"Elevated continuous armor and bright directional chevrons",
+       elevatedStraightHeightMeters:AERO_BARRIER.height,
+       elevatedBendHeightMeters:AERO_BARRIER.bendHeightMeters,
+       physicalColliderUnchanged:AERO_BARRIER.colliderUnchanged,
+       physicsColliderHeightMeters:AERO_BARRIER.physicalColliderHeightMeters,
+       arrowSpacingMeters:AERO_BARRIER.curveArrowPitchMeters,
+       arrowCurvatureThreshold:AERO_BARRIER.arrowCurvatureThreshold,
+       removedRoadsidePillars:true,
+       roadsidePillarInstances:0,
        innerSweepMeters:AERO_BARRIER.innerSweepMeters,
        lightWidthMeters:identitySurface.accentWidthMeters,
        panelSeams:identitySurface.panelSeams,
@@ -761,6 +740,7 @@ function exportAudit(){
        surfaceTriangles:identitySurface.paintTriangles,
        batchCount:identitySurface.drawBatches,
        chevrons:identitySurface.chevrons,
+       chevronAccentOnWave:true,
        shoulderMarks:identitySurface.shoulderMarks,
        accentAnchors:identitySurface.accentAnchors},
      sharedDeckNormals:true,
@@ -903,7 +883,7 @@ function exportAudit(){
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-velocity-v0496-audit.json";
+ a.href=url;a.download="skyshift-clarity-v0498-audit.json";
  document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1800);
 }
@@ -914,7 +894,7 @@ function installFlightTuningPanel(){
  panel.setAttribute("aria-label","Flight Dynamics Lab");
  panel.style.cssText="position:fixed;top:42px;right:8px;z-index:2500;box-sizing:border-box;width:215px;max-height:75vh;overflow:auto;background:rgba(4,13,27,.93);color:#d9f6ff;padding:12px;border:1px solid #397084;border-radius:10px;font:12px system-ui;box-shadow:0 8px 20px #0009";
  const title=document.createElement("strong");
- title.textContent="FLIGHT LAB · 0.4.9.6";panel.appendChild(title);
+ title.textContent="FLIGHT LAB · 0.4.9.8";panel.appendChild(title);
  const fields=[
   ["pilotBankDegrees","Pilot bank","°",8,28,1],
   ["bankResponse","Turn-in","",8,23,1],

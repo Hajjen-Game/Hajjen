@@ -110,10 +110,10 @@ test("road and rail velocity uniforms share spatial phase, retain spectral wave"
 });
 test("0.4.9.6 active browser, physics/camera integration, HUD and audit",()=>{
  const page=src("./index.html"),boot=src("./legacy/boot/boot-v0496.js"),
-  game=src("./game-v0496.mjs");
+  game=src("./legacy/game/game-v0496.mjs");
  assert.match(page,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(page,/data-game-module="game-v0103\.mjs"/);
- assert.match(boot,/import\("\.\.\/\.\.\/game-v0496\.mjs\?v=0\.4\.9\.6"\)/);
+ assert.match(boot,/import\("\.\.\/game\/game-v0496\.mjs\?v=0\.4\.9\.6"\)/);
  assert.match(boot,/__skyshiftBootFail/);
  for(const dep of ["engine-trails-v0496","premium-track-v0496",
   "aero-barrier-v0496","space-v0496","velocity-language-v0496",

@@ -3,26 +3,26 @@ import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,
  newFlightState,stepFlight,clamp,lerp
-} from "./trial-v049.mjs";
-import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v049.mjs";
-import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v049.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave} from "./zone-wave-v049.mjs";
-import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0484.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v043.mjs";
-import { MESH_SPEC } from "./smooth-track-v049.mjs";
+} from "../../trial-v049.mjs";
+import { BOOST_PADS,BOOST_CONFIG } from "../../flight/boost/boost-v049.mjs";
+import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "../../premium-track-v0491.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength} from "../../zone-wave-v0491.mjs";
+import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "../../manta-blade-v0484.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "../../engine-trails-v0484.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v043.mjs";
+import { MESH_SPEC } from "../../smooth-track-v049.mjs";
 import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./core/frame-pacing-v044.mjs";
-import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
-import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cinematicFov,engineLightFactor } from "./cinematic-v045.mjs";
-import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier-v049.mjs";
-import { installSpaceBackdrop } from "./space-v04.mjs";
-import { createContactShadow } from "./ship-v034.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
+} from "../../core/frame-pacing-v044.mjs";
+import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "../../flight-motion-v044.mjs";
+import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cinematicFov,engineLightFactor } from "../../cinematic-v045.mjs";
+import { installAeroBarriers,AERO_BARRIER } from "../../tracks/barriers/aero-barrier-v0491.mjs";
+import { installSpaceBackdrop } from "../../space-v04.mjs";
+import { createContactShadow } from "../../ship-v034.mjs";
+import { LUMINANCE,validateLuminance } from "../../luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);
@@ -53,6 +53,8 @@ const themes=COLOR.map(p=>({
   ...p,skyColor:new THREE.Color(p.sky),fogColor:new THREE.Color(p.fog),
   accent:new THREE.Color(p.color)
 }));
+const targetSky=new THREE.Color(),targetFog=new THREE.Color(),
+ targetAccent=new THREE.Color();
 const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,stickPointer:null,
  keys:new Set(),bannerTimeout:null,toastTimeout:null,trackHint:-1};
 const worldClock={last:performance.now(),accum:0};
@@ -385,6 +387,10 @@ function clearInput(){
 function resetFlight(){
  flight=newFlightState();previousSector=0;lastRailLog=0;
  zoneWave=newZoneWaveState();premiumSurface?.setWaveState(zoneWave);
+ identitySurface?.setWaveState(zoneWave);
+ scene?.background?.copy(themes[0].skyColor);
+ scene?.fog?.color.copy(themes[0].fogColor);
+ neonKit?.updateAccent(COLOR[0].color,1);
  motionState=createFlightMotionState(flight.heading);
  cinematicState=createCinematicState();
  premiumFX?.reset();
@@ -537,12 +543,19 @@ function integrate(dt){
  else if(flight.failed)endRun(false);
 }
 function updatePalette(dt){
- const index=zoneWave.playerStage,palette=themes[index],k=1-Math.exp(-dt*1.12);
  premiumSurface?.setWaveState(zoneWave);
- scene.background.lerp(palette.skyColor,k);
- scene.fog.color.lerp(palette.fogColor,k);
- neonKit.updateAccent(palette.color,k);
- identitySurface?.updateAccent(neonKit.worldAccent);
+ identitySurface?.setWaveState(zoneWave);
+ // The atmosphere follows the physical front spatially, not the HUD switch.
+ const blend=frontPaletteBlend(zoneWave,flight.s);
+ const before=themes[blend.from],after=themes[blend.to];
+ targetSky.copy(before.skyColor).lerp(after.skyColor,blend.mix);
+ targetFog.copy(before.fogColor).lerp(after.fogColor,blend.mix);
+ targetAccent.copy(before.accent).lerp(after.accent,blend.mix);
+ const k=1-Math.exp(-dt*4.2);
+ scene.background.lerp(targetSky,k);
+ scene.fog.color.lerp(targetFog,k);
+ neonKit.updateAccent(targetAccent,k);
+ // Rail lighting samples its own track coordinate inside its shader.
  for(const light of engineLights)light.color.copy(neonKit.worldAccent);
 }
 function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicState){
@@ -555,16 +568,19 @@ function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicSta
  ship.rotation.y=-view.heading+cinematic.noseYaw;
  ship.rotation.z=motion.roll;
  ship.rotation.x=motion.pitch;
+ const crossingPulse=waveResonanceStrength(zoneWave,flight.elapsed);
+ const charge=spectralChargeStrength(flight.elapsed);
  for(const light of engineLights)light.intensity=
    NEON_TUNING.enginePointIntensity*.42*engineLightFactor(cinematic)*
-   (1+(flight.boostMultiplier-1)*.70);
+   (1+(flight.boostMultiplier-1)*.70)*(1+.22*crossingPulse+.07*charge);
  if(engineCore)engineCore.scale.z=1+cinematic.engineEnergy*.16+
   (flight.boostMultiplier-1)*.40;
  for(let i=0;i<enginePlumes.length;i++){
    const sign=i===0?-1:1;
    const pulse=.028*Math.sin(time*21+i*1.4);
    const boost=clamp((flight.boostMultiplier-1)/.30,0,1);
-   const shape=1+.065*cinematic.engineEnergy+boost*.19+pulse;
+   const shape=1+.065*cinematic.engineEnergy+boost*.19+pulse+
+    crossingPulse*.10+charge*.035;
    const bankVariation=sign*clamp(view.steering,-1,1)*.035;
    // Exhaust cylinder axis is local Y. Animate the radius (X/Z).
    enginePlumes[i].scale.set(shape+bankVariation,1+boost*.14,shape);
@@ -664,8 +680,8 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.4.9",trial:TRIAL.id,exportedAt:new Date().toISOString(),
-   visual:{pipeline:"HDR UnrealBloom",tier:"Extended 1530m Circuit & Zone Wave 1.0",
+   game:"SKYSHIFT",version:"0.4.9.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   visual:{pipeline:"HDR UnrealBloom",tier:"Spectral Zone Wave & Palette Harmony 0.4.9.1",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      adaptiveQualityChanges:adaptiveQuality.changes,
@@ -715,6 +731,12 @@ function exportAudit(){
         stageTransitionSeconds:[...zoneWave.stageTransitionSeconds],
         paletteNames:ZONE_PALETTES.map(p=>p.name),
         waveFeatherMeters:ZONE_WAVE.featherMeters,
+        waveCrestMeters:ZONE_WAVE.crestMeters,
+        afterglowMeters:ZONE_WAVE.afterglowMeters,
+        resonanceSeconds:ZONE_WAVE.resonanceSeconds,
+        paletteSync:"Road and rail inlays use the same arc-length wave",
+        spectralRenderPassesAdded:0,
+        railDrawBatchesAdded:0,
        palette:PREMIUM_TRACK.palette,curveFollowingLines:PREMIUM_TRACK.curveFollowingLines,
        integratedBoostPads:PREMIUM_TRACK.boostPads,
        drawBatches:PREMIUM_TRACK.drawBatches,
@@ -794,7 +816,7 @@ function exportAudit(){
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-zone-v049-audit.json";
+ a.href=url;a.download="skyshift-zone-v0491-audit.json";
  document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1800);
 }
@@ -805,7 +827,7 @@ function installFlightTuningPanel(){
  panel.setAttribute("aria-label","Flight Dynamics Lab");
  panel.style.cssText="position:fixed;top:42px;right:8px;z-index:2500;box-sizing:border-box;width:215px;max-height:75vh;overflow:auto;background:rgba(4,13,27,.93);color:#d9f6ff;padding:12px;border:1px solid #397084;border-radius:10px;font:12px system-ui;box-shadow:0 8px 20px #0009";
  const title=document.createElement("strong");
- title.textContent="FLIGHT LAB · 0.4.9";panel.appendChild(title);
+ title.textContent="FLIGHT LAB · 0.4.9.1";panel.appendChild(title);
  const fields=[
   ["pilotBankDegrees","Pilot bank","°",8,28,1],
   ["bankResponse","Turn-in","",8,23,1],
@@ -842,19 +864,31 @@ function installFlightTuningPanel(){
 // Production players never have this hook without ?waveSmoke=1.
 function installWaveSmokeHook(){
  if(new URLSearchParams(location.search).get("waveSmoke")!=="1")return;
- window.__skyshiftWaveSmoke=()=>{
+ window.__skyshiftWaveSmoke=(targetStage=1)=>{
   if(uiState.mode!=="playing")throw new Error("Wave smoke requires active run");
-  const atS=flight.s;
-  flight.elapsed=10;
-  updateZoneWave(zoneWave,10,atS);
-  flight.elapsed=12.5;
-  const pass=updateZoneWave(zoneWave,12.5,atS);
-  if(!pass.changed||pass.stage!==1)throw new Error("Zone 02 did not pass craft");
-  previousSector=pass.stage;announceSector(pass.stage);
+  if(!Number.isInteger(targetStage)||targetStage<1||targetStage>3)
+   throw new Error("Invalid spectral smoke stage");
+  // Deterministically place each successive physical crest just ahead of
+  // the stationary craft under software WebGL. Actual play uses 120Hz ticks.
+  for(let k=zoneWave.activeCount;k<targetStage;k++){
+   const at=ZONE_WAVE.triggers[k],atS=flight.s;
+   flight.elapsed=at;
+   updateZoneWave(zoneWave,at,atS);
+   flight.elapsed=at+.85;
+   const pass=updateZoneWave(zoneWave,at+.85,atS);
+   if(!pass.changed||pass.stage!==k+1)
+    throw new Error("Zone "+(k+2)+" did not pass craft");
+   previousSector=pass.stage;announceSector(pass.stage);
+  }
   premiumSurface?.setWaveState(zoneWave);
+  identitySurface?.setWaveState(zoneWave);
   refreshHud();
   return {zone:zoneWave.playerStage+1,flightSeconds:flight.elapsed,
-   playerS:flight.s,frontS:zoneWave.fronts[0]};
+   playerS:flight.s,frontS:zoneWave.fronts[targetStage-1],
+   launches:[...ZONE_WAVE.triggers],palette:ZONE_PALETTES[zoneWave.playerStage].id,
+   featherMeters:ZONE_WAVE.featherMeters,
+   railSynchronized:Boolean(identitySurface?.setWaveState),
+   engineResonance:waveResonanceStrength(zoneWave,flight.elapsed)};
  };
 }
 function installControls(){

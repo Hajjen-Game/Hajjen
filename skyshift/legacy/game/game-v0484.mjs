@@ -3,25 +3,25 @@ import {
  TRIAL,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,
  newFlightState,stepFlight,clamp,lerp
-} from "./trial-v048.mjs";
-import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v048.mjs";
-import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v0482.mjs";
-import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0484.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v043.mjs";
-import { MESH_SPEC } from "./smooth-track-v046.mjs";
+} from "../../trial-v048.mjs";
+import { BOOST_PADS,BOOST_CONFIG } from "../../flight/boost/boost-v048.mjs";
+import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "../../premium-track-v0482.mjs";
+import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "../../manta-blade-v0484.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "../../engine-trails-v0484.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v043.mjs";
+import { MESH_SPEC } from "../../smooth-track-v046.mjs";
 import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./core/frame-pacing-v044.mjs";
-import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
-import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cinematicFov,engineLightFactor } from "./cinematic-v045.mjs";
-import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier-v047.mjs";
-import { installSpaceBackdrop } from "./space-v04.mjs";
-import { createContactShadow } from "./ship-v034.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
+} from "../../core/frame-pacing-v044.mjs";
+import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "../../flight-motion-v044.mjs";
+import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cinematicFov,engineLightFactor } from "../../cinematic-v045.mjs";
+import { installAeroBarriers,AERO_BARRIER } from "../../tracks/barriers/aero-barrier-v047.mjs";
+import { installSpaceBackdrop } from "../../space-v04.mjs";
+import { createContactShadow } from "../../ship-v034.mjs";
+import { LUMINANCE,validateLuminance } from "../../luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);

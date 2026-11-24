@@ -1,7 +1,7 @@
 // SKYSHIFT 0.13.4.5 — real art span, continuous GRIP-safe visual pose.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";
 import {STINGRAY_PRESENTATION_01345 as spec,
  visualSettingsForShip,stableStingrayVisualRoll}

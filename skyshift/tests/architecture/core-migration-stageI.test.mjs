@@ -30,6 +30,25 @@ test('Stage I preserves all 15 original performance/fidelity source blobs and re
    assert.ok(existsSync(resolve(root,ext)),'Missing core external ESM dependency '+ext);
    original=original.split('../'+ext).join('./'+ext);
   }
+  // EF02B: verify exact adapter and reconstruct the original source blob from
+  // the single shared implementation. All 15 immutable Stage I hashes remain
+  // enforced; only the four approved fidelity adapters use reconstruction.
+  if(['0114','0150','0151','0160'].some(v=>name==='visual-fidelity-v'+v+'.mjs')){
+   const dep=manifest.files[name].externalImports[0];
+   const expected='import {createPremiumTrackMaterial} from "../'+dep+'";\n'+
+    'import {createSmartPremiumTrackMaterialWithFactory} from "./visual-fidelity.mjs";\n'+
+    'export {FIDELITY_0114,selectFidelityProfile,createFidelityDirector,\n'+
+    ' resetFidelityDirector,advanceFidelityDirector,fidelityAudit,patchRefinedRoadShaders}\n'+
+    ' from "./visual-fidelity.mjs";\n'+
+    'export function createSmartPremiumTrackMaterial(THREE,profile){\n'+
+    ' return createSmartPremiumTrackMaterialWithFactory(createPremiumTrackMaterial,THREE,profile);\n}\n';
+   assert.equal(source,expected,'Fidelity adapter no longer matches its approved factory');
+   original=readFileSync(resolve(core,'visual-fidelity.mjs'),'utf8')
+    .replace("// Material construction is supplied by the compatibility adapter.",'import {createPremiumTrackMaterial} from "./'+dep+'";')
+    .replace("export function createSmartPremiumTrackMaterialWithFactory(createPremiumTrackMaterial,THREE,profile){","export function createSmartPremiumTrackMaterial(THREE,profile){");
+   for(const m of readFileSync(resolve(core,'visual-fidelity.mjs'),'utf8').matchAll(/\bfrom\s*["'](\.{1,2}\/[^"']+)["']/g))
+    assert.ok(existsSync(resolve(core,m[1])),'Unresolved shared fidelity dependency '+m[1]);
+  }
   assert.equal(hash(Buffer.from(original,'utf8')),manifest.files[name].originalGitBlobSha,
    'Runtime performance/fidelity implementation or parameters changed: '+name);
   for(const m of source.matchAll(/\b(?:from\s*|import\s*\(\s*|import\s*)["'](\.{1,2}\/[^"']+)["']/g)){

@@ -1,6 +1,6 @@
 # SKYSHIFT — ROOT CONSOLIDATION: SOURCE OF TRUTH
 
-> **Status: NOT FINISHED** (`main`: merged PR #199, `0e63f59bddb`, **357 direct files**; R1F branch targeting **328** after independently confirmed CI and merge, 2026-11-24).  
+> **Status: NOT FINISHED** (`main`: merged PR #200, `ab926746c1a356d8f`, **328 direct files**, all three post-merge main checks successful; R1G reference audit branch in progress).
 > **User's actual goal:** Just a few essential files directly inside `skyshift/`; organize all remaining live modules, historical versions, tests and documentation into clearly named subdirectories. **Do not mark this goal complete merely because the shared tunnel architecture tests are green.**
 
 ## Verified baseline
@@ -110,3 +110,7 @@ After PR #196, `main` had **429 direct-root files**. Merged PR #197 moves **20 a
 - 2026-11-23: **468 root files** found; earlier "Architecture Cleanup 2.0 complete" statement corrected.
 - The ongoing crash/slow long-chat problem is a separate ChatGPT product issue; **do not rely on chat history alone** for technical handoff.
 - R0 was originally a **non-runtime correction**. R1–R1F are actual file moves, recorded separately above; the overarching root-consolidation goal remains unfinished.
+
+## R1G — remaining historical game reference audit (NOT MERGED)
+
+R1F PR #200 merged as `ab926746c1a356d8f2a9c079968e7e65dc804901`; exact 328 direct-root files and all three main Pages / track QA workflows confirmed green. R1G audits all 43 candidate game snapshots, explicitly holding active v0210, v0101/v0103 compatibility pairs and the dedicated v0203 material comparison entrypoint. This read-only branch runs an exhaustive tracked-reference scan, exact baseline SHA verification, static ESM target checks, and computed-path review. It does not move files or weaken mandatory tests. Review artifact `skyshift-r1g-reference-audit` and `R1G_COUNTS` / `R1G_FILE` / `R1G_DYNAMIC` log records before applying the full cohesive batch. This audit branch is not a merge candidate. Next: construct an actual migration PR based on the eligible cohort, compose all prior SHA inverse guards and run full PR CI.

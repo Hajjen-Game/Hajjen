@@ -1,14 +1,14 @@
-// SKYSHIFT 0.4.9.3 — White-Core Spectral Zone Wave in the SAME PBR road shader, zero extra meshes.
+// SKYSHIFT 0.4.9.6 — Velocity-aware White-Core Spectral Zone Wave in the SAME PBR road shader, zero extra meshes.
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt} from "./trial-v049.mjs";
-import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v0493.mjs";
-import {BOOST_PADS} from "./flight/boost/boost-v049.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v049.mjs";
+import {TRIAL,widthAt} from "../../trial-v049.mjs";
+import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v0493.mjs";
+import {BOOST_PADS} from "../../flight/boost/boost-v0494.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v049.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
- version:"zone-spectral-balance-pbr-0493",
+ version:"zone-spectral-velocity-pbr-0496",
  material:"continuous-integrated-PBR",
  palette:"Midnight / Electric Violet / Solar Gold / Jade Surge",
  baseHex:ZONE_PALETTES[0].base,
@@ -17,6 +17,8 @@ export const PREMIUM_TRACK=Object.freeze({
  accentHex:ZONE_PALETTES[0].accent,
  boostHex:ZONE_PALETTES[0].boost,
  drawBatches:1,
+ velocityReactiveGuides:true,
+ velocityExtraDrawCalls:0,
  floatingDecalBatches:0,
  colorAnimation:true,
  zoneWaveMetersPerSecond:ZONE_WAVE.frontMetersPerSecond,
@@ -180,9 +182,20 @@ export const SURFACE_FRAGMENT_GLSL=`
   float neutralEnergy=clamp(whiteCore*.38+whiteBloom*.10+
     whiteFilaments*.13,0.0,.60);
   road = mix(road,vec3(.96,.99,1.0),neutralEnergy);
+  // Speed only illuminates existing longitudinal guides. The moving glints
+  // are tied to world arc length, never cross the racing line as a barrier.
+  float velocityStripe=pow(.5+.5*sin((trackS-uVelocityPhase)*.58),7.0);
+  float velocityEcho=pow(.5+.5*sin((trackS-uVelocityPhase)*.25+1.3),9.0);
+  float velocityEdgeMask=max(
+    trackStripe(absL,4.0,.075,.19)*.52,
+    trackStripe(absL,8.8,.08,.22));
+  float velocityGlint=uSpeedFlow*velocityEdgeMask*
+    (.12+.53*velocityStripe+.18*velocityEcho);
+  road=mix(road,zoneGuide,velocityGlint*.27);
   diffuseColor.rgb = road;
   totalEmissiveRadiance += uTrackGuide * guided * 0.24
-                          + uTrackBoost * insetGold * 0.17;
+                          + uTrackBoost * insetGold * 0.17
+                          + zoneGuide * velocityGlint * .35;
 `;
 export const SURFACE_FRAGMENT_HELPERS=`
 varying vec2 vTrackCoord;
@@ -195,6 +208,8 @@ uniform float uZoneActiveCount;
 uniform float uZoneFeather;
 uniform float uZoneTime;
 uniform float uWaveDetail;
+uniform float uSpeedFlow;
+uniform float uVelocityPhase;
 ${zoneShaderDecl}${SPECTRAL_FRONT_GLSL}
 float trackStripe(float x, float center, float thickness, float feather) {
   return 1.0 - smoothstep(thickness, thickness + feather, abs(x - center));
@@ -233,7 +248,8 @@ export function patchPremiumShaders(vertexShader,fragmentShader){
       + vec3(1.0,1.035,1.1) *
         (whiteCore*${ZONE_WAVE.whiteCoreEnergy.toFixed(2)} +
          whiteBloom*${ZONE_WAVE.whiteBloomEnergy.toFixed(2)} +
-         whiteFilaments*.11);`;
+         whiteFilaments*.11)
+      + zoneGuide*velocityGlint*.35;`;
  const fragment=fragmentShader.replace(fCommon,
    fCommon+"\n"+SURFACE_FRAGMENT_HELPERS)
    .replace(fColor,fColor+"\n"+coloring)
@@ -261,7 +277,8 @@ export function createPremiumTrackMaterial(THREE){
   uZoneActiveCount:{value:0},
   uZoneFeather:{value:ZONE_WAVE.featherMeters},
   uZoneTime:{value:0},
-  uWaveDetail:{value:1}
+  uWaveDetail:{value:1},
+  uSpeedFlow:{value:0},uVelocityPhase:{value:0}
  };
  for(let k=1;k<=3;k++){
   waveUniforms["uZoneFront"+k]={value:-10000};
@@ -287,6 +304,10 @@ export function createPremiumTrackMaterial(THREE){
  return {material:mat,palette,
   setDetailMode(quality){
     waveUniforms.uWaveDetail.value=quality==="low"?0:1;
+  },
+  setVelocityFlow(intensity,phaseMeters){
+    waveUniforms.uSpeedFlow.value=Math.max(0,Math.min(1,intensity));
+    waveUniforms.uVelocityPhase.value=phaseMeters;
   },
   setWaveState(state){
     waveUniforms.uZoneActiveCount.value=state.activeCount;

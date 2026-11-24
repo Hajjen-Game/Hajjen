@@ -1,23 +1,33 @@
-// SKYSHIFT 0.4.8.2 — Premium integrated road material and restrained track spine.
+// SKYSHIFT 0.4.9.3 — White-Core Spectral Zone Wave in the SAME PBR road shader, zero extra meshes.
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt} from "./trial-v048.mjs";
-import {BOOST_PADS} from "./flight/boost/boost-v048.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v046.mjs";
+import {TRIAL,widthAt} from "../../trial-v049.mjs";
+import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v0493.mjs";
+import {BOOST_PADS} from "../../flight/boost/boost-v049.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v049.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
- version:"zone-ribbon-pbr-0482",
+ version:"zone-spectral-balance-pbr-0493",
  material:"continuous-integrated-PBR",
- palette:"midnight-teal / icy-white / restrained-amber",
- baseHex:0x245b69,
- sideBandHex:0x2a94a1,
- guideHex:0xc2f8f5,
- accentHex:0x6be5f0,
- boostHex:0xf8b65b,
+ palette:"Midnight / Electric Violet / Solar Gold / Jade Surge",
+ baseHex:ZONE_PALETTES[0].base,
+ sideBandHex:ZONE_PALETTES[0].band,
+ guideHex:ZONE_PALETTES[0].guide,
+ accentHex:ZONE_PALETTES[0].accent,
+ boostHex:ZONE_PALETTES[0].boost,
  drawBatches:1,
  floatingDecalBatches:0,
- colorAnimation:false,
+ colorAnimation:true,
+ zoneWaveMetersPerSecond:ZONE_WAVE.frontMetersPerSecond,
+ waveFeatherMeters:ZONE_WAVE.featherMeters,
+ waveCrestMeters:ZONE_WAVE.crestMeters,
+ afterglowMeters:ZONE_WAVE.afterglowMeters,
+ spectralLayerCount:5,
+ whiteCoreHalfWidthMeters:ZONE_WAVE.whiteCoreMeters,
+ whiteBloomHalfWidthMeters:ZONE_WAVE.whiteBloomMeters,
+ whiteCoreEnergy:ZONE_WAVE.whiteCoreEnergy,
+ lowGraphicsFilamentsDisabled:true,
  boostPads:BOOST_PADS.length,
  curveFollowingLines:true,
  materialOnlyPalette:true,
@@ -67,6 +77,48 @@ const shaderMax=(items)=>items.reduce((all,item)=>
 const boostAggregation=shaderMax(BOOST_PADS.map(p=>`boost_${p.id.replace(/-/g,"_")}`));
 const arrowsAggregation=shaderMax(BOOST_PADS.map(p=>`arrow_${p.id.replace(/-/g,"_")}`));
 
+const zoneFields=["Base","Band","Guide","Accent","Boost"];
+const zoneFieldToColor={Base:"base",Band:"band",Guide:"guide",Accent:"accent",Boost:"boost"};
+const zoneShaderDecl=Array.from({length:3},(_,i)=>[
+ `uniform float uZoneFront${i+1};`,
+ ...zoneFields.map(field=>`uniform vec3 uZone${i+1}${field};`)
+].join("\n")).join("\n")+`\n`;
+// The spectral front, broad halo and afterglow share ONE shader and exactly
+// the SAME coordinate as the physical color change and rail lights.
+const zoneShaders=Array.from({length:3},(_,i)=>{
+ const k=i+1;
+ return [
+  `float wave${k}On = step(${(k-.5).toFixed(1)}, uZoneActiveCount);`,
+  `float wave${k}D = waveTrack - uZoneFront${k};`,
+  `float wave${k} = wave${k}On * (1.0-smoothstep(-uZoneFeather,uZoneFeather,wave${k}D));`,
+  ...zoneFields.map(field=>`zone${field} = mix(zone${field}, uZone${k}${field}, wave${k});`),
+  `float wave${k}Core = wave${k}On*spectralCore(wave${k}D);`,
+  `float wave${k}Halo = wave${k}On*spectralHalo(wave${k}D);`,
+  `float wave${k}After = wave${k}On*spectralAfterglow(wave${k}D);`,
+  `float wave${k}White = wave${k}On*spectralWhiteCore(wave${k}D);`,
+  `float wave${k}Bloom = wave${k}On*spectralWhiteBloom(wave${k}D);`,
+  `float wave${k}Filament = wave${k}On*spectralFilaments(
+    wave${k}D,trackL,uZoneTime,uWaveDetail);`,
+  `whiteCore = max(whiteCore,wave${k}White);`,
+  `whiteBloom = max(whiteBloom,wave${k}Bloom);`,
+  `whiteFilaments = max(whiteFilaments,wave${k}Filament);`,
+  `waveCrest = max(waveCrest,wave${k}Core);`,
+  `waveHalo = max(waveHalo,wave${k}Halo);`,
+  `waveAfter = max(waveAfter,wave${k}After);`,
+  `waveSpectrum = mix(waveSpectrum,uZone${k}Accent,
+     clamp(wave${k}Core+wave${k}Halo*.33,0.0,1.0));`
+ ].join("\n  ");
+}).join("\n  ");
+const zoneLayerGLSL=`
+  float waveTrack = spectralWaveOffset(trackS,trackL,uZoneTime);
+  vec3 zoneBase=uTrackBase,zoneBand=uTrackBand,zoneGuide=uTrackGuide;
+  vec3 zoneAccent=uTrackAccent,zoneBoost=uTrackBoost;
+  vec3 waveSpectrum=uTrackAccent;
+  float waveCrest=0.0,waveHalo=0.0,waveAfter=0.0;
+  float whiteCore=0.0,whiteBloom=0.0,whiteFilaments=0.0;
+  ${zoneShaders}
+`;
+
 export const SURFACE_FRAGMENT_GLSL=`
   float trackS = vTrackCoord.x;
   float trackL = vTrackCoord.y;
@@ -76,22 +128,23 @@ export const SURFACE_FRAGMENT_GLSL=`
   float flowZone = 0.35 + 0.65 * max(
     trackWindow(trackS, 58.0, 228.0, 23.0),
     trackWindow(trackS, 288.0, 437.0, 23.0));
-  vec3 road = mix(uTrackBase, uTrackBand, sideBand * (0.27 + 0.24 * flowZone));
+  ${zoneLayerGLSL}
+  vec3 road = mix(zoneBase, zoneBand, sideBand * (0.27 + 0.24 * flowZone));
 
   // Two primary white/cyan racing guides that follow ALL banked curves.
   float innerLine = trackStripe(absL, 4.0, 0.060, 0.105);
   float guideLine = trackStripe(absL, 8.8, 0.055, 0.105);
   float laneSpine = trackStripe(absL, 6.42, 0.018, 0.110);
   float guided = max(innerLine * 0.90, guideLine);
-  road = mix(road, uTrackGuide, guided * 0.94);
-  road = mix(road, uTrackAccent, laneSpine * 0.32);
+  road = mix(road, zoneGuide, guided * 0.94);
+  road = mix(road, zoneAccent, laneSpine * 0.32);
 
   // Near-camera material texture: subdued 12m panels near shoulders, without
   // squares or repeated tiny "obstacles" across the racing line.
   float panelPeriod = mod(trackS, 12.0);
   float panelSeam = (1.0 - smoothstep(0.04, 0.26, min(panelPeriod, 12.0-panelPeriod)));
   float shoulderMask = smoothstep(8.7, 9.3, absL) * (1.0 - smoothstep(10.2, 10.8, absL));
-  road = mix(road, uTrackAccent, shoulderMask * panelSeam * 0.10);
+  road = mix(road, zoneAccent, shoulderMask * panelSeam * 0.10);
 
   // Physical boost fields read as embedded ENERGY INLAYS, not raised golden
   // rectangles. Their functional world coordinates match boost-v048 exactly.
@@ -102,11 +155,11 @@ export const SURFACE_FRAGMENT_GLSL=`
     padCoverage * trackStripe(absL, 4.04, 0.055, 0.12),
     boostArrows * 0.84
   );
-  road = mix(road, uTrackBoost, padCoverage * 0.23);
-  road = mix(road, uTrackBoost, insetGold * 0.94);
+  road = mix(road, zoneBoost, padCoverage * 0.23);
+  road = mix(road, zoneBoost, insetGold * 0.94);
   // Fine white booster guides create a powerful racing identity, not a HUD
   // rectangle laid on the road.
-  road = mix(road, uTrackGuide, padCoverage * trackStripe(absL, 3.72, 0.04, 0.13) * 0.78);
+  road = mix(road, zoneGuide, padCoverage * trackStripe(absL, 3.72, 0.04, 0.13) * 0.78);
   // A subtle segmented CENTER SPINE. Eight meters of soft paint followed by
   // 3.5m of negative space: never a bright continuous 'runway' light.
   // It sits inside the existing PBR surface, and fades under boost inlays.
@@ -115,7 +168,18 @@ export const SURFACE_FRAGMENT_GLSL=`
       (1.0 - smoothstep(8.65, 9.45, spinePhase));
   float spineLane = 1.0 - smoothstep(0.045, 0.16, absL);
   float spine = spineLane * spineDash * (1.0 - padCoverage * 0.80);
-  road = mix(road, uTrackGuide, spine * 0.23);
+  road = mix(road, zoneGuide, spine * 0.23);
+  // Prismatic body + slim bright crest + short luminous wake, all EXACTLY
+  // on the palette front. Don't obscure guiding lines or boost markings.
+  float crestEnergy = waveCrest * 0.30 + waveHalo * 0.13 +
+     waveAfter * 0.030;
+  road = mix(road, waveSpectrum, crestEnergy*(1.0-padCoverage*.22));
+  // White light is a distinct visual layer, independent of zone tint.
+  // Bright enough to register in the iPhone's bloom and on low-FPS Android,
+  // but limited to the travelling longitudinal wave band.
+  float neutralEnergy=clamp(whiteCore*.38+whiteBloom*.10+
+    whiteFilaments*.13,0.0,.60);
+  road = mix(road,vec3(.96,.99,1.0),neutralEnergy);
   diffuseColor.rgb = road;
   totalEmissiveRadiance += uTrackGuide * guided * 0.24
                           + uTrackBoost * insetGold * 0.17;
@@ -127,6 +191,11 @@ uniform vec3 uTrackBand;
 uniform vec3 uTrackGuide;
 uniform vec3 uTrackAccent;
 uniform vec3 uTrackBoost;
+uniform float uZoneActiveCount;
+uniform float uZoneFeather;
+uniform float uZoneTime;
+uniform float uWaveDetail;
+${zoneShaderDecl}${SPECTRAL_FRONT_GLSL}
 float trackStripe(float x, float center, float thickness, float feather) {
   return 1.0 - smoothstep(thickness, thickness + feather, abs(x - center));
 }
@@ -156,9 +225,15 @@ export function patchPremiumShaders(vertexShader,fragmentShader){
  // where totalEmissiveRadiance is already defined; keep color edit separate.
  const coloring=SURFACE_FRAGMENT_GLSL.replace(
    /  totalEmissiveRadiance \+= [\s\S]*?;\s*$/,"");
- const emission=`totalEmissiveRadiance += uTrackGuide *
+ const emission=`totalEmissiveRadiance += zoneGuide *
   max(trackStripe(abs(vTrackCoord.y), 4.0, 0.060, 0.105)*0.90,
-      trackStripe(abs(vTrackCoord.y), 8.8, 0.055, 0.105))*0.24;`;
+      trackStripe(abs(vTrackCoord.y), 8.8, 0.055, 0.105))*0.24
+      + waveSpectrum * (waveCrest*.18 + waveHalo*.045 +
+        waveAfter*.015)*(1.0-padCoverage*.25)
+      + vec3(1.0,1.035,1.1) *
+        (whiteCore*${ZONE_WAVE.whiteCoreEnergy.toFixed(2)} +
+         whiteBloom*${ZONE_WAVE.whiteBloomEnergy.toFixed(2)} +
+         whiteFilaments*.11);`;
  const fragment=fragmentShader.replace(fCommon,
    fCommon+"\n"+SURFACE_FRAGMENT_HELPERS)
    .replace(fColor,fColor+"\n"+coloring)
@@ -182,6 +257,19 @@ export function createPremiumTrackMaterial(THREE){
   accent:new THREE.Color(PREMIUM_TRACK.accentHex),
   boost:new THREE.Color(PREMIUM_TRACK.boostHex)
  };
+ const waveUniforms={
+  uZoneActiveCount:{value:0},
+  uZoneFeather:{value:ZONE_WAVE.featherMeters},
+  uZoneTime:{value:0},
+  uWaveDetail:{value:1}
+ };
+ for(let k=1;k<=3;k++){
+  waveUniforms["uZoneFront"+k]={value:-10000};
+  for(const [field,key] of Object.entries(zoneFieldToColor))
+   waveUniforms["uZone"+k+field]={
+     value:new THREE.Color(ZONE_PALETTES[k][key])
+   };
+ }
  mat.onBeforeCompile=shader=>{
    const patched=patchPremiumShaders(shader.vertexShader,shader.fragmentShader);
    shader.vertexShader=patched.vertexShader;
@@ -191,11 +279,20 @@ export function createPremiumTrackMaterial(THREE){
     uTrackBand:{value:palette.band},
     uTrackGuide:{value:palette.guide},
     uTrackAccent:{value:palette.accent},
-    uTrackBoost:{value:palette.boost}
+    uTrackBoost:{value:palette.boost},
+    ...waveUniforms
    });
  };
  mat.customProgramCacheKey=()=>PREMIUM_TRACK.version;
  return {material:mat,palette,
+  setDetailMode(quality){
+    waveUniforms.uWaveDetail.value=quality==="low"?0:1;
+  },
+  setWaveState(state){
+    waveUniforms.uZoneActiveCount.value=state.activeCount;
+    waveUniforms.uZoneTime.value=state.lastStepSeconds;
+    for(let k=1;k<=3;k++)waveUniforms["uZoneFront"+k].value=state.fronts[k-1];
+  },
   setPalette(next){
     for(const name of ["base","band","guide","accent","boost"]){
      if(next[name]!==undefined)palette[name].set(next[name]);

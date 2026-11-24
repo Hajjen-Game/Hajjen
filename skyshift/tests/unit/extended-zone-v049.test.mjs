@@ -15,7 +15,7 @@ import {
  PREMIUM_TRACK,GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,
  SURFACE_FRAGMENT_HELPERS,createPremiumTrackMaterial,patchPremiumShaders,
  premiumTrackCoordinates
-} from "../../premium-track-v049.mjs";
+} from "../../rendering/legacy/premium-track-v049.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,eps=1e-5)=>assert.ok(Math.abs(a-b)<=eps, `expected ${a} ≈ ${b}`);
 const reference=await import("../../trial-v048.mjs");

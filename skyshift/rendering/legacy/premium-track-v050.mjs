@@ -1,26 +1,35 @@
-// SKYSHIFT 0.4.9 — Zone Wave integrated PBR road shader, no extra geometry.
+// SKYSHIFT 0.5.0 — Full-length zone-cycled White-Core Spectral Wave in the SAME PBR road shader, zero extra meshes.
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt} from "./trial-v049.mjs";
-import {ZONE_PALETTES,ZONE_WAVE} from "./zone-wave-v049.mjs";
-import {BOOST_PADS} from "./flight/boost/boost-v049.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v049.mjs";
+import {TRIAL,widthAt} from "../../trial-v050.mjs";
+import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v050.mjs";
+import {BOOST_PADS} from "../../flight/boost/boost-v050.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v050.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
- version:"zone-ribbon-wave-pbr-049",
+ version:"full-circuit-spectral-050",
  material:"continuous-integrated-PBR",
- palette:"midnight-teal / icy-white / restrained-amber",
- baseHex:0x245b69,
- sideBandHex:0x2a94a1,
- guideHex:0xc2f8f5,
- accentHex:0x6be5f0,
- boostHex:0xf8b65b,
+ palette:"Nine sequential 20s spectral zones",
+ baseHex:ZONE_PALETTES[0].base,
+ sideBandHex:ZONE_PALETTES[0].band,
+ guideHex:ZONE_PALETTES[0].guide,
+ accentHex:ZONE_PALETTES[0].accent,
+ boostHex:ZONE_PALETTES[0].boost,
  drawBatches:1,
+ velocityReactiveGuides:true,
+ velocityExtraDrawCalls:0,
  floatingDecalBatches:0,
  colorAnimation:true,
  zoneWaveMetersPerSecond:ZONE_WAVE.frontMetersPerSecond,
  waveFeatherMeters:ZONE_WAVE.featherMeters,
+ waveCrestMeters:ZONE_WAVE.crestMeters,
+ afterglowMeters:ZONE_WAVE.afterglowMeters,
+ spectralLayerCount:5,
+ whiteCoreHalfWidthMeters:ZONE_WAVE.whiteCoreMeters,
+ whiteBloomHalfWidthMeters:ZONE_WAVE.whiteBloomMeters,
+ whiteCoreEnergy:ZONE_WAVE.whiteCoreEnergy,
+ lowGraphicsFilamentsDisabled:true,
  boostPads:BOOST_PADS.length,
  curveFollowingLines:true,
  materialOnlyPalette:true,
@@ -76,24 +85,41 @@ const zoneShaderDecl=Array.from({length:3},(_,i)=>[
  `uniform float uZoneFront${i+1};`,
  ...zoneFields.map(field=>`uniform vec3 uZone${i+1}${field};`)
 ].join("\n")).join("\n")+`\n`;
+// The spectral front, broad halo and afterglow share ONE shader and exactly
+// the SAME coordinate as the physical color change and rail lights.
 const zoneShaders=Array.from({length:3},(_,i)=>{
  const k=i+1;
  return [
   `float wave${k}On = step(${(k-.5).toFixed(1)}, uZoneActiveCount);`,
-  `float wave${k} = wave${k}On * (1.0-smoothstep(uZoneFront${k}-uZoneFeather,uZoneFront${k}+uZoneFeather,trackS));`,
-  ...zoneFields.map(field=>`zone${field} = mix(zone${field}, uZone${k}${field}, wave${k});`)
+  `float wave${k}D = waveTrack - uZoneFront${k};`,
+  `float wave${k} = wave${k}On * (1.0-smoothstep(-uZoneFeather,uZoneFeather,wave${k}D));`,
+  ...zoneFields.map(field=>`zone${field} = mix(zone${field}, uZone${k}${field}, wave${k});`),
+  `float wave${k}Core = wave${k}On*spectralCore(wave${k}D);`,
+  `float wave${k}Halo = wave${k}On*spectralHalo(wave${k}D);`,
+  `float wave${k}After = wave${k}On*spectralAfterglow(wave${k}D);`,
+  `float wave${k}White = wave${k}On*spectralWhiteCore(wave${k}D);`,
+  `float wave${k}Bloom = wave${k}On*spectralWhiteBloom(wave${k}D);`,
+  `float wave${k}Filament = wave${k}On*spectralFilaments(
+    wave${k}D,trackL,uZoneTime,uWaveDetail);`,
+  `whiteCore = max(whiteCore,wave${k}White);`,
+  `whiteBloom = max(whiteBloom,wave${k}Bloom);`,
+  `whiteFilaments = max(whiteFilaments,wave${k}Filament);`,
+  `waveCrest = max(waveCrest,wave${k}Core);`,
+  `waveHalo = max(waveHalo,wave${k}Halo);`,
+  `waveAfter = max(waveAfter,wave${k}After);`,
+  `waveSpectrum = mix(waveSpectrum,uZone${k}Accent,
+     clamp(wave${k}Core+wave${k}Halo*.33,0.0,1.0));`
  ].join("\n  ");
 }).join("\n  ");
 const zoneLayerGLSL=`
+  float waveTrack = spectralWaveOffset(trackS,trackL,uZoneTime);
   vec3 zoneBase=uTrackBase,zoneBand=uTrackBand,zoneGuide=uTrackGuide;
   vec3 zoneAccent=uTrackAccent,zoneBoost=uTrackBoost;
+  vec3 waveSpectrum=uTrackAccent;
+  float waveCrest=0.0,waveHalo=0.0,waveAfter=0.0;
+  float whiteCore=0.0,whiteBloom=0.0,whiteFilaments=0.0;
   ${zoneShaders}
-  float waveCrest=0.0;
-  waveCrest=max(waveCrest,(1.0-smoothstep(0.0,3.0,abs(trackS-uZoneFront1)))*wave1On);
-  waveCrest=max(waveCrest,(1.0-smoothstep(0.0,3.0,abs(trackS-uZoneFront2)))*wave2On);
-  waveCrest=max(waveCrest,(1.0-smoothstep(0.0,3.0,abs(trackS-uZoneFront3)))*wave3On);
 `;
-
 
 export const SURFACE_FRAGMENT_GLSL=`
   float trackS = vTrackCoord.x;
@@ -145,10 +171,31 @@ export const SURFACE_FRAGMENT_GLSL=`
   float spineLane = 1.0 - smoothstep(0.045, 0.16, absL);
   float spine = spineLane * spineDash * (1.0 - padCoverage * 0.80);
   road = mix(road, zoneGuide, spine * 0.23);
-  road = mix(road, zoneGuide, waveCrest * 0.18);
+  // Prismatic body + slim bright crest + short luminous wake, all EXACTLY
+  // on the palette front. Don't obscure guiding lines or boost markings.
+  float crestEnergy = waveCrest * 0.30 + waveHalo * 0.13 +
+     waveAfter * 0.030;
+  road = mix(road, waveSpectrum, crestEnergy*(1.0-padCoverage*.22));
+  // White light is a distinct visual layer, independent of zone tint.
+  // Bright enough to register in the iPhone's bloom and on low-FPS Android,
+  // but limited to the travelling longitudinal wave band.
+  float neutralEnergy=clamp(whiteCore*.38+whiteBloom*.10+
+    whiteFilaments*.13,0.0,.60);
+  road = mix(road,vec3(.96,.99,1.0),neutralEnergy);
+  // Speed only illuminates existing longitudinal guides. The moving glints
+  // are tied to world arc length, never cross the racing line as a barrier.
+  float velocityStripe=pow(.5+.5*sin((trackS-uVelocityPhase)*.58),7.0);
+  float velocityEcho=pow(.5+.5*sin((trackS-uVelocityPhase)*.25+1.3),9.0);
+  float velocityEdgeMask=max(
+    trackStripe(absL,4.0,.075,.19)*.52,
+    trackStripe(absL,8.8,.08,.22));
+  float velocityGlint=uSpeedFlow*velocityEdgeMask*
+    (.12+.53*velocityStripe+.18*velocityEcho);
+  road=mix(road,zoneGuide,velocityGlint*.27);
   diffuseColor.rgb = road;
   totalEmissiveRadiance += uTrackGuide * guided * 0.24
-                          + uTrackBoost * insetGold * 0.17;
+                          + uTrackBoost * insetGold * 0.17
+                          + zoneGuide * velocityGlint * .35;
 `;
 export const SURFACE_FRAGMENT_HELPERS=`
 varying vec2 vTrackCoord;
@@ -159,9 +206,17 @@ uniform vec3 uTrackAccent;
 uniform vec3 uTrackBoost;
 uniform float uZoneActiveCount;
 uniform float uZoneFeather;
-${zoneShaderDecl}
+uniform float uZoneTime;
+uniform float uWaveDetail;
+uniform float uSpeedFlow;
+uniform float uVelocityPhase;
+${zoneShaderDecl}${SPECTRAL_FRONT_GLSL}
 float trackStripe(float x, float center, float thickness, float feather) {
-  return 1.0 - smoothstep(thickness, thickness + feather, abs(x - center));
+  // Pixel footprint of lane coordinates grows rapidly toward the horizon.
+  // Derivative-aware filtering gives distant subpixel guides a soft, stable
+  // transition instead of flickering/crawling with the moving camera.
+  float footprint = min(0.85, max(feather, 0.65 * fwidth(x)));
+  return 1.0 - smoothstep(thickness, thickness + footprint, abs(x - center));
 }
 float trackWindow(float x, float from, float to, float feather) {
   return smoothstep(from, from+feather, x) * (1.0 - smoothstep(to-feather, to, x));
@@ -192,7 +247,13 @@ export function patchPremiumShaders(vertexShader,fragmentShader){
  const emission=`totalEmissiveRadiance += zoneGuide *
   max(trackStripe(abs(vTrackCoord.y), 4.0, 0.060, 0.105)*0.90,
       trackStripe(abs(vTrackCoord.y), 8.8, 0.055, 0.105))*0.24
-      + zoneAccent * waveCrest * 0.075;`;
+      + waveSpectrum * (waveCrest*.18 + waveHalo*.045 +
+        waveAfter*.015)*(1.0-padCoverage*.25)
+      + vec3(1.0,1.035,1.1) *
+        (whiteCore*${ZONE_WAVE.whiteCoreEnergy.toFixed(2)} +
+         whiteBloom*${ZONE_WAVE.whiteBloomEnergy.toFixed(2)} +
+         whiteFilaments*.11)
+      + zoneGuide*velocityGlint*.35;`;
  const fragment=fragmentShader.replace(fCommon,
    fCommon+"\n"+SURFACE_FRAGMENT_HELPERS)
    .replace(fColor,fColor+"\n"+coloring)
@@ -218,7 +279,10 @@ export function createPremiumTrackMaterial(THREE){
  };
  const waveUniforms={
   uZoneActiveCount:{value:0},
-  uZoneFeather:{value:ZONE_WAVE.featherMeters}
+  uZoneFeather:{value:ZONE_WAVE.featherMeters},
+  uZoneTime:{value:0},
+  uWaveDetail:{value:1},
+  uSpeedFlow:{value:0},uVelocityPhase:{value:0}
  };
  for(let k=1;k<=3;k++){
   waveUniforms["uZoneFront"+k]={value:-10000};
@@ -242,9 +306,29 @@ export function createPremiumTrackMaterial(THREE){
  };
  mat.customProgramCacheKey=()=>PREMIUM_TRACK.version;
  return {material:mat,palette,
+  setDetailMode(quality){
+    waveUniforms.uWaveDetail.value=quality==="low"?0:1;
+  },
+  setVelocityFlow(intensity,phaseMeters){
+    waveUniforms.uSpeedFlow.value=Math.max(0,Math.min(1,intensity));
+    waveUniforms.uVelocityPhase.value=phaseMeters;
+  },
   setWaveState(state){
     waveUniforms.uZoneActiveCount.value=state.activeCount;
-    for(let k=1;k<=3;k++)waveUniforms["uZoneFront"+k].value=state.fronts[k-1];
+    waveUniforms.uZoneTime.value=state.lastStepSeconds;
+    // One active moving world front, but eight historical palette shifts.
+    // Rebase PBR material colors to the previous stage so new transitions
+    // never stack dozens of shader waves, draw calls or uniforms.
+    const base=ZONE_PALETTES[state.shaderBaseStage??0];
+    for(const [field,key] of Object.entries(zoneFieldToColor))
+      palette[key].set(base[key]);
+    for(let k=1;k<=3;k++){
+      waveUniforms["uZoneFront"+k].value=state.fronts[k-1];
+      const next=ZONE_PALETTES[Math.min(ZONE_PALETTES.length-1,
+        (state.shaderBaseStage??0)+k)];
+      for(const [field,key] of Object.entries(zoneFieldToColor))
+        waveUniforms["uZone"+k+field].value.set(next[key]);
+    }
   },
   setPalette(next){
     for(const name of ["base","band","guide","accent","boost"]){

@@ -9,7 +9,7 @@ import {
 import {
  PREMIUM_TRACK,SURFACE_FRAGMENT_GLSL,SURFACE_FRAGMENT_HELPERS,
  createPremiumTrackMaterial,patchPremiumShaders
-} from "../../premium-track-v0493.mjs";
+} from "../../rendering/legacy/premium-track-v0493.mjs";
 import {
  AERO_BARRIER,RAIL_SPECTRAL_FRAGMENT,RAIL_SPECTRAL_VERTEX,
  patchRailShaders,createAeroDetailData

@@ -1,3 +1,4 @@
+import {ef02iHistoricalExists} from './ef02i-path-overlay.mjs';
 import {ef02hCurrentPath} from './ef02h-path-overlay.mjs';
 // L1A: recover retired source from the pinned Git commit, never from a replacement stub.
 import assert from 'node:assert/strict';
@@ -42,6 +43,8 @@ export function readHistorical(p,encoding='utf8'){
 }
 export function historicalExists(p){
  if(!isRetired(p)){
+  const ef02i=ef02iHistoricalExists(resolve(repo,asPath(p)));
+  if(ef02i!==null)return ef02i;
   const original=resolve(repo,asPath(p)), current=ef02hCurrentPath(original);
   if(current!==original){
    const move=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef02h-track-geometry-ownership.json'),'utf8')).moves.find(f=>f.oldPath===asPath(p));

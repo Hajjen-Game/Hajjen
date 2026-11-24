@@ -8,7 +8,7 @@ import {ENGINE_TRAIL_SPEC,trailMotionState} from "../../engine-trails-v0496.mjs"
 import {BOOST_CONFIG,BOOST_PADS} from "../../flight/boost/boost-v0494.mjs";
 import {TRIAL} from "../../trial-v0494.mjs";
 import {patchPremiumShaders,PREMIUM_TRACK,GLSL_BOOST_PADS}
- from "../../premium-track-v0496.mjs";
+ from "../../rendering/legacy/premium-track-v0496.mjs";
 import {patchRailShaders} from "../../tracks/barriers/aero-barrier-v0496.mjs";
 const src=f=>readFileSync(new URL("../../"+f,import.meta.url),"utf8");
 const close=(a,b,e=1e-6)=>assert.ok(Math.abs(a-b)<e,`${a} != ${b}`);
@@ -102,11 +102,11 @@ test("road and rail velocity uniforms share spatial phase, retain spectral wave"
  assert.match(road.fragmentShader,/totalEmissiveRadiance \+=/);
  assert.match(rail.fragmentShader,/velocityRailPulse/);
  assert.ok(PREMIUM_TRACK.velocityReactiveGuides);
- for(const name of ["premium-track-v0496.mjs","aero-barrier-v0496.mjs"]){
+ for(const name of ["rendering/legacy/premium-track-v0496.mjs","aero-barrier-v0496.mjs"]){
   assert.match(src("./"+name),/setVelocityFlow\(intensity,phaseMeters\)/);
   assert.match(src("./"+name),/uVelocityPhase\.value=phaseMeters/);
  }
- assert.doesNotMatch(src("./premium-track-v0496.mjs"),/new THREE\.Mesh\(.*speed/i);
+ assert.doesNotMatch(src("./rendering/legacy/premium-track-v0496.mjs"),/new THREE\.Mesh\(.*speed/i);
 });
 test("0.4.9.6 active browser, physics/camera integration, HUD and audit",()=>{
  const page=src("./index.html"),boot=src("./legacy/boot/boot-v0496.js"),

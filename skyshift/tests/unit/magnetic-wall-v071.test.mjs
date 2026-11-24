@@ -11,7 +11,7 @@ import {MAGNETIC_WALL,TRACK_3D,magneticBankAt,elevationAudit}
 import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v071.mjs";
 import {sampleAeroProfile,AERO_BARRIER,createAeroBarrierData}
  from "../../tracks/barriers/aero-barrier-v071.mjs";
-import {PREMIUM_TRACK} from "../../premium-track-v071.mjs";
+import {PREMIUM_TRACK} from "../../rendering/legacy/premium-track-v071.mjs";
 import {chasePose,CINEMATIC_DEFAULTS} from "../../cinematic-v071.mjs";
 import * as legacy from "../../trial-v070.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
@@ -148,6 +148,6 @@ test("camera is in the magnetic half-space; legacy 0.7.0 remains archived",()=>{
  assert.match(source("./boot-v0103.js"),/game-v0103\.mjs\?v=0\.10\.3/);
  assert.match(source("./legacy/game/game-v071.mjs"),/magnetic_wall_enter/);
  assert.match(source("./legacy/game/game-v071.mjs"),/skyshift-wall-v071-audit\.json/);
- assert.match(source("./premium-track-v071.mjs"),/magneticLines/);
+ assert.match(source("./rendering/legacy/premium-track-v071.mjs"),/magneticLines/);
  assert.match(source("./tests/browser/legacy/browser-smoke-v071.mjs"),/wallRide/);
 });

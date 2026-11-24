@@ -11,7 +11,7 @@ import {
 import {GRIP_SPEC} from "../../precision-grip-v061.mjs";
 import {createSmoothDeckData} from "../../smooth-track-v082.mjs";
 import {createAeroBarrierData} from "../../tracks/barriers/aero-barrier-v082.mjs";
-import {PREMIUM_TRACK} from "../../premium-track-v082.mjs";
+import {PREMIUM_TRACK} from "../../rendering/legacy/premium-track-v082.mjs";
 import {cameraBankAt} from "../../cinematic-v082.mjs";
 import * as archived from "../../trial-v081.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");

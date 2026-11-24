@@ -1,3 +1,4 @@
+import {restoreEF02I} from './ef02i-path-overlay.mjs';
 // EF02H: exact path-only moves and consumer rewrites; no physics or test assertion removal.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -26,7 +27,7 @@ test('EF02H: all seven layout/elevation modules preserve exact original Git blob
 test('EF02H: all recorded consumer changes invert to their exact pre-migration Git blobs',()=>{
  assert.equal(m.consumers.length,32);
  for(const c of m.consumers){
-  let s=read(c.path);
+  let s=restoreEF02I(read(c.path),c.path);
   for(const e of [...c.edits].reverse()){
    assert.equal(s.split(e.after).length-1,e.count,c.path+' '+e.after);
    assert.ok(!s.includes(e.before),c.path+' '+e.before);

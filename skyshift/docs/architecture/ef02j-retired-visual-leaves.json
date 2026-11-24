@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "stage": "EF02J",
+  "archiveCommit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+  "baseCommit": "1fe103f294f0a6e7efe80b239993f9c30d66c1a6",
+  "files": [
+    {
+      "path": "skyshift/velocity-vanes-v0104.mjs",
+      "sha": "ebe00c2b6c40c07e4112fc93eb4aa022e280a381",
+      "bytes": 1695,
+      "readers": [],
+      "replacement": "skyshift/ships/reactive-wing-flaps-v0108.mjs",
+      "coverage": "skyshift/tests/unit/reactive-wing-flaps-v0108.test.mjs"
+    },
+    {
+      "path": "skyshift/ship-hero-loader-v01321.mjs",
+      "sha": "2edc8300bfd007072a60a38889507ade317a3cd2",
+      "bytes": 3978,
+      "readers": [],
+      "replacement": "skyshift/ship-hero-loader-v01342.mjs",
+      "coverage": "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs"
+    }
+  ],
+  "workflow": {
+    "path": ".github/workflows/skyshift-tests.yml",
+    "sha": "1dd8899ed2e7cb29d00ddeb1e08af2ea47e58363",
+    "edits": [
+      {
+        "before": "          node --check skyshift/velocity-vanes-v0104.mjs\n          node --check skyshift/stingray-evo-v0104.mjs\n",
+        "after": "          node --check skyshift/stingray-evo-v0104.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/ship-hero-loader-v01321.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v01321.mjs\n",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v01321.mjs\n"
+      }
+    ]
+  },
+  "reason": "Census job 138753605310: neither default/comparison graph nor transitive QA literal owners; only historical workflow syntax references and documentation. Current entry uses newer implementations; historical archived game references resolved via existing helper. No active functional commands removed."
+}

@@ -6,17 +6,20 @@ import {execFileSync,spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {resolve,basename,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {retirementEF02G as m,readHistorical,historicalExists} from './legacy-retirement-l1a.mjs';
+import {retirementEF02G as m,retirementEF02J,readHistorical,historicalExists} from './legacy-retirement-l1a.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {inventory} from './dependency-inventory-v2.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
 const hash=s=>{const b=Buffer.from(s);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');};
-test('EF02G: ten obsolete rendering sources are absent, exact, syntax-valid and have no executable consumers',()=>{
+test('EF02G/EF02J: obsolete rendering sources are absent, exact, syntax-valid and have no executable consumers',()=>{
  assert.equal(m.files.length,10);
  assert.equal(new Set(m.files.map(f=>f.path)).size,10);
  assert.equal(readdirSync(resolve(repo,'skyshift'),{withFileTypes:true}).filter(e=>e.isFile()).length,expectedRootFiles);
  const graph=inventory().literalBrowserGraph.paths;
- for(const f of m.files){
+ assert.equal(retirementEF02J.files.length,2);
+ const files=[...m.files,...retirementEF02J.files];
+ assert.equal(new Set(files.map(f=>f.path)).size,files.length);
+ for(const f of files){
   assert.ok(!existsSync(resolve(repo,f.path)),f.path);
   assert.ok(!graph.includes(f.path.slice('skyshift/'.length)),f.path);
   const source=readHistorical(resolve(repo,f.path));
@@ -38,7 +41,7 @@ test('EF02G: ten obsolete rendering sources are absent, exact, syntax-valid and 
   if(!/\.(?:mjs|js|cjs|ts|html|css|json|yml|yaml|sh|py|txt|gltf)$/.test(p))continue;
   if(p.startsWith('skyshift/tests/architecture/')||p.startsWith('skyshift/docs/architecture/')||/migration-manifest|baseline|consumer-inventory|consumer-queue/.test(p))continue;
   const s=readFileSync(resolve(repo,p),'utf8');
-  for(const f of m.files)if(s.includes(basename(f.path)))assert.ok(f.readers.includes(p),'Unapproved executable reference '+p+' -> '+f.path);
+  for(const f of files)if(s.includes(basename(f.path)))assert.ok(f.readers.includes(p),'Unapproved executable reference '+p+' -> '+f.path);
  }
- console.log('SKYSHIFT_EF02_RENDERING_RETIRED '+JSON.stringify({files:m.files.length,bytes:m.files.reduce((n,f)=>n+f.bytes,0),rootFiles:expectedRootFiles}));
+ console.log('SKYSHIFT_EF02_RENDERING_RETIRED '+JSON.stringify({files:files.length,bytes:files.reduce((n,f)=>n+f.bytes,0),rootFiles:expectedRootFiles}));
 });

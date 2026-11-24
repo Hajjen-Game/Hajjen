@@ -408,7 +408,6 @@ jobs:
           node --check skyshift/boot-v0103.js
           node --check skyshift/tests/browser/legacy/browser-smoke-v0103.mjs
           node --check skyshift/velocity-presence-v0104.mjs
-          node --check skyshift/velocity-vanes-v0104.mjs
           node --check skyshift/stingray-evo-v0104.mjs
           node --check skyshift/engine-trails-v0104.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0104.mjs
@@ -482,7 +481,6 @@ jobs:
           node --check skyshift/ship-hero-loader-v0132.mjs
           node --check skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs
           node --check skyshift/tests/unit/ui-flow-v0132.test.mjs
-          node --check skyshift/ship-hero-loader-v01321.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v01321.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v01321.test.mjs
           node --check skyshift/tests/unit/ui-flow-v01321.test.mjs

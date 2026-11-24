@@ -3,54 +3,53 @@ import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,STEERING_AUTHORITY,steeringBalanceAt,normalYawFactorAt,elevationAudit,
  newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
-} from "./trial-v0901.mjs";
-import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v082.mjs";
-import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v0901.mjs";
+} from "../../trial-v0901.mjs";
+import { BOOST_PADS,BOOST_CONFIG } from "../../flight/boost/boost-v082.mjs";
+import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "../../premium-track-v0901.mjs";
 import {SHADOW_TUNNEL,inShadowTunnel,tunnelIntensityAt,installShadowTunnel,
- installTunnelRoadShading} from "./shadow-tunnel-v092.mjs";
+ installTunnelRoadShading} from "../../shadow-tunnel-v092.mjs";
 import {TUNNEL_BLACKOUT,installBlackoutRoadShading,
  separateBladeTipMaterial,createTunnelBlackoutController}
- from "./tunnel-blackout-v0921.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
-import {MANTA_IDENTITY,ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
-import {buildPremiumMantaBlade,MANTA_POLISH} from "./ships/manta-blade-v0103.mjs";
-import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v0104.mjs";
+ from "../../tunnel-blackout-v0921.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "../../zone-wave-v060.mjs";
+import {MANTA_IDENTITY,ENGINE_SOCKETS} from "../../manta-blade-v0484.mjs";
+import {buildPremiumMantaBlade,MANTA_POLISH} from "../../ships/manta-blade-v0103.mjs";
+import {buildStingrayEvo,STINGRAY_EVO} from "../../stingray-evo-v0104.mjs";
 import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
- isFleetUnlocked,recordFleetClear,fleetStatus} from "./ships/fleet-v010.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0104.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v083.mjs";
-import { MESH_SPEC } from "./smooth-track-v0901.mjs";
+ isFleetUnlocked,recordFleetClear,fleetStatus} from "../../ships/fleet-v010.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "../../engine-trails-v0104.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v083.mjs";
+import { MESH_SPEC } from "../../smooth-track-v0901.mjs";
 import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./core/frame-pacing-v080.mjs";
-import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
+} from "../../core/frame-pacing-v080.mjs";
+import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "../../flight-motion-v044.mjs";
 import {SIGNATURE_FLIGHT,createSignatureFlightState,stepSignatureFlight,
  triggerSignatureJump,triggerSignatureLanding,triggerSignatureBoost,
- signatureFlightAudit} from "./flight/signature-flight-v091.mjs";
-import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "./cinematic-v0901.mjs";
-import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./flight/boost-spring-v090.mjs";
-import {BOOST_SPRING as CLASSIC_BOOST_FOV} from "./flight/boost/boost-spring-v0495.mjs";
-import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "./velocity-language-v0496.mjs";
+ signatureFlightAudit} from "../../flight/signature-flight-v091.mjs";
+import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "../../cinematic-v0901.mjs";
+import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "../../flight/boost-spring-v090.mjs";
+import {BOOST_SPRING as CLASSIC_BOOST_FOV} from "../../flight/boost/boost-spring-v0495.mjs";
+import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "../../velocity-language-v0496.mjs";
 import {KINETIC_CAMERA,kineticFovAt,createKineticCameraState,
  stepKineticCamera,triggerKineticLanding,kineticCameraAudit}
- from "./flight/kinetic-camera-v090.mjs";
-import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier-v0901.mjs";
-import { installSpaceBackdrop } from "./space-v0496.mjs";
-import { createContactShadow } from "./ship-v034.mjs";
-import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v083.mjs";
-import {HUD_SPEC,createReactiveHud} from "./reactive-hud-v04991.mjs";
-import {GRIP_SPEC} from "./flight/precision-grip-v084.mjs";
+ from "../../flight/kinetic-camera-v090.mjs";
+import { installAeroBarriers,AERO_BARRIER } from "../../tracks/barriers/aero-barrier-v0901.mjs";
+import { installSpaceBackdrop } from "../../space-v0496.mjs";
+import { createContactShadow } from "../../ship-v034.mjs";
+import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "../../image-clarity-v083.mjs";
+import {HUD_SPEC,createReactiveHud} from "../../reactive-hud-v04991.mjs";
+import {GRIP_SPEC} from "../../flight/precision-grip-v084.mjs";
 import {RACING_FEEL,gripApexCue,createRailFeedbackState,
- startRailFeedback,stepRailFeedback} from "./flight/racing-feel-v083.mjs";
-import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./flight/side-thrusters-v061.mjs";
+ startRailFeedback,stepRailFeedback} from "../../flight/racing-feel-v083.mjs";
+import {SIDE_THRUSTER_SPEC,createSideThrusters} from "../../flight/side-thrusters-v061.mjs";
 import {VELOCITY_PRESENCE,createVelocityPresenceState,
- stepVelocityPresence,velocityPresenceAudit} from "./velocity-presence-v0104.mjs";
-import {installReactiveWingFlaps,REACTIVE_FLAPS} from "./ships/reactive-wing-flaps-v0108.mjs";
-import {createLivingWakeFX,LIVING_WAKE} from "./living-wake-v01071.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
+ stepVelocityPresence,velocityPresenceAudit} from "../../velocity-presence-v0104.mjs";
+import {installVelocityVanes} from "../../velocity-vanes-v0104.mjs";
+import { LUMINANCE,validateLuminance } from "../../luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);
@@ -112,12 +111,12 @@ const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null;
 let neonKit,neonPipeline,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
-let cameraLook=new THREE.Vector3(),shadowMesh,premiumFX,sideThrusters,reactiveWingFlaps,livingWake;
+let cameraLook=new THREE.Vector3(),shadowMesh,premiumFX,sideThrusters,velocityVanes;
 let perfFrames=0,perfTotal=0,perfMin=200;
 let renderSamples=0,renderCallTotal=0,renderCallPeak=0,triangleTotal=0;
 let frameClock=createFrameClock(),frameMonitor=createFrameMonitor();
 let adaptiveQuality=createAdaptiveQuality(),currentRenderPose=null,previousRenderPose=null;
-let frameBlend=0,wakeSmokePath=null;
+let frameBlend=0;
 let motionState=createFlightMotionState(),cinematicState=createCinematicState(),
  boostSpring=createBoostSpringState(),velocityState=createVelocityState(),
  velocityPresence=createVelocityPresenceState();
@@ -330,8 +329,7 @@ function buildDecor(){
 function makeShip(id=fleetProgress.selected){
  // Ship and engine visuals can change; the real physical state is untouched.
  tunnelBlackout?.reset();
- premiumFX?.dispose();sideThrusters?.dispose();livingWake?.dispose();
- reactiveWingFlaps?.dispose();
+ premiumFX?.dispose();sideThrusters?.dispose();
  if(ship){
   ship.removeFromParent();
   const geometries=new Set(),materials=new Set();
@@ -359,9 +357,7 @@ function makeShip(id=fleetProgress.selected){
  });
  scene.add(ship);
  premiumFX=createTwinEngineFX(THREE,scene,ship,craft.materials.cyan);
- reactiveWingFlaps=installReactiveWingFlaps(THREE,ship,{variant:id});
- livingWake=createLivingWakeFX(THREE,scene,ship,{variant:id,
-  lowMemory:claritySettings?.lowMemory??false});
+ velocityVanes=installVelocityVanes(THREE,ship);
  sideThrusters=createSideThrusters(THREE,ship);
  if(spaceBackdrop)
   tunnelBlackout=createTunnelBlackoutController({worldLights,camera,bladeTips});
@@ -554,7 +550,6 @@ function clearInput(){
  UI.controls.classList.remove("grip-pressed");
 }
 function resetFlight(){
- wakeSmokePath=null;
  flight=newFlightState();previousSector=0;lastRailLog=0;
  railFeedback=createRailFeedbackState();
  gripCueVisible=false;gripCueSeconds=0;gripCueDisplays=0;
@@ -576,7 +571,7 @@ function resetFlight(){
  boostSpring=createBoostSpringState();
  velocityState=createVelocityState();
  velocityPresence=createVelocityPresenceState();
- reactiveWingFlaps?.reset();livingWake?.reset();
+ velocityVanes?.reset();
  premiumSurface?.setVelocityFlow(0,0);
  identitySurface?.setVelocityFlow(0,0);
  spaceBackdrop?.setVelocityFlow(0);
@@ -1127,20 +1122,6 @@ function loop(now){
     velocityPresence.starFlow));
    tunnelBlackout?.apply(uiState.mode==="hangar"?0:flight.s);
    updatePalette(dt);
-   // CI-only moving flight-path probe; normal players never take this path.
-   if(wakeSmokePath&&uiState.mode==="playing"){
-    const k=wakeSmokePath.frames++;
-    flight.s+=.86;
-    const testPose=positionAt(flight.s,flight.lateral);
-    flight.worldX=testPose.x;
-    flight.worldZ=testPose.z;
-    flight.heading=headingAt(flight.s)+
-     (wakeSmokePath.load==="grip"?.15*Math.sin(k*.075):0);
-    flight.y=surfaceHeightAt(flight.s)+TRIAL.hoverHeight+
-      (wakeSmokePath.load==="air"?4:0);
-    currentRenderPose=capturePose(flight);
-    previousRenderPose=currentRenderPose;frameBlend=0;
-   }
    const view=uiState.mode==="playing"&&currentRenderPose?
      interpolatePose(previousRenderPose,currentRenderPose,frameBlend):flight;
    // Flight motion sees the same interpolated 120Hz simulation pose as FX.
@@ -1194,18 +1175,7 @@ function loop(now){
       {speed:flight.currentSpeed,gripIntensity:flight.gripIntensity,
        boostMultiplier:flight.boostMultiplier});
    }
-   // Real steering -> sprung deployable metal plates, independent of flight.
-   // Hangar previews show an authentic slow actuation on the original track.
-   const showroom=uiState.mode==="hangar";
-   reactiveWingFlaps?.frame(showroom?dt:presentationDt,
-    showroom?{
-     steering:Math.sin(now*.00135)*.85,
-     yawRate:Math.cos(now*.00135)*.53,
-     gripIntensity:.46+.30*Math.sin(now*.00067)
-    }:{
-     steering:view.steering,yawRate:view.yawRate,
-     gripIntensity:flight.gripIntensity
-    });
+   velocityVanes?.frame(velocityPresence,view);
    // Original track-view preview, with slight aiming offset to position
    // the ship to the right of the selection panel.
    if(uiState.mode==="hangar"){
@@ -1222,16 +1192,6 @@ function loop(now){
      ship,shipGlow,sectorColor:COLOR[zoneWave.playerStage].color,
      motionWeight:cinematicState,velocity:velocityState,
      presence:velocityPresence
-   });
-   // Physical WORLD history is sampled after the final ship scale and pose.
-   // This wake lives in the scene, not parented to the moving/turning hull.
-   livingWake?.frame(presentationDt,{
-    playing:uiState.mode==="playing",
-    camera,speed:flight.currentSpeed,
-    steering:view.steering,yawRate:view.yawRate,
-    gripIntensity:flight.gripIntensity,
-    boostMultiplier:Math.max(flight.boostMultiplier,flight.landingBoostMultiplier),
-    grounded:view.grounded
    });
    // Actual interpolated craft roll and simulated flight speed, not generic
    // looping animation: feedback stays in phase with physics and camera.
@@ -1273,8 +1233,8 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.10.8",trial:TRIAL.id,exportedAt:new Date().toISOString(),
-   visual:{pipeline:"HDR UnrealBloom",tier:"Reactive Wing Flaps 0.10.8 · GRIP-first",
+   game:"SKYSHIFT",version:"0.10.4",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   visual:{pipeline:"HDR UnrealBloom",tier:"Velocity Presence & Airborne Motion 0.10.4 · GRIP-first",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -1314,7 +1274,7 @@ function exportAudit(){
      fleet:{...fleetStatus(fleetProgress),activeModel:activeShipId,
         previewModel:previewShipId,tail:activeCraft?.tailStats?.()??null,
         surfacePolish:activeCraft?.polishStats?.()??null,
-        reactiveWingFlaps:reactiveWingFlaps?.stats?.()??null,
+        velocityVanes:velocityVanes?.stats?.()??null,
         flightPhysicsUnchanged:true},
       shipIdentity:{name:activeCraft?.spec?.name??MANTA_IDENTITY.name,
         hardEdgeProfile:MANTA_IDENTITY.hardEdgeProfile,
@@ -1327,8 +1287,6 @@ function exportAudit(){
         extraDynamicLights:engineLights.length-1,
         geometryBudgetTriangles:MANTA_IDENTITY.maxGeometryTriangles,
         unchangedHandling:!MANTA_IDENTITY.changesFlightPhysics},
-      livingWake:{...LIVING_WAKE,...livingWake?.stats()},
-      reactiveWingFlaps:{...REACTIVE_FLAPS,...reactiveWingFlaps?.stats()},
       velocityPresence:{...velocityPresenceAudit(velocityPresence),
         sharedVisualOnly:true,zoneDrivenFlow:true,airborneFeedback:true},
       engineTrails:{emitters:ENGINE_TRAIL_SPEC.emitters,
@@ -1697,51 +1655,6 @@ function installTunnelSmokeHook(){
    pilotPhysics:TRIAL.id,cameraMode:CAMERA_MODE};
  };
 }
-// Test-only real renderer probe. Ordinary sessions never expose or execute it.
-function installLivingWakeSmokeHook(){
- if(new URLSearchParams(location.search).get("wakeSmoke")!=="1")return;
- window.__skyshiftWakeInfo=()=>livingWake?.stats()??null;
- window.__skyshiftWakeSmoke=(stage=8,load="straight")=>{
-  if(uiState.mode!=="playing")throw Error("Living wake probe requires a live race");
-  if(!Number.isInteger(stage)||stage<0||stage>8)
-   throw Error("Living wake stage out of range");
-  // CI-only: freeze the simulation and render the production ship & WebGL FX.
-  waveSmokeHold=true;
-  flight.zoneSpeedStage=stage;
-  flight.zoneCruiseSpeed=speedAt(flight.s,stage);
-  const boost=load==="boost";
-  const airborne=load==="air";
-  wakeSmokePath={frames:0,load};
-  flight.currentSpeed=flight.zoneCruiseSpeed*(boost?1.4:1);
-  flight.boostMultiplier=boost?1.4:1;
-  flight.grounded=!airborne;
-  flight.y=surfaceHeightAt(flight.s)+TRIAL.hoverHeight+(airborne?4:0);
-  flight.vy=airborne?11:0;
-  flight.gripIntensity=load==="grip"?.95:0;
-  flight.steering=load==="grip"?.72:0;
-  flight.yawRate=load==="grip"?.86:0;
-  livingWake?.reset();
-  currentRenderPose=capturePose(flight);previousRenderPose=currentRenderPose;
-  frameBlend=0;
-  return {stage,speed:flight.currentSpeed,load};
- };
-}
-function installFlapSmokeHook(){
- if(new URLSearchParams(location.search).get("flapSmoke")!=="1")return;
- window.__skyshiftFlapProbe=()=>reactiveWingFlaps?.stats()??null;
- window.__skyshiftFlapSet=(steering=0,grip=0)=>{
-  if(uiState.mode!=="playing")throw Error("Flap smoke requires a live race");
-  if(!Number.isFinite(steering)||!Number.isFinite(grip)||
-   Math.abs(steering)>1||grip<0||grip>1)throw Error("Invalid flap smoke pose");
-  waveSmokeHold=true;
-  flight.steering=steering;
-  flight.yawRate=steering*.84;
-  flight.gripIntensity=grip;
-  currentRenderPose=capturePose(flight);previousRenderPose=currentRenderPose;
-  frameBlend=0;
-  return {steering,grip};
- };
-}
 function installControls(){
  UI.hangarBtn.addEventListener("click",openHangar);
  UI.endHangar.addEventListener("click",openHangar);
@@ -1840,8 +1753,6 @@ try{
  resetFlight();
  installWaveSmokeHook();
  installTunnelSmokeHook();
- installLivingWakeSmokeHook();
- installFlapSmokeHook();
  if(new URLSearchParams(location.search).get("fleetSmoke")==="1")
   window.__skyshiftFleetSmokeUnlock=()=>{
    if(uiState.mode!=="hangar")throw new Error("Fleet QA requires Hangar");
@@ -1859,7 +1770,6 @@ try{
    ...fleetStatus(fleetProgress),activeShipId,previewShipId,
    tail:activeCraft?.tailStats?.()??null,
    surfacePolish:activeCraft?.polishStats?.()??null,
-   wingFlaps:reactiveWingFlaps?.stats?.()??null,
    hangarVisible:!UI.hangar.classList.contains("hidden")
   });
  window.__skyshiftBootReady?.(enterPlaying);

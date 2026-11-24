@@ -177,3 +177,6 @@ L1G #209 merged after 36/36 checks; main track QA 45409620517, publication guard
 ## Engineering Foundation 1.0 handoff (2026-11-24)
 
 L1H #210 is merged; independently verified 1,091 tracked files, 271 direct, 42 legacy. Main track QA 45422932872, Pages guard 45422932911 and deployment 45422930753 succeeded. The governing roadmap is now [SKYSHIFT-ENGINEERING-FOUNDATION-1.0.md](SKYSHIFT-ENGINEERING-FOUNDATION-1.0.md). EF01 is next after the plan is merged; L1H inventory feeds that work. This supersedes older next-step instructions for isolated mechanical root moves. No runtime changes in the plan PR (one additional docs file, 271 direct unchanged). Do not claim root consolidation or EF01 complete.
+
+## EF01 exit / EF02 handoff
+EF01C #214 merged at 790540bd147a4f411ca522f742a34e74717afee1 (38/38 checks). Baseline and explicit hardware/coverage limits in [EF01 report](EF01-RUNTIME-PERFORMANCE-BASELINE.md). EF02A shared road deck dedup; root count stays 271, no deletion yet. Follow Engineering Foundation roadmap, not historical L1 next-step text.

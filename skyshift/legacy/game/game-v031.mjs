@@ -1,17 +1,12 @@
 import * as THREE from "three";
 import {
- TRIAL,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,turnLoadAt,
- heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,
+ TRIAL,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,
+ heightAt,widthAt,roadIntervals,sectorAt,speedAt,nextGap,
  newFlightState,stepFlight,clamp,lerp
-} from "./trial-v04.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createPremiumFlightFX } from "./premium-v032.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v032.mjs";
-import { installCleanTrack } from "./identity-v04.mjs";
-import { installSpaceBackdrop } from "./space-v04.mjs";
-import { refineCraftSilhouette,createContactShadow } from "./ship-v034.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
-if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
+} from "../../trial-v03.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createPremiumFlightFX } from "../../premium-v031.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v031.mjs";
 
 const $=id=>document.getElementById(id);
 const UI={
@@ -34,9 +29,9 @@ const UI={
  fullscreenHelp:$("fullscreen-help")
 };
 const COLOR=[
- {color:0x43ddf0,...LUMINANCE.sectors[0],name:"THE LAUNCH"},
- {color:0x9d83ff,...LUMINANCE.sectors[1],name:"SKYBREAK"},
- {color:0xff77ad,...LUMINANCE.sectors[2],name:"FINAL VELOCITY"}
+ {color:0x43ddf0,sky:0x081629,fog:0x10263a,name:"THE LAUNCH"},
+ {color:0x9d83ff,sky:0x13152f,fog:0x1a2140,name:"SKYBREAK"},
+ {color:0xff77ad,sky:0x1b132d,fog:0x251b36,name:"FINAL VELOCITY"}
 ];
 const themes=COLOR.map(p=>({
   ...p,skyColor:new THREE.Color(p.sky),fogColor:new THREE.Color(p.fog),
@@ -46,10 +41,9 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,stickPointe
  keys:new Set(),bannerTimeout:null,toastTimeout:null,trackHint:-1};
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
-let neonKit,neonPipeline,engineLight,identitySurface,spaceBackdrop;
-let cameraLook=new THREE.Vector3(),shadowMesh,pylonMesh,premiumFX;
+let neonKit,neonPipeline,engineLight;
+let cameraLook=new THREE.Vector3(),shadowMesh,rockMesh,pylonMesh,premiumFX;
 let perfFrames=0,perfTotal=0,perfMin=200;
-let renderSamples=0,renderCallTotal=0,renderCallPeak=0,triangleTotal=0;
 const telemetry=[];
 let previousSector=0,sceneReady=false,fullscreenController=null;
 const reusable=new THREE.Object3D();
@@ -80,11 +74,9 @@ function colorFor(s){
 }
 function surfaceColor(s){
  const tint=colorFor(s);
- const base=new THREE.Color(LUMINANCE.roadBase);
- // Lift playable midtones without lifting the emissive rails.
- return base.lerp(tint,LUMINANCE.roadTintMix).multiplyScalar(
-   (Math.floor(s/4)%2)? .975:1.025
- );
+ const dark=new THREE.Color(0x14233a);
+ // Deep satin road material. Bloom is carried by the edge lighting, not the deck.
+ return dark.lerp(tint,.10).multiplyScalar((Math.floor(s/4)%2)? .94:1.035);
 }
 function addQuad(points,colors,a,b,c,d,tint){
  for(const p of [a,b,c,a,c,d]){
@@ -104,7 +96,7 @@ function buildGeometry(points,colors=null){
  return geo;
 }
 function buildRoad(){
- const deck=[],colors=[],rim=[],rimHalo=[],rimCore=[],underRail=[],jumpMarks=[],laneGuides=[],padFaces=[];
+ const deck=[],colors=[],rim=[],rimHalo=[],rimCore=[],jumpMarks=[],laneGuides=[],padFaces=[];
  const boundaries=GEOMETRY_BREAKS;
  const tintSide=new THREE.Color(0x091222);
  for(let k=0;k<boundaries.length-1;k++){
@@ -118,20 +110,15 @@ function buildRoad(){
        const drop=new THREE.Vector3(0,-1.05,0);
        addQuad(deck,colors,p1.clone().add(drop),p1,p4,p4.clone().add(drop),tintSide);
        addQuad(deck,colors,p2,p2.clone().add(drop),p3.clone().add(drop),p3,tintSide);
-       // Slim structural line inside the sidewall, not on the playing deck.
-       for(const outer of [a,b]){
-         addQuad(underRail,null,toVec(d,outer,-.30),toVec(d,outer,-.40),
-           toVec(e,outer,-.40),toVec(e,outer,-.30));
-       }
        for(const off of [a+.10,b-.23]) {
-         // Spatially narrow neon: soft tint, readable colored body, needle-thin core.
-         // Broad 0.56m halos in 0.3.1 made the whole near road look illuminated.
-         addQuad(rimHalo,null,toVec(d,off-.072,.045),toVec(d,off+.203,.045),
-           toVec(e,off+.203,.045),toVec(e,off-.072,.045));
-         addQuad(rim,null,toVec(d,off+.016,.078),toVec(d,off+.114,.078),
-           toVec(e,off+.114,.078),toVec(e,off+.016,.078));
-         addQuad(rimCore,null,toVec(d,off+.052,.102),toVec(d,off+.078,.102),
-           toVec(e,off+.078,.102),toVec(e,off+.052,.102));
+         // Three distinct physical widths + elevations prevent z-fighting.
+         // The core is bright, while the bloom gives the actual soft light spread.
+         addQuad(rimHalo,null,toVec(d,off-.22,.045),toVec(d,off+.34,.045),
+           toVec(e,off+.34,.045),toVec(e,off-.22,.045));
+         addQuad(rim,null,toVec(d,off,.078),toVec(d,off+.13,.078),
+           toVec(e,off+.13,.078),toVec(e,off,.078));
+         addQuad(rimCore,null,toVec(d,off+.049,.102),toVec(d,off+.082,.102),
+           toVec(e,off+.082,.102),toVec(e,off+.049,.102));
        }
      }
      // A subtle dashed road centreline supports speed perception.
@@ -175,13 +162,9 @@ function buildRoad(){
      }
    }
  }
- roadMat=new THREE.MeshStandardMaterial({
-   color:LUMINANCE.roadColor,vertexColors:true,
-   metalness:LUMINANCE.roadMetalness,roughness:LUMINANCE.roadRoughness,
-   emissive:LUMINANCE.roadEmissive,
-   emissiveIntensity:LUMINANCE.roadEmissiveIntensity,
-   side:THREE.DoubleSide
- });
+ roadMat=new THREE.MeshStandardMaterial({color:0xb6cbdd,vertexColors:true,
+   metalness:.42,roughness:.43,emissive:0x051222,emissiveIntensity:.18,
+   side:THREE.DoubleSide});
  edgeMat=neonKit.edgeBody;
  const road=new THREE.Mesh(buildGeometry(deck,colors),roadMat);
  road.frustumCulled=false;world.add(road);
@@ -191,11 +174,6 @@ function buildRoad(){
  edge.frustumCulled=false;edge.renderOrder=2;world.add(edge);
  const whiteHot=new THREE.Mesh(buildGeometry(rimCore),neonKit.edgeCore);
  whiteHot.frustumCulled=false;whiteHot.renderOrder=3;world.add(whiteHot);
- const skirtTrim=new THREE.Mesh(buildGeometry(underRail),
-   new THREE.MeshBasicMaterial({
-     color:0x3d779a,transparent:true,opacity:.63,depthWrite:false,side:THREE.DoubleSide
-   }));
- skirtTrim.frustumCulled=false;world.add(skirtTrim);
  const gold=neonKit.warning;
  const jumps=new THREE.Mesh(buildGeometry(jumpMarks),gold);
  jumps.frustumCulled=false;world.add(jumps);
@@ -217,7 +195,7 @@ function makeBillboard(text,s,height=6.7,scale=8,lateral=0){
  const texture=new THREE.CanvasTexture(canvas);
  texture.colorSpace=THREE.SRGBColorSpace;
  const mat=new THREE.MeshBasicMaterial({
-   map:texture,color:new THREE.Color(0xf1faff).multiplyScalar(1.10),
+   map:texture,color:new THREE.Color(0xf1faff).multiplyScalar(1.85),
    transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false
  });
  const sign=new THREE.Mesh(new THREE.PlaneGeometry(scale,scale*.25),mat);
@@ -233,12 +211,12 @@ function makeArch(s,label,color,wide=16){
  group.position.set(p.x,p.y,p.z);group.rotation.y=-p.heading;
  const metal=new THREE.MeshStandardMaterial({color:0x15253c,metalness:.7,
    roughness:.35});
- const lightBody=new THREE.MeshBasicMaterial({color:new THREE.Color(color).multiplyScalar(NEON_TUNING.archBodyLuminance),
+ const lightBody=new THREE.MeshBasicMaterial({color:new THREE.Color(color).multiplyScalar(2.35),
    toneMapped:false,side:THREE.DoubleSide});
- const lightCore=new THREE.MeshBasicMaterial({color:new THREE.Color(0xe9faff).multiplyScalar(NEON_TUNING.archCoreLuminance),
+ const lightCore=new THREE.MeshBasicMaterial({color:new THREE.Color(0xe9faff).multiplyScalar(3.5),
    toneMapped:false,side:THREE.DoubleSide});
  const halo=new THREE.MeshBasicMaterial({color,
-   transparent:true,opacity:NEON_TUNING.archHaloOpacity,blending:THREE.AdditiveBlending,
+   transparent:true,opacity:.16,blending:THREE.AdditiveBlending,
    depthWrite:false,toneMapped:false});
  function buildBar(width,height,depth,x,y,z,material){
    const mesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,depth),material);
@@ -247,54 +225,67 @@ function makeArch(s,label,color,wide=16){
  for(const side of [-1,1]){
    const x=side*(wide/2+.36);
    buildBar(.56,7.5,.83,x,3.75,0,metal);
-   buildBar(.24,7.37,.88,x,3.75,-.25,halo);
-   buildBar(.12,7.16,.89,x,3.75,-.30,lightBody);
-   buildBar(.028,7.0,.92,x,3.75,-.33,lightCore);
+   buildBar(.42,7.37,.88,x,3.75,-.25,halo);
+   buildBar(.19,7.16,.89,x,3.75,-.30,lightBody);
+   buildBar(.046,7.0,.92,x,3.75,-.33,lightCore);
  }
  buildBar(wide+1.25,.46,.85,0,7.5,0,metal);
- buildBar(wide+1.2,.25,.95,0,7.66,-.25,halo);
- buildBar(wide+1.15,.10,.91,0,7.67,-.32,lightBody);
- buildBar(wide+1.08,.026,.95,0,7.7,-.34,lightCore);
+ buildBar(wide+1.2,.44,.95,0,7.66,-.25,halo);
+ buildBar(wide+1.15,.15,.91,0,7.67,-.32,lightBody);
+ buildBar(wide+1.08,.042,.95,0,7.7,-.34,lightCore);
  world.add(group);
  makeBillboard(label,s,9.0,13);
 }
 
 function buildDecor(){
- // Track beacons, arches and signs only. World scenery lives in world-v034.
- const beaconGeo=new THREE.BoxGeometry(.17,1.78,.21);
+ const cloudMat=new THREE.MeshStandardMaterial({
+   color:0x0a1528,roughness:.90,metalness:.18,flatShading:true,
+   emissive:0x050c1b,emissiveIntensity:.11
+ });
+ const cloudGeo=new THREE.CylinderGeometry(4.7,10.4,15.5,5);
+ const rock=new THREE.InstancedMesh(cloudGeo,cloudMat,155);
+ let seed=10923;
+ const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+ let i=0;
+ for(let s=24;s<TRIAL.length-12;s+=20){
+   for(const dir of [-1,1]){
+     if(i>=155)break;
+     const p=positionAt(s,dir*(29+rand()*28),-11-rand()*13);
+     const h=.55+rand()*1.9;
+     reusable.position.set(p.x,p.y,p.z);
+     reusable.rotation.set(0,rand()*3,0);
+     reusable.scale.set(.7+rand()*.9,h,1.0+rand()*.65);
+     reusable.updateMatrix();rock.setMatrixAt(i++,reusable.matrix);
+   }
+ }
+ rock.count=i;rock.instanceMatrix.needsUpdate=true;world.add(rock);rockMesh=rock;
+ const beaconGeo=new THREE.BoxGeometry(.26,2.4,.29);
  const beacon=new THREE.InstancedMesh(beaconGeo,neonKit.beacon,210);
  const beaconCore=new THREE.InstancedMesh(
-   new THREE.BoxGeometry(.038,1.62,.065),neonKit.beaconCore,210);
+   new THREE.BoxGeometry(.065,2.15,.10),neonKit.beaconCore,210);
  const beaconGlow=new THREE.InstancedMesh(
-   new THREE.BoxGeometry(.34,2.04,.38),neonKit.beaconHalo,210);
- // Dark hardware makes the small luminous elements feel *embedded* in a product.
- const beaconHousing=new THREE.InstancedMesh(
-   new THREE.BoxGeometry(.30,2.12,.34),
-   new THREE.MeshStandardMaterial({
-      color:LUMINANCE.housingColor,metalness:.61,roughness:.44
-    }),210);
- let i=0;
+   new THREE.BoxGeometry(.58,2.72,.58),neonKit.beaconHalo,210);
+ i=0;
  for(let s=12;s<TRIAL.length-8;s+=18){
    if(!roadIntervals(s).length)continue;
    for(const dir of [-1,1]){
      const lanes=roadIntervals(s);
      const offset=dir<0?lanes[0][0]-1.0:lanes[lanes.length-1][1]+1.0;
-     const p=positionAt(s,offset,.92);
+     const p=positionAt(s,offset,.4);
      reusable.position.set(p.x,p.y,p.z);
      reusable.rotation.set(0,-poseAt(s).heading,0);
      reusable.scale.set(1,1,1);reusable.updateMatrix();
      beacon.setMatrixAt(i,reusable.matrix);
      beaconCore.setMatrixAt(i,reusable.matrix);
      beaconGlow.setMatrixAt(i,reusable.matrix);
-     beaconHousing.setMatrixAt(i,reusable.matrix);
      i++;
    }
  }
- for(const mesh of [beaconHousing,beaconGlow,beacon,beaconCore]){
+ for(const mesh of [beaconGlow,beacon,beaconCore]){
    mesh.count=i;mesh.instanceMatrix.needsUpdate=true;world.add(mesh);
  }
  pylonMesh=beacon;
- for(const arch of ARCHES)makeArch(arch.s,arch.label,arch.color,widthAt(arch.s)+.5);
+ for(const arch of ARCHES)makeArch(arch.s,arch.label,arch.color,arch.s>1280?19:17);
  makeBillboard("SAFE",547,4.15,7,-4.3);
  makeBillboard("RISK",547,4.15,7,4.3);
 }
@@ -344,18 +335,31 @@ function makeShip(){
  thrusterWhite.position.set(0,-.045,2.06);ship.add(thrusterWhite);
  const spine=new THREE.Mesh(new THREE.BoxGeometry(.28,.22,2.2),dark);
  spine.position.set(0,.42,.68);ship.add(spine);
- refineCraftSilhouette(THREE,ship);
- engineLight=new THREE.PointLight(0x43ddf0,NEON_TUNING.enginePointIntensity,5.0,1.7);
+ engineLight=new THREE.PointLight(0x43ddf0,12,14,1.7);
  engineLight.position.set(0,-.52,1.8);
  ship.add(engineLight);
  scene.add(ship);
  premiumFX=createPremiumFlightFX(THREE,scene);
- shadowMesh=createContactShadow(THREE,scene);
+ const shadowMat=new THREE.MeshBasicMaterial({
+   color:0x49d7ef,transparent:true,opacity:.18,depthWrite:false
+ });
+ shadowMesh=new THREE.Mesh(new THREE.CircleGeometry(2.8,24),shadowMat);
+ shadowMesh.rotation.x=-Math.PI/2;scene.add(shadowMesh);
+}
+function makeStars(){
+ const vertices=[];let n=0x13442;
+ const rand=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+ for(let k=0;k<530;k++)vertices.push((rand()-.5)*360,(rand()-.34)*150,-25-rand()*290);
+ const geo=new THREE.BufferGeometry();
+ geo.setAttribute("position",new THREE.Float32BufferAttribute(vertices,3));
+ camera.add(new THREE.Points(geo,new THREE.PointsMaterial({
+   size:.45,color:0x99b9cf,transparent:true,opacity:.65,depthWrite:false
+ })));
 }
 function initScene(){
  scene=new THREE.Scene();
  scene.background=new THREE.Color(COLOR[0].sky);
- scene.fog=new THREE.FogExp2(COLOR[0].fog,LUMINANCE.fogDensity*.57);
+ scene.fog=new THREE.FogExp2(COLOR[0].fog,.008);
  camera=new THREE.PerspectiveCamera(67,innerWidth/Math.max(1,innerHeight),.1,650);
  scene.add(camera);
  renderer=new THREE.WebGLRenderer({canvas:UI.canvas,antialias:true,
@@ -365,22 +369,15 @@ function initScene(){
  renderer.setSize(innerWidth,innerHeight,false);
  renderer.outputColorSpace=THREE.SRGBColorSpace;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;
- renderer.toneMappingExposure=LUMINANCE.exposure;
+ renderer.toneMappingExposure=1.18;
  neonKit=createNeonKit(THREE);
- scene.add(new THREE.HemisphereLight(
-   LUMINANCE.ambientSky,LUMINANCE.ambientGround,LUMINANCE.ambientIntensity
- ));
- const key=new THREE.DirectionalLight(0xb5d6ff,LUMINANCE.keyIntensity);
+ scene.add(new THREE.HemisphereLight(0xabc9ed,0x0a1023,1.65));
+ const key=new THREE.DirectionalLight(0xb5d6ff,3.0);
  key.position.set(12,28,18);scene.add(key);
- const edgeFill=new THREE.DirectionalLight(0xf87ac6,LUMINANCE.fillIntensity);
+ const edgeFill=new THREE.DirectionalLight(0xf87ac6,1.1);
  edgeFill.position.set(-18,11,-22);scene.add(edgeFill);
  world=new THREE.Group();scene.add(world);
- buildRoad();
- identitySurface=installCleanTrack(THREE,world);
- buildDecor();
- // Open space, no geological scenery, distant monuments or 3D floor.
- makeShip();
- spaceBackdrop=installSpaceBackdrop(THREE,camera);
+ buildRoad();buildDecor();makeShip();makeStars();
  // HDR multilayer bloom renders *after* the beauty pass and before tone mapping.
  neonPipeline=createNeonPipeline(THREE,renderer,scene,camera);
  neonPipeline.resize(innerWidth,innerHeight);
@@ -433,7 +430,6 @@ function resetFlight(){
  flight=newFlightState();previousSector=0;
  premiumFX?.reset();
  perfFrames=0;perfTotal=0;perfMin=200;
- renderSamples=0;renderCallTotal=0;renderCallPeak=0;triangleTotal=0;
  document.documentElement.style.setProperty("--neon","#43dff3");
  telemetry.length=0;uiState.trackHint=-1;clearInput();
  event("trial_start",{trial:TRIAL.id});
@@ -587,38 +583,32 @@ function placeShip(time,dt){
  ship.position.set(p.x,flight.y+Math.sin(time*4.2)*.028,p.z);
  ship.rotation.y=-heading;
  // Bank with sideways velocity, not world-space lateral drift.
- const turn=curvatureAt(flight.s);
- const shipLean=clamp(turn*7.5,-.18,.18)-flight.sideVelocity*.023;
- ship.rotation.z=lerp(ship.rotation.z,clamp(shipLean,-.37,.37),1-Math.exp(-dt*6.5));
+ ship.rotation.z=lerp(ship.rotation.z,-flight.sideVelocity*.018,1-Math.exp(-dt*8));
  ship.rotation.x=lerp(ship.rotation.x,clamp(flight.vy/28,-.19,.21),1-Math.exp(-dt*7));
  
  if(shadowMesh){
-   const clearance=flight.y-heightAt(flight.s)-TRIAL.hoverHeight;
-   // Contact darkening only on physical deck, NEVER across a jump void.
-   shadowMesh.visible=onRoad(flight.s,flight.lateral)&&clearance<4.1;
-   shadowMesh.position.set(p.x,heightAt(flight.s)+.034,p.z);
-   shadowMesh.material.opacity=clamp(.62-Math.max(0,clearance)*.16,0,.62);
+   shadowMesh.visible=flight.y-heightAt(flight.s)<8;
+   shadowMesh.position.set(p.x,heightAt(flight.s)+.055,p.z);
+   shadowMesh.material.opacity=clamp(.18-(flight.y-heightAt(flight.s)-1)*.023,0,.18);
  }
  // Camera is track-relative with look ahead; lateral follow is deliberately weak.
  // Player can visibly move left/right within the screen instead of being locked at centre.
- const behindS=Math.max(0,flight.s-18);
+ const behindS=Math.max(0,flight.s-15);
  const back=poseAt(behindS);
- const lateralCamera=flight.lateral*.07;
+ const lateralCamera=flight.lateral*.10;
  const airHeight=Math.max(0,flight.y-heightAt(flight.s)-TRIAL.hoverHeight);
- const cameraPos=positionAt(behindS,lateralCamera,10.1+airHeight*.13);
+ const cameraPos=positionAt(behindS,lateralCamera,9.2+airHeight*.13);
  if(flight.s<15){
    const delta=15-flight.s;
    cameraPos.x-=back.forwardX*delta;
    cameraPos.z-=back.forwardZ*delta;
  }
- const ahead=positionAt(Math.min(TRIAL.length,flight.s+45),flight.lateral*.08,1.25);
+ const ahead=positionAt(Math.min(TRIAL.length,flight.s+33),flight.lateral*.12,1.25);
  const smoothPosition=1-Math.exp(-dt*4.0);
  const smoothLook=1-Math.exp(-dt*4.5);
  camera.position.lerp(new THREE.Vector3(cameraPos.x,cameraPos.y,cameraPos.z),smoothPosition);
  cameraLook.lerp(new THREE.Vector3(ahead.x,ahead.y,ahead.z),smoothLook);
  camera.lookAt(cameraLook);
- // A restrained visual horizon roll hints at future physically banked turns.
- camera.rotateZ(clamp(curvatureAt(flight.s+13)*2.6,-.052,.052));
  const targetFov=66+Math.min(5,(speedAt(flight.s)-TRIAL.startSpeed)*.9);
  camera.fov=lerp(camera.fov,targetFov,1-Math.exp(-dt*2));
  camera.updateProjectionMatrix();
@@ -646,37 +636,16 @@ function loop(now){
  }
  if(neonPipeline)neonPipeline.render(dt);
  else renderer.render(scene,camera);
- if(uiState.mode==="playing"&&renderer.info){
-   // Renderer workload is indicative; not GPU milliseconds.
-   const work=renderer.info.render;
-   renderSamples++;
-   renderCallTotal+=work.calls;renderCallPeak=Math.max(renderCallPeak,work.calls);
-   triangleTotal+=work.triangles;
- }
 }
 function exportAudit(){
  const data={
-   game:"SKYSHIFT",version:"0.4.0",trial:TRIAL.id,exportedAt:new Date().toISOString(),
-   visual:{pipeline:"HDR UnrealBloom",tier:"Space Track Flow",
-     renderDpr:renderer.getPixelRatio(),
-     surfaceAccents:identitySurface.plan.length,decorativePlates:0,
-     worldFormations:0,worldLandmarks:0,
-     spaceStars:spaceBackdrop.stars,spaceNebulae:spaceBackdrop.nebulae,
-     rendererDrawCallsAverage:renderSamples?Math.round(renderCallTotal/renderSamples):null,
-     rendererDrawCallsPeak:renderSamples?renderCallPeak:null,
-     rendererTrianglesAverage:renderSamples?Math.round(triangleTotal/renderSamples):null,
-     exposure:LUMINANCE.exposure,fogDensity:LUMINANCE.fogDensity,
-     bloomStrength:NEON_TUNING.bloomStrength,
-     bloomThreshold:NEON_TUNING.bloomThreshold},
+   game:"SKYSHIFT",version:"0.3.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   visual:{pipeline:"HDR UnrealBloom",tier:"Premium Neon",renderDpr:renderer.getPixelRatio()},
 
    run:{
      status:flight.finished?"clear":"failed",distanceMeters:+flight.s.toFixed(1),
      durationSeconds:+flight.elapsed.toFixed(2),shield:flight.shield,
      jumps:flight.jumps,landings:flight.landings,falls:flight.falls,
-     steerSeconds:+flight.steerSeconds.toFixed(2),
-     steerReversals:flight.steerReversals,
-     peakTurnLoad:+flight.peakTurnLoad.toFixed(2),
-     totalTurnLoad:+flight.totalTurnLoad.toFixed(2),
      routeChoice:flight.routeChoice,
      riskRouteStyleBonus:flight.routeRewarded?500:0,
      fpsAverage:perfFrames?Math.round(perfTotal/perfFrames):null,
@@ -686,7 +655,7 @@ function exportAudit(){
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-first-flight-v040-audit.json";
+ a.href=url;a.download="skyshift-first-flight-v031-audit.json";
  document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1800);
 }
@@ -756,7 +725,7 @@ try{
  initScene();installFullscreen();installControls();resetFlight();
  requestAnimationFrame(loop);
 }catch(error){
- console.error("SKYSHIFT startup failed",error);
+ console.error("SKYSHIFT 0.2 startup failed",error);
  UI.error.classList.remove("hidden");
- UI.error.textContent="SKYSHIFT could not start: "+(error?.message||"Unknown startup error");
+ UI.error.textContent="SKYSHIFT could not start. WebGL required. "+(error?.message||"");
 }

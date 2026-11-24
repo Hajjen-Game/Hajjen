@@ -3,10 +3,11 @@ import {
  TRIAL,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,
  heightAt,widthAt,roadIntervals,sectorAt,speedAt,nextGap,
  newFlightState,stepFlight,clamp,lerp
-} from "./trial-v03.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createPremiumFlightFX } from "./premium-v031.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v031.mjs";
+} from "../../trial-v03.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createPremiumFlightFX } from "../../premium-v032.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v032.mjs";
+import { installSurfaceLanguage,installWorldIdentity,decorateHeroShip,IDENTITY_RULES } from "../../identity-v033.mjs";
 
 const $=id=>document.getElementById(id);
 const UI={
@@ -41,7 +42,7 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,stickPointe
  keys:new Set(),bannerTimeout:null,toastTimeout:null,trackHint:-1};
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
-let neonKit,neonPipeline,engineLight;
+let neonKit,neonPipeline,engineLight,identitySurface,identityWorld;
 let cameraLook=new THREE.Vector3(),shadowMesh,rockMesh,pylonMesh,premiumFX;
 let perfFrames=0,perfTotal=0,perfMin=200;
 const telemetry=[];
@@ -111,14 +112,14 @@ function buildRoad(){
        addQuad(deck,colors,p1.clone().add(drop),p1,p4,p4.clone().add(drop),tintSide);
        addQuad(deck,colors,p2,p2.clone().add(drop),p3.clone().add(drop),p3,tintSide);
        for(const off of [a+.10,b-.23]) {
-         // Three distinct physical widths + elevations prevent z-fighting.
-         // The core is bright, while the bloom gives the actual soft light spread.
-         addQuad(rimHalo,null,toVec(d,off-.22,.045),toVec(d,off+.34,.045),
-           toVec(e,off+.34,.045),toVec(e,off-.22,.045));
-         addQuad(rim,null,toVec(d,off,.078),toVec(d,off+.13,.078),
-           toVec(e,off+.13,.078),toVec(e,off,.078));
-         addQuad(rimCore,null,toVec(d,off+.049,.102),toVec(d,off+.082,.102),
-           toVec(e,off+.082,.102),toVec(e,off+.049,.102));
+         // Spatially narrow neon: soft tint, readable colored body, needle-thin core.
+         // Broad 0.56m halos in 0.3.1 made the whole near road look illuminated.
+         addQuad(rimHalo,null,toVec(d,off-.072,.045),toVec(d,off+.203,.045),
+           toVec(e,off+.203,.045),toVec(e,off-.072,.045));
+         addQuad(rim,null,toVec(d,off+.016,.078),toVec(d,off+.114,.078),
+           toVec(e,off+.114,.078),toVec(e,off+.016,.078));
+         addQuad(rimCore,null,toVec(d,off+.052,.102),toVec(d,off+.078,.102),
+           toVec(e,off+.078,.102),toVec(e,off+.052,.102));
        }
      }
      // A subtle dashed road centreline supports speed perception.
@@ -195,7 +196,7 @@ function makeBillboard(text,s,height=6.7,scale=8,lateral=0){
  const texture=new THREE.CanvasTexture(canvas);
  texture.colorSpace=THREE.SRGBColorSpace;
  const mat=new THREE.MeshBasicMaterial({
-   map:texture,color:new THREE.Color(0xf1faff).multiplyScalar(1.85),
+   map:texture,color:new THREE.Color(0xf1faff).multiplyScalar(1.10),
    transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false
  });
  const sign=new THREE.Mesh(new THREE.PlaneGeometry(scale,scale*.25),mat);
@@ -211,12 +212,12 @@ function makeArch(s,label,color,wide=16){
  group.position.set(p.x,p.y,p.z);group.rotation.y=-p.heading;
  const metal=new THREE.MeshStandardMaterial({color:0x15253c,metalness:.7,
    roughness:.35});
- const lightBody=new THREE.MeshBasicMaterial({color:new THREE.Color(color).multiplyScalar(2.35),
+ const lightBody=new THREE.MeshBasicMaterial({color:new THREE.Color(color).multiplyScalar(NEON_TUNING.archBodyLuminance),
    toneMapped:false,side:THREE.DoubleSide});
- const lightCore=new THREE.MeshBasicMaterial({color:new THREE.Color(0xe9faff).multiplyScalar(3.5),
+ const lightCore=new THREE.MeshBasicMaterial({color:new THREE.Color(0xe9faff).multiplyScalar(NEON_TUNING.archCoreLuminance),
    toneMapped:false,side:THREE.DoubleSide});
  const halo=new THREE.MeshBasicMaterial({color,
-   transparent:true,opacity:.16,blending:THREE.AdditiveBlending,
+   transparent:true,opacity:NEON_TUNING.archHaloOpacity,blending:THREE.AdditiveBlending,
    depthWrite:false,toneMapped:false});
  function buildBar(width,height,depth,x,y,z,material){
    const mesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,depth),material);
@@ -225,14 +226,14 @@ function makeArch(s,label,color,wide=16){
  for(const side of [-1,1]){
    const x=side*(wide/2+.36);
    buildBar(.56,7.5,.83,x,3.75,0,metal);
-   buildBar(.42,7.37,.88,x,3.75,-.25,halo);
-   buildBar(.19,7.16,.89,x,3.75,-.30,lightBody);
-   buildBar(.046,7.0,.92,x,3.75,-.33,lightCore);
+   buildBar(.24,7.37,.88,x,3.75,-.25,halo);
+   buildBar(.12,7.16,.89,x,3.75,-.30,lightBody);
+   buildBar(.028,7.0,.92,x,3.75,-.33,lightCore);
  }
  buildBar(wide+1.25,.46,.85,0,7.5,0,metal);
- buildBar(wide+1.2,.44,.95,0,7.66,-.25,halo);
- buildBar(wide+1.15,.15,.91,0,7.67,-.32,lightBody);
- buildBar(wide+1.08,.042,.95,0,7.7,-.34,lightCore);
+ buildBar(wide+1.2,.25,.95,0,7.66,-.25,halo);
+ buildBar(wide+1.15,.10,.91,0,7.67,-.32,lightBody);
+ buildBar(wide+1.08,.026,.95,0,7.7,-.34,lightCore);
  world.add(group);
  makeBillboard(label,s,9.0,13);
 }
@@ -259,29 +260,34 @@ function buildDecor(){
    }
  }
  rock.count=i;rock.instanceMatrix.needsUpdate=true;world.add(rock);rockMesh=rock;
- const beaconGeo=new THREE.BoxGeometry(.26,2.4,.29);
+ const beaconGeo=new THREE.BoxGeometry(.17,1.78,.21);
  const beacon=new THREE.InstancedMesh(beaconGeo,neonKit.beacon,210);
  const beaconCore=new THREE.InstancedMesh(
-   new THREE.BoxGeometry(.065,2.15,.10),neonKit.beaconCore,210);
+   new THREE.BoxGeometry(.038,1.62,.065),neonKit.beaconCore,210);
  const beaconGlow=new THREE.InstancedMesh(
-   new THREE.BoxGeometry(.58,2.72,.58),neonKit.beaconHalo,210);
+   new THREE.BoxGeometry(.34,2.04,.38),neonKit.beaconHalo,210);
+ // Dark hardware makes the small luminous elements feel *embedded* in a product.
+ const beaconHousing=new THREE.InstancedMesh(
+   new THREE.BoxGeometry(.30,2.12,.34),
+   new THREE.MeshStandardMaterial({color:0x17293f,metalness:.67,roughness:.34}),210);
  i=0;
  for(let s=12;s<TRIAL.length-8;s+=18){
    if(!roadIntervals(s).length)continue;
    for(const dir of [-1,1]){
      const lanes=roadIntervals(s);
      const offset=dir<0?lanes[0][0]-1.0:lanes[lanes.length-1][1]+1.0;
-     const p=positionAt(s,offset,.4);
+     const p=positionAt(s,offset,.92);
      reusable.position.set(p.x,p.y,p.z);
      reusable.rotation.set(0,-poseAt(s).heading,0);
      reusable.scale.set(1,1,1);reusable.updateMatrix();
      beacon.setMatrixAt(i,reusable.matrix);
      beaconCore.setMatrixAt(i,reusable.matrix);
      beaconGlow.setMatrixAt(i,reusable.matrix);
+     beaconHousing.setMatrixAt(i,reusable.matrix);
      i++;
    }
  }
- for(const mesh of [beaconGlow,beacon,beaconCore]){
+ for(const mesh of [beaconHousing,beaconGlow,beacon,beaconCore]){
    mesh.count=i;mesh.instanceMatrix.needsUpdate=true;world.add(mesh);
  }
  pylonMesh=beacon;
@@ -335,7 +341,8 @@ function makeShip(){
  thrusterWhite.position.set(0,-.045,2.06);ship.add(thrusterWhite);
  const spine=new THREE.Mesh(new THREE.BoxGeometry(.28,.22,2.2),dark);
  spine.position.set(0,.42,.68);ship.add(spine);
- engineLight=new THREE.PointLight(0x43ddf0,12,14,1.7);
+ decorateHeroShip(THREE,ship);
+ engineLight=new THREE.PointLight(0x43ddf0,NEON_TUNING.enginePointIntensity,5.0,1.7);
  engineLight.position.set(0,-.52,1.8);
  ship.add(engineLight);
  scene.add(ship);
@@ -369,15 +376,19 @@ function initScene(){
  renderer.setSize(innerWidth,innerHeight,false);
  renderer.outputColorSpace=THREE.SRGBColorSpace;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;
- renderer.toneMappingExposure=1.18;
+ renderer.toneMappingExposure=NEON_TUNING.exposure;
  neonKit=createNeonKit(THREE);
- scene.add(new THREE.HemisphereLight(0xabc9ed,0x0a1023,1.65));
- const key=new THREE.DirectionalLight(0xb5d6ff,3.0);
+ scene.add(new THREE.HemisphereLight(0xabc9ed,0x0a1023,1.43));
+ const key=new THREE.DirectionalLight(0xb5d6ff,2.45);
  key.position.set(12,28,18);scene.add(key);
- const edgeFill=new THREE.DirectionalLight(0xf87ac6,1.1);
+ const edgeFill=new THREE.DirectionalLight(0xf87ac6,.58);
  edgeFill.position.set(-18,11,-22);scene.add(edgeFill);
  world=new THREE.Group();scene.add(world);
- buildRoad();buildDecor();makeShip();makeStars();
+ buildRoad();
+ identitySurface=installSurfaceLanguage(THREE,world);
+ buildDecor();
+ identityWorld=installWorldIdentity(THREE,world);
+ makeShip();makeStars();
  // HDR multilayer bloom renders *after* the beauty pass and before tone mapping.
  neonPipeline=createNeonPipeline(THREE,renderer,scene,camera);
  neonPipeline.resize(innerWidth,innerHeight);
@@ -639,8 +650,10 @@ function loop(now){
 }
 function exportAudit(){
  const data={
-   game:"SKYSHIFT",version:"0.3.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
-   visual:{pipeline:"HDR UnrealBloom",tier:"Premium Neon",renderDpr:renderer.getPixelRatio()},
+   game:"SKYSHIFT",version:"0.3.3",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   visual:{pipeline:"HDR UnrealBloom",tier:"Neon Surface & World Identity",renderDpr:renderer.getPixelRatio(),
+     surfacePanels:identitySurface.plan.length,worldLandmarks:identityWorld.landmarks,
+     bloomStrength:NEON_TUNING.bloomStrength,bloomThreshold:NEON_TUNING.bloomThreshold},
 
    run:{
      status:flight.finished?"clear":"failed",distanceMeters:+flight.s.toFixed(1),
@@ -655,7 +668,7 @@ function exportAudit(){
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-first-flight-v031-audit.json";
+ a.href=url;a.download="skyshift-first-flight-v033-audit.json";
  document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1800);
 }

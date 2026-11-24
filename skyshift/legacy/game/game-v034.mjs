@@ -1,14 +1,16 @@
 import * as THREE from "three";
 import {
  TRIAL,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,
- heightAt,widthAt,roadIntervals,sectorAt,speedAt,nextGap,
+ heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,
  newFlightState,stepFlight,clamp,lerp
-} from "./trial-v03.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createPremiumFlightFX } from "./premium-v032.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v032.mjs";
-import { installSurfaceLanguage,installWorldIdentity,decorateHeroShip,IDENTITY_RULES } from "./identity-v0331.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
+} from "../../trial-v03.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createPremiumFlightFX } from "../../premium-v032.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v032.mjs";
+import { installCleanTrack } from "../../identity-v034.mjs";
+import { installPremiumWorld } from "../../world-v034.mjs";
+import { refineCraftSilhouette,createContactShadow } from "../../ship-v034.mjs";
+import { LUMINANCE,validateLuminance } from "../../luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);
@@ -45,8 +47,9 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,stickPointe
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let neonKit,neonPipeline,engineLight,identitySurface,identityWorld;
-let cameraLook=new THREE.Vector3(),shadowMesh,rockMesh,pylonMesh,premiumFX;
+let cameraLook=new THREE.Vector3(),shadowMesh,pylonMesh,premiumFX;
 let perfFrames=0,perfTotal=0,perfMin=200;
+let renderSamples=0,renderCallTotal=0,renderCallPeak=0,triangleTotal=0;
 const telemetry=[];
 let previousSector=0,sceneReady=false,fullscreenController=null;
 const reusable=new THREE.Object3D();
@@ -247,27 +250,7 @@ function makeArch(s,label,color,wide=16){
 }
 
 function buildDecor(){
- const cloudMat=new THREE.MeshStandardMaterial({
-   color:LUMINANCE.rockColor,roughness:.86,metalness:.12,flatShading:true,
-   emissive:LUMINANCE.rockEmissive,emissiveIntensity:LUMINANCE.rockEmissiveIntensity
- });
- const cloudGeo=new THREE.CylinderGeometry(4.7,10.4,15.5,5);
- const rock=new THREE.InstancedMesh(cloudGeo,cloudMat,155);
- let seed=10923;
- const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- let i=0;
- for(let s=24;s<TRIAL.length-12;s+=20){
-   for(const dir of [-1,1]){
-     if(i>=155)break;
-     const p=positionAt(s,dir*(29+rand()*28),-11-rand()*13);
-     const h=.55+rand()*1.9;
-     reusable.position.set(p.x,p.y,p.z);
-     reusable.rotation.set(0,rand()*3,0);
-     reusable.scale.set(.7+rand()*.9,h,1.0+rand()*.65);
-     reusable.updateMatrix();rock.setMatrixAt(i++,reusable.matrix);
-   }
- }
- rock.count=i;rock.instanceMatrix.needsUpdate=true;world.add(rock);rockMesh=rock;
+ // Track beacons, arches and signs only. World scenery lives in world-v034.
  const beaconGeo=new THREE.BoxGeometry(.17,1.78,.21);
  const beacon=new THREE.InstancedMesh(beaconGeo,neonKit.beacon,210);
  const beaconCore=new THREE.InstancedMesh(
@@ -280,7 +263,7 @@ function buildDecor(){
    new THREE.MeshStandardMaterial({
       color:LUMINANCE.housingColor,metalness:.61,roughness:.44
     }),210);
- i=0;
+ let i=0;
  for(let s=12;s<TRIAL.length-8;s+=18){
    if(!roadIntervals(s).length)continue;
    for(const dir of [-1,1]){
@@ -351,17 +334,13 @@ function makeShip(){
  thrusterWhite.position.set(0,-.045,2.06);ship.add(thrusterWhite);
  const spine=new THREE.Mesh(new THREE.BoxGeometry(.28,.22,2.2),dark);
  spine.position.set(0,.42,.68);ship.add(spine);
- decorateHeroShip(THREE,ship);
+ refineCraftSilhouette(THREE,ship);
  engineLight=new THREE.PointLight(0x43ddf0,NEON_TUNING.enginePointIntensity,5.0,1.7);
  engineLight.position.set(0,-.52,1.8);
  ship.add(engineLight);
  scene.add(ship);
  premiumFX=createPremiumFlightFX(THREE,scene);
- const shadowMat=new THREE.MeshBasicMaterial({
-   color:0x49d7ef,transparent:true,opacity:.18,depthWrite:false
- });
- shadowMesh=new THREE.Mesh(new THREE.CircleGeometry(2.8,24),shadowMat);
- shadowMesh.rotation.x=-Math.PI/2;scene.add(shadowMesh);
+ shadowMesh=createContactShadow(THREE,scene);
 }
 function makeStars(){
  const vertices=[];let n=0x13442;
@@ -397,9 +376,9 @@ function initScene(){
  edgeFill.position.set(-18,11,-22);scene.add(edgeFill);
  world=new THREE.Group();scene.add(world);
  buildRoad();
- identitySurface=installSurfaceLanguage(THREE,world);
+ identitySurface=installCleanTrack(THREE,world);
  buildDecor();
- identityWorld=installWorldIdentity(THREE,world);
+ identityWorld=installPremiumWorld(THREE,world);
  makeShip();makeStars();
  // HDR multilayer bloom renders *after* the beauty pass and before tone mapping.
  neonPipeline=createNeonPipeline(THREE,renderer,scene,camera);
@@ -453,6 +432,7 @@ function resetFlight(){
  flight=newFlightState();previousSector=0;
  premiumFX?.reset();
  perfFrames=0;perfTotal=0;perfMin=200;
+ renderSamples=0;renderCallTotal=0;renderCallPeak=0;triangleTotal=0;
  document.documentElement.style.setProperty("--neon","#43dff3");
  telemetry.length=0;uiState.trackHint=-1;clearInput();
  event("trial_start",{trial:TRIAL.id});
@@ -610,9 +590,11 @@ function placeShip(time,dt){
  ship.rotation.x=lerp(ship.rotation.x,clamp(flight.vy/28,-.19,.21),1-Math.exp(-dt*7));
  
  if(shadowMesh){
-   shadowMesh.visible=flight.y-heightAt(flight.s)<8;
-   shadowMesh.position.set(p.x,heightAt(flight.s)+.055,p.z);
-   shadowMesh.material.opacity=clamp(.18-(flight.y-heightAt(flight.s)-1)*.023,0,.18);
+   const clearance=flight.y-heightAt(flight.s)-TRIAL.hoverHeight;
+   // Contact darkening only on physical deck, NEVER across a jump void.
+   shadowMesh.visible=onRoad(flight.s,flight.lateral)&&clearance<4.1;
+   shadowMesh.position.set(p.x,heightAt(flight.s)+.034,p.z);
+   shadowMesh.material.opacity=clamp(.62-Math.max(0,clearance)*.16,0,.62);
  }
  // Camera is track-relative with look ahead; lateral follow is deliberately weak.
  // Player can visibly move left/right within the screen instead of being locked at centre.
@@ -659,14 +641,27 @@ function loop(now){
  }
  if(neonPipeline)neonPipeline.render(dt);
  else renderer.render(scene,camera);
+ if(uiState.mode==="playing"&&renderer.info){
+   // Renderer workload is indicative; not GPU milliseconds.
+   const work=renderer.info.render;
+   renderSamples++;
+   renderCallTotal+=work.calls;renderCallPeak=Math.max(renderCallPeak,work.calls);
+   triangleTotal+=work.triangles;
+ }
 }
 function exportAudit(){
  const data={
-   game:"SKYSHIFT",version:"0.3.3.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
-   visual:{pipeline:"HDR UnrealBloom",tier:"Luminance & Atmosphere Rebalance",
-     renderDpr:renderer.getPixelRatio(),surfacePanels:identitySurface.plan.length,
-     worldLandmarks:identityWorld.landmarks,exposure:LUMINANCE.exposure,
-     fogDensity:LUMINANCE.fogDensity,bloomStrength:NEON_TUNING.bloomStrength,
+   game:"SKYSHIFT",version:"0.3.4.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   visual:{pipeline:"HDR UnrealBloom",tier:"Clean Track & Premium World",
+     renderDpr:renderer.getPixelRatio(),
+     surfaceAccents:identitySurface.plan.length,decorativePlates:0,
+     worldFormations:identityWorld.formations,
+     worldLandmarks:identityWorld.landmarks,
+     rendererDrawCallsAverage:renderSamples?Math.round(renderCallTotal/renderSamples):null,
+     rendererDrawCallsPeak:renderSamples?renderCallPeak:null,
+     rendererTrianglesAverage:renderSamples?Math.round(triangleTotal/renderSamples):null,
+     exposure:LUMINANCE.exposure,fogDensity:LUMINANCE.fogDensity,
+     bloomStrength:NEON_TUNING.bloomStrength,
      bloomThreshold:NEON_TUNING.bloomThreshold},
 
    run:{
@@ -682,7 +677,7 @@ function exportAudit(){
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-first-flight-v0331-audit.json";
+ a.href=url;a.download="skyshift-first-flight-v0341-audit.json";
  document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1800);
 }
@@ -752,7 +747,7 @@ try{
  initScene();installFullscreen();installControls();resetFlight();
  requestAnimationFrame(loop);
 }catch(error){
- console.error("SKYSHIFT 0.2 startup failed",error);
+ console.error("SKYSHIFT startup failed",error);
  UI.error.classList.remove("hidden");
- UI.error.textContent="SKYSHIFT could not start. WebGL required. "+(error?.message||"");
+ UI.error.textContent="SKYSHIFT could not start: "+(error?.message||"Unknown startup error");
 }

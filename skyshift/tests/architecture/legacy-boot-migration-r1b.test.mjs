@@ -76,14 +76,14 @@ test('R1B original source SHA of 22 historic unit readers is retained, with no a
 
 test('R1B CI and root layout enforce the total 468 → 449 → 429 → 409 file moves',()=>{
  const files=readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile());
- assert.equal(files.length,286,'Incorrect cumulative root count after R1F');
+ assert.equal(files.length,285,'Incorrect cumulative root count after R1F');
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const item of manifest.files){
   assert.ok(!workflow.includes('node --check '+item.oldPath),
    'Stale historical syntax check '+item.name);
  }
  assert.ok(workflow.includes('skyshift/legacy/boot/boot-v0205.js'));
- assert.ok(workflow.includes('skyshift/legacy/boot/boot-v0164.js'));
+ assert.ok(historicalSyntaxCheck(workflow,resolve(root,'legacy/boot/boot-v0164.js')));
  assert.ok(existsSync(resolve(root,'boot-v0210.js')));
  assert.ok(existsSync(resolve(root,'game-v0210.mjs')));
 });

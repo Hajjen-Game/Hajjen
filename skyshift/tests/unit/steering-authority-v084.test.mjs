@@ -2,7 +2,7 @@
 // Original SKYSHIFT 0.8.3 remains independently testable and playable via archive.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import * as previous from "../../trial-v083.mjs";
 import {
  STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt

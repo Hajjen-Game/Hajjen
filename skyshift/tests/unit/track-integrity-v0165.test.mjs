@@ -1,7 +1,7 @@
 // SKYSHIFT 0.16.5 — Aurora separate, actual road/collision, no risk lines.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 // Track selector intentionally activates before importing the shared modules.
 globalThis.location={search:"?track=aurora"};
 const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,racing]=

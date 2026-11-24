@@ -1,7 +1,7 @@
 // SKYSHIFT 0.16.2 — physically grounded guardrail regression, last turn/lap.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 globalThis.location={search:"?track=aurora"};
 const [trial,audit,oldTrial,camera]=await Promise.all([
  import("../../trial-v0162.mjs"),

@@ -1,7 +1,7 @@
 // SKYSHIFT 0.19.1 — Pass 1 material/readability deterministic QA.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  READABILITY_0191,READABLE_TINTS_0191,
  readableTint,perceivedLuma,patchReadableSurfaceFragment,

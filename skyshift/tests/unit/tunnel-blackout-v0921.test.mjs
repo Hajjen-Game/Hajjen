@@ -1,7 +1,7 @@
 // SKYSHIFT 0.10.3 – True darkness tunnel, PBR blackout and engine-only glow.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {CIRCUIT} from "../../trial-v0901.mjs";
 import {tunnelIntensityAt,SHADOW_TUNNEL} from "../../shadow-tunnel-v092.mjs";
 import {TUNNEL_BLACKOUT,blackoutLevelsAt,patchBlackoutRoadFragment,

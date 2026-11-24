@@ -1,7 +1,7 @@
 // SKYSHIFT 0.10.3 — Shadow Tunnel authored layout, glow shader, release safety.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {CIRCUIT,positionAt,TRIAL} from "../../trial-v0901.mjs";
 import {MAGNETIC_WALL,CORKSCREW,SKYLINE_LEAP} from "../../track-3d-v082.mjs";
 import {ZONE_PALETTES} from "../../zone-wave-v060.mjs";

@@ -4,7 +4,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {execFileSync} from "node:child_process";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const run=track=>JSON.parse(execFileSync(process.execPath,[
  new URL("../../"+"./grip-trick-audit-v0165.mjs",import.meta.url).pathname,track],

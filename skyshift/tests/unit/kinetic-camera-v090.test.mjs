@@ -1,7 +1,7 @@
 // SKYSHIFT 0.9.0 – deterministic camera motion / seam / performance regression.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {TRIAL,CIRCUIT,CORKSCREW,MAGNETIC_WALL,SKYLINE_LEAP,
  newFlightState,validateTrial,bankAt,headingAt,positionAt} from "../../trial-v084.mjs";
 import {KINETIC_CAMERA,kineticFovAt,kineticSpeedFraction,

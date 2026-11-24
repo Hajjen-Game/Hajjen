@@ -213,7 +213,6 @@ jobs:
           node --check skyshift/identity-v033.mjs
           node --check skyshift/luminance-v0331.mjs
           node --check skyshift/identity-v0331.mjs
-          node --check skyshift/legacy/game/game-v0331.mjs
           node --check skyshift/identity-v034.mjs
           node --check skyshift/world-v034.mjs
           node --check skyshift/ship-v034.mjs
@@ -388,7 +387,6 @@ jobs:
           node --check skyshift/tracks/barriers/aero-barrier-v082.mjs
           node --check skyshift/premium-track-v082.mjs
           node --check skyshift/cinematic-v082.mjs
-          node --check skyshift/legacy/game/game-v082.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v082.mjs
           node --check skyshift/trial-v083.mjs
           node --check skyshift/flight/air-tricks-v083.mjs
@@ -399,7 +397,6 @@ jobs:
           node --check skyshift/tracks/barriers/aero-barrier-v083.mjs
           node --check skyshift/premium-track-v083.mjs
           node --check skyshift/cinematic-v083.mjs
-          node --check skyshift/legacy/game/game-v083.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v083.mjs
           node --check skyshift/flight/precision-grip-v084.mjs
           node --check skyshift/flight/steering-authority-v084.mjs
@@ -408,12 +405,10 @@ jobs:
           node --check skyshift/tracks/barriers/aero-barrier-v084.mjs
           node --check skyshift/premium-track-v084.mjs
           node --check skyshift/cinematic-v084.mjs
-          node --check skyshift/legacy/game/game-v084.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v084.mjs
           node --check skyshift/flight/kinetic-camera-v090.mjs
           node --check skyshift/cinematic-v090.mjs
           node --check skyshift/flight/boost-spring-v090.mjs
-          node --check skyshift/legacy/game/game-v090.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v090.mjs
           node --check skyshift/flight/steering-authority-v0901.mjs
           node --check skyshift/trial-v0901.mjs
@@ -421,25 +416,20 @@ jobs:
           node --check skyshift/tracks/barriers/aero-barrier-v0901.mjs
           node --check skyshift/premium-track-v0901.mjs
           node --check skyshift/cinematic-v0901.mjs
-          node --check skyshift/legacy/game/game-v0901.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0901.mjs
           node --check skyshift/flight/signature-flight-v091.mjs
           node --check skyshift/tests/unit/signature-flight-v091.test.mjs
-          node --check skyshift/legacy/game/game-v091.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v091.mjs
           node --check skyshift/shadow-tunnel-v092.mjs
           node --check skyshift/tests/unit/shadow-tunnel-v092.test.mjs
-          node --check skyshift/legacy/game/game-v092.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v092.mjs
           node --check skyshift/tunnel-blackout-v0921.mjs
           node --check skyshift/tests/unit/tunnel-blackout-v0921.test.mjs
-          node --check skyshift/legacy/game/game-v0921.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0921.mjs
           node --check skyshift/ships/fleet-v010.mjs
           node --check skyshift/stingray-evo-v010.mjs
           node --check skyshift/tests/unit/fleet-v010.test.mjs
           node --check skyshift/tests/unit/stingray-evo-v010.test.mjs
-          node --check skyshift/legacy/game/game-v010.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v010.mjs
           node --check skyshift/stingray-evo-v0101.mjs
           node --check skyshift/tests/unit/stingray-evo-v0101.test.mjs
@@ -448,7 +438,6 @@ jobs:
           node --check skyshift/tests/browser/legacy/browser-smoke-v0101.mjs
           node --check skyshift/stingray-evo-v0102.mjs
           node --check skyshift/tests/unit/stingray-evo-v0102.test.mjs
-          node --check skyshift/legacy/game/game-v0102.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0102.mjs
           node --check skyshift/ships/ship-polish-v0103.mjs
           node --check skyshift/ships/manta-blade-v0103.mjs
@@ -645,8 +634,6 @@ jobs:
           node --check skyshift/flight/unified-flight-v0162.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0162.mjs
           node --check skyshift/rail-scrape-sparks-v0162.mjs
-          node --check skyshift/legacy/game/game-v0162.mjs
-          node --check skyshift/legacy/boot/boot-v0162.js
           node --check skyshift/rail-contact-audit-v0162.mjs
           node --check skyshift/tests/unit/rail-collision-v0162.test.mjs
           node --check skyshift/tests/unit/track-integrity-v0162.test.mjs
@@ -665,8 +652,6 @@ jobs:
           node --check skyshift/flight/unified-flight-v0164.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0164.mjs
           node --check skyshift/rail-scrape-sparks-v0164.mjs
-          node --check skyshift/legacy/game/game-v0164.mjs
-          node --check skyshift/legacy/boot/boot-v0164.js
           node --check skyshift/tests/unit/track-integrity-v0164.test.mjs
           node --check skyshift/track-physics-parity-probe-v0164.mjs
           node --check skyshift/tests/unit/track-physics-parity-v0164.test.mjs
@@ -676,8 +661,6 @@ jobs:
           node --check skyshift/flight/unified-flight-v0165.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0165.mjs
           node --check skyshift/rail-scrape-sparks-v0165.mjs
-          node --check skyshift/legacy/game/game-v0165.mjs
-          node --check skyshift/legacy/boot/boot-v0165.js
           node --check skyshift/legacy/game/game-v0205.mjs
           node --check skyshift/legacy/boot/boot-v0205.js
           node --check skyshift/world/authoring/build-station-world-v0205.mjs
@@ -731,7 +714,6 @@ jobs:
           node --check skyshift/grip-trick-audit-v0165.mjs
           node --check skyshift/tests/unit/grip-trick-lock-v0165.test.mjs
           node --check skyshift/browser-grip-trick-v0165.mjs
-          node --check skyshift/legacy/game/game-v0135.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v01344.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0132.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v0132.test.mjs

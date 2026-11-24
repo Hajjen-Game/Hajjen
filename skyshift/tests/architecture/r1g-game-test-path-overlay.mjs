@@ -1,8 +1,11 @@
 // R1G exact inverse of approved source-reader paths and archived boot target updates.
 import {readFileSync} from 'node:fs';
 const manifest=JSON.parse(readFileSync(new URL('../../legacy/game/R1G-migration-manifest.json',import.meta.url),'utf8'));
+const l1f=JSON.parse(readFileSync(new URL('../../docs/architecture/legacy-retirement-l1f.json',import.meta.url),'utf8'));
 export function restoreR1GGamePaths(source){
  let out=source;
+ // L1F: reverse only the approved source-reader filesystem adapter import.
+ if(l1f.files.some(f=>source.includes(f.path.split('/').at(-1))))out=out.replace('import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";','import {readFileSync} from "node:fs";');
  if(["0131","0132","01321","0133","0134","01341","01342","01343","01344","01345"].some(v=>source.includes('legacy/game/game-v'+v+'.mjs')))out=out.replace("import {readHistorical as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";","import {readFileSync} from \"node:fs\";");
  if(["01346","01347","01348","0140","0150","0151","0160","0161","0163","031","032","033","034","04","041","042","043","044","045","046","047","048","0481","0482","0483","0484","049","0491"].some(v=>source.includes('legacy/game/game-v'+v+'.mjs')))out=out.replace("import {readHistorical as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";",source.includes('legacy/game/game-v031.mjs')?"import { readFileSync } from \"node:fs\";":"import {readFileSync} from \"node:fs\";");
  if(["0180","0190","0192","0200","0201","0202","02021","0204","02041","0104","0105","0106","0107","01071","0108","0109","01091","0110","0111","0112","0113","0114","0120","0121","0130"].some(v=>source.includes('./legacy/game/game-v'+v+'.mjs')))out=out.replace("import {readHistorical as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";","import {readFileSync} from \"node:fs\";");

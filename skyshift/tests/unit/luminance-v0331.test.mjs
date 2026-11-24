@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {LUMINANCE,validateLuminance} from "../../luminance-v0331.mjs";
 import {createSurfacePlan,validateSurfacePlan,IDENTITY_RULES} from "../../identity-v0331.mjs";
 import {NEON_TUNING} from "../../neon-balance-v032.mjs";

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {STINGRAY_EVO,STINGRAY_WING,createTailState,
  resetTailState,tailPoseStep} from "../../stingray-evo-v0101.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");

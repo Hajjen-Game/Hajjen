@@ -1,0 +1,471 @@
+{
+  "schemaVersion": 1,
+  "stage": "Root Consolidation R1F — early-to-mid historical game snapshots",
+  "baseCommit": "0e63f59bddb73e68a68a0e81bfecb50194f09414",
+  "previousRootFiles": 357,
+  "expectedRootFiles": 328,
+  "notes": "29 original game-v*.mjs exact Git blob SHA checks, import-only relocations, 25 historical test reader source hashes and 29 archived boot original SHA checks. V0101 and V0103 game+boot pairs held together in root for separately audited move.",
+  "active": {
+    "index": "76695232f00bf60cf4af323ce25f06cbc7f52bcc",
+    "boot": "6c460a9fe91486230b17da43a6dbf803cf0d30b7",
+    "game": "cd66ac6bde426091853e892a7fc4167db5505e70",
+    "heldBoot0101": "e5151d024226ae1f78180fc35684a954cfbbb6b5",
+    "heldBoot0103": "ffe76b59cbe254223ba07c3267a99909ae4709a4",
+    "heldGame0101": "1a0e584fba3e6ad1bcd70b3fe02c38fbd4717140",
+    "heldGame0103": "51e6dc2bb10aac94635c4ed1c305e1a51b31f053"
+  },
+  "files": [
+    {
+      "version": "0499",
+      "name": "game-v0499.mjs",
+      "oldPath": "skyshift/game-v0499.mjs",
+      "newPath": "skyshift/legacy/game/game-v0499.mjs",
+      "originalGitBlobSha": "64d6e32d99b9a2d2920bc7d6e79fb3caf443bc59"
+    },
+    {
+      "version": "04991",
+      "name": "game-v04991.mjs",
+      "oldPath": "skyshift/game-v04991.mjs",
+      "newPath": "skyshift/legacy/game/game-v04991.mjs",
+      "originalGitBlobSha": "8debce265ab51cf7f3653d15320e95473ade9f3d"
+    },
+    {
+      "version": "050",
+      "name": "game-v050.mjs",
+      "oldPath": "skyshift/game-v050.mjs",
+      "newPath": "skyshift/legacy/game/game-v050.mjs",
+      "originalGitBlobSha": "84531c9b0db531af3d90e40f4eea0ffdd75ab0a5"
+    },
+    {
+      "version": "051",
+      "name": "game-v051.mjs",
+      "oldPath": "skyshift/game-v051.mjs",
+      "newPath": "skyshift/legacy/game/game-v051.mjs",
+      "originalGitBlobSha": "885e556878ba7cb90906d71d0ef0323faedc28b2"
+    },
+    {
+      "version": "060",
+      "name": "game-v060.mjs",
+      "oldPath": "skyshift/game-v060.mjs",
+      "newPath": "skyshift/legacy/game/game-v060.mjs",
+      "originalGitBlobSha": "cc286a8711d720996af7feb8b5ee0f93d0d4ad53"
+    },
+    {
+      "version": "061",
+      "name": "game-v061.mjs",
+      "oldPath": "skyshift/game-v061.mjs",
+      "newPath": "skyshift/legacy/game/game-v061.mjs",
+      "originalGitBlobSha": "4c3b564201eb1b6a3821ddaa456753cb4e3f089c"
+    },
+    {
+      "version": "070",
+      "name": "game-v070.mjs",
+      "oldPath": "skyshift/game-v070.mjs",
+      "newPath": "skyshift/legacy/game/game-v070.mjs",
+      "originalGitBlobSha": "4602c955918a340ec5d5ec26595553566159513a"
+    },
+    {
+      "version": "071",
+      "name": "game-v071.mjs",
+      "oldPath": "skyshift/game-v071.mjs",
+      "newPath": "skyshift/legacy/game/game-v071.mjs",
+      "originalGitBlobSha": "893a5233ee7794d7a750c2b47b8ae46bc7644e3d"
+    },
+    {
+      "version": "072",
+      "name": "game-v072.mjs",
+      "oldPath": "skyshift/game-v072.mjs",
+      "newPath": "skyshift/legacy/game/game-v072.mjs",
+      "originalGitBlobSha": "e0ddc2ba833a17571a8b640164d1db6cadcb155b"
+    },
+    {
+      "version": "080",
+      "name": "game-v080.mjs",
+      "oldPath": "skyshift/game-v080.mjs",
+      "newPath": "skyshift/legacy/game/game-v080.mjs",
+      "originalGitBlobSha": "f1d59959a263e4b72310c292a1939e1ffbcececa"
+    },
+    {
+      "version": "081",
+      "name": "game-v081.mjs",
+      "oldPath": "skyshift/game-v081.mjs",
+      "newPath": "skyshift/legacy/game/game-v081.mjs",
+      "originalGitBlobSha": "3334c11857a2079603070c170e8fdd498850fa4a"
+    },
+    {
+      "version": "082",
+      "name": "game-v082.mjs",
+      "oldPath": "skyshift/game-v082.mjs",
+      "newPath": "skyshift/legacy/game/game-v082.mjs",
+      "originalGitBlobSha": "def1f24ea654d3da2feb47f7401e4eb40f0d6361"
+    },
+    {
+      "version": "083",
+      "name": "game-v083.mjs",
+      "oldPath": "skyshift/game-v083.mjs",
+      "newPath": "skyshift/legacy/game/game-v083.mjs",
+      "originalGitBlobSha": "f5bf792ca57565939edb4fa6ebdb650f875744df"
+    },
+    {
+      "version": "084",
+      "name": "game-v084.mjs",
+      "oldPath": "skyshift/game-v084.mjs",
+      "newPath": "skyshift/legacy/game/game-v084.mjs",
+      "originalGitBlobSha": "13b45ed22610edd59f8294bda2598d85c254bb9b"
+    },
+    {
+      "version": "090",
+      "name": "game-v090.mjs",
+      "oldPath": "skyshift/game-v090.mjs",
+      "newPath": "skyshift/legacy/game/game-v090.mjs",
+      "originalGitBlobSha": "baeab3b6bc25b4fddf45353e12db3f90c66fa064"
+    },
+    {
+      "version": "0901",
+      "name": "game-v0901.mjs",
+      "oldPath": "skyshift/game-v0901.mjs",
+      "newPath": "skyshift/legacy/game/game-v0901.mjs",
+      "originalGitBlobSha": "05dbc7515e268c5eca01df8eecc1abddf6cf1846"
+    },
+    {
+      "version": "091",
+      "name": "game-v091.mjs",
+      "oldPath": "skyshift/game-v091.mjs",
+      "newPath": "skyshift/legacy/game/game-v091.mjs",
+      "originalGitBlobSha": "2253cfb26155f125ffa31fff5a03e4d33d688441"
+    },
+    {
+      "version": "092",
+      "name": "game-v092.mjs",
+      "oldPath": "skyshift/game-v092.mjs",
+      "newPath": "skyshift/legacy/game/game-v092.mjs",
+      "originalGitBlobSha": "79965a4b04e11b2c205305996517671f63797ceb"
+    },
+    {
+      "version": "0921",
+      "name": "game-v0921.mjs",
+      "oldPath": "skyshift/game-v0921.mjs",
+      "newPath": "skyshift/legacy/game/game-v0921.mjs",
+      "originalGitBlobSha": "9a4e58c6c8cc3e29aa3607cb4a9f5b1080135944"
+    },
+    {
+      "version": "010",
+      "name": "game-v010.mjs",
+      "oldPath": "skyshift/game-v010.mjs",
+      "newPath": "skyshift/legacy/game/game-v010.mjs",
+      "originalGitBlobSha": "2af7e34f5df653c0008d0b7999e1a8a362c1898c"
+    },
+    {
+      "version": "0102",
+      "name": "game-v0102.mjs",
+      "oldPath": "skyshift/game-v0102.mjs",
+      "newPath": "skyshift/legacy/game/game-v0102.mjs",
+      "originalGitBlobSha": "05c9db545277e387990f66b2fc5f1f42b23b33bf"
+    },
+    {
+      "version": "0104",
+      "name": "game-v0104.mjs",
+      "oldPath": "skyshift/game-v0104.mjs",
+      "newPath": "skyshift/legacy/game/game-v0104.mjs",
+      "originalGitBlobSha": "8c027fefa754f8cb62cbd418cbf45e890989df3d"
+    },
+    {
+      "version": "0105",
+      "name": "game-v0105.mjs",
+      "oldPath": "skyshift/game-v0105.mjs",
+      "newPath": "skyshift/legacy/game/game-v0105.mjs",
+      "originalGitBlobSha": "7532e07d07286f29eb21f41aa618caee8f284e00"
+    },
+    {
+      "version": "0106",
+      "name": "game-v0106.mjs",
+      "oldPath": "skyshift/game-v0106.mjs",
+      "newPath": "skyshift/legacy/game/game-v0106.mjs",
+      "originalGitBlobSha": "446ad42fe0cf56e3b180fd563edaa3bf4c70c4dd"
+    },
+    {
+      "version": "0107",
+      "name": "game-v0107.mjs",
+      "oldPath": "skyshift/game-v0107.mjs",
+      "newPath": "skyshift/legacy/game/game-v0107.mjs",
+      "originalGitBlobSha": "2f906d2484f496cb51871070c4fc0e5beb0e85d8"
+    },
+    {
+      "version": "01071",
+      "name": "game-v01071.mjs",
+      "oldPath": "skyshift/game-v01071.mjs",
+      "newPath": "skyshift/legacy/game/game-v01071.mjs",
+      "originalGitBlobSha": "fbf573a3cd53ece5993df7c7e5398f1cc3988ada"
+    },
+    {
+      "version": "0108",
+      "name": "game-v0108.mjs",
+      "oldPath": "skyshift/game-v0108.mjs",
+      "newPath": "skyshift/legacy/game/game-v0108.mjs",
+      "originalGitBlobSha": "74e888e5a2027afb875c49236570bb3777f8af0c"
+    },
+    {
+      "version": "0109",
+      "name": "game-v0109.mjs",
+      "oldPath": "skyshift/game-v0109.mjs",
+      "newPath": "skyshift/legacy/game/game-v0109.mjs",
+      "originalGitBlobSha": "ae42745ac879c3d6008ba4a8ccc05d2d97b7ed42"
+    },
+    {
+      "version": "01091",
+      "name": "game-v01091.mjs",
+      "oldPath": "skyshift/game-v01091.mjs",
+      "newPath": "skyshift/legacy/game/game-v01091.mjs",
+      "originalGitBlobSha": "98d5c68edef9b9432868aeac92ddfb463b05e7bb"
+    }
+  ],
+  "tests": [
+    {
+      "path": "skyshift/tests/unit/reactive-hud-v0499.test.mjs",
+      "originalGitBlobShaBeforeR1F": "c6495682135d7abbdfe1a30f5cf37b9c40876bf2"
+    },
+    {
+      "path": "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+      "originalGitBlobShaBeforeR1F": "492c51981638df7f2ff03b002a080610a224f530"
+    },
+    {
+      "path": "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+      "originalGitBlobShaBeforeR1F": "d413013cd90264fafbf00f1480bbb7555b366a25"
+    },
+    {
+      "path": "skyshift/tests/unit/corkscrew-v072.test.mjs",
+      "originalGitBlobShaBeforeR1F": "9bb0dd9d18a83ffacc34a1e9691ba2846a1c6765"
+    },
+    {
+      "path": "skyshift/tests/unit/air-tricks-v080.test.mjs",
+      "originalGitBlobShaBeforeR1F": "f44430d30f382eaf198e0181b16f43ece0ce593c"
+    },
+    {
+      "path": "skyshift/tests/unit/grip-leap-v081.test.mjs",
+      "originalGitBlobShaBeforeR1F": "ce4f96f2f06fc9f925881551891ddeaee2d88c44"
+    },
+    {
+      "path": "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+      "originalGitBlobShaBeforeR1F": "7fb68e641475b1db33ef9b03c8ee1597e8cb9729"
+    },
+    {
+      "path": "skyshift/tests/unit/racing-feel-v083.test.mjs",
+      "originalGitBlobShaBeforeR1F": "0727ceed08f4e15b633afa57b7ff66bd6d35acba"
+    },
+    {
+      "path": "skyshift/tests/unit/steering-authority-v084.test.mjs",
+      "originalGitBlobShaBeforeR1F": "1bda38eefa46dd44ed414ab1cef731d7c0baa3a1"
+    },
+    {
+      "path": "skyshift/tests/unit/kinetic-camera-v090.test.mjs",
+      "originalGitBlobShaBeforeR1F": "1849ef8b32bbe97a30c2407585fedf0e0cf92fc7"
+    },
+    {
+      "path": "skyshift/tests/unit/grip-first-v0901.test.mjs",
+      "originalGitBlobShaBeforeR1F": "0e324d93d683a2e1362998b5d773b33c442898a2"
+    },
+    {
+      "path": "skyshift/tests/unit/signature-flight-v091.test.mjs",
+      "originalGitBlobShaBeforeR1F": "5c10694559170f1932f1685a6ef95b05c77b5b17"
+    },
+    {
+      "path": "skyshift/tests/unit/shadow-tunnel-v092.test.mjs",
+      "originalGitBlobShaBeforeR1F": "3a4538ef9e6bb2d4b48696434b0b2385c8ae37ba"
+    },
+    {
+      "path": "skyshift/tests/unit/tunnel-blackout-v0921.test.mjs",
+      "originalGitBlobShaBeforeR1F": "810e4df1b2dab0e17ac875f2af6d2950e25ae7b4"
+    },
+    {
+      "path": "skyshift/tests/unit/fleet-v010.test.mjs",
+      "originalGitBlobShaBeforeR1F": "bba6f214e3bae1b95b3679ac52d386a9cacb44b3"
+    },
+    {
+      "path": "skyshift/tests/unit/stingray-evo-v0101.test.mjs",
+      "originalGitBlobShaBeforeR1F": "9b2d3fb44ee807f4cca7b87313dde3dfa4666610"
+    },
+    {
+      "path": "skyshift/tests/unit/premium-ship-v0103.test.mjs",
+      "originalGitBlobShaBeforeR1F": "357e0418970cd7a2d38a500e4895f1f82cb259fa"
+    },
+    {
+      "path": "skyshift/tests/unit/velocity-presence-v0104.test.mjs",
+      "originalGitBlobShaBeforeR1F": "703ae81e567c10aa8d6dfea0f8b67e3d37e6d244"
+    },
+    {
+      "path": "skyshift/tests/unit/wing-vapor-v0105.test.mjs",
+      "originalGitBlobShaBeforeR1F": "f2cb7ff585ff6d4cb3ff24834ed964ac896cba92"
+    },
+    {
+      "path": "skyshift/tests/unit/wingtip-contrails-v0106.test.mjs",
+      "originalGitBlobShaBeforeR1F": "62b7610400849ff07e2818b0b753217dbfed0346"
+    },
+    {
+      "path": "skyshift/tests/unit/living-wake-v0107.test.mjs",
+      "originalGitBlobShaBeforeR1F": "7976253e70b270e54c536408ad232a3a5d6bc44b"
+    },
+    {
+      "path": "skyshift/tests/unit/living-wake-v01071.test.mjs",
+      "originalGitBlobShaBeforeR1F": "b4bb2054a2bf452b93cc9cc6c30ec16cc0bbde5a"
+    },
+    {
+      "path": "skyshift/tests/unit/reactive-wing-flaps-v0108.test.mjs",
+      "originalGitBlobShaBeforeR1F": "e32ec1dc7d2b0d15c72c0f9e40541e9187f4812f"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0109.test.mjs",
+      "originalGitBlobShaBeforeR1F": "623343e5afceae2194dbf82912bc764354989636"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01091.test.mjs",
+      "originalGitBlobShaBeforeR1F": "c4beca7790976dfda225ab84bf1fad623c462d64"
+    }
+  ],
+  "bootstraps": [
+    {
+      "version": "0499",
+      "path": "skyshift/legacy/boot/boot-v0499.js",
+      "originalGitBlobShaBeforeR1F": "175f5489e82f4c2010bb369c758dc787580c59be"
+    },
+    {
+      "version": "04991",
+      "path": "skyshift/legacy/boot/boot-v04991.js",
+      "originalGitBlobShaBeforeR1F": "2e997d968021ce917f5120508c666dff2678768c"
+    },
+    {
+      "version": "050",
+      "path": "skyshift/legacy/boot/boot-v050.js",
+      "originalGitBlobShaBeforeR1F": "2863b6866de112d774dc6fbd8e0162affcc60bf6"
+    },
+    {
+      "version": "051",
+      "path": "skyshift/legacy/boot/boot-v051.js",
+      "originalGitBlobShaBeforeR1F": "708df758bbb80834f7fd49cb47280e90b99aabc8"
+    },
+    {
+      "version": "060",
+      "path": "skyshift/legacy/boot/boot-v060.js",
+      "originalGitBlobShaBeforeR1F": "65fb202169837590f7b05c6053b0a4dd1683d44d"
+    },
+    {
+      "version": "061",
+      "path": "skyshift/legacy/boot/boot-v061.js",
+      "originalGitBlobShaBeforeR1F": "22b838f72268846b18a8fd1faae2823ac001d151"
+    },
+    {
+      "version": "070",
+      "path": "skyshift/legacy/boot/boot-v070.js",
+      "originalGitBlobShaBeforeR1F": "686a240929c0efcae33ee1a144420dbd4f141d1a"
+    },
+    {
+      "version": "071",
+      "path": "skyshift/legacy/boot/boot-v071.js",
+      "originalGitBlobShaBeforeR1F": "edfb1fa0ceb612b3a42ecf10b5b819d3ee7324d0"
+    },
+    {
+      "version": "072",
+      "path": "skyshift/legacy/boot/boot-v072.js",
+      "originalGitBlobShaBeforeR1F": "c516fc782b5946dae86c3aae1f7e7edab9d09e77"
+    },
+    {
+      "version": "080",
+      "path": "skyshift/legacy/boot/boot-v080.js",
+      "originalGitBlobShaBeforeR1F": "d7db55610c725bea5eb1ba1d704e95571c5c5357"
+    },
+    {
+      "version": "081",
+      "path": "skyshift/legacy/boot/boot-v081.js",
+      "originalGitBlobShaBeforeR1F": "96be07f723ef70113d688e731a25a53564637ff2"
+    },
+    {
+      "version": "082",
+      "path": "skyshift/legacy/boot/boot-v082.js",
+      "originalGitBlobShaBeforeR1F": "f04d260389573c0b2d20ceb95eafc33d4ee6e94c"
+    },
+    {
+      "version": "083",
+      "path": "skyshift/legacy/boot/boot-v083.js",
+      "originalGitBlobShaBeforeR1F": "8e8cc0f582294ef5f206366f15e65c6a591b822c"
+    },
+    {
+      "version": "084",
+      "path": "skyshift/legacy/boot/boot-v084.js",
+      "originalGitBlobShaBeforeR1F": "17e097a5429afe854bccd90ec660f65e55b097f9"
+    },
+    {
+      "version": "090",
+      "path": "skyshift/legacy/boot/boot-v090.js",
+      "originalGitBlobShaBeforeR1F": "7790774b809d11e3fb3e230606a4b4e6ef36bd02"
+    },
+    {
+      "version": "0901",
+      "path": "skyshift/legacy/boot/boot-v0901.js",
+      "originalGitBlobShaBeforeR1F": "f41634e880119afa38916197ad56535d5cc047ed"
+    },
+    {
+      "version": "091",
+      "path": "skyshift/legacy/boot/boot-v091.js",
+      "originalGitBlobShaBeforeR1F": "f0e5c6d63260f8bb9582d1123384c172de52995d"
+    },
+    {
+      "version": "092",
+      "path": "skyshift/legacy/boot/boot-v092.js",
+      "originalGitBlobShaBeforeR1F": "733c95f5bf23c402c3b64c6baf5726fa63fbe048"
+    },
+    {
+      "version": "0921",
+      "path": "skyshift/legacy/boot/boot-v0921.js",
+      "originalGitBlobShaBeforeR1F": "3deaadc79531373f3cd23ac47ceb4ba2a2fe1ec5"
+    },
+    {
+      "version": "010",
+      "path": "skyshift/legacy/boot/boot-v010.js",
+      "originalGitBlobShaBeforeR1F": "99d2b8e96f06e59003ec58a270e20504f360cd56"
+    },
+    {
+      "version": "0102",
+      "path": "skyshift/legacy/boot/boot-v0102.js",
+      "originalGitBlobShaBeforeR1F": "f3c748a44a56183acca3ea7dc7f507ce71caa8c0"
+    },
+    {
+      "version": "0104",
+      "path": "skyshift/legacy/boot/boot-v0104.js",
+      "originalGitBlobShaBeforeR1F": "0c1c427a82625ec0266198516bb95680edfc3b3b"
+    },
+    {
+      "version": "0105",
+      "path": "skyshift/legacy/boot/boot-v0105.js",
+      "originalGitBlobShaBeforeR1F": "4505caa4b4c945c6ef492f8b0073fa52fe06fb2e"
+    },
+    {
+      "version": "0106",
+      "path": "skyshift/legacy/boot/boot-v0106.js",
+      "originalGitBlobShaBeforeR1F": "992c8a9727b68f856cf73d9d262b096cdb984070"
+    },
+    {
+      "version": "0107",
+      "path": "skyshift/legacy/boot/boot-v0107.js",
+      "originalGitBlobShaBeforeR1F": "405cb4d52de911367168740b5bc56e24c9c95cab"
+    },
+    {
+      "version": "01071",
+      "path": "skyshift/legacy/boot/boot-v01071.js",
+      "originalGitBlobShaBeforeR1F": "c89607aa9e0960749565d41d4331317292f070aa"
+    },
+    {
+      "version": "0108",
+      "path": "skyshift/legacy/boot/boot-v0108.js",
+      "originalGitBlobShaBeforeR1F": "ca8d39fdd7201c2521d636c80fe91032070510ff"
+    },
+    {
+      "version": "0109",
+      "path": "skyshift/legacy/boot/boot-v0109.js",
+      "originalGitBlobShaBeforeR1F": "5a8183f916069cf828bff5d7ebdeba9044178efa"
+    },
+    {
+      "version": "01091",
+      "path": "skyshift/legacy/boot/boot-v01091.js",
+      "originalGitBlobShaBeforeR1F": "9498d7306e88368474e66ce7fd128afdb4ba845f"
+    }
+  ]
+}

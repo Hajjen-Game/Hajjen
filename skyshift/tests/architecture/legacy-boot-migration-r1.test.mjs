@@ -51,5 +51,5 @@ test('R1 CI points to all relocated bootstraps and cumulative root inventory ref
   assert.ok(!workflow.includes('node --check skyshift/'+name),'Stale root syntax check for '+name);
  }
  const files=readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile());
- assert.equal(files.length,387,'R1 plus R1B plus R1C must leave 387 root files (468 - 19 - 20 - 20 - 22)');
+ assert.equal(files.length,357,'R1 plus R1B plus R1C must leave 357 root files (468 - 19 - 20 - 20 - 22 - 30)');
 });

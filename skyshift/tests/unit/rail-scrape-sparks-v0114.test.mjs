@@ -2,7 +2,7 @@
 // world ballistic history; same glow logic on both ship models; no physics.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {poseAt,widthAt,GUARDRAIL,positionAt,surfaceNormalAt} from "../../trial-v0901.mjs";
 import {RAIL_SPARKS,railContactPoint,sparkDemand,
  createSparkState,advanceSparkState,resetSparkState,createRailScrapeSparks

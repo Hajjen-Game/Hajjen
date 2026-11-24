@@ -1,7 +1,7 @@
 // SKYSHIFT 0.10.6 — regression checks for two REAL wingtip emitters.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";
 import {STINGRAY_WING} from "../../stingray-evo-v0104.mjs";
 import {WINGTIP_CONTRAILS,wingtipAnchor,wingtipEmitters,contrailEnvelope,

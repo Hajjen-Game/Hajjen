@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 const manifest=JSON.parse(readFileSync(new URL('../../legacy/game/R1G-migration-manifest.json',import.meta.url),'utf8'));
 export function restoreR1GGamePaths(source){
  let out=source;
- if(["0180","0190","0192","0200","0201","0202","02021","0204","02041"].some(v=>source.includes('./legacy/game/game-v'+v+'.mjs')))out=out.replace("import {readHistorical as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";","import {readFileSync} from \"node:fs\";");
+ if(["0180","0190","0192","0200","0201","0202","02021","0204","02041","0104","0105","0106","0107","01071","0108","0109","01091","0110","0111","0112","0113","0114","0120","0121","0130"].some(v=>source.includes('./legacy/game/game-v'+v+'.mjs')))out=out.replace("import {readHistorical as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";","import {readFileSync} from \"node:fs\";");
  // Scoped R1G post-merge repair: these archived game readers assert the rebased ESM imports.
  if(["0200","0201","0202","02021","0204","02041","0205","0135","0192","0180","0190"].some(v=>source.includes('./legacy/game/game-v'+v+'.mjs'))){
   out=out.split("assert.match(game,/from \"\\.\\.\\/\\.\\.\\/").join("assert.match(game,/from \"\\.\\/");

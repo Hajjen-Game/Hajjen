@@ -48,12 +48,17 @@ test('Stage L: executable GitHub Actions entries all point to relocated QA',()=>
  }
 });
 
-test('Stage L: five protected browser source readers and five Stage K smoke readers remain at root',()=>{
+test('Stage L: protected browser readers remain at approved paths',()=>{
  assert.deepEqual(manifest.excludedRoot.slice().sort(),
  ['browser-cinematic-hero-v0210.mjs','browser-fairness-v0135.mjs',
   'browser-grip-half-v01348.mjs','browser-grip-trick-v0165.mjs',
   'browser-multi-track-v0160.mjs'].sort());
  for(const name of manifest.excludedRoot){
+  if (["browser-fairness-v0135.mjs","browser-grip-half-v01348.mjs","browser-grip-trick-v0165.mjs","browser-multi-track-v0160.mjs"].includes(name)) {
+   assert.equal(existsSync(resolve(root,name)),false,'Stale L1G root QA: '+name);
+   assert.ok(existsSync(resolve(folder,name)),'Missing L1G QA: '+name);
+   continue; // Independent L1G gate verifies original blob and CI commands.
+  }
   assert.ok(existsSync(resolve(root,name)),'Protected browser source moved: '+name);
   assert.equal(existsSync(resolve(folder,name)),false,'Protected browser source copied: '+name);
  }

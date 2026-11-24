@@ -41,8 +41,13 @@ test('all workflows reference the new browser QA runner locations', () => {
   }
 });
 
-test('known source-sensitive browser QA harnesses remain at original paths', () => {
+test('known source-sensitive browser QA harnesses remain present at approved paths', () => {
   for (const name of manifest.excluded) {
+    if (["browser-fairness-v0135.mjs","browser-grip-half-v01348.mjs","browser-grip-trick-v0165.mjs","browser-multi-track-v0160.mjs"].includes(name)) {
+      assert.equal(existsSync(resolve(root, name)), false, 'Stale L1G root runner: ' + name);
+      assert.ok(existsSync(resolve(browser, name)), 'Missing L1G runner: ' + name);
+      continue; // Exact original Git blob and CI commands verified by independent L1G gate.
+    }
     assert.ok(existsSync(resolve(root, name)), 'Protected browser QA runner moved: ' + name);
     assert.equal(existsSync(resolve(browser, name)), false, 'Protected browser QA runner unexpectedly copied: ' + name);
   }

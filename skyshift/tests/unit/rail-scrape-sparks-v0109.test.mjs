@@ -161,7 +161,7 @@ test("actual batched geometry emits white-gold RGBA streaks and no scene lights"
  assert.equal(RAIL_SPARKS.shieldChanged,false);
 });
 test("active game observes physics-owned railContacting, never approximate proximity",()=>{
- const game=src("./game-v0109.mjs"),
+ const game=src("./legacy/game/game-v0109.mjs"),
   page=src("./index.html"),boot=src("./legacy/boot/boot-v0109.js");
  assert.match(game,/createRailScrapeSparks\(THREE,scene/);
  assert.match(game,/railSparks\?\.dispose\(\)/);

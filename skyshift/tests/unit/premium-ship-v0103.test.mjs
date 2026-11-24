@@ -93,7 +93,7 @@ test("compact four-batch geometry for two ships is separate from physics",()=>{
 });
 test("production 0.10.3 preserves normal track Hangar, GRIP and 760m blackout",()=>{
  const html=read("./index.html"),boot=read("./boot-v0103.js"),
-  game=read("./game-v0103.mjs"),old=read("./game-v0102.mjs");
+  game=read("./game-v0103.mjs"),old=read("./legacy/game/game-v0102.mjs");
  assert.match(html,/data-game-module="game-v0103\.mjs"/);
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(boot,/game-v0103\.mjs\?v=0\.10\.3/);

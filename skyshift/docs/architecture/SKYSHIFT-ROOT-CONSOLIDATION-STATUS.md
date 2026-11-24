@@ -1,6 +1,6 @@
 # SKYSHIFT — ROOT CONSOLIDATION: SOURCE OF TRUTH
 
-> **Status: NOT FINISHED** (`main`: merged PR #198, `02942b62a788`, **387 direct files**; R1E branch targeting **357** after independent CI and merge, 2026-11-24).  
+> **Status: NOT FINISHED** (`main`: merged PR #199, `0e63f59bddb`, **357 direct files**; R1F branch targeting **328** after independently confirmed CI and merge, 2026-11-24).  
 > **User's actual goal:** Just a few essential files directly inside `skyshift/`; organize all remaining live modules, historical versions, tests and documentation into clearly named subdirectories. **Do not mark this goal complete merely because the shared tunnel architecture tests are green.**
 
 ## Verified baseline
@@ -84,18 +84,29 @@ After PR #196, `main` had **429 direct-root files**. Merged PR #197 moves **20 a
 - **Intentionally untouched:** `index.html`, live `boot-v0210.js` and `game-v0210.mjs`, and legacy root `boot-v0101.js`, `boot-v0103.js` pending specific compatibility assessment. The original historical direct-root URLs of moved files cannot be redirected by GitHub Pages, as documented in prior batches.
 - **Completed:** 36/36 PR checks passed; PR #198 merged as `02942b62a78808a6ae9480b5170cf0976068345d`; **409 → 387** direct files on `main`. Pages publication guard and Pages deployment passed; post-merge track logic workflow was still queued at last inspection. Leave 0.10.1/0.10.3 aliases until separate audit.
 
-## R1E — 30 early historical game snapshots (CURRENT OPEN WORK / NOT MERGED)
+## R1E — 30 early historical game snapshots (MERGED PR #199)
 
 **Branch:** `skyshift/root-consolidation-r1e-early-game-snapshots`, based on merged R1D main `02942b62a78808a6ae9480b5170cf0976068345d`. Move **30 early `game-v*.mjs` snapshots** (versions v02 through v0498, selected historical version chain) to `legacy/game/`, with coherent original ESM dependency target resolution. All 30 are tested to lack `new URL(` and `import.meta.url`, and their original Git blob identity is reconstructed by reversing only the import-specifier base `./` to `../../`.
 
-- **Root count:** confirmed **387 on merged main**, expected **357 on R1E branch**. This is not merged/complete until all safety checks succeed and a subsequent main count confirms it.
+- **Root count:** confirmed **387 → 357 on merged `main`** at `0e63f59bddb73e68a68a0e81bfecb50194f09414`, after 36/36 PR checks success.
 - 28 audited historical unit-test readers have exact reversible path-only updates. Eight moved historical `legacy/boot/` scripts from R1D now point to the **same** archived game modules using `../game/game-v...`, retaining cache parameters and behavior. Their Git hashes are proven against the prior merged state.
 - New manifest `skyshift/legacy/game/R1E-migration-manifest.json`, inverse `skyshift/tests/architecture/r1e-game-test-path-overlay.mjs`, and independent mandatory SHA/dependency/root-count test `skyshift/tests/architecture/legacy-game-migration-r1e.test.mjs`. Stage 5–8 original test assertion guards and R1D historic reader checks compose this inverse; 30 CI syntax paths are rewired.
 - No production `index.html`, `boot-v0210.js`, `game-v0210.mjs`, physics/GRIP/tunnel shaders/track logic or visuals changed. Direct historical Pages URLs for removed game module files are not redirected; source remains available at the new archive path.
-- **Merge gate:** all 35 PR visual/fast checks + architecture guard must be green, along with no genuine missing historical imports; verify **357** direct files, Pages and track logic after merge. Do not mistake this one cohort for root consolidation completion. Continue remaining 76 `game-v*.mjs` source files, CSS, and active-module grouping with dependency-aware batches and a goal of <=10 root files.
+- **Completed:** all 36 PR checks successful; PR #199 merged at `0e63f59bddb73e68a68a0e81bfecb50194f09414`, confirmed 357 direct-root files on `main`. Pages publication guard and Pages deployment succeeded. Main track QA was last seen queued. This does not complete root consolidation.
+
+## R1F — 29 early-to-mid historical game variants (CURRENT OPEN WORK / NOT MERGED)
+
+**Branch:** `skyshift/root-consolidation-r1f-mid-game-snapshots`, based on merged R1E main `0e63f59bddb73e68a68a0e81bfecb50194f09414`. Relocate **29 `game-v*.mjs` variants** (v0499–v0921, v010, v0102, v0104–v01091) to `legacy/game/`; **measured branch root count 328**, previous merged `main` **357**. Remain *unmerged* pending full PR checks and post-merge publication confirmation.
+
+- Version-aware ESM relative import rebases retain their existing dependencies and game module identity. No `new URL(` or `import.meta.url` used in this cohort.
+- 29 archived historical boot scripts now target their matching `../game/game-v*.mjs`; original source Git blob SHA is recoverable by one exact boot URL inverse. **25 historical source reader tests** have path-only reversible changes, exact previous Git blob SHA verified. No gameplay, flight, tunnel, rendering, ship/GRIP, shaders or assets changed.
+- Original `boot-v0101.js`, `game-v0101.mjs`, `boot-v0103.js`, `game-v0103.mjs` are intentionally held in root for a separate compatibility audit (historical HTML and many unit fixture references). Production `index.html`, `boot-v0210.js` and `game-v0210.mjs` byte-identical.
+- Immutable `skyshift/legacy/game/R1F-migration-manifest.json`, exact inverse `skyshift/tests/architecture/r1f-game-test-path-overlay.mjs`, mandatory `skyshift/tests/architecture/legacy-game-migration-r1f.test.mjs`: validates original Git SHAs for 29 games, 25 unit readers, 29 boots, resolved module dependency paths, original live/held entrypoints and exact 328 root-file count.
+- Previous R1, R1C, R1D, R1E and Stage 5–8 historical original SHA checks compose the new inverse as applicable. All 29 game syntax-check paths are updated. If any visual/browser/check fails, **fix without bypassing original source assertions**.
+- **Merge gate:** all 36 PR checks green (including separate architecture guard), then verified GitHub merge, **328 actual files in `main`**, Pages/track checks. Afterward continue remaining 47 `game-v*.mjs` files, 28 root CSS files, other historical modules and documentation to target <=10 intentional root files.
 
 ## Work history / last decision
 
 - 2026-11-23: **468 root files** found; earlier "Architecture Cleanup 2.0 complete" statement corrected.
 - The ongoing crash/slow long-chat problem is a separate ChatGPT product issue; **do not rely on chat history alone** for technical handoff.
-- R0 was originally a **non-runtime correction**. R1–R1E are actual file moves, recorded separately above; the overarching root-consolidation goal remains unfinished.
+- R0 was originally a **non-runtime correction**. R1–R1F are actual file moves, recorded separately above; the overarching root-consolidation goal remains unfinished.

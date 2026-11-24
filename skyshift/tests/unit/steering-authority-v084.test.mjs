@@ -199,6 +199,6 @@ test("active 0.10.3 camera build references archived 0.8.4 yaw for its legacy ph
  assert.match(game,/trial-v0901\.mjs/);
  assert.match(src("./trial-v0901.mjs"),/steering-authority-v0901/);
  assert.match(game,/skyshift-premium-ship-v0103-audit\.json/);
- assert.match(src("./game-v084.mjs"),/version:"0\.8\.4"/);
- assert.match(src("./game-v083.mjs"),/version:"0\.8\.3"/);
+ assert.match(src("./legacy/game/game-v084.mjs"),/version:"0\.8\.4"/);
+ assert.match(src("./legacy/game/game-v083.mjs"),/version:"0\.8\.3"/);
 });

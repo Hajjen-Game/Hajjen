@@ -7,6 +7,7 @@ import {createHash} from 'node:crypto';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {restoreR1CBootPaths} from './r1c-boot-test-path-overlay.mjs';
+import {restoreR1FGamePaths,restoreR1FBootImport} from './r1f-game-test-path-overlay.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const repo=resolve(root,'..');
 const manifest=JSON.parse(readFileSync(resolve(root,'legacy/boot/R1C-migration-manifest.json'),'utf8'));
@@ -30,14 +31,15 @@ test('R1C keeps exactly 20 original historical bootstrap bodies and game targets
   assert.ok(!existsSync(resolve(repo,file.oldPath)),'Old root bootstrap still present: '+file.name);
   const destination=resolve(repo,file.newPath);
   const body=readFileSync(destination,'utf8');
-  assert.equal((body.match(/import\("\.\.\/\.\.\/game-v/g)||[]).length,1,
+  const normalized=restoreR1FBootImport(body);
+  assert.equal((normalized.match(/import\("\.\.\/\.\.\/game-v/g)||[]).length,1,
    'Unexpected game import count '+file.name);
-  const restored=body.replace('import("../../game-v','import("./game-v');
+  const restored=normalized.replace('import("../../game-v','import("./game-v');
   assert.equal(gitBlobSha(restored),file.originalGitBlobSha,
    'Historical bootstrap content changed beyond approved game path: '+file.name);
   assert.equal(baseline.entries.find(x=>x.path===file.oldPath)?.sha,
    file.originalGitBlobSha,'Immutable R0 source SHA mismatch '+file.name);
-  const match=body.match(/import\("(\.\.\/\.\.\/game-v[^"?]+\.mjs)\?[^"]+"\)/);
+  const match=body.match(/import\("([^"?]+\.mjs)\?[^"]+"\)/);
   assert.ok(match,'Missing historical game import '+file.name);
   assert.ok(existsSync(resolve(dirname(destination),match[1])),
    'Game import resolves to missing source '+file.name);
@@ -55,7 +57,7 @@ test('R1C all 24 original historical test Git blobs restore exactly (including U
   assert.ok(!paths.has(unit.path),'Duplicate original test '+unit.path);
   paths.add(unit.path);
   const source=readFileSync(resolve(repo,unit.path),'utf8');
-  const restored=restoreR1CBootPaths(source);
+  const restored=restoreR1CBootPaths(restoreR1FGamePaths(source));
   assert.notEqual(restored,source,'No audited reader change '+unit.path);
   assert.equal(gitBlobSha(restored),unit.originalGitBlobSha,
    'Historical test assertion changed unexpectedly '+unit.path);
@@ -74,7 +76,7 @@ test('R1C all 24 original historical test Git blobs restore exactly (including U
 
 test('R1C CI rewire and cumulative 468 → 449 → 429 → 409 → 387 direct root-file count',()=>{
  const direct=readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile());
- assert.equal(direct.length,357);
+ assert.equal(direct.length,328);
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const file of manifest.files){
   assert.ok(!workflow.includes('node --check '+file.oldPath),

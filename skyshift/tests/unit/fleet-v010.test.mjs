@@ -44,7 +44,7 @@ test("stored progression survives reload and malformed data cannot equip locked 
 });
 test("production fleet has live hangar and retained previous handling",()=>{
  const html=read("./index.html"),boot=read("./boot-v0103.js"),
-  game=read("./game-v0103.mjs"),old=read("./game-v0921.mjs");
+  game=read("./game-v0103.mjs"),old=read("./legacy/game/game-v0921.mjs");
  assert.match(html,/data-game-module="game-v0103\.mjs"/);
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(boot,/game-v0103\.mjs\?v=0\.10\.3/);

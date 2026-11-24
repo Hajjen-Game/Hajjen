@@ -13,7 +13,7 @@ const step=(s,n,flight)=>{for(let i=0;i<n;i++)stepHudState(s,1/120,flight);retur
 test("HUD 2.1 removes redundant bank visual and banking updates",()=>{
  const html=src("./index.html");
  const js=src("./reactive-hud-v04991.mjs");
- const game=src("./game-v04991.mjs");
+ const game=src("./legacy/game/game-v04991.mjs");
  assert.doesNotMatch(html,/hud-bank-gauge|hud-bank-instrument|bank-caption/);
  assert.doesNotMatch(js,/bankAngle|bankDegrees|bankNormalized|bankResponse|peakBank/);
  assert.doesNotMatch(game,/bankDegrees:motionState\.roll/);

@@ -6,6 +6,7 @@ import {readFileSync,existsSync,readdirSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {restoreR1FBootImport} from './r1f-game-test-path-overlay.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const repo=resolve(root,'..');
 const manifest=JSON.parse(readFileSync(resolve(root,'legacy/boot/R1-migration-manifest.json'),'utf8'));
@@ -28,14 +29,15 @@ test('R1 exactly 19 selected historical bootstraps preserve original Git SHA and
   const newFile=resolve(repo,file.newPath);
   assert.ok(existsSync(newFile),'Relocated bootstrap missing: '+file.name);
   const relocated=readFileSync(newFile,'utf8');
-  const rewritten=relocated.match(/import\(["']\.\.\/\.\.\/(game-v[^"']+\.mjs\?[^"']+)["']\)/g)||[];
+  const normalized=restoreR1FBootImport(relocated);
+  const rewritten=normalized.match(/import\(["']\.\.\/\.\.\/(game-v[^"']+\.mjs\?[^"']+)["']\)/g)||[];
   assert.equal(rewritten.length,1,'Expected exactly one original game import: '+file.name);
-  const reverted=relocated.replace('import("../../game-v','import("./game-v');
+  const reverted=normalized.replace('import("../../game-v','import("./game-v');
   assert.notEqual(reverted,relocated,'No scoped boot import rebase: '+file.name);
   assert.equal(gitHash(reverted),file.originalGitBlobSha,'Unexpected bootstrap source edit: '+file.name);
   const original=baseline.entries.find(e=>e.path===file.oldPath);
   assert.equal(original?.sha,file.originalGitBlobSha,'Baseline Git blob SHA mismatch: '+file.name);
-  const match=relocated.match(/import\(["'](\.\.\/\.\.\/game-v[^"']+\.mjs)\?[^"']+["']\)/);
+  const match=relocated.match(/import\(["']([^"']+\.mjs)\?[^"']+["']\)/);
   assert.ok(match,'Original game target not found: '+file.name);
   assert.ok(existsSync(resolve(dirname(newFile),match[1])),'Broken legacy game target: '+file.name);
  }
@@ -51,5 +53,5 @@ test('R1 CI points to all relocated bootstraps and cumulative root inventory ref
   assert.ok(!workflow.includes('node --check skyshift/'+name),'Stale root syntax check for '+name);
  }
  const files=readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile());
- assert.equal(files.length,357,'R1 plus R1B plus R1C must leave 357 root files (468 - 19 - 20 - 20 - 22 - 30)');
+ assert.equal(files.length,328,'R1 plus R1B plus R1C must leave 328 root files (468 - 19 - 20 - 20 - 22 - 30 - 29)');
 });

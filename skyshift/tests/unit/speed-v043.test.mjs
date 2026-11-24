@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
   TRIAL,GAPS,COURSE_SEGMENTS,positionAt,headingAt,curvatureAt,
   speedAt,newFlightState,stepFlight,clamp,validateTrial

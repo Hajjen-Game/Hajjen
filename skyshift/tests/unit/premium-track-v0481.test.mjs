@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.8.1 — premium world-space deck material without floating overlays.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  PREMIUM_TRACK,GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,
  SURFACE_FRAGMENT_HELPERS,premiumTrackCoordinates,

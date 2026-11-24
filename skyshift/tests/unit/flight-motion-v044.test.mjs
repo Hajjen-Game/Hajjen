@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.4 — motion feel, handling regression and active-page integration.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  MOTION_DEFAULTS,dampedSpring,followAngle,
  createFlightMotionState,stepFlightMotion

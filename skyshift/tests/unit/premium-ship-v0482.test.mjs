@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.8.2 — sculpted ship, engine continuity and quiet centerline.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  CRAFT_IDENTITY,HULL_SECTIONS,CANOPY_STATIONS,
  buildStreamlinedHull,buildSweptWings,buildCanopyShell,buildPremiumShip

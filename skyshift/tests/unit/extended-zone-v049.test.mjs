@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.9 — extended C2 route and world-space wave tests.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  TRIAL,COURSE_SEGMENTS,GEOMETRY_BREAKS,CHECKPOINTS,ARCHES,
  curvatureAt,headingAt,bankAt,positionAt,poseAt,validateTrial,

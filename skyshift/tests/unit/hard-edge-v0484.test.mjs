@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.8.4 — Manta hard-edge silhouette & twin-thruster FX.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {MANTA_IDENTITY,MANTA_WING_OUTLINE,ENGINE_SOCKETS,
  buildMantaWings,buildMantaSpine,buildMantaBlade} from "../../manta-blade-v0484.mjs";
 import {ENGINE_TRAIL_SPEC,trailMotionState,createTwinEngineFX}

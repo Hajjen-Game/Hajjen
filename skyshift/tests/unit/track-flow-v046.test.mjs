@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.6 — deterministic flow, raised rails and colour-ready surface.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  TRIAL,GUARDRAIL,COURSE_SEGMENTS,GEOMETRY_BREAKS,
  easedCurvature,integratedEasedCurvature,headingAt,curvatureAt,bankAt,

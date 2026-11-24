@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.8 — physical boost lane and large zone pattern regression.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {BOOST_CONFIG,BOOST_PADS,boostPadAt,stepBoostState} from "../../flight/boost/boost-v048.mjs";
 import {
  TRIAL,COURSE_SEGMENTS,positionAt,headingAt,curvatureAt,

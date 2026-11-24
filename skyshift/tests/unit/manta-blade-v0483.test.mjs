@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.8.3 — Manta Blade silhouette and physics regression.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  MANTA_IDENTITY,MANTA_SPINE,MANTA_WING_OUTLINE,MANTA_CANOPY,
  triangulateWing,buildMantaSpine,buildMantaWings,buildMantaCanopy,buildMantaBlade

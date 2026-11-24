@@ -6,7 +6,7 @@ import {CHALLENGES_0140,CHALLENGE_RULES_0140,initialChallengeProgress,
  normalizeChallengeProgress} from "../../tracks/skyline/skyline-challenges-v0140.mjs";
 import {TRIAL,newFlightState,CIRCUIT,SKYLINE_LEAP,GRIP_APEX,
  MAGNETIC_WALL,CORKSCREW,poseAt} from "../../trial-v01348.mjs";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const sample=(c,o={})=>({reachedExit:true,elapsed:c.goldSeconds-1,
  railContacts:0,falls:0,gripSeconds:2,qualifiedLandings:1,

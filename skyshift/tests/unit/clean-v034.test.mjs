@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {runInNewContext} from "node:vm";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
   TRACK_ART,createSurfacePlan,validateSurfacePlan
 } from "../../identity-v034.mjs";

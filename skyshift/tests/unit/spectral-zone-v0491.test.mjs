@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.9.1 — Spectral Zone Wave, material/color/rail sync.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL,newZoneWaveState,
  updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength

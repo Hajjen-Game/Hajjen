@@ -44,7 +44,7 @@ test("GRIP roll cap remains smooth, symmetric, and road-bank-relative",()=>{
  assert.equal(spec.modifyPhysicalHover,false);
 });
 test("active 0.13.4.6 has a matching executable boot path",()=>{
- const page=read("./index.html"),boot=read("./boot-v01346.js");
+ const page=read("./index.html"),boot=read("./legacy/boot/boot-v01346.js");
  assert.match(page,/boot-v01346\.js\?v=0\.13\.4\.6/);
  assert.match(page,/game-v01346\.mjs/);
  assert.match(boot,/game-v01346\.mjs\?v=0\.13\.4\.6/);

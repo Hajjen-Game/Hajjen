@@ -1,4 +1,4 @@
-// SKYSHIFT 0.9.2.1 — mobile-safe bootstrap. This small classic script
+// SKYSHIFT 0.4.9.7 — mobile-safe bootstrap. This small classic script
 // starts before any Three.js or WebGL modules need to load. Menu and
 // fullscreen must NEVER silently stop responding on shader/CDN/GPU failures.
 (function(){
@@ -8,7 +8,7 @@
  const fullscreen=document.getElementById("menu-fullscreen-btn");
  const status=document.getElementById("boot-state");
  if(!app||!start||!fullscreen||!status)return;
- const boot={phase:"loading",pendingStart:false,pendingMode:"time-trial",fullscreenRequested:false,
+ const boot={phase:"loading",pendingStart:false,fullscreenRequested:false,
   moduleReady:false,error:""};
  window.__skyshiftBoot=boot;
  function report(message,kind){
@@ -48,7 +48,7 @@
    location.reload();return;
   }
   // Preserve the user gesture for fullscreen before loading completes.
-  boot.pendingStart=true;boot.pendingMode="time-trial";
+  boot.pendingStart=true;
   boot.fullscreenRequested=true;
   requestFullscreen();
   report("Laddar SKYSHIFT:s 3D-motor. Startar automatiskt när den är klar...");
@@ -65,7 +65,7 @@
   if(boot.pendingStart&&typeof startQueued==="function"){
    boot.pendingStart=false;
    // Fullscreen was already requested in the original touch gesture.
-   startQueued(boot.pendingMode);
+   startQueued();
   }
  };
  window.__skyshiftBootFail=fail;
@@ -81,5 +81,5 @@
  },14000);
  // Use dynamic import so *module graph* failures also show actionable
  // feedback; static <script type=module> silently fails before try/catch.
- import("./game-v0134.mjs?v=0.13.4").catch(fail);
+ import("../../game-v0497.mjs?v=0.4.9.7").catch(fail);
 })();

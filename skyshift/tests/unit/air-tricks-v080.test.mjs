@@ -162,7 +162,7 @@ test("visual air roll is interpolated but never reverses across equivalent 2π s
 });
 test("production 0.8.0 uses contextual multitouch and exports deterministic stats",()=>{
  const html=source("./index.html"),game=source("./game-v080.mjs"),
-  css=source("./style-v080.css"),boot=source("./boot-v080.js"),
+  css=source("./style-v080.css"),boot=source("./legacy/boot/boot-v080.js"),
   smoke=source("./browser-smoke-v080.mjs");
  assert.match(html,/data-game-module="game-v0103\.mjs"/);
  assert.match(html,/style-v083\.css/);

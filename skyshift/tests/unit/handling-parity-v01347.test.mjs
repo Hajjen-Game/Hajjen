@@ -48,7 +48,7 @@ test("real wingtip scale and base-preserving engine FX remain unchanged",()=>{
  assert.match(fx,/baseScale\.x\*\(1\+landAmount/);
 });
 test("version 0.13.4.7 is wired to the production page and bootstrap",()=>{
- const page=read("./index.html"),boot=read("./boot-v01347.js");
+ const page=read("./index.html"),boot=read("./legacy/boot/boot-v01347.js");
  assert.match(page,/boot-v01347\.js\?v=0\.13\.4\.7/);
  assert.match(page,/data-game-module="game-v01347\.mjs"/);
  assert.match(boot,/game-v01347\.mjs\?v=0\.13\.4\.7/);

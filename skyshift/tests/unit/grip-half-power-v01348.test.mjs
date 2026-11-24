@@ -80,8 +80,8 @@ test("only new gameplay imports change: Manta, Stingray, camera and track intact
  assert.equal(tuned.gripAvailableOnFirstLap,true);
 });
 test("live HTML and bootstrap point to the new version",()=>{
- const html=read("./index.html"),boot=read("./boot-v01348.js");
+ const html=read("./index.html"),boot=read("./legacy/boot/boot-v01348.js");
  assert.match(html,/boot-v01348\.js\?v=0\.13\.4\.8/);
  assert.match(html,/data-game-module="game-v01348\.mjs"/);
- assert.match(boot,/import\("\.\/game-v01348\.mjs\?v=0\.13\.4\.8"\)/);
+ assert.match(boot,/import\("\.\.\/\.\.\/game-v01348\.mjs\?v=0\.13\.4\.8"\)/);
 });

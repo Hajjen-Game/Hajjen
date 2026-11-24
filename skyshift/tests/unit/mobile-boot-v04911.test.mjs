@@ -4,10 +4,10 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 const src=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
 test("Classic, dependency-free bootstrap loads before Three.js and captures import failures",()=>{
- const html=src("./index.html"),boot=src("./boot-v04911.js");
+ const html=src("./index.html"),boot=src("./legacy/boot/boot-v04911.js");
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.doesNotMatch(html,/<script type="module" src="\.\/game-v04911/);
- assert.match(boot,/import\("\.\/game-v04911\.mjs\?v=0\.4\.9\.1\.1"\)\.catch\(fail\)/);
+ assert.match(boot,/import\("\.\.\/\.\.\/game-v04911\.mjs\?v=0\.4\.9\.1\.1"\)\.catch\(fail\)/);
  assert.match(boot,/__skyshiftBootReady/);
  assert.match(boot,/__skyshiftBootFail/);
  assert.match(boot,/window\.addEventListener\("unhandledrejection"/);

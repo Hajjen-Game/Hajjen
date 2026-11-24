@@ -1,6 +1,6 @@
 # SKYSHIFT — ROOT CONSOLIDATION: SOURCE OF TRUTH
 
-> **Status: NOT FINISHED** (checked against GitHub `main` at `87e9fb706c`, 2026-11-23).  
+> **Status: NOT FINISHED** (`main`: merged PR #197, `5c724ec8e19b`, **409 direct files**; R1D branch targeting **387** after verified merge, 2026-11-23).  
 > **User's actual goal:** Just a few essential files directly inside `skyshift/`; organize all remaining live modules, historical versions, tests and documentation into clearly named subdirectories. **Do not mark this goal complete merely because the shared tunnel architecture tests are green.**
 
 ## Verified baseline
@@ -65,18 +65,27 @@ For each work session: verify latest `main`, look for open PRs, reconcile the la
 
 Baseline after PR #195: **449 root files**. Merged PR #196 moved 20 historical `boot-v*.js` to `legacy/boot/` and adjusts 22 historical unit test source readers, leaving **429 root files** on `main`. Original boot Git blob SHA values and original test SHAs are protected by `legacy/boot/R1B-migration-manifest.json` and a reversible path-only audit. Live `boot-v0210.js`, `game-v0210.mjs`, and all rendering/flight code are untouched. Historical direct bootstrap URLs are not automatically redirected on GitHub Pages. **All 35 PR checks, the separate 0.20.3 WebGL regression and `main` Pages/QA succeeded.**
 
-## R1C — early VFX and 0.13.x bootstrap readers (CURRENT PR)
+## R1C — early VFX and 0.13.x bootstrap readers (MERGED PR #197)
 
-After PR #196, `main` has **429 direct-root files**. R1C moves **20 additional historical boot scripts** into `legacy/boot/`, updating **24 original unit-test readers**, reducing the expected direct-root count to **409** after merge. Four UI flow regression tests also update their import-path expectations from `./game-v` to `../../game-v`: they still verify the same target version and query, and their **entire original Git blob SHA** must be recoverable by the narrow reversible path overlay.
+After PR #196, `main` had **429 direct-root files**. Merged PR #197 moves **20 additional historical boot scripts** into `legacy/boot/`, updating **24 original unit-test readers**, leaving **409 actual direct-root files** after merge. Four UI flow regression tests also update their import-path expectations from `./game-v` to `../../game-v`: they still verify the same target version and query, and their **entire original Git blob SHA** must be recoverable by the narrow reversible path overlay.
 
 - Immutable source/reader manifest: `skyshift/legacy/boot/R1C-migration-manifest.json`.
 - Mandatory independent SHA and root-count gate: `skyshift/tests/architecture/legacy-boot-migration-r1c.test.mjs`. Original Stage 5–8 unit-integrity checks remain strict.
 - Active `index.html`, `boot-v0210.js` and `game-v0210.mjs` are unchanged; no rendering/flight/track edits.
-- Await all PR and historical browser checks before merging; after merge confirm Pages, `main` QA and precisely **409** root files.
+- **Merged `5c724ec8e19bc67f1d84d57997b7e7316c380bc8`** after **36/36 successful PR checks**. Exactly **409** root files and the Pages publication guard and Pages deployment were verified; post-merge track logic QA was still being checked during this session.
 - Remaining boot versions after R1C: **25**, including the active entrypoint (24 historical). Continue with the 0.13.4 lineage and older 0.4.9 compatibility tests, then the historical `game-v*` modules. The final target remains a few intentional root files, not just green CI.
+
+## R1D — 22 remaining versioned boot readers, PENDING CI / NOT MERGED
+
+**Branch:** `skyshift/root-consolidation-r1d-historical-bootstrap-families` from merged PR #197 (`5c724ec8e19b`). After an explicit root-level inventory and literal-reference audit, this branch relocates **22 historical boot-v*.js scripts** (0.13.4 family, 0.16.5, 0.4.9.1.1–0.4.9.8, 0.7.1–0.8.1) into `skyshift/legacy/boot/`.
+
+- **Actual merged `main` root before:** 409. **Unmerged R1D branch measured root:** 387. Do **not** describe 387 as merged until PR checks, merge and main verification complete.
+- **34 historical source readers** have only literal file paths updated; exact import URL assertions are adapted only for changed script location. Manifest: `skyshift/legacy/boot/R1D-migration-manifest.json`; inverse source overlay: `skyshift/tests/architecture/r1d-boot-test-path-overlay.mjs`. Original test blob SHAs from R1C-main are required to match perfectly after inverse. Stage 5–8 original SHA guards compose this inverse; R1B/R1C and R1 source tests enforce the cumulative 387 count.
+- **Intentionally untouched:** `index.html`, live `boot-v0210.js` and `game-v0210.mjs`, and legacy root `boot-v0101.js`, `boot-v0103.js` pending specific compatibility assessment. The original historical direct-root URLs of moved files cannot be redirected by GitHub Pages, as documented in prior batches.
+- **Merge gate:** new mandatory R1D integrity test, 22 syntax checks, 35 fast/browser jobs plus architecture guard. Only merge if all successful; then verify **409 → 387** on `main`, real Pages deploy, main track QA and the active entrypoint. Leave 0.10.1/0.10.3 aliases until separate audit. After that assess historical `game-v*.mjs` modules and stylesheet URLs, not just arbitrary old file names.
 
 ## Work history / last decision
 
 - 2026-11-23: **468 root files** found; earlier "Architecture Cleanup 2.0 complete" statement corrected.
 - The ongoing crash/slow long-chat problem is a separate ChatGPT product issue; **do not rely on chat history alone** for technical handoff.
-- This document is a **non-runtime correction**. It neither moves source files nor claims the remaining migration has started or been completed.
+- R0 was originally a **non-runtime correction**. R1–R1D are actual file moves, recorded separately above; the overarching root-consolidation goal remains unfinished.

@@ -100,11 +100,11 @@ test("active game changes ONLY Stingray render root and visual roll, not physics
  assert.equal(spec.addedDrawCalls,0);
 });
 test("0.13.4.4 boot and menu are wired to the new production module",()=>{
- const html=read("./index.html"),boot=read("./boot-v01344.js");
+ const html=read("./index.html"),boot=read("./legacy/boot/boot-v01344.js");
  assert.match(html,/boot-v01344\.js\?v=0\.13\.4\.4/);
  assert.match(html,/data-game-module="game-v01344\.mjs"/);
  assert.match(html,/SKYLINE CIRCUIT · 0\.13\.4\.4/);
- assert.match(boot,/import\("\.\/game-v01344\.mjs\?v=0\.13\.4\.4"\)/);
+ assert.match(boot,/import\("\.\.\/\.\.\/game-v01344\.mjs\?v=0\.13\.4\.4"\)/);
 });
 
 test("deployed V4 3D asset has intact complete imported wing and tail geometry",()=>{

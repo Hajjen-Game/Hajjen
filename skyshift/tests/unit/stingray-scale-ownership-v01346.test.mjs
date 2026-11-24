@@ -18,7 +18,7 @@ test("real HERO wing is scaled to Manta width instead of the failed 170/210 work
 });
 test("root scale is preserved through ALL engine animations",()=>{
  const engine=read("./engine-trails-v01346.mjs");
- const game=read("./game-v01346.mjs");
+ const game=read("./legacy/game/game-v01346.mjs");
  assert.match(engine,/baseScale=Object\.freeze\(\{x:ship\.scale\.x,y:ship\.scale\.y,z:ship\.scale\.z\}\)/);
  assert.match(engine,/baseScale\.x\*\(1\+landAmount/);
  assert.match(engine,/baseScale\.y\*\(1-landAmount/);

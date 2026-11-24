@@ -1,3 +1,4 @@
+import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT root consolidation R1: preserve original git byte hashes except one
 // exactly specified relative-import adjustment in relocated legacy boot files.
 import test from 'node:test';
@@ -29,7 +30,7 @@ test('R1 exactly 19 selected historical bootstraps preserve original Git SHA and
   const newFile=resolve(repo,file.newPath);
   assert.ok(existsSync(newFile),'Relocated bootstrap missing: '+file.name);
   const relocated=readFileSync(newFile,'utf8');
-  const normalized=restoreR1FBootImport(relocated);
+  const normalized=restoreR1FBootImport(restoreR1GBootImport(relocated));
   const rewritten=normalized.match(/import\(["']\.\.\/\.\.\/(game-v[^"']+\.mjs\?[^"']+)["']\)/g)||[];
   assert.equal(rewritten.length,1,'Expected exactly one original game import: '+file.name);
   const reverted=normalized.replace('import("../../game-v','import("./game-v');
@@ -53,5 +54,5 @@ test('R1 CI points to all relocated bootstraps and cumulative root inventory ref
   assert.ok(!workflow.includes('node --check skyshift/'+name),'Stale root syntax check for '+name);
  }
  const files=readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile());
- assert.equal(files.length,328,'R1 plus R1B plus R1C must leave 328 root files (468 - 19 - 20 - 20 - 22 - 30 - 29)');
+ assert.equal(files.length,286,'R1 plus R1B plus R1C must leave 286 root files (468 - 19 - 20 - 20 - 22 - 30 - 29)');
 });

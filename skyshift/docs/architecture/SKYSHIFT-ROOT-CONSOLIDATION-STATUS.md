@@ -1,6 +1,6 @@
 # SKYSHIFT — ROOT CONSOLIDATION: SOURCE OF TRUTH
 
-> **Status: NOT FINISHED** (`main`: merged PR #199, `0e63f59bddb`, **357 direct files**; R1F branch targeting **328** after independently confirmed CI and merge, 2026-11-24).  
+> **Status: NOT FINISHED** (main: R1F PR #200, ab926746c1a356d8f, 328 root files, all post-merge checks green; R1G migration branch targets 286).
 > **User's actual goal:** Just a few essential files directly inside `skyshift/`; organize all remaining live modules, historical versions, tests and documentation into clearly named subdirectories. **Do not mark this goal complete merely because the shared tunnel architecture tests are green.**
 
 ## Verified baseline
@@ -110,3 +110,7 @@ After PR #196, `main` had **429 direct-root files**. Merged PR #197 moves **20 a
 - 2026-11-23: **468 root files** found; earlier "Architecture Cleanup 2.0 complete" statement corrected.
 - The ongoing crash/slow long-chat problem is a separate ChatGPT product issue; **do not rely on chat history alone** for technical handoff.
 - R0 was originally a **non-runtime correction**. R1–R1F are actual file moves, recorded separately above; the overarching root-consolidation goal remains unfinished.
+
+## R1G — 42 later historical game snapshots (UNMERGED)
+
+R1F PR #200 merged at ab926746c1a356d8f2a9c079968e7e65dc804901, 328 direct files, all main checks green. R1G exhaustive reference audit run 45343324620 found 42 eligible of 43 candidates. Move those 42 to legacy/game/ and preserve the exact prior Git blob after reversing only static relative imports; rewire matching bootstraps and audited unit readers, including exact boot import regex paths. Keep v0191 (missing unique CI syntax check), v0101/v0103 compatibility pairs, v0203 comparison page, and live v0210. Historical direct-root Pages script URLs are not redirected. Root target 286. Require independent R1G SHA guard and all original cumulative gates plus full PR checks before merge; verify Pages and track QA afterward. No runtime behavior or asset changes intended. Next: audit held game/boot compatibility, then CSS/UI and subsystem modules. Goal remains <=10 intentional direct files.

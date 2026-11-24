@@ -1,3 +1,4 @@
+import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT 0.28.9.8 stage 7 — audit 125 reversible historical unit-test moves.
 // Each migrated file must reproduce the original immutable Git blob exactly when
 // its local import and import.meta.url bases are reversed. No assertion changes.
@@ -79,7 +80,7 @@ test('all 125 migrated tests have exactly the same original Git blob after rever
     const file = resolve(testsDir, name);
     assert.ok(existsSync(file), 'Moved test missing: ' + name);
     const contents = readFileSync(file, 'utf8');
-    const original = Buffer.from(restore(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(restoreR1BBootPaths(restoreR1CBootPaths(restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(contents))))))))))))))), 'utf8');
+    const original = Buffer.from(restore(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(restoreR1BBootPaths(restoreR1CBootPaths(restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(restoreR1GGamePaths(contents)))))))))))))))), 'utf8');
     const actual = createHash('sha1').update('blob ' + original.length + '\0').update(original).digest('hex');
     assert.equal(actual, manifest.entries[name], 'Test assertions or source changed: ' + name);
     assertStaticImportsResolve(name, contents);

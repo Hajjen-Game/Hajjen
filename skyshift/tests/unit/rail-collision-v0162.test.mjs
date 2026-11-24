@@ -75,7 +75,7 @@ test("same course geometry, no broad rebalance or altered ship/camera animations
   assert.ok(Math.abs(oldTrial.bankAt(s)-trial.bankAt(s))<1e-10);
   assert.equal(oldTrial.guardrailLateralLimit(s),trial.guardrailLateralLimit(s));
  }
- const game=src("./game-v0162.mjs");
+ const game=src("./legacy/game/game-v0162.mjs");
  assert.match(game,/from "\.\/trial-v0162\.mjs"/);
  assert.match(game,/from "\.\/aero-barrier-v0162\.mjs"/);
  assert.match(game,/from "\.\/rail-scrape-sparks-v0162\.mjs"/);

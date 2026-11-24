@@ -70,7 +70,7 @@ test("the ACTUAL 120Hz physics responds at the half-power GRIP factor",()=>{
  }
 });
 test("only new gameplay imports change: Manta, Stingray, camera and track intact",()=>{
- const s=read("./game-v01348.mjs");
+ const s=read("./legacy/game/game-v01348.mjs");
  assert.match(s,/from "\.\/trial-v01348\.mjs"/);
  assert.match(s,/const result=stepFlight\(flight,dt,\{steer,grip:gripHeld\}\)/);
  assert.match(s,/ship\.rotation\.z=naturalRoll;/);
@@ -83,5 +83,5 @@ test("live HTML and bootstrap point to the new version",()=>{
  const html=read("./index.html"),boot=read("./legacy/boot/boot-v01348.js");
  assert.match(html,/boot-v01348\.js\?v=0\.13\.4\.8/);
  assert.match(html,/data-game-module="game-v01348\.mjs"/);
- assert.match(boot,/import\("\.\.\/\.\.\/game-v01348\.mjs\?v=0\.13\.4\.8"\)/);
+ assert.match(boot,/import\("\.\.\/game\/game-v01348\.mjs\?v=0\.13\.4\.8"\)/);
 });

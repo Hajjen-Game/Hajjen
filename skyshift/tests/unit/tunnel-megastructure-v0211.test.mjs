@@ -124,6 +124,6 @@ test("flight physics, steering, grip, camera, road and colors are not replaced",
  assert.ok(current,"game entry must carry a published release key");
  assert.ok(read("./index.html").includes(`boot-v0210.js?v=${current}`),
   "HTML boot asset must match game entry exactly");
- const old=read("./game-v0205.mjs");
+ const old=read("./legacy/game/game-v0205.mjs");
  assert.ok(!old.includes("tunnel-megastructure-v0211"));
 });

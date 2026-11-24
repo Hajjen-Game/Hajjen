@@ -67,7 +67,7 @@ test("Skyline original course stays unchanged; Aurora PB has a new revision",()=
  const records=source("./time-trial-v0160.mjs");
  assert.match(records,/skyshift-time-trial-ghost-aurora-0164/);
  assert.match(records,/skyshift-time-trial-ghost-0151/);
- const game=source("./game-v0164.mjs"),html=source("./index.html");
+ const game=source("./legacy/game/game-v0164.mjs"),html=source("./index.html");
  assert.match(game,/from "\.\/trial-v0164\.mjs"/);
  assert.match(html,/boot-v0164\.js\?v=0\.16\.4/);
  assert.match(source("./legacy/boot/boot-v0164.js"),/game-v0164\.mjs\?v=0\.16\.4/);

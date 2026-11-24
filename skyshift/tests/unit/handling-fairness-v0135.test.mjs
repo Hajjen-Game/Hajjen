@@ -38,7 +38,7 @@ test("idealized 120Hz driving probe never changes active physics",()=>{
  assert.doesNotMatch(x,/handling-fairness-v0135|simulateApproach/);
 });
 test("exact same steered physics used by Manta and Stingray and prior build",()=>{
- const game=readFileSync(new URL("../../"+"./game-v0135.mjs",import.meta.url),"utf8");
+ const game=readFileSync(new URL("../../"+"./legacy/game/game-v0135.mjs",import.meta.url),"utf8");
  assert.match(game,/from "\.\/trial-v01348\.mjs"/);
  assert.match(game,/const result=stepFlight\(flight,dt,\{steer,grip:gripHeld\}\)/);
  assert.match(game,/ship\.rotation\.z=naturalRoll;/);

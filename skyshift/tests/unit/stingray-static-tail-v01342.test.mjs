@@ -25,7 +25,7 @@ function sampleTail(data,frames=300){
  return st;
 }
 test("the patch is a TRUE rollback of dynamic wing compensation",()=>{
- const game=readFileSync(new URL("../../"+"./game-v01342.mjs",import.meta.url),"utf8");
+ const game=readFileSync(new URL("../../"+"./legacy/game/game-v01342.mjs",import.meta.url),"utf8");
  assert.doesNotMatch(game,/wing-clearance-v01341|stingrayClearance|clampVisualRoll/);
  assert.match(game,/ship\.rotation\.z=motion\.roll-bankAt\(view\.s\)-/);
  assert.match(game,/const result=stepFlight\(flight,dt,\{steer,grip:gripHeld\}\)/);

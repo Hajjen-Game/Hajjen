@@ -68,7 +68,7 @@ test("only first primitive station is replaced and legacy source is preserved",(
  assert.doesNotMatch(worldSource,/READABILITY_0191/);
 });
 test("production keeps archived physics, camera, 0.19.0 chapters and versioned A/B",()=>{
- const game=src("./game-v0192.mjs");
+ const game=src("./legacy/game/game-v0192.mjs");
  assert.match(game,/from "\.\/trial-v0165\.mjs"/);
  assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
  assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);

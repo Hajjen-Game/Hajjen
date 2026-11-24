@@ -47,7 +47,7 @@ test("Skyline module cannot change Aurora",()=>{
  assert.equal(other.stats.drawBatches,0);
 });
 test("the final executable uses original GRIP and flight physics",()=>{
- const game=src("./game-v0190.mjs");
+ const game=src("./legacy/game/game-v0190.mjs");
  const html=src("./index.html");
  assert.match(game,/from "\.\/trial-v0165\.mjs"/);
  assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);

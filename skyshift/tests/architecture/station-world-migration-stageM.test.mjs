@@ -38,8 +38,10 @@ test('Stage M: immutable Git source hashes preserved across all 16 world modules
 test('Stage M: nine active/historical game consumers and eight unit suites point to existing world files',()=>{
  assert.equal(m.gameConsumers.length,9);assert.equal(m.unitTests.length,8);
  for(const name of m.gameConsumers){
-  const game=readFileSync(resolve(root,name),'utf8');
-  assert.ok(game.includes('./world/environment-art-pipeline-v020'),'Missing moved world import: '+name);
+  const archived=resolve(root,'legacy/game',name);
+  const path=existsSync(archived)?archived:resolve(root,name);
+  const game=readFileSync(path,'utf8');
+  assert.ok(game.includes((path===archived?'../../':'./')+'world/environment-art-pipeline-v020'),'Missing moved world import: '+name);
   assert.doesNotMatch(game,/\bfrom\s*["']\.\/environment-art-pipeline-v020/,'Stale game ESM import: '+name);
  }
  for(const name of m.unitTests){

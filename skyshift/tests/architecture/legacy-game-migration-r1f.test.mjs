@@ -1,3 +1,4 @@
+import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT R1F — independent immutability, resolved module graph, boot integrity and root count.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -38,7 +39,7 @@ test('R1F: 25 historical original unit reader blobs invert exactly',()=>{
  assert.equal(manifest.tests.length,25);
  for(const item of manifest.tests){
   const source=readFileSync(resolve(repo,item.path),'utf8');
-  const restored=restoreR1FGamePaths(source);
+  const restored=restoreR1FGamePaths(restoreR1GGamePaths(source));
   assert.notEqual(restored,source,'Historical game source read did not rebase '+item.path);
   assert.equal(sha(restored),item.originalGitBlobShaBeforeR1F,'Historic unit assertions mutated '+item.path);
  }
@@ -54,7 +55,7 @@ test('R1F: 29 archived bootstraps target the moved source, with original Git bod
  }
 });
 test('R1F: 357 → 328 direct-root files, untouched active and held archive entrypoints, CI paths',()=>{
- assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,328);
+ assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,286);
  assert.equal(sha(readFileSync(resolve(root,'index.html'),'utf8')),manifest.active.index);
  assert.equal(sha(readFileSync(resolve(root,'boot-v0210.js'),'utf8')),manifest.active.boot);
  assert.equal(sha(readFileSync(resolve(root,'game-v0210.mjs'),'utf8')),manifest.active.game);

@@ -1,3 +1,4 @@
+import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT Root Consolidation R1B: immutable original byte hashes,
 // unchanged test assertions and correct historical game import targets.
 import test from 'node:test';
@@ -32,7 +33,8 @@ test('R1B exactly 20 original boot Git blobs preserved except the identical game
   assert.ok(!existsSync(resolve(repo,item.oldPath)),'Old root bootstrap remains '+item.name);
   const target=resolve(repo,item.newPath);
   assert.ok(existsSync(target),'Missing moved historical bootstrap '+item.name);
-  const source=readFileSync(target,'utf8');
+  const actual=readFileSync(target,'utf8');
+  const source=restoreR1GBootImport(actual);
   assert.equal((source.match(/import\("\.\.\/\.\.\/game-v/g)||[]).length,1,
    'Exactly one relocated game URL required '+item.name);
   const original=source.replace('import("../../game-v','import("./game-v');
@@ -40,7 +42,7 @@ test('R1B exactly 20 original boot Git blobs preserved except the identical game
    'Unexpected mutation to bootstrap '+item.name);
   assert.equal(baseline.entries.find(e=>e.path===item.oldPath)?.sha,
    item.originalGitBlobSha,'R0 Git blob baseline disagrees: '+item.name);
-  const match=source.match(/import\("(\.\.\/\.\.\/game-v[^"?]+\.mjs)\?[^"]+"\)/);
+  const match=actual.match(/import\("((?:\.\.\/\.\.\/|\.\.\/game\/)game-v[^"?]+\.mjs)\?[^"]+"\)/);
   assert.ok(match,'Missing historical versioned import '+item.name);
   assert.ok(existsSync(resolve(dirname(target),match[1])),
    'Historical game import resolves incorrectly '+item.name);
@@ -58,7 +60,7 @@ test('R1B original source SHA of 22 historic unit readers is retained, with no a
   assert.ok(!seen.has(item.path),'duplicate historical source reader '+item.path);
   seen.add(item.path);
   const p=resolve(repo,item.path),source=readFileSync(p,'utf8');
-  const restored=restoreR1BBootPaths(source);
+  const restored=restoreR1BBootPaths(restoreR1GGamePaths(source));
   assert.notEqual(restored,source,'Missing R1B reader rebase '+item.path);
   assert.equal(sha(restored),item.originalGitBlobSha,
    'Historical test assertion or source changed '+item.path);
@@ -73,7 +75,7 @@ test('R1B original source SHA of 22 historic unit readers is retained, with no a
 
 test('R1B CI and root layout enforce the total 468 → 449 → 429 → 409 file moves',()=>{
  const files=readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile());
- assert.equal(files.length,328,'Incorrect cumulative root count after R1F');
+ assert.equal(files.length,286,'Incorrect cumulative root count after R1F');
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const item of manifest.files){
   assert.ok(!workflow.includes('node --check '+item.oldPath),

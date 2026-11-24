@@ -88,7 +88,7 @@ test("real 120Hz flight metrics drive medals, not UI or cosmetic animation",()=>
  assert.equal(evaluateChallenge(c,captureChallengeMetrics(c,f,{})).medal,"silver");
 });
 test("0.14.0 boots and keeps identical normal race physics and ships",()=>{
- const game=src("./game-v0140.mjs");
+ const game=src("./legacy/game/game-v0140.mjs");
  const html=src("./index.html"),boot=src("./legacy/boot/boot-v0140.js");
  assert.match(game,/from "\.\/trial-v01348\.mjs"/);
  assert.match(game,/const result=stepFlight\(flight,dt,\{steer,grip:gripHeld\}\)/);

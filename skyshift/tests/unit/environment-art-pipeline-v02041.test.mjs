@@ -89,7 +89,7 @@ test("sculpted neon stays outside the cockpit in every module",()=>{
  }
 });
 test("legacy 0.20.4 A/B, graphite A/B and old 120 Hz flight imports remain",()=>{
- const game=file("./game-v02041.mjs");
+ const game=file("./legacy/game/game-v02041.mjs");
  assert.match(game,/from "\.\/trial-v0165\.mjs"/);
  assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
  assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);

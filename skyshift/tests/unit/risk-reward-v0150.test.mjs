@@ -123,7 +123,7 @@ test("normal Time Trial PBs use a NEW fingerprint, older ghost remains in storag
  assert.equal(RISK_REWARD_0150.physicsSteeringUnchanged,true);
 });
 test("active 0.15.0 retains Manta/Stingray steering, Challenge medals, and real player boost",()=>{
- const game=read("./game-v0150.mjs"),trial=read("./trial-v0150.mjs");
+ const game=read("./legacy/game/game-v0150.mjs"),trial=read("./trial-v0150.mjs");
  assert.match(game,/from "\.\/trial-v0150\.mjs"/);
  assert.match(game,/ship\.rotation\.z=naturalRoll;/);
  assert.match(game,/const result=stepFlight\(flight,dt,\{steer,grip:gripHeld\}\);/);

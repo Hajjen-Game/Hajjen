@@ -1,7 +1,7 @@
 // SKYSHIFT 0.10.3 — premium hull details and genuinely living idle tail.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {STINGRAY_EVO,createTailState,tailPoseStep}
  from "../../stingray-evo-v0103.mjs";
 import {SHIP_POLISH,buildShipPolish} from "../../ships/ship-polish-v0103.mjs";

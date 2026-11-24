@@ -78,7 +78,7 @@ test('R1C all 24 original historical test Git blobs restore exactly (including U
 
 test('R1C CI rewire and cumulative 468 → 449 → 429 → 409 → 387 direct root-file count',()=>{
  const direct=readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile());
- assert.equal(direct.length,286);
+ assert.equal(direct.length,285);
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const file of manifest.files){
   assert.ok(!workflow.includes('node --check '+file.oldPath),

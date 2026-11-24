@@ -4,7 +4,7 @@ import {auditHandlingFairness,FAIRNESS_0135,sectionCurvature,
  simulateApproach,yawFeasibility} from "../../handling-fairness-v0135.mjs";
 import {COURSE_SEGMENTS,TRIAL,GRIP_APEX,stepFlight,newFlightState}
  from "../../trial-v01348.mjs";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 test("full authored course has deterministic finite curvature and lane width",()=>{
  const a=auditHandlingFairness();
  const b=auditHandlingFairness();

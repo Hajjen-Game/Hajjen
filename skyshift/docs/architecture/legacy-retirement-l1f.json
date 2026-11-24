@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "stage": "L1F",
+  "archiveCommit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+  "baseCommit": "39df07e1db407a0b1cee467c377fd87bfdab402c",
+  "inventoryRun": 45347691497,
+  "previousRootFiles": 286,
+  "expectedRootFiles": 285,
+  "files": [
+    {
+      "path": "skyshift/game-v0191.mjs",
+      "sha": "c277bd4df709e396a8cc30726c9cbe6ea72f3e18",
+      "readers": [
+        "skyshift/tests/unit/world-material-readability-v0191.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0162.js",
+      "sha": "225d0e1166e5d16d186794f79488126d16250821",
+      "readers": [
+        "skyshift/tests/unit/rail-collision-v0162.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0162.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0164.js",
+      "sha": "fbc54c46a86eb44778766e0251f31ce8c21ee0ac",
+      "readers": [
+        "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0164.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0165.js",
+      "sha": "c28ff0c14ee42a69cc9193b264a1415eae342a4d",
+      "readers": [
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0191.js",
+      "sha": "c585aede9adb6b9d6be4c07ff64e3094440f2ee8",
+      "readers": [
+        "skyshift/tests/unit/world-material-readability-v0191.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v010.mjs",
+      "sha": "6aae1ca4d07f330d7aff81c7911e32a0982db5e3",
+      "readers": [
+        "skyshift/tests/unit/stingray-evo-v0101.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0102.mjs",
+      "sha": "2b993071988d52d153f37f0545b39b6fcbbfdbc8",
+      "readers": [
+        "skyshift/tests/unit/premium-ship-v0103.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0135.mjs",
+      "sha": "7720a870aec8e806039e29dd5ebef54021d4cf16",
+      "readers": [
+        "skyshift/tests/unit/handling-fairness-v0135.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0162.mjs",
+      "sha": "1fbc44f4aac1e91b56fd76d090af25f93c84e42a",
+      "readers": [
+        "skyshift/tests/unit/rail-collision-v0162.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0162.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0164.mjs",
+      "sha": "7017a46a4ae00dd61e4e30ac6b26b9ae1370912f",
+      "readers": [
+        "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0164.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0165.mjs",
+      "sha": "0bb8ea21e2e2b626c04fc21f0da6fd8337bb47a8",
+      "readers": [
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0331.mjs",
+      "sha": "76c0a0cb19e94e0a26f223d56efe0a8f9c660151",
+      "readers": [
+        "skyshift/tests/unit/identity-v033.test.mjs",
+        "skyshift/tests/unit/luminance-v0331.test.mjs",
+        "skyshift/tests/unit/neon-v032.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v082.mjs",
+      "sha": "e38213c5d2f1a32444185be624c64751834fcf55",
+      "readers": [
+        "skyshift/tests/unit/racing-feel-v083.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v083.mjs",
+      "sha": "c5d4eae543ddb39f6954907cf7abf2accdc95c59",
+      "readers": [
+        "skyshift/tests/unit/steering-authority-v084.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v084.mjs",
+      "sha": "5949350555a051177b7c05754b415361b510d731",
+      "readers": [
+        "skyshift/tests/unit/kinetic-camera-v090.test.mjs",
+        "skyshift/tests/unit/steering-authority-v084.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v090.mjs",
+      "sha": "bd05cdd7424b00cf64d2daeefaccc9e028c636e8",
+      "readers": [
+        "skyshift/tests/unit/grip-first-v0901.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0901.mjs",
+      "sha": "bb276495c1306e6f9cc2982aabb25e5e1b7e999e",
+      "readers": [
+        "skyshift/tests/unit/signature-flight-v091.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v091.mjs",
+      "sha": "9cc05ebf484841f283708f2c3695e3701af3f003",
+      "readers": [
+        "skyshift/tests/unit/shadow-tunnel-v092.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v092.mjs",
+      "sha": "753d645d41e6000adb86ef253bd85cda14745012",
+      "readers": [
+        "skyshift/tests/unit/tunnel-blackout-v0921.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0921.mjs",
+      "sha": "426329d431224ecddac9e981d8be27ce20e916e3",
+      "readers": [
+        "skyshift/tests/unit/fleet-v010.test.mjs"
+      ]
+    }
+  ],
+  "readers": [
+    {
+      "path": "skyshift/tests/unit/fleet-v010.test.mjs",
+      "sha": "200e822b110097d311e3a7d6de5a54c2cffe0cf8",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/grip-first-v0901.test.mjs",
+      "sha": "18d0e37184d528351560fbcc18f489e3d0d6aa82",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+      "sha": "07aaf223bb5fb16b76c62fe0142f4c6246e76c83",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/handling-fairness-v0135.test.mjs",
+      "sha": "9a9126dd4763ad7dbfcc27f2403fc64c1b3678ef",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/identity-v033.test.mjs",
+      "sha": "ac2f4e9b41fb8e3badffe07199d200a85eafcd32",
+      "originalImport": "import {readHistorical as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/kinetic-camera-v090.test.mjs",
+      "sha": "9ce330cc4ab5ff1fa3b87ebb95074830a5c35cf8",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/luminance-v0331.test.mjs",
+      "sha": "fdec09dceedb80384a0eced766842dbf87958a13",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/neon-v032.test.mjs",
+      "sha": "0328719717a30e33068f5497971c742c1c2cd4da",
+      "originalImport": "import {readHistorical as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/premium-ship-v0103.test.mjs",
+      "sha": "c62fa5fa46fe1927ec6ee715637008ecc3495bbd",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/racing-feel-v083.test.mjs",
+      "sha": "7b891ecc3056a7b903d916798f18031a9cbca320",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-collision-v0162.test.mjs",
+      "sha": "d670cc7fc1418eee9942d8e8a2e187726ba49d2f",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/shadow-tunnel-v092.test.mjs",
+      "sha": "153ff1b6f903191543f526214d3c77af505b8313",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/signature-flight-v091.test.mjs",
+      "sha": "d273739948a7daa6120951de22985750391eeb72",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/steering-authority-v084.test.mjs",
+      "sha": "fb63e7b8fd31ff1b35fc775caf4c6be4f7cb7222",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/stingray-evo-v0101.test.mjs",
+      "sha": "a56a70add8a719d9911c012281a59b327d5d0aa5",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+      "sha": "05ca590dbefa16fcb3880bdbc10ee23b71fce72c",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+      "sha": "f8c56c7bf41e0675badce60da3681fce9a3c4896",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "sha": "40ca88fac6552af9aeed3afefcc64240b7ef3aae",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/track-physics-parity-v0164.test.mjs",
+      "sha": "a4b1a278a0ff42cc9defd2fe44734aaa2f14d603",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+      "sha": "1444406202a39ef3e4bcb8de5ce0896d6a2041df",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/tunnel-blackout-v0921.test.mjs",
+      "sha": "f73cd46610441c5fadba6a800039db57fc961476",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/world-material-readability-v0191.test.mjs",
+      "sha": "dff5a69cb8a846df4a99d38db8b38a4694d0f215",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    }
+  ]
+}

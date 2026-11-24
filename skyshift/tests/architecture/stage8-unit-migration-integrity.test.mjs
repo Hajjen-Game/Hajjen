@@ -1,4 +1,4 @@
-import {retirementL1D,readHistorical} from './legacy-retirement-l1a.mjs';
+import {retirementL1D,retirementL1F,readHistorical} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT 0.28.9.8 Stage 8 — reversible migration integrity for the final 12 path-sensitive unit tests.
 // No assertion rewrite, subprocess target move, production source change or historical-version workaround.
@@ -43,7 +43,7 @@ function verifyTarget(name, spec, sourceReader = false) {
   const rel = relative(skyshift, path);
   assert.ok(rel && rel !== '..' && !rel.startsWith('..' + sep) && !isAbsolute(rel),
     'Import/probe escapes SKYSHIFT: ' + name + ' -> ' + spec);
-  const retired = sourceReader && retirementL1D.files.find(f => f.path === 'skyshift/' + rel.split(sep).join('/') && f.reader === 'skyshift/tests/unit/' + name);
+  const retired = sourceReader && [...retirementL1D.files,...retirementL1F.files].find(f => f.path === 'skyshift/' + rel.split(sep).join('/') && (f.reader === 'skyshift/tests/unit/' + name || f.readers?.includes('skyshift/tests/unit/' + name)));
   if (retired) {
     assert.ok(readHistorical(path).length > 0, 'Unrecoverable retired source: ' + spec);
   } else {

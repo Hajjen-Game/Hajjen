@@ -1,7 +1,7 @@
 // SKYSHIFT 0.10.3 – physics and UX regression against actual 0.8.2 baseline.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import * as prior from "../../trial-v082.mjs";
 import {
  TRIAL,PROJECTION_083,GRIP_APEX,SKYLINE_LEAP,CORKSCREW,MAGNETIC_WALL,

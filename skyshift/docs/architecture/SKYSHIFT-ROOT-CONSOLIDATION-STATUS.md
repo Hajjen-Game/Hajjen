@@ -1,6 +1,6 @@
 # SKYSHIFT — ROOT CONSOLIDATION: SOURCE OF TRUTH
 
-> **Status: NOT FINISHED** (`main`: L1D PR #206 merged at ffae5a08ab11e8fadbe5e4193f5cb8f2d16ab8c4; 1,122 total, 286 direct, 81 legacy; 36/36 checks green, L1D post-merge checks pending. L1E candidate removes 20 historical files).
+> **Status: NOT FINISHED** (`main`: L1E PR #207 merged at 39df07e1db407a0b1cee467c377fd87bfdab402c; 1,104 total, 286 direct, 61 legacy; all three L1E post-merge workflows green. L1F candidate removes 20 historical files).
 > **User's actual goal:** Few essential root files (target <=10), organized active code, and removal of redundant obsolete versions from the working tree. Keep only live dependencies and justified historical fixtures, with Git history as the archive.
 
 ## Verified baseline
@@ -145,6 +145,11 @@ L1C #205 merged; all main workflows 45377114682, 45377114676, 45377113896 comple
 
 PR #206 first run 45380832785 failed Stage 8 source-reader target verification for retired v0160. Keep static import, dynamic import, URL and subprocess checks requiring physical files. Permit only the manifest-declared historical source reader/path pair to verify the SHA-checked archived Git object instead. No change to live modules, test assertions or original test blob identity. Re-run all PR checks before merging.
 
-## L1E — ten historical ship/UI game-bootstrap pairs (UNMERGED)
+## L1E — ten historical ship/UI game-bootstrap pairs (MERGED #207)
 
 L1D #206 merged after 36/36 checks. Verified main 1,122 tracked SKYSHIFT files, 286 direct, 81 legacy. L1E retires 20 full historical files (v0131, v0132, v01321, v0133, v0134, v01341, v01342, v01343, v01344, v01345). L0 audit and current tree verify exact blobs and all 24 historical source readers, no identified live/comparison consumer. Only readFileSync imports change to existing SHA-verified pinned Git archive adapter. Preserve all test assertions and existing CI coverage. New manifest and independent gate check absent files, original Git hashes, exact original reader identity and every remaining executable reference against per-file allowlist. No runtime or assets changed. Expected total 1,122 → 1,104 (20 deletions, two new audit files), legacy 81 → 61, direct root 286. Require L1D post-merge checks and all L1E mandatory checks green before merge. Next: audit remaining historical browser fixtures and root entrypoints, and resume active root consolidation; avoid retaining obsolete versions solely for snapshot checks. 
+
+
+## L1F — historical track, flight and material snapshots (UNMERGED)
+
+L1E #207 merged after 36/36 checks; all main workflows 45388972910, 45388972845, 45388972294 completed successfully. Verified main 1,104 tracked SKYSHIFT files, 286 direct, 61 legacy. L1F retires 20 files, including the root game-v0191.mjs and 19 legacy snapshots. The L0 reference audit and current plus pinned archive trees verify identical blobs and source-only test consumers. Preserve all 22 historical source readers: 20 import-only changes, two already use the archive adapter. Existing assertions, subprocess checks and runtime comparisons remain intact; update cumulative root checks and preserve the original R1G held game SHA through the pinned Git archive. Independent gate verifies absence, exact archive blobs, exact original reader SHA and every executable reference against per-file allowlists. No production runtime, assets or comparison page changed. Expected total 1,104 → 1,086 (20 deletions, two new audit files), legacy 61 → 42, root 286 → 285. Require full L1F PR checks and post-merge main workflows. Next: audit the remaining root 0.10.1/0.10.3 compatibility pairs and historical browser fixtures; prioritize active root module consolidation and do not claim completion before the intentional root count meets the exit criteria.

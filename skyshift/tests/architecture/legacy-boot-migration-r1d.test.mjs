@@ -54,8 +54,8 @@ test('R1D: all 34 source readers invert to their exact pre-migration Git blob SH
   }
  }
 });
-test('R1D: measured 286 direct root files, CI paths and original live entrypoints',()=>{
- assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,286);
+test('R1D: measured 285 direct root files, CI paths and original live entrypoints',()=>{
+ assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,285);
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const f of manifest.files){
   assert.ok(historicalSyntaxCheck(workflow,f.newPath),'Missing historic bootstrap syntax gate '+f.name);

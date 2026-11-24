@@ -60,8 +60,8 @@ test('R1E: eight archive bootstraps still resolve to exact historic game with or
   assert.equal(sha(source.replace('import("../game/game-v','import("../../game-v')),b.originalGitBlobShaBeforeR1E,'Historical bootstrap body changed '+b.path);
  }
 });
-test('R1E: original 387 → 357 stage remains intact; current root 286; live entrypoint unchanged; CI rewired',()=>{
- assert.equal(readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile()).length,286);
+test('R1E: original 387 → 357 stage remains intact; current root 285; live entrypoint unchanged; CI rewired',()=>{
+ assert.equal(readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile()).length,285);
  assert.equal(sha(readFileSync(resolve(root,'index.html'),'utf8')),manifest.active.index);
  assert.equal(sha(readFileSync(resolve(root,'boot-v0210.js'),'utf8')),manifest.active.boot);
  assert.equal(sha(readFileSync(resolve(root,'game-v0210.mjs'),'utf8')),manifest.active.game);

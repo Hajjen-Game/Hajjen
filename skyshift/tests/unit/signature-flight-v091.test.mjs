@@ -1,7 +1,7 @@
 // SKYSHIFT 0.10.3 — Signature Flight Motion: deterministic presentation QA.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {SIGNATURE_FLIGHT,createSignatureFlightState,stepSignatureFlight,
  triggerSignatureJump,triggerSignatureLanding,triggerSignatureBoost,
  signatureFlightAudit} from "../../flight/signature-flight-v091.mjs";

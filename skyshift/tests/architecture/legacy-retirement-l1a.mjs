@@ -1,0 +1,37 @@
+// L1A: recover retired source from the pinned Git commit, never from a replacement stub.
+import assert from 'node:assert/strict';
+import {existsSync,readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {resolve,relative,basename} from 'node:path';
+import {fileURLToPath} from 'node:url';
+const repo=fileURLToPath(new URL('../../../',import.meta.url));
+export const retirement=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/legacy-retirement-l1a.json'),'utf8'));
+const entries=new Map(retirement.files.map(f=>[f.path,f]));
+const asPath=p=>relative(repo,resolve(repo,p)).split('\\').join('/');
+const cache=new Map();
+export function isRetired(p){return entries.has(asPath(p));}
+export function readHistorical(p,encoding='utf8'){
+ const key=asPath(p),entry=entries.get(key);
+ if(!entry)return readFileSync(p,encoding);
+ assert.ok(!existsSync(resolve(repo,key)),'Retired source unexpectedly present: '+key);
+ if(!cache.has(key)){
+  const data=execFileSync('git',['show',retirement.archiveCommit+':'+key],{cwd:repo,maxBuffer:8*1024*1024});
+  const hash=createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex');
+  assert.equal(hash,entry.sha,'Retired source Git identity changed: '+key);
+  cache.set(key,data);
+ }
+ return cache.get(key).toString(encoding);
+}
+export function historicalExists(p){
+ if(!isRetired(p))return existsSync(p);
+ readHistorical(p);return true;
+}
+export function historicalSyntaxCheck(workflow,p){
+ const key=asPath(p);
+ if(isRetired(p)){
+  assert.ok(!workflow.includes('node --check '+key),'Stale retired syntax check: '+key);
+  readHistorical(p);return true;
+ }
+ return workflow.includes('node --check '+key);
+}

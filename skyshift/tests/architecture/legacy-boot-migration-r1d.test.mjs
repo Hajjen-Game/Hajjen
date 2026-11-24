@@ -1,3 +1,4 @@
+import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT R1D: prove exact original Git blobs and historical reader assertions.
 import test from 'node:test';
@@ -25,13 +26,13 @@ test('R1D: all 22 historical bootstraps remain byte-identical except valid game 
   assert.equal(f.newPath,'skyshift/legacy/boot/'+f.name);
   assert.ok(!existsSync(resolve(repo,f.oldPath)),'Stale root bootstrap '+f.name);
   const dest=resolve(repo,f.newPath);
-  assert.ok(existsSync(dest),'Missing historic bootstrap '+f.name);
-  const content=readFileSync(dest,'utf8');
+  assert.ok(historicalExists(dest),'Missing historic bootstrap '+f.name);
+  const content=readHistorical(dest,'utf8');
   const version=f.name.slice('boot-v'.length,-'.js'.length);
-  const isGameMoved=existsSync(resolve(root,'legacy/game/game-v'+version+'.mjs'));
+  const isGameMoved=historicalExists(resolve(root,'legacy/game/game-v'+version+'.mjs'));
   const prefix=isGameMoved?'../game/game-v':'../../game-v';
   assert.equal(content.split('import("'+prefix+version+'.mjs').length,2,'Expected one correctly rebased game import '+f.name);
-  assert.ok(existsSync(resolve(dirname(dest),prefix+version+'.mjs')),'Historic game target does not exist '+f.name);
+  assert.ok(historicalExists(resolve(dirname(dest),prefix+version+'.mjs')),'Historic game target does not exist '+f.name);
   const previous=isGameMoved?content.replace('import("../game/game-v','import("../../game-v'):content;
   assert.equal(sha(previous.replace('import("../../game-v','import("./game-v')),f.originalGitBlobSha,'Original historical bootstrap changed '+f.name);
   assert.equal(baseline.entries.find(e=>e.path===f.oldPath)?.sha,f.originalGitBlobSha,'Immutable R0 SHA mismatch '+f.name);
@@ -57,7 +58,7 @@ test('R1D: measured 286 direct root files, CI paths and original live entrypoint
  assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,286);
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const f of manifest.files){
-  assert.ok(workflow.includes('node --check '+f.newPath),'Missing historic bootstrap syntax gate '+f.name);
+  assert.ok(historicalSyntaxCheck(workflow,f.newPath),'Missing historic bootstrap syntax gate '+f.name);
   assert.ok(!workflow.includes('node --check '+f.oldPath),'Stale historic bootstrap syntax gate '+f.name);
  }
  assert.equal(sha(readFileSync(resolve(root,'index.html'),'utf8')),manifest.liveEntrySha);

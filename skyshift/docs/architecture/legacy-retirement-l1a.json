@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "stage": "L1A",
+  "archiveCommit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+  "inventoryRun": 45347691497,
+  "files": [
+    {
+      "path": "skyshift/legacy/boot/boot-v010.js",
+      "sha": "2dd1dfcd72ac009eeb8882031a77145ef530de0f",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0102.js",
+      "sha": "9ea48fbdee4617ad60b3e7b0aff262b6627d350c",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0135.js",
+      "sha": "847bc87a479ddb5c6876f8887398ad7d336983d0",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0170.js",
+      "sha": "51ac063526807f3d11f398075fcd0345e9c3ba56",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0499.js",
+      "sha": "97aa7bb67c10f6a674eba36cb07a00f5bff2ebb8",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v04991.js",
+      "sha": "e8c80b7187308c37d2e9916e884dffbb7afecb22",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v050.js",
+      "sha": "7d242a8414039734cf665d28f3b23f4c00a0d886",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v051.js",
+      "sha": "3b17436cb495502608af487f34c394b365344b02",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v060.js",
+      "sha": "c220b00719c38a6f5a54ee9b4da9e5be0b5a1503",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v061.js",
+      "sha": "6b0c26d4aba89378d7fb19be9ccff7a5a2fe91c7",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v070.js",
+      "sha": "6c657bbb3fc952c2af2628d9ddb560e164022b7a",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v082.js",
+      "sha": "08db76a1aef709bf4a41fa4452a37b355de24569",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v083.js",
+      "sha": "7fac03baeaf1fca8264854c67e7d0048fc5daf5c",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v084.js",
+      "sha": "e9fec77d07f445dd478a6a16499bd9e35da63c35",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v090.js",
+      "sha": "d35d7cf655c77f1e67fafa171e099bd90fe9ffc2",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0901.js",
+      "sha": "702c463cbbd4379727b4dded0cc3bb07be611ce7",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v091.js",
+      "sha": "2862ace0facf9fc4a00f0a6f0df8b738fbaa83fc",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v092.js",
+      "sha": "b02b1fc33935694b8547b92228292cfec1c0319a",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0921.js",
+      "sha": "ad61ab202b76cbaa4a673a59bc46c2e31900e11f",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0170.mjs",
+      "sha": "f2919a0258fb12418fae5b99972fb94cb14fd115",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/game/game-v02.mjs",
+      "sha": "4d4c9bf4d338e85562a172562d9e0fced4343e0a",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    },
+    {
+      "path": "skyshift/legacy/game/game-v03.mjs",
+      "sha": "2ef42af508da2679dc7c8eac349799aa29a86f62",
+      "reason": "Outside literal live and comparison closures; only executable inbound references are historical syntax checks (or other retiring snapshot). No ordinary test reader in L0 inventory."
+    }
+  ]
+}

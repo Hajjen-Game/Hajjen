@@ -1,3 +1,4 @@
+import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT R1E — original 30 game Git blobs, unchanged historical tests and 8 boot URL targets.
 import test from 'node:test';
@@ -26,7 +27,7 @@ test('R1E: 30 exact historical game source Git blobs survive only imported modul
   assert.equal(f.oldPath,'skyshift/'+f.name);
   assert.equal(f.newPath,'skyshift/legacy/game/'+f.name);
   assert.ok(!existsSync(resolve(repo,f.oldPath)),'Old game source still in root '+f.name);
-  const file=resolve(repo,f.newPath),source=readFileSync(file,'utf8');
+  const file=resolve(repo,f.newPath),source=readHistorical(file,'utf8');
   assert.ok(!source.includes('import.meta.url')&&!source.includes('new URL('),'Unexpected module-base URL '+f.name);
   assert.ok(!importRE.test(source),'Unrebased relative import '+f.name);importRE.lastIndex=0;
   const original=source.replace(migratedImportRE,'$1./');
@@ -52,10 +53,10 @@ test('R1E: all 28 original historical unit test Git blobs restore exactly after 
 test('R1E: eight archive bootstraps still resolve to exact historic game with original Git SHA',()=>{
  assert.equal(manifest.bootstraps.length,8);
  for(const b of manifest.bootstraps){
-  const file=resolve(repo,b.path),source=readFileSync(file,'utf8');
+  const file=resolve(repo,b.path),source=readHistorical(file,'utf8');
   const prefix='import("../game/game-v'+b.version+'.mjs';
   assert.equal(source.split(prefix).length,2,'Invalid new equivalent game URL '+b.path);
-  assert.ok(existsSync(resolve(dirname(file),'../game/game-v'+b.version+'.mjs')),'Missing historical game target '+b.version);
+  assert.ok(historicalExists(resolve(dirname(file),'../game/game-v'+b.version+'.mjs')),'Missing historical game target '+b.version);
   assert.equal(sha(source.replace('import("../game/game-v','import("../../game-v')),b.originalGitBlobShaBeforeR1E,'Historical bootstrap body changed '+b.path);
  }
 });
@@ -66,7 +67,7 @@ test('R1E: original 387 → 357 stage remains intact; current root 286; live ent
  assert.equal(sha(readFileSync(resolve(root,'game-v0210.mjs'),'utf8')),manifest.active.game);
  const wf=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const f of manifest.files){
-  assert.ok(wf.includes('node --check '+f.newPath),'Missing relocated game syntax gate '+f.name);
+  assert.ok(historicalSyntaxCheck(wf,f.newPath),'Missing relocated game syntax gate '+f.name);
   assert.ok(!wf.includes('node --check '+f.oldPath),'Stale legacy source syntax gate '+f.name);
  }
 });

@@ -1,3 +1,4 @@
+import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT R1F — independent immutability, resolved module graph, boot integrity and root count.
 import test from 'node:test';
@@ -23,7 +24,7 @@ test('R1F: 29 historic game versions exactly recover their immutable original Gi
   assert.equal(item.oldPath,'skyshift/'+item.name);
   assert.equal(item.newPath,'skyshift/legacy/game/'+item.name);
   assert.ok(!existsSync(resolve(repo,item.oldPath)),'Unexpected historical game root file '+item.name);
-  const file=resolve(repo,item.newPath),source=readFileSync(file,'utf8');
+  const file=resolve(repo,item.newPath),source=readHistorical(file,'utf8');
   assert.ok(!source.includes('new URL(')&&!source.includes('import.meta.url'),'Unexpected module base-dependent path '+item.name);
   assert.ok(!unrebasedRE.test(source),'Unrebased relative static import '+item.name);unrebasedRE.lastIndex=0;
   assert.equal(sha(source.replace(staticImportRE,'$1./')),item.originalGitBlobSha,'Original historical game code mutated '+item.name);
@@ -47,10 +48,10 @@ test('R1F: 25 historical original unit reader blobs invert exactly',()=>{
 test('R1F: 29 archived bootstraps target the moved source, with original Git body SHA intact',()=>{
  assert.equal(manifest.bootstraps.length,29);
  for(const b of manifest.bootstraps){
-  const file=resolve(repo,b.path),source=readFileSync(file,'utf8');
+  const file=resolve(repo,b.path),source=readHistorical(file,'utf8');
   const prefix='import("../game/game-v'+b.version+'.mjs';
   assert.equal(source.split(prefix).length,2,'Wrong historical bootstrap import URL '+b.path);
-  assert.ok(existsSync(resolve(dirname(file),'../game/game-v'+b.version+'.mjs')),'Missing imported historic game '+b.version);
+  assert.ok(historicalExists(resolve(dirname(file),'../game/game-v'+b.version+'.mjs')),'Missing imported historic game '+b.version);
   assert.equal(sha(restoreR1FBootImport(source)),b.originalGitBlobShaBeforeR1F,'Unapproved historical bootstrap edit '+b.path);
  }
 });
@@ -65,7 +66,7 @@ test('R1F: 357 → 328 direct-root files, untouched active and held archive entr
  assert.equal(sha(readFileSync(resolve(root,'game-v0103.mjs'),'utf8')),manifest.active.heldGame0103);
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const item of manifest.files){
-  assert.ok(workflow.includes('node --check '+item.newPath),'Missing relocated game syntax check '+item.name);
+  assert.ok(historicalSyntaxCheck(workflow,item.newPath),'Missing relocated game syntax check '+item.name);
   assert.ok(!workflow.includes('node --check '+item.oldPath),'Stale game syntax check '+item.name);
  }
 });

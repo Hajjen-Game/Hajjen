@@ -1,0 +1,28 @@
+name: SKYSHIFT EF02 rail spark parity
+on:
+  pull_request:
+    paths:
+      - 'skyshift/rail-scrape-sparks-v*.mjs'
+      - 'skyshift/rendering/rail-scrape-sparks.mjs'
+      - 'skyshift/tests/architecture/ef02-rail-spark-parity.mjs'
+      - '.github/workflows/skyshift-ef02-rail-spark-parity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rail-spark-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compare exact spark simulation and render buffers to EF01
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin 4983f20f6cf867f91e1ebd57ad48b1d0c685997c
+          git worktree add --detach "$RUNNER_TEMP/ef02-reference" 4983f20f6cf867f91e1ebd57ad48b1d0c685997c
+          for track in skyline vault aurora; do
+            node skyshift/tests/architecture/ef02-rail-spark-parity.mjs "$RUNNER_TEMP/ef02-reference" "$track"
+          done

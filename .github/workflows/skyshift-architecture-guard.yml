@@ -111,3 +111,6 @@ jobs:
 
       - name: EF02E exact historical archive, syntax and dependency safety
         run: node --test skyshift/tests/architecture/ef02-retirement-early-snapshots.test.mjs
+
+      - name: EF02F verify retired root stylesheets and active CSS links
+        run: node --test skyshift/tests/architecture/ef02-retirement-root-css.test.mjs

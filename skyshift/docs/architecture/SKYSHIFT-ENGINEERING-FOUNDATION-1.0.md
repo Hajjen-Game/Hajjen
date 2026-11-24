@@ -39,9 +39,8 @@ Before edit: read this plan/status; inspect current main SHA, open PRs, checks; 
 ## 5. Current execution status
 - Audit reference: bfecc3914be331de1fc8c9f8dfc27e6719f8c3d2 (0.28.9.7; 1,087 tracked files, 277 direct, 5,803 lines and 124 direct imports in game-v0210.mjs; selected module review, not full line-by-line audit or hardware profiling).
 - Latest verified pre-plan main: 555999c364f59fcd32ab0773841794c4aa26c87c (L1H #210 merged, 1,091 tracked files, 271 direct, 42 legacy; main track QA 45422932872, Pages publication guard 45422932911, Pages deployment 45422930753 successful).
-- EF01: BASELINE RECORDED — #214 merged; see baseline report for limitations. EF02 IN PROGRESS — #215–218 merged; #218 at 9c8eb6bf13256567e0dea2af206bda84ad074269 (37/37 checks, 12960 exact spark frames). Five shared algorithms, 137366 fewer source bytes verified. EF02E first bulk historical retirement candidate (31 snapshots). EF03–EF08 pending.
-- EF02E CI repair: compose exact EF02E and L1H reader inverses, retaining both SHA gates. #218 main Pages/track QA verified green (45457484963, 45457483126, 45457484722).
-- Next: verify EF02E absence, archive identity, syntax and existing gates; #218 post-merge Pages/track QA must be green before merge. Then audit active root ownership and obsolete module/adapter consumers in coherent batches. Do not count historical retirement as FPS improvement.
+- EF01: BASELINE RECORDED — #214 merged; see baseline report for limitations. EF02 IN PROGRESS — #215–219 merged; #219 at f231e99920a18ace09c6f109ef4f8d95f02ddcf0 (36/36 current checks, 31 obsolete files retired, 1075045 source bytes). EF02F candidate retires 19 obsolete root CSS files. EF03–EF08 pending.
+- Next: verify EF02F exact CSS archive and all current gates; verify #219 post-merge track QA/Pages/guard before merge. Then address remaining root module ownership/retirement cohorts and active consumer migration, without preserving redundant snapshots indefinitely.
 - Known gaps: physical hardware CPU/GPU timings, isolated driver shader compile, exact presented-frame timing and long-duration resource/teardown measurements unavailable; computed/optional/QA references must be audited per cohort. No unsupported FPS or dead-code claims.
 
 ## 6. New-chat handoff

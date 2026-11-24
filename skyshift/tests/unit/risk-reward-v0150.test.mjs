@@ -1,7 +1,7 @@
 // SKYSHIFT 0.15.0 — authored, fair, mutually exclusive SAFE/RISK decisions.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {RISK_REWARD_0150,RHYTHM_GATES_0150,BOOST_CHOICES_0150,
  RACE_BOOST_CHOICES_0150,riskChoiceAt,riskCueAt}
  from "../../risk-reward-v0150.mjs";

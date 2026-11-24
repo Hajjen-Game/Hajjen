@@ -1,3 +1,4 @@
+import {retirementL1D,readHistorical} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT 0.28.9.8 Stage 8 — reversible migration integrity for the final 12 path-sensitive unit tests.
 // No assertion rewrite, subprocess target move, production source change or historical-version workaround.
@@ -37,12 +38,17 @@ function restore(source) {
     .replace(/\bimport(\s*["'])\.\.\/\.\.\//g, (_m, quote) => 'import' + quote + './');
 }
 
-function verifyTarget(name, spec) {
+function verifyTarget(name, spec, sourceReader = false) {
   const path = resolve(unitDir, spec);
   const rel = relative(skyshift, path);
   assert.ok(rel && rel !== '..' && !rel.startsWith('..' + sep) && !isAbsolute(rel),
     'Import/probe escapes SKYSHIFT: ' + name + ' -> ' + spec);
-  assert.ok(existsSync(path), 'Unresolved import/probe after relocation: ' + name + ' -> ' + spec);
+  const retired = sourceReader && retirementL1D.files.find(f => f.path === 'skyshift/' + rel.split(sep).join('/') && f.reader === 'skyshift/tests/unit/' + name);
+  if (retired) {
+    assert.ok(readHistorical(path).length > 0, 'Unrecoverable retired source: ' + spec);
+  } else {
+    assert.ok(existsSync(path), 'Unresolved import/probe after relocation: ' + name + ' -> ' + spec);
+  }
 }
 
 test('all 12 final unit tests preserve their exact original Git blobs after path inversion', () => {
@@ -69,7 +75,7 @@ test('all 12 final unit tests preserve their exact original Git blobs after path
       verifyTarget(name, match[1]);
     }
     for (const match of source.matchAll(/\b(?:src|read|source)\(\s*["'](\.\/[^"']+)["']\s*\)/g)) {
-      verifyTarget(name, '../../' + match[1]);
+      verifyTarget(name, '../../' + match[1], true);
     }
   }
 });

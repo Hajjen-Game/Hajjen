@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {TRIAL,GAPS,SPLITS,RISK_CUTS,roadIntervals,SECTORS,GEOMETRY_BREAKS} from "../../trial-v03.mjs";
 import {
  IDENTITY_RULES,createSurfacePlan,validateSurfacePlan

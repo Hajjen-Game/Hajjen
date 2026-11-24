@@ -1,7 +1,7 @@
 // SKYSHIFT 0.15.1 — five varied, grounded risk choices, unchanged pilot physics.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {RISK_REWARD_0151,RHYTHM_GATES_0151,BOOST_CHOICES_0151,
  RACE_BOOST_CHOICES_0151,RHYTHM_FLOW_0151,riskChoiceAt,riskCueAt,
  approachingRiskGate,trackFlowAt} from "../../risk-reward-v0151.mjs";

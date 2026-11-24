@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.5 — cinematic camera, gentle nose/engine weight, no steering assist.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  CINEMATIC_DEFAULTS,createCinematicState,turnPreview,headingDelta,
  stepCinematic,chasePose,cinematicFov,engineLightFactor

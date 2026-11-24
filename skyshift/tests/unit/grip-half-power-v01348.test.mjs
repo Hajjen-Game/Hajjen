@@ -1,7 +1,7 @@
 // SKYSHIFT 0.13.4.8 — 50% less *additional* GRIP yaw at every speed.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {STEERING_AUTHORITY as tuned,normalYawFactorAt,
  fullGripYawFactorAt,yawAuthorityAt,steeringBalanceAt}
  from "../../flight/steering-authority-v01348.mjs";

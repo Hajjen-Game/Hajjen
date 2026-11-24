@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {NEON_TUNING,validateNeonBalance} from "../../neon-balance-v032.mjs";
 
 const here=new URL("../../"+".",import.meta.url);

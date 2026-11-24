@@ -1,3 +1,4 @@
+import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT Root Consolidation R1B: immutable original byte hashes,
 // unchanged test assertions and correct historical game import targets.
@@ -32,8 +33,8 @@ test('R1B exactly 20 original boot Git blobs preserved except the identical game
   assert.equal(item.newPath,'skyshift/legacy/boot/'+item.name);
   assert.ok(!existsSync(resolve(repo,item.oldPath)),'Old root bootstrap remains '+item.name);
   const target=resolve(repo,item.newPath);
-  assert.ok(existsSync(target),'Missing moved historical bootstrap '+item.name);
-  const actual=readFileSync(target,'utf8');
+  assert.ok(historicalExists(target),'Missing moved historical bootstrap '+item.name);
+  const actual=readHistorical(target,'utf8');
   const source=restoreR1GBootImport(actual);
   assert.equal((source.match(/import\("\.\.\/\.\.\/game-v/g)||[]).length,1,
    'Exactly one relocated game URL required '+item.name);
@@ -44,7 +45,7 @@ test('R1B exactly 20 original boot Git blobs preserved except the identical game
    item.originalGitBlobSha,'R0 Git blob baseline disagrees: '+item.name);
   const match=actual.match(/import\("((?:\.\.\/\.\.\/|\.\.\/game\/)game-v[^"?]+\.mjs)\?[^"]+"\)/);
   assert.ok(match,'Missing historical versioned import '+item.name);
-  assert.ok(existsSync(resolve(dirname(target),match[1])),
+  assert.ok(historicalExists(resolve(dirname(target),match[1])),
    'Historical game import resolves incorrectly '+item.name);
  }
  assert.ok(!names.has('boot-v0210.js'));

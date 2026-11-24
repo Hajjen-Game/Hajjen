@@ -1,3 +1,4 @@
+import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // R1C: prove original Git blobs, historical test assertion identity,
 // valid game import targets and cumulative root-file reduction.
@@ -31,7 +32,7 @@ test('R1C keeps exactly 20 original historical bootstrap bodies and game targets
   assert.equal(file.newPath,'skyshift/legacy/boot/'+file.name);
   assert.ok(!existsSync(resolve(repo,file.oldPath)),'Old root bootstrap still present: '+file.name);
   const destination=resolve(repo,file.newPath);
-  const body=readFileSync(destination,'utf8');
+  const body=readHistorical(destination,'utf8');
   const normalized=restoreR1FBootImport(restoreR1GBootImport(body));
   assert.equal((normalized.match(/import\("\.\.\/\.\.\/game-v/g)||[]).length,1,
    'Unexpected game import count '+file.name);
@@ -42,7 +43,7 @@ test('R1C keeps exactly 20 original historical bootstrap bodies and game targets
    file.originalGitBlobSha,'Immutable R0 source SHA mismatch '+file.name);
   const match=body.match(/import\("([^"?]+\.mjs)\?[^"]+"\)/);
   assert.ok(match,'Missing historical game import '+file.name);
-  assert.ok(existsSync(resolve(dirname(destination),match[1])),
+  assert.ok(historicalExists(resolve(dirname(destination),match[1])),
    'Game import resolves to missing source '+file.name);
  }
  assert.ok(!names.has('boot-v0210.js'));
@@ -82,7 +83,7 @@ test('R1C CI rewire and cumulative 468 → 449 → 429 → 409 → 387 direct ro
  for(const file of manifest.files){
   assert.ok(!workflow.includes('node --check '+file.oldPath),
    'Stale root bootstrap syntax-check path: '+file.name);
-  assert.ok(workflow.includes('skyshift/legacy/boot/'+file.name),
+  assert.ok(historicalSyntaxCheck(workflow,file.newPath),
    'Missing moved bootstrap CI syntax-check path: '+file.name);
  }
  assert.equal(gitBlobSha(readFileSync(resolve(root,'boot-v0210.js'),'utf8')),

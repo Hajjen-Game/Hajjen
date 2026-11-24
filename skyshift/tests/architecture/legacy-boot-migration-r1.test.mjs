@@ -1,3 +1,4 @@
+import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT root consolidation R1: preserve original git byte hashes except one
 // exactly specified relative-import adjustment in relocated legacy boot files.
@@ -28,8 +29,8 @@ test('R1 exactly 19 selected historical bootstraps preserve original Git SHA and
   assert.equal(file.newPath,'skyshift/legacy/boot/'+file.name);
   assert.ok(!existsSync(resolve(repo,file.oldPath)),'Old root file still present: '+file.name);
   const newFile=resolve(repo,file.newPath);
-  assert.ok(existsSync(newFile),'Relocated bootstrap missing: '+file.name);
-  const relocated=readFileSync(newFile,'utf8');
+  assert.ok(historicalExists(newFile),'Relocated bootstrap missing: '+file.name);
+  const relocated=readHistorical(newFile,'utf8');
   const normalized=restoreR1FBootImport(restoreR1GBootImport(relocated));
   const rewritten=normalized.match(/import\(["']\.\.\/\.\.\/(game-v[^"']+\.mjs\?[^"']+)["']\)/g)||[];
   assert.equal(rewritten.length,1,'Expected exactly one original game import: '+file.name);
@@ -40,7 +41,7 @@ test('R1 exactly 19 selected historical bootstraps preserve original Git SHA and
   assert.equal(original?.sha,file.originalGitBlobSha,'Baseline Git blob SHA mismatch: '+file.name);
   const match=relocated.match(/import\(["']([^"']+\.mjs)\?[^"']+["']\)/);
   assert.ok(match,'Original game target not found: '+file.name);
-  assert.ok(existsSync(resolve(dirname(newFile),match[1])),'Broken legacy game target: '+file.name);
+  assert.ok(historicalExists(resolve(dirname(newFile),match[1])),'Broken legacy game target: '+file.name);
  }
  assert.ok(!names.has('boot-v0210.js'),'Never relocate active bootstrap');
  assert.ok(existsSync(resolve(root,'boot-v0210.js')));
@@ -50,7 +51,7 @@ test('R1 CI points to all relocated bootstraps and cumulative root inventory ref
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  const rootPaths=manifest.files.map(x=>x.name);
  for(const name of rootPaths){
-  assert.ok(workflow.includes('skyshift/legacy/boot/'+name),'Missing syntax check for '+name);
+  assert.ok(historicalSyntaxCheck(workflow,'skyshift/legacy/boot/'+name),'Missing syntax check for '+name);
   assert.ok(!workflow.includes('node --check skyshift/'+name),'Stale root syntax check for '+name);
  }
  const files=readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile());

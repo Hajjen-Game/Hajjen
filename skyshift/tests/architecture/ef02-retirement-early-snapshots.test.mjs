@@ -1,3 +1,4 @@
+import {restoreEF02H} from './ef02h-path-overlay.mjs';
 // EF02E: absence, immutable recoverability, syntax, original reader identity and no executable consumers.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -23,7 +24,7 @@ test('EF02E: all 31 snapshots remain exact, absent and syntactically valid from 
   assert.equal(check.status,0,f.path+' '+check.stderr);
  }
  for(const r of m.readers){
-  const source=readFileSync(resolve(repo,r.path),'utf8');
+  const source=restoreEF02H(readFileSync(resolve(repo,r.path),'utf8'),r.path);
   assert.equal(source.split(replacement).length,2,r.path);
   assert.equal(hash(source.replace(replacement,r.originalImport)),r.sha,r.path);
  }

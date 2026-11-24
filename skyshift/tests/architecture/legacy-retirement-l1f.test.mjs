@@ -1,3 +1,4 @@
+import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -18,7 +19,7 @@ test('L1F: exact Git fixtures, exact reader assertions and no unapproved executa
   assert.equal(sha(readHistorical(resolve(repo,f.path))),f.sha,f.path);
  }
  for(const r of m.readers){
-  const s=readFileSync(resolve(repo,r.path),'utf8');
+  const s=restoreEF02H(readFileSync(resolve(repo,r.path),'utf8'),r.path);
   const changed='import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";';
   assert.equal(s.split(changed).length,2,r.path);
   assert.equal(sha(s.replace(changed,r.originalImport)),r.sha,r.path);

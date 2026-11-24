@@ -1,3 +1,4 @@
+import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
@@ -60,7 +61,7 @@ test('R1C all 24 original historical test Git blobs restore exactly (including U
   assert.ok(!paths.has(unit.path),'Duplicate original test '+unit.path);
   paths.add(unit.path);
   const source=readFileSync(resolve(repo,unit.path),'utf8');
-  const restored=restoreR1CBootPaths(restoreR1FGamePaths(restoreR1GGamePaths(source)));
+  const restored=restoreR1CBootPaths(restoreR1FGamePaths(restoreR1GGamePaths(restoreEF02H(source,unit.path))));
   assert.notEqual(restored,source,'No audited reader change '+unit.path);
   assert.equal(gitBlobSha(restored),unit.originalGitBlobSha,
    'Historical test assertion changed unexpectedly '+unit.path);

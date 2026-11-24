@@ -1,3 +1,4 @@
+import {ef02hCurrentPath} from './ef02h-path-overlay.mjs';
 // L1A: recover retired source from the pinned Git commit, never from a replacement stub.
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
@@ -40,7 +41,17 @@ export function readHistorical(p,encoding='utf8'){
  return cache.get(key).toString(encoding);
 }
 export function historicalExists(p){
- if(!isRetired(p))return existsSync(p);
+ if(!isRetired(p)){
+  const original=resolve(repo,asPath(p)), current=ef02hCurrentPath(original);
+  if(current!==original){
+   const move=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef02h-track-geometry-ownership.json'),'utf8')).moves.find(f=>f.oldPath===asPath(p));
+   assert.ok(!existsSync(original),'Stale EF02H historical target '+original);
+   const data=readFileSync(current);
+   assert.equal(createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex'),move.sha,'EF02H historical dependency identity '+current);
+   return true;
+  }
+  return existsSync(p);
+ }
  readHistorical(p);return true;
 }
 export function historicalSyntaxCheck(workflow,p){

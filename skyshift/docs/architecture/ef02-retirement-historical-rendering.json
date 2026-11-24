@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "stage": "EF02G",
+  "archiveCommit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+  "baseCommit": "22cf38133ac318d518550958a4ad144ade8d5658",
+  "previousRootFiles": 252,
+  "expectedRootFiles": 242,
+  "files": [
+    {
+      "path": "skyshift/neon-v031.mjs",
+      "sha": "8be18f779abbdc903b60dc6757cd41b5c8c481b7",
+      "bytes": 4144,
+      "readers": [
+        "skyshift/tests/unit/neon-v031.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/neon-v043.mjs",
+      "sha": "d1fb78c3004c243d3ff8024bcbd55fdb34c8b80c",
+      "bytes": 958,
+      "readers": []
+    },
+    {
+      "path": "skyshift/premium-track-v051.mjs",
+      "sha": "1c2f8bf9a2fae22cfbe1a3da7d2fb1fccf9ebb31",
+      "bytes": 15342,
+      "readers": []
+    },
+    {
+      "path": "skyshift/premium-track-v083.mjs",
+      "sha": "897d5cd7b04ad0c61329ad957df54b5d2d3fca59",
+      "bytes": 16057,
+      "readers": []
+    },
+    {
+      "path": "skyshift/premium-track-v084.mjs",
+      "sha": "2bda4f94fcc99959c129c03c30ba53e44611ef1e",
+      "bytes": 16057,
+      "readers": []
+    },
+    {
+      "path": "skyshift/premium-v03.mjs",
+      "sha": "091a297d708c6ee96fa6667c98647a4b5163127d",
+      "bytes": 3678,
+      "readers": []
+    },
+    {
+      "path": "skyshift/premium-v031.mjs",
+      "sha": "d419bf0b0bfa3633af5c8b901956a07bea19b5f1",
+      "bytes": 3999,
+      "readers": [
+        "skyshift/tests/unit/neon-v031.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/premium-v032.mjs",
+      "sha": "beb9ca272328e0862dfcd40d750c588a89535810",
+      "bytes": 4176,
+      "readers": [
+        "skyshift/tests/unit/neon-v032.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/premium-v041.mjs",
+      "sha": "d4e06ddcb92e8d821e69983b69676d29a8faf18b",
+      "bytes": 4207,
+      "readers": [
+        "skyshift/tests/unit/truebank-v041.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/premium-v045.mjs",
+      "sha": "925e02c971550b848368142028b33a2640bae149",
+      "bytes": 4708,
+      "readers": [
+        "skyshift/tests/unit/cinematic-v045.test.mjs",
+        "skyshift/tests/unit/hard-edge-v0484.test.mjs"
+      ]
+    }
+  ],
+  "reason": "Ten historical material/neon leaves; no current runtime or executable functional-test imports observed. Preserve source-reader assertions via existing Git archive helper and historical game imports via hash-verified archived existence. All originals exact blob matches."
+}

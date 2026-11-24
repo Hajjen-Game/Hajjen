@@ -36,7 +36,7 @@ test('R1E: 30 exact historical game source Git blobs survive only imported modul
   assert.equal(baseline.entries.find(e=>e.path===f.oldPath)?.sha,f.originalGitBlobSha,'R0 immutable source baseline mismatch '+f.name);
   let checked=0;
   for(const match of source.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s*)(["'])(\.\.\/\.\.\/[^"'?#]+)\1/g)){
-   assert.ok(existsSync(resolve(dirname(file),match[2])),'Missing historical game dependency '+f.name+' -> '+match[2]);
+   assert.ok(historicalExists(resolve(dirname(file),match[2])),'Missing historical game dependency '+f.name+' -> '+match[2]);
    checked++;
   }
   assert.ok(checked>=2,'Historical snapshot lacks tested module dependencies '+f.name);

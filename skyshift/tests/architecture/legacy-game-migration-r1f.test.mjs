@@ -32,7 +32,7 @@ test('R1F: 29 historic game versions exactly recover their immutable original Gi
   assert.equal(r0.entries.find(e=>e.path===item.oldPath)?.sha,item.originalGitBlobSha,'R0 baseline Git SHA mismatch '+item.name);
   let imports=0;
   for(const match of source.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s*)(["'])(\.\.\/\.\.\/[^"'?#]+)\1/g)){
-   assert.ok(existsSync(resolve(dirname(file),match[2])),'Missing historical game module dependency '+item.name+' -> '+match[2]);imports++;
+   assert.ok(historicalExists(resolve(dirname(file),match[2])),'Missing historical game module dependency '+item.name+' -> '+match[2]);imports++;
   }
   assert.ok(imports>=10,'No meaningful dependency graph checked '+item.name);
  }

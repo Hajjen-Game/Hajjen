@@ -204,12 +204,8 @@ jobs:
           node --check skyshift/trial-v02.mjs
           node --check skyshift/fullscreen-v02.mjs
           node --check skyshift/trial-v03.mjs
-          node --check skyshift/premium-v03.mjs
-          node --check skyshift/neon-v031.mjs
-          node --check skyshift/premium-v031.mjs
           node --check skyshift/neon-balance-v032.mjs
           node --check skyshift/neon-v032.mjs
-          node --check skyshift/premium-v032.mjs
           node --check skyshift/identity-v033.mjs
           node --check skyshift/luminance-v0331.mjs
           node --check skyshift/identity-v0331.mjs
@@ -221,17 +217,14 @@ jobs:
           node --check skyshift/space-v04.mjs
           node --check skyshift/trial-v041.mjs
           node --check skyshift/identity-v041.mjs
-          node --check skyshift/premium-v041.mjs
           node --check skyshift/trial-v042.mjs
           node --check skyshift/identity-v042.mjs
           node --check skyshift/trial-v043.mjs
           node --check skyshift/smooth-track-v043.mjs
           node --check skyshift/core/frame-pacing-v043.mjs
-          node --check skyshift/neon-v043.mjs
           node --check skyshift/flight-motion-v044.mjs
           node --check skyshift/core/frame-pacing-v044.mjs
           node --check skyshift/cinematic-v045.mjs
-          node --check skyshift/premium-v045.mjs
           node --check skyshift/trial-v046.mjs
           node --check skyshift/smooth-track-v046.mjs
           node --check skyshift/identity-v046.mjs
@@ -260,6 +253,7 @@ jobs:
           node --check skyshift/tracks/barriers/aero-barrier-v0491.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0491.mjs
           node --test skyshift/tests/architecture/ef02-retirement-early-snapshots.test.mjs
+          node --test skyshift/tests/architecture/ef02-retirement-historical-rendering.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v04911.mjs
           node --check skyshift/zone-wave-v0492.mjs
           node --check skyshift/premium-track-v0492.mjs
@@ -301,7 +295,6 @@ jobs:
           node --check skyshift/trial-v051.mjs
           node --check skyshift/zone-wave-v051.mjs
           node --check skyshift/smooth-track-v051.mjs
-          node --check skyshift/premium-track-v051.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v051.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v051.mjs
           node --check skyshift/circuit-layout-v060.mjs
@@ -365,7 +358,6 @@ jobs:
           node --check skyshift/neon-v083.mjs
           node --check skyshift/smooth-track-v083.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v083.mjs
-          node --check skyshift/premium-track-v083.mjs
           node --check skyshift/cinematic-v083.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v083.mjs
           node --check skyshift/flight/precision-grip-v084.mjs
@@ -373,7 +365,6 @@ jobs:
           node --check skyshift/trial-v084.mjs
           node --check skyshift/smooth-track-v084.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v084.mjs
-          node --check skyshift/premium-track-v084.mjs
           node --check skyshift/cinematic-v084.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v084.mjs
           node --check skyshift/flight/kinetic-camera-v090.mjs

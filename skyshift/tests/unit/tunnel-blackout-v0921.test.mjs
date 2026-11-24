@@ -107,7 +107,7 @@ test("only world PBR lights and starfield dim, existing engine local point light
 test("live 0.10.3 remains 3 laps, 0.9.0.1 handling and 0.9.1 flight motion",()=>{
  const game=src("./game-v0103.mjs"),
   html=src("./index.html"),boot=src("./boot-v0103.js"),
-  previous=src("./game-v092.mjs");
+  previous=src("./legacy/game/game-v092.mjs");
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(html,/data-game-module="game-v0103\.mjs"/);
  assert.match(boot,/game-v0103\.mjs\?v=0\.10\.3/);

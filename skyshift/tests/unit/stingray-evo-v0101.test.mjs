@@ -84,5 +84,5 @@ test("archived 0.10.1 showroom remains intact while 0.10.3 is active",()=>{
  assert.match(game,/trial-v0901\.mjs/);
  assert.match(game,/tunnel-blackout-v0921\.mjs/);
  assert.match(css,/#app\.hangar-active \.topbar/);
- assert.match(read("./game-v010.mjs"),/version:"0\.10\.0"/);
+ assert.match(read("./legacy/game/game-v010.mjs"),/version:"0\.10\.0"/);
 });

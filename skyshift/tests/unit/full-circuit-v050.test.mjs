@@ -15,7 +15,7 @@ import {
 } from "../../zone-wave-v050.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v050.mjs";
 import {PREMIUM_TRACK,GLSL_BOOST_PADS,patchPremiumShaders}
- from "../../premium-track-v050.mjs";
+ from "../../rendering/legacy/premium-track-v050.mjs";
 import {AERO_BARRIER,createAeroBarrierData,createAeroDetailData,patchRailShaders}
  from "../../tracks/barriers/aero-barrier-v050.mjs";
 const source=name=>readFileSync(new URL("../../"+name,import.meta.url),"utf8");
@@ -165,7 +165,7 @@ test("long deck/raised guardrails share the same authority and bounded mesh dens
  assert.match(railShader.fragmentShader,/spectralWhiteCore/);
  assert.match(railShader.fragmentShader,/uRailNext1/);
  assert.equal(AERO_BARRIER.drawBatches,3);
- assert.match(source("./premium-track-v050.mjs"),/state\.shaderBaseStage/);
+ assert.match(source("./rendering/legacy/premium-track-v050.mjs"),/state\.shaderBaseStage/);
  assert.match(source("./aero-barrier-v050.mjs"),/state\.shaderBaseStage/);
 });
 test("production version routes to the real 10.4km race; archived 1530m lab preserved",()=>{

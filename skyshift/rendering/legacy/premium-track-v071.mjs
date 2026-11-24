@@ -1,14 +1,14 @@
-// SKYSHIFT 0.6.0 — periodic Skyline Circuit spectral road in the SAME PBR road shader, zero extra meshes.
+// SKYSHIFT 0.7.1 — terrain-following Skyline Circuit spectral road in the SAME PBR road shader, zero extra meshes.
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt} from "./trial-v060.mjs";
-import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
-import {BOOST_PADS} from "./flight/boost/boost-v060.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v060.mjs";
+import {TRIAL,widthAt,MAGNETIC_WALL} from "../../trial-v071.mjs";
+import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v060.mjs";
+import {BOOST_PADS} from "../../flight/boost/boost-v060.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v071.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
- version:"closed-loop-spectrum-060",
+ version:"magnetic-spectrum-071",
  material:"continuous-integrated-PBR",
  palette:"Nine synchronized color zones across 3 circuit laps",
  baseHex:ZONE_PALETTES[0].base,
@@ -121,6 +121,17 @@ const zoneLayerGLSL=`
   ${zoneShaders}
 `;
 
+// Magnetic guides are integrated into the same PBR road material.
+const magneticLines=`
+   float magneticZone = trackWindow(trackS, ${MAGNETIC_WALL.start.toFixed(1)},
+     ${MAGNETIC_WALL.end.toFixed(1)}, 7.0);
+   float magneticRail = max(
+     trackStripe(absL,7.56,0.085,0.18),
+     trackStripe(absL,10.28,0.085,0.18));
+   float magneticBeat = pow(.5+.5*sin((trackS-uVelocityPhase)*.18),5.0);
+   road=mix(road,vec3(.30,.84,1.05),magneticZone*magneticRail*
+      (.36+.22*magneticBeat));
+`;
 export const SURFACE_FRAGMENT_GLSL=`
   float trackS = vTrackCoord.x;
   float trackL = vTrackCoord.y;
@@ -148,6 +159,7 @@ export const SURFACE_FRAGMENT_GLSL=`
   float shoulderMask = smoothstep(8.7, 9.3, absL) * (1.0 - smoothstep(10.2, 10.8, absL));
   road = mix(road, zoneAccent, shoulderMask * panelSeam * 0.10);
 
+  ${magneticLines}
   // Physical boost fields read as embedded ENERGY INLAYS, not raised golden
   // rectangles. Their functional world coordinates match boost-v048 exactly.
   ${shaderBoostPads}
@@ -254,7 +266,9 @@ export function patchPremiumShaders(vertexShader,fragmentShader){
         (whiteCore*${ZONE_WAVE.whiteCoreEnergy.toFixed(2)} +
          whiteBloom*${ZONE_WAVE.whiteBloomEnergy.toFixed(2)} +
          whiteFilaments*.11)
-      + zoneGuide*velocityGlint*.35;`;
+      + zoneGuide*velocityGlint*.35
+       + vec3(.16,.66,.96)*magneticZone*magneticRail*
+          (.10+.18*magneticBeat);`;
  const fragment=fragmentShader.replace(fCommon,
    fCommon+"\n"+SURFACE_FRAGMENT_HELPERS)
    .replace(fColor,fColor+"\n"+coloring)

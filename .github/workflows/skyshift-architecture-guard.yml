@@ -120,3 +120,6 @@ jobs:
 
       - name: EF02H verify exact track geometry ownership and consumer path parity
         run: node --test skyshift/tests/architecture/ef02h-track-geometry-ownership.test.mjs
+
+      - name: EF02I verify historical rendering ownership and exact path parity
+        run: node --test skyshift/tests/architecture/ef02i-legacy-rendering-ownership.test.mjs

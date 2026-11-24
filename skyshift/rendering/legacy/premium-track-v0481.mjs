@@ -2,9 +2,9 @@
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt} from "./trial-v048.mjs";
-import {BOOST_PADS} from "./flight/boost/boost-v048.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v046.mjs";
+import {TRIAL,widthAt} from "../../trial-v048.mjs";
+import {BOOST_PADS} from "../../flight/boost/boost-v048.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v046.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
  version:"zone-ribbon-pbr-0481",

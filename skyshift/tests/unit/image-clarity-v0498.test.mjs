@@ -7,7 +7,7 @@ import {CLARITY,clarityProfile,dprForAdaptiveLevel,clarityAudit}
 import {createAdaptiveQuality,nextAdaptiveRatio}
  from "../../core/frame-pacing-v044.mjs";
 import {PREMIUM_TRACK,SURFACE_FRAGMENT_HELPERS,patchPremiumShaders}
- from "../../premium-track-v0498.mjs";
+ from "../../rendering/legacy/premium-track-v0498.mjs";
 import {AERO_BARRIER} from "../../tracks/barriers/aero-barrier-v0497.mjs";
 import {GUARDRAIL} from "../../trial-v0494.mjs";
 import {BOOST_CONFIG} from "../../flight/boost/boost-v0494.mjs";

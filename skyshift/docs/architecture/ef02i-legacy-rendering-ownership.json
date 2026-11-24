@@ -1,0 +1,679 @@
+{
+  "schemaVersion": 1,
+  "stage": "EF02I",
+  "baseCommit": "a7210a6489dc4cba7689e59defb586ded97b6f87",
+  "inventoryRun": 45472565158,
+  "previousRootFiles": 235,
+  "candidateRootFiles": 220,
+  "moves": [
+    {
+      "oldPath": "skyshift/premium-track-v0481.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v0481.mjs",
+      "sha": "28ffdf4ca51411f166bfce8d415231e37dc16cb0",
+      "edits": [
+        {
+          "before": "\"./trial-v048.mjs\"",
+          "after": "\"../../trial-v048.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v048.mjs\"",
+          "after": "\"../../flight/boost/boost-v048.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v046.mjs\"",
+          "after": "\"../../smooth-track-v046.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v0482.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v0482.mjs",
+      "sha": "9848f10fd39eef40154aab8a3202b343dd2a2603",
+      "edits": [
+        {
+          "before": "\"./trial-v048.mjs\"",
+          "after": "\"../../trial-v048.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v048.mjs\"",
+          "after": "\"../../flight/boost/boost-v048.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v046.mjs\"",
+          "after": "\"../../smooth-track-v046.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v049.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v049.mjs",
+      "sha": "d04fdc63d3ade622c02aee2529c70bb2b7c2f7bf",
+      "edits": [
+        {
+          "before": "\"./trial-v049.mjs\"",
+          "after": "\"../../trial-v049.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v049.mjs\"",
+          "after": "\"../../zone-wave-v049.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v049.mjs\"",
+          "after": "\"../../flight/boost/boost-v049.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v049.mjs\"",
+          "after": "\"../../smooth-track-v049.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v0491.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v0491.mjs",
+      "sha": "7c59ac8009e98959a7c149ee7d9cdaaaa148eeb9",
+      "edits": [
+        {
+          "before": "\"./trial-v049.mjs\"",
+          "after": "\"../../trial-v049.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v0491.mjs\"",
+          "after": "\"../../zone-wave-v0491.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v049.mjs\"",
+          "after": "\"../../flight/boost/boost-v049.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v049.mjs\"",
+          "after": "\"../../smooth-track-v049.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v0492.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v0492.mjs",
+      "sha": "a2e25bee867f8b3dbbe86ffb930c84a3f68312d5",
+      "edits": [
+        {
+          "before": "\"./trial-v049.mjs\"",
+          "after": "\"../../trial-v049.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v0492.mjs\"",
+          "after": "\"../../zone-wave-v0492.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v049.mjs\"",
+          "after": "\"../../flight/boost/boost-v049.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v049.mjs\"",
+          "after": "\"../../smooth-track-v049.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v0493.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v0493.mjs",
+      "sha": "673cfbcef667c292a77520ee7e7c32538115ed5f",
+      "edits": [
+        {
+          "before": "\"./trial-v049.mjs\"",
+          "after": "\"../../trial-v049.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v0493.mjs\"",
+          "after": "\"../../zone-wave-v0493.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v049.mjs\"",
+          "after": "\"../../flight/boost/boost-v049.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v049.mjs\"",
+          "after": "\"../../smooth-track-v049.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v0496.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v0496.mjs",
+      "sha": "63374a11a5f2f9fac628aeb3a73266ccc0f0109e",
+      "edits": [
+        {
+          "before": "\"./trial-v049.mjs\"",
+          "after": "\"../../trial-v049.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v0493.mjs\"",
+          "after": "\"../../zone-wave-v0493.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v0494.mjs\"",
+          "after": "\"../../flight/boost/boost-v0494.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v049.mjs\"",
+          "after": "\"../../smooth-track-v049.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v0498.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v0498.mjs",
+      "sha": "cd76a9d9ec9f3ba3e62f989022fe15400bfb2eb9",
+      "edits": [
+        {
+          "before": "\"./trial-v049.mjs\"",
+          "after": "\"../../trial-v049.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v0493.mjs\"",
+          "after": "\"../../zone-wave-v0493.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v0494.mjs\"",
+          "after": "\"../../flight/boost/boost-v0494.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v049.mjs\"",
+          "after": "\"../../smooth-track-v049.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v050.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v050.mjs",
+      "sha": "60165d2dbd5e846375fd26407a285eb39a2debf7",
+      "edits": [
+        {
+          "before": "\"./trial-v050.mjs\"",
+          "after": "\"../../trial-v050.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v050.mjs\"",
+          "after": "\"../../zone-wave-v050.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v050.mjs\"",
+          "after": "\"../../flight/boost/boost-v050.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v050.mjs\"",
+          "after": "\"../../smooth-track-v050.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v060.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v060.mjs",
+      "sha": "244050ed17e9719ee910db22513084f96ebc1ea4",
+      "edits": [
+        {
+          "before": "\"./trial-v060.mjs\"",
+          "after": "\"../../trial-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v060.mjs\"",
+          "after": "\"../../zone-wave-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v060.mjs\"",
+          "after": "\"../../flight/boost/boost-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v060.mjs\"",
+          "after": "\"../../smooth-track-v060.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v070.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v070.mjs",
+      "sha": "c79e5fdcccc79ac83afb0b346265db86d6a53411",
+      "edits": [
+        {
+          "before": "\"./trial-v070.mjs\"",
+          "after": "\"../../trial-v070.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v060.mjs\"",
+          "after": "\"../../zone-wave-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v060.mjs\"",
+          "after": "\"../../flight/boost/boost-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v070.mjs\"",
+          "after": "\"../../smooth-track-v070.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v071.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v071.mjs",
+      "sha": "f57f67a857287bb4c270bd01a609d803ab914966",
+      "edits": [
+        {
+          "before": "\"./trial-v071.mjs\"",
+          "after": "\"../../trial-v071.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v060.mjs\"",
+          "after": "\"../../zone-wave-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v060.mjs\"",
+          "after": "\"../../flight/boost/boost-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v071.mjs\"",
+          "after": "\"../../smooth-track-v071.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v072.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v072.mjs",
+      "sha": "4ed0ab7bd87272c6beb210ca89cb80e159aa6dac",
+      "edits": [
+        {
+          "before": "\"./trial-v072.mjs\"",
+          "after": "\"../../trial-v072.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v060.mjs\"",
+          "after": "\"../../zone-wave-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v060.mjs\"",
+          "after": "\"../../flight/boost/boost-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v072.mjs\"",
+          "after": "\"../../smooth-track-v072.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v081.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v081.mjs",
+      "sha": "c5d7bb096640b0fff2c366116dfd484ee49b3c04",
+      "edits": [
+        {
+          "before": "\"./trial-v081.mjs\"",
+          "after": "\"../../trial-v081.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v060.mjs\"",
+          "after": "\"../../zone-wave-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v060.mjs\"",
+          "after": "\"../../flight/boost/boost-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v081.mjs\"",
+          "after": "\"../../smooth-track-v081.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/premium-track-v082.mjs",
+      "newPath": "skyshift/rendering/legacy/premium-track-v082.mjs",
+      "sha": "473196e06bbf5d12e76100eb79bc257317a5e530",
+      "edits": [
+        {
+          "before": "\"./trial-v082.mjs\"",
+          "after": "\"../../trial-v082.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./zone-wave-v060.mjs\"",
+          "after": "\"../../zone-wave-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./flight/boost/boost-v082.mjs\"",
+          "after": "\"../../flight/boost/boost-v082.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./smooth-track-v082.mjs\"",
+          "after": "\"../../smooth-track-v082.mjs\"",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "consumers": [
+    {
+      "path": ".github/workflows/skyshift-tests.yml",
+      "sha": "cf88f95b3ee1d1af437ddcbcfaadb985fd8802a4",
+      "edits": [
+        {
+          "before": "node --check skyshift/premium-track-v0481.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v0481.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v0482.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v0482.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v049.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v049.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v0491.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v0491.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v0492.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v0492.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v0493.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v0493.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v0496.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v0496.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v0498.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v0498.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v050.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v050.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v060.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v060.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v070.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v070.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v071.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v071.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v072.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v072.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v081.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v081.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/premium-track-v082.mjs",
+          "after": "node --check skyshift/rendering/legacy/premium-track-v082.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/premium-track-v0481.test.mjs",
+      "sha": "ef758d64e2d2985ddb089422763dc3c6dd6e1d0f",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0481.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v0481.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/premium-ship-v0482.test.mjs",
+      "sha": "a6485bb742595dbfeeb74c379335ef594d1ff586",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0482.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v0482.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/extended-zone-v049.test.mjs",
+      "sha": "9b07bfd64bf099d2d28619a7489ae074364f769f",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v049.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v049.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/spectral-zone-v0491.test.mjs",
+      "sha": "39c7c72f4c512fc14822442dd6a91d971a016789",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0491.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v0491.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/white-core-v0492.test.mjs",
+      "sha": "1d35e3fec53221d2f29bff5577405774b4ec8203",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0492.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v0492.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/spectral-balance-v0493.test.mjs",
+      "sha": "40ad54b203dd32823076be0ab9e0603365ac12fb",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0493.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v0493.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/velocity-language-v0496.test.mjs",
+      "sha": "a0930b1ccb321e704ae37371fe2934a10074f51f",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0496.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v0496.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./premium-track-v0496.mjs\"",
+          "after": "\"./rendering/legacy/premium-track-v0496.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "[\"premium-track-v0496.mjs\",",
+          "after": "[\"rendering/legacy/premium-track-v0496.mjs\",",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/image-clarity-v0498.test.mjs",
+      "sha": "07f4fae75715a48d07985e0205de2cecd2cdd5d9",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0498.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v0498.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/full-circuit-v050.test.mjs",
+      "sha": "e4737740eca54eec2a700c0b3d9bda41c74a390b",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v050.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v050.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./premium-track-v050.mjs\"",
+          "after": "\"./rendering/legacy/premium-track-v050.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/circuit-v060.test.mjs",
+      "sha": "f24ee8c1425333a82b846358a1d49398ba371da9",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v060.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v060.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-3d-v070.test.mjs",
+      "sha": "b5a1218dd706a09408153f54bc407b07e8cdb739",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v070.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v070.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+      "sha": "ea2cd8ea0de034fc614448e9aea1f7ea0af6e115",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v071.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v071.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./premium-track-v071.mjs\"",
+          "after": "\"./rendering/legacy/premium-track-v071.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/corkscrew-v072.test.mjs",
+      "sha": "00c9215cdec3ca15e1e71a3443b9390be5b40ce5",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v072.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v072.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./premium-track-v072.mjs\"",
+          "after": "\"./rendering/legacy/premium-track-v072.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/grip-leap-v081.test.mjs",
+      "sha": "4c987a7e5b7e6abb945dc4a2890bad83c911e3f9",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v081.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v081.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+      "sha": "243e7d7658cc3e90f3dbc5d4a426949a9dcfcaa1",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v082.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v082.mjs\"",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "unchangedHistoricalNameAssertion": "skyshift/tests/unit/mobile-boot-v04911.test.mjs"
+}

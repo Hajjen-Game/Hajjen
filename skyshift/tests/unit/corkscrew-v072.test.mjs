@@ -14,7 +14,7 @@ import {GRIP_SPEC} from "../../precision-grip-v061.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v072.mjs";
 import {createAeroBarrierData,sampleAeroProfile,AERO_BARRIER}
  from "../../tracks/barriers/aero-barrier-v072.mjs";
-import {PREMIUM_TRACK,patchPremiumShaders} from "../../premium-track-v072.mjs";
+import {PREMIUM_TRACK,patchPremiumShaders} from "../../rendering/legacy/premium-track-v072.mjs";
 import {chasePose,cameraBankAt,CINEMATIC_DEFAULTS}
  from "../../cinematic-v072.mjs";
 import * as archived from "../../trial-v071.mjs";
@@ -169,7 +169,7 @@ test("GRIP apexes get real tighter curvature, preserve closed geometry and C2 jo
 test("archived 0.7.2 corkscrew keeps its geometry; live 0.10.3 extends the flight",()=>{
  const html=source("./index.html"),boot=source("./boot-v0103.js"),
   game=source("./game-v0103.mjs"),smoke=source("./tests/browser/legacy/browser-smoke-v081.mjs"),
-  shader=source("./premium-track-v072.mjs"),
+  shader=source("./rendering/legacy/premium-track-v072.mjs"),
   archivedBoot=source("./legacy/boot/boot-v072.js"),archivedGame=source("./legacy/game/game-v072.mjs");
  assert.match(html,/data-game-module="game-v0103\.mjs"/);
  assert.match(html,/Signature Flight Motion/);

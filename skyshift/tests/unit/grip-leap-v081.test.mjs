@@ -11,7 +11,7 @@ import {TRIAL,CIRCUIT,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  speedAt,widthAt,validateTrial} from "../../trial-v081.mjs";
 import {createSmoothDeckData} from "../../smooth-track-v081.mjs";
 import {createAeroBarrierData} from "../../tracks/barriers/aero-barrier-v081.mjs";
-import {PREMIUM_TRACK} from "../../premium-track-v081.mjs";
+import {PREMIUM_TRACK} from "../../rendering/legacy/premium-track-v081.mjs";
 import * as archived from "../../trial-v080.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,tol=1e-5)=>assert.ok(Math.abs(a-b)<=tol,

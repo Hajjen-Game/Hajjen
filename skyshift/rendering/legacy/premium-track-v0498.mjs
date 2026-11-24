@@ -1,16 +1,16 @@
-// SKYSHIFT 0.8.1 — terrain-following Skyline Circuit spectral road in the SAME PBR road shader, zero extra meshes.
+// SKYSHIFT 0.4.9.8 — Velocity-aware White-Core Spectral Zone Wave in the SAME PBR road shader, zero extra meshes.
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt} from "./trial-v081.mjs";
-import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
-import {BOOST_PADS} from "./flight/boost/boost-v060.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v081.mjs";
+import {TRIAL,widthAt} from "../../trial-v049.mjs";
+import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v0493.mjs";
+import {BOOST_PADS} from "../../flight/boost/boost-v0494.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v049.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
- version:"high-leap-spectrum-081",
+ version:"zone-spectral-clarity-pbr-0498",
  material:"continuous-integrated-PBR",
- palette:"Nine synchronized color zones across 3 circuit laps",
+ palette:"Midnight / Electric Violet / Solar Gold / Jade Surge",
  baseHex:ZONE_PALETTES[0].base,
  sideBandHex:ZONE_PALETTES[0].band,
  guideHex:ZONE_PALETTES[0].guide,
@@ -91,8 +91,8 @@ const zoneShaders=Array.from({length:3},(_,i)=>{
  const k=i+1;
  return [
   `float wave${k}On = step(${(k-.5).toFixed(1)}, uZoneActiveCount);`,
-  `float wave${k}D = mod(waveTrack-uZoneFront${k}+0.5*uCircuitLength,uCircuitLength)-0.5*uCircuitLength;`,
-  `float wave${k} = wave${k}On * (1.0-smoothstep(uZoneFeather*0.3,uZoneFeather*2.0,abs(wave${k}D)));`,
+  `float wave${k}D = waveTrack - uZoneFront${k};`,
+  `float wave${k} = wave${k}On * (1.0-smoothstep(-uZoneFeather,uZoneFeather,wave${k}D));`,
   ...zoneFields.map(field=>`zone${field} = mix(zone${field}, uZone${k}${field}, wave${k});`),
   `float wave${k}Core = wave${k}On*spectralCore(wave${k}D);`,
   `float wave${k}Halo = wave${k}On*spectralHalo(wave${k}D);`,
@@ -121,9 +121,6 @@ const zoneLayerGLSL=`
   ${zoneShaders}
 `;
 
-// Wall rides and the corkscrew retain full magnetic attachment PHYSICS, but
-// use the same understated racing lines as the rest of the track. No extra
-// cyan magnetic stripes or corkscrew pulses compete with the driving line.
 export const SURFACE_FRAGMENT_GLSL=`
   float trackS = vTrackCoord.x;
   float trackL = vTrackCoord.y;
@@ -208,7 +205,6 @@ uniform vec3 uTrackGuide;
 uniform vec3 uTrackAccent;
 uniform vec3 uTrackBoost;
 uniform float uZoneActiveCount;
-uniform float uCircuitLength;
 uniform float uZoneFeather;
 uniform float uZoneTime;
 uniform float uWaveDetail;
@@ -257,8 +253,7 @@ export function patchPremiumShaders(vertexShader,fragmentShader){
         (whiteCore*${ZONE_WAVE.whiteCoreEnergy.toFixed(2)} +
          whiteBloom*${ZONE_WAVE.whiteBloomEnergy.toFixed(2)} +
          whiteFilaments*.11)
-      + zoneGuide*velocityGlint*.35
-       ;`;
+      + zoneGuide*velocityGlint*.35;`;
  const fragment=fragmentShader.replace(fCommon,
    fCommon+"\n"+SURFACE_FRAGMENT_HELPERS)
    .replace(fColor,fColor+"\n"+coloring)
@@ -284,7 +279,6 @@ export function createPremiumTrackMaterial(THREE){
  };
  const waveUniforms={
   uZoneActiveCount:{value:0},
-  uCircuitLength:{value:TRIAL.length},
   uZoneFeather:{value:ZONE_WAVE.featherMeters},
   uZoneTime:{value:0},
   uWaveDetail:{value:1},
@@ -322,24 +316,7 @@ export function createPremiumTrackMaterial(THREE){
   setWaveState(state){
     waveUniforms.uZoneActiveCount.value=state.activeCount;
     waveUniforms.uZoneTime.value=state.lastStepSeconds;
-    // One active moving world front, but eight historical palette shifts.
-    // Rebase PBR material colors to the previous stage so new transitions
-    // never stack dozens of shader waves, draw calls or uniforms.
-    // A closed loop must NEVER leave a hard half-track palette boundary.
-    // The completed zone colors the whole road; only a localized,
-    // periodic white/color crest wraps around start/finish.
-    const base=ZONE_PALETTES[state.playerStage??0];
-    for(const [field,key] of Object.entries(zoneFieldToColor))
-      palette[key].set(base[key]);
-    for(let k=1;k<=3;k++){
-      const f=state.fronts[k-1];
-      waveUniforms["uZoneFront"+k].value=((f%TRIAL.length)+TRIAL.length)%TRIAL.length;
-      const idx=Math.max(state.playerStage??0,
-        Math.min(ZONE_PALETTES.length-1,(state.shaderBaseStage??0)+k));
-      const destination=ZONE_PALETTES[idx];
-      for(const [field,key] of Object.entries(zoneFieldToColor))
-        waveUniforms["uZone"+k+field].value.set(destination[key]);
-    }
+    for(let k=1;k<=3;k++)waveUniforms["uZoneFront"+k].value=state.fronts[k-1];
   },
   setPalette(next){
     for(const name of ["base","band","guide","accent","boost"]){

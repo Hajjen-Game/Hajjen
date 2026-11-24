@@ -1,14 +1,14 @@
-// SKYSHIFT 0.4.9.2 — White-Core Spectral Zone Wave in the SAME PBR road shader, zero extra meshes.
+// SKYSHIFT 0.4.9.1 — Spectral Zone Wave in the SAME PBR road shader, zero extra meshes.
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt} from "./trial-v049.mjs";
-import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v0492.mjs";
-import {BOOST_PADS} from "./flight/boost/boost-v049.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v049.mjs";
+import {TRIAL,widthAt} from "../../trial-v049.mjs";
+import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v0491.mjs";
+import {BOOST_PADS} from "../../flight/boost/boost-v049.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v049.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
- version:"zone-white-core-cinematic-pbr-0492",
+ version:"zone-spectral-multilayer-pbr-0491",
  material:"continuous-integrated-PBR",
  palette:"Midnight / Electric Violet / Solar Gold / Jade Surge",
  baseHex:ZONE_PALETTES[0].base,
@@ -23,11 +23,7 @@ export const PREMIUM_TRACK=Object.freeze({
  waveFeatherMeters:ZONE_WAVE.featherMeters,
  waveCrestMeters:ZONE_WAVE.crestMeters,
  afterglowMeters:ZONE_WAVE.afterglowMeters,
- spectralLayerCount:5,
- whiteCoreHalfWidthMeters:ZONE_WAVE.whiteCoreMeters,
- whiteBloomHalfWidthMeters:ZONE_WAVE.whiteBloomMeters,
- whiteCoreEnergy:ZONE_WAVE.whiteCoreEnergy,
- lowGraphicsFilamentsDisabled:true,
+ spectralLayerCount:3,
  boostPads:BOOST_PADS.length,
  curveFollowingLines:true,
  materialOnlyPalette:true,
@@ -95,13 +91,6 @@ const zoneShaders=Array.from({length:3},(_,i)=>{
   `float wave${k}Core = wave${k}On*spectralCore(wave${k}D);`,
   `float wave${k}Halo = wave${k}On*spectralHalo(wave${k}D);`,
   `float wave${k}After = wave${k}On*spectralAfterglow(wave${k}D);`,
-  `float wave${k}White = wave${k}On*spectralWhiteCore(wave${k}D);`,
-  `float wave${k}Bloom = wave${k}On*spectralWhiteBloom(wave${k}D);`,
-  `float wave${k}Filament = wave${k}On*spectralFilaments(
-    wave${k}D,trackL,uZoneTime,uWaveDetail);`,
-  `whiteCore = max(whiteCore,wave${k}White);`,
-  `whiteBloom = max(whiteBloom,wave${k}Bloom);`,
-  `whiteFilaments = max(whiteFilaments,wave${k}Filament);`,
   `waveCrest = max(waveCrest,wave${k}Core);`,
   `waveHalo = max(waveHalo,wave${k}Halo);`,
   `waveAfter = max(waveAfter,wave${k}After);`,
@@ -115,7 +104,6 @@ const zoneLayerGLSL=`
   vec3 zoneAccent=uTrackAccent,zoneBoost=uTrackBoost;
   vec3 waveSpectrum=uTrackAccent;
   float waveCrest=0.0,waveHalo=0.0,waveAfter=0.0;
-  float whiteCore=0.0,whiteBloom=0.0,whiteFilaments=0.0;
   ${zoneShaders}
 `;
 
@@ -174,12 +162,6 @@ export const SURFACE_FRAGMENT_GLSL=`
   float crestEnergy = waveCrest * 0.22 + waveHalo * 0.085 +
      waveAfter * 0.024;
   road = mix(road, waveSpectrum, crestEnergy*(1.0-padCoverage*.22));
-  // White light is a distinct visual layer, independent of zone tint.
-  // Bright enough to register in the iPhone's bloom and on low-FPS Android,
-  // but limited to the travelling longitudinal wave band.
-  float neutralEnergy=clamp(whiteCore*.91+whiteBloom*.26+
-    whiteFilaments*.23,0.0,.97);
-  road = mix(road,vec3(.96,.99,1.0),neutralEnergy);
   diffuseColor.rgb = road;
   totalEmissiveRadiance += uTrackGuide * guided * 0.24
                           + uTrackBoost * insetGold * 0.17;
@@ -194,7 +176,6 @@ uniform vec3 uTrackBoost;
 uniform float uZoneActiveCount;
 uniform float uZoneFeather;
 uniform float uZoneTime;
-uniform float uWaveDetail;
 ${zoneShaderDecl}${SPECTRAL_FRONT_GLSL}
 float trackStripe(float x, float center, float thickness, float feather) {
   return 1.0 - smoothstep(thickness, thickness + feather, abs(x - center));
@@ -229,11 +210,7 @@ export function patchPremiumShaders(vertexShader,fragmentShader){
   max(trackStripe(abs(vTrackCoord.y), 4.0, 0.060, 0.105)*0.90,
       trackStripe(abs(vTrackCoord.y), 8.8, 0.055, 0.105))*0.24
       + waveSpectrum * (waveCrest*.12 + waveHalo*.025 +
-        waveAfter*.012)*(1.0-padCoverage*.25)
-      + vec3(1.0,1.035,1.1) *
-        (whiteCore*${ZONE_WAVE.whiteCoreEnergy.toFixed(2)} +
-         whiteBloom*${ZONE_WAVE.whiteBloomEnergy.toFixed(2)} +
-         whiteFilaments*.20);`;
+        waveAfter*.012)*(1.0-padCoverage*.25);`;
  const fragment=fragmentShader.replace(fCommon,
    fCommon+"\n"+SURFACE_FRAGMENT_HELPERS)
    .replace(fColor,fColor+"\n"+coloring)
@@ -260,8 +237,7 @@ export function createPremiumTrackMaterial(THREE){
  const waveUniforms={
   uZoneActiveCount:{value:0},
   uZoneFeather:{value:ZONE_WAVE.featherMeters},
-  uZoneTime:{value:0},
-  uWaveDetail:{value:1}
+  uZoneTime:{value:0}
  };
  for(let k=1;k<=3;k++){
   waveUniforms["uZoneFront"+k]={value:-10000};
@@ -285,9 +261,6 @@ export function createPremiumTrackMaterial(THREE){
  };
  mat.customProgramCacheKey=()=>PREMIUM_TRACK.version;
  return {material:mat,palette,
-  setDetailMode(quality){
-    waveUniforms.uWaveDetail.value=quality==="low"?0:1;
-  },
   setWaveState(state){
     waveUniforms.uZoneActiveCount.value=state.activeCount;
     waveUniforms.uZoneTime.value=state.lastStepSeconds;

@@ -143,9 +143,9 @@ test("menu uses real circuit selector and Skyline-only Challenges not shown on A
  assert.match(boot,/game-v0165\.mjs\?v=0\.16\.5/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
  assert.match(game,/challengeButton\.classList\.toggle\("hidden",!ACTIVE_TRACK_0160\.hasSkylineChallenges\)/);
- assert.match(game,/from "\.\/trial-v0165\.mjs"/);
- assert.match(game,/from "\.\/tracks\/barriers\/aero-barrier-v0165\.mjs"/);
- assert.match(game,/from "\.\/shadow-tunnel-v0160\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/trial-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/tracks\/barriers\/aero-barrier-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/shadow-tunnel-v0160\.mjs"/);
  assert.match(game,/ship\.rotation\.z=naturalRoll;/);
 });
 
@@ -201,9 +201,9 @@ test("No ghost right-apex guidance or Skyline-only leap signs on Aurora",()=>{
  assert.match(game,/if\(!isAurora\(\)\)makeBillboard\("SKYLINE LEAP"/);
  assert.match(game,/makeBillboard\(isAurora\(\)\?"LUMEN PASS":"SHADOW TUNNEL"/);
  assert.match(game,/ACTIVE_TRACK_0160\.name\+" COMPLETE"/);
- assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);
- assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
- assert.match(game,/from "\.\/rail-scrape-sparks-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/flight\/cinematic-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/flight\/unified-flight-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/rail-scrape-sparks-v0165\.mjs"/);
  const rig=src("./flight/unified-flight-v0165.mjs");
  assert.match(rig,/from "\.\/cinematic-v0165\.mjs"/);
  const realCamera=src("./flight/cinematic-v0165.mjs");
@@ -230,6 +230,6 @@ test("0.16.5 URLs and menu preserve independent courses and PB/ghosts",()=>{
  assert.match(html,/boot-v0205\.js\?v=0\.20\.5/);
  assert.match(src("./legacy/boot/boot-v0165.js"),/game-v0165\.mjs\?v=0\.16\.5/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
- assert.match(game,/from "\.\/time-trial-v0160\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/time-trial-v0160\.mjs"/);
  assert.equal(tt.TIME_TRIAL_0160.storageKey,"skyshift-time-trial-ghost-aurora-0160");
 });

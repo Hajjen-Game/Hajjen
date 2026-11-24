@@ -7,6 +7,38 @@ export function restoreR1GGamePaths(source){
   for(const [a,b] of [['../../legacy/game/'+name,'../../'+name],['./legacy/game/'+name,'./'+name],['legacy/game/'+name,name]])for(const q of ['"',"'"])out=out.split(q+a+q).join(q+b+q);
   out=out.split("\\.\\.\\/game\\/game-v"+version+'\\.mjs').join("\\.\\.\\/\\.\\.\\/game-v"+version+'\\.mjs');
  }
+ // Only the seven explicitly audited historical v0165 ESM import assertions.
+ const v0165ImportPairs=[
+  [
+    "assert.match(game,/from \"\\.\\.\\/\\.\\.\\/trial-v0165\\.mjs\"/);",
+    "assert.match(game,/from \"\\.\\/trial-v0165\\.mjs\"/);"
+  ],
+  [
+    "assert.match(game,/from \"\\.\\.\\/\\.\\.\\/tracks\\/barriers\\/aero-barrier-v0165\\.mjs\"/);",
+    "assert.match(game,/from \"\\.\\/tracks\\/barriers\\/aero-barrier-v0165\\.mjs\"/);"
+  ],
+  [
+    "assert.match(game,/from \"\\.\\.\\/\\.\\.\\/shadow-tunnel-v0160\\.mjs\"/);",
+    "assert.match(game,/from \"\\.\\/shadow-tunnel-v0160\\.mjs\"/);"
+  ],
+  [
+    "assert.match(game,/from \"\\.\\.\\/\\.\\.\\/flight\\/cinematic-v0165\\.mjs\"/);",
+    "assert.match(game,/from \"\\.\\/flight\\/cinematic-v0165\\.mjs\"/);"
+  ],
+  [
+    "assert.match(game,/from \"\\.\\.\\/\\.\\.\\/flight\\/unified-flight-v0165\\.mjs\"/);",
+    "assert.match(game,/from \"\\.\\/flight\\/unified-flight-v0165\\.mjs\"/);"
+  ],
+  [
+    "assert.match(game,/from \"\\.\\.\\/\\.\\.\\/rail-scrape-sparks-v0165\\.mjs\"/);",
+    "assert.match(game,/from \"\\.\\/rail-scrape-sparks-v0165\\.mjs\"/);"
+  ],
+  [
+    "assert.match(game,/from \"\\.\\.\\/\\.\\.\\/time-trial-v0160\\.mjs\"/);",
+    "assert.match(game,/from \"\\.\\/time-trial-v0160\\.mjs\"/);"
+  ]
+];
+ for(const [a,b] of v0165ImportPairs)out=out.split(a).join(b);
  return out;
 }
 export function restoreR1GBootImport(source){

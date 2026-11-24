@@ -114,3 +114,9 @@ After PR #196, `main` had **429 direct-root files**. Merged PR #197 moves **20 a
 ## R1G — 42 later historical game snapshots (UNMERGED)
 
 R1F PR #200 merged at ab926746c1a356d8f2a9c079968e7e65dc804901, 328 direct files, all main checks green. R1G exhaustive reference audit run 45343324620 found 42 eligible of 43 candidates. Move those 42 to legacy/game/ and preserve the exact prior Git blob after reversing only static relative imports; rewire matching bootstraps and audited unit readers, including exact boot import regex paths. Keep v0191 (missing unique CI syntax check), v0101/v0103 compatibility pairs, v0203 comparison page, and live v0210. Historical direct-root Pages script URLs are not redirected. Root target 286. Require independent R1G SHA guard and all original cumulative gates plus full PR checks before merge; verify Pages and track QA afterward. No runtime behavior or asset changes intended. Next: audit held game/boot compatibility, then CSS/UI and subsystem modules. Goal remains <=10 intentional direct files.
+
+### R1G CI follow-up
+
+PR #201 first fast run 45345177629 failed four historic 0.16.5 subtests because eight exact static import assertions in two track test readers still expected ./ paths. Rebase only those assertions to ../../, retaining identical module names and inverse SHA verification. No production code or baseline SHA changed. Full PR checks required before merge.
+
+Post-R1G direction: distinguish active dependency graph, explicit A/B fixtures and obsolete full snapshots. Prefer preserving redundant versions via Git history rather than carrying all historical snapshots in the working tree. Audit current regression coverage and dependencies before retiring anything; never remove tests merely to turn CI green. This is a proposed next cleanup phase, not an assertion of completion.

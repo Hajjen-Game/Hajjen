@@ -64,3 +64,6 @@ EF02H second CI follow-up: architecture run 45471632824 passed the earlier bulk 
 
 ### EF02I verified merge / EF02J handoff
 #223 merged at 254e869bfa3a912793117913b13d44a0eb01fd8a; 36/36 checks, all #222 main gates succeeded. Verified 220 root, 1069 tracked, 210 unit and 42 architecture test files. EF02J begins with temporary full dependency/consumer evidence census and a preliminary mixed/protected coverage matrix, not deletion on filename or absent CI reference. See [EF02J report](EF02J-HISTORICAL-TEST-RATIONALIZATION.md). #223 main guard green, Pages/track QA pending at start.
+
+### EF02J census and first rationalization candidate
+Initial draft 44f2d69ee3aeae2f7d4dbf88bec633ff4fab1562: 36/36 CI green; #223 main gates green. Full census recorded in EF02J report. Replace four temporary unit-migration SHA guards with one durable current-dependency/workflow guard while leaving actual unit test bodies and functional commands unchanged; retain all 12 protected stage-8 files and physics probe paths. Remove temporary census step after successful evidence capture. No runtime change. Further historical-reader and exclusive-source review remains on #224; EF02J not complete.

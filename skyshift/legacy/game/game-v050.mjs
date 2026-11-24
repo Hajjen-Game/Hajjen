@@ -2,31 +2,31 @@ import * as THREE from "three";
 import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,
- newFlightState,stepFlight,clamp,lerp
-} from "./trial-v0494.mjs";
-import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v0494.mjs";
-import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v0498.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v0493.mjs";
-import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0496.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v0498.mjs";
-import { MESH_SPEC } from "./smooth-track-v049.mjs";
+ newFlightState,stepFlight,setZoneSpeedStage,clamp,lerp
+} from "../../trial-v050.mjs";
+import { BOOST_PADS,BOOST_CONFIG } from "../../flight/boost/boost-v050.mjs";
+import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "../../premium-track-v050.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "../../zone-wave-v050.mjs";
+import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "../../manta-blade-v0484.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "../../engine-trails-v0496.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v0498.mjs";
+import { MESH_SPEC } from "../../smooth-track-v050.mjs";
 import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./core/frame-pacing-v044.mjs";
-import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
-import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cinematicFov,engineLightFactor } from "./cinematic-v045.mjs";
-import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./flight/boost/boost-spring-v0495.mjs";
-import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "./velocity-language-v0496.mjs";
-import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier-v0497.mjs";
-import { installSpaceBackdrop } from "./space-v0496.mjs";
-import { createContactShadow } from "./ship-v034.mjs";
-import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v0498.mjs";
-import {HUD_SPEC,createReactiveHud} from "./reactive-hud-v04991.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
+} from "../../core/frame-pacing-v044.mjs";
+import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "../../flight-motion-v044.mjs";
+import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cinematicFov,engineLightFactor } from "../../cinematic-v045.mjs";
+import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "../../flight/boost/boost-spring-v0495.mjs";
+import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "../../velocity-language-v0496.mjs";
+import { installAeroBarriers,AERO_BARRIER } from "../../tracks/barriers/aero-barrier-v050.mjs";
+import { installSpaceBackdrop } from "../../space-v0496.mjs";
+import { createContactShadow } from "../../ship-v034.mjs";
+import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "../../image-clarity-v0498.mjs";
+import {HUD_SPEC,createReactiveHud} from "../../reactive-hud-v04991.mjs";
+import { LUMINANCE,validateLuminance } from "../../luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);
@@ -438,7 +438,7 @@ function resume(){
 }
 function endRun(won){
  uiState.mode="ended";clearInput();
- UI.finalTitle.textContent=won?"EXTENDED CIRCUIT COMPLETE":"FLIGHT ENDED";
+ UI.finalTitle.textContent=won?"FULL CIRCUIT COMPLETE":"FLIGHT ENDED";
  UI.finalTitle.classList.toggle("success",won);
  UI.finalDistance.textContent=Math.floor(flight.s)+" M";
  UI.finalSector.textContent=String(zoneWave.playerStage+1).padStart(2,"0");
@@ -483,18 +483,18 @@ function refreshHud(){
  // Compare with baseline handling-lab speed (22 m/s), not new speed.
  UI.speed.textContent=(flight.currentSpeed/22).toFixed(2)+"×";
  UI.progress.style.width=(flight.s/TRIAL.length*100).toFixed(1)+"%";
- const bank=bankDegreesAt(flight.s);
+ const curve=curvatureAt(flight.s);
  UI.flight.textContent=!flight.grounded?"OFF TRACK":
    flight.boostMultiplier>1.08?"BOOST · +"+Math.round((flight.boostMultiplier-1)*100)+"%":
-   Math.abs(bank)>1.5?
-     (bank<0?"LEFT BANK ":"RIGHT BANK ")+Math.round(Math.abs(bank))+"°":
+   Math.abs(curve)>.0016?
+     (curve<0?"LEFT":"RIGHT")+" SWEEP · DIRECT CONTROL":
      "STRAIGHT · DIRECT CONTROL";
 }
 function maybeShowCue(){
  if(uiState.mode!=="playing")return;
  for(const hint of [
-   {id:"left",start:68,end:72,text:"LEFT SWEEPER · HOLD YOUR LINE"},
-   {id:"right",start:262,end:266,text:"RIGHT SWEEPER · SMOOTH INPUT"}
+   {id:"intro-sweep",start:186,end:195,text:"WIDE SWEEPS · SMOOTH STEERING"},
+   {id:"zone-guide",start:730,end:740,text:"COLOR SHIFT · PERMANENT SPEED INCREASE"}
  ]){
    if(flight.s>=hint.start&&flight.s<hint.end&&
       uiState.trackHint!==hint.id){
@@ -513,7 +513,7 @@ function integrate(dt){
  const result=stepFlight(flight,dt,{steer});
  if(result.boostActivated){
   event("boost_activated",{pad:result.boostActivated,multiplier:BOOST_CONFIG.multiplier});
-  triggerBoostSpring(boostSpring,speedAt(flight.s),BOOST_CONFIG.multiplier);
+  triggerBoostSpring(boostSpring,flight.zoneCruiseSpeed,BOOST_CONFIG.multiplier);
   igniteVelocity(velocityState);
   reactiveHud.onBoost();
   flashToast("BOOST ENGAGED · +40% SPEED",850);
@@ -547,7 +547,14 @@ function integrate(dt){
  const wave=updateZoneWave(zoneWave,flight.elapsed,flight.s);
  for(const stage of wave.started)
   event("zone_wave_emitted",{stage,originMeters:+zoneWave.waves[stage-1].startS.toFixed(1)});
- if(wave.changed){previousSector=wave.stage;announceSector(wave.stage);}
+ if(wave.changed){
+  previousSector=wave.stage;
+  setZoneSpeedStage(flight,wave.stage);
+  event("zone_speed_increase",{
+   stage:wave.stage,cruiseTargetMetersPerSecond:+speedAt(flight.s,wave.stage).toFixed(2),
+   speedStepPercent:+((TRIAL.zoneSpeedStep-1)*100).toFixed(1)});
+  announceSector(wave.stage);
+ }
  maybeShowCue();
  if(result.finished)endRun(true);
  else if(flight.failed)endRun(false);
@@ -671,7 +678,7 @@ function loop(now){
  if(flight){
    const presentationDt=uiState.mode==="playing"?dt:0;
    stepVelocityState(velocityState,presentationDt,flight.currentSpeed,
-    speedAt(flight.s),flight.boostMultiplier);
+    flight.zoneCruiseSpeed,flight.boostMultiplier);
    premiumSurface?.setVelocityFlow(velocityState.worldFlow,velocityState.flowPhaseMeters);
    identitySurface?.setVelocityFlow(velocityState.worldFlow,velocityState.flowPhaseMeters);
    spaceBackdrop?.setVelocityFlow(velocityState.worldFlow);
@@ -733,8 +740,8 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.4.9.9.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
-   visual:{pipeline:"HDR UnrealBloom",tier:"Racing HUD Refinement 0.4.9.9.1",
+   game:"SKYSHIFT",version:"0.5.0",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   visual:{pipeline:"HDR UnrealBloom",tier:"Full Circuit & Zone Acceleration 0.5.0",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -872,8 +879,15 @@ function exportAudit(){
       boostActiveSeconds:+flight.boostActiveSeconds.toFixed(2),
       boostTravelMeters:+flight.boostDistanceMeters.toFixed(1),
       maxActualSpeedMetersPerSecond:+flight.peakSpeed.toFixed(2),
+      zoneSpeedStepPercent:+((TRIAL.zoneSpeedStep-1)*100).toFixed(1),
+      zoneCruiseTarget:+speedAt(flight.s,flight.zoneSpeedStage).toFixed(2),
+      zoneCruiseActual:+flight.zoneCruiseSpeed.toFixed(2),
+      zoneSpeedStage:flight.zoneSpeedStage,
+      zoneSpeedEvents:[...flight.zoneSpeedEvents],
+      expectedCircuitDurationSeconds:TRIAL.targetDurationSeconds,
+      noTrackBanking:true,
       speedMetersPerSecondEnd:TRIAL.endSpeed,
-      speedMultiplierVs042:2,
+      speedMultiplierVs042:+(TRIAL.endSpeed/22).toFixed(2),
       maxYawDegreesPerSecond:+(TRIAL.maxYawRate*180/Math.PI).toFixed(1),
       courseSegments:COURSE_SEGMENTS.length,
       curveCount:COURSE_SEGMENTS.filter(c=>c.type==="turn").length,
@@ -903,7 +917,7 @@ function exportAudit(){
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-racing-hud-v04991-audit.json";
+ a.href=url;a.download="skyshift-full-circuit-v050-audit.json";
  document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1800);
 }
@@ -914,7 +928,7 @@ function installFlightTuningPanel(){
  panel.setAttribute("aria-label","Flight Dynamics Lab");
  panel.style.cssText="position:fixed;top:42px;right:8px;z-index:2500;box-sizing:border-box;width:215px;max-height:75vh;overflow:auto;background:rgba(4,13,27,.93);color:#d9f6ff;padding:12px;border:1px solid #397084;border-radius:10px;font:12px system-ui;box-shadow:0 8px 20px #0009";
  const title=document.createElement("strong");
- title.textContent="FLIGHT LAB · 0.4.9.9.1";panel.appendChild(title);
+ title.textContent="FLIGHT LAB · 0.5.0";panel.appendChild(title);
  const fields=[
   ["pilotBankDegrees","Pilot bank","°",8,28,1],
   ["bankResponse","Turn-in","",8,23,1],
@@ -958,7 +972,7 @@ function installWaveSmokeHook(){
    throw new Error("Invalid spectral smoke stage");
   // Deterministically place each successive physical crest just ahead of
   // the stationary craft under software WebGL. Actual play uses 120Hz ticks.
-  for(let k=zoneWave.activeCount;k<targetStage;k++){
+  for(let k=zoneWave.waves.length;k<targetStage;k++){
    const at=ZONE_WAVE.triggers[k],atS=flight.s;
    flight.elapsed=at;
    updateZoneWave(zoneWave,at,atS);
@@ -967,14 +981,15 @@ function installWaveSmokeHook(){
    const pass=updateZoneWave(zoneWave,at+.792,atS);
    if(!pass.changed||pass.stage!==k+1)
     throw new Error("Zone "+(k+2)+" did not pass craft");
-   previousSector=pass.stage;announceSector(pass.stage);
+   previousSector=pass.stage;setZoneSpeedStage(flight,pass.stage);
+   announceSector(pass.stage);
   }
   waveSmokeHold=true; // CI-only freeze for honest white-core screenshots.
   premiumSurface?.setWaveState(zoneWave);
   identitySurface?.setWaveState(zoneWave);
   refreshHud();
   return {zone:zoneWave.playerStage+1,flightSeconds:flight.elapsed,
-   playerS:flight.s,frontS:zoneWave.fronts[targetStage-1],
+   playerS:flight.s,frontS:zoneWave.fronts[0],
    launches:[...ZONE_WAVE.triggers],palette:ZONE_PALETTES[zoneWave.playerStage].id,
    featherMeters:ZONE_WAVE.featherMeters,
    railSynchronized:Boolean(identitySurface?.setWaveState),

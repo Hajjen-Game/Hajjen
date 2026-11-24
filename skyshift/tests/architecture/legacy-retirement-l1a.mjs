@@ -7,8 +7,10 @@ import {resolve,relative,basename} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
 export const retirement=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/legacy-retirement-l1a.json'),'utf8'));
-const entries=new Map(retirement.files.map(f=>[f.path,f]));
-const asPath=p=>relative(repo,resolve(repo,p)).split('\\').join('/');
+export const retirementL1B=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/legacy-retirement-l1b.json'),'utf8'));
+assert.equal(retirementL1B.archiveCommit,retirement.archiveCommit);
+const entries=new Map([...retirement.files,...retirementL1B.files].map(f=>[f.path,f]));
+const asPath=p=>relative(repo,resolve(repo,p instanceof URL?fileURLToPath(p):p)).split('\\').join('/');
 const cache=new Map();
 export function isRetired(p){return entries.has(asPath(p));}
 export function readHistorical(p,encoding='utf8'){

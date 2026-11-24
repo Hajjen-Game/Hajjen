@@ -1,7 +1,7 @@
 // SKYSHIFT 0.19.2 — Pass 2 hero art and visual-only steering isolation.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {ORBITAL_HERO_0192,heroArchitecturePlan,retiredPrimitiveStation}
  from "../../orbital-hero-v0192.mjs";
 import {worldArchitecturePlan} from "../../world-rebuild-v0190.mjs";

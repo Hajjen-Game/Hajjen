@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "stage": "L1B",
+  "archiveCommit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+  "baseCommit": "4e2015a11ba49a20b38f8f7a97f1358010164349",
+  "inventoryRun": 45347691497,
+  "files": [
+    {
+      "path": "skyshift/legacy/boot/boot-v0180.js",
+      "sha": "aed07a1339420722c7b7addbe6aebade8ae477a1",
+      "reader": "skyshift/tests/unit/signature-environment-v0180.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0180.mjs",
+      "sha": "04681121853f3f3a6db9c07b60920f03c02629de",
+      "reader": "skyshift/tests/unit/signature-environment-v0180.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0190.js",
+      "sha": "edbdd683883d49c27daefb1d4de44d3774bb6966",
+      "reader": "skyshift/tests/unit/world-rebuild-v0190.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0190.mjs",
+      "sha": "66bf23f0df6c11aa9f90454b0d28d47487b9746d",
+      "reader": "skyshift/tests/unit/world-rebuild-v0190.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0192.js",
+      "sha": "cb3362bbd2fcb05ab5142a0e8578140ede273e0e",
+      "reader": "skyshift/tests/unit/orbital-hero-v0192.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0192.mjs",
+      "sha": "b80fd8e8319b7047e30cc08b17948a0be24305b1",
+      "reader": "skyshift/tests/unit/orbital-hero-v0192.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0200.js",
+      "sha": "7d57917be4e1e348de69461e31e55d1ccf9a2004",
+      "reader": "skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0200.mjs",
+      "sha": "8a926a277717736318ca8942c120188ec10aa877",
+      "reader": "skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0201.js",
+      "sha": "1f68518f247df92894eb6e1a90e59137832ba4ce",
+      "reader": "skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0201.mjs",
+      "sha": "9a8bca268d97d1965b8c24b2c51b26c0e611a292",
+      "reader": "skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0202.js",
+      "sha": "b296b9d5fc4e6617bf64e5ae765b4dc29c97b582",
+      "reader": "skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0202.mjs",
+      "sha": "42c47b1d910f5b2f8c59deefa6fdbf5d5b83b770",
+      "reader": "skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v02021.js",
+      "sha": "4f18359af9dde4892bd5304e8914c8724fa47e83",
+      "reader": "skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v02021.mjs",
+      "sha": "a5f36c9080ca91694c2b7213b63745e6d0d50770",
+      "reader": "skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0204.js",
+      "sha": "c0eab4aadab72d22f44dabbfa8b8d6154cf0ceac",
+      "reader": "skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0204.mjs",
+      "sha": "cbda4f75e6854ca59706b5ee6e2c4c1441ab7373",
+      "reader": "skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v02041.js",
+      "sha": "84b1db8947dca55a1f7c06343bd6ece0792df045",
+      "reader": "skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs"
+    },
+    {
+      "path": "skyshift/legacy/game/game-v02041.mjs",
+      "sha": "d51e7a79a79ee5e6cc44a949d0e1aa1b9859b1e4",
+      "reader": "skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs"
+    }
+  ],
+  "readers": [
+    {
+      "path": "skyshift/tests/unit/signature-environment-v0180.test.mjs",
+      "sha": "451e145b9766edd5324e167f9982fdb025a734be"
+    },
+    {
+      "path": "skyshift/tests/unit/world-rebuild-v0190.test.mjs",
+      "sha": "5def2338507000a69d62df71f234d4ba1f76da67"
+    },
+    {
+      "path": "skyshift/tests/unit/orbital-hero-v0192.test.mjs",
+      "sha": "45752c1bcbb8539e1093ef5d4a1ecb26f047d81d"
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs",
+      "sha": "cac077af6d57232759767123d36ac25146a16686"
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs",
+      "sha": "327bd3a7aaf80d5f0029a8ba96166fac68c12289"
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs",
+      "sha": "014558b3be67f801eb328987adfd4dc68cc84081"
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs",
+      "sha": "112ee65a197480e1f6a992713534beb9205b8fe5"
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs",
+      "sha": "57b671826c4e5087c51beb8cb08a146bca5a71d3"
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs",
+      "sha": "dc08def7ea32b48bbb0ac534a4615be8fe6a7a88"
+    }
+  ]
+}

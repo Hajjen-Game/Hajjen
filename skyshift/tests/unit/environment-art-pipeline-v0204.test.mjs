@@ -1,7 +1,7 @@
 // SKYSHIFT 0.20.4 — Pass 3 premium integrated neon architecture QA.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {STATION_ART_0204,buildStationAsset}
  from "../../world/authoring/build-station-world-v0204.mjs";
 import {WORLD_ART_0204,planStationWorld,bakeTrackConformingBayGeometry}

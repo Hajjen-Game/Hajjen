@@ -66,7 +66,7 @@ test('R1B original source SHA of 22 historic unit readers is retained, with no a
   assert.equal(sha(restored),item.originalGitBlobSha,
    'Historical test assertion or source changed '+item.path);
   for(const m of source.matchAll(/["']\.\/legacy\/boot\/(boot-v\d+\.js)["']/g)){
-   assert.ok(existsSync(resolve(root,'legacy/boot',m[1])),
+   assert.ok(historicalExists(resolve(root,'legacy/boot',m[1])),
     'Historical test reader has broken target '+item.path+' -> '+m[1]);
    rebased++;
   }

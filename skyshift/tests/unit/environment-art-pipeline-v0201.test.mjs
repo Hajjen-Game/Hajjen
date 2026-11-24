@@ -1,7 +1,7 @@
 // SKYSHIFT 0.20.1 — Architectural Depth & Station Identity regression QA.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {WORLD_ART_0201,planStationWorld,bakeTrackConformingBayGeometry}
  from "../../world/environment-art-pipeline-v0201.mjs";
 import {STATION_ART_0201,buildStationAsset}

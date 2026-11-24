@@ -1,37 +1,49 @@
 import * as THREE from "three";
 import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
- heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,elevationAudit,
+ heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,STEERING_AUTHORITY,steeringBalanceAt,normalYawFactorAt,elevationAudit,
  newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
-} from "./trial-v082.mjs";
-import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v082.mjs";
-import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v082.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
-import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0496.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v0498.mjs";
-import { MESH_SPEC } from "./smooth-track-v082.mjs";
+} from "../../trial-v084.mjs";
+import { BOOST_PADS,BOOST_CONFIG } from "../../flight/boost/boost-v082.mjs";
+import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "../../premium-track-v084.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "../../zone-wave-v060.mjs";
+import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "../../manta-blade-v0484.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "../../engine-trails-v0496.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v083.mjs";
+import { MESH_SPEC } from "../../smooth-track-v084.mjs";
 import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./core/frame-pacing-v080.mjs";
-import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
-import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "./cinematic-v082.mjs";
-import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./flight/boost/boost-spring-v0495.mjs";
-import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "./velocity-language-v0496.mjs";
-import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier-v082.mjs";
-import { installSpaceBackdrop } from "./space-v0496.mjs";
-import { createContactShadow } from "./ship-v034.mjs";
-import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v0498.mjs";
-import {HUD_SPEC,createReactiveHud} from "./reactive-hud-v04991.mjs";
-import {GRIP_SPEC} from "./precision-grip-v061.mjs";
-import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./flight/side-thrusters-v061.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
+} from "../../core/frame-pacing-v080.mjs";
+import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "../../flight-motion-v044.mjs";
+import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "../../cinematic-v090.mjs";
+import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "../../flight/boost-spring-v090.mjs";
+import {BOOST_SPRING as CLASSIC_BOOST_FOV} from "../../flight/boost/boost-spring-v0495.mjs";
+import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "../../velocity-language-v0496.mjs";
+import {KINETIC_CAMERA,kineticFovAt,createKineticCameraState,
+ stepKineticCamera,triggerKineticLanding,kineticCameraAudit}
+ from "../../flight/kinetic-camera-v090.mjs";
+import { installAeroBarriers,AERO_BARRIER } from "../../tracks/barriers/aero-barrier-v084.mjs";
+import { installSpaceBackdrop } from "../../space-v0496.mjs";
+import { createContactShadow } from "../../ship-v034.mjs";
+import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "../../image-clarity-v083.mjs";
+import {HUD_SPEC,createReactiveHud} from "../../reactive-hud-v04991.mjs";
+import {GRIP_SPEC} from "../../flight/precision-grip-v084.mjs";
+import {RACING_FEEL,gripApexCue,createRailFeedbackState,
+ startRailFeedback,stepRailFeedback} from "../../flight/racing-feel-v083.mjs";
+import {SIDE_THRUSTER_SPEC,createSideThrusters} from "../../flight/side-thrusters-v061.mjs";
+import { LUMINANCE,validateLuminance } from "../../luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);
+// 0.9.0 developer comparison only. Default stays balanced, the user can
+// A/B exact physics and authored geometry with ?camera=classic|kinetic.
+const cameraOption=new URLSearchParams(location.search).get("camera");
+const CAMERA_MODE=["classic","balanced","kinetic"].includes(cameraOption)?
+ cameraOption:"balanced";
+const CAMERA_GAIN=CAMERA_MODE==="classic"?0:CAMERA_MODE==="kinetic"?1.15:.85;
 const UI={
  canvas:$("game"),start:$("start-btn"),retry:$("retry-btn"),
  menu:$("menu"),end:$("end-screen"),pause:$("pause-screen"),
@@ -43,7 +55,7 @@ const UI={
  flight:$("flight-state"),toast:$("toast"),banner:$("zone-banner"),
  bannerNum:$("zone-banner-number"),bannerName:$("zone-banner-name"),
  flash:$("zone-flash"),stick:$("stick"),knob:$("stick-knob"),
- jump:$("jump-btn"),grip:$("grip-btn"),error:$("error"),finalTitle:$("final-title"),
+ jump:$("jump-btn"),grip:$("grip-btn"),gripCue:$("grip-cue"),error:$("error"),finalTitle:$("final-title"),
  finalDistance:$("final-distance"),finalSector:$("final-zone"),
   lapNumber:$("lap-number"),lapInfo:$("lap-info"),finalLaps:$("final-laps"),
  finalBest:$("personal-best"),finalTime:$("flight-time"),
@@ -75,17 +87,29 @@ let renderSamples=0,renderCallTotal=0,renderCallPeak=0,triangleTotal=0;
 let frameClock=createFrameClock(),frameMonitor=createFrameMonitor();
 let adaptiveQuality=createAdaptiveQuality(),currentRenderPose=null,previousRenderPose=null;
 let frameBlend=0;
-let motionState=createFlightMotionState(),cinematicState=createCinematicState(),boostSpring=createBoostSpringState(),velocityState=createVelocityState();
+let motionState=createFlightMotionState(),cinematicState=createCinematicState(),
+ boostSpring=createBoostSpringState(),velocityState=createVelocityState();
+let kineticCamera=createKineticCameraState(),maxKineticFov=65.4;
 const reactiveHud=createReactiveHud(UI.hud);
 let previousHudShield=100;
 const flightTuning={...MOTION_DEFAULTS};
 const cinematicTuning={...CINEMATIC_DEFAULTS};
-const CAMERA_INFO={},CAMERA_VIEW={worldX:0,worldZ:0,y:0,s:0,steering:0,clearance:0};
+if(CAMERA_GAIN===0){
+ cinematicTuning.previewGain=.23;
+ cinematicTuning.previewMaximum=.12;
+}
+const KINETIC_VIEW={speed:44,steering:0,yawRate:0,gripIntensity:0,
+ grounded:true,clearance:0,wall:false,corkscrew:false};
+const CAMERA_INFO={},CAMERA_VIEW={worldX:0,worldZ:0,y:0,s:0,
+ steering:0,clearance:0,kineticSideMeters:0,kineticDistanceMeters:0,
+ kineticEyeLiftMeters:0,kineticLandingMeters:0,kineticLookLiftMeters:0};
 const CAMERA_BASE_POSITION=new THREE.Vector3();
 const CAMERA_TARGET_POSITION=new THREE.Vector3();
 const CAMERA_TARGET_LOOK=new THREE.Vector3();
 const telemetry=[];
 let previousSector=0,sceneReady=false,fullscreenController=null,lastRailLog=0;
+let railFeedback=createRailFeedbackState();
+let gripCueVisible=false,gripCueSeconds=0,gripCueDisplays=0;
 let zoneWave=newZoneWaveState();
 let waveSmokeHold=false;
 const SHADOW_NORMAL=new THREE.Vector3(),SHADOW_PLANE_NORMAL=new THREE.Vector3(0,0,1);
@@ -382,6 +406,10 @@ function startImmersiveTrial(){
  enterPlaying();
 }
 function clearInput(){
+ UI.gripCue?.classList.add("hidden");
+ UI.grip.classList.remove("apex-approach","apex-engaged");
+ UI.hud.classList.remove("hud-rail-contact");
+ UI.hud.style.setProperty("--rail-contact","0");
  uiState.inputX=0;uiState.jumpPressed=false;uiState.jumpHeld=false;
  uiState.gripHeld=false;uiState.gripPointer=null;
  uiState.keys.clear();uiState.stickPointer=null;
@@ -395,6 +423,8 @@ function clearInput(){
 }
 function resetFlight(){
  flight=newFlightState();previousSector=0;lastRailLog=0;
+ railFeedback=createRailFeedbackState();
+ gripCueVisible=false;gripCueSeconds=0;gripCueDisplays=0;
  previousHudShield=flight.shield;
  reactiveHud.reset({shield:flight.shield});
  zoneWave=newZoneWaveState();premiumSurface?.setWaveState(zoneWave);
@@ -404,6 +434,8 @@ function resetFlight(){
  neonKit?.updateAccent(COLOR[0].color,1);
  motionState=createFlightMotionState(flight.heading);
  cinematicState=createCinematicState();
+ kineticCamera=createKineticCameraState();
+ maxKineticFov=KINETIC_CAMERA.fovStartDegrees;
  boostSpring=createBoostSpringState();
  velocityState=createVelocityState();
  premiumSurface?.setVelocityFlow(0,0);
@@ -510,6 +542,24 @@ function refreshHud(){
  UI.jump.classList.add("hidden");
  UI.progress.style.width=(flight.s/TRIAL.raceLength*100).toFixed(1)+"%";
  const curve=curvatureAt(flight.s),section=sectorAt(flight.s);
+ // One small persistent prompt by the existing GRIP thumb control: never
+ // a full-screen warning or a new button. It starts early enough at
+ // 100+ m/s for the driver to react and disappears naturally on exit.
+ const cue=gripApexCue(flight.s,flight.grounded,
+  uiState.gripHeld||uiState.keys.has("ShiftLeft")||
+  uiState.keys.has("ShiftRight"),flight.gripActive,GRIP_APEX);
+ if(cue.visible){
+  if(!gripCueVisible){gripCueDisplays++;event("grip_guidance_start",{
+   lap:flight.lap,distanceMeters:cue.distanceMeters});}
+  UI.gripCue.classList.remove("hidden");
+  if(UI.gripCue.textContent!==cue.text)UI.gripCue.textContent=cue.text;
+ }else UI.gripCue.classList.add("hidden");
+ gripCueVisible=cue.visible;
+ UI.grip.classList.toggle("apex-approach",cue.visible&&!cue.active);
+ UI.grip.classList.toggle("apex-engaged",cue.active);
+ UI.hud.classList.toggle("hud-rail-contact",railFeedback.pulse>.025);
+ UI.hud.style.setProperty("--rail-contact",
+  String(Math.min(.92,railFeedback.pulse*.92).toFixed(3)));
  UI.flight.textContent=!flight.grounded?
    (flight.lastJumpLap===flight.lap?
    flight.trickReady?"AIR TRICK · 360° COMPLETE":
@@ -522,6 +572,8 @@ function refreshHud(){
       Math.abs(bankDegreesAt(flight.s))>145&&Math.abs(bankDegreesAt(flight.s))<215?
         "CEILING RUN · MAGNETIC LOCK":
         "CORKSCREW · "+Math.round(Math.abs(bankDegreesAt(flight.s)))+"°"):
+    railFeedback.pulse>.17?"RAIL CONTACT · RECENTER": 
+    cue.visible&&!flight.gripActive?"GRIP + STEER RIGHT · PRECISION APEX":
     flight.gripApexActive?"GRIP APEX · "+
       (flight.gripActive?"PRECISION HOLD":"HOLD GRIP + STEER"):
     flight.magneticActive?"MAGNETIC WALL · "+
@@ -537,7 +589,7 @@ function maybeShowCue(){
  const localS=((flight.s%CIRCUIT.lapLength)+CIRCUIT.lapLength)%CIRCUIT.lapLength;
  for(const hint of [
    {id:"opening",start:107,end:125,text:"FIRST SWEEP AHEAD · STEER INTO THE CORNER"},
-   {id:"grip-apex",start:731,end:757,text:"GRIP APEX AHEAD · HOLD GRIP + STEER"},
+   // The persistent cue next to GRIP replaces a fleeting apex toast.
    {id:"precision-apex",start:972,end:982,text:"GRIP APEX CLEAR · STRAIGHTEN UP"},
    {id:"s-link",start:1114,end:1127,text:"S-COMPLEX · THREE RHYTHMIC BENDS"},
    {id:"finale",start:2108,end:2124,text:"VELOCITY FINALE · OPEN THE THROTTLE"},
@@ -570,6 +622,8 @@ function integrate(dt){
  if(result.gripActivated)
   event("grip_activated",{steer:+steer.toFixed(2),
    yawMultiplier:GRIP_SPEC.yawMultiplier,
+   normalFactor:+normalYawFactorAt(flight.currentSpeed).toFixed(3),
+   actualRelativeGain:+steeringBalanceAt(flight.currentSpeed).relativeGripGain.toFixed(2),
    maxSpeedPenaltyPercent:GRIP_SPEC.maxSpeedPenalty*100});
  if(result.boostActivated){
   event("boost_activated",{pad:result.boostActivated,multiplier:BOOST_CONFIG.multiplier});
@@ -580,6 +634,12 @@ function integrate(dt){
  }
  if(flight.shield<previousHudShield)reactiveHud.onImpact();
  previousHudShield=flight.shield;
+ if(result.railContactStarted){
+  startRailFeedback(railFeedback,flight.lastRailSide);
+  event("rail_scrub_started",{side:flight.lastRailSide,
+   at:+flight.lateral.toFixed(2),
+   scrubIntensity:+flight.railScrubIntensity.toFixed(3)});
+ }
  if(flight.railContacts>lastRailLog){
    lastRailLog=flight.railContacts;
    event("guardrail_contact",{side:flight.lastRailSide,at:+flight.lateral.toFixed(2)});
@@ -601,6 +661,9 @@ function integrate(dt){
   flashToast("360° AIR ROLL · NAIL THE LANDING",740);
  }
  if(result.landed){
+   // Camera-only short landing compress/recover impulse. Authoritative
+   // flight physics and the actual landing impact remain untouched.
+   if(CAMERA_GAIN>0)triggerKineticLanding(kineticCamera,result.landImpact);
    const p=positionAt(flight.s,flight.lateral,0);
    premiumFX?.onLand({...p,heading:flight.heading});
    event("landing",{impact:+result.landImpact.toFixed(2),
@@ -784,6 +847,22 @@ function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicSta
  CAMERA_VIEW.worldX=view.worldX;CAMERA_VIEW.worldZ=view.worldZ;
  CAMERA_VIEW.y=view.y;CAMERA_VIEW.s=view.s;CAMERA_VIEW.steering=view.steering;
  CAMERA_VIEW.clearance=clearance;
+ const localS=((view.s%CIRCUIT.lapLength)+CIRCUIT.lapLength)%CIRCUIT.lapLength;
+ KINETIC_VIEW.speed=flight.currentSpeed;
+ KINETIC_VIEW.steering=view.steering;
+ KINETIC_VIEW.yawRate=view.yawRate;
+ KINETIC_VIEW.gripIntensity=flight.gripIntensity;
+ KINETIC_VIEW.grounded=view.grounded;
+ KINETIC_VIEW.clearance=clearance;
+ KINETIC_VIEW.wall=localS>=MAGNETIC_WALL.start&&localS<MAGNETIC_WALL.end;
+ KINETIC_VIEW.corkscrew=localS>=CORKSCREW.start&&localS<CORKSCREW.end;
+ if(CAMERA_GAIN>0)stepKineticCamera(kineticCamera,
+  uiState.mode==="playing"?dt:0,KINETIC_VIEW);
+ CAMERA_VIEW.kineticSideMeters=kineticCamera.sideMeters*CAMERA_GAIN;
+ CAMERA_VIEW.kineticDistanceMeters=kineticCamera.distanceMeters*CAMERA_GAIN;
+ CAMERA_VIEW.kineticEyeLiftMeters=kineticCamera.eyeLiftMeters*CAMERA_GAIN;
+ CAMERA_VIEW.kineticLandingMeters=kineticCamera.landingMeters*CAMERA_GAIN;
+ CAMERA_VIEW.kineticLookLiftMeters=kineticCamera.lookLiftMeters*CAMERA_GAIN;
  const framing=chasePose(CAMERA_VIEW,motion,cinematic,cinematicTuning,CAMERA_INFO);
  CAMERA_TARGET_POSITION.set(framing.x,framing.y,framing.z);
  CAMERA_TARGET_LOOK.set(framing.lookX,framing.lookY,framing.lookZ);
@@ -803,14 +882,22 @@ function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicSta
  // Partial camera roll holds a legible horizon while the track goes vertical.
   // Roll is 100% through the full revolution: 46% would hard-snap the
  // horizon at -360° -> 0°. The 70° wall retains its gentler partial roll.
- camera.rotateZ(motion.cameraRoll-cameraBankAt(view.s));
- const baseFov=cinematicFov(flight.currentSpeed,TRIAL.startSpeed,cinematicTuning);
+ // Full track roll is retained for the inverted 360° corkscrew; kinetic
+ // lean is mechanically suppressed inside banks rather than subtracting
+ // from the real corkscrew or snapping the horizon on the 360° seam.
+ camera.rotateZ(motion.cameraRoll-cameraBankAt(view.s)+
+  kineticCamera.rollRadians*CAMERA_GAIN);
+ const oldFov=cinematicFov(flight.currentSpeed,TRIAL.startSpeed,cinematicTuning);
+ const kineticFov=kineticFovAt(flight.currentSpeed);
+ const baseFov=clamp(oldFov+(kineticFov-oldFov)*CAMERA_GAIN,65.4,78);
+ const fovConfig=CAMERA_GAIN===0?CLASSIC_BOOST_FOV:BOOST_SPRING;
  const targetFov=boostFovTarget(baseFov,Math.max(flight.boostMultiplier,
-  flight.landingBoostMultiplier),BOOST_CONFIG.multiplier);
- const fovResponse=boostFovResponse(camera.fov,targetFov);
+  flight.landingBoostMultiplier),BOOST_CONFIG.multiplier,fovConfig);
+ const fovResponse=boostFovResponse(camera.fov,targetFov,fovConfig);
  camera.fov=lerp(camera.fov,targetFov,1-Math.exp(-dt*fovResponse));
  boostSpring.peakFovBonusDegrees=Math.max(boostSpring.peakFovBonusDegrees,
   camera.fov-baseFov);
+ maxKineticFov=Math.max(maxKineticFov,camera.fov);
  cinematic.maxCameraLateralMeters=Math.max(cinematic.maxCameraLateralMeters,Math.abs(framing.sideOffsetMeters));
  camera.updateProjectionMatrix();
 }
@@ -833,6 +920,10 @@ function loop(now){
  }
  if(flight){
    const presentationDt=uiState.mode==="playing"?dt:0;
+   if(uiState.mode==="playing"){
+    stepRailFeedback(railFeedback,dt,flight.railContacting);
+    if(gripCueVisible)gripCueSeconds+=dt;
+   }
    stepVelocityState(velocityState,presentationDt,flight.currentSpeed,
     flight.zoneCruiseSpeed,flight.boostMultiplier);
    premiumSurface?.setVelocityFlow(velocityState.worldFlow,velocityState.flowPhaseMeters);
@@ -846,7 +937,9 @@ function loop(now){
      {...view,trackBank:0},
      uiState.mode==="playing"?dt:0,now/1000,flightTuning);
    // Track preview affects framing only, never yaw/position of the craft.
-   const upcoming=view.s+cinematicTuning.previewMeters;
+   const upcoming=view.s+
+    (cinematicTuning.previewMeters+
+    (kineticCamera.previewMeters-cinematicTuning.previewMeters)*CAMERA_GAIN);
    const lookBias=turnPreview(headingAt(view.s),headingAt(upcoming),cinematicTuning);
    stepCinematic(cinematicState,view,lookBias,uiState.mode==="playing"?dt:0,cinematicTuning);
    placeShip(now/1000,dt,view,motionState,cinematicState);
@@ -896,8 +989,8 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.8.2",trial:TRIAL.id,exportedAt:new Date().toISOString(),
-   visual:{pipeline:"HDR UnrealBloom",tier:"Track Rhythm & GRIP Apex 0.8.2",
+   game:"SKYSHIFT",version:"0.9.0",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   visual:{pipeline:"HDR UnrealBloom",tier:"Kinetic Camera Rig 0.9.0",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -987,10 +1080,25 @@ function exportAudit(){
      banking:"3D elevation, physical magnetic 70° wall and full 360° inverted corkscrew",
      flightMotion:"Real 3D hover, ballistic leap, wall grip and track-local 360° corkscrew steering",
      flightTuning:{...flightTuning},cameraTuning:{...cinematicTuning},
+     kineticCamera:{...KINETIC_CAMERA,mode:CAMERA_MODE,
+      gain:CAMERA_GAIN,...kineticCameraAudit(kineticCamera),
+      maxObservedFovDegrees:+maxKineticFov.toFixed(2),
+      comparesSamePhysics:true,unchangedThreeDimensionalTrack:true,
+      realFlightSteeringOnly:true},
      maxCameraPreviewDegrees:+cinematicState.maxPreviewDegrees.toFixed(2),
      maxCosmeticNoseYawDegrees:+cinematicState.maxNoseDegrees.toFixed(2),
      maxEngineResponse:+cinematicState.maxEngineEnergy.toFixed(3),
      maxCameraSideOffsetMeters:+cinematicState.maxCameraLateralMeters.toFixed(2),
+      steeringAuthority:{...STEERING_AUTHORITY,
+       atStartSpeed:steeringBalanceAt(TRIAL.startSpeed),
+       atLastZone:steeringBalanceAt(TRIAL.endSpeed),
+       minNormalFactorObserved:+flight.minNormalYawFactor.toFixed(3),
+       peakActualYawFactorObserved:+flight.maxActualYawFactor.toFixed(3),
+       peakGripRelativeGainObserved:+flight.peakGripRelativeGain.toFixed(3),
+       normalSteeringSeconds:+flight.normalSteeringSeconds.toFixed(2),
+       referenceMaxYawDegreesPerSecond:+(TRIAL.maxYawRate*180/Math.PI).toFixed(1),
+       gripMaxYawDegreesPerSecond:+(TRIAL.maxYawRate*
+        STEERING_AUTHORITY.fullGripFactor*180/Math.PI).toFixed(1)},
       precisionGrip:{version:GRIP_SPEC.version,
        yawMultiplier:GRIP_SPEC.yawMultiplier,
        maxSpeedPenaltyPercent:GRIP_SPEC.maxSpeedPenalty*100,
@@ -1032,17 +1140,24 @@ function exportAudit(){
      maxBankDegrees:+flight.peakBankDeg.toFixed(2),
       peakYawRateDegreesPerSecond:+flight.peakYawRateDeg.toFixed(2),
       maxLateralMeters:+flight.maxLateral.toFixed(2),
-      steeringModel:"Damped pilot yaw with optional GRIP authority",
+      steeringModel:"Speed-aware normal yaw / separate GRIP carve / original pilot-owned damping",
       gripActivations:flight.gripActivations,
       gripActiveSeconds:+flight.gripActiveSeconds.toFixed(2),
       gripDistanceMeters:+flight.gripDistanceMeters.toFixed(1),
       gripSpeedLossMeters:+flight.gripSpeedLossMeters.toFixed(1),
       gripPeakIntensity:+flight.gripPeakIntensity.toFixed(3),
       gripPeakYawDeg:+flight.gripPeakYawDeg.toFixed(1),
+      racingFeel:{...RACING_FEEL,railFeedbackCount:railFeedback.contacts,
+       cueDisplays:gripCueDisplays,cueVisibleSeconds:+gripCueSeconds.toFixed(2),
+       peakRailFlash:railFeedback.maxPulse,
+       projection:PROJECTION_083,
+       railScrubIntensityPeak:+flight.railScrubPeak.toFixed(3)},
       gripApex:{...GRIP_APEX,
        entries:flight.gripApexEntries,exits:flight.gripApexExits,
        cleanExits:flight.gripApexCleanExits,
        gripSeconds:+flight.gripApexGripSeconds.toFixed(2),
+       warningDisplays:gripCueDisplays,
+       warningVisibleSeconds:+gripCueSeconds.toFixed(2),
        firstCornerMeters:160.13576152,
        originalFirstCornerMeters:395.13576152,
        wallToCorkscrewSpacingMeters:CORKSCREW.start-MAGNETIC_WALL.end},
@@ -1110,7 +1225,7 @@ function exportAudit(){
        corkscrewPeakDegrees:+flight.corkscrewPeakDegrees.toFixed(1),
       speedMetersPerSecondEnd:TRIAL.endSpeed,
       speedMultiplierVs042:+(TRIAL.endSpeed/22).toFixed(2),
-      maxYawDegreesPerSecond:+(TRIAL.maxYawRate*180/Math.PI).toFixed(1),
+      maxYawDegreesPerSecond:+(TRIAL.maxYawRate*STEERING_AUTHORITY.fullGripFactor*180/Math.PI).toFixed(1),
       courseSegments:COURSE_SEGMENTS.length,
       curveCount:COURSE_SEGMENTS.filter(c=>c.type==="turn").length,
      maxHeadingErrorDegrees:+flight.maxHeadingErrorDeg.toFixed(1),
@@ -1118,6 +1233,9 @@ function exportAudit(){
        +(flight.totalHeadingError/flight.headingSamples).toFixed(1):null,
      offRoadSeconds:+flight.offRoadSeconds.toFixed(2),
      railContacts:flight.railContacts,
+     railContactStarts:flight.railContactStarts,
+     railScrubSeconds:+flight.railScrubSeconds.toFixed(2),
+     railScrubLossMeters:+flight.railScrubLossMeters.toFixed(2),
      railSeconds:+flight.railSeconds.toFixed(2),
      railMaxPenetrationMeters:+flight.railMaxPenetration.toFixed(3),
      manualSteering:true,
@@ -1139,7 +1257,7 @@ function exportAudit(){
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-track-rhythm-v082-audit.json";
+ a.href=url;a.download="skyshift-kinetic-camera-v090-audit.json";
  document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1800);
 }

@@ -1,36 +1,34 @@
 import * as THREE from "three";
 import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
- heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,elevationAudit,
+ heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,elevationAudit,
  newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
-} from "./trial-v083.mjs";
-import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v082.mjs";
-import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v083.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
-import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0496.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v083.mjs";
-import { MESH_SPEC } from "./smooth-track-v083.mjs";
+} from "../../trial-v082.mjs";
+import { BOOST_PADS,BOOST_CONFIG } from "../../flight/boost/boost-v082.mjs";
+import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "../../premium-track-v082.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "../../zone-wave-v060.mjs";
+import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "../../manta-blade-v0484.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "../../engine-trails-v0496.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v0498.mjs";
+import { MESH_SPEC } from "../../smooth-track-v082.mjs";
 import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./core/frame-pacing-v080.mjs";
-import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
-import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "./cinematic-v083.mjs";
-import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./flight/boost/boost-spring-v0495.mjs";
-import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "./velocity-language-v0496.mjs";
-import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier-v083.mjs";
-import { installSpaceBackdrop } from "./space-v0496.mjs";
-import { createContactShadow } from "./ship-v034.mjs";
-import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v083.mjs";
-import {HUD_SPEC,createReactiveHud} from "./reactive-hud-v04991.mjs";
-import {GRIP_SPEC} from "./precision-grip-v061.mjs";
-import {RACING_FEEL,gripApexCue,createRailFeedbackState,
- startRailFeedback,stepRailFeedback} from "./flight/racing-feel-v083.mjs";
-import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./flight/side-thrusters-v061.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
+} from "../../core/frame-pacing-v080.mjs";
+import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "../../flight-motion-v044.mjs";
+import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "../../cinematic-v082.mjs";
+import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "../../flight/boost/boost-spring-v0495.mjs";
+import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "../../velocity-language-v0496.mjs";
+import { installAeroBarriers,AERO_BARRIER } from "../../tracks/barriers/aero-barrier-v082.mjs";
+import { installSpaceBackdrop } from "../../space-v0496.mjs";
+import { createContactShadow } from "../../ship-v034.mjs";
+import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "../../image-clarity-v0498.mjs";
+import {HUD_SPEC,createReactiveHud} from "../../reactive-hud-v04991.mjs";
+import {GRIP_SPEC} from "../../precision-grip-v061.mjs";
+import {SIDE_THRUSTER_SPEC,createSideThrusters} from "../../flight/side-thrusters-v061.mjs";
+import { LUMINANCE,validateLuminance } from "../../luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);
@@ -45,7 +43,7 @@ const UI={
  flight:$("flight-state"),toast:$("toast"),banner:$("zone-banner"),
  bannerNum:$("zone-banner-number"),bannerName:$("zone-banner-name"),
  flash:$("zone-flash"),stick:$("stick"),knob:$("stick-knob"),
- jump:$("jump-btn"),grip:$("grip-btn"),gripCue:$("grip-cue"),error:$("error"),finalTitle:$("final-title"),
+ jump:$("jump-btn"),grip:$("grip-btn"),error:$("error"),finalTitle:$("final-title"),
  finalDistance:$("final-distance"),finalSector:$("final-zone"),
   lapNumber:$("lap-number"),lapInfo:$("lap-info"),finalLaps:$("final-laps"),
  finalBest:$("personal-best"),finalTime:$("flight-time"),
@@ -88,8 +86,6 @@ const CAMERA_TARGET_POSITION=new THREE.Vector3();
 const CAMERA_TARGET_LOOK=new THREE.Vector3();
 const telemetry=[];
 let previousSector=0,sceneReady=false,fullscreenController=null,lastRailLog=0;
-let railFeedback=createRailFeedbackState();
-let gripCueVisible=false,gripCueSeconds=0,gripCueDisplays=0;
 let zoneWave=newZoneWaveState();
 let waveSmokeHold=false;
 const SHADOW_NORMAL=new THREE.Vector3(),SHADOW_PLANE_NORMAL=new THREE.Vector3(0,0,1);
@@ -386,10 +382,6 @@ function startImmersiveTrial(){
  enterPlaying();
 }
 function clearInput(){
- UI.gripCue?.classList.add("hidden");
- UI.grip.classList.remove("apex-approach","apex-engaged");
- UI.hud.classList.remove("hud-rail-contact");
- UI.hud.style.setProperty("--rail-contact","0");
  uiState.inputX=0;uiState.jumpPressed=false;uiState.jumpHeld=false;
  uiState.gripHeld=false;uiState.gripPointer=null;
  uiState.keys.clear();uiState.stickPointer=null;
@@ -403,8 +395,6 @@ function clearInput(){
 }
 function resetFlight(){
  flight=newFlightState();previousSector=0;lastRailLog=0;
- railFeedback=createRailFeedbackState();
- gripCueVisible=false;gripCueSeconds=0;gripCueDisplays=0;
  previousHudShield=flight.shield;
  reactiveHud.reset({shield:flight.shield});
  zoneWave=newZoneWaveState();premiumSurface?.setWaveState(zoneWave);
@@ -520,24 +510,6 @@ function refreshHud(){
  UI.jump.classList.add("hidden");
  UI.progress.style.width=(flight.s/TRIAL.raceLength*100).toFixed(1)+"%";
  const curve=curvatureAt(flight.s),section=sectorAt(flight.s);
- // One small persistent prompt by the existing GRIP thumb control: never
- // a full-screen warning or a new button. It starts early enough at
- // 100+ m/s for the driver to react and disappears naturally on exit.
- const cue=gripApexCue(flight.s,flight.grounded,
-  uiState.gripHeld||uiState.keys.has("ShiftLeft")||
-  uiState.keys.has("ShiftRight"),flight.gripActive,GRIP_APEX);
- if(cue.visible){
-  if(!gripCueVisible){gripCueDisplays++;event("grip_guidance_start",{
-   lap:flight.lap,distanceMeters:cue.distanceMeters});}
-  UI.gripCue.classList.remove("hidden");
-  if(UI.gripCue.textContent!==cue.text)UI.gripCue.textContent=cue.text;
- }else UI.gripCue.classList.add("hidden");
- gripCueVisible=cue.visible;
- UI.grip.classList.toggle("apex-approach",cue.visible&&!cue.active);
- UI.grip.classList.toggle("apex-engaged",cue.active);
- UI.hud.classList.toggle("hud-rail-contact",railFeedback.pulse>.025);
- UI.hud.style.setProperty("--rail-contact",
-  String(Math.min(.92,railFeedback.pulse*.92).toFixed(3)));
  UI.flight.textContent=!flight.grounded?
    (flight.lastJumpLap===flight.lap?
    flight.trickReady?"AIR TRICK · 360° COMPLETE":
@@ -550,8 +522,6 @@ function refreshHud(){
       Math.abs(bankDegreesAt(flight.s))>145&&Math.abs(bankDegreesAt(flight.s))<215?
         "CEILING RUN · MAGNETIC LOCK":
         "CORKSCREW · "+Math.round(Math.abs(bankDegreesAt(flight.s)))+"°"):
-    railFeedback.pulse>.17?"RAIL CONTACT · RECENTER": 
-    cue.visible&&!flight.gripActive?"GRIP + STEER RIGHT · PRECISION APEX":
     flight.gripApexActive?"GRIP APEX · "+
       (flight.gripActive?"PRECISION HOLD":"HOLD GRIP + STEER"):
     flight.magneticActive?"MAGNETIC WALL · "+
@@ -567,7 +537,7 @@ function maybeShowCue(){
  const localS=((flight.s%CIRCUIT.lapLength)+CIRCUIT.lapLength)%CIRCUIT.lapLength;
  for(const hint of [
    {id:"opening",start:107,end:125,text:"FIRST SWEEP AHEAD · STEER INTO THE CORNER"},
-   // The persistent cue next to GRIP replaces a fleeting apex toast.
+   {id:"grip-apex",start:731,end:757,text:"GRIP APEX AHEAD · HOLD GRIP + STEER"},
    {id:"precision-apex",start:972,end:982,text:"GRIP APEX CLEAR · STRAIGHTEN UP"},
    {id:"s-link",start:1114,end:1127,text:"S-COMPLEX · THREE RHYTHMIC BENDS"},
    {id:"finale",start:2108,end:2124,text:"VELOCITY FINALE · OPEN THE THROTTLE"},
@@ -610,12 +580,6 @@ function integrate(dt){
  }
  if(flight.shield<previousHudShield)reactiveHud.onImpact();
  previousHudShield=flight.shield;
- if(result.railContactStarted){
-  startRailFeedback(railFeedback,flight.lastRailSide);
-  event("rail_scrub_started",{side:flight.lastRailSide,
-   at:+flight.lateral.toFixed(2),
-   scrubIntensity:+flight.railScrubIntensity.toFixed(3)});
- }
  if(flight.railContacts>lastRailLog){
    lastRailLog=flight.railContacts;
    event("guardrail_contact",{side:flight.lastRailSide,at:+flight.lateral.toFixed(2)});
@@ -869,10 +833,6 @@ function loop(now){
  }
  if(flight){
    const presentationDt=uiState.mode==="playing"?dt:0;
-   if(uiState.mode==="playing"){
-    stepRailFeedback(railFeedback,dt,flight.railContacting);
-    if(gripCueVisible)gripCueSeconds+=dt;
-   }
    stepVelocityState(velocityState,presentationDt,flight.currentSpeed,
     flight.zoneCruiseSpeed,flight.boostMultiplier);
    premiumSurface?.setVelocityFlow(velocityState.worldFlow,velocityState.flowPhaseMeters);
@@ -936,8 +896,8 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.8.3",trial:TRIAL.id,exportedAt:new Date().toISOString(),
-   visual:{pipeline:"HDR UnrealBloom",tier:"GRIP Clarity & Racing Feel 0.8.3",
+   game:"SKYSHIFT",version:"0.8.2",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   visual:{pipeline:"HDR UnrealBloom",tier:"Track Rhythm & GRIP Apex 0.8.2",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -1079,17 +1039,10 @@ function exportAudit(){
       gripSpeedLossMeters:+flight.gripSpeedLossMeters.toFixed(1),
       gripPeakIntensity:+flight.gripPeakIntensity.toFixed(3),
       gripPeakYawDeg:+flight.gripPeakYawDeg.toFixed(1),
-      racingFeel:{...RACING_FEEL,railFeedbackCount:railFeedback.contacts,
-       cueDisplays:gripCueDisplays,cueVisibleSeconds:+gripCueSeconds.toFixed(2),
-       peakRailFlash:railFeedback.maxPulse,
-       projection:PROJECTION_083,
-       railScrubIntensityPeak:+flight.railScrubPeak.toFixed(3)},
       gripApex:{...GRIP_APEX,
        entries:flight.gripApexEntries,exits:flight.gripApexExits,
        cleanExits:flight.gripApexCleanExits,
        gripSeconds:+flight.gripApexGripSeconds.toFixed(2),
-       warningDisplays:gripCueDisplays,
-       warningVisibleSeconds:+gripCueSeconds.toFixed(2),
        firstCornerMeters:160.13576152,
        originalFirstCornerMeters:395.13576152,
        wallToCorkscrewSpacingMeters:CORKSCREW.start-MAGNETIC_WALL.end},
@@ -1165,9 +1118,6 @@ function exportAudit(){
        +(flight.totalHeadingError/flight.headingSamples).toFixed(1):null,
      offRoadSeconds:+flight.offRoadSeconds.toFixed(2),
      railContacts:flight.railContacts,
-     railContactStarts:flight.railContactStarts,
-     railScrubSeconds:+flight.railScrubSeconds.toFixed(2),
-     railScrubLossMeters:+flight.railScrubLossMeters.toFixed(2),
      railSeconds:+flight.railSeconds.toFixed(2),
      railMaxPenetrationMeters:+flight.railMaxPenetration.toFixed(3),
      manualSteering:true,
@@ -1189,7 +1139,7 @@ function exportAudit(){
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-racing-feel-v083-audit.json";
+ a.href=url;a.download="skyshift-track-rhythm-v082-audit.json";
  document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1800);
 }

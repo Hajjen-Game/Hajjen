@@ -3,43 +3,41 @@ import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,STEERING_AUTHORITY,steeringBalanceAt,normalYawFactorAt,elevationAudit,
  newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
-} from "./trial-v0901.mjs";
-import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v082.mjs";
-import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v0901.mjs";
-import {SHADOW_TUNNEL,inShadowTunnel,tunnelIntensityAt,installShadowTunnel,
- installTunnelRoadShading} from "./shadow-tunnel-v092.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
-import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
-import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0496.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v083.mjs";
-import { MESH_SPEC } from "./smooth-track-v0901.mjs";
+} from "../../trial-v0901.mjs";
+import { BOOST_PADS,BOOST_CONFIG } from "../../flight/boost/boost-v082.mjs";
+import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "../../premium-track-v0901.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "../../zone-wave-v060.mjs";
+import {buildMantaBlade,MANTA_IDENTITY,ENGINE_SOCKETS} from "../../manta-blade-v0484.mjs";
+import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "../../engine-trails-v0496.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v083.mjs";
+import { MESH_SPEC } from "../../smooth-track-v0901.mjs";
 import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
-} from "./core/frame-pacing-v080.mjs";
-import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "./flight-motion-v044.mjs";
+} from "../../core/frame-pacing-v080.mjs";
+import { MOTION_DEFAULTS,createFlightMotionState,stepFlightMotion } from "../../flight-motion-v044.mjs";
 import {SIGNATURE_FLIGHT,createSignatureFlightState,stepSignatureFlight,
  triggerSignatureJump,triggerSignatureLanding,triggerSignatureBoost,
- signatureFlightAudit} from "./flight/signature-flight-v091.mjs";
-import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "./cinematic-v0901.mjs";
-import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "./flight/boost-spring-v090.mjs";
-import {BOOST_SPRING as CLASSIC_BOOST_FOV} from "./flight/boost/boost-spring-v0495.mjs";
-import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "./velocity-language-v0496.mjs";
+ signatureFlightAudit} from "../../flight/signature-flight-v091.mjs";
+import { CINEMATIC_DEFAULTS,createCinematicState,turnPreview,stepCinematic,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "../../cinematic-v0901.mjs";
+import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "../../flight/boost-spring-v090.mjs";
+import {BOOST_SPRING as CLASSIC_BOOST_FOV} from "../../flight/boost/boost-spring-v0495.mjs";
+import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "../../velocity-language-v0496.mjs";
 import {KINETIC_CAMERA,kineticFovAt,createKineticCameraState,
  stepKineticCamera,triggerKineticLanding,kineticCameraAudit}
- from "./flight/kinetic-camera-v090.mjs";
-import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier-v0901.mjs";
-import { installSpaceBackdrop } from "./space-v0496.mjs";
-import { createContactShadow } from "./ship-v034.mjs";
-import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v083.mjs";
-import {HUD_SPEC,createReactiveHud} from "./reactive-hud-v04991.mjs";
-import {GRIP_SPEC} from "./flight/precision-grip-v084.mjs";
+ from "../../flight/kinetic-camera-v090.mjs";
+import { installAeroBarriers,AERO_BARRIER } from "../../tracks/barriers/aero-barrier-v0901.mjs";
+import { installSpaceBackdrop } from "../../space-v0496.mjs";
+import { createContactShadow } from "../../ship-v034.mjs";
+import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "../../image-clarity-v083.mjs";
+import {HUD_SPEC,createReactiveHud} from "../../reactive-hud-v04991.mjs";
+import {GRIP_SPEC} from "../../flight/precision-grip-v084.mjs";
 import {RACING_FEEL,gripApexCue,createRailFeedbackState,
- startRailFeedback,stepRailFeedback} from "./flight/racing-feel-v083.mjs";
-import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./flight/side-thrusters-v061.mjs";
-import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
+ startRailFeedback,stepRailFeedback} from "../../flight/racing-feel-v083.mjs";
+import {SIDE_THRUSTER_SPEC,createSideThrusters} from "../../flight/side-thrusters-v061.mjs";
+import { LUMINANCE,validateLuminance } from "../../luminance-v0331.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");
 
 const $=id=>document.getElementById(id);
@@ -80,13 +78,12 @@ const themes=COLOR.map(p=>({
 const targetSky=new THREE.Color(),targetFog=new THREE.Color(),
  targetAccent=new THREE.Color();
 const SPECTRAL_WHITE=new THREE.Color(0xf5fbff);
-const SHADOW_VOID=new THREE.Color(SHADOW_TUNNEL.voidHex);
 const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,gripHeld:false,gripPointer:null,stickPointer:null,
  keys:new Set(),bannerTimeout:null,toastTimeout:null,trackHint:-1};
 const worldClock={last:performance.now(),accum:0};
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null;
-let neonKit,neonPipeline,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel;
+let neonKit,neonPipeline,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop;
 let cameraLook=new THREE.Vector3(),shadowMesh,premiumFX,sideThrusters;
 let perfFrames=0,perfTotal=0,perfMin=200;
 let renderSamples=0,renderCallTotal=0,renderCallPeak=0,triangleTotal=0;
@@ -118,7 +115,6 @@ let previousSector=0,sceneReady=false,fullscreenController=null,lastRailLog=0;
 let railFeedback=createRailFeedbackState();
 let gripCueVisible=false,gripCueSeconds=0,gripCueDisplays=0;
 let zoneWave=newZoneWaveState();
-let tunnelInside=false,tunnelEntries=0,tunnelExits=0,tunnelSeconds=0,tunnelMaxIntensity=0;
 let waveSmokeHold=false;
 const SHADOW_NORMAL=new THREE.Vector3(),SHADOW_PLANE_NORMAL=new THREE.Vector3(0,0,1);
 
@@ -298,8 +294,6 @@ function buildDecor(){
  for(const sector of CIRCUIT.sectors.slice(1))
   makeBillboard(sector.name,sector.start+45,10.2,21,0);
  makeBillboard("SKYLINE LEAP",SKYLINE_LEAP.start-50,9.4,15,0);
- // Portal warning is safely above the racing lane, after the wall ride.
- makeBillboard("SHADOW TUNNEL",SHADOW_TUNNEL.start-83,11,15,0);
 }
 function makeShip(){
   // Manta Blade silhouette: broad delta wings, open trailing scallop, twin inset thrust slots.
@@ -362,10 +356,6 @@ function initScene(){
  world=new THREE.Group();scene.add(world);
  buildRoad();
  identitySurface=installAeroBarriers(THREE,world);
- // Static 760m architecture and preserved high-energy road markings.
- installTunnelRoadShading(premiumSurface.material);
- shadowTunnel=installShadowTunnel(THREE,world);
- shadowTunnel.setAccent(neonKit.worldAccent);
  // Always retain white core and bloom. Disable only optional filaments
  // when navigator reports a low-memory device.
  const waveDetail=limitedMemory?"low":"high";
@@ -441,14 +431,11 @@ function resetFlight(){
  gripCueVisible=false;gripCueSeconds=0;gripCueDisplays=0;
  previousHudShield=flight.shield;
  reactiveHud.reset({shield:flight.shield});
- tunnelInside=false;tunnelEntries=0;tunnelExits=0;
- tunnelSeconds=0;tunnelMaxIntensity=0;
  zoneWave=newZoneWaveState();premiumSurface?.setWaveState(zoneWave);
  identitySurface?.setWaveState(zoneWave);
  scene?.background?.copy(themes[0].skyColor);
  scene?.fog?.color.copy(themes[0].fogColor);
  neonKit?.updateAccent(COLOR[0].color,1);
- if(neonKit)shadowTunnel?.setAccent(neonKit.worldAccent);
  motionState=createFlightMotionState(flight.heading);
  cinematicState=createCinematicState();
  kineticCamera=createKineticCameraState();
@@ -610,7 +597,7 @@ function maybeShowCue(){
    // The persistent cue next to GRIP replaces a fleeting apex toast.
    {id:"precision-apex",start:972,end:982,text:"GRIP APEX CLEAR · STRAIGHTEN UP"},
    {id:"s-link",start:1114,end:1127,text:"S-COMPLEX · THREE RHYTHMIC BENDS"},
-   {id:"shadow",start:1960,end:1982,text:"SHADOW TUNNEL AHEAD · FOLLOW THE GLOW"},
+   {id:"finale",start:2108,end:2124,text:"VELOCITY FINALE · OPEN THE THROTTLE"},
     {id:"magnetic",start:1596,end:1615,text:"MAGNETIC WALL AHEAD · HOLD YOUR LINE"},
     {id:"corkscrew",start:2925,end:2950,text:"CORKSCREW AHEAD · FULL ROLL · STAY ON THE TRACK"}
  ]){
@@ -765,14 +752,6 @@ function integrate(dt){
    speedStepPercent:+((TRIAL.zoneSpeedStep-1)*100).toFixed(1)});
   announceSector(wave.stage);
  }
- const insideNow=inShadowTunnel(flight.s);
- if(insideNow&&!tunnelInside){
-  tunnelEntries++;event("shadow_tunnel_enter",{lap:flight.lap});
- }else if(!insideNow&&tunnelInside){
-  tunnelExits++;event("shadow_tunnel_exit",{lap:flight.lap});
- }
- tunnelInside=insideNow;
- if(insideNow)tunnelSeconds+=dt;
  maybeShowCue();
  if(result.finished)endRun(true);
  else if(flight.failed)endRun(false);
@@ -790,16 +769,10 @@ function updatePalette(dt){
  const nearHorizon=horizonWaveCue(zoneWave,flight.s);
  const resonance=waveResonanceStrength(zoneWave,flight.elapsed);
  targetFog.lerp(SPECTRAL_WHITE,nearHorizon*.038+resonance*.018);
- // Spatial darkness reduces atmosphere wash while leaving track HDR intact.
- const shadow=tunnelIntensityAt(flight.s);
- targetSky.lerp(SHADOW_VOID,shadow*.95);
- targetFog.lerp(SHADOW_VOID,shadow*.94);
- tunnelMaxIntensity=Math.max(tunnelMaxIntensity,shadow);
  const k=1-Math.exp(-dt*4.2);
  scene.background.lerp(targetSky,k);
  scene.fog.color.lerp(targetFog,k);
  neonKit.updateAccent(targetAccent,k);
- shadowTunnel?.setAccent(neonKit.worldAccent);
  // Rail lighting samples its own track coordinate inside its shader.
  for(const light of engineLights)light.color.copy(neonKit.worldAccent);
 }
@@ -1045,8 +1018,8 @@ function exportAudit(){
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:"0.9.2",trial:TRIAL.id,exportedAt:new Date().toISOString(),
-   visual:{pipeline:"HDR UnrealBloom",tier:"Shadow Tunnel 0.9.2 · Signature Flight Motion · GRIP-first · Kinetic Camera",
+   game:"SKYSHIFT",version:"0.9.1",trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   visual:{pipeline:"HDR UnrealBloom",tier:"Signature Flight Motion 0.9.1 · GRIP-first · Kinetic Camera",
      renderDpr:renderer.getPixelRatio(),
      internalHdrPixelRatio:neonPipeline?.internalPixelRatio,
      imageClarity:clarityAudit(claritySettings,neonPipeline),
@@ -1075,12 +1048,6 @@ function exportAudit(){
        chevronAccentOnWave:true,
        shoulderMarks:identitySurface.shoulderMarks,
        accentAnchors:identitySurface.accentAnchors},
-     shadowTunnel:{...shadowTunnel?.getStats(),
-      entryCount:tunnelEntries,exitCount:tunnelExits,
-      secondsInside:+tunnelSeconds.toFixed(2),
-      peakAtmosphereDarkness:+tunnelMaxIntensity.toFixed(3),
-      roadGlowPreserved:true,railGlowPreserved:true,
-      whiteCoreWaveVisible:true,threeLapCircuitUnchanged:true},
      sharedDeckNormals:true,
      shipIdentity:{name:MANTA_IDENTITY.name,
         hardEdgeProfile:MANTA_IDENTITY.hardEdgeProfile,
@@ -1328,7 +1295,7 @@ function exportAudit(){
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-shadow-tunnel-v092-audit.json";
+ a.href=url;a.download="skyshift-signature-flight-v091-audit.json";
  document.body.appendChild(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1800);
 }
@@ -1417,34 +1384,6 @@ function installWaveSmokeHook(){
     whiteCoreEnergy:ZONE_WAVE.whiteCoreEnergy,
      whiteBloomMeters:ZONE_WAVE.whiteBloomMeters,
      whiteBloomEnergy:ZONE_WAVE.whiteBloomEnergy};
- };
-}
-// Visual regression only: opt in with ?tunnelSmoke=1.
-// Teleports the test pilot to an existing legal road pose for screenshots.
-// Actual play never invokes or exposes this function.
-function installTunnelSmokeHook(){
- if(new URLSearchParams(location.search).get("tunnelSmoke")!=="1")return;
- window.__skyshiftTunnelSmoke=(at=2435)=>{
-  if(uiState.mode!=="playing")throw new Error("Tunnel smoke requires active race");
-  const s=clamp(at,SHADOW_TUNNEL.start+48,SHADOW_TUNNEL.end-48);
-  const p=positionAt(s,0,0);
-  Object.assign(flight,{s,lap:1,worldX:p.x,worldZ:p.z,
-   lateral:0,y:surfaceHeightAt(s)+TRIAL.hoverHeight,
-   heading:headingAt(s),grounded:true,vy:0,
-   currentSpeed:TRIAL.startSpeed,zoneCruiseSpeed:TRIAL.startSpeed});
-  motionState=createFlightMotionState(flight.heading);
-  cinematicState=createCinematicState();
-  kineticCamera=createKineticCameraState();
-  previousRenderPose=capturePose(flight);currentRenderPose=previousRenderPose;
-  const frame=chasePose(flight,motionState,cinematicState,cinematicTuning,CAMERA_INFO);
-  CAMERA_BASE_POSITION.set(frame.x,frame.y,frame.z);
-  CAMERA_TARGET_POSITION.copy(CAMERA_BASE_POSITION);
-  cameraLook.set(frame.lookX,frame.lookY,frame.lookZ);
-  tunnelInside=inShadowTunnel(flight.s);
-  return {at:flight.s,inside:tunnelInside,
-   darkness:tunnelIntensityAt(flight.s),
-   geometry:shadowTunnel?.getStats(),normalBank:bankAt(s),
-   pilotPhysics:TRIAL.id,cameraMode:CAMERA_MODE};
  };
 }
 function installControls(){
@@ -1537,7 +1476,6 @@ try{
  installFlightTuningPanel();
  resetFlight();
  installWaveSmokeHook();
- installTunnelSmokeHook();
  window.__skyshiftBootReady?.(enterPlaying);
  requestAnimationFrame(loop);
 }catch(error){

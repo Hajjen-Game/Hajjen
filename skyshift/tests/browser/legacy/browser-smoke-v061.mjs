@@ -253,7 +253,7 @@ try{
  const circuit=await page.evaluate(async()=>{
   const [trial,wave,boost,layout]=await Promise.all([
    import("./trial-v061.mjs"),import("./zone-wave-v060.mjs"),
-   import("./flight/boost/boost-v060.mjs"),import("./circuit-layout-v060.mjs")]);
+   import("./flight/boost/boost-v060.mjs"),import("./tracks/shared/circuit-layout-v060.mjs")]);
   const p0=trial.poseAt(0),p1=trial.poseAt(3400),p2=trial.poseAt(6800);
   const flight=trial.newFlightState(),before=flight.currentSpeed;
   trial.setZoneSpeedStage(flight,1);

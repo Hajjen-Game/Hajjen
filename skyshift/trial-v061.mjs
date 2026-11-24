@@ -2,7 +2,7 @@
 import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./flight/boost/boost-v060.mjs";
 import {GRIP_SPEC,initGripState,stepGripState} from "./precision-grip-v061.mjs";
 import {CIRCUIT,CIRCUIT_LENGTH,COURSE_SEGMENTS as LOOP_SEGMENTS,
- lapPosition,sectionAt,circuitPlanSummary} from "./circuit-layout-v060.mjs";
+ lapPosition,sectionAt,circuitPlanSummary} from "./tracks/shared/circuit-layout-v060.mjs";
 export {BOOST_PADS,BOOST_CONFIG,CIRCUIT,circuitPlanSummary};
 // Intentionally small handling lab: geometric straights, circular arcs and
 // quintic-curvature transitions. No incidental heading changes, no jump hazards.

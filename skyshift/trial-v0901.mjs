@@ -4,9 +4,9 @@ import {GRIP_SPEC,initGripState,stepGripState} from "./flight/precision-grip-v08
 import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from "./flight/steering-authority-v0901.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick,
  finalizeAirTrick,stepLandingBoost,settleTrickVisual} from "./flight/air-tricks-v083.mjs";
-import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from "./track-3d-v082.mjs";
+import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from "./tracks/shared/track-3d-v082.mjs";
 import {CIRCUIT,CIRCUIT_LENGTH,COURSE_SEGMENTS as LOOP_SEGMENTS,
- lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from "./circuit-layout-v082.mjs";
+ lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from "./tracks/shared/circuit-layout-v082.mjs";
 export {BOOST_PADS,BOOST_CONFIG,CIRCUIT,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,pitchAt,gradeAt,elevationAudit,AIR_TRICKS,STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt};
 // Intentionally small handling lab: geometric straights, circular arcs and
 // quintic-curvature transitions. No incidental heading changes, no jump hazards.

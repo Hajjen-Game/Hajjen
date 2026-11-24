@@ -297,7 +297,7 @@ jobs:
           node --check skyshift/smooth-track-v051.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v051.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v051.mjs
-          node --check skyshift/circuit-layout-v060.mjs
+          node --check skyshift/tracks/shared/circuit-layout-v060.mjs
           node --check skyshift/flight/boost/boost-v060.mjs
           node --check skyshift/trial-v060.mjs
           node --check skyshift/smooth-track-v060.mjs
@@ -309,21 +309,21 @@ jobs:
           node --check skyshift/flight/side-thrusters-v061.mjs
           node --check skyshift/trial-v061.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v061.mjs
-          node --check skyshift/track-3d-v070.mjs
+          node --check skyshift/tracks/shared/track-3d-v070.mjs
           node --check skyshift/trial-v070.mjs
           node --check skyshift/smooth-track-v070.mjs
           node --check skyshift/premium-track-v070.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v070.mjs
           node --check skyshift/cinematic-v070.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v070.mjs
-          node --check skyshift/track-3d-v071.mjs
+          node --check skyshift/tracks/shared/track-3d-v071.mjs
           node --check skyshift/trial-v071.mjs
           node --check skyshift/smooth-track-v071.mjs
           node --check skyshift/premium-track-v071.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v071.mjs
           node --check skyshift/cinematic-v071.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v071.mjs
-          node --check skyshift/track-3d-v072.mjs
+          node --check skyshift/tracks/shared/track-3d-v072.mjs
           node --check skyshift/trial-v072.mjs
           node --check skyshift/smooth-track-v072.mjs
           node --check skyshift/premium-track-v072.mjs
@@ -334,7 +334,7 @@ jobs:
           node --check skyshift/trial-v080.mjs
           node --check skyshift/core/frame-pacing-v080.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v080.mjs
-          node --check skyshift/track-3d-v081.mjs
+          node --check skyshift/tracks/shared/track-3d-v081.mjs
           node --check skyshift/air-tricks-v081.mjs
           node --check skyshift/trial-v081.mjs
           node --check skyshift/smooth-track-v081.mjs
@@ -342,8 +342,8 @@ jobs:
           node --check skyshift/premium-track-v081.mjs
           node --check skyshift/cinematic-v081.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v081.mjs
-          node --check skyshift/circuit-layout-v082.mjs
-          node --check skyshift/track-3d-v082.mjs
+          node --check skyshift/tracks/shared/circuit-layout-v082.mjs
+          node --check skyshift/tracks/shared/track-3d-v082.mjs
           node --check skyshift/flight/boost/boost-v082.mjs
           node --check skyshift/trial-v082.mjs
           node --check skyshift/smooth-track-v082.mjs

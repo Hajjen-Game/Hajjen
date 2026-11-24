@@ -1,0 +1,575 @@
+{
+  "schemaVersion": 1,
+  "stage": "EF02H",
+  "baseCommit": "121408fc683b2a0ea07b0437655fb22e6336f032",
+  "inventoryWorkflowRun": 45466787144,
+  "previousRootFiles": 242,
+  "candidateRootFiles": 235,
+  "moves": [
+    {
+      "oldPath": "skyshift/circuit-layout-v060.mjs",
+      "newPath": "skyshift/tracks/shared/circuit-layout-v060.mjs",
+      "sha": "a839250ca8e53875b7addf548bc1dc8ecb2315a7"
+    },
+    {
+      "oldPath": "skyshift/circuit-layout-v082.mjs",
+      "newPath": "skyshift/tracks/shared/circuit-layout-v082.mjs",
+      "sha": "853fd228d02aa471cdd2e9876e4a0b7f11ec993e"
+    },
+    {
+      "oldPath": "skyshift/track-3d-v070.mjs",
+      "newPath": "skyshift/tracks/shared/track-3d-v070.mjs",
+      "sha": "188ce12026dd3fdba9577b7ceac8d6d281376ab9"
+    },
+    {
+      "oldPath": "skyshift/track-3d-v071.mjs",
+      "newPath": "skyshift/tracks/shared/track-3d-v071.mjs",
+      "sha": "a82f90b7e3911b7fe6c4bb03c2f974c3b37d4277"
+    },
+    {
+      "oldPath": "skyshift/track-3d-v072.mjs",
+      "newPath": "skyshift/tracks/shared/track-3d-v072.mjs",
+      "sha": "284b19d99c4c16b45c072073bf7d8cd9b456a00c"
+    },
+    {
+      "oldPath": "skyshift/track-3d-v081.mjs",
+      "newPath": "skyshift/tracks/shared/track-3d-v081.mjs",
+      "sha": "99ce3d0f7a5d327d40ce991da80ed5d2618b0c4f"
+    },
+    {
+      "oldPath": "skyshift/track-3d-v082.mjs",
+      "newPath": "skyshift/tracks/shared/track-3d-v082.mjs",
+      "sha": "fe5de6865726a457bdaab8a6a3587d4daffa98f1"
+    }
+  ],
+  "consumers": [
+    {
+      "path": ".github/workflows/skyshift-tests.yml",
+      "sha": "b371edead6d342f9ef0ea6cce2fa6a1a74697e09",
+      "edits": [
+        {
+          "before": "skyshift/circuit-layout-v060.mjs",
+          "after": "skyshift/tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "skyshift/circuit-layout-v082.mjs",
+          "after": "skyshift/tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "skyshift/track-3d-v070.mjs",
+          "after": "skyshift/tracks/shared/track-3d-v070.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "skyshift/track-3d-v071.mjs",
+          "after": "skyshift/tracks/shared/track-3d-v071.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "skyshift/track-3d-v072.mjs",
+          "after": "skyshift/tracks/shared/track-3d-v072.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "skyshift/track-3d-v081.mjs",
+          "after": "skyshift/tracks/shared/track-3d-v081.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "skyshift/track-3d-v082.mjs",
+          "after": "skyshift/tracks/shared/track-3d-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/flight/boost/boost-v060.mjs",
+      "sha": "7e2c555172ecfd807612dd994e5f5ccbbc8948a5",
+      "edits": [
+        {
+          "before": "../../circuit-layout-v060.mjs",
+          "after": "../../tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v060.mjs",
+      "sha": "736932087be052bafe1cb9c928ed17b613f04468",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v061.mjs",
+      "sha": "67a0a504111d18d8673552591920bafb3c28a11e",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v070.mjs",
+      "sha": "b7e6589c104dc85024e218964df99cb642bde5c3",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v070.mjs",
+          "after": "./tracks/shared/track-3d-v070.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v071.mjs",
+      "sha": "52b1da8bc00d346620dfd2b226911e4bc8d34a4f",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v071.mjs",
+          "after": "./tracks/shared/track-3d-v071.mjs",
+          "distinct": 1,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v072.mjs",
+      "sha": "39838736fec5d61881d3db2087304314e7d54a1e",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v072.mjs",
+          "after": "./tracks/shared/track-3d-v072.mjs",
+          "distinct": 1,
+          "count": 3
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+      "sha": "0556e6eba7ae39f06d4a8917dd0863dbde43e419",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v072.mjs",
+          "after": "./tracks/shared/track-3d-v072.mjs",
+          "distinct": 1,
+          "count": 3
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v081.mjs",
+      "sha": "3139a53940c4af6d9141b02e0ea37e41ee36e0c3",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v081.mjs",
+          "after": "./tracks/shared/track-3d-v081.mjs",
+          "distinct": 1,
+          "count": 3
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/circuit-v060.test.mjs",
+      "sha": "8db172bdc01f705d3c6fc8409463d66dee795b5f",
+      "edits": [
+        {
+          "before": "../../circuit-layout-v060.mjs",
+          "after": "../../tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./circuit-layout-v082.mjs",
+          "after": "./tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v060.mjs",
+      "sha": "9157221dd42f8b80cb063a1f6b5b9f3e164206e2",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v061.mjs",
+      "sha": "ec157efa41a9995b4e550a1c2ddce4e2484895b4",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v070.mjs",
+      "sha": "f5cbb2e877bf707ac4d59c4934889464fa3ed0a3",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v070.mjs",
+          "after": "./tracks/shared/track-3d-v070.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v071.mjs",
+      "sha": "bd36f4f8f2178f2d49a5accc863e15154a46f2ca",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v071.mjs",
+          "after": "./tracks/shared/track-3d-v071.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v072.mjs",
+      "sha": "77bf39a3b2989d66456218747056400344dc7d38",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v072.mjs",
+          "after": "./tracks/shared/track-3d-v072.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v080.mjs",
+      "sha": "008ba8e16d6c94f7ad16b0ee339fbb0867981c19",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v072.mjs",
+          "after": "./tracks/shared/track-3d-v072.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v081.mjs",
+      "sha": "3bc57eea97075639f9130f28ea775772539c47a9",
+      "edits": [
+        {
+          "before": "./circuit-layout-v060.mjs",
+          "after": "./tracks/shared/circuit-layout-v060.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v081.mjs",
+          "after": "./tracks/shared/track-3d-v081.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/flight/boost/boost-v082.mjs",
+      "sha": "80b52658cc21af49e760482a43c21aaa2748ebfa",
+      "edits": [
+        {
+          "before": "../../circuit-layout-v082.mjs",
+          "after": "../../tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/risk-reward-v0150.mjs",
+      "sha": "62a33edc29b2ea253cdd9ab6f35e03b62af3f9ec",
+      "edits": [
+        {
+          "before": "./circuit-layout-v082.mjs",
+          "after": "./tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/risk-reward-v0151.mjs",
+      "sha": "a0cfbaf5d42433633d39bfd9b90a790e90acccaa",
+      "edits": [
+        {
+          "before": "./circuit-layout-v082.mjs",
+          "after": "./tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tracks/vault/vault-boost-clarity-v0283.mjs",
+      "sha": "688ace73daad05d3ae243e5dc7b2e2e89d428334",
+      "edits": [
+        {
+          "before": "../../circuit-layout-v082.mjs",
+          "after": "../../tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v01348.mjs",
+      "sha": "358cd221db33e5894ea86149848ab7e9cc16455e",
+      "edits": [
+        {
+          "before": "./circuit-layout-v082.mjs",
+          "after": "./tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v082.mjs",
+          "after": "./tracks/shared/track-3d-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v0150.mjs",
+      "sha": "7dc8b21d1d655d7420d818ab89eb21f9c5df0814",
+      "edits": [
+        {
+          "before": "./circuit-layout-v082.mjs",
+          "after": "./tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v082.mjs",
+          "after": "./tracks/shared/track-3d-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v0151.mjs",
+      "sha": "86e46aa512b581de3e5b09cb5d5f8b2a1be8cd02",
+      "edits": [
+        {
+          "before": "./circuit-layout-v082.mjs",
+          "after": "./tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v082.mjs",
+          "after": "./tracks/shared/track-3d-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v082.mjs",
+      "sha": "f804f64ec3f97469be811a2f63ed28225cd3170c",
+      "edits": [
+        {
+          "before": "./circuit-layout-v082.mjs",
+          "after": "./tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v082.mjs",
+          "after": "./tracks/shared/track-3d-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v083.mjs",
+      "sha": "22797afbf0d5c9ff7e1028d93454614f99446a0c",
+      "edits": [
+        {
+          "before": "./circuit-layout-v082.mjs",
+          "after": "./tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v082.mjs",
+          "after": "./tracks/shared/track-3d-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v084.mjs",
+      "sha": "cbad738880684489622915df0c7b7fba2f16ab9a",
+      "edits": [
+        {
+          "before": "./circuit-layout-v082.mjs",
+          "after": "./tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v082.mjs",
+          "after": "./tracks/shared/track-3d-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v0901.mjs",
+      "sha": "59f59189a01d1fcb11673b17aca715f4f51a6330",
+      "edits": [
+        {
+          "before": "./circuit-layout-v082.mjs",
+          "after": "./tracks/shared/circuit-layout-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        },
+        {
+          "before": "./track-3d-v082.mjs",
+          "after": "./tracks/shared/track-3d-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-3d-v070.test.mjs",
+      "sha": "ffc3e846c9a1012dc0d78be74fa5be13394cfed2",
+      "edits": [
+        {
+          "before": "../../track-3d-v070.mjs",
+          "after": "../../tracks/shared/track-3d-v070.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+      "sha": "1dfa524141ff0a1a2f1b3bbbd5ce863a8b8835cb",
+      "edits": [
+        {
+          "before": "../../track-3d-v071.mjs",
+          "after": "../../tracks/shared/track-3d-v071.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/corkscrew-v072.test.mjs",
+      "sha": "a8a1ce3ef90e52404df1d0d3440fab7a80e9aece",
+      "edits": [
+        {
+          "before": "../../track-3d-v072.mjs",
+          "after": "../../tracks/shared/track-3d-v072.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/shadow-tunnel-v092.test.mjs",
+      "sha": "5edbfc9187ca35c20fd671c90fec0dc7350d0821",
+      "edits": [
+        {
+          "before": "../../track-3d-v082.mjs",
+          "after": "../../tracks/shared/track-3d-v082.mjs",
+          "distinct": 1,
+          "count": 1
+        }
+      ]
+    }
+  ]
+}

@@ -253,7 +253,7 @@ try{
  const circuit=await page.evaluate(async()=>{
   const [trial,wave,boost,layout]=await Promise.all([
    import("./trial-v070.mjs"),import("./zone-wave-v060.mjs"),
-   import("./flight/boost/boost-v060.mjs"),import("./circuit-layout-v060.mjs")]);
+   import("./flight/boost/boost-v060.mjs"),import("./tracks/shared/circuit-layout-v060.mjs")]);
   const p0=trial.poseAt(0),p1=trial.poseAt(3400),p2=trial.poseAt(6800);
   const flight=trial.newFlightState(),before=flight.currentSpeed;
   trial.setZoneSpeedStage(flight,1);
@@ -312,7 +312,7 @@ try{
  // ballistic impulse/landings on first and fastest final lap in Chrome.
  const skylineLeap=await page.evaluate(async()=>{
   const [trial,terrain,deck,rails,cinema]=await Promise.all([
-   import("./trial-v070.mjs"),import("./track-3d-v070.mjs"),
+   import("./trial-v070.mjs"),import("./tracks/shared/track-3d-v070.mjs"),
    import("./smooth-track-v070.mjs"),import("./tracks/barriers/aero-barrier-v070.mjs"),
    import("./cinematic-v070.mjs")]);
   const mesh=deck.createSmoothDeckData(),barrier=rails.createAeroBarrierData();

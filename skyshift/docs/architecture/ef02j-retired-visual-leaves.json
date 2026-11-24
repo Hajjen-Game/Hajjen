@@ -68,10 +68,50 @@
       {
         "before": "        run: node --test skyshift/tests/unit/environment-art-pipeline-v0205.test.mjs skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs skyshift/tests/unit/orbital-hero-v0192.test.mjs skyshift/tests/unit/world-rebuild-v0190.test.mjs skyshift/tests/unit/signature-environment-v0180.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/track.test.mjs skyshift/tests/unit/trial-v02.test.mjs skyshift/tests/unit/handling-fairness-v0135.test.mjs skyshift/tests/unit/track-integrity-v0165.test.mjs skyshift/tests/unit/track-physics-parity-v0165.test.mjs skyshift/tests/unit/grip-trick-lock-v0165.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/ship-hero-loader-v0134.test.mjs skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs skyshift/tests/unit/time-trial-v0130.test.mjs skyshift/tests/unit/racing-experience-v0120.test.mjs skyshift/tests/unit/racing-experience-v0121.test.mjs skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs",
         "after": "        run: node --test skyshift/tests/unit/environment-art-pipeline-v0205.test.mjs skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs skyshift/tests/unit/orbital-hero-v0192.test.mjs skyshift/tests/unit/world-rebuild-v0190.test.mjs skyshift/tests/unit/signature-environment-v0180.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/track.test.mjs skyshift/tests/unit/trial-v02.test.mjs skyshift/tests/unit/handling-fairness-v0135.test.mjs skyshift/tests/unit/track-integrity-v0165.test.mjs skyshift/tests/unit/track-physics-parity-v0165.test.mjs skyshift/tests/unit/grip-trick-lock-v0165.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs skyshift/tests/unit/time-trial-v0130.test.mjs skyshift/tests/unit/racing-experience-v0120.test.mjs skyshift/tests/unit/racing-experience-v0121.test.mjs skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/ui-flow-v0131.test.mjs\n          node --check skyshift/ship-art-pipeline-v0132.mjs\n",
+        "after": "          node --check skyshift/ship-art-pipeline-v0132.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/ui-flow-v0132.test.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v01321.mjs\n",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v01321.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/ui-flow-v01321.test.mjs\n          node --check skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs\n",
+        "after": "          node --check skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/ui-flow-v0133.test.mjs\n          node --check skyshift/blender/stingray-hero-v3-source-v0134.mjs\n",
+        "after": "          node --check skyshift/blender/stingray-hero-v3-source-v0134.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/ui-flow-v0134.test.mjs\n          node --check skyshift/ships/wing-clearance-v01341.mjs\n",
+        "after": "          node --check skyshift/ships/wing-clearance-v01341.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/ui-flow-v01341.test.mjs\n          node --check skyshift/stingray-presentation-v01342.mjs\n",
+        "after": "          node --check skyshift/stingray-presentation-v01342.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/ui-flow-v01342.test.mjs\n          node --check skyshift/stingray-presentation-v01343.mjs\n",
+        "after": "          node --check skyshift/stingray-presentation-v01343.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/ui-flow-v01343.test.mjs\n          node --check skyshift/stingray-presentation-v01344.mjs\n",
+        "after": "          node --check skyshift/stingray-presentation-v01344.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/ui-flow-v01344.test.mjs\n          node --check skyshift/stingray-presentation-v01345.mjs\n",
+        "after": "          node --check skyshift/stingray-presentation-v01345.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/ui-flow-v01345.test.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v01345.test.mjs\n",
+        "after": "          node --check skyshift/tests/unit/rail-scrape-sparks-v01345.test.mjs\n"
       }
     ]
   },
-  "reason": "Census job 138753605310: neither default/comparison graph nor transitive QA literal owners; only historical workflow syntax references and documentation. Current entry uses newer implementations; historical archived game references resolved via existing helper. No active functional commands removed. Second cohort: two superseded loader implementations and two normalized-identical unit suites; replacement current V4 suite retained in PR and postmerge track QA. Actual comparison game, current game and retained v0205 use v01342. Historical source recoverability maintained; test bodies recoverable in exact base commit.",
+  "reason": "Census job 138753605310: neither default/comparison graph nor transitive QA literal owners; only historical workflow syntax references and documentation. Current entry uses newer implementations; historical archived game references resolved via existing helper. No active functional commands removed. Second cohort: two superseded loader implementations and two normalized-identical unit suites; replacement current V4 suite retained in PR and postmerge track QA. Actual comparison game, current game and retained v0205 use v01342. Historical source recoverability maintained; test bodies recoverable in exact base commit. Third cohort: ten versioned UI-flow source readers, replaced by verified current entrypoint UI and real time-trial regression coverage. Historic reader identity checks for this explicit retired cohort are superseded, while the original migration manifests and Git blobs remain recoverable.",
   "retiredTests": [
     {
       "path": "skyshift/tests/unit/ship-hero-loader-v0133.test.mjs",
@@ -88,6 +128,116 @@
       "rollbackCommit": "69fece90cf367efe5120a88ad73acb2a570a9e77",
       "replacement": "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs",
       "reason": "All five test bodies exactly equivalent after normalizing release and asset version identifiers; current default and comparison games use v01342."
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v0131.test.mjs",
+      "sha": "ef12963c1a521e78a5258828c2e43563ad53fdb2",
+      "bytes": 4167,
+      "rollbackCommit": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-ui-flow",
+      "verifiedReplacementHead": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "verificationRun": 45502713337,
+      "reason": "Duplicate release-specific source assertions; verified current HTML, navigation/ghost wiring and executable current time-trial PB persistence on three tracks. Historic version bindings superseded by live entrypoint graph checks."
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v0132.test.mjs",
+      "sha": "ee1723fae0ede70cdd85f997fbddb2af111b913f",
+      "bytes": 4167,
+      "rollbackCommit": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-ui-flow",
+      "verifiedReplacementHead": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "verificationRun": 45502713337,
+      "reason": "Duplicate release-specific source assertions; verified current HTML, navigation/ghost wiring and executable current time-trial PB persistence on three tracks. Historic version bindings superseded by live entrypoint graph checks."
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v01321.test.mjs",
+      "sha": "96a239681378856db2147b1d17a03899c54a0f4c",
+      "bytes": 4190,
+      "rollbackCommit": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-ui-flow",
+      "verifiedReplacementHead": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "verificationRun": 45502713337,
+      "reason": "Duplicate release-specific source assertions; verified current HTML, navigation/ghost wiring and executable current time-trial PB persistence on three tracks. Historic version bindings superseded by live entrypoint graph checks."
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v0133.test.mjs",
+      "sha": "50dad70ee2ae3222d8f66fa5043c0ef1fd27f6d4",
+      "bytes": 4167,
+      "rollbackCommit": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-ui-flow",
+      "verifiedReplacementHead": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "verificationRun": 45502713337,
+      "reason": "Duplicate release-specific source assertions; verified current HTML, navigation/ghost wiring and executable current time-trial PB persistence on three tracks. Historic version bindings superseded by live entrypoint graph checks."
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v0134.test.mjs",
+      "sha": "a04205fca409ceef545993e00104cd31e8657b17",
+      "bytes": 4167,
+      "rollbackCommit": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-ui-flow",
+      "verifiedReplacementHead": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "verificationRun": 45502713337,
+      "reason": "Duplicate release-specific source assertions; verified current HTML, navigation/ghost wiring and executable current time-trial PB persistence on three tracks. Historic version bindings superseded by live entrypoint graph checks."
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v01341.test.mjs",
+      "sha": "3a67e0dfc37fc32636c121cc5a63d235da6eeebf",
+      "bytes": 4190,
+      "rollbackCommit": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-ui-flow",
+      "verifiedReplacementHead": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "verificationRun": 45502713337,
+      "reason": "Duplicate release-specific source assertions; verified current HTML, navigation/ghost wiring and executable current time-trial PB persistence on three tracks. Historic version bindings superseded by live entrypoint graph checks."
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v01342.test.mjs",
+      "sha": "b0b394f90beed83aaa6d9130d9956505ba8f1260",
+      "bytes": 4190,
+      "rollbackCommit": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-ui-flow",
+      "verifiedReplacementHead": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "verificationRun": 45502713337,
+      "reason": "Duplicate release-specific source assertions; verified current HTML, navigation/ghost wiring and executable current time-trial PB persistence on three tracks. Historic version bindings superseded by live entrypoint graph checks."
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v01343.test.mjs",
+      "sha": "f4c79bc262e35494a7ef841a3770e8e3329fbb3c",
+      "bytes": 4190,
+      "rollbackCommit": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-ui-flow",
+      "verifiedReplacementHead": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "verificationRun": 45502713337,
+      "reason": "Duplicate release-specific source assertions; verified current HTML, navigation/ghost wiring and executable current time-trial PB persistence on three tracks. Historic version bindings superseded by live entrypoint graph checks."
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v01344.test.mjs",
+      "sha": "88aed89e8a1e1e30dc101539f078492ae4f78c12",
+      "bytes": 4190,
+      "rollbackCommit": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-ui-flow",
+      "verifiedReplacementHead": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "verificationRun": 45502713337,
+      "reason": "Duplicate release-specific source assertions; verified current HTML, navigation/ghost wiring and executable current time-trial PB persistence on three tracks. Historic version bindings superseded by live entrypoint graph checks."
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v01345.test.mjs",
+      "sha": "accfbff5f225f349601e1f75a751dc46c1d85f40",
+      "bytes": 4190,
+      "rollbackCommit": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-ui-flow",
+      "verifiedReplacementHead": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
+      "verificationRun": 45502713337,
+      "reason": "Duplicate release-specific source assertions; verified current HTML, navigation/ghost wiring and executable current time-trial PB persistence on three tracks. Historic version bindings superseded by live entrypoint graph checks."
     }
   ]
 }

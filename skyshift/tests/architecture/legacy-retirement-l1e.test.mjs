@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {resolve,basename} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {retirementL1E as m,readHistorical} from './legacy-retirement-l1a.mjs';
+import {retirementL1E as m,readHistorical,retiredHistoricalUIReader} from './legacy-retirement-l1a.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
 const sha=s=>{const b=Buffer.from(s);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex')};
 test('L1E: exact Git fixtures, exact reader assertions and no unapproved executable consumers',()=>{
@@ -16,6 +16,7 @@ test('L1E: exact Git fixtures, exact reader assertions and no unapproved executa
   assert.equal(sha(readHistorical(resolve(repo,f.path))),f.sha,f.path);
  }
  for(const r of m.readers){
+  if(retiredHistoricalUIReader(r.path))continue;
   const s=readFileSync(resolve(repo,r.path),'utf8');
   const changed='import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";';
   assert.equal(s.split(changed).length,2,r.path);

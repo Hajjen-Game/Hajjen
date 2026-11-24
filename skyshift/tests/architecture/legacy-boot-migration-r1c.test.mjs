@@ -1,6 +1,6 @@
 import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
-import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
+import {readHistorical,retiredHistoricalUIReader,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // R1C: prove original Git blobs, historical test assertion identity,
 // valid game import targets and cumulative root-file reduction.
@@ -56,10 +56,11 @@ test('R1C keeps exactly 20 original historical bootstrap bodies and game targets
 test('R1C all 24 original historical test Git blobs restore exactly (including UI flow assertions)',()=>{
  assert.equal(manifest.tests.length,24);
  const paths=new Set();
- let changed=0;
+ let changed=0,retired=0;
  for(const unit of manifest.tests){
   assert.ok(!paths.has(unit.path),'Duplicate original test '+unit.path);
   paths.add(unit.path);
+  if(retiredHistoricalUIReader(unit.path)){retired++;continue;}
   const source=readFileSync(resolve(repo,unit.path),'utf8');
   const restored=restoreR1CBootPaths(restoreR1FGamePaths(restoreR1GGamePaths(restoreEF02H(source,unit.path))));
   assert.notEqual(restored,source,'No audited reader change '+unit.path);
@@ -70,9 +71,12 @@ test('R1C all 24 original historical test Git blobs restore exactly (including U
    changed++;
   }
  }
- assert.ok(changed>=24,'Every original historical reader must be updated');
+ assert.equal(retired,4,'Explicit EF02J UI cohort in R1C');
+ assert.ok(changed>=manifest.tests.length-retired,'Every retained historical reader must be updated');
  for(const n of manifest.uiFlowVersions){
-  const source=readFileSync(resolve(root,'tests/unit/ui-flow-v'+n+'.test.mjs'),'utf8');
+  const path='skyshift/tests/unit/ui-flow-v'+n+'.test.mjs';
+  if(retiredHistoricalUIReader(path))continue;
+  const source=readFileSync(resolve(repo,path),'utf8');
   const regexStart=String.raw`assert.match(boot,/import\("\.\.\/\.\.\/game-v`+n;
   assert.ok(restoreR1GGamePaths(source).includes(regexStart),'UI import assertion must verify new resolved path '+n);
  }

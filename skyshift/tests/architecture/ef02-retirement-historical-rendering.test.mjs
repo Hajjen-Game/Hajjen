@@ -17,7 +17,8 @@ test('EF02G/EF02J: obsolete rendering sources are absent, exact, syntax-valid an
  assert.equal(readdirSync(resolve(repo,'skyshift'),{withFileTypes:true}).filter(e=>e.isFile()).length,expectedRootFiles);
  const graph=inventory().literalBrowserGraph.paths;
  assert.equal(retirementEF02J.files.length,4);
- assert.equal(retirementEF02J.retiredTests.length,2);
+ assert.equal(retirementEF02J.retiredTests.length,12);
+ assert.equal(retirementEF02J.retiredTests.filter(f=>f.cohort==='historical-ui-flow').length,10);
  for(const f of retirementEF02J.retiredTests){
   assert.ok(!existsSync(resolve(repo,f.path)),f.path);
   assert.ok(existsSync(resolve(repo,f.replacement)),f.replacement);
@@ -47,6 +48,7 @@ test('EF02G/EF02J: obsolete rendering sources are absent, exact, syntax-valid an
   if(p.startsWith('skyshift/tests/architecture/')||p.startsWith('skyshift/docs/architecture/')||/migration-manifest|baseline|consumer-inventory|consumer-queue/.test(p))continue;
   const s=readFileSync(resolve(repo,p),'utf8');
   for(const f of files)if(s.includes(basename(f.path)))assert.ok(f.readers.includes(p),'Unapproved executable reference '+p+' -> '+f.path);
+  for(const f of retirementEF02J.retiredTests.filter(f=>f.cohort==='historical-ui-flow'))assert.ok(!s.includes(basename(f.path)),'Stale retired test reference '+p+' -> '+f.path);
  }
  console.log('SKYSHIFT_EF02_RENDERING_RETIRED '+JSON.stringify({files:files.length,bytes:files.reduce((n,f)=>n+f.bytes,0),rootFiles:expectedRootFiles}));
 });

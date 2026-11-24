@@ -476,14 +476,11 @@ jobs:
           node --check skyshift/tests/unit/rail-scrape-sparks-v0130.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0131.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v0131.test.mjs
-          node --check skyshift/tests/unit/ui-flow-v0131.test.mjs
           node --check skyshift/ship-art-pipeline-v0132.mjs
           node --check skyshift/ship-hero-loader-v0132.mjs
           node --check skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs
-          node --check skyshift/tests/unit/ui-flow-v0132.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v01321.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v01321.test.mjs
-          node --check skyshift/tests/unit/ui-flow-v01321.test.mjs
           node --check skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs
           node --check skyshift/blender/stingray-hero-v2-source-v0133.mjs
           node --check skyshift/ship-art-pipeline-v0133.mjs
@@ -491,19 +488,16 @@ jobs:
           node --check skyshift/tests/unit/stingray-hero-v0133.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0133.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v0133.test.mjs
-          node --check skyshift/tests/unit/ui-flow-v0133.test.mjs
           node --check skyshift/blender/stingray-hero-v3-source-v0134.mjs
           node --check skyshift/ship-art-pipeline-v0134.mjs
           node --check skyshift/hangar-hero-v0134.mjs
           node --check skyshift/tests/unit/stingray-hero-v0134.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0134.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v0134.test.mjs
-          node --check skyshift/tests/unit/ui-flow-v0134.test.mjs
           node --check skyshift/ships/wing-clearance-v01341.mjs
           node --check skyshift/tests/unit/wing-clearance-v01341.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v01341.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v01341.test.mjs
-          node --check skyshift/tests/unit/ui-flow-v01341.test.mjs
           node --check skyshift/stingray-presentation-v01342.mjs
           node --check skyshift/ships/stingray-evo-v01342.mjs
           node --check skyshift/blender/stingray-hero-v4-source-v01342.mjs
@@ -513,20 +507,16 @@ jobs:
           node --check skyshift/tests/unit/ship-hero-loader-v01342.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v01342.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v01342.test.mjs
-          node --check skyshift/tests/unit/ui-flow-v01342.test.mjs
           node --check skyshift/stingray-presentation-v01343.mjs
           node --check skyshift/tests/unit/stingray-size-parity-v01343.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v01343.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v01343.test.mjs
-          node --check skyshift/tests/unit/ui-flow-v01343.test.mjs
           node --check skyshift/stingray-presentation-v01344.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v01344.mjs
           node --check skyshift/tests/unit/stingray-grip-clearance-v01344.test.mjs
-          node --check skyshift/tests/unit/ui-flow-v01344.test.mjs
           node --check skyshift/stingray-presentation-v01345.mjs
           node --check skyshift/tests/unit/stingray-screen-parity-v01345.test.mjs
           node --check skyshift/tests/browser/browser-screen-parity-v01345.mjs
-          node --check skyshift/tests/unit/ui-flow-v01345.test.mjs
           node --check skyshift/tests/unit/rail-scrape-sparks-v01345.test.mjs
           node --check skyshift/engine-trails-v01346.mjs
           node --check skyshift/stingray-presentation-v01346.mjs

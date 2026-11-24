@@ -67,3 +67,19 @@ export function historicalSyntaxCheck(workflow,p){
  }
  return workflow.includes('node --check '+key);
 }
+
+// Explicit EF02J reader retirement, only for the proven duplicate historical UI cohort.
+// Do not use this for current or unknown readers; their existing guards remain strict.
+export function retiredHistoricalUIReader(path){
+ const key=asPath(path),entry=retirementEF02J.retiredTests.find(f=>f.path===key&&f.cohort==='historical-ui-flow');
+ if(!entry)return false;
+ assert.match(key,/^skyshift\/tests\/unit\/ui-flow-v013\d+\.test\.mjs$/);
+ assert.match(entry.sha,/^[a-f0-9]{40}$/);assert.match(entry.rollbackCommit,/^[a-f0-9]{40}$/);
+ assert.ok(entry.bytes>0&&entry.verifiedReplacementHead===entry.rollbackCommit&&entry.verificationRun>0,key);
+ assert.equal(entry.replacement,'skyshift/tests/architecture/active-entrypoint.test.mjs');
+ assert.ok(!existsSync(resolve(repo,key)),'Retired UI reader unexpectedly present '+key);
+ assert.ok(existsSync(resolve(repo,entry.replacement)),'Missing live UI replacement '+key);
+ const wf=readFileSync(resolve(repo,'.github/workflows/skyshift-architecture-guard.yml'),'utf8');
+ assert.ok(wf.includes('node --test '+entry.replacement),'Live UI replacement no longer executed');
+ return true;
+}

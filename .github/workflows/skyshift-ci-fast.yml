@@ -57,6 +57,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Fetch immutable historical regression source archive
+        run: git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
       - name: Syntax and high-value flight/visual regressions
         shell: bash
         run: |

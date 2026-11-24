@@ -64,7 +64,7 @@ test('R1C all 24 original historical test Git blobs restore exactly (including U
   assert.equal(gitBlobSha(restored),unit.originalGitBlobSha,
    'Historical test assertion changed unexpectedly '+unit.path);
   for(const match of source.matchAll(/["']\.\/legacy\/boot\/(boot-v\d+\.js)["']/g)){
-   assert.ok(existsSync(resolve(root,'legacy/boot',match[1])),'Missing relocated reader '+unit.path);
+   assert.ok(historicalExists(resolve(root,'legacy/boot',match[1])),'Missing relocated reader '+unit.path);
    changed++;
   }
  }

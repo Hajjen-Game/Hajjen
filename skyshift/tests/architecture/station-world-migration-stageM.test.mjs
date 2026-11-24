@@ -1,3 +1,4 @@
+import {readHistorical,historicalExists} from './legacy-retirement-l1a.mjs';
 // SKYSHIFT Architecture Cleanup 2.0 Stage M — original source and resolved glTF audit.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -39,8 +40,8 @@ test('Stage M: nine active/historical game consumers and eight unit suites point
  assert.equal(m.gameConsumers.length,9);assert.equal(m.unitTests.length,8);
  for(const name of m.gameConsumers){
   const archived=resolve(root,'legacy/game',name);
-  const path=existsSync(archived)?archived:resolve(root,name);
-  const game=readFileSync(path,'utf8');
+  const path=historicalExists(archived)?archived:resolve(root,name);
+  const game=readHistorical(path,'utf8');
   assert.ok(game.includes((path===archived?'../../':'./')+'world/environment-art-pipeline-v020'),'Missing moved world import: '+name);
   assert.doesNotMatch(game,/\bfrom\s*["']\.\/environment-art-pipeline-v020/,'Stale game ESM import: '+name);
  }

@@ -1,7 +1,7 @@
 // SKYSHIFT 0.20.2 / PASS 1 — Observation Windows Balance.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {WORLD_ART_0202,planStationWorld,bakeTrackConformingBayGeometry}
  from "../../world/environment-art-pipeline-v0202.mjs";
 import {WORLD_ART_0201,planStationWorld as planOld}

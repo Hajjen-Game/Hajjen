@@ -1,7 +1,7 @@
 // SKYSHIFT 0.20.0 — World Art Pipeline deterministic regression tests.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {WORLD_ART_0200,planStationWorld,bakeTrackConformingBayGeometry} from "../../world/environment-art-pipeline-v0200.mjs";
 import {STATION_ART_0200,buildStationAsset} from "../../world/authoring/build-station-world-v0200.mjs";
 import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";

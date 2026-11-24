@@ -1,7 +1,7 @@
 // SKYSHIFT 0.20.4.1 — sculpted neon Pass 3 regression
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {STATION_ART_02041,buildStationAsset} from "../../world/authoring/build-station-world-v02041.mjs";
 import {WORLD_ART_02041,planStationWorld} from "../../world/environment-art-pipeline-v02041.mjs";
 import {planStationWorld as oldWorld} from "../../world/environment-art-pipeline-v0204.mjs";

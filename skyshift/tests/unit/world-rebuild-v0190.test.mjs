@@ -1,7 +1,7 @@
 // SKYSHIFT 0.19.0 — static world planning / physics integrity.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  WORLD_0190,worldArchitecturePlan,worldBeamClear
 } from "../../world-rebuild-v0190.mjs";

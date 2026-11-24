@@ -1,7 +1,7 @@
 // SKYSHIFT 0.20.2.1 — Observation Window Cleanup: geometry and physics gates.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {STATION_ART_02021,buildStationAsset}
  from "../../world/authoring/build-station-world-v02021.mjs";
 import {WORLD_ART_02021,planStationWorld,bakeTrackConformingBayGeometry}

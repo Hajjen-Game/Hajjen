@@ -1,7 +1,7 @@
 # SKYSHIFT — ROOT CONSOLIDATION: SOURCE OF TRUTH
 
-> **Status: NOT FINISHED** (main: R1F PR #200, ab926746c1a356d8f, 328 root files, all post-merge checks green; R1G migration branch targets 286).
-> **User's actual goal:** Just a few essential files directly inside `skyshift/`; organize all remaining live modules, historical versions, tests and documentation into clearly named subdirectories. **Do not mark this goal complete merely because the shared tunnel architecture tests are green.**
+> **Status: NOT FINISHED** (`main`: merged PR #201 / R1G, `f8fadb76fe1e8f4cf75db812150bc083f05e3e48`, **286 direct files**, **1,222 total tracked SKYSHIFT files**, 190 legacy files; 36/36 PR checks passed, post-merge main checks pending at branch creation).
+> **User's actual goal:** Few essential root files (target <=10), organized active code, and removal of redundant obsolete versions from the working tree. Keep only live dependencies and justified historical fixtures. Preserve recoverability in Git history; do not preserve every historical snapshot by default. Do not call the cleanup complete until the live game and final root layout are verified.
 
 ## Verified baseline
 
@@ -120,3 +120,7 @@ R1F PR #200 merged at ab926746c1a356d8f2a9c079968e7e65dc804901, 328 direct files
 PR #201 first fast run 45345177629 failed four historic 0.16.5 subtests because eight exact static import assertions in two track test readers still expected ./ paths. Rebase only those assertions to ../../, retaining identical module names and inverse SHA verification. No production code or baseline SHA changed. Full PR checks required before merge.
 
 Post-R1G direction: distinguish active dependency graph, explicit A/B fixtures and obsolete full snapshots. Prefer preserving redundant versions via Git history rather than carrying all historical snapshots in the working tree. Audit current regression coverage and dependencies before retiring anything; never remove tests merely to turn CI green. This is a proposed next cleanup phase, not an assertion of completion.
+
+## L0 — Legacy Reduction & Modern Architecture 1.0 (user approved 2026-11-24)
+
+R1G #201 merged with 36/36 successful checks. Verified main f8fadb76fe1e8f4cf75db812150bc083f05e3e48 has 286 direct and 1,222 total tracked SKYSHIFT files, including 190 under legacy/. The user explicitly rejected keeping masses of unused old files. Switch from migration-first to evidence-led retirement of obsolete versions. Preserve exact live dependencies regardless of filename/version; keep dedicated material A/B entrypoint and any fixtures with a documented current regression purpose; retain meaningful current gameplay, High/4GB, track and Pages checks. For obsolete full game/bootstrap snapshots, use immutable base commit/history for rollback instead of retaining all copies in the checkout. Map all historical readers and guard/manifest references before removing a coherent family. Retire historical-only tests only after distinguishing unique current coverage from snapshot-specific checks; document replacements and demonstrate current checks remain effective. Do not weaken tests to bypass failure. L0 is a read-only inventory, not a deletion PR. Next L1: use the inventory to choose a substantial redundant cohort, review computed references and public historical URLs, produce deletion/test migration manifest and full CI. Root target <=10 remains in force. Require successful R1G main Pages/track workflows before any deletion PR merges.

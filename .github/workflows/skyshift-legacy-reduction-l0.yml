@@ -1,0 +1,25 @@
+name: SKYSHIFT Legacy Reduction L0 inventory
+on:
+  push:
+    branches:
+      - 'skyshift/legacy-reduction-l0-inventory'
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inventory runtime, comparison, test and archive dependencies
+        run: node skyshift/tests/architecture/legacy-reduction-l0-inventory.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skyshift-l0-retirement-inventory
+          path: skyshift-l0-retirement-inventory.json
+          if-no-files-found: error

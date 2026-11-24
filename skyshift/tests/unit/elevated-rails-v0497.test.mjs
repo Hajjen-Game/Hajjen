@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.9.7 — Elevated Rails & Corner Readability.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  AERO_BARRIER,AERO_PROFILE,cornerRailEmphasisAt,railHeightAt,
  sampleAeroProfile,createAeroBarrierData,createAeroDetailData,

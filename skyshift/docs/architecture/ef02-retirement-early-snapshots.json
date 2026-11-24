@@ -1,0 +1,398 @@
+{
+  "schemaVersion": 1,
+  "stage": "EF02E",
+  "archiveCommit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+  "baseCommit": "9c8eb6bf13256567e0dea2af206bda84ad074269",
+  "files": [
+    {
+      "path": "skyshift/legacy/game/game-v04911.mjs",
+      "sha": "07478e3bc96f44fb6e8538ad4113613a80475819",
+      "bytes": 46929,
+      "readers": [
+        "skyshift/tests/unit/mobile-boot-v04911.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v04911.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0492.mjs",
+      "sha": "f6912ceda314c0266ee6dc3662d791dbe4b4be26",
+      "bytes": 48221,
+      "readers": [
+        "skyshift/tests/unit/white-core-v0492.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v0492.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0493.mjs",
+      "sha": "3706dd480a111db91e9aa8e90830716f0b15764a",
+      "bytes": 48369,
+      "readers": [
+        "skyshift/tests/unit/spectral-balance-v0493.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v0493.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0494.mjs",
+      "sha": "61c4cd267e275b341d11e5e467b84df5e7002b3d",
+      "bytes": 49306,
+      "readers": [
+        "skyshift/tests/unit/boost-chase-v0494.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v0494.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0495.mjs",
+      "sha": "092d026fb9a7ddc1c384c41d57e30672d72d940b",
+      "bytes": 50222,
+      "readers": [
+        "skyshift/tests/unit/boost-spring-v0495.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v0495.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0496.mjs",
+      "sha": "e260ac0cd4af370e17e9cfa94963244a88e23826",
+      "bytes": 52018,
+      "readers": [
+        "skyshift/tests/unit/velocity-language-v0496.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v0496.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0497.mjs",
+      "sha": "e76a3af51f3219e63b15aa57fdfe44d10a19c8ce",
+      "bytes": 50958,
+      "readers": [
+        "skyshift/tests/unit/elevated-rails-v0497.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v0497.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0498.mjs",
+      "sha": "b8b498891b0d0fce7982e9cce9e21c03186a5dd2",
+      "bytes": 51470,
+      "readers": [
+        "skyshift/tests/unit/image-clarity-v0498.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v0498.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0499.mjs",
+      "sha": "606271b07bd91ddd48bf3c4a1db21acf80b22e0d",
+      "bytes": 52458,
+      "readers": [
+        "skyshift/tests/unit/reactive-hud-v0499.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v0499.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v04991.mjs",
+      "sha": "fc2878cc92843f411cd5089a86671b16f730d9cf",
+      "bytes": 52416,
+      "readers": [
+        "skyshift/tests/unit/racing-hud-v04991.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v04991.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v050.mjs",
+      "sha": "b64daaacc21d615ec30ef72b763bd64e07877c5e",
+      "bytes": 53132,
+      "readers": [],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v050.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v051.mjs",
+      "sha": "a34785fa66e4afe6dde4f7ca096b03668efd6570",
+      "bytes": 53129,
+      "readers": [],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v051.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v060.mjs",
+      "sha": "a973646cafffb451998338d66ad76a19c6ad7b3a",
+      "bytes": 54436,
+      "readers": [
+        "skyshift/tests/unit/reactive-hud-v0499.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v060.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v061.mjs",
+      "sha": "aeeb470aff606aa3e08e99f9e726541c7a621a49",
+      "bytes": 57574,
+      "readers": [],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v061.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v070.mjs",
+      "sha": "dd1fbeaa4e8bc32d0f82f8228a1e11fb19a6b528",
+      "bytes": 58487,
+      "readers": [],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v070.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v071.mjs",
+      "sha": "4b2dac4e9b279a6daac29e9d4592d3683da0efe9",
+      "bytes": 60165,
+      "readers": [
+        "skyshift/tests/unit/magnetic-wall-v071.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v071.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v072.mjs",
+      "sha": "9e0307fe366097f4c24ac67b81f7b4335e5805ad",
+      "bytes": 61955,
+      "readers": [
+        "skyshift/tests/unit/corkscrew-v072.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v072.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v080.mjs",
+      "sha": "71e22dcc51ab895a2c27e01ce03e86e80f01ce59",
+      "bytes": 65329,
+      "readers": [
+        "skyshift/tests/unit/air-tricks-v080.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v080.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v081.mjs",
+      "sha": "9f3112f24e7046780f1cf47620fef96682485e0e",
+      "bytes": 65668,
+      "readers": [
+        "skyshift/tests/unit/grip-leap-v081.test.mjs",
+        "skyshift/tests/unit/track-rhythm-v082.test.mjs"
+      ],
+      "browserRouteAssertions": [
+        "skyshift/tests/browser/legacy/browser-smoke-v081.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v04911.js",
+      "sha": "8d2fb94aa82a89fc6e46b8bcac0bbfc34c250366",
+      "bytes": 3573,
+      "readers": [
+        "skyshift/tests/unit/mobile-boot-v04911.test.mjs"
+      ],
+      "browserRouteAssertions": []
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0492.js",
+      "sha": "62a3df6f6a0dab5bbf2aa2659eee009004ba72dd",
+      "bytes": 3568,
+      "readers": [
+        "skyshift/tests/unit/white-core-v0492.test.mjs"
+      ],
+      "browserRouteAssertions": []
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0493.js",
+      "sha": "cfbd3ad87c45d704d903ef7bfd4a100d184ef3da",
+      "bytes": 3568,
+      "readers": [
+        "skyshift/tests/unit/spectral-balance-v0493.test.mjs"
+      ],
+      "browserRouteAssertions": []
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0494.js",
+      "sha": "6a285b4a3520bd0539cd673ced7211d62d98563c",
+      "bytes": 3568,
+      "readers": [
+        "skyshift/tests/unit/boost-chase-v0494.test.mjs"
+      ],
+      "browserRouteAssertions": []
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0495.js",
+      "sha": "ddf429992a64ee4f0964a3044ed923e2351867b3",
+      "bytes": 3568,
+      "readers": [
+        "skyshift/tests/unit/boost-spring-v0495.test.mjs"
+      ],
+      "browserRouteAssertions": []
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0496.js",
+      "sha": "59ec195fe951612beaef08839a6788058ef0ddea",
+      "bytes": 3568,
+      "readers": [
+        "skyshift/tests/unit/velocity-language-v0496.test.mjs"
+      ],
+      "browserRouteAssertions": []
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0497.js",
+      "sha": "76f2ade7cf5e7193bbc7264853f73e13f10c3647",
+      "bytes": 3568,
+      "readers": [
+        "skyshift/tests/unit/elevated-rails-v0497.test.mjs"
+      ],
+      "browserRouteAssertions": []
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0498.js",
+      "sha": "3baa3a627964a34f078565c8364ddcf28dda382c",
+      "bytes": 3568,
+      "readers": [
+        "skyshift/tests/unit/image-clarity-v0498.test.mjs"
+      ],
+      "browserRouteAssertions": []
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v071.js",
+      "sha": "308f605b321fa7318029b094251d0245009eb045",
+      "bytes": 3563,
+      "readers": [
+        "skyshift/tests/unit/magnetic-wall-v071.test.mjs"
+      ],
+      "browserRouteAssertions": []
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v072.js",
+      "sha": "228cda573748681105608cede3033614ce947cdf",
+      "bytes": 3563,
+      "readers": [
+        "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+        "skyshift/tests/unit/corkscrew-v072.test.mjs"
+      ],
+      "browserRouteAssertions": []
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v080.js",
+      "sha": "89b781cc39f80041a2a7a65dc8cbb615c11ebba1",
+      "bytes": 3563,
+      "readers": [
+        "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+        "skyshift/tests/unit/air-tricks-v080.test.mjs"
+      ],
+      "browserRouteAssertions": []
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v081.js",
+      "sha": "834342e9893cf64a1d6c955f8dc54fb962c85600",
+      "bytes": 3565,
+      "readers": [
+        "skyshift/tests/unit/grip-leap-v081.test.mjs"
+      ],
+      "browserRouteAssertions": []
+    }
+  ],
+  "readers": [
+    {
+      "path": "skyshift/tests/unit/mobile-boot-v04911.test.mjs",
+      "sha": "fb527d6181dff05651afde86634b4fb2b169f658",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/white-core-v0492.test.mjs",
+      "sha": "de2e803f5834f916ab9f6e64bc2dc53b59c27a12",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/spectral-balance-v0493.test.mjs",
+      "sha": "179aee728e8de43c37160e2396f7c1ed3744f2fe",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/boost-chase-v0494.test.mjs",
+      "sha": "79e1fb31a8b74c9b498c88e40130963b2893a5e5",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/boost-spring-v0495.test.mjs",
+      "sha": "5904554985d2d22a1377e79763f11f7ab3d84e57",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/velocity-language-v0496.test.mjs",
+      "sha": "8cd8a95733f67c9f3485ce77f94dd81a456abcb1",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/elevated-rails-v0497.test.mjs",
+      "sha": "dceaaea5eb3d42315cb12a9f1fc7ad6bfb6dd899",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/image-clarity-v0498.test.mjs",
+      "sha": "3a63f4d0e762081298736e7057aa87cf9851e3e2",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/reactive-hud-v0499.test.mjs",
+      "sha": "94f37350366258c11e2e746b06d8fbb7a4f92474",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+      "sha": "08f6371e3d5ba4c5c8a2d2eedd69bc753ad18733",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+      "sha": "5da89dd43f0cdba0aca71a3b1f81c618f428191b",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/corkscrew-v072.test.mjs",
+      "sha": "68eed6fa34f10b5f4a39c0b16a54dc45deb4fc93",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/air-tricks-v080.test.mjs",
+      "sha": "1a67a57202b3070f79635c5d43240c52ffac1fef",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/grip-leap-v081.test.mjs",
+      "sha": "0781167259078cee5b5734885a446f85674e3d55",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+      "sha": "c731b468a193776b3c8503f2cf5edcf8f47bc150",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    }
+  ],
+  "reason": "Historical 0.4.9.1.1–0.8.1 snapshot game/boot sources, exact immutable archive copies. Browser runners only retain request-abort assertions; they already do not launch these snapshots on current index. No active dependency permitted."
+}

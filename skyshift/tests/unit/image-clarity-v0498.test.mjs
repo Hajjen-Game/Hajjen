@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.9.8 — HDR SMAA + adaptive phone image clarity.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {CLARITY,clarityProfile,dprForAdaptiveLevel,clarityAudit}
  from "../../image-clarity-v0498.mjs";
 import {createAdaptiveQuality,nextAdaptiveRatio}

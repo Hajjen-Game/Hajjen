@@ -180,3 +180,6 @@ L1H #210 is merged; independently verified 1,091 tracked files, 271 direct, 42 l
 
 ## EF01 exit / EF02 handoff
 EF01C #214 merged at 790540bd147a4f411ca522f742a34e74717afee1 (38/38 checks). Baseline and explicit hardware/coverage limits in [EF01 report](EF01-RUNTIME-PERFORMANCE-BASELINE.md). EF02A shared road deck dedup; root count stays 271, no deletion yet. Follow Engineering Foundation roadmap, not historical L1 next-step text.
+
+## EF02E candidate — bulk historical retirement
+EF02A–D merged through 9c8eb6bf13256567e0dea2af206bda84ad074269; 26 algorithm bodies consolidated into five (137366 fewer source bytes including adapters). Current tracked SKYSHIFT 1112 files, root 271. EF02E candidate removes 31 actual obsolete game/bootstrap source files from legacy directories (not root); 1075045 bytes restored by Git archive when needed. Keep historical test assertions and current runtime/QA untouched. Candidate net count after one manifest, one test and one report: 1084 tracked files, root 271. Verify before merge; next prioritize active root ownership and remaining dependency cohorts.

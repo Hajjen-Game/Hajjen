@@ -3,8 +3,11 @@ import {readFileSync} from 'node:fs';
 const manifest=JSON.parse(readFileSync(new URL('../../legacy/game/R1G-migration-manifest.json',import.meta.url),'utf8'));
 const l1f=JSON.parse(readFileSync(new URL('../../docs/architecture/legacy-retirement-l1f.json',import.meta.url),'utf8'));
 const l1h=JSON.parse(readFileSync(new URL('../../docs/architecture/root-relocation-l1h.json',import.meta.url),'utf8'));
+const ef02e=JSON.parse(readFileSync(new URL('../../docs/architecture/ef02-retirement-early-snapshots.json',import.meta.url),'utf8'));
 export function restoreR1GGamePaths(source){
  let out=source;
+ // EF02E: reverse only the recorded archive reader import, preserving original test hashes.
+ if(ef02e.files.some(f=>source.includes(f.path.split('/').at(-1))))out=out.replace("import {readHistorical as readFileSync} from \"../architecture/legacy-retirement-l1a.mjs\";","import {readFileSync} from \"node:fs\";");
  for(const r of l1h.readers)for(const e of r.edits)out=out.split(e.after).join(e.before);
  // L1F: reverse only the approved source-reader filesystem adapter import.
  if(l1f.files.some(f=>source.includes(f.path.split('/').at(-1))))out=out.replace('import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";','import {readFileSync} from "node:fs";');

@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.9.9 — HUD director is purely presentational.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  HUD_SPEC,createHudState,hudSignal,stepHudState,
  hudVisualFrame,createReactiveHud

@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.9.5 – Inertial Boost Camera & Speed Punch.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {BOOST_CONFIG,BOOST_PADS,initBoostState,stepBoostState} from "../../flight/boost/boost-v0494.mjs";
 import {TRIAL,newFlightState,stepFlight} from "../../trial-v0494.mjs";
 import {

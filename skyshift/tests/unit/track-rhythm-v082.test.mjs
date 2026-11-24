@@ -1,7 +1,7 @@
 // SKYSHIFT 0.8.2 – C2 race rhythm, GRIP-only fast apex line, spaced 3D spectacles.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  CIRCUIT,COURSE_SEGMENTS,TRIAL,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  BOOST_PADS,GUARDRAIL,poseAt,positionAt,headingAt,curvatureAt,bankDegreesAt,

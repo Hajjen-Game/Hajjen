@@ -108,3 +108,6 @@ jobs:
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done
+
+      - name: EF02E exact historical archive, syntax and dependency safety
+        run: node --test skyshift/tests/architecture/ef02-retirement-early-snapshots.test.mjs

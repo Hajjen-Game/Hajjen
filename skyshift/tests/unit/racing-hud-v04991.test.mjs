@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.9.9.1 – Racing HUD Refinement.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  HUD_SPEC,createHudState,hudSignal,stepHudState,hudVisualFrame,createReactiveHud
 } from "../../reactive-hud-v04991.mjs";

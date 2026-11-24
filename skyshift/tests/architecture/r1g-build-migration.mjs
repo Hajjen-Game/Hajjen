@@ -98,7 +98,7 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..'),repo=resolve
 const read=p=>readFileSync(resolve(repo,p),'utf8');
 const m=JSON.parse(read('skyshift/legacy/game/R1G-migration-manifest.json'));
 const baseline=JSON.parse(read('skyshift/docs/architecture/root-baseline-2026-11-23.json'));
-function sha(s){const b=Buffer.from(s);return createHash('sha1').update('blob '+b.length+'\\\\0').update(b).digest('hex')}
+function sha(s){const b=Buffer.from(s);return createHash('sha1').update('blob '+b.length+'\\0').update(b).digest('hex')}
 test('R1G: 42 immutable game sources, equivalent imports and held entrypoints',()=>{
  assert.equal(m.files.length,42);assert.equal(m.previousRootFiles,328);assert.equal(m.expectedRootFiles,286);
  assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,286);
@@ -109,9 +109,9 @@ test('R1G: 42 immutable game sources, equivalent imports and held entrypoints',(
   const s=read(f.newPath);assert.ok(!s.includes('import.meta.url'),f.name);
   assert.equal(sha(s.replace(${inverseImports.toString()},'$1./')),f.originalGitBlobSha,f.name);
   assert.equal(baseline.entries.find(e=>e.path===f.oldPath)?.sha,f.originalGitBlobSha,f.name);
-  const re=/(?:\\\\bfrom\\\\s*|\\\\bimport\\\\s*\\\\(\\\\s*|\\\\bimport\\\\s*)(["'])(\\\\.\\\\.\\\\/\\\\.\\\\.\\\\/[^"'?#]+)\\\\1/g;
+  const re=/(?:\\bfrom\\s*|\\bimport\\s*\\(\\s*|\\bimport\\s*)(["'])(\\.\\.\\/\\.\\.\\/[^"'?#]+)\\1/g;
   let n=0;for(const match of s.matchAll(re)){assert.ok(existsSync(resolve(dirname(resolve(repo,f.newPath)),match[2])),f.name+' '+match[2]);n++}assert.ok(n>=10,f.name);
-  for(const line of s.split('\\\\n').filter(l=>/\\\\bnew\\\\s+URL\\\\s*\\\\(/.test(l)))assert.match(line,/\\\\bnew\\\\s+URL\\\\s*\\\\(\\\\s*(?:window\\\\.)?location\\\\.href\\\\s*\\\\)/);
+  for(const line of s.split('\\n').filter(l=>/\\bnew\\s+URL\\s*\\(/.test(l)))assert.match(line,/\\bnew\\s+URL\\s*\\(\\s*(?:window\\.)?location\\.href\\s*\\)/);
  }
 });
 test('R1G: historical source readers and boot imports invert exactly',()=>{
@@ -122,6 +122,7 @@ test('R1G: historical source readers and boot imports invert exactly',()=>{
 });
 `;
 write(arch+'legacy-game-migration-r1g.test.mjs',gate);
+execFileSync('node',['--check',arch+'legacy-game-migration-r1g.test.mjs'],{stdio:'inherit'});
 const guardPath='.github/workflows/skyshift-architecture-guard.yml';let guard=read(guardPath);
 const needle='      - name: Syntax-check the migrated historical test collection';
 assert.ok(guard.includes(needle));guard=guard.replace(needle,'      - name: R1G preserve 42 original game Git blobs and 286 root files\n        run: node --test skyshift/tests/architecture/legacy-game-migration-r1g.test.mjs\n'+needle);write(guardPath,guard);

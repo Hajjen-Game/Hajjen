@@ -81,5 +81,5 @@
  },14000);
  // Use dynamic import so *module graph* failures also show actionable
  // feedback; static <script type=module> silently fails before try/catch.
- import("../../game-v0170.mjs?v=0.17.0").catch(fail);
+ import("../game/game-v0170.mjs?v=0.17.0").catch(fail);
 })();

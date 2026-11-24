@@ -83,7 +83,7 @@ test("new version is actually wired as the default, with an exact classic A/B",(
  assert.ok(current,"a real 0.23.1 module build must be published");
  assert.ok(html.includes(`boot-v0210.js?v=${current}`),
   "HTML boot cache key must match the exact game-module version");
- assert.equal(read("./game-v0205.mjs").includes(
+ assert.equal(read("./legacy/game/game-v0205.mjs").includes(
   'from "./cinematic-hero-v0210.mjs"'),false,
   "The 0.20.5 engine baseline stays untouched");
 });

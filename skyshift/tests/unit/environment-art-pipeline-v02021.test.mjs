@@ -110,7 +110,7 @@ test("32m ribbons connect along actual curved/banked geometry",()=>{
 });
 test("original physics, 0.20.2 rollback and Aurora remain intact",()=>{
  assert.equal(planStationWorld({track:"aurora"}).active,false);
- const game=file("./game-v02021.mjs");
+ const game=file("./legacy/game/game-v02021.mjs");
  for(const module of ["trial-v0165","flight/unified-flight-v0165","flight/cinematic-v0165"])
   assert.ok(game.includes('from "./'+module+'.mjs"'));
  assert.match(game,/windowCleanup"\)!=="classic"/);

@@ -135,7 +135,7 @@ test("PB/ghost separate from Skyline while keeping Skyline saved records",async(
  assert.equal(tt.TIME_TRIAL_0160.raceMeters,10200);
 });
 test("menu uses real circuit selector and Skyline-only Challenges not shown on Aurora",()=>{
- const html=src("./index.html"),game=src("./game-v0162.mjs"),
+ const html=src("./index.html"),game=src("./legacy/game/game-v0162.mjs"),
   boot=src("./legacy/boot/boot-v0162.js");
  assert.match(html,/id="track-picker"/);
  assert.match(html,/value="aurora"/);
@@ -196,7 +196,7 @@ test("Aurora metal contact sparks are on Aurora rails, never old Skyline world s
   "reproduce the old displaced metallic spark position");
 });
 test("No ghost right-apex guidance or Skyline-only leap signs on Aurora",()=>{
- const game=src("./game-v0162.mjs");
+ const game=src("./legacy/game/game-v0162.mjs");
  assert.match(game,/const cue=isAurora\(\)\?\{visible:false/);
  assert.match(game,/if\(!isAurora\(\)\)makeBillboard\("SKYLINE LEAP"/);
  assert.match(game,/makeBillboard\(isAurora\(\)\?"LUMEN PASS":"SHADOW TUNNEL"/);
@@ -226,7 +226,7 @@ test("Aurora rail tessellation cuts mobile triangles, collision/ship physics int
  assert.match(source,/step=isAurora\(\)\?1\.55:AERO_BARRIER\.step/);
 });
 test("0.16.2 URLs and menu preserve independent courses and PB/ghosts",()=>{
- const html=src("./index.html"),game=src("./game-v0162.mjs");
+ const html=src("./index.html"),game=src("./legacy/game/game-v0162.mjs");
  assert.match(html,/boot-v0162\.js\?v=0\.16\.2/);
  assert.match(src("./legacy/boot/boot-v0162.js"),/game-v0162\.mjs\?v=0\.16\.2/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);

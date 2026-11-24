@@ -93,7 +93,7 @@ test("full aerial trick and 360 degree corkscrew bank survive limitation",()=>{
  }
 });
 test("active game changes ONLY Stingray render root and visual roll, not physics",()=>{
- const game=read("./game-v01345.mjs");
+ const game=read("./legacy/game/game-v01345.mjs");
  assert.match(game,/buildStingrayEvo\(THREE,shipGlow\):buildPremiumMantaBlade/);
  assert.match(game,/ship\.scale\.set\(visual\.scaleX,visual\.scaleY,visual\.scaleZ\)/);
  assert.match(game,/__skyshiftScreenBeamProbe/);
@@ -110,7 +110,7 @@ test("0.13.4.5 boot and menu are wired to the new production module",()=>{
  assert.match(html,/boot-v01345\.js\?v=0\.13\.4\.5/);
  assert.match(html,/data-game-module="game-v01345\.mjs"/);
  assert.match(html,/SKYLINE CIRCUIT · 0\.13\.4\.5/);
- assert.match(boot,/import\("\.\.\/\.\.\/game-v01345\.mjs\?v=0\.13\.4\.5"\)/);
+ assert.match(boot,/import\("\.\.\/game\/game-v01345\.mjs\?v=0\.13\.4\.5"\)/);
 });
 
 test("deployed V4 3D asset has intact complete imported wing and tail geometry",()=>{

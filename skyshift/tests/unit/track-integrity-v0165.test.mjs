@@ -135,7 +135,7 @@ test("PB/ghost separate from Skyline while keeping Skyline saved records",async(
  assert.equal(tt.TIME_TRIAL_0160.raceMeters,10200);
 });
 test("menu uses real circuit selector and Skyline-only Challenges not shown on Aurora",()=>{
- const html=src("./index.html"),game=src("./game-v0165.mjs"),
+ const html=src("./index.html"),game=src("./legacy/game/game-v0165.mjs"),
   boot=src("./legacy/boot/boot-v0165.js");
  assert.match(html,/id="track-picker"/);
  assert.match(html,/value="aurora"/);
@@ -143,9 +143,9 @@ test("menu uses real circuit selector and Skyline-only Challenges not shown on A
  assert.match(boot,/game-v0165\.mjs\?v=0\.16\.5/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
  assert.match(game,/challengeButton\.classList\.toggle\("hidden",!ACTIVE_TRACK_0160\.hasSkylineChallenges\)/);
- assert.match(game,/from "\.\/trial-v0165\.mjs"/);
- assert.match(game,/from "\.\/tracks\/barriers\/aero-barrier-v0165\.mjs"/);
- assert.match(game,/from "\.\/shadow-tunnel-v0160\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/trial-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/tracks\/barriers\/aero-barrier-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/shadow-tunnel-v0160\.mjs"/);
  assert.match(game,/ship\.rotation\.z=naturalRoll;/);
 });
 
@@ -196,14 +196,14 @@ test("Aurora metal contact sparks are on Aurora rails, never old Skyline world s
   "reproduce the old displaced metallic spark position");
 });
 test("No ghost right-apex guidance or Skyline-only leap signs on Aurora",()=>{
- const game=src("./game-v0165.mjs");
+ const game=src("./legacy/game/game-v0165.mjs");
  assert.match(game,/const cue=isAurora\(\)\?\{visible:false/);
  assert.match(game,/if\(!isAurora\(\)\)makeBillboard\("SKYLINE LEAP"/);
  assert.match(game,/makeBillboard\(isAurora\(\)\?"LUMEN PASS":"SHADOW TUNNEL"/);
  assert.match(game,/ACTIVE_TRACK_0160\.name\+" COMPLETE"/);
- assert.match(game,/from "\.\/flight\/cinematic-v0165\.mjs"/);
- assert.match(game,/from "\.\/flight\/unified-flight-v0165\.mjs"/);
- assert.match(game,/from "\.\/rail-scrape-sparks-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/flight\/cinematic-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/flight\/unified-flight-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/rail-scrape-sparks-v0165\.mjs"/);
  const rig=src("./flight/unified-flight-v0165.mjs");
  assert.match(rig,/from "\.\/cinematic-v0165\.mjs"/);
  const realCamera=src("./flight/cinematic-v0165.mjs");
@@ -226,10 +226,10 @@ test("Aurora rail tessellation cuts mobile triangles, collision/ship physics int
  assert.match(source,/step=isAurora\(\)\?1\.55:AERO_BARRIER\.step/);
 });
 test("0.16.5 URLs and menu preserve independent courses and PB/ghosts",()=>{
- const html=src("./index.html"),game=src("./game-v0165.mjs");
+ const html=src("./index.html"),game=src("./legacy/game/game-v0165.mjs");
  assert.match(html,/boot-v0205\.js\?v=0\.20\.5/);
  assert.match(src("./legacy/boot/boot-v0165.js"),/game-v0165\.mjs\?v=0\.16\.5/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
- assert.match(game,/from "\.\/time-trial-v0160\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/time-trial-v0160\.mjs"/);
  assert.equal(tt.TIME_TRIAL_0160.storageKey,"skyshift-time-trial-ghost-aurora-0160");
 });

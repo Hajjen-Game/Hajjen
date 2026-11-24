@@ -143,7 +143,7 @@ test("Curved and banked sidewall neon connects exactly across 18 authored bays",
  assert.equal(mesh.userData.trackConforming,true);
 });
 test("Live entry uses 0.20.4 GLTF and optional halo; all prior versions remain selectable",()=>{
- const game=file("./game-v0204.mjs");
+ const game=file("./legacy/game/game-v0204.mjs");
  for(const module of ["trial-v0165","flight/unified-flight-v0165","flight/cinematic-v0165"])
   assert.ok(game.includes('from "./'+module+'.mjs"'));
  assert.match(game,/environment-art-pipeline-v0204\.mjs/);

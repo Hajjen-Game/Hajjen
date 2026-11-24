@@ -1,3 +1,4 @@
+import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // R1C: prove original Git blobs, historical test assertion identity,
 // valid game import targets and cumulative root-file reduction.
 import test from 'node:test';
@@ -31,7 +32,7 @@ test('R1C keeps exactly 20 original historical bootstrap bodies and game targets
   assert.ok(!existsSync(resolve(repo,file.oldPath)),'Old root bootstrap still present: '+file.name);
   const destination=resolve(repo,file.newPath);
   const body=readFileSync(destination,'utf8');
-  const normalized=restoreR1FBootImport(body);
+  const normalized=restoreR1FBootImport(restoreR1GBootImport(body));
   assert.equal((normalized.match(/import\("\.\.\/\.\.\/game-v/g)||[]).length,1,
    'Unexpected game import count '+file.name);
   const restored=normalized.replace('import("../../game-v','import("./game-v');
@@ -57,7 +58,7 @@ test('R1C all 24 original historical test Git blobs restore exactly (including U
   assert.ok(!paths.has(unit.path),'Duplicate original test '+unit.path);
   paths.add(unit.path);
   const source=readFileSync(resolve(repo,unit.path),'utf8');
-  const restored=restoreR1CBootPaths(restoreR1FGamePaths(source));
+  const restored=restoreR1CBootPaths(restoreR1FGamePaths(restoreR1GGamePaths(source)));
   assert.notEqual(restored,source,'No audited reader change '+unit.path);
   assert.equal(gitBlobSha(restored),unit.originalGitBlobSha,
    'Historical test assertion changed unexpectedly '+unit.path);
@@ -70,13 +71,13 @@ test('R1C all 24 original historical test Git blobs restore exactly (including U
  for(const n of manifest.uiFlowVersions){
   const source=readFileSync(resolve(root,'tests/unit/ui-flow-v'+n+'.test.mjs'),'utf8');
   const regexStart=String.raw`assert.match(boot,/import\("\.\.\/\.\.\/game-v`+n;
-  assert.ok(source.includes(regexStart),'UI import assertion must verify new resolved path '+n);
+  assert.ok(restoreR1GGamePaths(source).includes(regexStart),'UI import assertion must verify new resolved path '+n);
  }
 });
 
 test('R1C CI rewire and cumulative 468 → 449 → 429 → 409 → 387 direct root-file count',()=>{
  const direct=readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile());
- assert.equal(direct.length,328);
+ assert.equal(direct.length,286);
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const file of manifest.files){
   assert.ok(!workflow.includes('node --check '+file.oldPath),

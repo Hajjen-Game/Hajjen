@@ -187,7 +187,7 @@ test("records versioned for 0.15.1 but eight Challenge progress remains intact",
  assert.notEqual(TIME_TRIAL_0151.trackRevision,TIME_TRIAL_0150.trackRevision);
  assert.equal(TIME_TRIAL_0151.raceMeters,TIME_TRIAL_0150.raceMeters);
  assert.equal(CHALLENGES_0140.length,8);
- const game=source("./game-v0151.mjs");
+ const game=source("./legacy/game/game-v0151.mjs");
  assert.match(game,/trial-v0151\.mjs/);
  assert.match(game,/risk-reward-v0151\.mjs/);
  assert.match(game,/time-trial-v0151\.mjs/);

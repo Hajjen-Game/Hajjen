@@ -1,3 +1,4 @@
+import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT R1E — original 30 game Git blobs, unchanged historical tests and 8 boot URL targets.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -43,7 +44,7 @@ test('R1E: all 28 original historical unit test Git blobs restore exactly after 
  assert.equal(manifest.tests.length,28);
  for(const f of manifest.tests){
   const source=readFileSync(resolve(repo,f.path),'utf8');
-  const restored=restoreR1EGamePaths(source);
+  const restored=restoreR1EGamePaths(restoreR1GGamePaths(source));
   assert.notEqual(restored,source,'No game source path changed '+f.path);
   assert.equal(sha(restored),f.originalGitBlobSha,'Historical assertion changed beyond path updates '+f.path);
  }
@@ -58,8 +59,8 @@ test('R1E: eight archive bootstraps still resolve to exact historic game with or
   assert.equal(sha(source.replace('import("../game/game-v','import("../../game-v')),b.originalGitBlobShaBeforeR1E,'Historical bootstrap body changed '+b.path);
  }
 });
-test('R1E: original 387 → 357 stage remains intact; current root 328; live entrypoint unchanged; CI rewired',()=>{
- assert.equal(readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile()).length,328);
+test('R1E: original 387 → 357 stage remains intact; current root 286; live entrypoint unchanged; CI rewired',()=>{
+ assert.equal(readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile()).length,286);
  assert.equal(sha(readFileSync(resolve(root,'index.html'),'utf8')),manifest.active.index);
  assert.equal(sha(readFileSync(resolve(root,'boot-v0210.js'),'utf8')),manifest.active.boot);
  assert.equal(sha(readFileSync(resolve(root,'game-v0210.mjs'),'utf8')),manifest.active.game);

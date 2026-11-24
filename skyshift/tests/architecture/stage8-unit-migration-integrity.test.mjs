@@ -1,3 +1,4 @@
+import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT 0.28.9.8 Stage 8 — reversible migration integrity for the final 12 path-sensitive unit tests.
 // No assertion rewrite, subprocess target move, production source change or historical-version workaround.
 import test from 'node:test';
@@ -57,7 +58,7 @@ test('all 12 final unit tests preserve their exact original Git blobs after path
     const file = resolve(unitDir, name);
     assert.ok(existsSync(file), 'Migrated test missing: ' + name);
     const source = readFileSync(file, 'utf8');
-    const bytes = Buffer.from(restore(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(restoreR1BBootPaths(restoreR1CBootPaths(restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(source))))))))))))))), 'utf8');
+    const bytes = Buffer.from(restore(restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(restoreR1BBootPaths(restoreR1CBootPaths(restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(restoreR1GGamePaths(source)))))))))))))))), 'utf8');
     const actual = createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
     assert.equal(actual, manifest.entries[name], 'Original test source changed: ' + name);
 

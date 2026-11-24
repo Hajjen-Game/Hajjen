@@ -1,3 +1,4 @@
+import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT R1D: prove exact original Git blobs and historical reader assertions.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -43,7 +44,7 @@ test('R1D: all 34 source readers invert to their exact pre-migration Git blob SH
  for(const t of manifest.tests){
   assert.ok(!seen.has(t.path),'Duplicate historic test '+t.path);seen.add(t.path);
   const source=readFileSync(resolve(repo,t.path),'utf8');
-  const restored=restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(source)));
+  const restored=restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(restoreR1GGamePaths(source))));
   assert.notEqual(restored,source,'No versioned boot reference changed '+t.path);
   assert.equal(sha(restored),t.originalGitBlobSha,'Original historic test changed beyond audited path adjustments '+t.path);
   for(const f of manifest.files){
@@ -52,8 +53,8 @@ test('R1D: all 34 source readers invert to their exact pre-migration Git blob SH
   }
  }
 });
-test('R1D: measured 328 direct root files, CI paths and original live entrypoints',()=>{
- assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,328);
+test('R1D: measured 286 direct root files, CI paths and original live entrypoints',()=>{
+ assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,286);
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const f of manifest.files){
   assert.ok(workflow.includes('node --check '+f.newPath),'Missing historic bootstrap syntax gate '+f.name);

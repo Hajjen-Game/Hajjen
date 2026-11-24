@@ -170,7 +170,7 @@ test("archived 0.7.2 corkscrew keeps its geometry; live 0.10.3 extends the fligh
  const html=source("./index.html"),boot=source("./boot-v0103.js"),
   game=source("./game-v0103.mjs"),smoke=source("./browser-smoke-v081.mjs"),
   shader=source("./premium-track-v072.mjs"),
-  archivedBoot=source("./legacy/boot/boot-v072.js"),archivedGame=source("./game-v072.mjs");
+  archivedBoot=source("./legacy/boot/boot-v072.js"),archivedGame=source("./legacy/game/game-v072.mjs");
  assert.match(html,/data-game-module="game-v0103\.mjs"/);
  assert.match(html,/Signature Flight Motion/);
  assert.match(boot,/game-v0103\.mjs\?v=0\.10\.3/);

@@ -108,7 +108,7 @@ test("HUD is DOM-only, throttled, and provides event counters for exported logs"
 });
 test("live production page keeps the archived HUD telemetry and controls",()=>{
  const html=source("./index.html"),css=source("./style-v061.css"),
-  game=source("./game-v060.mjs"),boot=source("./boot-v0103.js");
+  game=source("./legacy/game/game-v060.mjs"),boot=source("./boot-v0103.js");
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(html,/data-game-module="game-v0103\.mjs"/);
@@ -137,7 +137,7 @@ test("live production page keeps the archived HUD telemetry and controls",()=>{
  assert.match(game,/skyshift-skyline-circuit-v060-audit\.json/);
 });
 test("old flight physics, spectrum timing, SMAA, boosts and elevated corner rails survive",()=>{
- const game=source("./game-v0499.mjs");
+ const game=source("./legacy/game/game-v0499.mjs");
  for(const dep of ["trial-v0494","boost-v0494","boost-spring-v0495",
   "velocity-language-v0496","engine-trails-v0496","zone-wave-v0493",
   "aero-barrier-v0497","premium-track-v0498","neon-v0498","image-clarity-v0498"])

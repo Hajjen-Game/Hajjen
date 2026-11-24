@@ -198,5 +198,5 @@ test("live page, controls and telemetry point to 0.10.3 and retain archive",()=>
  assert.match(game,/grip_guidance_start/);
  assert.match(game,/skyshift-premium-ship-v0103-audit\.json/);
  assert.match(css,/#grip-cue/);
- assert.match(source("./game-v082.mjs"),/version:"0\.8\.2"/);
+ assert.match(source("./legacy/game/game-v082.mjs"),/version:"0\.8\.2"/);
 });

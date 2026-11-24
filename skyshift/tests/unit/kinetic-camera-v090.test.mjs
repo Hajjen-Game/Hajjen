@@ -141,5 +141,5 @@ test("0.10.3 page offers Classic, Balanced and Kinetic with the new GRIP-first p
  assert.match(game,/CAMERA_MODE/);
  assert.match(game,/CAMERA_GAIN/);
  assert.match(game,/skyshift-premium-ship-v0103-audit\.json/);
- assert.match(read("./game-v084.mjs"),/version:"0\.8\.4"/);
+ assert.match(read("./legacy/game/game-v084.mjs"),/version:"0\.8\.4"/);
 });

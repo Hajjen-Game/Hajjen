@@ -139,7 +139,7 @@ test("new wide-arc steering makes GRIP truly valuable on later laps",()=>{
 });
 test("0.10.3 release points to new physics while preserving 0.9.0 camera modes",()=>{
  const html=read("./index.html"),boot=read("./boot-v0103.js"),
-  game=read("./game-v0103.mjs"),before=read("./game-v090.mjs");
+  game=read("./game-v0103.mjs"),before=read("./legacy/game/game-v090.mjs");
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(html,/data-game-module="game-v0103\.mjs"/);
  assert.match(boot,/game-v0103\.mjs\?v=0\.10\.3/);

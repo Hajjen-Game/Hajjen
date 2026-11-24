@@ -13,7 +13,9 @@ export const retirementL1C=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/a
 assert.equal(retirementL1C.archiveCommit,retirement.archiveCommit);
 export const retirementL1D=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/legacy-retirement-l1d.json'),'utf8'));
 assert.equal(retirementL1D.archiveCommit,retirement.archiveCommit);
-const entries=new Map([...retirement.files,...retirementL1B.files,...retirementL1C.files,...retirementL1D.files].map(f=>[f.path,f]));
+export const retirementL1E=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/legacy-retirement-l1e.json'),'utf8'));
+assert.equal(retirementL1E.archiveCommit,retirement.archiveCommit);
+const entries=new Map([...retirement.files,...retirementL1B.files,...retirementL1C.files,...retirementL1D.files,...retirementL1E.files].map(f=>[f.path,f]));
 const asPath=p=>relative(repo,resolve(repo,p instanceof URL?fileURLToPath(p):p)).split('\\').join('/');
 const cache=new Map();
 export function isRetired(p){return entries.has(asPath(p));}

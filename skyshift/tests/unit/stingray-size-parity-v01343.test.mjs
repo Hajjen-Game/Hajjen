@@ -1,7 +1,7 @@
 // SKYSHIFT 0.13.4.3 — stable scale and faceted tail rollback regression.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {STINGRAY_PRESENTATION_01343,visualSettingsForShip}
  from "../../stingray-presentation-v01343.mjs";
 import {MANTA_WING_OUTLINE} from "../../manta-blade-v0484.mjs";

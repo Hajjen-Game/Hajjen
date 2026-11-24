@@ -1,7 +1,7 @@
 // SKYSHIFT 0.13.2.1 — navigation and default Ghost regression.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 const read=file=>readFileSync(new URL("../../"+file,import.meta.url),"utf8");
 const html=read("./index.html"),
   app=read("./legacy/game/game-v01321.mjs"),boot=read("./legacy/boot/boot-v01321.js"),

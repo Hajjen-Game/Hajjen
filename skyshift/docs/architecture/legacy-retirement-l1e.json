@@ -1,0 +1,299 @@
+{
+  "schemaVersion": 1,
+  "stage": "L1E",
+  "archiveCommit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+  "baseCommit": "ffae5a08ab11e8fadbe5e4193f5cb8f2d16ab8c4",
+  "inventoryRun": 45347691497,
+  "files": [
+    {
+      "path": "skyshift/legacy/boot/boot-v0131.js",
+      "sha": "81f1fbb3ccb81a840457b4836bf84d8629dcf193",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v0131.test.mjs",
+        "skyshift/tests/unit/ui-flow-v0131.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0131.mjs",
+      "sha": "ddf1ad2f4f3f8a14d9119bb27edd7d333257acda",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v0131.test.mjs",
+        "skyshift/tests/unit/ui-flow-v0131.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0132.js",
+      "sha": "4e37a49eb2875302071e4e598459e5eb9332c7c6",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v0132.test.mjs",
+        "skyshift/tests/unit/ui-flow-v0132.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0132.mjs",
+      "sha": "65292b6aae2606c645deb888d350bb4fc00f439f",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v0132.test.mjs",
+        "skyshift/tests/unit/ui-flow-v0132.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v01321.js",
+      "sha": "b1d44ccbbeb52593228aeca36774394d3e7f10ad",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v01321.test.mjs",
+        "skyshift/tests/unit/ui-flow-v01321.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v01321.mjs",
+      "sha": "be80e2d9a1aae3bba4776382cf9b6355d0a9d6d5",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v01321.test.mjs",
+        "skyshift/tests/unit/ui-flow-v01321.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0133.js",
+      "sha": "b3f87c312e78edc393628efa0a184e20bf575d69",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v0133.test.mjs",
+        "skyshift/tests/unit/ui-flow-v0133.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0133.mjs",
+      "sha": "6da96c3648ebc59275915a1f9d4c8225369b7221",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v0133.test.mjs",
+        "skyshift/tests/unit/ui-flow-v0133.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v0134.js",
+      "sha": "f5a2aa6876f5d79e26e83878e430a35a6cfb05e4",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v0134.test.mjs",
+        "skyshift/tests/unit/ui-flow-v0134.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0134.mjs",
+      "sha": "d54739a5eb17f0f0fb75de165ec53680128d47a6",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v0134.test.mjs",
+        "skyshift/tests/unit/ui-flow-v0134.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v01341.js",
+      "sha": "edbfe8f7fca1dbb370533cd10c782fab154293e3",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v01341.test.mjs",
+        "skyshift/tests/unit/ui-flow-v01341.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v01341.mjs",
+      "sha": "bb9e4295a57cbd61ae75102f8586e9710d7eb536",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v01341.test.mjs",
+        "skyshift/tests/unit/ui-flow-v01341.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v01342.js",
+      "sha": "ab37596d227d7232e0fa9b0181720a72558d5b4d",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v01342.test.mjs",
+        "skyshift/tests/unit/ui-flow-v01342.test.mjs",
+        "skyshift/tests/unit/stingray-static-tail-v01342.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v01342.mjs",
+      "sha": "271a6645b5afe5b6b3e7172ec8fc53f2256cc94c",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v01342.test.mjs",
+        "skyshift/tests/unit/ui-flow-v01342.test.mjs",
+        "skyshift/tests/unit/stingray-static-tail-v01342.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v01343.js",
+      "sha": "4bf9238544b7f1ffb787164fb6ee0c91b9c7d0f1",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v01343.test.mjs",
+        "skyshift/tests/unit/ui-flow-v01343.test.mjs",
+        "skyshift/tests/unit/stingray-size-parity-v01343.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v01343.mjs",
+      "sha": "f17d122dd28090672aac3321188b3e74415c51ec",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v01343.test.mjs",
+        "skyshift/tests/unit/ui-flow-v01343.test.mjs",
+        "skyshift/tests/unit/stingray-size-parity-v01343.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v01344.js",
+      "sha": "dad20a623306c759ef8d0e063f5845efc5251f9f",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v01344.test.mjs",
+        "skyshift/tests/unit/ui-flow-v01344.test.mjs",
+        "skyshift/tests/unit/stingray-grip-clearance-v01344.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v01344.mjs",
+      "sha": "af5d2eb9d56bf1b522d9654d185066aa34409446",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v01344.test.mjs",
+        "skyshift/tests/unit/ui-flow-v01344.test.mjs",
+        "skyshift/tests/unit/stingray-grip-clearance-v01344.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/boot/boot-v01345.js",
+      "sha": "eef37cd58ab3a47c7ff1d424c5e06823d7a793e3",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v01345.test.mjs",
+        "skyshift/tests/unit/ui-flow-v01345.test.mjs",
+        "skyshift/tests/unit/stingray-screen-parity-v01345.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v01345.mjs",
+      "sha": "ba2371c8f73bb59865eb4e888c81758293263bda",
+      "readers": [
+        "skyshift/tests/unit/rail-scrape-sparks-v01345.test.mjs",
+        "skyshift/tests/unit/ui-flow-v01345.test.mjs",
+        "skyshift/tests/unit/stingray-screen-parity-v01345.test.mjs"
+      ]
+    }
+  ],
+  "readers": [
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0131.test.mjs",
+      "sha": "a8b1854bae0b05ce0734c3e1b11e6a96bac52392",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v0131.test.mjs",
+      "sha": "5b18ab26312c8fd2bb6ca16d8b16743e7c67bf2c",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0132.test.mjs",
+      "sha": "016233b763a55d4f2c30eb1d54d01ea15308a1f5",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v0132.test.mjs",
+      "sha": "8ab935b6de8d0f698232561b8f285a1291602f45",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01321.test.mjs",
+      "sha": "ecb1f4a60dba21e54a373991656cbbd4cefc0d1f",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v01321.test.mjs",
+      "sha": "14fb02719dee0b96dadf0fa2e4b2c6101b9a91de",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0133.test.mjs",
+      "sha": "dd79202e5ce5c9dc94d90e19e46d04db1914d76e",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v0133.test.mjs",
+      "sha": "b9c50eebd6938d27e07b219618ad8b6384269ebf",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0134.test.mjs",
+      "sha": "48cbd34e167d88eda98a23441dd7f315e494ace6",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v0134.test.mjs",
+      "sha": "be647d8bb56c63fc849faf0cb35b9736df65f21a",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01341.test.mjs",
+      "sha": "987ba42da9089c0797878e71d678ae2d7ae27e52",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v01341.test.mjs",
+      "sha": "73888397ea8a783762cd61f8cdf6e36ef17918bb",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01342.test.mjs",
+      "sha": "361571378b53a5d54d3863976694b974f351883c",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v01342.test.mjs",
+      "sha": "50ec047f248ae6fabf7985473df9c29de942d60a",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/stingray-static-tail-v01342.test.mjs",
+      "sha": "63df1ab08578210aa7672a6bb1ddb46a2503e928",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01343.test.mjs",
+      "sha": "d4fd086855621131ab99b9f239599fcf10cc22bb",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v01343.test.mjs",
+      "sha": "cdfcb88f74397235d2a67c0b5ab296320fd69063",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/stingray-size-parity-v01343.test.mjs",
+      "sha": "8694550a9149f48394f34296939258688f0c0f0a",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01344.test.mjs",
+      "sha": "d48284f3aaf5be929bbc40021e94161f5c3b2ccc",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v01344.test.mjs",
+      "sha": "ab271fdac75e0172a3b421634a6edc7d0e5e598e",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/stingray-grip-clearance-v01344.test.mjs",
+      "sha": "662c735fceac9c927bf1fa78f818b58ae75beb1f",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01345.test.mjs",
+      "sha": "0facef8a69116816c42090bdc80878a6c168b261",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/ui-flow-v01345.test.mjs",
+      "sha": "f6d26c06657dd4c8f28806c46f53aee883cbc463",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    },
+    {
+      "path": "skyshift/tests/unit/stingray-screen-parity-v01345.test.mjs",
+      "sha": "cf8b47d1758a472bfce46f9c88bd57b54169efd4",
+      "originalImport": "import {readFileSync} from \"node:fs\";"
+    }
+  ]
+}

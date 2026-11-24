@@ -137,7 +137,7 @@ test("new road paint follows banked geometry and remains on collision-solid deck
  for(const mark of plan)
    for(const s of [mark.start+.01,(mark.start+mark.end)*.5,mark.end-.01])
      assert.ok(roadIntervals(s).some(([a,b])=>mark.left>a+.07&&mark.right<b-.07));
- const game=src("game-v041.mjs");
+ const game=src("legacy/game/game-v041.mjs");
  assert.match(game,/const p1=toVec\(d,a\),p2=toVec\(d,b\)/);
  assert.match(game,/import \{ installCleanTrack \} from "\.\/identity-v041\.mjs"/);
  assert.match(game,/ship\.position\.set\(flight\.worldX/);
@@ -146,7 +146,7 @@ test("new road paint follows banked geometry and remains on collision-solid deck
 });
 
 test("camera and engine trails follow pilot heading, not track tangent",()=>{
- const game=src("game-v041.mjs"),fx=src("premium-v041.mjs");
+ const game=src("legacy/game/game-v041.mjs"),fx=src("premium-v041.mjs");
  assert.match(game,/flight\.worldX-fx\*17\.8/);
  assert.match(game,/flight\.worldZ-fz\*17\.8/);
  assert.doesNotMatch(game,/ship\.rotation\.y=-poseAt/);
@@ -158,7 +158,7 @@ test("camera and engine trails follow pilot heading, not track tangent",()=>{
 });
 
 test("active website serves 0.4.1, retains HDR, fullscreen and fresh per-trial records",()=>{
- const html=src("index.html"),game=src("game-v041.mjs");
+ const html=src("index.html"),game=src("legacy/game/game-v041.mjs");
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(html,/id="fullscreen-btn"/);

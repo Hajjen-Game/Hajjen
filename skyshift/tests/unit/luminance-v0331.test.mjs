@@ -58,7 +58,7 @@ test("collision-aligned 0.3.3 deck detailing remains the exact same authored pla
 });
 
 test("renderer integrates only midtone and atmosphere changes, not gameplay/bloom",()=>{
-  const game=read("game-v0331.mjs");
+  const game=read("legacy/game/game-v0331.mjs");
   assert.match(game,/from "\.\/trial-v03\.mjs"/);
   assert.match(game,/from "\.\/neon-v032\.mjs"/);
   assert.match(game,/from "\.\/premium-v032\.mjs"/);

@@ -112,7 +112,7 @@ test("no decorative dark tiles or false platforms are reintroduced by the wider 
 });
 
 test("world is pure starfield: no geological geometry or old world installers",()=>{
-  const game=src("game-v04.mjs");
+  const game=src("legacy/game/game-v04.mjs");
   const space=src("space-v04.mjs");
   assert.equal(SPACE_DESIGN.geologicalMeshes,0);
   assert.equal(SPACE_DESIGN.landmarkCount,0);
@@ -126,7 +126,7 @@ test("world is pure starfield: no geological geometry or old world installers",(
 });
 
 test("camera and craft show turn attitude, with future real banking held back",()=>{
-  const game=src("game-v04.mjs");
+  const game=src("legacy/game/game-v04.mjs");
   assert.match(game,/const shipLean=clamp\(turn\*7\.5/);
   assert.match(game,/camera\.rotateZ\(clamp\(curvatureAt\(flight\.s\+13\)/);
   assert.match(game,/const ahead=positionAt\(Math\.min\(TRIAL\.length,flight\.s\+45\)/);
@@ -140,7 +140,7 @@ test("camera and craft show turn attitude, with future real banking held back",(
 });
 
 test("active browser entrypoint loads 0.4 and retains fullscreen and neon defaults",()=>{
-  const html=src("index.html"),game=src("game-v04.mjs");
+  const html=src("index.html"),game=src("legacy/game/game-v04.mjs");
   assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
   assert.match(html,/style-v061\.css\?v=0\.6\.1/);
   assert.match(html,/id="fullscreen-btn"/);

@@ -17,6 +17,51 @@ const moved={
   "browser-multi-track-v0160.mjs": "12f778f7e8535573697823b1c804d8bd654a4ca8"
 };
 const browser=Object.keys(moved).filter(n=>n.endsWith('.mjs'));
+// These exact dynamic import literals belong to reviewed page.evaluate callbacks.
+// They resolve relative to the loaded /skyshift/ document, not the Node runner.
+const browserImports={
+  "browser-fairness-v0135.mjs": [
+    "./flight/steering-authority-v0901.mjs",
+    "./trial-v01348.mjs"
+  ],
+  "browser-grip-half-v01348.mjs": [
+    "./flight/steering-authority-v0901.mjs",
+    "./trial-v01348.mjs"
+  ],
+  "browser-grip-trick-v0165.mjs": [
+    "./flight/boost/boost-v0160.mjs",
+    "./flight/boost/boost-v0160.mjs",
+    "./premium-track-v0160.mjs",
+    "./premium-track-v0160.mjs",
+    "./racing-experience-v0160.mjs",
+    "./shadow-tunnel-v0160.mjs",
+    "./time-trial-v0160.mjs",
+    "./time-trial-v0160.mjs",
+    "./tracks/shared/track-selection-v0160.mjs",
+    "./tracks/shared/track-selection-v0160.mjs",
+    "./trial-v0164.mjs",
+    "./trial-v0165.mjs",
+    "./trial-v0165.mjs",
+    "./trial-v0165.mjs",
+    "./trial-v0165.mjs",
+    "./trial-v0165.mjs",
+    "./trial-v0165.mjs"
+  ],
+  "browser-multi-track-v0160.mjs": [
+    "./flight/boost/boost-v0160.mjs",
+    "./flight/boost/boost-v0160.mjs",
+    "./premium-track-v0160.mjs",
+    "./premium-track-v0160.mjs",
+    "./racing-experience-v0160.mjs",
+    "./shadow-tunnel-v0160.mjs",
+    "./time-trial-v0160.mjs",
+    "./time-trial-v0160.mjs",
+    "./tracks/shared/track-selection-v0160.mjs",
+    "./tracks/shared/track-selection-v0160.mjs",
+    "./trial-v0160.mjs",
+    "./trial-v0160.mjs"
+  ]
+};
 test('L1G: eight root paths are absent and original Git blob identity is exact',()=>{
  assert.equal(readdirSync(resolve(repo,'skyshift'),{withFileTypes:true}).filter(e=>e.isFile()).length,277);
  for(const [name,sha] of Object.entries(moved)){
@@ -26,7 +71,10 @@ test('L1G: eight root paths are absent and original Git blob identity is exact',
   if(name.endsWith('.mjs')){
    const s=data.toString('utf8');
    assert.doesNotMatch(s,/\bimport\.meta\.url\b/);
-   assert.doesNotMatch(s,/\b(?:from\s*|import\s*\(\s*|import\s*)["']\.{1,2}\//);
+   assert.doesNotMatch(s,/\b(?:from\s*|import\s*)["']\.{1,2}\//);
+   const imports=[...s.matchAll(/\bimport\s*\(\s*["'](\.{1,2}\/[^"']+)["']\s*\)/g)].map(m=>m[1]).sort();
+   assert.deepEqual(imports,browserImports[name],name+' browser import inventory changed');
+   for(const spec of imports)assert.ok(existsSync(resolve(repo,'skyshift',spec)),name+' missing document-relative module '+spec);
   }
  }
 });

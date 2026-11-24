@@ -1,3 +1,4 @@
+import {restoreEF02H,ef02hCurrentPath} from './ef02h-path-overlay.mjs';
 // SKYSHIFT Architecture Cleanup 2.0 — Stage E Vault track relocation guard.
 // Every live Vault module must recreate its original Git blob after reversing
 // ONLY the approved relative ESM path changes.
@@ -30,11 +31,12 @@ test('seven Vault-only track modules preserve exact original source except appro
   const target=resolve(vault,name);
   assert.ok(existsSync(target),'Missing moved Vault module: '+name);
   const source=readFileSync(target,'utf8');
-  let original=source;
+  const preEF02H=restoreEF02H(source,target);
+  let original=preEF02H;
   const config=manifest.files[name];
   for(const external of config.externalImports){
-   assert.ok(existsSync(resolve(root,external)),'External source missing: '+external);
-   assert.ok(source.includes('../../'+external),'Expected ../../ import for '+name+' -> '+external);
+   assert.ok(existsSync(ef02hCurrentPath(resolve(root,external))),'External source missing: '+external);
+   assert.ok(preEF02H.includes('../../'+external),'Expected ../../ import for '+name+' -> '+external);
    original=original.split('../../'+external).join('./'+external);
   }
   assert.equal(gitSha(Buffer.from(original,'utf8')),config.originalGitBlobSha,

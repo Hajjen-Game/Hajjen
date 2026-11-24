@@ -1,3 +1,4 @@
+import {restoreEF02H,ef02hCurrentPath} from './ef02h-path-overlay.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync,readdirSync} from 'node:fs';
@@ -16,15 +17,16 @@ test('L1H: six protected runners are byte-exact and ten historical readers retai
  for(const f of m.moves){
   assert.ok(!existsSync(resolve(repo,f.oldPath)),f.oldPath);
   const s=readFileSync(resolve(repo,f.newPath),'utf8');
-  assert.equal(sha(s),f.sha,f.newPath);
+  const original=restoreEF02H(s,resolve(repo,f.newPath));
+  assert.equal(sha(original),f.sha,f.newPath);
   assert.doesNotMatch(s,/\bimport\.meta\.url\b/);
   assert.doesNotMatch(s,/\b(?:from\s*|import\s*)["']\.{1,2}\//);
-  const imports=[...s.matchAll(/\bimport\s*\(\s*["'](\.{1,2}\/[^"']+)["']\s*\)/g)].map(x=>x[1]).sort();
+  const imports=[...original.matchAll(/\bimport\s*\(\s*["'](\.{1,2}\/[^"']+)["']\s*\)/g)].map(x=>x[1]).sort();
   assert.deepEqual(imports,f.browserImports,f.newPath);
-  for(const spec of imports)assert.ok(existsSync(resolve(repo,'skyshift',spec)),f.newPath+' '+spec);
+  for(const spec of imports)assert.ok(existsSync(ef02hCurrentPath(resolve(repo,'skyshift',spec))),f.newPath+' '+spec);
  }
  for(const r of m.readers){
-  let s=readFileSync(resolve(repo,r.path),'utf8');
+  let s=restoreEF02H(readFileSync(resolve(repo,r.path),'utf8'),r.path);
   const retiredReader=ef02e.readers.find(x=>x.path===r.path);
   if(retiredReader){
    assert.equal(s.split(archiveImport).length,2,r.path);

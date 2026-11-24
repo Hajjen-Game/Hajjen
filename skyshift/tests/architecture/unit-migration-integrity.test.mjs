@@ -1,3 +1,4 @@
+import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT 0.28.9.8 stage 5: prove relocated unit tests are assertion-identical.
 // Only static source import paths may change from ./module to ../../module.
@@ -44,7 +45,7 @@ test('relocated historical unit tests retain assertions, source imports and orig
       assert.ok(localPath && localPath !== '..' && !localPath.startsWith('..' + sep) && !isAbsolute(localPath), 'Import escapes game root: ' + name);
       assert.ok(existsSync(imported), 'Moved test cannot import source: ' + name + ' -> ' + match[1]);
     }
-    const original = restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(restoreR1BBootPaths(restoreR1CBootPaths(restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(restoreR1GGamePaths(migrated))))))))))))))).replace(/(\bfrom\s*["'])\.\.\/\.\.\//g, '$1./');
+    const original = restoreStageCRenderingReferences(restoreStageDTunnelReferences(restoreStageEVaultReferences(restoreStageFTrackReferences(restoreStageGShipReferences(restoreStageHFlightReferences(restoreStageICoreReferences(restoreStageJPaths(restoreStageMPaths(restoreR1BBootPaths(restoreR1CBootPaths(restoreR1DBootPaths(restoreR1EGamePaths(restoreR1FGamePaths(restoreR1GGamePaths(restoreEF02H(migrated,target)))))))))))))))).replace(/(\bfrom\s*["'])\.\.\/\.\.\//g, '$1./');
     const bytes = Buffer.from(original, 'utf8');
     const gitHash = createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
     assert.equal(gitHash, old.originalGitBlob, 'Test assertions or source changed: ' + name);

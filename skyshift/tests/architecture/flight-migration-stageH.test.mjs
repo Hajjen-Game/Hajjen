@@ -31,6 +31,28 @@ test('Stage H: all 18 flight/steering/camera source files are SHA-equivalent to 
    assert.ok(existsSync(resolve(root,external)),'Missing flight external dependency: '+external);
    original=original.split('../'+external).join('./'+external);
   }
+  // EF02C: original hash protection retained for explicitly approved shared bodies.
+  if(name==='cinematic-v0165.mjs'){
+   assert.equal(content,"import {heightAt,bankAt,CORKSCREW} from \"../trial-v0165.mjs\";\nimport { followAngle } from \"../flight-motion-v044.mjs\";\nimport {createCameraFraming} from \"./cinematic-camera.mjs\";\nexport {CINEMATIC_DEFAULTS,createCinematicState,headingDelta,turnPreview,stepCinematic,cinematicFov,engineLightFactor} from \"./cinematic-camera.mjs\";\nexport const {cameraBankAt,chasePose}=createCameraFraming({heightAt,bankAt,CORKSCREW});\n",'Camera adapter differs from approved sampler');
+   original=readFileSync(resolve(flight,'cinematic-camera.mjs'),'utf8')
+    .replace("// Track sampler supplied by adapter.","import {heightAt,bankAt,CORKSCREW} from \"./trial-v0165.mjs\";")
+    .replace("// Historical followAngle import retained in adapter.","import { followAngle } from \"./flight-motion-v044.mjs\";")
+    .replace("export function createCameraFraming({heightAt,bankAt,CORKSCREW}){\nfunction cameraBankAt(s){","export function cameraBankAt(s){")
+    .replace('function chasePose(','export function chasePose(')
+    .replace(" return {cameraBankAt,chasePose};\n}\n",'');
+  }else if(/^unified-flight-v(?:0112|016[1-5])\.mjs$/.test(name)){
+   const deps={'0112':'0901','0161':'0161','0162':'0162','0163':'0163','0164':'0164','0165':'0165'};
+   const v=name.match(/v(\d+)\.mjs$/)[1],dep='cinematic-v'+deps[v]+'.mjs';
+   const line='import {turnPreview,stepCinematic} from "'+(v==='0165'?'./':'../')+dep+'";';
+   const expected=line+'\nimport {createUnifiedFlightAdvance} from "./unified-flight.mjs";\n'+
+    'export {UNIFIED_FLIGHT_0112,createUnifiedFlightRig,resetUnifiedFlightRig,unifiedFlightAudit} from "./unified-flight.mjs";\n'+
+    'export const advanceUnifiedFlightRig=createUnifiedFlightAdvance({turnPreview,stepCinematic});\n';
+   assert.equal(content,expected,'Unified flight adapter differs from approved cinematic dependency');
+   original=readFileSync(resolve(flight,'unified-flight.mjs'),'utf8')
+    .replace("// Cinematic presentation supplied by adapter.",'import {turnPreview,stepCinematic} from "./'+dep+'";')
+    .replace("export function createUnifiedFlightAdvance({turnPreview,stepCinematic}){\nfunction advanceUnifiedFlightRig(","export function advanceUnifiedFlightRig(")
+    .replace(" return advanceUnifiedFlightRig;\n}\n",'');
+  }
   assert.equal(hash(Buffer.from(original,'utf8')),manifest.files[name].originalGitBlobSha,
    'Flight/GRIP/camera/boost source content differs from original: '+name);
   for(const match of content.matchAll(/\b(?:from\s*|import\s*\(\s*|import\s*)["'](\.{1,2}\/[^"']+)["']/g)){

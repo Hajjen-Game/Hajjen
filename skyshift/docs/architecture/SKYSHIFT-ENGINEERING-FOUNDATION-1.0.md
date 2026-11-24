@@ -39,8 +39,8 @@ Before edit: read this plan/status; inspect current main SHA, open PRs, checks; 
 ## 5. Current execution status
 - Audit reference: bfecc3914be331de1fc8c9f8dfc27e6719f8c3d2 (0.28.9.7; 1,087 tracked files, 277 direct, 5,803 lines and 124 direct imports in game-v0210.mjs; selected module review, not full line-by-line audit or hardware profiling).
 - Latest verified pre-plan main: 555999c364f59fcd32ab0773841794c4aa26c87c (L1H #210 merged, 1,091 tracked files, 271 direct, 42 legacy; main track QA 45422932872, Pages publication guard 45422932911, Pages deployment 45422930753 successful).
-- EF01: BASELINE RECORDED — #214 merged (38/38 checks), limitations in [baseline report](EF01-RUNTIME-PERFORMANCE-BASELINE.md). EF02 IN PROGRESS — #215 merged at 4299ca97adb44e34d6a5d74a8045c35d730c9133 (37/37 checks, 3→1 deck algorithms, 3687 fewer bytes); EF02B visual fidelity candidate. EF03–EF08 pending.
-- Next: verify EF02B shader/profile/material parity and existing full WebGL gates. Confirm #215 post-merge track QA/Pages/guard before merging. Next audited cohort cinematic/unified flight and rail sparks; then obsolete adapters/snapshots and coherent root consolidation.
+- EF01: BASELINE RECORDED — #214 merged; see baseline report for limits. EF02 IN PROGRESS — #215 verified, #216 merged at 483abf3bed37a3cfab0af1a60e824438bd1f8a60 (37/37 checks, 96 exact fidelity comparisons; cumulative 23402 bytes removed from duplicate bodies). EF02C shared camera/flight candidate. EF03–EF08 pending.
+- Next: verify EF02C exact camera/flight parity and all current CI plus #216 post-merge track QA/Pages/guard. Next rail sparks, then audited obsolete code/adapter retirement and ownership consolidation.
 - Known gaps: physical hardware CPU/GPU timings, isolated driver shader compile, exact presented-frame timing and long-duration resource/teardown measurements unavailable; computed/optional/QA references must be audited per cohort. No unsupported FPS or dead-code claims.
 
 ## 6. New-chat handoff

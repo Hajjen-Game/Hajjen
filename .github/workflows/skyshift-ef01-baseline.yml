@@ -1,0 +1,65 @@
+name: SKYSHIFT EF01 baseline evidence
+on:
+  pull_request:
+    paths:
+      - 'skyshift/tests/architecture/ef01-census.mjs'
+      - '.github/workflows/skyshift-ef01-baseline.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: skyshift-ef01-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  BASELINE: 4983f20f6cf867f91e1ebd57ad48b1d0c685997c
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Checkout exact approved baseline separately
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASELINE"
+          git worktree add --detach "$RUNNER_TEMP/ef01-source" "$BASELINE"
+          mkdir -p "$RUNNER_TEMP/ef01"
+      - name: Produce deterministic dependency and duplication evidence
+        run: |
+          node --check skyshift/tests/architecture/ef01-census.mjs
+          node skyshift/tests/architecture/ef01-census.mjs "$RUNNER_TEMP/ef01-source" "$RUNNER_TEMP/ef01/census.json" "$BASELINE"
+          cd "$RUNNER_TEMP/ef01-source"
+          node skyshift/tests/architecture/dependency-inventory-v2.mjs > "$RUNNER_TEMP/ef01/existing-literal-inventory.json"
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          node skyshift/tests/architecture/root-subsystem-relocation-plan.mjs > "$RUNNER_TEMP/ef01/l1h-consumers.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-ef01-static-census
+          path: ${{ runner.temp }}/ef01/
+          if-no-files-found: error
+  cold-start-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 4983f20f6cf867f91e1ebd57ad48b1d0c685997c
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install existing browser harness dependencies
+        run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
+      - name: Existing 0.28.9.7 Vault cold-start reference (SwiftShader, 8GB/4GB profiles)
+        run: |
+          node skyshift/tests/browser/browser-startup-stability-v02897.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-ef01-vault-cold-start-swiftshader
+          path: |
+            skyshift/previews/v02897-*.png
+            skyshift/previews/v02897-startup-profile.json
+          if-no-files-found: error

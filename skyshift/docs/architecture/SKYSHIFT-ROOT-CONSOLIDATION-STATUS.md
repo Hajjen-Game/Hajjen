@@ -1,7 +1,7 @@
 # SKYSHIFT — ROOT CONSOLIDATION: SOURCE OF TRUTH
 
-> **Status: NOT FINISHED** (main: R1F PR #200, ab926746c1a356d8f, 328 root files, all post-merge checks green; R1G migration branch targets 286).
-> **User's actual goal:** Just a few essential files directly inside `skyshift/`; organize all remaining live modules, historical versions, tests and documentation into clearly named subdirectories. **Do not mark this goal complete merely because the shared tunnel architecture tests are green.**
+> **Status: NOT FINISHED** (`main`: R1G #201 merged at f8fadb76fe1e8f4cf75db812150bc083f05e3e48; 286 root files, 1,222 total; Pages green, post-merge track suite requires repair; L0 inventory green).
+> **User's actual goal:** Few essential root files (target <=10), organized active code, and removal of redundant obsolete versions from the working tree. Keep only live dependencies and justified historical fixtures, with Git history as the archive.
 
 ## Verified baseline
 
@@ -111,7 +111,7 @@ After PR #196, `main` had **429 direct-root files**. Merged PR #197 moves **20 a
 - The ongoing crash/slow long-chat problem is a separate ChatGPT product issue; **do not rely on chat history alone** for technical handoff.
 - R0 was originally a **non-runtime correction**. R1–R1F are actual file moves, recorded separately above; the overarching root-consolidation goal remains unfinished.
 
-## R1G — 42 later historical game snapshots (UNMERGED)
+## R1G — 42 later historical game snapshots (MERGED #201)
 
 R1F PR #200 merged at ab926746c1a356d8f2a9c079968e7e65dc804901, 328 direct files, all main checks green. R1G exhaustive reference audit run 45343324620 found 42 eligible of 43 candidates. Move those 42 to legacy/game/ and preserve the exact prior Git blob after reversing only static relative imports; rewire matching bootstraps and audited unit readers, including exact boot import regex paths. Keep v0191 (missing unique CI syntax check), v0101/v0103 compatibility pairs, v0203 comparison page, and live v0210. Historical direct-root Pages script URLs are not redirected. Root target 286. Require independent R1G SHA guard and all original cumulative gates plus full PR checks before merge; verify Pages and track QA afterward. No runtime behavior or asset changes intended. Next: audit held game/boot compatibility, then CSS/UI and subsystem modules. Goal remains <=10 intentional direct files.
 
@@ -120,3 +120,7 @@ R1F PR #200 merged at ab926746c1a356d8f2a9c079968e7e65dc804901, 328 direct files
 PR #201 first fast run 45345177629 failed four historic 0.16.5 subtests because eight exact static import assertions in two track test readers still expected ./ paths. Rebase only those assertions to ../../, retaining identical module names and inverse SHA verification. No production code or baseline SHA changed. Full PR checks required before merge.
 
 Post-R1G direction: distinguish active dependency graph, explicit A/B fixtures and obsolete full snapshots. Prefer preserving redundant versions via Git history rather than carrying all historical snapshots in the working tree. Audit current regression coverage and dependencies before retiring anything; never remove tests merely to turn CI green. This is a proposed next cleanup phase, not an assertion of completion.
+
+## R1G post-merge repair and L0 next step
+
+R1G merged after 36/36 checks. Main Pages guard and deployment succeeded; track logic run 45347598692 failed 11/185 assertions due to old static ESM import path expectations on archived snapshots. Repair exactly the 11 affected test readers, with reversible SHA checks and no game changes. Add the exact full post-merge track test command to mandatory pre-merge architecture guard to prevent recurrence. L0 inventory 45347691497 is green: 186 game/boot snapshots outside the literal runtime graphs; 2 active and 2 comparison snapshots. All 186 still have executable references (test, workflow or other), so they need coherent retirement, not blind deletion. 160 literal live graph nodes, 95 comparison, 33 dynamic references for review. L1 should retire a substantial redundant family only after preserving unique current coverage and establishing a durable Git-history rollback point. No legacy removal in this repair PR. User has explicitly approved actual deletion of obsolete files, not merely relocating them.

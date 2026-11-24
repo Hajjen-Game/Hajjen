@@ -184,7 +184,7 @@ test("3 reusable surface materials can recolor without changing geometry",()=>{
  assert.ok(meshes.every(x=>x.removed&&x.geometry.disposed&&x.material.disposed));
 });
 test("page uses v048 physical boost, HUD actual speed, ship light and zone graphics",()=>{
- const g=source("game-v048.mjs"),h=source("index.html");
+ const g=source("legacy/game/game-v048.mjs"),h=source("index.html");
  assert.match(h,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(h,/style-v061\.css\?v=0\.6\.1/);
  assert.match(g,/from "\.\/trial-v048\.mjs"/);

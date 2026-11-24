@@ -139,7 +139,7 @@ test("two draw batches carry meaningful chevrons and restrained road patterns",(
  assert.deepEqual(data.accentAnchors,[0,95,222,292,424,510]);
 });
 test("active site builds the new road mesh, rails, collision log and audit",()=>{
- const html=source("index.html"),game=source("game-v046.mjs");
+ const html=source("index.html"),game=source("legacy/game/game-v046.mjs");
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(html,/style-v061\.css\?v=0\.6\.1/);
  assert.match(game,/from "\.\/trial-v046\.mjs"/);

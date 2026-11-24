@@ -213,7 +213,7 @@ test("a plausible pilot can finish double-speed lab while manually steering",()=
 });
 
 test("archived 0.4.3 build retains speed, mesh and pacing; current page is 0.4.4",()=>{
- const game=source("game-v043.mjs"),html=source("index.html");
+ const game=source("legacy/game/game-v043.mjs"),html=source("index.html");
  assert.match(game,/from "\.\/trial-v043\.mjs"/);
  assert.match(game,/from "\.\/smooth-track-v043\.mjs"/);
  assert.match(game,/createSmoothDeckGeometry\(THREE,surfaceColor\)/);

@@ -22,6 +22,12 @@ jobs:
           git switch --detach ab926746c1a356d8f2a9c079968e7e65dc804901
           node "$RUNNER_TEMP/r1g-build-migration.mjs"
           git diff --stat
-          git add skyshift .github/workflows/skyshift-tests.yml .github/workflows/skyshift-architecture-guard.yml
+          git fetch origin refs/heads/skyshift/root-consolidation-r1g-game-snapshots
+          test "$(git rev-parse FETCH_HEAD)" = "e446ab112ae3820874f5daf9de66f6a41dacece1"
+          git reset --mixed e446ab112ae3820874f5daf9de66f6a41dacece1
+          git diff --exit-code -- .github/workflows
+          git add -A skyshift
+          git diff --cached --exit-code -- .github/workflows
+          git diff --cached --stat
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'SKYSHIFT R1G: migrate 42 audited historical game snapshots and preserve prior SHA guards'
           git push origin HEAD:refs/heads/skyshift/root-consolidation-r1g-game-snapshots

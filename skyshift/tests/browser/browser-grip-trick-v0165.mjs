@@ -29,7 +29,7 @@ try{
    null,{timeout:75000});
   return await page.evaluate(async()=>{
    const [trial,selection,premium,boost,shadow,record,racing]=await Promise.all([
-    import("./trial-v0165.mjs"),import("./tracks/shared/track-selection-v0160.mjs"),
+    import("./tracks/trials/trial-v0165.mjs"),import("./tracks/shared/track-selection-v0160.mjs"),
     import("./rendering/road/premium-track-v0160.mjs"),import("./flight/boost/boost-v0160.mjs"),
     import("./shadow-tunnel-v0160.mjs"),import("./time-trial-v0160.mjs"),
     import("./racing-experience-v0160.mjs")]);
@@ -59,7 +59,7 @@ try{
  // position after 475m, reducing steering to 6.5% under full GRIP.
  const fullGripBrowser=await page.evaluate(async()=>{
   const [t,old]=await Promise.all([
-   import("./trial-v0165.mjs"),import("./trial-v0164.mjs")]);
+   import("./tracks/trials/trial-v0165.mjs"),import("./trial-v0164.mjs")]);
   function turn(mod,s){
    const st=mod.newFlightState(),p=mod.positionAt(s);
    Object.assign(st,{s,lateral:0,worldX:p.x,worldZ:p.z,
@@ -100,7 +100,7 @@ try{
    JSON.stringify({ghostCue,final}));
  // Actual selected Aurora rendering AND 120Hz pilot control.
  const auroraHandle=await page.evaluate(async()=>{
-  const t=await import("./trial-v0165.mjs");
+  const t=await import("./tracks/trials/trial-v0165.mjs");
   const st=t.newFlightState(),rows=[];
   for(let i=0;i<64;i++){
    t.stepFlight(st,1/120,{steer:i<15?.15:i<39?-.12:.21,
@@ -122,7 +122,7 @@ try{
   null,{timeout:75000});
  const skyline=await page.evaluate(async()=>{
   const [trial,premium,record,selection,boost]=await Promise.all([
-   import("./trial-v0165.mjs"),import("./rendering/road/premium-track-v0160.mjs"),
+   import("./tracks/trials/trial-v0165.mjs"),import("./rendering/road/premium-track-v0160.mjs"),
    import("./time-trial-v0160.mjs"),import("./tracks/shared/track-selection-v0160.mjs"),
    import("./flight/boost/boost-v0160.mjs")]);
   const p=trial.positionAt(550);
@@ -134,7 +134,7 @@ try{
    at550:[p.x,p.y,p.z],PB:record.TIME_TRIAL_0160.storageKey};
  });
  const skylineHandle=await page.evaluate(async()=>{
-  const t=await import("./trial-v0165.mjs");
+  const t=await import("./tracks/trials/trial-v0165.mjs");
   const st=t.newFlightState(),rows=[];
   for(let i=0;i<64;i++){
    t.stepFlight(st,1/120,{steer:i<15?.15:i<39?-.12:.21,
@@ -159,7 +159,7 @@ try{
  // Skyline must retain its genuine 360° course roll at 3005-3338m,
  // rather than being globally disabled to fix Aurora.
  const skylineActualLeap=await page.evaluate(async()=>{
-  const t=await import("./trial-v0165.mjs");
+  const t=await import("./tracks/trials/trial-v0165.mjs");
   const st=t.newFlightState(),s=500,p=t.positionAt(s);
   Object.assign(st,{s,lateral:0,worldX:p.x,worldZ:p.z,
    heading:t.headingAt(s),grounded:true});

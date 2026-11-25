@@ -8,7 +8,7 @@ import {WORLD_ART_02021,planStationWorld,bakeTrackConformingBayGeometry}
  from "../../world/environment-art-pipeline-v02021.mjs";
 import {planStationWorld as previousPlan}
  from "../../world/environment-art-pipeline-v0202.mjs";
-import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
+import {TRIAL,SKYLINE_LEAP,positionAt} from "../../tracks/trials/trial-v0165.mjs";
 const file=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const asset=JSON.parse(file("./assets/worlds/continuum-ribbon-bays-v4.gltf"));
 test("3 long two-bay windows instead of 6 squared-off panes",()=>{

@@ -6,7 +6,7 @@ import {WORLD_ART_0201,planStationWorld,bakeTrackConformingBayGeometry}
  from "../../world/environment-art-pipeline-v0201.mjs";
 import {STATION_ART_0201,buildStationAsset}
  from "../../world/authoring/build-station-world-v0201.mjs";
-import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
+import {TRIAL,SKYLINE_LEAP,positionAt} from "../../tracks/trials/trial-v0165.mjs";
 import {planStationWorld as planLegacyWorld}
  from "../../world/environment-art-pipeline-v0200.mjs";
 const src=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");

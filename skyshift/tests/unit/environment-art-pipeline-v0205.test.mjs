@@ -7,7 +7,7 @@ import {WORLD_ART_0205,planStationWorld,bakeTrackConformingBayGeometry}
  from "../../world/environment-art-pipeline-v0205.mjs";
 import {planStationWorld as oldWorld}
  from "../../world/environment-art-pipeline-v02041.mjs";
-import {positionAt,TRIAL,SKYLINE_LEAP} from "../../trial-v0165.mjs";
+import {positionAt,TRIAL,SKYLINE_LEAP} from "../../tracks/trials/trial-v0165.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const newer=JSON.parse(read("./assets/worlds/continuum-architecture-v7.gltf"));
 const older=JSON.parse(read("./assets/worlds/continuum-neon-sculpted-v6.gltf"));

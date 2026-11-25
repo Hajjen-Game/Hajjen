@@ -11,7 +11,8 @@ export const MESH_SPEC=Object.freeze({
   topSurfaceCount:1
 });
 
-export function createSmoothDeckBuilder({TRIAL,positionAt,widthAt,gapAt}){
+export function createSmoothDeckBuilder({TRIAL,positionAt,widthAt,gapAt,meshSpec=MESH_SPEC}){
+const MESH_SPEC=meshSpec;
 function sampleDeckRows(step=MESH_SPEC.sampleStep){
   const count=Math.ceil(TRIAL.length/step);
   // Fixed n rows prevents a short irregular last strip.

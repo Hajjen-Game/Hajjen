@@ -16,7 +16,7 @@ export function restoreDeckMove(source,path){
  let result=source;
  for(const e of [...record.edits].reverse()){
   assert.equal(result.split(e.after).length-1,e.count,record.path+' closure replacement '+e.after);
-  assert.ok(!result.includes(e.before),record.path+' stale closure path '+e.before);
+  if(!e.after.includes(e.before))assert.ok(!result.includes(e.before),record.path+' stale closure path '+e.before);
   result=result.split(e.after).join(e.before);
  }
  assert.equal(deckBlobHash(result),record.sha,record.path+' pre-closure identity');

@@ -123,3 +123,6 @@ jobs:
 
       - name: Verify exact road material ownership and current consumers
         run: node --test skyshift/tests/architecture/ef02-closure-premium-moves.test.mjs
+
+      - name: Verify exact active physics ownership and current consumers
+        run: node --test skyshift/tests/architecture/ef02-closure-trial-moves.test.mjs

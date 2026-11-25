@@ -10,7 +10,7 @@ import {
 } from "../../trial-v046.mjs";
 import {
  MESH_SPEC,createSmoothDeckData,sampleDeckRows
-} from "../../smooth-track-v046.mjs";
+} from "../../tracks/shared/smooth-track-v046.mjs";
 import {
  TRACK_IDENTITY,createRailData,sampleRailSection,createSurfaceIdentityData
 } from "../../identity-v046.mjs";

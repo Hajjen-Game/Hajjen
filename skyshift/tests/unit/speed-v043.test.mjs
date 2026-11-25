@@ -7,7 +7,7 @@ import {
 } from "../../trial-v043.mjs";
 import {
  MESH_SPEC,sampleDeckRows,createSmoothDeckData,createSmoothDeckGeometry
-} from "../../smooth-track-v043.mjs";
+} from "../../tracks/shared/smooth-track-v043.mjs";
 import {
   PACING,createFrameClock,advanceFrame,
   capturePose,interpolatePose,interpolateAngle,shouldSnapPose,

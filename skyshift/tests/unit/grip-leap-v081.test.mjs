@@ -9,7 +9,7 @@ import {createFlightMotionState,stepFlightMotion}
 import {TRIAL,CIRCUIT,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  positionAt,surfaceHeightAt,headingAt,bankAt,newFlightState,stepFlight,
  speedAt,widthAt,validateTrial} from "../../trial-v081.mjs";
-import {createSmoothDeckData} from "../../smooth-track-v081.mjs";
+import {createSmoothDeckData} from "../../tracks/shared/smooth-track-v081.mjs";
 import {createAeroBarrierData} from "../../tracks/barriers/aero-barrier-v081.mjs";
 import {PREMIUM_TRACK} from "../../rendering/legacy/premium-track-v081.mjs";
 import * as archived from "../../trial-v080.mjs";

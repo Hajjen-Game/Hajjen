@@ -13,7 +13,7 @@ import {
  ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,
  frontPaletteBlend,spectralChargeStrength
 } from "../../zone-wave-v050.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v050.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v050.mjs";
 import {PREMIUM_TRACK,GLSL_BOOST_PADS,patchPremiumShaders}
  from "../../rendering/legacy/premium-track-v050.mjs";
 import {AERO_BARRIER,createAeroBarrierData,createAeroDetailData,patchRailShaders}

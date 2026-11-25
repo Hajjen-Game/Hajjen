@@ -9,7 +9,7 @@ import {CIRCUIT,COURSE_SEGMENTS,TRIAL,GAPS,
  poseAt,positionAt,heightAt,surfaceNormalAt,surfaceHeightAt,bankAt,
  onRoad,gapAt,nextGap,widthAt,headingAt,curvatureAt,
  newFlightState,stepFlight,speedAt,validateTrial} from "../../trial-v070.mjs";
-import {MESH_SPEC,sampleDeckRows,createSmoothDeckData} from "../../smooth-track-v070.mjs";
+import {MESH_SPEC,sampleDeckRows,createSmoothDeckData} from "../../tracks/shared/smooth-track-v070.mjs";
 import {AERO_BARRIER,createAeroBarrierData,sampleAeroProfile}
  from "../../tracks/barriers/aero-barrier-v070.mjs";
 import {PREMIUM_TRACK} from "../../rendering/legacy/premium-track-v070.mjs";

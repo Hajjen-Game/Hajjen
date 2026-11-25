@@ -438,6 +438,16 @@
           "before": "\"../../trial-v0160.mjs\"",
           "after": "\"../../tracks/trials/trial-v0160.mjs\"",
           "count": 1
+        },
+        {
+          "before": "assert.match(realCamera,/from \"\\.\\/trial-v0160\\.mjs\"/);",
+          "after": "assert.match(realCamera,/from \"\\.\\/tracks\\/trials\\/trial-v0160\\.mjs\"/);",
+          "count": 1
+        },
+        {
+          "before": "assert.match(source,/from \"\\.\\.\\/\\.\\.\\/trial-v0160\\.mjs\"/);",
+          "after": "assert.match(source,/from \"\\.\\.\\/\\.\\.\\/tracks\\/trials\\/trial-v0160\\.mjs\"/);",
+          "count": 1
         }
       ]
     },
@@ -509,6 +519,11 @@
         {
           "before": "\"../../trial-v0165.mjs\"",
           "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "for(const m of [\"trial-v0165\",",
+          "after": "for(const m of [\"tracks/trials/trial-v0165\",",
           "count": 1
         }
       ]
@@ -582,11 +597,6 @@
           "before": "\"../../trial-v0165.mjs\"",
           "after": "\"../../tracks/trials/trial-v0165.mjs\"",
           "count": 1
-        },
-        {
-          "before": "from \"\\.\\.\\/\\.\\.\\/trial-v0165\\.mjs\"",
-          "after": "from \"\\.\\.\\/\\.\\.\\/tracks\\/trials\\/trial-v0165\\.mjs\"",
-          "count": 1
         }
       ]
     },
@@ -623,6 +633,16 @@
           "before": "\"../../trial-v0165.mjs\"",
           "after": "\"../../tracks/trials/trial-v0165.mjs\"",
           "count": 1
+        },
+        {
+          "before": "assert.match(realCamera,/from \"\\.\\.\\/trial-v0165\\.mjs\"/);",
+          "after": "assert.match(realCamera,/from \"\\.\\.\\/tracks\\/trials\\/trial-v0165\\.mjs\"/);",
+          "count": 1
+        },
+        {
+          "before": "assert.match(source,/from \"\\.\\.\\/\\.\\.\\/trial-v0165\\.mjs\"/);",
+          "after": "assert.match(source,/from \"\\.\\.\\/\\.\\.\\/tracks\\/trials\\/trial-v0165\\.mjs\"/);",
+          "count": 1
         }
       ]
     },
@@ -634,11 +654,6 @@
         {
           "before": "\"./trial-v0165.mjs\"",
           "after": "\"./tracks/trials/trial-v0165.mjs\"",
-          "count": 1
-        },
-        {
-          "before": "from \"\\.\\.\\/\\.\\.\\/trial-v0165\\.mjs\"",
-          "after": "from \"\\.\\.\\/\\.\\.\\/tracks\\/trials\\/trial-v0165\\.mjs\"",
           "count": 1
         }
       ]
@@ -664,10 +679,17 @@
           "before": "\"../../trial-v0165.mjs\"",
           "after": "\"../../tracks/trials/trial-v0165.mjs\"",
           "count": 1
-        },
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs",
+      "target": "skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs",
+      "sha": "07c22593811acf37844730b83c35a549a0765b73",
+      "edits": [
         {
-          "before": "from \"\\.\\.\\/\\.\\.\\/trial-v0165\\.mjs\"",
-          "after": "from \"\\.\\.\\/\\.\\.\\/tracks\\/trials\\/trial-v0165\\.mjs\"",
+          "before": "for(const base of [\"trial-v0165\",",
+          "after": "for(const base of [\"tracks/trials/trial-v0165\",",
           "count": 1
         }
       ]

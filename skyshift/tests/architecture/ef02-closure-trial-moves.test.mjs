@@ -11,7 +11,7 @@ import {inventory} from './dependency-inventory-v2.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
 const root=resolve(repo,'skyshift');
 test('Both live trial modules preserve exact source and resolved consumer paths',()=>{
- assert.equal(m.moves.length,2);assert.equal(m.records.length,48);
+ assert.equal(m.moves.length,2);assert.equal(m.records.length,49);
  assert.equal(readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile()).length,expectedRootFiles);
  const history=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const x of m.moves){

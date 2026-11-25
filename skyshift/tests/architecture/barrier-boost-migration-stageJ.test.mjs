@@ -23,7 +23,8 @@ test('Stage J preserves exact 35 original barrier/boost Git blobs after only imp
  for(const [name,{destination,originalGitBlobSha}] of entries){
   assert.equal(existsSync(resolve(root,name)),false,'Unmoved old root module '+name);
   const relocated=resolve(root,destination);assert.ok(existsSync(relocated),'Missing relocated module '+name);
-  let currentSource=readFileSync(relocated,'utf8');
+  // Reverse exact later path edits on the real adapter bytes BEFORE factory expansion.
+  let currentSource=restoreEF02H(readFileSync(relocated,'utf8'),relocated);
   // EF02J: for exactly three grouped boost adapters, reverse the shared-body extraction
   // using the actual shared implementation, then run the original immutable blob guard.
   if(['boost-v0150.mjs','boost-v0151.mjs','boost-v0160.mjs'].includes(name)){
@@ -53,7 +54,7 @@ test('Stage J preserves exact 35 original barrier/boost Git blobs after only imp
     .replace(/^(const (?:AERO_BARRIER|AERO_PROFILE|RAIL_SPECTRAL_VERTEX|RAIL_SPECTRAL_FRAGMENT)=|function (?:cornerRailEmphasisAt|railHeightAt|sampleAeroProfile|createAeroBarrierData|createAeroDetailData|patchRailShaders|installAeroBarriers)\()/gm,'export $1');
    currentSource=currentSource.slice(0,-adapter.length)+body;
   }
-  const source=restoreEF02H(currentSource,relocated);
+  const source=currentSource;
   const reconstructed=source.replace(/(["'])(\.{1,2}\/[^"'\r\n]+)\1/g,(ent,quote,spec)=>{
    const pure=spec.split(/[?#]/)[0],suffix=spec.slice(pure.length);
    const current=resolve(dirname(relocated),pure);

@@ -207,7 +207,7 @@ test("No ghost right-apex guidance or Skyline-only leap signs on Aurora",()=>{
  const rig=src("./flight/unified-flight-v0165.mjs");
  assert.match(rig,/from "\.\/cinematic-v0165\.mjs"/);
  const realCamera=src("./flight/cinematic-v0165.mjs");
- assert.match(realCamera,/from "\.\.\/trial-v0165\.mjs"/);
+ assert.match(realCamera,/from "\.\.\/tracks\/trials\/trial-v0165\.mjs"/);
  assert.doesNotMatch(realCamera,/from "\.\/trial-v0901\.mjs"/);
 });
 test("Aurora rail tessellation cuts mobile triangles, collision/ship physics intact",async()=>{
@@ -222,7 +222,7 @@ test("Aurora rail tessellation cuts mobile triangles, collision/ship physics int
  assert.equal(trial.GAPS.length,0);
  assert.equal(trial.TRIAL.hoverHeight,1.05);
  const source=src("./tracks/barriers/aero-barrier-v0165.mjs");
- assert.match(source,/from "\.\.\/\.\.\/trial-v0165\.mjs"/);
+ assert.match(source,/from "\.\.\/\.\.\/tracks\/trials\/trial-v0165\.mjs"/);
  assert.match(source,/step=isAurora\(\)\?1\.55:AERO_BARRIER\.step/);
 });
 test("0.16.5 URLs and menu preserve independent courses and PB/ghosts",()=>{

@@ -5,7 +5,7 @@
 import {TRIAL,widthAt} from "../../trial-v050.mjs";
 import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v050.mjs";
 import {BOOST_PADS} from "../../flight/boost/boost-v050.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v050.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v050.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
  version:"full-circuit-spectral-050",

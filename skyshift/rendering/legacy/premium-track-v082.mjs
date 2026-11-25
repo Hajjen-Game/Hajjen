@@ -5,7 +5,7 @@
 import {TRIAL,widthAt} from "../../trial-v082.mjs";
 import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v060.mjs";
 import {BOOST_PADS} from "../../flight/boost/boost-v082.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v082.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v082.mjs";
 
 import {createPremiumTrackAPI} from "./shared-premium-track.mjs";
 export const {

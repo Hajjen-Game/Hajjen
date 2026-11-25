@@ -64,10 +64,11 @@ import {OPT_0111,newHudBudget,createDomWriteCache} from "./core/render-optimizer
 import {createUnifiedFlightRig,resetUnifiedFlightRig,advanceUnifiedFlightRig,
  unifiedFlightAudit} from "./flight/unified-flight-v0165.mjs";
 import {
-  PACING,capturePose,interpolatePose,shouldSnapPose,
-  createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,
+  PACING,createFrameMonitor,observeFrame,monitorSummary,
   createAdaptiveQuality,nextAdaptiveRatio
 } from "./core/frame-pacing-v0112.mjs";
+import {createRaceSimulation,resetRaceSimulation,advanceRaceSimulation,snapRacePose,
+ raceRenderPose,readRaceInput,raceOutcome} from "./core/race-simulation.mjs";
 import { MOTION_DEFAULTS,createFlightMotionState } from "./flight/flight-motion-v0112.mjs";
 import {SIGNATURE_FLIGHT,createSignatureFlightState,
  triggerSignatureJump,triggerSignatureLanding,triggerSignatureBoost,
@@ -698,7 +699,8 @@ const GHOST_RECORD_POSE={elapsed:0,s:0,worldX:0,y:0,worldZ:0,
  heading:0,roll:0,pitch:0};
 let perfFrames=0,perfTotal=0,perfMin=200;
 let renderSamples=0,renderCallTotal=0,renderCallPeak=0,triangleTotal=0;
-let frameClock=createFrameClock(),frameMonitor=createFrameMonitor();
+const raceSimulation=createRaceSimulation();
+let frameMonitor=createFrameMonitor();
 const perfSettings=readPerfConfig(location.search);
 const fidelityChoice=readFidelityChoice({search:location.search,storage:fleetStorage()});
 const frameProfiler=newPerfMonitor();
@@ -710,8 +712,7 @@ const engineFxFrame={dt:0,playing:false,flight:{forwardSpeed:44,boostMultiplier:
 let completedSparkStats=null;
 const fidelitySignals={s:0,speed:44,boostMultiplier:1,wave:0,
  playing:false,circuitLength:CIRCUIT.lapLength};
-let adaptiveQuality=createAdaptiveQuality(),currentRenderPose=null,previousRenderPose=null;
-let frameBlend=0,wakeSmokePath=null;
+let adaptiveQuality=createAdaptiveQuality(),wakeSmokePath=null;
 let motionState=createFlightMotionState(),cinematicState=createCinematicState(),
  boostSpring=createBoostSpringState(),velocityState=createVelocityState(),
  velocityPresence=createVelocityPresenceState();
@@ -731,7 +732,6 @@ const motionRig=createUnifiedFlightRig({
  hoverHeight:TRIAL.hoverHeight,cameraGain:CAMERA_GAIN,
  lapLength:CIRCUIT.lapLength,magneticWall:MAGNETIC_WALL,corkscrew:CORKSCREW
 });
-const interpolatedRenderPose={};
 const CAMERA_INFO={},CAMERA_VIEW={worldX:0,worldZ:0,y:0,s:0,
  steering:0,clearance:0,kineticSideMeters:0,kineticDistanceMeters:0,
  kineticEyeLiftMeters:0,kineticLandingMeters:0,kineticLookLiftMeters:0};
@@ -3741,10 +3741,8 @@ function resetFlight(){
  sideThrusters?.reset();
  perfFrames=0;perfTotal=0;perfMin=200;
  renderSamples=0;renderCallTotal=0;renderCallPeak=0;triangleTotal=0;
- frameClock=createFrameClock();frameMonitor=createFrameMonitor();
+ resetRaceSimulation(raceSimulation,flight);frameMonitor=createFrameMonitor();
  resetPerfMonitor(frameProfiler);gpuClock?.reset();lastPerfPanelUpdate=0;
- currentRenderPose=capturePose(flight);previousRenderPose=currentRenderPose;
- frameBlend=0;
  document.documentElement.style.setProperty("--neon","#43dff3");
  telemetry.length=0;uiState.trackHint=-1;clearInput();
  event("trial_start",{trial:TRIAL.id});
@@ -4038,15 +4036,9 @@ function integrate(dt){
  // A finish can occur midway through a multi-step 120Hz render frame.
  // Never award the same medal multiple times in that remaining frame.
  if(uiState.mode!=="playing")return;
- const keyRight=uiState.keys.has("ArrowRight")||uiState.keys.has("KeyD");
- const keyLeft=uiState.keys.has("ArrowLeft")||uiState.keys.has("KeyA");
- // Digital keys are scaled for predictable corner holding; analog touch
- // retains the complete range and fine control around zero.
- const keyboard=(keyRight?1:0)-(keyLeft?1:0);
- const steer=clamp(keyboard*.74+uiState.inputX,-1,1);
- const gripHeld=uiState.gripHeld||uiState.keys.has("ShiftLeft")||
-   uiState.keys.has("ShiftRight");
- const result=stepFlight(flight,dt,{steer,grip:gripHeld});
+ const input=readRaceInput(uiState);
+ const {steer,grip:gripHeld}=input;
+ const result=stepFlight(flight,dt,input);
  recordRealGhostPose();
  // One real 120Hz step. Read steering/GRIP/contact, never rewrite physics.
  const cleanFlow=observeRacingStep(racingExperience,flight,dt,result);
@@ -4209,11 +4201,8 @@ function integrate(dt){
  tunnelInside=insideNow;
  if(insideNow)tunnelSeconds+=dt;
  maybeShowCue();
- if(currentChallenge){
-  const reached=flight.s>=currentChallenge.endS&&!flight.failed;
-  if(reached||flight.failed)endRun(reached);
- }else if(result.finished)endRun(true);
- else if(flight.failed)endRun(false);
+ const outcome=raceOutcome(flight,result,currentChallenge);
+ if(outcome!==null)endRun(outcome);
 }
 function updatePalette(dt){
  // Tunnel walls, roof, every ring and bounce read the same world-space front.
@@ -4419,17 +4408,8 @@ function loop(now){
  worldClock.last=now;
  if(uiState.mode==="playing"&&!waveSmokeHold){
    const physicsBegin=performance.now();
-   const tick=advanceFrame(frameClock,rawDt,step=>{
-     if(!currentRenderPose)currentRenderPose=capturePose(flight);
-     if(!previousRenderPose||previousRenderPose===currentRenderPose)
-      previousRenderPose=capturePose(currentRenderPose);
-     capturePose(currentRenderPose,previousRenderPose);
-     integrate(step);
-     capturePose(flight,currentRenderPose);
-     if(shouldSnapPose(previousRenderPose,currentRenderPose))
-      capturePose(currentRenderPose,previousRenderPose);
-   });
-   frameBlend=tick.alpha;physicsSteps=tick.steps;
+   const tick=advanceRaceSimulation(raceSimulation,rawDt,flight,integrate);
+   physicsSteps=tick.steps;
    physicsMs=performance.now()-physicsBegin;
    const hudBegin=performance.now();
    if(hudBudget.shouldUpdate(now))refreshHud();
@@ -4474,11 +4454,9 @@ function loop(now){
      (wakeSmokePath.load==="grip"?.15*Math.sin(k*.075):0);
     flight.y=surfaceHeightAt(flight.s)+TRIAL.hoverHeight+
       (wakeSmokePath.load==="air"?4:0);
-    currentRenderPose=capturePose(flight);
-    previousRenderPose=currentRenderPose;frameBlend=0;
+    snapRacePose(raceSimulation,flight);
    }
-   const view=uiState.mode==="playing"&&currentRenderPose?
-     interpolatePose(previousRenderPose,currentRenderPose,frameBlend,interpolatedRenderPose):flight;
+   const view=raceRenderPose(raceSimulation,flight,uiState.mode==="playing");
    whiteCoreContainment?.update(view.s,uiState.mode==="playing");
    shipWhiteSpill?.update(view.s,targetAccent,uiState.mode==="playing");
    sharedShipLight?.update(view.s);
@@ -4657,7 +4635,7 @@ function loop(now){
    observeFrame(frameMonitor,rawDt,renderCpuMs);
    recordPerfFrame(frameProfiler,{frameMs:rawDt*1000,physicsMs,hudMs,presentationMs,
     renderCpuMs,steps:physicsSteps,drawCalls:work.calls,triangles:work.triangles,
-    droppedSimulationMs:frameClock.droppedSeconds*1000});
+    droppedSimulationMs:raceSimulation.clock.droppedSeconds*1000});
    if(perfPanel&&now-lastPerfPanelUpdate>=1000){
     lastPerfPanelUpdate=now;
     const s=perfSummary(frameProfiler),m=s.breakdown,g=gpuClock.summary();
@@ -5199,9 +5177,9 @@ function exportAudit(){
        +timing.renderCpuAverageMs.toFixed(2):null,
      renderCpuPeakMs:+timing.renderCpuPeakMs.toFixed(2),
      interpolationEnabled:true,
-     physicsSteps:frameClock.totalSteps,
-     maxPhysicsStepsPerFrame:frameClock.stepsPeak,
-     droppedSimulationSeconds:+frameClock.droppedSeconds.toFixed(3),
+     physicsSteps:raceSimulation.clock.totalSteps,
+     maxPhysicsStepsPerFrame:raceSimulation.clock.stepsPeak,
+     droppedSimulationSeconds:+raceSimulation.clock.droppedSeconds.toFixed(3),
      gapClears:[...flight.clearedGaps],failedJumpEdges:flight.failedJumps
    },events:telemetry
  };
@@ -5331,7 +5309,7 @@ function installTunnelSmokeHook(){
   motionState=createFlightMotionState(flight.heading);
   cinematicState=createCinematicState();
   kineticCamera=createKineticCameraState();
-  previousRenderPose=capturePose(flight);currentRenderPose=previousRenderPose;
+  snapRacePose(raceSimulation,flight,false);
   const frame=chasePose(flight,motionState,cinematicState,cinematicTuning,CAMERA_INFO);
   CAMERA_BASE_POSITION.set(frame.x,frame.y,frame.z);
   CAMERA_TARGET_POSITION.copy(CAMERA_BASE_POSITION);
@@ -5367,8 +5345,7 @@ function installLivingWakeSmokeHook(){
   flight.steering=load==="grip"?.72:0;
   flight.yawRate=load==="grip"?.86:0;
   livingWake?.reset();
-  currentRenderPose=capturePose(flight);previousRenderPose=currentRenderPose;
-  frameBlend=0;
+  snapRacePose(raceSimulation,flight);
   return {stage,speed:flight.currentSpeed,load};
  };
 }
@@ -5383,8 +5360,7 @@ function installFlapSmokeHook(){
   flight.steering=steering;
   flight.yawRate=steering*.84;
   flight.gripIntensity=grip;
-  currentRenderPose=capturePose(flight);previousRenderPose=currentRenderPose;
-  frameBlend=0;
+  snapRacePose(raceSimulation,flight);
   return {steering,grip};
  };
 }
@@ -5415,8 +5391,7 @@ function installSparkSmokeHook(){
   flight.lastRailSide=flight.railContacting?side:0;
   flight.railScrubIntensity=flight.railContacting?1:0;
   if(flight.railContacting)flight.railContactStarts++;
-  currentRenderPose=capturePose(flight);
-  previousRenderPose=currentRenderPose;frameBlend=0;
+  snapRacePose(raceSimulation,flight);
   return {side,stage,contact,serial:flight.railContactStarts};
  };
 }
@@ -5592,8 +5567,7 @@ try{
    motionState=createFlightMotionState(flight.heading);
    cinematicState=createCinematicState();
    kineticCamera=createKineticCameraState();
-   previousRenderPose=capturePose(flight);
-   currentRenderPose=previousRenderPose;frameBlend=0;
+   snapRacePose(raceSimulation,flight);
     // The established Shadow Tunnel QA snaps directly to chasePose.
     // Do likewise for 1–3 km Vault WebGL jumps only: normal flight camera
     // damping, steering and GRIP never enter this opt-in code path.

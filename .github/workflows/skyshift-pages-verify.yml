@@ -31,6 +31,11 @@ jobs:
           base="https://hajjen-game.github.io/Hajjen/skyshift"
           page_info="$(gh api "repos/$GITHUB_REPOSITORY/pages")"
           printf '%s\n' "$page_info" | jq '{status, build_type, source}'
+          build_type="$(printf '%s\n' "$page_info" | jq -r '.build_type // empty')"
+          if [[ "$build_type" == "workflow" ]]; then
+            echo "Actions publishing mode: HAJJEN Pages production deployment owns strict exact-commit public artifact verification. No branch rebuild requested."
+            exit 0
+          fi
           source_branch="$(printf '%s' "$page_info" | jq -r '.source.branch // empty')"
           if [[ "$source_branch" != "main" ]]; then
             echo "::error::Pages source is not main; inspect GitHub Pages settings."

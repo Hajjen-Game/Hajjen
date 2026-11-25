@@ -1,0 +1,78 @@
+// EF03: build a separate production artifact from the exact accepted source.
+// No source rewriting on disk, no QA input entrypoints, and no live Pages cutover yet.
+import assert from 'node:assert/strict';
+import {cp,mkdir,readFile,writeFile,rm,readdir} from 'node:fs/promises';
+import {resolve,relative,dirname,join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
+import {build} from 'vite';
+const here=dirname(fileURLToPath(import.meta.url)),source=resolve(here,'..');
+const stage=join(here,'.stage'),dist=join(here,'dist');
+const read=p=>readFile(p,'utf8');
+const replaceOnce=(text,pattern,replacement,label)=>{
+ const matches=[...text.matchAll(pattern)];
+ assert.equal(matches.length,1,label+' must have one verified source anchor');
+ return text.replace(pattern,replacement);
+};
+await rm(stage,{recursive:true,force:true});
+await mkdir(stage,{recursive:true});
+const exclude=new Set(['build','tests','docs','previews','node_modules','.git']);
+for(const e of await readdir(source,{withFileTypes:true})){
+ if(exclude.has(e.name)||e.name.startsWith('.')||e.name.endsWith('.md')||e.name==='material-grade-v0203.html')continue;
+ await cp(join(source,e.name),join(stage,e.name),{recursive:true});
+}
+let html=await read(join(stage,'index.html'));
+const originalBoot=await read(join(stage,'boot-v0210.js'));
+const tag=/<script src="\.\/boot-v0210\.js\?([^"]+)" data-game-module="game-v0210\.mjs"><\/script>/g;
+const bootTag=[...html.matchAll(tag)];assert.equal(bootTag.length,1,'current boot tag');
+const version=new URLSearchParams(bootTag[0][1]).get('v');
+assert.ok(version&&originalBoot.includes('game-v0210.mjs?v='+version),'preserve Skyline build version source');
+const styles=[...html.matchAll(/<link rel="stylesheet" href="(\.\/[^"]+\.css)(?:\?[^"]*)?">/g)].map(m=>m[1]);
+assert.equal(styles.length,8,'preserve all existing CSS links and cascade order');
+assert.equal(new Set(styles).size,styles.length);
+for(const file of styles)await read(join(stage,file));
+html=replaceOnce(html,/<script type="importmap">[\s\S]*?<\/script>/g,'','source import map');
+let inserted=false;
+html=html.replace(/<link rel="stylesheet" href="\.\/[^"]+\.css(?:\?[^"]*)?">/g,()=>{
+ if(inserted)return '';inserted=true;return '<link rel="stylesheet" href="./production.css">';
+});
+await writeFile(join(stage,'production.css'),styles.map(x=>'@import '+JSON.stringify(x)+';').join('\n')+'\n');
+html=replaceOnce(html,tag,'<script type="module" src="./boot-v0210.js"></script>','production boot entry');
+await writeFile(join(stage,'index.html'),html);
+// The old HTML script URL carries the legacy source version; a hashed
+// module entry cannot carry that query. Preserve exactly that observed value,
+// NOT the route version (?v=) or a new gameplay version.
+const game=join(stage,'game-v0210.mjs');
+let gameText=await read(game);
+gameText=replaceOnce(gameText,/const SKYSHIFT_BUILD_VERSION=new URL\(\s*document\.querySelector\("script\[data-game-module\]"\)\?\.src\|\|location\.href\s*\)\.searchParams\.get\("v"\)\|\|"0\.26\.5";/g,'const SKYSHIFT_BUILD_VERSION='+JSON.stringify(version)+';','source build version');
+await writeFile(game,gameText);
+// These two retained root loaders resolve runtime-selected glTF and its
+// relative resources against their module URL. Bundled chunks live in bundles/.
+// Keep the exact asset paths and resolve against the page instead.
+for(const name of ['ship-hero-loader-v0132.mjs','ship-hero-loader-v01342.mjs']){
+ const path=join(stage,name),before=await read(path);
+ const matches=[...before.matchAll(/new URL\(([^,\n]+),\s*import\.meta\.url\)/g)];
+ assert.ok(matches.length>=2,name+' dynamic asset references');
+ let next=before.replace(/new URL\(([^,\n]+),\s*import\.meta\.url\)/g,'new URL($1,document.baseURI)');
+ await writeFile(path,next);
+}
+let graph;
+const auditPlugin={name:'skyshift-production-graph',generateBundle(_options,bundle){
+ const files=Object.values(bundle).filter(x=>x.type==='chunk');
+ const modules=[...new Set(files.flatMap(x=>Object.keys(x.modules)))].sort();
+ assert.ok(modules.some(x=>x.includes('game-v0210.mjs')),'live game included');
+ assert.ok(!modules.some(x=>/\/(?:tests|docs|previews)\/|\/game-v0203\.mjs|\/material-grade-v0203\.html/.test(x)),'no historical QA entrypoint in production bundle');
+ graph={modules:modules.map(x=>x.replaceAll('\\','/').replace(stage.replaceAll('\\','/')+'/','source/').replace(here.replaceAll('\\','/')+'/','build/')),chunks:files.map(x=>({file:x.fileName,imports:x.imports,dynamicImports:x.dynamicImports,bytes:Buffer.byteLength(x.code)}))};
+}};
+await build({configFile:false,root:stage,base:'./',publicDir:false,plugins:[auditPlugin],
+ build:{outDir:dist,emptyOutDir:true,assetsDir:'bundles',manifest:true,target:'es2020',minify:'esbuild',cssMinify:false,cssCodeSplit:false,
+ rollupOptions:{input:join(stage,'index.html'),output:{entryFileNames:'bundles/[name]-[hash].js',chunkFileNames:'bundles/[name]-[hash].js',assetFileNames:'bundles/[name]-[hash][extname]',manualChunks(id){if(id.replaceAll('\\','/').match(/\/node_modules\/three\/(?:build|src)\//))return 'three-engine';}}}}});
+assert.ok(graph,'bundle graph audit ran');
+// Runtime glTF paths remain stable; copy original asset tree, not source/QA files.
+await cp(join(source,'assets'),join(dist,'assets'),{recursive:true});
+const files=[];
+async function walk(dir){for(const e of await readdir(dir,{withFileTypes:true})){const p=join(dir,e.name);if(e.isDirectory())await walk(p);else{const b=await readFile(p);files.push({path:relative(dist,p).replaceAll('\\','/'),bytes:b.length,sha256:createHash('sha256').update(b).digest('hex')});}}}
+await walk(dist);
+files.sort((a,b)=>a.path.localeCompare(b.path));
+await writeFile(join(dist,'build-report.json'),JSON.stringify({schema:1,sourceVersion:version,cssOrder:styles,three:'0.180.0',graph,files},null,2)+'\n');
+console.log('SKYSHIFT_EF03_BUILD '+JSON.stringify({version,styles,modules:graph.modules.length,chunks:graph.chunks,outputBytes:files.reduce((n,x)=>n+x.bytes,0),files:files.length}));

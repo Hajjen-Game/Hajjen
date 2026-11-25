@@ -3,3 +3,10 @@ Thumbs.db
 *.log
 .vscode/
 .idea/
+
+# SKYSHIFT EF03 generated build workspace and evidence
+/skyshift/build/node_modules/
+/skyshift/build/.stage/
+/skyshift/build/dist/
+/skyshift/build/evidence/
+/skyshift/build/site/

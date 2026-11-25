@@ -25,7 +25,7 @@ import {buildPremiumMantaBlade,MANTA_POLISH} from "../../ships/manta-blade-v0103
 import {buildStingrayEvo,STINGRAY_EVO} from "../../ships/stingray-evo-v01342.mjs";
 import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
  isFleetUnlocked,recordFleetClear,fleetStatus} from "../../ships/fleet-v010.mjs";
-import { makeFullscreenController } from "../../fullscreen-v02.mjs";
+import { makeFullscreenController } from "../../ui/fullscreen-v02.mjs";
 import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "../../engine-trails-v01346.mjs";
 import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v0111.mjs";
 import { MESH_SPEC } from "../../tracks/shared/smooth-track-v0160.mjs";
@@ -76,7 +76,7 @@ import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLi
  from "../../cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "../../ship-v034.mjs";
 import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "../../image-clarity-v083.mjs";
-import {HUD_SPEC,createReactiveHud} from "../../reactive-hud-v04991.mjs";
+import {HUD_SPEC,createReactiveHud} from "../../ui/reactive-hud-v04991.mjs";
 import {GRIP_SPEC} from "../../flight/precision-grip-v084.mjs";
 import {RACING_FEEL,gripApexCue,createRailFeedbackState,
  startRailFeedback,stepRailFeedback} from "../../flight/racing-feel-v083.mjs";
@@ -98,7 +98,7 @@ import {TIME_TRIAL_0160,createTimeTrialState,startTimeTrial,
  loadPersonalGhost,readGhostEnabled,saveGhostEnabled,updateGhostDelta,
  ghostAudit} from "../../time-trial-v0160.mjs";
 import {GHOST_VISUAL_0130,createPersonalGhostVisual}
- from "../../ghost-visual-v0130.mjs";
+ from "../../ui/ghost-visual-v0130.mjs";
 import {CHALLENGES_0140,CHALLENGE_RULES_0140,getChallenge,challengeDistance,
  readChallengeProgress,saveChallengeProgress,challengeSummary,challengeUnlocked,
  evaluateChallenge,recordChallenge,captureChallengeMetrics}

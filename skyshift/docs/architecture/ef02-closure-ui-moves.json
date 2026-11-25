@@ -1,0 +1,272 @@
+{
+  "schemaVersion": 1,
+  "baseCommit": "2a99b3800003395dc9fc612e720dc0f0a066206b",
+  "rootBefore": 194,
+  "rootAfter": 190,
+  "moves": [
+    {
+      "path": "skyshift/fullscreen-v02.mjs",
+      "target": "skyshift/ui/fullscreen-v02.mjs",
+      "role": "live-literal"
+    },
+    {
+      "path": "skyshift/ghost-visual-v0130.mjs",
+      "target": "skyshift/ui/ghost-visual-v0130.mjs",
+      "role": "live-literal"
+    },
+    {
+      "path": "skyshift/reactive-hud-v0499.mjs",
+      "target": "skyshift/ui/reactive-hud-v0499.mjs",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/reactive-hud-v04991.mjs",
+      "target": "skyshift/ui/reactive-hud-v04991.mjs",
+      "role": "live-literal"
+    }
+  ],
+  "records": [
+    {
+      "path": "skyshift/fullscreen-v02.mjs",
+      "target": "skyshift/ui/fullscreen-v02.mjs",
+      "sha": "4bdb6d7208f747d3db66541f4f81c068ab48bf76",
+      "edits": []
+    },
+    {
+      "path": "skyshift/ghost-visual-v0130.mjs",
+      "target": "skyshift/ui/ghost-visual-v0130.mjs",
+      "sha": "471147b6e092344ba36dee09043e755c5e40e191",
+      "edits": [
+        {
+          "before": "\"./core/ghost-playback.mjs\"",
+          "after": "\"../core/ghost-playback.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/reactive-hud-v0499.mjs",
+      "target": "skyshift/ui/reactive-hud-v0499.mjs",
+      "sha": "0f938b3b588b9bc9730fdb51b8e0fa7df6c08e2b",
+      "edits": []
+    },
+    {
+      "path": "skyshift/reactive-hud-v04991.mjs",
+      "target": "skyshift/ui/reactive-hud-v04991.mjs",
+      "sha": "20941508416a7042f509000e52c9a9fca9400455",
+      "edits": []
+    },
+    {
+      "path": "skyshift/game-v0101.mjs",
+      "target": "skyshift/game-v0101.mjs",
+      "sha": "15b84b84dc20e7dac3f99773d24a473686187dd9",
+      "edits": [
+        {
+          "before": "\"./fullscreen-v02.mjs\"",
+          "after": "\"./ui/fullscreen-v02.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./reactive-hud-v04991.mjs\"",
+          "after": "\"./ui/reactive-hud-v04991.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0103.mjs",
+      "target": "skyshift/game-v0103.mjs",
+      "sha": "4b03e3b61f1ec4d3d09f3b2a6c93ebdd2c314ce4",
+      "edits": [
+        {
+          "before": "\"./fullscreen-v02.mjs\"",
+          "after": "\"./ui/fullscreen-v02.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./reactive-hud-v04991.mjs\"",
+          "after": "\"./ui/reactive-hud-v04991.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0203.mjs",
+      "target": "skyshift/game-v0203.mjs",
+      "sha": "b2885365c9f294534ffa61970507af90ac54350a",
+      "edits": [
+        {
+          "before": "\"./fullscreen-v02.mjs\"",
+          "after": "\"./ui/fullscreen-v02.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./ghost-visual-v0130.mjs\"",
+          "after": "\"./ui/ghost-visual-v0130.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./reactive-hud-v04991.mjs\"",
+          "after": "\"./ui/reactive-hud-v04991.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0210.mjs",
+      "target": "skyshift/game-v0210.mjs",
+      "sha": "c78153dcbf6be92be2c2c25456608ec4b843182c",
+      "edits": [
+        {
+          "before": "\"./fullscreen-v02.mjs\"",
+          "after": "\"./ui/fullscreen-v02.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./ghost-visual-v0130.mjs\"",
+          "after": "\"./ui/ghost-visual-v0130.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./reactive-hud-v04991.mjs\"",
+          "after": "\"./ui/reactive-hud-v04991.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0205.mjs",
+      "target": "skyshift/legacy/game/game-v0205.mjs",
+      "sha": "36883d6bb6c12142d8fcd3e3a1376fd054747506",
+      "edits": [
+        {
+          "before": "\"../../fullscreen-v02.mjs\"",
+          "after": "\"../../ui/fullscreen-v02.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"../../ghost-visual-v0130.mjs\"",
+          "after": "\"../../ui/ghost-visual-v0130.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"../../reactive-hud-v04991.mjs\"",
+          "after": "\"../../ui/reactive-hud-v04991.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "target": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "sha": "5ac012c32e918e19207aa40a3f261e86ae8bd9dd",
+      "edits": [
+        {
+          "before": "'../../ghost-visual-v0130.mjs'",
+          "after": "'../../ui/ghost-visual-v0130.mjs'",
+          "count": 1
+        },
+        {
+          "before": "at('ghost-visual-v0130.mjs')",
+          "after": "at('ui/ghost-visual-v0130.mjs')",
+          "count": 1
+        },
+        {
+          "before": "/from \"\\.\\/core\\/ghost-playback\\.mjs\"/",
+          "after": "/from \"\\.\\.\\/core\\/ghost-playback\\.mjs\"/",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/fullscreen-v02.test.mjs",
+      "target": "skyshift/tests/unit/fullscreen-v02.test.mjs",
+      "sha": "05ea689747a7796bae66824a81d466455d6fd370",
+      "edits": [
+        {
+          "before": "\"../../fullscreen-v02.mjs\"",
+          "after": "\"../../ui/fullscreen-v02.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/time-trial-v0130.test.mjs",
+      "target": "skyshift/tests/unit/time-trial-v0130.test.mjs",
+      "sha": "4521e56d7757a81293c4dd030b62ba901019112c",
+      "edits": [
+        {
+          "before": "\"../../ghost-visual-v0130.mjs\"",
+          "after": "\"../../ui/ghost-visual-v0130.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/reactive-hud-v0499.test.mjs",
+      "target": "skyshift/tests/unit/reactive-hud-v0499.test.mjs",
+      "sha": "3a79bf861c6971ca3ba940c33da081cdea1b7daa",
+      "edits": [
+        {
+          "before": "\"../../reactive-hud-v0499.mjs\"",
+          "after": "\"../../ui/reactive-hud-v0499.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./reactive-hud-v0499.mjs\"",
+          "after": "\"./ui/reactive-hud-v0499.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+      "target": "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+      "sha": "e7cff77b9ec8f5f94ec97d6cac931e4250ba572f",
+      "edits": [
+        {
+          "before": "\"../../reactive-hud-v04991.mjs\"",
+          "after": "\"../../ui/reactive-hud-v04991.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./reactive-hud-v04991.mjs\"",
+          "after": "\"./ui/reactive-hud-v04991.mjs\"",
+          "count": 2
+        },
+        {
+          "before": "/from \"\\.\\/reactive-hud-v04991\\.mjs\"/",
+          "after": "/from \"\\.\\/ui\\/reactive-hud-v04991\\.mjs\"/",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/skyshift-tests.yml",
+      "target": ".github/workflows/skyshift-tests.yml",
+      "sha": "20f007505fc058b6a8f062b691616e6c6cd15ce9",
+      "edits": [
+        {
+          "before": "node --check skyshift/fullscreen-v02.mjs",
+          "after": "node --check skyshift/ui/fullscreen-v02.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/ghost-visual-v0130.mjs",
+          "after": "node --check skyshift/ui/ghost-visual-v0130.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/reactive-hud-v0499.mjs",
+          "after": "node --check skyshift/ui/reactive-hud-v0499.mjs",
+          "count": 1
+        },
+        {
+          "before": "node --check skyshift/reactive-hud-v04991.mjs",
+          "after": "node --check skyshift/ui/reactive-hud-v04991.mjs",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}

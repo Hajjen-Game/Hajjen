@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  HUD_SPEC,createHudState,hudSignal,stepHudState,hudVisualFrame,createReactiveHud
-} from "../../reactive-hud-v04991.mjs";
+} from "../../ui/reactive-hud-v04991.mjs";
 import {BOOST_CONFIG} from "../../flight/boost/boost-v0494.mjs";
 import {TRIAL,GUARDRAIL} from "../../trial-v0494.mjs";
 import {ZONE_WAVE} from "../../zone-wave-v0493.mjs";
@@ -12,7 +12,7 @@ const src=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const step=(s,n,flight)=>{for(let i=0;i<n;i++)stepHudState(s,1/120,flight);return s;};
 test("HUD 2.1 removes redundant bank visual and banking updates",()=>{
  const html=src("./index.html");
- const js=src("./reactive-hud-v04991.mjs");
+ const js=src("./ui/reactive-hud-v04991.mjs");
  const game=src("./legacy/game/game-v04991.mjs");
  assert.doesNotMatch(html,/hud-bank-gauge|hud-bank-instrument|bank-caption/);
  assert.doesNotMatch(js,/bankAngle|bankDegrees|bankNormalized|bankResponse|peakBank/);
@@ -93,7 +93,7 @@ test("HUD timestamps and event counters reset without fake pulses or new render 
  hud.reset({shield:100});
  assert.deepEqual([hud.stats().boostEvents,hud.stats().zoneEvents,
   hud.stats().shieldImpactEvents],[0,0,0]);
- const code=src("./reactive-hud-v04991.mjs");
+ const code=src("./ui/reactive-hud-v04991.mjs");
  assert.doesNotMatch(code,/new\s+RenderPass|WebGLRenderer\s*\(|requestAnimationFrame\s*\(/);
  assert.equal(HUD_SPEC.reducedMotionSupported,true);
 });
@@ -106,7 +106,7 @@ test("production page and boot load v04991; old gameplay and SMAA stay intact",(
  assert.match(html,/boot-v0103\.js\?v=0\.10\.3/);
  assert.match(html,/data-game-module="game-v0103\.mjs"/);
  assert.match(boot,/import\("\.\/game-v0103\.mjs\?v=0\.10\.3"\)/);
- assert.match(game,/from "\.\/reactive-hud-v04991\.mjs"/);
+ assert.match(game,/from "\.\/ui\/reactive-hud-v04991\.mjs"/);
  assert.match(game,/version:"0\.10\.3"/);
  assert.match(game,/skyshift-premium-ship-v0103-audit\.json/);
  assert.match(browser,/racingMeters/);

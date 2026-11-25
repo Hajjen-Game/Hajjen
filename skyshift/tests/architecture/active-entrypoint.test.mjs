@@ -409,7 +409,7 @@ const {
  clearPersonalGhost,readGhostEnabled,saveGhostEnabled,
  ghostPoseAt,ghostTimeAtDistance,updateGhostDelta,ghostAudit
 }=await import('../../time-trial-v0160.mjs');
-const {ghostGeometryData,GHOST_VISUAL_0130,createPersonalGhostVisual}=await import('../../ghost-visual-v0130.mjs');
+const {ghostGeometryData,GHOST_VISUAL_0130,createPersonalGhostVisual}=await import('../../ui/ghost-visual-v0130.mjs');
 function memory(){
  const db=new Map();
  return {db,getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v)),
@@ -631,8 +631,8 @@ test('ghost playback shares one implementation across all four Time Trial APIs',
   [1,10,3,4,5,-3.13,.4,.1],
   [2,30,9,8,7,-3,.6,.3]
  ]};
- const ghostSource=readFileSync(at('ghost-visual-v0130.mjs'),'utf8');
- assert.match(ghostSource,/from "\.\/core\/ghost-playback\.mjs"/);
+ const ghostSource=readFileSync(at('ui/ghost-visual-v0130.mjs'),'utf8');
+ assert.match(ghostSource,/from "\.\.\/core\/ghost-playback\.mjs"/);
  assert.doesNotMatch(ghostSource,/from "\.\/time-trial-v0130\.mjs"/);
  for(let i=0;i<versions.length;i++){
   const v=versions[i],tt=await import('../../time-trial-v'+v+'.mjs');

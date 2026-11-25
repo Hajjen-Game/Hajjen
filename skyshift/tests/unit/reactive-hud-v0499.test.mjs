@@ -5,7 +5,7 @@ import {readHistorical as readFileSync} from "../architecture/legacy-retirement-
 import {
  HUD_SPEC,createHudState,hudSignal,stepHudState,
  hudVisualFrame,createReactiveHud
-} from "../../reactive-hud-v0499.mjs";
+} from "../../ui/reactive-hud-v0499.mjs";
 import {GUARDRAIL,TRIAL} from "../../trial-v0494.mjs";
 import {BOOST_CONFIG} from "../../flight/boost/boost-v0494.mjs";
 import {ZONE_WAVE} from "../../zone-wave-v0493.mjs";
@@ -96,7 +96,7 @@ test("HUD is DOM-only, throttled, and provides event counters for exported logs"
  assert.equal(HUD_SPEC.backgroundDrawCalls,0);
  assert.ok(HUD_SPEC.reducedMotionSupported);
  assert.ok(HUD_SPEC.updateIntervalSeconds>=1/60);
- const mod=source("./reactive-hud-v0499.mjs");
+ const mod=source("./ui/reactive-hud-v0499.mjs");
  assert.doesNotMatch(mod,/new\s+(?:THREE\.)?WebGLRenderer|new\s+RenderPass|requestAnimationFrame\s*\(|setInterval\s*\(/);
  const root={classList:{toggle(){},remove(){}},
   querySelector(){return null;},style:{setProperty(){}}};

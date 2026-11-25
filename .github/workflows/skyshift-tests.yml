@@ -202,7 +202,7 @@ jobs:
           node --check skyshift/game.mjs
           node --check skyshift/track.mjs
           node --check skyshift/trial-v02.mjs
-          node --check skyshift/fullscreen-v02.mjs
+          node --check skyshift/ui/fullscreen-v02.mjs
           node --check skyshift/trial-v03.mjs
           node --check skyshift/neon-balance-v032.mjs
           node --check skyshift/neon-v032.mjs
@@ -281,9 +281,9 @@ jobs:
           node --check skyshift/image-clarity-v0498.mjs
           node --check skyshift/rendering/legacy/premium-track-v0498.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0498.mjs
-          node --check skyshift/reactive-hud-v0499.mjs
+          node --check skyshift/ui/reactive-hud-v0499.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0499.mjs
-          node --check skyshift/reactive-hud-v04991.mjs
+          node --check skyshift/ui/reactive-hud-v04991.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v04991.mjs
           node --check skyshift/flight/boost/boost-v050.mjs
           node --check skyshift/trial-v050.mjs
@@ -460,7 +460,7 @@ jobs:
           node --check skyshift/tests/unit/racing-experience-v0121.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0121.mjs
           node --check skyshift/time-trial-v0130.mjs
-          node --check skyshift/ghost-visual-v0130.mjs
+          node --check skyshift/ui/ghost-visual-v0130.mjs
           node --check skyshift/tests/unit/time-trial-v0130.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0130.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0131.mjs

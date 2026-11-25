@@ -1,7 +1,7 @@
 // SKYSHIFT 0.13.0 — translucent, world-space personal ghost.
 // 2 draw calls, 0 lights, 0 colliders, < 80 triangles. No instancing or
 // shadow casting; no FX trails, no scene-graph duplication of the real ship.
-import {ghostPoseAt} from "./core/ghost-playback.mjs";
+import {ghostPoseAt} from "../core/ghost-playback.mjs";
 export const GHOST_VISUAL_0130=Object.freeze({
  version:"translucent-personal-ghost-0130",
  bodyTint:0x5bd9ff,edgeTint:0xeafcff,

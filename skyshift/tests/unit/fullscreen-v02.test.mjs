@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {makeFullscreenController} from "../../fullscreen-v02.mjs";
+import {makeFullscreenController} from "../../ui/fullscreen-v02.mjs";
 
 function environment({blocked=false,supported=true}={}){
   const listeners=new Map();

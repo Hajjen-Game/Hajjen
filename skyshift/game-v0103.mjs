@@ -17,7 +17,7 @@ import {buildPremiumMantaBlade,MANTA_POLISH} from "./ships/manta-blade-v0103.mjs
 import {buildStingrayEvo,STINGRAY_EVO} from "./stingray-evo-v0103.mjs";
 import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
  isFleetUnlocked,recordFleetClear,fleetStatus} from "./ships/fleet-v010.mjs";
-import { makeFullscreenController } from "./fullscreen-v02.mjs";
+import { makeFullscreenController } from "./ui/fullscreen-v02.mjs";
 import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0496.mjs";
 import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v083.mjs";
 import { MESH_SPEC } from "./tracks/shared/smooth-track-v0901.mjs";
@@ -41,7 +41,7 @@ import { installAeroBarriers,AERO_BARRIER } from "./tracks/barriers/aero-barrier
 import { installSpaceBackdrop } from "./space-v0496.mjs";
 import { createContactShadow } from "./ship-v034.mjs";
 import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v083.mjs";
-import {HUD_SPEC,createReactiveHud} from "./reactive-hud-v04991.mjs";
+import {HUD_SPEC,createReactiveHud} from "./ui/reactive-hud-v04991.mjs";
 import {GRIP_SPEC} from "./flight/precision-grip-v084.mjs";
 import {RACING_FEEL,gripApexCue,createRailFeedbackState,
  startRailFeedback,stepRailFeedback} from "./flight/racing-feel-v083.mjs";

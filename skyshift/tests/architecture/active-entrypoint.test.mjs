@@ -617,3 +617,43 @@ test('live ghost renderer consumes current recorded pose and hides or disposes w
  assert.ok(group.children.every(m=>m.geometry.disposed&&m.material.disposed));
 });
 }
+
+
+// EF02J: all supported historical time-trial APIs delegate to the same pure
+// playback functions; configuration and persistence remain version-specific.
+test('ghost playback shares one implementation across all four Time Trial APIs',async()=>{
+ const shared=await import('../../core/ghost-playback.mjs');
+ const versions=['0130','0150','0151','0160'];
+ const expectedKeys=['skyshift-time-trial-ghost-0130','skyshift-time-trial-ghost-0150','skyshift-time-trial-ghost-0151','skyshift-time-trial-ghost-0151'];
+ const expectedRevisions=['skyline-0130-v1','skyline-risk-choice-0150','skyline-risk-diversity-0151','skyline-risk-diversity-0151'];
+ const best={duration:2,samples:[
+  [0,0,1,2,3,3.13,.2,-.1],
+  [1,10,3,4,5,-3.13,.4,.1],
+  [2,30,9,8,7,-3,.6,.3]
+ ]};
+ const ghostSource=readFileSync(at('ghost-visual-v0130.mjs'),'utf8');
+ assert.match(ghostSource,/from "\.\/core\/ghost-playback\.mjs"/);
+ assert.doesNotMatch(ghostSource,/from "\.\/time-trial-v0130\.mjs"/);
+ for(let i=0;i<versions.length;i++){
+  const v=versions[i],tt=await import('../../time-trial-v'+v+'.mjs');
+  assert.equal(tt.ghostPoseAt,shared.ghostPoseAt);
+  assert.equal(tt.ghostTimeAtDistance,shared.ghostTimeAtDistance);
+  const config=tt['TIME_TRIAL_'+v];
+  assert.equal(config.storageKey,expectedKeys[i]);
+  assert.equal(config.trackRevision,expectedRevisions[i]);
+  assert.equal(config.raceMeters,10200);
+  assert.equal(config.laps,3);
+  const out={};const p=tt.ghostPoseAt(best,.5,out);
+  assert.equal(p,out);
+  assert.deepEqual([p.elapsed,p.s,p.worldX,p.y,p.worldZ],[.5,5,2,3,4]);
+  assert.ok(Math.abs(p.heading-Math.PI)<1e-10);
+  assert.ok(Math.abs(p.roll-.3)<1e-10);
+  assert.ok(Math.abs(p.pitch)<1e-10);
+  assert.equal(tt.ghostTimeAtDistance(best,20),1.5);
+  assert.equal(tt.ghostTimeAtDistance(best,-1),0);
+  assert.equal(tt.ghostTimeAtDistance(best,31),2);
+  assert.equal(tt.ghostTimeAtDistance(best,NaN),null);
+  assert.equal(tt.ghostPoseAt(best,2.001),null);
+  assert.equal(tt.ghostPoseAt(best,-.001),null);
+ }
+});

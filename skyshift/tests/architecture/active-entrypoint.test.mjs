@@ -657,3 +657,50 @@ test('ghost playback shares one implementation across all four Time Trial APIs',
   assert.equal(tt.ghostPoseAt(best,-.001),null);
  }
 });
+
+
+test('shared Time Trial preserves all versioned PB APIs, exact payloads and storage boundaries',async()=>{
+ const versions=['0130','0150','0151','0160'];
+ const tt=await Promise.all(versions.map(v=>import('../../time-trial-v'+v+'.mjs')));
+ const {createTimeTrialAPI}=await import('../../core/time-trial.mjs');
+ const cfg=tt.map((m,i)=>m['TIME_TRIAL_'+versions[i]]);
+ const keys=cfg.map(c=>c.storageKey);
+ const data=new Map(),storage={getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,String(v)),removeItem:k=>data.delete(k)};
+ const capture=(m,c,duration=150)=>{
+  const st=m.startTimeTrial(m.createTimeTrialState(),{mode:'time-trial',storage,ship:'manta'});
+  for(let i=0;i<=1500;i++){
+   const elapsed=duration*i/1500,s=c.raceMeters*i/1500;
+   m.captureTimeTrialSample(st,{elapsed,s,worldX:s*.6,y:1.5,worldZ:s*.35+Math.sin(i/8),heading:.5,roll:0,pitch:0});
+  }
+  return {st,result:m.finishTimeTrial(st,{won:true,elapsed:duration,laps:[duration/3,duration/3,duration/3],storage})};
+ };
+ const payloads=[];
+ for(let i=0;i<tt.length;i++){
+  const m=tt[i],c=cfg[i],api=createTimeTrialAPI(c);
+  assert.deepEqual(Object.keys(api).sort(),["GHOST_TOGGLE_KEY","captureTimeTrialSample","clearPersonalGhost","createTimeTrialState","finishTimeTrial","formatTrialDelta","formatTrialTime","ghostAudit","loadPersonalGhost","readGhostEnabled","saveGhostEnabled","savePersonalGhost","startTimeTrial","updateGhostDelta","validateGhost"]);
+  for(const name of Object.keys(api))assert.equal(typeof m[name],typeof api[name]);
+  const prior=new Map(data);
+  const {st,result}=capture(m,c);
+  // 0151 and default current Skyline intentionally share the old PB fingerprint.
+  const expectedPrevious=i===3&&keys[2]===keys[3]&&cfg[2].trackRevision===c.trackRevision;
+  assert.equal(result.saved,!expectedPrevious);
+  assert.equal(m.loadPersonalGhost(storage).duration,150);
+  assert.equal(m.ghostAudit(st).track,c.trackId+'|'+c.trackRevision+'|'+c.raceMeters+'|'+c.laps);
+  const raw=data.get(c.storageKey),decoded=JSON.parse(raw);
+  assert.equal(decoded.track,m.ghostAudit(st).track);
+  for(const [k,v] of prior)if(k!==c.storageKey)assert.equal(data.get(k),v);
+  assert.equal(m.validateGhost({...decoded,track:'other-track'}),null);
+  const {track,...payload}=decoded;
+  payloads.push(payload);
+  assert.equal(m.saveGhostEnabled(storage,false),true);
+  assert.equal(m.readGhostEnabled(storage),false);
+  assert.equal(data.get(c.storageKey),raw);
+ }
+ for(const p of payloads.slice(1))assert.deepEqual(p,payloads[0]);
+ for(const [i,m] of tt.entries()){
+  const c=cfg[i],before=new Map(data);
+  assert.equal(m.clearPersonalGhost(storage),true);
+  assert.equal(m.loadPersonalGhost(storage),null);
+  for(const [k,v] of before)if(k!==c.storageKey)assert.equal(data.get(k),v);
+ }
+});

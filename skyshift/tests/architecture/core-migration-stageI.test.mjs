@@ -1,3 +1,4 @@
+import {restorePremiumMove,premiumCurrentPath} from './ef02-closure-premium-overlay.mjs';
 // SKYSHIFT Stage I – immutable core runtime source integrity and ESM consumer audit.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -24,10 +25,11 @@ test('Stage I preserves all 15 original performance/fidelity source blobs and re
   assert.match(name,/^[a-z0-9-]+\.mjs$/);
   assert.ok(!existsSync(resolve(root,name)),'Stale root performance module: '+name);
   const path=resolve(core,name);assert.ok(existsSync(path),'Missing relocated runtime core module: '+name);
-  const source=readFileSync(path,'utf8');let original=source;
+  const actualSource=readFileSync(path,'utf8');
+  const source=restorePremiumMove(actualSource,path);let original=source;
   for(const ext of manifest.files[name].externalImports){
    assert.ok(source.includes('../'+ext),'Missing approved external import path '+name+' -> '+ext);
-   assert.ok(existsSync(resolve(root,ext)),'Missing core external ESM dependency '+ext);
+   assert.ok(existsSync(premiumCurrentPath(resolve(root,ext))),'Missing core external ESM dependency '+ext);
    original=original.split('../'+ext).join('./'+ext);
   }
   // EF02B: verify exact adapter and reconstruct the original source blob from
@@ -51,7 +53,7 @@ test('Stage I preserves all 15 original performance/fidelity source blobs and re
   }
   assert.equal(hash(Buffer.from(original,'utf8')),manifest.files[name].originalGitBlobSha,
    'Runtime performance/fidelity implementation or parameters changed: '+name);
-  for(const m of source.matchAll(/\b(?:from\s*|import\s*\(\s*|import\s*)["'](\.{1,2}\/[^"']+)["']/g)){
+  for(const m of actualSource.matchAll(/\b(?:from\s*|import\s*\(\s*|import\s*)["'](\.{1,2}\/[^"']+)["']/g)){
    const dest=resolve(dirname(path),m[1].split(/[?#]/)[0]);
    assert.ok(existsSync(dest),'Unresolved relocated performance ESM import '+name+' -> '+m[1]);
    const rel=relative(root,dest);

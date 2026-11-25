@@ -2,6 +2,15 @@ name: SKYSHIFT EF02 road deck parity
 on:
   pull_request:
     paths:
+      - 'skyshift/smooth-track-v050.mjs'
+      - 'skyshift/smooth-track-v051.mjs'
+      - 'skyshift/smooth-track-v060.mjs'
+      - 'skyshift/smooth-track-v070.mjs'
+      - 'skyshift/smooth-track-v071.mjs'
+      - 'skyshift/smooth-track-v072.mjs'
+      - 'skyshift/smooth-track-v081.mjs'
+      - 'skyshift/smooth-track-v082.mjs'
+      - 'skyshift/smooth-track-v083.mjs'
       - 'skyshift/smooth-track-v084.mjs'
       - 'skyshift/smooth-track-v0901.mjs'
       - 'skyshift/smooth-track-v0160.mjs'

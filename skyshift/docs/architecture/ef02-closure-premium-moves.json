@@ -393,6 +393,155 @@
           "count": 2
         }
       ]
+    },
+    {
+      "path": "skyshift/tests/unit/risk-reward-v0150.test.mjs",
+      "target": "skyshift/tests/unit/risk-reward-v0150.test.mjs",
+      "sha": "abb1a336090b654c86e1e8cf4815bd7efbbb806a",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0150.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v0150.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/risk-reward-v0151.test.mjs",
+      "target": "skyshift/tests/unit/risk-reward-v0151.test.mjs",
+      "sha": "1790451628d49e31a782b05c7f07e53faec066d7",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0151.mjs\"",
+          "after": "\"../../rendering/legacy/premium-track-v0151.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "\"./premium-track-v0151.mjs\"",
+          "after": "\"./rendering/legacy/premium-track-v0151.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/visual-fidelity-v0113.test.mjs",
+      "target": "skyshift/tests/unit/visual-fidelity-v0113.test.mjs",
+      "sha": "bd30697f55374a595a69ef58a8cb36cc8a1dbeb7",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0901.mjs\"",
+          "after": "\"../../rendering/road/premium-track-v0901.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/visual-fidelity-v0114.test.mjs",
+      "target": "skyshift/tests/unit/visual-fidelity-v0114.test.mjs",
+      "sha": "109246df5fc6566b922fb3f15e542350ee0246c3",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0901.mjs\"",
+          "after": "\"../../rendering/road/premium-track-v0901.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+      "target": "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+      "sha": "1f1e8502adc6777d39f72aa2a650f3411995ebab",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0160.mjs\"",
+          "after": "\"../../rendering/road/premium-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+      "sha": "3b2507fd82cff3f241570fb4d5ec8c41b19c3e6d",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0160.mjs\"",
+          "after": "\"../../rendering/road/premium-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+      "sha": "e9ac4256747412b1da0c4a42ab530673e7605fa9",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0160.mjs\"",
+          "after": "\"../../rendering/road/premium-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+      "sha": "f265b51609b87cd6d149cda9187cf99e77cfea1c",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0160.mjs\"",
+          "after": "\"../../rendering/road/premium-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+      "sha": "7ac87c5c9211b08345fa636ed698653f8b410af0",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0160.mjs\"",
+          "after": "\"../../rendering/road/premium-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "sha": "57305dab4b2354bc50f95fe3d203ed9fe877f852",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0160.mjs\"",
+          "after": "\"../../rendering/road/premium-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/vault-boost-clarity-v0283.test.mjs",
+      "target": "skyshift/tests/unit/vault-boost-clarity-v0283.test.mjs",
+      "sha": "c8e5f79c617c569872899e621bd06ba28d788372",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0160.mjs\"",
+          "after": "\"../../rendering/road/premium-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+      "target": "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+      "sha": "46b08066882f9c0834eb33cbb6ff3407c160e8cb",
+      "edits": [
+        {
+          "before": "\"./premium-track-v0160.mjs\"",
+          "after": "\"./rendering/road/premium-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
     }
   ],
   "rootBefore": 200,

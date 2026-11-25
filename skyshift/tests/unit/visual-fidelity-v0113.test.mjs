@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {createPremiumTrackMaterial,patchPremiumShaders}
- from "../../premium-track-v0901.mjs";
+ from "../../rendering/road/premium-track-v0901.mjs";
 import {shadeTunnelRoadGLSL} from "../../shadow-tunnel-v092.mjs";
 import {patchBlackoutRoadFragment} from "../../tunnel-blackout-v0921.mjs";
 import {FIDELITY_0113,selectFidelityProfile,createFidelityDirector,

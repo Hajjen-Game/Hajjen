@@ -60,7 +60,7 @@ test("Vault runtime uses exactly the same authoritative pads for art and physics
 test("existing deck gets genuine HDR arrow glow without risk guide artwork",async()=>{
  const {patchPremiumShaders,SURFACE_FRAGMENT_GLSL,
   VAULT_BOOST_GLOW_0283,GLSL_BOOST_PADS}
-  =await import("../../premium-track-v0160.mjs");
+  =await import("../../rendering/road/premium-track-v0160.mjs");
  assert.equal(VAULT_BOOST_GLOW_0283.noAdditionalMeshes,true);
  assert.equal(GLSL_BOOST_PADS.length,5);
  assert.ok(GLSL_BOOST_PADS.every(p=>p.kind==="boost"));

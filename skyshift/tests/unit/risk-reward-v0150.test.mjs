@@ -11,7 +11,7 @@ import {GRIP_APEX,TRIAL,CIRCUIT,curvatureAt,gapAt,
  guardrailLateralLimit,newFlightState,positionAt,headingAt,surfaceHeightAt,
  stepFlight} from "../../trial-v0150.mjs";
 import {GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,patchPremiumShaders}
- from "../../premium-track-v0150.mjs";
+ from "../../rendering/legacy/premium-track-v0150.mjs";
 import {TIME_TRIAL_0150} from "../../time-trial-v0150.mjs";
 import {TIME_TRIAL_0130} from "../../time-trial-v0130.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");

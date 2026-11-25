@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "baseCommit": "ca1b761288426cfa5fd1a1b9fc6dfa9c2b7379fc",
+  "moves": [
+    {
+      "path": "skyshift/trial-v0160.mjs",
+      "target": "skyshift/tracks/trials/trial-v0160.mjs",
+      "sha": "918d0dcaff5e36d0016202b617292988fb73e778",
+      "role": "live-literal"
+    },
+    {
+      "path": "skyshift/trial-v0165.mjs",
+      "target": "skyshift/tracks/trials/trial-v0165.mjs",
+      "sha": "dd4f085526286a68519f9a1e2950a97be59d28e2",
+      "role": "live-literal"
+    }
+  ],
+  "records": [
+    {
+      "path": "skyshift/trial-v0160.mjs",
+      "target": "skyshift/tracks/trials/trial-v0160.mjs",
+      "sha": "918d0dcaff5e36d0016202b617292988fb73e778",
+      "edits": [
+        {
+          "before": "from \"./tracks/shared/track-selection-v0160.mjs\"",
+          "after": "from \"../shared/track-selection-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/boost/boost-v0160.mjs\"",
+          "after": "from \"../../flight/boost/boost-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/precision-grip-v084.mjs\"",
+          "after": "from \"../../flight/precision-grip-v084.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/steering-authority-v01348.mjs\"",
+          "after": "from \"../../flight/steering-authority-v01348.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/air-tricks-v083.mjs\"",
+          "after": "from \"../../flight/air-tricks-v083.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tracks/shared/track-3d-v0160.mjs\"",
+          "after": "from \"../shared/track-3d-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tracks/shared/circuit-layout-v0160.mjs\"",
+          "after": "from \"../shared/circuit-layout-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v0165.mjs",
+      "target": "skyshift/tracks/trials/trial-v0165.mjs",
+      "sha": "dd4f085526286a68519f9a1e2950a97be59d28e2",
+      "edits": [
+        {
+          "before": "from \"./tracks/shared/track-selection-v0160.mjs\"",
+          "after": "from \"../shared/track-selection-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/boost/boost-v0160.mjs\"",
+          "after": "from \"../../flight/boost/boost-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/precision-grip-v084.mjs\"",
+          "after": "from \"../../flight/precision-grip-v084.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/steering-authority-v01348.mjs\"",
+          "after": "from \"../../flight/steering-authority-v01348.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/air-tricks-v083.mjs\"",
+          "after": "from \"../../flight/air-tricks-v083.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tracks/shared/track-3d-v0160.mjs\"",
+          "after": "from \"../shared/track-3d-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tracks/shared/circuit-layout-v0160.mjs\"",
+          "after": "from \"../shared/circuit-layout-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "rootBefore": 196,
+  "rootAfter": 194
+}

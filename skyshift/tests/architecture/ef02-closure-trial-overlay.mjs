@@ -27,7 +27,45 @@ export function readHistoricalTrialMigrationSource(){
  }
  return historicalTrial;
 }
+// Exact inverse of EF04 test-source ownership changes; retain all pre-EF04
+// hash assertions and reject any unrelated change to these historical readers.
+const ef04ReaderEdits=[
+ {
+  "path": "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+  "edits": [
+   {
+    "before": " const f=src(\"./tracks/trials/trial-v0165.mjs\");",
+    "after": " const f=src(\"./flight/flight-physics.mjs\");"
+   },
+   {
+    "before": " const physics=f.slice(f.indexOf(\"export function stepFlight(\"));",
+    "after": " const start=f.indexOf(\"function stepFlight(\");\n assert.ok(start>=0,\"Shared physics implementation must exist\");\n const physics=f.slice(start);"
+   }
+  ]
+ },
+ {
+  "path": "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+  "edits": [
+   {
+    "before": " const integration=code.slice(code.indexOf(\"export function stepFlight(\"));",
+    "after": " const engine=source(\"./flight/flight-physics.mjs\");\n const start=engine.indexOf(\"function stepFlight(\");\n assert.ok(start>=0,\"Shared physics implementation must exist\");\n const integration=engine.slice(start);"
+   }
+  ]
+ }
+];
+function restoreEF04Reader(s,p){
+ const record=ef04ReaderEdits.find(x=>x.path===key(p));
+ if(!record)return s;
+ for(const e of [...record.edits].reverse()){
+  // Historical inverse callers can hand us an already restored reader.
+  if(s.includes(e.before)&&!s.includes(e.after))continue;
+  assert.equal(s.split(e.after).length-1,1,record.path+' EF04 reader inverse');
+  s=s.replace(e.after,e.before);
+ }
+ return s;
+}
 export function restoreTrialMove(s,p){
+ s=restoreEF04Reader(s,p);
  s=restoreUiMove(s,p);p=uiPreviousPath(p);
  const r=byTarget.get(key(p))||byPath.get(key(p));if(!r)return s;
  if(r.target==='skyshift/tracks/trials/trial-v0165.mjs')s=readHistoricalTrialMigrationSource();

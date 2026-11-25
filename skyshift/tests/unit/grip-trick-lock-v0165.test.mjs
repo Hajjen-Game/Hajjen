@@ -62,9 +62,11 @@ test("preserve the actual Skyline pre-jump TRICK/GRIP behavior byte-for-byte",()
  assert.equal(beyond.fixed.gripPreArmTicks,0);
 });
 test("only actual near-gap can suppress GRIP yaw; physics has no track forks",()=>{
- const f=src("./tracks/trials/trial-v0165.mjs");
+ const f=src("./flight/flight-physics.mjs");
  assert.match(f,/Boolean\(nextGap\(st\.s\)\)/);
- const physics=f.slice(f.indexOf("export function stepFlight("));
+ const start=f.indexOf("function stepFlight(");
+ assert.ok(start>=0,"Shared physics implementation must exist");
+ const physics=f.slice(start);
  assert.doesNotMatch(physics,/isAurora\(/,
   "no track-specific GRIP handling or wall rules");
  assert.match(physics,/const desired=input\*TRIAL\.maxYawRate\*yawFactor\*/);

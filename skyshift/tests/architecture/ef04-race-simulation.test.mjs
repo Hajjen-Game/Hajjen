@@ -70,7 +70,9 @@ test('EF04 extracted flight state and physics are exact original function bodies
  const adapter=readFileSync(new URL('../../tracks/trials/trial-v0165.mjs',import.meta.url),'utf8');
  assert.match(adapter,/export const \{newFlightState,stepFlight\}=createFlightPhysics\(/);
  assert.doesNotMatch(engine,/from ["'][^"']*track-selection/);
- assert.doesNotMatch(engine,/\b(?:window|document|location|localStorage)\b/);
+ // Ignore full-line comments, including the original "trick window" explanation.
+ const executable=engine.split('\n').filter(line=>!/^\s*\/\//.test(line)).join('\n');
+ assert.doesNotMatch(executable,/\b(?:window|document|location|localStorage)\b/);
 });
 
 function syntheticTrack({jump=false,wall=false,screw=false}={}){

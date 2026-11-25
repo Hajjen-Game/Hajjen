@@ -40,7 +40,10 @@ test("source-level proof: physics has ZERO course-specific behavior",()=>{
  const code=source("./tracks/trials/trial-v0165.mjs");
  const collision=code.slice(code.indexOf("export function constrainToGuardrail("),
   code.indexOf("const STEP="));
- const integration=code.slice(code.indexOf("export function stepFlight("));
+ const engine=source("./flight/flight-physics.mjs");
+ const start=engine.indexOf("function stepFlight(");
+ assert.ok(start>=0,"Shared physics implementation must exist");
+ const integration=engine.slice(start);
  assert.doesNotMatch(collision,/isAurora\(|railHeadingCorrections\+\+/,
   "rail response must never depend on selected course");
  assert.doesNotMatch(integration,/isAurora\(|gripIntoRail/,

@@ -68,18 +68,19 @@ export function historicalSyntaxCheck(workflow,p){
  return workflow.includes('node --check '+key);
 }
 
-// Explicit EF02J reader retirement, only for the proven duplicate historical UI cohort.
+// Explicit EF02J reader retirement, only for proven duplicate historical cohorts.
 // Do not use this for current or unknown readers; their existing guards remain strict.
-export function retiredHistoricalUIReader(path){
- const key=asPath(path),entry=retirementEF02J.retiredTests.find(f=>f.path===key&&f.cohort==='historical-ui-flow');
+export function retiredHistoricalReader(path){
+ const key=asPath(path),entry=retirementEF02J.retiredTests.find(f=>f.path===key&&['historical-ui-flow','historical-rail-sparks'].includes(f.cohort));
  if(!entry)return false;
- assert.match(key,/^skyshift\/tests\/unit\/ui-flow-v013\d+\.test\.mjs$/);
+ if(entry.cohort==='historical-ui-flow')assert.match(key,/^skyshift\/tests\/unit\/ui-flow-v013\d+\.test\.mjs$/);
+ else assert.match(key,/^skyshift\/tests\/unit\/rail-scrape-sparks-v(?:011[0-4]|012[01]|013(?:[0-4]|21|4[1-5]))\.test\.mjs$/);
  assert.match(entry.sha,/^[a-f0-9]{40}$/);assert.match(entry.rollbackCommit,/^[a-f0-9]{40}$/);
  assert.ok(entry.bytes>0&&entry.verifiedReplacementHead===entry.rollbackCommit&&entry.verificationRun>0,key);
  assert.equal(entry.replacement,'skyshift/tests/architecture/active-entrypoint.test.mjs');
- assert.ok(!existsSync(resolve(repo,key)),'Retired UI reader unexpectedly present '+key);
- assert.ok(existsSync(resolve(repo,entry.replacement)),'Missing live UI replacement '+key);
+ assert.ok(!existsSync(resolve(repo,key)),'Retired historical reader unexpectedly present '+key);
+ assert.ok(existsSync(resolve(repo,entry.replacement)),'Missing live behavioral replacement '+key);
  const wf=readFileSync(resolve(repo,'.github/workflows/skyshift-architecture-guard.yml'),'utf8');
- assert.ok(wf.includes('node --test '+entry.replacement),'Live UI replacement no longer executed');
+ assert.ok(wf.includes('node --test '+entry.replacement),'Live behavioral replacement no longer executed');
  return true;
 }

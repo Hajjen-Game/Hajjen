@@ -392,5 +392,7 @@ test('live game feeds physics-owned grounded rail contact to shared sparks, and 
  assert.match(game,/contactSerial:flight\.railContactStarts/);
  assert.match(game,/__skyshiftSparkInfo/);
  assert.match(game,/railScrapeSparks:\{\.\.\.RAIL_SPARKS/);
+ assert.match(game,/reactiveWingFlaps\?\.frame\(showroom\?dt:presentationDt/);
+ assert.match(game,/livingWake\?\.frame\(presentationDt/);
  assert.doesNotMatch(game,/stepFlight=.*railSpark|const contacted=\s*railSpark/);
 });

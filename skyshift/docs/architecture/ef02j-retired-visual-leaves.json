@@ -108,10 +108,82 @@
       {
         "before": "          node --check skyshift/tests/unit/ui-flow-v01345.test.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v01345.test.mjs\n",
         "after": "          node --check skyshift/tests/unit/rail-scrape-sparks-v01345.test.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/rail-scrape-sparks-v01091.test.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0110.test.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v01091.mjs",
+        "after": "          node --check skyshift/tests/unit/rail-scrape-sparks-v01091.test.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v01091.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0110.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0111.test.mjs\n          node --check skyshift/core/render-optimizer-v0111.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0110.mjs\n          node --check skyshift/core/render-optimizer-v0111.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0112.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0112.test.mjs\n          node --check skyshift/core/performance-audit-v0113.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0112.mjs\n          node --check skyshift/core/performance-audit-v0113.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0113.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0113.test.mjs\n          node --check skyshift/core/visual-fidelity-v0114.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0113.mjs\n          node --check skyshift/core/visual-fidelity-v0114.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0114.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0114.test.mjs\n          node --check skyshift/racing-experience-v0120.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0114.mjs\n          node --check skyshift/racing-experience-v0120.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0120.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0120.test.mjs\n          node --check skyshift/core/fidelity-settings-v0121.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0120.mjs\n          node --check skyshift/core/fidelity-settings-v0121.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0121.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0121.test.mjs\n          node --check skyshift/time-trial-v0130.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0121.mjs\n          node --check skyshift/time-trial-v0130.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0130.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0130.test.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v0131.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0130.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v0131.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0131.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0131.test.mjs\n          node --check skyshift/ship-art-pipeline-v0132.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0131.mjs\n          node --check skyshift/ship-art-pipeline-v0132.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v01321.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v01321.test.mjs\n          node --check skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v01321.mjs\n          node --check skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0133.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0133.test.mjs\n          node --check skyshift/blender/stingray-hero-v3-source-v0134.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0133.mjs\n          node --check skyshift/blender/stingray-hero-v3-source-v0134.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0134.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0134.test.mjs\n          node --check skyshift/ships/wing-clearance-v01341.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0134.mjs\n          node --check skyshift/ships/wing-clearance-v01341.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v01341.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v01341.test.mjs\n          node --check skyshift/stingray-presentation-v01342.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v01341.mjs\n          node --check skyshift/stingray-presentation-v01342.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v01342.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v01342.test.mjs\n          node --check skyshift/stingray-presentation-v01343.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v01342.mjs\n          node --check skyshift/stingray-presentation-v01343.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v01343.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v01343.test.mjs\n          node --check skyshift/stingray-presentation-v01344.mjs",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v01343.mjs\n          node --check skyshift/stingray-presentation-v01344.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/browser-screen-parity-v01345.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v01345.test.mjs\n          node --check skyshift/engine-trails-v01346.mjs",
+        "after": "          node --check skyshift/tests/browser/browser-screen-parity-v01345.mjs\n          node --check skyshift/engine-trails-v01346.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/browser-grip-trick-v0165.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v01344.test.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v0132.mjs",
+        "after": "          node --check skyshift/tests/browser/browser-grip-trick-v0165.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v0132.mjs"
+      },
+      {
+        "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0132.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0132.test.mjs\n          python3 -m py_compile skyshift/blender/build_stingray_hero.py skyshift/blender/convert_stingray_hero_v2.py skyshift/blender/convert_stingray_hero_v3.py skyshift/blender/convert_stingray_hero_v4.py skyshift/blender/validate_hero_glb.py",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0132.mjs\n          python3 -m py_compile skyshift/blender/build_stingray_hero.py skyshift/blender/convert_stingray_hero_v2.py skyshift/blender/convert_stingray_hero_v3.py skyshift/blender/convert_stingray_hero_v4.py skyshift/blender/validate_hero_glb.py"
       }
     ]
   },
-  "reason": "Census job 138753605310: neither default/comparison graph nor transitive QA literal owners; only historical workflow syntax references and documentation. Current entry uses newer implementations; historical archived game references resolved via existing helper. No active functional commands removed. Second cohort: two superseded loader implementations and two normalized-identical unit suites; replacement current V4 suite retained in PR and postmerge track QA. Actual comparison game, current game and retained v0205 use v01342. Historical source recoverability maintained; test bodies recoverable in exact base commit. Third cohort: ten versioned UI-flow source readers, replaced by verified current entrypoint UI and real time-trial regression coverage. Historic reader identity checks for this explicit retired cohort are superseded, while the original migration manifests and Git blobs remain recoverable.",
+  "reason": "Census job 138753605310: neither default/comparison graph nor transitive QA literal owners; only historical workflow syntax references and documentation. Current entry uses newer implementations; historical archived game references resolved via existing helper. No active functional commands removed. Second cohort: two superseded loader implementations and two normalized-identical unit suites; replacement current V4 suite retained in PR and postmerge track QA. Actual comparison game, current game and retained v0205 use v01342. Historical source recoverability maintained; test bodies recoverable in exact base commit. Third cohort: ten versioned UI-flow source readers, replaced by verified current entrypoint UI and real time-trial regression coverage. Historic reader identity checks for this explicit retired cohort are superseded, while the original migration manifests and Git blobs remain recoverable. Fourth cohort: 18 normalized-identical historical rail-scrape source readers. Keep v0109 and v01091 pending differing source/import review. No runtime sources removed.",
   "retiredTests": [
     {
       "path": "skyshift/tests/unit/ship-hero-loader-v0133.test.mjs",
@@ -238,6 +310,204 @@
       "verifiedReplacementHead": "71724ebd3edbba80634a0f722ca4147c9f3a70b8",
       "verificationRun": 45502713337,
       "reason": "Duplicate release-specific source assertions; verified current HTML, navigation/ghost wiring and executable current time-trial PB persistence on three tracks. Historic version bindings superseded by live entrypoint graph checks."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0110.test.mjs",
+      "sha": "d5f1444bbf299dd92a7db20b0858825edf1877e8",
+      "bytes": 9788,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0111.test.mjs",
+      "sha": "0fa0198975a922bfc2534898c32c5784fea162f5",
+      "bytes": 9788,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0112.test.mjs",
+      "sha": "14d5a7ee32ca27df0c5dd9b1393ffc75ef373dc0",
+      "bytes": 9788,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0113.test.mjs",
+      "sha": "b592b0c5e01b6cfb6c6801334c860b755ea33133",
+      "bytes": 9788,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0114.test.mjs",
+      "sha": "e254a95ce2ad794735db273e7fac7f86baed9e72",
+      "bytes": 9788,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0120.test.mjs",
+      "sha": "24e8ef10f992aadf137e2eaa01b969ae79cdbec3",
+      "bytes": 9788,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0121.test.mjs",
+      "sha": "b5856ef4af302db85aad7ef3f3bf6317eda5500d",
+      "bytes": 9788,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0130.test.mjs",
+      "sha": "f274c1a4b1b9e8378e19c3a352c39bf2ab3d109d",
+      "bytes": 9788,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0131.test.mjs",
+      "sha": "b6c0e7cb99056af96a9390959028d2917d8a0fbc",
+      "bytes": 9788,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0132.test.mjs",
+      "sha": "5bfd38c83d8c53e38610d5af34533024c7001f62",
+      "bytes": 9788,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01321.test.mjs",
+      "sha": "9760a107811923682a7c4b8d935751484f002631",
+      "bytes": 9795,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0133.test.mjs",
+      "sha": "1d5cd89684b3becff9bb62d74eb9b0575f96da48",
+      "bytes": 9788,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0134.test.mjs",
+      "sha": "f865aadd8bcfbc066802adf49bcb6d2c0e7bd9ac",
+      "bytes": 9788,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01341.test.mjs",
+      "sha": "8c27f85b2e383305d92a4914f5cecbfb7a56978f",
+      "bytes": 9795,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01342.test.mjs",
+      "sha": "7bfb9a0b694f742507add72b8b37e08049b37e4e",
+      "bytes": 9795,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01343.test.mjs",
+      "sha": "cf16533ab933b02730cc42716642b27d3a3fca4e",
+      "bytes": 9795,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01344.test.mjs",
+      "sha": "f76dccaca6f4ac09a052f126a84ef4f39f9e90a0",
+      "bytes": 9795,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01345.test.mjs",
+      "sha": "e585fa75e8e4678ceee7c9d9f964389655e5b20b",
+      "bytes": 9795,
+      "rollbackCommit": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
+      "verificationRun": 45551373454,
+      "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
     }
   ]
 }

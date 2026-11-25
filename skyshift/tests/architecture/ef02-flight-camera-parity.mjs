@@ -8,7 +8,7 @@ assert.ok(ref&&['vault','skyline','aurora'].includes(track));
 globalThis.location={search:'?track='+track+'&v=0.28.9.7'};
 const root=fileURLToPath(new URL('../../',import.meta.url)),old=resolve(ref,'skyshift');
 const load=(dir,p)=>import(pathToFileURL(resolve(dir,p)));
-const cv=['090','0901','0161','0162','0163','0164','0165'],uv=['0112','0161','0162','0163','0164','0165'];
+const cv=['081','082','083','084','090','0901','0161','0162','0163','0164','0165'],uv=['0112','0161','0162','0163','0164','0165'];
 const cam=v=>(v==='0165'?'flight/':'')+'cinematic-v'+v+'.mjs';
 const rig=v=>'flight/unified-flight-v'+v+'.mjs';
 const camVersion=v=>v==='0112'?'0901':v;
@@ -33,6 +33,12 @@ for(const v of cv){
   assert.deepEqual(out,a.chasePose(view,m,sa));
   assert.equal(a.cinematicFov(44+i*.1,44),b.cinematicFov(44+i*.1,44));
   assert.equal(a.engineLightFactor(sa),b.engineLightFactor(sb));
+  // Preserve caller-supplied settings, angle wrapping, kinetic fields and classic defaults.
+  const custom={...a.CINEMATIC_DEFAULTS,previewGain:.4,previewMaximum:.08,cameraDistance:16,cameraHeight:8.5};
+  assert.equal(a.headingDelta(heading,heading+Math.PI*1.5),b.headingDelta(heading,heading+Math.PI*1.5));
+  assert.equal(a.turnPreview(heading,heading+2,custom),b.turnPreview(heading,heading+2,custom));
+  assert.deepEqual(a.chasePose(view,m,sa,custom),b.chasePose(view,m,sb,custom));
+  assert.equal(a.cinematicFov(44+i*.1,44,custom),b.cinematicFov(44+i*.1,44,custom));
  }
  console.log('SKYSHIFT_EF02_CAMERA_PARITY '+JSON.stringify({track,version:v,frames:400}));
 }
@@ -59,6 +65,6 @@ for(const v of uv){
  assert.deepEqual(a.resetUnifiedFlightRig(ra),b.resetUnifiedFlightRig(rb));
  console.log('SKYSHIFT_EF02_FLIGHT_PARITY '+JSON.stringify({track,version:v,frames:400}));
 }
-for(const p of ['flight/cinematic-camera.mjs','flight/unified-flight.mjs'])newBytes+=readFileSync(resolve(root,p)).length;
+for(const p of ['flight/cinematic-camera.mjs','flight/classic-camera.mjs','flight/unified-flight.mjs'])newBytes+=readFileSync(resolve(root,p)).length;
 assert.ok(newBytes<oldBytes);
 console.log('SKYSHIFT_EF02_FLIGHT_BYTES '+JSON.stringify({oldBytes,newBytes,reduction:oldBytes-newBytes}));

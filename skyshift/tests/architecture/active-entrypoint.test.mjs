@@ -396,3 +396,224 @@ test('live game feeds physics-owned grounded rail contact to shared sparks, and 
  assert.match(game,/livingWake\?\.frame\(presentationDt/);
  assert.doesNotMatch(game,/stepFlight=.*railSpark|const contacted=\s*railSpark/);
 });
+
+
+// EF02J: retain the complete historical time-trial behavior suite against the
+// current time-trial implementation before retiring any old test or source.
+// The existing cross-track process probe above remains mandatory.
+{
+const {
+ TIME_TRIAL_0160,GHOST_TOGGLE_KEY,formatTrialTime,formatTrialDelta,
+ createTimeTrialState,startTimeTrial,captureTimeTrialSample,
+ finishTimeTrial,validateGhost,loadPersonalGhost,savePersonalGhost,
+ clearPersonalGhost,readGhostEnabled,saveGhostEnabled,
+ ghostPoseAt,ghostTimeAtDistance,updateGhostDelta,ghostAudit
+}=await import('../../time-trial-v0160.mjs');
+const {ghostGeometryData,GHOST_VISUAL_0130,createPersonalGhostVisual}=await import('../../ghost-visual-v0130.mjs');
+function memory(){
+ const db=new Map();
+ return {db,getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v)),
+  removeItem:k=>db.delete(k)};
+}
+function fixture(store,{duration=151,ship="stingray",grounded=true}={}){
+ const st=createTimeTrialState();
+ startTimeTrial(st,{mode:"time-trial",storage:store,ship});
+ const laps=[65,47,39].map(x=>x*duration/151);
+ const intervals=Math.round(duration*10);
+ for(let i=0;i<=intervals;i++){
+  const t=duration*i/intervals,s=5+(TIME_TRIAL_0160.raceMeters-5)*i/intervals;
+  const yaw=i%400===0?3.13:3.13-.001*i;
+  captureTimeTrialSample(st,{elapsed:t,s,worldX:s*.6,
+   worldZ:s*.35+12*Math.sin(t/8),y:1.5+Math.sin(t*.3)*.9,
+   heading:yaw,roll:.2*Math.sin(t*.15),
+   pitch:.05*Math.sin(t*.13)});
+ }
+ captureTimeTrialSample(st,{elapsed:duration,
+  s:TIME_TRIAL_0160.raceMeters,worldX:6120,
+  worldZ:3560,y:1.2,heading:0,roll:0,pitch:0},{force:true});
+ const result=finishTimeTrial(st,{won:true,elapsed:duration,laps,
+  falls:grounded?0:1,storage:store});
+ return {st,result,stored:loadPersonalGhost(store)};
+}
+test("current ghost: Time Trial is an actual independent three lap mode",()=>{
+ const st=createTimeTrialState(),store=memory();
+ startTimeTrial(st,{storage:store,mode:"standard",ship:"stingray"});
+ assert.equal(st.mode,"standard");
+ assert.equal(st.previousBest,null);
+ assert.equal(captureTimeTrialSample(st,{elapsed:1,s:100}),false);
+ assert.equal(finishTimeTrial(st,{won:true,elapsed:151}),null);
+ startTimeTrial(st,{storage:store,mode:"time-trial",ship:"stingray"});
+ assert.equal(st.mode,"time-trial");
+ assert.equal(st.active.ship,"stingray");
+ assert.equal(TIME_TRIAL_0160.timeTrialSameFlightPhysics,true);
+});
+test("current ghost: three laps record a locally saved valid real trajectory",()=>{
+ const store=memory(),x=fixture(store);
+ assert.equal(x.result.saved,true);
+ assert.equal(x.result.improved,true);
+ assert.ok(x.st.samplesWritten>1200);
+ assert.ok(x.st.samplesWritten<3600);
+ assert.equal(x.st.invalidSamples,0);
+ assert.ok(x.stored);
+ assert.equal(x.stored.duration,151);
+ assert.equal(x.stored.laps.length,3);
+ assert.equal(x.stored.ship,"stingray");
+ assert.ok(store.db.get(TIME_TRIAL_0160.storageKey).length<
+  TIME_TRIAL_0160.maxStorageChars);
+ assert.ok(x.stored.samples.at(-1)[1]>=10200-1);
+});
+test("current ghost: recording detects real lateral lines and ghost interpolates in space",()=>{
+ const x=fixture(memory()),g=x.stored;
+ const h=ghostPoseAt(g,74.37);
+ assert.ok(Math.abs(h.worldZ-h.s*.35)>1,"ghost preserves pilot lateral deviation");
+ const a=ghostPoseAt(g,74.30),b=ghostPoseAt(g,74.40);
+ assert.ok(h.worldX>a.worldX&&h.worldX<b.worldX);
+ assert.equal(ghostPoseAt(g,g.duration+.001),null);
+ assert.equal(ghostPoseAt(null,20),null);
+ assert.ok(Math.abs(ghostTimeAtDistance(g,5102.5)-75.5)<.25);
+});
+test("current ghost: same-distance delta never compares progress at unequal checkpoints",()=>{
+ const store=memory(),x=fixture(store);
+ startTimeTrial(x.st,{mode:"time-trial",storage:store,ship:"manta"});
+ const ahead=updateGhostDelta(x.st,{distance:5102.5,elapsed:73});
+ const behind=updateGhostDelta(x.st,{distance:5102.5,elapsed:79});
+ assert.ok(ahead<0&&behind>0);
+ assert.ok(x.st.peakDeltaAhead>=2);
+ assert.ok(x.st.peakDeltaBehind>=3);
+ assert.ok(ghostAudit(x.st).hasPersonalBest);
+});
+test("current ghost: slower second run cannot replace PB, faster clean run does",()=>{
+ const store=memory();fixture(store,{duration:151});
+ const slow=fixture(store,{duration:161});
+ assert.equal(slow.result.saved,false);
+ assert.equal(slow.result.reason,"slower");
+ assert.equal(loadPersonalGhost(store).duration,151);
+ const fast=fixture(store,{duration:144});
+ assert.equal(fast.result.saved,true);
+ assert.equal(loadPersonalGhost(store).duration,144);
+});
+test("current ghost: incomplete race, crash or damaged trajectory never overwrite saved ghost",()=>{
+ const store=memory();fixture(store);
+ const crash=fixture(store,{duration:138,grounded:false});
+ assert.equal(crash.result.saved,false);
+ assert.equal(crash.result.reason,"ineligible");
+ assert.equal(loadPersonalGhost(store).duration,151);
+ const partial=createTimeTrialState();
+ startTimeTrial(partial,{mode:"time-trial",storage:store});
+ captureTimeTrialSample(partial,{elapsed:0,s:5,worldX:0,y:0,worldZ:0,heading:0});
+ assert.equal(finishTimeTrial(partial,{won:false,elapsed:150,laps:[60,50,40],storage:store}).saved,false);
+ assert.equal(loadPersonalGhost(store).duration,151);
+});
+test("current ghost: crash/checkpoint backwards invalidates compact distance trace",()=>{
+ const st=createTimeTrialState();startTimeTrial(st,{mode:"time-trial"});
+ assert.equal(captureTimeTrialSample(st,{elapsed:0,s:5,
+   worldX:0,y:0,worldZ:0,heading:0}),true);
+ assert.equal(captureTimeTrialSample(st,{elapsed:.2,s:15,
+   worldX:10,y:0,worldZ:0,heading:0}),true);
+ assert.equal(captureTimeTrialSample(st,{elapsed:.4,s:7,
+   worldX:4,y:0,worldZ:0,heading:0}),false);
+ assert.equal(st.invalidSamples,1);
+});
+test("current ghost: corrupted / wrong-track local data is rejected without crashing",()=>{
+ const store=memory(),x=fixture(store);
+ for(const bad of ['{bad',JSON.stringify({...x.stored,track:"other-track"}),
+  JSON.stringify({...x.stored,samples:[...[...x.stored.samples].slice(0,2),
+  ["bad"]]}),'x'.repeat(TIME_TRIAL_0160.maxStorageChars+1)]){
+  store.setItem(TIME_TRIAL_0160.storageKey,bad);
+  assert.equal(loadPersonalGhost(store),null);
+ }
+ assert.equal(validateGhost({...x.stored,samples:null}),null);
+ const broken={getItem(){throw Error("restricted")},setItem(){throw Error("restricted")}};
+ assert.equal(loadPersonalGhost(broken),null);
+ assert.equal(savePersonalGhost(broken,x.stored),false);
+});
+test("current ghost: ghost visibility preference is independently persisted; OFF is not deletion",()=>{
+ const store=memory();fixture(store);
+ assert.equal(readGhostEnabled(store),true);
+ assert.equal(saveGhostEnabled(store,false),true);
+ assert.equal(store.db.get(GHOST_TOGGLE_KEY),"off");
+ assert.equal(readGhostEnabled(store),false);
+ assert.ok(loadPersonalGhost(store));
+ assert.equal(saveGhostEnabled(store,true),true);
+ assert.equal(readGhostEnabled(store),true);
+ assert.equal(clearPersonalGhost(store),true);
+ assert.equal(loadPersonalGhost(store),null);
+});
+test("current ghost: format uses centiseconds and conventional signed delta",()=>{
+ assert.equal(formatTrialTime(65.899),"01:05.89");
+ assert.equal(formatTrialTime(151),"02:31.00");
+ assert.equal(formatTrialTime(-1),"--:--.--");
+ assert.equal(formatTrialDelta(-1.245),"−1.25");
+ assert.equal(formatTrialDelta(2.1),"+2.10");
+ assert.equal(formatTrialDelta(null),"—");
+});
+test("current ghost: ghost mesh is tiny, readable and never creates lights or colliders",()=>{
+ const g=ghostGeometryData();
+ assert.ok(g.triangles>10&&g.triangles<80);
+ assert.equal(g.body.length%9,0);
+ assert.equal(g.edge.length%9,0);
+ assert.ok([...g.body,...g.edge].every(Number.isFinite));
+ assert.equal(GHOST_VISUAL_0130.drawCalls,2);
+ assert.equal(GHOST_VISUAL_0130.colliders,0);
+ assert.equal(GHOST_VISUAL_0130.extraLights,0);
+ assert.equal(GHOST_VISUAL_0130.noRoadCenterlineApproximation,true);
+});
+test("current ghost: data audit excludes bulky samples and records actual ghost state",()=>{
+ const x=fixture(memory());const a=ghostAudit(x.st);
+ assert.equal("samples" in a,false);
+ assert.equal(a.savedNewBest,true);
+ assert.equal(a.samplingHz,10);
+ assert.equal(a.physicalFlightUnchanged,true);
+ assert.equal(a.maxGhostDrawCalls,2);
+});
+
+test('live ghost renderer consumes current recorded pose and hides or disposes without adding lights',()=>{
+ class Geometry {
+  setAttribute(name,value){this[name]=value}
+  computeVertexNormals(){}
+  computeBoundingSphere(){}
+  dispose(){this.disposed=true}
+ }
+ class Attribute {constructor(array,itemSize){this.array=array;this.itemSize=itemSize}}
+ class Material {constructor(options){Object.assign(this,options)}dispose(){this.disposed=true}}
+ class Mesh {constructor(geometry,material){this.geometry=geometry;this.material=material}}
+ class Group {
+  constructor(){this.children=[];this.position={set:(...v)=>{this.xyz=v}};this.rotation={set:(...v)=>{this.angles=v}}}
+  add(...children){this.children.push(...children)}
+  removeFromParent(){this.removed=true}
+ }
+ const THREE={BufferGeometry:Geometry,Float32BufferAttribute:Attribute,MeshBasicMaterial:Material,Mesh,Group,AdditiveBlending:3,DoubleSide:2};
+ const scene={children:[],add(x){this.children.push(x)}};
+ const visual=createPersonalGhostVisual(THREE,scene);
+ const {stored:best}=fixture(memory());
+ assert.equal(scene.children.length,1);
+ const group=scene.children[0];
+ assert.equal(group.children.length,2);
+ assert.ok(group.children.every(m=>m instanceof Mesh&&m.material.depthWrite===false&&m.castShadow!==true&&m.receiveShadow!==true));
+ assert.equal(group.visible,false);
+ // Compare the actual renderer's recorded pose to today's active module, including a yaw wrap.
+ for(const elapsed of [0,.15,39.95,40.05,74.37,best.duration]){
+  const p=ghostPoseAt(best,elapsed);
+  assert.ok(p);
+  assert.equal(visual.frame({active:true,enabled:true,best,elapsed}),true);
+  assert.deepEqual(group.xyz,[p.worldX,p.y+.20,p.worldZ]);
+  assert.deepEqual(group.angles,[p.pitch,-p.heading,p.roll,'XYZ']);
+ }
+ assert.equal(visual.frame({active:true,enabled:false,best,elapsed:1}),false);
+ assert.equal(group.visible,false);
+ assert.equal(visual.frame({active:true,enabled:true,best,elapsed:best.duration+.001}),false);
+ assert.equal(visual.frame({active:false,enabled:true,best,elapsed:1}),false);
+ assert.equal(visual.frame({active:true,enabled:true,best:null,elapsed:1}),false);
+ assert.equal(visual.frame({active:true,enabled:true,best,elapsed:1}),true);
+ visual.hide();
+ assert.equal(group.visible,false);
+ const stats=visual.stats();
+ assert.equal(stats.ghostSceneObjects,2);
+ assert.equal(stats.extraLights,0);
+ assert.equal(stats.colliders,0);
+ assert.equal(stats.renderPasses,0);
+ visual.dispose();
+ assert.equal(group.removed,true);
+ assert.ok(group.children.every(m=>m.geometry.disposed&&m.material.disposed));
+});
+}

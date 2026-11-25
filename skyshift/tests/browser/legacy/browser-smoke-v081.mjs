@@ -313,7 +313,7 @@ try{
  const skylineLeap=await page.evaluate(async()=>{
   const [trial,terrain,deck,rails,cinema]=await Promise.all([
    import("./trial-v081.mjs"),import("./tracks/shared/track-3d-v081.mjs"),
-   import("./smooth-track-v081.mjs"),import("./tracks/barriers/aero-barrier-v081.mjs"),
+   import("./tracks/shared/smooth-track-v081.mjs"),import("./tracks/barriers/aero-barrier-v081.mjs"),
    import("./cinematic-v081.mjs")]);
   const mesh=deck.createSmoothDeckData(),barrier=rails.createAeroBarrierData();
   const fullQuads=(mesh.rows-1)*(mesh.cols-1)*2;
@@ -411,7 +411,7 @@ try{
  const corkscrew=await page.evaluate(async()=>{
   const [trial,track,cinema,deck]=await Promise.all([
    import("./trial-v081.mjs"),import("./tracks/shared/track-3d-v081.mjs"),
-   import("./cinematic-v081.mjs"),import("./smooth-track-v081.mjs")]);
+   import("./cinematic-v081.mjs"),import("./tracks/shared/smooth-track-v081.mjs")]);
   const center=3171.5,n=trial.surfaceNormalAt(center);
   const samples=[3005,3075,3171.5,3255,3337.9,3338]
     .map(s=>({s,bank:trial.bankDegreesAt(s),

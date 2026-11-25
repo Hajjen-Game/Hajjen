@@ -9,7 +9,7 @@ import {vaultSpatialWaveEnabled0285}
 export const VAULT_WAVE_PARITY_0285_ACTIVE=vaultSpatialWaveEnabled0285();
 import {BOOST_PADS} from "./flight/boost/boost-v0160.mjs";
 import {RHYTHM_GATES_0160,VAULT_BOOST_0283_ACTIVE} from "./risk-reward-v0160.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v0160.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "./tracks/shared/smooth-track-v0160.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
  version:"track-rhythm-diversity-0151",

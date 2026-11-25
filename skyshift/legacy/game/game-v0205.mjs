@@ -28,7 +28,7 @@ import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
 import { makeFullscreenController } from "../../fullscreen-v02.mjs";
 import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "../../engine-trails-v01346.mjs";
 import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v0111.mjs";
-import { MESH_SPEC } from "../../smooth-track-v0160.mjs";
+import { MESH_SPEC } from "../../tracks/shared/smooth-track-v0160.mjs";
 import {OPT_0111,newHudBudget,createDomWriteCache} from "../../core/render-optimizer-v0111.mjs";
 import {createUnifiedFlightRig,resetUnifiedFlightRig,advanceUnifiedFlightRig,
  unifiedFlightAudit} from "../../flight/unified-flight-v0165.mjs";

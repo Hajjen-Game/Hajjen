@@ -20,7 +20,7 @@ import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
 import { makeFullscreenController } from "./fullscreen-v02.mjs";
 import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v0496.mjs";
 import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v083.mjs";
-import { MESH_SPEC } from "./smooth-track-v0901.mjs";
+import { MESH_SPEC } from "./tracks/shared/smooth-track-v0901.mjs";
 import {
   PACING,capturePose,interpolatePose,shouldSnapPose,
   createFrameClock,advanceFrame,createFrameMonitor,observeFrame,monitorSummary,

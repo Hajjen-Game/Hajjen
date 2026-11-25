@@ -16,6 +16,11 @@ on:
       - 'skyshift/smooth-track-v0160.mjs'
       - 'skyshift/tracks/shared/smooth-deck.mjs'
       - 'skyshift/tests/architecture/ef02-deck-parity.mjs'
+      - 'skyshift/zone-wave-v050.mjs'
+      - 'skyshift/zone-wave-v051.mjs'
+      - 'skyshift/zone-wave-v060.mjs'
+      - 'skyshift/core/zone-wave.mjs'
+      - 'skyshift/tests/architecture/ef02-zone-wave-parity.mjs'
       - '.github/workflows/skyshift-ef02-deck-parity.yml'
   workflow_dispatch:
 permissions:
@@ -37,3 +42,4 @@ jobs:
           for track in skyline vault aurora; do
             node skyshift/tests/architecture/ef02-deck-parity.mjs "$RUNNER_TEMP/ef02-reference" "$track"
           done
+          node skyshift/tests/architecture/ef02-zone-wave-parity.mjs "$RUNNER_TEMP/ef02-reference"

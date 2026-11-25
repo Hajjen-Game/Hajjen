@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {COURSE_SEGMENTS} from "../../trial-v0165.mjs";
+import {COURSE_SEGMENTS} from "../../tracks/trials/trial-v0165.mjs";
 import {createConnectedFootBands02632} from "../../edge-source-floor-bands-v02632.mjs";
 import {
  STRAIGHT_EDGE_02633,straightRanges02633,straightEdgeMask02633,

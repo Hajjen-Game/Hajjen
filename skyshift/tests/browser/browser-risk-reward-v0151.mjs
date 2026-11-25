@@ -31,7 +31,7 @@ try{
   null,{timeout:35000});
  const report=await page.evaluate(async()=>{
   const [road,boost,risk,trial,records]=await Promise.all([
-   import("./premium-track-v0151.mjs"),
+   import("./rendering/legacy/premium-track-v0151.mjs"),
    import("./flight/boost/boost-v0151.mjs"),
    import("./risk-reward-v0151.mjs"),
    import("./trial-v0151.mjs"),

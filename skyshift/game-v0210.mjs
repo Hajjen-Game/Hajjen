@@ -6,11 +6,11 @@ import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,STEERING_AUTHORITY,steeringBalanceAt,normalYawFactorAt,elevationAudit,
  newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
-} from "./trial-v0165.mjs";
+} from "./tracks/trials/trial-v0165.mjs";
 import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v0160.mjs";
 import {RISK_REWARD_0160,RHYTHM_GATES_0160,riskCueAt,
  VAULT_BOOST_0283_ACTIVE} from "./risk-reward-v0160.mjs";
-import { createPremiumDeckGeometry,PREMIUM_TRACK } from "./premium-track-v0160.mjs";
+import { createPremiumDeckGeometry,PREMIUM_TRACK } from "./rendering/road/premium-track-v0160.mjs";
 import {FIDELITY_0114,createFidelityDirector,
  resetFidelityDirector,advanceFidelityDirector,fidelityAudit,
  createSmartPremiumTrackMaterial} from "./core/visual-fidelity-v0160.mjs";

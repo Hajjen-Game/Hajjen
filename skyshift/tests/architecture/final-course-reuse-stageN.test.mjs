@@ -66,9 +66,9 @@ test('Stage N: Vault reuses actual Skyline source but keeps the shared race engi
  assert.match(game,/sharedTunnelRuntime\.installTrueShared\(/);
  assert.match(game,/sharedTunnelRuntime\.installVault\(/);
  assert.match(game,/sharedTunnelRuntime\.installSkyline\(/);
- const physics=rootRead('trial-v0165.mjs');
- assert.match(physics,/tracks\/shared\/track-selection-v0160\.mjs/);
- assert.match(physics,/tracks\/shared\/circuit-layout-v0160\.mjs/);
+ const physics=rootRead('tracks/trials/trial-v0165.mjs');
+ assert.match(physics,/\.\.\/shared\/track-selection-v0160\.mjs/);
+ assert.match(physics,/\.\.\/shared\/circuit-layout-v0160\.mjs/);
 });
 
 test('Stage N: a fourth course can reuse the existing sculptor with separated tunnel sections',()=>{

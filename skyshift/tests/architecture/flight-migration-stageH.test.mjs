@@ -1,3 +1,4 @@
+import {restoreTrialMove,trialCurrentPath} from './ef02-closure-trial-overlay.mjs';
 // SKYSHIFT Architecture Cleanup 2.0 Stage H flight module relocation safety guard.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -25,10 +26,11 @@ test('Stage H: all 18 flight/steering/camera source files are SHA-equivalent to 
   assert.ok(!existsSync(resolve(root,name)),'Old root flight module remains: '+name);
   const file=resolve(flight,name);
   assert.ok(existsSync(file),'Missing relocated flight module: '+name);
-  const content=readFileSync(file,'utf8');let original=content;
+  const actual=readFileSync(file,'utf8');
+  const content=restoreTrialMove(actual,file);let original=content;
   for(const external of manifest.files[name].externalImports){
    assert.ok(content.includes('../'+external),'Missing approved root-external import rebase: '+name+' -> '+external);
-   assert.ok(existsSync(resolve(root,external)),'Missing flight external dependency: '+external);
+   assert.ok(existsSync(trialCurrentPath(resolve(root,external))),'Missing flight external dependency: '+external);
    original=original.split('../'+external).join('./'+external);
   }
   // EF02C: original hash protection retained for explicitly approved shared bodies.
@@ -55,7 +57,7 @@ test('Stage H: all 18 flight/steering/camera source files are SHA-equivalent to 
   }
   assert.equal(hash(Buffer.from(original,'utf8')),manifest.files[name].originalGitBlobSha,
    'Flight/GRIP/camera/boost source content differs from original: '+name);
-  for(const match of content.matchAll(/\b(?:from\s*|import\s*\(\s*|import\s*)["'](\.{1,2}\/[^"']+)["']/g)){
+  for(const match of actual.matchAll(/\b(?:from\s*|import\s*\(\s*|import\s*)["'](\.{1,2}\/[^"']+)["']/g)){
    const target=resolve(dirname(file),match[1].split(/[?#]/)[0]);
    assert.ok(existsSync(target),'Unresolved flight dependency: '+name+' -> '+match[1]);
    const rel=relative(root,target);

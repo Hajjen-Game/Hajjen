@@ -8,7 +8,7 @@ import {WORLD_ART_0201,planStationWorld as planOld}
  from "../../world/environment-art-pipeline-v0201.mjs";
 import {STATION_ART_0202,buildStationAsset}
  from "../../world/authoring/build-station-world-v0202.mjs";
-import {TRIAL,SKYLINE_LEAP,positionAt} from "../../trial-v0165.mjs";
+import {TRIAL,SKYLINE_LEAP,positionAt} from "../../tracks/trials/trial-v0165.mjs";
 const file=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
 const asset=JSON.parse(file("./assets/worlds/continuum-observation-bays-v3.gltf"));
 const previous=JSON.parse(file("./assets/worlds/continuum-enclosure-bays-v2.gltf"));

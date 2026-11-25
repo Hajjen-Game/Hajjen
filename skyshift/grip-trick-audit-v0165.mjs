@@ -2,7 +2,7 @@
 // Run independently per URL-selected course: node ...probe-v0165.mjs aurora
 globalThis.location={search:"?track="+(process.argv[2]??"aurora")};
 const previous=await import("./trial-v0164.mjs");
-const fixed=await import("./trial-v0165.mjs");
+const fixed=await import("./tracks/trials/trial-v0165.mjs");
 const stages=[0,0,0,3,6,8,8,8,8,8];
 const positions=[120,470,510,1300,4700,6600,8149,9300,9852,10125];
 function sample(trial,s,stage,grip,side=0){

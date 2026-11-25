@@ -6,7 +6,7 @@ globalThis.location={search:"?track=aurora"};
 const [trial,audit,oldTrial,camera]=await Promise.all([
  import("../../trial-v0162.mjs"),
  import("../../rail-contact-audit-v0162.mjs"),
- import("../../trial-v0160.mjs"),
+ import("../../tracks/trials/trial-v0160.mjs"),
  import("../../cinematic-v0162.mjs")]);
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 test("real log reproduced: old Aurora rail solver allowed backwards arc projection",()=>{

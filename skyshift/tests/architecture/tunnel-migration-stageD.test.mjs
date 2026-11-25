@@ -1,3 +1,4 @@
+import {restoreTrialMove,trialCurrentPath} from './ef02-closure-trial-overlay.mjs';
 // SKYSHIFT Architecture Cleanup 2.0 — Stage D live tunnel migration guard.
 // Only source import paths change. Verify original immutable SHA after inversion.
 import test from 'node:test';
@@ -35,16 +36,17 @@ test('12 tunnel optics modules reproduce exact original Git blobs with only impo
     assert.ok(!existsSync(resolve(root,name)),'Old live root module remained: '+name);
     const path=resolve(tunnel,name);
     assert.ok(existsSync(path),'Missing moved tunnel module: '+name);
-    const source=readFileSync(path,'utf8');
+    const actual=readFileSync(path,'utf8');
+    const source=restoreTrialMove(actual,path);
     let original=source;
     for(const external of manifest.files[name].externalImports){
-      assert.ok(existsSync(resolve(root,external)),'Missing root external: '+external);
+      assert.ok(existsSync(trialCurrentPath(resolve(root,external))),'Missing root external: '+external);
       assert.ok(source.includes('../'+external),'Missing permitted external import rebase: '+name+' -> '+external);
       original=original.split('../'+external).join('./'+external);
     }
     assert.equal(sha(Buffer.from(original,'utf8')),manifest.files[name].originalGitBlobSha,
       'Unexpected changes to actual tunnel shader, optics, lighting or logic: '+name);
-    for(const match of source.matchAll(importedSource)){
+    for(const match of actual.matchAll(importedSource)){
       const dest=resolve(dirname(path),match[1].split(/[?#]/)[0]);
       assert.ok(existsSync(dest),'Broken tunnel module import '+name+' -> '+match[1]);
       const relativePath=relative(root,dest);

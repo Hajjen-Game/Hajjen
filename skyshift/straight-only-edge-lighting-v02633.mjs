@@ -7,7 +7,7 @@
 // emitter would leave a ghost reflection on the bend.
 // The amber joined arch-foot/floor bands remain 100% unchanged.
 // ?straightEdges=classic retains exact 0.26.3.2 materials and geometry.
-import {COURSE_SEGMENTS} from "./trial-v0165.mjs";
+import {COURSE_SEGMENTS} from "./tracks/trials/trial-v0165.mjs";
 import {
  railLipPosition02632,railBayWeight02632,
  createConnectedFootBands02632,createLowRailSourcesData02632,

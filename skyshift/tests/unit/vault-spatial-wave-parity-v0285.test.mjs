@@ -56,7 +56,7 @@ test("road and tunnel change palette on the same 66m physical boundary",()=>{
  assert.equal(waveColorAmount0285(0),.5);
  assert.equal(waveColorAmount0285(-66),1);
  assert.equal(waveColorAmount0285(66),0);
- const road=read("./premium-track-v0160.mjs");
+ const road=read("./rendering/road/premium-track-v0160.mjs");
  assert.match(road,/VAULT_WAVE_PARITY_0285_ACTIVE/);
  assert.match(road,/wave\$\{k\}Color/);
  assert.match(road,/state\.shaderBaseStage\?\?0/);

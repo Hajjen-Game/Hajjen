@@ -8,12 +8,12 @@ const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,r
  await Promise.all([
  import("../../tracks/shared/track-selection-v0160.mjs"),
  import("../../tracks/shared/circuit-layout-v0160.mjs"),
- import("../../trial-v0165.mjs"),
+ import("../../tracks/trials/trial-v0165.mjs"),
  import("../../tracks/shared/track-3d-v0160.mjs"),
  import("../../risk-reward-v0160.mjs"),
  import("../../flight/boost/boost-v0160.mjs"),
  import("../../tracks/shared/smooth-track-v0160.mjs"),
- import("../../premium-track-v0160.mjs"),
+ import("../../rendering/road/premium-track-v0160.mjs"),
  import("../../tracks/barriers/aero-barrier-v0165.mjs"),
  import("../../shadow-tunnel-v0160.mjs"),
  import("../../time-trial-v0160.mjs"),
@@ -207,7 +207,7 @@ test("No ghost right-apex guidance or Skyline-only leap signs on Aurora",()=>{
  const rig=src("./flight/unified-flight-v0165.mjs");
  assert.match(rig,/from "\.\/cinematic-v0165\.mjs"/);
  const realCamera=src("./flight/cinematic-v0165.mjs");
- assert.match(realCamera,/from "\.\.\/trial-v0165\.mjs"/);
+ assert.match(realCamera,/from "\.\.\/tracks\/trials\/trial-v0165\.mjs"/);
  assert.doesNotMatch(realCamera,/from "\.\/trial-v0901\.mjs"/);
 });
 test("Aurora rail tessellation cuts mobile triangles, collision/ship physics intact",async()=>{
@@ -222,7 +222,7 @@ test("Aurora rail tessellation cuts mobile triangles, collision/ship physics int
  assert.equal(trial.GAPS.length,0);
  assert.equal(trial.TRIAL.hoverHeight,1.05);
  const source=src("./tracks/barriers/aero-barrier-v0165.mjs");
- assert.match(source,/from "\.\.\/\.\.\/trial-v0165\.mjs"/);
+ assert.match(source,/from "\.\.\/\.\.\/tracks\/trials\/trial-v0165\.mjs"/);
  assert.match(source,/step=isAurora\(\)\?1\.55:AERO_BARRIER\.step/);
 });
 test("0.16.5 URLs and menu preserve independent courses and PB/ghosts",()=>{

@@ -1,3 +1,4 @@
+import {premiumHistoricalExists} from './ef02-closure-premium-overlay.mjs';
 import {restoreDeckMove,deckCurrentPath} from './ef02-closure-deck-overlay.mjs';
 // EF02I: reverse only declared path edits and verify original Git identity.
 import assert from 'node:assert/strict';
@@ -50,7 +51,7 @@ export function restoreEF02I(source,path){
 }
 export function ef02iHistoricalExists(path){
  const move=ef02iManifest.moves.find(x=>x.oldPath===key(path));
- if(!move)return null;
+ if(!move)return premiumHistoricalExists(path);
  assert.ok(!existsSync(resolve(repo,move.oldPath)),move.oldPath);
  restoreEF02I(readFileSync(resolve(repo,move.newPath),'utf8'),move.newPath);
  return true;

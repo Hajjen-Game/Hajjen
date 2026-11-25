@@ -1,3 +1,4 @@
+import {restorePremiumMove,premiumCurrentPath} from './ef02-closure-premium-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 // L1G: exact byte-preserving root moves and workflow-command parity.
 import test from 'node:test';
@@ -67,7 +68,8 @@ test('L1G: eight root paths are absent and original Git blob identity is exact',
  assert.equal(readdirSync(resolve(repo,'skyshift'),{withFileTypes:true}).filter(e=>e.isFile()).length,expectedRootFiles);
  for(const [name,sha] of Object.entries(moved)){
   assert.ok(!existsSync(resolve(repo,'skyshift',name)),name);
-  const data=readFileSync(resolve(repo,'skyshift',name.endsWith('.md')?'docs/architecture':'tests/browser',name));
+  const file=resolve(repo,'skyshift',name.endsWith('.md')?'docs/architecture':'tests/browser',name);
+  const data=Buffer.from(restorePremiumMove(readFileSync(file,'utf8'),file));
   assert.equal(createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex'),sha,name);
   if(name.endsWith('.mjs')){
    const s=data.toString('utf8');
@@ -75,7 +77,7 @@ test('L1G: eight root paths are absent and original Git blob identity is exact',
    assert.doesNotMatch(s,/\b(?:from\s*|import\s*)["']\.{1,2}\//);
    const imports=[...s.matchAll(/\bimport\s*\(\s*["'](\.{1,2}\/[^"']+)["']\s*\)/g)].map(m=>m[1]).sort();
    assert.deepEqual(imports,browserImports[name],name+' browser import inventory changed');
-   for(const spec of imports)assert.ok(existsSync(resolve(repo,'skyshift',spec)),name+' missing document-relative module '+spec);
+   for(const spec of imports)assert.ok(existsSync(premiumCurrentPath(resolve(repo,'skyshift',spec))),name+' missing document-relative module '+spec);
   }
  }
 });

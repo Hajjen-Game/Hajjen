@@ -1,3 +1,4 @@
+import {restorePremiumMove} from './ef02-closure-premium-overlay.mjs';
 // SKYSHIFT Architecture Cleanup 2.0 — Stage L immutable Chromium/WebGL QA relocation.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -21,10 +22,11 @@ test('Stage L: all 45 migrated WebGL QA modules have original, byte-exact Git bl
   assert.equal(existsSync(resolve(root,name)),false,'Stale root browser QA module: '+name);
   const path=resolve(folder,name);
   assert.ok(existsSync(path),'Missing migrated QA: '+name);
-  const data=readFileSync(path);
+  const actual=readFileSync(path);
+  const data=Buffer.from(restorePremiumMove(actual.toString('utf8'),path));
   const sha=createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex');
   assert.equal(sha,manifest.entries[name],'Original Git blob changed: '+name);
-  const source=data.toString('utf8');
+  const source=actual.toString('utf8');
   assert.doesNotMatch(source,/\bimport\.meta\.url\b/,
    'Source-relative path requires dedicated move: '+name);
   assert.doesNotMatch(source,/^\s*(?:import|export)\s+[^\n]*?\bfrom\s*['"]\.{1,2}\//m,

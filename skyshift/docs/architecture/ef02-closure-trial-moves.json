@@ -1,0 +1,700 @@
+{
+  "schemaVersion": 1,
+  "baseCommit": "ca1b761288426cfa5fd1a1b9fc6dfa9c2b7379fc",
+  "moves": [
+    {
+      "path": "skyshift/trial-v0160.mjs",
+      "target": "skyshift/tracks/trials/trial-v0160.mjs",
+      "sha": "918d0dcaff5e36d0016202b617292988fb73e778",
+      "role": "live-literal"
+    },
+    {
+      "path": "skyshift/trial-v0165.mjs",
+      "target": "skyshift/tracks/trials/trial-v0165.mjs",
+      "sha": "dd4f085526286a68519f9a1e2950a97be59d28e2",
+      "role": "live-literal"
+    }
+  ],
+  "records": [
+    {
+      "path": "skyshift/trial-v0160.mjs",
+      "target": "skyshift/tracks/trials/trial-v0160.mjs",
+      "sha": "918d0dcaff5e36d0016202b617292988fb73e778",
+      "edits": [
+        {
+          "before": "from \"./tracks/shared/track-selection-v0160.mjs\"",
+          "after": "from \"../shared/track-selection-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/boost/boost-v0160.mjs\"",
+          "after": "from \"../../flight/boost/boost-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/precision-grip-v084.mjs\"",
+          "after": "from \"../../flight/precision-grip-v084.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/steering-authority-v01348.mjs\"",
+          "after": "from \"../../flight/steering-authority-v01348.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/air-tricks-v083.mjs\"",
+          "after": "from \"../../flight/air-tricks-v083.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tracks/shared/track-3d-v0160.mjs\"",
+          "after": "from \"../shared/track-3d-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tracks/shared/circuit-layout-v0160.mjs\"",
+          "after": "from \"../shared/circuit-layout-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/trial-v0165.mjs",
+      "target": "skyshift/tracks/trials/trial-v0165.mjs",
+      "sha": "dd4f085526286a68519f9a1e2950a97be59d28e2",
+      "edits": [
+        {
+          "before": "from \"./tracks/shared/track-selection-v0160.mjs\"",
+          "after": "from \"../shared/track-selection-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/boost/boost-v0160.mjs\"",
+          "after": "from \"../../flight/boost/boost-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/precision-grip-v084.mjs\"",
+          "after": "from \"../../flight/precision-grip-v084.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/steering-authority-v01348.mjs\"",
+          "after": "from \"../../flight/steering-authority-v01348.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/air-tricks-v083.mjs\"",
+          "after": "from \"../../flight/air-tricks-v083.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tracks/shared/track-3d-v0160.mjs\"",
+          "after": "from \"../shared/track-3d-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tracks/shared/circuit-layout-v0160.mjs\"",
+          "after": "from \"../shared/circuit-layout-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/skyshift-tests.yml",
+      "target": ".github/workflows/skyshift-tests.yml",
+      "sha": "15e22a159e8fcf0a55811e55954b016f89e164f8",
+      "edits": [
+        {
+          "before": "skyshift/trial-v0160.mjs",
+          "after": "skyshift/tracks/trials/trial-v0160.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/trial-v0165.mjs",
+          "after": "skyshift/tracks/trials/trial-v0165.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/cinematic-v0161.mjs",
+      "target": "skyshift/cinematic-v0161.mjs",
+      "sha": "1090907d619098b15efa09096799278ab64edd3f",
+      "edits": [
+        {
+          "before": "\"./trial-v0160.mjs\"",
+          "after": "\"./tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/road/premium-track-v0160.mjs",
+      "target": "skyshift/rendering/road/premium-track-v0160.mjs",
+      "sha": "98008f4d203079b27c02ece5bb07ee0b87171733",
+      "edits": [
+        {
+          "before": "\"../../trial-v0160.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0161.mjs",
+      "target": "skyshift/rail-scrape-sparks-v0161.mjs",
+      "sha": "46043c0f7bc50c55ee99e7c60adc09a9257fdd83",
+      "edits": [
+        {
+          "before": "\"./trial-v0160.mjs\"",
+          "after": "\"./tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/shadow-tunnel-v0160.mjs",
+      "target": "skyshift/shadow-tunnel-v0160.mjs",
+      "sha": "acf44dc69904acb78c7be5213d634e3ec90676e0",
+      "edits": [
+        {
+          "before": "\"./trial-v0160.mjs\"",
+          "after": "\"./tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v0160.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v0160.mjs",
+      "sha": "e3c3eeaa2a3386fd5a14912005f6d6267169a636",
+      "edits": [
+        {
+          "before": "\"../../trial-v0160.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v0160.mjs",
+      "target": "skyshift/tracks/barriers/aero-barrier-v0160.mjs",
+      "sha": "26f52f55f5bcfadae9314aaa89700fd9fe906b56",
+      "edits": [
+        {
+          "before": "\"../../trial-v0160.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v0161.mjs",
+      "target": "skyshift/tracks/barriers/aero-barrier-v0161.mjs",
+      "sha": "a1b98668c0e95e3f460d975cfc25dc9398d967b4",
+      "edits": [
+        {
+          "before": "\"../../trial-v0160.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/edge-lighting-floor-pools-v02631.mjs",
+      "target": "skyshift/edge-lighting-floor-pools-v02631.mjs",
+      "sha": "6e809246575e462ce72abc6812fb9be833c2c7af",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/edge-source-floor-bands-v02632.mjs",
+      "target": "skyshift/edge-source-floor-bands-v02632.mjs",
+      "sha": "2d12bca52bd1181f16b523945c92e342ec5c18f1",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/flight/cinematic-v0165.mjs",
+      "target": "skyshift/flight/cinematic-v0165.mjs",
+      "sha": "2e41ac732fc94cffaf99d300fcc8f7505da6899a",
+      "edits": [
+        {
+          "before": "\"../trial-v0165.mjs\"",
+          "after": "\"../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0203.mjs",
+      "target": "skyshift/game-v0203.mjs",
+      "sha": "09bf8b1e490ce50d05d6519621b8819a8ca22e05",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0210.mjs",
+      "target": "skyshift/game-v0210.mjs",
+      "sha": "e2c08ae8799f665e4c6651a7e7170509352a89bf",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/grip-trick-audit-v0165.mjs",
+      "target": "skyshift/grip-trick-audit-v0165.mjs",
+      "sha": "4e1e9f6e5f7c745803c1398cffafeb096d842812",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0205.mjs",
+      "target": "skyshift/legacy/game/game-v0205.mjs",
+      "sha": "2f4a1793a0b3d76ca24dd24c0ae5350a660f8fef",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0165.mjs",
+      "target": "skyshift/rail-scrape-sparks-v0165.mjs",
+      "sha": "529b4f56cd607bdbdde8aa9eb7f4f7f1447d23d3",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/straight-only-edge-lighting-v02633.mjs",
+      "target": "skyshift/straight-only-edge-lighting-v02633.mjs",
+      "sha": "9c6571b59a01396c34fb28f6ca3ec309412fbf9c",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/track-physics-parity-probe-v0165.mjs",
+      "target": "skyshift/track-physics-parity-probe-v0165.mjs",
+      "sha": "05fcedaddbad9835a2706a551d0d7ff56bcc566f",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v0165.mjs",
+      "target": "skyshift/tracks/barriers/aero-barrier-v0165.mjs",
+      "sha": "c085b6424e7ee16a472c6891baa7800daba39d58",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tracks/vault/vault-full-lighting-v0273.mjs",
+      "target": "skyshift/tracks/vault/vault-full-lighting-v0273.mjs",
+      "sha": "4e3b68d2dc5a2777e45ba2ce0d7d307f2d6e5276",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tunnel/shared-straight-edge-parity-v02891.mjs",
+      "target": "skyshift/tunnel/shared-straight-edge-parity-v02891.mjs",
+      "sha": "adcdd672cc97ce25325447df1824fbdc00ebe2c9",
+      "edits": [
+        {
+          "before": "\"../trial-v0165.mjs\"",
+          "after": "\"../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/unified-tunnel-lighting-v1.mjs",
+      "target": "skyshift/unified-tunnel-lighting-v1.mjs",
+      "sha": "80af3de254fa762886ab649473d5eeb55a65bbd5",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/browser-multi-track-v0160.mjs",
+      "target": "skyshift/tests/browser/browser-multi-track-v0160.mjs",
+      "sha": "071415b37fe4783e886c779519a9ecc2f5f04b02",
+      "edits": [
+        {
+          "before": "\"./trial-v0160.mjs\"",
+          "after": "\"./tracks/trials/trial-v0160.mjs\"",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/browser-track-integrity-v0161.mjs",
+      "target": "skyshift/tests/browser/browser-track-integrity-v0161.mjs",
+      "sha": "efb4c67e5933c0f20b10912136f74d719abe7c52",
+      "edits": [
+        {
+          "before": "\"./trial-v0160.mjs\"",
+          "after": "\"./tracks/trials/trial-v0160.mjs\"",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/browser-grip-trick-v0165.mjs",
+      "target": "skyshift/tests/browser/browser-grip-trick-v0165.mjs",
+      "sha": "8421edbd7b8456479110d3a80984ad900c2d9a96",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+      "target": "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+      "sha": "a5165824ded51e4390add7f5dc62f6ee49edcd92",
+      "edits": [
+        {
+          "before": "\"../../trial-v0160.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/rail-collision-v0162.test.mjs",
+      "target": "skyshift/tests/unit/rail-collision-v0162.test.mjs",
+      "sha": "54c58ab2dfe75d4305474880104f33cd6dcb92fd",
+      "edits": [
+        {
+          "before": "\"../../trial-v0160.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+      "sha": "652ccd6c2c8881f893a42af5c28bd7921ce1e87f",
+      "edits": [
+        {
+          "before": "\"../../trial-v0160.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "assert.match(realCamera,/from \"\\.\\/trial-v0160\\.mjs\"/);",
+          "after": "assert.match(realCamera,/from \"\\.\\/tracks\\/trials\\/trial-v0160\\.mjs\"/);",
+          "count": 1
+        },
+        {
+          "before": "assert.match(source,/from \"\\.\\.\\/\\.\\.\\/trial-v0160\\.mjs\"/);",
+          "after": "assert.match(source,/from \"\\.\\.\\/\\.\\.\\/tracks\\/trials\\/trial-v0160\\.mjs\"/);",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs",
+      "target": "skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs",
+      "sha": "fd148f6fed9bb1f6b646989475e46257bf899bd9",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs",
+      "target": "skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs",
+      "sha": "085ddd89589364d0a648739a62aa85a04486b272",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs",
+      "target": "skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs",
+      "sha": "c5fced5b8fa14a6e1a39355ed010feec97f0bb50",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs",
+      "target": "skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs",
+      "sha": "bf51a8fd709015b5f118c22464ebc7ba3a3a8383",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs",
+      "target": "skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs",
+      "sha": "9ce33339499274dfbd7827c9060678f26eb6584d",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v0205.test.mjs",
+      "target": "skyshift/tests/unit/environment-art-pipeline-v0205.test.mjs",
+      "sha": "1260254a70133edfb84a2c75352a1ea4d382fa71",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "for(const m of [\"trial-v0165\",",
+          "after": "for(const m of [\"tracks/trials/trial-v0165\",",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/full-tunnel-layout-v0270.test.mjs",
+      "target": "skyshift/tests/unit/full-tunnel-layout-v0270.test.mjs",
+      "sha": "a9a9a5391e03af74fa6b56a084504098ffbbde9e",
+      "edits": [
+        {
+          "before": "'./skyshift/trial-v0165.mjs'",
+          "after": "'./skyshift/tracks/trials/trial-v0165.mjs'",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+      "target": "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+      "sha": "ea46195cafa6691c60a7dc271909d1d8c3a0be8a",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/orbital-hero-v0192.test.mjs",
+      "target": "skyshift/tests/unit/orbital-hero-v0192.test.mjs",
+      "sha": "81f93c2395696c0cfef5e9c4852789cbfd59ee8f",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/rail-body-containment-v02124.test.mjs",
+      "target": "skyshift/tests/unit/rail-body-containment-v02124.test.mjs",
+      "sha": "5a8a26517dfafd1345180ebb8633973693c94a86",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/shared-straight-edge-parity-v02891.test.mjs",
+      "target": "skyshift/tests/unit/shared-straight-edge-parity-v02891.test.mjs",
+      "sha": "545dd250a5b86681cfd611d83072e99503cd7e70",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/signature-environment-v0180.test.mjs",
+      "target": "skyshift/tests/unit/signature-environment-v0180.test.mjs",
+      "sha": "6714888a71debce43a513d4e885f817af84bb7dd",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/startup-source-frame-v02897.test.mjs",
+      "target": "skyshift/tests/unit/startup-source-frame-v02897.test.mjs",
+      "sha": "b107b6a1f912bd5b65ad5718bb3282b34599b273",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/straight-only-edge-lighting-v02633.test.mjs",
+      "target": "skyshift/tests/unit/straight-only-edge-lighting-v02633.test.mjs",
+      "sha": "f98e6d40286ae19a3f89d347d2331212659feef7",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "sha": "b16f26b66c4111ffc181c1b640f4abeb6a8f835b",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "assert.match(realCamera,/from \"\\.\\.\\/trial-v0165\\.mjs\"/);",
+          "after": "assert.match(realCamera,/from \"\\.\\.\\/tracks\\/trials\\/trial-v0165\\.mjs\"/);",
+          "count": 1
+        },
+        {
+          "before": "assert.match(source,/from \"\\.\\.\\/\\.\\.\\/trial-v0165\\.mjs\"/);",
+          "after": "assert.match(source,/from \"\\.\\.\\/\\.\\.\\/tracks\\/trials\\/trial-v0165\\.mjs\"/);",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+      "target": "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+      "sha": "18e49cb2b9c0feca2510fc521dad427e293b7669",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/unified-tunnel-lighting-v1.test.mjs",
+      "target": "skyshift/tests/unit/unified-tunnel-lighting-v1.test.mjs",
+      "sha": "17044a0d2aae3d6e1fc029a8a4d4614bd7936679",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/world-rebuild-v0190.test.mjs",
+      "target": "skyshift/tests/unit/world-rebuild-v0190.test.mjs",
+      "sha": "45a97d1504872758cca348a68c6cf3f1b9c0520b",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs",
+      "target": "skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs",
+      "sha": "07c22593811acf37844730b83c35a549a0765b73",
+      "edits": [
+        {
+          "before": "for(const base of [\"trial-v0165\",",
+          "after": "for(const base of [\"tracks/trials/trial-v0165\",",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "rootBefore": 196,
+  "rootAfter": 194
+}

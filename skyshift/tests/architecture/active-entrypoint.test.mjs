@@ -348,7 +348,7 @@ test('current rail spark contact anchors follow the real rail face on all retain
   globalThis.location={search:'?track='+track};
   const selection=await import('./tracks/shared/track-selection-v0160.mjs');
   assert.equal(selection.ACTIVE_TRACK_0160.id,track);
-  const {poseAt,widthAt,positionAt,surfaceNormalAt,GUARDRAIL,CIRCUIT}=await import('./trial-v0165.mjs');
+  const {poseAt,widthAt,positionAt,surfaceNormalAt,GUARDRAIL,CIRCUIT}=await import('./tracks/trials/trial-v0165.mjs');
   const {railContactPoint}=await import('./rail-scrape-sparks-v0165.mjs');
   assert.ok(CIRCUIT.lapLength>0);
   // Sample the entire authored course, not old fixed release coordinates.

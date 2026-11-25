@@ -11,7 +11,7 @@ const {
  buildVaultRoadStraightMask02891,patchVaultRoadCyanMask02891,
  installVaultStraightRoadParity02891,STRAIGHT_EDGE_PARITY_02891
 }=await import("../../tunnel/shared-straight-edge-parity-v02891.mjs");
-const {COURSE_SEGMENTS,CIRCUIT}=await import("../../trial-v0165.mjs");
+const {COURSE_SEGMENTS,CIRCUIT}=await import("../../tracks/trials/trial-v0165.mjs");
 const {planTrueSharedTunnel0281}=await import("../../true-shared-tunnel-renderer-v0281.mjs");
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Attr{

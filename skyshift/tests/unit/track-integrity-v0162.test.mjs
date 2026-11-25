@@ -13,7 +13,7 @@ const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,r
  import("../../risk-reward-v0160.mjs"),
  import("../../flight/boost/boost-v0160.mjs"),
  import("../../tracks/shared/smooth-track-v0160.mjs"),
- import("../../premium-track-v0160.mjs"),
+ import("../../rendering/road/premium-track-v0160.mjs"),
  import("../../tracks/barriers/aero-barrier-v0162.mjs"),
  import("../../shadow-tunnel-v0160.mjs"),
  import("../../time-trial-v0160.mjs"),

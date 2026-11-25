@@ -5,7 +5,7 @@ import {
  newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
 } from "./trial-v0901.mjs";
 import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v082.mjs";
-import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./premium-track-v0901.mjs";
+import { createPremiumDeckGeometry,createPremiumTrackMaterial,PREMIUM_TRACK } from "./rendering/road/premium-track-v0901.mjs";
 import {SHADOW_TUNNEL,inShadowTunnel,tunnelIntensityAt,installShadowTunnel,
  installTunnelRoadShading} from "./shadow-tunnel-v092.mjs";
 import {TUNNEL_BLACKOUT,installBlackoutRoadShading,

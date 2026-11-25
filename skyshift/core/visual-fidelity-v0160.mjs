@@ -1,4 +1,4 @@
-import {createPremiumTrackMaterial} from "../premium-track-v0160.mjs";
+import {createPremiumTrackMaterial} from "../rendering/road/premium-track-v0160.mjs";
 import {createSmartPremiumTrackMaterialWithFactory} from "./visual-fidelity.mjs";
 export {FIDELITY_0114,selectFidelityProfile,createFidelityDirector,
  resetFidelityDirector,advanceFidelityDirector,fidelityAudit,patchRefinedRoadShaders}

@@ -11,7 +11,7 @@ import {TRIAL,CIRCUIT,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  curvatureAt,guardrailLateralLimit,gapAt,newFlightState,positionAt,
  headingAt,surfaceHeightAt,stepFlight,speedAt} from "../../trial-v0151.mjs";
 import {PREMIUM_TRACK,GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,
- patchPremiumShaders} from "../../premium-track-v0151.mjs";
+ patchPremiumShaders} from "../../rendering/legacy/premium-track-v0151.mjs";
 import {TIME_TRIAL_0151} from "../../time-trial-v0151.mjs";
 import {TIME_TRIAL_0150} from "../../time-trial-v0150.mjs";
 import {CHALLENGES_0140} from "../../tracks/skyline/skyline-challenges-v0140.mjs";
@@ -166,7 +166,7 @@ test("same PBR road paints all source-defined pads and shows only post-jump prev
  const shader=patchPremiumShaders("#include <common>\n#include <begin_vertex>",
    "#include <common>\n#include <color_fragment>\n#include <emissivemap_fragment>");
  assert.match(shader.fragmentShader,/riskCoverage/);
- const premium=source("./premium-track-v0151.mjs");
+ const premium=source("./rendering/legacy/premium-track-v0151.mjs");
  assert.match(premium,/const approach=gate\?\.approach\?\?p\.start-125/);
  assert.match(premium,/RHYTHM_GATES_0151/);
  assert.equal(RISK_REWARD_0151.additionalMeshes,0);

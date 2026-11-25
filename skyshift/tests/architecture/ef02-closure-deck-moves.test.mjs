@@ -5,7 +5,7 @@ import {existsSync,readFileSync,readdirSync} from 'node:fs';
 import {resolve,dirname,basename} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
-import {restoreDeckMove,deckMoveManifest as m} from './ef02-closure-deck-overlay.mjs';
+import {restoreDeckMove,deckCurrentPath,deckMoveManifest as m} from './ef02-closure-deck-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {inventory} from './dependency-inventory-v2.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
@@ -14,7 +14,7 @@ test('closure deck group: exact reversible consumer changes and current dependen
  assert.equal(m.records.length,103);
  assert.equal(readdirSync(resolve(repo,'skyshift'),{withFileTypes:true}).filter(x=>x.isFile()).length,expectedRootFiles);
  for(const r of m.records){
-  const file=resolve(repo,r.target),source=readFileSync(file,'utf8');
+  const file=deckCurrentPath(resolve(repo,r.target)),source=readFileSync(file,'utf8');
   restoreDeckMove(source,file);
   if(r.path!==r.target){
    assert.ok(!existsSync(resolve(repo,r.path)),r.path);

@@ -2,13 +2,17 @@
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt} from "./trial-v0901.mjs";
-import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
-import {BOOST_PADS} from "./flight/boost/boost-v082.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./tracks/shared/smooth-track-v0901.mjs";
+import {TRIAL,widthAt} from "../../tracks/trials/trial-v0160.mjs";
+import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v060.mjs";
+import {vaultSpatialWaveEnabled0285}
+ from "../../tunnel/vault-spatial-wave-parity-v0285.mjs";
+export const VAULT_WAVE_PARITY_0285_ACTIVE=vaultSpatialWaveEnabled0285();
+import {BOOST_PADS} from "../../flight/boost/boost-v0160.mjs";
+import {RHYTHM_GATES_0160,VAULT_BOOST_0283_ACTIVE} from "../../risk-reward-v0160.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v0160.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
- version:"track-rhythm-spectrum-082",
+ version:"track-rhythm-diversity-0151",
  material:"continuous-integrated-PBR",
  palette:"Nine synchronized color zones across 3 circuit laps",
  baseHex:ZONE_PALETTES[0].base,
@@ -66,18 +70,78 @@ export function createPremiumDeckGeometry(THREE){
 }
 // Keep source numeric pad bounds tied to actual physical boost locations.
 export const GLSL_BOOST_PADS=BOOST_PADS.map(p=>({
- id:p.id,start:p.start,end:p.end,min:p.lateralMin,max:p.lateralMax
+ id:p.id,kind:p.kind,group:p.group,start:p.start,end:p.end,
+ min:p.lateralMin,max:p.lateralMax
 }));
 const glNumber=n=>Number(n).toFixed(3);
-const shaderBoostPads=BOOST_PADS.map(p=>
-  `float boost_${p.id.replace(/-/g,"_")} = trackWindow(trackS, ${glNumber(p.start)}, ${glNumber(p.end)}, 1.05) * (1.0 - smoothstep(${glNumber(p.lateralMax-0.7)}, ${glNumber(p.lateralMax)}, abs(trackL))); 
-   float arrow_${p.id.replace(/-/g,"_")} = trackChevron(trackS - ${glNumber(p.start)}, trackL) * boost_${p.id.replace(/-/g,"_")};`).join("\n");
+export const VAULT_BOOST_GLOW_0283=Object.freeze({
+ version:"0.28.3",source:"original integrated native PBR racing deck",
+ chevrons:"multi-layer embedded gold illuminated glyphs",
+ bloomSource:"true emissive physical deck shader, no fake decals",
+ noRiskLines:true,noRiskPads:true,
+ noAdditionalMeshes:true,noAddedLights:true,
+ mobileAndHighSameDesign:true,skylineShaderUnchanged:true
+});
+const shaderBoostPads=BOOST_PADS.map(p=>{
+ const tag=p.id.replace(/-/g,"_"),center=(p.lateralMin+p.lateralMax)*.5;
+ const half=(p.lateralMax-p.lateralMin)*.5;
+ // The exact physical lateral bounds, including the right-hand risk lane.
+ return `float boost_${tag} = trackWindow(trackS,${glNumber(p.start)},${glNumber(p.end)},1.2) *
+    smoothstep(${glNumber(p.lateralMin-.25)},${glNumber(p.lateralMin+.10)},trackL) *
+    (1.0-smoothstep(${glNumber(p.lateralMax-.10)},${glNumber(p.lateralMax+.25)},trackL));
+   float arrow_${tag} = ${VAULT_BOOST_0283_ACTIVE?"vaultChevron0283":"trackChevron"}(trackS-${glNumber(p.start)},
+      (trackL-(${glNumber(center)}))*${glNumber(2.6/half)}) * boost_${tag};`;
+}).join("\n");
 // Nest max() rather than emitting a two-argument-only expression so future
 // pads cannot accidentally generate invalid GLSL in a zone expansion.
 const shaderMax=(items)=>items.reduce((all,item)=>
-  all?`max(${all}, ${item})`:item,"");
+  all?`max(${all}, ${item})`:item,"")||"0.0";
 const boostAggregation=shaderMax(BOOST_PADS.map(p=>`boost_${p.id.replace(/-/g,"_")}`));
 const arrowsAggregation=shaderMax(BOOST_PADS.map(p=>`arrow_${p.id.replace(/-/g,"_")}`));
+// 0.28.3: halo follows exactly the working BOOST_PADS geometry. No
+// fullscreen overlay or extra scene lights, and no risk-lane target.
+const vaultHaloFields=VAULT_BOOST_0283_ACTIVE?BOOST_PADS.map(p=>{
+ const tag=p.id.replace(/-/g,"_");
+ const center=(p.lateralMin+p.lateralMax)*.5;
+ const half=(p.lateralMax-p.lateralMin)*.5;
+ return {tag,glsl:`float boostHalo_${tag}=trackChevronGlow0283(
+    trackS-${glNumber(p.start)},(trackL-${glNumber(center)})*
+    ${glNumber(2.6/half)})*boost_${tag};`};
+}):[];
+const vaultHaloGLSL=vaultHaloFields.map(x=>x.glsl).join("\n");
+const vaultHaloAggregation=shaderMax(vaultHaloFields.map(x=>`boostHalo_${x.tag}`));
+const vaultBoostVisualGLSL=VAULT_BOOST_0283_ACTIVE?`
+  // Authored flat energy inlays with vivid chevron cores, broad warm
+  // penumbrae and two subtle inset edges. Dark graphite between arrows.
+  ${vaultHaloGLSL}
+  float vaultHalo0283=${vaultHaloAggregation};
+  float vaultRim0283=padCoverage*smoothstep(3.55,4.05,absL)*
+    (1.0-smoothstep(4.22,4.58,absL));
+  road=mix(road,vec3(.042,.039,.030),padCoverage*.53);
+  road=mix(road,zoneBoost,clamp(boostArrows*.97+
+    vaultHalo0283*.23+vaultRim0283*.58,0.0,1.0));`:
+ "float vaultHalo0283=0.0; float vaultRim0283=0.0;";
+const vaultBoostEmissionGLSL=VAULT_BOOST_0283_ACTIVE?
+ " + zoneBoost*(boostArrows*1.55+vaultHalo0283*.46+vaultRim0283*.21+padCoverage*.035)":"";
+
+const safePadAggregation=shaderMax(BOOST_PADS.filter(p=>p.kind!=="risk")
+ .map(p=>`boost_${p.id.replace(/-/g,"_")}`));
+const riskPadAggregation=shaderMax(BOOST_PADS.filter(p=>p.kind==="risk")
+ .map(p=>`boost_${p.id.replace(/-/g,"_")}`));
+const riskArrowAggregation=shaderMax(BOOST_PADS.filter(p=>p.kind==="risk")
+ .map(p=>`arrow_${p.id.replace(/-/g,"_")}`));
+const riskApproachAggregation=shaderMax(BOOST_PADS.filter(p=>p.kind==="risk")
+ .map(p=>{
+  const gate=RHYTHM_GATES_0160.find(g=>g.id===p.group);
+  const center=(p.lateralMin+p.lateralMax)*.5;
+  // Start markers only when the authored approach becomes drivable.
+  // The post-leap guide starts AFTER the actual 606.6m air gap.
+  const approach=gate?.approach??p.start-125;
+  return `(trackWindow(trackS,${glNumber(approach)},${glNumber(p.start-9)},12.0) *
+    trackStripe(trackL,${glNumber(center)},0.12,0.20) *
+    (0.40+0.60*pow(0.5+0.5*sin(trackS*0.40),2.0)))`;
+ }));
+
 
 const zoneFields=["Base","Band","Guide","Accent","Boost"];
 const zoneFieldToColor={Base:"base",Band:"band",Guide:"guide",Accent:"accent",Boost:"boost"};
@@ -93,7 +157,13 @@ const zoneShaders=Array.from({length:3},(_,i)=>{
   `float wave${k}On = step(${(k-.5).toFixed(1)}, uZoneActiveCount);`,
   `float wave${k}D = mod(waveTrack-uZoneFront${k}+0.5*uCircuitLength,uCircuitLength)-0.5*uCircuitLength;`,
   `float wave${k} = wave${k}On * (1.0-smoothstep(uZoneFeather*0.3,uZoneFeather*2.0,abs(wave${k}D)));`,
-  ...zoneFields.map(field=>`zone${field} = mix(zone${field}, uZone${k}${field}, wave${k});`),
+  // On VAULT v0.28.5 both the road and tunnel transition from old to
+  // new palette BEHIND the same spatial front (66m feather), rather
+  // than the old road switching its entire base color at the HUD stage.
+  VAULT_WAVE_PARITY_0285_ACTIVE?
+   `float wave${k}Color = wave${k}On * (1.0-smoothstep(${(-ZONE_WAVE.atmosphereTransitionMeters).toFixed(1)},${ZONE_WAVE.atmosphereTransitionMeters.toFixed(1)},wave${k}D));`:
+   `float wave${k}Color = wave${k};`,
+  ...zoneFields.map(field=>`zone${field} = mix(zone${field}, uZone${k}${field}, wave${k}Color);`),
   `float wave${k}Core = wave${k}On*spectralCore(wave${k}D);`,
   `float wave${k}Halo = wave${k}On*spectralHalo(wave${k}D);`,
   `float wave${k}After = wave${k}On*spectralAfterglow(wave${k}D);`,
@@ -139,7 +209,8 @@ export const SURFACE_FRAGMENT_GLSL=`
   // Two primary white/cyan racing guides that follow ALL banked curves.
   float innerLine = trackStripe(absL, 4.0, 0.060, 0.105);
   float guideLine = trackStripe(absL, 8.8, 0.055, 0.105);
-  float laneSpine = trackStripe(absL, 6.42, 0.018, 0.110);
+  float laneSpine = ${VAULT_BOOST_0283_ACTIVE?
+   "0.0":"trackStripe(absL, 6.42, 0.018, 0.110)"};
   float guided = max(innerLine * 0.90, guideLine);
   road = mix(road, zoneGuide, guided * 0.94);
   road = mix(road, zoneAccent, laneSpine * 0.32);
@@ -156,15 +227,20 @@ export const SURFACE_FRAGMENT_GLSL=`
   ${shaderBoostPads}
   float padCoverage = ${boostAggregation};
   float boostArrows = ${arrowsAggregation};
-  float insetGold = max(
-    padCoverage * trackStripe(absL, 4.04, 0.055, 0.12),
-    boostArrows * 0.84
-  );
-  road = mix(road, zoneBoost, padCoverage * 0.23);
-  road = mix(road, zoneBoost, insetGold * 0.94);
-  // Fine white booster guides create a powerful racing identity, not a HUD
-  // rectangle laid on the road.
-  road = mix(road, zoneGuide, padCoverage * trackStripe(absL, 3.72, 0.04, 0.13) * 0.78);
+  // Center SAFE line reads as soft amber; shoulder RISK line has a bright
+  // white/cyan core and a 125m anticipatory lane guide. All integrated into
+  // the existing PBR deck shader without new meshes or particle overlays.
+  float safeCoverage = ${safePadAggregation};
+  float riskCoverage = ${riskPadAggregation};
+  float riskArrows = ${riskArrowAggregation};
+  float riskLead = ${riskApproachAggregation};
+  float insetGold = boostArrows*.86;
+  road = mix(road,zoneBoost,safeCoverage*.32);
+  road = mix(road,zoneBoost,insetGold*.86);
+  road = mix(road,vec3(.84,.97,1.0),riskCoverage*.58);
+  road = mix(road,vec3(.98,1.0,1.0),riskArrows*.95);
+  road = mix(road,zoneAccent,riskLead*.65);
+  ${vaultBoostVisualGLSL}
   // A subtle segmented CENTER SPINE. Eight meters of soft paint followed by
   // 3.5m of negative space: never a bright continuous 'runway' light.
   // It sits inside the existing PBR surface, and fades under boost inlays.
@@ -225,6 +301,25 @@ float trackStripe(float x, float center, float thickness, float feather) {
 float trackWindow(float x, float from, float to, float feather) {
   return smoothstep(from, from+feather, x) * (1.0 - smoothstep(to-feather, to, x));
 }
+// Only compiled for the Vault 0.28.3 main-pad shader. The normal
+// chevron is the sharp glyph; this larger derivative-safe band is
+// warm bloom that remains physically integrated into the road surface.
+${VAULT_BOOST_0283_ACTIVE?`float vaultChevron0283(float s,float lateral) {
+  // Apex is FARTHER down the road than both arms: unmistakable
+  // forward V-chevron, not horizontal bars on the runway.
+  float phase=mod(s+0.45,7.60);
+  float diagonal=abs(phase-(5.45-1.24*abs(lateral)));
+  return (1.0-smoothstep(.12,.36,diagonal))*
+     smoothstep(.02,.12,abs(lateral))*
+     (1.0-smoothstep(2.12,2.65,abs(lateral)));
+}
+float trackChevronGlow0283(float s,float lateral) {
+  float phase=mod(s+0.45,7.60);
+  float diagonal=abs(phase-(5.45-1.24*abs(lateral)));
+  return (1.0-smoothstep(.20,1.05,diagonal))*
+     smoothstep(0.0,.33,abs(lateral))*
+     (1.0-smoothstep(2.13,2.69,abs(lateral)));
+}`:""}
 float trackChevron(float s, float lateral) {
   float phase = mod(s+0.25, 5.65);
   float diagonal = abs(phase - (4.55 - 0.70*abs(lateral)));
@@ -258,6 +353,8 @@ export function patchPremiumShaders(vertexShader,fragmentShader){
          whiteBloom*${ZONE_WAVE.whiteBloomEnergy.toFixed(2)} +
          whiteFilaments*.11)
       + zoneGuide*velocityGlint*.35
+      + vec3(.62,.94,1.0)*riskLead*.09
+      ${vaultBoostEmissionGLSL}
        ;`;
  const fragment=fragmentShader.replace(fCommon,
    fCommon+"\n"+SURFACE_FRAGMENT_HELPERS)
@@ -328,14 +425,17 @@ export function createPremiumTrackMaterial(THREE){
     // A closed loop must NEVER leave a hard half-track palette boundary.
     // The completed zone colors the whole road; only a localized,
     // periodic white/color crest wraps around start/finish.
-    const base=ZONE_PALETTES[state.playerStage??0];
+    const base=ZONE_PALETTES[VAULT_WAVE_PARITY_0285_ACTIVE?
+     (state.shaderBaseStage??0):(state.playerStage??0)];
     for(const [field,key] of Object.entries(zoneFieldToColor))
       palette[key].set(base[key]);
     for(let k=1;k<=3;k++){
       const f=state.fronts[k-1];
       waveUniforms["uZoneFront"+k].value=((f%TRIAL.length)+TRIAL.length)%TRIAL.length;
-      const idx=Math.max(state.playerStage??0,
-        Math.min(ZONE_PALETTES.length-1,(state.shaderBaseStage??0)+k));
+      const idx=VAULT_WAVE_PARITY_0285_ACTIVE?
+        Math.min(ZONE_PALETTES.length-1,(state.shaderBaseStage??0)+k):
+        Math.max(state.playerStage??0,
+         Math.min(ZONE_PALETTES.length-1,(state.shaderBaseStage??0)+k));
       const destination=ZONE_PALETTES[idx];
       for(const [field,key] of Object.entries(zoneFieldToColor))
         waveUniforms["uZone"+k+field].value.set(destination[key]);

@@ -7,7 +7,7 @@ const [root,track]=process.argv.slice(2);
 assert.ok(root&&['skyline','vault','aurora'].includes(track));
 globalThis.location={search:'?track='+track};
 const load=p=>import(pathToFileURL(resolve(root,'skyshift',p)));
-const t=await load('trial-v0165.mjs'),g=await load('tracks/shared/track-3d-v0160.mjs'),a=await load('flight/air-tricks-v083.mjs');
+const t=await load('tracks/trials/trial-v0165.mjs'),g=await load('tracks/shared/track-3d-v0160.mjs'),a=await load('flight/air-tricks-v083.mjs');
 const dt=1/120;
 function stateAt(s){
  const f=t.newFlightState(),p=t.positionAt(s,0,0);

@@ -3,7 +3,7 @@
 // same 12m bend clearance and matching cyan GGX mask. Vault's *own*
 // 3400m course is authoritative; no recycled 368m corner decisions.
 // Amber arch feet, corner arrows, roof lights, ship and physics untouched.
-import {COURSE_SEGMENTS,CIRCUIT} from "../trial-v0165.mjs";
+import {COURSE_SEGMENTS,CIRCUIT} from "../tracks/trials/trial-v0165.mjs";
 import {railLipPosition02632,railBayWeight02632}
  from "../edge-source-floor-bands-v02632.mjs";
 export const STRAIGHT_EDGE_PARITY_02891=Object.freeze({

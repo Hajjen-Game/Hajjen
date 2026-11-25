@@ -10,7 +10,7 @@ import {
 import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v0160.mjs";
 import {RISK_REWARD_0160,RHYTHM_GATES_0160,riskCueAt,
  VAULT_BOOST_0283_ACTIVE} from "./risk-reward-v0160.mjs";
-import { createPremiumDeckGeometry,PREMIUM_TRACK } from "./premium-track-v0160.mjs";
+import { createPremiumDeckGeometry,PREMIUM_TRACK } from "./rendering/road/premium-track-v0160.mjs";
 import {FIDELITY_0114,createFidelityDirector,
  resetFidelityDirector,advanceFidelityDirector,fidelityAudit,
  createSmartPremiumTrackMaterial} from "./core/visual-fidelity-v0160.mjs";

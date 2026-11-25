@@ -375,7 +375,7 @@ jobs:
           node --check skyshift/trial-v0901.mjs
           node --check skyshift/tracks/shared/smooth-track-v0901.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0901.mjs
-          node --check skyshift/premium-track-v0901.mjs
+          node --check skyshift/rendering/road/premium-track-v0901.mjs
           node --check skyshift/cinematic-v0901.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0901.mjs
           node --check skyshift/flight/signature-flight-v091.mjs
@@ -520,7 +520,7 @@ jobs:
           node --check skyshift/risk-reward-v0150.mjs
           node --check skyshift/flight/boost/boost-v0150.mjs
           node --check skyshift/trial-v0150.mjs
-          node --check skyshift/premium-track-v0150.mjs
+          node --check skyshift/rendering/legacy/premium-track-v0150.mjs
           node --check skyshift/core/visual-fidelity-v0150.mjs
           node --check skyshift/time-trial-v0150.mjs
           node --check skyshift/tests/unit/risk-reward-v0150.test.mjs
@@ -528,7 +528,7 @@ jobs:
           node --check skyshift/risk-reward-v0151.mjs
           node --check skyshift/flight/boost/boost-v0151.mjs
           node --check skyshift/trial-v0151.mjs
-          node --check skyshift/premium-track-v0151.mjs
+          node --check skyshift/rendering/legacy/premium-track-v0151.mjs
           node --check skyshift/core/visual-fidelity-v0151.mjs
           node --check skyshift/time-trial-v0151.mjs
           node --check skyshift/tests/unit/risk-reward-v0151.test.mjs
@@ -540,7 +540,7 @@ jobs:
           node --check skyshift/flight/boost/boost-v0160.mjs
           node --check skyshift/trial-v0160.mjs
           node --check skyshift/tracks/shared/smooth-track-v0160.mjs
-          node --check skyshift/premium-track-v0160.mjs
+          node --check skyshift/rendering/road/premium-track-v0160.mjs
           node --check skyshift/core/visual-fidelity-v0160.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0160.mjs
           node --check skyshift/shadow-tunnel-v0160.mjs

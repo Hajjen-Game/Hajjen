@@ -2,7 +2,7 @@
 // Adds perceptually useful near-field PBR sheen to the EXISTING road shader
 // on premium devices. No extra textures, particles, lights or render passes.
 // Low-memory devices compile the exact existing 0.11.2 deck shader instead.
-import {createPremiumTrackMaterial} from "../premium-track-v0901.mjs";
+import {createPremiumTrackMaterial} from "../rendering/road/premium-track-v0901.mjs";
 export const FIDELITY_0113=Object.freeze({
  version:"smart-visual-fidelity-0113",
  premiumMode:"near-field-pbr-sheen",referenceMode:"classic-pbr",

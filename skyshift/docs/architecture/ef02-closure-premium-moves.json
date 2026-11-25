@@ -150,6 +150,153 @@
           "count": 1
         }
       ]
+    },
+    {
+      "path": ".github/workflows/skyshift-tests.yml",
+      "target": ".github/workflows/skyshift-tests.yml",
+      "sha": "7788a8eb0d727c6fedc08a1b4445ca76fa7d3bf1",
+      "edits": [
+        {
+          "before": "skyshift/premium-track-v0150.mjs",
+          "after": "skyshift/rendering/legacy/premium-track-v0150.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/premium-track-v0151.mjs",
+          "after": "skyshift/rendering/legacy/premium-track-v0151.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/premium-track-v0901.mjs",
+          "after": "skyshift/rendering/road/premium-track-v0901.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/premium-track-v0160.mjs",
+          "after": "skyshift/rendering/road/premium-track-v0160.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/core/visual-fidelity-v0150.mjs",
+      "target": "skyshift/core/visual-fidelity-v0150.mjs",
+      "sha": "c239212bc673f4332a47ed77a655075ce25d3fc6",
+      "edits": [
+        {
+          "before": "\"../premium-track-v0150.mjs\"",
+          "after": "\"../rendering/legacy/premium-track-v0150.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/core/visual-fidelity-v0151.mjs",
+      "target": "skyshift/core/visual-fidelity-v0151.mjs",
+      "sha": "9ce0a695de70c001603e3770dee1d2d7ec24def4",
+      "edits": [
+        {
+          "before": "\"../premium-track-v0151.mjs\"",
+          "after": "\"../rendering/legacy/premium-track-v0151.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/core/visual-fidelity-v0160.mjs",
+      "target": "skyshift/core/visual-fidelity-v0160.mjs",
+      "sha": "83902b1699d0a6db1e87e0a4c1c3859a9bfb2453",
+      "edits": [
+        {
+          "before": "\"../premium-track-v0160.mjs\"",
+          "after": "\"../rendering/road/premium-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/core/visual-fidelity-v0113.mjs",
+      "target": "skyshift/core/visual-fidelity-v0113.mjs",
+      "sha": "689bd2e8a8e2e5f7d39c217aee290a538657df1b",
+      "edits": [
+        {
+          "before": "\"../premium-track-v0901.mjs\"",
+          "after": "\"../rendering/road/premium-track-v0901.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/core/visual-fidelity-v0114.mjs",
+      "target": "skyshift/core/visual-fidelity-v0114.mjs",
+      "sha": "162afc1da7a69a56c3391cbe6762c71d05908805",
+      "edits": [
+        {
+          "before": "\"../premium-track-v0901.mjs\"",
+          "after": "\"../rendering/road/premium-track-v0901.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0101.mjs",
+      "target": "skyshift/game-v0101.mjs",
+      "sha": "125da97b654e7f05bdce9a549423a721b9048024",
+      "edits": [
+        {
+          "before": "\"./premium-track-v0901.mjs\"",
+          "after": "\"./rendering/road/premium-track-v0901.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0103.mjs",
+      "target": "skyshift/game-v0103.mjs",
+      "sha": "8da029a6ae0d6a5fae6e85782ab09934a0695c6c",
+      "edits": [
+        {
+          "before": "\"./premium-track-v0901.mjs\"",
+          "after": "\"./rendering/road/premium-track-v0901.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0203.mjs",
+      "target": "skyshift/game-v0203.mjs",
+      "sha": "ff17f6b6b6720fe7b7bd82892d88caa3c19d7937",
+      "edits": [
+        {
+          "before": "\"./premium-track-v0160.mjs\"",
+          "after": "\"./rendering/road/premium-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0210.mjs",
+      "target": "skyshift/game-v0210.mjs",
+      "sha": "d3a3997cfbd07079b30778305729953541f7ac7a",
+      "edits": [
+        {
+          "before": "\"./premium-track-v0160.mjs\"",
+          "after": "\"./rendering/road/premium-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0205.mjs",
+      "target": "skyshift/legacy/game/game-v0205.mjs",
+      "sha": "be22555ace9e52bd939fcc9fe9b792a836e0a79e",
+      "edits": [
+        {
+          "before": "\"../../premium-track-v0160.mjs\"",
+          "after": "\"../../rendering/road/premium-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
     }
   ],
   "rootBefore": 200,

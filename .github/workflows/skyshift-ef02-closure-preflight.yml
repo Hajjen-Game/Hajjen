@@ -1,0 +1,25 @@
+name: SKYSHIFT EF02 closure preflight (temporary)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'skyshift/tests/architecture/ef02-closure-preflight.mjs'
+      - 'skyshift/docs/architecture/ef02-closure-root-inventory.json'
+      - '.github/workflows/skyshift-ef02-closure-preflight.yml'
+permissions:
+  contents: read
+jobs:
+  closure-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read-only exact-base ownership and consumer report
+        run: node skyshift/tests/architecture/ef02-closure-preflight.mjs 66dba77df33d67a2766a2adafc0e4ae90d54ee88 skyshift/docs/architecture/ef02-closure-root-inventory.json

@@ -5,6 +5,12 @@ on:
       - 'skyshift/core/visual-fidelity*.mjs'
       - 'skyshift/tests/architecture/ef02-fidelity-parity.mjs'
       - 'skyshift/tests/architecture/core-migration-stageI.test.mjs'
+      - 'skyshift/rendering/legacy/premium-track-v072.mjs'
+      - 'skyshift/rendering/legacy/premium-track-v081.mjs'
+      - 'skyshift/rendering/legacy/premium-track-v082.mjs'
+      - 'skyshift/rendering/legacy/shared-premium-track.mjs'
+      - 'skyshift/tests/architecture/ef02i-path-overlay.mjs'
+      - 'skyshift/tests/architecture/ef02-premium-track-parity.mjs'
       - '.github/workflows/skyshift-ef02-fidelity-parity.yml'
   workflow_dispatch:
 permissions:
@@ -26,4 +32,5 @@ jobs:
           node --test skyshift/tests/architecture/core-migration-stageI.test.mjs
           for track in skyline vault aurora; do
             node skyshift/tests/architecture/ef02-fidelity-parity.mjs "$RUNNER_TEMP/ef02-reference" "$track"
+            node skyshift/tests/architecture/ef02-premium-track-parity.mjs "$RUNNER_TEMP/ef02-reference" "$track"
           done

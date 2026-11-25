@@ -53,3 +53,64 @@ test('EF04 race input and finish decisions match original keyboard, touch and ch
   assert.equal(raceOutcome(flight,result,{endS:10}),reached||failed?reached:null);
  }
 });
+
+import {readFileSync} from 'node:fs';
+import {createFlightPhysics} from '../../flight/flight-physics.mjs';
+import {createGroupedBoostAPI} from '../../flight/boost/grouped-boost.mjs';
+import {readHistoricalTrialMigrationSource} from './ef02-closure-trial-overlay.mjs';
+
+test('EF04 extracted flight state and physics are exact original function bodies',()=>{
+ const original=readHistoricalTrialMigrationSource();
+ const engine=readFileSync(new URL('../../flight/flight-physics.mjs',import.meta.url),'utf8');
+ const start=original.indexOf('export function newFlightState(){');
+ const end=original.indexOf('export function validateTrial(){');
+ assert.ok(start>=0&&end>start);
+ const expected=original.slice(start,end).replace('export function newFlightState','function newFlightState').replace('export function stepFlight','function stepFlight');
+ assert.ok(engine.includes(expected),'Physics body changed during extraction');
+ const adapter=readFileSync(new URL('../../tracks/trials/trial-v0165.mjs',import.meta.url),'utf8');
+ assert.match(adapter,/export const \{newFlightState,stepFlight\}=createFlightPhysics\(/);
+ assert.doesNotMatch(engine,/from ["'][^"']*track-selection/);
+ assert.doesNotMatch(engine,/\b(?:window|document|location|localStorage)\b/);
+});
+
+function syntheticTrack({jump=false,wall=false,screw=false}={}){
+ const rules={startSpeed:44,raceLength:300,hoverHeight:1.05,gravity:22,
+  fallDepth:8.5,shieldPenalty:20,maxYawRate:1.24,turnResponse:24,turnRelease:36,
+  zoneAccelerationSeconds:.85};
+ const circuit={lapLength:100,laps:3};
+ const leap={start:jump?10:1000,approachStart:0,minTakeoffSpeed:35,launchVelocity:9};
+ const gapAt=s=>jump&&s>=10&&s<25?{start:10,end:25}:null;
+ const inWall=s=>wall&&s>=12&&s<22;
+ const inScrew=s=>screw&&s>=12&&s<22;
+ const bankAt=s=>inWall(s)?Math.PI/3:inScrew(s)?Math.PI:0;
+ const positionAt=(s,lateral=0,height=0)=>({x:lateral,y:height,z:-s});
+ const track={rules,circuit,jump:leap,positionAt,headingAt:()=>0,
+  surfaceHeightAt:()=>0,lapPosition:s=>s%100,nextGap:s=>jump&&s<10?{start:10}:null,
+  speedAt:()=>44,corkscrewAt:inScrew,bankAt,poseAt:()=>({rightX:1,rightZ:0}),
+  projectWorldToTrack:(x,z)=>({s:-z,lateral:x}),constrainToGuardrail:()=>false,
+  gripApexAt:()=>false,bankDegreesAt:s=>bankAt(s)*180/Math.PI,
+  onRoad:s=>!gapAt(s),surfaceNormalAt:s=>({y:Math.cos(bankAt(s))}),gapAt,
+  guardrailLateralLimit:()=>10,magneticWallAt:inWall,corkscrewBankAt:s=>inScrew(s)?Math.PI:0,
+  shapeSteer:x=>x};
+ const boost=createGroupedBoostAPI({multiplier:1.4,durationSeconds:.92,attackSeconds:.15,releaseSeconds:.23},()=>null);
+ return createFlightPhysics(track,boost);
+}
+test('EF04 synthetic no-gap, jump/trick/landing and magnetic features do not require a playable legacy track',()=>{
+ const plain=syntheticTrack(),p=plain.newFlightState();
+ for(let i=0;i<80;i++)plain.stepFlight(p,1/120,{steer:0,grip:true});
+ assert.equal(p.autoLaunches,0);assert.equal(p.gripPreArmTicks,0);assert.equal(p.gripYawSuppressedTicks,0);
+ const leap=syntheticTrack({jump:true}),f=leap.newFlightState();
+ let launched=false,landed=false,awarded=false;
+ for(let i=0;i<240&&!landed;i++){
+  const result=leap.stepFlight(f,1/120,{steer:f.grounded?0:1,grip:!f.grounded});
+  launched||=result.jumped;landed||=result.landed;awarded||=result.landingBoostAwarded;
+ }
+ assert.ok(launched,'Synthetic lip launches');assert.ok(landed,'Synthetic gap lands');
+ assert.equal(f.trickFullRotations,1);assert.ok(awarded,'Clean aligned synthetic roll earns landing boost');
+ for(const kind of ['wall','screw']){
+  const engine=syntheticTrack({[kind]:true}),state=engine.newFlightState();
+  for(let i=0;i<80;i++)engine.stepFlight(state,1/120,{steer:0,grip:false});
+  if(kind==='wall'){assert.equal(state.magneticEntries,1);assert.equal(state.magneticExits,1);}
+  else {assert.equal(state.corkscrewEntries,1);assert.equal(state.corkscrewExits,1);assert.ok(state.corkscrewCeilingSeconds>0);}
+ }
+});

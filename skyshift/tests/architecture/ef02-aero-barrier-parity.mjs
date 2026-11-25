@@ -39,7 +39,7 @@ function install(m){
  return {metadata,data,shader,states,cache};
 }
 let oldBytes=0,newBytes=0;
-for(const v of ["072","081","082","083","084","0901","0160","0161","0162","0163","0164"]){
+for(const v of ["070","071","072","081","082","083","084","0901","0160","0161","0162","0163","0164"]){
  const p='tracks/barriers/aero-barrier-v'+v+'.mjs',a=await load(old,p),b=await load(root,p);
  oldBytes+=readFileSync(resolve(old,p)).length;newBytes+=readFileSync(resolve(root,p)).length;
  assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort());

@@ -1,5 +1,5 @@
 // Shared terrain-following aero barrier. Track samplers, wave inputs and density policy stay explicit.
-export function createAeroBarrierAPI({TRIAL,GUARDRAIL,COURSE_SEGMENTS,positionAt,widthAt,curvatureAt,gapAt,GAPS,CORKSCREW,ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL,isAurora=()=>false}){
+export function createAeroBarrierAPI({TRIAL,GUARDRAIL,COURSE_SEGMENTS,positionAt,widthAt,curvatureAt,gapAt,GAPS,CORKSCREW,ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL,isAurora=()=>false,classicChevrons=false}){
 const AERO_BARRIER=Object.freeze({
  step:.95,
  height:.99,
@@ -154,7 +154,7 @@ function createAeroDetailData(){
  // is coplanar with the inner face and is baked into ONE accent batch.
  for(let s=13;s<TRIAL.length-9;s+=AERO_BARRIER.curveArrowPitchMeters){
   if(gapAt(s))continue;
-  const screw=s>=CORKSCREW.start&&s<=CORKSCREW.end;
+  const screw=!classicChevrons&&s>=CORKSCREW.start&&s<=CORKSCREW.end;
    if(!screw&&Math.abs(curvatureAt(s))<AERO_BARRIER.arrowCurvatureThreshold)continue;
   const outer=-Math.sign(curvatureAt(s));
   for(const side of [-1,1]){

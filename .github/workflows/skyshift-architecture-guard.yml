@@ -120,3 +120,6 @@ jobs:
       - name: Verify exact closure deck ownership and all current consumers
         run: node --test skyshift/tests/architecture/ef02-closure-deck-moves.test.mjs
 
+
+      - name: Verify exact road material ownership and current consumers
+        run: node --test skyshift/tests/architecture/ef02-closure-premium-moves.test.mjs

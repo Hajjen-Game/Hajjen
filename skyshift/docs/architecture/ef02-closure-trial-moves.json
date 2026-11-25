@@ -99,6 +99,143 @@
           "count": 1
         }
       ]
+    },
+    {
+      "path": ".github/workflows/skyshift-tests.yml",
+      "target": ".github/workflows/skyshift-tests.yml",
+      "sha": "15e22a159e8fcf0a55811e55954b016f89e164f8",
+      "edits": [
+        {
+          "before": "skyshift/trial-v0160.mjs",
+          "after": "skyshift/tracks/trials/trial-v0160.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/trial-v0165.mjs",
+          "after": "skyshift/tracks/trials/trial-v0165.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/cinematic-v0161.mjs",
+      "target": "skyshift/cinematic-v0161.mjs",
+      "sha": "1090907d619098b15efa09096799278ab64edd3f",
+      "edits": [
+        {
+          "before": "\"./trial-v0160.mjs\"",
+          "after": "\"./tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/road/premium-track-v0160.mjs",
+      "target": "skyshift/rendering/road/premium-track-v0160.mjs",
+      "sha": "98008f4d203079b27c02ece5bb07ee0b87171733",
+      "edits": [
+        {
+          "before": "\"../../trial-v0160.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0161.mjs",
+      "target": "skyshift/rail-scrape-sparks-v0161.mjs",
+      "sha": "46043c0f7bc50c55ee99e7c60adc09a9257fdd83",
+      "edits": [
+        {
+          "before": "\"./trial-v0160.mjs\"",
+          "after": "\"./tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/shadow-tunnel-v0160.mjs",
+      "target": "skyshift/shadow-tunnel-v0160.mjs",
+      "sha": "acf44dc69904acb78c7be5213d634e3ec90676e0",
+      "edits": [
+        {
+          "before": "\"./trial-v0160.mjs\"",
+          "after": "\"./tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v0160.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v0160.mjs",
+      "sha": "e3c3eeaa2a3386fd5a14912005f6d6267169a636",
+      "edits": [
+        {
+          "before": "\"../../trial-v0160.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v0160.mjs",
+      "target": "skyshift/tracks/barriers/aero-barrier-v0160.mjs",
+      "sha": "26f52f55f5bcfadae9314aaa89700fd9fe906b56",
+      "edits": [
+        {
+          "before": "\"../../trial-v0160.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v0161.mjs",
+      "target": "skyshift/tracks/barriers/aero-barrier-v0161.mjs",
+      "sha": "a1b98668c0e95e3f460d975cfc25dc9398d967b4",
+      "edits": [
+        {
+          "before": "\"../../trial-v0160.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/edge-lighting-floor-pools-v02631.mjs",
+      "target": "skyshift/edge-lighting-floor-pools-v02631.mjs",
+      "sha": "6e809246575e462ce72abc6812fb9be833c2c7af",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/edge-source-floor-bands-v02632.mjs",
+      "target": "skyshift/edge-source-floor-bands-v02632.mjs",
+      "sha": "2d12bca52bd1181f16b523945c92e342ec5c18f1",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/flight/cinematic-v0165.mjs",
+      "target": "skyshift/flight/cinematic-v0165.mjs",
+      "sha": "2e41ac732fc94cffaf99d300fcc8f7505da6899a",
+      "edits": [
+        {
+          "before": "\"../trial-v0165.mjs\"",
+          "after": "\"../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
     }
   ],
   "rootBefore": 196,

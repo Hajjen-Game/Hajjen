@@ -538,7 +538,7 @@ jobs:
           node --check skyshift/tracks/shared/track-3d-v0160.mjs
           node --check skyshift/risk-reward-v0160.mjs
           node --check skyshift/flight/boost/boost-v0160.mjs
-          node --check skyshift/trial-v0160.mjs
+          node --check skyshift/tracks/trials/trial-v0160.mjs
           node --check skyshift/tracks/shared/smooth-track-v0160.mjs
           node --check skyshift/rendering/road/premium-track-v0160.mjs
           node --check skyshift/core/visual-fidelity-v0160.mjs
@@ -582,7 +582,7 @@ jobs:
           node --check skyshift/track-physics-parity-probe-v0164.mjs
           node --check skyshift/tests/unit/track-physics-parity-v0164.test.mjs
           node --check skyshift/tests/browser/browser-track-parity-v0164.mjs
-          node --check skyshift/trial-v0165.mjs
+          node --check skyshift/tracks/trials/trial-v0165.mjs
           node --check skyshift/flight/cinematic-v0165.mjs
           node --check skyshift/flight/unified-flight-v0165.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0165.mjs

@@ -2,7 +2,7 @@
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt} from "../../trial-v0160.mjs";
+import {TRIAL,widthAt} from "../../tracks/trials/trial-v0160.mjs";
 import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v060.mjs";
 import {vaultSpatialWaveEnabled0285}
  from "../../tunnel/vault-spatial-wave-parity-v0285.mjs";

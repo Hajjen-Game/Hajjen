@@ -23,7 +23,19 @@ test('Stage J preserves exact 35 original barrier/boost Git blobs after only imp
  for(const [name,{destination,originalGitBlobSha}] of entries){
   assert.equal(existsSync(resolve(root,name)),false,'Unmoved old root module '+name);
   const relocated=resolve(root,destination);assert.ok(existsSync(relocated),'Missing relocated module '+name);
-  const source=restoreEF02H(readFileSync(relocated,'utf8'),relocated);
+  let currentSource=readFileSync(relocated,'utf8');
+  // EF02J: for exactly three grouped boost adapters, reverse the shared-body extraction
+  // using the actual shared implementation, then run the original immutable blob guard.
+  if(['boost-v0150.mjs','boost-v0151.mjs','boost-v0160.mjs'].includes(name)){
+   const prefix="// Shared grouped-pad boost solver; all per-version track policy stays in adapters.\nexport function createGroupedBoostAPI(BOOST_CONFIG,riskChoiceAt){\n",suffix="\n return {clamp,boostPadAt,initBoostState,boostedSpeedAt,stepBoostState};\n}\n";
+   const adapter="import {createGroupedBoostAPI} from \"./grouped-boost.mjs\";\nexport const {clamp,boostPadAt,initBoostState,boostedSpeedAt,stepBoostState}=createGroupedBoostAPI(BOOST_CONFIG,riskChoiceAt);\n";
+   assert.ok(currentSource.endsWith(adapter),name+' unexpected grouped boost adapter');
+   const shared=readFileSync(resolve(root,'flight/boost/grouped-boost.mjs'),'utf8');
+   assert.ok(shared.startsWith(prefix)&&shared.endsWith(suffix),'Unexpected grouped boost factory shape');
+   const body=shared.slice(prefix.length,-suffix.length).replace(/^(const clamp=|function (?:boostPadAt|initBoostState|boostedSpeedAt|stepBoostState)\()/gm,'export $1');
+   currentSource=currentSource.slice(0,-adapter.length)+body;
+  }
+  const source=restoreEF02H(currentSource,relocated);
   const reconstructed=source.replace(/(["'])(\.{1,2}\/[^"'\r\n]+)\1/g,(ent,quote,spec)=>{
    const pure=spec.split(/[?#]/)[0],suffix=spec.slice(pure.length);
    const current=resolve(dirname(relocated),pure);

@@ -23,17 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install pinned toolchain (initial draft lock generation only)
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ ! -f package-lock.json ]; then
-            # Initial draft only. Commit the exact generated lock before acceptance.
-            npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-            node -e 'const s=require("fs").readFileSync("package-lock.json").toString("base64");for(let i=0;i<s.length;i+=2000)console.log("SKYSHIFT_EF03_LOCK "+s.slice(i,i+2000));'
-          fi
-          npm ci --no-audit --no-fund
-          npm ls --depth=0
+      - name: Reproducible install from committed lock
+        run: npm ci --no-audit --no-fund && npm ls --depth=0
       - name: Build and verify actual production artifact
         run: npm run build && npm run verify
       - name: Compare real source and built WebGL / CSS / cold-warm transfer

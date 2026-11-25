@@ -21,6 +21,36 @@ assert.ok(report.graph.modules.every(x=>!/(?:^|\/)(?:tests|docs|previews)\//.tes
 for(const f of report.files){
  const b=await readFile(join(dist,f.path));assert.equal(b.length,f.bytes);assert.equal(createHash('sha256').update(b).digest('hex'),f.sha256);
 }
-for(const p of ['assets/ships/stingray-evo-hero-v4.gltf','assets/ships/stingray-evo-hero-v4.glb'])assert.ok((await stat(join(dist,p))).size>0);
+// The checked-in V4 text glTF is mandatory; the Blender GLB is an optional
+// diagnostic with an intentional procedural fallback when absent. Validate
+// the complete source asset tree byte-for-byte, including optional files
+// if they are added in future, rather than demanding nonexistent assets.
+const source=resolve(here,'..');
+const assets=[];
+async function walkAssets(dir,rel='assets'){
+ for(const e of await readdir(dir,{withFileTypes:true})){
+  const path=join(dir,e.name),name=rel+'/'+e.name;
+  if(e.isDirectory())await walkAssets(path,name);
+  else if(e.isFile()){
+   const a=await readFile(path),b=await readFile(join(dist,name));
+   assert.ok(a.length>0,name+' empty source asset');assert.deepEqual(b,a,name+' asset bytes changed');assets.push(name);
+   if(name.endsWith('.gltf')){
+    const g=JSON.parse(a.toString('utf8'));
+    for(const item of [...(g.buffers||[]),...(g.images||[])]){
+     const uri=item.uri;if(!uri||uri.startsWith('data:'))continue;
+     assert.ok(!/^[a-z]+:|^\/\//i.test(uri),name+' unverified remote asset '+uri);
+     const resource=resolve(dirname(join(dist,name)),decodeURIComponent(uri));
+     assert.ok(resource.startsWith(dist+'/'),name+' escaped artifact path');
+     assert.ok((await stat(resource)).size>0,name+' missing '+uri);
+    }
+   }
+  }
+ }
+}
+await walkAssets(join(source,'assets'));
+const outputAssets=report.files.map(f=>f.path).filter(p=>p.startsWith('assets/')).sort();
+assert.deepEqual(outputAssets,assets.sort(),'complete original asset inventory');
+for(const p of ['assets/ships/stingray-evo-hero-v1.gltf','assets/ships/stingray-evo-hero-v4.gltf'])assert.ok(assets.includes(p),p+' required runtime model');
+console.log('SKYSHIFT_EF03_ASSETS '+JSON.stringify({copied:assets.length,optionalBlenderGlb:assets.includes('assets/ships/stingray-evo-hero-v4.glb')}));
 const top=await readdir(dist);for(const p of ['tests','docs','legacy','previews','material-grade-v0203.html','game-v0210.mjs','node_modules'])assert.ok(!top.includes(p),p+' must not ship in production artifact');
 console.log('SKYSHIFT_EF03_ARTIFACT verified hashed entry and CSS, lazy chunks, integrity and asset paths');

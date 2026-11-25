@@ -35,6 +35,21 @@ test('Stage J preserves exact 35 original barrier/boost Git blobs after only imp
    const body=shared.slice(prefix.length,-suffix.length).replace(/^(const clamp=|function (?:boostPadAt|initBoostState|boostedSpeedAt|stepBoostState)\()/gm,'export $1');
    currentSource=currentSource.slice(0,-adapter.length)+body;
   }
+  // EF02J: reverse only the approved eleven aero-barrier factory extractions.
+  const railVersions=["072","081","082","083","084","0901","0160","0161","0162","0163","0164"];
+  const railVersion=name.match(/^aero-barrier-v(\d+)\.mjs$/)?.[1];
+  if(railVersions.includes(railVersion)){
+   const aurora=railVersions.indexOf(railVersion)>=7;
+   const adapter=aurora?"import {createAeroBarrierAPI} from \"./shared-aero-barrier.mjs\";\nexport const {\n AERO_BARRIER,\n AERO_PROFILE,\n cornerRailEmphasisAt,\n railHeightAt,\n sampleAeroProfile,\n createAeroBarrierData,\n createAeroDetailData,\n RAIL_SPECTRAL_VERTEX,\n RAIL_SPECTRAL_FRAGMENT,\n patchRailShaders,\n installAeroBarriers\n}=createAeroBarrierAPI({TRIAL,GUARDRAIL,COURSE_SEGMENTS,positionAt,widthAt,curvatureAt,gapAt,GAPS,CORKSCREW,ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL,isAurora});\n":"import {createAeroBarrierAPI} from \"./shared-aero-barrier.mjs\";\nexport const {\n AERO_BARRIER,\n AERO_PROFILE,\n cornerRailEmphasisAt,\n railHeightAt,\n sampleAeroProfile,\n createAeroBarrierData,\n createAeroDetailData,\n RAIL_SPECTRAL_VERTEX,\n RAIL_SPECTRAL_FRAGMENT,\n patchRailShaders,\n installAeroBarriers\n}=createAeroBarrierAPI({TRIAL,GUARDRAIL,COURSE_SEGMENTS,positionAt,widthAt,curvatureAt,gapAt,GAPS,CORKSCREW,ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL});\n";
+   const prefix="// Shared terrain-following aero barrier. Track samplers, wave inputs and density policy stay explicit.\nexport function createAeroBarrierAPI({TRIAL,GUARDRAIL,COURSE_SEGMENTS,positionAt,widthAt,curvatureAt,gapAt,GAPS,CORKSCREW,ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL,isAurora=()=>false}){\n",suffix="\n return {AERO_BARRIER,AERO_PROFILE,cornerRailEmphasisAt,railHeightAt,sampleAeroProfile,createAeroBarrierData,createAeroDetailData,RAIL_SPECTRAL_VERTEX,RAIL_SPECTRAL_FRAGMENT,patchRailShaders,installAeroBarriers};\n}\n";
+   const shared=readFileSync(resolve(root,'tracks/barriers/shared-aero-barrier.mjs'),'utf8');
+   assert.ok(currentSource.endsWith(adapter),name+' unexpected aero barrier adapter');
+   assert.ok(shared.startsWith(prefix)&&shared.endsWith(suffix),'Unexpected aero barrier factory shape');
+   const body=shared.slice(prefix.length,-suffix.length)
+    .replace("function createAeroBarrierData(step=isAurora()?1.55:AERO_BARRIER.step){",aurora?"// Aurora's broad minimum ~120m turns need no 0.95m rail tessellation:\n // 1.55m changes the polyline arc sagitta by <3mm, halves expensive\n // world rail triangles on the user's 4GB mobile GPU. Physical collider\n // and constant-width steering geometry stay at full precision.\nfunction createAeroBarrierData(step=isAurora()?1.55:AERO_BARRIER.step){":"function createAeroBarrierData(step=AERO_BARRIER.step){")
+    .replace(/^(const (?:AERO_BARRIER|AERO_PROFILE|RAIL_SPECTRAL_VERTEX|RAIL_SPECTRAL_FRAGMENT)=|function (?:cornerRailEmphasisAt|railHeightAt|sampleAeroProfile|createAeroBarrierData|createAeroDetailData|patchRailShaders|installAeroBarriers)\()/gm,'export $1');
+   currentSource=currentSource.slice(0,-adapter.length)+body;
+  }
   const source=restoreEF02H(currentSource,relocated);
   const reconstructed=source.replace(/(["'])(\.{1,2}\/[^"'\r\n]+)\1/g,(ent,quote,spec)=>{
    const pure=spec.split(/[?#]/)[0],suffix=spec.slice(pure.length);

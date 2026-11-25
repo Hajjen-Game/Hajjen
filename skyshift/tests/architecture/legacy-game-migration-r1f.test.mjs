@@ -1,3 +1,4 @@
+import {restoreDeckMove,deckCurrentPath} from './ef02-closure-deck-overlay.mjs';
 import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck,retiredHistoricalReader} from './legacy-retirement-l1a.mjs';
@@ -26,7 +27,7 @@ test('R1F: 29 historic game versions exactly recover their immutable original Gi
   assert.equal(item.oldPath,'skyshift/'+item.name);
   assert.equal(item.newPath,'skyshift/legacy/game/'+item.name);
   assert.ok(!existsSync(resolve(repo,item.oldPath)),'Unexpected historical game root file '+item.name);
-  const file=resolve(repo,item.newPath),source=readHistorical(file,'utf8');
+  const file=resolve(repo,item.newPath),source=restoreDeckMove(readHistorical(file,'utf8'),file);
   assert.ok(!source.includes('new URL(')&&!source.includes('import.meta.url'),'Unexpected module base-dependent path '+item.name);
   assert.ok(!unrebasedRE.test(source),'Unrebased relative static import '+item.name);unrebasedRE.lastIndex=0;
   assert.equal(sha(source.replace(staticImportRE,'$1./')),item.originalGitBlobSha,'Original historical game code mutated '+item.name);
@@ -62,11 +63,11 @@ test('R1F: 357 → 328 direct-root files, untouched active and held archive entr
  assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,expectedRootFiles);
  assert.equal(sha(readFileSync(resolve(root,'index.html'),'utf8')),manifest.active.index);
  assert.equal(sha(readFileSync(resolve(root,'boot-v0210.js'),'utf8')),manifest.active.boot);
- assert.equal(sha(readFileSync(resolve(root,'game-v0210.mjs'),'utf8')),manifest.active.game);
+ assert.equal(sha(restoreDeckMove(readFileSync(resolve(root,'game-v0210.mjs'),'utf8'),resolve(root,'game-v0210.mjs'))),manifest.active.game);
  assert.equal(sha(readFileSync(resolve(root,'boot-v0101.js'),'utf8')),manifest.active.heldBoot0101);
  assert.equal(sha(readFileSync(resolve(root,'boot-v0103.js'),'utf8')),manifest.active.heldBoot0103);
- assert.equal(sha(readFileSync(resolve(root,'game-v0101.mjs'),'utf8')),manifest.active.heldGame0101);
- assert.equal(sha(readFileSync(resolve(root,'game-v0103.mjs'),'utf8')),manifest.active.heldGame0103);
+ assert.equal(sha(restoreDeckMove(readFileSync(resolve(root,'game-v0101.mjs'),'utf8'),resolve(root,'game-v0101.mjs'))),manifest.active.heldGame0101);
+ assert.equal(sha(restoreDeckMove(readFileSync(resolve(root,'game-v0103.mjs'),'utf8'),resolve(root,'game-v0103.mjs'))),manifest.active.heldGame0103);
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const item of manifest.files){
   assert.ok(historicalSyntaxCheck(workflow,item.newPath),'Missing relocated game syntax check '+item.name);

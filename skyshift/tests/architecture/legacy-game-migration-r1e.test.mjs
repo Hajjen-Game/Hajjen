@@ -1,3 +1,4 @@
+import {restoreDeckMove,deckCurrentPath} from './ef02-closure-deck-overlay.mjs';
 import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
@@ -29,7 +30,7 @@ test('R1E: 30 exact historical game source Git blobs survive only imported modul
   assert.equal(f.oldPath,'skyshift/'+f.name);
   assert.equal(f.newPath,'skyshift/legacy/game/'+f.name);
   assert.ok(!existsSync(resolve(repo,f.oldPath)),'Old game source still in root '+f.name);
-  const file=resolve(repo,f.newPath),source=readHistorical(file,'utf8');
+  const file=resolve(repo,f.newPath),source=restoreDeckMove(readHistorical(file,'utf8'),file);
   assert.ok(!source.includes('import.meta.url')&&!source.includes('new URL('),'Unexpected module-base URL '+f.name);
   assert.ok(!importRE.test(source),'Unrebased relative import '+f.name);importRE.lastIndex=0;
   const original=source.replace(migratedImportRE,'$1./');
@@ -66,7 +67,7 @@ test('R1E: original 387 → 357 stage remains intact; approved current root; liv
  assert.equal(readdirSync(root,{withFileTypes:true}).filter(x=>x.isFile()).length,expectedRootFiles);
  assert.equal(sha(readFileSync(resolve(root,'index.html'),'utf8')),manifest.active.index);
  assert.equal(sha(readFileSync(resolve(root,'boot-v0210.js'),'utf8')),manifest.active.boot);
- assert.equal(sha(readFileSync(resolve(root,'game-v0210.mjs'),'utf8')),manifest.active.game);
+ assert.equal(sha(restoreDeckMove(readFileSync(resolve(root,'game-v0210.mjs'),'utf8'),resolve(root,'game-v0210.mjs'))),manifest.active.game);
  const wf=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const f of manifest.files){
   assert.ok(historicalSyntaxCheck(wf,f.newPath),'Missing relocated game syntax gate '+f.name);

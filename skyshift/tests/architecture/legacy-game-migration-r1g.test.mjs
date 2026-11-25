@@ -1,3 +1,4 @@
+import {restoreDeckMove,deckCurrentPath} from './ef02-closure-deck-overlay.mjs';
 import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,retiredHistoricalReader,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
@@ -17,11 +18,11 @@ function sha(s){const b=Buffer.from(s);return createHash('sha1').update('blob '+
 test('R1G: 42 immutable game sources, equivalent imports and held entrypoints',()=>{
  assert.equal(m.files.length,42);assert.equal(m.previousRootFiles,328);assert.equal(m.expectedRootFiles,286);
  assert.equal(readdirSync(root,{withFileTypes:true}).filter(e=>e.isFile()).length,expectedRootFiles);
- for(const h of m.held)assert.equal(sha(readHistorical(resolve(repo,h.path))),h.sha,h.path);
+ for(const h of m.held)assert.equal(sha(restoreDeckMove(readHistorical(resolve(repo,h.path)),resolve(repo,h.path))),h.sha,h.path);
  for(const f of m.files){
   assert.equal(f.oldPath,'skyshift/'+f.name);assert.equal(f.newPath,'skyshift/legacy/game/'+f.name);
   assert.ok(!existsSync(resolve(repo,f.oldPath)),f.oldPath);
-  const s=readHistorical(resolve(repo,f.newPath));assert.ok(!s.includes('import.meta.url'),f.name);
+  const s=restoreDeckMove(readHistorical(resolve(repo,f.newPath)),resolve(repo,f.newPath));assert.ok(!s.includes('import.meta.url'),f.name);
   assert.equal(sha(s.replace(/(\bfrom\s*["']|\bimport\s*["']|\bimport\s*\(\s*["'])\.\.\/\.\.\//g,'$1./')),f.originalGitBlobSha,f.name);
   assert.equal(baseline.entries.find(e=>e.path===f.oldPath)?.sha,f.originalGitBlobSha,f.name);
   const re=/(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s*)(["'])(\.\.\/\.\.\/[^"'?#]+)\1/g;

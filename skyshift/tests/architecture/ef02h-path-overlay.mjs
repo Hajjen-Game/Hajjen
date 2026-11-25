@@ -1,3 +1,4 @@
+import {restoreDeckMove,deckCurrentPath} from './ef02-closure-deck-overlay.mjs';
 import {restoreEF02I} from './ef02i-path-overlay.mjs';
 // Reverse only manifest-approved EF02H path edits, checking exact pre-migration identity.
 import assert from 'node:assert/strict';
@@ -35,5 +36,5 @@ export function restoreEF02H(source,path){
 export function ef02hCurrentPath(path){
  const key=relative(repo,resolve(repo,path)).replaceAll('\\','/');
  const move=m.moves.find(x=>x.oldPath===key);
- return move?resolve(repo,move.newPath):path;
+ return move?resolve(repo,move.newPath):deckCurrentPath(path);
 }

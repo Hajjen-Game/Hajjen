@@ -1,3 +1,4 @@
+import {restoreDeckMove,deckCurrentPath} from './ef02-closure-deck-overlay.mjs';
 import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {readHistorical,retiredHistoricalReader,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
@@ -66,6 +67,6 @@ test('R1D: measured approved direct root files, CI paths and original live entry
  }
  assert.equal(sha(readFileSync(resolve(root,'index.html'),'utf8')),manifest.liveEntrySha);
  assert.equal(sha(readFileSync(resolve(root,'boot-v0210.js'),'utf8')),manifest.liveBootSha);
- assert.equal(sha(readFileSync(resolve(root,'game-v0210.mjs'),'utf8')),manifest.liveGameSha);
+ assert.equal(sha(restoreDeckMove(readFileSync(resolve(root,'game-v0210.mjs'),'utf8'),resolve(root,'game-v0210.mjs'))),manifest.liveGameSha);
  assert.ok(existsSync(resolve(root,'boot-v0101.js'))&&existsSync(resolve(root,'boot-v0103.js')));
 });

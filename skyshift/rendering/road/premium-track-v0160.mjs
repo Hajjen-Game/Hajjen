@@ -2,14 +2,14 @@
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt} from "./trial-v0160.mjs";
-import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
+import {TRIAL,widthAt} from "../../trial-v0160.mjs";
+import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v060.mjs";
 import {vaultSpatialWaveEnabled0285}
- from "./tunnel/vault-spatial-wave-parity-v0285.mjs";
+ from "../../tunnel/vault-spatial-wave-parity-v0285.mjs";
 export const VAULT_WAVE_PARITY_0285_ACTIVE=vaultSpatialWaveEnabled0285();
-import {BOOST_PADS} from "./flight/boost/boost-v0160.mjs";
-import {RHYTHM_GATES_0160,VAULT_BOOST_0283_ACTIVE} from "./risk-reward-v0160.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./tracks/shared/smooth-track-v0160.mjs";
+import {BOOST_PADS} from "../../flight/boost/boost-v0160.mjs";
+import {RHYTHM_GATES_0160,VAULT_BOOST_0283_ACTIVE} from "../../risk-reward-v0160.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v0160.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
  version:"track-rhythm-diversity-0151",

@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "baseCommit": "7c89296a090f01608d0f504ec1e68f0ad4ce641d",
+  "moves": [
+    {
+      "path": "skyshift/premium-track-v0150.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v0150.mjs",
+      "sha": "b07fc35ce9ea2c27db9f87a0d4988e33a0aec80c",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/premium-track-v0151.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v0151.mjs",
+      "sha": "0ccfe34a79c08fdc695401ea980ecde4e21a3f01",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/premium-track-v0901.mjs",
+      "target": "skyshift/rendering/road/premium-track-v0901.mjs",
+      "sha": "05d449750f5b882df66744f065e9ccfec8a5d380",
+      "role": "live-literal"
+    },
+    {
+      "path": "skyshift/premium-track-v0160.mjs",
+      "target": "skyshift/rendering/road/premium-track-v0160.mjs",
+      "sha": "0dde98614196b2fa97e3cc675f5d477ddbbdd8bd",
+      "role": "live-literal"
+    }
+  ],
+  "records": [
+    {
+      "path": "skyshift/premium-track-v0150.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v0150.mjs",
+      "sha": "b07fc35ce9ea2c27db9f87a0d4988e33a0aec80c",
+      "edits": [
+        {
+          "before": "from \"./trial-v0901.mjs\"",
+          "after": "from \"../../trial-v0901.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./zone-wave-v060.mjs\"",
+          "after": "from \"../../zone-wave-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/boost/boost-v0150.mjs\"",
+          "after": "from \"../../flight/boost/boost-v0150.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tracks/shared/smooth-track-v0901.mjs\"",
+          "after": "from \"../../tracks/shared/smooth-track-v0901.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/premium-track-v0151.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v0151.mjs",
+      "sha": "0ccfe34a79c08fdc695401ea980ecde4e21a3f01",
+      "edits": [
+        {
+          "before": "from \"./trial-v0151.mjs\"",
+          "after": "from \"../../trial-v0151.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./zone-wave-v060.mjs\"",
+          "after": "from \"../../zone-wave-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/boost/boost-v0151.mjs\"",
+          "after": "from \"../../flight/boost/boost-v0151.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./risk-reward-v0151.mjs\"",
+          "after": "from \"../../risk-reward-v0151.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tracks/shared/smooth-track-v0901.mjs\"",
+          "after": "from \"../../tracks/shared/smooth-track-v0901.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/premium-track-v0901.mjs",
+      "target": "skyshift/rendering/road/premium-track-v0901.mjs",
+      "sha": "05d449750f5b882df66744f065e9ccfec8a5d380",
+      "edits": [
+        {
+          "before": "from \"./trial-v0901.mjs\"",
+          "after": "from \"../../trial-v0901.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./zone-wave-v060.mjs\"",
+          "after": "from \"../../zone-wave-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/boost/boost-v082.mjs\"",
+          "after": "from \"../../flight/boost/boost-v082.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tracks/shared/smooth-track-v0901.mjs\"",
+          "after": "from \"../../tracks/shared/smooth-track-v0901.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/premium-track-v0160.mjs",
+      "target": "skyshift/rendering/road/premium-track-v0160.mjs",
+      "sha": "0dde98614196b2fa97e3cc675f5d477ddbbdd8bd",
+      "edits": [
+        {
+          "before": "from \"./trial-v0160.mjs\"",
+          "after": "from \"../../trial-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./zone-wave-v060.mjs\"",
+          "after": "from \"../../zone-wave-v060.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tunnel/vault-spatial-wave-parity-v0285.mjs\"",
+          "after": "from \"../../tunnel/vault-spatial-wave-parity-v0285.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./flight/boost/boost-v0160.mjs\"",
+          "after": "from \"../../flight/boost/boost-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./risk-reward-v0160.mjs\"",
+          "after": "from \"../../risk-reward-v0160.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"./tracks/shared/smooth-track-v0160.mjs\"",
+          "after": "from \"../../tracks/shared/smooth-track-v0160.mjs\"",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "rootBefore": 200,
+  "rootAfter": 196
+}

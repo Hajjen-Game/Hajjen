@@ -2,13 +2,14 @@
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt} from "./trial-v0901.mjs";
-import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
-import {BOOST_PADS} from "./flight/boost/boost-v0150.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./tracks/shared/smooth-track-v0901.mjs";
+import {TRIAL,widthAt} from "../../trial-v0151.mjs";
+import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v060.mjs";
+import {BOOST_PADS} from "../../flight/boost/boost-v0151.mjs";
+import {RHYTHM_GATES_0151} from "../../risk-reward-v0151.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v0901.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
- version:"track-rhythm-choices-0150",
+ version:"track-rhythm-diversity-0151",
  material:"continuous-integrated-PBR",
  palette:"Nine synchronized color zones across 3 circuit laps",
  baseHex:ZONE_PALETTES[0].base,
@@ -78,7 +79,7 @@ const shaderBoostPads=BOOST_PADS.map(p=>{
     smoothstep(${glNumber(p.lateralMin-.25)},${glNumber(p.lateralMin+.10)},trackL) *
     (1.0-smoothstep(${glNumber(p.lateralMax-.10)},${glNumber(p.lateralMax+.25)},trackL));
    float arrow_${tag} = trackChevron(trackS-${glNumber(p.start)},
-      (trackL-${glNumber(center)})*${glNumber(2.6/half)}) * boost_${tag};`;
+      (trackL-(${glNumber(center)}))*${glNumber(2.6/half)}) * boost_${tag};`;
 }).join("\n");
 // Nest max() rather than emitting a two-argument-only expression so future
 // pads cannot accidentally generate invalid GLSL in a zone expansion.
@@ -94,8 +95,12 @@ const riskArrowAggregation=shaderMax(BOOST_PADS.filter(p=>p.kind==="risk")
  .map(p=>`arrow_${p.id.replace(/-/g,"_")}`));
 const riskApproachAggregation=shaderMax(BOOST_PADS.filter(p=>p.kind==="risk")
  .map(p=>{
+  const gate=RHYTHM_GATES_0151.find(g=>g.id===p.group);
   const center=(p.lateralMin+p.lateralMax)*.5;
-  return `(trackWindow(trackS,${glNumber(p.start-125)},${glNumber(p.start-9)},12.0) *
+  // Start markers only when the authored approach becomes drivable.
+  // The post-leap guide starts AFTER the actual 606.6m air gap.
+  const approach=gate?.approach??p.start-125;
+  return `(trackWindow(trackS,${glNumber(approach)},${glNumber(p.start-9)},12.0) *
     trackStripe(trackL,${glNumber(center)},0.12,0.20) *
     (0.40+0.60*pow(0.5+0.5*sin(trackS*0.40),2.0)))`;
  }));

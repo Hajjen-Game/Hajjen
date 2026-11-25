@@ -68,3 +68,36 @@ for(const v of uv){
 for(const p of ['flight/cinematic-camera.mjs','flight/classic-camera.mjs','flight/unified-flight.mjs'])newBytes+=readFileSync(resolve(root,p)).length;
 assert.ok(newBytes<oldBytes);
 console.log('SKYSHIFT_EF02_FLIGHT_BYTES '+JSON.stringify({oldBytes,newBytes,reduction:oldBytes-newBytes}));
+
+
+// EF02J: compare the grouped boost solver against the exact EF01 reference.
+for(const v of ['0150','0151','0160']){
+ const path='flight/boost/boost-v'+v+'.mjs',a=await load(old,path),b=await load(root,path);
+ assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort());
+ for(const key of ['BOOST_CONFIG','BOOST_PADS','RACE_BOOST_PADS'])assert.deepEqual(a[key],b[key]);
+ const sa=a.initBoostState({s:0,lateral:0},44),sb=b.initBoostState({s:0,lateral:0},44);
+ assert.deepEqual(sa,sb);
+ const pads=a.RACE_BOOST_PADS;
+ // Exercise every pad, exact bounds, repeat/group exclusion, airborne passes and
+ // overlapping bursts, then release for 2 seconds; empty Aurora remains valid.
+ for(const p of pads){
+  for(const [s,l] of [[p.start-.001,0],[p.start,p.lateralMin],[p.start,p.lateralMax],[p.end-.001,(p.lateralMin+p.lateralMax)/2],[p.end,0]]){
+   assert.deepEqual(a.boostPadAt(s,l),b.boostPadAt(s,l));
+  }
+ }
+ const tick=(s,l,dt,grounded,base=60)=>{
+  Object.assign(sa,{s,lateral:l});Object.assign(sb,{s,lateral:l});
+  assert.deepEqual(a.stepBoostState(sa,dt,base,grounded),b.stepBoostState(sb,dt,base,grounded));
+  assert.deepEqual(sa,sb);
+  assert.equal(a.boostedSpeedAt(sa,base),b.boostedSpeedAt(sb,base));
+ };
+ for(const p of pads){
+  const s=(p.start+p.end)/2,l=(p.lateralMin+p.lateralMax)/2;
+  tick(s,l,1/120,false);
+  for(let i=0;i<8;i++)tick(s,l,1/120,true);
+ }
+ for(let i=0;i<240;i++)tick(-1,0,1/120,true);
+ for(const dt of [0,-1,NaN,Infinity])tick(0,0,dt,true);
+ assert.deepEqual(a.initBoostState(sa,75),b.initBoostState(sb,75));
+ console.log('SKYSHIFT_EF02_GROUPED_BOOST_PARITY '+JSON.stringify({track,version:v,pads:pads.length}));
+}

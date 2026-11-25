@@ -5,7 +5,7 @@ import {readFileSync,existsSync,readdirSync} from 'node:fs';
 import {resolve,dirname,basename} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
-import {premiumManifest as m,restorePremiumMove} from './ef02-closure-premium-overlay.mjs';
+import {premiumManifest as m,restorePremiumMove,premiumCurrentPath} from './ef02-closure-premium-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {inventory} from './dependency-inventory-v2.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));

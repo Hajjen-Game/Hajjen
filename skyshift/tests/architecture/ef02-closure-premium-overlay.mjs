@@ -1,3 +1,4 @@
+import {restoreTrialMove,trialPreviousPath,trialCurrentPath,trialHistoricalExists} from './ef02-closure-trial-overlay.mjs';
 // Historical path-only reconstruction; no live resolution fallback.
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
@@ -10,9 +11,10 @@ const key=p=>relative(repo,resolve(repo,p)).replaceAll('\\','/');
 const byTarget=new Map(premiumManifest.records.map(r=>[r.target,r]));
 const byPath=new Map(premiumManifest.records.map(r=>[r.path,r]));
 const moves=new Map(premiumManifest.moves.map(r=>[r.path,r]));
-export function premiumPreviousPath(p){return resolve(repo,byTarget.get(key(p))?.path||key(p));}
-export function premiumCurrentPath(p){const m=moves.get(key(p));return m?resolve(repo,m.target):p;}
+export function premiumPreviousPath(p){p=trialPreviousPath(p);return resolve(repo,byTarget.get(key(p))?.path||key(p));}
+export function premiumCurrentPath(p){const m=moves.get(key(p));return m?resolve(repo,m.target):trialCurrentPath(p);}
 export function restorePremiumMove(s,p){
+ s=restoreTrialMove(s,p);p=trialPreviousPath(p);
  const r=byTarget.get(key(p))||byPath.get(key(p));if(!r)return s;
  for(const e of [...r.edits].reverse()){
   assert.equal(s.split(e.after).length-1,e.count,r.path+' premium inverse '+e.after);
@@ -24,7 +26,7 @@ export function restorePremiumMove(s,p){
  return s;
 }
 export function premiumHistoricalExists(p){
- const m=moves.get(key(p));if(!m)return null;
+ const m=moves.get(key(p));if(!m)return trialHistoricalExists(p);
  assert.ok(!existsSync(resolve(repo,m.path)),m.path);
  const t=resolve(repo,m.target);restorePremiumMove(readFileSync(t,'utf8'),t);return true;
 }

@@ -1,0 +1,50 @@
+name: SKYSHIFT EF03 built production parity
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'skyshift/**'
+      - '.github/workflows/skyshift-ef03-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: skyshift-ef03-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  production-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: skyshift/build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned toolchain (initial draft lock generation only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f package-lock.json ]; then
+            # Initial draft only. Commit the exact generated lock before acceptance.
+            npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+            node -e 'const s=require("fs").readFileSync("package-lock.json").toString("base64");for(let i=0;i<s.length;i+=2000)console.log("SKYSHIFT_EF03_LOCK "+s.slice(i,i+2000));'
+          fi
+          npm ci --no-audit --no-fund
+          npm ls --depth=0
+      - name: Build and verify actual production artifact
+        run: npm run build && npm run verify
+      - name: Compare real source and built WebGL / CSS / cold-warm transfer
+        run: npm run test:browser
+      - name: Keep lock, production artifact and real comparison evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skyshift-ef03-production-evidence
+          path: |
+            skyshift/build/package-lock.json
+            skyshift/build/dist/
+            skyshift/build/evidence/
+          if-no-files-found: warn

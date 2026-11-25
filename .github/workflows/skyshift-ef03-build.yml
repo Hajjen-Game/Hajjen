@@ -27,6 +27,19 @@ jobs:
         run: npm ci --no-audit --no-fund && npm ls --depth=0
       - name: Build and verify actual production artifact
         run: npm run build && npm run verify
+      - name: Repeated build hashes and complete Pages rehearsal
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp dist/build-report.json "$RUNNER_TEMP/skyshift-first-build.json"
+          npm run build && npm run verify
+          cmp "$RUNNER_TEMP/skyshift-first-build.json" dist/build-report.json
+          node assemble-pages.mjs
+          python3 -m http.server 8924 --bind 127.0.0.1 --directory site &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          node verify-publication.mjs http://127.0.0.1:8924/ 1
       - name: Compare real source and built WebGL / CSS / cold-warm transfer
         run: npm run test:browser
       - name: Keep lock, production artifact and real comparison evidence
@@ -38,4 +51,5 @@ jobs:
             skyshift/build/package-lock.json
             skyshift/build/dist/
             skyshift/build/evidence/
+            skyshift/build/site/skyshift/publication.json
           if-no-files-found: warn

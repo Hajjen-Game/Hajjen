@@ -11,7 +11,18 @@ const here=dirname(fileURLToPath(import.meta.url)),repo=resolve(here,'../..'),ou
 mkdirSync(out,{recursive:true});
 const chrome=[process.env.CHROME_PATH,'/usr/bin/google-chrome','/usr/bin/google-chrome-stable','/usr/bin/chromium'].filter(Boolean).find(existsSync);
 assert.ok(chrome,'actual Chrome required');
-const server=spawn('python3',['-m','http.server','8923','--bind','127.0.0.1'],{cwd:repo,stdio:'ignore'});
+const server=spawn('python3',['-c',[
+ 'import sys,http.server,functools',
+ 'root,site=sys.argv[1:]',
+ 'class Handler(http.server.SimpleHTTPRequestHandler):',
+ ' def translate_path(self,path):',
+ '  if path.split("?",1)[0].startswith("/Hajjen/"):',
+ '   old=self.directory; self.directory=site',
+ '   try: return super().translate_path(path[len("/Hajjen"):])',
+ '   finally: self.directory=old',
+ '  return super().translate_path(path)',
+ 'http.server.ThreadingHTTPServer(("127.0.0.1",8923),functools.partial(Handler,directory=root)).serve_forever()'
+].join('\n'),repo,join(here,'site')],{cwd:repo,stdio:'ignore'});
 let browser;const reports=[];
 try{
  await sleep(500);
@@ -29,7 +40,7 @@ try{
    const cdp=await context.newCDPSession(page);await cdp.send('Network.enable');
    let transferred=0,completed=0;cdp.on('Network.loadingFinished',e=>{transferred+=e.encodedDataLength;completed++;});
    page.on('request',r=>requests.push(r.url()));
-   const prefix=mode==='source'?'/skyshift/':'/skyshift/build/dist/';
+   const prefix=mode==='source'?'/skyshift/':'/Hajjen/skyshift/';
    const url='http://127.0.0.1:8923'+prefix+'?track=vault&v=0.28.9.7&startupAudit=1&trackRepairSmoke=1';
    const phases=[];
    for(const phase of ['cold','warm']){

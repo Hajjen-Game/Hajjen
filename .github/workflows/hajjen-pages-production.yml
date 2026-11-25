@@ -1,0 +1,84 @@
+name: HAJJEN Pages production deployment
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: read
+concurrency:
+  group: hajjen-pages-production
+  cancel-in-progress: false
+jobs:
+  source-mode:
+    runs-on: ubuntu-latest
+    outputs:
+      active: ${{ steps.mode.outputs.active }}
+    steps:
+      - name: Read actual Pages source mode
+        id: mode
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mode="$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq .build_type)"
+          case "$mode" in
+            workflow) echo 'active=true' >> "$GITHUB_OUTPUT" ;;
+            legacy) echo 'active=false' >> "$GITHUB_OUTPUT"; echo 'Branch publication retained; bundled site NOT deployed. Switch Settings > Pages > Source to GitHub Actions after acceptance.' >> "$GITHUB_STEP_SUMMARY" ;;
+            *) echo "::error::Unknown Pages build type: $mode"; exit 1 ;;
+          esac
+  build-site:
+    needs: source-mode
+    if: needs.source-mode.outputs.active == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: skyshift/build/package-lock.json
+      - uses: actions/configure-pages@v5
+      - name: Locked build and compatibility assembly
+        working-directory: skyshift/build
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+          npm run verify
+          node assemble-pages.mjs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: skyshift/build/site
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skyshift-publication-manifest
+          path: skyshift/build/site/skyshift/publication.json
+  deploy:
+    needs: build-site
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Deploy assembled site
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: skyshift-publication-manifest
+          path: skyshift/build/site/skyshift
+      - name: Strict public artifact and cache verification
+        working-directory: skyshift/build
+        run: node verify-publication.mjs "${{ steps.deployment.outputs.page_url }}" 15

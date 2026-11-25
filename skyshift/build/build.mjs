@@ -66,7 +66,7 @@ const auditPlugin={name:'skyshift-production-graph',generateBundle(_options,bund
 }};
 await build({configFile:false,root:stage,base:'./',publicDir:false,plugins:[auditPlugin],
  build:{outDir:dist,emptyOutDir:true,assetsDir:'bundles',manifest:true,target:'es2020',minify:'esbuild',cssMinify:false,cssCodeSplit:false,
- rollupOptions:{input:join(stage,'index.html'),output:{entryFileNames:'bundles/[name]-[hash].js',chunkFileNames:'bundles/[name]-[hash].js',assetFileNames:'bundles/[name]-[hash][extname]'}}}});
+ rollupOptions:{input:join(stage,'index.html'),output:{entryFileNames:'bundles/[name]-[hash].js',chunkFileNames:'bundles/[name]-[hash].js',assetFileNames:'bundles/[name]-[hash][extname]',manualChunks(id){if(id.replaceAll('\\','/').match(/\/node_modules\/three\/(?:build|src)\//))return 'three-engine';}}}}});
 assert.ok(graph,'bundle graph audit ran');
 // Runtime glTF paths remain stable; copy original asset tree, not source/QA files.
 await cp(join(source,'assets'),join(dist,'assets'),{recursive:true});

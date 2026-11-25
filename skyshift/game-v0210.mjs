@@ -225,10 +225,9 @@ import {RACING_0121,createRacingExperience,resetRacingExperience,
  from "./racing-experience-v0160.mjs";
 import {FIDELITY_0121,readFidelityChoice,saveFidelityChoice,chooseFidelity0121}
  from "./core/fidelity-settings-v0121.mjs";
-import {TIME_TRIAL_0160,createTimeTrialState,startTimeTrial,
- captureTimeTrialSample,finishTimeTrial,formatTrialTime,formatTrialDelta,
- loadPersonalGhost,readGhostEnabled,saveGhostEnabled,updateGhostDelta,
- ghostAudit} from "./time-trial-v0160.mjs";
+import * as timeTrialAPI from "./time-trial-v0160.mjs";
+import {formatTrialTime,formatTrialDelta,updateGhostDelta,ghostAudit} from "./time-trial-v0160.mjs";
+import {createRaceSession,readLegacyRaceBest,updateLegacyRaceBest} from "./core/race-session.mjs";
 import {GHOST_VISUAL_0130,createPersonalGhostVisual}
  from "./ui/ghost-visual-v0130.mjs";
 import {CHALLENGES_0140,CHALLENGE_RULES_0140,getChallenge,challengeDistance,
@@ -691,12 +690,12 @@ let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpi
 let cameraLook=new THREE.Vector3(),shadowMesh,premiumFX,sideThrusters,reactiveWingFlaps,livingWake,railSparks;
 let sectorLandmarks=null,ghostVisual=null,hangarHeroRig=null;
 const racingExperience=createRacingExperience();
-const timeTrialState=createTimeTrialState();
-let selectedRaceMode="time-trial",ghostEnabled=readGhostEnabled(fleetStorage());
+const raceSession=createRaceSession({api:timeTrialAPI,
+ sampleIntervalSeconds:timeTrialAPI.TIME_TRIAL_0160.sampleIntervalSeconds,
+ storage:fleetStorage,bankAt,pitchAt});
+const timeTrialState=raceSession.trial;
 let challengeProgress=readChallengeProgress(fleetStorage());
 let currentChallenge=null,lastChallengeGrading=null;
-const GHOST_RECORD_POSE={elapsed:0,s:0,worldX:0,y:0,worldZ:0,
- heading:0,roll:0,pitch:0};
 let perfFrames=0,perfTotal=0,perfMin=200;
 let renderSamples=0,renderCallTotal=0,renderCallPeak=0,triangleTotal=0;
 const raceSimulation=createRaceSimulation();
@@ -747,37 +746,19 @@ let tunnelInside=false,tunnelEntries=0,tunnelExits=0,tunnelSeconds=0,tunnelMaxIn
 let waveSmokeHold=false;
 const SHADOW_NORMAL=new THREE.Vector3(),SHADOW_PLANE_NORMAL=new THREE.Vector3(0,0,1);
 
-function bestForTrial(){
- try{return Number(localStorage.getItem("skyshift-zone-wave-best-v049"))||0;}
- catch{return 0;}
-}
-function saveBest(time){
- try{localStorage.setItem("skyshift-zone-wave-best-v049",String(time));}catch{}
-}
+function bestForTrial(){return readLegacyRaceBest(fleetStorage());}
 // A best Time Trial is separate from the historic normal-circuit record.
 function refreshTrialMenu(){
- const best=loadPersonalGhost(fleetStorage());
+ const best=raceSession.personalBest();
  UI.trialStatus.textContent=best?
   "PERSONAL BEST · "+formatTrialTime(best.duration)+" · "+best.ship.toUpperCase():"";
  UI.trialStatus.classList.toggle("hidden",!best);
- UI.pauseGhostToggle.textContent="GHOST "+(ghostEnabled?"ON":"OFF");
- UI.pauseGhostToggle.setAttribute("aria-pressed",String(ghostEnabled));
+ UI.pauseGhostToggle.textContent="GHOST "+(raceSession.ghostEnabled?"ON":"OFF");
+ UI.pauseGhostToggle.setAttribute("aria-pressed",String(raceSession.ghostEnabled));
  UI.pauseGhostToggle.setAttribute("aria-label",
-  "Ghost "+(ghostEnabled?"på":"av")+". Tryck för att ändra");
+  "Ghost "+(raceSession.ghostEnabled?"på":"av")+". Tryck för att ändra");
 }
-function recordRealGhostPose(force=false){
- if(timeTrialState.mode!=="time-trial"||!flight)return;
- // Avoid allocating on the 120 Hz physics hot path: update only every ~10 Hz.
- if(!force&&flight.elapsed-timeTrialState.lastSampleAt<
-  TIME_TRIAL_0160.sampleIntervalSeconds-.0001)return;
- const p=GHOST_RECORD_POSE;
- p.elapsed=flight.elapsed;p.s=flight.s;p.worldX=flight.worldX;
- p.y=flight.y;p.worldZ=flight.worldZ;p.heading=flight.heading;
- p.roll=-bankAt(flight.s)-(flight.trickVisualAngle??0)-
-  Math.sign(flight.steering??0)*Math.min(.09,Math.abs(flight.steering??0)*.06);
- p.pitch=pitchAt(flight.s);
- captureTimeTrialSample(timeTrialState,p,{force});
-}
+function recordRealGhostPose(force=false){raceSession.record(flight,force);}
 function flashToast(message,time=1350){
  UI.toast.textContent=message;UI.toast.classList.remove("hidden");
  clearTimeout(uiState.toastTimeout);
@@ -3695,8 +3676,7 @@ function resetFlight(){
  hudBudget.reset();domWrites.reset();
  flight=newFlightState();previousSector=0;lastRailLog=0;
  if(currentChallenge)seedChallengeFlight(currentChallenge);
- startTimeTrial(timeTrialState,{mode:selectedRaceMode,storage:fleetStorage(),
-  ship:activeShipId||fleetProgress.selected,ghostEnabled});
+ raceSession.start(activeShipId||fleetProgress.selected);
  recordRealGhostPose(true);
  ghostVisual?.hide();
  railFeedback=createRailFeedbackState();
@@ -3764,7 +3744,7 @@ function resetFlight(){
 function enterPlaying(challenge=null){
  if(!sceneReady)return;
  currentChallenge=challenge;lastChallengeGrading=null;
- selectedRaceMode=currentChallenge?"standard":"time-trial";
+ raceSession.selectMode(currentChallenge);
  $("app").classList.remove("hangar-active");
  world.visible=true;
  resetFlight();uiState.mode="playing";
@@ -3783,7 +3763,7 @@ function enterPlaying(challenge=null){
  UI.trialResult.classList.add("hidden");
  if(timeTrialState.mode==="time-trial")
   event("time_trial_start",{ghostLoaded:!!timeTrialState.previousBest,
-   ghostEnabled,previousBestSeconds:timeTrialState.previousBest?.duration??null});
+   ghostEnabled:raceSession.ghostEnabled,previousBestSeconds:timeTrialState.previousBest?.duration??null});
  UI.pauseBtn.classList.remove("hidden");
  UI.fullscreen.classList.remove("hidden");
  refreshHud();hudBudget.shouldUpdate(performance.now(),true);
@@ -3829,8 +3809,7 @@ function endRun(won){
  if(currentChallenge){endChallengeRun(won);return;}
  completedSparkStats=railSparks?.stats()??null;
  recordRealGhostPose(true);
- const ttResult=finishTimeTrial(timeTrialState,{won,elapsed:flight.elapsed,
-  laps:flight.lapTimes,falls:flight.falls,storage:fleetStorage()});
+ const ttResult=raceSession.finish(won,flight);
  if(timeTrialState.mode==="time-trial")
   event("time_trial_finish",{saved:ttResult?.saved??false,
    newPersonalBest:ttResult?.improved??false,
@@ -3849,8 +3828,7 @@ function endRun(won){
    String(Math.floor(flight.elapsed%60)).padStart(2,"0");
  UI.finalJumps.textContent=flight.peakYawRateDeg.toFixed(1)+"°/S";
  UI.finalStyle.textContent=flight.offRoadSeconds.toFixed(1)+" S";
- let best=bestForTrial();
- if(won && (!best||flight.elapsed<best)){saveBest(flight.elapsed);best=flight.elapsed;}
+ const best=updateLegacyRaceBest(fleetStorage(),won,flight.elapsed);
  const reward=recordFleetClear(fleetProgress,won);
  fleetProgress=saveFleet(fleetStorage(),reward.state);
  UI.unlockToast.classList.toggle("hidden",
@@ -4490,14 +4468,10 @@ function loop(now){
    // Playback uses elapsed race time and *recorded real coordinates*,
    // never an AI driver or automatic road centerline. Hidden in normal runs.
    if(uiState.mode==="playing"&&timeTrialState.mode==="time-trial"){
-    const visible=ghostVisual?.frame({active:true,enabled:ghostEnabled,
+    const visible=ghostVisual?.frame({active:true,enabled:raceSession.ghostEnabled,
      best:timeTrialState.previousBest,
      elapsed:view.elapsed??flight.elapsed});
-    timeTrialState.ghostFrames++;
-    if(visible)timeTrialState.ghostVisibleFrames++;
-    if(timeTrialState.previousBest&&
-       flight.elapsed>timeTrialState.previousBest.duration)
-     timeTrialState.playbackEnded=true;
+    raceSession.playbackFrame(visible,flight.elapsed);
    }else ghostVisual?.hide();
    // Tail articulation is presentation only: camera and 120Hz physics
    // continue to follow the pilot rather than any segment positions.
@@ -5426,9 +5400,7 @@ function installControls(){
  UI.start.addEventListener("click",()=>startImmersiveTrial(null));
  UI.pauseGhostToggle.addEventListener("click",()=>{
   if(uiState.mode!=="paused")return;
-  ghostEnabled=!ghostEnabled;
-  timeTrialState.ghostEnabled=ghostEnabled;
-  saveGhostEnabled(fleetStorage(),ghostEnabled);
+  raceSession.toggleGhost();
   ghostVisual?.hide();
   refreshTrialMenu();
  });

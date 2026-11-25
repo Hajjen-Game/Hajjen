@@ -102,20 +102,26 @@ test('active game wires default Time Trial, settings and safe ghost abandonment'
   assert.match(body('openSettings','closeSettings'),/uiState\.mode="settings"/);
   assert.match(body('closeSettings','startImmersiveTrial'),/uiState\.mode="menu"/);
   assert.match(app,/UI\.start\.addEventListener\("click",\(\)=>startImmersiveTrial\(null\)\)/);
-  assert.match(body('enterPlaying','returnToMainMenu'),/selectedRaceMode=currentChallenge\?"standard":"time-trial"/);
-  assert.match(app,/startTimeTrial\(timeTrialState,\{mode:selectedRaceMode/);
-  assert.match(app,/captureTimeTrialSample\(timeTrialState,p,\{force\}\)/);
-  assert.match(app,/ghostVisual\?\.frame\(\{active:true,enabled:ghostEnabled/);
-  assert.match(app,/finishTimeTrial\(timeTrialState,\{won,elapsed:flight\.elapsed/);
+  const session=readFileSync(at('core/race-session.mjs'),'utf8');
+  assert.match(body('enterPlaying','returnToMainMenu'),/raceSession\.selectMode\(currentChallenge\)/);
+  assert.match(session,/mode=challenge\?"standard":"time-trial"/);
+  assert.match(app,/raceSession\.start\(activeShipId\|\|fleetProgress\.selected\)/);
+  assert.match(session,/api\.startTimeTrial\(trial,\{mode,storage:storage\(\),ship,ghostEnabled\}/);
+  assert.match(app,/raceSession\.record\(flight,force\)/);
+  assert.match(session,/api\.captureTimeTrialSample\(trial,pose,\{force\}\)/);
+  assert.match(app,/ghostVisual\?\.frame\(\{active:true,enabled:raceSession\.ghostEnabled/);
+  assert.match(app,/raceSession\.finish\(won,flight\)/);
+  assert.match(session,/api\.finishTimeTrial\(trial,\{won,elapsed:flight\.elapsed/);
   assert.match(boot,/pendingMode:"time-trial"/);
   assert.doesNotMatch(boot,/time-trial-btn/);
   assert.match(app,/UI\.pauseGhostToggle\.addEventListener\("click"/);
-  assert.match(app,/timeTrialState\.ghostEnabled=ghostEnabled/);
-  assert.match(app,/saveGhostEnabled\(fleetStorage\(\),ghostEnabled\)/);
+  assert.match(app,/raceSession\.toggleGhost\(\)/);
+  assert.match(session,/trial\.ghostEnabled=ghostEnabled/);
+  assert.match(session,/api\.saveGhostEnabled\(storage\(\),ghostEnabled\)/);
   assert.match(app,/UI\.pauseMenu\.addEventListener\("click",returnToMainMenu\)/);
   const leave=body('returnToMainMenu','pause');
   for(const pattern of [/if\(uiState\.mode!=="paused"\)return/,/uiState\.mode="menu"/,/ghostVisual\?\.hide\(\)/,/UI\.trialHud\.classList\.add\("hidden"\)/,/UI\.settingsOpen\.classList\.remove\("hidden"\)/,/resetFlight\(\)/])assert.match(leave,pattern);
-  assert.doesNotMatch(leave,/\b(?:finishTimeTrial|savePersonalGhost|clearPersonalGhost)\s*\(/);
+  assert.doesNotMatch(leave,/\b(?:finishTimeTrial|savePersonalGhost|clearPersonalGhost|raceSession\.finish)\s*\(/);
 });
 
 test('current time-trial module preserves a PB through ghost toggle, abandonment and invalid races on Vault and retained tracks', async () => {

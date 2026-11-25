@@ -116,3 +116,34 @@ test('EF04 synthetic no-gap, jump/trick/landing and magnetic features do not req
   else {assert.equal(state.corkscrewEntries,1);assert.equal(state.corkscrewExits,1);assert.ok(state.corkscrewCeilingSeconds>0);}
  }
 });
+
+import {createRaceSession,readLegacyRaceBest,updateLegacyRaceBest} from '../../core/race-session.mjs';
+import {createTimeTrialAPI} from '../../core/time-trial.mjs';
+
+test('EF04 race session owns real pose, time trial lifecycle and persistent preference',()=>{
+ const config={version:'fixture',trackId:'synthetic',trackRevision:'1',raceMeters:300,laps:3,
+ sampleIntervalSeconds:.1,maxSamples:3600,maxStorageChars:340000,storageKey:'fixture-pb',ghostMaxDrawCalls:2};
+ const api=createTimeTrialAPI(config),data=new Map();
+ const store={getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,String(v))};
+ const session=createRaceSession({api,sampleIntervalSeconds:.1,storage:()=>store,bankAt:()=>.2,pitchAt:()=>.1});
+ const flight={elapsed:0,s:0,worldX:3,worldZ:-2,y:1,heading:.3,steering:1,trickVisualAngle:.4,lapTimes:[12,12,12],falls:0};
+ session.selectMode(null);session.start('manta');session.record(flight,true);
+ assert.deepEqual(session.trial.active.samples[0],[0,0,3,1,-2,.3,-.66,.1]);
+ flight.elapsed=.05;session.record(flight);assert.equal(session.trial.samplesWritten,1);
+ for(let i=1;i<=360;i++){flight.elapsed=i/10;flight.s=300*i/360;session.record(flight,i===360);}
+ assert.equal(session.finish(true,flight).saved,true);
+ const saved=data.get(config.storageKey);assert.ok(saved);
+ assert.equal(session.toggleGhost(),false);assert.equal(data.get(api.GHOST_TOGGLE_KEY),'off');
+ session.start('manta');assert.equal(session.trial.previousBest.duration,36);
+ session.playbackFrame(true,37);assert.equal(session.trial.ghostVisibleFrames,1);assert.equal(session.trial.playbackEnded,true);
+ session.selectMode({endS:20});session.start('manta');session.record(flight,true);
+ assert.equal(session.trial.samplesWritten,0);assert.equal(session.finish(true,flight),null);
+ assert.equal(data.get(config.storageKey),saved);
+ session.selectMode(null);session.start('manta');session.start('stingray');
+ assert.equal(data.get(config.storageKey),saved);
+ assert.equal(session.ghostEnabled,false);
+ assert.equal(readLegacyRaceBest(store),0);assert.equal(updateLegacyRaceBest(store,true,40),40);
+ assert.equal(updateLegacyRaceBest(store,true,45),40);assert.equal(updateLegacyRaceBest(store,false,20),40);
+ assert.equal(updateLegacyRaceBest(store,true,35),35);
+ assert.equal(updateLegacyRaceBest(null,true,30),30);
+});

@@ -27,7 +27,47 @@ export function readHistoricalGameMigrationSource(){
  }
  return historicalGame;
 }
+// Exact inverse for the active-entrypoint race-session wiring migration.
+const raceSessionReaderEdits=[
+ {
+  "before": "  assert.match(body('enterPlaying','returnToMainMenu'),/selectedRaceMode=currentChallenge\\?\"standard\":\"time-trial\"/);",
+  "after": "  const session=readFileSync(at('core/race-session.mjs'),'utf8');\n  assert.match(body('enterPlaying','returnToMainMenu'),/raceSession\\.selectMode\\(currentChallenge\\)/);\n  assert.match(session,/mode=challenge\\?\"standard\":\"time-trial\"/);"
+ },
+ {
+  "before": "  assert.match(app,/startTimeTrial\\(timeTrialState,\\{mode:selectedRaceMode/);",
+  "after": "  assert.match(app,/raceSession\\.start\\(activeShipId\\|\\|fleetProgress\\.selected\\)/);\n  assert.match(session,/api\\.startTimeTrial\\(trial,\\{mode,storage:storage\\(\\),ship,ghostEnabled\\}/);"
+ },
+ {
+  "before": "  assert.match(app,/captureTimeTrialSample\\(timeTrialState,p,\\{force\\}\\)/);",
+  "after": "  assert.match(app,/raceSession\\.record\\(flight,force\\)/);\n  assert.match(session,/api\\.captureTimeTrialSample\\(trial,pose,\\{force\\}\\)/);"
+ },
+ {
+  "before": "  assert.match(app,/ghostVisual\\?\\.frame\\(\\{active:true,enabled:ghostEnabled/);",
+  "after": "  assert.match(app,/ghostVisual\\?\\.frame\\(\\{active:true,enabled:raceSession\\.ghostEnabled/);"
+ },
+ {
+  "before": "  assert.match(app,/finishTimeTrial\\(timeTrialState,\\{won,elapsed:flight\\.elapsed/);",
+  "after": "  assert.match(app,/raceSession\\.finish\\(won,flight\\)/);\n  assert.match(session,/api\\.finishTimeTrial\\(trial,\\{won,elapsed:flight\\.elapsed/);"
+ },
+ {
+  "before": "  assert.match(app,/timeTrialState\\.ghostEnabled=ghostEnabled/);\n  assert.match(app,/saveGhostEnabled\\(fleetStorage\\(\\),ghostEnabled\\)/);",
+  "after": "  assert.match(app,/raceSession\\.toggleGhost\\(\\)/);\n  assert.match(session,/trial\\.ghostEnabled=ghostEnabled/);\n  assert.match(session,/api\\.saveGhostEnabled\\(storage\\(\\),ghostEnabled\\)/);"
+ },
+ {
+  "before": "  assert.doesNotMatch(leave,/\\b(?:finishTimeTrial|savePersonalGhost|clearPersonalGhost)\\s*\\(/);",
+  "after": "  assert.doesNotMatch(leave,/\\b(?:finishTimeTrial|savePersonalGhost|clearPersonalGhost|raceSession\\.finish)\\s*\\(/);"
+ }
+];
+function restoreRaceSessionReader(s,p){
+ if(key(p)!=='skyshift/tests/architecture/active-entrypoint.test.mjs')return s;
+ for(const e of [...raceSessionReaderEdits].reverse()){
+  assert.equal(s.split(e.after).length-1,1,'EF04 race session reader inverse');
+  s=s.replace(e.after,e.before);
+ }
+ return s;
+}
 export function restoreUiMove(s,p){
+ s=restoreRaceSessionReader(s,p);
  const r=byTarget.get(key(p))||byPath.get(key(p));if(!r)return s;
  if(r.path==='skyshift/game-v0210.mjs')s=readHistoricalGameMigrationSource();
  for(const e of [...r.edits].reverse()){

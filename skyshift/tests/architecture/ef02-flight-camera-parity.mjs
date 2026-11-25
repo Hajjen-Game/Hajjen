@@ -101,3 +101,48 @@ for(const v of ['0150','0151','0160']){
  assert.deepEqual(a.initBoostState(sa,75),b.initBoostState(sb,75));
  console.log('SKYSHIFT_EF02_GROUPED_BOOST_PARITY '+JSON.stringify({track,version:v,pads:pads.length}));
 }
+
+
+// EF02J: preserve both historical Skyline solvers and their distinct boost policies.
+for(const v of ['0150','0151']){
+ const p='trial-v'+v+'.mjs',a=await load(old,p),b=await load(root,p);
+ assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort());
+ for(const k of Object.keys(a))if(typeof a[k]!=='function')assert.deepEqual(a[k],b[k],k);
+ assert.deepEqual(a.validateTrial(),b.validateTrial());
+ assert.deepEqual(a.circuitPlanSummary(),b.circuitPlanSummary());
+ // Sample all three laps including seams, jump gap, narrowing, bank and corkscrew.
+ for(let s=0;s<=a.TRIAL.raceLength;s+=2){
+  for(const k of ['headingAt','curvatureAt','bankAt','widthAt','heightAt','gradeAt','pitchAt','poseAt','surfaceNormalAt','gapAt','roadIntervals','guardrailLateralLimit','speedAt'])assert.deepEqual(a[k](s),b[k](s),k);
+  for(const l of [-2,0,2]){
+   assert.deepEqual(a.positionAt(s,l,1.05),b.positionAt(s,l,1.05));
+   assert.equal(a.surfaceHeightAt(s,l),b.surfaceHeightAt(s,l));
+  }
+ }
+ function seed(t,s,l){
+  const st=t.newFlightState(),p=t.positionAt(s,l,0);
+  Object.assign(st,{s,lateral:l,worldX:p.x,worldZ:p.z,heading:t.headingAt(s),y:t.surfaceHeightAt(s,l)+t.TRIAL.hoverHeight});
+  return st;
+ }
+ const starts=[5,55,540,570,590,665,720,900,1640,1665,1825,2195,2375,2810,3000,3160,3330,3390];
+ for(const s of starts){
+  const sa=seed(a,s,0),sb=seed(b,s,0);
+  for(let i=0;i<360;i++){
+   if(i%80===0)assert.equal(a.setZoneSpeedStage(sa,i/80),b.setZoneSpeedStage(sb,i/80));
+   const control={steer:Math.sin(i*.06)*.75,grip:i%120<80},dt=1/120;
+   assert.deepEqual(a.stepFlight(sa,dt,control),b.stepFlight(sb,dt,control));
+   assert.deepEqual(sa,sb);
+  }
+ }
+ for(const pad of a.BOOST_PADS){
+  const s=(pad.start+pad.end)/2,l=(pad.lateralMin+pad.lateralMax)/2,sa=seed(a,s,l),sb=seed(b,s,l);
+  assert.deepEqual(a.stepFlight(sa,1/120,{steer:0,grip:false}),b.stepFlight(sb,1/120,{steer:0,grip:false}));
+  assert.deepEqual(sa,sb);
+ }
+ for(const side of [-1,1]){
+  const s=20,l=side*(a.guardrailLateralLimit(s)+.3),sa=seed(a,s,l),sb=seed(b,s,l);
+  for(const st of [sa,sb])Object.assign(st,{heading:st.heading+side*.85,yawRate:side*.64,currentSpeed:101.4});
+  assert.equal(a.constrainToGuardrail(sa,1/120),b.constrainToGuardrail(sb,1/120));
+  assert.deepEqual(sa,sb);
+ }
+ console.log('SKYSHIFT_EF02_HISTORICAL_TRIAL_PARITY '+JSON.stringify({track,version:v,geometrySamples:Math.floor(a.TRIAL.raceLength/2)+1,simulationFrames:starts.length*360}));
+}

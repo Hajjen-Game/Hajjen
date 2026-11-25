@@ -5,7 +5,7 @@ import {readFileSync,existsSync,readdirSync} from 'node:fs';
 import {resolve,dirname,basename} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
-import {uiManifest as m,restoreUiMove} from './ef02-closure-ui-overlay.mjs';
+import {uiManifest as m,restoreUiMove,readHistoricalGameMigrationSource} from './ef02-closure-ui-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
 import {inventory} from './dependency-inventory-v2.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url)),root=resolve(repo,'skyshift');
@@ -37,4 +37,23 @@ test('UI ownership: exact source identities, live module reach and current consu
    }
   }
  }
+});
+
+// The old inverse chain proves historical bytes. Independently verify the actual
+// current game still resolves every migrated UI import, not the archived source.
+test('EF04 live game retains EF02 UI ownership and uses the extracted simulation',()=>{
+ const path=resolve(root,'game-v0210.mjs'),live=readFileSync(path,'utf8');
+ const record=m.records.find(r=>r.path==='skyshift/game-v0210.mjs');
+ assert.ok(record);
+ for(const edit of record.edits){
+  assert.equal(live.split(edit.after).length-1,edit.count,'Current UI consumer '+edit.after);
+  assert.ok(!live.includes(edit.before),'Stale root UI import '+edit.before);
+  const spec=JSON.parse(edit.after);
+  assert.ok(existsSync(resolve(dirname(path),spec)),spec);
+ }
+ assert.match(live,/from ["']\.\/core\/race-simulation\.mjs["']/);
+ assert.match(live,/advanceRaceSimulation\(raceSimulation,rawDt,flight,integrate\)/);
+ assert.ok(inventory().literalBrowserGraph.paths.includes('core/race-simulation.mjs'));
+ // Historical assertions are still evaluated through the original UI inverse.
+ assert.equal(restoreUiMove(live,path),restoreUiMove(readHistoricalGameMigrationSource(),path));
 });

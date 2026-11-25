@@ -8,7 +8,7 @@ import {
  ghostPoseAt,ghostTimeAtDistance,updateGhostDelta,ghostAudit
 } from "../../time-trial-v0130.mjs";
 import {ghostGeometryData,GHOST_VISUAL_0130}
- from "../../ghost-visual-v0130.mjs";
+ from "../../ui/ghost-visual-v0130.mjs";
 function memory(){
  const db=new Map();
  return {db,getItem:k=>db.get(k)??null,setItem:(k,v)=>db.set(k,String(v)),

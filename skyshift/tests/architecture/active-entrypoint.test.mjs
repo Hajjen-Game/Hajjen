@@ -704,3 +704,67 @@ test('shared Time Trial preserves all versioned PB APIs, exact payloads and stor
   for(const [k,v] of before)if(k!==c.storageKey)assert.equal(data.get(k),v);
  }
 });
+
+
+test('shared Power Carve retains legacy parity and protected track presentation',async()=>{
+ const {execFileSync}=await import('node:child_process');
+ const probe=async track=>{
+  const {default:assert}=await import('node:assert/strict');
+  globalThis.location={search:'?track='+track};
+  const old=await import('./racing-experience-v0121.mjs');
+  const current=await import('./racing-experience-v0160.mjs');
+  const {createPowerCarveAPI}=await import('./flight/power-carve.mjs');
+  const aurora=track==='aurora';
+  const config=current.RACING_0121;
+  const shared=createPowerCarveAPI(config,()=>aurora);
+  const a=current.createRacingExperience(),b=shared.createRacingExperience(),legacy=old.createRacingExperience();
+  const step=(m,st,v)=>m.stepRacingExperience(st,1/120,v);
+  const flight={s:0,grounded:true,gripIntensity:.95,steering:.85,yawRate:.7,railContacts:0,elapsed:0};
+  const w=config.precisionWindows[0];
+  assert.equal(current.raceWindowAt(w.start),0);
+  assert.equal(current.raceWindowAt(w.end),-1);
+  assert.equal(current.raceWindowAt(w.start+3400),0);
+  assert.equal(current.raceRhythmAt(1300),aurora?'SWITCHBACK':'LINK');
+  for(let lap=0;lap<2;lap++){
+   for(let i=0;i<100;i++){
+    flight.s=lap*3400+w.start+1+(w.end-w.start-2)*i/100;
+    flight.elapsed+=1/120;
+    const before={...flight};
+    assert.deepEqual(current.observeRacingStep(a,flight,1/120),shared.observeRacingStep(b,flight,1/120));
+    if(!aurora)old.observeRacingStep(legacy,flight,1/120);
+    assert.deepEqual(flight,before);
+   }
+   flight.s=lap*3400+w.end+.1;
+   const award=current.observeRacingStep(a,flight,1/120);
+   assert.deepEqual(award,shared.observeRacingStep(b,flight,1/120));
+   if(!aurora)assert.deepEqual(award,old.observeRacingStep(legacy,flight,1/120));
+   assert.equal(award.id,w.id);
+   assert.equal(award.lap,lap+1);
+  }
+  const v={s:w.start+5,steering:.93,yawRate:.78,gripIntensity:1,speed:95,grounded:true,wall:false,corkscrew:false,playing:true};
+  for(let i=0;i<100;i++){
+   step(current,a,v);step(shared,b,v);if(!aurora)step(old,legacy,v);
+  }
+  assert.ok(a.gripEnergy>.64);
+  assert.ok(Math.abs(a.hullCarve)>.04);
+  for(const protectedView of [{grounded:false},{wall:true},{corkscrew:true}]){
+   for(let i=0;i<180;i++){
+    const frame={...v,...protectedView};
+    step(current,a,frame);step(shared,b,frame);if(!aurora)step(old,legacy,frame);
+   }
+   assert.ok(Math.abs(a.cameraLean)<1e-5);
+   assert.ok(Math.abs(a.hullCarve)<1e-5);
+   assert.ok(a.fovAddition<.003);
+  }
+  const before=current.racingExperienceAudit(a);
+  step(current,a,{...v,playing:false});
+  assert.deepEqual(current.racingExperienceAudit(a),before);
+  assert.deepEqual(a,b);
+  if(!aurora)assert.deepEqual(a,legacy);
+  current.resetRacingExperience(a);
+  assert.deepEqual(a,current.createRacingExperience());
+ };
+ for(const track of ['vault','skyline','aurora']){
+  execFileSync(process.execPath,['--input-type=module','-e','await ('+probe.toString()+')('+JSON.stringify(track)+');'],{cwd:root,timeout:30000,stdio:'pipe'});
+ }
+});

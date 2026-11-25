@@ -1,4 +1,4 @@
-// EF02A: compare actual API outputs to the immutable pre-refactor code.
+// EF02A/EF02J: compare actual API outputs to the immutable pre-refactor code.
 import assert from 'node:assert/strict';
 import {resolve} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
@@ -22,7 +22,7 @@ const mockTHREE={
 };
 const colorAt=s=>({r:(s%17)/17,g:(s%29)/29,b:.6});
 let oldBytes=0,newBytes=0;
-for(const version of ['084','0901','0160']){
+for(const version of ['050','051','060','070','071','072','081','082','083','084','0901','0160']){
  const name='smooth-track-v'+version+'.mjs';
  const old=await load(resolve(before,'skyshift'),name),now=await load(root,name);
  oldBytes+=readFileSync(resolve(before,'skyshift',name)).length;

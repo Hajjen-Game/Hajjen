@@ -236,6 +236,138 @@
           "count": 1
         }
       ]
+    },
+    {
+      "path": "skyshift/game-v0203.mjs",
+      "target": "skyshift/game-v0203.mjs",
+      "sha": "09bf8b1e490ce50d05d6519621b8819a8ca22e05",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0210.mjs",
+      "target": "skyshift/game-v0210.mjs",
+      "sha": "e2c08ae8799f665e4c6651a7e7170509352a89bf",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/grip-trick-audit-v0165.mjs",
+      "target": "skyshift/grip-trick-audit-v0165.mjs",
+      "sha": "4e1e9f6e5f7c745803c1398cffafeb096d842812",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0205.mjs",
+      "target": "skyshift/legacy/game/game-v0205.mjs",
+      "sha": "2f4a1793a0b3d76ca24dd24c0ae5350a660f8fef",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0165.mjs",
+      "target": "skyshift/rail-scrape-sparks-v0165.mjs",
+      "sha": "529b4f56cd607bdbdde8aa9eb7f4f7f1447d23d3",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/straight-only-edge-lighting-v02633.mjs",
+      "target": "skyshift/straight-only-edge-lighting-v02633.mjs",
+      "sha": "9c6571b59a01396c34fb28f6ca3ec309412fbf9c",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/track-physics-parity-probe-v0165.mjs",
+      "target": "skyshift/track-physics-parity-probe-v0165.mjs",
+      "sha": "05fcedaddbad9835a2706a551d0d7ff56bcc566f",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v0165.mjs",
+      "target": "skyshift/tracks/barriers/aero-barrier-v0165.mjs",
+      "sha": "c085b6424e7ee16a472c6891baa7800daba39d58",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tracks/vault/vault-full-lighting-v0273.mjs",
+      "target": "skyshift/tracks/vault/vault-full-lighting-v0273.mjs",
+      "sha": "4e3b68d2dc5a2777e45ba2ce0d7d307f2d6e5276",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tunnel/shared-straight-edge-parity-v02891.mjs",
+      "target": "skyshift/tunnel/shared-straight-edge-parity-v02891.mjs",
+      "sha": "adcdd672cc97ce25325447df1824fbdc00ebe2c9",
+      "edits": [
+        {
+          "before": "\"../trial-v0165.mjs\"",
+          "after": "\"../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/unified-tunnel-lighting-v1.mjs",
+      "target": "skyshift/unified-tunnel-lighting-v1.mjs",
+      "sha": "80af3de254fa762886ab649473d5eeb55a65bbd5",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
     }
   ],
   "rootBefore": 196,

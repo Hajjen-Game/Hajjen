@@ -16,10 +16,10 @@ test('EF02G/EF02J: obsolete rendering sources are absent, exact, syntax-valid an
  assert.equal(new Set(m.files.map(f=>f.path)).size,10);
  assert.equal(readdirSync(resolve(repo,'skyshift'),{withFileTypes:true}).filter(e=>e.isFile()).length,expectedRootFiles);
  const graph=inventory().literalBrowserGraph.paths;
- assert.equal(retirementEF02J.files.length,4);
- assert.equal(retirementEF02J.retiredTests.length,30);
+ assert.equal(retirementEF02J.files.length,5);
+ assert.equal(retirementEF02J.retiredTests.length,32);
  assert.equal(retirementEF02J.retiredTests.filter(f=>f.cohort==='historical-ui-flow').length,10);
- assert.equal(retirementEF02J.retiredTests.filter(f=>f.cohort==='historical-rail-sparks').length,18);
+ assert.equal(retirementEF02J.retiredTests.filter(f=>f.cohort==='historical-rail-sparks').length,20);
  for(const f of retirementEF02J.retiredTests){
   assert.ok(!existsSync(resolve(repo,f.path)),f.path);
   assert.ok(existsSync(resolve(repo,f.replacement)),f.replacement);

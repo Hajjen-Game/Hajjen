@@ -74,7 +74,7 @@ export function retiredHistoricalReader(path){
  const key=asPath(path),entry=retirementEF02J.retiredTests.find(f=>f.path===key&&['historical-ui-flow','historical-rail-sparks'].includes(f.cohort));
  if(!entry)return false;
  if(entry.cohort==='historical-ui-flow')assert.match(key,/^skyshift\/tests\/unit\/ui-flow-v013\d+\.test\.mjs$/);
- else assert.match(key,/^skyshift\/tests\/unit\/rail-scrape-sparks-v(?:011[0-4]|012[01]|013(?:[0-4]|21|4[1-5]))\.test\.mjs$/);
+ else assert.match(key,/^skyshift\/tests\/unit\/rail-scrape-sparks-v(?:0109(?:1)?|011[0-4]|012[01]|013(?:[0-4]|21|4[1-5]))\.test\.mjs$/);
  assert.match(entry.sha,/^[a-f0-9]{40}$/);assert.match(entry.rollbackCommit,/^[a-f0-9]{40}$/);
  assert.ok(entry.bytes>0&&entry.verifiedReplacementHead===entry.rollbackCommit&&entry.verificationRun>0,key);
  assert.equal(entry.replacement,'skyshift/tests/architecture/active-entrypoint.test.mjs');

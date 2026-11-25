@@ -1,6 +1,6 @@
 import {restoreEF02H} from './ef02h-path-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
-import {readHistorical,historicalExists,historicalSyntaxCheck} from './legacy-retirement-l1a.mjs';
+import {readHistorical,historicalExists,historicalSyntaxCheck,retiredHistoricalReader} from './legacy-retirement-l1a.mjs';
 import {restoreR1GGamePaths,restoreR1GBootImport} from './r1g-game-test-path-overlay.mjs';
 // SKYSHIFT R1F — independent immutability, resolved module graph, boot integrity and root count.
 import test from 'node:test';
@@ -41,6 +41,7 @@ test('R1F: 29 historic game versions exactly recover their immutable original Gi
 test('R1F: 25 historical original unit reader blobs invert exactly',()=>{
  assert.equal(manifest.tests.length,25);
  for(const item of manifest.tests){
+  if(retiredHistoricalReader(item.path))continue;
   const source=readFileSync(resolve(repo,item.path),'utf8');
   const restored=restoreR1FGamePaths(restoreR1GGamePaths(restoreEF02H(source,item.path)));
   assert.notEqual(restored,source,'Historical game source read did not rebase '+item.path);

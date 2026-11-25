@@ -427,11 +427,8 @@ jobs:
           node --check skyshift/ships/reactive-wing-flaps-v0108.mjs
           node --check skyshift/tests/unit/reactive-wing-flaps-v0108.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0108.mjs
-          node --check skyshift/rail-scrape-sparks-v0109.mjs
-          node --check skyshift/tests/unit/rail-scrape-sparks-v0109.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0109.mjs
           node --check skyshift/rail-scrape-sparks-v01091.mjs
-          node --check skyshift/tests/unit/rail-scrape-sparks-v01091.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v01091.mjs
           node --check skyshift/core/performance-audit-v0110.mjs
           node --check skyshift/tests/unit/performance-audit-v0110.test.mjs

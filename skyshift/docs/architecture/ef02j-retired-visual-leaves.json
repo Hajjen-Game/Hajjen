@@ -35,6 +35,14 @@
       "readers": [],
       "replacement": "skyshift/ship-hero-loader-v01342.mjs",
       "coverage": "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs"
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0109.mjs",
+      "sha": "6a25f010a3cc4505c82d90c679fcdd2d9296667f",
+      "bytes": 10124,
+      "readers": [],
+      "replacement": "skyshift/rendering/rail-scrape-sparks.mjs",
+      "coverage": "skyshift/tests/architecture/active-entrypoint.test.mjs"
     }
   ],
   "workflow": {
@@ -180,10 +188,22 @@
       {
         "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0132.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0132.test.mjs\n          python3 -m py_compile skyshift/blender/build_stingray_hero.py skyshift/blender/convert_stingray_hero_v2.py skyshift/blender/convert_stingray_hero_v3.py skyshift/blender/convert_stingray_hero_v4.py skyshift/blender/validate_hero_glb.py",
         "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0132.mjs\n          python3 -m py_compile skyshift/blender/build_stingray_hero.py skyshift/blender/convert_stingray_hero_v2.py skyshift/blender/convert_stingray_hero_v3.py skyshift/blender/convert_stingray_hero_v4.py skyshift/blender/validate_hero_glb.py"
+      },
+      {
+        "before": "          node --check skyshift/rail-scrape-sparks-v0109.mjs\n          node --check skyshift/tests/unit/rail-scrape-sparks-v0109.test.mjs\n",
+        "after": "          node --check skyshift/tests/unit/rail-scrape-sparks-v0109.test.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/rail-scrape-sparks-v0109.test.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v0109.mjs\n",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0109.mjs\n"
+      },
+      {
+        "before": "          node --check skyshift/tests/unit/rail-scrape-sparks-v01091.test.mjs\n          node --check skyshift/tests/browser/legacy/browser-smoke-v01091.mjs\n",
+        "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v01091.mjs\n"
       }
     ]
   },
-  "reason": "Census job 138753605310: neither default/comparison graph nor transitive QA literal owners; only historical workflow syntax references and documentation. Current entry uses newer implementations; historical archived game references resolved via existing helper. No active functional commands removed. Second cohort: two superseded loader implementations and two normalized-identical unit suites; replacement current V4 suite retained in PR and postmerge track QA. Actual comparison game, current game and retained v0205 use v01342. Historical source recoverability maintained; test bodies recoverable in exact base commit. Third cohort: ten versioned UI-flow source readers, replaced by verified current entrypoint UI and real time-trial regression coverage. Historic reader identity checks for this explicit retired cohort are superseded, while the original migration manifests and Git blobs remain recoverable. Fourth cohort: 18 normalized-identical historical rail-scrape source readers. Keep v0109 and v01091 pending differing source/import review. No runtime sources removed.",
+  "reason": "Census job 138753605310: neither default/comparison graph nor transitive QA literal owners; only historical workflow syntax references and documentation. Current entry uses newer implementations; historical archived game references resolved via existing helper. No active functional commands removed. Second cohort: two superseded loader implementations and two normalized-identical unit suites; replacement current V4 suite retained in PR and postmerge track QA. Actual comparison game, current game and retained v0205 use v01342. Historical source recoverability maintained; test bodies recoverable in exact base commit. Third cohort: ten versioned UI-flow source readers, replaced by verified current entrypoint UI and real time-trial regression coverage. Historic reader identity checks for this explicit retired cohort are superseded, while the original migration manifests and Git blobs remain recoverable. Fourth cohort: 18 normalized-identical historical rail-scrape source readers. Keep v0109 and v01091 pending differing source/import review. No runtime sources removed. Fifth cohort: retire v0109 and v01091 source-reader tests and superseded v0109 implementation. Keep v01091 adapter and v0161–v0165 adapters for actual track-integrity consumers.",
   "retiredTests": [
     {
       "path": "skyshift/tests/unit/ship-hero-loader-v0133.test.mjs",
@@ -508,6 +528,28 @@
       "verifiedReplacementHead": "0570bc54a148d12cf70fcfccf668a715e56de0fb",
       "verificationRun": 45551373454,
       "reason": "All six behavior bodies identical to v01345, full file identical after normalizing historical entrypoint identifiers; current shared spark implementation and current track sampler tested in verified replacement."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v0109.test.mjs",
+      "sha": "09b065ffaa48fb2bb9eb816a66aa563e3addce0d",
+      "bytes": 8292,
+      "rollbackCommit": "9c9b9f0ebd64f5d17a95bf63591dfbdbd4f38806",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "9c9b9f0ebd64f5d17a95bf63591dfbdbd4f38806",
+      "verificationRun": 45553803286,
+      "reason": "All reusable behavior covered by current shared spark tests; no-flash vertex count superseded by verified shared flash batch. Retire exclusive old implementation."
+    },
+    {
+      "path": "skyshift/tests/unit/rail-scrape-sparks-v01091.test.mjs",
+      "sha": "b423752f5848f4c3a9c0a24a28e1020a918548b8",
+      "bytes": 9795,
+      "rollbackCommit": "9c9b9f0ebd64f5d17a95bf63591dfbdbd4f38806",
+      "replacement": "skyshift/tests/architecture/active-entrypoint.test.mjs",
+      "cohort": "historical-rail-sparks",
+      "verifiedReplacementHead": "9c9b9f0ebd64f5d17a95bf63591dfbdbd4f38806",
+      "verificationRun": 45553803286,
+      "reason": "Behavior bodies identical to retired v01345, only archive-version binding differs. Current module coverage verified. Keep v01091 adapter for retained track-integrity imports."
     }
   ]
 }

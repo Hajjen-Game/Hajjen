@@ -71,7 +71,7 @@ test('R1C all 24 original historical test Git blobs restore exactly (including U
    changed++;
   }
  }
- assert.equal(retired,16,'Explicit EF02J UI and rail-spark cohorts in R1C');
+ assert.equal(retired,18,'Explicit EF02J UI and rail-spark cohorts in R1C');
  assert.ok(changed>=manifest.tests.length-retired,'Every retained historical reader must be updated');
  for(const n of manifest.uiFlowVersions){
   const path='skyshift/tests/unit/ui-flow-v'+n+'.test.mjs';

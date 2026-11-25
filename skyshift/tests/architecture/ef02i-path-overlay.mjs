@@ -1,3 +1,4 @@
+import {restoreDeckMove,deckCurrentPath} from './ef02-closure-deck-overlay.mjs';
 // EF02I: reverse only declared path edits and verify original Git identity.
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
@@ -10,6 +11,7 @@ const ef02j=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef0
 const key=p=>relative(repo,resolve(repo,p)).replaceAll('\\','/');
 const hash=s=>{const b=Buffer.from(s);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');};
 export function restoreEF02I(source,path){
+ source=restoreDeckMove(source,path);
  const k=key(path);
  // EF02J: reconstruct only the three approved material adapters from actual shared source.
  const versions=["corkscrew-spectrum-072","high-leap-spectrum-081","track-rhythm-spectrum-082"];

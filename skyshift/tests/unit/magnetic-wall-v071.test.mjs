@@ -8,7 +8,7 @@ import {CIRCUIT,TRIAL,GAPS,GUARDRAIL,MAX_BANK_RAD,bankAt,bankDegreesAt,
  validateTrial} from "../../trial-v071.mjs";
 import {MAGNETIC_WALL,TRACK_3D,magneticBankAt,elevationAudit}
  from "../../tracks/shared/track-3d-v071.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v071.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v071.mjs";
 import {sampleAeroProfile,AERO_BARRIER,createAeroBarrierData}
  from "../../tracks/barriers/aero-barrier-v071.mjs";
 import {PREMIUM_TRACK} from "../../rendering/legacy/premium-track-v071.mjs";

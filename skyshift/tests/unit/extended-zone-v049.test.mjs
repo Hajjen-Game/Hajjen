@@ -8,7 +8,7 @@ import {
  speedAt,newFlightState,stepFlight,GUARDRAIL,guardrailLateralLimit
 } from "../../trial-v049.mjs";
 import {BOOST_PADS,BOOST_CONFIG} from "../../flight/boost/boost-v049.mjs";
-import {MESH_SPEC,createSmoothDeckData} from "../../smooth-track-v049.mjs";
+import {MESH_SPEC,createSmoothDeckData} from "../../tracks/shared/smooth-track-v049.mjs";
 import {AERO_BARRIER,createAeroBarrierData,createAeroDetailData} from "../../tracks/barriers/aero-barrier-v049.mjs";
 import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,stageAtS} from "../../zone-wave-v049.mjs";
 import {

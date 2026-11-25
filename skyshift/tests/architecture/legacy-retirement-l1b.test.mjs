@@ -1,3 +1,4 @@
+import {restoreDeckMove,deckCurrentPath} from './ef02-closure-deck-overlay.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
@@ -16,7 +17,7 @@ test('L1B: exact Git fixtures, exact reader assertions and no unapproved executa
   assert.equal(sha(readHistorical(resolve(repo,f.path))),f.sha,f.path);
  }
  for(const r of m.readers){
-  const s=readFileSync(resolve(repo,r.path),'utf8');
+  const s=restoreDeckMove(readFileSync(resolve(repo,r.path),'utf8'),r.path);
   const changed='import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";';
   assert.equal(s.split(changed).length,2,r.path);
   assert.equal(sha(s.replace(changed,'import {readFileSync} from "node:fs";')),r.sha,r.path);

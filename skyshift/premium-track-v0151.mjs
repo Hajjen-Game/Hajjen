@@ -6,7 +6,7 @@ import {TRIAL,widthAt} from "./trial-v0151.mjs";
 import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "./zone-wave-v060.mjs";
 import {BOOST_PADS} from "./flight/boost/boost-v0151.mjs";
 import {RHYTHM_GATES_0151} from "./risk-reward-v0151.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "./smooth-track-v0901.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "./tracks/shared/smooth-track-v0901.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
  version:"track-rhythm-diversity-0151",

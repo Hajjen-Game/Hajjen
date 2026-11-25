@@ -1,7 +1,7 @@
 // SKYSHIFT 0.4.3 – one continuous indexed racing surface.
 // Deliberately NO detached 0.8m road quads with independent face normals.
 // Geometry and bank still come from the authoritative trial model.
-import {TRIAL,positionAt,widthAt} from "./trial-v043.mjs";
+import {TRIAL,positionAt,widthAt} from "../../trial-v043.mjs";
 
 export const MESH_SPEC=Object.freeze({
   sampleStep:.45,

@@ -8,7 +8,7 @@ import {
  STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt
 } from "../../flight/steering-authority-v084.mjs";
 import {GRIP_SPEC,initGripState,stepGripState} from "../../flight/precision-grip-v084.mjs";
-import {createSmoothDeckData} from "../../smooth-track-v084.mjs";
+import {createSmoothDeckData} from "../../tracks/shared/smooth-track-v084.mjs";
 import {createAeroBarrierData} from "../../tracks/barriers/aero-barrier-v084.mjs";
 import {
  TRIAL,CIRCUIT,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,

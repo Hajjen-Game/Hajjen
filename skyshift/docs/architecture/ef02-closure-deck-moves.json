@@ -1,0 +1,1543 @@
+{
+  "schemaVersion": 1,
+  "baseCommit": "66dba77df33d67a2766a2adafc0e4ae90d54ee88",
+  "cohort": "retained deck ownership",
+  "moves": [
+    {
+      "path": "skyshift/smooth-track-v0160.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v0160.mjs",
+      "sha": "b259c01853aa1783ed455f09a53b2f9af5153b73",
+      "role": "live-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v043.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v043.mjs",
+      "sha": "4619637c7f85fe2b3480407a31e94af25cc69a30",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v046.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v046.mjs",
+      "sha": "b4e483f39f0e7d74ac3bdb63808978cb74655795",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v049.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v049.mjs",
+      "sha": "a0156d1b6db820a5639a71588869535e53523658",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v050.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v050.mjs",
+      "sha": "00b8fddf083ded89466d66a986dde934a0b373f4",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v051.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v051.mjs",
+      "sha": "0e1da6756b050ce13e3c52921e97850ce4405e60",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v060.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v060.mjs",
+      "sha": "4bb37b0b2f6289644cc5be89b33be5f76419f084",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v070.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v070.mjs",
+      "sha": "0f722ba4fab29c82369e3cf0d8478a39a7614f9c",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v071.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v071.mjs",
+      "sha": "ce75719fd74d89f2404b7a7ac2a93eba68b710bd",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v072.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v072.mjs",
+      "sha": "6748d32389e1740c3b6213554d7802cb3f170a10",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v081.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v081.mjs",
+      "sha": "c1fce536df84a74d27b35896986c55d25e12d644",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v082.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v082.mjs",
+      "sha": "2d9e5edfada3225c5542528eaa3fa9e58150f7ed",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v083.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v083.mjs",
+      "sha": "552f53911cafe7889ec7f72e24bcd1d0331af6d6",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v084.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v084.mjs",
+      "sha": "20bf6be77d024705d9c0fa6ddef2eaaf1f508668",
+      "role": "qa-literal"
+    },
+    {
+      "path": "skyshift/smooth-track-v0901.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v0901.mjs",
+      "sha": "3fe3f986166e39113fca76b4c347986ca39cc959",
+      "role": "live-literal"
+    }
+  ],
+  "records": [
+    {
+      "path": ".github/workflows/skyshift-ef02-deck-parity.yml",
+      "target": ".github/workflows/skyshift-ef02-deck-parity.yml",
+      "sha": "4273466dfc1d9715571188051c681371b7d47972",
+      "edits": [
+        {
+          "before": "skyshift/smooth-track-v0160.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v0160.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v046.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v046.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v049.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v049.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v050.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v050.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v051.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v051.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v060.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v060.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v070.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v070.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v071.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v071.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v072.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v072.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v081.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v081.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v082.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v082.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v083.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v083.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v084.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v0901.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v0901.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/skyshift-tests.yml",
+      "target": ".github/workflows/skyshift-tests.yml",
+      "sha": "e144d1d755c264361278396d7dda5132891ba60d",
+      "edits": [
+        {
+          "before": "skyshift/smooth-track-v0160.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v0160.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v043.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v043.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v046.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v046.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v049.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v049.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v050.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v050.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v051.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v051.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v060.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v060.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v070.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v070.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v071.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v071.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v072.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v072.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v081.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v081.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v082.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v082.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v083.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v083.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v084.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        },
+        {
+          "before": "skyshift/smooth-track-v0901.mjs",
+          "after": "skyshift/tracks/shared/smooth-track-v0901.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0101.mjs",
+      "target": "skyshift/game-v0101.mjs",
+      "sha": "1a0e584fba3e6ad1bcd70b3fe02c38fbd4717140",
+      "edits": [
+        {
+          "before": "./smooth-track-v0901.mjs",
+          "after": "./tracks/shared/smooth-track-v0901.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0103.mjs",
+      "target": "skyshift/game-v0103.mjs",
+      "sha": "51e6dc2bb10aac94635c4ed1c305e1a51b31f053",
+      "edits": [
+        {
+          "before": "./smooth-track-v0901.mjs",
+          "after": "./tracks/shared/smooth-track-v0901.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0203.mjs",
+      "target": "skyshift/game-v0203.mjs",
+      "sha": "cd229d6128a204338dc879fc3920cf0b611d3132",
+      "edits": [
+        {
+          "before": "./smooth-track-v0160.mjs",
+          "after": "./tracks/shared/smooth-track-v0160.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/game-v0210.mjs",
+      "target": "skyshift/game-v0210.mjs",
+      "sha": "cd66ac6bde426091853e892a7fc4167db5505e70",
+      "edits": [
+        {
+          "before": "./smooth-track-v0160.mjs",
+          "after": "./tracks/shared/smooth-track-v0160.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/legacy/game/game-v0205.mjs",
+      "target": "skyshift/legacy/game/game-v0205.mjs",
+      "sha": "0c2cfbec6db638cf87fa57b3474befb098d41898",
+      "edits": [
+        {
+          "before": "../../smooth-track-v0160.mjs",
+          "after": "../../tracks/shared/smooth-track-v0160.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/premium-track-v0150.mjs",
+      "target": "skyshift/premium-track-v0150.mjs",
+      "sha": "efef54ef242fe8f60f4eb30848c6327e73a7209c",
+      "edits": [
+        {
+          "before": "./smooth-track-v0901.mjs",
+          "after": "./tracks/shared/smooth-track-v0901.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/premium-track-v0151.mjs",
+      "target": "skyshift/premium-track-v0151.mjs",
+      "sha": "9c3abe73af5a025ef2c8e147b893a40235281a24",
+      "edits": [
+        {
+          "before": "./smooth-track-v0901.mjs",
+          "after": "./tracks/shared/smooth-track-v0901.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/premium-track-v0160.mjs",
+      "target": "skyshift/premium-track-v0160.mjs",
+      "sha": "477c1960b8999d902c0b8daf055f986dfc4db2f8",
+      "edits": [
+        {
+          "before": "./smooth-track-v0160.mjs",
+          "after": "./tracks/shared/smooth-track-v0160.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/premium-track-v0901.mjs",
+      "target": "skyshift/premium-track-v0901.mjs",
+      "sha": "08ca3519b0896e22c1c4b48c444f1bd0e9d98020",
+      "edits": [
+        {
+          "before": "./smooth-track-v0901.mjs",
+          "after": "./tracks/shared/smooth-track-v0901.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0481.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v0481.mjs",
+      "sha": "08adc34159b4205daa232b6fd2daa4957ac17660",
+      "edits": [
+        {
+          "before": "../../smooth-track-v046.mjs",
+          "after": "../../tracks/shared/smooth-track-v046.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0482.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v0482.mjs",
+      "sha": "559aa812e534ba6af7e41ab62c11678a65b1f8ae",
+      "edits": [
+        {
+          "before": "../../smooth-track-v046.mjs",
+          "after": "../../tracks/shared/smooth-track-v046.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v049.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v049.mjs",
+      "sha": "d7d5e73bc54f452d47307e46557e60babe02740a",
+      "edits": [
+        {
+          "before": "../../smooth-track-v049.mjs",
+          "after": "../../tracks/shared/smooth-track-v049.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0491.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v0491.mjs",
+      "sha": "93998e01fa0cc7c39cc8391ef35fdbd42b253a70",
+      "edits": [
+        {
+          "before": "../../smooth-track-v049.mjs",
+          "after": "../../tracks/shared/smooth-track-v049.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0492.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v0492.mjs",
+      "sha": "64fa6e98e403eff7994e52f2d173b3370d1b784a",
+      "edits": [
+        {
+          "before": "../../smooth-track-v049.mjs",
+          "after": "../../tracks/shared/smooth-track-v049.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0493.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v0493.mjs",
+      "sha": "824188aa97f2bb5efcf7ddc2b25c8d202c45c5e4",
+      "edits": [
+        {
+          "before": "../../smooth-track-v049.mjs",
+          "after": "../../tracks/shared/smooth-track-v049.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0496.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v0496.mjs",
+      "sha": "5bd9318a59d8db9efd3f58dcff07b0f865800152",
+      "edits": [
+        {
+          "before": "../../smooth-track-v049.mjs",
+          "after": "../../tracks/shared/smooth-track-v049.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0498.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v0498.mjs",
+      "sha": "d37d09c32e7315f2b0ea47fa0d1ecf4a77a99db4",
+      "edits": [
+        {
+          "before": "../../smooth-track-v049.mjs",
+          "after": "../../tracks/shared/smooth-track-v049.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v050.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v050.mjs",
+      "sha": "fca92e28587ba214a49a3bd0ca8333a70b2a5a6d",
+      "edits": [
+        {
+          "before": "../../smooth-track-v050.mjs",
+          "after": "../../tracks/shared/smooth-track-v050.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v060.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v060.mjs",
+      "sha": "fa61c30d41aefca9f7160c17918b2ba29a233d12",
+      "edits": [
+        {
+          "before": "../../smooth-track-v060.mjs",
+          "after": "../../tracks/shared/smooth-track-v060.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v070.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v070.mjs",
+      "sha": "5903a61013e3f8d5f1f3df2c1c7228dbbbe030ec",
+      "edits": [
+        {
+          "before": "../../smooth-track-v070.mjs",
+          "after": "../../tracks/shared/smooth-track-v070.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v071.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v071.mjs",
+      "sha": "121ee64f462fb3f3482d052617dc122a16fed96c",
+      "edits": [
+        {
+          "before": "../../smooth-track-v071.mjs",
+          "after": "../../tracks/shared/smooth-track-v071.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v072.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v072.mjs",
+      "sha": "3be2ddd8126b03b20d3073b0b826dfdbf073ebd9",
+      "edits": [
+        {
+          "before": "../../smooth-track-v072.mjs",
+          "after": "../../tracks/shared/smooth-track-v072.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v081.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v081.mjs",
+      "sha": "b55f609b699d133aa64e06d5181fed4f20241516",
+      "edits": [
+        {
+          "before": "../../smooth-track-v081.mjs",
+          "after": "../../tracks/shared/smooth-track-v081.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v082.mjs",
+      "target": "skyshift/rendering/legacy/premium-track-v082.mjs",
+      "sha": "2f8ae5e4035a35736277ae47a434a9e402d93b1f",
+      "edits": [
+        {
+          "before": "../../smooth-track-v082.mjs",
+          "after": "../../tracks/shared/smooth-track-v082.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v0160.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v0160.mjs",
+      "sha": "b259c01853aa1783ed455f09a53b2f9af5153b73",
+      "edits": [
+        {
+          "before": "./trial-v0160.mjs",
+          "after": "../../trial-v0160.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v043.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v043.mjs",
+      "sha": "4619637c7f85fe2b3480407a31e94af25cc69a30",
+      "edits": [
+        {
+          "before": "./trial-v043.mjs",
+          "after": "../../trial-v043.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v046.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v046.mjs",
+      "sha": "b4e483f39f0e7d74ac3bdb63808978cb74655795",
+      "edits": [
+        {
+          "before": "./trial-v046.mjs",
+          "after": "../../trial-v046.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v049.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v049.mjs",
+      "sha": "a0156d1b6db820a5639a71588869535e53523658",
+      "edits": [
+        {
+          "before": "./trial-v049.mjs",
+          "after": "../../trial-v049.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v050.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v050.mjs",
+      "sha": "00b8fddf083ded89466d66a986dde934a0b373f4",
+      "edits": [
+        {
+          "before": "./trial-v050.mjs",
+          "after": "../../trial-v050.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v051.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v051.mjs",
+      "sha": "0e1da6756b050ce13e3c52921e97850ce4405e60",
+      "edits": [
+        {
+          "before": "./trial-v051.mjs",
+          "after": "../../trial-v051.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v060.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v060.mjs",
+      "sha": "4bb37b0b2f6289644cc5be89b33be5f76419f084",
+      "edits": [
+        {
+          "before": "./trial-v060.mjs",
+          "after": "../../trial-v060.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v070.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v070.mjs",
+      "sha": "0f722ba4fab29c82369e3cf0d8478a39a7614f9c",
+      "edits": [
+        {
+          "before": "./trial-v070.mjs",
+          "after": "../../trial-v070.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v071.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v071.mjs",
+      "sha": "ce75719fd74d89f2404b7a7ac2a93eba68b710bd",
+      "edits": [
+        {
+          "before": "./trial-v071.mjs",
+          "after": "../../trial-v071.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v072.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v072.mjs",
+      "sha": "6748d32389e1740c3b6213554d7802cb3f170a10",
+      "edits": [
+        {
+          "before": "./trial-v072.mjs",
+          "after": "../../trial-v072.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v081.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v081.mjs",
+      "sha": "c1fce536df84a74d27b35896986c55d25e12d644",
+      "edits": [
+        {
+          "before": "./trial-v081.mjs",
+          "after": "../../trial-v081.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v082.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v082.mjs",
+      "sha": "2d9e5edfada3225c5542528eaa3fa9e58150f7ed",
+      "edits": [
+        {
+          "before": "./trial-v082.mjs",
+          "after": "../../trial-v082.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v083.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v083.mjs",
+      "sha": "552f53911cafe7889ec7f72e24bcd1d0331af6d6",
+      "edits": [
+        {
+          "before": "./trial-v083.mjs",
+          "after": "../../trial-v083.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v084.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v084.mjs",
+      "sha": "20bf6be77d024705d9c0fa6ddef2eaaf1f508668",
+      "edits": [
+        {
+          "before": "./trial-v084.mjs",
+          "after": "../../trial-v084.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/smooth-track-v0901.mjs",
+      "target": "skyshift/tracks/shared/smooth-track-v0901.mjs",
+      "sha": "3fe3f986166e39113fca76b4c347986ca39cc959",
+      "edits": [
+        {
+          "before": "./trial-v0901.mjs",
+          "after": "../../trial-v0901.mjs",
+          "count": 1
+        },
+        {
+          "before": "./tracks/shared/smooth-deck.mjs",
+          "after": "./smooth-deck.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v010.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v010.mjs",
+      "sha": "c936ca8f5240877305d2ef024384e7cef6e4bb89",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0101.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0101.mjs",
+      "sha": "8da93ef5743df7d5b42b14c77f567a6323a0adb1",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0102.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0102.mjs",
+      "sha": "e2f68bdcedd06d13bd458fff8adce9fb898b5f1d",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0103.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0103.mjs",
+      "sha": "7834fbfccaf83df9be8078507604ad8e2f2f3ac0",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0104.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0104.mjs",
+      "sha": "b616d241d7e97f742cbbc8574d6613e85ac8f5ed",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0105.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0105.mjs",
+      "sha": "8a9ad772dcc65c0c89b1c9eb1d3f2f1d5b125e4a",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0106.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0106.mjs",
+      "sha": "d2c1c561a46ba613794faf46ab4ad061afc5eb46",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0107.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0107.mjs",
+      "sha": "613006d4bfd1562c9b6703d819bd326c70e0cea3",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01071.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v01071.mjs",
+      "sha": "2068cfaf924829e07d02965eaef97fea3101e492",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0108.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0108.mjs",
+      "sha": "ec845507ac991d198b2cb90a7cb19d0ffd51fe62",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0109.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0109.mjs",
+      "sha": "78e6103d13dc6570c8ca29b4bb96eca26e17d724",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01091.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v01091.mjs",
+      "sha": "ffdc27c50eabecc13b4d186db19e97bbfcf54194",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0110.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0110.mjs",
+      "sha": "ef1f221f1841e01f7fa8fae501ce26fa0d630cd1",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0111.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0111.mjs",
+      "sha": "1aba7c7c7bd283e1892fb254807dbc2f60735b57",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0112.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0112.mjs",
+      "sha": "0260b0d3bdafdca8fe1517a24505c7d3033a716e",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0113.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0113.mjs",
+      "sha": "662b59df1d51186248a47f17b8381eb1b6035d89",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0114.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0114.mjs",
+      "sha": "0b147e69520d0cf636426d95c291c3bd8d255c6f",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0120.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0120.mjs",
+      "sha": "f6bfb37d47cd202a63a8e5d1d491767d66aace93",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0121.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0121.mjs",
+      "sha": "fb7bcca7e2fef8e618f4777894d5410d450a020b",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0130.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0130.mjs",
+      "sha": "70ca7d17b9f02ba6cc58a7a9f3aa4e16880f46cb",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0131.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0131.mjs",
+      "sha": "134b55ef124a0ce5c5bcefc12785412b70b6365d",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0132.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0132.mjs",
+      "sha": "5df6843ac400be26434cf71c49b26b9cfc9b6881",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01321.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v01321.mjs",
+      "sha": "dac2c4f8ddf4461ca2687858bf935111637252d6",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0133.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0133.mjs",
+      "sha": "3db74b01eb4028e9d8ff888f86cc4c78fad0020e",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0134.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0134.mjs",
+      "sha": "2dbf406c3dea593b941b92538f97602e379fa6f7",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01341.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v01341.mjs",
+      "sha": "888972e862debd35e10375d7b604a71b9cc914d2",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01342.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v01342.mjs",
+      "sha": "623992d0005225a2549fa6b9562b11902864ec00",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01343.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v01343.mjs",
+      "sha": "3923cd6ce430ef482a5cf134570d6dfdcdde4133",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01344.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v01344.mjs",
+      "sha": "ec9f6b7267e652bbf5f10a9cd1e1a8bb55a1a910",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v070.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v070.mjs",
+      "sha": "db9ad0fcb7d6a4c68d0e1815873bd14567d7d0f2",
+      "edits": [
+        {
+          "before": "./smooth-track-v070.mjs",
+          "after": "./tracks/shared/smooth-track-v070.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v071.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v071.mjs",
+      "sha": "80bbb63bf40eeed1bde137a146592e03c1e11a53",
+      "edits": [
+        {
+          "before": "./smooth-track-v071.mjs",
+          "after": "./tracks/shared/smooth-track-v071.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v072.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v072.mjs",
+      "sha": "85c950bebf354268b15a21a4ecdb549b12c15776",
+      "edits": [
+        {
+          "before": "./smooth-track-v072.mjs",
+          "after": "./tracks/shared/smooth-track-v072.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+      "sha": "863d55e5c71f4d44f16b411f8225510a6b4b12f7",
+      "edits": [
+        {
+          "before": "./smooth-track-v072.mjs",
+          "after": "./tracks/shared/smooth-track-v072.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v081.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v081.mjs",
+      "sha": "e0f64af768e055179e89217b1d973671beed370f",
+      "edits": [
+        {
+          "before": "./smooth-track-v081.mjs",
+          "after": "./tracks/shared/smooth-track-v081.mjs",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v082.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v082.mjs",
+      "sha": "5ddf2144f455a89d4c216f1a7aa05a741a4223f9",
+      "edits": [
+        {
+          "before": "./smooth-track-v082.mjs",
+          "after": "./tracks/shared/smooth-track-v082.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v083.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v083.mjs",
+      "sha": "5c7a9fc0992474e875e41e257b6c3384f92fe040",
+      "edits": [
+        {
+          "before": "./smooth-track-v083.mjs",
+          "after": "./tracks/shared/smooth-track-v083.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v084.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v084.mjs",
+      "sha": "63ce4e0d3145df18041d25f907bec569491cfb63",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v090.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v090.mjs",
+      "sha": "f980f9901398ff86070ec4d63e243b10e54ac9ae",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0901.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0901.mjs",
+      "sha": "0fb277d87c571aab647d1a718fb79439bb448277",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v091.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v091.mjs",
+      "sha": "373f4294871b57db2bacb6312cab49ccd89fd1e1",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v092.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v092.mjs",
+      "sha": "978ea95a6496ab5181496626803aa74695c34eb8",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0921.mjs",
+      "target": "skyshift/tests/browser/legacy/browser-smoke-v0921.mjs",
+      "sha": "fb85d893a40788c5258b73679d7f9bc0c0fd995d",
+      "edits": [
+        {
+          "before": "./smooth-track-v084.mjs",
+          "after": "./tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/circuit-v060.test.mjs",
+      "target": "skyshift/tests/unit/circuit-v060.test.mjs",
+      "sha": "4302d1523be0624665d3199a2cf486be0f3b5669",
+      "edits": [
+        {
+          "before": "../../smooth-track-v060.mjs",
+          "after": "../../tracks/shared/smooth-track-v060.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/corkscrew-v072.test.mjs",
+      "target": "skyshift/tests/unit/corkscrew-v072.test.mjs",
+      "sha": "efc7e990f0e41d5f7425c53ded199fd2254a10bd",
+      "edits": [
+        {
+          "before": "../../smooth-track-v072.mjs",
+          "after": "../../tracks/shared/smooth-track-v072.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/extended-zone-v049.test.mjs",
+      "target": "skyshift/tests/unit/extended-zone-v049.test.mjs",
+      "sha": "dff3d53f3d19d6174749a306e467f5b794eee704",
+      "edits": [
+        {
+          "before": "../../smooth-track-v049.mjs",
+          "after": "../../tracks/shared/smooth-track-v049.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/full-circuit-v050.test.mjs",
+      "target": "skyshift/tests/unit/full-circuit-v050.test.mjs",
+      "sha": "b931470b7b84dc1fa7abff5cced14cc6abd29427",
+      "edits": [
+        {
+          "before": "../../smooth-track-v050.mjs",
+          "after": "../../tracks/shared/smooth-track-v050.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/grip-leap-v081.test.mjs",
+      "target": "skyshift/tests/unit/grip-leap-v081.test.mjs",
+      "sha": "124e2281a34159d35823bb1855ab86e9700e2c00",
+      "edits": [
+        {
+          "before": "../../smooth-track-v081.mjs",
+          "after": "../../tracks/shared/smooth-track-v081.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+      "target": "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+      "sha": "7504f62176dcc1fd5564804132cf7930e39c08f1",
+      "edits": [
+        {
+          "before": "../../smooth-track-v071.mjs",
+          "after": "../../tracks/shared/smooth-track-v071.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+      "target": "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+      "sha": "01f199e21a926883557eb361b5262c66f576de60",
+      "edits": [
+        {
+          "before": "../../smooth-track-v0160.mjs",
+          "after": "../../tracks/shared/smooth-track-v0160.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/premium-track-v0481.test.mjs",
+      "target": "skyshift/tests/unit/premium-track-v0481.test.mjs",
+      "sha": "a820595ef48fc5c595d84ddcc2f35daa6549d1c8",
+      "edits": [
+        {
+          "before": "../../smooth-track-v046.mjs",
+          "after": "../../tracks/shared/smooth-track-v046.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/racing-feel-v083.test.mjs",
+      "target": "skyshift/tests/unit/racing-feel-v083.test.mjs",
+      "sha": "18f7b44b610bd51b444659e2ed9292b16b1314a7",
+      "edits": [
+        {
+          "before": "../../smooth-track-v083.mjs",
+          "after": "../../tracks/shared/smooth-track-v083.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/speed-track-v051.test.mjs",
+      "target": "skyshift/tests/unit/speed-track-v051.test.mjs",
+      "sha": "4fd64926d4ea075eca4edf83c4c1472c63805296",
+      "edits": [
+        {
+          "before": "../../smooth-track-v051.mjs",
+          "after": "../../tracks/shared/smooth-track-v051.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/speed-v043.test.mjs",
+      "target": "skyshift/tests/unit/speed-v043.test.mjs",
+      "sha": "aa406be01efd32b9fdf1ea6164185a4782e39f59",
+      "edits": [
+        {
+          "before": "../../smooth-track-v043.mjs",
+          "after": "../../tracks/shared/smooth-track-v043.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/steering-authority-v084.test.mjs",
+      "target": "skyshift/tests/unit/steering-authority-v084.test.mjs",
+      "sha": "7b49ce8b3b0c8db60056e5e67d50d874950f567c",
+      "edits": [
+        {
+          "before": "../../smooth-track-v084.mjs",
+          "after": "../../tracks/shared/smooth-track-v084.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-3d-v070.test.mjs",
+      "target": "skyshift/tests/unit/track-3d-v070.test.mjs",
+      "sha": "2d7ba07ad32d364f809df393221924ab5043d882",
+      "edits": [
+        {
+          "before": "../../smooth-track-v070.mjs",
+          "after": "../../tracks/shared/smooth-track-v070.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-flow-v046.test.mjs",
+      "target": "skyshift/tests/unit/track-flow-v046.test.mjs",
+      "sha": "6e90871695bd5f84c61c173e92ca9653d80d825e",
+      "edits": [
+        {
+          "before": "../../smooth-track-v046.mjs",
+          "after": "../../tracks/shared/smooth-track-v046.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+      "sha": "0ad560ae4b2455b49667c3ae04a9505996d3b385",
+      "edits": [
+        {
+          "before": "../../smooth-track-v0160.mjs",
+          "after": "../../tracks/shared/smooth-track-v0160.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+      "sha": "ebf27cd5c07fd043f90076fb713613869d648822",
+      "edits": [
+        {
+          "before": "../../smooth-track-v0160.mjs",
+          "after": "../../tracks/shared/smooth-track-v0160.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+      "sha": "b3b9f35809762bab925ca9c3e50c0b998647f85e",
+      "edits": [
+        {
+          "before": "../../smooth-track-v0160.mjs",
+          "after": "../../tracks/shared/smooth-track-v0160.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+      "sha": "7637caa816ec4767a62037fdf7808b0dc55cfa42",
+      "edits": [
+        {
+          "before": "../../smooth-track-v0160.mjs",
+          "after": "../../tracks/shared/smooth-track-v0160.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "sha": "f5ecf036bae39b444eac3d423c970f07613c2557",
+      "edits": [
+        {
+          "before": "../../smooth-track-v0160.mjs",
+          "after": "../../tracks/shared/smooth-track-v0160.mjs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+      "target": "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+      "sha": "7d756f1201041763199bfae38be68be45d910f21",
+      "edits": [
+        {
+          "before": "../../smooth-track-v082.mjs",
+          "after": "../../tracks/shared/smooth-track-v082.mjs",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "rootBefore": 215,
+  "rootAfter": 200,
+  "preflightJob": 139246742301
+}

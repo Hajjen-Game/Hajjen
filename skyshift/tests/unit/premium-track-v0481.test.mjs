@@ -9,7 +9,7 @@ import {
 } from "../../rendering/legacy/premium-track-v0481.mjs";
 import {BOOST_PADS,BOOST_CONFIG} from "../../flight/boost/boost-v048.mjs";
 import {TRIAL,widthAt,positionAt,newFlightState,stepFlight} from "../../trial-v048.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v046.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v046.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,tolerance=1e-6)=>assert.ok(Math.abs(a-b)<tolerance,
  `expected ${a} near ${b}`);

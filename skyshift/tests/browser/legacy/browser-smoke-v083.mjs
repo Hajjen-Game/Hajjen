@@ -39,7 +39,7 @@ try{
  // REAL production ESM, not reimplemented geometry or an image-only fake.
  const physical=await page.evaluate(async()=>{
   const [m,road,rail,cinema,boost]=await Promise.all([
-   import("./trial-v083.mjs"),import("./smooth-track-v083.mjs"),
+   import("./trial-v083.mjs"),import("./tracks/shared/smooth-track-v083.mjs"),
    import("./tracks/barriers/aero-barrier-v083.mjs"),import("./cinematic-v083.mjs"),
    import("./flight/boost/boost-v082.mjs")]);
   const corner=m.COURSE_SEGMENTS.find(x=>x.id==="high-speed-sweep");

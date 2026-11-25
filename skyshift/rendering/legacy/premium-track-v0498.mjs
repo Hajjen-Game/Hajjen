@@ -5,7 +5,7 @@
 import {TRIAL,widthAt} from "../../trial-v049.mjs";
 import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v0493.mjs";
 import {BOOST_PADS} from "../../flight/boost/boost-v0494.mjs";
-import {createSmoothDeckData,MESH_SPEC} from "../../smooth-track-v049.mjs";
+import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v049.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
  version:"zone-spectral-clarity-pbr-0498",

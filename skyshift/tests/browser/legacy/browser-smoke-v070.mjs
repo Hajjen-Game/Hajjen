@@ -313,7 +313,7 @@ try{
  const skylineLeap=await page.evaluate(async()=>{
   const [trial,terrain,deck,rails,cinema]=await Promise.all([
    import("./trial-v070.mjs"),import("./tracks/shared/track-3d-v070.mjs"),
-   import("./smooth-track-v070.mjs"),import("./tracks/barriers/aero-barrier-v070.mjs"),
+   import("./tracks/shared/smooth-track-v070.mjs"),import("./tracks/barriers/aero-barrier-v070.mjs"),
    import("./cinematic-v070.mjs")]);
   const mesh=deck.createSmoothDeckData(),barrier=rails.createAeroBarrierData();
   const fullQuads=(mesh.rows-1)*(mesh.cols-1)*2;

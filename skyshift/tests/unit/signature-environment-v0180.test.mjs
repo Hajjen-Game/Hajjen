@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
-import {CIRCUIT,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW} from "../../trial-v0165.mjs";
+import {CIRCUIT,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW} from "../../tracks/trials/trial-v0165.mjs";
 import {SIGNATURE_ENV_0180,signatureArchitecturePlan}
  from "../../signature-environment-v0180.mjs";
 const src=path=>readFileSync(new URL("../../"+path,import.meta.url),"utf8");
@@ -54,7 +54,7 @@ test("Environment is Skyline-only; Aurora stays physically and visually intact",
 });
 test("Production uses original shared 120Hz steering, GRIP and camera",()=>{
  const game=src("./legacy/game/game-v0180.mjs"),html=src("./index.html");
- assert.match(game,/from "\.\.\/\.\.\/trial-v0165\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/tracks\/trials\/trial-v0165\.mjs"/);
  assert.match(game,/from "\.\.\/\.\.\/flight\/unified-flight-v0165\.mjs"/);
  assert.match(game,/from "\.\.\/\.\.\/flight\/cinematic-v0165\.mjs"/);
  assert.match(game,/from "\.\.\/\.\.\/signature-environment-v0180\.mjs"/);

@@ -6,7 +6,7 @@ import {ORBITAL_HERO_0192,heroArchitecturePlan,retiredPrimitiveStation}
  from "../../orbital-hero-v0192.mjs";
 import {worldArchitecturePlan} from "../../world-rebuild-v0190.mjs";
 import {TRIAL,SKYLINE_LEAP,MAGNETIC_WALL}
- from "../../trial-v0165.mjs";
+ from "../../tracks/trials/trial-v0165.mjs";
 const src=file=>readFileSync(new URL("../../"+file,import.meta.url),"utf8");
 test("one authored hero station between the Skyline launch and the leap",()=>{
  const h=ORBITAL_HERO_0192;

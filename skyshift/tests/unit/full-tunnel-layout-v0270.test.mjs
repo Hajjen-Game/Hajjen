@@ -13,7 +13,7 @@ function subTrack(track){
   "const [sel,c,t]=await Promise.all([",
   "import('./skyshift/tracks/shared/track-selection-v0160.mjs'),",
   "import('./skyshift/tracks/shared/circuit-layout-v0160.mjs'),",
-  "import('./skyshift/trial-v0165.mjs')]);",
+  "import('./skyshift/tracks/trials/trial-v0165.mjs')]);",
   "const {CIRCUIT,COURSE_SEGMENTS}=c;",
   "const {poseAt,headingAt,bankAt,elevationAudit,TRIAL,GAPS,GRIP_APEX,LOOP_CLOSURE_ERROR_METERS,widthAt}=t;",
   "const a=poseAt(0),b=poseAt(3400);",

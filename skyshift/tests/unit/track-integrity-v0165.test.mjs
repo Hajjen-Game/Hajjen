@@ -8,7 +8,7 @@ const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,r
  await Promise.all([
  import("../../tracks/shared/track-selection-v0160.mjs"),
  import("../../tracks/shared/circuit-layout-v0160.mjs"),
- import("../../trial-v0165.mjs"),
+ import("../../tracks/trials/trial-v0165.mjs"),
  import("../../tracks/shared/track-3d-v0160.mjs"),
  import("../../risk-reward-v0160.mjs"),
  import("../../flight/boost/boost-v0160.mjs"),

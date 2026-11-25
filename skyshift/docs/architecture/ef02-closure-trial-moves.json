@@ -512,6 +512,165 @@
           "count": 1
         }
       ]
+    },
+    {
+      "path": "skyshift/tests/unit/full-tunnel-layout-v0270.test.mjs",
+      "target": "skyshift/tests/unit/full-tunnel-layout-v0270.test.mjs",
+      "sha": "a9a9a5391e03af74fa6b56a084504098ffbbde9e",
+      "edits": [
+        {
+          "before": "'./skyshift/trial-v0165.mjs'",
+          "after": "'./skyshift/tracks/trials/trial-v0165.mjs'",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+      "target": "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+      "sha": "ea46195cafa6691c60a7dc271909d1d8c3a0be8a",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/orbital-hero-v0192.test.mjs",
+      "target": "skyshift/tests/unit/orbital-hero-v0192.test.mjs",
+      "sha": "81f93c2395696c0cfef5e9c4852789cbfd59ee8f",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/rail-body-containment-v02124.test.mjs",
+      "target": "skyshift/tests/unit/rail-body-containment-v02124.test.mjs",
+      "sha": "5a8a26517dfafd1345180ebb8633973693c94a86",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/shared-straight-edge-parity-v02891.test.mjs",
+      "target": "skyshift/tests/unit/shared-straight-edge-parity-v02891.test.mjs",
+      "sha": "545dd250a5b86681cfd611d83072e99503cd7e70",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/signature-environment-v0180.test.mjs",
+      "target": "skyshift/tests/unit/signature-environment-v0180.test.mjs",
+      "sha": "6714888a71debce43a513d4e885f817af84bb7dd",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"\\.\\.\\/\\.\\.\\/trial-v0165\\.mjs\"",
+          "after": "from \"\\.\\.\\/\\.\\.\\/tracks\\/trials\\/trial-v0165\\.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/startup-source-frame-v02897.test.mjs",
+      "target": "skyshift/tests/unit/startup-source-frame-v02897.test.mjs",
+      "sha": "b107b6a1f912bd5b65ad5718bb3282b34599b273",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/straight-only-edge-lighting-v02633.test.mjs",
+      "target": "skyshift/tests/unit/straight-only-edge-lighting-v02633.test.mjs",
+      "sha": "f98e6d40286ae19a3f89d347d2331212659feef7",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "target": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "sha": "b16f26b66c4111ffc181c1b640f4abeb6a8f835b",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+      "target": "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+      "sha": "18e49cb2b9c0feca2510fc521dad427e293b7669",
+      "edits": [
+        {
+          "before": "\"./trial-v0165.mjs\"",
+          "after": "\"./tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"\\.\\.\\/\\.\\.\\/trial-v0165\\.mjs\"",
+          "after": "from \"\\.\\.\\/\\.\\.\\/tracks\\/trials\\/trial-v0165\\.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/unified-tunnel-lighting-v1.test.mjs",
+      "target": "skyshift/tests/unit/unified-tunnel-lighting-v1.test.mjs",
+      "sha": "17044a0d2aae3d6e1fc029a8a4d4614bd7936679",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/world-rebuild-v0190.test.mjs",
+      "target": "skyshift/tests/unit/world-rebuild-v0190.test.mjs",
+      "sha": "45a97d1504872758cca348a68c6cf3f1b9c0520b",
+      "edits": [
+        {
+          "before": "\"../../trial-v0165.mjs\"",
+          "after": "\"../../tracks/trials/trial-v0165.mjs\"",
+          "count": 1
+        },
+        {
+          "before": "from \"\\.\\.\\/\\.\\.\\/trial-v0165\\.mjs\"",
+          "after": "from \"\\.\\.\\/\\.\\.\\/tracks\\/trials\\/trial-v0165\\.mjs\"",
+          "count": 1
+        }
+      ]
     }
   ],
   "rootBefore": 196,

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {CIRCUIT} from "../../trial-v0165.mjs";
+import {CIRCUIT} from "../../tracks/trials/trial-v0165.mjs";
 import {SHADOW_TUNNEL,tunnelIntensityAt} from "../../shadow-tunnel-v0160.mjs";
 import {blackoutLevelsAt,createTunnelBlackoutController} from "../../tunnel-blackout-v0160.mjs";
 import {UNIFIED_TUNNEL_LIGHTING_1,neonGalleryMaskAt,unifiedTunnelLevelsAt,

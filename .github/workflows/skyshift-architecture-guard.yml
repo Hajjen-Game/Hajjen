@@ -28,19 +28,13 @@ jobs:
         run: | 
           node --test skyshift/tests/architecture/active-entrypoint.test.mjs
           node --test skyshift/tests/architecture/release-archive-integrity.test.mjs
+      - name: Validate current test dependencies and workflow paths
+        run: node --test skyshift/tests/architecture/current-unit-dependency-integrity.test.mjs
       - name: Run relocated early flight/fullscreen unit tests
         run: node --test skyshift/tests/unit/fullscreen-v02.test.mjs skyshift/tests/unit/trial-v02.test.mjs skyshift/tests/unit/trial-v03.test.mjs
-      - name: Prove migrated unit-test assertions are byte-identical
-        run: node --test skyshift/tests/architecture/unit-migration-integrity.test.mjs
-      - name: Run all 10 newly relocated unit tests
+      - name: Run retained unit regressions
         run: |
-          node --test skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/ship-hero-loader-v0133.test.mjs skyshift/tests/unit/ship-hero-loader-v0134.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs skyshift/tests/unit/track.test.mjs
-      - name: Verify 60 byte-identical migrated test assertions and no stale paths
-        run: node --test skyshift/tests/architecture/bulk-unit-migration-integrity.test.mjs
-      - name: Audit 125 safely relocated stage-7 unit tests and workflow paths
-        run: node --test skyshift/tests/architecture/stage7-unit-migration-integrity.test.mjs
-      - name: Audit final 12 formerly protected tests, historical source parity and subprocess probes
-        run: node --test skyshift/tests/architecture/stage8-unit-migration-integrity.test.mjs
+          node --test skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs skyshift/tests/unit/track.test.mjs
       - name: Validate CI 2.0 change classifier and fail-safe cases
         run: node --test skyshift/tests/architecture/ci-change-scope-v2.test.mjs
       - name: Audit 42 byte-identical browser QA runners and updated workflow paths
@@ -104,7 +98,7 @@ jobs:
       - name: Inventory next large root subsystem relocation cohort (read-only)
         run: node skyshift/tests/architecture/root-subsystem-relocation-plan.mjs
       - name: Run exact post-merge track logic unit suite before merge
-        run: node --test skyshift/tests/unit/environment-art-pipeline-v0205.test.mjs skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs skyshift/tests/unit/orbital-hero-v0192.test.mjs skyshift/tests/unit/world-rebuild-v0190.test.mjs skyshift/tests/unit/signature-environment-v0180.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/track.test.mjs skyshift/tests/unit/trial-v02.test.mjs skyshift/tests/unit/handling-fairness-v0135.test.mjs skyshift/tests/unit/track-integrity-v0165.test.mjs skyshift/tests/unit/track-physics-parity-v0165.test.mjs skyshift/tests/unit/grip-trick-lock-v0165.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/ship-hero-loader-v0134.test.mjs skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs skyshift/tests/unit/time-trial-v0130.test.mjs skyshift/tests/unit/racing-experience-v0120.test.mjs skyshift/tests/unit/racing-experience-v0121.test.mjs skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs
+        run: node --test skyshift/tests/unit/environment-art-pipeline-v0205.test.mjs skyshift/tests/unit/environment-art-pipeline-v02041.test.mjs skyshift/tests/unit/environment-art-pipeline-v0204.test.mjs skyshift/tests/unit/environment-art-pipeline-v0203.test.mjs skyshift/tests/unit/environment-art-pipeline-v02021.test.mjs skyshift/tests/unit/environment-art-pipeline-v0202.test.mjs skyshift/tests/unit/environment-art-pipeline-v0201.test.mjs skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs skyshift/tests/unit/orbital-hero-v0192.test.mjs skyshift/tests/unit/world-rebuild-v0190.test.mjs skyshift/tests/unit/signature-environment-v0180.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/track.test.mjs skyshift/tests/unit/trial-v02.test.mjs skyshift/tests/unit/handling-fairness-v0135.test.mjs skyshift/tests/unit/track-integrity-v0165.test.mjs skyshift/tests/unit/track-physics-parity-v0165.test.mjs skyshift/tests/unit/grip-trick-lock-v0165.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs skyshift/tests/unit/time-trial-v0130.test.mjs skyshift/tests/unit/racing-experience-v0120.test.mjs skyshift/tests/unit/racing-experience-v0121.test.mjs skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs
       - name: Syntax-check the migrated historical test collection without changing its original assertions
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done
@@ -123,3 +117,4 @@ jobs:
 
       - name: EF02I verify historical rendering ownership and exact path parity
         run: node --test skyshift/tests/architecture/ef02i-legacy-rendering-ownership.test.mjs
+

@@ -6,10 +6,21 @@ import {resolve,relative} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
 export const ef02iManifest=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef02i-legacy-rendering-ownership.json'),'utf8'));
+const ef02j=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef02j-retired-visual-leaves.json'),'utf8'));
 const key=p=>relative(repo,resolve(repo,p)).replaceAll('\\','/');
 const hash=s=>{const b=Buffer.from(s);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');};
 export function restoreEF02I(source,path){
- const k=key(path),e=ef02iManifest.consumers.find(x=>x.path===k)||ef02iManifest.moves.find(x=>x.newPath===k);
+ const k=key(path);
+ if(k===ef02j.workflow.path){
+  // Only reconstruct the two archived syntax-only commands for historical hash evidence.
+  for(const x of [...ef02j.workflow.edits].reverse()){
+   assert.equal(source.split(x.after).length-1,1,k+' EF02J anchor');
+   assert.ok(!source.includes(x.before),k+' stale EF02J command');
+   source=source.replace(x.after,x.before);
+  }
+  assert.equal(hash(source),ef02j.workflow.sha,k+' EF02J workflow inverse');
+ }
+ const e=ef02iManifest.consumers.find(x=>x.path===k)||ef02iManifest.moves.find(x=>x.newPath===k);
  if(!e)return source;
  let s=source;
  for(const x of [...e.edits].reverse()){

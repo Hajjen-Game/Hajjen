@@ -100,7 +100,7 @@ for(const [owner,list] of edits){
   inverse=inverse.slice(0,e.start)+e.before+inverse.slice(e.start+e.after.length);
  }
  assert.equal(inverse,before,owner+' exact inverse');
- const b=Buffer.from(before);assert.equal(createHash('sha1').update('blob '+b.length+'\\0').update(b).digest('hex'),shaByPath.get(owner),owner+' pinned identity');
+ const b=Buffer.from(before);assert.equal(createHash('sha1').update(Buffer.from('blob '+b.length,'utf8')).update(Buffer.from([0])).update(b).digest('hex'),shaByPath.get(owner),owner+' pinned identity');
  proposed.push({owner,target:map.get(owner)||owner,edits:verified});
 }
 for(const x of manifest.candidateGroup){

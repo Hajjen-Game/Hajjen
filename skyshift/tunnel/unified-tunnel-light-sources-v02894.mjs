@@ -10,7 +10,7 @@ import {createSharedSourceSampler0282}
 import {vaultStraightMask02891}
  from "./shared-straight-edge-parity-v02891.mjs";
 import {railLipPosition02632,railBayWeight02632}
- from "../edge-source-floor-bands-v02632.mjs";
+ from "./edge-source-floor-bands-v02632.mjs";
 import {ZONE_PALETTES}
  from "../zone-wave-v060.mjs";
 

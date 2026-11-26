@@ -13,7 +13,7 @@ import {installTrueMetalPBRShader}
 import {installLocalStripShader0261}
  from "../../rendering/local-reflections-v0261p1.mjs";
 import {patchPhysicalWall0265}
- from "../../true-rail-wall-response-v0265.mjs";
+ from "../../tunnel/true-rail-wall-response-v0265.mjs";
 import {vaultCrossSection0270}
  from "./full-tunnel-circuit-v0270.mjs";
 import {widthAt} from "../../tracks/trials/trial-v0165.mjs";

@@ -12,7 +12,7 @@
 import {TUNNEL_PORTALS_0211,tunnelProfilePoint0211}
  from "../tunnel-megastructure-v0211.mjs";
 import {floorY02631}
- from "../edge-lighting-floor-pools-v02631.mjs";
+ from "./edge-lighting-floor-pools-v02631.mjs";
 
 export const ARCH_FOOT_0287=Object.freeze({
  version:"0.28.7",name:"Arch Foot Light Assembly & Corner Signature",

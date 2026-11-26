@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {VELOCITY_CINEMA_0220_P3,VELOCITY_SHADER_0220_P3,
  velocityCinemaIntensity,installVelocityCinematography}
- from "../../velocity-cinematography-v0220p3.mjs";
+ from "../../rendering/velocity-cinematography-v0220p3.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 test("real speed and boost control optional blur, pause never smears",()=>{
  assert.equal(velocityCinemaIntensity({playing:false,speedMultiplier:4,boostMultiplier:1.4}),0);

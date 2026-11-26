@@ -5,7 +5,7 @@
 // graphite grain, broad interlocking panel seams and restrained COLOR-only
 // reflection pockets near the outside shoulders. No floating decals, texture
 // uploads, extra draw calls, dynamic lights or new post-processing.
-import {TUNNEL_PORTALS_0211} from "./tunnel-megastructure-v0211.mjs";
+import {TUNNEL_PORTALS_0211} from "../tunnel-megastructure-v0211.mjs";
 
 export const PREMIUM_ROAD_SURFACE_0215=Object.freeze({
  version:"0.21.5",id:"premium-road-surface-0215",

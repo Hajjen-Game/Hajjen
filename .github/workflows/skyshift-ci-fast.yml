@@ -67,21 +67,21 @@ jobs:
           node --check skyshift/boot-v0210.js
           node --check skyshift/rendering/dual-tone-lighting-v0260.mjs
           node --check skyshift/tests/browser/browser-dual-tone-lighting-v0260.mjs
-          node --check skyshift/unified-tunnel-lighting-v1.mjs
+          node --check skyshift/tunnel/unified-tunnel-lighting-v1.mjs
           node --check skyshift/tests/browser/browser-unified-tunnel-lighting-v1.mjs
-          node --check skyshift/cinematic-road-rebuild-v0263.mjs
-          node --check skyshift/edge-lighting-floor-pools-v02631.mjs
-          node --check skyshift/edge-source-floor-bands-v02632.mjs
-          node --check skyshift/straight-only-edge-lighting-v02633.mjs
+          node --check skyshift/rendering/cinematic-road-rebuild-v0263.mjs
+          node --check skyshift/tunnel/edge-lighting-floor-pools-v02631.mjs
+          node --check skyshift/tunnel/edge-source-floor-bands-v02632.mjs
+          node --check skyshift/tunnel/straight-only-edge-lighting-v02633.mjs
           node --check skyshift/rendering/final-cohesion-v0264.mjs
           node --check skyshift/rendering/unified-metal-light-response-v02641.mjs
           node --check skyshift/rendering/reflection-cohesion-v02642.mjs
           node --check skyshift/rendering/unified-fixture-transport-v02643.mjs
-          node --check skyshift/true-rail-wall-response-v0265.mjs
+          node --check skyshift/tunnel/true-rail-wall-response-v0265.mjs
           node --check skyshift/tests/browser/browser-rail-wall-v0265.mjs
           node --check skyshift/tracks/vault/full-tunnel-layout-v0270.mjs
           node --check skyshift/tracks/vault/full-tunnel-circuit-v0270.mjs
-          node --check skyshift/full-tunnel-light-seal-v0270.mjs
+          node --check skyshift/tunnel/full-tunnel-light-seal-v0270.mjs
           node --check skyshift/tests/browser/browser-full-tunnel-v0270.mjs
           node --check skyshift/tracks/vault/vault-material-parity-v0271.mjs
           node --check skyshift/tests/browser/browser-vault-material-v0271.mjs

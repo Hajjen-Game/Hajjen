@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {CINEMATIC_NEON_0220_P2,buildTunnelNeonLocalData,
- patchCinematicNeonShader} from "../../cinematic-neon-lighting-v0220p2.mjs";
+ patchCinematicNeonShader} from "../../rendering/cinematic-neon-lighting-v0220p2.mjs";
 import {patchPremiumMaterialShader} from "../../rendering/premium-material-rebirth-v0220.mjs";
 import {TUNNEL_PORTALS_0211} from "../../tunnel-megastructure-v0211.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");

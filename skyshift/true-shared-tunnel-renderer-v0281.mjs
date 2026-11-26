@@ -22,9 +22,9 @@ import {wrapFinishShader02642}
 import {wrapFixtureMaterial02643}
  from "./rendering/unified-fixture-transport-v02643.mjs";
 import {wrapShader0265}
- from "./true-rail-wall-response-v0265.mjs";
+ from "./tunnel/true-rail-wall-response-v0265.mjs";
 import {createLowerEdgeSources02632,createConnectedFootBands02632}
- from "./edge-source-floor-bands-v02632.mjs";
+ from "./tunnel/edge-source-floor-bands-v02632.mjs";
 import {coveWaveEnabled02895,installWaveCoupledCove02895}
  from "./tunnel/road-spill-wave-coves-v02895.mjs";
 import {archOpticsEnabled02893,installArchSourceOptics02893}

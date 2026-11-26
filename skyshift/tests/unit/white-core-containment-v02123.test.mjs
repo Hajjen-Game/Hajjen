@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {WHITE_CORE_02123,whiteCoreTunnelMask,patchRoadWhiteCore,
- createWhiteCoreContainment} from "../../white-core-containment-v02123.mjs";
+ createWhiteCoreContainment} from "../../rendering/white-core-containment-v02123.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const shader=()=>({
  uniforms:{},

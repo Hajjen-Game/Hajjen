@@ -5,7 +5,7 @@ import {SHARED_LIGHT_0282,createSharedSourceSampler0282,
  installSharedRoadReflections0282,installSharedShipLight0282}
  from "../../tunnel/shared-road-ship-light-v0282.mjs";
 import {patchCinematicRoadRebuild0263}
- from "../../cinematic-road-rebuild-v0263.mjs";
+ from "../../rendering/cinematic-road-rebuild-v0263.mjs";
 const sample=(s,x,y)=>({x,y,z:s});
 test("source fixtures really repeat from original Skyline renderer at 10 Vault banks",()=>{
  const sampler=createSharedSourceSampler0282(sample,3400);
@@ -77,7 +77,7 @@ test("non-Vault and classic paths are inert and cannot alter Skyline",()=>{
  assert.throws(()=>createSharedSourceSampler0282(sample,0),/needs/);
 });
 
-import {roadSectionMaskExpressionEF05} from "../../cinematic-road-rebuild-v0263.mjs";
+import {roadSectionMaskExpressionEF05} from "../../rendering/cinematic-road-rebuild-v0263.mjs";
 import {planConfiguredTunnelModules0281} from "../../true-shared-tunnel-renderer-v0281.mjs";
 test("EF05 shared GGX road seals only actual tunnel intervals, preserves exterior and full-course shader",()=>{
  const vertex="#include <common>\n#include <project_vertex>";

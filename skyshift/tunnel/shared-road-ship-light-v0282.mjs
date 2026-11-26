@@ -7,7 +7,7 @@ import {planTrueSharedTunnel0281,adaptSourcePosition0281}
  from "../true-shared-tunnel-renderer-v0281.mjs";
 import {nearestRoadFixtures0263,fixturePosition0263,
  installCinematicRoadRebuildShader0263}
- from "../cinematic-road-rebuild-v0263.mjs";
+ from "../rendering/cinematic-road-rebuild-v0263.mjs";
 
 export const SHARED_LIGHT_0282=Object.freeze({
  version:"0.28.2",title:"Shared Road Reflections & Ship Light Response",

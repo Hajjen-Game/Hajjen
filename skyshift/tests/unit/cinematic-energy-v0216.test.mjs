@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {CINEMATIC_ENERGY_0216,cinematicEnergyFrame,
  patchCinematicFlowFragment,patchCinematicRoadFragment,bindCinematicEnergyMaterials}
- from "../../cinematic-energy-v0216.mjs";
+ from "../../rendering/cinematic-energy-v0216.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const glowShader=[
  "#include <common>",

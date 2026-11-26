@@ -6,7 +6,7 @@ import {execFileSync} from 'node:child_process';
 import {resolve,dirname,relative,basename,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {inventory} from './dependency-inventory-v2.mjs';
-import {expectedRootPaths} from './root-count-contract.mjs';
+import {expectedRootPaths,rootRelocations} from './root-count-contract.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
 const root=resolve(repo,'skyshift');
 const json=p=>JSON.parse(readFileSync(resolve(repo,p),'utf8'));
@@ -67,10 +67,21 @@ test('live and explicit material comparison entries resolve their actual modules
  const app=readFileSync(resolve(root,'game-v0210.mjs'),'utf8');
  assert.match(app,/advanceRaceSimulation\(raceSimulation,rawDt,flight,integrate\)/);
 });
+test('reviewed live root relocations have a single tracked owner and remain in the current source graph',()=>{
+ for(const f of rootRelocations.moves){
+  assert.ok(!tracked.has(f.oldPath)&&!existsSync(resolve(repo,f.oldPath)),f.oldPath+' duplicate or stale root');
+  assert.ok(tracked.has(f.newPath)&&existsSync(resolve(repo,f.newPath)),f.newPath+' missing owner');
+  assert.ok(graph.has(f.newPath),f.newPath+' no longer reachable');
+ }
+ for(const p of paths.filter(p=>p.startsWith('.github/workflows/')&&/\.ya?ml$/.test(p))){
+  const s=readFileSync(resolve(repo,p),'utf8');
+  for(const f of rootRelocations.moves)assert.ok(!s.includes(f.oldPath),p+' stale relocated target '+f.oldPath);
+ }
+});
 test('root ownership progresses without resurrecting old root files',()=>{
  const old=new Set(baseline.entries.map(f=>f.path));
  const roots=paths.filter(p=>/^skyshift\/[^/]+$/.test(p));
  for(const p of roots)assert.ok(old.has(p),p+' new root path requires explicit hosting or compatibility decision');
  assert.deepEqual(roots.sort(),expectedRootPaths,'Root paths must match independently reviewed retirements, not merely a count');
- console.log('SKYSHIFT_EF08_CURRENT_CONTRACTS '+JSON.stringify({rootFiles:roots.length,retiredRootFiles:cohort.roots.length,retiredUnitFiles:cohort.unitTests.length,retiredMigrationFiles:cohort.architectureTests.length,retiredBrowserFiles:(cohort.browserTests||[]).length,retiredBytes:retired.reduce((n,f)=>n+f.bytes,0),liveGraph:graph.size}));
+ console.log('SKYSHIFT_EF08_CURRENT_CONTRACTS '+JSON.stringify({rootFiles:roots.length,retiredRootFiles:cohort.roots.length,relocatedRootFiles:rootRelocations.moves.length,retiredUnitFiles:cohort.unitTests.length,retiredMigrationFiles:cohort.architectureTests.length,retiredBrowserFiles:(cohort.browserTests||[]).length,retiredBytes:retired.reduce((n,f)=>n+f.bytes,0),liveGraph:graph.size}));
 });

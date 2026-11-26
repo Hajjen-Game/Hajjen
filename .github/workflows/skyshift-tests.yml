@@ -37,27 +37,27 @@ jobs:
           node --check skyshift/game-v0210.mjs
           node --check skyshift/boot-v0210.js
           node --test skyshift/tests/unit/true-metal-materials-v0260p2.test.mjs
-          node --check skyshift/unified-tunnel-lighting-v1.mjs
+          node --check skyshift/tunnel/unified-tunnel-lighting-v1.mjs
           node --check skyshift/tests/browser/browser-unified-tunnel-lighting-v1.mjs
           node --test skyshift/tests/unit/unified-tunnel-lighting-v1.test.mjs
           node --check skyshift/rendering/local-reflections-v0261p1.mjs
           node --check skyshift/tests/browser/browser-local-reflections-v0261p1.mjs
           node --test skyshift/tests/unit/local-reflections-v0261p1.test.mjs
-          node --check skyshift/cinematic-road-rebuild-v0263.mjs
+          node --check skyshift/rendering/cinematic-road-rebuild-v0263.mjs
           node --check skyshift/tests/browser/browser-cinematic-road-rebuild-v0263.mjs
           node --test skyshift/tests/unit/cinematic-road-rebuild-v0263.test.mjs
-          node --check skyshift/edge-lighting-floor-pools-v02631.mjs
-          node --check skyshift/edge-source-floor-bands-v02632.mjs
-          node --check skyshift/straight-only-edge-lighting-v02633.mjs
+          node --check skyshift/tunnel/edge-lighting-floor-pools-v02631.mjs
+          node --check skyshift/tunnel/edge-source-floor-bands-v02632.mjs
+          node --check skyshift/tunnel/straight-only-edge-lighting-v02633.mjs
           node --check skyshift/rendering/final-cohesion-v0264.mjs
           node --check skyshift/rendering/unified-metal-light-response-v02641.mjs
           node --check skyshift/rendering/reflection-cohesion-v02642.mjs
           node --check skyshift/rendering/unified-fixture-transport-v02643.mjs
-          node --check skyshift/true-rail-wall-response-v0265.mjs
+          node --check skyshift/tunnel/true-rail-wall-response-v0265.mjs
           node --check skyshift/tests/browser/browser-rail-wall-v0265.mjs
           node --check skyshift/tracks/vault/full-tunnel-layout-v0270.mjs
           node --check skyshift/tracks/vault/full-tunnel-circuit-v0270.mjs
-          node --check skyshift/full-tunnel-light-seal-v0270.mjs
+          node --check skyshift/tunnel/full-tunnel-light-seal-v0270.mjs
           node --check skyshift/tests/browser/browser-full-tunnel-v0270.mjs
           node --check skyshift/tracks/vault/vault-material-parity-v0271.mjs
           node --check skyshift/tests/browser/browser-vault-material-v0271.mjs
@@ -556,7 +556,7 @@ jobs:
           node-version: '22'
       - name: Validate Phase A code and geometry
         run: |
-          node --check skyshift/cinematic-hero-v0210.mjs
+          node --check skyshift/rendering/cinematic-hero-v0210.mjs
           node --check skyshift/game-v0210.mjs
           node --check skyshift/boot-v0210.js
           node --test skyshift/tests/unit/cinematic-hero-v0210.test.mjs
@@ -788,7 +788,7 @@ jobs:
           node-version: '22'
       - name: Validate Phase B code and safe 3D geometry
         run: |
-          node --check skyshift/cinematic-grade-v0210b.mjs
+          node --check skyshift/rendering/cinematic-grade-v0210b.mjs
           node --check skyshift/tests/browser/browser-cinematic-grade-v0210b.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/cinematic-grade-v0210b.test.mjs
@@ -964,7 +964,7 @@ jobs:
           node-version: '22'
       - name: Check original deck PBR chain, nine-zone wave, shader and flight parity
         run: |
-          node --check skyshift/cinematic-road-reflections-v0242.mjs
+          node --check skyshift/rendering/cinematic-road-reflections-v0242.mjs
           node --check skyshift/tests/unit/cinematic-road-reflections-v0242.test.mjs
           node --check skyshift/tests/browser/browser-cinematic-road-v0242.mjs
           node --check skyshift/game-v0210.mjs
@@ -1007,7 +1007,7 @@ jobs:
           node --check skyshift/tests/unit/premium-surface-craftsmanship-v0241.test.mjs
           node --check skyshift/tests/browser/browser-premium-surface-v0241.mjs
           node --check skyshift/structural-tunnel-v0213.mjs
-          node --check skyshift/true-material-depth-v0231.mjs
+          node --check skyshift/rendering/true-material-depth-v0231.mjs
           node --check skyshift/game-v0210.mjs
           node --check skyshift/boot-v0210.js
           node --test skyshift/tests/unit/premium-surface-craftsmanship-v0241.test.mjs skyshift/tests/unit/architectural-neon-lighting-v0240.test.mjs skyshift/tests/unit/unified-tunnel-materials-v0233.test.mjs skyshift/tests/unit/true-material-depth-v0231.test.mjs skyshift/tests/unit/structural-tunnel-v0213.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs
@@ -1083,11 +1083,11 @@ jobs:
           node-version: '22'
       - name: Validate full 0.23 shader chain, geometry and unchanged physics
         run: |
-          node --check skyshift/unified-tunnel-materials-v0233.mjs
+          node --check skyshift/rendering/unified-tunnel-materials-v0233.mjs
           node --check skyshift/tests/unit/unified-tunnel-materials-v0233.test.mjs
           node --check skyshift/tests/browser/browser-unified-tunnel-v0233.mjs
           node --check skyshift/structural-tunnel-v0213.mjs
-          node --check skyshift/true-material-depth-v0231.mjs
+          node --check skyshift/rendering/true-material-depth-v0231.mjs
           node --check skyshift/game-v0210.mjs
           node --check skyshift/boot-v0210.js
           node --test skyshift/tests/unit/unified-tunnel-materials-v0233.test.mjs skyshift/tests/unit/cinematic-light-architecture-v0232.test.mjs skyshift/tests/unit/true-material-depth-v0231.test.mjs skyshift/tests/unit/structural-tunnel-v0213.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs
@@ -1124,7 +1124,7 @@ jobs:
           node-version: '22'
       - name: Validate metal shader chain, low-memory, old white light isolation
         run: |
-          node --check skyshift/cinematic-light-architecture-v0232.mjs
+          node --check skyshift/rendering/cinematic-light-architecture-v0232.mjs
           node --check skyshift/tests/browser/browser-light-architecture-v0232.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/cinematic-light-architecture-v0232.test.mjs skyshift/tests/unit/true-material-depth-v0231.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs skyshift/tests/unit/build-version-v02204.test.mjs
@@ -1162,7 +1162,7 @@ jobs:
       - name: Geometry, WebGL shader, 4GB and prior solar/GRIP regression checks
         run: |
           node --check skyshift/structural-tunnel-v0213.mjs
-          node --check skyshift/true-material-depth-v0231.mjs
+          node --check skyshift/rendering/true-material-depth-v0231.mjs
           node --check skyshift/tests/browser/browser-true-material-v0231.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/true-material-depth-v0231.test.mjs skyshift/tests/unit/physical-material-rebuild-v0230.test.mjs skyshift/tests/unit/structural-tunnel-v0213.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/build-version-v02204.test.mjs
@@ -1199,7 +1199,7 @@ jobs:
           node-version: '22'
       - name: Check original banked frame, mesh compatibility and solar containment
         run: |
-          node --check skyshift/physical-material-rebuild-v0230.mjs
+          node --check skyshift/rendering/physical-material-rebuild-v0230.mjs
           node --check skyshift/tests/browser/browser-physical-material-v0230.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/physical-material-rebuild-v0230.test.mjs skyshift/tests/unit/cinematic-neon-lighting-v0220p2.test.mjs skyshift/tests/unit/premium-material-rebirth-v0220.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/build-version-v02204.test.mjs
@@ -1236,7 +1236,7 @@ jobs:
           node-version: '22'
       - name: Validate unified grade and all prior 0.22.0 visual stages
         run: |
-          node --check skyshift/unified-cinematic-grade-v0220p4.mjs
+          node --check skyshift/rendering/unified-cinematic-grade-v0220p4.mjs
           node --check skyshift/tests/browser/browser-unified-cinematic-grade-v0220p4.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/build-version-v02204.test.mjs skyshift/tests/unit/unified-cinematic-grade-v0220p4.test.mjs skyshift/tests/unit/velocity-cinematography-v0220p3.test.mjs skyshift/tests/unit/cinematic-neon-lighting-v0220p2.test.mjs skyshift/tests/unit/premium-material-rebirth-v0220.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs
@@ -1273,7 +1273,7 @@ jobs:
           node-version: '22'
       - name: Verify original HDR pipeline and composited speed/boost blur
         run: |
-          node --check skyshift/velocity-cinematography-v0220p3.mjs
+          node --check skyshift/rendering/velocity-cinematography-v0220p3.mjs
           node --check skyshift/tests/browser/browser-velocity-cinematography-v0220p3.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/velocity-cinematography-v0220p3.test.mjs skyshift/tests/unit/cinematic-neon-lighting-v0220p2.test.mjs skyshift/tests/unit/premium-material-rebirth-v0220.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs
@@ -1310,7 +1310,7 @@ jobs:
           node-version: '22'
       - name: Check new shader, geometry and corrected Pass 1 regression
         run: |
-          node --check skyshift/cinematic-neon-lighting-v0220p2.mjs
+          node --check skyshift/rendering/cinematic-neon-lighting-v0220p2.mjs
           node --check skyshift/tests/browser/browser-cinematic-neon-v0220p2.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/cinematic-neon-lighting-v0220p2.test.mjs skyshift/tests/unit/premium-material-rebirth-v0220.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/structural-tunnel-v0213.test.mjs
@@ -1384,7 +1384,7 @@ jobs:
           node-version: '22'
       - name: Validate shader runtime, speed data and existing road/white containment
         run: |
-          node --check skyshift/cinematic-energy-v0216.mjs
+          node --check skyshift/rendering/cinematic-energy-v0216.mjs
           node --check skyshift/tests/browser/browser-cinematic-energy-v0216.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/cinematic-energy-v0216.test.mjs skyshift/tests/unit/integrated-neon-flow-v0214.test.mjs skyshift/tests/unit/premium-road-surface-v0215.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs
@@ -1421,7 +1421,7 @@ jobs:
           node-version: '22'
       - name: Verify shader composition and old road/wave/ship/structure invariants
         run: |
-          node --check skyshift/premium-road-surface-v0215.mjs
+          node --check skyshift/rendering/premium-road-surface-v0215.mjs
           node --check skyshift/tests/browser/browser-premium-road-surface-v0215.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/premium-road-surface-v0215.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/white-core-containment-v02123.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs skyshift/tests/unit/integrated-neon-flow-v0214.test.mjs
@@ -1458,7 +1458,7 @@ jobs:
           node-version: '22'
       - name: Validate integrated neon, structural profiles, white-spill fixes and game boot
         run: |
-          node --check skyshift/integrated-neon-flow-v0214.mjs
+          node --check skyshift/rendering/integrated-neon-flow-v0214.mjs
           node --check skyshift/tests/browser/browser-integrated-neon-flow-v0214.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/integrated-neon-flow-v0214.test.mjs skyshift/tests/unit/structural-tunnel-v0213.test.mjs skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs
@@ -1532,7 +1532,7 @@ jobs:
           node-version: '22'
       - name: Validate road, ship, rail, wave and boot source
         run: |
-          node --check skyshift/road-solar-spill-v02126.mjs
+          node --check skyshift/rendering/road-solar-spill-v02126.mjs
           node --check skyshift/tests/browser/browser-road-solar-spill-v02126.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/road-solar-spill-v02126.test.mjs skyshift/tests/unit/ship-white-spill-v02125.test.mjs skyshift/tests/unit/white-core-containment-v02123.test.mjs skyshift/tests/unit/rail-body-containment-v02124.test.mjs
@@ -1664,7 +1664,7 @@ jobs:
           node-version: '22'
       - name: Verify exact road / ship white specular reduction and unchanged gameplay
         run: |
-          node --check skyshift/white-core-containment-v02123.mjs
+          node --check skyshift/rendering/white-core-containment-v02123.mjs
           node --check skyshift/tests/browser/browser-white-core-containment-v02123.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/white-core-containment-v02123.test.mjs

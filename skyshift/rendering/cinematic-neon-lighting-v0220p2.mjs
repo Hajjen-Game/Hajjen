@@ -5,8 +5,8 @@
 // (which fails in banked curves). No added mesh, sun, shadow caster, clock,
 // screen-space light pass, road/ship material swap, GRIP or flight changes.
 import {installPremiumMaterialRebirth}
- from "./rendering/premium-material-rebirth-v0220.mjs";
-import {TUNNEL_PORTALS_0211} from "./tunnel-megastructure-v0211.mjs";
+ from "./premium-material-rebirth-v0220.mjs";
+import {TUNNEL_PORTALS_0211} from "../tunnel-megastructure-v0211.mjs";
 
 export const CINEMATIC_NEON_0220_P2=Object.freeze({
  version:"0.22.0.2",pass:"2 — Cinematic Neon Lighting",

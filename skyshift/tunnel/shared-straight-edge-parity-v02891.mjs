@@ -5,7 +5,7 @@
 // Amber arch feet, corner arrows, roof lights, ship and physics untouched.
 import {COURSE_SEGMENTS,CIRCUIT} from "../tracks/trials/trial-v0165.mjs";
 import {railLipPosition02632,railBayWeight02632}
- from "../edge-source-floor-bands-v02632.mjs";
+ from "./edge-source-floor-bands-v02632.mjs";
 export const STRAIGHT_EDGE_PARITY_02891=Object.freeze({
  version:"0.28.9.1",source:"Skyline 0.26.3.3 / straight-only cyan",
  originalGeometry:"0.26.3.2 18cm low rail shoulder inlays",

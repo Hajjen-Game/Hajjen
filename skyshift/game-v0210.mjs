@@ -29,7 +29,7 @@ import {TUNNEL_BLACKOUT,installBlackoutRoadShading,
  separateBladeTipMaterial,createTunnelBlackoutController}
  from "./tunnel-blackout-v0160.mjs";
 import {UNIFIED_TUNNEL_LIGHTING_1,createUnifiedTunnelLightingController}
- from "./unified-tunnel-lighting-v1.mjs";
+ from "./tunnel/unified-tunnel-lighting-v1.mjs";
 import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
 import {vaultSpatialWaveEnabled0285,waveSignedGlobal0285,
  VAULT_WAVE_PARITY_0285} from "./tunnel/vault-spatial-wave-parity-v0285.mjs";
@@ -114,9 +114,9 @@ import {WORLD_ART_02041,installWorldArt as installSculptedNeonWorldArt}
 import {WORLD_ART_0205,installWorldArt as installArchitecturalWorldArt}
  from "./world/environment-art-pipeline-v0205.mjs";
 import {HERO_0210,installCinematicHero}
- from "./cinematic-hero-v0210.mjs";
+ from "./rendering/cinematic-hero-v0210.mjs";
 import {CINEMATIC_GRADE_0210B,installCinematicGradeHero}
- from "./cinematic-grade-v0210b.mjs";
+ from "./rendering/cinematic-grade-v0210b.mjs";
 import {TUNNEL_MEGA_0211,installTunnelMegastructure}
  from "./tunnel-megastructure-v0211.mjs";
 import {FULL_TUNNEL_0270,installFullTunnelCircuit0270}
@@ -138,7 +138,7 @@ import {createSharedOpticalContext,installSharedOpticalShip,installSharedRoadOpt
 import {PMREM_0284,readPmremRelease0284}
  from "./tunnel/pmrem-reflection-pipeline-v0284.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
- from "./full-tunnel-light-seal-v0270.mjs";
+ from "./tunnel/full-tunnel-light-seal-v0270.mjs";
 import {NEON_INTERIOR_0212,installNeonDrivenInterior}
  from "./neon-interior-v0212.mjs";
 import {installNeonDrivenInterior as installClassicNeonInterior}
@@ -150,25 +150,25 @@ import {EXTERIOR_SEAL_02122,installExteriorLightSeal}
 import {STRUCTURAL_TUNNEL_0213,installStructuralTunnelRebuild}
  from "./structural-tunnel-v0213.mjs";
 import {INTEGRATED_NEON_FLOW_0214,installIntegratedNeonFlow}
- from "./integrated-neon-flow-v0214.mjs";
+ from "./rendering/integrated-neon-flow-v0214.mjs";
 import {WHITE_CORE_02123,createWhiteCoreContainment}
- from "./white-core-containment-v02123.mjs";
+ from "./rendering/white-core-containment-v02123.mjs";
 import {SHIP_WHITE_SPILL_02125,createShipWhiteSpillController}
  from "./ships/ship-white-spill-v02125.mjs";
 import {ROAD_SOLAR_SPILL_02126,createRoadSolarSpillController}
- from "./road-solar-spill-v02126.mjs";
+ from "./rendering/road-solar-spill-v02126.mjs";
 import {PREMIUM_ROAD_SURFACE_0215,createPremiumRoadSurfaceController}
- from "./premium-road-surface-v0215.mjs";
+ from "./rendering/premium-road-surface-v0215.mjs";
 import {CINEMATIC_ROAD_0242,createCinematicRoadReflectionController}
- from "./cinematic-road-reflections-v0242.mjs";
+ from "./rendering/cinematic-road-reflections-v0242.mjs";
 import {ROAD_REBUILD_0263,createCinematicRoadReflectionRebuild0263}
- from "./cinematic-road-rebuild-v0263.mjs";
+ from "./rendering/cinematic-road-rebuild-v0263.mjs";
 import {EDGE_FLOOR_02631,installEdgeLightingFloorPools02631}
- from "./edge-lighting-floor-pools-v02631.mjs";
+ from "./tunnel/edge-lighting-floor-pools-v02631.mjs";
 import {EDGE_SOURCE_02632,installRepositionedEdgeAndConnectedFoot02632}
- from "./edge-source-floor-bands-v02632.mjs";
+ from "./tunnel/edge-source-floor-bands-v02632.mjs";
 import {STRAIGHT_EDGE_02633,installStraightOnlyEdgeLighting02633}
- from "./straight-only-edge-lighting-v02633.mjs";
+ from "./tunnel/straight-only-edge-lighting-v02633.mjs";
 import {FINAL_COHESION_0264,installFinalCohesion0264}
  from "./rendering/final-cohesion-v0264.mjs";
 import {UNIFIED_METAL_LIGHT_02641,installUnifiedMetalLighting02641}
@@ -178,21 +178,21 @@ import {REFLECTION_FINISH_02642,installPremiumReflectionFinish02642}
 import {FIXTURE_TRANSPORT_02643,installUnifiedFixtureTransport02643}
  from "./rendering/unified-fixture-transport-v02643.mjs";
 import {TRUE_RAIL_WALL_0265,installTrueRailWallResponse0265}
- from "./true-rail-wall-response-v0265.mjs";
+ from "./tunnel/true-rail-wall-response-v0265.mjs";
 import {CINEMATIC_ENERGY_0216,installCinematicEnergyMotion}
- from "./cinematic-energy-v0216.mjs";
+ from "./rendering/cinematic-energy-v0216.mjs";
 import {MATERIAL_REBIRTH_0220,installPremiumMaterialRebirth}
  from "./rendering/premium-material-rebirth-v0220.mjs";
 import {CINEMATIC_NEON_0220_P2,installCinematicNeonLighting}
- from "./cinematic-neon-lighting-v0220p2.mjs";
+ from "./rendering/cinematic-neon-lighting-v0220p2.mjs";
 import {PHYSICAL_MATERIAL_0230,installPhysicalMaterialRebuild}
- from "./physical-material-rebuild-v0230.mjs";
+ from "./rendering/physical-material-rebuild-v0230.mjs";
 import {TRUE_MATERIAL_0231,installTrueMaterialDepthRebuild}
- from "./true-material-depth-v0231.mjs";
+ from "./rendering/true-material-depth-v0231.mjs";
 import {LIGHT_ARCHITECTURE_0232,installCinematicLightArchitecture}
- from "./cinematic-light-architecture-v0232.mjs";
+ from "./rendering/cinematic-light-architecture-v0232.mjs";
 import {UNIFIED_TUNNEL_0233,installUnifiedTunnelMaterials}
- from "./unified-tunnel-materials-v0233.mjs";
+ from "./rendering/unified-tunnel-materials-v0233.mjs";
 import {ARCHITECTURAL_NEON_0240,installArchitecturalNeonLighting}
  from "./rendering/architectural-neon-lighting-v0240.mjs";
 import {PREMIUM_SURFACE_0241,installPremiumSurfaceCraftsmanship}
@@ -210,9 +210,9 @@ import {LOCAL_REFLECTIONS_0261,installTrueLocalReflectionsPass1}
 import {PREMIUM_METAL_0262,installPremiumMetalSurfaceLibrary,premiumMetalTexturePoolStats0262}
  from "./rendering/premium-metal-surface-v0262.mjs";
 import {VELOCITY_CINEMA_0220_P3,installVelocityCinematography}
- from "./velocity-cinematography-v0220p3.mjs";
+ from "./rendering/velocity-cinematography-v0220p3.mjs";
 import {UNIFIED_GRADE_0220_P4,installUnifiedCinematicGrade}
- from "./unified-cinematic-grade-v0220p4.mjs";
+ from "./rendering/unified-cinematic-grade-v0220p4.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "./ship-v034.mjs";

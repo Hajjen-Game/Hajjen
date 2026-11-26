@@ -4,11 +4,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {patchPremiumMaterialShader} from "../../rendering/premium-material-rebirth-v0220.mjs";
-import {patchCinematicNeonShader} from "../../cinematic-neon-lighting-v0220p2.mjs";
-import {patchPhysicalMaterialShader} from "../../physical-material-rebuild-v0230.mjs";
-import {patchTrueMaterialDepthShader} from "../../true-material-depth-v0231.mjs";
-import {patchLightArchitectureShader} from "../../cinematic-light-architecture-v0232.mjs";
-import {patchUnifiedTunnelShader} from "../../unified-tunnel-materials-v0233.mjs";
+import {patchCinematicNeonShader} from "../../rendering/cinematic-neon-lighting-v0220p2.mjs";
+import {patchPhysicalMaterialShader} from "../../rendering/physical-material-rebuild-v0230.mjs";
+import {patchTrueMaterialDepthShader} from "../../rendering/true-material-depth-v0231.mjs";
+import {patchLightArchitectureShader} from "../../rendering/cinematic-light-architecture-v0232.mjs";
+import {patchUnifiedTunnelShader} from "../../rendering/unified-tunnel-materials-v0233.mjs";
 import {patchArchitecturalNeonShader} from "../../rendering/architectural-neon-lighting-v0240.mjs";
 import {patchPremiumSurfaceShader} from "../../rendering/premium-surface-craftsmanship-v0241.mjs";
 import {DARK_METALLIC_FOUNDATION_0250,patchDarkMetallicShader,installDarkMetalShader}

@@ -7,7 +7,7 @@
 // highlights are small, colored and analytic. No lights, meshes, textures,
 // UV atlases, render passes, camera or flight physics changes.
 import {installCinematicEnergyMotion}
- from "../cinematic-energy-v0216.mjs";
+ from "./cinematic-energy-v0216.mjs";
 import {createTunnelSpectrumUniforms,updateTunnelSpectrumUniforms}
  from "../tunnel-spectrum-v02121.mjs";
 

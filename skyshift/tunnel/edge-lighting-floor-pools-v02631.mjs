@@ -6,8 +6,8 @@
 // GGX BRDF for two new nearby rail LED samples (one on 4GB). Warm floor pools
 // are placed on the original curved tunnel shoulder, NOT painted onto the road.
 import {TUNNEL_PORTALS_0211,TUNNEL_PROFILE_0211,
- tunnelProfilePoint0211} from "./tunnel-megastructure-v0211.mjs";
-import {widthAt} from "./tracks/trials/trial-v0165.mjs";
+ tunnelProfilePoint0211} from "../tunnel-megastructure-v0211.mjs";
+import {widthAt} from "../tracks/trials/trial-v0165.mjs";
 
 export const EDGE_FLOOR_02631=Object.freeze({
  version:"0.26.3.1",id:"edge-lighting-floor-pools-02631",

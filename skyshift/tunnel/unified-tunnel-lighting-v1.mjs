@@ -6,12 +6,12 @@
 // local cyan/amber neon, native wave and Manta engine lamps.
 // This is a reversible FIRST step. Do not remove existing surface-level
 // protections until WebGL A/B of ship, road, arches and zone wave is accepted.
-import {CIRCUIT} from "./tracks/trials/trial-v0165.mjs";
-import {isAurora} from "./tracks/shared/track-selection-v0160.mjs";
-import {tunnelIntensityAt,SHADOW_TUNNEL} from "./shadow-tunnel-v0160.mjs";
+import {CIRCUIT} from "../tracks/trials/trial-v0165.mjs";
+import {isAurora} from "../tracks/shared/track-selection-v0160.mjs";
+import {tunnelIntensityAt,SHADOW_TUNNEL} from "../shadow-tunnel-v0160.mjs";
 import {blackoutLevelsAt,createTunnelBlackoutController,TUNNEL_BLACKOUT}
- from "./tunnel-blackout-v0160.mjs";
-import {TUNNEL_MEGA_0211} from "./tunnel-megastructure-v0211.mjs";
+ from "../tunnel-blackout-v0160.mjs";
+import {TUNNEL_MEGA_0211} from "../tunnel-megastructure-v0211.mjs";
 
 export const UNIFIED_TUNNEL_LIGHTING_1=Object.freeze({
  id:"unified-tunnel-lighting-foundation-1",version:"1.0",

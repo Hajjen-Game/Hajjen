@@ -5,7 +5,7 @@ import {EDGE_SOURCE_02632,railBayWeight02632,railLipPosition02632,
  createLowerEdgeSources02632,createConnectedFootBands02632,
  createLowRailSourcesData02632,patchConnectedEdgeShader02632,
  installRepositionedEdgeAndConnectedFoot02632}
- from "../../edge-source-floor-bands-v02632.mjs";
+ from "../../tunnel/edge-source-floor-bands-v02632.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Attr{
  constructor(array,size){this.array=array;this.itemSize=size;this.count=array.length/size;}
@@ -42,7 +42,7 @@ test("Pass 0.26.3.2 corrects only missing lower light geometry",()=>{
   "shipUnchanged","originalRoadUnchanged","originalRailUnchanged",
   "tunnelUnchanged","whiteCoreUnchanged","nativeWaveUnchanged",
   "externalSunDisabled","roofLightsUnchanged"])assert.equal(p[key],true,key);
- const source=read("./edge-source-floor-bands-v02632.mjs");
+ const source=read("./tunnel/edge-source-floor-bands-v02632.mjs");
  assert.doesNotMatch(source,/new THREE\.(PointLight|DirectionalLight|SpotLight|RectAreaLight|WebGLRenderTarget|PMREMGenerator)/);
 });
 test("new lower cyan lights are SHORT islands with real dark gaps",()=>{

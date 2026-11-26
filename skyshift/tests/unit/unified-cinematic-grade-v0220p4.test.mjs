@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {UNIFIED_GRADE_0220_P4,UNIFIED_GRADE_SHADER_0220_P4,
  gradeAmount,installUnifiedCinematicGrade}
- from "../../unified-cinematic-grade-v0220p4.mjs";
+ from "../../rendering/unified-cinematic-grade-v0220p4.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 
 test("grade is visible at cruise, boosts moderately and remains off for paused/4GB",()=>{

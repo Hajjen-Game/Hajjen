@@ -2,8 +2,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {CINEMATIC_GRADE_0210B,installCinematicGradeHero} from "../../cinematic-grade-v0210b.mjs";
-import {installCinematicHero} from "../../cinematic-hero-v0210.mjs";
+import {CINEMATIC_GRADE_0210B,installCinematicGradeHero} from "../../rendering/cinematic-grade-v0210b.mjs";
+import {installCinematicHero} from "../../rendering/cinematic-hero-v0210.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Group {
  children=[];name="";

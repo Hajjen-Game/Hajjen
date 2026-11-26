@@ -7,6 +7,7 @@ import {createHash} from 'node:crypto';
 import {readArchivedWorldAsset} from './archived-world-assets.mjs';
 import {entryArchive,readArchivedEntrySource} from './archived-entry-sources.mjs';
 import {retiredSceneryModules,retiredTunnelModules,comparisonOnlyWorldAssets} from './production-specialization.mjs';
+import {readOwnerRelocations} from './ef08-owner-paths.mjs';
 const here=dirname(fileURLToPath(import.meta.url)),dist=join(here,'dist');
 const report=JSON.parse(await readFile(join(dist,'build-report.json'),'utf8'));
 const html=await readFile(join(dist,'index.html'),'utf8');
@@ -23,6 +24,17 @@ assert.equal(report.ef05Owners.entries.length,101);
 assert.equal(report.ef05Owners.counts.productionRetired,4);
 const obsoleteCohort=JSON.parse(await readFile(join(here,'../docs/architecture/ef08-obsolete-cohort.json'),'utf8'));
 const obsoletePaths=new Set(obsoleteCohort.roots.map(e=>e.path));
+const {manifest:relocations,currentPath}=readOwnerRelocations(resolve(here,'../..'));
+const originalOwners=JSON.parse(await readFile(join(here,'../docs/architecture/ef02-final-owner-ledger.json'),'utf8')).entries.filter(e=>e.ownerStage==='EF05').map(e=>e.currentPath);
+assert.deepEqual(report.ef05Owners.entries.map(e=>e.previousPath),originalOwners);
+assert.equal(report.ef05Owners.counts.relocated,originalOwners.filter(p=>currentPath(p)!==p).length);
+for(const f of relocations.moves){
+ const oldName=f.oldPath.slice('skyshift/'.length),name=f.newPath.slice('skyshift/'.length);
+ await assert.rejects(stat(join(here,'..',oldName)),{code:'ENOENT'});
+ assert.ok((await stat(join(here,'..',name))).isFile(),name+' missing relocated module');
+ assert.ok(!report.graph.modules.some(p=>p.split('?')[0]==='source/'+oldName),oldName+' stale built path');
+ assert.ok(report.graph.modules.some(p=>p.split('?')[0]==='source/'+name),name+' missing relocated production owner');
+}
 assert.equal(report.ef05Owners.counts.repositoryDeleted,report.ef05Owners.entries.filter(e=>obsoletePaths.has(e.path)).length);
 for(const f of obsoleteCohort.roots){
  const name=f.path.slice('skyshift/'.length);
@@ -35,7 +47,9 @@ for(const path of report.retiredProductionModules)assert.ok(!report.graph.module
 assert.deepEqual(report.comparisonAssets.map(f=>f.path),comparisonOnlyWorldAssets);
 for(const e of report.ef05Owners.entries){
  assert.equal(e.production,report.graph.modules.some(p=>p.split('?')[0]==='source/'+e.path.slice('skyshift/'.length)));
- assert.equal(e.repositoryDeleted,obsoletePaths.has(e.path));
+ assert.equal(e.path,currentPath(e.previousPath));
+ assert.equal(e.relocated,e.previousPath!==e.path);
+ assert.equal(e.repositoryDeleted,obsoletePaths.has(e.previousPath)||obsoletePaths.has(e.path));
  if(e.retiredFromBundle)assert.equal(e.production,false,e.path);
 }
 assert.doesNotMatch(html,/cdn\.jsdelivr\.net\/npm\/three|type="importmap"|boot-v0210\.js\?/);

@@ -2,11 +2,15 @@
 // This is an independently recorded baseline, never a count of the actual checkout.
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {readOwnerRelocations} from '../../build/ef08-owner-paths.mjs';
 const read=name=>JSON.parse(readFileSync(new URL('../../docs/architecture/'+name,import.meta.url),'utf8'));
 const baseline=read('ef08-root-baseline.json');
 const entryArchive=read('ef08-retired-entry-sources.json');
 const cohort=read('ef08-obsolete-cohort.json');
-export const rootRelocations=read('ef08-root-relocations.json');
+const relocation=readOwnerRelocations(fileURLToPath(new URL('../../../',import.meta.url)));
+export const rootRelocations=relocation.manifest;
+export const currentOwnerPath=relocation.currentPath;
 assert.equal(rootRelocations.schema,1);
 const roots=new Set(baseline.entries.map(f=>f.path));
 assert.equal(roots.size,baseline.rootCount);

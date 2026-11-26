@@ -57,6 +57,10 @@
         {
           "before": " const sampler=createSharedSourceSampler0282(positionAt,trackLength);\n const cyanLeft=",
           "after": " const sampler=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);\n if(sampler.trackLength!==trackLength)throw Error(\"EF05 source track length mismatch\");\n const cyanLeft="
+        },
+        {
+          "before": "export function createSharedSourceSampler0282(positionAt,trackLength,modules=planTrueSharedTunnel0281(trackLength)){\n if(typeof positionAt!==\"function\"||!(trackLength>0))\n  throw Error(\"0.28.2 needs original banked positionAt and track length\");",
+          "after": "export function createSharedSourceSampler0282(positionAt,trackLength,modules){\n if(typeof positionAt!==\"function\"||!(trackLength>0))\n  throw Error(\"0.28.2 needs original banked positionAt and track length\");\n modules=modules??planTrueSharedTunnel0281(trackLength);"
         }
       ]
     },

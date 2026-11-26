@@ -30,9 +30,10 @@ const sourceNames=["roadCyanLeft0263","roadCyanRight0263",
  "roadArcTangent0263","roadFixtureMasks0263"];
 const disabled=reason=>({active:false,setComparison(){},update(){},
  attachShip(){},stats:()=>({active:false,version:"0.28.2",reason}),dispose(){}});
-export function createSharedSourceSampler0282(positionAt,trackLength,modules=planTrueSharedTunnel0281(trackLength)){
+export function createSharedSourceSampler0282(positionAt,trackLength,modules){
  if(typeof positionAt!=="function"||!(trackLength>0))
   throw Error("0.28.2 needs original banked positionAt and track length");
+ modules=modules??planTrueSharedTunnel0281(trackLength);
  if(!Array.isArray(modules)||modules.some((m,i)=>m.index!==i||
   !Number.isFinite(m.start)||!Number.isFinite(m.end)||m.start<0||
   m.end>trackLength||m.end<=m.start||(i>0&&m.start<modules[i-1].end)||

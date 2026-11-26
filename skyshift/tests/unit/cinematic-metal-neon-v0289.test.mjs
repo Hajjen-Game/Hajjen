@@ -138,10 +138,18 @@ test("game integrates PMREM-safe zero-strength source followed by native 0.28.9 
  assert.match(renderer,/contrast:false,strips:false/);
  assert.match(renderer,/setCinematicMetalComparison\(values\)/);
  assert.match(renderer,/item\.cinematic\?\.dispose/);
- assert.match(game,/cinematicRoadFinish=installCinematicRoad0289\(world/);
- assert.match(game,/road:false/);
- assert.ok(game.indexOf("pmremPipeline=installPmremReflectionPipeline0284")<
-  game.indexOf("trueSharedVault?.setCinematicMetalComparison?.("));
+ const assembly=read("./tunnel/shared-optical-assembly.mjs");
+ assert.match(game,/import \{createSharedOpticalContext,installSharedOpticalShip,installSharedRoadOptics\} from "\.\/tunnel\/shared-optical-assembly\.mjs"/);
+ assert.match(game,/finish:cinematicRoadFinish[\s\S]*?=installSharedRoadOptics\(\s*THREE,world,opticalContext/);
+ assert.match(game,/\{initialWave:zoneWave,previousCeiling:unifiedCeilingRoad,previousSpill:roadSpill02895\}\)\)/);
+ assert.match(assembly,/installSharedRoadOptics\([^\n]*roadStrength=false/);
+ assert.match(assembly,/const finish=installCinematicRoad0289\(world,\{enabled:policy\.cinematic&&!!native\?\.active,lowMemory,road:roadStrength\}\)/);
+ const installation=game.indexOf("=installSharedRoadOptics(");
+ const pmrem=game.indexOf("pmremPipeline=installPmremReflectionPipeline0284");
+ const activateTunnel=game.indexOf("trueSharedVault?.setCinematicMetalComparison?.(");
+ const activateRoad=game.indexOf("cinematicRoadFinish?.setComparison?.(");
+ assert.ok(installation>=0&&installation<pmrem&&pmrem<activateTunnel&&pmrem<activateRoad,
+  "Install zero-strength native road before PMREM, activate both finishes afterwards");
  assert.match(game,/__skyshiftCinematicMetalFrames/);
  assert.match(game,/cinematicMetalReleaseEnabled\?" · 0\.28\.9"/);
  assert.match(html,/(?:Shared Straight-Only Edge Lighting Parity · 0\.28\.9\.1|Ceiling Fixture Placement & Glow Cohesion · 0\.28\.9\.2|Premium Arch Optics & Chromatic Road Reflections · 0\.28\.9\.3|Unified Light Sources & Road Layer Cleanup · 0\.28\.9\.4|Road Light Spill Continuity & Wave-Coupled Cove Lighting · 0\.28\.9\.5|Curve Surface Artifact & Transition Seam Cleanup · 0\.28\.9\.6|Startup Stability & Shared Resource Deduplication · 0\.28\.9\.7)/);

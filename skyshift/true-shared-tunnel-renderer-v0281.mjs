@@ -62,6 +62,55 @@ export function planTrueSharedTunnel0281(length,{sourceMeters=368}={}){
    sourceMeters,scale:meters/sourceMeters})
  ));
 }
+
+ // EF05: same source modules for explicit disjoint intervals. The gap is
+ // never filled by an implicit renderer, and the global arc stays intact.
+export function planConfiguredTunnelModules0281(trackLength,sections){
+ if(!isFinitePositive(trackLength)||!Array.isArray(sections))
+  throw Error("EF05 finite track length and explicit tunnel sections required");
+ const sorted=[...sections].sort((a,b)=>a.start-b.start),modules=[];
+ let previous=0;
+ for(const section of sorted){
+  const {start,end}=section;
+  if(!Number.isFinite(start)||!Number.isFinite(end)||start<previous||
+   end<=start||end>trackLength)throw Error("EF05 invalid or overlapping tunnel sections");
+  for(const local of planTrueSharedTunnel0281(end-start)){
+   modules.push(Object.freeze({...local,index:modules.length,
+    start:start+local.start,end:local.end===end-start?end:start+local.end}));
+   if(modules.length>512)throw Error("EF05 unreasonable combined module budget");
+  }
+  previous=end;
+ }
+ return Object.freeze(modules);
+}
+const policyKeys=Object.freeze(["spatialWave","stableStrips","archFeet",
+ "precisionNeon","cinematicMetal","straightOnly","ceilingFixtures",
+ "premiumArch","waveCove","fastFrames"]);
+export function validateSharedTunnelPolicy(policy,trackLength){
+ if(!policy||!policyKeys.every(k=>typeof policy[k]==="boolean"))
+  throw Error("EF05 explicit tunnel feature policy required");
+ if(policy.straightOnly&&!Array.isArray(policy.straightRanges))
+  throw Error("EF05 explicit straight ranges required");
+ const ranges=policy.straightRanges??[];
+ if(!Array.isArray(ranges)||ranges.some(r=>!Number.isFinite(r.from)||
+  !Number.isFinite(r.to)||r.from<0||r.to<=r.from||r.to>trackLength))
+  throw Error("EF05 straight range outside track");
+ return Object.freeze({...Object.fromEntries(policyKeys.map(k=>[k,policy[k]])),
+  straightRanges:Object.freeze(ranges.map(r=>Object.freeze({...r})))});
+}
+// Historical release and URL selection stays at the compatibility boundary.
+// The actual source assembly below consumes only the resolved feature policy.
+function legacyTunnelPolicy0281(lowMemory){
+ const straightOnly=straightParityEnabled02891();
+ return {spatialWave:vaultSpatialWaveEnabled0285(),
+  stableStrips:reflectionStabilityEnabled0286(),archFeet:archFootRelease0287(),
+  precisionNeon:precisionNeonEnabled0288(),cinematicMetal:cinematicMetalEnabled0289(),
+  straightOnly,ceilingFixtures:ceilingFixtureEnabled02892(),
+  premiumArch:archOpticsEnabled02893(),waveCove:coveWaveEnabled02895(),
+  fastFrames:!lowMemory&&startupSamplerEnabled02897(),
+  straightRanges:straightOnly?vaultStraightRanges02891():[]};
+}
+
 export function adaptSourcePosition0281(positionAt,module){
  if(typeof positionAt!=="function"||!module||
   !isFinitePositive(module.sourceMeters)||!isFinitePositive(module.meters))
@@ -220,24 +269,33 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
  track,positionAt,trackLength,lowMemory=false,enabled=false
 }={}){
  if(!enabled||track!=="vault")return inactive("inactive");
+ return installConfiguredSharedTunnel(THREE,world,{track,positionAt,trackLength,
+  lowMemory,sections:[{start:0,end:trackLength}],
+  policy:legacyTunnelPolicy0281(lowMemory)});
+}
+export function installConfiguredSharedTunnel(THREE,world,{
+ track,positionAt,trackLength,sections,policy,lowMemory=false
+}={}){
+ const modules=planConfiguredTunnelModules0281(trackLength,sections);
+ const style=validateSharedTunnelPolicy(policy,trackLength);
+ if(!modules.length)return inactive("no authored tunnel sections");
  if(!THREE?.Group||!world?.add||typeof positionAt!=="function")
   throw Error("0.28.1 needs original Three/world/banked track sampler");
- const modules=planTrueSharedTunnel0281(trackLength);
  const root=new THREE.Group();
  root.name="SKYSHIFT · TRUE shared Skyline tunnel 0.28.1";
  const installed=[];
- const spatialWave0285=vaultSpatialWaveEnabled0285();
- const stableStrips0286=reflectionStabilityEnabled0286();
- const archFeet0287=archFootRelease0287();
- const precisionNeon0288=precisionNeonEnabled0288();
- const cinematicMetal0289=cinematicMetalEnabled0289();
- const straightOnly02891=straightParityEnabled02891();
- const ceilingFixtures02892=ceilingFixtureEnabled02892();
- const premiumArch02893=archOpticsEnabled02893();
- const waveCove02895=coveWaveEnabled02895();
- const fastFrames02897=!lowMemory&&startupSamplerEnabled02897();
+ const spatialWave0285=style.spatialWave;
+ const stableStrips0286=style.stableStrips;
+ const archFeet0287=style.archFeet;
+ const precisionNeon0288=style.precisionNeon;
+ const cinematicMetal0289=style.cinematicMetal;
+ const straightOnly02891=style.straightOnly;
+ const ceilingFixtures02892=style.ceilingFixtures;
+ const premiumArch02893=style.premiumArch;
+ const waveCove02895=style.waveCove;
+ const fastFrames02897=!lowMemory&&style.fastFrames;
  const startupModuleMetrics02897=[];
- const straightRanges02891=straightOnly02891?vaultStraightRanges02891():null;
+ const straightRanges02891=straightOnly02891?style.straightRanges:null;
  // The original Skyline renderer owns EVERY panel, rib, bay, cove and
  // source-local metallic shader. Do not call the 0.27.x Vault pipeline here.
  try{
@@ -404,7 +462,7 @@ export function installTrueSharedTunnelRenderer0281(THREE,world,{
    actualRenderer:TRUE_SHARED_RENDERER_0281.renderer,
    originalGeometryAndFixtureAuthoring:true,
    commonGGX:true,commonMetalAndLocalResponse:true,
-   sourceModules:modules.length,coverageMeters:trackLength,
+   sourceModules:modules.length,coverageMeters:modules.reduce((n,m)=>n+m.meters,0),
    startupFrameOptimization02897:{
     active:fastFrames02897,
     moduleMetrics:startupModuleMetrics02897,

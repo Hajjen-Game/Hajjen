@@ -77,7 +77,22 @@ function restoreEF05OpticalSource(s,p){
  assert.equal(createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex'),record.sha,record.path+' pre-EF05 identity');
  return s;
 }
+// EF06 changes only vehicle binding lifetimes. Reverse exact source edits
+// before applying the older EF05 shader and relocation identity checks.
+const ef06OpticalInverse=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef06-optical-lifetime-inverse.json'),'utf8'));
+function restoreEF06OpticalSource(s,p){
+ const record=ef06OpticalInverse.records.find(r=>r.path===key(p));
+ if(!record)return s;
+ for(const e of [...record.edits].reverse()){
+  assert.equal(s.split(e.after).length-1,1,record.path+' EF06 lifetime inverse');
+  s=s.replace(e.after,e.before);
+ }
+ const data=Buffer.from(s);
+ assert.equal(createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex'),record.sha,record.path+' pre-EF06 lifetime identity');
+ return s;
+}
 export function restoreTrialMove(s,p){
+ s=restoreEF06OpticalSource(s,p);
  s=restoreEF05OpticalSource(s,p);
  s=restoreEF04Reader(s,p);
  s=restoreUiMove(s,p);p=uiPreviousPath(p);

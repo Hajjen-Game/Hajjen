@@ -203,6 +203,16 @@
           "after": "  return key.call(this)+\"-local-edge-pools-02895-\"+(lowMemory?\"4GB\":\"High\")+\n   (localExpression?\"-route-\"+localExpression:\"\");"
         }
       ]
+    },
+    {
+      "path": "skyshift/tests/unit/shared-straight-edge-parity-v02891.test.mjs",
+      "sha": "0cc6780acd2f994a00b58d03f1e7f8e51213ada6",
+      "edits": [
+        {
+          "before": "",
+          "after": "\ntest(\"EF05 independent straight mask uses the actual authored course length\",()=>{\n const g=new Geo(),samples=[0,40,60,130,700,850,900,1199,1200];\n g.setAttribute(\"aTrackCoord\",new Attr(samples.flatMap(s=>[s,9]),2));\n g.setAttribute(\"position\",new Attr(samples.flatMap(()=>[0,0,0]),3));\n const ranges=[{from:39,to:120},{from:840,to:880}];\n const mask=buildVaultRoadStraightMask02891(g,ranges,1200);\n assert.deepEqual([...mask.values],[0,1,1,0,0,1,0,0,0]);\n});\n"
+        }
+      ]
     }
   ]
 }

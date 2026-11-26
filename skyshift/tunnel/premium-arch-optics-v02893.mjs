@@ -193,10 +193,13 @@ export function installArchSourceOptics02893(THREE,section,{enabled=false,
 // guessed fake world point or a separate road lamp. Sample the SAME local
 // source arc / positionAt adapter used for the tunnel geometry.
 export function buildArchRoadSources02893(geometry,positionAt,trackLength,{
- lowMemory=false,unifiedSources=false}={}){
- const source=createSharedSourceSampler0282(positionAt,trackLength);
+ lowMemory=false,unifiedSources=false,sourceSampler=null,sourceRegistry=null}={}){
+ const source=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);
+ if(source.trackLength!==trackLength)throw Error("EF05 source track length mismatch");
  const unified=unifiedSources?
-  createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory}):null;
+  (sourceRegistry??createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory,sourceSampler:source})):null;
+ if(unified&&(unified.trackLength!==trackLength||unified.lowMemory!==lowMemory))
+  throw Error("EF05 registry configuration mismatch");
  const coords=geometry?.getAttribute?.("aTrackCoord"),
   positions=geometry?.getAttribute?.("position");
  if(!coords||!positions||coords.count!==positions.count)
@@ -208,7 +211,9 @@ export function buildArchRoadSources02893(geometry,positionAt,trackLength,{
  for(let i=0;i<n;i++){
   const s=coords.getX(i);
   if(unified){
-   const sample=unified.at(s).arch;
+   const item=unified.at(s);
+   if(!item)continue;
+   const sample=item.arch;
    arc[i]=sample.worldS;window[i]=sample.window;
    left.set([sample.left.x,sample.left.y,sample.left.z],3*i);
    right.set([sample.right.x,sample.right.y,sample.right.z],3*i);
@@ -216,6 +221,7 @@ export function buildArchRoadSources02893(geometry,positionAt,trackLength,{
    continue;
   }
   const local=source.localFor(s);
+  if(!local)continue;
   const nearest=TUNNEL_PORTALS_0211.reduce((best,x)=>
    Math.abs(x-local.s)<Math.abs(best-local.s)?x:best,
    TUNNEL_PORTALS_0211[0]);
@@ -328,7 +334,7 @@ export function patchArchRoadShader02893(vertex,fragment,{mobile=false,packed=fa
  };
 }
 export function installArchRoadReflection02893(THREE,world,positionAt,{
- enabled=false,lowMemory=false,trackLength=3400,unifiedSources=false
+ enabled=false,lowMemory=false,trackLength=3400,unifiedSources=false,sourceSampler=null,sourceRegistry=null
 }={}){
  const inactive=reason=>({active:false,reason,setComparison(){},
   updateWave(){},stats:()=>({active:false,reason}),dispose(){}});
@@ -338,7 +344,7 @@ export function installArchRoadReflection02893(THREE,world,positionAt,{
  if(!material?.isMeshStandardMaterial||!geometry||
   typeof positionAt!=="function")
   throw Error("0.28.9.3 original physical road/source missing");
- const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory,unifiedSources});
+ const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory,unifiedSources,sourceSampler,sourceRegistry});
  // 0.28.9.4 packs the original two scalar sources into one vec2.
  // Existing 0.28.9.3 URLs keep exact historical data and shader layout.
  // This frees one GPU slot for the new single packed j11 cove position,

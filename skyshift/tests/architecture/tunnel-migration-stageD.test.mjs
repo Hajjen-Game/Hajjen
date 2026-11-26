@@ -13,6 +13,7 @@ const tunnel=resolve(root,'tunnel');
 const workflows=resolve(root,'../.github/workflows');
 const manifest=JSON.parse(readFileSync(resolve(tunnel,'stageD-migration-manifest.json'),'utf8'));
 const names=Object.keys(manifest.files);
+const ef05Inverse=JSON.parse(readFileSync(resolve(root,'docs/architecture/ef05-optical-source-inverse.json'),'utf8'));
 const importedSource=/\b(?:from\s*|import\s*\(\s*|import\s*)["'](\.{1,2}\/[^"']+)["']/g;
 
 function sha(bytes) {
@@ -37,7 +38,17 @@ test('12 tunnel optics modules reproduce exact original Git blobs with only impo
     const path=resolve(tunnel,name);
     assert.ok(existsSync(path),'Missing moved tunnel module: '+name);
     const actual=readFileSync(path,'utf8');
-    const source=restoreTrialMove(actual,path);
+    // Reverse only declared EF05 edits before the original Stage D proof.
+    let prior=actual;
+    const record=ef05Inverse.records.find(r=>r.path==='skyshift/tunnel/'+name);
+    if(record){
+      for(const e of [...record.edits].reverse()){
+        assert.equal(prior.split(e.after).length-1,1,record.path+' EF05 inverse anchor');
+        prior=prior.replace(e.after,e.before);
+      }
+      assert.equal(sha(Buffer.from(prior)),record.sha,record.path+' pre-EF05 identity');
+    }
+    const source=restoreTrialMove(prior,path);
     let original=source;
     for(const external of manifest.files[name].externalImports){
       assert.ok(existsSync(trialCurrentPath(resolve(root,external))),'Missing root external: '+external);

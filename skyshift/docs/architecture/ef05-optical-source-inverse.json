@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "base": "b050f733f682b1f26269f713a6cbb472d77b04bc",
+  "records": [
+    {
+      "path": "skyshift/tunnel/shared-road-ship-light-v0282.mjs",
+      "sha": "1929ff723df29980d3673f6066b9a61ca11ad728",
+      "edits": [
+        {
+          "before": "export function createSharedSourceSampler0282(positionAt,trackLength){",
+          "after": "export function createSharedSourceSampler0282(positionAt,trackLength,modules=planTrueSharedTunnel0281(trackLength)){"
+        },
+        {
+          "before": " const modules=planTrueSharedTunnel0281(trackLength);\n const count=modules.length,meters=trackLength/count;\n const localFor=s=>{",
+          "after": " if(!Array.isArray(modules)||modules.some((m,i)=>m.index!==i||\n  !Number.isFinite(m.start)||!Number.isFinite(m.end)||m.start<0||\n  m.end>trackLength||m.end<=m.start||(i>0&&m.start<modules[i-1].end)||\n  !(m.scale>0)||!(m.sourceMeters>0)))throw Error(\"EF05 invalid source module plan\");\n const count=modules.length,meters=trackLength/count;\n const fullCourse=count>0&&modules[0].start===0&&modules[count-1].end===trackLength&&\n  modules.every((m,i)=>i===0||m.start===modules[i-1].end);\n const uniform=fullCourse&&modules.every((m,i)=>m.start===i*meters);\n const atModule=modules.map(m=>adaptSourcePosition0281(positionAt,m));\n const localFor=s=>{"
+        },
+        {
+          "before": "  const index=Math.min(count-1,Math.floor(d/meters));\n  const module=modules[index],sourceS=(d-module.start)/module.scale;\n  const originalPosition=adaptSourcePosition0281(positionAt,module);",
+          "after": "  const index=uniform?Math.min(count-1,Math.floor(d/meters)):\n   modules.findIndex(m=>d>=m.start&&d<m.end);\n  if(index<0)return null;\n  const module=modules[index],sourceS=(d-module.start)/module.scale;\n  const originalPosition=atModule[index];"
+        },
+        {
+          "before": "  const local=localFor(s),fixtures=nearestRoadFixtures0263(local.s);",
+          "after": "  const local=localFor(s);\n  if(!local)return {local:null,fixtures:{cyan:null,amber:null,cyanWeight:0,amberWeight:0},\n   cyanLeft:[0,0,0],cyanRight:[0,0,0],amberLeft:[0,0,0],amberRight:[0,0,0]};\n  const fixtures=nearestRoadFixtures0263(local.s);"
+        },
+        {
+          "before": " return Object.freeze({modules,localFor,nearest,trackLength});",
+          "after": " return Object.freeze({modules,localFor,nearest,trackLength,fullCourse});"
+        },
+        {
+          "before": "export function buildSharedRoadSourceData0282(geometry,positionAt,trackLength){",
+          "after": "export function buildSharedRoadSourceData0282(geometry,positionAt,trackLength,source=createSharedSourceSampler0282(positionAt,trackLength)){"
+        },
+        {
+          "before": " const source=createSharedSourceSampler0282(positionAt,trackLength);\n const count=coord.count,vectors={};",
+          "after": " if(source.trackLength!==trackLength)throw Error(\"EF05 source track length mismatch\");\n const count=coord.count,vectors={};"
+        },
+        {
+          "before": "  const s=coord.getX(i),local=at(s),f=nearestRoadFixtures0263(local.s);",
+          "after": "  const s=coord.getX(i),local=at(s);"
+        },
+        {
+          "before": "  vectors.roadArcTangent0263.set([dx/length,dy/length,dz/length],3*i);\n  for(const",
+          "after": "  vectors.roadArcTangent0263.set([dx/length,dy/length,dz/length],3*i);\n  if(!local)continue;\n  const f=nearestRoadFixtures0263(local.s);\n  for(const"
+        },
+        {
+          "before": " enabled=false,positionAt,trackLength,lowMemory=false\n}={}){\n if(!enabled)return disabled(\"inactive\");\n const road=",
+          "after": " enabled=false,positionAt,trackLength,lowMemory=false,sourceSampler=null\n}={}){\n if(!enabled)return disabled(\"inactive\");\n const road="
+        },
+        {
+          "before": "  const data=buildSharedRoadSourceData0282(geo,positionAt,trackLength);\n  if(data.modules!==10&&trackLength===3400)\n   throw Error(\"0.28.2 source modules not aligned to Vault\");",
+          "after": "  const sampler=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);\n  // The old full-course shader also seals exterior white light. Do not\n  // apply it to open track gaps before the section-aware shader is ready.\n  if(!sampler.fullCourse)throw Error(\"EF05 partial tunnel road shader not yet supported\");\n  const data=buildSharedRoadSourceData0282(geo,positionAt,trackLength,sampler);"
+        },
+        {
+          "before": " enabled=false,positionAt,trackLength,lowMemory=false\n}={}){\n if(!enabled)return disabled(\"inactive\");\n if(!THREE?.Vector3",
+          "after": " enabled=false,positionAt,trackLength,lowMemory=false,sourceSampler=null\n}={}){\n if(!enabled)return disabled(\"inactive\");\n if(!THREE?.Vector3"
+        },
+        {
+          "before": " const sampler=createSharedSourceSampler0282(positionAt,trackLength);\n const cyanLeft=",
+          "after": " const sampler=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);\n if(sampler.trackLength!==trackLength)throw Error(\"EF05 source track length mismatch\");\n const cyanLeft="
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tunnel/unified-tunnel-light-sources-v02894.mjs",
+      "sha": "42a1cc62677a59410f68137603716d82cc6a97c9",
+      "edits": [
+        {
+          "before": " lowMemory=false}={}){\n const sampler=createSharedSourceSampler0282(positionAt,trackLength);\n const cache=new Map();",
+          "after": " lowMemory=false,sourceSampler=null,straightMask=vaultStraightMask02891}={}){\n const sampler=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);\n if(sampler.trackLength!==trackLength)throw Error(\"EF05 source track length mismatch\");\n const cache=new Map();"
+        },
+        {
+          "before": "  const local=sampler.localFor(s),portal=nearestPortal(local.s);",
+          "after": "  const local=sampler.localFor(s);\n  if(!local)return null;\n  const portal=nearestPortal(local.s);"
+        },
+        {
+          "before": "   edgeStraightMask:vaultStraightMask02891(s)};",
+          "after": "   edgeStraightMask:straightMask(s)};"
+        },
+        {
+          "before": " lowMemory=false}={}){\n const coord=geometry?.getAttribute?.(\"aTrackCoord\");",
+          "after": " lowMemory=false,sourceRegistry=null}={}){\n const coord=geometry?.getAttribute?.(\"aTrackCoord\");"
+        },
+        {
+          "before": " const reg=createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory});",
+          "after": " const reg=sourceRegistry??createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory});\n if(reg.trackLength!==trackLength||reg.lowMemory!==lowMemory)throw Error(\"EF05 registry configuration mismatch\");"
+        },
+        {
+          "before": "  const item=reg.at(coord.getX(i));\n  const side=",
+          "after": "  const item=reg.at(coord.getX(i));\n  if(!item)continue;\n  const side="
+        },
+        {
+          "before": " enabled=false,trackLength=3400,lowMemory=false}={}){",
+          "after": " enabled=false,trackLength=3400,lowMemory=false,sourceRegistry=null}={}){"
+        },
+        {
+          "before": "data=buildUnifiedCeilingRoadData02894(geo,positionAt,trackLength,{lowMemory});",
+          "after": "data=buildUnifiedCeilingRoadData02894(geo,positionAt,trackLength,{lowMemory,sourceRegistry});"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tunnel/premium-arch-optics-v02893.mjs",
+      "sha": "0dd254ce846c274e04a69a6e1694184edcbd45b9",
+      "edits": [
+        {
+          "before": " lowMemory=false,unifiedSources=false}={}){\n const source=createSharedSourceSampler0282(positionAt,trackLength);\n const unified=unifiedSources?\n  createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory}):null;",
+          "after": " lowMemory=false,unifiedSources=false,sourceSampler=null,sourceRegistry=null}={}){\n const source=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);\n if(source.trackLength!==trackLength)throw Error(\"EF05 source track length mismatch\");\n const unified=unifiedSources?\n  (sourceRegistry??createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory,sourceSampler:source})):null;\n if(unified&&(unified.trackLength!==trackLength||unified.lowMemory!==lowMemory))\n  throw Error(\"EF05 registry configuration mismatch\");"
+        },
+        {
+          "before": "   const sample=unified.at(s).arch;",
+          "after": "   const item=unified.at(s);\n   if(!item)continue;\n   const sample=item.arch;"
+        },
+        {
+          "before": "  const local=source.localFor(s);\n  const nearest=",
+          "after": "  const local=source.localFor(s);\n  if(!local)continue;\n  const nearest="
+        },
+        {
+          "before": " enabled=false,lowMemory=false,trackLength=3400,unifiedSources=false\n}={}){",
+          "after": " enabled=false,lowMemory=false,trackLength=3400,unifiedSources=false,sourceSampler=null,sourceRegistry=null\n}={}){"
+        },
+        {
+          "before": " const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory,unifiedSources});",
+          "after": " const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory,unifiedSources,sourceSampler,sourceRegistry});"
+        }
+      ]
+    }
+  ]
+}

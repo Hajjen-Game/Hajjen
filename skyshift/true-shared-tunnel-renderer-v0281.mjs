@@ -432,7 +432,7 @@ export function installConfiguredSharedTunnel(THREE,world,{
  }
  let disposed=false;
  return Object.freeze({
-  active:true,
+  active:true,modules,
   updateWave(wave){for(const item of installed){
    item.source.updateWave?.(wave);
    item.ceiling?.updateWave?.(wave);

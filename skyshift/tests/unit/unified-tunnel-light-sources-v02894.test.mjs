@@ -239,3 +239,49 @@ test("native 0.28.9.4 road decor is in-place, restores original shader and every
   assert.equal(g.getAttribute("unifiedCoveSource02894"),undefined);
  }
 });
+
+import {createSharedSourceSampler0282,buildSharedRoadSourceData0282} from "../../tunnel/shared-road-ship-light-v0282.mjs";
+import {planConfiguredTunnelModules0281} from "../../true-shared-tunnel-renderer-v0281.mjs";
+test("EF05 shared mounted module plan preserves all original full Vault optical coordinates",()=>{
+ const modules=planConfiguredTunnelModules0281(3400,[{start:0,end:3400}]);
+ const sampler=createSharedSourceSampler0282(at,3400,modules);
+ const registry=createUnifiedSourceRegistry02894(at,3400,{sourceSampler:sampler});
+ assert.equal(registry.modules,modules);
+ for(const s of [0,110,339.9,340,955,1840,3399,3400]){
+  assert.deepEqual(sampler.nearest(s).fixtures,createSharedSourceSampler0282(at,3400).nearest(s).fixtures);
+  assert.deepEqual(registry.at(s),createUnifiedSourceRegistry02894(at,3400).at(s));
+ }
+ const g=road(),a=buildSharedRoadSourceData0282(g,at,3400,sampler),b=buildSharedRoadSourceData0282(g,at,3400);
+ assert.deepEqual(a.vectors,b.vectors);
+ assert.deepEqual(buildUnifiedCeilingRoadData02894(g,at,3400,{sourceRegistry:registry}).vectors,
+  buildUnifiedCeilingRoadData02894(g,at,3400).vectors);
+ const x=buildArchRoadSources02893(g,at,3400,{unifiedSources:true,sourceSampler:sampler,sourceRegistry:registry});
+ const y=buildArchRoadSources02893(g,at,3400,{unifiedSources:true});
+ for(const k of ["left","right","arc","window"])assert.deepEqual(x[k],y[k]);
+});
+test("EF05 independent elevated banked route uses actual module origins and no light in open gaps",()=>{
+ const length=1200,modules=planConfiguredTunnelModules0281(length,[{start:25,end:625},{start:800,end:1120}]);
+ const pos=(s,x,h)=>({x:x*Math.cos(s/40),y:Math.sin(s/80)*6+x*Math.sin(s/40)+h,z:s});
+ const sampler=createSharedSourceSampler0282(pos,length,modules);
+ const registry=createUnifiedSourceRegistry02894(pos,length,{sourceSampler:sampler,straightMask:s=>s>=40&&s<=120?1:0});
+ assert.equal(registry.modules,modules);assert.equal(sampler.fullCourse,false);
+ for(const s of [0,625,700,1120,1199]){
+  assert.equal(sampler.localFor(s),null);assert.equal(registry.at(s),null);
+  assert.equal(sampler.nearest(s).fixtures.cyanWeight,0);assert.equal(sampler.nearest(s).fixtures.amberWeight,0);
+ }
+ for(const s of [25,100,325,624,800,950,1119]){
+  const local=sampler.localFor(s),item=registry.at(s);
+  assert.equal(item.module,local.module);
+  assert.ok(item.arch.worldS>=local.module.start&&item.arch.worldS<=local.module.end);
+  assert.equal(item.edgeStraightMask,s>=40&&s<=120?1:0);
+ }
+ const distances=[100,700,950],g=new Geometry();
+ g.setAttribute("aTrackCoord",new Attribute(distances.flatMap(s=>[s,-9.4]),2));
+ g.setAttribute("position",new Attribute(distances.flatMap(s=>[0,0,s]),3));
+ const roadData=buildSharedRoadSourceData0282(g,pos,length,sampler);
+ assert.deepEqual([...roadData.vectors.roadFixtureMasks0263.slice(2,4)],[0,0]);
+ const cove=buildUnifiedCeilingRoadData02894(g,pos,length,{sourceRegistry:registry});
+ assert.deepEqual([...cove.vectors.unifiedCoveSource02894.slice(4,8)],[0,0,0,0]);
+ const arch=buildArchRoadSources02893(g,pos,length,{unifiedSources:true,sourceSampler:sampler,sourceRegistry:registry});
+ assert.equal(arch.window[1],0);
+});

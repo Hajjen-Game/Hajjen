@@ -48,7 +48,7 @@ import {ROAD_SPILL_COVE_02895,roadSpillEnabled02895,
  from "./tunnel/road-spill-wave-coves-v02895.mjs";
 import {UNIFIED_SOURCES_02894,unifiedSourcesEnabled02894,
  cleanLegacyRoadEnabled02894,ceilingRoadEnabled02894,
- installLegacyRoadCleanup02894,installUnifiedCeilingRoad02894}
+ installLegacyRoadCleanup02894,installUnifiedCeilingRoad02894,createUnifiedSourceRegistry02894}
  from "./tunnel/unified-tunnel-light-sources-v02894.mjs";
 import {ARCH_OPTICS_02893,archOpticsEnabled02893,archRoadEnabled02893,
  installArchRoadReflection02893,diagnosticLegacyRoadOverlay02893}
@@ -130,7 +130,7 @@ import {TUNNEL_SHARED_ARCHITECTURE_0280,tunnelReleaseAtLeast0280,sharedTunnelVer
  from "./shared-tunnel-architecture-v0280.mjs";
 import {createSharedTunnelRuntime0280}
  from "./shared-tunnel-runtime-v0280.mjs";
-import {SHARED_LIGHT_0282,installSharedRoadReflections0282,
+import {SHARED_LIGHT_0282,createSharedSourceSampler0282,installSharedRoadReflections0282,
  installSharedShipLight0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
 import {PMREM_0284,readPmremRelease0284,
  installPmremReflectionPipeline0284}
@@ -1286,6 +1286,12 @@ function initScene(){
   enabled:trueSharedVaultEnabled
  });
  markStartup("sharedTunnelReady");
+ // One mounted source plan, shared by every current optical consumer.
+ // Historical comparison/fallback routes preserve their former full-course plan.
+ const opticalSource=sharedRoadLightEnabled||sharedShipLightEnabled||archRoadReleaseEnabled||unifiedCeilingRoadReleaseEnabled?
+  createSharedSourceSampler0282(positionAt,CIRCUIT.lapLength,trueSharedVault?.modules):null;
+ const opticalRegistry=opticalSource&&unifiedSourcesReleaseEnabled?
+  createUnifiedSourceRegistry02894(positionAt,CIRCUIT.lapLength,{lowMemory:limitedMemory,sourceSampler:opticalSource}):null;
  // Optional 0.28.9.3 diagnostic, unchanged by default.
  archLegacyOverlay=diagnosticLegacyRoadOverlay02893(world,{
   enabled:archOpticsReleaseEnabled&&
@@ -1381,7 +1387,7 @@ function initScene(){
  // 0.28.2: finite-source local color on existing physical ship, no key light.
  sharedShipLight=installSharedShipLight0282(THREE,{
   enabled:sharedShipLightEnabled,positionAt,
-  trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory
+  trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory,sourceSampler:opticalSource
  });
  sharedShipLight.attachShip(ship);
  // Existing road-only shader; preserve rail, ship, local neon and wave emission.
@@ -1407,7 +1413,7 @@ function initScene(){
  // unmodified Vault deck, real source positions over the entire 3400m.
  sharedRoadLight=installSharedRoadReflections0282(THREE,world,{
   enabled:sharedRoadLightEnabled,positionAt,
-  trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory
+  trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory,sourceSampler:opticalSource
  });
  // Attach to the ACTUAL indexed racing deck, after native 0.28.2 GGX.
  // Stay at zero strength until authentic 0.28.4 PMREM capture finishes.
@@ -1431,7 +1437,7 @@ function initScene(){
   enabled:archRoadReleaseEnabled&&!!sharedRoadLight?.active&&
    !!sharedStraightEdgeRoad?.active,lowMemory:limitedMemory,
   trackLength:CIRCUIT.lapLength,
-  unifiedSources:unifiedSourcesReleaseEnabled
+  unifiedSources:unifiedSourcesReleaseEnabled,sourceSampler:opticalSource,sourceRegistry:opticalRegistry
  });
  if(archRoadReleaseEnabled&&!archRoadReflections?.active)
   throw Error("0.28.9.3 real zone-colored arch GGX unavailable: "+
@@ -1444,7 +1450,7 @@ function initScene(){
  unifiedCeilingRoad=installUnifiedCeilingRoad02894(THREE,world,positionAt,{
   enabled:unifiedCeilingRoadReleaseEnabled&&
    !!archRoadReflections?.active&&ceilingFixtureReleaseEnabled,
-  lowMemory:limitedMemory,trackLength:CIRCUIT.lapLength
+  lowMemory:limitedMemory,trackLength:CIRCUIT.lapLength,sourceRegistry:opticalRegistry
  });
  if(unifiedCeilingRoadReleaseEnabled&&archRoadReleaseEnabled&&
     ceilingFixtureReleaseEnabled&&!unifiedCeilingRoad?.active)

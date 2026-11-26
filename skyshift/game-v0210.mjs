@@ -12,7 +12,7 @@ import {TRACKS_0160,ACTIVE_TRACK_0160,TRACK_ID_0160,isAurora,isVault}
  from "./tracks/shared/track-selection-v0160.mjs";
 import {perfConfig as readPerfConfig,newPerfMonitor,resetPerfMonitor,recordPerfFrame,perfSummary,gpuTimer as createGpuTimer} from "./core/performance-audit-v0114.mjs";
 import {
- TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
+ TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,createStaticPositionSampler,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,STEERING_AUTHORITY,steeringBalanceAt,normalYawFactorAt,elevationAudit,
  newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
 } from "./tracks/trials/trial-v0165.mjs";
@@ -641,6 +641,7 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,gripHeld:fa
  keys:new Set(),bannerTimeout:null,toastTimeout:null,trackHint:-1};
 // 0.28.9.7 startup profiling: zero scene traversal until explicitly requested.
 const startupOrigin=performance.now(),startupMarks=Object.create(null);
+let nativeFrameExperiment=null;
 function markStartup(label){
  startupMarks[label]=Math.round((performance.now()-startupOrigin)*10)/10;
 }
@@ -669,7 +670,7 @@ window.__skyshiftStartupAudit=()=>{
   elapsedSinceModuleMs:Math.round((now-startupOrigin)*10)/10,
   browserBootMs:window.__skyshiftBoot?.readyAfterMs??null,
   phase:window.__skyshiftBoot?.phase??"loading",
-  stamps,durations,
+  stamps,durations,nativeFrameExperiment:nativeFrameExperiment?.stats()??null,
   atlas:premiumMetalTexturePoolStats0262(THREE),
   renderer:renderer?{
    memory:{...renderer.info.memory},
@@ -1333,9 +1334,16 @@ function initScene(){
  // Both Skyline and Vault use the same 0.21.1 profile, 0.24.1 sculptor,
  // packed 0.26.2 material and native 0.26.x GGX. Existing visuals are
  // installed through ONE controlled runtime; no duplicated builders.
+ // EF07: the 4GB shared renderer benefits from exact native frame reuse.
+ // High retains the previous sampler unless explicit benchmark opt-in.
+ // QA-only override lets the real browser compare the unchanged old path.
+ const frameOverride=perfSettings.enabled?new URLSearchParams(location.search).get("ef07NativeFrame"):null;
+ if(trueSharedVaultEnabled&&(frameOverride==="1"||(limitedMemory&&frameOverride!=="0")))
+  nativeFrameExperiment=createStaticPositionSampler();
  sharedTunnelRuntime=createSharedTunnelRuntime0280(THREE,world,{
   track:TRACK_ID_0160,positionAt,lowMemory:limitedMemory,
-  trackLength:CIRCUIT.lapLength,enabled:sharedTunnelEnabled
+  trackLength:CIRCUIT.lapLength,enabled:sharedTunnelEnabled,
+  ...(nativeFrameExperiment?{positionAt:nativeFrameExperiment}:{})
  });
  // Reinstall the SAME Skyline source pipeline over the independent
  // Vault spline. Its 0.27.x pipeline only runs on explicit classic/fallback.
@@ -1353,9 +1361,43 @@ function initScene(){
   omitLegacyRoadResponse:omitLegacyRoadResponseEF05(location.search,
    unifiedSourcesReleaseEnabled&&cleanLegacyRoadEnabled02894(location.search))
  });
+ nativeFrameExperiment?.finish();
  markStartup("sharedTunnelReady");
+ // CI-only exact digest of mounted tunnel geometry; no production traversal
+ // or hashing unless explicitly requested. Preserve all typed-array bytes.
+ if(perfSettings.enabled&&new URLSearchParams(location.search).get("ef07GeometryDigest")==="1")
+  window.__skyshiftEF07GeometryDigest=async()=>{
+   const entries=[],uniqueGeometries=new Set(),uniqueAttributes=new Set(),uniqueArrays=new Set(),uniqueBuffers=new Set(),groups=new Map();
+   let attributeBytes=0,arrayBytes=0,bufferBytes=0;
+   trueSharedVault.root?.traverse(obj=>{
+    const g=obj.geometry;if(!g)return;
+    uniqueGeometries.add(g);
+    for(const [name,attr] of [...Object.entries(g.attributes).sort(([a],[b])=>a.localeCompare(b)),...(g.index?[["$index",g.index]]:[])]){
+     entries.push({name:obj.name,attribute:name,itemSize:attr.itemSize,normalized:attr.normalized,
+      count:attr.count,array:attr.array});
+     if(!uniqueAttributes.has(attr)){
+      uniqueAttributes.add(attr);attributeBytes+=attr.array.byteLength;
+      const key=obj.name+" / "+name;
+      groups.set(key,(groups.get(key)??0)+attr.array.byteLength);
+     }
+     if(!uniqueArrays.has(attr.array)){uniqueArrays.add(attr.array);arrayBytes+=attr.array.byteLength;}
+     if(!uniqueBuffers.has(attr.array.buffer)){uniqueBuffers.add(attr.array.buffer);bufferBytes+=attr.array.buffer.byteLength;}
+    }
+   });
+   const hex=bytes=>Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,"0")).join("");
+   const rows=[];let totalBytes=0;
+   for(const {array,...meta} of entries){
+    const bytes=new Uint8Array(array.buffer,array.byteOffset,array.byteLength);totalBytes+=bytes.byteLength;
+    rows.push({...meta,type:array.constructor.name,hash:hex(await crypto.subtle.digest("SHA-256",bytes))});
+   }
+   return {arrays:rows.length,totalBytes,sha256:hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(rows)))),
+    unique:{geometries:uniqueGeometries.size,attributes:uniqueAttributes.size,arrays:uniqueArrays.size,buffers:uniqueBuffers.size,
+     attributeBytes,arrayBytes,bufferBytes,largestAttributeGroups:[...groups].sort((a,b)=>b[1]-a[1]).slice(0,12)}};
+  };
  // One mounted source plan, shared by every current optical consumer.
  // Historical comparison/fallback routes preserve their former full-course plan.
+ if(perfSettings.enabled&&new URLSearchParams(location.search).get("ef07GeometryDigest")==="1")
+  window.__skyshiftEF07RenderWork=()=>({...renderer.info.render});
  const opticalContext=createSharedOpticalContext({
   positionAt,trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory,tunnel:trueSharedVault,
   enabled:sharedRoadLightEnabled||sharedShipLightEnabled||archRoadReleaseEnabled||unifiedCeilingRoadReleaseEnabled,

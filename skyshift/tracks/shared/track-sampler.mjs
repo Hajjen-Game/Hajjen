@@ -107,5 +107,30 @@ function positionAt(s,lateral=0,height=0){
    z:p.z+lateral*(p.rightZ*cb-base.z*sb)+normal.z*height};
 }
 
- return Object.freeze({easedCurvature,integratedEasedCurvature,headingAt,curvatureAt,bankAt,bankDegreesAt,heightAt,surfaceHeightAt,LOOP_CLOSURE_ERROR_METERS,poseAt,surfaceNormalAt,positionAt});
+ // EF07 render-build experiment. Route callbacks are immutable during a
+ // static installation. Compute the very same frame once per adjacent arc
+ // sample, without the duplicate pose/ground/bank evaluations in positionAt.
+ // Preserve the original expression order (especially the Y component).
+ // Finish clears the single retained frame and returns to the original path.
+ function createStaticPositionSampler(){
+  let frame=null,active=true,calls=0,frames=0,hits=0;
+  const sample=(s,lateral=0,height=0)=>{
+   if(!active)return positionAt(s,lateral,height);
+   calls++;
+   if(!frame||!Object.is(frame.s,s)){
+    const p=poseAt(s),base=groundNormalAt(s,p.heading),b=bankAt(s);
+    const cb=Math.cos(b),sb=Math.sin(b);
+    const normal=b?{x:base.x*cb+p.rightX*sb,y:base.y*cb,z:base.z*cb+p.rightZ*sb}:base;
+    frame={s,p,base,normal,cb,sb};frames++;
+   }else hits++;
+   const {p,base,normal,cb,sb}=frame;
+   return {x:p.x+lateral*(p.rightX*cb-base.x*sb)+normal.x*height,
+    y:p.y-lateral*base.y*sb+normal.y*height,
+    z:p.z+lateral*(p.rightZ*cb-base.z*sb)+normal.z*height};
+  };
+  sample.finish=()=>{frame=null;active=false;};
+  sample.stats=()=>({calls,frames,hits,resident:frame?1:0,active});
+  return sample;
+ }
+ return Object.freeze({easedCurvature,integratedEasedCurvature,headingAt,curvatureAt,bankAt,bankDegreesAt,heightAt,surfaceHeightAt,LOOP_CLOSURE_ERROR_METERS,poseAt,surfaceNormalAt,positionAt,createStaticPositionSampler});
 }

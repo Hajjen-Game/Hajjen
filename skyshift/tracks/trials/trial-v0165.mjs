@@ -183,7 +183,7 @@ export function checkpointFor(s){
 // numerical quadrature drift is distributed over the FULL lap, leaving a
 // genuinely welded road/rail seam at identical x,z and yaw.
 const STEP=.25;
-export const {easedCurvature,integratedEasedCurvature,headingAt,curvatureAt,bankAt,bankDegreesAt,heightAt,surfaceHeightAt,LOOP_CLOSURE_ERROR_METERS,poseAt,surfaceNormalAt,positionAt}=createTrackSampler({
+export const {easedCurvature,integratedEasedCurvature,headingAt,curvatureAt,bankAt,bankDegreesAt,heightAt,surfaceHeightAt,LOOP_CLOSURE_ERROR_METERS,poseAt,surfaceNormalAt,positionAt,createStaticPositionSampler}=createTrackSampler({
  lapLength:CIRCUIT.lapLength,sections:COURSE_SEGMENTS,apexPulses:TECHNICAL_APEX_PULSES,
  lapPosition,elevationAt,groundNormalAt,magneticBankAt,corkscrewBankAt,step:STEP
 });

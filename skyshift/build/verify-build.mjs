@@ -21,12 +21,21 @@ assert.match(html,/<span id="menu-track-name">NEON VAULT CIRCUIT<\/span>/);
 assert.ok(report.graph.modules.some(p=>p.endsWith('/tracks/shared/production-catalog.mjs')),'actual bundled catalog boundary');
 assert.equal(report.ef05Owners.entries.length,101);
 assert.equal(report.ef05Owners.counts.productionRetired,4);
-assert.equal(report.ef05Owners.counts.repositoryDeleted,0);
+const obsoleteCohort=JSON.parse(await readFile(join(here,'../docs/architecture/ef08-obsolete-cohort.json'),'utf8'));
+const obsoletePaths=new Set(obsoleteCohort.roots.map(e=>e.path));
+assert.equal(report.ef05Owners.counts.repositoryDeleted,report.ef05Owners.entries.filter(e=>obsoletePaths.has(e.path)).length);
+for(const f of obsoleteCohort.roots){
+ const name=f.path.slice('skyshift/'.length);
+ assert.ok(!report.graph.modules.some(p=>p.split('?')[0]==='source/'+name),name+' obsolete module in production');
+ assert.ok(!report.files.some(x=>x.path===name),name+' obsolete module in artifact');
+ await assert.rejects(stat(join(here,'..',name)),{code:'ENOENT'});
+}
 assert.deepEqual(report.retiredProductionModules,[...retiredSceneryModules,...retiredTunnelModules]);
 for(const path of report.retiredProductionModules)assert.ok(!report.graph.modules.includes('source/'+path),path);
 assert.deepEqual(report.comparisonAssets.map(f=>f.path),comparisonOnlyWorldAssets);
 for(const e of report.ef05Owners.entries){
- assert.equal(e.production,report.graph.modules.includes('source/'+e.path.slice('skyshift/'.length)));
+ assert.equal(e.production,report.graph.modules.some(p=>p.split('?')[0]==='source/'+e.path.slice('skyshift/'.length)));
+ assert.equal(e.repositoryDeleted,obsoletePaths.has(e.path));
  if(e.retiredFromBundle)assert.equal(e.production,false,e.path);
 }
 assert.doesNotMatch(html,/cdn\.jsdelivr\.net\/npm\/three|type="importmap"|boot-v0210\.js\?/);

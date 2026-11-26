@@ -4,7 +4,6 @@ on:
     paths:
       - 'skyshift/core/visual-fidelity*.mjs'
       - 'skyshift/tests/architecture/ef02-fidelity-parity.mjs'
-      - 'skyshift/tests/architecture/core-migration-stageI.test.mjs'
       - 'skyshift/rendering/legacy/premium-track-v072.mjs'
       - 'skyshift/rendering/legacy/premium-track-v081.mjs'
       - 'skyshift/rendering/legacy/premium-track-v082.mjs'
@@ -29,7 +28,6 @@ jobs:
           set -euo pipefail
           git fetch --no-tags --depth=1 origin 4983f20f6cf867f91e1ebd57ad48b1d0c685997c
           git worktree add --detach "$RUNNER_TEMP/ef02-reference" 4983f20f6cf867f91e1ebd57ad48b1d0c685997c
-          node --test skyshift/tests/architecture/core-migration-stageI.test.mjs
           for track in skyline vault aurora; do
             node skyshift/tests/architecture/ef02-fidelity-parity.mjs "$RUNNER_TEMP/ef02-reference" "$track"
             node skyshift/tests/architecture/ef02-premium-track-parity.mjs "$RUNNER_TEMP/ef02-reference" "$track"

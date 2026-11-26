@@ -34,6 +34,12 @@ jobs:
           node --test skyshift/tests/architecture/release-archive-integrity.test.mjs
       - name: Verify retired entry sources and exact historical reader compatibility
         run: node --test skyshift/tests/architecture/ef08-retired-entry-sources.test.mjs
+      - name: Verify consolidated current ownership and dependency contracts
+        run: node --test skyshift/tests/architecture/ef08-current-contracts.test.mjs
+      - name: Syntax-check retained browser QA runners
+        run: |
+          for file in skyshift/tests/browser/legacy/browser-smoke-v*.mjs; do node --check "$file"; done
+          for file in skyshift/tests/browser/browser-*.mjs; do node --check "$file"; done
       - name: Validate current test dependencies and workflow paths
         run: node --test skyshift/tests/architecture/current-unit-dependency-integrity.test.mjs
       - name: Run relocated early flight/fullscreen unit tests
@@ -45,64 +51,8 @@ jobs:
         run: node --test skyshift/tests/unit/neon-interior-v0212.test.mjs
       - name: Validate CI 2.0 change classifier and fail-safe cases
         run: node --test skyshift/tests/architecture/ci-change-scope-v2.test.mjs
-      - name: Audit 42 byte-identical browser QA runners and updated workflow paths
-        run: node --test skyshift/tests/architecture/browser-harness-relocation-stageB.test.mjs
-      - name: Audit Stage C relocated live rendering modules, original SHA and import consumers
-        run: node --test skyshift/tests/architecture/rendering-migration-stageC.test.mjs
-      - name: Audit Stage D tunnel optics original SHA and all resolved module imports
-        run: node --test skyshift/tests/architecture/tunnel-migration-stageD.test.mjs
-      - name: Audit Stage E original Vault Git blobs and all new module/CI paths
-        run: node --test skyshift/tests/architecture/vault-migration-stageE.test.mjs
-      - name: Audit Stage F original shared-track/Skyline Git blobs and historical paths
-        run: node --test skyshift/tests/architecture/track-migration-stageF.test.mjs
-      - name: Audit Stage G original ship/fleet source SHAs and relocated CI paths
-        run: node --test skyshift/tests/architecture/ship-migration-stageG.test.mjs
-      - name: Audit Stage H immutable flight source SHAs and relocated consumers
-        run: node --test skyshift/tests/architecture/flight-migration-stageH.test.mjs
-      - name: Audit Stage I immutable performance/fidelity Git blobs and migrated import paths
-        run: node --test skyshift/tests/architecture/core-migration-stageI.test.mjs
-      - name: Audit Stage J immutable barrier/boost source SHA and all consumer paths
-        run: node --test skyshift/tests/architecture/barrier-boost-migration-stageJ.test.mjs
-      - name: Stage K audit 57 byte-identical historical WebGL smoke runners and CI paths
-        run: |
-          node --test skyshift/tests/architecture/legacy-browser-migration-stageK.test.mjs
-          for file in skyshift/tests/browser/legacy/browser-smoke-v*.mjs; do node --check "$file"; done
-      - name: Stage L audit 45 original browser QA Git blobs and all migrated CI paths
-        run: |
-          node --test skyshift/tests/architecture/browser-qa-migration-stageL.test.mjs
-          for file in skyshift/tests/browser/browser-*.mjs; do node --check "$file"; done
       - name: Stage M audit 16 immutable world modules, glTF URL parity and historical references
         run: node --test skyshift/tests/architecture/station-world-migration-stageM.test.mjs
-      - name: R1 audit 19 original boot Git blob SHAs and runtime game URLs
-        run: node --test skyshift/tests/architecture/legacy-boot-migration-r1.test.mjs
-      - name: R1B audit 20 original boot Git blobs, 22 historical test readers and root-count invariant
-        run: node --test skyshift/tests/architecture/legacy-boot-migration-r1b.test.mjs
-      - name: R1C preserve 20 historical boots and 24 original unit-test Git hashes
-        run: node --test skyshift/tests/architecture/legacy-boot-migration-r1c.test.mjs
-      - name: R1D preserve 22 historic bootstrap Git blobs, 34 unit readers and 387 root files
-        run: node --test skyshift/tests/architecture/legacy-boot-migration-r1d.test.mjs
-      - name: R1E preserve 30 original game Git blobs, 28 historical unit readers, 8 boot URL targets and 357 root files
-        run: node --test skyshift/tests/architecture/legacy-game-migration-r1e.test.mjs
-      - name: R1F preserve 29 original game Git blobs, 25 historical reader SHA hashes, 29 archived boots and 328 root files
-        run: node --test skyshift/tests/architecture/legacy-game-migration-r1f.test.mjs
-      - name: R1G preserve 42 original game Git blobs and 286 root files
-        run: node --test skyshift/tests/architecture/legacy-game-migration-r1g.test.mjs
-      - name: Verify retired snapshots and no executable references
-        run: node --test skyshift/tests/architecture/legacy-retirement-l1a.test.mjs
-      - name: Verify L1B retired fixtures and exact source reader identity
-        run: node --test skyshift/tests/architecture/legacy-retirement-l1b.test.mjs
-      - name: Verify L1C retired fixtures and exact source reader identity
-        run: node --test skyshift/tests/architecture/legacy-retirement-l1c.test.mjs
-      - name: Verify L1D retired fixtures and exact source reader identity
-        run: node --test skyshift/tests/architecture/legacy-retirement-l1d.test.mjs
-      - name: Verify L1E retired fixtures and exact source reader identity
-        run: node --test skyshift/tests/architecture/legacy-retirement-l1e.test.mjs
-      - name: Verify L1F retired fixtures and exact source reader identity
-        run: node --test skyshift/tests/architecture/legacy-retirement-l1f.test.mjs
-      - name: Verify L1G byte-exact root relocations and unchanged browser commands
-        run: node --test skyshift/tests/architecture/root-relocation-l1g.test.mjs
-      - name: Verify L1H protected runner moves and original reader Git identity
-        run: node --test skyshift/tests/architecture/root-relocation-l1h.test.mjs
       - name: Inventory next large root subsystem relocation cohort (read-only)
         run: node skyshift/tests/architecture/root-subsystem-relocation-plan.mjs
       - name: Run exact post-merge track logic unit suite before merge
@@ -124,28 +74,3 @@ jobs:
         run: |
           for file in skyshift/tests/unit/*.test.mjs; do node --check "$file"; done
 
-      - name: EF02E exact historical archive, syntax and dependency safety
-        run: node --test skyshift/tests/architecture/ef02-retirement-early-snapshots.test.mjs
-
-      - name: EF02F verify retired root stylesheets and active CSS links
-        run: node --test skyshift/tests/architecture/ef02-retirement-root-css.test.mjs
-
-      - name: EF02G verify retired historical rendering modules and original syntax
-        run: node --test skyshift/tests/architecture/ef02-retirement-historical-rendering.test.mjs
-
-      - name: EF02H verify exact track geometry ownership and consumer path parity
-        run: node --test skyshift/tests/architecture/ef02h-track-geometry-ownership.test.mjs
-
-      - name: EF02I verify historical rendering ownership and exact path parity
-        run: node --test skyshift/tests/architecture/ef02i-legacy-rendering-ownership.test.mjs
-      - name: Verify exact closure deck ownership and all current consumers
-        run: node --test skyshift/tests/architecture/ef02-closure-deck-moves.test.mjs
-
-
-      - name: Verify exact road material ownership and current consumers
-        run: node --test skyshift/tests/architecture/ef02-closure-premium-moves.test.mjs
-
-      - name: Verify exact active physics ownership and current consumers
-        run: |
-          node --test skyshift/tests/architecture/ef02-closure-trial-moves.test.mjs
-          node --test skyshift/tests/architecture/ef02-closure-ui-moves.test.mjs

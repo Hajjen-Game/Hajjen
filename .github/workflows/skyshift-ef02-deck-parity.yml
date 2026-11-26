@@ -38,7 +38,6 @@ on:
       - 'skyshift/tracks/barriers/aero-barrier-v0164.mjs'
       - 'skyshift/tracks/barriers/shared-aero-barrier.mjs'
       - 'skyshift/tests/architecture/ef02-aero-barrier-parity.mjs'
-      - 'skyshift/tests/architecture/barrier-boost-migration-stageJ.test.mjs'
       - '.github/workflows/skyshift-ef02-deck-parity.yml'
   workflow_dispatch:
 permissions:

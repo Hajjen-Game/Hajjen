@@ -9,7 +9,8 @@ export function reconcileEF05Owners(repo,graph){
  const rows=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef02-final-owner-ledger.json'),'utf8')).entries.filter(e=>e.ownerStage==='EF05');
  assert.equal(rows.length,101,'complete EF05 owner cohort');
  const paths=execFileSync('git',['ls-files','-z'],{cwd:repo,encoding:'utf8',maxBuffer:16*1024*1024}).split('\0').filter(Boolean);
- const tracked=new Set(paths),modules=new Set(graph.modules);
+ const tracked=new Set(paths),modules=new Set(graph.modules.map(p=>p.split('?')[0]));
+ const ef08Retired=new Set(JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef08-obsolete-cohort.json'),'utf8')).roots.map(f=>f.path));
  const ownerNames=new Map(rows.map(e=>[basename(e.currentPath),e.currentPath]));
  assert.equal(ownerNames.size,rows.length,'owner filenames are unique');
  const inbound=new Map(rows.map(e=>[e.currentPath,[]]));
@@ -28,17 +29,19 @@ export function reconcileEF05Owners(repo,graph){
  }
  const entries=rows.map(e=>{
   const path=e.currentPath;
-  assert.ok(tracked.has(path)&&existsSync(resolve(repo,path)),'Unreviewed source retirement '+path);
+  const repositoryDeleted=ef08Retired.has(path);
+  assert.equal(tracked.has(path),!repositoryDeleted,'Unreviewed source retirement or reintroduced retired path '+path);
+  assert.equal(existsSync(resolve(repo,path)),!repositoryDeleted,'Source ownership differs from tracked state '+path);
   const production=modules.has('source/'+path.slice('skyshift/'.length));
   const consumers=inbound.get(path).sort();
   const knownConsumers=[...new Set(e.owners.map(o=>o.currentPath).filter(p=>p&&tracked.has(p)&&!p.startsWith('skyshift/docs/')))].sort();
   const retiredFromBundle=retiredSceneryModules.includes(path.slice('skyshift/'.length));
-  if(retiredFromBundle)assert.equal(production,false,path+' exclusive legacy scenery leaked into production');
-  return {path,previousRole:e.censusRole,production,retiredFromBundle,consumers,knownConsumers,
-   disposition:production?'retain: actual production graph':
+  if(retiredFromBundle||repositoryDeleted)assert.equal(production,false,path+' retired source leaked into production');
+  return {path,previousRole:e.censusRole,production,retiredFromBundle,repositoryDeleted,consumers,knownConsumers,
+   disposition:repositoryDeleted?'retired: EF08 closed obsolete source/test cohort':production?'retain: actual production graph':
     retiredFromBundle?'production-retired: retain source QA/comparison until exact historical graph retirement':
     'retain: historical/QA or unresolved computed/archived consumer; no safe deletion proof'};
  });
  return {schema:1,scope:'all EF05 owner entries; literal tracked references are a lower bound, archived/computed references remain unresolved',entries,
-  counts:{total:entries.length,production:entries.filter(e=>e.production).length,productionRetired:entries.filter(e=>e.retiredFromBundle).length,outsideProduction:entries.filter(e=>!e.production).length,repositoryDeleted:0}};
+  counts:{total:entries.length,production:entries.filter(e=>e.production).length,productionRetired:entries.filter(e=>e.retiredFromBundle).length,outsideProduction:entries.filter(e=>!e.production).length,repositoryDeleted:entries.filter(e=>e.repositoryDeleted).length}};
 }

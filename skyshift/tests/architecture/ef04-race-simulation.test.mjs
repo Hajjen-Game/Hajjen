@@ -313,8 +313,13 @@ test('EF04 root owner entries reconciled with current graph and surviving known 
  const graph=new Set(inventory().literalBrowserGraph.paths);
  const rows=ledger.entries.map(e=>({path:e.path,live:graph.has(e.path.slice('skyshift/'.length)),exists:existsSync(new URL('../../../'+e.path,import.meta.url)),survivingKnownConsumers:e.knownConsumers.filter(p=>existsSync(new URL('../../../'+p,import.meta.url)))}));
  const retired=ledger.entries.filter(e=>e.disposition.startsWith('retired:'));
+ const laterRetired=new Set(JSON.parse(readFileSync(new URL('../../docs/architecture/ef08-obsolete-cohort.json',import.meta.url),'utf8')).roots.map(e=>e.path));
  assert.deepEqual(retired.map(e=>e.path),retirementEF04.files.map(e=>e.path));
- assert.ok(rows.every(r=>r.exists!==retired.some(e=>e.path===r.path)),'Unexpected retirement or restored obsolete source');
+ for(const r of rows){
+  const removed=retired.some(e=>e.path===r.path)||laterRetired.has(r.path);
+  assert.equal(r.exists,!removed,r.path+' unexpected retirement or restored obsolete source');
+  if(removed)assert.equal(r.live,false,r.path+' retired path is live');
+ }
  for(const r of rows)assert.equal(r.live,ledger.entries.find(e=>e.path===r.path).verifiedLiveLiteral,r.path+' graph role changed');
  for(const p of ['core/race-lifecycle.mjs','qa/race-probes.mjs','tracks/shared/track-sampler.mjs','flight/flight-physics.mjs'])assert.ok(graph.has(p),p);
  console.log('SKYSHIFT_EF04_OWNER_RECONCILIATION '+JSON.stringify(rows));

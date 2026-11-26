@@ -67,6 +67,37 @@ function restoreRaceSessionReader(s,p){
  return s;
 }
 export function restoreUiMove(s,p){
+ // EF06 owns the live menu listeners; reverse only those five exact
+ // reader-registration edits before the earlier EF04 and EF02 inverses.
+ if(key(p)==='skyshift/tests/architecture/active-entrypoint.test.mjs'){
+  const edits=[
+    {
+      "after": "runtimeLifetime\\.listenActive\\(UI\\.settingsOpen,",
+      "before": "UI\\.settingsOpen\\.addEventListener\\("
+    },
+    {
+      "after": "runtimeLifetime\\.listenActive\\(UI\\.settingsBack,",
+      "before": "UI\\.settingsBack\\.addEventListener\\("
+    },
+    {
+      "after": "runtimeLifetime\\.listenActive\\(UI\\.start,",
+      "before": "UI\\.start\\.addEventListener\\("
+    },
+    {
+      "after": "runtimeLifetime\\.listenActive\\(UI\\.pauseGhostToggle,",
+      "before": "UI\\.pauseGhostToggle\\.addEventListener\\("
+    },
+    {
+      "after": "runtimeLifetime\\.listenActive\\(UI\\.pauseMenu,",
+      "before": "UI\\.pauseMenu\\.addEventListener\\("
+    }
+  ];
+  for(const e of edits){
+   assert.equal(s.split(e.after).length-1,1,'EF06 menu listener reader inverse');
+   assert.ok(!s.includes(e.before),'EF06 stale menu listener assertion');
+   s=s.replace(e.after,e.before);
+  }
+ }
  // EF05 archival materialization is an exact additive setup change.
  if(key(p)==='.github/workflows/skyshift-tests.yml'){
   const step="      - name: Materialize exact archived station QA assets\n        run: |\n          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897\n          node skyshift/build/archived-world-assets.mjs --materialize\n";

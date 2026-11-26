@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import {createRaceLifecycle} from "./core/race-lifecycle.mjs";
+import {createRuntimeLifetime} from "./core/runtime-lifetime.mjs";
 import {installFlightTuningPanel,installRaceQa} from "./qa/race-probes.mjs";
 import {clearRaceInput,installRaceInput} from "./ui/race-input.mjs";
 import {createRaceHud} from "./ui/race-hud.mjs";
@@ -686,6 +687,28 @@ window.__skyshiftStartupAudit=()=>{
  };
 };
 const worldClock={last:performance.now(),accum:0};
+const runtimeLifetime=createRuntimeLifetime({
+ requestFrame:callback=>requestAnimationFrame(callback),
+ cancelFrame:id=>cancelAnimationFrame(id),frame:loop,
+ resetClock:()=>{worldClock.last=performance.now();worldClock.accum=0;},
+ onSuspend:()=>{if(uiState.mode==="playing")pause();},
+ onContextLost:()=>{
+  if(uiState.mode==="playing")pause();
+  sceneReady=false;
+  UI.error.classList.remove("hidden");
+  UI.error.textContent="Graphics context lost. Waiting for recovery…";
+ },
+ // Existing track/fidelity changes already use a clean reload. Recover using
+ // the same boot path rather than reusing invalid GPU handles.
+ onContextRestored:()=>location.reload(),
+ onDispose:({contextLost})=>{
+  sceneReady=false;shipArtController.dispose();
+  const cleanup=[()=>clearTimeout(uiState.bannerTimeout),()=>clearTimeout(uiState.toastTimeout),
+   ()=>{if(!contextLost)gpuClock?.reset();},()=>pmremPipeline?.dispose?.(),
+   ()=>neonPipeline?.dispose?.(),()=>renderer?.dispose?.(),()=>perfPanel?.remove()];
+  for(const release of cleanup)try{release();}catch(error){console.warn("SKYSHIFT cleanup",error);}
+ }
+});
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
 let claritySettings=null,fidelityProfile=null,fidelityDirector=null;
 let neonKit,neonPipeline,velocityCinematography=null,unifiedCinematicGrade=null,finalCohesion=null,unifiedMetalLight=null,premiumReflectionFinish=null,fixtureTransport=null,trueRailWall=null,engineLights=[],engineCore,enginePlumes=[],identitySurface,premiumSurface,spaceBackdrop,shadowTunnel,tunnelBlackout,worldLights,bladeTips;
@@ -1012,6 +1035,7 @@ function makeShip(id=fleetProgress.selected){
  UI.jump.classList.add("hidden");
  // A scene-art preview only; 120Hz flight/camera/GRIP remain unchanged.
  void shipArtController.onCraftBuilt(craft,id).then(()=>{
+  if(runtimeLifetime.disposed||runtimeLifetime.contextLost)return;
   if(activeCraft===craft){
    whiteCoreContainment?.attachShip(ship);
    shipWhiteSpill?.attachShip(ship);
@@ -1535,7 +1559,7 @@ function initScene(){
  gpuClock=createGpuTimer(renderer.getContext(),perfSettings.enabled);
  // Non-interactive rendering diagnostic for browser CI and exported audits.
  window.__skyshiftClarityInfo=()=>clarityAudit(claritySettings,neonPipeline);
- addEventListener("resize",resize);
+ runtimeLifetime.listen(window,"resize",resize);
  sceneReady=true;
  markStartup("sceneReady");
  // Source-of-truth 0.28.0 plan/installer audit for every current
@@ -3601,7 +3625,7 @@ function installFullscreen(){
    doc:document,root:$("app"),deviceScreen:screen,
    onChange:syncFullscreenUi,
    onBlocked:fullscreenBlocked,
-   onResize:()=>{resize();requestAnimationFrame(resize);}
+   onResize:()=>{resize();runtimeLifetime.once(resize);}
  });
  fullscreenController.sync();
 }
@@ -3984,7 +4008,6 @@ function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicSta
   kineticCamera,racingExperience,velocityPresence,boostSpring,uiState.mode==="playing");
 }
 function loop(now){
- requestAnimationFrame(loop);
  let physicsMs=0,hudMs=0,physicsSteps=0;
  const presentationBegin=performance.now();
  const rawDt=Math.max(0,(now-worldClock.last)/1000);
@@ -4689,6 +4712,7 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
+ runtimeLifetime.bind(window,UI.canvas);
  initScene();
  installFlightTuningPanel({document,location,flightTuning,cinematicTuning});
  resetFlight();
@@ -4750,8 +4774,9 @@ try{
  // Only actual selected catalog objects may enter Challenge mode.
  markStartup("bootReady");
  window.__skyshiftBootReady?.(()=>enterPlaying(null));
- requestAnimationFrame(loop);
+ runtimeLifetime.start();
 }catch(error){
+ runtimeLifetime.dispose();
  console.error("SKYSHIFT startup failed",error);
  window.__skyshiftBootFail?.(error);
  UI.error.classList.remove("hidden");

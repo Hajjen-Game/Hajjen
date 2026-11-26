@@ -165,7 +165,11 @@ test('EF04 camera and ship presentation preserve original transform formulas and
  assert.match(live,/shipPresentation\.frame\(time,view,flight/);
  assert.match(live,/chaseCameraController\.apply\(camera,dt,view,flight/);
  assert.match(live,/chaseCameraController\.spawn\(camera,flight,motionState,cinematicState\)/);
- assert.match(live,/chaseCameraController\.snap\(flight,motionState,cinematicState,true\)/);
+ const probes=readFileSync(new URL('../../qa/race-probes.mjs',import.meta.url),'utf8');
+ assert.match(live,/import \{installFlightTuningPanel,installRaceQa\} from "\.\/qa\/race-probes\.mjs";/);
+ assert.match(live,/installRaceQa\(\{window,document,location,performance,ctx:\{get flight\(\)\{return flight\}/);
+ assert.match(live,/snapRacePose,raceSimulation,chaseCameraController,inShadowTunnel/);
+ assert.match(probes,/window\.__skyshiftTrackRepairTeleport=\(s=3180\)=>\{[\s\S]*?if\(isVault\(\)\)\{\s*chaseCameraController\.snap\(ctx\.flight,ctx\.motionState,ctx\.cinematicState,true\);/);
  assert.doesNotMatch(live,/\b(?:CAMERA_INFO|CAMERA_VIEW|CAMERA_BASE_POSITION|CAMERA_TARGET_POSITION|CAMERA_TARGET_LOOK|SHADOW_NORMAL|SHADOW_PLANE_NORMAL)\b/);
 });
 

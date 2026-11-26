@@ -6,6 +6,7 @@ import {resolve,relative,dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {build} from 'vite';
+import {PRODUCTION_TRACK,productionRouteUrl} from '../tracks/shared/production-catalog.mjs';
 const here=dirname(fileURLToPath(import.meta.url)),source=resolve(here,'..');
 const stage=join(here,'.stage'),dist=join(here,'dist');
 const read=p=>readFile(p,'utf8');
@@ -38,7 +39,26 @@ html=html.replace(/<link rel="stylesheet" href="\.\/[^"]+\.css(?:\?[^"]*)?">/g,(
 });
 await writeFile(join(stage,'production.css'),styles.map(x=>'@import '+JSON.stringify(x)+';').join('\n')+'\n');
 html=replaceOnce(html,tag,'<script type="module" src="./boot-v0210.js"></script>','production boot entry');
+// Retire ordinary Skyline/Aurora selection only in the published bundle.
+// The original source HTML/boot remain intact for explicit historical QA.
+html=replaceOnce(html,/<select id="track-picker" class="track-picker" aria-label="Välj bana">[\s\S]*?<\/select>/g,
+ '<select id="track-picker" class="track-picker" aria-label="Välj bana"><option value="'+PRODUCTION_TRACK.id+'">'+PRODUCTION_TRACK.option+'</option></select>','production track catalog');
+html=replaceOnce(html,/<span id="menu-track-name">[^<]+<\/span>/g,'<span id="menu-track-name">'+PRODUCTION_TRACK.name+'</span>','initial track name');
+html=replaceOnce(html,/<p class="tagline" id="track-tagline">[^<]+<\/p>/g,'<p class="tagline" id="track-tagline">CONTINUOUS 3D TUNNEL · FAST C2 CORNERS · THREE LAPS.</p>','initial track tagline');
+html=replaceOnce(html,/<div class="prototype-label" id="track-features">[^<]+<\/div>/g,'<div class="prototype-label" id="track-features">3 × 3,400 M · FULL TUNNEL · MAIN BOOST · GRIP · NO RISK LANES</div>','initial track features');
+html=replaceOnce(html,/<button id="challenges-btn" class="secondary" type="button">/g,'<button id="challenges-btn" class="secondary hidden" type="button">','initial legacy challenges hidden');
 await writeFile(join(stage,'index.html'),html);
+// Canonicalize before the dynamic game import resolves any track/version flags.
+await writeFile(join(stage,'boot-v0210.js'),
+ 'import {applyProductionCatalog} from "./tracks/shared/production-catalog.mjs";\napplyProductionCatalog(location,history);\n'+originalBoot);
+for(const query of ['', '?track=skyline&v=0.26.5','?track=aurora&v=0.26.5','?track=vault&v=0.27.0','?track=unknown']){
+ const old=new URL('https://example.invalid/skyshift/'+query);old.searchParams.set('startupAudit','1');old.hash='anchor';
+ const canonical=new URL(productionRouteUrl(old.href));
+ assert.equal(canonical.searchParams.get('track'),PRODUCTION_TRACK.id);
+ assert.equal(canonical.searchParams.get('v'),PRODUCTION_TRACK.version);
+ assert.equal(canonical.searchParams.get('startupAudit'),'1');
+ assert.equal(canonical.hash,'#anchor');assert.equal(productionRouteUrl(canonical.href),canonical.href);
+}
 // The old HTML script URL carries the legacy source version; a hashed
 // module entry cannot carry that query. Preserve exactly that observed value,
 // NOT the route version (?v=) or a new gameplay version.
@@ -74,5 +94,5 @@ const files=[];
 async function walk(dir){for(const e of await readdir(dir,{withFileTypes:true})){const p=join(dir,e.name);if(e.isDirectory())await walk(p);else{const b=await readFile(p);files.push({path:relative(dist,p).replaceAll('\\','/'),bytes:b.length,sha256:createHash('sha256').update(b).digest('hex')});}}}
 await walk(dist);
 files.sort((a,b)=>a.path.localeCompare(b.path));
-await writeFile(join(dist,'build-report.json'),JSON.stringify({schema:1,sourceVersion:version,cssOrder:styles,three:'0.180.0',graph,files},null,2)+'\n');
+await writeFile(join(dist,'build-report.json'),JSON.stringify({schema:1,sourceVersion:version,productionCatalog:[PRODUCTION_TRACK],cssOrder:styles,three:'0.180.0',graph,files},null,2)+'\n');
 console.log('SKYSHIFT_EF03_BUILD '+JSON.stringify({version,styles,modules:graph.modules.length,chunks:graph.chunks,outputBytes:files.reduce((n,x)=>n+x.bytes,0),files:files.length}));

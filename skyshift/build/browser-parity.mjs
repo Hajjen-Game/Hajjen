@@ -186,22 +186,38 @@ try{
    let transferred=0,completed=0;cdp.on('Network.loadingFinished',e=>{transferred+=e.encodedDataLength;completed++;});
    page.on('request',r=>requests.push(r.url()));
    const prefix=mode==='source'?'/skyshift/':'/Hajjen/skyshift/';
-   const url='http://127.0.0.1:8923'+prefix+'?track=vault&v=0.28.9.7&startupAudit=1&trackRepairSmoke=1';
+   const url='http://127.0.0.1:8923'+prefix;
    const phases=[];
    for(const phase of ['cold','warm']){
     transferred=0;completed=0;requests.length=0;const started=performance.now();
-    await page.goto(url,{waitUntil:'domcontentloaded',timeout:80000});
+    // Real cold/warm production navigations cover default, retired Skyline,
+    // retired Aurora, and canonical Vault while preserving the original QA source.
+    const route=mode==='source'?'track=vault&v=0.28.9.7':
+     memory===8?(phase==='cold'?'':'track=skyline&v=0.26.5'):
+      (phase==='cold'?'track=aurora&v=0.26.5':'track=vault&v=0.28.9.7');
+    await page.goto(url+'?'+(route?route+'&':'')+'startupAudit=1&trackRepairSmoke=1',{waitUntil:'domcontentloaded',timeout:80000});
     await page.waitForFunction(()=>['ready','failed'].includes(window.__skyshiftBoot?.phase),null,{timeout:220000});
     const boot=await page.evaluate(()=>{
      const ids=['menu','start-btn','topbar-track-name','hud','game'];const styles={};
      for(const id of ids){const el=document.getElementById(id),s=getComputedStyle(el);styles[id]=[s.display,s.position,s.fontSize,s.color,s.backgroundColor,s.width,s.height];}
-     return {state:window.__skyshiftBoot,scene:window.__skyshiftStartupAudit?.()?.scene,styles,title:document.querySelector('#topbar-track-name')?.textContent};
+     return {state:window.__skyshiftBoot,scene:window.__skyshiftStartupAudit?.()?.scene,styles,title:document.querySelector('#topbar-track-name')?.textContent,
+      catalog:[...document.querySelectorAll('#track-picker option')].map(o=>o.value),
+      selected:document.querySelector('#track-picker')?.value,
+      challengeHidden:document.querySelector('#challenges-btn')?.classList.contains('hidden'),
+      query:location.search};
     });
     assert.equal(boot.state.phase,'ready',JSON.stringify({mode,memory,boot,errors}).slice(0,3000));
     assert.equal(boot.scene?.sharedTunnelModules,10,JSON.stringify({mode,memory,scene:boot.scene,errors}).slice(0,4000));
     assert.equal(boot.scene?.legacyRoadResponseMeshes,0,'current production must not allocate retired road overlay');
     assert.equal(boot.scene?.omittedLegacyRoadBatches,memory===8?10:0,'actual shared renderer omission count');
     assert.equal(boot.scene?.pmremActive,true);
+    assert.equal(boot.selected,'vault');
+    assert.equal(boot.challengeHidden,true);
+    const query=new URLSearchParams(boot.query);
+    assert.equal(query.get('track'),'vault');assert.equal(query.get('v'),'0.28.9.7');
+    assert.equal(query.get('startupAudit'),'1');assert.equal(query.get('trackRepairSmoke'),'1');
+    assert.deepEqual(boot.catalog,mode==='bundle'?['vault']:['skyline','aurora','vault']);
+    console.log('SKYSHIFT_EF05_CATALOG '+JSON.stringify({mode,memory,phase,requested:route,selected:boot.selected,catalog:boot.catalog,query:boot.query}));
     const timing={phase,bootMs:boot.state.readyAfterMs,wallMs:performance.now()-started,encodedBytes:transferred,completed,requestCount:requests.length,requests:[...requests]};
     if(mode==='bundle')assert.ok(!requests.some(x=>/cdn\.jsdelivr\.net\/npm\/three/.test(x)),'bundle must not fetch Three CDN');
     await page.locator('#start-btn').click();

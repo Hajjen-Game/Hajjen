@@ -41,7 +41,7 @@ for(const path of kept){
  if(otherEntries.includes(path)||['skyshift/material-grade-v0203.html','skyshift/boot-v0210.js','skyshift/game-v0210.mjs'].includes(path))preserved.push({path,sha256:a});
 }
 preserved.push({path:legacy,sha256:sha(source)});
-const publication={schema:1,commit,sourceVersion:report.sourceVersion,production:report.files.filter(x=>!x.path.startsWith('.vite/')).map(x=>({...x,path:'skyshift/'+x.path})),preserved,keptFiles:kept.length,excludedBuildOrCiFiles:excluded.length};
+const publication={schema:1,commit,sourceVersion:report.sourceVersion,productionCatalog:report.productionCatalog,production:report.files.filter(x=>!x.path.startsWith('.vite/')).map(x=>({...x,path:'skyshift/'+x.path})),preserved,keptFiles:kept.length,excludedBuildOrCiFiles:excluded.length};
 assert.ok(!tracked.includes('skyshift/publication.json'));
 await writeFile(join(site,'skyshift/publication.json'),JSON.stringify(publication,null,2)+'\n');
 console.log('SKYSHIFT_EF03_PAGES '+JSON.stringify({commit,preserved:kept.length-1,otherEntries,productionFiles:publication.production.length,excluded:excluded.length}));

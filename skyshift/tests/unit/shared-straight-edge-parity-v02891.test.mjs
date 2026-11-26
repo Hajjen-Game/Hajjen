@@ -176,7 +176,9 @@ test("legacy Skyline release functions and Vault 0.28.9 lighting remain enabled"
  const html=read("./index.html");
  assert.match(shared,/buildVaultStraightEmitters02891/);
  assert.match(shared,/straightOnly:straightOnly02891/);
- assert.match(game,/installVaultStraightRoadParity02891/);
+ const assembly=read("./tunnel/shared-optical-assembly.mjs");
+ assert.match(game,/installSharedRoadOptics\(\s*THREE,world,opticalContext/);
+ assert.match(assembly,/installVaultStraightRoadParity02891\(THREE,deck/);
  assert.match(game,/straightParityReleaseEnabled\?" · 0\.28\.9\.1"/);
  assert.match(game,/selected==="vault"\?"0\.28\.9\.7"/);
  assert.match(html,/Startup Stability & Shared Resource Deduplication · 0\.28\.9\.7/);

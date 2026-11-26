@@ -211,6 +211,10 @@
         {
           "before": "",
           "after": "\ntest(\"EF05 independent straight mask uses the actual authored course length\",()=>{\n const g=new Geo(),samples=[0,40,60,130,700,850,900,1199,1200];\n g.setAttribute(\"aTrackCoord\",new Attr(samples.flatMap(s=>[s,9]),2));\n g.setAttribute(\"position\",new Attr(samples.flatMap(()=>[0,0,0]),3));\n const ranges=[{from:39,to:120},{from:840,to:880}];\n const mask=buildVaultRoadStraightMask02891(g,ranges,1200);\n assert.deepEqual([...mask.values],[0,1,1,0,0,1,0,0,0]);\n});\n"
+        },
+        {
+          "before": " assert.match(game,/installVaultStraightRoadParity02891/);",
+          "after": " const assembly=read(\"./tunnel/shared-optical-assembly.mjs\");\n assert.match(game,/installSharedRoadOptics\\(\\s*THREE,world,opticalContext/);\n assert.match(assembly,/installVaultStraightRoadParity02891\\(THREE,deck/);"
         }
       ]
     },

@@ -35,7 +35,8 @@ export async function captureEF05Baseline({browser,repo,out}){
     page.on('console',m=>{if(m.type()==='error'&&/THREE.WebGLProgram|shader error|INVALID_OPERATION|context lost|startup failed/i.test(m.text()))errors.push(m.text());});
     const version=track==='vault'?'0.28.9.7':'0.26.5';
     const port=mode==='before'?8925:8923;
-    const query='?track='+track+'&v='+version+'&startupAudit=1&trackRepairSmoke=1';
+    const query='?track='+track+'&v='+version+'&startupAudit=1&trackRepairSmoke=1'+
+     (track==='skyline'?'&railWallFrameProof=1&waveSmoke=1':'');
     await page.goto('http://127.0.0.1:'+port+'/skyshift/'+query,{waitUntil:'domcontentloaded',timeout:80000});
     await page.waitForFunction(()=>['ready','failed'].includes(window.__skyshiftBoot?.phase),null,{timeout:220000});
     const boot=await page.evaluate(()=>({phase:window.__skyshiftBoot.phase,scene:window.__skyshiftStartupAudit?.()?.scene}));
@@ -54,18 +55,27 @@ export async function captureEF05Baseline({browser,repo,out}){
      assert.equal(pose.finishS,3400);
      assert.ok(pose.withinPhysicalRoll);
      // The protected QA teleport freezes simulation; allow the live render loop to present.
-     await page.waitForTimeout(900);
+     if(track==='skyline')await page.evaluate(()=>window.__skyshiftWaveSmoke(1));
+     await page.waitForTimeout(track==='skyline'?1800:900);
      const surface=await page.evaluate(()=>{
       const c=document.querySelector('canvas');
       return {width:c.width,height:c.height,lost:c.getContext('webgl2')?.isContextLost()??true};
      });
      assert.ok(!surface.lost&&surface.width>100&&surface.height>100);
      const label='ef05-'+track+'-'+memory+'GB-'+station+'-'+mode;
-     const pixels=await page.screenshot({path:join(out,label+'.png'),timeout:60000});
+     const capture=async(suffix)=>{
+      if(track!=='skyline')return page.screenshot({path:join(out,label+suffix+'.png'),timeout:60000});
+      await page.screenshot({path:join(out,label+suffix+'-viewport.png'),timeout:60000});
+      const frame=await page.evaluate(()=>window.__skyshiftRailWallFrameProof());
+      assert.equal(frame.s,station,'native frame matches requested station');
+      const bytes=Buffer.from(frame.response,'base64');assert.ok(bytes.length>1000,'native frame present');
+      writeFileSync(join(out,label+suffix+'.png'),bytes);return bytes;
+     };
+     const pixels=await capture('');
      // Capture temporal control too: pixel differences are evidence, not a
      // requirement for bit-identical animation or a substitute for visual review.
      await page.waitForTimeout(300);
-     const control=await page.screenshot({path:join(out,label+'-control.png'),timeout:60000});
+     const control=await capture('-control');
      frames.push({station,pose,surface,pixels,control,label});
     }
     assert.deepEqual(errors,[],track+' '+memory+' '+mode+' runtime errors');

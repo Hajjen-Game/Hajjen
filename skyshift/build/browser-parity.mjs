@@ -41,17 +41,11 @@ async function independentRoute(memory){
   const result=await page.evaluate(async memory=>{
    const THREE=await import('three');
    const load=p=>import('/skyshift/'+p);
-   const [{installConfiguredSharedTunnel},{createSharedSourceSampler0282,installSharedRoadReflections0282,installSharedShipLight0282},
-    {createUnifiedSourceRegistry02894,installUnifiedCeilingRoad02894},
-    {installVaultStraightRoadParity02891,vaultStraightMask02891},
-    {installArchRoadReflection02893},{installRoadSpill02895},
-    {installCinematicRoad0289},{createPremiumTrackMaterial},{ZONE_PALETTES},
-    {installPmremReflectionPipeline0284}]=await Promise.all([
-     load('true-shared-tunnel-renderer-v0281.mjs'),load('tunnel/shared-road-ship-light-v0282.mjs'),
-     load('tunnel/unified-tunnel-light-sources-v02894.mjs'),load('tunnel/shared-straight-edge-parity-v02891.mjs'),
-     load('tunnel/premium-arch-optics-v02893.mjs'),load('tunnel/road-spill-wave-coves-v02895.mjs'),
-     load('rendering/cinematic-metal-neon-v0289.mjs'),load('rendering/road/premium-track-v0160.mjs'),load('zone-wave-v060.mjs'),
-     load('tunnel/pmrem-reflection-pipeline-v0284.mjs')]);
+   const [{installConfiguredSharedTunnel},{createSharedOpticalContext,installSharedRoadOptics,installSharedOpticalShip},
+    {vaultStraightMask02891},{createPremiumTrackMaterial},{ZONE_PALETTES},{installPmremReflectionPipeline0284}]=await Promise.all([
+     load('true-shared-tunnel-renderer-v0281.mjs'),load('tunnel/shared-optical-assembly.mjs'),
+     load('tunnel/shared-straight-edge-parity-v02891.mjs'),load('rendering/road/premium-track-v0160.mjs'),
+     load('zone-wave-v060.mjs'),load('tunnel/pmrem-reflection-pipeline-v0284.mjs')]);
    const lowMemory=memory===4,length=1200,sections=[{start:25,end:625},{start:800,end:1120}];
    // Continuous route: true curve, vertical rise and rotating cross-section.
    const positionAt=(s,l,h)=>{
@@ -76,9 +70,9 @@ async function independentRoute(memory){
    if(stats.sourceModules!==3||stats.physicalModules!==3||stats.coverageMeters!==920||
     !stats.premiumArchOptics02893.active||!stats.waveCoupledWallCoves02895.active)
     throw Error('Actual shared material modules unavailable '+JSON.stringify(stats));
-   const sampler=createSharedSourceSampler0282(positionAt,length,tunnel.modules);
+   const opticalContext=createSharedOpticalContext({positionAt,trackLength:length,lowMemory,tunnel,enabled:true,unifiedSources:true});
+   const {sourceSampler:sampler,sourceRegistry:registry}=opticalContext;
    const mask=s=>vaultStraightMask02891(s,tunnel.policy.straightRanges,length);
-   const registry=createUnifiedSourceRegistry02894(positionAt,length,{lowMemory,sourceSampler:sampler,straightMask:mask});
    const positions=[],coords=[],indices=[],lanes=[-11,-9,0,9,11];
    for(let s=0;s<=length;s+=2)for(const l of lanes){
     const p=positionAt(s,l,-.2);positions.push(p.x,p.y,p.z);coords.push(s,l);
@@ -95,15 +89,12 @@ async function independentRoute(memory){
    premium.setDetailMode(lowMemory?'low':'high');
    const road=new THREE.Mesh(geo,premium.material);
    road.name='Zone Ribbon · integrated PBR racing deck';world.add(road);
-   const native=installSharedRoadReflections0282(THREE,world,{enabled:true,positionAt,trackLength:length,lowMemory,sourceSampler:sampler});
-   const finish=installCinematicRoad0289(world,{enabled:true,lowMemory,road:true});
-   const straight=installVaultStraightRoadParity02891(THREE,road,{enabled:true,ranges:tunnel.policy.straightRanges,trackLength:length});
-   const arch=installArchRoadReflection02893(THREE,world,positionAt,{enabled:true,lowMemory,trackLength:length,unifiedSources:true,sourceSampler:sampler,sourceRegistry:registry});
-   const cove=installUnifiedCeilingRoad02894(THREE,world,positionAt,{enabled:true,lowMemory,trackLength:length,sourceRegistry:registry});
-   const spill=installRoadSpill02895(THREE,road,{enabled:true,lowMemory,trackLength:length,sourceModules:tunnel.modules});
-   const shipLight=installSharedShipLight0282(THREE,{enabled:true,positionAt,trackLength:length,lowMemory,sourceSampler:sampler});
+   const {native,finish,straight,arch,cove,spill}=installSharedRoadOptics(THREE,world,opticalContext,{
+    road:true,cinematic:true,straight:true,arch:true,unifiedSources:true,ceiling:true,ceilingFixtures:true,spill:true
+   },{roadStrength:true});
    const ship=new THREE.Mesh(new THREE.BoxGeometry(2.5,.7,4),new THREE.MeshStandardMaterial({color:0x768ba8,metalness:.6,roughness:.35}));
-   ship.name='fixture hull';world.add(ship);shipLight.attachShip(ship);
+   ship.name='fixture hull';world.add(ship);
+   const shipLight=installSharedOpticalShip(THREE,ship,opticalContext,true);
    const controllers=[native,finish,straight,arch,cove,spill,shipLight];
    if(controllers.some(x=>!x.active))throw Error('optical controller inactive '+JSON.stringify(controllers.map(x=>x.stats())));
    if(sampler.localFor(700)!==null||registry.at(700)!==null||mask(700)!==0)

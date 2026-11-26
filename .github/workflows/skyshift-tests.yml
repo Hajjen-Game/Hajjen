@@ -428,7 +428,6 @@ jobs:
           node --check skyshift/tests/unit/reactive-wing-flaps-v0108.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0108.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0109.mjs
-          node --check skyshift/rail-scrape-sparks-v01091.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v01091.mjs
           node --check skyshift/core/performance-audit-v0110.mjs
           node --check skyshift/tests/unit/performance-audit-v0110.test.mjs
@@ -550,7 +549,6 @@ jobs:
           node --check skyshift/tests/browser/browser-multi-track-v0160.mjs
           node --check skyshift/cinematic-v0161.mjs
           node --check skyshift/flight/unified-flight-v0161.mjs
-          node --check skyshift/rail-scrape-sparks-v0161.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0161.mjs
           node --check skyshift/tests/unit/track-integrity-v0161.test.mjs
           node --check skyshift/tests/browser/browser-track-integrity-v0161.mjs
@@ -558,7 +556,6 @@ jobs:
           node --check skyshift/cinematic-v0162.mjs
           node --check skyshift/flight/unified-flight-v0162.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0162.mjs
-          node --check skyshift/rail-scrape-sparks-v0162.mjs
           node --check skyshift/rail-contact-audit-v0162.mjs
           node --check skyshift/tests/unit/rail-collision-v0162.test.mjs
           node --check skyshift/tests/unit/track-integrity-v0162.test.mjs
@@ -567,7 +564,6 @@ jobs:
           node --check skyshift/cinematic-v0163.mjs
           node --check skyshift/flight/unified-flight-v0163.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0163.mjs
-          node --check skyshift/rail-scrape-sparks-v0163.mjs
           node --check skyshift/rail-contact-audit-v0163.mjs
           node --check skyshift/tests/unit/rail-contact-quality-v0163.test.mjs
           node --check skyshift/tests/unit/track-integrity-v0163.test.mjs
@@ -576,7 +572,6 @@ jobs:
           node --check skyshift/cinematic-v0164.mjs
           node --check skyshift/flight/unified-flight-v0164.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0164.mjs
-          node --check skyshift/rail-scrape-sparks-v0164.mjs
           node --check skyshift/tests/unit/track-integrity-v0164.test.mjs
           node --check skyshift/track-physics-parity-probe-v0164.mjs
           node --check skyshift/tests/unit/track-physics-parity-v0164.test.mjs

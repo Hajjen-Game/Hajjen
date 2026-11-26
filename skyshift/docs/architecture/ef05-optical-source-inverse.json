@@ -263,6 +263,56 @@
           "after": "   shipIntensity:plan.shipStrength*strength*shipRouteWeight,"
         }
       ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+      "sha": "43bff82e262df0fe6557dbde46cc01f17f3ef473",
+      "edits": [
+        {
+          "before": " const sparks=await import(\"../../rail-scrape-sparks-v0161.mjs\");\n const oldSparks=await import(\"../../rail-scrape-sparks-v01091.mjs\");",
+          "after": " const {createRailContactSampler}=await import(\"../../rendering/rail-scrape-sparks.mjs\");\n const oldTrial=await import(\"../../trial-v0901.mjs\");\n const sparks={railContactPoint:createRailContactSampler(trial)};\n const oldSparks={railContactPoint:createRailContactSampler(oldTrial)};"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+      "sha": "ed1deeac5e23d426da26ad376e05febfbaaab4eb",
+      "edits": [
+        {
+          "before": " const sparks=await import(\"../../rail-scrape-sparks-v0162.mjs\");\n const oldSparks=await import(\"../../rail-scrape-sparks-v01091.mjs\");",
+          "after": " const {createRailContactSampler}=await import(\"../../rendering/rail-scrape-sparks.mjs\");\n const oldTrial=await import(\"../../trial-v0901.mjs\");\n const sparks={railContactPoint:createRailContactSampler(trial)};\n const oldSparks={railContactPoint:createRailContactSampler(oldTrial)};"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+      "sha": "f95f33ffad2014376a37b87696e6c4bd620eacc0",
+      "edits": [
+        {
+          "before": " const sparks=await import(\"../../rail-scrape-sparks-v0163.mjs\");\n const oldSparks=await import(\"../../rail-scrape-sparks-v01091.mjs\");",
+          "after": " const {createRailContactSampler}=await import(\"../../rendering/rail-scrape-sparks.mjs\");\n const oldTrial=await import(\"../../trial-v0901.mjs\");\n const sparks={railContactPoint:createRailContactSampler(trial)};\n const oldSparks={railContactPoint:createRailContactSampler(oldTrial)};"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+      "sha": "12430c8bf7965e43d13e29ecc4643428a2e913fc",
+      "edits": [
+        {
+          "before": " const sparks=await import(\"../../rail-scrape-sparks-v0164.mjs\");\n const oldSparks=await import(\"../../rail-scrape-sparks-v01091.mjs\");",
+          "after": " const {createRailContactSampler}=await import(\"../../rendering/rail-scrape-sparks.mjs\");\n const oldTrial=await import(\"../../trial-v0901.mjs\");\n const sparks={railContactPoint:createRailContactSampler(trial)};\n const oldSparks={railContactPoint:createRailContactSampler(oldTrial)};"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "sha": "8d9b9c48d3d2cc278420491b50c10073c5481443",
+      "edits": [
+        {
+          "before": " const sparks=await import(\"../../rail-scrape-sparks-v0165.mjs\");\n const oldSparks=await import(\"../../rail-scrape-sparks-v01091.mjs\");",
+          "after": " const {createRailContactSampler}=await import(\"../../rendering/rail-scrape-sparks.mjs\");\n const oldTrial=await import(\"../../trial-v0901.mjs\");\n const sparks=await import(\"../../rail-scrape-sparks-v0165.mjs\");\n const oldSparks={railContactPoint:createRailContactSampler(oldTrial)};"
+        }
+      ]
     }
   ]
 }

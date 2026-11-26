@@ -87,4 +87,9 @@ assert.deepEqual(outputAssets,assets.sort(),'complete classified production asse
 for(const p of ['assets/ships/stingray-evo-hero-v1.gltf','assets/ships/stingray-evo-hero-v4.gltf'])assert.ok(assets.includes(p),p+' required runtime model');
 console.log('SKYSHIFT_EF03_ASSETS '+JSON.stringify({copied:assets.length,optionalBlenderGlb:assets.includes('assets/ships/stingray-evo-hero-v4.glb')}));
 const top=await readdir(dist);for(const p of ['tests','docs','legacy','previews','material-grade-v0203.html','game-v0210.mjs','node_modules'])assert.ok(!top.includes(p),p+' must not ship in production artifact');
+// EF08: distinguish real production-module membership from the source/QA graph.
+const sourceRoots=(await readdir(source,{withFileTypes:true})).filter(e=>e.isFile()).map(e=>e.name).sort();
+const productionRoots=sourceRoots.filter(name=>report.graph.modules.includes('source/'+name)||report.cssOrder.includes('./'+name));
+const rootMembership={productionRoots,otherSourceRoots:sourceRoots.filter(name=>!productionRoots.includes(name)),productionModules:report.graph.modules.length,artifactBytes:report.files.reduce((n,f)=>n+f.bytes,0),warning:'Not bundled is not proof of safe deletion; boot HTML, asset URLs, QA and comparison consumers are separate.'};
+console.log('SKYSHIFT_EF08_PRODUCTION_ROOTS '+JSON.stringify(rootMembership));
 console.log('SKYSHIFT_EF03_ARTIFACT verified hashed entry and CSS, lazy chunks, integrity and asset paths');

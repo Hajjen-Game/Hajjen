@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {build} from 'vite';
 import {PRODUCTION_TRACK,productionRouteUrl} from '../tracks/shared/production-catalog.mjs';
-import {specializeVaultScenery,retiredSceneryModules} from './production-specialization.mjs';
+import {specializeVaultGame,specializeVaultTunnelRuntime,retiredSceneryModules,retiredTunnelModules,comparisonOnlyWorldAssets} from './production-specialization.mjs';
 import {reconcileEF05Owners} from './ef05-owner-reconciliation.mjs';
 const here=dirname(fileURLToPath(import.meta.url)),source=resolve(here,'..');
 const stage=join(here,'.stage'),dist=join(here,'dist');
@@ -53,12 +53,14 @@ await writeFile(join(stage,'index.html'),html);
 // Canonicalize before the dynamic game import resolves any track/version flags.
 await writeFile(join(stage,'boot-v0210.js'),
  'import {applyProductionCatalog} from "./tracks/shared/production-catalog.mjs";\napplyProductionCatalog(location,history);\n'+originalBoot);
-for(const query of ['', '?track=skyline&v=0.26.5','?track=aurora&v=0.26.5','?track=vault&v=0.27.0','?track=unknown']){
+for(const query of ['', '?track=skyline&v=0.26.5','?track=aurora&v=0.26.5','?track=vault&v=0.27.0','?track=unknown','?track=vault&sharedTunnel=classic&trueSharedRenderer=classic']){
  const old=new URL('https://example.invalid/skyshift/'+query);old.searchParams.set('startupAudit','1');old.hash='anchor';
  const canonical=new URL(productionRouteUrl(old.href));
  assert.equal(canonical.searchParams.get('track'),PRODUCTION_TRACK.id);
  assert.equal(canonical.searchParams.get('v'),PRODUCTION_TRACK.version);
  assert.equal(canonical.searchParams.get('startupAudit'),'1');
+ assert.notEqual(canonical.searchParams.get('sharedTunnel'),'classic');
+ assert.notEqual(canonical.searchParams.get('trueSharedRenderer'),'classic');
  assert.equal(canonical.hash,'#anchor');assert.equal(productionRouteUrl(canonical.href),canonical.href);
 }
 // The old HTML script URL carries the legacy source version; a hashed
@@ -67,8 +69,10 @@ for(const query of ['', '?track=skyline&v=0.26.5','?track=aurora&v=0.26.5','?tra
 const game=join(stage,'game-v0210.mjs');
 let gameText=await read(game);
 gameText=replaceOnce(gameText,/const SKYSHIFT_BUILD_VERSION=new URL\(\s*document\.querySelector\("script\[data-game-module\]"\)\?\.src\|\|location\.href\s*\)\.searchParams\.get\("v"\)\|\|"0\.26\.5";/g,'const SKYSHIFT_BUILD_VERSION='+JSON.stringify(version)+';','source build version');
-gameText=specializeVaultScenery(gameText);
+gameText=specializeVaultGame(gameText);
 await writeFile(game,gameText);
+const runtime=join(stage,'shared-tunnel-runtime-v0280.mjs');
+await writeFile(runtime,specializeVaultTunnelRuntime(await read(runtime)));
 // These two retained root loaders resolve runtime-selected glTF and its
 // relative resources against their module URL. Bundled chunks live in bundles/.
 // Keep the exact asset paths and resolve against the page instead.
@@ -91,14 +95,22 @@ await build({configFile:false,root:stage,base:'./',publicDir:false,plugins:[audi
  build:{outDir:dist,emptyOutDir:true,assetsDir:'bundles',manifest:true,target:'es2020',minify:'esbuild',cssMinify:false,cssCodeSplit:false,
  rollupOptions:{input:join(stage,'index.html'),output:{entryFileNames:'bundles/[name]-[hash].js',chunkFileNames:'bundles/[name]-[hash].js',assetFileNames:'bundles/[name]-[hash][extname]',manualChunks(id){if(id.replaceAll('\\','/').match(/\/node_modules\/three\/(?:build|src)\//))return 'three-engine';}}}}});
 assert.ok(graph,'bundle graph audit ran');
-for(const name of retiredSceneryModules)assert.ok(!graph.modules.includes('source/'+name),'Exclusive legacy scenery still in bundle: '+name);
+const retiredProductionModules=[...retiredSceneryModules,...retiredTunnelModules];
+for(const name of retiredProductionModules)assert.ok(!graph.modules.includes('source/'+name),'Exclusive legacy renderer still in bundle: '+name);
 const ef05Owners=reconcileEF05Owners(resolve(source,'..'),graph);
 console.log('SKYSHIFT_EF05_OWNER_RECONCILIATION '+JSON.stringify(ef05Owners.counts));
-// Runtime glTF paths remain stable; copy original asset tree, not source/QA files.
-await cp(join(source,'assets'),join(dist,'assets'),{recursive:true});
+// Only the explicitly reviewed legacy station assets leave the production
+// artifact. Pages assembly retains the exact original bytes for source QA.
+const comparisonAssets=[];
+for(const path of comparisonOnlyWorldAssets){
+ const b=await readFile(join(source,path));
+ comparisonAssets.push({path,bytes:b.length,sha256:createHash('sha256').update(b).digest('hex')});
+}
+await cp(join(source,'assets'),join(dist,'assets'),{recursive:true,
+ filter:p=>!comparisonOnlyWorldAssets.includes(relative(source,p).replaceAll('\\','/'))});
 const files=[];
 async function walk(dir){for(const e of await readdir(dir,{withFileTypes:true})){const p=join(dir,e.name);if(e.isDirectory())await walk(p);else{const b=await readFile(p);files.push({path:relative(dist,p).replaceAll('\\','/'),bytes:b.length,sha256:createHash('sha256').update(b).digest('hex')});}}}
 await walk(dist);
 files.sort((a,b)=>a.path.localeCompare(b.path));
-await writeFile(join(dist,'build-report.json'),JSON.stringify({schema:1,sourceVersion:version,productionCatalog:[PRODUCTION_TRACK],ef05Owners,cssOrder:styles,three:'0.180.0',graph,files},null,2)+'\n');
+await writeFile(join(dist,'build-report.json'),JSON.stringify({schema:1,sourceVersion:version,productionCatalog:[PRODUCTION_TRACK],retiredProductionModules,comparisonAssets,ef05Owners,cssOrder:styles,three:'0.180.0',graph,files},null,2)+'\n');
 console.log('SKYSHIFT_EF03_BUILD '+JSON.stringify({version,styles,modules:graph.modules.length,chunks:graph.chunks,outputBytes:files.reduce((n,x)=>n+x.bytes,0),files:files.length}));

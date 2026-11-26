@@ -41,6 +41,13 @@ for(const path of kept){
  if(otherEntries.includes(path)||['skyshift/material-grade-v0203.html','skyshift/boot-v0210.js','skyshift/game-v0210.mjs'].includes(path))preserved.push({path,sha256:a});
 }
 preserved.push({path:legacy,sha256:sha(source)});
+for(const f of report.comparisonAssets){
+ const path='skyshift/'+f.path;
+ assert.ok(kept.includes(path),path+' historical comparison asset retained');
+ const bytes=await readFile(join(site,path));assert.equal(bytes.length,f.bytes);assert.equal(sha(bytes),f.sha256);
+ assert.ok(!report.files.some(x=>x.path===f.path),path+' comparison asset excluded from production artifact');
+ preserved.push({path,sha256:f.sha256});
+}
 const publication={schema:1,commit,sourceVersion:report.sourceVersion,productionCatalog:report.productionCatalog,production:report.files.filter(x=>!x.path.startsWith('.vite/')).map(x=>({...x,path:'skyshift/'+x.path})),preserved,keptFiles:kept.length,excludedBuildOrCiFiles:excluded.length};
 assert.ok(!tracked.includes('skyshift/publication.json'));
 await writeFile(join(site,'skyshift/publication.json'),JSON.stringify(publication,null,2)+'\n');

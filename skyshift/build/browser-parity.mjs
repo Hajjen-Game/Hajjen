@@ -194,7 +194,7 @@ try{
     // retired Aurora, and canonical Vault while preserving the original QA source.
     const route=mode==='source'?'track=vault&v=0.28.9.7':
      memory===8?(phase==='cold'?'':'track=skyline&v=0.26.5'):
-      (phase==='cold'?'track=aurora&v=0.26.5':'track=vault&v=0.28.9.7');
+      (phase==='cold'?'track=aurora&v=0.26.5':'track=vault&v=0.28.9.7&sharedTunnel=classic&trueSharedRenderer=classic');
     await page.goto(url+'?'+(route?route+'&':'')+'startupAudit=1&trackRepairSmoke=1',{waitUntil:'domcontentloaded',timeout:80000});
     await page.waitForFunction(()=>['ready','failed'].includes(window.__skyshiftBoot?.phase),null,{timeout:220000});
     const boot=await page.evaluate(()=>{
@@ -218,10 +218,14 @@ try{
     const query=new URLSearchParams(boot.query);
     assert.equal(query.get('track'),'vault');assert.equal(query.get('v'),'0.28.9.7');
     assert.equal(query.get('startupAudit'),'1');assert.equal(query.get('trackRepairSmoke'),'1');
+    assert.notEqual(query.get('sharedTunnel'),'classic');assert.notEqual(query.get('trueSharedRenderer'),'classic');
     assert.deepEqual(boot.catalog,mode==='bundle'?['vault']:['skyline','aurora','vault']);
     console.log('SKYSHIFT_EF05_CATALOG '+JSON.stringify({mode,memory,phase,requested:route,selected:boot.selected,catalog:boot.catalog,query:boot.query}));
     const timing={phase,bootMs:boot.state.readyAfterMs,wallMs:performance.now()-started,encodedBytes:transferred,completed,requestCount:requests.length,requests:[...requests]};
-    if(mode==='bundle')assert.ok(!requests.some(x=>/cdn\.jsdelivr\.net\/npm\/three/.test(x)),'bundle must not fetch Three CDN');
+    if(mode==='bundle'){
+     assert.ok(!requests.some(x=>/cdn\.jsdelivr\.net\/npm\/three/.test(x)),'bundle must not fetch Three CDN');
+     assert.ok(!requests.some(x=>x.includes('/assets/worlds/')),'production must not load retired station assets');
+    }
     await page.locator('#start-btn').click();
     await page.waitForFunction(()=>window.__skyshiftPerfProbe?.().state==='playing',null,{timeout:40000});
     await page.evaluate(()=>window.__skyshiftTrackRepairTeleport(110));await page.waitForTimeout(300);

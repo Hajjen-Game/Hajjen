@@ -7,6 +7,8 @@ export function productionRouteUrl(href){
  const url=new URL(href);
  url.searchParams.set('track',PRODUCTION_TRACK.id);
  url.searchParams.set('v',PRODUCTION_TRACK.version);
+ // Classic tunnel renderers are available only in the source comparison entry.
+ for(const key of ['sharedTunnel','trueSharedRenderer'])if(url.searchParams.get(key)==='classic')url.searchParams.delete(key);
  return url.href;
 }
 export function applyProductionCatalog(location,history){

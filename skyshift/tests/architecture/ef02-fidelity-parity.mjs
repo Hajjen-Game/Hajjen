@@ -2,7 +2,6 @@
 import assert from 'node:assert/strict';
 import {resolve} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
-import {readFileSync} from 'node:fs';
 const [reference,track]=process.argv.slice(2);
 assert.ok(reference&&['vault','skyline','aurora'].includes(track));
 globalThis.location={search:'?track='+track+'&v=0.28.9.7'};
@@ -26,18 +25,13 @@ function output(mod,lowMemory,preset){
  mod.resetFidelityDirector(state);
  return {profile,initial,shader,audit,reset:state,options:mat.options,key:mat.customProgramCacheKey(),variant:surface.fidelityShaderVariant,enabled:surface.fidelityShaderEnabled,needsUpdate:mat.needsUpdate};
 }
-let oldBytes=0,newBytes=0;
-for(const v of ['0114','0150','0151','0160']){
+for(const v of ['0160']){
  const name='visual-fidelity-v'+v+'.mjs';
  const old=await load(resolve(reference,'skyshift'),name),now=await load(root,name);
- oldBytes+=readFileSync(resolve(reference,'skyshift/core',name)).length;
- newBytes+=readFileSync(resolve(root,'core',name)).length;
  assert.deepEqual(Object.keys(old).sort(),Object.keys(now).sort());
  assert.deepEqual(old.FIDELITY_0114,now.FIDELITY_0114);
  for(const lowMemory of [false,true])for(const preset of ['baseline','fidelity-on','fidelity-off','fidelity-legacy'])
   assert.deepEqual(output(now,lowMemory,preset),output(old,lowMemory,preset));
  console.log('SKYSHIFT_EF02_FIDELITY_PARITY '+JSON.stringify({track,version:v,profiles:8}));
 }
-newBytes+=readFileSync(resolve(root,'core/visual-fidelity.mjs')).length;
-assert.ok(newBytes<oldBytes);
-console.log('SKYSHIFT_EF02_FIDELITY_BYTES '+JSON.stringify({oldBytes,newBytes,reduction:oldBytes-newBytes}));
+console.log('SKYSHIFT_EF08_CURRENT_FIDELITY_PARITY '+JSON.stringify({track,adapters:1}));

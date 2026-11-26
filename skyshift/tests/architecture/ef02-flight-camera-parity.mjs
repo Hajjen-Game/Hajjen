@@ -2,21 +2,18 @@
 import assert from 'node:assert/strict';
 import {resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {readFileSync} from 'node:fs';
 const [ref,track]=process.argv.slice(2);
 assert.ok(ref&&['vault','skyline','aurora'].includes(track));
 globalThis.location={search:'?track='+track+'&v=0.28.9.7'};
 const root=fileURLToPath(new URL('../../',import.meta.url)),old=resolve(ref,'skyshift');
 const load=(dir,p)=>import(pathToFileURL(resolve(dir,p)));
-const cv=['081','082','083','084','090','0901','0161','0162','0163','0164','0165'],uv=['0112','0161','0162','0163','0164','0165'];
-const cam=v=>(v==='0165'?'flight/':'')+'cinematic-v'+v+'.mjs';
+const cv=['0165'],uv=['0165']; // current game adapters only
+const cam=v=>'flight/cinematic-v'+v+'.mjs';
 const rig=v=>'flight/unified-flight-v'+v+'.mjs';
-const camVersion=v=>v==='0112'?'0901':v;
+const camVersion=v=>v;
 const points=[-1,0,5,120,510,573,606.6,1662,1740,1842,3004,3005,3100,3180,3337,3338,3399,3400,3410,6580];
-let oldBytes=0,newBytes=0;
 for(const v of cv){
  const path=cam(v),a=await load(old,path),b=await load(root,path);
- oldBytes+=readFileSync(resolve(old,path)).length;newBytes+=readFileSync(resolve(root,path)).length;
  assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort());
  assert.deepEqual(a.CINEMATIC_DEFAULTS,b.CINEMATIC_DEFAULTS);
  const sa=a.createCinematicState(),sb=b.createCinematicState();
@@ -48,7 +45,6 @@ async function dependencies(dir,v){
 }
 for(const v of uv){
  const path=rig(v),a=await load(old,path),b=await load(root,path);
- oldBytes+=readFileSync(resolve(old,path)).length;newBytes+=readFileSync(resolve(root,path)).length;
  assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort());
  const sa=await dependencies(old,v),sb=await dependencies(root,v);
  const config={flightTuning:sa.flightTuning,cinematicTuning:sa.cinematicTuning,headingAt:s=>Math.sin(s*.003),surfaceHeightAt:(s,l)=>Math.sin(s*.004)*2+Math.abs(l)*.005,hoverHeight:1.1,cameraGain:.85,lapLength:3400,magneticWall:{start:1662,end:1842},corkscrew:{start:3005,end:3338}};
@@ -65,13 +61,11 @@ for(const v of uv){
  assert.deepEqual(a.resetUnifiedFlightRig(ra),b.resetUnifiedFlightRig(rb));
  console.log('SKYSHIFT_EF02_FLIGHT_PARITY '+JSON.stringify({track,version:v,frames:400}));
 }
-for(const p of ['flight/cinematic-camera.mjs','flight/classic-camera.mjs','flight/unified-flight.mjs'])newBytes+=readFileSync(resolve(root,p)).length;
-assert.ok(newBytes<oldBytes);
-console.log('SKYSHIFT_EF02_FLIGHT_BYTES '+JSON.stringify({oldBytes,newBytes,reduction:oldBytes-newBytes}));
+console.log('SKYSHIFT_EF08_CURRENT_FLIGHT_PARITY '+JSON.stringify({track,cameraAdapters:cv.length,flightAdapters:uv.length}));
 
 
 // EF02J: compare the grouped boost solver against the exact EF01 reference.
-for(const v of ['0150','0151','0160']){
+for(const v of ['0160']){
  const path='flight/boost/boost-v'+v+'.mjs',a=await load(old,path),b=await load(root,path);
  assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort());
  for(const key of ['BOOST_CONFIG','BOOST_PADS','RACE_BOOST_PADS'])assert.deepEqual(a[key],b[key]);
@@ -102,47 +96,6 @@ for(const v of ['0150','0151','0160']){
  console.log('SKYSHIFT_EF02_GROUPED_BOOST_PARITY '+JSON.stringify({track,version:v,pads:pads.length}));
 }
 
-
-// EF02J: preserve both historical Skyline solvers and their distinct boost policies.
-for(const v of ['0150','0151']){
- const p='trial-v'+v+'.mjs',a=await load(old,p),b=await load(root,p);
- assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort());
- for(const k of Object.keys(a))if(typeof a[k]!=='function')assert.deepEqual(a[k],b[k],k);
- assert.deepEqual(a.validateTrial(),b.validateTrial());
- assert.deepEqual(a.circuitPlanSummary(),b.circuitPlanSummary());
- // Sample all three laps including seams, jump gap, narrowing, bank and corkscrew.
- for(let s=0;s<=a.TRIAL.raceLength;s+=2){
-  for(const k of ['headingAt','curvatureAt','bankAt','widthAt','heightAt','gradeAt','pitchAt','poseAt','surfaceNormalAt','gapAt','roadIntervals','guardrailLateralLimit','speedAt'])assert.deepEqual(a[k](s),b[k](s),k);
-  for(const l of [-2,0,2]){
-   assert.deepEqual(a.positionAt(s,l,1.05),b.positionAt(s,l,1.05));
-   assert.equal(a.surfaceHeightAt(s,l),b.surfaceHeightAt(s,l));
-  }
- }
- function seed(t,s,l){
-  const st=t.newFlightState(),p=t.positionAt(s,l,0);
-  Object.assign(st,{s,lateral:l,worldX:p.x,worldZ:p.z,heading:t.headingAt(s),y:t.surfaceHeightAt(s,l)+t.TRIAL.hoverHeight});
-  return st;
- }
- const starts=[5,55,540,570,590,665,720,900,1640,1665,1825,2195,2375,2810,3000,3160,3330,3390];
- for(const s of starts){
-  const sa=seed(a,s,0),sb=seed(b,s,0);
-  for(let i=0;i<360;i++){
-   if(i%80===0)assert.equal(a.setZoneSpeedStage(sa,i/80),b.setZoneSpeedStage(sb,i/80));
-   const control={steer:Math.sin(i*.06)*.75,grip:i%120<80},dt=1/120;
-   assert.deepEqual(a.stepFlight(sa,dt,control),b.stepFlight(sb,dt,control));
-   assert.deepEqual(sa,sb);
-  }
- }
- for(const pad of a.BOOST_PADS){
-  const s=(pad.start+pad.end)/2,l=(pad.lateralMin+pad.lateralMax)/2,sa=seed(a,s,l),sb=seed(b,s,l);
-  assert.deepEqual(a.stepFlight(sa,1/120,{steer:0,grip:false}),b.stepFlight(sb,1/120,{steer:0,grip:false}));
-  assert.deepEqual(sa,sb);
- }
- for(const side of [-1,1]){
-  const s=20,l=side*(a.guardrailLateralLimit(s)+.3),sa=seed(a,s,l),sb=seed(b,s,l);
-  for(const st of [sa,sb])Object.assign(st,{heading:st.heading+side*.85,yawRate:side*.64,currentSpeed:101.4});
-  assert.equal(a.constrainToGuardrail(sa,1/120),b.constrainToGuardrail(sb,1/120));
-  assert.deepEqual(sa,sb);
- }
- console.log('SKYSHIFT_EF02_HISTORICAL_TRIAL_PARITY '+JSON.stringify({track,version:v,geometrySamples:Math.floor(a.TRIAL.raceLength/2)+1,simulationFrames:starts.length*360}));
-}
+// Current generic flight physics, track sampling and future-route jump/trick/landing
+// behavior are independently exercised by ef04-race-simulation.test.mjs and
+// the mandatory current track-physics and track-integrity suites.

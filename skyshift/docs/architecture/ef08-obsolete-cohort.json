@@ -1065,6 +1065,591 @@
       "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6",
       "verifiedArchitectureRun": 45879475855,
       "productionEvidenceRun": 45879475859
+    },
+    {
+      "path": "skyshift/cinematic-v081.mjs",
+      "sha": "93640b6c40e01e13ef84627c03573af6150122d8",
+      "bytes": 438,
+      "baselineBlob": "93640b6c40e01e13ef84627c03573af6150122d8",
+      "priorOwner": "engine",
+      "priorRole": "text-reference-unresolved",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-relocation-l1h.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v081.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 12,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "f6c403b0c620027518135deedf87701f191dcb38",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v081.mjs",
+          "sha": "9f3112f24e7046780f1cf47620fef96682485e0e",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420
+    },
+    {
+      "path": "skyshift/cinematic-v082.mjs",
+      "sha": "62373e82d3924837bf6b5ab33bd06b4f08ebf8cc",
+      "bytes": 438,
+      "baselineBlob": "62373e82d3924837bf6b5ab33bd06b4f08ebf8cc",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v082.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 8,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "f6c403b0c620027518135deedf87701f191dcb38",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v082.mjs",
+          "sha": "e38213c5d2f1a32444185be624c64751834fcf55",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420
+    },
+    {
+      "path": "skyshift/cinematic-v083.mjs",
+      "sha": "14f06e202a6885f53ec1788398d82415acbf8e86",
+      "bytes": 438,
+      "baselineBlob": "14f06e202a6885f53ec1788398d82415acbf8e86",
+      "priorOwner": "engine",
+      "priorRole": "text-reference-unresolved",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v083.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 8,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "f6c403b0c620027518135deedf87701f191dcb38",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v083.mjs",
+          "sha": "c5d4eae543ddb39f6954907cf7abf2accdc95c59",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420
+    },
+    {
+      "path": "skyshift/cinematic-v084.mjs",
+      "sha": "be0b3d65aac8e79751b15d450f64c395d80c545a",
+      "bytes": 438,
+      "baselineBlob": "be0b3d65aac8e79751b15d450f64c395d80c545a",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v084.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/kinetic-camera-v090.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 8,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "f6c403b0c620027518135deedf87701f191dcb38",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v084.mjs",
+          "sha": "5949350555a051177b7c05754b415361b510d731",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420
+    },
+    {
+      "path": "skyshift/cinematic-v090.mjs",
+      "sha": "9e919de1c28ff87fc24a5f443067c8c13de47888",
+      "bytes": 428,
+      "baselineBlob": "9e919de1c28ff87fc24a5f443067c8c13de47888",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v090.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/kinetic-camera-v090.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 9,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "f6c403b0c620027518135deedf87701f191dcb38",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v090.mjs",
+          "sha": "bd05cdd7424b00cf64d2daeefaccc9e028c636e8",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0161.mjs",
+      "sha": "3adb385a3201b5bc6e5161e7d3503915dfec41a9",
+      "bytes": 432,
+      "baselineBlob": "3adb385a3201b5bc6e5161e7d3503915dfec41a9",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-trial-moves.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/releases/RELEASE-0161.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 8,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "f6c403b0c620027518135deedf87701f191dcb38",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+          "sha": "43bff82e262df0fe6557dbde46cc01f17f3ef473",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0161.mjs",
+          "sha": "f76534c85d28e24dc3ba250c0ed863a6a678efce",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0162.mjs",
+      "sha": "4ced2b704342b6031bf6c34c3a52a3d22a64ad72",
+      "bytes": 418,
+      "baselineBlob": "4ced2b704342b6031bf6c34c3a52a3d22a64ad72",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 7,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "f6c403b0c620027518135deedf87701f191dcb38",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+          "sha": "ed1deeac5e23d426da26ad376e05febfbaaab4eb",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0162.mjs",
+          "sha": "1fbc44f4aac1e91b56fd76d090af25f93c84e42a",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0163.mjs",
+      "sha": "5ee3667290e9246e48be364b9518862bf3177f6b",
+      "bytes": 418,
+      "baselineBlob": "5ee3667290e9246e48be364b9518862bf3177f6b",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 7,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "f6c403b0c620027518135deedf87701f191dcb38",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+          "sha": "f95f33ffad2014376a37b87696e6c4bd620eacc0",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0163.mjs",
+          "sha": "bc09ee42e630a221937b9ccbb727d166418d5ae0",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420
+    },
+    {
+      "path": "skyshift/rail-scrape-sparks-v0164.mjs",
+      "sha": "4514d5aa79320fd629c6b4ddd75e7e6e0a6256e7",
+      "bytes": 418,
+      "baselineBlob": "4514d5aa79320fd629c6b4ddd75e7e6e0a6256e7",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 7,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "f6c403b0c620027518135deedf87701f191dcb38",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+          "sha": "12430c8bf7965e43d13e29ecc4643428a2e913fc",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0164.mjs",
+          "sha": "7017a46a4ae00dd61e4e30ac6b26b9ae1370912f",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420
     }
   ],
   "unitTests": [
@@ -1295,6 +1880,46 @@
       "sha": "7567019bb81b54e5bbf650764cedc1b61c053c22",
       "bytes": 8312,
       "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+      "sha": "43bff82e262df0fe6557dbde46cc01f17f3ef473",
+      "bytes": 11795,
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420,
+      "replacement": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "reason": "Obsolete duplicate track integrity snapshots; same feature test names and current 0165 test runs in fast, architecture and main track QA."
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+      "sha": "ed1deeac5e23d426da26ad376e05febfbaaab4eb",
+      "bytes": 11749,
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420,
+      "replacement": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "reason": "Obsolete duplicate track integrity snapshots; same feature test names and current 0165 test runs in fast, architecture and main track QA."
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+      "sha": "f95f33ffad2014376a37b87696e6c4bd620eacc0",
+      "bytes": 11749,
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420,
+      "replacement": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "reason": "Obsolete duplicate track integrity snapshots; same feature test names and current 0165 test runs in fast, architecture and main track QA."
+    },
+    {
+      "path": "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+      "sha": "12430c8bf7965e43d13e29ecc4643428a2e913fc",
+      "bytes": 11924,
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420,
+      "replacement": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+      "reason": "Obsolete duplicate track integrity snapshots; same feature test names and current 0165 test runs in fast, architecture and main track QA."
     }
   ],
   "architectureTests": [
@@ -1482,7 +2107,10 @@
     "lifetime": "skyshift/tests/architecture/ef06-runtime-lifetime.test.mjs",
     "built": ".github/workflows/skyshift-ef03-build.yml",
     "fast": ".github/workflows/skyshift-ci-fast.yml",
-    "track": ".github/workflows/skyshift-tests.yml"
+    "track": ".github/workflows/skyshift-tests.yml",
+    "currentCamera": "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+    "currentSparks": "skyshift/tests/architecture/ef02-rail-spark-parity.mjs",
+    "currentTrackIntegrity": "skyshift/tests/unit/track-integrity-v0165.test.mjs"
   },
   "preserve": "Actual shared flight, boost, GRIP, banked geometry, jump/trick/landing, camera, ship resource and visual regressions remain. Original version-specific aesthetics and previous relocation SHA/path/count proofs are not current behavior. No runtime source, public current entrypoint or comparison page changes.",
   "browserTests": [
@@ -2062,6 +2690,37 @@
       ],
       "removedSyntaxCommands": 54,
       "removedLegacySyntaxGlob": true
+    },
+    {
+      "scope": "Replace historical-only parity loops with actual current adapter comparisons; retire five unreferenced early camera adapters and four rail wrappers with their four superseded syntax-only track integrity readers. Preserve current exact reference checks, future-route functionality and all real WebGL suites.",
+      "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
+      "verifiedArchitectureRun": 45897212479,
+      "productionEvidenceRun": 45897212420,
+      "rootFiles": 9,
+      "unitFiles": 4,
+      "bytes": 51083,
+      "paths": [
+        "skyshift/cinematic-v081.mjs",
+        "skyshift/cinematic-v082.mjs",
+        "skyshift/cinematic-v083.mjs",
+        "skyshift/cinematic-v084.mjs",
+        "skyshift/cinematic-v090.mjs",
+        "skyshift/rail-scrape-sparks-v0161.mjs",
+        "skyshift/rail-scrape-sparks-v0162.mjs",
+        "skyshift/rail-scrape-sparks-v0163.mjs",
+        "skyshift/rail-scrape-sparks-v0164.mjs",
+        "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0164.test.mjs"
+      ],
+      "removedSyntaxCommands": 13
     }
-  ]
+  ],
+  "protectedReplacements": {
+    "skyshift/tests/unit/track-integrity-v0161.test.mjs": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+    "skyshift/tests/unit/track-integrity-v0162.test.mjs": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+    "skyshift/tests/unit/track-integrity-v0163.test.mjs": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+    "skyshift/tests/unit/track-integrity-v0164.test.mjs": "skyshift/tests/unit/track-integrity-v0165.test.mjs"
+  }
 }

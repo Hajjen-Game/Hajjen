@@ -2,17 +2,13 @@
 import assert from 'node:assert/strict';
 import {resolve} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
-import {readFileSync} from 'node:fs';
 const [before]=process.argv.slice(2);
 assert.ok(before);
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const load=(dir,path)=>import(pathToFileURL(resolve(dir,path)));
-let oldBytes=0,newBytes=0;
-for(const version of ['050','051','060']){
+for(const version of ['060']){
  const name='zone-wave-v'+version+'.mjs';
  const old=await load(resolve(before,'skyshift'),name),now=await load(root,name);
- oldBytes+=readFileSync(resolve(before,'skyshift',name)).length;
- newBytes+=readFileSync(resolve(root,name)).length;
  assert.deepEqual(Object.keys(now).sort(),Object.keys(old).sort());
  assert.deepEqual(now.ZONE_WAVE,old.ZONE_WAVE);
  assert.deepEqual(now.ZONE_PALETTES,old.ZONE_PALETTES);
@@ -39,6 +35,4 @@ for(const version of ['050','051','060']){
  }
  console.log('SKYSHIFT_EF02_ZONE_WAVE_PARITY '+JSON.stringify({version,triggers:now.ZONE_WAVE.triggers,frontSpeed:now.ZONE_WAVE.frontMetersPerSecond,shaderIdentical:true}));
 }
-newBytes+=readFileSync(resolve(root,'core/zone-wave.mjs')).length;
-assert.ok(newBytes<oldBytes);
-console.log('SKYSHIFT_EF02_ZONE_WAVE_BYTES '+JSON.stringify({oldBytes,newBytes,reduction:oldBytes-newBytes}));
+console.log('SKYSHIFT_EF08_CURRENT_WAVE_PARITY '+JSON.stringify({adapters:1}));

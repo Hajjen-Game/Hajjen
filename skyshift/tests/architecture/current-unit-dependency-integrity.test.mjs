@@ -10,6 +10,8 @@ const repo=resolve(root,'..'),unit=resolve(root,'tests/unit'),workflows=resolve(
 const unitNames=readdirSync(unit).filter(n=>n.endsWith('.test.mjs')).sort();
 const stage8=JSON.parse(readFileSync(resolve(unit,'migration-manifest-02898-stage8.json'),'utf8'));
 const protectedTests=Object.keys(stage8.entries);
+const reviewed=JSON.parse(readFileSync(resolve(root,'docs/architecture/ef08-obsolete-cohort.json'),'utf8'));
+const reviewedProtected=reviewed.protectedReplacements||{};
 function target(name,spec,sourceReader=false){
  const path=resolve(unit,spec.split(/[?#]/)[0]),rel=relative(root,path);
  assert.ok(rel&&rel!=='..'&&!rel.startsWith('..'+sep)&&!isAbsolute(rel),'Test dependency escapes SKYSHIFT: '+name+' -> '+spec);
@@ -43,6 +45,18 @@ test('retained stage-6 dynamic imports and protected complex tests retain actual
  for(const name of [...new Set([...Object.keys(stage6.entries),...protectedTests])]){
   const p=resolve(unit,name);
   if(!existsSync(p)&&!protectedTests.includes(name))continue; // only currently retained tests
+  if(!existsSync(p)&&protectedTests.includes(name)){
+   const old='skyshift/tests/unit/'+name,replacement=reviewedProtected[old];
+   assert.equal(replacement,'skyshift/tests/unit/track-integrity-v0165.test.mjs','Unreviewed protected retirement: '+old);
+   assert.ok(reviewed.unitTests.some(f=>f.path===old&&f.replacement===replacement&&f.bytes>0&&/^[a-f0-9]{40}$/.test(f.sha)));
+   assert.ok(existsSync(resolve(repo,replacement)));
+   for(const wf of ['skyshift-architecture-guard.yml','skyshift-ci-fast.yml','skyshift-tests.yml']){
+    const source=readFileSync(resolve(workflows,wf),'utf8');
+    assert.ok(source.includes(replacement),wf+' missing current replacement');
+    assert.ok(!source.includes(old),wf+' stale retired test');
+   }
+   continue;
+  }
   assert.ok(existsSync(p),'Protected complex test missing: '+name);
   const source=readFileSync(p,'utf8');
   for(const match of source.matchAll(/\b(?:from\s*|import\s*\(\s*|import\s*)["'](\.\.\/\.\.\/[^"']+)["']/g))target(name,match[1]);

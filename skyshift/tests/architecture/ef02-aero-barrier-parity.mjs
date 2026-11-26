@@ -2,7 +2,6 @@
 import assert from 'node:assert/strict';
 import {resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {readFileSync} from 'node:fs';
 const [ref,track]=process.argv.slice(2);
 assert.ok(ref&&['vault','skyline','aurora'].includes(track));
 globalThis.location={search:'?track='+track+'&v=0.28.9.7'};
@@ -38,10 +37,8 @@ function install(m){
  assert.ok(meshes.every(m=>m.removed&&m.geometry.disposed&&m.material.disposed));
  return {metadata,data,shader,states,cache};
 }
-let oldBytes=0,newBytes=0;
-for(const v of ["070","071","072","081","082","083","084","0901","0160","0161","0162","0163","0164"]){
+for(const v of ["0165"]){
  const p='tracks/barriers/aero-barrier-v'+v+'.mjs',a=await load(old,p),b=await load(root,p);
- oldBytes+=readFileSync(resolve(old,p)).length;newBytes+=readFileSync(resolve(root,p)).length;
  assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort());
  for(const k of ['AERO_BARRIER','AERO_PROFILE','RAIL_SPECTRAL_VERTEX','RAIL_SPECTRAL_FRAGMENT'])assert.deepEqual(a[k],b[k]);
  for(const s of [-1,0,120,573,580,606.6,1662,1740,1842,3005,3180,3338,3399,3400,3410]){
@@ -56,6 +53,4 @@ for(const v of ["070","071","072","081","082","083","084","0901","0160","0161","
  assert.deepEqual(install(a),install(b));
  console.log('SKYSHIFT_EF02_AERO_BARRIER_PARITY '+JSON.stringify({track,version:v}));
 }
-newBytes+=readFileSync(resolve(root,'tracks/barriers/shared-aero-barrier.mjs')).length;
-assert.ok(newBytes<oldBytes);
-console.log('SKYSHIFT_EF02_AERO_BARRIER_BYTES '+JSON.stringify({oldBytes,newBytes,reduction:oldBytes-newBytes}));
+console.log('SKYSHIFT_EF08_CURRENT_BARRIER_PARITY '+JSON.stringify({track,adapters:1}));

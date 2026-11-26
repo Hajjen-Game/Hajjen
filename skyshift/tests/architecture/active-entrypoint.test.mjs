@@ -97,11 +97,11 @@ test('active game wires default Time Trial, settings and safe ghost abandonment'
     const start=app.indexOf('function '+name+'('),end=app.indexOf('function '+next+'(',start+1);
     assert.ok(start>=0&&end>start,name);return app.slice(start,end);
   };
-  assert.match(app,/UI\.settingsOpen\.addEventListener\("click",openSettings\)/);
-  assert.match(app,/UI\.settingsBack\.addEventListener\("click",closeSettings\)/);
+  assert.match(app,/runtimeLifetime\.listenActive\(UI\.settingsOpen,"click",openSettings\)/);
+  assert.match(app,/runtimeLifetime\.listenActive\(UI\.settingsBack,"click",closeSettings\)/);
   assert.match(body('openSettings','closeSettings'),/uiState\.mode="settings"/);
   assert.match(body('closeSettings','startImmersiveTrial'),/uiState\.mode="menu"/);
-  assert.match(app,/UI\.start\.addEventListener\("click",\(\)=>startImmersiveTrial\(null\)\)/);
+  assert.match(app,/runtimeLifetime\.listenActive\(UI\.start,"click",\(\)=>startImmersiveTrial\(null\)\)/);
   const session=readFileSync(at('core/race-session.mjs'),'utf8');
   const lifecycle=readFileSync(at('core/race-lifecycle.mjs'),'utf8');
   assert.match(body('enterPlaying','returnToMainMenu'),/raceLifecycle\.enterPlaying\(challenge\)/);
@@ -116,11 +116,11 @@ test('active game wires default Time Trial, settings and safe ghost abandonment'
   assert.match(session,/api\.finishTimeTrial\(trial,\{won,elapsed:flight\.elapsed/);
   assert.match(boot,/pendingMode:"time-trial"/);
   assert.doesNotMatch(boot,/time-trial-btn/);
-  assert.match(app,/UI\.pauseGhostToggle\.addEventListener\("click"/);
+  assert.match(app,/runtimeLifetime\.listenActive\(UI\.pauseGhostToggle,"click"/);
   assert.match(app,/raceSession\.toggleGhost\(\)/);
   assert.match(session,/trial\.ghostEnabled=ghostEnabled/);
   assert.match(session,/api\.saveGhostEnabled\(storage\(\),ghostEnabled\)/);
-  assert.match(app,/UI\.pauseMenu\.addEventListener\("click",returnToMainMenu\)/);
+  assert.match(app,/runtimeLifetime\.listenActive\(UI\.pauseMenu,"click",returnToMainMenu\)/);
   assert.match(body('returnToMainMenu','pause'),/raceLifecycle\.returnToMainMenu\(\)/);
   const leave=lifecycle.slice(lifecycle.indexOf('function returnToMainMenu('),lifecycle.indexOf('function pause('));
   for(const pattern of [/if\(uiState\.mode!=="paused"\)return/,/uiState\.mode="menu"/,/ctx\.hideGhost\(\)/,/UI\.trialHud\.classList\.add\("hidden"\)/,/UI\.settingsOpen\.classList\.remove\("hidden"\)/,/resetFlight\(\)/])assert.match(leave,pattern);

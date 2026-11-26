@@ -28,8 +28,9 @@ export function readOwnerRelocations(repo){
  for(const f of manifest.moves){
   assert.deepEqual(f,reviewed.get(f.oldPath),f.oldPath+' inconsistent reviewed move');
   assert.equal(typeof f.productionBefore,'boolean');
-  assert.match(f.oldPath,/^skyshift\/[^/]+\.mjs$/);
-  assert.match(f.newPath,/^skyshift\/(?:[\w-]+\/)+[\w.-]+\.mjs$/);
+  assert.match(f.oldPath,/^skyshift\/[^/]+\.(?:mjs|css)$/);
+  assert.match(f.newPath,/^skyshift\/(?:[\w-]+\/)+[\w.-]+\.(?:mjs|css)$/);
+  if(f.oldPath.endsWith('.css'))assert.equal(f.newPath,'skyshift/styles/'+basename(f.oldPath));
   assert.equal(basename(f.oldPath),basename(f.newPath));
   assert.match(f.sourceSha,/^[a-f0-9]{40}$/);assert.match(f.destinationSha,/^[a-f0-9]{40}$/);
   assert.ok(!byOld.has(f.oldPath)&&!destinations.has(f.newPath),'Duplicate reviewed owner '+f.oldPath);

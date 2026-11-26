@@ -33,7 +33,9 @@ for(const f of relocations.moves){
  await assert.rejects(stat(join(here,'..',oldName)),{code:'ENOENT'});
  assert.ok((await stat(join(here,'..',name))).isFile(),name+' missing relocated module');
  assert.ok(!report.graph.modules.some(p=>p.split('?')[0]==='source/'+oldName),oldName+' stale built path');
- assert.equal(report.graph.modules.some(p=>p.split('?')[0]==='source/'+name),f.productionBefore,name+' production membership changed by relocation');
+ assert.ok(!report.cssOrder.includes('./'+oldName),oldName+' stale built CSS path');
+ const included=name.endsWith('.css')?report.cssOrder.includes('./'+name):report.graph.modules.some(p=>p.split('?')[0]==='source/'+name);
+ assert.equal(included,f.productionBefore,name+' production membership changed by relocation');
 }
 assert.equal(report.ef05Owners.counts.repositoryDeleted,report.ef05Owners.entries.filter(e=>obsoletePaths.has(e.path)).length);
 for(const f of obsoleteCohort.roots){

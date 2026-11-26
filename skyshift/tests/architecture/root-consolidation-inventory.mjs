@@ -102,7 +102,7 @@ export function assertInventorySafety(){
  if(!current.has(resolve(root,'boot-v0210.js'))||
     !current.has(resolve(root,'game-v0210.mjs')))
   throw Error('Expected original live boot/game entrypoints in dependency graph');
- if(!current.has(resolve(root,'style-v061.css')))
+ if(!current.has(resolve(root,'styles/style-v061.css')))
   throw Error('Expected original active style in HTML dependency graph');
  return report;
 }

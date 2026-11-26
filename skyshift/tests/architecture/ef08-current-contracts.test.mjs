@@ -78,6 +78,14 @@ test('reviewed root relocations have a single tracked owner and preserve source 
   for(const f of rootRelocations.moves)assert.ok(!s.includes(f.oldPath),p+' stale relocated target '+f.oldPath);
  }
 });
+test('both source pages load the same eight canonical styles in the accepted cascade order',()=>{
+ const expected=['style-v061.css','style-v083.css','fleet-v0102.css','style-v0121.css','style-v0130.css','style-v0131.css','style-v0140.css','style-v0160.css'].map(n=>'./styles/'+n);
+ for(const page of ['index.html','material-grade-v0203.html']){
+  const html=readFileSync(resolve(root,page),'utf8');
+  const actual=[...html.matchAll(/<link rel="stylesheet" href="([^"?]+\.css)(?:\?[^"]*)?">/g)].map(m=>m[1]);
+  assert.deepEqual(actual,expected,page+' stylesheet cascade');
+ }
+});
 test('root ownership progresses without resurrecting old root files',()=>{
  const old=new Set(baseline.entries.map(f=>f.path));
  const roots=paths.filter(p=>/^skyshift\/[^/]+$/.test(p));

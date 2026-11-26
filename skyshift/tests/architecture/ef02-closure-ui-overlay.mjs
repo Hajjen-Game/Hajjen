@@ -67,6 +67,17 @@ function restoreRaceSessionReader(s,p){
  return s;
 }
 export function restoreUiMove(s,p){
+ // EF04 retirement is newer than every historical path migration. Restore its
+ // exact workflow edit here, before any historical identity is checked.
+ if(key(p)==='.github/workflows/skyshift-tests.yml'){
+  const {workflow:w}=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef04-retired-engine.json'),'utf8'));
+  assert.equal(w.path,key(p),'EF04 workflow path');
+  assert.equal(s.split(w.after).length-1,1,'EF04 workflow inverse anchor');
+  assert.ok(!s.includes(w.before),'EF04 stale retired syntax command');
+  s=s.replace(w.after,w.before);
+  const data=Buffer.from(s);
+  assert.equal(createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex'),w.previousSha,'EF04 exact workflow inverse');
+ }
  if(key(p)==='skyshift/tests/architecture/active-entrypoint.test.mjs')for(const e of [
   {
     "before": " assert.match(game,/__skyshiftSparkInfo/);",

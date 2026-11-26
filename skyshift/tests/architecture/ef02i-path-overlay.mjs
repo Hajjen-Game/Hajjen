@@ -12,16 +12,8 @@ const ef02j=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef0
 const key=p=>relative(repo,resolve(repo,p)).replaceAll('\\','/');
 const hash=s=>{const b=Buffer.from(s);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');};
 export function restoreEF02I(source,path){
- const k=key(path);
- const ef04=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef04-retired-engine.json'),'utf8'));
- if(k===ef04.workflow.path){
-  const {before,after,previousSha}=ef04.workflow;
-  assert.equal(source.split(after).length-1,1,k+' EF04 workflow anchor');
-  assert.ok(!source.includes(before),k+' stale EF04 syntax command');
-  source=source.replace(after,before);
-  assert.equal(hash(source),previousSha,k+' EF04 exact workflow inverse');
- }
  source=restoreDeckMove(source,path);
+ const k=key(path);
  // EF02J: reconstruct only the three approved material adapters from actual shared source.
  const versions=["corkscrew-spectrum-072","high-leap-spectrum-081","track-rhythm-spectrum-082"];
  const cohort=["skyshift/rendering/legacy/premium-track-v072.mjs","skyshift/rendering/legacy/premium-track-v081.mjs","skyshift/rendering/legacy/premium-track-v082.mjs"];

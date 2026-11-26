@@ -130,8 +130,25 @@ function oneSample(source,tangentOffset,weight,energy){
   "}"
  ].join("\n");
 }
+export function roadSectionMaskExpressionEF05(sections){
+ if(!Array.isArray(sections)||!sections.length||sections.length>512)
+  throw Error("EF05 explicit road tunnel intervals required");
+ let last=0;
+ const terms=sections.map(({start,end})=>{
+  if(!Number.isFinite(start)||!Number.isFinite(end)||start<last||end<=start)
+   throw Error("EF05 invalid road tunnel interval");
+  last=end;
+  const fade=Math.min(12,(end-start)/2),f=x=>x.toFixed(6);
+  return "(smoothstep("+f(start)+","+f(start+fade)+",s)*"+
+   "(1.0-smoothstep("+f(end-fade)+","+f(end)+",s)))";
+ });
+ return "clamp("+terms.join("+")+",0.0,1.0)";
+}
 export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false,
- fullTunnel=false}={}){
+ fullTunnel=false,sections=null}={}){
+ if(sections&&!fullTunnel)throw Error("EF05 section mask requires shared road shader");
+ const sectionExpression=sections?roadSectionMaskExpressionEF05(sections):null;
+ const sectionMask=sectionExpression?"roadTunnelMaskEF05(vTrackCoord.x)":"1.0";
  const sourceAnchor=fullTunnel?"#include <lights_fragment_end>":SOLAR_ANCHOR;
  if(!vertex.includes(COMMON)||!vertex.includes(VPROJECT)||
   !fragment.includes(COMMON)||!fragment.includes(ROUGH)||
@@ -167,11 +184,12 @@ export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false,
   "varying vec3 vRoadCyanLeft0263,vRoadCyanRight0263;",
   "varying vec3 vRoadAmberLeft0263,vRoadAmberRight0263;",
   "varying vec3 vRoadAxis0263;",
-  "varying vec2 vRoadFixtureMasks0263;"
+  "varying vec2 vRoadFixtureMasks0263;",
+  ...(sectionExpression?["float roadTunnelMaskEF05(float s){return "+sectionExpression+";}"]:[])
  ].join("\n");
  const rough=[
   ROUGH,
-  fullTunnel?"float r263Interior=uRoadRebuild0263;":
+  fullTunnel?(sectionExpression?"float r263Interior=uRoadRebuild0263*"+sectionMask+";":"float r263Interior=uRoadRebuild0263;"):
    "float r263Interior=uRoadRebuild0263* (1.0-smoothstep(340.0,368.0,vTrackCoord.x));",
   "float r263Side=abs(vTrackCoord.y);",
   "float r263Grain=0.5+0.5*sin(vTrackCoord.x*0.31+vTrackCoord.y*0.27);",
@@ -187,7 +205,7 @@ export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false,
   // In A/B classic (uRoadRebuild0263=0) every PBR coefficient is original.
   ...(fullTunnel?[
    "// Original Skyline 0.21.2.6 PBR-only sunlight isolation: 3400m Vault.",
-   "float roadSolarMask=uRoadRebuild0263;",
+   sectionExpression?"float roadSolarMask=uRoadRebuild0263*"+sectionMask+";":"float roadSolarMask=uRoadRebuild0263;",
    "reflectedLight.directDiffuse*=mix(1.0,"+
     ROAD_SOLAR_SPILL_02126.directDiffuseScale.toFixed(2)+",roadSolarMask);",
    "reflectedLight.indirectDiffuse*=mix(1.0,"+
@@ -207,7 +225,7 @@ export function patchCinematicRoadRebuild0263(vertex,fragment,{mobile=false,
   fullTunnel?
    " vec2 r263Source=clamp(vRoadFixtureMasks0263,0.0,1.0)*uRoadRebuild0263*0.56*(0.18+0.82*smoothstep(5.0,8.5,abs(vTrackCoord.y)));":
    " vec2 r263Source=clamp(vRoadFixtureMasks0263,0.0,1.0)*uRoadRebuild0263;",
-  fullTunnel?" float r263Tunnel=1.0;":
+  fullTunnel?" float r263Tunnel="+sectionMask+";":
    " float r263Tunnel=1.0-smoothstep(340.0,368.0,vTrackCoord.x);",
   " float r263Guides=(1.0-0.91*clamp(guided,0.0,1.0))*",
   "  (1.0-0.88*clamp(padCoverage,0.0,1.0))*",
@@ -274,7 +292,8 @@ export function installCinematicRoadRebuildShader0263(material,uniform,opts){
  };
  material.customProgramCacheKey=function(){
   return cache.call(this)+"-real-road-ggx-0263-"+(opts.mobile?"4gb":"high")+
-   (opts.fullTunnel?"-shared-vault":"");
+   (opts.fullTunnel?"-shared-vault":"")+
+   (opts.sections?"-sections-"+roadSectionMaskExpressionEF05(opts.sections):"");
  };
  material.needsUpdate=true;
  return ()=>{material.onBeforeCompile=old;

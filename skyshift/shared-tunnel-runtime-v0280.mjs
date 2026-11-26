@@ -29,13 +29,13 @@ export function createSharedTunnelRuntime0280(THREE,world,{
  let vault=null,skyline=null,trueShared=null,
   installedVault=false,installedSkyline=false,installedTrueShared=false;
  const stopped={active:false,stats:()=>({active:false}),dispose(){}};
- function installTrueShared({enabled=false,policy=null}={}){
+ function installTrueShared({enabled=false,policy=null,omitLegacyRoadResponse=false}={}){
   if(installedTrueShared)throw Error("0.28.1 duplicate true shared install");
   installedTrueShared=true;
   trueShared=enabled&&policy?installConfiguredSharedTunnel(THREE,world,{
-   track,positionAt,trackLength,lowMemory,policy,sections:plan.intervals
+   track,positionAt,trackLength,lowMemory,policy,omitLegacyRoadResponse,sections:plan.intervals
   }):installTrueSharedTunnelRenderer0281(THREE,world,{
-   track,positionAt,trackLength,lowMemory,enabled
+   track,positionAt,trackLength,lowMemory,enabled,omitLegacyRoadResponse
   });
   return trueShared;
  }

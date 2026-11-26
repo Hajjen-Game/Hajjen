@@ -87,3 +87,14 @@ test("EF05 explicit renderer policy needs no track name or URL and validates bef
   track:"independent-fixture",trackLength:200,sections:[{start:20,end:180}],policy,
   positionAt:(s,x,y)=>({x,y,z:s})}),/original Three/);
 });
+
+import {omitLegacyRoadResponseEF05} from "../../true-shared-tunnel-renderer-v0281.mjs";
+test("EF05 obsolete source allocation is omitted only for current clean production",()=>{
+ const current="?track=vault&v=0.28.9.7";
+ assert.equal(omitLegacyRoadResponseEF05(current,true),true);
+ assert.equal(omitLegacyRoadResponseEF05(current,false),false);
+ for(const q of ["&roadLayers=classic","&unifiedSourcesSmoke=1","&archOpticsSmoke=1","&archLegacyRoad=off","&startupFrameProof=1"])
+  assert.equal(omitLegacyRoadResponseEF05(current+q,true),false);
+ assert.equal(omitLegacyRoadResponseEF05("?track=vault&v=0.28.9.4",true),false);
+ assert.equal(omitLegacyRoadResponseEF05("?track=skyline&v=0.28.9.7",true),false);
+});

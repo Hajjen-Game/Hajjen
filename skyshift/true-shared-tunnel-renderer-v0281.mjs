@@ -265,16 +265,24 @@ export function finishOriginalSourceMaterials0281(THREE,section,lowMemory,
 const inactive=reason=>Object.freeze({active:false,
  stats:()=>({active:false,version:"0.28.1",reason}),
  updateWave(){},dispose(){}});
+// Retain historical comparison scenes and explicit QA frame toggles.
+export function omitLegacyRoadResponseEF05(search,clean){
+ const q=new URLSearchParams(search||"");
+ if(!clean||q.get("track")!=="vault"||q.get("v")!=="0.28.9.7")return false;
+ if(q.get("roadLayers")==="classic"||q.has("archLegacyRoad"))return false;
+ for(const key of q.keys())if(/(?:Smoke|FrameProof|Audit)$/i.test(key))return false;
+ return true;
+}
 export function installTrueSharedTunnelRenderer0281(THREE,world,{
- track,positionAt,trackLength,lowMemory=false,enabled=false
+ track,positionAt,trackLength,lowMemory=false,enabled=false,omitLegacyRoadResponse=false
 }={}){
  if(!enabled||track!=="vault")return inactive("inactive");
  return installConfiguredSharedTunnel(THREE,world,{track,positionAt,trackLength,
-  lowMemory,sections:[{start:0,end:trackLength}],
+  lowMemory,omitLegacyRoadResponse,sections:[{start:0,end:trackLength}],
   policy:legacyTunnelPolicy0281(lowMemory)});
 }
 export function installConfiguredSharedTunnel(THREE,world,{
- track,positionAt,trackLength,sections,policy,lowMemory=false
+ track,positionAt,trackLength,sections,policy,lowMemory=false,omitLegacyRoadResponse=false
 }={}){
  const modules=planConfiguredTunnelModules0281(trackLength,sections);
  const style=validateSharedTunnelPolicy(policy,trackLength);
@@ -307,18 +315,15 @@ export function installConfiguredSharedTunnel(THREE,world,{
    const section=new THREE.Group();
    section.name="SKYLINE SOURCE / Vault "+module.index;
    root.add(section);
-   // Some original 0.21.x art layers expect the Skyline native road
-   // shader even though they only render tunnel geometry. Supply a
-   // DETACHED, never-rendered material facade instead of mutating Vault's
-   // actual PBR deck or coupling its physics/collision geometry.
-   const roadFacade=new THREE.MeshStandardMaterial({color:0x050914});
+   // The shared tunnel source owns only tunnel art. The actual road
+   // material is owned by its optical consumer, never a detached facade.
    const item={source:null,section,module,metal:null,finish:null,
     wave:null,stability:null,archFoot:null,precision:null,cinematic:null,
-    ceiling:null,archOptics:null,waveCove:null,roadFacade};
+    ceiling:null,archOptics:null,waveCove:null};
    installed.push(item);
    const source=installPremiumMetalSurfaceLibrary(THREE,section,{
     track:"skyline",positionAt:frameSampler,
-    lowMemory,roadMaterial:roadFacade,vaultHeightClassic:false
+    lowMemory,omitLegacyRoadResponse,vaultHeightClassic:false
    });
    item.source=source;
    const result=source.stats?.()??{};
@@ -422,7 +427,6 @@ export function installConfiguredSharedTunnel(THREE,world,{
    item.finish?.dispose?.();
    item.metal?.dispose?.();
    item.source?.dispose?.();
-   item.roadFacade?.dispose?.();
   }
   root.removeFromParent();
   // The caller falls back to the complete original Vault renderer,
@@ -474,6 +478,8 @@ export function installConfiguredSharedTunnel(THREE,world,{
     geometryAndGameplayUnchanged:true
    },
    moduleMeters:modules[0]?.meters??0,lowMemory:!!lowMemory,
+   detachedRoadMaterials:0,legacyRoadResponseOmitted:!!omitLegacyRoadResponse,
+   omittedLegacyRoadBatches:omitLegacyRoadResponse&&!lowMemory?installed.length:0,
    physicalModules:installed.filter(x=>
     x.source.stats?.().trueMetal0260P2NativeGGX).length,
    commonResponseModules:installed.filter(x=>x.metal.active).length,
@@ -596,7 +602,6 @@ export function installConfiguredSharedTunnel(THREE,world,{
     item.wave?.dispose?.();
     item.finish?.dispose?.();item.metal?.dispose?.();
     item.source?.dispose?.();
-    item.roadFacade?.dispose?.();
    }
    root.removeFromParent();
   }

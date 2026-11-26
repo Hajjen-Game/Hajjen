@@ -79,3 +79,18 @@ test("no change to Aurora and original lighting A/B remains available",()=>{
  assert.match(g,/compareBeforeNeonInterior:"\?interiorLight=classic"/);
  assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.\d+/);
 });
+
+test("EF05 production-only obsolete road response is never allocated; other art unchanged",()=>{
+ const old=load(),now=load(installNeonDrivenInterior,{omitLegacyRoadResponse:true});
+ assert.equal(now.installed.stats().status,"active");
+ assert.equal(now.installed.stats().localNeonRoadResponse,false);
+ assert.equal(now.installed.stats().drawBatches,old.installed.stats().drawBatches-1);
+ const a=old.w.children[0].children,b=now.w.children[0].children;
+ assert.deepEqual(b.map(x=>x.name),a.filter(x=>x.name!=="Tunnel / NEON_ROAD_RESPONSE").map(x=>x.name));
+ for(const m of b){
+  const prev=a.find(x=>x.name===m.name);
+  assert.deepEqual(m.geometry.getAttribute("position").array,prev.geometry.getAttribute("position").array);
+  assert.deepEqual(m.geometry.index.array,prev.geometry.index.array);
+ }
+ assert.equal(now.w.getObjectByName("Tunnel / NEON_ROAD_RESPONSE"),null);
+});

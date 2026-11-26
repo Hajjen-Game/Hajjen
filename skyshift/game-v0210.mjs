@@ -130,6 +130,7 @@ import {TUNNEL_SHARED_ARCHITECTURE_0280,tunnelReleaseAtLeast0280,sharedTunnelVer
  from "./shared-tunnel-architecture-v0280.mjs";
 import {createSharedTunnelRuntime0280}
  from "./shared-tunnel-runtime-v0280.mjs";
+import {omitLegacyRoadResponseEF05} from "./true-shared-tunnel-renderer-v0281.mjs";
 import {SHARED_LIGHT_0282,createSharedSourceSampler0282,installSharedRoadReflections0282,
  installSharedShipLight0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
 import {PMREM_0284,readPmremRelease0284,
@@ -1283,7 +1284,9 @@ function initScene(){
  // Vault spline. Its 0.27.x pipeline only runs on explicit classic/fallback.
  markStartup("sharedTunnelBegin");
  const trueSharedVault=sharedTunnelRuntime.installTrueShared({
-  enabled:trueSharedVaultEnabled
+  enabled:trueSharedVaultEnabled,
+  omitLegacyRoadResponse:omitLegacyRoadResponseEF05(location.search,
+   unifiedSourcesReleaseEnabled&&cleanLegacyRoadEnabled02894(location.search))
  });
  markStartup("sharedTunnelReady");
  // One mounted source plan, shared by every current optical consumer.

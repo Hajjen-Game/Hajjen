@@ -76,3 +76,43 @@ test("non-Vault and classic paths are inert and cannot alter Skyline",()=>{
  assert.throws(()=>createSharedSourceSampler0282(null,3400),/needs/);
  assert.throws(()=>createSharedSourceSampler0282(sample,0),/needs/);
 });
+
+import {roadSectionMaskExpressionEF05} from "../../cinematic-road-rebuild-v0263.mjs";
+import {planConfiguredTunnelModules0281} from "../../true-shared-tunnel-renderer-v0281.mjs";
+test("EF05 shared GGX road seals only actual tunnel intervals, preserves exterior and full-course shader",()=>{
+ const vertex="#include <common>\n#include <project_vertex>";
+ const fragment="#include <common>\n#include <lights_fragment_end>\n"+
+  "#include <metalnessmap_fragment>\nfloat guided = 0.0;\nfloat padCoverage = 0.0;\nfloat whiteCore=0.0;\nvarying vec2 vTrackCoord;";
+ const sections=[{start:25,end:625},{start:800,end:1120}];
+ const expression=roadSectionMaskExpressionEF05(sections);
+ assert.match(expression,/smoothstep\(25\.000000,37\.000000,s\)/);
+ assert.match(expression,/smoothstep\(613\.000000,625\.000000,s\)/);
+ assert.match(expression,/smoothstep\(800\.000000,812\.000000,s\)/);
+ assert.throws(()=>roadSectionMaskExpressionEF05([{start:25,end:625},{start:620,end:800}]),/invalid/);
+ const mask=(s)=>Function("s","smoothstep","clamp","return "+expression)(
+  s,(a,b,v)=>{const t=Math.min(1,Math.max(0,(v-a)/(b-a)));return t*t*(3-2*t)},(v,a,b)=>Math.max(a,Math.min(b,v)));
+ for(const x of [0,25,625,700,800,1120,1199])assert.equal(mask(x),0);
+ for(const x of [37,100,325,613,812,950,1108])assert.equal(mask(x),1);
+ for(const mobile of [false,true]){
+  const p=patchCinematicRoadRebuild0263(vertex,fragment,{fullTunnel:true,mobile,sections});
+  assert.match(p.fragmentShader,/float r263Interior=uRoadRebuild0263\*roadTunnelMaskEF05/);
+  assert.match(p.fragmentShader,/float roadSolarMask=uRoadRebuild0263\*roadTunnelMaskEF05/);
+  assert.match(p.fragmentShader,/float r263Tunnel=roadTunnelMaskEF05/);
+  assert.equal(p.vertexShader,patchCinematicRoadRebuild0263(vertex,fragment,{fullTunnel:true,mobile}).vertexShader);
+  assert.doesNotMatch(patchCinematicRoadRebuild0263(vertex,fragment,{fullTunnel:true,mobile}).fragmentShader,/roadTunnelMaskEF05/);
+ }
+ const attrs={aTrackCoord:{count:3,getX:i=>[100,700,950][i]},position:{count:3}};
+ const geometry={getAttribute:k=>attrs[k],setAttribute:(k,v)=>attrs[k]=v,deleteAttribute:k=>delete attrs[k]};
+ const material={isMeshStandardMaterial:true,onBeforeCompile(){},customProgramCacheKey(){return "original"}};
+ const before=material.onBeforeCompile,key=material.customProgramCacheKey;
+ const sourceSampler=createSharedSourceSampler0282(sample,1200,planConfiguredTunnelModules0281(1200,sections));
+ const controller=installSharedRoadReflections0282({Float32BufferAttribute:class{constructor(array,itemSize){this.array=array;this.itemSize=itemSize;}}},{getObjectByName:()=>({geometry,material})},{enabled:true,positionAt:sample,trackLength:1200,sourceSampler});
+ assert.equal(controller.active,true);assert.equal(controller.stats().sectionAwareExteriorSeal,true);
+ assert.deepEqual([...attrs.roadFixtureMasks0263.array.slice(2,4)],[0,0]);
+ const shader={vertexShader:vertex,fragmentShader:fragment,uniforms:{}};
+ material.onBeforeCompile(shader,{});
+ assert.match(shader.fragmentShader,/roadTunnelMaskEF05/);
+ assert.match(material.customProgramCacheKey(),/-sections-/);
+ controller.dispose();assert.equal(material.onBeforeCompile,before);assert.equal(material.customProgramCacheKey,key);
+ assert.equal(attrs.roadFixtureMasks0263,undefined);
+});

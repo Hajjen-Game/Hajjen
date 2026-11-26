@@ -61,6 +61,18 @@
         {
           "before": "export function createSharedSourceSampler0282(positionAt,trackLength,modules=planTrueSharedTunnel0281(trackLength)){\n if(typeof positionAt!==\"function\"||!(trackLength>0))\n  throw Error(\"0.28.2 needs original banked positionAt and track length\");",
           "after": "export function createSharedSourceSampler0282(positionAt,trackLength,modules){\n if(typeof positionAt!==\"function\"||!(trackLength>0))\n  throw Error(\"0.28.2 needs original banked positionAt and track length\");\n modules=modules??planTrueSharedTunnel0281(trackLength);"
+        },
+        {
+          "before": "  // The old full-course shader also seals exterior white light. Do not\n  // apply it to open track gaps before the section-aware shader is ready.\n  if(!sampler.fullCourse)throw Error(\"EF05 partial tunnel road shader not yet supported\");",
+          "after": "  if(!sampler.modules.length)return disabled(\"no tunnel sources\");\n  // Merge adjacent art modules: only tunnel entrances/exits fade,\n  // never the seams between source modules.\n  const sections=[];\n  if(!sampler.fullCourse)for(const m of sampler.modules){\n   const last=sections.at(-1);\n   if(last&&Math.abs(last.end-m.start)<1e-8)last.end=m.end;\n   else sections.push({start:m.start,end:m.end});\n  }"
+        },
+        {
+          "before": "   mobile:lowMemory,fullTunnel:true\n  });",
+          "after": "   mobile:lowMemory,fullTunnel:true,...(sampler.fullCourse?{}:{sections})\n  });"
+        },
+        {
+          "before": "    roadOriginalNativeGGX:true,roadFullLengthMeters:trackLength,",
+          "after": "    roadOriginalNativeGGX:true,roadFullLengthMeters:trackLength,\n    sectionAwareExteriorSeal:!sampler.fullCourse,"
         }
       ]
     },

@@ -123,9 +123,15 @@ export function installSharedRoadReflections0282(THREE,world,{
  let restore=null;
  try{
   const sampler=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);
-  // The old full-course shader also seals exterior white light. Do not
-  // apply it to open track gaps before the section-aware shader is ready.
-  if(!sampler.fullCourse)throw Error("EF05 partial tunnel road shader not yet supported");
+  if(!sampler.modules.length)return disabled("no tunnel sources");
+  // Merge adjacent art modules: only tunnel entrances/exits fade,
+  // never the seams between source modules.
+  const sections=[];
+  if(!sampler.fullCourse)for(const m of sampler.modules){
+   const last=sections.at(-1);
+   if(last&&Math.abs(last.end-m.start)<1e-8)last.end=m.end;
+   else sections.push({start:m.start,end:m.end});
+  }
   const data=buildSharedRoadSourceData0282(geo,positionAt,trackLength,sampler);
   if(sourceNames.some(n=>geo.getAttribute(n)))
    throw Error("0.28.2 legacy GGX road already attached");
@@ -138,12 +144,13 @@ export function installSharedRoadReflections0282(THREE,world,{
   // Reuses the exact Skyline 0.26.3 RE_Direct GGX shader; the fullTunnel
   // adapter only removes Skyline's original 368m hard-coded fade.
   restore=installCinematicRoadRebuildShader0263(road.material,gain,{
-   mobile:lowMemory,fullTunnel:true
+   mobile:lowMemory,fullTunnel:true,...(sampler.fullCourse?{}:{sections})
   });
   return {active:true,setComparison:v=>gain.value=clamp(v,0,1),
    update(){},
    stats:()=>({active:true,version:"0.28.2",
     roadOriginalNativeGGX:true,roadFullLengthMeters:trackLength,
+    sectionAwareExteriorSeal:!sampler.fullCourse,
     sourceModules:data.modules,sourceVertices:data.count,
     litVertices:data.litCount,fixtureCachePositions:data.sourcePositions,
     cyanSamples:lowMemory?2:4,amberSamples:lowMemory?1:2,

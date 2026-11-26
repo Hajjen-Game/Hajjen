@@ -221,3 +221,57 @@ test('EF04 HUD, input and exported run report retain original computation bodies
  assert.match(live,/raceHud\.refreshHud\(flight,zoneWave/);
  assert.match(live,/run:createRunAudit\(\{/);
 });
+
+import {createTrackSampler} from '../../tracks/shared/track-sampler.mjs';
+import {createCameraFraming,CINEMATIC_DEFAULTS,createCinematicState} from '../../flight/cinematic-camera.mjs';
+
+test('EF04 generic curved, elevated and banked loop samples independently of any authored playable course',()=>{
+ const lapLength=80,lapPosition=s=>((s%lapLength)+lapLength)%lapLength;
+ const sections=Array.from({length:4},(_,i)=>({id:'arc'+i,type:'turn',start:i*20,end:(i+1)*20,entry:2,hold:16,exit:2,curvature:Math.PI/36}));
+ const elevationAt=s=>2*(1-Math.cos(lapPosition(s)*Math.PI/40));
+ const gradeAt=s=>Math.PI/20*Math.sin(lapPosition(s)*Math.PI/40);
+ const groundNormalAt=(s,heading)=>{
+  const g=gradeAt(s),n=Math.hypot(1,g);
+  return {x:-g*Math.sin(heading)/n,y:1/n,z:g*Math.cos(heading)/n};
+ };
+ const magneticBankAt=s=>.4*Math.sin(lapPosition(s)*Math.PI/40);
+ const corkscrewBankAt=s=>lapPosition(s)>=40&&lapPosition(s)<60?-2*Math.PI*(lapPosition(s)-40)/20:0;
+ const track=createTrackSampler({lapLength,sections,lapPosition,elevationAt,groundNormalAt,magneticBankAt,corkscrewBankAt});
+ const near=(a,b,eps=1e-8)=>assert.ok(Math.abs(a-b)<eps,a+' != '+b);
+ const p=track.poseAt(0),q=track.poseAt(80);
+ near(p.x,q.x);near(p.z,q.z);near(p.y,q.y);near(q.heading-p.heading,2*Math.PI);
+ assert.ok(track.LOOP_CLOSURE_ERROR_METERS<.01);
+ assert.ok(track.curvatureAt(10)>0);assert.ok(track.heightAt(40)>3.9);
+ for(const s of [0,5,10,20,42,50,58,79.9,90,130]){
+  const n=track.surfaceNormalAt(s),center=track.positionAt(s),right=track.positionAt(s,2),up=track.positionAt(s,0,1.05);
+  near(Math.hypot(n.x,n.y,n.z),1);
+  near(Math.hypot(right.x-center.x,right.y-center.y,right.z-center.z),2);
+  near((right.x-center.x)*n.x+(right.y-center.y)*n.y+(right.z-center.z)*n.z,0);
+  near(up.x-center.x,n.x*1.05);near(up.y-center.y,n.y*1.05);near(up.z-center.z,n.z*1.05);
+  near(track.surfaceHeightAt(s,2),right.y);
+ }
+ const camera=createCameraFraming({heightAt:track.heightAt,bankAt:track.bankAt,CORKSCREW:{start:40,end:60},lapLength});
+ near(camera.cameraBankAt(20),track.bankAt(20)*.46);
+ near(camera.cameraBankAt(50),track.bankAt(50));near(camera.cameraBankAt(130),track.bankAt(130));
+ const point=track.positionAt(130,0,1.05);
+ const view={s:130,worldX:point.x,worldZ:point.z,y:point.y,heading:track.headingAt(130),steering:.3};
+ const copy=structuredClone(view),motion={cameraHeading:view.heading,hover:0},state=createCinematicState();
+ const pose=camera.chasePose(view,motion,state,CINEMATIC_DEFAULTS);
+ assert.ok(Object.values(pose).every(Number.isFinite));assert.deepEqual(view,copy);
+ assert.ok(pose.y<view.y,'Inverted camera follows the actual road frame');
+ const second=camera.chasePose({...view,s:50},motion,state,CINEMATIC_DEFAULTS);
+ assert.deepEqual(second,pose,'Feature detection repeats at the injected lap length');
+});
+test('EF04 live track uses shared geometry without changing original sampler formulae',()=>{
+ const original=readHistoricalTrialMigrationSource();
+ const actual=readFileSync(new URL('../../tracks/shared/track-sampler.mjs',import.meta.url),'utf8');
+ const unexport=s=>s.replace(/^export (function|const) /gm,'$1 ');
+ for(const [a,b] of [['export function easedCurvature(u){','// Precision GRIP APEX:'],['const positionCount=Math.round(CIRCUIT.lapLength/STEP);','// 0.8.3 FAST LOCAL PROJECTION.']]){
+  const start=original.indexOf(a),end=original.indexOf(b,start);
+  assert.ok(start>=0&&end>start);assert.ok(actual.includes(unexport(original.slice(start,end))));
+ }
+ assert.doesNotMatch(actual,/\b(?:isVault|isAurora|ACTIVE_TRACK_0160|globalThis|document)\b/);
+ const adapter=readFileSync(new URL('../../tracks/trials/trial-v0165.mjs',import.meta.url),'utf8');
+ assert.match(adapter,/createTrackSampler\(\{\s*lapLength:CIRCUIT\.lapLength/);
+ assert.match(adapter,/rules:TRIAL,circuit:CIRCUIT,jump:SKYLINE_LEAP/);
+});

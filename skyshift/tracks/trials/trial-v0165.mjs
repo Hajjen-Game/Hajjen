@@ -3,6 +3,7 @@ const isFlowTrack=()=>isAurora()||isVault();
 // SKYSHIFT 0.16.4 — SAME physics for all circuits; geometry only changes course.
 import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState} from "../../flight/boost/boost-v0160.mjs";
 import {createFlightPhysics} from "../../flight/flight-physics.mjs";
+import {createTrackSampler} from "../shared/track-sampler.mjs";
 import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from "../../flight/steering-authority-v01348.mjs";
 import {AIR_TRICKS} from "../../flight/air-tricks-v083.mjs";
 import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from "../shared/track-3d-v0160.mjs";
@@ -101,64 +102,7 @@ export const SPEED_SECTIONS=Object.freeze([
 
 // Quintic smoothstep yields C2 curvature at straight/transition joins.
 // Integrated analytically to avoid accumulated heading discontinuities.
-export function easedCurvature(u){
- const x=clamp(u,0,1);
- return x*x*x*(10+x*(-15+6*x));
-}
-export function integratedEasedCurvature(u){
- const x=clamp(u,0,1);
- return x*x*x*x*(2.5+x*(-3+x));
-}
-function turnContribution(s,t){
- const {entry,hold,exit,curvature:k}=t;
- const d=clamp(s-t.start,0,entry+hold+exit);
- let base;
- if(d<=entry)base=k*entry*integratedEasedCurvature(d/entry);
- else if(d<=entry+hold)base=k*(entry*.5+d-entry);
- else {
-  const x=(d-entry-hold)/exit;
-  base=k*(entry*.5+hold+exit*(x-integratedEasedCurvature(x)));
- }
- const pulse=TECHNICAL_APEX_PULSES[t.id]??0;
- if(!pulse||d<=entry||d>=entry+hold)return base;
- // Integral of (cos(4πu)-cos(2πu))/4 is zero over [0,1].
- // Thus the *true* corner radius tightens at the apex while its final
- // heading and its C2 curvature joins stay exactly unchanged.
- const u=(d-entry)/hold;
- return base+pulse*hold*(Math.sin(4*Math.PI*u)/(16*Math.PI)-
-    Math.sin(2*Math.PI*u)/(8*Math.PI));
-}
-export function headingAt(s){
- const lap=Math.floor(s/CIRCUIT.lapLength);
- const local=lapPosition(s);
- return lap*2*Math.PI+COURSE_SEGMENTS.reduce((angle,t)=>
-  angle+(t.type==="turn"?turnContribution(local,t):0),0);
-}
-export function curvatureAt(s){
- const local=lapPosition(s);
- for(const t of COURSE_SEGMENTS){
-  if(t.type!=="turn"||local<t.start||local>=t.end)continue;
-  const d=local-t.start;
-  if(d<t.entry)return t.curvature*easedCurvature(d/t.entry);
-  if(d<t.entry+t.hold){
-   const pulse=TECHNICAL_APEX_PULSES[t.id]??0;
-   const u=(d-t.entry)/t.hold;
-   return t.curvature+.25*pulse*(Math.cos(4*Math.PI*u)-
-      Math.cos(2*Math.PI*u));
-  }
-  return t.curvature*(1-easedCurvature((d-t.entry-t.hold)/t.exit));
- }
- return 0;
-}
-export function bankAt(s){return magneticBankAt(s)+corkscrewBankAt(s);}
-export function bankDegreesAt(s){return bankAt(s)*180/Math.PI;}
-export function heightAt(s){return elevationAt(s);}
-export function surfaceHeightAt(s,lateral=0){
- // The road's lateral tangent rolls about the true grade-aware forward
- // direction, so gravity and hover agree exactly with the rendered deck.
- const p=poseAt(s),ground=groundNormalAt(s,p.heading);
- return elevationAt(s)-ground.y*Math.sin(bankAt(s))*lateral;
-}
+// Geometry is owned by the shared sampler below; authored route rules stay here.
 // Precision GRIP APEX: physically narrowing guardrails and top deck, never a
 // UI-only "challenge". An early C2 funnel makes the 14m throat visible
 // before the technical 90° bend; at high zone speeds the apex requires GRIP
@@ -239,47 +183,10 @@ export function checkpointFor(s){
 // numerical quadrature drift is distributed over the FULL lap, leaving a
 // genuinely welded road/rail seam at identical x,z and yaw.
 const STEP=.25;
-const positionCount=Math.round(CIRCUIT.lapLength/STEP);
-const positions=[{x:0,z:0}];
-for(let i=1;i<=positionCount;i++){
- const mid=(i-.5)*STEP,angle=headingAt(mid),prev=positions[i-1];
- positions.push({x:prev.x+Math.sin(angle)*STEP,
-  z:prev.z-Math.cos(angle)*STEP});
-}
-const closingError=positions.at(-1);
-for(let i=1;i<=positionCount;i++){
- const f=i/positionCount;
- positions[i].x-=closingError.x*f;
- positions[i].z-=closingError.z*f;
-}
-export const LOOP_CLOSURE_ERROR_METERS=Math.hypot(
- closingError.x,closingError.z);
-export function poseAt(s){
- const local=lapPosition(s);
- const fIndex=local/STEP,i=Math.floor(fIndex),f=fIndex-i;
- const a=positions[i],b=positions[i+1],heading=headingAt(s);
- return {
-  x:lerp(a.x,b.x,f),y:heightAt(s),z:lerp(a.z,b.z,f),heading,
-  forwardX:Math.sin(heading),forwardZ:-Math.cos(heading),
-  rightX:Math.cos(heading),rightZ:Math.sin(heading)
- };
-}
-export function surfaceNormalAt(s){
- const p=poseAt(s),normal=groundNormalAt(s,p.heading),b=bankAt(s);
- if(!b)return normal;
- return {x:normal.x*Math.cos(b)+p.rightX*Math.sin(b),
-  y:normal.y*Math.cos(b),
-  z:normal.z*Math.cos(b)+p.rightZ*Math.sin(b)};
-}
-export function positionAt(s,lateral=0,height=0){
- const p=poseAt(s),normal=surfaceNormalAt(s),b=bankAt(s);
- const cb=Math.cos(b),sb=Math.sin(b),base=groundNormalAt(s,p.heading);
- // Rigid orthonormal local road frame: lane-right = right*cos(bank)
- // - grade-normal*sin(bank). Height always follows the true wall normal.
- return {x:p.x+lateral*(p.rightX*cb-base.x*sb)+normal.x*height,
-   y:p.y-lateral*base.y*sb+normal.y*height,
-   z:p.z+lateral*(p.rightZ*cb-base.z*sb)+normal.z*height};
-}
+export const {easedCurvature,integratedEasedCurvature,headingAt,curvatureAt,bankAt,bankDegreesAt,heightAt,surfaceHeightAt,LOOP_CLOSURE_ERROR_METERS,poseAt,surfaceNormalAt,positionAt}=createTrackSampler({
+ lapLength:CIRCUIT.lapLength,sections:COURSE_SEGMENTS,apexPulses:TECHNICAL_APEX_PULSES,
+ lapPosition,elevationAt,groundNormalAt,magneticBankAt,corkscrewBankAt,step:STEP
+});
 // 0.8.3 FAST LOCAL PROJECTION. Exactly the same pilot-owned X/Z motion,
 // no steering/position magnet. Replaces 28 line searches (per 120Hz tick)
 // with four bounded tangent iterations, following the same C2 centerline.

@@ -66,7 +66,34 @@ function restoreRaceSessionReader(s,p){
  }
  return s;
 }
+const ef08EntryWorkflowEdits=[
+  {
+    "before": "      - name: Fetch immutable historical test fixtures\n        run: git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897\n",
+    "after": "      - name: Fetch immutable historical test fixtures\n        run: |\n          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897\n          git fetch --no-tags --depth=1 origin 89b1ca990b72a3321303585fa48b924b3e04ed5e\n"
+  },
+  {
+    "before": "          node --check skyshift/game.mjs\n",
+    "after": "          node --test skyshift/tests/architecture/ef08-retired-entry-sources.test.mjs\n"
+  },
+  {
+    "before": "          node --check skyshift/game-v0101.mjs\n          node --check skyshift/boot-v0101.js\n          node --check skyshift/tests/browser/legacy/browser-smoke-v0101.mjs\n",
+    "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0101.mjs\n"
+  },
+  {
+    "before": "          node --check skyshift/game-v0103.mjs\n          node --check skyshift/boot-v0103.js\n          node --check skyshift/tests/browser/legacy/browser-smoke-v0103.mjs\n",
+    "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0103.mjs\n"
+  }
+];
 export function restoreUiMove(s,p){
+ // EF08 archives five obsolete source-only entrypoints, preserving exact older workflow bytes.
+ if(key(p)==='.github/workflows/skyshift-tests.yml' && s.includes('node --test skyshift/tests/architecture/ef08-retired-entry-sources.test.mjs')){
+  for(const e of [...ef08EntryWorkflowEdits].reverse()){
+   assert.equal(s.split(e.after).length-1,1,'EF08 exact entry archive workflow inverse');
+   s=s.replace(e.after,()=>e.before);
+  }
+ }
+ const ef08Reader='import {readEF08Source as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";';
+ if(s.includes(ef08Reader))s=s.replace(ef08Reader,'import {readFileSync} from "node:fs";');
  // EF05 corrected neon geometry QA is an explicit main push trigger. Reverse
  // only this single path-filter exception before earlier workflow identities.
  if(key(p)==='.github/workflows/skyshift-tests.yml'){

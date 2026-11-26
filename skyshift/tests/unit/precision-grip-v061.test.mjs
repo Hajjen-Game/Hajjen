@@ -1,7 +1,7 @@
 // SKYSHIFT 0.6.1 – Precision Grip, real steering and side-thruster visual tests.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readEF08Source as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {GRIP_SPEC,initGripState,stepGripState} from "../../precision-grip-v061.mjs";
 import {SIDE_THRUSTER_SPEC,createSideThrusters} from "../../flight/side-thrusters-v061.mjs";
 import {TRIAL,newFlightState,stepFlight,speedAt,positionAt,headingAt,

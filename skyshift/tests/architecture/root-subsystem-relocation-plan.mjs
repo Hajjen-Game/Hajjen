@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import {inventory} from './dependency-inventory-v2.mjs';
 import {resolve,basename} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {retirement,retirementL1B,retirementL1C,retirementL1D,retirementL1E,retirementL1F,retirementEF02E,retirementEF02G,retirementEF02J,readHistorical} from './legacy-retirement-l1a.mjs';
+import {retirement,retirementL1B,retirementL1C,retirementL1D,retirementL1E,retirementL1F,retirementEF02E,retirementEF02G,retirementEF02J,retirementEF08,readHistorical} from './legacy-retirement-l1a.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
 const entries=execFileSync('git',['ls-files','--stage','-z'],{cwd:repo,encoding:'utf8',maxBuffer:16*1024*1024}).split('\0').filter(Boolean).map(row=>{
  const match=row.match(/^\d+ ([0-9a-f]+) 0\t(.+)$/s);
@@ -43,7 +43,7 @@ function scan(path,source,sha,archive=false){
  }
 }
 for(const f of entries)if((f.path.startsWith('skyshift/')||f.path.startsWith('.github/'))&&textFile(f.path)&&existsSync(resolve(repo,f.path)))scan(f.path,readFileSync(resolve(repo,f.path),'utf8'),f.sha);
-for(const f of [...retirement.files,...retirementL1B.files,...retirementL1C.files,...retirementL1D.files,...retirementL1E.files,...retirementL1F.files,...retirementEF02E.files,...retirementEF02G.files,...retirementEF02J.files])scan(f.path,readHistorical(resolve(repo,f.path)),f.sha,true);
+for(const f of [...retirement.files,...retirementL1B.files,...retirementL1C.files,...retirementL1D.files,...retirementL1E.files,...retirementL1F.files,...retirementEF02E.files,...retirementEF02G.files,...retirementEF02J.files,...retirementEF08.files])scan(f.path,readHistorical(resolve(repo,f.path)),f.sha,true);
 const candidates=roots.filter(isTrial).map(f=>({...f,target:'skyshift/tracks/shared/'+basename(f.path)}));
 const summary={count:candidates.length,rootFiles:roots.length,collision:candidates.filter(f=>existsSync(resolve(repo,f.target))).map(f=>f.target),warning:'Literal basename census only. Review computed imports, path-sensitive assets, historical assertions and equivalent resolved URLs before moving.'};
 console.log('SKYSHIFT_BULK_ROOT_SUMMARY '+JSON.stringify(summary));

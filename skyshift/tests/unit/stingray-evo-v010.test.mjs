@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readEF08Source as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {ENGINE_SOCKETS} from "../../manta-blade-v0484.mjs";
 import {STINGRAY_EVO,STINGRAY_WING,createTailState,tailPoseStep}
  from "../../stingray-evo-v010.mjs";

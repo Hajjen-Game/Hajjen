@@ -1,7 +1,7 @@
 // SKYSHIFT 0.10.3: player-confirmed turn direction + live track Hangar regression.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readEF08Source as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {STINGRAY_EVO,createTailState,tailPoseStep}
  from "../../stingray-evo-v0102.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");

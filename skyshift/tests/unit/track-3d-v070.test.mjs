@@ -1,7 +1,7 @@
 // SKYSHIFT 0.7.0 – 3D track, real opening, 3-lap ballistic flight.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readEF08Source as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {ELEVATION_KEYS,TRACK_3D,SKYLINE_LEAP,
  elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,
  elevationAudit} from "../../tracks/shared/track-3d-v070.mjs";

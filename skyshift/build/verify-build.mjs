@@ -5,6 +5,7 @@ import {resolve,dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {readArchivedWorldAsset} from './archived-world-assets.mjs';
+import {entryArchive,readArchivedEntrySource} from './archived-entry-sources.mjs';
 import {retiredSceneryModules,retiredTunnelModules,comparisonOnlyWorldAssets} from './production-specialization.mjs';
 const here=dirname(fileURLToPath(import.meta.url)),dist=join(here,'dist');
 const report=JSON.parse(await readFile(join(dist,'build-report.json'),'utf8'));
@@ -88,8 +89,15 @@ for(const p of ['assets/ships/stingray-evo-hero-v1.gltf','assets/ships/stingray-
 console.log('SKYSHIFT_EF03_ASSETS '+JSON.stringify({copied:assets.length,optionalBlenderGlb:assets.includes('assets/ships/stingray-evo-hero-v4.glb')}));
 const top=await readdir(dist);for(const p of ['tests','docs','legacy','previews','material-grade-v0203.html','game-v0210.mjs','node_modules'])assert.ok(!top.includes(p),p+' must not ship in production artifact');
 // EF08: distinguish real production-module membership from the source/QA graph.
+for(const f of entryArchive.files){
+ const name=f.path.slice('skyshift/'.length);
+ await assert.rejects(stat(join(source,name)),{code:'ENOENT'});
+ assert.ok(!report.graph.modules.some(p=>p.split('?')[0]==='source/'+name),name+' retired entry in production graph');
+ assert.ok(!report.files.some(x=>x.path===name),name+' retired entry in artifact');
+ assert.equal(readArchivedEntrySource(f.path).length,f.bytes);
+}
 const sourceRoots=(await readdir(source,{withFileTypes:true})).filter(e=>e.isFile()).map(e=>e.name).sort();
-const productionRoots=sourceRoots.filter(name=>report.graph.modules.includes('source/'+name)||report.cssOrder.includes('./'+name));
+const productionRoots=sourceRoots.filter(name=>report.graph.modules.some(p=>p.split('?')[0]==='source/'+name)||report.cssOrder.includes('./'+name));
 const rootMembership={productionRoots,otherSourceRoots:sourceRoots.filter(name=>!productionRoots.includes(name)),productionModules:report.graph.modules.length,artifactBytes:report.files.reduce((n,f)=>n+f.bytes,0),warning:'Not bundled is not proof of safe deletion; boot HTML, asset URLs, QA and comparison consumers are separate.'};
 console.log('SKYSHIFT_EF08_PRODUCTION_ROOTS '+JSON.stringify(rootMembership));
 console.log('SKYSHIFT_EF03_ARTIFACT verified hashed entry and CSS, lazy chunks, integrity and asset paths');

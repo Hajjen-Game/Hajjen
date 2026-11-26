@@ -32,6 +32,8 @@ jobs:
           node --test skyshift/tests/architecture/ef04-race-simulation.test.mjs
           node --test skyshift/tests/architecture/ef06-runtime-lifetime.test.mjs
           node --test skyshift/tests/architecture/release-archive-integrity.test.mjs
+      - name: Verify retired entry sources and exact historical reader compatibility
+        run: node --test skyshift/tests/architecture/ef08-retired-entry-sources.test.mjs
       - name: Validate current test dependencies and workflow paths
         run: node --test skyshift/tests/architecture/current-unit-dependency-integrity.test.mjs
       - name: Run relocated early flight/fullscreen unit tests

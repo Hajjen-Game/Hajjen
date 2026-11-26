@@ -64,10 +64,10 @@ test('R1F: 357 → 328 direct-root files, untouched active and held archive entr
  assert.equal(sha(readFileSync(resolve(root,'index.html'),'utf8')),manifest.active.index);
  assert.equal(sha(readFileSync(resolve(root,'boot-v0210.js'),'utf8')),manifest.active.boot);
  assert.equal(sha(restoreDeckMove(readFileSync(resolve(root,'game-v0210.mjs'),'utf8'),resolve(root,'game-v0210.mjs'))),manifest.active.game);
- assert.equal(sha(readFileSync(resolve(root,'boot-v0101.js'),'utf8')),manifest.active.heldBoot0101);
- assert.equal(sha(readFileSync(resolve(root,'boot-v0103.js'),'utf8')),manifest.active.heldBoot0103);
- assert.equal(sha(restoreDeckMove(readFileSync(resolve(root,'game-v0101.mjs'),'utf8'),resolve(root,'game-v0101.mjs'))),manifest.active.heldGame0101);
- assert.equal(sha(restoreDeckMove(readFileSync(resolve(root,'game-v0103.mjs'),'utf8'),resolve(root,'game-v0103.mjs'))),manifest.active.heldGame0103);
+ assert.equal(sha(readHistorical(resolve(root,'boot-v0101.js'),'utf8')),manifest.active.heldBoot0101);
+ assert.equal(sha(readHistorical(resolve(root,'boot-v0103.js'),'utf8')),manifest.active.heldBoot0103);
+ assert.equal(sha(restoreDeckMove(readHistorical(resolve(root,'game-v0101.mjs'),'utf8'),resolve(root,'game-v0101.mjs'))),manifest.active.heldGame0101);
+ assert.equal(sha(restoreDeckMove(readHistorical(resolve(root,'game-v0103.mjs'),'utf8'),resolve(root,'game-v0103.mjs'))),manifest.active.heldGame0103);
  const workflow=readFileSync(resolve(repo,'.github/workflows/skyshift-tests.yml'),'utf8');
  for(const item of manifest.files){
   assert.ok(historicalSyntaxCheck(workflow,item.newPath),'Missing relocated game syntax check '+item.name);

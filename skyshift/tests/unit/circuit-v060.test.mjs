@@ -1,7 +1,7 @@
 // SKYSHIFT 0.6.0 — actual closed track and authenticated three-lap race.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readEF08Source as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  CIRCUIT,CIRCUIT_LENGTH,AUTHORED_SECTIONS,COURSE_SEGMENTS,
  lapPosition,sectionAt,circuitPlanSummary

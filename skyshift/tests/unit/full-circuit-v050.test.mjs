@@ -1,7 +1,7 @@
 // SKYSHIFT 0.5.0 — complete ~3-minute unbanked racing circuit.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readEF08Source as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  TRIAL,SHOWCASE_PLAN,COURSE_SEGMENTS,GEOMETRY_BREAKS,ARCHES,
  GUARDRAIL,GAPS,bankAt,bankDegreesAt,surfaceHeightAt,

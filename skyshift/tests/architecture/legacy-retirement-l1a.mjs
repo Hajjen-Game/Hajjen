@@ -1,4 +1,6 @@
 import {deckHistoricalExists} from './ef02-closure-deck-overlay.mjs';
+import {entryArchive,readArchivedEntrySource} from '../../build/archived-entry-sources.mjs';
+export const retirementEF08=entryArchive;
 import {ef02iHistoricalExists} from './ef02i-path-overlay.mjs';
 import {ef02hCurrentPath} from './ef02h-path-overlay.mjs';
 // L1A: recover retired source from the pinned Git commit, never from a replacement stub.
@@ -30,13 +32,14 @@ export const retirementEF02J=JSON.parse(readFileSync(resolve(repo,'skyshift/docs
 assert.equal(retirementEF02J.archiveCommit,retirement.archiveCommit);
 export const retirementEF04=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef04-retired-engine.json'),'utf8'));
 assert.equal(retirementEF04.archiveCommit,retirement.archiveCommit);
-const entries=new Map([...retirement.files,...retirementL1B.files,...retirementL1C.files,...retirementL1D.files,...retirementL1E.files,...retirementL1F.files,...retirementEF02E.files,...retirementEF02F.files,...retirementEF02G.files,...retirementEF02J.files,...retirementEF04.files].map(f=>[f.path,f]));
+const entries=new Map([...retirement.files,...retirementL1B.files,...retirementL1C.files,...retirementL1D.files,...retirementL1E.files,...retirementL1F.files,...retirementEF02E.files,...retirementEF02F.files,...retirementEF02G.files,...retirementEF02J.files,...retirementEF04.files,...retirementEF08.files].map(f=>[f.path,f]));
 const asPath=p=>relative(repo,resolve(repo,p instanceof URL?fileURLToPath(p):p)).split('\\').join('/');
 const cache=new Map();
 export function isRetired(p){return entries.has(asPath(p));}
 export function readHistorical(p,encoding='utf8'){
  const key=asPath(p),entry=entries.get(key);
  if(!entry)return readFileSync(p,encoding);
+ if(retirementEF08.files.some(f=>f.path===key))return readArchivedEntrySource(key).toString(encoding);
  assert.ok(!existsSync(resolve(repo,key)),'Retired source unexpectedly present: '+key);
  if(!cache.has(key)){
   const data=execFileSync('git',['show',retirement.archiveCommit+':'+key],{cwd:repo,maxBuffer:8*1024*1024});
@@ -46,6 +49,8 @@ export function readHistorical(p,encoding='utf8'){
  }
  return cache.get(key).toString(encoding);
 }
+// Distinct alias only for seven exact EF08 import-only reader migrations.
+export const readEF08Source=readHistorical;
 export function historicalExists(p){
  if(!isRetired(p)){
   const deck=deckHistoricalExists(resolve(repo,asPath(p)));

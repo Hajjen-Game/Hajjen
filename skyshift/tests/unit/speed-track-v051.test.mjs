@@ -1,7 +1,7 @@
 // SKYSHIFT 0.5.1 – Speed Escalation & Track Character.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readEF08Source as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {
  TRIAL,SHOWCASE_PLAN,COURSE_SEGMENTS,GEOMETRY_BREAKS,
  GAPS,bankAt,speedAt,headingAt,poseAt,curvatureAt,positionAt,

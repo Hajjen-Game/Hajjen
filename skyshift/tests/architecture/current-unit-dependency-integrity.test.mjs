@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {existsSync,readFileSync,readdirSync,statSync} from 'node:fs';
 import {resolve,relative,sep,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {retirementL1D,retirementL1F,readHistorical} from './legacy-retirement-l1a.mjs';
+import {retirementL1D,retirementL1F,retirementEF08,readHistorical} from './legacy-retirement-l1a.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const repo=resolve(root,'..'),unit=resolve(root,'tests/unit'),workflows=resolve(repo,'.github/workflows');
 const unitNames=readdirSync(unit).filter(n=>n.endsWith('.test.mjs')).sort();
@@ -13,7 +13,7 @@ const protectedTests=Object.keys(stage8.entries);
 function target(name,spec,sourceReader=false){
  const path=resolve(unit,spec.split(/[?#]/)[0]),rel=relative(root,path);
  assert.ok(rel&&rel!=='..'&&!rel.startsWith('..'+sep)&&!isAbsolute(rel),'Test dependency escapes SKYSHIFT: '+name+' -> '+spec);
- const retired=sourceReader&&[...retirementL1D.files,...retirementL1F.files].find(f=>f.path==='skyshift/'+rel.split(sep).join('/')&&(f.reader==='skyshift/tests/unit/'+name||f.readers?.includes('skyshift/tests/unit/'+name)));
+ const retired=sourceReader&&[...retirementL1D.files,...retirementL1F.files,...retirementEF08.files].find(f=>f.path==='skyshift/'+rel.split(sep).join('/')&&(f.reader==='skyshift/tests/unit/'+name||f.readers?.includes('skyshift/tests/unit/'+name)));
  if(retired){assert.ok(readHistorical(path).length>0,'Unrecoverable archived source: '+spec);return;}
  assert.ok(existsSync(path)&&statSync(path).isFile(),'Missing test dependency: '+name+' -> '+spec);
 }

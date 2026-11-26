@@ -201,10 +201,12 @@ jobs:
           git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
           node skyshift/build/archived-world-assets.mjs --materialize
       - name: Fetch immutable historical test fixtures
-        run: git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          git fetch --no-tags --depth=1 origin 89b1ca990b72a3321303585fa48b924b3e04ed5e
       - name: Check browser module syntax
         run: |
-          node --check skyshift/game.mjs
+          node --test skyshift/tests/architecture/ef08-retired-entry-sources.test.mjs
           node --check skyshift/track.mjs
           node --check skyshift/trial-v02.mjs
           node --check skyshift/ui/fullscreen-v02.mjs
@@ -399,8 +401,6 @@ jobs:
           node --check skyshift/tests/browser/legacy/browser-smoke-v010.mjs
           node --check skyshift/stingray-evo-v0101.mjs
           node --check skyshift/tests/unit/stingray-evo-v0101.test.mjs
-          node --check skyshift/game-v0101.mjs
-          node --check skyshift/boot-v0101.js
           node --check skyshift/tests/browser/legacy/browser-smoke-v0101.mjs
           node --check skyshift/stingray-evo-v0102.mjs
           node --check skyshift/tests/unit/stingray-evo-v0102.test.mjs
@@ -409,8 +409,6 @@ jobs:
           node --check skyshift/ships/manta-blade-v0103.mjs
           node --check skyshift/stingray-evo-v0103.mjs
           node --check skyshift/tests/unit/premium-ship-v0103.test.mjs
-          node --check skyshift/game-v0103.mjs
-          node --check skyshift/boot-v0103.js
           node --check skyshift/tests/browser/legacy/browser-smoke-v0103.mjs
           node --check skyshift/velocity-presence-v0104.mjs
           node --check skyshift/stingray-evo-v0104.mjs

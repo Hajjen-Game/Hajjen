@@ -91,3 +91,14 @@ test('EF06 live game owns control listeners, fullscreen destroy and ship cleanup
  assert.match(s,/fullscreenController\?\.destroy\(\)/);
  assert.match(s,/function makeShip\(id=fleetProgress.selected\)\{[\s\S]*?releaseShip\(\);/);
 });
+
+test('EF06 live permanent exit releases specialist scene owners before remaining scene and renderer',()=>{
+ const s=readFileSync(new URL('../../game-v0210.mjs',import.meta.url),'utf8');
+ const block=s.slice(s.indexOf('onDispose:({contextLost})=>{'),s.indexOf('let scene,camera'));
+ const owners=['pmremPipeline?.dispose?.()','releaseShip()','ghostVisual?.dispose?.()','sharedTunnelRuntime?.dispose?.()','releaseRemainingScene()','neonPipeline?.dispose?.()','renderer?.dispose?.()'];
+ let last=-1;for(const owner of owners){const i=block.indexOf(owner);assert.ok(i>last,owner);last=i;}
+ assert.match(s,/function releaseRemainingScene\(\)\{[\s\S]*?collectObjectResources\(scene,\{textures:true\}\)[\s\S]*?scene\?\.clear\?\.\(\)/);
+ const tunnel=readFileSync(new URL('../../true-shared-tunnel-renderer-v0281.mjs',import.meta.url),'utf8');
+ const teardown=tunnel.slice(tunnel.lastIndexOf('  dispose(){'));
+ assert.match(teardown,/item\.waveCove\?\.dispose\?\.\(\);[\s\S]*?item\.archOptics\?\.dispose\?\.\(\);[\s\S]*?item\.source\?\.dispose\?\.\(\);/);
+});

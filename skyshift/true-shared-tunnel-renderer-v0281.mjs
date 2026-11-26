@@ -597,6 +597,8 @@ export function installConfiguredSharedTunnel(THREE,world,{
   dispose(){
    if(disposed)return;disposed=true;
    for(const item of installed.reverse()){
+    item.waveCove?.dispose?.();
+    item.archOptics?.dispose?.();
     item.ceiling?.dispose?.();
     item.cinematic?.dispose?.();
     item.precision?.dispose?.();

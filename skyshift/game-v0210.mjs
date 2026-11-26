@@ -688,6 +688,8 @@ window.__skyshiftStartupAudit=()=>{
  };
 };
 const worldClock={last:performance.now(),accum:0};
+const resourceSmoke=new URLSearchParams(location.search).get("resourceSmoke")==="1";
+const teardownReport={errors:[],released:null};
 const runtimeLifetime=createRuntimeLifetime({
  requestFrame:callback=>requestAnimationFrame(callback),
  cancelFrame:id=>cancelAnimationFrame(id),frame:loop,
@@ -707,8 +709,9 @@ const runtimeLifetime=createRuntimeLifetime({
   const cleanup=[()=>clearTimeout(uiState.bannerTimeout),()=>clearTimeout(uiState.toastTimeout),
    ()=>fullscreenController?.destroy(),()=>clearInput(),
    ()=>{if(!contextLost)gpuClock?.reset();},()=>pmremPipeline?.dispose?.(),
-   ()=>releaseShip(),()=>neonPipeline?.dispose?.(),()=>renderer?.dispose?.(),()=>perfPanel?.remove()];
-  for(const release of cleanup)try{release();}catch(error){console.warn("SKYSHIFT cleanup",error);}
+   ()=>releaseShip(),()=>ghostVisual?.dispose?.(),()=>sharedTunnelRuntime?.dispose?.(),
+   ()=>releaseRemainingScene(),()=>neonPipeline?.dispose?.(),()=>renderer?.dispose?.(),()=>perfPanel?.remove()];
+  for(const release of cleanup)try{release();}catch(error){teardownReport.errors.push(String(error?.message??error));console.warn("SKYSHIFT cleanup",error);}
  }
 });
 let scene,camera,renderer,world,ship,shipGlow,shipShade,roadMat,edgeMat,flight;
@@ -973,6 +976,18 @@ function buildDecor(){
  // Portal warning is safely above the racing lane, after the wall ride.
  if(!isVault())makeBillboard(isAurora()?"LUMEN PASS":"SHADOW TUNNEL",
   SHADOW_TUNNEL.start-83,11,15,0);
+}
+// The page owns all remaining scene resources after the specialised owners
+// have returned their leases and detached their roots. Neon materials may be
+// unused, so include the entire kit in the same identity-deduplicated release.
+function releaseRemainingScene(){
+ const resources=collectObjectResources(scene,{textures:true});
+ for(const material of Object.values(neonKit??{}))
+  if(material?.isMaterial)resources.materials.add(material);
+ // PMREM render targets and the shared atlas are released by their owners.
+ // The remaining direct material textures are page-local (billboards, etc.).
+ teardownReport.released=releaseResourceDifference(resources);
+ scene?.clear?.();
 }
 function releaseShip(){
  // Dispose ship-local FX before removing their craft. Shared neon and PMREM
@@ -1563,6 +1578,13 @@ function initScene(){
  runtimeLifetime.listen(window,"resize",resize);
  sceneReady=true;
  markStartup("sceneReady");
+ if(resourceSmoke)window.__skyshiftResourceAudit=()=>({
+  lifetime:runtimeLifetime.audit(),teardown:{...teardownReport},
+  atlas:premiumMetalTexturePoolStats0262(THREE),ship:shipArtController.audit(),
+  renderer:renderer?{...renderer.info.memory,programs:renderer.info.programs?.length??null}:null,
+  objects:scene?.children?.length??0,activeShip:activeShipId,mode:uiState.mode,
+  stamps:{...startupMarks}
+ });
  // Source-of-truth 0.28.0 plan/installer audit for every current
  // course, including Aurora's deliberately empty tunnel inventory.
  if(new URLSearchParams(location.search).get("sharedTunnelSmoke")==="1")
@@ -4231,6 +4253,7 @@ function loop(now){
   if(neonPipeline)neonPipeline.render(dt);
   else renderer.render(scene,camera);
  }finally{gpuClock?.end()}
+ if(startupMarks.firstFrame===undefined)markStartup("firstFrame");
  const renderCpuMs=performance.now()-renderBegin;
  if(uiState.mode==="playing"&&renderer.info){
    const work=renderer.info.render;

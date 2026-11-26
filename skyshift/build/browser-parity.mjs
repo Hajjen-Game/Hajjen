@@ -8,6 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {chromium} from 'playwright-core';
 import {captureEF05Baseline} from './ef05-baseline-parity.mjs';
+import {captureEF06Lifetime} from './ef06-resource-startup.mjs';
 const here=dirname(fileURLToPath(import.meta.url)),repo=resolve(here,'../..'),out=join(here,'evidence');
 mkdirSync(out,{recursive:true});
 const chrome=[process.env.CHROME_PATH,'/usr/bin/google-chrome','/usr/bin/google-chrome-stable','/usr/bin/chromium'].filter(Boolean).find(existsSync);
@@ -222,6 +223,7 @@ try{
     assert.deepEqual(boot.catalog,mode==='bundle'?['vault']:['skyline','aurora','vault']);
     console.log('SKYSHIFT_EF05_CATALOG '+JSON.stringify({mode,memory,phase,requested:route,selected:boot.selected,catalog:boot.catalog,query:boot.query}));
     const timing={phase,bootMs:boot.state.readyAfterMs,wallMs:performance.now()-started,encodedBytes:transferred,completed,requestCount:requests.length,requests:[...requests]};
+    const startup=await page.evaluate(()=>{const a=window.__skyshiftStartupAudit();return {stamps:a.stamps,durations:a.durations,renderer:a.renderer,scene:a.scene,heapMB:a.jsHeapMB};});
     if(mode==='bundle'){
      assert.ok(!requests.some(x=>/cdn\.jsdelivr\.net\/npm\/three/.test(x)),'bundle must not fetch Three CDN');
      assert.ok(!requests.some(x=>x.includes('/assets/worlds/')),'production must not load retired station assets');
@@ -233,7 +235,7 @@ try{
     assert.ok(render.width>100&&render.height>100&&!render.lost,JSON.stringify(render));
     assert.deepEqual(errors,[],mode+' '+memory+'GB errors');
     await page.screenshot({path:join(out,mode+'-'+memory+'GB-'+phase+'.png')});
-    phases.push({timing,styles:boot.styles,title:boot.title,render});
+    phases.push({timing,startup,styles:boot.styles,title:boot.title,render});
    }
    const row={mode,memory,phases};reports.push(row);results.push(row);await context.close();
   }
@@ -244,6 +246,7 @@ try{
   }
  }
  await captureEF05Baseline({browser,repo,out});
+ await captureEF06Lifetime({browser,repo,out,candidateSource:reports});
  const independent=[];
  for(const memory of [8,4])independent.push(await independentRoute(memory));
  writeFileSync(join(out,'ef05-independent-report.json'),JSON.stringify(independent,null,2)+'\n');

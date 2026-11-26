@@ -119,7 +119,7 @@ test("EF05 shared GGX road seals only actual tunnel intervals, preserves exterio
 
 
 test("EF06 shared hull lighting detaches old bindings and can reattach without accumulating materials",()=>{
- const THREE={Vector3:class{},Vector2:class{}};
+ const THREE={Vector3:class{},Vector2:class{},Color:class{}};
  const original=function(){},key=function(){return "original";};
  const mat=()=>({isMeshStandardMaterial:true,color:{},onBeforeCompile:original,customProgramCacheKey:key});
  const a=mat(),b=mat(),ship=m=>({traverse:fn=>fn({isMesh:true,name:"fixture hull",material:m})});

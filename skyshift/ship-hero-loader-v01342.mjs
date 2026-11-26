@@ -4,6 +4,7 @@
 import {SHIP_ART_01342,requestedShipArt,createShipArtState,
  assessHeroAsset,installHeroBodyAndTail,shipArtAudit}
  from "./ship-art-pipeline-v01342.mjs";
+import {createShipSourceCache} from "./core/ship-source-cache.mjs";
 export function createShipArtController(THREE,{
  search="",currentCraft=()=>null,currentShipId=()=>null,
  loaderFactory=null,fetchAsset=null
@@ -13,7 +14,22 @@ export function createShipArtController(THREE,{
  // Explicit visual A/B only: a reviewed Blender-exported binary may be
  // tested separately. The normal mobile game uses the verified glTF sculpt.
  const blenderPreview=new URLSearchParams(search).get("shipArt")==="blender";
- let generation=0;
+ let generation=0,disposed=false;
+ const sourceCache=createShipSourceCache({
+  maxBytes:SHIP_ART_01342.maxAssetBytes,
+  async fetchSource(signal){
+   const request=fetchAsset??fetch;
+   const srcPath=blenderPreview?SHIP_ART_01342.blenderAssetPath:
+    SHIP_ART_01342.assetPath;
+   const response=await request(new URL(srcPath,import.meta.url),
+    {cache:"force-cache",signal});
+   if(!response.ok)
+    throw Error("Stingray HERO V4 unavailable (HTTP "+response.status+")");
+   return blenderPreview?response.arrayBuffer():response.text();
+  }
+ });
+ const isCurrent=(token,craft)=>!disposed&&token===generation&&
+  currentCraft()===craft&&currentShipId()==="stingray";
  function disposeImported(root){
   const geometries=new Set(),materials=new Set();
   root?.traverse?.(node=>{
@@ -25,6 +41,7 @@ export function createShipArtController(THREE,{
   for(const m of materials)m.dispose();
  }
  async function onCraftBuilt(craft,id){
+  if(disposed)return state;
   const token=++generation;
   state.token=token;state.loaded=false;state.heroApplied=false;
   state.activeMode="procedural";state.error=null;
@@ -32,43 +49,30 @@ export function createShipArtController(THREE,{
   state.assetFormat=null;
   state.requestedShip=id;
   if(state.requested!=="hero"){
-   state.status="procedural";return state;
+   sourceCache.cancelPending();state.status="procedural";return state;
   }
   if(id!=="stingray"){
-   state.status="waiting-for-stingray";return state;
+   sourceCache.cancelPending();state.status="waiting-for-stingray";return state;
   }
   state.status="loading";state.attempts++;
   let imported=null;
   try{
-   // The checked-in V4 glTF is the runtime source of truth.
-   // No missing GLB requests or 404 console noise on mobile.
-   // A later reviewed Blender GLB can replace this asset without changing
-   // tail joints, mesh-node naming, or gameplay flight physics.
-   const request=fetchAsset??fetch;
-   const srcPath=blenderPreview?SHIP_ART_01342.blenderAssetPath:
-    SHIP_ART_01342.assetPath;
-   const response=await request(new URL(srcPath,import.meta.url),
-    {cache:"force-cache"});
-   if(!response.ok)
-    throw Error("Stingray HERO V4 unavailable (HTTP "+response.status+")");
-   const source=blenderPreview?await response.arrayBuffer():
-    await response.text();
+   const source=await sourceCache.acquire();
+   // Check before importing/constructing the parser, not only after parse.
+   if(!isCurrent(token,craft))return state;
    const format=blenderPreview?"glb":"gltf";
-   const length=typeof source==="string"?source.length:source.byteLength;
-   if(length>SHIP_ART_01342.maxAssetBytes)
-    throw Error("Hero mesh exceeds mobile budget: "+length);
    let loader;
    if(loaderFactory)loader=await loaderFactory();
    else {
     const {GLTFLoader}=await import("three/addons/loaders/GLTFLoader.js");
     loader=new GLTFLoader();
    }
+   if(!isCurrent(token,craft))return state;
    const gltf=await new Promise((resolve,reject)=>
-    loader.parse(source,new URL("./assets/ships/",import.meta.url).href,
+    loader.parse(typeof source==="string"?source:source.slice(0),new URL("./assets/ships/",import.meta.url).href,
      resolve,reject));
    imported=gltf.scene;
-   if(token!==generation||currentCraft()!==craft||
-      currentShipId()!=="stingray"){
+   if(!isCurrent(token,craft)){
     disposeImported(imported);return state;
    }
    const report=assessHeroAsset(imported);
@@ -83,14 +87,15 @@ export function createShipArtController(THREE,{
    // Never expose an incomplete Blender asset or crash the game if the
    // file is absent, stale, over budget, or the user changes ships.
    if(imported&&!state.heroApplied)disposeImported(imported);
-   if(token!==generation)return state;
+   if(token!==generation||disposed)return state;
+   sourceCache.invalidate();
    state.status="fallback";state.error=String(error?.message??error);
    console.warn("SKYSHIFT: Blender hero preview unavailable; retaining "+
     "the procedural Stingray and its original animated tail.",state.error);
    return state;
   }
  }
- return {onCraftBuilt,dispose(){generation++;state.token=generation;},
-  state,audit:()=>shipArtAudit(state),
+ return {onCraftBuilt,dispose(){if(disposed)return;disposed=true;generation++;state.token=generation;sourceCache.dispose();},
+  state,audit:()=>({...shipArtAudit(state),sourceCache:sourceCache.audit()}),
   previewReady:()=>state.loaded&&state.activeMode==="hero"};
 }

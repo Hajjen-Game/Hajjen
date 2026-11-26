@@ -11,6 +11,15 @@ import {entryArchive,readArchivedEntrySource} from '../../build/archived-entry-s
 import {readHistorical,historicalExists} from './legacy-retirement-l1a.mjs';
 import {inventory} from './dependency-inventory-v2.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
+const currentRetirement=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef08-obsolete-cohort.json'),'utf8'));
+const retiredReaders=new Map(currentRetirement.unitTests.map(f=>[f.path,f]));
+function isExplicitlyRetiredReader(path){
+ const entry=retiredReaders.get(path);
+ if(!entry)return false;
+ assert.match(entry.sha,/^[a-f0-9]{40}$/);assert.ok(entry.bytes>0);
+ assert.ok(!existsSync(resolve(repo,path)),path+' obsolete reader unexpectedly restored');
+ return true;
+}
 const sha=bytes=>{const b=Buffer.from(bytes);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');};
 test('EF08 old entry source cohort is absent and byte-exact in Git, with no live dependency',()=>{
  const graph=new Set(inventory().literalBrowserGraph.paths);
@@ -35,6 +44,7 @@ test('EF08 old entry source cohort is absent and byte-exact in Git, with no live
    assert.ok(historicalExists(resolve(dirname(resolve(repo,f.path)),match[1])),f.path+' -> '+match[1]);
   }
   for(const reader of f.readers){
+   if(isExplicitlyRetiredReader(reader))continue;
    const source=readFileSync(resolve(repo,reader),'utf8');
    assert.match(source,/import \{(?:readHistorical|readEF08Source) as readFileSync\} from "\.\.\/architecture\/legacy-retirement-l1a\.mjs";/);
    assert.ok(source.includes(basename(f.path)),reader+' explicit historical source reference');
@@ -55,6 +65,7 @@ test('EF08 old entry source cohort is absent and byte-exact in Git, with no live
 test('EF08 reader migration changes only the seven filesystem imports',()=>{
  assert.equal(entryArchive.readerChanges.length,7);
  for(const r of entryArchive.readerChanges){
+  if(isExplicitlyRetiredReader(r.path))continue;
   const source=readFileSync(resolve(repo,r.path),'utf8');
   assert.equal(source.split(r.after).length-1,1,r.path);
   assert.equal(sha(source.replace(r.after,()=>r.before)),r.sha,r.path+' historical assertions altered');

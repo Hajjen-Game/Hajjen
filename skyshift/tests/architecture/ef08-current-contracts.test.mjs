@@ -14,7 +14,7 @@ const baseline=json('skyshift/docs/architecture/ef08-root-baseline.json');
 const paths=execFileSync('git',['ls-files','-z'],{cwd:repo,encoding:'utf8',maxBuffer:16*1024*1024}).split('\0').filter(Boolean);
 const tracked=new Set(paths);
 const graph=new Set(inventory().literalBrowserGraph.paths.map(p=>'skyshift/'+p));
-const retired=[...cohort.roots,...cohort.unitTests,...cohort.architectureTests];
+const retired=[...cohort.roots,...cohort.unitTests,...cohort.architectureTests,...(cohort.browserTests||[])];
 const retiredNames=cohort.roots.map(f=>basename(f.path));
 const isSource=p=>/^(?:skyshift\/|\.github\/)/.test(p)&&/\.(?:mjs|js|cjs|ts|html|css|yml|yaml|sh|py|txt)$/.test(p)&&!p.startsWith('skyshift/docs/')&&!/migration-manifest|baseline|consumer-inventory|consumer-queue/.test(p);
 test('obsolete closed source and test cohort is absent; no tracked executable or workflow depends on it',()=>{
@@ -71,5 +71,5 @@ test('root ownership progresses without resurrecting old root files',()=>{
  const roots=paths.filter(p=>/^skyshift\/[^/]+$/.test(p));
  for(const p of roots)assert.ok(old.has(p),p+' new root path requires explicit hosting or compatibility decision');
  assert.ok(roots.length<=baseline.rootCount-cohort.roots.length,'No regression in root ownership');
- console.log('SKYSHIFT_EF08_CURRENT_CONTRACTS '+JSON.stringify({rootFiles:roots.length,retiredRootFiles:cohort.roots.length,retiredUnitFiles:cohort.unitTests.length,retiredMigrationFiles:cohort.architectureTests.length,retiredBytes:retired.reduce((n,f)=>n+f.bytes,0),liveGraph:graph.size}));
+ console.log('SKYSHIFT_EF08_CURRENT_CONTRACTS '+JSON.stringify({rootFiles:roots.length,retiredRootFiles:cohort.roots.length,retiredUnitFiles:cohort.unitTests.length,retiredMigrationFiles:cohort.architectureTests.length,retiredBrowserFiles:(cohort.browserTests||[]).length,retiredBytes:retired.reduce((n,f)=>n+f.bytes,0),liveGraph:graph.size}));
 });

@@ -442,6 +442,213 @@
       "archivedReaders": [
         "skyshift/game-v0191.mjs"
       ]
+    },
+    {
+      "path": "skyshift/air-tricks-v080.mjs",
+      "sha": "96ac88f6d7bff69d95d8c398681ec958f687e2f2",
+      "bytes": 5735,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "engine",
+      "readers": [
+        "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+        "skyshift/tests/unit/air-tricks-v080.test.mjs"
+      ],
+      "archivedReaders": [],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/cinematic-v070.mjs",
+      "sha": "231270f35ebbf6d77263409915e9de4d4cc0b6f5",
+      "bytes": 4675,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "engine",
+      "readers": [
+        "skyshift/tests/browser/legacy/browser-smoke-v070.mjs",
+        "skyshift/tests/unit/track-3d-v070.test.mjs"
+      ],
+      "archivedReaders": [
+        "skyshift/legacy/game/game-v070.mjs"
+      ],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/cinematic-v071.mjs",
+      "sha": "14735a481311533ec23d5ba4db386131d4b887fa",
+      "bytes": 4950,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "engine",
+      "readers": [
+        "skyshift/tests/browser/legacy/browser-smoke-v071.mjs",
+        "skyshift/tests/unit/magnetic-wall-v071.test.mjs"
+      ],
+      "archivedReaders": [
+        "skyshift/legacy/game/game-v071.mjs"
+      ],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/cinematic-v072.mjs",
+      "sha": "44f88b7be361ca02599ccc5f2e9441f12cbd2a55",
+      "bytes": 5414,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "engine",
+      "readers": [
+        "skyshift/tests/browser/legacy/browser-smoke-v072.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+        "skyshift/tests/unit/corkscrew-v072.test.mjs"
+      ],
+      "archivedReaders": [
+        "skyshift/legacy/game/game-v072.mjs",
+        "skyshift/legacy/game/game-v080.mjs"
+      ],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/cinematic-v081.mjs",
+      "sha": "93640b6c40e01e13ef84627c03573af6150122d8",
+      "bytes": 438,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "engine",
+      "readers": [
+        "skyshift/tests/browser/legacy/browser-smoke-v081.mjs"
+      ],
+      "archivedReaders": [
+        "skyshift/legacy/game/game-v081.mjs"
+      ],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/cinematic-v082.mjs",
+      "sha": "62373e82d3924837bf6b5ab33bd06b4f08ebf8cc",
+      "bytes": 438,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "engine",
+      "readers": [
+        "skyshift/tests/browser/legacy/browser-smoke-v082.mjs",
+        "skyshift/tests/unit/track-rhythm-v082.test.mjs"
+      ],
+      "archivedReaders": [
+        "skyshift/legacy/game/game-v082.mjs"
+      ],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/cinematic-v083.mjs",
+      "sha": "14f06e202a6885f53ec1788398d82415acbf8e86",
+      "bytes": 438,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "engine",
+      "readers": [
+        "skyshift/tests/browser/legacy/browser-smoke-v083.mjs"
+      ],
+      "archivedReaders": [
+        "skyshift/legacy/game/game-v083.mjs"
+      ],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/cinematic-v084.mjs",
+      "sha": "be0b3d65aac8e79751b15d450f64c395d80c545a",
+      "bytes": 438,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "engine",
+      "readers": [
+        "skyshift/tests/browser/legacy/browser-smoke-v084.mjs",
+        "skyshift/tests/unit/kinetic-camera-v090.test.mjs"
+      ],
+      "archivedReaders": [
+        "skyshift/legacy/game/game-v084.mjs"
+      ],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/cinematic-v090.mjs",
+      "sha": "9e919de1c28ff87fc24a5f443067c8c13de47888",
+      "bytes": 428,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "engine",
+      "readers": [
+        "skyshift/tests/browser/legacy/browser-smoke-v090.mjs",
+        "skyshift/tests/unit/kinetic-camera-v090.test.mjs"
+      ],
+      "archivedReaders": [
+        "skyshift/legacy/game/game-v090.mjs"
+      ],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/stingray-evo-v010.mjs",
+      "sha": "1641caa8864fbaf585b63588f5d341365189a993",
+      "bytes": 6603,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "environment",
+      "readers": [
+        "skyshift/tests/unit/stingray-evo-v010.test.mjs"
+      ],
+      "archivedReaders": [
+        "skyshift/legacy/game/game-v010.mjs"
+      ],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/stingray-evo-v0102.mjs",
+      "sha": "2d913e7c3f5e86c8d348f0a080e87f417675b795",
+      "bytes": 10359,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "environment",
+      "readers": [
+        "skyshift/tests/browser/legacy/browser-smoke-v0102.mjs",
+        "skyshift/tests/unit/stingray-evo-v0102.test.mjs"
+      ],
+      "archivedReaders": [
+        "skyshift/legacy/game/game-v0102.mjs"
+      ],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/trial-v061.mjs",
+      "sha": "215f314b0cfe795310b1601e6ac1430ab729b72c",
+      "bytes": 16916,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "engine",
+      "readers": [
+        "skyshift/tests/browser/legacy/browser-smoke-v061.mjs",
+        "skyshift/tests/unit/precision-grip-v061.test.mjs",
+        "skyshift/tests/unit/track-3d-v070.test.mjs"
+      ],
+      "archivedReaders": [
+        "skyshift/legacy/game/game-v061.mjs"
+      ],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/trial-v080.mjs",
+      "sha": "59faf6561ff7789c79090e1b8d4cba036ab33f5a",
+      "bytes": 27334,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "previousOwner": "engine",
+      "readers": [
+        "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+        "skyshift/tests/unit/air-tricks-v080.test.mjs",
+        "skyshift/tests/unit/grip-leap-v081.test.mjs"
+      ],
+      "archivedReaders": [
+        "skyshift/legacy/game/game-v080.mjs"
+      ],
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388
     }
   ],
   "unitTests": [
@@ -564,6 +771,66 @@
       "path": "skyshift/tests/unit/world-material-readability-v0191.test.mjs",
       "sha": "599dc4864202ff28a2aff4163fdffba4e180531b",
       "bytes": 3671
+    },
+    {
+      "path": "skyshift/tests/unit/air-tricks-v080.test.mjs",
+      "sha": "9e9961f2bdcf072adeb5143db67d601223d06b34",
+      "bytes": 8087,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/unit/track-3d-v070.test.mjs",
+      "sha": "85ec6c7bcfc5063f4218f83fd8b67ac3a17b6182",
+      "bytes": 8205,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+      "sha": "c9173c92e988d674c582d08b9cfe70892bc1a78d",
+      "bytes": 7320,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/unit/corkscrew-v072.test.mjs",
+      "sha": "f765801ad19c46fd1c5b86f2f2bc086936c47489",
+      "bytes": 9301,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+      "sha": "6f6345ab63cbcb8ab8f90eb838bb40722b43f566",
+      "bytes": 6506,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/unit/kinetic-camera-v090.test.mjs",
+      "sha": "1ad425e74cbdee10d34fe1df73cc86ad37ff7c36",
+      "bytes": 6784,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/unit/stingray-evo-v010.test.mjs",
+      "sha": "f3483c8d1ab8b6adff361d41a61fbe345925eccb",
+      "bytes": 3399,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/unit/stingray-evo-v0102.test.mjs",
+      "sha": "e9230d2514516d968351fb44f99333679afc74da",
+      "bytes": 3381,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/unit/precision-grip-v061.test.mjs",
+      "sha": "4f6ef75631d920ac80f181f112df55f8bee8d9a0",
+      "bytes": 8039,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/unit/grip-leap-v081.test.mjs",
+      "sha": "41446c74a28acd02c9cd8a64b0e63082d8fc4cfa",
+      "bytes": 8146,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
     }
   ],
   "architectureTests": [
@@ -753,5 +1020,121 @@
     "fast": ".github/workflows/skyshift-ci-fast.yml",
     "track": ".github/workflows/skyshift-tests.yml"
   },
-  "preserve": "Actual shared flight, boost, GRIP, banked geometry, jump/trick/landing, camera, ship resource and visual regressions remain. Original version-specific aesthetics and previous relocation SHA/path/count proofs are not current behavior. No runtime source, public current entrypoint or comparison page changes."
+  "preserve": "Actual shared flight, boost, GRIP, banked geometry, jump/trick/landing, camera, ship resource and visual regressions remain. Original version-specific aesthetics and previous relocation SHA/path/count proofs are not current behavior. No runtime source, public current entrypoint or comparison page changes.",
+  "browserTests": [
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+      "sha": "cd61e5b79c1aafeb71126ba9f74fdef12e64e03a",
+      "bytes": 35358,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v070.mjs",
+      "sha": "573a169957b41895b349422e7aa099fc49fa6798",
+      "bytes": 26527,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v071.mjs",
+      "sha": "d99553fb117ca9effdd448167bd37c70a5939f98",
+      "bytes": 28367,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v072.mjs",
+      "sha": "f78064b4e9b7afa46a40ee63132fc4e256791847",
+      "bytes": 30880,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v081.mjs",
+      "sha": "4d3d837453481063e29a002a54037e1b6bfbf1de",
+      "bytes": 33661,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v082.mjs",
+      "sha": "15066a759602be808dec737447085e074af43779",
+      "bytes": 6809,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v083.mjs",
+      "sha": "ce8e8f2185470d8b471d9674c8b9b5f8ad5158b5",
+      "bytes": 8065,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v084.mjs",
+      "sha": "8d92d7caa6862606504f9aca6ceb9a4413a993a9",
+      "bytes": 8383,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v090.mjs",
+      "sha": "0e9c9fa52479d0b86c83f6e04baf1e0bf6514d60",
+      "bytes": 9651,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0102.mjs",
+      "sha": "755927d6038092a973a352d26b32894dbbbc650f",
+      "bytes": 16295,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v061.mjs",
+      "sha": "550ee8319d09bac61e8563f5350ee8901ebd1c6c",
+      "bytes": 23811,
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    }
+  ],
+  "batches": [
+    {
+      "scope": "Retire superseded release-specific flight/camera/trick and Stingray visual snapshots and their syntax-only historical runners. Current shared synthetic flight and geometry, camera/ship behavior, fixed-step and real WebGL/resource gates remain.",
+      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+      "verifiedArchitectureRun": 45875110655,
+      "productionEvidenceRun": 45875110388,
+      "rootFiles": 13,
+      "unitFiles": 10,
+      "browserFiles": 11,
+      "bytes": 381141,
+      "paths": [
+        "skyshift/air-tricks-v080.mjs",
+        "skyshift/cinematic-v070.mjs",
+        "skyshift/cinematic-v071.mjs",
+        "skyshift/cinematic-v072.mjs",
+        "skyshift/cinematic-v081.mjs",
+        "skyshift/cinematic-v082.mjs",
+        "skyshift/cinematic-v083.mjs",
+        "skyshift/cinematic-v084.mjs",
+        "skyshift/cinematic-v090.mjs",
+        "skyshift/stingray-evo-v010.mjs",
+        "skyshift/stingray-evo-v0102.mjs",
+        "skyshift/trial-v061.mjs",
+        "skyshift/trial-v080.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+        "skyshift/tests/unit/air-tricks-v080.test.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v070.mjs",
+        "skyshift/tests/unit/track-3d-v070.test.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v071.mjs",
+        "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v072.mjs",
+        "skyshift/tests/unit/corkscrew-v072.test.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v081.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v082.mjs",
+        "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v083.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v084.mjs",
+        "skyshift/tests/unit/kinetic-camera-v090.test.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v090.mjs",
+        "skyshift/tests/unit/stingray-evo-v010.test.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0102.mjs",
+        "skyshift/tests/unit/stingray-evo-v0102.test.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v061.mjs",
+        "skyshift/tests/unit/precision-grip-v061.test.mjs",
+        "skyshift/tests/unit/grip-leap-v081.test.mjs"
+      ]
+    }
+  ]
 }

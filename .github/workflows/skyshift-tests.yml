@@ -451,7 +451,6 @@ jobs:
           node --check skyshift/tests/unit/visual-fidelity-v0114.test.mjs
           node --check skyshift/core/performance-audit-v0114.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0114.mjs
-          node --check skyshift/racing-experience-v0120.mjs
           node --check skyshift/sector-landmarks-v0120.mjs
           node --check skyshift/tests/unit/racing-experience-v0120.test.mjs
           node --check skyshift/tests/browser/legacy/browser-smoke-v0120.mjs

@@ -308,7 +308,10 @@ test('EF04 root owner entries reconciled with current graph and surviving known 
  assert.deepEqual(ledger.entries.map(e=>e.path),prior.entries.filter(e=>e.ownerStage==='EF04').map(e=>e.currentPath));
  const graph=new Set(inventory().literalBrowserGraph.paths);
  const rows=ledger.entries.map(e=>({path:e.path,live:graph.has(e.path.slice('skyshift/'.length)),exists:existsSync(new URL('../../../'+e.path,import.meta.url)),survivingKnownConsumers:e.knownConsumers.filter(p=>existsSync(new URL('../../../'+p,import.meta.url)))}));
- assert.ok(rows.every(r=>r.exists),'Unexpected retirement without proof');
+ const retired=ledger.entries.filter(e=>e.disposition.startsWith('retired:'));
+ assert.deepEqual(retired.map(e=>e.path),retirementEF04.files.map(e=>e.path));
+ assert.ok(rows.every(r=>r.exists!==retired.some(e=>e.path===r.path)),'Unexpected retirement or restored obsolete source');
+ for(const r of rows)assert.equal(r.live,ledger.entries.find(e=>e.path===r.path).verifiedLiveLiteral,r.path+' graph role changed');
  for(const p of ['core/race-lifecycle.mjs','qa/race-probes.mjs','tracks/shared/track-sampler.mjs','flight/flight-physics.mjs'])assert.ok(graph.has(p),p);
  console.log('SKYSHIFT_EF04_OWNER_RECONCILIATION '+JSON.stringify(rows));
 });
@@ -360,4 +363,33 @@ test('EF04 current Power Carve replaces old racecraft behavior on an independent
   assert.equal(api.racingExperienceAudit(p).physicalFlightUnchanged,true);
  }
  api.resetRacingExperience(st);assert.equal(st.completedWindowKeys.size,0);assert.equal(st.cleanCarves,0);
+});
+
+import {retirementEF04,readHistorical} from './legacy-retirement-l1a.mjs';
+import {createHash} from 'node:crypto';
+import {execFileSync,spawnSync} from 'node:child_process';
+import {resolve,basename} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {expectedRootFiles} from './root-count-contract.mjs';
+import {readdirSync} from 'node:fs';
+test('EF04 retired racecraft source is recoverable, absent and has no executable consumers',()=>{
+ const repo=fileURLToPath(new URL('../../../',import.meta.url));
+ const graph=inventory().literalBrowserGraph.paths;
+ assert.equal(readdirSync(resolve(repo,'skyshift'),{withFileTypes:true}).filter(e=>e.isFile()).length,expectedRootFiles);
+ for(const f of retirementEF04.files){
+  assert.ok(!existsSync(resolve(repo,f.path)),f.path);
+  assert.ok(!graph.includes(f.path.slice('skyshift/'.length)),f.path);
+  const source=readHistorical(resolve(repo,f.path));
+  const b=Buffer.from(source);assert.equal(b.length,f.bytes);
+  assert.equal(createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex'),f.sha);
+  const checked=spawnSync(process.execPath,['--check','--input-type=module'],{input:source,encoding:'utf8'});assert.equal(checked.status,0,checked.stderr);
+  const migrated=readFileSync(resolve(repo,f.originalReader),'utf8');
+  assert.match(migrated,/from "\.\.\/\.\.\/racing-experience-v0121\.mjs"/);
+  assert.match(migrated,/createSectorLandmarkData\(positionAt,widthAt\)/);
+  assert.match(migrated,/assert\.equal\(data\.minLateralClearance,3\.9\)/);
+  for(const p of execFileSync('git',['ls-files','-z'],{cwd:repo,encoding:'utf8',maxBuffer:16*1024*1024}).split('\0').filter(Boolean)){
+   if(!/\.(?:mjs|js|cjs|ts|html|css|json|ya?ml|sh|py|txt|gltf)$/.test(p)||p.startsWith('skyshift/tests/architecture/')||p.startsWith('skyshift/docs/architecture/')||/migration-manifest|baseline|consumer-inventory|consumer-queue/.test(p))continue;
+   assert.ok(!readFileSync(resolve(repo,p),'utf8').includes(basename(f.path)),p+' stale retired source reference');
+  }
+ }
 });

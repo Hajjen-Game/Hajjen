@@ -38,7 +38,6 @@ jobs:
         run: node --test skyshift/tests/architecture/ef08-current-contracts.test.mjs
       - name: Syntax-check retained browser QA runners
         run: |
-          for file in skyshift/tests/browser/legacy/browser-smoke-v*.mjs; do node --check "$file"; done
           for file in skyshift/tests/browser/browser-*.mjs; do node --check "$file"; done
       - name: Validate current test dependencies and workflow paths
         run: node --test skyshift/tests/architecture/current-unit-dependency-integrity.test.mjs

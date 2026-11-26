@@ -571,6 +571,500 @@
       ],
       "verifiedArchitectureRun": 45875110655,
       "productionEvidenceRun": 45875110388
+    },
+    {
+      "path": "skyshift/image-clarity-v0498.mjs",
+      "sha": "07a06f10a7740093a810c76b7b24643bb5f9a56d",
+      "bytes": 1999,
+      "baselineBlob": "07a06f10a7740093a810c76b7b24643bb5f9a56d",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-relocation-l1h.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v0498.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v0499.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v04991.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v050.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v051.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v060.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v061.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v070.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v071.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v072.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v081.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/image-clarity-v0498.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 6,
+        "pinned-archive": 13
+      },
+      "metadataRefs": 7,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "4c1bd4b7a03cfe0f9a96abba5dd714a4710ad0cb",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v0498.mjs",
+          "sha": "045a5d229251a8dd975c05ca9d3a92b70b6342e5",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v0499.mjs",
+          "sha": "195ac5e4d9d93045fe8cbec3be48a338fd27bd32",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v04991.mjs",
+          "sha": "babcc68ce98cabca50d21a092695037c0bc019c4",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v050.mjs",
+          "sha": "b62d135e59e84e5351d345fe80f0c26bef1caf0f",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v051.mjs",
+          "sha": "dde31a48ce3947eada6902b7764de2a5dcf81d6e",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v060.mjs",
+          "sha": "03af2c5a32952957ef1b1f888c3a85e6e9c2b149",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v082.mjs",
+          "sha": "e38213c5d2f1a32444185be624c64751834fcf55",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0498.mjs",
+          "sha": "b8b498891b0d0fce7982e9cce9e21c03186a5dd2",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0499.mjs",
+          "sha": "606271b07bd91ddd48bf3c4a1db21acf80b22e0d",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v04991.mjs",
+          "sha": "fc2878cc92843f411cd5089a86671b16f730d9cf",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v050.mjs",
+          "sha": "b64daaacc21d615ec30ef72b763bd64e07877c5e",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v051.mjs",
+          "sha": "a34785fa66e4afe6dde4f7ca096b03668efd6570",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v060.mjs",
+          "sha": "a973646cafffb451998338d66ad76a19c6ad7b3a",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v061.mjs",
+          "sha": "aeeb470aff606aa3e08e99f9e726541c7a621a49",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v070.mjs",
+          "sha": "dd1fbeaa4e8bc32d0f82f8228a1e11fb19a6b528",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v071.mjs",
+          "sha": "4b2dac4e9b279a6daac29e9d4592d3683da0efe9",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v072.mjs",
+          "sha": "9e0307fe366097f4c24ac67b81f7b4335e5805ad",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v080.mjs",
+          "sha": "71e22dcc51ab895a2c27e01ce03e86e80f01ce59",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v081.mjs",
+          "sha": "9f3112f24e7046780f1cf47620fef96682485e0e",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6",
+      "verifiedArchitectureRun": 45879475855,
+      "productionEvidenceRun": 45879475859
+    },
+    {
+      "path": "skyshift/trial-v0494.mjs",
+      "sha": "9bbdec915cf2ca543e248241abe8b79a6c12504b",
+      "bytes": 14191,
+      "baselineBlob": "9bbdec915cf2ca543e248241abe8b79a6c12504b",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/stageJ-consumer-queue.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/boost-chase-v0494.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/boost-spring-v0495.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/elevated-rails-v0497.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/full-circuit-v050.test.mjs",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/image-clarity-v0498.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/reactive-hud-v0499.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/velocity-language-v0496.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 7,
+        "pinned-archive": 7
+      },
+      "metadataRefs": 8,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "4c1bd4b7a03cfe0f9a96abba5dd714a4710ad0cb",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/boost-chase-v0494.test.mjs",
+          "sha": "28f1bcf4b83ae5d41bf1903fb9e5fb6ec6f0315c",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/boost-spring-v0495.test.mjs",
+          "sha": "73c95ff9098b563714627e718a793a213f63ae85",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/elevated-rails-v0497.test.mjs",
+          "sha": "56e6b1cc451d096b979527b1c7069d2112992407",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/full-circuit-v050.test.mjs",
+          "sha": "1a3f3307693d10f679186c71e8bedb5d50416a7e",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+          "sha": "fe1b763017461de391cb67a3177912b1d1ff04cb",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/reactive-hud-v0499.test.mjs",
+          "sha": "3c92eaa666ea7a68f867bf192c05d8da3d9cf927",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/velocity-language-v0496.test.mjs",
+          "sha": "2c95e9aeb109e3066587858ca2bc50641c4e7621",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0494.mjs",
+          "sha": "61c4cd267e275b341d11e5e467b84df5e7002b3d",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0495.mjs",
+          "sha": "092d026fb9a7ddc1c384c41d57e30672d72d940b",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0496.mjs",
+          "sha": "e260ac0cd4af370e17e9cfa94963244a88e23826",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0497.mjs",
+          "sha": "e76a3af51f3219e63b15aa57fdfe44d10a19c8ce",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0498.mjs",
+          "sha": "b8b498891b0d0fce7982e9cce9e21c03186a5dd2",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0499.mjs",
+          "sha": "606271b07bd91ddd48bf3c4a1db21acf80b22e0d",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v04991.mjs",
+          "sha": "fc2878cc92843f411cd5089a86671b16f730d9cf",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6",
+      "verifiedArchitectureRun": 45879475855,
+      "productionEvidenceRun": 45879475859
+    },
+    {
+      "path": "skyshift/zone-surface-v048.mjs",
+      "sha": "5bc400d3966423672d2bc84d5aa0d21fb54daff9",
+      "bytes": 5903,
+      "baselineBlob": "5bc400d3966423672d2bc84d5aa0d21fb54daff9",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/stageJ-consumer-queue.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/boost-zone-v048.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 8,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "4c1bd4b7a03cfe0f9a96abba5dd714a4710ad0cb",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/boost-zone-v048.test.mjs",
+          "sha": "7567019bb81b54e5bbf650764cedc1b61c053c22",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v048.mjs",
+          "sha": "3c22a01cbcbe9f1a68e462807b2873578499d524",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6",
+      "verifiedArchitectureRun": 45879475855,
+      "productionEvidenceRun": 45879475859
     }
   ],
   "unitTests": [
@@ -753,6 +1247,54 @@
       "sha": "41446c74a28acd02c9cd8a64b0e63082d8fc4cfa",
       "bytes": 8146,
       "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/unit/boost-chase-v0494.test.mjs",
+      "sha": "28f1bcf4b83ae5d41bf1903fb9e5fb6ec6f0315c",
+      "bytes": 3916,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/unit/boost-spring-v0495.test.mjs",
+      "sha": "73c95ff9098b563714627e718a793a213f63ae85",
+      "bytes": 5085,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/unit/elevated-rails-v0497.test.mjs",
+      "sha": "56e6b1cc451d096b979527b1c7069d2112992407",
+      "bytes": 5908,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/unit/full-circuit-v050.test.mjs",
+      "sha": "1a3f3307693d10f679186c71e8bedb5d50416a7e",
+      "bytes": 8722,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+      "sha": "fe1b763017461de391cb67a3177912b1d1ff04cb",
+      "bytes": 6049,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/unit/reactive-hud-v0499.test.mjs",
+      "sha": "3c92eaa666ea7a68f867bf192c05d8da3d9cf927",
+      "bytes": 6978,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/unit/velocity-language-v0496.test.mjs",
+      "sha": "2c95e9aeb109e3066587858ca2bc50641c4e7621",
+      "bytes": 6581,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/unit/boost-zone-v048.test.mjs",
+      "sha": "7567019bb81b54e5bbf650764cedc1b61c053c22",
+      "bytes": 8312,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
     }
   ],
   "architectureTests": [
@@ -1009,6 +1551,312 @@
       "sha": "550ee8319d09bac61e8563f5350ee8901ebd1c6c",
       "bytes": 23811,
       "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v010.mjs",
+      "sha": "3a42a4f5c616fbe085a38f75adcb3c5784ef9a5a",
+      "bytes": 15094,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0101.mjs",
+      "sha": "a197cc1fd30ecbb6137acc9592836f3322479726",
+      "bytes": 15588,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0103.mjs",
+      "sha": "1871caddb8347de416cb771d5d556dd738b10a94",
+      "bytes": 17768,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0104.mjs",
+      "sha": "b7fcbfecf3f94df50118f3e414856f285910c79f",
+      "bytes": 17768,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0105.mjs",
+      "sha": "08578242b08fee83fd3ecb77572bd516d88e6dad",
+      "bytes": 19924,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0106.mjs",
+      "sha": "aecf4d7d65a94e5ee10c07391e2b3dd5aae3ffeb",
+      "bytes": 20228,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0107.mjs",
+      "sha": "59b91b05671777fe5632b67beecd8ca5c8e3231d",
+      "bytes": 19905,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01071.mjs",
+      "sha": "89a93c48e1ccb0899de39940bfeb4286e3fb7288",
+      "bytes": 20274,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0108.mjs",
+      "sha": "c5d6ef62f6748dac594b8ecd7bc377d3006268e9",
+      "bytes": 22899,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0109.mjs",
+      "sha": "ad08922a69e1b4b46ed51a047e8fb8bbbf3a6222",
+      "bytes": 25974,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01091.mjs",
+      "sha": "089f151c6733effe27f4a05bf8527d42a95eb575",
+      "bytes": 26276,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0110.mjs",
+      "sha": "0c8ba91a83773968f1f1e9a2c96467d8b41eb323",
+      "bytes": 27465,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0111.mjs",
+      "sha": "b9d188ac93f591e0812905d64b4f64e7b9482bb3",
+      "bytes": 27811,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0112.mjs",
+      "sha": "bc956924aebe4f799ab7c643990b8e38bfdc6dee",
+      "bytes": 27957,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0113.mjs",
+      "sha": "e67f1367eee2def855971eff8afe1828dda27ee3",
+      "bytes": 28773,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0114.mjs",
+      "sha": "998e1b4bdb2215d0aab5970e326afb07b8b2ac01",
+      "bytes": 28931,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0120.mjs",
+      "sha": "f5f3d4c7967ca30bf14dc0f43de07eaa589fd465",
+      "bytes": 29546,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0121.mjs",
+      "sha": "d66f07f8fd5616a612fffedab7e6353aa97ff82c",
+      "bytes": 30153,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0130.mjs",
+      "sha": "8f9289f4ed1a5d4117e9bdcba72ab38e0f36dfe7",
+      "bytes": 33386,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0131.mjs",
+      "sha": "d0dce43ea43f8ad001a0e7fd45cdce52d75556fe",
+      "bytes": 37409,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0132.mjs",
+      "sha": "cbac9f5a55e2687bb3a944ee4b01663d6df396d9",
+      "bytes": 39690,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01321.mjs",
+      "sha": "4a94181c4e2484769fb805749d7ba1161530e53b",
+      "bytes": 39890,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0133.mjs",
+      "sha": "d91c8c9c4d3ef972b159f79596cd7050141850d1",
+      "bytes": 40106,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0134.mjs",
+      "sha": "e6dfb6b328fd12f96d1e5bbaf0e35dd11e08f5e2",
+      "bytes": 40244,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01341.mjs",
+      "sha": "c491bfe8ff835c84ac05209812cf2fd895e296be",
+      "bytes": 41027,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01342.mjs",
+      "sha": "ce0012cab808d731fcb2f9137c76ef65ad01b485",
+      "bytes": 41059,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01343.mjs",
+      "sha": "79f97e23bda85c02b5a6cfafc193ba78f8b152c5",
+      "bytes": 41059,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v01344.mjs",
+      "sha": "c9a8b01aeaaf9482b3dc1ef4bcc9ec96f5c7c5d4",
+      "bytes": 41338,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0481.mjs",
+      "sha": "86faa5d54e24d0b973787f0fec6c77994d0fc4ac",
+      "bytes": 2601,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0482.mjs",
+      "sha": "d18ff01ff77dd9ceeabe890a29a9eba9c8c73847",
+      "bytes": 2601,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0483.mjs",
+      "sha": "7f44e9ab0e16ba747f3e7158709a3feb89a866ad",
+      "bytes": 2601,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0484.mjs",
+      "sha": "054a45b8808a213fc83aaef521bf1982c9b66b03",
+      "bytes": 2601,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v049.mjs",
+      "sha": "3ef7919acffa704daf7838beb62dd0a9f238f8fd",
+      "bytes": 3286,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0491.mjs",
+      "sha": "38eefbb9a719d88c881229e286d3cef1fe1fb30c",
+      "bytes": 3627,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v04911.mjs",
+      "sha": "4730e094a9d22323cedb67bff6f5e251253b0b69",
+      "bytes": 6457,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0492.mjs",
+      "sha": "4bb74f089ae2d9885301c1a86f6d0d77031a22ff",
+      "bytes": 6522,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0493.mjs",
+      "sha": "42d6876297b5c3e2bdeeff30ed904dbdd51a8d49",
+      "bytes": 6589,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0494.mjs",
+      "sha": "6d3b63e21aef484bfd6c70184b02d0b29eeac035",
+      "bytes": 6589,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0495.mjs",
+      "sha": "e458edd68bca554725bfe7472ebb86f410546381",
+      "bytes": 7725,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0496.mjs",
+      "sha": "ebd982297b70a59b7d4ed2e382e970e5a6eb98b0",
+      "bytes": 8771,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0497.mjs",
+      "sha": "c5de7b64208e3773b418670ed5a052ae10d578db",
+      "bytes": 9832,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0498.mjs",
+      "sha": "045a5d229251a8dd975c05ca9d3a92b70b6342e5",
+      "bytes": 11337,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0499.mjs",
+      "sha": "195ac5e4d9d93045fe8cbec3be48a338fd27bd32",
+      "bytes": 14839,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v04991.mjs",
+      "sha": "babcc68ce98cabca50d21a092695037c0bc019c4",
+      "bytes": 16867,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v050.mjs",
+      "sha": "b62d135e59e84e5351d345fe80f0c26bef1caf0f",
+      "bytes": 18333,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v051.mjs",
+      "sha": "dde31a48ce3947eada6902b7764de2a5dcf81d6e",
+      "bytes": 18664,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v060.mjs",
+      "sha": "03af2c5a32952957ef1b1f888c3a85e6e9c2b149",
+      "bytes": 19859,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0901.mjs",
+      "sha": "b8d40ed261232e10d575403b5fcb22a02b949e7d",
+      "bytes": 9670,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v091.mjs",
+      "sha": "5f00825f38ea7fbc9d72e4ab5c5498bb185775a7",
+      "bytes": 10743,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v092.mjs",
+      "sha": "d562b8c7361acfb635d454c751165a9c567f8e8b",
+      "bytes": 11424,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/legacy/browser-smoke-v0921.mjs",
+      "sha": "992aaef1ecc9f60cc7ac089fa23ffef9cb95f1ae",
+      "bytes": 12357,
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
     }
   ],
   "batches": [
@@ -1138,6 +1986,82 @@
         ],
         "reason": "Computed camera version imports in still-executed EF02 flight-camera parity were missed by literal consumer census; restore exact original modules, preserve complete executable comparison until replacement is independently verified."
       }
+    },
+    {
+      "scope": "Complete retirement of syntax-only historical browser-smoke runners and closed obsolete visual and boost-era source/test cohorts; preserve actual current browser/WebGL, unit, fixed-step and camera parity runs.",
+      "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6",
+      "verifiedArchitectureRun": 45879475855,
+      "productionEvidenceRun": 45879475859,
+      "rootFiles": 3,
+      "unitFiles": 8,
+      "browserFiles": 51,
+      "bytes": 1105081,
+      "paths": [
+        "skyshift/image-clarity-v0498.mjs",
+        "skyshift/trial-v0494.mjs",
+        "skyshift/zone-surface-v048.mjs",
+        "skyshift/tests/unit/boost-chase-v0494.test.mjs",
+        "skyshift/tests/unit/boost-spring-v0495.test.mjs",
+        "skyshift/tests/unit/elevated-rails-v0497.test.mjs",
+        "skyshift/tests/unit/full-circuit-v050.test.mjs",
+        "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+        "skyshift/tests/unit/reactive-hud-v0499.test.mjs",
+        "skyshift/tests/unit/velocity-language-v0496.test.mjs",
+        "skyshift/tests/unit/boost-zone-v048.test.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v010.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0101.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0103.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0104.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0105.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0106.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0107.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01071.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0108.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0109.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01091.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0110.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0111.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0112.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0113.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0114.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0120.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0121.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0130.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0131.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0132.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01321.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0133.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0134.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01341.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01342.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01343.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01344.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0481.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0482.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0483.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0484.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v049.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0491.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v04911.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0492.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0493.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0494.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0495.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0496.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0497.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0498.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0499.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v04991.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v050.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v051.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v060.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0901.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v091.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v092.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0921.mjs"
+      ],
+      "removedSyntaxCommands": 54,
+      "removedLegacySyntaxGlob": true
     }
   ]
 }

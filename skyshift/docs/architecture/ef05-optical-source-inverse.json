@@ -139,6 +139,70 @@
           "after": " const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory,unifiedSources,sourceSampler,sourceRegistry});"
         }
       ]
+    },
+    {
+      "path": "skyshift/tunnel/shared-straight-edge-parity-v02891.mjs",
+      "sha": "7f5a026e3d060dcd38746bfa157d9c8ef8d22b48",
+      "edits": [
+        {
+          "before": "export function buildVaultRoadStraightMask02891(geo,ranges=vaultStraightRanges02891()){",
+          "after": "export function buildVaultRoadStraightMask02891(geo,ranges=vaultStraightRanges02891(),trackLength=CIRCUIT.lapLength){"
+        },
+        {
+          "before": "  const m=vaultStraightMask02891(track.getX(i),ranges);",
+          "after": "  const m=vaultStraightMask02891(track.getX(i),ranges,trackLength);"
+        },
+        {
+          "before": " enabled=false,ranges=vaultStraightRanges02891()\n}={}){",
+          "after": " enabled=false,ranges=vaultStraightRanges02891(),trackLength=CIRCUIT.lapLength\n}={}){"
+        },
+        {
+          "before": " const mask=buildVaultRoadStraightMask02891(g,ranges);",
+          "after": " const mask=buildVaultRoadStraightMask02891(g,ranges,trackLength);"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tunnel/road-spill-wave-coves-v02895.mjs",
+      "sha": "6b2d89d8197ba776d9b58ca4401f2490c293d937",
+      "edits": [
+        {
+          "before": "const GLSL_COMMON=\"#include <common>\";",
+          "after": "// For disjoint or unequal authored sections use the actual module\n// origin/scale instead of assuming one period over the whole track.\nexport function sourceLocalRoadExpressionEF05(modules,moduleMeters=340,sourceMeters=368){\n if(modules==null)return null;\n if(!Array.isArray(modules)||!modules.length||modules.length>512||\n  modules.some((m,i)=>!Number.isFinite(m.start)||!Number.isFinite(m.end)||\n   !(m.scale>0)||!Number.isFinite(m.scale)||m.start<0||m.end<=m.start||\n   (i>0&&m.start<modules[i-1].end-1e-8)))\n  throw Error(\"EF05 invalid road spill module plan\");\n // Exact approved Vault formula for the unchanged uniform 340m layout.\n if(modules.every((m,i)=>Math.abs(m.start-i*moduleMeters)<1e-8&&\n  Math.abs(m.end-(i+1)*moduleMeters)<1e-8&&\n  Math.abs(m.scale-moduleMeters/sourceMeters)<1e-10))return null;\n const f=x=>x.toFixed(8);\n return modules.map(m=>\"if(s>=\"+f(m.start)+\"&&s<\"+f(m.end)+\n  \")return (s-\"+f(m.start)+\")*\"+f(1/m.scale)+\";\").join(\"\\n\")+\"\\nreturn -1.0;\";\n}\nconst GLSL_COMMON=\"#include <common>\";"
+        },
+        {
+          "before": " moduleMeters=340,sourceMeters=368,lowMemory=false\n}={}){",
+          "after": " moduleMeters=340,sourceMeters=368,lowMemory=false,sourceModules=null\n}={}){\n const localExpression=sourceLocalRoadExpressionEF05(sourceModules,moduleMeters,sourceMeters);"
+        },
+        {
+          "before": "  \"uniform float uS95Front,uS95Active,uS95Lap,uS95Strength;\"\n ].join(\"\\n\");",
+          "after": "  \"uniform float uS95Front,uS95Active,uS95Lap,uS95Strength;\",\n  ...(localExpression?[\"float roadSourceLocalEF05(float s){\"+localExpression+\"}\"]:[])\n ].join(\"\\n\");"
+        },
+        {
+          "before": "  \"float s95Local=mod(vTrackCoord.x,\"+moduleMeters.toFixed(4)+\")*\"+\n   (sourceMeters/moduleMeters).toFixed(8)+\";\",",
+          "after": "  localExpression?\"float s95Local=roadSourceLocalEF05(vTrackCoord.x);\":\n   \"float s95Local=mod(vTrackCoord.x,\"+moduleMeters.toFixed(4)+\")*\"+\n    (sourceMeters/moduleMeters).toFixed(8)+\";\","
+        },
+        {
+          "before": "  \"float s95Energy=uS95Strength*s95Shape*s95Across*s95Safe;\",",
+          "after": "  localExpression?\"float s95Energy=uS95Strength*s95Shape*s95Across*s95Safe*step(0.0,s95Local);\":\n   \"float s95Energy=uS95Strength*s95Shape*s95Across*s95Safe;\","
+        },
+        {
+          "before": " moduleMeters=340,sourceMeters=368}={}){",
+          "after": " moduleMeters=340,sourceMeters=368,sourceModules=null}={}){"
+        },
+        {
+          "before": " const before=mat.onBeforeCompile,key=mat.customProgramCacheKey;\n const uniforms={\n  uS95Old:",
+          "after": " const localExpression=sourceLocalRoadExpressionEF05(sourceModules,moduleMeters,sourceMeters);\n const before=mat.onBeforeCompile,key=mat.customProgramCacheKey;\n const uniforms={\n  uS95Old:"
+        },
+        {
+          "before": "   moduleMeters,sourceMeters,lowMemory});",
+          "after": "   moduleMeters,sourceMeters,lowMemory,sourceModules});"
+        },
+        {
+          "before": "  return key.call(this)+\"-local-edge-pools-02895-\"+(lowMemory?\"4GB\":\"High\");",
+          "after": "  return key.call(this)+\"-local-edge-pools-02895-\"+(lowMemory?\"4GB\":\"High\")+\n   (localExpression?\"-route-\"+localExpression:\"\");"
+        }
+      ]
     }
   ]
 }

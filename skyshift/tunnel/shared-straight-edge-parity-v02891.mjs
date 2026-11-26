@@ -106,7 +106,7 @@ export function buildVaultStraightEmitters02891(THREE,localPositionAt,
  return {geometry:geometry(THREE,positions,colors),
   segments,quads,litMeters,sourceModule:module.index};
 }
-export function buildVaultRoadStraightMask02891(geo,ranges=vaultStraightRanges02891()){
+export function buildVaultRoadStraightMask02891(geo,ranges=vaultStraightRanges02891(),trackLength=CIRCUIT.lapLength){
  const track=geo?.getAttribute?.("aTrackCoord"),
   pos=geo?.getAttribute?.("position");
  if(!track||!pos||track.count!==pos.count)
@@ -114,7 +114,7 @@ export function buildVaultRoadStraightMask02891(geo,ranges=vaultStraightRanges02
  const values=new Float32Array(track.count);
  let active=0,masked=0;
  for(let i=0;i<track.count;i++){
-  const m=vaultStraightMask02891(track.getX(i),ranges);
+  const m=vaultStraightMask02891(track.getX(i),ranges,trackLength);
   values[i]=m;
   if(m>0.001)active++;else masked++;
  }
@@ -145,7 +145,7 @@ export function patchVaultRoadCyanMask02891(vertex,fragment){
  return {vertexShader:v,fragmentShader:f};
 }
 export function installVaultStraightRoadParity02891(THREE,road,{
- enabled=false,ranges=vaultStraightRanges02891()
+ enabled=false,ranges=vaultStraightRanges02891(),trackLength=CIRCUIT.lapLength
 }={}){
  const inactive=reason=>({active:false,stats:()=>({active:false,reason}),
   dispose(){}});
@@ -156,7 +156,7 @@ export function installVaultStraightRoadParity02891(THREE,road,{
  const g=road.geometry,mat=road.material,
   key="edgeStraightMask02891";
  if(g.getAttribute(key))return inactive("duplicate edge mask");
- const mask=buildVaultRoadStraightMask02891(g,ranges);
+ const mask=buildVaultRoadStraightMask02891(g,ranges,trackLength);
  const before=mat.onBeforeCompile,cache=mat.customProgramCacheKey;
  g.setAttribute(key,new THREE.Float32BufferAttribute(mask.values,1));
  mat.onBeforeCompile=function(shader,renderer){

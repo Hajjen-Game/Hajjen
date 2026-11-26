@@ -181,3 +181,12 @@ test("legacy Skyline release functions and Vault 0.28.9 lighting remain enabled"
  assert.match(game,/selected==="vault"\?"0\.28\.9\.7"/);
  assert.match(html,/Startup Stability & Shared Resource Deduplication · 0\.28\.9\.7/);
 });
+
+test("EF05 independent straight mask uses the actual authored course length",()=>{
+ const g=new Geo(),samples=[0,40,60,130,700,850,900,1199,1200];
+ g.setAttribute("aTrackCoord",new Attr(samples.flatMap(s=>[s,9]),2));
+ g.setAttribute("position",new Attr(samples.flatMap(()=>[0,0,0]),3));
+ const ranges=[{from:39,to:120},{from:840,to:880}];
+ const mask=buildVaultRoadStraightMask02891(g,ranges,1200);
+ assert.deepEqual([...mask.values],[0,1,1,0,0,1,0,0,0]);
+});

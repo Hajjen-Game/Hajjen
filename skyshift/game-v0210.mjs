@@ -56,7 +56,7 @@ import {ARCH_OPTICS_02893,archOpticsEnabled02893,archRoadEnabled02893,
 import {CEILING_FIXTURE_02892,ceilingFixtureEnabled02892}
  from "./tunnel/ceiling-fixture-cohesion-v02892.mjs";
 import {STRAIGHT_EDGE_PARITY_02891,straightParityEnabled02891,
- installVaultStraightRoadParity02891}
+ installVaultStraightRoadParity02891,vaultStraightRanges02891,vaultStraightMask02891}
  from "./tunnel/shared-straight-edge-parity-v02891.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./ships/manta-blade-v0103.mjs";
@@ -130,7 +130,7 @@ import {TUNNEL_SHARED_ARCHITECTURE_0280,tunnelReleaseAtLeast0280,sharedTunnelVer
  from "./shared-tunnel-architecture-v0280.mjs";
 import {createSharedTunnelRuntime0280}
  from "./shared-tunnel-runtime-v0280.mjs";
-import {omitLegacyRoadResponseEF05} from "./true-shared-tunnel-renderer-v0281.mjs";
+import {omitLegacyRoadResponseEF05,startupSamplerEnabled02897} from "./true-shared-tunnel-renderer-v0281.mjs";
 import {SHARED_LIGHT_0282,createSharedSourceSampler0282,installSharedRoadReflections0282,
  installSharedShipLight0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
 import {PMREM_0284,readPmremRelease0284,
@@ -1288,6 +1288,14 @@ function initScene(){
  markStartup("sharedTunnelBegin");
  const trueSharedVault=sharedTunnelRuntime.installTrueShared({
   enabled:trueSharedVaultEnabled,
+  policy:{
+   spatialWave:sharedWaveParityEnabled,stableStrips:stabilityReleaseEnabled,
+   archFeet:archFootAssemblyEnabled,precisionNeon:precisionNeonReleaseEnabled,
+   cinematicMetal:cinematicMetalReleaseEnabled,straightOnly:straightParityReleaseEnabled,
+   ceilingFixtures:ceilingFixtureReleaseEnabled,premiumArch:archOpticsReleaseEnabled,
+   waveCove:coveWaveReleaseEnabled,fastFrames:!limitedMemory&&startupSamplerEnabled02897(location.search),
+   straightRanges:straightParityReleaseEnabled?vaultStraightRanges02891():[]
+  },
   omitLegacyRoadResponse:omitLegacyRoadResponseEF05(location.search,
    unifiedSourcesReleaseEnabled&&cleanLegacyRoadEnabled02894(location.search))
  });
@@ -1296,8 +1304,10 @@ function initScene(){
  // Historical comparison/fallback routes preserve their former full-course plan.
  const opticalSource=sharedRoadLightEnabled||sharedShipLightEnabled||archRoadReleaseEnabled||unifiedCeilingRoadReleaseEnabled?
   createSharedSourceSampler0282(positionAt,CIRCUIT.lapLength,trueSharedVault?.modules):null;
+ const opticalRanges=trueSharedVault?.policy?.straightOnly?trueSharedVault.policy.straightRanges:undefined;
  const opticalRegistry=opticalSource&&unifiedSourcesReleaseEnabled?
-  createUnifiedSourceRegistry02894(positionAt,CIRCUIT.lapLength,{lowMemory:limitedMemory,sourceSampler:opticalSource}):null;
+  createUnifiedSourceRegistry02894(positionAt,CIRCUIT.lapLength,{lowMemory:limitedMemory,sourceSampler:opticalSource,
+   straightMask:opticalRanges?s=>vaultStraightMask02891(s,opticalRanges,CIRCUIT.lapLength):undefined}):null;
  // Optional 0.28.9.3 diagnostic, unchanged by default.
  archLegacyOverlay=diagnosticLegacyRoadOverlay02893(world,{
   enabled:archOpticsReleaseEnabled&&
@@ -1432,7 +1442,7 @@ function initScene(){
  sharedStraightEdgeRoad=installVaultStraightRoadParity02891(THREE,
   world.getObjectByName("Zone Ribbon · integrated PBR racing deck"),{
    enabled:straightParityReleaseEnabled&&!!sharedRoadLight?.active&&
-    !!cinematicRoadFinish?.active
+    !!cinematicRoadFinish?.active,ranges:opticalRanges,trackLength:CIRCUIT.lapLength
   });
  if(straightParityReleaseEnabled&&!sharedStraightEdgeRoad?.active)
   throw Error("0.28.9.1 native straight-only road mask unavailable: "+
@@ -1470,7 +1480,7 @@ function initScene(){
   world.getObjectByName("Zone Ribbon · integrated PBR racing deck"),{
   enabled:roadSpillReleaseEnabled&&!!sharedStraightEdgeRoad?.active&&
    !!unifiedCeilingRoad?.active,lowMemory:limitedMemory,
-  trackLength:CIRCUIT.lapLength
+  trackLength:CIRCUIT.lapLength,sourceModules:trueSharedVault?.modules
  });
  if(roadSpillReleaseEnabled&&!roadSpill02895.active)
   throw Error("0.28.9.5 original physical lip spill missing");

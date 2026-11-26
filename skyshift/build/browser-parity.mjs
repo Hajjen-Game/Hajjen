@@ -9,6 +9,7 @@ import {setTimeout as sleep} from 'node:timers/promises';
 import {chromium} from 'playwright-core';
 import {captureEF05Baseline} from './ef05-baseline-parity.mjs';
 import {captureEF06Lifetime} from './ef06-resource-startup.mjs';
+import {captureEF07Profile} from './ef07-profile.mjs';
 const here=dirname(fileURLToPath(import.meta.url)),repo=resolve(here,'../..'),out=join(here,'evidence');
 mkdirSync(out,{recursive:true});
 const chrome=[process.env.CHROME_PATH,'/usr/bin/google-chrome','/usr/bin/google-chrome-stable','/usr/bin/chromium'].filter(Boolean).find(existsSync);
@@ -247,6 +248,7 @@ try{
  }
  await captureEF05Baseline({browser,repo,out});
  await captureEF06Lifetime({browser,repo,out,candidateSource:reports});
+ await captureEF07Profile({browser,out});
  const independent=[];
  for(const memory of [8,4])independent.push(await independentRoute(memory));
  writeFileSync(join(out,'ef05-independent-report.json'),JSON.stringify(independent,null,2)+'\n');

@@ -5,6 +5,7 @@ import {SHIP_ART_01342,requestedShipArt,createShipArtState,
  assessHeroAsset,installHeroBodyAndTail,shipArtAudit}
  from "./ship-art-pipeline-v01342.mjs";
 import {createShipSourceCache} from "./core/ship-source-cache.mjs";
+import {collectObjectResources,releaseResourceDifference} from "./core/resource-ownership.mjs";
 export function createShipArtController(THREE,{
  search="",currentCraft=()=>null,currentShipId=()=>null,
  loaderFactory=null,fetchAsset=null
@@ -30,16 +31,6 @@ export function createShipArtController(THREE,{
  });
  const isCurrent=(token,craft)=>!disposed&&token===generation&&
   currentCraft()===craft&&currentShipId()==="stingray";
- function disposeImported(root){
-  const geometries=new Set(),materials=new Set();
-  root?.traverse?.(node=>{
-   if(node.geometry)geometries.add(node.geometry);
-   for(const mat of (Array.isArray(node.material)?node.material:[node.material]))
-    if(mat)materials.add(mat);
-  });
-  for(const g of geometries)g.dispose();
-  for(const m of materials)m.dispose();
- }
  async function onCraftBuilt(craft,id){
   if(disposed)return state;
   const token=++generation;
@@ -55,7 +46,7 @@ export function createShipArtController(THREE,{
    sourceCache.cancelPending();state.status="waiting-for-stingray";return state;
   }
   state.status="loading";state.attempts++;
-  let imported=null;
+  let imported=null,owned=null;
   try{
    const source=await sourceCache.acquire();
    // Check before importing/constructing the parser, not only after parse.
@@ -71,13 +62,16 @@ export function createShipArtController(THREE,{
    const gltf=await new Promise((resolve,reject)=>
     loader.parse(typeof source==="string"?source:source.slice(0),new URL("./assets/ships/",import.meta.url).href,
      resolve,reject));
-   imported=gltf.scene;
+   imported=gltf.scene;owned=collectObjectResources(imported,{textures:true});
    if(!isCurrent(token,craft)){
-    disposeImported(imported);return state;
+    releaseResourceDifference(owned);return state;
    }
    const report=assessHeroAsset(imported);
    if(!report.valid)throw Error(report.errors.join("; "));
    const installed=installHeroBodyAndTail(THREE,craft,imported,report);
+   // The original tail plates were detached and replaced by transformed
+   // geometry clones. Keep only resources reachable from the installed craft.
+   releaseResourceDifference(owned,collectObjectResources(craft.ship,{textures:true}));
    state.heroApplied=true;state.loaded=true;state.status="active";
    state.activeMode="hero";state.triangles=installed.triangles;
    state.assetFormat=format;
@@ -86,7 +80,8 @@ export function createShipArtController(THREE,{
   }catch(error){
    // Never expose an incomplete Blender asset or crash the game if the
    // file is absent, stale, over budget, or the user changes ships.
-   if(imported&&!state.heroApplied)disposeImported(imported);
+   if(owned&&!state.heroApplied)releaseResourceDifference(owned,
+    isCurrent(token,craft)?collectObjectResources(craft.ship,{textures:true}):{});
    if(token!==generation||disposed)return state;
    sourceCache.invalidate();
    state.status="fallback";state.error=String(error?.message??error);

@@ -58,3 +58,36 @@ test('EF06 actual game uses the single frame owner and protects pending ship loa
  assert.match(source,/function resize\(\)\{\s*if\(runtimeLifetime\.disposed\|\|runtimeLifetime\.contextLost\|\|!renderer\)return;/);
  assert.match(source,/onContextLost:\(\)=>\{[\s\S]*?sceneReady=false;shipArtController\.dispose\(\);/);
 });
+
+import {collectObjectResources,releaseResourceDifference} from '../../core/resource-ownership.mjs';
+test('EF06 gameplay listeners suspend on bfcache/context loss and detach permanently',()=>{
+ const f=fixture();let calls=0;
+ f.life.listenActive(f.page,'input',()=>calls++);
+ f.event(f.page,'input');assert.equal(calls,1);
+ f.event(f.page,'pagehide',true);f.event(f.page,'input');assert.equal(calls,1);
+ f.event(f.page,'pageshow',true);f.event(f.page,'input');assert.equal(calls,2);
+ f.event(f.canvas,'webglcontextlost');f.event(f.page,'input');assert.equal(calls,2);
+ f.life.dispose();f.event(f.page,'input');assert.equal(calls,2);
+});
+test('EF06 transferred model ownership releases detached source geometry but never retained shared material or textures',()=>{
+ const calls=[];const resource=(id,texture=false)=>({isTexture:texture,dispose:()=>calls.push(id)});
+ const body=resource('body'),tail=resource('original-tail'),clone=resource('clone'),shared=resource('shared'),orphan=resource('orphan'),map=resource('map',true),bad=resource('bad-map',true);
+ shared.map=map;orphan.map=bad;
+ const root=nodes=>({traverse:fn=>nodes.forEach(fn)});
+ const source=collectObjectResources(root([{geometry:body,material:shared},{geometry:tail,material:[shared,orphan]},{geometry:tail,material:orphan}]),{textures:true});
+ const installed=collectObjectResources(root([{geometry:body,material:shared},{geometry:clone,material:shared}]),{textures:true});
+ assert.deepEqual(releaseResourceDifference(source,installed),{geometries:1,materials:1,textures:1});
+ assert.deepEqual(calls,['original-tail','orphan','bad-map']);
+ assert.deepEqual(releaseResourceDifference(source,installed),{geometries:0,materials:0,textures:0});
+ // Normal vehicle teardown owns geometry/material, never external PMREM maps.
+ assert.deepEqual(releaseResourceDifference(collectObjectResources(root([{geometry:clone,material:shared},{geometry:clone,material:shared}])),{materials:new Set([shared])}),{geometries:1,materials:0,textures:0});
+ assert.deepEqual(calls,['original-tail','orphan','bad-map','clone']);
+});
+test('EF06 live game owns control listeners, fullscreen destroy and ship cleanup',()=>{
+ const s=readFileSync(new URL('../../game-v0210.mjs',import.meta.url),'utf8');
+ const block=s.slice(s.indexOf('function installControls(){'),s.indexOf('\ntry{\n // Wire the buttons'));
+ assert.doesNotMatch(block,/\.addEventListener\(/);
+ assert.match(block,/listen:runtimeLifetime\.listenActive/);
+ assert.match(s,/fullscreenController\?\.destroy\(\)/);
+ assert.match(s,/function makeShip\(id=fleetProgress.selected\)\{[\s\S]*?releaseShip\(\);/);
+});

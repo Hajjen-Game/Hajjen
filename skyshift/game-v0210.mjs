@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import {createRaceLifecycle} from "./core/race-lifecycle.mjs";
 import {createRuntimeLifetime} from "./core/runtime-lifetime.mjs";
+import {collectObjectResources,releaseResourceDifference} from "./core/resource-ownership.mjs";
 import {installFlightTuningPanel,installRaceQa} from "./qa/race-probes.mjs";
 import {clearRaceInput,installRaceInput} from "./ui/race-input.mjs";
 import {createRaceHud} from "./ui/race-hud.mjs";
@@ -704,8 +705,9 @@ const runtimeLifetime=createRuntimeLifetime({
  onDispose:({contextLost})=>{
   sceneReady=false;shipArtController.dispose();
   const cleanup=[()=>clearTimeout(uiState.bannerTimeout),()=>clearTimeout(uiState.toastTimeout),
+   ()=>fullscreenController?.destroy(),()=>clearInput(),
    ()=>{if(!contextLost)gpuClock?.reset();},()=>pmremPipeline?.dispose?.(),
-   ()=>neonPipeline?.dispose?.(),()=>renderer?.dispose?.(),()=>perfPanel?.remove()];
+   ()=>releaseShip(),()=>neonPipeline?.dispose?.(),()=>renderer?.dispose?.(),()=>perfPanel?.remove()];
   for(const release of cleanup)try{release();}catch(error){console.warn("SKYSHIFT cleanup",error);}
  }
 });
@@ -972,23 +974,22 @@ function buildDecor(){
  if(!isVault())makeBillboard(isAurora()?"LUMEN PASS":"SHADOW TUNNEL",
   SHADOW_TUNNEL.start-83,11,15,0);
 }
-function makeShip(id=fleetProgress.selected){
- // Ship and engine visuals can change; the real physical state is untouched.
+function releaseShip(){
+ // Dispose ship-local FX before removing their craft. Shared neon and PMREM
+ // remain owned by their respective pipelines, not this vehicle.
  tunnelBlackout?.reset();
  premiumFX?.dispose();sideThrusters?.dispose();livingWake?.dispose();
  reactiveWingFlaps?.dispose();railSparks?.dispose();
+ premiumFX=sideThrusters=livingWake=reactiveWingFlaps=railSparks=null;
  if(ship){
   ship.removeFromParent();
-  const geometries=new Set(),materials=new Set();
-  ship.traverse(obj=>{
-   if(obj.geometry)geometries.add(obj.geometry);
-   const candidates=Array.isArray(obj.material)?obj.material:[obj.material];
-   for(const mat of candidates)
-    if(mat&&mat!==neonKit.ship)materials.add(mat);
-  });
-  for(const g of geometries)g.dispose();
-  for(const m of materials)m.dispose();
+  releaseResourceDifference(collectObjectResources(ship),{materials:new Set([neonKit?.ship])});
+  ship=null;
  }
+}
+function makeShip(id=fleetProgress.selected){
+ // Ship and engine visuals can change; the real physical state is untouched.
+ releaseShip();
  shipGlow=neonKit.ship;
  const craft=id==="stingray"?
    buildStingrayEvo(THREE,shipGlow):buildPremiumMantaBlade(THREE,shipGlow);
@@ -4650,7 +4651,7 @@ function exportAudit(){
  downloadRaceAudit(data,perfSettings.preset,{Blob,URL,document,setTimeout});
 }
 function installControls(){
- UI.trackPicker.addEventListener("change",()=>{
+ runtimeLifetime.listenActive(UI.trackPicker,"change",()=>{
   if(!["menu","ended"].includes(uiState.mode))return;
   const selected=UI.trackPicker.value;
   if(!TRACKS_0160.some(t=>t.id===selected))return;
@@ -4660,40 +4661,40 @@ function installControls(){
   uri.searchParams.set("v",selected==="vault"?"0.28.9.7":SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
- UI.challengeButton.addEventListener("click",openChallenges);
- UI.challengeBack.addEventListener("click",closeChallenges);
- UI.challengeEndBack.addEventListener("click",openChallenges);
- UI.challengeList.addEventListener("click",e=>{
+ runtimeLifetime.listenActive(UI.challengeButton,"click",openChallenges);
+ runtimeLifetime.listenActive(UI.challengeBack,"click",closeChallenges);
+ runtimeLifetime.listenActive(UI.challengeEndBack,"click",openChallenges);
+ runtimeLifetime.listenActive(UI.challengeList,"click",e=>{
   const button=e.target.closest("[data-challenge-id]");
   if(!button||button.disabled||uiState.mode!=="challenges")return;
   const c=getChallenge(button.dataset.challengeId);
   if(c&&challengeUnlocked(challengeProgress,c.id))
    startImmersiveTrial(c);
  });
- UI.hangarBtn.addEventListener("click",openHangar);
- UI.endHangar.addEventListener("click",openHangar);
- UI.hangarBack.addEventListener("click",closeHangar);
+ runtimeLifetime.listenActive(UI.hangarBtn,"click",openHangar);
+ runtimeLifetime.listenActive(UI.endHangar,"click",openHangar);
+ runtimeLifetime.listenActive(UI.hangarBack,"click",closeHangar);
  document.querySelectorAll("[data-fleet-preview]").forEach(button=>
-  button.addEventListener("click",()=>previewFleetShip(button.dataset.fleetPreview)));
+  runtimeLifetime.listenActive(button,"click",()=>previewFleetShip(button.dataset.fleetPreview)));
  document.querySelectorAll("[data-fleet-equip]").forEach(button=>
-  button.addEventListener("click",()=>equipFleetShip(button.dataset.fleetEquip)));
- UI.start.addEventListener("click",()=>startImmersiveTrial(null));
- UI.pauseGhostToggle.addEventListener("click",()=>{
+  runtimeLifetime.listenActive(button,"click",()=>equipFleetShip(button.dataset.fleetEquip)));
+ runtimeLifetime.listenActive(UI.start,"click",()=>startImmersiveTrial(null));
+ runtimeLifetime.listenActive(UI.pauseGhostToggle,"click",()=>{
   if(uiState.mode!=="paused")return;
   raceSession.toggleGhost();
   ghostVisual?.hide();
   refreshTrialMenu();
  });
- UI.pauseMenu.addEventListener("click",returnToMainMenu);
- UI.settingsOpen.addEventListener("click",openSettings);
- UI.settingsBack.addEventListener("click",closeSettings);
- UI.retry.addEventListener("click",()=>startImmersiveTrial(currentChallenge));
- UI.restart.addEventListener("click",()=>enterPlaying(currentChallenge));
- UI.resume.addEventListener("click",resume);
- UI.pauseBtn.addEventListener("click",pause);
- UI.fullscreen.addEventListener("click",()=>fullscreenController.toggle());
- UI.menuFullscreen.addEventListener("click",()=>fullscreenController.toggle());
- UI.fidelityToggle.addEventListener("click",()=>{
+ runtimeLifetime.listenActive(UI.pauseMenu,"click",returnToMainMenu);
+ runtimeLifetime.listenActive(UI.settingsOpen,"click",openSettings);
+ runtimeLifetime.listenActive(UI.settingsBack,"click",closeSettings);
+ runtimeLifetime.listenActive(UI.retry,"click",()=>startImmersiveTrial(currentChallenge));
+ runtimeLifetime.listenActive(UI.restart,"click",()=>enterPlaying(currentChallenge));
+ runtimeLifetime.listenActive(UI.resume,"click",resume);
+ runtimeLifetime.listenActive(UI.pauseBtn,"click",pause);
+ runtimeLifetime.listenActive(UI.fullscreen,"click",()=>fullscreenController.toggle());
+ runtimeLifetime.listenActive(UI.menuFullscreen,"click",()=>fullscreenController.toggle());
+ runtimeLifetime.listenActive(UI.fidelityToggle,"click",()=>{
   if(FIDELITY_0121.overridePresets.includes(perfSettings.preset))return;
   const next=!fidelityProfile.premium;
   const saved=saveFidelityChoice(next,fleetStorage());
@@ -4704,9 +4705,9 @@ function installControls(){
   address.searchParams.set("v",SKYSHIFT_BUILD_VERSION);
   location.assign(address.toString());
  });
- UI.export.addEventListener("click",exportAudit);
- installRaceInput({UI,uiState,clamp,addEventListener:(...args)=>window.addEventListener(...args),
-  document,pause,resume,closeSettings,enterPlaying});
+ runtimeLifetime.listenActive(UI.export,"click",exportAudit);
+ installRaceInput({UI,uiState,clamp,addEventListener:(...args)=>runtimeLifetime.listenActive(window,...args),
+  document,pause,resume,closeSettings,enterPlaying,listen:runtimeLifetime.listenActive});
 }
 try{
  // Wire the buttons before costly WebGL scene construction.

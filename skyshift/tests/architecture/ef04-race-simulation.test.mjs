@@ -216,7 +216,11 @@ test('EF04 HUD, input and exported run report retain original computation bodies
  const slice=(a,b)=>{const start=old.indexOf(a);const end=old.indexOf(b,start+1);assert.ok(start>=0&&end>start);return old.slice(start+a.length,end);};
  const input=read('ui/race-input.mjs'),hud=read('ui/race-hud.mjs'),audit=read('core/race-diagnostics.mjs'),live=read('game-v0210.mjs');
  assert.ok(input.includes(slice('function clearInput(){\n','\n}\nfunction resetFlight(){')));
- assert.ok(input.includes(slice(' UI.export.addEventListener("click",exportAudit);\n','\n}\ntry{\n // Wire the buttons')));
+ // EF06 replaces only listener registration; keep original handler bodies exact.
+ const originalInput=slice(' UI.export.addEventListener("click",exportAudit);\n','\n}\ntry{\n // Wire the buttons');
+ const ownedInput=originalInput.replace(/(UI\.(?:jump|grip|stick)|document)\.addEventListener\(/g,'listen($1,');
+ assert.equal([...originalInput.matchAll(/(UI\.(?:jump|grip|stick)|document)\.addEventListener\(/g)].length,14);
+ assert.ok(input.includes(ownedInput));
  assert.ok(hud.includes(slice('function refreshHud(){\n','\n}\nfunction maybeShowCue(){')));
  assert.ok(hud.includes(slice('function maybeShowCue(){\n','\n}\nfunction integrate(dt){')));
  const prior=slice('   run:{','\n   },events:telemetry').replaceAll('frameClock.','raceSimulation.clock.');

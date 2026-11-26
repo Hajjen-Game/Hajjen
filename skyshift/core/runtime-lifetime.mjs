@@ -31,6 +31,9 @@ export function createRuntimeLifetime({requestFrame,cancelFrame,frame,resetClock
   target.addEventListener(type,callback,options);
   listeners.push(()=>target.removeEventListener(type,callback,options));
  }
+ function listenActive(target,type,callback,options){
+  listen(target,type,event=>{if(!disposed&&!suspended&&!lost)callback(event);},options);
+ }
  function dispose(){
   if(disposed)return;
   disposed=true;stopFrames();
@@ -59,6 +62,6 @@ export function createRuntimeLifetime({requestFrame,cancelFrame,frame,resetClock
   });
  }
  return Object.freeze({start(){if(disposed||started)return;started=true;queue();},
-  once,listen,bind,dispose,get disposed(){return disposed},get contextLost(){return lost},
+  once,listen,listenActive,bind,dispose,get disposed(){return disposed},get contextLost(){return lost},
   audit:()=>({started,suspended,contextLost:lost,disposed,pendingFrames:Number(raf!==null)+pending.size,listeners:listeners.length})});
 }

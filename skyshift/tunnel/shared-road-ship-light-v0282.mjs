@@ -228,6 +228,10 @@ export function installSharedShipLight0282(THREE,{
   u282AmberLeft:amberLeft,u282AmberRight:amberRight,
   u282SourceWeight:weights,u282HullStrength:strength};
  const wrapped=new WeakSet(),undo=[];let attached=0,updates=0,lastS=0;
+ function detachShip(){
+  for(const entry of undo.splice(0).reverse()){entry.restore();wrapped.delete(entry.material);}
+  attached=0;
+ }
  function attachShip(ship){
   if(!ship?.traverse)return 0;
   let count=0;
@@ -250,8 +254,8 @@ export function installSharedShipLight0282(THREE,{
     };
     material.needsUpdate=true;
     count++;attached++;
-    undo.push(()=>{material.onBeforeCompile=previous;
-     material.customProgramCacheKey=key;material.needsUpdate=true;});
+    undo.push({material,restore(){material.onBeforeCompile=previous;
+     material.customProgramCacheKey=key;material.needsUpdate=true;}});
    }
   });
   return count;
@@ -267,7 +271,7 @@ export function installSharedShipLight0282(THREE,{
    clamp(sample.fixtures.amberWeight,0,1));
   updates++;lastS=s;
  }
- return {active:true,attachShip,update,
+ return {active:true,attachShip,detachShip,update,
   setComparison:v=>strength.value=clamp(v,0,1),
   stats:()=>({active:true,version:"0.28.2",sourceModules:sampler.modules.length,
    physicalHullMaterials:attached,updates,lastS,
@@ -277,6 +281,6 @@ export function installSharedShipLight0282(THREE,{
    whiteLightUnchanged:true,worldLightsAdded:0,
    graphicsPassesAdded:0,physicsUntouched:true,gripUntouched:true,
    lowMemory:!!lowMemory}),
-  dispose(){for(const f of undo.reverse())f();}
+  dispose:detachShip
  };
 }

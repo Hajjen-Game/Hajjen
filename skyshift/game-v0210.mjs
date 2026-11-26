@@ -690,6 +690,8 @@ window.__skyshiftStartupAudit=()=>{
 const worldClock={last:performance.now(),accum:0};
 const resourceSmoke=new URLSearchParams(location.search).get("resourceSmoke")==="1";
 const teardownReport={errors:[],released:null};
+// Only explicit resource QA freezes the hangar camera and collects counters.
+let resourceFrame=0,lastShipRelease=null;
 const runtimeLifetime=createRuntimeLifetime({
  requestFrame:callback=>requestAnimationFrame(callback),
  cancelFrame:id=>cancelAnimationFrame(id),frame:loop,
@@ -993,6 +995,15 @@ function releaseShip(){
  // Dispose ship-local FX before removing their craft. Shared neon and PMREM
  // remain owned by their respective pipelines, not this vehicle.
  tunnelBlackout?.reset();
+ pmremPipeline?.detachShip?.();sharedShipLight?.detachShip?.();
+ const prior=resourceSmoke&&ship?collectObjectResources(ship):null;
+ const pending=prior?new Set(prior.geometries):null;
+ const watches=[];
+ if(pending)for(const geometry of pending){
+  const listener=()=>pending.delete(geometry);
+  geometry.addEventListener("dispose",listener);watches.push([geometry,listener]);
+ }
+ const before=resourceSmoke?renderer?.info.memory.geometries:null;
  premiumFX?.dispose();sideThrusters?.dispose();livingWake?.dispose();
  reactiveWingFlaps?.dispose();railSparks?.dispose();
  premiumFX=sideThrusters=livingWake=reactiveWingFlaps=railSparks=null;
@@ -1000,6 +1011,10 @@ function releaseShip(){
   ship.removeFromParent();
   releaseResourceDifference(collectObjectResources(ship),{materials:new Set([neonKit?.ship])});
   ship=null;
+ }
+ if(pending){
+  lastShipRelease={owned:prior.geometries.size,undisposed:pending.size,before,after:renderer?.info.memory.geometries??null};
+  for(const [geometry,listener] of watches)geometry.removeEventListener("dispose",listener);
  }
 }
 function makeShip(id=fleetProgress.selected){
@@ -1583,7 +1598,8 @@ function initScene(){
   atlas:premiumMetalTexturePoolStats0262(THREE),ship:shipArtController.audit(),
   renderer:renderer?{...renderer.info.memory,programs:renderer.info.programs?.length??null}:null,
   objects:scene?.children?.length??0,activeShip:activeShipId,mode:uiState.mode,
-  stamps:{...startupMarks}
+  stamps:{...startupMarks},frame:resourceFrame,lastShipRelease,
+  bindingCounts:{pmrem:pmremPipeline?.stats?.().shipMaterials??0,local:sharedShipLight?.stats?.().physicalHullMaterials??0}
  });
  // Source-of-truth 0.28.0 plan/installer audit for every current
  // course, including Aurora's deliberately empty tunnel inventory.
@@ -4170,12 +4186,12 @@ function loop(now){
    // Switch off both temporary art lights before any real gameplay frame.
    if(uiState.mode==="hangar"&&activeShipId==="stingray"){
     hangarHeroRig?.frame({hangar:true,ship,camera,
-     shipId:activeShipId,time:now*.001});
+     shipId:activeShipId,time:resourceSmoke?0:now*.001});
    }else{
     hangarHeroRig?.disable();
     // Manta Blade retains its established showroom presentation.
     if(uiState.mode==="hangar"){
-     const t=now*.00023;
+     const t=resourceSmoke?0:now*.00023;
      camera.position.set(ship.position.x+5.9+Math.sin(t)*.65,
       ship.position.y+3.45,
       ship.position.z+11.8+Math.cos(t)*.55);
@@ -4254,6 +4270,7 @@ function loop(now){
   else renderer.render(scene,camera);
  }finally{gpuClock?.end()}
  if(startupMarks.firstFrame===undefined)markStartup("firstFrame");
+ if(resourceSmoke)resourceFrame++;
  const renderCpuMs=performance.now()-renderBegin;
  if(uiState.mode==="playing"&&renderer.info){
    const work=renderer.info.render;

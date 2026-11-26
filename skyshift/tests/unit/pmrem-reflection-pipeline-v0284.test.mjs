@@ -144,6 +144,11 @@ test("EF05 native PMREM binds explicit root and fades only hull in open track, n
  ctl.updateStation(806);assert.equal(hull.envMapIntensity,.095);
  ctl.updateStation(900);assert.equal(hull.envMapIntensity,.19);
  assert.equal(road.envMap,null);assert.equal(captures,1);
+ const previous=hull.envMap;ctl.detachShip();
+ assert.equal(hull.envMap,null);assert.equal(hull.envMapIntensity,1);
+ assert.equal(ctl.stats().shipMaterials,0);assert.equal(ctl.stats().tunnelMaterials,3);
+ assert.equal(ctl.attachShip(ship),1);assert.equal(hull.envMap,previous);
+ assert.equal(ctl.stats().shipMaterials,1);assert.equal(captures,1);
  ctl.dispose();assert.equal(disposed,1);assert.equal(hull.envMap,null);assert.equal(hull.envMapIntensity,1);
 });
 

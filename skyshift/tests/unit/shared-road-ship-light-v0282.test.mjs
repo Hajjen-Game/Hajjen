@@ -116,3 +116,18 @@ test("EF05 shared GGX road seals only actual tunnel intervals, preserves exterio
  controller.dispose();assert.equal(material.onBeforeCompile,before);assert.equal(material.customProgramCacheKey,key);
  assert.equal(attrs.roadFixtureMasks0263,undefined);
 });
+
+
+test("EF06 shared hull lighting detaches old bindings and can reattach without accumulating materials",()=>{
+ const THREE={Vector3:class{},Vector2:class{}};
+ const original=function(){},key=function(){return "original";};
+ const mat=()=>({isMeshStandardMaterial:true,color:{},onBeforeCompile:original,customProgramCacheKey:key});
+ const a=mat(),b=mat(),ship=m=>({traverse:fn=>fn({isMesh:true,name:"fixture hull",material:m})});
+ const ctl=installSharedShipLight0282(THREE,{enabled:true,positionAt:sample,trackLength:3400});
+ assert.equal(ctl.active,true);
+ assert.equal(ctl.attachShip(ship(a)),1);assert.equal(ctl.attachShip(ship(a)),0);
+ ctl.detachShip();assert.equal(a.onBeforeCompile,original);assert.equal(a.customProgramCacheKey,key);
+ assert.equal(ctl.stats().physicalHullMaterials,0);
+ assert.equal(ctl.attachShip(ship(b)),1);assert.equal(ctl.stats().physicalHullMaterials,1);
+ ctl.dispose();assert.equal(b.onBeforeCompile,original);assert.equal(ctl.stats().physicalHullMaterials,0);
+});

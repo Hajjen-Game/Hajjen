@@ -59,22 +59,31 @@ export async function captureEF06Lifetime({browser,repo,out,candidateSource}){
    const initial=await audit();assert.ok(initial.atlas.textures>0);
    await page.locator('#hangar-btn').click();
    await page.waitForFunction(()=>window.__skyshiftResourceAudit().mode==='hangar');
-   const swaps=[];
+   const swaps=[];report.lifecycle={initial,swaps};
+   async function settled(){
+    const start=(await audit()).frame;
+    await page.waitForFunction(f=>window.__skyshiftResourceAudit().frame>=f+3,start,{timeout:60000});
+    return audit();
+   }
    for(let cycle=0;cycle<3;cycle++){
     await page.locator('[data-fleet-preview="stingray"]').click();
     await page.waitForFunction(()=>window.__skyshiftResourceAudit().ship.status==='active',null,{timeout:60000});
-    await page.waitForTimeout(500);
-    const stingray=await audit();assert.equal(stingray.activeShip,'stingray');
+    const stingray=await settled();assert.equal(stingray.activeShip,'stingray');
+    assert.equal(stingray.lastShipRelease?.undisposed,0,'all departing Manta geometry disposed');
     assert.equal(stingray.ship.sourceCache.requests,1);
     await page.locator('[data-fleet-preview="manta"]').click();
     await page.waitForFunction(()=>window.__skyshiftResourceAudit().activeShip==='manta');
-    await page.waitForTimeout(500);
-    swaps.push({cycle,stingray,manta:await audit()});
+    const manta=await settled();
+    swaps.push({cycle,stingray,manta});
+    console.log('SKYSHIFT_EF06_SWAP '+JSON.stringify({cycle,stingray:{renderer:stingray.renderer,release:stingray.lastShipRelease,bindings:stingray.bindingCounts},manta:{renderer:manta.renderer,release:manta.lastShipRelease,bindings:manta.bindingCounts}}));
+    assert.equal(manta.lastShipRelease?.undisposed,0,'all departing Stingray geometry disposed');
    }
    for(const {stingray,manta} of swaps.slice(1)){
-    assert.ok(stingray.renderer.geometries<=swaps[0].stingray.renderer.geometries+4,'Stingray GPU geometry grows across identical swaps');
-    assert.ok(manta.renderer.geometries<=swaps[0].manta.renderer.geometries+4,'Manta GPU geometry grows across identical swaps');
+    assert.ok(stingray.renderer.geometries<=swaps[0].stingray.renderer.geometries+4,'Stingray GPU geometry grows across identical swaps: '+JSON.stringify(swaps.map(x=>x.stingray.renderer)));
+    assert.ok(manta.renderer.geometries<=swaps[0].manta.renderer.geometries+4,'Manta GPU geometry grows across identical swaps: '+JSON.stringify(swaps.map(x=>x.manta.renderer)));
     assert.equal(manta.atlas.textures,initial.atlas.textures);
+    assert.deepEqual(stingray.bindingCounts,swaps[0].stingray.bindingCounts,'Stingray material bindings bounded');
+    assert.deepEqual(manta.bindingCounts,swaps[0].manta.bindingCounts,'Manta material bindings bounded');
    }
    await page.locator('#hangar-back').click();
    const loss=await page.evaluate(()=>{const gl=document.querySelector('canvas').getContext('webgl2');const ext=gl.getExtension('WEBGL_lose_context');if(!ext)return false;window.ef06LossExtension=ext;ext.loseContext();return true;});

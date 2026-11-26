@@ -6,6 +6,7 @@ import {execFileSync} from 'node:child_process';
 import {resolve,dirname,relative,basename,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {inventory} from './dependency-inventory-v2.mjs';
+import {expectedRootPaths} from './root-count-contract.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
 const root=resolve(repo,'skyshift');
 const json=p=>JSON.parse(readFileSync(resolve(repo,p),'utf8'));
@@ -70,6 +71,6 @@ test('root ownership progresses without resurrecting old root files',()=>{
  const old=new Set(baseline.entries.map(f=>f.path));
  const roots=paths.filter(p=>/^skyshift\/[^/]+$/.test(p));
  for(const p of roots)assert.ok(old.has(p),p+' new root path requires explicit hosting or compatibility decision');
- assert.ok(roots.length<=baseline.rootCount-cohort.roots.length,'No regression in root ownership');
+ assert.deepEqual(roots.sort(),expectedRootPaths,'Root paths must match independently reviewed retirements, not merely a count');
  console.log('SKYSHIFT_EF08_CURRENT_CONTRACTS '+JSON.stringify({rootFiles:roots.length,retiredRootFiles:cohort.roots.length,retiredUnitFiles:cohort.unitTests.length,retiredMigrationFiles:cohort.architectureTests.length,retiredBrowserFiles:(cohort.browserTests||[]).length,retiredBytes:retired.reduce((n,f)=>n+f.bytes,0),liveGraph:graph.size}));
 });

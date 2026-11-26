@@ -508,84 +508,6 @@
       "productionEvidenceRun": 45875110388
     },
     {
-      "path": "skyshift/cinematic-v081.mjs",
-      "sha": "93640b6c40e01e13ef84627c03573af6150122d8",
-      "bytes": 438,
-      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
-      "previousOwner": "engine",
-      "readers": [
-        "skyshift/tests/browser/legacy/browser-smoke-v081.mjs"
-      ],
-      "archivedReaders": [
-        "skyshift/legacy/game/game-v081.mjs"
-      ],
-      "verifiedArchitectureRun": 45875110655,
-      "productionEvidenceRun": 45875110388
-    },
-    {
-      "path": "skyshift/cinematic-v082.mjs",
-      "sha": "62373e82d3924837bf6b5ab33bd06b4f08ebf8cc",
-      "bytes": 438,
-      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
-      "previousOwner": "engine",
-      "readers": [
-        "skyshift/tests/browser/legacy/browser-smoke-v082.mjs",
-        "skyshift/tests/unit/track-rhythm-v082.test.mjs"
-      ],
-      "archivedReaders": [
-        "skyshift/legacy/game/game-v082.mjs"
-      ],
-      "verifiedArchitectureRun": 45875110655,
-      "productionEvidenceRun": 45875110388
-    },
-    {
-      "path": "skyshift/cinematic-v083.mjs",
-      "sha": "14f06e202a6885f53ec1788398d82415acbf8e86",
-      "bytes": 438,
-      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
-      "previousOwner": "engine",
-      "readers": [
-        "skyshift/tests/browser/legacy/browser-smoke-v083.mjs"
-      ],
-      "archivedReaders": [
-        "skyshift/legacy/game/game-v083.mjs"
-      ],
-      "verifiedArchitectureRun": 45875110655,
-      "productionEvidenceRun": 45875110388
-    },
-    {
-      "path": "skyshift/cinematic-v084.mjs",
-      "sha": "be0b3d65aac8e79751b15d450f64c395d80c545a",
-      "bytes": 438,
-      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
-      "previousOwner": "engine",
-      "readers": [
-        "skyshift/tests/browser/legacy/browser-smoke-v084.mjs",
-        "skyshift/tests/unit/kinetic-camera-v090.test.mjs"
-      ],
-      "archivedReaders": [
-        "skyshift/legacy/game/game-v084.mjs"
-      ],
-      "verifiedArchitectureRun": 45875110655,
-      "productionEvidenceRun": 45875110388
-    },
-    {
-      "path": "skyshift/cinematic-v090.mjs",
-      "sha": "9e919de1c28ff87fc24a5f443067c8c13de47888",
-      "bytes": 428,
-      "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
-      "previousOwner": "engine",
-      "readers": [
-        "skyshift/tests/browser/legacy/browser-smoke-v090.mjs",
-        "skyshift/tests/unit/kinetic-camera-v090.test.mjs"
-      ],
-      "archivedReaders": [
-        "skyshift/legacy/game/game-v090.mjs"
-      ],
-      "verifiedArchitectureRun": 45875110655,
-      "productionEvidenceRun": 45875110388
-    },
-    {
       "path": "skyshift/stingray-evo-v010.mjs",
       "sha": "1641caa8864fbaf585b63588f5d341365189a993",
       "bytes": 6603,
@@ -1095,20 +1017,15 @@
       "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
       "verifiedArchitectureRun": 45875110655,
       "productionEvidenceRun": 45875110388,
-      "rootFiles": 13,
+      "rootFiles": 8,
       "unitFiles": 10,
       "browserFiles": 11,
-      "bytes": 381141,
+      "bytes": 378961,
       "paths": [
         "skyshift/air-tricks-v080.mjs",
         "skyshift/cinematic-v070.mjs",
         "skyshift/cinematic-v071.mjs",
         "skyshift/cinematic-v072.mjs",
-        "skyshift/cinematic-v081.mjs",
-        "skyshift/cinematic-v082.mjs",
-        "skyshift/cinematic-v083.mjs",
-        "skyshift/cinematic-v084.mjs",
-        "skyshift/cinematic-v090.mjs",
         "skyshift/stingray-evo-v010.mjs",
         "skyshift/stingray-evo-v0102.mjs",
         "skyshift/trial-v061.mjs",
@@ -1134,7 +1051,93 @@
         "skyshift/tests/browser/legacy/browser-smoke-v061.mjs",
         "skyshift/tests/unit/precision-grip-v061.test.mjs",
         "skyshift/tests/unit/grip-leap-v081.test.mjs"
-      ]
+      ],
+      "correction": {
+        "failedHead": "a30d702baaea9270716b77b141f48c96b4e19f93",
+        "flightCameraRun": 45879106268,
+        "architectureRun": 45879106319,
+        "restoredRoots": [
+          {
+            "path": "skyshift/cinematic-v081.mjs",
+            "sha": "93640b6c40e01e13ef84627c03573af6150122d8",
+            "bytes": 438,
+            "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+            "previousOwner": "engine",
+            "readers": [
+              "skyshift/tests/browser/legacy/browser-smoke-v081.mjs"
+            ],
+            "archivedReaders": [
+              "skyshift/legacy/game/game-v081.mjs"
+            ],
+            "verifiedArchitectureRun": 45875110655,
+            "productionEvidenceRun": 45875110388
+          },
+          {
+            "path": "skyshift/cinematic-v082.mjs",
+            "sha": "62373e82d3924837bf6b5ab33bd06b4f08ebf8cc",
+            "bytes": 438,
+            "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+            "previousOwner": "engine",
+            "readers": [
+              "skyshift/tests/browser/legacy/browser-smoke-v082.mjs",
+              "skyshift/tests/unit/track-rhythm-v082.test.mjs"
+            ],
+            "archivedReaders": [
+              "skyshift/legacy/game/game-v082.mjs"
+            ],
+            "verifiedArchitectureRun": 45875110655,
+            "productionEvidenceRun": 45875110388
+          },
+          {
+            "path": "skyshift/cinematic-v083.mjs",
+            "sha": "14f06e202a6885f53ec1788398d82415acbf8e86",
+            "bytes": 438,
+            "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+            "previousOwner": "engine",
+            "readers": [
+              "skyshift/tests/browser/legacy/browser-smoke-v083.mjs"
+            ],
+            "archivedReaders": [
+              "skyshift/legacy/game/game-v083.mjs"
+            ],
+            "verifiedArchitectureRun": 45875110655,
+            "productionEvidenceRun": 45875110388
+          },
+          {
+            "path": "skyshift/cinematic-v084.mjs",
+            "sha": "be0b3d65aac8e79751b15d450f64c395d80c545a",
+            "bytes": 438,
+            "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+            "previousOwner": "engine",
+            "readers": [
+              "skyshift/tests/browser/legacy/browser-smoke-v084.mjs",
+              "skyshift/tests/unit/kinetic-camera-v090.test.mjs"
+            ],
+            "archivedReaders": [
+              "skyshift/legacy/game/game-v084.mjs"
+            ],
+            "verifiedArchitectureRun": 45875110655,
+            "productionEvidenceRun": 45875110388
+          },
+          {
+            "path": "skyshift/cinematic-v090.mjs",
+            "sha": "9e919de1c28ff87fc24a5f443067c8c13de47888",
+            "bytes": 428,
+            "rollbackCommit": "44f59869a3d791a2c5229e12855a8ea3f05b1ca9",
+            "previousOwner": "engine",
+            "readers": [
+              "skyshift/tests/browser/legacy/browser-smoke-v090.mjs",
+              "skyshift/tests/unit/kinetic-camera-v090.test.mjs"
+            ],
+            "archivedReaders": [
+              "skyshift/legacy/game/game-v090.mjs"
+            ],
+            "verifiedArchitectureRun": 45875110655,
+            "productionEvidenceRun": 45875110388
+          }
+        ],
+        "reason": "Computed camera version imports in still-executed EF02 flight-camera parity were missed by literal consumer census; restore exact original modules, preserve complete executable comparison until replacement is independently verified."
+      }
     }
   ]
 }

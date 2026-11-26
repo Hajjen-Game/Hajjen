@@ -15,7 +15,8 @@
           "sourceSha": "c03f0d81567df0b1b46a408004654da68c1a231e",
           "destinationSha": "c03f0d81567df0b1b46a408004654da68c1a231e",
           "bytes": 7146,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/cinematic-grade-v0210b.mjs",
@@ -23,7 +24,8 @@
           "sourceSha": "c51948deb80fddba0b0cc7bf1c17f66abd12b11b",
           "destinationSha": "c51948deb80fddba0b0cc7bf1c17f66abd12b11b",
           "bytes": 9127,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/cinematic-hero-v0210.mjs",
@@ -31,7 +33,8 @@
           "sourceSha": "101cea1a9eb600a8630491795002b3bc06dd9bf5",
           "destinationSha": "101cea1a9eb600a8630491795002b3bc06dd9bf5",
           "bytes": 11595,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/cinematic-light-architecture-v0232.mjs",
@@ -39,7 +42,8 @@
           "sourceSha": "e3bb8dd0d0e508639f39a2c42a016d93555a8ace",
           "destinationSha": "e3bb8dd0d0e508639f39a2c42a016d93555a8ace",
           "bytes": 7786,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/cinematic-neon-lighting-v0220p2.mjs",
@@ -47,7 +51,8 @@
           "sourceSha": "4eaf73e0d7a4cbec23c7af356e46e38df72a7566",
           "destinationSha": "b162c7c67d27d617260a81e2a618adc1381afa53",
           "bytes": 9995,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/cinematic-road-rebuild-v0263.mjs",
@@ -55,7 +60,8 @@
           "sourceSha": "1ff58fbb226f7bf3a8e985422424d5ee4ed5554d",
           "destinationSha": "d55f5e27722a44d585133f380c87e9b1d9b15974",
           "bytes": 17692,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/cinematic-road-reflections-v0242.mjs",
@@ -63,7 +69,8 @@
           "sourceSha": "5faf001549295ab7a8fbcb00a4e1163d0debe44e",
           "destinationSha": "5faf001549295ab7a8fbcb00a4e1163d0debe44e",
           "bytes": 5808,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": false
         },
         {
           "oldPath": "skyshift/edge-lighting-floor-pools-v02631.mjs",
@@ -71,7 +78,8 @@
           "sourceSha": "69a6d2c369b17b8219762cd78b52186e1a6b9b4d",
           "destinationSha": "a845914af46700d886cb5d0cbd4718c4fea4b55e",
           "bytes": 15382,
-          "owner": "tunnel"
+          "owner": "tunnel",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/edge-source-floor-bands-v02632.mjs",
@@ -79,7 +87,8 @@
           "sourceSha": "0afdd6fb0f6e62e28daeccef4acf0c165c972344",
           "destinationSha": "2f0b27d021b27aab127f464b75f2901f8015a070",
           "bytes": 13818,
-          "owner": "tunnel"
+          "owner": "tunnel",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/full-tunnel-light-seal-v0270.mjs",
@@ -87,7 +96,8 @@
           "sourceSha": "d01dc46e24ace3e1e709e2b353cf928f34be276c",
           "destinationSha": "d01dc46e24ace3e1e709e2b353cf928f34be276c",
           "bytes": 1174,
-          "owner": "tunnel"
+          "owner": "tunnel",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/integrated-neon-flow-v0214.mjs",
@@ -95,7 +105,8 @@
           "sourceSha": "5a08f995a0202b505bf7b48b76d78cda0923359d",
           "destinationSha": "5db20632e10c30ecad1c60f35deff1c2f59da318",
           "bytes": 8308,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/physical-material-rebuild-v0230.mjs",
@@ -103,7 +114,8 @@
           "sourceSha": "a558728eea438c4d58fdccca7f37fadf35bd71b0",
           "destinationSha": "a558728eea438c4d58fdccca7f37fadf35bd71b0",
           "bytes": 12009,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/premium-road-surface-v0215.mjs",
@@ -111,7 +123,8 @@
           "sourceSha": "bc1cb2cfa8f355b5117f8398acd448d6a295dd66",
           "destinationSha": "02058328ff6eef127ce4dabe5691fb174c4cd6dc",
           "bytes": 6147,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/road-solar-spill-v02126.mjs",
@@ -119,7 +132,8 @@
           "sourceSha": "b9e5ecf20105b5ea2a240a1bd291867cf9c314a6",
           "destinationSha": "b9e5ecf20105b5ea2a240a1bd291867cf9c314a6",
           "bytes": 4017,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/straight-only-edge-lighting-v02633.mjs",
@@ -127,7 +141,8 @@
           "sourceSha": "167480b6e5fa5764791aaba1ddec4243716bd9ef",
           "destinationSha": "f5c7e633744016473511c7732bdcfd6db249d27a",
           "bytes": 11180,
-          "owner": "tunnel"
+          "owner": "tunnel",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/true-material-depth-v0231.mjs",
@@ -135,7 +150,8 @@
           "sourceSha": "25aabd2a02817c24f660bcbe5ed09caf756d4a4e",
           "destinationSha": "27bfdcf1eac0830ea018a2eda5630124b2ec5a7b",
           "bytes": 10388,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/true-rail-wall-response-v0265.mjs",
@@ -143,7 +159,8 @@
           "sourceSha": "7f6ab2afb650ee89d5efd9a8bbb835dd03dda276",
           "destinationSha": "7f6ab2afb650ee89d5efd9a8bbb835dd03dda276",
           "bytes": 14501,
-          "owner": "tunnel"
+          "owner": "tunnel",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/unified-cinematic-grade-v0220p4.mjs",
@@ -151,7 +168,8 @@
           "sourceSha": "e0660cffaaa5ca1946e622e1774e592c7f1b8df2",
           "destinationSha": "e0660cffaaa5ca1946e622e1774e592c7f1b8df2",
           "bytes": 6825,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/unified-tunnel-lighting-v1.mjs",
@@ -159,7 +177,8 @@
           "sourceSha": "7d614cb38855892102fc2503e2909b3a4c7d7445",
           "destinationSha": "818a56b15a563073324c95b2a587690e94e3b3c3",
           "bytes": 4406,
-          "owner": "tunnel"
+          "owner": "tunnel",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/unified-tunnel-materials-v0233.mjs",
@@ -167,7 +186,8 @@
           "sourceSha": "d5106679318fcc5295aa51d1f15b49f5ece6f2a8",
           "destinationSha": "d5106679318fcc5295aa51d1f15b49f5ece6f2a8",
           "bytes": 6902,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/velocity-cinematography-v0220p3.mjs",
@@ -175,7 +195,8 @@
           "sourceSha": "a1c8973880c953ac2e68d1db19365932c4228484",
           "destinationSha": "a1c8973880c953ac2e68d1db19365932c4228484",
           "bytes": 5905,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": true
         },
         {
           "oldPath": "skyshift/white-core-containment-v02123.mjs",
@@ -183,7 +204,8 @@
           "sourceSha": "cf4adf3988044a9c56d30de163689a99eef0ac85",
           "destinationSha": "cf4adf3988044a9c56d30de163689a99eef0ac85",
           "bytes": 6726,
-          "owner": "rendering"
+          "owner": "rendering",
+          "productionBefore": false
         }
       ],
       "consumers": [
@@ -228,7 +250,161 @@
         "skyshift/tunnel/shared-road-ship-light-v0282.mjs",
         "skyshift/tunnel/shared-straight-edge-parity-v02891.mjs",
         "skyshift/tunnel/unified-tunnel-light-sources-v02894.mjs"
-      ]
+      ],
+      "productionEvidence": {
+        "commit": "01e43ef24fbf5df8212a06eaa41e89d7440429c2",
+        "run": 45883352153,
+        "job": 140127872327,
+        "productionModules": 173,
+        "productionRoots": [
+          "boot-v0210.js",
+          "cinematic-energy-v0216.mjs",
+          "cinematic-grade-v0210b.mjs",
+          "cinematic-hero-v0210.mjs",
+          "cinematic-light-architecture-v0232.mjs",
+          "cinematic-neon-lighting-v0220p2.mjs",
+          "cinematic-road-rebuild-v0263.mjs",
+          "cinematic-space-lighting-v0170.mjs",
+          "edge-lighting-floor-pools-v02631.mjs",
+          "edge-source-floor-bands-v02632.mjs",
+          "engine-trails-v01346.mjs",
+          "fleet-v0102.css",
+          "full-tunnel-light-seal-v0270.mjs",
+          "game-v0210.mjs",
+          "hangar-hero-v0134.mjs",
+          "image-clarity-v083.mjs",
+          "index.html",
+          "integrated-neon-flow-v0214.mjs",
+          "living-wake-v01071.mjs",
+          "luminance-v0331.mjs",
+          "manta-blade-v0484.mjs",
+          "neon-balance-v032.mjs",
+          "neon-interior-v0212.mjs",
+          "neon-v0111.mjs",
+          "neon-v032.mjs",
+          "physical-material-rebuild-v0230.mjs",
+          "premium-road-surface-v0215.mjs",
+          "racing-experience-v0160.mjs",
+          "rail-scrape-sparks-v0165.mjs",
+          "risk-reward-v0151.mjs",
+          "risk-reward-v0160.mjs",
+          "road-solar-spill-v02126.mjs",
+          "shadow-tunnel-v0160.mjs",
+          "shared-tunnel-architecture-v0280.mjs",
+          "shared-tunnel-runtime-v0280.mjs",
+          "ship-art-pipeline-v01342.mjs",
+          "ship-hero-loader-v01342.mjs",
+          "ship-v034.mjs",
+          "space-v0496.mjs",
+          "stingray-evo-v0104.mjs",
+          "straight-only-edge-lighting-v02633.mjs",
+          "structural-tunnel-v0213.mjs",
+          "style-v0121.css",
+          "style-v0130.css",
+          "style-v0131.css",
+          "style-v0140.css",
+          "style-v0160.css",
+          "style-v061.css",
+          "style-v083.css",
+          "time-trial-v0160.mjs",
+          "trial-v0901.mjs",
+          "true-material-depth-v0231.mjs",
+          "true-rail-wall-response-v0265.mjs",
+          "true-shared-tunnel-renderer-v0281.mjs",
+          "tunnel-blackout-v0160.mjs",
+          "tunnel-exterior-seal-v02122.mjs",
+          "tunnel-megastructure-v0211.mjs",
+          "tunnel-spectrum-v02121.mjs",
+          "unified-cinematic-grade-v0220p4.mjs",
+          "unified-tunnel-lighting-v1.mjs",
+          "unified-tunnel-materials-v0233.mjs",
+          "velocity-cinematography-v0220p3.mjs",
+          "velocity-language-v0496.mjs",
+          "velocity-presence-v0104.mjs",
+          "wingtip-contrails-v0106.mjs",
+          "zone-wave-v060.mjs"
+        ],
+        "otherSourceRoots": [
+          "README.md",
+          "air-tricks-v081.mjs",
+          "cinematic-road-reflections-v0242.mjs",
+          "cinematic-v0161.mjs",
+          "cinematic-v0162.mjs",
+          "cinematic-v0163.mjs",
+          "cinematic-v0164.mjs",
+          "cinematic-v081.mjs",
+          "cinematic-v082.mjs",
+          "cinematic-v083.mjs",
+          "cinematic-v084.mjs",
+          "cinematic-v090.mjs",
+          "cinematic-v0901.mjs",
+          "engine-trails-v0496.mjs",
+          "flight-motion-v044.mjs",
+          "game-v0203.mjs",
+          "grip-trick-audit-v0165.mjs",
+          "handling-fairness-cli-v0135.mjs",
+          "handling-fairness-v0135.mjs",
+          "material-grade-v0203.html",
+          "neon-interior-v0212-classic.mjs",
+          "neon-v083.mjs",
+          "orbital-hero-v0192.mjs",
+          "precision-grip-v061.mjs",
+          "racing-experience-v0121.mjs",
+          "rail-contact-audit-v0162.mjs",
+          "rail-contact-audit-v0163.mjs",
+          "rail-scrape-sparks-v01091.mjs",
+          "rail-scrape-sparks-v0161.mjs",
+          "rail-scrape-sparks-v0162.mjs",
+          "rail-scrape-sparks-v0163.mjs",
+          "rail-scrape-sparks-v0164.mjs",
+          "risk-reward-v0150.mjs",
+          "sector-landmarks-v0120.mjs",
+          "shadow-tunnel-v092.mjs",
+          "ship-art-pipeline-v0132.mjs",
+          "ship-hero-loader-v0132.mjs",
+          "signature-environment-v0180.mjs",
+          "stingray-evo-v0101.mjs",
+          "stingray-evo-v0103.mjs",
+          "style.css",
+          "time-trial-v0130.mjs",
+          "time-trial-v0150.mjs",
+          "time-trial-v0151.mjs",
+          "track-physics-parity-probe-v0164.mjs",
+          "track-physics-parity-probe-v0165.mjs",
+          "track.mjs",
+          "trial-v01348.mjs",
+          "trial-v0150.mjs",
+          "trial-v0151.mjs",
+          "trial-v0162.mjs",
+          "trial-v0163.mjs",
+          "trial-v0164.mjs",
+          "trial-v02.mjs",
+          "trial-v03.mjs",
+          "trial-v043.mjs",
+          "trial-v046.mjs",
+          "trial-v048.mjs",
+          "trial-v049.mjs",
+          "trial-v050.mjs",
+          "trial-v051.mjs",
+          "trial-v060.mjs",
+          "trial-v070.mjs",
+          "trial-v071.mjs",
+          "trial-v072.mjs",
+          "trial-v081.mjs",
+          "trial-v082.mjs",
+          "trial-v083.mjs",
+          "trial-v084.mjs",
+          "tunnel-blackout-v0921.mjs",
+          "white-core-containment-v02123.mjs",
+          "world-rebuild-v0190.mjs",
+          "zone-wave-v049.mjs",
+          "zone-wave-v0491.mjs",
+          "zone-wave-v0492.mjs",
+          "zone-wave-v0493.mjs",
+          "zone-wave-v050.mjs",
+          "zone-wave-v051.mjs"
+        ]
+      }
     }
   ],
   "moves": [
@@ -238,7 +414,8 @@
       "sourceSha": "c03f0d81567df0b1b46a408004654da68c1a231e",
       "destinationSha": "c03f0d81567df0b1b46a408004654da68c1a231e",
       "bytes": 7146,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/cinematic-grade-v0210b.mjs",
@@ -246,7 +423,8 @@
       "sourceSha": "c51948deb80fddba0b0cc7bf1c17f66abd12b11b",
       "destinationSha": "c51948deb80fddba0b0cc7bf1c17f66abd12b11b",
       "bytes": 9127,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/cinematic-hero-v0210.mjs",
@@ -254,7 +432,8 @@
       "sourceSha": "101cea1a9eb600a8630491795002b3bc06dd9bf5",
       "destinationSha": "101cea1a9eb600a8630491795002b3bc06dd9bf5",
       "bytes": 11595,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/cinematic-light-architecture-v0232.mjs",
@@ -262,7 +441,8 @@
       "sourceSha": "e3bb8dd0d0e508639f39a2c42a016d93555a8ace",
       "destinationSha": "e3bb8dd0d0e508639f39a2c42a016d93555a8ace",
       "bytes": 7786,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/cinematic-neon-lighting-v0220p2.mjs",
@@ -270,7 +450,8 @@
       "sourceSha": "4eaf73e0d7a4cbec23c7af356e46e38df72a7566",
       "destinationSha": "b162c7c67d27d617260a81e2a618adc1381afa53",
       "bytes": 9995,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/cinematic-road-rebuild-v0263.mjs",
@@ -278,7 +459,8 @@
       "sourceSha": "1ff58fbb226f7bf3a8e985422424d5ee4ed5554d",
       "destinationSha": "d55f5e27722a44d585133f380c87e9b1d9b15974",
       "bytes": 17692,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/cinematic-road-reflections-v0242.mjs",
@@ -286,7 +468,8 @@
       "sourceSha": "5faf001549295ab7a8fbcb00a4e1163d0debe44e",
       "destinationSha": "5faf001549295ab7a8fbcb00a4e1163d0debe44e",
       "bytes": 5808,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": false
     },
     {
       "oldPath": "skyshift/edge-lighting-floor-pools-v02631.mjs",
@@ -294,7 +477,8 @@
       "sourceSha": "69a6d2c369b17b8219762cd78b52186e1a6b9b4d",
       "destinationSha": "a845914af46700d886cb5d0cbd4718c4fea4b55e",
       "bytes": 15382,
-      "owner": "tunnel"
+      "owner": "tunnel",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/edge-source-floor-bands-v02632.mjs",
@@ -302,7 +486,8 @@
       "sourceSha": "0afdd6fb0f6e62e28daeccef4acf0c165c972344",
       "destinationSha": "2f0b27d021b27aab127f464b75f2901f8015a070",
       "bytes": 13818,
-      "owner": "tunnel"
+      "owner": "tunnel",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/full-tunnel-light-seal-v0270.mjs",
@@ -310,7 +495,8 @@
       "sourceSha": "d01dc46e24ace3e1e709e2b353cf928f34be276c",
       "destinationSha": "d01dc46e24ace3e1e709e2b353cf928f34be276c",
       "bytes": 1174,
-      "owner": "tunnel"
+      "owner": "tunnel",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/integrated-neon-flow-v0214.mjs",
@@ -318,7 +504,8 @@
       "sourceSha": "5a08f995a0202b505bf7b48b76d78cda0923359d",
       "destinationSha": "5db20632e10c30ecad1c60f35deff1c2f59da318",
       "bytes": 8308,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/physical-material-rebuild-v0230.mjs",
@@ -326,7 +513,8 @@
       "sourceSha": "a558728eea438c4d58fdccca7f37fadf35bd71b0",
       "destinationSha": "a558728eea438c4d58fdccca7f37fadf35bd71b0",
       "bytes": 12009,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/premium-road-surface-v0215.mjs",
@@ -334,7 +522,8 @@
       "sourceSha": "bc1cb2cfa8f355b5117f8398acd448d6a295dd66",
       "destinationSha": "02058328ff6eef127ce4dabe5691fb174c4cd6dc",
       "bytes": 6147,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/road-solar-spill-v02126.mjs",
@@ -342,7 +531,8 @@
       "sourceSha": "b9e5ecf20105b5ea2a240a1bd291867cf9c314a6",
       "destinationSha": "b9e5ecf20105b5ea2a240a1bd291867cf9c314a6",
       "bytes": 4017,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/straight-only-edge-lighting-v02633.mjs",
@@ -350,7 +540,8 @@
       "sourceSha": "167480b6e5fa5764791aaba1ddec4243716bd9ef",
       "destinationSha": "f5c7e633744016473511c7732bdcfd6db249d27a",
       "bytes": 11180,
-      "owner": "tunnel"
+      "owner": "tunnel",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/true-material-depth-v0231.mjs",
@@ -358,7 +549,8 @@
       "sourceSha": "25aabd2a02817c24f660bcbe5ed09caf756d4a4e",
       "destinationSha": "27bfdcf1eac0830ea018a2eda5630124b2ec5a7b",
       "bytes": 10388,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/true-rail-wall-response-v0265.mjs",
@@ -366,7 +558,8 @@
       "sourceSha": "7f6ab2afb650ee89d5efd9a8bbb835dd03dda276",
       "destinationSha": "7f6ab2afb650ee89d5efd9a8bbb835dd03dda276",
       "bytes": 14501,
-      "owner": "tunnel"
+      "owner": "tunnel",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/unified-cinematic-grade-v0220p4.mjs",
@@ -374,7 +567,8 @@
       "sourceSha": "e0660cffaaa5ca1946e622e1774e592c7f1b8df2",
       "destinationSha": "e0660cffaaa5ca1946e622e1774e592c7f1b8df2",
       "bytes": 6825,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/unified-tunnel-lighting-v1.mjs",
@@ -382,7 +576,8 @@
       "sourceSha": "7d614cb38855892102fc2503e2909b3a4c7d7445",
       "destinationSha": "818a56b15a563073324c95b2a587690e94e3b3c3",
       "bytes": 4406,
-      "owner": "tunnel"
+      "owner": "tunnel",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/unified-tunnel-materials-v0233.mjs",
@@ -390,7 +585,8 @@
       "sourceSha": "d5106679318fcc5295aa51d1f15b49f5ece6f2a8",
       "destinationSha": "d5106679318fcc5295aa51d1f15b49f5ece6f2a8",
       "bytes": 6902,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/velocity-cinematography-v0220p3.mjs",
@@ -398,7 +594,8 @@
       "sourceSha": "a1c8973880c953ac2e68d1db19365932c4228484",
       "destinationSha": "a1c8973880c953ac2e68d1db19365932c4228484",
       "bytes": 5905,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": true
     },
     {
       "oldPath": "skyshift/white-core-containment-v02123.mjs",
@@ -406,7 +603,8 @@
       "sourceSha": "cf4adf3988044a9c56d30de163689a99eef0ac85",
       "destinationSha": "cf4adf3988044a9c56d30de163689a99eef0ac85",
       "bytes": 6726,
-      "owner": "rendering"
+      "owner": "rendering",
+      "productionBefore": false
     }
   ]
 }

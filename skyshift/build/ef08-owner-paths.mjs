@@ -5,8 +5,24 @@ import {resolve,basename} from 'node:path';
 export function readOwnerRelocations(repo){
  const manifest=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef08-root-relocations.json'),'utf8'));
  assert.equal(manifest.schema,1);
- const byOld=new Map(),destinations=new Set();
+ const byOld=new Map(),destinations=new Set(),reviewed=new Map();
+ for(const batch of manifest.batches){
+  const proof=batch.productionEvidence;
+  assert.equal(proof.commit,batch.rollbackCommit);assert.equal(proof.run,batch.productionRun);
+  assert.ok(Number.isInteger(proof.job)&&proof.job>0);
+  const production=new Set(proof.productionRoots),other=new Set(proof.otherSourceRoots);
+  for(const f of batch.moves){
+   const name=basename(f.oldPath);
+   assert.ok(production.has(name)!==other.has(name),f.oldPath+' missing or ambiguous baseline membership');
+   assert.equal(f.productionBefore,production.has(name),f.oldPath+' incorrect baseline membership');
+   assert.ok(!reviewed.has(f.oldPath),f.oldPath+' duplicate batch move');
+   reviewed.set(f.oldPath,f);
+  }
+ }
+ assert.equal(reviewed.size,manifest.moves.length);
  for(const f of manifest.moves){
+  assert.deepEqual(f,reviewed.get(f.oldPath),f.oldPath+' inconsistent reviewed move');
+  assert.equal(typeof f.productionBefore,'boolean');
   assert.match(f.oldPath,/^skyshift\/[^/]+\.mjs$/);
   assert.match(f.newPath,/^skyshift\/(?:[\w-]+\/)+[\w.-]+\.mjs$/);
   assert.equal(basename(f.oldPath),basename(f.newPath));

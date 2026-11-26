@@ -111,6 +111,17 @@ export function installPmremReflectionPipeline0284(THREE,renderer,scene,world,{
   restores.push({material,previous,value,profile});
   return true;
  };
+ const restoreBinding=({material,previous})=>{
+  material.envMap=previous.map;material.envMapIntensity=previous.intensity;material.needsUpdate=true;
+  bound.delete(material);
+ };
+ // A new craft replaces the previous hull. Tunnel bindings outlive it.
+ const detachShip=()=>{
+  for(let i=restores.length-1;i>=0;i--){
+   const entry=restores[i];if(entry.profile!=="ship")continue;
+   restoreBinding(entry);restores.splice(i,1);physicalShip--;attached--;
+  }
+ };
  const attachShip=craft=>{
   if(!craft?.traverse||disposed||!target)return 0;
   let count=0;
@@ -199,7 +210,7 @@ export function installPmremReflectionPipeline0284(THREE,renderer,scene,world,{
    item.material.envMapIntensity=item.value*strength*shipRouteWeight;
  };
  return {
-  active:true,attachShip,setComparison,updateStation,
+  active:true,attachShip,detachShip,setComparison,updateStation,
   stats:()=>({
    active:true,version:"0.28.4",track,
    genuinePmrem:true,
@@ -220,11 +231,8 @@ export function installPmremReflectionPipeline0284(THREE,renderer,scene,world,{
   }),
   dispose(){
    if(disposed)return;disposed=true;
-   for(const {material,previous} of restores.reverse()){
-    material.envMap=previous.map;
-    material.envMapIntensity=previous.intensity;
-    material.needsUpdate=true;
-   }
+   for(const entry of restores.splice(0).reverse())restoreBinding(entry);
+   physicalShip=physicalTunnel=attached=0;
    target?.dispose();
   }
  };

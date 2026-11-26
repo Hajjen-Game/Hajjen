@@ -16,7 +16,7 @@ export function clearRaceInput(UI,uiState){
  UI.controls.classList.remove("grip-pressed");
 
 }
-export function installRaceInput({UI,uiState,clamp,addEventListener,document,pause,resume,closeSettings,enterPlaying}){
+export function installRaceInput({UI,uiState,clamp,addEventListener,document,pause,resume,closeSettings,enterPlaying,listen=(target,...args)=>target.addEventListener(...args)}){
  addEventListener("keydown",e=>{
    if(["Space","ArrowUp","ArrowRight","ArrowLeft","KeyA","KeyD","ShiftLeft","ShiftRight"].includes(e.code))
      e.preventDefault();
@@ -38,14 +38,14 @@ export function installRaceInput({UI,uiState,clamp,addEventListener,document,pau
  function jumpRelease(){
    uiState.jumpHeld=false;UI.jump.classList.remove("held");
  }
- UI.jump.addEventListener("pointerdown",e=>{
+ listen(UI.jump,"pointerdown",e=>{
    e.preventDefault();UI.jump.setPointerCapture(e.pointerId);
    uiState.jumpPressed=true;uiState.jumpHeld=true;
    UI.jump.classList.add("held");
  });
- UI.jump.addEventListener("pointerup",jumpRelease);
- UI.jump.addEventListener("pointercancel",jumpRelease);
- UI.jump.addEventListener("lostpointercapture",jumpRelease);
+ listen(UI.jump,"pointerup",jumpRelease);
+ listen(UI.jump,"pointercancel",jumpRelease);
+ listen(UI.jump,"lostpointercapture",jumpRelease);
  // Separate pointer captures permit simultaneous left-stick steering and
  // right-thumb GRIP. Cancellation, pause, focus loss always release safely.
  function releaseGrip(e){
@@ -55,7 +55,7 @@ export function installRaceInput({UI,uiState,clamp,addEventListener,document,pau
    UI.grip.setAttribute("aria-pressed","false");
    UI.controls.classList.remove("grip-pressed");
  }
- UI.grip.addEventListener("pointerdown",e=>{
+ listen(UI.grip,"pointerdown",e=>{
    if(uiState.mode!=="playing")return;
    e.preventDefault();
    uiState.gripPointer=e.pointerId;uiState.gripHeld=true;
@@ -63,9 +63,9 @@ export function installRaceInput({UI,uiState,clamp,addEventListener,document,pau
    UI.grip.classList.add("armed");
    UI.controls.classList.add("grip-pressed");
  });
- UI.grip.addEventListener("pointerup",releaseGrip);
- UI.grip.addEventListener("pointercancel",releaseGrip);
- UI.grip.addEventListener("lostpointercapture",releaseGrip);
+ listen(UI.grip,"pointerup",releaseGrip);
+ listen(UI.grip,"pointercancel",releaseGrip);
+ listen(UI.grip,"lostpointercapture",releaseGrip);
  function steer(e){
    const rect=UI.stick.getBoundingClientRect();
    uiState.inputX=clamp((e.clientX-(rect.left+rect.width*.5))/59,-1,1);
@@ -76,18 +76,18 @@ export function installRaceInput({UI,uiState,clamp,addEventListener,document,pau
    uiState.stickPointer=null;uiState.inputX=0;
    UI.knob.style.transform="translateX(0px)";
  }
- UI.stick.addEventListener("pointerdown",e=>{
+ listen(UI.stick,"pointerdown",e=>{
    e.preventDefault();uiState.stickPointer=e.pointerId;
    UI.stick.setPointerCapture(e.pointerId);steer(e);
  });
- UI.stick.addEventListener("pointermove",e=>{
+ listen(UI.stick,"pointermove",e=>{
    if(e.pointerId===uiState.stickPointer)steer(e);
  });
- UI.stick.addEventListener("pointerup",steerRelease);
- UI.stick.addEventListener("pointercancel",steerRelease);
- UI.stick.addEventListener("lostpointercapture",steerRelease);
+ listen(UI.stick,"pointerup",steerRelease);
+ listen(UI.stick,"pointercancel",steerRelease);
+ listen(UI.stick,"lostpointercapture",steerRelease);
  addEventListener("blur",()=>{if(uiState.mode==="playing")pause();});
- document.addEventListener("visibilitychange",()=>{
+ listen(document,"visibilitychange",()=>{
    if(document.hidden&&uiState.mode==="playing")pause();
  });
 }

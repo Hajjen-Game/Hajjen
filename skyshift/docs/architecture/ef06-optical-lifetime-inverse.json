@@ -1,0 +1,45 @@
+{
+  "baseline": "1d7db246fe11cd1381a1e881a19e3c34daf14a05",
+  "records": [
+    {
+      "path": "skyshift/tunnel/pmrem-reflection-pipeline-v0284.mjs",
+      "sha": "2d5c93ed43599f07873b947d10ddb3ba7584f268",
+      "edits": [
+        {
+          "before": " const attachShip=craft=>{",
+          "after": " const restoreBinding=({material,previous})=>{\n  material.envMap=previous.map;material.envMapIntensity=previous.intensity;material.needsUpdate=true;\n  bound.delete(material);\n };\n // A new craft replaces the previous hull. Tunnel bindings outlive it.\n const detachShip=()=>{\n  for(let i=restores.length-1;i>=0;i--){\n   const entry=restores[i];if(entry.profile!==\"ship\")continue;\n   restoreBinding(entry);restores.splice(i,1);physicalShip--;attached--;\n  }\n };\n const attachShip=craft=>{"
+        },
+        {
+          "before": "  active:true,attachShip,setComparison,updateStation,",
+          "after": "  active:true,attachShip,detachShip,setComparison,updateStation,"
+        },
+        {
+          "before": "   for(const {material,previous} of restores.reverse()){\n    material.envMap=previous.map;\n    material.envMapIntensity=previous.intensity;\n    material.needsUpdate=true;\n   }\n   target?.dispose();",
+          "after": "   for(const entry of restores.splice(0).reverse())restoreBinding(entry);\n   physicalShip=physicalTunnel=attached=0;\n   target?.dispose();"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tunnel/shared-road-ship-light-v0282.mjs",
+      "sha": "3e066b3655f0ea40ded559547ef9c4a08a4b9bfb",
+      "edits": [
+        {
+          "before": " const wrapped=new WeakSet(),undo=[];let attached=0,updates=0,lastS=0;",
+          "after": " const wrapped=new WeakSet(),undo=[];let attached=0,updates=0,lastS=0;\n function detachShip(){\n  for(const entry of undo.splice(0).reverse()){entry.restore();wrapped.delete(entry.material);}\n  attached=0;\n }"
+        },
+        {
+          "before": "    undo.push(()=>{material.onBeforeCompile=previous;\n     material.customProgramCacheKey=key;material.needsUpdate=true;});",
+          "after": "    undo.push({material,restore(){material.onBeforeCompile=previous;\n     material.customProgramCacheKey=key;material.needsUpdate=true;}});"
+        },
+        {
+          "before": " return {active:true,attachShip,update,",
+          "after": " return {active:true,attachShip,detachShip,update,"
+        },
+        {
+          "before": "  dispose(){for(const f of undo.reverse())f();}",
+          "after": "  dispose:detachShip"
+        }
+      ]
+    }
+  ]
+}

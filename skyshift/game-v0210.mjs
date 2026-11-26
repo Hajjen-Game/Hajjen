@@ -1,4 +1,7 @@
 import * as THREE from "three";
+import {clearRaceInput,installRaceInput} from "./ui/race-input.mjs";
+import {createRaceHud} from "./ui/race-hud.mjs";
+import {createRunAudit,createRaceTelemetry,downloadRaceAudit} from "./core/race-diagnostics.mjs";
 import {createChaseCameraController} from "./flight/chase-camera-controller.mjs";
 import {createShipPresentation} from "./ships/ship-presentation.mjs";
 import {TRACKS_0160,ACTIVE_TRACK_0160,TRACK_ID_0160,isAurora,isVault}
@@ -743,10 +746,13 @@ const shipPresentation=createShipPresentation({
  TRIAL,BOOST_CONFIG,NEON_TUNING,SPECTRAL_WHITE,waveResonanceStrength,
  spectralChargeStrength,engineLightFactor,clamp
 });
-const telemetry=[];
+const raceTelemetry=createRaceTelemetry();
 let previousSector=0,sceneReady=false,fullscreenController=null,lastRailLog=0;
 let railFeedback=createRailFeedbackState();
-let gripCueVisible=false,gripCueSeconds=0,gripCueDisplays=0;
+const raceHud=createRaceHud({UI,uiState,domWrites,ZONE_PALETTES,TRIAL,CIRCUIT,
+ challengeDistance,formatTrialTime,formatTrialDelta,updateGhostDelta,curvatureAt,
+ sectorAt,isAurora,isVault,gripApexCue,GRIP_APEX,riskCueAt,AIR_TRICKS,bankDegreesAt,
+ event,flashToast});
 let zoneWave=newZoneWaveState();
 let tunnelInside=false,tunnelEntries=0,tunnelExits=0,tunnelSeconds=0,tunnelMaxIntensity=0;
 let waveSmokeHold=false;
@@ -770,7 +776,7 @@ function flashToast(message,time=1350){
  uiState.toastTimeout=setTimeout(()=>UI.toast.classList.add("hidden"),time);
 }
 function event(kind,properties={}){
- telemetry.push({type:kind,s:Math.round(flight.s),t:+flight.elapsed.toFixed(3),...properties});
+ raceTelemetry.record(flight,kind,properties);
 }
 function addQuad(points,colors,a,b,c,d,tint){
  for(const p of [a,b,c,a,c,d]){
@@ -3660,22 +3666,7 @@ function startImmersiveTrial(challenge=null){
  if(!fullscreenController.active())fullscreenController.request(true);
  enterPlaying(challenge);
 }
-function clearInput(){
- UI.gripCue?.classList.add("hidden");
- UI.grip.classList.remove("apex-approach","apex-engaged");
- UI.hud.classList.remove("hud-rail-contact");
- UI.hud.style.setProperty("--rail-contact","0");
- uiState.inputX=0;uiState.jumpPressed=false;uiState.jumpHeld=false;
- uiState.gripHeld=false;uiState.gripPointer=null;
- uiState.keys.clear();uiState.stickPointer=null;
- UI.knob.style.transform="translateX(0px)";
- UI.jump.classList.remove("held","trick-ready");
- UI.jump.classList.add("hidden");
- UI.controls.classList.remove("trick-offered");
- UI.grip.classList.remove("armed","active");
- UI.grip.setAttribute("aria-pressed","false");
- UI.controls.classList.remove("grip-pressed");
-}
+function clearInput(){clearRaceInput(UI,uiState);}
 function resetFlight(){
  wakeSmokePath=null;completedSparkStats=null;
  hudBudget.reset();domWrites.reset();
@@ -3685,7 +3676,7 @@ function resetFlight(){
  recordRealGhostPose(true);
  ghostVisual?.hide();
  railFeedback=createRailFeedbackState();
- gripCueVisible=false;gripCueSeconds=0;gripCueDisplays=0;
+ raceHud.reset();
  previousHudShield=flight.shield;
  reactiveHud.reset({shield:flight.shield});
  tunnelInside=false;tunnelEntries=0;tunnelExits=0;
@@ -3729,7 +3720,7 @@ function resetFlight(){
  resetRaceSimulation(raceSimulation,flight);frameMonitor=createFrameMonitor();
  resetPerfMonitor(frameProfiler);gpuClock?.reset();lastPerfPanelUpdate=0;
  document.documentElement.style.setProperty("--neon","#43dff3");
- telemetry.length=0;uiState.trackHint=-1;clearInput();
+ raceTelemetry.reset();uiState.trackHint=-1;clearInput();
  event("trial_start",{trial:TRIAL.id});
  UI.banner.classList.add("hidden");
  UI.flash.classList.remove("active");
@@ -3875,140 +3866,8 @@ function announceSector(index){
  event("zone_passed",{stage:index,palette:palette.id,
   atMeters:+flight.s.toFixed(1)});
 }
-function refreshHud(){
- const sector=zoneWave.playerStage;
- domWrites.text(UI.sector,String(sector+1).padStart(2,"0"));
- domWrites.text(UI.sectorName,ZONE_PALETTES[sector].name);
- domWrites.width(UI.shieldFill,flight.shield+"%");
- domWrites.text(UI.shieldText,flight.shield+"%");
- domWrites.text(UI.shieldStatus,
- flight.shield<=30?"CRITICAL":flight.shield<=60?"DAMAGED":"STABLE");
- const displayedDistance=currentChallenge?Math.max(0,flight.s-currentChallenge.startS):flight.s;
- const displayedTotal=currentChallenge?challengeDistance(currentChallenge):TRIAL.raceLength;
- domWrites.html(UI.distance,String(Math.floor(displayedDistance)).padStart(4,"0")+
- ' <small>/ '+Math.round(displayedTotal)+' M</small>');
- if(currentChallenge)domWrites.text(UI.challengeClock,formatTrialTime(flight.elapsed));
- domWrites.text(UI.lapNumber,String(flight.lap));
- domWrites.attr(UI.lapInfo,"aria-label",
- "Lap "+flight.lap+" of "+CIRCUIT.laps);
- if(timeTrialState.mode==="time-trial"){
-  domWrites.text(UI.trialClock,formatTrialTime(flight.elapsed));
-  const delta=updateGhostDelta(timeTrialState,
-   {distance:flight.s,elapsed:flight.elapsed});
-  domWrites.text(UI.trialDelta,"Δ "+formatTrialDelta(delta));
-  UI.trialDelta.classList.toggle("ahead",delta!==null&&delta<-.04);
-  UI.trialDelta.classList.toggle("behind",delta!==null&&delta>.04);
- }
- // Compare with baseline handling-lab speed (22 m/s), not new speed.
- domWrites.text(UI.speed,(flight.currentSpeed/22).toFixed(2)+"×");
- // The old JUMP button is a contextual TRICK key only on approach/airborne.
- // JUMP stays in the DOM for later design decisions, but GRIP is now
- // the only visible right-thumb input, both on the road and in the air.
- UI.jump.classList.add("hidden");
- domWrites.width(UI.progress,(Math.max(0,Math.min(1,displayedDistance/displayedTotal))*100).toFixed(1)+"%");
- const curve=curvatureAt(flight.s),section=sectorAt(flight.s);
- // One small persistent prompt by the existing GRIP thumb control: never
- // a full-screen warning or a new button. It starts early enough at
- // 100+ m/s for the driver to react and disappears naturally on exit.
- // Aurora has no authored narrow RIGHT apex. Reusing Skyline's 650m
- // warning displayed a fictitious apex 3348m away, three times per run.
- const cue=(isAurora()||isVault())?{visible:false,active:false,text:"",distanceMeters:null}:
-  gripApexCue(flight.s,flight.grounded,
-   uiState.gripHeld||uiState.keys.has("ShiftLeft")||
-   uiState.keys.has("ShiftRight"),flight.gripActive,GRIP_APEX);
- if(cue.visible){
-  if(!gripCueVisible){gripCueDisplays++;event("grip_guidance_start",{
-   lap:flight.lap,distanceMeters:cue.distanceMeters});}
-  UI.gripCue.classList.remove("hidden");
-  if(UI.gripCue.textContent!==cue.text)UI.gripCue.textContent=cue.text;
- }else UI.gripCue.classList.add("hidden");
- gripCueVisible=cue.visible;
- // Advance announcement for an OPTIONAL higher-reward line after a corner.
- // Never compete with the GRIP APEX warning or an aerial manoeuvre.
- const riskCue=riskCueAt(flight.s,flight.lateral,flight.boostActivatedGroups);
- const showRisk=!!riskCue&&flight.grounded&&!cue.visible;
- UI.riskCue.classList.toggle("hidden",!showRisk);
- UI.riskCue.dataset.line=showRisk?riskCue.selectedLane:"";
- UI.riskCue.dataset.difficulty=showRisk?riskCue.difficulty:"";
- if(showRisk){
-  domWrites.text(UI.riskCue,riskCue.text+
-   (riskCue.remainingMeters>0?" · "+Math.ceil(riskCue.remainingMeters)+" M":" · NOW"));
- }
- UI.grip.classList.toggle("apex-approach",cue.visible&&!cue.active);
- UI.grip.classList.toggle("apex-engaged",cue.active);
- UI.hud.classList.toggle("hud-rail-contact",railFeedback.pulse>.025);
- domWrites.property(UI.hud,"--rail-contact",
- String(Math.min(.92,railFeedback.pulse*.92).toFixed(3)));
- domWrites.text(UI.flight,!flight.grounded?
-   (flight.lastJumpLap===flight.lap?
-   flight.trickReady?"AIR TRICK · 360° COMPLETE":
-   flight.trickActive?"AIR TRICK · "+Math.round(flight.trickAngle/
-    AIR_TRICKS.fullRollRadians*100)+"%":
-   "SKYLINE LEAP · HOLD GRIP + STEER":"OFF TRACK"):
-  flight.landingBoostMultiplier>1.01?
-   "LANDING BOOST · +"+Math.round((flight.landingBoostMultiplier-1)*100)+"%":
-   flight.corkscrewActive?(
-      Math.abs(bankDegreesAt(flight.s))>145&&Math.abs(bankDegreesAt(flight.s))<215?
-        "CEILING RUN · MAGNETIC LOCK":
-        "CORKSCREW · "+Math.round(Math.abs(bankDegreesAt(flight.s)))+"°"):
-    railFeedback.pulse>.17?"RAIL CONTACT · RECENTER": 
-    cue.visible&&!flight.gripActive?"GRIP + STEER RIGHT · PRECISION APEX":
-    flight.gripApexActive?"GRIP APEX · "+
-      (flight.gripActive?"PRECISION HOLD":"HOLD GRIP + STEER"):
-    flight.magneticActive?"MAGNETIC WALL · "+
-      Math.round(Math.abs(bankDegreesAt(flight.s)))+"°":
-    flight.gripActive?"GRIP · POWER CARVE":
-    racingExperience.flow>.28?"PRECISION FLOW · CLEAN CARVE":
-   flight.boostMultiplier>1.08?"BOOST · +"+Math.round((flight.boostMultiplier-1)*100)+"%":
-   Math.abs(curve)>.0016?
-     (curve<0?"LEFT":"RIGHT")+" SWEEP · "+section.name:
-     section.name+" · DIRECT CONTROL");
-}
-function maybeShowCue(){
- if(uiState.mode!=="playing")return;
- const localS=((flight.s%CIRCUIT.lapLength)+CIRCUIT.lapLength)%CIRCUIT.lapLength;
- if(isVault()){
-  for(const hint of [
-   {id:"vault-entry",start:178,end:199,text:"NEON VAULT · FLOW INTO THE S-LINK"},
-   {id:"vault-grip",start:740,end:770,text:"TECHNICAL CURVE AHEAD · GRIP IF NEEDED"},
-   {id:"vault-sweep",start:1315,end:1340,text:"GRAND SWEEP · HOLD A CLEAN LINE"},
-   {id:"vault-return",start:1710,end:1730,text:"MIRROR RUN · TUNNEL CONTINUES"}
-  ]){
-   if(localS>=hint.start&&localS<hint.end&&uiState.trackHint!==hint.id){
-    uiState.trackHint=hint.id;flashToast(hint.text,1250);
-   }
-  }
-  return;
- }
- if(isAurora()){
-  for(const hint of [
-   {id:"aurora-glass",start:192,end:215,text:"AURORA GLASS SWEEP · HOLD THE ARC"},
-   {id:"aurora-tunnel",start:858,end:880,text:"LUMEN PASS AHEAD · KEEP YOUR LINE"},
-   {id:"aurora-north",start:1150,end:1180,text:"NORTH SWITCHBACK · PREPARE GRIP"},
-   {id:"aurora-south",start:2860,end:2890,text:"SOUTH SWITCHBACK · EXIT CLEAN"}
-  ]){
-   if(localS>=hint.start&&localS<hint.end&&uiState.trackHint!==hint.id){
-    uiState.trackHint=hint.id;flashToast(hint.text,1350);
-   }
-  }
-  return;
- }
- for(const hint of [
-   {id:"opening",start:107,end:125,text:"FIRST SWEEP AHEAD · STEER INTO THE CORNER"},
-   // The persistent cue next to GRIP replaces a fleeting apex toast.
-   {id:"precision-apex",start:972,end:982,text:"GRIP APEX CLEAR · STRAIGHTEN UP"},
-   {id:"s-link",start:1114,end:1127,text:"S-COMPLEX · THREE RHYTHMIC BENDS"},
-   {id:"shadow",start:1960,end:1982,text:"SHADOW TUNNEL AHEAD · FOLLOW THE GLOW"},
-    {id:"magnetic",start:1596,end:1615,text:"MAGNETIC WALL AHEAD · HOLD YOUR LINE"},
-    {id:"corkscrew",start:2925,end:2950,text:"CORKSCREW AHEAD · FULL ROLL · STAY ON THE TRACK"}
- ]){
-   if(localS>=hint.start&&localS<hint.end&&
-      uiState.trackHint!==hint.id){
-     uiState.trackHint=hint.id;
-     flashToast(hint.text,1700);
-   }
- }
-}
+function refreshHud(){raceHud.refreshHud(flight,zoneWave,currentChallenge,timeTrialState,railFeedback,racingExperience);}
+function maybeShowCue(){raceHud.maybeShowCue(flight);}
 function integrate(dt){
  // A finish can occur midway through a multi-step 120Hz render frame.
  // Never award the same medal multiple times in that remaining frame.
@@ -4246,7 +4105,7 @@ function loop(now){
    const presentationDt=uiState.mode==="playing"?dt:0;
    if(uiState.mode==="playing"){
     stepRailFeedback(railFeedback,dt,flight.railContacting);
-    if(gripCueVisible)gripCueSeconds+=dt;
+    raceHud.advance(dt);
    }
    stepVelocityState(velocityState,presentationDt,flight.currentSpeed,
     flight.zoneCruiseSpeed,flight.boostMultiplier);
@@ -4863,154 +4722,10 @@ function exportAudit(){
      bloomStrength:NEON_TUNING.bloomStrength,
      bloomThreshold:NEON_TUNING.bloomThreshold},
 
-   run:{
-     status:flight.finished?"clear":"failed",distanceMeters:+flight.s.toFixed(1),
-     durationSeconds:+flight.elapsed.toFixed(2),shield:flight.shield,
-     jumps:flight.jumps,landings:flight.landings,falls:flight.falls,
-     steerSeconds:+flight.steerSeconds.toFixed(2),
-     steerReversals:flight.steerReversals,
-     maxBankDegrees:+flight.peakBankDeg.toFixed(2),
-      peakYawRateDegreesPerSecond:+flight.peakYawRateDeg.toFixed(2),
-      maxLateralMeters:+flight.maxLateral.toFixed(2),
-      steeringModel:"GRIP-first wide arcs / power carve with pilot-owned yaw and original input response",
-      gripActivations:flight.gripActivations,
-      gripActiveSeconds:+flight.gripActiveSeconds.toFixed(2),
-      gripDistanceMeters:+flight.gripDistanceMeters.toFixed(1),
-      gripSpeedLossMeters:+flight.gripSpeedLossMeters.toFixed(1),
-      gripPeakIntensity:+flight.gripPeakIntensity.toFixed(3),
-      gripPeakYawDeg:+flight.gripPeakYawDeg.toFixed(1),
-      racingFeel:{...RACING_FEEL,railFeedbackCount:railFeedback.contacts,
-       cueDisplays:gripCueDisplays,cueVisibleSeconds:+gripCueSeconds.toFixed(2),
-       peakRailFlash:railFeedback.maxPulse,
-       projection:PROJECTION_083,
-       railScrubIntensityPeak:+flight.railScrubPeak.toFixed(3)},
-      precisionFlow:racingExperienceAudit(racingExperience),
-      timeTrial:ghostAudit(timeTrialState),
-      skylineChallenges:{...CHALLENGE_RULES_0140,
-       progress:challengeSummary(challengeProgress),
-       active:currentChallenge?.id??null,lastResult:lastChallengeGrading},
-      gripApex:{...GRIP_APEX,
-       entries:flight.gripApexEntries,exits:flight.gripApexExits,
-       cleanExits:flight.gripApexCleanExits,
-       gripSeconds:+flight.gripApexGripSeconds.toFixed(2),
-       warningDisplays:gripCueDisplays,
-       warningVisibleSeconds:+gripCueSeconds.toFixed(2),
-       firstCornerMeters:160.13576152,
-       originalFirstCornerMeters:395.13576152,
-       wallToCorkscrewSpacingMeters:CORKSCREW.start-MAGNETIC_WALL.end},
-      speedMetersPerSecondStart:TRIAL.startSpeed,
-      boostPadIds:BOOST_PADS.map(p=>p.id),
-      boostActivations:flight.boostActivations,
-      boostTriggeredPadIds:[...flight.boostActivatedIds],
-      trackRiskReward:{...RISK_REWARD_0160,
-       gates:RHYTHM_GATES_0160.map(g=>({id:g.id,start:g.start,end:g.end,
-        safe:[g.safeMin,g.safeMax],risk:[g.riskMin,g.riskMax]})),
-       safeBoosts:flight.safeBoosts,riskBoosts:flight.riskBoosts,
-       gateSelections:[...flight.boostChoiceLog]},
-      boostMaxMultiplier:+flight.peakBoostMultiplier.toFixed(3),
-      boostActiveSeconds:+flight.boostActiveSeconds.toFixed(2),
-      boostTravelMeters:+flight.boostDistanceMeters.toFixed(1),
-      maxActualSpeedMetersPerSecond:+flight.peakSpeed.toFixed(2),
-      zoneSpeedStepPercent:+((TRIAL.zoneSpeedStep-1)*100).toFixed(1),
-      zoneCruiseTarget:+speedAt(flight.s,flight.zoneSpeedStage).toFixed(2),
-      zoneCruiseActual:+flight.zoneCruiseSpeed.toFixed(2),
-      zoneSpeedStage:flight.zoneSpeedStage,
-      zoneSpeedEvents:[...flight.zoneSpeedEvents],
-      track3D:elevationAudit(),
-      airTricks:{...AIR_TRICKS,simulatedAtHz:120,
-       visualRollIsPilotDriven:true,freeJumpPhysicsUnchanged:false,
-       triggerControl:"Hold GRIP + steer while airborne",
-       sideThrustersSharedWithGroundGrip:true,
-       contextualTrickButtonHidden:true,
-       expandedLeapMeters:SKYLINE_LEAP.landingClearance,
-       boostRequiresFullRotationAndCleanLanding:true},
-       corkscrew:{...CORKSCREW,
-        physicalRoad:true,surfaceNormalAdhesion:true,
-        independentManualSteering:true,additionalDrawCalls:0,
-        peakDegrees:+flight.corkscrewPeakDegrees.toFixed(1),
-        ceilingSeconds:+flight.corkscrewCeilingSeconds.toFixed(2)},
-       magneticWall:{...MAGNETIC_WALL,physicalSurface:true,
-        shaderExtraBatches:0,peakBankDegrees:flight.magneticPeakDegrees},
-      gapCount:GAPS.length,
-      actualLeapLaunches:flight.autoLaunches,
-      cleanLeapLandings:flight.cleanLeapLandings,
-      airTrickAttempts:flight.trickAttempts,
-      airTrickFullRotations:flight.trickFullRotations,
-      airTrickQualifiedLandings:flight.trickQualifiedLandings,
-      airTrickRejectedLandings:flight.trickRejectedLandings,
-      airTrickSeconds:+flight.trickAirSeconds.toFixed(3),
-      airTrickPeakDegrees:+flight.trickPeakDegrees.toFixed(1),
-      landingBoostActivations:flight.landingBoostActivations,
-      landingBoostSeconds:+flight.landingBoostSeconds.toFixed(3),
-      landingBoostDistanceMeters:+flight.landingBoostDistanceMeters.toFixed(1),
-      landingBoostPeakMultiplier:+flight.landingBoostPeakMultiplier.toFixed(3),
-      airborneSeconds:+flight.airborneSeconds.toFixed(2),
-      peakAirHeightMeters:+flight.peakAirHeightMeters.toFixed(2),
-      expectedCircuitDurationSeconds:TRIAL.targetDurationSeconds,
-      circuit:circuitPlanSummary(),
-      lapLengthMeters:CIRCUIT.lapLength,raceDistanceMeters:TRIAL.raceLength,
-      lapsRequired:CIRCUIT.laps,lapsCompleted:flight.lapsCompleted,
-      lapTimesSeconds:[...flight.lapTimes],
-      checkpointsPassed:flight.checkpointsPassed,noTrackBanking:false,
-       magneticEntries:flight.magneticEntries,
-       magneticExits:flight.magneticExits,
-       magneticCleanExits:flight.magneticCleanExits,
-       magneticSeconds:+flight.magneticSeconds.toFixed(2),
-       magneticDistanceMeters:+flight.magneticDistanceMeters.toFixed(1),
-       magneticPeakDegrees:+flight.magneticPeakDegrees.toFixed(1),
-       corkscrewEntries:flight.corkscrewEntries,
-       corkscrewExits:flight.corkscrewExits,
-       corkscrewCleanExits:flight.corkscrewCleanExits,
-       corkscrewSeconds:+flight.corkscrewSeconds.toFixed(2),
-       corkscrewDistanceMeters:+flight.corkscrewDistanceMeters.toFixed(1),
-       corkscrewCeilingSeconds:+flight.corkscrewCeilingSeconds.toFixed(2),
-       corkscrewPeakDegrees:+flight.corkscrewPeakDegrees.toFixed(1),
-      speedMetersPerSecondEnd:TRIAL.endSpeed,
-      speedMultiplierVs042:+(TRIAL.endSpeed/22).toFixed(2),
-      maxYawDegreesPerSecond:+(TRIAL.maxYawRate*STEERING_AUTHORITY.fullGripFactor*180/Math.PI).toFixed(1),
-      courseSegments:COURSE_SEGMENTS.length,
-      curveCount:COURSE_SEGMENTS.filter(c=>c.type==="turn").length,
-     maxHeadingErrorDegrees:+flight.maxHeadingErrorDeg.toFixed(1),
-     averageHeadingErrorDegrees:flight.headingSamples?
-       +(flight.totalHeadingError/flight.headingSamples).toFixed(1):null,
-     offRoadSeconds:+flight.offRoadSeconds.toFixed(2),
-     railContacts:flight.railContacts,
-     railContactStarts:flight.railContactStarts,
-     railScrubSeconds:+flight.railScrubSeconds.toFixed(2),
-     railScrubLossMeters:+flight.railScrubLossMeters.toFixed(2),
-     railSeconds:+flight.railSeconds.toFixed(2),
-     railMaxPenetrationMeters:+flight.railMaxPenetration.toFixed(3),
-     railHeadingCorrections:flight.railHeadingCorrections,
-     railMaxBlockedYawDegrees:+(flight.railPeakBlockedAngle*180/Math.PI).toFixed(1),
-     reverseProjectionTicks:flight.reverseProjectionTicks,
-     railMaxInstantCorrectionDegrees:+(flight.railMaxInstantCorrection*180/Math.PI).toFixed(2),
-     railMaxSingleStepYawDegrees:+(flight.railMaxSingleStepYaw*180/Math.PI).toFixed(2),
-     railGripBlockedTicks:flight.railGripBlockedTicks,
-     gripPreArmTicks:flight.gripPreArmTicks,
-     gripYawSuppressedTicks:flight.gripYawSuppressedTicks,
-     railContactDiagnostics:flight.railContactDiagnostics.slice(),
-     manualSteering:true,
-     routeChoice:flight.routeChoice,
-     riskRouteStyleBonus:0,
-     fpsAverage:timing.fpsAverage?Math.round(timing.fpsAverage):null,
-     fpsMinimum:worstMs?Math.round(1000/worstMs):null,
-     frameMsP95:timing.frameMsP95?+timing.frameMsP95.toFixed(1):null,
-     frameMsP99:timing.frameMsP99?+timing.frameMsP99.toFixed(1):null,
-     renderCpuAverageMs:timing.renderCpuAverageMs?
-       +timing.renderCpuAverageMs.toFixed(2):null,
-     renderCpuPeakMs:+timing.renderCpuPeakMs.toFixed(2),
-     interpolationEnabled:true,
-     physicsSteps:raceSimulation.clock.totalSteps,
-     maxPhysicsStepsPerFrame:raceSimulation.clock.stepsPeak,
-     droppedSimulationSeconds:+raceSimulation.clock.droppedSeconds.toFixed(3),
-     gapClears:[...flight.clearedGaps],failedJumpEdges:flight.failedJumps
-   },events:telemetry
+   run:createRunAudit({flight,railFeedback,gripCueDisplays:raceHud.gripCueDisplays,gripCueSeconds:raceHud.gripCueSeconds,PROJECTION_083,RACING_FEEL,racingExperienceAudit,racingExperience,ghostAudit,timeTrialState,CHALLENGE_RULES_0140,challengeSummary,challengeProgress,currentChallenge,lastChallengeGrading,GRIP_APEX,CORKSCREW,MAGNETIC_WALL,TRIAL,BOOST_PADS,RISK_REWARD_0160,RHYTHM_GATES_0160,speedAt,elevationAudit,AIR_TRICKS,SKYLINE_LEAP,GAPS,circuitPlanSummary,CIRCUIT,STEERING_AUTHORITY,COURSE_SEGMENTS,timing,worstMs,raceSimulation}),
+   events:raceTelemetry.events
  };
- const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
- const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="skyshift-v01348-performance-"+perfSettings.preset+"-audit.json";
- document.body.appendChild(a);a.click();a.remove();
- setTimeout(()=>URL.revokeObjectURL(url),1800);
+ downloadRaceAudit(data,perfSettings.preset,{Blob,URL,document,setTimeout});
 }
 function installFlightTuningPanel(){
  // The regular mobile interface stays clean. Developers opt in with ?flightlab=1.
@@ -5271,79 +4986,8 @@ function installControls(){
   location.assign(address.toString());
  });
  UI.export.addEventListener("click",exportAudit);
- addEventListener("keydown",e=>{
-   if(["Space","ArrowUp","ArrowRight","ArrowLeft","KeyA","KeyD","ShiftLeft","ShiftRight"].includes(e.code))
-     e.preventDefault();
-   if(e.code==="Space"&&!e.repeat && uiState.mode==="playing"){
-     uiState.jumpPressed=true;uiState.jumpHeld=true;
-   }
-   if(e.code==="KeyP"||e.code==="Escape") {
-     if(uiState.mode==="playing")pause();
-     else if(uiState.mode==="paused")resume();
-     else if(e.code==="Escape"&&uiState.mode==="settings")closeSettings();
-   }
-   if(e.code==="Enter"&&uiState.mode==="menu")enterPlaying(null);
-   uiState.keys.add(e.code);
- });
- addEventListener("keyup",e=>{
-   uiState.keys.delete(e.code);
-   if(e.code==="Space")uiState.jumpHeld=false;
- });
- function jumpRelease(){
-   uiState.jumpHeld=false;UI.jump.classList.remove("held");
- }
- UI.jump.addEventListener("pointerdown",e=>{
-   e.preventDefault();UI.jump.setPointerCapture(e.pointerId);
-   uiState.jumpPressed=true;uiState.jumpHeld=true;
-   UI.jump.classList.add("held");
- });
- UI.jump.addEventListener("pointerup",jumpRelease);
- UI.jump.addEventListener("pointercancel",jumpRelease);
- UI.jump.addEventListener("lostpointercapture",jumpRelease);
- // Separate pointer captures permit simultaneous left-stick steering and
- // right-thumb GRIP. Cancellation, pause, focus loss always release safely.
- function releaseGrip(e){
-   if(e&&uiState.gripPointer!==e.pointerId)return;
-   uiState.gripHeld=false;uiState.gripPointer=null;
-   UI.grip.classList.remove("armed","active");
-   UI.grip.setAttribute("aria-pressed","false");
-   UI.controls.classList.remove("grip-pressed");
- }
- UI.grip.addEventListener("pointerdown",e=>{
-   if(uiState.mode!=="playing")return;
-   e.preventDefault();
-   uiState.gripPointer=e.pointerId;uiState.gripHeld=true;
-   UI.grip.setPointerCapture(e.pointerId);
-   UI.grip.classList.add("armed");
-   UI.controls.classList.add("grip-pressed");
- });
- UI.grip.addEventListener("pointerup",releaseGrip);
- UI.grip.addEventListener("pointercancel",releaseGrip);
- UI.grip.addEventListener("lostpointercapture",releaseGrip);
- function steer(e){
-   const rect=UI.stick.getBoundingClientRect();
-   uiState.inputX=clamp((e.clientX-(rect.left+rect.width*.5))/59,-1,1);
-   UI.knob.style.transform="translateX("+(uiState.inputX*49).toFixed(1)+"px)";
- }
- function steerRelease(e){
-   if(uiState.stickPointer!==e.pointerId)return;
-   uiState.stickPointer=null;uiState.inputX=0;
-   UI.knob.style.transform="translateX(0px)";
- }
- UI.stick.addEventListener("pointerdown",e=>{
-   e.preventDefault();uiState.stickPointer=e.pointerId;
-   UI.stick.setPointerCapture(e.pointerId);steer(e);
- });
- UI.stick.addEventListener("pointermove",e=>{
-   if(e.pointerId===uiState.stickPointer)steer(e);
- });
- UI.stick.addEventListener("pointerup",steerRelease);
- UI.stick.addEventListener("pointercancel",steerRelease);
- UI.stick.addEventListener("lostpointercapture",steerRelease);
- addEventListener("blur",()=>{if(uiState.mode==="playing")pause();});
- document.addEventListener("visibilitychange",()=>{
-   if(document.hidden&&uiState.mode==="playing")pause();
- });
+ installRaceInput({UI,uiState,clamp,addEventListener:(...args)=>window.addEventListener(...args),
+  document,pause,resume,closeSettings,enterPlaying});
 }
 try{
  // Wire the buttons before costly WebGL scene construction.

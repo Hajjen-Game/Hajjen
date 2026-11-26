@@ -168,3 +168,56 @@ test('EF04 camera and ship presentation preserve original transform formulas and
  assert.match(live,/chaseCameraController\.snap\(flight,motionState,cinematicState,true\)/);
  assert.doesNotMatch(live,/\b(?:CAMERA_INFO|CAMERA_VIEW|CAMERA_BASE_POSITION|CAMERA_TARGET_POSITION|CAMERA_TARGET_LOOK|SHADOW_NORMAL|SHADOW_PLANE_NORMAL)\b/);
 });
+
+import {clearRaceInput,installRaceInput} from '../../ui/race-input.mjs';
+import {createRaceTelemetry} from '../../core/race-diagnostics.mjs';
+
+test('EF04 keyboard and touch input ownership preserves simultaneous GRIP and steering, cancellation and pause',()=>{
+ const element=()=>{
+  const handlers=new Map(),classes=new Set(),attrs=new Map();
+  return {handlers,classes,attrs,style:{setProperty(){}},classList:{add:(...a)=>a.forEach(x=>classes.add(x)),remove:(...a)=>a.forEach(x=>classes.delete(x))},
+   addEventListener:(k,fn)=>handlers.set(k,fn),setAttribute:(k,v)=>attrs.set(k,v),setPointerCapture(){},
+   getBoundingClientRect:()=>({left:0,width:118})};
+ };
+ const UI=Object.fromEntries(['gripCue','grip','hud','knob','jump','controls','stick'].map(k=>[k,element()]));
+ const uiState={mode:'playing',inputX:0,keys:new Set()};
+ const globalHandlers=new Map(),document=element();
+ const pause=()=>{uiState.mode='paused';clearRaceInput(UI,uiState);};
+ installRaceInput({UI,uiState,clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),
+  addEventListener:(k,fn)=>globalHandlers.set(k,fn),document,pause,resume:()=>uiState.mode='playing',
+  closeSettings:()=>uiState.mode='menu',enterPlaying:()=>uiState.mode='playing'});
+ const e=(pointerId,clientX=59)=>({pointerId,clientX,preventDefault(){}});
+ UI.stick.handlers.get('pointerdown')(e(1,118));
+ UI.grip.handlers.get('pointerdown')(e(2));
+ assert.equal(uiState.inputX,1);assert.equal(uiState.gripHeld,true);
+ UI.grip.handlers.get('pointercancel')(e(3));assert.equal(uiState.gripHeld,true);
+ UI.grip.handlers.get('lostpointercapture')(e(2));assert.equal(uiState.gripHeld,false);
+ assert.equal(uiState.inputX,1);
+ UI.stick.handlers.get('pointerup')(e(1));assert.equal(uiState.inputX,0);
+ globalHandlers.get('keydown')({code:'KeyD',preventDefault(){}});
+ assert.equal(readRaceInput(uiState).steer,.74);
+ globalHandlers.get('blur')();assert.equal(uiState.mode,'paused');
+ assert.equal(uiState.keys.size,0);assert.equal(uiState.gripPointer,null);
+ assert.equal(UI.knob.style.transform,'translateX(0px)');
+});
+test('EF04 diagnostics preserve telemetry rounding, order, property precedence and reset',()=>{
+ const t=createRaceTelemetry(),f={s:5.4,elapsed:1.23456};
+ t.record(f,'launch',{pad:'test'});t.record(f,'other',{s:99});
+ assert.deepEqual(t.events,[{type:'launch',s:5,t:1.235,pad:'test'},{type:'other',s:99,t:1.235}]);
+ t.reset();assert.deepEqual(t.events,[]);
+});
+test('EF04 HUD, input and exported run report retain original computation bodies',()=>{
+ const old=readHistoricalGameMigrationSource();
+ const read=p=>readFileSync(new URL('../../'+p,import.meta.url),'utf8');
+ const slice=(a,b)=>{const start=old.indexOf(a);const end=old.indexOf(b,start+1);assert.ok(start>=0&&end>start);return old.slice(start+a.length,end);};
+ const input=read('ui/race-input.mjs'),hud=read('ui/race-hud.mjs'),audit=read('core/race-diagnostics.mjs'),live=read('game-v0210.mjs');
+ assert.ok(input.includes(slice('function clearInput(){\n','\n}\nfunction resetFlight(){')));
+ assert.ok(input.includes(slice(' UI.export.addEventListener("click",exportAudit);\n','\n}\ntry{\n // Wire the buttons')));
+ assert.ok(hud.includes(slice('function refreshHud(){\n','\n}\nfunction maybeShowCue(){')));
+ assert.ok(hud.includes(slice('function maybeShowCue(){\n','\n}\nfunction integrate(dt){')));
+ const prior=slice('   run:{','\n   },events:telemetry').replaceAll('frameClock.','raceSimulation.clock.');
+ assert.ok(audit.includes(prior),'Original run report fields and calculations');
+ assert.match(live,/installRaceInput\(\{UI,uiState/);
+ assert.match(live,/raceHud\.refreshHud\(flight,zoneWave/);
+ assert.match(live,/run:createRunAudit\(\{/);
+});

@@ -47,7 +47,7 @@ export async function captureEF07Profile({browser,out}){
      const page=await context.newPage(),errors=[];
      page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('renderer crash'));
      page.on('console',m=>{if(m.type()==='error'&&/THREE.WebGLProgram|shader error|INVALID_OPERATION|context lost|startup failed/i.test(m.text()))errors.push(m.text());});
-     const url='http://127.0.0.1:8923/Hajjen/skyshift/?track=vault&v=0.28.9.7&startupAudit=1&trackRepairSmoke=1&perf=1&perfPreset='+preset+(variant==='native-frame'?'&ef07NativeFrame=1':'')+(['baseline','native-frame'].includes(variant)?'&ef07GeometryDigest=1':'');
+     const url='http://127.0.0.1:8923/Hajjen/skyshift/?track=vault&v=0.28.9.7&startupAudit=1&trackRepairSmoke=1&perf=1&perfPreset='+preset+(variant==='native-frame'?(memory===8?'&ef07NativeFrame=1':''):'&ef07NativeFrame=0')+'&ef07GeometryDigest=1';
      await page.goto(url,{waitUntil:'domcontentloaded',timeout:80000});
      await page.waitForFunction(()=>['ready','failed'].includes(window.__skyshiftBoot?.phase),null,{timeout:220000});
      const startup=await page.evaluate(()=>window.__skyshiftStartupAudit());
@@ -78,14 +78,14 @@ export async function captureEF07Profile({browser,out}){
       assert.equal(pose.track,'vault');assert.ok(pose.withinPhysicalRoll);
       await rawFrames(page,3);
       const windows=[await rawFrames(page,8),await rawFrames(page,8)];
-      const current=await page.evaluate(()=>({probe:window.__skyshiftPerfProbe(),startup:window.__skyshiftStartupAudit()}));
+      const current=await page.evaluate(()=>({probe:window.__skyshiftPerfProbe(),startup:window.__skyshiftStartupAudit(),work:window.__skyshiftEF07RenderWork()}));
       const surface=await page.evaluate(()=>{const c=document.querySelector('canvas'),gl=c.getContext('webgl2');return {width:c.width,height:c.height,lost:gl.isContextLost()};});
       assert.ok(!surface.lost&&surface.width>100&&surface.height>100);
       row.held.push({station,windows,all:summarize(windows.flatMap(w=>w.intervals)),
-       renderer:current.startup.renderer,gpu:current.probe.gpu,profilerCumulative:current.probe.summary,surface});
+       renderer:current.startup.renderer,renderWork:current.work,gpu:current.probe.gpu,profilerCumulative:current.probe.summary,surface});
      }
      assert.deepEqual(errors,[],memory+'GB '+preset+' runtime errors');
-     console.log('SKYSHIFT_EF07_PROFILE '+JSON.stringify({memory,index,preset,variant,startup:row.startup,digest:row.digest,nativeFrame:row.nativeFrame,flight:row.flight[0],held:row.held.map(x=>({station:x.station,all:x.all,renderer:x.renderer,gpu:x.gpu}))}));
+     console.log('SKYSHIFT_EF07_PROFILE '+JSON.stringify({memory,index,preset,variant,startup:row.startup,digest:row.digest,nativeFrame:row.nativeFrame,flight:row.flight[0],held:row.held.map(x=>({station:x.station,all:x.all,renderer:x.renderer,renderWork:x.renderWork,gpu:x.gpu}))}));
      save();
     }finally{await context.close();}
    }
@@ -101,6 +101,29 @@ export async function captureEF07Profile({browser,out}){
    const candidate=native.startup.durations.sharedTunnelMs;
    const startupComparison={memory,baselineTunnelMs:times,candidateTunnelMs:candidate,baselineDriftMs:round(Math.abs(times[0]-times[1])),deltaVsBracketMeanMs:round(candidate-(times[0]+times[1])/2),sameGeometry:true,nativeFrame:native.nativeFrame};
    report.comparisons.push(startupComparison);console.log('SKYSHIFT_EF07_NATIVE_STARTUP '+JSON.stringify(startupComparison));
+   if(memory===4){
+    const repeats=[];
+    for(const variant of ['native-frame','baseline','baseline','native-frame']){
+     const context=await browser.newContext({viewport:{width:1280,height:720},deviceScaleFactor:1});
+     try{
+      await context.addInitScript(()=>Object.defineProperty(navigator,'deviceMemory',{configurable:true,get:()=>4}));
+      const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('renderer crash'));
+      // Candidate exercises ordinary player startup, without perf or diagnostic opt-in.
+      const url='http://127.0.0.1:8923/Hajjen/skyshift/?track=vault&v=0.28.9.7&startupAudit=1'+(variant==='baseline'?'&perf=1&ef07NativeFrame=0':'');
+      await page.goto(url,{waitUntil:'domcontentloaded',timeout:80000});
+      await page.waitForFunction(()=>['ready','failed'].includes(window.__skyshiftBoot?.phase),null,{timeout:220000});
+      const audit=await page.evaluate(()=>window.__skyshiftStartupAudit());
+      assert.equal(audit.phase,'ready');assert.ok(audit.scene.pmremActive);assert.equal(audit.scene.sharedTunnelModules,10);
+      if(variant==='native-frame'){assert.ok(audit.nativeFrameExperiment?.calls>0);assert.equal(audit.nativeFrameExperiment.resident,0);assert.equal(audit.nativeFrameExperiment.active,false);}else assert.equal(audit.nativeFrameExperiment,null);
+      assert.deepEqual(errors,[]);
+      repeats.push({variant,bootMs:audit.browserBootMs,tunnelMs:audit.durations.sharedTunnelMs,nativeFrame:audit.nativeFrameExperiment});
+     }finally{await context.close();}
+    }
+    const controls=repeats.filter(r=>r.variant==='baseline').map(r=>r.tunnelMs),candidates=repeats.filter(r=>r.variant==='native-frame').map(r=>r.tunnelMs);
+    const result={memory,repeatBoots:repeats,allControlTunnelMs:[...times,...controls],allCandidateTunnelMs:[candidate,...candidates],worstCandidateMs:Math.max(candidate,...candidates),bestControlMs:Math.min(...times,...controls)};
+    report.comparisons.push(result);save();console.log('SKYSHIFT_EF07_NATIVE_REPEAT '+JSON.stringify(result));
+    assert.ok(result.worstCandidateMs<result.bestControlMs*.85,'4GB default must retain clear repeated tunnel construction benefit');
+   }
    save();
   }
  }finally{save();}

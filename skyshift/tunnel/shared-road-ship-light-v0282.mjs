@@ -30,23 +30,36 @@ const sourceNames=["roadCyanLeft0263","roadCyanRight0263",
  "roadArcTangent0263","roadFixtureMasks0263"];
 const disabled=reason=>({active:false,setComparison(){},update(){},
  attachShip(){},stats:()=>({active:false,version:"0.28.2",reason}),dispose(){}});
-export function createSharedSourceSampler0282(positionAt,trackLength){
+export function createSharedSourceSampler0282(positionAt,trackLength,modules){
  if(typeof positionAt!=="function"||!(trackLength>0))
   throw Error("0.28.2 needs original banked positionAt and track length");
- const modules=planTrueSharedTunnel0281(trackLength);
+ modules=modules??planTrueSharedTunnel0281(trackLength);
+ if(!Array.isArray(modules)||modules.some((m,i)=>m.index!==i||
+  !Number.isFinite(m.start)||!Number.isFinite(m.end)||m.start<0||
+  m.end>trackLength||m.end<=m.start||(i>0&&m.start<modules[i-1].end)||
+  !(m.scale>0)||!(m.sourceMeters>0)))throw Error("EF05 invalid source module plan");
  const count=modules.length,meters=trackLength/count;
+ const fullCourse=count>0&&modules[0].start===0&&modules[count-1].end===trackLength&&
+  modules.every((m,i)=>i===0||m.start===modules[i-1].end);
+ const uniform=fullCourse&&modules.every((m,i)=>m.start===i*meters);
+ const atModule=modules.map(m=>adaptSourcePosition0281(positionAt,m));
  const localFor=s=>{
   if(!Number.isFinite(s))throw Error("0.28.2 source requires finite distance");
   const d=clamp(s,0,trackLength-1e-6);
-  const index=Math.min(count-1,Math.floor(d/meters));
+  const index=uniform?Math.min(count-1,Math.floor(d/meters)):
+   modules.findIndex(m=>d>=m.start&&d<m.end);
+  if(index<0)return null;
   const module=modules[index],sourceS=(d-module.start)/module.scale;
-  const originalPosition=adaptSourcePosition0281(positionAt,module);
+  const originalPosition=atModule[index];
   return {index,module,s:sourceS,at:originalPosition};
  };
  const physical=(local,warm,side,s)=>
   fixturePosition0263(s,side,warm,local.at,false);
  const nearest=s=>{
-  const local=localFor(s),fixtures=nearestRoadFixtures0263(local.s);
+  const local=localFor(s);
+  if(!local)return {local:null,fixtures:{cyan:null,amber:null,cyanWeight:0,amberWeight:0},
+   cyanLeft:[0,0,0],cyanRight:[0,0,0],amberLeft:[0,0,0],amberRight:[0,0,0]};
+  const fixtures=nearestRoadFixtures0263(local.s);
   const world=(type,side)=>{
    const part=type==="cyan"?fixtures.cyan:fixtures.amber;
    return part?physical(local,type==="amber",side,part.s):[0,0,0];
@@ -55,21 +68,21 @@ export function createSharedSourceSampler0282(positionAt,trackLength){
    cyanRight:world("cyan",1),amberLeft:world("amber",-1),
    amberRight:world("amber",1)};
  };
- return Object.freeze({modules,localFor,nearest,trackLength});
+ return Object.freeze({modules,localFor,nearest,trackLength,fullCourse});
 }
-export function buildSharedRoadSourceData0282(geometry,positionAt,trackLength){
+export function buildSharedRoadSourceData0282(geometry,positionAt,trackLength,source=createSharedSourceSampler0282(positionAt,trackLength)){
  const coord=geometry?.getAttribute?.("aTrackCoord"),
   pos=geometry?.getAttribute?.("position");
  if(!coord||!pos||coord.count!==pos.count)
   throw Error("0.28.2 requires the existing indexed banked deck");
- const source=createSharedSourceSampler0282(positionAt,trackLength);
+ if(source.trackLength!==trackLength)throw Error("EF05 source track length mismatch");
  const count=coord.count,vectors={};
  for(const name of sourceNames)
   vectors[name]=new Float32Array(count*(name==="roadFixtureMasks0263"?2:3));
  const cache=new Map(),at=(s)=>source.localFor(s);
  let litCount=0;
  for(let i=0;i<count;i++){
-  const s=coord.getX(i),local=at(s),f=nearestRoadFixtures0263(local.s);
+  const s=coord.getX(i),local=at(s);
   const sa=clamp(s-.7,0,trackLength),sb=clamp(s+.7,0,trackLength);
   const p0=positionAt(sa,0,0),p1=positionAt(sb,0,0);
   const dx=p1.x-p0.x,dy=p1.y-p0.y,dz=p1.z-p0.z;
@@ -77,6 +90,8 @@ export function buildSharedRoadSourceData0282(geometry,positionAt,trackLength){
   if(length<.0001||!Number.isFinite(length))
    throw Error("0.28.2 nonfinite 3D road tangent");
   vectors.roadArcTangent0263.set([dx/length,dy/length,dz/length],3*i);
+  if(!local)continue;
+  const f=nearestRoadFixtures0263(local.s);
   for(const [name,type,side] of [
    ["roadCyanLeft0263","cyan",-1],["roadCyanRight0263","cyan",1],
    ["roadAmberLeft0263","amber",-1],["roadAmberRight0263","amber",1]]){
@@ -97,7 +112,7 @@ export function buildSharedRoadSourceData0282(geometry,positionAt,trackLength){
   modules:source.modules.length,source};
 }
 export function installSharedRoadReflections0282(THREE,world,{
- enabled=false,positionAt,trackLength,lowMemory=false
+ enabled=false,positionAt,trackLength,lowMemory=false,sourceSampler=null
 }={}){
  if(!enabled)return disabled("inactive");
  const road=world?.getObjectByName?.("Zone Ribbon · integrated PBR racing deck");
@@ -107,9 +122,17 @@ export function installSharedRoadReflections0282(THREE,world,{
  const geo=road.geometry,keys=[];
  let restore=null;
  try{
-  const data=buildSharedRoadSourceData0282(geo,positionAt,trackLength);
-  if(data.modules!==10&&trackLength===3400)
-   throw Error("0.28.2 source modules not aligned to Vault");
+  const sampler=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);
+  if(!sampler.modules.length)return disabled("no tunnel sources");
+  // Merge adjacent art modules: only tunnel entrances/exits fade,
+  // never the seams between source modules.
+  const sections=[];
+  if(!sampler.fullCourse)for(const m of sampler.modules){
+   const last=sections.at(-1);
+   if(last&&Math.abs(last.end-m.start)<1e-8)last.end=m.end;
+   else sections.push({start:m.start,end:m.end});
+  }
+  const data=buildSharedRoadSourceData0282(geo,positionAt,trackLength,sampler);
   if(sourceNames.some(n=>geo.getAttribute(n)))
    throw Error("0.28.2 legacy GGX road already attached");
   for(const n of sourceNames){
@@ -121,12 +144,13 @@ export function installSharedRoadReflections0282(THREE,world,{
   // Reuses the exact Skyline 0.26.3 RE_Direct GGX shader; the fullTunnel
   // adapter only removes Skyline's original 368m hard-coded fade.
   restore=installCinematicRoadRebuildShader0263(road.material,gain,{
-   mobile:lowMemory,fullTunnel:true
+   mobile:lowMemory,fullTunnel:true,...(sampler.fullCourse?{}:{sections})
   });
   return {active:true,setComparison:v=>gain.value=clamp(v,0,1),
    update(){},
    stats:()=>({active:true,version:"0.28.2",
     roadOriginalNativeGGX:true,roadFullLengthMeters:trackLength,
+    sectionAwareExteriorSeal:!sampler.fullCourse,
     sourceModules:data.modules,sourceVertices:data.count,
     litVertices:data.litCount,fixtureCachePositions:data.sourcePositions,
     cyanSamples:lowMemory?2:4,amberSamples:lowMemory?1:2,
@@ -190,12 +214,13 @@ export function patchSharedShipHull0282(fragment){
   .replace(lights,lights+"\n"+source);
 }
 export function installSharedShipLight0282(THREE,{
- enabled=false,positionAt,trackLength,lowMemory=false
+ enabled=false,positionAt,trackLength,lowMemory=false,sourceSampler=null
 }={}){
  if(!enabled)return disabled("inactive");
  if(!THREE?.Vector3||!THREE?.Color||typeof positionAt!=="function")
   return disabled("ship source prerequisites absent");
- const sampler=createSharedSourceSampler0282(positionAt,trackLength);
+ const sampler=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);
+ if(sampler.trackLength!==trackLength)throw Error("EF05 source track length mismatch");
  const cyanLeft={value:new THREE.Vector3()},cyanRight={value:new THREE.Vector3()},
   amberLeft={value:new THREE.Vector3()},amberRight={value:new THREE.Vector3()},
   weights={value:new THREE.Vector2(0,0)},strength={value:1};

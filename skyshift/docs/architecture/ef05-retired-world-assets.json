@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "archiveCommit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+  "verifiedHead": "7be30e2fd1b88076654b6a2dcd168161ee0c00f2",
+  "verificationRun": 45824411347,
+  "files": [
+    {
+      "path": "skyshift/assets/worlds/continuum-architecture-v7.gltf",
+      "sha": "72c321d8ccc63a89b069e9c6f68d828fb160dacd",
+      "bytes": 448452
+    },
+    {
+      "path": "skyshift/assets/worlds/continuum-bays-v1.gltf",
+      "sha": "e3915b24a4154190f4eb643b05020a7f9d5833c8",
+      "bytes": 217807
+    },
+    {
+      "path": "skyshift/assets/worlds/continuum-enclosure-bays-v2.gltf",
+      "sha": "06b63951bb038f8526c1f2742ded1a124970a855",
+      "bytes": 254170
+    },
+    {
+      "path": "skyshift/assets/worlds/continuum-graphite-bays-v5.gltf",
+      "sha": "7644cf55799eb2cd4bcb6a63a280f62900b73cce",
+      "bytes": 276799
+    },
+    {
+      "path": "skyshift/assets/worlds/continuum-neon-bays-v5.gltf",
+      "sha": "11a711e9ea6fb1f789614e0f6bf936ac2a876a74",
+      "bytes": 325359
+    },
+    {
+      "path": "skyshift/assets/worlds/continuum-neon-sculpted-v6.gltf",
+      "sha": "9c9ca5324289fa30f2bb7cac39bc7b22439cd662",
+      "bytes": 332278
+    },
+    {
+      "path": "skyshift/assets/worlds/continuum-observation-bays-v3.gltf",
+      "sha": "88c984ea9799a46263ecaeb2998753c72caa290f",
+      "bytes": 254174
+    },
+    {
+      "path": "skyshift/assets/worlds/continuum-ribbon-bays-v4.gltf",
+      "sha": "d67aae2b536102878b805130928ab1d1e48f038b",
+      "bytes": 276801
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import {cp,mkdir,readFile,writeFile,rm,lstat} from 'node:fs/promises';
 import {resolve,dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
+import {readArchivedWorldAsset} from './archived-world-assets.mjs';
 const here=dirname(fileURLToPath(import.meta.url)),repo=resolve(here,'../..'),site=join(here,'site'),dist=join(here,'dist');
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const git=(...args)=>execFileSync('git',args,{cwd:repo,maxBuffer:16*1024*1024}).toString();
@@ -41,7 +42,15 @@ for(const path of kept){
  if(otherEntries.includes(path)||['skyshift/material-grade-v0203.html','skyshift/boot-v0210.js','skyshift/game-v0210.mjs'].includes(path))preserved.push({path,sha256:a});
 }
 preserved.push({path:legacy,sha256:sha(source)});
-const publication={schema:1,commit,sourceVersion:report.sourceVersion,production:report.files.filter(x=>!x.path.startsWith('.vite/')).map(x=>({...x,path:'skyshift/'+x.path})),preserved,keptFiles:kept.length,excludedBuildOrCiFiles:excluded.length};
+for(const f of report.comparisonAssets){
+ const path='skyshift/'+f.path;
+ assert.ok(!tracked.includes(path),path+' retired from tracked source');
+ const bytes=readArchivedWorldAsset(path);assert.equal(bytes.length,f.bytes);assert.equal(sha(bytes),f.sha256);
+ const dest=join(site,path);await mkdir(dirname(dest),{recursive:true});await writeFile(dest,bytes,{flag:'wx'});
+ assert.ok(!report.files.some(x=>x.path===f.path),path+' comparison asset excluded from production artifact');
+ preserved.push({path,sha256:f.sha256});
+}
+const publication={schema:1,commit,sourceVersion:report.sourceVersion,productionCatalog:report.productionCatalog,production:report.files.filter(x=>!x.path.startsWith('.vite/')).map(x=>({...x,path:'skyshift/'+x.path})),preserved,keptFiles:kept.length,excludedBuildOrCiFiles:excluded.length};
 assert.ok(!tracked.includes('skyshift/publication.json'));
 await writeFile(join(site,'skyshift/publication.json'),JSON.stringify(publication,null,2)+'\n');
 console.log('SKYSHIFT_EF03_PAGES '+JSON.stringify({commit,preserved:kept.length-1,otherEntries,productionFiles:publication.production.length,excluded:excluded.length}));

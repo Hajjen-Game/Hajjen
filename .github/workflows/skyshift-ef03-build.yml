@@ -23,6 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Fetch immutable station comparison archive
+        run: git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
       - name: Reproducible install from committed lock
         run: npm ci --no-audit --no-fund && npm ls --depth=0
       - name: Build and verify actual production artifact

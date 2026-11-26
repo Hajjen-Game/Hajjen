@@ -82,8 +82,9 @@ const nearestPortal=s=>TUNNEL_PORTALS_0211.reduce((best,p)=>
  Math.abs(p-s)<Math.abs(best-s)?p:best,TUNNEL_PORTALS_0211[0]);
 const pulse=(distance,sigma)=>Math.exp(-Math.pow(distance/sigma,2));
 export function createUnifiedSourceRegistry02894(positionAt,trackLength,{
- lowMemory=false}={}){
- const sampler=createSharedSourceSampler0282(positionAt,trackLength);
+ lowMemory=false,sourceSampler=null,straightMask=vaultStraightMask02891}={}){
+ const sampler=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);
+ if(sampler.trackLength!==trackLength)throw Error("EF05 source track length mismatch");
  const cache=new Map();
  const at=(local,localS,side,kind)=>{
   const key=[local.index,kind,localS.toFixed(4),side].join(":");
@@ -105,7 +106,9 @@ export function createUnifiedSourceRegistry02894(positionAt,trackLength,{
   return p;
  };
  const get=(s)=>{
-  const local=sampler.localFor(s),portal=nearestPortal(local.s);
+  const local=sampler.localFor(s);
+  if(!local)return null;
+  const portal=nearestPortal(local.s);
   const archS=Math.min(portal+.61,367.0);
   const coveS=Math.min(portal+9,367.1);
   const wallS=Math.min(portal+3.75,367.1);
@@ -118,7 +121,7 @@ export function createUnifiedSourceRegistry02894(positionAt,trackLength,{
    {kind:"straightEdge",sourceS:edgeS,sigma:2.6}
   ];
   const result={module:local.module,index:local.index,localS:local.s,portal,
-   edgeStraightMask:vaultStraightMask02891(s)};
+   edgeStraightMask:straightMask(s)};
   for(const p of kinds){
    const worldS=local.module.start+p.sourceS*local.module.scale;
    const envelope=pulse(s-worldS,p.sigma);
@@ -167,12 +170,13 @@ export function installLegacyRoadCleanup02894(world,{
 // are now physical inputs to the original 0.28.9.3 road GGX, rather than
 // the old 0.26.0 floating T/amber positions. No new scene/world lights.
 export function buildUnifiedCeilingRoadData02894(geometry,positionAt,trackLength,{
- lowMemory=false}={}){
+ lowMemory=false,sourceRegistry=null}={}){
  const coord=geometry?.getAttribute?.("aTrackCoord");
  const pos=geometry?.getAttribute?.("position");
  if(!coord||!pos||coord.count!==pos.count)
   throw Error("0.28.9.4 original indexed PBR road missing");
- const reg=createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory});
+ const reg=sourceRegistry??createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory});
+ if(reg.trackLength!==trackLength||reg.lowMemory!==lowMemory)throw Error("EF05 registry configuration mismatch");
  const N=coord.count;
  // Real WebGL validation found the native deck also occupies additional
  // built-in vertex slots: three new attrs exceeded MAX_VERTEX_ATTRIBS.
@@ -185,6 +189,7 @@ export function buildUnifiedCeilingRoadData02894(geometry,positionAt,trackLength
  let lit=0,turns=0;
  for(let i=0;i<N;i++){
   const item=reg.at(coord.getX(i));
+  if(!item)continue;
   const side=coord.getY(i)<0?"left":"right";
   const cove=item.ceilingCove[side];
   vectors.unifiedCoveSource02894.set(
@@ -250,7 +255,7 @@ export function patchUnifiedCeilingRoad02894(vertex,fragment,{lowMemory=false}={
  };
 }
 export function installUnifiedCeilingRoad02894(THREE,world,positionAt,{
- enabled=false,trackLength=3400,lowMemory=false}={}){
+ enabled=false,trackLength=3400,lowMemory=false,sourceRegistry=null}={}){
  const inactive=reason=>({active:false,reason,updateWave(){},
   setComparison(){},stats:()=>({active:false,reason}),dispose(){}});
  if(!enabled)return inactive("old release or ceilingRoad=classic");
@@ -258,7 +263,7 @@ export function installUnifiedCeilingRoad02894(THREE,world,positionAt,{
  if(!road?.material?.isMeshStandardMaterial||!road?.geometry)
   throw Error("0.28.9.4 original physical deck missing");
  const mat=road.material,geo=road.geometry,
-  data=buildUnifiedCeilingRoadData02894(geo,positionAt,trackLength,{lowMemory});
+  data=buildUnifiedCeilingRoadData02894(geo,positionAt,trackLength,{lowMemory,sourceRegistry});
  const names=Object.keys(data.vectors);
  if(names.some(n=>geo.getAttribute(n)))
   throw Error("0.28.9.4 duplicate shared physical source");

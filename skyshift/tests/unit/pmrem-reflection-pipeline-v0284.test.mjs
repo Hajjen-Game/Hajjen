@@ -1,8 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {PMREM_0284,readPmremRelease0284,planPmrem0284,
- installPmremReflectionPipeline0284}
+ installPmremReflectionPipeline0284,planConfiguredPmremEF05}
  from "../../tunnel/pmrem-reflection-pipeline-v0284.mjs";
+import {finalizeSharedOptics} from "../../tunnel/shared-optical-assembly.mjs";
 
 test("0.28.4 is Vault-only and historical versions remain byte-identical",()=>{
  for(const track of ["skyline","aurora"])
@@ -105,4 +106,70 @@ test("no renderer, source or other track means zero PMREM work",()=>{
   {enabled:true,track:"skyline"}).active,false);
  assert.equal(installPmremReflectionPipeline0284(null,null,null,null,
   {enabled:true,track:"vault"}).active,false);
+});
+
+test("EF05 configured reflection capture uses actual mounted sections, not track name",()=>{
+ const modules=[{start:25,end:325},{start:325,end:625},{start:800,end:1120}];
+ const p=planConfiguredPmremEF05({track:"new",enabled:true,trackLength:1200,modules});
+ assert.equal(p.enabled,true);assert.equal(p.captureAtMeters,110);
+ assert.equal(p.fullCourse,false);assert.equal(p.captureCount,1);
+ assert.deepEqual(p.intervals,[{start:25,end:625},{start:800,end:1120}]);
+ const shifted=planConfiguredPmremEF05({track:"new",enabled:true,trackLength:1200,modules:[{start:800,end:1120}],lowMemory:true});
+ assert.equal(shifted.captureAtMeters,960);assert.equal(shifted.faceSize,128);
+ const full=planConfiguredPmremEF05({track:"vault",enabled:true,trackLength:3400,modules:Array.from({length:10},(_,i)=>({start:340*i,end:340*(i+1)}))});
+ const legacy=planPmrem0284({versionActive:true});
+ for(const k of ["faceSize","captureAtMeters","nearMeters","farMeters","tunnelStrength","shipStrength","captureCount"])assert.equal(full[k],legacy[k]);
+ assert.equal(full.fullCourse,true);
+ assert.equal(planConfiguredPmremEF05({enabled:true,trackLength:1200,modules:[]}).enabled,false);
+ assert.throws(()=>planConfiguredPmremEF05({enabled:true,trackLength:1200,modules:[{start:25,end:400},{start:390,end:500}]}),/valid mounted/);
+});
+test("EF05 native PMREM binds explicit root and fades only hull in open track, no recapture",()=>{
+ const mat=()=>({isMeshStandardMaterial:true,metalness:.6,opacity:1,envMap:null,envMapIntensity:1});
+ const coats=[mat(),mat(),mat()],hull=mat(),road=mat();let captures=0,disposed=0;
+ const root={traverse:fn=>coats.forEach(material=>fn({isMesh:true,material}))};
+ const ship={visible:true,traverse:fn=>fn({isMesh:true,name:"fixture hull",material:hull})};
+ const scene={background:null,fog:null,traverse(){}};
+ const world={getObjectByName(){throw Error("configured route must not look up named root")}};
+ const THREE={Color:class{},Vector3:class{constructor(x,y,z){Object.assign(this,{x,y,z})}},PMREMGenerator:class{
+  fromScene(scene,sigma,near,far,opts){captures++;assert.equal(opts.position.x,110);assert.equal(ship.visible,false);
+   return {texture:{},dispose(){disposed++}}}dispose(){}
+ }};
+ const ctl=installPmremReflectionPipeline0284(THREE,{render(){}},scene,world,{
+  enabled:true,track:"new",trackLength:1200,positionAt:(s,l,h)=>({x:s,y:h,z:l}),ship,
+  tunnel:{active:true,root,modules:[{start:25,end:325},{start:325,end:625},{start:800,end:1120}]}
+ });
+ assert.equal(ctl.active,true);assert.equal(captures,1);assert.equal(hull.envMapIntensity,.38);
+ ctl.updateStation(700);assert.equal(hull.envMapIntensity,0);assert.equal(coats[0].envMapIntensity,.4);
+ ctl.setComparison(.5);assert.equal(hull.envMapIntensity,0);assert.equal(coats[0].envMapIntensity,.2);
+ ctl.updateStation(806);assert.equal(hull.envMapIntensity,.095);
+ ctl.updateStation(900);assert.equal(hull.envMapIntensity,.19);
+ assert.equal(road.envMap,null);assert.equal(captures,1);
+ ctl.dispose();assert.equal(disposed,1);assert.equal(hull.envMap,null);assert.equal(hull.envMapIntensity,1);
+});
+
+test("EF05 shared finalizer captures ungraded optics once and activates the chosen finish afterwards",()=>{
+ for(const lowMemory of [false,true])for(const pmremEnabled of [false,true])for(const cinematic of [null,{contrast:1,strips:0,road:.7}]){
+  const events=[],coats=Array.from({length:3},()=>({isMeshStandardMaterial:true,metalness:.6,opacity:1,envMap:null,envMapIntensity:1}));
+  const hull={isMeshStandardMaterial:true,metalness:.6,opacity:1,envMap:null,envMapIntensity:1};
+  const ship={visible:true,traverse:fn=>fn({isMesh:true,name:"fixture hull",material:hull})};
+  const tunnel={active:true,modules:[{start:25,end:325},{start:325,end:625},{start:800,end:1120}],
+   root:{traverse:fn=>coats.forEach(material=>fn({isMesh:true,material}))},
+   setCinematicMetalComparison:values=>events.push(["tunnel",values])};
+  const finish={setComparison:values=>events.push(["road",values])};
+  const THREE={Color:class{},Vector3:class{},PMREMGenerator:class{
+   fromScene(scene,sigma,near,far,opts){
+    assert.deepEqual(events,["pmremBegin"]);
+    assert.equal(opts.size,lowMemory?128:256);assert.equal(ship.visible,false);
+    events.push("capture");return {texture:{},dispose(){}};
+   }
+   dispose(){}
+  }};
+  const scene={background:null,fog:null,traverse(){}},world={getObjectByName(){throw Error("configured path must use mounted root")}};
+  const context={positionAt:(s,l,h)=>({x:s,y:h,z:l}),trackLength:1200,lowMemory};
+  const ctl=finalizeSharedOptics(THREE,{render(){}},scene,world,context,{track:"new",ship,tunnel,pmremEnabled,finish,cinematic,markStartup:label=>events.push(label)});
+  assert.equal(ctl.active,pmremEnabled);
+  assert.deepEqual(events,["pmremBegin",...(pmremEnabled?["capture"]:[]),"pmremReady",...(cinematic?[["tunnel",{contrast:1,strips:0}],["road",{road:.7}]]:[])]);
+  assert.equal(ship.visible,true);
+  ctl.dispose();assert.equal(hull.envMap,null);
+ }
 });

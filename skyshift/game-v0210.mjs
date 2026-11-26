@@ -38,25 +38,25 @@ import {ARCH_FOOT_0287,archFootRelease0287}
 import {PRECISION_NEON_0288,precisionNeonEnabled0288}
  from "./tunnel/precision-neon-response-v0288.mjs";
 import {CINEMATIC_METAL_0289,cinematicMetalEnabled0289,
- cinematicComponentEnabled0289,installCinematicRoad0289}
+ cinematicComponentEnabled0289}
  from "./rendering/cinematic-metal-neon-v0289.mjs";
 import {CURVE_CONTINUITY_02896,surfaceContinuityEnabled02896,
  installCurveSurfaceContinuity02896}
  from "./tunnel/curve-surface-continuity-v02896.mjs";
 import {ROAD_SPILL_COVE_02895,roadSpillEnabled02895,
- coveWaveEnabled02895,installRoadSpill02895}
+ coveWaveEnabled02895}
  from "./tunnel/road-spill-wave-coves-v02895.mjs";
 import {UNIFIED_SOURCES_02894,unifiedSourcesEnabled02894,
  cleanLegacyRoadEnabled02894,ceilingRoadEnabled02894,
- installLegacyRoadCleanup02894,installUnifiedCeilingRoad02894}
+ installLegacyRoadCleanup02894}
  from "./tunnel/unified-tunnel-light-sources-v02894.mjs";
 import {ARCH_OPTICS_02893,archOpticsEnabled02893,archRoadEnabled02893,
- installArchRoadReflection02893,diagnosticLegacyRoadOverlay02893}
+ diagnosticLegacyRoadOverlay02893}
  from "./tunnel/premium-arch-optics-v02893.mjs";
 import {CEILING_FIXTURE_02892,ceilingFixtureEnabled02892}
  from "./tunnel/ceiling-fixture-cohesion-v02892.mjs";
 import {STRAIGHT_EDGE_PARITY_02891,straightParityEnabled02891,
- installVaultStraightRoadParity02891}
+ vaultStraightRanges02891}
  from "./tunnel/shared-straight-edge-parity-v02891.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./ships/manta-blade-v0103.mjs";
@@ -130,10 +130,10 @@ import {TUNNEL_SHARED_ARCHITECTURE_0280,tunnelReleaseAtLeast0280,sharedTunnelVer
  from "./shared-tunnel-architecture-v0280.mjs";
 import {createSharedTunnelRuntime0280}
  from "./shared-tunnel-runtime-v0280.mjs";
-import {SHARED_LIGHT_0282,installSharedRoadReflections0282,
- installSharedShipLight0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
-import {PMREM_0284,readPmremRelease0284,
- installPmremReflectionPipeline0284}
+import {omitLegacyRoadResponseEF05,startupSamplerEnabled02897} from "./true-shared-tunnel-renderer-v0281.mjs";
+import {SHARED_LIGHT_0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
+import {createSharedOpticalContext,installSharedOpticalShip,installSharedRoadOptics,finalizeSharedOptics} from "./tunnel/shared-optical-assembly.mjs";
+import {PMREM_0284,readPmremRelease0284}
  from "./tunnel/pmrem-reflection-pipeline-v0284.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
  from "./full-tunnel-light-seal-v0270.mjs";
@@ -676,6 +676,9 @@ window.__skyshiftStartupAudit=()=>{
   scene:{meshes:meshes.length,geometryObjects:geometries.size,
    materials:materials.size,
    sharedTunnelModules:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.sourceModules??0,
+   sharedTunnelFailureReason:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.reason??null,
+   legacyRoadResponseMeshes:meshes.filter(m=>m.name==="Tunnel / NEON_ROAD_RESPONSE").length,
+   omittedLegacyRoadBatches:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.omittedLegacyRoadBatches??0,
    startupFrameSampler:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.startupFrameOptimization02897??null,
    pmremActive:pmremPipeline?.active??false},
   jsHeapMB:performance.memory?.usedJSHeapSize?
@@ -1283,9 +1286,26 @@ function initScene(){
  // Vault spline. Its 0.27.x pipeline only runs on explicit classic/fallback.
  markStartup("sharedTunnelBegin");
  const trueSharedVault=sharedTunnelRuntime.installTrueShared({
-  enabled:trueSharedVaultEnabled
+  enabled:trueSharedVaultEnabled,
+  policy:{
+   spatialWave:sharedWaveParityEnabled,stableStrips:stabilityReleaseEnabled,
+   archFeet:archFootAssemblyEnabled,precisionNeon:precisionNeonReleaseEnabled,
+   cinematicMetal:cinematicMetalReleaseEnabled,straightOnly:straightParityReleaseEnabled,
+   ceilingFixtures:ceilingFixtureReleaseEnabled,premiumArch:archOpticsReleaseEnabled,
+   waveCove:coveWaveReleaseEnabled,fastFrames:!limitedMemory&&startupSamplerEnabled02897(location.search),
+   straightRanges:straightParityReleaseEnabled?vaultStraightRanges02891():[]
+  },
+  omitLegacyRoadResponse:omitLegacyRoadResponseEF05(location.search,
+   unifiedSourcesReleaseEnabled&&cleanLegacyRoadEnabled02894(location.search))
  });
  markStartup("sharedTunnelReady");
+ // One mounted source plan, shared by every current optical consumer.
+ // Historical comparison/fallback routes preserve their former full-course plan.
+ const opticalContext=createSharedOpticalContext({
+  positionAt,trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory,tunnel:trueSharedVault,
+  enabled:sharedRoadLightEnabled||sharedShipLightEnabled||archRoadReleaseEnabled||unifiedCeilingRoadReleaseEnabled,
+  unifiedSources:unifiedSourcesReleaseEnabled
+ });
  // Optional 0.28.9.3 diagnostic, unchanged by default.
  archLegacyOverlay=diagnosticLegacyRoadOverlay02893(world,{
   enabled:archOpticsReleaseEnabled&&
@@ -1379,11 +1399,7 @@ function initScene(){
  }):null;
  shipWhiteSpill=shipWhiteSpillEnabled?createShipWhiteSpillController(THREE,ship):null;
  // 0.28.2: finite-source local color on existing physical ship, no key light.
- sharedShipLight=installSharedShipLight0282(THREE,{
-  enabled:sharedShipLightEnabled,positionAt,
-  trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory
- });
- sharedShipLight.attachShip(ship);
+ sharedShipLight=installSharedOpticalShip(THREE,ship,opticalContext,sharedShipLightEnabled);
  // Existing road-only shader; preserve rail, ship, local neon and wave emission.
  roadSolarSpill=roadSolarEnabled?createRoadSolarSpillController(premiumSurface.material):null;
  // Chain after the white-core and road solar seal PBR modifications.
@@ -1405,64 +1421,13 @@ function initScene(){
    }):null;
  // 0.28.2: reuse actual Skyline 0.26.3 GGX native material on the
  // unmodified Vault deck, real source positions over the entire 3400m.
- sharedRoadLight=installSharedRoadReflections0282(THREE,world,{
-  enabled:sharedRoadLightEnabled,positionAt,
-  trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory
- });
- // Attach to the ACTUAL indexed racing deck, after native 0.28.2 GGX.
- // Stay at zero strength until authentic 0.28.4 PMREM capture finishes.
- cinematicRoadFinish=installCinematicRoad0289(world,{
-  enabled:cinematicMetalReleaseEnabled&&!!sharedRoadLight?.active,
-  lowMemory:limitedMemory,road:false
- });
- // 0.28.9.1: AFTER the original 0.28.2 GGX and 0.28.9 color-streak shader,
- // mask their cyan source in all Vault turns. Amber remains untouched.
- sharedStraightEdgeRoad=installVaultStraightRoadParity02891(THREE,
-  world.getObjectByName("Zone Ribbon · integrated PBR racing deck"),{
-   enabled:straightParityReleaseEnabled&&!!sharedRoadLight?.active&&
-    !!cinematicRoadFinish?.active
-  });
- if(straightParityReleaseEnabled&&!sharedStraightEdgeRoad?.active)
-  throw Error("0.28.9.1 native straight-only road mask unavailable: "+
-   (sharedStraightEdgeRoad?.stats?.().reason??"unknown"));
- // 0.28.9.3: original curved portal arch sources, separately from
- // straight-only lower LEDs. Road/physics geometry remains untouched.
- archRoadReflections=installArchRoadReflection02893(THREE,world,positionAt,{
-  enabled:archRoadReleaseEnabled&&!!sharedRoadLight?.active&&
-   !!sharedStraightEdgeRoad?.active,lowMemory:limitedMemory,
-  trackLength:CIRCUIT.lapLength,
-  unifiedSources:unifiedSourcesReleaseEnabled
- });
- if(archRoadReleaseEnabled&&!archRoadReflections?.active)
-  throw Error("0.28.9.3 real zone-colored arch GGX unavailable: "+
-   (archRoadReflections?.stats?.().reason??"unknown"));
- archRoadReflections?.updateWave?.(zoneWave);
- unifiedCeilingRoad?.updateWave?.(zoneWave);
- roadSpill02895?.updateWave?.(zoneWave);
- // 0.28.9.4: actual j11/j9 source positions into native source-limited
- // GGX on the EXISTING road; 0.28.9.1 straight-only edge remains separate.
- unifiedCeilingRoad=installUnifiedCeilingRoad02894(THREE,world,positionAt,{
-  enabled:unifiedCeilingRoadReleaseEnabled&&
-   !!archRoadReflections?.active&&ceilingFixtureReleaseEnabled,
-  lowMemory:limitedMemory,trackLength:CIRCUIT.lapLength
- });
- if(unifiedCeilingRoadReleaseEnabled&&archRoadReleaseEnabled&&
-    ceilingFixtureReleaseEnabled&&!unifiedCeilingRoad?.active)
-  throw Error("0.28.9.4 source-matched physical ceiling road response missing");
- unifiedCeilingRoad?.updateWave?.(zoneWave);
- roadSpill02895?.updateWave?.(zoneWave);
- // 0.28.9.5: the original 0.26.3.3 source is 6.5m every 24m, masked
- // in REAL Vault straights by 0.28.9.1. The road spill is now analytic,
- // softly decaying around actual LEDs rather than broad sheet lighting.
- roadSpill02895=installRoadSpill02895(THREE,
-  world.getObjectByName("Zone Ribbon · integrated PBR racing deck"),{
-  enabled:roadSpillReleaseEnabled&&!!sharedStraightEdgeRoad?.active&&
-   !!unifiedCeilingRoad?.active,lowMemory:limitedMemory,
-  trackLength:CIRCUIT.lapLength
- });
- if(roadSpillReleaseEnabled&&!roadSpill02895.active)
-  throw Error("0.28.9.5 original physical lip spill missing");
- roadSpill02895.updateWave?.(zoneWave);
+ ({native:sharedRoadLight,finish:cinematicRoadFinish,straight:sharedStraightEdgeRoad,
+  arch:archRoadReflections,cove:unifiedCeilingRoad,spill:roadSpill02895}=installSharedRoadOptics(
+   THREE,world,opticalContext,{
+    road:sharedRoadLightEnabled,cinematic:cinematicMetalReleaseEnabled,straight:straightParityReleaseEnabled,
+    arch:archRoadReleaseEnabled,unifiedSources:unifiedSourcesReleaseEnabled,ceiling:unifiedCeilingRoadReleaseEnabled,
+    ceilingFixtures:ceilingFixtureReleaseEnabled,spill:roadSpillReleaseEnabled
+   },{initialWave:zoneWave,previousCeiling:unifiedCeilingRoad,previousSpill:roadSpill02895}));
  // 0.28.9.6: same indexed PBR road, optically soften the original
  // edge-light mask before curves, and remove the periodic 3400m
  // antipodal palette jump; leave the white core/wave crest alone.
@@ -1547,25 +1512,15 @@ function initScene(){
  // Skyline-shaped Vault, after all source fixtures/physical shaders exist.
  // Only actual tunnel PBR coats + the hull use the resulting CubeUV.
  // Never set scene.environment or touch the indexed road or boost arrows.
- markStartup("pmremBegin");
- pmremPipeline=installPmremReflectionPipeline0284(
-  THREE,renderer,scene,world,{
-   enabled:pmremEnabled,track:TRACK_ID_0160,
-   lowMemory:limitedMemory,trackLength:CIRCUIT.lapLength,
-   positionAt,ship
-  });
- markStartup("pmremReady");
- // The PMREM captures 0.28.8 ORIGINAL geometry/light levels. Only
- // afterwards enable local 0.28.9 material uniforms for visible racing.
- if(cinematicMetalReleaseEnabled){
-  trueSharedVault?.setCinematicMetalComparison?.({
+ pmremPipeline=finalizeSharedOptics(THREE,renderer,scene,world,opticalContext,{
+  track:TRACK_ID_0160,ship,tunnel:trueSharedVault,pmremEnabled,
+  finish:cinematicRoadFinish,markStartup,
+  cinematic:cinematicMetalReleaseEnabled?{
    contrast:cinematicComponentEnabled0289("cinematicContrast",location.search)?1:0,
-   strips:cinematicComponentEnabled0289("cinematicStrips",location.search)?1:0
-  });
-  cinematicRoadFinish?.setComparison?.({
+   strips:cinematicComponentEnabled0289("cinematicStrips",location.search)?1:0,
    road:cinematicComponentEnabled0289("cinematicRoad",location.search)?1:0
-  });
- }
+  }:null
+ });
  if(perfSettings.enabled){
   if(perfSettings.preset==="no-bloom")neonPipeline.bloom.enabled=false;
   if(perfSettings.preset==="no-smaa")neonPipeline.smaa.enabled=false;
@@ -4089,6 +4044,7 @@ function loop(now){
    whiteCoreContainment?.update(view.s,uiState.mode==="playing");
    shipWhiteSpill?.update(view.s,targetAccent,uiState.mode==="playing");
    sharedShipLight?.update(view.s);
+   pmremPipeline?.updateStation(view.s);
    // Flight motion sees the same interpolated 120Hz simulation pose as FX.
    // Ship bank, signature effects, preview and kinetic camera share
    // stable read-only signals. All original springs and handling are kept.

@@ -1,4 +1,5 @@
 import {readHistorical,historicalExists} from './legacy-retirement-l1a.mjs';
+import {archivedWorldAssetExists,worldArchive} from '../../build/archived-world-assets.mjs';
 // SKYSHIFT Architecture Cleanup 2.0 Stage M — original source and resolved glTF audit.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -26,7 +27,7 @@ test('Stage M: immutable Git source hashes preserved across all 16 world modules
    const matches=[...contents.matchAll(/assetPath:"(\.\.\/assets\/worlds\/[^"]+)"/g)];
    assert.equal(matches.length,1,'Exactly one assetPath rebase expected: '+name);
    const asset=fileURLToPath(new URL(matches[0][1],pathToFileURL(file)));
-   assert.ok(existsSync(asset),'Rebased glTF URL must still resolve: '+name+' -> '+asset);
+   assert.ok(archivedWorldAssetExists(asset),'Rebased glTF URL must resolve to exact archived station asset: '+name+' -> '+asset);
    assert.equal((contents.match(/import\.meta\.url/g)||[]).length,1);
    assert.equal(gitBlobHash(contents.replace('assetPath:"../assets/worlds/','assetPath:"./assets/worlds/')),
     originalGitBlobSha,'Unexpected world/material/geometry source changes: '+name);
@@ -63,4 +64,9 @@ test('Stage M: executable workflows retain the relocated source and authoring co
    assert.ok(!yaml.includes('skyshift/'+name),'Obsolete CI command path: '+workflow+' '+name);
   }
  }
+});
+
+test('EF05: all eight station glTF files absent from tracked source and exact Git archive recoverable',()=>{
+ assert.equal(worldArchive.files.length,8);
+ for(const f of worldArchive.files)assert.ok(archivedWorldAssetExists(resolve(repo,f.path)),f.path);
 });

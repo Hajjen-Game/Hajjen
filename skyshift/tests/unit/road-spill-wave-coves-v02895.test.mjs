@@ -158,3 +158,23 @@ test("native road controller updates palette and restores original program",()=>
  assert.equal(mat.onBeforeCompile,before);
  assert.equal(mat.customProgramCacheKey,key);
 });
+
+import {sourceLocalRoadExpressionEF05} from "../../tunnel/road-spill-wave-coves-v02895.mjs";
+import {planConfiguredTunnelModules0281} from "../../true-shared-tunnel-renderer-v0281.mjs";
+test("EF05 road spill follows unequal module origins and does not light open gaps",()=>{
+ const full=planConfiguredTunnelModules0281(3400,[{start:0,end:3400}]);
+ assert.equal(sourceLocalRoadExpressionEF05(full),null);
+ assert.deepEqual(patchRoadSpill02895(v,frag,{sourceModules:full}),patchRoadSpill02895(v,frag));
+ const modules=planConfiguredTunnelModules0281(1200,[{start:25,end:625},{start:800,end:1120}]);
+ const expression=sourceLocalRoadExpressionEF05(modules);
+ const local=Function("s",expression);
+ for(const x of [0,625,700,1120,1199])assert.equal(local(x),-1);
+ for(const m of modules){
+  assert.ok(Math.abs(local(m.start))<1e-5);
+  assert.ok(Math.abs(local(m.start+m.meters/2)-184)<1e-5);
+ }
+ const patched=patchRoadSpill02895(v,frag,{sourceModules:modules});
+ assert.match(patched.fragmentShader,/roadSourceLocalEF05\(vTrackCoord.x\)/);
+ assert.match(patched.fragmentShader,/s95Safe\*step\(0\.0,s95Local\)/);
+ assert.equal(patched.vertexShader,v);
+});

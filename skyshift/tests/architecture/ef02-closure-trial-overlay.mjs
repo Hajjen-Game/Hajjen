@@ -64,7 +64,21 @@ function restoreEF04Reader(s,p){
  }
  return s;
 }
+// EF05 optical changes are newer than the historical import migrations.
+const opticalInverse=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef05-optical-source-inverse.json'),'utf8'));
+function restoreEF05OpticalSource(s,p){
+ const record=opticalInverse.records.find(r=>r.path===key(p));
+ if(!record)return s;
+ for(const e of [...record.edits].reverse()){
+  assert.equal(s.split(e.after).length-1,1,record.path+' EF05 inverse anchor');
+  s=s.replace(e.after,e.before);
+ }
+ const data=Buffer.from(s);
+ assert.equal(createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex'),record.sha,record.path+' pre-EF05 identity');
+ return s;
+}
 export function restoreTrialMove(s,p){
+ s=restoreEF05OpticalSource(s,p);
  s=restoreEF04Reader(s,p);
  s=restoreUiMove(s,p);p=uiPreviousPath(p);
  const r=byTarget.get(key(p))||byPath.get(key(p));if(!r)return s;

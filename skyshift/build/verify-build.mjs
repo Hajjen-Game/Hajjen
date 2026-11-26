@@ -4,12 +4,30 @@ import {readFile,readdir,stat} from 'node:fs/promises';
 import {resolve,dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
+import {readArchivedWorldAsset} from './archived-world-assets.mjs';
+import {retiredSceneryModules,retiredTunnelModules,comparisonOnlyWorldAssets} from './production-specialization.mjs';
 const here=dirname(fileURLToPath(import.meta.url)),dist=join(here,'dist');
 const report=JSON.parse(await readFile(join(dist,'build-report.json'),'utf8'));
 const html=await readFile(join(dist,'index.html'),'utf8');
 assert.equal(report.cssOrder.length,8);
 assert.equal(report.sourceVersion,'0.26.5');
 assert.equal(report.three,'0.180.0');
+assert.deepEqual(report.productionCatalog,[{id:'vault',version:'0.28.9.7',name:'NEON VAULT CIRCUIT',option:'NEON VAULT — FULL TUNNEL CIRCUIT'}]);
+const picker=html.match(/<select id="track-picker"[^>]*>([\s\S]*?)<\/select>/)?.[1];
+assert.ok(picker,'production circuit picker');
+assert.deepEqual([...picker.matchAll(/<option value="([^"]+)"/g)].map(x=>x[1]),['vault']);
+assert.match(html,/<span id="menu-track-name">NEON VAULT CIRCUIT<\/span>/);
+assert.ok(report.graph.modules.some(p=>p.endsWith('/tracks/shared/production-catalog.mjs')),'actual bundled catalog boundary');
+assert.equal(report.ef05Owners.entries.length,101);
+assert.equal(report.ef05Owners.counts.productionRetired,4);
+assert.equal(report.ef05Owners.counts.repositoryDeleted,0);
+assert.deepEqual(report.retiredProductionModules,[...retiredSceneryModules,...retiredTunnelModules]);
+for(const path of report.retiredProductionModules)assert.ok(!report.graph.modules.includes('source/'+path),path);
+assert.deepEqual(report.comparisonAssets.map(f=>f.path),comparisonOnlyWorldAssets);
+for(const e of report.ef05Owners.entries){
+ assert.equal(e.production,report.graph.modules.includes('source/'+e.path.slice('skyshift/'.length)));
+ if(e.retiredFromBundle)assert.equal(e.production,false,e.path);
+}
 assert.doesNotMatch(html,/cdn\.jsdelivr\.net\/npm\/three|type="importmap"|boot-v0210\.js\?/);
 const scripts=[...html.matchAll(/<script\b[^>]*src="([^"]+)"/g)].map(x=>x[1]);
 const css=[...html.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)].map(x=>x[1]);
@@ -23,8 +41,8 @@ for(const f of report.files){
 }
 // The checked-in V4 text glTF is mandatory; the Blender GLB is an optional
 // diagnostic with an intentional procedural fallback when absent. Validate
-// the complete source asset tree byte-for-byte, including optional files
-// if they are added in future, rather than demanding nonexistent assets.
+// the complete source asset tree byte-for-byte, classified as production
+// or explicitly retained comparison-only assets; never silently drop assets.
 const source=resolve(here,'..');
 const assets=[];
 async function walkAssets(dir,rel='assets'){
@@ -32,15 +50,23 @@ async function walkAssets(dir,rel='assets'){
   const path=join(dir,e.name),name=rel+'/'+e.name;
   if(e.isDirectory())await walkAssets(path,name);
   else if(e.isFile()){
-   const a=await readFile(path),b=await readFile(join(dist,name));
-   assert.ok(a.length>0,name+' empty source asset');assert.deepEqual(b,a,name+' asset bytes changed');assets.push(name);
+   const a=await readFile(path),comparison=comparisonOnlyWorldAssets.includes(name);
+   assert.ok(a.length>0,name+' empty source asset');
+   if(comparison){
+    const recorded=report.comparisonAssets.find(f=>f.path===name);
+    assert.equal(recorded.bytes,a.length);assert.equal(recorded.sha256,createHash('sha256').update(a).digest('hex'));
+    await assert.rejects(stat(join(dist,name)),{code:'ENOENT'});
+   }else{
+    const b=await readFile(join(dist,name));assert.deepEqual(b,a,name+' asset bytes changed');assets.push(name);
+   }
    if(name.endsWith('.gltf')){
     const g=JSON.parse(a.toString('utf8'));
     for(const item of [...(g.buffers||[]),...(g.images||[])]){
      const uri=item.uri;if(!uri||uri.startsWith('data:'))continue;
      assert.ok(!/^[a-z]+:|^\/\//i.test(uri),name+' unverified remote asset '+uri);
-     const resource=resolve(dirname(join(dist,name)),decodeURIComponent(uri));
-     assert.ok(resource.startsWith(dist+'/'),name+' escaped artifact path');
+     const root=comparison?source:dist;
+     const resource=resolve(dirname(join(root,name)),decodeURIComponent(uri));
+     assert.ok(resource.startsWith(root+'/'),name+' escaped asset path');
      assert.ok((await stat(resource)).size>0,name+' missing '+uri);
     }
    }
@@ -48,8 +74,16 @@ async function walkAssets(dir,rel='assets'){
  }
 }
 await walkAssets(join(source,'assets'));
+for(const path of comparisonOnlyWorldAssets){
+ const a=readArchivedWorldAsset('skyshift/'+path);
+ const recorded=report.comparisonAssets.find(f=>f.path===path);
+ assert.equal(recorded.bytes,a.length);
+ assert.equal(recorded.sha256,createHash('sha256').update(a).digest('hex'));
+ await assert.rejects(stat(join(source,path)),{code:'ENOENT'});
+ await assert.rejects(stat(join(dist,path)),{code:'ENOENT'});
+}
 const outputAssets=report.files.map(f=>f.path).filter(p=>p.startsWith('assets/')).sort();
-assert.deepEqual(outputAssets,assets.sort(),'complete original asset inventory');
+assert.deepEqual(outputAssets,assets.sort(),'complete classified production asset inventory');
 for(const p of ['assets/ships/stingray-evo-hero-v1.gltf','assets/ships/stingray-evo-hero-v4.gltf'])assert.ok(assets.includes(p),p+' required runtime model');
 console.log('SKYSHIFT_EF03_ASSETS '+JSON.stringify({copied:assets.length,optionalBlenderGlb:assets.includes('assets/ships/stingray-evo-hero-v4.glb')}));
 const top=await readdir(dist);for(const p of ['tests','docs','legacy','previews','material-grade-v0203.html','game-v0210.mjs','node_modules'])assert.ok(!top.includes(p),p+' must not ship in production artifact');

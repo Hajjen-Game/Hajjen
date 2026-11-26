@@ -67,6 +67,12 @@ function restoreRaceSessionReader(s,p){
  return s;
 }
 export function restoreUiMove(s,p){
+ // EF05 archival materialization is an exact additive setup change.
+ if(key(p)==='.github/workflows/skyshift-tests.yml'){
+  const step="      - name: Materialize exact archived station QA assets\n        run: |\n          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897\n          node skyshift/build/archived-world-assets.mjs --materialize\n";
+  assert.equal(s.split(step).length-1,9,'EF05 exact station QA setup count');
+  s=s.split(step).join('');
+ }
  // EF04 retirement is newer than every historical path migration. Restore its
  // exact workflow edit here, before any historical identity is checked.
  if(key(p)==='.github/workflows/skyshift-tests.yml'){

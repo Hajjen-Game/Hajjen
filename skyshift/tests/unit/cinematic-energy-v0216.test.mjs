@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {CINEMATIC_ENERGY_0216,cinematicEnergyFrame,
- patchCinematicFlowFragment,patchCinematicRoadFragment}
+ patchCinematicFlowFragment,patchCinematicRoadFragment,bindCinematicEnergyMaterials}
  from "../../cinematic-energy-v0216.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const glowShader=[
@@ -80,4 +80,24 @@ test("no extra render work or gameplay changes",()=>{
   "fullScreenMotionBlur"])
   assert.equal(a[k],false);
  assert.equal(a.solarSealUnchanged,true);
+});
+
+test("EF05 tunnel-only motion binds original flow shader without a dummy road",()=>{
+ const material=()=>({onBeforeCompile(){},customProgramCacheKey(){return "base";}});
+ const flow=material();
+ const {neon,deck}=bindCinematicEnergyMaterials(flow,undefined,{tunnelOnly:true});
+ assert.equal(deck,null);
+ const shader={fragmentShader:glowShader,uniforms:{}};
+ flow.onBeforeCompile(shader);
+ assert.equal(shader.fragmentShader,patchCinematicFlowFragment(glowShader));
+ assert.equal(shader.uniforms.uCinemaFlow,neon.uCinemaFlow);
+ assert.throws(()=>bindCinematicEnergyMaterials(material(),undefined),/native physical road/);
+ const legacyFlow=material(),road={...material(),isMeshStandardMaterial:true};
+ const old=bindCinematicEnergyMaterials(legacyFlow,road);
+ const flowShader={fragmentShader:glowShader,uniforms:{}},roadShader={fragmentShader:deckShader,uniforms:{}};
+ legacyFlow.onBeforeCompile(flowShader);road.onBeforeCompile(roadShader);
+ assert.equal(flowShader.fragmentShader,shader.fragmentShader);
+ assert.equal(roadShader.fragmentShader,patchCinematicRoadFragment(deckShader));
+ assert.equal(roadShader.uniforms.uCinemaFlow,old.deck.uCinemaFlow);
+ assert.throws(()=>bindCinematicEnergyMaterials(material(),road,{tunnelOnly:true}),/cannot own/);
 });

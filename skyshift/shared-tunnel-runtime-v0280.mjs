@@ -5,7 +5,7 @@
 // remain authoritative. Tracks declare sections, source layout and banked
 // positionAt, while the renderer consumes the shared visual style.
 // Skyline's existing 0.20–0.26 historical A/B chain remains invokable.
-import {installTrueSharedTunnelRenderer0281}
+import {installTrueSharedTunnelRenderer0281,installConfiguredSharedTunnel}
  from "./true-shared-tunnel-renderer-v0281.mjs";
 import {makeTunnelPlan0280,tunnelQuality0280,SHARED_TUNNEL_STYLE_0280}
  from "./shared-tunnel-architecture-v0280.mjs";
@@ -29,11 +29,13 @@ export function createSharedTunnelRuntime0280(THREE,world,{
  let vault=null,skyline=null,trueShared=null,
   installedVault=false,installedSkyline=false,installedTrueShared=false;
  const stopped={active:false,stats:()=>({active:false}),dispose(){}};
- function installTrueShared({enabled=false}={}){
+ function installTrueShared({enabled=false,policy=null,omitLegacyRoadResponse=false}={}){
   if(installedTrueShared)throw Error("0.28.1 duplicate true shared install");
   installedTrueShared=true;
-  trueShared=installTrueSharedTunnelRenderer0281(THREE,world,{
-   track,positionAt,trackLength,lowMemory,enabled
+  trueShared=enabled&&policy?installConfiguredSharedTunnel(THREE,world,{
+   track,positionAt,trackLength,lowMemory,policy,omitLegacyRoadResponse,sections:plan.intervals
+  }):installTrueSharedTunnelRenderer0281(THREE,world,{
+   track,positionAt,trackLength,lowMemory,enabled,omitLegacyRoadResponse
   });
   return trueShared;
  }
@@ -89,8 +91,8 @@ export function createSharedTunnelRuntime0280(THREE,world,{
    l=vault?.lighting?.stats?.()??null,
    sky=skyline?.stats?.()??null;
   return {
-   version:trueShared?.active?"0.28.1":"0.28.0",track,active:track==="vault"?
-    !!(trueShared?.active||f?.active):track==="skyline"?!!sky?.active:false,
+   version:trueShared?.active?"0.28.1":"0.28.0",track,active:!!trueShared?.active||(track==="vault"?!!f?.active:
+    track==="skyline"?!!sky?.active:false),
    styleId:SHARED_TUNNEL_STYLE_0280.id,
    styleVersion:SHARED_TUNNEL_STYLE_0280.version,
    quality:plan.quality,

@@ -20,6 +20,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Materialize exact archived station QA assets
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          node skyshift/build/archived-world-assets.mjs --materialize
       - name: Install browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Check deterministic authored graphite and physics isolation

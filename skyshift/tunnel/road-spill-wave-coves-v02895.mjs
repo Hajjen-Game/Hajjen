@@ -65,11 +65,29 @@ export function sampleEdgeSpill02895(s,lateral,{
  const lateralMask=Math.exp(-Math.pow((Math.abs(lateral)-10.4)/3.05,2));
  return clamp(mask)*longitudinal*lateralMask;
 }
+// For disjoint or unequal authored sections use the actual module
+// origin/scale instead of assuming one period over the whole track.
+export function sourceLocalRoadExpressionEF05(modules,moduleMeters=340,sourceMeters=368){
+ if(modules==null)return null;
+ if(!Array.isArray(modules)||!modules.length||modules.length>512||
+  modules.some((m,i)=>!Number.isFinite(m.start)||!Number.isFinite(m.end)||
+   !(m.scale>0)||!Number.isFinite(m.scale)||m.start<0||m.end<=m.start||
+   (i>0&&m.start<modules[i-1].end-1e-8)))
+  throw Error("EF05 invalid road spill module plan");
+ // Exact approved Vault formula for the unchanged uniform 340m layout.
+ if(modules.every((m,i)=>Math.abs(m.start-i*moduleMeters)<1e-8&&
+  Math.abs(m.end-(i+1)*moduleMeters)<1e-8&&
+  Math.abs(m.scale-moduleMeters/sourceMeters)<1e-10))return null;
+ const f=x=>x.toFixed(8);
+ return modules.map(m=>"if(s>="+f(m.start)+"&&s<"+f(m.end)+
+  ")return (s-"+f(m.start)+")*"+f(1/m.scale)+";").join("\n")+"\nreturn -1.0;";
+}
 const GLSL_COMMON="#include <common>";
 const GGX_ANCHOR=/reflectedLight\.directSpecular\+=u94Tint\*u94Cool\*(?:0\.045|0\.065);\n\}/;
 export function patchRoadSpill02895(vertex,fragment,{
- moduleMeters=340,sourceMeters=368,lowMemory=false
+ moduleMeters=340,sourceMeters=368,lowMemory=false,sourceModules=null
 }={}){
+ const localExpression=sourceLocalRoadExpressionEF05(sourceModules,moduleMeters,sourceMeters);
  if(!fragment.includes(GLSL_COMMON)||
   !fragment.includes("varying float vEdgeStraight02891;")||
   !fragment.includes("float r263CoveBand=")||
@@ -80,19 +98,22 @@ export function patchRoadSpill02895(vertex,fragment,{
   throw Error("0.28.9.5 missing original real 0.28.9.4 road GGX chain");
  const header=[
   "uniform vec3 uS95Old,uS95Next;",
-  "uniform float uS95Front,uS95Active,uS95Lap,uS95Strength;"
+  "uniform float uS95Front,uS95Active,uS95Lap,uS95Strength;",
+  ...(localExpression?["float roadSourceLocalEF05(float s){"+localExpression+"}"]:[])
  ].join("\n");
  const prefix=[
   "// Actual source lip: short 6.5m fixture each 24m authored source.",
-  "float s95Local=mod(vTrackCoord.x,"+moduleMeters.toFixed(4)+")*"+
-   (sourceMeters/moduleMeters).toFixed(8)+";",
+  localExpression?"float s95Local=roadSourceLocalEF05(vTrackCoord.x);":
+   "float s95Local=mod(vTrackCoord.x,"+moduleMeters.toFixed(4)+")*"+
+    (sourceMeters/moduleMeters).toFixed(8)+";",
   "float s95Delta=abs(mod(s95Local-(4.5+3.25)+24.0*100.5,24.0)-12.0);",
   "float s95Shape=(1.0-smoothstep(2.93,6.0,s95Delta))*",
   " (1.0-smoothstep(364.2,367.9,s95Local));",
   "float s95RoadSide=abs(vTrackCoord.y);",
   "float s95Across=exp(-pow((s95RoadSide-10.4)/3.05,2.0));",
   "float s95Safe=clamp(vEdgeStraight02891,0.0,1.0);",
-  "float s95Energy=uS95Strength*s95Shape*s95Across*s95Safe;",
+  localExpression?"float s95Energy=uS95Strength*s95Shape*s95Across*s95Safe*step(0.0,s95Local);":
+   "float s95Energy=uS95Strength*s95Shape*s95Across*s95Safe;",
   "// Old broad cove/road GGX is attenuated between physical lip lamps.",
   "float s95BroadTrim=mix(1.0,0.82+0.18*s95Shape,",
   " uS95Strength*s95Across);"
@@ -236,11 +257,12 @@ export function installWaveCoupledCove02895(THREE,section,module,{
 }
 export function installRoadSpill02895(THREE,road,{
  enabled=false,lowMemory=false,trackLength=3400,
- moduleMeters=340,sourceMeters=368}={}){
+ moduleMeters=340,sourceMeters=368,sourceModules=null}={}){
  if(!enabled)return inactive("historic/roadSpill=classic");
  const mat=road?.material;
  if(!mat?.isMeshStandardMaterial)
   throw Error("0.28.9.5 native GGX road unavailable");
+ const localExpression=sourceLocalRoadExpressionEF05(sourceModules,moduleMeters,sourceMeters);
  const before=mat.onBeforeCompile,key=mat.customProgramCacheKey;
  const uniforms={
   uS95Old:{value:new THREE.Color(ZONE_PALETTES[0].light)},
@@ -251,12 +273,13 @@ export function installRoadSpill02895(THREE,road,{
  mat.onBeforeCompile=function(shader,renderer){
   before.call(this,shader,renderer);
   const p=patchRoadSpill02895(shader.vertexShader,shader.fragmentShader,{
-   moduleMeters,sourceMeters,lowMemory});
+   moduleMeters,sourceMeters,lowMemory,sourceModules});
   shader.vertexShader=p.vertexShader;shader.fragmentShader=p.fragmentShader;
   Object.assign(shader.uniforms,uniforms);
  };
  mat.customProgramCacheKey=function(){
-  return key.call(this)+"-local-edge-pools-02895-"+(lowMemory?"4GB":"High");
+  return key.call(this)+"-local-edge-pools-02895-"+(lowMemory?"4GB":"High")+
+   (localExpression?"-route-"+localExpression:"");
  };
  mat.needsUpdate=true;
  let disposed=false;

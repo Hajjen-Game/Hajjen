@@ -138,10 +138,25 @@ test("game integrates PMREM-safe zero-strength source followed by native 0.28.9 
  assert.match(renderer,/contrast:false,strips:false/);
  assert.match(renderer,/setCinematicMetalComparison\(values\)/);
  assert.match(renderer,/item\.cinematic\?\.dispose/);
- assert.match(game,/cinematicRoadFinish=installCinematicRoad0289\(world/);
- assert.match(game,/road:false/);
- assert.ok(game.indexOf("pmremPipeline=installPmremReflectionPipeline0284")<
-  game.indexOf("trueSharedVault?.setCinematicMetalComparison?.("));
+ const assembly=read("./tunnel/shared-optical-assembly.mjs");
+ assert.match(game,/import \{createSharedOpticalContext,installSharedOpticalShip,installSharedRoadOptics,finalizeSharedOptics\} from "\.\/tunnel\/shared-optical-assembly\.mjs"/);
+ assert.match(game,/finish:cinematicRoadFinish[\s\S]*?=installSharedRoadOptics\(\s*THREE,world,opticalContext/);
+ assert.match(game,/\{initialWave:zoneWave,previousCeiling:unifiedCeilingRoad,previousSpill:roadSpill02895\}\)\)/);
+ assert.match(assembly,/const finish=installCinematicRoad0289\(world,\{enabled:policy\.cinematic&&!!native\?\.active,lowMemory,road:false\}\)/);
+ assert.match(game,/pmremPipeline=finalizeSharedOptics\(THREE,renderer,scene,world,opticalContext,\{/);
+ assert.match(game,/finish:cinematicRoadFinish,markStartup,\s*cinematic:cinematicMetalReleaseEnabled\?/);
+ const installation=game.indexOf("=installSharedRoadOptics(");
+ const finalization=game.indexOf("pmremPipeline=finalizeSharedOptics(");
+ assert.ok(installation>=0&&installation<finalization);
+ const sharedFinalizer=assembly.slice(assembly.indexOf("export function finalizeSharedOptics("));
+ const pmrem=sharedFinalizer.indexOf("const pmrem=installPmremReflectionPipeline0284(");
+ const activateTunnel=sharedFinalizer.indexOf("tunnel?.setCinematicMetalComparison?.(");
+ const activateRoad=sharedFinalizer.indexOf("finish?.setComparison?.(");
+ assert.ok(pmrem>=0&&pmrem<activateTunnel&&pmrem<activateRoad,
+  "Install zero-strength native road before PMREM, activate both finishes afterwards");
+ const fixture=read("./build/browser-parity.mjs");
+ assert.match(fixture,/finalizeSharedOptics\(THREE,renderer,scene,world,opticalContext,\{/);
+ assert.match(fixture,/cinematic:\{contrast:1,strips:1,road:1\}/);
  assert.match(game,/__skyshiftCinematicMetalFrames/);
  assert.match(game,/cinematicMetalReleaseEnabled\?" · 0\.28\.9"/);
  assert.match(html,/(?:Shared Straight-Only Edge Lighting Parity · 0\.28\.9\.1|Ceiling Fixture Placement & Glow Cohesion · 0\.28\.9\.2|Premium Arch Optics & Chromatic Road Reflections · 0\.28\.9\.3|Unified Light Sources & Road Layer Cleanup · 0\.28\.9\.4|Road Light Spill Continuity & Wave-Coupled Cove Lighting · 0\.28\.9\.5|Curve Surface Artifact & Transition Seam Cleanup · 0\.28\.9\.6|Startup Stability & Shared Resource Deduplication · 0\.28\.9\.7)/);

@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 1,
+  "base": "b050f733f682b1f26269f713a6cbb472d77b04bc",
+  "records": [
+    {
+      "path": "skyshift/tunnel/shared-road-ship-light-v0282.mjs",
+      "sha": "1929ff723df29980d3673f6066b9a61ca11ad728",
+      "edits": [
+        {
+          "before": "export function createSharedSourceSampler0282(positionAt,trackLength){",
+          "after": "export function createSharedSourceSampler0282(positionAt,trackLength,modules=planTrueSharedTunnel0281(trackLength)){"
+        },
+        {
+          "before": " const modules=planTrueSharedTunnel0281(trackLength);\n const count=modules.length,meters=trackLength/count;\n const localFor=s=>{",
+          "after": " if(!Array.isArray(modules)||modules.some((m,i)=>m.index!==i||\n  !Number.isFinite(m.start)||!Number.isFinite(m.end)||m.start<0||\n  m.end>trackLength||m.end<=m.start||(i>0&&m.start<modules[i-1].end)||\n  !(m.scale>0)||!(m.sourceMeters>0)))throw Error(\"EF05 invalid source module plan\");\n const count=modules.length,meters=trackLength/count;\n const fullCourse=count>0&&modules[0].start===0&&modules[count-1].end===trackLength&&\n  modules.every((m,i)=>i===0||m.start===modules[i-1].end);\n const uniform=fullCourse&&modules.every((m,i)=>m.start===i*meters);\n const atModule=modules.map(m=>adaptSourcePosition0281(positionAt,m));\n const localFor=s=>{"
+        },
+        {
+          "before": "  const index=Math.min(count-1,Math.floor(d/meters));\n  const module=modules[index],sourceS=(d-module.start)/module.scale;\n  const originalPosition=adaptSourcePosition0281(positionAt,module);",
+          "after": "  const index=uniform?Math.min(count-1,Math.floor(d/meters)):\n   modules.findIndex(m=>d>=m.start&&d<m.end);\n  if(index<0)return null;\n  const module=modules[index],sourceS=(d-module.start)/module.scale;\n  const originalPosition=atModule[index];"
+        },
+        {
+          "before": "  const local=localFor(s),fixtures=nearestRoadFixtures0263(local.s);",
+          "after": "  const local=localFor(s);\n  if(!local)return {local:null,fixtures:{cyan:null,amber:null,cyanWeight:0,amberWeight:0},\n   cyanLeft:[0,0,0],cyanRight:[0,0,0],amberLeft:[0,0,0],amberRight:[0,0,0]};\n  const fixtures=nearestRoadFixtures0263(local.s);"
+        },
+        {
+          "before": " return Object.freeze({modules,localFor,nearest,trackLength});",
+          "after": " return Object.freeze({modules,localFor,nearest,trackLength,fullCourse});"
+        },
+        {
+          "before": "export function buildSharedRoadSourceData0282(geometry,positionAt,trackLength){",
+          "after": "export function buildSharedRoadSourceData0282(geometry,positionAt,trackLength,source=createSharedSourceSampler0282(positionAt,trackLength)){"
+        },
+        {
+          "before": " const source=createSharedSourceSampler0282(positionAt,trackLength);\n const count=coord.count,vectors={};",
+          "after": " if(source.trackLength!==trackLength)throw Error(\"EF05 source track length mismatch\");\n const count=coord.count,vectors={};"
+        },
+        {
+          "before": "  const s=coord.getX(i),local=at(s),f=nearestRoadFixtures0263(local.s);",
+          "after": "  const s=coord.getX(i),local=at(s);"
+        },
+        {
+          "before": "  vectors.roadArcTangent0263.set([dx/length,dy/length,dz/length],3*i);\n  for(const",
+          "after": "  vectors.roadArcTangent0263.set([dx/length,dy/length,dz/length],3*i);\n  if(!local)continue;\n  const f=nearestRoadFixtures0263(local.s);\n  for(const"
+        },
+        {
+          "before": " enabled=false,positionAt,trackLength,lowMemory=false\n}={}){\n if(!enabled)return disabled(\"inactive\");\n const road=",
+          "after": " enabled=false,positionAt,trackLength,lowMemory=false,sourceSampler=null\n}={}){\n if(!enabled)return disabled(\"inactive\");\n const road="
+        },
+        {
+          "before": "  const data=buildSharedRoadSourceData0282(geo,positionAt,trackLength);\n  if(data.modules!==10&&trackLength===3400)\n   throw Error(\"0.28.2 source modules not aligned to Vault\");",
+          "after": "  const sampler=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);\n  // The old full-course shader also seals exterior white light. Do not\n  // apply it to open track gaps before the section-aware shader is ready.\n  if(!sampler.fullCourse)throw Error(\"EF05 partial tunnel road shader not yet supported\");\n  const data=buildSharedRoadSourceData0282(geo,positionAt,trackLength,sampler);"
+        },
+        {
+          "before": " enabled=false,positionAt,trackLength,lowMemory=false\n}={}){\n if(!enabled)return disabled(\"inactive\");\n if(!THREE?.Vector3",
+          "after": " enabled=false,positionAt,trackLength,lowMemory=false,sourceSampler=null\n}={}){\n if(!enabled)return disabled(\"inactive\");\n if(!THREE?.Vector3"
+        },
+        {
+          "before": " const sampler=createSharedSourceSampler0282(positionAt,trackLength);\n const cyanLeft=",
+          "after": " const sampler=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);\n if(sampler.trackLength!==trackLength)throw Error(\"EF05 source track length mismatch\");\n const cyanLeft="
+        },
+        {
+          "before": "export function createSharedSourceSampler0282(positionAt,trackLength,modules=planTrueSharedTunnel0281(trackLength)){\n if(typeof positionAt!==\"function\"||!(trackLength>0))\n  throw Error(\"0.28.2 needs original banked positionAt and track length\");",
+          "after": "export function createSharedSourceSampler0282(positionAt,trackLength,modules){\n if(typeof positionAt!==\"function\"||!(trackLength>0))\n  throw Error(\"0.28.2 needs original banked positionAt and track length\");\n modules=modules??planTrueSharedTunnel0281(trackLength);"
+        },
+        {
+          "before": "  // The old full-course shader also seals exterior white light. Do not\n  // apply it to open track gaps before the section-aware shader is ready.\n  if(!sampler.fullCourse)throw Error(\"EF05 partial tunnel road shader not yet supported\");",
+          "after": "  if(!sampler.modules.length)return disabled(\"no tunnel sources\");\n  // Merge adjacent art modules: only tunnel entrances/exits fade,\n  // never the seams between source modules.\n  const sections=[];\n  if(!sampler.fullCourse)for(const m of sampler.modules){\n   const last=sections.at(-1);\n   if(last&&Math.abs(last.end-m.start)<1e-8)last.end=m.end;\n   else sections.push({start:m.start,end:m.end});\n  }"
+        },
+        {
+          "before": "   mobile:lowMemory,fullTunnel:true\n  });",
+          "after": "   mobile:lowMemory,fullTunnel:true,...(sampler.fullCourse?{}:{sections})\n  });"
+        },
+        {
+          "before": "    roadOriginalNativeGGX:true,roadFullLengthMeters:trackLength,",
+          "after": "    roadOriginalNativeGGX:true,roadFullLengthMeters:trackLength,\n    sectionAwareExteriorSeal:!sampler.fullCourse,"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tunnel/unified-tunnel-light-sources-v02894.mjs",
+      "sha": "42a1cc62677a59410f68137603716d82cc6a97c9",
+      "edits": [
+        {
+          "before": " lowMemory=false}={}){\n const sampler=createSharedSourceSampler0282(positionAt,trackLength);\n const cache=new Map();",
+          "after": " lowMemory=false,sourceSampler=null,straightMask=vaultStraightMask02891}={}){\n const sampler=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);\n if(sampler.trackLength!==trackLength)throw Error(\"EF05 source track length mismatch\");\n const cache=new Map();"
+        },
+        {
+          "before": "  const local=sampler.localFor(s),portal=nearestPortal(local.s);",
+          "after": "  const local=sampler.localFor(s);\n  if(!local)return null;\n  const portal=nearestPortal(local.s);"
+        },
+        {
+          "before": "   edgeStraightMask:vaultStraightMask02891(s)};",
+          "after": "   edgeStraightMask:straightMask(s)};"
+        },
+        {
+          "before": " lowMemory=false}={}){\n const coord=geometry?.getAttribute?.(\"aTrackCoord\");",
+          "after": " lowMemory=false,sourceRegistry=null}={}){\n const coord=geometry?.getAttribute?.(\"aTrackCoord\");"
+        },
+        {
+          "before": " const reg=createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory});",
+          "after": " const reg=sourceRegistry??createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory});\n if(reg.trackLength!==trackLength||reg.lowMemory!==lowMemory)throw Error(\"EF05 registry configuration mismatch\");"
+        },
+        {
+          "before": "  const item=reg.at(coord.getX(i));\n  const side=",
+          "after": "  const item=reg.at(coord.getX(i));\n  if(!item)continue;\n  const side="
+        },
+        {
+          "before": " enabled=false,trackLength=3400,lowMemory=false}={}){",
+          "after": " enabled=false,trackLength=3400,lowMemory=false,sourceRegistry=null}={}){"
+        },
+        {
+          "before": "data=buildUnifiedCeilingRoadData02894(geo,positionAt,trackLength,{lowMemory});",
+          "after": "data=buildUnifiedCeilingRoadData02894(geo,positionAt,trackLength,{lowMemory,sourceRegistry});"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tunnel/premium-arch-optics-v02893.mjs",
+      "sha": "0dd254ce846c274e04a69a6e1694184edcbd45b9",
+      "edits": [
+        {
+          "before": " lowMemory=false,unifiedSources=false}={}){\n const source=createSharedSourceSampler0282(positionAt,trackLength);\n const unified=unifiedSources?\n  createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory}):null;",
+          "after": " lowMemory=false,unifiedSources=false,sourceSampler=null,sourceRegistry=null}={}){\n const source=sourceSampler??createSharedSourceSampler0282(positionAt,trackLength);\n if(source.trackLength!==trackLength)throw Error(\"EF05 source track length mismatch\");\n const unified=unifiedSources?\n  (sourceRegistry??createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory,sourceSampler:source})):null;\n if(unified&&(unified.trackLength!==trackLength||unified.lowMemory!==lowMemory))\n  throw Error(\"EF05 registry configuration mismatch\");"
+        },
+        {
+          "before": "   const sample=unified.at(s).arch;",
+          "after": "   const item=unified.at(s);\n   if(!item)continue;\n   const sample=item.arch;"
+        },
+        {
+          "before": "  const local=source.localFor(s);\n  const nearest=",
+          "after": "  const local=source.localFor(s);\n  if(!local)continue;\n  const nearest="
+        },
+        {
+          "before": " enabled=false,lowMemory=false,trackLength=3400,unifiedSources=false\n}={}){",
+          "after": " enabled=false,lowMemory=false,trackLength=3400,unifiedSources=false,sourceSampler=null,sourceRegistry=null\n}={}){"
+        },
+        {
+          "before": " const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory,unifiedSources});",
+          "after": " const data=buildArchRoadSources02893(geometry,positionAt,trackLength,{lowMemory,unifiedSources,sourceSampler,sourceRegistry});"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tunnel/shared-straight-edge-parity-v02891.mjs",
+      "sha": "7f5a026e3d060dcd38746bfa157d9c8ef8d22b48",
+      "edits": [
+        {
+          "before": "export function buildVaultRoadStraightMask02891(geo,ranges=vaultStraightRanges02891()){",
+          "after": "export function buildVaultRoadStraightMask02891(geo,ranges=vaultStraightRanges02891(),trackLength=CIRCUIT.lapLength){"
+        },
+        {
+          "before": "  const m=vaultStraightMask02891(track.getX(i),ranges);",
+          "after": "  const m=vaultStraightMask02891(track.getX(i),ranges,trackLength);"
+        },
+        {
+          "before": " enabled=false,ranges=vaultStraightRanges02891()\n}={}){",
+          "after": " enabled=false,ranges=vaultStraightRanges02891(),trackLength=CIRCUIT.lapLength\n}={}){"
+        },
+        {
+          "before": " const mask=buildVaultRoadStraightMask02891(g,ranges);",
+          "after": " const mask=buildVaultRoadStraightMask02891(g,ranges,trackLength);"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tunnel/road-spill-wave-coves-v02895.mjs",
+      "sha": "6b2d89d8197ba776d9b58ca4401f2490c293d937",
+      "edits": [
+        {
+          "before": "const GLSL_COMMON=\"#include <common>\";",
+          "after": "// For disjoint or unequal authored sections use the actual module\n// origin/scale instead of assuming one period over the whole track.\nexport function sourceLocalRoadExpressionEF05(modules,moduleMeters=340,sourceMeters=368){\n if(modules==null)return null;\n if(!Array.isArray(modules)||!modules.length||modules.length>512||\n  modules.some((m,i)=>!Number.isFinite(m.start)||!Number.isFinite(m.end)||\n   !(m.scale>0)||!Number.isFinite(m.scale)||m.start<0||m.end<=m.start||\n   (i>0&&m.start<modules[i-1].end-1e-8)))\n  throw Error(\"EF05 invalid road spill module plan\");\n // Exact approved Vault formula for the unchanged uniform 340m layout.\n if(modules.every((m,i)=>Math.abs(m.start-i*moduleMeters)<1e-8&&\n  Math.abs(m.end-(i+1)*moduleMeters)<1e-8&&\n  Math.abs(m.scale-moduleMeters/sourceMeters)<1e-10))return null;\n const f=x=>x.toFixed(8);\n return modules.map(m=>\"if(s>=\"+f(m.start)+\"&&s<\"+f(m.end)+\n  \")return (s-\"+f(m.start)+\")*\"+f(1/m.scale)+\";\").join(\"\\n\")+\"\\nreturn -1.0;\";\n}\nconst GLSL_COMMON=\"#include <common>\";"
+        },
+        {
+          "before": " moduleMeters=340,sourceMeters=368,lowMemory=false\n}={}){",
+          "after": " moduleMeters=340,sourceMeters=368,lowMemory=false,sourceModules=null\n}={}){\n const localExpression=sourceLocalRoadExpressionEF05(sourceModules,moduleMeters,sourceMeters);"
+        },
+        {
+          "before": "  \"uniform float uS95Front,uS95Active,uS95Lap,uS95Strength;\"\n ].join(\"\\n\");",
+          "after": "  \"uniform float uS95Front,uS95Active,uS95Lap,uS95Strength;\",\n  ...(localExpression?[\"float roadSourceLocalEF05(float s){\"+localExpression+\"}\"]:[])\n ].join(\"\\n\");"
+        },
+        {
+          "before": "  \"float s95Local=mod(vTrackCoord.x,\"+moduleMeters.toFixed(4)+\")*\"+\n   (sourceMeters/moduleMeters).toFixed(8)+\";\",",
+          "after": "  localExpression?\"float s95Local=roadSourceLocalEF05(vTrackCoord.x);\":\n   \"float s95Local=mod(vTrackCoord.x,\"+moduleMeters.toFixed(4)+\")*\"+\n    (sourceMeters/moduleMeters).toFixed(8)+\";\","
+        },
+        {
+          "before": "  \"float s95Energy=uS95Strength*s95Shape*s95Across*s95Safe;\",",
+          "after": "  localExpression?\"float s95Energy=uS95Strength*s95Shape*s95Across*s95Safe*step(0.0,s95Local);\":\n   \"float s95Energy=uS95Strength*s95Shape*s95Across*s95Safe;\","
+        },
+        {
+          "before": " moduleMeters=340,sourceMeters=368}={}){",
+          "after": " moduleMeters=340,sourceMeters=368,sourceModules=null}={}){"
+        },
+        {
+          "before": " const before=mat.onBeforeCompile,key=mat.customProgramCacheKey;\n const uniforms={\n  uS95Old:",
+          "after": " const localExpression=sourceLocalRoadExpressionEF05(sourceModules,moduleMeters,sourceMeters);\n const before=mat.onBeforeCompile,key=mat.customProgramCacheKey;\n const uniforms={\n  uS95Old:"
+        },
+        {
+          "before": "   moduleMeters,sourceMeters,lowMemory});",
+          "after": "   moduleMeters,sourceMeters,lowMemory,sourceModules});"
+        },
+        {
+          "before": "  return key.call(this)+\"-local-edge-pools-02895-\"+(lowMemory?\"4GB\":\"High\");",
+          "after": "  return key.call(this)+\"-local-edge-pools-02895-\"+(lowMemory?\"4GB\":\"High\")+\n   (localExpression?\"-route-\"+localExpression:\"\");"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/shared-straight-edge-parity-v02891.test.mjs",
+      "sha": "0cc6780acd2f994a00b58d03f1e7f8e51213ada6",
+      "edits": [
+        {
+          "before": "",
+          "after": "\ntest(\"EF05 independent straight mask uses the actual authored course length\",()=>{\n const g=new Geo(),samples=[0,40,60,130,700,850,900,1199,1200];\n g.setAttribute(\"aTrackCoord\",new Attr(samples.flatMap(s=>[s,9]),2));\n g.setAttribute(\"position\",new Attr(samples.flatMap(()=>[0,0,0]),3));\n const ranges=[{from:39,to:120},{from:840,to:880}];\n const mask=buildVaultRoadStraightMask02891(g,ranges,1200);\n assert.deepEqual([...mask.values],[0,1,1,0,0,1,0,0,0]);\n});\n"
+        },
+        {
+          "before": " assert.match(game,/installVaultStraightRoadParity02891/);",
+          "after": " const assembly=read(\"./tunnel/shared-optical-assembly.mjs\");\n assert.match(game,/installSharedRoadOptics\\(\\s*THREE,world,opticalContext/);\n assert.match(assembly,/installVaultStraightRoadParity02891\\(THREE,deck/);"
+        }
+      ]
+    },
+    {
+      "path": "skyshift/tunnel/pmrem-reflection-pipeline-v0284.mjs",
+      "sha": "d4e539c81bc444e4a9ee52c4585c98898e6c580a",
+      "edits": [
+        {
+          "before": "export function planPmrem0284({track=\"vault\",versionActive=false,",
+          "after": "// Explicit mounted route data is the new shared renderer contract. Historic\n// callers retain the original Vault plan without introducing name checks\n// into the actual configured capture path.\nexport function planConfiguredPmremEF05({track,enabled=false,lowMemory=false,\n trackLength,modules,captureAtMeters=PMREM_0284.probeMeters}={}){\n if(!Number.isFinite(trackLength)||trackLength<=0||!Array.isArray(modules)||\n  modules.some((m,i)=>!Number.isFinite(m.start)||!Number.isFinite(m.end)||\n   m.start<0||m.end<=m.start||m.end>trackLength||\n   (i>0&&m.start<modules[i-1].end-1e-8)))\n  throw Error(\"EF05 PMREM requires valid mounted tunnel modules\");\n const intervals=[];\n for(const m of modules){\n  const last=intervals.at(-1);\n  if(last&&Math.abs(last.end-m.start)<1e-8)last.end=m.end;\n  else intervals.push({start:m.start,end:m.end});\n }\n const fullCourse=intervals.length===1&&intervals[0].start===0&&intervals[0].end===trackLength;\n const safe=intervals.find(m=>captureAtMeters>m.start&&captureAtMeters<m.end);\n const longest=intervals.reduce((a,b)=>!a||b.end-b.start>a.end-a.start?b:a,null);\n const probe=safe?captureAtMeters:longest?(longest.start+longest.end)/2:0;\n const original=planPmrem0284({track:\"vault\",versionActive:true,lowMemory,trackLength});\n return Object.freeze({...original,track,enabled:!!enabled&&intervals.length>0,\n  captureAtMeters:probe,captureCount:enabled&&intervals.length?1:0,\n  fullCourse,intervals:Object.freeze(intervals.map(Object.freeze)),configured:true,\n  minimumTunnelMaterials:Math.min(10,modules.length)});\n}\nexport function planPmrem0284({track=\"vault\",versionActive=false,"
+        },
+        {
+          "before": " active:false,attachShip(){return 0;},setComparison(){},",
+          "after": " active:false,attachShip(){return 0;},setComparison(){},updateStation(){},"
+        },
+        {
+          "before": " positionAt,ship=null\n}={}){\n const plan=planPmrem0284({track,versionActive:enabled,\n  lowMemory,trackLength});\n if(!plan.enabled)return inactive(\"release disabled or non-Vault\");\n const root=world?.getObjectByName?.(\n  \"SKYSHIFT · TRUE shared Skyline tunnel 0.28.1\");",
+          "after": " positionAt,ship=null,tunnel=null\n}={}){\n if(!enabled)return inactive(\"release disabled\");\n if(tunnel&&!tunnel.active)return inactive(\"configured shared tunnel inactive\");\n const plan=tunnel?planConfiguredPmremEF05({track,enabled,lowMemory,trackLength,\n  modules:tunnel.modules}):planPmrem0284({track,versionActive:enabled,lowMemory,trackLength});\n if(!plan.enabled)return inactive(\"release disabled or no tunnel sections\");\n const root=tunnel?tunnel.root:world?.getObjectByName?.(\n  \"SKYSHIFT · TRUE shared Skyline tunnel 0.28.1\");"
+        },
+        {
+          "before": " let target=null,generator=null,strength=1,disposed=false,",
+          "after": " let target=null,generator=null,strength=1,shipRouteWeight=1,disposed=false,"
+        },
+        {
+          "before": "  material.envMapIntensity=value*strength;",
+          "after": "  material.envMapIntensity=value*strength*(profile===\"ship\"?shipRouteWeight:1);"
+        },
+        {
+          "before": "  restores.push({material,previous,value});",
+          "after": "  restores.push({material,previous,value,profile});"
+        },
+        {
+          "before": "  if(physicalTunnel<10||physicalShip<1)",
+          "after": "  if(physicalTunnel<(plan.minimumTunnelMaterials??10)||physicalShip<1)"
+        },
+        {
+          "before": " const setComparison=value=>{\n  strength=clamp(value);\n  for(const item of restores)\n   item.material.envMapIntensity=item.value*strength;\n };\n return {\n  active:true,attachShip,setComparison,",
+          "after": " const applyStrength=()=>{\n  for(const item of restores)\n   item.material.envMapIntensity=item.value*strength*(item.profile===\"ship\"?shipRouteWeight:1);\n };\n const setComparison=value=>{strength=clamp(value);applyStrength();};\n const updateStation=s=>{\n  if(!plan.configured||plan.fullCourse||disposed)return;\n  const interval=plan.intervals.find(m=>s>=m.start&&s<=m.end);\n  const fade=interval?Math.min(12,(interval.end-interval.start)/2):1;\n  const t=interval?clamp(Math.min(s-interval.start,interval.end-s)/fade):0;\n  const next=t*t*(3-2*t);\n  if(next===shipRouteWeight)return;\n  shipRouteWeight=next;\n  // Only the hull changes at entrances; no new PMREM capture.\n  for(const item of restores)if(item.profile===\"ship\")\n   item.material.envMapIntensity=item.value*strength*shipRouteWeight;\n };\n return {\n  active:true,attachShip,setComparison,updateStation,"
+        },
+        {
+          "before": "   method:\"PMREMGenerator.fromScene\",source:\"live original Skyline-shaped Vault\",",
+          "after": "   method:\"PMREMGenerator.fromScene\",source:\"live original Skyline-shaped Vault\",\n   configuredRoute:!!plan.configured,shipRouteWeight,"
+        },
+        {
+          "before": "   shipIntensity:plan.shipStrength*strength,",
+          "after": "   shipIntensity:plan.shipStrength*strength*shipRouteWeight,"
+        }
+      ]
+    }
+  ]
+}

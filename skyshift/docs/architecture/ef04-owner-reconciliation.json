@@ -391,7 +391,13 @@
         ".github/workflows/skyshift-tests.yml",
         "skyshift/tests/unit/racing-experience-v0120.test.mjs"
       ],
-      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+      "disposition": "retained until new current Power Carve synthetic replacement passes and old test's unique landmark checks and historical identity consumers are preserved",
+      "replacementEvidence": {
+        "implementation": "skyshift/flight/power-carve.mjs",
+        "test": "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "priorVerifiedHead": "0e00898333e22def2ac2e0a38299e63cfdc7e616",
+        "remaining": "migrate old racecraft tests to current engine, preserve landmark checks, archive exact obsolete source and reconcile workflow/identity guards"
+      }
     },
     {
       "path": "skyshift/racing-experience-v0121.mjs",

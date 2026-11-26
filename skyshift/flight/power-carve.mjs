@@ -12,6 +12,8 @@ export function createPowerCarveAPI(config,isAurora=()=>false){
  }
  function raceRhythmAt(s){
   const d=local(s);
+  // Explicit route-provided rhythm takes precedence; historical adapters retain their defaults.
+  if(typeof config.rhythmAt==='function')return config.rhythmAt(d);
   if(isAurora()){
    if(d>=1240&&d<1700||d>=2950)return "SWITCHBACK";
    if(d>=910&&d<1180)return "LUMEN PASS";
@@ -52,7 +54,7 @@ export function createPowerCarveAPI(config,isAurora=()=>false){
  }
  function observeRacingStep(st,flight,dt,result={}){
   const s=Number.isFinite(flight.s)?flight.s:0;
-  const lap=Math.max(1,Math.min(3,Math.floor(Math.max(0,s-1e-7)/config.lapLength)+1));
+  const lap=Math.max(1,Math.min(config.laps??3,Math.floor(Math.max(0,s-1e-7)/config.lapLength)+1));
   const widx=result.crashed||result.finished||flight.grounded===false?-1:raceWindowAt(s);
   const current=st.activeWindow,delta=clamp(dt,0,.05);
   st.physicsSamples++;

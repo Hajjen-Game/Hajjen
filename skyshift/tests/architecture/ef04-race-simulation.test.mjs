@@ -312,3 +312,52 @@ test('EF04 root owner entries reconciled with current graph and surviving known 
  for(const p of ['core/race-lifecycle.mjs','qa/race-probes.mjs','tracks/shared/track-sampler.mjs','flight/flight-physics.mjs'])assert.ok(graph.has(p),p);
  console.log('SKYSHIFT_EF04_OWNER_RECONCILIATION '+JSON.stringify(rows));
 });
+
+import {createPowerCarveAPI} from '../../flight/power-carve.mjs';
+test('EF04 current Power Carve replaces old racecraft behavior on an independent route with injected rhythm and lap count',()=>{
+ const config={version:'synthetic',lapLength:80,laps:5,releaseSeconds:1.65,
+  precisionWindows:[{id:'a',name:'A',start:10,end:20,minGripSeconds:.18},{id:'b',name:'B',start:35,end:45,minGripSeconds:.22}],
+  rhythmAt:s=>s>=10&&s<20?'APEX':s>=35&&s<45?'LINK':'FLOW',
+  maxFovAdditionDegrees:3.25,maxCameraLeanRadians:.038,maxCameraShiftMeters:.62,maxCameraPullbackMeters:.45,maxHullCarveRadians:.099,extraDrawCalls:0};
+ const api=createPowerCarveAPI(config,()=>{throw Error('Generic route must not consult historical track selector');});
+ assert.equal(api.raceRhythmAt(92),'APEX');assert.equal(api.raceRhythmAt(-40),'LINK');
+ assert.equal(api.raceWindowAt(90),0);assert.equal(api.raceWindowAt(100),-1);
+ const dt=1/120,st=api.createRacingExperience();
+ const flight={s:0,grounded:true,gripIntensity:.95,steering:.8,yawRate:.7,railContacts:0,elapsed:0};
+ const drive=(state,lap,window,variant={})=>{
+  const f={...flight,...variant};const start=(lap-1)*80+window.start;
+  for(let i=0;i<80;i++){
+   f.s=start+.1+(window.end-window.start-.2)*i/80;f.elapsed+=dt;
+   const copy={...f};api.observeRacingStep(state,f,dt);assert.deepEqual(f,copy);
+  }
+  f.s=(lap-1)*80+window.end+.01;
+  return api.observeRacingStep(state,f,dt);
+ };
+ assert.equal(drive(st,1,config.precisionWindows[0]).chain,1);
+ assert.equal(drive(st,1,config.precisionWindows[1]).chain,2);
+ assert.equal(drive(st,1,config.precisionWindows[0]),null);
+ assert.equal(drive(st,4,config.precisionWindows[0]).lap,4);
+ assert.equal(drive(st,5,config.precisionWindows[0]).lap,5);
+ assert.equal(st.cleanCarves,4);assert.equal(st.maxFlowChain,2);
+ for(const variant of [{gripIntensity:0},{yawRate:0},{steering:0}]){
+  const bad=api.createRacingExperience();assert.equal(drive(bad,1,config.precisionWindows[0],variant),null);
+  assert.equal(bad.cleanCarves,0);assert.equal(bad.missedCarves,1);
+ }
+ const frame={s:12,steering:.93,yawRate:.78,gripIntensity:1,speed:95,grounded:true,playing:true};
+ const a=api.createRacingExperience(),b=api.createRacingExperience(),idle=api.createRacingExperience();
+ for(let i=0;i<120;i++)api.stepRacingExperience(a,dt,frame);
+ for(let i=0;i<60;i++)api.stepRacingExperience(b,1/60,frame);
+ for(let i=0;i<120;i++)api.stepRacingExperience(idle,dt,{...frame,gripIntensity:0});
+ assert.ok(a.gripEnergy>.64&&Math.abs(a.hullCarve)>.04&&a.fovAddition>1.75);
+ assert.equal(idle.gripEnergy,0);assert.equal(idle.hullCarve,0);
+ for(const k of ['fovAddition','cameraLean','cameraShiftMeters','cameraPullbackMeters','hullCarve','engineLift'])assert.ok(Math.abs(a[k]-b[k])<1e-4,k);
+ const pause=structuredClone(a);api.stepRacingExperience(a,dt,{...frame,playing:false});assert.deepEqual(a,pause);
+ for(const protectedView of [{grounded:false},{wall:true},{corkscrew:true}]){
+  const p=api.createRacingExperience();
+  for(let i=0;i<120;i++)api.stepRacingExperience(p,dt,frame);
+  for(let i=0;i<180;i++)api.stepRacingExperience(p,dt,{...frame,...protectedView});
+  assert.ok(Math.abs(p.hullCarve)<1e-5&&Math.abs(p.cameraLean)<1e-5&&p.fovAddition<.003);
+  assert.equal(api.racingExperienceAudit(p).physicalFlightUnchanged,true);
+ }
+ api.resetRacingExperience(st);assert.equal(st.completedWindowKeys.size,0);assert.equal(st.cleanCarves,0);
+});

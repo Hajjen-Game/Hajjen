@@ -5,6 +5,9 @@ import {writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 
 const profiles=[8,4],stations=[110,1840],presets=['baseline','no-bloom','no-smaa','low-dpr'];
+// Completed isolation runs are retained in the EF07 evidence ledger. Re-run
+// broad diagnostic presets on demand; mandatory CI tests the actual change.
+const broadDiagnostics=process.env.SKYSHIFT_EF07_BROAD_DIAGNOSTICS==='1';
 const round=x=>Math.round(x*1000)/1000;
 function summarize(intervals){
  const sorted=[...intervals].sort((a,b)=>a-b);
@@ -33,13 +36,13 @@ async function rawFrames(page,count){
 export async function captureEF07Profile({browser,out}){
  const report={renderer:'Chromium/SwiftShader; emulated navigator.deviceMemory, not physical hardware',
   note:'Controlled held poses isolate rendering; unheld race samples include actual physics. Diagnostic presets are not proposed visual changes. Small samples and software GPU are screening only, no mobile FPS or thermal claim.',
-  rows:[],comparisons:[]};
+  mode:broadDiagnostics?'broad':'candidate-acceptance',rows:[],comparisons:[]};
  const save=()=>writeFileSync(join(out,'ef07-profile-report.json'),JSON.stringify(report,null,2)+'\n');
  try{
   for(const memory of profiles){
    // Reverse diagnostic order across profiles; baseline measured before and after
    // the variants within each profile, to expose runner drift.
-   const order=memory===8?['baseline',...presets.slice(1),'native-frame','baseline']:['baseline','native-frame',...presets.slice(1).reverse(),'baseline'];
+   const order=broadDiagnostics?(memory===8?['baseline',...presets.slice(1),'native-frame','baseline']:['baseline','native-frame',...presets.slice(1).reverse(),'baseline']):['baseline','native-frame','baseline'];
    for(let index=0;index<order.length;index++){
     const variant=order[index],preset=variant==='native-frame'?'baseline':variant,context=await browser.newContext({viewport:{width:1280,height:720},deviceScaleFactor:1});
     try{
@@ -99,6 +102,7 @@ export async function captureEF07Profile({browser,out}){
    assert.deepEqual(last.digest,first.digest,'baseline tunnel repeat identity');
    const times=[first.startup.durations.sharedTunnelMs,last.startup.durations.sharedTunnelMs];
    const candidate=native.startup.durations.sharedTunnelMs;
+   assert.ok([...times,candidate].every(x=>Number.isFinite(x)&&x>0),'valid matched tunnel timings');
    const startupComparison={memory,baselineTunnelMs:times,candidateTunnelMs:candidate,baselineDriftMs:round(Math.abs(times[0]-times[1])),deltaVsBracketMeanMs:round(candidate-(times[0]+times[1])/2),sameGeometry:true,nativeFrame:native.nativeFrame};
    report.comparisons.push(startupComparison);console.log('SKYSHIFT_EF07_NATIVE_STARTUP '+JSON.stringify(startupComparison));
    if(memory===4){
@@ -120,6 +124,8 @@ export async function captureEF07Profile({browser,out}){
      }finally{await context.close();}
     }
     const controls=repeats.filter(r=>r.variant==='baseline').map(r=>r.tunnelMs),candidates=repeats.filter(r=>r.variant==='native-frame').map(r=>r.tunnelMs);
+    assert.equal(controls.length,2);assert.equal(candidates.length,2);
+    assert.ok([...controls,...candidates].every(x=>Number.isFinite(x)&&x>0),'valid independent boot timings');
     const result={memory,repeatBoots:repeats,allControlTunnelMs:[...times,...controls],allCandidateTunnelMs:[candidate,...candidates],worstCandidateMs:Math.max(candidate,...candidates),bestControlMs:Math.min(...times,...controls)};
     report.comparisons.push(result);save();console.log('SKYSHIFT_EF07_NATIVE_REPEAT '+JSON.stringify(result));
     assert.ok(result.worstCandidateMs<result.bestControlMs*.85,'4GB default must retain clear repeated tunnel construction benefit');

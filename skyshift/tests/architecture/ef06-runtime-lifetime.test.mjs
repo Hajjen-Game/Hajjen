@@ -21,7 +21,8 @@ function fixture(){
 test('EF06 single RAF chain, original scheduling order, auxiliary resize and idempotent permanent teardown',()=>{
  const f=fixture();f.life.start();f.life.start();assert.equal(f.frames.size,1);
  f.life.once(t=>f.calls.push(['resize',t]));assert.equal(f.frames.size,2);
- f.tick(10);assert.deepEqual(f.calls,[['frame',10,1],['resize',10]]);
+ // At frame entry the next recurring frame and the current pending resize coexist.
+ f.tick(10);assert.deepEqual(f.calls,[['frame',10,2],['resize',10]]);
  assert.equal(f.frames.size,1);f.tick(20);assert.equal(f.frames.size,1);
  let resize=0;f.life.listen(f.page,'resize',()=>resize++);
  f.event(f.page,'resize');assert.equal(resize,1);
@@ -54,4 +55,6 @@ test('EF06 actual game uses the single frame owner and protects pending ship loa
  assert.doesNotMatch(source,/requestAnimationFrame\(loop\)/);
  assert.match(source,/runtimeLifetime\.listen\(window,"resize",resize\)/);
  assert.match(source,/runtimeLifetime\.disposed\|\|runtimeLifetime\.contextLost/);
+ assert.match(source,/function resize\(\)\{\s*if\(runtimeLifetime\.disposed\|\|runtimeLifetime\.contextLost\|\|!renderer\)return;/);
+ assert.match(source,/onContextLost:\(\)=>\{[\s\S]*?sceneReady=false;shipArtController\.dispose\(\);/);
 });

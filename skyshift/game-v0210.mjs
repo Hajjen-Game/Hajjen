@@ -694,7 +694,7 @@ const runtimeLifetime=createRuntimeLifetime({
  onSuspend:()=>{if(uiState.mode==="playing")pause();},
  onContextLost:()=>{
   if(uiState.mode==="playing")pause();
-  sceneReady=false;
+  sceneReady=false;shipArtController.dispose();
   UI.error.classList.remove("hidden");
   UI.error.textContent="Graphics context lost. Waiting for recovery…";
  },
@@ -3596,7 +3596,7 @@ function initScene(){
  refreshTrialMenu();
 }
 function resize(){
- if(!renderer)return;
+ if(runtimeLifetime.disposed||runtimeLifetime.contextLost||!renderer)return;
  const rect=UI.canvas.getBoundingClientRect();
  const width=Math.max(1,Math.round(rect.width||innerWidth));
  const height=Math.max(1,Math.round(rect.height||innerHeight));

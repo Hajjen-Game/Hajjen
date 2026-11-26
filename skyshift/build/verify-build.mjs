@@ -4,6 +4,7 @@ import {readFile,readdir,stat} from 'node:fs/promises';
 import {resolve,dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
+import {readArchivedWorldAsset} from './archived-world-assets.mjs';
 import {retiredSceneryModules,retiredTunnelModules,comparisonOnlyWorldAssets} from './production-specialization.mjs';
 const here=dirname(fileURLToPath(import.meta.url)),dist=join(here,'dist');
 const report=JSON.parse(await readFile(join(dist,'build-report.json'),'utf8'));
@@ -73,6 +74,14 @@ async function walkAssets(dir,rel='assets'){
  }
 }
 await walkAssets(join(source,'assets'));
+for(const path of comparisonOnlyWorldAssets){
+ const a=readArchivedWorldAsset('skyshift/'+path);
+ const recorded=report.comparisonAssets.find(f=>f.path===path);
+ assert.equal(recorded.bytes,a.length);
+ assert.equal(recorded.sha256,createHash('sha256').update(a).digest('hex'));
+ await assert.rejects(stat(join(source,path)),{code:'ENOENT'});
+ await assert.rejects(stat(join(dist,path)),{code:'ENOENT'});
+}
 const outputAssets=report.files.map(f=>f.path).filter(p=>p.startsWith('assets/')).sort();
 assert.deepEqual(outputAssets,assets.sort(),'complete classified production asset inventory');
 for(const p of ['assets/ships/stingray-evo-hero-v1.gltf','assets/ships/stingray-evo-hero-v4.gltf'])assert.ok(assets.includes(p),p+' required runtime model');

@@ -5,6 +5,7 @@ import {cp,mkdir,readFile,writeFile,rm,lstat} from 'node:fs/promises';
 import {resolve,dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
+import {readArchivedWorldAsset} from './archived-world-assets.mjs';
 const here=dirname(fileURLToPath(import.meta.url)),repo=resolve(here,'../..'),site=join(here,'site'),dist=join(here,'dist');
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const git=(...args)=>execFileSync('git',args,{cwd:repo,maxBuffer:16*1024*1024}).toString();
@@ -43,8 +44,9 @@ for(const path of kept){
 preserved.push({path:legacy,sha256:sha(source)});
 for(const f of report.comparisonAssets){
  const path='skyshift/'+f.path;
- assert.ok(kept.includes(path),path+' historical comparison asset retained');
- const bytes=await readFile(join(site,path));assert.equal(bytes.length,f.bytes);assert.equal(sha(bytes),f.sha256);
+ assert.ok(!tracked.includes(path),path+' retired from tracked source');
+ const bytes=readArchivedWorldAsset(path);assert.equal(bytes.length,f.bytes);assert.equal(sha(bytes),f.sha256);
+ const dest=join(site,path);await mkdir(dirname(dest),{recursive:true});await writeFile(dest,bytes,{flag:'wx'});
  assert.ok(!report.files.some(x=>x.path===f.path),path+' comparison asset excluded from production artifact');
  preserved.push({path,sha256:f.sha256});
 }

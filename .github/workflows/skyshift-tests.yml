@@ -195,6 +195,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Materialize exact archived station QA assets
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          node skyshift/build/archived-world-assets.mjs --materialize
       - name: Fetch immutable historical test fixtures
         run: git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
       - name: Check browser module syntax
@@ -683,6 +687,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Materialize exact archived station QA assets
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          node skyshift/build/archived-world-assets.mjs --materialize
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify SKYSHIFT 0.20.4 integrated neon on graphite and 4GB mobile WebGL
@@ -708,6 +716,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Materialize exact archived station QA assets
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          node skyshift/build/archived-world-assets.mjs --materialize
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify SKYSHIFT 0.20.4.1 sculpted neon high/low mobile and A/B
@@ -734,6 +746,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Materialize exact archived station QA assets
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          node skyshift/build/archived-world-assets.mjs --materialize
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify SKYSHIFT 0.20.5 sculpted halls, static road glints and mobile WebGL
@@ -766,6 +782,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Materialize exact archived station QA assets
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          node skyshift/build/archived-world-assets.mjs --materialize
       - name: Install lightweight browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Export deterministic SKYSHIFT 0.13.5 handling fairness report
@@ -791,6 +811,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Materialize exact archived station QA assets
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          node skyshift/build/archived-world-assets.mjs --materialize
       - name: Install WebGL browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify 0.18.0 Celestial Conduit
@@ -822,6 +846,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Materialize exact archived station QA assets
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          node skyshift/build/archived-world-assets.mjs --materialize
       - name: Install WebGL browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify 0.20.1 enclosed station shell
@@ -847,6 +875,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Materialize exact archived station QA assets
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          node skyshift/build/archived-world-assets.mjs --materialize
       - name: Install WebGL browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify 0.20.2.1 ribbon window cleanup
@@ -1936,6 +1968,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Materialize exact archived station QA assets
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          node skyshift/build/archived-world-assets.mjs --materialize
       - name: Install browser driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1
       - name: Verify new 3D silhouette, mobile budget, matched camera screenshot A/B

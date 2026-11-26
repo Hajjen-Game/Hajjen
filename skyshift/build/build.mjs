@@ -5,6 +5,7 @@ import {cp,mkdir,readFile,writeFile,rm,readdir} from 'node:fs/promises';
 import {resolve,relative,dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
+import {readArchivedWorldAsset} from './archived-world-assets.mjs';
 import {build} from 'vite';
 import {PRODUCTION_TRACK,productionRouteUrl} from '../tracks/shared/production-catalog.mjs';
 import {specializeVaultGame,specializeVaultTunnelRuntime,retiredSceneryModules,retiredTunnelModules,comparisonOnlyWorldAssets} from './production-specialization.mjs';
@@ -103,7 +104,7 @@ console.log('SKYSHIFT_EF05_OWNER_RECONCILIATION '+JSON.stringify(ef05Owners.coun
 // artifact. Pages assembly retains the exact original bytes for source QA.
 const comparisonAssets=[];
 for(const path of comparisonOnlyWorldAssets){
- const b=await readFile(join(source,path));
+ const b=readArchivedWorldAsset('skyshift/'+path);
  comparisonAssets.push({path,bytes:b.length,sha256:createHash('sha256').update(b).digest('hex')});
 }
 await cp(join(source,'assets'),join(dist,'assets'),{recursive:true,

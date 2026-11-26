@@ -180,10 +180,8 @@ test("Aurora camera obeys Aurora's physical bank, never archived Skyline 360 rol
  }
 });
 test("Aurora metal contact sparks are on Aurora rails, never old Skyline world space",async()=>{
- const {createRailContactSampler}=await import("../../rendering/rail-scrape-sparks.mjs");
- const oldTrial=await import("../../trial-v0901.mjs");
  const sparks=await import("../../rail-scrape-sparks-v0165.mjs");
- const oldSparks={railContactPoint:createRailContactSampler(oldTrial)};
+ const oldSparks=await import("../../rail-scrape-sparks-v01091.mjs");
  for(const s of [250,715,1530,2060,2750,3180]){
   for(const side of [-1,1]){
    const q=sparks.railContactPoint(s,side);

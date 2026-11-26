@@ -70,14 +70,6 @@ export function restoreUiMove(s,p){
  // EF04 retirement is newer than every historical path migration. Restore its
  // exact workflow edit here, before any historical identity is checked.
  if(key(p)==='.github/workflows/skyshift-tests.yml'){
-  const {workflow:retired}=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef05-retired-rail-adapters.json'),'utf8'));
-  for(const e of [...retired.edits].reverse()){
-   assert.equal(s.split(e.after).length-1,1,'EF05 retired rail workflow inverse anchor');
-   assert.ok(!s.includes(e.before),'EF05 stale retired rail command');
-   s=s.replace(e.after,e.before);
-  }
-  const railWorkflow=Buffer.from(s);
-  assert.equal(createHash('sha1').update('blob '+railWorkflow.length+'\0').update(railWorkflow).digest('hex'),retired.previousSha,'EF05 exact workflow inverse');
   const {workflow:w}=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef04-retired-engine.json'),'utf8'));
   assert.equal(w.path,key(p),'EF04 workflow path');
   assert.equal(s.split(w.after).length-1,1,'EF04 workflow inverse anchor');

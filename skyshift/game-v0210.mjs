@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import {createRaceLifecycle} from "./core/race-lifecycle.mjs";
+import {installFlightTuningPanel,installRaceQa} from "./qa/race-probes.mjs";
 import {clearRaceInput,installRaceInput} from "./ui/race-input.mjs";
 import {createRaceHud} from "./ui/race-hud.mjs";
 import {createRunAudit,createRaceTelemetry,downloadRaceAudit} from "./core/race-diagnostics.mjs";
@@ -757,6 +759,7 @@ let zoneWave=newZoneWaveState();
 let tunnelInside=false,tunnelEntries=0,tunnelExits=0,tunnelSeconds=0,tunnelMaxIntensity=0;
 let waveSmokeHold=false;
 
+const raceLifecycle=createRaceLifecycle({UI,uiState,raceSession,timeTrialState,resetFlight,refreshHud,hudBudget,clearInput,refreshTrialMenu,worldClock,event,now:()=>performance.now(),clearTimeout,ctx:{get sceneReady(){return sceneReady},get currentChallenge(){return currentChallenge},get world(){return world},setChallenge(challenge){currentChallenge=challenge;lastChallengeGrading=null},app:()=>$("app"),hideGhost:()=>ghostVisual?.hide()}});
 function bestForTrial(){return readLegacyRaceBest(fleetStorage());}
 // A best Time Trial is separate from the historic normal-circuit record.
 function refreshTrialMenu(){
@@ -3731,70 +3734,10 @@ function resetFlight(){
  chaseCameraController.spawn(camera,flight,motionState,cinematicState);
  worldClock.last=performance.now();worldClock.accum=0;
 }
-function enterPlaying(challenge=null){
- if(!sceneReady)return;
- currentChallenge=challenge;lastChallengeGrading=null;
- raceSession.selectMode(currentChallenge);
- $("app").classList.remove("hangar-active");
- world.visible=true;
- resetFlight();uiState.mode="playing";
- UI.menu.classList.add("hidden");UI.end.classList.add("hidden");
- UI.challengeScreen.classList.add("hidden");
- document.getElementById("app").classList.toggle("challenge-active",!!currentChallenge);
- UI.challengeHud.classList.toggle("hidden",!currentChallenge);
- UI.challengeResult.classList.add("hidden");
- UI.challengeEndBack.classList.add("hidden");
- if(currentChallenge)UI.challengeHudName.textContent=currentChallenge.name;
- UI.settings.classList.add("hidden");
- UI.settingsOpen.classList.add("hidden");
- UI.pause.classList.add("hidden");
- UI.hud.classList.remove("hidden");UI.controls.classList.remove("hidden");
- UI.trialHud.classList.toggle("hidden",timeTrialState.mode!=="time-trial");
- UI.trialResult.classList.add("hidden");
- if(timeTrialState.mode==="time-trial")
-  event("time_trial_start",{ghostLoaded:!!timeTrialState.previousBest,
-   ghostEnabled:raceSession.ghostEnabled,previousBestSeconds:timeTrialState.previousBest?.duration??null});
- UI.pauseBtn.classList.remove("hidden");
- UI.fullscreen.classList.remove("hidden");
- refreshHud();hudBudget.shouldUpdate(performance.now(),true);
-}
-function returnToMainMenu(){
- if(uiState.mode!=="paused")return;
- // Abandon only the unfinished trace; never overwrite or erase an existing PB.
- uiState.mode="menu";
- currentChallenge=null;lastChallengeGrading=null;
- document.getElementById("app").classList.remove("challenge-active");
- clearTimeout(uiState.toastTimeout);
- clearTimeout(uiState.bannerTimeout);
- ghostVisual?.hide();
- UI.pause.classList.add("hidden");
- UI.end.classList.add("hidden");
- UI.settings.classList.add("hidden");
- UI.menu.classList.remove("hidden");
- UI.hud.classList.add("hidden");UI.riskCue.classList.add("hidden");
- UI.trialHud.classList.add("hidden");
- UI.controls.classList.add("hidden");
- UI.pauseBtn.classList.add("hidden");
- UI.fullscreen.classList.add("hidden");
- UI.settingsOpen.classList.remove("hidden");
- $("app").classList.remove("hangar-active");
- world.visible=true;
- resetFlight();
- refreshTrialMenu();
-}
-function pause(){
- if(uiState.mode!=="playing")return;
- uiState.mode="paused";clearInput();UI.riskCue.classList.add("hidden");
- ghostVisual?.hide();
- refreshTrialMenu();
- UI.pause.classList.remove("hidden");UI.pauseBtn.classList.add("hidden");
-}
-function resume(){
- if(uiState.mode!=="paused")return;
- uiState.mode="playing";UI.pause.classList.add("hidden");
- UI.pauseBtn.classList.remove("hidden");
- worldClock.last=performance.now();worldClock.accum=0;
-}
+function enterPlaying(challenge=null){raceLifecycle.enterPlaying(challenge);}
+function returnToMainMenu(){raceLifecycle.returnToMainMenu();}
+function pause(){raceLifecycle.pause();}
+function resume(){raceLifecycle.resume();}
 function endRun(won){
  if(currentChallenge){endChallengeRun(won);return;}
  completedSparkStats=railSparks?.stats()??null;
@@ -4727,209 +4670,6 @@ function exportAudit(){
  };
  downloadRaceAudit(data,perfSettings.preset,{Blob,URL,document,setTimeout});
 }
-function installFlightTuningPanel(){
- // The regular mobile interface stays clean. Developers opt in with ?flightlab=1.
- if(new URLSearchParams(location.search).get("flightlab")!=="1")return;
- const panel=document.createElement("section");
- panel.setAttribute("aria-label","Flight Dynamics Lab");
- panel.style.cssText="position:fixed;top:42px;right:8px;z-index:2500;box-sizing:border-box;width:215px;max-height:75vh;overflow:auto;background:rgba(4,13,27,.93);color:#d9f6ff;padding:12px;border:1px solid #397084;border-radius:10px;font:12px system-ui;box-shadow:0 8px 20px #0009";
- const title=document.createElement("strong");
- title.textContent="FLIGHT LAB · 0.7.0";panel.appendChild(title);
- const fields=[
-  ["pilotBankDegrees","Pilot bank","°",8,28,1],
-  ["bankResponse","Turn-in","",8,23,1],
-  ["bankRecovery","Bank recovery","",6,18,1],
-  ["hoverTravelMeters","Hover travel"," m",0,.18,.01],
-  ["cameraYawResponse","Camera yaw","",5,17,1],
-  ["cameraFollowResponse","Camera follow","",6,18,1],
-  ["cameraDistance","Camera distance"," m",11.5,16,.1],
-  ["cameraHeight","Camera height"," m",6.2,10,.1],
-  ["previewGain","Corner preview","",0,.4,.02],
-  ["engineTurnGain","Engine weight","",0,.9,.05]
- ];
- for(const [key,label,unit,min,max,step] of fields){
-   const row=document.createElement("label");row.style.cssText="display:block;margin-top:9px";
-   const name=document.createElement("div");
-   const value=document.createElement("span");value.style.cssText="float:right";
-   const slider=document.createElement("input");
-   slider.type="range";slider.min=min;slider.max=max;slider.step=step;
-   const params=Object.hasOwn(cinematicTuning,key)?cinematicTuning:flightTuning;
-  slider.value=String(params[key]);
-   slider.style.cssText="display:block;width:100%;accent-color:#43ddf0";
-   const display=()=>Number(params[key]).toFixed(step<1?2:0)+unit;
-   name.textContent=label;value.textContent=display();name.appendChild(value);
-   row.append(name,slider);panel.appendChild(row);
-   slider.addEventListener("input",()=>{
-     params[key]=Number(slider.value);value.textContent=display();
-   });
- }
- document.body.appendChild(panel);
-}
-// Opt-in browser-only integration probe. It advances the actual fixed-flight
-// clock past the first scheduled wave on a software-rendered CI machine that
-// cannot reliably simulate ten seconds within ten wall-clock seconds.
-// Production players never have this hook without ?waveSmoke=1.
-function installWaveSmokeHook(){
- if(new URLSearchParams(location.search).get("waveSmoke")!=="1")return;
- window.__skyshiftHudInfo=()=>reactiveHud.stats();
- window.__skyshiftGripInfo=()=>({
-  intensity:+flight.gripIntensity.toFixed(3),
-  direction:flight.gripDirection,
-  activations:flight.gripActivations,
-  active:flight.gripActive,
-  speed:+flight.currentSpeed.toFixed(2),
-  visual:sideThrusters?.stats()
- });
- window.__skyshiftWaveSmoke=(targetStage=1)=>{
-  if(uiState.mode!=="playing")throw new Error("Wave smoke requires active run");
-  if(!Number.isInteger(targetStage)||targetStage<1||targetStage>3)
-   throw new Error("Invalid spectral smoke stage");
-  // Deterministically place each successive physical crest just ahead of
-  // the stationary craft under software WebGL. Actual play uses 120Hz ticks.
-  for(let k=zoneWave.waves.length;k<targetStage;k++){
-   const at=ZONE_WAVE.triggers[k],atS=flight.s;
-   flight.elapsed=at;
-   updateZoneWave(zoneWave,at,atS);
-   // Cross front deliberately during bright white-core phase for screenshots.
-   flight.elapsed=at+.792;
-   const pass=updateZoneWave(zoneWave,at+.792,atS);
-   if(!pass.changed||pass.stage!==k+1)
-    throw new Error("Zone "+(k+2)+" did not pass craft");
-   previousSector=pass.stage;setZoneSpeedStage(flight,pass.stage);
-   announceSector(pass.stage);
-  }
-  waveSmokeHold=true; // CI-only freeze for honest white-core screenshots.
-  premiumSurface?.setWaveState(zoneWave);
-  identitySurface?.setWaveState(zoneWave);
-  stationWorld?.updateWave?.(zoneWave);
- sharedTunnelRuntime?.updateWave?.(zoneWave);
- archRoadReflections?.updateWave?.(zoneWave);
- unifiedCeilingRoad?.updateWave?.(zoneWave);
- roadSpill02895?.updateWave?.(zoneWave);
-  refreshHud();
-  return {zone:zoneWave.playerStage+1,flightSeconds:flight.elapsed,
-   playerS:flight.s,frontS:zoneWave.fronts[0],
-   launches:[...ZONE_WAVE.triggers],palette:ZONE_PALETTES[zoneWave.playerStage].id,
-   featherMeters:ZONE_WAVE.featherMeters,
-   railSynchronized:Boolean(identitySurface?.setWaveState),
-   engineResonance:waveResonanceStrength(zoneWave,flight.elapsed),
-    whiteCoreMeters:ZONE_WAVE.whiteCoreMeters,
-    whiteCoreEnergy:ZONE_WAVE.whiteCoreEnergy,
-     whiteBloomMeters:ZONE_WAVE.whiteBloomMeters,
-     whiteBloomEnergy:ZONE_WAVE.whiteBloomEnergy};
- };
-}
-// Visual regression only: opt in with ?tunnelSmoke=1.
-// Teleports the test pilot to an existing legal road pose for screenshots.
-// Actual play never invokes or exposes this function.
-function installTunnelSmokeHook(){
- if(new URLSearchParams(location.search).get("tunnelSmoke")!=="1")return;
- window.__skyshiftTunnelLightInfo=()=>({
-  levels:{...tunnelBlackout?.levels},
-  lightIntensity:{ambient:worldLights?.ambient.intensity,
-   key:worldLights?.key.intensity,fill:worldLights?.fill.intensity},
-  engineIntensity:engineLights.map(light=>light.intensity),
-  bladeTipOpacity:bladeTips?.material.opacity,
-  baselineShipGlowOpacity:shipGlow?.opacity,
-  state:tunnelBlackout?.audit()
- });
- window.__skyshiftTunnelSmoke=(at=2435)=>{
-  if(uiState.mode!=="playing")throw new Error("Tunnel smoke requires active race");
-  // Freeze 120Hz physics while CI captures a stable, legal tunnel pose.
-  // This hook is only installed with ?tunnelSmoke=1.
-  waveSmokeHold=true;
-  const s=clamp(at,SHADOW_TUNNEL.start+48,SHADOW_TUNNEL.end-48);
-  const p=positionAt(s,0,0);
-  Object.assign(flight,{s,lap:1,worldX:p.x,worldZ:p.z,
-   lateral:0,y:surfaceHeightAt(s)+TRIAL.hoverHeight,
-   heading:headingAt(s),grounded:true,vy:0,
-   currentSpeed:TRIAL.startSpeed,zoneCruiseSpeed:TRIAL.startSpeed});
-  motionState=createFlightMotionState(flight.heading);
-  cinematicState=createCinematicState();
-  kineticCamera=createKineticCameraState();
-  snapRacePose(raceSimulation,flight,false);
-  chaseCameraController.snap(flight,motionState,cinematicState);
-  tunnelInside=inShadowTunnel(flight.s);
-  return {at:flight.s,inside:tunnelInside,
-   darkness:tunnelIntensityAt(flight.s),
-   geometry:shadowTunnel?.getStats(),normalBank:bankAt(s),
-   pilotPhysics:TRIAL.id,cameraMode:CAMERA_MODE};
- };
-}
-// Test-only real renderer probe. Ordinary sessions never expose or execute it.
-function installLivingWakeSmokeHook(){
- if(new URLSearchParams(location.search).get("wakeSmoke")!=="1")return;
- window.__skyshiftWakeInfo=()=>livingWake?.stats()??null;
- window.__skyshiftWakeSmoke=(stage=8,load="straight")=>{
-  if(uiState.mode!=="playing")throw Error("Living wake probe requires a live race");
-  if(!Number.isInteger(stage)||stage<0||stage>8)
-   throw Error("Living wake stage out of range");
-  // CI-only: freeze the simulation and render the production ship & WebGL FX.
-  waveSmokeHold=true;
-  flight.zoneSpeedStage=stage;
-  flight.zoneCruiseSpeed=speedAt(flight.s,stage);
-  const boost=load==="boost";
-  const airborne=load==="air";
-  wakeSmokePath={frames:0,load};
-  flight.currentSpeed=flight.zoneCruiseSpeed*(boost?1.4:1);
-  flight.boostMultiplier=boost?1.4:1;
-  flight.grounded=!airborne;
-  flight.y=surfaceHeightAt(flight.s)+TRIAL.hoverHeight+(airborne?4:0);
-  flight.vy=airborne?11:0;
-  flight.gripIntensity=load==="grip"?.95:0;
-  flight.steering=load==="grip"?.72:0;
-  flight.yawRate=load==="grip"?.86:0;
-  livingWake?.reset();
-  snapRacePose(raceSimulation,flight);
-  return {stage,speed:flight.currentSpeed,load};
- };
-}
-function installFlapSmokeHook(){
- if(new URLSearchParams(location.search).get("flapSmoke")!=="1")return;
- window.__skyshiftFlapProbe=()=>reactiveWingFlaps?.stats()??null;
- window.__skyshiftFlapSet=(steering=0,grip=0)=>{
-  if(uiState.mode!=="playing")throw Error("Flap smoke requires a live race");
-  if(!Number.isFinite(steering)||!Number.isFinite(grip)||
-   Math.abs(steering)>1||grip<0||grip>1)throw Error("Invalid flap smoke pose");
-  waveSmokeHold=true;
-  flight.steering=steering;
-  flight.yawRate=steering*.84;
-  flight.gripIntensity=grip;
-  snapRacePose(raceSimulation,flight);
-  return {steering,grip};
- };
-}
-// This probe only exists under ?sparkSmoke=1. It makes a real rail contact
-// observable in headless Chrome without changing any normal player physics.
-function installSparkSmokeHook(){
- if(new URLSearchParams(location.search).get("sparkSmoke")!=="1")return;
- window.__skyshiftSparkInfo=()=>railSparks?.stats()??null;
- window.__skyshiftSparkReset=()=>railSparks?.reset();
- window.__skyshiftSparkSmoke=(side=1,stage=7,contact=true)=>{
-  if(uiState.mode!=="playing")throw Error("Spark QA requires playing mode");
-  if(![-1,0,1].includes(side)||!Number.isInteger(stage)||
-     stage<0||stage>8)throw Error("Invalid spark smoke params");
-  waveSmokeHold=true;wakeSmokePath=null;
-  const s=520;
-  if(side){
-   flight.s=s;flight.lateral=side*(widthAt(s)*.5-3.83);
-   const p=positionAt(s,flight.lateral);
-   flight.worldX=p.x;flight.worldZ=p.z;
-   flight.heading=headingAt(s);
-   flight.y=surfaceHeightAt(s,flight.lateral)+TRIAL.hoverHeight;
-  }
-  flight.zoneSpeedStage=stage;
-  flight.zoneCruiseSpeed=speedAt(flight.s,stage);
-  flight.currentSpeed=flight.zoneCruiseSpeed;
-  flight.grounded=true;flight.vy=0;
-  flight.railContacting=contact&&side!==0;
-  flight.lastRailSide=flight.railContacting?side:0;
-  flight.railScrubIntensity=flight.railContacting?1:0;
-  if(flight.railContacting)flight.railContactStarts++;
-  snapRacePose(raceSimulation,flight);
-  return {side,stage,contact,serial:flight.railContactStarts};
- };
-}
 function installControls(){
  UI.trackPicker.addEventListener("change",()=>{
   if(!["menu","ended"].includes(uiState.mode))return;
@@ -4994,232 +4734,62 @@ try{
  installFullscreen();
  installControls();
  initScene();
- installFlightTuningPanel();
+ installFlightTuningPanel({document,location,flightTuning,cinematicTuning});
  resetFlight();
- installWaveSmokeHook();
- installTunnelSmokeHook();
- installLivingWakeSmokeHook();
- installFlapSmokeHook();
- installSparkSmokeHook();
- // Opt-in regression probe for the exact final-corner Aurora camera bug.
- // No extra runtime cost or player teleportation without ?trackRepairSmoke=1.
- if(new URLSearchParams(location.search).get("trackRepairSmoke")==="1"){
-  window.__skyshiftTrackRepairProbe=(s=3180)=>{
-   const physicalBank=bankAt(s),visualBank=cameraBankAt(s);
-   const contact=railContactPoint(s,-1),expected=positionAt(s,
-    -(widthAt(s)*.5-.69),.68);
-   return {
-    track:ACTIVE_TRACK_0160.id,physicalBank,visualBank,
-    withinPhysicalRoll:Math.abs(visualBank)<=Math.abs(physicalBank)+1e-6,
-    sparkContactOffsetMeters:Math.hypot(contact.x-expected.x,
-     contact.y-expected.y,contact.z-expected.z),
-    activeHudCue:!UI.gripCue.classList.contains("hidden"),
-    roadWidth:widthAt(s),finishS:CIRCUIT.lapLength
-   };
-  };
-  window.__skyshiftTrackRepairTeleport=(s=3180)=>{
-   if(uiState.mode!=="playing")throw Error("QA teleport needs playing");
-   if(s<5||s>=CIRCUIT.lapLength)throw Error("QA point outside lap");
-   waveSmokeHold=true;
-   const p=positionAt(s,0,0);
-   Object.assign(flight,{s,lateral:0,worldX:p.x,worldZ:p.z,
-    heading:headingAt(s),y:surfaceHeightAt(s)+TRIAL.hoverHeight,
-    grounded:true,vy:0,currentSpeed:TRIAL.startSpeed,
-    zoneCruiseSpeed:TRIAL.startSpeed,steering:0,yawRate:0});
-   motionState=createFlightMotionState(flight.heading);
-   cinematicState=createCinematicState();
-   kineticCamera=createKineticCameraState();
-   snapRacePose(raceSimulation,flight);
-    // The established Shadow Tunnel QA snaps directly to chasePose.
-    // Do likewise for 1–3 km Vault WebGL jumps only: normal flight camera
-    // damping, steering and GRIP never enter this opt-in code path.
-    if(isVault()){
-     chaseCameraController.snap(flight,motionState,cinematicState,true);
-     // SwiftShader may not schedule another RAF before screenshot capture.
-     // Update actual ship + chase camera with the production render path
-     // immediately, without stepping the user's 120Hz physics.
-     placeShip(performance.now()/1000,1/60,flight,motionState,cinematicState);
-     // Match the real global-light controller before the manual QA frame.
-     tunnelBlackout?.apply(s);
-    }
-   // Browser QA freezes 120Hz simulation, so update visual-only ship light
-   // immediately at the teleported position before the slow WebGL frame.
-   whiteCoreContainment?.update(s,true);
-   shipWhiteSpill?.update(s,targetAccent,true);
-   refreshHud();
-   return window.__skyshiftTrackRepairProbe(s);
-  };
- }
- if(new URLSearchParams(location.search).get("fleetSmoke")==="1")
-  window.__skyshiftFleetSmokeUnlock=()=>{
-   if(uiState.mode!=="hangar")throw new Error("Fleet QA requires Hangar");
-   fleetProgress=saveFleet(fleetStorage(),recordFleetClear(fleetProgress,true).state);
-   refreshHangar();
-   return fleetStatus(fleetProgress);
-  };
-  window.__skyshiftFleetProbe=()=>({
-   showroomWorldHidden:world?.visible===false,
-   previewTrackVisible:world?.visible===true,
-   // Screen-space center validates that the craft stays clear of Hangar cards.
-   projectedShipX:ship?(ship.position.clone().project(camera).x+1)*.5:null,
-   showroomCamera:{x:camera?.position.x,y:camera?.position.y,
-    z:camera?.position.z,fov:camera?.fov},
-   ...fleetStatus(fleetProgress),activeShipId,previewShipId,
-   tail:activeCraft?.tailStats?.()??null,
-   surfacePolish:activeCraft?.polishStats?.()??null,
-   wingFlaps:reactiveWingFlaps?.stats?.()??null,
-   shipArt:shipArtController.audit(),
-   stingrayPresentation:STINGRAY_PRESENTATION_01347,
-   heroShowroom:hangarHeroRig?.stats(),
-   hangarVisible:!UI.hangar.classList.contains("hidden")
-  });
- // 0.28.3: production boost pad and PBR glow release audit, opt-in.
- if(new URLSearchParams(location.search).get("vaultBoostSmoke")==="1")
-  window.__skyshiftVaultBoostAudit=()=>({
-   active:VAULT_BOOST_0283_ACTIVE,track:TRACK_ID_0160,
-   release:VAULT_BOOST_0283_ACTIVE?"0.28.3":"legacy",
-   padCount:BOOST_PADS.length,
-   physicalPads:BOOST_PADS.map(p=>({id:p.id,group:p.group,kind:p.kind,
-    start:p.start,end:p.end,range:[p.lateralMin,p.lateralMax],
-    multiplier:p.multiplier})),
-   riskGateCount:RHYTHM_GATES_0160.length,
-   riskVisible:!UI.riskCue.classList.contains("hidden"),
-   roadMaterial:premiumSurface?.material?.type??null,
-   inputHandlingUnchanged:true,physicsTicksPerSecond:120
-  });
- // Browser CI only. Never accessible to real players without opt-in URL.
- if(new URLSearchParams(location.search).get("challengeSmoke")==="1"){
-  window.__skyshiftChallengeProbe=()=>({
-   mode:uiState.mode,selected:currentChallenge?.id??null,
-   flightS:flight?.s,elapsed:flight?.elapsed,
-   timeTrialMode:timeTrialState.mode,summary:challengeSummary(challengeProgress),
-   medal:lastChallengeGrading?.medal??null,
-   visible:!UI.challengeScreen.classList.contains("hidden")
-  });
-  window.__skyshiftChallengeSmokeFinish=()=>{
-   if(uiState.mode!=="playing"||!currentChallenge)
-    throw Error("Challenge QA requires active challenge");
-   flight.s=currentChallenge.endS;
-   flight.elapsed=currentChallenge.goldSeconds+8;
-   flight.railContacts=3;
-   endRun(true);
-   return window.__skyshiftChallengeProbe();
-  };
- }
- // Real-game WebGL QA only; does not mutate the actual player's run.
- if(new URLSearchParams(location.search).get("riskSmoke")==="1"){
-  window.__skyshiftRiskProbe=()=>({
-   mode:uiState.mode,physics:"trial-v0160",
-   boostModel:"boost-v0160",risk:RISK_REWARD_0160,
-   configuredPads:BOOST_PADS.map(p=>({
-    id:p.id,group:p.group,kind:p.kind,multiplier:p.multiplier,
-    lane:[p.lateralMin,p.lateralMax],s:[p.start,p.end]})),
-   activeState:{safeBoosts:flight?.safeBoosts??0,
-    riskBoosts:flight?.riskBoosts??0}
-  });
-  window.__skyshiftRiskPhysicsSmoke=(choice="risk")=>{
-   if(uiState.mode!=="playing")throw Error("Risk QA requires active gameplay");
-   const f=newFlightState(),s=2210,lateral=choice==="risk"?5.4:0;
-   const p=positionAt(s,lateral,0);
-   Object.assign(f,{s,lateral,worldX:p.x,worldZ:p.z,
-    heading:headingAt(s),y:surfaceHeightAt(s,lateral)+TRIAL.hoverHeight,
-    grounded:true,vy:0});
-   const first=stepFlight(f,1/120,{steer:0,grip:false});
-   const picked=first.boostChoice;
-   f.lateral=choice==="risk"?0:5.4;
-   const second=stepFlight(f,1/120,{steer:0,grip:false});
-   return {choice,picked,secondChoice:second.boostChoice,
-    activationCount:f.boostActivations,groups:[...f.boostActivatedGroups],
-    targetMultiplier:f.boostTargetMultiplier,
-    timedSeconds:f.boostTimer};
-  };
- }
- // Test-only real camera projection. Regular players never call this.
- window.__skyshiftScreenBeamProbe=()=>{
-  if(!ship||!camera||!renderer)return null;
-  ship.updateWorldMatrix(true,true);
-  camera.updateWorldMatrix(true,false);
-  const canvasWidth=renderer.domElement.getBoundingClientRect().width;
-  const v=new THREE.Vector3(),unity=new THREE.Matrix4();
-  const projectedWidth=(samples,transform)=>{
-   let left=Infinity,right=-Infinity;
-   for(let i=0;i<samples.length;i+=3){
-    v.set(samples[i],samples[i+1],samples[i+2])
-     .applyMatrix4(transform).project(camera);
-    left=Math.min(left,v.x);right=Math.max(right,v.x);
-   }
-   return Number.isFinite(left)&&Number.isFinite(right)?
-    (right-left)*canvasWidth*.5:null;
-  };
-  const wingNames=activeShipId==="stingray"&&shipArtController.audit().heroApplied?
-   ["Hero_Wing_L","Hero_Wing_R"]:
-   [activeShipId==="stingray"?"Stingray EVO · wide manta wings":
-    "Two broad scalloped manta wings"];
-  let left=Infinity,right=-Infinity,points=0;
-  for(const name of wingNames){
-   const mesh=ship.getObjectByName(name),attr=mesh?.geometry?.attributes?.position;
-   if(!attr)continue;
-   mesh.updateWorldMatrix(true,false);
-   for(let i=0;i<attr.count;i++){
-    v.fromBufferAttribute(attr,i).applyMatrix4(mesh.matrixWorld).project(camera);
-    left=Math.min(left,v.x);right=Math.max(right,v.x);points++;
-   }
-  }
-  const actual=points?(right-left)*canvasWidth*.5:null;
-  const referenceMatrix=new THREE.Matrix4().compose(
-   ship.position,ship.quaternion,new THREE.Vector3(1,1,1));
-  const manta=projectedWidth(buildMantaWings().positions,referenceMatrix);
-  return {shipId:activeShipId,heroApplied:shipArtController.audit().heroApplied,
-   actualWingPixels:actual,mantaReferencePixels:manta,
-   screenRatio:actual&&manta?actual/manta:null,
-   shipScaleX:ship.scale.x,shipScaleY:ship.scale.y,shipScaleZ:ship.scale.z,
-   cameraFov:camera.fov,trackMeters:flight.s};
- };
- // QA only: compare both ships using the EXACT same live flight roll.
- // This is read-only; it never changes steering, physics, camera or ship.
- window.__skyshiftHandlingParityProbe=()=>{
-  if(!ship||uiState.mode!=="playing")return null;
-  const expectedRoll=motionState.roll-bankAt(flight.s)-
-   (flight.trickVisualAngle??0)-
-   Math.sign(flight.gripDirection)*flight.gripIntensity*.058+
-   signatureFlight.roll+velocityPresence.hullRoll+
-   racingExperience.hullCarve*
-    (flight.grounded&&!motionRig.wall&&!motionRig.corkscrew?1:0);
-  return {shipId:activeShipId,steering:flight.steering,
-   gripIntensity:flight.gripIntensity,yawRate:flight.yawRate,
-   renderedRoll:ship.rotation.z,sharedRoll:expectedRoll,
-   difference:ship.rotation.z-expectedRoll,
-   roadNormalLift:STINGRAY_PRESENTATION_01347.visualRoadNormalLiftMeters,
-   physicalHover:TRIAL.hoverHeight,
-   noShipSpecificTurnPose:true};
- };
- window.__skyshiftPerfProbe=()=>({
-  settings:perfSettings,summary:perfSummary(frameProfiler),
-  gpu:gpuClock?.summary(),state:uiState.mode,physicsHz:120,
-  motionRig:unifiedFlightAudit(motionRig),
-  visualFidelity:fidelityDirector?{...fidelityAudit(fidelityDirector),
-   shaderVariant:premiumSurface?.fidelityShaderVariant,
-   modeSelection:fidelityProfile.modeSelection,
-   shaderChangesOnLowMemory:fidelityProfile.lowMemory&&fidelityProfile.premium,
-   premiumDefaultOnLowMemory:fidelityProfile.defaultPremiumOnLowMemory,
-   userRequestedOff:fidelityProfile.userRequestedOff,
-   adaptiveResolutionEnabled:!perfSettings.fixedQuality}:null,
-  racingExperience:racingExperienceAudit(racingExperience),
-  timeTrial:ghostAudit(timeTrialState),ghostVisual:ghostVisual?.stats()??null,
-  shipArt:shipArtController.audit(),
-  stingrayPresentation:STINGRAY_PRESENTATION_01347,
-  heroShowroom:hangarHeroRig?.stats(),
-  navigation:{mode:uiState.mode,settingsVisible:!UI.settings.classList.contains("hidden"),
-   pauseVisible:!UI.pause.classList.contains("hidden"),
-   ghostToggleInPause:!!UI.pauseGhostToggle,
-   gearInMain:!UI.settingsOpen.classList.contains("hidden")},
-  landmarks:sectorLandmarks?.stats()??null,
-  optimizer:{bloom:neonPipeline?.bloomResolution(),hud:hudBudget.stats(),
-   dom:domWrites.stats(),sparkFinal:completedSparkStats},
-  pipeline:{bloom:neonPipeline?.bloom?.enabled,smaa:neonPipeline?.smaa?.enabled,
-   bloomScale:neonPipeline?.bloomResolutionScale,
-   dpr:neonPipeline?.internalPixelRatio,fixedQuality:perfSettings.fixedQuality}
- });
+ installRaceQa({window,document,location,performance,ctx:{get flight(){return flight},
+  get reactiveHud(){return reactiveHud},
+  get sideThrusters(){return sideThrusters},
+  get zoneWave(){return zoneWave},
+  get previousSector(){return previousSector},set previousSector(v){previousSector=v},
+  get waveSmokeHold(){return waveSmokeHold},set waveSmokeHold(v){waveSmokeHold=v},
+  get premiumSurface(){return premiumSurface},
+  get identitySurface(){return identitySurface},
+  get stationWorld(){return stationWorld},
+  get sharedTunnelRuntime(){return sharedTunnelRuntime},
+  get archRoadReflections(){return archRoadReflections},
+  get unifiedCeilingRoad(){return unifiedCeilingRoad},
+  get roadSpill02895(){return roadSpill02895},
+  get tunnelBlackout(){return tunnelBlackout},
+  get worldLights(){return worldLights},
+  get engineLights(){return engineLights},
+  get bladeTips(){return bladeTips},
+  get shipGlow(){return shipGlow},
+  get motionState(){return motionState},set motionState(v){motionState=v},
+  get cinematicState(){return cinematicState},set cinematicState(v){cinematicState=v},
+  get kineticCamera(){return kineticCamera},set kineticCamera(v){kineticCamera=v},
+  get tunnelInside(){return tunnelInside},set tunnelInside(v){tunnelInside=v},
+  get shadowTunnel(){return shadowTunnel},
+  get livingWake(){return livingWake},
+  get wakeSmokePath(){return wakeSmokePath},set wakeSmokePath(v){wakeSmokePath=v},
+  get reactiveWingFlaps(){return reactiveWingFlaps},
+  get railSparks(){return railSparks},
+  get whiteCoreContainment(){return whiteCoreContainment},
+  get shipWhiteSpill(){return shipWhiteSpill},
+  get targetAccent(){return targetAccent},
+  get fleetProgress(){return fleetProgress},set fleetProgress(v){fleetProgress=v},
+  get world(){return world},
+  get ship(){return ship},
+  get camera(){return camera},
+  get activeShipId(){return activeShipId},
+  get previewShipId(){return previewShipId},
+  get activeCraft(){return activeCraft},
+  get shipArtController(){return shipArtController},
+  get hangarHeroRig(){return hangarHeroRig},
+  get currentChallenge(){return currentChallenge},
+  get challengeProgress(){return challengeProgress},
+  get lastChallengeGrading(){return lastChallengeGrading},
+  get renderer(){return renderer},
+  get signatureFlight(){return signatureFlight},
+  get velocityPresence(){return velocityPresence},
+  get racingExperience(){return racingExperience},
+  get gpuClock(){return gpuClock},
+  get fidelityDirector(){return fidelityDirector},
+  get fidelityProfile(){return fidelityProfile},
+  get ghostVisual(){return ghostVisual},
+  get sectorLandmarks(){return sectorLandmarks},
+  get neonPipeline(){return neonPipeline},
+  get completedSparkStats(){return completedSparkStats}},
+  UI,uiState,ZONE_WAVE,ZONE_PALETTES,updateZoneWave,setZoneSpeedStage,announceSector,refreshHud,waveResonanceStrength,clamp,SHADOW_TUNNEL,positionAt,surfaceHeightAt,TRIAL,headingAt,createFlightMotionState,createCinematicState,createKineticCameraState,snapRacePose,raceSimulation,chaseCameraController,inShadowTunnel,tunnelIntensityAt,bankAt,CAMERA_MODE,speedAt,widthAt,cameraBankAt,railContactPoint,ACTIVE_TRACK_0160,CIRCUIT,isVault,placeShip,saveFleet,fleetStorage,recordFleetClear,refreshHangar,fleetStatus,STINGRAY_PRESENTATION_01347,VAULT_BOOST_0283_ACTIVE,TRACK_ID_0160,BOOST_PADS,RHYTHM_GATES_0160,timeTrialState,challengeSummary,endRun,RISK_REWARD_0160,newFlightState,stepFlight,THREE,buildMantaWings,motionRig,perfSettings,perfSummary,frameProfiler,unifiedFlightAudit,fidelityAudit,racingExperienceAudit,ghostAudit,hudBudget,domWrites});
  // Pre-boot START queues a legacy "time-trial" mode string.
  // Only actual selected catalog objects may enter Challenge mode.
  markStartup("bootReady");

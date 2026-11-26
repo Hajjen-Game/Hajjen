@@ -103,7 +103,9 @@ test('active game wires default Time Trial, settings and safe ghost abandonment'
   assert.match(body('closeSettings','startImmersiveTrial'),/uiState\.mode="menu"/);
   assert.match(app,/UI\.start\.addEventListener\("click",\(\)=>startImmersiveTrial\(null\)\)/);
   const session=readFileSync(at('core/race-session.mjs'),'utf8');
-  assert.match(body('enterPlaying','returnToMainMenu'),/raceSession\.selectMode\(currentChallenge\)/);
+  const lifecycle=readFileSync(at('core/race-lifecycle.mjs'),'utf8');
+  assert.match(body('enterPlaying','returnToMainMenu'),/raceLifecycle\.enterPlaying\(challenge\)/);
+  assert.match(lifecycle,/raceSession\.selectMode\(ctx\.currentChallenge\)/);
   assert.match(session,/mode=challenge\?"standard":"time-trial"/);
   assert.match(app,/raceSession\.start\(activeShipId\|\|fleetProgress\.selected\)/);
   assert.match(session,/api\.startTimeTrial\(trial,\{mode,storage:storage\(\),ship,ghostEnabled\}/);
@@ -119,8 +121,9 @@ test('active game wires default Time Trial, settings and safe ghost abandonment'
   assert.match(session,/trial\.ghostEnabled=ghostEnabled/);
   assert.match(session,/api\.saveGhostEnabled\(storage\(\),ghostEnabled\)/);
   assert.match(app,/UI\.pauseMenu\.addEventListener\("click",returnToMainMenu\)/);
-  const leave=body('returnToMainMenu','pause');
-  for(const pattern of [/if\(uiState\.mode!=="paused"\)return/,/uiState\.mode="menu"/,/ghostVisual\?\.hide\(\)/,/UI\.trialHud\.classList\.add\("hidden"\)/,/UI\.settingsOpen\.classList\.remove\("hidden"\)/,/resetFlight\(\)/])assert.match(leave,pattern);
+  assert.match(body('returnToMainMenu','pause'),/raceLifecycle\.returnToMainMenu\(\)/);
+  const leave=lifecycle.slice(lifecycle.indexOf('function returnToMainMenu('),lifecycle.indexOf('function pause('));
+  for(const pattern of [/if\(uiState\.mode!=="paused"\)return/,/uiState\.mode="menu"/,/ctx\.hideGhost\(\)/,/UI\.trialHud\.classList\.add\("hidden"\)/,/UI\.settingsOpen\.classList\.remove\("hidden"\)/,/resetFlight\(\)/])assert.match(leave,pattern);
   assert.doesNotMatch(leave,/\b(?:finishTimeTrial|savePersonalGhost|clearPersonalGhost|raceSession\.finish)\s*\(/);
 });
 
@@ -396,7 +399,8 @@ test('live game feeds physics-owned grounded rail contact to shared sparks, and 
  assert.match(game,/contacting:flight\.railContacting,side:sparkSide/);
  assert.match(game,/grounded:view\.grounded,speed:flight\.currentSpeed/);
  assert.match(game,/contactSerial:flight\.railContactStarts/);
- assert.match(game,/__skyshiftSparkInfo/);
+ assert.match(game,/installRaceQa\(/);
+ assert.match(readFileSync(at('qa/race-probes.mjs'),'utf8'),/__skyshiftSparkInfo/);
  assert.match(game,/railScrapeSparks:\{\.\.\.RAIL_SPARKS/);
  assert.match(game,/reactiveWingFlaps\?\.frame\(showroom\?dt:presentationDt/);
  assert.match(game,/livingWake\?\.frame\(presentationDt/);

@@ -1,0 +1,1169 @@
+{
+  "schemaVersion": 1,
+  "reviewedCandidate": "1ba393c11a72f330df2d2dfd198827f437d1b334",
+  "scope": "All EF04-owned entries including four relocated UI entries; previous census is historical, new CI reports live graph and surviving known consumers, not proof of absence.",
+  "entries": [
+    {
+      "path": "skyshift/air-tricks-v080.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "96ac88f6d7bff69d95d8c398681ec958f687e2f2",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+        "skyshift/tests/unit/air-tricks-v080.test.mjs",
+        "skyshift/trial-v080.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/air-tricks-v081.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "2f7fefae64a055bbcfc433a3440d4cc9cf6057e6",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v081.mjs",
+        "skyshift/tests/unit/grip-leap-v081.test.mjs",
+        "skyshift/trial-v081.mjs",
+        "skyshift/trial-v082.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v0161.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "585f75e71120f268aa965aa03d58f1f2e74d6d40",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/flight/unified-flight-v0161.mjs",
+        "skyshift/tests/unit/track-integrity-v0161.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v0162.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "e0a62219d5e37ac2d52a3e1ab3ed7c423491f4a8",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/flight/unified-flight-v0162.mjs",
+        "skyshift/tests/unit/rail-collision-v0162.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0162.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v0163.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "66bebecd9e4bd1a44bf78905fa8d95d8ec1455bb",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/flight/unified-flight-v0163.mjs",
+        "skyshift/tests/unit/rail-contact-quality-v0163.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0163.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v0164.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "e4ad0907d99f1c8c648aa9b6f4f9c5630e20ae61",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/flight/unified-flight-v0164.mjs",
+        "skyshift/tests/unit/track-integrity-v0164.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v045.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "d4a1921ddc53a7879bf9fb53b6afdc8877ffab83",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/README.md",
+        "skyshift/tests/unit/cinematic-v045.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v070.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "231270f35ebbf6d77263409915e9de4d4cc0b6f5",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v070.mjs",
+        "skyshift/tests/unit/track-3d-v070.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v071.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "14735a481311533ec23d5ba4db386131d4b887fa",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v071.mjs",
+        "skyshift/tests/unit/magnetic-wall-v071.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v072.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "44f88b7be361ca02599ccc5f2e9441f12cbd2a55",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v072.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+        "skyshift/tests/unit/corkscrew-v072.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v081.mjs",
+      "previousCensusRole": "text-reference-unresolved",
+      "previousBlob": "93640b6c40e01e13ef84627c03573af6150122d8",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v081.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v082.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "62373e82d3924837bf6b5ab33bd06b4f08ebf8cc",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v082.mjs",
+        "skyshift/tests/unit/track-rhythm-v082.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v083.mjs",
+      "previousCensusRole": "text-reference-unresolved",
+      "previousBlob": "14f06e202a6885f53ec1788398d82415acbf8e86",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v083.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v084.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "be0b3d65aac8e79751b15d450f64c395d80c545a",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v084.mjs",
+        "skyshift/tests/unit/kinetic-camera-v090.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v090.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "9e919de1c28ff87fc24a5f443067c8c13de47888",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/README.md",
+        "skyshift/tests/browser/legacy/browser-smoke-v090.mjs",
+        "skyshift/tests/unit/kinetic-camera-v090.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/cinematic-v0901.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "bd676aa1335af9c3e6afdece7060fae39928dd82",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/flight/unified-flight-v0112.mjs",
+        "skyshift/game-v0101.mjs",
+        "skyshift/game-v0103.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v010.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0101.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0102.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0103.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0104.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0105.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0106.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0107.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01071.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0108.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0109.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01091.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0110.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0111.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0112.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0113.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0114.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0120.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0121.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0130.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0131.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0132.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01321.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0133.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0134.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01341.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01342.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01343.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01344.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0901.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v091.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v092.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0921.mjs",
+        "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/unified-flight-v0112.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/flight-motion-v044.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "fc5771b957518a448f7ce86b60f29f1a81b9d120",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/README.md",
+        "skyshift/cinematic-v0161.mjs",
+        "skyshift/cinematic-v0162.mjs",
+        "skyshift/cinematic-v0163.mjs",
+        "skyshift/cinematic-v0164.mjs",
+        "skyshift/cinematic-v045.mjs",
+        "skyshift/cinematic-v070.mjs",
+        "skyshift/cinematic-v071.mjs",
+        "skyshift/cinematic-v072.mjs",
+        "skyshift/cinematic-v081.mjs",
+        "skyshift/cinematic-v082.mjs",
+        "skyshift/cinematic-v083.mjs",
+        "skyshift/cinematic-v084.mjs",
+        "skyshift/cinematic-v090.mjs",
+        "skyshift/cinematic-v0901.mjs",
+        "skyshift/flight/cinematic-v0165.mjs",
+        "skyshift/game-v0101.mjs",
+        "skyshift/game-v0103.mjs",
+        "skyshift/tests/architecture/flight-migration-stageH.test.mjs",
+        "skyshift/tests/unit/cinematic-v045.test.mjs",
+        "skyshift/tests/unit/flight-motion-v044.test.mjs",
+        "skyshift/tests/unit/grip-leap-v081.test.mjs",
+        "skyshift/tests/unit/unified-flight-v0112.test.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    },
+    {
+      "path": "skyshift/ui/fullscreen-v02.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "4bdb6d7208f747d3db66541f4f81c068ab48bf76",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/game-v0101.mjs",
+        "skyshift/game-v0103.mjs",
+        "skyshift/game-v0203.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/legacy/game/game-v0205.mjs",
+        "skyshift/tests/unit/fullscreen-v02.test.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    },
+    {
+      "path": "skyshift/game-v0210.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "615e2f0ae14bd630ba1780281f4f67b977579e0d",
+      "knownConsumers": [
+        ".github/workflows/skyshift-ci-fast.yml",
+        ".github/workflows/skyshift-preview-v0288.yml",
+        ".github/workflows/skyshift-preview-v0289.yml",
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/boot-v0210.js",
+        "skyshift/index.html",
+        "skyshift/tests/architecture/active-entrypoint.test.mjs",
+        "skyshift/tests/architecture/ci-change-scope-v2.test.mjs",
+        "skyshift/tests/architecture/dependency-inventory-v2.mjs",
+        "skyshift/tests/architecture/dependency-inventory-v2.test.mjs",
+        "skyshift/tests/architecture/ef01-census.mjs",
+        "skyshift/tests/architecture/final-course-reuse-stageN.test.mjs",
+        "skyshift/tests/architecture/legacy-boot-migration-r1.test.mjs",
+        "skyshift/tests/architecture/legacy-boot-migration-r1b.test.mjs",
+        "skyshift/tests/architecture/legacy-boot-migration-r1c.test.mjs",
+        "skyshift/tests/architecture/legacy-boot-migration-r1d.test.mjs",
+        "skyshift/tests/architecture/legacy-game-migration-r1e.test.mjs",
+        "skyshift/tests/architecture/legacy-game-migration-r1f.test.mjs",
+        "skyshift/tests/architecture/root-consolidation-inventory.mjs",
+        "skyshift/tests/unit/architectural-neon-lighting-v0240.test.mjs",
+        "skyshift/tests/unit/build-version-v02204.test.mjs",
+        "skyshift/tests/unit/cinematic-energy-v0216.test.mjs",
+        "skyshift/tests/unit/cinematic-grade-v0210b.test.mjs",
+        "skyshift/tests/unit/cinematic-hero-v0210.test.mjs",
+        "skyshift/tests/unit/cinematic-light-architecture-v0232.test.mjs",
+        "skyshift/tests/unit/cinematic-metal-neon-v0289.test.mjs",
+        "skyshift/tests/unit/cinematic-neon-lighting-v0220p2.test.mjs",
+        "skyshift/tests/unit/cinematic-road-rebuild-v0263.test.mjs",
+        "skyshift/tests/unit/cinematic-road-reflections-v0242.test.mjs",
+        "skyshift/tests/unit/dark-metallic-foundation-v0250.test.mjs",
+        "skyshift/tests/unit/dual-tone-lighting-v0260.test.mjs",
+        "skyshift/tests/unit/edge-lighting-floor-pools-v02631.test.mjs",
+        "skyshift/tests/unit/edge-source-floor-bands-v02632.test.mjs",
+        "skyshift/tests/unit/final-cohesion-v0264.test.mjs",
+        "skyshift/tests/unit/full-tunnel-layout-v0270.test.mjs",
+        "skyshift/tests/unit/full-tunnel-light-seal-v0270.test.mjs",
+        "skyshift/tests/unit/integrated-neon-flow-v0214.test.mjs",
+        "skyshift/tests/unit/local-reflections-v0261p1.test.mjs",
+        "skyshift/tests/unit/micro-surface-metal-definition-v0251.test.mjs",
+        "skyshift/tests/unit/neon-interior-v0212.test.mjs",
+        "skyshift/tests/unit/physical-material-rebuild-v0230.test.mjs",
+        "skyshift/tests/unit/precision-neon-response-v0288.test.mjs",
+        "skyshift/tests/unit/premium-material-rebirth-v0220.test.mjs",
+        "skyshift/tests/unit/premium-metal-surface-v0262.test.mjs",
+        "skyshift/tests/unit/premium-road-surface-v0215.test.mjs",
+        "skyshift/tests/unit/premium-surface-craftsmanship-v0241.test.mjs",
+        "skyshift/tests/unit/rail-body-containment-v02124.test.mjs",
+        "skyshift/tests/unit/reflection-cohesion-v02642.test.mjs",
+        "skyshift/tests/unit/road-solar-spill-v02126.test.mjs",
+        "skyshift/tests/unit/shared-straight-edge-parity-v02891.test.mjs",
+        "skyshift/tests/unit/shared-tunnel-architecture-v0280.test.mjs",
+        "skyshift/tests/unit/ship-white-spill-v02125.test.mjs",
+        "skyshift/tests/unit/straight-only-edge-lighting-v02633.test.mjs",
+        "skyshift/tests/unit/structural-tunnel-v0213.test.mjs",
+        "skyshift/tests/unit/true-material-depth-v0231.test.mjs",
+        "skyshift/tests/unit/true-metal-materials-v0260p2.test.mjs",
+        "skyshift/tests/unit/true-rail-wall-response-v0265.test.mjs",
+        "skyshift/tests/unit/tunnel-exterior-seal-v02122.test.mjs",
+        "skyshift/tests/unit/tunnel-megastructure-v0211.test.mjs",
+        "skyshift/tests/unit/unified-cinematic-grade-v0220p4.test.mjs",
+        "skyshift/tests/unit/unified-fixture-transport-v02643.test.mjs",
+        "skyshift/tests/unit/unified-metal-light-response-v02641.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-lighting-v1.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-materials-v0233.test.mjs",
+        "skyshift/tests/unit/vault-architectural-parity-v0272.test.mjs",
+        "skyshift/tests/unit/vault-full-lighting-v0273.test.mjs",
+        "skyshift/tests/unit/vault-material-parity-v0271.test.mjs",
+        "skyshift/tests/unit/vault-premium-finish-v0274.test.mjs",
+        "skyshift/tests/unit/velocity-cinematography-v0220p3.test.mjs",
+        "skyshift/tests/unit/white-core-containment-v02123.test.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    },
+    {
+      "path": "skyshift/ui/ghost-visual-v0130.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "a3722f7089d76c6cdadf7107c1a297c684ceca68",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/game-v0203.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/legacy/game/game-v0205.mjs",
+        "skyshift/tests/architecture/active-entrypoint.test.mjs",
+        "skyshift/tests/unit/time-trial-v0130.test.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    },
+    {
+      "path": "skyshift/precision-grip-v061.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "777a2778772c077b454a33856f5361281885de63",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/unit/corkscrew-v072.test.mjs",
+        "skyshift/tests/unit/precision-grip-v061.test.mjs",
+        "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+        "skyshift/trial-v061.mjs",
+        "skyshift/trial-v070.mjs",
+        "skyshift/trial-v071.mjs",
+        "skyshift/trial-v072.mjs",
+        "skyshift/trial-v080.mjs",
+        "skyshift/trial-v081.mjs",
+        "skyshift/trial-v082.mjs",
+        "skyshift/trial-v083.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/racing-experience-v0120.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "4209123d0b8db9d9aa168098a7b553001d689ecb",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/unit/racing-experience-v0120.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/racing-experience-v0121.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "72857af834710bfb0361eceefdd664959f969df0",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/architecture/active-entrypoint.test.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0121.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0130.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0131.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0132.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01321.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0133.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0134.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01341.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01342.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01343.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01344.mjs",
+        "skyshift/tests/unit/racing-experience-v0121.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/racing-experience-v0160.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "e074ad433ddc689aa39ae78645f5af12e0dd0822",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/game-v0203.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/legacy/game/game-v0205.mjs",
+        "skyshift/tests/architecture/active-entrypoint.test.mjs",
+        "skyshift/tests/architecture/root-relocation-l1g.test.mjs",
+        "skyshift/tests/browser/browser-grip-trick-v0165.mjs",
+        "skyshift/tests/browser/browser-multi-track-v0160.mjs",
+        "skyshift/tests/browser/browser-rail-collision-v0162.mjs",
+        "skyshift/tests/browser/browser-rail-contact-quality-v0163.mjs",
+        "skyshift/tests/browser/browser-track-integrity-v0161.mjs",
+        "skyshift/tests/browser/browser-track-parity-v0164.mjs",
+        "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    },
+    {
+      "path": "skyshift/ui/reactive-hud-v0499.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "0f938b3b588b9bc9730fdb51b8e0fa7df6c08e2b",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/README.md",
+        "skyshift/tests/unit/reactive-hud-v0499.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/ui/reactive-hud-v04991.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "20941508416a7042f509000e52c9a9fca9400455",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/game-v0101.mjs",
+        "skyshift/game-v0103.mjs",
+        "skyshift/game-v0203.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/legacy/game/game-v0205.mjs",
+        "skyshift/tests/unit/racing-hud-v04991.test.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    },
+    {
+      "path": "skyshift/risk-reward-v0150.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "ef7df35f1a9e2965dbd64357f974e83f3ae7cb35",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/flight/boost/boost-v0150.mjs",
+        "skyshift/tests/browser/browser-risk-reward-v0150.mjs",
+        "skyshift/tests/unit/risk-reward-v0150.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/risk-reward-v0151.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "01c0d6b0ba0de136445cdc217fd0e87569d7eb90",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/flight/boost/boost-v0151.mjs",
+        "skyshift/rendering/legacy/premium-track-v0151.mjs",
+        "skyshift/risk-reward-v0160.mjs",
+        "skyshift/tests/browser/browser-risk-reward-v0151.mjs",
+        "skyshift/tests/unit/risk-reward-v0151.test.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    },
+    {
+      "path": "skyshift/risk-reward-v0160.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "145152d9158aebeff3cd3410d1c454c31f195c74",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/flight/boost/boost-v0160.mjs",
+        "skyshift/game-v0203.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/legacy/game/game-v0205.mjs",
+        "skyshift/rendering/road/premium-track-v0160.mjs",
+        "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+        "skyshift/tests/unit/rail-collision-v0162.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/vault-boost-clarity-v0283.test.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    },
+    {
+      "path": "skyshift/time-trial-v0130.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "f9a7e29fdb9eb9d46f382d11025c337be8e856bd",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v0130.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0131.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0132.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01321.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0133.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0134.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01341.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01342.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01343.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01344.mjs",
+        "skyshift/tests/unit/risk-reward-v0150.test.mjs",
+        "skyshift/tests/unit/time-trial-v0130.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/time-trial-v0150.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "227d0cdaf0113393d3948c1f8ca5d6eaea334daf",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/browser-risk-reward-v0150.mjs",
+        "skyshift/tests/unit/risk-reward-v0150.test.mjs",
+        "skyshift/tests/unit/risk-reward-v0151.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/time-trial-v0151.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "4e023fe1c4872fb0a891471ebe850b0f29794939",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/browser-risk-reward-v0151.mjs",
+        "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+        "skyshift/tests/unit/risk-reward-v0151.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/time-trial-v0160.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "d2e0ec7ff63b9ebf0a74081a4cd37f0ab509ccf9",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/game-v0203.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/legacy/game/game-v0205.mjs",
+        "skyshift/rail-contact-audit-v0162.mjs",
+        "skyshift/rail-contact-audit-v0163.mjs",
+        "skyshift/tests/architecture/active-entrypoint.test.mjs",
+        "skyshift/tests/architecture/root-relocation-l1g.test.mjs",
+        "skyshift/tests/browser/browser-grip-trick-v0165.mjs",
+        "skyshift/tests/browser/browser-multi-track-v0160.mjs",
+        "skyshift/tests/browser/browser-rail-collision-v0162.mjs",
+        "skyshift/tests/browser/browser-rail-contact-quality-v0163.mjs",
+        "skyshift/tests/browser/browser-track-integrity-v0161.mjs",
+        "skyshift/tests/browser/browser-track-parity-v0164.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0164.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    },
+    {
+      "path": "skyshift/track.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "89d6acbde2ff3486fe6a9c124dca63d5de3ff5af",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/game.mjs",
+        "skyshift/tests/unit/track.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v01348.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "607493dd473c075be6fe6a0d557493b70a22d556",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/handling-fairness-v0135.mjs",
+        "skyshift/tests/architecture/root-relocation-l1g.test.mjs",
+        "skyshift/tests/browser/browser-fairness-v0135.mjs",
+        "skyshift/tests/browser/browser-grip-half-v01348.mjs",
+        "skyshift/tests/unit/grip-half-power-v01348.test.mjs",
+        "skyshift/tests/unit/handling-fairness-v0135.test.mjs",
+        "skyshift/tests/unit/skyline-challenges-v0140.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v0150.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "c8b84676f894c64b60f89599436742ba8c02dd68",
+      "knownConsumers": [
+        ".github/workflows/skyshift-ef02-flight-camera-parity.yml",
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/architecture/ef02h-path-overlay.mjs",
+        "skyshift/tests/unit/risk-reward-v0150.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v0151.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "a5fa190be4581bf333b56084b47f8f4d62c6d0ad",
+      "knownConsumers": [
+        ".github/workflows/skyshift-ef02-flight-camera-parity.yml",
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/rendering/legacy/premium-track-v0151.mjs",
+        "skyshift/tests/architecture/ef02h-path-overlay.mjs",
+        "skyshift/tests/browser/browser-risk-reward-v0151.mjs",
+        "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+        "skyshift/tests/unit/risk-reward-v0151.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v0162.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "554c7d2a9c8db230690321d68e8988cfffd2d497",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/cinematic-v0162.mjs",
+        "skyshift/rail-contact-audit-v0162.mjs",
+        "skyshift/rail-scrape-sparks-v0162.mjs",
+        "skyshift/tests/browser/browser-rail-collision-v0162.mjs",
+        "skyshift/tests/unit/rail-collision-v0162.test.mjs",
+        "skyshift/tests/unit/rail-contact-quality-v0163.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0162.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0162.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v0163.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "eb5419f47369c6adbfc29482f44f92eb29b98865",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/cinematic-v0163.mjs",
+        "skyshift/rail-contact-audit-v0163.mjs",
+        "skyshift/rail-scrape-sparks-v0163.mjs",
+        "skyshift/tests/browser/browser-rail-contact-quality-v0163.mjs",
+        "skyshift/tests/unit/rail-contact-quality-v0163.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0163.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0163.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v0164.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "e22c2eb58c68a1d9c8591493cdadf5ca1c429d7f",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/cinematic-v0164.mjs",
+        "skyshift/grip-trick-audit-v0165.mjs",
+        "skyshift/rail-scrape-sparks-v0164.mjs",
+        "skyshift/tests/architecture/root-relocation-l1g.test.mjs",
+        "skyshift/tests/browser/browser-grip-trick-v0165.mjs",
+        "skyshift/tests/browser/browser-track-parity-v0164.mjs",
+        "skyshift/tests/unit/track-integrity-v0164.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0164.test.mjs",
+        "skyshift/track-physics-parity-probe-v0164.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0164.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v02.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "56e2e1219458023820da902b99bd44a9f0d73df6",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/unit/trial-v02.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v03.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "bf34d96f3e335f3c4045d610b4aae4933e44e086",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/identity-v033.mjs",
+        "skyshift/identity-v0331.mjs",
+        "skyshift/identity-v034.mjs",
+        "skyshift/tests/unit/clean-v034.test.mjs",
+        "skyshift/tests/unit/identity-v033.test.mjs",
+        "skyshift/tests/unit/luminance-v0331.test.mjs",
+        "skyshift/tests/unit/trial-v03.test.mjs",
+        "skyshift/world-v034.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v04.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "a67ae894749dcde24562569752bbb73164a236bc",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/identity-v04.mjs",
+        "skyshift/tests/unit/flow-v04.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v041.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "02dfb19d9cff810f78b99f580cb4ff3f3ca4c858",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/identity-v041.mjs",
+        "skyshift/tests/unit/truebank-v041.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v042.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "1a8b8deecd76574de0e9a9d376a0d5394227a025",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/unit/handling-v042.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v043.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "754aab77bd785e14297ed00796e420d30caf1941",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/README.md",
+        "skyshift/tests/unit/cinematic-v045.test.mjs",
+        "skyshift/tests/unit/flight-motion-v044.test.mjs",
+        "skyshift/tests/unit/speed-v043.test.mjs",
+        "skyshift/tracks/shared/smooth-track-v043.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v046.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "2a460a5fca71fde4c8f0403f740e8894c1a944ed",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/README.md",
+        "skyshift/identity-v046.mjs",
+        "skyshift/tests/unit/aero-barrier-v047.test.mjs",
+        "skyshift/tests/unit/boost-zone-v048.test.mjs",
+        "skyshift/tests/unit/track-flow-v046.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v047.mjs",
+        "skyshift/tracks/shared/smooth-track-v046.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v048.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "cb89318cbb4079f3c9ec0bdff13cf029fa1339d4",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/README.md",
+        "skyshift/rendering/legacy/premium-track-v0481.mjs",
+        "skyshift/rendering/legacy/premium-track-v0482.mjs",
+        "skyshift/tests/unit/boost-zone-v048.test.mjs",
+        "skyshift/tests/unit/extended-zone-v049.test.mjs",
+        "skyshift/tests/unit/hard-edge-v0484.test.mjs",
+        "skyshift/tests/unit/manta-blade-v0483.test.mjs",
+        "skyshift/tests/unit/premium-ship-v0482.test.mjs",
+        "skyshift/tests/unit/premium-track-v0481.test.mjs",
+        "skyshift/zone-surface-v048.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v049.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "b796635e02f348c308ded72d803e504f31b81114",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/README.md",
+        "skyshift/rendering/legacy/premium-track-v049.mjs",
+        "skyshift/rendering/legacy/premium-track-v0491.mjs",
+        "skyshift/rendering/legacy/premium-track-v0492.mjs",
+        "skyshift/rendering/legacy/premium-track-v0493.mjs",
+        "skyshift/rendering/legacy/premium-track-v0496.mjs",
+        "skyshift/rendering/legacy/premium-track-v0498.mjs",
+        "skyshift/tests/unit/boost-chase-v0494.test.mjs",
+        "skyshift/tests/unit/extended-zone-v049.test.mjs",
+        "skyshift/tests/unit/mobile-boot-v04911.test.mjs",
+        "skyshift/tests/unit/spectral-balance-v0493.test.mjs",
+        "skyshift/tests/unit/spectral-zone-v0491.test.mjs",
+        "skyshift/tests/unit/white-core-v0492.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v049.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0491.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0492.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0493.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0496.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0497.mjs",
+        "skyshift/tracks/shared/smooth-track-v049.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v0494.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "9bbdec915cf2ca543e248241abe8b79a6c12504b",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/README.md",
+        "skyshift/tests/unit/boost-chase-v0494.test.mjs",
+        "skyshift/tests/unit/boost-spring-v0495.test.mjs",
+        "skyshift/tests/unit/elevated-rails-v0497.test.mjs",
+        "skyshift/tests/unit/full-circuit-v050.test.mjs",
+        "skyshift/tests/unit/image-clarity-v0498.test.mjs",
+        "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+        "skyshift/tests/unit/reactive-hud-v0499.test.mjs",
+        "skyshift/tests/unit/velocity-language-v0496.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v050.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "146302562febc81cc273f8de62b8a3fe0cdd6c44",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/rendering/legacy/premium-track-v050.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v050.mjs",
+        "skyshift/tests/unit/full-circuit-v050.test.mjs",
+        "skyshift/tests/unit/speed-track-v051.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v050.mjs",
+        "skyshift/tracks/shared/smooth-track-v050.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v051.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "a2f7170ae3208bc58fb15021696b47cd8208b64e",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v051.mjs",
+        "skyshift/tests/unit/speed-track-v051.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v051.mjs",
+        "skyshift/tracks/shared/smooth-track-v051.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v060.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "adf3b64b62d13012568e43a3169e581b39b12024",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/rendering/legacy/premium-track-v060.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v060.mjs",
+        "skyshift/tests/unit/circuit-v060.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v060.mjs",
+        "skyshift/tracks/shared/smooth-track-v060.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v061.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "215f314b0cfe795310b1601e6ac1430ab729b72c",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v061.mjs",
+        "skyshift/tests/unit/precision-grip-v061.test.mjs",
+        "skyshift/tests/unit/track-3d-v070.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v070.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "dfd6f6692723e2457959e73dc85e1d91fbd68876",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/README.md",
+        "skyshift/cinematic-v070.mjs",
+        "skyshift/rendering/legacy/premium-track-v070.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v070.mjs",
+        "skyshift/tests/unit/corkscrew-v072.test.mjs",
+        "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+        "skyshift/tests/unit/track-3d-v070.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v070.mjs",
+        "skyshift/tracks/shared/smooth-track-v070.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v071.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "d3b9c0c6c97b9703a2d6086a8c0241e62aaf17c7",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/cinematic-v071.mjs",
+        "skyshift/rendering/legacy/premium-track-v071.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v071.mjs",
+        "skyshift/tests/unit/air-tricks-v080.test.mjs",
+        "skyshift/tests/unit/corkscrew-v072.test.mjs",
+        "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v071.mjs",
+        "skyshift/tracks/shared/smooth-track-v071.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v072.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "b197a62cd714a62cb9a71577f4b06ec9e47aea1f",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/README.md",
+        "skyshift/cinematic-v072.mjs",
+        "skyshift/rendering/legacy/premium-track-v072.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v072.mjs",
+        "skyshift/tests/unit/air-tricks-v080.test.mjs",
+        "skyshift/tests/unit/corkscrew-v072.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v072.mjs",
+        "skyshift/tracks/shared/smooth-track-v072.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v080.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "59faf6561ff7789c79090e1b8d4cba036ab33f5a",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+        "skyshift/tests/unit/air-tricks-v080.test.mjs",
+        "skyshift/tests/unit/grip-leap-v081.test.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v081.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "65cfc528736a51bbcc79d361e6a4b08b07b99f37",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/cinematic-v081.mjs",
+        "skyshift/rendering/legacy/premium-track-v081.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v081.mjs",
+        "skyshift/tests/unit/grip-leap-v081.test.mjs",
+        "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v081.mjs",
+        "skyshift/tracks/shared/smooth-track-v081.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v082.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "1383041fb09970e7efc0f3d06ce54d015596fa25",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/cinematic-v082.mjs",
+        "skyshift/rendering/legacy/premium-track-v082.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v082.mjs",
+        "skyshift/tests/unit/racing-feel-v083.test.mjs",
+        "skyshift/tests/unit/track-rhythm-v082.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v082.mjs",
+        "skyshift/tracks/shared/smooth-track-v082.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v083.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "e4b27cb02f7b327eb577d65cc0bff31ddf54788d",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/cinematic-v083.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v083.mjs",
+        "skyshift/tests/unit/racing-feel-v083.test.mjs",
+        "skyshift/tests/unit/steering-authority-v084.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v083.mjs",
+        "skyshift/tracks/shared/smooth-track-v083.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v084.mjs",
+      "previousCensusRole": "qa-literal",
+      "previousBlob": "05675fef996611e88dd3bd8ca482c662adb76091",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/cinematic-v084.mjs",
+        "skyshift/cinematic-v090.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v084.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v090.mjs",
+        "skyshift/tests/unit/grip-first-v0901.test.mjs",
+        "skyshift/tests/unit/kinetic-camera-v090.test.mjs",
+        "skyshift/tests/unit/steering-authority-v084.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v084.mjs",
+        "skyshift/tracks/shared/smooth-track-v084.mjs"
+      ],
+      "disposition": "retain pending historical executable coverage and consumer retirement proof"
+    },
+    {
+      "path": "skyshift/trial-v0901.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "c4a819b08ba59f515ca9f3d7e4bf52c2beda7227",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/cinematic-v0901.mjs",
+        "skyshift/game-v0101.mjs",
+        "skyshift/game-v0103.mjs",
+        "skyshift/rail-scrape-sparks-v01091.mjs",
+        "skyshift/rendering/legacy/premium-track-v0150.mjs",
+        "skyshift/rendering/road/premium-track-v0901.mjs",
+        "skyshift/shadow-tunnel-v092.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v010.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0101.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0102.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0103.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0104.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0105.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0106.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0107.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01071.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0108.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0109.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01091.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0110.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0111.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0112.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0113.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0114.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0120.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0121.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0130.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0131.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0132.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01321.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0133.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0134.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01341.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01342.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01343.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v01344.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0901.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v091.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v092.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0921.mjs",
+        "skyshift/tests/unit/circuit-v060.test.mjs",
+        "skyshift/tests/unit/grip-first-v0901.test.mjs",
+        "skyshift/tests/unit/racing-experience-v0120.test.mjs",
+        "skyshift/tests/unit/shadow-tunnel-v092.test.mjs",
+        "skyshift/tests/unit/signature-flight-v091.test.mjs",
+        "skyshift/tests/unit/steering-authority-v084.test.mjs",
+        "skyshift/tests/unit/stingray-grip-clearance-v01344.test.mjs",
+        "skyshift/tests/unit/stingray-screen-parity-v01345.test.mjs",
+        "skyshift/tests/unit/tunnel-blackout-v0921.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0901.mjs",
+        "skyshift/tracks/shared/smooth-track-v0901.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    },
+    {
+      "path": "skyshift/velocity-cinematography-v0220p3.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "a1c8973880c953ac2e68d1db19365932c4228484",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/game-v0210.mjs",
+        "skyshift/tests/unit/velocity-cinematography-v0220p3.test.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    },
+    {
+      "path": "skyshift/velocity-language-v0496.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "9eff8395da24036979924e25bedfdde0d62d5829",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/README.md",
+        "skyshift/game-v0101.mjs",
+        "skyshift/game-v0103.mjs",
+        "skyshift/game-v0203.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/legacy/game/game-v0205.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0496.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0497.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0498.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v0499.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v04991.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v050.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v051.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v060.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v061.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v070.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v071.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v072.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v080.mjs",
+        "skyshift/tests/browser/legacy/browser-smoke-v081.mjs",
+        "skyshift/tests/unit/velocity-language-v0496.test.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    },
+    {
+      "path": "skyshift/velocity-presence-v0104.mjs",
+      "previousCensusRole": "live-literal",
+      "previousBlob": "0cf794e5cb6ebd451dab01c281a32b573b0de08c",
+      "knownConsumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/game-v0203.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/legacy/game/game-v0205.mjs",
+        "skyshift/living-wake-v0107.mjs",
+        "skyshift/living-wake-v01071.mjs",
+        "skyshift/rendering/rail-scrape-sparks.mjs",
+        "skyshift/tests/unit/velocity-presence-v0104.test.mjs",
+        "skyshift/tests/unit/wing-vapor-v0105.test.mjs",
+        "skyshift/wing-vapor-v0105.mjs",
+        "skyshift/wingtip-contrails-v0106.mjs"
+      ],
+      "disposition": "retain active/shared until proven replacement"
+    }
+  ]
+}

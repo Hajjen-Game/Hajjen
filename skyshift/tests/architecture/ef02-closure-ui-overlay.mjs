@@ -67,6 +67,26 @@ function restoreRaceSessionReader(s,p){
  return s;
 }
 export function restoreUiMove(s,p){
+ if(key(p)==='skyshift/tests/architecture/active-entrypoint.test.mjs')for(const e of [
+  {
+    "before": " assert.match(game,/__skyshiftSparkInfo/);",
+    "after": " assert.match(game,/installRaceQa\\(/);\n assert.match(readFileSync(at('qa/race-probes.mjs'),'utf8'),/__skyshiftSparkInfo/);"
+  },
+  {
+    "before": "/ghostVisual\\?\\.hide\\(\\)/,/UI\\.trialHud",
+    "after": "/ctx\\.hideGhost\\(\\)/,/UI\\.trialHud"
+  },
+  {
+    "before": "  const leave=body('returnToMainMenu','pause');",
+    "after": "  assert.match(body('returnToMainMenu','pause'),/raceLifecycle\\.returnToMainMenu\\(\\)/);\n  const leave=lifecycle.slice(lifecycle.indexOf('function returnToMainMenu('),lifecycle.indexOf('function pause('));"
+  },
+  {
+    "before": "  assert.match(body('enterPlaying','returnToMainMenu'),/raceSession\\.selectMode\\(currentChallenge\\)/);",
+    "after": "  const lifecycle=readFileSync(at('core/race-lifecycle.mjs'),'utf8');\n  assert.match(body('enterPlaying','returnToMainMenu'),/raceLifecycle\\.enterPlaying\\(challenge\\)/);\n  assert.match(lifecycle,/raceSession\\.selectMode\\(ctx\\.currentChallenge\\)/);"
+  }
+]){
+  assert.equal(s.split(e.after).length-1,1,'EF04 lifecycle/QA reader inverse');s=s.replace(e.after,e.before);
+ }
  s=restoreRaceSessionReader(s,p);
  const r=byTarget.get(key(p))||byPath.get(key(p));if(!r)return s;
  if(r.path==='skyshift/game-v0210.mjs')s=readHistoricalGameMigrationSource();

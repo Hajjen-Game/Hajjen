@@ -275,3 +275,36 @@ test('EF04 live track uses shared geometry without changing original sampler for
  assert.match(adapter,/createTrackSampler\(\{\s*lapLength:CIRCUIT\.lapLength/);
  assert.match(adapter,/rules:TRIAL,circuit:CIRCUIT,jump:SKYLINE_LEAP/);
 });
+
+import {createRaceLifecycle} from '../../core/race-lifecycle.mjs';
+import {installRaceQa} from '../../qa/race-probes.mjs';
+import {inventory} from './dependency-inventory-v2.mjs';
+import {existsSync} from 'node:fs';
+test('EF04 race lifecycle preserves pause, resume and safe abandonment',()=>{
+ const node=()=>({classList:{add(){},remove(){},toggle(){}},textContent:''});
+ const UI=new Proxy({}, {get:()=>node()}),uiState={mode:'menu'},calls=[],world={visible:false},clock={last:0,accum:9};
+ let challenge=null;
+ const ctx={sceneReady:true,world,get currentChallenge(){return challenge},setChallenge(c){challenge=c;calls.push('challenge')},app:node,hideGhost(){calls.push('hide')}};
+ const life=createRaceLifecycle({UI,uiState,ctx,raceSession:{selectMode:c=>calls.push(c?'challenge-mode':'trial-mode'),ghostEnabled:true},timeTrialState:{mode:'time-trial'},resetFlight:()=>calls.push('reset'),refreshHud:()=>calls.push('hud'),hudBudget:{shouldUpdate(){}},clearInput:()=>calls.push('clear'),refreshTrialMenu:()=>calls.push('menu'),worldClock:clock,event:k=>calls.push(k),now:()=>99,clearTimeout(){}});
+ life.returnToMainMenu();assert.deepEqual(calls,[]);
+ life.enterPlaying();assert.equal(uiState.mode,'playing');assert.equal(world.visible,true);assert.deepEqual(calls.slice(0,4),['challenge','trial-mode','reset','time_trial_start']);
+ life.pause();assert.equal(uiState.mode,'paused');assert.ok(calls.includes('clear'));
+ life.resume();assert.equal(uiState.mode,'playing');assert.deepEqual(clock,{last:99,accum:0});
+ life.pause();life.returnToMainMenu();assert.equal(uiState.mode,'menu');assert.equal(challenge,null);
+});
+test('EF04 smoke mutation hooks remain opt-in and read-only compatibility probes remain available',()=>{
+ const window={},ctx={};
+ installRaceQa({window,location:{search:''},ctx});
+ for(const k of ['__skyshiftWaveSmoke','__skyshiftTunnelSmoke','__skyshiftWakeSmoke','__skyshiftFlapSet','__skyshiftSparkSmoke','__skyshiftTrackRepairTeleport','__skyshiftFleetSmokeUnlock','__skyshiftChallengeSmokeFinish','__skyshiftRiskPhysicsSmoke'])assert.equal(window[k],undefined,k);
+ for(const k of ['__skyshiftFleetProbe','__skyshiftScreenBeamProbe','__skyshiftHandlingParityProbe','__skyshiftPerfProbe'])assert.equal(typeof window[k],'function',k);
+});
+test('EF04 root owner entries reconciled with current graph and surviving known consumers',()=>{
+ const ledger=JSON.parse(readFileSync(new URL('../../docs/architecture/ef04-owner-reconciliation.json',import.meta.url),'utf8'));
+ const prior=JSON.parse(readFileSync(new URL('../../docs/architecture/ef02-final-owner-ledger.json',import.meta.url),'utf8'));
+ assert.deepEqual(ledger.entries.map(e=>e.path),prior.entries.filter(e=>e.ownerStage==='EF04').map(e=>e.currentPath));
+ const graph=new Set(inventory().literalBrowserGraph.paths);
+ const rows=ledger.entries.map(e=>({path:e.path,live:graph.has(e.path.slice('skyshift/'.length)),exists:existsSync(new URL('../../../'+e.path,import.meta.url)),survivingKnownConsumers:e.knownConsumers.filter(p=>existsSync(new URL('../../../'+p,import.meta.url)))}));
+ assert.ok(rows.every(r=>r.exists),'Unexpected retirement without proof');
+ for(const p of ['core/race-lifecycle.mjs','qa/race-probes.mjs','tracks/shared/track-sampler.mjs','flight/flight-physics.mjs'])assert.ok(graph.has(p),p);
+ console.log('SKYSHIFT_EF04_OWNER_RECONCILIATION '+JSON.stringify(rows));
+});

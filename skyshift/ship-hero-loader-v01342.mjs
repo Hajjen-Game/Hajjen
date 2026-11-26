@@ -3,7 +3,7 @@
 // Missing/invalid model files retain the original procedural Stingray.
 import {SHIP_ART_01342,requestedShipArt,createShipArtState,
  assessHeroAsset,installHeroBodyAndTail,shipArtAudit}
- from "./ship-art-pipeline-v01342.mjs";
+ from "./ships/ship-art-pipeline-v01342.mjs";
 import {createShipSourceCache} from "./core/ship-source-cache.mjs";
 import {collectObjectResources,releaseResourceDifference} from "./core/resource-ownership.mjs";
 export function createShipArtController(THREE,{

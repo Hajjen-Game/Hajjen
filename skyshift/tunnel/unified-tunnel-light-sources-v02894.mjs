@@ -4,7 +4,7 @@
 // All world source positions use the original 0.28.1 module-adapted
 // positionAt: there is no second made-up tunnel, fake exposure, or light.
 import {TUNNEL_PORTALS_0211,tunnelProfilePoint0211}
- from "../tunnel-megastructure-v0211.mjs";
+ from "./tunnel-megastructure-v0211.mjs";
 import {createSharedSourceSampler0282}
  from "./shared-road-ship-light-v0282.mjs";
 import {vaultStraightMask02891}

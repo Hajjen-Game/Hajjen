@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {auditHandlingFairness,FAIRNESS_0135,sectionCurvature,
- simulateApproach,yawFeasibility} from "../../handling-fairness-v0135.mjs";
+ simulateApproach,yawFeasibility} from "../../qa/handling-fairness-v0135.mjs";
 import {COURSE_SEGMENTS,TRIAL,GRIP_APEX,stepFlight,newFlightState}
  from "../../trial-v01348.mjs";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";

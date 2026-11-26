@@ -67,11 +67,11 @@ test('live and explicit material comparison entries resolve their actual modules
  const app=readFileSync(resolve(root,'game-v0210.mjs'),'utf8');
  assert.match(app,/advanceRaceSimulation\(raceSimulation,rawDt,flight,integrate\)/);
 });
-test('reviewed live root relocations have a single tracked owner and remain in the current source graph',()=>{
+test('reviewed root relocations have a single tracked owner and preserve source graph membership',()=>{
  for(const f of rootRelocations.moves){
   assert.ok(!tracked.has(f.oldPath)&&!existsSync(resolve(repo,f.oldPath)),f.oldPath+' duplicate or stale root');
   assert.ok(tracked.has(f.newPath)&&existsSync(resolve(repo,f.newPath)),f.newPath+' missing owner');
-  assert.ok(graph.has(f.newPath),f.newPath+' no longer reachable');
+  assert.equal(graph.has(f.newPath),f.sourceReachableBefore,f.newPath+' source graph membership changed');
  }
  for(const p of paths.filter(p=>p.startsWith('.github/workflows/')&&/\.ya?ml$/.test(p))){
   const s=readFileSync(resolve(repo,p),'utf8');

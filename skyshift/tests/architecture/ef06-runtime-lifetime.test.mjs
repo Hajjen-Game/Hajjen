@@ -98,7 +98,7 @@ test('EF06 live permanent exit releases specialist scene owners before remaining
  const owners=['pmremPipeline?.dispose?.()','releaseShip()','ghostVisual?.dispose?.()','sharedTunnelRuntime?.dispose?.()','releaseRemainingScene()','neonPipeline?.dispose?.()','renderer?.dispose?.()'];
  let last=-1;for(const owner of owners){const i=block.indexOf(owner);assert.ok(i>last,owner);last=i;}
  assert.match(s,/function releaseRemainingScene\(\)\{[\s\S]*?collectObjectResources\(scene,\{textures:true\}\)[\s\S]*?scene\?\.clear\?\.\(\)/);
- const tunnel=readFileSync(new URL('../../true-shared-tunnel-renderer-v0281.mjs',import.meta.url),'utf8');
+ const tunnel=readFileSync(new URL('../../tunnel/true-shared-tunnel-renderer-v0281.mjs',import.meta.url),'utf8');
  const teardown=tunnel.slice(tunnel.lastIndexOf('  dispose(){'));
  assert.match(teardown,/item\.waveCove\?\.dispose\?\.\(\);[\s\S]*?item\.archOptics\?\.dispose\?\.\(\);[\s\S]*?item\.source\?\.dispose\?\.\(\);/);
 });

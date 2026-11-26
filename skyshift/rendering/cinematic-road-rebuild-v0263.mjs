@@ -9,7 +9,7 @@
 // emissive ribbons are suppressed in favour of 0.26.3 physical specular,
 // with ?roadRebuild=classic returning EXACTLY to 0.26.2.
 import {TUNNEL_PORTALS_0211,tunnelProfilePoint0211}
- from "../tunnel-megastructure-v0211.mjs";
+ from "../tunnel/tunnel-megastructure-v0211.mjs";
 import {ROAD_SOLAR_SPILL_02126} from "./road-solar-spill-v02126.mjs";
 
 export const ROAD_REBUILD_0263=Object.freeze({

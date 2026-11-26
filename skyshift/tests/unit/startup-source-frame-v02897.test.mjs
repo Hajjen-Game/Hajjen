@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {createSourceFrameSampler02897,startupSamplerEnabled02897,
  adaptSourcePosition0281,planTrueSharedTunnel0281}
- from "../../true-shared-tunnel-renderer-v0281.mjs";
+ from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 import {positionAt} from "../../tracks/trials/trial-v0165.mjs";
 test("same original 368m shared source, no old release switched",()=>{
  for(const v of ["0.28.1","0.28.9.3","0.28.9.5","0.28.9.6"])

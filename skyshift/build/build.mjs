@@ -72,7 +72,7 @@ let gameText=await read(game);
 gameText=replaceOnce(gameText,/const SKYSHIFT_BUILD_VERSION=new URL\(\s*document\.querySelector\("script\[data-game-module\]"\)\?\.src\|\|location\.href\s*\)\.searchParams\.get\("v"\)\|\|"0\.26\.5";/g,'const SKYSHIFT_BUILD_VERSION='+JSON.stringify(version)+';','source build version');
 gameText=specializeVaultGame(gameText);
 await writeFile(game,gameText);
-const runtime=join(stage,'shared-tunnel-runtime-v0280.mjs');
+const runtime=join(stage,'tunnel/shared-tunnel-runtime-v0280.mjs');
 await writeFile(runtime,specializeVaultTunnelRuntime(await read(runtime)));
 // These two retained root loaders resolve runtime-selected glTF and its
 // relative resources against their module URL. Bundled chunks live in bundles/.

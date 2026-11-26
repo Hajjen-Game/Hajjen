@@ -4,35 +4,35 @@
 // The original 368m source is authored once and parameterized by the
 // positionAt adapter. Road, rails, ship, GRIP and flight data are untouched.
 import {installPremiumMetalSurfaceLibrary}
- from "./rendering/premium-metal-surface-v0262.mjs";
+ from "../rendering/premium-metal-surface-v0262.mjs";
 import {vaultSpatialWaveEnabled0285,installVaultSpatialWaveModule0285}
- from "./tunnel/vault-spatial-wave-parity-v0285.mjs";
+ from "./vault-spatial-wave-parity-v0285.mjs";
 import {reflectionStabilityEnabled0286,installReflectionStability0286}
- from "./tunnel/reflection-stability-strips-v0286.mjs";
+ from "./reflection-stability-strips-v0286.mjs";
 import {archFootRelease0287,installArchFootAssembly0287}
- from "./tunnel/arch-foot-light-assembly-v0287.mjs";
+ from "./arch-foot-light-assembly-v0287.mjs";
 import {precisionNeonEnabled0288,installPrecisionNeon0288}
- from "./tunnel/precision-neon-response-v0288.mjs";
+ from "./precision-neon-response-v0288.mjs";
 import {cinematicMetalEnabled0289,installCinematicTunnel0289}
- from "./rendering/cinematic-metal-neon-v0289.mjs";
+ from "../rendering/cinematic-metal-neon-v0289.mjs";
 import {installUnifiedMetalLighting02641}
- from "./rendering/unified-metal-light-response-v02641.mjs";
+ from "../rendering/unified-metal-light-response-v02641.mjs";
 import {wrapFinishShader02642}
- from "./rendering/reflection-cohesion-v02642.mjs";
+ from "../rendering/reflection-cohesion-v02642.mjs";
 import {wrapFixtureMaterial02643}
- from "./rendering/unified-fixture-transport-v02643.mjs";
+ from "../rendering/unified-fixture-transport-v02643.mjs";
 import {wrapShader0265}
- from "./tunnel/true-rail-wall-response-v0265.mjs";
+ from "./true-rail-wall-response-v0265.mjs";
 import {createLowerEdgeSources02632,createConnectedFootBands02632}
- from "./tunnel/edge-source-floor-bands-v02632.mjs";
+ from "./edge-source-floor-bands-v02632.mjs";
 import {coveWaveEnabled02895,installWaveCoupledCove02895}
- from "./tunnel/road-spill-wave-coves-v02895.mjs";
+ from "./road-spill-wave-coves-v02895.mjs";
 import {archOpticsEnabled02893,installArchSourceOptics02893}
- from "./tunnel/premium-arch-optics-v02893.mjs";
+ from "./premium-arch-optics-v02893.mjs";
 import {ceilingFixtureEnabled02892,installCeilingFixtureCohesion02892}
- from "./tunnel/ceiling-fixture-cohesion-v02892.mjs";
+ from "./ceiling-fixture-cohesion-v02892.mjs";
 import {straightParityEnabled02891,buildVaultStraightEmitters02891,
- vaultStraightRanges02891} from "./tunnel/shared-straight-edge-parity-v02891.mjs";
+ vaultStraightRanges02891} from "./shared-straight-edge-parity-v02891.mjs";
 
 export const TRUE_SHARED_RENDERER_0281=Object.freeze({
  version:"0.28.1",id:"skyline-original-renderer",

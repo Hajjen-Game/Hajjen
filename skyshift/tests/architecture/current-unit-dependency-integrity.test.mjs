@@ -53,8 +53,8 @@ test('retained stage-6 dynamic imports and protected complex tests retain actual
  for(const v of ['v0164','v0165']){
   const name='track-physics-parity-'+v+'.test.mjs';
   const source=readFileSync(resolve(unit,name),'utf8');
-  assert.ok(source.includes('new URL("../../track-physics-parity-probe-'+v+'.mjs",import.meta.url)'),'Missing protected subprocess probe call: '+name);
-  target(name,'../../track-physics-parity-probe-'+v+'.mjs');
+  assert.ok(source.includes('new URL("../../qa/track-physics-parity-probe-'+v+'.mjs",import.meta.url)'),'Missing protected subprocess probe call: '+name);
+  target(name,'../../qa/track-physics-parity-probe-'+v+'.mjs');
  }
 });
 test('all explicit SKYSHIFT workflow test references resolve to current files, not stale root paths',()=>{

@@ -5,11 +5,11 @@
 // no standalone clock, scene light, bloom pass or gameplay mutation.
 // The paired 0.21.3 structural layer uses a calmer graphite finish and
 // longer bay rhythm only when this new art pass is enabled.
-import {TUNNEL_MEGA_0211} from "../tunnel-megastructure-v0211.mjs";
+import {TUNNEL_MEGA_0211} from "../tunnel/tunnel-megastructure-v0211.mjs";
 import {sampleStructuralFacet,installStructuralTunnelRebuild}
- from "../structural-tunnel-v0213.mjs";
+ from "../tunnel/structural-tunnel-v0213.mjs";
 import {createTunnelSpectrumUniforms,updateTunnelSpectrumUniforms,
- bindTunnelSpectrumMaterial} from "../tunnel-spectrum-v02121.mjs";
+ bindTunnelSpectrumMaterial} from "../tunnel/tunnel-spectrum-v02121.mjs";
 
 export const INTEGRATED_NEON_FLOW_0214=Object.freeze({
  version:"0.21.4",id:"integrated-neon-flow",

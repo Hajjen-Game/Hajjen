@@ -6,7 +6,7 @@ import {execFileSync} from "node:child_process";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const run=track=>JSON.parse(execFileSync(process.execPath,
- [new URL("../../track-physics-parity-probe-v0164.mjs",import.meta.url).pathname,track],
+ [new URL("../../qa/track-physics-parity-probe-v0164.mjs",import.meta.url).pathname,track],
  {encoding:"utf8"}));
 const skyline=run("skyline"),aurora=run("aurora");
 const near=(a,b,eps=1e-9)=>assert.ok(Math.abs(a-b)<eps,`expected ${a} ≈ ${b}`);

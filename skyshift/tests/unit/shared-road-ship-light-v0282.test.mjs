@@ -78,7 +78,7 @@ test("non-Vault and classic paths are inert and cannot alter Skyline",()=>{
 });
 
 import {roadSectionMaskExpressionEF05} from "../../rendering/cinematic-road-rebuild-v0263.mjs";
-import {planConfiguredTunnelModules0281} from "../../true-shared-tunnel-renderer-v0281.mjs";
+import {planConfiguredTunnelModules0281} from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 test("EF05 shared GGX road seals only actual tunnel intervals, preserves exterior and full-course shader",()=>{
  const vertex="#include <common>\n#include <project_vertex>";
  const fragment="#include <common>\n#include <lights_fragment_end>\n"+

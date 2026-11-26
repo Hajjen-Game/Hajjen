@@ -13,7 +13,7 @@ test('non-runtime-only changes skip heavyweight browser jobs', () => {
 
 test('live game, tunnel, renderer, lighting, CSS, artwork and CI still run every WebGL job', () => {
   const runtime = ['skyshift/index.html', 'skyshift/boot-v0210.js', 'skyshift/game-v0210.mjs',
-    'skyshift/shared-tunnel-architecture-v0280.mjs', 'skyshift/tunnel/road-spill-wave-coves-v02895.mjs',
+    'skyshift/tunnel/shared-tunnel-architecture-v0280.mjs', 'skyshift/tunnel/road-spill-wave-coves-v02895.mjs',
     'skyshift/style-v061.css', 'skyshift/assets/ships/model.glb',
     'skyshift/browser-shared-tunnel-v0280.mjs', '.github/workflows/skyshift-ci-fast.yml',
     '.github/workflows/skyshift-tests.yml', '.github/workflows/skyshift-architecture-guard.yml',

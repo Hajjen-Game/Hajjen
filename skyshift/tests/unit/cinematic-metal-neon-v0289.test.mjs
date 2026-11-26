@@ -131,7 +131,7 @@ test("shared renderer uses original material instances and restores shader hooks
  assert.equal(mat.onBeforeCompile,before);
 });
 test("game integrates PMREM-safe zero-strength source followed by native 0.28.9 activation",()=>{
- const renderer=read("./true-shared-tunnel-renderer-v0281.mjs");
+ const renderer=read("./tunnel/true-shared-tunnel-renderer-v0281.mjs");
  const game=read("./game-v0210.mjs");
  const html=read("./index.html");
  assert.match(renderer,/installCinematicTunnel0289\(section/);

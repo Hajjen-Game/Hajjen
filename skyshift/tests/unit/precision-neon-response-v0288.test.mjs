@@ -88,7 +88,7 @@ test("10 modules reuse original material batches and all comparison uniforms res
  }
 });
 test("shared renderer and game own lifecycle, not a parallel Vault imitation",()=>{
- const shared=read("./true-shared-tunnel-renderer-v0281.mjs");
+ const shared=read("./tunnel/true-shared-tunnel-renderer-v0281.mjs");
  const game=read("./game-v0210.mjs");
  const html=read("./index.html");
  assert.match(shared,/installPrecisionNeon0288\(section/);

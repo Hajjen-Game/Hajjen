@@ -5,13 +5,13 @@
 // The 0.27.1 0.26.2 atlas is shared, NOT duplicated. No new world lights,
 // camera/ship/road/rail/colliders, steering or GRIP changes.
 import {buildSharedTunnelSection0280}
- from "../../structural-tunnel-v0213.mjs";
+ from "../../tunnel/structural-tunnel-v0213.mjs";
 import {vaultCrossSection0270}
  from "./full-tunnel-circuit-v0270.mjs";
 import {patchVaultMaterialShader0271}
  from "./vault-material-parity-v0271.mjs";
 import {makeTunnelPlan0280,SHARED_TUNNEL_STYLE_0280}
- from "../../shared-tunnel-architecture-v0280.mjs";
+ from "../../tunnel/shared-tunnel-architecture-v0280.mjs";
 
 const ROOT="SKYSHIFT · Neon Vault Full Tunnel 0.27.0";
 const SHARED_PLAN=makeTunnelPlan0280({track:"vault"});

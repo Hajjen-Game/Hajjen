@@ -160,7 +160,7 @@ test("native road controller updates palette and restores original program",()=>
 });
 
 import {sourceLocalRoadExpressionEF05} from "../../tunnel/road-spill-wave-coves-v02895.mjs";
-import {planConfiguredTunnelModules0281} from "../../true-shared-tunnel-renderer-v0281.mjs";
+import {planConfiguredTunnelModules0281} from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 test("EF05 road spill follows unequal module origins and does not light open gaps",()=>{
  const full=planConfiguredTunnelModules0281(3400,[{start:0,end:3400}]);
  assert.equal(sourceLocalRoadExpressionEF05(full),null);

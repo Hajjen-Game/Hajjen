@@ -7,7 +7,7 @@
 import {installPremiumSurfaceCraftsmanship}
  from "./premium-surface-craftsmanship-v0241.mjs";
 import {TUNNEL_PORTALS_0211,tunnelProfilePoint0211}
- from "../tunnel-megastructure-v0211.mjs";
+ from "../tunnel/tunnel-megastructure-v0211.mjs";
 
 export const DARK_METALLIC_FOUNDATION_0250=Object.freeze({
  version:"0.25.0",id:"dark-metallic-lighting-foundation-0250",

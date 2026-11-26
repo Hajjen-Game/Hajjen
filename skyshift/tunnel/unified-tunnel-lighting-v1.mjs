@@ -11,7 +11,7 @@ import {isAurora} from "../tracks/shared/track-selection-v0160.mjs";
 import {tunnelIntensityAt,SHADOW_TUNNEL} from "../shadow-tunnel-v0160.mjs";
 import {blackoutLevelsAt,createTunnelBlackoutController,TUNNEL_BLACKOUT}
  from "../tunnel-blackout-v0160.mjs";
-import {TUNNEL_MEGA_0211} from "../tunnel-megastructure-v0211.mjs";
+import {TUNNEL_MEGA_0211} from "./tunnel-megastructure-v0211.mjs";
 
 export const UNIFIED_TUNNEL_LIGHTING_1=Object.freeze({
  id:"unified-tunnel-lighting-foundation-1",version:"1.0",

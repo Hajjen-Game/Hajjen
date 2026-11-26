@@ -3,7 +3,7 @@
 // the new optical layer. No new meshes/draw calls/lights/SSR/PMREM passes;
 // road material, geometry positions, curves, collision, GRIP all unchanged.
 import {TUNNEL_PORTALS_0211,TUNNEL_PROFILE_0211,
- tunnelProfilePoint0211} from "../tunnel-megastructure-v0211.mjs";
+ tunnelProfilePoint0211} from "./tunnel-megastructure-v0211.mjs";
 import {createUnifiedSourceRegistry02894,sharedWaveColors02894}
  from "./unified-tunnel-light-sources-v02894.mjs";
 import {createSharedSourceSampler0282}

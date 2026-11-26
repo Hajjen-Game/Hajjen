@@ -9,7 +9,7 @@
 import {installCinematicEnergyMotion}
  from "./cinematic-energy-v0216.mjs";
 import {createTunnelSpectrumUniforms,updateTunnelSpectrumUniforms}
- from "../tunnel-spectrum-v02121.mjs";
+ from "../tunnel/tunnel-spectrum-v02121.mjs";
 
 export const MATERIAL_REBIRTH_0220=Object.freeze({
  version:"0.22.0",pass:"1 — Premium Material Revolution",

@@ -7,7 +7,7 @@
 // Direct ?edgeSources=classic restores the EXACT published 0.26.3.1 installer.
 import {widthAt} from "../tracks/trials/trial-v0165.mjs";
 import {TUNNEL_PORTALS_0211,tunnelProfilePoint0211}
- from "../tunnel-megastructure-v0211.mjs";
+ from "./tunnel-megastructure-v0211.mjs";
 import {floorY02631,nearestFoot02631,patchEdgeRoadShader02631}
  from "./edge-lighting-floor-pools-v02631.mjs";
 

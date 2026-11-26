@@ -75,7 +75,7 @@ try{
  // Drive the real 120Hz collision solver at the player's documented
  // lap-3/finish rail impacts. No camera, ghost, or "track snap" hack.
  const railResults=await page.evaluate(async()=>{
-  const audit=await import("./rail-contact-audit-v0162.mjs");
+  const audit=await import("./qa/rail-contact-audit-v0162.mjs");
   return audit.RAIL_SCENARIOS_0162.map(audit.runRailContactScenario);
  });
  for(const hit of railResults){

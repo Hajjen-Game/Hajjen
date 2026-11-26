@@ -15,6 +15,11 @@ export function readOwnerRelocations(repo){
    const name=basename(f.oldPath);
    assert.ok(production.has(name)!==other.has(name),f.oldPath+' missing or ambiguous baseline membership');
    assert.equal(f.productionBefore,production.has(name),f.oldPath+' incorrect baseline membership');
+   assert.equal(typeof f.sourceReachableBefore,'boolean');
+   if(batch.sourceEvidence){
+    assert.equal(batch.sourceEvidence.commit,batch.rollbackCommit);assert.equal(batch.sourceEvidence.run,batch.architectureRun);
+    assert.equal(f.sourceReachableBefore,batch.sourceEvidence.sourceReachableRoots.includes(f.oldPath),f.oldPath+' incorrect source graph membership');
+   }else assert.equal(f.sourceReachableBefore,true,f.oldPath+' original graphics batch must remain source-reachable');
    assert.ok(!reviewed.has(f.oldPath),f.oldPath+' duplicate batch move');
    reviewed.set(f.oldPath,f);
   }

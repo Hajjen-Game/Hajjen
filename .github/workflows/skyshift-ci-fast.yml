@@ -91,10 +91,10 @@ jobs:
           node --check skyshift/tests/browser/browser-vault-lighting-v0273.mjs
           node --check skyshift/tracks/vault/vault-premium-finish-v0274.mjs
           node --check skyshift/tests/browser/browser-vault-premium-finish-v0274.mjs
-          node --check skyshift/shared-tunnel-architecture-v0280.mjs
-          node --check skyshift/shared-tunnel-runtime-v0280.mjs
+          node --check skyshift/tunnel/shared-tunnel-architecture-v0280.mjs
+          node --check skyshift/tunnel/shared-tunnel-runtime-v0280.mjs
           node --check skyshift/tests/browser/browser-shared-tunnel-v0280.mjs
-          node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
+          node --check skyshift/tunnel/true-shared-tunnel-renderer-v0281.mjs
           node --check skyshift/tunnel/ceiling-fixture-cohesion-v02892.mjs
           node --check skyshift/tunnel/premium-arch-optics-v02893.mjs
           node --check skyshift/tunnel/unified-tunnel-light-sources-v02894.mjs
@@ -128,7 +128,7 @@ jobs:
           node --check skyshift/tests/browser/browser-cinematic-road-rebuild-v0263.mjs
           node --check skyshift/rendering/premium-metal-surface-v0262.mjs
           node --check skyshift/tests/browser/browser-startup-stability-v02897.mjs
-          node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
+          node --check skyshift/tunnel/true-shared-tunnel-renderer-v0281.mjs
           node --check skyshift/tests/browser/browser-premium-metal-v0262.mjs
           node --check skyshift/rendering/local-reflections-v0261p1.mjs
           node --check skyshift/tests/browser/browser-local-reflections-v0261p1.mjs
@@ -801,7 +801,7 @@ jobs:
           node --check skyshift/tunnel/precision-neon-response-v0288.mjs
           node --check skyshift/tests/browser/browser-precision-neon-v0288.mjs
           node --check skyshift/game-v0210.mjs
-          node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
+          node --check skyshift/tunnel/true-shared-tunnel-renderer-v0281.mjs
           node --test skyshift/tests/unit/precision-neon-response-v0288.test.mjs
       - name: Install real Chromium WebGL driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0
@@ -833,7 +833,7 @@ jobs:
           set -euo pipefail
           node --check skyshift/rendering/cinematic-metal-neon-v0289.mjs
           node --check skyshift/tests/browser/browser-cinematic-metal-v0289.mjs
-          node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
+          node --check skyshift/tunnel/true-shared-tunnel-renderer-v0281.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/cinematic-metal-neon-v0289.test.mjs
       - name: Install actual browser WebGL screenshot dependencies
@@ -866,7 +866,7 @@ jobs:
           set -euo pipefail
           node --check skyshift/tunnel/shared-straight-edge-parity-v02891.mjs
           node --check skyshift/tests/browser/browser-straight-edge-parity-v02891.mjs
-          node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
+          node --check skyshift/tunnel/true-shared-tunnel-renderer-v0281.mjs
           node --check skyshift/game-v0210.mjs
           node --test skyshift/tests/unit/shared-straight-edge-parity-v02891.test.mjs
       - name: Install original browser WebGL screenshot driver
@@ -899,7 +899,7 @@ jobs:
           set -euo pipefail
           node --check skyshift/tunnel/ceiling-fixture-cohesion-v02892.mjs
           node --check skyshift/tests/browser/browser-ceiling-fixture-v02892.mjs
-          node --check skyshift/true-shared-tunnel-renderer-v0281.mjs
+          node --check skyshift/tunnel/true-shared-tunnel-renderer-v0281.mjs
           node --test skyshift/tests/unit/ceiling-fixture-cohesion-v02892.test.mjs
       - name: Install original WebGL screenshot driver
         run: npm install --no-save --no-package-lock --ignore-scripts playwright-core@1.56.1 pngjs@7.0.0

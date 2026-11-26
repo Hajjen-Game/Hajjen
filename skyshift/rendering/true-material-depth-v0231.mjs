@@ -5,7 +5,7 @@
 import {installPhysicalMaterialRebuild,buildPhysicalMaterialFrames}
  from "./physical-material-rebuild-v0230.mjs";
 import {buildStructuralTunnelData}
- from "../structural-tunnel-v0213.mjs";
+ from "../tunnel/structural-tunnel-v0213.mjs";
 import {buildTunnelNeonLocalData}
  from "./cinematic-neon-lighting-v0220p2.mjs";
 

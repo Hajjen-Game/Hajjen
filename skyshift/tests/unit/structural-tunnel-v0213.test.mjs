@@ -3,9 +3,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {TUNNEL_PROFILE_0211,tunnelProfilePoint0211}
- from "../../tunnel-megastructure-v0211.mjs";
+ from "../../tunnel/tunnel-megastructure-v0211.mjs";
 import {STRUCTURAL_TUNNEL_0213,sampleStructuralFacet,
- buildStructuralTunnelData} from "../../structural-tunnel-v0213.mjs";
+ buildStructuralTunnelData} from "../../tunnel/structural-tunnel-v0213.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const pos=(s,x,y)=>({x,y,z:s});
 test("raised panels conform to ORIGINAL 0.21.1 vaulted sections",()=>{
@@ -73,7 +73,7 @@ test("no world-light, physics, spectral wave or road-material overrides",()=>{
  assert.equal(STRUCTURAL_TUNNEL_0213.additionalPostprocessPasses,0);
  assert.equal(STRUCTURAL_TUNNEL_0213.newDrawBatchesDesktop,2);
  assert.equal(STRUCTURAL_TUNNEL_0213.newDrawBatchesMobile,1);
- const code=read("./structural-tunnel-v0213.mjs");
+ const code=read("./tunnel/structural-tunnel-v0213.mjs");
  assert.match(code,/bindTunnelSpectrumMaterial/);
  assert.match(code,/updateTunnelSpectrumUniforms/);
  assert.match(code,/installExteriorLightSeal/);

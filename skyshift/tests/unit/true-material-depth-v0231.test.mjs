@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {buildStructuralTunnelData}
- from "../../structural-tunnel-v0213.mjs";
+ from "../../tunnel/structural-tunnel-v0213.mjs";
 import {patchPremiumMaterialShader} from "../../rendering/premium-material-rebirth-v0220.mjs";
 import {patchCinematicNeonShader} from "../../rendering/cinematic-neon-lighting-v0220p2.mjs";
 import {patchPhysicalMaterialShader} from "../../rendering/physical-material-rebuild-v0230.mjs";
@@ -137,7 +137,7 @@ test("sealed vault and ribs remain on original 0.23.0 shader",()=>{
  assert.match(source,/trueDepth0231UntouchedRoles:\["shell","rib"\]/);
  assert.doesNotMatch(source,/d31FaceColor|d31EdgeColor|d31CutColor/);
  assert.match(source,/version:"0\.23\.1\.1"/);
- const structural=read("./structural-tunnel-v0213.mjs");
+ const structural=read("./tunnel/structural-tunnel-v0213.mjs");
  assert.match(structural,/const relief=\(s\)=>unifiedDepth\?1:smooth/);
  assert.match(structural,/shaped\(x,d0\)/);
 });

@@ -118,7 +118,7 @@ import {HERO_0210,installCinematicHero}
 import {CINEMATIC_GRADE_0210B,installCinematicGradeHero}
  from "./rendering/cinematic-grade-v0210b.mjs";
 import {TUNNEL_MEGA_0211,installTunnelMegastructure}
- from "./tunnel-megastructure-v0211.mjs";
+ from "./tunnel/tunnel-megastructure-v0211.mjs";
 import {FULL_TUNNEL_0270,installFullTunnelCircuit0270}
  from "./tracks/vault/full-tunnel-circuit-v0270.mjs";
 import {VAULT_MATERIAL_PARITY_0271,installVaultMaterialParity0271}
@@ -129,10 +129,10 @@ import {VAULT_LIGHTING_0273,installVaultFullLighting0273}
  from "./tracks/vault/vault-full-lighting-v0273.mjs";
 import {VAULT_PREMIUM_FINISH_0274} from "./tracks/vault/vault-premium-finish-v0274.mjs";
 import {TUNNEL_SHARED_ARCHITECTURE_0280,tunnelReleaseAtLeast0280,sharedTunnelVersionActive0280}
- from "./shared-tunnel-architecture-v0280.mjs";
+ from "./tunnel/shared-tunnel-architecture-v0280.mjs";
 import {createSharedTunnelRuntime0280}
- from "./shared-tunnel-runtime-v0280.mjs";
-import {omitLegacyRoadResponseEF05,startupSamplerEnabled02897} from "./true-shared-tunnel-renderer-v0281.mjs";
+ from "./tunnel/shared-tunnel-runtime-v0280.mjs";
+import {omitLegacyRoadResponseEF05,startupSamplerEnabled02897} from "./tunnel/true-shared-tunnel-renderer-v0281.mjs";
 import {SHARED_LIGHT_0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
 import {createSharedOpticalContext,installSharedOpticalShip,installSharedRoadOptics,finalizeSharedOptics} from "./tunnel/shared-optical-assembly.mjs";
 import {PMREM_0284,readPmremRelease0284}
@@ -140,15 +140,15 @@ import {PMREM_0284,readPmremRelease0284}
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
  from "./tunnel/full-tunnel-light-seal-v0270.mjs";
 import {NEON_INTERIOR_0212,installNeonDrivenInterior}
- from "./neon-interior-v0212.mjs";
+ from "./tunnel/neon-interior-v0212.mjs";
 import {installNeonDrivenInterior as installClassicNeonInterior}
- from "./neon-interior-v0212-classic.mjs";
+ from "./tunnel/neon-interior-v0212-classic.mjs";
 import {TUNNEL_SPECTRUM_02121}
- from "./tunnel-spectrum-v02121.mjs";
+ from "./tunnel/tunnel-spectrum-v02121.mjs";
 import {EXTERIOR_SEAL_02122,installExteriorLightSeal}
- from "./tunnel-exterior-seal-v02122.mjs";
+ from "./tunnel/tunnel-exterior-seal-v02122.mjs";
 import {STRUCTURAL_TUNNEL_0213,installStructuralTunnelRebuild}
- from "./structural-tunnel-v0213.mjs";
+ from "./tunnel/structural-tunnel-v0213.mjs";
 import {INTEGRATED_NEON_FLOW_0214,installIntegratedNeonFlow}
  from "./rendering/integrated-neon-flow-v0214.mjs";
 import {WHITE_CORE_02123,createWhiteCoreContainment}

@@ -241,7 +241,7 @@ test("native 0.28.9.4 road decor is in-place, restores original shader and every
 });
 
 import {createSharedSourceSampler0282,buildSharedRoadSourceData0282} from "../../tunnel/shared-road-ship-light-v0282.mjs";
-import {planConfiguredTunnelModules0281} from "../../true-shared-tunnel-renderer-v0281.mjs";
+import {planConfiguredTunnelModules0281} from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 test("EF05 shared mounted module plan preserves all original full Vault optical coordinates",()=>{
  const modules=planConfiguredTunnelModules0281(3400,[{start:0,end:3400}]);
  const sampler=createSharedSourceSampler0282(at,3400,modules);

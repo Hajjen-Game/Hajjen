@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "scope": "Relocate active non-archived graphics modules into existing owners; preserve code, runtime policy, test assertions and all entrypoints. Path changes only.",
+  "scope": "Relocate active and retained QA modules into existing owners; preserve code, runtime policy, test assertions, graph membership and all entrypoints. Path changes only.",
   "batches": [
     {
       "rollbackCommit": "01e43ef24fbf5df8212a06eaa41e89d7440429c2",
@@ -16,7 +16,8 @@
           "destinationSha": "c03f0d81567df0b1b46a408004654da68c1a231e",
           "bytes": 7146,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/cinematic-grade-v0210b.mjs",
@@ -25,7 +26,8 @@
           "destinationSha": "c51948deb80fddba0b0cc7bf1c17f66abd12b11b",
           "bytes": 9127,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/cinematic-hero-v0210.mjs",
@@ -34,7 +36,8 @@
           "destinationSha": "101cea1a9eb600a8630491795002b3bc06dd9bf5",
           "bytes": 11595,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/cinematic-light-architecture-v0232.mjs",
@@ -43,7 +46,8 @@
           "destinationSha": "e3bb8dd0d0e508639f39a2c42a016d93555a8ace",
           "bytes": 7786,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/cinematic-neon-lighting-v0220p2.mjs",
@@ -52,7 +56,8 @@
           "destinationSha": "b162c7c67d27d617260a81e2a618adc1381afa53",
           "bytes": 9995,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/cinematic-road-rebuild-v0263.mjs",
@@ -61,7 +66,8 @@
           "destinationSha": "d55f5e27722a44d585133f380c87e9b1d9b15974",
           "bytes": 17692,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/cinematic-road-reflections-v0242.mjs",
@@ -70,7 +76,8 @@
           "destinationSha": "5faf001549295ab7a8fbcb00a4e1163d0debe44e",
           "bytes": 5808,
           "owner": "rendering",
-          "productionBefore": false
+          "productionBefore": false,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/edge-lighting-floor-pools-v02631.mjs",
@@ -79,7 +86,8 @@
           "destinationSha": "a845914af46700d886cb5d0cbd4718c4fea4b55e",
           "bytes": 15382,
           "owner": "tunnel",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/edge-source-floor-bands-v02632.mjs",
@@ -88,7 +96,8 @@
           "destinationSha": "2f0b27d021b27aab127f464b75f2901f8015a070",
           "bytes": 13818,
           "owner": "tunnel",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/full-tunnel-light-seal-v0270.mjs",
@@ -97,7 +106,8 @@
           "destinationSha": "d01dc46e24ace3e1e709e2b353cf928f34be276c",
           "bytes": 1174,
           "owner": "tunnel",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/integrated-neon-flow-v0214.mjs",
@@ -106,7 +116,8 @@
           "destinationSha": "5db20632e10c30ecad1c60f35deff1c2f59da318",
           "bytes": 8308,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/physical-material-rebuild-v0230.mjs",
@@ -115,7 +126,8 @@
           "destinationSha": "a558728eea438c4d58fdccca7f37fadf35bd71b0",
           "bytes": 12009,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/premium-road-surface-v0215.mjs",
@@ -124,7 +136,8 @@
           "destinationSha": "02058328ff6eef127ce4dabe5691fb174c4cd6dc",
           "bytes": 6147,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/road-solar-spill-v02126.mjs",
@@ -133,7 +146,8 @@
           "destinationSha": "b9e5ecf20105b5ea2a240a1bd291867cf9c314a6",
           "bytes": 4017,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/straight-only-edge-lighting-v02633.mjs",
@@ -142,7 +156,8 @@
           "destinationSha": "f5c7e633744016473511c7732bdcfd6db249d27a",
           "bytes": 11180,
           "owner": "tunnel",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/true-material-depth-v0231.mjs",
@@ -151,7 +166,8 @@
           "destinationSha": "27bfdcf1eac0830ea018a2eda5630124b2ec5a7b",
           "bytes": 10388,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/true-rail-wall-response-v0265.mjs",
@@ -160,7 +176,8 @@
           "destinationSha": "7f6ab2afb650ee89d5efd9a8bbb835dd03dda276",
           "bytes": 14501,
           "owner": "tunnel",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/unified-cinematic-grade-v0220p4.mjs",
@@ -169,7 +186,8 @@
           "destinationSha": "e0660cffaaa5ca1946e622e1774e592c7f1b8df2",
           "bytes": 6825,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/unified-tunnel-lighting-v1.mjs",
@@ -178,7 +196,8 @@
           "destinationSha": "818a56b15a563073324c95b2a587690e94e3b3c3",
           "bytes": 4406,
           "owner": "tunnel",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/unified-tunnel-materials-v0233.mjs",
@@ -187,7 +206,8 @@
           "destinationSha": "d5106679318fcc5295aa51d1f15b49f5ece6f2a8",
           "bytes": 6902,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/velocity-cinematography-v0220p3.mjs",
@@ -196,7 +216,8 @@
           "destinationSha": "a1c8973880c953ac2e68d1db19365932c4228484",
           "bytes": 5905,
           "owner": "rendering",
-          "productionBefore": true
+          "productionBefore": true,
+          "sourceReachableBefore": true
         },
         {
           "oldPath": "skyshift/white-core-containment-v02123.mjs",
@@ -205,7 +226,8 @@
           "destinationSha": "cf4adf3988044a9c56d30de163689a99eef0ac85",
           "bytes": 6726,
           "owner": "rendering",
-          "productionBefore": false
+          "productionBefore": false,
+          "sourceReachableBefore": true
         }
       ],
       "consumers": [
@@ -405,6 +427,447 @@
           "zone-wave-v051.mjs"
         ]
       }
+    },
+    {
+      "rollbackCommit": "e08f7d9677d482dc6be5091ffc455937648b570b",
+      "architectureRun": 45888378058,
+      "productionRun": 45888378070,
+      "rootCountBefore": 122,
+      "rootCountAfter": 105,
+      "moves": [
+        {
+          "oldPath": "skyshift/grip-trick-audit-v0165.mjs",
+          "newPath": "skyshift/qa/grip-trick-audit-v0165.mjs",
+          "sourceSha": "27da149f4609c4fc98d59a74aabe944d7748534c",
+          "destinationSha": "898467ecf09a2af6085cbae0f4cfe86952621470",
+          "bytes": 2007,
+          "owner": "qa",
+          "productionBefore": false,
+          "sourceReachableBefore": false
+        },
+        {
+          "oldPath": "skyshift/handling-fairness-cli-v0135.mjs",
+          "newPath": "skyshift/qa/handling-fairness-cli-v0135.mjs",
+          "sourceSha": "e4005748707ff4d6d994a01ee3e19f66d2382d0d",
+          "destinationSha": "e4005748707ff4d6d994a01ee3e19f66d2382d0d",
+          "bytes": 958,
+          "owner": "qa",
+          "productionBefore": false,
+          "sourceReachableBefore": false
+        },
+        {
+          "oldPath": "skyshift/handling-fairness-v0135.mjs",
+          "newPath": "skyshift/qa/handling-fairness-v0135.mjs",
+          "sourceSha": "34a2bfbdefa1b283b87ea718fea60745d1f65950",
+          "destinationSha": "2b8fa7f6604ab21f2e9d32da34e376b79709a306",
+          "bytes": 5726,
+          "owner": "qa",
+          "productionBefore": false,
+          "sourceReachableBefore": false
+        },
+        {
+          "oldPath": "skyshift/neon-interior-v0212-classic.mjs",
+          "newPath": "skyshift/tunnel/neon-interior-v0212-classic.mjs",
+          "sourceSha": "478703a6bdbb4ff48fa14bf9e7c4a108b4a96ac2",
+          "destinationSha": "478703a6bdbb4ff48fa14bf9e7c4a108b4a96ac2",
+          "bytes": 9027,
+          "owner": "tunnel",
+          "productionBefore": false,
+          "sourceReachableBefore": true
+        },
+        {
+          "oldPath": "skyshift/neon-interior-v0212.mjs",
+          "newPath": "skyshift/tunnel/neon-interior-v0212.mjs",
+          "sourceSha": "5915111c21ecfe15f450e54e121193e58219855b",
+          "destinationSha": "5915111c21ecfe15f450e54e121193e58219855b",
+          "bytes": 11580,
+          "owner": "tunnel",
+          "productionBefore": true,
+          "sourceReachableBefore": true
+        },
+        {
+          "oldPath": "skyshift/rail-contact-audit-v0162.mjs",
+          "newPath": "skyshift/qa/rail-contact-audit-v0162.mjs",
+          "sourceSha": "37f1b41120b6566a29d5b830465788b8b2975697",
+          "destinationSha": "15a60f49dc8748a3d1b7426b9b1ed6b0c26fd71f",
+          "bytes": 3636,
+          "owner": "qa",
+          "productionBefore": false,
+          "sourceReachableBefore": false
+        },
+        {
+          "oldPath": "skyshift/rail-contact-audit-v0163.mjs",
+          "newPath": "skyshift/qa/rail-contact-audit-v0163.mjs",
+          "sourceSha": "c224e2e861af072f34c3dfbca466043439a507a4",
+          "destinationSha": "ac68bf6802f80bd631b47ded02db72843144d506",
+          "bytes": 4047,
+          "owner": "qa",
+          "productionBefore": false,
+          "sourceReachableBefore": false
+        },
+        {
+          "oldPath": "skyshift/shared-tunnel-architecture-v0280.mjs",
+          "newPath": "skyshift/tunnel/shared-tunnel-architecture-v0280.mjs",
+          "sourceSha": "72618b5abe070256ad76bd514ce8b812ca947b4e",
+          "destinationSha": "72618b5abe070256ad76bd514ce8b812ca947b4e",
+          "bytes": 8306,
+          "owner": "tunnel",
+          "productionBefore": true,
+          "sourceReachableBefore": true
+        },
+        {
+          "oldPath": "skyshift/shared-tunnel-runtime-v0280.mjs",
+          "newPath": "skyshift/tunnel/shared-tunnel-runtime-v0280.mjs",
+          "sourceSha": "8603392795aee4f8be44bb546121faef032aa741",
+          "destinationSha": "1c92811101142906968d6503ef13554917813d9c",
+          "bytes": 6212,
+          "owner": "tunnel",
+          "productionBefore": true,
+          "sourceReachableBefore": true
+        },
+        {
+          "oldPath": "skyshift/ship-art-pipeline-v01342.mjs",
+          "newPath": "skyshift/ships/ship-art-pipeline-v01342.mjs",
+          "sourceSha": "64cc1c9c5d8e41106bf2444013f9a3e5d6ad8b35",
+          "destinationSha": "64cc1c9c5d8e41106bf2444013f9a3e5d6ad8b35",
+          "bytes": 7840,
+          "owner": "ships",
+          "productionBefore": true,
+          "sourceReachableBefore": true
+        },
+        {
+          "oldPath": "skyshift/structural-tunnel-v0213.mjs",
+          "newPath": "skyshift/tunnel/structural-tunnel-v0213.mjs",
+          "sourceSha": "ec434303a76bd98644915ebf7f8d9556fe4e58c4",
+          "destinationSha": "ec434303a76bd98644915ebf7f8d9556fe4e58c4",
+          "bytes": 19587,
+          "owner": "tunnel",
+          "productionBefore": true,
+          "sourceReachableBefore": true
+        },
+        {
+          "oldPath": "skyshift/track-physics-parity-probe-v0164.mjs",
+          "newPath": "skyshift/qa/track-physics-parity-probe-v0164.mjs",
+          "sourceSha": "56fb4b654ad8213657e0ce03205d5de7e4d005a3",
+          "destinationSha": "0f26bd9fd22bf5aa1612b1a465c62a0d16e454b0",
+          "bytes": 1780,
+          "owner": "qa",
+          "productionBefore": false,
+          "sourceReachableBefore": false
+        },
+        {
+          "oldPath": "skyshift/track-physics-parity-probe-v0165.mjs",
+          "newPath": "skyshift/qa/track-physics-parity-probe-v0165.mjs",
+          "sourceSha": "42e0c8a6759d443898f19ada1d4cd218cf6f3113",
+          "destinationSha": "2d026b9d71c49a571e66e4791a2ba6cad39493bb",
+          "bytes": 1794,
+          "owner": "qa",
+          "productionBefore": false,
+          "sourceReachableBefore": false
+        },
+        {
+          "oldPath": "skyshift/true-shared-tunnel-renderer-v0281.mjs",
+          "newPath": "skyshift/tunnel/true-shared-tunnel-renderer-v0281.mjs",
+          "sourceSha": "29640d18998dfb7cf1ffe8f877fcb9fa1f650d1a",
+          "destinationSha": "40f1ed463702ab5acbf9ef76c6263c7161bd0460",
+          "bytes": 29544,
+          "owner": "tunnel",
+          "productionBefore": true,
+          "sourceReachableBefore": true
+        },
+        {
+          "oldPath": "skyshift/tunnel-exterior-seal-v02122.mjs",
+          "newPath": "skyshift/tunnel/tunnel-exterior-seal-v02122.mjs",
+          "sourceSha": "62ca5eb608fd6ef9c04661dae7dd521477ef628e",
+          "destinationSha": "62ca5eb608fd6ef9c04661dae7dd521477ef628e",
+          "bytes": 6211,
+          "owner": "tunnel",
+          "productionBefore": true,
+          "sourceReachableBefore": true
+        },
+        {
+          "oldPath": "skyshift/tunnel-megastructure-v0211.mjs",
+          "newPath": "skyshift/tunnel/tunnel-megastructure-v0211.mjs",
+          "sourceSha": "64d0cbfc920c9c595c55d3fb37e6f6a5aeecd49d",
+          "destinationSha": "64d0cbfc920c9c595c55d3fb37e6f6a5aeecd49d",
+          "bytes": 13221,
+          "owner": "tunnel",
+          "productionBefore": true,
+          "sourceReachableBefore": true
+        },
+        {
+          "oldPath": "skyshift/tunnel-spectrum-v02121.mjs",
+          "newPath": "skyshift/tunnel/tunnel-spectrum-v02121.mjs",
+          "sourceSha": "fb5d92896d940b9d04c9cca708793408bc5b2e04",
+          "destinationSha": "7e8122527d0197a3e7811f4e0fbddd2cd04ace45",
+          "bytes": 4297,
+          "owner": "tunnel",
+          "productionBefore": true,
+          "sourceReachableBefore": true
+        }
+      ],
+      "consumers": [
+        ".github/workflows/skyshift-ci-fast.yml",
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/build/browser-parity.mjs",
+        "skyshift/build/build.mjs",
+        "skyshift/build/ef05-owner-reconciliation.mjs",
+        "skyshift/build/production-specialization.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/rendering/cinematic-neon-lighting-v0220p2.mjs",
+        "skyshift/rendering/cinematic-road-rebuild-v0263.mjs",
+        "skyshift/rendering/dark-metallic-foundation-v0250.mjs",
+        "skyshift/rendering/dual-tone-lighting-v0260.mjs",
+        "skyshift/rendering/integrated-neon-flow-v0214.mjs",
+        "skyshift/rendering/local-reflections-v0261p1.mjs",
+        "skyshift/rendering/premium-material-rebirth-v0220.mjs",
+        "skyshift/rendering/premium-road-surface-v0215.mjs",
+        "skyshift/rendering/true-material-depth-v0231.mjs",
+        "skyshift/rendering/true-metal-materials-v0260p2.mjs",
+        "skyshift/ship-hero-loader-v01342.mjs",
+        "skyshift/tests/architecture/ci-change-scope-v2.test.mjs",
+        "skyshift/tests/architecture/current-unit-dependency-integrity.test.mjs",
+        "skyshift/tests/architecture/ef06-runtime-lifetime.test.mjs",
+        "skyshift/tests/architecture/final-course-reuse-stageN.test.mjs",
+        "skyshift/tests/browser/browser-rail-collision-v0162.mjs",
+        "skyshift/tests/browser/browser-rail-contact-quality-v0163.mjs",
+        "skyshift/tests/unit/arch-foot-light-assembly-v0287.test.mjs",
+        "skyshift/tests/unit/ceiling-fixture-cohesion-v02892.test.mjs",
+        "skyshift/tests/unit/cinematic-metal-neon-v0289.test.mjs",
+        "skyshift/tests/unit/cinematic-neon-lighting-v0220p2.test.mjs",
+        "skyshift/tests/unit/full-tunnel-circuit-v0270.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/unit/handling-fairness-v0135.test.mjs",
+        "skyshift/tests/unit/integrated-neon-flow-v0214.test.mjs",
+        "skyshift/tests/unit/neon-interior-v0212.test.mjs",
+        "skyshift/tests/unit/precision-neon-response-v0288.test.mjs",
+        "skyshift/tests/unit/premium-arch-optics-v02893.test.mjs",
+        "skyshift/tests/unit/premium-material-rebirth-v0220.test.mjs",
+        "skyshift/tests/unit/premium-surface-craftsmanship-v0241.test.mjs",
+        "skyshift/tests/unit/rail-collision-v0162.test.mjs",
+        "skyshift/tests/unit/rail-contact-quality-v0163.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/shared-road-ship-light-v0282.test.mjs",
+        "skyshift/tests/unit/shared-straight-edge-parity-v02891.test.mjs",
+        "skyshift/tests/unit/shared-tunnel-architecture-v0280.test.mjs",
+        "skyshift/tests/unit/startup-source-frame-v02897.test.mjs",
+        "skyshift/tests/unit/structural-tunnel-v0213.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0164.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/unit/true-material-depth-v0231.test.mjs",
+        "skyshift/tests/unit/true-metal-materials-v0260p2.test.mjs",
+        "skyshift/tests/unit/true-shared-tunnel-renderer-v0281.test.mjs",
+        "skyshift/tests/unit/tunnel-exterior-seal-v02122.test.mjs",
+        "skyshift/tests/unit/tunnel-megastructure-v0211.test.mjs",
+        "skyshift/tests/unit/tunnel-spectrum-v02121.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-materials-v0233.test.mjs",
+        "skyshift/tests/unit/vault-architectural-parity-v0272.test.mjs",
+        "skyshift/tests/unit/vault-material-parity-v0271.test.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tracks/vault/full-tunnel-circuit-v0270.mjs",
+        "skyshift/tracks/vault/vault-architectural-parity-v0272.mjs",
+        "skyshift/tracks/vault/vault-full-lighting-v0273.mjs",
+        "skyshift/tracks/vault/vault-material-parity-v0271.mjs",
+        "skyshift/tunnel/arch-foot-light-assembly-v0287.mjs",
+        "skyshift/tunnel/ceiling-fixture-cohesion-v02892.mjs",
+        "skyshift/tunnel/edge-lighting-floor-pools-v02631.mjs",
+        "skyshift/tunnel/edge-source-floor-bands-v02632.mjs",
+        "skyshift/tunnel/premium-arch-optics-v02893.mjs",
+        "skyshift/tunnel/shared-road-ship-light-v0282.mjs",
+        "skyshift/tunnel/unified-tunnel-light-sources-v02894.mjs",
+        "skyshift/tunnel/unified-tunnel-lighting-v1.mjs"
+      ],
+      "productionEvidence": {
+        "commit": "e08f7d9677d482dc6be5091ffc455937648b570b",
+        "run": 45888378070,
+        "job": 140144665425,
+        "productionModules": 173,
+        "productionRoots": [
+          "boot-v0210.js",
+          "cinematic-space-lighting-v0170.mjs",
+          "engine-trails-v01346.mjs",
+          "fleet-v0102.css",
+          "game-v0210.mjs",
+          "hangar-hero-v0134.mjs",
+          "image-clarity-v083.mjs",
+          "index.html",
+          "living-wake-v01071.mjs",
+          "luminance-v0331.mjs",
+          "manta-blade-v0484.mjs",
+          "neon-balance-v032.mjs",
+          "neon-interior-v0212.mjs",
+          "neon-v0111.mjs",
+          "neon-v032.mjs",
+          "racing-experience-v0160.mjs",
+          "rail-scrape-sparks-v0165.mjs",
+          "risk-reward-v0151.mjs",
+          "risk-reward-v0160.mjs",
+          "shadow-tunnel-v0160.mjs",
+          "shared-tunnel-architecture-v0280.mjs",
+          "shared-tunnel-runtime-v0280.mjs",
+          "ship-art-pipeline-v01342.mjs",
+          "ship-hero-loader-v01342.mjs",
+          "ship-v034.mjs",
+          "space-v0496.mjs",
+          "stingray-evo-v0104.mjs",
+          "structural-tunnel-v0213.mjs",
+          "style-v0121.css",
+          "style-v0130.css",
+          "style-v0131.css",
+          "style-v0140.css",
+          "style-v0160.css",
+          "style-v061.css",
+          "style-v083.css",
+          "time-trial-v0160.mjs",
+          "trial-v0901.mjs",
+          "true-shared-tunnel-renderer-v0281.mjs",
+          "tunnel-blackout-v0160.mjs",
+          "tunnel-exterior-seal-v02122.mjs",
+          "tunnel-megastructure-v0211.mjs",
+          "tunnel-spectrum-v02121.mjs",
+          "velocity-language-v0496.mjs",
+          "velocity-presence-v0104.mjs",
+          "wingtip-contrails-v0106.mjs",
+          "zone-wave-v060.mjs"
+        ],
+        "otherSourceRoots": [
+          "README.md",
+          "air-tricks-v081.mjs",
+          "cinematic-v0161.mjs",
+          "cinematic-v0162.mjs",
+          "cinematic-v0163.mjs",
+          "cinematic-v0164.mjs",
+          "cinematic-v081.mjs",
+          "cinematic-v082.mjs",
+          "cinematic-v083.mjs",
+          "cinematic-v084.mjs",
+          "cinematic-v090.mjs",
+          "cinematic-v0901.mjs",
+          "engine-trails-v0496.mjs",
+          "flight-motion-v044.mjs",
+          "game-v0203.mjs",
+          "grip-trick-audit-v0165.mjs",
+          "handling-fairness-cli-v0135.mjs",
+          "handling-fairness-v0135.mjs",
+          "material-grade-v0203.html",
+          "neon-interior-v0212-classic.mjs",
+          "neon-v083.mjs",
+          "orbital-hero-v0192.mjs",
+          "precision-grip-v061.mjs",
+          "racing-experience-v0121.mjs",
+          "rail-contact-audit-v0162.mjs",
+          "rail-contact-audit-v0163.mjs",
+          "rail-scrape-sparks-v01091.mjs",
+          "rail-scrape-sparks-v0161.mjs",
+          "rail-scrape-sparks-v0162.mjs",
+          "rail-scrape-sparks-v0163.mjs",
+          "rail-scrape-sparks-v0164.mjs",
+          "risk-reward-v0150.mjs",
+          "sector-landmarks-v0120.mjs",
+          "shadow-tunnel-v092.mjs",
+          "ship-art-pipeline-v0132.mjs",
+          "ship-hero-loader-v0132.mjs",
+          "signature-environment-v0180.mjs",
+          "stingray-evo-v0101.mjs",
+          "stingray-evo-v0103.mjs",
+          "style.css",
+          "time-trial-v0130.mjs",
+          "time-trial-v0150.mjs",
+          "time-trial-v0151.mjs",
+          "track-physics-parity-probe-v0164.mjs",
+          "track-physics-parity-probe-v0165.mjs",
+          "track.mjs",
+          "trial-v01348.mjs",
+          "trial-v0150.mjs",
+          "trial-v0151.mjs",
+          "trial-v0162.mjs",
+          "trial-v0163.mjs",
+          "trial-v0164.mjs",
+          "trial-v02.mjs",
+          "trial-v03.mjs",
+          "trial-v043.mjs",
+          "trial-v046.mjs",
+          "trial-v048.mjs",
+          "trial-v049.mjs",
+          "trial-v050.mjs",
+          "trial-v051.mjs",
+          "trial-v060.mjs",
+          "trial-v070.mjs",
+          "trial-v071.mjs",
+          "trial-v072.mjs",
+          "trial-v081.mjs",
+          "trial-v082.mjs",
+          "trial-v083.mjs",
+          "trial-v084.mjs",
+          "tunnel-blackout-v0921.mjs",
+          "world-rebuild-v0190.mjs",
+          "zone-wave-v049.mjs",
+          "zone-wave-v0491.mjs",
+          "zone-wave-v0492.mjs",
+          "zone-wave-v0493.mjs",
+          "zone-wave-v050.mjs",
+          "zone-wave-v051.mjs"
+        ]
+      },
+      "sourceEvidence": {
+        "commit": "e08f7d9677d482dc6be5091ffc455937648b570b",
+        "run": 45888378058,
+        "job": 140144664253,
+        "sourceReachableRoots": [
+          "skyshift/boot-v0210.js",
+          "skyshift/cinematic-space-lighting-v0170.mjs",
+          "skyshift/engine-trails-v01346.mjs",
+          "skyshift/fleet-v0102.css",
+          "skyshift/flight-motion-v044.mjs",
+          "skyshift/game-v0210.mjs",
+          "skyshift/hangar-hero-v0134.mjs",
+          "skyshift/image-clarity-v083.mjs",
+          "skyshift/index.html",
+          "skyshift/living-wake-v01071.mjs",
+          "skyshift/luminance-v0331.mjs",
+          "skyshift/manta-blade-v0484.mjs",
+          "skyshift/neon-balance-v032.mjs",
+          "skyshift/neon-interior-v0212-classic.mjs",
+          "skyshift/neon-interior-v0212.mjs",
+          "skyshift/neon-v0111.mjs",
+          "skyshift/neon-v032.mjs",
+          "skyshift/orbital-hero-v0192.mjs",
+          "skyshift/racing-experience-v0160.mjs",
+          "skyshift/rail-scrape-sparks-v0165.mjs",
+          "skyshift/risk-reward-v0151.mjs",
+          "skyshift/risk-reward-v0160.mjs",
+          "skyshift/shadow-tunnel-v0160.mjs",
+          "skyshift/shared-tunnel-architecture-v0280.mjs",
+          "skyshift/shared-tunnel-runtime-v0280.mjs",
+          "skyshift/ship-art-pipeline-v01342.mjs",
+          "skyshift/ship-hero-loader-v01342.mjs",
+          "skyshift/ship-v034.mjs",
+          "skyshift/signature-environment-v0180.mjs",
+          "skyshift/space-v0496.mjs",
+          "skyshift/stingray-evo-v0104.mjs",
+          "skyshift/structural-tunnel-v0213.mjs",
+          "skyshift/style-v0121.css",
+          "skyshift/style-v0130.css",
+          "skyshift/style-v0131.css",
+          "skyshift/style-v0140.css",
+          "skyshift/style-v0160.css",
+          "skyshift/style-v061.css",
+          "skyshift/style-v083.css",
+          "skyshift/time-trial-v0160.mjs",
+          "skyshift/trial-v0901.mjs",
+          "skyshift/true-shared-tunnel-renderer-v0281.mjs",
+          "skyshift/tunnel-blackout-v0160.mjs",
+          "skyshift/tunnel-exterior-seal-v02122.mjs",
+          "skyshift/tunnel-megastructure-v0211.mjs",
+          "skyshift/tunnel-spectrum-v02121.mjs",
+          "skyshift/velocity-language-v0496.mjs",
+          "skyshift/velocity-presence-v0104.mjs",
+          "skyshift/wingtip-contrails-v0106.mjs",
+          "skyshift/world-rebuild-v0190.mjs",
+          "skyshift/zone-wave-v060.mjs"
+        ]
+      }
     }
   ],
   "moves": [
@@ -415,7 +878,8 @@
       "destinationSha": "c03f0d81567df0b1b46a408004654da68c1a231e",
       "bytes": 7146,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/cinematic-grade-v0210b.mjs",
@@ -424,7 +888,8 @@
       "destinationSha": "c51948deb80fddba0b0cc7bf1c17f66abd12b11b",
       "bytes": 9127,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/cinematic-hero-v0210.mjs",
@@ -433,7 +898,8 @@
       "destinationSha": "101cea1a9eb600a8630491795002b3bc06dd9bf5",
       "bytes": 11595,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/cinematic-light-architecture-v0232.mjs",
@@ -442,7 +908,8 @@
       "destinationSha": "e3bb8dd0d0e508639f39a2c42a016d93555a8ace",
       "bytes": 7786,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/cinematic-neon-lighting-v0220p2.mjs",
@@ -451,7 +918,8 @@
       "destinationSha": "b162c7c67d27d617260a81e2a618adc1381afa53",
       "bytes": 9995,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/cinematic-road-rebuild-v0263.mjs",
@@ -460,7 +928,8 @@
       "destinationSha": "d55f5e27722a44d585133f380c87e9b1d9b15974",
       "bytes": 17692,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/cinematic-road-reflections-v0242.mjs",
@@ -469,7 +938,8 @@
       "destinationSha": "5faf001549295ab7a8fbcb00a4e1163d0debe44e",
       "bytes": 5808,
       "owner": "rendering",
-      "productionBefore": false
+      "productionBefore": false,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/edge-lighting-floor-pools-v02631.mjs",
@@ -478,7 +948,8 @@
       "destinationSha": "a845914af46700d886cb5d0cbd4718c4fea4b55e",
       "bytes": 15382,
       "owner": "tunnel",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/edge-source-floor-bands-v02632.mjs",
@@ -487,7 +958,8 @@
       "destinationSha": "2f0b27d021b27aab127f464b75f2901f8015a070",
       "bytes": 13818,
       "owner": "tunnel",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/full-tunnel-light-seal-v0270.mjs",
@@ -496,7 +968,8 @@
       "destinationSha": "d01dc46e24ace3e1e709e2b353cf928f34be276c",
       "bytes": 1174,
       "owner": "tunnel",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/integrated-neon-flow-v0214.mjs",
@@ -505,7 +978,8 @@
       "destinationSha": "5db20632e10c30ecad1c60f35deff1c2f59da318",
       "bytes": 8308,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/physical-material-rebuild-v0230.mjs",
@@ -514,7 +988,8 @@
       "destinationSha": "a558728eea438c4d58fdccca7f37fadf35bd71b0",
       "bytes": 12009,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/premium-road-surface-v0215.mjs",
@@ -523,7 +998,8 @@
       "destinationSha": "02058328ff6eef127ce4dabe5691fb174c4cd6dc",
       "bytes": 6147,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/road-solar-spill-v02126.mjs",
@@ -532,7 +1008,8 @@
       "destinationSha": "b9e5ecf20105b5ea2a240a1bd291867cf9c314a6",
       "bytes": 4017,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/straight-only-edge-lighting-v02633.mjs",
@@ -541,7 +1018,8 @@
       "destinationSha": "f5c7e633744016473511c7732bdcfd6db249d27a",
       "bytes": 11180,
       "owner": "tunnel",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/true-material-depth-v0231.mjs",
@@ -550,7 +1028,8 @@
       "destinationSha": "27bfdcf1eac0830ea018a2eda5630124b2ec5a7b",
       "bytes": 10388,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/true-rail-wall-response-v0265.mjs",
@@ -559,7 +1038,8 @@
       "destinationSha": "7f6ab2afb650ee89d5efd9a8bbb835dd03dda276",
       "bytes": 14501,
       "owner": "tunnel",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/unified-cinematic-grade-v0220p4.mjs",
@@ -568,7 +1048,8 @@
       "destinationSha": "e0660cffaaa5ca1946e622e1774e592c7f1b8df2",
       "bytes": 6825,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/unified-tunnel-lighting-v1.mjs",
@@ -577,7 +1058,8 @@
       "destinationSha": "818a56b15a563073324c95b2a587690e94e3b3c3",
       "bytes": 4406,
       "owner": "tunnel",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/unified-tunnel-materials-v0233.mjs",
@@ -586,7 +1068,8 @@
       "destinationSha": "d5106679318fcc5295aa51d1f15b49f5ece6f2a8",
       "bytes": 6902,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/velocity-cinematography-v0220p3.mjs",
@@ -595,7 +1078,8 @@
       "destinationSha": "a1c8973880c953ac2e68d1db19365932c4228484",
       "bytes": 5905,
       "owner": "rendering",
-      "productionBefore": true
+      "productionBefore": true,
+      "sourceReachableBefore": true
     },
     {
       "oldPath": "skyshift/white-core-containment-v02123.mjs",
@@ -604,7 +1088,178 @@
       "destinationSha": "cf4adf3988044a9c56d30de163689a99eef0ac85",
       "bytes": 6726,
       "owner": "rendering",
-      "productionBefore": false
+      "productionBefore": false,
+      "sourceReachableBefore": true
+    },
+    {
+      "oldPath": "skyshift/grip-trick-audit-v0165.mjs",
+      "newPath": "skyshift/qa/grip-trick-audit-v0165.mjs",
+      "sourceSha": "27da149f4609c4fc98d59a74aabe944d7748534c",
+      "destinationSha": "898467ecf09a2af6085cbae0f4cfe86952621470",
+      "bytes": 2007,
+      "owner": "qa",
+      "productionBefore": false,
+      "sourceReachableBefore": false
+    },
+    {
+      "oldPath": "skyshift/handling-fairness-cli-v0135.mjs",
+      "newPath": "skyshift/qa/handling-fairness-cli-v0135.mjs",
+      "sourceSha": "e4005748707ff4d6d994a01ee3e19f66d2382d0d",
+      "destinationSha": "e4005748707ff4d6d994a01ee3e19f66d2382d0d",
+      "bytes": 958,
+      "owner": "qa",
+      "productionBefore": false,
+      "sourceReachableBefore": false
+    },
+    {
+      "oldPath": "skyshift/handling-fairness-v0135.mjs",
+      "newPath": "skyshift/qa/handling-fairness-v0135.mjs",
+      "sourceSha": "34a2bfbdefa1b283b87ea718fea60745d1f65950",
+      "destinationSha": "2b8fa7f6604ab21f2e9d32da34e376b79709a306",
+      "bytes": 5726,
+      "owner": "qa",
+      "productionBefore": false,
+      "sourceReachableBefore": false
+    },
+    {
+      "oldPath": "skyshift/neon-interior-v0212-classic.mjs",
+      "newPath": "skyshift/tunnel/neon-interior-v0212-classic.mjs",
+      "sourceSha": "478703a6bdbb4ff48fa14bf9e7c4a108b4a96ac2",
+      "destinationSha": "478703a6bdbb4ff48fa14bf9e7c4a108b4a96ac2",
+      "bytes": 9027,
+      "owner": "tunnel",
+      "productionBefore": false,
+      "sourceReachableBefore": true
+    },
+    {
+      "oldPath": "skyshift/neon-interior-v0212.mjs",
+      "newPath": "skyshift/tunnel/neon-interior-v0212.mjs",
+      "sourceSha": "5915111c21ecfe15f450e54e121193e58219855b",
+      "destinationSha": "5915111c21ecfe15f450e54e121193e58219855b",
+      "bytes": 11580,
+      "owner": "tunnel",
+      "productionBefore": true,
+      "sourceReachableBefore": true
+    },
+    {
+      "oldPath": "skyshift/rail-contact-audit-v0162.mjs",
+      "newPath": "skyshift/qa/rail-contact-audit-v0162.mjs",
+      "sourceSha": "37f1b41120b6566a29d5b830465788b8b2975697",
+      "destinationSha": "15a60f49dc8748a3d1b7426b9b1ed6b0c26fd71f",
+      "bytes": 3636,
+      "owner": "qa",
+      "productionBefore": false,
+      "sourceReachableBefore": false
+    },
+    {
+      "oldPath": "skyshift/rail-contact-audit-v0163.mjs",
+      "newPath": "skyshift/qa/rail-contact-audit-v0163.mjs",
+      "sourceSha": "c224e2e861af072f34c3dfbca466043439a507a4",
+      "destinationSha": "ac68bf6802f80bd631b47ded02db72843144d506",
+      "bytes": 4047,
+      "owner": "qa",
+      "productionBefore": false,
+      "sourceReachableBefore": false
+    },
+    {
+      "oldPath": "skyshift/shared-tunnel-architecture-v0280.mjs",
+      "newPath": "skyshift/tunnel/shared-tunnel-architecture-v0280.mjs",
+      "sourceSha": "72618b5abe070256ad76bd514ce8b812ca947b4e",
+      "destinationSha": "72618b5abe070256ad76bd514ce8b812ca947b4e",
+      "bytes": 8306,
+      "owner": "tunnel",
+      "productionBefore": true,
+      "sourceReachableBefore": true
+    },
+    {
+      "oldPath": "skyshift/shared-tunnel-runtime-v0280.mjs",
+      "newPath": "skyshift/tunnel/shared-tunnel-runtime-v0280.mjs",
+      "sourceSha": "8603392795aee4f8be44bb546121faef032aa741",
+      "destinationSha": "1c92811101142906968d6503ef13554917813d9c",
+      "bytes": 6212,
+      "owner": "tunnel",
+      "productionBefore": true,
+      "sourceReachableBefore": true
+    },
+    {
+      "oldPath": "skyshift/ship-art-pipeline-v01342.mjs",
+      "newPath": "skyshift/ships/ship-art-pipeline-v01342.mjs",
+      "sourceSha": "64cc1c9c5d8e41106bf2444013f9a3e5d6ad8b35",
+      "destinationSha": "64cc1c9c5d8e41106bf2444013f9a3e5d6ad8b35",
+      "bytes": 7840,
+      "owner": "ships",
+      "productionBefore": true,
+      "sourceReachableBefore": true
+    },
+    {
+      "oldPath": "skyshift/structural-tunnel-v0213.mjs",
+      "newPath": "skyshift/tunnel/structural-tunnel-v0213.mjs",
+      "sourceSha": "ec434303a76bd98644915ebf7f8d9556fe4e58c4",
+      "destinationSha": "ec434303a76bd98644915ebf7f8d9556fe4e58c4",
+      "bytes": 19587,
+      "owner": "tunnel",
+      "productionBefore": true,
+      "sourceReachableBefore": true
+    },
+    {
+      "oldPath": "skyshift/track-physics-parity-probe-v0164.mjs",
+      "newPath": "skyshift/qa/track-physics-parity-probe-v0164.mjs",
+      "sourceSha": "56fb4b654ad8213657e0ce03205d5de7e4d005a3",
+      "destinationSha": "0f26bd9fd22bf5aa1612b1a465c62a0d16e454b0",
+      "bytes": 1780,
+      "owner": "qa",
+      "productionBefore": false,
+      "sourceReachableBefore": false
+    },
+    {
+      "oldPath": "skyshift/track-physics-parity-probe-v0165.mjs",
+      "newPath": "skyshift/qa/track-physics-parity-probe-v0165.mjs",
+      "sourceSha": "42e0c8a6759d443898f19ada1d4cd218cf6f3113",
+      "destinationSha": "2d026b9d71c49a571e66e4791a2ba6cad39493bb",
+      "bytes": 1794,
+      "owner": "qa",
+      "productionBefore": false,
+      "sourceReachableBefore": false
+    },
+    {
+      "oldPath": "skyshift/true-shared-tunnel-renderer-v0281.mjs",
+      "newPath": "skyshift/tunnel/true-shared-tunnel-renderer-v0281.mjs",
+      "sourceSha": "29640d18998dfb7cf1ffe8f877fcb9fa1f650d1a",
+      "destinationSha": "40f1ed463702ab5acbf9ef76c6263c7161bd0460",
+      "bytes": 29544,
+      "owner": "tunnel",
+      "productionBefore": true,
+      "sourceReachableBefore": true
+    },
+    {
+      "oldPath": "skyshift/tunnel-exterior-seal-v02122.mjs",
+      "newPath": "skyshift/tunnel/tunnel-exterior-seal-v02122.mjs",
+      "sourceSha": "62ca5eb608fd6ef9c04661dae7dd521477ef628e",
+      "destinationSha": "62ca5eb608fd6ef9c04661dae7dd521477ef628e",
+      "bytes": 6211,
+      "owner": "tunnel",
+      "productionBefore": true,
+      "sourceReachableBefore": true
+    },
+    {
+      "oldPath": "skyshift/tunnel-megastructure-v0211.mjs",
+      "newPath": "skyshift/tunnel/tunnel-megastructure-v0211.mjs",
+      "sourceSha": "64d0cbfc920c9c595c55d3fb37e6f6a5aeecd49d",
+      "destinationSha": "64d0cbfc920c9c595c55d3fb37e6f6a5aeecd49d",
+      "bytes": 13221,
+      "owner": "tunnel",
+      "productionBefore": true,
+      "sourceReachableBefore": true
+    },
+    {
+      "oldPath": "skyshift/tunnel-spectrum-v02121.mjs",
+      "newPath": "skyshift/tunnel/tunnel-spectrum-v02121.mjs",
+      "sourceSha": "fb5d92896d940b9d04c9cca708793408bc5b2e04",
+      "destinationSha": "7e8122527d0197a3e7811f4e0fbddd2cd04ace45",
+      "bytes": 4297,
+      "owner": "tunnel",
+      "productionBefore": true,
+      "sourceReachableBefore": true
     }
   ]
 }

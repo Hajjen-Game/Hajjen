@@ -4,7 +4,7 @@
 // all ten real 0.28.1 modules. No new meshes, colliders, world lights,
 // render passes, or handling/GRIP changes.
 import {planTrueSharedTunnel0281,adaptSourcePosition0281}
- from "../true-shared-tunnel-renderer-v0281.mjs";
+ from "./true-shared-tunnel-renderer-v0281.mjs";
 import {nearestRoadFixtures0263,fixturePosition0263,
  installCinematicRoadRebuildShader0263}
  from "../rendering/cinematic-road-rebuild-v0263.mjs";

@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {TUNNEL_PORTALS_0211} from "../../tunnel-megastructure-v0211.mjs";
+import {TUNNEL_PORTALS_0211} from "../../tunnel/tunnel-megastructure-v0211.mjs";
 import {archFootRelease0287,ARCH_FOOT_0287,
  buildArchFootAssembly0287,installArchFootAssembly0287}
  from "../../tunnel/arch-foot-light-assembly-v0287.mjs";
-import {planTrueSharedTunnel0281} from "../../true-shared-tunnel-renderer-v0281.mjs";
+import {planTrueSharedTunnel0281} from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 
 class BufferAttribute{
  constructor(array,itemSize){this.array=new Float32Array(array);this.itemSize=itemSize;this.count=this.array.length/itemSize;}

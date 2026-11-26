@@ -17,7 +17,7 @@ import {patchPhysicalWall0265}
 import {vaultCrossSection0270}
  from "./full-tunnel-circuit-v0270.mjs";
 import {widthAt} from "../../tracks/trials/trial-v0165.mjs";
-import {sharedPhysicalPreset0280,SHARED_TUNNEL_ROUTES_0280} from "../../shared-tunnel-architecture-v0280.mjs";
+import {sharedPhysicalPreset0280,SHARED_TUNNEL_ROUTES_0280} from "../../tunnel/shared-tunnel-architecture-v0280.mjs";
 import {patchVaultPremiumPhysical0274,patchVaultPremiumSource0274,
  patchVaultPremiumRail0274,vaultPremiumFinishAudit0274}
  from "./vault-premium-finish-v0274.mjs";

@@ -45,7 +45,7 @@ async function independentRoute(memory){
    const load=p=>import('/skyshift/'+p);
    const [{installConfiguredSharedTunnel},{createSharedOpticalContext,installSharedRoadOptics,installSharedOpticalShip,finalizeSharedOptics},
     {vaultStraightMask02891},{createPremiumTrackMaterial},{ZONE_PALETTES}]=await Promise.all([
-     load('true-shared-tunnel-renderer-v0281.mjs'),load('tunnel/shared-optical-assembly.mjs'),
+     load('tunnel/true-shared-tunnel-renderer-v0281.mjs'),load('tunnel/shared-optical-assembly.mjs'),
      load('tunnel/shared-straight-edge-parity-v02891.mjs'),load('rendering/road/premium-track-v0160.mjs'),
      load('zone-wave-v060.mjs')]);
    const lowMemory=memory===4,length=1200,sections=[{start:25,end:625},{start:800,end:1120}];

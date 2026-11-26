@@ -10,7 +10,7 @@
 // All parts follow the ORIGINAL tunnel 0.21.1 floor/profile and banked
 // positionAt adaptor; no floor/collision/rail/gameplay geometry is mutated.
 import {TUNNEL_PORTALS_0211,tunnelProfilePoint0211}
- from "../tunnel-megastructure-v0211.mjs";
+ from "./tunnel-megastructure-v0211.mjs";
 import {floorY02631}
  from "./edge-lighting-floor-pools-v02631.mjs";
 

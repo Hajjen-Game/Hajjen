@@ -34,7 +34,7 @@ test("original mesh remains intact; actual normals, view and position author the
 });
 
 test("0.21.2 native sun-isolated Basic shell and ribs accept 0.22.0 materials",()=>{
- const actual=read("./neon-interior-v0212.mjs");
+ const actual=read("./tunnel/neon-interior-v0212.mjs");
  // These substitutions happen on every real sealed tunnel. The material
  // upgrade must NOT demand MeshStandardMaterial or reinstate exterior light.
  assert.match(actual,/shell\.material=bindTunnelSpectrumMaterial\(new THREE\.MeshBasicMaterial/);

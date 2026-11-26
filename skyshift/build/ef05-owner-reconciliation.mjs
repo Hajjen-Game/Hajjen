@@ -43,7 +43,7 @@ export function reconcileEF05Owners(repo,graph){
   const production=modules.has('source/'+path.slice('skyshift/'.length));
   const consumers=inbound.get(path).sort();
   const knownConsumers=[...new Set(e.owners.map(o=>currentPath(o.currentPath)).filter(p=>p&&tracked.has(p)&&!p.startsWith('skyshift/docs/')))].sort();
-  const retiredFromBundle=retiredSceneryModules.includes(previousPath.slice('skyshift/'.length));
+  const retiredFromBundle=retiredSceneryModules.includes(path.slice('skyshift/'.length));
   if(retiredFromBundle||repositoryDeleted)assert.equal(production,false,path+' retired source leaked into production');
   return {path,previousPath,relocated,previousRole:e.censusRole,production,retiredFromBundle,repositoryDeleted,consumers,knownConsumers,
    disposition:repositoryDeleted?'retired: EF08 closed obsolete source/test cohort':production?'retain: actual production graph':

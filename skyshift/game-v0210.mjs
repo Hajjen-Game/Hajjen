@@ -1574,7 +1574,7 @@ function initScene(){
   THREE,renderer,scene,world,{
    enabled:pmremEnabled,track:TRACK_ID_0160,
    lowMemory:limitedMemory,trackLength:CIRCUIT.lapLength,
-   positionAt,ship
+   positionAt,ship,tunnel:trueSharedVault
   });
  markStartup("pmremReady");
  // The PMREM captures 0.28.8 ORIGINAL geometry/light levels. Only
@@ -4111,6 +4111,7 @@ function loop(now){
    whiteCoreContainment?.update(view.s,uiState.mode==="playing");
    shipWhiteSpill?.update(view.s,targetAccent,uiState.mode==="playing");
    sharedShipLight?.update(view.s);
+   pmremPipeline?.updateStation(view.s);
    // Flight motion sees the same interpolated 120Hz simulation pose as FX.
    // Ship bank, signature effects, preview and kinetic camera share
    // stable read-only signals. All original springs and handling are kept.

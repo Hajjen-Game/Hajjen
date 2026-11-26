@@ -32,6 +32,32 @@ export function readPmremRelease0284(search){
  const [major,minor,patch]=v.slice(1).map(Number);
  return major>0||minor>28||(minor===28&&patch>=4);
 }
+// Explicit mounted route data is the new shared renderer contract. Historic
+// callers retain the original Vault plan without introducing name checks
+// into the actual configured capture path.
+export function planConfiguredPmremEF05({track,enabled=false,lowMemory=false,
+ trackLength,modules,captureAtMeters=PMREM_0284.probeMeters}={}){
+ if(!Number.isFinite(trackLength)||trackLength<=0||!Array.isArray(modules)||
+  modules.some((m,i)=>!Number.isFinite(m.start)||!Number.isFinite(m.end)||
+   m.start<0||m.end<=m.start||m.end>trackLength||
+   (i>0&&m.start<modules[i-1].end-1e-8)))
+  throw Error("EF05 PMREM requires valid mounted tunnel modules");
+ const intervals=[];
+ for(const m of modules){
+  const last=intervals.at(-1);
+  if(last&&Math.abs(last.end-m.start)<1e-8)last.end=m.end;
+  else intervals.push({start:m.start,end:m.end});
+ }
+ const fullCourse=intervals.length===1&&intervals[0].start===0&&intervals[0].end===trackLength;
+ const safe=intervals.find(m=>captureAtMeters>m.start&&captureAtMeters<m.end);
+ const longest=intervals.reduce((a,b)=>!a||b.end-b.start>a.end-a.start?b:a,null);
+ const probe=safe?captureAtMeters:longest?(longest.start+longest.end)/2:0;
+ const original=planPmrem0284({track:"vault",versionActive:true,lowMemory,trackLength});
+ return Object.freeze({...original,track,enabled:!!enabled&&intervals.length>0,
+  captureAtMeters:probe,captureCount:enabled&&intervals.length?1:0,
+  fullCourse,intervals:Object.freeze(intervals.map(Object.freeze)),configured:true,
+  minimumTunnelMaterials:Math.min(10,modules.length)});
+}
 export function planPmrem0284({track="vault",versionActive=false,
  lowMemory=false,mode="on",trackLength=3400}={}){
  const enabled=track==="vault"&&versionActive&&mode!=="off"&&
@@ -52,23 +78,25 @@ export function planPmrem0284({track="vault",versionActive=false,
  });
 }
 const inactive=reason=>({
- active:false,attachShip(){return 0;},setComparison(){},
+ active:false,attachShip(){return 0;},setComparison(){},updateStation(){},
  stats:()=>({active:false,version:"0.28.4",reason}),
  dispose(){}
 });
 export function installPmremReflectionPipeline0284(THREE,renderer,scene,world,{
  enabled=false,track="vault",lowMemory=false,trackLength=3400,
- positionAt,ship=null
+ positionAt,ship=null,tunnel=null
 }={}){
- const plan=planPmrem0284({track,versionActive:enabled,
-  lowMemory,trackLength});
- if(!plan.enabled)return inactive("release disabled or non-Vault");
- const root=world?.getObjectByName?.(
+ if(!enabled)return inactive("release disabled");
+ if(tunnel&&!tunnel.active)return inactive("configured shared tunnel inactive");
+ const plan=tunnel?planConfiguredPmremEF05({track,enabled,lowMemory,trackLength,
+  modules:tunnel.modules}):planPmrem0284({track,versionActive:enabled,lowMemory,trackLength});
+ if(!plan.enabled)return inactive("release disabled or no tunnel sections");
+ const root=tunnel?tunnel.root:world?.getObjectByName?.(
   "SKYSHIFT · TRUE shared Skyline tunnel 0.28.1");
  if(!THREE?.PMREMGenerator||!renderer?.render||!scene?.traverse||
   !root?.traverse||typeof positionAt!=="function")
   return inactive("real shared original geometry or renderer unavailable");
- let target=null,generator=null,strength=1,disposed=false,
+ let target=null,generator=null,strength=1,shipRouteWeight=1,disposed=false,
   physicalTunnel=0,physicalShip=0,attached=0;
  const restores=[],bound=new WeakSet();
  const bind=(material,profile)=>{
@@ -77,10 +105,10 @@ export function installPmremReflectionPipeline0284(THREE,renderer,scene,world,{
   const previous={map:material.envMap,intensity:material.envMapIntensity};
   const value=profile==="tunnel"?plan.tunnelStrength:plan.shipStrength;
   material.envMap=target.texture;
-  material.envMapIntensity=value*strength;
+  material.envMapIntensity=value*strength*(profile==="ship"?shipRouteWeight:1);
   material.needsUpdate=true;attached++;
   if(profile==="tunnel")physicalTunnel++;else physicalShip++;
-  restores.push({material,previous,value});
+  restores.push({material,previous,value,profile});
   return true;
  };
  const attachShip=craft=>{
@@ -141,7 +169,7 @@ export function installPmremReflectionPipeline0284(THREE,renderer,scene,world,{
    bind(material,"tunnel");
   });
   attachShip(ship);
-  if(physicalTunnel<10||physicalShip<1)
+  if(physicalTunnel<(plan.minimumTunnelMaterials??10)||physicalShip<1)
    throw Error("PMREM did not bind the expected real tunnel + PBR hull");
  }catch(error){
   for(const {material,previous} of restores.reverse()){
@@ -153,23 +181,36 @@ export function installPmremReflectionPipeline0284(THREE,renderer,scene,world,{
   console.warn("SKYSHIFT PMREM 0.28.4 preserving classic:",error);
   return inactive("capture/bind fallback: "+String(error?.message||error));
  }
- const setComparison=value=>{
-  strength=clamp(value);
+ const applyStrength=()=>{
   for(const item of restores)
-   item.material.envMapIntensity=item.value*strength;
+   item.material.envMapIntensity=item.value*strength*(item.profile==="ship"?shipRouteWeight:1);
+ };
+ const setComparison=value=>{strength=clamp(value);applyStrength();};
+ const updateStation=s=>{
+  if(!plan.configured||plan.fullCourse||disposed)return;
+  const interval=plan.intervals.find(m=>s>=m.start&&s<=m.end);
+  const fade=interval?Math.min(12,(interval.end-interval.start)/2):1;
+  const t=interval?clamp(Math.min(s-interval.start,interval.end-s)/fade):0;
+  const next=t*t*(3-2*t);
+  if(next===shipRouteWeight)return;
+  shipRouteWeight=next;
+  // Only the hull changes at entrances; no new PMREM capture.
+  for(const item of restores)if(item.profile==="ship")
+   item.material.envMapIntensity=item.value*strength*shipRouteWeight;
  };
  return {
-  active:true,attachShip,setComparison,
+  active:true,attachShip,setComparison,updateStation,
   stats:()=>({
    active:true,version:"0.28.4",track,
    genuinePmrem:true,
    method:"PMREMGenerator.fromScene",source:"live original Skyline-shaped Vault",
+   configuredRoute:!!plan.configured,shipRouteWeight,
    probeMeters:plan.captureAtMeters,faceSize:plan.faceSize,
    nearMeters:plan.nearMeters,farMeters:plan.farMeters,
    tunnelMaterials:physicalTunnel,shipMaterials:physicalShip,
    materialsBound:attached,lowMemory:plan.lowMemory,
    strength,tunnelIntensity:plan.tunnelStrength*strength,
-   shipIntensity:plan.shipStrength*strength,
+   shipIntensity:plan.shipStrength*strength*shipRouteWeight,
    staticProbe:true,updatesEachFrame:0,
    addedLights:0,addedMeshes:0,addedDrawCalls:0,
    fullTrackDynamicProbe:false,roadTouched:false,boostTouched:false,

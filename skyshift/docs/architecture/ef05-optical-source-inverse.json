@@ -213,6 +213,52 @@
           "after": "\ntest(\"EF05 independent straight mask uses the actual authored course length\",()=>{\n const g=new Geo(),samples=[0,40,60,130,700,850,900,1199,1200];\n g.setAttribute(\"aTrackCoord\",new Attr(samples.flatMap(s=>[s,9]),2));\n g.setAttribute(\"position\",new Attr(samples.flatMap(()=>[0,0,0]),3));\n const ranges=[{from:39,to:120},{from:840,to:880}];\n const mask=buildVaultRoadStraightMask02891(g,ranges,1200);\n assert.deepEqual([...mask.values],[0,1,1,0,0,1,0,0,0]);\n});\n"
         }
       ]
+    },
+    {
+      "path": "skyshift/tunnel/pmrem-reflection-pipeline-v0284.mjs",
+      "sha": "d4e539c81bc444e4a9ee52c4585c98898e6c580a",
+      "edits": [
+        {
+          "before": "export function planPmrem0284({track=\"vault\",versionActive=false,",
+          "after": "// Explicit mounted route data is the new shared renderer contract. Historic\n// callers retain the original Vault plan without introducing name checks\n// into the actual configured capture path.\nexport function planConfiguredPmremEF05({track,enabled=false,lowMemory=false,\n trackLength,modules,captureAtMeters=PMREM_0284.probeMeters}={}){\n if(!Number.isFinite(trackLength)||trackLength<=0||!Array.isArray(modules)||\n  modules.some((m,i)=>!Number.isFinite(m.start)||!Number.isFinite(m.end)||\n   m.start<0||m.end<=m.start||m.end>trackLength||\n   (i>0&&m.start<modules[i-1].end-1e-8)))\n  throw Error(\"EF05 PMREM requires valid mounted tunnel modules\");\n const intervals=[];\n for(const m of modules){\n  const last=intervals.at(-1);\n  if(last&&Math.abs(last.end-m.start)<1e-8)last.end=m.end;\n  else intervals.push({start:m.start,end:m.end});\n }\n const fullCourse=intervals.length===1&&intervals[0].start===0&&intervals[0].end===trackLength;\n const safe=intervals.find(m=>captureAtMeters>m.start&&captureAtMeters<m.end);\n const longest=intervals.reduce((a,b)=>!a||b.end-b.start>a.end-a.start?b:a,null);\n const probe=safe?captureAtMeters:longest?(longest.start+longest.end)/2:0;\n const original=planPmrem0284({track:\"vault\",versionActive:true,lowMemory,trackLength});\n return Object.freeze({...original,track,enabled:!!enabled&&intervals.length>0,\n  captureAtMeters:probe,captureCount:enabled&&intervals.length?1:0,\n  fullCourse,intervals:Object.freeze(intervals.map(Object.freeze)),configured:true,\n  minimumTunnelMaterials:Math.min(10,modules.length)});\n}\nexport function planPmrem0284({track=\"vault\",versionActive=false,"
+        },
+        {
+          "before": " active:false,attachShip(){return 0;},setComparison(){},",
+          "after": " active:false,attachShip(){return 0;},setComparison(){},updateStation(){},"
+        },
+        {
+          "before": " positionAt,ship=null\n}={}){\n const plan=planPmrem0284({track,versionActive:enabled,\n  lowMemory,trackLength});\n if(!plan.enabled)return inactive(\"release disabled or non-Vault\");\n const root=world?.getObjectByName?.(\n  \"SKYSHIFT · TRUE shared Skyline tunnel 0.28.1\");",
+          "after": " positionAt,ship=null,tunnel=null\n}={}){\n if(!enabled)return inactive(\"release disabled\");\n if(tunnel&&!tunnel.active)return inactive(\"configured shared tunnel inactive\");\n const plan=tunnel?planConfiguredPmremEF05({track,enabled,lowMemory,trackLength,\n  modules:tunnel.modules}):planPmrem0284({track,versionActive:enabled,lowMemory,trackLength});\n if(!plan.enabled)return inactive(\"release disabled or no tunnel sections\");\n const root=tunnel?tunnel.root:world?.getObjectByName?.(\n  \"SKYSHIFT · TRUE shared Skyline tunnel 0.28.1\");"
+        },
+        {
+          "before": " let target=null,generator=null,strength=1,disposed=false,",
+          "after": " let target=null,generator=null,strength=1,shipRouteWeight=1,disposed=false,"
+        },
+        {
+          "before": "  material.envMapIntensity=value*strength;",
+          "after": "  material.envMapIntensity=value*strength*(profile===\"ship\"?shipRouteWeight:1);"
+        },
+        {
+          "before": "  restores.push({material,previous,value});",
+          "after": "  restores.push({material,previous,value,profile});"
+        },
+        {
+          "before": "  if(physicalTunnel<10||physicalShip<1)",
+          "after": "  if(physicalTunnel<(plan.minimumTunnelMaterials??10)||physicalShip<1)"
+        },
+        {
+          "before": " const setComparison=value=>{\n  strength=clamp(value);\n  for(const item of restores)\n   item.material.envMapIntensity=item.value*strength;\n };\n return {\n  active:true,attachShip,setComparison,",
+          "after": " const applyStrength=()=>{\n  for(const item of restores)\n   item.material.envMapIntensity=item.value*strength*(item.profile===\"ship\"?shipRouteWeight:1);\n };\n const setComparison=value=>{strength=clamp(value);applyStrength();};\n const updateStation=s=>{\n  if(!plan.configured||plan.fullCourse||disposed)return;\n  const interval=plan.intervals.find(m=>s>=m.start&&s<=m.end);\n  const fade=interval?Math.min(12,(interval.end-interval.start)/2):1;\n  const t=interval?clamp(Math.min(s-interval.start,interval.end-s)/fade):0;\n  const next=t*t*(3-2*t);\n  if(next===shipRouteWeight)return;\n  shipRouteWeight=next;\n  // Only the hull changes at entrances; no new PMREM capture.\n  for(const item of restores)if(item.profile===\"ship\")\n   item.material.envMapIntensity=item.value*strength*shipRouteWeight;\n };\n return {\n  active:true,attachShip,setComparison,updateStation,"
+        },
+        {
+          "before": "   method:\"PMREMGenerator.fromScene\",source:\"live original Skyline-shaped Vault\",",
+          "after": "   method:\"PMREMGenerator.fromScene\",source:\"live original Skyline-shaped Vault\",\n   configuredRoute:!!plan.configured,shipRouteWeight,"
+        },
+        {
+          "before": "   shipIntensity:plan.shipStrength*strength,",
+          "after": "   shipIntensity:plan.shipStrength*strength*shipRouteWeight,"
+        }
+      ]
     }
   ]
 }

@@ -44,11 +44,13 @@ async function independentRoute(memory){
     {createUnifiedSourceRegistry02894,installUnifiedCeilingRoad02894},
     {installVaultStraightRoadParity02891,vaultStraightMask02891},
     {installArchRoadReflection02893},{installRoadSpill02895},
-    {installCinematicRoad0289},{createPremiumTrackMaterial},{ZONE_PALETTES}]=await Promise.all([
+    {installCinematicRoad0289},{createPremiumTrackMaterial},{ZONE_PALETTES},
+    {installPmremReflectionPipeline0284}]=await Promise.all([
      load('true-shared-tunnel-renderer-v0281.mjs'),load('tunnel/shared-road-ship-light-v0282.mjs'),
      load('tunnel/unified-tunnel-light-sources-v02894.mjs'),load('tunnel/shared-straight-edge-parity-v02891.mjs'),
      load('tunnel/premium-arch-optics-v02893.mjs'),load('tunnel/road-spill-wave-coves-v02895.mjs'),
-     load('rendering/cinematic-metal-neon-v0289.mjs'),load('rendering/road/premium-track-v0160.mjs'),load('zone-wave-v060.mjs')]);
+     load('rendering/cinematic-metal-neon-v0289.mjs'),load('rendering/road/premium-track-v0160.mjs'),load('zone-wave-v060.mjs'),
+     load('tunnel/pmrem-reflection-pipeline-v0284.mjs')]);
    const lowMemory=memory===4,length=1200,sections=[{start:25,end:625},{start:800,end:1120}];
    // Continuous route: true curve, vertical rise and rotating cross-section.
    const positionAt=(s,l,h)=>{
@@ -111,15 +113,26 @@ async function independentRoute(memory){
    const row=350*lanes.length+2,weights=geo.getAttribute('roadFixtureMasks0263');
    if(weights.getX(row)!==0||weights.getY(row)!==0||geo.getAttribute('edgeStraightMask02891').getX(row)!==0)
     throw Error('Open gap receives road tunnel lighting');
+   const pmrem=installPmremReflectionPipeline0284(THREE,renderer,scene,world,{
+    enabled:true,track:'independent-ef05-fixture',lowMemory,trackLength:length,positionAt,ship,tunnel
+   });
+   if(!pmrem.active||!pmrem.stats().configuredRoute||pmrem.stats().probeMeters!==110||
+    pmrem.stats().tunnelMaterials<3||pmrem.stats().shipMaterials!==1||!ship.material.envMap||
+    road.material.envMap||scene.environment)throw Error('Independent PMREM '+JSON.stringify(pmrem.stats()));
+   pmrem.updateStation(700);
+   if(ship.material.envMapIntensity!==0)throw Error('Tunnel PMREM leaking onto open gap hull');
+   pmrem.updateStation(100);
+   if(ship.material.envMapIntensity<=0)throw Error('PMREM hull not restored inside tunnel');
    tunnel.setCinematicMetalComparison({contrast:true,strips:true});
    const light=new THREE.AmbientLight(0xffffff,.8);scene.add(light);
-   window.renderEF05=(station,stage)=>{
+   window.renderEF05=(station,stage,reflection=1)=>{
     const eye=positionAt(station,0,5),target=positionAt(station+75,0,5);
     camera.position.set(eye.x,eye.y,eye.z);camera.lookAt(target.x,target.y,target.z);
     const hull=positionAt(station+16,0,1.5);ship.position.set(hull.x,hull.y,hull.z);
     const wave={shaderBaseStage:stage,playerStage:stage,fronts:[station+40],activeCount:0};
     premium.setPalette(ZONE_PALETTES[stage]);tunnel.updateWave(wave);
     arch.updateWave(wave);cove.updateWave(wave);spill.updateWave(wave);shipLight.update(station+16);
+    pmrem.setComparison(reflection);pmrem.updateStation(station+16);
     renderer.render(scene,camera);
     const gl=renderer.getContext(),pixels=new Uint8Array(960*540*4);
     gl.readPixels(0,0,960,540,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
@@ -131,22 +144,34 @@ async function independentRoute(memory){
      if(old&&Math.abs(old[i]-pixels[i])+Math.abs(old[i+1]-pixels[i+1])+Math.abs(old[i+2]-pixels[i+2])>12)changed++;
     }
     window.ef05Pixels=pixels;
-    return {changed,lit,calls:renderer.info.render.calls,triangles:renderer.info.render.triangles};
+    return {changed,lit,calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,
+     pmremShipWeight:pmrem.stats().shipRouteWeight};
    };
-   return {modules:stats.sourceModules,meters:stats.coverageMeters,physical:stats.physicalModules,lowMemory};
+   window.disposeEF05Pmrem=()=>{
+    pmrem.dispose();return {hullRestored:ship.material.envMap===null,roadUntouched:road.material.envMap===null};
+   };
+   return {modules:stats.sourceModules,meters:stats.coverageMeters,physical:stats.physicalModules,lowMemory,pmrem:pmrem.stats()};
   },memory);
   const frames=[];
+  // Same camera/scene, genuine radiance on/off; preserve actual captures.
+  await page.evaluate(()=>window.renderEF05(100,0,0));
+  await page.screenshot({path:join(out,'ef05-independent-'+memory+'GB-pmrem-off.png')});
+  const reflected=await page.evaluate(()=>window.renderEF05(100,0,1));
+  assert.ok(reflected.changed>0,'actual PMREM changes rendered pixels');
+  await page.screenshot({path:join(out,'ef05-independent-'+memory+'GB-pmrem-on.png')});
   for(const station of [100,900,700]){
    for(const stage of [0,4]){
     const frame=await page.evaluate(([station,stage])=>window.renderEF05(station,stage),[station,stage]);
     assert.ok(frame.calls>0&&frame.lit>500,'real rendered pixels '+JSON.stringify(frame));
     if(station!==700&&stage===4)assert.ok(frame.changed>100,'same-camera wave color must change pixels');
+    if(station===700)assert.equal(frame.pmremShipWeight,0,'no tunnel IBL on open hull');
     await page.screenshot({path:join(out,'ef05-independent-'+memory+'GB-'+station+'-stage'+stage+'.png')});
     frames.push({station,stage,...frame});
    }
   }
+  assert.deepEqual(await page.evaluate(()=>window.disposeEF05Pmrem()),{hullRestored:true,roadUntouched:true});
   assert.deepEqual(errors,[],'independent WebGL '+memory+'GB errors');
-  return {...result,frames};
+  return {...result,pmremChangedPixels:reflected.changed,frames};
  }finally{await context.close();}
 }
 

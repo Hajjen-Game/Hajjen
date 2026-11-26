@@ -147,3 +147,24 @@ test('EF04 race session owns real pose, time trial lifecycle and persistent pref
  assert.equal(updateLegacyRaceBest(store,true,35),35);
  assert.equal(updateLegacyRaceBest(null,true,30),30);
 });
+
+import {readHistoricalGameMigrationSource} from './ef02-closure-ui-overlay.mjs';
+test('EF04 camera and ship presentation preserve original transform formulas and live wiring',()=>{
+ const original=readHistoricalGameMigrationSource();
+ const start=original.indexOf('function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicState){');
+ const cut=original.indexOf(' // Low/close chase camera with bounded future curvature preview.',start);
+ const end=original.indexOf('\n}\nfunction loop(now){',cut);
+ assert.ok(start>=0&&cut>start&&end>cut);
+ const hull=original.slice(original.indexOf('\n',start)+1,cut);
+ const chase=original.slice(cut,end).replace('uiState.mode==="playing"?dt:0','playing?dt:0');
+ const ship=readFileSync(new URL('../../ships/ship-presentation.mjs',import.meta.url),'utf8');
+ const camera=readFileSync(new URL('../../flight/chase-camera-controller.mjs',import.meta.url),'utf8');
+ assert.ok(ship.includes(hull),'Hull, engine and shadow formulas must remain exact');
+ assert.ok(camera.includes(chase),'Chase, boost and protected track camera formulas must remain exact');
+ const live=readFileSync(new URL('../../game-v0210.mjs',import.meta.url),'utf8');
+ assert.match(live,/shipPresentation\.frame\(time,view,flight/);
+ assert.match(live,/chaseCameraController\.apply\(camera,dt,view,flight/);
+ assert.match(live,/chaseCameraController\.spawn\(camera,flight,motionState,cinematicState\)/);
+ assert.match(live,/chaseCameraController\.snap\(flight,motionState,cinematicState,true\)/);
+ assert.doesNotMatch(live,/\b(?:CAMERA_INFO|CAMERA_VIEW|CAMERA_BASE_POSITION|CAMERA_TARGET_POSITION|CAMERA_TARGET_LOOK|SHADOW_NORMAL|SHADOW_PLANE_NORMAL)\b/);
+});

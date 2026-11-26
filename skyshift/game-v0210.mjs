@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import {createChaseCameraController} from "./flight/chase-camera-controller.mjs";
+import {createShipPresentation} from "./ships/ship-presentation.mjs";
 import {TRACKS_0160,ACTIVE_TRACK_0160,TRACK_ID_0160,isAurora,isVault}
  from "./tracks/shared/track-selection-v0160.mjs";
 import {perfConfig as readPerfConfig,newPerfMonitor,resetPerfMonitor,recordPerfFrame,perfSummary,gpuTimer as createGpuTimer} from "./core/performance-audit-v0114.mjs";
@@ -687,7 +689,7 @@ let sharedRoadLight=null,sharedShipLight=null,pmremPipeline=null,cinematicRoadFi
 let stationWorld=null,whiteCoreContainment=null,shipWhiteSpill=null,roadSolarSpill=null,
  premiumRoadSurface=null,cinematicRoadReflections=null,cinematicRoadRebuild=null,
  edgeFloorLighting=null;
-let cameraLook=new THREE.Vector3(),shadowMesh,premiumFX,sideThrusters,reactiveWingFlaps,livingWake,railSparks;
+let shadowMesh,premiumFX,sideThrusters,reactiveWingFlaps,livingWake,railSparks;
 let sectorLandmarks=null,ghostVisual=null,hangarHeroRig=null;
 const racingExperience=createRacingExperience();
 const raceSession=createRaceSession({api:timeTrialAPI,
@@ -715,7 +717,7 @@ let adaptiveQuality=createAdaptiveQuality(),wakeSmokePath=null;
 let motionState=createFlightMotionState(),cinematicState=createCinematicState(),
  boostSpring=createBoostSpringState(),velocityState=createVelocityState(),
  velocityPresence=createVelocityPresenceState();
-let kineticCamera=createKineticCameraState(),maxKineticFov=65.4;
+let kineticCamera=createKineticCameraState();
 let signatureFlight=createSignatureFlightState();
 const reactiveHud=createReactiveHud(UI.hud);
 let previousHudShield=100;
@@ -731,12 +733,16 @@ const motionRig=createUnifiedFlightRig({
  hoverHeight:TRIAL.hoverHeight,cameraGain:CAMERA_GAIN,
  lapLength:CIRCUIT.lapLength,magneticWall:MAGNETIC_WALL,corkscrew:CORKSCREW
 });
-const CAMERA_INFO={},CAMERA_VIEW={worldX:0,worldZ:0,y:0,s:0,
- steering:0,clearance:0,kineticSideMeters:0,kineticDistanceMeters:0,
- kineticEyeLiftMeters:0,kineticLandingMeters:0,kineticLookLiftMeters:0};
-const CAMERA_BASE_POSITION=new THREE.Vector3();
-const CAMERA_TARGET_POSITION=new THREE.Vector3();
-const CAMERA_TARGET_LOOK=new THREE.Vector3();
+const chaseCameraController=createChaseCameraController({
+ Vector3:THREE.Vector3,chasePose,cameraBankAt,cinematicFov,kineticFovAt,stepBoostSpring,
+ boostFovTarget,boostFovResponse,cinematicTuning,CAMERA_GAIN,TRIAL,BOOST_CONFIG,
+ CLASSIC_BOOST_FOV,BOOST_SPRING,clamp,lerp
+});
+const shipPresentation=createShipPresentation({
+ Vector3:THREE.Vector3,onRoad,surfaceNormalAt,positionAt,bankAt,pitchAt,
+ TRIAL,BOOST_CONFIG,NEON_TUNING,SPECTRAL_WHITE,waveResonanceStrength,
+ spectralChargeStrength,engineLightFactor,clamp
+});
 const telemetry=[];
 let previousSector=0,sceneReady=false,fullscreenController=null,lastRailLog=0;
 let railFeedback=createRailFeedbackState();
@@ -744,7 +750,6 @@ let gripCueVisible=false,gripCueSeconds=0,gripCueDisplays=0;
 let zoneWave=newZoneWaveState();
 let tunnelInside=false,tunnelEntries=0,tunnelExits=0,tunnelSeconds=0,tunnelMaxIntensity=0;
 let waveSmokeHold=false;
-const SHADOW_NORMAL=new THREE.Vector3(),SHADOW_PLANE_NORMAL=new THREE.Vector3(0,0,1);
 
 function bestForTrial(){return readLegacyRaceBest(fleetStorage());}
 // A best Time Trial is separate from the historic normal-circuit record.
@@ -3703,7 +3708,7 @@ function resetFlight(){
  resetUnifiedFlightRig(motionRig);
  resetFidelityDirector(fidelityDirector);
  resetRacingExperience(racingExperience);
- maxKineticFov=KINETIC_CAMERA.fovStartDegrees;
+ chaseCameraController.resetPeak(KINETIC_CAMERA.fovStartDegrees);
  boostSpring=createBoostSpringState();
  velocityState=createVelocityState();
  velocityPresence=createVelocityPresenceState();
@@ -3732,13 +3737,7 @@ function resetFlight(){
  UI.riskCue.classList.add("hidden");
  UI.finalTitle.textContent="FLIGHT ENDED";
  // Place the camera at its new orbit at spawn to prevent startup swooping.
- const home=chasePose(flight,motionState,cinematicState,cinematicTuning,CAMERA_INFO);
- camera.position.set(home.x,home.y,home.z);
- CAMERA_BASE_POSITION.copy(camera.position);
- camera.fov=cinematicFov(TRIAL.startSpeed,TRIAL.startSpeed,cinematicTuning);
- camera.updateProjectionMatrix();
- cameraLook.set(home.lookX,home.lookY,home.lookZ);
- camera.lookAt(cameraLook);
+ chaseCameraController.spawn(camera,flight,motionState,cinematicState);
  worldClock.last=performance.now();worldClock.accum=0;
 }
 function enterPlaying(challenge=null){
@@ -4221,161 +4220,11 @@ function updatePalette(dt){
  for(const light of engineLights)light.color.copy(neonKit.worldAccent);
 }
 function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicState){
- // True world-space heading remains pilot-owned. Body pose is visual-only.
- const clearance=motionRig.clearance;
- const solid=onRoad(view.s,view.lateral);
- const surfaceNormal=surfaceNormalAt(view.s);
- const rideOffset=view.grounded?TRIAL.hoverHeight:0;
- // Identical road-normal hover pose for both ships. No Stingray-only
- // +26cm clearance lift, dynamic wing check or special compensation.
- ship.position.set(
-  view.worldX+surfaceNormal.x*(rideOffset+motion.hover),
-  view.y+surfaceNormal.y*motion.hover,
-  view.worldZ+surfaceNormal.z*(rideOffset+motion.hover));
-  // Added animation is relative to the road normal: no changed physics.
-  ship.position.x+=surfaceNormal.x*signatureFlight.lift;
-  ship.position.y+=surfaceNormal.y*signatureFlight.lift;
-  ship.position.z+=surfaceNormal.z*signatureFlight.lift;
- // Tiny reaction of the rendered hull only; physical pilot position,
- // bank, collision and camera target remain completely unchanged.
- ship.position.x-=Math.sin(view.heading)*velocityState.recoilMeters;
- ship.position.z+=Math.cos(view.heading)*velocityState.recoilMeters;
- // Cosmetic nose alignment <2 degrees; authoritative world yaw unchanged.
- ship.rotation.y=-view.heading+cinematic.noseYaw;
- // Extra craft attitude is visual-only; heading and yaw rate are already
- // resolved by stepFlight, independent of the camera.
- // The hull matches the actual physical banked road normal.
-  // The flight-motion bank convention is NEGATIVE steering:
- // left input (<0) banks toward +Z (port wing down), right toward -Z.
- // The trick physics stores direction in INPUT sign, so the rendered
- // barrel roll must negate trickVisualAngle to match both normal banking
- // and the opposite-wing GRIP jet. Without this, LEFT rolled RIGHT.
- // Visual-only: the 120Hz air-time, landing judgement and velocity remain.
- const roadBank=bankAt(view.s);
- const naturalRoll=motion.roll-roadBank-
-  (view.trickVisualAngle??0)-
-   Math.sign(flight.gripDirection)*flight.gripIntensity*.058+
-   signatureFlight.roll+velocityPresence.hullRoll+
-   racingExperience.hullCarve*
-    (view.grounded&&!motionRig.wall&&!motionRig.corkscrew?1:0);
- // NO ship-specific banking/GRIP restrictions. Both hulls receive
- // exactly the same physical input-derived, cinematic presentation roll.
- ship.rotation.z=naturalRoll;
- // Same side-engine geometry that powers GRIP turns now powers air-rolls.
- // The bright white-core jet visibly fires on the correct wing in flight.
- const airThruster=flight.trickActive&&!view.grounded;
- sideThrusters?.frame(airThruster?1:flight.gripIntensity,
-  airThruster?flight.trickDirection:flight.gripDirection,time);
- // Authoritative terrain slope alters hull attitude; no fake banking
- // or automatic horizontal steering is introduced.
- ship.rotation.x=motion.pitch+velocityState.pitchRadians+pitchAt(view.s)+
-   signatureFlight.pitch+velocityPresence.hullPitch;
- const crossingPulse=waveResonanceStrength(zoneWave,flight.elapsed);
- const charge=spectralChargeStrength(flight.elapsed);
- // Reuse two wing engine lights for a subtle neutral-white crest crossing.
- for(const light of engineLights)
-  light.color.lerp(SPECTRAL_WHITE,crossingPulse*.30);
- engineLights.forEach((light,i)=>{light.intensity=
-   NEON_TUNING.enginePointIntensity*.42*engineLightFactor(cinematic)*
-   (1+velocityState.engineFlow*.60+velocityState.ignition*.20)*
-   (1+.22*crossingPulse+.07*charge+
-   .22*Math.min(1,Math.abs(view.trickVisualAngle??0)/(2*Math.PI))+
-   .16*Math.min(1,(flight.landingBoostMultiplier-1)/.22))*
-    (1+.24*signatureFlight.engineEnergy+.13*signatureFlight.boostSurge)*
-    (1+velocityPresence.engineLoad*.36+racingExperience.engineLift*.37)*
-    (1+(i===0?-1:1)*signatureFlight.engineSplit*.16);
-  });
- if(engineCore)engineCore.scale.z=1+cinematic.engineEnergy*.16+
-  velocityState.engineFlow*.34+velocityState.ignition*.10+
-  signatureFlight.engineEnergy*.16+velocityPresence.engineLoad*.23+
-  racingExperience.engineLift*.17;
- for(let i=0;i<enginePlumes.length;i++){
-   const sign=i===0?-1:1;
-   const pulse=.028*Math.sin(time*21+i*1.4);
-   const boost=clamp((flight.boostMultiplier-1)/(BOOST_CONFIG.multiplier-1),0,1);
-   const shape=1+.065*cinematic.engineEnergy+boost*.10+
-    velocityState.engineFlow*.16+velocityState.ignition*.09+pulse+
-    crossingPulse*.10+charge*.035+
-    signatureFlight.engineEnergy*.075+signatureFlight.boostSurge*.10+
-    velocityPresence.engineLoad*.17+racingExperience.engineLift*.23;
-   const bankVariation=sign*clamp(view.steering,-1,1)*.035+
-    sign*signatureFlight.engineSplit*.050;
-   // Exhaust cylinder axis is local Y. Animate the radius (X/Z).
-   enginePlumes[i].scale.set(shape+bankVariation,
-    1+boost*.10+velocityState.engineFlow*.12+
-    signatureFlight.engineEnergy*.12,shape);
- }
- if(shadowMesh){
-   shadowMesh.visible=solid&&clearance<4.2;
-   if(shadowMesh.visible){
-     const contact=positionAt(view.s,view.lateral,.032);
-     shadowMesh.position.set(contact.x,contact.y,contact.z);
-     const normal=surfaceNormalAt(view.s);
-     SHADOW_NORMAL.set(normal.x,normal.y,normal.z);
-     shadowMesh.quaternion.setFromUnitVectors(SHADOW_PLANE_NORMAL,SHADOW_NORMAL);
-     shadowMesh.material.opacity=clamp(.62-Math.max(0,clearance)*.16,0,.62);
-   }
- }
- // Low/close chase camera with bounded future curvature preview.
- // Camera POSITION follows pilot heading; only LOOK target anticipates a corner.
- CAMERA_VIEW.worldX=view.worldX;CAMERA_VIEW.worldZ=view.worldZ;
- CAMERA_VIEW.y=view.y;CAMERA_VIEW.s=view.s;CAMERA_VIEW.steering=view.steering;
- CAMERA_VIEW.clearance=clearance;
- // Kinetic springs have already advanced on this exact flight pose in
- // advanceUnifiedFlightRig: this method only applies the shared outputs.
- const speedRigSafety=motionRig.corkscrew?0:motionRig.wall?.20:1;
- CAMERA_VIEW.kineticSideMeters=kineticCamera.sideMeters*CAMERA_GAIN+
-  racingExperience.cameraShiftMeters*speedRigSafety;
- CAMERA_VIEW.kineticDistanceMeters=kineticCamera.distanceMeters*CAMERA_GAIN+
-  (velocityPresence.cameraDistance+
-   racingExperience.cameraPullbackMeters)*speedRigSafety;
- CAMERA_VIEW.kineticEyeLiftMeters=kineticCamera.eyeLiftMeters*CAMERA_GAIN+
-  velocityPresence.cameraAirLift*speedRigSafety;
- CAMERA_VIEW.kineticLandingMeters=kineticCamera.landingMeters*CAMERA_GAIN;
- CAMERA_VIEW.kineticLookLiftMeters=kineticCamera.lookLiftMeters*CAMERA_GAIN+
-  velocityPresence.cameraLookLift*speedRigSafety;
- const framing=chasePose(CAMERA_VIEW,motion,cinematic,cinematicTuning,CAMERA_INFO);
- CAMERA_TARGET_POSITION.set(framing.x,framing.y,framing.z);
- CAMERA_TARGET_LOOK.set(framing.lookX,framing.lookY,framing.lookZ);
- // The underlying chase camera stays responsive in curves. The boost
- // contributes only a separate critically-damped forward-axis offset.
- // This avoids the old slow/fast response switch and the 10m position snap.
- const follow=1-Math.exp(-dt*cinematicTuning.cameraFollowResponse);
- CAMERA_BASE_POSITION.lerp(CAMERA_TARGET_POSITION,follow);
- cameraLook.lerp(CAMERA_TARGET_LOOK,follow);
- const physicalExtraSpeed=Math.max(0,flight.currentSpeed-flight.zoneCruiseSpeed);
- const lag=stepBoostSpring(boostSpring,
-  uiState.mode==="playing"?dt:0,physicalExtraSpeed);
- camera.position.copy(CAMERA_BASE_POSITION);
- camera.position.x-=Math.sin(motion.cameraHeading)*lag;
- camera.position.z+=Math.cos(motion.cameraHeading)*lag;
- camera.lookAt(cameraLook);
- // Partial camera roll holds a legible horizon while the track goes vertical.
-  // Roll is 100% through the full revolution: 46% would hard-snap the
- // horizon at -360° -> 0°. The 70° wall retains its gentler partial roll.
- // Full track roll is retained for the inverted 360° corkscrew; kinetic
- // lean is mechanically suppressed inside banks rather than subtracting
- // from the real corkscrew or snapping the horizon on the 360° seam.
- const protectedRoll=motionRig.corkscrew||motionRig.wall?0:1;
- camera.rotateZ(motion.cameraRoll-cameraBankAt(view.s)+
-  kineticCamera.rollRadians*CAMERA_GAIN+
-  racingExperience.cameraLean*protectedRoll);
- const oldFov=cinematicFov(flight.currentSpeed,TRIAL.startSpeed,cinematicTuning);
- const kineticFov=kineticFovAt(flight.currentSpeed);
- const baseFov=clamp(oldFov+(kineticFov-oldFov)*CAMERA_GAIN,65.4,78);
- const fovConfig=CAMERA_GAIN===0?CLASSIC_BOOST_FOV:BOOST_SPRING;
- const targetFov=boostFovTarget(baseFov,Math.max(flight.boostMultiplier,
-  flight.landingBoostMultiplier),BOOST_CONFIG.multiplier,fovConfig);
- const fovResponse=boostFovResponse(camera.fov,targetFov,fovConfig);
- const presenceFov=CAMERA_GAIN===0?0:velocityPresence.fovBonus*speedRigSafety;
- camera.fov=lerp(camera.fov,Math.min(80.5,targetFov+presenceFov+
-  racingExperience.fovAddition*protectedRoll),
-  1-Math.exp(-dt*fovResponse));
- boostSpring.peakFovBonusDegrees=Math.max(boostSpring.peakFovBonusDegrees,
-  camera.fov-baseFov);
- maxKineticFov=Math.max(maxKineticFov,camera.fov);
- cinematic.maxCameraLateralMeters=Math.max(cinematic.maxCameraLateralMeters,Math.abs(framing.sideOffsetMeters));
- camera.updateProjectionMatrix();
+ shipPresentation.frame(time,view,flight,motion,cinematic,motionRig,signatureFlight,
+  velocityState,velocityPresence,racingExperience,zoneWave,ship,sideThrusters,
+  engineLights,engineCore,enginePlumes,shadowMesh);
+ chaseCameraController.apply(camera,dt,view,flight,motion,cinematic,motionRig,
+  kineticCamera,racingExperience,velocityPresence,boostSpring,uiState.mode==="playing");
 }
 function loop(now){
  requestAnimationFrame(loop);
@@ -4954,7 +4803,7 @@ function exportAudit(){
      flightTuning:{...flightTuning},cameraTuning:{...cinematicTuning},
      kineticCamera:{...KINETIC_CAMERA,mode:CAMERA_MODE,
       gain:CAMERA_GAIN,...kineticCameraAudit(kineticCamera),
-      maxObservedFovDegrees:+maxKineticFov.toFixed(2),
+      maxObservedFovDegrees:+chaseCameraController.maxKineticFov.toFixed(2),
       comparesSamePhysics:true,unchangedThreeDimensionalTrack:true,
       realFlightSteeringOnly:true},
       signatureFlight:{...SIGNATURE_FLIGHT,...signatureFlightAudit(signatureFlight),
@@ -5284,10 +5133,7 @@ function installTunnelSmokeHook(){
   cinematicState=createCinematicState();
   kineticCamera=createKineticCameraState();
   snapRacePose(raceSimulation,flight,false);
-  const frame=chasePose(flight,motionState,cinematicState,cinematicTuning,CAMERA_INFO);
-  CAMERA_BASE_POSITION.set(frame.x,frame.y,frame.z);
-  CAMERA_TARGET_POSITION.copy(CAMERA_BASE_POSITION);
-  cameraLook.set(frame.lookX,frame.lookY,frame.lookZ);
+  chaseCameraController.snap(flight,motionState,cinematicState);
   tunnelInside=inShadowTunnel(flight.s);
   return {at:flight.s,inside:tunnelInside,
    darkness:tunnelIntensityAt(flight.s),
@@ -5544,12 +5390,7 @@ try{
     // Do likewise for 1–3 km Vault WebGL jumps only: normal flight camera
     // damping, steering and GRIP never enter this opt-in code path.
     if(isVault()){
-     const frame=chasePose(flight,motionState,cinematicState,
-      cinematicTuning,CAMERA_INFO);
-     CAMERA_BASE_POSITION.set(frame.x,frame.y,frame.z);
-     CAMERA_TARGET_POSITION.copy(CAMERA_BASE_POSITION);
-     cameraLook.set(frame.lookX,frame.lookY,frame.lookZ);
-     CAMERA_TARGET_LOOK.copy(cameraLook);
+     chaseCameraController.snap(flight,motionState,cinematicState,true);
      // SwiftShader may not schedule another RAF before screenshot capture.
      // Update actual ship + chase camera with the production render path
      // immediately, without stepping the user's 120Hz physics.

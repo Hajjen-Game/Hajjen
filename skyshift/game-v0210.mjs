@@ -132,9 +132,8 @@ import {createSharedTunnelRuntime0280}
  from "./shared-tunnel-runtime-v0280.mjs";
 import {omitLegacyRoadResponseEF05,startupSamplerEnabled02897} from "./true-shared-tunnel-renderer-v0281.mjs";
 import {SHARED_LIGHT_0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
-import {createSharedOpticalContext,installSharedOpticalShip,installSharedRoadOptics} from "./tunnel/shared-optical-assembly.mjs";
-import {PMREM_0284,readPmremRelease0284,
- installPmremReflectionPipeline0284}
+import {createSharedOpticalContext,installSharedOpticalShip,installSharedRoadOptics,finalizeSharedOptics} from "./tunnel/shared-optical-assembly.mjs";
+import {PMREM_0284,readPmremRelease0284}
  from "./tunnel/pmrem-reflection-pipeline-v0284.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
  from "./full-tunnel-light-seal-v0270.mjs";
@@ -1513,25 +1512,15 @@ function initScene(){
  // Skyline-shaped Vault, after all source fixtures/physical shaders exist.
  // Only actual tunnel PBR coats + the hull use the resulting CubeUV.
  // Never set scene.environment or touch the indexed road or boost arrows.
- markStartup("pmremBegin");
- pmremPipeline=installPmremReflectionPipeline0284(
-  THREE,renderer,scene,world,{
-   enabled:pmremEnabled,track:TRACK_ID_0160,
-   lowMemory:limitedMemory,trackLength:CIRCUIT.lapLength,
-   positionAt,ship,tunnel:trueSharedVault
-  });
- markStartup("pmremReady");
- // The PMREM captures 0.28.8 ORIGINAL geometry/light levels. Only
- // afterwards enable local 0.28.9 material uniforms for visible racing.
- if(cinematicMetalReleaseEnabled){
-  trueSharedVault?.setCinematicMetalComparison?.({
+ pmremPipeline=finalizeSharedOptics(THREE,renderer,scene,world,opticalContext,{
+  track:TRACK_ID_0160,ship,tunnel:trueSharedVault,pmremEnabled,
+  finish:cinematicRoadFinish,markStartup,
+  cinematic:cinematicMetalReleaseEnabled?{
    contrast:cinematicComponentEnabled0289("cinematicContrast",location.search)?1:0,
-   strips:cinematicComponentEnabled0289("cinematicStrips",location.search)?1:0
-  });
-  cinematicRoadFinish?.setComparison?.({
+   strips:cinematicComponentEnabled0289("cinematicStrips",location.search)?1:0,
    road:cinematicComponentEnabled0289("cinematicRoad",location.search)?1:0
-  });
- }
+  }:null
+ });
  if(perfSettings.enabled){
   if(perfSettings.preset==="no-bloom")neonPipeline.bloom.enabled=false;
   if(perfSettings.preset==="no-smaa")neonPipeline.smaa.enabled=false;

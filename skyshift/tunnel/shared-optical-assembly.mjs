@@ -5,6 +5,7 @@ import {vaultStraightMask02891,installVaultStraightRoadParity02891} from './shar
 import {installArchRoadReflection02893} from './premium-arch-optics-v02893.mjs';
 import {installRoadSpill02895} from './road-spill-wave-coves-v02895.mjs';
 import {installCinematicRoad0289} from '../rendering/cinematic-metal-neon-v0289.mjs';
+import {installPmremReflectionPipeline0284} from './pmrem-reflection-pipeline-v0284.mjs';
 
 export function createSharedOpticalContext({positionAt,trackLength,lowMemory,tunnel,enabled,unifiedSources}){
  const sourceSampler=enabled?createSharedSourceSampler0282(positionAt,trackLength,tunnel?.modules):null;
@@ -19,12 +20,12 @@ export function installSharedOpticalShip(THREE,ship,context,enabled){
   trackLength:context.trackLength,lowMemory:context.lowMemory,sourceSampler:context.sourceSampler});
  controller.attachShip(ship);return controller;
 }
-// Keep the original shader order and the caller-owned PMREM capture timing.
-export function installSharedRoadOptics(THREE,world,context,policy,{initialWave,previousCeiling,previousSpill,roadStrength=false}={}){
+// Always start native cinematic finishes at zero, before the static PMREM capture.
+export function installSharedRoadOptics(THREE,world,context,policy,{initialWave,previousCeiling,previousSpill}={}){
  const {positionAt,trackLength,lowMemory,sourceSampler,ranges,sourceRegistry,sourceModules}=context;
  const deck=world.getObjectByName("Zone Ribbon · integrated PBR racing deck");
  const native=installSharedRoadReflections0282(THREE,world,{enabled:policy.road,positionAt,trackLength,lowMemory,sourceSampler});
- const finish=installCinematicRoad0289(world,{enabled:policy.cinematic&&!!native?.active,lowMemory,road:roadStrength});
+ const finish=installCinematicRoad0289(world,{enabled:policy.cinematic&&!!native?.active,lowMemory,road:false});
  const straight=installVaultStraightRoadParity02891(THREE,deck,{enabled:policy.straight&&!!native?.active&&!!finish?.active,ranges,trackLength});
  if(policy.straight&&!straight?.active)throw Error("0.28.9.1 native straight-only road mask unavailable: "+(straight?.stats?.().reason??"unknown"));
  const arch=installArchRoadReflection02893(THREE,world,positionAt,{enabled:policy.arch&&!!native?.active&&!!straight?.active,lowMemory,trackLength,unifiedSources:policy.unifiedSources,sourceSampler,sourceRegistry});
@@ -37,4 +38,23 @@ export function installSharedRoadOptics(THREE,world,context,policy,{initialWave,
  if(policy.spill&&!spill.active)throw Error("0.28.9.5 original physical lip spill missing");
  if(initialWave!==undefined)spill.updateWave?.(initialWave);
  return {native,finish,straight,arch,cove,spill};
+}
+
+// Called after all source geometry, ship and legacy physical shaders are ready.
+// Preserve the approved pre-cinematic radiance capture even with PMREM disabled:
+// an explicit comparison mode still activates the requested visible finishes.
+export function finalizeSharedOptics(THREE,renderer,scene,world,context,{
+ track,ship,tunnel,pmremEnabled,finish,cinematic=null,markStartup=()=>{}
+}={}){
+ const {positionAt,trackLength,lowMemory}=context;
+ markStartup("pmremBegin");
+ const pmrem=installPmremReflectionPipeline0284(THREE,renderer,scene,world,{
+  enabled:pmremEnabled,track,positionAt,trackLength,lowMemory,ship,tunnel
+ });
+ markStartup("pmremReady");
+ if(cinematic){
+  tunnel?.setCinematicMetalComparison?.({contrast:cinematic.contrast,strips:cinematic.strips});
+  finish?.setComparison?.({road:cinematic.road});
+ }
+ return pmrem;
 }

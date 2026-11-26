@@ -41,11 +41,11 @@ async function independentRoute(memory){
   const result=await page.evaluate(async memory=>{
    const THREE=await import('three');
    const load=p=>import('/skyshift/'+p);
-   const [{installConfiguredSharedTunnel},{createSharedOpticalContext,installSharedRoadOptics,installSharedOpticalShip},
-    {vaultStraightMask02891},{createPremiumTrackMaterial},{ZONE_PALETTES},{installPmremReflectionPipeline0284}]=await Promise.all([
+   const [{installConfiguredSharedTunnel},{createSharedOpticalContext,installSharedRoadOptics,installSharedOpticalShip,finalizeSharedOptics},
+    {vaultStraightMask02891},{createPremiumTrackMaterial},{ZONE_PALETTES}]=await Promise.all([
      load('true-shared-tunnel-renderer-v0281.mjs'),load('tunnel/shared-optical-assembly.mjs'),
      load('tunnel/shared-straight-edge-parity-v02891.mjs'),load('rendering/road/premium-track-v0160.mjs'),
-     load('zone-wave-v060.mjs'),load('tunnel/pmrem-reflection-pipeline-v0284.mjs')]);
+     load('zone-wave-v060.mjs')]);
    const lowMemory=memory===4,length=1200,sections=[{start:25,end:625},{start:800,end:1120}];
    // Continuous route: true curve, vertical rise and rotating cross-section.
    const positionAt=(s,l,h)=>{
@@ -91,7 +91,7 @@ async function independentRoute(memory){
    road.name='Zone Ribbon · integrated PBR racing deck';world.add(road);
    const {native,finish,straight,arch,cove,spill}=installSharedRoadOptics(THREE,world,opticalContext,{
     road:true,cinematic:true,straight:true,arch:true,unifiedSources:true,ceiling:true,ceilingFixtures:true,spill:true
-   },{roadStrength:true});
+   });
    const ship=new THREE.Mesh(new THREE.BoxGeometry(2.5,.7,4),new THREE.MeshStandardMaterial({color:0x768ba8,metalness:.6,roughness:.35}));
    ship.name='fixture hull';world.add(ship);
    const shipLight=installSharedOpticalShip(THREE,ship,opticalContext,true);
@@ -105,9 +105,12 @@ async function independentRoute(memory){
    const row=350*lanes.length+2,weights=geo.getAttribute('roadFixtureMasks0263');
    if(weights.getX(row)!==0||weights.getY(row)!==0||geo.getAttribute('edgeStraightMask02891').getX(row)!==0)
     throw Error('Open gap receives road tunnel lighting');
-   const pmrem=installPmremReflectionPipeline0284(THREE,renderer,scene,world,{
-    enabled:true,track:'independent-ef05-fixture',lowMemory,trackLength:length,positionAt,ship,tunnel
+   if(finish.stats().strength.road!==0)throw Error('Native road must be ungraded before PMREM capture');
+   const pmrem=finalizeSharedOptics(THREE,renderer,scene,world,opticalContext,{
+    pmremEnabled:true,track:'independent-ef05-fixture',ship,tunnel,finish,
+    cinematic:{contrast:1,strips:1,road:1}
    });
+   if(finish.stats().strength.road!==1)throw Error('Native road finish must activate after PMREM capture');
    if(!pmrem.active||!pmrem.stats().configuredRoute||pmrem.stats().probeMeters!==110||
     pmrem.stats().tunnelMaterials<3||pmrem.stats().shipMaterials!==1||!ship.material.envMap||
     road.material.envMap||scene.environment)throw Error('Independent PMREM '+JSON.stringify(pmrem.stats()));
@@ -115,7 +118,6 @@ async function independentRoute(memory){
    if(ship.material.envMapIntensity!==0)throw Error('Tunnel PMREM leaking onto open gap hull');
    pmrem.updateStation(100);
    if(ship.material.envMapIntensity<=0)throw Error('PMREM hull not restored inside tunnel');
-   tunnel.setCinematicMetalComparison({contrast:true,strips:true});
    const light=new THREE.AmbientLight(0xffffff,.8);scene.add(light);
    window.renderEF05=(station,stage,reflection=1)=>{
     const eye=positionAt(station,0,5),target=positionAt(station+75,0,5);

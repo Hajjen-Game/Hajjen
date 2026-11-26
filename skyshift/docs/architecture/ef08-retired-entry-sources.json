@@ -62,7 +62,6 @@
         "skyshift/tests/unit/grip-first-v0901.test.mjs",
         "skyshift/tests/unit/grip-leap-v081.test.mjs",
         "skyshift/tests/unit/kinetic-camera-v090.test.mjs",
-        "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
         "skyshift/tests/unit/precision-grip-v061.test.mjs",
         "skyshift/tests/unit/premium-ship-v0103.test.mjs",
         "skyshift/tests/unit/racing-feel-v083.test.mjs",

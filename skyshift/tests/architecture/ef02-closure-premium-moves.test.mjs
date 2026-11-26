@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {premiumManifest as m,restorePremiumMove,premiumCurrentPath} from './ef02-closure-premium-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
+import {readHistorical} from './legacy-retirement-l1a.mjs';
 import {inventory} from './dependency-inventory-v2.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
 const root=resolve(repo,'skyshift');
@@ -19,7 +20,7 @@ test('Four retained road materials preserve exact source, current ownership and 
   assert.ok(history.includes('node --check '+x.target),x.target+' syntax coverage');
  }
  for(const r of m.records){
-  const p=resolve(repo,r.target),s=readFileSync(p,'utf8');restorePremiumMove(s,p);
+  const p=resolve(repo,r.target),s=readHistorical(p,'utf8');restorePremiumMove(s,p);
   if(r.path!==r.target){
    for(const q of s.matchAll(/\b(?:from\s*|import\s*\(\s*|import\s*)["'](\.{1,2}\/[^"']+)["']/g))
     assert.ok(existsSync(resolve(dirname(p),q[1])),r.target+' -> '+q[1]);

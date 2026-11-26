@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {uiManifest as m,restoreUiMove,readHistoricalGameMigrationSource} from './ef02-closure-ui-overlay.mjs';
 import {expectedRootFiles} from './root-count-contract.mjs';
+import {readHistorical} from './legacy-retirement-l1a.mjs';
 import {inventory} from './dependency-inventory-v2.mjs';
 const repo=fileURLToPath(new URL('../../../',import.meta.url)),root=resolve(repo,'skyshift');
 test('UI ownership: exact source identities, live module reach and current consumer paths',()=>{
@@ -18,7 +19,7 @@ test('UI ownership: exact source identities, live module reach and current consu
   assert.ok(workflow.includes('node --check '+x.target),x.target+' syntax gate');
  }
  for(const r of m.records){
-  const p=resolve(repo,r.target),s=readFileSync(p,'utf8');restoreUiMove(s,p);
+  const p=resolve(repo,r.target),s=readHistorical(p,'utf8');restoreUiMove(s,p);
   if(r.path!==r.target)for(const q of s.matchAll(/\b(?:from\s*|import\s*\(\s*|import\s*)["'](\.{1,2}\/[^"']+)["']/g))
    assert.ok(existsSync(resolve(dirname(p),q[1])),r.target+' -> '+q[1]);
  }

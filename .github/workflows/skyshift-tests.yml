@@ -10,6 +10,7 @@ on:
       - '!skyshift/docs/**'
       - '!skyshift/previews/**'
       - '!skyshift/*.md'
+      - 'skyshift/tests/unit/neon-interior-v0212.test.mjs'
       - '.github/workflows/skyshift-tests.yml'
       - '.github/workflows/skyshift-ci-fast.yml'
   workflow_dispatch:

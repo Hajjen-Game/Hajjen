@@ -89,8 +89,19 @@ test("EF05 production-only obsolete road response is never allocated; other art 
  assert.deepEqual(b.map(x=>x.name),a.filter(x=>x.name!=="Tunnel / NEON_ROAD_RESPONSE").map(x=>x.name));
  for(const m of b){
   const prev=a.find(x=>x.name===m.name);
-  assert.deepEqual(m.geometry.getAttribute("position").array,prev.geometry.getAttribute("position").array);
-  assert.deepEqual(m.geometry.index.array,prev.geometry.index.array);
+  // The actual original shell is indexed; ribs, emitters and halo use
+  // non-indexed triangle geometry. Compare topology as well as all attributes.
+  const indexed=m.name==="Tunnel / CLOSED_SHELL";
+  assert.equal(Boolean(m.geometry.index),indexed,m.name+" candidate topology");
+  assert.equal(Boolean(prev.geometry.index),indexed,m.name+" reference topology");
+  if(indexed)assert.deepEqual(m.geometry.index.array,prev.geometry.index.array,m.name+" indices");
+  else {assert.equal(m.geometry.index,null);assert.equal(prev.geometry.index,null);}
+  assert.deepEqual(Object.keys(m.geometry.attributes).sort(),Object.keys(prev.geometry.attributes).sort(),m.name+" attribute names");
+  for(const key of Object.keys(m.geometry.attributes)){
+   const current=m.geometry.getAttribute(key),original=prev.geometry.getAttribute(key);
+   assert.equal(current.itemSize,original.itemSize,m.name+" "+key+" item size");
+   assert.deepEqual(current.array,original.array,m.name+" "+key);
+  }
  }
  assert.equal(now.w.getObjectByName("Tunnel / NEON_ROAD_RESPONSE"),null);
 });

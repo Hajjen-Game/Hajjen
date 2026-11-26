@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "archiveCommit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+  "verifiedReplacementHead": "30fd76e8b2e42ff214ecb7e79501c9aff3461b95",
+  "verificationRun": 45776971597,
+  "files": [
+    {
+      "path": "skyshift/racing-experience-v0120.mjs",
+      "sha": "4209123d0b8db9d9aa168098a7b553001d689ecb",
+      "bytes": 7372,
+      "originalReader": "skyshift/tests/unit/racing-experience-v0120.test.mjs",
+      "originalReaderSha": "db8ee47231f786e55edc2b5896c6be0994da6313",
+      "replacement": "skyshift/flight/power-carve.mjs"
+    }
+  ],
+  "workflow": {
+    "path": ".github/workflows/skyshift-tests.yml",
+    "before": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0114.mjs\n          node --check skyshift/racing-experience-v0120.mjs\n          node --check skyshift/sector-landmarks-v0120.mjs",
+    "after": "          node --check skyshift/tests/browser/legacy/browser-smoke-v0114.mjs\n          node --check skyshift/sector-landmarks-v0120.mjs",
+    "previousSha": "9ce62a2e2f24e481cc4d40f903942a326c6fc8a8"
+  }
+}

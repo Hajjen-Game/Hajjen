@@ -23,10 +23,13 @@ jobs:
         with:
           node-version: '22'
       - name: Fetch pinned legacy rollback commit
-        run: git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+        run: |
+          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897
+          git fetch --no-tags --depth=1 origin 89b1ca990b72a3321303585fa48b924b3e04ed5e
       - name: Check active bootstrap and relative imports
         run: | 
           node --test skyshift/tests/architecture/active-entrypoint.test.mjs
+          node --test skyshift/tests/architecture/ef04-race-simulation.test.mjs
           node --test skyshift/tests/architecture/release-archive-integrity.test.mjs
       - name: Validate current test dependencies and workflow paths
         run: node --test skyshift/tests/architecture/current-unit-dependency-integrity.test.mjs

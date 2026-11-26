@@ -36,7 +36,27 @@ test('Stage H: all 18 flight/steering/camera source files are SHA-equivalent to 
   // EF02C: original hash protection retained for explicitly approved shared bodies.
   if(name==='cinematic-v0165.mjs'){
    assert.equal(content,"import {heightAt,bankAt,CORKSCREW} from \"../trial-v0165.mjs\";\nimport { followAngle } from \"../flight-motion-v044.mjs\";\nimport {createCameraFraming} from \"./cinematic-camera.mjs\";\nexport {CINEMATIC_DEFAULTS,createCinematicState,headingDelta,turnPreview,stepCinematic,cinematicFov,engineLightFactor} from \"./cinematic-camera.mjs\";\nexport const {cameraBankAt,chasePose}=createCameraFraming({heightAt,bankAt,CORKSCREW});\n",'Camera adapter differs from approved sampler');
-   original=readFileSync(resolve(flight,'cinematic-camera.mjs'),'utf8')
+   // EF04: invert only the approved configurable lap length change.
+   // Continue to require the exact original Stage H blob, not a new SHA.
+   let shared=readFileSync(resolve(flight,'cinematic-camera.mjs'),'utf8');
+   for(const [after,before] of [
+  [
+    "export function createCameraFraming({heightAt,bankAt,CORKSCREW,lapLength=3400}){",
+    "export function createCameraFraming({heightAt,bankAt,CORKSCREW}){"
+  ],
+  [
+    "const local=((s%lapLength)+lapLength)%lapLength;",
+    "const local=((s%3400)+3400)%3400;"
+  ],
+  [
+    "const localS=((finite(view.s)%lapLength)+lapLength)%lapLength;",
+    "const localS=((finite(view.s)%3400)+3400)%3400;"
+  ]
+]){
+    assert.equal(shared.split(after).length-1,1,'EF04 camera inverse '+after);
+    shared=shared.replace(after,before);
+   }
+   original=shared
     .replace("// Track sampler supplied by adapter.","import {heightAt,bankAt,CORKSCREW} from \"./trial-v0165.mjs\";")
     .replace("// Historical followAngle import retained in adapter.","import { followAngle } from \"./flight-motion-v044.mjs\";")
     .replace("export function createCameraFraming({heightAt,bankAt,CORKSCREW}){\nfunction cameraBankAt(s){","export function cameraBankAt(s){")

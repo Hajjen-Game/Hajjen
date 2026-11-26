@@ -67,9 +67,9 @@ export function stepCinematic(state,view,previewAngle,dt,settings=CINEMATIC_DEFA
 // Preview changes only WHAT is looked at, not ship or camera world position.
 // A complete rotation must be carried as a FULL camera roll.
  // Reducing it to 46% would snap the horizon by ~165° at the exit seam.
-export function createCameraFraming({heightAt,bankAt,CORKSCREW}){
+export function createCameraFraming({heightAt,bankAt,CORKSCREW,lapLength=3400}){
 function cameraBankAt(s){
- const local=((s%3400)+3400)%3400;
+ const local=((s%lapLength)+lapLength)%lapLength;
  const angle=bankAt(s);
  return local>=CORKSCREW.start&&local<CORKSCREW.end?angle:angle*.46;
 }
@@ -82,7 +82,7 @@ function chasePose(view,flightMotion,cinematic,settings=CINEMATIC_DEFAULTS,out={
  const offset=clamp(finite(view.steering),-1,1)*settings.cameraSideShift+
   clamp(finite(view.kineticSideMeters),-1.55,1.55);
  const kineticDistance=clamp(finite(view.kineticDistanceMeters),-.5,1.2);
- const localS=((finite(view.s)%3400)+3400)%3400;
+ const localS=((finite(view.s)%lapLength)+lapLength)%lapLength;
  const screw=localS>=CORKSCREW.start&&localS<CORKSCREW.end;
  const wallRoll=bankAt(finite(view.s)),ca=Math.cos(wallRoll),sa=Math.sin(wallRoll);
  // Follow the inclined surface normal while retaining a visible horizon.

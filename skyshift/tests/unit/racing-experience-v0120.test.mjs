@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {RACING_0120,createRacingExperience,resetRacingExperience,
+import {RACING_0121,createRacingExperience,resetRacingExperience,
  observeRacingStep,stepRacingExperience,raceWindowAt,raceRhythmAt,
- racingExperienceAudit} from "../../racing-experience-v0120.mjs";
+ racingExperienceAudit} from "../../racing-experience-v0121.mjs";
 import {LANDMARKS_0120,createSectorLandmarkData}
  from "../../sector-landmarks-v0120.mjs";
 import {positionAt,widthAt} from "../../trial-v0901.mjs";
@@ -23,7 +23,7 @@ function cleanCarve(st,f,window,gripTime=.58){
  return observeRacingStep(st,f,step);
 }
 test("four authored rhythm windows are bounded within one loop",()=>{
- assert.equal(RACING_0120.precisionWindows.length,4);
+ assert.equal(RACING_0121.precisionWindows.length,4);
  assert.equal(raceWindowAt(790),0);
  assert.equal(raceWindowAt(1146),1);
  assert.equal(raceWindowAt(1920),2);
@@ -36,24 +36,24 @@ test("four authored rhythm windows are bounded within one loop",()=>{
 });
 test("true precision carve recognises held GRIP, yaw and no rail contact",()=>{
  const st=createRacingExperience(),f=mock();
- const earned=cleanCarve(st,f,RACING_0120.precisionWindows[0]);
+ const earned=cleanCarve(st,f,RACING_0121.precisionWindows[0]);
  assert.equal(earned?.id,"precision-apex");
  assert.equal(earned.lap,1);
- assert.ok(earned.gripSeconds>=.27);
+ assert.ok(earned.gripSeconds>=RACING_0121.precisionWindows[0].minGripSeconds);
  assert.equal(earned.chain,1);
  assert.equal(st.cleanCarves,1);
  assert.equal(st.maxFlowChain,1);
  assert.equal(st.missedCarves,0);
  assert.ok(st.releaseTime>1);
  // Revisiting an already-crossed window cannot farm the same lap reward.
- const again=cleanCarve(st,f,RACING_0120.precisionWindows[0]);
+ const again=cleanCarve(st,f,RACING_0121.precisionWindows[0]);
  assert.equal(again,null);
  assert.equal(st.cleanCarves,1);
 });
 test("no reward from autopilot-like steering, GRIP not held or touching rails",()=>{
  for(const condition of ["no-grip","no-yaw","contact"]){
   const st=createRacingExperience(),f=mock();
-  const w=RACING_0120.precisionWindows[0];
+  const w=RACING_0121.precisionWindows[0];
   f.s=w.start+1;observeRacingStep(st,f,1/120);
   for(let i=0;i<80;i++){
    f.s=w.start+3+i;
@@ -70,14 +70,14 @@ test("no reward from autopilot-like steering, GRIP not held or touching rails",(
 });
 test("lap-specific reward and chain reset prevent duplicated per-lap events",()=>{
  const st=createRacingExperience(),f=mock();
- let e=cleanCarve(st,f,RACING_0120.precisionWindows[0]);
+ let e=cleanCarve(st,f,RACING_0121.precisionWindows[0]);
  assert.equal(e.chain,1);
- e=cleanCarve(st,f,RACING_0120.precisionWindows[1]);
+ e=cleanCarve(st,f,RACING_0121.precisionWindows[1]);
  assert.equal(e.chain,2);
  assert.equal(st.cleanCarves,2);
- f.s=3400+RACING_0120.precisionWindows[0].start;
+ f.s=3400+RACING_0121.precisionWindows[0].start;
  observeRacingStep(st,f,1/120);
- e=cleanCarve(st,f,{...RACING_0120.precisionWindows[0],
+ e=cleanCarve(st,f,{...RACING_0121.precisionWindows[0],
   start:3400+785,end:3400+990});
  assert.equal(e?.lap,2);
  assert.equal(e.chain,1);
@@ -92,8 +92,8 @@ test("camera and engine motion uses bounded exponential response and freeze on p
  for(let i=0;i<60;i++)stepRacingExperience(b,1/60,v);
  assert.ok(Math.abs(a.fovAddition-b.fovAddition)<1e-9);
  assert.ok(Math.abs(a.cameraLean-b.cameraLean)<1e-9);
- assert.ok(a.fovAddition<=RACING_0120.maxFovAdditionDegrees);
- assert.ok(Math.abs(a.cameraLean)<=RACING_0120.maxCameraLeanRadians);
+ assert.ok(a.fovAddition<=RACING_0121.maxFovAdditionDegrees);
+ assert.ok(Math.abs(a.cameraLean)<=RACING_0121.maxCameraLeanRadians);
  assert.ok(a.engineLift>0);
  const before={fov:a.fovAddition,cam:a.cameraLean,frames:a.presentationFrames};
  stepRacingExperience(a,1/60,{...v,playing:false});
@@ -118,12 +118,12 @@ test("road geometry remains untouched, monuments are outside existing collision"
  assert.equal(data.minLateralClearance,3.9);
  assert.equal(LANDMARKS_0120.drawCalls,2);
  assert.equal(LANDMARKS_0120.nonColliding,true);
- assert.equal(RACING_0120.physicalFlightUnchanged,true);
- assert.equal(RACING_0120.originalTrackGeometryUnchanged,true);
+ assert.equal(RACING_0121.physicalFlightUnchanged,true);
+ assert.equal(RACING_0121.originalTrackGeometryUnchanged,true);
 });
 test("reset clears director and event de-duplication, retaining original layout",()=>{
  const st=createRacingExperience(),f=mock();
- cleanCarve(st,f,RACING_0120.precisionWindows[0]);
+ cleanCarve(st,f,RACING_0121.precisionWindows[0]);
  assert.equal(st.completedWindowKeys.size,1);
  resetRacingExperience(st);
  assert.equal(st.cleanCarves,0);

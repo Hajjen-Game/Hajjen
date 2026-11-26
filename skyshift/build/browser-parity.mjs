@@ -211,6 +211,8 @@ try{
     assert.equal(boot.scene?.legacyRoadResponseMeshes,0,'current production must not allocate retired road overlay');
     assert.equal(boot.scene?.omittedLegacyRoadBatches,memory===8?10:0,'actual shared renderer omission count');
     assert.equal(boot.scene?.pmremActive,true);
+    // The full approved material chain must still be mounted after production
+    // specialization; source comparison remains the independent reference.
     assert.equal(boot.selected,'vault');
     assert.equal(boot.challengeHidden,true);
     const query=new URLSearchParams(boot.query);

@@ -16,6 +16,13 @@ assert.ok(picker,'production circuit picker');
 assert.deepEqual([...picker.matchAll(/<option value="([^"]+)"/g)].map(x=>x[1]),['vault']);
 assert.match(html,/<span id="menu-track-name">NEON VAULT CIRCUIT<\/span>/);
 assert.ok(report.graph.modules.some(p=>p.endsWith('/tracks/shared/production-catalog.mjs')),'actual bundled catalog boundary');
+assert.equal(report.ef05Owners.entries.length,101);
+assert.equal(report.ef05Owners.counts.productionRetired,4);
+assert.equal(report.ef05Owners.counts.repositoryDeleted,0);
+for(const e of report.ef05Owners.entries){
+ assert.equal(e.production,report.graph.modules.includes('source/'+e.path.slice('skyshift/'.length)));
+ if(e.retiredFromBundle)assert.equal(e.production,false,e.path);
+}
 assert.doesNotMatch(html,/cdn\.jsdelivr\.net\/npm\/three|type="importmap"|boot-v0210\.js\?/);
 const scripts=[...html.matchAll(/<script\b[^>]*src="([^"]+)"/g)].map(x=>x[1]);
 const css=[...html.matchAll(/<link\b[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g)].map(x=>x[1]);

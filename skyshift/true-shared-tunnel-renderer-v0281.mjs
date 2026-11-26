@@ -270,7 +270,10 @@ export function omitLegacyRoadResponseEF05(search,clean){
  const q=new URLSearchParams(search||"");
  if(!clean||q.get("track")!=="vault"||q.get("v")!=="0.28.9.7")return false;
  if(q.get("roadLayers")==="classic"||q.has("archLegacyRoad"))return false;
- for(const key of q.keys())if(/(?:Smoke|FrameProof|Audit)$/i.test(key))return false;
+ // Read-only startup metrics and deterministic teleport do not toggle the
+ // old road layer; exercise production allocation in real browser CI.
+ for(const key of q.keys())if(/(?:Smoke|FrameProof|Audit)$/i.test(key)&&
+  !["startupAudit","trackRepairSmoke"].includes(key))return false;
  return true;
 }
 export function installTrueSharedTunnelRenderer0281(THREE,world,{
@@ -323,7 +326,7 @@ export function installConfiguredSharedTunnel(THREE,world,{
    installed.push(item);
    const source=installPremiumMetalSurfaceLibrary(THREE,section,{
     track:"skyline",positionAt:frameSampler,
-    lowMemory,omitLegacyRoadResponse,vaultHeightClassic:false
+    lowMemory,omitLegacyRoadResponse,tunnelOnly:true,vaultHeightClassic:false
    });
    item.source=source;
    const result=source.stats?.()??{};

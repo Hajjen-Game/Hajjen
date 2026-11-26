@@ -95,23 +95,28 @@ function installShaderControls(material,patch,suffix,uniforms){
  };
  material.needsUpdate=true;
 }
+// The shared tunnel owns the flow material only. The legacy Skyline
+// installer still requires and binds its actual physical racing deck.
+export function bindCinematicEnergyMaterials(flowMaterial,road,{tunnelOnly=false}={}){
+ if(!flowMaterial||(!tunnelOnly&&!road?.isMeshStandardMaterial))
+  throw Error("0.21.6 requires flow cores and native physical road");
+ if(tunnelOnly&&road)throw Error("EF05 tunnel-only motion cannot own a road material");
+ const make=()=>({
+  uCinemaFlow:{value:0},uCinemaBoost:{value:0},uCinemaPhase:{value:0}
+ });
+ const neon=make(),deck=tunnelOnly?null:make();
+ installShaderControls(flowMaterial,patchCinematicFlowFragment,"flow",neon);
+ if(deck)installShaderControls(road,patchCinematicRoadFragment,"road",deck);
+ return {neon,deck};
+}
 export function installCinematicEnergyMotion(THREE,world,options={}){
  const base=installIntegratedNeonFlow(THREE,world,options);
  const old=base.stats();
  if(!old.active||!old.flowEnabled||old.flowStatus!=="active")return base;
  const group=world.getObjectByName("SKYSHIFT · Tunnel Megastructure 0.21.1");
  const mesh=group?.children?.find(x=>x.name==="Tunnel / FLOW_CORES");
- const road=options.roadMaterial;
- if(!mesh?.material||!road?.isMeshStandardMaterial)
-  throw Error("0.21.6 requires flow cores and native physical road");
- // Two separate uniforms collections: one per material, but both share the
- // SAME render update and simulation-derived phase; no extra clock.
- const make=()=>({
-  uCinemaFlow:{value:0},uCinemaBoost:{value:0},uCinemaPhase:{value:0}
- });
- const neon=make(),deck=make();
- installShaderControls(mesh.material,patchCinematicFlowFragment,"flow",neon);
- installShaderControls(road,patchCinematicRoadFragment,"road",deck);
+ const {neon,deck}=bindCinematicEnergyMaterials(mesh?.material,options.roadMaterial,
+  {tunnelOnly:options.tunnelOnly===true});
  let last=cinematicEnergyFrame(),updates=0,comparison=1;
  const state={
   cinematicEnergyEnabled:true,cinematicEnergyVersion:"0.21.6",
@@ -119,10 +124,11 @@ export function installCinematicEnergyMotion(THREE,world,options={}){
   cinematicDrawBatches:0,cinematicNewLights:0,
   cinematicNewRenderPasses:0,cinematicMobile:Boolean(options.lowMemory),
   cinematicComparedTo:CINEMATIC_ENERGY_0216.comparison,
-  cinemaSameWaveState:true,cinemaNoPhysicsChanges:true
+  cinemaSameWaveState:true,cinemaNoPhysicsChanges:true,
+  cinematicRoadMotionBound:!!deck
  };
  const apply=()=>{
-  for(const u of [neon,deck]){
+  for(const u of (deck?[neon,deck]:[neon])){
    u.uCinemaFlow.value=last.flow*comparison;
    u.uCinemaBoost.value=last.boost;
    u.uCinemaPhase.value=last.phaseMeters;

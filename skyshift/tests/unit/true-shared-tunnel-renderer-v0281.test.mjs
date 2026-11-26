@@ -93,6 +93,7 @@ test("EF05 obsolete source allocation is omitted only for current clean producti
  const current="?track=vault&v=0.28.9.7";
  assert.equal(omitLegacyRoadResponseEF05(current,true),true);
  assert.equal(omitLegacyRoadResponseEF05(current,false),false);
+ assert.equal(omitLegacyRoadResponseEF05(current+"&startupAudit=1&trackRepairSmoke=1",true),true);
  for(const q of ["&roadLayers=classic","&unifiedSourcesSmoke=1","&archOpticsSmoke=1","&archLegacyRoad=off","&startupFrameProof=1"])
   assert.equal(omitLegacyRoadResponseEF05(current+q,true),false);
  assert.equal(omitLegacyRoadResponseEF05("?track=vault&v=0.28.9.4",true),false);

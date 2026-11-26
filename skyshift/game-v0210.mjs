@@ -677,6 +677,9 @@ window.__skyshiftStartupAudit=()=>{
   scene:{meshes:meshes.length,geometryObjects:geometries.size,
    materials:materials.size,
    sharedTunnelModules:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.sourceModules??0,
+   sharedTunnelFailureReason:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.reason??null,
+   legacyRoadResponseMeshes:meshes.filter(m=>m.name==="Tunnel / NEON_ROAD_RESPONSE").length,
+   omittedLegacyRoadBatches:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.omittedLegacyRoadBatches??0,
    startupFrameSampler:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.startupFrameOptimization02897??null,
    pmremActive:pmremPipeline?.active??false},
   jsHeapMB:performance.memory?.usedJSHeapSize?

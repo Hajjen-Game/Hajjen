@@ -53,7 +53,9 @@ try{
      return {state:window.__skyshiftBoot,scene:window.__skyshiftStartupAudit?.()?.scene,styles,title:document.querySelector('#topbar-track-name')?.textContent};
     });
     assert.equal(boot.state.phase,'ready',JSON.stringify({mode,memory,boot,errors}).slice(0,3000));
-    assert.equal(boot.scene?.sharedTunnelModules,10);
+    assert.equal(boot.scene?.sharedTunnelModules,10,JSON.stringify({mode,memory,scene:boot.scene,errors}).slice(0,4000));
+    assert.equal(boot.scene?.legacyRoadResponseMeshes,0,'current production must not allocate retired road overlay');
+    assert.equal(boot.scene?.omittedLegacyRoadBatches,memory===8?10:0,'actual shared renderer omission count');
     assert.equal(boot.scene?.pmremActive,true);
     const timing={phase,bootMs:boot.state.readyAfterMs,wallMs:performance.now()-started,encodedBytes:transferred,completed,requestCount:requests.length,requests:[...requests]};
     if(mode==='bundle')assert.ok(!requests.some(x=>/cdn\.jsdelivr\.net\/npm\/three/.test(x)),'bundle must not fetch Three CDN');

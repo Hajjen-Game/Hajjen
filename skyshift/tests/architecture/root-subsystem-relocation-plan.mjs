@@ -18,7 +18,7 @@ const isTrial=f=>/^skyshift\/(?:trial|smooth-track|premium-track|track-3d|circui
 // remaining root instead of one trial family. Keep the old trial output intact.
 const roots=entries.filter(f=>/^skyshift\/[^/]+$/.test(f.path)).map(f=>({...f,consumers:[],metadataRefs:0}));
 const byName=new Map(roots.map(f=>[basename(f.path),f]));
-const escaped=[...byName.keys()].sort((a,b)=>b.length-a.length).map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\const escaped=[...byName.keys()].map(s=>s.replaceAll('.','\\.'));'));
+const escaped=[...byName.keys()].sort((a,b)=>b.length-a.length).map(s=>s.split('').map(ch=>'\\^$.*+?()[]{}|'.includes(ch)?'\\'+ch:ch).join(''));
 const pattern=new RegExp('(?:'+escaped.join('|')+')','g');
 const textFile=p=>/\.(?:mjs|js|cjs|ts|html|css|json|yml|yaml|sh|py|txt|md)$/.test(p);
 function scan(path,source,sha,archive=false){
@@ -54,12 +54,12 @@ const baseline=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/
 const previous=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef02-final-owner-ledger.json'),'utf8'));
 assert.equal(baseline.entries.length,baseline.rootCount);
 const tracked=entries.filter(f=>f.path.startsWith('skyshift/'));
-const byPath=new Map(tracked.map(f=>[f.path,f]));
+const byPath=new Map(entries.map(f=>[f.path,f]));
 const old=new Map(previous.entries.map(e=>[e.currentPath,e]));
 const original=new Map(baseline.entries.map(e=>[e.path,e]));
 const graph=new Set(inventory().literalBrowserGraph.paths.map(p=>'skyshift/'+p));
 const bytes=f=>statSync(resolve(repo,f.path)).size;
-const source=tracked.filter(f=>!f.path.startsWith('skyshift/tests/')&&/\\.(?:mjs|js|css|html)$/.test(f.path));
+const source=tracked.filter(f=>!f.path.startsWith('skyshift/tests/')&&/\.(?:mjs|js|css|html)$/.test(f.path));
 const duplicates=new Map();
 for(const f of source){if(!duplicates.has(f.sha))duplicates.set(f.sha,[]);duplicates.get(f.sha).push(f.path);}
 const duplicateGroups=[...duplicates.values()].filter(g=>g.length>1);

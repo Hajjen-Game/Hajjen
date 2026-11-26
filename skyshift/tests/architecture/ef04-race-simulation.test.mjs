@@ -397,3 +397,27 @@ test('EF04 retired racecraft source is recoverable, absent and has no executable
   }
  }
 });
+
+test('EF07 static render frame is byte-exact to original curved/graded/banked/corkscrew positions, bounded and disabled after build',()=>{
+ const lapLength=80,lapPosition=s=>((s%lapLength)+lapLength)%lapLength;
+ const sections=Array.from({length:4},(_,i)=>({id:'arc'+i,type:'turn',start:i*20,end:(i+1)*20,entry:2,hold:16,exit:2,curvature:Math.PI/36}));
+ let normals=0,banks=0;
+ const track=createTrackSampler({lapLength,sections,lapPosition,
+  elevationAt:s=>2*(1-Math.cos(lapPosition(s)*Math.PI/40)),
+  groundNormalAt:(s,heading)=>{normals++;const g=Math.PI/20*Math.sin(lapPosition(s)*Math.PI/40),n=Math.hypot(1,g);return {x:-g*Math.sin(heading)/n,y:1/n,z:g*Math.cos(heading)/n};},
+  magneticBankAt:s=>{banks++;return .4*Math.sin(lapPosition(s)*Math.PI/40);},
+  corkscrewBankAt:s=>lapPosition(s)>=40&&lapPosition(s)<60?-2*Math.PI*(lapPosition(s)-40)/20:0
+ });
+ const points=[0,-0,5,10,20,42,50,58,79.9,80,90,130,-.25];
+ const queries=points.flatMap(s=>[-26,-11,0,1,11,26].flatMap(x=>[-1.018,0,1,12,26.8].map(y=>[s,x,y])));
+ const expected=queries.map(args=>track.positionAt(...args));
+ const oldNormals=normals,oldBanks=banks;normals=banks=0;
+ const sample=track.createStaticPositionSampler();
+ assert.deepEqual(queries.map(args=>sample(...args)),expected);
+ assert.equal(normals,points.length);assert.equal(banks,points.length);
+ assert.ok(oldNormals>normals*10&&oldBanks>banks*10);
+ assert.deepEqual(sample.stats(),{calls:queries.length,frames:points.length,hits:queries.length-points.length,resident:1,active:true});
+ sample.finish();assert.equal(sample.stats().resident,0);assert.equal(sample.stats().active,false);
+ assert.deepEqual(sample(58,11,12),track.positionAt(58,11,12));
+ assert.equal(sample.stats().calls,queries.length);
+});

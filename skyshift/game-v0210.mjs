@@ -12,7 +12,7 @@ import {TRACKS_0160,ACTIVE_TRACK_0160,TRACK_ID_0160,isAurora,isVault}
  from "./tracks/shared/track-selection-v0160.mjs";
 import {perfConfig as readPerfConfig,newPerfMonitor,resetPerfMonitor,recordPerfFrame,perfSummary,gpuTimer as createGpuTimer} from "./core/performance-audit-v0114.mjs";
 import {
- TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
+ TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,createStaticPositionSampler,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,STEERING_AUTHORITY,steeringBalanceAt,normalYawFactorAt,elevationAudit,
  newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
 } from "./tracks/trials/trial-v0165.mjs";
@@ -641,6 +641,7 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,gripHeld:fa
  keys:new Set(),bannerTimeout:null,toastTimeout:null,trackHint:-1};
 // 0.28.9.7 startup profiling: zero scene traversal until explicitly requested.
 const startupOrigin=performance.now(),startupMarks=Object.create(null);
+let nativeFrameExperiment=null;
 function markStartup(label){
  startupMarks[label]=Math.round((performance.now()-startupOrigin)*10)/10;
 }
@@ -669,7 +670,7 @@ window.__skyshiftStartupAudit=()=>{
   elapsedSinceModuleMs:Math.round((now-startupOrigin)*10)/10,
   browserBootMs:window.__skyshiftBoot?.readyAfterMs??null,
   phase:window.__skyshiftBoot?.phase??"loading",
-  stamps,durations,
+  stamps,durations,nativeFrameExperiment:nativeFrameExperiment?.stats()??null,
   atlas:premiumMetalTexturePoolStats0262(THREE),
   renderer:renderer?{
    memory:{...renderer.info.memory},
@@ -1333,9 +1334,13 @@ function initScene(){
  // Both Skyline and Vault use the same 0.21.1 profile, 0.24.1 sculptor,
  // packed 0.26.2 material and native 0.26.x GGX. Existing visuals are
  // installed through ONE controlled runtime; no duplicated builders.
+ // Opt-in measured EF07 candidate only; the approved default is unchanged.
+ if(perfSettings.enabled&&new URLSearchParams(location.search).get("ef07NativeFrame")==="1")
+  nativeFrameExperiment=createStaticPositionSampler();
  sharedTunnelRuntime=createSharedTunnelRuntime0280(THREE,world,{
   track:TRACK_ID_0160,positionAt,lowMemory:limitedMemory,
-  trackLength:CIRCUIT.lapLength,enabled:sharedTunnelEnabled
+  trackLength:CIRCUIT.lapLength,enabled:sharedTunnelEnabled,
+  ...(nativeFrameExperiment?{positionAt:nativeFrameExperiment}:{})
  });
  // Reinstall the SAME Skyline source pipeline over the independent
  // Vault spline. Its 0.27.x pipeline only runs on explicit classic/fallback.
@@ -1353,7 +1358,28 @@ function initScene(){
   omitLegacyRoadResponse:omitLegacyRoadResponseEF05(location.search,
    unifiedSourcesReleaseEnabled&&cleanLegacyRoadEnabled02894(location.search))
  });
+ nativeFrameExperiment?.finish();
  markStartup("sharedTunnelReady");
+ // CI-only exact digest of mounted tunnel geometry; no production traversal
+ // or hashing unless explicitly requested. Preserve all typed-array bytes.
+ if(perfSettings.enabled&&new URLSearchParams(location.search).get("ef07GeometryDigest")==="1")
+  window.__skyshiftEF07GeometryDigest=async()=>{
+   const entries=[];
+   trueSharedVault.root?.traverse(obj=>{
+    const g=obj.geometry;if(!g)return;
+    for(const [name,attr] of [...Object.entries(g.attributes).sort(([a],[b])=>a.localeCompare(b)),...(g.index?[["$index",g.index]]:[])]){
+     entries.push({name:obj.name,attribute:name,itemSize:attr.itemSize,normalized:attr.normalized,
+      count:attr.count,array:attr.array});
+    }
+   });
+   const hex=bytes=>Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,"0")).join("");
+   const rows=[];let totalBytes=0;
+   for(const {array,...meta} of entries){
+    const bytes=new Uint8Array(array.buffer,array.byteOffset,array.byteLength);totalBytes+=bytes.byteLength;
+    rows.push({...meta,type:array.constructor.name,hash:hex(await crypto.subtle.digest("SHA-256",bytes))});
+   }
+   return {arrays:rows.length,totalBytes,sha256:hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(rows))))};
+  };
  // One mounted source plan, shared by every current optical consumer.
  // Historical comparison/fallback routes preserve their former full-course plan.
  const opticalContext=createSharedOpticalContext({

@@ -38,6 +38,8 @@ jobs:
       - name: Run retained unit regressions
         run: |
           node --test skyshift/tests/unit/performance-audit-v0110.test.mjs skyshift/tests/unit/render-optimizer-v0111.test.mjs skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs skyshift/tests/unit/ship-hero-loader-v01342.test.mjs skyshift/tests/unit/unified-flight-v0112.test.mjs skyshift/tests/unit/visual-fidelity-v0113.test.mjs skyshift/tests/unit/visual-fidelity-v0114.test.mjs skyshift/tests/unit/track.test.mjs
+      - name: Run exact neon interior post-merge unit regression before merge
+        run: node --test skyshift/tests/unit/neon-interior-v0212.test.mjs
       - name: Validate CI 2.0 change classifier and fail-safe cases
         run: node --test skyshift/tests/architecture/ci-change-scope-v2.test.mjs
       - name: Audit 42 byte-identical browser QA runners and updated workflow paths

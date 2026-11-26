@@ -67,6 +67,13 @@ function restoreRaceSessionReader(s,p){
  return s;
 }
 export function restoreUiMove(s,p){
+ // EF05 corrected neon geometry QA is an explicit main push trigger. Reverse
+ // only this single path-filter exception before earlier workflow identities.
+ if(key(p)==='.github/workflows/skyshift-tests.yml'){
+  const trigger="      - 'skyshift/tests/unit/neon-interior-v0212.test.mjs'\n";
+  assert.equal(s.split(trigger).length-1,1,'EF05 exact neon aftercheck trigger');
+  s=s.replace(trigger,'');
+ }
  // EF05 archival materialization is an exact additive setup change.
  if(key(p)==='.github/workflows/skyshift-tests.yml'){
   const step="      - name: Materialize exact archived station QA assets\n        run: |\n          git fetch --no-tags --depth=1 origin 06754fc69e87b23e63b73e1552f99883fadc3897\n          node skyshift/build/archived-world-assets.mjs --materialize\n";

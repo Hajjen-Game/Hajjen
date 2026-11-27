@@ -4,10 +4,17 @@ export const PRODUCTION_TRACK=Object.freeze({
  option:'NEON VAULT — FULL TUNNEL CIRCUIT'
 });
 export const PRODUCTION_RELEASE_NAME='Authoritative Vault Deck Geometry';
+export const VAULT_JUMP_RELEASE='0.29.0';
 export function productionRouteUrl(href){
  const url=new URL(href);
  url.searchParams.set('track',PRODUCTION_TRACK.id);
- url.searchParams.set('v',PRODUCTION_TRACK.version);
+ const requested=url.searchParams.get('vaultJump');
+ const jump=requested==='1'||(requested!=='0'&&url.searchParams.get('v')===VAULT_JUMP_RELEASE);
+ url.searchParams.set('v',jump?VAULT_JUMP_RELEASE:PRODUCTION_TRACK.version);
+ if(jump){
+  url.searchParams.set('vaultJump','1');
+  for(const key of ['sharedTunnel','trueSharedRenderer','curveDeck'])url.searchParams.delete(key);
+ }
  // Classic tunnel renderers are available only in the source comparison entry.
  for(const key of ['sharedTunnel','trueSharedRenderer'])if(url.searchParams.get(key)==='classic')url.searchParams.delete(key);
  return url.href;

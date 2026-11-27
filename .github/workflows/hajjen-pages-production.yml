@@ -86,3 +86,14 @@ jobs:
       - name: Strict public artifact and cache verification
         working-directory: skyshift/build
         run: node verify-publication.mjs "${{ steps.deployment.outputs.page_url }}" 15
+      - name: Verify the actual public Mega Jump in Chromium
+        working-directory: skyshift/build
+        run: |
+          npm ci --no-audit --no-fund
+          node vault-jump-browser.mjs "${{ steps.deployment.outputs.page_url }}skyshift/"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skyshift-live-mega-jump-evidence
+          path: skyshift/build/evidence/vault-jump-*
+          if-no-files-found: warn

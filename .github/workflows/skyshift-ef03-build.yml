@@ -84,6 +84,9 @@ jobs:
         env:
           SKYSHIFT_BROWSER_SUITE: ${{ matrix.suite }}
         run: npm run test:browser
+      - name: Prove the actual built Mega Jump variant and capture real game frames
+        if: matrix.suite == 'ef07-profile'
+        run: node vault-jump-browser.mjs
       - name: Preserve this suite's full WebGL evidence
         if: always()
         uses: actions/upload-artifact@v4

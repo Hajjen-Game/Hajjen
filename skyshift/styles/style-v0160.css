@@ -41,3 +41,52 @@
  #menu .track-select-label{margin:2px auto;font-size:8px}
  #track-picker{font-size:10px;padding:5px 10px;margin-bottom:5px}
 }
+
+/* 0.29.2 — compact race-only instrument strip. Existing DOM and visual feedback. */
+.hud.hud-v21.hud-compact-0292{
+ --hud-shield-bar:4px;--hud-speed-bar:3px;--hud-zone-bar:3px;
+ top:calc(52px + env(safe-area-inset-top));left:calc(22px + env(safe-area-inset-left));right:calc(22px + env(safe-area-inset-right));
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);column-gap:12px;align-items:start;
+}
+.hud.hud-v21.hud-compact-0292 .hud-left,.hud.hud-v21.hud-compact-0292 .hud-right{
+ position:relative;width:min(192px,100%);max-width:192px;min-width:0;padding:4px 8px 5px;
+ border:0;border-top:1px solid var(--neon);border-bottom:1px solid rgba(180,230,245,.25);
+ background:linear-gradient(110deg,rgba(4,17,29,.55),rgba(4,17,29,.05));border-radius:0;
+ box-shadow:none;
+}
+.hud.hud-v21.hud-compact-0292 .hud-left{justify-self:start}
+.hud.hud-v21.hud-compact-0292 .hud-right{justify-self:end}
+.hud.hud-v21.hud-compact-0292 .hud-module-heading{font-size:9px;line-height:1.1;letter-spacing:.13em}
+.hud.hud-v21.hud-compact-0292 .shield-readout,.hud.hud-v21.hud-compact-0292 .speed-readout{margin:2px 0 0;line-height:1.1;min-height:0}
+.hud.hud-v21.hud-compact-0292 #shield-text,.hud.hud-v21.hud-compact-0292 #speed{font-size:clamp(16px,2.1vw,25px);line-height:1.05;font-weight:780;white-space:nowrap;letter-spacing:.025em}
+.hud.hud-v21.hud-compact-0292 #shield-status{display:none}
+.hud.hud-v21.hud-compact-0292 .racing-meter{margin-top:4px;clip-path:polygon(3px 0,100% 0,calc(100% - 3px) 100%,0 100%)}
+.hud.hud-v21.hud-compact-0292 .shield-track{height:4px;min-height:4px}
+.hud.hud-v21.hud-compact-0292 .speed-energy-track{height:3px;min-height:3px}
+.hud.hud-v21.hud-compact-0292 .zone-progress{height:3px;min-height:3px;width:100%;margin:2px 0 0;max-width:none;grid-column:1/-1}
+.hud.hud-v21.hud-compact-0292 .hud-center{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:2px 7px;min-width:0;width:min(210px,100%);padding:0 4px;background:none}
+.hud.hud-v21.hud-compact-0292 .zone-kicker,.hud.hud-v21.hud-compact-0292 .sector-name,.hud.hud-v21.hud-compact-0292 .zone-horizon{display:none}
+.hud.hud-v21.hud-compact-0292 .zone-hero{height:auto;min-height:0;margin:0;gap:3px;justify-content:start}
+.hud.hud-v21.hud-compact-0292 .zone-prefix{font-size:10px;margin:0}
+.hud.hud-v21.hud-compact-0292 .zone-number{font-size:18px;line-height:1}
+.hud.hud-v21.hud-compact-0292 .lap-info{grid-row:1;grid-column:2;margin:0;white-space:nowrap;text-align:right;font-size:10px;line-height:1.2}
+.hud.hud-v21.hud-compact-0292 .lap-info strong{font-size:13px}
+.hud.hud-v21.hud-compact-0292 #tt-hud{grid-column:1/-1;margin:2px 0 0;gap:4px;white-space:nowrap;justify-content:space-between;font-size:10px}
+.hud.hud-v21.hud-compact-0292 #tt-clock,.hud.hud-v21.hud-compact-0292 #tt-delta{font-size:11px;line-height:1.2}
+.hud.hud-v21.hud-compact-0292 .hud-distance-line{margin:3px 0 0;gap:3px;font-size:9px;line-height:1.1}
+.hud.hud-v21.hud-compact-0292 .hud-distance-line>span:first-child{display:none}
+.hud.hud-v21.hud-compact-0292 .distance{font-size:11px;line-height:1.1;margin:0;white-space:nowrap}
+.hud.hud-v21.hud-compact-0292 .distance small{font-size:8px}
+@media (max-height:520px),(max-width:900px){
+ .hud.hud-v21.hud-compact-0292{top:calc(44px + env(safe-area-inset-top));left:calc(9px + env(safe-area-inset-left));right:calc(9px + env(safe-area-inset-right));column-gap:7px;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr)}
+ .hud.hud-v21.hud-compact-0292 .hud-left,.hud.hud-v21.hud-compact-0292 .hud-right{width:min(136px,100%);padding:2px 5px 2px}
+ .hud.hud-v21.hud-compact-0292 #speed,.hud.hud-v21.hud-compact-0292 #shield-text{font-size:clamp(13px,3.8vh,19px)}
+ .hud.hud-v21.hud-compact-0292 .hud-module-heading{font-size:8px}
+ .hud.hud-v21.hud-compact-0292 .hud-distance-line{margin-top:1px}
+ .hud.hud-v21.hud-compact-0292 .racing-meter{margin-top:2px}
+ .hud.hud-v21.hud-compact-0292 .hud-right .speed-readout{margin-top:1px}
+ .hud.hud-v21.hud-compact-0292 .zone-number{font-size:15px}
+ .hud.hud-v21.hud-compact-0292 .hud-center{max-width:155px}
+ .hud.hud-v21.hud-compact-0292 #tt-hud .tt-tag{display:none}
+ .hud.hud-v21.hud-compact-0292 #tt-clock,.hud.hud-v21.hud-compact-0292 #tt-delta{font-size:10px}
+}

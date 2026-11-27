@@ -1,0 +1,13 @@
+# 0.29.2 — Responsive HUD & Endurance Telemetry
+
+Same Vault geometry and gameplay as 0.29.1. Explicit route version 0.29.2; previous links remain available. Compact top-only instrument panels using existing DOM and shader-independent CSS. Desktop and mobile landscape use separate responsive size rules. Thumb controls are unchanged. Keep lap, time, zone, shield, speed and distance; remove large zone title and redundant status text.
+
+Endurance timeline records every 10 seconds during active race plus export snapshot; bounded to 360 samples (roughly an hour), preserves current rolling and whole-race statistics, and adds interval FPS, rolling frame/CPU/GPU percentiles, dropped simulation time, draw calls, triangles, lap, viewport and render dimensions, DPR, optional heap estimate, renderer resource counts, battery level/charging when supported. All timestamps UTC for matching a native log. GPU timing uses existing nonblocking timer with perf=1; this also fixes render quality for comparable measurements. The overlay is hidden in 0.29.2 unless perfPanel=1. Ordinary adaptive-quality runs still log without GPU query overhead. No actual temperature, watts, CPU load or hardware throttling API is exposed by ordinary browser; null means unavailable, not zero. FPS trend is not proof of thermal throttling.
+
+## Android measurements
+Use the companion Python script with Android platform-tools/adb installed and authorized device (USB or wireless debugging). Wireless avoids charging from the PC; document charging state and ambient conditions. Start the script before starting the game and stop after the run. It logs real battery sensor Celsius from dumpsys battery and raw Android thermalservice output if permitted. CPU/GPU temperature availability is device-dependent; raw output can be absent or redacted. Match UTC with the game JSON. No root, no changes to thermal or device settings. Avoid playing if the phone becomes uncomfortably hot or displays a warning. ADB sampling itself may have some overhead. A single three-lap run is not a 20–30-minute endurance test; successive exports can be correlated with the continuous device log.
+
+CI: run existing actual WebGL jump on desktop and a 780×360 CSS touch landscape viewport, verify top HUD bounds and nonoverlap, export report fields. Visual aesthetic still requires review on physical S26.
+
+## Compact layout gate follow-up
+The 780×360 Chromium proof measured the right HUD panel bottom at 100.25 CSS px, narrowly exceeding the unchanged 100 px limit. Mobile spacing reduced (panel padding, meter and distance margins) without shrinking control hit areas or text further. Run the existing live jump/HUD proof before the longer EF07 profiling sequence, retaining both gates and their evidence.

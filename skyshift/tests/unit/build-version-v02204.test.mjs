@@ -16,7 +16,9 @@ test("Skyline's published source build remains aligned with HUD/audit/links",()=
  assert.match(game,/const SKYSHIFT_BUILD_VERSION=new URL\(/);
  assert.match(game,/querySelector\("script\[data-game-module\]"\)/);
  assert.match(game,/topbarTrack\.textContent=ACTIVE_TRACK_0160\.name\+" · "\+SKYSHIFT_BUILD_VERSION/);
- assert.match(game,/game:"SKYSHIFT",version:SKYSHIFT_BUILD_VERSION/);
+ // 0.29.2 records the selected Vault release, while historical Skyline
+ // keeps its original source-build version. Require both branches.
+ assert.match(game,/game:"SKYSHIFT",version:VAULT_COMPACT_ACTIVE\?VAULT_JUMP_VERSION:SKYSHIFT_BUILD_VERSION/);
  assert.match(game,/buildVersion:SKYSHIFT_BUILD_VERSION/);
  // Copied/share links retain the actual boot source build version.
  assert.equal((game.match(/searchParams\.set\("v",SKYSHIFT_BUILD_VERSION\)/g)||[]).length,1);
@@ -39,4 +41,16 @@ test("Neon Vault menu resolves the live production catalog while source QA keeps
  assert.match(html,/<option value="vault">03 · NEON VAULT/);
  assert.match(game,/const vaultMaterialParityEnabled=fullTunnelFoundationEnabled/);
  assert.match(game,/vaultMaterialComparison:"\?vaultMaterial=classic"/);
+});
+
+test("0.29.2 explicit endurance route retains correct version and rollback",async()=>{
+ const {productionRouteUrl,PRODUCTION_TRACK}=await import("../../tracks/shared/production-catalog.mjs");
+ const base="https://example.test/skyshift/";
+ for(const version of ["0.29.0","0.29.1","0.29.2"]){
+  const route=new URL(productionRouteUrl(base+"?track=vault&v="+version));
+  assert.equal(route.searchParams.get("v"),version);
+  assert.equal(route.searchParams.get("vaultJump"),"1");
+ }
+ const rollback=new URL(productionRouteUrl(base+"?track=vault&v=0.29.2&vaultJump=0"));
+ assert.equal(rollback.searchParams.get("v"),PRODUCTION_TRACK.version);
 });

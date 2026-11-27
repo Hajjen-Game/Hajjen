@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,VAULT_JUMP_POLISH_ACTIVE,VAULT_JUMP_VERSION,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
+import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,VAULT_JUMP_POLISH_ACTIVE,VAULT_COMPACT_ACTIVE,VAULT_JUMP_VERSION,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
 import {createTunnelProfileSampler} from "./tunnel/profile-sampler.mjs";
 import {createRaceLifecycle} from "./core/race-lifecycle.mjs";
 import {createRuntimeLifetime} from "./core/runtime-lifetime.mjs";
@@ -12,7 +12,7 @@ import {createChaseCameraController} from "./flight/chase-camera-controller.mjs"
 import {createShipPresentation} from "./ships/ship-presentation.mjs";
 import {TRACKS_0160,ACTIVE_TRACK_0160,TRACK_ID_0160,isAurora,isVault}
  from "./tracks/shared/track-selection-v0160.mjs";
-import {perfConfig as readPerfConfig,newPerfMonitor,resetPerfMonitor,recordPerfFrame,perfSummary,gpuTimer as createGpuTimer} from "./core/performance-audit-v0114.mjs";
+import {perfConfig as readPerfConfig,newPerfMonitor,resetPerfMonitor,recordPerfFrame,perfSummary,gpuTimer as createGpuTimer,createEnduranceAudit} from "./core/performance-audit-v0114.mjs";
 import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,createStaticPositionSampler,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
  heightAt,widthAt,gapAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,STEERING_AUTHORITY,steeringBalanceAt,normalYawFactorAt,elevationAudit,
@@ -779,6 +779,8 @@ let frameMonitor=createFrameMonitor();
 const perfSettings=readPerfConfig(location.search);
 const fidelityChoice=readFidelityChoice({search:location.search,storage:fleetStorage()});
 const frameProfiler=newPerfMonitor();
+const endurance=VAULT_COMPACT_ACTIVE?createEnduranceAudit():null;
+endurance?.attachBattery(navigator);
 let gpuClock=null,perfPanel=null,lastPerfPanelUpdate=0;
 const hudBudget=newHudBudget(),domWrites=createDomWriteCache();
 const engineFxFrame={dt:0,playing:false,flight:{forwardSpeed:44,boostMultiplier:1},
@@ -1679,7 +1681,8 @@ function initScene(){
   perfPanel.id="skyshift-perf-panel";
   perfPanel.style.cssText="position:fixed;top:55px;left:10px;z-index:25;pointer-events:none;white-space:pre-line;padding:7px;max-width:245px;border:1px solid #6db9dd99;border-radius:6px;background:#061420e8;color:#effaff;font:11px/1.4 monospace";
   perfPanel.textContent="SKYSHIFT PERF / "+perfSettings.preset;
-  document.body.appendChild(perfPanel);
+  if(VAULT_COMPACT_ACTIVE&&new URLSearchParams(location.search).get('perfPanel')!=='1'){perfPanel=null;}
+  else document.body.appendChild(perfPanel);
  }
  gpuClock=createGpuTimer(renderer.getContext(),perfSettings.enabled);
  // Non-interactive rendering diagnostic for browser CI and exported audits.
@@ -3729,6 +3732,7 @@ function initScene(){
   UI.trackTagline.textContent="EXPANSION CHAMBER · 54.4 M LEAP · AIR TRICKS";
   UI.trackFeatures.textContent="3 × 3,400 M · MEGA JUMP · GRIP + STEER IN AIR";
   document.title="SKYSHIFT · Vault Mega Jump · "+VAULT_JUMP_VERSION;
+  if(VAULT_COMPACT_ACTIVE)UI.hud.classList.add('hud-compact-0292');
   if(VAULT_JUMP_POLISH_ACTIVE){
    UI.speed.closest(".hud-module").querySelector(".hud-module-heading").textContent="HASTIGHET";
    UI.flight.parentElement.style.display="none";
@@ -3846,7 +3850,7 @@ function resetFlight(){
  perfFrames=0;perfTotal=0;perfMin=200;
  renderSamples=0;renderCallTotal=0;renderCallPeak=0;triangleTotal=0;
  resetRaceSimulation(raceSimulation,flight);frameMonitor=createFrameMonitor();
- resetPerfMonitor(frameProfiler);gpuClock?.reset();lastPerfPanelUpdate=0;
+ resetPerfMonitor(frameProfiler);gpuClock?.reset();lastPerfPanelUpdate=0;endurance?.reset();
  document.documentElement.style.setProperty("--neon","#43dff3");
  raceTelemetry.reset();uiState.trackHint=-1;clearInput();
  event("trial_start",{trial:TRIAL.id});
@@ -4393,6 +4397,7 @@ function loop(now){
    recordPerfFrame(frameProfiler,{frameMs:rawDt*1000,physicsMs,hudMs,presentationMs,
     renderCpuMs,steps:physicsSteps,drawCalls:work.calls,triangles:work.triangles,
     droppedSimulationMs:raceSimulation.clock.droppedSeconds*1000});
+   endurance?.sample(frameProfiler,readEnduranceSnapshot);
    if(perfPanel&&now-lastPerfPanelUpdate>=1000){
     lastPerfPanelUpdate=now;
     const s=perfSummary(frameProfiler),m=s.breakdown,g=gpuClock.summary();
@@ -4421,12 +4426,25 @@ function loop(now){
    }
  }
 }
+function readEnduranceSnapshot(){
+ const p=perfSummary(frameProfiler),gpu=gpuClock?.summary()??{available:false};
+ return {raceSeconds:flight.elapsed,lap:flight.lap,distanceMeters:Math.round(flight.s),
+  rollingFrames:p.rollingFrames,frameMs:p.breakdown.frameMs,physicsMs:p.breakdown.physicsMs,hudMs:p.breakdown.hudMs,
+  renderCpuMs:p.breakdown.renderCpuMs,presentationMs:p.breakdown.presentationMs,gpu,
+  spikesOver33ms:p.spikesOver33ms,droppedSimulationMs:p.droppedSimulationMs,drawCalls:p.breakdown.drawCalls,triangles:p.breakdown.triangles,
+  viewportCss:{width:innerWidth,height:innerHeight},canvas:{width:UI.canvas.width,height:UI.canvas.height},
+  deviceDpr:devicePixelRatio||1,internalDpr:neonPipeline?.internalPixelRatio??null,
+  jsHeapMB:performance.memory?.usedJSHeapSize?Math.round(performance.memory.usedJSHeapSize/1048576):null,
+  rendererMemory:renderer?{...renderer.info.memory}:null};
+}
 function exportAudit(){
+ if(endurance&&frameProfiler.total>0)endurance.sample(frameProfiler,readEnduranceSnapshot,true);
  const timing=monitorSummary(frameMonitor);
  const worstMs=frameMonitor.allFrameTimes.length?
     Math.max(...frameMonitor.allFrameTimes):null;
  const data={
-   game:"SKYSHIFT",version:SKYSHIFT_BUILD_VERSION,trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   game:"SKYSHIFT",version:VAULT_COMPACT_ACTIVE?VAULT_JUMP_VERSION:SKYSHIFT_BUILD_VERSION,trial:TRIAL.id,exportedAt:new Date().toISOString(),
+   ...(endurance?{enduranceAudit:endurance.report()}:{}),
    timeTrial:{...ghostAudit(timeTrialState),visual:ghostVisual?.stats()??null},
     performanceAudit:{...perfSummary(frameProfiler),preset:perfSettings,
      gpu:gpuClock?.summary()??{available:false,reason:"uninitialized"},
@@ -4866,7 +4884,7 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- if(isVault()&&["0.29.0","0.29.1"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+ if(isVault()&&["0.29.0","0.29.1","0.29.2"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
@@ -4929,6 +4947,7 @@ try{
   UI,uiState,ZONE_WAVE,ZONE_PALETTES,updateZoneWave,setZoneSpeedStage,announceSector,refreshHud,waveResonanceStrength,clamp,SHADOW_TUNNEL,positionAt,surfaceHeightAt,TRIAL,headingAt,createFlightMotionState,createCinematicState,createKineticCameraState,snapRacePose,raceSimulation,chaseCameraController,inShadowTunnel,tunnelIntensityAt,bankAt,CAMERA_MODE,speedAt,widthAt,cameraBankAt,railContactPoint,ACTIVE_TRACK_0160,CIRCUIT,isVault,placeShip,saveFleet,fleetStorage,recordFleetClear,refreshHangar,fleetStatus,STINGRAY_PRESENTATION_01347,VAULT_BOOST_0283_ACTIVE,TRACK_ID_0160,BOOST_PADS,RHYTHM_GATES_0160,timeTrialState,challengeSummary,endRun,RISK_REWARD_0160,newFlightState,stepFlight,THREE,buildMantaWings,motionRig,perfSettings,perfSummary,frameProfiler,unifiedFlightAudit,fidelityAudit,racingExperienceAudit,ghostAudit,hudBudget,domWrites});
  // Verify the exact mounted deck and fly its real physics only on explicit QA URLs.
  if(new URLSearchParams(location.search).get("vaultJumpSmoke")==="1"){
+  if(endurance)window.__skyshiftEnduranceProbe=()=>{endurance.sample(frameProfiler,readEnduranceSnapshot,true);return endurance.report();};
   window.__skyshiftVaultJumpProbe=()=>{
    const j=VAULT_MEGA_JUMP,g=world.getObjectByName("Zone Ribbon · integrated PBR racing deck")?.geometry;
    const c=g?.getAttribute("aTrackCoord"),idx=g?.getIndex();

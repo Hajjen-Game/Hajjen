@@ -39,3 +39,21 @@ test("GPU result polled only after query available",()=>{
  ready=true;assert.equal(timer.summary().p95Ms,21);
  timer.reset();assert.deepEqual(deleted,[1]);
 });
+import {createEnduranceAudit} from "../../core/performance-audit-v0114.mjs";
+test("0.29.2 endurance sampling is bounded, interval based and never fabricates temperature",async()=>{
+ let now=Date.UTC(2026,10,27),reads=0;
+ const a=createEnduranceAudit({clock:()=>now,intervalMs:10000,capacity:2});
+ const monitor={total:0,elapsedMs:0};
+ const read=()=>({read:++reads});
+ a.reset();a.sample(monitor,read);assert.equal(reads,0);
+ const battery={level:.8,charging:false};
+ a.attachBattery({getBattery:async()=>battery});
+ await new Promise(resolve=>setImmediate(resolve));
+ for(let i=0;i<3;i++){now+=10000;monitor.total+=600;monitor.elapsedMs+=10000;a.sample(monitor,read);}
+ const r=a.report();assert.equal(r.samples.length,2);assert.equal(r.discarded,1);
+ assert.equal(r.samples[0].intervalObservedFps,60);assert.equal(r.samples[0].battery.levelPercent,80);
+ assert.equal(r.temperatureC,null);assert.equal(r.powerWatts,null);
+ battery.level=.79;now+=1000;monitor.total+=60;monitor.elapsedMs+=1000;a.sample(monitor,read,true);
+ assert.equal(a.report().samples.at(-1).battery.levelPercent,79);
+ a.reset();assert.equal(a.report().samples.length,0);
+});

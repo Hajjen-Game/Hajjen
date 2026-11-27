@@ -6,14 +6,15 @@ export const PRODUCTION_TRACK=Object.freeze({
 export const PRODUCTION_RELEASE_NAME='Authoritative Vault Deck Geometry';
 export const VAULT_JUMP_RELEASE='0.29.0';
 export const VAULT_POLISH_RELEASE='0.29.1';
+export const VAULT_COMPACT_RELEASE='0.29.2';
 export function productionRouteUrl(href){
  const url=new URL(href);
  url.searchParams.set('track',PRODUCTION_TRACK.id);
  const requested=url.searchParams.get('vaultJump');
  const version=url.searchParams.get('v');
- const polish=version===VAULT_POLISH_RELEASE;
+ const polish=version===VAULT_POLISH_RELEASE||version===VAULT_COMPACT_RELEASE;
  const jump=requested==='1'||(requested!=='0'&&(version===VAULT_JUMP_RELEASE||polish));
- url.searchParams.set('v',jump?(polish?VAULT_POLISH_RELEASE:VAULT_JUMP_RELEASE):PRODUCTION_TRACK.version);
+ url.searchParams.set('v',jump?(polish?version:VAULT_JUMP_RELEASE):PRODUCTION_TRACK.version);
  if(jump){
   url.searchParams.set('vaultJump','1');
   for(const key of ['sharedTunnel','trueSharedRenderer','curveDeck'])url.searchParams.delete(key);

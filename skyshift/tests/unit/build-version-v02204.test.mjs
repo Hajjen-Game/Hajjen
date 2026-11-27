@@ -23,31 +23,19 @@ test("Skyline's published source build remains aligned with HUD/audit/links",()=
  assert.doesNotMatch(game,/topbarTrack\.textContent[^\n]*0\.21\.2\.5/);
 });
 
-test("third Neon Vault course has a distinct 0.27.x versioned menu URL",()=>{
+test("Neon Vault menu resolves the live production catalog while source QA keeps its baseline",async()=>{
  const game=read("./game-v0210.mjs"),html=read("./index.html");
- const version=game.match(/uri\.searchParams\.set\("v",selected==="vault"\?"(0\.(?:27|28)\.\d+(?:\.\d+)?)":SKYSHIFT_BUILD_VERSION\)/)?.[1];
- assert.ok(version,"Vault route must use its distinct 0.27.x/0.28.x release version");
- assert.ok(html.includes("Neon Vault Material Parity · "+version)||
-  html.includes("Architectural Geometry & Panel Parity · "+version)||
-   html.includes("Full Tunnel Lighting & Visual Parity · "+version)||
-   html.includes("Premium Tunnel Cohesion & Finish · "+version)||
-   html.includes("Shared Tunnel Architecture 1.0 · "+version)||
-   html.includes("True Shared Tunnel Renderer · "+version)||
-   html.includes("Shared Road Reflections & Ship Light Response · "+version)||
-   html.includes("Vault Main Boost Glow & Risk Lane Cleanup · "+version)||
-   html.includes("PMREM Reflection Pipeline 1.0 · "+version)||
-   html.includes("Shared Tunnel Spatial Wavefront Parity · "+version)||
-   html.includes("Reflection Stability & Luminous Strip Definition · "+version)||
-   html.includes("Arch Foot Light Assembly & Corner Signature · "+version)||
-   html.includes("Precision Neon Emission & Local Metal Response · "+version)||
-   html.includes("Cinematic Metal & Neon Reflection Rebalance · "+version)||
-   html.includes("Shared Straight-Only Edge Lighting Parity · "+version)||
-   html.includes("Ceiling Fixture Placement & Glow Cohesion · "+version)||
-    html.includes("Premium Arch Optics & Chromatic Road Reflections · "+version)||
-    html.includes("Unified Light Sources & Road Layer Cleanup · "+version)||
-     html.includes("Road Light Spill Continuity & Wave-Coupled Cove Lighting · "+version)||
-     html.includes("Curve Surface Artifact & Transition Seam Cleanup · "+version)||
-     html.includes("Startup Stability & Shared Resource Deduplication · "+version));
+ const {PRODUCTION_TRACK,PRODUCTION_RELEASE_NAME,productionRouteUrl}=await import("../../tracks/shared/production-catalog.mjs");
+ assert.match(game,/uri\.searchParams\.set\("v",selected==="vault"\?PRODUCTION_TRACK\.version:SKYSHIFT_BUILD_VERSION\)/);
+ assert.equal(PRODUCTION_TRACK.id,"vault");
+ assert.match(PRODUCTION_TRACK.version,/^0\.(?:27|28)\.\d+(?:\.\d+)?$/);
+ assert.ok(PRODUCTION_RELEASE_NAME.length>0);
+ const route=new URL(productionRouteUrl("https://example.test/skyshift/?track=skyline&v=0.26.5&startupAudit=1"));
+ assert.equal(route.searchParams.get("track"),"vault");
+ assert.equal(route.searchParams.get("v"),PRODUCTION_TRACK.version);
+ assert.equal(route.searchParams.get("startupAudit"),"1");
+ assert.match(html,/Startup Stability & Shared Resource Deduplication · 0\.28\.9\.7/);
+ // The generated production title and menu are validated by verify-build.mjs.
  assert.match(html,/<option value="vault">03 · NEON VAULT/);
  assert.match(game,/const vaultMaterialParityEnabled=fullTunnelFoundationEnabled/);
  assert.match(game,/vaultMaterialComparison:"\?vaultMaterial=classic"/);

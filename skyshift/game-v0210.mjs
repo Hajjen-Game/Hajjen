@@ -31,7 +31,7 @@ import {TUNNEL_BLACKOUT,installBlackoutRoadShading,
 import {UNIFIED_TUNNEL_LIGHTING_1,createUnifiedTunnelLightingController}
  from "./tunnel/unified-tunnel-lighting-v1.mjs";
 import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./core/zone-wave-v060.mjs";
-import {vaultSpatialWaveEnabled0285,waveSignedGlobal0285,
+import {vaultSpatialWaveEnabled0285,waveSignedGlobal0285,createSinglePassWaveView02899,
  VAULT_WAVE_PARITY_0285} from "./tunnel/vault-spatial-wave-parity-v0285.mjs";
 import {STABILITY_0286,reflectionStabilityEnabled0286}
  from "./tunnel/reflection-stability-strips-v0286.mjs";
@@ -135,7 +135,7 @@ import {createSharedTunnelRuntime0280}
 import {omitLegacyRoadResponseEF05,startupSamplerEnabled02897} from "./tunnel/true-shared-tunnel-renderer-v0281.mjs";
 import {SHARED_LIGHT_0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
 import {createSharedOpticalContext,installSharedOpticalShip,installSharedRoadOptics,finalizeSharedOptics} from "./tunnel/shared-optical-assembly.mjs";
-import {surfaceFinishEnabled02898} from "./tracks/shared/production-catalog.mjs";
+import {surfaceFinishEnabled02898,vaultPolishEnabled02899,PRODUCTION_TRACK} from "./tracks/shared/production-catalog.mjs";
 import {PMREM_0284,readPmremRelease0284}
  from "./tunnel/pmrem-reflection-pipeline-v0284.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
@@ -313,6 +313,7 @@ const coveWaveReleaseEnabled=trueSharedVaultEnabled&&coveWaveEnabled02895(locati
 const curveContinuityReleaseEnabled=trueSharedVaultEnabled&&
  surfaceContinuityEnabled02896(location.search);
 const surfaceFinish02898=trueSharedVaultEnabled&&surfaceFinishEnabled02898(location.search);
+const vaultPolish02899=trueSharedVaultEnabled&&vaultPolishEnabled02899(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -668,7 +669,7 @@ window.__skyshiftStartupAudit=()=>{
    Math.round((stamps.sceneReady-stamps.sharedTunnelReady)*10)/10:null
  };
  return {
-  track:TRACK_ID_0160,version:"0.28.9.7",
+  track:TRACK_ID_0160,version:vaultPolish02899?PRODUCTION_TRACK.version:surfaceFinish02898?"0.28.9.8":"0.28.9.7",
   elapsedSinceModuleMs:Math.round((now-startupOrigin)*10)/10,
   browserBootMs:window.__skyshiftBoot?.readyAfterMs??null,
   phase:window.__skyshiftBoot?.phase??"loading",
@@ -683,6 +684,8 @@ window.__skyshiftStartupAudit=()=>{
    sharedTunnelModules:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.sourceModules??0,
    sharedTunnelFailureReason:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.reason??null,
    legacyRoadResponseMeshes:meshes.filter(m=>m.name==="Tunnel / NEON_ROAD_RESPONSE").length,
+   boostPadCount:BOOST_PADS.length,riskGateCount:RHYTHM_GATES_0160.length,
+   mainBoostOnly:VAULT_BOOST_0283_ACTIVE&&BOOST_PADS.every(p=>p.kind==="boost"&&p.multiplier===1.4),
    omittedLegacyRoadBatches:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.omittedLegacyRoadBatches??0,
    startupFrameSampler:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.startupFrameOptimization02897??null,
    pmremActive:pmremPipeline?.active??false},
@@ -792,6 +795,7 @@ const raceHud=createRaceHud({UI,uiState,domWrites,ZONE_PALETTES,TRIAL,CIRCUIT,
  sectorAt,isAurora,isVault,gripApexCue,GRIP_APEX,riskCueAt,AIR_TRICKS,bankDegreesAt,
  event,flashToast});
 let zoneWave=newZoneWaveState();
+const visualWaveView02899=createSinglePassWaveView02899();
 let tunnelInside=false,tunnelEntries=0,tunnelExits=0,tunnelSeconds=0,tunnelMaxIntensity=0;
 let waveSmokeHold=false;
 
@@ -3650,7 +3654,7 @@ function initScene(){
  // independent release in the HUD, never misleading 0.26.5.
  if(isVault()&&sharedOpticsEnabled)
   UI.topbarTrack.textContent=ACTIVE_TRACK_0160.name+
-   (surfaceFinish02898?" · 0.28.9.8":curveContinuityReleaseEnabled?" · 0.28.9.7":
+   (vaultPolish02899?" · "+PRODUCTION_TRACK.version:surfaceFinish02898?" · 0.28.9.8":curveContinuityReleaseEnabled?" · 0.28.9.7":
     roadSpillReleaseEnabled||coveWaveReleaseEnabled?" · 0.28.9.5":
      unifiedSourcesReleaseEnabled?" · 0.28.9.4":
   archOpticsReleaseEnabled?" · 0.28.9.3":
@@ -4046,14 +4050,15 @@ function integrate(dt){
  if(outcome!==null)endRun(outcome);
 }
 function updatePalette(dt){
- // Tunnel walls, roof, every ring and bounce read the same world-space front.
- stationWorld?.updateWave?.(zoneWave);
- sharedTunnelRuntime?.updateWave?.(zoneWave);
- archRoadReflections?.updateWave?.(zoneWave);
- unifiedCeilingRoad?.updateWave?.(zoneWave);
- roadSpill02895?.updateWave?.(zoneWave);
- premiumSurface?.setWaveState(zoneWave);
- identitySurface?.setWaveState(zoneWave);
+ // Every visual material receives the same single-pass presentation view.
+ const visualWave=vaultPolish02899?visualWaveView02899(zoneWave,flight.s):zoneWave;
+ stationWorld?.updateWave?.(visualWave);
+ sharedTunnelRuntime?.updateWave?.(visualWave);
+ archRoadReflections?.updateWave?.(visualWave);
+ unifiedCeilingRoad?.updateWave?.(visualWave);
+ roadSpill02895?.updateWave?.(visualWave);
+ premiumSurface?.setWaveState(visualWave);
+ identitySurface?.setWaveState(visualWave);
  // The atmosphere follows the physical front spatially, not the HUD switch.
  const blend=frontPaletteBlend(zoneWave,flight.s);
  const before=themes[blend.from],after=themes[blend.to];
@@ -4633,6 +4638,7 @@ function exportAudit(){
         waveDirection:ZONE_WAVE.direction,
         waveLaunchSeconds:[...ZONE_WAVE.triggers],
         waveFrontsMeters:zoneWave.fronts.map(f=>+f.toFixed(2)),
+        presentationSinglePass:vaultPolish02899,
         activatedStages:[...zoneWave.activatedStages],
         passedStages:[...zoneWave.passedStages],
         stageTransitionSeconds:[...zoneWave.stageTransitionSeconds],
@@ -4742,7 +4748,7 @@ function installControls(){
   const uri=new URL(location.href);
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
-  uri.searchParams.set("v",selected==="vault"?"0.28.9.7":SKYSHIFT_BUILD_VERSION);
+  uri.searchParams.set("v",selected==="vault"?PRODUCTION_TRACK.version:SKYSHIFT_BUILD_VERSION);
   location.assign(uri.toString());
  });
  runtimeLifetime.listenActive(UI.challengeButton,"click",openChallenges);

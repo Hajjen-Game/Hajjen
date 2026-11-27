@@ -2,6 +2,7 @@
 // The source of truth for new Vault pads. 0.28.2, Skyline and Aurora retain
 // their exact prior data and graphics. This module never touches flight/GRIP.
 import {CIRCUIT} from "../../tracks/shared/circuit-layout-v082.mjs";
+import {vaultPolishEnabled02899} from "../shared/production-catalog.mjs";
 
 export const VAULT_BOOST_0283=Object.freeze({
  version:"0.28.3",id:"vault-main-boost-clarity",
@@ -40,6 +41,8 @@ export function vaultBoostEnabled0283(search=typeof location!=="undefined"?locat
  const params=new URLSearchParams(search||"");
  if(params.get("track")!=="vault")return false;
  const release=params.get("v")||"";
+ // Preserve historical comparison routes; restore main pads for current Vault.
+ if(vaultPolishEnabled02899(search))return true;
  const version=/^(\d+)\.(\d+)\.(\d+)$/.exec(release);
  if(!version)return false;
  const [major,minor,patch]=version.slice(1).map(Number);

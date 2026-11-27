@@ -137,3 +137,5 @@ Moved all remaining historical `skyshift/RELEASE-*.md` notes **without changing 
 New release notes are authored under `current/`, separate from the 97 immutable migrated documents and their original SHA manifest.
 
 - [0.28.9.8 — Upper Wall Stability & Edge-Only Road](current/RELEASE-02898-UPPER-WALL-EDGE-ROAD.md)
+
+- [0.28.9.9 — Vault Boost, Single Wave & Clean Deck](current/RELEASE-02899-VAULT-BOOST-WAVE-ROAD.md)

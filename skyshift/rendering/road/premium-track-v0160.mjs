@@ -8,7 +8,7 @@ import {vaultSpatialWaveEnabled0285}
  from "../../tunnel/vault-spatial-wave-parity-v0285.mjs";
 export const VAULT_WAVE_PARITY_0285_ACTIVE=vaultSpatialWaveEnabled0285();
 import {vaultPolishEnabled02899} from "../../tracks/shared/production-catalog.mjs";
-export const VAULT_CLEAN_DECK_02899=vaultPolishEnabled02899(typeof location==="undefined"?"":location.search);
+const VAULT_CLEAN_DECK_02899=vaultPolishEnabled02899(typeof location==="undefined"?"":location.search);
 import {BOOST_PADS} from "../../flight/boost/boost-v0160.mjs";
 import {RHYTHM_GATES_0160,VAULT_BOOST_0283_ACTIVE} from "../../flight/boost/risk-reward-v0160.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v0160.mjs";
@@ -206,7 +206,6 @@ export const SURFACE_FRAGMENT_GLSL=`
     trackWindow(trackS, 58.0, 228.0, 23.0),
     trackWindow(trackS, 288.0, 437.0, 23.0));
   ${zoneLayerGLSL}
-  // Current Vault: dark continuous graphite, no painted side-lane slabs.
   vec3 road = ${VAULT_CLEAN_DECK_02899?"mix(vec3(.006,.008,.012),zoneBase,.08)":"mix(zoneBase, zoneBand, sideBand * (0.27 + 0.24 * flowZone))"};
 
   // Two primary white/cyan racing guides that follow ALL banked curves.

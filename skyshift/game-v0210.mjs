@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
+import {createTunnelProfileSampler} from "./tunnel/profile-sampler.mjs";
 import {createRaceLifecycle} from "./core/race-lifecycle.mjs";
 import {createRuntimeLifetime} from "./core/runtime-lifetime.mjs";
 import {collectObjectResources,releaseResourceDifference} from "./core/resource-ownership.mjs";
@@ -914,6 +916,17 @@ function buildRoad(){
      }
    }
  }
+ // The chamber remains enclosed: a recessed, non-driveable pit floor
+ // and end faces are batched into existing road sidewalls, not a second deck.
+ if(VAULT_MEGA_JUMP_ACTIVE){
+  const {start,end,pitDepth}=VAULT_MEGA_JUMP,w=widthAt(start)/2;
+  for(let d=start;d<end-.001;d+=.8){
+   const e=Math.min(d+.8,end);
+   addQuad(walls,wallColors,toVec(d,-w,-pitDepth),toVec(d,w,-pitDepth),toVec(e,w,-pitDepth),toVec(e,-w,-pitDepth),tintSide);
+   for(const side of [-1,1])addQuad(walls,wallColors,toVec(d,side*w),toVec(e,side*w),toVec(e,side*w,-pitDepth),toVec(d,side*w,-pitDepth),tintSide);
+  }
+  for(const s of [start,end])addQuad(walls,wallColors,toVec(s,-w),toVec(s,w),toVec(s,w,-pitDepth),toVec(s,-w,-pitDepth),tintSide);
+ }
  // Highlight each separate landing island at its front and rear edge.
  for(const gap of GAPS){
    for(const spot of [gap.start-1.0,gap.end+.2]){
@@ -1010,6 +1023,7 @@ function buildDecor(){
  if(!isVault())for(const sector of CIRCUIT.sectors.slice(1))
   makeBillboard(sector.name,sector.start+45,10.2,21,0);
  if(!isAurora()&&!isVault())makeBillboard("SKYLINE LEAP",SKYLINE_LEAP.start-50,9.4,15,0);
+ if(VAULT_MEGA_JUMP_ACTIVE)makeBillboard("VAULT MEGA JUMP",VAULT_MEGA_JUMP.start-35,12,15,0);
  // Portal warning is safely above the racing lane, after the wall ride.
  if(!isVault())makeBillboard(isAurora()?"LUMEN PASS":"SHADOW TUNNEL",
   SHADOW_TUNNEL.start-83,11,15,0);
@@ -1374,12 +1388,12 @@ function initScene(){
  // High retains the previous sampler unless explicit benchmark opt-in.
  // QA-only override lets the real browser compare the unchanged old path.
  const frameOverride=perfSettings.enabled?new URLSearchParams(location.search).get("ef07NativeFrame"):null;
- if(trueSharedVaultEnabled&&(frameOverride==="1"||(limitedMemory&&frameOverride!=="0")))
+ if(trueSharedVaultEnabled&&(VAULT_MEGA_JUMP_ACTIVE||frameOverride==="1"||(limitedMemory&&frameOverride!=="0")))
   nativeFrameExperiment=createStaticPositionSampler();
  sharedTunnelRuntime=createSharedTunnelRuntime0280(THREE,world,{
   track:TRACK_ID_0160,positionAt,lowMemory:limitedMemory,
   trackLength:CIRCUIT.lapLength,enabled:sharedTunnelEnabled,
-  ...(nativeFrameExperiment?{positionAt:nativeFrameExperiment}:{})
+  ...(VAULT_MEGA_JUMP_ACTIVE?{positionAt:createTunnelProfileSampler(nativeFrameExperiment??positionAt,chamberProfileAt)}:nativeFrameExperiment?{positionAt:nativeFrameExperiment}:{})
  });
  // Reinstall the SAME Skyline source pipeline over the independent
  // Vault spline. Its 0.27.x pipeline only runs on explicit classic/fallback.
@@ -1391,7 +1405,7 @@ function initScene(){
    archFeet:archFootAssemblyEnabled,precisionNeon:precisionNeonReleaseEnabled,
    cinematicMetal:cinematicMetalReleaseEnabled,upperWallStability:surfaceFinish02898,straightOnly:straightParityReleaseEnabled,
    ceilingFixtures:ceilingFixtureReleaseEnabled,premiumArch:archOpticsReleaseEnabled,
-   waveCove:coveWaveReleaseEnabled,fastFrames:!limitedMemory&&startupSamplerEnabled02897(location.search),
+   waveCove:coveWaveReleaseEnabled,fastFrames:!VAULT_MEGA_JUMP_ACTIVE&&!limitedMemory&&startupSamplerEnabled02897(location.search),
    straightRanges:straightParityReleaseEnabled?vaultStraightRanges02891():[]
   },
   omitLegacyRoadResponse:omitLegacyRoadResponseEF05(location.search,
@@ -1435,7 +1449,7 @@ function initScene(){
  if(perfSettings.enabled&&new URLSearchParams(location.search).get("ef07GeometryDigest")==="1")
   window.__skyshiftEF07RenderWork=()=>({...renderer.info.render});
  const opticalContext=createSharedOpticalContext({
-  positionAt,trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory,tunnel:trueSharedVault,
+  positionAt,sourcePositionAt:VAULT_MEGA_JUMP_ACTIVE?createTunnelProfileSampler(positionAt,chamberProfileAt):positionAt,trackLength:CIRCUIT.lapLength,lowMemory:limitedMemory,tunnel:trueSharedVault,
   enabled:sharedRoadLightEnabled||sharedShipLightEnabled||archRoadReleaseEnabled||unifiedCeilingRoadReleaseEnabled,
   unifiedSources:unifiedSourcesReleaseEnabled
  });

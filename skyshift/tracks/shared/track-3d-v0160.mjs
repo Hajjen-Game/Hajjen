@@ -5,6 +5,7 @@
 import {CIRCUIT,lapPosition,COURSE_SEGMENTS} from "./circuit-layout-v0160.mjs";
 import {isAurora,isVault} from "./track-selection-v0160.mjs";
 import {VAULT_ELEVATION_KEYS_0270} from "../../tracks/vault/full-tunnel-layout-v0270.mjs";
+import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,megaJumpRise,megaJumpGrade} from "../vault/vault-mega-jump.mjs";
 const isFlowTrack=()=>isAurora()||isVault();
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const ease=t=>{const u=clamp(t,0,1);return u*u*u*(10+u*(-15+6*u));};
@@ -22,7 +23,7 @@ export const ELEVATION_KEYS=Object.freeze((isVault()?VAULT_ELEVATION_KEYS_0270:i
  [2125,1],[2315,-4.6],[2445,-4.6],[2645,2],
  [2865,2],[3055,0],[3400,0]
 ]).map(([s,y])=>Object.freeze({s,y})));
-export const SKYLINE_LEAP=Object.freeze({
+export const SKYLINE_LEAP=VAULT_MEGA_JUMP_ACTIVE?VAULT_MEGA_JUMP:Object.freeze({
  id:isFlowTrack()?"no-skyline-leap":"skyline-leap",name:"SKYLINE LEAP",
  start:isFlowTrack()?4100:573,end:isFlowTrack()?4101:606.6,
  lipMeters:573,approachStart:515,landingClearance:33.6,
@@ -95,11 +96,11 @@ export const TRACK_3D=Object.freeze({
  version:isVault()?"neon-vault-enclosed-elevation-0270":
   isAurora()?"aurora-run-rolling-hills-0160":"track-rhythm-grip-apex-082",
  lapLength:CIRCUIT.lapLength,
- highestMeters:isVault()?8:isFlowTrack()?16:12,
+ highestMeters:VAULT_MEGA_JUMP_ACTIVE?11:isVault()?8:isFlowTrack()?16:12,
  lowestMeters:isVault()?-1:isFlowTrack()?-4:-4.6,
- heightRangeMeters:isVault()?9:isFlowTrack()?20:16.6,
+ heightRangeMeters:VAULT_MEGA_JUMP_ACTIVE?12:isVault()?9:isFlowTrack()?20:16.6,
  bankAngleMaxRadians:isVault()?.17:isFlowTrack()?.12:Math.PI*2,
- jumpCount:isFlowTrack()?0:1,
+ jumpCount:VAULT_MEGA_JUMP_ACTIVE?1:isFlowTrack()?0:1,
  mandatoryRolls:isFlowTrack()?0:1,
  wallRide:!isFlowTrack(),ceilingRun:!isFlowTrack(),corkscrew:!isFlowTrack(),
  magneticWallId:MAGNETIC_WALL.id, corkscrewId:CORKSCREW.id,
@@ -120,11 +121,11 @@ function segment(s){
 }
 export function elevationAt(s){
  const [a,b,d]=segment(s),t=(d-a.s)/(b.s-a.s);
- return a.y+(b.y-a.y)*ease(t);
+ return a.y+(b.y-a.y)*ease(t)+(VAULT_MEGA_JUMP_ACTIVE?megaJumpRise(d):0);
 }
 export function gradeAt(s){
  const [a,b,d]=segment(s),length=b.s-a.s;
- return (b.y-a.y)/length*easeDeriv((d-a.s)/length);
+ return (b.y-a.y)/length*easeDeriv((d-a.s)/length)+(VAULT_MEGA_JUMP_ACTIVE?megaJumpGrade(d):0);
 }
 export function pitchAt(s){return Math.atan(gradeAt(s));}
 export function groundNormalAt(s,heading){
@@ -137,7 +138,7 @@ export function jumpAt(s){
  return p>=SKYLINE_LEAP.start&&p<SKYLINE_LEAP.end?SKYLINE_LEAP:null;
 }
 export function upcomingJump(s,distance=90){
- if(isFlowTrack())return null;
+ if(isFlowTrack()&&!VAULT_MEGA_JUMP_ACTIVE)return null;
  const p=lapPosition(s),jump=SKYLINE_LEAP;
  const delta=(jump.start-p+CIRCUIT.lapLength)%CIRCUIT.lapLength;
  return delta<=distance?{...jump,distance:delta}:null;

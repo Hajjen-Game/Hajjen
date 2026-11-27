@@ -122,3 +122,58 @@ test("Vault third bend: live deck shares full 23.2m width and every vertex with 
  assert.equal(cmd.status,0,cmd.stderr?.slice(0,3000));
  assert.match(cmd.stdout,/14m -> 23.2m/);
 });
+
+test("0.29.0 opt-in chamber, real gap and shared ballistic flight",()=>{
+ const code=`
+ globalThis.location={search:'?track=vault&v=0.28.9.11&vaultJump=1'};
+ const assert=(await import('node:assert/strict')).default;
+ const route=await import('./skyshift/tracks/trials/trial-v0165.mjs');
+ const {VAULT_MEGA_JUMP:j,VAULT_MEGA_JUMP_ACTIVE,megaJumpRise,megaJumpGrade,chamberProfileAt,vaultMegaJumpEnabled}=await import('./skyshift/tracks/vault/vault-mega-jump.mjs');
+ const {createTunnelProfileSampler}=await import('./skyshift/tunnel/profile-sampler.mjs');
+ const {premiumTrackCoordinates}=await import('./skyshift/rendering/road/premium-track-v0160.mjs');
+ assert.equal(VAULT_MEGA_JUMP_ACTIVE,true);
+ assert.equal(vaultMegaJumpEnabled('?track=vault&v=0.28.9.11'),false);
+ assert.equal(vaultMegaJumpEnabled('?track=skyline&v=0.28.9.11&vaultJump=1'),false);
+ assert.equal(route.GAPS.length,1);
+ assert.equal(route.GAPS[0].id,j.id);
+ for(let lap=0;lap<3;lap++){
+  const s=lap*3400+j.start;
+  assert.ok(route.onRoad(s-1,0));assert.ok(!route.onRoad(s+1,0));
+  assert.ok(route.onRoad(lap*3400+j.end+1,0));
+ }
+ assert.equal(megaJumpRise(j.chamberStart),0);
+ assert.equal(megaJumpRise(j.chamberEnd),0);
+ assert.equal(megaJumpGrade(j.chamberStart),0);
+ assert.equal(megaJumpGrade(j.chamberEnd),0);
+ assert.deepEqual(chamberProfileAt(j.start,12,.1),[12,.1]);
+ assert.ok(chamberProfileAt(j.start,20,20)[0]>24);
+ assert.ok(chamberProfileAt(j.start,0,30)[1]>45);
+ assert.deepEqual(chamberProfileAt(j.chamberEnd,20,20),[20,20]);
+ const source=createTunnelProfileSampler(route.positionAt,chamberProfileAt);
+ assert.deepEqual(source(j.start,12,.1),route.positionAt(j.start,12,.1));
+ const {data,coords}=premiumTrackCoordinates(route);
+ for(let i=0;i<data.indices.length;i+=3){
+  const ds=data.indices.slice(i,i+3).map(k=>coords[k*2]);
+  assert.ok((Math.min(...ds)+Math.max(...ds))/2<j.start||(Math.min(...ds)+Math.max(...ds))/2>=j.end,'deck triangle inside gap');
+ }
+ for(const stage of [0,4,8]){
+  const st=route.newFlightState(),s=j.start-24,p=route.positionAt(s);
+  Object.assign(st,{s,worldX:p.x,worldZ:p.z,heading:route.headingAt(s),y:route.surfaceHeightAt(s)+route.TRIAL.hoverHeight,zoneSpeedStage:stage,zoneCruiseSpeed:route.speedAt(s,stage),currentSpeed:route.speedAt(s,stage),checkpoint:1020,checkpointsPassed:3});
+  for(let i=0;i<1200&&!st.cleanLeapLandings&&!st.falls;i++){
+   const rolling=!st.grounded&&!st.trickReady;
+   route.stepFlight(st,1/120,{grip:rolling,steer:rolling?.65:0});
+  }
+  assert.equal(st.autoLaunches,1,'stage '+stage);
+  assert.equal(st.falls,0,'stage '+stage);
+  assert.equal(st.cleanLeapLandings,1,'stage '+stage);
+  assert.equal(st.trickFullRotations,1,'stage '+stage);
+  assert.equal(st.landingBoostActivations,1,'stage '+stage+' '+st.lastTrickFailReason);
+  assert.ok(st.s<j.chamberEnd,'landing after chamber');
+ }
+ console.log('actual opt-in route: three speed stages, roll and clean landing');
+ `;
+ const cmd=spawnSync(process.execPath,["--input-type=module","-e",code],
+  {cwd:new URL("../../"+"../",import.meta.url).pathname,encoding:"utf8",timeout:25000});
+ assert.equal(cmd.status,0,cmd.stderr?.slice(0,3000));
+ assert.match(cmd.stdout,/three speed stages/);
+});

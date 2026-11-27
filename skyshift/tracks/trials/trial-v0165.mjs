@@ -64,7 +64,7 @@ export function circuitPlanSummary(){
   gripApexes:Object.keys(TECHNICAL_APEX_PULSES)};
 }
 export const MAX_BANK_RAD=2*Math.PI;
-export const GAPS=Object.freeze(isFlowTrack()?[]:[SKYLINE_LEAP]);
+export const GAPS=Object.freeze(TRACK_3D.jumpCount?[SKYLINE_LEAP]:[]);
 export const ISLANDS=Object.freeze([]);
 export const SPLITS=Object.freeze([]);
 export const RISK_CUTS=Object.freeze([]);
@@ -92,7 +92,7 @@ export const ARCHES=Object.freeze([
 export const GEOMETRY_BREAKS=Object.freeze([
  ...new Set([...COURSE_SEGMENTS.flatMap(c=>c.type==="turn"?
   [c.start,c.start+c.entry,c.end-c.exit,c.end]:[c.start,c.end]),
-  ...(isFlowTrack()?[]:[SKYLINE_LEAP.start,SKYLINE_LEAP.end,
+  ...(isFlowTrack()?GAPS.flatMap(g=>[g.start,g.end]):[SKYLINE_LEAP.start,SKYLINE_LEAP.end,
    MAGNETIC_WALL.start,MAGNETIC_WALL.riseEnd,MAGNETIC_WALL.fallStart,
    MAGNETIC_WALL.end,CORKSCREW.start,CORKSCREW.end])])
 ].sort((a,b)=>a-b));
@@ -270,7 +270,7 @@ export function validateTrial(){
   errors.push("grip apex has no physical deck narrowing");
  if(corkscrewAt(SKYLINE_LEAP.start)||corkscrewAt(MAGNETIC_WALL.start))
   errors.push("corkscrew overlaps launch gap or magnetic wall");
- if(GAPS.length!==1)
+ if(GAPS.length!==TRACK_3D.jumpCount)
   errors.push("invalid number of leap gaps");
  return errors;
 }

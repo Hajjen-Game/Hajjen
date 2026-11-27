@@ -90,3 +90,11 @@
  .hud.hud-v21.hud-compact-0292 #tt-hud .tt-tag{display:none}
  .hud.hud-v21.hud-compact-0292 #tt-clock,.hud.hud-v21.hud-compact-0292 #tt-delta{font-size:10px}
 }
+
+/* 0.29.3 preference controls, scrollable even in compact mobile landscape. */
+#settings-screen.smart-settings .settings-panel{transform:none;max-height:calc(100% - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;touch-action:pan-y;padding:10px 12px;overscroll-behavior:contain}
+#smart-performance-settings{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;font-size:10px;color:#c3e9f4}
+#smart-performance-settings .settings-subhead,#smart-performance-settings .settings-hint,#smart-performance-settings .performance-check{grid-column:1/-1}
+#smart-performance-settings select{width:100%;min-width:0;background:#102338;color:#eaf7ff;border:1px solid #568ba1;border-radius:4px;padding:7px 4px;font:inherit;touch-action:manipulation}
+#smart-performance-settings .performance-check{display:flex;align-items:center;gap:8px;min-height:27px}
+#smart-performance-settings input{accent-color:#66e8ff;width:16px;height:16px;touch-action:manipulation}

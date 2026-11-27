@@ -1,10 +1,12 @@
 // Explicit release profiles; stable Vault and the original prototype remain available.
 export function vaultJumpPolishEnabled(search=typeof location==="undefined"?"":location.search){
- return vaultMegaJumpEnabled(search)&&["0.29.1","0.29.2"].includes(new URLSearchParams(search||"").get("v"));
+ return vaultMegaJumpEnabled(search)&&["0.29.1","0.29.2","0.29.3"].includes(new URLSearchParams(search||"").get("v"));
 }
 export const VAULT_JUMP_POLISH_ACTIVE=vaultJumpPolishEnabled();
-export const VAULT_COMPACT_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&new URLSearchParams(typeof location==="undefined"?"":location.search).get("v")==="0.29.2";
-export const VAULT_JUMP_VERSION=VAULT_COMPACT_ACTIVE?"0.29.2":VAULT_JUMP_POLISH_ACTIVE?"0.29.1":"0.29.0";
+const requestedRelease=new URLSearchParams(typeof location==="undefined"?"":location.search).get("v");
+export const VAULT_SMART_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&requestedRelease==="0.29.3";
+export const VAULT_COMPACT_ACTIVE=VAULT_JUMP_POLISH_ACTIVE&&["0.29.2","0.29.3"].includes(requestedRelease);
+export const VAULT_JUMP_VERSION=VAULT_SMART_ACTIVE?"0.29.3":VAULT_COMPACT_ACTIVE?"0.29.2":VAULT_JUMP_POLISH_ACTIVE?"0.29.1":"0.29.0";
 export const VAULT_RAIL_SHIELD_DAMAGE=Object.freeze({points:4,intervalSeconds:.5});
 export const VAULT_MEGA_JUMP=Object.freeze({
  id:"vault-mega-jump",name:"VAULT MEGA JUMP",
@@ -17,10 +19,10 @@ export const VAULT_MEGA_JUMP=Object.freeze({
 export function vaultMegaJumpEnabled(search=typeof location==="undefined"?"":location.search){
  const q=new URLSearchParams(search||"");
  return q.get("track")==="vault"&&q.get("vaultJump")!=="0"&&
- (q.get("vaultJump")==="1"||["0.29.0","0.29.1","0.29.2"].includes(q.get("v")))&&
+ (q.get("vaultJump")==="1"||["0.29.0","0.29.1","0.29.2","0.29.3"].includes(q.get("v")))&&
  !["classic","off"].includes(q.get("sharedTunnel"))&&
  !["classic","off"].includes(q.get("trueSharedRenderer"))&&
- ["0.28.9.11","0.29.0","0.29.1","0.29.2"].includes(q.get("v"));
+ ["0.28.9.11","0.29.0","0.29.1","0.29.2","0.29.3"].includes(q.get("v"));
 }
 export const VAULT_MEGA_JUMP_ACTIVE=vaultMegaJumpEnabled();
 const clamp=x=>Math.max(0,Math.min(1,x));

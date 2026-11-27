@@ -2,13 +2,9 @@ name: SKYSHIFT EF02 road deck parity
 on:
   pull_request:
     paths:
-      - 'skyshift/tracks/shared/smooth-track-v046.mjs'
-      - 'skyshift/tracks/shared/smooth-track-v060.mjs'
       - 'skyshift/tracks/shared/smooth-track-v072.mjs'
       - 'skyshift/tracks/shared/smooth-track-v081.mjs'
       - 'skyshift/tracks/shared/smooth-track-v082.mjs'
-      - 'skyshift/tracks/shared/smooth-track-v083.mjs'
-      - 'skyshift/tracks/shared/smooth-track-v084.mjs'
       - 'skyshift/tracks/shared/smooth-track-v0901.mjs'
       - 'skyshift/tracks/shared/smooth-track-v0160.mjs'
       - 'skyshift/tracks/shared/smooth-deck.mjs'
@@ -19,8 +15,6 @@ on:
       - 'skyshift/tracks/barriers/aero-barrier-v072.mjs'
       - 'skyshift/tracks/barriers/aero-barrier-v081.mjs'
       - 'skyshift/tracks/barriers/aero-barrier-v082.mjs'
-      - 'skyshift/tracks/barriers/aero-barrier-v083.mjs'
-      - 'skyshift/tracks/barriers/aero-barrier-v084.mjs'
       - 'skyshift/tracks/barriers/aero-barrier-v0901.mjs'
       - 'skyshift/tracks/barriers/aero-barrier-v0160.mjs'
       - 'skyshift/tracks/barriers/aero-barrier-v0162.mjs'

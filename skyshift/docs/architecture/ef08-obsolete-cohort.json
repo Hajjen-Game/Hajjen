@@ -3437,6 +3437,1134 @@
         "sha": "c7ec8d5409e2c6924d8f22afc0acb2dd16a257a7",
         "bytes": 7526
       }
+    },
+    {
+      "path": "skyshift/neon-v083.mjs",
+      "sha": "58dfb0e2e272b51bf7dc283c87625c27114b6a40",
+      "bytes": 2151,
+      "baselineBlob": "58dfb0e2e272b51bf7dc283c87625c27114b6a40",
+      "priorOwner": "environment",
+      "priorRole": "text-reference-unresolved",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/game-v0101.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/game-v0103.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/racing-feel-v083.test.mjs",
+          "stillTracked": true,
+          "unchanged": false
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 1,
+        "pinned-archive": 20
+      },
+      "metadataRefs": 6,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "d787bc4c4fedbb706c2797ccbae503c7fd301283",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/racing-feel-v083.test.mjs",
+          "sha": "c1094fce5e13ec0dcfb6a57bd77e8cbbae60e08b",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0104.mjs",
+          "sha": "5daf95cb39f275338fcbc4a92301e6f18ed7bae7",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0105.mjs",
+          "sha": "487fd93444e4e45e580d27eb6dccd3086eeb578c",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0106.mjs",
+          "sha": "1aa7bb4de1d0248c785e92e5ac2fa4ac6eb6cfee",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0107.mjs",
+          "sha": "be2cf1a69715c688077ec5e2cbf9d53fb0a31b52",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v01071.mjs",
+          "sha": "0b83dbabe1770203e06cbc0a512488ff369bacc8",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0108.mjs",
+          "sha": "faa869576790e4652290c2ce174e0d5aa8ef6181",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0109.mjs",
+          "sha": "fedcf11024d669e3e26b2f6ebd29334b08fef967",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v01091.mjs",
+          "sha": "bcb9560f4a1a54576cd60505e3e3d0a012e65b47",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0110.mjs",
+          "sha": "81256994d2aa5d4085d73e2e8e18f787f4378fee",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v010.mjs",
+          "sha": "6aae1ca4d07f330d7aff81c7911e32a0982db5e3",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0102.mjs",
+          "sha": "2b993071988d52d153f37f0545b39b6fcbbfdbc8",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v083.mjs",
+          "sha": "c5d4eae543ddb39f6954907cf7abf2accdc95c59",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v084.mjs",
+          "sha": "5949350555a051177b7c05754b415361b510d731",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v090.mjs",
+          "sha": "bd05cdd7424b00cf64d2daeefaccc9e028c636e8",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0901.mjs",
+          "sha": "bb276495c1306e6f9cc2982aabb25e5e1b7e999e",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v091.mjs",
+          "sha": "9cc05ebf484841f283708f2c3695e3701af3f003",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v092.mjs",
+          "sha": "753d645d41e6000adb86ef253bd85cda14745012",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0921.mjs",
+          "sha": "426329d431224ecddac9e981d8be27ce20e916e3",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/game-v0101.mjs",
+          "sha": "fe7c7b092ca83647dd4a40a473d1d4a989e09a4e",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/game-v0103.mjs",
+          "sha": "4866e86d277052d128aa5afd0985074ee7e2f8da",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/neon-v083.mjs",
+        "sha": "58dfb0e2e272b51bf7dc283c87625c27114b6a40",
+        "bytes": 2151
+      }
+    },
+    {
+      "path": "skyshift/trial-v043.mjs",
+      "sha": "754aab77bd785e14297ed00796e420d30caf1941",
+      "bytes": 10877,
+      "baselineBlob": "754aab77bd785e14297ed00796e420d30caf1941",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-deck-moves.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/cinematic-v045.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/flight-motion-v044.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/speed-v043.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v043.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 2,
+        "source": 1,
+        "pinned-archive": 3
+      },
+      "metadataRefs": 9,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "d787bc4c4fedbb706c2797ccbae503c7fd301283",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/flight-motion-v044.test.mjs",
+          "sha": "57d01ac0167cb968e04ca80460278cbc4bb89c9e",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/speed-v043.test.mjs",
+          "sha": "419bfe3bdf9d8cd5b7259634568543afc1023cc6",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v043.mjs",
+          "sha": "7990b3380bf10b6052cb0b1e41103f91334f9c8f",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v043.mjs",
+          "sha": "2968c848ebc8f1329fa38ea719d79616db6ad29b",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v044.mjs",
+          "sha": "9235c1276f907662433d9c44e695f217f7a92302",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v045.mjs",
+          "sha": "057312bf0c0277628282c94e8b62d8d7781ea34d",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v043.mjs",
+        "sha": "754aab77bd785e14297ed00796e420d30caf1941",
+        "bytes": 10877
+      }
+    },
+    {
+      "path": "skyshift/trial-v046.mjs",
+      "sha": "2a460a5fca71fde4c8f0403f740e8894c1a944ed",
+      "bytes": 12518,
+      "baselineBlob": "2a460a5fca71fde4c8f0403f740e8894c1a944ed",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-deck-moves.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/identity-v046.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/aero-barrier-v047.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/boost-zone-v048.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/track-flow-v046.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v047.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v046.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 1,
+        "source": 2,
+        "pinned-archive": 2
+      },
+      "metadataRefs": 9,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "d787bc4c4fedbb706c2797ccbae503c7fd301283",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/aero-barrier-v047.test.mjs",
+          "sha": "94ee71fc2872761d70b9330bbbfa870a5be7c1dd",
+          "kind": "test-or-qa",
+          "count": 2
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v047.mjs",
+          "sha": "d2454a6352c4c2f24868a11b8d01c4b441eca661",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v046.mjs",
+          "sha": "465a93128ef077b9440ecbb93fc6f3b390acee02",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v046.mjs",
+          "sha": "d5ab769f5f18ea3a0515867359d5b0376821c7ad",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v047.mjs",
+          "sha": "3fe3dc2c1f4fff3006fc32d58f148a8e180054ba",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v046.mjs",
+        "sha": "2a460a5fca71fde4c8f0403f740e8894c1a944ed",
+        "bytes": 12518
+      }
+    },
+    {
+      "path": "skyshift/trial-v048.mjs",
+      "sha": "cb89318cbb4079f3c9ec0bdff13cf029fa1339d4",
+      "bytes": 12899,
+      "baselineBlob": "cb89318cbb4079f3c9ec0bdff13cf029fa1339d4",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02i-legacy-rendering-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/stageJ-consumer-queue.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0481.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0482.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/boost-zone-v048.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/extended-zone-v049.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/hard-edge-v0484.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/manta-blade-v0483.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/premium-ship-v0482.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/premium-track-v0481.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/zone-surface-v048.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "source": 2,
+        "test-or-qa": 1,
+        "pinned-archive": 5
+      },
+      "metadataRefs": 10,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "d787bc4c4fedbb706c2797ccbae503c7fd301283",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0481.mjs",
+          "sha": "2197009f67e625ce04d10fa2bea2462d5e0328c5",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0482.mjs",
+          "sha": "1e60dd36f35c0e6818e398c8ea4e92958e13121e",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/premium-track-v0481.test.mjs",
+          "sha": "c266a1a8e09f97be0e2f8052e3a0fcf093cd36c6",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v048.mjs",
+          "sha": "3c22a01cbcbe9f1a68e462807b2873578499d524",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0481.mjs",
+          "sha": "bd9edd0e14b02138be9f6b551ad0298cbc24302e",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0482.mjs",
+          "sha": "a47d1b29719b3d87faa24034b157fab1273c2545",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0483.mjs",
+          "sha": "8ddfe5d7e789846547f2dd88b2cd325ecc3d6589",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0484.mjs",
+          "sha": "913e4140c9e0b1a89f8d203c28353afb18233764",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v048.mjs",
+        "sha": "cb89318cbb4079f3c9ec0bdff13cf029fa1339d4",
+        "bytes": 12899
+      }
+    },
+    {
+      "path": "skyshift/trial-v060.mjs",
+      "sha": "adf3b64b62d13012568e43a3169e581b39b12024",
+      "bytes": 15985,
+      "baselineBlob": "adf3b64b62d13012568e43a3169e581b39b12024",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-deck-moves.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02h-track-geometry-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02i-legacy-rendering-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/stageJ-consumer-queue.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v060.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v060.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/circuit-v060.test.mjs",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v060.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v060.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "source": 3,
+        "test-or-qa": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 11,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "d787bc4c4fedbb706c2797ccbae503c7fd301283",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v060.mjs",
+          "sha": "96ee89cc276fd44cfdd825e1976975baceb89b1e",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/circuit-v060.test.mjs",
+          "sha": "af7ae8705e23fdb14c94709e86ba867b8d83013a",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v060.mjs",
+          "sha": "9f3ab0562e65226b82905c261dfd65cc2015cdf7",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v060.mjs",
+          "sha": "ae699c635ea926429c38f3b044c26b3e5a196406",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v060.mjs",
+          "sha": "a973646cafffb451998338d66ad76a19c6ad7b3a",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v060.mjs",
+        "sha": "9157221dd42f8b80cb063a1f6b5b9f3e164206e2",
+        "bytes": 15971
+      }
+    },
+    {
+      "path": "skyshift/trial-v083.mjs",
+      "sha": "e4b27cb02f7b327eb577d65cc0bff31ddf54788d",
+      "bytes": 31067,
+      "baselineBlob": "e4b27cb02f7b327eb577d65cc0bff31ddf54788d",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/cinematic-v083.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-deck-moves.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02h-track-geometry-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/stageJ-consumer-queue.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/flight/stageH-consumer-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v083.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/racing-feel-v083.test.mjs",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/steering-authority-v084.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v083.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v083.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 2,
+        "source": 2,
+        "pinned-archive": 2
+      },
+      "metadataRefs": 11,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "d787bc4c4fedbb706c2797ccbae503c7fd301283",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/racing-feel-v083.test.mjs",
+          "sha": "c1094fce5e13ec0dcfb6a57bd77e8cbbae60e08b",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/steering-authority-v084.test.mjs",
+          "sha": "4d0b6ce52586587558616ed38a4c92ab66b41540",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v083.mjs",
+          "sha": "fee603265460d8977085b883898e8ecdca4ae6f6",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v083.mjs",
+          "sha": "21bb4f95cd75bd77fb5587085e666304fce3ae67",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v083.mjs",
+          "sha": "c5d4eae543ddb39f6954907cf7abf2accdc95c59",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/premium-track-v083.mjs",
+          "sha": "897d5cd7b04ad0c61329ad957df54b5d2d3fca59",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v083.mjs",
+        "sha": "22797afbf0d5c9ff7e1028d93454614f99446a0c",
+        "bytes": 31039
+      }
+    },
+    {
+      "path": "skyshift/trial-v084.mjs",
+      "sha": "05675fef996611e88dd3bd8ca482c662adb76091",
+      "bytes": 32290,
+      "baselineBlob": "05675fef996611e88dd3bd8ca482c662adb76091",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/cinematic-v084.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/cinematic-v090.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-deck-moves.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02h-track-geometry-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/stageJ-consumer-queue.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/flight/stageH-consumer-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v084.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v090.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/grip-first-v0901.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/kinetic-camera-v090.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/steering-authority-v084.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v084.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v084.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 2,
+        "source": 2,
+        "pinned-archive": 3
+      },
+      "metadataRefs": 11,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "d787bc4c4fedbb706c2797ccbae503c7fd301283",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/grip-first-v0901.test.mjs",
+          "sha": "1047b924adc785b02b6243c227f89ffc59a06fa0",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/steering-authority-v084.test.mjs",
+          "sha": "4d0b6ce52586587558616ed38a4c92ab66b41540",
+          "kind": "test-or-qa",
+          "count": 2
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v084.mjs",
+          "sha": "b3a78a088238e6db5385dd53cbd7a5a4366a9b82",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v084.mjs",
+          "sha": "bbcfd0e64767b75e0fa345ea9ca10b45e9bfe55b",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v084.mjs",
+          "sha": "5949350555a051177b7c05754b415361b510d731",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v090.mjs",
+          "sha": "bd05cdd7424b00cf64d2daeefaccc9e028c636e8",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/premium-track-v084.mjs",
+          "sha": "2bda4f94fcc99959c129c03c30ba53e44611ef1e",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v084.mjs",
+        "sha": "cbad738880684489622915df0c7b7fba2f16ab9a",
+        "bytes": 32262
+      }
     }
   ],
   "unitTests": [
@@ -3801,6 +4929,174 @@
         "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
         "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
         "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/aero-barrier-v047.test.mjs",
+      "sha": "94ee71fc2872761d70b9330bbbfa870a5be7c1dd",
+      "bytes": 6486,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/circuit-v060.test.mjs",
+      "sha": "af7ae8705e23fdb14c94709e86ba867b8d83013a",
+      "bytes": 10341,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/flight-motion-v044.test.mjs",
+      "sha": "57d01ac0167cb968e04ca80460278cbc4bb89c9e",
+      "bytes": 5555,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/grip-first-v0901.test.mjs",
+      "sha": "1047b924adc785b02b6243c227f89ffc59a06fa0",
+      "bytes": 7127,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/premium-track-v0481.test.mjs",
+      "sha": "c266a1a8e09f97be0e2f8052e3a0fcf093cd36c6",
+      "bytes": 7360,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/racing-feel-v083.test.mjs",
+      "sha": "c1094fce5e13ec0dcfb6a57bd77e8cbbae60e08b",
+      "bytes": 9292,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/speed-v043.test.mjs",
+      "sha": "419bfe3bdf9d8cd5b7259634568543afc1023cc6",
+      "bytes": 9476,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/steering-authority-v084.test.mjs",
+      "sha": "4d0b6ce52586587558616ed38a4c92ab66b41540",
+      "bytes": 8866,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
       ]
     }
   ],
@@ -4723,6 +6019,72 @@
         "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
         "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
       ]
+    },
+    {
+      "scope": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "rootFiles": 7,
+      "sourceFiles": 12,
+      "unitFiles": 8,
+      "browserFiles": 0,
+      "bytes": 245884,
+      "paths": [
+        "skyshift/neon-v083.mjs",
+        "skyshift/rendering/legacy/premium-track-v0481.mjs",
+        "skyshift/rendering/legacy/premium-track-v0482.mjs",
+        "skyshift/rendering/legacy/premium-track-v060.mjs",
+        "skyshift/tests/unit/aero-barrier-v047.test.mjs",
+        "skyshift/tests/unit/circuit-v060.test.mjs",
+        "skyshift/tests/unit/flight-motion-v044.test.mjs",
+        "skyshift/tests/unit/grip-first-v0901.test.mjs",
+        "skyshift/tests/unit/premium-track-v0481.test.mjs",
+        "skyshift/tests/unit/racing-feel-v083.test.mjs",
+        "skyshift/tests/unit/speed-v043.test.mjs",
+        "skyshift/tests/unit/steering-authority-v084.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v047.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v060.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v083.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v084.mjs",
+        "skyshift/tracks/shared/smooth-track-v043.mjs",
+        "skyshift/tracks/shared/smooth-track-v046.mjs",
+        "skyshift/tracks/shared/smooth-track-v060.mjs",
+        "skyshift/tracks/shared/smooth-track-v083.mjs",
+        "skyshift/tracks/shared/smooth-track-v084.mjs",
+        "skyshift/trial-v043.mjs",
+        "skyshift/trial-v046.mjs",
+        "skyshift/trial-v048.mjs",
+        "skyshift/trial-v060.mjs",
+        "skyshift/trial-v083.mjs",
+        "skyshift/trial-v084.mjs"
+      ],
+      "removedSyntaxCommands": 21,
+      "coverage": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ]
     }
   ],
   "protectedReplacements": {
@@ -5410,6 +6772,330 @@
         "path": "skyshift/smooth-track-v051.mjs",
         "sha": "f35175600bd692092568ac5599ae3242e42e7473",
         "bytes": 2333
+      }
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0481.mjs",
+      "sha": "2197009f67e625ce04d10fa2bea2462d5e0328c5",
+      "bytes": 8340,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v0481.mjs",
+        "sha": "28ffdf4ca51411f166bfce8d415231e37dc16cb0",
+        "bytes": 8314
+      }
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0482.mjs",
+      "sha": "1e60dd36f35c0e6818e398c8ea4e92958e13121e",
+      "bytes": 9025,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v0482.mjs",
+        "sha": "9848f10fd39eef40154aab8a3202b343dd2a2603",
+        "bytes": 8999
+      }
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v060.mjs",
+      "sha": "96ee89cc276fd44cfdd825e1976975baceb89b1e",
+      "bytes": 15840,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v060.mjs",
+        "sha": "244050ed17e9719ee910db22513084f96ebc1ea4",
+        "bytes": 15810
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v047.mjs",
+      "sha": "d2454a6352c4c2f24868a11b8d01c4b441eca661",
+      "bytes": 8372,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v047.mjs",
+        "sha": "d2454a6352c4c2f24868a11b8d01c4b441eca661",
+        "bytes": 8372
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v060.mjs",
+      "sha": "9f3ab0562e65226b82905c261dfd65cc2015cdf7",
+      "bytes": 16123,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v060.mjs",
+        "sha": "9f3ab0562e65226b82905c261dfd65cc2015cdf7",
+        "bytes": 16123
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v083.mjs",
+      "sha": "fee603265460d8977085b883898e8ecdca4ae6f6",
+      "bytes": 904,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v083.mjs",
+        "sha": "41b2cfb25a37da4b0a9520c6cd83bf57bfc69e82",
+        "bytes": 16614
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v084.mjs",
+      "sha": "b3a78a088238e6db5385dd53cbd7a5a4366a9b82",
+      "bytes": 904,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v084.mjs",
+        "sha": "b9cd0d631a1dd607f8e502a09ed287287e16d3fb",
+        "bytes": 16614
+      }
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v043.mjs",
+      "sha": "7990b3380bf10b6052cb0b1e41103f91334f9c8f",
+      "bytes": 2260,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v043.mjs",
+        "sha": "4619637c7f85fe2b3480407a31e94af25cc69a30",
+        "bytes": 2256
+      }
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v046.mjs",
+      "sha": "465a93128ef077b9440ecbb93fc6f3b390acee02",
+      "bytes": 655,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v046.mjs",
+        "sha": "2e6dfccbf668ceec40ca4f4af0fca85ade0cd9b2",
+        "bytes": 2326
+      }
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v060.mjs",
+      "sha": "ae699c635ea926429c38f3b044c26b3e5a196406",
+      "bytes": 392,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v060.mjs",
+        "sha": "3828a13db70bc4b948d2ec591070cf5eec67015f",
+        "bytes": 2333
+      }
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v083.mjs",
+      "sha": "21bb4f95cd75bd77fb5587085e666304fce3ae67",
+      "bytes": 388,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v083.mjs",
+        "sha": "77b461ecefcf08a75d1bd92d1082f1f58c13be75",
+        "bytes": 2534
+      }
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v084.mjs",
+      "sha": "bbcfd0e64767b75e0fa345ea9ca10b45e9bfe55b",
+      "bytes": 391,
+      "rollbackCommit": "e4077d5dffe9d5f39691c5e8e662488e46ede065",
+      "verifiedArchitectureRun": 45962388924,
+      "productionEvidenceRun": 45962388929,
+      "reason": "Retire superseded closed 043/046/048/060/083/084 historical trial, deck, barrier and neon cohorts and their syntax-only historical readers; preserve executable current track, steering, GRIP, trick, rail, premium-material, wave and real Vault coverage plus the explicit 072/081/082 parity adapters.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track-physics-parity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v084.mjs",
+        "sha": "cededc2deedad9698de2ef97c4842bdc330507d3",
+        "bytes": 2534
       }
     }
   ]

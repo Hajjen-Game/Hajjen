@@ -216,18 +216,10 @@ jobs:
           node --check skyshift/neon-v032.mjs
           node --check skyshift/luminance-v0331.mjs
           node --check skyshift/ships/ship-v034.mjs
-          node --check skyshift/trial-v043.mjs
-          node --check skyshift/tracks/shared/smooth-track-v043.mjs
           node --check skyshift/core/frame-pacing-v043.mjs
           node --check skyshift/flight-motion-v044.mjs
           node --check skyshift/core/frame-pacing-v044.mjs
-          node --check skyshift/trial-v046.mjs
-          node --check skyshift/tracks/shared/smooth-track-v046.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v047.mjs
           node --check skyshift/flight/boost/boost-v048.mjs
-          node --check skyshift/trial-v048.mjs
-          node --check skyshift/rendering/legacy/premium-track-v0481.mjs
-          node --check skyshift/rendering/legacy/premium-track-v0482.mjs
           node --check skyshift/ships/manta-blade-v0484.mjs
           node --check skyshift/flight/boost/boost-v049.mjs
           node --check skyshift/flight/boost/boost-v0494.mjs
@@ -241,11 +233,7 @@ jobs:
           node --check skyshift/flight/boost/boost-v050.mjs
           node --check skyshift/tracks/shared/circuit-layout-v060.mjs
           node --check skyshift/flight/boost/boost-v060.mjs
-          node --check skyshift/trial-v060.mjs
-          node --check skyshift/tracks/shared/smooth-track-v060.mjs
           node --check skyshift/zone-wave-v060.mjs
-          node --check skyshift/rendering/legacy/premium-track-v060.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v060.mjs
           node --check skyshift/precision-grip-v061.mjs
           node --check skyshift/flight/side-thrusters-v061.mjs
 
@@ -270,18 +258,11 @@ jobs:
           node --check skyshift/tracks/shared/smooth-track-v082.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v082.mjs
           node --check skyshift/rendering/legacy/premium-track-v082.mjs
-          node --check skyshift/trial-v083.mjs
           node --check skyshift/flight/air-tricks-v083.mjs
           node --check skyshift/flight/racing-feel-v083.mjs
           node --check skyshift/image-clarity-v083.mjs
-          node --check skyshift/neon-v083.mjs
-          node --check skyshift/tracks/shared/smooth-track-v083.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v083.mjs
           node --check skyshift/flight/precision-grip-v084.mjs
           node --check skyshift/flight/steering-authority-v084.mjs
-          node --check skyshift/trial-v084.mjs
-          node --check skyshift/tracks/shared/smooth-track-v084.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v084.mjs
           node --check skyshift/flight/kinetic-camera-v090.mjs
           node --check skyshift/flight/boost-spring-v090.mjs
           node --check skyshift/flight/steering-authority-v0901.mjs
@@ -486,10 +467,8 @@ jobs:
           if [ -f skyshift/assets/ships/stingray-evo-hero-v1.glb ]; then
             python3 skyshift/blender/validate_hero_glb.py skyshift/assets/ships/stingray-evo-hero-v1.glb
           fi
-          node --check skyshift/tests/unit/grip-first-v0901.test.mjs
           node --check skyshift/tests/unit/signature-flight-v091.test.mjs
           node --check skyshift/tests/unit/shadow-tunnel-v092.test.mjs
-          node --check skyshift/tests/unit/steering-authority-v084.test.mjs
       - name: Verify SKYSHIFT deterministic track planner
         # Historical version-pinned tests are archived. Gate live 0.16.5 against
         # the deployed V4 GLTF geometry + visual/GRIP invariants. V3 sculpt art

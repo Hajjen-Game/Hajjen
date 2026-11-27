@@ -135,7 +135,7 @@ import {createSharedTunnelRuntime0280}
 import {omitLegacyRoadResponseEF05,startupSamplerEnabled02897} from "./tunnel/true-shared-tunnel-renderer-v0281.mjs";
 import {SHARED_LIGHT_0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
 import {createSharedOpticalContext,installSharedOpticalShip,installSharedRoadOptics,finalizeSharedOptics} from "./tunnel/shared-optical-assembly.mjs";
-import {surfaceFinishEnabled02898,vaultPolishEnabled02899,PRODUCTION_TRACK} from "./tracks/shared/production-catalog.mjs";
+import {surfaceFinishEnabled02898,vaultPolishEnabled02899,curveDeckCleanupEnabled028910,PRODUCTION_TRACK} from "./tracks/shared/production-catalog.mjs";
 import {PMREM_0284,readPmremRelease0284}
  from "./tunnel/pmrem-reflection-pipeline-v0284.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
@@ -314,6 +314,7 @@ const curveContinuityReleaseEnabled=trueSharedVaultEnabled&&
  surfaceContinuityEnabled02896(location.search);
 const surfaceFinish02898=trueSharedVaultEnabled&&surfaceFinishEnabled02898(location.search);
 const vaultPolish02899=trueSharedVaultEnabled&&vaultPolishEnabled02899(location.search);
+const curveDeckCleanup028910=trueSharedVaultEnabled&&curveDeckCleanupEnabled028910(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -645,6 +646,7 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,gripHeld:fa
 // 0.28.9.7 startup profiling: zero scene traversal until explicitly requested.
 const startupOrigin=performance.now(),startupMarks=Object.create(null);
 let nativeFrameExperiment=null;
+let legacyCinematicRoadWashInstalled=false;
 function markStartup(label){
  startupMarks[label]=Math.round((performance.now()-startupOrigin)*10)/10;
 }
@@ -685,6 +687,10 @@ window.__skyshiftStartupAudit=()=>{
    sharedTunnelFailureReason:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.reason??null,
    legacyRoadResponseMeshes:meshes.filter(m=>m.name==="Tunnel / NEON_ROAD_RESPONSE").length,
    boostPadCount:BOOST_PADS.length,riskGateCount:RHYTHM_GATES_0160.length,
+   shoulderMarks:identitySurface?.shoulderMarks??null,
+   railChevrons:identitySurface?.chevrons??null,
+   curveDeckCleanup:curveDeckCleanup028910,
+   legacyCinematicRoadWash:legacyCinematicRoadWashInstalled,
    mainBoostOnly:VAULT_BOOST_0283_ACTIVE&&BOOST_PADS.every(p=>p.kind==="boost"&&p.multiplier===1.4),
    omittedLegacyRoadBatches:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.omittedLegacyRoadBatches??0,
    startupFrameSampler:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.startupFrameOptimization02897??null,
@@ -1318,11 +1324,13 @@ function initScene(){
  world=new THREE.Group();scene.add(world);
  buildRoad();
  markStartup("roadReady");
- identitySurface=installAeroBarriers(THREE,world);
+ identitySurface=installAeroBarriers(THREE,world,{shoulderMarks:!curveDeckCleanup028910});
  // Static indirect-light pockets reuse the existing deck draw call.
  // The tunnel and blackout decorators retain the final say over darkness.
- if(CINEMATIC_ENABLED&&!limitedMemory)
+ if(CINEMATIC_ENABLED&&!limitedMemory&&!curveDeckCleanup028910){
   installCinematicRoadLighting(premiumSurface.material);
+  legacyCinematicRoadWashInstalled=true;
+ }
  // Static 760m architecture and preserved high-energy road markings.
  if(!isVault()){
   installTunnelRoadShading(premiumSurface.material);

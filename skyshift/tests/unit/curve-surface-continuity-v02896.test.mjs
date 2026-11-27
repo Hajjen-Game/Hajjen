@@ -117,3 +117,24 @@ test("old indexed attribute and material are restored exactly on disposal",()=>{
  assert.equal(mat.customProgramCacheKey,priorKey);
  assert.equal(g.getAttribute("normal"),normal);
 });
+
+import {curveDeckCleanupEnabled028910,PRODUCTION_TRACK} from "../../tracks/shared/production-catalog.mjs";
+import {createAeroDetailData} from "../../tracks/barriers/aero-barrier-v0165.mjs";
+import {readFileSync} from "node:fs";
+test("current Vault removes both legacy road paint sources without removing rail chevrons",()=>{
+ assert.equal(curveDeckCleanupEnabled028910("?track=vault&v="+PRODUCTION_TRACK.version),true);
+ for(const q of ["?track=vault&v=0.28.9.9","?track=skyline&v=0.28.9.10","?track=vault&v=0.28.9.10&curveDeck=classic"])
+  assert.equal(curveDeckCleanupEnabled028910(q),false);
+ const before=createAeroDetailData(),after=createAeroDetailData({shoulderMarks:false});
+ assert.ok(before.shoulderMarks>0);
+ assert.equal(after.shoulderMarks,0);
+ assert.equal(after.curveChevrons,before.curveChevrons);
+ assert.deepEqual(after.dark,before.dark);
+ assert.equal(before.light.quads-after.light.quads,before.shoulderMarks);
+ assert.equal(before.light.triangles-after.light.triangles,2*before.shoulderMarks);
+ assert.deepEqual(after.light.positions,before.light.positions.slice(0,after.light.positions.length));
+ assert.deepEqual(after.light.coords,before.light.coords.slice(0,after.light.coords.length));
+ const game=readFileSync(new URL("../../game-v0210.mjs",import.meta.url),"utf8");
+ assert.ok(game.includes("if(CINEMATIC_ENABLED&&!limitedMemory&&!curveDeckCleanup028910)"));
+ assert.ok(game.includes("installAeroBarriers(THREE,world,{shoulderMarks:!curveDeckCleanup028910})"));
+});

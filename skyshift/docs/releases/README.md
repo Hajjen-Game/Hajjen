@@ -139,3 +139,5 @@ New release notes are authored under `current/`, separate from the 97 immutable 
 - [0.28.9.8 — Upper Wall Stability & Edge-Only Road](current/RELEASE-02898-UPPER-WALL-EDGE-ROAD.md)
 
 - [0.28.9.9 — Vault Boost, Single Wave & Clean Deck](current/RELEASE-02899-VAULT-BOOST-WAVE-ROAD.md)
+
+- [0.28.9.10 — Curve Deck Cleanup](current/RELEASE-028910-CURVE-DECK-CLEANUP.md)

@@ -113,3 +113,32 @@ test('pinned archived ship source relocations preserve exact source identity',()
   assert.equal(Buffer.byteLength(original),f.bytes,f.newPath+' source bytes');
  }
 });
+
+test('relocated ship loaders retain exact source asset URLs and parser resource base',async()=>{
+ const {createShipArtController:current}=await import('../../ships/ship-hero-loader-v01342.mjs');
+ const {createShipArtController:preview}=await import('../../ships/ship-hero-loader-v0132.mjs');
+ const expectedBase=new URL('../../assets/ships/',import.meta.url).href;
+ const craft={ship:{}};
+ for(const [factory,search,expected] of [
+  [current,'',['stingray-evo-hero-v4.gltf']],
+  [current,'?shipArt=blender',['stingray-evo-hero-v4.glb']],
+  [preview,'?shipArt=hero',['stingray-evo-hero-v1.glb','stingray-evo-hero-v1.gltf']]
+ ]){
+  const seen=[];
+  const ctrl=factory({},{search,currentCraft:()=>craft,currentShipId:()=>'stingray',
+   fetchAsset:async url=>{seen.push(url.href);return {ok:false,status:404};}});
+  await ctrl.onCraftBuilt(craft,'stingray');
+  assert.deepEqual(seen,expected.map(name=>new URL(name,expectedBase).href));
+  assert.equal(ctrl.state.status,'fallback');
+  ctrl.dispose();
+ }
+ for(const [factory,search] of [[current,''],[preview,'?shipArt=hero']]){
+  let parsedBase;
+  const ctrl=factory({},{search,currentCraft:()=>craft,currentShipId:()=>'stingray',
+   fetchAsset:async()=>({ok:true,text:async()=>'fixture',arrayBuffer:async()=>new ArrayBuffer(1)}),
+   loaderFactory:async()=>({parse(_source,base,_ok,fail){parsedBase=base;fail(Error('fixture parse stop'));}})});
+  await ctrl.onCraftBuilt(craft,'stingray');
+  assert.equal(parsedBase,expectedBase);
+  assert.equal(ctrl.state.status,'fallback');ctrl.dispose();
+ }
+});

@@ -3,9 +3,10 @@
 // Missing/invalid model files retain the original procedural Stingray.
 import {SHIP_ART_01342,requestedShipArt,createShipArtState,
  assessHeroAsset,installHeroBodyAndTail,shipArtAudit}
- from "./ships/ship-art-pipeline-v01342.mjs";
-import {createShipSourceCache} from "./core/ship-source-cache.mjs";
-import {collectObjectResources,releaseResourceDifference} from "./core/resource-ownership.mjs";
+ from "./ship-art-pipeline-v01342.mjs";
+import {createShipSourceCache} from "../core/ship-source-cache.mjs";
+import {collectObjectResources,releaseResourceDifference} from "../core/resource-ownership.mjs";
+const shipAssetBase=new URL("../",import.meta.url);
 export function createShipArtController(THREE,{
  search="",currentCraft=()=>null,currentShipId=()=>null,
  loaderFactory=null,fetchAsset=null
@@ -22,7 +23,7 @@ export function createShipArtController(THREE,{
    const request=fetchAsset??fetch;
    const srcPath=blenderPreview?SHIP_ART_01342.blenderAssetPath:
     SHIP_ART_01342.assetPath;
-   const response=await request(new URL(srcPath,import.meta.url),
+   const response=await request(new URL(srcPath,shipAssetBase),
     {cache:"force-cache",signal});
    if(!response.ok)
     throw Error("Stingray HERO V4 unavailable (HTTP "+response.status+")");
@@ -60,7 +61,7 @@ export function createShipArtController(THREE,{
    }
    if(!isCurrent(token,craft))return state;
    const gltf=await new Promise((resolve,reject)=>
-    loader.parse(typeof source==="string"?source:source.slice(0),new URL("./assets/ships/",import.meta.url).href,
+    loader.parse(typeof source==="string"?source:source.slice(0),new URL("./assets/ships/",shipAssetBase).href,
      resolve,reject));
    imported=gltf.scene;owned=collectObjectResources(imported,{textures:true});
    if(!isCurrent(token,craft)){

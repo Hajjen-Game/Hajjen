@@ -58,12 +58,15 @@ export function historicalExists(p){
  const key=asPath(p),move=ownerMoves.find(f=>f.oldPath===key&&f.historicalArchive);
  if(move){
   assert.equal(move.historicalArchive.commit,retirement.archiveCommit,key+' archive commit');
-  assert.equal(move.historicalArchive.sha,move.sourceSha,key+' archive identity');
+  // Earlier historical snapshots can precede a later verified live implementation.
+  // Preserve the separately pinned archive identity and byte count in that case.
+  if(move.historicalArchive.bytes===undefined)assert.equal(move.historicalArchive.sha,move.sourceSha,key+' archive identity');
+  else assert.ok(Number.isInteger(move.historicalArchive.bytes)&&move.historicalArchive.bytes>0&&move.historicalArchive.sha!==move.sourceSha,key+' distinct archive identity');
   assert.ok(!existsSync(resolve(repo,key))&&existsSync(resolve(repo,move.newPath)),key+' owner relocation');
   if(!cache.has(key)){
    const data=execFileSync('git',['show',move.historicalArchive.commit+':'+key],{cwd:repo,maxBuffer:8*1024*1024});
    assert.equal(createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex'),move.historicalArchive.sha,key+' historical Git identity');
-   assert.equal(data.length,move.bytes,key+' historical bytes');
+   assert.equal(data.length,move.historicalArchive.bytes??move.bytes,key+' historical bytes');
    cache.set(key,data);
   }
   return true;

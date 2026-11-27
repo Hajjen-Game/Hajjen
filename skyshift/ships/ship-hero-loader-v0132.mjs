@@ -4,6 +4,7 @@
 import {SHIP_ART_0132,requestedShipArt,createShipArtState,
  assessHeroAsset,installHeroBodyAndTail,shipArtAudit}
  from "./ship-art-pipeline-v0132.mjs";
+const shipAssetBase=new URL("../",import.meta.url);
 export function createShipArtController(THREE,{
  search="",currentCraft=()=>null,currentShipId=()=>null,
  loaderFactory=null,fetchAsset=null
@@ -41,10 +42,10 @@ export function createShipArtController(THREE,{
    // publishes it, the tracked first-playable text glTF is a real 3D mesh
    // with identical named parts, not a runtime-generated Three.js craft.
    const request=fetchAsset??fetch;
-   let response=await request(new URL(SHIP_ART_0132.assetPath,import.meta.url),
+   let response=await request(new URL(SHIP_ART_0132.assetPath,shipAssetBase),
     {cache:"force-cache"}),format="glb";
    if(!response.ok){
-    response=await request(new URL(SHIP_ART_0132.previewAssetPath,import.meta.url),
+    response=await request(new URL(SHIP_ART_0132.previewAssetPath,shipAssetBase),
      {cache:"force-cache"});
     format="gltf";
    }
@@ -62,7 +63,7 @@ export function createShipArtController(THREE,{
     loader=new GLTFLoader();
    }
    const gltf=await new Promise((resolve,reject)=>
-    loader.parse(source,new URL("./assets/ships/",import.meta.url).href,
+    loader.parse(source,new URL("./assets/ships/",shipAssetBase).href,
      resolve,reject));
    imported=gltf.scene;
    if(token!==generation||currentCraft()!==craft||

@@ -371,8 +371,8 @@ jobs:
           node --check skyshift/time-trial-v0130.mjs
           node --check skyshift/ui/ghost-visual-v0130.mjs
           node --check skyshift/tests/unit/time-trial-v0130.test.mjs
-          node --check skyshift/ship-art-pipeline-v0132.mjs
-          node --check skyshift/ship-hero-loader-v0132.mjs
+          node --check skyshift/ships/ship-art-pipeline-v0132.mjs
+          node --check skyshift/ships/ship-hero-loader-v0132.mjs
           node --check skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs
           node --check skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs
           node --check skyshift/blender/stingray-hero-v2-source-v0133.mjs
@@ -383,7 +383,7 @@ jobs:
           node --check skyshift/ships/stingray-evo-v01342.mjs
           node --check skyshift/blender/stingray-hero-v4-source-v01342.mjs
           node --check skyshift/ships/ship-art-pipeline-v01342.mjs
-          node --check skyshift/ship-hero-loader-v01342.mjs
+          node --check skyshift/ships/ship-hero-loader-v01342.mjs
           node --check skyshift/tests/unit/ship-hero-loader-v01342.test.mjs
           node --check skyshift/tests/browser/browser-screen-parity-v01345.mjs
           node --check skyshift/ships/engine-trails-v01346.mjs

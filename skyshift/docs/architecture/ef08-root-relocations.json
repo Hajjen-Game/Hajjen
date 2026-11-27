@@ -1424,6 +1424,240 @@
           "skyshift/zone-wave-v060.mjs"
         ]
       }
+    },
+    {
+      "rollbackCommit": "59c546e87f0bebafde3b4888e524b9207f4210ad",
+      "architectureRun": 45949650034,
+      "productionRun": 45949650072,
+      "rootCountBefore": 80,
+      "rootCountAfter": 77,
+      "moves": [
+        {
+          "oldPath": "skyshift/ship-art-pipeline-v0132.mjs",
+          "newPath": "skyshift/ships/ship-art-pipeline-v0132.mjs",
+          "sourceSha": "8485de4a53f1ea9c806a20ec06270d774e0c0a1d",
+          "destinationSha": "8485de4a53f1ea9c806a20ec06270d774e0c0a1d",
+          "bytes": 7574,
+          "owner": "ships",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "8485de4a53f1ea9c806a20ec06270d774e0c0a1d"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/ship-hero-loader-v0132.mjs",
+          "newPath": "skyshift/ships/ship-hero-loader-v0132.mjs",
+          "sourceSha": "01c92ae4f3427fcf77e16ba448b174eb1b1568fe",
+          "destinationSha": "b0edb14befc4a3ff2be4d977e647cfd621a136ce",
+          "bytes": 3967,
+          "owner": "ships",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "01c92ae4f3427fcf77e16ba448b174eb1b1568fe"
+          },
+          "pathEdits": [
+            {
+              "before": "export function createShipArtController",
+              "after": "const shipAssetBase=new URL(\"../\",import.meta.url);\nexport function createShipArtController"
+            },
+            {
+              "before": "new URL(SHIP_ART_0132.assetPath,import.meta.url)",
+              "after": "new URL(SHIP_ART_0132.assetPath,shipAssetBase)"
+            },
+            {
+              "before": "new URL(SHIP_ART_0132.previewAssetPath,import.meta.url)",
+              "after": "new URL(SHIP_ART_0132.previewAssetPath,shipAssetBase)"
+            },
+            {
+              "before": "new URL(\"./assets/ships/\",import.meta.url)",
+              "after": "new URL(\"./assets/ships/\",shipAssetBase)"
+            }
+          ]
+        },
+        {
+          "oldPath": "skyshift/ship-hero-loader-v01342.mjs",
+          "newPath": "skyshift/ships/ship-hero-loader-v01342.mjs",
+          "sourceSha": "641c9531929178c5c0674b9ba9ca5e825a098dc9",
+          "destinationSha": "d87be727f1b40d2a543e27d85f4fc8c7c038e9c6",
+          "bytes": 4625,
+          "owner": "ships",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "fbb26b831ea52f96b9cdd3c728afcbb75049aaca",
+            "bytes": 4209
+          },
+          "pathEdits": [
+            {
+              "before": "from \"./ships/ship-art-pipeline-v01342.mjs\"",
+              "after": "from \"./ship-art-pipeline-v01342.mjs\""
+            },
+            {
+              "before": "from \"./core/ship-source-cache.mjs\"",
+              "after": "from \"../core/ship-source-cache.mjs\""
+            },
+            {
+              "before": "from \"./core/resource-ownership.mjs\"",
+              "after": "from \"../core/resource-ownership.mjs\""
+            },
+            {
+              "before": "export function createShipArtController",
+              "after": "const shipAssetBase=new URL(\"../\",import.meta.url);\nexport function createShipArtController"
+            },
+            {
+              "before": "new URL(srcPath,import.meta.url)",
+              "after": "new URL(srcPath,shipAssetBase)"
+            },
+            {
+              "before": "new URL(\"./assets/ships/\",import.meta.url)",
+              "after": "new URL(\"./assets/ships/\",shipAssetBase)"
+            }
+          ]
+        }
+      ],
+      "consumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/build/build.mjs",
+        "skyshift/game-v0203.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/legacy/game/game-v0205.mjs",
+        "skyshift/ships/ship-art-pipeline-v0132.mjs",
+        "skyshift/ships/ship-hero-loader-v0132.mjs",
+        "skyshift/ships/ship-hero-loader-v01342.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs",
+        "skyshift/tests/architecture/legacy-retirement-l1a.mjs",
+        "skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs",
+        "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs",
+        "skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs"
+      ],
+      "productionEvidence": {
+        "commit": "59c546e87f0bebafde3b4888e524b9207f4210ad",
+        "run": 45949650072,
+        "job": 140342290678,
+        "productionModules": 173,
+        "productionRoots": [
+          "boot-v0210.js",
+          "cinematic-space-lighting-v0170.mjs",
+          "game-v0210.mjs",
+          "image-clarity-v083.mjs",
+          "index.html",
+          "luminance-v0331.mjs",
+          "neon-balance-v032.mjs",
+          "neon-v0111.mjs",
+          "neon-v032.mjs",
+          "racing-experience-v0160.mjs",
+          "rail-scrape-sparks-v0165.mjs",
+          "risk-reward-v0151.mjs",
+          "risk-reward-v0160.mjs",
+          "shadow-tunnel-v0160.mjs",
+          "ship-hero-loader-v01342.mjs",
+          "space-v0496.mjs",
+          "time-trial-v0160.mjs",
+          "trial-v0901.mjs",
+          "tunnel-blackout-v0160.mjs",
+          "velocity-language-v0496.mjs",
+          "zone-wave-v060.mjs"
+        ],
+        "otherSourceRoots": [
+          "README.md",
+          "air-tricks-v081.mjs",
+          "cinematic-v0161.mjs",
+          "cinematic-v0162.mjs",
+          "cinematic-v0163.mjs",
+          "cinematic-v0164.mjs",
+          "cinematic-v0901.mjs",
+          "engine-trails-v0496.mjs",
+          "flight-motion-v044.mjs",
+          "game-v0203.mjs",
+          "material-grade-v0203.html",
+          "neon-v083.mjs",
+          "orbital-hero-v0192.mjs",
+          "precision-grip-v061.mjs",
+          "racing-experience-v0121.mjs",
+          "rail-scrape-sparks-v01091.mjs",
+          "risk-reward-v0150.mjs",
+          "sector-landmarks-v0120.mjs",
+          "shadow-tunnel-v092.mjs",
+          "ship-art-pipeline-v0132.mjs",
+          "ship-hero-loader-v0132.mjs",
+          "signature-environment-v0180.mjs",
+          "stingray-evo-v0101.mjs",
+          "stingray-evo-v0103.mjs",
+          "style.css",
+          "time-trial-v0130.mjs",
+          "time-trial-v0150.mjs",
+          "time-trial-v0151.mjs",
+          "track.mjs",
+          "trial-v01348.mjs",
+          "trial-v0150.mjs",
+          "trial-v0151.mjs",
+          "trial-v0162.mjs",
+          "trial-v0163.mjs",
+          "trial-v0164.mjs",
+          "trial-v02.mjs",
+          "trial-v03.mjs",
+          "trial-v043.mjs",
+          "trial-v046.mjs",
+          "trial-v048.mjs",
+          "trial-v049.mjs",
+          "trial-v050.mjs",
+          "trial-v051.mjs",
+          "trial-v060.mjs",
+          "trial-v070.mjs",
+          "trial-v071.mjs",
+          "trial-v072.mjs",
+          "trial-v081.mjs",
+          "trial-v082.mjs",
+          "trial-v083.mjs",
+          "trial-v084.mjs",
+          "tunnel-blackout-v0921.mjs",
+          "world-rebuild-v0190.mjs",
+          "zone-wave-v049.mjs",
+          "zone-wave-v0491.mjs",
+          "zone-wave-v0492.mjs",
+          "zone-wave-v0493.mjs",
+          "zone-wave-v050.mjs",
+          "zone-wave-v051.mjs"
+        ]
+      },
+      "sourceEvidence": {
+        "commit": "59c546e87f0bebafde3b4888e524b9207f4210ad",
+        "run": 45949650034,
+        "job": 140342290239,
+        "sourceReachableRoots": [
+          "skyshift/boot-v0210.js",
+          "skyshift/cinematic-space-lighting-v0170.mjs",
+          "skyshift/flight-motion-v044.mjs",
+          "skyshift/game-v0210.mjs",
+          "skyshift/image-clarity-v083.mjs",
+          "skyshift/index.html",
+          "skyshift/luminance-v0331.mjs",
+          "skyshift/neon-balance-v032.mjs",
+          "skyshift/neon-v0111.mjs",
+          "skyshift/neon-v032.mjs",
+          "skyshift/orbital-hero-v0192.mjs",
+          "skyshift/racing-experience-v0160.mjs",
+          "skyshift/rail-scrape-sparks-v0165.mjs",
+          "skyshift/risk-reward-v0151.mjs",
+          "skyshift/risk-reward-v0160.mjs",
+          "skyshift/shadow-tunnel-v0160.mjs",
+          "skyshift/ship-hero-loader-v01342.mjs",
+          "skyshift/signature-environment-v0180.mjs",
+          "skyshift/space-v0496.mjs",
+          "skyshift/time-trial-v0160.mjs",
+          "skyshift/trial-v0901.mjs",
+          "skyshift/tunnel-blackout-v0160.mjs",
+          "skyshift/velocity-language-v0496.mjs",
+          "skyshift/world-rebuild-v0190.mjs",
+          "skyshift/zone-wave-v060.mjs"
+        ]
+      }
     }
   ],
   "moves": [
@@ -2024,6 +2258,94 @@
         {
           "before": "from \"./ships/ship-polish-v0103.mjs\"",
           "after": "from \"./ship-polish-v0103.mjs\""
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/ship-art-pipeline-v0132.mjs",
+      "newPath": "skyshift/ships/ship-art-pipeline-v0132.mjs",
+      "sourceSha": "8485de4a53f1ea9c806a20ec06270d774e0c0a1d",
+      "destinationSha": "8485de4a53f1ea9c806a20ec06270d774e0c0a1d",
+      "bytes": 7574,
+      "owner": "ships",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "8485de4a53f1ea9c806a20ec06270d774e0c0a1d"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/ship-hero-loader-v0132.mjs",
+      "newPath": "skyshift/ships/ship-hero-loader-v0132.mjs",
+      "sourceSha": "01c92ae4f3427fcf77e16ba448b174eb1b1568fe",
+      "destinationSha": "b0edb14befc4a3ff2be4d977e647cfd621a136ce",
+      "bytes": 3967,
+      "owner": "ships",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "01c92ae4f3427fcf77e16ba448b174eb1b1568fe"
+      },
+      "pathEdits": [
+        {
+          "before": "export function createShipArtController",
+          "after": "const shipAssetBase=new URL(\"../\",import.meta.url);\nexport function createShipArtController"
+        },
+        {
+          "before": "new URL(SHIP_ART_0132.assetPath,import.meta.url)",
+          "after": "new URL(SHIP_ART_0132.assetPath,shipAssetBase)"
+        },
+        {
+          "before": "new URL(SHIP_ART_0132.previewAssetPath,import.meta.url)",
+          "after": "new URL(SHIP_ART_0132.previewAssetPath,shipAssetBase)"
+        },
+        {
+          "before": "new URL(\"./assets/ships/\",import.meta.url)",
+          "after": "new URL(\"./assets/ships/\",shipAssetBase)"
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/ship-hero-loader-v01342.mjs",
+      "newPath": "skyshift/ships/ship-hero-loader-v01342.mjs",
+      "sourceSha": "641c9531929178c5c0674b9ba9ca5e825a098dc9",
+      "destinationSha": "d87be727f1b40d2a543e27d85f4fc8c7c038e9c6",
+      "bytes": 4625,
+      "owner": "ships",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "fbb26b831ea52f96b9cdd3c728afcbb75049aaca",
+        "bytes": 4209
+      },
+      "pathEdits": [
+        {
+          "before": "from \"./ships/ship-art-pipeline-v01342.mjs\"",
+          "after": "from \"./ship-art-pipeline-v01342.mjs\""
+        },
+        {
+          "before": "from \"./core/ship-source-cache.mjs\"",
+          "after": "from \"../core/ship-source-cache.mjs\""
+        },
+        {
+          "before": "from \"./core/resource-ownership.mjs\"",
+          "after": "from \"../core/resource-ownership.mjs\""
+        },
+        {
+          "before": "export function createShipArtController",
+          "after": "const shipAssetBase=new URL(\"../\",import.meta.url);\nexport function createShipArtController"
+        },
+        {
+          "before": "new URL(srcPath,import.meta.url)",
+          "after": "new URL(srcPath,shipAssetBase)"
+        },
+        {
+          "before": "new URL(\"./assets/ships/\",import.meta.url)",
+          "after": "new URL(\"./assets/ships/\",shipAssetBase)"
         }
       ]
     }

@@ -646,6 +646,7 @@ const uiState={mode:"menu",inputX:0,jumpPressed:false,jumpHeld:false,gripHeld:fa
 // 0.28.9.7 startup profiling: zero scene traversal until explicitly requested.
 const startupOrigin=performance.now(),startupMarks=Object.create(null);
 let nativeFrameExperiment=null;
+let legacyCinematicRoadWashInstalled=false;
 function markStartup(label){
  startupMarks[label]=Math.round((performance.now()-startupOrigin)*10)/10;
 }
@@ -689,7 +690,7 @@ window.__skyshiftStartupAudit=()=>{
    shoulderMarks:identitySurface?.shoulderMarks??null,
    railChevrons:identitySurface?.chevrons??null,
    curveDeckCleanup:curveDeckCleanup028910,
-   legacyCinematicRoadWash:CINEMATIC_ENABLED&&!limitedMemory&&!curveDeckCleanup028910,
+   legacyCinematicRoadWash:legacyCinematicRoadWashInstalled,
    mainBoostOnly:VAULT_BOOST_0283_ACTIVE&&BOOST_PADS.every(p=>p.kind==="boost"&&p.multiplier===1.4),
    omittedLegacyRoadBatches:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.omittedLegacyRoadBatches??0,
    startupFrameSampler:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.startupFrameOptimization02897??null,
@@ -1326,8 +1327,10 @@ function initScene(){
  identitySurface=installAeroBarriers(THREE,world,{shoulderMarks:!curveDeckCleanup028910});
  // Static indirect-light pockets reuse the existing deck draw call.
  // The tunnel and blackout decorators retain the final say over darkness.
- if(CINEMATIC_ENABLED&&!limitedMemory&&!curveDeckCleanup028910)
+ if(CINEMATIC_ENABLED&&!limitedMemory&&!curveDeckCleanup028910){
   installCinematicRoadLighting(premiumSurface.material);
+  legacyCinematicRoadWashInstalled=true;
+ }
  // Static 760m architecture and preserved high-energy road markings.
  if(!isVault()){
   installTunnelRoadShading(premiumSurface.material);

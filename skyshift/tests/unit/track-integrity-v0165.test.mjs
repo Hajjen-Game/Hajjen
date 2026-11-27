@@ -230,6 +230,7 @@ test("0.16.5 URLs and menu preserve independent courses and PB/ghosts",()=>{
  assert.match(html,/boot-v0205\.js\?v=0\.20\.5/);
  assert.match(src("./legacy/boot/boot-v0165.js"),/game-v0165\.mjs\?v=0\.16\.5/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
- assert.match(game,/from "\.\.\/\.\.\/core\/time-trial-v0160\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/time-trial-v0160\.mjs"/);
+ assert.match(src("./game-v0210.mjs"),/from "\.\/core\/time-trial-v0160\.mjs"/);
  assert.equal(tt.TIME_TRIAL_0160.storageKey,"skyshift-time-trial-ghost-aurora-0160");
 });

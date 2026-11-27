@@ -400,7 +400,7 @@ test('EF04 retired racecraft source is recoverable, absent and has no executable
   assert.equal(createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex'),f.sha);
   const checked=spawnSync(process.execPath,['--check','--input-type=module'],{input:source,encoding:'utf8'});assert.equal(checked.status,0,checked.stderr);
   const migrated=readFileSync(resolve(repo,f.originalReader),'utf8');
-  assert.match(migrated,/from "\.\.\/\.\.\/racing-experience-v0121\.mjs"/);
+  assert.match(migrated,/from "\.\.\/\.\.\/core\/racing-experience-v0121\.mjs"/);
   assert.match(migrated,/createSectorLandmarkData\(positionAt,widthAt\)/);
   assert.match(migrated,/assert\.equal\(data\.minLateralClearance,3\.9\)/);
   for(const p of execFileSync('git',['ls-files','-z'],{cwd:repo,encoding:'utf8',maxBuffer:16*1024*1024}).split('\0').filter(Boolean)){

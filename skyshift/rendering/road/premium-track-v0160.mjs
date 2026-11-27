@@ -7,6 +7,8 @@ import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../core/zone-wave-
 import {vaultSpatialWaveEnabled0285}
  from "../../tunnel/vault-spatial-wave-parity-v0285.mjs";
 export const VAULT_WAVE_PARITY_0285_ACTIVE=vaultSpatialWaveEnabled0285();
+import {vaultPolishEnabled02899} from "../../tracks/shared/production-catalog.mjs";
+export const VAULT_CLEAN_DECK_02899=vaultPolishEnabled02899(typeof location==="undefined"?"":location.search);
 import {BOOST_PADS} from "../../flight/boost/boost-v0160.mjs";
 import {RHYTHM_GATES_0160,VAULT_BOOST_0283_ACTIVE} from "../../flight/boost/risk-reward-v0160.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v0160.mjs";
@@ -204,7 +206,8 @@ export const SURFACE_FRAGMENT_GLSL=`
     trackWindow(trackS, 58.0, 228.0, 23.0),
     trackWindow(trackS, 288.0, 437.0, 23.0));
   ${zoneLayerGLSL}
-  vec3 road = mix(zoneBase, zoneBand, sideBand * (0.27 + 0.24 * flowZone));
+  // Current Vault: dark continuous graphite, no painted side-lane slabs.
+  vec3 road = ${VAULT_CLEAN_DECK_02899?"mix(vec3(.006,.008,.012),zoneBase,.08)":"mix(zoneBase, zoneBand, sideBand * (0.27 + 0.24 * flowZone))"};
 
   // Two primary white/cyan racing guides that follow ALL banked curves.
   float innerLine = trackStripe(absL, 4.0, 0.060, 0.105);
@@ -220,7 +223,7 @@ export const SURFACE_FRAGMENT_GLSL=`
   float panelPeriod = mod(trackS, 12.0);
   float panelSeam = (1.0 - smoothstep(0.04, 0.26, min(panelPeriod, 12.0-panelPeriod)));
   float shoulderMask = smoothstep(8.7, 9.3, absL) * (1.0 - smoothstep(10.2, 10.8, absL));
-  road = mix(road, zoneAccent, shoulderMask * panelSeam * 0.10);
+  road = mix(road, zoneAccent, shoulderMask * panelSeam * ${VAULT_CLEAN_DECK_02899?"0.0":"0.10"});
 
   // Physical boost fields read as embedded ENERGY INLAYS, not raised golden
   // rectangles. Their functional world coordinates match boost-v048 exactly.
@@ -248,7 +251,7 @@ export const SURFACE_FRAGMENT_GLSL=`
   float spineDash = smoothstep(0.65, 1.35, spinePhase) *
       (1.0 - smoothstep(8.65, 9.45, spinePhase));
   float spineLane = 1.0 - smoothstep(0.045, 0.16, absL);
-  float spine = spineLane * spineDash * (1.0 - padCoverage * 0.80);
+  float spine = ${VAULT_CLEAN_DECK_02899?"0.0":"spineLane * spineDash * (1.0 - padCoverage * 0.80)"};
   road = mix(road, zoneGuide, spine * 0.23);
   // Prismatic body + slim bright crest + short luminous wake, all EXACTLY
   // on the palette front. Don't obscure guiding lines or boost markings.

@@ -14,6 +14,10 @@ test("new Vault release only, historical versions and other courses unchanged",(
   assert.equal(vaultBoostEnabled0283("?track="+t+"&v=0.28.3"),false);
  assert.equal(vaultBoostEnabled0283("?track=vault&v=0.28.3"),true);
  assert.equal(vaultBoostEnabled0283("?track=vault&v=0.28.4"),true);
+ assert.equal(vaultBoostEnabled0283("?track=vault&v=0.28.9.9"),true);
+ assert.equal(vaultBoostEnabled0283("?track=vault&v=0.28.10.1"),true);
+ assert.equal(vaultBoostEnabled0283("?track=vault&v=0.28.9.8"),false);
+ assert.equal(vaultBoostEnabled0283("?track=skyline&v=0.28.9.9"),false);
 });
 test("all 3 laps have 5 reachable central main pads and zero risk boosts",()=>{
  assert.equal(VAULT_MAIN_BOOST_PADS_0283.length,5);
@@ -36,7 +40,7 @@ test("all 3 laps have 5 reachable central main pads and zero risk boosts",()=>{
  assert.equal(vaultMainBoostAt0283(NaN,0),null);
 });
 test("Vault runtime uses exactly the same authoritative pads for art and physics",async()=>{
- globalThis.location={search:"?track=vault&v=0.28.3"};
+ globalThis.location={search:"?track=vault&v=0.28.9.9"};
  const m=await import("../../flight/boost/risk-reward-v0160.mjs");
  const {BOOST_PADS,initBoostState,stepBoostState,boostPadAt}
   =await import("../../flight/boost/boost-v0160.mjs");
@@ -78,4 +82,6 @@ test("existing deck gets genuine HDR arrow glow without risk guide artwork",asyn
  assert.ok(result.fragmentShader.includes("vaultHalo0283*.46"));
  assert.ok(result.fragmentShader.includes("totalEmissiveRadiance"));
  assert.ok(!result.fragmentShader.includes("float boost_coastline_cut_risk"));
+ assert.ok(SURFACE_FRAGMENT_GLSL.includes("vec3 road = mix(vec3(.006,.008,.012),zoneBase,.08);"));
+ assert.ok(SURFACE_FRAGMENT_GLSL.includes("float spine = 0.0;"));
 });

@@ -137,3 +137,24 @@ export function installVaultSpatialWaveModule0285(THREE,section,module,{
   dispose(){for(const restore of restores.reverse())restore();}
  };
 }
+
+// Retire the visual front beyond the 650m camera far plane plus feather
+// and camera/road margin, before the 1700m periodic wrap. Keep race state intact.
+export const VAULT_WAVE_SETTLE_AHEAD_02899=900;
+export function createSinglePassWaveView02899(){
+ let settledStage=0,lastState=null;
+ const settled={activeCount:0,shaderBaseStage:0,playerStage:0,
+  fronts:[-10000,-10000,-10000],lastStepSeconds:0};
+ return function visualWave(state,playerS){
+  if(state!==lastState){lastState=state;settledStage=0;}
+  const latest=state.waves?.at(-1);
+  if(!latest||!state.activeCount)return state;
+  if(state.fronts[0]-playerS>=VAULT_WAVE_SETTLE_AHEAD_02899)
+   settledStage=Math.max(settledStage,latest.index);
+  if(settledStage!==latest.index)return state;
+  settled.shaderBaseStage=latest.index;
+  settled.playerStage=state.playerStage;
+  settled.lastStepSeconds=state.lastStepSeconds;
+  return settled;
+ };
+}

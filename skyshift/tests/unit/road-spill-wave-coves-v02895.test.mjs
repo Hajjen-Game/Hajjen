@@ -195,7 +195,8 @@ test("0.28.9.8 removes non-edge specular contributions before the genuine cyan l
 
 import {surfaceFinishEnabled02898,PRODUCTION_TRACK} from "../../tracks/shared/production-catalog.mjs";
 test("0.28.9.8 new visual policy is selected at the route boundary with historical rollback",()=>{
- assert.equal(PRODUCTION_TRACK.version,"0.28.9.8");
+ assert.equal(PRODUCTION_TRACK.version,"0.28.9.9");
+ assert.equal(surfaceFinishEnabled02898("?track=vault&v="+PRODUCTION_TRACK.version),true);
  assert.equal(surfaceFinishEnabled02898("?track=vault&v=0.28.9.8"),true);
  for(const q of ["?track=vault&v=0.28.9.7","?track=skyline&v=0.28.9.8","?track=vault&v=0.28.9.8&surfaceFinish=classic"])assert.equal(surfaceFinishEnabled02898(q),false);
 });

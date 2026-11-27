@@ -128,3 +128,27 @@ test("module wrapper is reversible and preserves existing onBeforeCompile compos
   enabled:false});
  assert.equal(disabled.active,false);
 });
+
+import {createSinglePassWaveView02899,VAULT_WAVE_SETTLE_AHEAD_02899} from "../../tunnel/vault-spatial-wave-parity-v0285.mjs";
+test("0.28.9.9 visual wave retires before periodic wrap without altering the 120Hz race state",()=>{
+ for(const speed of [44,70,101,142]){
+  const state=newZoneWaveState(),view=createSinglePassWaveView02899();
+  let s=0,lastStage=0,settled=0;
+  for(let i=0;i<180*120;i++){
+   const t=i/120;s+=speed/120;updateZoneWave(state,t,s);
+   const v=view(state,s),stage=state.waves.at(-1)?.index??0;
+   if(stage!==lastStage){settled=0;lastStage=stage;}
+   if(stage&&state.fronts[0]-s>=VAULT_WAVE_SETTLE_AHEAD_02899)settled=1;
+   if(settled){
+    assert.equal(v.activeCount,0);
+    assert.equal(v.shaderBaseStage,stage);
+    assert.equal(state.activeCount,1);
+    assert.equal(state.shaderBaseStage,stage-1);
+   }else assert.equal(v,state);
+   if(v.activeCount&&stage)assert.ok(v.fronts[0]-s<VAULT_WAVE_SETTLE_AHEAD_02899);
+  }
+  assert.equal(state.waves.length,8);
+  assert.deepEqual(state.activatedStages,[1,2,3,4,5,6,7,8]);
+  assert.equal(view(newZoneWaveState(),0).shaderBaseStage,0);
+ }
+});

@@ -69,6 +69,13 @@ for(const query of ['', '?track=skyline&v=0.26.5','?track=aurora&v=0.26.5','?tra
  assert.notEqual(canonical.searchParams.get('trueSharedRenderer'),'classic');
  assert.equal(canonical.hash,'#anchor');assert.equal(productionRouteUrl(canonical.href),canonical.href);
 }
+// Explicit jump links must retain their own release identity through the production boot.
+for(const query of ['?track=vault&v=0.28.9.11&vaultJump=1','?track=vault&v=0.29.0']){
+ const canonical=new URL(productionRouteUrl('https://example.invalid/skyshift/'+query));
+ assert.equal(canonical.searchParams.get('v'),'0.29.0');
+ assert.equal(canonical.searchParams.get('vaultJump'),'1');
+}
+assert.equal(new URL(productionRouteUrl('https://example.invalid/skyshift/?v=0.29.0&vaultJump=0')).searchParams.get('v'),PRODUCTION_TRACK.version);
 // The old HTML script URL carries the legacy source version; a hashed
 // module entry cannot carry that query. Preserve exactly that observed value,
 // NOT the route version (?v=) or a new gameplay version.

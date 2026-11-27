@@ -9,7 +9,8 @@ export const VAULT_MEGA_JUMP=Object.freeze({
 });
 export function vaultMegaJumpEnabled(search=typeof location==="undefined"?"":location.search){
  const q=new URLSearchParams(search||"");
- return q.get("track")==="vault"&&q.get("vaultJump")==="1"&&
+ return q.get("track")==="vault"&&q.get("vaultJump")!=="0"&&
+ (q.get("vaultJump")==="1"||q.get("v")==="0.29.0")&&
  !["classic","off"].includes(q.get("sharedTunnel"))&&
  !["classic","off"].includes(q.get("trueSharedRenderer"))&&
  (q.get("v")==="0.28.9.11"||q.get("v")==="0.29.0");

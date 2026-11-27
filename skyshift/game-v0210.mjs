@@ -693,7 +693,7 @@ window.__skyshiftStartupAudit=()=>{
    Math.round((stamps.sceneReady-stamps.sharedTunnelReady)*10)/10:null
  };
  return {
-  track:TRACK_ID_0160,version:vaultPolish02899?PRODUCTION_TRACK.version:surfaceFinish02898?"0.28.9.8":"0.28.9.7",
+  track:TRACK_ID_0160,version:VAULT_MEGA_JUMP_ACTIVE?"0.29.0":vaultPolish02899?PRODUCTION_TRACK.version:surfaceFinish02898?"0.28.9.8":"0.28.9.7",
   elapsedSinceModuleMs:Math.round((now-startupOrigin)*10)/10,
   browserBootMs:window.__skyshiftBoot?.readyAfterMs??null,
   phase:window.__skyshiftBoot?.phase??"loading",
@@ -713,6 +713,7 @@ window.__skyshiftStartupAudit=()=>{
    railChevrons:identitySurface?.chevrons??null,
    curveDeckCleanup:curveDeckCleanup028910,
    deckGeometry:authoritativeDeck028911?deckGeometryAudit028911():null,
+   megaJumpActive:VAULT_MEGA_JUMP_ACTIVE,physicalGaps:GAPS.map(g=>({id:g.id,start:g.start,end:g.end})),
    legacyCinematicRoadWash:legacyCinematicRoadWashInstalled,
    mainBoostOnly:VAULT_BOOST_0283_ACTIVE&&BOOST_PADS.every(p=>p.kind==="boost"&&p.multiplier===1.4),
    omittedLegacyRoadBatches:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.omittedLegacyRoadBatches??0,
@@ -3721,6 +3722,13 @@ function initScene(){
    "3 × 3,400 M · FULL TUNNEL · GRIP · S-LINKS · NO JUMPS"):isAurora()?
   "3 × 3,400 M · GRIP · OPEN SWEEPS · LUMEN PASS · NO RISK LINES":
   "3 × 3,400 M · GRIP · WALL · CORKSCREW · SHADOW TUNNEL";
+ if(VAULT_MEGA_JUMP_ACTIVE){
+  UI.trackName.textContent="NEON VAULT · MEGA JUMP · 0.29.0";
+  UI.topbarTrack.textContent="NEON VAULT · MEGA JUMP · 0.29.0";
+  UI.trackTagline.textContent="EXPANSION CHAMBER · 54.4 M LEAP · AIR TRICKS";
+  UI.trackFeatures.textContent="3 × 3,400 M · MEGA JUMP · GRIP + STEER IN AIR";
+  document.title="SKYSHIFT · Vault Mega Jump · 0.29.0";
+ }
  UI.challengeButton.classList.toggle("hidden",!ACTIVE_TRACK_0160.hasSkylineChallenges);
  UI.riskCue.classList.add("hidden");
  refreshHangar();refreshChallenges();
@@ -4847,6 +4855,9 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
+ if(isVault()&&new URLSearchParams(location.search).get("v")==="0.29.0"&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+  (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
+  throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
  initScene();
  installFlightTuningPanel({document,location,flightTuning,cinematicTuning});
@@ -4905,6 +4916,44 @@ try{
   get neonPipeline(){return neonPipeline},
   get completedSparkStats(){return completedSparkStats}},
   UI,uiState,ZONE_WAVE,ZONE_PALETTES,updateZoneWave,setZoneSpeedStage,announceSector,refreshHud,waveResonanceStrength,clamp,SHADOW_TUNNEL,positionAt,surfaceHeightAt,TRIAL,headingAt,createFlightMotionState,createCinematicState,createKineticCameraState,snapRacePose,raceSimulation,chaseCameraController,inShadowTunnel,tunnelIntensityAt,bankAt,CAMERA_MODE,speedAt,widthAt,cameraBankAt,railContactPoint,ACTIVE_TRACK_0160,CIRCUIT,isVault,placeShip,saveFleet,fleetStorage,recordFleetClear,refreshHangar,fleetStatus,STINGRAY_PRESENTATION_01347,VAULT_BOOST_0283_ACTIVE,TRACK_ID_0160,BOOST_PADS,RHYTHM_GATES_0160,timeTrialState,challengeSummary,endRun,RISK_REWARD_0160,newFlightState,stepFlight,THREE,buildMantaWings,motionRig,perfSettings,perfSummary,frameProfiler,unifiedFlightAudit,fidelityAudit,racingExperienceAudit,ghostAudit,hudBudget,domWrites});
+ // Verify the exact mounted deck and fly its real physics only on explicit QA URLs.
+ if(new URLSearchParams(location.search).get("vaultJumpSmoke")==="1"){
+  window.__skyshiftVaultJumpProbe=()=>{
+   const j=VAULT_MEGA_JUMP,g=world.getObjectByName("Zone Ribbon · integrated PBR racing deck")?.geometry;
+   const c=g?.getAttribute("aTrackCoord"),idx=g?.getIndex();
+   let inside=0,before=0,after=0;
+   if(c&&idx)for(let k=0;k<idx.count;k+=3){
+    const a=c.getX(idx.getX(k)),b=c.getX(idx.getX(k+1)),d=c.getX(idx.getX(k+2));
+    const s=(Math.min(a,b,d)+Math.max(a,b,d))*.5;
+    if(s>=j.start&&s<j.end)inside++;
+    if(s>=j.start-5&&s<j.start)before++;
+    if(s>=j.end&&s<j.end+5)after++;
+   }
+   return {active:VAULT_MEGA_JUMP_ACTIVE,query:location.search,version:window.__skyshiftStartupAudit().version,
+    gaps:GAPS.map(g=>({id:g.id,start:g.start,end:g.end})),inside,before,after,
+    mounted:Boolean(c&&idx),pmrem:pmremPipeline?.active??false,
+    roadBefore:onRoad(j.start-2,0),roadGap:onRoad(j.start+2,0),roadAfter:onRoad(j.end+2,0)};
+  };
+  window.__skyshiftVaultJumpCapture=(phase,stage=0)=>{
+   if(uiState.mode!=="playing"||!VAULT_MEGA_JUMP_ACTIVE)throw Error("Mega Jump QA needs live race");
+   const j=VAULT_MEGA_JUMP,s=j.start-24,p=positionAt(s,0,0);
+   waveSmokeHold=true;
+   Object.assign(flight,newFlightState(),{s,worldX:p.x,worldZ:p.z,lateral:0,heading:headingAt(s),y:surfaceHeightAt(s)+TRIAL.hoverHeight,
+    zoneSpeedStage:stage,zoneCruiseSpeed:speedAt(s,stage),currentSpeed:speedAt(s,stage),checkpoint:1020,checkpointsPassed:3});
+   if(phase!=="approach")for(let i=0;i<1200;i++){
+    const rolling=!flight.grounded&&!flight.trickReady;
+    stepFlight(flight,1/120,{grip:rolling,steer:rolling?.65:0});
+    if(flight.falls||flight.cleanLeapLandings||(phase==="air"&&!flight.grounded&&flight.s>=j.start+14))break;
+   }
+   motionState=createFlightMotionState(flight.heading);cinematicState=createCinematicState();kineticCamera=createKineticCameraState();
+   snapRacePose(raceSimulation,flight);chaseCameraController.snap(flight,motionState,cinematicState,true);
+   placeShip(performance.now()/1000,1/60,flight,motionState,cinematicState);
+   tunnelBlackout?.apply(flight.s);whiteCoreContainment?.update(flight.s,true);shipWhiteSpill?.update(flight.s,targetAccent,true);
+   refreshHud();
+   return {s:flight.s,grounded:flight.grounded,launches:flight.autoLaunches,landings:flight.cleanLeapLandings,
+    rolls:flight.trickFullRotations,boosts:flight.landingBoostActivations,falls:flight.falls,peak:flight.peakAirHeightMeters};
+  };
+ }
  // Pre-boot START queues a legacy "time-trial" mode string.
  // Only actual selected catalog objects may enter Challenge mode.
  markStartup("bootReady");

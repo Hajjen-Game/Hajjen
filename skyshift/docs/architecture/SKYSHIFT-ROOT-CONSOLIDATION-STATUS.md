@@ -1,5 +1,8 @@
 # SKYSHIFT — ROOT CONSOLIDATION: SOURCE OF TRUTH
 
+> **Completed / historical reference — owner decision 2026-11-27.** EF01–EF08 is closed (PR #248, merge 99ef5565693d330303f723c784017ec3d8816d07; verified main publication). Normal owner-directed game development now follows [the current README](../../README.md). Historical task orders, migration stages, file-count targets and mandatory per-pass EF reporting below describe the completed program, not a new backlog or an active development instruction. Keep the approved shared engine architecture and required functional safety gates; no new EF stage without explicit owner approval. Do not require reading this entire historical log or updating it for ordinary game releases.
+
+
 > **Binding delivery revision (owner approved 2026-11-25):** Final root-layout and obsolete-code goals are now distributed across the owning EF03–EF08 subsystem stages; EF02 closes in PR #240 with verified basic reduction and an explicit residual owner/consumer/gate ledger. No more routine EF02 micro-passes, arbitrary file-count batches or premature moves of modules that will be replaced. See section 0 of Engineering Foundation 1.0 for the full controlling allocation and revised exit. This applies immediately to manual and scheduled work, including while the documentation revision in #240 awaits merge. Historical entries below remain evidence, not a competing roadmap.
 
 > **Historical baseline status (superseded by EF08 final acceptance below): NOT FINISHED** (`main` before Engineering Foundation plan: L1H #210 merged at 555999c364f59fcd32ab0773841794c4aa26c87c; 1,091 total, 271 direct, 42 legacy; all three main workflows green).

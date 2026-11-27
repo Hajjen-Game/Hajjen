@@ -1,4 +1,7 @@
 # SKYSHIFT — Engineering Foundation 1.0
+
+> **Completed / historical reference — owner decision 2026-11-27.** EF01–EF08 is closed (PR #248, merge 99ef5565693d330303f723c784017ec3d8816d07; verified main publication). Normal owner-directed game development now follows [the current README](../../README.md). Historical task orders, migration stages, file-count targets and mandatory per-pass EF reporting below describe the completed program, not a new backlog or an active development instruction. Keep the approved shared engine architecture and required functional safety gates; no new EF stage without explicit owner approval. Do not require reading this entire historical log or updating it for ordinary game releases.
+
 **Binding engineering roadmap / source of truth.** Approved direction: 2026-11-24. Repository: Hajjen-Game/Hajjen. Scope: architecture, code quality, runtime, performance, reliability and development infrastructure; no gameplay redesign in this program.
 
 ## 0. Continuity and decision authority

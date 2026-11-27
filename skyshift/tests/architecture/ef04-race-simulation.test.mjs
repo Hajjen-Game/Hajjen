@@ -59,14 +59,34 @@ import {createFlightPhysics} from '../../flight/flight-physics.mjs';
 import {createGroupedBoostAPI} from '../../flight/boost/grouped-boost.mjs';
 import {readHistoricalTrialMigrationSource} from './ef02-closure-trial-overlay.mjs';
 
-test('EF04 extracted flight state and physics are exact original function bodies',()=>{
+// Every historical body remains exact except these individually audited feature additions.
+function applyApprovedDelta(source,before,after){
+ assert.equal(source.split(before).length-1,1,'approved delta must match exactly once: '+before);
+ return source.replace(before,after);
+}
+test('EF04 flight body retains original formulas plus explicit 0.29.1 rail damage',()=>{
  const original=readHistoricalTrialMigrationSource();
  const engine=readFileSync(new URL('../../flight/flight-physics.mjs',import.meta.url),'utf8');
  const start=original.indexOf('export function newFlightState(){');
  const end=original.indexOf('export function validateTrial(){');
  assert.ok(start>=0&&end>start);
- const expected=original.slice(start,end).replace('export function newFlightState','function newFlightState').replace('export function stepFlight','function stepFlight');
- assert.ok(engine.includes(expected),'Physics body changed during extraction');
+ let expected=original.slice(start,end).replace('export function newFlightState','function newFlightState').replace('export function stepFlight','function stepFlight');
+ expected=applyApprovedDelta(expected,
+  '  falls:0,failedJumps:0,clearedGaps:[],shield:100,\n',
+  '  falls:0,failedJumps:0,clearedGaps:[],shield:100,\n  ...(TRIAL.railShieldDamage?{railDamageCooldown:0,railShieldLost:0}:{}),\n');
+ expected=applyApprovedDelta(expected,' st.railContacting=contacted;',` // Optional configured damage uses the same physical contact as scrub/FX.
+ // A shared cooldown prevents 120Hz contact jitter from multiplying damage.
+ if(TRIAL.railShieldDamage){
+  st.railDamageCooldown=Math.max(0,(st.railDamageCooldown??0)-dt);
+  if(contacted&&st.railDamageCooldown<=1e-8){
+   const lost=Math.min(st.shield,TRIAL.railShieldDamage.points);
+   st.shield-=lost;st.railShieldLost=(st.railShieldLost??0)+lost;
+   st.railDamageCooldown=TRIAL.railShieldDamage.intervalSeconds;
+   if(st.shield===0)st.failed=true;
+  }
+ }
+ st.railContacting=contacted;`);
+ assert.ok(engine.includes(expected),'Unapproved change to original physics body');
  const adapter=readFileSync(new URL('../../tracks/trials/trial-v0165.mjs',import.meta.url),'utf8');
  assert.match(adapter,/export const \{newFlightState,stepFlight\}=createFlightPhysics\(/);
  assert.doesNotMatch(engine,/from ["'][^"']*track-selection/);
@@ -75,10 +95,10 @@ test('EF04 extracted flight state and physics are exact original function bodies
  assert.doesNotMatch(executable,/\b(?:window|document|location|localStorage)\b/);
 });
 
-function syntheticTrack({jump=false,wall=false,screw=false}={}){
+function syntheticTrack({jump=false,wall=false,screw=false,railContact=false,railShieldDamage}={}){
  const rules={startSpeed:44,raceLength:300,hoverHeight:1.05,gravity:22,
   fallDepth:8.5,shieldPenalty:20,maxYawRate:1.24,turnResponse:24,turnRelease:36,
-  zoneAccelerationSeconds:.85};
+  zoneAccelerationSeconds:.85,...(railShieldDamage?{railShieldDamage}:{})};
  const circuit={lapLength:100,laps:3};
  const leap={start:jump?10:1000,approachStart:0,minTakeoffSpeed:35,launchVelocity:9};
  const gapAt=s=>jump&&s>=10&&s<25?{start:10,end:25}:null;
@@ -89,7 +109,7 @@ function syntheticTrack({jump=false,wall=false,screw=false}={}){
  const track={rules,circuit,jump:leap,positionAt,headingAt:()=>0,
   surfaceHeightAt:()=>0,lapPosition:s=>s%100,nextGap:s=>jump&&s<10?{start:10}:null,
   speedAt:()=>44,corkscrewAt:inScrew,bankAt,poseAt:()=>({rightX:1,rightZ:0}),
-  projectWorldToTrack:(x,z)=>({s:-z,lateral:x}),constrainToGuardrail:()=>false,
+  projectWorldToTrack:(x,z)=>({s:-z,lateral:x}),constrainToGuardrail:()=>railContact,
   gripApexAt:()=>false,bankDegreesAt:s=>bankAt(s)*180/Math.PI,
   onRoad:s=>!gapAt(s),surfaceNormalAt:s=>({y:Math.cos(bankAt(s))}),gapAt,
   guardrailLateralLimit:()=>10,magneticWallAt:inWall,corkscrewBankAt:s=>inScrew(s)?Math.PI:0,
@@ -115,6 +135,19 @@ test('EF04 synthetic no-gap, jump/trick/landing and magnetic features do not req
   if(kind==='wall'){assert.equal(state.magneticEntries,1);assert.equal(state.magneticExits,1);}
   else {assert.equal(state.corkscrewEntries,1);assert.equal(state.corkscrewExits,1);assert.ok(state.corkscrewCeilingSeconds>0);}
  }
+});
+
+test('0.29.1 rail damage is opt-in, cooldown-limited, and can exhaust shield',()=>{
+ const config={points:4,intervalSeconds:.5},dt=1/120;
+ const legacy=syntheticTrack({railContact:true}),l=legacy.newFlightState();
+ const clean=syntheticTrack({railShieldDamage:config}),c=clean.newFlightState();
+ const hit=syntheticTrack({railContact:true,railShieldDamage:config}),h=hit.newFlightState();
+ hit.stepFlight(h,dt,{});assert.equal(h.shield,96);
+ for(let i=0;i<59;i++)hit.stepFlight(h,dt,{});assert.equal(h.shield,96);
+ hit.stepFlight(h,dt,{});assert.equal(h.shield,92);assert.equal(h.railShieldLost,8);
+ for(let i=0;i<120;i++){legacy.stepFlight(l,dt,{});clean.stepFlight(c,dt,{});}
+ assert.equal(l.shield,100);assert.equal(c.shield,100);
+ h.shield=4;h.railDamageCooldown=0;assert.equal(hit.stepFlight(h,dt,{}).kind,'failed');assert.equal(h.shield,0);assert.equal(h.failed,true);
 });
 
 import {createRaceSession,readLegacyRaceBest,updateLegacyRaceBest} from '../../core/race-session.mjs';
@@ -221,8 +254,22 @@ test('EF04 HUD, input and exported run report retain original computation bodies
  const ownedInput=originalInput.replace(/(UI\.(?:jump|grip|stick)|document)\.addEventListener\(/g,'listen($1,');
  assert.equal([...originalInput.matchAll(/(UI\.(?:jump|grip|stick)|document)\.addEventListener\(/g)].length,14);
  assert.ok(input.includes(ownedInput));
- assert.ok(hud.includes(slice('function refreshHud(){\n','\n}\nfunction maybeShowCue(){')));
- assert.ok(hud.includes(slice('function maybeShowCue(){\n','\n}\nfunction integrate(dt){')));
+ let expectedHud=slice('function refreshHud(){\n','\n}\nfunction maybeShowCue(){');
+ expectedHud=applyApprovedDelta(expectedHud,' domWrites.text(UI.speed,(flight.currentSpeed/22).toFixed(2)+"×");',
+  ' domWrites.text(UI.speed,cleanRaceHud?Math.round(flight.currentSpeed*3.6)+" km/h":(flight.currentSpeed/22).toFixed(2)+"×");');
+ expectedHud=applyApprovedDelta(expectedHud,' const curve=curvatureAt(flight.s),section=sectorAt(flight.s);',` // Keep shield and contact feedback, but skip all instructional text work.
+ if(cleanRaceHud){
+  UI.hud.classList.toggle("hud-rail-contact",railFeedback.pulse>.025);
+  domWrites.property(UI.hud,"--rail-contact",String(Math.min(.92,railFeedback.pulse*.92).toFixed(3)));
+  return;
+ }
+ const curve=curvatureAt(flight.s),section=sectorAt(flight.s);`);
+ assert.ok(hud.includes(expectedHud),'Unapproved change to original HUD calculations');
+ const expectedCue=applyApprovedDelta(slice('function maybeShowCue(){\n','\n}\nfunction integrate(dt){'),
+  ' if(uiState.mode!=="playing")return;',' if(cleanRaceHud||uiState.mode!=="playing")return;');
+ assert.ok(hud.includes(expectedCue),'Unapproved change to original cue logic');
+ assert.match(hud,/cleanRaceHud=false/);
+ assert.match(live,/cleanRaceHud:VAULT_JUMP_POLISH_ACTIVE/);
  const prior=slice('   run:{','\n   },events:telemetry').replaceAll('frameClock.','raceSimulation.clock.');
  assert.ok(audit.includes(prior),'Original run report fields and calculations');
  assert.match(live,/installRaceInput\(\{UI,uiState/);

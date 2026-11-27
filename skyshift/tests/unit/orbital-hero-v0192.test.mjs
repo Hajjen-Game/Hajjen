@@ -3,8 +3,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {ORBITAL_HERO_0192,heroArchitecturePlan,retiredPrimitiveStation}
- from "../../orbital-hero-v0192.mjs";
-import {worldArchitecturePlan} from "../../world-rebuild-v0190.mjs";
+ from "../../world/orbital-hero-v0192.mjs";
+import {worldArchitecturePlan} from "../../world/world-rebuild-v0190.mjs";
 import {TRIAL,SKYLINE_LEAP,MAGNETIC_WALL}
  from "../../tracks/trials/trial-v0165.mjs";
 const src=file=>readFileSync(new URL("../../"+file,import.meta.url),"utf8");
@@ -63,7 +63,7 @@ test("only first primitive station is replaced and legacy source is preserved",(
   assert.equal(w.stats.beams,lowMemory?343:425);
   assert.equal(w.stats.colliders,0);
  }
- const worldSource=src("./world-rebuild-v0190.mjs");
+ const worldSource=src("./world/world-rebuild-v0190.mjs");
  assert.match(worldSource,/steel:0x18283f,plum:0x28213d,black:0x0b1326/);
  assert.doesNotMatch(worldSource,/READABILITY_0191/);
 });

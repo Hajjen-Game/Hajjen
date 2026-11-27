@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {createPremiumTrackMaterial} from "../../rendering/road/premium-track-v0901.mjs";
-import {shadeTunnelRoadGLSL} from "../../shadow-tunnel-v092.mjs";
-import {patchBlackoutRoadFragment} from "../../tunnel-blackout-v0921.mjs";
+import {shadeTunnelRoadGLSL} from "../../tunnel/shadow-tunnel-v092.mjs";
+import {patchBlackoutRoadFragment} from "../../tunnel/tunnel-blackout-v0921.mjs";
 import {patchSmartRoadShader as oldShader} from "../../core/visual-fidelity-v0113.mjs";
 import {FIDELITY_0114,selectFidelityProfile,createFidelityDirector,
  resetFidelityDirector,advanceFidelityDirector,fidelityAudit,

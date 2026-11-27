@@ -2,8 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {CIRCUIT} from "../../tracks/trials/trial-v0165.mjs";
-import {SHADOW_TUNNEL,tunnelIntensityAt} from "../../shadow-tunnel-v0160.mjs";
-import {blackoutLevelsAt,createTunnelBlackoutController} from "../../tunnel-blackout-v0160.mjs";
+import {SHADOW_TUNNEL,tunnelIntensityAt} from "../../tunnel/shadow-tunnel-v0160.mjs";
+import {blackoutLevelsAt,createTunnelBlackoutController} from "../../tunnel/tunnel-blackout-v0160.mjs";
 import {UNIFIED_TUNNEL_LIGHTING_1,neonGalleryMaskAt,unifiedTunnelLevelsAt,
  createUnifiedTunnelLightingController} from "../../tunnel/unified-tunnel-lighting-v1.mjs";
 
@@ -103,7 +103,7 @@ test("1.0: shared controller retains engine lights and A/B restores 3 PBR baseli
 });
 test("1.0: original road/ship shaders, neon and gameplay remain in place",()=>{
  const game=read("./game-v0210.mjs");
- const old=read("./tunnel-blackout-v0160.mjs");
+ const old=read("./tunnel/tunnel-blackout-v0160.mjs");
  const unified=read("./tunnel/unified-tunnel-lighting-v1.mjs");
  assert.match(game,/\?unifiedLighting=classic/);
  assert.match(game,/unifiedTunnelLightingEnabled=tunnelMegaEnabled&&exteriorSealEnabled/);

@@ -15,7 +15,7 @@ const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,r
  import("../../tracks/shared/smooth-track-v0160.mjs"),
  import("../../rendering/road/premium-track-v0160.mjs"),
  import("../../tracks/barriers/aero-barrier-v0160.mjs"),
- import("../../shadow-tunnel-v0160.mjs"),
+ import("../../tunnel/shadow-tunnel-v0160.mjs"),
  import("../../time-trial-v0160.mjs"),
  import("../../racing-experience-v0160.mjs")]);
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");

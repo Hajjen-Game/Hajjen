@@ -1,10 +1,13 @@
+import {isAurora} from "../tracks/shared/track-selection-v0160.mjs";
 // SKYSHIFT 0.9.2 — Shadow Tunnel: an authored dark/glow driving sequence.
 // All geometry follows the existing PBR deck centerline; no vehicle collision,
 // steering, air trick, camera, checkpoint or speed changes. Fixed geometry only.
-import {CIRCUIT,positionAt} from "./trial-v0901.mjs";
+import {CIRCUIT,positionAt} from "../tracks/trials/trial-v0160.mjs";
 export const SHADOW_TUNNEL=Object.freeze({
  version:"shadow-tunnel-092",
- name:"SHADOW TUNNEL",start:2050,end:2810,lengthMeters:760,
+ name:isAurora()?"LUMEN PASS":"SHADOW TUNNEL",
+ start:isAurora()?910:2050,end:isAurora()?1180:2810,
+ lengthMeters:isAurora()?270:760,
  fadeMeters:30,sampleStepMeters:4,ribSpacingMeters:38,
  halfClearanceMeters:16.6,ceilingClearanceMeters:18.4,
  shellHex:0x02050b,voidHex:0x010207,

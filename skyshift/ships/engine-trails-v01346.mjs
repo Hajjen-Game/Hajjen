@@ -1,7 +1,7 @@
 // SKYSHIFT 0.13.4.6 — baseline-aware twin-engine exhaust across all speed zones.
 // Reuse ONE ship-attached ribbon draw call: two real exhaust sockets,
 // each with a broad chromatic veil plus a thin white-hot interior.
-import {NEON_TUNING} from "../neon-balance-v032.mjs";
+import {NEON_TUNING} from "../rendering/neon-balance-v032.mjs";
 import {ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
 export const ENGINE_TRAIL_SPEC=Object.freeze({
  emitters:2,segmentsPerEmitter:4,layersPerEmitter:2,

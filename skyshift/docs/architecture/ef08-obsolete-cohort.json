@@ -4565,6 +4565,421 @@
         "sha": "cbad738880684489622915df0c7b7fba2f16ab9a",
         "bytes": 32262
       }
+    },
+    {
+      "path": "skyshift/engine-trails-v0496.mjs",
+      "sha": "2a72771434f635e00e8c9f76207f16a7ed7cd904",
+      "bytes": 7435,
+      "baselineBlob": "38478dffcfe6385985262e47d97e48d31a120d1e",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/game-v0101.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/game-v0103.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/velocity-language-v0496.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "pinned-archive": 26
+      },
+      "metadataRefs": 7,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "039ba48846c3023e76ab2fceccec5d9b4702a9f5",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v010.mjs",
+          "sha": "6aae1ca4d07f330d7aff81c7911e32a0982db5e3",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0102.mjs",
+          "sha": "2b993071988d52d153f37f0545b39b6fcbbfdbc8",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v082.mjs",
+          "sha": "e38213c5d2f1a32444185be624c64751834fcf55",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v083.mjs",
+          "sha": "c5d4eae543ddb39f6954907cf7abf2accdc95c59",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v084.mjs",
+          "sha": "5949350555a051177b7c05754b415361b510d731",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v090.mjs",
+          "sha": "bd05cdd7424b00cf64d2daeefaccc9e028c636e8",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0901.mjs",
+          "sha": "bb276495c1306e6f9cc2982aabb25e5e1b7e999e",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v091.mjs",
+          "sha": "9cc05ebf484841f283708f2c3695e3701af3f003",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v092.mjs",
+          "sha": "753d645d41e6000adb86ef253bd85cda14745012",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0921.mjs",
+          "sha": "426329d431224ecddac9e981d8be27ce20e916e3",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0496.mjs",
+          "sha": "e260ac0cd4af370e17e9cfa94963244a88e23826",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0497.mjs",
+          "sha": "e76a3af51f3219e63b15aa57fdfe44d10a19c8ce",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0498.mjs",
+          "sha": "b8b498891b0d0fce7982e9cce9e21c03186a5dd2",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0499.mjs",
+          "sha": "606271b07bd91ddd48bf3c4a1db21acf80b22e0d",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v04991.mjs",
+          "sha": "fc2878cc92843f411cd5089a86671b16f730d9cf",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v050.mjs",
+          "sha": "b64daaacc21d615ec30ef72b763bd64e07877c5e",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v051.mjs",
+          "sha": "a34785fa66e4afe6dde4f7ca096b03668efd6570",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v060.mjs",
+          "sha": "a973646cafffb451998338d66ad76a19c6ad7b3a",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v061.mjs",
+          "sha": "aeeb470aff606aa3e08e99f9e726541c7a621a49",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v070.mjs",
+          "sha": "dd1fbeaa4e8bc32d0f82f8228a1e11fb19a6b528",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v071.mjs",
+          "sha": "4b2dac4e9b279a6daac29e9d4592d3683da0efe9",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v072.mjs",
+          "sha": "9e0307fe366097f4c24ac67b81f7b4335e5805ad",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v080.mjs",
+          "sha": "71e22dcc51ab895a2c27e01ce03e86e80f01ce59",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v081.mjs",
+          "sha": "9f3112f24e7046780f1cf47620fef96682485e0e",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/game-v0101.mjs",
+          "sha": "fe7c7b092ca83647dd4a40a473d1d4a989e09a4e",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/game-v0103.mjs",
+          "sha": "4866e86d277052d128aa5afd0985074ee7e2f8da",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "a1394a741b76379a85451aa68b2f2155589ce29a",
+      "verifiedArchitectureRun": 45966103155,
+      "productionEvidenceRun": 45966103077,
+      "reason": "Remove three superseded ship/effect sources and two syntax-only readers while preserving active ship art, geometry, loader and presentation coverage.",
+      "replacement": [
+        "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs",
+        "skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs",
+        "skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/engine-trails-v0496.mjs",
+        "sha": "38478dffcfe6385985262e47d97e48d31a120d1e",
+        "bytes": 7429
+      }
+    },
+    {
+      "path": "skyshift/stingray-evo-v0101.mjs",
+      "sha": "44ec62cc42497ee5c27630b4be957039ef78b340",
+      "bytes": 10281,
+      "baselineBlob": "114663ef5adfb8fbb9222b7036c4ba9eea04a637",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/game-v0101.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/stingray-evo-v0101.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 6,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "039ba48846c3023e76ab2fceccec5d9b4702a9f5",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/stingray-evo-v0101.test.mjs",
+          "sha": "314332220c9a3f2702cf11c7b36aaafd3b3306ae",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/game-v0101.mjs",
+          "sha": "fe7c7b092ca83647dd4a40a473d1d4a989e09a4e",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "a1394a741b76379a85451aa68b2f2155589ce29a",
+      "verifiedArchitectureRun": 45966103155,
+      "productionEvidenceRun": 45966103077,
+      "reason": "Remove three superseded ship/effect sources and two syntax-only readers while preserving active ship art, geometry, loader and presentation coverage.",
+      "replacement": [
+        "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs",
+        "skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs",
+        "skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/stingray-evo-v0101.mjs",
+        "sha": "114663ef5adfb8fbb9222b7036c4ba9eea04a637",
+        "bytes": 10275
+      }
+    },
+    {
+      "path": "skyshift/stingray-evo-v0103.mjs",
+      "sha": "1a3968b74e4e6bb842db532b6f7048046aca8c70",
+      "bytes": 11778,
+      "baselineBlob": "bc341580f8af035773de5391915b7826176cb36b",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/releases/RELEASE-0103.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/game-v0103.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v0103.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/premium-ship-v0103.test.mjs",
+          "stillTracked": true,
+          "unchanged": false
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 7,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "039ba48846c3023e76ab2fceccec5d9b4702a9f5",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/premium-ship-v0103.test.mjs",
+          "sha": "96ba48aab0d93cbbeebb1a32362b5dc795280f01",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/game-v0103.mjs",
+          "sha": "4866e86d277052d128aa5afd0985074ee7e2f8da",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "a1394a741b76379a85451aa68b2f2155589ce29a",
+      "verifiedArchitectureRun": 45966103155,
+      "productionEvidenceRun": 45966103077,
+      "reason": "Remove three superseded ship/effect sources and two syntax-only readers while preserving active ship art, geometry, loader and presentation coverage.",
+      "replacement": [
+        "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs",
+        "skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs",
+        "skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/stingray-evo-v0103.mjs",
+        "sha": "bc341580f8af035773de5391915b7826176cb36b",
+        "bytes": 11772
+      }
     }
   ],
   "unitTests": [
@@ -5097,6 +5512,38 @@
         "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
         "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
         "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/stingray-evo-v0101.test.mjs",
+      "sha": "314332220c9a3f2702cf11c7b36aaafd3b3306ae",
+      "bytes": 4332,
+      "rollbackCommit": "a1394a741b76379a85451aa68b2f2155589ce29a",
+      "verifiedArchitectureRun": 45966103155,
+      "productionEvidenceRun": 45966103077,
+      "reason": "Remove three superseded ship/effect sources and two syntax-only readers while preserving active ship art, geometry, loader and presentation coverage.",
+      "replacement": [
+        "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs",
+        "skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs",
+        "skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/premium-ship-v0103.test.mjs",
+      "sha": "96ba48aab0d93cbbeebb1a32362b5dc795280f01",
+      "bytes": 5282,
+      "rollbackCommit": "a1394a741b76379a85451aa68b2f2155589ce29a",
+      "verifiedArchitectureRun": 45966103155,
+      "productionEvidenceRun": 45966103077,
+      "reason": "Remove three superseded ship/effect sources and two syntax-only readers while preserving active ship art, geometry, loader and presentation coverage.",
+      "replacement": [
+        "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs",
+        "skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs",
+        "skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs"
       ]
     }
   ],
@@ -6084,6 +6531,40 @@
         "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
         "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
         "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs"
+      ]
+    },
+    {
+      "scope": "Remove three superseded ship/effect sources and two syntax-only readers while preserving active ship art, geometry, loader and presentation coverage.",
+      "rollbackCommit": "a1394a741b76379a85451aa68b2f2155589ce29a",
+      "verifiedArchitectureRun": 45966103155,
+      "productionEvidenceRun": 45966103077,
+      "reason": "Remove three superseded ship/effect sources and two syntax-only readers while preserving active ship art, geometry, loader and presentation coverage.",
+      "replacement": [
+        "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs",
+        "skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs",
+        "skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs"
+      ],
+      "rootFiles": 3,
+      "sourceFiles": 0,
+      "unitFiles": 2,
+      "browserFiles": 0,
+      "bytes": 39108,
+      "paths": [
+        "skyshift/engine-trails-v0496.mjs",
+        "skyshift/stingray-evo-v0101.mjs",
+        "skyshift/stingray-evo-v0103.mjs",
+        "skyshift/tests/unit/stingray-evo-v0101.test.mjs",
+        "skyshift/tests/unit/premium-ship-v0103.test.mjs"
+      ],
+      "removedSyntaxCommands": 5,
+      "coverage": [
+        "skyshift/tests/unit/ship-hero-loader-v01342.test.mjs",
+        "skyshift/tests/unit/ship-art-pipeline-v0132.test.mjs",
+        "skyshift/tests/unit/stingray-hero-preview-v01321.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs"
       ]
     }
   ],

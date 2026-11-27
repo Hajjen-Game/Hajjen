@@ -212,9 +212,9 @@ jobs:
           node --check skyshift/trial-v02.mjs
           node --check skyshift/ui/fullscreen-v02.mjs
           node --check skyshift/trial-v03.mjs
-          node --check skyshift/neon-balance-v032.mjs
-          node --check skyshift/neon-v032.mjs
-          node --check skyshift/luminance-v0331.mjs
+          node --check skyshift/rendering/neon-balance-v032.mjs
+          node --check skyshift/rendering/neon-v032.mjs
+          node --check skyshift/rendering/luminance-v0331.mjs
           node --check skyshift/ships/ship-v034.mjs
           node --check skyshift/core/frame-pacing-v043.mjs
           node --check skyshift/flight-motion-v044.mjs
@@ -225,9 +225,8 @@ jobs:
           node --check skyshift/flight/boost/boost-v0494.mjs
           node --check skyshift/flight/boost/boost-chase-v0494.mjs
           node --check skyshift/flight/boost/boost-spring-v0495.mjs
-          node --check skyshift/velocity-language-v0496.mjs
-          node --check skyshift/engine-trails-v0496.mjs
-          node --check skyshift/space-v0496.mjs
+          node --check skyshift/rendering/velocity-language-v0496.mjs
+          node --check skyshift/world/space-v0496.mjs
           node --check skyshift/ui/reactive-hud-v0499.mjs
           node --check skyshift/ui/reactive-hud-v04991.mjs
           node --check skyshift/flight/boost/boost-v050.mjs
@@ -260,7 +259,7 @@ jobs:
           node --check skyshift/rendering/legacy/premium-track-v082.mjs
           node --check skyshift/flight/air-tricks-v083.mjs
           node --check skyshift/flight/racing-feel-v083.mjs
-          node --check skyshift/image-clarity-v083.mjs
+          node --check skyshift/rendering/image-clarity-v083.mjs
           node --check skyshift/flight/precision-grip-v084.mjs
           node --check skyshift/flight/steering-authority-v084.mjs
           node --check skyshift/flight/kinetic-camera-v090.mjs
@@ -273,18 +272,14 @@ jobs:
           node --check skyshift/cinematic-v0901.mjs
           node --check skyshift/flight/signature-flight-v091.mjs
           node --check skyshift/tests/unit/signature-flight-v091.test.mjs
-          node --check skyshift/shadow-tunnel-v092.mjs
+          node --check skyshift/tunnel/shadow-tunnel-v092.mjs
           node --check skyshift/tests/unit/shadow-tunnel-v092.test.mjs
-          node --check skyshift/tunnel-blackout-v0921.mjs
+          node --check skyshift/tunnel/tunnel-blackout-v0921.mjs
           node --check skyshift/tests/unit/tunnel-blackout-v0921.test.mjs
           node --check skyshift/ships/fleet-v010.mjs
           node --check skyshift/tests/unit/fleet-v010.test.mjs
-          node --check skyshift/stingray-evo-v0101.mjs
-          node --check skyshift/tests/unit/stingray-evo-v0101.test.mjs
           node --check skyshift/ships/ship-polish-v0103.mjs
           node --check skyshift/ships/manta-blade-v0103.mjs
-          node --check skyshift/stingray-evo-v0103.mjs
-          node --check skyshift/tests/unit/premium-ship-v0103.test.mjs
           node --check skyshift/ships/velocity-presence-v0104.mjs
           node --check skyshift/ships/stingray-evo-v0104.mjs
           node --check skyshift/ships/wingtip-contrails-v0106.mjs
@@ -299,7 +294,7 @@ jobs:
           node --check skyshift/core/render-optimizer-v0111.mjs
           node --check skyshift/tests/unit/render-optimizer-v0111.test.mjs
           node --check skyshift/core/performance-audit-v0111.mjs
-          node --check skyshift/neon-v0111.mjs
+          node --check skyshift/rendering/neon-v0111.mjs
           node --check skyshift/flight/flight-motion-v0112.mjs
           node --check skyshift/core/frame-pacing-v0112.mjs
           node --check skyshift/flight/unified-flight-v0112.mjs
@@ -375,8 +370,8 @@ jobs:
           node --check skyshift/rendering/road/premium-track-v0160.mjs
           node --check skyshift/core/visual-fidelity-v0160.mjs
           node --check skyshift/tracks/barriers/aero-barrier-v0160.mjs
-          node --check skyshift/shadow-tunnel-v0160.mjs
-          node --check skyshift/tunnel-blackout-v0160.mjs
+          node --check skyshift/tunnel/shadow-tunnel-v0160.mjs
+          node --check skyshift/tunnel/tunnel-blackout-v0160.mjs
           node --check skyshift/racing-experience-v0160.mjs
           node --check skyshift/time-trial-v0160.mjs
           node --check skyshift/tests/unit/multi-track-aurora-v0160.test.mjs
@@ -445,16 +440,16 @@ jobs:
           node --check skyshift/world/environment-art-pipeline-v0200.mjs
           node --check skyshift/tests/unit/environment-art-pipeline-v0200.test.mjs
           node --check skyshift/tests/browser/browser-environment-art-v0200.mjs
-          node --check skyshift/orbital-hero-v0192.mjs
+          node --check skyshift/world/orbital-hero-v0192.mjs
           node --check skyshift/tests/unit/orbital-hero-v0192.test.mjs
           node --check skyshift/tests/browser/browser-orbital-hero-v0192.mjs
-          node --check skyshift/world-rebuild-v0190.mjs
+          node --check skyshift/world/world-rebuild-v0190.mjs
           node --check skyshift/tests/unit/world-rebuild-v0190.test.mjs
           node --check skyshift/tests/browser/browser-world-rebuild-v0190.mjs
-          node --check skyshift/signature-environment-v0180.mjs
+          node --check skyshift/world/signature-environment-v0180.mjs
           node --check skyshift/tests/unit/signature-environment-v0180.test.mjs
           node --check skyshift/tests/browser/browser-signature-environment-v0180.mjs
-          node --check skyshift/cinematic-space-lighting-v0170.mjs
+          node --check skyshift/world/cinematic-space-lighting-v0170.mjs
           node --check skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs
           node --check skyshift/tests/unit/track-integrity-v0165.test.mjs
           node --check skyshift/qa/track-physics-parity-probe-v0165.mjs

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
-import {NEON_TUNING,validateNeonBalance} from "../../neon-balance-v032.mjs";
+import {NEON_TUNING,validateNeonBalance} from "../../rendering/neon-balance-v032.mjs";
 
 const here=new URL("../../"+".",import.meta.url);
 const src=(file)=>readFileSync(new URL(file,here),"utf8");
@@ -53,7 +53,7 @@ test("beacons, archs, engine fill and flight FX follow the new tuning",()=>{
 });
 
 test("HDR composer remains active, with one core Three.js instance and tone mapping",()=>{
-  const html=src("index.html"),game=src("legacy/game/game-v032.mjs"),neon=src("neon-v032.mjs");
+  const html=src("index.html"),game=src("legacy/game/game-v032.mjs"),neon=src("rendering/neon-v032.mjs");
   assert.match(html,/src="\.\/boot-v0103\.js\?v=0\.10\.3"/);
   // The 0.3.2 renderer remains in the repo as the approved lighting baseline.
   assert.match(src("legacy/game/game-v0331.mjs"),/from "\.\/neon-v032\.mjs"/);

@@ -9,7 +9,7 @@ import {SMAAPass} from "three/addons/postprocessing/SMAAPass.js";
 import {OutputPass} from "three/addons/postprocessing/OutputPass.js";
 import {ShaderPass} from "three/addons/postprocessing/ShaderPass.js";
 import {createNeonKit,NEON_TUNING,brightnessHierarchy} from "./neon-v032.mjs";
-import {bloomScaleFor,tuneBloomPass} from "./core/render-optimizer-v0111.mjs";
+import {bloomScaleFor,tuneBloomPass} from "../core/render-optimizer-v0111.mjs";
 export {createNeonKit,NEON_TUNING,brightnessHierarchy};
 export const CLARITY_PASS_ORDER=Object.freeze([
  "RenderPass","UnrealBloomPass","SMAAPass","OutputPass"

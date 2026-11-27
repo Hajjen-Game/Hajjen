@@ -193,7 +193,7 @@
           "oldPath": "skyshift/unified-tunnel-lighting-v1.mjs",
           "newPath": "skyshift/tunnel/unified-tunnel-lighting-v1.mjs",
           "sourceSha": "7d614cb38855892102fc2503e2909b3a4c7d7445",
-          "destinationSha": "818a56b15a563073324c95b2a587690e94e3b3c3",
+          "destinationSha": "12ed2688f61d816982a769bf2de360683918025a",
           "bytes": 4406,
           "owner": "tunnel",
           "productionBefore": true,
@@ -1139,7 +1139,7 @@
           "oldPath": "skyshift/engine-trails-v01346.mjs",
           "newPath": "skyshift/ships/engine-trails-v01346.mjs",
           "sourceSha": "5894ad9225eb2d0651b8f659232ade127067f6ce",
-          "destinationSha": "3a96b447ec60f225f2f88bc11ad2d9948cf7fc17",
+          "destinationSha": "d4e774d761e737dce5339aaa77216a3d0ce93eaa",
           "bytes": 8182,
           "owner": "ships",
           "productionBefore": true,
@@ -1151,7 +1151,7 @@
           "pathEdits": [
             {
               "before": "from \"./neon-balance-v032.mjs\"",
-              "after": "from \"../neon-balance-v032.mjs\""
+              "after": "from \"../rendering/neon-balance-v032.mjs\""
             }
           ]
         },
@@ -1658,6 +1658,386 @@
           "skyshift/zone-wave-v060.mjs"
         ]
       }
+    },
+    {
+      "rollbackCommit": "a1394a741b76379a85451aa68b2f2155589ce29a",
+      "architectureRun": 45966103155,
+      "productionRun": 45966103077,
+      "rootCountBefore": 58,
+      "rootCountAfter": 40,
+      "moves": [
+        {
+          "oldPath": "skyshift/image-clarity-v083.mjs",
+          "newPath": "skyshift/rendering/image-clarity-v083.mjs",
+          "sourceSha": "0225dbc7e3bebb4dcbae8d66c024c5ca75b68213",
+          "destinationSha": "0225dbc7e3bebb4dcbae8d66c024c5ca75b68213",
+          "bytes": 2010,
+          "owner": "rendering",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "0225dbc7e3bebb4dcbae8d66c024c5ca75b68213"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/luminance-v0331.mjs",
+          "newPath": "skyshift/rendering/luminance-v0331.mjs",
+          "sourceSha": "f7dd057aa63ac7712a1b32136b9ffef18cd422c8",
+          "destinationSha": "f7dd057aa63ac7712a1b32136b9ffef18cd422c8",
+          "bytes": 3017,
+          "owner": "rendering",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "f7dd057aa63ac7712a1b32136b9ffef18cd422c8"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/neon-balance-v032.mjs",
+          "newPath": "skyshift/rendering/neon-balance-v032.mjs",
+          "sourceSha": "67382f8e783150895cd5f88aacccb49dc79bd073",
+          "destinationSha": "67382f8e783150895cd5f88aacccb49dc79bd073",
+          "bytes": 1858,
+          "owner": "rendering",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "67382f8e783150895cd5f88aacccb49dc79bd073"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/neon-v0111.mjs",
+          "newPath": "skyshift/rendering/neon-v0111.mjs",
+          "sourceSha": "e28bffe5853fcad3f521af8019d9dfb6b73bea67",
+          "destinationSha": "8eccd48a09cc56837e64503073f2a707f19bf34a",
+          "bytes": 2794,
+          "owner": "rendering",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "e28bffe5853fcad3f521af8019d9dfb6b73bea67"
+          },
+          "pathEdits": [
+            {
+              "before": "from \"./core/render-optimizer-v0111.mjs\"",
+              "after": "from \"../core/render-optimizer-v0111.mjs\""
+            }
+          ]
+        },
+        {
+          "oldPath": "skyshift/neon-v032.mjs",
+          "newPath": "skyshift/rendering/neon-v032.mjs",
+          "sourceSha": "08370da1a512000da45bf90e46601b0ad54de4ad",
+          "destinationSha": "08370da1a512000da45bf90e46601b0ad54de4ad",
+          "bytes": 4402,
+          "owner": "rendering",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "08370da1a512000da45bf90e46601b0ad54de4ad"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/velocity-language-v0496.mjs",
+          "newPath": "skyshift/rendering/velocity-language-v0496.mjs",
+          "sourceSha": "9eff8395da24036979924e25bedfdde0d62d5829",
+          "destinationSha": "9eff8395da24036979924e25bedfdde0d62d5829",
+          "bytes": 2560,
+          "owner": "rendering",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "9eff8395da24036979924e25bedfdde0d62d5829"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/cinematic-space-lighting-v0170.mjs",
+          "newPath": "skyshift/world/cinematic-space-lighting-v0170.mjs",
+          "sourceSha": "9e7fa0de4cc49da7037ea706f7fb4a662eb45a1d",
+          "destinationSha": "9e7fa0de4cc49da7037ea706f7fb4a662eb45a1d",
+          "bytes": 8137,
+          "owner": "world",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "9e7fa0de4cc49da7037ea706f7fb4a662eb45a1d"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/orbital-hero-v0192.mjs",
+          "newPath": "skyshift/world/orbital-hero-v0192.mjs",
+          "sourceSha": "ba36cdaed1681aed977fec9cb5901366250eaf30",
+          "destinationSha": "ba36cdaed1681aed977fec9cb5901366250eaf30",
+          "bytes": 11272,
+          "owner": "world",
+          "productionBefore": false,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "ba36cdaed1681aed977fec9cb5901366250eaf30"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/signature-environment-v0180.mjs",
+          "newPath": "skyshift/world/signature-environment-v0180.mjs",
+          "sourceSha": "1a6219602cae4b0545b002b96f489cf58411958f",
+          "destinationSha": "1a6219602cae4b0545b002b96f489cf58411958f",
+          "bytes": 8117,
+          "owner": "world",
+          "productionBefore": false,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "1a6219602cae4b0545b002b96f489cf58411958f"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/space-v0496.mjs",
+          "newPath": "skyshift/world/space-v0496.mjs",
+          "sourceSha": "b90077867761b511f187eea9eab5eddbc24df575",
+          "destinationSha": "b90077867761b511f187eea9eab5eddbc24df575",
+          "bytes": 3325,
+          "owner": "world",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "b90077867761b511f187eea9eab5eddbc24df575"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/world-rebuild-v0190.mjs",
+          "newPath": "skyshift/world/world-rebuild-v0190.mjs",
+          "sourceSha": "0450cc9ce3b6cbe1cf1904f4594ee7a2e82235e5",
+          "destinationSha": "0450cc9ce3b6cbe1cf1904f4594ee7a2e82235e5",
+          "bytes": 10512,
+          "owner": "world",
+          "productionBefore": false,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "0450cc9ce3b6cbe1cf1904f4594ee7a2e82235e5"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/shadow-tunnel-v0160.mjs",
+          "newPath": "skyshift/tunnel/shadow-tunnel-v0160.mjs",
+          "sourceSha": "9a9111af74becbee08ca5574b0424455482733f0",
+          "destinationSha": "2647d9080b46567477e94ad1ca30d75ecfe01519",
+          "bytes": 7988,
+          "owner": "tunnel",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "acf44dc69904acb78c7be5213d634e3ec90676e0",
+            "bytes": 7974
+          },
+          "pathEdits": [
+            {
+              "before": "from \"./tracks/shared/track-selection-v0160.mjs\"",
+              "after": "from \"../tracks/shared/track-selection-v0160.mjs\""
+            },
+            {
+              "before": "from \"./tracks/trials/trial-v0160.mjs\"",
+              "after": "from \"../tracks/trials/trial-v0160.mjs\""
+            }
+          ]
+        },
+        {
+          "oldPath": "skyshift/shadow-tunnel-v092.mjs",
+          "newPath": "skyshift/tunnel/shadow-tunnel-v092.mjs",
+          "sourceSha": "577cd78979d93a32ad90d79f518ade3aabf0a209",
+          "destinationSha": "a6dbb60784466d59776b912b3bd7cab6996c5a68",
+          "bytes": 7832,
+          "owner": "tunnel",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "577cd78979d93a32ad90d79f518ade3aabf0a209"
+          },
+          "pathEdits": [
+            {
+              "before": "from \"./trial-v0901.mjs\"",
+              "after": "from \"../trial-v0901.mjs\""
+            }
+          ]
+        },
+        {
+          "oldPath": "skyshift/tunnel-blackout-v0160.mjs",
+          "newPath": "skyshift/tunnel/tunnel-blackout-v0160.mjs",
+          "sourceSha": "b815ad4cbdfc546c2760db5e9753506fd1f081c5",
+          "destinationSha": "b815ad4cbdfc546c2760db5e9753506fd1f081c5",
+          "bytes": 6375,
+          "owner": "tunnel",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "b815ad4cbdfc546c2760db5e9753506fd1f081c5"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/tunnel-blackout-v0921.mjs",
+          "newPath": "skyshift/tunnel/tunnel-blackout-v0921.mjs",
+          "sourceSha": "92632ce4c72cab2cc3883a4c7a760e1f5419accc",
+          "destinationSha": "92632ce4c72cab2cc3883a4c7a760e1f5419accc",
+          "bytes": 6356,
+          "owner": "tunnel",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "92632ce4c72cab2cc3883a4c7a760e1f5419accc"
+          },
+          "pathEdits": []
+        }
+      ],
+      "consumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/build/production-specialization.mjs",
+        "skyshift/game-v0203.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/legacy/game/game-v0205.mjs",
+        "skyshift/ships/engine-trails-v01346.mjs",
+        "skyshift/tests/architecture/root-count-contract.mjs",
+        "skyshift/tests/browser/browser-grip-trick-v0165.mjs",
+        "skyshift/tests/browser/browser-multi-track-v0160.mjs",
+        "skyshift/tests/browser/browser-rail-collision-v0162.mjs",
+        "skyshift/tests/browser/browser-rail-contact-quality-v0163.mjs",
+        "skyshift/tests/browser/browser-track-parity-v0164.mjs",
+        "skyshift/tests/unit/cinematic-space-lighting-v0170.test.mjs",
+        "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+        "skyshift/tests/unit/neon-v032.test.mjs",
+        "skyshift/tests/unit/orbital-hero-v0192.test.mjs",
+        "skyshift/tests/unit/shadow-tunnel-v092.test.mjs",
+        "skyshift/tests/unit/signature-environment-v0180.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/tunnel-blackout-v0921.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-lighting-v1.test.mjs",
+        "skyshift/tests/unit/visual-fidelity-v0113.test.mjs",
+        "skyshift/tests/unit/visual-fidelity-v0114.test.mjs",
+        "skyshift/tests/unit/world-rebuild-v0190.test.mjs",
+        "skyshift/tunnel/unified-tunnel-lighting-v1.mjs"
+      ],
+      "productionEvidence": {
+        "commit": "a1394a741b76379a85451aa68b2f2155589ce29a",
+        "run": 45966103077,
+        "job": 140395053112,
+        "productionModules": 173,
+        "productionRoots": [
+          "boot-v0210.js",
+          "cinematic-space-lighting-v0170.mjs",
+          "game-v0210.mjs",
+          "image-clarity-v083.mjs",
+          "index.html",
+          "luminance-v0331.mjs",
+          "neon-balance-v032.mjs",
+          "neon-v0111.mjs",
+          "neon-v032.mjs",
+          "racing-experience-v0160.mjs",
+          "rail-scrape-sparks-v0165.mjs",
+          "risk-reward-v0151.mjs",
+          "risk-reward-v0160.mjs",
+          "shadow-tunnel-v0160.mjs",
+          "space-v0496.mjs",
+          "time-trial-v0160.mjs",
+          "trial-v0901.mjs",
+          "tunnel-blackout-v0160.mjs",
+          "velocity-language-v0496.mjs",
+          "zone-wave-v060.mjs"
+        ],
+        "otherSourceRoots": [
+          "README.md",
+          "air-tricks-v081.mjs",
+          "cinematic-v0162.mjs",
+          "cinematic-v0163.mjs",
+          "cinematic-v0164.mjs",
+          "cinematic-v0901.mjs",
+          "engine-trails-v0496.mjs",
+          "flight-motion-v044.mjs",
+          "game-v0203.mjs",
+          "material-grade-v0203.html",
+          "orbital-hero-v0192.mjs",
+          "precision-grip-v061.mjs",
+          "racing-experience-v0121.mjs",
+          "rail-scrape-sparks-v01091.mjs",
+          "risk-reward-v0150.mjs",
+          "sector-landmarks-v0120.mjs",
+          "shadow-tunnel-v092.mjs",
+          "signature-environment-v0180.mjs",
+          "stingray-evo-v0101.mjs",
+          "stingray-evo-v0103.mjs",
+          "style.css",
+          "time-trial-v0130.mjs",
+          "time-trial-v0150.mjs",
+          "time-trial-v0151.mjs",
+          "track.mjs",
+          "trial-v01348.mjs",
+          "trial-v0150.mjs",
+          "trial-v0151.mjs",
+          "trial-v0162.mjs",
+          "trial-v0163.mjs",
+          "trial-v0164.mjs",
+          "trial-v02.mjs",
+          "trial-v03.mjs",
+          "trial-v072.mjs",
+          "trial-v081.mjs",
+          "trial-v082.mjs",
+          "tunnel-blackout-v0921.mjs",
+          "world-rebuild-v0190.mjs"
+        ]
+      },
+      "sourceEvidence": {
+        "commit": "a1394a741b76379a85451aa68b2f2155589ce29a",
+        "run": 45966103155,
+        "job": 140395053074,
+        "sourceReachableRoots": [
+          "skyshift/boot-v0210.js",
+          "skyshift/cinematic-space-lighting-v0170.mjs",
+          "skyshift/flight-motion-v044.mjs",
+          "skyshift/game-v0210.mjs",
+          "skyshift/image-clarity-v083.mjs",
+          "skyshift/index.html",
+          "skyshift/luminance-v0331.mjs",
+          "skyshift/neon-balance-v032.mjs",
+          "skyshift/neon-v0111.mjs",
+          "skyshift/neon-v032.mjs",
+          "skyshift/orbital-hero-v0192.mjs",
+          "skyshift/racing-experience-v0160.mjs",
+          "skyshift/rail-scrape-sparks-v0165.mjs",
+          "skyshift/risk-reward-v0151.mjs",
+          "skyshift/risk-reward-v0160.mjs",
+          "skyshift/shadow-tunnel-v0160.mjs",
+          "skyshift/signature-environment-v0180.mjs",
+          "skyshift/space-v0496.mjs",
+          "skyshift/time-trial-v0160.mjs",
+          "skyshift/trial-v0901.mjs",
+          "skyshift/tunnel-blackout-v0160.mjs",
+          "skyshift/velocity-language-v0496.mjs",
+          "skyshift/world-rebuild-v0190.mjs",
+          "skyshift/zone-wave-v060.mjs"
+        ]
+      }
     }
   ],
   "moves": [
@@ -1845,7 +2225,7 @@
       "oldPath": "skyshift/unified-tunnel-lighting-v1.mjs",
       "newPath": "skyshift/tunnel/unified-tunnel-lighting-v1.mjs",
       "sourceSha": "7d614cb38855892102fc2503e2909b3a4c7d7445",
-      "destinationSha": "818a56b15a563073324c95b2a587690e94e3b3c3",
+      "destinationSha": "12ed2688f61d816982a769bf2de360683918025a",
       "bytes": 4406,
       "owner": "tunnel",
       "productionBefore": true,
@@ -2135,7 +2515,7 @@
       "oldPath": "skyshift/engine-trails-v01346.mjs",
       "newPath": "skyshift/ships/engine-trails-v01346.mjs",
       "sourceSha": "5894ad9225eb2d0651b8f659232ade127067f6ce",
-      "destinationSha": "3a96b447ec60f225f2f88bc11ad2d9948cf7fc17",
+      "destinationSha": "d4e774d761e737dce5339aaa77216a3d0ce93eaa",
       "bytes": 8182,
       "owner": "ships",
       "productionBefore": true,
@@ -2147,7 +2527,7 @@
       "pathEdits": [
         {
           "before": "from \"./neon-balance-v032.mjs\"",
-          "after": "from \"../neon-balance-v032.mjs\""
+          "after": "from \"../rendering/neon-balance-v032.mjs\""
         }
       ]
     },
@@ -2348,6 +2728,251 @@
           "after": "new URL(\"./assets/ships/\",shipAssetBase)"
         }
       ]
+    },
+    {
+      "oldPath": "skyshift/image-clarity-v083.mjs",
+      "newPath": "skyshift/rendering/image-clarity-v083.mjs",
+      "sourceSha": "0225dbc7e3bebb4dcbae8d66c024c5ca75b68213",
+      "destinationSha": "0225dbc7e3bebb4dcbae8d66c024c5ca75b68213",
+      "bytes": 2010,
+      "owner": "rendering",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "0225dbc7e3bebb4dcbae8d66c024c5ca75b68213"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/luminance-v0331.mjs",
+      "newPath": "skyshift/rendering/luminance-v0331.mjs",
+      "sourceSha": "f7dd057aa63ac7712a1b32136b9ffef18cd422c8",
+      "destinationSha": "f7dd057aa63ac7712a1b32136b9ffef18cd422c8",
+      "bytes": 3017,
+      "owner": "rendering",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "f7dd057aa63ac7712a1b32136b9ffef18cd422c8"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/neon-balance-v032.mjs",
+      "newPath": "skyshift/rendering/neon-balance-v032.mjs",
+      "sourceSha": "67382f8e783150895cd5f88aacccb49dc79bd073",
+      "destinationSha": "67382f8e783150895cd5f88aacccb49dc79bd073",
+      "bytes": 1858,
+      "owner": "rendering",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "67382f8e783150895cd5f88aacccb49dc79bd073"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/neon-v0111.mjs",
+      "newPath": "skyshift/rendering/neon-v0111.mjs",
+      "sourceSha": "e28bffe5853fcad3f521af8019d9dfb6b73bea67",
+      "destinationSha": "8eccd48a09cc56837e64503073f2a707f19bf34a",
+      "bytes": 2794,
+      "owner": "rendering",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "e28bffe5853fcad3f521af8019d9dfb6b73bea67"
+      },
+      "pathEdits": [
+        {
+          "before": "from \"./core/render-optimizer-v0111.mjs\"",
+          "after": "from \"../core/render-optimizer-v0111.mjs\""
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/neon-v032.mjs",
+      "newPath": "skyshift/rendering/neon-v032.mjs",
+      "sourceSha": "08370da1a512000da45bf90e46601b0ad54de4ad",
+      "destinationSha": "08370da1a512000da45bf90e46601b0ad54de4ad",
+      "bytes": 4402,
+      "owner": "rendering",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "08370da1a512000da45bf90e46601b0ad54de4ad"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/velocity-language-v0496.mjs",
+      "newPath": "skyshift/rendering/velocity-language-v0496.mjs",
+      "sourceSha": "9eff8395da24036979924e25bedfdde0d62d5829",
+      "destinationSha": "9eff8395da24036979924e25bedfdde0d62d5829",
+      "bytes": 2560,
+      "owner": "rendering",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "9eff8395da24036979924e25bedfdde0d62d5829"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/cinematic-space-lighting-v0170.mjs",
+      "newPath": "skyshift/world/cinematic-space-lighting-v0170.mjs",
+      "sourceSha": "9e7fa0de4cc49da7037ea706f7fb4a662eb45a1d",
+      "destinationSha": "9e7fa0de4cc49da7037ea706f7fb4a662eb45a1d",
+      "bytes": 8137,
+      "owner": "world",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "9e7fa0de4cc49da7037ea706f7fb4a662eb45a1d"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/orbital-hero-v0192.mjs",
+      "newPath": "skyshift/world/orbital-hero-v0192.mjs",
+      "sourceSha": "ba36cdaed1681aed977fec9cb5901366250eaf30",
+      "destinationSha": "ba36cdaed1681aed977fec9cb5901366250eaf30",
+      "bytes": 11272,
+      "owner": "world",
+      "productionBefore": false,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "ba36cdaed1681aed977fec9cb5901366250eaf30"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/signature-environment-v0180.mjs",
+      "newPath": "skyshift/world/signature-environment-v0180.mjs",
+      "sourceSha": "1a6219602cae4b0545b002b96f489cf58411958f",
+      "destinationSha": "1a6219602cae4b0545b002b96f489cf58411958f",
+      "bytes": 8117,
+      "owner": "world",
+      "productionBefore": false,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "1a6219602cae4b0545b002b96f489cf58411958f"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/space-v0496.mjs",
+      "newPath": "skyshift/world/space-v0496.mjs",
+      "sourceSha": "b90077867761b511f187eea9eab5eddbc24df575",
+      "destinationSha": "b90077867761b511f187eea9eab5eddbc24df575",
+      "bytes": 3325,
+      "owner": "world",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "b90077867761b511f187eea9eab5eddbc24df575"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/world-rebuild-v0190.mjs",
+      "newPath": "skyshift/world/world-rebuild-v0190.mjs",
+      "sourceSha": "0450cc9ce3b6cbe1cf1904f4594ee7a2e82235e5",
+      "destinationSha": "0450cc9ce3b6cbe1cf1904f4594ee7a2e82235e5",
+      "bytes": 10512,
+      "owner": "world",
+      "productionBefore": false,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "0450cc9ce3b6cbe1cf1904f4594ee7a2e82235e5"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/shadow-tunnel-v0160.mjs",
+      "newPath": "skyshift/tunnel/shadow-tunnel-v0160.mjs",
+      "sourceSha": "9a9111af74becbee08ca5574b0424455482733f0",
+      "destinationSha": "2647d9080b46567477e94ad1ca30d75ecfe01519",
+      "bytes": 7988,
+      "owner": "tunnel",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "acf44dc69904acb78c7be5213d634e3ec90676e0",
+        "bytes": 7974
+      },
+      "pathEdits": [
+        {
+          "before": "from \"./tracks/shared/track-selection-v0160.mjs\"",
+          "after": "from \"../tracks/shared/track-selection-v0160.mjs\""
+        },
+        {
+          "before": "from \"./tracks/trials/trial-v0160.mjs\"",
+          "after": "from \"../tracks/trials/trial-v0160.mjs\""
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/shadow-tunnel-v092.mjs",
+      "newPath": "skyshift/tunnel/shadow-tunnel-v092.mjs",
+      "sourceSha": "577cd78979d93a32ad90d79f518ade3aabf0a209",
+      "destinationSha": "a6dbb60784466d59776b912b3bd7cab6996c5a68",
+      "bytes": 7832,
+      "owner": "tunnel",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "577cd78979d93a32ad90d79f518ade3aabf0a209"
+      },
+      "pathEdits": [
+        {
+          "before": "from \"./trial-v0901.mjs\"",
+          "after": "from \"../trial-v0901.mjs\""
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/tunnel-blackout-v0160.mjs",
+      "newPath": "skyshift/tunnel/tunnel-blackout-v0160.mjs",
+      "sourceSha": "b815ad4cbdfc546c2760db5e9753506fd1f081c5",
+      "destinationSha": "b815ad4cbdfc546c2760db5e9753506fd1f081c5",
+      "bytes": 6375,
+      "owner": "tunnel",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "b815ad4cbdfc546c2760db5e9753506fd1f081c5"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/tunnel-blackout-v0921.mjs",
+      "newPath": "skyshift/tunnel/tunnel-blackout-v0921.mjs",
+      "sourceSha": "92632ce4c72cab2cc3883a4c7a760e1f5419accc",
+      "destinationSha": "92632ce4c72cab2cc3883a4c7a760e1f5419accc",
+      "bytes": 6356,
+      "owner": "tunnel",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "92632ce4c72cab2cc3883a4c7a760e1f5419accc"
+      },
+      "pathEdits": []
     }
   ]
 }

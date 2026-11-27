@@ -15,10 +15,10 @@ import {FIDELITY_0114,createFidelityDirector,
  resetFidelityDirector,advanceFidelityDirector,fidelityAudit,
  createSmartPremiumTrackMaterial} from "../../core/visual-fidelity-v0160.mjs";
 import {SHADOW_TUNNEL,inShadowTunnel,tunnelIntensityAt,installShadowTunnel,
- installTunnelRoadShading} from "../../shadow-tunnel-v0160.mjs";
+ installTunnelRoadShading} from "../../tunnel/shadow-tunnel-v0160.mjs";
 import {TUNNEL_BLACKOUT,installBlackoutRoadShading,
  separateBladeTipMaterial,createTunnelBlackoutController}
- from "../../tunnel-blackout-v0160.mjs";
+ from "../../tunnel/tunnel-blackout-v0160.mjs";
 import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "../../zone-wave-v060.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "../../ships/manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "../../ships/manta-blade-v0103.mjs";
@@ -27,7 +27,7 @@ import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
  isFleetUnlocked,recordFleetClear,fleetStatus} from "../../ships/fleet-v010.mjs";
 import { makeFullscreenController } from "../../ui/fullscreen-v02.mjs";
 import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "../../ships/engine-trails-v01346.mjs";
-import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../neon-v0111.mjs";
+import { createNeonPipeline,createNeonKit,NEON_TUNING } from "../../rendering/neon-v0111.mjs";
 import { MESH_SPEC } from "../../tracks/shared/smooth-track-v0160.mjs";
 import {OPT_0111,newHudBudget,createDomWriteCache} from "../../core/render-optimizer-v0111.mjs";
 import {createUnifiedFlightRig,resetUnifiedFlightRig,advanceUnifiedFlightRig,
@@ -44,18 +44,18 @@ import {SIGNATURE_FLIGHT,createSignatureFlightState,
 import { CINEMATIC_DEFAULTS,createCinematicState,chasePose,cameraBankAt,cinematicFov,engineLightFactor } from "../../flight/cinematic-v0165.mjs";
 import {BOOST_SPRING,createBoostSpringState,triggerBoostSpring,stepBoostSpring,boostFovTarget,boostFovResponse} from "../../flight/boost-spring-v090.mjs";
 import {BOOST_SPRING as CLASSIC_BOOST_FOV} from "../../flight/boost/boost-spring-v0495.mjs";
-import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "../../velocity-language-v0496.mjs";
+import {VELOCITY_SPEC,createVelocityState,igniteVelocity,stepVelocityState} from "../../rendering/velocity-language-v0496.mjs";
 import {KINETIC_CAMERA,kineticFovAt,createKineticCameraState,
  triggerKineticLanding,kineticCameraAudit}
  from "../../flight/kinetic-camera-v090.mjs";
 import { installAeroBarriers,AERO_BARRIER } from "../../tracks/barriers/aero-barrier-v0165.mjs";
-import { installSpaceBackdrop } from "../../space-v0496.mjs";
+import { installSpaceBackdrop } from "../../world/space-v0496.mjs";
 import {SIGNATURE_ENV_0180,installSignatureEnvironment}
- from "../../signature-environment-v0180.mjs";
+ from "../../world/signature-environment-v0180.mjs";
 import {WORLD_0190,installCinematicWorld}
- from "../../world-rebuild-v0190.mjs";
+ from "../../world/world-rebuild-v0190.mjs";
 import {ORBITAL_HERO_0192,installOrbitalHero}
- from "../../orbital-hero-v0192.mjs";
+ from "../../world/orbital-hero-v0192.mjs";
 import {WORLD_ART_0200,installWorldArt}
  from "../../world/environment-art-pipeline-v0200.mjs";
 import {WORLD_ART_0201,installWorldArt as installEnclosedWorldArt}
@@ -73,9 +73,9 @@ import {WORLD_ART_02041,installWorldArt as installSculptedNeonWorldArt}
 import {WORLD_ART_0205,installWorldArt as installArchitecturalWorldArt}
  from "../../world/environment-art-pipeline-v0205.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
- from "../../cinematic-space-lighting-v0170.mjs";
+ from "../../world/cinematic-space-lighting-v0170.mjs";
 import { createContactShadow } from "../../ships/ship-v034.mjs";
-import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "../../image-clarity-v083.mjs";
+import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "../../rendering/image-clarity-v083.mjs";
 import {HUD_SPEC,createReactiveHud} from "../../ui/reactive-hud-v04991.mjs";
 import {GRIP_SPEC} from "../../flight/precision-grip-v084.mjs";
 import {RACING_FEEL,gripApexCue,createRailFeedbackState,
@@ -87,7 +87,7 @@ import {installReactiveWingFlaps,REACTIVE_FLAPS} from "../../ships/reactive-wing
 import {createLivingWakeFX,LIVING_WAKE} from "../../ships/living-wake-v01071.mjs";
 import {createRailScrapeSparks,RAIL_SPARKS,railContactPoint}
  from "../../rail-scrape-sparks-v0165.mjs";
-import { LUMINANCE,validateLuminance } from "../../luminance-v0331.mjs";
+import { LUMINANCE,validateLuminance } from "../../rendering/luminance-v0331.mjs";
 import {RACING_0121,createRacingExperience,resetRacingExperience,
  observeRacingStep,stepRacingExperience,raceRhythmAt,racingExperienceAudit}
  from "../../racing-experience-v0160.mjs";

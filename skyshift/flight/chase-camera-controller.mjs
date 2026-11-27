@@ -13,13 +13,19 @@ export function createChaseCameraController({
  const CAMERA_TARGET_LOOK=new Vector3();
  const cameraLook=new Vector3();
  let maxKineticFov=65.4;
+ let aspectOffset=0,lastPresentedFov=null,basePresentedFov=null;
  function resetPeak(value){maxKineticFov=value;}
  function spawn(camera,flight,motion,cinematic){
   const home=chasePose(flight,motion,cinematic,cinematicTuning,CAMERA_INFO);
   camera.position.set(home.x,home.y,home.z);
   CAMERA_BASE_POSITION.copy(camera.position);
-  const initialFov=cinematicFov(TRIAL.startSpeed,TRIAL.startSpeed,cinematicTuning);
-  camera.fov=adjustFov?adjustFov(initialFov,camera.aspect,1):initialFov;
+  camera.fov=cinematicFov(TRIAL.startSpeed,TRIAL.startSpeed,cinematicTuning);
+  aspectOffset=0;lastPresentedFov=basePresentedFov=null;
+  if(adjustFov){
+   basePresentedFov=camera.fov;
+   camera.fov=adjustFov(basePresentedFov,camera.aspect,1);
+   aspectOffset=camera.fov-basePresentedFov;lastPresentedFov=camera.fov;
+  }
   camera.updateProjectionMatrix();
   cameraLook.set(home.lookX,home.lookY,home.lookZ);
   camera.lookAt(cameraLook);
@@ -34,6 +40,12 @@ export function createChaseCameraController({
  }
  function apply(camera,dt,view,flight,motion,cinematic,motionRig,kineticCamera,
   racingExperience,velocityPresence,boostSpring,playing){
+ // Restore the exact previous legacy FOV before advancing its original
+ // spring. If an external QA camera wrote a different FOV, adopt it.
+ if(adjustFov){
+  if(camera.fov===lastPresentedFov&&basePresentedFov!==null)camera.fov=basePresentedFov;
+  else aspectOffset=0;
+ }
  const clearance=motionRig.clearance;
  // Low/close chase camera with bounded future curvature preview.
  // Camera POSITION follows pilot heading; only LOOK target anticipates a corner.
@@ -85,19 +97,28 @@ export function createChaseCameraController({
  const fovConfig=CAMERA_GAIN===0?CLASSIC_BOOST_FOV:BOOST_SPRING;
  const targetFov=boostFovTarget(baseFov,Math.max(flight.boostMultiplier,
   flight.landingBoostMultiplier),BOOST_CONFIG.multiplier,fovConfig);
+ const fovResponse=boostFovResponse(camera.fov,targetFov,fovConfig);
  const presenceFov=CAMERA_GAIN===0?0:velocityPresence.fovBonus*speedRigSafety;
- const originalTarget=Math.min(80.5,targetFov+presenceFov+racingExperience.fovAddition*protectedRoll);
- const speedRatio=flight.currentSpeed/Math.max(1,TRIAL.startSpeed);
- const presentationTarget=adjustFov?adjustFov(originalTarget,camera.aspect,speedRatio):originalTarget;
- // If the aspect correction is zero (wide mobile or toggle off), retain
- // the exact original response target, including the original boost spring.
- const fovResponse=boostFovResponse(camera.fov,presentationTarget!==originalTarget?presentationTarget:targetFov,fovConfig);
- camera.fov=lerp(camera.fov,presentationTarget,1-Math.exp(-dt*fovResponse));
- const adjustedBase=adjustFov?adjustFov(baseFov,camera.aspect,speedRatio):baseFov;
- boostSpring.peakFovBonusDegrees=Math.max(boostSpring.peakFovBonusDegrees,camera.fov-adjustedBase);
+ camera.fov=lerp(camera.fov,Math.min(80.5,targetFov+presenceFov+
+  racingExperience.fovAddition*protectedRoll),
+  1-Math.exp(-dt*fovResponse));
+ boostSpring.peakFovBonusDegrees=Math.max(boostSpring.peakFovBonusDegrees,
+  camera.fov-baseFov);
  maxKineticFov=Math.max(maxKineticFov,camera.fov);
  cinematic.maxCameraLateralMeters=Math.max(cinematic.maxCameraLateralMeters,Math.abs(framing.sideOffsetMeters));
  camera.updateProjectionMatrix();
+ // Independent presentation offset: never feed corrected FOV into the
+ // historical boost response. The original chase block above is exact.
+ if(adjustFov){
+  basePresentedFov=camera.fov;
+  const target=adjustFov(basePresentedFov,camera.aspect,flight.currentSpeed/Math.max(1,TRIAL.startSpeed))-basePresentedFov;
+  if(target===0)aspectOffset=0;
+  else aspectOffset+=(target-aspectOffset)*(1-Math.exp(-Math.max(0,dt)*8));
+  camera.fov=Math.min(88.5,basePresentedFov+aspectOffset);
+  lastPresentedFov=camera.fov;
+  maxKineticFov=Math.max(maxKineticFov,camera.fov);
+  if(camera.fov!==basePresentedFov)camera.updateProjectionMatrix();
+ }
  }
  return Object.freeze({spawn,snap,apply,resetPeak,get maxKineticFov(){return maxKineticFov}});
 }

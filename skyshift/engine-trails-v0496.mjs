@@ -2,7 +2,7 @@
 // Reuse ONE ship-attached ribbon draw call: two real exhaust sockets,
 // each with a broad chromatic veil plus a thin white-hot interior.
 import {NEON_TUNING} from "./neon-balance-v032.mjs";
-import {ENGINE_SOCKETS} from "./manta-blade-v0484.mjs";
+import {ENGINE_SOCKETS} from "./ships/manta-blade-v0484.mjs";
 export const ENGINE_TRAIL_SPEC=Object.freeze({
  emitters:2,segmentsPerEmitter:4,layersPerEmitter:2,
  baseLengthMeters:2.55,maxBoostLengthMeters:10.4,

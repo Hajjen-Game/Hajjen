@@ -51,7 +51,23 @@ export function readHistorical(p,encoding='utf8'){
 }
 // Distinct alias only for seven exact EF08 import-only reader migrations.
 export const readEF08Source=readHistorical;
+// Pinned historical imports may refer to a relocated active source. Verify the
+// exact archived Git object; never use this as a runtime import fallback.
+const ownerMoves=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef08-root-relocations.json'),'utf8')).moves;
 export function historicalExists(p){
+ const key=asPath(p),move=ownerMoves.find(f=>f.oldPath===key&&f.historicalArchive);
+ if(move){
+  assert.equal(move.historicalArchive.commit,retirement.archiveCommit,key+' archive commit');
+  assert.equal(move.historicalArchive.sha,move.sourceSha,key+' archive identity');
+  assert.ok(!existsSync(resolve(repo,key))&&existsSync(resolve(repo,move.newPath)),key+' owner relocation');
+  if(!cache.has(key)){
+   const data=execFileSync('git',['show',move.historicalArchive.commit+':'+key],{cwd:repo,maxBuffer:8*1024*1024});
+   assert.equal(createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex'),move.historicalArchive.sha,key+' historical Git identity');
+   assert.equal(data.length,move.bytes,key+' historical bytes');
+   cache.set(key,data);
+  }
+  return true;
+ }
  if(!isRetired(p)){
   const deck=deckHistoricalExists(resolve(repo,asPath(p)));
   if(deck!==null)return deck;

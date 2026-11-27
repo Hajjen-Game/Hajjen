@@ -60,13 +60,13 @@ import {CEILING_FIXTURE_02892,ceilingFixtureEnabled02892}
 import {STRAIGHT_EDGE_PARITY_02891,straightParityEnabled02891,
  vaultStraightRanges02891}
  from "./tunnel/shared-straight-edge-parity-v02891.mjs";
-import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./manta-blade-v0484.mjs";
+import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./ships/manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./ships/manta-blade-v0103.mjs";
 import {buildStingrayEvo,STINGRAY_EVO} from "./ships/stingray-evo-v01342.mjs";
 import {FLEET,FLEET_VERSION,readFleet,saveFleet,equipFleet,
  isFleetUnlocked,recordFleetClear,fleetStatus} from "./ships/fleet-v010.mjs";
 import { makeFullscreenController } from "./ui/fullscreen-v02.mjs";
-import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./engine-trails-v01346.mjs";
+import { createTwinEngineFX,ENGINE_TRAIL_SPEC } from "./ships/engine-trails-v01346.mjs";
 import { createNeonPipeline,createNeonKit,NEON_TUNING } from "./neon-v0111.mjs";
 import { MESH_SPEC } from "./tracks/shared/smooth-track-v0160.mjs";
 import {OPT_0111,newHudBudget,createDomWriteCache} from "./core/render-optimizer-v0111.mjs";
@@ -215,7 +215,7 @@ import {UNIFIED_GRADE_0220_P4,installUnifiedCinematicGrade}
  from "./rendering/unified-cinematic-grade-v0220p4.mjs";
 import {CINEMATIC_SPACE_0170,createCinematicSpaceLighting,installCinematicRoadLighting}
  from "./cinematic-space-lighting-v0170.mjs";
-import { createContactShadow } from "./ship-v034.mjs";
+import { createContactShadow } from "./ships/ship-v034.mjs";
 import {CLARITY,clarityProfile as selectClarityProfile,dprForAdaptiveLevel,clarityAudit} from "./image-clarity-v083.mjs";
 import {HUD_SPEC,createReactiveHud} from "./ui/reactive-hud-v04991.mjs";
 import {GRIP_SPEC} from "./flight/precision-grip-v084.mjs";
@@ -223,9 +223,9 @@ import {RACING_FEEL,gripApexCue,createRailFeedbackState,
  startRailFeedback,stepRailFeedback} from "./flight/racing-feel-v083.mjs";
 import {SIDE_THRUSTER_SPEC,createSideThrusters} from "./flight/side-thrusters-v061.mjs";
 import {VELOCITY_PRESENCE,createVelocityPresenceState,
- stepVelocityPresence,velocityPresenceAudit} from "./velocity-presence-v0104.mjs";
+ stepVelocityPresence,velocityPresenceAudit} from "./ships/velocity-presence-v0104.mjs";
 import {installReactiveWingFlaps,REACTIVE_FLAPS} from "./ships/reactive-wing-flaps-v0108.mjs";
-import {createLivingWakeFX,LIVING_WAKE} from "./living-wake-v01071.mjs";
+import {createLivingWakeFX,LIVING_WAKE} from "./ships/living-wake-v01071.mjs";
 import {createRailScrapeSparks,RAIL_SPARKS,railContactPoint}
  from "./rail-scrape-sparks-v0165.mjs";
 import { LUMINANCE,validateLuminance } from "./luminance-v0331.mjs";
@@ -245,7 +245,7 @@ import {CHALLENGES_0140,CHALLENGE_RULES_0140,getChallenge,challengeDistance,
  from "./tracks/skyline/skyline-challenges-v0140.mjs";
 import {createShipArtController} from "./ship-hero-loader-v01342.mjs";
 import {HANGAR_HERO_0134,createStingrayHeroShowroom}
- from "./hangar-hero-v0134.mjs";
+ from "./ships/hangar-hero-v0134.mjs";
 import {STINGRAY_PRESENTATION_01347,visualSettingsForShip}
  from "./ships/stingray-presentation-v01347.mjs";
 if(validateLuminance().length)throw new Error("Invalid SKYSHIFT atmosphere balance");

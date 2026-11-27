@@ -3,6 +3,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync,statSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {historicalExists} from './legacy-retirement-l1a.mjs';
 import {resolve,dirname,relative,basename,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {inventory} from './dependency-inventory-v2.mjs';
@@ -92,4 +94,22 @@ test('root ownership progresses without resurrecting old root files',()=>{
  for(const p of roots)assert.ok(old.has(p),p+' new root path requires explicit hosting or compatibility decision');
  assert.deepEqual(roots.sort(),expectedRootPaths,'Root paths must match independently reviewed retirements, not merely a count');
  console.log('SKYSHIFT_EF08_CURRENT_CONTRACTS '+JSON.stringify({rootFiles:roots.length,retiredRootFiles:cohort.roots.length,relocatedRootFiles:rootRelocations.moves.length,retiredUnitFiles:cohort.unitTests.length,retiredMigrationFiles:cohort.architectureTests.length,retiredBrowserFiles:(cohort.browserTests||[]).length,retiredBytes:retired.reduce((n,f)=>n+f.bytes,0),liveGraph:graph.size}));
+});
+
+// A moved source remains one live owner. Old references are checked only as
+// pinned historical evidence; the recorded path changes must be reversible.
+test('pinned archived ship source relocations preserve exact source identity',()=>{
+ const hash=data=>{const b=Buffer.from(data);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');};
+ for(const f of rootRelocations.moves.filter(f=>f.historicalArchive)){
+  assert.ok(historicalExists(resolve(repo,f.oldPath)));
+  const bytes=readFileSync(resolve(repo,f.newPath));
+  assert.equal(hash(bytes),f.destinationSha,f.newPath+' recorded destination identity');
+  let original=bytes.toString('utf8');
+  for(const e of [...f.pathEdits].reverse()){
+   assert.equal(original.split(e.after).length-1,1,f.newPath+' exact inverse anchor');
+   original=original.replace(e.after,e.before);
+  }
+  assert.equal(hash(original),f.sourceSha,f.newPath+' path-only inverse');
+  assert.equal(Buffer.byteLength(original),f.bytes,f.newPath+' source bytes');
+ }
 });

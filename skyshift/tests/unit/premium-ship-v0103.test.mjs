@@ -7,7 +7,7 @@ import {STINGRAY_EVO,createTailState,tailPoseStep}
 import {SHIP_POLISH,buildShipPolish} from "../../ships/ship-polish-v0103.mjs";
 import {MANTA_POLISH,buildPremiumMantaBlade}
  from "../../ships/manta-blade-v0103.mjs";
-import {ENGINE_SOCKETS} from "../../manta-blade-v0484.mjs";
+import {ENGINE_SOCKETS} from "../../ships/manta-blade-v0484.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 function sample(fps,view,seconds=6){
  const st=createTailState(),track=[];

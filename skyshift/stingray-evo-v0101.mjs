@@ -5,7 +5,7 @@
 // The pilot physics, collisions, camera input, engine sockets and scoring do
 // not depend on these animation values.
 import {buildMantaBlade,triangulateWing,ENGINE_SOCKETS}
- from "./manta-blade-v0484.mjs";
+ from "./ships/manta-blade-v0484.mjs";
 export const STINGRAY_EVO=Object.freeze({
  id:"stingray",name:"Stingray EVO",version:"stingray-kinetic-tail-0101",
  body:"futuristic manta with beveled shoulder wings",

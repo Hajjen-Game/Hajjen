@@ -1127,6 +1127,303 @@
           "skyshift/zone-wave-v060.mjs"
         ]
       }
+    },
+    {
+      "rollbackCommit": "b22db4305b30a1bcc5b613bd41176baa7ce32dd6",
+      "architectureRun": 45900670568,
+      "productionRun": 45900670393,
+      "rootCountBefore": 88,
+      "rootCountAfter": 80,
+      "moves": [
+        {
+          "oldPath": "skyshift/engine-trails-v01346.mjs",
+          "newPath": "skyshift/ships/engine-trails-v01346.mjs",
+          "sourceSha": "5894ad9225eb2d0651b8f659232ade127067f6ce",
+          "destinationSha": "3a96b447ec60f225f2f88bc11ad2d9948cf7fc17",
+          "bytes": 8182,
+          "owner": "ships",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "5894ad9225eb2d0651b8f659232ade127067f6ce"
+          },
+          "pathEdits": [
+            {
+              "before": "from \"./neon-balance-v032.mjs\"",
+              "after": "from \"../neon-balance-v032.mjs\""
+            }
+          ]
+        },
+        {
+          "oldPath": "skyshift/hangar-hero-v0134.mjs",
+          "newPath": "skyshift/ships/hangar-hero-v0134.mjs",
+          "sourceSha": "99125328ca65570fed36a69efb07c66c176c2425",
+          "destinationSha": "99125328ca65570fed36a69efb07c66c176c2425",
+          "bytes": 3422,
+          "owner": "ships",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "99125328ca65570fed36a69efb07c66c176c2425"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/living-wake-v01071.mjs",
+          "newPath": "skyshift/ships/living-wake-v01071.mjs",
+          "sourceSha": "0400b3c8452bc97a8b6a30b205ee3980818875dc",
+          "destinationSha": "0400b3c8452bc97a8b6a30b205ee3980818875dc",
+          "bytes": 11643,
+          "owner": "ships",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "0400b3c8452bc97a8b6a30b205ee3980818875dc"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/velocity-presence-v0104.mjs",
+          "newPath": "skyshift/ships/velocity-presence-v0104.mjs",
+          "sourceSha": "0cf794e5cb6ebd451dab01c281a32b573b0de08c",
+          "destinationSha": "0cf794e5cb6ebd451dab01c281a32b573b0de08c",
+          "bytes": 4353,
+          "owner": "ships",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "0cf794e5cb6ebd451dab01c281a32b573b0de08c"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/wingtip-contrails-v0106.mjs",
+          "newPath": "skyshift/ships/wingtip-contrails-v0106.mjs",
+          "sourceSha": "8e65f76a23b78dce09343efc12775d19018c2c7c",
+          "destinationSha": "8e65f76a23b78dce09343efc12775d19018c2c7c",
+          "bytes": 8166,
+          "owner": "ships",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "8e65f76a23b78dce09343efc12775d19018c2c7c"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/manta-blade-v0484.mjs",
+          "newPath": "skyshift/ships/manta-blade-v0484.mjs",
+          "sourceSha": "af2e8324d5c610d60d7713ae8a3e4da4645b4939",
+          "destinationSha": "af2e8324d5c610d60d7713ae8a3e4da4645b4939",
+          "bytes": 9382,
+          "owner": "ships",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "af2e8324d5c610d60d7713ae8a3e4da4645b4939"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/ship-v034.mjs",
+          "newPath": "skyshift/ships/ship-v034.mjs",
+          "sourceSha": "f0582edeee7d55baab95dbe054f7e516eb71d4a3",
+          "destinationSha": "f0582edeee7d55baab95dbe054f7e516eb71d4a3",
+          "bytes": 3993,
+          "owner": "ships",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "f0582edeee7d55baab95dbe054f7e516eb71d4a3"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/stingray-evo-v0104.mjs",
+          "newPath": "skyshift/ships/stingray-evo-v0104.mjs",
+          "sourceSha": "d3005c694c56ede05b4cbd2f26ce9343a0d73b74",
+          "destinationSha": "28e319cd0bfddbc5a37246f70b7faddce707a305",
+          "bytes": 11858,
+          "owner": "ships",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "d3005c694c56ede05b4cbd2f26ce9343a0d73b74"
+          },
+          "pathEdits": [
+            {
+              "before": "from \"./ships/ship-polish-v0103.mjs\"",
+              "after": "from \"./ship-polish-v0103.mjs\""
+            }
+          ]
+        }
+      ],
+      "consumers": [
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/engine-trails-v01346.mjs",
+        "skyshift/engine-trails-v0496.mjs",
+        "skyshift/game-v0203.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/legacy/game/game-v0205.mjs",
+        "skyshift/living-wake-v01071.mjs",
+        "skyshift/rendering/rail-scrape-sparks.mjs",
+        "skyshift/ships/manta-blade-v0103.mjs",
+        "skyshift/ships/stingray-evo-v01342.mjs",
+        "skyshift/stingray-evo-v0101.mjs",
+        "skyshift/stingray-evo-v0103.mjs",
+        "skyshift/stingray-evo-v0104.mjs",
+        "skyshift/tests/unit/handling-parity-v01347.test.mjs",
+        "skyshift/tests/unit/living-wake-v01071.test.mjs",
+        "skyshift/tests/unit/premium-ship-v0103.test.mjs",
+        "skyshift/tests/unit/wingtip-contrails-v0106.test.mjs",
+        "skyshift/wingtip-contrails-v0106.mjs"
+      ],
+      "productionEvidence": {
+        "commit": "b22db4305b30a1bcc5b613bd41176baa7ce32dd6",
+        "run": 45900670393,
+        "job": 140185369380,
+        "productionModules": 173,
+        "productionRoots": [
+          "boot-v0210.js",
+          "cinematic-space-lighting-v0170.mjs",
+          "engine-trails-v01346.mjs",
+          "game-v0210.mjs",
+          "hangar-hero-v0134.mjs",
+          "image-clarity-v083.mjs",
+          "index.html",
+          "living-wake-v01071.mjs",
+          "luminance-v0331.mjs",
+          "manta-blade-v0484.mjs",
+          "neon-balance-v032.mjs",
+          "neon-v0111.mjs",
+          "neon-v032.mjs",
+          "racing-experience-v0160.mjs",
+          "rail-scrape-sparks-v0165.mjs",
+          "risk-reward-v0151.mjs",
+          "risk-reward-v0160.mjs",
+          "shadow-tunnel-v0160.mjs",
+          "ship-hero-loader-v01342.mjs",
+          "ship-v034.mjs",
+          "space-v0496.mjs",
+          "stingray-evo-v0104.mjs",
+          "time-trial-v0160.mjs",
+          "trial-v0901.mjs",
+          "tunnel-blackout-v0160.mjs",
+          "velocity-language-v0496.mjs",
+          "velocity-presence-v0104.mjs",
+          "wingtip-contrails-v0106.mjs",
+          "zone-wave-v060.mjs"
+        ],
+        "otherSourceRoots": [
+          "README.md",
+          "air-tricks-v081.mjs",
+          "cinematic-v0161.mjs",
+          "cinematic-v0162.mjs",
+          "cinematic-v0163.mjs",
+          "cinematic-v0164.mjs",
+          "cinematic-v0901.mjs",
+          "engine-trails-v0496.mjs",
+          "flight-motion-v044.mjs",
+          "game-v0203.mjs",
+          "material-grade-v0203.html",
+          "neon-v083.mjs",
+          "orbital-hero-v0192.mjs",
+          "precision-grip-v061.mjs",
+          "racing-experience-v0121.mjs",
+          "rail-scrape-sparks-v01091.mjs",
+          "risk-reward-v0150.mjs",
+          "sector-landmarks-v0120.mjs",
+          "shadow-tunnel-v092.mjs",
+          "ship-art-pipeline-v0132.mjs",
+          "ship-hero-loader-v0132.mjs",
+          "signature-environment-v0180.mjs",
+          "stingray-evo-v0101.mjs",
+          "stingray-evo-v0103.mjs",
+          "style.css",
+          "time-trial-v0130.mjs",
+          "time-trial-v0150.mjs",
+          "time-trial-v0151.mjs",
+          "track.mjs",
+          "trial-v01348.mjs",
+          "trial-v0150.mjs",
+          "trial-v0151.mjs",
+          "trial-v0162.mjs",
+          "trial-v0163.mjs",
+          "trial-v0164.mjs",
+          "trial-v02.mjs",
+          "trial-v03.mjs",
+          "trial-v043.mjs",
+          "trial-v046.mjs",
+          "trial-v048.mjs",
+          "trial-v049.mjs",
+          "trial-v050.mjs",
+          "trial-v051.mjs",
+          "trial-v060.mjs",
+          "trial-v070.mjs",
+          "trial-v071.mjs",
+          "trial-v072.mjs",
+          "trial-v081.mjs",
+          "trial-v082.mjs",
+          "trial-v083.mjs",
+          "trial-v084.mjs",
+          "tunnel-blackout-v0921.mjs",
+          "world-rebuild-v0190.mjs",
+          "zone-wave-v049.mjs",
+          "zone-wave-v0491.mjs",
+          "zone-wave-v0492.mjs",
+          "zone-wave-v0493.mjs",
+          "zone-wave-v050.mjs",
+          "zone-wave-v051.mjs"
+        ]
+      },
+      "sourceEvidence": {
+        "commit": "b22db4305b30a1bcc5b613bd41176baa7ce32dd6",
+        "run": 45900670568,
+        "job": 140185369802,
+        "sourceReachableRoots": [
+          "skyshift/boot-v0210.js",
+          "skyshift/cinematic-space-lighting-v0170.mjs",
+          "skyshift/engine-trails-v01346.mjs",
+          "skyshift/flight-motion-v044.mjs",
+          "skyshift/game-v0210.mjs",
+          "skyshift/hangar-hero-v0134.mjs",
+          "skyshift/image-clarity-v083.mjs",
+          "skyshift/index.html",
+          "skyshift/living-wake-v01071.mjs",
+          "skyshift/luminance-v0331.mjs",
+          "skyshift/manta-blade-v0484.mjs",
+          "skyshift/neon-balance-v032.mjs",
+          "skyshift/neon-v0111.mjs",
+          "skyshift/neon-v032.mjs",
+          "skyshift/orbital-hero-v0192.mjs",
+          "skyshift/racing-experience-v0160.mjs",
+          "skyshift/rail-scrape-sparks-v0165.mjs",
+          "skyshift/risk-reward-v0151.mjs",
+          "skyshift/risk-reward-v0160.mjs",
+          "skyshift/shadow-tunnel-v0160.mjs",
+          "skyshift/ship-hero-loader-v01342.mjs",
+          "skyshift/ship-v034.mjs",
+          "skyshift/signature-environment-v0180.mjs",
+          "skyshift/space-v0496.mjs",
+          "skyshift/stingray-evo-v0104.mjs",
+          "skyshift/time-trial-v0160.mjs",
+          "skyshift/trial-v0901.mjs",
+          "skyshift/tunnel-blackout-v0160.mjs",
+          "skyshift/velocity-language-v0496.mjs",
+          "skyshift/velocity-presence-v0104.mjs",
+          "skyshift/wingtip-contrails-v0106.mjs",
+          "skyshift/world-rebuild-v0190.mjs",
+          "skyshift/zone-wave-v060.mjs"
+        ]
+      }
     }
   ],
   "moves": [
@@ -1599,6 +1896,136 @@
       "owner": "styles",
       "productionBefore": true,
       "sourceReachableBefore": true
+    },
+    {
+      "oldPath": "skyshift/engine-trails-v01346.mjs",
+      "newPath": "skyshift/ships/engine-trails-v01346.mjs",
+      "sourceSha": "5894ad9225eb2d0651b8f659232ade127067f6ce",
+      "destinationSha": "3a96b447ec60f225f2f88bc11ad2d9948cf7fc17",
+      "bytes": 8182,
+      "owner": "ships",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "5894ad9225eb2d0651b8f659232ade127067f6ce"
+      },
+      "pathEdits": [
+        {
+          "before": "from \"./neon-balance-v032.mjs\"",
+          "after": "from \"../neon-balance-v032.mjs\""
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/hangar-hero-v0134.mjs",
+      "newPath": "skyshift/ships/hangar-hero-v0134.mjs",
+      "sourceSha": "99125328ca65570fed36a69efb07c66c176c2425",
+      "destinationSha": "99125328ca65570fed36a69efb07c66c176c2425",
+      "bytes": 3422,
+      "owner": "ships",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "99125328ca65570fed36a69efb07c66c176c2425"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/living-wake-v01071.mjs",
+      "newPath": "skyshift/ships/living-wake-v01071.mjs",
+      "sourceSha": "0400b3c8452bc97a8b6a30b205ee3980818875dc",
+      "destinationSha": "0400b3c8452bc97a8b6a30b205ee3980818875dc",
+      "bytes": 11643,
+      "owner": "ships",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "0400b3c8452bc97a8b6a30b205ee3980818875dc"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/velocity-presence-v0104.mjs",
+      "newPath": "skyshift/ships/velocity-presence-v0104.mjs",
+      "sourceSha": "0cf794e5cb6ebd451dab01c281a32b573b0de08c",
+      "destinationSha": "0cf794e5cb6ebd451dab01c281a32b573b0de08c",
+      "bytes": 4353,
+      "owner": "ships",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "0cf794e5cb6ebd451dab01c281a32b573b0de08c"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/wingtip-contrails-v0106.mjs",
+      "newPath": "skyshift/ships/wingtip-contrails-v0106.mjs",
+      "sourceSha": "8e65f76a23b78dce09343efc12775d19018c2c7c",
+      "destinationSha": "8e65f76a23b78dce09343efc12775d19018c2c7c",
+      "bytes": 8166,
+      "owner": "ships",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "8e65f76a23b78dce09343efc12775d19018c2c7c"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/manta-blade-v0484.mjs",
+      "newPath": "skyshift/ships/manta-blade-v0484.mjs",
+      "sourceSha": "af2e8324d5c610d60d7713ae8a3e4da4645b4939",
+      "destinationSha": "af2e8324d5c610d60d7713ae8a3e4da4645b4939",
+      "bytes": 9382,
+      "owner": "ships",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "af2e8324d5c610d60d7713ae8a3e4da4645b4939"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/ship-v034.mjs",
+      "newPath": "skyshift/ships/ship-v034.mjs",
+      "sourceSha": "f0582edeee7d55baab95dbe054f7e516eb71d4a3",
+      "destinationSha": "f0582edeee7d55baab95dbe054f7e516eb71d4a3",
+      "bytes": 3993,
+      "owner": "ships",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "f0582edeee7d55baab95dbe054f7e516eb71d4a3"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/stingray-evo-v0104.mjs",
+      "newPath": "skyshift/ships/stingray-evo-v0104.mjs",
+      "sourceSha": "d3005c694c56ede05b4cbd2f26ce9343a0d73b74",
+      "destinationSha": "28e319cd0bfddbc5a37246f70b7faddce707a305",
+      "bytes": 11858,
+      "owner": "ships",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "d3005c694c56ede05b4cbd2f26ce9343a0d73b74"
+      },
+      "pathEdits": [
+        {
+          "before": "from \"./ships/ship-polish-v0103.mjs\"",
+          "after": "from \"./ship-polish-v0103.mjs\""
+        }
+      ]
     }
   ]
 }

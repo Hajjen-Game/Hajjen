@@ -6,7 +6,7 @@
 // not depend on these animation values.
 import {buildMantaBlade,triangulateWing,ENGINE_SOCKETS}
  from "./manta-blade-v0484.mjs";
-import {buildShipPolish} from "./ships/ship-polish-v0103.mjs";
+import {buildShipPolish} from "./ship-polish-v0103.mjs";
 export const STINGRAY_EVO=Object.freeze({
  id:"stingray",name:"Stingray EVO",version:"stingray-velocity-tail-0104",
  body:"futuristic manta with beveled shoulder wings",

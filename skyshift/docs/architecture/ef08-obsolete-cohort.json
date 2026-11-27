@@ -6566,6 +6566,56 @@
         "skyshift/tests/architecture/ef08-current-contracts.test.mjs",
         "skyshift/tests/architecture/ef04-race-simulation.test.mjs"
       ]
+    },
+    {
+      "scope": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "rootFiles": 0,
+      "sourceFiles": 15,
+      "unitFiles": 0,
+      "browserFiles": 0,
+      "bytes": 113273,
+      "paths": [
+        "skyshift/flight/air-tricks-v081.mjs",
+        "skyshift/flight/precision-grip-v061.mjs",
+        "skyshift/rendering/legacy/premium-track-v072.mjs",
+        "skyshift/rendering/legacy/premium-track-v081.mjs",
+        "skyshift/rendering/legacy/premium-track-v082.mjs",
+        "skyshift/rendering/legacy/shared-premium-track.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v072.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v081.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v082.mjs",
+        "skyshift/tracks/shared/smooth-track-v072.mjs",
+        "skyshift/tracks/shared/smooth-track-v081.mjs",
+        "skyshift/tracks/shared/smooth-track-v082.mjs",
+        "skyshift/tracks/trials/trial-v072.mjs",
+        "skyshift/tracks/trials/trial-v081.mjs",
+        "skyshift/tracks/trials/trial-v082.mjs"
+      ],
+      "removedSyntaxCommands": 14,
+      "coverage": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ]
     }
   ],
   "protectedReplacements": {
@@ -7578,6 +7628,380 @@
         "sha": "cededc2deedad9698de2ef97c4842bdc330507d3",
         "bytes": 2534
       }
+    },
+    {
+      "path": "skyshift/flight/air-tricks-v081.mjs",
+      "sha": "2f7fefae64a055bbcfc433a3440d4cc9cf6057e6",
+      "bytes": 5779,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/air-tricks-v081.mjs",
+        "sha": "2f7fefae64a055bbcfc433a3440d4cc9cf6057e6",
+        "bytes": 5779
+      },
+      "relocatedFrom": "skyshift/air-tricks-v081.mjs"
+    },
+    {
+      "path": "skyshift/flight/precision-grip-v061.mjs",
+      "sha": "777a2778772c077b454a33856f5361281885de63",
+      "bytes": 2058,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/precision-grip-v061.mjs",
+        "sha": "777a2778772c077b454a33856f5361281885de63",
+        "bytes": 2058
+      },
+      "relocatedFrom": "skyshift/precision-grip-v061.mjs"
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v072.mjs",
+      "sha": "51b3f8bca8ad9665f87034ab5b1a61c57769a3dc",
+      "bytes": 1083,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v072.mjs",
+        "sha": "4ed0ab7bd87272c6beb210ca89cb80e159aa6dac",
+        "bytes": 16054
+      }
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v081.mjs",
+      "sha": "3b347dfbfc8e0c439b1a9e091409e640f52fe0d5",
+      "bytes": 1083,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v081.mjs",
+        "sha": "c5d7bb096640b0fff2c366116dfd484ee49b3c04",
+        "bytes": 16054
+      }
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v082.mjs",
+      "sha": "c121394abaaa7802fb2ec58c8335be9f5cb1837f",
+      "bytes": 1086,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v082.mjs",
+        "sha": "473196e06bbf5d12e76100eb79bc257317a5e530",
+        "bytes": 16057
+      }
+    },
+    {
+      "path": "skyshift/rendering/legacy/shared-premium-track.mjs",
+      "sha": "129db059d2c535a509d450229ac9da97ac896f21",
+      "bytes": 15797,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v072.mjs",
+      "sha": "0c92c3c28fbcafd4234f639703051a30a0e8f559",
+      "bytes": 913,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v072.mjs",
+        "sha": "5eb07f9f3634087f58a1887cc5082672d18791c4",
+        "bytes": 16614
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v081.mjs",
+      "sha": "1548e3fc87f858c6efad51fd692eb156374c7fd8",
+      "bytes": 913,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v081.mjs",
+        "sha": "de33e67e34fc2699919befc5fda271c06c2d5b96",
+        "bytes": 16614
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v082.mjs",
+      "sha": "331b8d3ba2328b1b1058d77093607820f9ab8d4a",
+      "bytes": 913,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v082.mjs",
+        "sha": "429f7e849ff40b4de0c9c7538653fcdae23bc006",
+        "bytes": 16614
+      }
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v072.mjs",
+      "sha": "dcfb08b8b95eabe50135f2bacc54f4b1c09c78a8",
+      "bytes": 392,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v072.mjs",
+        "sha": "113f3942d6b12c970bda7cc0b5d3d19c074c1120",
+        "bytes": 2534
+      }
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v081.mjs",
+      "sha": "b2a9c043e04ec5ef6e24bcc5394632776c2ad181",
+      "bytes": 392,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v081.mjs",
+        "sha": "40c46f3998592081d0f716842733244a6c481c7e",
+        "bytes": 2534
+      }
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v082.mjs",
+      "sha": "4dbaab47524ca58da574772107d538a4293d79cd",
+      "bytes": 392,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v082.mjs",
+        "sha": "7a0176cd390643df6d35b0b09cb1e90723e2018a",
+        "bytes": 2534
+      }
+    },
+    {
+      "path": "skyshift/tracks/trials/trial-v072.mjs",
+      "sha": "c3e314a7406d5e5e7281268840443960a7ad1dd0",
+      "bytes": 25205,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v072.mjs",
+        "sha": "77bf39a3b2989d66456218747056400344dc7d38",
+        "bytes": 25174
+      },
+      "relocatedFrom": "skyshift/trial-v072.mjs"
+    },
+    {
+      "path": "skyshift/tracks/trials/trial-v081.mjs",
+      "sha": "1bdb567eb9d411564bc72b6909341ee9b5a2aedc",
+      "bytes": 27351,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v081.mjs",
+        "sha": "3bc57eea97075639f9130f28ea775772539c47a9",
+        "bytes": 27309
+      },
+      "relocatedFrom": "skyshift/trial-v081.mjs"
+    },
+    {
+      "path": "skyshift/tracks/trials/trial-v082.mjs",
+      "sha": "8677ff4e75e67a5c8398a4d6b49d858249539c1c",
+      "bytes": 29916,
+      "rollbackCommit": "dc414d3074faa93d4a2f379c95860bd39275bc5f",
+      "verifiedArchitectureRun": 45984655173,
+      "productionEvidenceRun": 45984655160,
+      "reason": "Retire the closed 072/081/082 historical premium material, trial, deck, barrier and exclusive flight cohort: current premium road 0160 shader, geometry, material uniforms and palette parity against pinned EF01 plus current shared flight, rail and deck regression replace historical version-only coverage.",
+      "replacement": [
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-fidelity-parity.mjs",
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/grip-trick-lock-v0165.test.mjs",
+        "skyshift/tests/architecture/ef08-current-contracts.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v082.mjs",
+        "sha": "f804f64ec3f97469be811a2f63ed28225cd3170c",
+        "bytes": 29874
+      },
+      "relocatedFrom": "skyshift/trial-v082.mjs"
     }
   ]
 }

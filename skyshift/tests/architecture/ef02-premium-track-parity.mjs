@@ -1,8 +1,7 @@
-// EF02J: compare historical PBR road shaders, exact geometry and material state.
+// EF08: compare current PBR road shader, exact geometry and material state against pinned EF01.
 import assert from 'node:assert/strict';
 import {resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {readFileSync} from 'node:fs';
 const [ref,track]=process.argv.slice(2);
 assert.ok(ref&&['vault','skyline','aurora'].includes(track));
 globalThis.location={search:'?track='+track+'&v=0.28.9.7'};
@@ -31,12 +30,10 @@ function material(m){
  states.push(snapshot());
  return {shader,states,options:mat.options,key:mat.customProgramCacheKey(),palette:api.palette,api:Object.keys(api).sort()};
 }
-let oldBytes=0,newBytes=0;
-for(const v of ["072","081","082"]){
- const p='premium-track-v'+v+'.mjs',now='rendering/legacy/'+p,a=await load(old,p),b=await load(root,now);
- oldBytes+=readFileSync(resolve(old,p)).length;newBytes+=readFileSync(resolve(root,now)).length;
+for(const v of ["0160"]){
+ const p='premium-track-v'+v+'.mjs',now='rendering/road/'+p,a=await load(old,p),b=await load(root,now);
  assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort());
- for(const k of ['PREMIUM_TRACK','GLSL_BOOST_PADS','SURFACE_FRAGMENT_GLSL','SURFACE_FRAGMENT_HELPERS'])assert.deepEqual(a[k],b[k]);
+ for(const k of ['PREMIUM_TRACK','GLSL_BOOST_PADS','SURFACE_FRAGMENT_GLSL','SURFACE_FRAGMENT_HELPERS','VAULT_WAVE_PARITY_0285_ACTIVE','VAULT_BOOST_GLOW_0283'])assert.deepEqual(a[k],b[k]);
  assert.deepEqual(a.premiumTrackCoordinates(),b.premiumTrackCoordinates());
  assert.deepEqual(a.createPremiumDeckGeometry(THREE),b.createPremiumDeckGeometry(THREE));
  assert.deepEqual(a.patchPremiumShaders(vertex,fragment),b.patchPremiumShaders(vertex,fragment));
@@ -44,6 +41,4 @@ for(const v of ["072","081","082"]){
  assert.deepEqual(material(a),material(b));
  console.log('SKYSHIFT_EF02_PREMIUM_TRACK_PARITY '+JSON.stringify({track,version:v}));
 }
-newBytes+=readFileSync(resolve(root,'rendering/legacy/shared-premium-track.mjs')).length;
-assert.ok(newBytes<oldBytes);
-console.log('SKYSHIFT_EF02_PREMIUM_TRACK_BYTES '+JSON.stringify({oldBytes,newBytes,reduction:oldBytes-newBytes}));
+console.log('SKYSHIFT_EF08_CURRENT_PREMIUM_PARITY '+JSON.stringify({track,adapters:1}));

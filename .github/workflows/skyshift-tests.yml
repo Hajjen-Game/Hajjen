@@ -233,30 +233,16 @@ jobs:
           node --check skyshift/tracks/shared/circuit-layout-v060.mjs
           node --check skyshift/flight/boost/boost-v060.mjs
           node --check skyshift/core/zone-wave-v060.mjs
-          node --check skyshift/flight/precision-grip-v061.mjs
           node --check skyshift/flight/side-thrusters-v061.mjs
 
 
 
           node --check skyshift/tracks/shared/track-3d-v072.mjs
-          node --check skyshift/tracks/trials/trial-v072.mjs
-          node --check skyshift/tracks/shared/smooth-track-v072.mjs
-          node --check skyshift/rendering/legacy/premium-track-v072.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v072.mjs
           node --check skyshift/core/frame-pacing-v080.mjs
           node --check skyshift/tracks/shared/track-3d-v081.mjs
-          node --check skyshift/flight/air-tricks-v081.mjs
-          node --check skyshift/tracks/trials/trial-v081.mjs
-          node --check skyshift/tracks/shared/smooth-track-v081.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v081.mjs
-          node --check skyshift/rendering/legacy/premium-track-v081.mjs
           node --check skyshift/tracks/shared/circuit-layout-v082.mjs
           node --check skyshift/tracks/shared/track-3d-v082.mjs
           node --check skyshift/flight/boost/boost-v082.mjs
-          node --check skyshift/tracks/trials/trial-v082.mjs
-          node --check skyshift/tracks/shared/smooth-track-v082.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v082.mjs
-          node --check skyshift/rendering/legacy/premium-track-v082.mjs
           node --check skyshift/flight/air-tricks-v083.mjs
           node --check skyshift/flight/racing-feel-v083.mjs
           node --check skyshift/rendering/image-clarity-v083.mjs

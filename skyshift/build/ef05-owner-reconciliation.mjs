@@ -11,7 +11,8 @@ export function reconcileEF05Owners(repo,graph){
  assert.equal(rows.length,101,'complete EF05 owner cohort');
  const paths=execFileSync('git',['ls-files','-z'],{cwd:repo,encoding:'utf8',maxBuffer:16*1024*1024}).split('\0').filter(Boolean);
  const tracked=new Set(paths),modules=new Set(graph.modules.map(p=>p.split('?')[0]));
- const ef08Retired=new Set(JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef08-obsolete-cohort.json'),'utf8')).roots.map(f=>f.path));
+ const cohort=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef08-obsolete-cohort.json'),'utf8'));
+ const ef08Retired=new Set([...cohort.roots,...(cohort.sourceFiles||[])].map(f=>f.path));
  const {currentPath}=readOwnerRelocations(repo);
  const ownerNames=new Map(rows.map(e=>[basename(e.currentPath),currentPath(e.currentPath)]));
  assert.equal(ownerNames.size,rows.length,'owner filenames are unique');
@@ -36,7 +37,10 @@ export function reconcileEF05Owners(repo,graph){
   if(relocated){
    assert.ok(!tracked.has(previousPath)&&!existsSync(resolve(repo,previousPath)),previousPath+' stale relocated owner');
    assert.ok(!modules.has('source/'+previousPath.slice('skyshift/'.length)),previousPath+' stale production owner');
-   assert.equal(repositoryDeleted,false,previousPath+' moved owner also retired');
+   if(repositoryDeleted){
+    const closed=(cohort.sourceFiles||[]).find(f=>f.path===path);
+    assert.equal(closed?.relocatedFrom,previousPath,previousPath+' moved owner requires explicit closed destination record');
+   }
   }
   assert.equal(tracked.has(path),!repositoryDeleted,'Unreviewed source retirement or reintroduced retired path '+path);
   assert.equal(existsSync(resolve(repo,path)),!repositoryDeleted,'Source ownership differs from tracked state '+path);

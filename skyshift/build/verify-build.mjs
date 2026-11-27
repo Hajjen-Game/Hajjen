@@ -23,7 +23,7 @@ assert.ok(report.graph.modules.some(p=>p.endsWith('/tracks/shared/production-cat
 assert.equal(report.ef05Owners.entries.length,101);
 assert.equal(report.ef05Owners.counts.productionRetired,4);
 const obsoleteCohort=JSON.parse(await readFile(join(here,'../docs/architecture/ef08-obsolete-cohort.json'),'utf8'));
-const obsoletePaths=new Set(obsoleteCohort.roots.map(e=>e.path));
+const obsoletePaths=new Set([...obsoleteCohort.roots,...(obsoleteCohort.sourceFiles||[])].map(e=>e.path));
 const {manifest:relocations,currentPath}=readOwnerRelocations(resolve(here,'../..'));
 const originalOwners=JSON.parse(await readFile(join(here,'../docs/architecture/ef02-final-owner-ledger.json'),'utf8')).entries.filter(e=>e.ownerStage==='EF05').map(e=>e.currentPath);
 assert.deepEqual(report.ef05Owners.entries.map(e=>e.previousPath),originalOwners);
@@ -31,7 +31,13 @@ assert.equal(report.ef05Owners.counts.relocated,originalOwners.filter(p=>current
 for(const f of relocations.moves){
  const oldName=f.oldPath.slice('skyshift/'.length),name=f.newPath.slice('skyshift/'.length);
  await assert.rejects(stat(join(here,'..',oldName)),{code:'ENOENT'});
- assert.ok((await stat(join(here,'..',name))).isFile(),name+' missing relocated module');
+ if(obsoletePaths.has(f.newPath)){
+  const closed=(obsoleteCohort.sourceFiles||[]).find(e=>e.path===f.newPath);
+  assert.equal(closed?.relocatedFrom,f.oldPath);
+  assert.equal(closed.sha,f.destinationSha);
+  assert.equal(f.productionBefore,false);
+  await assert.rejects(stat(join(here,'..',name)),{code:'ENOENT'});
+ }else assert.ok((await stat(join(here,'..',name))).isFile(),name+' missing relocated module');
  assert.ok(!report.graph.modules.some(p=>p.split('?')[0]==='source/'+oldName),oldName+' stale built path');
  assert.ok(!report.cssOrder.includes('./'+oldName),oldName+' stale built CSS path');
  const included=name.endsWith('.css')?report.cssOrder.includes('./'+name):report.graph.modules.some(p=>p.split('?')[0]==='source/'+name);

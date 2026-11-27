@@ -320,7 +320,8 @@ test('EF04 root owner entries reconciled with current graph and surviving known 
   return {path,previousPath:e.path,live:graph.has(path.slice('skyshift/'.length)),exists:existsSync(new URL('../../../'+path,import.meta.url)),survivingKnownConsumers:e.knownConsumers.map(currentOwnerPath).filter(p=>existsSync(new URL('../../../'+p,import.meta.url)))};
  });
  const retired=ledger.entries.filter(e=>e.disposition.startsWith('retired:'));
- const laterRetired=new Set(JSON.parse(readFileSync(new URL('../../docs/architecture/ef08-obsolete-cohort.json',import.meta.url),'utf8')).roots.map(e=>e.path));
+ const laterCohort=JSON.parse(readFileSync(new URL('../../docs/architecture/ef08-obsolete-cohort.json',import.meta.url),'utf8'));
+ const laterRetired=new Set([...laterCohort.roots,...(laterCohort.sourceFiles||[])].map(e=>e.path));
  assert.deepEqual(retired.map(e=>e.path),retirementEF04.files.map(e=>e.path));
  for(const r of rows){
   const removed=retired.some(e=>e.path===r.previousPath)||laterRetired.has(r.previousPath)||laterRetired.has(r.path);

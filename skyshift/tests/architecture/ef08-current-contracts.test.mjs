@@ -19,6 +19,18 @@ const tracked=new Set(paths);
 const graph=new Set(inventory().literalBrowserGraph.paths.map(p=>'skyshift/'+p));
 const retiredSources=[...cohort.roots,...(cohort.sourceFiles||[])];
 const retired=[...retiredSources,...cohort.unitTests,...cohort.architectureTests,...(cohort.browserTests||[])];
+const retiredByPath=new Map(retiredSources.map(f=>[f.path,f]));
+function closedRelocation(f){
+ const entry=retiredByPath.get(f.newPath);
+ if(!entry)return false;
+ assert.equal(entry.relocatedFrom,f.oldPath);
+ assert.equal(entry.sha,f.destinationSha);
+ assert.equal(f.productionBefore,false);
+ assert.equal(f.sourceReachableBefore,false);
+ assert.ok(!tracked.has(f.newPath)&&!existsSync(resolve(repo,f.newPath)),f.newPath+' closed owner reintroduced');
+ assert.ok(historicalExists(resolve(repo,f.oldPath)));
+ return true;
+}
 const retiredNames=retiredSources.map(f=>basename(f.path));
 const isSource=p=>/^(?:skyshift\/|\.github\/)/.test(p)&&/\.(?:mjs|js|cjs|ts|html|css|yml|yaml|sh|py|txt)$/.test(p)&&!p.startsWith('skyshift/docs/')&&!/migration-manifest|baseline|consumer-inventory|consumer-queue/.test(p);
 test('obsolete closed source and test cohort is absent; no tracked executable or workflow depends on it',()=>{
@@ -73,6 +85,7 @@ test('live and explicit material comparison entries resolve their actual modules
 test('reviewed root relocations have a single tracked owner and preserve source graph membership',()=>{
  for(const f of rootRelocations.moves){
   assert.ok(!tracked.has(f.oldPath)&&!existsSync(resolve(repo,f.oldPath)),f.oldPath+' duplicate or stale root');
+  if(closedRelocation(f)){assert.ok(!graph.has(f.newPath));continue;}
   assert.ok(tracked.has(f.newPath)&&existsSync(resolve(repo,f.newPath)),f.newPath+' missing owner');
   assert.equal(graph.has(f.newPath),f.sourceReachableBefore,f.newPath+' source graph membership changed');
  }
@@ -103,6 +116,7 @@ test('pinned archived ship source relocations preserve exact source identity',()
  const hash=data=>{const b=Buffer.from(data);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex');};
  for(const f of rootRelocations.moves.filter(f=>f.historicalArchive)){
   assert.ok(historicalExists(resolve(repo,f.oldPath)));
+  if(closedRelocation(f))continue;
   const bytes=readFileSync(resolve(repo,f.newPath));
   assert.equal(hash(bytes),f.destinationSha,f.newPath+' recorded destination identity');
   let original=bytes.toString('utf8');
@@ -227,6 +241,7 @@ test('remaining trial, flight and wave ownership retains all original relative m
  const target=(p,s)=>relative(repo,resolve(dirname(resolve(repo,p)),s.split(/[?#]/)[0])).split(sep).join('/');
  let edges=0;
  for(const f of batch.moves){
+  if(closedRelocation(f))continue;
   const source=readFileSync(resolve(repo,f.newPath),'utf8');
   let original=source;
   for(const e of [...f.pathEdits].reverse()){
@@ -244,5 +259,6 @@ test('remaining trial, flight and wave ownership retains all original relative m
    edges++;
   }
  }
- assert.equal(edges,30,'reviewed module edge count');
+ assert.equal(batch.moves.filter(closedRelocation).length,5,'reviewed closed historical owners');
+ assert.equal(edges,16,'retained module edge count');
 });

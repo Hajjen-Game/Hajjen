@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {ZONE_PALETTES} from "../../zone-wave-v060.mjs";
+import {ZONE_PALETTES} from "../../core/zone-wave-v060.mjs";
 import {panelSeamPoint02892}
  from "../../tunnel/ceiling-fixture-cohesion-v02892.mjs";
 import {buildArchRoadSources02893,patchArchRoadShader02893,

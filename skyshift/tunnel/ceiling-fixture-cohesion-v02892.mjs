@@ -10,7 +10,7 @@ import {TUNNEL_PORTALS_0211,tunnelProfilePoint0211}
 import {sharedPanelSeamPoint02894,sharedWaveColors02894}
  from "./unified-tunnel-light-sources-v02894.mjs";
 import {ZONE_PALETTES,ZONE_WAVE}
- from "../zone-wave-v060.mjs";
+ from "../core/zone-wave-v060.mjs";
 
 const MODEL="SKYSHIFT · Tunnel Megastructure 0.21.1";
 const COVE="SKYSHIFT 0.26.0 / stable cyan cove emitters";

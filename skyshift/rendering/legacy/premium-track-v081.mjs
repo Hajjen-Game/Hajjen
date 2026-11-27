@@ -2,8 +2,8 @@
 // Replaces 0.4.8's floating violet overlays and orange rectangle meshes.
 // The same indexed physical road drives shader coordinates; NO new colliders,
 // no new draw calls, no per-frame geometry, and no flashing textures.
-import {TRIAL,widthAt} from "../../trial-v081.mjs";
-import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v060.mjs";
+import {TRIAL,widthAt} from "../../tracks/trials/trial-v081.mjs";
+import {ZONE_PALETTES,ZONE_WAVE,SPECTRAL_FRONT_GLSL} from "../../core/zone-wave-v060.mjs";
 import {BOOST_PADS} from "../../flight/boost/boost-v060.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v081.mjs";
 

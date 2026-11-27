@@ -12,7 +12,7 @@ import {vaultStraightMask02891}
 import {railLipPosition02632,railBayWeight02632}
  from "./edge-source-floor-bands-v02632.mjs";
 import {ZONE_PALETTES}
- from "../zone-wave-v060.mjs";
+ from "../core/zone-wave-v060.mjs";
 
 export const UNIFIED_SOURCES_02894=Object.freeze({
  version:"0.28.9.4",title:"Unified Light Sources & Road Layer Cleanup",

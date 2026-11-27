@@ -30,7 +30,7 @@ import {TUNNEL_BLACKOUT,installBlackoutRoadShading,
  from "./tunnel/tunnel-blackout-v0160.mjs";
 import {UNIFIED_TUNNEL_LIGHTING_1,createUnifiedTunnelLightingController}
  from "./tunnel/unified-tunnel-lighting-v1.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./core/zone-wave-v060.mjs";
 import {vaultSpatialWaveEnabled0285,waveSignedGlobal0285,
  VAULT_WAVE_PARITY_0285} from "./tunnel/vault-spatial-wave-parity-v0285.mjs";
 import {STABILITY_0286,reflectionStabilityEnabled0286}

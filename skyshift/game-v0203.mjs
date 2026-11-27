@@ -19,7 +19,7 @@ import {SHADOW_TUNNEL,inShadowTunnel,tunnelIntensityAt,installShadowTunnel,
 import {TUNNEL_BLACKOUT,installBlackoutRoadShading,
  separateBladeTipMaterial,createTunnelBlackoutController}
  from "./tunnel/tunnel-blackout-v0160.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./zone-wave-v060.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,newZoneWaveState,updateZoneWave,frontPaletteBlend,waveResonanceStrength,spectralChargeStrength,horizonWaveCue} from "./core/zone-wave-v060.mjs";
 import {MANTA_IDENTITY,ENGINE_SOCKETS,buildMantaWings} from "./ships/manta-blade-v0484.mjs";
 import {buildPremiumMantaBlade,MANTA_POLISH} from "./ships/manta-blade-v0103.mjs";
 import {buildStingrayEvo,STINGRAY_EVO} from "./ships/stingray-evo-v01342.mjs";

@@ -9,7 +9,7 @@ on:
       - 'skyshift/tracks/shared/smooth-track-v0160.mjs'
       - 'skyshift/tracks/shared/smooth-deck.mjs'
       - 'skyshift/tests/architecture/ef02-deck-parity.mjs'
-      - 'skyshift/zone-wave-v060.mjs'
+      - 'skyshift/core/zone-wave-v060.mjs'
       - 'skyshift/core/zone-wave.mjs'
       - 'skyshift/tests/architecture/ef02-zone-wave-parity.mjs'
       - 'skyshift/tracks/barriers/aero-barrier-v072.mjs'

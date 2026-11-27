@@ -9,7 +9,7 @@ import {BOOST_CONFIG,BOOST_PADS,initBoostState,stepBoostState}
  from "../../flight/boost/boost-v0151.mjs";
 import {TRIAL,CIRCUIT,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  curvatureAt,guardrailLateralLimit,gapAt,newFlightState,positionAt,
- headingAt,surfaceHeightAt,stepFlight,speedAt} from "../../trial-v0151.mjs";
+ headingAt,surfaceHeightAt,stepFlight,speedAt} from "../../tracks/trials/trial-v0151.mjs";
 import {PREMIUM_TRACK,GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,
  patchPremiumShaders} from "../../rendering/legacy/premium-track-v0151.mjs";
 import {TIME_TRIAL_0151} from "../../core/time-trial-v0151.mjs";

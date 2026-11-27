@@ -2,7 +2,7 @@
 // Shares the exact simulation state and palette definitions of the deck,
 // rail inlays, HUD and ship. No extra clock or separate wave travelling.
 import {ZONE_PALETTES,ZONE_WAVE,frontPaletteBlend}
- from "../zone-wave-v060.mjs";
+ from "../core/zone-wave-v060.mjs";
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 export const TUNNEL_SPECTRUM_02121=Object.freeze({
  version:"0.21.2.1",source:"zone-wave-v060",

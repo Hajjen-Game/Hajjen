@@ -42,7 +42,7 @@ test("genuinely distinct 3D course closes without seam or short microbends",asyn
  near(trial.headingAt(3400)-trial.headingAt(0),Math.PI*2,1e-7);
  const a=trial.poseAt(0),z=trial.poseAt(3400);
  near(a.x,z.x);near(a.z,z.z);near(a.y,z.y);
- const old=await import("../../trial-v0151.mjs");
+ const old=await import("../../tracks/trials/trial-v0151.mjs");
  const orig=old.positionAt(550),fresh=trial.positionAt(550);
  assert.ok(Math.hypot(orig.x-fresh.x,orig.z-fresh.z)>20,
   "Aurora cannot just recolor the Skyline course");

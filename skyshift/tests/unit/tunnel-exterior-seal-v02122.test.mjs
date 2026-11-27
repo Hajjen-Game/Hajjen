@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {EXTERIOR_SEAL_02122,installExteriorLightSeal,sealPremiumRoadGlare} from "../../tunnel/tunnel-exterior-seal-v02122.mjs";
 import {installNeonDrivenInterior} from "../../tunnel/neon-interior-v0212.mjs";
-import {newZoneWaveState,ZONE_PALETTES} from "../../zone-wave-v060.mjs";
+import {newZoneWaveState,ZONE_PALETTES} from "../../core/zone-wave-v060.mjs";
 import {patchRailShaders} from "../../tracks/barriers/aero-barrier-v0165.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 class Color{constructor(hex){this.setHex(hex)}setHex(hex){this.hex=hex;return this}}

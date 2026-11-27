@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {ZONE_PALETTES} from "../../zone-wave-v060.mjs";
+import {ZONE_PALETTES} from "../../core/zone-wave-v060.mjs";
 import {planTrueSharedTunnel0281}
  from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 import {CEILING_FIXTURE_02892,ceilingFixtureEnabled02892,

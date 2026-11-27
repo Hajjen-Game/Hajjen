@@ -8,7 +8,7 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 const load=(dir,path)=>import(pathToFileURL(resolve(dir,path)));
 for(const version of ['060']){
  const name='zone-wave-v'+version+'.mjs';
- const old=await load(resolve(before,'skyshift'),name),now=await load(root,name);
+ const old=await load(resolve(before,'skyshift'),name),now=await load(root,'core/'+name);
  assert.deepEqual(Object.keys(now).sort(),Object.keys(old).sort());
  assert.deepEqual(now.ZONE_WAVE,old.ZONE_WAVE);
  assert.deepEqual(now.ZONE_PALETTES,old.ZONE_PALETTES);

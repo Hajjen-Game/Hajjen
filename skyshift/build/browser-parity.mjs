@@ -47,7 +47,7 @@ async function independentRoute(memory){
     {vaultStraightMask02891},{createPremiumTrackMaterial},{ZONE_PALETTES}]=await Promise.all([
      load('tunnel/true-shared-tunnel-renderer-v0281.mjs'),load('tunnel/shared-optical-assembly.mjs'),
      load('tunnel/shared-straight-edge-parity-v02891.mjs'),load('rendering/road/premium-track-v0160.mjs'),
-     load('zone-wave-v060.mjs')]);
+     load('core/zone-wave-v060.mjs')]);
    const lowMemory=memory===4,length=1200,sections=[{start:25,end:625},{start:800,end:1120}];
    // Continuous route: true curve, vertical rise and rotating cross-section.
    const positionAt=(s,l,h)=>{

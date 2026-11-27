@@ -1,11 +1,11 @@
-// SKYSHIFT 0.8.2 — Track Rhythm & Pilot-Owned GRIP Apex Skyline Circuit: actual elevation, ramp and flight
-import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "./flight/boost/boost-v082.mjs";
-import {GRIP_SPEC,initGripState,stepGripState} from "./precision-grip-v061.mjs";
+// SKYSHIFT 0.8.1 — Elevated Leap & GRIP Air Tricks Skyline Circuit: actual elevation, ramp and flight
+import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from "../../flight/boost/boost-v060.mjs";
+import {GRIP_SPEC,initGripState,stepGripState} from "../../flight/precision-grip-v061.mjs";
 import {AIR_TRICKS,initAirTrickState,beginAirTrick,advanceAirTrick,
- finalizeAirTrick,stepLandingBoost,settleTrickVisual} from "./air-tricks-v081.mjs";
-import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from "./tracks/shared/track-3d-v082.mjs";
+ finalizeAirTrick,stepLandingBoost,settleTrickVisual} from "../../flight/air-tricks-v081.mjs";
+import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from "../shared/track-3d-v081.mjs";
 import {CIRCUIT,CIRCUIT_LENGTH,COURSE_SEGMENTS as LOOP_SEGMENTS,
- lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from "./tracks/shared/circuit-layout-v082.mjs";
+ lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from "../shared/circuit-layout-v060.mjs";
 export {BOOST_PADS,BOOST_CONFIG,CIRCUIT,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,pitchAt,gradeAt,elevationAudit,AIR_TRICKS};
 // Intentionally small handling lab: geometric straights, circular arcs and
 // quintic-curvature transitions. No incidental heading changes, no jump hazards.
@@ -15,7 +15,7 @@ export const lerp=(a,b,t)=>a+(b-a)*t;
 export const smooth=x=>{const t=clamp(x,0,1);return t*t*(3-2*t);};
 
 export const TRIAL=Object.freeze({
- id:"skyline-track-rhythm-v082",name:"TRACK RHYTHM SKYLINE",length:CIRCUIT.lapLength,
+ id:"skyline-grip-airtricks-v081",name:"HIGH-LEAP SKYLINE",length:CIRCUIT.lapLength,
  raceLength:CIRCUIT.totalDistance,laps:CIRCUIT.laps,
  hoverHeight:1.05,gravity:22,fallDepth:8.5,shieldPenalty:20,
  startSpeed:44,endSpeed:44*1.11**8,
@@ -36,14 +36,14 @@ export const TRIAL=Object.freeze({
 // with generous C2 easing — never sketchy short hand-drawn wiggles.
 export const SHOWCASE_PLAN=LOOP_SEGMENTS;
 export const COURSE_SEGMENTS=LOOP_SEGMENTS;
-// 0.8.2 racecraft: one deliberate technical GRIP apex after the leap;\n// sharpen the *middle* of selected real corners,
+// 0.7.2 handling polish: sharpen the *middle* of selected real corners,
 // retaining exactly the same turn angle, entry/exit and straight sections.
 // Pulse area is zero: no heading drift downstream or handwritten chicanes.
 // Full-speed laps need deliberate GRIP at technical apexes, while lap one
 // remains learnable without it. Never add lane magnets or steering assists.
 export const TECHNICAL_APEX_PULSES=Object.freeze({
  "high-speed-sweep":0.00857070014,
- "precision-apex":0.0145,
+ "precision-apex":0.013,
  "back-sweeper":0.014,
  "final-corner":0.00961940512
 });
@@ -66,9 +66,7 @@ export const CHECKPOINTS=Object.freeze(
  Array.from({length:CIRCUIT.laps*10+1},(_,i)=>i*CIRCUIT.lapLength/10));
 export const SECTORS=Object.freeze(
  CIRCUIT.sectors.map(s=>({s:s.start,name:s.name,tint:0x43ddf0})));
-export const ROAD_CUES=Object.freeze([{s:120,label:"SWEEP AHEAD",kind:"turn"},
-  {s:SKYLINE_LEAP.approachStart,label:"LEAP AHEAD",kind:"jump"},
-  {s:776,label:"GRIP APEX AHEAD",kind:"grip"},
+export const ROAD_CUES=Object.freeze([{s:SKYLINE_LEAP.approachStart,label:"LEAP AHEAD",kind:"jump"},
  {s:MAGNETIC_WALL.start-30,label:"MAGNETIC WALL AHEAD",kind:"magnetic"},
  {s:CORKSCREW.start-75,label:"CORKSCREW AHEAD",kind:"corkscrew"}]);
 // A single start/finish gantry lives at the seam; every lap crosses it.
@@ -145,30 +143,7 @@ export function surfaceHeightAt(s,lateral=0){
  const p=poseAt(s),ground=groundNormalAt(s,p.heading);
  return elevationAt(s)-ground.y*Math.sin(bankAt(s))*lateral;
 }
-// Precision GRIP APEX: physically narrowing guardrails and top deck, never a
-// UI-only "challenge". An early C2 funnel makes the 14m throat visible
-// before the technical 90° bend; at high zone speeds the apex requires GRIP
-// to avoid the rail. Low-speed laps teach the line without a forced crash.
-export const GRIP_APEX=Object.freeze({
- id:"precision-grip-apex",name:"GRIP APEX",
- funnelStart:777,throatStart:840,throatEnd:962,funnelEnd:995,
- minWidthMeters:14,normalWidthMeters:23.2,
- peakCurvature:0.01649,fullGripRequiredAtFastestZone:true
-});
-export function gripApexAt(s){
- const d=lapPosition(s);
- return d>=GRIP_APEX.funnelStart&&d<GRIP_APEX.funnelEnd?GRIP_APEX:null;
-}
-export function widthAt(s){
- const d=lapPosition(s),g=GRIP_APEX;
- let narrow=0;
- if(d>=g.funnelStart&&d<g.throatStart)
-  narrow=easedCurvature((d-g.funnelStart)/(g.throatStart-g.funnelStart));
- else if(d>=g.throatStart&&d<g.throatEnd)narrow=1;
- else if(d>=g.throatEnd&&d<g.funnelEnd)
-  narrow=1-easedCurvature((d-g.throatEnd)/(g.funnelEnd-g.throatEnd));
- return g.normalWidthMeters-(g.normalWidthMeters-g.minWidthMeters)*narrow;
-}
+export function widthAt(s){return 23.2;}
 export function speedAt(s,zoneStage=0){
  // This is real physics speed (m/s), not a speedometer multiplier.
  // Every authentic color-front crossing gives +11% physical cruise speed.
@@ -303,9 +278,6 @@ export function newFlightState(){
   s:5,lateral:0,sideVelocity:0,worldX:p.x,worldZ:p.z,
   heading:headingAt(5),steering:0,yawRate:0,lastInput:0,
   peakYawRateDeg:0,peakBankDeg:0,
-  gripApexActive:false,gripApexEntries:0,gripApexExits:0,
-  gripApexCleanExits:0,gripApexRailContactsAtEntry:0,
-  gripApexGripSeconds:0,
   totalHeadingError:0,maxHeadingErrorDeg:0,headingSamples:0,
   maxLateral:0,offRoadSeconds:0,steerSeconds:0,
   railContacts:0,railSeconds:0,railMaxPenetration:0,lastRailSide:0,
@@ -405,24 +377,6 @@ export function stepFlight(st,dt,control={}){
   st.s=q.s;st.lateral=q.lateral;
  }
  const contacted=constrainToGuardrail(st,dt);
- // Evaluate the physically narrowed GRIP funnel only on the actual track,
- // not just an instructional popup. An exit earns a clean-line result only
- // when the pilot has stayed clear of the rails throughout the apex.
- const previousGripApex=st.gripApexActive;
- st.gripApexActive=Boolean(gripApexAt(st.s));
- const gripApexEntered=!previousGripApex&&st.gripApexActive;
- const gripApexExited=previousGripApex&&!st.gripApexActive;
- let cleanGripApexExit=false;
- if(gripApexEntered){
-  st.gripApexEntries++;
-  st.gripApexRailContactsAtEntry=st.railContacts;
- }
- if(st.gripApexActive&&grip.active)st.gripApexGripSeconds+=dt;
- if(gripApexExited){
-  st.gripApexExits++;
-  cleanGripApexExit=st.railContacts===st.gripApexRailContactsAtEntry;
-  if(cleanGripApexExit)st.gripApexCleanExits++;
- }
  if(!contacted)st.lastRailSide=0;
  st.sideVelocity=(st.lateral-beforeLateral)/dt;
  st.maxLateral=Math.max(st.maxLateral,Math.abs(st.lateral));
@@ -560,7 +514,7 @@ export function stepFlight(st,dt,control={}){
    st.gripDirection=0;
    st.lastInput=0;st.y=surfaceHeightAt(recover)+
     TRIAL.hoverHeight*surfaceNormalAt(recover).y;
-   st.magneticActive=false;st.corkscrewActive=false;st.gripApexActive=false;
+   st.magneticActive=false;st.corkscrewActive=false;
    st.trickActive=false;st.trickReady=false;st.trickLaunchLap=0;
    st.trickVisualAngle=0;st.landingBoostTimer=0;
    st.landingBoostMultiplier=1;
@@ -578,7 +532,6 @@ export function stepFlight(st,dt,control={}){
    crashed?"crashed":"moving",crashed,finished,
    jumped,landed,cleared:false,railContact:contacted,
    gripActivated:grip.activated,gripActive:grip.active,
-   gripApexEntered,gripApexExited,cleanGripApexExit,
    trickStarted,trickCompleted,landingBoostAwarded,
    landingBoostRejected,landingBoostReason,
    boostActivated:triggeredBoost?.id??null,lapCompleted,routeChoice:null,
@@ -617,12 +570,6 @@ export function validateTrial(){
   errors.push("unwelded vertical height or slope at lap seam");
  if(Math.abs(bankAt(0))+Math.abs(bankAt(TRIAL.length))>1e-9)
   errors.push("track bank leaks into lap seam");
- if(gripApexAt(SKYLINE_LEAP.start)||gripApexAt(MAGNETIC_WALL.start))
-  errors.push("grip apex overlaps leap or wall");
- if(CORKSCREW.start-MAGNETIC_WALL.end<850)
-  errors.push("spectacle sections are too closely spaced");
- if(widthAt(GRIP_APEX.throatStart)!==GRIP_APEX.minWidthMeters)
-  errors.push("grip apex has no physical deck narrowing");
  if(corkscrewAt(SKYLINE_LEAP.start)||corkscrewAt(MAGNETIC_WALL.start))
   errors.push("corkscrew overlaps launch gap or magnetic wall");
  if(GAPS.length!==1)

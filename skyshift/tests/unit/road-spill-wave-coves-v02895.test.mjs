@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {ZONE_PALETTES} from "../../zone-wave-v060.mjs";
+import {ZONE_PALETTES} from "../../core/zone-wave-v060.mjs";
 import {vaultStraightMask02891} from "../../tunnel/shared-straight-edge-parity-v02891.mjs";
 import {ROAD_SPILL_COVE_02895,roadSpillEnabled02895,coveWaveEnabled02895,
  smoothPulse02895,sampleEdgeSpill02895,patchRoadSpill02895,

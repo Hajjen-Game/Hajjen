@@ -1,5 +1,5 @@
-import {createZoneWaveAPI} from "./core/zone-wave.mjs";
-export {ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "./core/zone-wave.mjs";
+import {createZoneWaveAPI} from "./zone-wave.mjs";
+export {ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "./zone-wave.mjs";
 // SKYSHIFT 0.6.0 — eight 18s world-space zone transitions for faster race
 // color fronts. Simulation clock comes from the fixed 120Hz flight state;
 // neither render frame rate nor camera motion schedules the waves.

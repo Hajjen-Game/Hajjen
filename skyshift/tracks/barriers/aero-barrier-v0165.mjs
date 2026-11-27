@@ -5,7 +5,7 @@ import {isAurora} from "../shared/track-selection-v0160.mjs";
 import {
  TRIAL,GUARDRAIL,COURSE_SEGMENTS,positionAt,widthAt,curvatureAt,gapAt,GAPS,CORKSCREW
 } from "../../tracks/trials/trial-v0165.mjs";
-import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "../../zone-wave-v060.mjs";
+import {ZONE_WAVE,ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from "../../core/zone-wave-v060.mjs";
 export const AERO_BARRIER=Object.freeze({
  step:.95,
  height:.99,

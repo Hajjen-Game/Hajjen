@@ -599,7 +599,7 @@
           "oldPath": "skyshift/tunnel-spectrum-v02121.mjs",
           "newPath": "skyshift/tunnel/tunnel-spectrum-v02121.mjs",
           "sourceSha": "fb5d92896d940b9d04c9cca708793408bc5b2e04",
-          "destinationSha": "7e8122527d0197a3e7811f4e0fbddd2cd04ace45",
+          "destinationSha": "99c2aed90d1171ab3c0ba972665070be7ef5a068",
           "bytes": 4297,
           "owner": "tunnel",
           "productionBefore": true,
@@ -2890,6 +2890,403 @@
           "skyshift/zone-wave-v060.mjs"
         ]
       }
+    },
+    {
+      "rollbackCommit": "082f824b3b48290a501cc986ebaae332d9c6771a",
+      "architectureRun": 45980061789,
+      "productionRun": 45980061646,
+      "rootCountBefore": 18,
+      "rootCountAfter": 7,
+      "moves": [
+        {
+          "oldPath": "skyshift/air-tricks-v081.mjs",
+          "newPath": "skyshift/flight/air-tricks-v081.mjs",
+          "sourceSha": "2f7fefae64a055bbcfc433a3440d4cc9cf6057e6",
+          "destinationSha": "2f7fefae64a055bbcfc433a3440d4cc9cf6057e6",
+          "bytes": 5779,
+          "owner": "flight",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "2f7fefae64a055bbcfc433a3440d4cc9cf6057e6"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/precision-grip-v061.mjs",
+          "newPath": "skyshift/flight/precision-grip-v061.mjs",
+          "sourceSha": "777a2778772c077b454a33856f5361281885de63",
+          "destinationSha": "777a2778772c077b454a33856f5361281885de63",
+          "bytes": 2058,
+          "owner": "flight",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "777a2778772c077b454a33856f5361281885de63"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/track.mjs",
+          "newPath": "skyshift/tracks/trials/track.mjs",
+          "sourceSha": "89d6acbde2ff3486fe6a9c124dca63d5de3ff5af",
+          "destinationSha": "89d6acbde2ff3486fe6a9c124dca63d5de3ff5af",
+          "bytes": 4898,
+          "owner": "tracks/trials",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "89d6acbde2ff3486fe6a9c124dca63d5de3ff5af"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/trial-v0150.mjs",
+          "newPath": "skyshift/tracks/trials/trial-v0150.mjs",
+          "sourceSha": "c8b84676f894c64b60f89599436742ba8c02dd68",
+          "destinationSha": "9aae2c6b436acccb6ebdbf12d5afc5d866a03c33",
+          "bytes": 2661,
+          "owner": "tracks/trials",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "7dc8b21d1d655d7420d818ab89eb21f9c5df0814",
+            "bytes": 32454
+          },
+          "pathEdits": [
+            {
+              "before": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"./flight/boost/boost-v0150.mjs\";",
+              "after": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"../../flight/boost/boost-v0150.mjs\";"
+            },
+            {
+              "before": "import {GRIP_SPEC,initGripState,stepGripState} from \"./flight/precision-grip-v084.mjs\";",
+              "after": "import {GRIP_SPEC,initGripState,stepGripState} from \"../../flight/precision-grip-v084.mjs\";"
+            },
+            {
+              "before": "import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from \"./flight/steering-authority-v01348.mjs\";",
+              "after": "import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from \"../../flight/steering-authority-v01348.mjs\";"
+            },
+            {
+              "before": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"./flight/air-tricks-v083.mjs\";",
+              "after": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"../../flight/air-tricks-v083.mjs\";"
+            },
+            {
+              "before": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"./tracks/shared/track-3d-v082.mjs\";",
+              "after": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"../shared/track-3d-v082.mjs\";"
+            },
+            {
+              "before": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"./tracks/shared/circuit-layout-v082.mjs\";",
+              "after": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"../shared/circuit-layout-v082.mjs\";"
+            },
+            {
+              "before": "import {createHistoricalSkylineTrial} from \"./flight/historical-skyline-trial.mjs\";",
+              "after": "import {createHistoricalSkylineTrial} from \"../../flight/historical-skyline-trial.mjs\";"
+            }
+          ]
+        },
+        {
+          "oldPath": "skyshift/trial-v0151.mjs",
+          "newPath": "skyshift/tracks/trials/trial-v0151.mjs",
+          "sourceSha": "a5fa190be4581bf333b56084b47f8f4d62c6d0ad",
+          "destinationSha": "cb0e29354ae29ebd196d6d6c5be6e9fab5f4a462",
+          "bytes": 2661,
+          "owner": "tracks/trials",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "86e46aa512b581de3e5b09cb5d5f8b2a1be8cd02",
+            "bytes": 32454
+          },
+          "pathEdits": [
+            {
+              "before": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"./flight/boost/boost-v0151.mjs\";",
+              "after": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"../../flight/boost/boost-v0151.mjs\";"
+            },
+            {
+              "before": "import {GRIP_SPEC,initGripState,stepGripState} from \"./flight/precision-grip-v084.mjs\";",
+              "after": "import {GRIP_SPEC,initGripState,stepGripState} from \"../../flight/precision-grip-v084.mjs\";"
+            },
+            {
+              "before": "import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from \"./flight/steering-authority-v01348.mjs\";",
+              "after": "import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from \"../../flight/steering-authority-v01348.mjs\";"
+            },
+            {
+              "before": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"./flight/air-tricks-v083.mjs\";",
+              "after": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"../../flight/air-tricks-v083.mjs\";"
+            },
+            {
+              "before": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"./tracks/shared/track-3d-v082.mjs\";",
+              "after": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"../shared/track-3d-v082.mjs\";"
+            },
+            {
+              "before": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"./tracks/shared/circuit-layout-v082.mjs\";",
+              "after": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"../shared/circuit-layout-v082.mjs\";"
+            },
+            {
+              "before": "import {createHistoricalSkylineTrial} from \"./flight/historical-skyline-trial.mjs\";",
+              "after": "import {createHistoricalSkylineTrial} from \"../../flight/historical-skyline-trial.mjs\";"
+            }
+          ]
+        },
+        {
+          "oldPath": "skyshift/trial-v02.mjs",
+          "newPath": "skyshift/tracks/trials/trial-v02.mjs",
+          "sourceSha": "56e2e1219458023820da902b99bd44a9f0d73df6",
+          "destinationSha": "56e2e1219458023820da902b99bd44a9f0d73df6",
+          "bytes": 7871,
+          "owner": "tracks/trials",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "56e2e1219458023820da902b99bd44a9f0d73df6"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/trial-v03.mjs",
+          "newPath": "skyshift/tracks/trials/trial-v03.mjs",
+          "sourceSha": "bf34d96f3e335f3c4045d610b4aae4933e44e086",
+          "destinationSha": "bf34d96f3e335f3c4045d610b4aae4933e44e086",
+          "bytes": 10451,
+          "owner": "tracks/trials",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "bf34d96f3e335f3c4045d610b4aae4933e44e086"
+          },
+          "pathEdits": []
+        },
+        {
+          "oldPath": "skyshift/trial-v072.mjs",
+          "newPath": "skyshift/tracks/trials/trial-v072.mjs",
+          "sourceSha": "b197a62cd714a62cb9a71577f4b06ec9e47aea1f",
+          "destinationSha": "c3e314a7406d5e5e7281268840443960a7ad1dd0",
+          "bytes": 25202,
+          "owner": "tracks/trials",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "77bf39a3b2989d66456218747056400344dc7d38",
+            "bytes": 25174
+          },
+          "pathEdits": [
+            {
+              "before": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"./flight/boost/boost-v060.mjs\";",
+              "after": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"../../flight/boost/boost-v060.mjs\";"
+            },
+            {
+              "before": "import {GRIP_SPEC,initGripState,stepGripState} from \"./precision-grip-v061.mjs\";",
+              "after": "import {GRIP_SPEC,initGripState,stepGripState} from \"../../flight/precision-grip-v061.mjs\";"
+            },
+            {
+              "before": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"./tracks/shared/track-3d-v072.mjs\";",
+              "after": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"../shared/track-3d-v072.mjs\";"
+            },
+            {
+              "before": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"./tracks/shared/circuit-layout-v060.mjs\";",
+              "after": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"../shared/circuit-layout-v060.mjs\";"
+            }
+          ]
+        },
+        {
+          "oldPath": "skyshift/trial-v081.mjs",
+          "newPath": "skyshift/tracks/trials/trial-v081.mjs",
+          "sourceSha": "65cfc528736a51bbcc79d361e6a4b08b07b99f37",
+          "destinationSha": "1bdb567eb9d411564bc72b6909341ee9b5a2aedc",
+          "bytes": 27337,
+          "owner": "tracks/trials",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "3bc57eea97075639f9130f28ea775772539c47a9",
+            "bytes": 27309
+          },
+          "pathEdits": [
+            {
+              "before": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"./flight/boost/boost-v060.mjs\";",
+              "after": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"../../flight/boost/boost-v060.mjs\";"
+            },
+            {
+              "before": "import {GRIP_SPEC,initGripState,stepGripState} from \"./precision-grip-v061.mjs\";",
+              "after": "import {GRIP_SPEC,initGripState,stepGripState} from \"../../flight/precision-grip-v061.mjs\";"
+            },
+            {
+              "before": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"./air-tricks-v081.mjs\";",
+              "after": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"../../flight/air-tricks-v081.mjs\";"
+            },
+            {
+              "before": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"./tracks/shared/track-3d-v081.mjs\";",
+              "after": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"../shared/track-3d-v081.mjs\";"
+            },
+            {
+              "before": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"./tracks/shared/circuit-layout-v060.mjs\";",
+              "after": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"../shared/circuit-layout-v060.mjs\";"
+            }
+          ]
+        },
+        {
+          "oldPath": "skyshift/trial-v082.mjs",
+          "newPath": "skyshift/tracks/trials/trial-v082.mjs",
+          "sourceSha": "1383041fb09970e7efc0f3d06ce54d015596fa25",
+          "destinationSha": "8677ff4e75e67a5c8398a4d6b49d858249539c1c",
+          "bytes": 29902,
+          "owner": "tracks/trials",
+          "productionBefore": false,
+          "sourceReachableBefore": false,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "f804f64ec3f97469be811a2f63ed28225cd3170c",
+            "bytes": 29874
+          },
+          "pathEdits": [
+            {
+              "before": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"./flight/boost/boost-v082.mjs\";",
+              "after": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"../../flight/boost/boost-v082.mjs\";"
+            },
+            {
+              "before": "import {GRIP_SPEC,initGripState,stepGripState} from \"./precision-grip-v061.mjs\";",
+              "after": "import {GRIP_SPEC,initGripState,stepGripState} from \"../../flight/precision-grip-v061.mjs\";"
+            },
+            {
+              "before": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"./air-tricks-v081.mjs\";",
+              "after": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"../../flight/air-tricks-v081.mjs\";"
+            },
+            {
+              "before": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"./tracks/shared/track-3d-v082.mjs\";",
+              "after": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"../shared/track-3d-v082.mjs\";"
+            },
+            {
+              "before": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"./tracks/shared/circuit-layout-v082.mjs\";",
+              "after": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"../shared/circuit-layout-v082.mjs\";"
+            }
+          ]
+        },
+        {
+          "oldPath": "skyshift/zone-wave-v060.mjs",
+          "newPath": "skyshift/core/zone-wave-v060.mjs",
+          "sourceSha": "23d68f49f96ef03a60ad8ccfa74d50b7f3209a29",
+          "destinationSha": "d9a92d3b4e2bad1f23c704713f3e746a8ec6fb0b",
+          "bytes": 1073,
+          "owner": "core",
+          "productionBefore": true,
+          "sourceReachableBefore": true,
+          "historicalArchive": {
+            "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+            "sha": "0367082d4ca6ba3a58d1f02a1f40789eddd39ba1",
+            "bytes": 7526
+          },
+          "pathEdits": [
+            {
+              "before": "import {createZoneWaveAPI} from \"./core/zone-wave.mjs\";",
+              "after": "import {createZoneWaveAPI} from \"./zone-wave.mjs\";"
+            },
+            {
+              "before": "export {ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from \"./core/zone-wave.mjs\";",
+              "after": "export {ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from \"./zone-wave.mjs\";"
+            }
+          ]
+        }
+      ],
+      "consumers": [
+        ".github/workflows/skyshift-ef02-deck-parity.yml",
+        ".github/workflows/skyshift-ef02-flight-camera-parity.yml",
+        ".github/workflows/skyshift-tests.yml",
+        "skyshift/build/browser-parity.mjs",
+        "skyshift/game-v0203.mjs",
+        "skyshift/game-v0210.mjs",
+        "skyshift/legacy/game/game-v0205.mjs",
+        "skyshift/rendering/legacy/premium-track-v0150.mjs",
+        "skyshift/rendering/legacy/premium-track-v0151.mjs",
+        "skyshift/rendering/legacy/premium-track-v072.mjs",
+        "skyshift/rendering/legacy/premium-track-v081.mjs",
+        "skyshift/rendering/legacy/premium-track-v082.mjs",
+        "skyshift/rendering/road/premium-track-v0160.mjs",
+        "skyshift/rendering/road/premium-track-v0901.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/browser/browser-risk-reward-v0151.mjs",
+        "skyshift/tests/unit/ceiling-fixture-cohesion-v02892.test.mjs",
+        "skyshift/tests/unit/multi-track-aurora-v0160.test.mjs",
+        "skyshift/tests/unit/premium-arch-optics-v02893.test.mjs",
+        "skyshift/tests/unit/risk-reward-v0150.test.mjs",
+        "skyshift/tests/unit/risk-reward-v0151.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/shadow-tunnel-v092.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/unit/track.test.mjs",
+        "skyshift/tests/unit/trial-v02.test.mjs",
+        "skyshift/tests/unit/trial-v03.test.mjs",
+        "skyshift/tests/unit/tunnel-exterior-seal-v02122.test.mjs",
+        "skyshift/tests/unit/tunnel-spectrum-v02121.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0160.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0162.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0163.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0164.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0165.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v072.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v081.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v082.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0901.mjs",
+        "skyshift/tracks/shared/smooth-track-v072.mjs",
+        "skyshift/tracks/shared/smooth-track-v081.mjs",
+        "skyshift/tracks/shared/smooth-track-v082.mjs",
+        "skyshift/tunnel/ceiling-fixture-cohesion-v02892.mjs",
+        "skyshift/tunnel/curve-surface-continuity-v02896.mjs",
+        "skyshift/tunnel/premium-arch-optics-v02893.mjs",
+        "skyshift/tunnel/road-spill-wave-coves-v02895.mjs",
+        "skyshift/tunnel/tunnel-spectrum-v02121.mjs",
+        "skyshift/tunnel/unified-tunnel-light-sources-v02894.mjs",
+        "skyshift/tunnel/vault-spatial-wave-parity-v0285.mjs"
+      ],
+      "productionEvidence": {
+        "commit": "082f824b3b48290a501cc986ebaae332d9c6771a",
+        "run": 45980061646,
+        "job": 140441547285,
+        "productionModules": 173,
+        "productionRoots": [
+          "boot-v0210.js",
+          "game-v0210.mjs",
+          "index.html",
+          "zone-wave-v060.mjs"
+        ],
+        "otherSourceRoots": [
+          "README.md",
+          "air-tricks-v081.mjs",
+          "game-v0203.mjs",
+          "material-grade-v0203.html",
+          "precision-grip-v061.mjs",
+          "style.css",
+          "track.mjs",
+          "trial-v0150.mjs",
+          "trial-v0151.mjs",
+          "trial-v02.mjs",
+          "trial-v03.mjs",
+          "trial-v072.mjs",
+          "trial-v081.mjs",
+          "trial-v082.mjs"
+        ]
+      },
+      "sourceEvidence": {
+        "commit": "082f824b3b48290a501cc986ebaae332d9c6771a",
+        "run": 45980061789,
+        "job": 140441396075,
+        "sourceReachableRoots": [
+          "skyshift/boot-v0210.js",
+          "skyshift/game-v0210.mjs",
+          "skyshift/index.html",
+          "skyshift/zone-wave-v060.mjs"
+        ]
+      }
     }
   ],
   "moves": [
@@ -3277,7 +3674,7 @@
       "oldPath": "skyshift/tunnel-spectrum-v02121.mjs",
       "newPath": "skyshift/tunnel/tunnel-spectrum-v02121.mjs",
       "sourceSha": "fb5d92896d940b9d04c9cca708793408bc5b2e04",
-      "destinationSha": "7e8122527d0197a3e7811f4e0fbddd2cd04ace45",
+      "destinationSha": "99c2aed90d1171ab3c0ba972665070be7ef5a068",
       "bytes": 4297,
       "owner": "tunnel",
       "productionBefore": true,
@@ -4457,6 +4854,303 @@
         {
           "before": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"./tracks/shared/circuit-layout-v082.mjs\";",
           "after": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"../shared/circuit-layout-v082.mjs\";"
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/air-tricks-v081.mjs",
+      "newPath": "skyshift/flight/air-tricks-v081.mjs",
+      "sourceSha": "2f7fefae64a055bbcfc433a3440d4cc9cf6057e6",
+      "destinationSha": "2f7fefae64a055bbcfc433a3440d4cc9cf6057e6",
+      "bytes": 5779,
+      "owner": "flight",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "2f7fefae64a055bbcfc433a3440d4cc9cf6057e6"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/precision-grip-v061.mjs",
+      "newPath": "skyshift/flight/precision-grip-v061.mjs",
+      "sourceSha": "777a2778772c077b454a33856f5361281885de63",
+      "destinationSha": "777a2778772c077b454a33856f5361281885de63",
+      "bytes": 2058,
+      "owner": "flight",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "777a2778772c077b454a33856f5361281885de63"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/track.mjs",
+      "newPath": "skyshift/tracks/trials/track.mjs",
+      "sourceSha": "89d6acbde2ff3486fe6a9c124dca63d5de3ff5af",
+      "destinationSha": "89d6acbde2ff3486fe6a9c124dca63d5de3ff5af",
+      "bytes": 4898,
+      "owner": "tracks/trials",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "89d6acbde2ff3486fe6a9c124dca63d5de3ff5af"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/trial-v0150.mjs",
+      "newPath": "skyshift/tracks/trials/trial-v0150.mjs",
+      "sourceSha": "c8b84676f894c64b60f89599436742ba8c02dd68",
+      "destinationSha": "9aae2c6b436acccb6ebdbf12d5afc5d866a03c33",
+      "bytes": 2661,
+      "owner": "tracks/trials",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "7dc8b21d1d655d7420d818ab89eb21f9c5df0814",
+        "bytes": 32454
+      },
+      "pathEdits": [
+        {
+          "before": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"./flight/boost/boost-v0150.mjs\";",
+          "after": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"../../flight/boost/boost-v0150.mjs\";"
+        },
+        {
+          "before": "import {GRIP_SPEC,initGripState,stepGripState} from \"./flight/precision-grip-v084.mjs\";",
+          "after": "import {GRIP_SPEC,initGripState,stepGripState} from \"../../flight/precision-grip-v084.mjs\";"
+        },
+        {
+          "before": "import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from \"./flight/steering-authority-v01348.mjs\";",
+          "after": "import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from \"../../flight/steering-authority-v01348.mjs\";"
+        },
+        {
+          "before": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"./flight/air-tricks-v083.mjs\";",
+          "after": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"../../flight/air-tricks-v083.mjs\";"
+        },
+        {
+          "before": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"./tracks/shared/track-3d-v082.mjs\";",
+          "after": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"../shared/track-3d-v082.mjs\";"
+        },
+        {
+          "before": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"./tracks/shared/circuit-layout-v082.mjs\";",
+          "after": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"../shared/circuit-layout-v082.mjs\";"
+        },
+        {
+          "before": "import {createHistoricalSkylineTrial} from \"./flight/historical-skyline-trial.mjs\";",
+          "after": "import {createHistoricalSkylineTrial} from \"../../flight/historical-skyline-trial.mjs\";"
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/trial-v0151.mjs",
+      "newPath": "skyshift/tracks/trials/trial-v0151.mjs",
+      "sourceSha": "a5fa190be4581bf333b56084b47f8f4d62c6d0ad",
+      "destinationSha": "cb0e29354ae29ebd196d6d6c5be6e9fab5f4a462",
+      "bytes": 2661,
+      "owner": "tracks/trials",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "86e46aa512b581de3e5b09cb5d5f8b2a1be8cd02",
+        "bytes": 32454
+      },
+      "pathEdits": [
+        {
+          "before": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"./flight/boost/boost-v0151.mjs\";",
+          "after": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"../../flight/boost/boost-v0151.mjs\";"
+        },
+        {
+          "before": "import {GRIP_SPEC,initGripState,stepGripState} from \"./flight/precision-grip-v084.mjs\";",
+          "after": "import {GRIP_SPEC,initGripState,stepGripState} from \"../../flight/precision-grip-v084.mjs\";"
+        },
+        {
+          "before": "import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from \"./flight/steering-authority-v01348.mjs\";",
+          "after": "import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from \"../../flight/steering-authority-v01348.mjs\";"
+        },
+        {
+          "before": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"./flight/air-tricks-v083.mjs\";",
+          "after": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"../../flight/air-tricks-v083.mjs\";"
+        },
+        {
+          "before": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"./tracks/shared/track-3d-v082.mjs\";",
+          "after": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"../shared/track-3d-v082.mjs\";"
+        },
+        {
+          "before": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"./tracks/shared/circuit-layout-v082.mjs\";",
+          "after": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"../shared/circuit-layout-v082.mjs\";"
+        },
+        {
+          "before": "import {createHistoricalSkylineTrial} from \"./flight/historical-skyline-trial.mjs\";",
+          "after": "import {createHistoricalSkylineTrial} from \"../../flight/historical-skyline-trial.mjs\";"
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/trial-v02.mjs",
+      "newPath": "skyshift/tracks/trials/trial-v02.mjs",
+      "sourceSha": "56e2e1219458023820da902b99bd44a9f0d73df6",
+      "destinationSha": "56e2e1219458023820da902b99bd44a9f0d73df6",
+      "bytes": 7871,
+      "owner": "tracks/trials",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "56e2e1219458023820da902b99bd44a9f0d73df6"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/trial-v03.mjs",
+      "newPath": "skyshift/tracks/trials/trial-v03.mjs",
+      "sourceSha": "bf34d96f3e335f3c4045d610b4aae4933e44e086",
+      "destinationSha": "bf34d96f3e335f3c4045d610b4aae4933e44e086",
+      "bytes": 10451,
+      "owner": "tracks/trials",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "bf34d96f3e335f3c4045d610b4aae4933e44e086"
+      },
+      "pathEdits": []
+    },
+    {
+      "oldPath": "skyshift/trial-v072.mjs",
+      "newPath": "skyshift/tracks/trials/trial-v072.mjs",
+      "sourceSha": "b197a62cd714a62cb9a71577f4b06ec9e47aea1f",
+      "destinationSha": "c3e314a7406d5e5e7281268840443960a7ad1dd0",
+      "bytes": 25202,
+      "owner": "tracks/trials",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "77bf39a3b2989d66456218747056400344dc7d38",
+        "bytes": 25174
+      },
+      "pathEdits": [
+        {
+          "before": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"./flight/boost/boost-v060.mjs\";",
+          "after": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"../../flight/boost/boost-v060.mjs\";"
+        },
+        {
+          "before": "import {GRIP_SPEC,initGripState,stepGripState} from \"./precision-grip-v061.mjs\";",
+          "after": "import {GRIP_SPEC,initGripState,stepGripState} from \"../../flight/precision-grip-v061.mjs\";"
+        },
+        {
+          "before": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"./tracks/shared/track-3d-v072.mjs\";",
+          "after": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"../shared/track-3d-v072.mjs\";"
+        },
+        {
+          "before": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"./tracks/shared/circuit-layout-v060.mjs\";",
+          "after": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"../shared/circuit-layout-v060.mjs\";"
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/trial-v081.mjs",
+      "newPath": "skyshift/tracks/trials/trial-v081.mjs",
+      "sourceSha": "65cfc528736a51bbcc79d361e6a4b08b07b99f37",
+      "destinationSha": "1bdb567eb9d411564bc72b6909341ee9b5a2aedc",
+      "bytes": 27337,
+      "owner": "tracks/trials",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "3bc57eea97075639f9130f28ea775772539c47a9",
+        "bytes": 27309
+      },
+      "pathEdits": [
+        {
+          "before": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"./flight/boost/boost-v060.mjs\";",
+          "after": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"../../flight/boost/boost-v060.mjs\";"
+        },
+        {
+          "before": "import {GRIP_SPEC,initGripState,stepGripState} from \"./precision-grip-v061.mjs\";",
+          "after": "import {GRIP_SPEC,initGripState,stepGripState} from \"../../flight/precision-grip-v061.mjs\";"
+        },
+        {
+          "before": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"./air-tricks-v081.mjs\";",
+          "after": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"../../flight/air-tricks-v081.mjs\";"
+        },
+        {
+          "before": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"./tracks/shared/track-3d-v081.mjs\";",
+          "after": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"../shared/track-3d-v081.mjs\";"
+        },
+        {
+          "before": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"./tracks/shared/circuit-layout-v060.mjs\";",
+          "after": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"../shared/circuit-layout-v060.mjs\";"
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/trial-v082.mjs",
+      "newPath": "skyshift/tracks/trials/trial-v082.mjs",
+      "sourceSha": "1383041fb09970e7efc0f3d06ce54d015596fa25",
+      "destinationSha": "8677ff4e75e67a5c8398a4d6b49d858249539c1c",
+      "bytes": 29902,
+      "owner": "tracks/trials",
+      "productionBefore": false,
+      "sourceReachableBefore": false,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "f804f64ec3f97469be811a2f63ed28225cd3170c",
+        "bytes": 29874
+      },
+      "pathEdits": [
+        {
+          "before": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"./flight/boost/boost-v082.mjs\";",
+          "after": "import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState,boostedSpeedAt} from \"../../flight/boost/boost-v082.mjs\";"
+        },
+        {
+          "before": "import {GRIP_SPEC,initGripState,stepGripState} from \"./precision-grip-v061.mjs\";",
+          "after": "import {GRIP_SPEC,initGripState,stepGripState} from \"../../flight/precision-grip-v061.mjs\";"
+        },
+        {
+          "before": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"./air-tricks-v081.mjs\";",
+          "after": " finalizeAirTrick,stepLandingBoost,settleTrickVisual} from \"../../flight/air-tricks-v081.mjs\";"
+        },
+        {
+          "before": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"./tracks/shared/track-3d-v082.mjs\";",
+          "after": "import {TRACK_3D,SKYLINE_LEAP,elevationAt,gradeAt,pitchAt,groundNormalAt,jumpAt,upcomingJump,elevationAudit,MAGNETIC_WALL,magneticBankAt,magneticWallAt,CORKSCREW,corkscrewBankAt,corkscrewAt,corkscrewProgressAt} from \"../shared/track-3d-v082.mjs\";"
+        },
+        {
+          "before": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"./tracks/shared/circuit-layout-v082.mjs\";",
+          "after": " lapPosition,sectionAt,circuitPlanSummary as baseCircuitPlanSummary} from \"../shared/circuit-layout-v082.mjs\";"
+        }
+      ]
+    },
+    {
+      "oldPath": "skyshift/zone-wave-v060.mjs",
+      "newPath": "skyshift/core/zone-wave-v060.mjs",
+      "sourceSha": "23d68f49f96ef03a60ad8ccfa74d50b7f3209a29",
+      "destinationSha": "d9a92d3b4e2bad1f23c704713f3e746a8ec6fb0b",
+      "bytes": 1073,
+      "owner": "core",
+      "productionBefore": true,
+      "sourceReachableBefore": true,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "sha": "0367082d4ca6ba3a58d1f02a1f40789eddd39ba1",
+        "bytes": 7526
+      },
+      "pathEdits": [
+        {
+          "before": "import {createZoneWaveAPI} from \"./core/zone-wave.mjs\";",
+          "after": "import {createZoneWaveAPI} from \"./zone-wave.mjs\";"
+        },
+        {
+          "before": "export {ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from \"./core/zone-wave.mjs\";",
+          "after": "export {ZONE_PALETTES,SPECTRAL_FRONT_GLSL} from \"./zone-wave.mjs\";"
         }
       ]
     }

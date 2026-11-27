@@ -34,7 +34,7 @@ try{
    import("./rendering/legacy/premium-track-v0151.mjs"),
    import("./flight/boost/boost-v0151.mjs"),
    import("./flight/boost/risk-reward-v0151.mjs"),
-   import("./trial-v0151.mjs"),
+   import("./tracks/trials/trial-v0151.mjs"),
    import("./core/time-trial-v0151.mjs")
   ]);
   const probe=window.__skyshiftRiskProbe();

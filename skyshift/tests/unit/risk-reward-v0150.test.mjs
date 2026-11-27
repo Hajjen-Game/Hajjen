@@ -9,7 +9,7 @@ import {BOOST_CONFIG,BOOST_PADS,boostPadAt,initBoostState,stepBoostState}
  from "../../flight/boost/boost-v0150.mjs";
 import {GRIP_APEX,TRIAL,CIRCUIT,curvatureAt,gapAt,
  guardrailLateralLimit,newFlightState,positionAt,headingAt,surfaceHeightAt,
- stepFlight} from "../../trial-v0150.mjs";
+ stepFlight} from "../../tracks/trials/trial-v0150.mjs";
 import {GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,patchPremiumShaders}
  from "../../rendering/legacy/premium-track-v0150.mjs";
 import {TIME_TRIAL_0150} from "../../core/time-trial-v0150.mjs";
@@ -123,7 +123,7 @@ test("normal Time Trial PBs use a NEW fingerprint, older ghost remains in storag
  assert.equal(RISK_REWARD_0150.physicsSteeringUnchanged,true);
 });
 test("active 0.15.0 retains Manta/Stingray steering, Challenge medals, and real player boost",()=>{
- const game=read("./legacy/game/game-v0150.mjs"),trial=read("./trial-v0150.mjs");
+ const game=read("./legacy/game/game-v0150.mjs"),trial=read("./tracks/trials/trial-v0150.mjs");
  assert.match(game,/from "\.\/trial-v0150\.mjs"/);
  assert.match(game,/ship\.rotation\.z=naturalRoll;/);
  assert.match(game,/const result=stepFlight\(flight,dt,\{steer,grip:gripHeld\}\);/);

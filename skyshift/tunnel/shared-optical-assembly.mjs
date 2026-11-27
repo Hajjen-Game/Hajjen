@@ -7,8 +7,8 @@ import {installRoadSpill02895} from './road-spill-wave-coves-v02895.mjs';
 import {installCinematicRoad0289} from '../rendering/cinematic-metal-neon-v0289.mjs';
 import {installPmremReflectionPipeline0284} from './pmrem-reflection-pipeline-v0284.mjs';
 
-export function createSharedOpticalContext({positionAt,trackLength,lowMemory,tunnel,enabled,unifiedSources}){
- const sourceSampler=enabled?createSharedSourceSampler0282(positionAt,trackLength,tunnel?.modules):null;
+export function createSharedOpticalContext({positionAt,sourcePositionAt=positionAt,trackLength,lowMemory,tunnel,enabled,unifiedSources}){
+ const sourceSampler=enabled?createSharedSourceSampler0282(sourcePositionAt,trackLength,tunnel?.modules):null;
  const ranges=tunnel?.policy?.straightOnly?tunnel.policy.straightRanges:undefined;
  const sourceRegistry=sourceSampler&&unifiedSources?
   createUnifiedSourceRegistry02894(positionAt,trackLength,{lowMemory,sourceSampler,

@@ -76,6 +76,10 @@ for(const query of ['?track=vault&v=0.28.9.11&vaultJump=1','?track=vault&v=0.29.
  assert.equal(canonical.searchParams.get('vaultJump'),'1');
 }
 assert.equal(new URL(productionRouteUrl('https://example.invalid/skyshift/?v=0.29.0&vaultJump=0')).searchParams.get('v'),PRODUCTION_TRACK.version);
+for(const query of ['?track=vault&v=0.29.1','?track=vault&v=0.29.1&vaultJump=1']){
+ const canonical=new URL(productionRouteUrl('https://example.invalid/skyshift/'+query));
+ assert.equal(canonical.searchParams.get('v'),'0.29.1');assert.equal(canonical.searchParams.get('vaultJump'),'1');
+}
 // The old HTML script URL carries the legacy source version; a hashed
 // module entry cannot carry that query. Preserve exactly that observed value,
 // NOT the route version (?v=) or a new gameplay version.

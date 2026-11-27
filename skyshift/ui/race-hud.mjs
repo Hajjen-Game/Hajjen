@@ -2,7 +2,7 @@
 export function createRaceHud({UI,uiState,domWrites,ZONE_PALETTES,TRIAL,CIRCUIT,
  challengeDistance,formatTrialTime,formatTrialDelta,updateGhostDelta,curvatureAt,
  sectorAt,isAurora,isVault,gripApexCue,GRIP_APEX,riskCueAt,AIR_TRICKS,bankDegreesAt,
- event,flashToast}){
+ event,flashToast,cleanRaceHud=false}){
  let gripCueVisible=false,gripCueSeconds=0,gripCueDisplays=0;
  function reset(){gripCueVisible=false;gripCueSeconds=0;gripCueDisplays=0;}
  function advance(dt){if(gripCueVisible)gripCueSeconds+=dt;}
@@ -31,12 +31,18 @@ export function createRaceHud({UI,uiState,domWrites,ZONE_PALETTES,TRIAL,CIRCUIT,
   UI.trialDelta.classList.toggle("behind",delta!==null&&delta>.04);
  }
  // Compare with baseline handling-lab speed (22 m/s), not new speed.
- domWrites.text(UI.speed,(flight.currentSpeed/22).toFixed(2)+"×");
+ domWrites.text(UI.speed,cleanRaceHud?Math.round(flight.currentSpeed*3.6)+" km/h":(flight.currentSpeed/22).toFixed(2)+"×");
  // The old JUMP button is a contextual TRICK key only on approach/airborne.
  // JUMP stays in the DOM for later design decisions, but GRIP is now
  // the only visible right-thumb input, both on the road and in the air.
  UI.jump.classList.add("hidden");
  domWrites.width(UI.progress,(Math.max(0,Math.min(1,displayedDistance/displayedTotal))*100).toFixed(1)+"%");
+ // Keep shield and contact feedback, but skip all instructional text work.
+ if(cleanRaceHud){
+  UI.hud.classList.toggle("hud-rail-contact",railFeedback.pulse>.025);
+  domWrites.property(UI.hud,"--rail-contact",String(Math.min(.92,railFeedback.pulse*.92).toFixed(3)));
+  return;
+ }
  const curve=curvatureAt(flight.s),section=sectorAt(flight.s);
  // One small persistent prompt by the existing GRIP thumb control: never
  // a full-screen warning or a new button. It starts early enough at
@@ -97,7 +103,7 @@ export function createRaceHud({UI,uiState,domWrites,ZONE_PALETTES,TRIAL,CIRCUIT,
 
  }
  function maybeShowCue(flight){
- if(uiState.mode!=="playing")return;
+ if(cleanRaceHud||uiState.mode!=="playing")return;
  const localS=((flight.s%CIRCUIT.lapLength)+CIRCUIT.lapLength)%CIRCUIT.lapLength;
  if(isVault()){
   for(const hint of [

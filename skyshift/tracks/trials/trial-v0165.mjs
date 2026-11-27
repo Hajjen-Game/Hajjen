@@ -3,6 +3,7 @@ const isFlowTrack=()=>isAurora()||isVault();
 // SKYSHIFT 0.16.4 — SAME physics for all circuits; geometry only changes course.
 import {BOOST_PADS,BOOST_CONFIG,initBoostState,stepBoostState} from "../../flight/boost/boost-v0160.mjs";
 import {createFlightPhysics} from "../../flight/flight-physics.mjs";
+import {VAULT_JUMP_POLISH_ACTIVE,VAULT_RAIL_SHIELD_DAMAGE} from "../vault/vault-mega-jump.mjs";
 import {createTrackSampler} from "../shared/track-sampler.mjs";
 import {STEERING_AUTHORITY,normalYawFactorAt,yawAuthorityAt,steeringBalanceAt} from "../../flight/steering-authority-v01348.mjs";
 import {AIR_TRICKS} from "../../flight/air-tricks-v083.mjs";
@@ -23,6 +24,7 @@ export const TRIAL=Object.freeze({
  name:ACTIVE_TRACK_0160.name,length:CIRCUIT.lapLength,
  raceLength:CIRCUIT.totalDistance,laps:CIRCUIT.laps,
  hoverHeight:1.05,gravity:22,fallDepth:8.5,shieldPenalty:20,
+ ...(VAULT_JUMP_POLISH_ACTIVE?{railShieldDamage:VAULT_RAIL_SHIELD_DAMAGE}:{}),
  startSpeed:44,endSpeed:44*1.11**8,
  zoneSpeedStep:1.11,zoneAccelerationSeconds:.85,targetDurationSeconds:155,
  // 0.8.4: original reference yaw preserved, but ordinary steering turns

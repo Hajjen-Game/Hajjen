@@ -57,3 +57,27 @@ test("0.29.2 endurance sampling is bounded, interval based and never fabricates 
  assert.equal(a.report().samples.at(-1).battery.levelPercent,79);
  a.reset();assert.equal(a.report().samples.length,0);
 });
+
+import {createPresentationGate,normalizePerformance,readPerformance,savePerformance} from "../../core/smart-performance.mjs";
+import {partitionTriangleIndices} from "../../rendering/track-section-visibility.mjs";
+test("0.29.3 caps actual presentation on a 120Hz display without losing elapsed time",()=>{
+ for(const cap of [60,90,120]){
+  const gate=createPresentationGate();let frames=0,last=0,elapsed=0;
+  for(let i=0;i<=1200;i++){const now=i*1000/120;if(gate.allow(now,cap)){frames++;elapsed+=now-last;last=now;}}
+  assert.ok(Math.abs(frames-(10*cap+1))<=1,{cap,frames});assert.ok(elapsed>=9980);
+  assert.equal(gate.stats().rendered,frames);
+ }
+ assert.equal(normalizePerformance({},true).fps,60);assert.equal(normalizePerformance({},false).fps,120);
+ const data=new Map(),storage={getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)};
+ savePerformance(storage,{fps:90,quality:"fixed",diagnostics:true,sections:false});
+ assert.deepEqual(readPerformance(storage,true),{fps:90,quality:"fixed",diagnostics:true,sections:false});
+});
+test("0.29.3 partition retains every original triangle index, winding and shared normal inputs",()=>{
+ const points=[[0,0],[1,0],[1,1],[500,0],[501,0],[501,1]];
+ const pos={count:points.length,getX:i=>points[i][0],getZ:i=>points[i][1]};
+ const source=[0,1,2,3,4,5,2,1,0],idx={count:source.length,getX:i=>source[i]};
+ const bins=partitionTriangleIndices(pos,idx,256);
+ const triples=a=>Array.from({length:a.length/3},(_,i)=>a.slice(i*3,i*3+3).join(",")).sort();
+ assert.equal(bins.length,2);assert.deepEqual(triples(bins.flat()),triples(source));
+ assert.deepEqual(partitionTriangleIndices(pos,null,256).flat(),[0,1,2,3,4,5]);
+});

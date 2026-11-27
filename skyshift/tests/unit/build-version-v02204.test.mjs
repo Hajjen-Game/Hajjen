@@ -46,7 +46,7 @@ test("Neon Vault menu resolves the live production catalog while source QA keeps
 test("0.29.2 explicit endurance route retains correct version and rollback",async()=>{
  const {productionRouteUrl,PRODUCTION_TRACK}=await import("../../tracks/shared/production-catalog.mjs");
  const base="https://example.test/skyshift/";
- for(const version of ["0.29.0","0.29.1","0.29.2"]){
+ for(const version of ["0.29.0","0.29.1","0.29.2","0.29.3"]){
   const route=new URL(productionRouteUrl(base+"?track=vault&v="+version));
   assert.equal(route.searchParams.get("v"),version);
   assert.equal(route.searchParams.get("vaultJump"),"1");

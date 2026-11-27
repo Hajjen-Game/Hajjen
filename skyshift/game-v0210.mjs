@@ -1,5 +1,7 @@
+import {readPerformance,savePerformance,createPresentationGate} from "./core/smart-performance.mjs";
+import {createTrackSectionVisibility} from "./rendering/track-section-visibility.mjs";
 import * as THREE from "three";
-import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,VAULT_JUMP_POLISH_ACTIVE,VAULT_COMPACT_ACTIVE,VAULT_JUMP_VERSION,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
+import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,VAULT_JUMP_POLISH_ACTIVE,VAULT_COMPACT_ACTIVE,VAULT_SMART_ACTIVE,VAULT_JUMP_VERSION,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
 import {createTunnelProfileSampler} from "./tunnel/profile-sampler.mjs";
 import {createRaceLifecycle} from "./core/race-lifecycle.mjs";
 import {createRuntimeLifetime} from "./core/runtime-lifetime.mjs";
@@ -777,6 +779,10 @@ let renderSamples=0,renderCallTotal=0,renderCallPeak=0,triangleTotal=0;
 const raceSimulation=createRaceSimulation();
 let frameMonitor=createFrameMonitor();
 const perfSettings=readPerfConfig(location.search);
+const smartPerformance=VAULT_SMART_ACTIVE?readPerformance(fleetStorage(),matchMedia('(pointer:coarse)').matches,perfSettings):null;
+const presentationGate=createPresentationGate();
+let trackVisibility=null;
+if(smartPerformance)perfSettings.fixedQuality=smartPerformance.quality==='fixed';
 const fidelityChoice=readFidelityChoice({search:location.search,storage:fleetStorage()});
 const frameProfiler=newPerfMonitor();
 const endurance=VAULT_COMPACT_ACTIVE?createEnduranceAudit():null;
@@ -1684,7 +1690,8 @@ function initScene(){
   if(VAULT_COMPACT_ACTIVE&&new URLSearchParams(location.search).get('perfPanel')!=='1'){perfPanel=null;}
   else document.body.appendChild(perfPanel);
  }
- gpuClock=createGpuTimer(renderer.getContext(),perfSettings.enabled);
+ gpuClock=createGpuTimer(renderer.getContext(),perfSettings.enabled||smartPerformance?.diagnostics===true);
+ if(smartPerformance)trackVisibility=createTrackSectionVisibility(THREE,world,trueSharedVault.root);
  // Non-interactive rendering diagnostic for browser CI and exported audits.
  window.__skyshiftClarityInfo=()=>clarityAudit(claritySettings,neonPipeline);
  runtimeLifetime.listen(window,"resize",resize);
@@ -3781,6 +3788,7 @@ function installFullscreen(){
 }
 function openSettings(){
  if(uiState.mode!=="menu")return;
+ if(smartPerformance)syncSmartSettings();
  uiState.mode="settings";
  UI.menu.classList.add("hidden");
  UI.settings.classList.remove("hidden");
@@ -3850,7 +3858,7 @@ function resetFlight(){
  perfFrames=0;perfTotal=0;perfMin=200;
  renderSamples=0;renderCallTotal=0;renderCallPeak=0;triangleTotal=0;
  resetRaceSimulation(raceSimulation,flight);frameMonitor=createFrameMonitor();
- resetPerfMonitor(frameProfiler);gpuClock?.reset();lastPerfPanelUpdate=0;endurance?.reset();
+ resetPerfMonitor(frameProfiler);gpuClock?.reset();lastPerfPanelUpdate=0;endurance?.reset();presentationGate.reset();
  document.documentElement.style.setProperty("--neon","#43dff3");
  raceTelemetry.reset();uiState.trackHint=-1;clearInput();
  event("trial_start",{trial:TRIAL.id});
@@ -4163,6 +4171,9 @@ function placeShip(time,dt,view=flight,motion=motionState,cinematic=cinematicSta
   kineticCamera,racingExperience,velocityPresence,boostSpring,uiState.mode==="playing");
 }
 function loop(now){
+ // Keep worldClock.last at the last actual presentation, so skipped RAFs
+ // accumulate real time and the fixed-step simulation advances all due ticks.
+ if(smartPerformance&&!presentationGate.allow(now,uiState.mode==='playing'?smartPerformance.fps:30))return;
  let physicsMs=0,hudMs=0,physicsSteps=0;
  const presentationBegin=performance.now();
  const rawDt=Math.max(0,(now-worldClock.last)/1000);
@@ -4382,9 +4393,10 @@ function loop(now){
  gpuClock?.begin();
  const renderBegin=performance.now();
  try{
+  trackVisibility?.begin(camera,smartPerformance.sections&&uiState.mode==='playing');
   if(neonPipeline)neonPipeline.render(dt);
   else renderer.render(scene,camera);
- }finally{gpuClock?.end()}
+ }finally{trackVisibility?.end();gpuClock?.end()}
  if(startupMarks.firstFrame===undefined)markStartup("firstFrame");
  if(resourceSmoke)resourceFrame++;
  const renderCpuMs=performance.now()-renderBegin;
@@ -4435,7 +4447,8 @@ function readEnduranceSnapshot(){
   viewportCss:{width:innerWidth,height:innerHeight},canvas:{width:UI.canvas.width,height:UI.canvas.height},
   deviceDpr:devicePixelRatio||1,internalDpr:neonPipeline?.internalPixelRatio??null,
   jsHeapMB:performance.memory?.usedJSHeapSize?Math.round(performance.memory.usedJSHeapSize/1048576):null,
-  rendererMemory:renderer?{...renderer.info.memory}:null};
+  rendererMemory:renderer?{...renderer.info.memory}:null,
+  ...(smartPerformance?{settings:{...smartPerformance},visibility:trackVisibility?.stats(),pacing:presentationGate.stats()}: {})};
 }
 function exportAudit(){
  if(endurance&&frameProfiler.total>0)endurance.sample(frameProfiler,readEnduranceSnapshot,true);
@@ -4445,6 +4458,9 @@ function exportAudit(){
  const data={
    game:"SKYSHIFT",version:VAULT_COMPACT_ACTIVE?VAULT_JUMP_VERSION:SKYSHIFT_BUILD_VERSION,trial:TRIAL.id,exportedAt:new Date().toISOString(),
    ...(endurance?{enduranceAudit:endurance.report()}:{}),
+   ...(smartPerformance?{smartPerformance:{...smartPerformance,physicsHz:120,visibility:trackVisibility?.stats(),pacing:presentationGate.stats(),
+    meanTrianglesPerRenderedFrame:renderSamples?triangleTotal/renderSamples:null,
+    trianglesPerActiveSecond:frameMonitor.elapsedSeconds?triangleTotal/frameMonitor.elapsedSeconds:null}}:{}),
    timeTrial:{...ghostAudit(timeTrialState),visual:ghostVisual?.stats()??null},
     performanceAudit:{...perfSummary(frameProfiler),preset:perfSettings,
      gpu:gpuClock?.summary()??{available:false,reason:"uninitialized"},
@@ -4821,7 +4837,29 @@ function exportAudit(){
  };
  downloadRaceAudit(data,perfSettings.preset,{Blob,URL,document,setTimeout});
 }
+function syncSmartSettings(){
+ const root=$('smart-performance-settings');root.classList.remove('hidden');UI.settings.classList.add('smart-settings');
+ $('frame-cap').value=String(smartPerformance.fps);$('graphics-quality').value=smartPerformance.quality;
+ $('extended-diagnostics').checked=smartPerformance.diagnostics;$('section-culling').checked=smartPerformance.sections;
+}
 function installControls(){
+ if(smartPerformance){
+  syncSmartSettings();
+  const apply=()=>{
+   if(uiState.mode!=='settings')return;
+   smartPerformance.fps=Number($('frame-cap').value);
+   smartPerformance.quality=$('graphics-quality').value;
+   smartPerformance.diagnostics=$('extended-diagnostics').checked;smartPerformance.sections=$('section-culling').checked;
+   savePerformance(fleetStorage(),smartPerformance);presentationGate.reset();
+   perfSettings.fixedQuality=smartPerformance.quality==='fixed';
+   if(renderer){gpuClock?.reset();gpuClock=createGpuTimer(renderer.getContext(),smartPerformance.diagnostics||perfSettings.enabled);}
+   adaptiveQuality=createAdaptiveQuality();
+   if(neonPipeline){neonPipeline.setInternalPixelRatio(claritySettings.renderDpr,innerWidth,innerHeight);
+    velocityCinematography?.setQualityLevel?.(0);velocityCinematography?.resize?.(innerWidth,innerHeight,neonPipeline.internalPixelRatio);
+    unifiedCinematicGrade?.setQualityLevel?.(0);unifiedCinematicGrade?.resize?.(innerWidth,innerHeight,neonPipeline.internalPixelRatio);}
+  };
+  for(const id of ['frame-cap','graphics-quality','extended-diagnostics','section-culling'])runtimeLifetime.listenActive($(id),'change',apply);
+ }
  runtimeLifetime.listenActive(UI.trackPicker,"change",()=>{
   if(!["menu","ended"].includes(uiState.mode))return;
   const selected=UI.trackPicker.value;
@@ -4830,6 +4868,7 @@ function installControls(){
   if(selected==="skyline")uri.searchParams.delete("track");
   else uri.searchParams.set("track",selected);
   uri.searchParams.set("v",selected==="vault"?PRODUCTION_TRACK.version:SKYSHIFT_BUILD_VERSION);
+  if(smartPerformance&&selected==="vault")uri.searchParams.set("v",VAULT_JUMP_VERSION);
   location.assign(uri.toString());
  });
  runtimeLifetime.listenActive(UI.challengeButton,"click",openChallenges);
@@ -4874,6 +4913,7 @@ function installControls(){
   // Private-mode storage can be unavailable: keep the OFF choice in URL.
   if(!saved)address.searchParams.set("fidelity",next?"on":"off");
   address.searchParams.set("v",SKYSHIFT_BUILD_VERSION);
+  if(smartPerformance)address.searchParams.set("v",VAULT_JUMP_VERSION);
   location.assign(address.toString());
  });
  runtimeLifetime.listenActive(UI.export,"click",exportAudit);
@@ -4884,7 +4924,7 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- if(isVault()&&["0.29.0","0.29.1","0.29.2"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+ if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
@@ -4948,6 +4988,18 @@ try{
  // Verify the exact mounted deck and fly its real physics only on explicit QA URLs.
  if(new URLSearchParams(location.search).get("vaultJumpSmoke")==="1"){
   if(endurance)window.__skyshiftEnduranceProbe=()=>{endurance.sample(frameProfiler,readEnduranceSnapshot,true);return endurance.report();};
+  if(smartPerformance)window.__skyshiftSmartPerformanceProbe=()=>{
+   const render=enabled=>{
+    renderer.info.reset();
+    try{trackVisibility.begin(camera,enabled);neonPipeline.render(0);return {work:{...renderer.info.render},visibility:trackVisibility.stats(),pixels:renderer.domElement.toDataURL()};}
+    finally{trackVisibility.end();}
+   };
+   const full=render(false),culled=render(true);
+   // Same camera, geometry, material uniforms and compositor; PNG equality
+   // is strict, and compare actual submitted triangle counts, not estimates.
+   return {settings:{...smartPerformance},full:full.work,culled:culled.work,visibility:culled.visibility,pixelsEqual:full.pixels===culled.pixels,
+    physicsHz:120,pacing:presentationGate.stats()};
+  };
   window.__skyshiftVaultJumpProbe=()=>{
    const j=VAULT_MEGA_JUMP,g=world.getObjectByName("Zone Ribbon · integrated PBR racing deck")?.geometry;
    const c=g?.getAttribute("aTrackCoord"),idx=g?.getIndex();

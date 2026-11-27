@@ -135,6 +135,16 @@
         <button id="fidelity-btn" class="secondary fidelity-toggle" type="button"
           aria-pressed="true">FIDELITY ON</button>
         <p class="settings-hint">Optimerad banbelysning och ytdetalj. Spelet laddas om när Fidelity ändras. Automatisk upplösningsanpassning finns kvar.</p>
+        <div id="smart-performance-settings" class="hidden">
+          <div class="settings-subhead">PERFORMANCE</div>
+          <label for="frame-cap">FPS LIMIT</label>
+          <select id="frame-cap"><option value="60">60 FPS · Efficiency</option><option value="90">90 FPS · Balanced</option><option value="120">120 FPS · Maximum</option></select>
+          <label for="graphics-quality">RENDER RESOLUTION</label>
+          <select id="graphics-quality"><option value="auto">Adaptive</option><option value="fixed">Fixed full quality</option></select>
+          <label class="performance-check"><input id="extended-diagnostics" type="checkbox"> Extended GPU diagnostics (if supported)</label>
+          <label class="performance-check"><input id="section-culling" type="checkbox" checked> Intelligent section rendering</label>
+          <p class="settings-hint">Same graphics and 120 Hz physics. Settings are saved on this device.</p>
+        </div>
         <div class="settings-subhead">DISPLAY</div>
         <button id="menu-fullscreen-btn" class="secondary menu-fullscreen" type="button" aria-pressed="false">⛶ FULLSCREEN</button>
         <button id="settings-back-btn" class="secondary" type="button">← BACK TO MENU</button>

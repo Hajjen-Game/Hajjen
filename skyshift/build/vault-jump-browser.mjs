@@ -47,6 +47,17 @@ try{
    await page.locator('#motion-blur').selectOption('off');
    await page.locator('#adaptive-velocity-camera').uncheck();
    await page.locator('#adaptive-velocity-camera').check();
+   // A real user click into fullscreen, exit and then re-enter via START.
+   // Native Chrome proof on desktop; the mobile emulation may not expose
+   // the same browser chrome as a physical Android device.
+   if(memory===8){
+    await page.locator('#menu-fullscreen-btn').click();
+    await page.waitForFunction(()=>document.fullscreenElement?.id==='app',null,{timeout:15000});
+    assert.equal(await page.locator('#menu-fullscreen-btn').getAttribute('aria-pressed'),'true');
+    await page.locator('#menu-fullscreen-btn').click();
+    await page.waitForFunction(()=>!document.fullscreenElement,null,{timeout:15000});
+    assert.equal(await page.locator('#menu-fullscreen-btn').getAttribute('aria-pressed'),'false');
+   }
    await page.locator('#settings-back-btn').click();
    await page.locator('#start-btn').click();
    await page.waitForFunction(()=>window.__skyshiftPerfProbe?.().state==='playing',null,{timeout:40000});

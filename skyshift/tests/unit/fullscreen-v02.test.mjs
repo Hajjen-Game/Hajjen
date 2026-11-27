@@ -72,3 +72,39 @@ test("leaving fullscreen externally updates controls; destroy cleans up",async()
   control.destroy();
   assert.equal(listeners.size,0);
 });
+
+test("repeated start or toggle while native request is pending does not exit or request twice",async()=>{
+ const {control,doc,root,events}=environment();
+ let resolve,requests=0;
+ root.requestFullscreen=()=>{requests++;return new Promise(r=>{resolve=r;});};
+ const first=control.request(false,"start-run"),second=control.toggle();
+ assert.equal(first,second);assert.equal(requests,1);
+ doc.fullscreenElement=root;doc.emit("fullscreenchange");resolve();
+ assert.equal(await first,true);assert.equal(events.locks,1);
+ assert.equal(control.audit().history.filter(e=>e.event==="request").length,1);
+ assert.equal(await control.exit(),true);
+});
+test("already landscape skips optional orientation lock, records true native state",async()=>{
+ const {control,doc,root,events}=environment();
+ // A separate adapter with a landscape screen and diagnostic context.
+ control.destroy();
+ const c=makeFullscreenController({doc,root,deviceScreen:{orientation:{type:"landscape-primary",lock(){assert.fail("unnecessary orientation lock");}}},viewport:()=>({width:780,height:360}),userActivation:()=>true});
+ assert.equal(await c.request(),true);
+ assert.equal(c.audit().active,true);assert.equal(c.audit().width,780);
+ assert.equal(c.audit().history[0].userActivation,true);
+ await c.exit();c.destroy();
+});
+test("native denial is logged even on quiet entry, external exit unlocks",async()=>{
+ const f=environment({blocked:true});await f.control.request(true,"start-run");
+ assert.equal(f.control.audit().history.at(-1).errorMessage,"NotAllowedError");
+ assert.equal(f.events.blocked.length,0);
+ const e=environment();await e.control.request();
+ e.doc.fullscreenElement=null;e.doc.emit("fullscreenchange");
+ assert.equal(e.events.unlocks,1);assert.equal(e.control.audit().active,false);
+});
+test("legacy void fullscreen waits for native change rather than reporting false denial",async()=>{
+ const {control,doc,root}=environment();delete root.requestFullscreen;
+ root.webkitRequestFullscreen=()=>{queueMicrotask(()=>{doc.webkitFullscreenElement=root;doc.emit("webkitfullscreenchange");});};
+ assert.equal(await control.request(),true);assert.equal(control.audit().active,true);
+ control.destroy();
+});

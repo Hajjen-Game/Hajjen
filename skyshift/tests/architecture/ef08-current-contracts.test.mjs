@@ -117,9 +117,26 @@ test('pinned archived ship source relocations preserve exact source identity',()
  for(const f of rootRelocations.moves.filter(f=>f.historicalArchive)){
   assert.ok(historicalExists(resolve(repo,f.oldPath)));
   if(closedRelocation(f))continue;
-  const bytes=readFileSync(resolve(repo,f.newPath));
-  assert.equal(hash(bytes),f.destinationSha,f.newPath+' recorded destination identity');
-  let original=bytes.toString('utf8');
+  let destination=readFileSync(resolve(repo,f.newPath),'utf8');
+  // 0.29.3.1 intentional runtime extensions, not relocation changes.
+  // Undo only the exact reviewed additions, then verify both original hashes.
+  // All other edits still fail the historic identity check.
+  const approved={
+   'skyshift/rendering/neon-v0111.mjs':[
+    ['  bloomResolutionScale:bloomResolution.scale,','  get bloomResolutionScale(){return bloomResolution.scale;},\n  setBloomResolutionScale(scale){bloomResolution.setScale(scale);},\n  originalBloomResolutionScale:bloomScaleFor({lowMemory,forceFullBloom}),']
+   ],
+   'skyshift/world/space-v0496.mjs':[
+    ['  const starClouds=[];','  const starClouds=[],backdropSprites=[];'],
+    ['    camera.add(sprite);','    camera.add(sprite);backdropSprites.push(sprite);'],
+    ['    setVelocityFlow(flow){','    setVisible(visible){for(const {cloud} of starClouds)cloud.visible=visible;for(const sprite of backdropSprites)sprite.visible=visible;},\n    visibilityStats(){return {stars:starClouds.reduce((n,s)=>n+Number(s.cloud.visible),0),nebulae:backdropSprites.reduce((n,s)=>n+Number(s.visible),0)};},\n    setVelocityFlow(flow){']
+   ]
+  };
+  for(const [before,after] of [...(approved[f.newPath]??[])].reverse()){
+   assert.equal(destination.split(after).length-1,1,f.newPath+' exact approved 0.29.3.1 inverse anchor');
+   destination=destination.replace(after,before);
+  }
+  assert.equal(hash(destination),f.destinationSha,f.newPath+' recorded destination identity');
+  let original=destination;
   for(const e of [...f.pathEdits].reverse()){
    assert.equal(original.split(e.after).length-1,1,f.newPath+' exact inverse anchor');
    original=original.replace(e.after,e.before);

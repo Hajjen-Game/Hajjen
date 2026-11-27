@@ -4855,10 +4855,10 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- runtimeLifetime.bind(window,UI.canvas);
  if(isVault()&&new URLSearchParams(location.search).get("v")==="0.29.0"&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
+ runtimeLifetime.bind(window,UI.canvas);
  initScene();
  installFlightTuningPanel({document,location,flightTuning,cinematicTuning});
  resetFlight();

@@ -33,7 +33,9 @@ export function createNeonPipeline(THREE,renderer,scene,camera,{lowMemory=false,
   // Reuse the loaded Three.js postprocessing module without requiring it
   // in standalone Node unit tests of the velocity controller.
   makeShaderPass(shader){return new ShaderPass(shader)},
-  bloomResolutionScale:bloomResolution.scale,
+  get bloomResolutionScale(){return bloomResolution.scale;},
+  setBloomResolutionScale(scale){bloomResolution.setScale(scale);},
+  originalBloomResolutionScale:bloomScaleFor({lowMemory,forceFullBloom}),
   bloomResolution:()=>bloomResolution.stats(),
   antialiasing:"SMAA",
   passOrder:CLARITY_PASS_ORDER,

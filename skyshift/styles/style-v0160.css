@@ -98,3 +98,7 @@
 #smart-performance-settings select{width:100%;min-width:0;background:#102338;color:#eaf7ff;border:1px solid #568ba1;border-radius:4px;padding:7px 4px;font:inherit;touch-action:manipulation}
 #smart-performance-settings .performance-check{display:flex;align-items:center;gap:8px;min-height:27px}
 #smart-performance-settings input{accent-color:#66e8ff;width:16px;height:16px;touch-action:manipulation}
+
+/* 0.29.3.1 Advanced GPU switches use the existing scrollable settings. */
+#advanced-gpu-settings{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center}
+#advanced-gpu-settings.hidden{display:none!important}

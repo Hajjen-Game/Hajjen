@@ -31,7 +31,7 @@ export function installSpaceBackdrop(THREE,camera){
     {count:200,spanX:270,spanY:140,depth:195,size:.79,color:0xe4b7d9,opacity:.40}
   ];
   let drawn=0;
-  const starClouds=[];
+  const starClouds=[],backdropSprites=[];
   for(let layer=0;layer<groups.length;layer++){
     const cfg=groups[layer],pts=[];
     for(let k=0;k<cfg.count;k++){
@@ -65,9 +65,11 @@ export function installSpaceBackdrop(THREE,camera){
     sprite.position.set(x,y,z);
     sprite.scale.set(scale,scale*.55,1);
     sprite.renderOrder=-20;
-    camera.add(sprite);
+    camera.add(sprite);backdropSprites.push(sprite);
   }
   return {stars:drawn,layers:SPACE_DESIGN.starLayers,nebulae:SPACE_DESIGN.nebulaCount,
+    setVisible(visible){for(const {cloud} of starClouds)cloud.visible=visible;for(const sprite of backdropSprites)sprite.visible=visible;},
+    visibilityStats(){return {stars:starClouds.reduce((n,s)=>n+Number(s.cloud.visible),0),nebulae:backdropSprites.reduce((n,s)=>n+Number(s.visible),0)};},
     setVelocityFlow(flow){
       const boost=Math.max(0,Math.min(1,Number.isFinite(flow)?flow:0));
       // Subtle peripheral star parallax and brightness: no streak objects,

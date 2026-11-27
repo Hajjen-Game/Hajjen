@@ -21,7 +21,7 @@ export function tuneBloomPass(bloom,scale){
  if(!bloom||typeof bloom.setSize!=="function")
   throw Error("UnrealBloomPass.setSize required");
  const original=bloom.setSize.bind(bloom);
- const selected=Math.max(.5,Math.min(1,positive(scale)));
+ let selected=Math.max(.5,Math.min(1,positive(scale)));
  let width=0,height=0,sourceWidth=0,sourceHeight=0;
  bloom.setSize=(w,h)=>{
   sourceWidth=w;sourceHeight=h;
@@ -29,7 +29,11 @@ export function tuneBloomPass(bloom,scale){
   width=scaled.width;height=scaled.height;
   original(width,height);
  };
- return {scale:selected,stats:()=>({
+ return {get scale(){return selected;},setScale(next){
+  const safe=Math.max(.5,Math.min(1,positive(next)));
+  if(safe===selected)return;
+  selected=safe;if(sourceWidth&&sourceHeight)bloom.setSize(sourceWidth,sourceHeight);
+ },stats:()=>({
   scale:selected,sourceWidth,sourceHeight,bloomInputWidth:width,
   bloomInputHeight:height,
   bloomPixelFraction:+(selected*selected).toFixed(4),

@@ -18,24 +18,24 @@ try{
  browser=await chromium.launch({headless:true,executablePath:chrome,args:['--no-sandbox','--disable-dev-shm-usage','--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const reports=[];
  for(const memory of live?[8]:[8,4]){
-  const context=await browser.newContext({viewport:{width:1280,height:720}});
+  const context=await browser.newContext(memory===4?{viewport:{width:780,height:360},hasTouch:true,isMobile:true,deviceScaleFactor:2}:{viewport:{width:1280,height:720}});
   try{
    await context.addInitScript(m=>Object.defineProperty(navigator,'deviceMemory',{configurable:true,get:()=>m}),memory);
    const page=await context.newPage(),errors=[];
    page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('renderer crash'));
    page.on('console',m=>{if(m.type()==='error'&&/THREE.WebGLProgram|shader error|INVALID_OPERATION|context lost|startup failed/i.test(m.text()))errors.push(m.text());});
    const url=new URL(live||'http://127.0.0.1:8926/skyshift/');
-   url.search=memory===8?'track=vault&v=0.29.1&vaultJump=1':'track=vault&v=0.29.1';
+   url.search=memory===8?'track=vault&v=0.29.2&vaultJump=1':'track=vault&v=0.29.2';
    url.searchParams.set('vaultJumpSmoke','1');url.searchParams.set('release','0290-public-proof-'+Date.now());
    await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:80000});
    await page.waitForFunction(()=>['ready','failed'].includes(window.__skyshiftBoot?.phase),null,{timeout:220000});
    assert.equal(await page.evaluate(()=>window.__skyshiftBoot.phase),'ready',JSON.stringify(await page.evaluate(()=>window.__skyshiftBoot)));
    const probe=await page.evaluate(()=>window.__skyshiftVaultJumpProbe());
-   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.1');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.1');
+   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.2');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.2');
    assert.equal(probe.polish,true);assert.equal(probe.rampRise,7.5);
    assert.equal(probe.mounted,true);assert.equal(probe.pmrem,true);assert.equal(probe.gaps.length,1);assert.equal(probe.gaps[0].id,'vault-mega-jump');
    assert.equal(probe.inside,0);assert.ok(probe.before>0&&probe.after>0);assert.equal(probe.roadBefore,true);assert.equal(probe.roadGap,false);assert.equal(probe.roadAfter,true);
-   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.1/);
+   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.2/);
    await page.locator('#start-btn').click();
    await page.waitForFunction(()=>window.__skyshiftPerfProbe?.().state==='playing',null,{timeout:40000});
    const frames={};
@@ -50,8 +50,19 @@ try{
    assert.equal(await page.locator('#flight-state').isVisible(),false);
    assert.equal(await page.locator('#toast').isVisible(),false);
    assert.equal(await page.locator('#zone-banner').isVisible(),false);
+   const layout=await page.evaluate(()=>{
+    const hud=document.querySelector('#hud'),rect=hud.getBoundingClientRect();
+    const modules=[...hud.querySelectorAll('.hud-module')].map(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};});
+    return {compact:hud.classList.contains('hud-compact-0292'),width:innerWidth,height:innerHeight,bottom:Math.max(...modules.map(m=>m.bottom)),modules,rectHeight:rect.height};
+   });
+   assert.equal(layout.compact,true);
+   assert.ok(layout.bottom<=Math.max(100,layout.height*.27),JSON.stringify(layout));
+   assert.ok(layout.modules.every((m,i)=>m.left>=0&&m.right<=layout.width&&(!i||m.left>=layout.modules[i-1].right-1)),JSON.stringify(layout));
+   const endurance=await page.evaluate(()=>window.__skyshiftEnduranceProbe());
+   assert.equal(endurance.temperatureC,null);assert.ok(endurance.samples.length>0);
+   assert.ok(endurance.samples.at(-1).viewportCss.width>0);
    assert.deepEqual(errors,[],'real game errors');
-   reports.push({memory,probe,frames});
+   reports.push({memory,probe,frames,layout,endurance});
   }finally{await context.close();}
  }
  writeFileSync(join(out,'vault-jump-report.json'),JSON.stringify(reports,null,2));

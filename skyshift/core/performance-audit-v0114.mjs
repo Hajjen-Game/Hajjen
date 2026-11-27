@@ -104,3 +104,30 @@ export function gpuTimer(gl,enabled=false){
     inFlight:pending.length,skipped,disjoint,sampleEveryFrames:10,nonBlocking:true};
   }};
 }
+// Bounded, opt-in endurance timeline. No native sensor values are invented.
+export function createEnduranceAudit({clock=()=>Date.now(),intervalMs=10000,capacity=360}={}){
+ let start=clock(),last=start,rows=[],discarded=0,battery=null,batteryStatus="unavailable";
+ let previousFrames=0,previousMs=0;
+ function reset(){start=last=clock();rows=[];discarded=0;previousFrames=previousMs=0;}
+ function attachBattery(navigator){
+  if(typeof navigator?.getBattery!=="function")return;
+  batteryStatus="pending";
+  Promise.resolve().then(()=>navigator.getBattery()).then(value=>{battery=value;batteryStatus="available";},()=>{batteryStatus="unavailable";});
+ }
+ function batteryReading(){
+  return {status:batteryStatus,levelPercent:Number.isFinite(battery?.level)?Math.round(battery.level*100):null,
+   charging:typeof battery?.charging==="boolean"?battery.charging:null};
+ }
+ function sample(monitor,read,force=false){
+  const now=clock();if(!force&&now-last<intervalMs)return;
+  const dt=monitor.elapsedMs-previousMs,df=monitor.total-previousFrames;
+  const row={utc:new Date(now).toISOString(),wallSeconds:round((now-start)/1000),frames:df,
+   intervalObservedFps:round(dt>0?df*1000/dt:null),battery:batteryReading(),...read()};
+  previousFrames=monitor.total;previousMs=monitor.elapsedMs;last=now;
+  if(rows.length>=capacity){rows.shift();discarded++}rows.push(row);
+ }
+ return {reset,attachBattery,sample,report:()=>({schema:1,startedAt:new Date(start).toISOString(),intervalSeconds:intervalMs/1000,
+  capacity,discarded,temperatureC:null,temperatureStatus:"not exposed by browser; use Android device-side log",
+  battery:batteryReading(),powerWatts:null,thermalThrottling:"not directly observable; performance trend only",
+  samples:rows.slice()})};
+}

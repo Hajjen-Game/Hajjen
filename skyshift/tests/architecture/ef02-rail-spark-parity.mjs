@@ -22,7 +22,7 @@ class Mesh{constructor(geometry,material){this.geometry=geometry;this.material=m
 const THREE={BufferAttribute:Attribute,BufferGeometry:Geometry,MeshBasicMaterial:Material,Mesh,AdditiveBlending:3,DoubleSide:2,DynamicDrawUsage:1};
 const points=[0,5,120,510,573,606.6,900,1662,1740,1842,2250,3005,3180,3338,3399,3400,3410,6580];
 for(const v of ['0165']){
- const name='rail-scrape-sparks-v'+v+'.mjs',a=await load(old,name),b=await load(root,name);
+ const name='rail-scrape-sparks-v'+v+'.mjs',a=await load(old,name),b=await load(root,'rendering/'+name);
  assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort());
  assert.deepEqual(a.RAIL_SPARKS,b.RAIL_SPARKS);
  for(const s of points)for(const side of [-1,0,1])assert.deepEqual(a.railContactPoint(s,side),b.railContactPoint(s,side));

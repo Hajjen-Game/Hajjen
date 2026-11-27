@@ -2,7 +2,7 @@ name: SKYSHIFT EF02 rail spark parity
 on:
   pull_request:
     paths:
-      - 'skyshift/rail-scrape-sparks-v*.mjs'
+      - 'skyshift/rendering/rail-scrape-sparks-v*.mjs'
       - 'skyshift/rendering/rail-scrape-sparks.mjs'
       - 'skyshift/tests/architecture/ef02-rail-spark-parity.mjs'
       - '.github/workflows/skyshift-ef02-rail-spark-parity.yml'

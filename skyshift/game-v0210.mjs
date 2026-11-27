@@ -1,7 +1,10 @@
+import {readAdvancedGpu,saveAdvancedGpu,resolveBloomScale} from "./core/advanced-gpu-settings.mjs";
+import {createTunnelOcclusion} from "./rendering/conservative-tunnel-occlusion.mjs";
+import {createDistantDetailLod} from "./rendering/distant-detail-lod.mjs";
 import {readPerformance,savePerformance,createPresentationGate} from "./core/smart-performance.mjs";
 import {createTrackSectionVisibility} from "./rendering/track-section-visibility.mjs";
 import * as THREE from "three";
-import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,VAULT_JUMP_POLISH_ACTIVE,VAULT_COMPACT_ACTIVE,VAULT_SMART_ACTIVE,VAULT_JUMP_VERSION,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
+import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,VAULT_JUMP_POLISH_ACTIVE,VAULT_COMPACT_ACTIVE,VAULT_SMART_ACTIVE,VAULT_ADVANCED_GPU_ACTIVE,VAULT_JUMP_VERSION,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
 import {createTunnelProfileSampler} from "./tunnel/profile-sampler.mjs";
 import {createRaceLifecycle} from "./core/race-lifecycle.mjs";
 import {createRuntimeLifetime} from "./core/runtime-lifetime.mjs";
@@ -781,7 +784,10 @@ let frameMonitor=createFrameMonitor();
 const perfSettings=readPerfConfig(location.search);
 const smartPerformance=VAULT_SMART_ACTIVE?readPerformance(fleetStorage(),matchMedia('(pointer:coarse)').matches,perfSettings):null;
 const presentationGate=createPresentationGate();
-let trackVisibility=null;
+let trackVisibility=null,detailLod=null;
+const advancedGpu=VAULT_ADVANCED_GPU_ACTIVE?readAdvancedGpu(fleetStorage()):null;
+let lastAdvancedGpuFrame=null;
+function applyAdvancedBloom(){if(advancedGpu&&neonPipeline&&perfSettings.preset!=='bloom-full')neonPipeline.setBloomResolutionScale(resolveBloomScale(advancedGpu.bloom,neonPipeline.originalBloomResolutionScale));}
 if(smartPerformance)perfSettings.fixedQuality=smartPerformance.quality==='fixed';
 const fidelityChoice=readFidelityChoice({search:location.search,storage:fleetStorage()});
 const frameProfiler=newPerfMonitor();
@@ -1691,7 +1697,8 @@ function initScene(){
   else document.body.appendChild(perfPanel);
  }
  gpuClock=createGpuTimer(renderer.getContext(),perfSettings.enabled||smartPerformance?.diagnostics===true);
- if(smartPerformance)trackVisibility=createTrackSectionVisibility(THREE,world,trueSharedVault.root);
+ if(smartPerformance)trackVisibility=createTrackSectionVisibility(THREE,world,trueSharedVault.root,{occlusion:advancedGpu?createTunnelOcclusion(THREE,trueSharedVault.root):null});
+ if(advancedGpu){detailLod=createDistantDetailLod(THREE,world,trueSharedVault.root);applyAdvancedBloom();}
  // Non-interactive rendering diagnostic for browser CI and exported audits.
  window.__skyshiftClarityInfo=()=>clarityAudit(claritySettings,neonPipeline);
  runtimeLifetime.listen(window,"resize",resize);
@@ -4393,10 +4400,17 @@ function loop(now){
  gpuClock?.begin();
  const renderBegin=performance.now();
  try{
-  trackVisibility?.begin(camera,smartPerformance.sections&&uiState.mode==='playing');
+  const playing=uiState.mode==='playing';
+  trackVisibility?.begin(camera,smartPerformance.sections&&playing,advancedGpu?.occlusion===true);
+  if(advancedGpu){
+   camera.updateMatrixWorld(true);
+   detailLod.begin(camera,playing&&advancedGpu.detailLod);
+   spaceBackdrop.setVisible(!playing||advancedGpu.exterior);
+   lastAdvancedGpuFrame={bloom:neonPipeline.bloomResolution(),detail:detailLod.stats(),exterior:spaceBackdrop.visibilityStats()};
+  }
   if(neonPipeline)neonPipeline.render(dt);
   else renderer.render(scene,camera);
- }finally{trackVisibility?.end();gpuClock?.end()}
+ }finally{detailLod?.end();if(advancedGpu)spaceBackdrop.setVisible(true);trackVisibility?.end();gpuClock?.end()}
  if(startupMarks.firstFrame===undefined)markStartup("firstFrame");
  if(resourceSmoke)resourceFrame++;
  const renderCpuMs=performance.now()-renderBegin;
@@ -4448,7 +4462,8 @@ function readEnduranceSnapshot(){
   deviceDpr:devicePixelRatio||1,internalDpr:neonPipeline?.internalPixelRatio??null,
   jsHeapMB:performance.memory?.usedJSHeapSize?Math.round(performance.memory.usedJSHeapSize/1048576):null,
   rendererMemory:renderer?{...renderer.info.memory}:null,
-  ...(smartPerformance?{settings:{...smartPerformance},visibility:trackVisibility?.stats(),pacing:presentationGate.stats()}: {})};
+  ...(smartPerformance?{settings:{...smartPerformance},visibility:trackVisibility?.stats(),pacing:presentationGate.stats()}: {}),
+  ...(advancedGpu?{advancedGpu:{...advancedGpu,frame:lastAdvancedGpuFrame}}:{})};
 }
 function exportAudit(){
  if(endurance&&frameProfiler.total>0)endurance.sample(frameProfiler,readEnduranceSnapshot,true);
@@ -4458,6 +4473,7 @@ function exportAudit(){
  const data={
    game:"SKYSHIFT",version:VAULT_COMPACT_ACTIVE?VAULT_JUMP_VERSION:SKYSHIFT_BUILD_VERSION,trial:TRIAL.id,exportedAt:new Date().toISOString(),
    ...(endurance?{enduranceAudit:endurance.report()}:{}),
+   ...(advancedGpu?{advancedGpu:{...advancedGpu,frame:lastAdvancedGpuFrame,originalBloomScale:neonPipeline.originalBloomResolutionScale}}:{}),
    ...(smartPerformance?{smartPerformance:{...smartPerformance,physicsHz:120,visibility:trackVisibility?.stats(),pacing:presentationGate.stats(),
     meanTrianglesPerRenderedFrame:renderSamples?triangleTotal/renderSamples:null,
     trianglesPerActiveSecond:frameMonitor.elapsedSeconds?triangleTotal/frameMonitor.elapsedSeconds:null}}:{}),
@@ -4841,6 +4857,7 @@ function syncSmartSettings(){
  const root=$('smart-performance-settings');root.classList.remove('hidden');UI.settings.classList.add('smart-settings');
  $('frame-cap').value=String(smartPerformance.fps);$('graphics-quality').value=smartPerformance.quality;
  $('extended-diagnostics').checked=smartPerformance.diagnostics;$('section-culling').checked=smartPerformance.sections;
+ if(advancedGpu){$('advanced-gpu-settings').classList.remove('hidden');$('bloom-resolution').value=advancedGpu.bloom;$('exterior-backdrop').checked=advancedGpu.exterior;$('distant-detail-lod').checked=advancedGpu.detailLod;$('tunnel-occlusion').checked=advancedGpu.occlusion;}
 }
 function installControls(){
  if(smartPerformance){
@@ -4859,6 +4876,12 @@ function installControls(){
     unifiedCinematicGrade?.setQualityLevel?.(0);unifiedCinematicGrade?.resize?.(innerWidth,innerHeight,neonPipeline.internalPixelRatio);}
   };
   for(const id of ['frame-cap','graphics-quality','extended-diagnostics','section-culling'])runtimeLifetime.listenActive($(id),'change',apply);
+  if(advancedGpu){const applyGpu=()=>{
+   if(uiState.mode!=='settings')return;
+   advancedGpu.bloom=$('bloom-resolution').value;advancedGpu.exterior=$('exterior-backdrop').checked;
+   advancedGpu.detailLod=$('distant-detail-lod').checked;advancedGpu.occlusion=$('tunnel-occlusion').checked;
+   saveAdvancedGpu(fleetStorage(),advancedGpu);applyAdvancedBloom();
+  };for(const id of ['bloom-resolution','exterior-backdrop','distant-detail-lod','tunnel-occlusion'])runtimeLifetime.listenActive($(id),'change',applyGpu);}
  }
  runtimeLifetime.listenActive(UI.trackPicker,"change",()=>{
   if(!["menu","ended"].includes(uiState.mode))return;
@@ -4924,7 +4947,7 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+ if(isVault()&&["0.29.0","0.29.1","0.29.2","0.29.3","0.29.3.1"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
@@ -4999,6 +5022,42 @@ try{
    // is strict, and compare actual submitted triangle counts, not estimates.
    return {settings:{...smartPerformance},full:full.work,culled:culled.work,visibility:culled.visibility,pixelsEqual:full.pixels===culled.pixels,
     physicsHz:120,pacing:presentationGate.stats()};
+  };
+  if(advancedGpu)window.__skyshiftAdvancedGpuProbe=({capture=false}={})=>{
+   // QA-only synchronous readback from the same real game camera. No
+   // timing claim: SwiftShader and readback are NOT physical mobile GPU time.
+   const canvas=document.createElement('canvas');canvas.width=renderer.domElement.width;canvas.height=renderer.domElement.height;
+   const ctx=canvas.getContext('2d',{willReadFrequently:true});
+   const original=neonPipeline.originalBloomResolutionScale,prior=neonPipeline.bloomResolutionScale;
+   const render=(options)=>{
+    renderer.info.reset();
+    try{
+     trackVisibility.begin(camera,true,options.occlusion===true);
+     detailLod.begin(camera,options.detailLod===true);
+     spaceBackdrop.setVisible(options.exterior!==false);
+     neonPipeline.setBloomResolutionScale(options.scale??original);
+     neonPipeline.render(0);
+     ctx.drawImage(renderer.domElement,0,0);
+     const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+     return {data,work:{...renderer.info.render},visibility:trackVisibility.stats(),detail:detailLod.stats(),exterior:spaceBackdrop.visibilityStats(),bloom:neonPipeline.bloomResolution(),png:capture?canvas.toDataURL():null};
+    }finally{detailLod.end();spaceBackdrop.setVisible(true);trackVisibility.end();}
+   };
+   const summarize=(base,next)=>{
+    let sum=0,changed=0,max=0;
+    for(let i=0;i<base.data.length;i+=4){
+     const d=Math.max(Math.abs(base.data[i]-next.data[i]),Math.abs(base.data[i+1]-next.data[i+1]),Math.abs(base.data[i+2]-next.data[i+2]));
+     sum+=d;max=Math.max(max,d);if(d>2)changed++;
+    }
+    const {data,...rest}=next;return {...rest,difference:{meanMaxChannel:sum/(base.data.length/4),fractionOver2:changed/(base.data.length/4),maxChannel:max}};
+   };
+   try{
+    const base=render({}),occlusion=summarize(base,render({occlusion:true})),
+     exterior=summarize(base,render({exterior:false})),lod=summarize(base,render({detailLod:true})),
+     bloom78=summarize(base,render({scale:Math.min(original,.78)})),bloom65=summarize(base,render({scale:Math.min(original,.65)})),
+     bloom50=summarize(base,render({scale:.50}));
+    const {data,...baseline}=base;
+    return {baseline,occlusion,exterior,lod,bloom78,bloom65,bloom50,settings:{...advancedGpu},width:canvas.width,height:canvas.height};
+   }finally{neonPipeline.setBloomResolutionScale(prior);}
   };
   window.__skyshiftVaultJumpProbe=()=>{
    const j=VAULT_MEGA_JUMP,g=world.getObjectByName("Zone Ribbon · integrated PBR racing deck")?.geometry;

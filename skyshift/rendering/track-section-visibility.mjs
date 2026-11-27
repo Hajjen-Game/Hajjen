@@ -19,7 +19,7 @@ const STATIC_NAMES=new Set([
  "Deliberately hard-edged vertical road sides",
  "Angular integrated aero-barrier body"
 ]);
-export function createTrackSectionVisibility(THREE,world,tunnelRoot){
+export function createTrackSectionVisibility(THREE,world,tunnelRoot,{occlusion=null}={}){
  const sources=[],modules=[],frustum=new THREE.Frustum(),matrix=new THREE.Matrix4();
  const tmp=new THREE.Vector3(),box=new THREE.Box3();
  let last={enabled:false,visibleSections:0,totalSections:0,visibleModules:0,totalModules:0,fullStaticTriangles:0,submittedStaticTriangles:0},active=false;
@@ -60,23 +60,25 @@ export function createTrackSectionVisibility(THREE,world,tunnelRoot){
   if(!bounds.isEmpty()&&Number.isFinite(bounds.min.x)&&Number.isFinite(bounds.max.x))
    modules.push({section,bounds,wasVisible:true});
  }
- function begin(camera,enabled){
+ function begin(camera,enabled,experimentalOcclusion=false){
   if(active)throw Error("unbalanced render visibility");
-  if(!enabled)return;
+  if(!enabled){last={...last,enabled:false,occlusion:null};return;}
   camera.updateMatrixWorld(true);matrix.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);
   frustum.setFromProjectionMatrix(matrix);active=true;
+  if(experimentalOcclusion)occlusion?.begin(camera,frustum);
   let totalSections=0,visibleSections=0,visibleModules=0,fullStaticTriangles=0,submittedStaticTriangles=0;
   for(const source of sources){
    source.wasVisible=source.mesh.visible;
    if(source.wasVisible)fullStaticTriangles+=source.triangles;
    source.mesh.visible=false;
    for(const c of source.chunks){
-    totalSections++;c.part.visible=source.wasVisible&&frustum.intersectsBox(c.bounds);
+    totalSections++;c.part.visible=source.wasVisible&&frustum.intersectsBox(c.bounds)&&!(experimentalOcclusion&&occlusion?.occluded(c.bounds));
     if(c.part.visible){visibleSections++;submittedStaticTriangles+=c.triangles;}
    }
   }
   for(const m of modules){m.wasVisible=m.section.visible;m.section.visible=m.wasVisible&&frustum.intersectsBox(m.bounds);if(m.section.visible)visibleModules++;}
-  last={enabled:true,visibleSections,totalSections,visibleModules,totalModules:modules.length,fullStaticTriangles,submittedStaticTriangles};
+  last={enabled:true,visibleSections,totalSections,visibleModules,totalModules:modules.length,fullStaticTriangles,submittedStaticTriangles,
+   ...(occlusion?{occlusion:experimentalOcclusion?occlusion.stats():null}:{})};
  }
  function end(){
   if(!active)return;
@@ -84,5 +86,5 @@ export function createTrackSectionVisibility(THREE,world,tunnelRoot){
   for(const m of modules)m.section.visible=m.wasVisible;
   active=false;
  }
- return {begin,end,stats:()=>({...last,sourceMeshes:sources.length,occlusionMode:"frustum only; no speculative behind-wall occlusion"})};
+ return {begin,end,stats:()=>({...last,sourceMeshes:sources.length,occlusionMode:last.occlusion?"conservative shell depth tiles (experimental)":"frustum only; no speculative behind-wall occlusion"})};
 }

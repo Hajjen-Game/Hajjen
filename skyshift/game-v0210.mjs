@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
+import {VAULT_MEGA_JUMP,VAULT_MEGA_JUMP_ACTIVE,VAULT_JUMP_POLISH_ACTIVE,VAULT_JUMP_VERSION,chamberProfileAt} from "./tracks/vault/vault-mega-jump.mjs";
 import {createTunnelProfileSampler} from "./tunnel/profile-sampler.mjs";
 import {createRaceLifecycle} from "./core/race-lifecycle.mjs";
 import {createRuntimeLifetime} from "./core/runtime-lifetime.mjs";
@@ -693,7 +693,7 @@ window.__skyshiftStartupAudit=()=>{
    Math.round((stamps.sceneReady-stamps.sharedTunnelReady)*10)/10:null
  };
  return {
-  track:TRACK_ID_0160,version:VAULT_MEGA_JUMP_ACTIVE?"0.29.0":vaultPolish02899?PRODUCTION_TRACK.version:surfaceFinish02898?"0.28.9.8":"0.28.9.7",
+  track:TRACK_ID_0160,version:VAULT_MEGA_JUMP_ACTIVE?VAULT_JUMP_VERSION:vaultPolish02899?PRODUCTION_TRACK.version:surfaceFinish02898?"0.28.9.8":"0.28.9.7",
   elapsedSinceModuleMs:Math.round((now-startupOrigin)*10)/10,
   browserBootMs:window.__skyshiftBoot?.readyAfterMs??null,
   phase:window.__skyshiftBoot?.phase??"loading",
@@ -823,7 +823,7 @@ let railFeedback=createRailFeedbackState();
 const raceHud=createRaceHud({UI,uiState,domWrites,ZONE_PALETTES,TRIAL,CIRCUIT,
  challengeDistance,formatTrialTime,formatTrialDelta,updateGhostDelta,curvatureAt,
  sectorAt,isAurora,isVault,gripApexCue,GRIP_APEX,riskCueAt,AIR_TRICKS,bankDegreesAt,
- event,flashToast});
+ event,flashToast,cleanRaceHud:VAULT_JUMP_POLISH_ACTIVE});
 let zoneWave=newZoneWaveState();
 const visualWaveView02899=createSinglePassWaveView02899();
 let tunnelInside=false,tunnelEntries=0,tunnelExits=0,tunnelSeconds=0,tunnelMaxIntensity=0;
@@ -844,6 +844,7 @@ function refreshTrialMenu(){
 }
 function recordRealGhostPose(force=false){raceSession.record(flight,force);}
 function flashToast(message,time=1350){
+ if(VAULT_JUMP_POLISH_ACTIVE&&uiState.mode==="playing")return;
  UI.toast.textContent=message;UI.toast.classList.remove("hidden");
  clearTimeout(uiState.toastTimeout);
  uiState.toastTimeout=setTimeout(()=>UI.toast.classList.add("hidden"),time);
@@ -1024,7 +1025,7 @@ function buildDecor(){
  if(!isVault())for(const sector of CIRCUIT.sectors.slice(1))
   makeBillboard(sector.name,sector.start+45,10.2,21,0);
  if(!isAurora()&&!isVault())makeBillboard("SKYLINE LEAP",SKYLINE_LEAP.start-50,9.4,15,0);
- if(VAULT_MEGA_JUMP_ACTIVE)makeBillboard("VAULT MEGA JUMP",VAULT_MEGA_JUMP.start-35,12,15,0);
+ if(VAULT_MEGA_JUMP_ACTIVE&&!VAULT_JUMP_POLISH_ACTIVE)makeBillboard("VAULT MEGA JUMP",VAULT_MEGA_JUMP.start-35,12,15,0);
  // Portal warning is safely above the racing lane, after the wall ride.
  if(!isVault())makeBillboard(isAurora()?"LUMEN PASS":"SHADOW TUNNEL",
   SHADOW_TUNNEL.start-83,11,15,0);
@@ -3723,11 +3724,17 @@ function initScene(){
   "3 × 3,400 M · GRIP · OPEN SWEEPS · LUMEN PASS · NO RISK LINES":
   "3 × 3,400 M · GRIP · WALL · CORKSCREW · SHADOW TUNNEL";
  if(VAULT_MEGA_JUMP_ACTIVE){
-  UI.trackName.textContent="NEON VAULT · MEGA JUMP · 0.29.0";
-  UI.topbarTrack.textContent="NEON VAULT · MEGA JUMP · 0.29.0";
+  UI.trackName.textContent="NEON VAULT · MEGA JUMP · "+VAULT_JUMP_VERSION;
+  UI.topbarTrack.textContent="NEON VAULT · MEGA JUMP · "+VAULT_JUMP_VERSION;
   UI.trackTagline.textContent="EXPANSION CHAMBER · 54.4 M LEAP · AIR TRICKS";
   UI.trackFeatures.textContent="3 × 3,400 M · MEGA JUMP · GRIP + STEER IN AIR";
-  document.title="SKYSHIFT · Vault Mega Jump · 0.29.0";
+  document.title="SKYSHIFT · Vault Mega Jump · "+VAULT_JUMP_VERSION;
+  if(VAULT_JUMP_POLISH_ACTIVE){
+   UI.speed.closest(".hud-module").querySelector(".hud-module-heading").textContent="HASTIGHET";
+   UI.flight.parentElement.style.display="none";
+   UI.gripCue.classList.add("hidden");UI.riskCue.classList.add("hidden");
+   UI.toast.classList.add("hidden");UI.banner.classList.add("hidden");
+  }
  }
  UI.challengeButton.classList.toggle("hidden",!ACTIVE_TRACK_0160.hasSkylineChallenges);
  UI.riskCue.classList.add("hidden");
@@ -3916,6 +3923,7 @@ function announceSector(index){
  premiumFX?.onZone();
  if(index===0)return;
  reactiveHud.onZone();
+ if(!VAULT_JUMP_POLISH_ACTIVE){
  UI.bannerNum.textContent=String(index+1).padStart(2,"0");
  UI.bannerName.textContent=palette.name;
  UI.banner.classList.remove("hidden");
@@ -3924,6 +3932,7 @@ function announceSector(index){
  UI.flash.classList.remove("active");
  clearTimeout(uiState.bannerTimeout);
  uiState.bannerTimeout=setTimeout(()=>UI.banner.classList.add("hidden"),1300);
+ }
  event("zone_passed",{stage:index,palette:palette.id,
   atMeters:+flight.s.toFixed(1)});
 }
@@ -3976,6 +3985,8 @@ function integrate(dt){
  }
  if(flight.shield<previousHudShield)reactiveHud.onImpact();
  previousHudShield=flight.shield;
+ if(VAULT_JUMP_POLISH_ACTIVE&&result.railContact&&flight.railShieldLost>0&&flight.railDamageCooldown===TRIAL.railShieldDamage.intervalSeconds)
+  event("rail_shield_damage",{shield:flight.shield,totalLost:flight.railShieldLost});
  if(result.railContactStarted){
   startRailFeedback(railFeedback,flight.lastRailSide);
   event("rail_scrub_started",{side:flight.lastRailSide,
@@ -4855,7 +4866,7 @@ try{
  // Wire the buttons before costly WebGL scene construction.
  installFullscreen();
  installControls();
- if(isVault()&&new URLSearchParams(location.search).get("v")==="0.29.0"&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
+ if(isVault()&&["0.29.0","0.29.1"].includes(new URLSearchParams(location.search).get("v"))&&new URLSearchParams(location.search).get("vaultJump")!=="0"&&
   (!VAULT_MEGA_JUMP_ACTIVE||!trueSharedVaultEnabled||!authoritativeDeck028911||GAPS.length!==1))
   throw Error("0.29.0 requested but physical Mega Jump unavailable");
  runtimeLifetime.bind(window,UI.canvas);
@@ -4932,6 +4943,7 @@ try{
    return {active:VAULT_MEGA_JUMP_ACTIVE,query:location.search,version:window.__skyshiftStartupAudit().version,
     gaps:GAPS.map(g=>({id:g.id,start:g.start,end:g.end})),inside,before,after,
     mounted:Boolean(c&&idx),pmrem:pmremPipeline?.active??false,
+    rampRise:j.rampRise,polish:VAULT_JUMP_POLISH_ACTIVE,
     roadBefore:onRoad(j.start-2,0),roadGap:onRoad(j.start+2,0),roadAfter:onRoad(j.end+2,0)};
   };
   window.__skyshiftVaultJumpCapture=(phase,stage=0)=>{

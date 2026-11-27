@@ -123,15 +123,17 @@ test("Vault third bend: live deck shares full 23.2m width and every vertex with 
  assert.match(cmd.stdout,/14m -> 23.2m/);
 });
 
-test("0.29.0 opt-in chamber, real gap and shared ballistic flight",()=>{
+for(const release of ["0.28.9.11","0.29.1"])test("Vault jump chamber and real ballistic flight "+release,()=>{
  const code=`
- globalThis.location={search:'?track=vault&v=0.28.9.11&vaultJump=1'};
+ globalThis.location={search:'?track=vault&v='+${JSON.stringify(release)}+'&vaultJump=1'};
  const assert=(await import('node:assert/strict')).default;
  const route=await import('./skyshift/tracks/trials/trial-v0165.mjs');
  const {VAULT_MEGA_JUMP:j,VAULT_MEGA_JUMP_ACTIVE,megaJumpRise,megaJumpGrade,chamberProfileAt,vaultMegaJumpEnabled}=await import('./skyshift/tracks/vault/vault-mega-jump.mjs');
  const {createTunnelProfileSampler}=await import('./skyshift/tunnel/profile-sampler.mjs');
  const {premiumTrackCoordinates}=await import('./skyshift/rendering/road/premium-track-v0160.mjs');
  assert.equal(VAULT_MEGA_JUMP_ACTIVE,true);
+ assert.equal(j.rampRise,${release==="0.29.1"?7.5:3});
+ assert.equal(megaJumpRise(j.start),j.rampRise);
  assert.equal(vaultMegaJumpEnabled('?track=vault&v=0.28.9.11'),false);
  assert.equal(vaultMegaJumpEnabled('?track=skyline&v=0.28.9.11&vaultJump=1'),false);
  assert.equal(route.GAPS.length,1);
@@ -170,6 +172,16 @@ test("0.29.0 opt-in chamber, real gap and shared ballistic flight",()=>{
   assert.equal(st.landingBoostActivations,1,'stage '+stage+' '+st.lastTrickFailReason);
   assert.ok(st.s<j.chamberEnd,'landing after chamber');
  }
+ // Drive the actual guardrail from an outward heading; hold contact long
+ // enough for a second bounded damage tick, then compare clean flight.
+ const contact=route.newFlightState(),railS=110,edge=route.guardrailLateralLimit(railS),rp=route.positionAt(railS,edge-.01,0);
+ Object.assign(contact,{s:railS,lateral:edge-.01,worldX:rp.x,worldZ:rp.z,heading:route.headingAt(railS)+.25,y:route.surfaceHeightAt(railS,edge-.01)+route.TRIAL.hoverHeight});
+ for(let i=0;i<100;i++)route.stepFlight(contact,1/120,{});
+ assert.ok(contact.railContactStarts>0,'actual edge contact');
+ if(${release==="0.29.1"}){assert.ok(contact.shield<=96&&contact.shield>=88,JSON.stringify({shield:contact.shield,seconds:contact.railSeconds}));assert.equal(contact.railShieldLost,100-contact.shield);}
+ else assert.equal(contact.shield,100);
+ const clean=route.newFlightState();for(let i=0;i<120;i++)route.stepFlight(clean,1/120,{});
+ assert.equal(clean.shield,100);
  console.log('actual opt-in route: three speed stages, roll and clean landing');
  `;
  const cmd=spawnSync(process.execPath,["--input-type=module","-e",code],

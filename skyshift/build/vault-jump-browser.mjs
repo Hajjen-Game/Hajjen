@@ -25,16 +25,17 @@ try{
    page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>errors.push('renderer crash'));
    page.on('console',m=>{if(m.type()==='error'&&/THREE.WebGLProgram|shader error|INVALID_OPERATION|context lost|startup failed/i.test(m.text()))errors.push(m.text());});
    const url=new URL(live||'http://127.0.0.1:8926/skyshift/');
-   url.search=memory===8?'track=vault&v=0.28.9.11&vaultJump=1':'track=vault&v=0.29.0';
+   url.search=memory===8?'track=vault&v=0.29.1&vaultJump=1':'track=vault&v=0.29.1';
    url.searchParams.set('vaultJumpSmoke','1');url.searchParams.set('release','0290-public-proof-'+Date.now());
    await page.goto(url.href,{waitUntil:'domcontentloaded',timeout:80000});
    await page.waitForFunction(()=>['ready','failed'].includes(window.__skyshiftBoot?.phase),null,{timeout:220000});
    assert.equal(await page.evaluate(()=>window.__skyshiftBoot.phase),'ready',JSON.stringify(await page.evaluate(()=>window.__skyshiftBoot)));
    const probe=await page.evaluate(()=>window.__skyshiftVaultJumpProbe());
-   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.0');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.0');
+   assert.equal(probe.active,true,JSON.stringify(probe));assert.equal(probe.version,'0.29.1');assert.equal(new URLSearchParams(probe.query).get('v'),'0.29.1');
+   assert.equal(probe.polish,true);assert.equal(probe.rampRise,7.5);
    assert.equal(probe.mounted,true);assert.equal(probe.pmrem,true);assert.equal(probe.gaps.length,1);assert.equal(probe.gaps[0].id,'vault-mega-jump');
    assert.equal(probe.inside,0);assert.ok(probe.before>0&&probe.after>0);assert.equal(probe.roadBefore,true);assert.equal(probe.roadGap,false);assert.equal(probe.roadAfter,true);
-   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.0/);
+   assert.match(await page.locator('#menu-track-name').textContent(),/MEGA JUMP.*0\.29\.1/);
    await page.locator('#start-btn').click();
    await page.waitForFunction(()=>window.__skyshiftPerfProbe?.().state==='playing',null,{timeout:40000});
    const frames={};
@@ -45,6 +46,10 @@ try{
    }
    assert.equal(frames.air.grounded,false);assert.equal(frames.air.launches,1);assert.ok(frames.air.s>1136&&frames.air.s<1190.4);
    assert.equal(frames.landing.grounded,true);assert.equal(frames.landing.landings,1);assert.equal(frames.landing.rolls,1);assert.equal(frames.landing.boosts,1);assert.equal(frames.landing.falls,0);
+   assert.match(await page.locator('#speed').textContent(),/^\d+ km\/h$/);
+   assert.equal(await page.locator('#flight-state').isVisible(),false);
+   assert.equal(await page.locator('#toast').isVisible(),false);
+   assert.equal(await page.locator('#zone-banner').isVisible(),false);
    assert.deepEqual(errors,[],'real game errors');
    reports.push({memory,probe,frames});
   }finally{await context.close();}

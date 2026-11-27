@@ -1,19 +1,25 @@
-// 0.29.0 experimental Vault spectacle; off unless explicitly requested.
+// Explicit release profiles; stable Vault and the original prototype remain available.
+export function vaultJumpPolishEnabled(search=typeof location==="undefined"?"":location.search){
+ return vaultMegaJumpEnabled(search)&&new URLSearchParams(search||"").get("v")==="0.29.1";
+}
+export const VAULT_JUMP_POLISH_ACTIVE=vaultJumpPolishEnabled();
+export const VAULT_JUMP_VERSION=VAULT_JUMP_POLISH_ACTIVE?"0.29.1":"0.29.0";
+export const VAULT_RAIL_SHIELD_DAMAGE=Object.freeze({points:4,intervalSeconds:.5});
 export const VAULT_MEGA_JUMP=Object.freeze({
  id:"vault-mega-jump",name:"VAULT MEGA JUMP",
  start:1136,end:1190.4,lipMeters:1136,approachStart:1090,
  landingClearance:54.4,launchVelocity:15.6,gravity:22,
  autoLaunch:true,minTakeoffSpeed:40,widthMeters:23.2,
  chamberStart:1085,chamberFullStart:1136,chamberFullEnd:1280,chamberEnd:1360,
- rampRise:3,pitDepth:8,upperWidthScale:1.28,roofScale:1.7
+ rampRise:VAULT_JUMP_POLISH_ACTIVE?7.5:3,pitDepth:8,upperWidthScale:1.28,roofScale:1.7
 });
 export function vaultMegaJumpEnabled(search=typeof location==="undefined"?"":location.search){
  const q=new URLSearchParams(search||"");
  return q.get("track")==="vault"&&q.get("vaultJump")!=="0"&&
- (q.get("vaultJump")==="1"||q.get("v")==="0.29.0")&&
+ (q.get("vaultJump")==="1"||["0.29.0","0.29.1"].includes(q.get("v")))&&
  !["classic","off"].includes(q.get("sharedTunnel"))&&
  !["classic","off"].includes(q.get("trueSharedRenderer"))&&
- (q.get("v")==="0.28.9.11"||q.get("v")==="0.29.0");
+ ["0.28.9.11","0.29.0","0.29.1"].includes(q.get("v"));
 }
 export const VAULT_MEGA_JUMP_ACTIVE=vaultMegaJumpEnabled();
 const clamp=x=>Math.max(0,Math.min(1,x));

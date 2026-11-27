@@ -38,6 +38,7 @@ function newFlightState(){
   autoLaunches:0,cleanLeapLandings:0,lastJumpLap:0,
   coyote:0,jumpBuffer:0,jumpHold:0,jumps:0,landings:0,
   falls:0,failedJumps:0,clearedGaps:[],shield:100,
+  ...(TRIAL.railShieldDamage?{railDamageCooldown:0,railShieldLost:0}:{}),
   checkpoint:0,checkpointsPassed:0,elapsed:0,finished:false,failed:false,
   lap:1,lapsCompleted:0,lapTimes:[],lastLapAt:0,
   lastCrashS:0,landImpact:0,rightRouteArmed:false,
@@ -184,6 +185,17 @@ function stepFlight(st,dt,control={}){
    Math.sin(st.heading-headingBeforeContact),
    Math.cos(st.heading-headingBeforeContact)));
   st.railMaxSingleStepYaw=Math.max(st.railMaxSingleStepYaw,yawChange);
+ }
+ // Optional configured damage uses the same physical contact as scrub/FX.
+ // A shared cooldown prevents 120Hz contact jitter from multiplying damage.
+ if(TRIAL.railShieldDamage){
+  st.railDamageCooldown=Math.max(0,(st.railDamageCooldown??0)-dt);
+  if(contacted&&st.railDamageCooldown<=1e-8){
+   const lost=Math.min(st.shield,TRIAL.railShieldDamage.points);
+   st.shield-=lost;st.railShieldLost=(st.railShieldLost??0)+lost;
+   st.railDamageCooldown=TRIAL.railShieldDamage.intervalSeconds;
+   if(st.shield===0)st.failed=true;
+  }
  }
  st.railContacting=contacted;
  const railResponse=contacted?.10:.25;

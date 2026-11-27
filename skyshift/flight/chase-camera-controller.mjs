@@ -89,7 +89,9 @@ export function createChaseCameraController({
  const originalTarget=Math.min(80.5,targetFov+presenceFov+racingExperience.fovAddition*protectedRoll);
  const speedRatio=flight.currentSpeed/Math.max(1,TRIAL.startSpeed);
  const presentationTarget=adjustFov?adjustFov(originalTarget,camera.aspect,speedRatio):originalTarget;
- const fovResponse=boostFovResponse(camera.fov,adjustFov?presentationTarget:targetFov,fovConfig);
+ // If the aspect correction is zero (wide mobile or toggle off), retain
+ // the exact original response target, including the original boost spring.
+ const fovResponse=boostFovResponse(camera.fov,presentationTarget!==originalTarget?presentationTarget:targetFov,fovConfig);
  camera.fov=lerp(camera.fov,presentationTarget,1-Math.exp(-dt*fovResponse));
  const adjustedBase=adjustFov?adjustFov(baseFov,camera.aspect,speedRatio):baseFov;
  boostSpring.peakFovBonusDegrees=Math.max(boostSpring.peakFovBonusDegrees,camera.fov-adjustedBase);

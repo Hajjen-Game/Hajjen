@@ -4,9 +4,9 @@ A futuristic browser racing game built with Three.js/WebGL. **Neon Vault Circuit
 
 ## Play
 
-[Current game — 0.28.9.10](https://hajjen-game.github.io/Hajjen/skyshift/?track=vault&v=0.28.9.10)
+[Current game — 0.28.9.11](https://hajjen-game.github.io/Hajjen/skyshift/?track=vault&v=0.28.9.11)
 
-The production catalog in `tracks/shared/production-catalog.mjs` defines the current release. GitHub Pages must finish deploying the corresponding main commit before a release is considered available. Latest release: [0.28.9.10 — Curve Deck Cleanup](docs/releases/current/RELEASE-028910-CURVE-DECK-CLEANUP.md). Player visual acceptance remains pending.
+The production catalog in `tracks/shared/production-catalog.mjs` defines the current release. GitHub Pages must finish deploying the corresponding main commit before a release is considered available. Latest release: [0.28.9.11 — Authoritative Vault Deck Geometry](docs/releases/current/RELEASE-028911-AUTHORITATIVE-VAULT-DECK.md). Player visual acceptance remains pending.
 
 ## Active development
 

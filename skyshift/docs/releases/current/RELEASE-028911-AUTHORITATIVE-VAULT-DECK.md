@@ -1,0 +1,7 @@
+# SKYSHIFT 0.28.9.11 — Authoritative Vault Deck Geometry
+
+Owner confirmed the short shoulder strokes disappeared in 0.28.9.10 but the large bilateral dark-blue fields remained near Vault's third bend, at HUD distance 847m. Root cause in source: the native premium racing deck and shader coordinates still used trial-v0160, whose Skyline GRIP funnel narrows from 23.2m to 14m between 777 and 995m (840–962m throat). The actual Vault physics and aero-barriers use trial-v0165, which remains 23.2m. The missing 4.6m on each side exposes the underlying environment; no material adjustment can fill missing geometry.
+
+Live Vault now injects the authoritative route (TRIAL, positionAt, widthAt, gapAt) into the existing shared indexed deck builder. Same tessellation and gap logic, one deck and one existing material, no extra render passes, no change to physical route, rails, boost data or tunnel art. Existing historical fixture callers retain their original default for pinned shader/geometry comparisons. Current production tests check mounted geometry width and world-position error at 847m and across the funnel in both High and 4GB, with actual captures at 777–995m. Unit regression compares all generated vertices to the authoritative route, and explicitly demonstrates the previous 14m width. Numeric release check preserves clean legacy-layer allocation for future Vault releases. Prior wall, edge, wave and shoulder fixes remain.
+
+Rollback bfbc58f58aaa7ec07a3d9bce9fc8a8521873c8f1. CI, Pages, and rendered appearance still require verification.

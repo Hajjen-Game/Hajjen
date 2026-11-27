@@ -13,13 +13,14 @@ import {TRACKS_0160,ACTIVE_TRACK_0160,TRACK_ID_0160,isAurora,isVault}
 import {perfConfig as readPerfConfig,newPerfMonitor,resetPerfMonitor,recordPerfFrame,perfSummary,gpuTimer as createGpuTimer} from "./core/performance-audit-v0114.mjs";
 import {
  TRIAL,COURSE_SEGMENTS,GAPS,ISLANDS,SPLITS,RISK_CUTS,GEOMETRY_BREAKS,ARCHES,CHECKPOINTS,SECTORS,ROAD_CUES,poseAt,positionAt,createStaticPositionSampler,headingAt,curvatureAt,bankAt,bankDegreesAt,surfaceHeightAt,surfaceNormalAt,
- heightAt,widthAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,STEERING_AUTHORITY,steeringBalanceAt,normalYawFactorAt,elevationAudit,
+ heightAt,widthAt,gapAt,roadIntervals,onRoad,sectorAt,speedAt,nextGap,gradeAt,pitchAt,TRACK_3D,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,AIR_TRICKS,GRIP_APEX,PROJECTION_083,STEERING_AUTHORITY,steeringBalanceAt,normalYawFactorAt,elevationAudit,
  newFlightState,stepFlight,setZoneSpeedStage,CIRCUIT,circuitPlanSummary,clamp,lerp
 } from "./tracks/trials/trial-v0165.mjs";
 import { BOOST_PADS,BOOST_CONFIG } from "./flight/boost/boost-v0160.mjs";
 import {RISK_REWARD_0160,RHYTHM_GATES_0160,riskCueAt,
  VAULT_BOOST_0283_ACTIVE} from "./flight/boost/risk-reward-v0160.mjs";
 import { createPremiumDeckGeometry,PREMIUM_TRACK } from "./rendering/road/premium-track-v0160.mjs";
+import {MESH_SPEC} from "./tracks/shared/smooth-deck.mjs";
 import {FIDELITY_0114,createFidelityDirector,
  resetFidelityDirector,advanceFidelityDirector,fidelityAudit,
  createSmartPremiumTrackMaterial} from "./core/visual-fidelity-v0160.mjs";
@@ -135,7 +136,7 @@ import {createSharedTunnelRuntime0280}
 import {omitLegacyRoadResponseEF05,startupSamplerEnabled02897} from "./tunnel/true-shared-tunnel-renderer-v0281.mjs";
 import {SHARED_LIGHT_0282} from "./tunnel/shared-road-ship-light-v0282.mjs";
 import {createSharedOpticalContext,installSharedOpticalShip,installSharedRoadOptics,finalizeSharedOptics} from "./tunnel/shared-optical-assembly.mjs";
-import {surfaceFinishEnabled02898,vaultPolishEnabled02899,curveDeckCleanupEnabled028910,PRODUCTION_TRACK} from "./tracks/shared/production-catalog.mjs";
+import {surfaceFinishEnabled02898,vaultPolishEnabled02899,curveDeckCleanupEnabled028910,authoritativeDeckEnabled028911,PRODUCTION_TRACK} from "./tracks/shared/production-catalog.mjs";
 import {PMREM_0284,readPmremRelease0284}
  from "./tunnel/pmrem-reflection-pipeline-v0284.mjs";
 import {VAULT_LIGHT_SEAL_0270,vaultLightLevels0270}
@@ -315,6 +316,7 @@ const curveContinuityReleaseEnabled=trueSharedVaultEnabled&&
 const surfaceFinish02898=trueSharedVaultEnabled&&surfaceFinishEnabled02898(location.search);
 const vaultPolish02899=trueSharedVaultEnabled&&vaultPolishEnabled02899(location.search);
 const curveDeckCleanup028910=trueSharedVaultEnabled&&curveDeckCleanupEnabled028910(location.search);
+const authoritativeDeck028911=authoritativeDeckEnabled028911(location.search);
 const sharedRoadLightEnabled=sharedOpticsEnabled&&
  new URLSearchParams(location.search).get("sharedRoadLight")!=="classic";
 const sharedShipLightEnabled=sharedOpticsEnabled&&
@@ -651,6 +653,25 @@ function markStartup(label){
  startupMarks[label]=Math.round((performance.now()-startupOrigin)*10)/10;
 }
 markStartup("moduleEvaluated");
+// QA samples the mounted mesh itself, not just the intended route width.
+function deckGeometryAudit028911(){
+ const deck=world?.getObjectByName?.("Zone Ribbon · integrated PBR racing deck");
+ const coord=deck?.geometry?.getAttribute("aTrackCoord"),pos=deck?.geometry?.getAttribute("position");
+ if(!coord||!pos)return null;
+ const cols=MESH_SPEC.lateralColumns,rows=coord.count/cols;
+ let maxPositionError=0,maxWidthError=0;
+ const samples=[0,235,777,820,840,847,900,962,995,1085,2547,3399].map(station=>{
+  const row=Math.min(rows-1,Math.round(station*(rows-1)/TRIAL.length)),first=row*cols;
+  const s=coord.getX(first),actualWidth=coord.getY(first+cols-1)-coord.getY(first),expectedWidth=widthAt(s);
+  maxWidthError=Math.max(maxWidthError,Math.abs(actualWidth-expectedWidth));
+  for(let col=0;col<cols;col++){
+   const idx=first+col,lateral=expectedWidth*(col/(cols-1)-.5),p=positionAt(s,lateral,0);
+   maxPositionError=Math.max(maxPositionError,Math.hypot(pos.getX(idx)-p.x,pos.getY(idx)-p.y,pos.getZ(idx)-p.z));
+  }
+  return {station,arc:s,actualWidth,expectedWidth};
+ });
+ return {authoritative:authoritativeDeck028911,maxWidthError,maxPositionError,samples};
+}
 window.__skyshiftStartupAudit=()=>{
  const meshes=[],materials=new Set(),geometries=new Set();
  world?.traverse?.(obj=>{
@@ -690,6 +711,7 @@ window.__skyshiftStartupAudit=()=>{
    shoulderMarks:identitySurface?.shoulderMarks??null,
    railChevrons:identitySurface?.chevrons??null,
    curveDeckCleanup:curveDeckCleanup028910,
+   deckGeometry:authoritativeDeck028911?deckGeometryAudit028911():null,
    legacyCinematicRoadWash:legacyCinematicRoadWashInstalled,
    mainBoostOnly:VAULT_BOOST_0283_ACTIVE&&BOOST_PADS.every(p=>p.kind==="boost"&&p.multiplier===1.4),
    omittedLegacyRoadBatches:sharedTunnelRuntime?.audit?.().trueSharedRenderer?.omittedLegacyRoadBatches??0,
@@ -911,7 +933,8 @@ function buildRoad(){
  });
  edgeMat=neonKit.edgeBody;
  premiumSurface=createSmartPremiumTrackMaterial(THREE,fidelityProfile);
- const road=new THREE.Mesh(createPremiumDeckGeometry(THREE),premiumSurface.material);
+ const road=new THREE.Mesh(createPremiumDeckGeometry(THREE,authoritativeDeck028911?
+  {TRIAL,positionAt,widthAt,gapAt}:null),premiumSurface.material);
  road.name="Zone Ribbon · integrated PBR racing deck";
  road.frustumCulled=false;world.add(road);
  const sidewalls=new THREE.Mesh(buildGeometry(walls,wallColors),roadMat);

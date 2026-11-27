@@ -270,7 +270,11 @@ const inactive=reason=>Object.freeze({active:false,
 export function omitLegacyRoadResponseEF05(search,clean){
  const q=new URLSearchParams(search||"");
  // The approved clean production path applies to both the EF08 baseline and its new release.
- if(!clean||q.get("track")!=="vault"||!["0.28.9.7","0.28.9.8","0.28.9.9","0.28.9.10"].includes(q.get("v")))return false;
+ if(!clean||q.get("track")!=="vault")return false;
+ const release=/^(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?$/.exec(q.get("v")||"");
+ if(!release)return false;
+ const [a,b,c,d]=release.slice(1).map(x=>Number(x||0));
+ if(!(a>0||b>28||(b===28&&(c>9||(c===9&&d>=7)))))return false;
  if(q.get("roadLayers")==="classic"||q.has("archLegacyRoad"))return false;
  // Read-only startup metrics and deterministic teleport do not toggle the
  // old road layer; exercise production allocation in real browser CI.

@@ -227,6 +227,11 @@ try{
     assert.equal(boot.scene?.shoulderMarks,0,'no decorative road strokes in mounted rail batch');
     assert.ok(boot.scene?.railChevrons>0,'directional rail chevrons preserved');
     assert.equal(boot.scene?.legacyCinematicRoadWash,false,'no old arc-window paint');
+    const deck=boot.scene?.deckGeometry;
+    assert.equal(deck?.authoritative,true,'live route owns mounted deck');
+    assert.ok(deck.maxWidthError<.0001,JSON.stringify(deck));
+    assert.ok(deck.maxPositionError<.002,JSON.stringify(deck));
+    assert.ok(Math.abs(deck.samples.find(x=>x.station===847).actualWidth-23.2)<.0001,'third bend full deck width');
     // The full approved material chain must still be mounted after production
     // specialization; source comparison remains the independent reference.
     assert.equal(boot.selected,'vault');
@@ -251,13 +256,13 @@ try{
     assert.deepEqual(errors,[],mode+' '+memory+'GB errors');
     await page.screenshot({path:join(out,mode+'-'+memory+'GB-'+phase+'.png')});
     if(mode==='bundle'&&phase==='warm'){
-     for(const station of [45,245,485,826,925,1246,1560,1840,2545,3030,3190]){
+     for(const station of [45,485,777,826,847,900,962,995,1246,2547,3190]){
       const pose=await page.evaluate(s=>window.__skyshiftTrackRepairTeleport(s),station);
       assert.equal(pose.track,'vault');assert.equal(pose.finishS,3400);assert.ok(pose.withinPhysicalRoll);
       await page.waitForTimeout(900);
-      await page.screenshot({path:join(out,'028910-Vault-'+memory+'GB-'+station+'-after.png'),timeout:60000});
+      await page.screenshot({path:join(out,'028911-Vault-'+memory+'GB-'+station+'-after.png'),timeout:60000});
      }
-     assert.deepEqual(errors,[],'0.28.9.10 live material capture errors');
+     assert.deepEqual(errors,[],'0.28.9.11 live geometry capture errors');
     }
     phases.push({timing,startup,styles:boot.styles,title:boot.title,render});
    }

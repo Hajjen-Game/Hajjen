@@ -12,6 +12,7 @@ const VAULT_CLEAN_DECK_02899=vaultPolishEnabled02899(typeof location==="undefine
 import {BOOST_PADS} from "../../flight/boost/boost-v0160.mjs";
 import {RHYTHM_GATES_0160,VAULT_BOOST_0283_ACTIVE} from "../../flight/boost/risk-reward-v0160.mjs";
 import {createSmoothDeckData,MESH_SPEC} from "../../tracks/shared/smooth-track-v0160.mjs";
+import {createSmoothDeckBuilder} from "../../tracks/shared/smooth-deck.mjs";
 
 export const PREMIUM_TRACK=Object.freeze({
  version:"track-rhythm-diversity-0151",
@@ -47,12 +48,16 @@ export const PREMIUM_TRACK=Object.freeze({
  spineContrast:.23,
  spineEmissive:0
 });
-export function premiumTrackCoordinates(){
- const data=createSmoothDeckData();
+export function premiumTrackCoordinates(route=null){
+ // Historical callers retain their old source fixture. Live routes inject
+ // their authoritative sampler, so road vertices and shader coordinates
+ // cannot independently inherit an obsolete track width or gap.
+ const data=route?createSmoothDeckBuilder(route).createSmoothDeckData():createSmoothDeckData();
+ const track=route?.TRIAL??TRIAL,roadWidth=route?.widthAt??widthAt;
  const coords=[];
  for(let row=0;row<data.rows;row++){
-  const s=row*TRIAL.length/(data.rows-1);
-  const w=widthAt(s);
+  const s=row*track.length/(data.rows-1);
+  const w=roadWidth(s);
   for(let column=0;column<data.cols;column++){
    const lane=w*(column/(data.cols-1)-.5);
    coords.push(s,lane);
@@ -60,8 +65,8 @@ export function premiumTrackCoordinates(){
  }
  return {data,coords};
 }
-export function createPremiumDeckGeometry(THREE){
- const {data,coords}=premiumTrackCoordinates();
+export function createPremiumDeckGeometry(THREE,route=null){
+ const {data,coords}=premiumTrackCoordinates(route);
  const g=new THREE.BufferGeometry();
  g.setAttribute("position",new THREE.Float32BufferAttribute(data.positions,3));
  g.setAttribute("aTrackCoord",new THREE.Float32BufferAttribute(coords,2));

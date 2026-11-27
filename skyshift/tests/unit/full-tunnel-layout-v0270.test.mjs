@@ -84,3 +84,41 @@ test("0.27.0 menu/QA routes keep original 0.26.5 branch",()=>{
  assert.match(g,/compareBeforeRailWallResponse/);
  assert.match(read("./boot-v0210.js"),/game-v0210\.mjs\?v=0\.26\.5/);
 });
+
+test("Vault third bend: live deck shares full 23.2m width and every vertex with physics",()=>{
+ const code=`
+ globalThis.location={search:'?track=vault&v=0.28.9.11'};
+ const assert=(await import('node:assert/strict')).default;
+ const route=await import('./skyshift/tracks/trials/trial-v0165.mjs');
+ const legacy=await import('./skyshift/tracks/trials/trial-v0160.mjs');
+ const {premiumTrackCoordinates}=await import('./skyshift/rendering/road/premium-track-v0160.mjs');
+ const {authoritativeDeckEnabled028911,PRODUCTION_TRACK}=await import('./skyshift/tracks/shared/production-catalog.mjs');
+ assert.equal(authoritativeDeckEnabled028911('?track=vault&v='+PRODUCTION_TRACK.version),true);
+ assert.equal(authoritativeDeckEnabled028911('?track=vault&v=0.28.9.10'),false);
+ assert.equal(authoritativeDeckEnabled028911('?track=skyline&v=0.28.9.11'),false);
+ assert.equal(legacy.widthAt(847),14);
+ assert.equal(route.widthAt(847),23.2);
+ const previous=premiumTrackCoordinates(),fixed=premiumTrackCoordinates(route);
+ const {data,coords}=fixed;
+ assert.deepEqual(data.indices,previous.data.indices);
+ for(let row=0;row<data.rows;row++){
+  const s=row*route.TRIAL.length/(data.rows-1);
+  const w=route.widthAt(s);
+  for(let col=0;col<data.cols;col++){
+   const k=row*data.cols+col,l=w*(col/(data.cols-1)-.5);
+   const p=route.positionAt(s,l,0);
+   assert.ok(Math.abs(coords[2*k]-s)<1e-8);
+   assert.ok(Math.abs(coords[2*k+1]-l)<1e-8);
+   assert.ok(Math.hypot(data.positions[3*k]-p.x,data.positions[3*k+1]-p.y,data.positions[3*k+2]-p.z)<1e-7);
+  }
+ }
+ const row=Math.round(847*(data.rows-1)/route.TRIAL.length),first=row*data.cols;
+ assert.equal(coords[2*(first+data.cols-1)+1]-coords[2*first+1],23.2);
+ assert.equal(previous.coords[2*(first+data.cols-1)+1]-previous.coords[2*first+1],14);
+ console.log('actual 847m deck: 14m -> 23.2m; all rows match current route');
+ `;
+ const cmd=spawnSync(process.execPath,["--input-type=module","-e",code],
+  {cwd:new URL("../../"+"../",import.meta.url).pathname,encoding:"utf8",timeout:25000});
+ assert.equal(cmd.status,0,cmd.stderr?.slice(0,3000));
+ assert.match(cmd.stdout,/14m -> 23.2m/);
+});

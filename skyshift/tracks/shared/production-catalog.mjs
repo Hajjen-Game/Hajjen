@@ -1,9 +1,9 @@
 // The player-facing production catalog is distinct from historical source QA.
 export const PRODUCTION_TRACK=Object.freeze({
- id:'vault',version:'0.28.9.10',name:'NEON VAULT CIRCUIT',
+ id:'vault',version:'0.28.9.11',name:'NEON VAULT CIRCUIT',
  option:'NEON VAULT — FULL TUNNEL CIRCUIT'
 });
-export const PRODUCTION_RELEASE_NAME='Curve Deck Cleanup';
+export const PRODUCTION_RELEASE_NAME='Authoritative Vault Deck Geometry';
 export function productionRouteUrl(href){
  const url=new URL(href);
  url.searchParams.set('track',PRODUCTION_TRACK.id);
@@ -42,4 +42,13 @@ export function vaultPolishEnabled02899(search){
   if(q.get('track')!=='vault'||!m||q.get('curveDeck')==='classic')return false;
   const [a,b,c,d]=m.slice(1).map(x=>Number(x||0));
   return a>0||b>28||(b===28&&(c>9||(c===9&&d>=10)));
+ }
+
+ // Vault's live deck must use the exact same route sampler as physics and rails.
+ export function authoritativeDeckEnabled028911(search){
+  const q=new URLSearchParams(search||'');
+  const m=/^(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?$/.exec(q.get('v')||'');
+  if(q.get('track')!=='vault'||!m)return false;
+  const [a,b,c,d]=m.slice(1).map(x=>Number(x||0));
+  return a>0||b>28||(b===28&&(c>9||(c===9&&d>=11)));
  }

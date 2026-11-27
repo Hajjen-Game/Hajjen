@@ -3,7 +3,7 @@
 export function createChaseCameraController({
  Vector3,chasePose,cameraBankAt,cinematicFov,kineticFovAt,stepBoostSpring,
  boostFovTarget,boostFovResponse,cinematicTuning,CAMERA_GAIN,TRIAL,
- BOOST_CONFIG,CLASSIC_BOOST_FOV,BOOST_SPRING,clamp,lerp
+ BOOST_CONFIG,CLASSIC_BOOST_FOV,BOOST_SPRING,clamp,lerp,adjustFov=null
 }){
  const CAMERA_INFO={},CAMERA_VIEW={worldX:0,worldZ:0,y:0,s:0,
   steering:0,clearance:0,kineticSideMeters:0,kineticDistanceMeters:0,
@@ -18,7 +18,8 @@ export function createChaseCameraController({
   const home=chasePose(flight,motion,cinematic,cinematicTuning,CAMERA_INFO);
   camera.position.set(home.x,home.y,home.z);
   CAMERA_BASE_POSITION.copy(camera.position);
-  camera.fov=cinematicFov(TRIAL.startSpeed,TRIAL.startSpeed,cinematicTuning);
+  const initialFov=cinematicFov(TRIAL.startSpeed,TRIAL.startSpeed,cinematicTuning);
+  camera.fov=adjustFov?adjustFov(initialFov,camera.aspect,1):initialFov;
   camera.updateProjectionMatrix();
   cameraLook.set(home.lookX,home.lookY,home.lookZ);
   camera.lookAt(cameraLook);
@@ -84,13 +85,14 @@ export function createChaseCameraController({
  const fovConfig=CAMERA_GAIN===0?CLASSIC_BOOST_FOV:BOOST_SPRING;
  const targetFov=boostFovTarget(baseFov,Math.max(flight.boostMultiplier,
   flight.landingBoostMultiplier),BOOST_CONFIG.multiplier,fovConfig);
- const fovResponse=boostFovResponse(camera.fov,targetFov,fovConfig);
  const presenceFov=CAMERA_GAIN===0?0:velocityPresence.fovBonus*speedRigSafety;
- camera.fov=lerp(camera.fov,Math.min(80.5,targetFov+presenceFov+
-  racingExperience.fovAddition*protectedRoll),
-  1-Math.exp(-dt*fovResponse));
- boostSpring.peakFovBonusDegrees=Math.max(boostSpring.peakFovBonusDegrees,
-  camera.fov-baseFov);
+ const originalTarget=Math.min(80.5,targetFov+presenceFov+racingExperience.fovAddition*protectedRoll);
+ const speedRatio=flight.currentSpeed/Math.max(1,TRIAL.startSpeed);
+ const presentationTarget=adjustFov?adjustFov(originalTarget,camera.aspect,speedRatio):originalTarget;
+ const fovResponse=boostFovResponse(camera.fov,adjustFov?presentationTarget:targetFov,fovConfig);
+ camera.fov=lerp(camera.fov,presentationTarget,1-Math.exp(-dt*fovResponse));
+ const adjustedBase=adjustFov?adjustFov(baseFov,camera.aspect,speedRatio):baseFov;
+ boostSpring.peakFovBonusDegrees=Math.max(boostSpring.peakFovBonusDegrees,camera.fov-adjustedBase);
  maxKineticFov=Math.max(maxKineticFov,camera.fov);
  cinematic.maxCameraLateralMeters=Math.max(cinematic.maxCameraLateralMeters,Math.abs(framing.sideOffsetMeters));
  camera.updateProjectionMatrix();

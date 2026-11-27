@@ -90,7 +90,7 @@ test("EF05 explicit renderer policy needs no track name or URL and validates bef
 
 import {omitLegacyRoadResponseEF05} from "../../tunnel/true-shared-tunnel-renderer-v0281.mjs";
 test("EF05 obsolete source allocation is omitted only for current clean production",()=>{
- for(const version of ["0.28.9.7","0.28.9.8","0.28.9.9","0.28.9.10"]){
+ for(const version of ["0.28.9.7","0.28.9.8","0.28.9.9","0.28.9.10","0.28.9.11","0.28.10"]){
   const current="?track=vault&v="+version;
   assert.equal(omitLegacyRoadResponseEF05(current,true),true);
   assert.equal(omitLegacyRoadResponseEF05(current,false),false);

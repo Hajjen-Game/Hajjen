@@ -1,9 +1,9 @@
 // The player-facing production catalog is distinct from historical source QA.
 export const PRODUCTION_TRACK=Object.freeze({
- id:'vault',version:'0.28.9.9',name:'NEON VAULT CIRCUIT',
+ id:'vault',version:'0.28.9.10',name:'NEON VAULT CIRCUIT',
  option:'NEON VAULT — FULL TUNNEL CIRCUIT'
 });
-export const PRODUCTION_RELEASE_NAME='Vault Boost, Single Wave & Clean Deck';
+export const PRODUCTION_RELEASE_NAME='Curve Deck Cleanup';
 export function productionRouteUrl(href){
  const url=new URL(href);
  url.searchParams.set('track',PRODUCTION_TRACK.id);
@@ -34,3 +34,12 @@ export function vaultPolishEnabled02899(search){
  const [a,b,c,d]=m.slice(1).map(x=>Number(x||0));
  return a>0||b>28||(b===28&&(c>9||(c===9&&d>=9)));
 }
+
+ // Current Vault: remove legacy decorative road washes and shoulder paint.
+ export function curveDeckCleanupEnabled028910(search){
+  const q=new URLSearchParams(search||'');
+  const m=/^(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?$/.exec(q.get('v')||'');
+  if(q.get('track')!=='vault'||!m||q.get('curveDeck')==='classic')return false;
+  const [a,b,c,d]=m.slice(1).map(x=>Number(x||0));
+  return a>0||b>28||(b===28&&(c>9||(c===9&&d>=10)));
+ }

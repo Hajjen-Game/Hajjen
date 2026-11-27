@@ -223,6 +223,10 @@ try{
     assert.equal(boot.scene?.boostPadCount,5,'current Vault main boost count');
     assert.equal(boot.scene?.riskGateCount,0,'no old risk gates in live production');
     assert.equal(boot.scene?.mainBoostOnly,true,'all actual pads are +40%');
+    assert.equal(boot.scene?.curveDeckCleanup,true,'current Vault deck policy');
+    assert.equal(boot.scene?.shoulderMarks,0,'no decorative road strokes in mounted rail batch');
+    assert.ok(boot.scene?.railChevrons>0,'directional rail chevrons preserved');
+    assert.equal(boot.scene?.legacyCinematicRoadWash,false,'no old arc-window paint');
     // The full approved material chain must still be mounted after production
     // specialization; source comparison remains the independent reference.
     assert.equal(boot.selected,'vault');
@@ -247,13 +251,13 @@ try{
     assert.deepEqual(errors,[],mode+' '+memory+'GB errors');
     await page.screenshot({path:join(out,mode+'-'+memory+'GB-'+phase+'.png')});
     if(mode==='bundle'&&phase==='warm'){
-     for(const station of [45,650,826,1246,1840]){
+     for(const station of [45,245,485,826,925,1246,1560,1840,2545,3030,3190]){
       const pose=await page.evaluate(s=>window.__skyshiftTrackRepairTeleport(s),station);
       assert.equal(pose.track,'vault');assert.equal(pose.finishS,3400);assert.ok(pose.withinPhysicalRoll);
       await page.waitForTimeout(900);
-      await page.screenshot({path:join(out,'02899-Vault-'+memory+'GB-'+station+'-after.png'),timeout:60000});
+      await page.screenshot({path:join(out,'028910-Vault-'+memory+'GB-'+station+'-after.png'),timeout:60000});
      }
-     assert.deepEqual(errors,[],'0.28.9.9 live material capture errors');
+     assert.deepEqual(errors,[],'0.28.9.10 live material capture errors');
     }
     phases.push({timing,startup,styles:boot.styles,title:boot.title,render});
    }

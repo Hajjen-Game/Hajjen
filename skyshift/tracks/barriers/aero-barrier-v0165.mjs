@@ -132,7 +132,7 @@ function faceStroke(batch,side,a,ta,b,tb,halfT,intensity,isChevron=0){
   face(b,side,clamp(tb+halfT,.03,.97)),
   face(b,side,clamp(tb-halfT,.03,.97)),intensity,a,b,side,isChevron);
 }
-export function createAeroDetailData(){
+export function createAeroDetailData({shoulderMarks:includeShoulderMarks=true}={}){
  const dark=createBatch(),light=createBatch();
  let panelSeams=0,curveChevrons=0,shoulderMarks=0;
  const slices=Math.ceil(TRIAL.length/1.15);
@@ -181,7 +181,7 @@ export function createAeroDetailData(){
  }
  // The deck remains intentionally uncluttered. Shoulder trim is intermittent,
  // never a full-width alternating tile that might be mistaken for a hazard.
- for(let s=15;s<TRIAL.length-15;s+=AERO_BARRIER.shoulderPitchMeters){
+ if(includeShoulderMarks)for(let s=15;s<TRIAL.length-15;s+=AERO_BARRIER.shoulderPitchMeters){
   if(gapAt(s))continue;
   for(const side of [-1,1]){
    const x=side*(widthAt(s)/2-2.62);
@@ -334,8 +334,8 @@ export function patchAeroBodyShaders(vertexShader,fragmentShader){
  return {vertexShader:v,fragmentShader:f};
 }
 
-export function installAeroBarriers(THREE,world){
- const body=createAeroBarrierData(),detail=createAeroDetailData();
+export function installAeroBarriers(THREE,world,{shoulderMarks=true}={}){
+ const body=createAeroBarrierData(),detail=createAeroDetailData({shoulderMarks});
  // Deliberately matte-dark under ambient light; narrow bright paint on top.
  const metal=new THREE.MeshStandardMaterial({
   color:0xffffff,vertexColors:true,metalness:.72,roughness:.32,

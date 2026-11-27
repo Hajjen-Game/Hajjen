@@ -34,7 +34,7 @@ export function installSharedRoadOptics(THREE,world,context,policy,{initialWave,
  const cove=installUnifiedCeilingRoad02894(THREE,world,positionAt,{enabled:policy.ceiling&&!!arch?.active&&policy.ceilingFixtures,lowMemory,trackLength,sourceRegistry});
  if(policy.ceiling&&policy.arch&&policy.ceilingFixtures&&!cove?.active)throw Error("0.28.9.4 source-matched physical ceiling road response missing");
  if(initialWave!==undefined){cove?.updateWave?.(initialWave);previousSpill?.updateWave?.(initialWave);}
- const spill=installRoadSpill02895(THREE,deck,{enabled:policy.spill&&!!straight?.active&&!!cove?.active,lowMemory,trackLength,sourceModules});
+ const spill=installRoadSpill02895(THREE,deck,{enabled:policy.spill&&!!straight?.active&&!!cove?.active,lowMemory,trackLength,sourceModules,edgeOnly:policy.edgeOnly===true});
  if(policy.spill&&!spill.active)throw Error("0.28.9.5 original physical lip spill missing");
  if(initialWave!==undefined)spill.updateWave?.(initialWave);
  return {native,finish,straight,arch,cove,spill};

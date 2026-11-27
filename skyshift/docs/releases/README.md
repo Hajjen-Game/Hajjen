@@ -131,3 +131,9 @@ Moved all remaining historical `skyshift/RELEASE-*.md` notes **without changing 
 - [02897-STARTUP-STABILITY.md](RELEASE-02897-STARTUP-STABILITY.md)
 - [091.md](RELEASE-091.md)
 - [092.md](RELEASE-092.md)
+
+## Releases after Engineering Foundation 1.0
+
+New release notes are authored under `current/`, separate from the 97 immutable migrated documents and their original SHA manifest.
+
+- [0.28.9.8 — Upper Wall Stability & Edge-Only Road](current/RELEASE-02898-UPPER-WALL-EDGE-ROAD.md)

@@ -161,3 +161,15 @@ test("game integrates PMREM-safe zero-strength source followed by native 0.28.9 
  assert.match(game,/cinematicMetalReleaseEnabled\?" · 0\.28\.9"/);
  assert.match(html,/(?:Shared Straight-Only Edge Lighting Parity · 0\.28\.9\.1|Ceiling Fixture Placement & Glow Cohesion · 0\.28\.9\.2|Premium Arch Optics & Chromatic Road Reflections · 0\.28\.9\.3|Unified Light Sources & Road Layer Cleanup · 0\.28\.9\.4|Road Light Spill Continuity & Wave-Coupled Cove Lighting · 0\.28\.9\.5|Curve Surface Artifact & Transition Seam Cleanup · 0\.28\.9\.6|Startup Stability & Shared Resource Deduplication · 0\.28\.9\.7)/);
 });
+
+test("0.28.9.8 upper wall reuses roof roughness floor after local polish, without new GGX taps",()=>{
+ for(const mobile of [false,true]){
+  const old=patchPhysicalStreaks0289(mockPhysical(mobile),{mobile});
+  const fixed=patchPhysicalStreaks0289(mockPhysical(mobile),{mobile,upperWallStability:true});
+  assert.doesNotMatch(old,/cm289Upper/);
+  assert.match(fixed,/max\(roughnessFactor,cm289Satin\)/);
+  assert.match(fixed,/length\(dFdx\(normal\)\)\+length\(dFdy\(normal\)\)/);
+  assert.ok(fixed.indexOf("float cm289Upper=")<fixed.indexOf("#include <lights_physical_fragment>"));
+  assert.equal((old.match(/RE_Direct\(l261/g)||[]).length,(fixed.match(/RE_Direct\(l261/g)||[]).length);
+ }
+});

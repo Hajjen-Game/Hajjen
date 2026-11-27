@@ -79,7 +79,7 @@ export function patchSubstrateContrast0289(fragment,{role="panel"}={}){
   .replace(SUBSTRATE,SUBSTRATE+"\n"+lines);
 }
 export function patchPhysicalStreaks0289(fragment,{role="panel",
- mobile=false}={}){
+ mobile=false,upperWallStability=false}={}){
  if(!["panel","rib"].includes(role))throw Error("0.28.9 invalid physical role");
  ensure(fragment,"GGX "+role,[COMMON,COLOR,PHYSICAL,COOL,WARM,
   "uPrecisionNeon0288","uReflectionStability0286",
@@ -99,12 +99,14 @@ export function patchPhysicalStreaks0289(fragment,{role="panel",
   cool++;
   return "l261Cool.color*=1.0+uCinematicStrips0289*"+
    (mobile?"1.08":"1.72")+
-   "*r65WallC*(1.0-smoothstep(2.3,10.5,l261CoolDistance));\n"+match;
+   "*r65WallC*(1.0-smoothstep(2.3,10.5,l261CoolDistance))"+
+   (upperWallStability?"*(1.0-0.55*cm289Upper)":"")+";\n"+match;
  }).replaceAll(WARM,match=>{
   warm++;
   return "l261Warm.color*=1.0+uCinematicStrips0289*"+
    (mobile?"0.86":"1.31")+
-   "*r65WallW*(1.0-smoothstep(1.7,8.7,l261WarmDistance));\n"+match;
+   "*r65WallW*(1.0-smoothstep(1.7,8.7,l261WarmDistance))"+
+   (upperWallStability?"*(1.0-0.55*cm289Upper)":"")+";\n"+match;
  });
  if(cool!==(mobile?2:3)||warm!==(mobile?1:2))
   throw Error("0.28.9 original physical GGX tap count drift "+
@@ -120,7 +122,16 @@ export function patchPhysicalStreaks0289(fragment,{role="panel",
   "float cm289Weight=cm289Wall*cm289Fixture*uCinematicStrips0289;",
   "roughnessFactor=mix(roughnessFactor,",
   " max(cm289Target,min(roughnessFactor,cm289Target+0.012)),",
-  " 0.78*cm289Weight);"
+  " 0.78*cm289Weight);",
+  ...(upperWallStability?[
+   "// 0.28.9.8: reuse the 0.28.6 roof floor on upper side panels AFTER the 0.28.9 polish.",
+   "float cm289Upper=smoothstep(8.0,15.0,vPbrSection0260.y)*",
+   " (1.0-smoothstep(22.0,27.0,vPbrSection0260.y))*smoothstep(10.5,17.0,abs(vPbrSection0260.x));",
+   "float cm289Alias=clamp(length(dFdx(normal))+length(dFdy(normal)),0.0,1.0);",
+   "float cm289Satin=min(0.73,"+(mobile?"0.525":"0.565")+"+0.085*cm289Alias);",
+   "roughnessFactor=mix(roughnessFactor,max(roughnessFactor,cm289Satin),",
+   " cm289Upper*uCinematicStrips0289);"
+  ]:[])
  ].join("\n");
  return sourceColor
   .replace(COMMON,COMMON+
@@ -163,7 +174,7 @@ export function patchRoadGlints0289(fragment,{mobile=false}={}){
   .replace(SPEC_ROAD,streak+"\n"+SPEC_ROAD);
 }
 export function wrapCinematicMetalShader0289(material,uniforms,{
- kind,role="panel",mobile=false
+ kind,role="panel",mobile=false,upperWallStability=false
 }={}){
  const physical=kind==="physical",road=kind==="road";
  const correct=physical?material?.isMeshPhysicalMaterial:
@@ -172,7 +183,7 @@ export function wrapCinematicMetalShader0289(material,uniforms,{
   typeof material.customProgramCacheKey!=="function")
   throw Error("0.28.9 expected original "+kind+" material");
  const old=material.onBeforeCompile,key=material.customProgramCacheKey;
- const patch=kind==="physical"?f=>patchPhysicalStreaks0289(f,{role,mobile}):
+ const patch=kind==="physical"?f=>patchPhysicalStreaks0289(f,{role,mobile,upperWallStability}):
   kind==="road"?f=>patchRoadGlints0289(f,{mobile}):
   f=>patchSubstrateContrast0289(f,{role});
  material.onBeforeCompile=function(shader,renderer){
@@ -186,7 +197,7 @@ export function wrapCinematicMetalShader0289(material,uniforms,{
  };
  material.customProgramCacheKey=function(){
   return key.call(this)+"-cinematic-metal-0289-"+kind+"-"+role+
-   (mobile?"-4gb":"-high");
+   (mobile?"-4gb":"-high")+(physical&&upperWallStability?"-upper-wall-satin-02898":"");
  };
  material.needsUpdate=true;
  return ()=>{material.onBeforeCompile=old;material.customProgramCacheKey=key;
@@ -195,7 +206,7 @@ export function wrapCinematicMetalShader0289(material,uniforms,{
 const inactive=reason=>({active:false,setComparison(){},
  stats:()=>({active:false,reason,version:"0.28.9"}),dispose(){}});
 export function installCinematicTunnel0289(section,{
- enabled=false,lowMemory=false,contrast=true,strips=true
+ enabled=false,lowMemory=false,contrast=true,strips=true,upperWallStability=false
 }={}){
  if(!enabled)return inactive("0.28.8 or cinematicMetal=classic");
  const group=section?.getObjectByName?.(GROUP);
@@ -216,7 +227,7 @@ export function installCinematicTunnel0289(section,{
  try{
   for(const m of [...coats,...substrates])
    undo.push(wrapCinematicMetalShader0289(m.material,uniforms,
-    {kind:m.kind,role:m.role,mobile:lowMemory}));
+    {kind:m.kind,role:m.role,mobile:lowMemory,upperWallStability}));
  }catch(e){
   for(const f of undo.reverse())f();
   return inactive("native shared shader unavailable: "+String(e.message||e));

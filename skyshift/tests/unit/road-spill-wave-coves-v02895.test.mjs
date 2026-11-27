@@ -178,3 +178,24 @@ test("EF05 road spill follows unequal module origins and does not light open gap
  assert.match(patched.fragmentShader,/s95Safe\*step\(0\.0,s95Local\)/);
  assert.equal(patched.vertexShader,v);
 });
+
+test("0.28.9.8 removes non-edge specular contributions before the genuine cyan lip spill",()=>{
+ for(const lowMemory of [false,true]){
+  const f=frag.replace("0.065;",""+(lowMemory?"0.045":"0.065")+";");
+  const classic=patchRoadSpill02895(v,f,{lowMemory}).fragmentShader;
+  const edge=patchRoadSpill02895(v,f,{lowMemory,edgeOnly:true}).fragmentShader;
+  assert.doesNotMatch(classic,/edgeOnlyInterior02898/);
+  assert.match(edge,/reflectedLight\.indirectSpecular\*=1\.0-edgeOnlyInterior02898/);
+  assert.ok(edge.indexOf("reflectedLight.directSpecular*=1.0-edgeOnlyInterior02898")<edge.indexOf("reflectedLight.directSpecular+=s95Tint"));
+  assert.match(edge,/vec3 s95Tint=vec3\(0\.06,0\.71,0\.90\)/);
+  assert.match(edge,/s95Shape\*s95Across\*s95Safe/);
+  assert.match(edge,/s95GuideSafe\*r263Keep/);
+ }
+});
+
+import {surfaceFinishEnabled02898,PRODUCTION_TRACK} from "../../tracks/shared/production-catalog.mjs";
+test("0.28.9.8 new visual policy is selected at the route boundary with historical rollback",()=>{
+ assert.equal(PRODUCTION_TRACK.version,"0.28.9.8");
+ assert.equal(surfaceFinishEnabled02898("?track=vault&v=0.28.9.8"),true);
+ for(const q of ["?track=vault&v=0.28.9.7","?track=skyline&v=0.28.9.8","?track=vault&v=0.28.9.8&surfaceFinish=classic"])assert.equal(surfaceFinishEnabled02898(q),false);
+});

@@ -96,6 +96,7 @@ export function validateSharedTunnelPolicy(policy,trackLength){
   !Number.isFinite(r.to)||r.from<0||r.to<=r.from||r.to>trackLength))
   throw Error("EF05 straight range outside track");
  return Object.freeze({...Object.fromEntries(policyKeys.map(k=>[k,policy[k]])),
+  upperWallStability:policy.upperWallStability===true,
   straightRanges:Object.freeze(ranges.map(r=>Object.freeze({...r})))});
 }
 // Historical release and URL selection stays at the compatibility boundary.
@@ -268,7 +269,8 @@ const inactive=reason=>Object.freeze({active:false,
 // Retain historical comparison scenes and explicit QA frame toggles.
 export function omitLegacyRoadResponseEF05(search,clean){
  const q=new URLSearchParams(search||"");
- if(!clean||q.get("track")!=="vault"||q.get("v")!=="0.28.9.7")return false;
+ // The approved clean production path applies to both the EF08 baseline and its new release.
+ if(!clean||q.get("track")!=="vault"||!["0.28.9.7","0.28.9.8"].includes(q.get("v")))return false;
  if(q.get("roadLayers")==="classic"||q.has("archLegacyRoad"))return false;
  // Read-only startup metrics and deterministic teleport do not toggle the
  // old road layer; exercise production allocation in real browser CI.
@@ -382,7 +384,8 @@ export function installConfiguredSharedTunnel(THREE,world,{
    // while 0.28.4 PMREM captures its ORIGINAL scene. The game enables
    // the cinematic grade only after the authentic PMREM capture finishes.
    item.cinematic=installCinematicTunnel0289(section,{
-    enabled:cinematicMetal0289,lowMemory,contrast:false,strips:false
+    enabled:cinematicMetal0289,lowMemory,contrast:false,strips:false,
+    upperWallStability:style.upperWallStability
    });
    if(cinematicMetal0289&&!item.cinematic.active)
     throw Error("0.28.9 original metal shader unavailable in module "+

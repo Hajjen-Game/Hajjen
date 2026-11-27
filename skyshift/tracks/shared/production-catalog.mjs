@@ -1,8 +1,9 @@
 // The player-facing production catalog is distinct from historical source QA.
 export const PRODUCTION_TRACK=Object.freeze({
- id:'vault',version:'0.28.9.7',name:'NEON VAULT CIRCUIT',
+ id:'vault',version:'0.28.9.8',name:'NEON VAULT CIRCUIT',
  option:'NEON VAULT — FULL TUNNEL CIRCUIT'
 });
+export const PRODUCTION_RELEASE_NAME='Upper Wall Stability & Edge-Only Road';
 export function productionRouteUrl(href){
  const url=new URL(href);
  url.searchParams.set('track',PRODUCTION_TRACK.id);
@@ -15,4 +16,13 @@ export function applyProductionCatalog(location,history){
  const canonical=productionRouteUrl(location.href);
  if(canonical!==location.href)history.replaceState(history.state,'',canonical);
  return canonical;
+}
+
+// Resolve release choice at the route boundary, not inside shared materials.
+export function surfaceFinishEnabled02898(search){
+ const q=new URLSearchParams(search||'');
+ const m=/^(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?$/.exec(q.get('v')||'');
+ if(q.get('track')!=='vault'||!m||['classic','off'].includes(q.get('surfaceFinish')))return false;
+ const [a,b,c,d]=m.slice(1).map(x=>Number(x||0));
+ return a>0||b>28||(b===28&&(c>9||(c===9&&d>=8)));
 }

@@ -4,6 +4,7 @@
 import {readFileSync,readdirSync,existsSync,statSync} from 'node:fs';
 import {dirname,resolve,relative,extname,join,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {normalizeExplicitAssetBaseReferences} from './dependency-inventory-v2.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const repo=resolve(root,'..');
@@ -29,6 +30,7 @@ if(existsSync(resolve(repo,'.github','workflows')))
  walk(resolve(repo,'.github','workflows'));
 const texts=new Map(allFiles.map(p=>[p,readFileSync(p,'utf8')]));
 function refs(p,source){
+ if(/\.m?js$/.test(p))source=normalizeExplicitAssetBaseReferences(source);
  const found=[];
  for(const re of [localPattern,htmlPattern,cssPattern]){
   re.lastIndex=0;

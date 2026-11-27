@@ -10,7 +10,19 @@ const code = new Set(['.js', '.mjs']);
 const readable = new Set(['.js', '.mjs', '.css', '.html']);
 const normalize = p => p.replaceAll('\\', '/');
 
+// Resolve the explicit parent-directory URL base used by relocated ship loaders.
+// Keep every literal asset reference in the scan; only rebase its relative path.
+// All other URL expressions retain the original conservative scan behavior.
+export function normalizeExplicitAssetBaseReferences(contents) {
+  const bases = [...contents.matchAll(/\bconst\s+shipAssetBase\s*=\s*new\s+URL\(\s*["']\.\.\/["']\s*,\s*import\.meta\.url\s*\)\s*;/g)];
+  if (bases.length !== 1) return contents;
+  return contents.replace(/(\bnew\s+URL\(\s*)(["'])(\.{1,2}\/[^"']*)\2(\s*,\s*)shipAssetBase(\s*\))/g,
+    (_, prefix, quote, spec, comma, close) =>
+      prefix + quote + '../' + spec.replace(/^\.\//, '') + quote + comma + 'import.meta.url' + close);
+}
+
 export function extractLiteralReferences(contents, ext) {
+  if (code.has(ext)) contents = normalizeExplicitAssetBaseReferences(contents);
   const refs = [];
   const patterns = ext === '.html'
     ? [/\b(?:src|href|data-game-module)\s*=\s*["']([^"']+)["']/g]

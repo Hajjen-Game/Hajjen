@@ -2054,6 +2054,1389 @@
         "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
         "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
       ]
+    },
+    {
+      "path": "skyshift/trial-v049.mjs",
+      "sha": "b796635e02f348c308ded72d803e504f31b81114",
+      "bytes": 14188,
+      "baselineBlob": "b796635e02f348c308ded72d803e504f31b81114",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-deck-moves.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02i-legacy-rendering-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/stageJ-consumer-queue.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v049.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0491.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0492.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0493.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0496.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0498.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/boost-chase-v0494.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/extended-zone-v049.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/mobile-boot-v04911.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/spectral-balance-v0493.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/spectral-zone-v0491.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/white-core-v0492.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v049.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0491.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0492.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0493.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0496.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0497.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v049.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "source": 13,
+        "test-or-qa": 4,
+        "pinned-archive": 5
+      },
+      "metadataRefs": 11,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "60fe67137527f2c8e39693a4f19a61072110029d",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v049.mjs",
+          "sha": "4ce706e600bfd4bf1530f47d5a1ed082c2671400",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0491.mjs",
+          "sha": "b1ea09ea1ca3c2ec6f3a081a495d74c649d7a570",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0492.mjs",
+          "sha": "32d70cc63841bcdefb912f5ea13b4bf591668ff5",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0493.mjs",
+          "sha": "8e6fa44f2565c78a713a05f5f7ebb9ced0e9f609",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0496.mjs",
+          "sha": "7111488143395a6877437cb895fa9c2a729f8518",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0498.mjs",
+          "sha": "ff74fe667bdf227c69ec63bdba2fbc995804e00d",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/extended-zone-v049.test.mjs",
+          "sha": "dc55eb29e5f46586ef6d28352695476d3a671ca9",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/spectral-balance-v0493.test.mjs",
+          "sha": "c60929e937dc134dd339d7dcc13d849d9ca85424",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/spectral-zone-v0491.test.mjs",
+          "sha": "7c45c2cd72fec9e20e63dbd0ea8faaeb9914ce25",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/white-core-v0492.test.mjs",
+          "sha": "e8bff4ea62b6700eb1667b9e62642d6e2d74e3f9",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v049.mjs",
+          "sha": "ef92391ff509af93cd6ca2d0c0fcf152b18d7ff0",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0491.mjs",
+          "sha": "18fc5e2f71b00cc6b1ca9a97b3a31f9fb38d268c",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0492.mjs",
+          "sha": "4f6edad51f5fa03f6450276eb6c05cfbb693d0e8",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0493.mjs",
+          "sha": "3e5b3b39c3f6da6f014ec9c21499097292e62ce6",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0496.mjs",
+          "sha": "1ee9c9f66a03b7e143f02948fb5bdc18991e9552",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0497.mjs",
+          "sha": "d863a4bf4ab44b283f70beaf16649fcb330ee384",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v049.mjs",
+          "sha": "9defea4f14b04264ac47816c0886755d1ebeccd1",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v049.mjs",
+          "sha": "f00e40dbe72639f09afd4511fdd3a845cf49c6de",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0491.mjs",
+          "sha": "bd42fa977743f34ce387803fba61dae0bde985ae",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v04911.mjs",
+          "sha": "07478e3bc96f44fb6e8538ad4113613a80475819",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0492.mjs",
+          "sha": "f6912ceda314c0266ee6dc3662d791dbe4b4be26",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0493.mjs",
+          "sha": "3706dd480a111db91e9aa8e90830716f0b15764a",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v049.mjs",
+        "sha": "b796635e02f348c308ded72d803e504f31b81114",
+        "bytes": 14188
+      }
+    },
+    {
+      "path": "skyshift/trial-v050.mjs",
+      "sha": "146302562febc81cc273f8de62b8a3fe0cdd6c44",
+      "bytes": 14838,
+      "baselineBlob": "146302562febc81cc273f8de62b8a3fe0cdd6c44",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-deck-moves.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02i-legacy-rendering-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/stageJ-consumer-queue.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v050.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v050.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/full-circuit-v050.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/speed-track-v051.test.mjs",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v050.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v050.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "source": 3,
+        "test-or-qa": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 10,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "60fe67137527f2c8e39693a4f19a61072110029d",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v050.mjs",
+          "sha": "e0bf93b4ccd68b1a7f854ff80afe0bb3a8b5c247",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/speed-track-v051.test.mjs",
+          "sha": "bdccf586ad0c3aa6bfa7d6e744181d3cc699dbd9",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v050.mjs",
+          "sha": "0f5598bbea5c8473c0bbd9500e32f59cb8585ab1",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v050.mjs",
+          "sha": "72727745abd4790a9901a36480243414f2512907",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v050.mjs",
+          "sha": "b64daaacc21d615ec30ef72b763bd64e07877c5e",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v050.mjs",
+        "sha": "146302562febc81cc273f8de62b8a3fe0cdd6c44",
+        "bytes": 14838
+      }
+    },
+    {
+      "path": "skyshift/trial-v051.mjs",
+      "sha": "a2f7170ae3208bc58fb15021696b47cd8208b64e",
+      "bytes": 15109,
+      "baselineBlob": "a2f7170ae3208bc58fb15021696b47cd8208b64e",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-deck-moves.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/stageJ-consumer-queue.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v051.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/speed-track-v051.test.mjs",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v051.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v051.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "test-or-qa": 1,
+        "source": 2,
+        "pinned-archive": 2
+      },
+      "metadataRefs": 9,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "60fe67137527f2c8e39693a4f19a61072110029d",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/speed-track-v051.test.mjs",
+          "sha": "bdccf586ad0c3aa6bfa7d6e744181d3cc699dbd9",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v051.mjs",
+          "sha": "2bcfb12adbce1f6dbc3cebd0f5f208645895c7bf",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v051.mjs",
+          "sha": "280b0fad02ebc30cdde75388daf631befa57bb22",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v051.mjs",
+          "sha": "a34785fa66e4afe6dde4f7ca096b03668efd6570",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/premium-track-v051.mjs",
+          "sha": "1c2f8bf9a2fae22cfbe1a3da7d2fb1fccf9ebb31",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v051.mjs",
+        "sha": "a2f7170ae3208bc58fb15021696b47cd8208b64e",
+        "bytes": 15109
+      }
+    },
+    {
+      "path": "skyshift/zone-wave-v049.mjs",
+      "sha": "70819eab7e789d22e624f40584421510bd60d397",
+      "bytes": 2910,
+      "baselineBlob": "70819eab7e789d22e624f40584421510bd60d397",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02i-legacy-rendering-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v049.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/extended-zone-v049.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "source": 1,
+        "test-or-qa": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 8,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "60fe67137527f2c8e39693a4f19a61072110029d",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v049.mjs",
+          "sha": "4ce706e600bfd4bf1530f47d5a1ed082c2671400",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/extended-zone-v049.test.mjs",
+          "sha": "dc55eb29e5f46586ef6d28352695476d3a671ca9",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v049.mjs",
+          "sha": "f00e40dbe72639f09afd4511fdd3a845cf49c6de",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/zone-wave-v049.mjs",
+        "sha": "70819eab7e789d22e624f40584421510bd60d397",
+        "bytes": 2910
+      }
+    },
+    {
+      "path": "skyshift/zone-wave-v0491.mjs",
+      "sha": "c57ad6f44896f42a5a11324d8e3486acf1b08e55",
+      "bytes": 5271,
+      "baselineBlob": "c57ad6f44896f42a5a11324d8e3486acf1b08e55",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02i-legacy-rendering-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0491.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/mobile-boot-v04911.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/spectral-zone-v0491.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0491.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "source": 2,
+        "test-or-qa": 1,
+        "pinned-archive": 2
+      },
+      "metadataRefs": 8,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "60fe67137527f2c8e39693a4f19a61072110029d",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0491.mjs",
+          "sha": "b1ea09ea1ca3c2ec6f3a081a495d74c649d7a570",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/spectral-zone-v0491.test.mjs",
+          "sha": "7c45c2cd72fec9e20e63dbd0ea8faaeb9914ce25",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0491.mjs",
+          "sha": "18fc5e2f71b00cc6b1ca9a97b3a31f9fb38d268c",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0491.mjs",
+          "sha": "bd42fa977743f34ce387803fba61dae0bde985ae",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v04911.mjs",
+          "sha": "07478e3bc96f44fb6e8538ad4113613a80475819",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/zone-wave-v0491.mjs",
+        "sha": "c57ad6f44896f42a5a11324d8e3486acf1b08e55",
+        "bytes": 5271
+      }
+    },
+    {
+      "path": "skyshift/zone-wave-v0492.mjs",
+      "sha": "88a29526db179d1e7e41a22c520d6d7b7e214d19",
+      "bytes": 6636,
+      "baselineBlob": "88a29526db179d1e7e41a22c520d6d7b7e214d19",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02i-legacy-rendering-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0492.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/white-core-v0492.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0492.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "source": 2,
+        "test-or-qa": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 8,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "60fe67137527f2c8e39693a4f19a61072110029d",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0492.mjs",
+          "sha": "32d70cc63841bcdefb912f5ea13b4bf591668ff5",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/white-core-v0492.test.mjs",
+          "sha": "e8bff4ea62b6700eb1667b9e62642d6e2d74e3f9",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0492.mjs",
+          "sha": "4f6edad51f5fa03f6450276eb6c05cfbb693d0e8",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0492.mjs",
+          "sha": "f6912ceda314c0266ee6dc3662d791dbe4b4be26",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/zone-wave-v0492.mjs",
+        "sha": "88a29526db179d1e7e41a22c520d6d7b7e214d19",
+        "bytes": 6636
+      }
+    },
+    {
+      "path": "skyshift/zone-wave-v0493.mjs",
+      "sha": "1b7d0e816172bce6a5cc6f638483dcef29c19694",
+      "bytes": 6625,
+      "baselineBlob": "1b7d0e816172bce6a5cc6f638483dcef29c19694",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02i-legacy-rendering-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0493.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0496.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0498.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/racing-hud-v04991.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/reactive-hud-v0499.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/spectral-balance-v0493.test.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0493.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0496.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0497.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "source": 6,
+        "test-or-qa": 1,
+        "pinned-archive": 8
+      },
+      "metadataRefs": 7,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "60fe67137527f2c8e39693a4f19a61072110029d",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0493.mjs",
+          "sha": "8e6fa44f2565c78a713a05f5f7ebb9ced0e9f609",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0496.mjs",
+          "sha": "7111488143395a6877437cb895fa9c2a729f8518",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v0498.mjs",
+          "sha": "ff74fe667bdf227c69ec63bdba2fbc995804e00d",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/spectral-balance-v0493.test.mjs",
+          "sha": "c60929e937dc134dd339d7dcc13d849d9ca85424",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0493.mjs",
+          "sha": "3e5b3b39c3f6da6f014ec9c21499097292e62ce6",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0496.mjs",
+          "sha": "1ee9c9f66a03b7e143f02948fb5bdc18991e9552",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v0497.mjs",
+          "sha": "d863a4bf4ab44b283f70beaf16649fcb330ee384",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0493.mjs",
+          "sha": "3706dd480a111db91e9aa8e90830716f0b15764a",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0494.mjs",
+          "sha": "61c4cd267e275b341d11e5e467b84df5e7002b3d",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0495.mjs",
+          "sha": "092d026fb9a7ddc1c384c41d57e30672d72d940b",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0496.mjs",
+          "sha": "e260ac0cd4af370e17e9cfa94963244a88e23826",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0497.mjs",
+          "sha": "e76a3af51f3219e63b15aa57fdfe44d10a19c8ce",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0498.mjs",
+          "sha": "b8b498891b0d0fce7982e9cce9e21c03186a5dd2",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0499.mjs",
+          "sha": "606271b07bd91ddd48bf3c4a1db21acf80b22e0d",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v04991.mjs",
+          "sha": "fc2878cc92843f411cd5089a86671b16f730d9cf",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/zone-wave-v0493.mjs",
+        "sha": "1b7d0e816172bce6a5cc6f638483dcef29c19694",
+        "bytes": 6625
+      }
+    },
+    {
+      "path": "skyshift/zone-wave-v050.mjs",
+      "sha": "6775d652696a2434aff3946b97f29ba6f11956eb",
+      "bytes": 1070,
+      "baselineBlob": "6775d652696a2434aff3946b97f29ba6f11956eb",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-ef02-deck-parity.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02i-legacy-rendering-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v050.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v050.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/full-circuit-v050.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/speed-track-v051.test.mjs",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v050.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 2,
+        "source": 2,
+        "test-or-qa": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 8,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-ef02-deck-parity.yml",
+          "sha": "872ad70574dc1f0f611cd63504ddfd94e395b303",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "60fe67137527f2c8e39693a4f19a61072110029d",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v050.mjs",
+          "sha": "e0bf93b4ccd68b1a7f854ff80afe0bb3a8b5c247",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/speed-track-v051.test.mjs",
+          "sha": "bdccf586ad0c3aa6bfa7d6e744181d3cc699dbd9",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v050.mjs",
+          "sha": "0f5598bbea5c8473c0bbd9500e32f59cb8585ab1",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v050.mjs",
+          "sha": "b64daaacc21d615ec30ef72b763bd64e07877c5e",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/zone-wave-v050.mjs",
+        "sha": "bb7dddd91dd4f21f452e4fb67e03a7302d96f5f5",
+        "bytes": 7523
+      }
+    },
+    {
+      "path": "skyshift/zone-wave-v051.mjs",
+      "sha": "d189bdda75b054232cf494663070670d9ffef218",
+      "bytes": 1073,
+      "baselineBlob": "d189bdda75b054232cf494663070670d9ffef218",
+      "priorOwner": "environment",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-ef02-deck-parity.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v051.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/speed-track-v051.test.mjs",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v051.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 2,
+        "test-or-qa": 1,
+        "source": 1,
+        "pinned-archive": 2
+      },
+      "metadataRefs": 6,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-ef02-deck-parity.yml",
+          "sha": "872ad70574dc1f0f611cd63504ddfd94e395b303",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "60fe67137527f2c8e39693a4f19a61072110029d",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tests/unit/speed-track-v051.test.mjs",
+          "sha": "bdccf586ad0c3aa6bfa7d6e744181d3cc699dbd9",
+          "kind": "test-or-qa",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v051.mjs",
+          "sha": "2bcfb12adbce1f6dbc3cebd0f5f208645895c7bf",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v051.mjs",
+          "sha": "a34785fa66e4afe6dde4f7ca096b03668efd6570",
+          "kind": "pinned-archive",
+          "count": 1
+        },
+        {
+          "path": "skyshift/premium-track-v051.mjs",
+          "sha": "1c2f8bf9a2fae22cfbe1a3da7d2fb1fccf9ebb31",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/zone-wave-v051.mjs",
+        "sha": "c7ec8d5409e2c6924d8f22afc0acb2dd16a257a7",
+        "bytes": 7526
+      }
     }
   ],
   "unitTests": [
@@ -2324,6 +3707,101 @@
       "productionEvidenceRun": 45897212420,
       "replacement": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
       "reason": "Obsolete duplicate track integrity snapshots; same feature test names and current 0165 test runs in fast, architecture and main track QA."
+    },
+    {
+      "path": "skyshift/tests/unit/extended-zone-v049.test.mjs",
+      "sha": "dc55eb29e5f46586ef6d28352695476d3a671ca9",
+      "bytes": 8218,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/spectral-balance-v0493.test.mjs",
+      "sha": "c60929e937dc134dd339d7dcc13d849d9ca85424",
+      "bytes": 6361,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/spectral-zone-v0491.test.mjs",
+      "sha": "7c45c2cd72fec9e20e63dbd0ea8faaeb9914ce25",
+      "bytes": 8446,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/speed-track-v051.test.mjs",
+      "sha": "bdccf586ad0c3aa6bfa7d6e744181d3cc699dbd9",
+      "bytes": 7178,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tests/unit/white-core-v0492.test.mjs",
+      "sha": "e8bff4ea62b6700eb1667b9e62642d6e2d74e3f9",
+      "bytes": 6372,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ]
     }
   ],
   "architectureTests": [
@@ -3178,6 +4656,73 @@
         "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
         "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
       ]
+    },
+    {
+      "scope": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "rootFiles": 9,
+      "sourceFiles": 18,
+      "unitFiles": 5,
+      "browserFiles": 0,
+      "bytes": 306112,
+      "paths": [
+        "skyshift/rendering/legacy/premium-track-v049.mjs",
+        "skyshift/rendering/legacy/premium-track-v0491.mjs",
+        "skyshift/rendering/legacy/premium-track-v0492.mjs",
+        "skyshift/rendering/legacy/premium-track-v0493.mjs",
+        "skyshift/rendering/legacy/premium-track-v0496.mjs",
+        "skyshift/rendering/legacy/premium-track-v0498.mjs",
+        "skyshift/rendering/legacy/premium-track-v050.mjs",
+        "skyshift/tests/unit/extended-zone-v049.test.mjs",
+        "skyshift/tests/unit/spectral-balance-v0493.test.mjs",
+        "skyshift/tests/unit/spectral-zone-v0491.test.mjs",
+        "skyshift/tests/unit/speed-track-v051.test.mjs",
+        "skyshift/tests/unit/white-core-v0492.test.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v049.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0491.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0492.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0493.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0496.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0497.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v050.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v051.mjs",
+        "skyshift/tracks/shared/smooth-track-v049.mjs",
+        "skyshift/tracks/shared/smooth-track-v050.mjs",
+        "skyshift/tracks/shared/smooth-track-v051.mjs",
+        "skyshift/trial-v049.mjs",
+        "skyshift/trial-v050.mjs",
+        "skyshift/trial-v051.mjs",
+        "skyshift/zone-wave-v049.mjs",
+        "skyshift/zone-wave-v0491.mjs",
+        "skyshift/zone-wave-v0492.mjs",
+        "skyshift/zone-wave-v0493.mjs",
+        "skyshift/zone-wave-v050.mjs",
+        "skyshift/zone-wave-v051.mjs"
+      ],
+      "removedSyntaxCommands": 27,
+      "coverage": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ]
     }
   ],
   "protectedReplacements": {
@@ -3416,6 +4961,456 @@
         "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
         "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
       ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v049.mjs",
+      "sha": "4ce706e600bfd4bf1530f47d5a1ed082c2671400",
+      "bytes": 11041,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v049.mjs",
+        "sha": "d04fdc63d3ade622c02aee2529c70bb2b7c2f7bf",
+        "bytes": 11011
+      }
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0491.mjs",
+      "sha": "b1ea09ea1ca3c2ec6f3a081a495d74c649d7a570",
+      "bytes": 12182,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v0491.mjs",
+        "sha": "7c59ac8009e98959a7c149ee7d9cdaaaa148eeb9",
+        "bytes": 12152
+      }
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0492.mjs",
+      "sha": "32d70cc63841bcdefb912f5ea13b4bf591668ff5",
+      "bytes": 13509,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v0492.mjs",
+        "sha": "a2e25bee867f8b3dbbe86ffb930c84a3f68312d5",
+        "bytes": 13479
+      }
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0493.mjs",
+      "sha": "8e6fa44f2565c78a713a05f5f7ebb9ced0e9f609",
+      "bytes": 13504,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v0493.mjs",
+        "sha": "673cfbcef667c292a77520ee7e7c32538115ed5f",
+        "bytes": 13474
+      }
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0496.mjs",
+      "sha": "7111488143395a6877437cb895fa9c2a729f8518",
+      "bytes": 14495,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v0496.mjs",
+        "sha": "63374a11a5f2f9fac628aeb3a73266ccc0f0109e",
+        "bytes": 14465
+      }
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v0498.mjs",
+      "sha": "ff74fe667bdf227c69ec63bdba2fbc995804e00d",
+      "bytes": 14782,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v0498.mjs",
+        "sha": "cd76a9d9ec9f3ba3e62f989022fe15400bfb2eb9",
+        "bytes": 14752
+      }
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v050.mjs",
+      "sha": "e0bf93b4ccd68b1a7f854ff80afe0bb3a8b5c247",
+      "bytes": 15373,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v050.mjs",
+        "sha": "60165d2dbd5e846375fd26407a285eb39a2debf7",
+        "bytes": 15343
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v049.mjs",
+      "sha": "ef92391ff509af93cd6ca2d0c0fcf152b18d7ff0",
+      "bytes": 8407,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v049.mjs",
+        "sha": "ef92391ff509af93cd6ca2d0c0fcf152b18d7ff0",
+        "bytes": 8407
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v0491.mjs",
+      "sha": "18fc5e2f71b00cc6b1ca9a97b3a31f9fb38d268c",
+      "bytes": 11759,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v0491.mjs",
+        "sha": "18fc5e2f71b00cc6b1ca9a97b3a31f9fb38d268c",
+        "bytes": 11759
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v0492.mjs",
+      "sha": "4f6edad51f5fa03f6450276eb6c05cfbb693d0e8",
+      "bytes": 12606,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v0492.mjs",
+        "sha": "4f6edad51f5fa03f6450276eb6c05cfbb693d0e8",
+        "bytes": 12606
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v0493.mjs",
+      "sha": "3e5b3b39c3f6da6f014ec9c21499097292e62ce6",
+      "bytes": 12606,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v0493.mjs",
+        "sha": "3e5b3b39c3f6da6f014ec9c21499097292e62ce6",
+        "bytes": 12606
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v0496.mjs",
+      "sha": "1ee9c9f66a03b7e143f02948fb5bdc18991e9552",
+      "bytes": 13320,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v0496.mjs",
+        "sha": "1ee9c9f66a03b7e143f02948fb5bdc18991e9552",
+        "bytes": 13320
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v0497.mjs",
+      "sha": "d863a4bf4ab44b283f70beaf16649fcb330ee384",
+      "bytes": 15256,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v0497.mjs",
+        "sha": "d863a4bf4ab44b283f70beaf16649fcb330ee384",
+        "bytes": 15256
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v050.mjs",
+      "sha": "0f5598bbea5c8473c0bbd9500e32f59cb8585ab1",
+      "bytes": 15764,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v050.mjs",
+        "sha": "0f5598bbea5c8473c0bbd9500e32f59cb8585ab1",
+        "bytes": 15764
+      }
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v051.mjs",
+      "sha": "2bcfb12adbce1f6dbc3cebd0f5f208645895c7bf",
+      "bytes": 15764,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v051.mjs",
+        "sha": "2bcfb12adbce1f6dbc3cebd0f5f208645895c7bf",
+        "bytes": 15764
+      }
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v049.mjs",
+      "sha": "9defea4f14b04264ac47816c0886755d1ebeccd1",
+      "bytes": 665,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v049.mjs",
+        "sha": "8b193b3c14cd0869444275b75639ffd984916a51",
+        "bytes": 2336
+      }
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v050.mjs",
+      "sha": "72727745abd4790a9901a36480243414f2512907",
+      "bytes": 392,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v050.mjs",
+        "sha": "65009d51791051f6e2ffcff817cbd6c2d37df944",
+        "bytes": 2333
+      }
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v051.mjs",
+      "sha": "280b0fad02ebc30cdde75388daf631befa57bb22",
+      "bytes": 392,
+      "rollbackCommit": "76a4da85b3f18e614bff6acb27a3dd314662caaf",
+      "verifiedArchitectureRun": 45957890248,
+      "productionEvidenceRun": 45957890235,
+      "reason": "Historical 049–051 route, zone-wave and material adapters with only closed historical consumers and syntax-only readers; retain current exact deck/barrier/wave, generic track/flight and real Vault graphics regressions.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-zone-wave-parity.mjs",
+        "skyshift/tests/unit/vault-spatial-wave-parity-v0285.test.mjs",
+        "skyshift/tests/unit/road-spill-wave-coves-v02895.test.mjs",
+        "skyshift/tests/unit/unified-tunnel-light-sources-v02894.test.mjs"
+      ],
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v051.mjs",
+        "sha": "f35175600bd692092568ac5599ae3242e42e7473",
+        "bytes": 2333
+      }
     }
   ]
 }

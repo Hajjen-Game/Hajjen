@@ -230,42 +230,15 @@ jobs:
           node --check skyshift/rendering/legacy/premium-track-v0482.mjs
           node --check skyshift/ships/manta-blade-v0484.mjs
           node --check skyshift/flight/boost/boost-v049.mjs
-          node --check skyshift/trial-v049.mjs
-          node --check skyshift/tracks/shared/smooth-track-v049.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v049.mjs
-          node --check skyshift/zone-wave-v049.mjs
-          node --check skyshift/rendering/legacy/premium-track-v049.mjs
-          node --check skyshift/zone-wave-v0491.mjs
-          node --check skyshift/rendering/legacy/premium-track-v0491.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v0491.mjs
-          node --check skyshift/zone-wave-v0492.mjs
-          node --check skyshift/rendering/legacy/premium-track-v0492.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v0492.mjs
-          node --check skyshift/zone-wave-v0493.mjs
-          node --check skyshift/rendering/legacy/premium-track-v0493.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v0493.mjs
           node --check skyshift/flight/boost/boost-v0494.mjs
           node --check skyshift/flight/boost/boost-chase-v0494.mjs
           node --check skyshift/flight/boost/boost-spring-v0495.mjs
           node --check skyshift/velocity-language-v0496.mjs
           node --check skyshift/engine-trails-v0496.mjs
-          node --check skyshift/rendering/legacy/premium-track-v0496.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v0496.mjs
           node --check skyshift/space-v0496.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v0497.mjs
-          node --check skyshift/rendering/legacy/premium-track-v0498.mjs
           node --check skyshift/ui/reactive-hud-v0499.mjs
           node --check skyshift/ui/reactive-hud-v04991.mjs
           node --check skyshift/flight/boost/boost-v050.mjs
-          node --check skyshift/trial-v050.mjs
-          node --check skyshift/tracks/shared/smooth-track-v050.mjs
-          node --check skyshift/zone-wave-v050.mjs
-          node --check skyshift/rendering/legacy/premium-track-v050.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v050.mjs
-          node --check skyshift/trial-v051.mjs
-          node --check skyshift/zone-wave-v051.mjs
-          node --check skyshift/tracks/shared/smooth-track-v051.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v051.mjs
           node --check skyshift/tracks/shared/circuit-layout-v060.mjs
           node --check skyshift/flight/boost/boost-v060.mjs
           node --check skyshift/trial-v060.mjs

@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {readArchivedWorldAsset} from './archived-world-assets.mjs';
 import {build} from 'vite';
-import {PRODUCTION_TRACK,productionRouteUrl} from '../tracks/shared/production-catalog.mjs';
+import {PRODUCTION_TRACK,PRODUCTION_RELEASE_NAME,productionRouteUrl} from '../tracks/shared/production-catalog.mjs';
 import {specializeVaultGame,specializeVaultTunnelRuntime,retiredSceneryModules,retiredTunnelModules,comparisonOnlyWorldAssets} from './production-specialization.mjs';
 import {reconcileEF05Owners} from './ef05-owner-reconciliation.mjs';
 const here=dirname(fileURLToPath(import.meta.url)),source=resolve(here,'..');
@@ -42,6 +42,11 @@ html=html.replace(/<link rel="stylesheet" href="\.\/[^"]+\.css(?:\?[^"]*)?">/g,(
 });
 await writeFile(join(stage,'production.css'),styles.map(x=>'@import '+JSON.stringify(x)+';').join('\n')+'\n');
 html=replaceOnce(html,tag,'<script type="module" src="./boot-v0210.js"></script>','production boot entry');
+// The raw source retains its historical comparison metadata; the production
+// title, description and menu version come from the single current catalog.
+html=replaceOnce(html,/<title>[^<]+<\/title>/g,'<title>SKYSHIFT · '+PRODUCTION_RELEASE_NAME+' · '+PRODUCTION_TRACK.version+'</title>','current production title');
+html=replaceOnce(html,/(<meta name="description" content=")SKYSHIFT [^·]+ ·/g,'$1SKYSHIFT '+PRODUCTION_TRACK.version+' – '+PRODUCTION_RELEASE_NAME+' ·','current production description');
+html=replaceOnce(html,/(<span id="menu-track-name">[^<]+<\/span> · )\d+(?:\.\d+)+/g,'$1'+PRODUCTION_TRACK.version,'current menu version');
 // Retire ordinary Skyline/Aurora selection only in the published bundle.
 // The original source HTML/boot remain intact for explicit historical QA.
 html=replaceOnce(html,/<select id="track-picker" class="track-picker" aria-label="Välj bana">[\s\S]*?<\/select>/g,

@@ -3,6 +3,7 @@ export const PRODUCTION_TRACK=Object.freeze({
  id:'vault',version:'0.28.9.8',name:'NEON VAULT CIRCUIT',
  option:'NEON VAULT — FULL TUNNEL CIRCUIT'
 });
+export const PRODUCTION_RELEASE_NAME='Upper Wall Stability & Edge-Only Road';
 export function productionRouteUrl(href){
  const url=new URL(href);
  url.searchParams.set('track',PRODUCTION_TRACK.id);

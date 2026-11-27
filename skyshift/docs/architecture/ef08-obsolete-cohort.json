@@ -1650,6 +1650,410 @@
       "rollbackCommit": "55414c269294adbccc14d738ddf09e8131d444d0",
       "verifiedArchitectureRun": 45897212479,
       "productionEvidenceRun": 45897212420
+    },
+    {
+      "path": "skyshift/cinematic-v0161.mjs",
+      "sha": "585f75e71120f268aa965aa03d58f1f2e74d6d40",
+      "bytes": 443,
+      "baselineBlob": "585f75e71120f268aa965aa03d58f1f2e74d6d40",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-trial-moves.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/releases/RELEASE-0161.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/flight/stageH-migration-manifest.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/flight/unified-flight-v0161.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/unit/track-integrity-v0161.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "source": 1,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 10,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "32452fc23a756d6cee7fe07ebbe4ba6b1c4eae6b",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/flight/unified-flight-v0161.mjs",
+          "sha": "f3d5faae0ba9f3e1457214073e03c923b44351a7",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v0161.mjs",
+          "sha": "f76534c85d28e24dc3ba250c0ed863a6a678efce",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/cinematic-v0161.mjs",
+        "sha": "28327a903165bc1e05651689086c32f1128307c9",
+        "bytes": 6031
+      },
+      "reason": "Superseded camera/flight/rail adapter or syntax-only obsolete browser runner; current 0165 parity, shared camera and track-integrity regressions remain.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/trial-v070.mjs",
+      "sha": "dfd6f6692723e2457959e73dc85e1d91fbd68876",
+      "bytes": 18913,
+      "baselineBlob": "dfd6f6692723e2457959e73dc85e1d91fbd68876",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/README.md",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/cinematic-v070.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-deck-moves.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02h-track-geometry-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02i-legacy-rendering-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/stageJ-consumer-queue.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v070.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v070.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/corkscrew-v072.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/track-3d-v070.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v070.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v070.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "source": 3,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 12,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "32452fc23a756d6cee7fe07ebbe4ba6b1c4eae6b",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v070.mjs",
+          "sha": "c98248c02167931ffafe9bae023fa77658a9b238",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v070.mjs",
+          "sha": "ccb4298937925d1457133bf439e729f6ff5ad2c5",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v070.mjs",
+          "sha": "ba4c89d2ad8e3cc155797049720004a3c4d88918",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v070.mjs",
+          "sha": "dd1fbeaa4e8bc32d0f82f8228a1e11fb19a6b528",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v070.mjs",
+        "sha": "f5cbb2e877bf707ac4d59c4934889464fa3ed0a3",
+        "bytes": 18885
+      },
+      "reason": "Closed historical 070/071 route, trial and render cohort after old test readers retired; current generic jump, landing, magnetic and corkscrew simulation, deck and barrier parity and live WebGL retained.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/trial-v071.mjs",
+      "sha": "d3b9c0c6c97b9703a2d6086a8c0241e62aaf17c7",
+      "bytes": 21349,
+      "baselineBlob": "d3b9c0c6c97b9703a2d6086a8c0241e62aaf17c7",
+      "priorOwner": "engine",
+      "priorRole": "qa-literal",
+      "sourceReachable": false,
+      "knownPriorConsumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "stillTracked": true,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/cinematic-v071.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-deck-moves.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-closure-root-inventory.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02-remaining-ownership-evidence.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02h-track-geometry-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/ef02i-legacy-rendering-ownership.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-baseline-2026-11-23.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/root-relocation-l1h.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/docs/architecture/stageJ-consumer-queue.json",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v071.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tests/browser/legacy/browser-smoke-v071.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/air-tricks-v080.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/corkscrew-v072.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tests/unit/magnetic-wall-v071.test.mjs",
+          "stillTracked": false,
+          "unchanged": false
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v071.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v071.mjs",
+          "stillTracked": true,
+          "unchanged": true
+        }
+      ],
+      "consumerKinds": {
+        "workflow": 1,
+        "source": 3,
+        "pinned-archive": 1
+      },
+      "metadataRefs": 12,
+      "consumers": [
+        {
+          "path": ".github/workflows/skyshift-tests.yml",
+          "sha": "32452fc23a756d6cee7fe07ebbe4ba6b1c4eae6b",
+          "kind": "workflow",
+          "count": 1
+        },
+        {
+          "path": "skyshift/rendering/legacy/premium-track-v071.mjs",
+          "sha": "b1e583f738c11fa75f085b40e1253c85a7315de7",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/barriers/aero-barrier-v071.mjs",
+          "sha": "4c570a26654bba35b8e084285d460ef81a499ee3",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/tracks/shared/smooth-track-v071.mjs",
+          "sha": "cc695b36e885644d0a345dcf46c9a84b9b97370f",
+          "kind": "source",
+          "count": 1
+        },
+        {
+          "path": "skyshift/legacy/game/game-v071.mjs",
+          "sha": "4b2dac4e9b279a6daac29e9d4592d3683da0efe9",
+          "kind": "pinned-archive",
+          "count": 1
+        }
+      ],
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/trial-v071.mjs",
+        "sha": "bd36f4f8f2178f2d49a5accc863e15154a46f2ca",
+        "bytes": 21321
+      },
+      "reason": "Closed historical 070/071 route, trial and render cohort after old test readers retired; current generic jump, landing, magnetic and corkscrew simulation, deck and barrier parity and live WebGL retained.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
     }
   ],
   "unitTests": [
@@ -2485,6 +2889,29 @@
       "sha": "992aaef1ecc9f60cc7ac089fa23ffef9cb95f1ae",
       "bytes": 12357,
       "rollbackCommit": "4f5798628bcd5b883bd3976febdbd22c5ef9efb6"
+    },
+    {
+      "path": "skyshift/tests/browser/browser-track-integrity-v0161.mjs",
+      "sha": "9a8ed0826a8633f0d62ee45847c97da4eebd1077",
+      "bytes": 7151,
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tests/browser/browser-track-integrity-v0161.mjs",
+        "sha": "797eeb8b8012802659fa5521badec8ee49d6c81f",
+        "bytes": 7093
+      },
+      "reason": "Superseded camera/flight/rail adapter or syntax-only obsolete browser runner; current 0165 parity, shared camera and track-integrity regressions remain.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
     }
   ],
   "batches": [
@@ -2715,6 +3142,42 @@
         "skyshift/tests/unit/track-integrity-v0164.test.mjs"
       ],
       "removedSyntaxCommands": 13
+    },
+    {
+      "scope": "Retire complete superseded 070/071 route and 0161 camera/flight/rail cohorts. All executable current coverage preserved. Reviewed current root census and tracked consumer references; only historical archive, closed group and old workflow syntax/path triggers remain. No current trial-v02/v03, retained premium 072/081/082 parity, actual live adapters or unresolved historical readers removed.",
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "rootFiles": 3,
+      "sourceFiles": 10,
+      "browserFiles": 1,
+      "unitFiles": 0,
+      "bytes": 91087,
+      "paths": [
+        "skyshift/cinematic-v0161.mjs",
+        "skyshift/flight/unified-flight-v0161.mjs",
+        "skyshift/rendering/legacy/premium-track-v070.mjs",
+        "skyshift/rendering/legacy/premium-track-v071.mjs",
+        "skyshift/tests/browser/browser-track-integrity-v0161.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v0161.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v070.mjs",
+        "skyshift/tracks/barriers/aero-barrier-v071.mjs",
+        "skyshift/tracks/shared/smooth-track-v070.mjs",
+        "skyshift/tracks/shared/smooth-track-v071.mjs",
+        "skyshift/tracks/shared/track-3d-v070.mjs",
+        "skyshift/tracks/shared/track-3d-v071.mjs",
+        "skyshift/trial-v070.mjs",
+        "skyshift/trial-v071.mjs"
+      ],
+      "removedSyntaxCommands": 14,
+      "coverage": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
     }
   ],
   "protectedReplacements": {
@@ -2722,5 +3185,237 @@
     "skyshift/tests/unit/track-integrity-v0162.test.mjs": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
     "skyshift/tests/unit/track-integrity-v0163.test.mjs": "skyshift/tests/unit/track-integrity-v0165.test.mjs",
     "skyshift/tests/unit/track-integrity-v0164.test.mjs": "skyshift/tests/unit/track-integrity-v0165.test.mjs"
-  }
+  },
+  "sourceFiles": [
+    {
+      "path": "skyshift/flight/unified-flight-v0161.mjs",
+      "sha": "f3d5faae0ba9f3e1457214073e03c923b44351a7",
+      "bytes": 347,
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/flight/unified-flight-v0161.mjs",
+        "sha": "5c682769b0a74f05bb019ffbe035866afbf99488",
+        "bytes": 4044
+      },
+      "reason": "Superseded camera/flight/rail adapter or syntax-only obsolete browser runner; current 0165 parity, shared camera and track-integrity regressions remain.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v070.mjs",
+      "sha": "c98248c02167931ffafe9bae023fa77658a9b238",
+      "bytes": 15850,
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v070.mjs",
+        "sha": "c79e5fdcccc79ac83afb0b346265db86d6a53411",
+        "bytes": 15820
+      },
+      "reason": "Closed historical 070/071 route, trial and render cohort after old test readers retired; current generic jump, landing, magnetic and corkscrew simulation, deck and barrier parity and live WebGL retained.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/rendering/legacy/premium-track-v071.mjs",
+      "sha": "b1e583f738c11fa75f085b40e1253c85a7315de7",
+      "bytes": 16459,
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/premium-track-v071.mjs",
+        "sha": "f57f67a857287bb4c270bd01a609d803ab914966",
+        "bytes": 16429
+      },
+      "reason": "Closed historical 070/071 route, trial and render cohort after old test readers retired; current generic jump, landing, magnetic and corkscrew simulation, deck and barrier parity and live WebGL retained.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v0161.mjs",
+      "sha": "036e2bd97d51329d8483e892a47d78d7c55fcc39",
+      "bytes": 990,
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v0161.mjs",
+        "sha": "b46dd11e46daffa363518171c35e82aae03c3917",
+        "bytes": 16971
+      },
+      "reason": "Superseded camera/flight/rail adapter or syntax-only obsolete browser runner; current 0165 parity, shared camera and track-integrity regressions remain.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v070.mjs",
+      "sha": "ccb4298937925d1457133bf439e729f6ff5ad2c5",
+      "bytes": 905,
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v070.mjs",
+        "sha": "85ee90b895aeb4280c80a4ac6b690870b0c7df90",
+        "bytes": 16530
+      },
+      "reason": "Closed historical 070/071 route, trial and render cohort after old test readers retired; current generic jump, landing, magnetic and corkscrew simulation, deck and barrier parity and live WebGL retained.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tracks/barriers/aero-barrier-v071.mjs",
+      "sha": "4c570a26654bba35b8e084285d460ef81a499ee3",
+      "bytes": 905,
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/tracks/barriers/aero-barrier-v071.mjs",
+        "sha": "e13c94173d94952542da3f1eaa868b5d73d47a59",
+        "bytes": 16530
+      },
+      "reason": "Closed historical 070/071 route, trial and render cohort after old test readers retired; current generic jump, landing, magnetic and corkscrew simulation, deck and barrier parity and live WebGL retained.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v070.mjs",
+      "sha": "ba4c89d2ad8e3cc155797049720004a3c4d88918",
+      "bytes": 388,
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v070.mjs",
+        "sha": "73e096c5f79e47b0254e1a99f2250cae08d36581",
+        "bytes": 2534
+      },
+      "reason": "Closed historical 070/071 route, trial and render cohort after old test readers retired; current generic jump, landing, magnetic and corkscrew simulation, deck and barrier parity and live WebGL retained.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tracks/shared/smooth-track-v071.mjs",
+      "sha": "cc695b36e885644d0a345dcf46c9a84b9b97370f",
+      "bytes": 388,
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/smooth-track-v071.mjs",
+        "sha": "06390382da777951f5fa83ebd6bf29e67fc77176",
+        "bytes": 2534
+      },
+      "reason": "Closed historical 070/071 route, trial and render cohort after old test readers retired; current generic jump, landing, magnetic and corkscrew simulation, deck and barrier parity and live WebGL retained.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tracks/shared/track-3d-v070.mjs",
+      "sha": "188ce12026dd3fdba9577b7ceac8d6d281376ab9",
+      "bytes": 2963,
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/track-3d-v070.mjs",
+        "sha": "188ce12026dd3fdba9577b7ceac8d6d281376ab9",
+        "bytes": 2963
+      },
+      "reason": "Closed historical 070/071 route, trial and render cohort after old test readers retired; current generic jump, landing, magnetic and corkscrew simulation, deck and barrier parity and live WebGL retained.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
+    },
+    {
+      "path": "skyshift/tracks/shared/track-3d-v071.mjs",
+      "sha": "a82f90b7e3911b7fe6c4bb03c2f974c3b37d4277",
+      "bytes": 4036,
+      "rollbackCommit": "e41c433f4316f5825a0d49c909ea416ec52ac02c",
+      "verifiedArchitectureRun": 45953823112,
+      "productionEvidenceRun": 45953823043,
+      "historicalArchive": {
+        "commit": "06754fc69e87b23e63b73e1552f99883fadc3897",
+        "path": "skyshift/track-3d-v071.mjs",
+        "sha": "a82f90b7e3911b7fe6c4bb03c2f974c3b37d4277",
+        "bytes": 4036
+      },
+      "reason": "Closed historical 070/071 route, trial and render cohort after old test readers retired; current generic jump, landing, magnetic and corkscrew simulation, deck and barrier parity and live WebGL retained.",
+      "replacement": [
+        "skyshift/tests/architecture/ef04-race-simulation.test.mjs",
+        "skyshift/tests/unit/track-integrity-v0165.test.mjs",
+        "skyshift/tests/architecture/ef02-deck-parity.mjs",
+        "skyshift/tests/architecture/ef02-aero-barrier-parity.mjs",
+        "skyshift/tests/architecture/ef02-flight-camera-parity.mjs",
+        "skyshift/tests/architecture/ef02-premium-track-parity.mjs"
+      ]
+    }
+  ]
 }

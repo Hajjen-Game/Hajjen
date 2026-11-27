@@ -38,7 +38,7 @@ for(const f of relocations.moves){
  assert.equal(included,f.productionBefore,name+' production membership changed by relocation');
 }
 assert.equal(report.ef05Owners.counts.repositoryDeleted,report.ef05Owners.entries.filter(e=>obsoletePaths.has(e.path)).length);
-for(const f of obsoleteCohort.roots){
+for(const f of [...obsoleteCohort.roots,...(obsoleteCohort.sourceFiles||[])]){
  const name=f.path.slice('skyshift/'.length);
  assert.ok(!report.graph.modules.some(p=>p.split('?')[0]==='source/'+name),name+' obsolete module in production');
  assert.ok(!report.files.some(x=>x.path===name),name+' obsolete module in artifact');

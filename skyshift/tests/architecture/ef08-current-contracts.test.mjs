@@ -17,8 +17,9 @@ const baseline=json('skyshift/docs/architecture/ef08-root-baseline.json');
 const paths=execFileSync('git',['ls-files','-z'],{cwd:repo,encoding:'utf8',maxBuffer:16*1024*1024}).split('\0').filter(Boolean);
 const tracked=new Set(paths);
 const graph=new Set(inventory().literalBrowserGraph.paths.map(p=>'skyshift/'+p));
-const retired=[...cohort.roots,...cohort.unitTests,...cohort.architectureTests,...(cohort.browserTests||[])];
-const retiredNames=cohort.roots.map(f=>basename(f.path));
+const retiredSources=[...cohort.roots,...(cohort.sourceFiles||[])];
+const retired=[...retiredSources,...cohort.unitTests,...cohort.architectureTests,...(cohort.browserTests||[])];
+const retiredNames=retiredSources.map(f=>basename(f.path));
 const isSource=p=>/^(?:skyshift\/|\.github\/)/.test(p)&&/\.(?:mjs|js|cjs|ts|html|css|yml|yaml|sh|py|txt)$/.test(p)&&!p.startsWith('skyshift/docs/')&&!/migration-manifest|baseline|consumer-inventory|consumer-queue/.test(p);
 test('obsolete closed source and test cohort is absent; no tracked executable or workflow depends on it',()=>{
  assert.equal(cohort.schema,1);
@@ -93,7 +94,7 @@ test('root ownership progresses without resurrecting old root files',()=>{
  const roots=paths.filter(p=>/^skyshift\/[^/]+$/.test(p));
  for(const p of roots)assert.ok(old.has(p),p+' new root path requires explicit hosting or compatibility decision');
  assert.deepEqual(roots.sort(),expectedRootPaths,'Root paths must match independently reviewed retirements, not merely a count');
- console.log('SKYSHIFT_EF08_CURRENT_CONTRACTS '+JSON.stringify({rootFiles:roots.length,retiredRootFiles:cohort.roots.length,relocatedRootFiles:rootRelocations.moves.length,retiredUnitFiles:cohort.unitTests.length,retiredMigrationFiles:cohort.architectureTests.length,retiredBrowserFiles:(cohort.browserTests||[]).length,retiredBytes:retired.reduce((n,f)=>n+f.bytes,0),liveGraph:graph.size}));
+ console.log('SKYSHIFT_EF08_CURRENT_CONTRACTS '+JSON.stringify({rootFiles:roots.length,retiredRootFiles:cohort.roots.length,retiredNestedSourceFiles:(cohort.sourceFiles||[]).length,relocatedRootFiles:rootRelocations.moves.length,retiredUnitFiles:cohort.unitTests.length,retiredMigrationFiles:cohort.architectureTests.length,retiredBrowserFiles:(cohort.browserTests||[]).length,retiredBytes:retired.reduce((n,f)=>n+f.bytes,0),liveGraph:graph.size}));
 });
 
 // A moved source remains one live owner. Old references are checked only as
@@ -140,5 +141,15 @@ test('relocated ship loaders retain exact source asset URLs and parser resource 
   await ctrl.onCraftBuilt(craft,'stingray');
   assert.equal(parsedBase,expectedBase);
   assert.equal(ctrl.state.status,'fallback');ctrl.dispose();
+ }
+});
+
+// Exact historical evidence is allowed only through the pinned read-only archive.
+test('closed historical subsystem retirements preserve original Git identities and current replacements',()=>{
+ for(const f of retired.filter(f=>f.historicalArchive)){
+  assert.ok(historicalExists(resolve(repo,f.historicalArchive.path)),f.path+' archived identity');
+  assert.ok(!existsSync(resolve(repo,f.path)),f.path+' retired source remains');
+  assert.match(f.sha,/^[a-f0-9]{40}$/);assert.ok(f.bytes>0);
+  for(const replacement of f.replacement)assert.ok(tracked.has(replacement),replacement+' missing replacement');
  }
 });

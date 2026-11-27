@@ -275,16 +275,9 @@ jobs:
           node --check skyshift/tracks/barriers/aero-barrier-v060.mjs
           node --check skyshift/precision-grip-v061.mjs
           node --check skyshift/flight/side-thrusters-v061.mjs
-          node --check skyshift/tracks/shared/track-3d-v070.mjs
-          node --check skyshift/trial-v070.mjs
-          node --check skyshift/tracks/shared/smooth-track-v070.mjs
-          node --check skyshift/rendering/legacy/premium-track-v070.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v070.mjs
-          node --check skyshift/tracks/shared/track-3d-v071.mjs
-          node --check skyshift/trial-v071.mjs
-          node --check skyshift/tracks/shared/smooth-track-v071.mjs
-          node --check skyshift/rendering/legacy/premium-track-v071.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v071.mjs
+
+
+
           node --check skyshift/tracks/shared/track-3d-v072.mjs
           node --check skyshift/trial-v072.mjs
           node --check skyshift/tracks/shared/smooth-track-v072.mjs
@@ -434,10 +427,8 @@ jobs:
           node --check skyshift/time-trial-v0160.mjs
           node --check skyshift/tests/unit/multi-track-aurora-v0160.test.mjs
           node --check skyshift/tests/browser/browser-multi-track-v0160.mjs
-          node --check skyshift/cinematic-v0161.mjs
-          node --check skyshift/flight/unified-flight-v0161.mjs
-          node --check skyshift/tracks/barriers/aero-barrier-v0161.mjs
-          node --check skyshift/tests/browser/browser-track-integrity-v0161.mjs
+
+
           node --check skyshift/trial-v0162.mjs
           node --check skyshift/cinematic-v0162.mjs
           node --check skyshift/flight/unified-flight-v0162.mjs

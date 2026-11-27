@@ -54,8 +54,27 @@ export const readEF08Source=readHistorical;
 // Pinned historical imports may refer to a relocated active source. Verify the
 // exact archived Git object; never use this as a runtime import fallback.
 const ownerMoves=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef08-root-relocations.json'),'utf8')).moves;
+const closedCohort=JSON.parse(readFileSync(resolve(repo,'skyshift/docs/architecture/ef08-obsolete-cohort.json'),'utf8'));
+const closedSources=[...closedCohort.roots,...(closedCohort.sourceFiles||[]),...(closedCohort.browserTests||[])].filter(f=>f.historicalArchive);
 export function historicalExists(p){
- const key=asPath(p),move=ownerMoves.find(f=>f.oldPath===key&&f.historicalArchive);
+ const key=asPath(p);
+ // Exact, separately pinned evidence for retired source families; never an import fallback.
+ const closed=closedSources.find(f=>f.path===key||f.historicalArchive.path===key);
+ if(closed){
+  const archive=closed.historicalArchive;
+  assert.equal(archive.commit,retirement.archiveCommit,key+' closed cohort archive');
+  assert.ok(!existsSync(resolve(repo,closed.path)),closed.path+' resurrected retired source');
+  assert.ok(!existsSync(resolve(repo,archive.path)),archive.path+' resurrected historical source');
+  const id=archive.commit+':'+archive.path;
+  if(!cache.has(id)){
+   const data=execFileSync('git',['show',id],{cwd:repo,maxBuffer:8*1024*1024});
+   assert.equal(createHash('sha1').update('blob '+data.length+'\0').update(data).digest('hex'),archive.sha,key+' closed cohort Git identity');
+   assert.equal(data.length,archive.bytes,key+' closed cohort historical bytes');
+   cache.set(id,data);
+  }
+  return true;
+ }
+ const move=ownerMoves.find(f=>f.oldPath===key&&f.historicalArchive);
  if(move){
   assert.equal(move.historicalArchive.commit,retirement.archiveCommit,key+' archive commit');
   // Earlier historical snapshots can precede a later verified live implementation.

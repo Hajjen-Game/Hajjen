@@ -1,5 +1,5 @@
-import {createTimeTrialAPI} from "./core/time-trial.mjs";
-export {ghostPoseAt,ghostTimeAtDistance} from "./core/ghost-playback.mjs";
+import {createTimeTrialAPI} from "./time-trial.mjs";
+export {ghostPoseAt,ghostTimeAtDistance} from "./ghost-playback.mjs";
 // SKYSHIFT 0.13.0 — deterministic local Personal Best Time Trial + Ghost.
 // Recorded from the authoritative 120 Hz pilot state; compressed at 10 Hz.
 // Pure gameplay-adjacent data, never a source of physical steering/boost.

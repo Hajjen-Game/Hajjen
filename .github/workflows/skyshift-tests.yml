@@ -305,12 +305,12 @@ jobs:
           node --check skyshift/core/visual-fidelity-v0114.mjs
           node --check skyshift/tests/unit/visual-fidelity-v0114.test.mjs
           node --check skyshift/core/performance-audit-v0114.mjs
-          node --check skyshift/sector-landmarks-v0120.mjs
+          node --check skyshift/world/sector-landmarks-v0120.mjs
           node --check skyshift/tests/unit/racing-experience-v0120.test.mjs
           node --check skyshift/core/fidelity-settings-v0121.mjs
-          node --check skyshift/racing-experience-v0121.mjs
+          node --check skyshift/core/racing-experience-v0121.mjs
           node --check skyshift/tests/unit/racing-experience-v0121.test.mjs
-          node --check skyshift/time-trial-v0130.mjs
+          node --check skyshift/core/time-trial-v0130.mjs
           node --check skyshift/ui/ghost-visual-v0130.mjs
           node --check skyshift/tests/unit/time-trial-v0130.test.mjs
           node --check skyshift/ships/ship-art-pipeline-v0132.mjs
@@ -344,26 +344,26 @@ jobs:
           node --check skyshift/tracks/skyline/skyline-challenges-v0140.mjs
           node --check skyshift/tests/unit/skyline-challenges-v0140.test.mjs
           node --check skyshift/tests/browser/browser-challenges-v0140.mjs
-          node --check skyshift/risk-reward-v0150.mjs
+          node --check skyshift/flight/boost/risk-reward-v0150.mjs
           node --check skyshift/flight/boost/boost-v0150.mjs
           node --check skyshift/trial-v0150.mjs
           node --check skyshift/rendering/legacy/premium-track-v0150.mjs
           node --check skyshift/core/visual-fidelity-v0150.mjs
-          node --check skyshift/time-trial-v0150.mjs
+          node --check skyshift/core/time-trial-v0150.mjs
           node --check skyshift/tests/unit/risk-reward-v0150.test.mjs
           node --check skyshift/tests/browser/browser-risk-reward-v0150.mjs
-          node --check skyshift/risk-reward-v0151.mjs
+          node --check skyshift/flight/boost/risk-reward-v0151.mjs
           node --check skyshift/flight/boost/boost-v0151.mjs
           node --check skyshift/trial-v0151.mjs
           node --check skyshift/rendering/legacy/premium-track-v0151.mjs
           node --check skyshift/core/visual-fidelity-v0151.mjs
-          node --check skyshift/time-trial-v0151.mjs
+          node --check skyshift/core/time-trial-v0151.mjs
           node --check skyshift/tests/unit/risk-reward-v0151.test.mjs
           node --check skyshift/tests/browser/browser-risk-reward-v0151.mjs
           node --check skyshift/tracks/shared/track-selection-v0160.mjs
           node --check skyshift/tracks/shared/circuit-layout-v0160.mjs
           node --check skyshift/tracks/shared/track-3d-v0160.mjs
-          node --check skyshift/risk-reward-v0160.mjs
+          node --check skyshift/flight/boost/risk-reward-v0160.mjs
           node --check skyshift/flight/boost/boost-v0160.mjs
           node --check skyshift/tracks/trials/trial-v0160.mjs
           node --check skyshift/tracks/shared/smooth-track-v0160.mjs
@@ -372,8 +372,8 @@ jobs:
           node --check skyshift/tracks/barriers/aero-barrier-v0160.mjs
           node --check skyshift/tunnel/shadow-tunnel-v0160.mjs
           node --check skyshift/tunnel/tunnel-blackout-v0160.mjs
-          node --check skyshift/racing-experience-v0160.mjs
-          node --check skyshift/time-trial-v0160.mjs
+          node --check skyshift/core/racing-experience-v0160.mjs
+          node --check skyshift/core/time-trial-v0160.mjs
           node --check skyshift/tests/unit/multi-track-aurora-v0160.test.mjs
           node --check skyshift/tests/browser/browser-multi-track-v0160.mjs
 

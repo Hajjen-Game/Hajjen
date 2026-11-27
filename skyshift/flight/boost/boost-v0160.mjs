@@ -10,7 +10,7 @@ export const BOOST_CONFIG=Object.freeze({
  colorHex:0xffbe62
 });
 import {BOOST_CHOICES_0160,RACE_BOOST_CHOICES_0160,
- riskChoiceAt,RISK_REWARD_0160} from "../../risk-reward-v0160.mjs";
+ riskChoiceAt,RISK_REWARD_0160} from "./risk-reward-v0160.mjs";
 export const BOOST_PADS=BOOST_CHOICES_0160;
 export const RACE_BOOST_PADS=RACE_BOOST_CHOICES_0160;
 import {createGroupedBoostAPI} from "./grouped-boost.mjs";

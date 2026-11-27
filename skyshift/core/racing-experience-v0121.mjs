@@ -1,4 +1,4 @@
-import {createPowerCarveAPI} from "./flight/power-carve.mjs";
+import {createPowerCarveAPI} from "../flight/power-carve.mjs";
 // SKYSHIFT 0.12.1 — Power Carve & Racing Experience Refinement.
 // Unlike 0.12.0, tangible motion starts DURING pilot-held GRIP + STEER, not
 // only following a rare clean-window event. All outputs are presentation only.

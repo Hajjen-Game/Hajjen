@@ -4,7 +4,7 @@ import {TRIAL,GUARDRAIL,newFlightState,stepFlight,headingAt,positionAt,
  surfaceHeightAt,surfaceNormalAt,guardrailLateralLimit,speedAt}
  from "../trial-v0163.mjs";
 import {createTimeTrialState,startTimeTrial,captureTimeTrialSample}
- from "../time-trial-v0160.mjs";
+ from "../core/time-trial-v0160.mjs";
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const angleDelta=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
 export const RAIL_SCENARIOS_0163=Object.freeze([

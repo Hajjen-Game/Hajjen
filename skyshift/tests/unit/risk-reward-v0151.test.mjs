@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {RISK_REWARD_0151,RHYTHM_GATES_0151,BOOST_CHOICES_0151,
  RACE_BOOST_CHOICES_0151,RHYTHM_FLOW_0151,riskChoiceAt,riskCueAt,
- approachingRiskGate,trackFlowAt} from "../../risk-reward-v0151.mjs";
+ approachingRiskGate,trackFlowAt} from "../../flight/boost/risk-reward-v0151.mjs";
 import {BOOST_CONFIG,BOOST_PADS,initBoostState,stepBoostState}
  from "../../flight/boost/boost-v0151.mjs";
 import {TRIAL,CIRCUIT,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
@@ -12,8 +12,8 @@ import {TRIAL,CIRCUIT,GRIP_APEX,SKYLINE_LEAP,MAGNETIC_WALL,CORKSCREW,
  headingAt,surfaceHeightAt,stepFlight,speedAt} from "../../trial-v0151.mjs";
 import {PREMIUM_TRACK,GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,
  patchPremiumShaders} from "../../rendering/legacy/premium-track-v0151.mjs";
-import {TIME_TRIAL_0151} from "../../time-trial-v0151.mjs";
-import {TIME_TRIAL_0150} from "../../time-trial-v0150.mjs";
+import {TIME_TRIAL_0151} from "../../core/time-trial-v0151.mjs";
+import {TIME_TRIAL_0150} from "../../core/time-trial-v0150.mjs";
 import {CHALLENGES_0140} from "../../tracks/skyline/skyline-challenges-v0140.mjs";
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const center=(a,b)=>(a+b)/2;

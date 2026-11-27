@@ -2,7 +2,7 @@
 // Five intentional decision beats per 3,400m lap. Each has a safe central
 // lane and a skill-based LEFT or RIGHT option with its own difficulty/reward.
 // Racing geometry, steering, GRIP, 120Hz collision and camera are untouched.
-import {CIRCUIT} from "./tracks/shared/circuit-layout-v082.mjs";
+import {CIRCUIT} from "../../tracks/shared/circuit-layout-v082.mjs";
 export const RISK_REWARD_0151=Object.freeze({
  version:"risk-line-diversity-track-flow-0151",
  lapMeters:CIRCUIT.lapLength,

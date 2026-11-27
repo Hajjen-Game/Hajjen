@@ -135,7 +135,7 @@ test('current time-trial module preserves a PB through ghost toggle, abandonment
     globalThis.location={search:'?track='+track};
     const selection=await import('./tracks/shared/track-selection-v0160.mjs');
     assert.equal(selection.ACTIVE_TRACK_0160.id,track);
-    const tt=await import('./time-trial-v0160.mjs');
+    const tt=await import('./core/time-trial-v0160.mjs');
     const config=tt.TIME_TRIAL_0160;
     assert.equal(config.trackRevision,selection.ACTIVE_TRACK_0160.trackRevision);
     const data=new Map(),storage={getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,String(value)),removeItem:key=>data.delete(key)};
@@ -418,7 +418,7 @@ const {
  finishTimeTrial,validateGhost,loadPersonalGhost,savePersonalGhost,
  clearPersonalGhost,readGhostEnabled,saveGhostEnabled,
  ghostPoseAt,ghostTimeAtDistance,updateGhostDelta,ghostAudit
-}=await import('../../time-trial-v0160.mjs');
+}=await import('../../core/time-trial-v0160.mjs');
 const {ghostGeometryData,GHOST_VISUAL_0130,createPersonalGhostVisual}=await import('../../ui/ghost-visual-v0130.mjs');
 function memory(){
  const db=new Map();
@@ -645,7 +645,7 @@ test('ghost playback shares one implementation across all four Time Trial APIs',
  assert.match(ghostSource,/from "\.\.\/core\/ghost-playback\.mjs"/);
  assert.doesNotMatch(ghostSource,/from "\.\/time-trial-v0130\.mjs"/);
  for(let i=0;i<versions.length;i++){
-  const v=versions[i],tt=await import('../../time-trial-v'+v+'.mjs');
+  const v=versions[i],tt=await import('../../core/time-trial-v'+v+'.mjs');
   assert.equal(tt.ghostPoseAt,shared.ghostPoseAt);
   assert.equal(tt.ghostTimeAtDistance,shared.ghostTimeAtDistance);
   const config=tt['TIME_TRIAL_'+v];
@@ -671,7 +671,7 @@ test('ghost playback shares one implementation across all four Time Trial APIs',
 
 test('shared Time Trial preserves all versioned PB APIs, exact payloads and storage boundaries',async()=>{
  const versions=['0130','0150','0151','0160'];
- const tt=await Promise.all(versions.map(v=>import('../../time-trial-v'+v+'.mjs')));
+ const tt=await Promise.all(versions.map(v=>import('../../core/time-trial-v'+v+'.mjs')));
  const {createTimeTrialAPI}=await import('../../core/time-trial.mjs');
  const cfg=tt.map((m,i)=>m['TIME_TRIAL_'+versions[i]]);
  const keys=cfg.map(c=>c.storageKey);
@@ -721,8 +721,8 @@ test('shared Power Carve retains legacy parity and protected track presentation'
  const probe=async track=>{
   const {default:assert}=await import('node:assert/strict');
   globalThis.location={search:'?track='+track};
-  const old=await import('./racing-experience-v0121.mjs');
-  const current=await import('./racing-experience-v0160.mjs');
+  const old=await import('./core/racing-experience-v0121.mjs');
+  const current=await import('./core/racing-experience-v0160.mjs');
   const {createPowerCarveAPI}=await import('./flight/power-carve.mjs');
   const aurora=track==='aurora';
   const config=current.RACING_0121;

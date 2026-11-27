@@ -60,7 +60,7 @@ test("physical wall normal clips only outward yaw; away steering is not magnetiz
  assert.ok(Math.abs(report.finalLateral)<=report.physicalRailLimit+1e-6);
 });
 test("Aurora race still has no fake corkscrew, risk lanes or GRIP apex",async()=>{
- const risk=await import("../../risk-reward-v0160.mjs");
+ const risk=await import("../../flight/boost/risk-reward-v0160.mjs");
  assert.equal(trial.TRACK_3D.corkscrew,false);
  assert.equal(trial.TRACK_3D.wallRide,false);
  assert.equal(trial.GAPS.length,0);

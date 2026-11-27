@@ -9,7 +9,7 @@ import {
 } from "../../tracks/trials/trial-v0165.mjs";
 import { BOOST_PADS,BOOST_CONFIG } from "../../flight/boost/boost-v0160.mjs";
 import {RISK_REWARD_0160,RHYTHM_GATES_0160,riskCueAt}
- from "../../risk-reward-v0160.mjs";
+ from "../../flight/boost/risk-reward-v0160.mjs";
 import { createPremiumDeckGeometry,PREMIUM_TRACK } from "../../rendering/road/premium-track-v0160.mjs";
 import {FIDELITY_0114,createFidelityDirector,
  resetFidelityDirector,advanceFidelityDirector,fidelityAudit,
@@ -90,13 +90,13 @@ import {createRailScrapeSparks,RAIL_SPARKS,railContactPoint}
 import { LUMINANCE,validateLuminance } from "../../rendering/luminance-v0331.mjs";
 import {RACING_0121,createRacingExperience,resetRacingExperience,
  observeRacingStep,stepRacingExperience,raceRhythmAt,racingExperienceAudit}
- from "../../racing-experience-v0160.mjs";
+ from "../../core/racing-experience-v0160.mjs";
 import {FIDELITY_0121,readFidelityChoice,saveFidelityChoice,chooseFidelity0121}
  from "../../core/fidelity-settings-v0121.mjs";
 import {TIME_TRIAL_0160,createTimeTrialState,startTimeTrial,
  captureTimeTrialSample,finishTimeTrial,formatTrialTime,formatTrialDelta,
  loadPersonalGhost,readGhostEnabled,saveGhostEnabled,updateGhostDelta,
- ghostAudit} from "../../time-trial-v0160.mjs";
+ ghostAudit} from "../../core/time-trial-v0160.mjs";
 import {GHOST_VISUAL_0130,createPersonalGhostVisual}
  from "../../ui/ghost-visual-v0130.mjs";
 import {CHALLENGES_0140,CHALLENGE_RULES_0140,getChallenge,challengeDistance,

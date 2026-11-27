@@ -10,14 +10,14 @@ const [selection,layout,trial,track3d,risk,boost,smooth,premium,aero,shadow,tt,r
  import("../../tracks/shared/circuit-layout-v0160.mjs"),
  import("../../tracks/trials/trial-v0165.mjs"),
  import("../../tracks/shared/track-3d-v0160.mjs"),
- import("../../risk-reward-v0160.mjs"),
+ import("../../flight/boost/risk-reward-v0160.mjs"),
  import("../../flight/boost/boost-v0160.mjs"),
  import("../../tracks/shared/smooth-track-v0160.mjs"),
  import("../../rendering/road/premium-track-v0160.mjs"),
  import("../../tracks/barriers/aero-barrier-v0165.mjs"),
  import("../../tunnel/shadow-tunnel-v0160.mjs"),
- import("../../time-trial-v0160.mjs"),
- import("../../racing-experience-v0160.mjs")]);
+ import("../../core/time-trial-v0160.mjs"),
+ import("../../core/racing-experience-v0160.mjs")]);
 const src=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const near=(a,b,eps=1e-7)=>assert.ok(Math.abs(a-b)<eps,
  "expected "+a+" ≈ "+b);
@@ -128,7 +128,7 @@ test("empty risk-pad GLSL compiles to numeric zero, not missing expression",()=>
  assert.doesNotMatch(fragment,/float \w+\s*=\s*;/);
 });
 test("PB/ghost separate from Skyline while keeping Skyline saved records",async()=>{
- const original=(await import("../../time-trial-v0151.mjs")).TIME_TRIAL_0151;
+ const original=(await import("../../core/time-trial-v0151.mjs")).TIME_TRIAL_0151;
  assert.notEqual(tt.TIME_TRIAL_0160.storageKey,original.storageKey);
  assert.notEqual(tt.TIME_TRIAL_0160.trackRevision,original.trackRevision);
  assert.equal(tt.TIME_TRIAL_0160.trackId,"aurora-flow-v0160");
@@ -230,6 +230,6 @@ test("0.16.5 URLs and menu preserve independent courses and PB/ghosts",()=>{
  assert.match(html,/boot-v0205\.js\?v=0\.20\.5/);
  assert.match(src("./legacy/boot/boot-v0165.js"),/game-v0165\.mjs\?v=0\.16\.5/);
  assert.match(game,/trackPicker\.addEventListener\("change"/);
- assert.match(game,/from "\.\.\/\.\.\/time-trial-v0160\.mjs"/);
+ assert.match(game,/from "\.\.\/\.\.\/core\/time-trial-v0160\.mjs"/);
  assert.equal(tt.TIME_TRIAL_0160.storageKey,"skyshift-time-trial-ghost-aurora-0160");
 });

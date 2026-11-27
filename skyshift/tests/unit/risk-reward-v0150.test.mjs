@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {readHistorical as readFileSync} from "../architecture/legacy-retirement-l1a.mjs";
 import {RISK_REWARD_0150,RHYTHM_GATES_0150,BOOST_CHOICES_0150,
  RACE_BOOST_CHOICES_0150,riskChoiceAt,riskCueAt}
- from "../../risk-reward-v0150.mjs";
+ from "../../flight/boost/risk-reward-v0150.mjs";
 import {BOOST_CONFIG,BOOST_PADS,boostPadAt,initBoostState,stepBoostState}
  from "../../flight/boost/boost-v0150.mjs";
 import {GRIP_APEX,TRIAL,CIRCUIT,curvatureAt,gapAt,
@@ -12,8 +12,8 @@ import {GRIP_APEX,TRIAL,CIRCUIT,curvatureAt,gapAt,
  stepFlight} from "../../trial-v0150.mjs";
 import {GLSL_BOOST_PADS,SURFACE_FRAGMENT_GLSL,patchPremiumShaders}
  from "../../rendering/legacy/premium-track-v0150.mjs";
-import {TIME_TRIAL_0150} from "../../time-trial-v0150.mjs";
-import {TIME_TRIAL_0130} from "../../time-trial-v0130.mjs";
+import {TIME_TRIAL_0150} from "../../core/time-trial-v0150.mjs";
+import {TIME_TRIAL_0130} from "../../core/time-trial-v0130.mjs";
 const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 test("two deliberate right-edge choices have a generous safe alternative",()=>{
  assert.equal(RHYTHM_GATES_0150.length,2);

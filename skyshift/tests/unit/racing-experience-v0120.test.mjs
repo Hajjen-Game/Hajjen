@@ -2,9 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {RACING_0121,createRacingExperience,resetRacingExperience,
  observeRacingStep,stepRacingExperience,raceWindowAt,raceRhythmAt,
- racingExperienceAudit} from "../../racing-experience-v0121.mjs";
+ racingExperienceAudit} from "../../core/racing-experience-v0121.mjs";
 import {LANDMARKS_0120,createSectorLandmarkData}
- from "../../sector-landmarks-v0120.mjs";
+ from "../../world/sector-landmarks-v0120.mjs";
 import {positionAt,widthAt} from "../../trial-v0901.mjs";
 
 const mock=(s=780)=>({s,grounded:true,gripIntensity:0,

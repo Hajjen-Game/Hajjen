@@ -3786,18 +3786,25 @@ function syncFullscreenUi(active){
  UI.menuFullscreen.setAttribute("aria-pressed",String(active));
  if(active)UI.fullscreenHelp.classList.add("hidden");
 }
-function fullscreenBlocked(){
+function fullscreenBlocked(error){
  UI.fullscreenHelp.classList.remove("hidden");
- if(uiState.mode!=="menu")flashToast("FULLSCREEN BLOCKED · OPEN IN CHROME",2600);
+ UI.fullscreenHelp.textContent="Fullscreen kunde inte aktiveras ("+(error?.name||"Error")+": "+(error?.message||"okänd orsak")+"). Prova fullscreen-knappen igen i en vanlig webbläsarflik.";
+ if(uiState.mode==="playing")flashToast("FULLSCREEN BLOCKED · TAP FULLSCREEN TO RETRY",3200);
 }
 function installFullscreen(){
  fullscreenController=makeFullscreenController({
    doc:document,root:$("app"),deviceScreen:screen,
    onChange:syncFullscreenUi,
    onBlocked:fullscreenBlocked,
+   userActivation:()=>navigator.userActivation?.isActive??null,
+   viewport:()=>({width:innerWidth,height:innerHeight,screenWidth:screen.width,screenHeight:screen.height,
+    visualWidth:window.visualViewport?.width??null,visualHeight:window.visualViewport?.height??null,
+    canvasWidth:UI.canvas.width,canvasHeight:UI.canvas.height,
+    standalone:matchMedia("(display-mode: standalone)").matches,embedded:window.top!==window}),
    onResize:()=>{resize();runtimeLifetime.once(resize);}
  });
  fullscreenController.sync();
+ if(window.visualViewport)runtimeLifetime.listen(window.visualViewport,"resize",resize);
 }
 function openSettings(){
  if(uiState.mode!=="menu")return;
@@ -3816,7 +3823,7 @@ function closeSettings(){
  refreshTrialMenu();
 }
 function startImmersiveTrial(challenge=null){
- if(!fullscreenController.active())fullscreenController.request(true);
+ if(!fullscreenController.active())fullscreenController.request(false,"start-run");
  enterPlaying(challenge);
 }
 function clearInput(){clearRaceInput(UI,uiState);}
@@ -4483,6 +4490,7 @@ function exportAudit(){
  const data={
    game:"SKYSHIFT",version:VAULT_COMPACT_ACTIVE?VAULT_JUMP_VERSION:SKYSHIFT_BUILD_VERSION,trial:TRIAL.id,exportedAt:new Date().toISOString(),
    ...(endurance?{enduranceAudit:endurance.report()}:{}),
+   fullscreen:{...fullscreenController?.audit(),bootHistory:window.__skyshiftBoot?.fullscreenHistory??[]},
    ...(velocityExperience?{velocityExperience:velocityExperienceAudit()}:{}),
    ...(advancedGpu?{advancedGpu:{...advancedGpu,frame:lastAdvancedGpuFrame,originalBloomScale:neonPipeline.originalBloomResolutionScale}}:{}),
    ...(smartPerformance?{smartPerformance:{...smartPerformance,physicsHz:120,visibility:trackVisibility?.stats(),pacing:presentationGate.stats(),

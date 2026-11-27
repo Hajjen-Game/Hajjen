@@ -25,20 +25,35 @@
   report("STARTFEL: "+boot.error+" · Tryck FÖRSÖK IGEN för att ladda om.",
    "failed");
  }
- function requestFullscreen(){
+ let fullscreenPending=false;
+ boot.fullscreenHistory=[];
+ function fullscreenRecord(event,error){
+  boot.fullscreenHistory.push({event,active:Boolean(document.fullscreenElement||document.webkitFullscreenElement),
+   fullscreenEnabled:document.fullscreenEnabled??document.webkitFullscreenEnabled??null,
+   userActivation:navigator.userActivation?.isActive??null,errorName:error?.name??null,errorMessage:error?.message??null});
+  if(boot.fullscreenHistory.length>16)boot.fullscreenHistory.shift();
+ }
+ function requestFullscreen(enterOnly=false){
   const active=document.fullscreenElement||document.webkitFullscreenElement;
+  if(fullscreenPending||(enterOnly&&active))return;
+  fullscreenRecord(active?"exit-request":"request");
   const invoke=active?
    (document.exitFullscreen||document.webkitExitFullscreen):
    (app.requestFullscreen||app.webkitRequestFullscreen);
   if(typeof invoke!=="function"){
+   fullscreenRecord("denied",new Error("Fullscreen unsupported"));
    report("Fullscreen stöds inte i den här webbläsarvyn. Öppna i Chrome.");
    return;
   }
   try{
+   fullscreenPending=true;
    const result=invoke.call(active?document:app);
-   if(result&&typeof result.catch==="function")
-    result.catch(()=>report("Fullscreen blockerades av webbläsaren. Prova Chrome direkt."));
+   Promise.resolve(result).then(()=>fullscreenRecord("settled")).catch(error=>{
+    fullscreenRecord("denied",error);
+    report("Fullscreen blockerades av webbläsaren. Prova Chrome direkt.");
+   }).finally(()=>{fullscreenPending=false;});
   }catch(e){
+   fullscreenPending=false;fullscreenRecord("denied",e);
    report("Fullscreen blockerades: "+(e.message||"webbläsarbegränsning"));
   }
  }
@@ -51,7 +66,7 @@
   // Preserve the user gesture for fullscreen before loading completes.
   boot.pendingStart=true;boot.pendingMode="time-trial";
   boot.fullscreenRequested=true;
-  requestFullscreen();
+  requestFullscreen(true);
   report("Laddar SKYSHIFT:s 3D-motor. Startar automatiskt när den är klar...");
  },true);
  fullscreen.addEventListener("click",function(e){
